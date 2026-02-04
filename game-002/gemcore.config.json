@@ -1,0 +1,48 @@
+{
+  "_comment": "GemShell config - Edit this file to customize your game build",
+  "app": {
+    "app_name": "m3game",
+    "debug": false,
+    "entrypoint": "index.html",
+    "icon": null,
+    "name": "Match-3 Game - Kaplay",
+    "splash": true,
+    "version": "1.0.0"
+  },
+  "build": {
+    "author": null,
+    "optimization": {
+      "asset_compression": false,
+      "bundle_cdn": false,
+      "code_minification": false,
+      "remove_console_logs": false
+    },
+    "output_path": "C:\\Users\\andre\\OneDrive\\Documents\\gem-shell-builds",
+    "platforms": {
+      "linux": false,
+      "mac": false,
+      "windows": true
+    }
+  },
+  "exclude": [
+    "node_modules",
+    ".git",
+    ".DS_Store",
+    "Thumbs.db"
+  ],
+  "steamworks": {
+    "app_id": 480,
+    "enabled": false
+  },
+  "window": {
+    "always_on_top": false,
+    "frameless": false,
+    "height": 720,
+    "min_height": 600,
+    "min_width": 800,
+    "resizable": false,
+    "start_fullscreen": false,
+    "title": "Match-3 Game - Kaplay",
+    "width": 1280
+  }
+}
