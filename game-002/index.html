@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match-3 Game - Kaplay</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 4px solid white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <script src="kaplay.js"></script>
+    <script>
+        // Initialize Kaplay
+        const k = kaplay({
+            width: 600,
+            height: 700,
+            background: [20, 20, 40]
+        });
+
+        // Game constants
+        const GRID_SIZE = 8;
+        const TILE_SIZE = 60;
+        const GRID_OFFSET_X = 60;
+        const GRID_OFFSET_Y = 120;
+        const GEM_TYPES = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
+
+        // Game state
+        let score = 0;
+        let moves = 30;
+        let selectedTile = null;
+        let grid = [];
+        let isProcessing = false;
+
+        // Color mapping
+        const GEM_COLORS = {
+            'red': rgb(220, 50, 50),
+            'blue': rgb(50, 120, 220),
+            'green': rgb(50, 200, 80),
+            'yellow': rgb(255, 220, 50),
+            'purple': rgb(180, 80, 180),
+            'orange': rgb(255, 140, 50)
+        };
+
+        // Create a gem sprite
+        function createGem(x, y, type) {
+            return k.add([
+                k.rect(TILE_SIZE - 10, TILE_SIZE - 10, { radius: 8 }),
+                k.pos(
+                    GRID_OFFSET_X + x * TILE_SIZE + 5,
+                    GRID_OFFSET_Y + y * TILE_SIZE + 5
+                ),
+                k.color(GEM_COLORS[type]),
+                k.area(),
+                k.anchor("topleft"),
+                k.outline(3, rgb(255, 255, 255)),
+                {
+                    gridX: x,
+                    gridY: y,
+                    gemType: type,
+                    isGem: true
+                }
+            ]);
+        }
+
+        // Initialize grid
+        function initGrid() {
+            grid = [];
+            for (let y = 0; y < GRID_SIZE; y++) {
+                grid[y] = [];
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    let type;
+                    do {
+                        type = k.choose(GEM_TYPES);
+                    } while (wouldCreateMatch(x, y, type));
+
+                    grid[y][x] = createGem(x, y, type);
+                }
+            }
+        }
+
+        // Check if placing a gem would create a match
+        function wouldCreateMatch(x, y, type) {
+            // Check horizontal
+            let countLeft = 0;
+            for (let i = x - 1; i >= 0; i--) {
+                if (grid[y] && grid[y][i] && grid[y][i].gemType === type) {
+                    countLeft++;
+                } else {
+                    break;
+                }
+            }
+
+            let countRight = 0;
+            for (let i = x + 1; i < GRID_SIZE; i++) {
+                if (grid[y] && grid[y][i] && grid[y][i].gemType === type) {
+                    countRight++;
+                } else {
+                    break;
+                }
+            }
+
+            if (countLeft + countRight >= 2) return true;
+
+            // Check vertical
+            let countUp = 0;
+            for (let i = y - 1; i >= 0; i--) {
+                if (grid[i] && grid[i][x] && grid[i][x].gemType === type) {
+                    countUp++;
+                } else {
+                    break;
+                }
+            }
+
+            let countDown = 0;
+            for (let i = y + 1; i < GRID_SIZE; i++) {
+                if (grid[i] && grid[i][x] && grid[i][x].gemType === type) {
+                    countDown++;
+                } else {
+                    break;
+                }
+            }
+
+            if (countUp + countDown >= 2) return true;
+
+            return false;
+        }
+
+        // Find all matches on the board
+        function findMatches() {
+            let matches = [];
+
+            // Check horizontal matches
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE - 2; x++) {
+                    let type = grid[y][x].gemType;
+                    let matchCount = 1;
+
+                    for (let i = x + 1; i < GRID_SIZE; i++) {
+                        if (grid[y][i].gemType === type) {
+                            matchCount++;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    if (matchCount >= 3) {
+                        for (let i = 0; i < matchCount; i++) {
+                            if (!matches.includes(grid[y][x + i])) {
+                                matches.push(grid[y][x + i]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Check vertical matches
+            for (let x = 0; x < GRID_SIZE; x++) {
+                for (let y = 0; y < GRID_SIZE - 2; y++) {
+                    let type = grid[y][x].gemType;
+                    let matchCount = 1;
+
+                    for (let i = y + 1; i < GRID_SIZE; i++) {
+                        if (grid[i][x].gemType === type) {
+                            matchCount++;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    if (matchCount >= 3) {
+                        for (let i = 0; i < matchCount; i++) {
+                            if (!matches.includes(grid[y + i][x])) {
+                                matches.push(grid[y + i][x]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return matches;
+        }
+
+        // Remove matched gems
+        async function removeMatches(matches) {
+            if (matches.length === 0) return false;
+
+            score += matches.length * 10;
+
+            // Animate and destroy
+            for (let gem of matches) {
+                grid[gem.gridY][gem.gridX] = null;
+                k.destroy(gem);
+            }
+
+            await k.wait(0.2);
+            return true;
+        }
+
+        // Apply gravity
+        async function applyGravity() {
+            let moved = false;
+
+            for (let x = 0; x < GRID_SIZE; x++) {
+                let emptySpaces = 0;
+
+                for (let y = GRID_SIZE - 1; y >= 0; y--) {
+                    if (!grid[y][x] || grid[y][x].paused) {
+                        emptySpaces++;
+                    } else if (emptySpaces > 0) {
+                        let gem = grid[y][x];
+                        let newY = y + emptySpaces;
+
+                        grid[y][x] = null;
+                        grid[newY][x] = gem;
+                        gem.gridY = newY;
+
+                        k.tween(
+                            gem.pos.y,
+                            GRID_OFFSET_Y + newY * TILE_SIZE + 5,
+                            0.3,
+                            (val) => gem.pos.y = val,
+                            k.easings.easeOutBounce
+                        );
+
+                        moved = true;
+                    }
+                }
+            }
+
+            if (moved) await k.wait(0.3);
+            return moved;
+        }
+
+        // Fill empty spaces
+        async function fillEmptySpaces() {
+            let filled = false;
+
+            for (let x = 0; x < GRID_SIZE; x++) {
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    if (!grid[y][x] || grid[y][x].paused) {
+                        let type = k.choose(GEM_TYPES);
+                        let gem = createGem(x, y - GRID_SIZE, type);
+                        gem.gridY = y;
+                        grid[y][x] = gem;
+
+                        k.tween(
+                            gem.pos.y,
+                            GRID_OFFSET_Y + y * TILE_SIZE + 5,
+                            0.4,
+                            (val) => gem.pos.y = val,
+                            k.easings.easeOutBounce
+                        );
+
+                        filled = true;
+                    }
+                }
+            }
+
+            if (filled) await k.wait(0.4);
+            return filled;
+        }
+
+        // Process matches
+        async function processMatches() {
+            isProcessing = true;
+            let foundMatches = true;
+
+            while (foundMatches) {
+                let matches = findMatches();
+                if (matches.length > 0) {
+                    await removeMatches(matches);
+                    await applyGravity();
+                    await fillEmptySpaces();
+                } else {
+                    foundMatches = false;
+                }
+            }
+
+            isProcessing = false;
+        }
+
+        // Swap two gems
+        async function swapGems(gem1, gem2) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            let tempX = gem1.gridX;
+            let tempY = gem1.gridY;
+
+            grid[gem1.gridY][gem1.gridX] = gem2;
+            grid[gem2.gridY][gem2.gridX] = gem1;
+
+            gem1.gridX = gem2.gridX;
+            gem1.gridY = gem2.gridY;
+            gem2.gridX = tempX;
+            gem2.gridY = tempY;
+
+            // Animate swap
+            let gem1TargetX = GRID_OFFSET_X + gem1.gridX * TILE_SIZE + 5;
+            let gem1TargetY = GRID_OFFSET_Y + gem1.gridY * TILE_SIZE + 5;
+            let gem2TargetX = GRID_OFFSET_X + gem2.gridX * TILE_SIZE + 5;
+            let gem2TargetY = GRID_OFFSET_Y + gem2.gridY * TILE_SIZE + 5;
+
+            k.tween(gem1.pos.x, gem1TargetX, 0.2, (val) => gem1.pos.x = val, k.easings.linear);
+            k.tween(gem1.pos.y, gem1TargetY, 0.2, (val) => gem1.pos.y = val, k.easings.linear);
+            k.tween(gem2.pos.x, gem2TargetX, 0.2, (val) => gem2.pos.x = val, k.easings.linear);
+            k.tween(gem2.pos.y, gem2TargetY, 0.2, (val) => gem2.pos.y = val, k.easings.linear);
+
+            await k.wait(0.2);
+
+            // Check for matches
+            let matches = findMatches();
+
+            if (matches.length > 0) {
+                moves--;
+                await processMatches();
+            } else {
+                // Swap back
+                grid[gem1.gridY][gem1.gridX] = gem2;
+                grid[gem2.gridY][gem2.gridX] = gem1;
+
+                let temp = gem1.gridX;
+                gem1.gridX = gem2.gridX;
+                gem2.gridX = temp;
+
+                temp = gem1.gridY;
+                gem1.gridY = gem2.gridY;
+                gem2.gridY = temp;
+
+                gem1TargetX = GRID_OFFSET_X + gem1.gridX * TILE_SIZE + 5;
+                gem1TargetY = GRID_OFFSET_Y + gem1.gridY * TILE_SIZE + 5;
+                gem2TargetX = GRID_OFFSET_X + gem2.gridX * TILE_SIZE + 5;
+                gem2TargetY = GRID_OFFSET_Y + gem2.gridY * TILE_SIZE + 5;
+
+                k.tween(gem1.pos.x, gem1TargetX, 0.2, (val) => gem1.pos.x = val, k.easings.linear);
+                k.tween(gem1.pos.y, gem1TargetY, 0.2, (val) => gem1.pos.y = val, k.easings.linear);
+                k.tween(gem2.pos.x, gem2TargetX, 0.2, (val) => gem2.pos.x = val, k.easings.linear);
+                k.tween(gem2.pos.y, gem2TargetY, 0.2, (val) => gem2.pos.y = val, k.easings.linear);
+
+                await k.wait(0.2);
+            }
+
+            isProcessing = false;
+        }
+
+        // Game scene
+        k.scene("game", () => {
+            // Title
+            k.add([
+                k.text("MATCH-3", { size: 48, font: "sans-serif" }),
+                k.pos(k.width() / 2, 40),
+                k.anchor("center"),
+                k.color(255, 255, 255)
+            ]);
+
+            // Score display
+            const scoreText = k.add([
+                k.text("Score: 0", { size: 24 }),
+                k.pos(20, 80),
+                k.color(255, 255, 255)
+            ]);
+
+            // Moves display
+            const movesText = k.add([
+                k.text("Moves: 30", { size: 24 }),
+                k.pos(k.width() - 20, 80),
+                k.anchor("topright"),
+                k.color(255, 255, 255)
+            ]);
+
+            k.onUpdate(() => {
+                scoreText.text = `Score: ${score}`;
+                movesText.text = `Moves: ${moves}`;
+
+                if (moves <= 0 && !isProcessing) {
+                    k.go("gameover");
+                }
+            });
+
+            // Initialize grid
+            initGrid();
+
+            // Handle clicks
+            k.onClick(() => {
+                if (isProcessing) return;
+
+                let clicked = k.get("*").filter(obj =>
+                    obj.isGem && obj.isHovering()
+                );
+
+                if (clicked.length > 0) {
+                    let gem = clicked[0];
+
+                    if (!selectedTile) {
+                        selectedTile = gem;
+                        selectedTile.opacity = 0.7;
+                    } else {
+                        let dx = Math.abs(gem.gridX - selectedTile.gridX);
+                        let dy = Math.abs(gem.gridY - selectedTile.gridY);
+
+                        if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
+                            swapGems(selectedTile, gem);
+                        }
+
+                        selectedTile.opacity = 1;
+                        selectedTile = null;
+                    }
+                }
+            });
+        });
+
+        // Game over scene
+        k.scene("gameover", () => {
+            k.add([
+                k.text("GAME OVER", { size: 64, font: "sans-serif" }),
+                k.pos(k.width() / 2, k.height() / 2 - 80),
+                k.anchor("center"),
+                k.color(255, 100, 100)
+            ]);
+
+            k.add([
+                k.text(`Final Score: ${score}`, { size: 32 }),
+                k.pos(k.width() / 2, k.height() / 2),
+                k.anchor("center"),
+                k.color(255, 255, 255)
+            ]);
+
+            k.add([
+                k.text("Click to Play Again", { size: 24 }),
+                k.pos(k.width() / 2, k.height() / 2 + 80),
+                k.anchor("center"),
+                k.color(200, 200, 200)
+            ]);
+
+            k.onClick(() => {
+                score = 0;
+                moves = 30;
+                selectedTile = null;
+                grid = [];
+                isProcessing = false;
+                k.go("game");
+            });
+        });
+
+        // Start the game
+        k.go("game");
+    </script>
+</body>
+</html>

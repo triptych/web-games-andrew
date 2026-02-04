@@ -1,0 +1,31 @@
+{
+  "name": "Space Shooter",
+  "short_name": "Space Shooter",
+  "description": "Classic arcade space shooter! Control your spaceship with arrow keys and shoot enemies with the space bar. Survive as long as you can and rack up the highest score!",
+  "version": "1.0.0",
+  "game_type": "arcade",
+  "tags": ["arcade", "action", "shooter", "space"],
+  "controls": {
+    "type": "keyboard",
+    "keys": {
+      "ArrowLeft": "Move left",
+      "ArrowRight": "Move right",
+      "Space": "Shoot"
+    }
+  },
+  "display": {
+    "width": 800,
+    "height": 600,
+    "orientation": "landscape"
+  },
+  "start_url": "index.html",
+  "icon": "🚀",
+  "theme_color": "#1a1a3a",
+  "background_color": "#0a0a1a",
+  "features": [
+    "Score tracking",
+    "Progressive difficulty",
+    "Restart capability",
+    "Collision detection"
+  ]
+}

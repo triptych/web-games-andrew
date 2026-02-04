@@ -1,0 +1,45 @@
+{
+  "name": "Match-3 Puzzle",
+  "short_name": "Match-3",
+  "description": "Match three or more gems of the same color to score points! You have 30 moves to get the highest score possible. Strategic puzzle fun!",
+  "version": "1.0.1",
+  "game_type": "puzzle",
+  "tags": ["puzzle", "match-3", "strategy", "casual"],
+  "controls": {
+    "type": "mouse",
+    "description": "Click gems to select and swap adjacent pieces"
+  },
+  "display": {
+    "width": 600,
+    "height": 700,
+    "orientation": "portrait"
+  },
+  "start_url": "index.html",
+  "icon": "💎",
+  "theme_color": "#764ba2",
+  "background_color": "#667eea",
+  "features": [
+    "8x8 grid gameplay",
+    "Score tracking",
+    "Move counter",
+    "Cascade matching",
+    "Smooth animations",
+    "Game over screen"
+  ],
+  "engine": "Kaplay",
+  "changelog": [
+    {
+      "version": "1.0.1",
+      "date": "2026-02-03",
+      "changes": [
+        "Fixed scoring bug where score would continuously increase after first match"
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "changes": [
+        "Initial release"
+      ]
+    }
+  ]
+}
