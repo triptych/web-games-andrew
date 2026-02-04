@@ -5,9 +5,9 @@
     "debug": false,
     "entrypoint": "index.html",
     "icon": null,
-    "name": "Match-3 Game - Kaplay",
+    "name": "Match-3 Puzzle",
     "splash": true,
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "build": {
     "author": null,
@@ -42,7 +42,7 @@
     "min_width": 800,
     "resizable": false,
     "start_fullscreen": false,
-    "title": "Match-3 Game - Kaplay",
+    "title": "Match-3 Puzzle",
     "width": 1280
   }
 }

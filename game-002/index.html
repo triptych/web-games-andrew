@@ -24,6 +24,180 @@
 <body>
     <script src="kaplay.js"></script>
     <script>
+        // Web Audio API - Sound Effects Module
+        const SoundFX = {
+            audioContext: null,
+
+            init() {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            },
+
+            // Resume audio context (required for some browsers)
+            resume() {
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+            },
+
+            // Gem selection sound - soft click
+            select() {
+                this.resume();
+                const ctx = this.audioContext;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.05);
+
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.05);
+            },
+
+            // Gem swap sound
+            swap() {
+                this.resume();
+                const ctx = this.audioContext;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(600, ctx.currentTime + 0.1);
+
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            },
+
+            // Match sound - varies by match size
+            match(matchSize = 3) {
+                this.resume();
+                const ctx = this.audioContext;
+                const baseFreq = 400 + (matchSize - 3) * 100;
+
+                // Create multiple oscillators for a richer sound
+                for (let i = 0; i < 2; i++) {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+
+                    osc.type = i === 0 ? 'sine' : 'triangle';
+                    osc.frequency.setValueAtTime(baseFreq + i * 200, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5 + i * 200, ctx.currentTime + 0.15);
+
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.02);
+                    osc.stop(ctx.currentTime + 0.15);
+                }
+            },
+
+            // Invalid swap sound
+            invalid() {
+                this.resume();
+                const ctx = this.audioContext;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(150, ctx.currentTime + 0.15);
+
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.15);
+            },
+
+            // Gem fall sound
+            fall() {
+                this.resume();
+                const ctx = this.audioContext;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.2);
+
+                gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.2);
+            },
+
+            // Game over sound
+            gameOver() {
+                this.resume();
+                const ctx = this.audioContext;
+
+                // Descending tone sequence
+                const notes = [400, 350, 300, 250];
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+                    gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.15);
+                    gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + i * 0.15 + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.15 + 0.15);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.15);
+                    osc.stop(ctx.currentTime + i * 0.15 + 0.15);
+                });
+            },
+
+            // New game sound
+            newGame() {
+                this.resume();
+                const ctx = this.audioContext;
+
+                // Ascending tone sequence
+                const notes = [300, 400, 500, 600];
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+                    gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.1);
+                    gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + i * 0.1 + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.1);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.1);
+                    osc.stop(ctx.currentTime + i * 0.1 + 0.1);
+                });
+            }
+        };
+
+        // Initialize sound effects
+        SoundFX.init();
+
         // Initialize Kaplay
         const k = kaplay({
             width: 600,
@@ -200,6 +374,9 @@
 
             score += matches.length * 10;
 
+            // Play match sound based on match size
+            SoundFX.match(matches.length);
+
             // Animate and destroy
             for (let gem of matches) {
                 grid[gem.gridY][gem.gridX] = null;
@@ -241,7 +418,10 @@
                 }
             }
 
-            if (moved) await k.wait(0.3);
+            if (moved) {
+                SoundFX.fall();
+                await k.wait(0.3);
+            }
             return moved;
         }
 
@@ -298,6 +478,9 @@
             if (isProcessing) return;
             isProcessing = true;
 
+            // Play swap sound
+            SoundFX.swap();
+
             let tempX = gem1.gridX;
             let tempY = gem1.gridY;
 
@@ -329,6 +512,9 @@
                 moves--;
                 await processMatches();
             } else {
+                // Invalid swap - play error sound
+                SoundFX.invalid();
+
                 // Swap back
                 grid[gem1.gridY][gem1.gridX] = gem2;
                 grid[gem2.gridY][gem2.gridX] = gem1;
@@ -387,12 +573,16 @@
                 movesText.text = `Moves: ${moves}`;
 
                 if (moves <= 0 && !isProcessing) {
+                    SoundFX.gameOver();
                     k.go("gameover");
                 }
             });
 
             // Initialize grid
             initGrid();
+
+            // Play new game sound
+            SoundFX.newGame();
 
             // Handle clicks
             k.onClick(() => {
@@ -406,6 +596,8 @@
                     let gem = clicked[0];
 
                     if (!selectedTile) {
+                        // Play select sound
+                        SoundFX.select();
                         selectedTile = gem;
                         selectedTile.opacity = 0.7;
                     } else {
@@ -414,6 +606,13 @@
 
                         if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
                             swapGems(selectedTile, gem);
+                        } else {
+                            // Deselect and select new gem
+                            SoundFX.select();
+                            selectedTile.opacity = 1;
+                            selectedTile = gem;
+                            selectedTile.opacity = 0.7;
+                            return;
                         }
 
                         selectedTile.opacity = 1;
@@ -447,6 +646,7 @@
             ]);
 
             k.onClick(() => {
+                SoundFX.newGame();
                 score = 0;
                 moves = 30;
                 selectedTile = null;

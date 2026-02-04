@@ -32,7 +32,8 @@
       "version": "1.0.1",
       "date": "2026-02-03",
       "changes": [
-        "Fixed scoring bug where score would continuously increase after first match"
+        "Fixed scoring bug where score would continuously increase after first match",
+        "Synchronized gemcore.config.json with manifest.json (updated game name and version)"
       ]
     },
     {
