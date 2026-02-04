@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Game Browser Refactoring**: Restructured main index.html into modular components
+  - Separated HTML, CSS, and JavaScript into dedicated files
+  - Created [css/styles.css](css/styles.css) for all styling
+  - Created [js/main.js](js/main.js) with modular ES6 classes
+  - Created [js/gamedata.js](js/gamedata.js) for centralized game configuration
+  - Implemented `GameRenderer` class for dynamic card generation from data
+  - Implemented `GameLauncher` class for game launch handling
+  - Replaced hard-coded HTML game cards with template-based dynamic rendering
+  - Added event-driven architecture using `addEventListener` instead of inline handlers
+  - Improved maintainability and scalability for future game additions
+
 ## [1.0.0] - 2026-02-03
 
 ### Added
