@@ -1,0 +1,158 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    padding: 20px;
+}
+
+#game-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+#header {
+    background-color: #2a2a2a;
+    padding: 15px;
+    border-radius: 8px 8px 0 0;
+    border: 2px solid #444;
+    border-bottom: none;
+}
+
+#header h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #4CAF50;
+}
+
+#status-bar {
+    display: flex;
+    gap: 30px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#status-bar span {
+    padding: 5px 10px;
+    background-color: #1a1a1a;
+    border-radius: 4px;
+}
+
+#player-hp {
+    color: #ff4444;
+}
+
+#player-level {
+    color: #4CAF50;
+}
+
+#dungeon-depth {
+    color: #ffa726;
+}
+
+#turn-count {
+    color: #64b5f6;
+}
+
+#main-content {
+    display: flex;
+    gap: 20px;
+    background-color: #2a2a2a;
+    padding: 20px;
+    border: 2px solid #444;
+    border-radius: 0 0 8px 8px;
+}
+
+#game-canvas {
+    background-color: #000;
+    border: 2px solid #555;
+    border-radius: 4px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+#side-panel {
+    flex: 1;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#message-log, #controls-help {
+    background-color: #1a1a1a;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #444;
+}
+
+#message-log h3, #controls-help h3 {
+    color: #4CAF50;
+    margin-bottom: 10px;
+    font-size: 18px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+}
+
+#messages {
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+#messages p {
+    margin: 5px 0;
+    padding: 3px 5px;
+    border-radius: 2px;
+}
+
+#messages p:hover {
+    background-color: #2a2a2a;
+}
+
+#controls-help ul {
+    list-style: none;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+#controls-help ul li {
+    padding: 3px 0;
+    color: #ccc;
+}
+
+/* Scrollbar styling */
+#messages::-webkit-scrollbar {
+    width: 8px;
+}
+
+#messages::-webkit-scrollbar-track {
+    background: #2a2a2a;
+}
+
+#messages::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
+
+#messages::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    #main-content {
+        flex-direction: column;
+    }
+    
+    #game-canvas {
+        width: 100%;
+        height: auto;
+    }
+}

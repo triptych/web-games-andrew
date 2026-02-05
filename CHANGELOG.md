@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **NetHack-Style Roguelike** (game-003): Classic dungeon crawler with procedural generation - Phase 1 Complete
+  - Procedural dungeon generation using room-and-corridor algorithm
+  - 8-directional player movement (Arrow keys, WASD, Q/E/Z/C for diagonals)
+  - ASCII-style rendering on HTML5 canvas
+  - Turn-based gameplay system
+  - Camera following player with smooth scrolling
+  - Message log with color-coded events
+  - Status bar tracking HP, Level, Depth, and Turn count
+  - Collision detection and wall boundaries
+  - Modular ES6 architecture ready for expansion
+  - Files: [game-003/index.html](game-003/index.html), [game-003/styles.css](game-003/styles.css), [game-003/js/](game-003/js/)
+
 ### Changed
 - **Game Browser Refactoring**: Restructured main index.html into modular components
   - Separated HTML, CSS, and JavaScript into dedicated files

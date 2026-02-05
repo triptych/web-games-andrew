@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetHack-Style Roguelike</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="header">
+            <h1>NetHack-Style Roguelike</h1>
+            <div id="status-bar">
+                <span id="player-hp">HP: 100/100</span>
+                <span id="player-level">Level: 1</span>
+                <span id="dungeon-depth">Depth: 1</span>
+                <span id="turn-count">Turn: 0</span>
+            </div>
+        </div>
+        
+        <div id="main-content">
+            <canvas id="game-canvas" width="800" height="600"></canvas>
+            
+            <div id="side-panel">
+                <div id="message-log">
+                    <h3>Messages</h3>
+                    <div id="messages"></div>
+                </div>
+                
+                <div id="controls-help">
+                    <h3>Controls</h3>
+                    <ul>
+                        <li>Arrow Keys / WASD - Move</li>
+                        <li>Q/E - Diagonal Movement</li>
+                        <li>Space - Wait/Rest</li>
+                        <li>? - Help (coming soon)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

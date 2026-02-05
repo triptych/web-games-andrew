@@ -1,0 +1,54 @@
+// Input.js - Keyboard input handling
+
+export class Input {
+    constructor(game) {
+        this.game = game;
+        this.keyMap = {
+            // Arrow keys
+            'ArrowUp': { dx: 0, dy: -1 },
+            'ArrowDown': { dx: 0, dy: 1 },
+            'ArrowLeft': { dx: -1, dy: 0 },
+            'ArrowRight': { dx: 1, dy: 0 },
+            
+            // WASD
+            'w': { dx: 0, dy: -1 },
+            's': { dx: 0, dy: 1 },
+            'a': { dx: -1, dy: 0 },
+            'd': { dx: 1, dy: 0 },
+            'W': { dx: 0, dy: -1 },
+            'S': { dx: 0, dy: 1 },
+            'A': { dx: -1, dy: 0 },
+            'D': { dx: 1, dy: 0 },
+            
+            // Diagonal movement (numpad-style)
+            'q': { dx: -1, dy: -1 }, // Up-left
+            'e': { dx: 1, dy: -1 },  // Up-right
+            'z': { dx: -1, dy: 1 },  // Down-left
+            'c': { dx: 1, dy: 1 },   // Down-right
+            'Q': { dx: -1, dy: -1 },
+            'E': { dx: 1, dy: -1 },
+            'Z': { dx: -1, dy: 1 },
+            'C': { dx: 1, dy: 1 },
+            
+            // Wait/rest
+            ' ': { dx: 0, dy: 0 },
+            '.': { dx: 0, dy: 0 }
+        };
+        
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+    }
+
+    handleKeyDown(event) {
+        const key = event.key;
+        
+        if (this.keyMap[key]) {
+            event.preventDefault();
+            const { dx, dy } = this.keyMap[key];
+            this.game.handlePlayerMove(dx, dy);
+        }
+    }
+}
