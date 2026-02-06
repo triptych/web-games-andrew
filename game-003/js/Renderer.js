@@ -36,6 +36,20 @@ export class Renderer {
         }
     }
 
+    drawMonsters(monsters, cameraX, cameraY) {
+        for (const monster of monsters) {
+            if (monster.isDead) continue;
+            
+            const screenX = monster.x - cameraX;
+            const screenY = monster.y - cameraY;
+            
+            if (screenX >= 0 && screenX < this.viewWidth && 
+                screenY >= 0 && screenY < this.viewHeight) {
+                this.drawTile(screenX, screenY, monster.char, monster.color);
+            }
+        }
+    }
+
     drawPlayer(player, cameraX, cameraY) {
         const screenX = player.x - cameraX;
         const screenY = player.y - cameraY;
@@ -80,12 +94,13 @@ export class Renderer {
         return { x: camX, y: camY };
     }
 
-    render(map, player) {
+    render(map, player, monsters = []) {
         this.clear();
         
         const camera = this.getCameraPosition(player, map.width, map.height);
         
         this.drawMap(map, camera.x, camera.y);
+        this.drawMonsters(monsters, camera.x, camera.y);
         this.drawPlayer(player, camera.x, camera.y);
     }
 }

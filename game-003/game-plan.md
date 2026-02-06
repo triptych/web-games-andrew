@@ -138,18 +138,18 @@ class MessageLog { }    // Message history
 ## Development Phases
 
 ### Phase 1: Core Engine (MVP)
-- [ ] Basic dungeon generation (rooms + corridors)
-- [ ] Player movement (4-8 directions)
-- [ ] Simple rendering (ASCII characters)
-- [ ] Collision detection (walls)
-- [ ] Turn-based system
+- [x] Basic dungeon generation (rooms + corridors)
+- [x] Player movement (4-8 directions)
+- [x] Simple rendering (ASCII characters)
+- [x] Collision detection (walls)
+- [x] Turn-based system
 
 ### Phase 2: Combat & Enemies
-- [ ] Monster spawning
-- [ ] Basic AI (chase player)
-- [ ] Melee combat
-- [ ] HP/damage system
-- [ ] Death/game over
+- [x] Monster spawning
+- [x] Basic AI (chase player)
+- [x] Melee combat
+- [x] HP/damage system
+- [x] Death/game over
 
 ### Phase 3: Items & Inventory
 - [ ] Item entities on map

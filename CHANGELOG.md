@@ -8,16 +8,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **NetHack-Style Roguelike** (game-003): Classic dungeon crawler with procedural generation - Phase 1 Complete
+- **NetHack-Style Roguelike** (game-003): Phase 2 - Combat & Monster System Complete
+  - **Monster System**: 5 different monster types (rat, goblin, snake, orc, troll)
+    - Each monster has unique stats: HP, attack, defense, XP rewards
+    - ASCII characters and colors for visual distinction
+    - Monster AI with pathfinding and chase behavior (10-tile range)
+    - Smart movement that routes around walls and obstacles
+  - **Combat System**: Turn-based combat mechanics
+    - Attack by moving into monsters (bump-to-attack)
+    - Monsters retaliate and chase player
+    - Damage calculation with defense stats
+    - Color-coded combat messages in log
+  - **Experience & Leveling System**:
+    - XP tracking and level progression
+    - Level-up rewards: +10 HP, +2 ATK, +1 DEF, full heal
+    - Scaling XP requirements (1.5x per level)
+    - XP display in status bar
+  - **Monster Spawning**: 5-10 monsters per dungeon level with weighted distribution
+  - Files: Added [game-003/js/Monster.js](game-003/js/Monster.js), updated Game.js, Player.js, Renderer.js, index.html
+  
+- **NetHack-Style Roguelike** (game-003): Phase 1 - Core Dungeon Crawler
   - Procedural dungeon generation using room-and-corridor algorithm
   - 8-directional player movement (Arrow keys, WASD, Q/E/Z/C for diagonals)
   - ASCII-style rendering on HTML5 canvas
   - Turn-based gameplay system
   - Camera following player with smooth scrolling
   - Message log with color-coded events
-  - Status bar tracking HP, Level, Depth, and Turn count
+  - Status bar tracking HP, Level, XP, Depth, and Turn count
   - Collision detection and wall boundaries
-  - Modular ES6 architecture ready for expansion
+  - Modular ES6 architecture
   - Files: [game-003/index.html](game-003/index.html), [game-003/styles.css](game-003/styles.css), [game-003/js/](game-003/js/)
 
 ### Changed

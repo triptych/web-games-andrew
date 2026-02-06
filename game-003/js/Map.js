@@ -89,6 +89,22 @@ export class Map {
         return this.rooms.length > 0 ? this.rooms[0].center() : { x: 1, y: 1 };
     }
 
+    getRandomFloorPosition(excludeFirstRoom = false) {
+        // Get a random room (optionally exclude first room for monster placement)
+        const startIndex = excludeFirstRoom ? 1 : 0;
+        if (this.rooms.length <= startIndex) {
+            return null;
+        }
+
+        const room = this.rooms[startIndex + Math.floor(Math.random() * (this.rooms.length - startIndex))];
+        
+        // Get random position within room
+        const x = room.x + 1 + Math.floor(Math.random() * (room.width - 2));
+        const y = room.y + 1 + Math.floor(Math.random() * (room.height - 2));
+        
+        return { x, y };
+    }
+
     carveRoom(room) {
         for (let y = room.y; y < room.y + room.height; y++) {
             for (let x = room.x; x < room.x + room.width; x++) {
