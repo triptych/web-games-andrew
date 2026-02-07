@@ -104,6 +104,41 @@ export class Item {
             quantity: this.quantity
         });
     }
+
+    serialize() {
+        return {
+            x: this.x,
+            y: this.y,
+            type: this.type,
+            subtype: this.subtype,
+            name: this.name,
+            rarity: this.rarity,
+            attackBonus: this.attackBonus,
+            defenseBonus: this.defenseBonus,
+            hpBonus: this.hpBonus,
+            healAmount: this.healAmount,
+            effect: this.effect,
+            value: this.value,
+            weight: this.weight,
+            stackable: this.stackable,
+            quantity: this.quantity
+        };
+    }
+
+    static deserialize(data) {
+        return new Item(data.x, data.y, data.type, data.subtype, data.name, {
+            rarity: data.rarity,
+            attackBonus: data.attackBonus,
+            defenseBonus: data.defenseBonus,
+            hpBonus: data.hpBonus,
+            healAmount: data.healAmount,
+            effect: data.effect,
+            value: data.value,
+            weight: data.weight,
+            stackable: data.stackable,
+            quantity: data.quantity
+        });
+    }
 }
 
 // Item Templates

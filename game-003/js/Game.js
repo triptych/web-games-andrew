@@ -6,15 +6,15 @@ import { Monster } from './Monster.js';
 import { Renderer } from './Renderer.js';
 import { MessageLog } from './MessageLog.js';
 import { Input } from './Input.js';
-import { createRandomItem, ItemType } from './Item.js';
+import { createRandomItem, ItemType, Item } from './Item.js';
 
 export class Game {
-    constructor(canvas, messageElement) {
+    constructor(canvas, messageElement, loadFromSave = false) {
         this.canvas = canvas;
         this.renderer = new Renderer(canvas);
         this.messageLog = new MessageLog(messageElement);
         this.input = new Input(this);
-        
+
         this.map = null;
         this.player = null;
         this.monsters = [];
@@ -23,8 +23,12 @@ export class Game {
         this.depth = 1;
         this.gameState = 'playing'; // 'playing', 'game_over', 'victory'
         this.showInventory = false;
-        
-        this.init();
+
+        if (loadFromSave) {
+            this.loadGame();
+        } else {
+            this.init();
+        }
     }
 
     init() {
@@ -354,5 +358,71 @@ export class Game {
         this.gameState = 'playing';
         this.messageLog.clear();
         this.init();
+    }
+
+    saveGame() {
+        try {
+            const saveData = {
+                player: this.player.serialize(),
+                monsters: this.monsters.map(m => m.serialize()),
+                items: this.items.map(i => i.serialize()),
+                mapData: this.map.serialize(),
+                turnCount: this.turnCount,
+                depth: this.depth,
+                gameState: this.gameState,
+                timestamp: Date.now()
+            };
+
+            localStorage.setItem('roguelike_save', JSON.stringify(saveData));
+            this.messageLog.add('Game saved!', '#4CAF50');
+            console.log('Game saved successfully');
+        } catch (error) {
+            console.error('Failed to save game:', error);
+            this.messageLog.add('Failed to save game!', '#FF6666');
+        }
+    }
+
+    loadGame() {
+        try {
+            const saveData = JSON.parse(localStorage.getItem('roguelike_save'));
+
+            if (!saveData) {
+                console.error('No save data found!');
+                this.init();
+                return;
+            }
+
+            // Restore map
+            this.map = new Map(80, 50);
+            this.map.deserialize(saveData.mapData);
+
+            // Restore player (pass Item class for inventory deserialization)
+            this.player = Player.deserialize(saveData.player, Item);
+
+            // Restore monsters
+            this.monsters = saveData.monsters.map(data => Monster.deserialize(data));
+
+            // Restore items
+            this.items = saveData.items.map(data => Item.deserialize(data));
+
+            // Restore game state
+            this.turnCount = saveData.turnCount;
+            this.depth = saveData.depth;
+            this.gameState = saveData.gameState;
+
+            // Welcome back message
+            this.messageLog.add('Game loaded successfully!', '#4CAF50');
+            this.messageLog.add(`Turn ${this.turnCount} - Depth ${this.depth}`, '#FFFF88');
+
+            // Initial render
+            this.render();
+            this.updateUI();
+
+            console.log('Game loaded successfully');
+        } catch (error) {
+            console.error('Failed to load game:', error);
+            this.messageLog.add('Failed to load game! Starting new game...', '#FF6666');
+            this.init();
+        }
     }
 }

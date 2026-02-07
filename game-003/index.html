@@ -7,7 +7,24 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="game-container">
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div id="splash-content">
+            <h1 id="splash-title">NetHack-Style Roguelike</h1>
+            <div id="splash-subtitle">Descend into the Depths</div>
+            <div id="splash-menu">
+                <button id="btn-new-game" class="menu-button">New Game</button>
+                <button id="btn-load-game" class="menu-button" disabled>Load Game</button>
+                <button id="btn-quit" class="menu-button">Quit</button>
+            </div>
+            <div id="splash-footer">
+                <p>Use arrow keys or WASD to move • G to pick up items • I for inventory</p>
+                <p>Fight monsters, collect loot, and survive the dungeon!</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-container" style="display: none;">
         <div id="header">
             <h1>NetHack-Style Roguelike</h1>
             <div id="status-bar">
@@ -44,6 +61,7 @@
                         <li>I - Open/close inventory</li>
                         <li>D - Drop item</li>
                         <li>1-9 - Use/equip item (in inventory)</li>
+                        <li>Ctrl+S - Save game</li>
                     </ul>
                 </div>
             </div>

@@ -44,20 +44,27 @@ export class Input {
 
     handleKeyDown(event) {
         const key = event.key;
-        
+
+        // Handle save game (Ctrl+S or Cmd+S)
+        if ((event.ctrlKey || event.metaKey) && (key === 's' || key === 'S')) {
+            event.preventDefault();
+            this.game.saveGame();
+            return;
+        }
+
         // Handle inventory controls
         if (key === 'i' || key === 'I') {
             event.preventDefault();
             this.game.toggleInventory();
             return;
         }
-        
+
         if (key === 'g' || key === 'G') {
             event.preventDefault();
             this.game.handlePickup();
             return;
         }
-        
+
         if (key === 'd' || key === 'D') {
             event.preventDefault();
             this.game.handleDrop();

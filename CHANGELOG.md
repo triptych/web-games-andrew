@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **NetHack-Style Roguelike** (game-003): Phase 4 - Save/Load System Complete
+  - **Splash Screen**: Professional menu system for game entry
+    - New Game, Load Game, and Quit buttons
+    - Styled with gradient background and animated buttons
+    - Load Game button enabled only when save data exists
+    - Instructions and game description displayed on splash
+  - **Save/Load System**: Complete game state persistence using localStorage
+    - Save game with Ctrl+S keyboard shortcut
+    - Auto-save every 30 seconds during gameplay
+    - Load saved game from splash screen menu
+    - Confirmation messages for save operations
+  - **Serialization System**: Full state preservation
+    - Player serialization: position, stats, inventory, equipped items
+    - Monster serialization: position, type, HP, status
+    - Item serialization: all properties including position and stats
+    - Map serialization: tiles, rooms, and dungeon layout
+    - Game state serialization: turn count, depth, game state
+  - **UI Enhancements**:
+    - Equipment bar showing currently equipped weapon and armor
+    - Improved status bar layout with better spacing
+    - Save confirmation messages in message log
+    - Updated help text with save/load instructions
+  - Files: Updated [game-003/js/Game.js](game-003/js/Game.js), [game-003/js/Player.js](game-003/js/Player.js), [game-003/js/Monster.js](game-003/js/Monster.js), [game-003/js/Item.js](game-003/js/Item.js), [game-003/js/Map.js](game-003/js/Map.js), [game-003/js/Input.js](game-003/js/Input.js), [game-003/js/main.js](game-003/js/main.js), [game-003/index.html](game-003/index.html), [game-003/styles.css](game-003/styles.css)
+
 - **NetHack-Style Roguelike** (game-003): Phase 3 - Items & Inventory System Complete
   - **Item System**: Comprehensive item types and equipment
     - 5 item types: Weapons, Armor, Potions, Scrolls, Food

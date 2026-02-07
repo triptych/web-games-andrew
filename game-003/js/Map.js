@@ -156,4 +156,27 @@ export class Map {
         }
         return this.tiles[y][x];
     }
+
+    serialize() {
+        return {
+            width: this.width,
+            height: this.height,
+            tiles: this.tiles,
+            rooms: this.rooms.map(room => ({
+                x: room.x,
+                y: room.y,
+                width: room.width,
+                height: room.height
+            }))
+        };
+    }
+
+    deserialize(data) {
+        this.width = data.width;
+        this.height = data.height;
+        this.tiles = data.tiles;
+        this.rooms = data.rooms.map(roomData =>
+            new Room(roomData.x, roomData.y, roomData.width, roomData.height)
+        );
+    }
 }

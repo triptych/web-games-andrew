@@ -134,4 +134,21 @@ export class Monster {
     getPosition() {
         return { x: this.x, y: this.y };
     }
+
+    serialize() {
+        return {
+            x: this.x,
+            y: this.y,
+            type: this.type,
+            hp: this.hp,
+            isDead: this.isDead
+        };
+    }
+
+    static deserialize(data) {
+        const monster = new Monster(data.x, data.y, data.type);
+        monster.hp = data.hp;
+        monster.isDead = data.isDead;
+        return monster;
+    }
 }

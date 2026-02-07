@@ -183,4 +183,45 @@ export class Player {
     isEquipped(item) {
         return this.equippedWeapon === item || this.equippedArmor === item;
     }
+
+    serialize() {
+        return {
+            x: this.x,
+            y: this.y,
+            hp: this.hp,
+            maxHp: this.maxHp,
+            level: this.level,
+            experience: this.experience,
+            experienceToLevel: this.experienceToLevel,
+            baseAttack: this.baseAttack,
+            baseDefense: this.baseDefense,
+            inventory: this.inventory.map(item => item.serialize()),
+            equippedWeaponIndex: this.equippedWeapon ? this.inventory.indexOf(this.equippedWeapon) : -1,
+            equippedArmorIndex: this.equippedArmor ? this.inventory.indexOf(this.equippedArmor) : -1
+        };
+    }
+
+    static deserialize(data, ItemClass) {
+        const player = new Player(data.x, data.y);
+        player.hp = data.hp;
+        player.maxHp = data.maxHp;
+        player.level = data.level;
+        player.experience = data.experience;
+        player.experienceToLevel = data.experienceToLevel;
+        player.baseAttack = data.baseAttack;
+        player.baseDefense = data.baseDefense;
+
+        // Restore inventory
+        player.inventory = data.inventory.map(itemData => ItemClass.deserialize(itemData));
+
+        // Restore equipped items
+        if (data.equippedWeaponIndex >= 0) {
+            player.equippedWeapon = player.inventory[data.equippedWeaponIndex];
+        }
+        if (data.equippedArmorIndex >= 0) {
+            player.equippedArmor = player.inventory[data.equippedArmorIndex];
+        }
+
+        return player;
+    }
 }
