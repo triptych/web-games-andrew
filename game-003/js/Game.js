@@ -7,6 +7,8 @@ import { Renderer } from './Renderer.js';
 import { MessageLog } from './MessageLog.js';
 import { Input } from './Input.js';
 import { createRandomItem, ItemType, Item } from './Item.js';
+import { FOV } from './FOV.js';
+import { createFireball, createArrow } from './Projectile.js';
 
 export class Game {
     constructor(canvas, messageElement, loadFromSave = false) {
@@ -19,10 +21,16 @@ export class Game {
         this.player = null;
         this.monsters = [];
         this.items = [];
+        this.projectiles = [];
+        this.fov = null;
         this.turnCount = 0;
         this.depth = 1;
+        this.levels = {}; // Store level states by depth
         this.gameState = 'playing'; // 'playing', 'game_over', 'victory'
         this.showInventory = false;
+        this.targetMode = null; // null, 'spell', 'ranged'
+        this.targetX = 0;
+        this.targetY = 0;
 
         if (loadFromSave) {
             this.loadGame();
@@ -34,23 +42,34 @@ export class Game {
     init() {
         // Create map
         this.map = new Map(80, 50);
-        const startPos = this.map.generate();
-        
-        // Create player at starting position
-        this.player = new Player(startPos.x, startPos.y);
-        
+        const startPos = this.map.generate(this.depth > 1);
+
+        // Create player at starting position (or use stairs up position)
+        if (this.map.stairsUp) {
+            this.player = new Player(this.map.stairsUp.x, this.map.stairsUp.y);
+        } else {
+            this.player = new Player(startPos.x, startPos.y);
+        }
+
+        // Initialize FOV
+        this.fov = new FOV(this.map);
+        this.fov.compute(this.player.x, this.player.y, 10);
+
         // Spawn monsters
         this.spawnMonsters();
-        
+
         // Spawn items
         this.spawnItems();
-        
+
         // Welcome message
-        this.messageLog.add('Welcome to the dungeon! Use arrow keys or WASD to move.', '#4CAF50');
-        this.messageLog.add('Press Q/E for diagonal movement, Space to wait.', '#4CAF50');
-        this.messageLog.add('Attack monsters by moving into them!', '#4CAF50');
-        this.messageLog.add('Press G to pick up items, I for inventory, D to drop.', '#4CAF50');
-        
+        if (this.depth === 1) {
+            this.messageLog.add('Welcome to the dungeon! Use arrow keys or WASD to move.', '#4CAF50');
+            this.messageLog.add('Press Q/E for diagonal movement, Space to wait.', '#4CAF50');
+            this.messageLog.add('Attack monsters by moving into them!', '#4CAF50');
+            this.messageLog.add('Press G to pick up items, I for inventory, F to cast fireball.', '#4CAF50');
+            this.messageLog.add('Use </> to navigate stairs between levels.', '#4CAF50');
+        }
+
         // Initial render
         this.render();
         this.updateUI();
@@ -58,25 +77,26 @@ export class Game {
 
     spawnMonsters() {
         this.monsters = [];
-        const monsterCount = 5 + Math.floor(Math.random() * 5); // 5-10 monsters
+        const baseCount = 5 + Math.floor(Math.random() * 5);
+        const monsterCount = baseCount + Math.floor(this.depth / 2); // More monsters on deeper levels
         const monsterTypes = ['rat', 'goblin', 'snake', 'orc'];
-        
+
         for (let i = 0; i < monsterCount; i++) {
             const pos = this.map.getRandomFloorPosition(true); // Exclude first room
             if (pos) {
-                // Choose random monster type (weighted towards easier monsters early)
-                const rand = Math.random();
+                // Choose random monster type (weighted by depth)
+                const rand = Math.random() + (this.depth * 0.05);
                 let type;
                 if (rand < 0.4) type = 'rat';
                 else if (rand < 0.7) type = 'goblin';
                 else if (rand < 0.9) type = 'snake';
                 else type = 'orc';
-                
+
                 this.monsters.push(new Monster(pos.x, pos.y, type));
             }
         }
-        
-        this.messageLog.add(`${this.monsters.length} monsters spawn in the dungeon!`, '#FF8888');
+
+        this.messageLog.add(`${this.monsters.length} monsters lurk in the shadows!`, '#FF8888');
     }
 
     handlePlayerMove(dx, dy) {
@@ -104,9 +124,16 @@ export class Game {
 
         // Try to move player
         const moved = this.player.move(dx, dy, this.map);
-        
+
         if (moved) {
-            this.messageLog.add(`You move ${this.getDirectionText(dx, dy)}.`, '#CCCCCC');
+            // Check for stairs
+            const tile = this.map.getTile(this.player.x, this.player.y);
+            if (tile === '>') {
+                this.messageLog.add('You see stairs going down. Press > to descend.', '#FFFF00');
+            } else if (tile === '<') {
+                this.messageLog.add('You see stairs going up. Press < to ascend.', '#FFFF00');
+            }
+
             this.processTurn();
         } else {
             this.messageLog.add('You bump into a wall!', '#FF6666');
@@ -160,22 +187,28 @@ export class Game {
 
     processTurn() {
         this.turnCount++;
-        
+
         // Check if player is dead
         if (this.player.isDead()) {
             this.gameOver();
             return;
         }
-        
+
+        // Update projectiles
+        this.updateProjectiles();
+
         // Process monster AI turns
         this.processMonsterTurns();
-        
+
         // Check again if player died from monster attacks
         if (this.player.isDead()) {
             this.gameOver();
             return;
         }
-        
+
+        // Update FOV
+        this.fov.compute(this.player.x, this.player.y, 10);
+
         // Render and update UI
         this.render();
         this.updateUI();
@@ -316,33 +349,264 @@ export class Game {
         if (this.showInventory) {
             this.renderer.renderInventory(this.player);
         } else {
-            this.renderer.render(this.map, this.player, this.monsters, this.items);
+            this.renderer.render(this.map, this.player, this.monsters, this.items, this.fov, this.projectiles);
         }
     }
 
     updateUI() {
         // Update status bar
-        document.getElementById('player-hp').textContent = 
+        document.getElementById('player-hp').textContent =
             `HP: ${this.player.hp}/${this.player.maxHp}`;
-        document.getElementById('player-level').textContent = 
+        document.getElementById('player-mp').textContent =
+            `MP: ${this.player.mp}/${this.player.maxMp}`;
+        document.getElementById('player-level').textContent =
             `Level: ${this.player.level}`;
-        document.getElementById('player-xp').textContent = 
+        document.getElementById('player-xp').textContent =
             `XP: ${this.player.experience}/${this.player.experienceToLevel}`;
-        document.getElementById('dungeon-depth').textContent = 
+        document.getElementById('dungeon-depth').textContent =
             `Depth: ${this.depth}`;
-        document.getElementById('turn-count').textContent = 
+        document.getElementById('turn-count').textContent =
             `Turn: ${this.turnCount}`;
-        
+
         // Update equipment display
-        const weaponText = this.player.equippedWeapon ? 
+        const weaponText = this.player.equippedWeapon ?
             this.player.equippedWeapon.name : 'None';
-        const armorText = this.player.equippedArmor ? 
+        const armorText = this.player.equippedArmor ?
             this.player.equippedArmor.name : 'None';
-        
+
         document.getElementById('equipped-weapon').textContent = `Weapon: ${weaponText}`;
         document.getElementById('equipped-armor').textContent = `Armor: ${armorText}`;
         document.getElementById('player-attack').textContent = `ATK: ${this.player.attack}`;
         document.getElementById('player-defense').textContent = `DEF: ${this.player.defense}`;
+    }
+
+    updateProjectiles() {
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
+            const proj = this.projectiles[i];
+
+            if (!proj.active) {
+                this.projectiles.splice(i, 1);
+                continue;
+            }
+
+            // Move projectile
+            proj.move();
+
+            // Check collisions
+            const collision = proj.checkCollision(this.map, this.monsters);
+
+            if (collision) {
+                if (collision.type === 'monster' && collision.target) {
+                    const damage = proj.damage;
+                    const actualDamage = collision.target.takeDamage(damage);
+                    this.messageLog.add(`Your ${proj.type} hits ${collision.target.name} for ${actualDamage} damage!`, '#FFA500');
+
+                    if (collision.target.isDead) {
+                        this.messageLog.add(`You killed the ${collision.target.name}!`, '#FFD700');
+                        this.player.gainExperience(collision.target.xp);
+                        this.messageLog.add(`You gain ${collision.target.xp} experience.`, '#00FF00');
+
+                        if (this.player.experience === 0) {
+                            this.messageLog.add(`*** LEVEL UP! You are now level ${this.player.level}! ***`, '#FFD700');
+                        }
+                    }
+                } else if (collision.type === 'wall') {
+                    this.messageLog.add(`Your ${proj.type} hits a wall.`, '#888888');
+                }
+                this.projectiles.splice(i, 1);
+            }
+        }
+    }
+
+    castFireball() {
+        const manaCost = 10;
+
+        if (!this.player.useMana(manaCost)) {
+            this.messageLog.add('Not enough mana to cast fireball!', '#FF6666');
+            return;
+        }
+
+        // Find nearest visible monster
+        let nearestMonster = null;
+        let nearestDist = Infinity;
+
+        for (const monster of this.monsters) {
+            if (monster.isDead) continue;
+            if (!this.fov.isVisible(monster.x, monster.y)) continue;
+
+            const dist = Math.abs(monster.x - this.player.x) + Math.abs(monster.y - this.player.y);
+            if (dist < nearestDist) {
+                nearestDist = dist;
+                nearestMonster = monster;
+            }
+        }
+
+        if (!nearestMonster) {
+            this.messageLog.add('No visible targets!', '#FF6666');
+            this.player.restoreMana(manaCost); // Refund mana
+            return;
+        }
+
+        // Create fireball projectile
+        const fireball = createFireball(this.player.x, this.player.y, nearestMonster.x, nearestMonster.y);
+        this.projectiles.push(fireball);
+
+        this.messageLog.add('You cast a fireball!', '#FF4500');
+        this.processTurn();
+    }
+
+    shootArrow() {
+        // Check if player has a bow or ranged weapon equipped
+        if (!this.player.equippedWeapon || this.player.equippedWeapon.name.toLowerCase().indexOf('bow') === -1) {
+            this.messageLog.add('You need a bow equipped to shoot arrows!', '#FF6666');
+            return;
+        }
+
+        // Find nearest visible monster
+        let nearestMonster = null;
+        let nearestDist = Infinity;
+
+        for (const monster of this.monsters) {
+            if (monster.isDead) continue;
+            if (!this.fov.isVisible(monster.x, monster.y)) continue;
+
+            const dist = Math.abs(monster.x - this.player.x) + Math.abs(monster.y - this.player.y);
+            if (dist < nearestDist) {
+                nearestDist = dist;
+                nearestMonster = monster;
+            }
+        }
+
+        if (!nearestMonster) {
+            this.messageLog.add('No visible targets!', '#FF6666');
+            return;
+        }
+
+        // Create arrow projectile
+        const arrow = createArrow(this.player.x, this.player.y, nearestMonster.x, nearestMonster.y);
+        this.projectiles.push(arrow);
+
+        this.messageLog.add('You shoot an arrow!', '#8B4513');
+        this.processTurn();
+    }
+
+    descendStairs() {
+        const tile = this.map.getTile(this.player.x, this.player.y);
+        if (tile !== '>') {
+            this.messageLog.add('There are no stairs down here.', '#FF6666');
+            return;
+        }
+
+        // Save current level state
+        this.saveLevelState(this.depth);
+
+        this.depth++;
+        this.messageLog.add(`You descend to level ${this.depth}...`, '#FFFF00');
+
+        // Check if this level already exists
+        if (this.levels[this.depth]) {
+            // Restore existing level
+            this.restoreLevelState(this.depth);
+            // Place player at up stairs
+            this.player.x = this.map.stairsUp.x;
+            this.player.y = this.map.stairsUp.y;
+        } else {
+            // Generate new level
+            this.map = new Map(80, 50);
+            this.map.generate(true); // Has up stairs
+
+            // Place player at up stairs
+            this.player.x = this.map.stairsUp.x;
+            this.player.y = this.map.stairsUp.y;
+
+            // Initialize FOV
+            this.fov = new FOV(this.map);
+
+            // Spawn new monsters and items
+            this.spawnMonsters();
+            this.spawnItems();
+        }
+
+        this.projectiles = [];
+
+        // Update FOV
+        this.fov.compute(this.player.x, this.player.y, 10);
+
+        this.render();
+        this.updateUI();
+    }
+
+    ascendStairs() {
+        const tile = this.map.getTile(this.player.x, this.player.y);
+        if (tile !== '<') {
+            this.messageLog.add('There are no stairs up here.', '#FF6666');
+            return;
+        }
+
+        if (this.depth <= 1) {
+            this.messageLog.add('You cannot go up from here. Explore deeper!', '#FF6666');
+            return;
+        }
+
+        // Save current level state
+        this.saveLevelState(this.depth);
+
+        this.depth--;
+        this.messageLog.add(`You ascend to level ${this.depth}...`, '#FFFF00');
+
+        // Restore previous level (should always exist)
+        if (this.levels[this.depth]) {
+            this.restoreLevelState(this.depth);
+            // Place player at down stairs
+            this.player.x = this.map.stairsDown.x;
+            this.player.y = this.map.stairsDown.y;
+        } else {
+            // Fallback: generate level if somehow missing
+            this.map = new Map(80, 50);
+            this.map.generate(this.depth > 1);
+            this.player.x = this.map.stairsDown.x;
+            this.player.y = this.map.stairsDown.y;
+            this.fov = new FOV(this.map);
+            this.spawnMonsters();
+            this.spawnItems();
+        }
+
+        this.projectiles = [];
+
+        // Update FOV
+        this.fov.compute(this.player.x, this.player.y, 10);
+
+        this.render();
+        this.updateUI();
+    }
+
+    saveLevelState(depth) {
+        this.levels[depth] = {
+            mapData: this.map.serialize(),
+            monsters: this.monsters.map(m => m.serialize()),
+            items: this.items.map(i => i.serialize()),
+            fovData: this.fov.serialize()
+        };
+    }
+
+    restoreLevelState(depth) {
+        const levelData = this.levels[depth];
+
+        // Restore map
+        this.map = new Map(80, 50);
+        this.map.deserialize(levelData.mapData);
+
+        // Restore FOV
+        this.fov = new FOV(this.map);
+        if (levelData.fovData) {
+            this.fov.deserialize(levelData.fovData);
+        }
+
+        // Restore monsters
+        this.monsters = levelData.monsters.map(data => Monster.deserialize(data));
+
+        // Restore items
+        this.items = levelData.items.map(data => Item.deserialize(data));
     }
 
     gameOver() {
@@ -362,11 +626,12 @@ export class Game {
 
     saveGame() {
         try {
+            // Save current level state before saving game
+            this.saveLevelState(this.depth);
+
             const saveData = {
                 player: this.player.serialize(),
-                monsters: this.monsters.map(m => m.serialize()),
-                items: this.items.map(i => i.serialize()),
-                mapData: this.map.serialize(),
+                levels: this.levels, // Save all level states
                 turnCount: this.turnCount,
                 depth: this.depth,
                 gameState: this.gameState,
@@ -392,23 +657,32 @@ export class Game {
                 return;
             }
 
-            // Restore map
-            this.map = new Map(80, 50);
-            this.map.deserialize(saveData.mapData);
-
             // Restore player (pass Item class for inventory deserialization)
             this.player = Player.deserialize(saveData.player, Item);
-
-            // Restore monsters
-            this.monsters = saveData.monsters.map(data => Monster.deserialize(data));
-
-            // Restore items
-            this.items = saveData.items.map(data => Item.deserialize(data));
 
             // Restore game state
             this.turnCount = saveData.turnCount;
             this.depth = saveData.depth;
             this.gameState = saveData.gameState;
+            this.projectiles = [];
+
+            // Restore all levels
+            this.levels = saveData.levels || {};
+
+            // Restore current level
+            if (this.levels[this.depth]) {
+                this.restoreLevelState(this.depth);
+            } else {
+                // Fallback: generate level if missing
+                this.map = new Map(80, 50);
+                this.map.generate(this.depth > 1);
+                this.fov = new FOV(this.map);
+                this.spawnMonsters();
+                this.spawnItems();
+            }
+
+            // Update FOV for current player position
+            this.fov.compute(this.player.x, this.player.y, 10);
 
             // Welcome back message
             this.messageLog.add('Game loaded successfully!', '#4CAF50');

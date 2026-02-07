@@ -8,6 +8,8 @@ export class Player {
         this.y = y;
         this.hp = 100;
         this.maxHp = 100;
+        this.mp = 50;
+        this.maxMp = 50;
         this.level = 1;
         this.experience = 0;
         this.experienceToLevel = 100;
@@ -15,11 +17,11 @@ export class Player {
         this.baseDefense = 2;
         this.char = '@';
         this.color = '#FFFF00'; // Yellow
-        
+
         // Inventory system
         this.inventory = [];
         this.maxInventorySize = 20;
-        
+
         // Equipment slots
         this.equippedWeapon = null;
         this.equippedArmor = null;
@@ -86,14 +88,29 @@ export class Player {
         this.level++;
         this.experience = 0;
         this.experienceToLevel = Math.floor(this.experienceToLevel * 1.5);
-        
+
         // Increase stats
         this.maxHp += 10;
         this.hp = this.maxHp; // Full heal on level up
+        this.maxMp += 5;
+        this.mp = this.maxMp; // Full mana on level up
         this.baseAttack += 2;
         this.baseDefense += 1;
-        
+
         return true; // Signal that level up occurred
+    }
+
+    useMana(amount) {
+        if (this.mp >= amount) {
+            this.mp -= amount;
+            return true;
+        }
+        return false;
+    }
+
+    restoreMana(amount) {
+        this.mp += amount;
+        if (this.mp > this.maxMp) this.mp = this.maxMp;
     }
 
     getAttackDamage() {
@@ -190,6 +207,8 @@ export class Player {
             y: this.y,
             hp: this.hp,
             maxHp: this.maxHp,
+            mp: this.mp,
+            maxMp: this.maxMp,
             level: this.level,
             experience: this.experience,
             experienceToLevel: this.experienceToLevel,
@@ -205,6 +224,8 @@ export class Player {
         const player = new Player(data.x, data.y);
         player.hp = data.hp;
         player.maxHp = data.maxHp;
+        player.mp = data.mp || 50;
+        player.maxMp = data.maxMp || 50;
         player.level = data.level;
         player.experience = data.experience;
         player.experienceToLevel = data.experienceToLevel;

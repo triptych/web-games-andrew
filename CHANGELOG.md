@@ -8,6 +8,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **NetHack-Style Roguelike** (game-003): Phase 4 - Advanced Features Complete
+  - **Magic System**: Mana-based spell casting
+    - Added MP (Mana Points) stat: starts at 50, increases +5 per level
+    - Fireball spell (F key): 10 MP cost, 15 damage, auto-targets nearest visible enemy
+    - Mana refund system when no valid targets available
+    - Mana fully restored on level up
+  - **Ranged Combat**: Bow-based arrow shooting
+    - Arrow shooting (R key): requires bow equipped, 8 damage, 12-tile range
+    - Auto-targeting system finds nearest visible monster
+    - Bow requirement check before allowing ranged attacks
+  - **Projectile System**: Animated spell and arrow effects
+    - Projectiles move across screen tile-by-tile
+    - Wall collision detection
+    - Monster hit detection with damage application
+    - Visual feedback with ASCII characters and colors
+  - **Field of View (FOV)**: Shadowcasting vision system
+    - 10-tile vision radius centered on player
+    - Shadowcasting algorithm for realistic line-of-sight
+    - Only monsters/items in FOV are visible
+    - FOV updates dynamically as player moves
+  - **Fog of War**: Persistent exploration memory
+    - Explored tiles remain visible but dimmed (#333333)
+    - Unexplored areas completely hidden (black)
+    - FOV state saved with game for persistence
+  - **Multiple Dungeon Levels**: Infinite depth progression
+    - Stairs down (>) and stairs up (<) for level navigation
+    - Each level procedurally generated
+    - Monster difficulty scales with depth (+0.5 monsters per 2 levels)
+    - Depth counter in status bar
+  - **Level Persistence System**: Visited levels preserved
+    - Levels stored by depth number in memory
+    - Returning to previous levels restores exact state
+    - Map layout, monster positions/HP, items, and fog of war all persist
+    - Save/load system handles all visited levels
+  - **Enhanced ASCII Graphics**: Colorful varied terrain
+    - Floor tiles: 4 character variants (`.`, `·`, `°`, `∙`) with 4 color shades
+    - Wall tiles: Textured appearance using `█`, `▓`, `▒` characters
+    - Bright yellow stairs for easy visibility
+    - Position-based pseudo-random tile selection for organic look
+    - Clear visual distinction between walkable and non-walkable tiles
+  - **New Controls**:
+    - F - Cast Fireball spell (costs 10 MP)
+    - R - Shoot Arrow (requires bow equipped)
+    - > or Shift+. - Descend stairs
+    - < or Shift+, - Ascend stairs
+  - **UI Enhancements**:
+    - MP display added to status bar
+    - Updated controls help with new abilities
+    - Spell casting and ranged combat messages
+  - Files: Created [game-003/js/FOV.js](game-003/js/FOV.js), [game-003/js/Projectile.js](game-003/js/Projectile.js), updated [game-003/js/Player.js](game-003/js/Player.js), [game-003/js/Map.js](game-003/js/Map.js), [game-003/js/Renderer.js](game-003/js/Renderer.js), [game-003/js/Game.js](game-003/js/Game.js), [game-003/js/Input.js](game-003/js/Input.js), [game-003/index.html](game-003/index.html), [game-003/game-plan.md](game-003/game-plan.md)
+
 - **NetHack-Style Roguelike** (game-003): Phase 4 - Save/Load System Complete
   - **Splash Screen**: Professional menu system for game entry
     - New Game, Load Game, and Quit buttons
@@ -88,6 +139,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Files: [game-003/index.html](game-003/index.html), [game-003/styles.css](game-003/styles.css), [game-003/js/](game-003/js/)
 
 ### Fixed
+- **NetHack-Style Roguelike** (game-003): Fixed level persistence - levels now remember their state
+  - Issue: Descending and returning to previous levels generated new random maps each time
+  - Solution: Implemented level storage system that saves/restores level state (map, monsters, items, FOV) by depth
+  - Levels are now fully persistent - monsters stay dead, items stay where dropped, map layout unchanged
+  - File: [game-003/js/Game.js](game-003/js/Game.js)
 - **NetHack-Style Roguelike** (game-003): Fixed status bar not updating after closing inventory screen
   - Issue: Equipment stats would not display properly when returning from inventory view
   - Solution: Added `updateUI()` call after rendering to ensure status bar reflects current equipment state

@@ -159,22 +159,23 @@ class MessageLog { }    // Message history
 - [x] Stat bonuses from equipment
 
 ### Phase 4: Advanced Features
-- [ ] Magic system
-- [ ] Ranged combat
-- [ ] Field of View
-- [ ] Fog of war
-- [ ] Multiple dungeon levels
-- [ ] Stairs navigation
+- [x] Magic system (Fireball spell with mana cost)
+- [x] Ranged combat (Arrow shooting with bow requirement)
+- [x] Field of View (Shadowcasting algorithm)
+- [x] Fog of war (Explored tiles remain visible but dimmed)
+- [x] Multiple dungeon levels (Infinite depth progression)
+- [x] Stairs navigation (< up, > down)
 
 ### Phase 5: Polish & Content
 - [ ] More monster types
 - [ ] More items/equipment
 - [ ] Status effects
 - [ ] Hunger system
-- [ ] Save/load system
+- [x] Save/load system (Auto-save + manual save)
 - [ ] High scores
 - [ ] Sound effects
 - [ ] Tile graphics (optional)
+- [x] Enhanced ASCII graphics (Colorful varied floor/wall tiles)
 
 ## Game Balance Considerations
 - **Difficulty Curve**: Gradual increase over 10-20 floors

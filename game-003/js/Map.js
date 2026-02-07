@@ -5,7 +5,9 @@ export const TileType = {
     FLOOR: '.',
     DOOR: '+',
     CORRIDOR: '#',
-    EMPTY: ' '
+    EMPTY: ' ',
+    STAIRS_DOWN: '>',
+    STAIRS_UP: '<'
 };
 
 export class Room {
@@ -37,6 +39,8 @@ export class Map {
         this.height = height;
         this.tiles = this.createEmptyMap();
         this.rooms = [];
+        this.stairsDown = null;
+        this.stairsUp = null;
     }
 
     createEmptyMap() {
@@ -50,7 +54,7 @@ export class Map {
         return tiles;
     }
 
-    generate() {
+    generate(hasUpStairs = false) {
         this.rooms = [];
         const maxRooms = 15;
         const minSize = 4;
@@ -63,7 +67,7 @@ export class Map {
             const y = Math.floor(Math.random() * (this.height - height - 1)) + 1;
 
             const newRoom = new Room(x, y, width, height);
-            
+
             // Check if room overlaps with existing rooms
             let overlaps = false;
             for (const room of this.rooms) {
@@ -84,6 +88,21 @@ export class Map {
 
                 this.rooms.push(newRoom);
             }
+        }
+
+        // Place stairs
+        if (this.rooms.length > 0) {
+            // Stairs up in first room (if not first level)
+            if (hasUpStairs) {
+                const firstRoom = this.rooms[0].center();
+                this.stairsUp = { x: firstRoom.x, y: firstRoom.y };
+                this.tiles[firstRoom.y][firstRoom.x] = TileType.STAIRS_UP;
+            }
+
+            // Stairs down in last room
+            const lastRoom = this.rooms[this.rooms.length - 1].center();
+            this.stairsDown = { x: lastRoom.x, y: lastRoom.y };
+            this.tiles[lastRoom.y][lastRoom.x] = TileType.STAIRS_DOWN;
         }
 
         return this.rooms.length > 0 ? this.rooms[0].center() : { x: 1, y: 1 };
@@ -147,7 +166,8 @@ export class Map {
         if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
             return false;
         }
-        return this.tiles[y][x] === TileType.FLOOR;
+        const tile = this.tiles[y][x];
+        return tile === TileType.FLOOR || tile === TileType.STAIRS_DOWN || tile === TileType.STAIRS_UP;
     }
 
     getTile(x, y) {
@@ -167,7 +187,9 @@ export class Map {
                 y: room.y,
                 width: room.width,
                 height: room.height
-            }))
+            })),
+            stairsDown: this.stairsDown,
+            stairsUp: this.stairsUp
         };
     }
 
@@ -178,5 +200,7 @@ export class Map {
         this.rooms = data.rooms.map(roomData =>
             new Room(roomData.x, roomData.y, roomData.width, roomData.height)
         );
+        this.stairsDown = data.stairsDown || null;
+        this.stairsUp = data.stairsUp || null;
     }
 }

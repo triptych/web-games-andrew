@@ -70,7 +70,34 @@ export class Input {
             this.game.handleDrop();
             return;
         }
-        
+
+        // Handle spell casting
+        if (key === 'f' || key === 'F') {
+            event.preventDefault();
+            this.game.castFireball();
+            return;
+        }
+
+        // Handle ranged attack
+        if (key === 'r' || key === 'R') {
+            event.preventDefault();
+            this.game.shootArrow();
+            return;
+        }
+
+        // Handle stairs
+        if (key === '>' || (event.shiftKey && key === '.')) {
+            event.preventDefault();
+            this.game.descendStairs();
+            return;
+        }
+
+        if (key === '<' || (event.shiftKey && key === ',')) {
+            event.preventDefault();
+            this.game.ascendStairs();
+            return;
+        }
+
         // Handle number keys for inventory items
         if (this.game.showInventory) {
             const num = parseInt(key);

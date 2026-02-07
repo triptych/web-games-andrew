@@ -20,44 +20,68 @@ export class Renderer {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-    drawMap(map, cameraX, cameraY) {
+    drawMap(map, cameraX, cameraY, fov = null) {
         this.ctx.font = this.font;
-        
+
         for (let y = 0; y < this.viewHeight; y++) {
             for (let x = 0; x < this.viewWidth; x++) {
                 const mapX = x + cameraX;
                 const mapY = y + cameraY;
-                
+
                 if (mapX >= 0 && mapX < map.width && mapY >= 0 && mapY < map.height) {
                     const tile = map.getTile(mapX, mapY);
-                    this.drawTile(x, y, tile, this.getTileColor(tile));
+
+                    if (fov) {
+                        const isVisible = fov.isVisible(mapX, mapY);
+                        const isExplored = fov.isExplored(mapX, mapY);
+
+                        if (isVisible) {
+                            // Fully visible
+                            const { char, color } = this.getTileDisplay(tile, mapX, mapY);
+                            this.drawTile(x, y, char, color);
+                        } else if (isExplored) {
+                            // Explored but not visible (fog of war)
+                            const { char } = this.getTileDisplay(tile, mapX, mapY);
+                            this.drawTile(x, y, char, '#333333');
+                        }
+                    } else {
+                        // No FOV - show everything
+                        const { char, color } = this.getTileDisplay(tile, mapX, mapY);
+                        this.drawTile(x, y, char, color);
+                    }
                 }
             }
         }
     }
 
-    drawMonsters(monsters, cameraX, cameraY) {
+    drawMonsters(monsters, cameraX, cameraY, fov = null) {
         for (const monster of monsters) {
             if (monster.isDead) continue;
-            
+
             const screenX = monster.x - cameraX;
             const screenY = monster.y - cameraY;
-            
-            if (screenX >= 0 && screenX < this.viewWidth && 
+
+            if (screenX >= 0 && screenX < this.viewWidth &&
                 screenY >= 0 && screenY < this.viewHeight) {
-                this.drawTile(screenX, screenY, monster.char, monster.color);
+                // Only draw if visible (or no FOV)
+                if (!fov || fov.isVisible(monster.x, monster.y)) {
+                    this.drawTile(screenX, screenY, monster.char, monster.color);
+                }
             }
         }
     }
 
-    drawItems(items, cameraX, cameraY) {
+    drawItems(items, cameraX, cameraY, fov = null) {
         for (const item of items) {
             const screenX = item.x - cameraX;
             const screenY = item.y - cameraY;
-            
-            if (screenX >= 0 && screenX < this.viewWidth && 
+
+            if (screenX >= 0 && screenX < this.viewWidth &&
                 screenY >= 0 && screenY < this.viewHeight) {
-                this.drawTile(screenX, screenY, item.char, item.color);
+                // Only draw if visible (or no FOV)
+                if (!fov || fov.isVisible(item.x, item.y)) {
+                    this.drawTile(screenX, screenY, item.char, item.color);
+                }
             }
         }
     }
@@ -81,16 +105,44 @@ export class Renderer {
         );
     }
 
-    getTileColor(tile) {
+    getTileDisplay(tile, x, y) {
+        // Add variety to floor tiles for visual interest
+        const wallVariants = ['█', '▓', '▒', '░'];
+
         switch (tile) {
             case TileType.WALL:
-                return '#666666';
+                // Vary wall appearance slightly
+                const wallIndex = (x * 7 + y * 13) % wallVariants.length;
+                return {
+                    char: wallVariants[Math.floor(wallIndex / 2)],
+                    color: '#666666'
+                };
             case TileType.FLOOR:
-                return '#888888';
+                // Vary floor appearance with multiple characters and shades
+                const floorIndex = (x * 3 + y * 5) % 100;
+                let char, color;
+                if (floorIndex < 70) {
+                    char = '.';
+                    color = '#888888';
+                } else if (floorIndex < 85) {
+                    char = '·';
+                    color = '#777777';
+                } else if (floorIndex < 95) {
+                    char = '°';
+                    color = '#999999';
+                } else {
+                    char = '∙';
+                    color = '#7A7A7A';
+                }
+                return { char, color };
+            case TileType.STAIRS_DOWN:
+                return { char: '>', color: '#FFFF00' };
+            case TileType.STAIRS_UP:
+                return { char: '<', color: '#FFFF00' };
             case TileType.DOOR:
-                return '#8B4513';
+                return { char: '+', color: '#8B4513' };
             default:
-                return '#333333';
+                return { char: ' ', color: '#333333' };
         }
     }
 
@@ -106,15 +158,32 @@ export class Renderer {
         return { x: camX, y: camY };
     }
 
-    render(map, player, monsters = [], items = []) {
+    render(map, player, monsters = [], items = [], fov = null, projectiles = []) {
         this.clear();
-        
+
         const camera = this.getCameraPosition(player, map.width, map.height);
-        
-        this.drawMap(map, camera.x, camera.y);
-        this.drawItems(items, camera.x, camera.y);
-        this.drawMonsters(monsters, camera.x, camera.y);
+
+        this.drawMap(map, camera.x, camera.y, fov);
+        this.drawItems(items, camera.x, camera.y, fov);
+        this.drawMonsters(monsters, camera.x, camera.y, fov);
         this.drawPlayer(player, camera.x, camera.y);
+
+        // Draw projectiles
+        if (projectiles) {
+            this.drawProjectiles(projectiles, camera.x, camera.y);
+        }
+    }
+
+    drawProjectiles(projectiles, cameraX, cameraY) {
+        for (const proj of projectiles) {
+            const screenX = proj.x - cameraX;
+            const screenY = proj.y - cameraY;
+
+            if (screenX >= 0 && screenX < this.viewWidth &&
+                screenY >= 0 && screenY < this.viewHeight) {
+                this.drawTile(screenX, screenY, proj.char, proj.color);
+            }
+        }
     }
     
     renderInventory(player) {
