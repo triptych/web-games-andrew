@@ -50,6 +50,18 @@ export class Renderer {
         }
     }
 
+    drawItems(items, cameraX, cameraY) {
+        for (const item of items) {
+            const screenX = item.x - cameraX;
+            const screenY = item.y - cameraY;
+            
+            if (screenX >= 0 && screenX < this.viewWidth && 
+                screenY >= 0 && screenY < this.viewHeight) {
+                this.drawTile(screenX, screenY, item.char, item.color);
+            }
+        }
+    }
+
     drawPlayer(player, cameraX, cameraY) {
         const screenX = player.x - cameraX;
         const screenY = player.y - cameraY;
@@ -94,13 +106,58 @@ export class Renderer {
         return { x: camX, y: camY };
     }
 
-    render(map, player, monsters = []) {
+    render(map, player, monsters = [], items = []) {
         this.clear();
         
         const camera = this.getCameraPosition(player, map.width, map.height);
         
         this.drawMap(map, camera.x, camera.y);
+        this.drawItems(items, camera.x, camera.y);
         this.drawMonsters(monsters, camera.x, camera.y);
         this.drawPlayer(player, camera.x, camera.y);
+    }
+    
+    renderInventory(player) {
+        this.clear();
+        this.ctx.font = this.font;
+        
+        // Title
+        this.ctx.fillStyle = '#FFFF00';
+        this.ctx.fillText('INVENTORY', 20, 30);
+        this.ctx.fillText(`${player.inventory.length}/${player.maxInventorySize} items`, 20, 50);
+        
+        // Equipment section
+        this.ctx.fillStyle = '#00FFFF';
+        this.ctx.fillText('EQUIPPED:', 20, 80);
+        
+        this.ctx.fillStyle = '#FFFFFF';
+        const weaponText = player.equippedWeapon ? 
+            `${player.equippedWeapon.char} ${player.equippedWeapon.getDescription()}` : 'None';
+        const armorText = player.equippedArmor ? 
+            `${player.equippedArmor.char} ${player.equippedArmor.getDescription()}` : 'None';
+        
+        this.ctx.fillText(`Weapon: ${weaponText}`, 40, 100);
+        this.ctx.fillText(`Armor:  ${armorText}`, 40, 120);
+        
+        // Inventory items
+        this.ctx.fillStyle = '#00FFFF';
+        this.ctx.fillText('ITEMS:', 20, 150);
+        
+        let y = 170;
+        for (let i = 0; i < player.inventory.length; i++) {
+            const item = player.inventory[i];
+            const equipped = player.isEquipped(item) ? ' (E)' : '';
+            const quantity = item.stackable && item.quantity > 1 ? ` x${item.quantity}` : '';
+            
+            this.ctx.fillStyle = item.color;
+            this.ctx.fillText(`${i + 1}. ${item.char} ${item.getDescription()}${quantity}${equipped}`, 40, y);
+            y += 20;
+        }
+        
+        // Controls help
+        this.ctx.fillStyle = '#888888';
+        y = this.canvas.height - 60;
+        this.ctx.fillText('Press number to use/equip item', 20, y);
+        this.ctx.fillText('Press I to close inventory', 20, y + 20);
     }
 }

@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **NetHack-Style Roguelike** (game-003): Phase 3 - Items & Inventory System Complete
+  - **Item System**: Comprehensive item types and equipment
+    - 5 item types: Weapons, Armor, Potions, Scrolls, Food
+    - 4 rarity levels: Common, Uncommon, Rare, Legendary
+    - Item templates with 13+ different items (daggers, swords, axes, armor, potions, etc.)
+    - Items spawn on dungeon floor (8-12 per level) with rarity based on depth
+    - Each item has unique stats: attack/defense bonuses, healing amounts, weight, value
+    - ASCII characters and colors for each item type
+  - **Inventory System**: Full inventory management
+    - 20-slot inventory with pickup/drop mechanics
+    - Press G to pick up items, D to drop items, I to toggle inventory screen
+    - Stackable consumables (potions, food)
+    - Full inventory screen with item list and descriptions
+  - **Equipment System**: Weapon and armor slots
+    - Equip/unequip weapons and armor from inventory (press 1-9)
+    - Equipment bonuses dynamically update player stats
+    - Visual equipment display in status bar
+    - Attack and Defense stats shown in UI
+  - **Consumables**: Usable items with effects
+    - Healing potions (Minor: 20 HP, Regular: 40 HP, Greater: 60 HP)
+    - Food items (Bread, Rations) for healing
+    - Consumables removed from inventory after use
+  - Files: Added [game-003/js/Item.js](game-003/js/Item.js), updated Player.js, Game.js, Input.js, Renderer.js, index.html, game-plan.md
+
 - **NetHack-Style Roguelike** (game-003): Phase 2 - Combat & Monster System Complete
   - **Monster System**: 5 different monster types (rat, goblin, snake, orc, troll)
     - Each monster has unique stats: HP, attack, defense, XP rewards

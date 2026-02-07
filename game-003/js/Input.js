@@ -45,6 +45,36 @@ export class Input {
     handleKeyDown(event) {
         const key = event.key;
         
+        // Handle inventory controls
+        if (key === 'i' || key === 'I') {
+            event.preventDefault();
+            this.game.toggleInventory();
+            return;
+        }
+        
+        if (key === 'g' || key === 'G') {
+            event.preventDefault();
+            this.game.handlePickup();
+            return;
+        }
+        
+        if (key === 'd' || key === 'D') {
+            event.preventDefault();
+            this.game.handleDrop();
+            return;
+        }
+        
+        // Handle number keys for inventory items
+        if (this.game.showInventory) {
+            const num = parseInt(key);
+            if (!isNaN(num) && num >= 1 && num <= 9) {
+                event.preventDefault();
+                this.game.handleInventoryAction(num - 1);
+                return;
+            }
+        }
+        
+        // Handle movement
         if (this.keyMap[key]) {
             event.preventDefault();
             const { dx, dy } = this.keyMap[key];

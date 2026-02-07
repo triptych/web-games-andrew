@@ -6,6 +6,7 @@ import { Monster } from './Monster.js';
 import { Renderer } from './Renderer.js';
 import { MessageLog } from './MessageLog.js';
 import { Input } from './Input.js';
+import { createRandomItem, ItemType } from './Item.js';
 
 export class Game {
     constructor(canvas, messageElement) {
@@ -17,9 +18,11 @@ export class Game {
         this.map = null;
         this.player = null;
         this.monsters = [];
+        this.items = [];
         this.turnCount = 0;
         this.depth = 1;
         this.gameState = 'playing'; // 'playing', 'game_over', 'victory'
+        this.showInventory = false;
         
         this.init();
     }
@@ -35,10 +38,14 @@ export class Game {
         // Spawn monsters
         this.spawnMonsters();
         
+        // Spawn items
+        this.spawnItems();
+        
         // Welcome message
         this.messageLog.add('Welcome to the dungeon! Use arrow keys or WASD to move.', '#4CAF50');
         this.messageLog.add('Press Q/E for diagonal movement, Space to wait.', '#4CAF50');
         this.messageLog.add('Attack monsters by moving into them!', '#4CAF50');
+        this.messageLog.add('Press G to pick up items, I for inventory, D to drop.', '#4CAF50');
         
         // Initial render
         this.render();
@@ -197,8 +204,115 @@ export class Game {
         }
     }
 
+    spawnItems() {
+        this.items = [];
+        const itemCount = 8 + Math.floor(Math.random() * 5); // 8-12 items
+        
+        for (let i = 0; i < itemCount; i++) {
+            const pos = this.map.getRandomFloorPosition(false);
+            if (pos) {
+                const item = createRandomItem(pos.x, pos.y, this.depth);
+                this.items.push(item);
+            }
+        }
+        
+        this.messageLog.add(`${this.items.length} items scattered throughout the dungeon!`, '#FFFF88');
+    }
+    
+    getItemAt(x, y) {
+        return this.items.find(item => item.x === x && item.y === y);
+    }
+    
+    handlePickup() {
+        const item = this.getItemAt(this.player.x, this.player.y);
+        if (!item) {
+            this.messageLog.add('There is nothing here to pick up.', '#888888');
+            return;
+        }
+        
+        if (this.player.addItem(item)) {
+            this.messageLog.add(`You picked up ${item.name}.`, '#00FF00');
+            // Remove item from map
+            const index = this.items.indexOf(item);
+            if (index > -1) {
+                this.items.splice(index, 1);
+            }
+            this.processTurn();
+        } else {
+            this.messageLog.add('Your inventory is full!', '#FF6666');
+        }
+    }
+    
+    handleDrop() {
+        if (this.player.inventory.length === 0) {
+            this.messageLog.add('You have nothing to drop.', '#888888');
+            return;
+        }
+        
+        // Drop the first item in inventory (simple implementation)
+        const item = this.player.inventory[0];
+        if (this.player.removeItem(item)) {
+            // Place item on map at player's position
+            item.x = this.player.x;
+            item.y = this.player.y;
+            this.items.push(item);
+            this.messageLog.add(`You dropped ${item.name}.`, '#FFAA00');
+            this.processTurn();
+        }
+    }
+    
+    toggleInventory() {
+        this.showInventory = !this.showInventory;
+        if (this.showInventory) {
+            this.displayInventory();
+        } else {
+            this.render();
+        }
+    }
+    
+    displayInventory() {
+        // This will be rendered in the Renderer
+        this.renderer.renderInventory(this.player);
+    }
+    
+    handleInventoryAction(index) {
+        if (index < 0 || index >= this.player.inventory.length) {
+            return;
+        }
+        
+        const item = this.player.inventory[index];
+        
+        if (item.type === ItemType.WEAPON || item.type === ItemType.ARMOR) {
+            // Equip/unequip item
+            if (this.player.isEquipped(item)) {
+                this.player.unequipItem(item);
+                this.messageLog.add(`You unequipped ${item.name}.`, '#FFAA00');
+            } else {
+                this.player.equipItem(item);
+                this.messageLog.add(`You equipped ${item.name}.`, '#00FF00');
+            }
+            this.updateUI();
+            this.displayInventory();
+        } else if (item.type === ItemType.POTION || item.type === ItemType.FOOD) {
+            // Use consumable
+            const result = this.player.useItem(item);
+            this.messageLog.add(result.message, result.success ? '#00FF00' : '#FF6666');
+            
+            if (result.success) {
+                this.updateUI();
+                this.displayInventory();
+                this.showInventory = false;
+                this.processTurn();
+            }
+        }
+    }
+
     render() {
-        this.renderer.render(this.map, this.player, this.monsters);
+        if (this.showInventory) {
+            this.renderer.renderInventory(this.player);
+        } else {
+            this.renderer.render(this.map, this.player, this.monsters, this.items);
+        }
     }
 
     updateUI() {
@@ -213,6 +327,17 @@ export class Game {
             `Depth: ${this.depth}`;
         document.getElementById('turn-count').textContent = 
             `Turn: ${this.turnCount}`;
+        
+        // Update equipment display
+        const weaponText = this.player.equippedWeapon ? 
+            this.player.equippedWeapon.name : 'None';
+        const armorText = this.player.equippedArmor ? 
+            this.player.equippedArmor.name : 'None';
+        
+        document.getElementById('equipped-weapon').textContent = `Weapon: ${weaponText}`;
+        document.getElementById('equipped-armor').textContent = `Armor: ${armorText}`;
+        document.getElementById('player-attack').textContent = `ATK: ${this.player.attack}`;
+        document.getElementById('player-defense').textContent = `DEF: ${this.player.defense}`;
     }
 
     gameOver() {

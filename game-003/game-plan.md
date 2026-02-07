@@ -152,11 +152,11 @@ class MessageLog { }    // Message history
 - [x] Death/game over
 
 ### Phase 3: Items & Inventory
-- [ ] Item entities on map
-- [ ] Pick up/drop items
-- [ ] Inventory UI
-- [ ] Equipping weapons/armor
-- [ ] Stat bonuses from equipment
+- [x] Item entities on map
+- [x] Pick up/drop items
+- [x] Inventory UI
+- [x] Equipping weapons/armor
+- [x] Stat bonuses from equipment
 
 ### Phase 4: Advanced Features
 - [ ] Magic system
