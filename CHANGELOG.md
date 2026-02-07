@@ -63,6 +63,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Modular ES6 architecture
   - Files: [game-003/index.html](game-003/index.html), [game-003/styles.css](game-003/styles.css), [game-003/js/](game-003/js/)
 
+### Fixed
+- **NetHack-Style Roguelike** (game-003): Fixed status bar not updating after closing inventory screen
+  - Issue: Equipment stats would not display properly when returning from inventory view
+  - Solution: Added `updateUI()` call after rendering to ensure status bar reflects current equipment state
+  - File: [game-003/js/Game.js](game-003/js/Game.js#L270)
+- **NetHack-Style Roguelike** (game-003): Fixed message log inconsistent height
+  - Changed message log from `max-height` to fixed `height` for consistent display
+  - File: [game-003/styles.css](game-003/styles.css#L103)
+
 ### Changed
 - **Game Browser Refactoring**: Restructured main index.html into modular components
   - Separated HTML, CSS, and JavaScript into dedicated files

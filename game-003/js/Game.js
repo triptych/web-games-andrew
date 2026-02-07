@@ -267,6 +267,7 @@ export class Game {
             this.displayInventory();
         } else {
             this.render();
+            this.updateUI(); // Ensure status bar reflects current equipment
         }
     }
     

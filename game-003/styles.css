@@ -100,7 +100,7 @@ body {
 }
 
 #messages {
-    max-height: 300px;
+    height: 300px;
     overflow-y: auto;
     font-size: 14px;
     line-height: 1.6;
