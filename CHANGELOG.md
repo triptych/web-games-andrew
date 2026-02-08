@@ -8,6 +8,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Tower Defense Game** (game-004): Phase 1 - Core Tower Defense Mechanics (MVP)
+  - **Modular Architecture**: ES6 module system with event-driven communication
+    - Custom EventBus for cross-module messaging without tight coupling
+    - Reactive game state management with automatic UI updates
+    - Separate modules: config, events, state, map, towers, enemies, waves, ui, main
+  - **Grid System & Pathfinding**: Tile-based map with pre-computed enemy paths
+    - 32×15 grid (1280×720 desktop resolution, 40px tiles)
+    - S-shaped path from left to right with spawn/exit indicators
+    - Procedural terrain variation using pseudo-random tile coloring
+    - Buildable zones (grass) and no-build zones (path)
+  - **Tower System**: Strategic tower placement and combat
+    - Archer tower: Fast-firing basic tower ($50 cost, 120 range, 12 damage)
+    - Click-to-place interface with visual placement ghost
+    - Range indicators on hover and selection
+    - Projectile system with target tracking and hit detection
+    - "First" targeting priority (enemy closest to exit)
+  - **Enemy System**: Path-following enemies with health bars
+    - Scout enemy type: Fast movement, low HP (40), $10 reward
+    - Smooth waypoint-based pathfinding
+    - Dynamic HP bars (green → yellow → red)
+    - Death particle effects and floating gold rewards
+    - Hit flash feedback on damage
+  - **Wave System**: Progressive difficulty with 10 waves
+    - Manual wave start (Space or button)
+    - Increasing enemy counts and spawn rates per wave
+    - Wave completion bonus ($25 gold)
+    - "In Progress" status during active waves
+  - **Economy & Resources**:
+    - Starting gold: $200, Starting lives: 20
+    - Earn gold by killing enemies
+    - Lose lives when enemies reach the exit
+    - Real-time HUD updates using onUpdate polling
+  - **User Interface**:
+    - Top HUD: Gold ($), Lives (♥), Wave counter, Start Wave button
+    - Bottom toolbar: Tower selection buttons with cost, name, hotkey, and icon
+    - Centered layout optimized for 16:9 desktop screens
+    - Manual hit-testing for toolbar buttons (event masking fix)
+    - Visual feedback: button highlighting, placement validation
+  - **Controls**:
+    - [1] - Select Archer tower for placement
+    - [Space] - Start next wave
+    - [ESC] - Cancel tower placement / Deselect tower
+    - [R] - Restart game
+    - Left-click - Place tower or select existing tower
+    - Right-click - Cancel placement / Deselect
+  - **Victory/Defeat System**:
+    - Victory overlay when all 10 waves completed
+    - Defeat overlay when lives reach zero
+    - Stats display and restart option
+  - **Technical Implementation**:
+    - Built with Kaplay v4000 (ES6 module import)
+    - Custom graphics rendered using Kaplay primitives (rects, circles, text)
+    - No external sprites - all visuals procedurally generated
+    - Fits desktop screen (1280×720 with letterbox/stretch)
+  - Files: [game-004/index.html](game-004/index.html), [game-004/js/](game-004/js/), [game-004/game-plan.md](game-004/game-plan.md), [game-004/lib/kaplay/](game-004/lib/kaplay/)
+
 - **NetHack-Style Roguelike** (game-003): Phase 5 - NPC System
   - **NPC System**: Interactive non-player characters with dialogue
     - 5 NPC types: Merchant, Guard, Wizard, Hermit, Healer
