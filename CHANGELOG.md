@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **NetHack-Style Roguelike** (game-003): Phase 5 - NPC System
+  - **NPC System**: Interactive non-player characters with dialogue
+    - 5 NPC types: Merchant, Guard, Wizard, Hermit, Healer
+    - Each NPC has unique character, color, and 5 dialogue lines
+    - NPCs spawn 2-3 per floor throughout the dungeon
+    - Collision detection prevents walking through NPCs
+    - NPCs respect fog of war (only visible when in view)
+  - **Dialogue System**: Talk to NPCs for immersive interaction
+    - Press T key to talk to adjacent NPCs (8 directions)
+    - NPC speech appears in message log with color-coded text
+    - Format: `NPC Name: "Dialogue text"`
+    - Dialogue cycles through 5 unique lines per NPC
+    - Bump into NPCs for helpful hint to press T
+  - **Persistence**: NPCs saved across game sessions
+    - NPC positions and dialogue state saved with level data
+    - NPCs persist when traveling between dungeon levels
+    - Save/load system fully supports NPC data
+  - **New Controls**:
+    - T - Talk to nearby NPC
+  - Files: Created [game-003/js/NPC.js](game-003/js/NPC.js), updated [game-003/js/Game.js](game-003/js/Game.js), [game-003/js/Renderer.js](game-003/js/Renderer.js), [game-003/js/Input.js](game-003/js/Input.js)
+
 - **NetHack-Style Roguelike** (game-003): Phase 4 - Advanced Features Complete
   - **Magic System**: Mana-based spell casting
     - Added MP (Mana Points) stat: starts at 50, increases +5 per level

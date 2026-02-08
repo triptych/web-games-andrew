@@ -71,6 +71,21 @@ export class Renderer {
         }
     }
 
+    drawNPCs(npcs, cameraX, cameraY, fov = null) {
+        for (const npc of npcs) {
+            const screenX = npc.x - cameraX;
+            const screenY = npc.y - cameraY;
+
+            if (screenX >= 0 && screenX < this.viewWidth &&
+                screenY >= 0 && screenY < this.viewHeight) {
+                // Only draw if visible (or no FOV)
+                if (!fov || fov.isVisible(npc.x, npc.y)) {
+                    this.drawTile(screenX, screenY, npc.char, npc.color);
+                }
+            }
+        }
+    }
+
     drawItems(items, cameraX, cameraY, fov = null) {
         for (const item of items) {
             const screenX = item.x - cameraX;
@@ -158,7 +173,7 @@ export class Renderer {
         return { x: camX, y: camY };
     }
 
-    render(map, player, monsters = [], items = [], fov = null, projectiles = []) {
+    render(map, player, monsters = [], items = [], fov = null, projectiles = [], npcs = []) {
         this.clear();
 
         const camera = this.getCameraPosition(player, map.width, map.height);
@@ -166,6 +181,7 @@ export class Renderer {
         this.drawMap(map, camera.x, camera.y, fov);
         this.drawItems(items, camera.x, camera.y, fov);
         this.drawMonsters(monsters, camera.x, camera.y, fov);
+        this.drawNPCs(npcs, camera.x, camera.y, fov);
         this.drawPlayer(player, camera.x, camera.y);
 
         // Draw projectiles

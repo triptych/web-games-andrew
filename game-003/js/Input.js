@@ -71,6 +71,13 @@ export class Input {
             return;
         }
 
+        // Handle talking to NPCs
+        if (key === 't' || key === 'T') {
+            event.preventDefault();
+            this.game.handleTalk();
+            return;
+        }
+
         // Handle spell casting
         if (key === 'f' || key === 'F') {
             event.preventDefault();

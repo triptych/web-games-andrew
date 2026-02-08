@@ -3,6 +3,7 @@
 import { Map } from './Map.js';
 import { Player } from './Player.js';
 import { Monster } from './Monster.js';
+import { NPC } from './NPC.js';
 import { Renderer } from './Renderer.js';
 import { MessageLog } from './MessageLog.js';
 import { Input } from './Input.js';
@@ -20,6 +21,7 @@ export class Game {
         this.map = null;
         this.player = null;
         this.monsters = [];
+        this.npcs = [];
         this.items = [];
         this.projectiles = [];
         this.fov = null;
@@ -58,6 +60,9 @@ export class Game {
         // Spawn monsters
         this.spawnMonsters();
 
+        // Spawn NPCs
+        this.spawnNPCs();
+
         // Spawn items
         this.spawnItems();
 
@@ -67,6 +72,7 @@ export class Game {
             this.messageLog.add('Press Q/E for diagonal movement, Space to wait.', '#4CAF50');
             this.messageLog.add('Attack monsters by moving into them!', '#4CAF50');
             this.messageLog.add('Press G to pick up items, I for inventory, F to cast fireball.', '#4CAF50');
+            this.messageLog.add('Press T to talk to NPCs when adjacent to them.', '#4CAF50');
             this.messageLog.add('Use </> to navigate stairs between levels.', '#4CAF50');
         }
 
@@ -99,6 +105,70 @@ export class Game {
         this.messageLog.add(`${this.monsters.length} monsters lurk in the shadows!`, '#FF8888');
     }
 
+    spawnNPCs() {
+        this.npcs = [];
+
+        // Always spawn 2-3 NPCs on every floor for better visibility
+        const npcCount = 2 + Math.floor(Math.random() * 2); // 2-3 NPCs
+        const npcTypes = ['merchant', 'guard', 'wizard', 'hermit', 'healer'];
+
+        for (let i = 0; i < npcCount; i++) {
+            const pos = this.map.getRandomFloorPosition(false); // Can spawn in first room
+            if (pos) {
+                // Choose random NPC type
+                const type = npcTypes[Math.floor(Math.random() * npcTypes.length)];
+                const npc = new NPC(pos.x, pos.y, type);
+                this.npcs.push(npc);
+                console.log(`Spawned ${npc.name} at (${pos.x}, ${pos.y})`);
+            }
+        }
+
+        console.log(`Total NPCs spawned: ${this.npcs.length}`);
+        if (this.npcs.length > 0) {
+            this.messageLog.add(`You hear voices echoing through the dungeon...`, '#87CEEB');
+        }
+    }
+
+    getNPCAt(x, y) {
+        return this.npcs.find(npc => npc.x === x && npc.y === y);
+    }
+
+    handleTalk() {
+        // Check for NPCs in adjacent tiles (8 directions)
+        const directions = [
+            { dx: 0, dy: -1 },  // North
+            { dx: 1, dy: -1 },  // NE
+            { dx: 1, dy: 0 },   // East
+            { dx: 1, dy: 1 },   // SE
+            { dx: 0, dy: 1 },   // South
+            { dx: -1, dy: 1 },  // SW
+            { dx: -1, dy: 0 },  // West
+            { dx: -1, dy: -1 }  // NW
+        ];
+
+        let foundNPC = null;
+
+        for (const dir of directions) {
+            const checkX = this.player.x + dir.dx;
+            const checkY = this.player.y + dir.dy;
+            const npc = this.getNPCAt(checkX, checkY);
+
+            if (npc) {
+                foundNPC = npc;
+                break;
+            }
+        }
+
+        if (foundNPC) {
+            const dialogue = foundNPC.speak();
+            this.messageLog.add(`${foundNPC.name}: "${dialogue}"`, foundNPC.color);
+            foundNPC.lastSpokenTurn = this.turnCount;
+            this.processTurn();
+        } else {
+            this.messageLog.add('There is no one nearby to talk to.', '#888888');
+        }
+    }
+
     handlePlayerMove(dx, dy) {
         if (this.gameState !== 'playing') {
             return;
@@ -113,6 +183,13 @@ export class Game {
 
         const newX = this.player.x + dx;
         const newY = this.player.y + dy;
+
+        // Check for NPC at target position
+        const npc = this.getNPCAt(newX, newY);
+        if (npc) {
+            this.messageLog.add(`You bump into the ${npc.name}. Press T to talk.`, '#87CEEB');
+            return;
+        }
 
         // Check for monster at target position
         const monster = this.getMonsterAt(newX, newY);
@@ -349,7 +426,7 @@ export class Game {
         if (this.showInventory) {
             this.renderer.renderInventory(this.player);
         } else {
-            this.renderer.render(this.map, this.player, this.monsters, this.items, this.fov, this.projectiles);
+            this.renderer.render(this.map, this.player, this.monsters, this.items, this.fov, this.projectiles, this.npcs);
         }
     }
 
@@ -522,8 +599,9 @@ export class Game {
             // Initialize FOV
             this.fov = new FOV(this.map);
 
-            // Spawn new monsters and items
+            // Spawn new monsters, NPCs, and items
             this.spawnMonsters();
+            this.spawnNPCs();
             this.spawnItems();
         }
 
@@ -568,6 +646,7 @@ export class Game {
             this.player.y = this.map.stairsDown.y;
             this.fov = new FOV(this.map);
             this.spawnMonsters();
+            this.spawnNPCs();
             this.spawnItems();
         }
 
@@ -584,6 +663,7 @@ export class Game {
         this.levels[depth] = {
             mapData: this.map.serialize(),
             monsters: this.monsters.map(m => m.serialize()),
+            npcs: this.npcs.map(n => n.serialize()),
             items: this.items.map(i => i.serialize()),
             fovData: this.fov.serialize()
         };
@@ -604,6 +684,9 @@ export class Game {
 
         // Restore monsters
         this.monsters = levelData.monsters.map(data => Monster.deserialize(data));
+
+        // Restore NPCs
+        this.npcs = levelData.npcs ? levelData.npcs.map(data => NPC.deserialize(data)) : [];
 
         // Restore items
         this.items = levelData.items.map(data => Item.deserialize(data));
@@ -678,6 +761,7 @@ export class Game {
                 this.map.generate(this.depth > 1);
                 this.fov = new FOV(this.map);
                 this.spawnMonsters();
+                this.spawnNPCs();
                 this.spawnItems();
             }
 
