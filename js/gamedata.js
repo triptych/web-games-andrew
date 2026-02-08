@@ -28,6 +28,19 @@ const games = [
             { emoji: '🖱️', label: 'Mouse' },
             { emoji: '💡', label: 'Strategy' }
         ]
+    },
+    {
+        id: 'game-003',
+        title: 'NetHack Roguelike',
+        description: 'Classic dungeon crawler with procedurally generated levels! Explore infinite depths, battle monsters, collect loot, cast spells, and talk to NPCs. Features permadeath, turn-based combat, and ASCII graphics. Can you survive the dungeon?',
+        icon: '⚔️',
+        folder: 'game-003',
+        cssClass: 'roguelike',
+        tags: [
+            { emoji: '🏰', label: 'Dungeon' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '🎲', label: 'Roguelike' }
+        ]
     }
 ];
 

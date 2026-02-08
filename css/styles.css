@@ -84,6 +84,10 @@ h1 {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
+.game-preview.roguelike {
+    background: linear-gradient(135deg, #2c1810 0%, #4a3520 50%, #1a0f0a 100%);
+}
+
 .preview-icon {
     font-size: 4em;
     opacity: 0.8;
@@ -143,6 +147,10 @@ h1 {
 
 .game-card.match-3 .play-button {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.game-card.roguelike .play-button {
+    background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
 }
 
 footer {
