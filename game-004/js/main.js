@@ -12,8 +12,8 @@ function startGame() {
         height: GAME_HEIGHT,
         background: [30, 35, 42],
         letterbox: true,
-        stretch: true,
         crisp: true,
+        pixelDensity: 1,
     });
 
     // Initialize all systems (order matters)

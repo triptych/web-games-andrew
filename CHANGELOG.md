@@ -216,6 +216,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Files: [game-003/index.html](game-003/index.html), [game-003/styles.css](game-003/styles.css), [game-003/js/](game-003/js/)
 
 ### Fixed
+- **Tower Defense Game** (game-004): Fixed tower panel not clickable
+  - Issue: Tower buttons in the right panel were not responding to clicks
+  - Solution: Added `k.area()` component to tower buttons and attached `onClick()` handlers directly to each button
+  - Removed manual hit-testing in favor of Kaplay's built-in area-based click detection
+  - Files: [game-004/js/ui.js](game-004/js/ui.js)
+- **Tower Defense Game** (game-004): Improved UI text update reliability
+  - Issue: Text objects not updating consistently in some Kaplay versions
+  - Solution: Recreate text objects on state changes instead of modifying existing text properties
+  - Stored text positions for reliable recreation
+  - Files: [game-004/js/ui.js](game-004/js/ui.js)
+- **Tower Defense Game** (game-004): Fixed click detection overlapping with UI panel
+  - Issue: Clicking on the right tower panel would also place towers on the map behind it
+  - Solution: Added exclusion zone for right panel area (130px width + 20px margin) in click detection
+  - Files: [game-004/js/towers.js](game-004/js/towers.js)
 - **NetHack-Style Roguelike** (game-003): Fixed level persistence - levels now remember their state
   - Issue: Descending and returning to previous levels generated new random maps each time
   - Solution: Implemented level storage system that saves/restores level state (map, monsters, items, FOV) by depth

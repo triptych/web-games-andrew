@@ -1,4 +1,4 @@
-import { TILE_SIZE, TOWER_DEFS, COLORS, TOOLBAR_Y, HUD_HEIGHT } from './config.js';
+import { TILE_SIZE, TOWER_DEFS, COLORS, TOOLBAR_Y, HUD_HEIGHT, GAME_WIDTH } from './config.js';
 import { events } from './events.js';
 import { state } from './state.js';
 import { gridToWorld, worldToGrid, isBuildable, isInGrid } from './map.js';
@@ -22,8 +22,11 @@ export function initTowers(kaplay) {
     k.onClick(() => {
         const pos = k.mousePos();
 
-        // Ignore clicks in UI areas (HUD top bar and toolbar bottom bar)
+        // Ignore clicks in UI areas (HUD top bar, right panel, and bottom toolbar)
+        const PANEL_RIGHT_EDGE = GAME_WIDTH - 20; // Right edge of screen minus margin
+        const PANEL_LEFT_EDGE = PANEL_RIGHT_EDGE - 130; // Panel width is 130
         if (pos.y < HUD_HEIGHT || pos.y >= TOOLBAR_Y) return;
+        if (pos.x >= PANEL_LEFT_EDGE && pos.x <= PANEL_RIGHT_EDGE) return;
 
         if (state.isGameOver || state.isVictory) return;
 

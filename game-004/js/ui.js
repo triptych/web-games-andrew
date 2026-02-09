@@ -8,9 +8,9 @@ import { startNextWave } from './waves.js';
 
 let k;
 let goldText, livesText, waveText, startBtnText;
-let towerBtnRects = []; // { x, y, w, h, typeId }
 let overlayObj = null;
 let lastGold = -1, lastLives = -1, lastWave = -1;
+let goldTextPos, livesTextPos, waveTextPos; // Store positions for recreating text
 
 export function initUI(kaplay) {
     k = kaplay;
@@ -19,19 +19,40 @@ export function initUI(kaplay) {
     setupClicks();
     listenEvents();
 
-    // Continuously sync HUD text with state (reliable across Kaplay versions)
+    // Continuously sync HUD text with state (recreate text objects for reliable updates)
     k.onUpdate(() => {
         if (state.gold !== lastGold) {
             lastGold = state.gold;
-            goldText.text = String(state.gold);
+            if (goldText && goldText.exists()) goldText.destroy();
+            goldText = k.add([
+                k.pos(goldTextPos.x, goldTextPos.y),
+                k.text(String(state.gold), { size: 20 }),
+                k.color(255, 255, 255),
+                k.anchor("left"),
+                k.z(52),
+            ]);
         }
         if (state.lives !== lastLives) {
             lastLives = state.lives;
-            livesText.text = String(state.lives);
+            if (livesText && livesText.exists()) livesText.destroy();
+            livesText = k.add([
+                k.pos(livesTextPos.x, livesTextPos.y),
+                k.text(String(state.lives), { size: 20 }),
+                k.color(255, 255, 255),
+                k.anchor("left"),
+                k.z(52),
+            ]);
         }
         if (state.wave !== lastWave) {
             lastWave = state.wave;
-            waveText.text = "Wave " + state.wave + " / " + WAVE_DEFS.length;
+            if (waveText && waveText.exists()) waveText.destroy();
+            waveText = k.add([
+                k.pos(waveTextPos.x, waveTextPos.y),
+                k.text("Wave " + state.wave + " / " + WAVE_DEFS.length, { size: 18 }),
+                k.color(200, 200, 220),
+                k.anchor("center"),
+                k.z(52),
+            ]);
         }
     });
 }
@@ -60,8 +81,9 @@ function createHUD() {
         k.anchor("left"),
         k.z(52),
     ]);
+    goldTextPos = { x: 44, y: HUD_HEIGHT / 2 };
     goldText = k.add([
-        k.pos(44, HUD_HEIGHT / 2),
+        k.pos(goldTextPos.x, goldTextPos.y),
         k.text(String(state.gold), { size: 20 }),
         k.color(255, 255, 255),
         k.anchor("left"),
@@ -76,8 +98,9 @@ function createHUD() {
         k.anchor("left"),
         k.z(52),
     ]);
+    livesTextPos = { x: 204, y: HUD_HEIGHT / 2 };
     livesText = k.add([
-        k.pos(204, HUD_HEIGHT / 2),
+        k.pos(livesTextPos.x, livesTextPos.y),
         k.text(String(state.lives), { size: 20 }),
         k.color(255, 255, 255),
         k.anchor("left"),
@@ -85,8 +108,9 @@ function createHUD() {
     ]);
 
     // Wave text
+    waveTextPos = { x: GAME_WIDTH / 2, y: HUD_HEIGHT / 2 };
     waveText = k.add([
-        k.pos(GAME_WIDTH / 2, HUD_HEIGHT / 2),
+        k.pos(waveTextPos.x, waveTextPos.y),
         k.text("Wave 0 / " + WAVE_DEFS.length, { size: 18 }),
         k.color(200, 200, 220),
         k.anchor("center"),
@@ -120,49 +144,71 @@ function createHUD() {
 }
 
 function createToolbar() {
-    // Toolbar background
+    // Floating panel on right side
+    const panelWidth = 130;
+    const panelX = GAME_WIDTH - panelWidth - 20; // 20px from right edge
+    const panelY = HUD_HEIGHT + 80; // Start below HUD with some padding
+
+    const types = Object.entries(TOWER_DEFS);
+    const btnW = 120;
+    const btnH = 64;
+    const btnSpacing = 12;
+    const panelPadding = 8;
+    const panelHeight = types.length * btnH + (types.length - 1) * btnSpacing + panelPadding * 2;
+
+    // Panel background
     k.add([
-        k.pos(0, TOOLBAR_Y),
-        k.rect(GAME_WIDTH, TOOLBAR_HEIGHT),
+        k.pos(panelX - panelPadding, panelY - panelPadding),
+        k.rect(panelWidth, panelHeight, { radius: 8 }),
         k.color(COLORS.toolbarBg.r, COLORS.toolbarBg.g, COLORS.toolbarBg.b),
+        k.outline(2, k.rgb(80, 90, 110)),
+        k.opacity(0.95),
         k.z(50),
     ]);
+
+    // Panel title
     k.add([
-        k.pos(0, TOOLBAR_Y),
-        k.rect(GAME_WIDTH, 2),
-        k.color(80, 90, 110),
-        k.z(51),
+        k.pos(panelX + btnW / 2, panelY - panelPadding + 16),
+        k.text("Towers", { size: 14 }),
+        k.color(200, 200, 220),
+        k.anchor("center"),
+        k.z(53),
     ]);
 
-    // Tower buttons
-    const types = Object.entries(TOWER_DEFS);
-    const btnW = 100;
-    const btnH = 44;
-    const totalW = types.length * btnW + (types.length - 1) * 12;
-    const startX = (GAME_WIDTH - totalW) / 2;
+    // Tower buttons (vertical stack)
+    const buttonsStartY = panelY + 20;
 
     for (let i = 0; i < types.length; i++) {
         const [typeId, def] = types[i];
-        const bx = startX + i * (btnW + 12);
-        const by = TOOLBAR_Y + 6;
+        const bx = panelX;
+        const by = buttonsStartY + i * (btnH + btnSpacing);
 
-        // Store rect for manual click detection
-        towerBtnRects.push({ x: bx, y: by, w: btnW, h: btnH, typeId });
-
-        // Button background (no anchor - topleft)
-        k.add([
+        // Button background
+        const btn = k.add([
             k.pos(bx, by),
             k.rect(btnW, btnH, { radius: 6 }),
             k.color(COLORS.buttonBg.r, COLORS.buttonBg.g, COLORS.buttonBg.b),
             k.outline(2, k.rgb(70, 75, 95)),
+            k.area(),
             k.z(52),
             "towerBtn_" + typeId,
         ]);
 
+        // Add click handler directly to button
+        btn.onClick(() => {
+            if (state.isGameOver || state.isVictory) return;
+            if (state.placingType === typeId) {
+                state.placingType = null;
+            } else {
+                state.selectedTower = null;
+                state.placingType = typeId;
+            }
+        });
+
         // Tower icon
         k.add([
-            k.pos(bx + 12, by + btnH / 2),
-            k.rect(16, 16, { radius: 3 }),
+            k.pos(bx + btnW / 2, by + 16),
+            k.rect(20, 20, { radius: 4 }),
             k.color(def.color.r, def.color.g, def.color.b),
             k.outline(1, k.rgb(
                 Math.max(0, def.color.r - 30),
@@ -175,17 +221,17 @@ function createToolbar() {
 
         // Tower name
         k.add([
-            k.pos(bx + 26, by + 10),
+            k.pos(bx + btnW / 2, by + 36),
             k.text(def.name, { size: 13 }),
             k.color(220, 220, 230),
-            k.anchor("left"),
+            k.anchor("center"),
             k.z(53),
         ]);
 
         // Cost
         k.add([
-            k.pos(bx + 26, by + 27),
-            k.text("$" + def.cost, { size: 12 }),
+            k.pos(bx + 8, by + btnH - 8),
+            k.text("$" + def.cost, { size: 11 }),
             k.color(COLORS.goldText.r, COLORS.goldText.g, COLORS.goldText.b),
             k.anchor("left"),
             k.z(53),
@@ -193,7 +239,7 @@ function createToolbar() {
 
         // Hotkey
         k.add([
-            k.pos(bx + btnW - 8, by + 27),
+            k.pos(bx + btnW - 8, by + btnH - 8),
             k.text("[" + def.hotkey + "]", { size: 10 }),
             k.color(150, 150, 170),
             k.anchor("right"),
@@ -201,9 +247,9 @@ function createToolbar() {
         ]);
     }
 
-    // Instructions
+    // Instructions at bottom of screen
     k.add([
-        k.pos(GAME_WIDTH / 2, TOOLBAR_Y + TOOLBAR_HEIGHT - 10),
+        k.pos(GAME_WIDTH / 2, GAME_HEIGHT - 20),
         k.text("[1] Select tower  |  [SPACE] Start Wave  |  [ESC] Cancel  |  Right-click: Deselect", { size: 10 }),
         k.color(100, 100, 120),
         k.anchor("center"),
@@ -212,25 +258,7 @@ function createToolbar() {
 }
 
 function setupClicks() {
-    // Manual hit-testing for toolbar tower buttons
-    k.onClick(() => {
-        const pos = k.mousePos();
-
-        // Tower button hit tests
-        for (const rect of towerBtnRects) {
-            if (pos.x >= rect.x && pos.x <= rect.x + rect.w &&
-                pos.y >= rect.y && pos.y <= rect.y + rect.h) {
-                if (state.isGameOver || state.isVictory) return;
-                if (state.placingType === rect.typeId) {
-                    state.placingType = null;
-                } else {
-                    state.selectedTower = null;
-                    state.placingType = rect.typeId;
-                }
-                return;
-            }
-        }
-    });
+    // Click handlers are now attached directly to buttons in createToolbar()
 }
 
 function listenEvents() {
