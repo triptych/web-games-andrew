@@ -49,18 +49,27 @@ Classic dungeon crawler with procedurally generated levels, turn-based combat, a
 **Location:** [game-003/](game-003/)
 
 ### 4. Tower Defense
-Strategic tower defense game with 5 unique tower types and special abilities.
+Strategic tower defense game with 5 unique tower types, 5 enemy varieties, and 20 progressive waves.
 
 **Features:**
 - **5 Unique Tower Types**:
-  - Archer: Fast attacks, medium range (balanced)
+  - Archer: Fast attacks, medium range (balanced starter tower)
   - Cannon: Slow, powerful splash damage with explosions
   - Mage: Magic attacks that slow enemies
   - Tesla: Chain lightning hitting multiple enemies
   - Sniper: Long-range armor-piercing shots
+- **5 Enemy Types with Unique Mechanics**:
+  - Scout: Fast, low HP (basic enemy)
+  - Soldier: Medium stats with armor
+  - Tank: Heavily armored, requires anti-armor strategies
+  - Speedster: Very fast, dodges through defenses
+  - Boss: Massive HP and armor (appears every 5 waves)
+- **Armor System**: Damage reduction mechanics with sniper armor pierce
+- **20 Progressive Waves**: Escalating difficulty with mixed enemy compositions
+- **Boss Waves**: Special encounters every 5 waves with warning banners
+- **Wave Preview**: See upcoming enemy composition in HUD
 - **Special Attack Patterns**: Splash damage, slow effects, chain lightning
-- **Visual Effects**: Explosions, lightning bolts, slow indicators, impact flashes
-- **Progressive Waves**: 10 waves with increasing difficulty
+- **Visual Effects**: Explosions, lightning bolts, slow indicators, impact flashes, boss banners
 - **Strategic Gameplay**: Grid-based tower placement with range indicators
 - **Resource Management**: Gold economy and life system
 - **Hotkeys 1-5**: Quick tower selection

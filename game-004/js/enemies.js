@@ -44,6 +44,8 @@ export function spawnEnemy(type) {
     enemy.hp = def.hp;
     enemy.maxHp = def.hp;
     enemy.speed = def.speed;
+    enemy.originalSpeed = def.speed; // Store for slow effects
+    enemy.armor = def.armor || 0;
     enemy.reward = def.reward;
     enemy.damage = def.damage;
     enemy.enemyType = type;
@@ -51,21 +53,70 @@ export function spawnEnemy(type) {
     enemy.pathProgress = 0;
     enemy.flashTimer = 0;
 
-    // Inner detail shape
-    enemy.add([
-        k.circle(def.size - 4),
-        k.color(
-            Math.min(255, def.color.r + 50),
-            Math.min(255, def.color.g + 20),
-            Math.min(255, def.color.b + 20),
-        ),
-        k.anchor("center"),
-        k.pos(0, 0),
-    ]);
+    // Add unique visual features based on enemy type
+    if (type === "tank") {
+        // Tank: Armored look with square plating
+        enemy.add([
+            k.rect(def.size * 1.2, def.size * 1.2),
+            k.color(60, 60, 60),
+            k.anchor("center"),
+            k.pos(0, 0),
+        ]);
+        enemy.add([
+            k.rect(def.size * 0.8, def.size * 0.8),
+            k.color(def.color.r, def.color.g, def.color.b),
+            k.anchor("center"),
+            k.pos(0, 0),
+        ]);
+    } else if (type === "boss") {
+        // Boss: Large with pulsing crown/spikes
+        for (let i = 0; i < 8; i++) {
+            const angle = (Math.PI * 2 * i) / 8;
+            const spikeX = Math.cos(angle) * (def.size - 4);
+            const spikeY = Math.sin(angle) * (def.size - 4);
+            enemy.add([
+                k.circle(4),
+                k.color(255, 200, 50),
+                k.anchor("center"),
+                k.pos(spikeX, spikeY),
+            ]);
+        }
+        enemy.add([
+            k.circle(def.size - 6),
+            k.color(
+                Math.min(255, def.color.r + 50),
+                Math.max(0, def.color.g - 20),
+                Math.min(255, def.color.b + 50),
+            ),
+            k.anchor("center"),
+            k.pos(0, 0),
+        ]);
+    } else if (type === "speedster") {
+        // Speedster: Streamlined with trail marks
+        enemy.add([
+            k.circle(def.size - 2),
+            k.color(255, 255, 100),
+            k.anchor("center"),
+            k.pos(0, 0),
+        ]);
+    } else {
+        // Default inner detail shape for scout and soldier
+        enemy.add([
+            k.circle(def.size - 4),
+            k.color(
+                Math.min(255, def.color.r + 50),
+                Math.min(255, def.color.g + 20),
+                Math.min(255, def.color.b + 20),
+            ),
+            k.anchor("center"),
+            k.pos(0, 0),
+        ]);
+    }
 
     // Direction indicator (small triangle-like dot at front)
+    const dotSize = type === "boss" ? 5 : 3;
     enemy.dirDot = enemy.add([
-        k.circle(3),
+        k.circle(dotSize),
         k.color(255, 255, 200),
         k.anchor("center"),
         k.pos(def.size - 2, 0),

@@ -8,6 +8,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Tower Defense Game** (game-004): Phase 3 - Enemy Variety & Waves
+  - **5 Enemy Types**: Expanded from 1 to 5 distinct enemy types with strategic diversity
+    - **Scout**: Fast movement (90 speed), low HP (40), no armor - Basic early game enemy
+    - **Soldier**: Medium speed (70), 100 HP, 5 armor - Standard armored infantry
+    - **Tank**: Slow movement (40), high HP (300), heavy armor (20) - Armored tank requiring anti-armor towers
+    - **Speedster**: Very fast (140 speed), medium HP (60), no armor - Quick striker that dodges defenses
+    - **Boss**: Massive HP (800), heavy armor (30), huge rewards (150 gold) - Epic boss enemy
+  - **Armor System**: Complete damage reduction mechanics
+    - Armor reduces incoming damage: `finalDamage = max(1, baseDamage - effectiveArmor)`
+    - Armor pierce mechanic for Sniper tower (ignores 50% of armor)
+    - All damage sources respect armor (projectiles, splash, chain lightning)
+    - `calculateDamage()` function handles armor calculations
+  - **Unique Enemy Visuals**: Distinctive designs for each enemy type
+    - Tank: Square armor plating with layered gray/green design
+    - Boss: Purple body with 8 golden crown spikes in radial pattern
+    - Speedster: Streamlined yellow design with inner glow
+    - Soldier: Green with enhanced details
+    - Scout: Red basic design (from Phase 1)
+  - **20 Progressive Waves**: Expanded from 10 to 20 waves with strategic variety
+    - Waves 1-4: Tutorial waves introducing single enemy types
+    - Wave 5: First boss wave
+    - Waves 6-9: Mixed enemy compositions (scouts + soldiers, speedsters + scouts, etc.)
+    - Wave 10: Boss + soldiers support wave
+    - Waves 11-14: Increased difficulty with tanks and speedsters
+    - Wave 15: Double boss wave with speedster swarm
+    - Waves 16-19: Maximum challenge with 3-type mixed compositions
+    - Wave 20: Epic final boss wave (3 bosses + 5 tanks + 10 speedsters)
+  - **Boss Wave Features**: Special visual treatment for boss encounters
+    - Boss waves trigger every 5 waves (waves 5, 10, 15, 20)
+    - Warning banner appears on screen: "⚠ BOSS WAVE X ⚠" with purple/gold styling
+    - Banner auto-fades after 3 seconds
+    - Wave counter shows "BOSS WAVE" in orange/red color during boss waves
+    - `isBoss` flag in wave definitions marks boss waves
+  - **Wave Preview UI**: Shows upcoming enemy composition
+    - "Next:" label displays upcoming wave enemies in HUD
+    - Colored enemy icons with count indicators (e.g., "×8")
+    - Boss wave warning indicator (⚠) in preview
+    - Updates automatically after each wave completion
+    - Helps players plan tower strategy for next wave
+  - **Enemy Stat Scaling**: Progressive difficulty curve
+    - Early waves: Low HP enemies for learning
+    - Mid waves: Armored enemies requiring tower upgrades
+    - Late waves: Fast enemies and heavy armor combinations
+    - Boss waves: Strategic challenges requiring optimal tower placement
+  - Files: Updated [game-004/js/config.js](game-004/js/config.js), [game-004/js/enemies.js](game-004/js/enemies.js), [game-004/js/towers.js](game-004/js/towers.js), [game-004/js/ui.js](game-004/js/ui.js), [game-004/game-plan.md](game-004/game-plan.md)
+
 - **Tower Defense Game** (game-004): Phase 2 - Tower Variety & Special Abilities
   - **5 Unique Tower Types**: Expanded from 1 to 5 distinct towers with different roles
     - **Archer Tower**: Fast attacks, medium range (100 cost, 150 range, 10 DPS)

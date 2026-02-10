@@ -1,16 +1,16 @@
 # Tower Defense Game Plan
 
 ## Current Status
-**Phase 2 (Tower Variety) - ✅ COMPLETED**
+**Phase 3 (Enemy Variety & Waves) - ✅ COMPLETED**
 
-Expanded from single tower type to 5 distinct tower types with unique attack patterns:
-- **Archer**: Fast attacks, medium range (balanced starter tower)
-- **Cannon**: Slow, powerful splash damage attacks
-- **Mage**: Magic attacks that slow enemies
-- **Tesla**: Chain lightning hitting multiple enemies
-- **Sniper**: Long-range, high-damage armor-piercing shots
+Expanded from single enemy type to 5 distinct enemy types with 20 progressive waves:
+- **Scout**: Fast, low HP, low reward (starter enemy)
+- **Soldier**: Medium speed, medium HP with armor
+- **Tank**: Slow, heavily armored, high reward
+- **Speedster**: Very fast, medium HP, dodges defenses
+- **Boss**: Massive HP, heavy armor, appears every 5 waves
 
-Each tower has unique visuals, projectiles, and special effects. Ready for Phase 3: Enemy variety!
+Features include armor system affecting damage calculation, sniper armor pierce mechanics, 20 challenging waves with mixed enemy compositions, boss wave banners and warnings, and wave preview UI showing upcoming enemies!
 
 ## Game Overview
 A classic tower defense game built with Kaplay.js where players strategically place towers to defend against waves of enemies following a path from start to finish. Features multiple tower types, enemy varieties, upgrades, and progressive difficulty.
@@ -260,12 +260,24 @@ class WaveManager {
 - ✅ Updated starting gold to 500 for better balance
 - ✅ Visual effects: explosions, lightning bolts, slow indicators
 
-### Phase 3: Enemy Variety & Waves
-- [ ] Add multiple enemy types
-- [ ] Wave progression system
-- [ ] Enemy stats scaling
-- [ ] Boss enemies
-- [ ] Wave preview
+### Phase 3: Enemy Variety & Waves ✅ COMPLETED
+- [x] Add multiple enemy types
+- [x] Wave progression system
+- [x] Enemy stats scaling
+- [x] Boss enemies
+- [x] Wave preview
+
+**Completed Features:**
+- ✅ 5 enemy types: Scout, Soldier, Tank, Speedster, Boss
+- ✅ Unique visual designs for each enemy (Tank has armor plating, Boss has crown spikes, Speedster streamlined)
+- ✅ Armor system with damage reduction mechanics
+- ✅ Sniper tower armor pierce (50% armor ignore)
+- ✅ 20 progressive waves with increasing difficulty
+- ✅ Boss waves every 5 waves (waves 5, 10, 15, 20)
+- ✅ Boss wave warning banner with visual effects
+- ✅ Wave preview UI showing upcoming enemy composition
+- ✅ Mixed enemy types in later waves for strategic variety
+- ✅ Proper enemy stat scaling (HP, speed, armor, rewards)
 
 ### Phase 4: Upgrades & Economy
 - [ ] Tower upgrade system (3 tiers)

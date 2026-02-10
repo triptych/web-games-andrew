@@ -417,29 +417,39 @@ function fireProjectile(tower, target) {
     });
 }
 
+function calculateDamage(baseDamage, target, armorPierce = 0) {
+    // Armor reduces damage, but armor pierce reduces the effectiveness of armor
+    const effectiveArmor = target.armor * (1 - armorPierce);
+    const finalDamage = Math.max(1, baseDamage - effectiveArmor);
+    return finalDamage;
+}
+
 function handleProjectileHit(proj, target) {
     if (proj.towerType === "cannon") {
         // Cannon: splash damage
         createSplashDamage(target.pos, proj.towerDef.splashRadius, proj.damage);
     } else if (proj.towerType === "mage") {
         // Mage: direct damage + slow effect
-        target.hp -= proj.damage;
+        const damage = calculateDamage(proj.damage, target);
+        target.hp -= damage;
         applySlowEffect(target, proj.towerDef.slowDuration, proj.towerDef.slowAmount);
         events.emit('enemyDamaged', target);
     } else if (proj.towerType === "sniper") {
-        // Sniper: armor-piercing damage (for now just direct damage, armor system to be added later)
-        target.hp -= proj.damage;
+        // Sniper: armor-piercing damage
+        const damage = calculateDamage(proj.damage, target, proj.towerDef.armorPierce);
+        target.hp -= damage;
         events.emit('enemyDamaged', target);
         // Visual feedback for sniper hit
         createImpactEffect(target.pos, k.rgb(255, 200, 100));
     } else {
         // Archer and others: direct damage
-        target.hp -= proj.damage;
+        const damage = calculateDamage(proj.damage, target);
+        target.hp -= damage;
         events.emit('enemyDamaged', target);
     }
 }
 
-function createSplashDamage(pos, radius, damage) {
+function createSplashDamage(pos, radius, baseDamage) {
     // Visual explosion effect
     createExplosionEffect(pos, radius);
 
@@ -449,6 +459,7 @@ function createSplashDamage(pos, radius, damage) {
         if (!enemy.exists()) continue;
         const dist = enemy.pos.dist(pos);
         if (dist <= radius) {
+            const damage = calculateDamage(baseDamage, enemy);
             enemy.hp -= damage;
             events.emit('enemyDamaged', enemy);
         }
@@ -534,7 +545,8 @@ function fireTeslaLightning(tower, target, def) {
 
     // Deal damage to all targets
     for (const t of targets) {
-        t.hp -= tower.damage;
+        const damage = calculateDamage(tower.damage, t);
+        t.hp -= damage;
         events.emit('enemyDamaged', t);
     }
 

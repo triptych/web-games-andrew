@@ -101,25 +101,139 @@ export const ENEMY_DEFS = {
         name: "Scout",
         hp: 40,
         speed: 90,
+        armor: 0,
         reward: 10,
         damage: 1,
         size: 10,
         color: { r: 200, g: 60, b: 60 },
     },
+    soldier: {
+        name: "Soldier",
+        hp: 100,
+        speed: 70,
+        armor: 5,
+        reward: 20,
+        damage: 2,
+        size: 12,
+        color: { r: 100, g: 140, b: 100 },
+    },
+    tank: {
+        name: "Tank",
+        hp: 300,
+        speed: 40,
+        armor: 20,
+        reward: 50,
+        damage: 3,
+        size: 16,
+        color: { r: 80, g: 80, b: 80 },
+    },
+    speedster: {
+        name: "Speedster",
+        hp: 60,
+        speed: 140,
+        armor: 0,
+        reward: 25,
+        damage: 1,
+        size: 9,
+        color: { r: 255, g: 200, b: 50 },
+    },
+    boss: {
+        name: "Boss",
+        hp: 800,
+        speed: 50,
+        armor: 30,
+        reward: 150,
+        damage: 5,
+        size: 24,
+        color: { r: 150, g: 50, b: 200 },
+    },
 };
 
-// Wave definitions (Phase 1: scouts only)
+// Wave definitions (Phase 3: Multiple enemy types with scaling difficulty)
 export const WAVE_DEFS = [
+    // Waves 1-4: Tutorial waves - Single enemy types
     { enemies: [{ type: "scout", count: 5, interval: 1.2 }] },
     { enemies: [{ type: "scout", count: 8, interval: 1.0 }] },
+    { enemies: [{ type: "soldier", count: 4, interval: 1.5 }] },
     { enemies: [{ type: "scout", count: 10, interval: 0.9 }] },
-    { enemies: [{ type: "scout", count: 12, interval: 0.8 }] },
-    { enemies: [{ type: "scout", count: 15, interval: 0.7 }] },
-    { enemies: [{ type: "scout", count: 18, interval: 0.6 }] },
-    { enemies: [{ type: "scout", count: 22, interval: 0.55 }] },
-    { enemies: [{ type: "scout", count: 25, interval: 0.5 }] },
-    { enemies: [{ type: "scout", count: 30, interval: 0.45 }] },
-    { enemies: [{ type: "scout", count: 35, interval: 0.4 }] },
+
+    // Wave 5: First Boss
+    { enemies: [{ type: "boss", count: 1, interval: 0 }], isBoss: true },
+
+    // Waves 6-9: Mixed enemy types
+    { enemies: [
+        { type: "scout", count: 8, interval: 0.8 },
+        { type: "soldier", count: 4, interval: 1.2 }
+    ] },
+    { enemies: [
+        { type: "speedster", count: 6, interval: 0.9 },
+        { type: "scout", count: 6, interval: 0.8 }
+    ] },
+    { enemies: [
+        { type: "soldier", count: 8, interval: 1.0 },
+        { type: "speedster", count: 4, interval: 0.8 }
+    ] },
+    { enemies: [
+        { type: "tank", count: 2, interval: 2.0 },
+        { type: "scout", count: 12, interval: 0.6 }
+    ] },
+
+    // Wave 10: Boss wave
+    { enemies: [
+        { type: "boss", count: 1, interval: 0 },
+        { type: "soldier", count: 4, interval: 1.5 }
+    ], isBoss: true },
+
+    // Waves 11-14: Increased difficulty
+    { enemies: [
+        { type: "tank", count: 3, interval: 1.8 },
+        { type: "speedster", count: 6, interval: 0.7 }
+    ] },
+    { enemies: [
+        { type: "soldier", count: 12, interval: 0.8 },
+        { type: "speedster", count: 8, interval: 0.6 }
+    ] },
+    { enemies: [
+        { type: "tank", count: 4, interval: 1.5 },
+        { type: "soldier", count: 8, interval: 0.9 }
+    ] },
+    { enemies: [
+        { type: "speedster", count: 12, interval: 0.5 },
+        { type: "tank", count: 3, interval: 1.8 }
+    ] },
+
+    // Wave 15: Boss wave
+    { enemies: [
+        { type: "boss", count: 2, interval: 3.0 },
+        { type: "speedster", count: 8, interval: 0.6 }
+    ], isBoss: true },
+
+    // Waves 16-19: Maximum challenge
+    { enemies: [
+        { type: "tank", count: 6, interval: 1.2 },
+        { type: "soldier", count: 10, interval: 0.7 },
+        { type: "speedster", count: 8, interval: 0.5 }
+    ] },
+    { enemies: [
+        { type: "speedster", count: 15, interval: 0.4 },
+        { type: "tank", count: 5, interval: 1.5 }
+    ] },
+    { enemies: [
+        { type: "soldier", count: 20, interval: 0.5 },
+        { type: "tank", count: 4, interval: 1.8 }
+    ] },
+    { enemies: [
+        { type: "tank", count: 8, interval: 1.0 },
+        { type: "speedster", count: 12, interval: 0.4 },
+        { type: "soldier", count: 10, interval: 0.6 }
+    ] },
+
+    // Wave 20: Final Boss wave
+    { enemies: [
+        { type: "boss", count: 3, interval: 4.0 },
+        { type: "tank", count: 5, interval: 1.5 },
+        { type: "speedster", count: 10, interval: 0.5 }
+    ], isBoss: true },
 ];
 
 // Wave completion bonus gold

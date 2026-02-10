@@ -1,6 +1,6 @@
 import {
     GAME_WIDTH, GAME_HEIGHT, HUD_HEIGHT, TOOLBAR_Y, TOOLBAR_HEIGHT,
-    TOWER_DEFS, COLORS, WAVE_DEFS,
+    TOWER_DEFS, COLORS, WAVE_DEFS, ENEMY_DEFS,
 } from './config.js';
 import { events } from './events.js';
 import { state } from './state.js';
@@ -9,6 +9,8 @@ import { startNextWave } from './waves.js';
 let k;
 let goldText, livesText, waveText, startBtnText;
 let overlayObj = null;
+let bossBanner = null;
+let wavePreviewContainer = null;
 let lastGold = -1, lastLives = -1, lastWave = -1;
 let goldTextPos, livesTextPos, waveTextPos; // Store positions for recreating text
 
@@ -46,10 +48,15 @@ export function initUI(kaplay) {
         if (state.wave !== lastWave) {
             lastWave = state.wave;
             if (waveText && waveText.exists()) waveText.destroy();
+
+            // Check if current wave is a boss wave
+            const isBossWave = state.wave > 0 && WAVE_DEFS[state.wave - 1]?.isBoss;
+            const waveLabel = isBossWave ? "BOSS WAVE " + state.wave : "Wave " + state.wave;
+
             waveText = k.add([
                 k.pos(waveTextPos.x, waveTextPos.y),
-                k.text("Wave " + state.wave + " / " + WAVE_DEFS.length, { size: 18 }),
-                k.color(200, 200, 220),
+                k.text(waveLabel + " / " + WAVE_DEFS.length, { size: 18 }),
+                k.color(isBossWave ? 255 : 200, isBossWave ? 100 : 200, isBossWave ? 100 : 220),
                 k.anchor("center"),
                 k.z(52),
             ]);
@@ -256,6 +263,9 @@ function createToolbar() {
         k.anchor("center"),
         k.z(52),
     ]);
+
+    // Initial wave preview
+    updateWavePreview();
 }
 
 function setupClicks() {
@@ -263,8 +273,17 @@ function setupClicks() {
 }
 
 function listenEvents() {
-    events.on('waveStarted', () => {
+    events.on('waveStarted', (waveNum) => {
         startBtnText.text = "In Progress";
+
+        // Show boss wave banner
+        const isBossWave = WAVE_DEFS[waveNum - 1]?.isBoss;
+        if (isBossWave) {
+            showBossBanner(waveNum);
+        }
+
+        // Update wave preview
+        updateWavePreview();
     });
 
     events.on('waveCompleted', (waveNum) => {
@@ -273,6 +292,9 @@ function listenEvents() {
         } else {
             startBtnText.text = "Start Wave";
         }
+
+        // Update wave preview for next wave
+        updateWavePreview();
     });
 
     events.on('gameOver', () => {
@@ -309,6 +331,140 @@ function showFloatingText(str, x, y, colorDef) {
         ft.pos = ft.pos.add(k.vec2(0, -40 * k.dt()));
         ft.opacity -= 1.5 * k.dt();
         if (ft.opacity <= 0) ft.destroy();
+    });
+}
+
+function updateWavePreview() {
+    // Clear existing preview
+    if (wavePreviewContainer) {
+        k.destroyAll("wavePreview");
+        wavePreviewContainer = null;
+    }
+
+    // Don't show preview if game is over or all waves completed
+    if (state.isGameOver || state.isVictory || state.wave >= WAVE_DEFS.length) return;
+
+    const nextWaveIdx = state.isWaveActive ? state.wave : state.wave;
+    if (nextWaveIdx >= WAVE_DEFS.length) return;
+
+    const nextWave = WAVE_DEFS[nextWaveIdx];
+    const previewX = 340;
+    const previewY = HUD_HEIGHT / 2;
+
+    // "Next Wave:" label
+    k.add([
+        k.pos(previewX, previewY - 12),
+        k.text("Next:", { size: 11 }),
+        k.color(150, 150, 170),
+        k.anchor("left"),
+        k.z(52),
+        "wavePreview",
+    ]);
+
+    // Show enemy types in next wave
+    let offsetX = 0;
+    const enemyTypes = new Map(); // Count each enemy type
+
+    for (const group of nextWave.enemies) {
+        const current = enemyTypes.get(group.type) || 0;
+        enemyTypes.set(group.type, current + group.count);
+    }
+
+    // Display each enemy type
+    for (const [type, count] of enemyTypes) {
+        const def = ENEMY_DEFS[type];
+
+        // Enemy icon (small circle)
+        k.add([
+            k.pos(previewX + offsetX, previewY + 8),
+            k.circle(6),
+            k.color(def.color.r, def.color.g, def.color.b),
+            k.outline(1, k.rgb(
+                Math.max(0, def.color.r - 60),
+                Math.max(0, def.color.g - 60),
+                Math.max(0, def.color.b - 60),
+            )),
+            k.anchor("center"),
+            k.z(52),
+            "wavePreview",
+        ]);
+
+        // Count
+        k.add([
+            k.pos(previewX + offsetX + 10, previewY + 8),
+            k.text("×" + count, { size: 10 }),
+            k.color(200, 200, 220),
+            k.anchor("left"),
+            k.z(52),
+            "wavePreview",
+        ]);
+
+        offsetX += 48;
+    }
+
+    // Boss wave indicator
+    if (nextWave.isBoss) {
+        k.add([
+            k.pos(previewX + offsetX, previewY + 8),
+            k.text("⚠", { size: 12 }),
+            k.color(255, 100, 100),
+            k.anchor("center"),
+            k.z(52),
+            "wavePreview",
+        ]);
+    }
+
+    wavePreviewContainer = true; // Mark as created
+}
+
+function showBossBanner(waveNum) {
+    // Clear existing banner
+    if (bossBanner && bossBanner.exists()) {
+        bossBanner.destroy();
+    }
+
+    // Create boss wave warning banner
+    const bannerHeight = 60;
+    const bannerY = GAME_HEIGHT / 2 - 100;
+
+    bossBanner = k.add([
+        k.pos(GAME_WIDTH / 2, bannerY),
+        k.rect(500, bannerHeight, { radius: 8 }),
+        k.color(150, 50, 200),
+        k.outline(3, k.rgb(200, 100, 250)),
+        k.anchor("center"),
+        k.opacity(0.95),
+        k.z(90),
+    ]);
+
+    k.add([
+        k.pos(GAME_WIDTH / 2, bannerY - 8),
+        k.text("⚠ BOSS WAVE " + waveNum + " ⚠", { size: 32 }),
+        k.color(255, 220, 100),
+        k.anchor("center"),
+        k.z(91),
+    ]);
+
+    k.add([
+        k.pos(GAME_WIDTH / 2, bannerY + 12),
+        k.text("Prepare for a tough fight!", { size: 14 }),
+        k.color(255, 255, 255),
+        k.anchor("center"),
+        k.z(91),
+    ]);
+
+    // Auto-hide banner after 3 seconds
+    k.wait(3, () => {
+        if (bossBanner && bossBanner.exists()) {
+            const fadeSpeed = 2;
+            bossBanner.onUpdate(() => {
+                bossBanner.opacity -= fadeSpeed * k.dt();
+                if (bossBanner.opacity <= 0) {
+                    bossBanner.destroy();
+                    bossBanner = null;
+                }
+            });
+        }
     });
 }
 
