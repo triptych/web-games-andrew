@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Tower Defense Game** (game-004): Improved rendering quality on high-DPI displays
+  - Changed `pixelDensity` from fixed value of 1 to `Math.min(window.devicePixelRatio, 2)`
+  - Allows sharper rendering on Retina/high-DPI screens while capping at 2x for performance
+  - File: [game-004/js/main.js](game-004/js/main.js#L16)
+
+### Technical
+- Updated Claude Code permissions in `.claude/settings.local.json`
+  - Added PowerShell and Node.js command permissions for development workflow
+  - Added localhost WebFetch permission for local testing
+
 ### Added
 - **Tower Defense Game** (game-004): Phase 3 - Enemy Variety & Waves
   - **5 Enemy Types**: Expanded from 1 to 5 distinct enemy types with strategic diversity

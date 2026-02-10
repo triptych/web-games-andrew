@@ -13,7 +13,7 @@ function startGame() {
         background: [30, 35, 42],
         letterbox: true,
         crisp: true,
-        pixelDensity: 1,
+        pixelDensity: Math.min(window.devicePixelRatio, 2),
     });
 
     // Initialize all systems (order matters)

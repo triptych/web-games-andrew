@@ -3,7 +3,15 @@
     "allow": [
       "WebFetch(domain:www.jsdelivr.com)",
       "Bash(curl:*)",
-      "WebFetch(domain:v4000.kaplayjs.com)"
+      "WebFetch(domain:v4000.kaplayjs.com)",
+      "Bash(powershell -c \"Get-Content ''c:\\\\Users\\\\andre\\\\OneDrive\\\\Documents\\\\web-games-andrew\\\\game-004\\\\lib\\\\kaplay\\\\kaplay.mjs'' -TotalCount 1 | ForEach-Object { $_Substring\\(0, [Math]::Min\\($_Length, 500\\)\\) }\")",
+      "Bash(powershell -c:*)",
+      "Bash(Select-Object -First 30)",
+      "Bash(powershell -File - <<'PSEOF'\n$content = Get-Content 'c:\\\\Users\\\\andre\\\\OneDrive\\\\Documents\\\\web-games-andrew\\\\game-004\\\\lib\\\\kaplay\\\\kaplay.mjs' -Raw\n$m = [regex]::Match\\($content, 'VERSION'\\)\nif\\($m.Success\\) {\n    $s = [Math]::Max\\(0, $m.Index - 20\\)\n    Write-Output $content.Substring\\($s, 80\\)\n}\nPSEOF)",
+      "Bash(node -e:*)",
+      "WebFetch(domain:127.0.0.1)",
+      "Bash(node:*)",
+      "Bash(python -m http.server:*)"
     ]
   }
 }
