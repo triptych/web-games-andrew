@@ -122,6 +122,16 @@ export function spawnEnemy(type) {
                 enemy.color = k.rgb(def.color.r, def.color.g, def.color.b);
             }
         }
+
+        // Slow effect expiration
+        if (enemy.slowedUntil && k.time() > enemy.slowedUntil) {
+            enemy.speed = enemy.originalSpeed;
+            enemy.slowedUntil = null;
+            if (enemy.slowIndicator && enemy.slowIndicator.exists()) {
+                enemy.slowIndicator.destroy();
+                enemy.slowIndicator = null;
+            }
+        }
     });
 
     state.enemiesAlive++;

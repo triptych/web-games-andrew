@@ -100,6 +100,58 @@ export function initTowers(kaplay) {
         }
     });
 
+    // Hotkey 2: select cannon tower
+    k.onKeyPress("2", () => {
+        if (state.isGameOver || state.isVictory) return;
+        if (state.placingType === "cannon") {
+            state.placingType = null;
+            clearGhost();
+        } else {
+            state.selectedTower = null;
+            clearSelectedRange();
+            state.placingType = "cannon";
+        }
+    });
+
+    // Hotkey 3: select mage tower
+    k.onKeyPress("3", () => {
+        if (state.isGameOver || state.isVictory) return;
+        if (state.placingType === "mage") {
+            state.placingType = null;
+            clearGhost();
+        } else {
+            state.selectedTower = null;
+            clearSelectedRange();
+            state.placingType = "mage";
+        }
+    });
+
+    // Hotkey 4: select tesla tower
+    k.onKeyPress("4", () => {
+        if (state.isGameOver || state.isVictory) return;
+        if (state.placingType === "tesla") {
+            state.placingType = null;
+            clearGhost();
+        } else {
+            state.selectedTower = null;
+            clearSelectedRange();
+            state.placingType = "tesla";
+        }
+    });
+
+    // Hotkey 5: select sniper tower
+    k.onKeyPress("5", () => {
+        if (state.isGameOver || state.isVictory) return;
+        if (state.placingType === "sniper") {
+            state.placingType = null;
+            clearGhost();
+        } else {
+            state.selectedTower = null;
+            clearSelectedRange();
+            state.placingType = "sniper";
+        }
+    });
+
     // Listen for placement cancellation from other modules
     events.on('placementCancelled', () => {
         clearGhost();
@@ -137,32 +189,121 @@ function createTower(type, col, row) {
     tower.cooldown = 0;
     tower.target = null;
 
-    // Turret (inner circle)
-    tower.add([
-        k.circle(7),
-        k.color(
-            Math.min(255, def.color.r + 40),
-            Math.min(255, def.color.g + 40),
-            Math.min(255, def.color.b + 40),
-        ),
-        k.outline(1, k.rgb(def.color.r, def.color.g, def.color.b)),
-        k.anchor("center"),
-        k.pos(0, 0),
-    ]);
-
-    // Stone corners (decorative)
-    const cornerOff = 11;
-    const cornerSize = 5;
-    for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    // Tower-specific decorations
+    if (type === "archer") {
+        // Turret (inner circle)
         tower.add([
-            k.rect(cornerSize, cornerSize, { radius: 1 }),
+            k.circle(7),
             k.color(
-                Math.max(0, def.color.r - 15),
-                Math.max(0, def.color.g - 15),
-                Math.max(0, def.color.b - 15),
+                Math.min(255, def.color.r + 40),
+                Math.min(255, def.color.g + 40),
+                Math.min(255, def.color.b + 40),
+            ),
+            k.outline(1, k.rgb(def.color.r, def.color.g, def.color.b)),
+            k.anchor("center"),
+            k.pos(0, 0),
+        ]);
+        // Arrow slits
+        for (const dx of [-8, 8]) {
+            tower.add([
+                k.rect(3, 8),
+                k.color(30, 40, 30),
+                k.anchor("center"),
+                k.pos(dx, 0),
+            ]);
+        }
+    } else if (type === "cannon") {
+        // Large cannon barrel
+        tower.add([
+            k.rect(12, 18, { radius: 2 }),
+            k.color(70, 70, 70),
+            k.outline(1, k.rgb(40, 40, 40)),
+            k.anchor("center"),
+            k.pos(0, -8),
+        ]);
+        // Cannon base
+        tower.add([
+            k.circle(9),
+            k.color(80, 80, 80),
+            k.outline(1, k.rgb(50, 50, 50)),
+            k.anchor("center"),
+            k.pos(0, 0),
+        ]);
+    } else if (type === "mage") {
+        // Crystal/orb on top
+        tower.add([
+            k.circle(8),
+            k.color(180, 130, 230),
+            k.outline(2, k.rgb(130, 80, 180)),
+            k.anchor("center"),
+            k.pos(0, -6),
+        ]);
+        // Inner glow
+        tower.add([
+            k.circle(5),
+            k.color(220, 180, 255),
+            k.anchor("center"),
+            k.pos(0, -6),
+        ]);
+        // Small arcane symbols
+        for (let i = 0; i < 4; i++) {
+            const angle = (i / 4) * Math.PI * 2;
+            tower.add([
+                k.rect(2, 2),
+                k.color(200, 150, 220),
+                k.anchor("center"),
+                k.pos(Math.cos(angle) * 10, Math.sin(angle) * 10),
+            ]);
+        }
+    } else if (type === "tesla") {
+        // Tesla coil - top sphere
+        tower.add([
+            k.circle(7),
+            k.color(120, 180, 240),
+            k.outline(2, k.rgb(60, 140, 200)),
+            k.anchor("center"),
+            k.pos(0, -7),
+        ]);
+        // Central rod
+        tower.add([
+            k.rect(4, 14),
+            k.color(80, 100, 120),
+            k.anchor("center"),
+            k.pos(0, 0),
+        ]);
+        // Base plate
+        tower.add([
+            k.rect(16, 4, { radius: 1 }),
+            k.color(70, 90, 110),
+            k.anchor("center"),
+            k.pos(0, 8),
+        ]);
+    } else if (type === "sniper") {
+        // Long barrel
+        tower.add([
+            k.rect(6, 24, { radius: 1 }),
+            k.color(
+                Math.max(0, def.color.r - 20),
+                Math.max(0, def.color.g - 20),
+                Math.max(0, def.color.b - 20),
             ),
             k.anchor("center"),
-            k.pos(dx * cornerOff, dy * cornerOff),
+            k.pos(0, -10),
+        ]);
+        // Scope
+        tower.add([
+            k.rect(8, 4, { radius: 1 }),
+            k.color(40, 60, 80),
+            k.outline(1, k.rgb(20, 30, 40)),
+            k.anchor("center"),
+            k.pos(0, -8),
+        ]);
+        // Barrel tip
+        tower.add([
+            k.circle(2),
+            k.color(30, 30, 40),
+            k.anchor("center"),
+            k.pos(0, -22),
         ]);
     }
 
@@ -204,11 +345,40 @@ function findTarget(tower) {
 }
 
 function fireProjectile(tower, target) {
+    const def = TOWER_DEFS[tower.towerType];
+
+    // Tesla uses instant chain lightning, no projectile
+    if (tower.towerType === "tesla") {
+        fireTeslaLightning(tower, target, def);
+        return;
+    }
+
+    // Create projectile based on tower type
+    let projColor, projOutline, projSize;
+
+    if (tower.towerType === "archer") {
+        projColor = k.rgb(220, 200, 80);
+        projOutline = k.rgb(180, 160, 40);
+        projSize = 3;
+    } else if (tower.towerType === "cannon") {
+        projColor = k.rgb(80, 80, 80);
+        projOutline = k.rgb(50, 50, 50);
+        projSize = 6;
+    } else if (tower.towerType === "mage") {
+        projColor = k.rgb(180, 130, 230);
+        projOutline = k.rgb(130, 80, 180);
+        projSize = 5;
+    } else if (tower.towerType === "sniper") {
+        projColor = k.rgb(255, 200, 100);
+        projOutline = k.rgb(200, 150, 50);
+        projSize = 4;
+    }
+
     const proj = k.add([
         k.pos(tower.pos.x, tower.pos.y),
-        k.circle(3),
-        k.color(220, 200, 80),
-        k.outline(1, k.rgb(180, 160, 40)),
+        k.circle(projSize),
+        k.color(projColor),
+        k.outline(1, projOutline),
         k.anchor("center"),
         k.z(20),
         "projectile",
@@ -217,10 +387,17 @@ function fireProjectile(tower, target) {
     proj.damage = tower.damage;
     proj.speed = tower.projectileSpeed;
     proj.targetRef = target;
+    proj.towerType = tower.towerType;
+    proj.towerDef = def;
 
     proj.onUpdate(() => {
-        // If target is gone, remove projectile
+        // If target is gone, remove projectile (except cannon which hits ground)
         if (!proj.targetRef || !proj.targetRef.exists()) {
+            if (proj.towerType === "cannon") {
+                // Cannon projectiles explode at last known position
+                const lastPos = proj.targetRef ? proj.targetRef.pos : proj.pos;
+                createSplashDamage(lastPos, proj.towerDef.splashRadius, proj.damage);
+            }
             proj.destroy();
             return;
         }
@@ -230,14 +407,199 @@ function fireProjectile(tower, target) {
 
         if (dist < 8) {
             // Hit
-            proj.targetRef.hp -= proj.damage;
-            events.emit('enemyDamaged', proj.targetRef);
+            handleProjectileHit(proj, proj.targetRef);
             proj.destroy();
             return;
         }
 
         const move = dir.unit().scale(proj.speed * k.dt());
         proj.pos = proj.pos.add(move);
+    });
+}
+
+function handleProjectileHit(proj, target) {
+    if (proj.towerType === "cannon") {
+        // Cannon: splash damage
+        createSplashDamage(target.pos, proj.towerDef.splashRadius, proj.damage);
+    } else if (proj.towerType === "mage") {
+        // Mage: direct damage + slow effect
+        target.hp -= proj.damage;
+        applySlowEffect(target, proj.towerDef.slowDuration, proj.towerDef.slowAmount);
+        events.emit('enemyDamaged', target);
+    } else if (proj.towerType === "sniper") {
+        // Sniper: armor-piercing damage (for now just direct damage, armor system to be added later)
+        target.hp -= proj.damage;
+        events.emit('enemyDamaged', target);
+        // Visual feedback for sniper hit
+        createImpactEffect(target.pos, k.rgb(255, 200, 100));
+    } else {
+        // Archer and others: direct damage
+        target.hp -= proj.damage;
+        events.emit('enemyDamaged', target);
+    }
+}
+
+function createSplashDamage(pos, radius, damage) {
+    // Visual explosion effect
+    createExplosionEffect(pos, radius);
+
+    // Damage all enemies in radius
+    const enemies = k.get("enemy");
+    for (const enemy of enemies) {
+        if (!enemy.exists()) continue;
+        const dist = enemy.pos.dist(pos);
+        if (dist <= radius) {
+            enemy.hp -= damage;
+            events.emit('enemyDamaged', enemy);
+        }
+    }
+}
+
+function createExplosionEffect(pos, radius) {
+    const explosion = k.add([
+        k.pos(pos.x, pos.y),
+        k.circle(radius),
+        k.color(255, 150, 50),
+        k.opacity(0.6),
+        k.anchor("center"),
+        k.z(22),
+    ]);
+    explosion.onUpdate(() => {
+        explosion.opacity -= 3 * k.dt();
+        if (explosion.opacity <= 0) explosion.destroy();
+    });
+    // Inner bright flash
+    const flash = k.add([
+        k.pos(pos.x, pos.y),
+        k.circle(radius * 0.5),
+        k.color(255, 220, 100),
+        k.opacity(1),
+        k.anchor("center"),
+        k.z(23),
+    ]);
+    flash.onUpdate(() => {
+        flash.opacity -= 5 * k.dt();
+        if (flash.opacity <= 0) flash.destroy();
+    });
+}
+
+function applySlowEffect(enemy, duration, slowAmount) {
+    if (!enemy.originalSpeed) {
+        enemy.originalSpeed = enemy.speed;
+    }
+    enemy.speed = enemy.originalSpeed * (1 - slowAmount);
+    enemy.slowedUntil = k.time() + duration;
+
+    // Visual slow indicator
+    if (!enemy.slowIndicator) {
+        enemy.slowIndicator = enemy.add([
+            k.circle(6),
+            k.color(130, 80, 180),
+            k.opacity(0.3),
+            k.anchor("center"),
+            k.pos(0, -enemy.size - 8),
+        ]);
+    }
+}
+
+function fireTeslaLightning(tower, target, def) {
+    const targets = [target];
+    const hitPositions = [target.pos];
+
+    // Find chain targets
+    const enemies = k.get("enemy");
+    let currentTarget = target;
+
+    for (let i = 1; i < def.chainCount; i++) {
+        let nextTarget = null;
+        let closestDist = Infinity;
+
+        for (const enemy of enemies) {
+            if (!enemy.exists() || targets.includes(enemy)) continue;
+            const dist = currentTarget.pos.dist(enemy.pos);
+            if (dist <= def.chainRange && dist < closestDist) {
+                closestDist = dist;
+                nextTarget = enemy;
+            }
+        }
+
+        if (nextTarget) {
+            targets.push(nextTarget);
+            hitPositions.push(nextTarget.pos);
+            currentTarget = nextTarget;
+        } else {
+            break;
+        }
+    }
+
+    // Deal damage to all targets
+    for (const t of targets) {
+        t.hp -= tower.damage;
+        events.emit('enemyDamaged', t);
+    }
+
+    // Visual lightning effect
+    createLightningEffect(tower.pos, hitPositions);
+}
+
+function createLightningEffect(startPos, targetPositions) {
+    // Draw lightning bolts between positions
+    for (let i = 0; i < targetPositions.length; i++) {
+        const start = i === 0 ? startPos : targetPositions[i - 1];
+        const end = targetPositions[i];
+
+        const bolt = k.add([
+            k.pos(start.x, start.y),
+            k.color(120, 180, 255),
+            k.opacity(0.8),
+            k.z(21),
+        ]);
+
+        const dist = start.dist(end);
+        const angle = Math.atan2(end.y - start.y, end.x - start.x);
+
+        bolt.onDraw(() => {
+            k.drawLine({
+                p1: k.vec2(0, 0),
+                p2: k.vec2(Math.cos(angle) * dist, Math.sin(angle) * dist),
+                width: 3,
+                color: k.rgb(150, 200, 255),
+            });
+        });
+
+        bolt.onUpdate(() => {
+            bolt.opacity -= 6 * k.dt();
+            if (bolt.opacity <= 0) bolt.destroy();
+        });
+
+        // Lightning spark at target
+        const spark = k.add([
+            k.pos(end.x, end.y),
+            k.circle(8),
+            k.color(150, 200, 255),
+            k.opacity(0.7),
+            k.anchor("center"),
+            k.z(22),
+        ]);
+        spark.onUpdate(() => {
+            spark.opacity -= 4 * k.dt();
+            if (spark.opacity <= 0) spark.destroy();
+        });
+    }
+}
+
+function createImpactEffect(pos, color) {
+    const impact = k.add([
+        k.pos(pos.x, pos.y),
+        k.circle(12),
+        k.color(color),
+        k.opacity(0.6),
+        k.anchor("center"),
+        k.z(22),
+    ]);
+    impact.onUpdate(() => {
+        impact.opacity -= 4 * k.dt();
+        if (impact.opacity <= 0) impact.destroy();
     });
 }
 

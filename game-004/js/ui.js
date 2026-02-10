@@ -154,7 +154,8 @@ function createToolbar() {
     const btnH = 64;
     const btnSpacing = 12;
     const panelPadding = 8;
-    const panelHeight = types.length * btnH + (types.length - 1) * btnSpacing + panelPadding * 2;
+    const titleSpace = 32;
+    const panelHeight = titleSpace + types.length * btnH + (types.length - 1) * btnSpacing + panelPadding * 2;
 
     // Panel background
     k.add([
@@ -240,7 +241,7 @@ function createToolbar() {
         // Hotkey
         k.add([
             k.pos(bx + btnW - 8, by + btnH - 8),
-            k.text("[" + def.hotkey + "]", { size: 10 }),
+            k.text("(" + def.hotkey + ")", { size: 10 }),
             k.color(150, 150, 170),
             k.anchor("right"),
             k.z(53),
@@ -250,7 +251,7 @@ function createToolbar() {
     // Instructions at bottom of screen
     k.add([
         k.pos(GAME_WIDTH / 2, GAME_HEIGHT - 20),
-        k.text("[1] Select tower  |  [SPACE] Start Wave  |  [ESC] Cancel  |  Right-click: Deselect", { size: 10 }),
+        k.text("1-5: Select towers  |  SPACE: Start Wave  |  ESC: Cancel  |  Right-click: Deselect", { size: 10 }),
         k.color(100, 100, 120),
         k.anchor("center"),
         k.z(52),

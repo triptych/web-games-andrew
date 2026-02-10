@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Tower Defense Game** (game-004): Phase 2 - Tower Variety & Special Abilities
+  - **5 Unique Tower Types**: Expanded from 1 to 5 distinct towers with different roles
+    - **Archer Tower**: Fast attacks, medium range (100 cost, 150 range, 10 DPS)
+    - **Cannon Tower**: Slow, powerful splash damage (250 cost, 200 range, 25 DPS, 60px splash)
+    - **Mage Tower**: Magic attacks that slow enemies (200 cost, 175 range, 15 DPS, 50% slow for 2s)
+    - **Tesla Tower**: Chain lightning hitting up to 3 enemies (300 cost, 100 range, 20 DPS)
+    - **Sniper Tower**: Long-range armor-piercing shots (350 cost, 300 range, 40 DPS)
+  - **Unique Tower Visuals**: Each tower has distinctive appearance
+    - Archer: Green tower with arrow slits and turret
+    - Cannon: Gray tower with large barrel and base
+    - Mage: Purple tower with glowing crystal and arcane symbols
+    - Tesla: Blue coil tower with electric sphere
+    - Sniper: Brown tower with long rifle barrel and scope
+  - **Special Attack Patterns**:
+    - Cannon: Splash damage with orange explosion effects damaging all enemies in radius
+    - Mage: Purple projectiles apply slow debuff with visual indicator
+    - Tesla: Instant blue lightning chains between nearby enemies
+    - Sniper: Fast orange projectiles with impact flash effects
+  - **Different Projectile Types**: Each tower has unique projectile color, size, and speed
+  - **Hotkeys 1-5**: Quick tower selection for all 5 towers
+  - **Enhanced Visual Effects**: Explosions, lightning bolts, slow indicators, impact flashes
+  - **Balance Updates**: Starting gold increased to $500 for better early game strategy
+  - Files: Updated [game-004/js/config.js](game-004/js/config.js), [game-004/js/towers.js](game-004/js/towers.js), [game-004/js/enemies.js](game-004/js/enemies.js), [game-004/js/ui.js](game-004/js/ui.js), [game-004/game-plan.md](game-004/game-plan.md)
+
 - **Tower Defense Game** (game-004): Phase 1 - Core Tower Defense Mechanics (MVP)
   - **Modular Architecture**: ES6 module system with event-driven communication
     - Custom EventBus for cross-module messaging without tight coupling
@@ -216,6 +240,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Files: [game-003/index.html](game-003/index.html), [game-003/styles.css](game-003/styles.css), [game-003/js/](game-003/js/)
 
 ### Fixed
+- **Tower Defense Game** (game-004): Fixed Kaplay styled text error with square brackets
+  - Issue: Kaplay interprets square brackets `[` `]` as styled text tags, causing "unclosed tags" errors
+  - Solution: Changed hotkey display from `[1]` to `(1)` format and updated instruction text to remove brackets
+  - Files: [game-004/js/ui.js](game-004/js/ui.js)
+- **Tower Defense Game** (game-004): Fixed tower panel height calculation
+  - Issue: Panel background was too short, cutting off tower buttons beyond the first one
+  - Solution: Added titleSpace constant (32px) to panel height calculation to account for "Towers" title
+  - Files: [game-004/js/ui.js](game-004/js/ui.js)
 - **Tower Defense Game** (game-004): Fixed tower panel not clickable
   - Issue: Tower buttons in the right panel were not responding to clicks
   - Solution: Added `k.area()` component to tower buttons and attached `onClick()` handlers directly to each button

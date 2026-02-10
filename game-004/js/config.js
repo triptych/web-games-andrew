@@ -12,7 +12,7 @@ export const TOOLBAR_HEIGHT = 72;
 export const TOOLBAR_Y = GAME_HEIGHT - TOOLBAR_HEIGHT;
 
 // Starting resources
-export const STARTING_GOLD = 200;
+export const STARTING_GOLD = 500;
 export const STARTING_LIVES = 20;
 
 // Path waypoints (grid coordinates) - S-curve from left to right
@@ -35,13 +35,63 @@ export const PATH_WAYPOINTS = [
 export const TOWER_DEFS = {
     archer: {
         name: "Archer",
-        cost: 50,
-        damage: 12,
-        range: 120,
-        attackSpeed: 1.0, // attacks per second
-        projectileSpeed: 320,
+        cost: 100,
+        damage: 10,
+        range: 150,
+        attackSpeed: 1.0, // attacks per second (10 DPS)
+        projectileSpeed: 400,
         color: { r: 80, g: 145, b: 60 },
         hotkey: "1",
+        description: "Fast attack, medium range",
+    },
+    cannon: {
+        name: "Cannon",
+        cost: 250,
+        damage: 50,
+        range: 200,
+        attackSpeed: 0.5, // attacks per second (25 DPS)
+        projectileSpeed: 200,
+        splashRadius: 60,
+        color: { r: 100, g: 100, b: 100 },
+        hotkey: "2",
+        description: "Slow, high damage, splash",
+    },
+    mage: {
+        name: "Mage",
+        cost: 200,
+        damage: 15,
+        range: 175,
+        attackSpeed: 1.0, // attacks per second (15 DPS)
+        projectileSpeed: 350,
+        slowDuration: 2.0, // seconds
+        slowAmount: 0.5, // 50% slow
+        color: { r: 130, g: 80, b: 180 },
+        hotkey: "3",
+        description: "Magic damage, slows enemies",
+    },
+    tesla: {
+        name: "Tesla",
+        cost: 300,
+        damage: 20,
+        range: 100,
+        attackSpeed: 1.0, // attacks per second (20 DPS)
+        chainCount: 3, // hits up to 3 enemies
+        chainRange: 80,
+        color: { r: 60, g: 140, b: 200 },
+        hotkey: "4",
+        description: "Chain lightning, short range",
+    },
+    sniper: {
+        name: "Sniper",
+        cost: 350,
+        damage: 100,
+        range: 300,
+        attackSpeed: 0.4, // attacks per second (40 DPS)
+        projectileSpeed: 800,
+        armorPierce: 0.5, // ignores 50% of armor
+        color: { r: 140, g: 80, b: 50 },
+        hotkey: "5",
+        description: "Long range, armor pierce",
     },
 };
 
