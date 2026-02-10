@@ -49,7 +49,7 @@ Classic dungeon crawler with procedurally generated levels, turn-based combat, a
 **Location:** [game-003/](game-003/)
 
 ### 4. Tower Defense
-Strategic tower defense game with 5 unique tower types, 5 enemy varieties, and 20 progressive waves.
+Strategic tower defense game with 5 unique tower types, 5 enemy varieties, 20 progressive waves, and complete sound system.
 
 **Features:**
 - **5 Unique Tower Types**:
@@ -70,6 +70,10 @@ Strategic tower defense game with 5 unique tower types, 5 enemy varieties, and 2
 - **Wave Preview**: See upcoming enemy composition in HUD
 - **Special Attack Patterns**: Splash damage, slow effects, chain lightning
 - **Visual Effects**: Explosions, lightning bolts, slow indicators, impact flashes, boss banners
+- **Complete Sound System**: Procedurally generated audio using Web Audio API
+  - 10 unique sound effects for combat, waves, and UI interactions
+  - In-game sound toggle button for audio control
+  - Splash screen with animated start button
 - **Strategic Gameplay**: Grid-based tower placement with range indicators
 - **Resource Management**: Gold economy and life system
 - **Hotkeys 1-5**: Quick tower selection

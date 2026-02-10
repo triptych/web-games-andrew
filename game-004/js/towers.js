@@ -2,6 +2,7 @@ import { TILE_SIZE, TOWER_DEFS, COLORS, TOOLBAR_Y, HUD_HEIGHT, GAME_WIDTH } from
 import { events } from './events.js';
 import { state } from './state.js';
 import { gridToWorld, worldToGrid, isBuildable, isInGrid } from './map.js';
+import { sounds } from './sounds.js';
 
 let k;
 let ghostObj = null;
@@ -321,6 +322,7 @@ function createTower(type, col, row) {
     });
 
     state.occupyCell(col, row);
+    sounds.placeTower();
     events.emit('towerPlaced', tower);
     return tower;
 }
@@ -352,6 +354,9 @@ function fireProjectile(tower, target) {
         fireTeslaLightning(tower, target, def);
         return;
     }
+
+    // Play shooting sound
+    sounds.shoot();
 
     // Create projectile based on tower type
     let projColor, projOutline, projSize;
@@ -453,6 +458,9 @@ function createSplashDamage(pos, radius, baseDamage) {
     // Visual explosion effect
     createExplosionEffect(pos, radius);
 
+    // Explosion sound
+    sounds.enemyHit();
+
     // Damage all enemies in radius
     const enemies = k.get("enemy");
     for (const enemy of enemies) {
@@ -516,6 +524,9 @@ function applySlowEffect(enemy, duration, slowAmount) {
 function fireTeslaLightning(tower, target, def) {
     const targets = [target];
     const hitPositions = [target.pos];
+
+    // Play tesla sound
+    sounds.shoot();
 
     // Find chain targets
     const enemies = k.get("enemy");

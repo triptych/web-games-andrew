@@ -2,6 +2,7 @@ import { ENEMY_DEFS } from './config.js';
 import { events } from './events.js';
 import { state } from './state.js';
 import { worldPath } from './map.js';
+import { sounds } from './sounds.js';
 
 let k;
 
@@ -18,6 +19,8 @@ export function initEnemies(kaplay) {
             updateHPBar(enemy);
             // Flash white on hit
             flashEnemy(enemy);
+            // Play hit sound
+            sounds.enemyHit();
         }
     });
 }
@@ -216,6 +219,10 @@ function killEnemy(enemy) {
 
     // Death particles
     spawnDeathParticles(enemy.pos.x, enemy.pos.y, enemy.enemyType);
+
+    // Play death sound and coin collect sound
+    sounds.enemyDeath();
+    sounds.collectCoin();
 
     enemy.destroy();
     events.emit('enemyKilled', enemy);

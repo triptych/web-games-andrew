@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Tower Defense Game** (game-004): Complete Sound System & Splash Screen
+  - **Splash Screen**: Professional game entry screen with start button
+    - Gradient background with animated title and subtitle
+    - "Start Game" button with hover effects and animations
+    - Game instructions displayed on splash (controls and objectives)
+    - Audio context initialization on user interaction (required for Web Audio API)
+    - Fade-out transition when starting game
+  - **Web Audio API Sound System**: Procedurally generated sound effects using oscillators
+    - 10 unique sound effects: tower placement, shooting, enemy hits/deaths, coin collection, wave events, game end states, UI interactions
+    - Chords and frequency sweeps for rich audio feedback
+    - Master volume control (30% default) via gain node
+    - No external audio files required - all sounds generated programmatically
+  - **Sound Toggle Button**: In-game sound control in HUD
+    - Musical note icon (♪/♫) toggles between enabled/disabled states
+    - Visual feedback with color change (green when on, gray when off)
+    - Sound state persists during session
+    - Toggle button positioned in top HUD next to wave button
+  - **Complete Audio Feedback**: Sound effects integrated throughout gameplay
+    - Tower placement sound (chord: A4, C#5, E5)
+    - Shooting sound (frequency sweep from 800Hz to 200Hz)
+    - Enemy hit sound (150Hz square wave)
+    - Enemy death sound (300Hz to 50Hz sawtooth sweep)
+    - Coin collection sound (chord: C5, E5, G5)
+    - Wave start sound (200Hz to 600Hz triangle sweep)
+    - Wave complete sound (4-note chord)
+    - Game over sound (400Hz to 100Hz dramatic fall)
+    - Victory sound (ascending 4-note melody: C5, D5, E5, G5)
+    - UI click sound (600Hz short beep)
+  - Files: Created [game-004/js/sounds.js](game-004/js/sounds.js), updated [game-004/js/main.js](game-004/js/main.js), [game-004/js/enemies.js](game-004/js/enemies.js), [game-004/js/towers.js](game-004/js/towers.js), [game-004/js/ui.js](game-004/js/ui.js)
+
 ### Changed
 - **Tower Defense Game** (game-004): Improved rendering quality on high-DPI displays
   - Changed `pixelDensity` from fixed value of 1 to `Math.min(window.devicePixelRatio, 2)`

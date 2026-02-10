@@ -5,6 +5,7 @@ import {
 import { events } from './events.js';
 import { state } from './state.js';
 import { startNextWave } from './waves.js';
+import { sounds, toggleSound, isSoundEnabled } from './sounds.js';
 
 let k;
 let goldText, livesText, waveText, startBtnText;
@@ -124,6 +125,41 @@ function createHUD() {
         k.z(52),
     ]);
 
+    // Sound toggle button
+    const soundBtnSize = 28;
+    const soundBtnX = GAME_WIDTH - 260;
+    const soundBtnY = HUD_HEIGHT / 2;
+    const soundBtn = k.add([
+        k.pos(soundBtnX, soundBtnY),
+        k.rect(soundBtnSize, soundBtnSize, { radius: 4 }),
+        k.color(60, 70, 90),
+        k.outline(1, k.rgb(100, 110, 130)),
+        k.anchor("center"),
+        k.area(),
+        k.z(52),
+    ]);
+
+    let soundBtnText = k.add([
+        k.pos(soundBtnX, soundBtnY),
+        k.text(isSoundEnabled() ? "\u266A" : "\u266B", { size: 18 }),
+        k.color(isSoundEnabled() ? 100 : 150, isSoundEnabled() ? 200 : 100, isSoundEnabled() ? 100 : 100),
+        k.anchor("center"),
+        k.z(53),
+    ]);
+
+    soundBtn.onClick(() => {
+        const enabled = toggleSound();
+        if (soundBtnText && soundBtnText.exists()) soundBtnText.destroy();
+        soundBtnText = k.add([
+            k.pos(soundBtnX, soundBtnY),
+            k.text(enabled ? "\u266A" : "\u266B", { size: 18 }),
+            k.color(enabled ? 100 : 150, enabled ? 200 : 100, enabled ? 100 : 100),
+            k.anchor("center"),
+            k.z(53),
+        ]);
+        if (enabled) sounds.uiClick();
+    });
+
     // Start wave button (uses Kaplay area click - this works)
     const btnX = GAME_WIDTH - 130;
     const btnW = 120;
@@ -146,6 +182,7 @@ function createHUD() {
         k.z(53),
     ]);
     startBtn.onClick(() => {
+        sounds.uiClick();
         startNextWave();
     });
 }
@@ -205,6 +242,7 @@ function createToolbar() {
         // Add click handler directly to button
         btn.onClick(() => {
             if (state.isGameOver || state.isVictory) return;
+            sounds.uiClick();
             if (state.placingType === typeId) {
                 state.placingType = null;
             } else {
@@ -276,6 +314,9 @@ function listenEvents() {
     events.on('waveStarted', (waveNum) => {
         startBtnText.text = "In Progress";
 
+        // Play wave start sound
+        sounds.waveStart();
+
         // Show boss wave banner
         const isBossWave = WAVE_DEFS[waveNum - 1]?.isBoss;
         if (isBossWave) {
@@ -293,15 +334,20 @@ function listenEvents() {
             startBtnText.text = "Start Wave";
         }
 
+        // Play wave complete sound
+        sounds.waveComplete();
+
         // Update wave preview for next wave
         updateWavePreview();
     });
 
     events.on('gameOver', () => {
+        sounds.gameOver();
         showOverlay("DEFEAT", "Your base was destroyed!", [255, 80, 80]);
     });
 
     events.on('gameWon', () => {
+        sounds.victory();
         showOverlay("VICTORY", "All waves defeated!", [80, 255, 120]);
     });
 
