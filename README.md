@@ -31,6 +31,43 @@ Strategic gem-matching puzzle game where you match three or more gems of the sam
 
 **Location:** [game-002/](game-002/)
 
+### 3. NetHack Roguelike
+Classic dungeon crawler with procedurally generated levels, turn-based combat, and ASCII graphics.
+
+**Features:**
+- **Procedural Dungeon Generation**: Infinite depth with room-and-corridor algorithm
+- **Complete RPG Systems**: Combat, leveling, inventory, equipment, and magic
+- **Multiple Enemy Types**: 5 monster types with unique stats and AI pathfinding
+- **Item System**: Weapons, armor, potions, scrolls, and food with rarity levels
+- **Magic & Ranged Combat**: Fireball spells and bow-based arrow shooting
+- **Advanced Features**: Field of View (FOV), fog of war, multi-level dungeons
+- **NPC System**: Talk to merchants, guards, wizards, hermits, and healers
+- **Save/Load System**: Full game persistence with localStorage
+- **8-Directional Movement**: Arrow keys, WASD, and diagonal controls
+- Built with modular ES6 architecture
+
+**Location:** [game-003/](game-003/)
+
+### 4. Tower Defense
+Strategic tower defense game with 5 unique tower types and special abilities.
+
+**Features:**
+- **5 Unique Tower Types**:
+  - Archer: Fast attacks, medium range (balanced)
+  - Cannon: Slow, powerful splash damage with explosions
+  - Mage: Magic attacks that slow enemies
+  - Tesla: Chain lightning hitting multiple enemies
+  - Sniper: Long-range armor-piercing shots
+- **Special Attack Patterns**: Splash damage, slow effects, chain lightning
+- **Visual Effects**: Explosions, lightning bolts, slow indicators, impact flashes
+- **Progressive Waves**: 10 waves with increasing difficulty
+- **Strategic Gameplay**: Grid-based tower placement with range indicators
+- **Resource Management**: Gold economy and life system
+- **Hotkeys 1-5**: Quick tower selection
+- Built with Kaplay framework and modular ES6 architecture
+
+**Location:** [game-004/](game-004/)
+
 ## Getting Started
 
 ### Playing the Games
@@ -59,6 +96,8 @@ python -m SimpleHTTPServer 8000
 You can also play games directly by opening their respective `index.html` files:
 - Space Shooter: `game-001/index.html`
 - Match-3 Puzzle: `game-002/index.html`
+- NetHack Roguelike: `game-003/index.html`
+- Tower Defense: `game-004/index.html`
 
 ## Building Desktop Versions
 
@@ -79,6 +118,10 @@ Refer to the GemCore documentation for build instructions.
 ```
 web-games-andrew/
 ├── index.html              # Game browser/launcher
+├── css/                    # Shared stylesheets
+├── js/                     # Shared JavaScript modules
+│   ├── main.js
+│   └── gamedata.js
 ├── game-001/              # Space Shooter
 │   ├── index.html
 │   ├── gemcore.config.json
@@ -88,6 +131,15 @@ web-games-andrew/
 │   ├── kaplay.js
 │   ├── gemcore.config.json
 │   └── manifest.json
+├── game-003/              # NetHack Roguelike
+│   ├── index.html
+│   ├── styles.css
+│   └── js/                # Modular game code
+├── game-004/              # Tower Defense
+│   ├── index.html
+│   ├── game-plan.md
+│   ├── js/                # Modular game code
+│   └── lib/kaplay/        # Kaplay framework
 ├── CHANGELOG.md           # Version history
 ├── LICENSE                # MIT License
 └── README.md              # This file

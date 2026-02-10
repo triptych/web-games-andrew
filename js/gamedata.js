@@ -41,6 +41,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '🎲', label: 'Roguelike' }
         ]
+    },
+    {
+        id: 'game-004',
+        title: 'Tower Defense',
+        description: 'Strategic tower defense with 5 unique tower types! Place Archer, Cannon, Mage, Tesla, and Sniper towers to defend against waves of enemies. Features splash damage, slow effects, chain lightning, and more. 10 progressive waves with increasing difficulty!',
+        icon: '🗼',
+        folder: 'game-004',
+        cssClass: 'tower-defense',
+        tags: [
+            { emoji: '🎯', label: 'Strategy' },
+            { emoji: '🖱️', label: 'Mouse' },
+            { emoji: '⚡', label: 'Action' }
+        ]
     }
 ];
 
