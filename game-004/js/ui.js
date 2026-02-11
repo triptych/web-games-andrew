@@ -247,6 +247,22 @@ function createHUD() {
         k.area(),
         k.z(52),
     ]);
+
+    startBtn.baseColor = k.rgb(COLORS.startBtn.r, COLORS.startBtn.g, COLORS.startBtn.b);
+    startBtn.hoverColor = k.rgb(
+        Math.min(255, COLORS.startBtn.r + 30),
+        Math.min(255, COLORS.startBtn.g + 30),
+        Math.min(255, COLORS.startBtn.b + 30)
+    );
+
+    startBtn.onUpdate(() => {
+        if (startBtn.isHovering() && !state.isWaveActive && !state.isGameOver && !state.isVictory) {
+            startBtn.color = startBtn.hoverColor;
+        } else {
+            startBtn.color = startBtn.baseColor;
+        }
+    });
+
     startBtnText = k.add([
         k.pos(btnX, HUD_HEIGHT / 2),
         k.text("Start Wave", { size: 14 }),
@@ -311,6 +327,34 @@ function createToolbar() {
             k.z(52),
             "towerBtn_" + typeId,
         ]);
+
+        btn.baseColor = k.rgb(COLORS.buttonBg.r, COLORS.buttonBg.g, COLORS.buttonBg.b);
+        btn.hoverColor = k.rgb(
+            Math.min(255, COLORS.buttonBg.r + 15),
+            Math.min(255, COLORS.buttonBg.g + 15),
+            Math.min(255, COLORS.buttonBg.b + 15)
+        );
+        btn.isHovered = false;
+
+        // Add hover effect
+        btn.onUpdate(() => {
+            const mousePos = k.mousePos();
+            const wasHovered = btn.isHovered;
+            btn.isHovered = btn.isHovering();
+
+            if (btn.isHovered && !wasHovered) {
+                btn.color = btn.hoverColor;
+            } else if (!btn.isHovered && wasHovered) {
+                btn.color = btn.baseColor;
+            }
+
+            // Selected state
+            if (state.placingType === typeId) {
+                btn.color = k.rgb(60, 100, 140);
+            } else if (!btn.isHovered) {
+                btn.color = btn.baseColor;
+            }
+        });
 
         // Add click handler directly to button
         btn.onClick(() => {
@@ -409,6 +453,9 @@ function listenEvents() {
 
         // Play wave complete sound
         sounds.waveComplete();
+
+        // Clear boss banner if it's still showing
+        clearBossBanner();
 
         // Update wave preview for next wave
         updateWavePreview();
@@ -555,10 +602,8 @@ function updateWavePreview() {
 }
 
 function showBossBanner(waveNum) {
-    // Clear existing banner
-    if (bossBanner && bossBanner.exists()) {
-        bossBanner.destroy();
-    }
+    // Clear existing banner and all its elements
+    clearBossBanner();
 
     // Create boss wave warning banner
     const bannerHeight = 60;
@@ -572,37 +617,53 @@ function showBossBanner(waveNum) {
         k.anchor("center"),
         k.opacity(0.95),
         k.z(90),
+        "bossBanner",
     ]);
 
-    k.add([
+    const bannerText1 = k.add([
         k.pos(GAME_WIDTH / 2, bannerY - 8),
         k.text("⚠ BOSS WAVE " + waveNum + " ⚠", { size: 32 }),
         k.color(255, 220, 100),
         k.anchor("center"),
         k.z(91),
+        "bossBanner",
     ]);
 
-    k.add([
+    const bannerText2 = k.add([
         k.pos(GAME_WIDTH / 2, bannerY + 12),
         k.text("Prepare for a tough fight!", { size: 14 }),
         k.color(255, 255, 255),
         k.anchor("center"),
         k.z(91),
+        "bossBanner",
     ]);
 
     // Auto-hide banner after 3 seconds
     k.wait(3, () => {
         if (bossBanner && bossBanner.exists()) {
             const fadeSpeed = 2;
+            const bannerElements = k.get("bossBanner");
+
             bossBanner.onUpdate(() => {
                 bossBanner.opacity -= fadeSpeed * k.dt();
+                // Fade all text elements too
+                for (const elem of bannerElements) {
+                    if (elem.exists() && elem !== bossBanner) {
+                        elem.opacity = bossBanner.opacity;
+                    }
+                }
                 if (bossBanner.opacity <= 0) {
-                    bossBanner.destroy();
-                    bossBanner = null;
+                    clearBossBanner();
                 }
             });
         }
     });
+}
+
+function clearBossBanner() {
+    // Destroy all banner elements
+    k.destroyAll("bossBanner");
+    bossBanner = null;
 }
 
 function showOverlay(title, subtitle, titleColor) {

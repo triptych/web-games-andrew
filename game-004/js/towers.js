@@ -177,7 +177,18 @@ function createTower(type, col, row) {
     const def = TOWER_DEFS[type];
     const { x, y } = gridToWorld(col, row);
 
-    // Tower base
+    // Shadow beneath tower
+    k.add([
+        k.pos(x + 2, y + 3),
+        k.rect(TILE_SIZE - 6, TILE_SIZE - 6, { radius: 4 }),
+        k.color(0, 0, 0),
+        k.opacity(0.3),
+        k.anchor("center"),
+        k.z(4),
+        "towerShadow_" + col + "_" + row,
+    ]);
+
+    // Tower base (main body)
     const tower = k.add([
         k.pos(x, y),
         k.rect(TILE_SIZE - 6, TILE_SIZE - 6, { radius: 4 }),
@@ -191,6 +202,19 @@ function createTower(type, col, row) {
         k.area(),
         k.z(5),
         "tower",
+    ]);
+
+    // Add gradient effect (lighter top-left)
+    tower.add([
+        k.rect(TILE_SIZE - 8, TILE_SIZE - 8, { radius: 3 }),
+        k.color(
+            Math.min(255, def.color.r + 40),
+            Math.min(255, def.color.g + 40),
+            Math.min(255, def.color.b + 40)
+        ),
+        k.opacity(0.3),
+        k.anchor("center"),
+        k.pos(-2, -2),
     ]);
 
     // Store tower data
@@ -215,10 +239,18 @@ function createTower(type, col, row) {
     if (def.slowAmount !== undefined) tower.slowAmount = def.slowAmount;
     if (def.armorPierce !== undefined) tower.armorPierce = def.armorPierce;
 
-    // Tower-specific decorations
+    // Tower-specific decorations with rotation capability
     if (type === "archer") {
-        // Turret (inner circle)
-        tower.add([
+        // Turret (rotatable part)
+        tower.turret = tower.add([
+            k.pos(0, 0),
+            k.rotate(0),
+            k.anchor("center"),
+            k.z(1), // Render above tower base
+        ]);
+
+        // Turret circle with gradient
+        tower.turret.add([
             k.circle(7),
             k.color(
                 Math.min(255, def.color.r + 40),
@@ -227,122 +259,266 @@ function createTower(type, col, row) {
             ),
             k.outline(1, k.rgb(def.color.r, def.color.g, def.color.b)),
             k.anchor("center"),
-            k.pos(0, 0),
         ]);
-        // Arrow slits
-        for (const dx of [-8, 8]) {
-            tower.add([
-                k.rect(3, 8),
-                k.color(30, 40, 30),
-                k.anchor("center"),
-                k.pos(dx, 0),
-            ]);
-        }
-    } else if (type === "cannon") {
-        // Large cannon barrel
-        tower.add([
-            k.rect(12, 18, { radius: 2 }),
-            k.color(70, 70, 70),
-            k.outline(1, k.rgb(40, 40, 40)),
+
+        // Highlight on turret
+        tower.turret.add([
+            k.circle(3),
+            k.color(255, 255, 255),
+            k.opacity(0.4),
+            k.anchor("center"),
+            k.pos(-1, -1),
+        ]);
+
+        // Arrow pointing direction
+        tower.turret.add([
+            k.rect(2, 10, { radius: 1 }),
+            k.color(50, 50, 40),
             k.anchor("center"),
             k.pos(0, -8),
         ]);
-        // Cannon base
+    } else if (type === "cannon") {
+        // Cannon base (non-rotating)
         tower.add([
             k.circle(9),
             k.color(80, 80, 80),
             k.outline(1, k.rgb(50, 50, 50)),
             k.anchor("center"),
+        ]);
+
+        // Cannon barrel (rotatable)
+        tower.turret = tower.add([
             k.pos(0, 0),
+            k.rotate(0),
+            k.anchor("center"),
+            k.z(1), // Render above tower base
+        ]);
+
+        tower.turret.add([
+            k.rect(12, 20, { radius: 2 }),
+            k.color(70, 70, 70),
+            k.outline(1, k.rgb(40, 40, 40)),
+            k.anchor("center"),
+            k.pos(0, -9),
+        ]);
+
+        // Barrel highlight
+        tower.turret.add([
+            k.rect(4, 16),
+            k.color(90, 90, 90),
+            k.opacity(0.5),
+            k.anchor("center"),
+            k.pos(-2, -9),
         ]);
     } else if (type === "mage") {
-        // Crystal/orb on top
-        tower.add([
+        // Mage tower - pulsing crystal
+        tower.turret = tower.add([
+            k.pos(0, -6),
+            k.anchor("center"),
+            k.z(1), // Render above tower base
+        ]);
+
+        // Outer glow
+        const outerGlow = tower.turret.add([
+            k.circle(10),
+            k.color(180, 130, 230),
+            k.opacity(0.3),
+            k.anchor("center"),
+        ]);
+
+        // Crystal orb
+        tower.turret.add([
             k.circle(8),
             k.color(180, 130, 230),
             k.outline(2, k.rgb(130, 80, 180)),
             k.anchor("center"),
-            k.pos(0, -6),
         ]);
-        // Inner glow
-        tower.add([
+
+        // Inner bright glow
+        tower.turret.add([
             k.circle(5),
             k.color(220, 180, 255),
             k.anchor("center"),
-            k.pos(0, -6),
         ]);
-        // Small arcane symbols
+
+        // Pulsing animation
+        tower.turret.pulseTime = 0;
+        tower.turret.onUpdate(() => {
+            tower.turret.pulseTime += k.dt() * 3;
+            const scale = 1 + Math.sin(tower.turret.pulseTime) * 0.1;
+            outerGlow.scale = k.vec2(scale, scale);
+        });
+
+        // Floating arcane symbols
         for (let i = 0; i < 4; i++) {
             const angle = (i / 4) * Math.PI * 2;
-            tower.add([
-                k.rect(2, 2),
+            const symbol = tower.add([
+                k.rect(3, 3, { radius: 1 }),
                 k.color(200, 150, 220),
                 k.anchor("center"),
-                k.pos(Math.cos(angle) * 10, Math.sin(angle) * 10),
+                k.pos(Math.cos(angle) * 12, Math.sin(angle) * 12),
+                k.z(1), // Render above tower base
             ]);
+            symbol.orbitAngle = angle;
+            symbol.orbitTime = 0;
+            symbol.onUpdate(() => {
+                symbol.orbitTime += k.dt() * 0.5;
+                const newAngle = symbol.orbitAngle + symbol.orbitTime;
+                symbol.pos = k.vec2(Math.cos(newAngle) * 12, Math.sin(newAngle) * 12);
+            });
         }
     } else if (type === "tesla") {
-        // Tesla coil - top sphere
-        tower.add([
+        // Tesla coil with energy effect
+        tower.turret = tower.add([
+            k.pos(0, 0),
+            k.anchor("center"),
+            k.z(1), // Render above tower base
+        ]);
+
+        // Base plate
+        tower.turret.add([
+            k.rect(16, 4, { radius: 1 }),
+            k.color(70, 90, 110),
+            k.anchor("center"),
+            k.pos(0, 8),
+        ]);
+
+        // Central rod
+        tower.turret.add([
+            k.rect(4, 14),
+            k.color(80, 100, 120),
+            k.anchor("center"),
+            k.pos(0, 0),
+        ]);
+
+        // Top sphere
+        tower.turret.add([
             k.circle(7),
             k.color(120, 180, 240),
             k.outline(2, k.rgb(60, 140, 200)),
             k.anchor("center"),
             k.pos(0, -7),
         ]);
-        // Central rod
-        tower.add([
-            k.rect(4, 14),
-            k.color(80, 100, 120),
+
+        // Energy glow
+        const energyGlow = tower.turret.add([
+            k.circle(9),
+            k.color(150, 200, 255),
+            k.opacity(0.4),
             k.anchor("center"),
-            k.pos(0, 0),
+            k.pos(0, -7),
         ]);
-        // Base plate
-        tower.add([
-            k.rect(16, 4, { radius: 1 }),
-            k.color(70, 90, 110),
-            k.anchor("center"),
-            k.pos(0, 8),
-        ]);
+
+        // Pulsing energy
+        tower.turret.pulseTime = 0;
+        tower.turret.onUpdate(() => {
+            tower.turret.pulseTime += k.dt() * 4;
+            energyGlow.opacity = 0.2 + Math.sin(tower.turret.pulseTime) * 0.2;
+        });
     } else if (type === "sniper") {
-        // Long barrel
+        // Sniper base
         tower.add([
-            k.rect(6, 24, { radius: 1 }),
+            k.rect(14, 8, { radius: 2 }),
+            k.color(
+                Math.max(0, def.color.r - 10),
+                Math.max(0, def.color.g - 10),
+                Math.max(0, def.color.b - 10),
+            ),
+            k.anchor("center"),
+        ]);
+
+        // Sniper barrel (rotatable)
+        tower.turret = tower.add([
+            k.pos(0, 0),
+            k.rotate(0),
+            k.anchor("center"),
+            k.z(1), // Render above tower base
+        ]);
+
+        // Long barrel
+        tower.turret.add([
+            k.rect(6, 28, { radius: 1 }),
             k.color(
                 Math.max(0, def.color.r - 20),
                 Math.max(0, def.color.g - 20),
                 Math.max(0, def.color.b - 20),
             ),
             k.anchor("center"),
-            k.pos(0, -10),
+            k.pos(0, -12),
         ]);
+
+        // Barrel highlight
+        tower.turret.add([
+            k.rect(2, 24),
+            k.color(
+                Math.min(255, def.color.r + 20),
+                Math.min(255, def.color.g + 20),
+                Math.min(255, def.color.b + 20),
+            ),
+            k.opacity(0.3),
+            k.anchor("center"),
+            k.pos(-1, -12),
+        ]);
+
         // Scope
-        tower.add([
-            k.rect(8, 4, { radius: 1 }),
+        tower.turret.add([
+            k.rect(8, 5, { radius: 1 }),
             k.color(40, 60, 80),
             k.outline(1, k.rgb(20, 30, 40)),
             k.anchor("center"),
-            k.pos(0, -8),
+            k.pos(0, -10),
         ]);
+
+        // Lens glint
+        tower.turret.add([
+            k.circle(2),
+            k.color(150, 200, 255),
+            k.opacity(0.6),
+            k.anchor("center"),
+            k.pos(0, -10),
+        ]);
+
         // Barrel tip
-        tower.add([
+        tower.turret.add([
             k.circle(2),
             k.color(30, 30, 40),
             k.anchor("center"),
-            k.pos(0, -22),
+            k.pos(0, -26),
         ]);
     }
 
-    // Tower update: find target and attack
+    // Tower update: find target, rotate, and attack
     tower.onUpdate(() => {
         tower.cooldown -= k.dt();
 
-        if (tower.cooldown <= 0) {
-            const target = findTarget(tower);
-            if (target) {
-                fireProjectile(tower, target);
-                tower.cooldown = 1 / tower.attackSpeed;
+        const target = findTarget(tower);
+
+        // Rotate turret to face target
+        if (target && tower.turret) {
+            const angle = Math.atan2(target.pos.y - tower.pos.y, target.pos.x - tower.pos.x);
+            // Smooth rotation
+            const targetAngle = angle * (180 / Math.PI);
+            const currentAngle = tower.turret.angle;
+            const angleDiff = targetAngle - currentAngle;
+            // Normalize angle difference to -180 to 180
+            let normalizedDiff = ((angleDiff + 180) % 360) - 180;
+            if (normalizedDiff < -180) normalizedDiff += 360;
+            // Rotate smoothly
+            const rotateSpeed = 360; // degrees per second
+            const maxRotate = rotateSpeed * k.dt();
+            if (Math.abs(normalizedDiff) < maxRotate) {
+                tower.turret.angle = targetAngle;
+            } else {
+                tower.turret.angle += Math.sign(normalizedDiff) * maxRotate;
             }
+        }
+
+        if (tower.cooldown <= 0 && target) {
+            fireProjectile(tower, target);
+            tower.cooldown = 1 / tower.attackSpeed;
+
+            // Muzzle flash effect
+            createMuzzleFlash(tower);
         }
     });
 
@@ -350,6 +526,48 @@ function createTower(type, col, row) {
     sounds.placeTower();
     events.emit('towerPlaced', tower);
     return tower;
+}
+
+function createProjectileTrail(pos, color, size) {
+    const trail = k.add([
+        k.pos(pos.x, pos.y),
+        k.circle(size * 0.6),
+        k.color(color),
+        k.opacity(0.6),
+        k.anchor("center"),
+        k.z(19),
+    ]);
+
+    trail.onUpdate(() => {
+        trail.opacity -= 3 * k.dt();
+        trail.scale = k.vec2(trail.opacity, trail.opacity);
+        if (trail.opacity <= 0) trail.destroy();
+    });
+}
+
+function createMuzzleFlash(tower) {
+    if (!tower.turret) return;
+
+    // Get the direction the turret is facing
+    const angle = tower.turret.angle * (Math.PI / 180);
+    const distance = tower.towerType === "sniper" ? 26 : tower.towerType === "cannon" ? 18 : 12;
+    const flashX = Math.cos(angle) * distance;
+    const flashY = Math.sin(angle) * distance;
+
+    const flash = k.add([
+        k.pos(tower.pos.x + flashX, tower.pos.y + flashY),
+        k.circle(6),
+        k.color(255, 240, 150),
+        k.opacity(0.9),
+        k.anchor("center"),
+        k.z(25),
+    ]);
+
+    flash.onUpdate(() => {
+        flash.opacity -= 8 * k.dt();
+        flash.scale = k.vec2(flash.opacity * 1.2, flash.opacity * 1.2);
+        if (flash.opacity <= 0) flash.destroy();
+    });
 }
 
 function findTarget(tower) {
@@ -451,6 +669,7 @@ function fireProjectile(tower, target) {
     proj.towerType = tower.towerType;
     proj.tower = tower; // Store reference to tower for upgraded stats
 
+    proj.trailTimer = 0;
     proj.onUpdate(() => {
         // If target is gone, remove projectile (except cannon which hits ground)
         if (!proj.targetRef || !proj.targetRef.exists()) {
@@ -475,6 +694,16 @@ function fireProjectile(tower, target) {
 
         const move = dir.unit().scale(proj.speed * k.dt());
         proj.pos = proj.pos.add(move);
+
+        // Spawn trail particles
+        proj.trailTimer += k.dt();
+        if (proj.trailTimer > 0.03) {
+            proj.trailTimer = 0;
+            createProjectileTrail(proj.pos, projColor, projSize);
+        }
+
+        // Rotate projectile based on direction (for visual effect)
+        proj.angle = Math.atan2(dir.y, dir.x) * (180 / Math.PI);
     });
 }
 
@@ -493,12 +722,14 @@ function handleProjectileHit(proj, target) {
         // Mage: direct damage + slow effect
         const damage = calculateDamage(proj.damage, target);
         target.hp -= damage;
+        showDamageNumber(damage, target.pos);
         applySlowEffect(target, proj.tower.slowDuration, proj.tower.slowAmount);
         events.emit('enemyDamaged', target);
     } else if (proj.towerType === "sniper" && proj.tower && proj.tower.exists()) {
         // Sniper: armor-piercing damage
         const damage = calculateDamage(proj.damage, target, proj.tower.armorPierce);
         target.hp -= damage;
+        showDamageNumber(damage, target.pos, true); // Critical hit style
         events.emit('enemyDamaged', target);
         // Visual feedback for sniper hit
         createImpactEffect(target.pos, k.rgb(255, 200, 100));
@@ -506,6 +737,7 @@ function handleProjectileHit(proj, target) {
         // Archer and others: direct damage
         const damage = calculateDamage(proj.damage, target);
         target.hp -= damage;
+        showDamageNumber(damage, target.pos);
         events.emit('enemyDamaged', target);
     }
 }
@@ -525,37 +757,125 @@ function createSplashDamage(pos, radius, baseDamage) {
         if (dist <= radius) {
             const damage = calculateDamage(baseDamage, enemy);
             enemy.hp -= damage;
+            showDamageNumber(damage, enemy.pos);
             events.emit('enemyDamaged', enemy);
         }
     }
 }
 
+function showDamageNumber(damage, pos, isCritical = false) {
+    const damageNum = k.add([
+        k.pos(pos.x + (Math.random() - 0.5) * 10, pos.y - 15),
+        k.text(Math.round(damage).toString(), { size: isCritical ? 18 : 14 }),
+        k.color(isCritical ? 255 : 255, isCritical ? 200 : 255, isCritical ? 100 : 255),
+        k.anchor("center"),
+        k.opacity(1),
+        k.z(45),
+    ]);
+
+    damageNum.startY = damageNum.pos.y;
+    damageNum.lifetime = 0;
+
+    damageNum.onUpdate(() => {
+        damageNum.lifetime += k.dt();
+        // Float upward with slight arc
+        damageNum.pos.y = damageNum.startY - damageNum.lifetime * 50;
+        damageNum.pos.x += Math.sin(damageNum.lifetime * 3) * 0.5;
+        // Scale up then down
+        const scaleAmount = isCritical ? 1.3 : 1.0;
+        if (damageNum.lifetime < 0.1) {
+            damageNum.scale = k.vec2(damageNum.lifetime * 10 * scaleAmount, damageNum.lifetime * 10 * scaleAmount);
+        } else {
+            damageNum.scale = k.vec2(scaleAmount, scaleAmount);
+        }
+        // Fade out
+        if (damageNum.lifetime > 0.4) {
+            damageNum.opacity -= 2.5 * k.dt();
+            if (damageNum.opacity <= 0) damageNum.destroy();
+        }
+    });
+}
+
 function createExplosionEffect(pos, radius) {
+    // Main explosion
     const explosion = k.add([
         k.pos(pos.x, pos.y),
-        k.circle(radius),
+        k.circle(radius * 0.5),
         k.color(255, 150, 50),
-        k.opacity(0.6),
+        k.opacity(0.8),
         k.anchor("center"),
         k.z(22),
     ]);
+    explosion.startScale = 0.5;
     explosion.onUpdate(() => {
-        explosion.opacity -= 3 * k.dt();
+        explosion.startScale += 6 * k.dt();
+        explosion.scale = k.vec2(explosion.startScale, explosion.startScale);
+        explosion.opacity -= 2.5 * k.dt();
         if (explosion.opacity <= 0) explosion.destroy();
     });
+
+    // Expanding shockwave ring
+    const shockwave = k.add([
+        k.pos(pos.x, pos.y),
+        k.circle(radius * 0.3),
+        k.color(255, 200, 100),
+        k.opacity(0.8),
+        k.anchor("center"),
+        k.z(21),
+    ]);
+    shockwave.startRadius = radius * 0.3;
+    shockwave.onDraw(() => {
+        k.drawCircle({
+            pos: k.vec2(0, 0),
+            radius: shockwave.startRadius,
+            color: k.rgb(255, 200, 100),
+            opacity: shockwave.opacity,
+            outline: { color: k.rgb(255, 150, 50), width: 3 },
+        });
+    });
+    shockwave.onUpdate(() => {
+        shockwave.startRadius += radius * 3 * k.dt();
+        shockwave.opacity -= 2 * k.dt();
+        if (shockwave.opacity <= 0) shockwave.destroy();
+    });
+
     // Inner bright flash
     const flash = k.add([
         k.pos(pos.x, pos.y),
-        k.circle(radius * 0.5),
-        k.color(255, 220, 100),
+        k.circle(radius * 0.4),
+        k.color(255, 255, 220),
         k.opacity(1),
         k.anchor("center"),
         k.z(23),
     ]);
     flash.onUpdate(() => {
-        flash.opacity -= 5 * k.dt();
+        flash.opacity -= 6 * k.dt();
+        flash.scale = k.vec2(1 + (1 - flash.opacity), 1 + (1 - flash.opacity));
         if (flash.opacity <= 0) flash.destroy();
     });
+
+    // Explosion particles
+    for (let i = 0; i < 8; i++) {
+        const angle = (Math.PI * 2 * i) / 8;
+        const speed = 60 + Math.random() * 40;
+        const particle = k.add([
+            k.pos(pos.x, pos.y),
+            k.circle(3 + Math.random() * 2),
+            k.color(255, 150 + Math.random() * 50, 50),
+            k.opacity(0.9),
+            k.anchor("center"),
+            k.z(22),
+        ]);
+
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+
+        particle.onUpdate(() => {
+            particle.pos = particle.pos.add(k.vec2(vx * k.dt(), vy * k.dt()));
+            particle.opacity -= 3 * k.dt();
+            if (particle.opacity <= 0) particle.destroy();
+        });
+    }
 }
 
 function applySlowEffect(enemy, duration, slowAmount) {
@@ -565,15 +885,48 @@ function applySlowEffect(enemy, duration, slowAmount) {
     enemy.speed = enemy.originalSpeed * (1 - slowAmount);
     enemy.slowedUntil = k.time() + duration;
 
-    // Visual slow indicator
+    // Visual slow indicator - icy particles
     if (!enemy.slowIndicator) {
         enemy.slowIndicator = enemy.add([
-            k.circle(6),
-            k.color(130, 80, 180),
-            k.opacity(0.3),
+            k.pos(0, 0),
             k.anchor("center"),
-            k.pos(0, -enemy.size - 8),
         ]);
+
+        // Create multiple icy particles around enemy
+        for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI * 2 * i) / 6;
+            const particle = enemy.slowIndicator.add([
+                k.circle(3),
+                k.color(130, 180, 230),
+                k.opacity(0.6),
+                k.anchor("center"),
+                k.pos(0, 0),
+            ]);
+            particle.orbitAngle = angle;
+            particle.orbitRadius = enemy.size + 5;
+            particle.orbitSpeed = -2; // Rotate around enemy
+
+            particle.onUpdate(() => {
+                particle.orbitAngle += particle.orbitSpeed * k.dt();
+                particle.pos = k.vec2(
+                    Math.cos(particle.orbitAngle) * particle.orbitRadius,
+                    Math.sin(particle.orbitAngle) * particle.orbitRadius
+                );
+            });
+        }
+
+        // Slow icon above enemy
+        const slowIcon = enemy.slowIndicator.add([
+            k.text("❄", { size: 12 }),
+            k.color(150, 200, 255),
+            k.anchor("center"),
+            k.pos(0, -enemy.size - 20),
+        ]);
+        slowIcon.pulseTime = 0;
+        slowIcon.onUpdate(() => {
+            slowIcon.pulseTime += k.dt() * 3;
+            slowIcon.opacity = 0.6 + Math.sin(slowIcon.pulseTime) * 0.4;
+        });
     }
 }
 
@@ -831,6 +1184,10 @@ export function sellTower(tower) {
         state.selectedTower = null;
         clearSelectedRange();
     }
+
+    // Remove tower shadow
+    const shadowTag = "towerShadow_" + tower.gridCol + "_" + tower.gridRow;
+    k.destroyAll(shadowTag);
 
     // Visual effect
     showFloatingText("+" + refund, tower.pos.x, tower.pos.y, COLORS.goldText);

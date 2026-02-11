@@ -299,15 +299,98 @@ class WaveManager {
 - ✅ Dynamic UI updates showing affordability and refund values
 - ✅ Cell management allowing towers to be sold and replaced
 
-### Phase 5: Polish & Features
-- [ ] Particle effects
-- [ ] Sound effects
-- [ ] Music
-- [ ] Damage numbers
-- [ ] Victory/defeat screens
+### Phase 5: Polish & Features 🎨
+
+#### Visual Polish - High Priority (Quick Wins)
+- [x] **Tower Visuals**: Add gradients, shadows, and 3D-looking depth
+- [x] **Tower Animations**: Rotating turrets, aiming at targets, firing animations
+- [x] **Projectile Trails**: Glowing trails behind projectiles
+- [x] **Better Explosions**: Rings, shockwaves, expanding particles
+- [x] **Enemy Movement**: Animation instead of sliding (rotation, bobbing, shadows)
+- [x] **Damage Numbers**: Pop-up numbers on hit with animations and critical hits
+- [x] **Button Hover States**: Visual feedback for all UI buttons
+- [x] **Enhanced HP Bars**: Better design with borders, gradients, and smooth color transitions
+- [x] **Muzzle Flash**: Flash effects when towers fire
+- [x] **Enhanced Slow Effect**: Icy particles orbiting slowed enemies with snowflake icon
+
+#### Tower Enhancements
+- [ ] More distinct tower designs with unique silhouettes
+- [ ] Upgrade visual progression (size, color, decorations)
+- [ ] Idle animations (pulsing crystals, spinning coils)
+- [ ] Muzzle flash and recoil effects when firing
+- [ ] Glowing effects for max-level towers
+- [ ] Shadow beneath towers
+- [ ] Foundation/platform appearance
+
+#### Enemy Enhancements
+- [ ] Distinctive designs: Scout (wheels/legs), Tank (treads), Boss (aura)
+- [ ] Walking/rolling animations
+- [ ] Motion blur trails for speedsters
+- [ ] Shadow beneath enemies
+- [ ] Death animations with more particles
+- [ ] Status effect icons above HP bar
+- [ ] Armor visual indicators
+
+#### Effects & Particles
+- [ ] Projectile improvements (rotation, different shapes, glow)
+- [ ] Impact sparks/flashes on hit
+- [ ] Branching lightning effects
+- [ ] Slow effect particles (icy blue)
+- [ ] Critical hit effects
+- [ ] Screen shake for big impacts
+
+#### Map & Background
+- [ ] Textured ground tiles (grass, dirt, stone)
+- [ ] Path looks like worn road/pavement
+- [ ] Grid highlights on hover
+- [ ] Environmental decorations (trees, rocks, fences)
+- [ ] Animated background elements (clouds, flags)
+
+#### UI Improvements
+- [ ] Gradient backgrounds instead of solid colors
+- [ ] Actual icons instead of text symbols (coin, heart)
+- [ ] Button press animations
+- [ ] Tooltip system for tower stats
+- [ ] Animated gold counter
+- [ ] Tower thumbnail previews
+- [ ] Range preview on tower button hover
+- [ ] Better tower info panel with stat bars and icons
+
+#### Game State Screens
+- [ ] Enhanced victory/defeat screens with animations
+- [ ] Star rating system based on performance
+- [ ] Particle confetti on victory
+- [ ] Stats summary with animated bars
+- [ ] Medals/achievements display
+
+#### Advanced Polish
+- [ ] Refined color palette with better contrast
+- [ ] Lighting effects (glow, bloom)
+- [ ] Vignette effect around edges
+- [ ] Shadows cast by towers
+- [ ] Ambient particles (dust, fireflies)
+- [ ] Elastic easing on UI elements
+- [ ] Camera shake on boss spawn
+- [ ] Slow-motion effect on victory
+
+#### Audio Integration
+- [ ] Sound effects (already implemented)
+- [ ] Music system
+- [ ] Sound-visual sync (flashes with sounds)
+- [ ] Boss entry dramatic audio+visual
+
+#### Quality of Life
+- [ ] Coverage heat map
+- [ ] Enemy path arrows
+- [ ] Danger indicators near exit
+- [ ] Wave difficulty indicator
+- [ ] Settings menu for effects quality
+
+#### Progression Systems
 - [ ] Save/load progress
-- [ ] Stats tracking
+- [ ] Stats tracking (kills, damage, accuracy)
 - [ ] Achievement system
+- [ ] Leaderboards
 
 ## Game Balance Considerations
 
