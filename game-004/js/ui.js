@@ -1,11 +1,12 @@
 import {
     GAME_WIDTH, GAME_HEIGHT, HUD_HEIGHT, TOOLBAR_Y, TOOLBAR_HEIGHT,
-    TOWER_DEFS, COLORS, WAVE_DEFS, ENEMY_DEFS,
+    TOWER_DEFS, COLORS, WAVE_DEFS, ENEMY_DEFS, SELL_REFUND_RATE, TARGETING_PRIORITIES,
 } from './config.js';
 import { events } from './events.js';
 import { state } from './state.js';
 import { startNextWave } from './waves.js';
 import { sounds, toggleSound, isSoundEnabled } from './sounds.js';
+import { upgradeTower, sellTower, setTargetingPriority } from './towers.js';
 
 let k;
 let goldText, livesText, waveText, startBtnText;
@@ -14,6 +15,74 @@ let bossBanner = null;
 let wavePreviewContainer = null;
 let lastGold = -1, lastLives = -1, lastWave = -1;
 let goldTextPos, livesTextPos, waveTextPos; // Store positions for recreating text
+let towerInfoPanel = null; // Tower info panel container
+
+/**
+ * UI BOUNDS - Centralized Event Delegation System
+ *
+ * This object defines the clickable bounds of all UI panels in the game.
+ * When adding new UI elements that should block game clicks:
+ *
+ * 1. Add the bounds here with accurate left, right, top, bottom values
+ * 2. Add a check in isClickOnUI() function below
+ * 3. If the element can be hidden, add a visibility flag and check it
+ *
+ * This prevents UI buttons from being intercepted by global game click handlers.
+ * All bounds should match the actual k.add([k.pos(...)]) positions in the code.
+ */
+export const UI_BOUNDS = {
+    towerInfo: {
+        left: 20,
+        right: 220, // 20 + 200 (panelWidth)
+        top: HUD_HEIGHT + 80,
+        bottom: HUD_HEIGHT + 80 + 340,
+    },
+    towerMenu: {
+        left: GAME_WIDTH - 158, // GAME_WIDTH - 150 - 8 (padding)
+        right: GAME_WIDTH - 12,  // GAME_WIDTH - 20 + 8 (padding)
+        top: HUD_HEIGHT + 72,    // HUD_HEIGHT + 80 - 8 (padding)
+        bottom: GAME_HEIGHT - 20, // Extends to near bottom
+    },
+};
+
+/**
+ * Helper function to check if a click position is within any UI area.
+ * This centralizes UI click detection to prevent game clicks from interfering with UI buttons.
+ *
+ * To add new UI elements:
+ * 1. Add bounds to UI_BOUNDS object above
+ * 2. Add a check here (with visibility condition if element can be hidden)
+ * 3. All global click handlers will automatically respect the new UI element
+ *
+ * @param {number} x - Mouse X position
+ * @param {number} y - Mouse Y position
+ * @returns {boolean} - True if click is on any UI element
+ */
+export function isClickOnUI(x, y) {
+    // Check HUD top bar
+    if (y < HUD_HEIGHT) return true;
+
+    // Check bottom toolbar
+    if (y >= TOOLBAR_Y) return true;
+
+    // Check tower info panel (only when visible)
+    if (towerInfoPanel) {
+        const bounds = UI_BOUNDS.towerInfo;
+        if (x >= bounds.left && x <= bounds.right &&
+            y >= bounds.top && y <= bounds.bottom) {
+            return true;
+        }
+    }
+
+    // Check tower menu panel (right side - always visible)
+    const menuBounds = UI_BOUNDS.towerMenu;
+    if (x >= menuBounds.left && x <= menuBounds.right &&
+        y >= menuBounds.top && y <= menuBounds.bottom) {
+        return true;
+    }
+
+    return false;
+}
 
 export function initUI(kaplay) {
     k = kaplay;
@@ -34,6 +103,10 @@ export function initUI(kaplay) {
                 k.anchor("left"),
                 k.z(52),
             ]);
+            // Refresh tower info panel if tower is selected (to update upgrade button affordability)
+            if (state.selectedTower && state.selectedTower.exists()) {
+                showTowerInfoPanel(state.selectedTower);
+            }
         }
         if (state.lives !== lastLives) {
             lastLives = state.lives;
@@ -296,7 +369,7 @@ function createToolbar() {
     // Instructions at bottom of screen
     k.add([
         k.pos(GAME_WIDTH / 2, GAME_HEIGHT - 20),
-        k.text("1-5: Select towers  |  SPACE: Start Wave  |  ESC: Cancel  |  Right-click: Deselect", { size: 10 }),
+        k.text("1-5: Select towers  |  U: Upgrade  |  S: Sell  |  SPACE: Start Wave  |  ESC/Right-click: Cancel", { size: 10 }),
         k.color(100, 100, 120),
         k.anchor("center"),
         k.z(52),
@@ -361,6 +434,24 @@ function listenEvents() {
         k.wait(0.3, () => {
             if (livesText.exists()) livesText.color = k.rgb(255, 255, 255);
         });
+    });
+
+    events.on('towerSelected', (tower) => {
+        showTowerInfoPanel(tower);
+    });
+
+    events.on('towerDeselected', () => {
+        hideTowerInfoPanel();
+    });
+
+    events.on('towerUpgraded', (tower) => {
+        if (state.selectedTower === tower) {
+            showTowerInfoPanel(tower);
+        }
+    });
+
+    events.on('towerSold', () => {
+        hideTowerInfoPanel();
     });
 }
 
@@ -544,4 +635,255 @@ function showOverlay(title, subtitle, titleColor) {
         k.anchor("center"),
         k.z(101),
     ]);
+}
+
+// Tower info panel
+function showTowerInfoPanel(tower) {
+    hideTowerInfoPanel();
+
+    const def = TOWER_DEFS[tower.towerType];
+    const panelWidth = 200;
+    const panelX = 20;
+    const panelY = HUD_HEIGHT + 80;
+
+    // Panel background
+    const panelBg = k.add([
+        k.pos(panelX, panelY),
+        k.rect(panelWidth, 340, { radius: 8 }),
+        k.color(COLORS.toolbarBg.r, COLORS.toolbarBg.g, COLORS.toolbarBg.b),
+        k.outline(2, k.rgb(80, 90, 110)),
+        k.opacity(0.95),
+        k.z(50),
+        "towerInfo",
+    ]);
+
+    // Tower name
+    const levelSuffix = tower.upgradeLevel > 0 ? ` [Lv ${tower.upgradeLevel + 1}]` : "";
+    k.add([
+        k.pos(panelX + panelWidth / 2, panelY + 20),
+        k.text(def.name + levelSuffix, { size: 16 }),
+        k.color(220, 220, 230),
+        k.anchor("center"),
+        k.z(53),
+        "towerInfo",
+    ]);
+
+    // Upgrade stars
+    let starY = panelY + 38;
+    for (let i = 0; i < 3; i++) {
+        const filled = i < tower.upgradeLevel;
+        k.add([
+            k.pos(panelX + panelWidth / 2 - 20 + i * 20, starY),
+            k.text(filled ? "\u2605" : "\u2606", { size: 14 }),
+            k.color(filled ? 255 : 100, filled ? 215 : 100, filled ? 0 : 100),
+            k.anchor("center"),
+            k.z(53),
+            "towerInfo",
+        ]);
+    }
+
+    // Stats
+    let statY = panelY + 60;
+    const statSize = 11;
+    const statSpacing = 18;
+
+    k.add([
+        k.pos(panelX + 10, statY),
+        k.text(`Damage: ${Math.round(tower.damage)}`, { size: statSize }),
+        k.color(200, 200, 220),
+        k.anchor("left"),
+        k.z(53),
+        "towerInfo",
+    ]);
+    statY += statSpacing;
+
+    k.add([
+        k.pos(panelX + 10, statY),
+        k.text(`Range: ${Math.round(tower.range)}`, { size: statSize }),
+        k.color(200, 200, 220),
+        k.anchor("left"),
+        k.z(53),
+        "towerInfo",
+    ]);
+    statY += statSpacing;
+
+    k.add([
+        k.pos(panelX + 10, statY),
+        k.text(`Speed: ${tower.attackSpeed.toFixed(1)}/s`, { size: statSize }),
+        k.color(200, 200, 220),
+        k.anchor("left"),
+        k.z(53),
+        "towerInfo",
+    ]);
+    statY += statSpacing + 5;
+
+    // Separator
+    k.add([
+        k.pos(panelX + 10, statY),
+        k.rect(panelWidth - 20, 1),
+        k.color(80, 90, 110),
+        k.z(53),
+        "towerInfo",
+    ]);
+    statY += 10;
+
+    // Targeting priority
+    k.add([
+        k.pos(panelX + 10, statY),
+        k.text("Target:", { size: 11 }),
+        k.color(150, 150, 170),
+        k.anchor("left"),
+        k.z(53),
+        "towerInfo",
+    ]);
+    statY += 18;
+
+    // Targeting buttons
+    const targetBtnWidth = (panelWidth - 30) / 2;
+    const targetBtnHeight = 24;
+    const priorities = Object.keys(TARGETING_PRIORITIES);
+
+    for (let i = 0; i < priorities.length; i++) {
+        const priority = priorities[i];
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        const btnX = panelX + 10 + col * (targetBtnWidth + 5);
+        const btnY = statY + row * (targetBtnHeight + 5);
+        const isSelected = tower.targetingPriority === priority;
+
+        const btn = k.add([
+            k.pos(btnX, btnY),
+            k.rect(targetBtnWidth, targetBtnHeight, { radius: 4 }),
+            k.color(isSelected ? 60 : 40, isSelected ? 100 : 50, isSelected ? 140 : 70),
+            k.outline(1, k.rgb(isSelected ? 120 : 70, isSelected ? 140 : 80, isSelected ? 180 : 100)),
+            k.area(),
+            k.z(52),
+            "towerInfo",
+        ]);
+
+        btn.onClick(() => {
+            sounds.uiClick();
+            setTargetingPriority(tower, priority);
+            showTowerInfoPanel(tower); // Refresh panel
+        });
+
+        k.add([
+            k.pos(btnX + targetBtnWidth / 2, btnY + targetBtnHeight / 2),
+            k.text(TARGETING_PRIORITIES[priority].name, { size: 10 }),
+            k.color(200, 200, 220),
+            k.anchor("center"),
+            k.z(53),
+            "towerInfo",
+        ]);
+    }
+
+    statY += 60;
+
+    // Separator
+    k.add([
+        k.pos(panelX + 10, statY),
+        k.rect(panelWidth - 20, 1),
+        k.color(80, 90, 110),
+        k.z(53),
+        "towerInfo",
+    ]);
+    statY += 15;
+
+    // Upgrade button
+    if (tower.upgradeLevel < def.upgrades.length) {
+        const upgrade = def.upgrades[tower.upgradeLevel];
+        const canAfford = state.canAfford(upgrade.cost);
+
+        const upgradeBtn = k.add([
+            k.pos(panelX + 10, statY),
+            k.rect(panelWidth - 20, 40, { radius: 6 }),
+            k.color(canAfford ? 40 : 30, canAfford ? 100 : 50, canAfford ? 60 : 50),
+            k.outline(2, k.rgb(canAfford ? 60 : 50, canAfford ? 140 : 70, canAfford ? 80 : 70)),
+            k.area(),
+            k.z(52),
+            "towerInfo",
+        ]);
+
+        upgradeBtn.onClick(() => {
+            sounds.uiClick();
+            if (upgradeTower(tower)) {
+                showTowerInfoPanel(tower);
+            }
+        });
+
+        k.add([
+            k.pos(panelX + panelWidth / 2, statY + 12),
+            k.text(`Upgrade (U)`, { size: 13 }),
+            k.color(canAfford ? 220 : 140, canAfford ? 220 : 140, canAfford ? 230 : 150),
+            k.anchor("center"),
+            k.z(53),
+            "towerInfo",
+        ]);
+
+        k.add([
+            k.pos(panelX + panelWidth / 2, statY + 28),
+            k.text(`$${upgrade.cost}`, { size: 11 }),
+            k.color(COLORS.goldText.r, COLORS.goldText.g, COLORS.goldText.b),
+            k.anchor("center"),
+            k.z(53),
+            "towerInfo",
+        ]);
+
+        statY += 50;
+    } else {
+        // Max level indicator
+        k.add([
+            k.pos(panelX + panelWidth / 2, statY + 10),
+            k.text("MAX LEVEL", { size: 12 }),
+            k.color(255, 215, 0),
+            k.anchor("center"),
+            k.z(53),
+            "towerInfo",
+        ]);
+        statY += 30;
+    }
+
+    // Sell button
+    const sellValue = Math.floor(tower.totalCost * SELL_REFUND_RATE);
+    const sellBtn = k.add([
+        k.pos(panelX + 10, statY),
+        k.rect(panelWidth - 20, 40, { radius: 6 }),
+        k.color(100, 50, 50),
+        k.outline(2, k.rgb(140, 70, 70)),
+        k.area(),
+        k.z(52),
+        "towerInfo",
+    ]);
+
+    sellBtn.onClick(() => {
+        sounds.uiClick();
+        sellTower(tower);
+    });
+
+    k.add([
+        k.pos(panelX + panelWidth / 2, statY + 12),
+        k.text("Sell (S)", { size: 13 }),
+        k.color(220, 220, 230),
+        k.anchor("center"),
+        k.z(53),
+        "towerInfo",
+    ]);
+
+    k.add([
+        k.pos(panelX + panelWidth / 2, statY + 28),
+        k.text(`+$${sellValue}`, { size: 11 }),
+        k.color(COLORS.goldText.r, COLORS.goldText.g, COLORS.goldText.b),
+        k.anchor("center"),
+        k.z(53),
+        "towerInfo",
+    ]);
+
+    towerInfoPanel = true;
+}
+
+function hideTowerInfoPanel() {
+    if (towerInfoPanel) {
+        k.destroyAll("towerInfo");
+        towerInfoPanel = null;
+    }
 }

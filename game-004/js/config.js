@@ -43,6 +43,11 @@ export const TOWER_DEFS = {
         color: { r: 80, g: 145, b: 60 },
         hotkey: "1",
         description: "Fast attack, medium range",
+        upgrades: [
+            { cost: 80, damageBonus: 5, rangeBonus: 20, attackSpeedBonus: 0.2 },   // Tier 1
+            { cost: 120, damageBonus: 8, rangeBonus: 30, attackSpeedBonus: 0.3 },  // Tier 2
+            { cost: 180, damageBonus: 12, rangeBonus: 40, attackSpeedBonus: 0.5 }, // Tier 3
+        ],
     },
     cannon: {
         name: "Cannon",
@@ -55,6 +60,11 @@ export const TOWER_DEFS = {
         color: { r: 100, g: 100, b: 100 },
         hotkey: "2",
         description: "Slow, high damage, splash",
+        upgrades: [
+            { cost: 180, damageBonus: 25, rangeBonus: 30, splashRadiusBonus: 10 },  // Tier 1
+            { cost: 280, damageBonus: 40, rangeBonus: 50, splashRadiusBonus: 20 },  // Tier 2
+            { cost: 420, damageBonus: 70, rangeBonus: 70, splashRadiusBonus: 30 },  // Tier 3
+        ],
     },
     mage: {
         name: "Mage",
@@ -68,6 +78,11 @@ export const TOWER_DEFS = {
         color: { r: 130, g: 80, b: 180 },
         hotkey: "3",
         description: "Magic damage, slows enemies",
+        upgrades: [
+            { cost: 150, damageBonus: 10, rangeBonus: 25, slowAmountBonus: 0.1 },   // Tier 1
+            { cost: 220, damageBonus: 15, rangeBonus: 35, slowAmountBonus: 0.15 },  // Tier 2
+            { cost: 350, damageBonus: 25, rangeBonus: 50, slowAmountBonus: 0.2 },   // Tier 3
+        ],
     },
     tesla: {
         name: "Tesla",
@@ -80,6 +95,11 @@ export const TOWER_DEFS = {
         color: { r: 60, g: 140, b: 200 },
         hotkey: "4",
         description: "Chain lightning, short range",
+        upgrades: [
+            { cost: 220, damageBonus: 12, rangeBonus: 20, chainCountBonus: 1 },     // Tier 1
+            { cost: 340, damageBonus: 20, rangeBonus: 30, chainCountBonus: 1 },     // Tier 2
+            { cost: 500, damageBonus: 35, rangeBonus: 50, chainCountBonus: 2 },     // Tier 3
+        ],
     },
     sniper: {
         name: "Sniper",
@@ -92,6 +112,11 @@ export const TOWER_DEFS = {
         color: { r: 140, g: 80, b: 50 },
         hotkey: "5",
         description: "Long range, armor pierce",
+        upgrades: [
+            { cost: 250, damageBonus: 50, rangeBonus: 50, attackSpeedBonus: 0.1 },  // Tier 1
+            { cost: 400, damageBonus: 80, rangeBonus: 80, attackSpeedBonus: 0.15 }, // Tier 2
+            { cost: 600, damageBonus: 150, rangeBonus: 100, attackSpeedBonus: 0.25 }, // Tier 3
+        ],
     },
 };
 
@@ -241,6 +266,14 @@ export const WAVE_BONUS_GOLD = 25;
 
 // Sell refund rate
 export const SELL_REFUND_RATE = 0.75;
+
+// Tower targeting priorities
+export const TARGETING_PRIORITIES = {
+    first: { name: "First", description: "Closest to exit" },
+    last: { name: "Last", description: "Furthest from exit" },
+    strongest: { name: "Strongest", description: "Highest HP" },
+    weakest: { name: "Weakest", description: "Lowest HP" },
+};
 
 // Colors
 export const COLORS = {

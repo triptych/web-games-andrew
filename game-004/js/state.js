@@ -97,6 +97,10 @@ class GameState {
         this.occupiedCells.add(`${col},${row}`);
     }
 
+    freeCell(col, row) {
+        this.occupiedCells.delete(`${col},${row}`);
+    }
+
     isCellOccupied(col, row) {
         return this.occupiedCells.has(`${col},${row}`);
     }

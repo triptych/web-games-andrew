@@ -1,16 +1,18 @@
 # Tower Defense Game Plan
 
 ## Current Status
-**Phase 3 (Enemy Variety & Waves) - ✅ COMPLETED**
+**Phase 4 (Upgrades & Economy) - ✅ COMPLETED**
 
-Expanded from single enemy type to 5 distinct enemy types with 20 progressive waves:
-- **Scout**: Fast, low HP, low reward (starter enemy)
-- **Soldier**: Medium speed, medium HP with armor
-- **Tank**: Slow, heavily armored, high reward
-- **Speedster**: Very fast, medium HP, dodges defenses
-- **Boss**: Massive HP, heavy armor, appears every 5 waves
+Complete tower upgrade and economy system with strategic depth:
+- **Tower Upgrades**: 3-tier upgrade system for all tower types with visual progression
+- **Upgrade Stats**: Damage, range, attack speed, and tower-specific bonuses (splash radius, chain count, slow effect)
+- **Sell System**: Sell towers for 75% refund, freeing up space for strategic repositioning
+- **Targeting Priorities**: Choose between First, Last, Strongest, Weakest targeting for each tower
+- **Tower Info Panel**: Detailed stats display with upgrade/sell buttons and targeting controls
+- **Keyboard Shortcuts**: U to upgrade, S to sell selected towers
+- **Dynamic Balance**: Upgrade costs scale appropriately, maintaining economic challenge throughout all 20 waves
 
-Features include armor system affecting damage calculation, sniper armor pierce mechanics, 20 challenging waves with mixed enemy compositions, boss wave banners and warnings, and wave preview UI showing upcoming enemies!
+Previous phases completed: Core Mechanics (Phase 1), Tower Variety (Phase 2), Enemy Variety & Waves (Phase 3)
 
 ## Game Overview
 A classic tower defense game built with Kaplay.js where players strategically place towers to defend against waves of enemies following a path from start to finish. Features multiple tower types, enemy varieties, upgrades, and progressive difficulty.
@@ -279,12 +281,23 @@ class WaveManager {
 - ✅ Mixed enemy types in later waves for strategic variety
 - ✅ Proper enemy stat scaling (HP, speed, armor, rewards)
 
-### Phase 4: Upgrades & Economy
-- [ ] Tower upgrade system (3 tiers)
-- [ ] Sell towers for refund
-- [ ] Gold earning tweaks
-- [ ] Balance costs and rewards
-- [ ] Tower targeting priorities
+### Phase 4: Upgrades & Economy ✅ COMPLETED
+- [x] Tower upgrade system (3 tiers)
+- [x] Sell towers for refund
+- [x] Gold earning tweaks
+- [x] Balance costs and rewards
+- [x] Tower targeting priorities
+
+**Completed Features:**
+- ✅ 3-tier upgrade system for all 5 tower types with balanced costs
+- ✅ Upgrades boost damage, range, attack speed, and tower-specific stats
+- ✅ Visual upgrade effects and level indicators (stars)
+- ✅ Sell towers for 75% refund of total investment
+- ✅ Tower info panel with stats, upgrade/sell buttons, and targeting controls
+- ✅ 4 targeting priorities: First (closest to exit), Last (furthest), Strongest (highest HP), Weakest (lowest HP)
+- ✅ Keyboard shortcuts: U to upgrade, S to sell
+- ✅ Dynamic UI updates showing affordability and refund values
+- ✅ Cell management allowing towers to be sold and replaced
 
 ### Phase 5: Polish & Features
 - [ ] Particle effects

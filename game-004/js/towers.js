@@ -1,8 +1,9 @@
-import { TILE_SIZE, TOWER_DEFS, COLORS, TOOLBAR_Y, HUD_HEIGHT, GAME_WIDTH } from './config.js';
+import { TILE_SIZE, TOWER_DEFS, COLORS, TOOLBAR_Y, HUD_HEIGHT, GAME_WIDTH, SELL_REFUND_RATE } from './config.js';
 import { events } from './events.js';
 import { state } from './state.js';
 import { gridToWorld, worldToGrid, isBuildable, isInGrid } from './map.js';
 import { sounds } from './sounds.js';
+import { isClickOnUI } from './ui.js';
 
 let k;
 let ghostObj = null;
@@ -23,11 +24,8 @@ export function initTowers(kaplay) {
     k.onClick(() => {
         const pos = k.mousePos();
 
-        // Ignore clicks in UI areas (HUD top bar, right panel, and bottom toolbar)
-        const PANEL_RIGHT_EDGE = GAME_WIDTH - 20; // Right edge of screen minus margin
-        const PANEL_LEFT_EDGE = PANEL_RIGHT_EDGE - 130; // Panel width is 130
-        if (pos.y < HUD_HEIGHT || pos.y >= TOOLBAR_Y) return;
-        if (pos.x >= PANEL_LEFT_EDGE && pos.x <= PANEL_RIGHT_EDGE) return;
+        // Ignore clicks on any UI elements
+        if (isClickOnUI(pos.x, pos.y)) return;
 
         if (state.isGameOver || state.isVictory) return;
 
@@ -153,6 +151,22 @@ export function initTowers(kaplay) {
         }
     });
 
+    // Hotkey U: upgrade selected tower
+    k.onKeyPress("u", () => {
+        if (state.isGameOver || state.isVictory) return;
+        if (state.selectedTower) {
+            upgradeTower(state.selectedTower);
+        }
+    });
+
+    // Hotkey S: sell selected tower
+    k.onKeyPress("s", () => {
+        if (state.isGameOver || state.isVictory) return;
+        if (state.selectedTower) {
+            sellTower(state.selectedTower);
+        }
+    });
+
     // Listen for placement cancellation from other modules
     events.on('placementCancelled', () => {
         clearGhost();
@@ -189,6 +203,17 @@ function createTower(type, col, row) {
     tower.projectileSpeed = def.projectileSpeed;
     tower.cooldown = 0;
     tower.target = null;
+    tower.upgradeLevel = 0;
+    tower.totalCost = def.cost; // Track total investment for sell value
+    tower.targetingPriority = "first"; // Default targeting
+
+    // Store tower-specific stats for upgrades
+    if (def.splashRadius !== undefined) tower.splashRadius = def.splashRadius;
+    if (def.chainCount !== undefined) tower.chainCount = def.chainCount;
+    if (def.chainRange !== undefined) tower.chainRange = def.chainRange;
+    if (def.slowDuration !== undefined) tower.slowDuration = def.slowDuration;
+    if (def.slowAmount !== undefined) tower.slowAmount = def.slowAmount;
+    if (def.armorPierce !== undefined) tower.armorPierce = def.armorPierce;
 
     // Tower-specific decorations
     if (type === "archer") {
@@ -330,16 +355,49 @@ function createTower(type, col, row) {
 function findTarget(tower) {
     const enemies = k.get("enemy");
     let bestTarget = null;
-    let bestProgress = -1;
+    let bestValue = null;
 
     for (const enemy of enemies) {
         if (!enemy.exists()) continue;
         const dist = tower.pos.dist(enemy.pos);
         if (dist <= tower.range) {
-            // "First" targeting: highest path progress
-            if (enemy.pathProgress > bestProgress) {
-                bestProgress = enemy.pathProgress;
-                bestTarget = enemy;
+            let value;
+            switch (tower.targetingPriority) {
+                case "first":
+                    value = enemy.pathProgress;
+                    if (bestValue === null || value > bestValue) {
+                        bestValue = value;
+                        bestTarget = enemy;
+                    }
+                    break;
+                case "last":
+                    value = enemy.pathProgress;
+                    if (bestValue === null || value < bestValue) {
+                        bestValue = value;
+                        bestTarget = enemy;
+                    }
+                    break;
+                case "strongest":
+                    value = enemy.hp;
+                    if (bestValue === null || value > bestValue) {
+                        bestValue = value;
+                        bestTarget = enemy;
+                    }
+                    break;
+                case "weakest":
+                    value = enemy.hp;
+                    if (bestValue === null || value < bestValue) {
+                        bestValue = value;
+                        bestTarget = enemy;
+                    }
+                    break;
+                default:
+                    // Default to first
+                    value = enemy.pathProgress;
+                    if (bestValue === null || value > bestValue) {
+                        bestValue = value;
+                        bestTarget = enemy;
+                    }
             }
         }
     }
@@ -347,11 +405,9 @@ function findTarget(tower) {
 }
 
 function fireProjectile(tower, target) {
-    const def = TOWER_DEFS[tower.towerType];
-
     // Tesla uses instant chain lightning, no projectile
     if (tower.towerType === "tesla") {
-        fireTeslaLightning(tower, target, def);
+        fireTeslaLightning(tower, target);
         return;
     }
 
@@ -393,15 +449,15 @@ function fireProjectile(tower, target) {
     proj.speed = tower.projectileSpeed;
     proj.targetRef = target;
     proj.towerType = tower.towerType;
-    proj.towerDef = def;
+    proj.tower = tower; // Store reference to tower for upgraded stats
 
     proj.onUpdate(() => {
         // If target is gone, remove projectile (except cannon which hits ground)
         if (!proj.targetRef || !proj.targetRef.exists()) {
-            if (proj.towerType === "cannon") {
+            if (proj.towerType === "cannon" && proj.tower && proj.tower.exists()) {
                 // Cannon projectiles explode at last known position
                 const lastPos = proj.targetRef ? proj.targetRef.pos : proj.pos;
-                createSplashDamage(lastPos, proj.towerDef.splashRadius, proj.damage);
+                createSplashDamage(lastPos, proj.tower.splashRadius, proj.damage);
             }
             proj.destroy();
             return;
@@ -430,18 +486,18 @@ function calculateDamage(baseDamage, target, armorPierce = 0) {
 }
 
 function handleProjectileHit(proj, target) {
-    if (proj.towerType === "cannon") {
+    if (proj.towerType === "cannon" && proj.tower && proj.tower.exists()) {
         // Cannon: splash damage
-        createSplashDamage(target.pos, proj.towerDef.splashRadius, proj.damage);
-    } else if (proj.towerType === "mage") {
+        createSplashDamage(target.pos, proj.tower.splashRadius, proj.damage);
+    } else if (proj.towerType === "mage" && proj.tower && proj.tower.exists()) {
         // Mage: direct damage + slow effect
         const damage = calculateDamage(proj.damage, target);
         target.hp -= damage;
-        applySlowEffect(target, proj.towerDef.slowDuration, proj.towerDef.slowAmount);
+        applySlowEffect(target, proj.tower.slowDuration, proj.tower.slowAmount);
         events.emit('enemyDamaged', target);
-    } else if (proj.towerType === "sniper") {
+    } else if (proj.towerType === "sniper" && proj.tower && proj.tower.exists()) {
         // Sniper: armor-piercing damage
-        const damage = calculateDamage(proj.damage, target, proj.towerDef.armorPierce);
+        const damage = calculateDamage(proj.damage, target, proj.tower.armorPierce);
         target.hp -= damage;
         events.emit('enemyDamaged', target);
         // Visual feedback for sniper hit
@@ -521,7 +577,7 @@ function applySlowEffect(enemy, duration, slowAmount) {
     }
 }
 
-function fireTeslaLightning(tower, target, def) {
+function fireTeslaLightning(tower, target) {
     const targets = [target];
     const hitPositions = [target.pos];
 
@@ -532,14 +588,14 @@ function fireTeslaLightning(tower, target, def) {
     const enemies = k.get("enemy");
     let currentTarget = target;
 
-    for (let i = 1; i < def.chainCount; i++) {
+    for (let i = 1; i < tower.chainCount; i++) {
         let nextTarget = null;
         let closestDist = Infinity;
 
         for (const enemy of enemies) {
             if (!enemy.exists() || targets.includes(enemy)) continue;
             const dist = currentTarget.pos.dist(enemy.pos);
-            if (dist <= def.chainRange && dist < closestDist) {
+            if (dist <= tower.chainRange && dist < closestDist) {
                 closestDist = dist;
                 nextTarget = enemy;
             }
@@ -718,4 +774,118 @@ function clearSelectedRange() {
         selectedRangeObj.destroy();
         selectedRangeObj = null;
     }
+}
+
+// Upgrade tower
+export function upgradeTower(tower) {
+    if (!tower || !tower.exists()) return false;
+
+    const def = TOWER_DEFS[tower.towerType];
+    if (tower.upgradeLevel >= def.upgrades.length) return false; // Max level reached
+
+    const upgrade = def.upgrades[tower.upgradeLevel];
+    if (!state.canAfford(upgrade.cost)) return false;
+
+    // Apply upgrade
+    if (!state.spend(upgrade.cost)) return false;
+
+    tower.totalCost += upgrade.cost;
+    tower.upgradeLevel++;
+
+    // Apply stat bonuses
+    if (upgrade.damageBonus !== undefined) tower.damage += upgrade.damageBonus;
+    if (upgrade.rangeBonus !== undefined) tower.range += upgrade.rangeBonus;
+    if (upgrade.attackSpeedBonus !== undefined) tower.attackSpeed += upgrade.attackSpeedBonus;
+    if (upgrade.splashRadiusBonus !== undefined) tower.splashRadius += upgrade.splashRadiusBonus;
+    if (upgrade.chainCountBonus !== undefined) tower.chainCount += upgrade.chainCountBonus;
+    if (upgrade.chainRangeBonus !== undefined) tower.chainRange += upgrade.chainRangeBonus;
+    if (upgrade.slowAmountBonus !== undefined) tower.slowAmount += upgrade.slowAmountBonus;
+
+    // Visual upgrade effect
+    createUpgradeEffect(tower);
+
+    // Play sound
+    sounds.placeTower();
+
+    // Update range display if this tower is selected
+    if (state.selectedTower === tower) {
+        showSelectedRange(tower);
+    }
+
+    events.emit('towerUpgraded', tower);
+    return true;
+}
+
+// Sell tower
+export function sellTower(tower) {
+    if (!tower || !tower.exists()) return false;
+
+    const refund = Math.floor(tower.totalCost * SELL_REFUND_RATE);
+    state.earn(refund);
+
+    // Free up the cell
+    state.freeCell(tower.gridCol, tower.gridRow);
+
+    // Clear selection
+    if (state.selectedTower === tower) {
+        state.selectedTower = null;
+        clearSelectedRange();
+    }
+
+    // Visual effect
+    showFloatingText("+" + refund, tower.pos.x, tower.pos.y, COLORS.goldText);
+
+    // Play sound
+    sounds.uiClick();
+
+    tower.destroy();
+    events.emit('towerSold', tower);
+    return true;
+}
+
+// Set tower targeting priority
+export function setTargetingPriority(tower, priority) {
+    if (!tower || !tower.exists()) return;
+    tower.targetingPriority = priority;
+    events.emit('targetingChanged', tower);
+}
+
+// Create upgrade visual effect
+function createUpgradeEffect(tower) {
+    const particles = 12;
+    for (let i = 0; i < particles; i++) {
+        const angle = (Math.PI * 2 * i) / particles;
+        const dist = 25;
+        const particle = k.add([
+            k.pos(tower.pos.x + Math.cos(angle) * dist, tower.pos.y + Math.sin(angle) * dist),
+            k.circle(3),
+            k.color(255, 220, 100),
+            k.opacity(1),
+            k.anchor("center"),
+            k.z(30),
+        ]);
+
+        particle.onUpdate(() => {
+            particle.pos = particle.pos.add(k.vec2(Math.cos(angle) * 60 * k.dt(), Math.sin(angle) * 60 * k.dt()));
+            particle.opacity -= 3 * k.dt();
+            if (particle.opacity <= 0) particle.destroy();
+        });
+    }
+}
+
+// Helper function to show floating text (moved from ui.js for tower sell)
+function showFloatingText(str, x, y, colorDef) {
+    const ft = k.add([
+        k.pos(x, y - 10),
+        k.text(str, { size: 14 }),
+        k.color(colorDef.r, colorDef.g, colorDef.b),
+        k.anchor("center"),
+        k.opacity(1),
+        k.z(40),
+    ]);
+    ft.onUpdate(() => {
+        ft.pos = ft.pos.add(k.vec2(0, -40 * k.dt()));
+        ft.opacity -= 1.5 * k.dt();
+        if (ft.opacity <= 0) ft.destroy();
+    });
 }

@@ -8,6 +8,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Tower Defense Game** (game-004): Phase 4 - Upgrades & Economy System
+  - **Tower Upgrade System**: 3-tier upgrade progression for all tower types
+    - Each tower has 3 upgrade levels with increasing costs
+    - Upgrades boost damage, range, attack speed, and tower-specific stats
+    - Visual level indicators: star display (☆☆☆) showing upgrade progress
+    - Upgrade costs scale by tower type (Archer: 80→120→180, Sniper: 250→400→600)
+    - Tower name shows current level (e.g., "Archer [Lv 2]")
+  - **Dynamic Stat Upgrades**: Tower-specific bonuses per upgrade tier
+    - Archer: +5/+8/+12 damage, +20/+30/+40 range, +0.2/+0.3/+0.5 attack speed
+    - Cannon: +25/+40/+70 damage, +30/+50/+70 range, +10/+20/+30 splash radius
+    - Mage: +10/+15/+25 damage, +25/+35/+50 range, +0.1/+0.15/+0.2 slow amount
+    - Tesla: +12/+20/+35 damage, +20/+30/+50 range, +1/+1/+2 chain count
+    - Sniper: +50/+80/+150 damage, +50/+80/+100 range, +0.1/+0.15/+0.25 attack speed
+  - **Tower Sell System**: Sell towers for strategic repositioning
+    - Sell for 75% refund of total investment (base cost + all upgrades)
+    - Frees up grid cell for new tower placement
+    - Visual feedback with floating gold text showing refund amount
+    - Keyboard shortcut: S key to sell selected tower
+  - **Tower Targeting Priorities**: 4 strategic targeting modes per tower
+    - **First**: Target enemy closest to exit (default) - prevents leaks
+    - **Last**: Target enemy furthest from exit - maximize damage time
+    - **Strongest**: Target highest HP enemy - focus fire on tanks
+    - **Weakest**: Target lowest HP enemy - quick eliminations
+    - Easy switching via UI buttons with visual selection indicator
+    - Each tower can have independent targeting priority
+  - **Tower Info Panel**: Comprehensive stats display when tower selected
+    - Shows current damage, range, and attack speed stats
+    - Displays upgrade level with filled/empty star indicators
+    - Upgrade button shows next upgrade cost and grays out when unaffordable
+    - Sell button shows refund amount calculated from total investment
+    - 2×2 grid of targeting priority buttons with highlight on current mode
+    - Panel appears on left side (220×340px) when clicking any tower
+    - Real-time updates when gold changes to show affordability
+  - **Visual Upgrade Effects**: Particle burst animation on upgrade
+    - 12 golden particles radiate outward from upgraded tower
+    - Particles fade out while moving away from center
+    - Range indicator updates to show new range after upgrade
+  - **Keyboard Shortcuts**: Quick tower management
+    - U key: Upgrade selected tower (if affordable and not max level)
+    - S key: Sell selected tower (75% refund)
+    - Works from anywhere when tower is selected
+  - **Centralized Event Delegation System**: Robust UI click handling
+    - `UI_BOUNDS` object defines all UI panel dimensions
+    - `isClickOnUI()` helper function checks if click is on any UI element
+    - Global click handlers respect all UI areas automatically
+    - Easy to add new UI elements without breaking click detection
+    - Prevents game clicks from interfering with UI buttons
+  - **Economic Balance**: Carefully tuned costs for strategic depth
+    - Upgrade costs increase exponentially per tier
+    - High-tier towers have higher upgrade costs (Sniper most expensive)
+    - 75% sell refund allows strategic repositioning without total loss
+    - Wave completion bonuses ($25) help fund mid-game upgrades
+    - Economy maintains challenge throughout all 20 waves
+  - Files: Updated [game-004/js/config.js](game-004/js/config.js) (added upgrade definitions, targeting priorities), [game-004/js/towers.js](game-004/js/towers.js) (upgrade/sell functions, targeting system), [game-004/js/state.js](game-004/js/state.js) (freeCell method), [game-004/js/ui.js](game-004/js/ui.js) (tower info panel, event delegation), [game-004/game-plan.md](game-004/game-plan.md) (Phase 4 completed)
+
+### Fixed
+- **Tower Defense Game** (game-004): Fixed tower info panel buttons not clickable
+  - Issue: Panel buttons were being intercepted by global click handler before onClick events could fire
+  - Solution: Implemented centralized event delegation system with `isClickOnUI()` helper
+  - Global click handlers now check UI bounds before processing game clicks
+  - Files: [game-004/js/ui.js](game-004/js/ui.js), [game-004/js/towers.js](game-004/js/towers.js)
+
+### Added
 - **Tower Defense Game** (game-004): Complete Sound System & Splash Screen
   - **Splash Screen**: Professional game entry screen with start button
     - Gradient background with animated title and subtitle
