@@ -8,16 +8,24 @@ import { sounds } from './sounds.js';
 let k;
 let player;
 let shootTimer = 0;
+let unsubscribeCallbacks = [];
 
 export function initPlayer(kaplay) {
     k = kaplay;
+
+    // Clear any existing event listeners from previous game
+    unsubscribeCallbacks.forEach(unsub => unsub());
+    unsubscribeCallbacks = [];
+
+    // Reset shoot timer
+    shootTimer = 0;
 
     // Create player at center
     player = createPlayerPrefab(k, k.vec2(k.width() / 2, k.height() / 2));
     state.player = player;
 
     // Listen for damage events
-    events.on('playerDamaged', (damage) => {
+    const playerDamagedUnsub = events.on('playerDamaged', (damage) => {
         if (!player.exists()) return;
         if (!player.invincible) {
             player.hp -= damage;
@@ -31,6 +39,7 @@ export function initPlayer(kaplay) {
             }
         }
     });
+    unsubscribeCallbacks.push(playerDamagedUnsub);
 
     // Movement and shooting
     k.onUpdate(() => {

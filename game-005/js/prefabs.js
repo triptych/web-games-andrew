@@ -1,8 +1,9 @@
 // Reusable entity factory functions
 
-import { PLAYER_CONFIG, ENEMY_DEFS, XP_CONFIG } from './config.js';
+import { PLAYER_CONFIG, ENEMY_DEFS, XP_CONFIG, HEALTH_PICKUP_CONFIG } from './config.js';
 import { events } from './events.js';
 import { state } from './state.js';
+import { sounds } from './sounds.js';
 
 export function createPlayerPrefab(k, pos) {
     // Shadow
@@ -78,6 +79,11 @@ export function createPlayerPrefab(k, pos) {
         collectXP(player, gem);
     });
 
+    // Collision with health pickups
+    player.onCollide("healthPickup", (pickup) => {
+        collectHealth(player, pickup);
+    });
+
     // Destroy shadow when player is destroyed
     player.onDestroy(() => {
         k.destroy(shadow);
@@ -97,6 +103,16 @@ function collectXP(player, gem) {
         player.xp -= player.xpToNext;
         player.xpToNext = Math.floor(player.xpToNext * 1.5);
         events.emit('playerLevelUp', player.level);
+    }
+}
+
+function collectHealth(player, pickup) {
+    const healAmount = Math.min(pickup.healAmount, player.maxHp - player.hp);
+    if (healAmount > 0) {
+        player.hp += healAmount;
+        sounds.healthCollect();
+        events.emit('healthGained', healAmount);
+        pickup.destroy();
     }
 }
 
@@ -139,20 +155,17 @@ export function createEnemyPrefab(k, type, pos) {
     // HP bar
     const hpBarBg = enemy.add([
         k.rect(def.size * 2, 3),
-        k.pos(0, -def.size - 8),
+        k.pos(-def.size, -def.size - 8),
         k.color(50, 50, 50),
-        k.anchor("center"),
         k.z(11),
     ]);
 
     const hpBar = enemy.add([
         k.rect(def.size * 2, 3),
-        k.pos(0, -def.size - 8),
+        k.pos(-def.size, -def.size - 8),
         k.color(255, 50, 50),
-        k.anchor("left"),
         k.z(12),
     ]);
-    hpBar.anchor = "left";
 
     enemy.hpBar = hpBar;
     enemy.hpBarBg = hpBarBg;
@@ -166,9 +179,19 @@ export function createEnemyPrefab(k, type, pos) {
 
         // Move toward player
         const player = k.get("player")[0];
-        if (player) {
+        if (player && player.exists()) {
             const dir = player.pos.sub(enemy.pos).unit();
             enemy.pos = enemy.pos.add(dir.scale(enemy.speed * k.dt()));
+
+            // Manual collision detection with player
+            const dist = enemy.pos.dist(player.pos);
+            if (dist < def.size + 12) { // Enemy size + player size
+                if (!player.invincible) {
+                    events.emit('playerDamaged', enemy.damage);
+                    player.invincible = true;
+                    player.invincibleTimer = 1.0;
+                }
+            }
         }
     });
 
@@ -199,7 +222,7 @@ export function createProjectilePrefab(k, pos, dir, damage, owner) {
     projectile.lifetime = 3;
     projectile.owner = owner;
 
-    // Trail effect (simple fade)
+    // Movement and collision checking
     projectile.onUpdate(() => {
         projectile.pos = projectile.pos.add(projectile.vel.scale(k.dt()));
         projectile.lifetime -= k.dt();
@@ -208,23 +231,38 @@ export function createProjectilePrefab(k, pos, dir, damage, owner) {
             projectile.pos.x < 0 || projectile.pos.x > k.width() ||
             projectile.pos.y < 0 || projectile.pos.y > k.height()) {
             k.destroy(projectile);
+            return;
+        }
+
+        // Manual collision detection (more reliable than onCollide)
+        if (isPlayer) {
+            // Check collision with enemies
+            const enemies = k.get("enemy");
+            for (const enemy of enemies) {
+                if (enemy.exists()) {
+                    const dist = projectile.pos.dist(enemy.pos);
+                    if (dist < 15) { // Enemy size + projectile size
+                        events.emit('enemyDamaged', enemy, projectile.damage);
+                        k.destroy(projectile);
+                        return;
+                    }
+                }
+            }
+        } else {
+            // Check collision with player
+            const player = k.get("player")[0];
+            if (player && player.exists()) {
+                const dist = projectile.pos.dist(player.pos);
+                if (dist < 15) { // Player size + projectile size
+                    if (!player.invincible) {
+                        events.emit('playerDamaged', projectile.damage);
+                    }
+                    k.destroy(projectile);
+                    return;
+                }
+            }
         }
     });
-
-    // Collision handling
-    if (isPlayer) {
-        projectile.onCollide("enemy", (enemy) => {
-            events.emit('enemyDamaged', enemy, projectile.damage);
-            k.destroy(projectile);
-        });
-    } else {
-        projectile.onCollide("player", (player) => {
-            if (!player.invincible) {
-                events.emit('playerDamaged', projectile.damage);
-            }
-            k.destroy(projectile);
-        });
-    }
 
     return projectile;
 }
@@ -263,4 +301,59 @@ export function createXPGemPrefab(k, pos, value) {
     });
 
     return gem;
+}
+
+export function createHealthPickupPrefab(k, pos) {
+    // Heart shape using multiple circles
+    const pickup = k.add([
+        k.pos(pos),
+        k.circle(8),
+        k.color(255, 100, 120),
+        k.outline(2, k.rgb(255, 150, 170)),
+        k.anchor("center"),
+        k.area(),
+        k.z(8),
+        "healthPickup",
+    ]);
+
+    // Add a plus sign to indicate health
+    pickup.add([
+        k.rect(3, 10),
+        k.pos(0, 0),
+        k.anchor("center"),
+        k.color(255, 255, 255),
+    ]);
+    pickup.add([
+        k.rect(10, 3),
+        k.pos(0, 0),
+        k.anchor("center"),
+        k.color(255, 255, 255),
+    ]);
+
+    pickup.healAmount = HEALTH_PICKUP_CONFIG.healAmount;
+    pickup.attractRadius = HEALTH_PICKUP_CONFIG.attractionRadius * state.playerStats.pickupRadius;
+    pickup.attractSpeed = HEALTH_PICKUP_CONFIG.attractionSpeed;
+    pickup.bobOffset = Math.random() * Math.PI * 2;
+
+    pickup.onUpdate(() => {
+        // Bob animation
+        pickup.pos.y += Math.sin(k.time() * 5 + pickup.bobOffset) * 0.5;
+
+        // Pulse effect
+        const scale = 1 + Math.sin(k.time() * 3) * 0.1;
+        pickup.scale = k.vec2(scale, scale);
+
+        // Magnetic attraction to player
+        const player = k.get("player")[0];
+        if (player) {
+            pickup.attractRadius = HEALTH_PICKUP_CONFIG.attractionRadius * state.playerStats.pickupRadius;
+
+            if (pickup.pos.dist(player.pos) < pickup.attractRadius) {
+                const dir = player.pos.sub(pickup.pos).unit();
+                pickup.pos = pickup.pos.add(dir.scale(pickup.attractSpeed * k.dt()));
+            }
+        }
+    });
+
+    return pickup;
 }

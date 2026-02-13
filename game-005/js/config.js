@@ -58,3 +58,10 @@ export const XP_CONFIG = {
     gemAttractionRadius: 100,
     gemAttractionSpeed: 300,
 };
+
+export const HEALTH_PICKUP_CONFIG = {
+    healAmount: 25,
+    dropChance: 0.15, // 15% chance to drop from enemies
+    attractionRadius: 80,
+    attractionSpeed: 250,
+};

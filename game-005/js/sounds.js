@@ -94,6 +94,11 @@ export const sounds = {
         playChord([523, 659, 784], 0.15, 'sine', 0.2);
     },
 
+    // Health pickup
+    healthCollect() {
+        playChord([440, 554, 659], 0.2, 'triangle', 0.25);
+    },
+
     // Level up
     levelUp() {
         playChord([523, 659, 784, 1047], 0.4, 'triangle', 0.3);

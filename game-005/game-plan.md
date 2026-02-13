@@ -1,5 +1,29 @@
 # Game 005: Bullet Heaven Shmup
 
+## Recent Updates
+
+### 2026-02-13 - Bug Fixes & Health System
+**Fixed Critical Issues:**
+- ✅ Fixed wave progress not updating on kills - implemented proper wave tracking system
+- ✅ Fixed game state reset issues on restart (R key) - event listeners now properly cleaned up
+- ✅ Added health pickup system - enemies now drop health pickups (15% chance)
+
+**New Features:**
+- Health pickups (red with white + symbol) that heal 25 HP
+- Wave completion UI with notifications
+- Wave counter display in HUD
+- Proper wave progression with 30% more enemies per wave
+- 2-second break between waves
+- All modules now properly clean up event listeners to prevent bugs on restart
+
+**Technical Improvements:**
+- Event listener cleanup in all modules (waves.js, enemies.js, player.js, projectiles.js, ui.js)
+- Proper state reset between games
+- Manual collision detection for improved reliability
+- Added healthGained event to event catalog
+
+---
+
 ## Genre Definition
 A web-based "bullet heaven" or "reverse bullet hell" shoot 'em up combining the best elements of traditional shmups with modern auto-shooter mechanics inspired by Vampire Survivors.
 
@@ -767,68 +791,82 @@ export const sounds = {
 ## Development Roadmap
 
 ### Phase 1: Foundation (Files: main.js, config.js, events.js, state.js, sounds.js)
-**Goal:** Core infrastructure and basic systems
+**Goal:** Core infrastructure and basic systems ✅ **COMPLETED**
 
-- [ ] Create `index.html` with module script loading
-- [ ] Set up `main.js` with Kaplay initialization
-- [ ] Implement `events.js` with EventBus class and event catalog
-- [ ] Create `state.js` for global game state management
-- [ ] Set up `config.js` with game constants and entity definitions
-- [ ] Implement `sounds.js` with Web Audio API sound generation
-- [ ] Create splash screen with "Start Game" button
-- [ ] Test event system and sound playback
+- [x] Create `index.html` with module script loading
+- [x] Set up `main.js` with Kaplay initialization
+- [x] Implement `events.js` with EventBus class and event catalog
+- [x] Create `state.js` for global game state management
+- [x] Set up `config.js` with game constants and entity definitions
+- [x] Implement `sounds.js` with Web Audio API sound generation
+- [x] Create splash screen with "Start Game" button
+- [x] Test event system and sound playback
 
 ### Phase 2: Player & Movement (Files: player.js, prefabs.js)
-**Goal:** Player entity with smooth controls
+**Goal:** Player entity with smooth controls ✅ **COMPLETED**
 
-- [ ] Create `prefabs.js` module
-- [ ] Implement `createPlayerPrefab()` with shadow and hitbox
-- [ ] Add player movement (WASD/Arrow keys) in `player.js`
-- [ ] Implement player health system
-- [ ] Add invincibility frames after taking damage
-- [ ] Test movement feel and responsiveness
-- [ ] Hook up player damage events
+- [x] Create `prefabs.js` module
+- [x] Implement `createPlayerPrefab()` with shadow and hitbox
+- [x] Add player movement (WASD/Arrow keys) in `player.js`
+- [x] Implement player health system
+- [x] Add invincibility frames after taking damage
+- [x] Test movement feel and responsiveness
+- [x] Hook up player damage events
 
 ### Phase 3: Auto-Shooting (Files: projectiles.js)
-**Goal:** Player automatically shoots toward nearest enemy
+**Goal:** Player automatically shoots toward nearest enemy ✅ **COMPLETED**
 
-- [ ] Create `projectiles.js` module
-- [ ] Implement `createProjectilePrefab()` in prefabs
-- [ ] Add auto-targeting logic (find nearest enemy)
-- [ ] Implement bullet spawning system
-- [ ] Add bullet collision detection
-- [ ] Create bullet trail particle effect
-- [ ] Hook up shooting sound effects
+- [x] Create `projectiles.js` module
+- [x] Implement `createProjectilePrefab()` in prefabs
+- [x] Add auto-targeting logic (find nearest enemy)
+- [x] Implement bullet spawning system
+- [x] Add bullet collision detection
+- [x] Manual collision detection for reliability
+- [x] Hook up shooting sound effects
 
 ### Phase 4: Basic Enemies (Files: enemies.js, waves.js)
-**Goal:** Functional enemy spawning and behavior
+**Goal:** Functional enemy spawning and behavior ✅ **COMPLETED**
 
-- [ ] Create `enemies.js` module
-- [ ] Implement `createEnemyPrefab()` with 3 basic types (Charger, Shooter, Tank)
-- [ ] Add enemy AI (move toward player)
-- [ ] Implement enemy health and damage system
-- [ ] Create `waves.js` for spawn timing
-- [ ] Add HP bars above enemies
-- [ ] Hook up enemy death events and XP drops
-- [ ] Test collision and combat feel
+- [x] Create `enemies.js` module
+- [x] Implement `createEnemyPrefab()` with 3 basic types (Charger, Fast, Tank)
+- [x] Add enemy AI (move toward player)
+- [x] Implement enemy health and damage system
+- [x] Create `waves.js` for spawn timing
+- [x] Add HP bars above enemies
+- [x] Hook up enemy death events and XP drops
+- [x] Test collision and combat feel
+- [x] Implement proper wave progression system with kill tracking
+- [x] Add wave completion UI and notifications
+- [x] Scale difficulty between waves
+
+### Phase 4.5: Health System Enhancement
+**Goal:** Add health pickups for sustainability ✅ **COMPLETED**
+
+- [x] Create health pickup prefab (separate from XP gems)
+- [x] Add health pickup drop chance from enemies (15%)
+- [x] Implement health pickup collision and healing
+- [x] Add health pickup sound effect
+- [x] Add magnetic attraction to player for pickups
 
 ### Phase 5: XP & Leveling (Files: upgrades.js)
-**Goal:** Progression loop with XP collection
+**Goal:** Progression loop with XP collection ⏳ **PARTIALLY COMPLETED**
 
-- [ ] Implement `createXPGemPrefab()` with magnetic attraction
-- [ ] Add XP collection on player collision
-- [ ] Create level-up system with XP thresholds
+- [x] Implement `createXPGemPrefab()` with magnetic attraction
+- [x] Add XP collection on player collision
+- [x] Create level-up system with XP thresholds
 - [ ] Implement `upgrades.js` module
 - [ ] Create upgrade selection UI (pause on level-up)
 - [ ] Add 5 basic upgrades (damage, fire rate, speed, health, pickup radius)
-- [ ] Hook up level-up sound and visual feedback
-- [ ] Test progression pacing
+- [x] Hook up level-up sound and visual feedback
+- [x] Test progression pacing
 
 ### Phase 6: UI System (Files: ui.js)
-**Goal:** HUD and menus
+**Goal:** HUD and menus ✅ **COMPLETED**
 
-- [ ] Create `ui.js` module
-- [ ] Implement HUD (health bar, XP bar, timer, kills)
+- [x] Create `ui.js` module
+- [x] Implement HUD (health bar, XP bar, timer, kills)
+- [x] Add wave counter display
+- [x] Create wave completion notifications
 - [ ] Create upgrade selection screen
 - [ ] Add pause menu
 - [ ] Create game over screen with stats

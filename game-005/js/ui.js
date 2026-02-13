@@ -6,23 +6,36 @@ import { sounds } from './sounds.js';
 
 let k;
 let hudElements = {};
+let unsubscribeCallbacks = [];
 
 export function initUI(kaplay) {
     k = kaplay;
 
+    // Clear any existing event listeners from previous game
+    unsubscribeCallbacks.forEach(unsub => unsub());
+    unsubscribeCallbacks = [];
+
     createHUD();
 
     // Listen for level up events
-    events.on('playerLevelUp', (level) => {
+    const levelUpUnsub = events.on('playerLevelUp', (level) => {
         sounds.levelUp();
         // TODO: Show upgrade selection UI
     });
+    unsubscribeCallbacks.push(levelUpUnsub);
 
     // Listen for player death
-    events.on('playerDied', () => {
+    const playerDiedUnsub = events.on('playerDied', () => {
         state.isGameOver = true;
         showGameOver();
     });
+    unsubscribeCallbacks.push(playerDiedUnsub);
+
+    // Listen for wave changes
+    const waveChangedUnsub = events.on('waveChanged', (waveNumber) => {
+        showWaveComplete(waveNumber);
+    });
+    unsubscribeCallbacks.push(waveChangedUnsub);
 
     // Update HUD
     k.onUpdate(() => {
@@ -106,6 +119,16 @@ function createHUD() {
         k.z(1002),
         k.fixed(),
     ]);
+
+    // Wave counter
+    hudElements.waveText = k.add([
+        k.text("Wave 1", { size: 20 }),
+        k.pos(k.width() - 20, 50),
+        k.anchor("right"),
+        k.color(100, 200, 255),
+        k.z(1002),
+        k.fixed(),
+    ]);
 }
 
 function updateHUD() {
@@ -131,6 +154,9 @@ function updateHUD() {
 
     // Update kill counter
     hudElements.killText.text = `Kills: ${state.kills}`;
+
+    // Update wave counter
+    hudElements.waveText.text = `Wave ${state.currentWave}`;
 }
 
 function showGameOver() {
@@ -200,4 +226,37 @@ function showGameOver() {
     k.onKeyPress("r", () => {
         k.go("game");
     });
+}
+
+function showWaveComplete(nextWave) {
+    // Create wave complete message
+    const waveMsg = k.add([
+        k.text(`WAVE ${nextWave - 1} COMPLETE`, { size: 48 }),
+        k.pos(k.width() / 2, k.height() / 2),
+        k.anchor("center"),
+        k.color(100, 255, 150),
+        k.opacity(1),
+        k.z(1500),
+        k.fixed(),
+    ]);
+
+    const nextWaveMsg = k.add([
+        k.text(`Wave ${nextWave} starting...`, { size: 24 }),
+        k.pos(k.width() / 2, k.height() / 2 + 60),
+        k.anchor("center"),
+        k.color(255, 255, 255),
+        k.opacity(1),
+        k.z(1500),
+        k.fixed(),
+    ]);
+
+    // Fade out and destroy after 1.5 seconds
+    setTimeout(() => {
+        waveMsg.opacity = 0;
+        nextWaveMsg.opacity = 0;
+        setTimeout(() => {
+            k.destroy(waveMsg);
+            k.destroy(nextWaveMsg);
+        }, 500);
+    }, 1500);
 }

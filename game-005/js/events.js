@@ -48,6 +48,7 @@ export const events = new EventBus();
  *
  * xpGained(amount)                - XP collected
  * xpDropped(pos, amount)          - XP gem spawned
+ * healthGained(amount)            - Health pickup collected
  *
  * upgradeSelected(upgrade)        - Player picks an upgrade
  * weaponUnlocked(weaponType)      - New weapon available

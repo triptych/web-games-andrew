@@ -2,21 +2,28 @@
 
 import { events } from './events.js';
 import { state } from './state.js';
-import { createEnemyPrefab, createXPGemPrefab } from './prefabs.js';
+import { createEnemyPrefab, createXPGemPrefab, createHealthPickupPrefab } from './prefabs.js';
 import { sounds } from './sounds.js';
+import { HEALTH_PICKUP_CONFIG } from './config.js';
 
 let k;
+let unsubscribeCallbacks = [];
 
 export function initEnemies(kaplay) {
     k = kaplay;
 
+    // Clear any existing event listeners from previous game
+    unsubscribeCallbacks.forEach(unsub => unsub());
+    unsubscribeCallbacks = [];
+
     // Listen for spawn requests
-    events.on('spawnEnemy', (type, pos) => {
+    const spawnEnemyUnsub = events.on('spawnEnemy', (type, pos) => {
         spawnEnemy(type, pos);
     });
+    unsubscribeCallbacks.push(spawnEnemyUnsub);
 
     // Listen for damage events
-    events.on('enemyDamaged', (enemy, damage) => {
+    const enemyDamagedUnsub = events.on('enemyDamaged', (enemy, damage) => {
         if (!enemy.exists()) return;
 
         enemy.hp -= damage;
@@ -27,6 +34,7 @@ export function initEnemies(kaplay) {
             sounds.enemyHit();
         }
     });
+    unsubscribeCallbacks.push(enemyDamagedUnsub);
 }
 
 function spawnEnemy(type, pos) {
@@ -42,6 +50,11 @@ function killEnemy(enemy) {
 
     // Drop XP
     createXPGemPrefab(k, enemy.pos, enemy.xpValue);
+
+    // Chance to drop health pickup
+    if (Math.random() < HEALTH_PICKUP_CONFIG.dropChance) {
+        createHealthPickupPrefab(k, enemy.pos);
+    }
 
     // Update kill count
     state.kills++;
