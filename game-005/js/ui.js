@@ -9,6 +9,7 @@ let k;
 let hudElements = {};
 let unsubscribeCallbacks = [];
 let upgradeUIElements = [];
+let currentUpgradeCards = []; // Store upgrade cards for click detection
 
 export function initUI(kaplay) {
     k = kaplay;
@@ -271,6 +272,9 @@ function showUpgradeSelection() {
     // Get random upgrades
     const upgrades = getRandomUpgrades(3);
 
+    // Clear previous upgrade cards
+    currentUpgradeCards = [];
+
     // Darken background
     const overlay = k.add([
         k.rect(k.width(), k.height()),
@@ -295,7 +299,7 @@ function showUpgradeSelection() {
 
     // Subtitle
     const subtitle = k.add([
-        k.text("Choose an upgrade", { size: 24 }),
+        k.text("Choose an upgrade (Click or press 1/2/3)", { size: 20 }),
         k.pos(k.width() / 2, 160),
         k.anchor("center"),
         k.color(200, 200, 200),
@@ -316,11 +320,38 @@ function showUpgradeSelection() {
         const x = startX + (cardWidth + cardSpacing) * index + cardWidth / 2;
         const y = startY;
 
-        createUpgradeCard(upgrade, x, y, cardWidth, cardHeight);
+        createUpgradeCard(upgrade, x, y, cardWidth, cardHeight, index);
+    });
+
+    // Set up global click handler for upgrade selection
+    const clickHandler = k.onMousePress(() => {
+        const mousePos = k.mousePos();
+
+        // Check if mouse is over any upgrade card
+        for (const card of currentUpgradeCards) {
+            if (isPointInRect(mousePos, card.bounds)) {
+                selectUpgrade(card.upgradeId);
+                clickHandler.cancel();
+                keyHandlers.forEach(h => h.cancel());
+                return;
+            }
+        }
+    });
+
+    // Set up keyboard handlers (1, 2, 3 to select upgrades)
+    const keyHandlers = [];
+    upgrades.forEach((upgrade, index) => {
+        const key = (index + 1).toString();
+        const handler = k.onKeyPress(key, () => {
+            selectUpgrade(upgrade.id);
+            clickHandler.cancel();
+            keyHandlers.forEach(h => h.cancel());
+        });
+        keyHandlers.push(handler);
     });
 }
 
-function createUpgradeCard(upgrade, x, y, width, height) {
+function createUpgradeCard(upgrade, x, y, width, height, index) {
     const currentLevel = upgrade.getCurrentLevel();
 
     // Card background
@@ -336,6 +367,40 @@ function createUpgradeCard(upgrade, x, y, width, height) {
         "upgradeCard",
     ]);
     upgradeUIElements.push(cardBg);
+
+    // Store card bounds for click detection
+    currentUpgradeCards.push({
+        upgradeId: upgrade.id,
+        bounds: {
+            x: x - width / 2,
+            y: y - height / 2,
+            width: width,
+            height: height,
+        },
+        cardBg: cardBg,
+    });
+
+    // Keyboard hint (number badge)
+    const keyHint = k.add([
+        k.circle(16),
+        k.pos(x - width / 2 + 25, y - height / 2 + 25),
+        k.anchor("center"),
+        k.color(100, 150, 255),
+        k.outline(2, k.rgb(150, 200, 255)),
+        k.z(3003),
+        k.fixed(),
+    ]);
+    upgradeUIElements.push(keyHint);
+
+    const keyText = k.add([
+        k.text((index + 1).toString(), { size: 18 }),
+        k.pos(x - width / 2 + 25, y - height / 2 + 25),
+        k.anchor("center"),
+        k.color(255, 255, 255),
+        k.z(3004),
+        k.fixed(),
+    ]);
+    upgradeUIElements.push(keyText);
 
     // Icon
     const icon = k.add([
@@ -381,22 +446,25 @@ function createUpgradeCard(upgrade, x, y, width, height) {
     ]);
     upgradeUIElements.push(levelText);
 
-    // Hover effect
-    cardBg.onHoverUpdate(() => {
-        cardBg.color = k.rgb(60, 60, 90);
-        cardBg.outline.color = k.rgb(150, 150, 255);
-        k.setCursor("pointer");
-    });
+    // Manual hover detection (since onHover might not work with fixed elements)
+    cardBg.onUpdate(() => {
+        const mousePos = k.mousePos();
+        const bounds = {
+            x: x - width / 2,
+            y: y - height / 2,
+            width: width,
+            height: height,
+        };
 
-    cardBg.onHoverEnd(() => {
-        cardBg.color = k.rgb(40, 40, 60);
-        cardBg.outline.color = k.rgb(100, 100, 150);
-        k.setCursor("default");
-    });
-
-    // Click handler
-    cardBg.onClick(() => {
-        selectUpgrade(upgrade.id);
+        if (isPointInRect(mousePos, bounds)) {
+            cardBg.color = k.rgb(60, 60, 90);
+            cardBg.outline.color = k.rgb(150, 150, 255);
+            k.setCursor("pointer");
+        } else {
+            cardBg.color = k.rgb(40, 40, 60);
+            cardBg.outline.color = k.rgb(100, 100, 150);
+            k.setCursor("default");
+        }
     });
 }
 
@@ -414,7 +482,19 @@ function selectUpgrade(upgradeId) {
         }
     });
     upgradeUIElements = [];
+    currentUpgradeCards = [];
+
+    // Reset cursor
+    k.setCursor("default");
 
     // Resume the game
     state.isPaused = false;
+}
+
+// Helper function to check if a point is inside a rectangle
+function isPointInRect(point, rect) {
+    return point.x >= rect.x &&
+           point.x <= rect.x + rect.width &&
+           point.y >= rect.y &&
+           point.y <= rect.y + rect.height;
 }
