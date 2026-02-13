@@ -67,22 +67,8 @@ export function createPlayerPrefab(k, pos) {
         }
     });
 
-    // Collision handling
-    player.onCollide("enemy", (enemy) => {
-        if (!player.invincible) {
-            events.emit('playerDamaged', enemy.damage);
-        }
-    });
-
-    // Collision with XP gems
-    player.onCollide("xpGem", (gem) => {
-        collectXP(player, gem);
-    });
-
-    // Collision with health pickups
-    player.onCollide("healthPickup", (pickup) => {
-        collectHealth(player, pickup);
-    });
+    // Note: Collision detection is handled manually in each entity's onUpdate
+    // for better reliability (enemy, XP gems, health pickups all check collision themselves)
 
     // Destroy shadow when player is destroyed
     player.onDestroy(() => {
@@ -94,6 +80,7 @@ export function createPlayerPrefab(k, pos) {
 
 function collectXP(player, gem) {
     player.xp += gem.value;
+    sounds.xpCollect();
     events.emit('xpGained', gem.value);
     gem.destroy();
 
@@ -290,12 +277,18 @@ export function createXPGemPrefab(k, pos, value) {
 
         // Magnetic attraction to player
         const player = k.get("player")[0];
-        if (player) {
+        if (player && player.exists()) {
             gem.attractRadius = XP_CONFIG.gemAttractionRadius * state.playerStats.pickupRadius;
 
             if (gem.pos.dist(player.pos) < gem.attractRadius) {
                 const dir = player.pos.sub(gem.pos).unit();
                 gem.pos = gem.pos.add(dir.scale(gem.attractSpeed * k.dt()));
+            }
+
+            // Manual collision detection (more reliable than onCollide)
+            const dist = gem.pos.dist(player.pos);
+            if (dist < 20) { // Player radius + gem radius
+                collectXP(player, gem);
             }
         }
     });
@@ -345,12 +338,18 @@ export function createHealthPickupPrefab(k, pos) {
 
         // Magnetic attraction to player
         const player = k.get("player")[0];
-        if (player) {
+        if (player && player.exists()) {
             pickup.attractRadius = HEALTH_PICKUP_CONFIG.attractionRadius * state.playerStats.pickupRadius;
 
             if (pickup.pos.dist(player.pos) < pickup.attractRadius) {
                 const dir = player.pos.sub(pickup.pos).unit();
                 pickup.pos = pickup.pos.add(dir.scale(pickup.attractSpeed * k.dt()));
+            }
+
+            // Manual collision detection (more reliable than onCollide)
+            const dist = pickup.pos.dist(player.pos);
+            if (dist < 20) { // Player radius + pickup radius
+                collectHealth(player, pickup);
             }
         }
     });
