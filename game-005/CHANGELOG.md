@@ -4,7 +4,28 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Added
+### Added - Phase 5: Upgrade System (2026-02-13)
+- **Upgrade System**: Full progression system with 5 distinct upgrades
+  - Power Shot: Increases damage by 25% per level
+  - Rapid Fire: Increases fire rate by 20% per level
+  - Swift Boots: Increases movement speed by 20% per level
+  - Vitality Boost: Adds 20 max HP and heals 20 HP per level
+  - Magnetism: Increases pickup attraction radius by 30% per level
+- **Upgrade UI**: Interactive level-up screen with 3 random upgrade choices
+  - Game pauses when player levels up
+  - Beautiful upgrade cards with icons, names, descriptions, and level indicators
+  - Hover effects and click selection
+  - Smooth transition back to gameplay
+- **Player Stat System**: Multiplier-based stat system for scaling
+  - Damage, fire rate, move speed, max HP, and pickup radius
+  - Stats persist across upgrades and apply dynamically
+- **upgrades.js Module**: Centralized upgrade management system
+  - Upgrade definitions with max levels (5 per upgrade)
+  - Random upgrade selection algorithm
+  - Upgrade tracking and application system
+  - Event-driven architecture for level-up handling
+
+### Added - Health System & Bug Fixes (2026-02-13)
 - Health pickup system with red pickups that heal 25 HP
 - Wave completion UI notifications
 - Wave counter display in HUD (top-right)
@@ -21,6 +42,7 @@ All notable changes to this project will be documented in this file.
   - Multiple pickups dropping from single enemy
   - Incorrect damage calculations
 - Manual collision detection for improved reliability
+- XP collection now properly triggers level-up through upgrade system
 
 ### Changed
 - Waves now require killing all enemies before advancing
@@ -28,12 +50,16 @@ All notable changes to this project will be documented in this file.
 - Spawn intervals decrease between waves
 - Health pickups drop at 15% chance from enemies
 - All modules now properly clean up on scene restart
+- XP collection refactored to work with upgrade system (level-up logic moved to upgrades.js)
+- Pickup radius now scales dynamically with Magnetism upgrade
 
 ### Technical
-- Added `unsubscribeCallbacks` arrays in: waves.js, enemies.js, player.js, projectiles.js, ui.js
-- Improved event catalog with `healthGained` event
+- Added `unsubscribeCallbacks` arrays in: waves.js, enemies.js, player.js, projectiles.js, ui.js, upgrades.js
+- Improved event catalog with `healthGained` and `upgradeSelected` events
 - Better state management between game sessions
 - Event listeners properly removed and re-added on restart
+- Integrated upgrade initialization into main game loop
+- Extended state.js with upgrade tracking and player stat multipliers
 
 ---
 

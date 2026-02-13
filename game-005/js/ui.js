@@ -3,10 +3,12 @@
 import { events } from './events.js';
 import { state } from './state.js';
 import { sounds } from './sounds.js';
+import { getRandomUpgrades } from './upgrades.js';
 
 let k;
 let hudElements = {};
 let unsubscribeCallbacks = [];
+let upgradeUIElements = [];
 
 export function initUI(kaplay) {
     k = kaplay;
@@ -14,13 +16,14 @@ export function initUI(kaplay) {
     // Clear any existing event listeners from previous game
     unsubscribeCallbacks.forEach(unsub => unsub());
     unsubscribeCallbacks = [];
+    upgradeUIElements = [];
 
     createHUD();
 
     // Listen for level up events
     const levelUpUnsub = events.on('playerLevelUp', (level) => {
         sounds.levelUp();
-        // TODO: Show upgrade selection UI
+        showUpgradeSelection();
     });
     unsubscribeCallbacks.push(levelUpUnsub);
 
@@ -259,4 +262,159 @@ function showWaveComplete(nextWave) {
             k.destroy(nextWaveMsg);
         }, 500);
     }, 1500);
+}
+
+function showUpgradeSelection() {
+    // Pause the game
+    state.isPaused = true;
+
+    // Get random upgrades
+    const upgrades = getRandomUpgrades(3);
+
+    // Darken background
+    const overlay = k.add([
+        k.rect(k.width(), k.height()),
+        k.pos(0, 0),
+        k.color(0, 0, 0),
+        k.opacity(0.8),
+        k.z(3000),
+        k.fixed(),
+    ]);
+    upgradeUIElements.push(overlay);
+
+    // Title
+    const title = k.add([
+        k.text("LEVEL UP!", { size: 56 }),
+        k.pos(k.width() / 2, 100),
+        k.anchor("center"),
+        k.color(100, 255, 150),
+        k.z(3001),
+        k.fixed(),
+    ]);
+    upgradeUIElements.push(title);
+
+    // Subtitle
+    const subtitle = k.add([
+        k.text("Choose an upgrade", { size: 24 }),
+        k.pos(k.width() / 2, 160),
+        k.anchor("center"),
+        k.color(200, 200, 200),
+        k.z(3001),
+        k.fixed(),
+    ]);
+    upgradeUIElements.push(subtitle);
+
+    // Display upgrade options
+    const cardWidth = 300;
+    const cardHeight = 200;
+    const cardSpacing = 50;
+    const totalWidth = (cardWidth * upgrades.length) + (cardSpacing * (upgrades.length - 1));
+    const startX = (k.width() - totalWidth) / 2;
+    const startY = k.height() / 2 - 30;
+
+    upgrades.forEach((upgrade, index) => {
+        const x = startX + (cardWidth + cardSpacing) * index + cardWidth / 2;
+        const y = startY;
+
+        createUpgradeCard(upgrade, x, y, cardWidth, cardHeight);
+    });
+}
+
+function createUpgradeCard(upgrade, x, y, width, height) {
+    const currentLevel = upgrade.getCurrentLevel();
+
+    // Card background
+    const cardBg = k.add([
+        k.rect(width, height, { radius: 8 }),
+        k.pos(x, y),
+        k.anchor("center"),
+        k.color(40, 40, 60),
+        k.outline(3, k.rgb(100, 100, 150)),
+        k.z(3001),
+        k.area(),
+        k.fixed(),
+        "upgradeCard",
+    ]);
+    upgradeUIElements.push(cardBg);
+
+    // Icon
+    const icon = k.add([
+        k.text(upgrade.icon, { size: 48 }),
+        k.pos(x, y - 50),
+        k.anchor("center"),
+        k.color(255, 255, 255),
+        k.z(3002),
+        k.fixed(),
+    ]);
+    upgradeUIElements.push(icon);
+
+    // Name
+    const name = k.add([
+        k.text(upgrade.name, { size: 20, width: width - 20 }),
+        k.pos(x, y - 10),
+        k.anchor("center"),
+        k.color(255, 255, 255),
+        k.z(3002),
+        k.fixed(),
+    ]);
+    upgradeUIElements.push(name);
+
+    // Description
+    const desc = k.add([
+        k.text(upgrade.description, { size: 16, width: width - 40 }),
+        k.pos(x, y + 30),
+        k.anchor("center"),
+        k.color(200, 200, 200),
+        k.z(3002),
+        k.fixed(),
+    ]);
+    upgradeUIElements.push(desc);
+
+    // Level indicator
+    const levelText = k.add([
+        k.text(`Level ${currentLevel} → ${currentLevel + 1}`, { size: 14 }),
+        k.pos(x, y + 70),
+        k.anchor("center"),
+        k.color(100, 200, 255),
+        k.z(3002),
+        k.fixed(),
+    ]);
+    upgradeUIElements.push(levelText);
+
+    // Hover effect
+    cardBg.onHoverUpdate(() => {
+        cardBg.color = k.rgb(60, 60, 90);
+        cardBg.outline.color = k.rgb(150, 150, 255);
+        k.setCursor("pointer");
+    });
+
+    cardBg.onHoverEnd(() => {
+        cardBg.color = k.rgb(40, 40, 60);
+        cardBg.outline.color = k.rgb(100, 100, 150);
+        k.setCursor("default");
+    });
+
+    // Click handler
+    cardBg.onClick(() => {
+        selectUpgrade(upgrade.id);
+    });
+}
+
+function selectUpgrade(upgradeId) {
+    // Play UI sound
+    sounds.uiClick();
+
+    // Emit upgrade selected event
+    events.emit('upgradeSelected', upgradeId);
+
+    // Clean up upgrade UI
+    upgradeUIElements.forEach(elem => {
+        if (elem.exists()) {
+            k.destroy(elem);
+        }
+    });
+    upgradeUIElements = [];
+
+    // Resume the game
+    state.isPaused = false;
 }

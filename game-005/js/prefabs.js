@@ -79,18 +79,11 @@ export function createPlayerPrefab(k, pos) {
 }
 
 function collectXP(player, gem) {
-    player.xp += gem.value;
     sounds.xpCollect();
     events.emit('xpGained', gem.value);
     gem.destroy();
 
-    // Check for level up
-    if (player.xp >= player.xpToNext) {
-        player.level++;
-        player.xp -= player.xpToNext;
-        player.xpToNext = Math.floor(player.xpToNext * 1.5);
-        events.emit('playerLevelUp', player.level);
-    }
+    // Note: Level up logic is now handled by upgrades.js module
 }
 
 function collectHealth(player, pickup) {

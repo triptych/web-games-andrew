@@ -2,6 +2,29 @@
 
 ## Recent Updates
 
+### 2026-02-13 - Phase 5: Upgrade System Complete
+**New Features:**
+- ✅ Full upgrade system with 5 upgrades (Power Shot, Rapid Fire, Swift Boots, Vitality Boost, Magnetism)
+- ✅ Level-up UI that pauses game and shows 3 random upgrade choices
+- ✅ Interactive upgrade cards with hover effects and click selection
+- ✅ Upgrade tracking system (each upgrade has 5 levels)
+- ✅ Player stat multipliers (damage, fire rate, move speed, max HP, pickup radius)
+- ✅ Vitality Boost heals 20 HP when selected
+- ✅ Magnetism increases pickup attraction radius dynamically
+
+**Upgrade System Details:**
+- **Power Shot**: +25% damage per level (max 5 levels)
+- **Rapid Fire**: 20% faster shooting per level (max 5 levels)
+- **Swift Boots**: +20% movement speed per level (max 5 levels)
+- **Vitality Boost**: +20 max HP and heals 20 HP per level (max 5 levels)
+- **Magnetism**: +30% pickup range per level (max 5 levels)
+
+**Technical Implementation:**
+- Created upgrades.js module with upgrade definitions and selection system
+- Integrated upgrade initialization into main game loop
+- Extended UI system with upgrade selection screen
+- Refactored XP collection to work with upgrade-driven level-up logic
+
 ### 2026-02-13 - Bug Fixes & Health System
 **Fixed Critical Issues:**
 - ✅ Fixed wave progress not updating on kills - implemented proper wave tracking system
@@ -17,7 +40,7 @@
 - All modules now properly clean up event listeners to prevent bugs on restart
 
 **Technical Improvements:**
-- Event listener cleanup in all modules (waves.js, enemies.js, player.js, projectiles.js, ui.js)
+- Event listener cleanup in all modules (waves.js, enemies.js, player.js, projectiles.js, ui.js, upgrades.js)
 - Proper state reset between games
 - Manual collision detection for improved reliability
 - Added healthGained event to event catalog
@@ -849,14 +872,14 @@ export const sounds = {
 - [x] Add magnetic attraction to player for pickups
 
 ### Phase 5: XP & Leveling (Files: upgrades.js)
-**Goal:** Progression loop with XP collection ⏳ **PARTIALLY COMPLETED**
+**Goal:** Progression loop with XP collection ✅ **COMPLETED**
 
 - [x] Implement `createXPGemPrefab()` with magnetic attraction
 - [x] Add XP collection on player collision
 - [x] Create level-up system with XP thresholds
-- [ ] Implement `upgrades.js` module
-- [ ] Create upgrade selection UI (pause on level-up)
-- [ ] Add 5 basic upgrades (damage, fire rate, speed, health, pickup radius)
+- [x] Implement `upgrades.js` module
+- [x] Create upgrade selection UI (pause on level-up)
+- [x] Add 5 basic upgrades (damage, fire rate, speed, health, pickup radius)
 - [x] Hook up level-up sound and visual feedback
 - [x] Test progression pacing
 

@@ -6,6 +6,7 @@ import { initAudioContext } from './sounds.js';
 import { initPlayer } from './player.js';
 import { initEnemies } from './enemies.js';
 import { initProjectiles } from './projectiles.js';
+import { initUpgrades } from './upgrades.js';
 import { initWaves } from './waves.js';
 import { initUI } from './ui.js';
 import { events } from './events.js';
@@ -126,6 +127,7 @@ function startGame() {
         initPlayer(k);
         initEnemies(k);
         initProjectiles(k);
+        initUpgrades(k);
         initWaves(k);
         initUI(k);
 
