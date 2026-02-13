@@ -8,6 +8,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Bullet Heaven Shmup** (game-005): Phase 1 - Core Gameplay Foundation
+  - **Project Architecture**: Event-driven modular system with ES6 modules
+    - EventBus class for cross-module communication without tight coupling
+    - Global game state management with stat multipliers for upgrades
+    - Prefab pattern for reusable entity creation
+    - 8 core modules: main, config, events, state, sounds, prefabs, player, projectiles, enemies, waves, ui
+  - **Player Character**: Auto-shooting character with smooth movement
+    - 8-directional movement (WASD or Arrow keys)
+    - Precise movement without acceleration/friction for tight control
+    - Small visible hitbox indicator (3px core)
+    - Invincibility frames (1 second) after taking damage with visual feedback
+    - Auto-targeting system shoots at nearest enemy
+    - Health: 100 HP, Speed: 200, Base damage: 10
+  - **Auto-Shooting Mechanic**: Automatic weapon system
+    - Shoots automatically toward nearest enemy every 0.5 seconds
+    - Blue projectiles with white outline for clear visibility
+    - Collision detection with enemies
+    - Sound effect on each shot (600Hz square wave)
+  - **Enemy System**: Wave-based spawning with basic enemy types
+    - 3 enemy types with distinct behaviors:
+      - **Charger**: Medium speed (80), 50 HP, 10 damage, 5 XP
+      - **Fast**: High speed (150), 30 HP, 5 damage, 8 XP
+      - **Tank**: Slow (40), 200 HP, 25 damage, 20 XP
+    - Chase AI - enemies move directly toward player
+    - HP bars above enemies (green → yellow → red)
+    - Shadows for depth perception
+    - Enemies spawn from random screen edges
+  - **Wave System**: Continuous spawning with difficulty scaling
+    - Enemies spawn at regular intervals (2 seconds initially)
+    - Spawn rate increases over time (minimum 0.5 seconds)
+    - Gradually increasing difficulty as game progresses
+    - Spawn position randomization from all four screen edges
+  - **XP & Leveling System**: Progression loop with magnetic collection
+    - XP gems drop on enemy death (green glowing gems)
+    - Magnetic attraction within 100px radius
+    - Bob animation for visual appeal
+    - Level up system: 10 XP for level 2, scales by 1.5x per level
+    - Level-up sound effect (ascending 4-note chord)
+  - **Web Audio API Sound System**: Procedurally generated sound effects
+    - 8 sound effects: player shoot, enemy hit, enemy death, XP collect, level up, player hurt
+    - Master gain node for volume control (30% default)
+    - No external audio files required - all procedurally generated
+    - Chord-based effects for satisfying feedback
+  - **HUD System**: Complete real-time UI display
+    - Health bar (top-left): Red bar with text showing HP/MaxHP
+    - XP bar (bottom): Green bar showing progress to next level
+    - Level display: Current player level
+    - Timer: Minutes:seconds format tracking survival time
+    - Kill counter: Total enemies defeated (top-right)
+    - All UI elements update in real-time with fixed positioning
+  - **Visual Design**: High contrast clarity-first approach
+    - Player: Blue circle with white hitbox core
+    - Enemies: Red/yellow/gray color coding by type
+    - Projectiles: Blue (player) with clear visibility
+    - XP Gems: Bright green with glowing outline
+    - Shadows on all entities for depth
+    - Outlined shapes for clear distinction
+  - **Game Over System**: Stats display and restart functionality
+    - Darkened overlay on game over
+    - Final stats: Time survived, total kills, level reached
+    - Press R to restart with full state reset
+    - Clean game over screen with statistics
+  - **Splash Screen**: Professional game entry screen
+    - Gradient background with title and subtitle
+    - "START GAME" button with hover effects
+    - Control instructions displayed on splash
+    - Audio context initialization on start (Web Audio API requirement)
+    - Smooth fade-out transition to gameplay
+  - **Quality of Life Features**:
+    - Player stays within screen bounds (20px padding)
+    - Safe spawn zones (enemies spawn off-screen)
+    - Forgiving hitbox (player hitbox smaller than visual)
+    - Smooth 60 FPS gameplay
+    - High-DPI display support with crisp rendering
+  - Files: [game-005/index.html](game-005/index.html), [game-005/js/main.js](game-005/js/main.js), [game-005/js/config.js](game-005/js/config.js), [game-005/js/events.js](game-005/js/events.js), [game-005/js/state.js](game-005/js/state.js), [game-005/js/sounds.js](game-005/js/sounds.js), [game-005/js/prefabs.js](game-005/js/prefabs.js), [game-005/js/player.js](game-005/js/player.js), [game-005/js/projectiles.js](game-005/js/projectiles.js), [game-005/js/enemies.js](game-005/js/enemies.js), [game-005/js/waves.js](game-005/js/waves.js), [game-005/js/ui.js](game-005/js/ui.js), [game-005/game-plan.md](game-005/game-plan.md)
+
 - **Tower Defense Game** (game-004): Phase 4 - Upgrades & Economy System
   - **Tower Upgrade System**: 3-tier upgrade progression for all tower types
     - Each tower has 3 upgrade levels with increasing costs
