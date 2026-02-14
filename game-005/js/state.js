@@ -3,6 +3,7 @@
 export const state = {
     // Player reference
     player: null,
+    playerClass: 'ranger',
 
     // Game stats
     kills: 0,
@@ -32,6 +33,7 @@ export const state = {
         this.currentWave = 1;
         this.isPaused = false;
         this.isGameOver = false;
+        // Note: playerClass is preserved between games
         this.playerStats = {
             damage: 1.0,
             fireRate: 1.0,

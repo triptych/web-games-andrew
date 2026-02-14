@@ -54,6 +54,19 @@ const games = [
             { emoji: '🖱️', label: 'Mouse' },
             { emoji: '⚡', label: 'Action' }
         ]
+    },
+    {
+        id: 'game-005',
+        title: 'Bullet Heaven',
+        description: 'Survive endless waves in this bullet heaven shooter! Choose from 3 RPG classes (Warrior, Ranger, Mage) and face 8 unique enemy types with distinct AI behaviors. Auto-shoot, collect XP, level up, and choose powerful upgrades. Features orbiting, teleporting, and splitting enemies!',
+        icon: '🎆',
+        folder: 'game-005',
+        cssClass: 'bullet-heaven',
+        tags: [
+            { emoji: '🎮', label: 'Action' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '⚔️', label: 'RPG' }
+        ]
     }
 ];
 

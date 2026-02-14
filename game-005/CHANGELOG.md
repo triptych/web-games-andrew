@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed - Critical Bug Fixes (2026-02-14)
+- **CRITICAL:** Fixed behavior component override bug that broke enemy functionality
+  - Behavior components were replacing `onUpdate` instead of adding to it
+  - This caused collision detection, HP bars, shadows, and boundaries to fail
+  - Fixed all behavior functions (orbit, shoot, teleport, swarm) to add callbacks properly
+- **Wave Tracking System Overhaul:**
+  - Implemented tag-based tracking using `wave_1`, `wave_2` tags instead of counters
+  - Bonus enemies (from splitters) now marked separately, don't interfere with wave completion
+  - Off-screen enemy cleanup: automatically kills enemies >100 pixels beyond bounds
+  - Wave completion now checks actual living enemies, not just counters
+- **Spawn Rate Optimization:**
+  - Reduced spawn interval from 2.0s to 0.8s to prevent empty screens
+  - 5 enemies now spawn in 4 seconds instead of 10 seconds
+- **Enemy Visibility Improvements:**
+  - Swarm enemies increased from size 9 to 12 for better visibility
+  - Changed to bright magenta color [255, 100, 255] with pink outline
+  - Added bright white pulsing core with rapid animation
+
 ### Added - Phase 5: Upgrade System (2026-02-13)
 - **Upgrade System**: Full progression system with 5 distinct upgrades
   - Power Shot: Increases damage by 25% per level
@@ -24,6 +42,41 @@ All notable changes to this project will be documented in this file.
   - Random upgrade selection algorithm
   - Upgrade tracking and application system
   - Event-driven architecture for level-up handling
+
+### Added - RPG Classes & Advanced Enemies (2026-02-14)
+- **Player Class System**: 3 distinct RPG archetypes with unique playstyles
+  - Warrior: High HP (150), slow fire rate, powerful damage (15)
+  - Ranger: Balanced stats, rapid fire (0.35s), high mobility (220 speed)
+  - Mage: Glass cannon, low HP (70), highest damage (18)
+  - Each class has unique colors, RPG stats (STR/DEX/INT/VIT), and visual design
+- **Interactive Class Selection UI**: Beautiful card-based selection screen
+  - Displays class stats, descriptions, and RPG attributes
+  - Hover effects with dynamic glow
+  - Smooth transitions between screens
+- **8 Diverse Enemy Types** with unique behaviors:
+  - Charger: Basic rush enemy (unlocked wave 1)
+  - Fast: Speed demon (wave 1)
+  - Swarm: Erratic movement, small (wave 1)
+  - Tank: High HP, slow (wave 2)
+  - Circler: Orbits around player (wave 3)
+  - Shooter: Ranged attacks, keeps distance (wave 4)
+  - Teleporter: Blinks around unpredictably (wave 6)
+  - Splitter: Splits into 3 fast enemies on death (wave 8)
+- **Component-Based Behavior System**:
+  - Modular behavior components (orbit, shoot, teleport, swarm)
+  - Reusable and composable AI patterns
+  - Each behavior isolated in its own function
+- **Visual Enemy Distinctions**:
+  - Unique colors and shapes for each type
+  - Special effects (teleporter fade, shooter barrel, splitter segments)
+  - Distinct sizes and outlines
+- **Weighted Spawn System**:
+  - Progressive enemy unlocks create natural difficulty curve
+  - Weighted probabilities prevent overwhelming compositions
+  - Swarm common (12), Splitter rare (2)
+- **Wave Number Tagging**:
+  - Enemies tagged with wave number for accurate tracking
+  - Splitter-spawned enemies marked as bonus (don't affect wave completion)
 
 ### Added - Health System & Bug Fixes (2026-02-13)
 - Health pickup system with red pickups that heal 25 HP

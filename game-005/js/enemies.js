@@ -17,8 +17,8 @@ export function initEnemies(kaplay) {
     unsubscribeCallbacks = [];
 
     // Listen for spawn requests
-    const spawnEnemyUnsub = events.on('spawnEnemy', (type, pos) => {
-        spawnEnemy(type, pos);
+    const spawnEnemyUnsub = events.on('spawnEnemy', (type, pos, waveNumber = null, isWaveEnemy = true) => {
+        spawnEnemy(type, pos, waveNumber, isWaveEnemy);
     });
     unsubscribeCallbacks.push(spawnEnemyUnsub);
 
@@ -37,15 +37,20 @@ export function initEnemies(kaplay) {
     unsubscribeCallbacks.push(enemyDamagedUnsub);
 }
 
-function spawnEnemy(type, pos) {
-    const enemy = createEnemyPrefab(k, type, pos);
+function spawnEnemy(type, pos, waveNumber = null, isWaveEnemy = true) {
+    const enemy = createEnemyPrefab(k, type, pos, waveNumber, isWaveEnemy);
     if (enemy) {
+        const waveTag = isWaveEnemy ? `wave_${waveNumber}` : 'bonus';
+        console.log(`[Enemy] Created ${type} (${waveTag}) at (${Math.floor(pos.x)}, ${Math.floor(pos.y)})`);
         events.emit('enemySpawned', enemy);
+    } else {
+        console.error(`[Enemy] Failed to create ${type}!`);
     }
     return enemy;
 }
 
 function killEnemy(enemy) {
+    console.log(`[Enemy] Killing ${enemy.enemyType} at (${Math.floor(enemy.pos.x)}, ${Math.floor(enemy.pos.y)})`);
     sounds.enemyDeath();
 
     // Drop XP

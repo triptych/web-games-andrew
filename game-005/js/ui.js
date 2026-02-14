@@ -76,6 +76,15 @@ function createHUD() {
         k.fixed(),
     ]);
 
+    // Class name text
+    hudElements.classText = k.add([
+        k.text("Class: Ranger", { size: 14 }),
+        k.pos(20, 48),
+        k.color(150, 200, 255),
+        k.z(1002),
+        k.fixed(),
+    ]);
+
     // XP bar background
     hudElements.xpBarBg = k.add([
         k.rect(k.width() - 40, 15),
@@ -143,6 +152,11 @@ function updateHUD() {
     const hpPercent = player.hp / player.maxHp;
     hudElements.hpBar.width = 300 * hpPercent;
     hudElements.hpText.text = `HP: ${Math.ceil(player.hp)}/${player.maxHp}`;
+
+    // Update class text
+    if (player.className) {
+        hudElements.classText.text = `Class: ${player.className}`;
+    }
 
     // Update XP bar
     const xpPercent = player.xp / player.xpToNext;

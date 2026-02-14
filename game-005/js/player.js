@@ -10,7 +10,7 @@ let player;
 let shootTimer = 0;
 let unsubscribeCallbacks = [];
 
-export function initPlayer(kaplay) {
+export function initPlayer(kaplay, playerClass = 'ranger') {
     k = kaplay;
 
     // Clear any existing event listeners from previous game
@@ -20,9 +20,10 @@ export function initPlayer(kaplay) {
     // Reset shoot timer
     shootTimer = 0;
 
-    // Create player at center
-    player = createPlayerPrefab(k, k.vec2(k.width() / 2, k.height() / 2));
+    // Create player at center with selected class
+    player = createPlayerPrefab(k, k.vec2(k.width() / 2, k.height() / 2), playerClass);
     state.player = player;
+    state.playerClass = playerClass;
 
     // Listen for damage events
     const playerDamagedUnsub = events.on('playerDamaged', (damage) => {

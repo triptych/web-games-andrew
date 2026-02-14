@@ -6,9 +6,8 @@ import { WAVE_CONFIG, ENEMY_DEFS } from './config.js';
 
 let k;
 let spawnTimer = 0;
-let currentSpawnInterval = WAVE_CONFIG.initialSpawnInterval;
+let currentSpawnInterval = 0.8; // Faster spawning (was 2.0)
 let enemiesSpawnedThisWave = 0;
-let enemiesKilledThisWave = 0;
 let enemiesPerWave = WAVE_CONFIG.enemiesPerWave;
 let isWaveActive = false;
 let unsubscribeCallbacks = [];
@@ -22,9 +21,8 @@ export function initWaves(kaplay) {
 
     // Reset all wave state
     spawnTimer = 0;
-    currentSpawnInterval = WAVE_CONFIG.initialSpawnInterval;
+    currentSpawnInterval = 0.8;
     enemiesSpawnedThisWave = 0;
-    enemiesKilledThisWave = 0;
     enemiesPerWave = WAVE_CONFIG.enemiesPerWave;
     state.currentWave = 1;
     isWaveActive = false;
@@ -32,26 +30,22 @@ export function initWaves(kaplay) {
     // Start spawning when game starts
     const gameStartedUnsub = events.on('gameStarted', () => {
         spawnTimer = 0;
-        currentSpawnInterval = WAVE_CONFIG.initialSpawnInterval;
+        currentSpawnInterval = 0.8;
         enemiesSpawnedThisWave = 0;
-        enemiesKilledThisWave = 0;
         enemiesPerWave = WAVE_CONFIG.enemiesPerWave;
         state.currentWave = 1;
         isWaveActive = true;
     });
     unsubscribeCallbacks.push(gameStartedUnsub);
 
-    // Track enemy kills for wave progress
-    const enemyKilledUnsub = events.on('enemyKilled', () => {
-        if (isWaveActive) {
-            enemiesKilledThisWave++;
+    // Track enemy kills for wave progress - check after each kill
+    const enemyKilledUnsub = events.on('enemyKilled', (enemy) => {
+        if (!isWaveActive) return;
 
-            // Check if wave is complete
-            if (enemiesKilledThisWave >= enemiesPerWave &&
-                enemiesSpawnedThisWave >= enemiesPerWave) {
-                completeWave();
-            }
-        }
+        // Check wave completion after a brief delay to ensure destroy() has processed
+        setTimeout(() => {
+            checkWaveCompletion();
+        }, 50);
     });
     unsubscribeCallbacks.push(enemyKilledUnsub);
 
@@ -64,12 +58,54 @@ export function initWaves(kaplay) {
             spawnTimer += k.dt();
 
             if (spawnTimer >= currentSpawnInterval) {
-                spawnRandomEnemy();
+                const type = spawnRandomEnemy();
                 enemiesSpawnedThisWave++;
+                console.log(`[Wave ${state.currentWave}] Spawned ${type} (${enemiesSpawnedThisWave}/${enemiesPerWave})`);
                 spawnTimer = 0;
+
+                // Check completion if this was the last spawn
+                if (enemiesSpawnedThisWave >= enemiesPerWave) {
+                    setTimeout(() => checkWaveCompletion(), 100);
+                }
             }
         }
     });
+}
+
+function checkWaveCompletion() {
+    // Count enemies with current wave tag
+    const waveTag = `wave_${state.currentWave}`;
+    const waveEnemies = k.get(waveTag);
+    const totalEnemies = k.get('enemy').length;
+
+    // Check for off-screen enemies and kill them
+    const screenMargin = 100; // Enemies must be within 100 pixels of screen
+    let killedOffscreen = 0;
+
+    waveEnemies.forEach(enemy => {
+        if (!enemy.exists()) return;
+
+        const isOffScreen =
+            enemy.pos.x < -screenMargin ||
+            enemy.pos.x > k.width() + screenMargin ||
+            enemy.pos.y < -screenMargin ||
+            enemy.pos.y > k.height() + screenMargin;
+
+        if (isOffScreen) {
+            console.log(`[Wave ${state.currentWave}] Killing off-screen ${enemy.enemyType} at (${Math.floor(enemy.pos.x)}, ${Math.floor(enemy.pos.y)})`);
+            events.emit('enemyDamaged', enemy, 9999); // Kill instantly
+            killedOffscreen++;
+        }
+    });
+
+    const remainingWaveEnemies = k.get(waveTag).length;
+    console.log(`[Wave ${state.currentWave}] Check: ${enemiesSpawnedThisWave}/${enemiesPerWave} spawned, ${remainingWaveEnemies} wave enemies alive, ${totalEnemies} total enemies${killedOffscreen > 0 ? `, killed ${killedOffscreen} off-screen` : ''}`);
+
+    // Wave is complete when: all enemies spawned AND all wave-tagged enemies are dead
+    if (enemiesSpawnedThisWave >= enemiesPerWave && remainingWaveEnemies === 0) {
+        console.log(`[Wave ${state.currentWave}] Wave complete!`);
+        completeWave();
+    }
 }
 
 function completeWave() {
@@ -83,26 +119,75 @@ function completeWave() {
     enemiesPerWave = Math.floor(enemiesPerWave * 1.3);
     currentSpawnInterval = Math.max(
         WAVE_CONFIG.minSpawnInterval,
-        currentSpawnInterval - WAVE_CONFIG.spawnIntervalDecrease
+        currentSpawnInterval - 0.05
     );
+
+    console.log(`[Wave ${state.currentWave}] Starting wave ${state.currentWave} with ${enemiesPerWave} enemies, spawn interval: ${currentSpawnInterval.toFixed(2)}s`);
 
     // Reset wave counters and start next wave after a brief delay
     setTimeout(() => {
         enemiesSpawnedThisWave = 0;
-        enemiesKilledThisWave = 0;
         isWaveActive = true;
-    }, 2000); // 2 second break between waves
+    }, 1500); // 1.5 second break between waves
 }
 
 function spawnRandomEnemy() {
-    // Choose random enemy type
-    const types = Object.keys(ENEMY_DEFS);
-    const type = types[Math.floor(Math.random() * types.length)];
+    // Get available enemy types based on current wave
+    const availableTypes = getAvailableEnemyTypes();
+
+    // Weighted random selection
+    const weights = {
+        charger: 10,
+        fast: 8,
+        tank: 4,
+        circler: 6,
+        shooter: 5,
+        teleporter: 3,
+        splitter: 2,
+        swarm: 12,
+    };
+
+    // Calculate total weight for available types
+    let totalWeight = 0;
+    const availableWeights = {};
+    availableTypes.forEach(type => {
+        const weight = weights[type] || 5;
+        availableWeights[type] = weight;
+        totalWeight += weight;
+    });
+
+    // Pick random enemy based on weights
+    let random = Math.random() * totalWeight;
+    let type = availableTypes[0];
+
+    for (const enemyType of availableTypes) {
+        random -= availableWeights[enemyType];
+        if (random <= 0) {
+            type = enemyType;
+            break;
+        }
+    }
 
     // Spawn at random edge position
     const pos = getRandomEdgePosition();
 
-    events.emit('spawnEnemy', type, pos);
+    // Emit spawn event with wave number and mark as wave enemy
+    events.emit('spawnEnemy', type, pos, state.currentWave, true);
+    return type; // Return the type for logging
+}
+
+function getAvailableEnemyTypes() {
+    const wave = state.currentWave;
+    const types = ['charger', 'fast', 'swarm']; // Always available
+
+    // Unlock more types as waves progress
+    if (wave >= 2) types.push('tank');
+    if (wave >= 3) types.push('circler');
+    if (wave >= 4) types.push('shooter');
+    if (wave >= 6) types.push('teleporter');
+    if (wave >= 8) types.push('splitter');
+
+    return types;
 }
 
 function getRandomEdgePosition() {
