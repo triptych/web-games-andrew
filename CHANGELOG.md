@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Wolfenstein-like Raycasting FPS** (game-006): Refactored to use Kaplay engine architecture
+  - **Dual-Canvas Hybrid System**: Integrated Kaplay while preserving custom raycasting renderer
+    - Separate Canvas 2D for raycasting rendering (z-index: 0)
+    - Transparent Kaplay WebGL canvas for UI overlays (z-index: 1)
+    - Both canvases positioned in container div with perfect alignment
+  - **Kaplay Integration**: Adopted Kaplay patterns from game-005
+    - State management system with `state.js` singleton
+    - Event bus system with `events.js` for cross-module communication
+    - Kaplay game loop with `k.onUpdate()` for logic and `k.onDraw()` for rendering
+    - Input handling using `k.isKeyDown()` for keyboard controls
+    - Scene management with `k.scene()` and `k.go()`
+  - **New Modular Architecture**:
+    - Created `js/state.js` - Centralized game state (player reference, FPS, pause state)
+    - Created `js/events.js` - EventBus class for future features (enemies, pickups)
+    - Created `js/input.js` - Mouse lock and pointer management
+    - Created `js/ui.js` - Kaplay-based HUD overlay (FPS, position, direction, controls)
+    - Refactored `js/main.js` - Kaplay initialization with transparent background
+    - Refactored `js/player.js` - Uses Kaplay's input system and game loop
+    - Refactored `js/renderer.js` - Dual-canvas setup with direct Canvas 2D rendering
+    - Simplified `js/index.html` - Kaplay manages canvas creation automatically
+  - **Preserved Features**: All original raycasting functionality maintained
+    - DDA raycasting algorithm unchanged (640 rays, perpendicular distance)
+    - Wall rendering with distance shading and side-based darkening
+    - Circular collision detection with wall sliding
+    - Mouse look, WASD movement, strafing, sprint
+  - **Architecture Benefits**:
+    - Consistent with game-005 patterns for easier future development
+    - Event-driven communication for adding enemies, weapons, pickups
+    - Kaplay handles game loop timing and delta time automatically
+    - Clean separation between raycasting engine and UI overlay
+    - Foundation for Phase 2 features (enemies, weapons, items)
+  - Files: Updated [game-006/js/main.js](game-006/js/main.js), [game-006/js/player.js](game-006/js/player.js), [game-006/js/renderer.js](game-006/js/renderer.js), [game-006/index.html](game-006/index.html), Created [game-006/js/state.js](game-006/js/state.js), [game-006/js/events.js](game-006/js/events.js), [game-006/js/input.js](game-006/js/input.js), [game-006/js/ui.js](game-006/js/ui.js)
+
 ### Added
 - **Wolfenstein-like Raycasting FPS** (game-006): Phase 1 - Raycasting Engine Foundation
   - **Raycasting Engine**: Complete DDA (Digital Differential Analysis) algorithm implementation

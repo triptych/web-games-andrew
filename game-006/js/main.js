@@ -1,148 +1,81 @@
 /**
  * Main Game Module
- * Initialization and game loop
+ * Kaplay initialization and game scene
  */
 
-import { initRenderer, clear, renderWalls } from './renderer.js';
-import { initPlayer, updatePlayer, player, handleKeyDown, handleKeyUp, handleMouseMove } from './player.js';
-import { castRays } from './raycaster.js';
+import kaplay from '../../lib/kaplay/kaplay.mjs';
+import { SCREEN_WIDTH, SCREEN_HEIGHT } from './config.js';
+import { state } from './state.js';
+import { initRenderer, render } from './renderer.js';
+import { initPlayer } from './player.js';
+import { initInput } from './input.js';
+import { initUI } from './ui.js';
 
-// Game state
-let lastTime = 0;
-let fps = 60;
-let frameCount = 0;
-let fpsUpdateTime = 0;
+// Initialize kaplay with transparent rendering
+const k = kaplay({
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    crisp: true,
+    pixelDensity: 1,
+    // Transparent background - critical for layering
+    background: [0, 0, 0, 0],
+});
 
-// Mouse lock state
-let isMouseLocked = false;
+// Make kaplay globally accessible for debugging
+window.k = k;
 
-/**
- * Initialize the game
- */
-function init() {
-    console.log('Initializing Game 006: Wolfenstein-like Raycasting FPS');
+// Game scene
+k.scene("game", () => {
+    console.log('Starting game scene...');
 
-    // Get canvas
-    const canvas = document.getElementById('gameCanvas');
-    if (!canvas) {
-        console.error('Canvas not found!');
-        return;
-    }
+    // Reset state
+    state.reset();
 
-    // Initialize modules
-    initRenderer(canvas);
-    initPlayer();
+    // Initialize all systems
+    initRenderer(k);
+    initPlayer(k);
+    initInput(k);
+    initUI(k);
 
-    // Set up input handlers
-    setupInput(canvas);
+    // Update loop - for logic only
+    k.onUpdate(() => {
+        if (state.isPaused || state.isGameOver) return;
 
-    // Start game loop
-    requestAnimationFrame(gameLoop);
+        // Update FPS counter
+        state.fps = 1 / k.dt();
 
-    console.log('Game initialized successfully!');
-}
+        // Update time alive
+        state.timeAlive += k.dt();
+    });
 
-/**
- * Set up input event handlers
- */
-function setupInput(canvas) {
-    // Keyboard events
-    window.addEventListener('keydown', (e) => {
-        handleKeyDown(e.key);
+    // Draw loop - render raycasting view
+    k.onDraw(() => {
+        if (state.isPaused || state.isGameOver) return;
 
-        // Prevent arrow keys from scrolling
-        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-            e.preventDefault();
+        // Render raycasting view directly to canvas
+        render(state.player);
+    });
+
+    // Pause handling
+    k.onKeyPress('escape', () => {
+        if (!state.isGameOver) {
+            state.isPaused = !state.isPaused;
+            if (state.isPaused) {
+                console.log('Game paused');
+                // Release pointer lock when paused
+                if (document.pointerLockElement) {
+                    document.exitPointerLock();
+                }
+            } else {
+                console.log('Game resumed');
+            }
         }
     });
 
-    window.addEventListener('keyup', (e) => {
-        handleKeyUp(e.key);
-    });
+    console.log('Game scene initialized!');
+});
 
-    // Mouse lock (click canvas to lock mouse)
-    canvas.addEventListener('click', () => {
-        if (!isMouseLocked) {
-            canvas.requestPointerLock();
-        }
-    });
+// Start the game
+k.go("game");
 
-    // Mouse movement
-    document.addEventListener('mousemove', (e) => {
-        if (isMouseLocked) {
-            handleMouseMove(e.movementX);
-        }
-    });
-
-    // Pointer lock change
-    document.addEventListener('pointerlockchange', () => {
-        isMouseLocked = document.pointerLockElement === canvas;
-    });
-}
-
-/**
- * Main game loop
- */
-function gameLoop(currentTime) {
-    // Calculate delta time
-    const dt = lastTime ? (currentTime - lastTime) / 1000 : 0;
-    lastTime = currentTime;
-
-    // Update
-    update(dt);
-
-    // Render
-    render();
-
-    // Update FPS counter
-    updateFPS(dt);
-
-    // Next frame
-    requestAnimationFrame(gameLoop);
-}
-
-/**
- * Update game logic
- */
-function update(dt) {
-    // Update player
-    updatePlayer(dt);
-}
-
-/**
- * Render the game
- */
-function render() {
-    // Clear screen
-    clear();
-
-    // Cast rays
-    const rays = castRays(player);
-
-    // Render walls
-    renderWalls(rays);
-}
-
-/**
- * Update FPS counter and stats display
- */
-function updateFPS(dt) {
-    frameCount++;
-    fpsUpdateTime += dt;
-
-    if (fpsUpdateTime >= 0.5) {
-        fps = Math.round(frameCount / fpsUpdateTime);
-        frameCount = 0;
-        fpsUpdateTime = 0;
-
-        // Update stats display
-        document.getElementById('fps').textContent = fps;
-        document.getElementById('position').textContent =
-            `${player.x.toFixed(2)}, ${player.y.toFixed(2)}`;
-        document.getElementById('direction').textContent =
-            `${player.angle.toFixed(0)}°`;
-    }
-}
-
-// Start the game when page loads
-window.addEventListener('DOMContentLoaded', init);
+console.log('Kaplay initialized - Game started!');

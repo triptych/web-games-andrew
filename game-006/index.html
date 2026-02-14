@@ -21,64 +21,15 @@
             overflow: hidden;
         }
 
-        #gameContainer {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
         canvas {
             border: 2px solid #333;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
         }
-
-        #controls {
-            color: #888;
-            font-size: 12px;
-            text-align: center;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid #333;
-            border-radius: 4px;
-        }
-
-        #controls div {
-            margin: 5px 0;
-        }
-
-        #stats {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: #0f0;
-            font-size: 14px;
-            text-shadow: 0 0 5px #0f0;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 4px;
-        }
     </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <canvas id="gameCanvas"></canvas>
-        <div id="controls">
-            <div><strong>CONTROLS</strong></div>
-            <div>W/S or ↑/↓: Move Forward/Backward</div>
-            <div>A/D: Strafe Left/Right</div>
-            <div>←/→ or Mouse: Rotate Camera</div>
-            <div>Shift: Sprint</div>
-        </div>
-    </div>
-    <div id="stats">
-        <div>FPS: <span id="fps">60</span></div>
-        <div>Pos: <span id="position">0, 0</span></div>
-        <div>Dir: <span id="direction">0°</span></div>
-    </div>
-
+    <!-- Kaplay creates the canvas automatically -->
     <script type="module" src="js/main.js"></script>
 </body>
 </html>

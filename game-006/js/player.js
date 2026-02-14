@@ -1,5 +1,5 @@
 /**
- * Player Module
+ * Player System
  * Handles player state, movement, and camera
  */
 
@@ -11,187 +11,136 @@ import {
     PLAYER_MOVE_SPEED,
     PLAYER_SPRINT_SPEED,
     PLAYER_ROTATION_SPEED,
-    MOUSE_SENSITIVITY,
     FOV,
 } from './config.js';
 import { degToRad, normalizeAngle } from './utils.js';
 import { checkCollision } from './map.js';
+import { state } from './state.js';
 
-export const player = {
+// Player object
+const player = {
     x: PLAYER_START_X,
     y: PLAYER_START_Y,
-    angle: PLAYER_START_ANGLE, // In degrees
-
-    // Camera vectors (calculated from angle)
+    angle: PLAYER_START_ANGLE,
     dirX: 0,
     dirY: 0,
     planeX: 0,
     planeY: 0,
-
-    // Movement state
-    moveForward: false,
-    moveBackward: false,
-    strafeLeft: false,
-    strafeRight: false,
-    rotateLeft: false,
-    rotateRight: false,
-    sprinting: false,
 };
 
 /**
- * Initialize player camera vectors from angle
+ * Update camera direction and plane vectors based on angle
  */
-export function updateCameraVectors() {
+function updateCameraVectors() {
     const angleRad = degToRad(player.angle);
 
-    // Direction vector (where player is facing)
+    // Direction vector
     player.dirX = Math.cos(angleRad);
     player.dirY = Math.sin(angleRad);
 
-    // Camera plane (perpendicular to direction, determines FOV)
-    const fovRad = degToRad(FOV);
-    const planeLength = Math.tan(fovRad / 2);
-
+    // Camera plane (perpendicular to direction, length determines FOV)
+    const planeLength = Math.tan(degToRad(FOV / 2));
     player.planeX = -player.dirY * planeLength;
     player.planeY = player.dirX * planeLength;
 }
 
 /**
- * Initialize player
+ * Initialize player system
  */
-export function initPlayer() {
+export function initPlayer(k) {
+    // Reset player to starting position
+    player.x = PLAYER_START_X;
+    player.y = PLAYER_START_Y;
+    player.angle = PLAYER_START_ANGLE;
+
     updateCameraVectors();
+
+    // Store player in state for other modules
+    state.player = player;
+
+    // Update loop - handle movement and rotation
+    k.onUpdate(() => {
+        if (state.isPaused || state.isGameOver) return;
+
+        // Handle rotation
+        const rotationSpeed = PLAYER_ROTATION_SPEED * k.dt();
+
+        if (k.isKeyDown('left')) {
+            player.angle -= rotationSpeed;
+        }
+        if (k.isKeyDown('right')) {
+            player.angle += rotationSpeed;
+        }
+
+        // Normalize angle to 0-360
+        player.angle = normalizeAngle(player.angle);
+
+        // Update camera vectors after rotation
+        updateCameraVectors();
+
+        // Handle movement
+        const isSprinting = k.isKeyDown('shift');
+        const moveSpeed = (isSprinting ? PLAYER_SPRINT_SPEED : PLAYER_MOVE_SPEED) * k.dt();
+
+        let moveX = 0;
+        let moveY = 0;
+
+        // Forward/backward (W/S or up/down arrows)
+        if (k.isKeyDown('w') || k.isKeyDown('up')) {
+            moveX += player.dirX * moveSpeed;
+            moveY += player.dirY * moveSpeed;
+        }
+        if (k.isKeyDown('s') || k.isKeyDown('down')) {
+            moveX -= player.dirX * moveSpeed;
+            moveY -= player.dirY * moveSpeed;
+        }
+
+        // Strafe left/right (A/D)
+        if (k.isKeyDown('a')) {
+            // Strafe left (perpendicular to direction)
+            moveX -= player.planeY * moveSpeed;
+            moveY += player.planeX * moveSpeed;
+        }
+        if (k.isKeyDown('d')) {
+            // Strafe right (perpendicular to direction)
+            moveX += player.planeY * moveSpeed;
+            moveY -= player.planeX * moveSpeed;
+        }
+
+        // Apply movement with collision detection
+        // Check X and Y separately for wall sliding
+        if (moveX !== 0) {
+            const newX = player.x + moveX;
+            if (!checkCollision(newX, player.y, PLAYER_SIZE)) {
+                player.x = newX;
+            }
+        }
+
+        if (moveY !== 0) {
+            const newY = player.y + moveY;
+            if (!checkCollision(player.x, newY, PLAYER_SIZE)) {
+                player.y = newY;
+            }
+        }
+    });
+
+    console.log('Player initialized at', player.x, player.y);
+
+    return player;
 }
 
 /**
- * Update player movement
+ * Rotate player by angle (for mouse input)
  */
-export function updatePlayer(dt) {
-    // Rotation
-    if (player.rotateLeft) {
-        player.angle -= PLAYER_ROTATION_SPEED * dt;
-    }
-    if (player.rotateRight) {
-        player.angle += PLAYER_ROTATION_SPEED * dt;
-    }
-
+export function rotatePlayer(angleChange) {
+    player.angle += angleChange;
     player.angle = normalizeAngle(player.angle);
     updateCameraVectors();
-
-    // Movement speed
-    const speed = player.sprinting ? PLAYER_SPRINT_SPEED : PLAYER_MOVE_SPEED;
-    const moveSpeed = speed * dt;
-
-    // Calculate desired movement
-    let moveX = 0;
-    let moveY = 0;
-
-    if (player.moveForward) {
-        moveX += player.dirX * moveSpeed;
-        moveY += player.dirY * moveSpeed;
-    }
-    if (player.moveBackward) {
-        moveX -= player.dirX * moveSpeed;
-        moveY -= player.dirY * moveSpeed;
-    }
-    if (player.strafeLeft) {
-        moveX -= player.planeY * moveSpeed;
-        moveY += player.planeX * moveSpeed;
-    }
-    if (player.strafeRight) {
-        moveX += player.planeY * moveSpeed;
-        moveY -= player.planeX * moveSpeed;
-    }
-
-    // Apply movement with collision detection
-    // Try X movement
-    const newX = player.x + moveX;
-    if (!checkCollision(newX, player.y, PLAYER_SIZE)) {
-        player.x = newX;
-    }
-
-    // Try Y movement
-    const newY = player.y + moveY;
-    if (!checkCollision(player.x, newY, PLAYER_SIZE)) {
-        player.y = newY;
-    }
 }
 
 /**
- * Handle keyboard input
+ * Get player object (for debugging)
  */
-export function handleKeyDown(key) {
-    switch (key) {
-        case 'w':
-        case 'W':
-        case 'ArrowUp':
-            player.moveForward = true;
-            break;
-        case 's':
-        case 'S':
-        case 'ArrowDown':
-            player.moveBackward = true;
-            break;
-        case 'a':
-        case 'A':
-            player.strafeLeft = true;
-            break;
-        case 'd':
-        case 'D':
-            player.strafeRight = true;
-            break;
-        case 'ArrowLeft':
-            player.rotateLeft = true;
-            break;
-        case 'ArrowRight':
-            player.rotateRight = true;
-            break;
-        case 'Shift':
-            player.sprinting = true;
-            break;
-    }
-}
-
-/**
- * Handle keyboard release
- */
-export function handleKeyUp(key) {
-    switch (key) {
-        case 'w':
-        case 'W':
-        case 'ArrowUp':
-            player.moveForward = false;
-            break;
-        case 's':
-        case 'S':
-        case 'ArrowDown':
-            player.moveBackward = false;
-            break;
-        case 'a':
-        case 'A':
-            player.strafeLeft = false;
-            break;
-        case 'd':
-        case 'D':
-            player.strafeRight = false;
-            break;
-        case 'ArrowLeft':
-            player.rotateLeft = false;
-            break;
-        case 'ArrowRight':
-            player.rotateRight = false;
-            break;
-        case 'Shift':
-            player.sprinting = false;
-            break;
-    }
-}
-
-/**
- * Handle mouse movement for camera rotation
- */
-export function handleMouseMove(movementX) {
-    player.angle += movementX * MOUSE_SENSITIVITY;
-    player.angle = normalizeAngle(player.angle);
-    updateCameraVectors();
+export function getPlayer() {
+    return player;
 }

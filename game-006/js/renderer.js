@@ -14,19 +14,72 @@ import {
     MAX_RAY_DISTANCE,
 } from './config.js';
 import { clamp, lerp } from './utils.js';
+import { castRays } from './raycaster.js';
 
 let ctx;
-let canvas;
+let raycastCanvas;
+let initialized = false;
 
 /**
- * Initialize renderer
+ * Initialize renderer - create separate canvas for raycasting
  */
-export function initRenderer(canvasElement) {
-    canvas = canvasElement;
-    ctx = canvas.getContext('2d');
+export function initRenderer(k) {
+    // Create a separate canvas for raycasting rendering
+    raycastCanvas = document.createElement('canvas');
+    raycastCanvas.width = SCREEN_WIDTH;
+    raycastCanvas.height = SCREEN_HEIGHT;
+    raycastCanvas.id = 'raycastCanvas';
 
-    canvas.width = SCREEN_WIDTH;
-    canvas.height = SCREEN_HEIGHT;
+    // Style it to overlay behind kaplay's canvas
+    raycastCanvas.style.position = 'absolute';
+    raycastCanvas.style.top = '0';
+    raycastCanvas.style.left = '0';
+    raycastCanvas.style.width = '100%';
+    raycastCanvas.style.height = '100%';
+    raycastCanvas.style.zIndex = '0';
+    raycastCanvas.style.imageRendering = 'pixelated';
+    raycastCanvas.style.imageRendering = 'crisp-edges';
+
+    // Get the kaplay canvas to position ours with it
+    const kaplayCanvas = document.querySelector('canvas');
+    if (kaplayCanvas && kaplayCanvas.parentElement) {
+        // Create a container wrapper
+        const container = document.createElement('div');
+        container.style.position = 'relative';
+        container.style.width = SCREEN_WIDTH + 'px';
+        container.style.height = SCREEN_HEIGHT + 'px';
+        container.style.border = '2px solid #333';
+
+        // Move kaplay canvas into container
+        const parent = kaplayCanvas.parentElement;
+        parent.insertBefore(container, kaplayCanvas);
+        container.appendChild(kaplayCanvas);
+
+        // Add our canvas to the container
+        container.appendChild(raycastCanvas);
+
+        // Style kaplay canvas - make it transparent
+        kaplayCanvas.style.position = 'absolute';
+        kaplayCanvas.style.top = '0';
+        kaplayCanvas.style.left = '0';
+        kaplayCanvas.style.width = '100%';
+        kaplayCanvas.style.height = '100%';
+        kaplayCanvas.style.zIndex = '1';
+        kaplayCanvas.style.pointerEvents = 'auto';
+        kaplayCanvas.style.border = 'none';
+        kaplayCanvas.style.background = 'transparent';
+    } else {
+        // Fallback - just add to body
+        document.body.appendChild(raycastCanvas);
+    }
+
+    ctx = raycastCanvas.getContext('2d');
+    initialized = true;
+
+    console.log('Raycasting renderer initialized with separate canvas:', {
+        width: raycastCanvas.width,
+        height: raycastCanvas.height,
+    });
 }
 
 /**
@@ -40,6 +93,24 @@ export function clear() {
     // Draw floor (bottom half)
     ctx.fillStyle = '#1a1a2a';
     ctx.fillRect(0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2);
+}
+
+/**
+ * Main render function - renders complete frame
+ */
+export function render(player) {
+    if (!ctx || !initialized || !player) {
+        return;
+    }
+
+    // Clear screen (ceiling and floor)
+    clear();
+
+    // Cast rays from player position
+    const rays = castRays(player);
+
+    // Render walls
+    renderWalls(rays);
 }
 
 /**
