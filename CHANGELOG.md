@@ -8,6 +8,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wolfenstein-like Raycasting FPS** (game-006): Phase 1 - Raycasting Engine Foundation
+  - **Raycasting Engine**: Complete DDA (Digital Differential Analysis) algorithm implementation
+    - One ray per screen column (640 rays at 640×400 resolution)
+    - Efficient wall detection with perpendicular distance calculation
+    - Prevents fisheye distortion effect
+    - Maximum ray distance: 20 units with distance clamping
+  - **Player Movement System**: Smooth movement with collision detection
+    - Forward/backward movement (W/S or Arrow Up/Down)
+    - Strafe left/right (A/D keys)
+    - Sprint mode (Hold Shift for 1.67× speed boost)
+    - Collision detection with circular radius (0.3 units)
+    - Wall sliding mechanic (smooth movement along walls)
+  - **Camera System**: First-person view with 60° field of view
+    - Arrow keys for rotation (120°/second)
+    - Mouse look support (click canvas to lock mouse)
+    - Camera plane calculation for proper FOV rendering
+    - Direction and plane vectors updated from player angle
+  - **Wall Rendering**: Distance-based shading with multiple wall types
+    - 4 wall types with distinct colors: Gray stone, Red brick, Brown wood, Silver metal
+    - Distance shading: Linear falloff from bright to dark (20%-100% brightness)
+    - Vertical vs horizontal wall differentiation (horizontal walls 30% darker)
+    - Wall height calculated from distance for 3D perspective
+    - Solid color ceiling (dark blue) and floor (darker blue)
+  - **Test Map**: 16×16 grid with varied room layouts
+    - Outer walls forming perimeter
+    - Interior rooms with different wall types
+    - Corridors and open spaces
+    - Multiple wall types for visual variety
+  - **Controls**: Complete keyboard and mouse input
+    - W/S or ↑/↓: Move forward/backward
+    - A/D: Strafe left/right
+    - ←/→ or Mouse: Rotate camera
+    - Shift: Sprint
+    - Click canvas to enable mouse look
+  - **HUD Display**: Real-time stats overlay
+    - FPS counter (updates every 0.5 seconds)
+    - Player position (X, Y coordinates)
+    - Player direction (angle in degrees)
+    - Stats panel with semi-transparent background
+  - **Technical Implementation**:
+    - Modular ES6 architecture (7 modules: main, config, raycaster, player, renderer, map, utils)
+    - Pure vanilla JavaScript (no frameworks for raycasting)
+    - 640×400 resolution with crisp pixel rendering
+    - 60 FPS target with delta-time based movement
+    - Efficient collision detection (checks 4 corners of bounding circle)
+  - Files: [game-006/index.html](game-006/index.html), [game-006/js/main.js](game-006/js/main.js), [game-006/js/config.js](game-006/js/config.js), [game-006/js/raycaster.js](game-006/js/raycaster.js), [game-006/js/player.js](game-006/js/player.js), [game-006/js/renderer.js](game-006/js/renderer.js), [game-006/js/map.js](game-006/js/map.js), [game-006/js/utils.js](game-006/js/utils.js), [game-006/game-plan.md](game-006/game-plan.md)
+
+### Added
 - **Bullet Heaven Shmup** (game-005): Phase 1 - Core Gameplay Foundation
   - **Project Architecture**: Event-driven modular system with ES6 modules
     - EventBus class for cross-module communication without tight coupling
