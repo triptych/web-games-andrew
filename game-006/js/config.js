@@ -43,6 +43,21 @@ export const WALL_COLORS = {
     4: [150, 150, 180], // Silver metal
 };
 
+// Combat settings
+export const PLAYER_MAX_HEALTH = 100;
+export const PLAYER_START_HEALTH = 100;
+
+// Weapon display settings
+export const WEAPON_SCREEN_X = SCREEN_WIDTH / 2;
+export const WEAPON_SCREEN_Y = SCREEN_HEIGHT - 60;
+export const WEAPON_SPRITE_SIZE = 80;
+
+// Combat feedback
+export const MUZZLE_FLASH_DURATION = 50; // milliseconds
+export const SCREEN_SHAKE_DECAY = 0.9;
+export const DAMAGE_FLASH_DURATION = 200; // milliseconds
+export const DAMAGE_FLASH_COLOR = [255, 0, 0, 0.3]; // Red with alpha
+
 // Test map (16x16)
 export const TEST_MAP = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],

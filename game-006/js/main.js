@@ -4,12 +4,13 @@
  */
 
 import kaplay from '../../lib/kaplay/kaplay.mjs';
-import { SCREEN_WIDTH, SCREEN_HEIGHT } from './config.js';
+import { SCREEN_WIDTH, SCREEN_HEIGHT, TEST_MAP } from './config.js';
 import { state } from './state.js';
 import { initRenderer, render } from './renderer.js';
 import { initPlayer } from './player.js';
 import { initInput } from './input.js';
 import { initUI } from './ui.js';
+import { initWeapons, updateWeapons, unlockWeapon } from './weapons.js';
 
 // Initialize kaplay with transparent rendering
 const k = kaplay({
@@ -31,11 +32,21 @@ k.scene("game", () => {
     // Reset state
     state.reset();
 
+    // Store map in state for weapon system
+    state.map = TEST_MAP;
+
     // Initialize all systems
     initRenderer(k);
     initPlayer(k);
+    initWeapons(k);
     initInput(k);
     initUI(k);
+
+    // Unlock all weapons for testing Phase 2
+    // In a real game, these would be unlocked through pickups
+    unlockWeapon('machinegun');
+    unlockWeapon('shotgun');
+    unlockWeapon('rocket');
 
     // Update loop - for logic only
     k.onUpdate(() => {
@@ -46,6 +57,9 @@ k.scene("game", () => {
 
         // Update time alive
         state.timeAlive += k.dt();
+
+        // Update weapon system (projectiles, effects, etc.)
+        updateWeapons(k.dt());
     });
 
     // Draw loop - render raycasting view

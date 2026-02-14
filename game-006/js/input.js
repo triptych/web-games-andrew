@@ -1,13 +1,16 @@
 /**
  * Input System
- * Handles mouse lock and mouse movement
+ * Handles mouse lock, mouse movement, shooting, and weapon switching
  */
 
 import { MOUSE_SENSITIVITY } from './config.js';
 import { rotatePlayer } from './player.js';
 import { state } from './state.js';
+import { switchWeapon, nextWeapon, previousWeapon, fireWeapon } from './weapons.js';
+import { castSingleRay } from './raycaster.js';
 
 let isMouseLocked = false;
+let isMouseDown = false;
 
 /**
  * Initialize input system
@@ -46,7 +49,98 @@ export function initInput(k) {
         }
     });
 
+    // Handle mouse down for shooting
+    canvas.addEventListener('mousedown', (e) => {
+        if (isMouseLocked && !state.isPaused && !state.isGameOver) {
+            e.preventDefault();
+            isMouseDown = true;
+            handleShoot(k);
+        }
+    });
+
+    // Handle mouse up
+    canvas.addEventListener('mouseup', (e) => {
+        if (isMouseLocked) {
+            e.preventDefault();
+            isMouseDown = false;
+        }
+    });
+
+    // Handle mouse wheel for weapon switching
+    canvas.addEventListener('wheel', (e) => {
+        if (isMouseLocked && !state.isPaused && !state.isGameOver) {
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                previousWeapon();
+            } else {
+                nextWeapon();
+            }
+        }
+    });
+
+    // Keyboard weapon switching (number keys 1-4)
+    k.onKeyPress('1', () => {
+        if (!state.isPaused && !state.isGameOver) {
+            switchWeapon('pistol');
+        }
+    });
+
+    k.onKeyPress('2', () => {
+        if (!state.isPaused && !state.isGameOver) {
+            switchWeapon('machinegun');
+        }
+    });
+
+    k.onKeyPress('3', () => {
+        if (!state.isPaused && !state.isGameOver) {
+            switchWeapon('shotgun');
+        }
+    });
+
+    k.onKeyPress('4', () => {
+        if (!state.isPaused && !state.isGameOver) {
+            switchWeapon('rocket');
+        }
+    });
+
+    // Ctrl key for shooting (alternative to mouse)
+    k.onKeyPress('control', () => {
+        if (!state.isPaused && !state.isGameOver && isMouseLocked) {
+            handleShoot(k);
+        }
+    });
+
+    // Continuous shooting while mouse is held
+    k.onUpdate(() => {
+        if (isMouseDown && isMouseLocked && !state.isPaused && !state.isGameOver) {
+            handleShoot(k);
+        }
+    });
+
     console.log('Input system initialized - click canvas to lock mouse');
+}
+
+/**
+ * Handle shooting logic
+ */
+function handleShoot(k) {
+    if (!state.player) return;
+
+    const result = fireWeapon(state.player, state.map, castSingleRay);
+
+    if (result) {
+        state.shotsFired++;
+
+        // Track hits for accuracy
+        if (result.hits && result.hits.length > 0) {
+            state.shotsHit += result.hits.length;
+
+            // Log hits for debugging
+            result.hits.forEach(hit => {
+                console.log(`Hit at distance ${hit.distance.toFixed(2)}, damage: ${hit.damage.toFixed(1)}`);
+            });
+        }
+    }
 }
 
 /**

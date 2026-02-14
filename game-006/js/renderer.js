@@ -12,9 +12,16 @@ import {
     MIN_BRIGHTNESS,
     MAX_BRIGHTNESS,
     MAX_RAY_DISTANCE,
+    WEAPON_SCREEN_X,
+    WEAPON_SCREEN_Y,
+    WEAPON_SPRITE_SIZE,
+    DAMAGE_FLASH_DURATION,
+    DAMAGE_FLASH_COLOR,
 } from './config.js';
 import { clamp, lerp } from './utils.js';
 import { castRays } from './raycaster.js';
+import { getCurrentWeapon, getWeaponState } from './weapons.js';
+import { state } from './state.js';
 
 let ctx;
 let raycastCanvas;
@@ -103,7 +110,19 @@ export function render(player) {
         return;
     }
 
-    // Clear screen (ceiling and floor)
+    // Clear entire canvas to black to prevent artifacts
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    // Apply camera shake
+    ctx.save();
+    if (state.camera && state.camera.shake > 0) {
+        const shakeX = (Math.random() - 0.5) * state.camera.shake;
+        const shakeY = (Math.random() - 0.5) * state.camera.shake;
+        ctx.translate(shakeX, shakeY);
+    }
+
+    // Draw ceiling and floor WITH shake applied
     clear();
 
     // Cast rays from player position
@@ -111,6 +130,22 @@ export function render(player) {
 
     // Render walls
     renderWalls(rays);
+
+    // Render projectiles (rockets)
+    if (state.projectiles) {
+        renderProjectiles(player, rays);
+    }
+
+    // Render bullet impacts on walls
+    if (state.impacts) {
+        renderImpacts();
+    }
+
+    ctx.restore();
+
+    // Render HUD elements (not affected by shake)
+    renderWeapon();
+    renderDamageFlash();
 }
 
 /**
@@ -159,6 +194,199 @@ function renderWallSlice(ray) {
     // Draw the wall slice
     ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
     ctx.fillRect(column, drawStart, 1, drawEnd - drawStart);
+}
+
+/**
+ * Render weapon sprite at bottom of screen
+ */
+function renderWeapon() {
+    const weapon = getCurrentWeapon();
+    const weaponState = getWeaponState();
+
+    if (!weapon) return;
+
+    // Weapon colors for visualization
+    const weaponColors = {
+        pistol: '#aaa',
+        machinegun: '#666',
+        shotgun: '#964B00',
+        rocket: '#555',
+    };
+
+    const color = weaponColors[weapon.id] || '#888';
+
+    // Draw simple weapon representation (rectangle for now)
+    const weaponWidth = WEAPON_SPRITE_SIZE;
+    const weaponHeight = WEAPON_SPRITE_SIZE * 0.6;
+    const weaponX = WEAPON_SCREEN_X - weaponWidth / 2;
+    const weaponY = WEAPON_SCREEN_Y;
+
+    // Muzzle flash effect
+    if (weaponState.muzzleFlash) {
+        // Bright flash at muzzle
+        ctx.fillStyle = 'rgba(255, 200, 100, 0.8)';
+        ctx.beginPath();
+        ctx.arc(WEAPON_SCREEN_X, weaponY - 10, 20, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Add some rays
+        ctx.strokeStyle = 'rgba(255, 255, 150, 0.6)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 8; i++) {
+            const angle = (Math.PI * 2 * i) / 8;
+            ctx.beginPath();
+            ctx.moveTo(WEAPON_SCREEN_X, weaponY - 10);
+            ctx.lineTo(
+                WEAPON_SCREEN_X + Math.cos(angle) * 30,
+                weaponY - 10 + Math.sin(angle) * 30
+            );
+            ctx.stroke();
+        }
+    }
+
+    // Draw weapon body
+    ctx.fillStyle = color;
+    ctx.fillRect(weaponX, weaponY, weaponWidth, weaponHeight);
+
+    // Draw weapon barrel
+    ctx.fillStyle = '#222';
+    ctx.fillRect(
+        weaponX + weaponWidth * 0.4,
+        weaponY - weaponHeight * 0.3,
+        weaponWidth * 0.2,
+        weaponHeight * 0.5
+    );
+
+    // Draw weapon name
+    ctx.fillStyle = '#fff';
+    ctx.font = '12px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(weapon.name, WEAPON_SCREEN_X, SCREEN_HEIGHT - 10);
+}
+
+/**
+ * Render damage flash when player is hit
+ */
+function renderDamageFlash() {
+    if (state.damageFlash) {
+        const elapsed = Date.now() - state.damageFlashTime;
+
+        if (elapsed < DAMAGE_FLASH_DURATION) {
+            // Fade out over duration
+            const alpha = (1 - elapsed / DAMAGE_FLASH_DURATION) * DAMAGE_FLASH_COLOR[3];
+            ctx.fillStyle = `rgba(${DAMAGE_FLASH_COLOR[0]}, ${DAMAGE_FLASH_COLOR[1]}, ${DAMAGE_FLASH_COLOR[2]}, ${alpha})`;
+            ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        } else {
+            state.damageFlash = false;
+        }
+    }
+}
+
+/**
+ * Render projectiles (rockets) in 3D space
+ */
+function renderProjectiles(player, rays) {
+    const now = Date.now();
+
+    for (const proj of state.projectiles) {
+        // Calculate projectile position relative to player
+        const dx = proj.x - player.x;
+        const dy = proj.y - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Transform to camera space
+        const invDet = 1.0 / (player.planeX * player.dirY - player.dirX * player.planeY);
+        const transformX = invDet * (player.dirY * dx - player.dirX * dy);
+        const transformY = invDet * (-player.planeY * dx + player.planeX * dy);
+
+        // Check if behind camera
+        if (transformY <= 0.1) continue;
+
+        // Calculate screen position
+        const screenX = Math.floor((SCREEN_WIDTH / 2) * (1 + transformX / transformY));
+
+        // Calculate size based on distance
+        const size = Math.abs(Math.floor(SCREEN_HEIGHT / transformY / 4));
+
+        // Check depth (only draw if not behind wall)
+        const rayIndex = Math.floor(screenX);
+        if (rayIndex >= 0 && rayIndex < rays.length && transformY < rays[rayIndex].distance) {
+            // Draw projectile
+            if (proj.type === 'rocket') {
+                // Orange/yellow rocket
+                ctx.fillStyle = '#ff6600';
+                ctx.fillRect(screenX - size / 2, SCREEN_HEIGHT / 2 - size / 2, size, size / 2);
+
+                // Rocket trail
+                ctx.fillStyle = 'rgba(255, 100, 0, 0.5)';
+                ctx.fillRect(screenX - size / 2 - size, SCREEN_HEIGHT / 2 - size / 4, size, size / 4);
+            }
+        }
+    }
+
+    // Render explosions
+    if (state.explosions) {
+        for (let i = state.explosions.length - 1; i >= 0; i--) {
+            const exp = state.explosions[i];
+            const elapsed = now - exp.time;
+
+            if (elapsed > exp.duration) {
+                state.explosions.splice(i, 1);
+                continue;
+            }
+
+            // Calculate explosion position relative to player
+            const dx = exp.x - player.x;
+            const dy = exp.y - player.y;
+
+            // Transform to camera space
+            const invDet = 1.0 / (player.planeX * player.dirY - player.dirX * player.planeY);
+            const transformX = invDet * (player.dirY * dx - player.dirX * dy);
+            const transformY = invDet * (-player.planeY * dx + player.planeX * dy);
+
+            if (transformY <= 0.1) continue;
+
+            const screenX = Math.floor((SCREEN_WIDTH / 2) * (1 + transformX / transformY));
+            const size = Math.abs(Math.floor(SCREEN_HEIGHT / transformY)) * 2;
+
+            // Animate explosion (expand and fade)
+            const progress = elapsed / exp.duration;
+            const alpha = 1 - progress;
+            const currentSize = size * (0.5 + progress * 0.5);
+
+            // Draw explosion
+            ctx.fillStyle = `rgba(255, 150, 0, ${alpha})`;
+            ctx.beginPath();
+            ctx.arc(screenX, SCREEN_HEIGHT / 2, currentSize, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = `rgba(255, 255, 100, ${alpha * 0.5})`;
+            ctx.beginPath();
+            ctx.arc(screenX, SCREEN_HEIGHT / 2, currentSize * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+}
+
+/**
+ * Render bullet impact effects on walls
+ */
+function renderImpacts() {
+    const now = Date.now();
+
+    for (let i = state.impacts.length - 1; i >= 0; i--) {
+        const impact = state.impacts[i];
+        const elapsed = now - impact.time;
+
+        if (elapsed > impact.duration) {
+            state.impacts.splice(i, 1);
+            continue;
+        }
+
+        // Impact effects are rendered in 2D map space
+        // For now, we'll skip rendering them in 3D
+        // In a full implementation, we'd project them to screen space
+    }
 }
 
 /**

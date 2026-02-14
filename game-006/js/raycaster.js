@@ -25,7 +25,7 @@ export function castRays(player) {
         const rayDirY = player.dirY + player.planeY * cameraX;
 
         // Cast this ray
-        const hit = castSingleRay(player.x, player.y, rayDirX, rayDirY);
+        const hit = castRayInternal(player.x, player.y, rayDirX, rayDirY);
 
         if (hit) {
             rays.push({
@@ -42,8 +42,16 @@ export function castRays(player) {
 
 /**
  * Cast a single ray using DDA algorithm
+ * Exported for weapon hit detection
  */
-function castSingleRay(startX, startY, rayDirX, rayDirY) {
+export function castSingleRay(player, rayDir, maxDistance = MAX_RAY_DISTANCE) {
+    return castRayInternal(player.x, player.y, rayDir.x, rayDir.y, maxDistance);
+}
+
+/**
+ * Internal ray casting implementation
+ */
+function castRayInternal(startX, startY, rayDirX, rayDirY, maxDistance = MAX_RAY_DISTANCE) {
     // Current map position
     let mapX = Math.floor(startX);
     let mapY = Math.floor(startY);
@@ -116,11 +124,18 @@ function castSingleRay(startX, startY, rayDirX, rayDirY) {
     }
 
     // Clamp distance to prevent extreme values
-    perpWallDist = Math.max(0.1, Math.min(MAX_RAY_DISTANCE, perpWallDist));
+    perpWallDist = Math.max(0.1, Math.min(maxDistance, perpWallDist));
+
+    // Calculate hit position
+    const hitX = startX + rayDirX * perpWallDist;
+    const hitY = startY + rayDirY * perpWallDist;
 
     return {
         distance: perpWallDist,
         wallType: getTile(mapX, mapY),
         side: side,
+        x: hitX,
+        y: hitY,
+        target: 'wall', // Default to wall, will be 'enemy' in Phase 3
     };
 }
