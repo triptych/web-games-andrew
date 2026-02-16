@@ -8,6 +8,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Wolfenstein-like Raycasting FPS** (game-006): Deep Kaplay Integration - Architecture Overhaul
+  - **Kaplay-Native Rendering**: Complete migration to Kaplay's drawing API
+    - Removed separate Canvas 2D API usage entirely
+    - All rendering now uses Kaplay functions: `drawUVQuad()`, `drawRect()`, `drawCircle()`, `drawLine()`, `drawText()`
+    - Eliminated dual-canvas system - single Kaplay canvas handles everything
+    - Uses Kaplay's transform stack (`pushTransform()`/`popTransform()`) for camera shake
+    - Better color handling with `k.rgb()`, `k.rgba()`, `k.BLACK.lerp(k.WHITE, brightness)`
+  - **Texture System**: Wall textures with UV mapping (like official Kaplay raycasting example)
+    - Created new `js/textures.js` module for sprite loading and slicing
+    - Pre-slices wall textures into vertical strips on load
+    - Uses Kaplay's `Quad` system for proper UV coordinate mapping
+    - Renders textured walls with `drawUVQuad()` instead of solid colors
+    - Graceful fallback to solid colors if textures not loaded yet
+  - **Player as Kaplay Game Object**: Component-based player entity
+    - Player created with `k.add()` as proper Kaplay game object
+    - Uses Kaplay components: `pos()`, `z()`, `opacity()`
+    - Custom `draw()` function on player object renders entire 3D raycasting view
+    - Custom `update()` function syncs position between Kaplay and raycasting systems
+    - Follows official Kaplay raycasting example architecture pattern
+  - **Enhanced Raycaster**: Better data for texture mapping
+    - Added hit coordinates (`hitX`, `hitY`) to ray data for UV calculation
+    - Added normal vectors (`normalX`, `normalY`) for lighting/shading
+    - Determines which wall face was hit (x-side vs y-side) for proper texture wrapping
+  - **Simplified Main Loop**: Cleaner separation of concerns
+    - Removed manual `render()` call from `onDraw()`
+    - Player's custom `draw()` function handles all rendering automatically
+    - Kaplay manages the complete rendering pipeline
+  - **Architecture Benefits**:
+    - Follows official Kaplay patterns (based on example-raycast.js)
+    - Cleaner, more maintainable code using Kaplay conventions
+    - Ready for sprite-based enemies using same billboarding technique
+    - Easy to add weapon sprites and other textured elements
+    - Single unified rendering pipeline through Kaplay
+    - Better integration with Kaplay's component system
+  - Files: Created [game-006/js/textures.js](game-006/js/textures.js), [game-006/KAPLAY-INTEGRATION.md](game-006/KAPLAY-INTEGRATION.md), Rewritten [game-006/js/renderer.js](game-006/js/renderer.js), [game-006/js/player.js](game-006/js/player.js), Updated [game-006/js/raycaster.js](game-006/js/raycaster.js), [game-006/js/main.js](game-006/js/main.js)
+
 - **Wolfenstein-like Raycasting FPS** (game-006): Refactored to use Kaplay engine architecture
   - **Dual-Canvas Hybrid System**: Integrated Kaplay while preserving custom raycasting renderer
     - Separate Canvas 2D for raycasting rendering (z-index: 0)

@@ -1,6 +1,6 @@
 /**
  * Player System
- * Handles player state, movement, and camera
+ * Player as a Kaplay game object with custom draw() function
  */
 
 import {
@@ -16,23 +16,16 @@ import {
 import { degToRad, normalizeAngle } from './utils.js';
 import { checkCollision } from './map.js';
 import { state } from './state.js';
+import { render } from './renderer.js';
 
-// Player object
-const player = {
-    x: PLAYER_START_X,
-    y: PLAYER_START_Y,
-    angle: PLAYER_START_ANGLE,
-    dirX: 0,
-    dirY: 0,
-    planeX: 0,
-    planeY: 0,
-};
+let k = null;
+let playerObject = null;
 
 /**
  * Update camera direction and plane vectors based on angle
  */
-function updateCameraVectors() {
-    const angleRad = degToRad(player.angle);
+function updateCameraVectors(player) {
+    const angleRad = degToRad(player.playerAngle);
 
     // Direction vector
     player.dirX = Math.cos(angleRad);
@@ -47,16 +40,44 @@ function updateCameraVectors() {
 /**
  * Initialize player system
  */
-export function initPlayer(k) {
-    // Reset player to starting position
-    player.x = PLAYER_START_X;
-    player.y = PLAYER_START_Y;
-    player.angle = PLAYER_START_ANGLE;
+export function initPlayer(kaplay) {
+    k = kaplay;
 
-    updateCameraVectors();
+    // Create player as a Kaplay game object
+    playerObject = k.add([
+        k.pos(PLAYER_START_X, PLAYER_START_Y),
+        k.z(-1),
+        k.opacity(0), // Invisible in 2D view
+        {
+            // Custom player properties (use playerAngle to avoid conflict with rotate component)
+            playerAngle: PLAYER_START_ANGLE,
+            dirX: 0,
+            dirY: 0,
+            planeX: 0,
+            planeY: 0,
+            x: PLAYER_START_X, // Keep separate x/y for compatibility
+            y: PLAYER_START_Y,
+
+            // Update position sync
+            update() {
+                // Sync custom x/y with Kaplay pos
+                this.x = this.pos.x;
+                this.y = this.pos.y;
+            },
+
+            // Custom draw function - renders the raycasting view
+            draw() {
+                // Render the entire 3D raycasting view
+                render(this);
+            },
+        },
+    ]);
+
+    // Initialize camera vectors
+    updateCameraVectors(playerObject);
 
     // Store player in state for other modules
-    state.player = player;
+    state.player = playerObject;
 
     // Update loop - handle movement and rotation
     k.onUpdate(() => {
@@ -66,17 +87,17 @@ export function initPlayer(k) {
         const rotationSpeed = PLAYER_ROTATION_SPEED * k.dt();
 
         if (k.isKeyDown('left')) {
-            player.angle -= rotationSpeed;
+            playerObject.playerAngle -= rotationSpeed;
         }
         if (k.isKeyDown('right')) {
-            player.angle += rotationSpeed;
+            playerObject.playerAngle += rotationSpeed;
         }
 
         // Normalize angle to 0-360
-        player.angle = normalizeAngle(player.angle);
+        playerObject.playerAngle = normalizeAngle(playerObject.playerAngle);
 
         // Update camera vectors after rotation
-        updateCameraVectors();
+        updateCameraVectors(playerObject);
 
         // Handle movement
         const isSprinting = k.isKeyDown('shift');
@@ -87,60 +108,62 @@ export function initPlayer(k) {
 
         // Forward/backward (W/S or up/down arrows)
         if (k.isKeyDown('w') || k.isKeyDown('up')) {
-            moveX += player.dirX * moveSpeed;
-            moveY += player.dirY * moveSpeed;
+            moveX += playerObject.dirX * moveSpeed;
+            moveY += playerObject.dirY * moveSpeed;
         }
         if (k.isKeyDown('s') || k.isKeyDown('down')) {
-            moveX -= player.dirX * moveSpeed;
-            moveY -= player.dirY * moveSpeed;
+            moveX -= playerObject.dirX * moveSpeed;
+            moveY -= playerObject.dirY * moveSpeed;
         }
 
         // Strafe left/right (A/D)
         if (k.isKeyDown('a')) {
             // Strafe left (perpendicular to direction)
-            moveX -= player.planeY * moveSpeed;
-            moveY += player.planeX * moveSpeed;
+            moveX -= playerObject.planeY * moveSpeed;
+            moveY += playerObject.planeX * moveSpeed;
         }
         if (k.isKeyDown('d')) {
             // Strafe right (perpendicular to direction)
-            moveX += player.planeY * moveSpeed;
-            moveY -= player.planeX * moveSpeed;
+            moveX += playerObject.planeY * moveSpeed;
+            moveY -= playerObject.planeX * moveSpeed;
         }
 
         // Apply movement with collision detection
         // Check X and Y separately for wall sliding
         if (moveX !== 0) {
-            const newX = player.x + moveX;
-            if (!checkCollision(newX, player.y, PLAYER_SIZE)) {
-                player.x = newX;
+            const newX = playerObject.pos.x + moveX;
+            if (!checkCollision(newX, playerObject.pos.y, PLAYER_SIZE)) {
+                playerObject.pos.x = newX;
             }
         }
 
         if (moveY !== 0) {
-            const newY = player.y + moveY;
-            if (!checkCollision(player.x, newY, PLAYER_SIZE)) {
-                player.y = newY;
+            const newY = playerObject.pos.y + moveY;
+            if (!checkCollision(playerObject.pos.x, newY, PLAYER_SIZE)) {
+                playerObject.pos.y = newY;
             }
         }
     });
 
-    console.log('Player initialized at', player.x, player.y);
+    console.log('Player initialized as Kaplay game object at', PLAYER_START_X, PLAYER_START_Y);
 
-    return player;
+    return playerObject;
 }
 
 /**
  * Rotate player by angle (for mouse input)
  */
 export function rotatePlayer(angleChange) {
-    player.angle += angleChange;
-    player.angle = normalizeAngle(player.angle);
-    updateCameraVectors();
+    if (!playerObject) return;
+
+    playerObject.playerAngle += angleChange;
+    playerObject.playerAngle = normalizeAngle(playerObject.playerAngle);
+    updateCameraVectors(playerObject);
 }
 
 /**
  * Get player object (for debugging)
  */
 export function getPlayer() {
-    return player;
+    return playerObject;
 }

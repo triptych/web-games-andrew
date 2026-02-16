@@ -28,11 +28,23 @@ export function castRays(player) {
         const hit = castRayInternal(player.x, player.y, rayDirX, rayDirY);
 
         if (hit) {
+            // Calculate normal vector for lighting/shading
+            let normalX = 0, normalY = 0;
+            if (hit.side === 0) {
+                normalX = rayDirX > 0 ? -1 : 1;
+            } else {
+                normalY = rayDirY > 0 ? -1 : 1;
+            }
+
             rays.push({
                 column: x,
                 distance: hit.distance,
                 wallType: hit.wallType,
                 side: hit.side, // 0 = vertical wall, 1 = horizontal wall
+                hitX: hit.x,
+                hitY: hit.y,
+                normalX: normalX,
+                normalY: normalY,
             });
         }
     }

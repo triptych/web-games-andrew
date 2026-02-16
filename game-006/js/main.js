@@ -6,7 +6,8 @@
 import kaplay from '../../lib/kaplay/kaplay.mjs';
 import { SCREEN_WIDTH, SCREEN_HEIGHT, TEST_MAP } from './config.js';
 import { state } from './state.js';
-import { initRenderer, render } from './renderer.js';
+import { initTextures } from './textures.js';
+import { initRenderer } from './renderer.js';
 import { initPlayer } from './player.js';
 import { initInput } from './input.js';
 import { initUI } from './ui.js';
@@ -36,6 +37,7 @@ k.scene("game", () => {
     state.map = TEST_MAP;
 
     // Initialize all systems
+    initTextures(k); // Load and slice textures first
     initRenderer(k);
     initPlayer(k);
     initWeapons(k);
@@ -62,13 +64,7 @@ k.scene("game", () => {
         updateWeapons(k.dt());
     });
 
-    // Draw loop - render raycasting view
-    k.onDraw(() => {
-        if (state.isPaused || state.isGameOver) return;
-
-        // Render raycasting view directly to canvas
-        render(state.player);
-    });
+    // Note: Rendering is now handled by player object's draw() function
 
     // Pause handling
     k.onKeyPress('escape', () => {
