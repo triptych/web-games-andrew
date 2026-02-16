@@ -309,6 +309,7 @@ export function fireWeapon(player, map, castRayFunction) {
 
             hits.push({
                 target: hit.target, // enemy, wall, etc.
+                enemy: hit.enemy, // Enemy reference (if target is 'enemy')
                 damage: damage,
                 distance: hit.distance,
                 x: hit.x,
@@ -357,6 +358,28 @@ export function updateWeapons(dt) {
             proj.x += proj.dirX * proj.speed * dt;
             proj.y += proj.dirY * proj.speed * dt;
 
+            // Check collision with enemies (Phase 3)
+            let hitEnemy = false;
+            if (state.enemies) {
+                for (const enemy of state.enemies) {
+                    if (!enemy.alive) continue;
+
+                    const dx = proj.x - enemy.x;
+                    const dy = proj.y - enemy.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < enemy.type.size) {
+                        // Direct hit on enemy
+                        handleProjectileExplosion(proj);
+                        state.projectiles.splice(i, 1);
+                        hitEnemy = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hitEnemy) continue;
+
             // Check collision with walls (simplified)
             const mapX = Math.floor(proj.x);
             const mapY = Math.floor(proj.y);
@@ -402,7 +425,36 @@ function handleProjectileExplosion(projectile) {
         });
     }
 
-    // TODO: In Phase 3, handle splash damage to enemies
+    // Phase 3: Apply splash damage to enemies
+    if (state.enemies && projectile.splashRadius) {
+        let enemiesHit = 0;
+
+        for (const enemy of state.enemies) {
+            if (!enemy.alive) continue;
+
+            // Calculate distance from explosion center
+            const dx = enemy.x - projectile.x;
+            const dy = enemy.y - projectile.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // Check if enemy is in splash radius
+            if (distance <= projectile.splashRadius) {
+                // Calculate damage based on distance (full damage at center, reduced at edge)
+                const distanceFactor = 1 - (distance / projectile.splashRadius);
+                const damage = projectile.damage * distanceFactor;
+
+                enemy.takeDamage(damage);
+                enemiesHit++;
+
+                console.log(`Explosion hit ${enemy.type.name} for ${damage.toFixed(1)} damage! (${distance.toFixed(1)} units away)`);
+            }
+        }
+
+        if (enemiesHit > 0) {
+            console.log(`Explosion hit ${enemiesHit} enemies!`);
+        }
+    }
+
     console.log('Projectile exploded at', projectile.x, projectile.y);
 }
 

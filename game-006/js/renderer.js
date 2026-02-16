@@ -75,6 +75,11 @@ export function render(player) {
     // Render walls
     renderWalls(rays);
 
+    // Render enemies (Phase 3)
+    if (state.enemies && state.enemies.length > 0) {
+        renderEnemies(player, rays);
+    }
+
     // Render projectiles (rockets)
     if (state.projectiles) {
         renderProjectiles(player, rays);
@@ -185,6 +190,223 @@ function drawSolidWallSlice(column, drawStart, drawEnd, wallType, brightness) {
         width: 1,
         height: drawEnd - drawStart,
         color: k.rgb(r, g, b),
+    });
+}
+
+/**
+ * Render enemies as billboard sprites (Phase 3)
+ */
+function renderEnemies(player, rays) {
+    if (!state.enemies || state.enemies.length === 0) return;
+
+    // Create array of enemies with distance for sorting
+    const enemiesWithDist = state.enemies.map(enemy => {
+        const dx = enemy.x - player.x;
+        const dy = enemy.y - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        return {
+            enemy: enemy,
+            distance: distance,
+            dx: dx,
+            dy: dy
+        };
+    });
+
+    // Sort by distance (far to near) for proper depth rendering
+    enemiesWithDist.sort((a, b) => b.distance - a.distance);
+
+    // Render each enemy
+    for (const enemyData of enemiesWithDist) {
+        const enemy = enemyData.enemy;
+        const dx = enemyData.dx;
+        const dy = enemyData.dy;
+        const distance = enemyData.distance;
+
+        // Skip if too far
+        if (distance > MAX_RAY_DISTANCE) continue;
+
+        // Transform enemy position to camera space
+        const invDet = 1.0 / (player.planeX * player.dirY - player.dirX * player.planeY);
+        const transformX = invDet * (player.dirY * dx - player.dirX * dy);
+        const transformY = invDet * (-player.planeY * dx + player.planeX * dy);
+
+        // Check if behind camera
+        if (transformY <= 0.1) continue;
+
+        // Calculate screen position
+        const screenX = Math.floor((SCREEN_WIDTH / 2) * (1 + transformX / transformY));
+
+        // Calculate sprite dimensions based on distance
+        const spriteHeight = Math.abs(Math.floor(SCREEN_HEIGHT / transformY));
+        const spriteWidth = Math.abs(Math.floor(SCREEN_HEIGHT / transformY / 2));
+
+        // Calculate draw bounds
+        const drawStartY = Math.floor((SCREEN_HEIGHT - spriteHeight) / 2);
+        const drawStartX = Math.floor(screenX - spriteWidth / 2);
+        const drawEndX = Math.floor(screenX + spriteWidth / 2);
+
+        // Check if on screen
+        if (drawEndX < 0 || drawStartX >= SCREEN_WIDTH) continue;
+
+        // Clamp to screen bounds
+        const startX = Math.max(0, drawStartX);
+        const endX = Math.min(SCREEN_WIDTH, drawEndX);
+
+        // Check depth buffer - only draw columns not behind walls
+        let visibleColumns = 0;
+        for (let x = startX; x < endX; x++) {
+            if (x >= 0 && x < rays.length && transformY < rays[x].distance) {
+                visibleColumns++;
+            }
+        }
+
+        // Skip if completely behind walls
+        if (visibleColumns === 0) continue;
+
+        // Draw enemy sprite using Kaplay drawing API
+        if (enemy.alive) {
+            // Draw living enemy
+            drawEnemySprite(enemy, screenX, drawStartY, spriteWidth, spriteHeight, transformY, rays);
+        } else {
+            // Draw dead enemy (corpse on ground)
+            drawDeadEnemy(enemy, screenX, spriteWidth, spriteHeight);
+        }
+    }
+}
+
+/**
+ * Draw a living enemy sprite
+ */
+function drawEnemySprite(enemy, screenX, screenY, width, height, depth, rays) {
+    const color = enemy.type.color;
+
+    // Draw body (rectangle)
+    const bodyHeight = height * 0.7;
+    const bodyWidth = width * 0.6;
+    const bodyX = screenX - bodyWidth / 2;
+    const bodyY = screenY + height * 0.3;
+
+    // Only draw columns that aren't behind walls
+    for (let x = Math.floor(bodyX); x < Math.ceil(bodyX + bodyWidth); x++) {
+        if (x >= 0 && x < rays.length && depth < rays[x].distance) {
+            k.drawRect({
+                pos: k.vec2(x, bodyY),
+                width: 1,
+                height: bodyHeight,
+                color: k.rgb(color[0], color[1], color[2]),
+            });
+        }
+    }
+
+    // Draw head (circle)
+    const headRadius = width * 0.2;
+    const headY = screenY + height * 0.15;
+
+    // Check if head center is visible
+    const headX = Math.floor(screenX);
+    if (headX >= 0 && headX < rays.length && depth < rays[headX].distance) {
+        k.drawCircle({
+            pos: k.vec2(screenX, headY),
+            radius: headRadius,
+            color: k.rgb(
+                Math.min(255, color[0] + 30),
+                Math.min(255, color[1] + 30),
+                Math.min(255, color[2] + 30)
+            ),
+        });
+    }
+
+    // Draw weapon/arms (small rectangles on sides)
+    const armWidth = width * 0.15;
+    const armHeight = height * 0.3;
+    const armY = bodyY + bodyHeight * 0.2;
+
+    // Left arm
+    const leftArmX = Math.floor(bodyX - armWidth);
+    if (leftArmX >= 0 && leftArmX < rays.length && depth < rays[leftArmX].distance) {
+        k.drawRect({
+            pos: k.vec2(leftArmX, armY),
+            width: armWidth,
+            height: armHeight,
+            color: k.rgb(
+                Math.max(0, color[0] - 20),
+                Math.max(0, color[1] - 20),
+                Math.max(0, color[2] - 20)
+            ),
+        });
+    }
+
+    // Right arm
+    const rightArmX = Math.floor(bodyX + bodyWidth);
+    if (rightArmX >= 0 && rightArmX < rays.length && depth < rays[rightArmX].distance) {
+        k.drawRect({
+            pos: k.vec2(rightArmX, armY),
+            width: armWidth,
+            height: armHeight,
+            color: k.rgb(
+                Math.max(0, color[0] - 20),
+                Math.max(0, color[1] - 20),
+                Math.max(0, color[2] - 20)
+            ),
+        });
+    }
+
+    // Draw muzzle flash if just shot
+    if (enemy.lastShotTime && Date.now() - enemy.lastShotTime < 50) {
+        k.drawCircle({
+            pos: k.vec2(screenX, bodyY + bodyHeight / 2),
+            radius: headRadius * 1.5,
+            color: k.rgb(255, 200, 100),
+        });
+    }
+
+    // Draw health bar above enemy
+    if (enemy.hp < enemy.maxHp) {
+        const barWidth = width * 0.8;
+        const barHeight = 4;
+        const barX = screenX - barWidth / 2;
+        const barY = screenY - 10;
+
+        // Background (red)
+        k.drawRect({
+            pos: k.vec2(barX, barY),
+            width: barWidth,
+            height: barHeight,
+            color: k.rgb(100, 0, 0),
+        });
+
+        // Foreground (green) - health remaining
+        const healthPercent = enemy.hp / enemy.maxHp;
+        k.drawRect({
+            pos: k.vec2(barX, barY),
+            width: barWidth * healthPercent,
+            height: barHeight,
+            color: k.rgb(0, 200, 0),
+        });
+    }
+}
+
+/**
+ * Draw a dead enemy (corpse)
+ */
+function drawDeadEnemy(enemy, screenX, width, height) {
+    const color = enemy.type.color;
+
+    // Draw as a flat oval on the ground
+    const corpseWidth = width * 0.8;
+    const corpseHeight = height * 0.2;
+    const corpseY = SCREEN_HEIGHT / 2 + height * 0.3;
+
+    k.drawEllipse({
+        pos: k.vec2(screenX, corpseY),
+        radiusX: corpseWidth / 2,
+        radiusY: corpseHeight / 2,
+        color: k.rgb(
+            Math.max(0, color[0] - 50),
+            Math.max(0, color[1] - 50),
+            Math.max(0, color[2] - 50)
+        ),
     });
 }
 

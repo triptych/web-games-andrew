@@ -9,6 +9,7 @@ import {
     SCREEN_WIDTH,
 } from './config.js';
 import { getTile } from './map.js';
+import { checkEnemyHit } from './enemies.js';
 
 /**
  * Cast all rays for the current frame
@@ -55,8 +56,29 @@ export function castRays(player) {
 /**
  * Cast a single ray using DDA algorithm
  * Exported for weapon hit detection
+ * Phase 3: Now checks for enemy hits before wall hits
  */
 export function castSingleRay(player, rayDir, maxDistance = MAX_RAY_DISTANCE) {
+    // Check for enemy hit first (Phase 3)
+    const enemyHit = checkEnemyHit(rayDir.x, rayDir.y, player.x, player.y, maxDistance);
+
+    if (enemyHit) {
+        const dx = enemyHit.x - player.x;
+        const dy = enemyHit.y - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        return {
+            distance: distance,
+            wallType: 0,
+            side: 0,
+            x: enemyHit.x,
+            y: enemyHit.y,
+            target: 'enemy',
+            enemy: enemyHit,
+        };
+    }
+
+    // If no enemy hit, check walls
     return castRayInternal(player.x, player.y, rayDir.x, rayDir.y, maxDistance);
 }
 

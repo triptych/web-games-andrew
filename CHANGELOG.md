@@ -8,6 +8,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wolfenstein-like Raycasting FPS** (game-006): Phase 3 - Enemy System & AI
+  - **Enemy System**: Complete AI-driven enemies with 5 distinct types
+    - **Guard**: 50 HP, 2 u/s speed, 5-10 damage, green uniform - Basic patrol enemy
+    - **Officer**: 75 HP, 3 u/s speed, 10-15 damage, blue uniform - More aggressive pursuit
+    - **SS Trooper**: 100 HP, 4 u/s speed, 15-25 damage, dark gray uniform - Fast & flanking
+    - **Dog**: 30 HP, 5 u/s speed, 15-20 damage, brown - Melee-only, very fast
+    - **Boss**: 500 HP, 2 u/s speed, 25-50 damage, red armor - Tank with high HP
+  - **AI State Machine**: Four intelligent states with smooth transitions
+    - **PATROL**: Rotates slowly (30°/s) scanning for player, transitions to ALERT when player spotted
+    - **ALERT**: Investigates last known player position, rotates faster (60°/s), 5-second timeout returns to PATROL
+    - **CHASE**: Actively pursues player with collision avoidance, direct pathfinding, transitions to ATTACK when in range
+    - **ATTACK**: Stops moving, faces player, fires weapon, occasional strafing for evasion
+  - **Enemy Rendering with Kaplay Drawing API**: Procedurally-generated billboard sprites
+    - No sprite assets needed - all enemies rendered using `drawRect()`, `drawCircle()`, `drawEllipse()`
+    - Billboard sprites always face camera naturally
+    - Each enemy type has distinctive color scheme and body structure
+    - Visual components: colored body rectangle, lighter head circle, darker arm rectangles
+    - Muzzle flash when shooting (bright yellow circle)
+    - Health bars above damaged enemies (green → yellow → red gradient)
+    - Dead enemies render as flat ellipse corpses on ground
+    - Depth sorting (far to near rendering, painter's algorithm)
+    - Z-buffering (doesn't render behind walls, per-column depth testing)
+    - Proper 3D perspective scaling based on distance
+  - **FOV & Line-of-Sight**: Realistic detection system
+    - Field of View detection with customizable angle per enemy type (60°-120°)
+    - Line-of-sight raycasting prevents seeing through walls
+    - FOV distance ranges from 10-16 units depending on enemy type
+    - Checks 8 directions around enemy for player detection
+  - **Enemy Combat System**: Distance-based accuracy and damage
+    - Enemies shoot at player when in range and line-of-sight available
+    - Accuracy decreases with distance (80% base, scales down with range)
+    - Fire rate customized per enemy type (1-2.5 shots/second)
+    - Damage ranges specific to enemy type
+    - Player damage flash effect when hit
+    - Game over when player health reaches 0
+  - **Weapon Integration**: All weapons work against enemies
+    - Pistol, Machine Gun, Shotgun: Hitscan hit detection with raycasting
+    - Rocket Launcher: Projectile collision with splash damage to multiple enemies
+    - Hit detection using dot product (0.7 threshold) and perpendicular distance (0.8 radius)
+    - Generous hit detection balances gameplay vs realism
+    - Visual feedback: damage numbers in console, enemy flash on hit
+  - **Enemy Spawning System**: Flexible spawn configuration
+    - `spawnEnemy(type, x, y, angle)` - Spawn single enemy
+    - `spawnEnemiesFromConfig(enemyConfig)` - Spawn from array configuration
+    - Test map includes 6 enemies: 2 Guards, 1 Officer, 2 Dogs, 1 SS Trooper
+    - Each enemy logs spawn details (position, HP, speed) for debugging
+  - **Performance Optimizations**: Efficient enemy handling
+    - Maximum 20 active enemies (configurable)
+    - Enemies beyond 20 units culled (not rendered or updated)
+    - Enemies behind camera skipped entirely
+    - Dead enemies removed after 3-second death animation
+    - Per-column depth testing prevents overdraw
+    - Maintains 60 FPS with 6 active enemies
+  - **Debug Features**: Real-time enemy inspection
+    - `window.debugEnemies()` helper function for browser console
+    - Shows all enemy states, HP, positions, distances from player
+    - Extensive console logging for AI state transitions
+    - Damage dealt/received logs with HP tracking
+    - Kill tracking in game stats
+  - **Game Stats**: New tracking metrics
+    - `state.enemiesKilled` - Total enemies defeated
+    - `state.shotsFired` - Total shots taken (from Phase 2)
+    - `state.shotsHit` - Successful hits for accuracy tracking
+  - Files: Created [game-006/js/enemies.js](game-006/js/enemies.js), Updated [game-006/js/config.js](game-006/js/config.js), [game-006/js/state.js](game-006/js/state.js), [game-006/js/renderer.js](game-006/js/renderer.js), [game-006/js/main.js](game-006/js/main.js), [game-006/js/raycaster.js](game-006/js/raycaster.js), [game-006/js/input.js](game-006/js/input.js), [game-006/js/weapons.js](game-006/js/weapons.js), Added [game-006/PHASE3-COMPLETE.md](game-006/PHASE3-COMPLETE.md)
+
+### Fixed
+- **Wolfenstein-like Raycasting FPS** (game-006): Critical bug - Enemies not taking damage despite hit detection working
+  - **Issue**: `checkEnemyHit()` was correctly detecting hits, but `takeDamage()` was never being called on enemies
+  - **Root Cause**: In `weapons.js` (lines 310-317), when creating hit objects to return, the `enemy` property was not being copied from the raycast result
+  - **Symptom**: Console showed "✅✅✅ RETURNING HIT: Officer at 1.28 units" but no damage logs appeared
+  - **Why Silent Failure**: `input.js` tried to call `hit.enemy.takeDamage()` on undefined, which failed silently without throwing an error
+  - **Data Flow Bug**: The call chain was raycaster → weapons → input → enemies, and the enemy reference was lost in the middle (weapons.js)
+  - **Solution**: Added `enemy: hit.enemy,` to the hit object being pushed in `fireWeapon()` function
+  - **Lesson**: Always verify that object properties are being properly copied/forwarded through multi-step data transformations
+  - **Prevention**: Use extensive logging at each step of data flow, verify object completeness after copying/transforming
+  - File: [game-006/js/weapons.js](game-006/js/weapons.js#L312)
+
+- **Wolfenstein-like Raycasting FPS** (game-006): Fixed hit detection too strict (enemies nearly impossible to hit)
+  - **Issue**: Initial dot product threshold of 0.98 required almost perfect aim
+  - **Solution**: Reduced to 0.7 for more forgiving gameplay, increased perpendicular distance tolerance from enemy.type.size to 0.8
+  - File: [game-006/js/enemies.js](game-006/js/enemies.js#L564-L569)
+
+### Added
 - **Wolfenstein-like Raycasting FPS** (game-006): Phase 2 - Complete Shooting System with Effects
   - **Shooting Input**: Multiple firing methods
     - Left mouse click to fire current weapon

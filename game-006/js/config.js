@@ -77,3 +77,20 @@ export const TEST_MAP = [
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ];
+
+// Enemy spawn configuration for test map
+export const TEST_ENEMIES = [
+    // Guards in corners
+    { type: 'GUARD', x: 5.5, y: 5.5, angle: 180 },
+    { type: 'GUARD', x: 10.5, y: 5.5, angle: 270 },
+
+    // Officer in center area
+    { type: 'OFFICER', x: 8.5, y: 8.5, angle: 90 },
+
+    // Dogs for fast encounters
+    { type: 'DOG', x: 12.5, y: 12.5, angle: 225 },
+    { type: 'DOG', x: 4.5, y: 12.5, angle: 315 },
+
+    // SS Trooper as harder enemy
+    { type: 'SS_TROOPER', x: 13.5, y: 2.5, angle: 180 },
+];

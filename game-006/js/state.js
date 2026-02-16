@@ -31,6 +31,9 @@ export const state = {
     impacts: [], // Bullet impacts on walls
     explosions: [], // Explosion effects
 
+    // Enemies (Phase 3)
+    enemies: [],
+
     // Map reference
     map: null,
 
@@ -63,5 +66,6 @@ export const state = {
         this.projectiles = [];
         this.impacts = [];
         this.explosions = [];
+        this.enemies = [];
     }
 };

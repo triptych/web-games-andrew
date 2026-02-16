@@ -4,7 +4,7 @@
  */
 
 import kaplay from '../../lib/kaplay/kaplay.mjs';
-import { SCREEN_WIDTH, SCREEN_HEIGHT, TEST_MAP } from './config.js';
+import { SCREEN_WIDTH, SCREEN_HEIGHT, TEST_MAP, TEST_ENEMIES } from './config.js';
 import { state } from './state.js';
 import { initTextures } from './textures.js';
 import { initRenderer } from './renderer.js';
@@ -12,6 +12,7 @@ import { initPlayer } from './player.js';
 import { initInput } from './input.js';
 import { initUI } from './ui.js';
 import { initWeapons, updateWeapons, unlockWeapon } from './weapons.js';
+import { initEnemies, updateEnemies, spawnEnemiesFromConfig } from './enemies.js';
 
 // Initialize kaplay with transparent rendering
 const k = kaplay({
@@ -25,6 +26,22 @@ const k = kaplay({
 
 // Make kaplay globally accessible for debugging
 window.k = k;
+
+// Debug helper to check enemy status
+window.debugEnemies = () => {
+    console.log('\n=== ENEMY STATUS ===');
+    if (!state.enemies || state.enemies.length === 0) {
+        console.log('No enemies found!');
+        return;
+    }
+    state.enemies.forEach((enemy, i) => {
+        const dx = enemy.x - state.player.x;
+        const dy = enemy.y - state.player.y;
+        const dist = Math.sqrt(dx * dx + dy * dy).toFixed(1);
+        console.log(`${i + 1}. ${enemy.type.name} - HP: ${enemy.hp.toFixed(0)}/${enemy.maxHp} - State: ${enemy.state} - Alive: ${enemy.alive} - Dist: ${dist} units - Pos: (${enemy.x.toFixed(1)}, ${enemy.y.toFixed(1)})`);
+    });
+    console.log('==================\n');
+};
 
 // Game scene
 k.scene("game", () => {
@@ -41,6 +58,7 @@ k.scene("game", () => {
     initRenderer(k);
     initPlayer(k);
     initWeapons(k);
+    initEnemies(k); // Phase 3: Initialize enemy system
     initInput(k);
     initUI(k);
 
@@ -49,6 +67,9 @@ k.scene("game", () => {
     unlockWeapon('machinegun');
     unlockWeapon('shotgun');
     unlockWeapon('rocket');
+
+    // Spawn enemies for Phase 3 testing
+    spawnEnemiesFromConfig(TEST_ENEMIES);
 
     // Update loop - for logic only
     k.onUpdate(() => {
@@ -62,6 +83,9 @@ k.scene("game", () => {
 
         // Update weapon system (projectiles, effects, etc.)
         updateWeapons(k.dt());
+
+        // Update enemy system (AI, behaviors, etc.) - Phase 3
+        updateEnemies(k.dt(), state.player);
     });
 
     // Note: Rendering is now handled by player object's draw() function

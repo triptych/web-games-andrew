@@ -1391,8 +1391,346 @@ function checkWaveCompletion() {
 
 ---
 
-**Document Version**: 1.1
-**Last Updated**: 2026-02-14
-**Games Covered**: 001-005
-**Total Lines Analyzed**: ~10,000+
-**Latest Enhancement**: Advanced Prefab System with RPG Classes and Behavior Components
+---
+
+## Game 006: Wolfenstein-like Raycasting FPS
+
+### Phase 3: Enemy System & AI (2026-02-15)
+
+**Implementation Overview:**
+
+Game 006 Phase 3 introduced a complete enemy system with AI behaviors, all rendered using Kaplay's drawing API rather than sprites. This was a significant architectural choice that proved highly effective.
+
+### Enemy Rendering with Kaplay Drawing API
+
+**Design Decision:**
+Instead of using sprite assets, enemies are rendered as procedurally-generated billboards using Kaplay's primitive drawing functions (`drawRect`, `drawCircle`, `drawEllipse`).
+
+**Benefits:**
+- ✅ **Zero Assets**: No image files needed, faster loading
+- ✅ **Distinctive Visuals**: Each enemy type has unique color and shape
+- ✅ **Billboard Rendering**: Sprites always face camera naturally
+- ✅ **Easy Customization**: Change colors/sizes without editing sprites
+- ✅ **Depth Sorting**: Integrates seamlessly with raycasting z-buffer
+
+**Implementation Pattern:**
+```javascript
+// Enemy sprite rendering (renderer.js)
+function drawEnemySprite(enemy, screenX, spriteHeight, distance) {
+    const spriteWidth = spriteHeight * 0.8;
+    const drawY = screenCenterY - spriteHeight / 2;
+
+    // Body (colored rectangle based on enemy type)
+    k.drawRect({
+        width: spriteWidth,
+        height: spriteHeight * 0.7,
+        pos: vec2(screenX - spriteWidth / 2, drawY + spriteHeight * 0.3),
+        color: k.rgb(enemy.type.color),
+    });
+
+    // Head (lighter circle)
+    k.drawCircle({
+        radius: spriteWidth * 0.3,
+        pos: vec2(screenX, drawY + spriteHeight * 0.15),
+        color: k.rgb(headColor),
+    });
+
+    // Arms (darker rectangles)
+    // ... etc
+}
+```
+
+**Visual Design Per Enemy Type:**
+- **Guard**: Green uniform (50 HP, 2 u/s)
+- **Officer**: Blue uniform (75 HP, 3 u/s)
+- **SS Trooper**: Dark gray uniform (100 HP, 4 u/s)
+- **Dog**: Brown, smaller size (30 HP, 5 u/s, melee only)
+- **Boss**: Red armor, larger size (500 HP, 2 u/s)
+
+### AI State Machine Implementation
+
+**Four-State FSM:**
+
+1. **PATROL** - Default idle state
+   - Rotates slowly (30°/s) scanning for player
+   - Checks FOV cone for player detection
+   - Transitions to ALERT when player spotted
+
+2. **ALERT** - Investigation state
+   - Rotates faster (60°/s) looking around
+   - Stores last known player position
+   - 5-second timeout returns to PATROL
+   - Transitions to CHASE if player found
+
+3. **CHASE** - Active pursuit
+   - Direct movement toward player
+   - Collision detection with walls
+   - Updates facing angle to player direction
+   - Transitions to ATTACK when in weapon range
+
+4. **ATTACK** - Combat engagement
+   - Stops moving, faces player
+   - Fires weapon based on fire rate
+   - Occasional strafing (10% chance per frame)
+   - Returns to CHASE if player escapes range
+
+**Key AI Features:**
+- FOV-based detection (customizable angle per enemy type)
+- Line-of-sight raycasting (can't see through walls)
+- Distance-based accuracy for enemy shooting
+- Smooth state transitions with logging
+
+### Critical Bug: Missing Enemy Reference in Hit Objects
+
+**The Problem:**
+
+During Phase 3 testing, players could shoot enemies (checkEnemyHit was working), but enemies weren't taking damage. Console logs showed:
+
+```
+✅✅✅ RETURNING HIT: Officer at 1.28 units
+```
+
+But no damage was being applied. The bug was **subtle and easy to miss**.
+
+**Root Cause:**
+
+In `weapons.js`, the hit detection was working perfectly, but when creating the hit object to return, we forgot to copy the `enemy` reference:
+
+```javascript
+// ❌ BROKEN CODE (lines 310-317)
+if (hit && hit.distance <= weapon.range) {
+    const damage = calculateDamage(weapon, hit.distance);
+
+    hits.push({
+        target: hit.target,
+        // MISSING: enemy: hit.enemy,  ← THIS LINE WAS MISSING!
+        damage: damage,
+        distance: hit.distance,
+        x: hit.x,
+        y: hit.y,
+        weapon: weapon.id,
+    });
+}
+```
+
+**Why It Failed:**
+
+The call chain was: `raycaster.js` → `weapons.js` → `input.js` → `enemies.js`
+
+1. `castSingleRay()` in raycaster.js correctly returned `{ target: 'enemy', enemy: enemyObj }`
+2. `fireWeapon()` in weapons.js received this hit, calculated damage
+3. BUT when pushing to `hits` array, it **didn't copy the `enemy` property**
+4. `input.js` tried to call `hit.enemy.takeDamage()` on undefined
+5. No error thrown (just silent failure), no damage applied
+
+**The Fix:**
+
+```javascript
+// ✅ FIXED CODE
+hits.push({
+    target: hit.target,
+    enemy: hit.enemy,  // ← Added this line!
+    damage: damage,
+    distance: hit.distance,
+    x: hit.x,
+    y: hit.y,
+    weapon: weapon.id,
+});
+```
+
+**Lessons Learned:**
+
+> **Critical Lesson**: When passing data through multiple function calls, **always verify that all necessary properties are being copied/forwarded correctly**. Silent failures (undefined properties) can be harder to debug than explicit errors.
+
+**Debugging Process:**
+1. Added extensive logging to `checkEnemyHit()` - confirmed it was working
+2. User provided console output showing hits were being detected
+3. Noticed no `takeDamage()` logs despite hit detection working
+4. Traced the data flow: raycaster → weapons → input
+5. Found the missing property copy in the middle of the chain
+
+**Prevention:**
+- ✅ Use TypeScript or JSDoc for type checking
+- ✅ Add logging at each step of data transformation
+- ✅ Verify object properties are complete after copying/transforming
+- ✅ Test integration points between modules thoroughly
+
+### Enemy Hit Detection System
+
+**Hit Detection Algorithm:**
+
+Uses dot product and perpendicular distance for generous hit detection:
+
+```javascript
+export function checkEnemyHit(rayDirX, rayDirY, playerX, playerY, maxDistance) {
+    for (const enemy of state.enemies) {
+        if (!enemy.alive) continue;
+
+        const dx = enemy.x - playerX;
+        const dy = enemy.y - playerY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance > maxDistance) continue;
+
+        const dirX = dx / distance;
+        const dirY = dy / distance;
+
+        // Dot product: 1 = perfect aim, 0 = perpendicular
+        const dot = dirX * rayDirX + dirY * rayDirY;
+
+        if (dot > 0.7) {  // Enemy roughly in front
+            // Perpendicular distance from ray to enemy
+            const perpDist = Math.abs(dirX * rayDirY - dirY * rayDirX) * distance;
+
+            if (perpDist < 0.8) {  // Generous hit radius
+                if (distance < closestDist) {
+                    closestHit = enemy;
+                    closestDist = distance;
+                }
+            }
+        }
+    }
+    return closestHit;
+}
+```
+
+**Tuning Notes:**
+- Initial dot product threshold of 0.98 was too strict (almost impossible to hit)
+- Changed to 0.7 for more forgiving gameplay
+- Perpendicular distance of 0.8 provides good balance
+
+### Integration with Weapon System
+
+**All Four Weapons Work with Enemies:**
+
+1. **Pistol**: Hitscan, infinite ammo, reliable damage
+2. **Machine Gun**: Rapid hitscan with slight spread
+3. **Shotgun**: Multiple pellets (5), wide spread, distance falloff
+4. **Rocket Launcher**: Projectile with splash damage to multiple enemies
+
+**Splash Damage Implementation:**
+
+Rockets check all enemies within splash radius on explosion:
+
+```javascript
+function handleProjectileExplosion(projectile) {
+    if (state.enemies && projectile.splashRadius) {
+        for (const enemy of state.enemies) {
+            if (!enemy.alive) continue;
+
+            const dx = enemy.x - projectile.x;
+            const dy = enemy.y - projectile.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= projectile.splashRadius) {
+                const distanceFactor = 1 - (distance / projectile.splashRadius);
+                const damage = projectile.damage * distanceFactor;
+                enemy.takeDamage(damage);
+            }
+        }
+    }
+}
+```
+
+### Performance Considerations
+
+**Optimizations:**
+- Maximum 20 enemies active at once (configurable)
+- Enemies beyond 20 units culled (not rendered or updated)
+- Enemies behind camera skipped entirely
+- Dead enemies removed after 3-second death animation
+- Per-column depth testing prevents overdraw
+
+**Frame Rate:**
+- Maintains 60 FPS with 6 active enemies
+- Raycasting + enemy rendering + AI all complete within 16ms
+
+### Architecture Patterns Used
+
+**1. Separation of Concerns:**
+- `enemies.js`: Enemy class, AI logic, spawn system
+- `renderer.js`: Enemy rendering, depth sorting, billboarding
+- `raycaster.js`: Hit detection integration
+- `weapons.js`: Damage application, projectile collision
+- `input.js`: Player shooting, damage application
+
+**2. Data Flow:**
+```
+Player fires → castSingleRay() → checkEnemyHit() → fireWeapon() →
+handleShoot() → enemy.takeDamage() → enemy.die() → state.enemiesKilled++
+```
+
+**3. Event-Driven Updates:**
+- Enemy AI runs in `updateEnemies()` called from main game loop
+- Rendering happens in `renderEnemies()` called from player's draw()
+- Clean separation between logic and rendering
+
+### Visual Feedback System
+
+**Enemy Rendering Features:**
+- Health bars above damaged enemies (green → yellow → red)
+- Muzzle flash when enemy shoots (bright yellow circle)
+- Death animation (enemy falls to ground as flat ellipse)
+- Depth sorting (far to near, painter's algorithm)
+- Z-buffering (don't render behind walls)
+- Proper 3D perspective scaling
+
+**Console Logging:**
+```
+✓ Spawned Guard at (5.5, 5.5) - HP: 50, Speed: 2
+Guard → PATROL
+Guard → ALERT (Player detected!)
+Guard → CHASE (Pursuing player!)
+Guard → ATTACK (In range!)
+Guard hit player for 8 damage! (92 HP remaining)
+⚔️ Guard took 18.3 damage! HP: 50.0 → 31.7/50
+⚔️ Guard took 22.1 damage! HP: 31.7 → 9.6/50
+⚔️ Guard took 17.4 damage! HP: 9.6 → 0.0/50 💀 KILLED!
+Guard killed! Total kills: 1
+```
+
+### Testing Insights
+
+**Debug Helper:**
+```javascript
+window.debugEnemies = () => {
+    console.log('=== ENEMY STATUS ===');
+    state.enemies.forEach((enemy, i) => {
+        const dist = Math.sqrt(
+            (enemy.x - state.player.x) ** 2 +
+            (enemy.y - state.player.y) ** 2
+        ).toFixed(1);
+        console.log(`${i + 1}. ${enemy.type.name} - HP: ${enemy.hp.toFixed(0)}/${enemy.maxHp} - State: ${enemy.state} - Alive: ${enemy.alive} - Dist: ${dist} units`);
+    });
+};
+```
+
+Call `debugEnemies()` in browser console to inspect all enemy states in real-time.
+
+### Key Takeaways
+
+**What Worked Well:**
+✅ Kaplay drawing API for enemy rendering (no sprites needed)
+✅ Four-state AI FSM is simple but effective
+✅ Billboard rendering integrates perfectly with raycasting
+✅ FOV-based detection feels fair and realistic
+✅ Extensive logging made debugging much easier
+
+**What Was Challenging:**
+❌ Hit detection initially too strict (dot product tuning)
+❌ Missing property in object copying caused silent failure
+❌ Debugging data flow across 4 modules took careful tracing
+❌ Balancing enemy movement speed vs player movement
+
+**Architecture Success:**
+> The modular architecture from game-005 proved invaluable. Having enemies, weapons, raycasting, and rendering in separate modules made it easy to debug the missing enemy reference bug by isolating each step of the data flow.
+
+**Phase 3 Complete:** ✅ All 5 enemy types working, AI behaviors functional, weapon integration complete, rendering optimized.
+
+---
+
+**Document Version**: 1.2
+**Last Updated**: 2026-02-15
+**Games Covered**: 001-006
+**Total Lines Analyzed**: ~12,000+
+**Latest Enhancement**: Game 006 Phase 3 - Enemy System with Kaplay Drawing API

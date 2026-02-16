@@ -131,13 +131,18 @@ function handleShoot(k) {
     if (result) {
         state.shotsFired++;
 
-        // Track hits for accuracy
+        // Track hits for accuracy and apply damage (Phase 3)
         if (result.hits && result.hits.length > 0) {
             state.shotsHit += result.hits.length;
 
-            // Log hits for debugging
+            // Apply damage to enemies
             result.hits.forEach(hit => {
-                console.log(`Hit at distance ${hit.distance.toFixed(2)}, damage: ${hit.damage.toFixed(1)}`);
+                if (hit.target === 'enemy' && hit.enemy) {
+                    // takeDamage will log the damage, so we don't need to log here
+                    hit.enemy.takeDamage(hit.damage);
+                } else if (hit.target === 'wall') {
+                    console.log(`🧱 Hit wall at distance ${hit.distance.toFixed(2)}`);
+                }
             });
         }
     }
