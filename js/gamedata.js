@@ -67,6 +67,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '⚔️', label: 'RPG' }
         ]
+    },
+    {
+        id: 'game-006',
+        title: 'Dungeon Crawler FPS',
+        description: 'Retro-inspired first-person dungeon crawler with raycasting visuals. Explore procedurally generated floors, manage weapons and resources, and survive enemies in a fast-paced labyrinth adventure.',
+        icon: '🏰',
+        folder: 'game-006',
+        cssClass: 'dungeon-fps',
+        tags: [
+            { emoji: '🏰', label: 'Dungeon' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '🔫', label: 'FPS' }
+        ]
     }
 ];
 

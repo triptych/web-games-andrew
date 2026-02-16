@@ -53,6 +53,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Credit to [jestan](https://jestan.itch.io/pixel-texture-pack) for pixel texture pack
   - Ko-fi support link included
 
+### Changed
+- **Game Browser**: Added **game-006** to the top-level launcher data so it appears in the main index card grid
+  - Added a new `game-006` entry in [js/gamedata.js](js/gamedata.js)
+  - Updated fallback total games count in [index.html](index.html) from `5` to `6`
+
 ### Added
 - **Wolfenstein-like Raycasting FPS** (game-006): Game Over Screen & Restart System
   - **Game Over Screen**: Professional death screen with stats summary
