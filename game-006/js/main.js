@@ -4,7 +4,7 @@
  */
 
 import kaplay from '../../lib/kaplay/kaplay.mjs';
-import { SCREEN_WIDTH, SCREEN_HEIGHT, TEST_MAP, TEST_ENEMIES } from './config.js';
+import { SCREEN_WIDTH, SCREEN_HEIGHT, TEST_MAP, TEST_ENEMIES, TEST_ITEMS } from './config.js';
 import { state } from './state.js';
 import { initTextures } from './textures.js';
 import { initRenderer } from './renderer.js';
@@ -13,6 +13,8 @@ import { initInput } from './input.js';
 import { initUI } from './ui.js';
 import { initWeapons, updateWeapons, unlockWeapon } from './weapons.js';
 import { initEnemies, updateEnemies, spawnEnemiesFromConfig } from './enemies.js';
+import { initItems, updateItems, spawnItemsFromConfig } from './items.js';
+import { initMenuScene } from './menu.js';
 
 // Initialize kaplay with transparent rendering
 const k = kaplay({
@@ -43,6 +45,9 @@ window.debugEnemies = () => {
     console.log('==================\n');
 };
 
+// Initialize menu scene
+initMenuScene(k);
+
 // Game scene
 k.scene("game", () => {
     console.log('Starting game scene...');
@@ -59,6 +64,7 @@ k.scene("game", () => {
     initPlayer(k);
     initWeapons(k);
     initEnemies(k); // Phase 3: Initialize enemy system
+    initItems(k); // Initialize item/pickup system
     initInput(k);
     initUI(k);
 
@@ -70,6 +76,9 @@ k.scene("game", () => {
 
     // Spawn enemies for Phase 3 testing
     spawnEnemiesFromConfig(TEST_ENEMIES);
+
+    // Spawn items (health and ammo pickups)
+    spawnItemsFromConfig(TEST_ITEMS);
 
     // Update loop - for logic only
     k.onUpdate(() => {
@@ -86,6 +95,9 @@ k.scene("game", () => {
 
         // Update enemy system (AI, behaviors, etc.) - Phase 3
         updateEnemies(k.dt(), state.player);
+
+        // Update items system (bobbing, pickup detection, etc.)
+        updateItems(k.dt(), state.player);
     });
 
     // Note: Rendering is now handled by player object's draw() function
@@ -109,7 +121,7 @@ k.scene("game", () => {
     console.log('Game scene initialized!');
 });
 
-// Start the game
-k.go("game");
+// Start with menu/splash screen
+k.go("menu");
 
-console.log('Kaplay initialized - Game started!');
+console.log('Kaplay initialized - Starting with menu!');

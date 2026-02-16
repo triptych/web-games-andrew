@@ -23,41 +23,73 @@ export const textures = {
 export function initTextures(kaplay) {
     k = kaplay;
 
-    console.log('Loading textures...');
+    console.log('Initializing textures... texturesLoaded:', texturesLoaded, 'slices:', textures.wall.slices.length);
+
+    // If already loaded and processed, reuse existing textures
+    if (texturesLoaded && textures.wall.slices.length > 0) {
+        console.log('Textures already loaded and processed, reusing existing slices');
+        return;
+    }
 
     // Load wall texture
     k.loadSprite("wall", "sprites/brick_wall.png");
 
+    // Function to process textures once loaded
+    const processTextures = () => {
+        console.log('Processing texture slices...');
+
+        try {
+            // Get wall sprite data
+            const wallSprite = k.getSprite("wall");
+            console.log('Got wallSprite:', !!wallSprite, 'has data:', !!(wallSprite && wallSprite.data));
+
+            if (wallSprite && wallSprite.data) {
+                // Clear existing slices
+                textures.wall.slices = [];
+
+                textures.wall.data = wallSprite.data;
+                textures.wall.width = wallSprite.data.width;
+                textures.wall.height = wallSprite.data.height;
+
+                // Create vertical slices for raycasting
+                // Each slice is 1 pixel wide
+                for (let i = 0; i < wallSprite.data.width; i++) {
+                    const quad = new k.Quad(
+                        i / wallSprite.data.width,
+                        0,
+                        1 / wallSprite.data.width,
+                        1
+                    );
+                    textures.wall.slices.push(
+                        wallSprite.data.frames[0].scale(quad)
+                    );
+                }
+
+                console.log(`✓ Wall texture sliced: ${textures.wall.slices.length} slices from ${wallSprite.data.width}x${wallSprite.data.height} texture`);
+                texturesLoaded = true;
+            } else {
+                console.warn('Wall sprite not ready');
+            }
+        } catch (e) {
+            console.error('Error processing textures:', e);
+        }
+    };
+
     // Wait for sprites to load
     k.onLoad(() => {
-        console.log('Sprites loaded, creating slices...');
-
-        // Get wall sprite data
-        const wallSprite = k.getSprite("wall");
-        if (wallSprite && wallSprite.data) {
-            textures.wall.data = wallSprite.data;
-            textures.wall.width = wallSprite.data.width;
-            textures.wall.height = wallSprite.data.height;
-
-            // Create vertical slices for raycasting
-            // Each slice is 1 pixel wide
-            for (let i = 0; i < wallSprite.data.width; i++) {
-                const quad = new k.Quad(
-                    i / wallSprite.data.width,
-                    0,
-                    1 / wallSprite.data.width,
-                    1
-                );
-                textures.wall.slices.push(
-                    wallSprite.data.frames[0].scale(quad)
-                );
-            }
-
-            console.log(`Wall texture sliced: ${textures.wall.slices.length} slices from ${wallSprite.data.width}x${wallSprite.data.height} texture`);
+        console.log('onLoad callback fired, texturesLoaded:', texturesLoaded);
+        if (!texturesLoaded) {
+            processTextures();
         }
-
-        texturesLoaded = true;
     });
+
+    // Also try immediate processing (in case sprite is cached from previous scene)
+    setTimeout(() => {
+        if (!texturesLoaded) {
+            console.log('Attempting immediate texture processing after timeout...');
+            processTextures();
+        }
+    }, 50);
 }
 
 /**

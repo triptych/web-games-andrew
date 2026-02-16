@@ -75,6 +75,11 @@ export function render(player) {
     // Render walls
     renderWalls(rays);
 
+    // Render items (pickups) - before enemies for proper depth sorting
+    if (state.items && state.items.length > 0) {
+        renderItems(player, rays);
+    }
+
     // Render enemies (Phase 3)
     if (state.enemies && state.enemies.length > 0) {
         renderEnemies(player, rays);
@@ -191,6 +196,110 @@ function drawSolidWallSlice(column, drawStart, drawEnd, wallType, brightness) {
         height: drawEnd - drawStart,
         color: k.rgb(r, g, b),
     });
+}
+
+/**
+ * Render items as billboard sprites (pickups)
+ */
+function renderItems(player, rays) {
+    if (!state.items || state.items.length === 0) return;
+
+    // Create array of items with distance for sorting
+    const itemsWithDist = state.items.map(item => {
+        const dx = item.x - player.x;
+        const dy = item.y - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        return { item, distance, dx, dy };
+    });
+
+    // Sort by distance (far to near) for proper depth rendering
+    itemsWithDist.sort((a, b) => b.distance - a.distance);
+
+    // Render each item
+    for (const { item, distance, dx, dy } of itemsWithDist) {
+        // Skip if too far
+        if (distance > MAX_RAY_DISTANCE) continue;
+
+        // Transform item position to camera space
+        const invDet = 1.0 / (player.planeX * player.dirY - player.dirX * player.planeY);
+        const transformX = invDet * (player.dirY * dx - player.dirX * dy);
+        const transformY = invDet * (-player.planeY * dx + player.planeX * dy);
+
+        // Skip if behind camera
+        if (transformY <= 0.1) continue;
+
+        // Calculate screen position
+        const screenX = Math.floor((SCREEN_WIDTH / 2) * (1 + transformX / transformY));
+
+        // Calculate sprite dimensions based on distance
+        const spriteHeight = Math.abs(Math.floor(SCREEN_HEIGHT / transformY * item.size));
+        const spriteWidth = spriteHeight; // Square sprite
+
+        // Calculate vertical offset for bobbing animation
+        const bobPhase = item.timeAlive * item.bobSpeed + item.bobOffset;
+        const bobHeight = item.baseHeight + Math.sin(bobPhase) * item.bobHeight;
+        const verticalOffset = Math.floor((bobHeight - 0.5) * spriteHeight);
+
+        // Calculate draw bounds
+        const drawStartY = Math.floor((SCREEN_HEIGHT - spriteHeight) / 2 + verticalOffset);
+        const drawStartX = Math.floor(screenX - spriteWidth / 2);
+        const drawEndX = Math.floor(screenX + spriteWidth / 2);
+
+        // Check if on screen
+        if (drawEndX < 0 || drawStartX >= SCREEN_WIDTH) continue;
+
+        // Clamp to screen bounds
+        const startX = Math.max(0, drawStartX);
+        const endX = Math.min(SCREEN_WIDTH, drawEndX);
+
+        // Check depth buffer - skip if behind walls
+        let visibleColumns = 0;
+        for (let x = startX; x < endX; x++) {
+            if (x >= 0 && x < rays.length && transformY < rays[x].distance) {
+                visibleColumns++;
+            }
+        }
+
+        if (visibleColumns === 0) continue;
+
+        // Draw item sprite
+        const radius = spriteWidth * 0.4;
+        const color = item.color;
+
+        // Draw main sphere
+        for (let x = startX; x < endX; x++) {
+            if (x >= 0 && x < rays.length && transformY < rays[x].distance) {
+                const relX = (x - screenX) / radius;
+                if (Math.abs(relX) <= 1) {
+                    const sliceHeight = spriteHeight * 0.8 * Math.sqrt(1 - relX * relX);
+                    const sliceY = drawStartY + (spriteHeight - sliceHeight) / 2;
+
+                    k.drawRect({
+                        pos: k.vec2(x, sliceY),
+                        width: 1,
+                        height: sliceHeight,
+                        color: k.rgb(color[0], color[1], color[2]),
+                    });
+                }
+            }
+        }
+
+        // Draw highlight
+        const glintX = Math.floor(screenX);
+        if (glintX >= 0 && glintX < rays.length && transformY < rays[glintX].distance) {
+            k.drawCircle({
+                pos: k.vec2(screenX - radius * 0.2, drawStartY + spriteHeight * 0.3),
+                radius: radius * 0.25,
+                color: k.rgb(
+                    Math.min(255, color[0] + 100),
+                    Math.min(255, color[1] + 100),
+                    Math.min(255, color[2] + 100)
+                ),
+                opacity: 0.7,
+            });
+        }
+    }
 }
 
 /**

@@ -60,6 +60,9 @@ export function playSound(soundType, options = {}) {
         case 'ammoPickup':
             playPickupSound(ctx, now, volume, 600);
             break;
+        case 'healthPickup':
+            playPickupSound(ctx, now, volume, 700);
+            break;
         case 'playerHurt':
             playPlayerHurtSound(ctx, now, volume);
             break;

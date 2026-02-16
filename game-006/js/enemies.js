@@ -391,6 +391,7 @@ class Enemy {
             state.damageFlashTime = Date.now();
 
             console.log(`${this.type.name} hit player for ${damage} damage! (${state.health} HP remaining)`);
+            console.log(`DEBUG: Player position after damage: (${state.player.x.toFixed(2)}, ${state.player.y.toFixed(2)})`);
 
             // Game over check
             if (state.health <= 0) {

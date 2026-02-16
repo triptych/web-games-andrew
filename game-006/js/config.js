@@ -94,3 +94,25 @@ export const TEST_ENEMIES = [
     // SS Trooper as harder enemy
     { type: 'SS_TROOPER', x: 13.5, y: 2.5, angle: 180 },
 ];
+
+// Item spawn configuration for test map
+export const TEST_ITEMS = [
+    // Health pickups scattered around
+    { type: 'HEALTH_SMALL', x: 3.5, y: 3.5 },
+    { type: 'HEALTH_MEDIUM', x: 8.5, y: 2.5 },
+    { type: 'HEALTH_SMALL', x: 13.5, y: 13.5 },
+    { type: 'HEALTH_LARGE', x: 8.5, y: 14.5 },
+
+    // Ammo pickups - strategically placed
+    // Bullets for machine gun
+    { type: 'AMMO_BULLETS', x: 6.5, y: 8.5 },
+    { type: 'AMMO_BULLETS', x: 11.5, y: 10.5 },
+
+    // Shells for shotgun (since it starts with 0)
+    { type: 'AMMO_SHELLS', x: 4.5, y: 6.5 },
+    { type: 'AMMO_SHELLS', x: 12.5, y: 8.5 },
+
+    // Rockets for rocket launcher (since it starts with 0)
+    { type: 'AMMO_ROCKETS', x: 8.5, y: 11.5 },
+    { type: 'AMMO_ROCKETS', x: 2.5, y: 13.5 },
+];
