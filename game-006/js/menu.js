@@ -20,7 +20,7 @@ export function initMenuScene(k) {
 
         // Title
         k.add([
-            k.text("WOLFENSTEIN 3D", {
+            k.text("WOLF-CLONE 3D", {
                 size: 48,
                 font: 'monospace',
             }),
