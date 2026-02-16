@@ -256,10 +256,10 @@ export function fireWeapon(player, map, castRayFunction) {
     // Play weapon sound
     playSound(`fire_${weapon.id}`);
 
-    // Screen shake (disabled for now)
-    // if (state.camera) {
-    //     state.camera.shake = 5;
-    // }
+    // Screen shake for feedback
+    if (state.camera) {
+        state.camera.shake = weapon.id === 'shotgun' ? 8 : weapon.id === 'rocket' ? 10 : 3;
+    }
 
     const hits = [];
 
@@ -326,6 +326,11 @@ export function fireWeapon(player, map, castRayFunction) {
                         time: Date.now(),
                         duration: 200, // ms
                     });
+                }
+
+                // Play impact sound (occasional, not every pellet for shotgun)
+                if (i === 0 || weapon.projectileCount === 1) {
+                    playSound('bulletImpact', { volume: 0.7 });
                 }
             }
         }

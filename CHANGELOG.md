@@ -7,7 +7,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Wolfenstein-like Raycasting FPS** (game-006): Phase 2 - Complete Shooting System with Effects
+  - **Shooting Input**: Multiple firing methods
+    - Left mouse click to fire current weapon
+    - Ctrl key as alternative firing method
+    - Hold mouse for continuous automatic fire (respects fire rate)
+    - Fire rate limiting per weapon (pistol: 3 shots/sec, machine gun: 8 shots/sec, shotgun: 1 shot/1.5s, rocket: 1 shot/2.5s)
+  - **Bullet Impact System**: Visual wall impact effects
+    - Animated sparks radiating from impact point (4-ray pattern)
+    - Bullet hole effect with dark center and bright outer ring
+    - Fade-out animation over 200ms duration
+    - Depth-buffered rendering (only shows on visible walls)
+    - Impact position stored as world coordinates for proper 3D projection
+  - **Muzzle Flash Effect**: Visual weapon firing feedback
+    - Bright yellow-orange flash appears at weapon muzzle when firing
+    - 50ms flash duration for quick, satisfying feedback
+    - Renders at bottom-center of screen with weapon sprite
+  - **Screen Shake**: Weapon-specific camera shake
+    - Variable intensity: Pistol/Machine Gun (3px), Shotgun (8px), Rocket Launcher (10px)
+    - Exponential decay (90% per frame) for smooth return to center
+    - Randomized shake direction for natural feel
+    - Applied to entire raycasting view using Kaplay transform stack
+  - **Impact Sound Effects**: Audio feedback for hits
+    - Metallic ricochet sound (800Hz → 300Hz triangle wave with high-pass filter)
+    - Plays on wall hits for hitscan weapons
+    - Shotgun plays single impact sound (not per pellet) to avoid audio spam
+    - Volume: 15% of master for subtle but noticeable feedback
+  - **Weapon Sounds**: All 4 weapons have firing sounds
+    - Pistol: Sharp 200Hz crack
+    - Machine Gun: Rapid 150Hz buzz
+    - Shotgun: Deep 120Hz boom
+    - Rocket Launcher: 80Hz whoosh with white noise trail
+  - **Hitscan Raycast System**: Instant-hit weapon physics
+    - Uses raycasting engine's `castSingleRay()` for hit detection
+    - Spread mechanics for shotgun (5 pellets with 0.2 radian spread)
+    - Distance-based damage falloff (shotgun effective to 6 units)
+    - Range limiting per weapon (8-15 units)
+  - **Projectile System**: Rocket launcher projectiles
+    - Orange rocket sprites with trailing smoke effect
+    - 10 units/second movement speed
+    - Wall collision detection with explosion
+    - Billboard sprite rendering (always faces camera)
+    - Depth-sorting with raycasting wall distances
+  - **Explosion Effects**: Rocket launcher detonations
+    - Expanding circular explosion (grows 50% over 500ms)
+    - Two-layer effect (outer orange, inner bright yellow)
+    - Fade-out alpha animation
+    - Splash damage radius of 2 units (not yet implemented - Phase 3)
+    - Deep explosion sound (50Hz → 20Hz bass + 800Hz crackling)
+  - **Weapon State Management**: Complete firing system
+    - Muzzle flash tracking with time-based auto-clear
+    - Last fire time for rate limiting
+    - Ammo consumption for non-infinite weapons
+    - Empty click sound when out of ammo
+    - Impacts array in state for managing active bullet holes
+  - **Visual Polish**:
+    - Weapon sprite changes color per weapon type (gray pistol, dark machine gun, brown shotgun, gray rocket)
+    - All effects properly depth-sorted (behind walls when appropriate)
+    - Smooth 60 FPS performance maintained with effects active
+  - **Kaplay v4000 Compatibility Fix**: Fixed rgba color API
+    - Replaced all `k.rgba()` calls with array format `[r, g, b, a]`
+    - Kaplay v4000 uses array notation for RGBA colors, not function calls
+    - Fixed 8 instances in renderer.js (impacts, explosions, trails, damage flash)
+    - Documented in learnings.md for future reference
+  - Files: Updated [game-006/js/input.js](game-006/js/input.js), [game-006/js/weapons.js](game-006/js/weapons.js), [game-006/js/renderer.js](game-006/js/renderer.js), [game-006/js/sounds.js](game-006/js/sounds.js), Added bullet impact sound and enabled muzzle flash/screen shake
+
 ### Fixed
+- **Wolfenstein-like Raycasting FPS** (game-006): Fixed Kaplay v4000 RGBA color API usage
+  - Issue: `k.rgba()` function does not exist in Kaplay v4000, causing "k.rgba is not a function" errors
+  - Solution: Replaced all `k.rgba(r, g, b, a)` calls with array format `[r, g, b, a]`
+  - In Kaplay v4000, colors with alpha are represented as arrays, not function calls
+  - Fixed 8 instances: bullet impacts, explosions, rocket trails, damage flash, spark effects
+  - Files: [game-006/js/renderer.js](game-006/js/renderer.js), [docs/learnings.md](docs/learnings.md)
+  - API Reference: https://v4000.kaplayjs.com/docs/api/RGBAValue/
+
 - **Wolfenstein-like Raycasting FPS** (game-006): Fixed HUD direction display showing NaN
   - Issue: DIR attribute in HUD was reading `player.angle` which doesn't exist
   - Solution: Changed to read `player.playerAngle` property which is the correct property name

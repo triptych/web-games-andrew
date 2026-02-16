@@ -49,12 +49,12 @@ export function initInput(k) {
         }
     });
 
-    // Handle mouse down for shooting - DISABLED
+    // Handle mouse down for shooting
     canvas.addEventListener('mousedown', (e) => {
         if (isMouseLocked && !state.isPaused && !state.isGameOver) {
             e.preventDefault();
             isMouseDown = true;
-            // handleShoot(k); // DISABLED
+            handleShoot(k);
         }
     });
 
@@ -103,17 +103,17 @@ export function initInput(k) {
         }
     });
 
-    // Ctrl key for shooting (alternative to mouse) - DISABLED
+    // Ctrl key for shooting (alternative to mouse)
     k.onKeyPress('control', () => {
         if (!state.isPaused && !state.isGameOver && isMouseLocked) {
-            // handleShoot(k); // DISABLED
+            handleShoot(k);
         }
     });
 
-    // Continuous shooting while mouse is held - DISABLED
+    // Continuous shooting while mouse is held
     k.onUpdate(() => {
         if (isMouseDown && isMouseLocked && !state.isPaused && !state.isGameOver) {
-            // handleShoot(k); // DISABLED
+            handleShoot(k);
         }
     });
 

@@ -193,7 +193,7 @@ function drawSolidWallSlice(column, drawStart, drawEnd, wallType, brightness) {
  */
 function renderWeapon() {
     const weapon = getCurrentWeapon();
-    // const weaponState = getWeaponState(); // Not needed - shooting disabled
+    const weaponState = state.weapons;
 
     if (!weapon) return;
 
@@ -213,15 +213,15 @@ function renderWeapon() {
     const weaponX = WEAPON_SCREEN_X - weaponWidth / 2;
     const weaponY = WEAPON_SCREEN_Y;
 
-    // Muzzle flash effect disabled
-    // if (weaponState.muzzleFlash) {
-    //     // Bright flash at muzzle
-    //     k.drawCircle({
-    //         pos: k.vec2(WEAPON_SCREEN_X, weaponY - 10),
-    //         radius: 20,
-    //         color: k.rgb(255, 200, 100),
-    //     });
-    // }
+    // Muzzle flash effect
+    if (weaponState && weaponState.muzzleFlash) {
+        // Bright flash at muzzle
+        k.drawCircle({
+            pos: k.vec2(WEAPON_SCREEN_X, weaponY - 10),
+            radius: 20,
+            color: k.rgb(255, 200, 100),
+        });
+    }
 
     // Draw weapon body
     k.drawRect({
@@ -266,12 +266,12 @@ function renderDamageFlash() {
                 pos: k.vec2(0, 0),
                 width: SCREEN_WIDTH,
                 height: SCREEN_HEIGHT,
-                color: k.rgba(
+                color: [
                     DAMAGE_FLASH_COLOR[0],
                     DAMAGE_FLASH_COLOR[1],
                     DAMAGE_FLASH_COLOR[2],
                     alpha
-                ),
+                ],
             });
         } else {
             state.damageFlash = false;
@@ -323,7 +323,7 @@ function renderProjectiles(player, rays) {
                     pos: k.vec2(screenX - size / 2 - size, SCREEN_HEIGHT / 2 - size / 4),
                     width: size,
                     height: size / 4,
-                    color: k.rgba(255, 100, 0, 0.5),
+                    color: [255, 100, 0, 0.5],
                 });
             }
         }
@@ -363,13 +363,13 @@ function renderProjectiles(player, rays) {
             k.drawCircle({
                 pos: k.vec2(screenX, SCREEN_HEIGHT / 2),
                 radius: currentSize,
-                color: k.rgba(255, 150, 0, alpha),
+                color: [255, 150, 0, alpha],
             });
 
             k.drawCircle({
                 pos: k.vec2(screenX, SCREEN_HEIGHT / 2),
                 radius: currentSize * 0.5,
-                color: k.rgba(255, 255, 100, alpha * 0.5),
+                color: [255, 255, 100, alpha * 0.5],
             });
         }
     }
@@ -426,14 +426,14 @@ function renderImpacts(player, rays) {
             k.drawCircle({
                 pos: k.vec2(screenX, screenY),
                 radius: size,
-                color: k.rgba(255, 200, 100, alpha * 0.8),
+                color: [255, 200, 100, alpha * 0.8],
             });
 
             // Add darker center (bullet hole)
             k.drawCircle({
                 pos: k.vec2(screenX, screenY),
                 radius: size * 0.4,
-                color: k.rgba(50, 50, 50, alpha),
+                color: [50, 50, 50, alpha],
             });
 
             // Add spark effect for first few frames
@@ -449,7 +449,7 @@ function renderImpacts(player, rays) {
                             screenY + Math.sin(angle) * sparkLength
                         ),
                         width: 1,
-                        color: k.rgba(255, 255, 150, sparkAlpha),
+                        color: [255, 255, 150, sparkAlpha],
                     });
                 }
             }

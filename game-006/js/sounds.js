@@ -63,6 +63,9 @@ export function playSound(soundType, options = {}) {
         case 'playerHurt':
             playPlayerHurtSound(ctx, now, volume);
             break;
+        case 'bulletImpact':
+            playBulletImpactSound(ctx, now, volume);
+            break;
         default:
             console.warn('Unknown sound type:', soundType);
     }
@@ -313,6 +316,35 @@ function playPlayerHurtSound(ctx, startTime, volume) {
 
     oscillator.start(startTime);
     oscillator.stop(startTime + 0.25);
+}
+
+/**
+ * Bullet impact sound - metallic ping/ricochet
+ */
+function playBulletImpactSound(ctx, startTime, volume) {
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    oscillator.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    // Metallic ping sound
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(800, startTime);
+    oscillator.frequency.exponentialRampToValueAtTime(300, startTime + 0.08);
+
+    // High-pass filter for metallic sound
+    filter.type = 'highpass';
+    filter.frequency.setValueAtTime(400, startTime);
+
+    // Quick decay
+    gainNode.gain.setValueAtTime(volume * masterVolume * 0.15, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.1);
+
+    oscillator.start(startTime);
+    oscillator.stop(startTime + 0.1);
 }
 
 /**

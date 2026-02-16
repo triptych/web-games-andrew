@@ -184,7 +184,7 @@ export function createEnemyPrefab(k, type, pos) {
 
 ## Framework & Libraries
 
-### Kaplay Framework (Games 002-005)
+### Kaplay Framework (Games 002-006)
 
 **Why Kaplay:**
 - Modern, actively developed game framework
@@ -212,6 +212,71 @@ const k = kaplay({
 // Always set pixelDensity for crisp rendering on retina displays
 pixelDensity: window.devicePixelRatio || 1
 ```
+
+### Kaplay v4000 Color API ⚠️ CRITICAL
+
+**RGBA Colors in Kaplay v4000:**
+
+Kaplay v4000 does **NOT** have a `k.rgba()` function. Colors with alpha transparency are represented as **arrays**, not function calls.
+
+**Correct Color Syntax:**
+```javascript
+// ✅ Opaque colors - use k.rgb()
+k.rgb(255, 200, 100)      // RGB function
+k.rgb("#ff6600")          // Hex string
+k.rgb("slateblue")        // CSS color keyword
+
+// ✅ Colors with alpha - use array format [r, g, b, a]
+[255, 200, 100, 0.8]      // Array with alpha
+[50, 50, 50, 0.5]         // 50% transparent gray
+[255, 255, 150, alpha]    // Variable alpha
+
+// ❌ WRONG - This function does not exist!
+k.rgba(255, 200, 100, 0.8)  // ERROR: k.rgba is not a function
+```
+
+**RGBAValue Type Definition:**
+- Format: `[number, number, number, number]`
+- RGB values: 0-255
+- Alpha value: 0-1 (0 = fully transparent, 1 = fully opaque)
+
+**Common Use Cases:**
+```javascript
+// Damage flash effect
+k.drawRect({
+    color: [255, 0, 0, alpha],  // Red with variable alpha
+});
+
+// Particle effects
+k.drawCircle({
+    color: [255, 200, 100, 0.5],  // Semi-transparent orange
+});
+
+// Fog/smoke effects
+k.drawRect({
+    color: [50, 50, 50, 0.3],  // Translucent gray
+});
+```
+
+**API Documentation:**
+- RGB: https://v4000.kaplayjs.com/docs/api/ctx/rgb/
+- RGBAValue: https://v4000.kaplayjs.com/docs/api/RGBAValue/
+
+**Bug Example (Game 006):**
+```javascript
+// ❌ Original (broken)
+k.drawCircle({
+    color: k.rgba(255, 200, 100, alpha * 0.8),  // ERROR!
+});
+
+// ✅ Fixed
+k.drawCircle({
+    color: [255, 200, 100, alpha * 0.8],  // Works!
+});
+```
+
+**Important:**
+> Every time we mistakenly used `k.rgba()`, it caused engine crashes. Always use array format `[r, g, b, a]` for colors with transparency in Kaplay v4000.
 
 ### Alternative: Vanilla Canvas (Game 001)
 
