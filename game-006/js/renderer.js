@@ -20,7 +20,7 @@ import {
 } from './config.js';
 import { clamp, lerp } from './utils.js';
 import { castRays } from './raycaster.js';
-import { getCurrentWeapon, getWeaponState } from './weapons.js';
+import { getCurrentWeapon } from './weapons.js';
 import { state } from './state.js';
 import { getWallSlice, areTexturesLoaded } from './textures.js';
 
@@ -193,7 +193,7 @@ function drawSolidWallSlice(column, drawStart, drawEnd, wallType, brightness) {
  */
 function renderWeapon() {
     const weapon = getCurrentWeapon();
-    const weaponState = getWeaponState();
+    // const weaponState = getWeaponState(); // Not needed - shooting disabled
 
     if (!weapon) return;
 
@@ -213,29 +213,15 @@ function renderWeapon() {
     const weaponX = WEAPON_SCREEN_X - weaponWidth / 2;
     const weaponY = WEAPON_SCREEN_Y;
 
-    // Muzzle flash effect
-    if (weaponState.muzzleFlash) {
-        // Bright flash at muzzle
-        k.drawCircle({
-            pos: k.vec2(WEAPON_SCREEN_X, weaponY - 10),
-            radius: 20,
-            color: k.rgba(255, 200, 100, 0.8),
-        });
-
-        // Add some rays
-        for (let i = 0; i < 8; i++) {
-            const angle = (Math.PI * 2 * i) / 8;
-            k.drawLine({
-                p1: k.vec2(WEAPON_SCREEN_X, weaponY - 10),
-                p2: k.vec2(
-                    WEAPON_SCREEN_X + Math.cos(angle) * 30,
-                    weaponY - 10 + Math.sin(angle) * 30
-                ),
-                width: 2,
-                color: k.rgba(255, 255, 150, 0.6),
-            });
-        }
-    }
+    // Muzzle flash effect disabled
+    // if (weaponState.muzzleFlash) {
+    //     // Bright flash at muzzle
+    //     k.drawCircle({
+    //         pos: k.vec2(WEAPON_SCREEN_X, weaponY - 10),
+    //         radius: 20,
+    //         color: k.rgb(255, 200, 100),
+    //     });
+    // }
 
     // Draw weapon body
     k.drawRect({

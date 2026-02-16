@@ -47,7 +47,7 @@ export function initUI(k) {
 
         // Direction
         k.drawText({
-            text: `Dir: ${Math.floor(player.angle)}°`,
+            text: `Dir: ${Math.floor(player.playerAngle)}°`,
             pos: k.vec2(10, 50),
             size: 14,
             color: k.rgb(0, 255, 0),

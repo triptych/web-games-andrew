@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Wolfenstein-like Raycasting FPS** (game-006): Fixed HUD direction display showing NaN
+  - Issue: DIR attribute in HUD was reading `player.angle` which doesn't exist
+  - Solution: Changed to read `player.playerAngle` property which is the correct property name
+  - File: [game-006/js/ui.js](game-006/js/ui.js#L50)
+
 ### Changed
 - **Wolfenstein-like Raycasting FPS** (game-006): Deep Kaplay Integration - Architecture Overhaul
   - **Kaplay-Native Rendering**: Complete migration to Kaplay's drawing API
