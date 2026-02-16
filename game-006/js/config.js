@@ -25,8 +25,20 @@ export const MOUSE_SENSITIVITY = 0.2; // Mouse rotation sensitivity
 
 // Map settings
 export const TILE_SIZE = 1; // Each grid cell is 1x1 units
-export const MAP_WIDTH = 16;
-export const MAP_HEIGHT = 16;
+export const MAP_WIDTH = 160;
+export const MAP_HEIGHT = 160;
+
+// Procedural generation settings
+export const PROCGEN_CONFIG = {
+    MIN_ROOM_SIZE: 8,       // Minimum room dimensions
+    MAX_ROOM_SIZE: 30,      // Maximum room dimensions
+    CORRIDOR_WIDTH: 3,      // Width of connecting corridors
+    BASE_ENEMY_COUNT: 6,    // Starting enemy count on floor 1
+    ENEMY_SCALING: 3,       // Additional enemies per floor
+    MAX_ENEMIES: 40,        // Cap on enemy count
+    ITEM_SPAWN_RATE: 0.2,   // Probability of item spawn per room
+    MIN_SPLIT_SIZE: 30,     // Minimum size before BSP stops splitting
+};
 
 // Rendering settings
 export const WALL_HEIGHT_MULTIPLIER = SCREEN_HEIGHT; // Scale factor for wall height
@@ -41,6 +53,7 @@ export const WALL_COLORS = {
     2: [150, 75, 75],   // Red brick
     3: [100, 75, 50],   // Brown wood
     4: [150, 150, 180], // Silver metal
+    5: [255, 215, 0],   // Gold (exit door)
 };
 
 // Combat settings

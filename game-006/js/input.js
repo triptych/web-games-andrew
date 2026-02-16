@@ -8,6 +8,7 @@ import { rotatePlayer } from './player.js';
 import { state } from './state.js';
 import { switchWeapon, nextWeapon, previousWeapon, fireWeapon } from './weapons.js';
 import { castSingleRay } from './raycaster.js';
+import { activateDoor } from './door.js';
 
 let isMouseLocked = false;
 let isMouseDown = false;
@@ -109,6 +110,16 @@ export function initInput(k) {
     k.onKeyPress('4', () => {
         if (!state.isPaused && !state.isGameOver) {
             switchWeapon('rocket');
+        }
+    });
+
+    // E key for door interaction
+    k.onKeyPress('e', () => {
+        if (!state.isPaused && !state.isGameOver) {
+            const activated = activateDoor();
+            if (activated) {
+                console.log('✓ Door activated via E key');
+            }
         }
     });
 

@@ -34,8 +34,17 @@ export const state = {
     // Enemies (Phase 3)
     enemies: [],
 
+    // Items
+    items: [],
+
     // Map reference
     map: null,
+
+    // Floor progression
+    currentFloor: 1,
+    currentTheme: 'Dungeon',
+    enemiesThisFloor: 0,
+    totalFloorsCompleted: 0,
 
     // Game stats
     fps: 60,
@@ -67,5 +76,10 @@ export const state = {
         this.impacts = [];
         this.explosions = [];
         this.enemies = [];
+        this.items = [];
+        this.currentFloor = 1;
+        this.currentTheme = 'Dungeon';
+        this.enemiesThisFloor = 0;
+        this.totalFloorsCompleted = 0;
     }
 };

@@ -4,7 +4,7 @@
  */
 
 import kaplay from '../../lib/kaplay/kaplay.mjs';
-import { SCREEN_WIDTH, SCREEN_HEIGHT, TEST_MAP, TEST_ENEMIES, TEST_ITEMS } from './config.js';
+import { SCREEN_WIDTH, SCREEN_HEIGHT } from './config.js';
 import { state } from './state.js';
 import { initTextures } from './textures.js';
 import { initRenderer } from './renderer.js';
@@ -12,9 +12,11 @@ import { initPlayer } from './player.js';
 import { initInput } from './input.js';
 import { initUI } from './ui.js';
 import { initWeapons, updateWeapons, unlockWeapon } from './weapons.js';
-import { initEnemies, updateEnemies, spawnEnemiesFromConfig } from './enemies.js';
-import { initItems, updateItems, spawnItemsFromConfig } from './items.js';
+import { initEnemies, updateEnemies, getAliveEnemyCount } from './enemies.js';
+import { initItems, updateItems } from './items.js';
 import { initMenuScene } from './menu.js';
+import { initFloorSystem, loadFloor, transitionToNextFloor, getCurrentExitDoor } from './floor.js';
+import { initDoor, updateDoor, spawnDoor, removeDoor, shouldTransitionFloor, resetTransitionFlag, isDoorActive } from './door.js';
 
 // Initialize kaplay with transparent rendering
 const k = kaplay({
@@ -28,6 +30,37 @@ const k = kaplay({
 
 // Make kaplay globally accessible for debugging
 window.k = k;
+
+// Debug helper to check player status
+window.debugPlayer = () => {
+    console.log('\n=== PLAYER STATUS ===');
+    if (!state.player) {
+        console.log('Player not initialized!');
+        return;
+    }
+    console.log(`Position: (${state.player.x.toFixed(2)}, ${state.player.y.toFixed(2)})`);
+    console.log(`Angle: ${state.player.angle || state.player.playerAngle}°`);
+    console.log(`Health: ${state.health}/${state.maxHealth}`);
+
+    // Check tiles around player
+    const getTile = (x, y) => {
+        const mapX = Math.floor(x);
+        const mapY = Math.floor(y);
+        if (!state.map || mapY < 0 || mapY >= state.map.length || mapX < 0 || mapX >= state.map[0].length) {
+            return -1;
+        }
+        return state.map[mapY][mapX];
+    };
+
+    console.log(`Tile at player: ${getTile(state.player.x, state.player.y)}`);
+    console.log('Surrounding tiles (N/S/E/W):',
+        getTile(state.player.x, state.player.y - 1),
+        getTile(state.player.x, state.player.y + 1),
+        getTile(state.player.x + 1, state.player.y),
+        getTile(state.player.x - 1, state.player.y)
+    );
+    console.log('==================\n');
+};
 
 // Debug helper to check enemy status
 window.debugEnemies = () => {
@@ -55,9 +88,6 @@ k.scene("game", () => {
     // Reset state
     state.reset();
 
-    // Store map in state for weapon system
-    state.map = TEST_MAP;
-
     // Initialize all systems
     initTextures(k); // Load and slice textures first
     initRenderer(k);
@@ -65,23 +95,29 @@ k.scene("game", () => {
     initWeapons(k);
     initEnemies(k); // Phase 3: Initialize enemy system
     initItems(k); // Initialize item/pickup system
+    initFloorSystem(k); // Initialize floor progression system
+    initDoor(k); // Initialize door system
     initInput(k);
     initUI(k);
 
-    // Unlock all weapons for testing Phase 2
-    // In a real game, these would be unlocked through pickups
+    // Unlock all weapons for testing
     unlockWeapon('machinegun');
     unlockWeapon('shotgun');
     unlockWeapon('rocket');
 
-    // Spawn enemies for Phase 3 testing
-    spawnEnemiesFromConfig(TEST_ENEMIES);
-
-    // Spawn items (health and ammo pickups)
-    spawnItemsFromConfig(TEST_ITEMS);
+    // Load first floor (replaces TEST_MAP/TEST_ENEMIES/TEST_ITEMS)
+    // Wait for floor to load before starting game loop
+    let floorLoaded = false;
+    loadFloor(1).then(() => {
+        floorLoaded = true;
+        console.log('✓ Floor loaded, game ready!');
+    });
 
     // Update loop - for logic only
     k.onUpdate(() => {
+        // Wait for floor to load before updating
+        if (!floorLoaded) return;
+
         if (state.isPaused || state.isGameOver) return;
 
         // Update FPS counter
@@ -98,6 +134,28 @@ k.scene("game", () => {
 
         // Update items system (bobbing, pickup detection, etc.)
         updateItems(k.dt(), state.player);
+
+        // Update door system
+        updateDoor(k.dt(), state.player);
+
+        // Floor progression logic
+        const aliveEnemies = getAliveEnemyCount();
+
+        // Spawn door when all enemies are dead
+        if (aliveEnemies === 0 && !isDoorActive()) {
+            const exitDoor = getCurrentExitDoor();
+            if (exitDoor) {
+                console.log('All enemies defeated! Spawning exit door...');
+                spawnDoor(exitDoor.x, exitDoor.y);
+            }
+        }
+
+        // Transition to next floor when door is activated
+        if (shouldTransitionFloor()) {
+            resetTransitionFlag();
+            removeDoor();
+            transitionToNextFloor();
+        }
     });
 
     // Note: Rendering is now handled by player object's draw() function

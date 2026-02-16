@@ -5,6 +5,7 @@
 
 import { state } from './state.js';
 import { getCurrentWeapon, getWeaponState } from './weapons.js';
+import { doorState } from './door.js';
 
 /**
  * Initialize UI system
@@ -60,6 +61,20 @@ export function initUI(k) {
 
         // Bottom HUD - Health, Ammo, Weapon
         renderBottomHUD(k);
+
+        // Door proximity prompt (center screen)
+        if (doorState.active && doorState.isPlayerNear) {
+            const pulseAlpha = 0.7 + Math.sin(Date.now() / 200) * 0.3;
+            k.drawText({
+                text: 'Press E to Enter Door',
+                pos: k.vec2(k.width() / 2, k.height() / 2 - 80),
+                size: 24,
+                color: k.rgb(255, 215, 0),
+                font: 'monospace',
+                anchor: 'center',
+                opacity: pulseAlpha,
+            });
+        }
 
         // Controls hint (bottom left)
         k.drawText({
@@ -176,15 +191,23 @@ function renderBottomHUD(k) {
     k.drawRect({
         pos: k.vec2(statsX, statsY),
         width: 190,
-        height: 90,
+        height: 110,
         color: k.rgb(0, 0, 0),
         opacity: 0.7,
         radius: 4,
     });
 
     k.drawText({
-        text: `Kills: ${state.enemiesKilled}`,
+        text: `Floor ${state.currentFloor}: ${state.currentTheme}`,
         pos: k.vec2(statsX + 10, statsY + 10),
+        size: 12,
+        color: k.rgb(255, 200, 100),
+        font: 'monospace',
+    });
+
+    k.drawText({
+        text: `Kills: ${state.enemiesKilled}`,
+        pos: k.vec2(statsX + 10, statsY + 30),
         size: 12,
         color: k.rgb(255, 100, 100),
         font: 'monospace',
@@ -192,7 +215,7 @@ function renderBottomHUD(k) {
 
     k.drawText({
         text: `Shots: ${state.shotsFired}`,
-        pos: k.vec2(statsX + 10, statsY + 30),
+        pos: k.vec2(statsX + 10, statsY + 50),
         size: 12,
         color: k.rgb(200, 200, 200),
         font: 'monospace',
@@ -204,7 +227,7 @@ function renderBottomHUD(k) {
 
     k.drawText({
         text: `Accuracy: ${accuracy}%`,
-        pos: k.vec2(statsX + 10, statsY + 50),
+        pos: k.vec2(statsX + 10, statsY + 70),
         size: 12,
         color: k.rgb(100, 200, 255),
         font: 'monospace',
@@ -212,7 +235,7 @@ function renderBottomHUD(k) {
 
     k.drawText({
         text: `Time: ${Math.floor(state.timeAlive)}s`,
-        pos: k.vec2(statsX + 10, statsY + 70),
+        pos: k.vec2(statsX + 10, statsY + 90),
         size: 12,
         color: k.rgb(200, 200, 100),
         font: 'monospace',
@@ -256,8 +279,17 @@ function drawGameOverScreen(k) {
     });
 
     k.drawText({
-        text: `Enemies Killed: ${state.enemiesKilled}`,
+        text: `Floors Completed: ${state.totalFloorsCompleted}`,
         pos: k.vec2(k.width() / 2, statsY + lineHeight),
+        size: 24,
+        color: k.rgb(255, 200, 100),
+        font: 'monospace',
+        anchor: 'center',
+    });
+
+    k.drawText({
+        text: `Enemies Killed: ${state.enemiesKilled}`,
+        pos: k.vec2(k.width() / 2, statsY + lineHeight * 2),
         size: 24,
         color: k.rgb(200, 200, 200),
         font: 'monospace',
@@ -270,7 +302,7 @@ function drawGameOverScreen(k) {
 
     k.drawText({
         text: `Accuracy: ${accuracy}%`,
-        pos: k.vec2(k.width() / 2, statsY + lineHeight * 2),
+        pos: k.vec2(k.width() / 2, statsY + lineHeight * 3),
         size: 24,
         color: k.rgb(200, 200, 200),
         font: 'monospace',

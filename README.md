@@ -166,6 +166,13 @@ web-games-andrew/
 - **Kaplay Framework** - Game development framework (Match-3 game)
 - **GemCore/GemShell** - Desktop application packaging
 
+## Attributions
+
+### Game Assets
+
+- **Wall Tiles** - Pixel texture pack by [jestan](https://jestan.itch.io/pixel-texture-pack)
+  - Support the creator: [Ko-fi](https://ko-fi.com/jestan)
+
 ## Browser Compatibility
 
 These games work best on modern browsers:

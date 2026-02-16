@@ -514,6 +514,22 @@ export function spawnEnemiesFromConfig(enemyConfig) {
 }
 
 /**
+ * Clear all enemies (for floor transitions)
+ */
+export function clearEnemies() {
+    state.enemies = [];
+    console.log('All enemies cleared');
+}
+
+/**
+ * Get count of living enemies
+ */
+export function getAliveEnemyCount() {
+    if (!state.enemies) return 0;
+    return state.enemies.filter(e => e.alive).length;
+}
+
+/**
  * Update all enemies
  */
 export function updateEnemies(dt, player) {

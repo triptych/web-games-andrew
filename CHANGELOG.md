@@ -8,6 +8,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wolfenstein-like Raycasting FPS** (game-006): Phase 4 - Procedural Generation & Themed Textures
+  - **Procedural Map Generation**: Complete dungeon generation system
+    - Created [game-006/js/procgen.js](game-006/js/procgen.js) for procedural level generation
+    - Room-and-corridor algorithm for varied level layouts
+    - Configurable dungeon parameters for complexity and variety
+  - **Themed Texture System**: Multiple wall texture themes
+    - Created [game-006/js/themes.js](game-006/js/themes.js) for theme management
+    - Support for multiple texture sets: Bricks, Building Textures, Doors, Industrial, Rocks, Tech, Urban, Wood
+    - Dynamic texture loading and application per map theme
+  - **Enhanced Door System**: Interactive door mechanics
+    - Created [game-006/js/door.js](game-006/js/door.js) for door entities
+    - Doors can be opened/closed by player interaction
+    - Visual distinction for door states
+  - **Advanced Floor Rendering**: Enhanced floor/ceiling rendering
+    - Created [game-006/js/floor.js](game-006/js/floor.js) for floor rendering system
+    - Improved floor texture mapping and rendering
+  - **Wall Texture Assets**: Professional pixel art texture pack
+    - Added 9 texture categories with multiple variants:
+      - [game-006/sprites/Bricks/](game-006/sprites/Bricks/) - Brick wall textures
+      - [game-006/sprites/BuildingTextures/](game-006/sprites/BuildingTextures/) - Building materials
+      - [game-006/sprites/Doors/](game-006/sprites/Doors/) - Door sprites
+      - [game-006/sprites/Elements/](game-006/sprites/Elements/) - Decorative elements
+      - [game-006/sprites/Industrial/](game-006/sprites/Industrial/) - Industrial textures
+      - [game-006/sprites/Rocks/](game-006/sprites/Rocks/) - Stone and rock textures
+      - [game-006/sprites/Tech/](game-006/sprites/Tech/) - Technology-themed textures
+      - [game-006/sprites/Urban/](game-006/sprites/Urban/) - Urban environment textures
+      - [game-006/sprites/Wood/](game-006/sprites/Wood/) - Wooden textures
+    - **Asset Credit**: Wall tile textures by [jestan](https://jestan.itch.io/pixel-texture-pack)
+      - Support the creator at [Ko-fi](https://ko-fi.com/jestan)
+  - **Module Updates**: Enhanced existing systems for procedural generation
+    - Updated [game-006/js/config.js](game-006/js/config.js) - Added procedural generation settings
+    - Updated [game-006/js/enemies.js](game-006/js/enemies.js) - Enemy spawning for procedural maps
+    - Updated [game-006/js/input.js](game-006/js/input.js) - Door interaction controls
+    - Updated [game-006/js/main.js](game-006/js/main.js) - Procedural map initialization
+    - Updated [game-006/js/map.js](game-006/js/map.js) - Procedural map integration
+    - Updated [game-006/js/state.js](game-006/js/state.js) - State management for new features
+    - Updated [game-006/js/textures.js](game-006/js/textures.js) - Theme texture loading
+    - Updated [game-006/js/ui.js](game-006/js/ui.js) - UI updates for new features
+  - Files: Created [game-006/js/procgen.js](game-006/js/procgen.js), [game-006/js/themes.js](game-006/js/themes.js), [game-006/js/door.js](game-006/js/door.js), [game-006/js/floor.js](game-006/js/floor.js), Added texture assets in [game-006/sprites/](game-006/sprites/), Updated multiple core modules
+
+- **Attribution**: Added credits for game assets
+  - Wall texture pack attribution added to [README.md](README.md)
+  - Credit to [jestan](https://jestan.itch.io/pixel-texture-pack) for pixel texture pack
+  - Ko-fi support link included
+
+### Added
 - **Wolfenstein-like Raycasting FPS** (game-006): Game Over Screen & Restart System
   - **Game Over Screen**: Professional death screen with stats summary
     - "YOU DIED" title in dramatic red text
