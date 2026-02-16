@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wolfenstein-like Raycasting FPS** (game-006): Game Over Screen & Restart System
+  - **Game Over Screen**: Professional death screen with stats summary
+    - "YOU DIED" title in dramatic red text
+    - Final stats display: Time Survived, Enemies Killed, Accuracy percentage
+    - Pulsing "Click anywhere to restart" prompt with smooth animation
+    - Dark overlay with proper visual hierarchy
+  - **Click-to-Restart**: Instant game restart on any click after death
+    - No page reload required - seamless restart experience
+    - Full state reset: health, stats, enemies, and player position
+    - Returns to game scene with fresh spawn
+  - Files: Updated [game-006/js/ui.js](game-006/js/ui.js), [game-006/js/input.js](game-006/js/input.js)
+
+### Fixed
+- **Wolfenstein-like Raycasting FPS** (game-006): Fixed strafing movement backwards instead of sideways
+  - **Issue**: A key moved forward, D key moved backward instead of strafing left/right
+  - **Root Cause**: Strafe code was using plane vectors (planeX, planeY) incorrectly, causing movement along the direction vector instead of perpendicular to it
+  - **Solution**: Changed to use proper perpendicular direction vectors: A uses (dirY, -dirX) for left strafe, D uses (-dirY, dirX) for right strafe
+  - **Result**: Now provides proper FPS-style strafing movement perpendicular to facing direction
+  - File: [game-006/js/player.js](game-006/js/player.js#L120-L129)
+
+### Added
 - **Wolfenstein-like Raycasting FPS** (game-006): Phase 3 - Enemy System & AI
   - **Enemy System**: Complete AI-driven enemies with 5 distinct types
     - **Guard**: 50 HP, 2 u/s speed, 5-10 damage, green uniform - Basic patrol enemy

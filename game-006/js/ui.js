@@ -12,10 +12,14 @@ import { getCurrentWeapon, getWeaponState } from './weapons.js';
 export function initUI(k) {
     // HUD overlay - drawn on top of raycasting view
     k.onDraw(() => {
-        if (state.isGameOver) return;
-
         const player = state.player;
         if (!player) return;
+
+        // Draw game over screen if dead
+        if (state.isGameOver) {
+            drawGameOverScreen(k);
+            return;
+        }
 
         // Stats background
         k.drawRect({
@@ -212,5 +216,76 @@ function renderBottomHUD(k) {
         size: 12,
         color: k.rgb(200, 200, 100),
         font: 'monospace',
+    });
+}
+
+/**
+ * Draw game over screen
+ */
+function drawGameOverScreen(k) {
+    // Dark overlay
+    k.drawRect({
+        pos: k.vec2(0, 0),
+        width: k.width(),
+        height: k.height(),
+        color: k.rgb(0, 0, 0),
+        opacity: 0.8,
+    });
+
+    // "YOU DIED" text
+    k.drawText({
+        text: 'YOU DIED',
+        pos: k.vec2(k.width() / 2, k.height() / 2 - 80),
+        size: 72,
+        color: k.rgb(200, 0, 0),
+        font: 'monospace',
+        anchor: 'center',
+    });
+
+    // Stats
+    const statsY = k.height() / 2;
+    const lineHeight = 30;
+
+    k.drawText({
+        text: `Time Survived: ${Math.floor(state.timeAlive)}s`,
+        pos: k.vec2(k.width() / 2, statsY),
+        size: 24,
+        color: k.rgb(200, 200, 200),
+        font: 'monospace',
+        anchor: 'center',
+    });
+
+    k.drawText({
+        text: `Enemies Killed: ${state.enemiesKilled}`,
+        pos: k.vec2(k.width() / 2, statsY + lineHeight),
+        size: 24,
+        color: k.rgb(200, 200, 200),
+        font: 'monospace',
+        anchor: 'center',
+    });
+
+    const accuracy = state.shotsFired > 0
+        ? ((state.shotsHit / state.shotsFired) * 100).toFixed(1)
+        : 0;
+
+    k.drawText({
+        text: `Accuracy: ${accuracy}%`,
+        pos: k.vec2(k.width() / 2, statsY + lineHeight * 2),
+        size: 24,
+        color: k.rgb(200, 200, 200),
+        font: 'monospace',
+        anchor: 'center',
+    });
+
+    // Click to restart hint (with pulsing effect)
+    const pulseAlpha = 0.5 + Math.sin(Date.now() / 300) * 0.5;
+    k.drawText({
+        text: 'Click anywhere to restart',
+        pos: k.vec2(k.width() / 2, k.height() - 100),
+        size: 20,
+        color: k.rgb(255, 255, 255),
+        font: 'monospace',
+        anchor: 'center',
+        opacity: pulseAlpha,
     });
 }

@@ -49,9 +49,18 @@ export function initInput(k) {
         }
     });
 
-    // Handle mouse down for shooting
+    // Handle mouse down for shooting or restarting game
     canvas.addEventListener('mousedown', (e) => {
-        if (isMouseLocked && !state.isPaused && !state.isGameOver) {
+        // Restart game if game over
+        if (state.isGameOver) {
+            e.preventDefault();
+            console.log('Restarting game...');
+            k.go('game');
+            return;
+        }
+
+        // Normal shooting logic
+        if (isMouseLocked && !state.isPaused) {
             e.preventDefault();
             isMouseDown = true;
             handleShoot(k);

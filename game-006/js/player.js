@@ -118,14 +118,14 @@ export function initPlayer(kaplay) {
 
         // Strafe left/right (A/D)
         if (k.isKeyDown('a')) {
-            // Strafe left (perpendicular to direction)
-            moveX -= playerObject.planeY * moveSpeed;
-            moveY += playerObject.planeX * moveSpeed;
+            // Strafe left (perpendicular to direction, 90° counterclockwise)
+            moveX += playerObject.dirY * moveSpeed;
+            moveY += -playerObject.dirX * moveSpeed;
         }
         if (k.isKeyDown('d')) {
-            // Strafe right (perpendicular to direction)
-            moveX += playerObject.planeY * moveSpeed;
-            moveY -= playerObject.planeX * moveSpeed;
+            // Strafe right (perpendicular to direction, 90° clockwise)
+            moveX += -playerObject.dirY * moveSpeed;
+            moveY += playerObject.dirX * moveSpeed;
         }
 
         // Apply movement with collision detection
