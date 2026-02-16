@@ -370,7 +370,7 @@ function getEnemyTypeForFloor(floorNumber) {
 }
 
 /**
- * Generate enemy spawns distributed across rooms
+ * Generate enemy spawns distributed across rooms and corridors
  */
 function generateEnemySpawns(leaves, floorNumber, playerSpawn, exitDoor) {
     const enemyCount = getEnemyCountForFloor(floorNumber);
@@ -381,7 +381,7 @@ function generateEnemySpawns(leaves, floorNumber, playerSpawn, exitDoor) {
         const room = leaf.room;
         const distToPlayer = Math.abs(room.centerX - playerSpawn.x) + Math.abs(room.centerY - playerSpawn.y);
         const distToExit = Math.abs(room.centerX - exitDoor.x) + Math.abs(room.centerY - exitDoor.y);
-        return distToPlayer > 10 && distToExit > 5;
+        return distToPlayer > 3 && distToExit > 5; // Reduced from 5 to 3 to allow even closer spawns
     });
 
     if (spawnableRooms.length === 0) {
@@ -389,8 +389,29 @@ function generateEnemySpawns(leaves, floorNumber, playerSpawn, exitDoor) {
         spawnableRooms.push(...leaves.slice(1));
     }
 
-    // Distribute enemies across rooms
-    for (let i = 0; i < enemyCount; i++) {
+    // First, spawn a few nearby enemies for immediate encounters (within 50 units of player)
+    const nearbyRooms = leaves.filter(leaf => {
+        const room = leaf.room;
+        const distToPlayer = Math.abs(room.centerX - playerSpawn.x) + Math.abs(room.centerY - playerSpawn.y);
+        return distToPlayer > 5 && distToPlayer < 50; // Close but not in spawn room (scaled for 160x160 map)
+    });
+
+    const nearbyEnemyCount = Math.max(5, Math.floor(enemyCount * 0.5)); // 50% or minimum 5 enemies
+    for (let i = 0; i < nearbyEnemyCount && nearbyRooms.length > 0; i++) {
+        const room = nearbyRooms[i % nearbyRooms.length].room;
+
+        const padding = 2;
+        const x = room.x + padding + Math.random() * (room.width - 2 * padding);
+        const y = room.y + padding + Math.random() * (room.height - 2 * padding);
+        const angle = Math.random() * 360;
+        const type = getEnemyTypeForFloor(floorNumber);
+
+        spawns.push({ type, x, y, angle });
+    }
+
+    // Then distribute remaining enemies across all spawnable rooms
+    const remainingCount = enemyCount - nearbyEnemyCount;
+    for (let i = 0; i < remainingCount; i++) {
         const room = spawnableRooms[i % spawnableRooms.length].room;
 
         // Random position within room (not too close to walls)
@@ -403,6 +424,27 @@ function generateEnemySpawns(leaves, floorNumber, playerSpawn, exitDoor) {
         spawns.push({ type, x, y, angle });
     }
 
+    // Add bonus enemies in larger rooms (30% more enemies in big rooms)
+    const bonusEnemyCount = Math.floor(enemyCount * 0.3);
+    for (let i = 0; i < bonusEnemyCount; i++) {
+        // Find larger rooms
+        const largeRooms = spawnableRooms.filter(leaf =>
+            leaf.room.width * leaf.room.height > 200
+        );
+
+        if (largeRooms.length > 0) {
+            const room = largeRooms[i % largeRooms.length].room;
+
+            const padding = 2;
+            const x = room.x + padding + Math.random() * (room.width - 2 * padding);
+            const y = room.y + padding + Math.random() * (room.height - 2 * padding);
+            const angle = Math.random() * 360;
+            const type = getEnemyTypeForFloor(floorNumber);
+
+            spawns.push({ type, x, y, angle });
+        }
+    }
+
     return spawns;
 }
 
@@ -410,7 +452,7 @@ function generateEnemySpawns(leaves, floorNumber, playerSpawn, exitDoor) {
  * Generate item spawns distributed across rooms
  */
 function generateItemSpawns(leaves, playerSpawn) {
-    const { ITEM_SPAWN_RATE } = PROCGEN_CONFIG;
+    const { ITEM_SPAWN_RATE, ITEMS_PER_ROOM_MAX } = PROCGEN_CONFIG;
     const spawns = [];
 
     // Skip first room (player spawn)
@@ -420,19 +462,24 @@ function generateItemSpawns(leaves, playerSpawn) {
         if (Math.random() < ITEM_SPAWN_RATE) {
             const room = leaf.room;
 
-            // Random position within room
-            const padding = 2;
-            const x = room.x + padding + Math.random() * (room.width - 2 * padding);
-            const y = room.y + padding + Math.random() * (room.height - 2 * padding);
+            // Randomly spawn 1-3 items in this room
+            const itemCount = 1 + Math.floor(Math.random() * ITEMS_PER_ROOM_MAX);
 
-            // Random item type (health or ammo)
-            const itemTypes = [
-                'HEALTH_SMALL', 'HEALTH_MEDIUM', 'HEALTH_LARGE',
-                'AMMO_BULLETS', 'AMMO_SHELLS', 'AMMO_ROCKETS'
-            ];
-            const type = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+            for (let i = 0; i < itemCount; i++) {
+                // Random position within room (with more spacing between items)
+                const padding = 2;
+                const x = room.x + padding + Math.random() * (room.width - 2 * padding);
+                const y = room.y + padding + Math.random() * (room.height - 2 * padding);
 
-            spawns.push({ type, x, y });
+                // Random item type (health or ammo)
+                const itemTypes = [
+                    'HEALTH_SMALL', 'HEALTH_MEDIUM', 'HEALTH_LARGE',
+                    'AMMO_BULLETS', 'AMMO_SHELLS', 'AMMO_ROCKETS'
+                ];
+                const type = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+
+                spawns.push({ type, x, y });
+            }
         }
     });
 

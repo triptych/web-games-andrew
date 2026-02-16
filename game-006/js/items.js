@@ -6,6 +6,7 @@
 import { state } from './state.js';
 import { addAmmo } from './weapons.js';
 import { playSound } from './sounds.js';
+import { getTile } from './map.js';
 
 // Item type definitions
 export const ITEM_TYPES = {
@@ -93,12 +94,19 @@ export function initItems(k) {
 }
 
 /**
- * Spawn an item at a position
+ * Spawn an item at a position (with validation)
  */
 export function spawnItem(itemTypeKey, x, y) {
     const itemType = ITEM_TYPES[itemTypeKey];
     if (!itemType) {
         console.error('Invalid item type:', itemTypeKey);
+        return null;
+    }
+
+    // Validate spawn position is walkable
+    const tile = getTile(x, y);
+    if (tile !== 0) {
+        console.warn(`⚠️  Cannot spawn ${itemTypeKey} at (${x.toFixed(1)}, ${y.toFixed(1)}) - tile ${tile} is not walkable! Skipping...`);
         return null;
     }
 
@@ -113,7 +121,7 @@ export function spawnItem(itemTypeKey, x, y) {
     };
 
     itemState.items.push(item);
-    console.log(`Spawned ${item.name} at (${x}, ${y})`);
+    console.log(`Spawned ${item.name} at (${x}, ${y}), Tile: ${tile}`);
     return item;
 }
 

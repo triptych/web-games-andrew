@@ -493,12 +493,19 @@ export function initEnemies(kaplay) {
 }
 
 /**
- * Spawn enemy at position
+ * Spawn enemy at position (with validation)
  */
 export function spawnEnemy(type, x, y, angle = 0) {
+    // Validate spawn position is walkable
+    const tile = getTile(x, y);
+    if (tile !== 0) {
+        console.warn(`⚠️  Cannot spawn ${type} at (${x.toFixed(1)}, ${y.toFixed(1)}) - tile ${tile} is not walkable! Skipping...`);
+        return null;
+    }
+
     const enemy = new Enemy(type, x, y, angle);
     state.enemies.push(enemy);
-    console.log(`✓ Spawned ${enemy.type.name} at (${x.toFixed(1)}, ${y.toFixed(1)}) - HP: ${enemy.hp}, Speed: ${enemy.type.speed}`);
+    console.log(`✓ Spawned ${enemy.type.name} at (${x.toFixed(1)}, ${y.toFixed(1)}) - HP: ${enemy.hp}, Speed: ${enemy.type.speed}, Tile: ${tile}`);
     return enemy;
 }
 

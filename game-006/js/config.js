@@ -10,7 +10,7 @@ export const SCREEN_HEIGHT = 400;
 // Raycasting settings
 export const FOV = 60; // Field of view in degrees
 export const NUM_RAYS = SCREEN_WIDTH; // One ray per screen column
-export const MAX_RAY_DISTANCE = 20; // Maximum ray distance
+export const MAX_RAY_DISTANCE = 100; // Maximum ray distance (increased for 160x160 maps)
 
 // Player settings
 export const PLAYER_START_X = 2.5;
@@ -25,18 +25,19 @@ export const MOUSE_SENSITIVITY = 0.2; // Mouse rotation sensitivity
 
 // Map settings
 export const TILE_SIZE = 1; // Each grid cell is 1x1 units
-export const MAP_WIDTH = 160;
-export const MAP_HEIGHT = 160;
+export const MAP_WIDTH = 80;  // Reduced from 160 for better gameplay
+export const MAP_HEIGHT = 80; // Reduced from 160 for better gameplay
 
 // Procedural generation settings
 export const PROCGEN_CONFIG = {
     MIN_ROOM_SIZE: 8,       // Minimum room dimensions
     MAX_ROOM_SIZE: 30,      // Maximum room dimensions
     CORRIDOR_WIDTH: 3,      // Width of connecting corridors
-    BASE_ENEMY_COUNT: 6,    // Starting enemy count on floor 1
-    ENEMY_SCALING: 3,       // Additional enemies per floor
-    MAX_ENEMIES: 40,        // Cap on enemy count
-    ITEM_SPAWN_RATE: 0.2,   // Probability of item spawn per room
+    BASE_ENEMY_COUNT: 15,   // Starting enemy count on floor 1 (increased from 6)
+    ENEMY_SCALING: 5,       // Additional enemies per floor (increased from 3)
+    MAX_ENEMIES: 60,        // Cap on enemy count (increased from 40)
+    ITEM_SPAWN_RATE: 0.65,  // Probability of item spawn per room (increased from 0.2)
+    ITEMS_PER_ROOM_MAX: 3,  // Maximum items that can spawn in a single room
     MIN_SPLIT_SIZE: 30,     // Minimum size before BSP stops splitting
 };
 

@@ -306,7 +306,24 @@ function renderItems(player, rays) {
  * Render enemies as billboard sprites (Phase 3)
  */
 function renderEnemies(player, rays) {
-    if (!state.enemies || state.enemies.length === 0) return;
+    if (!state.enemies || state.enemies.length === 0) {
+        // Debug: This should only log if there are truly no enemies
+        return;
+    }
+
+    // DEBUG: Log enemy count once per second
+    if (!renderEnemies.lastDebugTime || Date.now() - renderEnemies.lastDebugTime > 1000) {
+        console.log(`[RENDER] Attempting to render ${state.enemies.length} enemies`);
+        console.log(`[RENDER] Player at (${player.x.toFixed(1)}, ${player.y.toFixed(1)})`);
+        console.log(`[RENDER] MAX_RAY_DISTANCE = ${MAX_RAY_DISTANCE}`);
+        if (state.enemies[0]) {
+            const dx = state.enemies[0].x - player.x;
+            const dy = state.enemies[0].y - player.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            console.log(`[RENDER] First enemy: ${state.enemies[0].type.name} at (${state.enemies[0].x.toFixed(1)}, ${state.enemies[0].y.toFixed(1)}) - Distance: ${dist.toFixed(1)} units`);
+        }
+        renderEnemies.lastDebugTime = Date.now();
+    }
 
     // Create array of enemies with distance for sorting
     const enemiesWithDist = state.enemies.map(enemy => {
@@ -325,6 +342,9 @@ function renderEnemies(player, rays) {
     // Sort by distance (far to near) for proper depth rendering
     enemiesWithDist.sort((a, b) => b.distance - a.distance);
 
+    // DEBUG: Track why enemies aren't rendering
+    let debugStats = { total: enemiesWithDist.length, tooFar: 0, behindCamera: 0, offScreen: 0, behindWalls: 0, rendered: 0 };
+
     // Render each enemy
     for (const enemyData of enemiesWithDist) {
         const enemy = enemyData.enemy;
@@ -333,7 +353,10 @@ function renderEnemies(player, rays) {
         const distance = enemyData.distance;
 
         // Skip if too far
-        if (distance > MAX_RAY_DISTANCE) continue;
+        if (distance > MAX_RAY_DISTANCE) {
+            debugStats.tooFar++;
+            continue;
+        }
 
         // Transform enemy position to camera space
         const invDet = 1.0 / (player.planeX * player.dirY - player.dirX * player.planeY);
@@ -341,7 +364,10 @@ function renderEnemies(player, rays) {
         const transformY = invDet * (-player.planeY * dx + player.planeX * dy);
 
         // Check if behind camera
-        if (transformY <= 0.1) continue;
+        if (transformY <= 0.1) {
+            debugStats.behindCamera++;
+            continue;
+        }
 
         // Calculate screen position
         const screenX = Math.floor((SCREEN_WIDTH / 2) * (1 + transformX / transformY));
@@ -356,7 +382,10 @@ function renderEnemies(player, rays) {
         const drawEndX = Math.floor(screenX + spriteWidth / 2);
 
         // Check if on screen
-        if (drawEndX < 0 || drawStartX >= SCREEN_WIDTH) continue;
+        if (drawEndX < 0 || drawStartX >= SCREEN_WIDTH) {
+            debugStats.offScreen++;
+            continue;
+        }
 
         // Clamp to screen bounds
         const startX = Math.max(0, drawStartX);
@@ -371,7 +400,12 @@ function renderEnemies(player, rays) {
         }
 
         // Skip if completely behind walls
-        if (visibleColumns === 0) continue;
+        if (visibleColumns === 0) {
+            debugStats.behindWalls++;
+            continue;
+        }
+
+        debugStats.rendered++;
 
         // Draw enemy sprite using Kaplay drawing API
         if (enemy.alive) {
@@ -381,6 +415,12 @@ function renderEnemies(player, rays) {
             // Draw dead enemy (corpse on ground)
             drawDeadEnemy(enemy, screenX, spriteWidth, spriteHeight);
         }
+    }
+
+    // DEBUG: Log stats once per second
+    if (!renderEnemies.lastStatsTime || Date.now() - renderEnemies.lastStatsTime > 1000) {
+        console.log(`[RENDER] Enemy render stats:`, debugStats);
+        renderEnemies.lastStatsTime = Date.now();
     }
 }
 

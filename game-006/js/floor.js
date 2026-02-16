@@ -88,16 +88,20 @@ export async function loadFloor(floorNumber) {
     }
 
     // Spawn enemies
+    let successfulEnemySpawns = 0;
     floorData.enemySpawns.forEach(spawn => {
-        spawnEnemy(spawn.type, spawn.x, spawn.y, spawn.angle);
+        const enemy = spawnEnemy(spawn.type, spawn.x, spawn.y, spawn.angle);
+        if (enemy) successfulEnemySpawns++;
     });
-    console.log(`Spawned ${floorData.enemySpawns.length} enemies`);
+    console.log(`✓ Spawned ${successfulEnemySpawns}/${floorData.enemySpawns.length} enemies successfully`);
 
     // Spawn items
+    let successfulItemSpawns = 0;
     floorData.itemSpawns.forEach(spawn => {
-        spawnItem(spawn.type, spawn.x, spawn.y);
+        const item = spawnItem(spawn.type, spawn.x, spawn.y);
+        if (item) successfulItemSpawns++;
     });
-    console.log(`Spawned ${floorData.itemSpawns.length} items`);
+    console.log(`✓ Spawned ${successfulItemSpawns}/${floorData.itemSpawns.length} items successfully`);
 
     console.log(`=== Floor ${floorNumber} Ready ===\n`);
 

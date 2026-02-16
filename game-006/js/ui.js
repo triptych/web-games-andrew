@@ -6,6 +6,7 @@
 import { state } from './state.js';
 import { getCurrentWeapon, getWeaponState } from './weapons.js';
 import { doorState } from './door.js';
+import { getAliveEnemyCount } from './enemies.js';
 
 /**
  * Initialize UI system
@@ -191,7 +192,7 @@ function renderBottomHUD(k) {
     k.drawRect({
         pos: k.vec2(statsX, statsY),
         width: 190,
-        height: 110,
+        height: 130, // Increased height for enemies left counter
         color: k.rgb(0, 0, 0),
         opacity: 0.7,
         radius: 4,
@@ -213,9 +214,20 @@ function renderBottomHUD(k) {
         font: 'monospace',
     });
 
+    // Enemies left counter
+    const enemiesLeft = getAliveEnemyCount();
+    const enemiesColor = enemiesLeft > 0 ? k.rgb(255, 100, 100) : k.rgb(100, 255, 100);
+    k.drawText({
+        text: `Enemies Left: ${enemiesLeft}`,
+        pos: k.vec2(statsX + 10, statsY + 50),
+        size: 12,
+        color: enemiesColor,
+        font: 'monospace',
+    });
+
     k.drawText({
         text: `Shots: ${state.shotsFired}`,
-        pos: k.vec2(statsX + 10, statsY + 50),
+        pos: k.vec2(statsX + 10, statsY + 70),
         size: 12,
         color: k.rgb(200, 200, 200),
         font: 'monospace',
@@ -227,7 +239,7 @@ function renderBottomHUD(k) {
 
     k.drawText({
         text: `Accuracy: ${accuracy}%`,
-        pos: k.vec2(statsX + 10, statsY + 70),
+        pos: k.vec2(statsX + 10, statsY + 90),
         size: 12,
         color: k.rgb(100, 200, 255),
         font: 'monospace',
@@ -235,7 +247,7 @@ function renderBottomHUD(k) {
 
     k.drawText({
         text: `Time: ${Math.floor(state.timeAlive)}s`,
-        pos: k.vec2(statsX + 10, statsY + 90),
+        pos: k.vec2(statsX + 10, statsY + 110),
         size: 12,
         color: k.rgb(200, 200, 100),
         font: 'monospace',
