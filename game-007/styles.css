@@ -16,18 +16,131 @@ body {
 }
 
 #game-container {
-    width: 100%;
-    height: 100%;
+    width: 900px;
+    height: 600px;
+    margin: 20px auto;
+    background-color: #000000;
+    border: 2px solid #00FF00;
+    display: flex;
+    flex-direction: column;
     position: relative;
 }
 
-canvas {
-    display: block;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
+/* Status Bar */
+#status-bar {
+    height: 30px;
+    background-color: #003200;
+    border-bottom: 2px solid #00c800;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    flex-shrink: 0;
 }
 
-/* Optional: CRT scanline effect overlay */
+#room-name {
+    color: #FFFF00;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#inventory-info {
+    color: #00FF00;
+    font-size: 16px;
+}
+
+/* Text Display Area */
+#text-display {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px;
+    position: relative;
+}
+
+#text-buffer {
+    line-height: 1.4;
+}
+
+.text-line {
+    margin: 2px 0;
+    font-size: 16px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.text-primary {
+    color: #00FF00;
+}
+
+.text-secondary {
+    color: #00c800;
+}
+
+.text-highlighted {
+    color: #FFFF00;
+}
+
+.text-error {
+    color: #FF0000;
+}
+
+.text-system {
+    color: #808080;
+}
+
+/* Input Line */
+#input-line {
+    height: 40px;
+    border-top: 2px solid #00c800;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    background-color: #000000;
+    flex-shrink: 0;
+}
+
+.prompt {
+    color: #00FF00;
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+#command-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #00FF00;
+    font-family: 'Courier New', Consolas, Monaco, 'Lucida Console', monospace;
+    font-size: 16px;
+    caret-color: #00FF00;
+}
+
+#command-input::selection {
+    background-color: #00FF00;
+    color: #000000;
+}
+
+/* Scrollbar styling for terminal look */
+#text-display::-webkit-scrollbar {
+    width: 10px;
+}
+
+#text-display::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+
+#text-display::-webkit-scrollbar-thumb {
+    background: #00FF00;
+    border: 1px solid #000000;
+}
+
+#text-display::-webkit-scrollbar-thumb:hover {
+    background: #00CC00;
+}
+
+/* CRT scanline effect overlay */
 #game-container::before {
     content: "";
     position: absolute;
@@ -43,7 +156,23 @@ canvas {
         transparent 2px
     );
     pointer-events: none;
-    z-index: 1;
+    z-index: 10;
+}
+
+/* Typewriter cursor effect */
+.typing-cursor::after {
+    content: '█';
+    animation: blink 1s step-end infinite;
+    margin-left: 2px;
+}
+
+@keyframes blink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0;
+    }
 }
 
 /* Text selection styling */
@@ -52,20 +181,12 @@ canvas {
     color: #000000;
 }
 
-/* Scrollbar styling for terminal look */
-::-webkit-scrollbar {
-    width: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: #0a0a0a;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #00FF00;
-    border: 1px solid #000000;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #00CC00;
+/* Responsive adjustments */
+@media (max-width: 920px) {
+    #game-container {
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+        border: none;
+    }
 }

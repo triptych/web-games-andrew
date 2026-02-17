@@ -8,6 +8,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Interactive Fiction Text Adventure** (game-007): Phase 2 - Inventory & Items System
+  - **Comprehensive Item System**: 10 unique items with rich properties
+    - Item types: weapons, tools, keys, consumables, quest items, containers
+    - Properties: weight, value, equippable, usable, combinable, provides light
+    - Items include: Old Torch (light source), Rusty Sword (weapon), Iron Key, Stone Tablet, Crystal of Light, Wooden Crate (container), Healing Potion, Rope, Grappling Hook
+  - **Full-Featured Inventory System**: Weight-based capacity management
+    - Weight limit: 50kg with real-time tracking
+    - Add/remove items with automatic weight validation
+    - Total weight and total value calculations
+    - Item count tracking displayed in status bar
+    - Map-based storage for efficient item management
+  - **Equipment System**: Weapon and tool equipping
+    - Equip/unequip items with EQUIP/UNEQUIP commands
+    - Auto-unequip same-type items (only one weapon at a time)
+    - Visual equipped status in inventory: "Rusty Sword (equipped)"
+    - Equipment state preserved in inventory display
+  - **Item Combining System**: Create new items from components
+    - Combine items using COMBINE [item1] WITH [item2] command
+    - Bidirectional combination checking (order doesn't matter)
+    - Example: Rope + Grappling Hook = Rope with Grappling Hook
+    - Auto-removal of source items, auto-addition of result
+  - **Item Usage System**: Context-aware item interactions
+    - USE [item] command for general item usage
+    - USE [item] ON [target] for targeted interactions
+    - Consumables auto-remove on use with effects (healing potions)
+    - Custom use cases: sword on crate, key on door
+    - Effect system for heal amounts and buffs
+  - **Light Source System**: Integrated with dark rooms
+    - Items can provide light (Old Torch)
+    - Dark rooms require equipped light sources
+    - `hasLightSource()` check prevents entering dark areas without light
+  - **Enhanced Parser Commands**:
+    - TAKE - Now with weight checking and proper item names
+    - DROP - Properly handles item objects and auto-unequips
+    - EXAMINE - Shows detailed item properties from database
+    - INVENTORY - Formatted display with weight/value totals
+    - USE/USE ON - Item usage with targets
+    - COMBINE - Merge items into new items
+    - EQUIP/UNEQUIP - Equipment management
+  - **Flexible Item Matching**: Multiple ways to reference items
+    - Supports full names: "old torch"
+    - Supports IDs: "old_torch"
+    - Supports partial matches: "torch" finds "old_torch"
+    - Case-insensitive matching throughout
+  - **Status Bar Enhancement**: Real-time inventory statistics
+    - Item count display: "Items: X"
+    - Weight display: "Weight: Ykg / 50kg"
+    - Updates automatically as items are added/removed
+  - **Module Architecture**: ES6 module system
+    - Separate modules: config, textEngine, parser, world, inventory
+    - Data modules: rooms, items
+    - Clean imports/exports for maintainability
+  - **Save/Load Ready**: Serialization infrastructure
+    - `serialize()` and `deserialize()` methods in Inventory class
+    - Prepared for Phase 8 save/load implementation
+  - Files: Created [game-007/data/items.js](game-007/data/items.js), [game-007/js/inventory.js](game-007/js/inventory.js), Updated [game-007/js/parser.js](game-007/js/parser.js), [game-007/js/world.js](game-007/js/world.js), [game-007/js/main.js](game-007/js/main.js), [game-007/index.html](game-007/index.html), Added [game-007/PHASE2-COMPLETE.md](game-007/PHASE2-COMPLETE.md)
+
+
+### Added
 - **Wolfenstein-like Raycasting FPS** (game-006): Phase 4 - Procedural Generation & Themed Textures
   - **Procedural Map Generation**: Complete dungeon generation system
     - Created [game-006/js/procgen.js](game-006/js/procgen.js) for procedural level generation

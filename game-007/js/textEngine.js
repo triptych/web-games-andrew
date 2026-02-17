@@ -1,13 +1,13 @@
-// Text rendering engine with typewriter effect
+// Text rendering engine with typewriter effect (DOM-based)
 
 import { CONFIG } from './config.js';
 
 export class TextEngine {
-    constructor(k) {
-        this.k = k;
+    constructor() {
+        this.textBuffer = document.getElementById('text-buffer');
+        this.textDisplay = document.getElementById('text-display');
         this.buffer = []; // Array of text line objects
         this.maxLines = CONFIG.MAX_BUFFER_LINES;
-        this.scrollOffset = 0;
         
         // Typewriter effect state
         this.currentlyTyping = false;
@@ -16,6 +16,7 @@ export class TextEngine {
         this.currentIndex = 0;
         this.lastTypeTime = 0;
         this.canSkip = false;
+        this.currentLine = null;
     }
 
     /**
@@ -24,7 +25,7 @@ export class TextEngine {
      * @param {object} options - Display options (color, style, instant)
      */
     print(text, options = {}) {
-        const color = options.color || CONFIG.COLORS.TEXT_PRIMARY;
+        const colorClass = this.getColorClass(options.color || CONFIG.COLORS.TEXT_PRIMARY);
         const instant = options.instant || !CONFIG.TYPEWRITER_ENABLED;
         
         // Word wrap text to fit terminal width
@@ -33,14 +34,14 @@ export class TextEngine {
         if (instant) {
             // Add all lines immediately
             lines.forEach(line => {
-                this.addLineToBuffer(line, color);
+                this.addLineToBuffer(line, colorClass);
             });
             this.scrollToBottom();
         } else {
             // Queue for typewriter effect
             this.typewriterQueue.push({
                 lines,
-                color,
+                colorClass,
                 lineIndex: 0
             });
             
@@ -48,6 +49,18 @@ export class TextEngine {
                 this.startTypewriter();
             }
         }
+    }
+
+    /**
+     * Convert RGB color array to CSS class
+     */
+    getColorClass(colorArray) {
+        const [r, g, b] = colorArray;
+        if (r === 255 && g === 0 && b === 0) return 'text-error';
+        if (r === 128 && g === 128 && b === 128) return 'text-system';
+        if (r === 255 && g === 255 && b === 0) return 'text-highlighted';
+        if (r === 0 && g === 200 && b === 0) return 'text-secondary';
+        return 'text-primary';
     }
 
     /**
@@ -102,16 +115,25 @@ export class TextEngine {
     /**
      * Add a line to the text buffer
      */
-    addLineToBuffer(text, color) {
+    addLineToBuffer(text, colorClass) {
+        const lineElement = document.createElement('div');
+        lineElement.className = `text-line ${colorClass}`;
+        lineElement.textContent = text;
+        this.textBuffer.appendChild(lineElement);
+
         this.buffer.push({
             text,
-            color,
-            timestamp: Date.now()
+            colorClass,
+            timestamp: Date.now(),
+            element: lineElement
         });
 
         // Trim buffer if too large
         if (this.buffer.length > this.maxLines) {
-            this.buffer.shift();
+            const removed = this.buffer.shift();
+            if (removed.element && removed.element.parentNode) {
+                removed.element.parentNode.removeChild(removed.element);
+            }
         }
     }
 
@@ -132,6 +154,11 @@ export class TextEngine {
             this.currentText = current.lines[current.lineIndex];
             this.currentIndex = 0;
             this.lastTypeTime = Date.now();
+            
+            // Create a new line element for typing
+            this.currentLine = document.createElement('div');
+            this.currentLine.className = `text-line ${current.colorClass} typing-cursor`;
+            this.textBuffer.appendChild(this.currentLine);
         }
     }
 
@@ -162,10 +189,18 @@ export class TextEngine {
             this.currentIndex++;
             this.lastTypeTime = now;
 
+            // Update the current line
+            if (this.currentLine) {
+                this.currentLine.textContent = this.currentText.substring(0, this.currentIndex);
+            }
+
             // Check if current line is complete
             if (this.currentIndex >= this.currentText.length) {
-                // Add completed line to buffer
-                this.addLineToBuffer(this.currentText, current.color);
+                // Remove typing cursor
+                if (this.currentLine) {
+                    this.currentLine.classList.remove('typing-cursor');
+                }
+                
                 this.scrollToBottom();
                 
                 // Move to next line
@@ -175,6 +210,11 @@ export class TextEngine {
                     // Start next line
                     this.currentText = current.lines[current.lineIndex];
                     this.currentIndex = 0;
+                    
+                    // Create new line element
+                    this.currentLine = document.createElement('div');
+                    this.currentLine.className = `text-line ${current.colorClass} typing-cursor`;
+                    this.textBuffer.appendChild(this.currentLine);
                 } else {
                     // All lines done, remove from queue
                     this.typewriterQueue.shift();
@@ -185,6 +225,7 @@ export class TextEngine {
                         this.currentlyTyping = false;
                         this.currentText = '';
                         this.currentIndex = 0;
+                        this.currentLine = null;
                     }
                 }
             }
@@ -199,17 +240,23 @@ export class TextEngine {
             return;
         }
 
+        // Remove current typing line
+        if (this.currentLine && this.currentLine.parentNode) {
+            this.currentLine.parentNode.removeChild(this.currentLine);
+        }
+
         // Complete all queued text instantly
         while (this.typewriterQueue.length > 0) {
             const current = this.typewriterQueue.shift();
             for (let i = current.lineIndex; i < current.lines.length; i++) {
-                this.addLineToBuffer(current.lines[i], current.color);
+                this.addLineToBuffer(current.lines[i], current.colorClass);
             }
         }
 
         this.currentlyTyping = false;
         this.currentText = '';
         this.currentIndex = 0;
+        this.currentLine = null;
         this.scrollToBottom();
     }
 
@@ -217,77 +264,19 @@ export class TextEngine {
      * Clear the text buffer
      */
     clear() {
+        this.textBuffer.innerHTML = '';
         this.buffer = [];
-        this.scrollOffset = 0;
         this.typewriterQueue = [];
         this.currentlyTyping = false;
         this.currentText = '';
         this.currentIndex = 0;
-    }
-
-    /**
-     * Scroll text buffer
-     */
-    scroll(direction) {
-        const maxScroll = Math.max(0, this.buffer.length - this.getVisibleLines());
-        this.scrollOffset = Math.max(0, Math.min(maxScroll, 
-            this.scrollOffset + direction * CONFIG.UI.SCROLL_SPEED));
+        this.currentLine = null;
     }
 
     /**
      * Scroll to bottom of buffer
      */
     scrollToBottom() {
-        const maxScroll = Math.max(0, this.buffer.length - this.getVisibleLines());
-        this.scrollOffset = maxScroll;
-    }
-
-    /**
-     * Get number of visible lines that fit on screen
-     */
-    getVisibleLines() {
-        const availableHeight = CONFIG.SCREEN_HEIGHT - 
-            CONFIG.UI.STATUS_BAR_HEIGHT - 
-            CONFIG.UI.INPUT_HEIGHT - 
-            (CONFIG.UI.PADDING * 3);
-        return Math.floor(availableHeight / CONFIG.LINE_HEIGHT);
-    }
-
-    /**
-     * Render text buffer to screen
-     */
-    render() {
-        const startY = CONFIG.UI.STATUS_BAR_HEIGHT + CONFIG.UI.PADDING;
-        const visibleLines = this.getVisibleLines();
-        const startLine = Math.floor(this.scrollOffset);
-        const endLine = Math.min(this.buffer.length, startLine + visibleLines);
-
-        // Render buffered lines
-        for (let i = startLine; i < endLine; i++) {
-            const line = this.buffer[i];
-            const y = startY + ((i - startLine) * CONFIG.LINE_HEIGHT);
-            
-            this.k.drawText({
-                text: line.text,
-                pos: this.k.vec2(CONFIG.UI.PADDING, y),
-                size: CONFIG.FONT_SIZE,
-                color: this.k.rgb(...line.color),
-                font: 'monospace'
-            });
-        }
-
-        // Render currently typing line (if any)
-        if (this.currentlyTyping && this.currentText) {
-            const displayText = this.currentText.substring(0, this.currentIndex);
-            const y = startY + ((endLine - startLine) * CONFIG.LINE_HEIGHT);
-            
-            this.k.drawText({
-                text: displayText,
-                pos: this.k.vec2(CONFIG.UI.PADDING, y),
-                size: CONFIG.FONT_SIZE,
-                color: this.k.rgb(...this.typewriterQueue[0].color),
-                font: 'monospace'
-            });
-        }
+        this.textDisplay.scrollTop = this.textDisplay.scrollHeight;
     }
 }
