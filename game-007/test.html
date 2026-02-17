@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaplay Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+        }
+    </style>
+</head>
+<body>
+    <script src="../lib/kaplay/kaplay.js"></script>
+    <script>
+        console.log('Script starting...');
+        console.log('kaplay available:', typeof kaplay);
+        
+        try {
+            const k = kaplay({
+                width: 900,
+                height: 600,
+                background: [0, 0, 0],
+                global: false
+            });
+            
+            console.log('Kaplay initialized');
+            
+            k.onDraw(() => {
+                k.drawText({
+                    text: "Hello World!",
+                    pos: k.vec2(100, 100),
+                    size: 24,
+                    color: k.rgb(0, 255, 0)
+                });
+            });
+            
+            console.log('Draw handler registered');
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    </script>
+</body>
+</html>

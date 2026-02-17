@@ -1727,10 +1727,92 @@ Call `debugEnemies()` in browser console to inspect all enemy states in real-tim
 
 **Phase 3 Complete:** ✅ All 5 enemy types working, AI behaviors functional, weapon integration complete, rendering optimized.
 
----
+### Phase 4-6 Findings (2026-02-16)
 
-**Document Version**: 1.2
-**Last Updated**: 2026-02-15
+These findings come from reviewing the current `game-006` implementation and its phase docs/changelog.
+
+#### 1) Scene-safe input handlers prevent cross-scene bugs
+
+Issue pattern: Global click/key handlers in menu systems can continue firing after scene changes.
+
+Working pattern (game-006):
+- Gate menu actions with a scene check before executing:
+  - `if (k.getSceneName() === "menu") { k.go("game"); }`
+- This avoids gameplay clicks being interpreted as menu clicks.
+
+Files:
+- `game-006/js/menu.js`
+- `game-006/CHANGELOG.md`
+
+#### 2) Spawn validation should be mandatory for runtime entities
+
+Issue pattern: Procedural or configured spawns can land inside walls, creating invisible/invalid entities.
+
+Working pattern (game-006):
+- Validate tile walkability at spawn time for both enemies and items:
+  - Reject spawn when `getTile(x, y) !== 0`
+  - Return `null` and log the failure reason
+- This gives safe failure behavior and actionable debugging output.
+
+Files:
+- `game-006/js/enemies.js`
+- `game-006/js/items.js`
+
+#### 3) Gate the update loop until async floor load completes
+
+Issue pattern: Systems update before map/state is initialized, causing transient null/state errors.
+
+Working pattern (game-006):
+- Use an explicit `floorLoaded` guard:
+  - Start floor load (`loadFloor(1)`), set flag only on completion
+  - Early-return in `onUpdate()` until ready
+- This keeps startup deterministic and prevents race conditions.
+
+Files:
+- `game-006/js/main.js`
+- `game-006/js/floor.js`
+
+#### 4) Progression clarity: expose objective state in HUD
+
+Design insight: "Kill all enemies to unlock exit" is clearer when the UI shows remaining count.
+
+Working pattern (game-006):
+- Add `Enemies Left` to HUD with color state:
+  - Red when enemies remain
+  - Green when clear
+- Couple this with runtime door spawning when alive enemy count reaches zero.
+
+Files:
+- `game-006/js/ui.js`
+- `game-006/js/main.js`
+
+#### 5) Large procedural maps require spawn-density tuning, not just size scaling
+
+Issue pattern: Bigger maps alone often reduce engagement density (long downtime between encounters).
+
+Tuning pattern used:
+- Reduce map dimensions to improve pacing (`160x160 -> 80x80`)
+- Increase enemy baseline and scaling
+- Guarantee a nearby-enemy subset on floor start
+- Add bonus enemies in larger rooms
+- Increase item spawn rate and per-room item cap
+- Increase view distance to improve encounter visibility
+
+Files:
+- `game-006/js/config.js`
+- `game-006/js/procgen.js`
+- `game-006/CHANGELOG.md`
+
+#### 6) Keep planning docs synced with implementation values
+
+`game-006/game-plan.md` still describes older targets in several places (for example older map-size/ray-distance assumptions), while current implementation has moved on. For fast-moving game iterations, include a lightweight "current defaults" section in the plan and update it whenever config baselines change.`r`n`r`n---
+
+**Document Version**: 1.3
+**Last Updated**: 2026-02-16
 **Games Covered**: 001-006
 **Total Lines Analyzed**: ~12,000+
-**Latest Enhancement**: Game 006 Phase 3 - Enemy System with Kaplay Drawing API
+**Latest Enhancement**: Game 006 procedural pacing, spawn validation, and UI progression updates
+
+
+
+
