@@ -116,10 +116,14 @@ export class World {
 
         // Check if exit is locked
         if (room.locked && room.locked.direction === direction) {
-            const keyNeeded = room.locked.requiresKey;
+            // Use custom message if provided, otherwise show item name
+            if (room.locked.message) {
+                return { success: false, message: room.locked.message };
+            }
+            const keyName = getItemName(room.locked.requiresKey);
             return {
                 success: false,
-                message: `The way ${direction} is locked. You need a ${keyNeeded}.`
+                message: `The way ${direction} is locked. You need ${keyName}.`
             };
         }
 
@@ -220,5 +224,50 @@ export class World {
     getExits() {
         const room = this.getCurrentRoom();
         return room && room.exits ? Object.keys(room.exits) : [];
+    }
+
+    /**
+     * Examine a named object in the current room's examinable list.
+     * Returns { description, revealedExit? } or null if not found.
+     * Reveals hidden exits if the object has a revealsExit property.
+     */
+    examineObject(searchTerm) {
+        const room = this.getCurrentRoom();
+        if (!room || !room.examinable) return null;
+
+        const search = searchTerm.toLowerCase();
+
+        for (const [key, obj] of Object.entries(room.examinable)) {
+            const nameMatch = key.toLowerCase().includes(search);
+            const aliasMatch = obj.aliases && obj.aliases.some(a => a.toLowerCase().includes(search));
+
+            if (nameMatch || aliasMatch) {
+                const result = { description: obj.description };
+
+                // Reveal hidden exit if not already revealed
+                if (obj.revealsExit && !obj.revealed) {
+                    obj.revealed = true;
+                    room.exits[obj.revealsExit.direction] = obj.revealsExit.roomId;
+                    result.revealedExit = obj.revealsExit.direction;
+                }
+
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Unlock an exit in any room by room ID and direction.
+     * Used for items that unlock exits from a distance (e.g. rope_and_hook).
+     */
+    unlockExitInRoom(roomId, direction) {
+        const room = this.rooms.get(roomId);
+        if (room && room.locked && room.locked.direction === direction) {
+            room.locked = null;
+            return true;
+        }
+        return false;
     }
 }

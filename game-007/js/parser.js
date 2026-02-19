@@ -91,7 +91,7 @@ export class Parser {
         }
 
         const searchTerm = args.join(' ');
-        
+
         // Try to find item in inventory first
         const invItemId = this.inventory.findItemByName(searchTerm);
         if (invItemId) {
@@ -106,12 +106,22 @@ export class Parser {
         const roomItems = this.world.getRoomItems();
         for (const itemId of roomItems) {
             const item = getItem(itemId);
-            if (item && (item.id === searchTerm || 
+            if (item && (item.id === searchTerm ||
                          item.name.toLowerCase().includes(searchTerm) ||
                          item.name.toLowerCase().replace(/\s+/g, '_') === searchTerm)) {
                 this.textEngine.print(item.description);
                 return;
             }
+        }
+
+        // Check room's examinable objects (scenery, hidden features)
+        const examinableResult = this.world.examineObject(searchTerm);
+        if (examinableResult) {
+            this.textEngine.print(examinableResult.description);
+            if (examinableResult.revealedExit) {
+                this.textEngine.printSystem(`A hidden passage to the ${examinableResult.revealedExit} has been revealed!`);
+            }
+            return;
         }
 
         this.textEngine.printError(`You don't see any ${searchTerm} here.`);
@@ -252,15 +262,14 @@ export class Parser {
         }
 
         const result = this.inventory.useItem(itemId, targetId);
-        
+
         if (result.success) {
-            this.textEngine.print(result.message);
-            
-            // Handle special cases
-            if (result.target) {
-                this.handleItemUse(itemId, result.target);
+            // handleItemUse returns true if it printed its own message (special interaction)
+            const specialHandled = this.handleItemUse(itemId, targetId || result.target || null);
+            if (!specialHandled) {
+                this.textEngine.print(result.message);
             }
-            
+
             if (result.effect) {
                 this.handleItemEffect(result.effect);
             }
@@ -419,30 +428,73 @@ SPACE to skip text animations.
     }
 
     /**
-     * Handle special item use cases
+     * Handle special item use cases.
+     * Returns true if the interaction was handled (and printed its own message),
+     * false if no special handling occurred (generic message will be shown).
      */
     handleItemUse(itemId, targetId) {
-        const item = getItem(itemId);
-        const target = getItem(targetId);
+        const room = this.world.getCurrentRoom();
 
-        // Using sword on wooden crate
+        // --- Rusty sword on wooden crate ---
         if (itemId === 'rusty_sword' && targetId === 'wooden_crate') {
-            const crateItem = this.world.getRoomItems().find(id => id === 'wooden_crate');
-            if (crateItem) {
-                this.textEngine.print("You pry open the wooden crate with the rusty sword. Inside, you find a healing potion!");
+            if (this.world.isItemInRoom('wooden_crate')) {
+                this.textEngine.print("You pry open the wooden crate with the rusty sword. The lid splinters away. Inside, you find a healing potion!");
                 this.world.removeItemFromRoom('wooden_crate');
                 this.world.addItemToRoom('healing_potion');
+                return true;
             }
         }
 
-        // Using iron key on locked door
+        // --- Iron key: unlocks current room's locked exit ---
         if (itemId === 'iron_key') {
-            const room = this.world.getCurrentRoom();
-            if (room && room.locked) {
+            if (room && room.locked && room.locked.requiresKey === 'iron_key') {
                 this.world.unlockExit(room.locked.direction);
-                this.textEngine.print("You unlock the door with the iron key. It swings open with a creak.");
+                this.textEngine.print("You insert the iron key into the lock. It turns with a satisfying clunk, and the door swings open with a creak.");
+                return true;
             }
+            this.textEngine.print("You look around for a matching lock, but there is none here.");
+            return true;
         }
+
+        // --- Bronze key: unlocks current room's locked exit ---
+        if (itemId === 'bronze_key') {
+            if (room && room.locked && room.locked.requiresKey === 'bronze_key') {
+                this.world.unlockExit(room.locked.direction);
+                this.textEngine.print("The crescent-moon bow of the bronze key fits the crescent-shaped lock perfectly. It turns with a deep, resonant click and the door groans open.");
+                return true;
+            }
+            this.textEngine.print("You look around for a crescent-shaped lock, but there is none here.");
+            return true;
+        }
+
+        // --- Rope and hook: climb to upper balcony from library ---
+        if (itemId === 'rope_and_hook') {
+            if (room && room.id === 'library') {
+                if (room.locked && room.locked.direction === 'north') {
+                    this.world.unlockExit('north');
+                    this.textEngine.print("You swing the grappling hook upward toward the high window. The first two throws miss, but on the third, the hook catches firmly on the ledge above with a satisfying clang. You tug the rope — it holds. A makeshift ladder to the upper balcony!");
+                    return true;
+                }
+                this.textEngine.print("The rope and hook are already secured to the ledge above.");
+                return true;
+            }
+            // Not in library — no special handling
+            return false;
+        }
+
+        // --- Ancient lantern: equip reminder ---
+        if (itemId === 'ancient_lantern') {
+            this.textEngine.print("The ancient lantern glows with a steady warm light. Make sure to EQUIP it to use it as a light source in dark areas.");
+            return true;
+        }
+
+        // --- Old torch: equip reminder ---
+        if (itemId === 'old_torch') {
+            this.textEngine.print("The torch flickers with a warm flame. Make sure to EQUIP it to use it as a light source in dark areas.");
+            return true;
+        }
+
+        return false; // No special handling
     }
 
     /**

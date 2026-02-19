@@ -8,6 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Interactive Fiction Text Adventure** (game-007): Phase 3 - World Building
+  - **20 Rooms** (expanded from 6) across six distinct areas:
+    - *Starting Area*: Damp Chamber, Narrow Corridor, Storage Room, Dark Alcove, Temple Entrance, Inner Sanctum
+    - *Underground Network*: Underground Stream, Underground Lake (dark)
+    - *Military Wing*: Armory, Soldiers' Barracks
+    - *Hidden Route*: Collapsed Tunnel (dark), Hidden Passage
+    - *Temple Exterior*: Temple Garden, Overgrown Path, Statue Garden
+    - *Temple Interior*: Library, Upper Balcony, Ritual Chamber, Bell Tower, Temple Crypt (dark)
+  - **Examinable Objects System**: Every room has named scenery items players can examine (carvings, columns, bookshelves, mosaics, sarcophagi, etc.), providing lore and puzzle clues
+  - **Hidden Exit Mechanic**: Examining specific objects reveals secret passages — examining the library bookshelf reveals a hidden passage west to the collapsed tunnel network
+  - **Locked Exits** (3 distinct lock types):
+    - Iron Key → Temple Entrance north door (found in dark alcove)
+    - Bronze Key → Inner Sanctum west door / Library (found in collapsed tunnel, dark)
+    - Rope with Grappling Hook → Library north window to Upper Balcony (`USE rope_and_hook` in library)
+  - **Dark Rooms** (4): Dark Alcove, Collapsed Tunnel, Underground Lake, Temple Crypt — require equipped light source
+  - **Custom Lock Messages**: Locked exits display context-appropriate messages (e.g., "The high window is far out of reach. You need something to climb.")
+  - **Crystal Shard Puzzle Setup** (for Phase 5/7): Three shards scattered across the world matching lore from manuscript/scroll/codex — Crystal Shard (upper balcony / the heights), Moon Stone (crypt / the depths), Fire Shard (ritual chamber / sacred fire)
+  - **11 New Items**: Ancient Lantern (light source), Bronze Key, Old Manuscript (clue), Moon Stone (shard), Fire Shard (shard), Silver Coin (treasure), Ceremonial Dagger (weapon), Old Codex (clue), Rusty Armor (equippable), Crystal Shard (shard), Thick Vine (tool)
+  - **Bug Fix**: Key usage now correctly unlocks locked exits — `handleItemUse` was previously dead code for keys due to a flow issue where it was only called when `result.target` was truthy, which never happened for keys without an explicit target
+  - **Improved Lock Messages**: Lock messages use item display names instead of raw IDs (e.g., "You need Bronze Key" not "You need bronze_key")
+  - Files: Rewritten [game-007/data/rooms.js](game-007/data/rooms.js), Updated [game-007/data/items.js](game-007/data/items.js), [game-007/js/world.js](game-007/js/world.js), [game-007/js/parser.js](game-007/js/parser.js)
+
+### Added
 - **Interactive Fiction Text Adventure** (game-007): Phase 2 - Inventory & Items System
   - **Comprehensive Item System**: 10 unique items with rich properties
     - Item types: weapons, tools, keys, consumables, quest items, containers

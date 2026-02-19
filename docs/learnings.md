@@ -1807,11 +1807,175 @@ Files:
 
 `game-006/game-plan.md` still describes older targets in several places (for example older map-size/ray-distance assumptions), while current implementation has moved on. For fast-moving game iterations, include a lightweight "current defaults" section in the plan and update it whenever config baselines change.`r`n`r`n---
 
-**Document Version**: 1.3
-**Last Updated**: 2026-02-16
-**Games Covered**: 001-006
-**Total Lines Analyzed**: ~12,000+
-**Latest Enhancement**: Game 006 procedural pacing, spawn validation, and UI progression updates
+---
+
+## Game 007: Interactive Fiction Text Adventure (2026-02-19)
+
+### Architecture: DOM-Based Text Engine vs Kaplay
+
+**Design Decision:**
+Game 007 uses a pure DOM-based text rendering system instead of Kaplay, despite the game plan originally specifying Kaplay. This is the right call for text-heavy games.
+
+**Why DOM works better for text adventures:**
+- ✅ Native text rendering (no manual word-wrap math, just CSS)
+- ✅ Scrollable text buffer is trivially a CSS `overflow-y: scroll`
+- ✅ Typewriter effect runs on `requestAnimationFrame` without a Kaplay game loop
+- ✅ Browser handles accessibility (screen readers, text selection)
+- ✅ Simpler module structure — no Kaplay initialization overhead
+
+**Pattern used:**
+```javascript
+// TextEngine creates DOM elements per line
+addLineToBuffer(text, colorClass) {
+    const line = document.createElement('div');
+    line.className = `text-line ${colorClass}`;
+    line.textContent = '';  // Filled by typewriter
+    this.textBuffer.appendChild(line);
+}
+```
+
+**Key Lesson:**
+> Kaplay is ideal for sprite/canvas games. For text-heavy interactive fiction, standard DOM + CSS is simpler, more accessible, and equally performant.
+
+---
+
+### Examinable Objects Pattern for Interactive Scenery
+
+**Problem:** Text adventure rooms need interactive scenery (carvings, bookshelves, murals) that isn't a carriable item, but is still examinable and potentially hides secrets.
+
+**Solution:** Add an `examinable` map to room data alongside the items array.
+
+**Room data structure:**
+```javascript
+{
+    id: "library",
+    items: ["old_manuscript"],
+    examinable: {
+        "bookshelf": {
+            description: "You notice one section is slightly out of alignment...",
+            revealsExit: { direction: "west", roomId: "hidden_passage" },
+            aliases: ["bookshelves", "shelves", "shelf"]
+        },
+        "scroll": {
+            description: "The scroll reads: '...'",
+            aliases: ["open scroll", "desk"]
+        }
+    }
+}
+```
+
+**World method:**
+```javascript
+examineObject(searchTerm) {
+    const room = this.getCurrentRoom();
+    for (const [key, obj] of Object.entries(room.examinable)) {
+        const match = key.toLowerCase().includes(search) ||
+            obj.aliases?.some(a => a.toLowerCase().includes(search));
+        if (match) {
+            if (obj.revealsExit && !obj.revealed) {
+                obj.revealed = true;
+                room.exits[obj.revealsExit.direction] = obj.revealsExit.roomId;
+            }
+            return { description: obj.description, revealedExit: ... };
+        }
+    }
+    return null;
+}
+```
+
+**Benefits:**
+- Scenery stays separate from inventory items
+- Aliases allow flexible player input ("shelf", "bookshelves", "west bookshelf" all work)
+- `revealsExit` enables hidden passages discovered through exploration
+- `revealed` flag prevents double-triggering
+
+---
+
+### Bug: Key Items Never Unlocking Doors (Dead Code Pattern)
+
+**Bug:** `USE iron_key` or `USE bronze_key` printed a generic "You use the Iron Key." but never unlocked any doors.
+
+**Root cause:**
+In `parser.js`, `handleItemUse(itemId, targetId)` was only called when `result.target` was truthy:
+```javascript
+// ❌ BROKEN: handleItemUse only called with a target
+if (result.target) {
+    this.handleItemUse(itemId, result.target);
+}
+```
+
+And `inventory.useItem` only sets `result.target` when the item has a `useWith` list that includes the specific target. Keys had empty or missing `useWith`, so `result.target` was always undefined — the key unlock code was **dead code**.
+
+**Fix:** Always call `handleItemUse`, and have it return a boolean indicating whether it handled the interaction:
+```javascript
+// ✅ FIXED
+const specialHandled = this.handleItemUse(itemId, targetId || result.target || null);
+if (!specialHandled) {
+    this.textEngine.print(result.message);  // Generic fallback
+}
+```
+
+`handleItemUse` returns `true` if it printed its own message (suppresses generic), `false` to allow generic message.
+
+**Key lesson:**
+> When building command handlers that need special-case behavior, always call the special-case handler first and use a return value to control whether the generic fallback runs. Never gate special handling on data that might not be set.
+
+---
+
+### Lock System: Custom Messages and Item Name Display
+
+**Two improvements to the locked exit system:**
+
+**1. Show item name not ID in lock messages:**
+```javascript
+// ❌ "The way north is locked. You need rope_and_hook."
+// ✅ "The way north is locked. You need Rope with Grappling Hook."
+const keyName = getItemName(room.locked.requiresKey);
+return { success: false, message: `The way ${direction} is locked. You need ${keyName}.` };
+```
+
+**2. Custom lock messages for non-key barriers:**
+Some "locks" aren't literal locks (e.g., a high window you need to climb). Add an optional `message` field:
+```javascript
+locked: {
+    direction: "north",
+    requiresKey: "rope_and_hook",
+    message: "The high window is far out of reach. You need something to climb."
+}
+```
+World checks `room.locked.message` first before falling back to the generic format.
+
+---
+
+### Text Adventure World Design: Key Progression Paths
+
+**Pattern for designing interconnected rooms with gated progression:**
+
+Draw out the key chain before writing room descriptions:
+```
+Player needs:     To get:        Located in:      Which requires:
+iron_key       →  temple door  ←  dark_alcove   ←  equip torch (light)
+bronze_key     →  library      ←  collapsed_tunnel ← dark_alcove (light)
+rope_and_hook  →  upper_balcony ← rope (stream) + hook (armory)
+```
+
+**This reveals design requirements before coding:**
+- Which rooms MUST have light (dark rooms gating key items)
+- Which items must be placed in which rooms for a solvable path
+- Whether any items are unreachable (soft-lock check)
+
+**Soft-lock prevention checklist:**
+- Every dark room's key item must be reachable with available light sources
+- No locked door should require a key that's behind that same door
+- Combinable items (rope + hook) must not both be gated by the same lock
+
+---
+
+**Document Version**: 1.4
+**Last Updated**: 2026-02-19
+**Games Covered**: 001-007
+**Total Lines Analyzed**: ~15,000+
+**Latest Enhancement**: Game 007 text adventure world building, DOM text engine, examinable objects, lock system patterns
 
 
 
