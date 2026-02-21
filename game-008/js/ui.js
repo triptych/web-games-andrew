@@ -200,7 +200,7 @@ function _createHUD(k) {
     ]);
     _lastGold = state.gold;
 
-    // ---- RIGHT: Tower legend header ----
+    // ---- RIGHT: Tower shop hint ----
     k.add([
         k.pos(RIGHT_CX, 200),
         k.text('TOWERS', { size: 11 }),
@@ -211,7 +211,7 @@ function _createHUD(k) {
     ]);
     k.add([
         k.pos(RIGHT_CX, 218),
-        k.text('(Phase 4)', { size: 9 }),
+        k.text('Click to buy', { size: 9 }),
         k.color(80, 80, 120),
         k.anchor('center'),
         k.z(52),
@@ -320,7 +320,7 @@ function _showOverlay(title, titleColor) {
     ]);
     k.add([
         k.pos(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 60),
-        k.text('Press [R] to restart', { size: 16 }),
+        k.text('Press (R) to restart', { size: 16 }),
         k.color(150, 150, 180),
         k.anchor('center'),
         k.z(101),

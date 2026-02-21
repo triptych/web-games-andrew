@@ -18,6 +18,9 @@ import { initGrid }       from './grid.js';
 import { initUI }         from './ui.js';
 import { initAudio, playUiClick } from './sounds.js';
 import { initCentipede }  from './centipede.js';
+import { initPlayer }     from './player.js';
+import { initTowers }     from './towers.js';
+import { initShop, destroyShopDOM } from './shop.js';
 
 // ============================================================
 // Kaplay initialisation
@@ -104,7 +107,7 @@ k.scene('splash', () => {
     // Version tag
     k.add([
         k.pos(GAME_WIDTH - 12, GAME_HEIGHT - 12),
-        k.text('Phase 2', { size: 10 }),
+        k.text('Phase 4', { size: 10 }),
         k.color(50, 50, 80),
         k.anchor('botright'),
         k.z(1),
@@ -151,6 +154,15 @@ k.scene('game', () => {
     // Spawn the centipede and start its update loop
     initCentipede(k);
 
+    // Spawn the player ship and start its update / input loop
+    initPlayer(k);
+
+    // Phase 4: tower placement, auto-fire, upgrade, sell
+    initTowers(k);
+
+    // Phase 4: shop DOM panel + between-wave overlay
+    initShop(k);
+
     // --- Key bindings ---
 
     // Restart
@@ -170,16 +182,9 @@ k.scene('game', () => {
         k.go('splash');
     });
 
-    // Smart Bomb placeholder (Phase 3 will wire this properly)
-    k.onKeyPress('space', () => {
-        if (state.smartBombs > 0 && !state.isGameOver) {
-            state.smartBombs -= 1;
-            // Phase 3 will trigger the actual bomb effect here
-        }
-    });
-
     // Cleanup on scene leave
     k.onSceneLeave(() => {
+        destroyShopDOM();
         events.clearAll();
     });
 });

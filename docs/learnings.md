@@ -1971,11 +1971,176 @@ rope_and_hook  →  upper_balcony ← rope (stream) + hook (armory)
 
 ---
 
-**Document Version**: 1.4
-**Last Updated**: 2026-02-19
-**Games Covered**: 001-007
-**Total Lines Analyzed**: ~15,000+
-**Latest Enhancement**: Game 007 text adventure world building, DOM text engine, examinable objects, lock system patterns
+---
+
+---
+
+## Game 008: Centipede Tower Defense — Phase 3 Bugs (2026-02-21)
+
+### Bug: Entity Position Not Updating Visually
+
+**Symptom:** Centipede segments appeared frozen at spawn position (col 0, row 0) despite internal state updating correctly. Player ship did not move when arrow/WASD keys were pressed, even though `_shipX`/`_shipY` values were changing internally.
+
+**Root Cause:** `entity.pos` in Kaplay v4000 is a **getter/setter pair**, not a plain Vec2 field. Reading `entity.pos` returns a temporary Vec2 object. Mutating `.x` or `.y` on that temporary object has no effect on the rendered position.
+
+```javascript
+// ❌ BROKEN — mutates a throwaway Vec2, no visual effect
+ent.pos.x = w.x;
+ent.pos.y = w.y;
+```
+
+```javascript
+// ✅ CORRECT — triggers the pos setter, updates rendered position
+ent.pos = k.vec2(w.x, w.y);
+```
+
+**Files affected:** `centipede.js` (`_updateVisuals`), `player.js` (`_updateShipVisuals`, `_updateBullets`).
+
+**Prevention:**
+- Always use `entity.pos = k.vec2(x, y)` to move entities after creation
+- Never use `entity.pos.x = value` or `entity.pos.y = value`
+
+---
+
+### Bug: Opacity Not Working on Ship Entities
+
+**Symptom:** Invincibility flash effect didn't work — `entity.opacity = 0` had no visible effect.
+
+**Root Cause:** `entity.opacity` is a Kaplay component property. Setting it only works when the entity was created with `k.opacity(initialValue)` in its component list. Without the component, the assignment is silently ignored.
+
+```javascript
+// ❌ BROKEN — no opacity component, setting .opacity does nothing
+k.add([k.pos(x, y), k.rect(w, h), k.color(r, g, b)]);
+entity.opacity = 0;  // silently ignored
+
+// ✅ CORRECT — include k.opacity() so the component is registered
+k.add([k.pos(x, y), k.rect(w, h), k.color(r, g, b), k.opacity(1)]);
+entity.opacity = 0;  // works
+```
+
+**Prevention:** Any entity that will have its `.opacity` changed after creation must include `k.opacity(1)` (or the desired initial value) in its `k.add([...])` component array.
+
+---
+
+## Game 008: Centipede Tower Defense — Phase 4 (Tower Placement & Auto-Fire)
+
+### Architecture: Canvas Sidebar Shop vs DOM Overlay
+
+**Design Decision:** Game 008 uses a **hybrid approach** for the tower shop:
+- Right-side HUD (Kaplay canvas) shows tower buttons for in-game purchase during play
+- Between-wave shop is a **DOM overlay** that pauses the game and shows full details
+
+**Why hybrid works:**
+- Kaplay canvas buttons are pixel-perfect with the game grid — no z-index fights
+- DOM overlay for the between-wave shop allows richer HTML/CSS layout (tables, hover effects)
+- The DOM overlay can be closed with `closeShopOverlay()` and the game resumes cleanly
+
+**Pattern:**
+```javascript
+// In-game sidebar (Kaplay canvas)
+k.add([k.rect(w, h), k.pos(x, y), k.area(), k.color(...)]);
+entity.onClick(() => events.emit('towerTypeSelected', type));
+
+// Between-wave overlay (DOM)
+const overlay = document.createElement('div');
+overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;...';
+document.body.appendChild(overlay);
+```
+
+---
+
+### Tower Range Visualization Pattern
+
+Showing tower range on slot hover required a dedicated "range circle" entity:
+
+```javascript
+function showRangeFor(col, row, range) {
+    hideRange();
+    _rangeCircle = k.add([
+        k.circle(range * TILE_SIZE),
+        k.pos(cx, cy),
+        k.color(100, 180, 255),
+        k.opacity(0.15),
+        k.anchor('center'),
+        'towerRange',
+    ]);
+}
+function hideRange() {
+    k.destroyAll('towerRange');
+    _rangeCircle = null;
+}
+```
+
+**Key insight:** Tag the range circle (`'towerRange'`) so `k.destroyAll('towerRange')` cleans it up without keeping a reference. Works cleanly on scene restarts.
+
+---
+
+### Tower Targeting: Nearest-Segment Priority
+
+Towers iterate `k.get('centSegment')` (centipede segment entities) to find their target. Head segments use a `isHead: true` property for priority.
+
+```javascript
+function findTarget(towerPos, range) {
+    const segs = k.get('centSegment');
+    let best = null, bestDist = range * TILE_SIZE + 1;
+    for (const seg of segs) {
+        const d = seg.pos.dist(towerPos);
+        if (d < bestDist) { best = seg; bestDist = d; }
+    }
+    return best;
+}
+```
+
+Sniper towers use a **column scan** instead of distance — they fire instantly through all segments in their column, trading range for piercing.
+
+---
+
+### Slow Debuff: Centipede.applySlow() Pattern
+
+Freeze towers apply a timed slow on segment hit. Rather than storing slow state per-segment, the entire Centipede chain slows together:
+
+```javascript
+// In Centipede class
+applySlow(factor, duration) {
+    this.slowFactor = factor;     // e.g. 0.4 (60% slow)
+    this.slowTimer = duration;    // seconds remaining
+}
+
+// In update()
+if (this.slowTimer > 0) {
+    this.slowTimer -= dt;
+    if (this.slowTimer <= 0) this.slowFactor = 1.0;
+}
+const effectiveSpeed = this.baseSpeed * this.slowFactor;
+```
+
+**Lesson:** Chain-wide slow is simpler and feels better than per-segment — the visual effect of the whole centipede crawling slowly is more impactful.
+
+---
+
+### Placement Mode ESC Cancel
+
+Entering placement mode changes the cursor behavior (grid hover highlight) and must be cancelled cleanly. Pattern used:
+
+```javascript
+let _placingType = null;
+
+export function enterPlacementMode(type) { _placingType = type; }
+export function exitPlacementMode()      { _placingType = null; }
+
+// In main.js
+k.onKeyPress('escape', () => {
+    if (_placingType) exitPlacementMode();
+});
+```
+
+---
+
+**Document Version**: 1.6
+**Last Updated**: 2026-02-21
+**Games Covered**: 001-008
+**Total Lines Analyzed**: ~18,000+
+**Latest Enhancement**: Game 008 Phase 4 — tower placement, shop, slow debuff, range visualization
 
 
 

@@ -309,46 +309,49 @@ Tasks:
 
 ---
 
-### Phase 3 — Player Ship & Shooting
+### Phase 3 — Player Ship & Shooting ✅ COMPLETE
 
 **Goal:** Playable spaceship that kills centipede segments.
 
 Tasks:
-- [ ] Implement `player.js` — ship entity in bottom zone
-- [ ] WASD / Arrow movement (smooth, clamped to player zone)
-- [ ] Auto-fire bullets upward
-- [ ] Bullet hits: segment → kill + node, node → damage
-- [ ] Smart Bomb (3 per wave, `Space` key or `B`)
-- [ ] Player death: centipede reach bottom or spider collision
-- [ ] Lives system (3 lives, then game over)
-- [ ] Invincibility frames after hit (2s flash)
-- [ ] Wire `playerHit`, `livesChanged`, game over transition
-- [ ] Player shooting sounds
+- [x] Implement `player.js` — ship entity in bottom zone
+- [x] WASD / Arrow movement (smooth, clamped to player zone)
+- [x] Auto-fire bullets upward
+- [x] Bullet hits: segment → kill + node, node → damage
+- [x] Smart Bomb (3 per wave, `Space` key or `B`)
+- [x] Player death: centipede reach bottom or spider collision
+- [x] Lives system (3 lives, then game over)
+- [x] Invincibility frames after hit (2s flash)
+- [x] Wire `playerHit`, `livesChanged`, game over transition
+- [x] Player shooting sounds
 
 **Deliverable:** Fully playable core loop — move, shoot, kill centipede, die.
 
 ---
 
-### Phase 4 — Tower Placement & Auto-Fire
+### Phase 4 — Tower Placement & Auto-Fire ✅ COMPLETE
 
 **Goal:** Players can place, upgrade, and sell towers that auto-attack.
 
 Tasks:
-- [ ] Implement `towers.js` — placement, auto-fire, upgrade, sell
-- [ ] Click on empty tower slot → enter placement mode (if tower selected in shop)
-- [ ] Click on placed tower → show upgrade/sell panel (DOM popup)
-- [ ] Implement all 6 tower types with correct behavior:
-  - Blaster (single shot)
-  - Sniper (piercing line shot)
-  - Scatter (3-way spread)
-  - Freeze (slow debuff on hit)
-  - Tesla (chain lightning)
-  - Mortar (AOE, destroys nodes in splash)
-- [ ] Tower range visualization on hover
-- [ ] Implement `shop.js` — between-wave DOM overlay
-- [ ] Gold deduction / refund on place/sell
-- [ ] Wire `towerPlaced`, `towerSold`, `goldChanged` events
-- [ ] Tower sounds
+- [x] Implement `towers.js` — placement, auto-fire, upgrade, sell
+- [x] Click on empty tower slot → enter placement mode (if tower selected in shop)
+- [x] Click on placed tower → show upgrade/sell panel (DOM popup)
+- [x] Implement all 6 tower types with correct behavior:
+  - Blaster (single shot, dual-shot at T3)
+  - Sniper (piercing column shot — instant hit all in column)
+  - Scatter (3-way spread pellets)
+  - Freeze (slow debuff on hit — centipede.applySlow)
+  - Tesla (chain lightning to up to 3 adjacent segments)
+  - Mortar (AOE shell arc, destroys nodes in splash)
+- [x] Tower range visualization on hover (showRangeFor / hideRange)
+- [x] Implement `shop.js` — right-HUD tower buttons + between-wave DOM overlay
+- [x] Gold deduction / refund on place/sell
+- [x] Wire `towerPlaced`, `towerSold`, `goldChanged`, `towerClicked` events
+- [x] Tower sounds (playTowerPlace on placement)
+- [x] Placement cancel on ESC
+- [x] Tier badge (T2/T3) on upgraded towers
+- [x] Slow support added to Centipede class (applySlow, slowTimer)
 
 **Deliverable:** Full tower economy — buy, place, upgrade, sell.
 
@@ -476,6 +479,7 @@ Spider scoring scales with how far into the player zone it ventured — classic 
 
 ---
 
-**Document Version:** 1.0
+**Document Version:** 1.4
 **Created:** 2026-02-21
-**Status:** Ready for Phase 1
+**Last Updated:** 2026-02-21
+**Status:** Phase 4 complete — Phase 5 next (Wave system & special enemies)

@@ -52,6 +52,9 @@ class Centipede {
         this.moveTimer    = 0;
         this.segEntities  = [];
         this.eyeEntities  = [];
+        // Freeze tower slow support
+        this.slowFactor   = 0;   // 0 = no slow, 0.4 = 40% speed reduction
+        this.slowTimer    = 0;   // seconds remaining
 
         this._spawnEntities(k);
         state.centipedes.push(this);
@@ -77,8 +80,14 @@ class Centipede {
     // --------------------------------------------------------
 
     get speed() {
-        const row = this.segments.length > 0 ? this.segments[0].row : 0;
-        return Math.min(this.def.speed * (1 + row * 0.04), this.def.speed * 2.5);
+        const row  = this.segments.length > 0 ? this.segments[0].row : 0;
+        const base = Math.min(this.def.speed * (1 + row * 0.04), this.def.speed * 2.5);
+        return this.slowTimer > 0 ? base * (1 - this.slowFactor) : base;
+    }
+
+    applySlow(factor, duration) {
+        this.slowFactor = Math.max(this.slowFactor, factor);
+        this.slowTimer  = Math.max(this.slowTimer, duration);
     }
 
     // --------------------------------------------------------
@@ -86,6 +95,10 @@ class Centipede {
     // --------------------------------------------------------
 
     update(dt) {
+        if (this.slowTimer > 0) {
+            this.slowTimer -= dt;
+            if (this.slowTimer <= 0) { this.slowTimer = 0; this.slowFactor = 0; }
+        }
         this.moveTimer += dt;
         const interval = 1 / this.speed;
         if (this.moveTimer >= interval) {
@@ -142,7 +155,8 @@ class Centipede {
     }
 
     _respawnAtTop() {
-        // Phase 3 will deduct lives; here we just reset position.
+        // Emit event so Phase 3 player can deduct a life.
+        events.emit('centipedeFellOffBottom');
         this.inPlayerZone = false;
         this.dirX         = 1;
         this.moveTimer    = 0;
@@ -265,21 +279,19 @@ class Centipede {
     }
 
     _updateVisuals() {
+        const k = this.k;
         for (let i = 0; i < this.segments.length; i++) {
             const ent = this.segEntities[i];
             if (!ent || !ent.exists()) continue;
             const w = tileToWorld(this.segments[i].col, this.segments[i].row);
-            ent.pos.x = w.x;
-            ent.pos.y = w.y;
+            ent.pos = k.vec2(w.x, w.y);
         }
 
         if (this.eyeEntities.length === 2 && this.segments.length > 0) {
             const w  = tileToWorld(this.segments[0].col, this.segments[0].row);
             const ex = this.dirX * 4;
-            this.eyeEntities[0].pos.x = w.x + ex - 5;
-            this.eyeEntities[0].pos.y = w.y - 6;
-            this.eyeEntities[1].pos.x = w.x + ex + 5;
-            this.eyeEntities[1].pos.y = w.y - 6;
+            this.eyeEntities[0].pos = k.vec2(w.x + ex - 5, w.y - 6);
+            this.eyeEntities[1].pos = k.vec2(w.x + ex + 5, w.y - 6);
         }
     }
 }

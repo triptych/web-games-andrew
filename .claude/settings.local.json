@@ -14,7 +14,16 @@
       "Bash(python -m http.server:*)",
       "Bash(dir:*)",
       "Bash(start:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(git -C \"c:/Users/andre/OneDrive/Documents/web-games-andrew\" log --oneline -5)",
+      "Bash(git -C \"c:/Users/andre/OneDrive/Documents/web-games-andrew\" status)",
+      "Bash(git -C \"c:/Users/andre/OneDrive/Documents/web-games-andrew\" add CHANGELOG.md game-007/data/items.js game-007/data/rooms.js game-007/data/npcs.js game-007/js/main.js game-007/js/parser.js game-007/js/textEngine.js game-007/js/world.js game-007/js/npc.js game-007/styles.css)",
+      "Bash(git -C:*)",
+      "Bash(cmd /c \"echo %USERPROFILE%\")",
+      "Bash(python3:*)",
+      "Bash(powershell -Command \"Select-String -Path ''c:\\\\Users\\\\andre\\\\OneDrive\\\\Documents\\\\web-games-andrew\\\\lib\\\\kaplay\\\\kaplay.js'' -Pattern ''\"\"left\"\"'' | Select-Object -First 10\")",
+      "Bash(powershell -Command:*)",
+      "Bash(git diff:*)"
     ]
   }
 }
