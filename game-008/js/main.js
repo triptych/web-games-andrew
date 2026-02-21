@@ -14,9 +14,10 @@ import kaplay from '../../lib/kaplay/kaplay.mjs';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 import { state }       from './state.js';
 import { events }      from './events.js';
-import { initGrid }    from './grid.js';
-import { initUI }      from './ui.js';
+import { initGrid }       from './grid.js';
+import { initUI }         from './ui.js';
 import { initAudio, playUiClick } from './sounds.js';
+import { initCentipede }  from './centipede.js';
 
 // ============================================================
 // Kaplay initialisation
@@ -103,7 +104,7 @@ k.scene('splash', () => {
     // Version tag
     k.add([
         k.pos(GAME_WIDTH - 12, GAME_HEIGHT - 12),
-        k.text('Phase 1', { size: 10 }),
+        k.text('Phase 2', { size: 10 }),
         k.color(50, 50, 80),
         k.anchor('botright'),
         k.z(1),
@@ -146,6 +147,9 @@ k.scene('game', () => {
 
     // Build the HUD panels in the side margins
     initUI(k);
+
+    // Spawn the centipede and start its update loop
+    initCentipede(k);
 
     // --- Key bindings ---
 

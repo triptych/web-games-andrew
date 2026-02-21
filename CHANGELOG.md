@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-02-21
+
+### Added
+- **Centipede Tower Defense** (game-008): Phase 2 - Centipede Movement & Splitting
+  - **Centipede Entity System**: Full class-based centipede with trail-following segments
+    - `Centipede` class tracks segments as a position array + history trail; each body segment follows the head's exact path
+    - Wall/obstacle collision: centipede descends one row and reverses horizontal direction when hitting a grid edge, a mushroom node, or a tower
+    - Depth-based speed scaling: centipede accelerates as it descends (`speed × (1 + row × 0.04)`, capped at 2.5× base speed)
+    - Player zone detection: emits `centipedeReachedBottom` event when head enters rows 15–17; respawns at top (Phase 3 will deduct lives)
+  - **Segment Splitting on Kill**: killing any segment (via `hitAt(col, row)`) splits the centipede in two
+    - Front half continues as the current centipede; rear half spawns as a new independent `Centipede` instance
+    - A mushroom node is placed at the killed segment's tile (`placeNode` + `spawnNodeEntity`)
+    - Score awarded: 10 pts per segment + 25 bonus for head kills
+    - Gold awarded: 5 gold per segment kill
+  - **Kaplay Rendering**: Kaplay-primitive sprites with per-frame position sync
+    - Head rendered as a larger circle (42% of tile); body segments as smaller circles (34%)
+    - Two white eye circles on the head; eyes shift horizontally based on movement direction
+    - All entities tagged `'centipede'` / `'centipedeEye'` for `destroyAll` cleanup
+    - Z-layers: segments at z=10, eyes at z=11
+  - **Enemy Definitions** (in `config.js`): 4 centipede variants + 3 special enemies
+    - `centipede` — 1 HP, 2.5 t/s, red
+    - `centipedeArmored` — 2 HP, 2.5 t/s, purple
+    - `centipedeFast` — 1 HP, 5.0 t/s, orange
+    - `centipedeGiant` — 3 HP, 2.0 t/s, 20 segments, magenta
+    - `flea`, `spider`, `scorpion` stubs also defined for future phases
+  - **Public API**: `initCentipede(k)`, `spawnCentipede(k, type, segCount, col, row, dirX)`, `hitCentipedeAt(col, row)`
+    - `initCentipede` spawns the initial 12-segment centipede and registers a scene-level `onUpdate` loop
+    - `hitCentipedeAt` iterates all active centipedes to find and damage the occupying segment; used by Phase 3 bullets
+  - **Version tag** on splash screen updated from `Phase 1` → `Phase 2`
+  - New file: [game-008/js/centipede.js](game-008/js/centipede.js)
+  - Updated: [game-008/js/main.js](game-008/js/main.js)
+
 ## [1.8.0] - 2026-02-21
 
 ### Added
