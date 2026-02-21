@@ -5,11 +5,14 @@ import { Inventory } from './inventory.js';
 import { getItem, getItemName } from '../data/items.js';
 
 export class Parser {
-    constructor(world, textEngine, npcSystem = null) {
+    constructor(world, textEngine, npcSystem = null, saveSystem = null, onRestart = null) {
         this.world = world;
         this.textEngine = textEngine;
         this.inventory = new Inventory(); // Player inventory system
         this.npcSystem = npcSystem;
+        this.saveSystem = saveSystem;
+        this.onRestart = onRestart;
+        this._pendingRestart = false;
         this.commands = this.initCommands();
     }
 
@@ -71,6 +74,10 @@ export class Parser {
             'talk': (args) => this.talk(args),
             'ask': (args) => this.ask(args),
             'give': (args) => this.give(args),
+            'save': (args) => this.saveGame(args),
+            'load': (args) => this.loadGame(args),
+            'saves': () => this.showSaves(),
+            'restart': () => this.restartGame(),
             'help': () => this.showHelp(),
             'quit': () => this.quit(),
             'clear': () => this.clear()
@@ -486,6 +493,82 @@ export class Parser {
     }
 
     /**
+     * SAVE [slot] — persist game state
+     */
+    saveGame(args) {
+        if (!this.saveSystem) {
+            this.textEngine.printError("Save system unavailable.");
+            return;
+        }
+        const slot = args.length > 0 ? parseInt(args[0], 10) : 1;
+        if (isNaN(slot)) {
+            this.textEngine.printError("Usage: SAVE [1-3]");
+            return;
+        }
+        const result = this.saveSystem.save(slot);
+        if (result.success) {
+            this.textEngine.printSystem(result.message);
+        } else {
+            this.textEngine.printError(result.message);
+        }
+    }
+
+    /**
+     * LOAD [slot] — list saves or restore a save
+     */
+    loadGame(args) {
+        if (!this.saveSystem) {
+            this.textEngine.printError("Save system unavailable.");
+            return;
+        }
+        if (args.length === 0) {
+            this.showSaves();
+            return;
+        }
+        const slot = parseInt(args[0], 10);
+        if (isNaN(slot)) {
+            this.textEngine.printError("Usage: LOAD [1-3]");
+            return;
+        }
+        const result = this.saveSystem.load(slot);
+        if (result.success) {
+            this.textEngine.printSystem(result.message);
+            this.textEngine.print('', { instant: true });
+            this.look(); // Show room after loading
+        } else {
+            this.textEngine.printError(result.message);
+        }
+    }
+
+    /**
+     * SAVES — list all save slots
+     */
+    showSaves() {
+        if (!this.saveSystem) {
+            this.textEngine.printError("Save system unavailable.");
+            return;
+        }
+        this.textEngine.printSystem(this.saveSystem.listSaves());
+    }
+
+    /**
+     * RESTART — reload the game (two-step confirmation)
+     */
+    restartGame() {
+        if (!this._pendingRestart) {
+            this.textEngine.printSystem("Type RESTART again to confirm. All unsaved progress will be lost.");
+            this._pendingRestart = true;
+            setTimeout(() => { this._pendingRestart = false; }, 8000);
+        } else {
+            if (this.onRestart) {
+                this.onRestart();
+            } else {
+                window.location.reload();
+            }
+        }
+    }
+
+    /**
      * HELP - Show available commands
      */
     showHelp() {
@@ -517,9 +600,13 @@ NPCs:
   GIVE [item] TO [name] - Give an item to someone
 
 SYSTEM:
-  HELP - Show this help text
-  CLEAR - Clear the screen
-  QUIT - Exit the game
+  SAVE [slot]  - Save game (slot 1-3, default 1)
+  LOAD [slot]  - Load save (no slot = list saves)
+  SAVES        - List all save slots
+  RESTART      - Restart from the beginning
+  HELP         - Show this help text
+  CLEAR        - Clear the screen
+  QUIT         - Exit the game
 
 ========================================
 TIP: You can click anywhere or press 

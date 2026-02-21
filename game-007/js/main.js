@@ -1,10 +1,10 @@
 // Main game initialization and loop (DOM-based, no Kaplay)
 
-import { CONFIG } from './config.js';
 import { TextEngine } from './textEngine.js';
 import { World } from './world.js';
 import { Parser } from './parser.js';
 import { NPCSystem } from './npc.js';
+import { SaveSystem } from './saveload.js';
 import { ROOMS } from '../data/rooms.js';
 import { NPCS } from '../data/npcs.js';
 
@@ -20,52 +20,66 @@ let statusBarInventoryInfo;
  * Initialize the game
  */
 function init() {
-    console.log('Initializing game...');
-    
     // Get DOM elements
     commandInput = document.getElementById('command-input');
     statusBarRoomName = document.getElementById('room-name');
     statusBarInventoryInfo = document.getElementById('inventory-info');
 
-    console.log('DOM elements:', { commandInput, statusBarRoomName, statusBarInventoryInfo });
-
     // Create game systems
     textEngine = new TextEngine();
-    console.log('TextEngine created');
-
     world = new World(ROOMS);
-    console.log('World created');
-
     const npcSystem = new NPCSystem(NPCS);
-    console.log('NPCSystem created');
 
-    parser = new Parser(world, textEngine, npcSystem);
-    console.log('Parser created');
+    parser = new Parser(world, textEngine, npcSystem, null, () => window.location.reload());
+
+    // Create save system now that inventory is on the parser
+    const saveSystem = new SaveSystem(world, parser.inventory, npcSystem);
+    parser.saveSystem = saveSystem;
 
     // Connect inventory and NPC system to world
-    if (world.setInventory) {
-        world.setInventory(parser.inventory);
-    }
-    if (world.setNPCSystem) {
-        world.setNPCSystem(npcSystem);
-    }
+    world.setInventory(parser.inventory);
+    world.setNPCSystem(npcSystem);
 
     // Set starting room
     world.setStartRoom('damp_chamber');
-    console.log('Starting room set');
 
     // Show intro
     showIntro();
-    console.log('Intro shown');
 
     // Setup input handlers
     setupInput();
 
-    // Focus on input
-    commandInput.focus();
+    // Setup splash screen
+    setupSplash();
 
     // Start game loop
     gameLoop();
+}
+
+/**
+ * Handle splash screen dismissal
+ */
+function setupSplash() {
+    const splash = document.getElementById('splash-screen');
+    let dismissed = false;
+
+    function dismiss() {
+        if (dismissed) return;
+        dismissed = true;
+        splash.classList.add('hidden');
+        setTimeout(() => { splash.style.display = 'none'; }, 400);
+        commandInput.focus();
+        document.removeEventListener('keydown', onKey);
+    }
+
+    function onKey(e) {
+        // Ignore modifier-only keys
+        if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+        dismiss();
+    }
+
+    document.addEventListener('keydown', onKey);
+    splash.addEventListener('click', dismiss);
 }
 
 /**

@@ -80,6 +80,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '🔫', label: 'FPS' }
         ]
+    },
+    {
+        id: 'game-007',
+        title: 'The Forgotten Temple',
+        description: 'Classic text adventure set in an ancient temple. Explore 20 interconnected rooms, solve puzzles, manage your inventory, and uncover the mystery of the Crystal of Light. Features NPCs with dialogue, hidden passages, dark rooms, and a full save/load system.',
+        icon: '📜',
+        folder: 'game-007',
+        cssClass: 'interactive-fiction',
+        tags: [
+            { emoji: '📖', label: 'Interactive Fiction' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '🧩', label: 'Puzzle' }
+        ]
     }
 ];
 

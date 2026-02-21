@@ -279,6 +279,39 @@ export class World {
     }
 
     /**
+     * Restore world state from a save (roomStates from SaveSystem._serializeWorld).
+     * Re-initialises rooms from the original roomData then overlays saved state.
+     */
+    deserialize(roomStates, currentRoomId, roomData) {
+        // Reset to original data
+        this.initRooms(roomData);
+
+        this.currentRoomId = currentRoomId;
+
+        for (const [id, state] of Object.entries(roomStates)) {
+            const room = this.rooms.get(id);
+            if (!room) continue;
+
+            room.visited = state.visited;
+            room.items   = [...state.items];
+            room.locked  = state.locked ? { ...state.locked } : null;
+
+            // Re-apply revealed examinable exits
+            if (state.examinableRevealed && room.examinable) {
+                for (const [key, revealed] of Object.entries(state.examinableRevealed)) {
+                    if (revealed && room.examinable[key]) {
+                        room.examinable[key].revealed = true;
+                        if (room.examinable[key].revealsExit) {
+                            const { direction, roomId } = room.examinable[key].revealsExit;
+                            room.exits[direction] = roomId;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Unlock an exit in any room by room ID and direction.
      * Used for items that unlock exits from a distance (e.g. rope_and_hook).
      */

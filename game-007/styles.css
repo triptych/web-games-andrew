@@ -190,6 +190,58 @@ body {
     color: #000000;
 }
 
+/* ── Splash Screen ─────────────────────────────────────── */
+#splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    cursor: pointer;
+    transition: opacity 0.4s ease;
+}
+
+#splash-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#splash-content {
+    text-align: center;
+    font-family: 'Courier New', Consolas, Monaco, 'Lucida Console', monospace;
+}
+
+#splash-art {
+    color: #00FF00;
+    font-size: 16px;
+    line-height: 1.4;
+    display: inline-block;
+    text-align: left;
+    text-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
+    margin: 0 0 24px;
+}
+
+#splash-prompt {
+    color: #FFFF00;
+    font-size: 18px;
+    font-family: 'Courier New', monospace;
+    animation: blink 1s step-end infinite;
+    margin-bottom: 12px;
+    text-shadow: 0 0 8px rgba(255, 255, 0, 0.5);
+}
+
+#splash-hint {
+    color: #808080;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 920px) {
     #game-container {

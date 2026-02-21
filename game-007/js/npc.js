@@ -210,6 +210,33 @@ export class NPCSystem {
     }
 
     /**
+     * Serialize NPC states for saving
+     */
+    serialize() {
+        const states = {};
+        for (const [id, state] of this.npcStates) {
+            states[id] = {
+                talkedTo: state.talkedTo,
+                itemsGiven: [...state.itemsGiven]
+            };
+        }
+        return states;
+    }
+
+    /**
+     * Restore NPC states from a save
+     */
+    deserialize(data) {
+        for (const [id, saved] of Object.entries(data)) {
+            const state = this.npcStates.get(id);
+            if (state) {
+                state.talkedTo   = saved.talkedTo;
+                state.itemsGiven = new Set(saved.itemsGiven);
+            }
+        }
+    }
+
+    /**
      * Check if an NPC exists in the system
      */
     hasNPC(npcId) {

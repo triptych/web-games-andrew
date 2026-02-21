@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-02-20
+
+### Added
+- **Interactive Fiction Text Adventure** (game-007): Phase 5 - Splash Screen, Save / Load & Restart
+  - **Splash Screen**: Full-screen terminal-style title card shown on load
+    - ASCII box-art title with green glow, atmospheric tagline
+    - Blinking yellow `[ PRESS ANY KEY OR CLICK TO BEGIN ]` prompt
+    - `SAVE · LOAD · RESTART · HELP` hint line
+    - Fades out smoothly (0.4s) on any key press or click; modifier-only keys (Shift/Ctrl/Alt/Meta) are ignored
+  - **Save System** (3 slots, localStorage):
+    - `SAVE` — saves to slot 1; `SAVE 2` / `SAVE 3` — saves to a specific slot
+    - Captures full game state: current room, all room item/lock/visited/hidden-exit state, inventory (including equipped items), NPC states (talked-to, items given)
+    - Save confirmation shows slot number, room name, and timestamp
+  - **Load System**:
+    - `LOAD` — lists all save slots with room name and save timestamp
+    - `LOAD 1` / `LOAD 2` / `LOAD 3` — restores a save and immediately shows the current room description
+    - `SAVES` command as a convenient alias for listing slots
+  - **Restart Command**: `RESTART` — two-step confirmation (type again within 8 s) then reloads the page
+  - **Help Text Updated** with SAVE / LOAD / SAVES / RESTART commands in SYSTEM section
+  - New file: [game-007/js/saveload.js](game-007/js/saveload.js)
+  - Updated files: [game-007/index.html](game-007/index.html), [game-007/styles.css](game-007/styles.css), [game-007/js/main.js](game-007/js/main.js), [game-007/js/parser.js](game-007/js/parser.js), [game-007/js/world.js](game-007/js/world.js), [game-007/js/npc.js](game-007/js/npc.js)
+
+### Changed
+- **Game Browser**: Added **game-007** to the top-level launcher
+  - Added entry in [js/gamedata.js](js/gamedata.js)
+  - Updated fallback total games count in [index.html](index.html) from `6` to `7`
+
 ### Added
 - **Interactive Fiction Text Adventure** (game-007): Phase 4 - NPCs & Dialogue
   - **3 Fully-Voiced NPCs** with unique personalities, each in a distinct location:
