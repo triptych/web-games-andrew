@@ -4,7 +4,9 @@ import { CONFIG } from './config.js';
 import { TextEngine } from './textEngine.js';
 import { World } from './world.js';
 import { Parser } from './parser.js';
+import { NPCSystem } from './npc.js';
 import { ROOMS } from '../data/rooms.js';
+import { NPCS } from '../data/npcs.js';
 
 // Game state
 let textEngine;
@@ -30,16 +32,22 @@ function init() {
     // Create game systems
     textEngine = new TextEngine();
     console.log('TextEngine created');
-    
+
     world = new World(ROOMS);
     console.log('World created');
-    
-    parser = new Parser(world, textEngine);
+
+    const npcSystem = new NPCSystem(NPCS);
+    console.log('NPCSystem created');
+
+    parser = new Parser(world, textEngine, npcSystem);
     console.log('Parser created');
 
-    // Connect inventory to world if needed
+    // Connect inventory and NPC system to world
     if (world.setInventory) {
         world.setInventory(parser.inventory);
+    }
+    if (world.setNPCSystem) {
+        world.setNPCSystem(npcSystem);
     }
 
     // Set starting room

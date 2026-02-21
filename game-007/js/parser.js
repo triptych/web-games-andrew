@@ -5,10 +5,11 @@ import { Inventory } from './inventory.js';
 import { getItem, getItemName } from '../data/items.js';
 
 export class Parser {
-    constructor(world, textEngine) {
+    constructor(world, textEngine, npcSystem = null) {
         this.world = world;
         this.textEngine = textEngine;
         this.inventory = new Inventory(); // Player inventory system
+        this.npcSystem = npcSystem;
         this.commands = this.initCommands();
     }
 
@@ -67,6 +68,9 @@ export class Parser {
             'equip': (args) => this.equip(args),
             'unequip': (args) => this.unequip(args),
             'inventory': () => this.showInventory(),
+            'talk': (args) => this.talk(args),
+            'ask': (args) => this.ask(args),
+            'give': (args) => this.give(args),
             'help': () => this.showHelp(),
             'quit': () => this.quit(),
             'clear': () => this.clear()
@@ -373,6 +377,115 @@ export class Parser {
     }
 
     /**
+     * TALK - Initiate conversation with an NPC
+     * Accepts: "TALK [name]" or "TALK TO [name]"
+     */
+    talk(args) {
+        if (!this.npcSystem) {
+            this.textEngine.printError("There is no one to talk to.");
+            return;
+        }
+
+        if (args.length === 0) {
+            this.textEngine.printError("Talk to whom? Try: TALK TO [name]");
+            return;
+        }
+
+        // Strip leading "to" if present
+        const effectiveArgs = args[0] === 'to' ? args.slice(1) : args;
+        const npcSearch = effectiveArgs.join(' ');
+
+        if (!npcSearch) {
+            this.textEngine.printError("Talk to whom? Try: TALK TO [name]");
+            return;
+        }
+
+        const npcId = this.npcSystem.findNPCByName(npcSearch);
+        if (!npcId) {
+            this.textEngine.printError(`You don't see anyone called "${npcSearch}" here.`);
+            return;
+        }
+
+        this.npcSystem.talkTo(npcId, this.world.currentRoomId, this.textEngine);
+    }
+
+    /**
+     * ASK - Ask an NPC about a topic
+     * Accepts: "ASK [name] ABOUT [topic]"
+     */
+    ask(args) {
+        if (!this.npcSystem) {
+            this.textEngine.printError("There is no one to ask.");
+            return;
+        }
+
+        const argStr = args.join(' ');
+        const aboutIndex = argStr.indexOf(' about ');
+
+        if (aboutIndex === -1) {
+            this.textEngine.printError("Usage: ASK [name] ABOUT [topic]");
+            return;
+        }
+
+        const npcSearch = argStr.substring(0, aboutIndex).trim();
+        const topic = argStr.substring(aboutIndex + 7).trim(); // ' about '.length === 7
+
+        if (!npcSearch || !topic) {
+            this.textEngine.printError("Usage: ASK [name] ABOUT [topic]");
+            return;
+        }
+
+        const npcId = this.npcSystem.findNPCByName(npcSearch);
+        if (!npcId) {
+            this.textEngine.printError(`You don't see anyone called "${npcSearch}" here.`);
+            return;
+        }
+
+        this.npcSystem.askAbout(npcId, topic, this.world.currentRoomId, this.textEngine);
+    }
+
+    /**
+     * GIVE - Give an item to an NPC
+     * Accepts: "GIVE [item] TO [name]"
+     */
+    give(args) {
+        if (!this.npcSystem) {
+            this.textEngine.printError("There is no one to give things to.");
+            return;
+        }
+
+        const argStr = args.join(' ');
+        const toIndex = argStr.indexOf(' to ');
+
+        if (toIndex === -1) {
+            this.textEngine.printError("Usage: GIVE [item] TO [name]");
+            return;
+        }
+
+        const itemSearch = argStr.substring(0, toIndex).trim();
+        const npcSearch = argStr.substring(toIndex + 4).trim(); // ' to '.length === 4
+
+        if (!itemSearch || !npcSearch) {
+            this.textEngine.printError("Usage: GIVE [item] TO [name]");
+            return;
+        }
+
+        const itemId = this.inventory.findItemByName(itemSearch);
+        if (!itemId) {
+            this.textEngine.printError(`You don't have any ${itemSearch}.`);
+            return;
+        }
+
+        const npcId = this.npcSystem.findNPCByName(npcSearch);
+        if (!npcId) {
+            this.textEngine.printError(`You don't see anyone called "${npcSearch}" here.`);
+            return;
+        }
+
+        this.npcSystem.giveItem(npcId, itemId, this.world.currentRoomId, this.inventory, this.world, this.textEngine);
+    }
+
+    /**
      * HELP - Show available commands
      */
     showHelp() {
@@ -397,6 +510,11 @@ ACTIONS:
   EQUIP [item] - Equip a weapon or tool
   UNEQUIP [item] - Unequip an item
   INVENTORY (or I) - Show what you're carrying
+
+NPCs:
+  TALK TO [name] - Start a conversation
+  ASK [name] ABOUT [topic] - Ask about a subject
+  GIVE [item] TO [name] - Give an item to someone
 
 SYSTEM:
   HELP - Show this help text

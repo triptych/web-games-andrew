@@ -7,6 +7,7 @@ export class World {
         this.rooms = new Map();
         this.currentRoomId = null;
         this.inventory = null; // Will be set by parser
+        this.npcSystem = null; // Will be set by main
         this.initRooms(roomData);
     }
 
@@ -15,6 +16,13 @@ export class World {
      */
     setInventory(inventory) {
         this.inventory = inventory;
+    }
+
+    /**
+     * Set NPC system reference for room descriptions
+     */
+    setNPCSystem(npcSystem) {
+        this.npcSystem = npcSystem;
     }
 
     /**
@@ -77,13 +85,25 @@ export class World {
         // Build full description with items and exits
         let fullDesc = description;
 
-        // Add items if any (show proper item names)
-        if (room.items.length > 0) {
+        // Collect items and NPCs for "You can see:" section
+        const visibleThings = [];
+
+        room.items.forEach(itemId => {
+            const item = getItem(itemId);
+            visibleThings.push(item ? item.name : itemId);
+        });
+
+        if (this.npcSystem) {
+            const npcsHere = this.npcSystem.getNPCsInRoom(this.currentRoomId);
+            npcsHere.forEach(npc => {
+                visibleThings.push(`${npc.name} (TALK TO ${npc.shortName.toUpperCase()})`);
+            });
+        }
+
+        if (visibleThings.length > 0) {
             fullDesc += "\n\nYou can see:";
-            room.items.forEach(itemId => {
-                const item = getItem(itemId);
-                const itemName = item ? item.name : itemId;
-                fullDesc += `\n  - ${itemName}`;
+            visibleThings.forEach(thing => {
+                fullDesc += `\n  - ${thing}`;
             });
         }
 

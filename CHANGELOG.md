@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Interactive Fiction Text Adventure** (game-007): Phase 4 - NPCs & Dialogue
+  - **3 Fully-Voiced NPCs** with unique personalities, each in a distinct location:
+    - *Ghost of Atem-Ra* (Temple Crypt) — the High Priest who shattered the Crystal; master of celestial lore and the core quest
+    - *Scholar's Spirit* (Library) — the ancient librarian; knows the library's secrets and hints about the hidden bookshelf passage and balcony route
+    - *Centurion Varro* (Soldiers' Barracks) — gruff temple guard ghost; knows key locations, tunnel routes, and the temple layout
+  - **Dialogue System** with keyword-based topic matching:
+    - `TALK TO [name]` / `TALK [name]` — initiates conversation, shows greeting and available topics
+    - `ASK [name] ABOUT [topic]` — ask about any keyword across topics (e.g. `ASK ATEM-RA ABOUT SHARDS`)
+    - Each NPC has 6–9 dialogue topics covering lore, hints, and puzzle clues
+    - Auto-greeting on first `ASK` if player hasn't talked to the NPC yet
+    - Different greeting on repeat visits
+  - **Trading / Item Giving** via `GIVE [item] TO [name]`:
+    - Give Stone Tablet to Atem-Ra → receive **Moonfire Charm** (permanent auto-light, no equip needed)
+    - Give Old Manuscript to Scholar → confirms the hidden bookshelf passage
+    - Give Old Codex to Varro → reveals a hidden secret in the dark alcove north wall
+    - Generic "no use for it" response for any other item
+  - **NPCs Shown in Room Descriptions** — NPCs appear in the "You can see:" section with a `TALK TO` hint
+  - **Moonfire Charm** (new item): permanent light source received from Atem-Ra; provides light automatically without equipping, unlike torches/lanterns
+  - **NPC Text Color**: NPC dialogue renders in cyan, distinct from green room text and grey system messages
+  - **Help Text Updated** with NPC command section
+  - New files: [game-007/data/npcs.js](game-007/data/npcs.js), [game-007/js/npc.js](game-007/js/npc.js)
+  - Updated files: [game-007/js/parser.js](game-007/js/parser.js), [game-007/js/main.js](game-007/js/main.js), [game-007/js/world.js](game-007/js/world.js), [game-007/js/textEngine.js](game-007/js/textEngine.js), [game-007/styles.css](game-007/styles.css), [game-007/data/rooms.js](game-007/data/rooms.js), [game-007/data/items.js](game-007/data/items.js)
+
+### Added
 - **Interactive Fiction Text Adventure** (game-007): Phase 3 - World Building
   - **20 Rooms** (expanded from 6) across six distinct areas:
     - *Starting Area*: Damp Chamber, Narrow Corridor, Storage Room, Dark Alcove, Temple Entrance, Inner Sanctum

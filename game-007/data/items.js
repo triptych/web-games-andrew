@@ -295,6 +295,21 @@ export const ITEMS = {
         combinesWith: [],
         weight: 1.5,
         value: 2
+    },
+
+    // ===== PHASE 4: NPC REWARD ITEM =====
+
+    "moonfire_charm": {
+        id: "moonfire_charm",
+        name: "Moonfire Charm",
+        description: "A small crescent-shaped amulet of pale stone, given to you by the spirit of High Priest Atem-Ra. It glows with a soft, steady silver-blue light that neither flickers nor fades. Unlike a torch or lantern, it requires no flame and will not be extinguished. The light it provides is gentle but sufficient to see in any darkness.",
+        type: "tool",
+        takeable: true,
+        equippable: false,
+        usable: false,
+        providesLight: true,
+        weight: 0.1,
+        value: 0
     }
 };
 

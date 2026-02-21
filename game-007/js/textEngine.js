@@ -86,6 +86,26 @@ export class TextEngine {
     }
 
     /**
+     * Print NPC dialogue (cyan, typewriter effect)
+     */
+    printNPC(text) {
+        const lines = this.wordWrap(text, CONFIG.MAX_LINE_WIDTH);
+        lines.forEach(line => {
+            this.addLineToBuffer(line, 'text-npc');
+        });
+        this.scrollToBottom();
+    }
+
+    /**
+     * Print NPC name header (bright cyan, instant)
+     */
+    printNPCName(text) {
+        this.addLineToBuffer('', 'text-npc');
+        this.addLineToBuffer(text, 'text-npc-name');
+        this.scrollToBottom();
+    }
+
+    /**
      * Word wrap text to specified width
      */
     wordWrap(text, maxWidth) {

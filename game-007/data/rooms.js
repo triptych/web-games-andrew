@@ -224,6 +224,7 @@ export const ROOMS = [
             north: "armory"
         },
         items: ["old_codex", "rusty_armor"],
+        npcs: ["soldier_varro"],
         examinable: {
             "sleeping platforms": {
                 description: "The stone sleeping platforms are barely wide enough to lie on. Soldiers scratched their names and marks into the stone — names in an unfamiliar script, along with what appears to be a tally of days. Someone was counting down to something. The marks stop abruptly, mid-count.",
@@ -371,6 +372,7 @@ export const ROOMS = [
             north: "upper_balcony"
         },
         items: ["old_manuscript"],
+        npcs: ["scholar_spirit"],
         locked: {
             direction: "north",
             requiresKey: "rope_and_hook",
@@ -486,6 +488,7 @@ export const ROOMS = [
             up: "inner_sanctum"
         },
         items: ["moon_stone"],
+        npcs: ["atem_ra"],
         examinable: {
             "sarcophagi": {
                 description: "The stone sarcophagi are arranged by rank — lesser priests near the entrance, more important figures toward the back. Each lid bears a carved face, remarkably lifelike despite the centuries. Some sarcophagi have been disturbed, their lids slightly ajar. Whatever disturbed them did so long ago, and whatever they found — or placed inside — is gone.",

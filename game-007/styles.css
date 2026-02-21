@@ -89,6 +89,15 @@ body {
     color: #808080;
 }
 
+.text-npc {
+    color: #00DDDD;
+}
+
+.text-npc-name {
+    color: #00FFFF;
+    font-weight: bold;
+}
+
 /* Input Line */
 #input-line {
     height: 40px;
