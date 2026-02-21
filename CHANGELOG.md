@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-02-21
+
+### Added
+- **Centipede Tower Defense** (game-008): Phase 1 - Foundation & Architecture
+  - **Game Concept**: Hybrid Centipede / Tower Defense / Space Shooter built with Kaplay v4000
+  - **Grid System**: 24×18 tile grid (TILE_SIZE=40), rendered with side margins (GRID_OFFSET_X=160) for HUD panels
+    - Enemy zone: rows 0–12 (centipede traversal + tower slots)
+    - Buffer zone: rows 13–14 (spider/flea danger zone)
+    - Player zone: rows 15–17 (player ship movement)
+    - 21 pre-set tower placement slots in the enemy zone with a fast `TOWER_SLOT_SET` for O(1) lookup
+  - **Modular Architecture**: ES6 module system with event-driven communication
+    - `config.js` — All game constants (grid dimensions, zones, tower slots, colors)
+    - `state.js` — Reactive singleton with getters/setters that auto-emit events
+    - `events.js` — EventBus singleton for cross-module communication with `clearAll()` cleanup
+    - `grid.js` — Grid rendering and tile utilities (`initGrid`, `drawGrid`, `tileToWorld`, `worldToTile`)
+    - `ui.js` — HUD panels (left: towers/resources, right: stats/wave info)
+    - `sounds.js` — Web Audio API sound stubs for all planned SFX
+    - `main.js` — Kaplay init, scene management (`splash` → `game`), `onSceneLeave` cleanup
+  - **Kaplay Scenes**: Splash screen → Game scene with proper event bus cleanup on scene transitions
+  - **HUD**: Left panel (tower shop) and right panel (lives, score, wave counter) rendered as Kaplay primitives
+  - Files: [game-008/index.html](game-008/index.html), [game-008/js/main.js](game-008/js/main.js), [game-008/js/config.js](game-008/js/config.js), [game-008/js/state.js](game-008/js/state.js), [game-008/js/events.js](game-008/js/events.js), [game-008/js/grid.js](game-008/js/grid.js), [game-008/js/ui.js](game-008/js/ui.js), [game-008/js/sounds.js](game-008/js/sounds.js), [game-008/game-plan.md](game-008/game-plan.md)
+
 ## [1.7.0] - 2026-02-20
 
 ### Added
