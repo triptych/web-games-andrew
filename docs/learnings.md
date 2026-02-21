@@ -1975,11 +1975,11 @@ rope_and_hook  →  upper_balcony ← rope (stream) + hook (armory)
 
 ---
 
-## Game 008: Centipede Tower Defense — Phase 3 Bugs (2026-02-21)
+## Game 008: Centipede Tower Defense (2026-02-21)
 
 ### Bug: Entity Position Not Updating Visually
 
-**Symptom:** Centipede segments appeared frozen at spawn position (col 0, row 0) despite internal state updating correctly. Player ship did not move when arrow/WASD keys were pressed, even though `_shipX`/`_shipY` values were changing internally.
+**Symptom:** Centipede segments appeared frozen at spawn position despite internal state updating correctly. Player ship did not move when arrow/WASD keys were pressed, even though internal coordinate values were changing.
 
 **Root Cause:** `entity.pos` in Kaplay v4000 is a **getter/setter pair**, not a plain Vec2 field. Reading `entity.pos` returns a temporary Vec2 object. Mutating `.x` or `.y` on that temporary object has no effect on the rendered position.
 
@@ -1987,26 +1987,20 @@ rope_and_hook  →  upper_balcony ← rope (stream) + hook (armory)
 // ❌ BROKEN — mutates a throwaway Vec2, no visual effect
 ent.pos.x = w.x;
 ent.pos.y = w.y;
-```
 
-```javascript
 // ✅ CORRECT — triggers the pos setter, updates rendered position
 ent.pos = k.vec2(w.x, w.y);
 ```
 
-**Files affected:** `centipede.js` (`_updateVisuals`), `player.js` (`_updateShipVisuals`, `_updateBullets`).
-
-**Prevention:**
-- Always use `entity.pos = k.vec2(x, y)` to move entities after creation
-- Never use `entity.pos.x = value` or `entity.pos.y = value`
+**Prevention:** Always use `entity.pos = k.vec2(x, y)` to move entities. Never use `entity.pos.x = value`.
 
 ---
 
-### Bug: Opacity Not Working on Ship Entities
+### Bug: Opacity Assignment Silently Ignored
 
-**Symptom:** Invincibility flash effect didn't work — `entity.opacity = 0` had no visible effect.
+**Symptom:** Invincibility flash effect had no visible effect — `entity.opacity = 0` did nothing.
 
-**Root Cause:** `entity.opacity` is a Kaplay component property. Setting it only works when the entity was created with `k.opacity(initialValue)` in its component list. Without the component, the assignment is silently ignored.
+**Root Cause:** `entity.opacity` is a Kaplay component property that only exists when the entity was created with `k.opacity(initialValue)` in its component list. Without the component, the assignment is silently ignored.
 
 ```javascript
 // ❌ BROKEN — no opacity component, setting .opacity does nothing
@@ -2018,24 +2012,16 @@ k.add([k.pos(x, y), k.rect(w, h), k.color(r, g, b), k.opacity(1)]);
 entity.opacity = 0;  // works
 ```
 
-**Prevention:** Any entity that will have its `.opacity` changed after creation must include `k.opacity(1)` (or the desired initial value) in its `k.add([...])` component array.
+**Prevention:** Any entity that will have its `.opacity` changed after creation must include `k.opacity(1)` in its `k.add([...])` component array.
 
 ---
 
-## Game 008: Centipede Tower Defense — Phase 4 (Tower Placement & Auto-Fire)
+### Architecture: Hybrid Canvas + DOM Shop
 
-### Architecture: Canvas Sidebar Shop vs DOM Overlay
+A shop that needs both quick in-game access and a richer between-wave layout works well as a hybrid:
+- **In-game sidebar** (Kaplay canvas): tower buttons drawn as canvas entities with `k.area()` + `onClick()`
+- **Between-wave overlay** (DOM): pauses the game, shows full stats table, close button resumes
 
-**Design Decision:** Game 008 uses a **hybrid approach** for the tower shop:
-- Right-side HUD (Kaplay canvas) shows tower buttons for in-game purchase during play
-- Between-wave shop is a **DOM overlay** that pauses the game and shows full details
-
-**Why hybrid works:**
-- Kaplay canvas buttons are pixel-perfect with the game grid — no z-index fights
-- DOM overlay for the between-wave shop allows richer HTML/CSS layout (tables, hover effects)
-- The DOM overlay can be closed with `closeShopOverlay()` and the game resumes cleanly
-
-**Pattern:**
 ```javascript
 // In-game sidebar (Kaplay canvas)
 k.add([k.rect(w, h), k.pos(x, y), k.area(), k.color(...)]);
@@ -2047,16 +2033,18 @@ overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;...';
 document.body.appendChild(overlay);
 ```
 
+Kaplay canvas buttons are pixel-perfect with the game grid; the DOM overlay can use full CSS layout without z-index conflicts.
+
 ---
 
-### Tower Range Visualization Pattern
+### Pattern: Tag-Based Temporary Overlay Entities
 
-Showing tower range on slot hover required a dedicated "range circle" entity:
+Decorative entities (range circles, hover highlights) that need easy cleanup should be tagged rather than referenced:
 
 ```javascript
 function showRangeFor(col, row, range) {
-    hideRange();
-    _rangeCircle = k.add([
+    k.destroyAll('towerRange');
+    k.add([
         k.circle(range * TILE_SIZE),
         k.pos(cx, cy),
         k.color(100, 180, 255),
@@ -2065,48 +2053,24 @@ function showRangeFor(col, row, range) {
         'towerRange',
     ]);
 }
-function hideRange() {
-    k.destroyAll('towerRange');
-    _rangeCircle = null;
-}
+// On any cleanup: k.destroyAll('towerRange')
 ```
 
-**Key insight:** Tag the range circle (`'towerRange'`) so `k.destroyAll('towerRange')` cleans it up without keeping a reference. Works cleanly on scene restarts.
+No reference variable needed — `k.destroyAll('towerRange')` handles scene restarts and state changes cleanly.
 
 ---
 
-### Tower Targeting: Nearest-Segment Priority
+### Pattern: Chain-Wide Slow Debuff
 
-Towers iterate `k.get('centSegment')` (centipede segment entities) to find their target. Head segments use a `isHead: true` property for priority.
-
-```javascript
-function findTarget(towerPos, range) {
-    const segs = k.get('centSegment');
-    let best = null, bestDist = range * TILE_SIZE + 1;
-    for (const seg of segs) {
-        const d = seg.pos.dist(towerPos);
-        if (d < bestDist) { best = seg; bestDist = d; }
-    }
-    return best;
-}
-```
-
-Sniper towers use a **column scan** instead of distance — they fire instantly through all segments in their column, trading range for piercing.
-
----
-
-### Slow Debuff: Centipede.applySlow() Pattern
-
-Freeze towers apply a timed slow on segment hit. Rather than storing slow state per-segment, the entire Centipede chain slows together:
+For chained enemies (centipede), applying a slow to the entire chain is simpler and feels better than per-segment tracking:
 
 ```javascript
 // In Centipede class
 applySlow(factor, duration) {
-    this.slowFactor = factor;     // e.g. 0.4 (60% slow)
-    this.slowTimer = duration;    // seconds remaining
+    this.slowFactor = factor;   // e.g. 0.4 = 60% slow
+    this.slowTimer = duration;
 }
-
-// In update()
+// In update():
 if (this.slowTimer > 0) {
     this.slowTimer -= dt;
     if (this.slowTimer <= 0) this.slowFactor = 1.0;
@@ -2114,24 +2078,21 @@ if (this.slowTimer > 0) {
 const effectiveSpeed = this.baseSpeed * this.slowFactor;
 ```
 
-**Lesson:** Chain-wide slow is simpler and feels better than per-segment — the visual effect of the whole centipede crawling slowly is more impactful.
+The visual of the whole centipede crawling slowly is more impactful than individual segments reacting independently.
 
 ---
 
-### Placement Mode ESC Cancel
+### Pattern: Placement Mode State Flag
 
-Entering placement mode changes the cursor behavior (grid hover highlight) and must be cancelled cleanly. Pattern used:
+UI modes (e.g., tower placement) should be managed with a single module-level flag and a paired ESC cancel:
 
 ```javascript
 let _placingType = null;
-
 export function enterPlacementMode(type) { _placingType = type; }
 export function exitPlacementMode()      { _placingType = null; }
 
 // In main.js
-k.onKeyPress('escape', () => {
-    if (_placingType) exitPlacementMode();
-});
+k.onKeyPress('escape', () => { if (_placingType) exitPlacementMode(); });
 ```
 
 ---
@@ -2140,7 +2101,7 @@ k.onKeyPress('escape', () => {
 **Last Updated**: 2026-02-21
 **Games Covered**: 001-008
 **Total Lines Analyzed**: ~18,000+
-**Latest Enhancement**: Game 008 Phase 4 — tower placement, shop, slow debuff, range visualization
+**Latest Enhancement**: Game 008 — Kaplay entity gotchas, hybrid shop, tag-based overlays, slow debuff pattern
 
 
 
