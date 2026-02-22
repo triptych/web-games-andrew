@@ -23,7 +23,8 @@
       "Bash(python3:*)",
       "Bash(powershell -Command \"Select-String -Path ''c:\\\\Users\\\\andre\\\\OneDrive\\\\Documents\\\\web-games-andrew\\\\lib\\\\kaplay\\\\kaplay.js'' -Pattern ''\"\"left\"\"'' | Select-Object -First 10\")",
       "Bash(powershell -Command:*)",
-      "Bash(git diff:*)"
+      "Bash(git diff:*)",
+      "Bash(netstat:*)"
     ]
   }
 }

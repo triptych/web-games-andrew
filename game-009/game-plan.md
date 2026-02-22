@@ -3,7 +3,7 @@
 **Genre:** Turn-Based RPG (Early Final Fantasy style)
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Active — Phase 2
+**Status:** Active — Phase 3
 
 ---
 
@@ -174,16 +174,16 @@ Difficulty increases through: higher enemy HP/ATK/DEF, multi-enemy encounters, a
 - [x] Fix: border entity used `opacity(0)` which hides outline; changed to opaque panel fill
 - [x] Launcher entry added to gamedata.js
 
-### Phase 2 — Battle System Core (current)
-- [ ] `battle.js` — turn management, action resolution, damage formula
-- [ ] `battleRenderer.js` — draw party sprites, enemy sprites, HP bars
-- [ ] `commandMenu.js` — keyboard-navigable action menu
-- [ ] Basic `Attack` action fully playable
-- [ ] Enemy AI: attack pattern (basic, random target)
-- [ ] Victory detection (all enemies dead) → award XP + gold
-- [ ] Defeat detection (all party KO) → lose life → restart or game over
+### Phase 2 — Battle System Core ✅ COMPLETE (2026-02-22)
+- [x] `battle.js` — turn management, action resolution, damage formula
+- [x] `battleRenderer.js` — draw party sprites, enemy sprites, HP bars
+- [x] `commandMenu.js` — keyboard-navigable action menu
+- [x] Basic `Attack` action fully playable
+- [x] Enemy AI: attack pattern (basic, random target)
+- [x] Victory detection (all enemies dead) → award XP + gold
+- [x] Defeat detection (all party KO) → lose life → restart or game over
 
-### Phase 3 — Abilities & Status Effects
+### Phase 3 — Abilities & Status Effects (current)
 - [ ] All 11 party abilities implemented
 - [ ] Status effects: Poison, ATK Up, DEF Up, ACC Down
 - [ ] Enemy unique abilities (Dark Elf poison, Golem armor, Dragon fire breath)
@@ -272,3 +272,17 @@ Difficulty increases through: higher enemy HP/ATK/DEF, multi-enemy encounters, a
 - Shop items and economy constants defined
 - 20+ procedural sound effects stubbed in sounds.js
 - Status panel UI with HP/MP bars and color-coded health
+
+### Phase 2 — Battle System Core (2026-02-22)
+- battle.js: SPD-sorted turn order, physical/magic/heal/status resolution, enemy AI, victory/defeat detection
+- battle.js: Defend action (half incoming damage for one round), poison tick at end of each round
+- battle.js: Per-kill gold award, total XP distributed on victory, encounter sequencing with _advanceEncounter
+- battle.js: State machine (idle → player → enemy → resolving → victory/defeat) prevents concurrent turns
+- battleRenderer.js: Party and enemy sprites drawn with Kaplay primitives (coloured rects + letter initials)
+- battleRenderer.js: Enemy HP bars with live width/text update on damage; hit-flash and floating damage numbers
+- battleRenderer.js: Region background panel per encounter; enemy sprites destroyed on death with brief delay
+- commandMenu.js: Keyboard-nav main menu (Attack / Magic / Item / Defend / Run)
+- commandMenu.js: Ability sub-menu with MP cost display and greyed-out unavailable abilities
+- commandMenu.js: Target-selection phase for single-enemy and single-ally targeting; back-navigation at each level
+- commandMenu.js: Run action with 50% flee chance; blocked against boss encounters
+- main.js: Wires all three Phase 2 modules; auto-starts first encounter on scene load; game-won overlay

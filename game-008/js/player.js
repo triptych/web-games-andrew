@@ -197,8 +197,25 @@ function _handleMovement(k, dt) {
     if (k.isKeyDown('up')    || k.isKeyDown('w')) dy -= 1;
     if (k.isKeyDown('down')  || k.isKeyDown('s')) dy += 1;
 
-    _shipX = Math.max(_minX, Math.min(_maxX, _shipX + dx * SHIP_SPEED * dt));
-    _shipY = Math.max(_minY, Math.min(_maxY, _shipY + dy * VERT_SPEED * dt));
+    const newX = Math.max(_minX, Math.min(_maxX, _shipX + dx * SHIP_SPEED * dt));
+    const newY = Math.max(_minY, Math.min(_maxY, _shipY + dy * VERT_SPEED * dt));
+
+    // Block movement into a tile occupied by a node (mushroom)
+    const tile = worldToTile(newX, newY);
+    if (tile && isNodeAt(tile.col, tile.row)) {
+        // Try sliding: allow horizontal if vertical alone is clear, and vice versa
+        const tileH = worldToTile(newX, _shipY);
+        const tileV = worldToTile(_shipX, newY);
+        if (!tileH || !isNodeAt(tileH.col, tileH.row)) {
+            _shipX = newX;
+        }
+        if (!tileV || !isNodeAt(tileV.col, tileV.row)) {
+            _shipY = newY;
+        }
+    } else {
+        _shipX = newX;
+        _shipY = newY;
+    }
 }
 
 // ============================================================

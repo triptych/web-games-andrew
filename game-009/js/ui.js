@@ -224,27 +224,24 @@ export function showMessage(text, color) {
 // -------------------------------------------------------
 
 export function showVictoryScreen(xpGained, goldGained) {
-    _overlay();
     const CX = GAME_WIDTH / 2;
     const CY = GAME_HEIGHT / 2;
 
-    k.add([k.pos(CX, CY - 60), k.text('VICTORY!', { size: 52 }), k.color(...COLORS.accent), k.anchor('center'), k.z(201)]);
-    k.add([k.pos(CX, CY + 10), k.text(`XP: +${xpGained}   Gold: +${goldGained}`, { size: 22 }), k.color(...COLORS.text), k.anchor('center'), k.z(201)]);
-    k.add([k.pos(CX, CY + 60), k.text('Press SPACE or ENTER to continue', { size: 14 }), k.color(...COLORS.accent), k.anchor('center'), k.z(201)]);
+    // All tagged 'victoryOverlay' so battle.js can clean them up via k.destroyAll
+    k.add([k.pos(0, 0), k.rect(GAME_WIDTH, GAME_HEIGHT), k.color(0, 0, 0), k.opacity(0.65), k.z(200), 'victoryOverlay']);
+    k.add([k.pos(CX, CY - 60), k.text('VICTORY!', { size: 52 }), k.color(...COLORS.accent), k.anchor('center'), k.z(201), 'victoryOverlay']);
+    k.add([k.pos(CX, CY + 10), k.text(`XP: +${xpGained}   Gold: +${goldGained}`, { size: 22 }), k.color(...COLORS.text), k.anchor('center'), k.z(201), 'victoryOverlay']);
+    k.add([k.pos(CX, CY + 60), k.text('Press SPACE or ENTER to continue', { size: 14 }), k.color(...COLORS.accent), k.anchor('center'), k.z(201), 'victoryOverlay']);
 }
 
 export function showGameOver() {
-    _overlay();
     const CX = GAME_WIDTH / 2;
     const CY = GAME_HEIGHT / 2;
 
+    k.add([k.pos(0, 0), k.rect(GAME_WIDTH, GAME_HEIGHT), k.color(0, 0, 0), k.opacity(0.65), k.z(200)]);
     k.add([k.pos(CX, CY - 40), k.text('GAME OVER', { size: 56 }), k.color(...COLORS.danger), k.anchor('center'), k.z(201)]);
     k.add([k.pos(CX, CY + 30), k.text(`Final Score: ${state.score}`, { size: 24 }), k.color(...COLORS.text), k.anchor('center'), k.z(201)]);
     k.add([k.pos(CX, CY + 80), k.text('Press R to restart  |  ESC for menu', { size: 14 }), k.color(...COLORS.accent), k.anchor('center'), k.z(201)]);
-}
-
-function _overlay() {
-    k.add([k.pos(0, 0), k.rect(GAME_WIDTH, GAME_HEIGHT), k.color(0, 0, 0), k.opacity(0.65), k.z(200)]);
 }
 
 // -------------------------------------------------------

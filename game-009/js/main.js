@@ -3,7 +3,7 @@
  *
  * Scenes:
  *   'splash'  — Title screen, waits for any key or click
- *   'game'    — Main gameplay scene (overworld → battle loop)
+ *   'game'    — Main gameplay scene (battle loop)
  *
  * Library: ../../lib/kaplay/kaplay.mjs (shared root lib)
  */
@@ -14,10 +14,10 @@ import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 import { state }  from './state.js';
 import { events } from './events.js';
 import { initUI }    from './ui.js';
-import { initAudio, playMenuSelect, playGameOver } from './sounds.js';
-// TODO: import battle and overworld modules as they are created
-// import { initBattle } from './battle.js';
-// import { initOverworld } from './overworld.js';
+import { initAudio, playMenuSelect } from './sounds.js';
+import { initBattle, startNextEncounter } from './battle.js';
+import { initBattleRenderer }  from './battleRenderer.js';
+import { initCommandMenu }     from './commandMenu.js';
 
 // ============================================================
 // KAPLAY API GOTCHAS (read before adding entities)
@@ -124,7 +124,7 @@ k.scene('splash', () => {
     // Version tag
     k.add([
         k.pos(GAME_WIDTH - 10, GAME_HEIGHT - 10),
-        k.text('Phase 1', { size: 10 }),
+        k.text('Phase 2', { size: 10 }),
         k.color(50, 50, 80),
         k.anchor('botright'),
         k.z(1),
@@ -159,39 +159,24 @@ k.scene('splash', () => {
 k.scene('game', () => {
     state.reset();
 
+    // Core UI (top bar, status panel)
     initUI(k);
 
-    // TODO Phase 2: call initOverworld(k) for the region/encounter map
-    // TODO Phase 2: call initBattle(k) for the turn-based battle system
+    // Battle systems
+    initBattleRenderer(k);
+    initBattle(k);
+    initCommandMenu(k);
 
-    // --- Temporary placeholder until battle system is built ---
-    const CX = GAME_WIDTH  / 2;
-    const CY = GAME_HEIGHT / 2;
-
-    k.add([
-        k.pos(CX, CY - 30),
-        k.text('Phase 1 Scaffold', { size: 32 }),
-        k.color(...COLORS.accent),
-        k.anchor('center'),
-        k.z(10),
-    ]);
-
-    k.add([
-        k.pos(CX, CY + 20),
-        k.text('Battle system coming in Phase 2.', { size: 16 }),
-        k.color(...COLORS.text),
-        k.anchor('center'),
-        k.z(10),
-    ]);
-
-    k.add([
-        k.pos(CX, CY + 60),
-        k.text('Press ESC to return to title.', { size: 13 }),
-        k.color(100, 90, 140),
-        k.anchor('center'),
-        k.z(10),
-    ]);
-    // --- End placeholder ---
+    // Listen for game-won event
+    const offWon = events.on('gameWon', () => {
+        const CX = GAME_WIDTH / 2;
+        const CY = GAME_HEIGHT / 2;
+        k.add([k.pos(0, 0), k.rect(GAME_WIDTH, GAME_HEIGHT), k.color(0, 0, 0), k.opacity(0.75), k.z(200)]);
+        k.add([k.pos(CX, CY - 60), k.text('YOU WIN!', { size: 56 }), k.color(...COLORS.accent), k.anchor('center'), k.z(201)]);
+        k.add([k.pos(CX, CY), k.text('The Lich King has fallen.', { size: 22 }), k.color(...COLORS.text), k.anchor('center'), k.z(201)]);
+        k.add([k.pos(CX, CY + 50), k.text(`Final Score: ${state.score}`, { size: 20 }), k.color(...COLORS.xp), k.anchor('center'), k.z(201)]);
+        k.add([k.pos(CX, CY + 100), k.text('Press R to play again  |  ESC for menu', { size: 14 }), k.color(...COLORS.accent), k.anchor('center'), k.z(201)]);
+    });
 
     // Key bindings
     k.onKeyPress('r', () => {
@@ -209,8 +194,12 @@ k.scene('game', () => {
     });
 
     k.onSceneLeave(() => {
+        offWon();
         events.clearAll();
     });
+
+    // Kick off the first encounter
+    k.wait(0.3, () => startNextEncounter());
 });
 
 // ============================================================
