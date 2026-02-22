@@ -2325,11 +2325,330 @@ The polling approach avoids having to emit events for every property change (e.g
 
 ---
 
-**Document Version**: 1.7
-**Last Updated**: 2026-02-21
+---
+
+---
+
+## Game 008: Polish, Particles & Production Patterns (2026-02-22)
+
+This section captures the learnings from game-008's v1.0.x polish cycle and architectural patterns not previously documented.
+
+---
+
+### Barrel Rotation via `atan2(dx, -dy)`
+
+Towers that need to rotate a barrel sprite/entity toward a target use this formula:
+
+```javascript
+const dx = targetWorld.x - towerWorld.x;
+const dy = targetWorld.y - towerWorld.y;
+const angleDeg = Math.atan2(dx, -dy) * 180 / Math.PI;
+```
+
+The negated `dy` converts from Y-up math to Y-down screen space. Result: 0° = pointing up, 90° = pointing right, 180° = pointing down. Apply with `barrel.angle = angleDeg`.
+
+---
+
+### Particle Burst Pattern (Radial)
+
+Evenly distributed particles with randomness feel natural:
+
+```javascript
+const COUNT = 8;
+for (let i = 0; i < COUNT; i++) {
+    const angle = (i / COUNT) * Math.PI * 2 + Math.random() * 0.4;
+    const speed = 60 + Math.random() * 90;
+    const vx = Math.cos(angle) * speed;
+    const vy = Math.sin(angle) * speed;
+
+    const p = k.add([k.circle(r), k.pos(cx, cy), k.color(...col), k.opacity(1), 'particle']);
+    p.onUpdate(() => {
+        p.pos = k.vec2(p.pos.x + vx * k.dt(), p.pos.y + vy * k.dt());
+        p.opacity = Math.max(0, p.opacity - k.dt() / lifetime);
+        if (p.opacity <= 0) k.destroy(p);
+    });
+}
+```
+
+Key points:
+- Add a small random offset to the even angle distribution to prevent mechanical regularity
+- Use `k.opacity(1)` in component list so `p.opacity` assignments work
+- Destroy the particle when opacity reaches 0 (no leak)
+
+---
+
+### Persistent Flame & Smoke Effect (Per-Tile)
+
+For a permanently burned tile (e.g., a destroyed tower slot), spawn continuous particle controllers:
+
+```javascript
+function spawnBurnEffect(k, col, row) {
+    const { x, y } = tileToWorld(col, row);
+
+    // Permanent scorched overlay
+    k.add([k.rect(TILE_SIZE, TILE_SIZE), k.pos(x, y), k.color(20, 10, 5), k.opacity(0.7), k.z(1), 'burnedOverlay']);
+
+    // Flame controller — fires every 0.10s
+    const flame = k.add([k.pos(x, y), 'burnEffect']);
+    flame.onUpdate(() => {
+        flame._t = (flame._t || 0) + k.dt();
+        if (flame._t < 0.10) return;
+        flame._t = 0;
+        // Spawn a rising orange/yellow particle...
+    });
+
+    // Smoke controller — fires every 0.28s (similar pattern, grey, larger, slower)
+}
+```
+
+The controllers (flame, smoke) are lightweight Kaplay entities with no visuals themselves — they just spawn short-lived child particles on a timer. Tag them (`'burnEffect'`) for cleanup via `k.destroyAll('burnEffect')`.
+
+---
+
+### Click Debounce via `k.wait()`
+
+When a single click should trigger one action but might cascade (e.g., placing a tower opens its popup), use a short debounce:
+
+```javascript
+let _clickDebounce = false;
+
+function onTileClick(col, row) {
+    if (_clickDebounce) return;
+
+    placeTower(col, row);
+
+    _clickDebounce = true;
+    k.wait(0.25, () => { _clickDebounce = false; });
+}
+```
+
+`k.wait()` integrates with Kaplay's frame timing (respects pause) and is cleaner than `setTimeout` for in-game debouncing.
+
+---
+
+### Chain Mechanic with Visited Set
+
+For chain-lightning or tesla-style effects that jump between targets, use a visited set to prevent infinite loops:
+
+```javascript
+function fireChain(startCol, startRow, damage, chainCount) {
+    const visited = new Set([`${startCol},${startRow}`]);
+    let frontier = [{ col: startCol, row: startRow }];
+
+    for (let chain = 0; chain < chainCount; chain++) {
+        const next = findClosestUnvisited(frontier, visited, chainRange);
+        if (!next) break;
+        visited.add(`${next.col},${next.row}`);
+        applyDamage(next.col, next.row, damage);
+        spawnArc(frontier[frontier.length - 1], next);  // visual
+        frontier.push(next);
+    }
+}
+```
+
+---
+
+### Sniper Piercing: Column-Based Instant Hit
+
+Instead of a projectile, sniper towers find all targets in a column and hit them instantly:
+
+```javascript
+function fireSniper(tower) {
+    const col = target.col;
+    // Find ALL segments in this column within range
+    for (const c of state.centipedes) {
+        for (const seg of c.segments) {
+            if (seg.col === col && inRange(tower, seg)) {
+                dealDamage(seg.col, seg.row, tower.damage);
+            }
+        }
+    }
+    spawnBeam(tower, col);  // white vertical line
+}
+```
+
+This avoids projectile collision complexity and feels appropriately powerful.
+
+---
+
+### Smart Bomb: Snapshot Before Kill Loop ⚠️ CRITICAL
+
+When killing all enemies at once may cause splits/spawns during iteration, **snapshot positions first**:
+
+```javascript
+function detonateSmartBomb() {
+    // 1. Snapshot ALL positions BEFORE any kills
+    const positions = [];
+    for (const c of state.centipedes) {
+        for (const seg of c.segments) {
+            positions.push({ col: seg.col, row: seg.row });
+        }
+    }
+
+    // 2. Kill from snapshot — split children inherit same positions
+    //    and will be hit by subsequent iterations
+    for (const { col, row } of positions) {
+        hitCentipedeAt(col, row);
+    }
+}
+```
+
+If you iterate `state.centipedes` live while killing, splits create new live centipedes mid-loop — unpredictable behavior.
+
+---
+
+### Staggered Column March Effect
+
+For a grid of items that need to descend/march (classic arcade style), stagger per-column with `k.wait()`:
+
+```javascript
+const COLS = 24;
+const STEP_DELAY = 0.045;  // 45ms per column
+
+for (let col = 0; col < COLS; col++) {
+    k.wait(col * STEP_DELAY, () => {
+        marchColumn(col);
+        playMarchSound(col);  // pitch varies by column for musicality
+    });
+}
+```
+
+Creates a satisfying wave-from-left motion rather than a jarring simultaneous jump.
+
+---
+
+### Map-Based O(1) Tile Lookups
+
+For tile-based games with frequent "is there a tower/node at this tile?" queries, use a `Map` keyed by `"col,row"` strings instead of a 2D array:
+
+```javascript
+// In state.js
+this._towers = new Map();  // key: "col,row"
+
+hasTower(col, row) { return this._towers.has(`${col},${row}`); }
+getTower(col, row) { return this._towers.get(`${col},${row}`); }
+setTower(col, row, data) { this._towers.set(`${col},${row}`, data); }
+removeTower(col, row) { this._towers.delete(`${col},${row}`); }
+```
+
+Benefits: O(1) access, no sparse-array overhead, easy iteration with `.values()`.
+
+---
+
+### Timer-Driven Special Enemy AI
+
+Simple arcade enemies don't need pathfinding — use a per-enemy countdown timer:
+
+```javascript
+class SpecialEnemy {
+    constructor() {
+        this._timer = this.stepInterval;  // e.g. 0.3s
+    }
+
+    update(dt) {
+        this._timer -= dt;
+        if (this._timer <= 0) {
+            this._timer = this.stepInterval;
+            this._step();
+        }
+    }
+
+    _step() {
+        // Move one tile, change direction, fire, etc.
+    }
+}
+```
+
+The timer-based approach decouples movement from frame rate, makes speed easy to tune, and avoids jitter.
+
+---
+
+### Spawn Immunity via Step Countdown
+
+Enemies that spawn stacked on one tile need immunity to prevent instant kill before spreading:
+
+```javascript
+class Centipede {
+    constructor(segments) {
+        this.growingSteps = segments.length - 1;  // steps until spread
+    }
+
+    hitAt(col, row) {
+        if (this.growingSteps > 0) return false;  // immune
+        // ... normal hit logic
+    }
+
+    _step() {
+        if (this.growingSteps > 0) this.growingSteps--;
+        // ... move logic
+    }
+}
+```
+
+The countdown syncs naturally with actual movement — the entity becomes vulnerable exactly when it finishes spreading. Time-based immunity would be less precise.
+
+---
+
+### Between-Wave DOM Shop + In-Game Kaplay Sidebar (Hybrid UI)
+
+When a game needs both a rich shop screen (between waves) and quick in-game access (during play), a hybrid works well:
+
+- **In-game sidebar**: Kaplay canvas entities with `k.area()` + `onClick()` — pixel-perfect with game grid
+- **Between-wave overlay**: DOM `div` with CSS layout, appended to `document.body`
+
+```javascript
+// DOM overlay
+const overlay = document.createElement('div');
+overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;...';
+document.body.appendChild(overlay);
+
+// Cleanup on close / scene leave
+function closeShop() {
+    clearInterval(countdownInterval);
+    overlay.remove();
+}
+k.onSceneLeave(closeShop);
+```
+
+Important: DOM timers (`setInterval`) run independently of game pause — always `clearInterval` in `closeShop` and in `onSceneLeave`.
+
+---
+
+### HUD Polling + Dirty Check Pattern
+
+For HUD values that update frequently (score, gold), polling with a dirty-check is simpler than emitting events for every change:
+
+```javascript
+let _lastScore = -1;
+
+function _updateLoop() {
+    if (state.score !== _lastScore) {
+        _lastScore = state.score;
+        scoreLabel.text = `SCORE  ${state.score}`;
+    }
+    // Check other values...
+}
+
+k.onUpdate(_updateLoop);
+```
+
+Use events for complex side effects (game over overlay, wave banners); use polling for simple display-only values.
+
+---
+
+### `goldChanged` Double-Emit (Anti-Pattern to Avoid)
+
+In game-008, `towers.js` functions (`placeTowerAt`, `sellTowerAt`, `upgradeTowerAt`) call `state.spend()` / `state.earn()` which already emit `goldChanged`, then also manually emit `goldChanged` again. This causes the shop UI to re-render twice per transaction.
+
+**Prevention**: If the state setter already emits the event, don't emit it again in the caller.
+
+---
+
+**Document Version**: 1.8
+**Last Updated**: 2026-02-22
 **Games Covered**: 001-008
-**Total Lines Analyzed**: ~20,000+
-**Latest Enhancement**: Game 008 full logic pass — 14 findings across all 11 modules
+**Total Lines Analyzed**: ~23,000+
+**Latest Enhancement**: Game 008 polish cycle — barrel rotation, particles, debounce, chain mechanics, smart bomb snapshot pattern
 
 
 

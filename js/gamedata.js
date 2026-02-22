@@ -106,6 +106,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '👾', label: 'Arcade' }
         ]
+    },
+    {
+        id: 'game-009',
+        title: 'Chronicles of the Ember Crown',
+        description: 'Classic turn-based RPG in the vein of early Final Fantasy. Lead a party of four heroes — Warrior, Mage, Healer, and Rogue — through 12 escalating battles. Manage MP, use status effects, level up your party, and defeat the Lich King.',
+        icon: '⚔️',
+        folder: 'game-009',
+        cssClass: 'ember-crown',
+        tags: [
+            { emoji: '🎲', label: 'Turn-Based' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '⚔️', label: 'RPG' }
+        ]
     }
 ];
 
