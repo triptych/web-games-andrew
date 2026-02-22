@@ -103,9 +103,12 @@ export function initTowers(k) {
         }
     });
 
-    // Click on the grid
+    // Click on the grid — debounced so a single placement click can't
+    // also immediately trigger the tower popup on the same frame.
+    let _clickDebounce = false;
     k.onClick(() => {
         if (state.isGameOver) return;
+        if (_clickDebounce) return;
         const mousePos = k.mousePos();
         const tile = worldToTile(mousePos.x, mousePos.y);
         if (!tile) return;
@@ -113,6 +116,10 @@ export function initTowers(k) {
 
         if (_placementMode && _placementType) {
             _tryPlace(k, _placementType, col, row);
+            // Suppress the next click for a short window so the placement
+            // click can't immediately re-trigger as a tower-inspect click.
+            _clickDebounce = true;
+            k.wait(0.25, () => { _clickDebounce = false; });
         } else if (state.hasTower(col, row)) {
             // Let shop.js handle the upgrade/sell popup via event
             events.emit('towerClicked', col, row);

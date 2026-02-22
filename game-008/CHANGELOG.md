@@ -1,5 +1,12 @@
 # Game 008 — Centipede Tower Defense: Changelog
 
+## v1.0.4 — 2026-02-21
+
+### Fixed
+- **Tower popup after placement** — clicking a tower slot to place a tower no longer immediately opens the upgrade/sell popup; added a 250ms click debounce after placement to prevent the same click from being re-interpreted as an inspect click
+
+---
+
 ## v1.0.3 — 2026-02-21
 
 ### Added
