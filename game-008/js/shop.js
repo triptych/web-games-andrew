@@ -19,8 +19,9 @@ import { state }  from './state.js';
 import { events } from './events.js';
 import {
     enterPlacementMode, exitPlacementMode,
-    sellTowerAt, upgradeTowerAt, showRangeFor, hideRange, getTowerAt,
+    sellTowerAt, upgradeTowerAt, repairTowerAt, showRangeFor, hideRange, getTowerAt,
 } from './towers.js';
+import { TOWER_REPAIR_COST } from './config.js';
 
 // ============================================================
 // DOM elements (created once, reused)
@@ -193,10 +194,19 @@ function _buildTowerShopPanel(k) {
                 font-size: 10px;
             }
             #g008-tower-popup button:hover { background: #1e3a5f; }
-            #g008-tower-popup button.sell { border-color: #8b3030; color: #ff8888; }
+            #g008-tower-popup button.sell    { border-color: #8b3030; color: #ff8888; }
+            #g008-tower-popup button.repair  { border-color: #306030; color: #88ff88; }
             #g008-tower-popup button:disabled {
                 opacity: 0.4; cursor: default;
             }
+            #g008-tower-popup .hp-bar {
+                display: flex; gap: 3px; margin: 4px 0;
+            }
+            #g008-tower-popup .hp-pip {
+                width: 10px; height: 6px; border-radius: 2px;
+            }
+            #g008-tower-popup .hp-pip.full  { background: #44cc44; }
+            #g008-tower-popup .hp-pip.empty { background: #553333; }
             /* Shop overlay */
             #g008-shop-overlay {
                 display: none;
@@ -369,9 +379,21 @@ function _showTowerPopup(k, col, row) {
 
     const def   = TOWER_DEFS[tower.type];
     const upg   = def.upgrades[tower.tier];
-    const canUpgrade = !!upg && state.gold >= upg.cost && tower.tier < def.upgrades.length;
     const atMax  = tower.tier >= def.upgrades.length;
     const refund = Math.floor(tower.totalSpent * 0.5);
+
+    // HP / repair info
+    const isDamaged   = tower.hp < tower.maxHp;
+    const missingHp   = tower.maxHp - tower.hp;
+    const repairCost  = missingHp * TOWER_REPAIR_COST;
+    const canRepair   = isDamaged && state.gold >= repairCost;
+
+    // Build HP pip HTML
+    let hpPips = '<div class="hp-bar">';
+    for (let i = 0; i < tower.maxHp; i++) {
+        hpPips += `<div class="hp-pip ${i < tower.hp ? 'full' : 'empty'}"></div>`;
+    }
+    hpPips += '</div>';
 
     const popup = document.createElement('div');
     popup.id = 'g008-tower-popup';
@@ -380,10 +402,14 @@ function _showTowerPopup(k, col, row) {
         <div class="stat">DMG: ${tower.damage} | Rate: ${tower.fireRate.toFixed(2)}s</div>
         <div class="stat">Range: ${tower.range} tiles</div>
         <div class="stat" style="color:#aaa;font-size:10px">${def.special}</div>
+        ${isDamaged ? hpPips : ''}
         <div class="btn-row">
             <button id="g008-upg-btn" ${(!upg || atMax) ? 'disabled' : ''}>
                 ${atMax ? 'Max Tier' : (!upg ? 'Max' : `Upgrade (${upg.cost}g)`)}
             </button>
+            ${isDamaged
+                ? `<button class="repair" id="g008-repair-btn" ${canRepair ? '' : 'disabled'}>Repair (${repairCost}g)</button>`
+                : ''}
             <button class="sell" id="g008-sell-btn">Sell (${refund}g)</button>
             <button id="g008-close-popup-btn">X</button>
         </div>
@@ -401,6 +427,12 @@ function _showTowerPopup(k, col, row) {
 
     popup.querySelector('#g008-upg-btn')?.addEventListener('click', () => {
         upgradeTowerAt(k, col, row);
+        hideRange(k);
+        _hideTowerPopup();
+    });
+    popup.querySelector('#g008-repair-btn')?.addEventListener('click', () => {
+        repairTowerAt(k, col, row);
+        hideRange(k);
         _hideTowerPopup();
     });
     popup.querySelector('#g008-sell-btn').addEventListener('click', () => {
@@ -434,6 +466,7 @@ export function openShopOverlay() {
     if (!_shopOverlay) return;
     _refreshShopCards();
     _shopOverlay.classList.add('active');
+    state.isPaused = true;
 
     _shopCountdown = 15;
     _updateShopTimer();
@@ -447,6 +480,7 @@ export function openShopOverlay() {
 export function closeShopOverlay() {
     if (_shopTimer) { clearInterval(_shopTimer); _shopTimer = null; }
     if (_shopOverlay) _shopOverlay.classList.remove('active');
+    state.isPaused = false;
     events.emit('shopClosed');
 }
 

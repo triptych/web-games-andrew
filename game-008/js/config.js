@@ -204,6 +204,18 @@ export const ENEMY_DEFS = {
         score:  1000,
         color:  [255, 70, 140],
     },
+    shooter: {
+        name:   'Shooter',
+        hp:     2,
+        speed:  2.5,
+        reward: 40,
+        score:  500,
+        color:  [80, 220, 120],   // green — distinct from all existing enemies
+        // Shooter-specific: how often it fires (seconds between shots)
+        fireRate: 3.0,
+        // Range in tiles within which it will target a tower
+        range: 5,
+    },
 };
 
 // --- Wave definitions (waves 1-20) ---
@@ -232,25 +244,31 @@ export const WAVE_DEFS = [
     // 8 — Fast centipede
     { title: 'Wave 8 — Speed Run', centipedeType: 'centipedeFast', segments: 12,
       specials: [{ type: 'flea', count: 3, startTime: 3 }, { type: 'scorpion', count: 1, startTime: 7 }] },
-    // 9
-    { title: 'Wave 9', centipedeType: 'centipede', segments: 18,
-      specials: [{ type: 'flea', count: 4, startTime: 3 }, { type: 'spider', count: 2, startTime: 7 }] },
+    // 9 — Shooters debut
+    { title: 'Wave 9 — Shooters!', centipedeType: 'centipede', segments: 18,
+      specials: [{ type: 'flea', count: 4, startTime: 3 }, { type: 'spider', count: 2, startTime: 7 },
+                 { type: 'shooter', count: 1, startTime: 10 }] },
     // 10 — Boss
     { title: 'Wave 10 — BOSS', centipedeType: 'centipedeGiant', segments: 20,
       isBoss: true,
-      specials: [{ type: 'scorpion', count: 2, startTime: 4 }, { type: 'spider', count: 2, startTime: 8 }] },
+      specials: [{ type: 'scorpion', count: 2, startTime: 4 }, { type: 'spider', count: 2, startTime: 8 },
+                 { type: 'shooter', count: 1, startTime: 6 }] },
     // 11 — Armored
     { title: 'Wave 11 — Armored', centipedeType: 'centipedeArmored', segments: 12,
-      specials: [{ type: 'flea', count: 4, startTime: 3 }, { type: 'scorpion', count: 1, startTime: 7 }] },
+      specials: [{ type: 'flea', count: 4, startTime: 3 }, { type: 'scorpion', count: 1, startTime: 7 },
+                 { type: 'shooter', count: 1, startTime: 5 }] },
     // 12
     { title: 'Wave 12', centipedeType: 'centipede', segments: 20,
-      specials: [{ type: 'flea', count: 5, startTime: 2 }, { type: 'spider', count: 3, startTime: 6 }] },
+      specials: [{ type: 'flea', count: 5, startTime: 2 }, { type: 'spider', count: 3, startTime: 6 },
+                 { type: 'shooter', count: 2, startTime: 8 }] },
     // 13
     { title: 'Wave 13', centipedeType: 'centipedeFast', segments: 16,
-      specials: [{ type: 'scorpion', count: 2, startTime: 3 }, { type: 'flea', count: 4, startTime: 6 }] },
+      specials: [{ type: 'scorpion', count: 2, startTime: 3 }, { type: 'flea', count: 4, startTime: 6 },
+                 { type: 'shooter', count: 2, startTime: 4 }] },
     // 14
     { title: 'Wave 14', centipedeType: 'centipedeArmored', segments: 16,
-      specials: [{ type: 'spider', count: 3, startTime: 4 }, { type: 'scorpion', count: 2, startTime: 8 }] },
+      specials: [{ type: 'spider', count: 3, startTime: 4 }, { type: 'scorpion', count: 2, startTime: 8 },
+                 { type: 'shooter', count: 2, startTime: 5 }] },
     // 15 — Boss
     { title: 'Wave 15 — BOSS', centipedeType: 'centipedeGiant', segments: 20,
       isBoss: true,
@@ -258,19 +276,23 @@ export const WAVE_DEFS = [
           { type: 'flea',     count: 4, startTime: 3 },
           { type: 'spider',   count: 3, startTime: 6 },
           { type: 'scorpion', count: 2, startTime: 9 },
+          { type: 'shooter',  count: 2, startTime: 5 },
       ] },
     // 16
     { title: 'Wave 16', centipedeType: 'centipedeFast', segments: 18,
-      specials: [{ type: 'flea', count: 6, startTime: 2 }, { type: 'spider', count: 3, startTime: 5 }] },
+      specials: [{ type: 'flea', count: 6, startTime: 2 }, { type: 'spider', count: 3, startTime: 5 },
+                 { type: 'shooter', count: 3, startTime: 7 }] },
     // 17
     { title: 'Wave 17', centipedeType: 'centipedeArmored', segments: 20,
-      specials: [{ type: 'scorpion', count: 3, startTime: 3 }, { type: 'spider', count: 4, startTime: 7 }] },
+      specials: [{ type: 'scorpion', count: 3, startTime: 3 }, { type: 'spider', count: 4, startTime: 7 },
+                 { type: 'shooter', count: 3, startTime: 5 }] },
     // 18
     { title: 'Wave 18', centipedeType: 'centipede', segments: 22,
       specials: [
           { type: 'flea',     count: 6, startTime: 2 },
           { type: 'scorpion', count: 3, startTime: 5 },
           { type: 'spider',   count: 4, startTime: 8 },
+          { type: 'shooter',  count: 3, startTime: 4 },
       ] },
     // 19
     { title: 'Wave 19', centipedeType: 'centipedeFast', segments: 20,
@@ -278,6 +300,7 @@ export const WAVE_DEFS = [
           { type: 'flea',     count: 6, startTime: 2 },
           { type: 'scorpion', count: 4, startTime: 5 },
           { type: 'spider',   count: 5, startTime: 7 },
+          { type: 'shooter',  count: 4, startTime: 3 },
       ] },
     // 20 — Final Boss
     { title: 'Wave 20 — FINAL BOSS', centipedeType: 'centipedeGiant', segments: 20,
@@ -286,8 +309,14 @@ export const WAVE_DEFS = [
           { type: 'flea',     count: 8,  startTime: 2 },
           { type: 'spider',   count: 6,  startTime: 5 },
           { type: 'scorpion', count: 4,  startTime: 7 },
+          { type: 'shooter',  count: 5,  startTime: 3 },
       ] },
 ];
+
+// --- Tower health ---
+export const TOWER_MAX_HP           = 3;    // hits before a tower is destroyed
+export const TOWER_REPAIR_COST      = 50;   // gold to repair one HP (flat per-hit cost)
+export const TOWER_SHOCKWAVE_RADIUS = 3;    // tiles — blast radius when a tower is destroyed
 
 // --- Economy ---
 export const GOLD_PER_WAVE         = 75;
@@ -333,6 +362,7 @@ export const COLORS = {
     flea:          [255, 140, 68],
     spider:        [170, 68,  255],
     scorpion:      [255, 68,  140],
+    shooter:       [80,  220, 120],
     // HUD
     hudBg:         [8,   8,   16],
     hudText:       [220, 220, 240],

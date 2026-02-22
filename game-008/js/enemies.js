@@ -26,7 +26,7 @@ import {
     isNodeAt, placeNode, spawnNodeEntity,
     poisonNode, refreshNodeVisual, removeNode, destroyNodeEntity,
 } from './grid.js';
-import { playFleaDrop, playSpiderMove, playSegmentKill, playScorpionMove, playNodePoison } from './sounds.js';
+import { playFleaDrop, playSpiderMove, playSegmentKill, playScorpionMove, playNodePoison, playShooterFire } from './sounds.js';
 
 // ============================================================
 // Constants
@@ -35,6 +35,7 @@ import { playFleaDrop, playSpiderMove, playSegmentKill, playScorpionMove, playNo
 const FLEA_INTERVAL     = 0.18;  // seconds per tile drop
 const SPIDER_INTERVAL   = 0.22;  // seconds per tile move
 const SCORPION_INTERVAL = 0.20;  // seconds per tile move
+const SHOOTER_MOVE_INTERVAL = 0.35;  // seconds per tile move (slower — stops to aim)
 
 // Spider erratic move directions (4-directional + staying in player zone)
 const SPIDER_DIRS = [
@@ -90,6 +91,9 @@ export function initEnemies(k) {
                 if (enemy.tail && enemy.tail.exists()) {
                     enemy.tail.pos = k.vec2(w.x - enemy.dirX * 10, w.y - 8);
                 }
+                if (enemy.gun && enemy.gun.exists()) {
+                    enemy.gun.pos = k.vec2(w.x + enemy.dirX * 10, w.y);
+                }
             }
         }
 
@@ -127,6 +131,7 @@ function _stepEnemy(k, enemy) {
         case 'flea':     _stepFlea(k, enemy);     break;
         case 'spider':   _stepSpider(k, enemy);   break;
         case 'scorpion': _stepScorpion(k, enemy); break;
+        case 'shooter':  _stepShooter(k, enemy);  break;
     }
 }
 
@@ -213,6 +218,101 @@ function _stepScorpion(k, enemy) {
     }
 
     enemy.col = nextCol;
+}
+
+// ---- Shooter ----
+
+function _stepShooter(k, enemy) {
+    enemy._timer = SHOOTER_MOVE_INTERVAL;
+
+    // Tick the shoot cooldown
+    enemy._shootCooldown = (enemy._shootCooldown ?? enemy.fireRate) - SHOOTER_MOVE_INTERVAL;
+
+    // Move horizontally (same pattern as scorpion — crosses enemy zone row)
+    const nextCol = enemy.col + enemy.dirX;
+    if (nextCol < 0 || nextCol >= GRID_COLS) {
+        _killEnemy(k, enemy, false);
+        return;
+    }
+    enemy.col = nextCol;
+
+    // Check if a tower is in range and shoot cooldown is ready
+    if (enemy._shootCooldown <= 0) {
+        const target = _findShooterTarget(enemy);
+        if (target) {
+            enemy._shootCooldown = enemy.fireRate;
+            _shooterFire(k, enemy, target);
+        }
+    }
+}
+
+/**
+ * Find the nearest tower within the shooter's range.
+ * Returns { col, row } or null.
+ */
+function _findShooterTarget(enemy) {
+    const rangeSq = (enemy.range * TILE_SIZE) ** 2;
+    const ex = TILE_SIZE / 2 + enemy.col * TILE_SIZE;  // approx world x
+    const ey = TILE_SIZE / 2 + enemy.row * TILE_SIZE;  // approx world y
+
+    let best = null;
+    let bestDist = Infinity;
+
+    for (const [key, tower] of state.towers) {
+        const tx = TILE_SIZE / 2 + tower.col * TILE_SIZE;
+        const ty = TILE_SIZE / 2 + tower.row * TILE_SIZE;
+        const d2 = (tx - ex) ** 2 + (ty - ey) ** 2;
+        if (d2 <= rangeSq && d2 < bestDist) {
+            best = tower;
+            bestDist = d2;
+        }
+    }
+    return best;
+}
+
+/**
+ * Spawn a visible projectile from shooter toward the target tower,
+ * then deal 1 HP damage on impact.
+ */
+function _shooterFire(k, enemy, target) {
+    playShooterFire();
+
+    const from = tileToWorld(enemy.col, enemy.row);
+    const to   = tileToWorld(target.col, target.row);
+    const dx   = to.x - from.x;
+    const dy   = to.y - from.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const PROJ_SPEED = 300; // px/s — visibly slower than tower bullets
+    const vx = (dx / dist) * PROJ_SPEED;
+    const vy = (dy / dist) * PROJ_SPEED;
+    const travelTime = dist / PROJ_SPEED;
+
+    let bx = from.x, by = from.y;
+    let elapsed = 0;
+
+    const proj = k.add([
+        k.pos(bx, by),
+        k.circle(4),
+        k.color(...COLORS.shooter),
+        k.anchor('center'),
+        k.opacity(1),
+        k.z(16),
+        'shooterProjectile',
+    ]);
+
+    proj.onUpdate(() => {
+        if (state.isPaused) return;
+        elapsed += k.dt();
+        bx += vx * k.dt();
+        by += vy * k.dt();
+        if (proj.exists()) proj.pos = k.vec2(bx, by);
+
+        if (elapsed >= travelTime) {
+            if (proj.exists()) proj.destroy();
+            // Deal damage to the tower via event (avoids circular import with towers.js)
+            events.emit('shooterHitTower', target.col, target.row);
+        }
+    });
 }
 
 // ============================================================
@@ -357,6 +457,60 @@ export function spawnScorpion(k) {
     return enemy;
 }
 
+export function spawnShooter(k) {
+    // Shooter enters from one side on a random enemy-zone row (rows 1-11)
+    // Same entry pattern as scorpion, but distinct look & behavior.
+    const fromLeft = Math.random() < 0.5;
+    const col  = fromLeft ? 0 : GRID_COLS - 1;
+    const dirX = fromLeft ? 1 : -1;
+    const row  = 1 + Math.floor(Math.random() * (ENEMY_ZONE_MAX - 1)); // row 1-11
+    const def  = ENEMY_DEFS.shooter;
+
+    const w = tileToWorld(col, row);
+
+    // Body: slightly larger, distinct green
+    const ent = k.add([
+        k.pos(w.x, w.y),
+        k.rect(TILE_SIZE * 0.6, TILE_SIZE * 0.6, { radius: 4 }),
+        k.color(...COLORS.shooter),
+        k.anchor('center'),
+        k.z(12),
+        'enemy',
+        'shooter',
+    ]);
+
+    // "Gun" — a small rectangle pointing in travel direction
+    const gunX = dirX * 10;
+    const gun = k.add([
+        k.pos(w.x + gunX, w.y),
+        k.rect(10, 4, { radius: 1 }),
+        k.color(40, 160, 80),
+        k.anchor('center'),
+        k.z(13),
+        'enemy',
+    ]);
+
+    const enemy = {
+        type:   'shooter',
+        col,
+        row,
+        dirX,
+        hp:           def.hp,
+        reward:       def.reward,
+        score:        def.score,
+        fireRate:     def.fireRate,
+        range:        def.range,
+        ent,
+        gun,
+        _timer:        SHOOTER_MOVE_INTERVAL,
+        _shootCooldown: def.fireRate * 0.5, // first shot comes sooner
+        dead:   false,
+    };
+
+    state.enemies.push(enemy);
+    return enemy;
+}
+
 // ============================================================
 // Hit / kill API — called by player bullets and towers
 // ============================================================
@@ -392,6 +546,7 @@ function _killEnemy(k, enemy, awardRewards) {
     for (const e of enemy.eyes  ?? []) { if (e && e.exists()) e.destroy(); }
     for (const e of enemy.legs  ?? []) { if (e && e.exists()) e.destroy(); }
     if (enemy.tail && enemy.tail.exists()) enemy.tail.destroy();
+    if (enemy.gun  && enemy.gun.exists())  enemy.gun.destroy();
 
     if (!awardRewards) return;
 

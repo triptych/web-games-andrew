@@ -19,7 +19,7 @@ import {
 import { state }  from './state.js';
 import { events } from './events.js';
 import { spawnCentipede } from './centipede.js';
-import { spawnFlea, spawnSpider, spawnScorpion } from './enemies.js';
+import { spawnFlea, spawnSpider, spawnScorpion, spawnShooter } from './enemies.js';
 import { isInPlacementMode } from './towers.js';
 import { openShopOverlay } from './shop.js';
 import { playWaveComplete, playWaveStart, playNodeMarchStep, playCountdownTick, playBossAlert, playGameWon } from './sounds.js';
@@ -204,6 +204,7 @@ function _spawnSpecials(type, count) {
             if (type === 'flea')     spawnFlea(k);
             if (type === 'spider')   spawnSpider(k);
             if (type === 'scorpion') spawnScorpion(k);
+            if (type === 'shooter')  spawnShooter(k);
         });
     }
 }
@@ -309,10 +310,6 @@ function _runCleanupSequence(onDone) {
     // We process bottom row first so moving down never overwrites an
     // already-moved node.  Rows: ENEMY_ZONE_MAX down to 0.
 
-    // How many row steps to animate.  In classic Centipede the field advances
-    // by 1 row per wave, but we cap at 1 to keep the play area valid.
-    const MARCH_ROWS = 1;
-
     // Build list of (col, row) for every node currently in the enemy zone,
     // sorted bottom-to-top so we can move them down safely.
     const nodesToMove = [];
@@ -327,52 +324,60 @@ function _runCleanupSequence(onDone) {
         return;
     }
 
-    // Stagger: play one thump per animation step, move all nodes together.
-    // We do MARCH_ROWS visual steps with a short delay between them.
-    const STEP_DELAY  = 0.18; // seconds between march steps
-    let stepsDone = 0;
+    // Wave effect: animate one column at a time, left to right.
+    // Each column's nodes drop down by 1, staggered by COL_DELAY seconds.
+    const COL_DELAY   = 0.045; // seconds between each column wave
+    const STEP_DELAY  = 0.18;  // pause after the full wave completes before onDone
 
-    function doStep() {
+    // Group nodes by column
+    const nodesByCol = new Map();
+    for (const n of nodesToMove) {
+        if (!nodesByCol.has(n.col)) nodesByCol.set(n.col, []);
+        nodesByCol.get(n.col).push(n);
+    }
+
+    // Sort columns left-to-right
+    const cols = [...nodesByCol.keys()].sort((a, b) => a - b);
+
+    let colsDone = 0;
+
+    function moveCol(colIndex) {
         if (state.isGameOver) { onDone(); return; }
 
-        playNodeMarchStep(stepsDone);
+        const col = cols[colIndex];
+        const colNodes = nodesByCol.get(col);
 
-        // Move all collected nodes down by 1 (nodes on ENEMY_ZONE_MAX are removed)
-        // Process bottom-to-top so we don't double-move
-        for (const n of nodesToMove) {
+        // Play a march thump for each column (pitch varies by position)
+        playNodeMarchStep(colIndex);
+
+        // Move nodes in this column, bottom-to-top so we don't double-move
+        for (const n of colNodes) {
             const newRow = n.row + 1;
 
-            // Remove visual at old position
             destroyNodeEntity(k, n.col, n.row);
 
-            // Remove from state at old position
             const nodeData = state.getNode(n.col, n.row);
             state.removeNode(n.col, n.row);
 
             if (newRow > ENEMY_ZONE_MAX || !nodeData) {
-                // Falls off the bottom of enemy zone — gone
                 events.emit('nodeDestroyed', n.col, n.row);
             } else if (!state.hasNode(n.col, newRow) && !state.hasTower(n.col, newRow)) {
-                // Place at new row
                 state.setNode(n.col, newRow, nodeData);
                 spawnNodeEntity(k, n.col, newRow);
-                // Update the tracking object for subsequent steps
                 n.row = newRow;
             }
-            // If destination is occupied (tower/node), the node is lost
         }
 
-        stepsDone++;
-        if (stepsDone < MARCH_ROWS) {
-            k.wait(STEP_DELAY, doStep);
+        colsDone++;
+        if (colsDone < cols.length) {
+            k.wait(COL_DELAY, () => moveCol(colIndex + 1));
         } else {
-            // Small pause after last step, then proceed
             k.wait(STEP_DELAY, onDone);
         }
     }
 
     // Brief pause before march begins, to let wave-complete banner clear
-    k.wait(0.3, doStep);
+    k.wait(0.3, () => moveCol(0));
 }
 
 // ============================================================
@@ -393,8 +398,15 @@ function _clearLeftoverEnemies() {
 
     // Remove all non-centipede enemies
     for (const enemy of [...state.enemies]) {
-        if (enemy.ent && enemy.ent.exists()) enemy.ent.destroy();
+        if (enemy.ent  && enemy.ent.exists())  enemy.ent.destroy();
+        if (enemy.tail && enemy.tail.exists()) enemy.tail.destroy();
+        if (enemy.gun  && enemy.gun.exists())  enemy.gun.destroy();
+        for (const e of enemy.eyes ?? []) { if (e && e.exists()) e.destroy(); }
+        for (const e of enemy.legs ?? []) { if (e && e.exists()) e.destroy(); }
         enemy.dead = true;
     }
     state.enemies.length = 0;
+
+    // Remove any in-flight shooter projectiles
+    _k.destroyAll('shooterProjectile');
 }

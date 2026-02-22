@@ -234,3 +234,25 @@ export function playNodeMarchStep(stepIndex) {
     _osc('square', freq, 0.08, 0.18);
     _noise(0.06, 0.08);
 }
+
+/** Shooter enemy fires a projectile at a tower. */
+export function playShooterFire() {
+    // Distinctive "pew" — higher pitch than player bullet to sound alien
+    _sweep('square', 600, 1200, 0.07, 0.18);
+    _osc('sine', 400, 0.05, 0.1, 0.04);
+}
+
+/** A tower takes a hit from an enemy projectile. */
+export function playTowerHit() {
+    // Dull metallic thud
+    _osc('sawtooth', 140, 0.09, 0.28);
+    _noise(0.08, 0.12);
+}
+
+/** Tower destroyed — shockwave explosion. */
+export function playTowerExplosion() {
+    _sweep('sawtooth', 200, 40, 0.5, 0.45);
+    _sweep('sawtooth', 120, 20, 0.4, 0.3, 0.1);
+    _noise(0.4, 0.3);
+    _osc('square', 60, 0.25, 0.2, 0.15);
+}

@@ -2097,11 +2097,239 @@ k.onKeyPress('escape', () => { if (_placingType) exitPlacementMode(); });
 
 ---
 
-**Document Version**: 1.6
+---
+
+---
+
+## Game 008: Code Logic Pass — Full Module Review (2026-02-21)
+
+This section captures logic patterns, edge cases, and subtle design decisions observed across all 11 game-008 modules during a full code review.
+
+---
+
+### 1. Smart Bomb Kills Must Snapshot Positions First
+
+**File**: `player.js` — `_detonateSmartBomb()`
+
+When a smart bomb kills all centipede segments, each kill can split the centipede and create new children that inherit the same tile positions. If you call `hitCentipedeAt()` live while iterating, new split children are immediately live and their segments match the same positions from the snapshot — so subsequent calls in the loop naturally kill them too.
+
+The pattern that makes this safe:
+
+```javascript
+// Snapshot ALL segment positions first (before any kills trigger splits)
+const positions = [];
+for (const c of state.centipedes) {
+    for (const seg of c.segments) {
+        positions.push({ col: seg.col, row: seg.row });
+    }
+}
+// Now kill each snapshot position — split children inherit same positions
+for (const { col, row } of positions) {
+    hitCentipedeAt(col, row);
+}
+```
+
+**Key Lesson**: When a kill action creates new entities that share positions with the original, snapshot first and iterate the snapshot. New children will be caught by subsequent hits in the same loop without needing special-case handling.
+
+---
+
+### 2. Spawn Immunity via `growingSteps` Counter
+
+**File**: `centipede.js` — `Centipede.create()` / `hitAt()`
+
+Fresh centipedes spawn with all segments stacked on the same starting tile. Without immunity, a bullet hitting that tile would kill all segments at once before the centipede even starts moving. The solution: track a `growingSteps` countdown equal to `segCount - 1`.
+
+```javascript
+// Centipede.create() sets spawn immunity
+return new Centipede(k, type, segments, history, dirX, segCount > 1 ? segCount - 1 : 0);
+
+// hitAt() returns false while immune
+if (this.growingSteps > 0) return false;
+```
+
+`_step()` decrements `growingSteps` each tick. Once it hits 0, the centipede is fully spread and can take damage. Immunity is also signalled visually via an opacity pulse (`_flashTimer`).
+
+**Key Lesson**: For enemies that stack on spawn, use a step-countdown for damage immunity rather than a time-based timer — the countdown naturally synchronises with actual movement.
+
+---
+
+### 3. Module-Level Variables Are NOT Reset Between Scene Restarts
+
+**Files**: `player.js`, `towers.js`, `enemies.js`, `waves.js`, `ui.js`, `shop.js`
+
+Each module uses top-level `let` variables for per-scene state (`_bullets`, `_hoverEnt`, `_placementMode`, etc.). These persist across scene restarts because ES modules are only initialised once. Each `init*()` function must **explicitly reset** these variables:
+
+```javascript
+// player.js — explicit reset every scene start
+export function initPlayer(k) {
+    _invincTimer = 0;
+    _flashTimer  = 0;
+    _fireTimer   = 0;
+    _bullets     = [];
+    ...
+}
+```
+
+`ui.js` additionally uses "last seen" values (`_lastLives`, `_lastScore`, etc.) to avoid redundant text updates. These must also be reset, but `initUI` re-initialises them from `state` on every `_createHUD()` call — so they are correct.
+
+**Key Lesson**: Module-level variables that hold per-scene state MUST be reset inside `init*()`. Forgetting this causes stale data from a previous run to bleed into the new scene.
+
+---
+
+### 4. Dual `onUpdate` Registrations in `towers.js`
+
+**File**: `towers.js` — `initTowers()`
+
+`initTowers()` registers two separate `k.onUpdate()` callbacks — one for tower auto-fire logic and one for the placement hover highlight. Both are registered unconditionally on every scene start. This is safe because `events.clearAll()` is called in `onSceneLeave()`, and Kaplay's own `onUpdate` registrations are also tied to the scene lifecycle (they are automatically removed when the scene exits).
+
+This confirms that **multiple `k.onUpdate()` callbacks on the module level are fine** as long as they are all registered inside the scene init (not at module load time).
+
+---
+
+### 5. `_dealDamage` Loop Has a Hidden Limit
+
+**File**: `towers.js` — `_dealDamage()`
+
+The damage helper applies multiple HP points by calling `hitCentipedeAt` / `hitEnemyAt` in a loop:
+
+```javascript
+function _dealDamage(col, row, damage) {
+    for (let i = 0; i < damage; i++) {
+        if (hitCentipedeAt(col, row)) continue;
+        if (hitEnemyAt(col, row)) continue;
+        break; // nothing left at this tile
+    }
+}
+```
+
+The `break` exits early when neither call succeeds, preventing wasted iterations. However, this means **overkill damage is silently discarded** — a 40-damage sniper shot against a 1-HP segment only applies 1 damage (the target is gone on the first hit, then the loop breaks). This is the intended behaviour since segments have low HP, but it's a subtle interaction to remember when tuning high-damage towers.
+
+---
+
+### 6. Scatter Tower Uses `pellets` as an Array Slice Count
+
+**File**: `towers.js` — `_fireScatter()`
+
+```javascript
+const offsets = [-1, 0, 1];
+for (const off of offsets.slice(0, tower.pellets)) {
+    ...
+}
+```
+
+The `offsets` array has 3 entries and `pellets` starts at 3. The T2 upgrade adds 2 more pellets (`pellets += 2`), but `offsets` only has 3 elements — `slice(0, 5)` on a 3-element array just returns all 3. So the upgrade has no visible effect on pellet count beyond 3. This is a latent bug: the upgrade appears to add pellets but the visual/logic cap is `offsets.length` (3).
+
+---
+
+### 7. Shop Overlay Auto-Countdown Uses `setInterval`, Not Kaplay's `k.wait`
+
+**File**: `shop.js` — `openShopOverlay()`
+
+The 15-second auto-close countdown uses `setInterval` (a DOM/browser API), not Kaplay's game-loop time. This means it continues ticking even while the game is paused (`state.isPaused = true`). In practice this is fine for the shop (which itself pauses the game while open), but it's a reminder that **DOM timers are independent of the game's pause state**.
+
+`destroyShopDOM()` properly calls `clearInterval` via `closeShopOverlay()`, and `onSceneLeave` also calls `closeShopOverlay()` — so the interval is always cleaned up.
+
+---
+
+### 8. Wave Completion Requires Both Centipede AND Flea Counts
+
+**File**: `waves.js` — `_checkWaveComplete()`
+
+The wave is considered complete only when:
+1. `state.centipedes` is either empty or all entries have 0 segments, AND
+2. There are no active fleas in `state.enemies`
+
+Spiders and scorpions do NOT block wave completion. This asymmetry is intentional: fleas drop nodes and can block the spawn area, so they must be cleared. Spiders/scorpions are merely nuisances and are cleared by `_clearLeftoverEnemies()` when the wave ends.
+
+---
+
+### 9. Node March: Destination Occupied = Node Lost (Silent)
+
+**File**: `waves.js` — `_runCleanupSequence()`
+
+When nodes march down one row at wave end, if the destination `(col, newRow)` already has a node or tower, the marching node is silently discarded:
+
+```javascript
+} else if (!state.hasNode(n.col, newRow) && !state.hasTower(n.col, newRow)) {
+    // Place at new row
+    state.setNode(n.col, newRow, nodeData);
+    ...
+}
+// If destination is occupied (tower/node), the node is lost
+```
+
+This prevents node pile-ups but means late-game boards with many towers will see node density drop faster than expected. It's correct behaviour, just worth documenting.
+
+---
+
+### 10. `_getPlayerTile()` Reads From Kaplay Entity Tag, Not Shared State
+
+**File**: `enemies.js` — `_getPlayerTile()`
+
+Rather than sharing player position via state or events, `enemies.js` queries the live Kaplay entity:
+
+```javascript
+function _getPlayerTile() {
+    const ships = _k.get('playerShip');
+    if (!ships || ships.length === 0) return null;
+    const ship = ships[0];
+    return worldToTile(ship.pos.x, ship.pos.y);
+}
+```
+
+This works because `player.js` calls `_updateShipVisuals()` every frame, keeping the entity's `.pos` in sync with the internal `_shipX / _shipY` values. The pattern avoids coupling `enemies.js` to `player.js` directly, but it relies on the Kaplay entity existing and being current.
+
+**Gotcha**: `k.get('playerShip')` returns an array; only the first element is used. If the player ship is destroyed (game over), `ships.length === 0` and `null` is returned safely.
+
+---
+
+### 11. `state.enemies` Array Is Compacted Each Frame
+
+**File**: `enemies.js` — `initEnemies()` update loop
+
+Dead enemies are not removed immediately on kill — they are flagged `enemy.dead = true` and their visuals are destroyed. A separate filter at the end of the update loop rebuilds the array:
+
+```javascript
+const alive = state.enemies.filter(e => !e.dead);
+state.enemies.length = 0;
+state.enemies.push(...alive);
+```
+
+This pattern avoids modifying the array while iterating it (the main loop uses `[...state.enemies]` spread for safety). The trade-off is an allocation per frame, but for the small enemy counts in this game it's negligible.
+
+---
+
+### 12. `goldChanged` Emitted Redundantly After Transactions
+
+**Files**: `towers.js` — `placeTowerAt()`, `sellTowerAt()`, `upgradeTowerAt()`
+
+These functions call `state.earn()` or `state.spend()`, which already triggers `events.emit('goldChanged', ...)` via the state setter. Each function then also explicitly calls `events.emit('goldChanged', state.gold)` a second time. This means the shop panel re-renders twice per transaction — harmless but redundant.
+
+---
+
+### 13. HUD Update Uses Polling + Dirty Check, Not Pure Events
+
+**File**: `ui.js` — `_startUpdateLoop()`
+
+The HUD uses a hybrid pattern: it checks `_lastXxx` vs `state.xxx` every frame and only updates the text entity if something changed. It also subscribes to events for overlays (`gameOver`, `gameWon`, `waveStarted`, `waveComplete`). Both mechanisms are active simultaneously.
+
+The polling approach avoids having to emit events for every property change (e.g., smartBombs is never emitted as an event — it's only polled). This is a pragmatic pattern: use events for complex side effects, use polling for simple display values.
+
+---
+
+### 14. Scatter Upgrade Bug: `pellets` Array Slice Cap
+
+*(Listed as finding #6 above — summary here for quick reference)*
+
+`_fireScatter` uses `offsets.slice(0, tower.pellets)` where `offsets` only has 3 entries. Upgrading `pellets` beyond 3 has no effect. The upgrade definition in `config.js` adds `pellets: 2` at T2, making the total 5 — but visually only 3 shots fire. **Potential fix**: expand `offsets` to 5 entries (e.g., `[-2, -1, 0, 1, 2]`) or clamp the upgrade delta.
+
+---
+
+**Document Version**: 1.7
 **Last Updated**: 2026-02-21
 **Games Covered**: 001-008
-**Total Lines Analyzed**: ~18,000+
-**Latest Enhancement**: Game 008 — Kaplay entity gotchas, hybrid shop, tag-based overlays, slow debuff pattern
+**Total Lines Analyzed**: ~20,000+
+**Latest Enhancement**: Game 008 full logic pass — 14 findings across all 11 modules
 
 
 

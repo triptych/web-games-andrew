@@ -400,11 +400,11 @@ function _flashScreen(k) {
     });
 
     // Expanding shockwave rings from the ship position
-    _spawnShockwave(k, _shipX, _shipY, [100, 200, 255]);
-    _spawnShockwave(k, _shipX, _shipY, [255, 255, 255], 0.1);
+    spawnShockwave(k, _shipX, _shipY, [100, 200, 255]);
+    spawnShockwave(k, _shipX, _shipY, [255, 255, 255], 0.1);
 }
 
-function _spawnShockwave(k, cx, cy, color, delay = 0) {
+export function spawnShockwave(k, cx, cy, color, delay = 0) {
     const DURATION   = 0.5;
     const MAX_RADIUS = 420;
     let t = -delay;

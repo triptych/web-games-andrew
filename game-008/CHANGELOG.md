@@ -1,5 +1,12 @@
 # Game 008 — Centipede Tower Defense: Changelog
 
+## v1.0.1 — 2026-02-21
+
+### Changed
+- Between-wave node march now animates as a left-to-right wave effect: columns drop one at a time (45 ms apart) instead of all at once, matching classic Centipede arcade behaviour.
+
+---
+
 ## v1.0.0 — 2026-02-21 — Phase 6: Polish & Game Feel
 
 ### Added

@@ -18,13 +18,15 @@ import {
     GRID_OFFSET_X, GRID_OFFSET_Y,
     TOWER_DEFS,
     COLORS, SELL_REFUND_RATE,
+    TOWER_MAX_HP, TOWER_REPAIR_COST, TOWER_SHOCKWAVE_RADIUS,
 } from './config.js';
 import { state }  from './state.js';
 import { events } from './events.js';
 import { tileToWorld, isTowerSlot, isNodeAt, worldToTile, removeNode, destroyNodeEntity } from './grid.js';
 import { hitCentipedeAt } from './centipede.js';
 import { hitEnemyAt }     from './enemies.js';
-import { playTowerPlace, playTowerSell, playTowerUpgrade } from './sounds.js';
+import { playTowerPlace, playTowerSell, playTowerUpgrade, playTowerHit, playTowerExplosion } from './sounds.js';
+import { spawnShockwave } from './player.js';
 
 // ============================================================
 // Tower object schema (stored in state.towers map)
@@ -34,6 +36,8 @@ import { playTowerPlace, playTowerSell, playTowerUpgrade } from './sounds.js';
 //   col, row:   number,
 //   tier:       0|1|2,       // 0 = base, 1 = T2, 2 = T3
 //   totalSpent: number,      // cumulative gold invested (for sell calc)
+//   hp:         number,      // current HP (max = TOWER_MAX_HP)
+//   maxHp:      number,      // max HP (= TOWER_MAX_HP)
 //   // Effective stats (base + upgrades applied):
 //   damage:     number,
 //   fireRate:   number,      // seconds per shot
@@ -69,6 +73,11 @@ let _hoverEnt = null;
 
 export function initTowers(k) {
     _k = k;
+
+    // Handle shooter projectile hits on towers
+    events.on('shooterHitTower', (col, row) => {
+        damageTowerAt(k, col, row);
+    });
 
     // Per-frame: fire all placed towers
     k.onUpdate(() => {
@@ -182,6 +191,8 @@ export function placeTowerAt(k, type, col, row, spent) {
         row,
         tier:         0,
         totalSpent:   spent ?? def.cost,
+        hp:           TOWER_MAX_HP,
+        maxHp:        TOWER_MAX_HP,
         damage:       def.damage,
         fireRate:     def.fireRate,
         range:        def.range,
@@ -259,6 +270,120 @@ export function upgradeTowerAt(k, col, row) {
 
 export function getTowerAt(col, row) {
     return state.getTower(col, row) ?? null;
+}
+
+// ============================================================
+// Tower damage / repair
+// ============================================================
+
+/**
+ * Deal 1 point of damage to the tower at (col, row).
+ * If HP reaches 0 the tower is destroyed with a shockwave.
+ * chainDepth limits cascading explosions (max 1 chain).
+ * Returns true if a tower was hit.
+ */
+export function damageTowerAt(k, col, row, chainDepth = 0) {
+    const tower = state.getTower(col, row);
+    if (!tower) return false;
+
+    tower.hp -= 1;
+    playTowerHit();
+    events.emit('towerDamaged', col, row, tower.hp);
+
+    if (tower.hp <= 0) {
+        // Tower destroyed by enemy fire — no refund
+        _destroyTowerEntities(tower);
+        state.removeTower(col, row);
+        events.emit('towerDestroyed', col, row);
+        events.emit('goldChanged', state.gold);
+        // Trigger shockwave
+        _towerShockwave(k, col, row, chainDepth);
+    } else {
+        // Refresh visual to show damage tint
+        _destroyTowerEntities(tower);
+        _spawnTowerEntities(k, tower);
+    }
+    return true;
+}
+
+/**
+ * Shockwave from a destroyed tower at (col, row).
+ * Damages all enemies and other towers within TOWER_SHOCKWAVE_RADIUS tiles.
+ * chainDepth: chains only propagate one level deep so a chain of towers
+ * dying doesn't cause infinite recursion.
+ */
+function _towerShockwave(k, col, row, chainDepth) {
+    playTowerExplosion();
+
+    const center = tileToWorld(col, row);
+
+    // Visual: two expanding rings reusing the smart-bomb shockwave (orange fire palette)
+    spawnShockwave(k, center.x, center.y, [255, 140, 20]);
+    spawnShockwave(k, center.x, center.y, [255, 220, 80], 0.08);
+
+    // --- Damage enemies within radius ---
+    // Centipede segments
+    for (const c of [...state.centipedes]) {
+        for (const seg of [...c.segments]) {
+            const dc = Math.abs(seg.col - col);
+            const dr = Math.abs(seg.row - row);
+            if (dc <= TOWER_SHOCKWAVE_RADIUS && dr <= TOWER_SHOCKWAVE_RADIUS) {
+                hitCentipedeAt(seg.col, seg.row);
+            }
+        }
+    }
+    // Special enemies (flea, spider, scorpion, shooter)
+    for (const enemy of [...state.enemies]) {
+        if (enemy.dead || enemy.col == null) continue;
+        const dc = Math.abs(enemy.col - col);
+        const dr = Math.abs(enemy.row - row);
+        if (dc <= TOWER_SHOCKWAVE_RADIUS && dr <= TOWER_SHOCKWAVE_RADIUS) {
+            hitEnemyAt(enemy.col, enemy.row);
+        }
+    }
+
+    // --- Damage adjacent towers (chain explosions capped at depth 1) ---
+    if (chainDepth < 1) {
+        // Collect targets first so we don't mutate the map while iterating
+        const neighborTargets = [];
+        for (const [, t] of state.towers) {
+            if (t.col === col && t.row === row) continue; // skip self (already removed)
+            const dc = Math.abs(t.col - col);
+            const dr = Math.abs(t.row - row);
+            if (dc <= TOWER_SHOCKWAVE_RADIUS && dr <= TOWER_SHOCKWAVE_RADIUS) {
+                neighborTargets.push({ col: t.col, row: t.row });
+            }
+        }
+        for (const nb of neighborTargets) {
+            damageTowerAt(k, nb.col, nb.row, chainDepth + 1);
+        }
+    }
+}
+
+/**
+ * Repair the tower at (col, row) by 1 HP.
+ * Costs TOWER_REPAIR_COST gold per HP.
+ * Returns true if repair succeeded.
+ */
+export function repairTowerAt(k, col, row) {
+    const tower = state.getTower(col, row);
+    if (!tower || tower.hp >= tower.maxHp) return false;
+
+    const missingHp = tower.maxHp - tower.hp;
+    const cost = missingHp * TOWER_REPAIR_COST;
+    if (!state.spend(cost)) {
+        events.emit('notEnoughGold');
+        return false;
+    }
+
+    tower.hp = tower.maxHp;
+    // Rebuild visual to remove damage tint
+    _destroyTowerEntities(tower);
+    _spawnTowerEntities(k, tower);
+    playTowerUpgrade(); // reuse the upgrade chime — sounds like a repair
+    events.emit('towerRepaired', col, row);
+    events.emit('goldChanged', state.gold);
+    return true;
 }
 
 // ============================================================
@@ -636,9 +761,17 @@ function _spawnTowerEntities(k, tower) {
     const { x, y } = tileToWorld(tower.col, tower.row);
     const px = x - TILE_SIZE / 2;
     const py = y - TILE_SIZE / 2;
-    const [r, g, b] = def.color;
+    let [r, g, b] = def.color;
 
     tower.entities = [];
+
+    // Damage tint: shift colour toward red proportionally to damage taken
+    const damageRatio = 1 - (tower.hp / tower.maxHp); // 0 = full, 1 = near-dead
+    if (damageRatio > 0) {
+        r = Math.min(255, Math.round(r + (255 - r) * damageRatio * 0.7));
+        g = Math.max(0,   Math.round(g * (1 - damageRatio * 0.6)));
+        b = Math.max(0,   Math.round(b * (1 - damageRatio * 0.6)));
+    }
 
     // Base square
     const base = k.add([
@@ -672,6 +805,23 @@ function _spawnTowerEntities(k, tower) {
             { col: tower.col, row: tower.row },
         ]);
         tower.entities.push(badge);
+    }
+
+    // HP pips (bottom of tower, only shown if damaged)
+    if (tower.hp < tower.maxHp) {
+        for (let i = 0; i < tower.maxHp; i++) {
+            const filled = i < tower.hp;
+            const pip = k.add([
+                k.pos(x - (tower.maxHp - 1) * 4 + i * 8, y + TILE_SIZE / 2 - 4),
+                k.circle(3),
+                k.color(filled ? 80 : 200, filled ? 200 : 40, filled ? 80 : 40),
+                k.anchor('center'),
+                k.z(7),
+                'tower',
+                { col: tower.col, row: tower.row },
+            ]);
+            tower.entities.push(pip);
+        }
     }
 }
 

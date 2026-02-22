@@ -112,7 +112,7 @@ k.scene('splash', () => {
 
     // Controls row
     k.add([
-        k.pos(CX, CY + 78),
+        k.pos(CX, CY + 100),
         k.text('WASD / Arrows: Move     Space: Smart Bomb     P: Pause     R: Restart', { size: 11 }),
         k.color(80, 80, 120),
         k.anchor('center'),
