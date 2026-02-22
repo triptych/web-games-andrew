@@ -46,7 +46,7 @@ k.scene('splash', () => {
     const CX = GAME_WIDTH  / 2;
     const CY = GAME_HEIGHT / 2;
 
-    // Dark background rect (fills canvas fully)
+    // Dark background
     k.add([
         k.pos(0, 0),
         k.rect(GAME_WIDTH, GAME_HEIGHT),
@@ -54,62 +54,90 @@ k.scene('splash', () => {
         k.z(0),
     ]);
 
-    // Title
+    // Subtle decorative grid lines
+    for (let i = 0; i < 8; i++) {
+        k.add([
+            k.pos(0, i * (GAME_HEIGHT / 7)),
+            k.rect(GAME_WIDTH, 1),
+            k.color(20, 20, 40),
+            k.z(0),
+        ]);
+    }
+
+    // Title block
     k.add([
-        k.pos(CX, CY - 110),
-        k.text('CENTIPEDE', { size: 72 }),
-        k.color(255, 80, 80),
+        k.pos(CX, CY - 130),
+        k.text('CENTIPEDE', { size: 80 }),
+        k.color(255, 70, 70),
         k.anchor('center'),
         k.z(1),
     ]);
     k.add([
-        k.pos(CX, CY - 38),
-        k.text('TOWER DEFENSE', { size: 36 }),
-        k.color(180, 180, 220),
+        k.pos(CX, CY - 52),
+        k.text('TOWER DEFENSE', { size: 38 }),
+        k.color(180, 180, 230),
         k.anchor('center'),
         k.z(1),
     ]);
 
-    // Animated prompt (blink)
-    const prompt = k.add([
-        k.pos(CX, CY + 60),
-        k.text('PRESS ANY KEY OR CLICK TO START', { size: 16 }),
-        k.color(140, 200, 255),
+    // Thin separator line under title
+    k.add([
+        k.pos(CX - 240, CY - 18),
+        k.rect(480, 1),
+        k.color(60, 60, 100),
+        k.z(1),
+    ]);
+
+    // How-to-play card
+    k.add([
+        k.pos(CX, CY + 20),
+        k.rect(640, 120, { radius: 8 }),
+        k.color(14, 14, 28),
+        k.outline(1, k.rgb(40, 40, 80)),
         k.anchor('center'),
         k.z(1),
+    ]);
+    k.add([
+        k.pos(CX, CY - 5),
+        k.text(
+            'Shoot centipede segments with your ship  \u2022  Place towers on blue slots\n' +
+            'Earn gold per kill  \u2022  Upgrade towers between waves\n' +
+            'Survive all 20 waves to win!',
+            { size: 13 }
+        ),
+        k.color(140, 140, 180),
+        k.anchor('center'),
+        k.z(2),
+    ]);
+
+    // Controls row
+    k.add([
+        k.pos(CX, CY + 78),
+        k.text('WASD / Arrows: Move     Space: Smart Bomb     P: Pause     R: Restart', { size: 11 }),
+        k.color(80, 80, 120),
+        k.anchor('center'),
+        k.z(2),
+    ]);
+
+    // Animated start prompt
+    const prompt = k.add([
+        k.pos(CX, CY + 140),
+        k.text('PRESS ANY KEY OR CLICK TO START', { size: 17 }),
+        k.color(140, 200, 255),
+        k.anchor('center'),
+        k.opacity(1),
+        k.z(2),
     ]);
     let blinkTimer = 0;
     prompt.onUpdate(() => {
         blinkTimer += k.dt();
-        prompt.opacity = (Math.sin(blinkTimer * Math.PI * 1.5) + 1) / 2 * 0.7 + 0.3;
+        prompt.opacity = (Math.sin(blinkTimer * Math.PI * 1.6) + 1) / 2 * 0.7 + 0.3;
     });
-
-    // Short summary
-    k.add([
-        k.pos(CX, CY + 120),
-        k.text(
-            'Defend against the centipede horde!\n' +
-            'Place towers · Shoot segments · Survive 20 waves',
-            { size: 13 }
-        ),
-        k.color(120, 120, 160),
-        k.anchor('center'),
-        k.z(1),
-    ]);
-
-    // Controls quick-ref
-    k.add([
-        k.pos(CX, CY + 190),
-        k.text('WASD/Arrows: Move   Space: Smart Bomb   R: Restart', { size: 11 }),
-        k.color(80, 80, 120),
-        k.anchor('center'),
-        k.z(1),
-    ]);
 
     // Version tag
     k.add([
         k.pos(GAME_WIDTH - 12, GAME_HEIGHT - 12),
-        k.text('Phase 5', { size: 10 }),
+        k.text('v1.0', { size: 10 }),
         k.color(50, 50, 80),
         k.anchor('botright'),
         k.z(1),

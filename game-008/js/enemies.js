@@ -26,7 +26,7 @@ import {
     isNodeAt, placeNode, spawnNodeEntity,
     poisonNode, refreshNodeVisual, removeNode, destroyNodeEntity,
 } from './grid.js';
-import { playFleaDrop, playSpiderMove, playSegmentKill } from './sounds.js';
+import { playFleaDrop, playSpiderMove, playSegmentKill, playScorpionMove, playNodePoison } from './sounds.js';
 
 // ============================================================
 // Constants
@@ -197,7 +197,11 @@ function _stepScorpion(k, enemy) {
     if (isNodeAt(enemy.col, enemy.row)) {
         poisonNode(enemy.col, enemy.row);
         refreshNodeVisual(k, enemy.col, enemy.row);
+        playNodePoison();
     }
+
+    // Periodic crawl sound
+    if (Math.random() < 0.25) playScorpionMove();
 
     // Move horizontally across the row
     const nextCol = enemy.col + enemy.dirX;

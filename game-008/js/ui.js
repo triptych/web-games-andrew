@@ -279,8 +279,8 @@ function _startUpdateLoop(k) {
 // ============================================================
 
 function _listenEvents() {
-    events.on('gameOver', () => _showOverlay('GAME OVER', [255, 60, 60]));
-    events.on('gameWon',  () => _showOverlay('YOU WIN!',  [60, 255, 120]));
+    events.on('gameOver', () => _showEndOverlay(false));
+    events.on('gameWon',  () => _showEndOverlay(true));
 
     events.on('waveStarted', (waveNum) => {
         _showWaveBanner(waveNum);
@@ -295,39 +295,87 @@ function _listenEvents() {
 // Overlays & banners
 // ============================================================
 
-function _showOverlay(title, titleColor) {
+function _showEndOverlay(won) {
     const k = _k;
-    // Dim background
+    const CX = GAME_WIDTH / 2;
+    const CY = GAME_HEIGHT / 2;
+
+    const titleText  = won ? 'YOU WIN!'  : 'GAME OVER';
+    const titleColor = won ? [60, 255, 120] : [255, 60, 60];
+    const panelColor = won ? [10, 40, 20]   : [30, 10, 10];
+    const borderRgb  = won ? k.rgb(40, 160, 80) : k.rgb(160, 40, 40);
+
+    // Panel background
     k.add([
         k.pos(0, 0),
         k.rect(GAME_WIDTH, GAME_HEIGHT),
         k.color(0, 0, 0),
-        k.opacity(0.65),
+        k.opacity(0.72),
         k.z(100),
         'overlay',
     ]);
     k.add([
-        k.pos(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 50),
-        k.text(title, { size: 72 }),
+        k.pos(CX, CY),
+        k.rect(520, 300, { radius: 12 }),
+        k.color(...panelColor),
+        k.outline(2, borderRgb),
+        k.anchor('center'),
+        k.opacity(0.95),
+        k.z(101),
+        'overlay',
+    ]);
+
+    // Title
+    k.add([
+        k.pos(CX, CY - 110),
+        k.text(titleText, { size: 68 }),
         k.color(...titleColor),
         k.anchor('center'),
-        k.z(101),
+        k.z(102),
         'overlay',
     ]);
+
+    // Stats row 1: Score
     k.add([
-        k.pos(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 20),
-        k.text(`Score: ${state.score}   Wave: ${state.wave}`, { size: 22 }),
-        k.color(220, 220, 240),
+        k.pos(CX, CY - 30),
+        k.text(`SCORE  ${state.score}`, { size: 26 }),
+        k.color(220, 220, 255),
         k.anchor('center'),
-        k.z(101),
+        k.z(102),
         'overlay',
     ]);
+
+    // Stats row 2: Wave reached / Gold
+    const wavesTotal = WAVE_DEFS.length;
+    const waveLabel  = won
+        ? `All ${wavesTotal} waves cleared!`
+        : `Reached wave ${state.wave} of ${wavesTotal}`;
     k.add([
-        k.pos(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 60),
-        k.text('Press (R) to restart', { size: 16 }),
-        k.color(150, 150, 180),
+        k.pos(CX, CY + 10),
+        k.text(waveLabel, { size: 17 }),
+        k.color(170, 170, 210),
         k.anchor('center'),
-        k.z(101),
+        k.z(102),
+        'overlay',
+    ]);
+
+    // Gold remaining
+    k.add([
+        k.pos(CX, CY + 42),
+        k.text(`Gold remaining  ${state.gold}`, { size: 15 }),
+        k.color(...COLORS.goldColor),
+        k.anchor('center'),
+        k.z(102),
+        'overlay',
+    ]);
+
+    // Restart prompt
+    k.add([
+        k.pos(CX, CY + 90),
+        k.text('Press (R) to play again', { size: 15 }),
+        k.color(130, 130, 170),
+        k.anchor('center'),
+        k.z(102),
         'overlay',
     ]);
 }

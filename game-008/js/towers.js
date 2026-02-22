@@ -24,7 +24,7 @@ import { events } from './events.js';
 import { tileToWorld, isTowerSlot, isNodeAt, worldToTile, removeNode, destroyNodeEntity } from './grid.js';
 import { hitCentipedeAt } from './centipede.js';
 import { hitEnemyAt }     from './enemies.js';
-import { playTowerPlace } from './sounds.js';
+import { playTowerPlace, playTowerSell, playTowerUpgrade } from './sounds.js';
 
 // ============================================================
 // Tower object schema (stored in state.towers map)
@@ -217,6 +217,7 @@ export function sellTowerAt(k, col, row) {
     _destroyTowerEntities(tower);
     state.removeTower(col, row);
     state.earn(refund);
+    playTowerSell();
     events.emit('towerSold', col, row);
     events.emit('goldChanged', state.gold);
 }
@@ -251,6 +252,7 @@ export function upgradeTowerAt(k, col, row) {
     _destroyTowerEntities(tower);
     _spawnTowerEntities(k, tower);
 
+    playTowerUpgrade();
     events.emit('towerUpgraded', col, row, tower.tier);
     events.emit('goldChanged', state.gold);
 }

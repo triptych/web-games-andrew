@@ -24,9 +24,60 @@ import {
     isNodeAt, isTowerAt, tileToWorld,
     placeNode, spawnNodeEntity,
 } from './grid.js';
+import { playSegmentKill } from './sounds.js';
 
 let _k      = null;
 let _nextId = 1;
+
+// ============================================================
+// Particle helpers
+// ============================================================
+
+/**
+ * Spawn a burst of small square particles at the given world position.
+ * Used for segment kill explosions.
+ */
+function _spawnKillParticles(k, wx, wy, color) {
+    const COUNT = 8;
+    for (let i = 0; i < COUNT; i++) {
+        const angle  = (i / COUNT) * Math.PI * 2 + Math.random() * 0.4;
+        const speed  = 60 + Math.random() * 90;
+        const vx     = Math.cos(angle) * speed;
+        const vy     = Math.sin(angle) * speed;
+        const size   = 3 + Math.random() * 3;
+
+        const p = k.add([
+            k.pos(wx, wy),
+            k.rect(size, size),
+            k.color(...color),
+            k.opacity(1),
+            k.anchor('center'),
+            k.z(18),
+            'particle',
+        ]);
+
+        let t = 0;
+        const lifetime = 0.35 + Math.random() * 0.2;
+        p.onUpdate(() => {
+            if (!p.exists()) return;
+            t += k.dt();
+            if (t >= lifetime) { p.destroy(); return; }
+            p.pos = k.vec2(p.pos.x + vx * k.dt(), p.pos.y + vy * k.dt());
+            p.opacity = 1 - t / lifetime;
+        });
+    }
+}
+
+/**
+ * Flash a segment entity white briefly (hit feedback without kill).
+ */
+function _flashSegmentHit(k, ent, originalColor) {
+    if (!ent || !ent.exists()) return;
+    ent.color = k.rgb(255, 255, 255);
+    k.wait(0.08, () => {
+        if (ent && ent.exists()) ent.color = k.rgb(...originalColor);
+    });
+}
 
 // ============================================================
 // Centipede class
@@ -184,13 +235,31 @@ class Centipede {
         if (idx === -1) return false;
 
         this.segments[idx].hp -= 1;
-        if (this.segments[idx].hp <= 0) this._killSegment(idx);
+        if (this.segments[idx].hp <= 0) {
+            this._killSegment(idx);
+        } else {
+            // Damage flash — white blink on partial hit
+            const ent = this.segEntities[idx];
+            const isHead = idx === 0;
+            const col2 = isHead
+                ? (this.def.headColor || COLORS.centipedeHead)
+                : (this.def.color     || COLORS.centipedeBody);
+            _flashSegmentHit(this.k, ent, col2);
+        }
         return true;
     }
 
     _killSegment(idx) {
         const { col, row } = this.segments[idx];
         const isHead        = idx === 0;
+
+        // Particle burst + sound at the kill position
+        const w = tileToWorld(col, row);
+        const burstColor = isHead
+            ? (this.def.headColor || COLORS.centipedeHead)
+            : (this.def.color     || COLORS.centipedeBody);
+        _spawnKillParticles(this.k, w.x, w.y, burstColor);
+        playSegmentKill();
 
         // Leave a node, award score + gold
         placeNode(col, row);

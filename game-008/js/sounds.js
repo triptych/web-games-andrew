@@ -120,12 +120,37 @@ export function playTowerPlace() {
     _osc('sine', 784, 0.12, 0.1,  0.14);    // G5
 }
 
+/** A tower was sold. */
+export function playTowerSell() {
+    _sweep('sine', 784, 440, 0.15, 0.2);
+    _osc('sine', 330, 0.12, 0.15, 0.1);
+}
+
+/** A tower was upgraded. */
+export function playTowerUpgrade() {
+    _osc('sine', 523, 0.07, 0.18);
+    _osc('sine', 659, 0.07, 0.15, 0.07);
+    _osc('sine', 880, 0.07, 0.12, 0.14);
+    _osc('sine', 1047, 0.15, 0.2, 0.21);   // C6 — bright top note
+}
+
 /** Wave completed. */
 export function playWaveComplete() {
     const notes = [523, 659, 784, 1047]; // C E G C
     notes.forEach((freq, i) => {
         _osc('sine', freq, 0.2, 0.2, i * 0.1);
     });
+}
+
+/** Game won (all 20 waves cleared). */
+export function playGameWon() {
+    // Rising arpeggio + held chord
+    const notes = [523, 659, 784, 1047, 1319];
+    notes.forEach((freq, i) => {
+        _osc('sine', freq, 0.4, 0.25, i * 0.12);
+    });
+    _osc('sine', 1047, 0.8, 0.2, 0.7);
+    _osc('sine', 1319, 0.8, 0.2, 0.7);
 }
 
 /** Flea dropping from the top. */
@@ -140,10 +165,40 @@ export function playSpiderMove() {
     _osc('square', 200 + Math.random() * 100, 0.05, 0.1);
 }
 
+/** Scorpion crossing a row. */
+export function playScorpionMove() {
+    // Buzzy low crawl
+    _osc('sawtooth', 160 + Math.random() * 40, 0.07, 0.12);
+}
+
+/** Node damaged (player bullet hit). */
+export function playNodeHit() {
+    _osc('square', 240, 0.06, 0.12);
+}
+
+/** Node destroyed completely. */
+export function playNodeDestroy() {
+    _sweep('square', 320, 80, 0.1, 0.18);
+    _noise(0.07, 0.1);
+}
+
+/** Node poisoned by scorpion. */
+export function playNodePoison() {
+    _sweep('sawtooth', 200, 400, 0.12, 0.15);
+    _osc('sine', 180, 0.1, 0.08, 0.08);
+}
+
 /** Wave started fanfare. */
 export function playWaveStart() {
     _osc('square', 330, 0.08, 0.2);
     _osc('square', 440, 0.08, 0.2, 0.09);
+}
+
+/** Boss wave alert — deeper, more dramatic. */
+export function playBossAlert() {
+    _sweep('sawtooth', 80, 200, 0.3, 0.35);
+    _sweep('sawtooth', 200, 80, 0.3, 0.3, 0.3);
+    _osc('square', 60, 0.25, 0.2, 0.6);
 }
 
 /** UI button click. */

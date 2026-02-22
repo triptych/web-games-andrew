@@ -22,7 +22,7 @@ import { spawnCentipede } from './centipede.js';
 import { spawnFlea, spawnSpider, spawnScorpion } from './enemies.js';
 import { isInPlacementMode } from './towers.js';
 import { openShopOverlay } from './shop.js';
-import { playWaveComplete, playWaveStart, playNodeMarchStep, playCountdownTick } from './sounds.js';
+import { playWaveComplete, playWaveStart, playNodeMarchStep, playCountdownTick, playBossAlert, playGameWon } from './sounds.js';
 import { removeNode, placeNode, destroyNodeEntity, spawnNodeEntity } from './grid.js';
 import { showCountdown } from './ui.js';
 
@@ -173,7 +173,7 @@ export function startNextWave() {
 
     // Emit event — UI shows wave banner
     events.emit('waveStarted', nextWave);
-    playWaveStart();
+    if (def.isBoss) playBossAlert(); else playWaveStart();
 
     // 3-2-1 countdown, then unpause
     showCountdown(_k, playCountdownTick, () => {
@@ -260,7 +260,7 @@ function _onWaveComplete() {
 
     // Last wave — game won
     if (waveNum >= WAVE_DEFS.length) {
-        _k.wait(2, () => events.emit('gameWon'));
+        _k.wait(2, () => { playGameWon(); events.emit('gameWon'); });
         return;
     }
 

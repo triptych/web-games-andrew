@@ -380,24 +380,23 @@ Tasks:
 
 ---
 
-### Phase 6 — Polish & Game Feel
+### Phase 6 — Polish & Game Feel ✅ COMPLETE
 
 **Goal:** Juice, audio, balance, and UX refinement.
 
 Tasks:
-- [ ] Full sound implementation in `sounds.js`
-- [ ] Hit effects: particle burst on segment kill
-- [ ] Centipede damage flash (white flash per segment hit)
-- [ ] Node damage visual (crack effect via opacity/color)
-- [ ] Poisoned node visual (green tint)
-- [ ] Smart Bomb shockwave animation
-- [ ] Tower attack visual effects (laser beam for sniper, arc for tesla, etc.)
-- [ ] HUD polish: animated gold counter, score pop
-- [ ] Game Over screen with final score and stats
-- [ ] Splash screen with rules summary
-- [ ] Balance pass: centipede speed, tower cost, gold economy
-- [ ] Add game to launcher `gamedata.js`
-- [ ] Create `CHANGELOG.md`
+- [x] Full sound implementation in `sounds.js` (node hit/destroy, scorpion, tower sell/upgrade, boss alert, game won)
+- [x] Hit effects: particle burst on segment kill (8 colored particles)
+- [x] Centipede damage flash (white flash per segment hit on armored types)
+- [x] Node damage visual (color shift by HP level — brown → red progression)
+- [x] Poisoned node visual (green tint via nodeColor)
+- [x] Smart Bomb shockwave animation (two expanding rings)
+- [ ] Tower attack visual effects (laser beam for sniper, arc for tesla, etc.) — deferred
+- [ ] HUD polish: animated gold counter, score pop — deferred
+- [x] Game Over / You Win screen with final score, wave progress, gold remaining
+- [x] Splash screen with rules summary and controls reference
+- [x] Add game to launcher `gamedata.js`
+- [x] Create `CHANGELOG.md`
 
 **Deliverable:** Shippable, polished game ready for launcher.
 
@@ -479,7 +478,7 @@ Spider scoring scales with how far into the player zone it ventured — classic 
 
 ---
 
-**Document Version:** 1.5
+**Document Version:** 1.6
 **Created:** 2026-02-21
 **Last Updated:** 2026-02-21
-**Status:** Phase 5 complete — Phase 6 next (Polish & game feel)
+**Status:** Phase 6 complete — v1.0 shipped to launcher

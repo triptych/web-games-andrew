@@ -23,7 +23,7 @@ import {
 } from './grid.js';
 import { hitCentipedeAt } from './centipede.js';
 import { hitEnemyAt } from './enemies.js';
-import { playShoot, playPlayerHit, playSmartBomb } from './sounds.js';
+import { playShoot, playPlayerHit, playSmartBomb, playNodeHit, playNodeDestroy } from './sounds.js';
 
 // ============================================================
 // Constants
@@ -278,8 +278,10 @@ function _updateBullets(k, dt) {
             if (hp === 0) {
                 destroyNodeEntity(k, col, row);
                 state.addScore(SCORE_NODE_DESTROY);
+                playNodeDestroy();
             } else if (hp > 0) {
                 refreshNodeVisual(k, col, row);
+                playNodeHit();
             }
             dead.push(i);
             if (b.ent.exists()) b.ent.destroy();
@@ -377,6 +379,7 @@ function _detonateSmartBomb(k) {
 }
 
 function _flashScreen(k) {
+    // Full-screen white flash
     const flash = k.add([
         k.pos(0, 0),
         k.rect(GAME_WIDTH, GAME_HEIGHT),
@@ -394,5 +397,40 @@ function _flashScreen(k) {
             return;
         }
         if (flash.exists()) flash.opacity = 0.65 * (1 - t / 0.35);
+    });
+
+    // Expanding shockwave rings from the ship position
+    _spawnShockwave(k, _shipX, _shipY, [100, 200, 255]);
+    _spawnShockwave(k, _shipX, _shipY, [255, 255, 255], 0.1);
+}
+
+function _spawnShockwave(k, cx, cy, color, delay = 0) {
+    const DURATION   = 0.5;
+    const MAX_RADIUS = 420;
+    let t = -delay;
+
+    // We draw the ring by shrinking an outlined circle (using a rect approximation with outline)
+    // Kaplay doesn't have circle outline natively; use an opaque circle with a slightly smaller
+    // filled circle on top. We fake the ring by spawning two circles and masking the inner one.
+    // Simpler: just animate a circle that grows and fades.
+    const ring = k.add([
+        k.pos(cx, cy),
+        k.circle(1),
+        k.color(...color),
+        k.opacity(0),
+        k.anchor('center'),
+        k.z(79),
+        'shockwave',
+    ]);
+
+    ring.onUpdate(() => {
+        t += k.dt();
+        if (t < 0) return;
+        if (!ring.exists()) return;
+        const progress = t / DURATION;
+        if (progress >= 1) { ring.destroy(); return; }
+        // Grow radius, fade out
+        ring.radius  = 1 + MAX_RADIUS * progress;
+        ring.opacity = (1 - progress) * 0.45;
     });
 }

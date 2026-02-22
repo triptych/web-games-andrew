@@ -93,6 +93,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '🧩', label: 'Puzzle' }
         ]
+    },
+    {
+        id: 'game-008',
+        title: 'Centipede Tower Defense',
+        description: 'Classic Centipede arcade action meets tower defense strategy! Shoot descending centipede segments from your spaceship, place and upgrade 6 unique tower types on designated slots, and survive 20 escalating waves. Features fleas, spiders, scorpions, boss waves, and a full gold economy.',
+        icon: '🐛',
+        folder: 'game-008',
+        cssClass: 'centipede-td',
+        tags: [
+            { emoji: '🎯', label: 'Strategy' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '👾', label: 'Arcade' }
+        ]
     }
 ];
 

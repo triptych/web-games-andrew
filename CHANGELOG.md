@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-02-21
+
+### Added
+- **Centipede Tower Defense** (game-008): Phase 6 — Polish & Game Feel
+  - **Particle bursts**: 8 colored particles scatter outward on every centipede segment kill, matching the segment's color (head vs body)
+  - **Damage flash**: Segments briefly flash white when hit without dying (visible on armored centipede types with multiple HP)
+  - **Smart Bomb shockwave rings**: Two expanding, fading rings (cyan and white) radiate from the ship on Smart Bomb detonation
+  - **Node audio feedback**: `playNodeHit()` on bullet chip, `playNodeDestroy()` on full node destruction — wired in `player.js`
+  - **Tower economy sounds**: `playTowerSell()` on sell, `playTowerUpgrade()` on upgrade — wired in `towers.js`
+  - **Scorpion crawl sound** (`playScorpionMove`): Sparse buzzy tone during scorpion traversal
+  - **Node poison sound** (`playNodePoison`): Plays each time a scorpion poisons a node
+  - **Boss wave alert** (`playBossAlert`): Deep dramatic sweep replaces normal wave-start fanfare on boss waves (5, 10, 15, 20)
+  - **Game Won fanfare** (`playGameWon`): Rising 5-note arpeggio + held chord when all 20 waves are cleared
+  - **Polished end screen**: Game Over and You Win overlays now show a styled panel with score, wave progress (or "All X waves cleared!"), gold remaining, and color-coded border (red / green)
+  - **Polished splash screen**: Decorative grid lines, how-to-play card, cleaner controls reference, version tag updated to `v1.0`
+  - **Launcher entry**: game-008 added to root [js/gamedata.js](js/gamedata.js)
+  - **game-008 CHANGELOG**: Created [game-008/CHANGELOG.md](game-008/CHANGELOG.md) with full per-phase version history
+  - Updated files: [game-008/js/sounds.js](game-008/js/sounds.js), [game-008/js/centipede.js](game-008/js/centipede.js), [game-008/js/player.js](game-008/js/player.js), [game-008/js/towers.js](game-008/js/towers.js), [game-008/js/waves.js](game-008/js/waves.js), [game-008/js/enemies.js](game-008/js/enemies.js), [game-008/js/ui.js](game-008/js/ui.js), [game-008/js/main.js](game-008/js/main.js), [game-008/game-plan.md](game-008/game-plan.md)
+
 ## [2.0.1] - 2026-02-21
 
 ### Fixed
