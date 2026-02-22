@@ -303,9 +303,7 @@ class Centipede {
 export function initCentipede(k) {
     _k = k;
 
-    // Spawn the first centipede: head at col 0, row 0, moving right
-    spawnCentipede(k, 'centipede', 12, 0, 0, 1);
-
+    // NOTE: Centipede spawning is now handled by waves.js (Phase 5).
     // Per-frame update for all active centipedes
     k.onUpdate(() => {
         if (state.isPaused || state.isGameOver) return;

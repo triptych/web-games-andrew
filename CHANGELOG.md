@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-02-21
+
+### Added
+- **Centipede Tower Defense** (game-008): Phase 5 — Wave System & Special Enemies
+  - **Wave Sequencer** (`waves.js`): Drives the full 20-wave progression
+    - `initWaves(k)` starts wave 1 after a short delay; `startNextWave()` called by shop overlay on Skip / timer expiry
+    - Per-wave centipede spawning using `WAVE_DEFS` from `config.js` (type, segment count, spawn position, direction)
+    - Boss waves (5, 10, 15, 20) spawn Giant Centipede variants with higher segment counts
+    - Schedules Flea, Spider, and Scorpion appearances mid-wave via `k.wait()` timers
+    - Wave-completion detection: polls `activeEnemyCount()` each frame; triggers gold reward, score, and shop when all enemies cleared
+    - Gold rewards: base `GOLD_PER_WAVE` + `GOLD_NO_DEATH_BONUS` (survived without losing a life) + `GOLD_BOSS_BONUS` on boss waves
+    - Score bonuses: `SCORE_WAVE_COMPLETE` + `SCORE_NO_DEATH_BONUS`; smart-bomb restock (`SMART_BOMBS_PER_WAVE`)
+    - Emits `waveStarted` and `waveComplete` events consumed by UI and shop
+  - **Special Enemies** (`enemies.js`): Flea, Spider, and Scorpion fully implemented
+    - **Flea**: Drops straight down from a random column; pauses briefly to place mushroom nodes as it descends; destroyed by one bullet; emits segmentKill sound
+    - **Spider**: Erratic movement in the player/buffer zone (random direction changes each step); collides with player ship → emits `playerHitByEnemy`; eats (removes) mushroom nodes it walks over; score scales with how far into the player zone it reached
+    - **Scorpion**: Traverses a full row left-to-right or right-to-left; poisons every mushroom node it passes over (`poisonNode`); removed when it exits the grid
+    - `hitEnemyAt(col, row)` — unified hit-check used by player bullets and tower projectiles; returns `true` and destroys the enemy on match; awards per-type score/gold
+    - All three enemies rendered with Kaplay primitives, tagged for `destroyAll` cleanup on scene leave
+  - **Player integration** ([game-008/js/player.js](game-008/js/player.js)): bullets now call `hitEnemyAt` in addition to `hitCentipedeAt`; `playerHitByEnemy` event wired to `_playerHit`
+  - **Tower integration** ([game-008/js/towers.js](game-008/js/towers.js)): `_dealDamage` tries `hitCentipedeAt` first, then `hitEnemyAt`, then breaks — supports multi-hit tower abilities against any enemy type
+  - **UI — Gold popup** ([game-008/js/ui.js](game-008/js/ui.js)): `_showGoldPopup(goldEarned)` shown on `waveComplete`; floats upward with fade-in / hold / fade-out animation using `onUpdate` timer; uses `k.opacity()` component pattern
+  - **Centipede cleanup** ([game-008/js/centipede.js](game-008/js/centipede.js)): removed hard-coded initial spawn from `initCentipede`; spawning is now entirely driven by `waves.js`
+  - **main.js** ([game-008/js/main.js](game-008/js/main.js)): imports and calls `initEnemies(k)` and `initWaves(k)` in the `game` scene; splash version tag updated to `Phase 5`
+  - **game-plan.md** ([game-008/game-plan.md](game-008/game-plan.md)): Phase 5 tasks checked off; document version bumped to 1.5; status updated to "Phase 6 next"
+  - New files: [game-008/js/enemies.js](game-008/js/enemies.js), [game-008/js/waves.js](game-008/js/waves.js)
+  - Updated files: [game-008/js/main.js](game-008/js/main.js), [game-008/js/centipede.js](game-008/js/centipede.js), [game-008/js/player.js](game-008/js/player.js), [game-008/js/towers.js](game-008/js/towers.js), [game-008/js/ui.js](game-008/js/ui.js)
+
 ## [1.9.0] - 2026-02-21
 
 ### Added

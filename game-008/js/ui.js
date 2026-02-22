@@ -285,6 +285,10 @@ function _listenEvents() {
     events.on('waveStarted', (waveNum) => {
         _showWaveBanner(waveNum);
     });
+
+    events.on('waveComplete', (waveNum, goldEarned) => {
+        _showGoldPopup(goldEarned);
+    });
 }
 
 // ============================================================
@@ -385,6 +389,50 @@ function _showWaveBanner(waveNum) {
         }
         if (banner.exists()) banner.opacity = opacity;
         if (label.exists())  label.opacity  = opacity;
+    });
+}
+
+// ============================================================
+// Gold earned popup (shown on wave complete)
+// ============================================================
+
+function _showGoldPopup(goldEarned) {
+    if (!_k) return;
+    const k = _k;
+
+    const popup = k.add([
+        k.pos(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 50),
+        k.text(`+${goldEarned}g`, { size: 22 }),
+        k.color(...COLORS.goldColor),
+        k.anchor('center'),
+        k.opacity(0),
+        k.z(92),
+        'goldPopup',
+    ]);
+
+    const FADE_IN  = 0.2;
+    const HOLD     = 1.2;
+    const FADE_OUT = 0.5;
+    const TOTAL    = FADE_IN + HOLD + FADE_OUT;
+    let timer = 0;
+
+    popup.onUpdate(() => {
+        timer += k.dt();
+        // Float upward
+        if (popup.exists()) popup.pos = k.vec2(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 50 - timer * 40);
+
+        let opacity;
+        if (timer < FADE_IN) {
+            opacity = timer / FADE_IN;
+        } else if (timer < FADE_IN + HOLD) {
+            opacity = 1;
+        } else if (timer < TOTAL) {
+            opacity = 1 - (timer - FADE_IN - HOLD) / FADE_OUT;
+        } else {
+            if (popup.exists()) popup.destroy();
+            return;
+        }
+        if (popup.exists()) popup.opacity = opacity;
     });
 }
 

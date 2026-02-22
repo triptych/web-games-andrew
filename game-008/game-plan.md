@@ -357,24 +357,24 @@ Tasks:
 
 ---
 
-### Phase 5 — Wave System & Special Enemies
+### Phase 5 — Wave System & Special Enemies ✅ COMPLETE
 
 **Goal:** 15+ waves with escalating difficulty and all enemy types.
 
 Tasks:
-- [ ] Implement `waves.js` with wave sequencer
-- [ ] Wave definitions in `config.js` for waves 1–20
-- [ ] Boss waves (5, 10, 15, 20) with Giant Centipede
-- [ ] Implement `enemies.js`:
+- [x] Implement `waves.js` with wave sequencer
+- [x] Wave definitions in `config.js` for waves 1–20
+- [x] Boss waves (5, 10, 15, 20) with Giant Centipede
+- [x] Implement `enemies.js`:
   - Flea: drops from top, creates nodes
   - Spider: erratic in player zone, eats nodes
   - Scorpion: traverses a row, poisons nodes
   - Armored Centipede (wave 10+)
   - Fast Centipede (wave 8+)
-- [ ] Between-wave shop (15s timer, Skip button)
-- [ ] Gold rewards per wave + kill bonuses
-- [ ] Wave complete animation + gold notification
-- [ ] Wave title card on start
+- [x] Between-wave shop (15s timer, Skip button)
+- [x] Gold rewards per wave + kill bonuses
+- [x] Wave complete animation + gold notification
+- [x] Wave title card on start
 
 **Deliverable:** Complete wave progression with all enemy types.
 
@@ -479,7 +479,7 @@ Spider scoring scales with how far into the player zone it ventured — classic 
 
 ---
 
-**Document Version:** 1.4
+**Document Version:** 1.5
 **Created:** 2026-02-21
 **Last Updated:** 2026-02-21
-**Status:** Phase 4 complete — Phase 5 next (Wave system & special enemies)
+**Status:** Phase 5 complete — Phase 6 next (Polish & game feel)

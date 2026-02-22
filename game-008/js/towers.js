@@ -23,6 +23,7 @@ import { state }  from './state.js';
 import { events } from './events.js';
 import { tileToWorld, isTowerSlot, isNodeAt, worldToTile, removeNode, destroyNodeEntity } from './grid.js';
 import { hitCentipedeAt } from './centipede.js';
+import { hitEnemyAt }     from './enemies.js';
 import { playTowerPlace } from './sounds.js';
 
 // ============================================================
@@ -468,9 +469,11 @@ function _fireMortar(k, tower, target) {
 // ============================================================
 
 function _dealDamage(col, row, damage) {
-    // Deal damage one HP at a time (each hit may kill & split)
+    // Try centipede first, then special enemies
     for (let i = 0; i < damage; i++) {
-        if (!hitCentipedeAt(col, row)) break; // no more target there
+        if (hitCentipedeAt(col, row)) continue;
+        if (hitEnemyAt(col, row)) continue;
+        break; // nothing left at this tile
     }
 }
 

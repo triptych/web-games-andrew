@@ -22,6 +22,7 @@ import {
     damageNode, refreshNodeVisual, destroyNodeEntity,
 } from './grid.js';
 import { hitCentipedeAt } from './centipede.js';
+import { hitEnemyAt } from './enemies.js';
 import { playShoot, playPlayerHit, playSmartBomb } from './sounds.js';
 
 // ============================================================
@@ -86,6 +87,9 @@ export function initPlayer(k) {
 
     // Life lost when centipede falls off the bottom edge
     events.on('centipedeFellOffBottom', () => _playerHit(k));
+
+    // Life lost when a spider walks into the player
+    events.on('playerHitByEnemy', () => _playerHit(k));
 
     // Per-frame update loop
     k.onUpdate(() => {
@@ -256,6 +260,13 @@ function _updateBullets(k, dt) {
 
         // --- Centipede segment hit ---
         if (hitCentipedeAt(col, row)) {
+            dead.push(i);
+            if (b.ent.exists()) b.ent.destroy();
+            continue;
+        }
+
+        // --- Special enemy hit (flea, spider, scorpion) ---
+        if (hitEnemyAt(col, row)) {
             dead.push(i);
             if (b.ent.exists()) b.ent.destroy();
             continue;

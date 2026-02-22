@@ -3,7 +3,7 @@
  *
  * Scenes:
  *   'splash'  — Title screen, waits for user input
- *   'game'    — Main gameplay loop (Phase 1: grid + HUD)
+ *   'game'    — Main gameplay loop
  *   'gameover'— (stub, handled by UI overlay for now)
  *
  * Library: ../../lib/kaplay/kaplay.mjs (shared root lib)
@@ -21,6 +21,8 @@ import { initCentipede }  from './centipede.js';
 import { initPlayer }     from './player.js';
 import { initTowers }     from './towers.js';
 import { initShop, destroyShopDOM } from './shop.js';
+import { initWaves }      from './waves.js';
+import { initEnemies }    from './enemies.js';
 
 // ============================================================
 // Kaplay initialisation
@@ -107,7 +109,7 @@ k.scene('splash', () => {
     // Version tag
     k.add([
         k.pos(GAME_WIDTH - 12, GAME_HEIGHT - 12),
-        k.text('Phase 4', { size: 10 }),
+        k.text('Phase 5', { size: 10 }),
         k.color(50, 50, 80),
         k.anchor('botright'),
         k.z(1),
@@ -151,7 +153,7 @@ k.scene('game', () => {
     // Build the HUD panels in the side margins
     initUI(k);
 
-    // Spawn the centipede and start its update loop
+    // Register centipede update loop (waves.js handles actual spawning)
     initCentipede(k);
 
     // Spawn the player ship and start its update / input loop
@@ -162,6 +164,12 @@ k.scene('game', () => {
 
     // Phase 4: shop DOM panel + between-wave overlay
     initShop(k);
+
+    // Phase 5: special enemies (flea, spider, scorpion) + per-frame update
+    initEnemies(k);
+
+    // Phase 5: wave sequencer — starts wave 1 after a short delay
+    initWaves(k);
 
     // --- Key bindings ---
 
