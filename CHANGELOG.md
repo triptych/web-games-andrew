@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-02-21
+
+### Fixed
+- **game-008**: Clicking a placed tower now pauses the game while the upgrade/sell popup is open; game resumes on close, sell, or upgrade ([game-008/js/shop.js](game-008/js/shop.js))
+
 ## [2.0.0] - 2026-02-21
 
 ### Added

@@ -40,7 +40,7 @@ class Centipede {
      * @param {Array}  history  [{col, row}, ...] trail — history[i] = position for segment i
      * @param {number} dirX     1 = right, -1 = left
      */
-    constructor(k, type, segments, history, dirX) {
+    constructor(k, type, segments, history, dirX, growingSteps = 0) {
         this.k            = k;
         this.id           = _nextId++;
         this.type         = type;
@@ -55,6 +55,11 @@ class Centipede {
         // Freeze tower slow support
         this.slowFactor   = 0;   // 0 = no slow, 0.4 = 40% speed reduction
         this.slowTimer    = 0;   // seconds remaining
+        // Spawn immunity: centipede is immune until every segment has moved off
+        // the starting tile (i.e. after segCount - 1 steps from the head).
+        // Only set on fresh wave spawns (via Centipede.create); split halves pass 0.
+        this.growingSteps = growingSteps;
+        this._flashTimer  = 0;   // drives opacity pulse while invulnerable
 
         this._spawnEntities(k);
         state.centipedes.push(this);
@@ -72,7 +77,7 @@ class Centipede {
             segments.push({ col: startCol, row: startRow, hp: def.hp });
             history.push({ col: startCol, row: startRow });
         }
-        return new Centipede(k, type, segments, history, dirX);
+        return new Centipede(k, type, segments, history, dirX, segCount > 1 ? segCount - 1 : 0);
     }
 
     // --------------------------------------------------------
@@ -110,6 +115,7 @@ class Centipede {
 
     _step() {
         if (this.segments.length === 0) return;
+        if (this.growingSteps > 0) this.growingSteps--;
 
         const head    = this.segments[0];
         const nextCol = head.col + this.dirX;
@@ -173,6 +179,7 @@ class Centipede {
      * Returns true if a segment was found there.
      */
     hitAt(col, row) {
+        if (this.growingSteps > 0) return false;   // immune while spawning
         const idx = this.segments.findIndex(s => s.col === col && s.row === row);
         if (idx === -1) return false;
 
@@ -252,6 +259,7 @@ class Centipede {
                 k.pos(w.x, w.y),
                 k.circle(isHead ? headR : bodyR),
                 k.color(...(isHead ? headC : bodyC)),
+                k.opacity(1),
                 k.anchor('center'),
                 k.z(10),
                 'centipede',
@@ -280,11 +288,21 @@ class Centipede {
 
     _updateVisuals() {
         const k = this.k;
+
+        // Pulse opacity while invulnerable; snap to 1 once grown
+        let targetOpacity = 1;
+        if (this.growingSteps > 0) {
+            this._flashTimer += k.dt();
+            // Oscillate between 0.3 and 1.0 at ~4 Hz
+            targetOpacity = 0.65 + 0.35 * Math.sin(this._flashTimer * Math.PI * 8);
+        }
+
         for (let i = 0; i < this.segments.length; i++) {
             const ent = this.segEntities[i];
             if (!ent || !ent.exists()) continue;
             const w = tileToWorld(this.segments[i].col, this.segments[i].row);
-            ent.pos = k.vec2(w.x, w.y);
+            ent.pos     = k.vec2(w.x, w.y);
+            ent.opacity = targetOpacity;
         }
 
         if (this.eyeEntities.length === 2 && this.segments.length > 0) {

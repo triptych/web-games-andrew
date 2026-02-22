@@ -336,6 +336,69 @@ export function showWaveBanner(waveNum) {
     _showWaveBanner(waveNum);
 }
 
+// ============================================================
+// 3-2-1 countdown (shown at wave start while game is paused)
+// ============================================================
+
+/**
+ * Display a 3 → 2 → 1 countdown in the centre of the screen.
+ * Each digit is shown for 1 second then fades out.
+ * Calls onTick(n) each time a digit appears (for sound), and onDone() when finished.
+ * @param {object}   k
+ * @param {function} onTick   called with n=3,2,1 then n=0 on "GO"
+ * @param {function} onDone   called after the final fade
+ */
+export function showCountdown(k, onTick, onDone) {
+    const cx = GAME_WIDTH / 2;
+    const cy = GAME_HEIGHT / 2;
+    const STEPS = [3, 2, 1, 0]; // 0 = "GO"
+
+    let stepIdx = 0;
+
+    function showStep() {
+        if (stepIdx >= STEPS.length) { onDone(); return; }
+
+        const n     = STEPS[stepIdx++];
+        const label = n > 0 ? String(n) : 'GO';
+        const color = n > 0 ? [255, 220, 60] : [60, 255, 120];
+
+        onTick(n);
+
+        const ent = k.add([
+            k.pos(cx, cy),
+            k.text(label, { size: 96 }),
+            k.color(...color),
+            k.anchor('center'),
+            k.opacity(1),
+            k.z(95),
+            'countdown',
+        ]);
+
+        // Hold 0.55s then fade out over 0.3s, then show next digit
+        const HOLD     = n > 0 ? 0.55 : 0.45;
+        const FADE_OUT = 0.3;
+        let timer = 0;
+
+        ent.onUpdate(() => {
+            if (!ent.exists()) return;
+            timer += k.dt();
+            if (timer < HOLD) {
+                // slight scale-down pulse: start big, settle to 1
+                const scale = 1 + Math.max(0, 0.25 - timer * 0.6);
+                ent.pos = k.vec2(cx, cy - scale * 20 + 20); // subtle drop
+                ent.opacity = 1;
+            } else if (timer < HOLD + FADE_OUT) {
+                ent.opacity = 1 - (timer - HOLD) / FADE_OUT;
+            } else {
+                ent.destroy();
+                showStep();
+            }
+        });
+    }
+
+    showStep();
+}
+
 function _showWaveBanner(waveNum) {
     const k = _k;
     const def = WAVE_DEFS[waveNum - 1];

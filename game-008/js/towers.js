@@ -193,8 +193,8 @@ export function placeTowerAt(k, type, col, row, spent) {
         splashRadius: def.splashRadius ?? 0,
         destroysNodes:def.destroysNodes ?? false,
         dualShot:     false,
-        // Runtime
-        cooldown: 0,
+        // Runtime — start at full cooldown so the tower doesn't fire on frame 1
+        cooldown: def.fireRate,
         entities: [],
     };
 
@@ -305,16 +305,20 @@ function _findTarget(tower) {
         }
     }
 
-    // Also check non-centipede enemies (state.enemies, Phase 5 will populate)
+    // Also check non-centipede enemies (flea, spider, scorpion)
+    // They compete at body-level priority (0) — same as centipede body segments
     for (const enemy of state.enemies) {
-        if (!enemy.col && enemy.col !== 0) continue;
+        if (enemy.dead) continue;
+        if (enemy.col == null) continue;
         const sx = GRID_OFFSET_X + enemy.col * TILE_SIZE + TILE_SIZE / 2;
         const sy = GRID_OFFSET_Y + enemy.row * TILE_SIZE + TILE_SIZE / 2;
         const d2 = (sx - wx) ** 2 + (sy - wy) ** 2;
         if (d2 > rangeSquared) continue;
-        if (d2 < bestDist || bestPriority < 0) {
+        const priority = 0; // same as centipede body
+        if (priority > bestPriority || (priority === bestPriority && d2 < bestDist)) {
             best = { col: enemy.col, row: enemy.row, enemy };
             bestDist = d2;
+            bestPriority = priority;
         }
     }
 

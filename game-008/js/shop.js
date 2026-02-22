@@ -29,6 +29,7 @@ import {
 let _shopOverlay  = null;  // between-wave fullscreen DOM overlay
 let _towerPopup   = null;  // upgrade/sell popup for a placed tower
 let _activePopupKey = null;
+let _gameEnded    = false; // true after gameOver or gameWon
 
 // ============================================================
 // Public init
@@ -268,9 +269,11 @@ function _buildTowerShopPanel(k) {
     document.body.appendChild(btns);
     _renderTowerButtons(btns);
 
-    // Refresh button states on gold change
+    // Refresh button states on gold change or game over
     events.on('goldChanged', () => _renderTowerButtons(btns));
     events.on('towerPlaced', () => _renderTowerButtons(btns));
+    events.on('gameOver',    () => { _gameEnded = true;  _hideTowerPopup(); _renderTowerButtons(btns); });
+    events.on('gameWon',     () => { _gameEnded = true;  _hideTowerPopup(); _renderTowerButtons(btns); });
 
     // Status bar
     _statusBarEl = document.createElement('div');
@@ -305,8 +308,9 @@ function _buildTowerShopPanel(k) {
 
 function _renderTowerButtons(container) {
     container.innerHTML = '';
+    const disabled = state.isGameOver || _gameEnded;
     for (const [type, def] of Object.entries(TOWER_DEFS)) {
-        const affordable = state.gold >= def.cost;
+        const affordable = !disabled && state.gold >= def.cost;
         const btn = document.createElement('div');
         btn.className = 'g008-tower-btn' + (affordable ? '' : ' unaffordable');
         btn.innerHTML = `${def.name} <span class="cost">${def.cost}g</span>`;
@@ -361,6 +365,7 @@ function _showTowerPopup(k, col, row) {
     const tower = getTowerAt(col, row);
     if (!tower) return;
     _activePopupKey = `${col},${row}`;
+    state.isPaused = true;
 
     const def   = TOWER_DEFS[tower.type];
     const upg   = def.upgrades[tower.tier];
@@ -413,6 +418,7 @@ function _hideTowerPopup() {
     if (_towerPopup) {
         _towerPopup.remove();
         _towerPopup = null;
+        state.isPaused = false;
     }
     _activePopupKey = null;
 }
@@ -491,4 +497,5 @@ export function destroyShopDOM() {
     document.getElementById('g008-styles')?.remove();
     _shopOverlay = null;
     _towerPopup  = null;
+    _gameEnded   = false;
 }

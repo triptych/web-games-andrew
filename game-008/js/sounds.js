@@ -151,8 +151,31 @@ export function playUiClick() {
     _osc('sine', 660, 0.06, 0.15);
 }
 
+/** Countdown tick (3, 2, 1). Pass 0 for the final "GO" beat. */
+export function playCountdownTick(n) {
+    // n=3,2,1 → descending tones; n=0 → bright GO chord
+    if (n > 0) {
+        _osc('sine', 440 + n * 80, 0.12, 0.25);
+    } else {
+        _osc('sine', 880, 0.18, 0.12);
+        _osc('sine', 1100, 0.14, 0.1, 0.06);
+    }
+}
+
 /** Game over. */
 export function playGameOver() {
     _sweep('sawtooth', 400, 50, 0.8, 0.4);
     _noise(0.5, 0.15, 0.2);
+}
+
+/**
+ * Single node "step" thump used during between-wave march.
+ * Call once per row of nodes marching down.
+ * @param {number} stepIndex - which step (0, 1, 2…) for pitch variation
+ */
+export function playNodeMarchStep(stepIndex) {
+    // Alternating low thuds — classic Centipede march feel
+    const freq = stepIndex % 2 === 0 ? 120 : 100;
+    _osc('square', freq, 0.08, 0.18);
+    _noise(0.06, 0.08);
 }
