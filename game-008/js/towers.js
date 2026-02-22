@@ -22,7 +22,7 @@ import {
 } from './config.js';
 import { state }  from './state.js';
 import { events } from './events.js';
-import { tileToWorld, isTowerSlot, isNodeAt, worldToTile, removeNode, destroyNodeEntity } from './grid.js';
+import { tileToWorld, isTowerSlot, isBurnedSlot, isNodeAt, worldToTile, removeNode, destroyNodeEntity, spawnBurnEffect } from './grid.js';
 import { hitCentipedeAt } from './centipede.js';
 import { hitEnemyAt }     from './enemies.js';
 import {
@@ -132,7 +132,7 @@ export function initTowers(k) {
             return;
         }
         const { col, row } = tile;
-        const isValidSlot = isTowerSlot(col, row) && !isNodeAt(col, row) && !state.hasTower(col, row);
+        const isValidSlot = isTowerSlot(col, row) && !isNodeAt(col, row) && !state.hasTower(col, row) && !isBurnedSlot(col, row);
         const px = GRID_OFFSET_X + col * TILE_SIZE;
         const py = GRID_OFFSET_Y + row * TILE_SIZE;
 
@@ -185,6 +185,7 @@ export function isInPlacementMode() { return _placementMode; }
 function _tryPlace(k, type, col, row) {
     if (!isTowerSlot(col, row))       { _flashInvalid(); return; }
     if (state.hasTower(col, row))     { _flashInvalid(); return; }
+    if (isBurnedSlot(col, row))       { _flashInvalid(); return; }
     if (isNodeAt(col, row))           { _flashInvalid(); return; }
 
     const def = TOWER_DEFS[type];
@@ -309,6 +310,9 @@ export function damageTowerAt(k, col, row, chainDepth = 0) {
         // Tower destroyed by enemy fire — no refund
         _destroyTowerEntities(tower);
         state.removeTower(col, row);
+        // Mark this slot as permanently burned (cannot place a new tower here)
+        state.burnedSlots.add(`${col},${row}`);
+        spawnBurnEffect(k, col, row);
         events.emit('towerDestroyed', col, row);
         events.emit('goldChanged', state.gold);
         // Trigger shockwave

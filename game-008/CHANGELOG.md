@@ -1,5 +1,14 @@
 # Game 008 — Centipede Tower Defense: Changelog
 
+## v1.0.3 — 2026-02-21
+
+### Added
+- **Burned tower slots** — when a tower is destroyed by enemy fire its slot is permanently ruined; no new tower can be placed there for the rest of the game
+- **Flame & smoke effect** — destroyed slots show a persistent flickering flame (orange/yellow particles rising upward) with wispy grey smoke drifting above, plus a scorched-tile dark overlay underneath
+- Burned slots show red in placement-mode hover (same as other invalid tiles)
+
+---
+
 ## v1.0.2 — 2026-02-21
 
 ### Added

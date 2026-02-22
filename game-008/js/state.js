@@ -29,6 +29,10 @@ class GameState {
         // Towers: Map of "col,row" → tower object (added in Phase 4)
         this.towers = new Map();
 
+        // Burned slots: Set of "col,row" strings for tower slots destroyed by enemies.
+        // These slots can never have a new tower placed on them.
+        this.burnedSlots = new Set();
+
         // Active centipede chains (added in Phase 2)
         this.centipedes = [];
 
