@@ -16,12 +16,13 @@
 
 import { events }   from './events.js';
 import { state }    from './state.js';
-import { ABILITY_DEFS, ENEMY_DEFS, ENCOUNTERS } from './config.js';
-import { refreshStatus, showVictoryScreen, showMessage } from './ui.js';
+import { ABILITY_DEFS, ENEMY_DEFS, ENCOUNTERS, SHOP_ITEMS } from './config.js';
+import { refreshStatus, showVictoryScreen } from './ui.js';
 import {
     playPhysicalHit, playMagicCast, playFireSpell, playIceSpell,
     playEnemyAttack, playEnemyMagic, playDamageHit, playPartyKO,
-    playEnemyDeath, playVictoryFanfare, playBattleStart,
+    playEnemyDeath, playVictoryFanfare, playBattleStart, playItemUse,
+    playHeal,
 } from './sounds.js';
 
 // ----------------------------------------------------------------
@@ -39,10 +40,23 @@ export function initBattle(kaplay) {
     _k = kaplay;
     _phase = 'idle';
 
-    const off1 = events.on('battleStart', _onBattleStart);
+    const off1 = events.on('battleStart',  _onBattleStart);
     const off2 = events.on('actionChosen', _onActionChosen);
+    const off3 = events.on('battleEnd',    _onBattleEnd);
 
-    _k.onSceneLeave(() => { off1(); off2(); });
+    _k.onSceneLeave(() => { off1(); off2(); off3(); });
+}
+
+// ----------------------------------------------------------------
+// Battle end (flee)
+// ----------------------------------------------------------------
+
+function _onBattleEnd(result) {
+    if (result !== 'flee') return;
+    _phase = 'idle';
+    state.inBattle = false;
+    // Brief pause then advance to next encounter (no XP/gold for fleeing)
+    _k.wait(0.6, _advanceEncounter);
 }
 
 // ----------------------------------------------------------------
@@ -154,16 +168,10 @@ function _doEnemyTurn(enemy) {
     const targets = state.aliveParty;
     if (targets.length === 0) { _checkDefeat(); return; }
 
-    // Simple AI: pick random alive party member
-    const target = targets[Math.floor(Math.random() * targets.length)];
-
-    const action = {
-        type:       'attack',
-        abilityId:  'attack',
-        targets:    [target],
-    };
-
-    events.emit('showMessage', `${enemy.name} attacks!`);
+    const action = _enemyChooseAction(enemy, targets);
+    if (action.type === 'attack') {
+        events.emit('showMessage', `${enemy.name} attacks!`);
+    }
 
     _resolveAction(enemy, action, () => {
         if (_checkDefeat())  return;
@@ -173,12 +181,71 @@ function _doEnemyTurn(enemy) {
     });
 }
 
+function _enemyChooseAction(enemy, aliveParty) {
+    const target = aliveParty[Math.floor(Math.random() * aliveParty.length)];
+
+    // Dark Elf: 40% chance to poison a random party member
+    if (enemy.name === 'Dark Elf' && Math.random() < 0.40) {
+        const victim = aliveParty[Math.floor(Math.random() * aliveParty.length)];
+        if (!victim.statusEffects.find(s => s.type === 'poison')) {
+            events.emit('showMessage', 'Dark Elf weaves a curse!');
+            playEnemyMagic();
+            victim.statusEffects.push({ type: 'poison', turnsLeft: 4 });
+            events.emit('statusApplied', victim, 'poison');
+            refreshStatus();
+        }
+        // Still make a physical attack this turn
+        return { type: 'attack', targets: [target] };
+    }
+
+    // Dragon: 35% chance to use fire breath (hits all party, magical fire damage)
+    if (enemy.name === 'Dragon' && Math.random() < 0.35) {
+        events.emit('showMessage', 'Dragon unleashes fire breath!');
+        playFireSpell();
+        aliveParty.forEach(t => {
+            const dmg = _magDmg(enemy, t, 1.6, 'fire');
+            _applyDamage(t, dmg);
+            events.emit('animateAction', { type: 'magic', actorId: enemy.id, targetId: t.classId, value: dmg });
+        });
+        // Return a no-op so _resolveAction doesn't double-attack; we handled it inline
+        return { type: '_done' };
+    }
+
+    // Lich King: 30% chance to cast a curse (poison all party + magic damage)
+    if (enemy.name === 'Lich King' && Math.random() < 0.30) {
+        events.emit('showMessage', 'Lich King casts Death Curse!');
+        playEnemyMagic();
+        aliveParty.forEach(t => {
+            if (!t.statusEffects.find(s => s.type === 'poison')) {
+                t.statusEffects.push({ type: 'poison', turnsLeft: 5 });
+                events.emit('statusApplied', t, 'poison');
+            }
+            const dmg = _magDmg(enemy, t, 1.0);
+            _applyDamage(t, dmg);
+            events.emit('animateAction', { type: 'magic', actorId: enemy.id, targetId: t.classId, value: dmg });
+        });
+        refreshStatus();
+        return { type: '_done' };
+    }
+
+    // Stone Golem: always attacks the highest-ATK party member (focus threat)
+    if (enemy.name === 'Stone Golem') {
+        const focusTarget = aliveParty.reduce((a, b) => (a.atk > b.atk ? a : b));
+        return { type: 'attack', targets: [focusTarget] };
+    }
+
+    // Default: attack a random alive party member
+    return { type: 'attack', targets: [target] };
+}
+
 // ----------------------------------------------------------------
 // Damage formula
 // ----------------------------------------------------------------
 
 function _physDmg(attacker, target, power) {
-    const raw = Math.max(1, attacker.atk * power - target.def * 0.5);
+    const atk = attacker.atk * (attacker.buffs && attacker.buffs.atkUp ? 1.5 : 1);
+    const def = target.def  * (target.buffs  && target.buffs.defUp  ? 1.4 : 1);
+    const raw = Math.max(1, atk * power - def * 0.5);
     const variance = 0.85 + Math.random() * 0.3;
     return Math.max(1, Math.round(raw * variance));
 }
@@ -186,10 +253,15 @@ function _physDmg(attacker, target, power) {
 function _magDmg(attacker, target, power, elem) {
     const magRes = target.mag ?? 0;
     let raw = Math.max(1, attacker.mag * power - magRes * 0.3);
-    // Elemental weakness: fire vs ice and vice versa (simple version)
+    // Elemental weakness: fire vs ice and vice versa
     if (elem && target.weakness === elem) raw *= 1.5;
     const variance = 0.85 + Math.random() * 0.3;
     return Math.max(1, Math.round(raw * variance));
+}
+
+// Returns true if attack misses due to accDown debuff on attacker
+function _doesMiss(attacker) {
+    return !!(attacker.buffs && attacker.buffs.accDown && Math.random() < 0.30);
 }
 
 function _healAmt(caster, power) {
@@ -209,6 +281,11 @@ function _resolveAction(actor, action, done) {
         _doAbility(actor, action.abilityId, action.targets, done);
     } else if (action.type === 'defend') {
         _doDefend(actor, done);
+    } else if (action.type === 'item') {
+        _doItem(action.itemId, action.targets, done);
+    } else if (action.type === '_done') {
+        // Enemy inline action already resolved; just wait briefly then continue
+        _k.wait(0.6, done);
     } else {
         done();
     }
@@ -216,6 +293,14 @@ function _resolveAction(actor, action, done) {
 
 function _doAttack(attacker, targets, done) {
     const target = targets[0];
+
+    // accDown: 30% miss chance
+    if (_doesMiss(attacker)) {
+        events.emit('showMessage', `${attacker.name} attacks... but misses!`);
+        _k.wait(0.5, done);
+        return;
+    }
+
     const dmg = _physDmg(attacker, target, 1.0);
 
     if (!attacker.isEnemy) {
@@ -245,12 +330,36 @@ function _doAbility(actor, abilityId, targets, done) {
     actor.mp = Math.max(0, actor.mp - abil.mp);
 
     if (abil.type === 'physical') {
+        // Steal: deal light damage and take some gold
+        if (abil.steal) {
+            const target = targets[0];
+            if (_doesMiss(actor)) {
+                events.emit('showMessage', `${actor.name} tries to steal... but fails!`);
+                _k.wait(0.5, done);
+                return;
+            }
+            const dmg = _physDmg(actor, target, abil.power);
+            const stolen = target.gold ? Math.min(target.gold, Math.floor(target.gold * 0.3) + 1) : 0;
+            if (stolen > 0) target.gold -= stolen;
+            state.earn(stolen);
+            events.emit('showMessage', `${actor.name} steals! ${dmg} dmg${stolen ? `, ${stolen} gold` : ''}.`);
+            playPhysicalHit();
+            _applyDamage(target, dmg);
+            events.emit('animateAction', { type: 'hit', actorId: actor.classId, targetId: target.id ?? target.classId, value: dmg });
+            _k.wait(0.5, done);
+            return;
+        }
+
         const hits = abil.hits ?? 1;
         let delay = 0;
         for (let h = 0; h < hits; h++) {
             const d = delay;
             _k.wait(d, () => {
                 targets.forEach(t => {
+                    if (_doesMiss(actor)) {
+                        events.emit('showMessage', `${actor.name} uses ${abil.name}... miss!`);
+                        return;
+                    }
                     const dmg = _physDmg(actor, t, abil.power);
                     events.emit('showMessage', `${actor.name} uses ${abil.name}! ${dmg} damage.`);
                     playPhysicalHit();
@@ -276,6 +385,7 @@ function _doAbility(actor, abilityId, targets, done) {
         _k.wait(0.7, done);
 
     } else if (abil.type === 'heal') {
+        playHeal();
         targets.forEach(t => {
             const amt = _healAmt(actor, abil.power);
             t.hp = Math.min(t.maxHp, t.hp + amt);
@@ -304,6 +414,56 @@ function _doDefend(actor, done) {
     actor.buffs.defending = 1;
     events.emit('showMessage', `${actor.name} defends!`);
     _k.wait(0.4, done);
+}
+
+function _doItem(itemId, targets, done) {
+    const item = SHOP_ITEMS[itemId];
+    if (!item) { done(); return; }
+
+    // Consume from inventory
+    if (!state.inventory[itemId] || state.inventory[itemId] <= 0) { done(); return; }
+    state.inventory[itemId]--;
+
+    playItemUse();
+
+    if (item.effect === 'healHp') {
+        targets.forEach(t => {
+            const before = t.hp;
+            t.hp = Math.min(t.maxHp, t.hp + item.amount);
+            const gained = t.hp - before;
+            events.emit('showMessage', `Used ${item.name}! ${t.name} recovers ${gained} HP.`);
+        });
+        refreshStatus();
+
+    } else if (item.effect === 'healMp') {
+        targets.forEach(t => {
+            const before = t.mp;
+            t.mp = Math.min(t.maxMp, t.mp + item.amount);
+            const gained = t.mp - before;
+            events.emit('showMessage', `Used ${item.name}! ${t.name} recovers ${gained} MP.`);
+        });
+        refreshStatus();
+
+    } else if (item.effect === 'revive') {
+        targets.forEach(t => {
+            if (!t.isKO) return;
+            t.isKO = false;
+            t.hp   = Math.max(1, Math.floor(t.maxHp * (item.amount / 100)));
+            events.emit('showMessage', `Used ${item.name}! ${t.name} is revived!`);
+            // Rebuild turn order to include revived member
+            state.turnOrder = _buildTurnOrder();
+        });
+        refreshStatus();
+
+    } else if (item.effect === 'cureStatus') {
+        targets.forEach(t => {
+            t.statusEffects = t.statusEffects.filter(s => s.type !== item.status);
+            events.emit('showMessage', `Used ${item.name}! ${t.name}'s ${item.status} is cured.`);
+        });
+        refreshStatus();
+    }
+
+    _k.wait(0.6, done);
 }
 
 // ----------------------------------------------------------------
@@ -394,9 +554,7 @@ function _checkVictory() {
     state.inBattle = false;
 
     // Total XP from this encounter
-    const totalXP  = state.enemies.reduce((sum, e) => sum + e.xp, 0);
-    const totalGold = 0; // gold awarded per-kill above; don't double
-
+    const totalXP = state.enemies.reduce((sum, e) => sum + e.xp, 0);
     state.awardXP(totalXP);
 
     playVictoryFanfare();

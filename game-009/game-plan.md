@@ -3,7 +3,7 @@
 **Genre:** Turn-Based RPG (Early Final Fantasy style)
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Active — Phase 3
+**Status:** Active — Phase 4
 
 ---
 
@@ -183,15 +183,18 @@ Difficulty increases through: higher enemy HP/ATK/DEF, multi-enemy encounters, a
 - [x] Victory detection (all enemies dead) → award XP + gold
 - [x] Defeat detection (all party KO) → lose life → restart or game over
 
-### Phase 3 — Abilities & Status Effects (current)
-- [ ] All 11 party abilities implemented
-- [ ] Status effects: Poison, ATK Up, DEF Up, ACC Down
-- [ ] Enemy unique abilities (Dark Elf poison, Golem armor, Dragon fire breath)
-- [ ] `Item` action — use consumables from inventory
-- [ ] `Defend` action — half damage for one round
-- [ ] `Run` action — 50% flee chance (disabled vs bosses)
+### Phase 3 — Abilities & Status Effects ✅ COMPLETE (2026-02-22)
+- [x] All 11 party abilities implemented (physical, magical, heal, status)
+- [x] Status effects: Poison (tick 5% maxHP/turn), ATK Up (+50%), DEF Up (+40%), ACC Down (30% miss)
+- [x] Buff modifiers applied in damage formula (atkUp boosts attacker, defUp boosts defender)
+- [x] `steal` ability: deals damage + takes 30% of enemy gold
+- [x] Enemy unique abilities: Dark Elf poisons randomly, Dragon fire breath (all-party magic), Lich King Death Curse (poison+magic all), Stone Golem targets highest-ATK member
+- [x] `Item` action — inventory sub-menu, target selection, full item effects (healHp, healMp, revive, cureStatus)
+- [x] `Defend` action — half incoming damage for one round (already in Phase 2; confirmed working)
+- [x] `Run` action — 50% flee chance, blocked vs bosses (already in Phase 2; confirmed working)
+- [x] Buff/status icons in status panel (PSN, KO, ATK+, DEF+, ACC-)
 
-### Phase 4 — Progression & Economy
+### Phase 4 — Progression & Economy (current)
 - [ ] XP distribution and level-up animation
 - [ ] Stat growth on level-up (random within growth table)
 - [ ] Shop overlay between encounters (every 2–3 fights)
@@ -272,6 +275,19 @@ Difficulty increases through: higher enemy HP/ATK/DEF, multi-enemy encounters, a
 - Shop items and economy constants defined
 - 20+ procedural sound effects stubbed in sounds.js
 - Status panel UI with HP/MP bars and color-coded health
+
+### Phase 3 — Abilities & Status Effects (2026-02-22)
+- battle.js: atkUp/defUp/accDown modifiers applied in _physDmg; _doesMiss helper (30% miss on accDown)
+- battle.js: steal ability resolves damage + gold theft from enemy
+- battle.js: heal abilities call playHeal sound
+- battle.js: _doItem handles healHp, healMp, revive (rebuilds turn order), cureStatus
+- battle.js: enemy AI upgraded — Dark Elf poisons randomly, Dragon fire breath all-party, Lich King Death Curse, Golem targets highest ATK
+- battle.js: '_done' action type for inline enemy abilities that bypass _resolveAction
+- battle.js: listens for 'battleEnd' flee event — advances to next encounter without XP/gold
+- commandMenu.js: full Item sub-menu with inventory count display and target selection
+- commandMenu.js: _pendingItemId tracks item targets through target phase; back-nav returns to item menu
+- commandMenu.js: ability/item/target key handlers deferred one frame (k.wait(0,...)) to prevent same-keypress double-fire
+- ui.js: buff label added to each status row (ATK+, DEF+, ACC-); PSN now purple; refreshStatus updates buff text
 
 ### Phase 2 — Battle System Core (2026-02-22)
 - battle.js: SPD-sorted turn order, physical/magic/heal/status resolution, enemy AI, victory/defeat detection

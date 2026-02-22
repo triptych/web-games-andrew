@@ -147,7 +147,7 @@ function _buildStatusPanel() {
             k.z(92),
         ]);
 
-        // Status icon (KO / Poison etc.)
+        // Status / buff icon area
         const statusLabel = k.add([
             k.pos(colX + 420, rowY),
             k.text('', { size: 11 }),
@@ -155,8 +155,15 @@ function _buildStatusPanel() {
             k.anchor('topleft'),
             k.z(92),
         ]);
+        const buffLabel = k.add([
+            k.pos(colX + 500, rowY),
+            k.text('', { size: 11 }),
+            k.color(...COLORS.success),
+            k.anchor('topleft'),
+            k.z(92),
+        ]);
 
-        _statusRows.push({ nameLabel, hpBar, hpLabel, mpBar, mpLabel, statusLabel, member });
+        _statusRows.push({ nameLabel, hpBar, hpLabel, mpBar, mpLabel, statusLabel, buffLabel, member });
     });
 }
 
@@ -185,14 +192,24 @@ export function refreshStatus() {
             row.hpBar.color = k.rgb(...COLORS.danger);
         }
 
-        // Status text
+        // Status text (debuffs / KO)
         if (m.isKO) {
-            row.statusLabel.text = 'KO';
+            row.statusLabel.text  = 'KO';
+            row.statusLabel.color = k.rgb(...COLORS.danger);
         } else if (m.statusEffects.find(s => s.type === 'poison')) {
-            row.statusLabel.text = 'PSN';
+            row.statusLabel.text  = 'PSN';
+            row.statusLabel.color = k.rgb(160, 60, 200);
         } else {
             row.statusLabel.text = '';
         }
+
+        // Buff text (active buffs)
+        const buffs = m.buffs ?? {};
+        const buffParts = [];
+        if (buffs.atkUp)  buffParts.push('ATK+');
+        if (buffs.defUp)  buffParts.push('DEF+');
+        if (buffs.accDown) buffParts.push('ACC-');
+        row.buffLabel.text = buffParts.join(' ');
     }
 }
 

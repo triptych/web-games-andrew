@@ -15,7 +15,7 @@
 
 import { events }   from './events.js';
 import { state }    from './state.js';
-import { ABILITY_DEFS, CLASS_ABILITIES, ENCOUNTERS, BATTLE, COLORS } from './config.js';
+import { ABILITY_DEFS, CLASS_ABILITIES, ENCOUNTERS, BATTLE, COLORS, SHOP_ITEMS } from './config.js';
 import { playMenuMove, playMenuSelect, playMenuBack } from './sounds.js';
 import { initMessageLog, showMessage } from './ui.js';
 
@@ -25,13 +25,15 @@ import { initMessageLog, showMessage } from './ui.js';
 
 let _k        = null;
 let _actor    = null;
-let _phase    = 'hidden';   // 'hidden' | 'main' | 'ability' | 'target'
+let _phase    = 'hidden';   // 'hidden' | 'main' | 'ability' | 'item' | 'target'
 
 let _mainIndex    = 0;
 let _abilityIndex = 0;
 let _targetIndex  = 0;
 
 let _pendingAbilityId = null;
+let _pendingItemId    = null;
+let _itemIndex        = 0;
 
 // Snapshot of targets for the current target-selection phase
 let _currentTargets = [];
@@ -85,11 +87,16 @@ function _enterPhase(phase, extra) {
         _registerMainKeys();
     } else if (phase === 'ability') {
         _renderAbilityMenu();
-        _registerAbilityKeys();
+        _k.wait(0, _registerAbilityKeys);
+    } else if (phase === 'item') {
+        _renderItemMenu();
+        // Defer key registration by one frame so the triggering Space/Enter
+        // keypress does not immediately fire the item-confirm handler.
+        _k.wait(0, _registerItemKeys);
     } else if (phase === 'target') {
         _currentTargets = extra ?? [];
         _renderTargetMenu();
-        _registerTargetKeys();
+        _k.wait(0, _registerTargetKeys);
     }
 }
 
@@ -192,6 +199,103 @@ function _renderAbilityMenu() {
     });
 }
 
+function _getUsableItems() {
+    // Returns array of { itemId, item } for items with count > 0
+    return Object.entries(state.inventory)
+        .filter(([, count]) => count > 0)
+        .map(([itemId]) => ({ itemId, item: SHOP_ITEMS[itemId] }))
+        .filter(({ item }) => !!item);
+}
+
+function _renderItemMenu() {
+    const usable = _getUsableItems();
+    _renderPanel(`${_actor ? _actor.name : ''}  -- Items`);
+
+    const { PANEL_X, PANEL_Y } = BATTLE;
+    const startY = PANEL_Y + 36;
+
+    if (usable.length === 0) {
+        _add([
+            _k.pos(PANEL_X + 24, startY),
+            _k.text('  No items', { size: 13 }),
+            _k.color(80, 70, 100),
+            _k.anchor('topleft'),
+            _k.z(102),
+        ]);
+        return;
+    }
+
+    usable.forEach(({ itemId, item }, i) => {
+        const sel = i === _itemIndex;
+        const count = state.inventory[itemId];
+        _add([
+            _k.pos(PANEL_X + 24, startY + i * 26),
+            _k.text((sel ? '> ' : '  ') + item.name + `  x${count}`, { size: 13 }),
+            _k.color(...(sel ? COLORS.accent : COLORS.text)),
+            _k.anchor('topleft'),
+            _k.z(102),
+        ]);
+    });
+}
+
+function _registerItemKeys() {
+    const usable = _getUsableItems();
+    const n = usable.length;
+
+    _keyHandlers.push(_k.onKeyPress('up',   () => {
+        if (n === 0) return;
+        _itemIndex = (_itemIndex - 1 + n) % n;
+        playMenuMove(); _renderItemMenu();
+    }));
+    _keyHandlers.push(_k.onKeyPress('w',    () => {
+        if (n === 0) return;
+        _itemIndex = (_itemIndex - 1 + n) % n;
+        playMenuMove(); _renderItemMenu();
+    }));
+    _keyHandlers.push(_k.onKeyPress('down', () => {
+        if (n === 0) return;
+        _itemIndex = (_itemIndex + 1) % n;
+        playMenuMove(); _renderItemMenu();
+    }));
+    _keyHandlers.push(_k.onKeyPress('s',    () => {
+        if (n === 0) return;
+        _itemIndex = (_itemIndex + 1) % n;
+        playMenuMove(); _renderItemMenu();
+    }));
+    _keyHandlers.push(_k.onKeyPress('space',     () => _itemConfirm(usable)));
+    _keyHandlers.push(_k.onKeyPress('enter',     () => _itemConfirm(usable)));
+    _keyHandlers.push(_k.onKeyPress('escape',    () => { playMenuBack(); _enterPhase('main'); }));
+    _keyHandlers.push(_k.onKeyPress('backspace', () => { playMenuBack(); _enterPhase('main'); }));
+}
+
+function _itemConfirm(usable) {
+    if (_phase !== 'item') return;
+    if (usable.length === 0) { showMessage('No items.'); return; }
+
+    const { itemId, item } = usable[_itemIndex];
+    playMenuSelect();
+
+    const aliveParty = state.aliveParty;
+    const koParty    = state.party.filter(m => m.isKO);
+
+    if (item.effect === 'revive') {
+        if (koParty.length === 0) { showMessage('No fallen allies.'); return; }
+        _targetIndex = 0;
+        _pendingItemId = itemId;
+        _pendingAbilityId = null;
+        _enterPhase('target', koParty);
+    } else if (item.effect === 'healHp' || item.effect === 'healMp' || item.effect === 'cureStatus') {
+        _targetIndex = 0;
+        _pendingItemId = itemId;
+        _pendingAbilityId = null;
+        _enterPhase('target', aliveParty);
+    } else {
+        // Fallback: use on first alive
+        _enterPhase('hidden');
+        events.emit('actionChosen', _actor, { type: 'item', itemId, targets: [aliveParty[0]] });
+    }
+}
+
 function _renderTargetMenu() {
     _renderPanel('Choose target:');
 
@@ -255,7 +359,8 @@ function _mainConfirm() {
             break;
 
         case 'item':
-            showMessage('No items usable yet.');
+            _itemIndex = 0;
+            _enterPhase('item');
             break;
 
         case 'defend':
@@ -350,7 +455,12 @@ function _targetConfirm() {
     const target = _currentTargets[_targetIndex];
     if (!target) return;
 
-    if (_pendingAbilityId) {
+    if (_pendingItemId) {
+        const id = _pendingItemId;
+        _pendingItemId = null;
+        _enterPhase('hidden');
+        events.emit('actionChosen', _actor, { type: 'item', itemId: id, targets: [target] });
+    } else if (_pendingAbilityId) {
         const id = _pendingAbilityId;
         _pendingAbilityId = null;
         _enterPhase('hidden');
@@ -363,7 +473,10 @@ function _targetConfirm() {
 
 function _targetBack() {
     playMenuBack();
-    if (_pendingAbilityId) {
+    if (_pendingItemId) {
+        _pendingItemId = null;
+        _enterPhase('item');
+    } else if (_pendingAbilityId) {
         _pendingAbilityId = null;
         _enterPhase('ability');
     } else {
