@@ -95,6 +95,52 @@ export function playShoot() {
     _sweep('sine', 880, 440, 0.08, 0.15);
 }
 
+/** Blaster tower fires — crisp mid-range pew. */
+export function playBlasterShoot() {
+    _sweep('square', 520, 260, 0.07, 0.18);
+    _osc('sine', 440, 0.04, 0.06, 0.04);
+}
+
+/** Sniper tower fires — high-pitched crack. */
+export function playSniperShoot() {
+    _sweep('sawtooth', 1200, 300, 0.06, 0.22);
+    _noise(0.04, 0.1);
+}
+
+/** Scatter tower fires — triple soft pop burst. */
+export function playScatterShoot() {
+    _osc('square', 380, 0.04, 0.12);
+    _osc('square', 420, 0.04, 0.10, 0.03);
+    _osc('square', 360, 0.04, 0.10, 0.06);
+}
+
+/** Freeze tower fires — icy chime. */
+export function playFreezeShoot() {
+    _sweep('sine', 900, 1400, 0.1, 0.14);
+    _osc('sine', 1800, 0.05, 0.08, 0.08);
+}
+
+/** Tesla tower fires — electric zap/crack. */
+export function playTeslaShoot() {
+    _noise(0.06, 0.2);
+    _sweep('sawtooth', 800, 200, 0.08, 0.15, 0.01);
+    _osc('square', 120, 0.12, 0.05, 0.03);
+}
+
+/** Mortar tower fires — low thump launch. */
+export function playMortarShoot() {
+    _osc('sawtooth', 90, 0.12, 0.3);
+    _noise(0.07, 0.15);
+    _sweep('sine', 200, 80, 0.15, 0.12, 0.05);
+}
+
+/** Mortar shell impact explosion. */
+export function playMortarImpact() {
+    _sweep('sawtooth', 160, 30, 0.25, 0.35);
+    _noise(0.2, 0.25);
+    _osc('square', 60, 0.12, 0.15, 0.05);
+}
+
 /** A centipede segment was destroyed. */
 export function playSegmentKill() {
     _sweep('sawtooth', 300, 60, 0.12, 0.25);
@@ -233,6 +279,14 @@ export function playNodeMarchStep(stepIndex) {
     const freq = stepIndex % 2 === 0 ? 120 : 100;
     _osc('square', freq, 0.08, 0.18);
     _noise(0.06, 0.08);
+}
+
+/** Centipede head death — minor shockwave pop (damages nearby towers). */
+export function playHeadShockwave() {
+    // Short descending thud with a crisp transient — feels like a small pulse
+    _sweep('sawtooth', 320, 60, 0.18, 0.28);
+    _noise(0.1, 0.12);
+    _osc('sine', 180, 0.1, 0.1, 0.05);
 }
 
 /** Shooter enemy fires a projectile at a tower. */

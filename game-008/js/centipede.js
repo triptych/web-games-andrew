@@ -17,6 +17,7 @@ import {
     COLORS,
     SCORE_SEGMENT_KILL, SCORE_HEAD_BONUS,
     GOLD_PER_SEGMENT,
+    HEAD_SHOCKWAVE_RADIUS,
 } from './config.js';
 import { state }  from './state.js';
 import { events } from './events.js';
@@ -24,7 +25,8 @@ import {
     isNodeAt, isTowerAt, tileToWorld,
     placeNode, spawnNodeEntity,
 } from './grid.js';
-import { playSegmentKill } from './sounds.js';
+import { playSegmentKill, playHeadShockwave } from './sounds.js';
+import { spawnShockwave } from './player.js';
 
 let _k      = null;
 let _nextId = 1;
@@ -109,8 +111,9 @@ class Centipede {
         // Spawn immunity: centipede is immune until every segment has moved off
         // the starting tile (i.e. after segCount - 1 steps from the head).
         // Only set on fresh wave spawns (via Centipede.create); split halves pass 0.
-        this.growingSteps = growingSteps;
-        this._flashTimer  = 0;   // drives opacity pulse while invulnerable
+        this.growingSteps  = growingSteps;
+        this.maxSegments   = segments.length;   // for length-based speed scaling
+        this._flashTimer   = 0;   // drives opacity pulse while invulnerable
 
         this._spawnEntities(k);
         state.centipedes.push(this);
@@ -136,8 +139,10 @@ class Centipede {
     // --------------------------------------------------------
 
     get speed() {
-        const row  = this.segments.length > 0 ? this.segments[0].row : 0;
-        const base = Math.min(this.def.speed * (1 + row * 0.04), this.def.speed * 2.5);
+        const row        = this.segments.length > 0 ? this.segments[0].row : 0;
+        const lost       = this.maxSegments - this.segments.length;
+        const lengthMult = 1 + lost * 0.03;   // +3% per lost segment
+        const base       = Math.min(this.def.speed * (1 + row * 0.04) * lengthMult, this.def.speed * 3.0);
         return this.slowTimer > 0 ? base * (1 - this.slowFactor) : base;
     }
 
@@ -260,6 +265,14 @@ class Centipede {
             : (this.def.color     || COLORS.centipedeBody);
         _spawnKillParticles(this.k, w.x, w.y, burstColor);
         playSegmentKill();
+
+        // Head death: shockwave visual + event so towers.js can deal damage
+        if (isHead) {
+            spawnShockwave(this.k, w.x, w.y, [220, 80, 255]);
+            spawnShockwave(this.k, w.x, w.y, [255, 160, 255], 0.08);
+            playHeadShockwave();
+            events.emit('headShockwave', col, row, HEAD_SHOCKWAVE_RADIUS);
+        }
 
         // Leave a node, award score + gold
         placeNode(col, row);

@@ -317,6 +317,7 @@ export const WAVE_DEFS = [
 export const TOWER_MAX_HP           = 3;    // hits before a tower is destroyed
 export const TOWER_REPAIR_COST      = 50;   // gold to repair one HP (flat per-hit cost)
 export const TOWER_SHOCKWAVE_RADIUS = 3;    // tiles — blast radius when a tower is destroyed
+export const HEAD_SHOCKWAVE_RADIUS  = 2;    // tiles — blast radius of centipede-head death shockwave (damages towers only)
 
 // --- Economy ---
 export const GOLD_PER_WAVE         = 75;

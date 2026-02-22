@@ -1,5 +1,21 @@
 # Game 008 — Centipede Tower Defense: Changelog
 
+## v1.0.2 — 2026-02-21
+
+### Added
+- **Head shockwave** — when a centipede head dies, a purple shockwave visual + sound fires and damages towers within 2 tiles (`HEAD_SHOCKWAVE_RADIUS`)
+- **Per-tower-type shoot sounds** — Blaster, Sniper, Scatter, Freeze, Tesla, and Mortar each now play a distinct fire sound (previously all used the same generic shoot sound)
+- **Mortar impact sound** (`playMortarImpact`) — separate explosion boom plays on shell landing
+- **Rotating barrels** — Blaster, Sniper, Scatter, and Mortar barrel decorations now track and rotate toward their target tile when firing (centered on tile, uses `atan2` aim)
+- **Length-based speed scaling** — centipedes gain +3% speed per lost segment (max cap raised from 2.5× to 3.0× base speed)
+
+### Changed
+- Barrel decorations for Blaster, Sniper, Scatter, Mortar are now centered on the tower tile (were offset to simulate a fixed aim direction)
+- Sniper beam angle calculation unified to use same `atan2(dx, dy)` convention as barrel rotation
+- Tower destruction cleanup now nulls `barrelEnt` / `barrelEnts` references
+
+---
+
 ## v1.0.1 — 2026-02-21
 
 ### Changed

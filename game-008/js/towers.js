@@ -25,7 +25,11 @@ import { events } from './events.js';
 import { tileToWorld, isTowerSlot, isNodeAt, worldToTile, removeNode, destroyNodeEntity } from './grid.js';
 import { hitCentipedeAt } from './centipede.js';
 import { hitEnemyAt }     from './enemies.js';
-import { playTowerPlace, playTowerSell, playTowerUpgrade, playTowerHit, playTowerExplosion } from './sounds.js';
+import {
+    playTowerPlace, playTowerSell, playTowerUpgrade, playTowerHit, playTowerExplosion,
+    playBlasterShoot, playSniperShoot, playScatterShoot, playFreezeShoot, playTeslaShoot,
+    playMortarShoot, playMortarImpact,
+} from './sounds.js';
 import { spawnShockwave } from './player.js';
 
 // ============================================================
@@ -77,6 +81,17 @@ export function initTowers(k) {
     // Handle shooter projectile hits on towers
     events.on('shooterHitTower', (col, row) => {
         damageTowerAt(k, col, row);
+    });
+
+    // Head shockwave — damage towers within radius (no chain, depth capped at 1)
+    events.on('headShockwave', (col, row, radius) => {
+        const targets = [];
+        for (const [, t] of state.towers) {
+            const dc = Math.abs(t.col - col);
+            const dr = Math.abs(t.row - row);
+            if (dc <= radius && dr <= radius) targets.push({ col: t.col, row: t.row });
+        }
+        for (const nb of targets) damageTowerAt(k, nb.col, nb.row, 0);
     });
 
     // Per-frame: fire all placed towers
@@ -463,8 +478,36 @@ function _fireTower(k, tower, target) {
     }
 }
 
+// ---- Shared: rotate a tower's barrel(s) toward a target tile ----
+// tower.barrelEnt  — single barrel (blaster, sniper, mortar)
+// tower.barrelEnts — array of barrels (scatter fan); each has a _angleOffset
+//
+// Barrels use anchor('center'). At angle 0, the tall rect stands upright.
+// We want the barrel tip (top of rect, local -Y) to point toward the target.
+// Rotating local -Y toward world direction (dx,dy) CW in screen space:
+//   angle = atan2(dx, -dy)  (CW from "up")
+// Verified: target above→0°, target right→+90°, target below→180°.
+function _aimBarrel(tower, targetCol, targetRow) {
+    const from = tileToWorld(tower.col, tower.row);
+    const to   = tileToWorld(targetCol, targetRow);
+    const dx   = to.x - from.x;
+    const dy   = to.y - from.y;
+    const baseAngle = Math.atan2(dx, -dy) * 180 / Math.PI;
+
+    if (tower.barrelEnt && tower.barrelEnt.exists()) {
+        tower.barrelEnt.angle = baseAngle;
+    }
+    if (tower.barrelEnts) {
+        for (const b of tower.barrelEnts) {
+            if (b && b.exists()) b.angle = baseAngle + b._angleOffset;
+        }
+    }
+}
+
 // ---- Blaster ----
 function _fireBlaster(k, tower, target) {
+    _aimBarrel(tower, target.col, target.row);
+    playBlasterShoot();
     _spawnTowerBullet(k, tower, target.col, target.row, tower.damage, COLORS.playerBullet);
     if (tower.dualShot) {
         // Second shot — slight offset toward adjacent segment
@@ -480,6 +523,10 @@ function _fireSniper(k, tower, target) {
     const col = target.col;
     const towerWX = GRID_OFFSET_X + tower.col * TILE_SIZE + TILE_SIZE / 2;
     const towerWY = GRID_OFFSET_Y + tower.row * TILE_SIZE + TILE_SIZE / 2;
+
+    // Rotate the gun barrel to face the target
+    _aimBarrel(tower, target.col, target.row);
+    playSniperShoot();
 
     // Find all segments in this column within range and hit them all
     const hits = [];
@@ -504,6 +551,8 @@ function _fireSniper(k, tower, target) {
 
 // ---- Scatter — 3 pellets in spread ----
 function _fireScatter(k, tower, target) {
+    _aimBarrel(tower, target.col, target.row);
+    playScatterShoot();
     const offsets = [-1, 0, 1]; // col offset for each pellet
     for (const off of offsets.slice(0, tower.pellets)) {
         const tc = Math.max(0, Math.min(GRID_COLS - 1, target.col + off));
@@ -513,6 +562,7 @@ function _fireScatter(k, tower, target) {
 
 // ---- Freeze — slows centipedes hit ----
 function _fireFreeze(k, tower, target) {
+    playFreezeShoot();
     _dealDamage(target.col, target.row, tower.damage);
 
     // Apply slow to the centipede that has a segment at target
@@ -529,6 +579,7 @@ function _fireFreeze(k, tower, target) {
 
 // ---- Tesla — chains to nearby segments ----
 function _fireTesla(k, tower, target) {
+    playTeslaShoot();
     _dealDamage(target.col, target.row, tower.damage);
     _spawnArc(k, tower, target, [255, 230, 50]);
 
@@ -563,9 +614,12 @@ function _fireTesla(k, tower, target) {
 
 // ---- Mortar — AOE splash ----
 function _fireMortar(k, tower, target) {
+    _aimBarrel(tower, target.col, target.row);
+    playMortarShoot();
     // Small "shell" visual then explosion
     _spawnShell(k, tower, target, () => {
         // On impact
+        playMortarImpact();
         _spawnExplosion(k, target.col, target.row, tower.splashRadius);
 
         // Damage all segments within splashRadius tiles
@@ -653,12 +707,18 @@ function _spawnTowerBullet(k, tower, targetCol, targetRow, damage, color) {
 function _spawnBeam(k, tower, targetCol, targetRow, color) {
     const from = tileToWorld(tower.col, tower.row);
     const to   = tileToWorld(targetCol, targetRow);
+    const dx   = to.x - from.x;
+    const dy   = to.y - from.y;
+    const len  = Math.sqrt(dx * dx + dy * dy) || 1;
+    // anchor('top'): rect hangs down from pos at 0°.
+    // atan2(dx, dy) = CW angle from "down" so beam extends from tower toward target.
+    const angleDeg = Math.atan2(dx, dy) * 180 / Math.PI;
 
     const beam = k.add([
         k.pos(from.x, from.y),
-        k.rect(2, Math.sqrt((to.x - from.x) ** 2 + (to.y - from.y) ** 2)),
+        k.rect(2, len),
         k.color(...color),
-        k.rotate(Math.atan2(to.x - from.x, from.y - to.y) * 180 / Math.PI),
+        k.rotate(angleDeg),
         k.anchor('top'),
         k.opacity(0.9),
         k.z(14),
@@ -829,48 +889,58 @@ function _addTowerDecoration(k, tower, cx, cy, r, g, b) {
     let ent;
     switch (tower.type) {
         case 'blaster':
-            // Barrel: small rect pointing up
+            // Barrel: tall rect centered on tower, rotates toward target on fire
             ent = k.add([
-                k.pos(cx, cy - TILE_SIZE * 0.22),
+                k.pos(cx, cy),
                 k.rect(6, 14, { radius: 2 }),
                 k.color(Math.min(255, r + 80), Math.min(255, g + 80), 255),
                 k.anchor('center'),
+                k.rotate(0),
                 k.z(6),
                 'tower',
                 { col: tower.col, row: tower.row },
             ]);
             tower.entities.push(ent);
+            tower.barrelEnt = ent;
             break;
 
         case 'sniper':
-            // Long thin barrel
+            // Long thin barrel centered on tower, rotates toward target on fire
             ent = k.add([
-                k.pos(cx, cy - TILE_SIZE * 0.3),
+                k.pos(cx, cy),
                 k.rect(4, 22, { radius: 1 }),
                 k.color(240, 240, 255),
                 k.anchor('center'),
+                k.rotate(0),
                 k.z(6),
                 'tower',
                 { col: tower.col, row: tower.row },
             ]);
             tower.entities.push(ent);
+            tower.barrelEnt = ent;
             break;
 
-        case 'scatter':
-            // Three tiny barrels fanning out
-            for (let i = -1; i <= 1; i++) {
+        case 'scatter': {
+            // Three tiny barrels fanning out; all rotate together toward target on fire
+            const fanOffsets = [-18, 0, 18]; // degree offsets for left/center/right
+            tower.barrelEnts = [];
+            for (const angleOff of fanOffsets) {
                 ent = k.add([
-                    k.pos(cx + i * 6, cy - TILE_SIZE * 0.2),
+                    k.pos(cx, cy),
                     k.rect(4, 10, { radius: 1 }),
                     k.color(255, 180, 80),
                     k.anchor('center'),
+                    k.rotate(angleOff),
                     k.z(6),
                     'tower',
                     { col: tower.col, row: tower.row },
                 ]);
+                ent._angleOffset = angleOff;
                 tower.entities.push(ent);
+                tower.barrelEnts.push(ent);
             }
             break;
+        }
 
         case 'freeze':
             // Diamond (rotated square)
@@ -902,18 +972,19 @@ function _addTowerDecoration(k, tower, cx, cy, r, g, b) {
             break;
 
         case 'mortar':
-            // Large angled barrel
+            // Large barrel centered on tower, rotates toward target on fire
             ent = k.add([
-                k.pos(cx + 5, cy - 8),
+                k.pos(cx, cy),
                 k.rect(8, 18, { radius: 2 }),
                 k.color(160, 160, 160),
-                k.rotate(-25),
                 k.anchor('center'),
+                k.rotate(0),
                 k.z(6),
                 'tower',
                 { col: tower.col, row: tower.row },
             ]);
             tower.entities.push(ent);
+            tower.barrelEnt = ent;
             break;
     }
 }
@@ -922,7 +993,9 @@ function _destroyTowerEntities(tower) {
     for (const e of tower.entities) {
         if (e && e.exists()) e.destroy();
     }
-    tower.entities = [];
+    tower.entities  = [];
+    tower.barrelEnt  = null;
+    tower.barrelEnts = null;
 }
 
 // ============================================================
