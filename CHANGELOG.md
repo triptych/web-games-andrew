@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-02-22
+
+### Changed
+- **Chronicles of the Ember Crown** (game-009): Party sprite layout overhaul
+  - Warrior and rogue moved to front row; mage and healer to back row (2-column grid)
+  - Front row sprites rendered at h=130, back row at h=105 for subtle depth effect
+  - Group vertically centered in battlefield area
+  - Updated `BATTLE.PARTY_X/Y` in [game-009/js/config.js](game-009/js/config.js) and `HERO_DEFS` in [game-009/js/battleRenderer.js](game-009/js/battleRenderer.js)
+
 ## [2.1.0] - 2026-02-21
 
 ### Added

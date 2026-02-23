@@ -140,16 +140,19 @@ export const LEVEL_UP_GROWTH = {
 // --- Battle layout constants ---
 export const BATTLE = {
     // Enemy sprites (right side, 3 slots)
-    ENEMY_X:  [760, 920, 1080],
+    ENEMY_X:  [720, 920, 1120],
     ENEMY_Y:  [200, 250, 180],
     ENEMY_W:  100,
     ENEMY_H:  120,
 
-    // Party sprites (left side, single column)
-    PARTY_X:  [100, 100, 100, 100],
-    PARTY_Y:  [85, 190, 295, 400],
-    PARTY_W:  80,
-    PARTY_H:  100,
+    // Party sprites (left side, 2-column grid)
+    // Back col x=70 (mage, healer), front col x=230 (warrior, rogue)
+    // Row 1 y=169, Row 2 y=334 — group vertically centered in battlefield (y=36–480)
+    // Indexed by party slot: warrior=0, mage=1, healer=2, rogue=3
+    PARTY_X:  [230, 70, 70, 230],
+    PARTY_Y:  [169, 169, 334, 334],
+    PARTY_W:  110,
+    PARTY_H:  130,
 
     // Command panel
     PANEL_X:  20,

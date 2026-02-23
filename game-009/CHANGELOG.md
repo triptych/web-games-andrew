@@ -1,5 +1,15 @@
 # Game 009 — Chronicles of the Ember Crown: Changelog
 
+## v0.3.0 — 2026-02-22
+
+### Changed
+- **Party sprite layout** — switched from single column to 2-column grid; warrior and rogue moved to front row, mage and healer to back row
+- **Sprite sizing** — front row heroes rendered at h=130, back row at h=105 to convey depth; group vertically centered in the battlefield
+- Per-hero height now defined per-class in `HERO_DEFS` (replacing the single `HERO_H` constant) in `battleRenderer.js`
+- `BATTLE.PARTY_X/Y` in `config.js` updated to reflect 2-column positions
+
+---
+
 ## v0.2.0 — 2026-02-22
 
 ### Added

@@ -42,7 +42,7 @@ function _drawBackground(region, isBoss) {
     _k.destroyAll('battleBg');
 
     // Main battlefield area (above the bottom panels)
-    const bgColor = isBoss ? [30, 10, 10] : [10, 8, 24];
+    const bgColor = isBoss ? [0, 0, 0] : [0, 0, 0];
     _k.add([
         _k.pos(0, 36),
         _k.rect(GAME_WIDTH, BATTLE.PANEL_Y - 36),
@@ -78,12 +78,12 @@ function _drawBackground(region, isBoss) {
 // Per-hero config: natural aspect ratio (w/h) and whether to flip to face right.
 // Images have black JPEG backgrounds; additive blend makes black invisible.
 // Height is fixed at HERO_H; width is derived from the natural aspect ratio.
-const HERO_H = 90;
+// Front row (warrior, rogue) are larger to convey depth
 const HERO_DEFS = {
-    warrior: { sprite: 'warrior', ratio: 562 / 423, flip: true  },
-    mage:    { sprite: 'mage',    ratio: 550 / 583, flip: true  },
-    healer:  { sprite: 'healer',  ratio: 472 / 634, flip: false },
-    rogue:   { sprite: 'rogue',   ratio: 654 / 519, flip: true  },
+    warrior: { sprite: 'warrior', ratio: 562 / 423, flip: true,  h: 130 },
+    mage:    { sprite: 'mage',    ratio: 550 / 583, flip: true,  h: 105 },
+    healer:  { sprite: 'healer',  ratio: 472 / 634, flip: false, h: 105 },
+    rogue:   { sprite: 'rogue',   ratio: 654 / 519, flip: true,  h: 130 },
 };
 
 function _drawPartySprites() {
@@ -93,14 +93,15 @@ function _drawPartySprites() {
     state.party.forEach((member, i) => {
         const x    = BATTLE.PARTY_X[i];
         const y    = BATTLE.PARTY_Y[i];
-        const def  = HERO_DEFS[member.classId];
-        const heroW = Math.round(HERO_H * def.ratio);
+        const def   = HERO_DEFS[member.classId];
+        const heroH = def.h;
+        const heroW = Math.round(heroH * def.ratio);
 
         // Hero image — additive blend makes the black JPEG background invisible.
         // flip: k.scale(-1, 1) mirrors on X so characters face right toward enemies.
         const sprite = _k.add([
             _k.pos(x, y),
-            _k.sprite(def.sprite, { width: heroW, height: HERO_H }),
+            _k.sprite(def.sprite, { width: heroW, height: heroH }),
             _k.color(255, 255, 255),
             _k.scale(def.flip ? -1 : 1, 1),
             _k.anchor('center'),
@@ -112,7 +113,7 @@ function _drawPartySprites() {
 
         // Name label beneath
         _k.add([
-            _k.pos(x, y + HERO_H / 2 + 4),
+            _k.pos(x, y + heroH / 2 + 4),
             _k.text(member.name, { size: 10 }),
             _k.color(...member.color),
             _k.anchor('top'),
@@ -249,10 +250,21 @@ function _onBattleReady() {
 
 function _onAnimateAction(data) {
     if (data.type === 'hit' || data.type === 'magic') {
-        // Flash the target
+        // Slide the actor forward toward their target
+        const actorSprite = _partySprites.get(data.actorId) ??
+                            _enemySprites.get(data.actorId);
+        if (actorSprite) {
+            const isParty = _partySprites.has(data.actorId);
+            _slideSprite(actorSprite, isParty ? 40 : -40);
+        }
+
+        // Shudder + flash the target
         const targetSprite = _enemySprites.get(data.targetId) ??
                              _partySprites.get(data.targetId);
-        if (targetSprite) _flashSprite(targetSprite);
+        if (targetSprite) {
+            _flashSprite(targetSprite);
+            _shudderSprite(targetSprite);
+        }
 
         // Floating damage number
         const pos = _getSpritePos(data.targetId);
@@ -306,6 +318,59 @@ function _flashSprite(sprite) {
             sprite.color = _k.rgb(...flashColor);
         } else {
             sprite.color = _k.rgb(orig[0], orig[1], orig[2]);
+            done = true;
+            handle.cancel();
+        }
+    });
+}
+
+// ----------------------------------------------------------------
+// Attack slide helper — slides sprite dx pixels forward then back
+// ----------------------------------------------------------------
+
+function _slideSprite(sprite, dx) {
+    const origin = { x: sprite.pos.x, y: sprite.pos.y };
+    let timer = 0;
+    let done  = false;
+    const DUR = 0.18; // total duration seconds
+
+    const handle = sprite.onUpdate(() => {
+        if (done) return;
+        timer += _k.dt();
+        const t = Math.min(timer / DUR, 1);
+        // ease out-in: go forward first half, return second half
+        const offset = t < 0.5
+            ? dx * (t / 0.5)
+            : dx * (1 - (t - 0.5) / 0.5);
+        sprite.pos = _k.vec2(origin.x + offset, origin.y);
+        if (t >= 1) {
+            sprite.pos = _k.vec2(origin.x, origin.y);
+            done = true;
+            handle.cancel();
+        }
+    });
+}
+
+// ----------------------------------------------------------------
+// Hit shudder helper — rapid left/right shake
+// ----------------------------------------------------------------
+
+function _shudderSprite(sprite) {
+    const origin = { x: sprite.pos.x, y: sprite.pos.y };
+    let timer = 0;
+    let done  = false;
+    const DUR = 0.25;
+    const AMP = 6; // px
+
+    const handle = sprite.onUpdate(() => {
+        if (done) return;
+        timer += _k.dt();
+        const t = Math.min(timer / DUR, 1);
+        const decay = 1 - t;
+        const offset = Math.sin(timer * 80) * AMP * decay;
+        sprite.pos = _k.vec2(origin.x + offset, origin.y);
+        if (t >= 1) {
+            sprite.pos = _k.vec2(origin.x, origin.y);
             done = true;
             handle.cancel();
         }
