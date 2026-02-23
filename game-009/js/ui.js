@@ -6,6 +6,7 @@
 import { state }  from './state.js';
 import { events } from './events.js';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS, BATTLE } from './config.js';
+import { playLevelUp } from './sounds.js';
 
 let k;
 
@@ -102,11 +103,13 @@ function _buildStatusPanel() {
             k.z(92),
         ]);
 
-        // HP bar fill
+        // HP bar fill — color based on initial HP fraction
+        const _initHpFrac = member.hp / member.maxHp;
+        const _initHpColor = _initHpFrac > 0.5 ? COLORS.success : _initHpFrac > 0.25 ? COLORS.accent : COLORS.danger;
         const hpBar = k.add([
             k.pos(colX + 120, rowY),
-            k.rect(160, 10),
-            k.color(...COLORS.danger),
+            k.rect(Math.round(160 * _initHpFrac), 10),
+            k.color(..._initHpColor),
             k.anchor('topleft'),
             k.z(93),
         ]);
@@ -147,6 +150,33 @@ function _buildStatusPanel() {
             k.z(92),
         ]);
 
+        // XP bar background
+        k.add([
+            k.pos(colX + 120, rowY + 26),
+            k.rect(290, 7),
+            k.color(30, 15, 50),
+            k.anchor('topleft'),
+            k.z(92),
+        ]);
+
+        // XP bar fill
+        const xpBar = k.add([
+            k.pos(colX + 120, rowY + 26),
+            k.rect(Math.round(290 * (member.xp / member.xpToNext)), 7),
+            k.color(...COLORS.xp),
+            k.anchor('topleft'),
+            k.z(93),
+        ]);
+
+        // XP text
+        const xpLabel = k.add([
+            k.pos(colX + 120, rowY + 35),
+            k.text(`XP ${member.xp}/${member.xpToNext}`, { size: 10 }),
+            k.color(...COLORS.xp),
+            k.anchor('topleft'),
+            k.z(92),
+        ]);
+
         // Status / buff icon area
         const statusLabel = k.add([
             k.pos(colX + 420, rowY),
@@ -163,7 +193,7 @@ function _buildStatusPanel() {
             k.z(92),
         ]);
 
-        _statusRows.push({ nameLabel, hpBar, hpLabel, mpBar, mpLabel, statusLabel, buffLabel, member });
+        _statusRows.push({ nameLabel, hpBar, hpLabel, mpBar, mpLabel, xpBar, xpLabel, statusLabel, buffLabel, member });
     });
 }
 
@@ -182,6 +212,10 @@ export function refreshStatus() {
         row.mpBar.width  = Math.round(100 * mpFrac);
         row.mpLabel.text = `MP ${Math.max(0, m.mp)}/${m.maxMp}`;
         row.nameLabel.text = `${m.name} Lv${m.level}`;
+
+        const xpFrac = m.xpToNext > 0 ? Math.min(1, m.xp / m.xpToNext) : 1;
+        row.xpBar.width  = Math.round(290 * xpFrac);
+        row.xpLabel.text = `XP ${m.xp}/${m.xpToNext}`;
 
         // HP bar color shifts green → yellow → red
         if (hpFrac > 0.5) {
@@ -262,6 +296,70 @@ export function showGameOver() {
 }
 
 // -------------------------------------------------------
+// Level-up overlay
+// -------------------------------------------------------
+
+// Queue of pending level-up cards to show sequentially
+let _levelUpQueue = [];
+let _levelUpShowing = false;
+
+export function showLevelUpCard(member, newLevel, gains) {
+    _levelUpQueue.push({ member, newLevel, gains });
+    if (!_levelUpShowing) _showNextLevelUp();
+}
+
+function _showNextLevelUp() {
+    if (_levelUpQueue.length === 0) { _levelUpShowing = false; return; }
+    _levelUpShowing = true;
+
+    const { member, newLevel, gains } = _levelUpQueue.shift();
+    playLevelUp();
+
+    const CX = GAME_WIDTH  / 2;
+    const CY = GAME_HEIGHT / 2;
+    const W  = 380;
+    const H  = 220;
+
+    const tag = 'levelUpOverlay';
+
+    // Dark-tinted card
+    k.add([k.pos(CX - W / 2, CY - H / 2), k.rect(W, H), k.color(...COLORS.panel), k.opacity(0.95), k.anchor('topleft'), k.z(210), tag]);
+    k.add([k.pos(CX - W / 2, CY - H / 2), k.rect(W, H), k.outline(2, k.rgb(...COLORS.xp)), k.color(...COLORS.panel), k.anchor('topleft'), k.z(211), tag]);
+
+    // Header
+    k.add([k.pos(CX, CY - H / 2 + 18), k.text('LEVEL UP!', { size: 22 }), k.color(...COLORS.xp), k.anchor('top'), k.z(212), tag]);
+    k.add([k.pos(CX, CY - H / 2 + 48), k.text(`${member.name}  Lv ${newLevel - 1} -> Lv ${newLevel}`, { size: 15 }), k.color(...member.color), k.anchor('top'), k.z(212), tag]);
+
+    // Stat gains
+    const statNames = { hp: 'HP', mp: 'MP', atk: 'ATK', def: 'DEF', mag: 'MAG', spd: 'SPD' };
+    const gainLines = Object.entries(gains)
+        .filter(([, v]) => v > 0)
+        .map(([stat, v]) => `${statNames[stat] ?? stat}  +${v}`)
+        .join('   ');
+
+    k.add([k.pos(CX, CY - H / 2 + 76), k.text(gainLines, { size: 13 }), k.color(...COLORS.success), k.anchor('top'), k.z(212), tag]);
+
+    // Prompt
+    k.add([k.pos(CX, CY + H / 2 - 16), k.text('Press SPACE or ENTER', { size: 11 }), k.color(...COLORS.accent), k.anchor('bot'), k.z(212), tag]);
+
+    // Dismiss on space or enter — one-shot handlers
+    let dismissed = false;
+    const dismiss = () => {
+        if (dismissed) return;
+        dismissed = true;
+        h1.cancel(); h2.cancel();
+        k.destroyAll(tag);
+        refreshStatus();     // update level shown in status panel
+        k.wait(0.1, _showNextLevelUp);
+    };
+    const h1 = k.onKeyPress('space', dismiss);
+    const h2 = k.onKeyPress('enter', dismiss);
+
+    // Also auto-dismiss after 4 s so the game never gets stuck
+    k.wait(4, () => { if (!dismissed) dismiss(); });
+}
+
+// -------------------------------------------------------
 // Event subscriptions
 // -------------------------------------------------------
 
@@ -271,6 +369,7 @@ function _subscribeEvents() {
         events.on('goldChanged',  (v) => { _goldLabel.text  = `GOLD  ${v}`; }),
         events.on('gameOver',     ()  => showGameOver()),
         events.on('showMessage',  (text, color) => showMessage(text, color)),
+        events.on('levelUp',      (member, newLevel, gains) => showLevelUpCard(member, newLevel, gains)),
     ];
     k.onSceneLeave(() => offs.forEach(off => off()));
 }

@@ -17,6 +17,7 @@
 import { events }   from './events.js';
 import { state }    from './state.js';
 import { ABILITY_DEFS, ENEMY_DEFS, ENCOUNTERS, SHOP_ITEMS } from './config.js';
+import { shouldShowShop } from './overworld.js';
 import { refreshStatus, showVictoryScreen } from './ui.js';
 import {
     playPhysicalHit, playMagicCast, playFireSpell, playIceSpell,
@@ -556,6 +557,7 @@ function _checkVictory() {
     // Total XP from this encounter
     const totalXP = state.enemies.reduce((sum, e) => sum + e.xp, 0);
     state.awardXP(totalXP);
+    refreshStatus();   // update XP bars immediately after award
 
     playVictoryFanfare();
 
@@ -604,6 +606,7 @@ export function startNextEncounter() {
 }
 
 function _advanceEncounter() {
+    const completedIndex = state.encounterIndex;
     state.encounterIndex++;
 
     // Destroy victory overlay before anything else
@@ -618,6 +621,10 @@ function _advanceEncounter() {
     // Reset phase so _onBattleStart's guard passes
     _phase = 'idle';
 
-    // TODO Phase 4: show shop every 2–3 encounters
-    startNextEncounter();
+    // Show shop after certain encounters, then continue
+    if (shouldShowShop(completedIndex)) {
+        events.emit('showShop', () => startNextEncounter());
+    } else {
+        startNextEncounter();
+    }
 }

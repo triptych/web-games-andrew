@@ -3,7 +3,7 @@
 **Genre:** Turn-Based RPG (Early Final Fantasy style)
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Active — Phase 4
+**Status:** Active — Phase 5
 
 ---
 
@@ -194,13 +194,13 @@ Difficulty increases through: higher enemy HP/ATK/DEF, multi-enemy encounters, a
 - [x] `Run` action — 50% flee chance, blocked vs bosses (already in Phase 2; confirmed working)
 - [x] Buff/status icons in status panel (PSN, KO, ATK+, DEF+, ACC-)
 
-### Phase 4 — Progression & Economy (current)
-- [ ] XP distribution and level-up animation
-- [ ] Stat growth on level-up (random within growth table)
-- [ ] Shop overlay between encounters (every 2–3 fights)
-- [ ] Inventory management in shop
+### Phase 4 — Progression & Economy ✅ COMPLETE (2026-02-22)
+- [x] XP distribution and level-up animation (sequential card overlays, auto-dismiss after 4s)
+- [x] Stat growth on level-up (random within growth table, already in state.js Phase 1)
+- [x] Shop overlay between encounters (after encounters 2, 5, 8, 10 — pre-boss Dragon)
+- [x] Inventory management in shop (keyboard-navigable buy menu, affordability check)
 
-### Phase 5 — Polish & Feel
+### Phase 5 — Polish & Feel (current)
 - [ ] Battle animations: hit flash, shake, floating damage numbers
 - [ ] Transition effects: battle start flash, victory fanfare delay
 - [ ] Region/background art per area (drawn with Kaplay primitives)
@@ -275,6 +275,17 @@ Difficulty increases through: higher enemy HP/ATK/DEF, multi-enemy encounters, a
 - Shop items and economy constants defined
 - 20+ procedural sound effects stubbed in sounds.js
 - Status panel UI with HP/MP bars and color-coded health
+
+### Phase 4 — Progression & Economy (2026-02-22)
+- overworld.js: new module — shop trigger logic, keyboard-navigable buy overlay
+- overworld.js: SHOP_AFTER set defines which encounter indices trigger a shop (1, 4, 7, 9)
+- overworld.js: _openShop/_closeShop manage overlay entities tagged 'shopOverlay'; _leaveShop calls onClose callback
+- overworld.js: _tryBuy checks gold, deducts cost, increments inventory, refreshes row display
+- ui.js: showLevelUpCard queues sequential per-member level-up card overlays
+- ui.js: cards show member name, level transition, stat gains; dismiss on Space/Enter or auto after 4s
+- ui.js: levelUp event wired in _subscribeEvents
+- battle.js: _advanceEncounter checks shouldShowShop(completedIndex); emits 'showShop' with onClose=startNextEncounter
+- main.js: initOverworld(k) called in 'game' scene setup
 
 ### Phase 3 — Abilities & Status Effects (2026-02-22)
 - battle.js: atkUp/defUp/accDown modifiers applied in _physDmg; _doesMiss helper (30% miss on accDown)

@@ -60,6 +60,10 @@ const MAIN_ACTIONS = [
 // Public init
 // ----------------------------------------------------------------
 
+export function isCommandMenuInSubPhase() {
+    return _phase === 'ability' || _phase === 'item' || _phase === 'target';
+}
+
 export function initCommandMenu(kaplay) {
     _k = kaplay;
     initMessageLog();
@@ -242,30 +246,30 @@ function _registerItemKeys() {
     const usable = _getUsableItems();
     const n = usable.length;
 
-    _keyHandlers.push(_k.onKeyPress('up',   () => {
+    _keyHandlers.push(_k.onKeyPress('up',   _ifActive(() => {
         if (n === 0) return;
         _itemIndex = (_itemIndex - 1 + n) % n;
         playMenuMove(); _renderItemMenu();
-    }));
-    _keyHandlers.push(_k.onKeyPress('w',    () => {
+    })));
+    _keyHandlers.push(_k.onKeyPress('w',    _ifActive(() => {
         if (n === 0) return;
         _itemIndex = (_itemIndex - 1 + n) % n;
         playMenuMove(); _renderItemMenu();
-    }));
-    _keyHandlers.push(_k.onKeyPress('down', () => {
+    })));
+    _keyHandlers.push(_k.onKeyPress('down', _ifActive(() => {
         if (n === 0) return;
         _itemIndex = (_itemIndex + 1) % n;
         playMenuMove(); _renderItemMenu();
-    }));
-    _keyHandlers.push(_k.onKeyPress('s',    () => {
+    })));
+    _keyHandlers.push(_k.onKeyPress('s',    _ifActive(() => {
         if (n === 0) return;
         _itemIndex = (_itemIndex + 1) % n;
         playMenuMove(); _renderItemMenu();
-    }));
-    _keyHandlers.push(_k.onKeyPress('space',     () => _itemConfirm(usable)));
-    _keyHandlers.push(_k.onKeyPress('enter',     () => _itemConfirm(usable)));
-    _keyHandlers.push(_k.onKeyPress('escape',    () => { playMenuBack(); _enterPhase('main'); }));
-    _keyHandlers.push(_k.onKeyPress('backspace', () => { playMenuBack(); _enterPhase('main'); }));
+    })));
+    _keyHandlers.push(_k.onKeyPress('space',     _ifActive(() => _itemConfirm(usable))));
+    _keyHandlers.push(_k.onKeyPress('enter',     _ifActive(() => _itemConfirm(usable))));
+    _keyHandlers.push(_k.onKeyPress('escape',    _ifActive(() => { playMenuBack(); _enterPhase('main'); })));
+    _keyHandlers.push(_k.onKeyPress('backspace', _ifActive(() => { playMenuBack(); _enterPhase('main'); })));
 }
 
 function _itemConfirm(usable) {
@@ -322,13 +326,18 @@ function _cancelKeyHandlers() {
     _keyHandlers = [];
 }
 
+// Wrap a key callback so it no-ops while the escape/pause menu is open.
+function _ifActive(fn) {
+    return (...args) => { if (!state.isPaused) fn(...args); };
+}
+
 function _registerMainKeys() {
-    _keyHandlers.push(_k.onKeyPress('up',    _mainUp));
-    _keyHandlers.push(_k.onKeyPress('w',     _mainUp));
-    _keyHandlers.push(_k.onKeyPress('down',  _mainDown));
-    _keyHandlers.push(_k.onKeyPress('s',     _mainDown));
-    _keyHandlers.push(_k.onKeyPress('space', _mainConfirm));
-    _keyHandlers.push(_k.onKeyPress('enter', _mainConfirm));
+    _keyHandlers.push(_k.onKeyPress('up',    _ifActive(_mainUp)));
+    _keyHandlers.push(_k.onKeyPress('w',     _ifActive(_mainUp)));
+    _keyHandlers.push(_k.onKeyPress('down',  _ifActive(_mainDown)));
+    _keyHandlers.push(_k.onKeyPress('s',     _ifActive(_mainDown)));
+    _keyHandlers.push(_k.onKeyPress('space', _ifActive(_mainConfirm)));
+    _keyHandlers.push(_k.onKeyPress('enter', _ifActive(_mainConfirm)));
 }
 
 function _mainUp() {
@@ -389,14 +398,14 @@ function _mainConfirm() {
 function _registerAbilityKeys() {
     const abilities = CLASS_ABILITIES[_actor.classId] ?? [];
 
-    _keyHandlers.push(_k.onKeyPress('up',        () => { _abilityIndex = (_abilityIndex - 1 + abilities.length) % abilities.length; playMenuMove(); _renderAbilityMenu(); }));
-    _keyHandlers.push(_k.onKeyPress('w',         () => { _abilityIndex = (_abilityIndex - 1 + abilities.length) % abilities.length; playMenuMove(); _renderAbilityMenu(); }));
-    _keyHandlers.push(_k.onKeyPress('down',      () => { _abilityIndex = (_abilityIndex + 1) % abilities.length; playMenuMove(); _renderAbilityMenu(); }));
-    _keyHandlers.push(_k.onKeyPress('s',         () => { _abilityIndex = (_abilityIndex + 1) % abilities.length; playMenuMove(); _renderAbilityMenu(); }));
-    _keyHandlers.push(_k.onKeyPress('space',     () => _abilityConfirm(abilities)));
-    _keyHandlers.push(_k.onKeyPress('enter',     () => _abilityConfirm(abilities)));
-    _keyHandlers.push(_k.onKeyPress('escape',    () => { playMenuBack(); _enterPhase('main'); }));
-    _keyHandlers.push(_k.onKeyPress('backspace', () => { playMenuBack(); _enterPhase('main'); }));
+    _keyHandlers.push(_k.onKeyPress('up',        _ifActive(() => { _abilityIndex = (_abilityIndex - 1 + abilities.length) % abilities.length; playMenuMove(); _renderAbilityMenu(); })));
+    _keyHandlers.push(_k.onKeyPress('w',         _ifActive(() => { _abilityIndex = (_abilityIndex - 1 + abilities.length) % abilities.length; playMenuMove(); _renderAbilityMenu(); })));
+    _keyHandlers.push(_k.onKeyPress('down',      _ifActive(() => { _abilityIndex = (_abilityIndex + 1) % abilities.length; playMenuMove(); _renderAbilityMenu(); })));
+    _keyHandlers.push(_k.onKeyPress('s',         _ifActive(() => { _abilityIndex = (_abilityIndex + 1) % abilities.length; playMenuMove(); _renderAbilityMenu(); })));
+    _keyHandlers.push(_k.onKeyPress('space',     _ifActive(() => _abilityConfirm(abilities))));
+    _keyHandlers.push(_k.onKeyPress('enter',     _ifActive(() => _abilityConfirm(abilities))));
+    _keyHandlers.push(_k.onKeyPress('escape',    _ifActive(() => { playMenuBack(); _enterPhase('main'); })));
+    _keyHandlers.push(_k.onKeyPress('backspace', _ifActive(() => { playMenuBack(); _enterPhase('main'); })));
 }
 
 function _abilityConfirm(abilities) {
@@ -438,14 +447,14 @@ function _abilityConfirm(abilities) {
 function _registerTargetKeys() {
     const n = _currentTargets.length;
 
-    _keyHandlers.push(_k.onKeyPress('up',    () => { _targetIndex = (_targetIndex - 1 + n) % n; playMenuMove(); _renderTargetMenu(); }));
-    _keyHandlers.push(_k.onKeyPress('left',  () => { _targetIndex = (_targetIndex - 1 + n) % n; playMenuMove(); _renderTargetMenu(); }));
-    _keyHandlers.push(_k.onKeyPress('down',  () => { _targetIndex = (_targetIndex + 1) % n; playMenuMove(); _renderTargetMenu(); }));
-    _keyHandlers.push(_k.onKeyPress('right', () => { _targetIndex = (_targetIndex + 1) % n; playMenuMove(); _renderTargetMenu(); }));
-    _keyHandlers.push(_k.onKeyPress('space', _targetConfirm));
-    _keyHandlers.push(_k.onKeyPress('enter', _targetConfirm));
-    _keyHandlers.push(_k.onKeyPress('escape',    _targetBack));
-    _keyHandlers.push(_k.onKeyPress('backspace', _targetBack));
+    _keyHandlers.push(_k.onKeyPress('up',    _ifActive(() => { _targetIndex = (_targetIndex - 1 + n) % n; playMenuMove(); _renderTargetMenu(); })));
+    _keyHandlers.push(_k.onKeyPress('left',  _ifActive(() => { _targetIndex = (_targetIndex - 1 + n) % n; playMenuMove(); _renderTargetMenu(); })));
+    _keyHandlers.push(_k.onKeyPress('down',  _ifActive(() => { _targetIndex = (_targetIndex + 1) % n; playMenuMove(); _renderTargetMenu(); })));
+    _keyHandlers.push(_k.onKeyPress('right', _ifActive(() => { _targetIndex = (_targetIndex + 1) % n; playMenuMove(); _renderTargetMenu(); })));
+    _keyHandlers.push(_k.onKeyPress('space', _ifActive(_targetConfirm)));
+    _keyHandlers.push(_k.onKeyPress('enter', _ifActive(_targetConfirm)));
+    _keyHandlers.push(_k.onKeyPress('escape',    _ifActive(_targetBack)));
+    _keyHandlers.push(_k.onKeyPress('backspace', _ifActive(_targetBack)));
 }
 
 function _targetConfirm() {

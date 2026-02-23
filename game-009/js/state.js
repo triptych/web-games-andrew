@@ -148,6 +148,89 @@ class GameState {
         }
         return gains;
     }
+
+    // -------------------------------------------------------
+    // Save / Load  (localStorage)
+    // -------------------------------------------------------
+    static get _SAVE_KEY() { return 'emberCrown_save_v1'; }
+
+    hasSave() {
+        return !!localStorage.getItem(GameState._SAVE_KEY);
+    }
+
+    save() {
+        const data = {
+            score:          this._score,
+            gold:           this._gold,
+            lives:          this._lives,
+            encounterIndex: this.encounterIndex,
+            inventory:      { ...this.inventory },
+            party: this._party.map(m => ({
+                classId:       m.classId,
+                name:          m.name,
+                level:         m.level,
+                xp:            m.xp,
+                xpToNext:      m.xpToNext,
+                hp:            m.hp,
+                maxHp:         m.maxHp,
+                mp:            m.mp,
+                maxMp:         m.maxMp,
+                atk:           m.atk,
+                def:           m.def,
+                mag:           m.mag,
+                spd:           m.spd,
+                isKO:          m.isKO,
+                statusEffects: m.statusEffects.slice(),
+                buffs:         { ...m.buffs },
+            })),
+        };
+        localStorage.setItem(GameState._SAVE_KEY, JSON.stringify(data));
+    }
+
+    load() {
+        const raw = localStorage.getItem(GameState._SAVE_KEY);
+        if (!raw) return false;
+        try {
+            const data = JSON.parse(raw);
+            this.reset();   // establish defaults first
+
+            this._score          = data.score          ?? this._score;
+            this._gold           = data.gold           ?? this._gold;
+            this._lives          = data.lives          ?? this._lives;
+            this.encounterIndex  = data.encounterIndex ?? 0;
+            this.inventory       = { ...this.inventory, ...data.inventory };
+
+            if (Array.isArray(data.party)) {
+                this._party = data.party.map(saved => {
+                    const def = PARTY_DEFS[saved.classId];
+                    return {
+                        classId:       saved.classId,
+                        name:          saved.name,
+                        level:         saved.level,
+                        xp:            saved.xp,
+                        xpToNext:      saved.xpToNext,
+                        hp:            saved.hp,
+                        maxHp:         saved.maxHp,
+                        mp:            saved.mp,
+                        maxMp:         saved.maxMp,
+                        atk:           saved.atk,
+                        def:           saved.def,
+                        mag:           saved.mag,
+                        spd:           saved.spd,
+                        color:         def.color,
+                        abilities:     CLASS_ABILITIES[saved.classId].slice(),
+                        statusEffects: saved.statusEffects ?? [],
+                        buffs:         saved.buffs ?? {},
+                        isKO:          saved.isKO  ?? false,
+                    };
+                });
+            }
+            return true;
+        } catch (e) {
+            console.warn('Save load failed:', e);
+            return false;
+        }
+    }
 }
 
 export const state = new GameState();
