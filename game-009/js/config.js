@@ -145,9 +145,9 @@ export const BATTLE = {
     ENEMY_W:  100,
     ENEMY_H:  120,
 
-    // Party sprites (left side, 4 slots)
-    PARTY_X:  [120, 200, 120, 200],
-    PARTY_Y:  [300, 260, 400, 360],
+    // Party sprites (left side, single column)
+    PARTY_X:  [100, 100, 100, 100],
+    PARTY_Y:  [85, 190, 295, 400],
     PARTY_W:  80,
     PARTY_H:  100,
 
