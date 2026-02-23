@@ -599,7 +599,7 @@ export function startNextEncounter() {
         return;
     }
 
-    const enemyDefs = enc.enemies.map(type => ({ ...ENEMY_DEFS[type] }));
+    const enemyDefs = enc.enemies.map(type => ({ ...ENEMY_DEFS[type], type }));
     events.emit('battleStart', enemyDefs);
 }
 

@@ -75,40 +75,44 @@ function _drawBackground(region, isBoss) {
 // Party sprites (left side, fixed positions)
 // ----------------------------------------------------------------
 
+// Per-hero config: natural aspect ratio (w/h) and whether to flip to face right.
+// Images have black JPEG backgrounds; additive blend makes black invisible.
+// Height is fixed at HERO_H; width is derived from the natural aspect ratio.
+const HERO_H = 90;
+const HERO_DEFS = {
+    warrior: { sprite: 'warrior', ratio: 562 / 423, flip: true  },
+    mage:    { sprite: 'mage',    ratio: 550 / 583, flip: true  },
+    healer:  { sprite: 'healer',  ratio: 472 / 634, flip: false },
+    rogue:   { sprite: 'rogue',   ratio: 654 / 519, flip: true  },
+};
+
 function _drawPartySprites() {
     _k.destroyAll('partySprite');
     _partySprites.clear();
 
     state.party.forEach((member, i) => {
-        const x = BATTLE.PARTY_X[i];
-        const y = BATTLE.PARTY_Y[i];
-        const w = BATTLE.PARTY_W;
-        const h = BATTLE.PARTY_H;
+        const x    = BATTLE.PARTY_X[i];
+        const y    = BATTLE.PARTY_Y[i];
+        const def  = HERO_DEFS[member.classId];
+        const heroW = Math.round(HERO_H * def.ratio);
 
-        // Body
+        // Hero image — additive blend makes the black JPEG background invisible.
+        // flip: k.scale(-1, 1) mirrors on X so characters face right toward enemies.
         const sprite = _k.add([
             _k.pos(x, y),
-            _k.rect(w, h),
-            _k.color(...member.color),
+            _k.sprite(def.sprite, { width: heroW, height: HERO_H }),
+            _k.color(255, 255, 255),
+            _k.scale(def.flip ? -1 : 1, 1),
             _k.anchor('center'),
             _k.opacity(member.isKO ? 0.3 : 1),
+            _k.blend('add'),
             _k.z(10),
-            'partySprite',
-        ]);
-
-        // Class initial text inside sprite
-        _k.add([
-            _k.pos(x, y),
-            _k.text(member.name[0], { size: 28 }),
-            _k.color(255, 255, 255),
-            _k.anchor('center'),
-            _k.z(11),
             'partySprite',
         ]);
 
         // Name label beneath
         _k.add([
-            _k.pos(x, y + h / 2 + 8),
+            _k.pos(x, y + HERO_H / 2 + 4),
             _k.text(member.name, { size: 10 }),
             _k.color(...member.color),
             _k.anchor('top'),
@@ -124,43 +128,46 @@ function _drawPartySprites() {
 // Enemy sprites (right side)
 // ----------------------------------------------------------------
 
+// Natural image dimensions (w×h px) — used to preserve aspect ratio.
+// Height is fixed at BATTLE.ENEMY_H; width is derived from ratio.
+const ENEMY_RATIOS = {
+    goblin:    617 / 499,
+    skeleton:  528 / 526,
+    orc:       598 / 449,
+    darkElf:   654 / 540,
+    golem:     780 / 651,
+    dragon:    854 / 790,
+    lichKing:  867 / 677,
+};
+
 function _drawEnemySprites() {
     _k.destroyAll('enemySprite');
     _enemySprites.clear();
     _enemyHpBars.clear();
 
     state.enemies.forEach((enemy, i) => {
-        const x = BATTLE.ENEMY_X[i] ?? (BATTLE.ENEMY_X[0] + i * 160);
-        const y = BATTLE.ENEMY_Y[i] ?? BATTLE.ENEMY_Y[0];
-        const w = BATTLE.ENEMY_W;
-        const h = BATTLE.ENEMY_H;
+        const x     = BATTLE.ENEMY_X[i] ?? (BATTLE.ENEMY_X[0] + i * 160);
+        const y     = BATTLE.ENEMY_Y[i] ?? BATTLE.ENEMY_Y[0];
+        const h     = BATTLE.ENEMY_H;
+        const ratio = ENEMY_RATIOS[enemy.type] ?? 1;
+        const w     = Math.round(h * ratio);
         // Per-enemy tag so all its entities can be destroyed together on death
         const etag = `enemySlot_${enemy.id}`;
 
-        // Body
+        // Body — sprite image with additive blend (makes black JPEG background invisible)
         const sprite = _k.add([
             _k.pos(x, y),
-            _k.rect(w, h),
-            _k.color(...enemy.color),
+            _k.sprite(enemy.type, { width: w, height: h }),
+            _k.color(255, 255, 255),
             _k.anchor('center'),
             _k.opacity(1),
+            _k.blend('add'),
             _k.z(10),
             'enemySprite',
             etag,
         ]);
 
-        // Enemy name inside
-        _k.add([
-            _k.pos(x, y),
-            _k.text(enemy.name[0], { size: 22 }),
-            _k.color(255, 255, 255),
-            _k.anchor('center'),
-            _k.z(11),
-            'enemySprite',
-            etag,
-        ]);
-
-        // Name beneath
+        // Name label beneath sprite
         _k.add([
             _k.pos(x, y + h / 2 + 6),
             _k.text(enemy.name, { size: 10 }),
@@ -287,13 +294,16 @@ function _flashSprite(sprite) {
     let timer  = 0;
     let done   = false;
     const orig = [sprite.color.r, sprite.color.g, sprite.color.b];
+    // For sprite entities tinted white (255,255,255), flash red; otherwise flash white
+    const isWhiteTint = orig[0] === 255 && orig[1] === 255 && orig[2] === 255;
+    const flashColor = isWhiteTint ? [255, 80, 80] : [255, 255, 255];
 
     const handle = sprite.onUpdate(() => {
         if (done) return;
         timer += _k.dt();
         const t = Math.min(timer / 0.15, 1);
         if (t < 0.5) {
-            sprite.color = _k.rgb(255, 255, 255);
+            sprite.color = _k.rgb(...flashColor);
         } else {
             sprite.color = _k.rgb(orig[0], orig[1], orig[2]);
             done = true;

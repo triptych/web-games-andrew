@@ -1,5 +1,17 @@
 # Game 009 — Chronicles of the Ember Crown: Changelog
 
+## v0.2.0 — 2026-02-22
+
+### Added
+- **Enemy sprite images** — 7 monster PNGs added to `img/` (goblin, skeleton, orc, dark elf, stone golem, dragon, lich king)
+- **Enemy sprite rendering** — enemies now render as sprite images with additive blend (matching hero sprite technique); aspect ratios preserved per-enemy via `ENEMY_RATIOS` table; HP bar width tracks actual sprite width
+- **Enemy type propagation** — `type` key (e.g. `'goblin'`) now stored on each enemy combatant object so the renderer can look up the correct sprite and ratio
+
+### Changed
+- Enemy combatants previously displayed as colored rectangles with a letter initial; replaced with full sprite images
+
+---
+
 ## v0.1.0 — 2026-02-22
 
 ### Added

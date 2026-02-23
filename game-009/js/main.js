@@ -54,6 +54,21 @@ const k = kaplay({
     pixelDensity: Math.min(window.devicePixelRatio, 2),
 });
 
+// Load hero sprite images
+k.loadSprite('warrior', 'img/warrior_1.png');
+k.loadSprite('mage',    'img/wizard_1.png');
+k.loadSprite('healer',  'img/healer_1.png');
+k.loadSprite('rogue',   'img/rogue_1.png');
+
+// Load enemy sprite images
+k.loadSprite('goblin',    'img/goblin_1.png');
+k.loadSprite('skeleton',  'img/skeleton_1.png');
+k.loadSprite('orc',       'img/orc_1.png');
+k.loadSprite('darkElf',   'img/dark_elf_1.png');
+k.loadSprite('golem',     'img/stone_golem_1.png');
+k.loadSprite('dragon',    'img/dragon_boss_1.png');
+k.loadSprite('lichKing',  'img/lich_king_1.png');
+
 // ============================================================
 // SCENE: splash
 // ============================================================
