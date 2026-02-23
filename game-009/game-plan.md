@@ -267,6 +267,28 @@ Difficulty increases through: higher enemy HP/ATK/DEF, multi-enemy encounters, a
 
 ## Changelog
 
+### v0.4.0 — Journey Map (2026-02-23)
+- mapGen.js: new module — pure map graph generator with no Kaplay dependency
+- mapGen.js: generates 7-column branching network (Village → 5 mid cols → Boss) each run
+- mapGen.js: node types per column: start, battle×3, battle×2+rest, battle×2+shop, battle×3, battle, boss
+- mapGen.js: edges respect row order to avoid crossings; every destination node guaranteed at least one incoming edge
+- mapGen.js: battle nodes assigned shuffled encounter indices from the non-boss pool
+- mapPanel.js: new module — full-screen overlay rendering and keyboard interaction
+- mapPanel.js: draws all nodes (diamond=village, circle=battle, h=rest, $=shop, *=boss) with z-ordered lines
+- mapPanel.js: active path edges gold, visited edges dim purple, future edges near-invisible
+- mapPanel.js: pulsing glow on choosable next nodes; selection ring + "< choose" label on cursor
+- mapPanel.js: Up/Down to navigate choices, Space/Enter to confirm; no ESC (must choose)
+- mapPanel.js: updates state.currentNodeId and marks visited/available on confirm
+- state.js: added mapGraph and currentNodeId fields; generated fresh on reset(), serialised in save/load
+- battle.js: startNextEncounter() now map-driven — reads encounterIdx from current node
+- battle.js: start/rest/shop nodes (encounterIdx null) re-show the map rather than triggering gameWon
+- battle.js: _advanceEncounter() shows map after each victory; _applyNodeEffect handles rest heal and shop
+- battle.js: rest nodes heal 30% max HP to all living party members
+- battle.js: boss node runs Dragon (enc 10) then Lich King (enc 11) sequentially via _bossPhase counter
+- battle.js: removed shouldShowShop dependency; shop nodes handled directly via _applyNodeEffect
+- config.js: added MAP_CONFIG (NODES_PER_COL, NODE_TYPES_PER_COL)
+- main.js: initMapPanel(k) called in game scene setup
+
 ### Phase 1 — Scaffold (2026-02-22)
 - Initial scaffold: index.html, config, events, state, sounds, ui, main
 - Full party system in state.js with XP/levelling

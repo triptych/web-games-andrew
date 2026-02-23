@@ -137,6 +137,28 @@ export const LEVEL_UP_GROWTH = {
     rogue:   { hp: [10, 16], mp: [3, 7],  atk: [2, 4], def: [1, 2], mag: [0, 1], spd: [2, 4] },
 };
 
+// --- Map configuration ---
+// Column layout for the branching journey map (Slay-the-Spire style).
+// col 0 = Start Village (fixed), col 6 = Boss (fixed).
+// Inner columns have multiple nodes; types listed per column.
+export const MAP_CONFIG = {
+    // How many nodes exist in each column (index 0..6)
+    NODES_PER_COL: [1, 3, 3, 3, 3, 1, 1],
+
+    // Node type pool per column. One entry per node slot in that column.
+    // 'battle' | 'rest' | 'shop' | 'boss' | 'start'
+    // Rest/shop positions are shuffled within the column at generation time.
+    NODE_TYPES_PER_COL: [
+        ['start'],                              // col 0
+        ['battle', 'battle', 'battle'],         // col 1
+        ['battle', 'battle', 'rest'],           // col 2 — rest somewhere
+        ['battle', 'battle', 'shop'],           // col 3 — shop somewhere
+        ['battle', 'battle', 'battle'],         // col 4
+        ['battle'],                             // col 5 — pre-boss
+        ['boss'],                               // col 6
+    ],
+};
+
 // --- Battle layout constants ---
 export const BATTLE = {
     // Enemy sprites (right side, 3 slots)

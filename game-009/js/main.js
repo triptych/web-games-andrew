@@ -20,6 +20,7 @@ import { initBattle, startNextEncounter } from './battle.js';
 import { initBattleRenderer }  from './battleRenderer.js';
 import { initCommandMenu, isCommandMenuInSubPhase } from './commandMenu.js';
 import { initOverworld }       from './overworld.js';
+import { initMapPanel }        from './mapPanel.js';
 
 // ============================================================
 // KAPLAY API GOTCHAS (read before adding entities)
@@ -388,6 +389,7 @@ k.scene('game', (opts = {}) => {
     initBattle(k);
     initCommandMenu(k);
     initOverworld(k);
+    initMapPanel(k);
 
     // Listen for game-won event
     const offWon = events.on('gameWon', () => {

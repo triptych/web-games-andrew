@@ -1,5 +1,6 @@
 import { events } from './events.js';
 import { STARTING_SCORE, STARTING_LIVES, STARTING_GOLD, PARTY_DEFS, CLASS_ABILITIES, XP_TABLE, LEVEL_UP_GROWTH } from './config.js';
+import { generateMapGraph } from './mapGen.js';
 
 /**
  * Global game state.
@@ -32,6 +33,10 @@ class GameState {
             ether:    1,
             antidote: 2,
         };
+
+        // Map graph — generated fresh each run
+        this.mapGraph      = generateMapGraph();
+        this.currentNodeId = 'start';
 
         // Party — built fresh, preserving across battles via _party
         this._party = this._buildParty();
@@ -165,6 +170,8 @@ class GameState {
             lives:          this._lives,
             encounterIndex: this.encounterIndex,
             inventory:      { ...this.inventory },
+            mapGraph:       this.mapGraph,
+            currentNodeId:  this.currentNodeId,
             party: this._party.map(m => ({
                 classId:       m.classId,
                 name:          m.name,
@@ -199,6 +206,8 @@ class GameState {
             this._lives          = data.lives          ?? this._lives;
             this.encounterIndex  = data.encounterIndex ?? 0;
             this.inventory       = { ...this.inventory, ...data.inventory };
+            if (data.mapGraph)     this.mapGraph      = data.mapGraph;
+            if (data.currentNodeId) this.currentNodeId = data.currentNodeId;
 
             if (Array.isArray(data.party)) {
                 this._party = data.party.map(saved => {

@@ -17,7 +17,7 @@
 import { events }   from './events.js';
 import { state }    from './state.js';
 import { ABILITY_DEFS, ENEMY_DEFS, ENCOUNTERS, SHOP_ITEMS } from './config.js';
-import { shouldShowShop } from './overworld.js';
+import { showMapPanel } from './mapPanel.js';
 import { refreshStatus, showVictoryScreen } from './ui.js';
 import {
     playPhysicalHit, playMagicCast, playFireSpell, playIceSpell,
@@ -594,37 +594,124 @@ function _checkDefeat() {
 // ----------------------------------------------------------------
 
 export function startNextEncounter() {
-    const enc = ENCOUNTERS[state.encounterIndex];
+    const node = _nodeById(state.currentNodeId);
+
+    // Start village — show the map so player picks their first path
+    if (!node || node.type === 'start') {
+        _showMapAndAdvance();
+        return;
+    }
+
+    // Boss node: run encounter 10 then 11 in sequence
+    if (node.type === 'boss') {
+        _runBossSequence();
+        return;
+    }
+
+    // Non-battle nodes (rest/shop) have no encounter — show map to pick next
+    if (node.encounterIdx === null) {
+        _showMapAndAdvance();
+        return;
+    }
+
+    // Normal battle node: use the encounterIdx stored on the current map node
+    const enc = ENCOUNTERS[node.encounterIdx];
     if (!enc) {
-        // All encounters cleared → game won
         events.emit('gameWon');
         return;
     }
 
+    state.encounterIndex = node.encounterIdx;
     const enemyDefs = enc.enemies.map(type => ({ ...ENEMY_DEFS[type], type }));
     events.emit('battleStart', enemyDefs);
 }
 
-function _advanceEncounter() {
-    const completedIndex = state.encounterIndex;
-    state.encounterIndex++;
+function _showMapAndAdvance() {
+    showMapPanel((chosenNode) => {
+        if (!chosenNode) { return; }
+        _applyNodeEffect(chosenNode, () => {
+            _bossPhase = 0;
+            // If the chosen node has no encounter (rest/shop), show map again
+            // so the player picks a battle node next
+            const node = _nodeById(state.currentNodeId);
+            if (!node || node.encounterIdx === null) {
+                _showMapAndAdvance();
+            } else {
+                startNextEncounter();
+            }
+        });
+    });
+}
 
-    // Destroy victory overlay before anything else
-    _k.destroyAll('victoryOverlay');
+// Run Dragon then Lich King back-to-back for the boss node
+let _bossPhase = 0;
 
-    // Check for game win
-    if (state.encounterIndex >= ENCOUNTERS.length) {
+function _runBossSequence() {
+    const bossEncounters = [10, 11];
+    const encIdx = bossEncounters[_bossPhase] ?? null;
+    if (encIdx === null) {
         events.emit('gameWon');
         return;
     }
+    const enc = ENCOUNTERS[encIdx];
+    if (!enc) { events.emit('gameWon'); return; }
 
-    // Reset phase so _onBattleStart's guard passes
+    state.encounterIndex = encIdx;
+    const enemyDefs = enc.enemies.map(type => ({ ...ENEMY_DEFS[type], type }));
+    events.emit('battleStart', enemyDefs);
+}
+
+function _nodeById(id) {
+    return state.mapGraph?.nodes.find(n => n.id === id) ?? null;
+}
+
+function _advanceEncounter() {
+    _k.destroyAll('victoryOverlay');
     _phase = 'idle';
 
-    // Show shop after certain encounters, then continue
-    if (shouldShowShop(completedIndex)) {
-        events.emit('showShop', () => startNextEncounter());
+    const currentNode = _nodeById(state.currentNodeId);
+
+    // Boss sequence: advance to next boss fight or game won
+    if (currentNode && currentNode.type === 'boss') {
+        _bossPhase++;
+        if (_bossPhase >= 2) {
+            events.emit('gameWon');
+        } else {
+            _runBossSequence();
+        }
+        return;
+    }
+
+    // Show map so player picks next node
+    showMapPanel((chosenNode) => {
+        if (!chosenNode) { return; }
+
+        _applyNodeEffect(chosenNode, () => {
+            _bossPhase = 0;
+            // rest/shop nodes have no encounter — show map again to pick the next battle
+            const node = _nodeById(state.currentNodeId);
+            if (!node || node.encounterIdx === null) {
+                _showMapAndAdvance();
+            } else {
+                startNextEncounter();
+            }
+        });
+    });
+}
+
+function _applyNodeEffect(node, done) {
+    if (node.type === 'rest') {
+        state.party.forEach(m => {
+            if (!m.isKO) m.hp = Math.min(m.maxHp, m.hp + Math.floor(m.maxHp * 0.30));
+        });
+        refreshStatus();
+        events.emit('showMessage', 'The party rests and recovers 30% HP.');
+        _k.wait(0.8, done);
+
+    } else if (node.type === 'shop') {
+        events.emit('showShop', done);
+
     } else {
-        startNextEncounter();
+        done();
     }
 }
