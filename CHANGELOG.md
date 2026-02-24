@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-02-23
+
+### Fixed
+- **Launcher**: `h1` header emoji now visible — removed `background-clip: text` / `-webkit-text-fill-color: transparent` gradient technique that caused emoji to render as grey/invisible
+
+### Changed
+- **Launcher**: Added subtle `header-pulse` opacity animation (3s ease-in-out loop) to the main "🎮 Game Browser" heading
+
 ## [2.2.0] - 2026-02-22
 
 ### Changed

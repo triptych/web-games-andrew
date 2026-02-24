@@ -23,14 +23,17 @@ header {
     padding: 30px 0;
 }
 
+@keyframes header-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.75; }
+}
+
 h1 {
     font-size: 3em;
     margin-bottom: 10px;
+    color: white;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    background: linear-gradient(45deg, #fff, #f0f0f0);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    animation: header-pulse 3s ease-in-out infinite;
 }
 
 .subtitle {
