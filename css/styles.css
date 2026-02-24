@@ -209,6 +209,16 @@ footer {
     margin-top: 50px;
 }
 
+footer a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+footer a:hover {
+    opacity: 0.7;
+}
+
 @media (max-width: 768px) {
     h1 {
         font-size: 2em;
