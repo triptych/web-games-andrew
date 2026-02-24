@@ -21,22 +21,41 @@ export function generateMapGraph() {
     const nodes = [];
     const edges = [];
 
-    // Pool of regular (non-boss) encounters
-    const regularEncs = ENCOUNTERS
+    // Tiered encounter pools — assign easier fights to early columns, harder to late.
+    // ENCOUNTERS indices (non-boss): 0-1 easy, 2-5 mid, 6-9 hard
+    // Map cols 1-5 → tiers: early(0-1), early-mid(0-3), mid(2-5), mid-hard(4-7), hard(6-9)
+    const allEncs = ENCOUNTERS
         .map((enc, i) => ({ ...enc, originalIndex: i }))
         .filter(enc => !enc.enemies.some(e => BOSS_ENEMY_KEYS.has(e)));
 
-    // Shuffle pool, repeat until we have plenty
-    const shuffled = regularEncs.slice().sort(() => Math.random() - 0.5);
-    let pool = shuffled.slice();
-    while (pool.length < 16) pool = [...pool, ...shuffled];
-    let pickIdx = 0;
+    function tierPool(lo, hi) {
+        // Returns a shuffled pool of encounter indices in [lo, hi], repeated to fill 4 slots
+        const base = allEncs.filter(e => e.originalIndex >= lo && e.originalIndex <= hi);
+        const shuffled = base.slice().sort(() => Math.random() - 0.5);
+        // Repeat so we always have enough picks
+        let pool = shuffled.slice();
+        while (pool.length < 4) pool = [...pool, ...shuffled];
+        return pool;
+    }
+
+    // Per-column battle encounter pools (col 0 = village, col 6 = boss — no pool needed)
+    const colPools = [
+        null,               // col 0 — start
+        tierPool(0, 1),     // col 1 — early (goblins, single skeletons)
+        tierPool(0, 3),     // col 2 — early-mid
+        tierPool(2, 5),     // col 3 — mid
+        tierPool(4, 7),     // col 4 — mid-hard
+        tierPool(6, 9),     // col 5 — hard (pre-boss)
+        null,               // col 6 — boss
+    ];
+    const colPickIdx = [0, 0, 0, 0, 0, 0, 0];
 
     // Build nodes column by column
     for (let col = 0; col < NODES_PER_COL.length; col++) {
         const count    = NODES_PER_COL[col];
         // Shuffle the type pool so rest/shop land at random rows
         const typePool = NODE_TYPES_PER_COL[col].slice().sort(() => Math.random() - 0.5);
+        const pool     = colPools[col];
 
         for (let row = 0; row < count; row++) {
             const type = typePool[row] ?? 'battle';
@@ -56,8 +75,8 @@ export function generateMapGraph() {
                 available:    col === 0,
             };
 
-            if (type === 'battle') {
-                const enc          = pool[pickIdx++ % pool.length];
+            if (type === 'battle' && pool) {
+                const enc          = pool[colPickIdx[col]++ % pool.length];
                 node.encounterIdx  = enc.originalIndex;
                 node.region        = enc.region;
             } else if (type === 'boss') {

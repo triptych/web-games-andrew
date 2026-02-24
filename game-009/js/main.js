@@ -391,19 +391,45 @@ k.scene('game', (opts = {}) => {
     initOverworld(k);
     initMapPanel(k);
 
+    let _gameWon = false;
+
     // Listen for game-won event
     const offWon = events.on('gameWon', () => {
+        _gameWon = true;
         const CX = GAME_WIDTH / 2;
         const CY = GAME_HEIGHT / 2;
+        const nextMult = state.ngPlusMultiplier * 1.35;
+        const pctStr   = Math.round((nextMult - 1) * 100);
+
         k.add([k.pos(0, 0), k.rect(GAME_WIDTH, GAME_HEIGHT), k.color(0, 0, 0), k.opacity(0.75), k.z(200)]);
-        k.add([k.pos(CX, CY - 60), k.text('YOU WIN!', { size: 56 }), k.color(...COLORS.accent), k.anchor('center'), k.z(201)]);
-        k.add([k.pos(CX, CY), k.text('The Lich King has fallen.', { size: 22 }), k.color(...COLORS.text), k.anchor('center'), k.z(201)]);
-        k.add([k.pos(CX, CY + 50), k.text(`Final Score: ${state.score}`, { size: 20 }), k.color(...COLORS.xp), k.anchor('center'), k.z(201)]);
-        k.add([k.pos(CX, CY + 100), k.text('Press R to play again  |  ESC for menu', { size: 14 }), k.color(...COLORS.accent), k.anchor('center'), k.z(201)]);
+        k.add([k.pos(CX, CY - 80), k.text('YOU WIN!', { size: 56 }), k.color(...COLORS.accent), k.anchor('center'), k.z(201)]);
+        k.add([k.pos(CX, CY - 20), k.text('The Lich King has fallen.', { size: 22 }), k.color(...COLORS.text), k.anchor('center'), k.z(201)]);
+        k.add([k.pos(CX, CY + 20), k.text(`Final Score: ${state.score}`, { size: 20 }), k.color(...COLORS.xp), k.anchor('center'), k.z(201)]);
+
+        k.add([k.pos(CX, CY + 75), k.text(`NEW GAME+  — enemies ${pctStr}% stronger, keep your party levels`, { size: 13 }), k.color(160, 220, 255), k.anchor('center'), k.z(201)]);
+        k.add([k.pos(CX, CY + 105), k.text('Press N to begin New Game+  |  R to restart fresh  |  ESC for menu', { size: 13 }), k.color(...COLORS.accent), k.anchor('center'), k.z(201)]);
+
+        let _winHandled = false;
+        const _handleWin = (cb) => {
+            if (_winHandled) return;
+            _winHandled = true;
+            hN.cancel(); hR.cancel();
+            cb();
+        };
+        const hN = k.onKeyPress('n', () => _handleWin(() => {
+            events.clearAll();
+            state.newGamePlus();
+            k.go('game', { keepState: true });
+        }));
+        const hR = k.onKeyPress('r', () => _handleWin(() => {
+            events.clearAll();
+            k.go('game');
+        }));
     });
 
     // Key bindings
     k.onKeyPress('r', () => {
+        if (_gameWon) return;  // win screen handles R itself
         events.clearAll();
         k.go('game');
     });

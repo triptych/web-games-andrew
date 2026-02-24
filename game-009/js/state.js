@@ -18,6 +18,7 @@ class GameState {
         this._lives      = STARTING_LIVES;  // party wipe counter
         this._isGameOver = false;
         this._isPaused   = false;
+        this.ngPlusMultiplier = 1.0;  // enemy stat scaler; increases each NG+ cycle
 
         // Battle state
         this.inBattle       = false;
@@ -40,6 +41,29 @@ class GameState {
 
         // Party — built fresh, preserving across battles via _party
         this._party = this._buildParty();
+    }
+
+    /**
+     * Start a New Game+ cycle:
+     * - Preserve current party levels, stats, XP
+     * - Reset map, inventory, gold, lives
+     * - Bump enemy difficulty multiplier by 35%
+     */
+    newGamePlus() {
+        const savedParty = this._party.map(m => ({ ...m,
+            statusEffects: [],
+            buffs: {},
+            isKO: false,
+            hp: m.maxHp,
+            mp: m.maxMp,
+        }));
+        const prevMultiplier = this.ngPlusMultiplier;
+
+        this.reset();
+
+        // Restore carried-over values
+        this.ngPlusMultiplier = prevMultiplier * 1.35;
+        this._party = savedParty;
     }
 
     // -------------------------------------------------------

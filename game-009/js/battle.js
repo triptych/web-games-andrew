@@ -20,11 +20,39 @@ import { ABILITY_DEFS, ENEMY_DEFS, ENCOUNTERS, SHOP_ITEMS } from './config.js';
 import { showMapPanel } from './mapPanel.js';
 import { refreshStatus, showVictoryScreen } from './ui.js';
 import {
-    playPhysicalHit, playMagicCast, playFireSpell, playIceSpell,
+    playPhysicalHit, playWarriorHit, playMageHit, playHealerHit, playRogueHit,
+    playMagicCast, playFireSpell, playIceSpell, playHealerMagic,
+    playStatusBuff, playStatusDebuff,
     playEnemyAttack, playEnemyMagic, playDamageHit, playPartyKO,
-    playEnemyDeath, playVictoryFanfare, playBattleStart, playItemUse,
+    playEnemyDeath, playVictoryFanfare, playBattleStart,
+    playItemHeal, playItemMana, playItemRevive, playItemCure, playItemUse,
     playHeal,
 } from './sounds.js';
+
+function _scaledEnemy(type) {
+    const def = ENEMY_DEFS[type];
+    const m   = state.ngPlusMultiplier;
+    if (m === 1.0) return { ...def, type };
+    return {
+        ...def,
+        type,
+        hp:  Math.round(def.hp  * m),
+        atk: Math.round(def.atk * m),
+        def: Math.round(def.def * m),
+        mag: Math.round(def.mag * m),
+    };
+}
+
+function _playAttackSound(actor) {
+    if (actor.isEnemy) { playEnemyAttack(); return; }
+    switch (actor.classId) {
+        case 'warrior': playWarriorHit(); break;
+        case 'mage':    playMageHit();    break;
+        case 'healer':  playHealerHit();  break;
+        case 'rogue':   playRogueHit();   break;
+        default:        playPhysicalHit();
+    }
+}
 
 // ----------------------------------------------------------------
 // Module-level refs
@@ -306,10 +334,8 @@ function _doAttack(attacker, targets, done) {
 
     if (!attacker.isEnemy) {
         events.emit('showMessage', `${attacker.name} attacks! ${dmg} damage.`);
-        playPhysicalHit();
-    } else {
-        playEnemyAttack();
     }
+    _playAttackSound(attacker);
 
     _applyDamage(target, dmg);
 
@@ -344,7 +370,7 @@ function _doAbility(actor, abilityId, targets, done) {
             if (stolen > 0) target.gold -= stolen;
             state.earn(stolen);
             events.emit('showMessage', `${actor.name} steals! ${dmg} dmg${stolen ? `, ${stolen} gold` : ''}.`);
-            playPhysicalHit();
+            _playAttackSound(actor);
             _applyDamage(target, dmg);
             events.emit('animateAction', { type: 'hit', actorId: actor.classId, targetId: target.id ?? target.classId, value: dmg });
             _k.wait(0.5, done);
@@ -363,7 +389,7 @@ function _doAbility(actor, abilityId, targets, done) {
                     }
                     const dmg = _physDmg(actor, t, abil.power);
                     events.emit('showMessage', `${actor.name} uses ${abil.name}! ${dmg} damage.`);
-                    playPhysicalHit();
+                    _playAttackSound(actor);
                     _applyDamage(t, dmg);
                     events.emit('animateAction', { type: 'hit', actorId: actor.classId, targetId: t.id ?? t.classId, value: dmg });
                 });
@@ -375,6 +401,7 @@ function _doAbility(actor, abilityId, targets, done) {
     } else if (abil.type === 'magical') {
         if (abil.elem === 'fire') playFireSpell();
         else if (abil.elem === 'ice') playIceSpell();
+        else if (actor.classId === 'healer') playHealerMagic();
         else playMagicCast();
 
         targets.forEach(t => {
@@ -397,6 +424,9 @@ function _doAbility(actor, abilityId, targets, done) {
 
     } else if (abil.type === 'status') {
         const effect = abil.effect;
+        // accDown is a debuff on enemies; atkUp/defUp are buffs on allies
+        if (effect === 'accDown') playStatusDebuff();
+        else playStatusBuff();
         targets.forEach(t => {
             if (!t.buffs) t.buffs = {};
             t.buffs[effect] = 3;
@@ -425,7 +455,11 @@ function _doItem(itemId, targets, done) {
     if (!state.inventory[itemId] || state.inventory[itemId] <= 0) { done(); return; }
     state.inventory[itemId]--;
 
-    playItemUse();
+    if (item.effect === 'healHp')      playItemHeal();
+    else if (item.effect === 'healMp') playItemMana();
+    else if (item.effect === 'revive') playItemRevive();
+    else if (item.effect === 'cureStatus') playItemCure();
+    else playItemUse();
 
     if (item.effect === 'healHp') {
         targets.forEach(t => {
@@ -622,7 +656,7 @@ export function startNextEncounter() {
     }
 
     state.encounterIndex = node.encounterIdx;
-    const enemyDefs = enc.enemies.map(type => ({ ...ENEMY_DEFS[type], type }));
+    const enemyDefs = enc.enemies.map(type => _scaledEnemy(type));
     events.emit('battleStart', enemyDefs);
 }
 
@@ -657,7 +691,7 @@ function _runBossSequence() {
     if (!enc) { events.emit('gameWon'); return; }
 
     state.encounterIndex = encIdx;
-    const enemyDefs = enc.enemies.map(type => ({ ...ENEMY_DEFS[type], type }));
+    const enemyDefs = enc.enemies.map(type => _scaledEnemy(type));
     events.emit('battleStart', enemyDefs);
 }
 

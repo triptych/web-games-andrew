@@ -76,7 +76,9 @@ export function showMapPanel(onNodeChosen) {
     _choices = _nextNodes(graph, current);
 
     _buildUI();
-    _attachKeys();
+    // Defer key registration one frame so the keypress that opened the map
+    // (Space/Enter on the victory screen) doesn't immediately confirm a choice.
+    _k.wait(0, _attachKeys);
 }
 
 // ----------------------------------------------------------------

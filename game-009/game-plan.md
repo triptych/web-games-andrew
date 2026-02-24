@@ -267,6 +267,14 @@ Difficulty increases through: higher enemy HP/ATK/DEF, multi-enemy encounters, a
 
 ## Changelog
 
+### v0.5.0 — New Game+ (2026-02-23)
+- state.js: added `ngPlusMultiplier` field (default 1.0); increases ×1.35 per NG+ cycle
+- state.js: new `newGamePlus()` method — resets map/inventory/gold/lives, carries over party levels/stats, bumps multiplier
+- battle.js: new `_scaledEnemy(type)` helper — applies `ngPlusMultiplier` to enemy hp/atk/def/mag at encounter start
+- battle.js: both `startNextEncounter` and `_runBossSequence` use `_scaledEnemy` instead of raw spread
+- main.js: win screen shows NG+ difficulty preview percentage and two options: N for New Game+, R for fresh restart
+- main.js: `_gameWon` flag prevents the scene-level R handler firing while the win screen is active
+
 ### v0.4.0 — Journey Map (2026-02-23)
 - mapGen.js: new module — pure map graph generator with no Kaplay dependency
 - mapGen.js: generates 7-column branching network (Village → 5 mid cols → Boss) each run
