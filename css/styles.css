@@ -153,6 +153,54 @@ h1 {
     background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
 }
 
+.game-preview.tower-defense {
+    background: linear-gradient(135deg, #1a2a1a 0%, #2d4a2d 50%, #0f1f0f 100%);
+}
+
+.game-card.tower-defense .play-button {
+    background: linear-gradient(135deg, #2d8b2d 0%, #4aad4a 100%);
+}
+
+.game-preview.bullet-heaven {
+    background: linear-gradient(135deg, #0a0a2a 0%, #1a0a3a 50%, #2a0a1a 100%);
+}
+
+.game-card.bullet-heaven .play-button {
+    background: linear-gradient(135deg, #9b59b6 0%, #e74c3c 100%);
+}
+
+.game-preview.dungeon-fps {
+    background: linear-gradient(135deg, #1a1005 0%, #3a2a10 50%, #0f0a02 100%);
+}
+
+.game-card.dungeon-fps .play-button {
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+}
+
+.game-preview.interactive-fiction {
+    background: linear-gradient(135deg, #1a1205 0%, #2e2010 50%, #120d03 100%);
+}
+
+.game-card.interactive-fiction .play-button {
+    background: linear-gradient(135deg, #d4a017 0%, #f0c040 100%);
+}
+
+.game-preview.centipede-td {
+    background: linear-gradient(135deg, #0a1a0a 0%, #002200 50%, #0a1a0a 100%);
+}
+
+.game-card.centipede-td .play-button {
+    background: linear-gradient(135deg, #00aa00 0%, #00dd00 100%);
+}
+
+.game-preview.ember-crown {
+    background: linear-gradient(135deg, #1a0a00 0%, #3a1800 50%, #2a0500 100%);
+}
+
+.game-card.ember-crown .play-button {
+    background: linear-gradient(135deg, #c0390b 0%, #e8890a 100%);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
