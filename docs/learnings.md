@@ -2644,11 +2644,580 @@ In game-008, `towers.js` functions (`placeTowerAt`, `sellTowerAt`, `upgradeTower
 
 ---
 
-**Document Version**: 1.8
-**Last Updated**: 2026-02-22
-**Games Covered**: 001-008
-**Total Lines Analyzed**: ~23,000+
-**Latest Enhancement**: Game 008 polish cycle — barrel rotation, particles, debounce, chain mechanics, smart bomb snapshot pattern
+---
+
+---
+
+---
+
+## Game 009: Chronicles of the Ember Crown — Turn-Based RPG (2026-02-25)
+
+### Architecture: Turn-Based Combat State Machine
+
+Game 009 is a classic turn-based RPG with a party of four heroes. The battle system is built around an explicit state machine in `battle.js` with phases: `idle → player → enemy → resolving → victory → defeat`.
+
+**Why an explicit state machine:**
+- Prevents concurrent turns (e.g., player input while enemy is resolving)
+- Clear entry/exit conditions for each phase
+- Easy to reason about what should happen at any point
+
+```javascript
+// Phase guard at the top of every action handler
+function _onActionChosen(actor, action) {
+    if (_phase !== 'player') return;  // ← Guard prevents double-fire
+    _phase = 'resolving';
+    // ... resolve action
+}
+```
+
+**Key insight:** Always check the current phase before processing input. Without the guard, rapid key presses or event re-entrancy can trigger actions mid-resolution.
+
+---
+
+### Pattern: Key Handler Phase Management (commandMenu.js)
+
+The command menu uses a single `_enterPhase()` function as the sole entry point for all menu transitions. This pattern solved "double-fire" bugs where a Space/Enter keypress that confirmed one menu phase would immediately trigger the next.
+
+```javascript
+function _enterPhase(phase, extra) {
+    _cancelKeyHandlers();   // Always cancel first
+    _phase = phase;
+
+    if (phase === 'ability') {
+        _renderAbilityMenu();
+        _k.wait(0, _registerAbilityKeys);   // ← One-frame defer
+    } else if (phase === 'item') {
+        _renderItemMenu();
+        _k.wait(0, _registerItemKeys);      // ← One-frame defer
+    } else if (phase === 'target') {
+        _currentTargets = extra ?? [];
+        _renderTargetMenu();
+        _k.wait(0, _registerTargetKeys);    // ← One-frame defer
+    }
+}
+```
+
+**Critical detail:** Key registration is deferred by one frame (`_k.wait(0, fn)`) whenever a phase is entered via a keypress. Without the defer, the Space/Enter that confirmed "Magic" would immediately confirm the first ability.
+
+**Pattern rules:**
+- Cancel all existing key handlers before entering a new phase
+- Defer key registration by one frame for phases reached via keypress
+- Never register keys from inside a key handler — always route through `_enterPhase`
+
+---
+
+### Pattern: `_done` Action Type for Inline Enemy Abilities
+
+Some enemy abilities (Dragon fire breath, Lich King Death Curse) resolve all their effects inline in the AI function, then return a sentinel action object instead of a real action. The `_resolveAction` dispatcher handles this cleanly:
+
+```javascript
+// Enemy AI performs multi-target effect inline, then signals "done"
+if (enemy.name === 'Dragon' && Math.random() < 0.35) {
+    aliveParty.forEach(t => {
+        const dmg = _magDmg(enemy, t, 1.6, 'fire');
+        _applyDamage(t, dmg);
+    });
+    return { type: '_done' };  // ← No-op sentinel
+}
+
+// Dispatcher skips resolution and just waits
+} else if (action.type === '_done') {
+    _k.wait(0.6, done);
+}
+```
+
+**Benefit:** Avoids creating special cases in the resolver. Inline complex abilities stay in the AI function where they belong; the resolver only handles the "continue turn" callback timing.
+
+---
+
+### Pattern: Branching Journey Map (Slay-the-Spire style)
+
+Game 009 introduced a procedurally generated branching map (v0.4.0) as an alternative to linear encounter sequencing.
+
+**Module split:** Map generation is separated into two modules:
+- `mapGen.js` — pure graph generation, no Kaplay dependency, no circular imports
+- `mapPanel.js` — Kaplay rendering and keyboard interaction
+
+Separating generation from rendering means `state.js` can call `generateMapGraph()` on reset without importing Kaplay.
+
+**Graph structure:**
+```javascript
+// 7 columns: Village → 5 branching cols → Boss
+// Node: { id, col, row, type, encounterIdx, label, visited, available }
+// Edges: [ [fromId, toId], ... ]
+```
+
+**Tiered encounter pools per column:**
+```javascript
+const colPools = [
+    null,               // col 0 — start village
+    tierPool(0, 1),     // col 1 — early (easy enemies)
+    tierPool(0, 3),     // col 2 — early-mid
+    tierPool(2, 5),     // col 3 — mid
+    tierPool(4, 7),     // col 4 — mid-hard
+    tierPool(6, 9),     // col 5 — hard (pre-boss)
+    null,               // col 6 — boss
+];
+```
+
+This creates natural difficulty progression without hand-crafting every run.
+
+**Guarantee no orphan nodes:** After building edges row-by-row, ensure every destination node has at least one incoming edge:
+```javascript
+for (const t of toSorted) {
+    if (!reached.has(t.id)) {
+        // Connect nearest source to guarantee reachability
+        edges.push([nearest.id, t.id]);
+    }
+}
+```
+
+---
+
+### Pattern: Map Panel Key Defer (One-Frame Rule)
+
+The map panel defers key registration by one frame after opening:
+
+```javascript
+export function showMapPanel(onNodeChosen) {
+    _buildUI();
+    // Defer so the Space/Enter that closed the victory screen
+    // doesn't immediately confirm a map choice.
+    _k.wait(0, _attachKeys);
+}
+```
+
+This is the same pattern as the command menu — any overlay opened by a keypress must defer input registration by at least one frame.
+
+**General rule:**
+> Any UI panel opened via keypress must use `_k.wait(0, registerKeys)` to defer input registration. Forgetting this causes the opening keypress to immediately trigger an action in the new panel.
+
+---
+
+### Pattern: Line Rendering via Thin Rotated Rect
+
+Kaplay v4000 has no native `drawLine` for persistent entities. Game 009 draws map edges as thin rotated rectangles:
+
+```javascript
+function _drawLine(x1, y1, x2, y2, col, opa) {
+    const dx  = x2 - x1;
+    const dy  = y2 - y1;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx);
+    const cx = (x1 + x2) / 2;
+    const cy = (y1 + y2) / 2;
+
+    k.add([
+        k.pos(cx, cy),
+        k.rect(len, 2),       // length × 1px thick
+        k.color(...col),
+        k.opacity(opa),
+        k.anchor('center'),
+        k.rotate(angle * (180 / Math.PI)),
+        k.z(MAP_Z + 3),
+        'mapOverlay',
+    ]);
+}
+```
+
+`Math.atan2(dy, dx)` gives the angle in radians; Kaplay's `k.rotate()` takes degrees, so multiply by `180 / Math.PI`.
+
+---
+
+### Pattern: Animated Overlay via `onUpdate` on a Dummy Entity
+
+For persistent per-frame animation (pulsing glow) tied to an overlay's lifetime, attach `onUpdate` to a dummy invisible entity that is part of the overlay tag group:
+
+```javascript
+// Invisible pulse controller entity
+const pulseEnt = _add(k.pos(0, 0), k.rect(0, 0), k.color(0,0,0), k.opacity(0), k.z(MAP_Z));
+pulseEnt.onUpdate(() => {
+    _pulseTimer += _k.dt();
+    const alpha = (Math.sin(_pulseTimer * Math.PI * 2) + 1) / 2;
+    for (const { ent } of _pulseCursors) {
+        ent.opacity = 0.15 + alpha * 0.35;
+    }
+});
+```
+
+When `k.destroyAll('mapOverlay')` is called to close the panel, the pulse controller is destroyed automatically — no manual cleanup needed.
+
+---
+
+### Pattern: Sprite Flip via `k.scale(-1, 1)`
+
+To mirror a sprite horizontally (face right instead of left), use `k.scale(-1, 1)` as a component. This avoids needing separate left/right sprite sheets:
+
+```javascript
+const sprite = k.add([
+    k.sprite(def.sprite, { width: heroW, height: heroH }),
+    k.scale(def.flip ? -1 : 1, 1),  // ← Horizontal mirror
+    k.anchor('center'),
+    k.blend('add'),
+    // ...
+]);
+```
+
+`k.blend('add')` makes black backgrounds on JPEG sprites invisible — the sprite blends additively with the background so black pixels disappear.
+
+---
+
+### Pattern: Sprite Animation via `onUpdate` (No `k.tween`)
+
+Game 009 implements three animation helpers in `battleRenderer.js` using `onUpdate` + manual timer, since `k.tween` is unconfirmed in Kaplay v4000:
+
+**Hit flash** (red tint then restore):
+```javascript
+function _flashSprite(sprite) {
+    let timer = 0;
+    const orig = [sprite.color.r, sprite.color.g, sprite.color.b];
+    const flashColor = isWhiteTint ? [255, 80, 80] : [255, 255, 255];
+
+    const handle = sprite.onUpdate(() => {
+        timer += _k.dt();
+        if (timer < 0.075) sprite.color = _k.rgb(...flashColor);
+        else { sprite.color = _k.rgb(...orig); handle.cancel(); }
+    });
+}
+```
+
+**Attack slide** (move forward then return):
+```javascript
+function _slideSprite(sprite, dx) {
+    const origin = { x: sprite.pos.x, y: sprite.pos.y };
+    let timer = 0;
+    const DUR = 0.18;
+
+    const handle = sprite.onUpdate(() => {
+        timer += _k.dt();
+        const t = Math.min(timer / DUR, 1);
+        const offset = t < 0.5
+            ? dx * (t / 0.5)
+            : dx * (1 - (t - 0.5) / 0.5);
+        sprite.pos = _k.vec2(origin.x + offset, origin.y);
+        if (t >= 1) { sprite.pos = _k.vec2(origin.x, origin.y); handle.cancel(); }
+    });
+}
+```
+
+**Shudder/shake** (decaying oscillation):
+```javascript
+function _shudderSprite(sprite) {
+    const origin = { x: sprite.pos.x, y: sprite.pos.y };
+    let timer = 0;
+    const DUR = 0.25, AMP = 6;
+
+    const handle = sprite.onUpdate(() => {
+        timer += _k.dt();
+        const t = Math.min(timer / DUR, 1);
+        const offset = Math.sin(timer * 80) * AMP * (1 - t);  // decaying sin
+        sprite.pos = _k.vec2(origin.x + offset, origin.y);
+        if (t >= 1) { sprite.pos = _k.vec2(origin.x, origin.y); handle.cancel(); }
+    });
+}
+```
+
+Always call `handle.cancel()` when done to prevent stale handlers.
+
+---
+
+### Pattern: Per-Entity Cleanup Tag (`enemySlot_${id}`)
+
+When multiple entities belong to a single logical object (sprite + HP bar + label), tag them all with a unique per-instance tag so they can be destroyed together:
+
+```javascript
+const etag = `enemySlot_${enemy.id}`;
+
+k.add([k.sprite(enemy.type, ...), 'enemySprite', etag]);
+k.add([k.text(enemy.name, ...), 'enemySprite', etag]);
+k.add([k.rect(hpBarW, 8), ..., 'enemySprite', etag]);  // HP bar bg
+k.add([k.rect(hpBarW, 8), ..., 'enemySprite', etag]);  // HP bar fill
+
+// On death — removes sprite, label, and HP bar in one call
+k.destroyAll(`enemySlot_${combatant.id}`);
+```
+
+Benefits: No need to track individual entity references; no risk of orphaned visual elements.
+
+---
+
+### Pattern: New Game+ via `state.newGamePlus()`
+
+Game 009 v0.5.0 introduced NG+ — replay with carried-over party levels and escalating enemy difficulty. The implementation pattern:
+
+```javascript
+newGamePlus() {
+    // 1. Snapshot the party (levels, stats, HP restored)
+    const savedParty = this._party.map(m => ({
+        ...m,
+        statusEffects: [],
+        buffs: {},
+        isKO: false,
+        hp: m.maxHp,   // ← Full heal on carry-over
+        mp: m.maxMp,
+    }));
+    const prevMultiplier = this.ngPlusMultiplier;
+
+    // 2. Full reset (map, inventory, gold, lives all fresh)
+    this.reset();
+
+    // 3. Restore carry-over values
+    this.ngPlusMultiplier = prevMultiplier * 1.35;
+    this._party = savedParty;
+}
+```
+
+**Enemy scaling applied at encounter start** (not at definition time):
+```javascript
+function _scaledEnemy(type) {
+    const def = ENEMY_DEFS[type];
+    const m = state.ngPlusMultiplier;
+    if (m === 1.0) return { ...def, type };  // No-op for first run
+    return {
+        ...def, type,
+        hp:  Math.round(def.hp  * m),
+        atk: Math.round(def.atk * m),
+        def: Math.round(def.def * m),
+        mag: Math.round(def.mag * m),
+    };
+}
+```
+
+**Key insight:** Apply NG+ scaling dynamically at encounter start rather than mutating ENEMY_DEFS. This keeps the config data clean and lets scaling compound correctly across multiple NG+ cycles.
+
+**Win screen guard (`_gameWon` flag):**
+The scene-level R key (restart) must not fire while the win screen is up. Add a dedicated flag:
+```javascript
+let _gameWon = false;
+
+k.onKeyPress('r', () => {
+    if (_gameWon) return;  // ← Win screen handles its own R/N keys
+    // ... normal restart
+});
+```
+
+---
+
+### Bug: `opacity(0)` on Border Entity Hides Outline
+
+**Bug (Phase 1 fix):** A border entity was created with `k.opacity(0)` to try to make its fill transparent while keeping its `k.outline()` visible. This silently hides the outline too.
+
+**Root cause:** `k.opacity(0)` makes the entire entity invisible, including its outline.
+
+**Fix:** Either:
+- Use an opaque fill with matching background color (effectively invisible fill)
+- Or separate the fill entity from the outline entity (two entities, one fill-only, one outline-only)
+
+---
+
+### Pattern: Save/Load with `load()` → `reset()` First
+
+The `state.load()` pattern calls `this.reset()` before applying saved data. This ensures all fields have valid defaults before any saved values are applied, preventing partial-load corruptions if the save format evolves:
+
+```javascript
+load() {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    try {
+        const data = JSON.parse(raw);
+        this.reset();                    // ← Establish all defaults first
+        this._score = data.score ?? this._score;  // Then override with saved
+        // ...
+        return true;
+    } catch (e) {
+        console.warn('Save load failed:', e);
+        return false;  // Graceful failure — game continues with default state
+    }
+}
+```
+
+---
+
+### RPG-Specific Design Patterns
+
+**Status effect as object with `turnsLeft`:**
+```javascript
+member.statusEffects.push({ type: 'poison', turnsLeft: 4 });
+// At end of round:
+poison.turnsLeft--;
+if (poison.turnsLeft <= 0) remove it;
+```
+
+**Buff as object with turn countdown (not a flag):**
+```javascript
+// Apply: actor.buffs.atkUp = 3 (lasts 3 turns)
+// Tick:  for (const [buff, turns] of Object.entries(c.buffs)) { c.buffs[buff] = turns - 1; }
+// Check: attacker.atk * (attacker.buffs.atkUp ? 1.5 : 1)
+```
+
+**Defending half-damage — clear on turn, not on hit:**
+```javascript
+function _doDefend(actor, done) {
+    actor.buffs.defending = 1;   // Set on defend action
+    // ... in _tickStatusEffects:
+    if (buff === 'defending') delete c.buffs[buff];  // Clear at end of round
+}
+```
+
+**Revive rebuilds turn order:**
+When a revived party member is added back, the turn order must be rebuilt:
+```javascript
+} else if (item.effect === 'revive') {
+    t.isKO = false;
+    t.hp = Math.max(1, Math.floor(t.maxHp * (item.amount / 100)));
+    state.turnOrder = _buildTurnOrder();  // ← Include revived member
+}
+```
+
+**XP split only among survivors:**
+```javascript
+awardXP(total) {
+    const share = Math.floor(total / this.aliveParty.length);
+    for (const member of this.aliveParty) { ... }
+}
+```
+
+---
+
+### Lessons Learned
+
+**Sprite rendering insights:**
+- Use `k.blend('add')` for JPEG-background sprites — additive blend makes black invisible without needing transparent PNGs
+- Use `k.scale(-1, 1)` to mirror sprites for characters facing the wrong direction
+- Per-enemy tags (`enemySlot_${id}`) allow one-call cleanup of all related entities
+- 2-column party layout (front/back row at different sizes) conveys depth without 3D
+
+**Procedural map design:**
+- Separating map generation (`mapGen.js`) from rendering (`mapPanel.js`) prevents circular imports
+- Tiered encounter pools per column create natural difficulty curves automatically
+- Always guarantee every destination node has an incoming edge to prevent soft-locks
+- Diamond = village, circle = battle, H = rest, $ = shop, * = boss (text glyphs as node icons)
+
+**Key handler management:**
+- The one-frame defer rule (`k.wait(0, registerKeys)`) is essential for any overlay opened by a keypress
+- A single `_enterPhase()` entry point with `_cancelKeyHandlers()` first prevents handler accumulation
+- `_ifActive(fn)` wrapper blocks input while paused: `return (...args) => { if (!state.isPaused) fn(...args); }`
+
+**Turn-based combat architecture:**
+- State machine phases prevent concurrent turn processing
+- `_done` action type lets inline enemy abilities skip the resolver cleanly
+- Back-navigation in sub-menus (`_pendingItemId`/`_pendingAbilityId`) enables full depth-first menu traversal with proper back-steps
+
+---
+
+## Game 010: Tiny Town — City Builder Sandbox (2026-02-25)
+
+### Architecture: Grid-Based Placement with Build Panel
+
+Game 010 is a cozy city builder sandbox. The grid is the primary play surface; the right panel is a persistent build tool selector.
+
+**Module layout:**
+| File | Responsibility |
+|------|---------------|
+| `main.js` | Grid rendering, placement logic, hover highlight, drag-to-paint |
+| `config.js` | Grid dims (24×16, TILE_SIZE=40), BUILDINGS defs, PANEL_WIDTH |
+| `state.js` | Score, gold, 2D grid array (`state._grid[row][col]`), selectedTool |
+| `ui.js` | Top HUD bar, right build panel with clickable tool buttons |
+| `sounds.js` | Per-building-type placement sounds + "no gold" buzz |
+
+---
+
+### Pattern: 2D Grid State as Plain Array
+
+The entire town is stored as a 2D array of strings (or null):
+
+```javascript
+// state.js
+this._grid = Array.from({ length: GRID_ROWS }, () => Array(GRID_COLS).fill(null));
+
+getTile(col, row) { return this._grid[row][col]; }
+setTile(col, row, type) { this._grid[row][col] = type; }
+```
+
+Keeping the grid state separate from Kaplay entities makes reset trivial and allows future save/load via JSON.stringify.
+
+---
+
+### Pattern: Tile Entity Map for Redraws
+
+Grid tile visuals are tracked by a `tileEntities` map keyed `"col,row"` → array of Kaplay entities. On redraw, old entities are destroyed and new ones created:
+
+```javascript
+function drawTile(col, row, type) {
+    const key = `${col},${row}`;
+    if (tileEntities[key]) {
+        tileEntities[key].forEach(e => e.destroy());
+    }
+    if (!type) { delete tileEntities[key]; return; }
+    // ... create new bg + label entities, store in tileEntities[key]
+}
+```
+
+This avoids tracking individual entity references in state and keeps rendering fully derived from state.
+
+---
+
+### Pattern: Drag-to-Paint with Last-Placed Deduplication
+
+Holding mouse down and dragging paints multiple tiles. A `lastPlacedKey` string prevents re-placing on the same tile during a single drag stroke:
+
+```javascript
+let isMouseDown = false;
+let lastPlacedKey = null;
+
+k.onMousePress('left', () => { isMouseDown = true; lastPlacedKey = null; /* place */ });
+k.onMouseRelease('left', () => { isMouseDown = false; lastPlacedKey = null; });
+
+k.onUpdate(() => {
+    if (!isMouseDown) return;
+    const key = `${col},${row}`;
+    if (key !== lastPlacedKey) { placeTile(col, row); lastPlacedKey = key; }
+});
+```
+
+Without `lastPlacedKey`, hovering over one tile while holding would repeatedly spend gold each frame.
+
+---
+
+### Pattern: Screen-to-Grid Coordinate Conversion
+
+```javascript
+function screenToGrid(wx, wy) {
+    const col = Math.floor((wx - GRID_OFFSET_X) / TILE_SIZE);
+    const row = Math.floor((wy - GRID_OFFSET_Y) / TILE_SIZE);
+    return { col, row };
+}
+
+function isValidTile(col, row) {
+    return col >= 0 && col < GRID_COLS && row >= 0 && row < GRID_ROWS;
+}
+```
+
+Always validate with `isValidTile` before using col/row — mouse can be over the panel or HUD.
+
+---
+
+### Pattern: Build Panel Tool Buttons with Live Highlight
+
+Panel buttons are Kaplay `k.area()` entities. The `selectedToolChanged` event updates all button backgrounds:
+
+```javascript
+events.on('selectedToolChanged', (tool) => {
+    for (const [key, bg] of Object.entries(toolButtons)) {
+        bg.color = k.Color.fromArray(key === tool ? COLORS.accent : [40, 40, 60]);
+    }
+});
+```
+
+`k.Color.fromArray([r, g, b])` converts a plain array to a Kaplay Color object for direct assignment to `entity.color`.
+
+---
+
+**Document Version**: 2.0
+**Last Updated**: 2026-02-25
+**Games Covered**: 001-010
+**Total Lines Analyzed**: ~32,000+
+**Latest Enhancement**: Game 010 — City builder sandbox, drag-to-paint grid, gold economy, build panel
 
 
 

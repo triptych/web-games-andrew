@@ -119,6 +119,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '⚔️', label: 'RPG' }
         ]
+    },
+    {
+        id: 'game-010',
+        title: 'Tiny Town',
+        description: 'A cozy city builder sandbox where you place roads, houses, parks, and shops on a grid to grow a small town. Manage your gold budget, drag-paint roads, and design the neighbourhood of your dreams.',
+        icon: '🏘️',
+        folder: 'game-010',
+        cssClass: 'tiny-town',
+        tags: [
+            { emoji: '🏙️', label: 'City Builder' },
+            { emoji: '🖱️', label: 'Mouse' },
+            { emoji: '🌿', label: 'Sandbox' }
+        ]
     }
 ];
 
