@@ -138,6 +138,17 @@ function _playMelodyPhrase(phrase) {
     }
 }
 
+const MUSIC_PREF_KEY = 'tinyTown_music';
+
+function _loadMusicPref() {
+    const val = localStorage.getItem(MUSIC_PREF_KEY);
+    return val === null ? true : val === '1';
+}
+
+function _saveMusicPref(enabled) {
+    localStorage.setItem(MUSIC_PREF_KEY, enabled ? '1' : '0');
+}
+
 let _ambientNodes  = [];
 let _ambientTimer  = null;
 let _ambientActive = false;
@@ -184,9 +195,12 @@ function _scheduleNextChord() {
     _ambientTimer = setTimeout(_scheduleNextChord, (CHORD_DURATION - CHORD_FADE * 0.5) * 1000);
 }
 
+export function isMusicEnabled() { return _loadMusicPref(); }
+
 export function startAmbient() {
     if (_ambientActive) return;
     if (!audioCtx) return;
+    if (!_loadMusicPref()) return;
     _ambientActive = true;
     _chordIndex    = 0;
     _scheduleNextChord();
@@ -203,6 +217,12 @@ export function stopAmbient() {
 }
 
 export function toggleAmbient() {
-    if (_ambientActive) { stopAmbient(); return false; }
-    startAmbient(); return true;
+    if (_ambientActive) {
+        stopAmbient();
+        _saveMusicPref(false);
+        return false;
+    }
+    _saveMusicPref(true);
+    startAmbient();
+    return true;
 }

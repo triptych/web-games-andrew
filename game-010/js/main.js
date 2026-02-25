@@ -225,7 +225,7 @@ k.scene('game', () => {
     }
 
     // ---- Draw terrain background (biome tiles) ----
-    drawTerrainLayer(k, gridToScreen);
+    let terrainEntities = drawTerrainLayer(k, gridToScreen);
 
     // ---- Helper: destroy bonus overlay for a tile ----
     function clearBonusOverlay(key) {
@@ -667,6 +667,9 @@ k.scene('game', () => {
         } else if (e.key === 'l') {
             e.preventDefault();
             if (loadGame(state)) {
+                // Redraw terrain layer (saved terrain is now in _terrain module var)
+                terrainEntities.forEach(e => e.destroy());
+                terrainEntities = drawTerrainLayer(k, gridToScreen);
                 // Redraw entire grid from restored state
                 for (let r = 0; r < GRID_ROWS; r++) {
                     for (let c = 0; c < GRID_COLS; c++) {

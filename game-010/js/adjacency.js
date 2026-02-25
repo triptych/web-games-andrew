@@ -58,7 +58,7 @@ export function recalcBonuses() {
     for (let row = 0; row < GRID_ROWS; row++) {
         for (let col = 0; col < GRID_COLS; col++) {
             const type = state.getTile(col, row);
-            if (type === 'house' && houseNearPark(col, row)) {
+            if ((type === 'house' || type === 'apartment') && houseNearPark(col, row)) {
                 next.set(`${col},${row}`, HOUSE_PARK_BONUS);
             }
         }

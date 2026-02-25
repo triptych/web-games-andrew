@@ -10,6 +10,7 @@
  */
 
 import { GRID_COLS, GRID_ROWS } from './config.js';
+import { getTerrainGrid, setTerrainGrid } from './terrain.js';
 
 const SAVE_KEY = 'tinyTown_save';
 
@@ -25,7 +26,7 @@ export function saveGame(state) {
         }
         grid.push(row);
     }
-    const data = { grid, gold: state.gold, score: state.score };
+    const data = { grid, gold: state.gold, score: state.score, terrain: getTerrainGrid() };
     try {
         localStorage.setItem(SAVE_KEY, JSON.stringify(data));
         return true;
@@ -55,6 +56,12 @@ export function loadGame(state) {
 
         state.gold  = typeof data.gold  === 'number' ? data.gold  : state.gold;
         state.score = typeof data.score === 'number' ? data.score : state.score;
+
+        // Restore terrain if present (older saves without terrain are left as-is)
+        if (Array.isArray(data.terrain)) {
+            setTerrainGrid(data.terrain);
+        }
+
         return true;
     } catch (e) {
         return false;

@@ -90,6 +90,16 @@ export function getTerrainAt(col, row) {
     return _terrain[row]?.[col] ?? 'field';
 }
 
+/** Returns a deep copy of the terrain grid for serialisation. */
+export function getTerrainGrid() {
+    return _terrain.map(row => [...row]);
+}
+
+/** Restores terrain from a previously saved grid (skips random generation). */
+export function setTerrainGrid(grid) {
+    _terrain = grid.map(row => [...row]);
+}
+
 /**
  * Draw all terrain background tiles into Kaplay.
  * Call once per scene after generateTerrain().

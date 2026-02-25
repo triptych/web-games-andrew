@@ -110,7 +110,7 @@ export function showHelpDialog() {
     const TILE_HELP = [
         { key: 'road',       desc: 'Connects the town. Required by all',  desc2: 'commercial and civic buildings.'      },
         { key: 'house',      desc: 'Adds population when next to a road.', desc2: 'Bonus +5 score if adjacent to park.' },
-        { key: 'apartment',  desc: 'Dense housing; also adds population',  desc2: 'when road-connected.'                },
+        { key: 'apartment',  desc: 'Dense housing; +10 pop when road-connected.', desc2: 'Bonus +5 score if adjacent to park.' },
         { key: 'park',       desc: 'Boosts town happiness (+10% each).',   desc2: 'Happiness raises shop income.'       },
         { key: 'shop',       desc: 'Earns passive gold every 5 s.',        desc2: 'Needs an adjacent road.'             },
         { key: 'office',     desc: 'Higher earner than a shop.',           desc2: 'Needs an adjacent road.'             },
