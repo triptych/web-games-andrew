@@ -483,14 +483,54 @@ k.scene('game', () => {
         state.isPaused = !state.isPaused;
     });
 
-    document.addEventListener('keydown', function onEscapeKey(e) {
+    // ---- Escape — "Return to menu?" overlay ----
+    let menuDialogOpen = false;
+    let menuDialogObjs = [];
+
+    function showMenuDialog() {
+        if (menuDialogOpen) return;
+        menuDialogOpen = true;
+        state.isPaused = true;
+        const cx = GAME_WIDTH / 2;
+        const cy = GAME_HEIGHT / 2;
+        menuDialogObjs = [
+            k.add([k.rect(420, 160, { radius: 8 }), k.pos(cx, cy), k.anchor('center'), k.color(20, 20, 30), k.outline(2, k.rgb(180, 180, 220)), k.opacity(0.95), k.z(100)]),
+            k.add([k.text('Return to main menu?', { size: 22 }), k.pos(cx, cy - 30), k.anchor('center'), k.color(240, 240, 255), k.z(102)]),
+            k.add([k.text('Unsaved progress will be lost.', { size: 14 }), k.pos(cx, cy + 6), k.anchor('center'), k.color(180, 180, 200), k.z(102)]),
+            k.add([k.text('(Y) Yes     (N) / (Esc) No', { size: 16 }), k.pos(cx, cy + 44), k.anchor('center'), k.color(140, 220, 140), k.z(102)]),
+        ];
+    }
+
+    function hideMenuDialog() {
+        menuDialogObjs.forEach(o => k.destroy(o));
+        menuDialogObjs = [];
+        menuDialogOpen = false;
+        state.isPaused = false;
+    }
+
+    const onEscapeKey = (e) => {
         if (e.key === 'Escape') {
-            events.clearAll();
-            document.removeEventListener('keydown', onEscapeKey);
-            k.go('splash');
+            if (menuDialogOpen) {
+                hideMenuDialog();
+            } else {
+                showMenuDialog();
+            }
+        } else if (e.key === 'y' || e.key === 'Y') {
+            if (menuDialogOpen) {
+                hideMenuDialog();
+                events.clearAll();
+                document.removeEventListener('keydown', onEscapeKey);
+                k.go('splash');
+            }
+        } else if (e.key === 'n' || e.key === 'N') {
+            if (menuDialogOpen) hideMenuDialog();
         }
+    };
+    document.addEventListener('keydown', onEscapeKey);
+    k.onSceneLeave(() => {
+        document.removeEventListener('keydown', onEscapeKey);
+        menuDialogObjs.forEach(o => k.destroy(o));
     });
-    k.onSceneLeave(() => document.removeEventListener('keydown', onEscapeKey));
 
     // ---- Undo (Ctrl+Z) ----
     function performUndo() {
@@ -505,16 +545,17 @@ k.scene('game', () => {
         recalcPopulation();
     }
 
-    document.addEventListener('keydown', function onUndoKey(e) {
+    const onUndoKey = (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
             e.preventDefault();
             if (!state.isPaused) performUndo();
         }
-    });
+    };
+    document.addEventListener('keydown', onUndoKey);
     k.onSceneLeave(() => document.removeEventListener('keydown', onUndoKey));
 
     // ---- Save / Load (Ctrl+S / Ctrl+L) ----
-    document.addEventListener('keydown', function onSaveLoadKey(e) {
+    const onSaveLoadKey = (e) => {
         if (!(e.ctrlKey || e.metaKey)) return;
         if (e.key === 's') {
             e.preventDefault();
@@ -535,7 +576,8 @@ k.scene('game', () => {
                 events.emit('toastMessage', 'Town loaded!');
             }
         }
-    });
+    };
+    document.addEventListener('keydown', onSaveLoadKey);
     k.onSceneLeave(() => document.removeEventListener('keydown', onSaveLoadKey));
 
     // ---- Respond to adjacency bonus changes ----
