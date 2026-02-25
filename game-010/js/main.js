@@ -17,7 +17,7 @@ import {
 } from './config.js';
 import { state }  from './state.js';
 import { events } from './events.js';
-import { initUI }    from './ui.js';
+import { initUI, showHelpDialog, hideHelpDialog, isHelpOpen } from './ui.js';
 import { initAudio, playUiClick, playPlace, playPlaceRoad, playPlacePark, playClear, playNoGold, startAmbient, stopAmbient, toggleAmbient } from './sounds.js';
 import { hasAdjacentRoad, recalcBonuses } from './adjacency.js';
 import { recalcPopulation, startIncomeTick } from './population.js';
@@ -492,6 +492,15 @@ k.scene('game', () => {
         state.isPaused = !state.isPaused;
     });
 
+    // ---- H key: help overlay ----
+    k.onKeyPress('h', () => {
+        if (isHelpOpen()) {
+            hideHelpDialog();
+        } else {
+            showHelpDialog();
+        }
+    });
+
     // ---- Escape — "Return to menu?" overlay ----
     let menuDialogOpen = false;
     let menuDialogObjs = [];
@@ -519,7 +528,9 @@ k.scene('game', () => {
 
     const onEscapeKey = (e) => {
         if (e.key === 'Escape') {
-            if (menuDialogOpen) {
+            if (isHelpOpen()) {
+                hideHelpDialog();
+            } else if (menuDialogOpen) {
                 hideMenuDialog();
             } else {
                 showMenuDialog();
@@ -539,6 +550,7 @@ k.scene('game', () => {
     k.onSceneLeave(() => {
         document.removeEventListener('keydown', onEscapeKey);
         menuDialogObjs.forEach(o => k.destroy(o));
+        if (isHelpOpen()) hideHelpDialog();
     });
 
     // ---- Undo (Ctrl+Z) ----
