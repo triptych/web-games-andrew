@@ -13,13 +13,14 @@ import kaplay from '../../lib/kaplay/kaplay.mjs';
 import {
     GAME_WIDTH, GAME_HEIGHT, COLORS,
     TILE_SIZE, GRID_COLS, GRID_ROWS, GRID_OFFSET_X, GRID_OFFSET_Y,
-    BUILDINGS, PANEL_WIDTH,
+    BUILDINGS, PANEL_WIDTH, CLEAR_REFUND_RATE,
 } from './config.js';
 import { state }  from './state.js';
 import { events } from './events.js';
 import { initUI }    from './ui.js';
 import { initAudio, playUiClick, playPlace, playPlaceRoad, playPlacePark, playClear, playNoGold } from './sounds.js';
 import { hasAdjacentRoad, recalcBonuses } from './adjacency.js';
+import { recalcPopulation, startIncomeTick } from './population.js';
 
 // ============================================================
 // KAPLAY API GOTCHAS (read before adding entities)
@@ -115,7 +116,7 @@ k.scene('splash', () => {
     // Version tag
     k.add([
         k.pos(GAME_WIDTH - 10, GAME_HEIGHT - 10),
-        k.text('Phase 2', { size: 10 }),
+        k.text('Phase 3', { size: 10 }),
         k.color(50, 50, 80),
         k.anchor('botright'),
         k.z(1),
@@ -291,13 +292,19 @@ k.scene('game', () => {
         if (tool === 'clear') {
             const existing = state.getTile(col, row);
             if (!existing) return; // nothing to clear
+            const refund = Math.floor((BUILDINGS[existing].cost || 0) * CLEAR_REFUND_RATE);
             state.setTile(col, row, null);
             drawTile(col, row, null);
+            if (refund > 0) state.addGold(refund);
             playClear();
             events.emit('buildingCleared', col, row);
             recalcBonuses();
+            recalcPopulation();
             return;
         }
+
+        // Block placement on an already-occupied tile
+        if (state.getTile(col, row)) return;
 
         // Shops require an adjacent road tile
         if (tool === 'shop' && !hasAdjacentRoad(col, row)) {
@@ -322,6 +329,7 @@ k.scene('game', () => {
 
         events.emit('buildingPlaced', col, row, tool);
         recalcBonuses();
+        recalcPopulation();
     }
 
     // ---- Mouse hover ----
@@ -375,6 +383,57 @@ k.scene('game', () => {
         }
     });
 
+    // ---- Right-click → clear (without changing selected tool) ----
+    let isRightDown = false;
+    let lastClearedKey = null;
+
+    function clearTileAt(col, row) {
+        if (!isValidTile(col, row)) return;
+        const existing = state.getTile(col, row);
+        if (!existing) return;
+        const refund = Math.floor((BUILDINGS[existing].cost || 0) * CLEAR_REFUND_RATE);
+        state.setTile(col, row, null);
+        drawTile(col, row, null);
+        if (refund > 0) state.addGold(refund);
+        playClear();
+        events.emit('buildingCleared', col, row);
+        recalcBonuses();
+        recalcPopulation();
+    }
+
+    k.onMousePress('right', () => {
+        if (state.isPaused) return;
+        isRightDown = true;
+        lastClearedKey = null;
+        const mp = k.mousePos();
+        const { col, row } = screenToGrid(mp.x, mp.y);
+        if (isValidTile(col, row)) {
+            const key = `${col},${row}`;
+            if (key !== lastClearedKey) {
+                clearTileAt(col, row);
+                lastClearedKey = key;
+            }
+        }
+    });
+
+    k.onMouseRelease('right', () => {
+        isRightDown = false;
+        lastClearedKey = null;
+    });
+
+    k.onUpdate(() => {
+        if (!isRightDown || state.isPaused) return;
+        const mp = k.mousePos();
+        const { col, row } = screenToGrid(mp.x, mp.y);
+        if (isValidTile(col, row)) {
+            const key = `${col},${row}`;
+            if (key !== lastClearedKey) {
+                clearTileAt(col, row);
+                lastClearedKey = key;
+            }
+        }
+    });
+
     // ---- Keyboard tool shortcuts ----
     const toolKeys = { '1': 'road', '2': 'house', '3': 'park', '4': 'shop', '5': 'clear' };
     for (const [key, tool] of Object.entries(toolKeys)) {
@@ -413,6 +472,9 @@ k.scene('game', () => {
 
     // ---- Init HUD / panel ----
     initUI(k);
+
+    // ---- Start passive income tick ----
+    startIncomeTick(k);
 
     k.onSceneLeave(() => {
         events.clearAll();

@@ -42,3 +42,12 @@ export const STARTING_GOLD = 500;
 
 // --- HUD ---
 export const PANEL_WIDTH = 200; // right-side build panel width
+
+// --- Clear refund ---
+export const CLEAR_REFUND_RATE = 0.5; // fraction of original build cost refunded on clear
+
+// --- Phase 3: Population & Income ---
+export const INCOME_TICK_SECONDS  = 5;      // seconds between passive gold ticks
+export const INCOME_PER_SHOP      = 10;     // gold earned per shop per tick (before happiness mult)
+export const HAPPINESS_PER_PARK   = 0.10;   // each park adds 10% happiness (capped at 100%)
+export const HAPPINESS_INCOME_MULT_MIN = 0.5; // income multiplier at 0% happiness

@@ -3,7 +3,7 @@
 **Genre:** City Builder / Sandbox
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Phase 2 — Adjacency Rules
+**Status:** Phase 3 — Population & Income
 
 ---
 
@@ -119,9 +119,9 @@ Phase 1 is a pure sandbox — no win condition, no timer. Future phases may add:
 - [x] Visual indicator on tiles with active bonuses (yellow `+` badge on house; `Bonus: +N` in HUD)
 
 ### Phase 3 — Population & Income
-- [ ] Population counter driven by houses + road access
-- [ ] Passive gold income tick based on shops in the grid
-- [ ] Happiness meter: parks boost happiness, which multiplies income
+- [x] Population counter driven by houses + road access
+- [x] Passive gold income tick based on shops in the grid
+- [x] Happiness meter: parks boost happiness, which multiplies income
 
 ### Phase 4 — Polish
 - [ ] Animated tile "pop" on placement (scale tween)
@@ -166,6 +166,17 @@ Phase 1 is a pure sandbox — no win condition, no timer. Future phases may add:
 ---
 
 ## Changelog
+
+### Phase 3 — Population & Income (2026-02-25)
+- population.js: recalcPopulation, startIncomeTick
+- Population = houses with adjacent road; recalculated on every place/clear
+- Happiness = parks × 10% (capped at 100%); recalculated on every place/clear
+- Passive income: every 5 s, shopCount × 10g × happiness multiplier (0.5–1.0)
+- Income toast: "+Ng" flash in HUD on each tick
+- HUD second row: Pop and Happiness labels
+- state.js: population, happiness fields; addGold method
+- config.js: INCOME_TICK_SECONDS, INCOME_PER_SHOP, HAPPINESS_PER_PARK, HAPPINESS_INCOME_MULT_MIN
+- Splash version tag updated to Phase 3
 
 ### Phase 2 — Adjacency Rules (2026-02-25)
 - adjacency.js: neighbour helpers, hasAdjacentRoad, recalcBonuses

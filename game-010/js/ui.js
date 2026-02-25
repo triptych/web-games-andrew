@@ -5,10 +5,13 @@
 
 import { state }  from './state.js';
 import { events } from './events.js';
-import { GAME_WIDTH, GAME_HEIGHT, COLORS, BUILDINGS, PANEL_WIDTH } from './config.js';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS, BUILDINGS, PANEL_WIDTH, CLEAR_REFUND_RATE } from './config.js';
 
 let k;
-let scoreLabel, goldLabel, bonusLabel;
+let scoreLabel, goldLabel, bonusLabel, popLabel, happinessLabel;
+let incomeToast = null;
+let incomeToastTimer = 0;
+// toolButtons[key] = { bg, labelEnt, costEnt }
 const toolButtons = {};
 
 export function initUI(kaplay) {
@@ -28,25 +31,41 @@ function _buildHUD() {
     ]);
 
     scoreLabel = k.add([
-        k.pos(12, 8),
-        k.text(`Score: ${state.score}`, { size: 16 }),
+        k.pos(12, 4),
+        k.text(`Score: ${state.score}`, { size: 14 }),
         k.color(...COLORS.text),
         k.anchor('topleft'),
         k.z(101),
     ]);
 
     goldLabel = k.add([
-        k.pos(200, 8),
-        k.text(`Gold: ${state.gold}`, { size: 16 }),
+        k.pos(200, 4),
+        k.text(`Gold: ${state.gold}`, { size: 14 }),
         k.color(...COLORS.gold),
         k.anchor('topleft'),
         k.z(101),
     ]);
 
     bonusLabel = k.add([
-        k.pos(380, 8),
-        k.text('', { size: 14 }),
+        k.pos(380, 4),
+        k.text('', { size: 13 }),
         k.color(255, 240, 80),
+        k.anchor('topleft'),
+        k.z(101),
+    ]);
+
+    popLabel = k.add([
+        k.pos(12, 24),
+        k.text('Pop: 0', { size: 12 }),
+        k.color(180, 220, 255),
+        k.anchor('topleft'),
+        k.z(101),
+    ]);
+
+    happinessLabel = k.add([
+        k.pos(110, 24),
+        k.text('Happiness: 0%', { size: 12 }),
+        k.color(100, 220, 140),
         k.anchor('topleft'),
         k.z(101),
     ]);
@@ -104,7 +123,7 @@ function _buildPanel() {
             k.area(),
         ]);
 
-        k.add([
+        const labelEnt = k.add([
             k.pos(PX + 20, BY + 8),
             k.text(def.label, { size: 13 }),
             k.color(...COLORS.text),
@@ -112,8 +131,10 @@ function _buildPanel() {
             k.z(102),
         ]);
 
-        const costText = def.cost > 0 ? `${def.cost}g` : 'free';
-        k.add([
+        const costText = key === 'clear'
+            ? `${Math.round(CLEAR_REFUND_RATE * 100)}% back`
+            : def.cost > 0 ? `${def.cost}g` : 'free';
+        const costEnt = k.add([
             k.pos(PX + PANEL_WIDTH - 20, BY + 8),
             k.text(costText, { size: 11 }),
             k.color(...COLORS.gold),
@@ -134,7 +155,7 @@ function _buildPanel() {
             state.selectedTool = BK;
         });
 
-        toolButtons[key] = bg;
+        toolButtons[key] = { bg, labelEnt, costEnt };
         btnY += 46;
     }
 
@@ -155,17 +176,78 @@ function _subscribeEvents() {
         }),
         events.on('goldChanged', (v) => {
             goldLabel.text = `Gold: ${v}`;
+            _updateAffordability(v);
         }),
         events.on('selectedToolChanged', (tool) => {
-            for (const [key, bg] of Object.entries(toolButtons)) {
-                bg.color = k.Color.fromArray(key === tool ? COLORS.accent : [40, 40, 60]);
-            }
+            _updateAffordability(state.gold);
         }),
         events.on('adjacencyChanged', () => {
             const total = [...state.adjacencyBonuses.values()].reduce((a, b) => a + b, 0);
             bonusLabel.text = total > 0 ? `Bonus: +${total}` : '';
         }),
+        events.on('populationChanged', (pop) => {
+            popLabel.text = `Pop: ${pop}`;
+        }),
+        events.on('happinessChanged', (h) => {
+            const pct = Math.round(h * 100);
+            happinessLabel.text = `Happy: ${pct}%`;
+        }),
+        events.on('incomeTick', (earned) => {
+            _showIncomeToast(earned);
+        }),
     ];
 
     k.onSceneLeave(() => offs.forEach(off => off()));
+}
+
+function _updateAffordability(gold) {
+    const selected = state.selectedTool;
+    for (const [key, { bg, labelEnt, costEnt }] of Object.entries(toolButtons)) {
+        const def        = BUILDINGS[key];
+        const isSelected = key === selected;
+        const canAfford  = def.cost === 0 || gold >= def.cost;
+
+        if (isSelected) {
+            bg.color        = k.Color.fromArray(COLORS.accent);
+            labelEnt.color  = k.Color.fromArray(COLORS.text);
+            costEnt.color   = k.Color.fromArray(COLORS.gold);
+        } else if (canAfford) {
+            bg.color        = k.Color.fromArray([40, 40, 60]);
+            labelEnt.color  = k.Color.fromArray(COLORS.text);
+            costEnt.color   = k.Color.fromArray(COLORS.gold);
+        } else {
+            // Can't afford — dim the button
+            bg.color        = k.Color.fromArray([25, 25, 35]);
+            labelEnt.color  = k.Color.fromArray([90, 90, 100]);
+            costEnt.color   = k.Color.fromArray([140, 100, 40]);
+        }
+    }
+}
+
+function _showIncomeToast(amount) {
+    if (incomeToast) {
+        incomeToast.destroy();
+        incomeToast = null;
+    }
+    incomeToastTimer = 0;
+    incomeToast = k.add([
+        k.pos(200, 24),
+        k.text(`+${amount}g`, { size: 12 }),
+        k.color(...COLORS.gold),
+        k.anchor('topleft'),
+        k.opacity(1),
+        k.z(110),
+    ]);
+
+    incomeToast.onUpdate(() => {
+        incomeToastTimer += k.dt();
+        // Fade out after 1.5s over 0.5s
+        if (incomeToastTimer > 1.5) {
+            incomeToast.opacity = Math.max(0, 1 - (incomeToastTimer - 1.5) / 0.5);
+        }
+        if (incomeToastTimer > 2.0) {
+            incomeToast.destroy();
+            incomeToast = null;
+        }
+    });
 }

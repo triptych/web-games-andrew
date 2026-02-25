@@ -22,6 +22,10 @@ class GameState {
 
         // Map<"col,row", bonusAmount> — tracks active adjacency bonuses
         this._adjacencyBonuses = new Map();
+
+        // Phase 3
+        this._population = 0;
+        this._happiness  = 0;   // 0.0 – 1.0
     }
 
     // --- Score ---
@@ -67,6 +71,25 @@ class GameState {
     // --- Adjacency bonuses ---
     get adjacencyBonuses() { return this._adjacencyBonuses; }
     set adjacencyBonuses(map) { this._adjacencyBonuses = map; }
+
+    // --- Population ---
+    get population() { return this._population; }
+    set population(val) {
+        this._population = Math.max(0, val);
+        events.emit('populationChanged', this._population);
+    }
+
+    // --- Happiness (0.0 – 1.0) ---
+    get happiness() { return this._happiness; }
+    set happiness(val) {
+        this._happiness = Math.min(1, Math.max(0, val));
+        events.emit('happinessChanged', this._happiness);
+    }
+
+    // --- Gold income (called by income tick) ---
+    addGold(n) {
+        this.gold += n;
+    }
 
     // --- Flags ---
     get isPaused()  { return this._isPaused; }
