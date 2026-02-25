@@ -18,9 +18,11 @@ import {
 import { state }  from './state.js';
 import { events } from './events.js';
 import { initUI }    from './ui.js';
-import { initAudio, playUiClick, playPlace, playPlaceRoad, playPlacePark, playClear, playNoGold } from './sounds.js';
+import { initAudio, playUiClick, playPlace, playPlaceRoad, playPlacePark, playClear, playNoGold, startAmbient, stopAmbient, toggleAmbient } from './sounds.js';
 import { hasAdjacentRoad, recalcBonuses } from './adjacency.js';
 import { recalcPopulation, startIncomeTick } from './population.js';
+import { saveGame, loadGame } from './storage.js';
+import { initAnimations } from './animations.js';
 
 // ============================================================
 // KAPLAY API GOTCHAS (read before adding entities)
@@ -107,7 +109,7 @@ k.scene('splash', () => {
     // Controls hint
     k.add([
         k.pos(CX, CY + 90),
-        k.text('Click tiles to place  |  1-5 keys to select tool  |  P: pause  ESC: menu', { size: 12 }),
+        k.text('Click tiles to place  |  1-5 keys select tool  |  Ctrl+Z: Undo  Ctrl+S/L: Save/Load  M: Music', { size: 12 }),
         k.color(80, 80, 120),
         k.anchor('center'),
         k.z(1),
@@ -116,7 +118,7 @@ k.scene('splash', () => {
     // Version tag
     k.add([
         k.pos(GAME_WIDTH - 10, GAME_HEIGHT - 10),
-        k.text('Phase 3', { size: 10 }),
+        k.text('Phase 4', { size: 10 }),
         k.color(50, 50, 80),
         k.anchor('botright'),
         k.z(1),
@@ -160,6 +162,9 @@ k.scene('game', () => {
 
     // Bonus overlay entities (star badge on bonus tiles): key = "col,row"
     const bonusOverlays = {};
+
+    // Undo stack: each entry = { col, row, prevType, prevGold, prevScore }
+    const undoStack = [];
 
     // ---- Draw grid background ----
     k.add([
@@ -238,8 +243,8 @@ k.scene('game', () => {
         ]);
     }
 
-    // ---- Helper: redraw a tile entity ----
-    function drawTile(col, row, type) {
+    // ---- Helper: redraw a tile entity (animate=true → pop-in scale) ----
+    function drawTile(col, row, type, animate = false) {
         const key = `${col},${row}`;
         // Remove old entity if any
         if (tileEntities[key]) {
@@ -254,11 +259,19 @@ k.scene('game', () => {
         const def = BUILDINGS[type];
         const { x, y } = gridToScreen(col, row);
         const pad = 2;
+        const tileW = TILE_SIZE - pad * 2;
+        const tileH = TILE_SIZE - pad * 2;
+        // Center of this tile
+        const cx = x + TILE_SIZE / 2;
+        const cy = y + TILE_SIZE / 2;
 
+        // Use anchor('center') so scale animates from the tile center
         const bg = k.add([
-            k.pos(x + pad, y + pad),
-            k.rect(TILE_SIZE - pad * 2, TILE_SIZE - pad * 2),
+            k.pos(cx, cy),
+            k.rect(tileW, tileH),
             k.color(...def.color),
+            k.anchor('center'),
+            k.scale(animate ? 0.4 : 1),
             k.z(10),
         ]);
 
@@ -267,12 +280,26 @@ k.scene('game', () => {
         if (type !== 'road') {
             const emoji = { house: 'H', park: 'P', shop: '$' }[type] || '?';
             labelEnt = k.add([
-                k.pos(x + TILE_SIZE / 2, y + TILE_SIZE / 2),
+                k.pos(cx, cy),
                 k.text(emoji, { size: 14 }),
                 k.color(255, 255, 255),
                 k.anchor('center'),
+                k.scale(animate ? 0.4 : 1),
                 k.z(11),
             ]);
+        }
+
+        // Pop-in animation: lerp scale 0.4 → 1.0 over POP_DURATION seconds
+        if (animate) {
+            const POP_DURATION = 0.12;
+            let t = 0;
+            bg.onUpdate(() => {
+                if (t >= POP_DURATION) return;
+                t += k.dt();
+                const s = 0.4 + 0.6 * Math.min(1, t / POP_DURATION);
+                bg.scale = k.vec2(s, s);
+                if (labelEnt) labelEnt.scale = k.vec2(s, s);
+            });
         }
 
         tileEntities[key] = labelEnt ? [bg, labelEnt] : [bg];
@@ -293,6 +320,7 @@ k.scene('game', () => {
             const existing = state.getTile(col, row);
             if (!existing) return; // nothing to clear
             const refund = Math.floor((BUILDINGS[existing].cost || 0) * CLEAR_REFUND_RATE);
+            undoStack.push({ col, row, prevType: existing, prevGold: state.gold, prevScore: state.score });
             state.setTile(col, row, null);
             drawTile(col, row, null);
             if (refund > 0) state.addGold(refund);
@@ -318,8 +346,9 @@ k.scene('game', () => {
             return;
         }
 
+        undoStack.push({ col, row, prevType: null, prevGold: state.gold + def.cost, prevScore: state.score });
         state.setTile(col, row, tool);
-        drawTile(col, row, tool);
+        drawTile(col, row, tool, true); // animate pop-in
         state.addScore(def.scoreValue);
 
         // Play placement sound
@@ -392,6 +421,7 @@ k.scene('game', () => {
         const existing = state.getTile(col, row);
         if (!existing) return;
         const refund = Math.floor((BUILDINGS[existing].cost || 0) * CLEAR_REFUND_RATE);
+        undoStack.push({ col, row, prevType: existing, prevGold: state.gold, prevScore: state.score });
         state.setTile(col, row, null);
         drawTile(col, row, null);
         if (refund > 0) state.addGold(refund);
@@ -453,10 +483,60 @@ k.scene('game', () => {
         state.isPaused = !state.isPaused;
     });
 
-    k.onKeyPress('escape', () => {
-        events.clearAll();
-        k.go('splash');
+    document.addEventListener('keydown', function onEscapeKey(e) {
+        if (e.key === 'Escape') {
+            events.clearAll();
+            document.removeEventListener('keydown', onEscapeKey);
+            k.go('splash');
+        }
     });
+    k.onSceneLeave(() => document.removeEventListener('keydown', onEscapeKey));
+
+    // ---- Undo (Ctrl+Z) ----
+    function performUndo() {
+        if (undoStack.length === 0) return;
+        const { col, row, prevType, prevGold, prevScore } = undoStack.pop();
+        state.setTile(col, row, prevType);
+        state.gold  = prevGold;
+        state.score = prevScore;
+        drawTile(col, row, prevType);
+        playClear();
+        recalcBonuses();
+        recalcPopulation();
+    }
+
+    document.addEventListener('keydown', function onUndoKey(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+            e.preventDefault();
+            if (!state.isPaused) performUndo();
+        }
+    });
+    k.onSceneLeave(() => document.removeEventListener('keydown', onUndoKey));
+
+    // ---- Save / Load (Ctrl+S / Ctrl+L) ----
+    document.addEventListener('keydown', function onSaveLoadKey(e) {
+        if (!(e.ctrlKey || e.metaKey)) return;
+        if (e.key === 's') {
+            e.preventDefault();
+            saveGame(state);
+            events.emit('toastMessage', 'Town saved!');
+        } else if (e.key === 'l') {
+            e.preventDefault();
+            if (loadGame(state)) {
+                // Redraw entire grid from restored state
+                for (let r = 0; r < GRID_ROWS; r++) {
+                    for (let c = 0; c < GRID_COLS; c++) {
+                        drawTile(c, r, state.getTile(c, r));
+                    }
+                }
+                recalcBonuses();
+                recalcPopulation();
+                undoStack.length = 0;
+                events.emit('toastMessage', 'Town loaded!');
+            }
+        }
+    });
+    k.onSceneLeave(() => document.removeEventListener('keydown', onSaveLoadKey));
 
     // ---- Respond to adjacency bonus changes ----
     events.on('adjacencyChanged', (changedKeys) => {
@@ -470,13 +550,25 @@ k.scene('game', () => {
         }
     });
 
+    // ---- M key: toggle ambient music ----
+    k.onKeyPress('m', () => {
+        toggleAmbient();
+    });
+
     // ---- Init HUD / panel ----
     initUI(k);
+
+    // ---- Init ambient animations (cars, dollar signs) ----
+    initAnimations(k, { gridToScreen });
 
     // ---- Start passive income tick ----
     startIncomeTick(k);
 
+    // ---- Start ambient music ----
+    startAmbient();
+
     k.onSceneLeave(() => {
+        stopAmbient();
         events.clearAll();
     });
 });

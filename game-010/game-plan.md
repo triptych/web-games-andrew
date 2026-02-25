@@ -3,7 +3,7 @@
 **Genre:** City Builder / Sandbox
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Phase 3 — Population & Income
+**Status:** Phase 4 — Polish
 
 ---
 
@@ -124,10 +124,10 @@ Phase 1 is a pure sandbox — no win condition, no timer. Future phases may add:
 - [x] Happiness meter: parks boost happiness, which multiplies income
 
 ### Phase 4 — Polish
-- [ ] Animated tile "pop" on placement (scale tween)
-- [ ] Undo last placement (Ctrl+Z)
-- [ ] Save/load town to localStorage
-- [ ] Background ambient music (Web Audio looping pads)
+- [x] Animated tile "pop" on placement (scale lerp 0.4→1.0 over 0.12 s via onUpdate)
+- [x] Undo last placement (Ctrl+Z — full undo stack, gold & score restored)
+- [x] Save/load town to localStorage (Ctrl+S / Ctrl+L, toast confirmation)
+- [x] Background ambient music (Web Audio looping chord pads, M to toggle)
 
 ---
 
@@ -166,6 +166,21 @@ Phase 1 is a pure sandbox — no win condition, no timer. Future phases may add:
 ---
 
 ## Changelog
+
+### Phase 4 — Polish (2026-02-25) continued
+- animations.js: new module — cars drive along road tiles (max 10, respawn every ~6 s + on road placement); dollar signs float upward from shop tiles on each income tick
+- main.js: import initAnimations; call after initUI, passing gridToScreen helper
+
+### Phase 4 — Polish (2026-02-25)
+- main.js: tile pop-in animation (scale 0.4→1.0 over 0.12 s, anchor center, onUpdate lerp)
+- main.js: undo stack (Ctrl+Z) — restores tile, gold, score; works for place and clear
+- main.js: Ctrl+S / Ctrl+L save/load via storage.js; toast on success
+- main.js: M key toggles ambient music; startAmbient on scene enter, stopAmbient on leave
+- storage.js: new module — saveGame/loadGame/hasSave using localStorage JSON
+- sounds.js: startAmbient/stopAmbient/toggleAmbient — detuned sine pad chords cycling I–V–III–sus2
+- ui.js: _showToast() generalised (colour param); _showIncomeToast delegates to it; toastMessage event
+- ui.js: controls hint updated with new key bindings
+- Splash version tag updated to Phase 4
 
 ### Phase 3 — Population & Income (2026-02-25)
 - population.js: recalcPopulation, startIncomeTick

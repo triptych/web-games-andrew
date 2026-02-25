@@ -80,7 +80,7 @@ function _buildHUD() {
 
     k.add([
         k.pos(GAME_WIDTH - 12, 8),
-        k.text('P: Pause  ESC: Menu', { size: 11 }),
+        k.text('Ctrl+Z: Undo  Ctrl+S: Save  Ctrl+L: Load  M: Music  P: Pause  ESC: Menu', { size: 11 }),
         k.color(80, 80, 120),
         k.anchor('topright'),
         k.z(101),
@@ -195,6 +195,9 @@ function _subscribeEvents() {
         events.on('incomeTick', (earned) => {
             _showIncomeToast(earned);
         }),
+        events.on('toastMessage', (msg) => {
+            _showToast(msg, COLORS.accent);
+        }),
     ];
 
     k.onSceneLeave(() => offs.forEach(off => off()));
@@ -225,6 +228,10 @@ function _updateAffordability(gold) {
 }
 
 function _showIncomeToast(amount) {
+    _showToast(`+${amount}g`, COLORS.gold);
+}
+
+function _showToast(text, color) {
     if (incomeToast) {
         incomeToast.destroy();
         incomeToast = null;
@@ -232,8 +239,8 @@ function _showIncomeToast(amount) {
     incomeToastTimer = 0;
     incomeToast = k.add([
         k.pos(200, 24),
-        k.text(`+${amount}g`, { size: 12 }),
-        k.color(...COLORS.gold),
+        k.text(text, { size: 12 }),
+        k.color(...color),
         k.anchor('topleft'),
         k.opacity(1),
         k.z(110),
@@ -241,7 +248,6 @@ function _showIncomeToast(amount) {
 
     incomeToast.onUpdate(() => {
         incomeToastTimer += k.dt();
-        // Fade out after 1.5s over 0.5s
         if (incomeToastTimer > 1.5) {
             incomeToast.opacity = Math.max(0, 1 - (incomeToastTimer - 1.5) / 0.5);
         }
