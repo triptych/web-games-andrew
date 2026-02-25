@@ -179,6 +179,12 @@ Phase 1 is a pure sandbox — no win condition, no timer. Future phases may add:
 - population.js: apartment counts toward population; office/bank/government count toward income
 - ui.js: panel buttons compacted to fit 9 entries (BTN_H=34, BTN_STEP=38); key number badge + colour swatch on each button
 
+### Phase 4 — Tile Icons (2026-02-25)
+- config.js: icon field changed from letter abbreviations to icon keys (house/apartment/park/shop/office/bank/government)
+- main.js: replaced k.text() emoji label with drawTileIcon() — pure Kaplay primitive shapes per building type (house: body+roof triangle; apartment: tower+windows; park: trunk+canopy; shop: body+awning+door; office: glass tower+floor lines; bank: base+columns+cap; government: dome+flagpole)
+- main.js: park canopy darkened to forest green (20,100,30) and trunk lightened to tan (210,170,100) for contrast against bright green tile
+- index.html: removed @font-face emoji workaround (no longer needed)
+
 ### Phase 4 — Polish (2026-02-25) continued
 - animations.js: new module — cars drive along road tiles (max 10, respawn every ~6 s + on road placement); dollar signs float upward from shop tiles on each income tick
 - main.js: import initAnimations; call after initUI, passing gridToScreen helper

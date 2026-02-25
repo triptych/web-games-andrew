@@ -28,17 +28,17 @@ export const GRID_OFFSET_X = 40;         // left margin (pixels)
 export const GRID_OFFSET_Y = 48;         // top margin below HUD (pixels)
 
 // --- Building types ---
-// Each entry: label, color [r,g,b], cost, scoreValue, icon (text drawn on tile)
+// icon: key passed to drawTileIcon() in main.js (null = no icon)
 export const BUILDINGS = {
-    road:       { label: 'Road',       color: [100, 100, 110], cost: 10,  scoreValue: 1,  icon: null   },
-    house:      { label: 'House',      color: [190, 140,  80], cost: 50,  scoreValue: 10, icon: 'H'    },
-    apartment:  { label: 'Apartment',  color: [140, 110, 180], cost: 120, scoreValue: 25, icon: 'A'    },
-    park:       { label: 'Park',       color: [ 70, 170,  70], cost: 30,  scoreValue: 5,  icon: 'PR'   },
-    shop:       { label: 'Shop',       color: [210, 170,  50], cost: 80,  scoreValue: 20, icon: 'SH'   },
-    office:     { label: 'Office',     color: [ 80, 160, 200], cost: 150, scoreValue: 35, icon: 'OF'   },
-    bank:       { label: 'Bank',       color: [200, 200, 100], cost: 200, scoreValue: 50, icon: 'BK'   },
-    government: { label: 'Gov.t',      color: [180,  80,  80], cost: 250, scoreValue: 60, icon: 'GV'   },
-    clear:      { label: 'Clear',      color: [ 40,  40,  60], cost: 0,   scoreValue: 0,  icon: null   },
+    road:       { label: 'Road',       color: [100, 100, 110], cost: 10,  scoreValue: 1,  icon: null         },
+    house:      { label: 'House',      color: [190, 140,  80], cost: 50,  scoreValue: 10, icon: 'house'      },
+    apartment:  { label: 'Apartment',  color: [140, 110, 180], cost: 120, scoreValue: 25, icon: 'apartment'  },
+    park:       { label: 'Park',       color: [ 70, 170,  70], cost: 30,  scoreValue: 5,  icon: 'park'       },
+    shop:       { label: 'Shop',       color: [210, 170,  50], cost: 80,  scoreValue: 20, icon: 'shop'       },
+    office:     { label: 'Office',     color: [ 80, 160, 200], cost: 150, scoreValue: 35, icon: 'office'     },
+    bank:       { label: 'Bank',       color: [200, 200, 100], cost: 200, scoreValue: 50, icon: 'bank'       },
+    government: { label: 'Gov.t',      color: [180,  80,  80], cost: 250, scoreValue: 60, icon: 'government' },
+    clear:      { label: 'Clear',      color: [ 40,  40,  60], cost: 0,   scoreValue: 0,  icon: null         },
 };
 
 // --- Terrain types (background biome for empty tiles) ---

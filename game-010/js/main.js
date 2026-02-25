@@ -60,6 +60,7 @@ const k = kaplay({
     pixelDensity: Math.min(window.devicePixelRatio, 2),
 });
 
+
 // ============================================================
 // SCENE: splash
 // ============================================================
@@ -248,6 +249,98 @@ k.scene('game', () => {
         ]);
     }
 
+    // ---- Draw a primitive icon centred at (cx, cy) with initial scale s ----
+    // Returns array of created entities (all share the same anchor/scale setup).
+    function drawTileIcon(icon, cx, cy, s) {
+        const W = [255, 255, 255]; // white
+        const add = (comps) => k.add([k.pos(cx, cy), k.anchor('center'), k.scale(s), k.z(11), ...comps]);
+        const ents = [];
+
+        if (icon === 'house') {
+            // Body
+            ents.push(add([k.rect(14, 10), k.color(240, 210, 150), k.anchor('center')]));
+            // Roof triangle (two rects forming a chevron approximation)
+            ents.push(k.add([k.pos(cx, cy - 10), k.anchor('center'), k.scale(s), k.z(12),
+                k.polygon([k.vec2(-9, 0), k.vec2(9, 0), k.vec2(0, -7)]),
+                k.color(200, 80, 60),
+            ]));
+        } else if (icon === 'apartment') {
+            // Tall block
+            ents.push(add([k.rect(12, 18), k.color(200, 180, 240)]));
+            // Window grid (4 small rects)
+            for (let row = 0; row < 2; row++) {
+                for (let col = 0; col < 2; col++) {
+                    ents.push(k.add([
+                        k.pos(cx - 3 + col * 6, cy - 4 + row * 6),
+                        k.anchor('center'), k.scale(s), k.z(12),
+                        k.rect(3, 3), k.color(255, 240, 150),
+                    ]));
+                }
+            }
+        } else if (icon === 'park') {
+            // Trunk — light tan so it pops off the green tile
+            ents.push(add([k.rect(4, 9), k.color(210, 170, 100), k.anchor('center')]));
+            // Canopy — dark forest green for contrast against the bright tile
+            ents.push(k.add([k.pos(cx, cy - 7), k.anchor('center'), k.scale(s), k.z(12),
+                k.circle(7), k.color(20, 100, 30),
+            ]));
+        } else if (icon === 'shop') {
+            // Body
+            ents.push(add([k.rect(16, 11), k.color(240, 200, 80)]));
+            // Awning stripe
+            ents.push(k.add([k.pos(cx, cy - 7), k.anchor('center'), k.scale(s), k.z(12),
+                k.rect(16, 4), k.color(210, 80, 80),
+            ]));
+            // Door
+            ents.push(k.add([k.pos(cx, cy + 2), k.anchor('center'), k.scale(s), k.z(12),
+                k.rect(5, 7), k.color(180, 140, 60),
+            ]));
+        } else if (icon === 'office') {
+            // Glass tower
+            ents.push(add([k.rect(13, 20), k.color(140, 200, 230)]));
+            // Horizontal floor lines
+            for (let i = 0; i < 3; i++) {
+                ents.push(k.add([
+                    k.pos(cx, cy - 6 + i * 5),
+                    k.anchor('center'), k.scale(s), k.z(12),
+                    k.rect(13, 1), k.color(80, 140, 180),
+                ]));
+            }
+        } else if (icon === 'bank') {
+            // Base
+            ents.push(add([k.rect(18, 13), k.color(220, 215, 130)]));
+            // Columns (3 thin rects)
+            for (let i = 0; i < 3; i++) {
+                ents.push(k.add([
+                    k.pos(cx - 5 + i * 5, cy - 1),
+                    k.anchor('center'), k.scale(s), k.z(12),
+                    k.rect(2, 11), k.color(180, 170, 90),
+                ]));
+            }
+            // Roof cap
+            ents.push(k.add([k.pos(cx, cy - 8), k.anchor('center'), k.scale(s), k.z(12),
+                k.rect(18, 3), k.color(160, 150, 80),
+            ]));
+        } else if (icon === 'government') {
+            // Dome body
+            ents.push(add([k.rect(18, 12), k.color(210, 120, 120)]));
+            // Dome top (circle)
+            ents.push(k.add([k.pos(cx, cy - 9), k.anchor('center'), k.scale(s), k.z(12),
+                k.circle(5), k.color(190, 100, 100),
+            ]));
+            // Flag pole
+            ents.push(k.add([k.pos(cx, cy - 16), k.anchor('center'), k.scale(s), k.z(12),
+                k.rect(1, 7), k.color(...W),
+            ]));
+            // Flag
+            ents.push(k.add([k.pos(cx + 3, cy - 18), k.anchor('center'), k.scale(s), k.z(12),
+                k.rect(5, 3), k.color(255, 80, 80),
+            ]));
+        }
+
+        return ents;
+    }
+
     // ---- Helper: redraw a tile entity (animate=true → pop-in scale) ----
     function drawTile(col, row, type, animate = false) {
         const key = `${col},${row}`;
@@ -280,19 +373,8 @@ k.scene('game', () => {
             k.z(10),
         ]);
 
-        // Small icon label for tiles that have one
-        let labelEnt = null;
-        if (def.icon) {
-            const emoji = def.icon;
-            labelEnt = k.add([
-                k.pos(cx, cy),
-                k.text(emoji, { size: 14 }),
-                k.color(255, 255, 255),
-                k.anchor('center'),
-                k.scale(animate ? 0.4 : 1),
-                k.z(11),
-            ]);
-        }
+        // Primitive icon drawn on top of the tile background
+        const iconEnts = def.icon ? drawTileIcon(def.icon, cx, cy, animate ? 0.4 : 1) : [];
 
         // Pop-in animation: lerp scale 0.4 → 1.0 over POP_DURATION seconds
         if (animate) {
@@ -303,11 +385,11 @@ k.scene('game', () => {
                 t += k.dt();
                 const s = 0.4 + 0.6 * Math.min(1, t / POP_DURATION);
                 bg.scale = k.vec2(s, s);
-                if (labelEnt) labelEnt.scale = k.vec2(s, s);
+                for (const e of iconEnts) e.scale = k.vec2(s, s);
             });
         }
 
-        tileEntities[key] = labelEnt ? [bg, labelEnt] : [bg];
+        tileEntities[key] = [bg, ...iconEnts];
 
         // Restore bonus overlay if this tile already has a bonus
         if (state.adjacencyBonuses.has(key)) {
