@@ -3,7 +3,7 @@
 **Genre:** City Builder / Sandbox
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Planning — Phase 1
+**Status:** Phase 2 — Adjacency Rules
 
 ---
 
@@ -114,9 +114,9 @@ Phase 1 is a pure sandbox — no win condition, no timer. Future phases may add:
 - [x] Hover highlight on grid
 
 ### Phase 2 — Adjacency Rules
-- [ ] Score bonus when house is adjacent to a park
-- [ ] Shops require at least one adjacent road tile to place
-- [ ] Visual indicator on tiles with active bonuses
+- [x] Score bonus when house is adjacent to a park (+5 per qualifying house, recalculated on every place/clear)
+- [x] Shops require at least one adjacent road tile to place
+- [x] Visual indicator on tiles with active bonuses (yellow `+` badge on house; `Bonus: +N` in HUD)
 
 ### Phase 3 — Population & Income
 - [ ] Population counter driven by houses + road access
@@ -166,6 +166,15 @@ Phase 1 is a pure sandbox — no win condition, no timer. Future phases may add:
 ---
 
 ## Changelog
+
+### Phase 2 — Adjacency Rules (2026-02-25)
+- adjacency.js: neighbour helpers, hasAdjacentRoad, recalcBonuses
+- Shop placement requires adjacent road (reuses no-gold sound on fail)
+- House-park bonus: +5 per house next to ≥1 park, recalculated on every place/clear
+- Bonus `+` badge overlay drawn on qualifying house tiles
+- HUD shows `Bonus: +N` when bonuses are active
+- state.js: adjacencyBonuses Map
+- Splash version tag updated to Phase 2
 
 ### Phase 1 — Scaffold (2026-02-25)
 - Initial scaffold: index.html, config, events, state, sounds, ui, main

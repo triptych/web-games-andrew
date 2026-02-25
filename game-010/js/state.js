@@ -19,6 +19,9 @@ class GameState {
 
         // 2D grid: null = empty, string = building type key
         this._grid = Array.from({ length: GRID_ROWS }, () => Array(GRID_COLS).fill(null));
+
+        // Map<"col,row", bonusAmount> — tracks active adjacency bonuses
+        this._adjacencyBonuses = new Map();
     }
 
     // --- Score ---
@@ -60,6 +63,10 @@ class GameState {
         if (col < 0 || col >= GRID_COLS || row < 0 || row >= GRID_ROWS) return;
         this._grid[row][col] = type;
     }
+
+    // --- Adjacency bonuses ---
+    get adjacencyBonuses() { return this._adjacencyBonuses; }
+    set adjacencyBonuses(map) { this._adjacencyBonuses = map; }
 
     // --- Flags ---
     get isPaused()  { return this._isPaused; }

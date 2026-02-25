@@ -19,6 +19,7 @@ import { state }  from './state.js';
 import { events } from './events.js';
 import { initUI }    from './ui.js';
 import { initAudio, playUiClick, playPlace, playPlaceRoad, playPlacePark, playClear, playNoGold } from './sounds.js';
+import { hasAdjacentRoad, recalcBonuses } from './adjacency.js';
 
 // ============================================================
 // KAPLAY API GOTCHAS (read before adding entities)
@@ -114,7 +115,7 @@ k.scene('splash', () => {
     // Version tag
     k.add([
         k.pos(GAME_WIDTH - 10, GAME_HEIGHT - 10),
-        k.text('Phase 1', { size: 10 }),
+        k.text('Phase 2', { size: 10 }),
         k.color(50, 50, 80),
         k.anchor('botright'),
         k.z(1),
@@ -155,6 +156,9 @@ k.scene('game', () => {
 
     // In-memory map of tile entities so we can redraw them: key = "col,row"
     const tileEntities = {};
+
+    // Bonus overlay entities (star badge on bonus tiles): key = "col,row"
+    const bonusOverlays = {};
 
     // ---- Draw grid background ----
     k.add([
@@ -211,6 +215,28 @@ k.scene('game', () => {
         };
     }
 
+    // ---- Helper: destroy bonus overlay for a tile ----
+    function clearBonusOverlay(key) {
+        if (bonusOverlays[key]) {
+            bonusOverlays[key].destroy();
+            delete bonusOverlays[key];
+        }
+    }
+
+    // ---- Helper: draw (or refresh) the bonus star on a tile ----
+    function drawBonusOverlay(col, row) {
+        const key = `${col},${row}`;
+        clearBonusOverlay(key);
+        const { x, y } = gridToScreen(col, row);
+        bonusOverlays[key] = k.add([
+            k.pos(x + TILE_SIZE - 2, y + 2),
+            k.text('+', { size: 10 }),
+            k.color(255, 240, 80),
+            k.anchor('topright'),
+            k.z(15),
+        ]);
+    }
+
     // ---- Helper: redraw a tile entity ----
     function drawTile(col, row, type) {
         const key = `${col},${row}`;
@@ -220,6 +246,7 @@ k.scene('game', () => {
         }
         if (!type) {
             delete tileEntities[key];
+            clearBonusOverlay(key);
             return;
         }
 
@@ -248,6 +275,11 @@ k.scene('game', () => {
         }
 
         tileEntities[key] = labelEnt ? [bg, labelEnt] : [bg];
+
+        // Restore bonus overlay if this tile already has a bonus
+        if (state.adjacencyBonuses.has(key)) {
+            drawBonusOverlay(col, row);
+        }
     }
 
     // ---- Place a building ----
@@ -263,6 +295,13 @@ k.scene('game', () => {
             drawTile(col, row, null);
             playClear();
             events.emit('buildingCleared', col, row);
+            recalcBonuses();
+            return;
+        }
+
+        // Shops require an adjacent road tile
+        if (tool === 'shop' && !hasAdjacentRoad(col, row)) {
+            playNoGold(); // reuse "can't do it" sound
             return;
         }
 
@@ -282,6 +321,7 @@ k.scene('game', () => {
         else                       playPlace();
 
         events.emit('buildingPlaced', col, row, tool);
+        recalcBonuses();
     }
 
     // ---- Mouse hover ----
@@ -357,6 +397,18 @@ k.scene('game', () => {
     k.onKeyPress('escape', () => {
         events.clearAll();
         k.go('splash');
+    });
+
+    // ---- Respond to adjacency bonus changes ----
+    events.on('adjacencyChanged', (changedKeys) => {
+        for (const key of changedKeys) {
+            const [col, row] = key.split(',').map(Number);
+            if (state.adjacencyBonuses.has(key)) {
+                drawBonusOverlay(col, row);
+            } else {
+                clearBonusOverlay(key);
+            }
+        }
     });
 
     // ---- Init HUD / panel ----

@@ -8,7 +8,7 @@ import { events } from './events.js';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS, BUILDINGS, PANEL_WIDTH } from './config.js';
 
 let k;
-let scoreLabel, goldLabel;
+let scoreLabel, goldLabel, bonusLabel;
 const toolButtons = {};
 
 export function initUI(kaplay) {
@@ -39,6 +39,14 @@ function _buildHUD() {
         k.pos(200, 8),
         k.text(`Gold: ${state.gold}`, { size: 16 }),
         k.color(...COLORS.gold),
+        k.anchor('topleft'),
+        k.z(101),
+    ]);
+
+    bonusLabel = k.add([
+        k.pos(380, 8),
+        k.text('', { size: 14 }),
+        k.color(255, 240, 80),
         k.anchor('topleft'),
         k.z(101),
     ]);
@@ -152,6 +160,10 @@ function _subscribeEvents() {
             for (const [key, bg] of Object.entries(toolButtons)) {
                 bg.color = k.Color.fromArray(key === tool ? COLORS.accent : [40, 40, 60]);
             }
+        }),
+        events.on('adjacencyChanged', () => {
+            const total = [...state.adjacencyBonuses.values()].reduce((a, b) => a + b, 0);
+            bonusLabel.text = total > 0 ? `Bonus: +${total}` : '';
         }),
     ];
 
