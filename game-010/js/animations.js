@@ -56,12 +56,13 @@ function _allRoadTiles() {
     return roads;
 }
 
-/** Return all shop tile coords as [{col, row}] */
+/** Return all income-generating tile coords as [{col, row}] */
+const INCOME_TYPES = new Set(['shop', 'office', 'bank', 'government']);
 function _allShopTiles() {
     const shops = [];
     for (let row = 0; row < GRID_ROWS; row++) {
         for (let col = 0; col < GRID_COLS; col++) {
-            if (state.getTile(col, row) === 'shop') shops.push({ col, row });
+            if (INCOME_TYPES.has(state.getTile(col, row))) shops.push({ col, row });
         }
     }
     return shops;
