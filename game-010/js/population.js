@@ -53,9 +53,11 @@ export function recalcPopulation() {
     for (let row = 0; row < GRID_ROWS; row++) {
         for (let col = 0; col < GRID_COLS; col++) {
             const type = state.getTile(col, row);
-            if (type === 'house' && hasAdjacentRoad(col, row)) pop++;
-            if (type === 'park')  parkCount++;
-            if (type === 'shop')  shopCount++;
+            // houses and apartments contribute population when road-connected
+            if ((type === 'house' || type === 'apartment') && hasAdjacentRoad(col, row)) pop++;
+            if (type === 'park') parkCount++;
+            // commercial/civic buildings generate income
+            if (type === 'shop' || type === 'office' || type === 'bank' || type === 'government') shopCount++;
         }
     }
 

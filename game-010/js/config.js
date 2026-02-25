@@ -28,14 +28,28 @@ export const GRID_OFFSET_X = 40;         // left margin (pixels)
 export const GRID_OFFSET_Y = 48;         // top margin below HUD (pixels)
 
 // --- Building types ---
-// Each building type has: label, color [r,g,b], cost, scoreValue
+// Each entry: label, color [r,g,b], cost, scoreValue, icon (text drawn on tile)
 export const BUILDINGS = {
-    road:  { label: 'Road',  color: [120, 120, 130], cost: 10,  scoreValue: 1  },
-    house: { label: 'House', color: [180, 130,  80], cost: 50,  scoreValue: 10 },
-    park:  { label: 'Park',  color: [ 80, 180,  80], cost: 30,  scoreValue: 5  },
-    shop:  { label: 'Shop',  color: [200, 160,  60], cost: 80,  scoreValue: 20 },
-    clear: { label: 'Clear', color: [ 40,  40,  60], cost: 0,   scoreValue: 0  },
+    road:       { label: 'Road',       color: [100, 100, 110], cost: 10,  scoreValue: 1,  icon: null   },
+    house:      { label: 'House',      color: [190, 140,  80], cost: 50,  scoreValue: 10, icon: 'H'    },
+    apartment:  { label: 'Apartment',  color: [140, 110, 180], cost: 120, scoreValue: 25, icon: 'A'    },
+    park:       { label: 'Park',       color: [ 70, 170,  70], cost: 30,  scoreValue: 5,  icon: 'PR'   },
+    shop:       { label: 'Shop',       color: [210, 170,  50], cost: 80,  scoreValue: 20, icon: 'SH'   },
+    office:     { label: 'Office',     color: [ 80, 160, 200], cost: 150, scoreValue: 35, icon: 'OF'   },
+    bank:       { label: 'Bank',       color: [200, 200, 100], cost: 200, scoreValue: 50, icon: 'BK'   },
+    government: { label: 'Gov.t',      color: [180,  80,  80], cost: 250, scoreValue: 60, icon: 'GV'   },
+    clear:      { label: 'Clear',      color: [ 40,  40,  60], cost: 0,   scoreValue: 0,  icon: null   },
 };
+
+// --- Terrain types (background biome for empty tiles) ---
+// color: base fill color, accent: small detail color
+export const TERRAIN = {
+    field:      { color: [45, 70, 35],  accent: [60, 95, 45]  },
+    grassland:  { color: [40, 80, 40],  accent: [55, 110, 55] },
+    mountain:   { color: [65, 60, 55],  accent: [90, 85, 75]  },
+    lake:       { color: [30, 50, 90],  accent: [40, 70, 120] },
+};
+export const TERRAIN_KEYS = Object.keys(TERRAIN);
 
 // --- Starting gold ---
 export const STARTING_GOLD = 500;

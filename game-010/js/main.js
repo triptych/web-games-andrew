@@ -23,6 +23,7 @@ import { hasAdjacentRoad, recalcBonuses } from './adjacency.js';
 import { recalcPopulation, startIncomeTick } from './population.js';
 import { saveGame, loadGame } from './storage.js';
 import { initAnimations } from './animations.js';
+import { generateTerrain, drawTerrainLayer } from './terrain.js';
 
 // ============================================================
 // KAPLAY API GOTCHAS (read before adding entities)
@@ -109,7 +110,7 @@ k.scene('splash', () => {
     // Controls hint
     k.add([
         k.pos(CX, CY + 90),
-        k.text('Click tiles to place  |  1-5 keys select tool  |  Ctrl+Z: Undo  Ctrl+S/L: Save/Load  M: Music', { size: 12 }),
+        k.text('Click tiles to place  |  1-9 keys select tool  |  Ctrl+Z: Undo  Ctrl+S/L: Save/Load  M: Music', { size: 12 }),
         k.color(80, 80, 120),
         k.anchor('center'),
         k.z(1),
@@ -152,6 +153,7 @@ k.scene('splash', () => {
 
 k.scene('game', () => {
     state.reset();
+    generateTerrain();
 
     // ---- Grid area setup ----
     // Grid occupies the left portion; right PANEL_WIDTH px is the build panel.
@@ -221,6 +223,9 @@ k.scene('game', () => {
         };
     }
 
+    // ---- Draw terrain background (biome tiles) ----
+    drawTerrainLayer(k, gridToScreen);
+
     // ---- Helper: destroy bonus overlay for a tile ----
     function clearBonusOverlay(key) {
         if (bonusOverlays[key]) {
@@ -275,10 +280,10 @@ k.scene('game', () => {
             k.z(10),
         ]);
 
-        // Small label for non-road tiles
+        // Small icon label for tiles that have one
         let labelEnt = null;
-        if (type !== 'road') {
-            const emoji = { house: 'H', park: 'P', shop: '$' }[type] || '?';
+        if (def.icon) {
+            const emoji = def.icon;
             labelEnt = k.add([
                 k.pos(cx, cy),
                 k.text(emoji, { size: 14 }),
@@ -334,8 +339,9 @@ k.scene('game', () => {
         // Block placement on an already-occupied tile
         if (state.getTile(col, row)) return;
 
-        // Shops require an adjacent road tile
-        if (tool === 'shop' && !hasAdjacentRoad(col, row)) {
+        // Commercial/civic buildings require an adjacent road tile
+        const NEEDS_ROAD = new Set(['shop', 'office', 'bank', 'government']);
+        if (NEEDS_ROAD.has(tool) && !hasAdjacentRoad(col, row)) {
             playNoGold(); // reuse "can't do it" sound
             return;
         }
@@ -464,8 +470,11 @@ k.scene('game', () => {
         }
     });
 
-    // ---- Keyboard tool shortcuts ----
-    const toolKeys = { '1': 'road', '2': 'house', '3': 'park', '4': 'shop', '5': 'clear' };
+    // ---- Keyboard tool shortcuts (1–9 mapped to BUILDINGS order) ----
+    const toolKeys = {};
+    Object.keys(BUILDINGS).forEach((tool, idx) => {
+        toolKeys[String(idx + 1)] = tool;
+    });
     for (const [key, tool] of Object.entries(toolKeys)) {
         k.onKeyPress(key, () => {
             state.selectedTool = tool;

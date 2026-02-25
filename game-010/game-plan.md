@@ -21,13 +21,17 @@ There are no enemies or fail states — just the satisfying loop of watching a b
 A 24 × 16 tile grid is the town canvas. Click or click-drag to paint tiles with the currently selected building type. Tiles can be overwritten by using the Clear tool first.
 
 ### 2. Building Types
-| Type  | Cost | Score | Notes |
-|-------|------|-------|-------|
-| Road  | 10g  | +1    | Connects zones; should border houses/shops |
-| House | 50g  | +10   | Residential; benefits from nearby parks |
-| Park  | 30g  | +5    | Green space; future adjacency bonus source |
-| Shop  | 80g  | +20   | Commercial; needs road access |
-| Clear | free | 0     | Removes a tile; does not refund gold |
+| Type       | Cost  | Score | Notes |
+|------------|-------|-------|-------|
+| Road       | 10g   | +1    | Connects zones; required by commercial/civic |
+| House      | 50g   | +10   | Residential; benefits from nearby parks |
+| Apartment  | 120g  | +25   | Dense residential; needs road access |
+| Park       | 30g   | +5    | Green space; boosts happiness & house bonuses |
+| Shop       | 80g   | +20   | Commercial; needs road access; generates income |
+| Office     | 150g  | +35   | Commercial; needs road access; generates income |
+| Bank       | 200g  | +50   | Financial; needs road access; generates income |
+| Government | 250g  | +60   | Civic; needs road access; generates income |
+| Clear      | free  | 0     | Removes a tile; 50% refund |
 
 ### 3. Gold Economy
 Players start with 500 gold. Each placement costs gold. There is no income loop in Phase 1 — the constraint is budget management. Future phases may add a passive income tick based on town composition.
@@ -166,6 +170,14 @@ Phase 1 is a pure sandbox — no win condition, no timer. Future phases may add:
 ---
 
 ## Changelog
+
+### Phase 4 — Visual Polish (2026-02-25)
+- terrain.js: new module — generateTerrain() seeds biome map (field/grassland/mountain/lake) using inverse-distance weighted noise; drawTerrainLayer() renders background tiles with per-biome detail marks
+- config.js: TERRAIN / TERRAIN_KEYS constants; 4 new building types: apartment, office, bank, government (each with label, color, cost, scoreValue, icon)
+- config.js: all BUILDINGS entries now have `icon` field (null for road/clear)
+- main.js: import terrain module; generateTerrain() on scene enter; drawTerrainLayer() after gridToScreen; drawTile() uses def.icon instead of hardcoded letter map; keyboard shortcuts auto-generated from BUILDINGS order (1–9); commercial/civic road requirement expanded to shop/office/bank/government
+- population.js: apartment counts toward population; office/bank/government count toward income
+- ui.js: panel buttons compacted to fit 9 entries (BTN_H=34, BTN_STEP=38); key number badge + colour swatch on each button
 
 ### Phase 4 — Polish (2026-02-25) continued
 - animations.js: new module — cars drive along road tiles (max 10, respawn every ~6 s + on road placement); dollar signs float upward from shop tiles on each income tick

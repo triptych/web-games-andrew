@@ -80,7 +80,7 @@ function _buildHUD() {
 
     k.add([
         k.pos(GAME_WIDTH - 12, 8),
-        k.text('Ctrl+Z: Undo  Ctrl+S: Save  Ctrl+L: Load  M: Music  P: Pause  ESC: Menu', { size: 11 }),
+        k.text('1-9: Select  Ctrl+Z: Undo  Ctrl+S: Save  Ctrl+L: Load  M: Music  P: Pause  ESC: Menu', { size: 11 }),
         k.color(80, 80, 120),
         k.anchor('topright'),
         k.z(101),
@@ -106,48 +106,61 @@ function _buildPanel() {
         k.z(101),
     ]);
 
-    let btnY = 82;
+    const BTN_H    = 34;  // button height
+    const BTN_STEP = 38;  // step between buttons (includes gap)
+    let btnY = 78;
+    let btnIndex = 1;
     for (const [key, def] of Object.entries(BUILDINGS)) {
-        const BY = btnY;
-        const BK = key;
+        const BY  = btnY;
+        const BK  = key;
+        const NUM = btnIndex;
 
         const isSelected = () => state.selectedTool === BK;
 
         // Button background — will be tinted by selection
         const bg = k.add([
-            k.pos(PX + 10, BY),
-            k.rect(PANEL_WIDTH - 20, 38),
+            k.pos(PX + 8, BY),
+            k.rect(PANEL_WIDTH - 16, BTN_H),
             k.color(...(isSelected() ? COLORS.accent : [40, 40, 60])),
             k.anchor('topleft'),
             k.z(101),
             k.area(),
         ]);
 
+        // Key shortcut badge
+        k.add([
+            k.pos(PX + 14, BY + BTN_H / 2),
+            k.text(String(NUM), { size: 10 }),
+            k.color(120, 120, 160),
+            k.anchor('left'),
+            k.z(102),
+        ]);
+
+        // Colour swatch (left side, after key number)
+        k.add([
+            k.pos(PX + 26, BY + BTN_H / 2),
+            k.rect(8, 8),
+            k.color(...def.color),
+            k.anchor('left'),
+            k.z(102),
+        ]);
+
         const labelEnt = k.add([
-            k.pos(PX + 20, BY + 8),
-            k.text(def.label, { size: 13 }),
+            k.pos(PX + 38, BY + BTN_H / 2),
+            k.text(def.label, { size: 12 }),
             k.color(...COLORS.text),
-            k.anchor('topleft'),
+            k.anchor('left'),
             k.z(102),
         ]);
 
         const costText = key === 'clear'
-            ? `${Math.round(CLEAR_REFUND_RATE * 100)}% back`
+            ? `${Math.round(CLEAR_REFUND_RATE * 100)}%`
             : def.cost > 0 ? `${def.cost}g` : 'free';
         const costEnt = k.add([
-            k.pos(PX + PANEL_WIDTH - 20, BY + 8),
+            k.pos(PX + PANEL_WIDTH - 12, BY + BTN_H / 2),
             k.text(costText, { size: 11 }),
             k.color(...COLORS.gold),
-            k.anchor('topright'),
-            k.z(102),
-        ]);
-
-        // Colour swatch
-        k.add([
-            k.pos(PX + PANEL_WIDTH - 22, BY + 20),
-            k.rect(12, 12),
-            k.color(...def.color),
-            k.anchor('topright'),
+            k.anchor('right'),
             k.z(102),
         ]);
 
@@ -156,7 +169,8 @@ function _buildPanel() {
         });
 
         toolButtons[key] = { bg, labelEnt, costEnt };
-        btnY += 46;
+        btnY += BTN_STEP;
+        btnIndex++;
     }
 
     // Instructions at bottom of panel
