@@ -3213,11 +3213,43 @@ events.on('selectedToolChanged', (tool) => {
 
 ---
 
-**Document Version**: 2.0
-**Last Updated**: 2026-02-25
-**Games Covered**: 001-010
-**Total Lines Analyzed**: ~32,000+
-**Latest Enhancement**: Game 010 — City builder sandbox, drag-to-paint grid, gold economy, build panel
+---
+
+---
+
+---
+
+## Game 011: Nonogram Fleet (2026-02-26)
+
+### Bug: `entity.onUpdate()` Returns a `KEventController`, Not a Function ⚠️ CRITICAL
+
+**Symptom:** `off is not a function` error thrown inside a self-cancelling banner animation. The banner displayed correctly but crashed when it tried to stop its own update callback.
+
+**Root Cause:** `entity.onUpdate(fn)` in Kaplay v4000 returns a **`KEventController` object**, not a bare function. The correct way to cancel it is `.cancel()`, not calling the return value directly.
+
+```javascript
+// ❌ BROKEN — off is an object, not a function
+const off = banner.onUpdate(() => {
+    if (t >= duration) { off(); k.destroy(banner); }  // TypeError: off is not a function
+});
+
+// ✅ CORRECT — use .cancel() on the returned controller
+const ctrl = banner.onUpdate(() => {
+    if (t >= duration) { ctrl.cancel(); k.destroy(banner); }
+});
+```
+
+**Note:** `k.onUpdate(fn)` at the scene level also returns a `KEventController` — the same rule applies. Only `events.on(fn)` (the custom EventBus) returns a plain unsubscribe function.
+
+**Prevention:** Name the return value `ctrl` (not `off` or `unsub`) to signal it's a controller object, and always use `.cancel()` to stop it.
+
+---
+
+**Document Version**: 2.1
+**Last Updated**: 2026-02-26
+**Games Covered**: 001-011
+**Total Lines Analyzed**: ~34,000+
+**Latest Enhancement**: Game 011 — Nonogram Fleet, `KEventController.cancel()` pattern
 
 
 

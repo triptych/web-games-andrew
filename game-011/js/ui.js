@@ -97,13 +97,13 @@ function _showBanner(msg, color, duration = 2.0) {
     ]);
 
     let t = 0;
-    const off = banner.onUpdate(() => {
+    const ctrl = banner.onUpdate(() => {
         t += k.dt();
         if (t > duration - 0.4) {
             banner.opacity = Math.max(0, 1 - (t - (duration - 0.4)) / 0.4);
         }
         if (t >= duration) {
-            off();
+            ctrl.cancel();
             k.destroy(banner);
         }
     });

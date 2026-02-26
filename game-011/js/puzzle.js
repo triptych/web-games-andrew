@@ -104,6 +104,9 @@ export function setCell(row, col, value) {
         events.emit('cellFilled', row, col);
     } else if ((value === 'empty' || value === null) && prev === 'filled') {
         events.emit('cellCleared', row, col);
+    } else if (value !== prev) {
+        // covers null→'empty', 'empty'→null, etc. — grid still needs to redraw
+        events.emit('cellMarked', row, col);
     }
 
     if (isPuzzleSolved()) {

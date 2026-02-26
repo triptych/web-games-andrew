@@ -32,6 +32,20 @@ class GameState {
         this._revealed   = null;
     }
 
+    /**
+     * Reset only the per-level state (shots, grids) without touching
+     * score, lives, or level number.  Used when transitioning between levels
+     * or retrying the same level.
+     */
+    resetLevel() {
+        this._isPaused       = false;
+        this._shotsLeft      = SHOTS_PER_PUZZLE;
+        this._shipsRemaining = 0;
+        this._playerGrid     = null;
+        this._enemyGrid      = null;
+        this._revealed       = null;
+    }
+
     // --- Score ---
     get score() { return this._score; }
     set score(val) {

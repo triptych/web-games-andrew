@@ -58,11 +58,10 @@ export function initFleet(levelConfig) {
 export function fireAt(row, col) {
     if (state.revealed[row][col] !== null) return 'already_fired';
 
-    state.useShot();
-
     const shipName = state.enemyGrid[row][col];
 
     if (shipName) {
+        // Hits are free — don't consume a shot
         state.revealed[row][col] = 'hit';
         events.emit('shipHit', row, col, shipName);
 
@@ -76,6 +75,8 @@ export function fireAt(row, col) {
         }
         return 'hit';
     } else {
+        // Misses cost a shot
+        state.useShot();
         state.revealed[row][col] = 'miss';
         return 'miss';
     }

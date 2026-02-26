@@ -3,7 +3,7 @@
 **Genre:** Puzzle / Strategy
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Phase 2 — Core Puzzle Loop
+**Status:** Phase 3 — Combat
 
 ---
 
@@ -134,11 +134,11 @@ until an adjacent cell is also hit.
 - [x] fleet.js — random ship placement on hidden 10×10 grid
 - [x] puzzle.js — compute nonogram clues from fleet grid
 
-### Phase 2 — Core Puzzle Loop
-- [ ] Render nonogram grid with row/col clues
-- [ ] Left/right click cell interaction (fill / mark X)
-- [ ] Clue satisfaction detection and green highlight
-- [ ] "SOLVE" vs "FIRE" mode toggle (Tab)
+### Phase 2 — Core Puzzle Loop ✓ COMPLETE
+- [x] Render nonogram grid with row/col clues (grid.js)
+- [x] Left/right click cell interaction (fill / mark X)
+- [x] Clue satisfaction detection and green highlight
+- [x] "SOLVE" vs "FIRE" mode toggle (Tab)
 
 ### Phase 3 — Combat
 - [ ] Torpedo fire mechanic — hit/miss reveal
@@ -207,3 +207,16 @@ until an adjacent cell is also hit.
 - fleet.js: random ship placement with no-overlap and no-adjacency rules; fireAt() with hit/miss/sunk detection
 - puzzle.js: computeClues(), initPuzzle(), setCell(), checkLineSatisfied(), isPuzzleSolved()
 - main.js: wired initFleet + initPuzzle into game scene
+
+### Phase 2 — Core Puzzle Loop (2026-02-26)
+- grid.js: renders 10×10 nonogram grid with row/col clue labels; pixelToCell() hit-testing
+- Clue labels turn green when their row/col is satisfied; react to cellFilled/cellCleared events
+- Left-click fills cells (toggles); right-click marks empty (X, toggles); clicking again clears
+- Tab toggles SOLVE/FIRE mode; mode label at bottom-centre updates accordingly
+- FIRE mode: left-click or Space fires at hovered cell; hit/miss revealed on grid
+- state.resetLevel() added to preserve score/lives/level across retries and level advances
+- Puzzle solved event auto-switches to fire mode; level complete advances level; puzzleFailed loses a life
+- Intro/how-to-play scene added (splash → intro → game flow); mini nonogram diagram and mode-box helpers
+- fireAt() changed: hits are free (no shot consumed), only misses cost a shot
+- puzzle.js: cellMarked event emitted for null↔empty transitions to trigger grid redraws
+- ui.js: banner onUpdate cleanup changed to ctrl.cancel() (Kaplay API fix)
