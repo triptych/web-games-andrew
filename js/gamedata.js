@@ -137,7 +137,7 @@ const games = [
         id: 'game-011',
         title: 'Nonogram Fleet',
         description: 'Solve nonogram puzzles to reveal hidden enemy spaceships, then fire torpedoes to sink the fleet. Limited shots per level — every deduction counts!',
-        icon: '🚢',
+        icon: '🛸',
         folder: 'game-011',
         cssClass: 'nonogram-fleet',
         tags: [

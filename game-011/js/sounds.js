@@ -9,8 +9,10 @@ let masterGain = null;
 let _enabled   = true;
 
 // Music
-let _musicSource = null;
-let _musicGain   = null;
+let _musicSource  = null;
+let _musicGain    = null;
+let _musicEnabled = localStorage.getItem('nonogram_music') !== 'false';
+let _musicVolume  = 0.5;
 
 export function initAudio() {
     if (audioCtx) return;
@@ -26,6 +28,7 @@ export function initAudio() {
  */
 export function playMusic(url, volume = 0.5) {
     if (!audioCtx) return;
+    _musicVolume = volume;
     stopMusic();
     fetch(url)
         .then(r => r.arrayBuffer())
@@ -33,7 +36,7 @@ export function playMusic(url, volume = 0.5) {
         .then(decoded => {
             if (!audioCtx) return; // context may have been torn down
             _musicGain = audioCtx.createGain();
-            _musicGain.gain.value = volume;
+            _musicGain.gain.value = _musicEnabled ? volume : 0;
             _musicGain.connect(audioCtx.destination);
 
             _musicSource = audioCtx.createBufferSource();
@@ -51,6 +54,17 @@ export function stopMusic() {
         _musicSource = null;
     }
     _musicGain = null;
+}
+
+export function isMusicEnabled()  { return _musicEnabled; }
+export function setMusicEnabled(val) {
+    _musicEnabled = val;
+    localStorage.setItem('nonogram_music', val ? 'true' : 'false');
+    if (_musicGain) _musicGain.gain.value = val ? _musicVolume : 0;
+}
+export function toggleMusic() {
+    setMusicEnabled(!_musicEnabled);
+    return _musicEnabled;
 }
 
 export function setSoundEnabled(val) { _enabled = val; }

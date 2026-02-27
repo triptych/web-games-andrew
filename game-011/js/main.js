@@ -19,7 +19,7 @@ import { GAME_WIDTH, GAME_HEIGHT, COLORS, LEVEL_CONFIGS } from './config.js';
 import { state }  from './state.js';
 import { events } from './events.js';
 import { initUI, initTally, showLevelTally } from './ui.js';
-import { initAudio, playMusic, playUiClick, playFire, playMiss } from './sounds.js';
+import { initAudio, playMusic, playUiClick, playFire, playMiss, isMusicEnabled, toggleMusic } from './sounds.js';
 import { initFleet, fireAt } from './fleet.js';
 import { initPuzzle, setCell } from './puzzle.js';
 import { initGrid, pixelToCell, setFireMode, refreshGrid } from './grid.js';
@@ -160,6 +160,35 @@ k.scene('splash', () => {
         k.z(1),
     ]);
 
+    // Music toggle button (top-right corner)
+    const musicBtnBg = k.add([
+        k.pos(GAME_WIDTH - 10, 10),
+        k.rect(110, 28, { radius: 4 }),
+        k.color(20, 30, 60),
+        k.outline(1, k.rgb(40, 60, 120)),
+        k.opacity(0.85),
+        k.anchor('topright'),
+        k.area(),
+        k.z(10),
+    ]);
+    const musicBtnLabel = k.add([
+        k.pos(GAME_WIDTH - 65, 24),
+        k.text(isMusicEnabled() ? 'M  MUSIC: ON' : 'M  MUSIC: OFF', { size: 12 }),
+        k.color(isMusicEnabled() ? 100 : 80, isMusicEnabled() ? 180 : 80, isMusicEnabled() ? 100 : 80),
+        k.anchor('center'),
+        k.z(11),
+    ]);
+
+    function _updateMusicBtn() {
+        const on = isMusicEnabled();
+        musicBtnLabel.text  = on ? 'M  MUSIC: ON' : 'M  MUSIC: OFF';
+        musicBtnLabel.color = on ? k.rgb(100, 180, 100) : k.rgb(80, 80, 80);
+    }
+
+    musicBtnBg.onClick(() => { toggleMusic(); _updateMusicBtn(); });
+    musicBtnBg.onHover(() => { musicBtnBg.color = k.rgb(30, 50, 90); });
+    musicBtnBg.onHoverEnd(() => { musicBtnBg.color = k.rgb(20, 30, 60); });
+
     // Start on any key or click — go to intro, not directly to game
     let started = false;
 
@@ -175,6 +204,7 @@ k.scene('splash', () => {
 
     function onAnyKey(e) {
         if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+        if (e.key === 'm' || e.key === 'M') { toggleMusic(); _updateMusicBtn(); return; }
         goToIntro();
     }
 
@@ -328,6 +358,7 @@ k.scene('intro', () => {
             k.go('splash');
             return;
         }
+        if (e.key === 'm' || e.key === 'M') { toggleMusic(); return; }
         startGame();
     }
     document.addEventListener('keydown', onKey);
@@ -336,7 +367,7 @@ k.scene('intro', () => {
     // ESC hint
     k.add([
         k.pos(CX, GAME_HEIGHT - 12),
-        k.text('ESC — back to title    any key — start', { size: 11 }),
+        k.text('ESC — back to title    any key — start    M — music', { size: 11 }),
         k.color(60, 80, 120),
         k.anchor('bot'),
         k.z(1),
@@ -488,6 +519,7 @@ k.scene('briefing', () => {
 
     function onSkip(e) {
         if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+        if (e.key === 'm' || e.key === 'M') { toggleMusic(); return; }
         _launch();
     }
     document.addEventListener('keydown', onSkip);
@@ -689,6 +721,10 @@ k.scene('game', () => {
 
     k.onKeyPress('p', () => {
         state.isPaused = !state.isPaused;
+    });
+
+    k.onKeyPress('m', () => {
+        toggleMusic();
     });
 
     k.onKeyPress('escape', () => {
