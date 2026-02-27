@@ -145,6 +145,19 @@ const games = [
             { emoji: '🖱️', label: 'Mouse' },
             { emoji: '🎯', label: 'Strategy' }
         ]
+    },
+    {
+        id: 'game-012',
+        title: 'Arcana Pull',
+        description: 'Collect tarot cards through a gacha pull system and field them as fighters in wave-based auto battler combat. Build a four-card party from the 78-card tarot deck — harness the power of the Major Arcana to conquer all 10 waves and defeat The World.',
+        icon: '🔮',
+        folder: 'game-012',
+        cssClass: 'arcana-pull',
+        tags: [
+            { emoji: '🃏', label: 'Card Game' },
+            { emoji: '⚔️', label: 'Auto Battler' },
+            { emoji: '✨', label: 'Gacha' }
+        ]
     }
 ];
 
