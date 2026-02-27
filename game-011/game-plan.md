@@ -3,7 +3,7 @@
 **Genre:** Puzzle / Strategy
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Phase 3 — Combat
+**Status:** Complete
 
 ---
 
@@ -140,18 +140,18 @@ until an adjacent cell is also hit.
 - [x] Clue satisfaction detection and green highlight
 - [x] "SOLVE" vs "FIRE" mode toggle (Tab)
 
-### Phase 3 — Combat
-- [ ] Torpedo fire mechanic — hit/miss reveal
-- [ ] Ship sunk detection and animation
-- [ ] Shot budget enforcement and life loss
-- [ ] Level transition and score tally
+### Phase 3 — Combat ✓ COMPLETE
+- [x] Torpedo fire mechanic — hit/miss reveal
+- [x] Ship sunk detection and animation
+- [x] Shot budget enforcement and life loss
+- [x] Level transition and score tally
 
-### Phase 4 — Polish
-- [ ] 8 seeded fleet configurations
-- [ ] Ghost ship mechanic (level 5+)
-- [ ] Deduction scoring bonus
-- [ ] Particle effects for hits/sinks
-- [ ] Tutorial hints on level 1
+### Phase 4 — Polish ✓ COMPLETE
+- [x] 8 seeded fleet configurations
+- [x] Ghost ship mechanic (level 5+)
+- [x] Deduction scoring bonus
+- [x] Particle effects for hits/sinks
+- [x] Tutorial hints on level 1
 
 ---
 
@@ -207,6 +207,14 @@ until an adjacent cell is also hit.
 - fleet.js: random ship placement with no-overlap and no-adjacency rules; fireAt() with hit/miss/sunk detection
 - puzzle.js: computeClues(), initPuzzle(), setCell(), checkLineSatisfied(), isPuzzleSolved()
 - main.js: wired initFleet + initPuzzle into game scene
+
+### Phase 3 — Combat (2026-02-27)
+- Sounds wired to all fire/hit/miss/sunk/levelComplete/puzzleFailed/gameOver events
+- Sunk ship cells revealed red on grid via shipSunk event in grid.js
+- Shots label turns red at 5 or fewer remaining
+- Level complete tally overlay: shots-remaining bonus, total score, NEXT LEVEL button
+- 8 level configs in config.js: progressive fleet density and reduced shot budgets
+- state.resetLevel() accepts per-level shot override; main.js passes levelCfg
 
 ### Phase 2 — Core Puzzle Loop (2026-02-26)
 - grid.js: renders 10×10 nonogram grid with row/col clue labels; pixelToCell() hit-testing

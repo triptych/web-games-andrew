@@ -8,12 +8,49 @@ let audioCtx   = null;
 let masterGain = null;
 let _enabled   = true;
 
+// Music
+let _musicSource = null;
+let _musicGain   = null;
+
 export function initAudio() {
     if (audioCtx) return;
     audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = audioCtx.createGain();
     masterGain.gain.value = 0.25;
     masterGain.connect(audioCtx.destination);
+}
+
+/**
+ * Load and loop a music track from a URL.
+ * Safe to call multiple times — stops any currently playing track first.
+ */
+export function playMusic(url, volume = 0.5) {
+    if (!audioCtx) return;
+    stopMusic();
+    fetch(url)
+        .then(r => r.arrayBuffer())
+        .then(buf => audioCtx.decodeAudioData(buf))
+        .then(decoded => {
+            if (!audioCtx) return; // context may have been torn down
+            _musicGain = audioCtx.createGain();
+            _musicGain.gain.value = volume;
+            _musicGain.connect(audioCtx.destination);
+
+            _musicSource = audioCtx.createBufferSource();
+            _musicSource.buffer = decoded;
+            _musicSource.loop   = true;
+            _musicSource.connect(_musicGain);
+            _musicSource.start(0);
+        })
+        .catch(err => console.warn('playMusic failed:', err));
+}
+
+export function stopMusic() {
+    if (_musicSource) {
+        try { _musicSource.stop(); } catch (_) { /* already stopped */ }
+        _musicSource = null;
+    }
+    _musicGain = null;
 }
 
 export function setSoundEnabled(val) { _enabled = val; }

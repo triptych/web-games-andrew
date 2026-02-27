@@ -20,6 +20,7 @@ import {
     GAME_WIDTH, GAME_HEIGHT,
 } from './config.js';
 import { setCell, checkLineSatisfied, getClues } from './puzzle.js';
+import { getShipCells } from './fleet.js';
 
 // ----------------------------------------------------------------
 // Layout
@@ -194,14 +195,17 @@ function _refreshCell(r, c) {
     const cellVal = state.playerGrid[r][c];
     const revealed = state.revealed ? state.revealed[r][c] : null;
 
-    if (_isFireMode && revealed === 'hit') {
+    if (revealed === 'sunk') {
+        bg.color     = _k.rgb(...COLORS.shipSunk);
+        mark.opacity = 0;
+    } else if (revealed === 'hit') {
         bg.color   = _k.rgb(...COLORS.shipHit);
         mark.opacity = 0;
-    } else if (_isFireMode && revealed === 'miss') {
-        bg.color   = _k.rgb(30, 60, 110);
+    } else if (revealed === 'miss') {
+        bg.color   = _k.rgb(20, 35, 75);
         mark.opacity = 1;
-        mark.text  = '~';
-        mark.color = _k.rgb(60, 100, 180);
+        mark.text  = '*';
+        mark.color = _k.rgb(80, 120, 200);
     } else if (cellVal === 'filled') {
         bg.color   = _k.rgb(...COLORS.cellFill);
         mark.opacity = 0;
@@ -241,7 +245,236 @@ function _subscribeEvents() {
         events.on('cellFilled',  _onCell),
         events.on('cellCleared', _onCell),
         events.on('cellMarked',  _onCell),
+        events.on('shipHit', (_fleetIdx, row, col) => {
+            const { x, y } = cellCenter(row, col);
+            _spawnHitFire(x, y);
+        }),
+        events.on('shipSunk', (fleetIdx) => {
+            const cells = getShipCells(fleetIdx);
+            for (const { row, col } of cells) {
+                state.revealed[row][col] = 'sunk';
+                _refreshCell(row, col);
+            }
+            // Big explosion centred on the ship's midpoint
+            const midIdx = Math.floor(cells.length / 2);
+            const { x: mx, y: my } = cellCenter(cells[midIdx].row, cells[midIdx].col);
+            _spawnShipExplosion(mx, my, cells);
+        }),
     ];
 
     _k.onSceneLeave(() => offs.forEach(off => off()));
+}
+
+// ----------------------------------------------------------------
+// Hit fire animation
+// ----------------------------------------------------------------
+
+/**
+ * Persistent flickering flame + smoke on a hit ship cell.
+ * Mirrors the game-008 spawnBurnEffect pattern.
+ * @param {number} cx  pixel centre x
+ * @param {number} cy  pixel centre y
+ */
+function _spawnHitFire(cx, cy) {
+    let flameTimer = 0;
+    let smokeTimer = 0;
+    const FLAME_INTERVAL = 0.10;
+    const SMOKE_INTERVAL = 0.30;
+
+    _k.add([
+        _k.pos(cx, cy),
+        _k.z(20),
+        _k.opacity(0),   // invisible controller; opacity component required
+        'hitFire',
+        {
+            update() {
+                flameTimer += _k.dt();
+                smokeTimer += _k.dt();
+                if (flameTimer >= FLAME_INTERVAL) {
+                    flameTimer -= FLAME_INTERVAL;
+                    _spawnFlameParticle(cx, cy);
+                }
+                if (smokeTimer >= SMOKE_INTERVAL) {
+                    smokeTimer -= SMOKE_INTERVAL;
+                    _spawnSmokeParticle(cx, cy);
+                }
+            },
+        },
+    ]);
+}
+
+function _spawnFlameParticle(cx, cy) {
+    const palette = [
+        [255, 60,  10],
+        [255, 110, 20],
+        [255, 160, 30],
+        [255, 200, 50],
+        [255, 240, 80],
+    ];
+    const [r, g, b] = palette[Math.floor(Math.random() * palette.length)];
+
+    const size = 3 + Math.random() * 5;          // 3–8 px — slightly smaller than game-008
+    const ox   = (Math.random() - 0.5) * 16;     // horizontal spread ±8 px
+    const oy   = 3 + Math.random() * 4;          // start slightly below centre
+    const vx   = (Math.random() - 0.5) * 20;
+    const vy   = -(24 + Math.random() * 32);     // upward 24–56 px/s
+    const life = 0.28 + Math.random() * 0.24;
+
+    let bx = cx + ox;
+    let by = cy + oy;
+    let t  = 0;
+
+    const ent = _k.add([
+        _k.pos(bx, by),
+        _k.circle(size),
+        _k.color(r, g, b),
+        _k.opacity(0.85),
+        _k.anchor('center'),
+        _k.z(21),
+        'hitFire',
+    ]);
+
+    ent.onUpdate(() => {
+        t  += _k.dt();
+        bx += vx * _k.dt();
+        by += vy * _k.dt();
+        if (ent.exists()) {
+            ent.pos     = _k.vec2(bx, by);
+            ent.opacity = 0.85 * Math.max(0, 1 - t / life);
+        }
+        if (t >= life && ent.exists()) ent.destroy();
+    });
+}
+
+function _spawnSmokeParticle(cx, cy) {
+    const grey    = 90 + Math.floor(Math.random() * 60);
+    const size    = 5 + Math.random() * 7;
+    const ox      = (Math.random() - 0.5) * 12;
+    const vx      = (Math.random() - 0.5) * 12;
+    const vy      = -(16 + Math.random() * 18);
+    const life    = 0.50 + Math.random() * 0.35;
+    const startOp = 0.28 + Math.random() * 0.14;
+
+    let bx = cx + ox;
+    let by = cy - 5;
+    let t  = 0;
+
+    const ent = _k.add([
+        _k.pos(bx, by),
+        _k.circle(size),
+        _k.color(grey, grey, grey),
+        _k.opacity(startOp),
+        _k.anchor('center'),
+        _k.z(22),
+        'hitFire',
+    ]);
+
+    ent.onUpdate(() => {
+        t  += _k.dt();
+        bx += vx * _k.dt();
+        by += vy * _k.dt();
+        if (ent.exists()) {
+            ent.pos     = _k.vec2(bx, by);
+            ent.opacity = startOp * Math.max(0, 1 - t / life);
+        }
+        if (t >= life && ent.exists()) ent.destroy();
+    });
+}
+
+// ----------------------------------------------------------------
+// Ship destruction explosion
+// ----------------------------------------------------------------
+
+/**
+ * Big explosion when a ship is fully sunk.
+ * Fires a burst of particles from every cell + two expanding shockwave rings
+ * from the ship's midpoint.
+ */
+function _spawnShipExplosion(cx, cy, cells) {
+    // Two layered shockwave rings from the midpoint
+    _spawnShockwave(cx, cy, [255, 120, 30],  0);
+    _spawnShockwave(cx, cy, [255, 200, 80], 0.07);
+
+    // Per-cell burst of particles
+    for (const { row, col } of cells) {
+        const { x, y } = cellCenter(row, col);
+        _spawnExplosionBurst(x, y);
+    }
+}
+
+/**
+ * Expanding shockwave ring that fades out.
+ */
+function _spawnShockwave(cx, cy, color, delay) {
+    const DURATION   = 0.55;
+    const MAX_RADIUS = 200;
+    let t = -delay;
+
+    const ring = _k.add([
+        _k.pos(cx, cy),
+        _k.circle(1),
+        _k.color(...color),
+        _k.opacity(0),
+        _k.anchor('center'),
+        _k.z(30),
+        'explosion',
+    ]);
+
+    ring.onUpdate(() => {
+        t += _k.dt();
+        if (t < 0 || !ring.exists()) return;
+        const progress = t / DURATION;
+        if (progress >= 1) { ring.destroy(); return; }
+        ring.radius  = 1 + MAX_RADIUS * progress;
+        ring.opacity = (1 - progress) * 0.55;
+    });
+}
+
+/**
+ * Radial burst of ~14 glowing particles from one cell centre.
+ */
+function _spawnExplosionBurst(cx, cy) {
+    const COUNT = 14;
+    const palette = [
+        [255, 80,  20],
+        [255, 140, 30],
+        [255, 200, 50],
+        [255, 240, 120],
+        [255, 255, 200],
+    ];
+
+    for (let i = 0; i < COUNT; i++) {
+        const angle   = (i / COUNT) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
+        const speed   = 80 + Math.random() * 140;
+        const vx      = Math.cos(angle) * speed;
+        const vy      = Math.sin(angle) * speed;
+        const size    = 3 + Math.random() * 5;
+        const life    = 0.45 + Math.random() * 0.35;
+        const [r, g, b] = palette[Math.floor(Math.random() * palette.length)];
+
+        let bx = cx + (Math.random() - 0.5) * 8;
+        let by = cy + (Math.random() - 0.5) * 8;
+        let t  = 0;
+
+        const p = _k.add([
+            _k.pos(bx, by),
+            _k.rect(size, size),
+            _k.color(r, g, b),
+            _k.opacity(1),
+            _k.anchor('center'),
+            _k.z(31),
+            'explosion',
+        ]);
+
+        p.onUpdate(() => {
+            t  += _k.dt();
+            bx += vx * _k.dt();
+            by += vy * _k.dt();
+            if (p.exists()) {
+                p.pos     = _k.vec2(bx, by);
+                p.opacity = Math.max(0, 1 - t / life);
+            }
+            if (t >= life && p.exists()) p.destroy();
+        });
+    }
 }

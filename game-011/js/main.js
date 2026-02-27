@@ -15,11 +15,11 @@
 
 import kaplay from '../../lib/kaplay/kaplay.mjs';
 
-import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS, LEVEL_CONFIGS } from './config.js';
 import { state }  from './state.js';
 import { events } from './events.js';
-import { initUI } from './ui.js';
-import { initAudio, playUiClick } from './sounds.js';
+import { initUI, initTally, showLevelTally } from './ui.js';
+import { initAudio, playMusic, playUiClick, playFire, playMiss } from './sounds.js';
 import { initFleet, fireAt } from './fleet.js';
 import { initPuzzle, setCell } from './puzzle.js';
 import { initGrid, pixelToCell, setFireMode, refreshGrid } from './grid.js';
@@ -60,6 +60,12 @@ const k = kaplay({
 });
 
 // ============================================================
+// Asset loading
+// ============================================================
+
+k.loadSprite('airship', 'sprites/airship.png');
+
+// ============================================================
 // SCENE: splash
 // ============================================================
 
@@ -74,6 +80,8 @@ k.scene('splash', () => {
         k.z(0),
     ]);
 
+    _spawnStarfield();
+
     // Title
     k.add([
         k.pos(CX, CY - 130),
@@ -86,17 +94,33 @@ k.scene('splash', () => {
     // Subtitle
     k.add([
         k.pos(CX, CY - 65),
-        k.text('Solve the grid. Sink the fleet.', { size: 18 }),
+        k.text('Solve the grid. Destroy the armada.', { size: 18 }),
         k.color(100, 140, 200),
         k.anchor('center'),
         k.z(1),
     ]);
 
+    // Airship sprite — centred between subtitle and prompt
+    const splashShip = k.add([
+        k.pos(CX, CY - 20),
+        k.sprite('airship'),
+        k.scale(0.053),
+        k.anchor('center'),
+        k.opacity(1),
+        k.z(1),
+    ]);
+    // Gentle bob animation
+    let splashBobTimer = 0;
+    splashShip.onUpdate(() => {
+        splashBobTimer += k.dt();
+        splashShip.pos = k.vec2(CX, CY - 20 + Math.sin(splashBobTimer * 0.8) * 6);
+    });
+
     // Blinking start prompt
     // NOTE: k.opacity(1) MUST be included — setting entity.opacity only works
     // if the opacity component was declared at creation time.
     const prompt = k.add([
-        k.pos(CX, CY + 30),
+        k.pos(CX, CY + 80),
         k.text('PRESS ANY KEY OR CLICK TO START', { size: 16 }),
         k.color(...COLORS.text),
         k.anchor('center'),
@@ -112,9 +136,27 @@ k.scene('splash', () => {
     // Version tag
     k.add([
         k.pos(GAME_WIDTH - 10, GAME_HEIGHT - 10),
-        k.text('Phase 2', { size: 10 }),
+        k.text('Phase 3', { size: 10 }),
         k.color(40, 50, 80),
         k.anchor('botright'),
+        k.z(1),
+    ]);
+
+    // Sprite credit
+    k.add([
+        k.pos(10, GAME_HEIGHT - 22),
+        k.text('Sprite by bevouliin.com', { size: 10 }),
+        k.color(40, 50, 80),
+        k.anchor('botleft'),
+        k.z(1),
+    ]);
+
+    // Music credit
+    k.add([
+        k.pos(10, GAME_HEIGHT - 10),
+        k.text('Music by Cleyton Kauffman - soundcloud.com/cleytonkauffman', { size: 10 }),
+        k.color(40, 50, 80),
+        k.anchor('botleft'),
         k.z(1),
     ]);
 
@@ -125,6 +167,7 @@ k.scene('splash', () => {
         if (started) return;
         started = true;
         initAudio();
+        playMusic('sounds/Exploration Theme.ogg', 0.5);
         playUiClick();
         document.removeEventListener('keydown', onAnyKey);
         k.go('intro');
@@ -150,6 +193,8 @@ k.scene('intro', () => {
     // Background
     k.add([k.pos(0, 0), k.rect(GAME_WIDTH, GAME_HEIGHT), k.color(...COLORS.bg), k.z(0)]);
 
+    _spawnStarfield(80);
+
     // Title
     k.add([
         k.pos(CX, 36),
@@ -173,7 +218,7 @@ k.scene('intro', () => {
         'Read the clue numbers along each row and column.',
         'They tell you the sizes of consecutive filled blocks in that line.',
         'Left-click a cell to fill it.  Right-click to mark it empty (X).',
-        'Fill every ship cell correctly to solve the puzzle.',
+        'Fill every vessel cell correctly to solve the puzzle.',
         '',
         'Solving the puzzle auto-switches you to Fire Mode.',
     ];
@@ -202,18 +247,18 @@ k.scene('intro', () => {
 
     // Solve Mode box — left half
     _drawModeBox(k, 80, SEC2_Y + 28, 'SOLVE MODE', COLORS.accent, [
-        'Use the nonogram clues to find the ships.',
+        'Use the nonogram clues to locate enemy vessels.',
         'Left-click to fill a cell, right-click to mark empty.',
-        'Solving the puzzle reveals every ship position.',
-        'You can fire without solving — but it costs more shots.',
+        'Solving the puzzle reveals every vessel position.',
+        'You can fire without solving — but it costs more missiles.',
     ]);
 
     // Fire Mode box — right half
     _drawModeBox(k, 660, SEC2_Y + 28, 'FIRE MODE', COLORS.danger, [
-        'Left-click a cell to launch a torpedo.',
-        'HIT destroys a ship segment.',
-        'MISS wastes a shot.',
-        'You have limited shots — every one counts!',
+        'Left-click a cell to launch a missile.',
+        'HIT destroys a vessel segment.',
+        'MISS wastes a missile.',
+        'You have limited missiles — every one counts!',
     ]);
 
     // ── Section 3: Tips ──────────────────────────────────────
@@ -226,8 +271,8 @@ k.scene('intro', () => {
         k.z(1),
     ]);
     const tips = [
-        'Solve first for guaranteed accuracy — or fire blind and rely on shot count.',
-        'Running out of shots costs a life.  Sinking all ships earns bonus points.',
+        'Solve first for guaranteed accuracy — or fire blind and rely on missile count.',
+        'Running out of missiles costs a life.  Destroying all vessels earns bonus points.',
     ];
     tips.forEach((tip, i) => {
         k.add([
@@ -271,7 +316,7 @@ k.scene('intro', () => {
         playUiClick();
         state.reset();
         document.removeEventListener('keydown', onKey);
-        k.go('game');
+        k.go('briefing');
     }
 
     btnBg.onClick(startGame);
@@ -299,19 +344,203 @@ k.scene('intro', () => {
 });
 
 // ============================================================
+// SCENE: briefing — story crawl before mission starts
+// ============================================================
+
+k.scene('briefing', () => {
+    const CX = GAME_WIDTH  / 2;
+    const CY = GAME_HEIGHT / 2;
+
+    k.add([k.pos(0, 0), k.rect(GAME_WIDTH, GAME_HEIGHT), k.color(...COLORS.bg), k.z(0)]);
+    _spawnStarfield(100);
+
+    // The story lines — each entry is a paragraph / beat.
+    // Empty strings become vertical spacers.
+    const STORY = [
+        'STARDATE 2247.  SECTOR 7-GAMMA.',
+        '',
+        'The alien armada has crossed the outer beacon line.',
+        'Fourteen dreadnoughts.  Forty escort cruisers.',
+        'Earth has less than six hours.',
+        '',
+        'Every long-range defence platform has been silenced.',
+        'Every fleet carrier has been destroyed or retreated.',
+        '',
+        'Only one vessel remains operational:',
+        '',
+        'SCOUT SHIP  UES  ARGONAUT  —  DESIGNATION  SC-7.',
+        '',
+        'You are her crew.  You are her captain.',
+        'You are all that stands between the armada',
+        'and eight billion lives.',
+        '',
+        'Argonaut\'s sensor array can pierce the armada\'s',
+        'cloaking fields — but only for a fraction of a second.',
+        'That fraction is enough.',
+        '',
+        'Solve the sensor ghost-images.  Pinpoint every hull.',
+        'Fire every torpedo with precision.',
+        '',
+        'One scout ship.  One chance.',
+        '',
+        'GOOD LUCK,  COMMANDER.',
+    ];
+
+    const LINE_H    = 26;   // px per line
+    const FONT_SIZE = 16;
+    const REVEAL_SPEED = 28; // characters revealed per second
+    const SCROLL_DELAY = 1.6; // seconds to pause before crawl begins scrolling
+
+    // We render lines as individual text objects so we can reveal char-by-char
+    // and scroll the whole block upward.
+    // Start position: lines begin just below bottom of screen, crawl upward
+    const START_Y   = GAME_HEIGHT + 30;   // y of top line at t=0
+    const SCROLL_PX_PER_SEC = 52;         // px per second the block scrolls up
+
+    // Header
+    k.add([
+        k.pos(CX, 28),
+        k.text('MISSION BRIEFING', { size: 22 }),
+        k.color(...COLORS.gold),
+        k.anchor('center'),
+        k.opacity(1),
+        k.z(5),
+    ]);
+
+    // Horizontal rule under header
+    k.add([
+        k.pos(CX - 260, 48),
+        k.rect(520, 1),
+        k.color(...COLORS.accent),
+        k.opacity(0.4),
+        k.z(5),
+    ]);
+
+    // Mask — opaque strips above and below the scroll window so lines
+    // appear to emerge from / fade into the void.
+    k.add([k.pos(0, 0),            k.rect(GAME_WIDTH, 60),              k.color(...COLORS.bg), k.z(6)]);
+    k.add([k.pos(0, GAME_HEIGHT - 60), k.rect(GAME_WIDTH, 60),          k.color(...COLORS.bg), k.z(6)]);
+
+    // Skip hint
+    k.add([
+        k.pos(CX, GAME_HEIGHT - 16),
+        k.text('SPACE / ENTER — skip to mission', { size: 11 }),
+        k.color(60, 80, 120),
+        k.anchor('bot'),
+        k.z(7),
+    ]);
+
+    // Build one text entity per story line
+    const lineObjs = STORY.map((line, i) => {
+        const col = STORY_LINE_COLOR(line);
+        const obj = k.add([
+            k.pos(CX, START_Y + i * LINE_H),
+            k.text('', { size: FONT_SIZE }),
+            k.color(...col),
+            k.anchor('center'),
+            k.opacity(1),
+            k.z(4),
+        ]);
+        obj._full   = line;        // full string to reveal
+        obj._shown  = 0;           // chars revealed so far (float)
+        return obj;
+    });
+
+    let elapsed    = 0;
+    let scrolled   = 0;   // total px scrolled so far
+    let done       = false;
+
+    function _launch() {
+        if (done) return;
+        done = true;
+        k.go('game');
+    }
+
+    const updateCtrl = k.onUpdate(() => {
+        elapsed += k.dt();
+        if (elapsed < SCROLL_DELAY) return;
+
+        const dt = k.dt();
+
+        // Scroll all lines upward
+        scrolled += SCROLL_PX_PER_SEC * dt;
+        lineObjs.forEach((obj, i) => {
+            obj.pos = k.vec2(CX, START_Y + i * LINE_H - scrolled);
+        });
+
+        // Reveal characters for lines currently on screen
+        const charsThisFrame = REVEAL_SPEED * dt;
+        lineObjs.forEach(obj => {
+            if (obj._shown >= obj._full.length) return;
+            const lineY = obj.pos.y;
+            if (lineY < 60 || lineY > GAME_HEIGHT - 60) return; // outside window
+            obj._shown = Math.min(obj._full.length, obj._shown + charsThisFrame);
+            obj.text   = obj._full.slice(0, Math.ceil(obj._shown));
+        });
+
+        // Auto-advance once the last line has scrolled well past centre
+        const lastY = START_Y + (STORY.length - 1) * LINE_H - scrolled;
+        if (lastY < CY - 60 && !done) {
+            k.wait(1.2, _launch);
+            done = true; // prevent double-scheduling
+        }
+    });
+
+    function onSkip(e) {
+        if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+        _launch();
+    }
+    document.addEventListener('keydown', onSkip);
+
+    k.onClick(_launch);
+
+    k.onSceneLeave(() => {
+        updateCtrl.cancel();
+        document.removeEventListener('keydown', onSkip);
+    });
+});
+
+// Helper — pick a colour for a story line based on content
+function STORY_LINE_COLOR(line) {
+    if (line === line.toUpperCase() && line.trim().length > 0) return COLORS.gold;
+    return COLORS.text;
+}
+
+// ============================================================
 // SCENE: game
 // ============================================================
 
 k.scene('game', () => {
     // resetLevel() preserves score/lives/level across retries and level advances.
     // state.reset() (full wipe) is only called when starting fresh from splash.
-    state.resetLevel();
+    const levelCfg = LEVEL_CONFIGS[Math.min(state.level - 1, LEVEL_CONFIGS.length - 1)];
+    state.resetLevel(levelCfg.shots);
+
+    _spawnStarfield(120);
 
     // --- Setup subsystems ---
     initUI(k);
-    initFleet();
+    initFleet(levelCfg);
+    initTally();
     initPuzzle();
     initGrid(k);
+
+    // Airship — left panel, slowly bobbing
+    const SHIP_X = 195;
+    const SHIP_BASE_Y = GAME_HEIGHT / 2;
+    const gameShip = k.add([
+        k.pos(SHIP_X, SHIP_BASE_Y),
+        k.sprite('airship'),
+        k.scale(0.053),
+        k.anchor('center'),
+        k.opacity(0.85),
+        k.z(5),
+    ]);
+    let gameBobTimer = 0;
+    gameShip.onUpdate(() => {
+        gameBobTimer += k.dt();
+        gameShip.pos = k.vec2(SHIP_X, SHIP_BASE_Y + Math.sin(gameBobTimer * 0.6) * 8);
+    });
 
     // --- Mode state ---
     let fireMode = false;
@@ -368,10 +597,12 @@ k.scene('game', () => {
 
     // --- Level complete / failed: restart after delay ---
     const offComplete = events.on('levelComplete', () => {
-        k.wait(2.0, () => {
-            events.clearAll();
-            state.nextLevel();
-            k.go('game');
+        k.wait(1.0, () => {
+            showLevelTally(() => {
+                events.clearAll();
+                state.nextLevel();
+                k.go('game');
+            });
         });
     });
 
@@ -386,6 +617,12 @@ k.scene('game', () => {
     });
 
     // --- Mouse input ---
+    // dragValue: the cell state to paint while dragging ('filled', 'empty', or null to clear)
+    // dragButton: 'left' | 'right' — tracks which button started the drag
+    let dragValue  = null;
+    let dragButton = null;
+    let dragLastCell = null;   // avoid re-applying to the same cell
+
     k.onMousePress('left', () => {
         if (state.isGameOver || state.isPaused) return;
         const mp = k.mousePos();
@@ -394,12 +631,14 @@ k.scene('game', () => {
         const { row, col } = cell;
 
         if (fireMode) {
-            // Fire mode: handled by Space or left-click
             _doFire(row, col);
         } else {
-            // Solve mode: toggle filled / null
+            // Decide paint value: toggle filled on first click, then hold that value for drag
             const current = state.playerGrid[row][col];
-            setCell(row, col, current === 'filled' ? null : 'filled');
+            dragValue  = current === 'filled' ? null : 'filled';
+            dragButton = 'left';
+            dragLastCell = `${row},${col}`;
+            setCell(row, col, dragValue);
         }
     });
 
@@ -409,9 +648,26 @@ k.scene('game', () => {
         const cell = pixelToCell(mp.x, mp.y);
         if (!cell) return;
         const { row, col } = cell;
-        // Toggle empty mark / null
         const current = state.playerGrid[row][col];
-        setCell(row, col, current === 'empty' ? null : 'empty');
+        dragValue  = current === 'empty' ? null : 'empty';
+        dragButton = 'right';
+        dragLastCell = `${row},${col}`;
+        setCell(row, col, dragValue);
+    });
+
+    k.onMouseRelease('left',  () => { if (dragButton === 'left')  { dragValue = null; dragButton = null; dragLastCell = null; } });
+    k.onMouseRelease('right', () => { if (dragButton === 'right') { dragValue = null; dragButton = null; dragLastCell = null; } });
+
+    k.onMouseMove(() => {
+        if (state.isGameOver || state.isPaused || fireMode) return;
+        if (dragButton === null) return;
+        const mp = k.mousePos();
+        const cell = pixelToCell(mp.x, mp.y);
+        if (!cell) return;
+        const key = `${cell.row},${cell.col}`;
+        if (key === dragLastCell) return;
+        dragLastCell = key;
+        setCell(cell.row, cell.col, dragValue);
     });
 
     // --- Keyboard ---
@@ -455,10 +711,12 @@ k.scene('game', () => {
         if (state.shotsLeft <= 0) return;
         const result = fireAt(row, col);
         if (result === 'already_fired') return;
+        playFire();
         refreshGrid();
         if (result === 'hit') {
             _showBanner('HIT!', COLORS.shipHit, 1.2);
         } else {
+            playMiss();
             _showBanner('MISS', COLORS.accent, 1.0);
         }
     }
@@ -607,6 +865,60 @@ function _drawModeBox(k, x, y, title, titleColor, lines) {
             k.z(3),
         ]);
     });
+}
+
+// ============================================================
+// Starfield helper
+// ============================================================
+
+/**
+ * Spawns a static layer of star dots and a second slower-drifting layer
+ * to give a parallax space feel.  All stars are tagged 'star' so they
+ * can be bulk-destroyed on scene leave if needed (they auto-clear with
+ * the scene anyway).
+ */
+function _spawnStarfield(numStars = 160) {
+    for (let i = 0; i < numStars; i++) {
+        const x    = Math.random() * GAME_WIDTH;
+        const y    = Math.random() * GAME_HEIGHT;
+        const size = Math.random() < 0.15 ? 2 : 1;          // 15% bright stars
+        const br   = 120 + Math.floor(Math.random() * 136); // 120–255 brightness
+        const op   = 0.3 + Math.random() * 0.7;             // vary opacity
+
+        k.add([
+            k.pos(x, y),
+            k.circle(size),
+            k.color(br, br, Math.min(255, br + 40)),         // slight blue tint
+            k.opacity(op),
+            k.anchor('center'),
+            k.z(1),
+            'star',
+        ]);
+    }
+
+    // Occasional larger "distant nebula" blobs
+    for (let i = 0; i < 6; i++) {
+        const x  = Math.random() * GAME_WIDTH;
+        const y  = Math.random() * GAME_HEIGHT;
+        const r  = 28 + Math.floor(Math.random() * 40);
+        // Random cool hue: blue-purple-teal palette
+        const hues = [
+            [30, 40, 120],
+            [20, 20, 90],
+            [10, 50, 110],
+            [40, 20, 100],
+        ];
+        const [nr, ng, nb] = hues[i % hues.length];
+        k.add([
+            k.pos(x, y),
+            k.circle(r),
+            k.color(nr, ng, nb),
+            k.opacity(0.08 + Math.random() * 0.07),
+            k.anchor('center'),
+            k.z(1),
+            'star',
+        ]);
+    }
 }
 
 // ============================================================

@@ -39,13 +39,14 @@ export function initFleet(levelConfig) {
 
     for (const def of shipDefs) {
         const cells = _placeShip(grid, def.size, def.name);
-        placed.push({ name: def.name, size: def.size, cells, hits: new Set() });
+        placed.push({ name: def.name, size: def.size, cells });
     }
 
     // Persist in state
     state.enemyGrid      = grid;
     state.revealed       = _emptyGrid();  // null initially; 'hit'|'miss' after shot
     state.shipsRemaining = placed.length;
+    state.initShipStatus(placed.length);
 
     _ships = placed;
     return placed;
@@ -63,14 +64,19 @@ export function fireAt(row, col) {
     if (shipName) {
         // Hits are free — don't consume a shot
         state.revealed[row][col] = 'hit';
-        events.emit('shipHit', row, col, shipName);
 
-        // Track hit on the ship object
-        const ship = _ships.find(s => s.name === shipName);
-        if (ship) {
-            ship.hits.add(`${row},${col}`);
-            if (ship.hits.size === ship.cells.length) {
-                state.sinkShip(shipName);   // emits shipSunk + possibly levelComplete
+        // Award points for hit
+        state.addScore(10);
+
+        // Each cell belongs to exactly one ship — find by position
+        const shipIdx = _ships.findIndex(s => s.cells.some(c => c.row === row && c.col === col));
+        if (shipIdx !== -1) {
+            const ship = _ships[shipIdx];
+            state.recordHit(shipIdx, `${row},${col}`);
+            events.emit('shipHit', shipIdx, row, col, shipName);
+            if (state.shipStatus[shipIdx].hits.size === ship.cells.length) {
+                state.addScore(50 + ship.size * 10);
+                state.sinkShip(shipIdx, shipName);
             }
         }
         return 'hit';
@@ -87,6 +93,13 @@ export function fireAt(row, col) {
  */
 export function getShips() {
     return _ships.slice();
+}
+
+/**
+ * Returns the cells of the ship at fleetIndex (used by grid to reveal sunk shape).
+ */
+export function getShipCells(fleetIndex) {
+    return _ships[fleetIndex] ? _ships[fleetIndex].cells.slice() : [];
 }
 
 // ----------------------------------------------------------------

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-02-27
+
+### Added
+- **Nonogram Fleet** (game-011): Phase 3 complete — full game with intro/briefing scenes, procedural audio, 8-level progression, explosion effects, and level-complete tally overlay
+- **Nonogram Fleet** (game-011): Airship sprite on splash and battle screens with bobbing animation; sprite credit (bevouliin.com) on splash
+
 ## [2.3.0] - 2026-02-23
 
 ### Fixed

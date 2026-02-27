@@ -1,6 +1,7 @@
 import { events } from './events.js';
 import { STARTING_SCORE, STARTING_LIVES, SHOTS_PER_PUZZLE, TOTAL_LEVELS } from './config.js';
 
+
 /**
  * Global game state.
  * Setters auto-emit events so UI stays in sync.
@@ -30,20 +31,27 @@ class GameState {
 
         // Revealed cells: 2D array [row][col] -> 'hit'|'miss'|null
         this._revealed   = null;
+
+        // Per-ship status array (indexed by fleet order).
+        // Each entry: { hits: Set<"row,col">, sunk: boolean }
+        // Populated by fleet.js via initShipStatus().
+        this._shipStatus = [];
     }
 
     /**
      * Reset only the per-level state (shots, grids) without touching
      * score, lives, or level number.  Used when transitioning between levels
      * or retrying the same level.
+     * @param {number} [shots]  Override shot budget (defaults to SHOTS_PER_PUZZLE)
      */
-    resetLevel() {
+    resetLevel(shots) {
         this._isPaused       = false;
-        this._shotsLeft      = SHOTS_PER_PUZZLE;
+        this._shotsLeft      = shots !== undefined ? shots : SHOTS_PER_PUZZLE;
         this._shipsRemaining = 0;
         this._playerGrid     = null;
         this._enemyGrid      = null;
         this._revealed       = null;
+        this._shipStatus     = [];
     }
 
     // --- Score ---
@@ -92,9 +100,27 @@ class GameState {
     // --- Ships ---
     get shipsRemaining() { return this._shipsRemaining; }
     set shipsRemaining(v) { this._shipsRemaining = Math.max(0, v); }
-    sinkShip(name) {
+
+    // shipStatus: [{ hits: Set<"row,col">, sunk: boolean }, ...]
+    get shipStatus() { return this._shipStatus; }
+
+    /** Called by fleet.js after placing ships to initialise per-ship status. */
+    initShipStatus(count) {
+        this._shipStatus = Array.from({ length: count }, () => ({ hits: new Set(), sunk: false }));
+    }
+
+    /** Record a hit on ship at fleetIndex; returns true if this sinks it. */
+    recordHit(fleetIndex, cellKey) {
+        const s = this._shipStatus[fleetIndex];
+        s.hits.add(cellKey);
+        return s.sunk;   // caller checks against ship size separately
+    }
+
+    /** Mark ship at fleetIndex as sunk; emits shipSunk(fleetIndex) and possibly levelComplete. */
+    sinkShip(fleetIndex, name) {
+        this._shipStatus[fleetIndex].sunk = true;
         this._shipsRemaining = Math.max(0, this._shipsRemaining - 1);
-        events.emit('shipSunk', name);
+        events.emit('shipSunk', fleetIndex, name);
         if (this._shipsRemaining === 0) {
             events.emit('levelComplete');
         }
