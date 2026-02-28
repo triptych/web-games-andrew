@@ -3,7 +3,7 @@
 **Genre:** Card-Based Auto Battler / Gacha
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Planning — Phase 1
+**Status:** Phase 2 Complete — Phase 3 next
 
 ---
 
@@ -35,6 +35,31 @@ Combat is fully automatic and tick-based (one action every 1.2 seconds). Each ca
 ### 6. Star-Up (Duplicate Fusion)
 Feed duplicate cards into an existing copy to raise its star level (1–5). Each star level grants a fixed stat bonus and at 5 stars upgrades the card's special ability.
 
+### 7. The Reading (Every 5 Waves)
+After every 5th wave cleared, the game performs a **Reading** — a tarot spread drawn from your current collection. One card is flipped face-up and its omen (positive or negative) is applied for the next 5 waves.
+
+**Positive readings** grant a consumable item or buff:
+| Card Type | Blessing |
+|-----------|---------|
+| Major Arcana | Legendary item (e.g. "The Star" restores all HP; "The Sun" doubles Gem income next wave) |
+| Cups | Heal: restore 30% max HP to all party members |
+| Wands | Blaze: all party ATK +20% for 5 waves |
+| Swords | Clarity: all party SPD +1 for 5 waves |
+| Pentacles | Ward: all party gains a one-hit shield at the start of each battle for 5 waves |
+
+**Negative readings** (drawn when the flipped card is reversed — 30% chance) inflict a condition for the next 5 waves:
+| Condition | Effect |
+|-----------|--------|
+| Poisoned | Party loses 5% max HP at the start of each battle tick |
+| Weakened | All party ATK −20% |
+| Slowed | All party SPD −1 (minimum 1) |
+| Cursed | Pity counter is frozen (does not increase) for 5 waves |
+| Hexed | Gem income from the next 5 waves is halved |
+
+The flipped card and its omen are shown in a dedicated **Reading Screen** between the wave-cleared screen and the hub. The active blessing or condition is displayed as a small status icon in the HUD for the duration.
+
+Items/buffs granted by positive readings are stored as consumables in a new **Items** inventory (max 3 slots). Consumables can be used manually from the Hub before starting the next wave.
+
 ---
 
 ## Game Loop
@@ -42,8 +67,9 @@ Feed duplicate cards into an existing copy to raise its star level (1–5). Each
 1. **Pull** — Spend Gems on the gacha banner to add cards to the collection.
 2. **Build** — Arrange your best 4 cards into the active party in the Collection screen.
 3. **Battle** — Watch the auto battler resolve Wave N. Earn Gems if you win; lose a life if all party cards are defeated.
-4. **Repeat** — Spend earned Gems to strengthen the roster, then tackle the next wave.
-5. **Endgame** — Defeat Wave 10 / The World boss to win the run.
+4. **Reading** — Every 5 waves, a card is drawn from your collection and an omen (buff or curse) is applied for the next 5 waves.
+5. **Repeat** — Spend earned Gems to strengthen the roster, then tackle the next wave.
+6. **Endgame** — Defeat Wave 10 / The World boss to win the run.
 
 ---
 
@@ -67,10 +93,11 @@ Feed duplicate cards into an existing copy to raise its star level (1–5). Each
 | Scene | Purpose |
 |-------|---------|
 | `splash` | Title screen with lore tagline |
-| `game` | Hub: shows current wave, gems, party summary; links to other scenes |
+| `game` | Hub: shows current wave, gems, party summary, active omen icon; links to other scenes |
 | `gacha` | Pull animation, card reveal, pity meter |
 | `collection` | Grid of owned cards; drag-to-party slot assignment |
 | `battle` | Auto battle visualisation with timeline and HP bars |
+| `reading` | Post-wave-5/10 tarot spread; reveals omen card and applies blessing or curse |
 
 ---
 
@@ -123,6 +150,10 @@ Feed duplicate cards into an existing copy to raise its star level (1–5). Each
 | Heal | Heal card acts | Three-note ascending sine |
 | Enemy Hit | Enemy takes damage | Sawtooth sweep down |
 | Wave Cleared | Wave win | Four-note fanfare |
+| Reading Flip | Omen card revealed | Slow triangle sweep + reverb tail |
+| Omen Blessing | Positive reading resolved | Ascending five-note sine arpeggio |
+| Omen Curse | Negative (reversed) reading resolved | Descending tritone + low rumble |
+| Item Used | Consumable activated | Quick sine blip + ascending chord |
 | Game Over | All lives lost | Sawtooth sweep + noise |
 
 ---
@@ -132,14 +163,14 @@ Feed duplicate cards into an existing copy to raise its star level (1–5). Each
 ### Phase 1 — Foundation (current)
 - [x] Scaffold: index.html, config, events, state, sounds, ui, main
 - [x] Scene stubs: splash, game hub, gacha, collection, battle
-- [ ] Define full card roster in `cards.js` (all 78 tarot cards with stats)
-- [ ] Define enemy roster in `enemies.js` (10 wave definitions)
+- [x] Define full card roster in `cards.js` (all 78 tarot cards with stats)
+- [x] Define enemy roster in `enemies.js` (10 wave definitions)
 
 ### Phase 2 — Gacha System
-- [ ] Implement pull logic with rarity weights and pity counter in `gacha.js`
-- [ ] Build gacha scene: pull button, card flip animation, reveal screen
-- [ ] Duplicate detection and star-up fusion flow
-- [ ] Persist collection to `localStorage`
+- [x] Implement pull logic with rarity weights and pity counter in `gacha.js`
+- [x] Build gacha scene: pull button, card flip animation, reveal screen
+- [x] Duplicate detection and star-up fusion flow
+- [x] Persist collection to `localStorage`
 
 ### Phase 3 — Collection & Party Builder
 - [ ] Scrollable card grid in `collection.js`
@@ -154,7 +185,15 @@ Feed duplicate cards into an existing copy to raise its star level (1–5). Each
 - [ ] Action log display
 - [ ] Wave win/loss resolution + gem award
 
-### Phase 5 — Polish
+### Phase 5 — The Reading
+- [ ] Add `readingTriggered` event emission in state after wave 5 and wave 10
+- [ ] Build `reading.js` scene: animated card flip, reversed/upright detection, omen text reveal
+- [ ] Implement all 5 blessings and 5 curses in `reading.js` / `state.js`
+- [ ] Items inventory (max 3 slots) with use-before-battle UI in hub
+- [ ] Omen status icon in HUD (shows active blessing or curse + waves remaining)
+- [ ] Apply omen modifiers in `battle.js` tick loop
+
+### Phase 6 — Polish
 - [ ] Wave escalation + elite enemies
 - [ ] Final boss (Wave 10 / The World) with 3 phases
 - [ ] Splash screen art (procedural card borders using canvas)
@@ -176,6 +215,11 @@ Feed duplicate cards into an existing copy to raise its star level (1–5). Each
 | `battleTick` | battleState | battle | battle scene |
 | `battleEnd` | { won: bool } | battle | game hub |
 | `waveCleared` | waveNumber | battle | state, ui |
+| `readingTriggered` | — | state | reading scene |
+| `readingResolved` | { card, reversed, effect } | reading scene | state, ui |
+| `omenApplied` | omenDef | state | ui, battle |
+| `omenExpired` | omenId | state | ui |
+| `itemUsed` | itemDef | state | battle, ui |
 | `gameOver` | — | state | ui |
 | `gameWon` | — | battle | ui |
 
@@ -188,14 +232,15 @@ Feed duplicate cards into an existing copy to raise its star level (1–5). Each
 | `main.js`       | Kaplay init, scene definitions and stubs |
 | `config.js`     | Constants, rarity defs, gacha costs, suit types |
 | `events.js`     | EventBus singleton |
-| `state.js`      | GameState singleton (score, gems, lives, collection, party, pity) |
+| `state.js`      | GameState singleton (score, gems, lives, collection, party, pity, activeOmen, items) |
 | `sounds.js`     | Web Audio API sound effects |
-| `ui.js`         | HUD rendering and game-over screen |
+| `ui.js`         | HUD rendering, omen status icon, game-over screen |
 | `cards.js`      | (Phase 2) Full tarot card roster and stat definitions |
 | `enemies.js`    | (Phase 2) Enemy definitions and wave compositions |
 | `gacha.js`      | (Phase 2) Pull logic, pity, animation controller |
 | `collection.js` | (Phase 3) Card grid, party assignment, fusion UI |
-| `battle.js`     | (Phase 4) Auto battler tick loop, ability resolver |
+| `battle.js`     | (Phase 4) Auto battler tick loop, ability resolver, omen effect application |
+| `reading.js`    | (Phase 5) Reading scene: card flip, omen reveal, item/curse assignment |
 
 ---
 
@@ -217,3 +262,13 @@ Feed duplicate cards into an existing copy to raise its star level (1–5). Each
 - Tarot-specific config: SUITS, RARITY, gacha costs, pity threshold, gem economy
 - State extended with gems, pity counter, collection array, and party array
 - sounds.js extended with card flip, pull reveals (common/rare/legendary), attack, spell, heal sounds
+- cards.js: full 78-card tarot roster (22 Major + 56 Minor) with stats, keywords, elements, rarity
+- enemies.js: 10 wave definitions themed on Major Arcana (The Fool → The World), with elite enemies on waves 3/5/7/9 and a 3-phase final boss on wave 10
+
+### Phase 2 — Gacha System (2026-02-27)
+- gacha.js: weighted random pull, pity counter (guaranteed Legendary at 90), duplicate detection
+- Gacha scene: left banner info panel, centre card flip animation, right pull-history list
+- Pull buttons (single/10-pull) with hover states; key bindings G/T
+- Star-up fusion logic (fuseCard, getStarUpCost) ready for Phase 3 UI
+- localStorage persistence: saveCollection / loadCollection / clearSave
+- Hub scene: clickable + keyboard menu buttons (G/C/B), status strip, new-run reset guard
