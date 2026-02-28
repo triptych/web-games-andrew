@@ -3,7 +3,7 @@
 **Genre:** Card-Based Auto Battler / Gacha
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Phase 2 Complete — Phase 3 next
+**Status:** Phase 4 Complete — Phase 5 next
 
 ---
 
@@ -173,17 +173,17 @@ Items/buffs granted by positive readings are stored as consumables in a new **It
 - [x] Persist collection to `localStorage`
 
 ### Phase 3 — Collection & Party Builder
-- [ ] Scrollable card grid in `collection.js`
-- [ ] Party slot assignment (drag or click-to-assign)
-- [ ] Card detail panel (stats, ability description, star level)
-- [ ] Star-up (fusion) interface
+- [x] Scrollable card grid in `collection.js`
+- [x] Party slot assignment (drag or click-to-assign)
+- [x] Card detail panel (stats, ability description, star level)
+- [x] Star-up (fusion) interface
 
 ### Phase 4 — Auto Battler
-- [ ] Implement tick-based battle loop in `battle.js`
-- [ ] Party vs enemy lane rendering with HP bars
-- [ ] Ability triggers (Cups heal, Swords debuff, Major Arcana actives)
-- [ ] Action log display
-- [ ] Wave win/loss resolution + gem award
+- [x] Implement tick-based battle loop in `battle.js`
+- [x] Party vs enemy lane rendering with HP bars
+- [x] Ability triggers (Cups heal, Swords debuff, Major Arcana actives)
+- [x] Action log display
+- [x] Wave win/loss resolution + gem award
 
 ### Phase 5 — The Reading
 - [ ] Add `readingTriggered` event emission in state after wave 5 and wave 10
@@ -272,3 +272,29 @@ Items/buffs granted by positive readings are stored as consumables in a new **It
 - Star-up fusion logic (fuseCard, getStarUpCost) ready for Phase 3 UI
 - localStorage persistence: saveCollection / loadCollection / clearSave
 - Hub scene: clickable + keyboard menu buttons (G/C/B), status strip, new-run reset guard
+
+### Phase 4 — Auto Battler (2026-02-28)
+- battle.js: tick-based (1.2s) auto-battle loop with party vs enemy lane rendering
+- Party lane: card portraits, rarity border, HP bars, shield/debuff indicators, KO overlay
+- Enemy lane: HP bars, elite/boss badges, ability name display, phase threshold markers
+- Ability resolver: Cups=heal ally, Swords=attack+slow, Pentacles=attack+self-shield, Wands=high dmg
+- Major Arcana abilities: 11 unique card abilities (Fool, Magician, Empress, Tower, Star, Moon, Sun, Judgement, World, etc.)
+- Enemy abilities: onEngage, onTick, onHit, onDeath, passive — all 10 waves implemented
+- Boss phases: The World triggers Mirror of Suits at 66% HP, World Dominion at 33% HP
+- Wave scaling: enemy stats scale +15% per wave beyond their base wave
+- Action log: 6-line scrolling log with color-coded entries per action type
+- Tick progress bar in log panel; result overlay with gem award + continue/retry prompts
+- Win: awards wave gem reward, advances wave, saves; Loss: deducts life, consolation gems
+
+### Phase 3 — Collection & Party Builder (2026-02-28)
+- collection.js: scrollable 5-column card grid with thumbnail art, star rating, dupe count badge, in-party indicator
+- Click-to-assign: clicking a grid card auto-fills the next empty party slot; clicking a filled slot removes it
+- Card detail panel: art, name, rarity, suit, stars, HP/ATK/SPD/DEF stats, keywords, ability text
+- Fusion UI: shows dupe count vs. cost; Fuse button (F key or click) when dupes are sufficient
+- Mouse wheel + arrow key / Page Up/Down scrolling on the card grid
+- Party slots rebuild on every change; selection state clears correctly on assign/remove
+
+### Battle UX fixes (2026-02-28)
+- Battle no longer starts automatically; a "Start Battle" overlay is shown with matchup info and a (Space) button
+- Start Battle button is disabled (greyed, no interaction) when the party has no cards assigned
+- Nav bar is now rendered unconditionally before any early-return error checks, so it is always present on the battle screen

@@ -15,12 +15,12 @@ import kaplay from '../../lib/kaplay/kaplay.mjs';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 import { state }  from './state.js';
 import { events } from './events.js';
-import { initUI } from './ui.js';
+import { initUI, initNavBar } from './ui.js';
 import { initAudio, playUiClick } from './sounds.js';
 import { CARD_DEFS } from './cards.js';
 import { initGacha, pullSingle, pullTen, clearSave } from './gacha.js';
-// import { initCollection } from './collection.js';  // Phase 3
-// import { initBattle }     from './battle.js';      // Phase 4
+import { initCollection } from './collection.js';
+import { initBattle }     from './battle.js';
 
 // ============================================================
 // KAPLAY API GOTCHAS (read before adding entities)
@@ -137,7 +137,7 @@ k.scene('splash', () => {
     // Version tag
     k.add([
         k.pos(GAME_WIDTH - 10, GAME_HEIGHT - 10),
-        k.text('Phase 2', { size: 10 }),
+        k.text('Phase 4', { size: 10 }),
         k.color(50, 40, 80),
         k.anchor('botright'),
         k.z(1),
@@ -176,6 +176,7 @@ k.scene('game', () => {
     if (state.collection.length === 0) state.reset();
 
     initUI(k);
+    initNavBar(k, 'game');
 
     const CX = GAME_WIDTH  / 2;
     const CY = GAME_HEIGHT / 2;
@@ -211,11 +212,8 @@ k.scene('game', () => {
         btn.onHoverEnd(() => { btn.color = k.rgb(25, 16, 55); });
     });
 
-    k.add([k.pos(CX, GAME_HEIGHT - 22), k.text('(R) New Run  |  (ESC) Title', { size: 11 }), k.color(60, 50, 100), k.anchor('center'), k.z(1)]);
+    k.add([k.pos(CX, GAME_HEIGHT - 58), k.text('(R) New Run  |  (ESC) Title', { size: 11 }), k.color(60, 50, 100), k.anchor('center'), k.z(1)]);
 
-    k.onKeyPress('g', () => { playUiClick(); events.clearAll(); k.go('gacha'); });
-    k.onKeyPress('c', () => { playUiClick(); events.clearAll(); k.go('collection'); });
-    k.onKeyPress('b', () => { playUiClick(); events.clearAll(); k.go('battle'); });
 
     k.onKeyPress('r', () => {
         state.reset();
@@ -302,8 +300,10 @@ k.scene('gacha', () => {
     k.add([k.pos(190, 430), k.text('Single Pull:  60 Gems', { size: 14 }), k.color(...COLORS.text), k.anchor('center'), k.z(2)]);
     k.add([k.pos(190, 460), k.text('10-Pull:     500 Gems', { size: 14 }), k.color(...COLORS.text), k.anchor('center'), k.z(2)]);
 
+    initNavBar(k, 'gacha');
+
     // (ESC) back hint
-    k.add([k.pos(190, GAME_HEIGHT - 30), k.text('(ESC) Back to Hub', { size: 12 }), k.color(80, 60, 130), k.anchor('center'), k.z(2)]);
+    k.add([k.pos(190, GAME_HEIGHT - 58), k.text('(ESC) Back to Hub', { size: 12 }), k.color(80, 60, 130), k.anchor('center'), k.z(2)]);
 
     // ---- Centre: card reveal area ----
     const CARD_X = 640;
@@ -410,7 +410,7 @@ k.scene('gacha', () => {
     makeButton('(T) 10-Pull — 500 Gems',    630, [140, 80, 30],  doTenPull);
 
     // Clear save button (small, bottom-left of right panel)
-    k.add([k.pos(895, GAME_HEIGHT - 30), k.text('(DEL) Clear Save', { size: 11 }), k.color(80, 40, 80), k.anchor('left'), k.z(2)]);
+    k.add([k.pos(895, GAME_HEIGHT - 58), k.text('(DEL) Clear Save', { size: 11 }), k.color(80, 40, 80), k.anchor('left'), k.z(2)]);
 
     // ---- Animation state machine ----
     let animState  = 'idle';  // 'idle' | 'flipping' | 'reveal'
@@ -555,35 +555,13 @@ k.scene('gacha', () => {
 });
 
 k.scene('collection', () => {
-    const CX = GAME_WIDTH / 2;
-    const CY = GAME_HEIGHT / 2;
-
-    k.add([
-        k.pos(CX, CY),
-        k.text('COLLECTION SCENE — coming soon\n\n(ESC) back', { size: 24 }),
-        k.color(...COLORS.accent),
-        k.anchor('center'),
-        k.z(1),
-    ]);
-
-    k.onKeyPress('escape', () => k.go('game'));
-    k.onSceneLeave(() => events.clearAll());
+    initGacha();   // ensure collection is loaded
+    initCollection(k);
 });
 
 k.scene('battle', () => {
-    const CX = GAME_WIDTH / 2;
-    const CY = GAME_HEIGHT / 2;
-
-    k.add([
-        k.pos(CX, CY),
-        k.text('BATTLE SCENE — coming soon\n\n(ESC) back', { size: 24 }),
-        k.color(...COLORS.accent),
-        k.anchor('center'),
-        k.z(1),
-    ]);
-
-    k.onKeyPress('escape', () => k.go('game'));
-    k.onSceneLeave(() => events.clearAll());
+    initGacha();   // ensure collection is loaded
+    initBattle(k);
 });
 
 // ============================================================

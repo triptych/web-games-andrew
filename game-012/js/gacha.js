@@ -240,6 +240,10 @@ export function clearSave() {
     localStorage.removeItem(STORAGE_KEY);
 }
 
+let _loaded = false;
+
 export function initGacha() {
+    if (_loaded) return;
+    _loaded = true;
     loadCollection();
 }
