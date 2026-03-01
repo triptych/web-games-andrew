@@ -412,45 +412,125 @@ k.scene('gacha', () => {
     // Clear save button (small, bottom-left of right panel)
     k.add([k.pos(895, GAME_HEIGHT - 58), k.text('(DEL) Clear Save', { size: 11 }), k.color(80, 40, 80), k.anchor('left'), k.z(2)]);
 
+    // ---- Sunburst (drawn behind the card) ----
+    const BURST_RAYS   = 16;
+    const BURST_INNER  = 110;
+    const BURST_OUTER  = 230;
+    let   burstAngle   = 0;
+    let   burstOpacity = 0;
+    let   burstTargetOpacity = 0;
+
+    // We draw the sunburst each frame via drawInspect-style; simplest approach:
+    // use a dedicated entity with onDraw().
+    k.add([
+        k.pos(CARD_X, CARD_Y),
+        k.z(3),
+        k.opacity(1),
+        {
+            id: 'sunburst',
+            draw() {
+                if (burstOpacity <= 0) return;
+                k.pushTransform();
+                k.pushRotate(burstAngle);
+                for (let i = 0; i < BURST_RAYS; i++) {
+                    const a = (i / BURST_RAYS) * Math.PI * 2;
+                    const aOff = (Math.PI / BURST_RAYS);
+                    // Wide ray
+                    const x1 = Math.cos(a - aOff * 0.35) * BURST_INNER;
+                    const y1 = Math.sin(a - aOff * 0.35) * BURST_INNER;
+                    const x2 = Math.cos(a) * BURST_OUTER;
+                    const y2 = Math.sin(a) * BURST_OUTER;
+                    const x3 = Math.cos(a + aOff * 0.35) * BURST_INNER;
+                    const y3 = Math.sin(a + aOff * 0.35) * BURST_INNER;
+                    k.drawPolygon({
+                        pts: [k.vec2(x1,y1), k.vec2(x2,y2), k.vec2(x3,y3)],
+                        color: k.Color.fromArray([255, 210, 60]),
+                        opacity: burstOpacity * 0.35,
+                    });
+                }
+                k.popTransform();
+            },
+        },
+    ]);
+
+    // ---- Particle pool ----
+    const particles = [];
+
+    function _spawnParticles(glowColor) {
+        const COUNT = 40;
+        for (let i = 0; i < COUNT; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 80 + Math.random() * 220;
+            const life  = 0.5 + Math.random() * 0.6;
+            const size  = 3 + Math.random() * 7;
+            const r = glowColor[0], g = glowColor[1], b = glowColor[2];
+            const e = k.add([
+                k.pos(CARD_X, CARD_Y),
+                k.rect(size, size, { radius: size / 2 }),
+                k.color(r, g, b),
+                k.anchor('center'),
+                k.opacity(1),
+                k.z(9),
+                'particle',
+            ]);
+            particles.push({ e, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life, maxLife: life });
+        }
+    }
+
     // ---- Animation state machine ----
-    let animState  = 'idle';  // 'idle' | 'flipping' | 'reveal'
-    let animTimer  = 0;
-    let pendingCards = [];    // cards waiting to be shown
+    // States: 'idle' | 'appearing' | 'shaking' | 'exploding' | 'reveal'
+    let animState    = 'idle';
+    let animTimer    = 0;
+    let pendingCards = [];
     let currentCard  = null;
+
+    // Shake state
+    let shakeOffset = k.vec2(0, 0);
 
     function _showIdle() {
         animState = 'idle';
         cardBack.opacity = 0;
         cardFaceRect.opacity = 0;
         glowRect.opacity = 0;
+        burstTargetOpacity = 0;
+        shakeOffset = k.vec2(0, 0);
         for (const e of k.get('cardLabel'))    e.opacity = 0;
         for (const e of k.get('cardBackText')) e.opacity = 0;
         if (cardSpriteEntity) { cardSpriteEntity.destroy(); cardSpriteEntity = null; }
     }
 
-    function _startFlip(card) {
+    function _startSummon(card) {
         currentCard = card;
-        animState = 'flipping';
-        animTimer = 0;
-        // Destroy previous sprite so old art doesn't linger
+        animState   = 'appearing';
+        animTimer   = 0;
+        shakeOffset = k.vec2(0, 0);
+
+        // Destroy previous sprite
         if (cardSpriteEntity) { cardSpriteEntity.destroy(); cardSpriteEntity = null; }
-        cardBack.opacity = 1;
-        for (const e of k.get('cardBackText')) e.opacity = 1;
+
+        // Hide face elements
         cardFaceRect.opacity = 0;
-        glowRect.opacity = 0;
+        glowRect.opacity     = 0;
+        burstTargetOpacity   = 0;
         for (const e of k.get('cardLabel')) e.opacity = 0;
+
+        // Show card back face-down
+        cardBack.opacity = 0;
+        for (const e of k.get('cardBackText')) e.opacity = 0;
+
         import('./sounds.js').then(s => s.playCardFlip());
     }
 
     function _showReveal(card) {
         animState = 'reveal';
         animTimer = 0;
+        shakeOffset = k.vec2(0, 0);
 
         // Hide back
         cardBack.opacity = 0;
         for (const e of k.get('cardBackText')) e.opacity = 0;
 
-        // Spawn the card art sprite (destroy any leftover first)
+        // Spawn card art
         if (cardSpriteEntity) { cardSpriteEntity.destroy(); cardSpriteEntity = null; }
         cardSpriteEntity = k.add([
             k.pos(CARD_X, CARD_Y),
@@ -460,15 +540,20 @@ k.scene('gacha', () => {
             'cardSprite',
         ]);
 
-        // Set rarity glow color
+        // Rarity glow color
         const glowColor = {
             COMMON: [160,160,160], UNCOMMON: [100,220,120],
             RARE: [80,140,255],    LEGENDARY: [255,180,0],
         }[card.rarity] || [255,255,255];
-        glowRect.color = k.rgb(...glowColor);
+
+        glowRect.color   = k.rgb(...glowColor);
         glowRect.opacity = 0.5;
-        cardFaceRect.color = k.rgb(...glowColor.map(c => Math.floor(c * 0.15)));
+        cardFaceRect.color   = k.rgb(...glowColor.map(c => Math.floor(c * 0.15)));
         cardFaceRect.opacity = 1;
+
+        // Sunburst burst
+        burstTargetOpacity = 1;
+        _spawnParticles(glowColor);
 
         // Labels
         cardNameLabel.text    = card.name;
@@ -485,7 +570,6 @@ k.scene('gacha', () => {
         cardNewBadge.opacity  = card.isNew  ? 1 : 0;
         cardDupeBadge.opacity = card.isDupe ? 1 : 0;
 
-        // Play rarity sound
         import('./sounds.js').then(s => {
             if (card.rarity === 'LEGENDARY')  s.playPullLegendary();
             else if (card.rarity === 'RARE')  s.playPullRare();
@@ -495,31 +579,86 @@ k.scene('gacha', () => {
         addResultLine(card);
     }
 
-    // ---- Update loop (animate glow + auto-advance) ----
+    // ---- Update loop ----
     k.onUpdate(() => {
-        if (animState === 'flipping') {
-            animTimer += k.dt();
-            // Flip duration: 0.35s — pulse the card back opacity
-            cardBack.opacity = 0.5 + 0.5 * Math.abs(Math.sin(animTimer * Math.PI / 0.35));
-            if (animTimer >= 0.35) {
+        const dt = k.dt();
+
+        // Sunburst rotation + fade
+        burstAngle  = (burstAngle + dt * 18) % 360;
+        burstOpacity += (burstTargetOpacity - burstOpacity) * Math.min(dt * 8, 1);
+        if (burstOpacity < 0.005) burstOpacity = 0;
+
+        // Particle update
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.life -= dt;
+            if (p.life <= 0) {
+                p.e.destroy();
+                particles.splice(i, 1);
+                continue;
+            }
+            const t = p.life / p.maxLife;
+            p.e.pos = k.vec2(p.e.pos.x + p.vx * dt, p.e.pos.y + p.vy * dt);
+            p.vy   += 120 * dt; // gravity
+            p.e.opacity = t * t;
+        }
+
+        // ---- State machine ----
+        if (animState === 'appearing') {
+            animTimer += dt;
+            // Card back slides in from above (0 → 0.4s)
+            const t = Math.min(animTimer / 0.4, 1);
+            const eased = 1 - Math.pow(1 - t, 3);
+            const startY = CARD_Y - 120;
+            const cardPosY = startY + (CARD_Y - startY) * eased;
+            cardBack.pos = k.vec2(CARD_X + shakeOffset.x, cardPosY + shakeOffset.y);
+            for (const e of k.get('cardBackText')) {
+                e.pos    = k.vec2(CARD_X + shakeOffset.x, cardPosY + shakeOffset.y);
+                e.opacity = eased;
+            }
+            cardBack.opacity = eased;
+
+            if (animTimer >= 0.4) {
+                // Transition to shaking
+                animState = 'shaking';
+                animTimer = 0;
+                cardBack.pos = k.vec2(CARD_X, CARD_Y);
+                for (const e of k.get('cardBackText')) e.pos = k.vec2(CARD_X, CARD_Y);
+            }
+        } else if (animState === 'shaking') {
+            animTimer += dt;
+            // Shake intensifies over 0.7s then explodes
+            const intensity = (animTimer / 0.7) * 8;
+            shakeOffset = k.vec2(
+                (Math.random() - 0.5) * intensity * 2,
+                (Math.random() - 0.5) * intensity * 2,
+            );
+            cardBack.pos = k.vec2(CARD_X + shakeOffset.x, CARD_Y + shakeOffset.y);
+            for (const e of k.get('cardBackText')) {
+                e.pos = k.vec2(CARD_X + shakeOffset.x, CARD_Y + shakeOffset.y);
+            }
+            // Pulse glow during shake
+            burstTargetOpacity = (animTimer / 0.7) * 0.4;
+
+            if (animTimer >= 0.7) {
                 _showReveal(currentCard);
             }
         } else if (animState === 'reveal') {
-            animTimer += k.dt();
+            animTimer += dt;
             // Pulse the glow
             glowRect.opacity = 0.3 + 0.2 * Math.sin(animTimer * Math.PI * 2);
-            // Auto-advance if more cards queued, or return to idle after 1.5s
-            if (pendingCards.length > 0 && animTimer >= 0.8) {
-                _startFlip(pendingCards.shift());
-            } else if (pendingCards.length === 0 && animTimer >= 1.5) {
-                _showIdle();
+            // Auto-advance if more cards queued after short pause
+            if (pendingCards.length > 0 && animTimer >= 0.6) {
+                _startSummon(pendingCards.shift());
             }
+            // NOTE: If no more cards pending, the card stays displayed indefinitely
+            // until the next pull. Do NOT auto-hide.
         }
     });
 
     // ---- Pull actions ----
     function doSinglePull() {
-        if (animState !== 'idle') return;
+        if (animState !== 'idle' && animState !== 'reveal') return;
         const results = pullSingle();
         if (!results) {
             import('./sounds.js').then(s => s.playUiClick());
@@ -527,11 +666,11 @@ k.scene('gacha', () => {
         }
         import('./sounds.js').then(s => s.playUiClick());
         pendingCards = results.slice(1);
-        _startFlip(results[0]);
+        _startSummon(results[0]);
     }
 
     function doTenPull() {
-        if (animState !== 'idle') return;
+        if (animState !== 'idle' && animState !== 'reveal') return;
         const results = pullTen();
         if (!results) {
             import('./sounds.js').then(s => s.playUiClick());
@@ -539,7 +678,7 @@ k.scene('gacha', () => {
         }
         import('./sounds.js').then(s => s.playUiClick());
         pendingCards = results.slice(1);
-        _startFlip(results[0]);
+        _startSummon(results[0]);
     }
 
     // ---- Key bindings ----
@@ -549,7 +688,9 @@ k.scene('gacha', () => {
     k.onKeyPress('delete', () => { clearSave(); pityHud.text = 'PITY  0 / 90'; gemsHud.text = `GEMS  ${state.gems}`; });
 
     k.onSceneLeave(() => {
-        if (cardSpriteEntity) { cardSpriteEntity.destroy(); cardSpriteEntity = null; }
+        _showIdle();
+        for (const p of particles) p.e.destroy();
+        particles.length = 0;
         events.clearAll();
     });
 });
