@@ -72,6 +72,7 @@ const NAV_BUTTONS = [
     { label: '(G) Gacha',      key: 'g',  scene: 'gacha'      },
     { label: '(C) Collection', key: 'c',  scene: 'collection' },
     { label: '(B) Battle',     key: 'b',  scene: 'battle'     },
+    { label: '(X) Reading',    key: 'x',  scene: 'reading'    },
 ];
 
 const NAV_H        = 40;

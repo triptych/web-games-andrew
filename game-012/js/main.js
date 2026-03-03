@@ -21,6 +21,7 @@ import { CARD_DEFS } from './cards.js';
 import { initGacha, pullSingle, pullTen, clearSave } from './gacha.js';
 import { initCollection } from './collection.js';
 import { initBattle }     from './battle.js';
+import { initReading }    from './reading.js';
 
 // ============================================================
 // KAPLAY API GOTCHAS (read before adding entities)
@@ -137,7 +138,7 @@ k.scene('splash', () => {
     // Version tag
     k.add([
         k.pos(GAME_WIDTH - 10, GAME_HEIGHT - 10),
-        k.text('Phase 4', { size: 10 }),
+        k.text('Phase 5', { size: 10 }),
         k.color(50, 40, 80),
         k.anchor('botright'),
         k.z(1),
@@ -211,6 +212,59 @@ k.scene('game', () => {
         btn.onHover(() => { btn.color = k.rgb(40, 25, 80); });
         btn.onHoverEnd(() => { btn.color = k.rgb(25, 16, 55); });
     });
+
+    // ---- Active omen status icon ----
+    const omen = state.activeOmen;
+    if (omen) {
+        const isCurse    = omen.type === 'curse';
+        const omenColor  = isCurse ? COLORS.danger : COLORS.success;
+        const omenBgCol  = isCurse ? [30, 8, 8] : [8, 28, 8];
+        k.add([
+            k.pos(CX, CY + 155),
+            k.rect(460, 40, { radius: 5 }),
+            k.color(...omenBgCol),
+            k.outline(1, k.rgb(...omenColor)),
+            k.anchor('center'),
+            k.z(1),
+        ]);
+        const omenTypeStr = isCurse ? 'CURSE' : 'BLESSING';
+        k.add([
+            k.pos(CX, CY + 155),
+            k.text(`${omenTypeStr}: ${omen.label}  —  ${state.omenWavesLeft} wave${state.omenWavesLeft !== 1 ? 's' : ''} remaining`, { size: 13 }),
+            k.color(...omenColor),
+            k.anchor('center'),
+            k.z(2),
+        ]);
+    }
+
+    // ---- Items inventory ----
+    const items = state.items;
+    if (items.length > 0) {
+        k.add([k.pos(CX, CY + 210), k.text('ITEMS  (click to use before battle)', { size: 12 }), k.color(...COLORS.gold), k.anchor('center'), k.z(1)]);
+        items.forEach((item, i) => {
+            const ix = CX - 120 + i * 120;
+            const iy = CY + 248;
+            const ibtn = k.add([
+                k.pos(ix, iy),
+                k.rect(108, 44, { radius: 5 }),
+                k.color(20, 14, 50),
+                k.outline(1, k.rgb(...COLORS.gold)),
+                k.anchor('center'),
+                k.area(),
+                k.z(2),
+            ]);
+            k.add([k.pos(ix, iy - 8), k.text(item.label, { size: 12 }), k.color(...COLORS.gold), k.anchor('center'), k.z(3)]);
+            k.add([k.pos(ix, iy + 8), k.text(item.desc.length > 22 ? item.desc.slice(0, 22) + '...' : item.desc, { size: 9 }), k.color(...COLORS.silver), k.anchor('center'), k.z(3)]);
+            ibtn.onClick(() => {
+                import('./sounds.js').then(s => s.playItemUsed());
+                state.useItem(item.id);
+                events.clearAll();
+                k.go('game');  // refresh hub
+            });
+            ibtn.onHover(()    => { ibtn.color = k.rgb(35, 22, 75); });
+            ibtn.onHoverEnd(() => { ibtn.color = k.rgb(20, 14, 50); });
+        });
+    }
 
     k.add([k.pos(CX, GAME_HEIGHT - 58), k.text('(R) New Run  |  (ESC) Title', { size: 11 }), k.color(60, 50, 100), k.anchor('center'), k.z(1)]);
 
@@ -703,6 +757,11 @@ k.scene('collection', () => {
 k.scene('battle', () => {
     initGacha();   // ensure collection is loaded
     initBattle(k);
+});
+
+k.scene('reading', () => {
+    initGacha();   // ensure collection is loaded
+    initReading(k);
 });
 
 // ============================================================

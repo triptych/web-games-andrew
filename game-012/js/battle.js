@@ -18,12 +18,12 @@
 
 import { state }   from './state.js';
 import { events }  from './events.js';
-import { COLORS, BATTLE_TICK_MS, GEMS_PER_WIN, GEMS_PER_LOSS, MAX_ENEMY_WAVES } from './config.js';
+import { COLORS, BATTLE_TICK_MS, GEMS_PER_WIN, GEMS_PER_LOSS, MAX_ENEMY_WAVES, GEMS_PER_WAVE } from './config.js';
 import { WAVE_BY_NUMBER } from './enemies.js';
 import { saveCollection } from './gacha.js';
 import {
     playAttack, playSpell, playHeal,
-    playEnemyHit, playWaveCleared, playFailure, playGameOver,
+    playEnemyHit, playPartyHit, playWaveCleared, playFailure, playGameOver,
 } from './sounds.js';
 import { initNavBar } from './ui.js';
 
@@ -143,6 +143,55 @@ export function initBattle(k) {
     const partyRenderEntities = [];   // array of { root-ents } per slot
     const enemyRenderEntities = [];
 
+    // ----------------------------------------------------------------
+    // Card animations — wiggle (attacker) and flash (target)
+    // ----------------------------------------------------------------
+
+    // Damped sine wiggle on attacker card. Duration ~0.28s.
+    function _wiggleCard(entity) {
+        if (!entity || !entity.exists()) return;
+        const originX = entity.pos.x;
+        const originY = entity.pos.y;
+        let timer = 0;
+        const DUR = 0.28;
+        const AMP = 9;
+        let done = false;
+        const handle = entity.onUpdate(() => {
+            if (done) return;
+            timer += k.dt();
+            const t = Math.min(timer / DUR, 1);
+            const decay = 1 - t;
+            const offset = Math.sin(timer * 75) * AMP * decay;
+            entity.pos = k.vec2(originX + offset, originY);
+            if (t >= 1) {
+                entity.pos = k.vec2(originX, originY);
+                done = true;
+                handle.cancel();
+            }
+        });
+    }
+
+    // Brief red flash on the target card when hit. Duration ~0.18s.
+    function _flashCard(entity) {
+        if (!entity || !entity.exists()) return;
+        const origR = entity.color.r;
+        const origG = entity.color.g;
+        const origB = entity.color.b;
+        let timer = 0;
+        let done = false;
+        const handle = entity.onUpdate(() => {
+            if (done) return;
+            timer += k.dt();
+            if (timer < 0.09) {
+                entity.color = k.rgb(200, 30, 30);
+            } else {
+                entity.color = k.rgb(origR, origG, origB);
+                done = true;
+                handle.cancel();
+            }
+        });
+    }
+
     function _buildPartyRender() {
         for (const row of partyRenderEntities) row.forEach(e => e.destroy());
         partyRenderEntities.length = 0;
@@ -169,6 +218,7 @@ export function initBattle(k) {
                 k.z(2),
             ]);
             ents.push(bg);
+            c._bgEnt = bg;  // store for wiggle
 
             // Sprite
             try {
@@ -286,6 +336,7 @@ export function initBattle(k) {
                 k.z(2),
             ]);
             ents.push(bg);
+            e._bgEnt = bg;  // store for wiggle
 
             // Name
             ents.push(k.add([
@@ -458,7 +509,7 @@ export function initBattle(k) {
         // Result box
         ents.push(k.add([
             k.pos(CX, CY),
-            k.rect(500, 260, { radius: 10 }),
+            k.rect(500, won ? 300 : 260, { radius: 10 }),
             k.color(won ? 14 : 20, won ? 20 : 8, won ? 40 : 16),
             k.outline(2, won ? k.rgb(...COLORS.success) : k.rgb(...COLORS.danger)),
             k.anchor('center'),
@@ -466,7 +517,7 @@ export function initBattle(k) {
         ]));
 
         ents.push(k.add([
-            k.pos(CX, CY - 90),
+            k.pos(CX, CY - 110),
             k.text(won ? 'WAVE CLEARED!' : 'PARTY DEFEATED', { size: 32 }),
             k.color(...(won ? COLORS.success : COLORS.danger)),
             k.anchor('center'),
@@ -474,15 +525,50 @@ export function initBattle(k) {
         ]));
 
         if (won) {
-            const gemsEarned = waveDef.gemReward || GEMS_PER_WIN;
-            ents.push(k.add([k.pos(CX, CY - 40), k.text(`+${gemsEarned} Gems earned`, { size: 18 }), k.color(...COLORS.gold), k.anchor('center'), k.z(12)]));
-            ents.push(k.add([k.pos(CX, CY - 10), k.text(`Wave ${state.wave} complete`, { size: 14 }), k.color(...COLORS.silver), k.anchor('center'), k.z(12)]));
+            const omen = state.activeOmen;
+            const baseGems = waveDef.gemReward || GEMS_PER_WIN;
+            const gemsEarned = (omen && omen.id === 'hexed') ? Math.floor(baseGems * 0.5) : baseGems;
+            ents.push(k.add([k.pos(CX, CY - 60), k.text(`+${gemsEarned} Gems earned`, { size: 18 }), k.color(...COLORS.gold), k.anchor('center'), k.z(12)]));
+            // state.wave was already incremented in _resolveBattle, so clearedWave = state.wave - 1
+            const clearedWave = state.wave - 1;
+            ents.push(k.add([k.pos(CX, CY - 32), k.text(`Wave ${clearedWave} complete`, { size: 14 }), k.color(...COLORS.silver), k.anchor('center'), k.z(12)]));
 
-            if (state.wave >= MAX_ENEMY_WAVES) {
-                ents.push(k.add([k.pos(CX, CY + 20), k.text('YOU CONQUERED THE WORLD!', { size: 20 }), k.color(...COLORS.gold), k.anchor('center'), k.z(12)]));
+            if (state.wave > MAX_ENEMY_WAVES) {
+                ents.push(k.add([k.pos(CX, CY), k.text('YOU CONQUERED THE WORLD!', { size: 20 }), k.color(...COLORS.gold), k.anchor('center'), k.z(12)]));
             }
 
-            ents.push(k.add([k.pos(CX, CY + 70), k.text('(ENTER) Continue to Hub   (ESC) Hub', { size: 14 }), k.color(...COLORS.text), k.anchor('center'), k.z(12)]));
+            // Reading waves: prompt goes to reading scene
+            const isReadingWave = state.isReadingWave(clearedWave);
+
+            // Next Wave / Reading button
+            function _doNextWave() {
+                const dest = isReadingWave ? 'reading' : 'battle';
+                events.clearAll();
+                k.go(dest);
+            }
+
+            const btnLabel = isReadingWave ? 'The Reading awaits...' : `Wave ${state.wave} — Next Wave`;
+            const btnClr = isReadingWave ? COLORS.accent : COLORS.success;
+            const nextBtn = k.add([
+                k.pos(CX, CY + 42),
+                k.rect(340, 50, { radius: 6 }),
+                k.color(isReadingWave ? 20 : 12, isReadingWave ? 14 : 30, isReadingWave ? 50 : 22),
+                k.outline(2, k.rgb(...btnClr)),
+                k.anchor('center'),
+                k.area(),
+                k.z(12),
+            ]);
+            ents.push(nextBtn);
+            ents.push(k.add([k.pos(CX, CY + 42), k.text(btnLabel, { size: 16 }), k.color(...btnClr), k.anchor('center'), k.z(13)]));
+
+            nextBtn.onClick(_doNextWave);
+            nextBtn.onHover(()    => { nextBtn.color = k.rgb(isReadingWave ? 40 : 20, isReadingWave ? 28 : 55, isReadingWave ? 90 : 40); });
+            nextBtn.onHoverEnd(() => { nextBtn.color = k.rgb(isReadingWave ? 20 : 12, isReadingWave ? 14 : 30, isReadingWave ? 50 : 22); });
+
+            ents.push(k.add([k.pos(CX, CY + 100), k.text('(ENTER) Next Wave   (ESC) Hub', { size: 12 }), k.color(80, 70, 120), k.anchor('center'), k.z(12)]));
+            if (isReadingWave) {
+                ents.push(k.add([k.pos(CX, CY + 120), k.text('A card shall be drawn from your collection...', { size: 11 }), k.color(...COLORS.silver), k.anchor('center'), k.z(12)]));
+            }
         } else {
             ents.push(k.add([k.pos(CX, CY - 30), k.text(`Lives remaining: ${state.lives}`, { size: 16 }), k.color(...COLORS.danger), k.anchor('center'), k.z(12)]));
             if (state.lives <= 0) {
@@ -608,9 +694,6 @@ export function initBattle(k) {
     // Battle tick — turn-based step sequencer
     // ----------------------------------------------------------------
 
-    // How long to pause between individual action steps (ms)
-    const STEP_DELAY_S = 0.75;
-
     // True while we are stepping through actions — blocks the tick timer
     let steppingActions = false;
 
@@ -619,6 +702,16 @@ export function initBattle(k) {
         tickCount++;
 
         events.emit('battleTick', { tick: tickCount });
+
+        // --- Omen: Poisoned — party loses 5% max HP each tick ---
+        if (state.activeOmen && state.activeOmen.id === 'poisoned') {
+            for (const c of partyCombatants) {
+                if (c.currentHp <= 0) continue;
+                const loss = Math.max(1, Math.floor(c.maxHp * 0.05));
+                c.currentHp = Math.max(0, c.currentHp - loss);
+            }
+            addLog('Poisoned: party takes 5% HP damage!', COLORS.danger);
+        }
 
         // --- Passive / onTick enemy abilities (instant, before steps) ---
         for (const enemy of enemyCombatants) {
@@ -669,10 +762,14 @@ export function initBattle(k) {
             if (i < enemySlots.length)  actionQueue.push(enemySlots[i]);
         }
 
-        // Step through the queue one action per STEP_DELAY_S
         steppingActions = true;
         _stepActions(actionQueue, 0);
     }
+
+    // Timing constants for action animation sequence
+    const WIGGLE_TO_HIT_S = 0.22;   // delay from wiggle start to damage resolution + flash
+    const HIT_TO_REBUILD_S = 0.18;  // delay from hit to rebuilding renders
+    const BETWEEN_STEPS_S = 0.55;   // pause between combatant turns
 
     function _stepActions(queue, idx) {
         if (battleOver) { steppingActions = false; return; }
@@ -699,36 +796,89 @@ export function initBattle(k) {
 
         const { type, actor } = queue[idx];
 
+        // Determine target now (before any state changes) so we can flash it
+        let targetEnt = null;
+
         if (type === 'party') {
-            if (actor.currentHp > 0) {
-                const livingEnemies = enemyCombatants.filter(e => e.currentHp > 0);
-                if (livingEnemies.length > 0) {
-                    _partyAct(actor, livingEnemies);
+            if (actor.currentHp <= 0) {
+                // Skip dead card, move on
+                k.wait(0, () => _stepActions(queue, idx + 1));
+                return;
+            }
+            const livingEnemies = enemyCombatants.filter(e => e.currentHp > 0);
+            if (livingEnemies.length === 0) {
+                k.wait(0, () => _stepActions(queue, idx + 1));
+                return;
+            }
+            targetEnt = livingEnemies[0]._bgEnt;
+
+            // 1. Wiggle attacker
+            _wiggleCard(actor._bgEnt);
+
+            // 2. After wiggle peak — resolve damage + flash target
+            k.wait(WIGGLE_TO_HIT_S, () => {
+                if (battleOver) return;
+                _flashCard(targetEnt);
+                _partyAct(actor, enemyCombatants.filter(e => e.currentHp > 0));
+
+                // 3. After flash settles — rebuild renders
+                k.wait(HIT_TO_REBUILD_S, () => {
+                    if (battleOver) return;
                     _buildPartyRender();
                     _buildEnemyRender();
-                }
-            }
+
+                    // 4. Check for battle end, then advance queue
+                    const ap = partyCombatants.filter(c => c.currentHp > 0);
+                    const ae = enemyCombatants.filter(e => e.currentHp > 0);
+                    if (ae.length === 0 || ap.length === 0) {
+                        steppingActions = false;
+                        _resolveBattle();
+                        return;
+                    }
+                    k.wait(BETWEEN_STEPS_S, () => _stepActions(queue, idx + 1));
+                });
+            });
+
         } else {
-            if (actor.currentHp > 0) {
-                const livingParty = partyCombatants.filter(c => c.currentHp > 0);
-                if (livingParty.length > 0) {
-                    _enemyAct(actor, livingParty);
+            if (actor.currentHp <= 0) {
+                k.wait(0, () => _stepActions(queue, idx + 1));
+                return;
+            }
+            const livingParty = partyCombatants.filter(c => c.currentHp > 0);
+            if (livingParty.length === 0) {
+                k.wait(0, () => _stepActions(queue, idx + 1));
+                return;
+            }
+            targetEnt = livingParty[0]._bgEnt;
+
+            // 1. Wiggle attacker
+            _wiggleCard(actor._bgEnt);
+
+            // 2. After wiggle peak — resolve damage + flash target
+            k.wait(WIGGLE_TO_HIT_S, () => {
+                if (battleOver) return;
+                _flashCard(targetEnt);
+                playPartyHit();
+                _enemyAct(actor, partyCombatants.filter(c => c.currentHp > 0));
+
+                // 3. After flash settles — rebuild renders
+                k.wait(HIT_TO_REBUILD_S, () => {
+                    if (battleOver) return;
                     _buildPartyRender();
                     _buildEnemyRender();
-                }
-            }
-        }
 
-        // Early exit if battle already decided
-        const stillAliveParty2   = partyCombatants.filter(c => c.currentHp > 0);
-        const stillAliveEnemies2 = enemyCombatants.filter(e => e.currentHp > 0);
-        if (stillAliveEnemies2.length === 0 || stillAliveParty2.length === 0) {
-            steppingActions = false;
-            _resolveBattle();
-            return;
+                    // 4. Check for battle end, then advance queue
+                    const ap = partyCombatants.filter(c => c.currentHp > 0);
+                    const ae = enemyCombatants.filter(e => e.currentHp > 0);
+                    if (ae.length === 0 || ap.length === 0) {
+                        steppingActions = false;
+                        _resolveBattle();
+                        return;
+                    }
+                    k.wait(BETWEEN_STEPS_S, () => _stepActions(queue, idx + 1));
+                });
+            });
         }
-
-        k.wait(STEP_DELAY_S, () => _stepActions(queue, idx + 1));
     }
 
     function _resolveBattle() {
@@ -740,15 +890,26 @@ export function initBattle(k) {
         const won = aliveEnemies.length === 0;
 
         if (won) {
-            const gemsEarned = waveDef.gemReward || GEMS_PER_WIN;
+            const clearedWave = state.wave;
+            // Apply gem halving if Hexed omen is active
+            const omen = state.activeOmen;
+            const baseGems = waveDef.gemReward || GEMS_PER_WIN;
+            const gemsEarned = (omen && omen.id === 'hexed') ? Math.floor(baseGems * 0.5) : baseGems;
             state.earnGems(gemsEarned);
             state.addScore(gemsEarned * 10);
             state.wave = Math.min(state.wave + 1, MAX_ENEMY_WAVES + 1);
+            // Tick the active omen down one wave
+            state.tickOmen();
             saveCollection();
-            events.emit('waveCleared', state.wave - 1);
+            events.emit('waveCleared', clearedWave);
             playWaveCleared();
             addLog('VICTORY! Wave cleared.', COLORS.success);
             addLog(`+${gemsEarned} gems`, COLORS.gold);
+            if (omen && omen.id === 'hexed') addLog('Hexed: gems halved!', COLORS.danger);
+            // Check if this wave triggers a reading
+            if (state.isReadingWave(clearedWave)) {
+                events.emit('readingTriggered');
+            }
         } else {
             state.earnGems(GEMS_PER_LOSS);
             state.loseLife();
@@ -943,14 +1104,12 @@ export function initBattle(k) {
             const remaining = dmg - shieldAbsorb;
             if (remaining > 0) {
                 target.currentHp = Math.max(0, target.currentHp - remaining);
-                playEnemyHit();
                 addLog(`${enemy.name} hits ${target.name} for ${remaining} (shield blocked ${shieldAbsorb})`, COLORS.danger);
             } else {
                 addLog(`${enemy.name} blocked by ${target.name}'s shield!`, [200, 170, 80]);
             }
         } else {
             target.currentHp = Math.max(0, target.currentHp - dmg);
-            playEnemyHit();
             addLog(`${enemy.name} attacks ${target.name} for ${dmg}`, COLORS.danger);
         }
 
@@ -1240,8 +1399,11 @@ export function initBattle(k) {
     k.onKeyPress('enter', () => {
         if (!battleOver) return;
         if (state.lives <= 0) return;
+        // Check if the completed wave triggers a reading
+        const clearedWave = state.wave - 1;
+        const dest = state.isReadingWave(clearedWave) ? 'reading' : 'battle';
         events.clearAll();
-        k.go('game');
+        k.go(dest);
     });
 
     k.onKeyPress('r', () => {
@@ -1263,6 +1425,22 @@ function _makePartyCombatant(card) {
     const stars = card.stars || 1;
     const mult = 1 + (stars - 1) * 0.10;
 
+    let hp  = Math.floor(card.hp  * mult);
+    let atk = Math.floor(card.atk * mult);
+    let def = Math.floor(card.def * mult);
+    let spd = card.spd;
+    let shield = 0;
+
+    // Apply active omen modifiers
+    const omen = state.activeOmen;
+    if (omen && !omen.instant) {
+        if (omen.id === 'blaze')    atk = Math.floor(atk * 1.20);
+        if (omen.id === 'clarity')  spd = spd + 1;
+        if (omen.id === 'ward')     shield = 30;
+        if (omen.id === 'weakened') atk = Math.max(1, Math.floor(atk * 0.80));
+        if (omen.id === 'slowed')   spd = Math.max(1, spd - 1);
+    }
+
     return {
         uid:       card.uid,
         id:        card.id,
@@ -1271,13 +1449,13 @@ function _makePartyCombatant(card) {
         suit:      card.suit,
         rarity:    card.rarity,
         stars,
-        maxHp:     Math.floor(card.hp * mult),
-        currentHp: Math.floor(card.hp * mult),
-        atk:       Math.floor(card.atk * mult),
-        def:       Math.floor(card.def * mult),
-        spd:       card.spd,
+        maxHp:     hp,
+        currentHp: hp,
+        atk,
+        def,
+        spd,
         ability:   card.ability || null,
-        shield:    0,
+        shield,
         debuff:    null,
         debuffTicks: 0,
     };

@@ -3,7 +3,7 @@
 **Genre:** Card-Based Auto Battler / Gacha
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Phase 4 Complete — Phase 5 next
+**Status:** Phase 5 Complete — Phase 6 next
 
 ---
 
@@ -186,12 +186,12 @@ Items/buffs granted by positive readings are stored as consumables in a new **It
 - [x] Wave win/loss resolution + gem award
 
 ### Phase 5 — The Reading
-- [ ] Add `readingTriggered` event emission in state after wave 5 and wave 10
-- [ ] Build `reading.js` scene: animated card flip, reversed/upright detection, omen text reveal
-- [ ] Implement all 5 blessings and 5 curses in `reading.js` / `state.js`
-- [ ] Items inventory (max 3 slots) with use-before-battle UI in hub
-- [ ] Omen status icon in HUD (shows active blessing or curse + waves remaining)
-- [ ] Apply omen modifiers in `battle.js` tick loop
+- [x] Add `readingTriggered` event emission in battle after wave 5 and wave 10
+- [x] Build `reading.js` scene: animated card flip, reversed/upright detection, omen text reveal
+- [x] Implement all 5 blessings and 5 curses in `reading.js` / `state.js`
+- [x] Items inventory (max 3 slots) with use-before-battle UI in hub
+- [x] Omen status icon in hub (shows active blessing or curse + waves remaining)
+- [x] Apply omen modifiers in `battle.js` tick loop and `_makePartyCombatant`
 
 ### Phase 6 — Polish
 - [ ] Wave escalation + elite enemies
@@ -293,6 +293,18 @@ Items/buffs granted by positive readings are stored as consumables in a new **It
 - Fusion UI: shows dupe count vs. cost; Fuse button (F key or click) when dupes are sufficient
 - Mouse wheel + arrow key / Page Up/Down scrolling on the card grid
 - Party slots rebuild on every change; selection state clears correctly on assign/remove
+
+### Phase 5 — The Reading (2026-03-03)
+- reading.js: animated card flip (enter → shake → reveal), reversed/upright detection (30% reversed)
+- 5 blessings: Blaze (ATK+20%), Clarity (SPD+1), Ward (shield), Mending (instant heal), Fortune (legendary item)
+- 5 curses: Poisoned (5% HP/tick), Weakened (ATK-20%), Slowed (SPD-1), Cursed (pity frozen), Hexed (gems halved)
+- state.js: activeOmen, omenWavesLeft, items (max 3), pityFrozen, applyOmen/tickOmen/isReadingWave/addItem/useItem
+- config.js: BLESSINGS, CURSES, LEGENDARY_ITEMS, READING_WAVES, MAX_ITEMS, REVERSED_CHANCE
+- sounds.js: playReadingFlip, playOmenBlessing, playOmenCurse, playItemUsed
+- battle.js: hexed gem-halving in _resolveBattle, poison tick in _runTick, stat modifiers in _makePartyCombatant
+- battle.js: reading-wave redirects ENTER key and result overlay to 'reading' scene after waves 5/10
+- main.js: hub shows active omen banner + items inventory with click-to-use buttons
+- ui.js: nav bar gains '(X) Reading' button
 
 ### Battle UX fixes (2026-02-28)
 - Battle no longer starts automatically; a "Start Battle" overlay is shown with matchup info and a (Space) button

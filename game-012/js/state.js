@@ -1,5 +1,5 @@
 import { events } from './events.js';
-import { STARTING_SCORE, STARTING_LIVES, STARTING_GEMS, PITY_THRESHOLD } from './config.js';
+import { STARTING_SCORE, STARTING_LIVES, STARTING_GEMS, PITY_THRESHOLD, READING_WAVES, MAX_ITEMS } from './config.js';
 
 /**
  * Global game state.
@@ -26,6 +26,12 @@ class GameState {
         // Battle
         this._wave         = 1;
         this._inBattle     = false;
+
+        // Omen (The Reading)
+        this._activeOmen      = null;   // { id, type, label, effect, wavesLeft }
+        this._omenWavesLeft   = 0;
+        this._items           = [];     // consumable items (max MAX_ITEMS)
+        this._pityFrozen      = false;  // curse: pity counter frozen
     }
 
     // --- Score ---
@@ -60,7 +66,7 @@ class GameState {
     // --- Pity counter ---
     get pullCount() { return this._pullCount; }
     incrementPull() {
-        this._pullCount++;
+        if (!this._pityFrozen) this._pullCount++;
     }
     resetPity() {
         this._pullCount = 0;
@@ -98,6 +104,52 @@ class GameState {
     set wave(n) { this._wave = n; }
     get inBattle() { return this._inBattle; }
     set inBattle(v) { this._inBattle = v; }
+
+    // --- Omen / Reading ---
+    get activeOmen()    { return this._activeOmen; }
+    get omenWavesLeft() { return this._omenWavesLeft; }
+    get pityFrozen()    { return this._pityFrozen; }
+
+    applyOmen(omenDef) {
+        this._activeOmen    = omenDef;
+        this._omenWavesLeft = 5;
+        this._pityFrozen    = omenDef && omenDef.id === 'cursed';
+        events.emit('omenApplied', omenDef);
+    }
+
+    tickOmen() {
+        if (!this._activeOmen) return;
+        this._omenWavesLeft--;
+        if (this._omenWavesLeft <= 0) {
+            const expiredId = this._activeOmen.id;
+            this._activeOmen    = null;
+            this._omenWavesLeft = 0;
+            this._pityFrozen    = false;
+            events.emit('omenExpired', expiredId);
+        }
+    }
+
+    /** Check if wave n should trigger a reading (waves 5 and 10). */
+    isReadingWave(waveJustCleared) {
+        return READING_WAVES.includes(waveJustCleared);
+    }
+
+    // --- Items ---
+    get items() { return this._items; }
+
+    addItem(itemDef) {
+        if (this._items.length >= MAX_ITEMS) return false;
+        this._items.push({ ...itemDef });
+        return true;
+    }
+
+    useItem(itemId) {
+        const idx = this._items.findIndex(i => i.id === itemId);
+        if (idx === -1) return null;
+        const item = this._items.splice(idx, 1)[0];
+        events.emit('itemUsed', item);
+        return item;
+    }
 
     // --- Flags ---
     get isGameOver() { return this._isGameOver; }

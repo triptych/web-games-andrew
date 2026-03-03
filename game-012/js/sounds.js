@@ -125,6 +125,12 @@ export function playEnemyHit() {
     _sweep('sawtooth', 300, 100, 0.1, 0.2);
 }
 
+// Party member hit (higher pitched, sharper)
+export function playPartyHit() {
+    _sweep('square', 220, 80, 0.12, 0.22);
+    _noise(0.06, 0.08);
+}
+
 // Wave cleared
 export function playWaveCleared() {
     const notes = [523, 659, 784, 1047];
@@ -144,4 +150,31 @@ export function playFailure() {
 export function playGameOver() {
     _sweep('sawtooth', 400, 50, 0.8, 0.4);
     _noise(0.5, 0.15, 0.2);
+}
+
+// Reading — slow triangle sweep + reverb-like tail
+export function playReadingFlip() {
+    _sweep('triangle', 200, 500, 0.6, 0.25);
+    _osc('sine', 300, 0.8, 0.08, 0.5);
+    _osc('sine', 450, 0.5, 0.06, 0.65);
+}
+
+// Omen blessing — ascending five-note sine arpeggio
+export function playOmenBlessing() {
+    const notes = [392, 494, 587, 740, 880];
+    notes.forEach((f, i) => _osc('sine', f, 0.22, 0.22, i * 0.10));
+}
+
+// Omen curse — descending tritone + low rumble
+export function playOmenCurse() {
+    _sweep('sawtooth', 440, 311, 0.5, 0.25);  // descending tritone (A→Eb)
+    _osc('sine', 55, 0.6, 0.35, 0.2);          // low rumble
+    _noise(0.3, 0.08, 0.15);
+}
+
+// Item used — quick blip + ascending chord
+export function playItemUsed() {
+    _osc('sine', 660, 0.06, 0.18);
+    _osc('sine', 880, 0.1, 0.15, 0.06);
+    _osc('sine', 1100, 0.12, 0.12, 0.12);
 }
