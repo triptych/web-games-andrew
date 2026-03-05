@@ -3245,11 +3245,399 @@ const ctrl = banner.onUpdate(() => {
 
 ---
 
-**Document Version**: 2.1
-**Last Updated**: 2026-02-26
-**Games Covered**: 001-011
-**Total Lines Analyzed**: ~34,000+
-**Latest Enhancement**: Game 011 — Nonogram Fleet, `KEventController.cancel()` pattern
+---
+
+---
+
+## Game 012: Arcana Pull — Card-Based Auto Battler / Gacha (2026-03-03)
+
+### Overview
+
+Game 012 is a card-based auto battler with a gacha pull system built around the 78-card tarot deck. Five phases were completed: scaffold, gacha system, collection/party builder, auto battler, and "The Reading" (omen system). Key architectural patterns from earlier games were refined here, and several new patterns were introduced.
+
+---
+
+### Gacha / Pity System Implementation
+
+**Pattern: weighted random rarity with pity guarantee**
+
+Pre-index cards by rarity and pre-calculate total weight at module load time — O(1) per pull instead of scanning all 78 cards:
+
+```javascript
+// Pre-index at load time
+const RARITY_POOL = Object.entries(RARITY).map(([key, def]) => ({
+    rarity: key, weight: def.pullWeight,
+}));
+const TOTAL_WEIGHT = RARITY_POOL.reduce((s, r) => s + r.weight, 0);
+const CARDS_BY_RARITY = {};
+for (const r of Object.keys(RARITY)) {
+    CARDS_BY_RARITY[r] = CARD_DEFS.filter(c => c.rarity === r);
+}
+
+function _rollRarity(forceLegendary = false) {
+    if (forceLegendary) return 'LEGENDARY';
+    let roll = Math.random() * TOTAL_WEIGHT;
+    for (const { rarity, weight } of RARITY_POOL) {
+        roll -= weight;
+        if (roll <= 0) return rarity;
+    }
+    return 'COMMON'; // fallback
+}
+```
+
+**10-pull guarantee**: On the last card of a 10-pull, if no Rare+ appeared yet, force minimum Rare:
+
+```javascript
+if (i === 9 && !hasRarePlus) {
+    if (rarity === 'COMMON' || rarity === 'UNCOMMON') rarity = 'RARE';
+}
+```
+
+---
+
+### localStorage Persistence Pattern
+
+**Save party by UID, restore by lookup** — store only uid references for party, restore full objects from collection on load:
+
+```javascript
+// Save — store uid array, not full card objects
+const save = {
+    collection: state.collection,
+    party: state.party.map(c => c.uid),   // uid references only
+    gems: state.gems,
+    pullCount: state.pullCount,
+};
+localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
+
+// Restore — re-link uids to collection objects
+const partyCards = save.party
+    .map(uid => state.collection.find(c => c.uid === uid))
+    .filter(Boolean);  // drops any uid that no longer exists in collection
+if (partyCards.length > 0) state.setParty(partyCards);
+```
+
+**Guard against load being called twice** with a `_loaded` flag:
+
+```javascript
+let _loaded = false;
+export function initGacha() {
+    if (_loaded) return;
+    _loaded = true;
+    loadCollection();
+}
+```
+
+Each scene calls `initGacha()` at its top — the guard makes it safe to call multiple times.
+
+---
+
+### Sprite Asset Loading Pattern
+
+When every entity in a large roster (78 cards) needs a sprite, loop over the definition array at init time:
+
+```javascript
+const CARD_IMG_BASE = 'res/tarot/cards/';
+for (const card of CARD_DEFS) {
+    k.loadSprite(card.img, `${CARD_IMG_BASE}${card.img}.jpg`);
+}
+```
+
+Card definitions carry an `img` key that matches the filename — no separate asset manifest needed.
+
+---
+
+### Animation State Machine in `onUpdate`
+
+Game-012 uses a multi-stage animation state machine entirely within `k.onUpdate()` — no Kaplay tweens, no external animation library. States advance by timer and set `entity.pos = k.vec2(...)` each frame.
+
+**Gacha summon flow:** `idle → appearing → shaking → reveal`
+
+```javascript
+let animState = 'idle';
+let animTimer = 0;
+
+k.onUpdate(() => {
+    const dt = k.dt();
+    animTimer += dt;
+
+    if (animState === 'appearing') {
+        const t = Math.min(animTimer / 0.4, 1);
+        const eased = 1 - Math.pow(1 - t, 3);  // ease-out cubic
+        cardBack.pos = k.vec2(CARD_X, startY + (CARD_Y - startY) * eased);
+        cardBack.opacity = eased;
+        if (animTimer >= 0.4) { animState = 'shaking'; animTimer = 0; }
+
+    } else if (animState === 'shaking') {
+        const intensity = (animTimer / 0.7) * 8;
+        cardBack.pos = k.vec2(
+            CARD_X + (Math.random() - 0.5) * intensity * 2,
+            CARD_Y + (Math.random() - 0.5) * intensity * 2,
+        );
+        if (animTimer >= 0.7) _showReveal(currentCard);
+    }
+});
+```
+
+**Key lesson**: A plain timer in `onUpdate` with named states is sufficient for multi-stage card reveal animations. Ease-out cubic (`1 - Math.pow(1-t, 3)`) gives a smooth drop-in feel.
+
+---
+
+### Sunburst Effect via Custom `draw()` Component
+
+A rotating sunburst behind a card reveal is cleanly implemented as a custom component with a `draw()` method. This avoids creating and destroying ray entities every frame:
+
+```javascript
+k.add([
+    k.pos(CARD_X, CARD_Y),
+    k.z(3),
+    k.opacity(1),
+    {
+        id: 'sunburst',
+        draw() {
+            if (burstOpacity <= 0) return;
+            k.pushTransform();
+            k.pushRotate(burstAngle);
+            for (let i = 0; i < BURST_RAYS; i++) {
+                const a = (i / BURST_RAYS) * Math.PI * 2;
+                const aOff = Math.PI / BURST_RAYS;
+                k.drawPolygon({
+                    pts: [
+                        k.vec2(Math.cos(a - aOff * 0.35) * BURST_INNER, Math.sin(a - aOff * 0.35) * BURST_INNER),
+                        k.vec2(Math.cos(a) * BURST_OUTER,               Math.sin(a) * BURST_OUTER),
+                        k.vec2(Math.cos(a + aOff * 0.35) * BURST_INNER, Math.sin(a + aOff * 0.35) * BURST_INNER),
+                    ],
+                    color: k.Color.fromArray([255, 210, 60]),
+                    opacity: burstOpacity * 0.35,
+                });
+            }
+            k.popTransform();
+        },
+    },
+]);
+```
+
+`burstAngle` increments each frame; `burstOpacity` lerps toward a target. `k.pushTransform()` / `k.popTransform()` scope the rotation to the sunburst only.
+
+**Key lesson**: Use a custom `draw()` component for procedural effects that repeat every frame. No entity creation overhead; `k.pushTransform()` / `k.popTransform()` cleanly isolate transform state.
+
+---
+
+### Particle Pool: Manual Lifetime + Gravity
+
+A simple manual particle pool — no Kaplay particle system — gives full control:
+
+```javascript
+const particles = [];
+
+function _spawnParticles(glowColor) {
+    for (let i = 0; i < 40; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 80 + Math.random() * 220;
+        const life  = 0.5 + Math.random() * 0.6;
+        const e = k.add([
+            k.pos(CARD_X, CARD_Y),
+            k.rect(3 + Math.random() * 7, ...),
+            k.color(...glowColor),
+            k.opacity(1),
+            k.z(9),
+            'particle',
+        ]);
+        particles.push({ e, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life, maxLife: life });
+    }
+}
+
+// In onUpdate:
+for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.life -= dt;
+    if (p.life <= 0) { p.e.destroy(); particles.splice(i, 1); continue; }
+    p.e.pos = k.vec2(p.e.pos.x + p.vx * dt, p.e.pos.y + p.vy * dt);
+    p.vy   += 120 * dt;         // gravity
+    p.e.opacity = (p.life / p.maxLife) ** 2;  // quadratic fade
+}
+
+// Cleanup on scene leave:
+k.onSceneLeave(() => { for (const p of particles) p.e.destroy(); particles.length = 0; });
+```
+
+**Key lesson**: Iterate backwards when splicing a live array during iteration. Clean up particle entities explicitly in `onSceneLeave`.
+
+---
+
+### Multi-Card Reveal Queue
+
+For a 10-pull that reveals cards one at a time, store pending cards in an array and advance after a short delay:
+
+```javascript
+let pendingCards = [];
+let currentCard  = null;
+
+function doTenPull() {
+    const results = pullTen();
+    if (!results) return;
+    pendingCards = results.slice(1);   // queue remaining 9
+    _startSummon(results[0]);          // start first immediately
+}
+
+// In reveal state:
+} else if (animState === 'reveal') {
+    animTimer += dt;
+    if (pendingCards.length > 0 && animTimer >= 0.6) {
+        _startSummon(pendingCards.shift());  // auto-advance after 0.6s
+    }
+    // If no pending cards, stay in reveal until next pull
+}
+```
+
+---
+
+### "New Run Only" Reset Guard
+
+When a hub scene both loads saved data and handles new runs, guard the reset with a collection-empty check:
+
+```javascript
+k.scene('game', () => {
+    initGacha();   // loads from localStorage
+    if (state.collection.length === 0) state.reset();  // only reset if no save
+    // ...
+});
+```
+
+This prevents wiping a saved run when the player navigates back to the hub from battle.
+
+---
+
+### Tick-Based Auto Battle Architecture
+
+The battle loop is timer-driven, not frame-driven. A single `onUpdate` accumulates `dt` until a tick fires:
+
+```javascript
+let tickTimer = 0;
+
+k.onUpdate(() => {
+    if (battle.phase !== 'fighting') return;
+    tickTimer += k.dt();
+    if (tickTimer < BATTLE_TICK_S) return;
+    tickTimer -= BATTLE_TICK_S;  // subtract rather than reset, prevents drift
+    _runTick();
+});
+```
+
+**`_makePartyCombatant`** snapshots card stats into a fresh combatant object each battle start, applying omen modifiers at that point:
+
+```javascript
+function _makePartyCombatant(card) {
+    const omen = state.activeOmen;
+    let atk = card.atk;
+    let spd = card.spd;
+    if (omen?.id === 'blaze')    atk = Math.round(atk * 1.2);
+    if (omen?.id === 'weakened') atk = Math.round(atk * 0.8);
+    if (omen?.id === 'clarity')  spd += 1;
+    if (omen?.id === 'slowed')   spd = Math.max(1, spd - 1);
+    return { ...card, maxHp: card.hp, currentHp: card.hp, atk, spd, shielded: false, slowed: 0 };
+}
+```
+
+Snapshotting on battle start means mid-battle omen changes don't retroactively affect stats — a deliberate design choice.
+
+---
+
+### Omen / Reading System: Instant vs Multi-Wave Effects
+
+Some blessings are one-shot (heal, grant item) while others persist for 5 waves. The reading scene distinguishes them with an `instant: true` flag:
+
+```javascript
+function _applyInstantEffect(omen) {
+    if (omen.id === 'mending') {
+        state.applyOmen({ ...omen, instant: true });
+        return;
+    }
+    if (omen.id === 'fortune') {
+        if (state.items.length < MAX_ITEMS) {
+            const item = LEGENDARY_ITEMS[Math.floor(Math.random() * LEGENDARY_ITEMS.length)];
+            state.addItem(item);
+        }
+        state.applyOmen({ ...omen, instant: true });
+        return;
+    }
+    state.applyOmen(omen);  // persistent omen
+}
+```
+
+`state.applyOmen` checks for `instant` and skips setting `omenWavesLeft`, so the HUD never shows a duration for instant effects.
+
+---
+
+### Scene Refresh via `k.go('game')`
+
+Items used from the hub need to refresh the UI without a full game reset. The simplest approach: go to the same scene:
+
+```javascript
+ibtn.onClick(() => {
+    state.useItem(item.id);
+    events.clearAll();
+    k.go('game');  // reload hub scene — re-reads state.items
+});
+```
+
+Since `initGacha()` is guarded by `_loaded`, re-entering the hub scene doesn't re-load from localStorage. The state is current in memory, so the new scene render picks up the updated items array.
+
+---
+
+### Battle → Reading Scene Handoff
+
+When a wave that triggers a reading ends, redirect the result overlay to the reading scene instead of back to the hub:
+
+```javascript
+// In battle result overlay setup
+const isReadingWave = state.isReadingWave(state.wave);
+const continueScene = isReadingWave ? 'reading' : 'game';
+
+contBtn.onClick(() => {
+    events.clearAll();
+    k.go(continueScene);
+});
+k.onKeyPress('enter', () => { events.clearAll(); k.go(continueScene); });
+```
+
+`state.isReadingWave(n)` checks `READING_WAVES.includes(n)`. The reading scene always returns to `game` when confirmed, completing the loop: battle → reading → hub.
+
+---
+
+### `events.clearAll()` as Scene Boundary Contract
+
+Every scene transition uses `events.clearAll()` immediately before `k.go(...)`. This became the consistent pattern across all scenes in game-012:
+
+```javascript
+// Pattern used everywhere:
+events.clearAll();
+k.go('targetScene');
+
+// Also in onSceneLeave:
+k.onSceneLeave(() => events.clearAll());
+```
+
+This replaces the earlier per-event unsubscribe callback pattern from game-005. `clearAll()` is simpler when the entire event graph is scene-scoped.
+
+---
+
+### Inline Import for Sounds
+
+In scenes where the sound module is imported conditionally (to avoid circular dep issues), use dynamic `import()`:
+
+```javascript
+import('./sounds.js').then(s => s.playCardFlip());
+```
+
+This defers the sound call without blocking the animation frame. Used in gacha.js where `sounds.js` couldn't be statically imported at the top.
+
+---
+
+**Document Version**: 2.2
+**Last Updated**: 2026-03-03
+**Games Covered**: 001-012
+**Total Lines Analyzed**: ~40,000+
+**Latest Enhancement**: Game 012 — Arcana Pull, gacha/pity, animation state machines, sunburst draw component, tick-based auto battler, omen system
 
 
 

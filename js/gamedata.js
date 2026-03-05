@@ -158,6 +158,19 @@ const games = [
             { emoji: '⚔️', label: 'Auto Battler' },
             { emoji: '✨', label: 'Gacha' }
         ]
+    },
+    {
+        id: 'game-013',
+        title: 'Petal & Purse',
+        description: 'A cozy flower shop sim — buy seeds, grow blooms in your pots, and sell them for gold. Upgrade your pots and soil to grow rarer flowers faster. Low stakes, endlessly relaxing.',
+        icon: '🌷',
+        folder: 'game-013',
+        cssClass: 'petal-purse',
+        tags: [
+            { emoji: '🌸', label: 'Cozy' },
+            { emoji: '🖱️', label: 'Mouse' },
+            { emoji: '🪴', label: 'Idle Sim' }
+        ]
     }
 ];
 
