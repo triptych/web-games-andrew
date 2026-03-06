@@ -3,7 +3,7 @@
 **Genre:** Cozy Idle / Shop Sim
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Planning — Phase 1
+**Status:** Planning — Phase 3
 
 ---
 
@@ -107,18 +107,18 @@ There is no "difficulty" — the game is intentionally cozy. Progression comes f
 - [ ] Soil upgrade UI per slot
 
 ### Phase 2 — Upgrades & Polish
-- [ ] In-slot upgrade panel (click pot rim to open upgrades)
-- [ ] Animated bloom effect (petal burst particles)
-- [ ] "Bag" inventory properly surfaced in HUD
-- [ ] Day cycle with optional manual "End Day" button
-- [ ] Ambient background music loop (Web Audio)
+- [x] In-slot upgrade panel (right-click pot to open upgrades)
+- [x] Animated bloom effect (petal burst particles)
+- [x] "Bag" inventory properly surfaced in HUD (top-centre)
+- [x] Day cycle with manual "End Day" button (D key) + gold bonus
+- [x] Ambient background music loop (Web Audio pentatonic arpeggios)
 
 ### Phase 3 — Content & Depth
-- [ ] Two additional seed tiers (Orchid, Moonflower)
-- [ ] Seasonal events (spring bonus, winter slowdown)
-- [ ] Decorations that passively boost shop income
-- [ ] Save/load via localStorage
-- [ ] Achievements panel
+- [x] Two additional seed tiers (Orchid, Moonflower)
+- [x] Seasonal events (spring bonus, winter slowdown)
+- [x] Decorations that passively boost shop income
+- [x] Save/load via localStorage
+- [x] Achievements panel
 
 ---
 
@@ -160,6 +160,23 @@ There is no "difficulty" — the game is intentionally cozy. Progression comes f
 ---
 
 ## Changelog
+
+### Phase 3 — Content & Depth (2026-03-06)
+- Orchid (40g/100g/60s) and Moonflower (80g/220g/120s) seed tiers added to shop
+- Seasonal cycle: Spring/Summer/Autumn/Winter — each 7 days; speed and price mods apply
+- Season HUD shown bottom-left with emoji, name, and day-in-season counter
+- Decorations shop (G): Garden Gnome / Stone Fountain / Magic Lantern — one-time purchase, +gold per harvest
+- Save/load via localStorage — persists gold, slots, upgrades, decorations, achievements, season; R key starts a new game
+- Achievements panel (A): 12 achievements with unlock toasts; checks on harvest, upgrade, day, season, decoration
+- Controls hint updated; splash version tag → Phase 3
+
+### Phase 2 — Upgrades & Polish (2026-03-05)
+- Upgrade panel: right-click any pot to upgrade its pot type or soil (per-slot, stacked costs)
+- Petal burst: 14 colored particles fan out on bloom (seed-color themed)
+- Bag HUD: seed inventory shown in top-centre, updates live on plant/harvest
+- Day cycle: "End Day" button + D key; awards scaling daily gold bonus (3+day)
+- Ambient music: auto-starts on game enter; pentatonic arpeggios via Web Audio
+- Controls hint updated; splash version tag → Phase 2
 
 ### Phase 1 — Scaffold (2026-03-05)
 - Initial scaffold: index.html, config, events, state, sounds, ui, main

@@ -93,3 +93,65 @@ export function playDayEnd() {
     const notes = [392, 494, 587, 740];
     notes.forEach((f, i) => _osc('sine', f, 0.25, 0.15, i * 0.1));
 }
+
+// ============================================================
+// Ambient background music loop (gentle arpeggiated chords)
+// ============================================================
+
+let _ambientNodes = [];   // oscillators & gains kept for mute/stop
+let _ambientRunning = false;
+
+// Pentatonic-ish chord tones (A minor pentatonic + octave)
+const AMBIENT_NOTES = [220, 261.6, 329.6, 392, 440, 523.3, 659.3, 784];
+
+function _scheduleAmbientNote(freq, startTime, duration, vol) {
+    if (!audioCtx) return;
+    const osc  = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(vol, startTime + 0.05);
+    gain.gain.setValueAtTime(vol, startTime + duration - 0.15);
+    gain.gain.linearRampToValueAtTime(0, startTime + duration);
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start(startTime);
+    osc.stop(startTime + duration + 0.01);
+    _ambientNodes.push(osc, gain);
+}
+
+// Each "measure" is ~4 s; we schedule 2 measures ahead then recurse
+function _scheduleAmbientMeasure(startTime) {
+    if (!_ambientRunning || !audioCtx) return;
+    const noteGap  = 0.55;     // seconds between notes
+    const duration = 1.2;
+    // Pick a random 4-note ascending pattern from the scale
+    const pick = () => AMBIENT_NOTES[Math.floor(Math.random() * AMBIENT_NOTES.length)];
+    const pattern = [pick(), pick(), pick(), pick()].sort((a, b) => a - b);
+    pattern.forEach((freq, i) => {
+        _scheduleAmbientNote(freq, startTime + i * noteGap, duration, 0.04);
+    });
+    // Also a low drone on the root
+    _scheduleAmbientNote(110, startTime, noteGap * 4 + 0.1, 0.025);
+
+    const measureLen = noteGap * 4 + 0.4;
+    const nextStart  = startTime + measureLen;
+    // Schedule the next measure slightly before it's needed
+    const delay = (nextStart - audioCtx.currentTime - 0.3) * 1000;
+    setTimeout(() => _scheduleAmbientMeasure(nextStart), Math.max(0, delay));
+}
+
+export function startAmbientMusic() {
+    if (_ambientRunning || !audioCtx) return;
+    _ambientRunning = true;
+    _scheduleAmbientMeasure(audioCtx.currentTime + 0.1);
+}
+
+export function stopAmbientMusic() {
+    _ambientRunning = false;
+    _ambientNodes.forEach(n => { try { n.stop(0); } catch(_) {} });
+    _ambientNodes = [];
+}
+
+export function isAmbientPlaying() { return _ambientRunning; }
