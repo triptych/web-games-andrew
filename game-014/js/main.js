@@ -42,6 +42,7 @@ let powerups       = [];           // spawned pickup items on track
 let powerupSpawnTimer = 0;
 let nextPowerupIn  = 12;           // first powerup after 12s
 let playerAuraMesh = null;         // ring around ship during overdrive
+let exhaustTimer   = 0;            // controls exhaust particle rate
 
 // ─── THREE SETUP ──────────────────────────────────────────────────────────────
 function initThree() {
@@ -274,13 +275,53 @@ function buildPlayer() {
   cockpit.position.set(0, 0.3, -0.1);
   group.add(cockpit);
 
-  // Thruster glow (back)
-  const thrusterGeo = new THREE.CylinderGeometry(0.12, 0.22, 0.3, 8);
+  // Side fins — build once in +X space, mirror via scale.x for right side
+  const finMat = new THREE.MeshStandardMaterial({ color: 0x00ffb4, emissive: 0x00cc88, emissiveIntensity: 0.5, roughness: 0.2, metalness: 0.9, side: THREE.DoubleSide });
+
+  // Wing fin: front-body root → outer tip → outer back → inner back
+  const wingVerts = new Float32Array([
+    0.35,  0,    -0.1,  // inner front (body edge)
+    0.9,  -0.08,  0.5,  // outer mid
+    0.7,  -0.08,  0.75, // outer back
+    0.35,  0,     0.6,  // inner back
+  ]);
+  const wingIdx = new Uint16Array([0,1,2, 0,2,3]);
+
+  // Tail fin: upright triangle at the rear
+  const tailVerts = new Float32Array([
+    0.28, 0,    0.45,
+    0.28, 0,    0.75,
+    0.28, 0.35, 0.68,
+  ]);
+  const tailIdx = new Uint16Array([0,1,2]);
+
+  [-1, 1].forEach(sx => {
+    const wingGeo = new THREE.BufferGeometry();
+    wingGeo.setAttribute('position', new THREE.BufferAttribute(wingVerts.slice(), 3));
+    wingGeo.setIndex(new THREE.BufferAttribute(wingIdx.slice(), 1));
+    wingGeo.computeVertexNormals();
+    const wing = new THREE.Mesh(wingGeo, finMat);
+    wing.scale.x = sx;
+    group.add(wing);
+
+    const tailGeo = new THREE.BufferGeometry();
+    tailGeo.setAttribute('position', new THREE.BufferAttribute(tailVerts.slice(), 3));
+    tailGeo.setIndex(new THREE.BufferAttribute(tailIdx.slice(), 1));
+    tailGeo.computeVertexNormals();
+    const tail = new THREE.Mesh(tailGeo, finMat);
+    tail.scale.x = sx;
+    group.add(tail);
+  });
+
+  // Thruster nozzles (left + right)
   const thrusterMat = new THREE.MeshStandardMaterial({ color: 0xff6600, emissive: 0xff4400, emissiveIntensity: 3 });
-  const thruster = new THREE.Mesh(thrusterGeo, thrusterMat);
-  thruster.rotation.x = Math.PI / 2;
-  thruster.position.set(0, -0.05, 0.75);
-  group.add(thruster);
+  [-0.22, 0.22].forEach(ox => {
+    const thrusterGeo = new THREE.CylinderGeometry(0.08, 0.15, 0.28, 8);
+    const thruster = new THREE.Mesh(thrusterGeo, thrusterMat);
+    thruster.rotation.x = Math.PI / 2;
+    thruster.position.set(ox, -0.05, 0.73);
+    group.add(thruster);
+  });
 
   // Point light for player glow
   playerGlow = new THREE.PointLight(0x00ffb4, 3, 6);
@@ -389,17 +430,77 @@ function updateParticles(dt) {
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
     p.life -= dt * 1.5;
-    p.vy -= 12 * dt;
+    if (p.isExhaust) {
+      // Exhaust/flame: fade opacity, expand slightly, no gravity
+      const t = Math.max(0, p.life / p.maxLife);
+      p.mesh.material.opacity = t;
+      p.mesh.material.emissiveIntensity *= 0.92;
+      const s = 1 + (1 - t) * 1.2;
+      p.mesh.scale.setScalar(s);
+    } else {
+      p.vy -= 12 * dt;
+    }
     p.mesh.position.x += p.vx * dt;
     p.mesh.position.y += p.vy * dt;
     p.mesh.position.z += p.vz * dt;
     p.mesh.rotation.x += 3 * dt;
     p.mesh.rotation.y += 2 * dt;
-    p.mesh.material.emissiveIntensity = p.life * 3;
+    if (!p.isExhaust) p.mesh.material.emissiveIntensity = p.life * 3;
     if (p.life <= 0) {
       scene.remove(p.mesh);
       particles.splice(i, 1);
     }
+  }
+}
+
+function spawnExhaustParticles(boost) {
+  if (!playerMesh) return;
+  const px = playerMesh.position.x;
+  const py = playerMesh.position.y;
+  const pz = playerMesh.position.z;
+
+  const count = boost ? 6 : 2;
+  for (let i = 0; i < count; i++) {
+    // Alternate between the two nozzle offsets
+    const nozzleX = (i % 2 === 0 ? -0.22 : 0.22);
+    const spread  = boost ? 0.18 : 0.07;
+
+    let color, emissive, emissiveInt, size, lifespan;
+    if (boost) {
+      // Flame: hot core (white/yellow) fading to orange/red
+      const hot = Math.random() > 0.5;
+      color      = hot ? 0xffffff : 0xffaa00;
+      emissive   = hot ? 0xffee44 : 0xff4400;
+      emissiveInt = 6;
+      size       = Math.random() * 0.18 + 0.08;
+      lifespan   = Math.random() * 0.22 + 0.1;
+    } else {
+      // Normal exhaust: dim orange/grey puffs
+      color      = 0xff6600;
+      emissive   = 0xff3300;
+      emissiveInt = 1.5;
+      size       = Math.random() * 0.09 + 0.04;
+      lifespan   = Math.random() * 0.18 + 0.08;
+    }
+
+    const geo = new THREE.SphereGeometry(size, 4, 4);
+    const mat = new THREE.MeshStandardMaterial({ color, emissive, emissiveIntensity: emissiveInt, transparent: true, opacity: 1 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(
+      px + nozzleX + (Math.random() - 0.5) * spread,
+      py - 0.05 + (Math.random() - 0.5) * spread,
+      pz + 0.73
+    );
+    scene.add(mesh);
+    particles.push({
+      mesh,
+      vx: (Math.random() - 0.5) * (boost ? 1.2 : 0.4),
+      vy: (Math.random() - 0.5) * (boost ? 0.8 : 0.2),
+      vz: boost ? (Math.random() * 4 + 3) : (Math.random() * 1.5 + 0.5),
+      life: lifespan,
+      maxLife: lifespan,
+      isExhaust: true,
+    });
   }
 }
 
@@ -1063,6 +1164,16 @@ function gameLoop(timestamp) {
   // Thruster flicker
   if (playerGlow) {
     playerGlow.intensity = 2.5 + Math.sin(timestamp * 0.02) * 0.5;
+  }
+
+  // Exhaust / boost flame particles
+  if (gameState === 'playing' && playerMesh) {
+    exhaustTimer -= dt;
+    const interval = powerupActive ? 0.02 : 0.06;
+    if (exhaustTimer <= 0) {
+      spawnExhaustParticles(powerupActive);
+      exhaustTimer = interval;
+    }
   }
 
   renderer.render(scene, camera);
