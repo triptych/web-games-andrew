@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRACKRUNNER</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    overflow: hidden;
+    font-family: 'Share Tech Mono', monospace;
+    color: #fff;
+  }
+
+  #canvas-container {
+    position: fixed;
+    inset: 0;
+  }
+
+  canvas { display: block; }
+
+  /* HUD */
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 24px 32px;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .hud-box {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(0,255,180,0.3);
+    padding: 8px 16px;
+    backdrop-filter: blur(8px);
+  }
+
+  .hud-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(0,255,180,0.6);
+    text-transform: uppercase;
+  }
+
+  .hud-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: #00ffb4;
+    line-height: 1.2;
+  }
+
+  #speed-bar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  #speed-bar-bg {
+    width: 120px;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(0,255,180,0.2);
+  }
+
+  #speed-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00ffb4, #00c8ff);
+    width: 20%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 8px #00ffb4;
+  }
+
+  /* Lane indicator */
+  #lane-indicator {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .lane-pip {
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid rgba(0,255,180,0.4);
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+
+  .lane-pip.active {
+    background: #00ffb4;
+    border-color: #00ffb4;
+    box-shadow: 0 0 10px #00ffb4;
+  }
+
+  /* Controls hint */
+  #controls-hint {
+    position: fixed;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.3);
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  /* Overlay screens */
+  .screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(4px);
+  }
+
+  .screen.hidden { display: none; }
+
+  .screen-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(48px, 10vw, 96px);
+    font-weight: 900;
+    letter-spacing: 8px;
+    line-height: 1;
+    background: linear-gradient(135deg, #00ffb4, #00c8ff, #7b2fff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .screen-sub {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: rgba(0,255,180,0.5);
+    margin-bottom: 48px;
+  }
+
+  .btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    padding: 14px 40px;
+    background: transparent;
+    border: 2px solid #00ffb4;
+    color: #00ffb4;
+    cursor: pointer;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #00ffb4;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: -1;
+  }
+
+  .btn:hover {
+    color: #000;
+    box-shadow: 0 0 30px rgba(0,255,180,0.4);
+  }
+
+  .btn:hover::before { transform: translateX(0); }
+
+  .stat-row {
+    display: flex;
+    gap: 48px;
+    margin-bottom: 40px;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 32px;
+    font-weight: 700;
+    color: #00c8ff;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 4px;
+  }
+
+  /* Death flash */
+  #flash {
+    position: fixed;
+    inset: 0;
+    background: #ff2244;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 200;
+    transition: opacity 0.05s;
+  }
+
+  /* Scanline overlay */
+  #scanlines {
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.05) 2px,
+      rgba(0,0,0,0.05) 4px
+    );
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  /* Vignette */
+  #vignette {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+    z-index: 6;
+  }
+
+  .key-hint {
+    display: inline-block;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 2px 8px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    margin: 0 3px;
+  }
+</style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+<div id="scanlines"></div>
+<div id="vignette"></div>
+<div id="flash"></div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-box">
+    <div class="hud-label">Distance</div>
+    <div class="hud-value" id="score-display">0</div>
+  </div>
+  <div class="hud-box" id="speed-bar-wrap">
+    <div class="hud-label">Speed</div>
+    <div id="speed-bar-bg"><div id="speed-bar-fill"></div></div>
+  </div>
+  <div class="hud-box">
+    <div class="hud-label">Best</div>
+    <div class="hud-value" id="best-display">0</div>
+  </div>
+</div>
+
+<div id="lane-indicator">
+  <div class="lane-pip" id="pip-0"></div>
+  <div class="lane-pip" id="pip-1"></div>
+  <div class="lane-pip" id="pip-2"></div>
+</div>
+
+<div id="controls-hint">
+  <span class="key-hint">←→</span> or <span class="key-hint">A D</span> to switch lanes
+</div>
+
+<!-- Start Screen -->
+<div class="screen" id="start-screen">
+  <div class="screen-title">TRACKRUNNER</div>
+  <div class="screen-sub">Endless Speed · Three Lanes · No Mercy</div>
+  <button class="btn" id="start-btn">Start Run</button>
+  <div style="margin-top: 24px; font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 2px;">
+    ← → or A D to switch lanes
+  </div>
+</div>
+
+<!-- Game Over Screen -->
+<div class="screen hidden" id="gameover-screen">
+  <div class="screen-title">CRASHED</div>
+  <div class="screen-sub">Run Terminated</div>
+  <div class="stat-row">
+    <div class="stat-item">
+      <div class="stat-num" id="final-score">0</div>
+      <div class="stat-label">Distance</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" id="final-best">0</div>
+      <div class="stat-label">Best</div>
+    </div>
+  </div>
+  <button class="btn" id="retry-btn">Try Again</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const LANE_POSITIONS = [-2.8, 0, 2.8];
+const TRACK_LENGTH   = 200;
+const OBSTACLE_INTERVAL_MIN = 1.8;  // seconds
+const OBSTACLE_INTERVAL_MAX = 3.0;
+const BASE_SPEED     = 18;
+const MAX_SPEED      = 55;
+const ACCEL          = 0.003;       // speed increase per frame * deltaTime factor
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let gameState = 'start'; // 'start' | 'playing' | 'dead'
+let currentLane  = 1;
+let targetLane   = 1;
+let laneT        = 1;       // lerp progress 0→1
+let playerX      = 0;
+let score        = 0;
+let bestScore    = 0;
+let speed        = BASE_SPEED;
+let obstacleTimer = 0;
+let nextObstacleIn = 2;
+let obstacles    = [];
+let particles    = [];
+let clock, renderer, scene, camera;
+let trackGroup, playerMesh, playerGlow;
+let lastTime     = 0;
+let crashed      = false;
+
+// ─── THREE SETUP ──────────────────────────────────────────────────────────────
+function initThree() {
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+  clock = new THREE.Clock();
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000510);
+  scene.fog = new THREE.FogExp2(0x000510, 0.018);
+
+  camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 300);
+  camera.position.set(0, 4.5, 10);
+  camera.lookAt(0, 0, -15);
+
+  buildLighting();
+  buildTrack();
+  buildPlayer();
+  buildStarfield();
+  buildScenery();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  renderer.setAnimationLoop(gameLoop);
+}
+
+// ─── LIGHTING ─────────────────────────────────────────────────────────────────
+function buildLighting() {
+  scene.add(new THREE.AmbientLight(0x001830, 0.8));
+
+  const dirLight = new THREE.DirectionalLight(0x00ffb4, 1.2);
+  dirLight.position.set(0, 20, 10);
+  dirLight.castShadow = true;
+  scene.add(dirLight);
+
+  const backLight = new THREE.DirectionalLight(0x00c8ff, 0.6);
+  backLight.position.set(0, 5, -20);
+  scene.add(backLight);
+}
+
+// ─── TRACK ────────────────────────────────────────────────────────────────────
+function buildTrack() {
+  trackGroup = new THREE.Group();
+  scene.add(trackGroup);
+
+  // Floor
+  const floorGeo = new THREE.PlaneGeometry(10, TRACK_LENGTH);
+  const floorMat = new THREE.MeshStandardMaterial({
+    color: 0x050e1a,
+    roughness: 0.9,
+    metalness: 0.1,
+  });
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.z = -TRACK_LENGTH / 2 + 15;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  // Lane lines
+  for (let i = -1; i <= 1; i++) {
+    const lx = i * 2.8;
+    addLaneLine(lx - 1.4, 'lane-divider');
+  }
+  addLaneLine(-4.3, 'edge');
+  addLaneLine( 4.3, 'edge');
+
+  // Runway dashes (decorative)
+  buildRunwayDashes();
+  buildWalls();
+  buildGridFloor();
+}
+
+function addLaneLine(x, type) {
+  const color = type === 'edge' ? 0x00c8ff : 0x003344;
+  const emissive = type === 'edge' ? 0x00c8ff : 0x001a22;
+  const lineGeo = new THREE.PlaneGeometry(0.05, TRACK_LENGTH);
+  const lineMat = new THREE.MeshStandardMaterial({ color, emissive, emissiveIntensity: type==='edge'?2:0.5 });
+  const line = new THREE.Mesh(lineGeo, lineMat);
+  line.rotation.x = -Math.PI / 2;
+  line.position.set(x, 0.01, -TRACK_LENGTH/2 + 15);
+  scene.add(line);
+}
+
+let roadMarkers = [];
+const ROAD_MARKER_SPACING = 8;
+const ROAD_MARKER_COUNT   = 28;
+
+function buildRunwayDashes() {
+  for (let i = 0; i < ROAD_MARKER_COUNT; i++) {
+    const group = new THREE.Group();
+    for (let lane = 0; lane < 3; lane++) {
+      const lx = LANE_POSITIONS[lane];
+      const geo = new THREE.PlaneGeometry(0.06, 3);
+      const mat = new THREE.MeshStandardMaterial({ color: 0x003344, emissive: 0x001a22, emissiveIntensity: 0.3 });
+      const m = new THREE.Mesh(geo, mat);
+      m.rotation.x = -Math.PI / 2;
+      m.position.set(lx, 0.01, 0);
+      group.add(m);
+    }
+    group.position.set(0, 0, -TRACK_LENGTH + i * ROAD_MARKER_SPACING);
+    scene.add(group);
+    roadMarkers.push(group);
+  }
+}
+
+function buildWalls() {
+  // Side walls with glow
+  [-5.2, 5.2].forEach(x => {
+    const wGeo = new THREE.BoxGeometry(0.15, 1.2, TRACK_LENGTH);
+    const wMat = new THREE.MeshStandardMaterial({
+      color: 0x001220,
+      emissive: x < 0 ? 0x00ffb4 : 0x00c8ff,
+      emissiveIntensity: 0.8,
+      roughness: 0.3,
+    });
+    const wall = new THREE.Mesh(wGeo, wMat);
+    wall.position.set(x, 0.6, -TRACK_LENGTH/2 + 15);
+    scene.add(wall);
+  });
+}
+
+function buildGridFloor() {
+  // Receding grid lines for speed sensation
+  for (let z = -TRACK_LENGTH; z < 15; z += 4) {
+    const geo = new THREE.PlaneGeometry(10.6, 0.04);
+    const mat = new THREE.MeshStandardMaterial({ color: 0x001a2a, emissive: 0x001a2a, emissiveIntensity: 1 });
+    const m = new THREE.Mesh(geo, mat);
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(0, 0.005, z);
+    scene.add(m);
+  }
+}
+
+// ─── SCENERY (retro vector shapes on the horizon) ─────────────────────────────
+let sceneryObjects = [];
+const SCENERY_SPREAD_X  = 55;
+const SCENERY_DEPTH_MIN = -120;
+const SCENERY_COUNT     = 18;
+const SCENERY_COLORS    = [0x00ffb4, 0x00c8ff, 0x7b2fff, 0xff00aa];
+
+function makeSceneryShape(x, y, z) {
+  const color = SCENERY_COLORS[Math.floor(Math.random() * SCENERY_COLORS.length)];
+  const mat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.7, wireframe: true });
+  const kind = Math.floor(Math.random() * 4);
+  let geo;
+  if (kind === 0)      geo = new THREE.ConeGeometry(2 + Math.random() * 2, 14 + Math.random() * 10, 4);
+  else if (kind === 1) geo = new THREE.TorusGeometry(3 + Math.random() * 2, 0.5 + Math.random() * 0.5, 5, 10);
+  else if (kind === 2) geo = new THREE.IcosahedronGeometry(3 + Math.random() * 2, 0);
+  else                 geo = new THREE.BoxGeometry(2 + Math.random() * 3, 10 + Math.random() * 14, 2 + Math.random() * 3);
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y, z);
+  mesh.userData.spinAxis = new THREE.Vector3((Math.random()-0.5)*0.2, Math.random()*0.4+0.1, 0).normalize();
+  mesh.userData.spinSpeed = 0.1 + Math.random() * 0.15;
+  return mesh;
+}
+
+function buildScenery() {
+  for (let i = 0; i < SCENERY_COUNT; i++) {
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const x    = side * (18 + Math.random() * (SCENERY_SPREAD_X - 18));
+    const z    = SCENERY_DEPTH_MIN + Math.random() * (SCENERY_DEPTH_MIN * -0.8);
+    const y    = 4 + Math.random() * 6;
+    const mesh = makeSceneryShape(x, y, z);
+    scene.add(mesh);
+    sceneryObjects.push(mesh);
+  }
+}
+
+function updateScenery(dt) {
+  if (gameState !== 'playing') return;
+  const scenerySpeed = speed * 0.04;
+  for (const mesh of sceneryObjects) {
+    mesh.position.z += scenerySpeed * dt;
+    mesh.rotateOnAxis(mesh.userData.spinAxis, mesh.userData.spinSpeed * dt);
+    if (mesh.position.z > 20) {
+      const side = Math.random() < 0.5 ? -1 : 1;
+      mesh.position.x = side * (18 + Math.random() * (SCENERY_SPREAD_X - 18));
+      mesh.position.z = SCENERY_DEPTH_MIN - Math.random() * 20;
+      mesh.position.y = 4 + Math.random() * 6;
+    }
+  }
+}
+
+function buildStarfield() {
+  const geo = new THREE.BufferGeometry();
+  const count = 800;
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    pos[i*3]   = (Math.random() - 0.5) * 200;
+    pos[i*3+1] = Math.random() * 60 + 10;
+    pos[i*3+2] = (Math.random() - 0.5) * 300;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({ color: 0xaaccff, size: 0.3, sizeAttenuation: true });
+  scene.add(new THREE.Points(geo, mat));
+}
+
+// ─── PLAYER ───────────────────────────────────────────────────────────────────
+function buildPlayer() {
+  const group = new THREE.Group();
+
+  // Body
+  const bodyGeo = new THREE.BoxGeometry(0.7, 0.4, 1.4);
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: 0x00ffb4,
+    emissive: 0x00ffb4,
+    emissiveIntensity: 0.4,
+    roughness: 0.2,
+    metalness: 0.8,
+  });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.castShadow = true;
+  group.add(body);
+
+  // Cockpit
+  const cockpitGeo = new THREE.BoxGeometry(0.45, 0.28, 0.6);
+  const cockpitMat = new THREE.MeshStandardMaterial({ color: 0x003322, emissive: 0x00ffb4, emissiveIntensity: 0.3, roughness: 0.1 });
+  const cockpit = new THREE.Mesh(cockpitGeo, cockpitMat);
+  cockpit.position.set(0, 0.3, -0.1);
+  group.add(cockpit);
+
+  // Thruster glow (back)
+  const thrusterGeo = new THREE.CylinderGeometry(0.12, 0.22, 0.3, 8);
+  const thrusterMat = new THREE.MeshStandardMaterial({ color: 0xff6600, emissive: 0xff4400, emissiveIntensity: 3 });
+  const thruster = new THREE.Mesh(thrusterGeo, thrusterMat);
+  thruster.rotation.x = Math.PI / 2;
+  thruster.position.set(0, -0.05, 0.75);
+  group.add(thruster);
+
+  // Point light for player glow
+  playerGlow = new THREE.PointLight(0x00ffb4, 3, 6);
+  playerGlow.position.set(0, 1, 0);
+  group.add(playerGlow);
+
+  // Thruster light
+  const thrustLight = new THREE.PointLight(0xff6600, 4, 5);
+  thrustLight.position.set(0, 0, 1);
+  group.add(thrustLight);
+
+  group.position.set(0, 0.5, 4);
+  playerMesh = group;
+  scene.add(group);
+}
+
+// ─── OBSTACLES ────────────────────────────────────────────────────────────────
+const OBSTACLE_TYPES = [
+  { w: 0.9, h: 1.2, d: 0.9, color: 0xff2244, emissive: 0xff0022, pattern: 'single' },
+  { w: 0.9, h: 0.6, d: 1.4, color: 0xffaa00, emissive: 0xff8800, pattern: 'single' },
+  { w: 0.8, h: 2.0, d: 0.5, color: 0xcc00ff, emissive: 0x8800ff, pattern: 'single' },
+];
+
+function spawnObstacle() {
+  // Decide pattern: block 1 lane, or block 2 adjacent lanes
+  const blockTwo = Math.random() < 0.3 && score > 150;
+  const typeIdx  = Math.floor(Math.random() * OBSTACLE_TYPES.length);
+  const type     = OBSTACLE_TYPES[typeIdx];
+
+  let lanesToBlock;
+  if (blockTwo) {
+    const start = Math.floor(Math.random() * 2);
+    lanesToBlock = [start, start + 1];
+  } else {
+    lanesToBlock = [Math.floor(Math.random() * 3)];
+  }
+
+  const group = new THREE.Group();
+
+  lanesToBlock.forEach(laneIdx => {
+    const geo = new THREE.BoxGeometry(type.w, type.h, type.d);
+    const mat = new THREE.MeshStandardMaterial({
+      color: type.color,
+      emissive: type.emissive,
+      emissiveIntensity: 1.5,
+      roughness: 0.3,
+      metalness: 0.5,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.x = LANE_POSITIONS[laneIdx];
+    mesh.castShadow = true;
+    group.add(mesh);
+
+    // Glow light
+    const light = new THREE.PointLight(type.emissive, 2, 4);
+    light.position.x = LANE_POSITIONS[laneIdx];
+    group.add(light);
+  });
+
+  group.position.set(0, type.h / 2, -TRACK_LENGTH + 15);
+  scene.add(group);
+
+  obstacles.push({ mesh: group, lanes: lanesToBlock, z: group.position.z, h: type.h, w: type.w, d: type.d });
+}
+
+// ─── PARTICLES (crash) ────────────────────────────────────────────────────────
+function spawnCrashParticles(x, y, z) {
+  for (let i = 0; i < 30; i++) {
+    const geo = new THREE.BoxGeometry(
+      Math.random() * 0.3 + 0.05,
+      Math.random() * 0.3 + 0.05,
+      Math.random() * 0.3 + 0.05
+    );
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0xff2244,
+      emissive: 0xff0022,
+      emissiveIntensity: 3,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x + (Math.random()-0.5)*0.5, y + Math.random()*0.5, z + (Math.random()-0.5)*0.5);
+    scene.add(mesh);
+    particles.push({
+      mesh,
+      vx: (Math.random()-0.5) * 8,
+      vy: Math.random() * 6 + 2,
+      vz: (Math.random()-0.5) * 8,
+      life: 1.0,
+    });
+  }
+}
+
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.life -= dt * 1.5;
+    p.vy -= 12 * dt;
+    p.mesh.position.x += p.vx * dt;
+    p.mesh.position.y += p.vy * dt;
+    p.mesh.position.z += p.vz * dt;
+    p.mesh.rotation.x += 3 * dt;
+    p.mesh.rotation.y += 2 * dt;
+    p.mesh.material.emissiveIntensity = p.life * 3;
+    if (p.life <= 0) {
+      scene.remove(p.mesh);
+      particles.splice(i, 1);
+    }
+  }
+}
+
+// ─── COLLISION ────────────────────────────────────────────────────────────────
+function checkCollision() {
+  for (const obs of obstacles) {
+    const oz = obs.z;
+    const playerZ = playerMesh.position.z;
+
+    // Z overlap
+    if (playerZ > oz - obs.d * 0.6 - 0.4 && playerZ < oz + obs.d * 0.6 + 0.4) {
+      // Lane overlap
+      if (obs.lanes.includes(currentLane)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// ─── GAME LOOP ────────────────────────────────────────────────────────────────
+function gameLoop(timestamp) {
+  const dt = Math.min(clock.getDelta(), 0.05);
+
+  if (gameState === 'playing') {
+    updateGame(dt);
+  }
+
+  updateParticles(dt);
+  updateScenery(dt);
+  updateCamera(dt);
+
+  // Thruster flicker
+  if (playerGlow) {
+    playerGlow.intensity = 2.5 + Math.sin(timestamp * 0.02) * 0.5;
+  }
+
+  renderer.render(scene, camera);
+}
+
+function updateGame(dt) {
+  // Speed up over time
+  speed = Math.min(MAX_SPEED, BASE_SPEED + score * ACCEL);
+
+  // Score
+  score += speed * dt * 0.5;
+  document.getElementById('score-display').textContent = Math.floor(score);
+
+  // Speed bar
+  const pct = ((speed - BASE_SPEED) / (MAX_SPEED - BASE_SPEED)) * 100;
+  document.getElementById('speed-bar-fill').style.width = (20 + pct * 0.8) + '%';
+
+  // Lane switch lerp
+  laneT = Math.min(1, laneT + dt * 8);
+  playerX = THREE.MathUtils.lerp(playerX, LANE_POSITIONS[targetLane], laneT);
+  if (laneT >= 1) currentLane = targetLane;
+  playerMesh.position.x = playerX;
+
+  // Tilt player on lane switch
+  const tiltTarget = (targetLane - 1) * -0.4;
+  playerMesh.rotation.z = THREE.MathUtils.lerp(playerMesh.rotation.z, tiltTarget * (1 - laneT), 0.2);
+
+  // Scroll road markers toward camera (wrap-around)
+  for (const marker of roadMarkers) {
+    marker.position.z += speed * dt;
+    if (marker.position.z > 15) {
+      marker.position.z -= ROAD_MARKER_COUNT * ROAD_MARKER_SPACING;
+    }
+  }
+
+  // Move obstacles toward player
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const obs = obstacles[i];
+    obs.mesh.position.z += speed * dt;
+    obs.z = obs.mesh.position.z;
+
+    // Remove passed obstacles
+    if (obs.z > playerMesh.position.z + 8) {
+      scene.remove(obs.mesh);
+      obstacles.splice(i, 1);
+    }
+  }
+
+  // Spawn obstacles
+  obstacleTimer += dt;
+  if (obstacleTimer >= nextObstacleIn) {
+    obstacleTimer = 0;
+    nextObstacleIn = OBSTACLE_INTERVAL_MIN + Math.random() * (OBSTACLE_INTERVAL_MAX - OBSTACLE_INTERVAL_MIN);
+    nextObstacleIn *= Math.max(0.4, 1 - score * 0.0003); // Spawn faster as score grows
+    spawnObstacle();
+  }
+
+  // Collision
+  if (checkCollision()) {
+    triggerCrash();
+  }
+
+  updateLaneIndicator();
+}
+
+function updateCamera(dt) {
+  // Camera follows player X with lag
+  camera.position.x = THREE.MathUtils.lerp(camera.position.x, playerMesh.position.x * 0.3, dt * 5);
+  // Speed shake
+  if (gameState === 'playing') {
+    const shake = (speed / MAX_SPEED) * 0.04;
+    camera.position.y = 4.5 + (Math.random() - 0.5) * shake;
+  }
+}
+
+function updateLaneIndicator() {
+  [0, 1, 2].forEach(i => {
+    const pip = document.getElementById('pip-' + i);
+    pip.classList.toggle('active', i === targetLane);
+  });
+}
+
+function triggerCrash() {
+  if (crashed) return;
+  crashed = true;
+  gameState = 'dead';
+
+  spawnCrashParticles(playerMesh.position.x, playerMesh.position.y, playerMesh.position.z);
+
+  // Flash screen
+  const flash = document.getElementById('flash');
+  flash.style.opacity = '0.8';
+  setTimeout(() => flash.style.opacity = '0', 200);
+
+  // Hide player briefly
+  playerMesh.visible = false;
+
+  // Update best
+  if (score > bestScore) bestScore = Math.floor(score);
+  document.getElementById('best-display').textContent = bestScore;
+
+  setTimeout(() => {
+    document.getElementById('final-score').textContent = Math.floor(score);
+    document.getElementById('final-best').textContent = bestScore;
+    document.getElementById('gameover-screen').classList.remove('hidden');
+  }, 600);
+}
+
+function startGame() {
+  // Reset
+  score = 0;
+  speed = BASE_SPEED;
+  currentLane = 1;
+  targetLane  = 1;
+  laneT       = 1;
+  playerX     = 0;
+  obstacleTimer = 0;
+  nextObstacleIn = 2;
+  crashed     = false;
+
+  // Clear obstacles
+  obstacles.forEach(o => scene.remove(o.mesh));
+  obstacles = [];
+  particles.forEach(p => scene.remove(p.mesh));
+  particles = [];
+
+  playerMesh.visible = true;
+  playerMesh.position.x = 0;
+  playerMesh.rotation.z = 0;
+  camera.position.x = 0;
+
+  roadMarkers.forEach((m, i) => {
+    m.position.z = -TRACK_LENGTH + i * ROAD_MARKER_SPACING;
+  });
+
+  document.getElementById('score-display').textContent = '0';
+  document.getElementById('speed-bar-fill').style.width = '20%';
+  document.getElementById('best-display').textContent = bestScore;
+
+  gameState = 'playing';
+  clock.getDelta(); // reset delta
+}
+
+// ─── INPUT ────────────────────────────────────────────────────────────────────
+window.addEventListener('keydown', e => {
+  if (gameState !== 'playing') return;
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+    if (targetLane > 0) {
+      targetLane--;
+      laneT = 0;
+    }
+  }
+  if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+    if (targetLane < 2) {
+      targetLane++;
+      laneT = 0;
+    }
+  }
+});
+
+// Touch/swipe support
+let touchStartX = 0;
+window.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+window.addEventListener('touchend', e => {
+  if (gameState !== 'playing') return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 30) {
+    if (dx < 0 && targetLane > 0) { targetLane--; laneT = 0; }
+    if (dx > 0 && targetLane < 2) { targetLane++; laneT = 0; }
+  }
+});
+
+// ─── UI BUTTONS ───────────────────────────────────────────────────────────────
+document.getElementById('start-btn').addEventListener('click', () => {
+  document.getElementById('start-screen').classList.add('hidden');
+  startGame();
+});
+
+document.getElementById('retry-btn').addEventListener('click', () => {
+  document.getElementById('gameover-screen').classList.add('hidden');
+  startGame();
+});
+
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+initThree();
+updateLaneIndicator();
+</script>
+</body>
+</html>
