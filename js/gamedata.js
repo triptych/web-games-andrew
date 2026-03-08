@@ -171,6 +171,19 @@ const games = [
             { emoji: '🖱️', label: 'Mouse' },
             { emoji: '🪴', label: 'Idle Sim' }
         ]
+    },
+    {
+        id: 'game-014',
+        title: 'Trackrunner',
+        description: 'Endless three-lane runner in a neon cyberpunk world. Dodge obstacles, blast cyber bugs, collect Overdrive power-ups for a speed burst, and take down boss bugs for a permanent speed boost. How far can you run?',
+        icon: '🏎️',
+        folder: 'game-014',
+        cssClass: 'trackrunner',
+        tags: [
+            { emoji: '🏁', label: 'Endless Runner' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '🔫', label: 'Action' }
+        ]
     }
 ];
 
