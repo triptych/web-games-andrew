@@ -184,6 +184,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '🔫', label: 'Action' }
         ]
+    },
+    {
+        id: 'game-015',
+        title: 'Tamagoji',
+        description: 'Raise your very own emoji pet! Hatch an egg, feed and nurture your companion through four life stages, and watch it grow from baby to adult. Choose from 5 species, manage hunger, happiness, energy, and health — and collect new eggs from the shop.',
+        icon: '🥚',
+        folder: 'game-015',
+        cssClass: 'tamagoji',
+        tags: [
+            { emoji: '🐾', label: 'Virtual Pet' },
+            { emoji: '📱', label: 'Mobile-Friendly' },
+            { emoji: '🌸', label: 'Cozy' }
+        ]
     }
 ];
 
