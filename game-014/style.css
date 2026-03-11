@@ -28,6 +28,10 @@ canvas { display: block; }
   z-index: 10;
 }
 
+#hud > .hud-box {
+  min-width: 90px;
+}
+
 .hud-box {
   background: rgba(0,0,0,0.5);
   border: 1px solid rgba(0,255,180,0.3);
@@ -48,6 +52,8 @@ canvas { display: block; }
   font-weight: 700;
   color: #00ffb4;
   line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  min-width: 4ch;
 }
 
 #speed-bar-wrap {

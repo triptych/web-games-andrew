@@ -1394,6 +1394,12 @@ function startGame() {
 // ─── INPUT ────────────────────────────────────────────────────────────────────
 window.addEventListener('keydown', e => {
   if (e.key === 'm' || e.key === 'M') { toggleMute(); return; }
+  if (gameState === 'dead' && (e.key === ' ' || e.key === 'Spacebar')) {
+    e.preventDefault();
+    document.getElementById('gameover-screen').classList.add('hidden');
+    startGame();
+    return;
+  }
   if (gameState !== 'playing') return;
   if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
     if (targetLane > 0) { targetLane--; laneT = 0; }
