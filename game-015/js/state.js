@@ -6,6 +6,8 @@ import {
     PET_SPECIES,
 } from './config.js';
 
+const SAVE_KEY = 'tamagoji_save';
+
 /**
  * Global game state for Tamagoji.
  * Handles pet lifecycle, stats, feeding, interactions.
@@ -235,6 +237,53 @@ class GameState {
         this._reactionEmoji = interactionType.emoji;
         this._reactionTimer = 2;
         events.emit('interactStart', interactionType.id);
+    }
+
+    // ---- Persistence ----
+    save() {
+        const data = {
+            gold:       this._gold,
+            stage:      this._stage,
+            speciesIdx: this._speciesIdx,
+            petAge:     this._petAge,
+            eggTimer:   this._eggTimer,
+            hunger:     this._hunger,
+            happy:      this._happy,
+            energy:     this._energy,
+            health:     this._health,
+            mood:       this._mood,
+            isGameOver: this._isGameOver,
+            eggs:       this._eggs,
+        };
+        try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch (_) {}
+    }
+
+    load() {
+        let data;
+        try { data = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (_) {}
+        if (!data) return false;
+
+        this._gold       = data.gold       ?? 50;
+        this._stage      = data.stage      ?? 'none';
+        this._speciesIdx = data.speciesIdx ?? 0;
+        this._petAge     = data.petAge     ?? 0;
+        this._eggTimer   = data.eggTimer   ?? 0;
+        this._hunger     = data.hunger     ?? 70;
+        this._happy      = data.happy      ?? 70;
+        this._energy     = data.energy     ?? 80;
+        this._health     = data.health     ?? 100;
+        this._mood       = data.mood       ?? 'content';
+        this._isGameOver = data.isGameOver ?? false;
+        this._eggs       = data.eggs       ?? [];
+        return true;
+    }
+
+    clearSave() {
+        try { localStorage.removeItem(SAVE_KEY); } catch (_) {}
+    }
+
+    get hasSave() {
+        try { return localStorage.getItem(SAVE_KEY) !== null; } catch (_) { return false; }
     }
 }
 

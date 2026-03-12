@@ -262,6 +262,7 @@ const ACTION_DEFS = [
     { id: 'interact', emoji: '🎮', label: 'Play'   },
     { id: 'eggs',     emoji: '🥚', label: 'Eggs'   },
     { id: 'shop',     emoji: '🛒', label: 'Shop'   },
+    { id: 'config',   emoji: '⚙️', label: 'Config' },
 ];
 
 function _buildActionBar() {
@@ -556,6 +557,83 @@ function _showShopMenu() {
     });
 }
 
+function _showConfigMenu() {
+    _clearMenuOverlay();
+    _menuOverlay = true;
+
+    const menuY = 490;
+    const CX    = GAME_WIDTH / 2;
+
+    // Panel background
+    k.add([
+        k.pos(0, menuY - 30),
+        k.rect(GAME_WIDTH, GAME_HEIGHT - (menuY - 30)),
+        k.color(...COLORS.bgCard),
+        k.anchor('topleft'),
+        k.z(29),
+        'menu-overlay',
+    ]);
+
+    k.add([
+        k.pos(CX, menuY - 10),
+        k.text('⚙️ Config', { size: 16 }),
+        k.color(...COLORS.accent),
+        k.anchor('center'),
+        k.z(31),
+        'menu-overlay',
+    ]);
+
+    // Auto-save notice
+    k.add([
+        k.pos(CX, menuY + 30),
+        k.text('Auto-save: every 10 seconds', { size: 11 }),
+        k.color(...COLORS.textDim),
+        k.anchor('center'),
+        k.z(31),
+        'menu-overlay',
+    ]);
+
+    // Reset button
+    const resetBtn = k.add([
+        k.pos(CX, menuY + 90),
+        k.rect(220, 44),
+        k.color(...COLORS.danger),
+        k.anchor('center'),
+        k.area(),
+        k.z(30),
+        'menu-overlay',
+    ]);
+
+    k.add([
+        k.pos(CX, menuY + 90),
+        k.text('Reset Pet', { size: 15 }),
+        k.color(...COLORS.text),
+        k.anchor('center'),
+        k.z(31),
+        'menu-overlay',
+    ]);
+
+    // Confirmation state
+    let confirmed = false;
+    const confirmLabel = k.add([
+        k.pos(CX, menuY + 130),
+        k.text('', { size: 10 }),
+        k.color(...COLORS.warning),
+        k.anchor('center'),
+        k.z(31),
+        'menu-overlay',
+    ]);
+
+    resetBtn.onClick(() => {
+        if (!confirmed) {
+            confirmed = true;
+            confirmLabel.text = 'Tap again to confirm reset';
+        } else {
+            events.emit('resetRequested');
+        }
+    });
+}
+
 // ---- Game over overlay ----
 
 export function showGameOver() {
@@ -630,6 +708,7 @@ function _subscribeEvents() {
             if (mode === 'interact') _showInteractMenu();
             if (mode === 'eggs')     _showEggsMenu();
             if (mode === 'shop')     _showShopMenu();
+            if (mode === 'config')   _showConfigMenu();
         }),
     ];
 

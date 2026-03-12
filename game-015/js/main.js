@@ -75,7 +75,7 @@ k.scene('splash', () => {
     ]);
 
     // Egg display row
-    const eggY = 300;
+    const eggY = 320;
     let selectedIdx = 0;
 
     const eggLabels = PET_SPECIES.map((species, i) => {
@@ -84,7 +84,7 @@ k.scene('splash', () => {
 
         const circle = k.add([
             k.pos(cx, eggY),
-            k.circle(36),
+            k.circle(44),
             k.color(...COLORS.bgCard),
             k.anchor('center'),
             k.outline(2, i === 0 ? k.rgb(...COLORS.accent) : k.rgb(60, 55, 80)),
@@ -94,7 +94,7 @@ k.scene('splash', () => {
 
         const icon = k.add([
             k.pos(cx, eggY),
-            k.text(species.egg, { size: 36 }),
+            k.text(species.egg, { size: 36, font: 'monospace' }),
             k.anchor('center'),
             k.z(4),
         ]);
@@ -214,10 +214,13 @@ k.scene('splash', () => {
 // ============================================================
 
 k.scene('game', () => {
-    // state was already set up by splash (startNewEgg called there)
-    // On restart from game over, we call state.startNewEgg() again below
-
     initUI(k);
+
+    // Emit current state so UI reflects loaded/resumed values
+    events.emit('petStatsChanged', state.getStats());
+    events.emit('petStageChanged', state.stage);
+    events.emit('goldChanged', state.gold);
+    events.emit('moodChanged', state.mood);
 
     // ---- Sound wiring ----
     const offs = [
@@ -232,12 +235,18 @@ k.scene('game', () => {
         events.on('moodChanged',   (mood)     => {
             if (mood === 'sad' || mood === 'hungry') playSad();
         }),
-        events.on('petDied',       ()         => { playDeath(); showGameOver(); }),
+        events.on('petDied',       ()         => { playDeath(); showGameOver(); state.clearSave(); }),
         events.on('newEggReady',   ()         => { playEggGet(); }),
+        events.on('resetRequested', ()        => {
+            state.clearSave();
+            state.reset();
+            k.go('splash');
+        }),
     ];
 
-    // ---- Passive gold earning (every 30s of pet being alive) ----
+    // ---- Passive gold earning + auto-save ----
     let goldTimer = 0;
+    let saveTimer = 0;
     k.onUpdate(() => {
         if (state.isGameOver) return;
 
@@ -249,6 +258,13 @@ k.scene('game', () => {
         if (goldTimer >= 30) {
             goldTimer = 0;
             state.addGold(10);
+        }
+
+        // Auto-save every 10 seconds
+        saveTimer += k.dt();
+        if (saveTimer >= 10) {
+            saveTimer = 0;
+            state.save();
         }
     });
 
@@ -285,7 +301,11 @@ k.scene('game', () => {
 });
 
 // ============================================================
-// Start
+// Start — resume save or show splash
 // ============================================================
 
-k.go('splash');
+if (state.load() && !state.isGameOver && state.stage !== 'none') {
+    k.go('game');
+} else {
+    k.go('splash');
+}
