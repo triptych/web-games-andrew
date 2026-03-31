@@ -197,6 +197,19 @@ const games = [
             { emoji: '📱', label: 'Mobile-Friendly' },
             { emoji: '🌸', label: 'Cozy' }
         ]
+    },
+    {
+        id: 'game-016',
+        title: 'Crate Pusher',
+        description: 'Classic Sokoban-style puzzle game! Push crates onto their targets without getting stuck. Features 8 hand-crafted puzzles of increasing difficulty, an undo system, and a move counter. Can you solve them all?',
+        icon: '📦',
+        folder: 'game-016',
+        cssClass: 'crate-pusher',
+        tags: [
+            { emoji: '🧩', label: 'Puzzle' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '💡', label: 'Strategy' }
+        ]
     }
 ];
 

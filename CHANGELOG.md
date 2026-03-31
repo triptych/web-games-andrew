@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-03-31
+
+### Added
+- **Crate Pusher** (game-016): New Sokoban-style puzzle game — push crates onto targets without getting stuck
+  - 8 hand-crafted puzzles with verified solutions, scaling from 1-move tutorial to 20+ move finale
+  - Full undo system (U key) with unlimited undo history
+  - Move counter per level
+  - Smooth scene transitions: splash → puzzle → win overlay → next level → completion screen
+  - Dynamic tile sizing so all levels centre cleanly regardless of grid dimensions
+  - Colour-coded crates: brown normally, green when placed on a target
+  - Built with Kaplay v4000; uses shared `lib/kaplay/kaplay.mjs`
+- **Game ideas list** (docs/suggestions.md): Checked off Sokoban entry; promoted Nonogram/Picross to next-up slot
+
 ## [2.4.0] - 2026-02-27
 
 ### Added
