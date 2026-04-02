@@ -2,13 +2,11 @@
 
 ## Next Up
 
-1. **Nonogram / Picross** — Grid-fill logic puzzles (like Picross/Hanjie). Numbers reveal pixel art images. Satisfying and original for the collection.
+1. **Pipe Dream / Flow Puzzle** — Connect colored endpoints on a grid without crossing paths. Clean, minimalist design.
 
 ## Puzzle / Strategy
 
-2. **Pipe Dream / Flow Puzzle** — Connect colored endpoints on a grid without crossing paths. Clean, minimalist design.
-
-3. **Sliding Tile Puzzle** — 15-puzzle variant with hand-drawn or pixel art images that shuffle and reassemble. Could feature multiple difficulty levels.
+2. **Sliding Tile Puzzle** — 15-puzzle variant with hand-drawn or pixel art images that shuffle and reassemble. Could feature multiple difficulty levels.
 
 ## Arcade / Action
 
@@ -44,4 +42,5 @@
 
 ## Completed
 
+- ~~**Nonogram / Picross**~~ — Grid-fill logic puzzles revealing pixel art. Completed as **game-017** (Pixel Picross) on 2026-04-01.
 - ~~**Sokoban-style Crate Pusher**~~ — Grid-based box-pushing puzzles. Completed as **game-016** (Crate Pusher) on 2026-03-31.
