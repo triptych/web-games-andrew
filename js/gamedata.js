@@ -197,6 +197,32 @@ const games = [
             { emoji: '📱', label: 'Mobile-Friendly' },
             { emoji: '🌸', label: 'Cozy' }
         ]
+    },
+    {
+        id: 'game-016',
+        title: 'Crate Pusher',
+        description: 'Classic Sokoban-style puzzle game! Push crates onto their targets without getting stuck. Features 8 hand-crafted puzzles of increasing difficulty, an undo system, and a move counter. Can you solve them all?',
+        icon: '📦',
+        folder: 'game-016',
+        cssClass: 'crate-pusher',
+        tags: [
+            { emoji: '🧩', label: 'Puzzle' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '💡', label: 'Strategy' }
+        ]
+    },
+    {
+        id: 'game-017',
+        title: 'Pixel Picross',
+        description: 'Classic nonogram puzzle game! Use number clues to fill in a grid and reveal hidden pixel art. Five hand-crafted puzzles scale from a tiny 5×5 Heart to a 10×10 Rocket. Left-click to fill, right-click to mark — drag to paint whole rows at once!',
+        icon: '🖼️',
+        folder: 'game-017',
+        cssClass: 'pixel-picross',
+        tags: [
+            { emoji: '🧩', label: 'Puzzle' },
+            { emoji: '🖱️', label: 'Mouse' },
+            { emoji: '💡', label: 'Logic' }
+        ]
     }
 ];
 
