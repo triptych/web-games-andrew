@@ -151,8 +151,10 @@ function _buildPetDisplay() {
     ]);
 
     // Pet emoji label (very large)
+    // Offset y slightly below circle center: emoji glyphs render with visual
+    // mass above the text-box center, so centering at 240 clips tall emojis.
     _petLabel = k.add([
-        k.pos(GAME_WIDTH / 2, 240),
+        k.pos(GAME_WIDTH / 2, 255),
         k.text(state.petEmoji, { size: 96 }),
         k.anchor('center'),
         k.z(5),
@@ -171,7 +173,7 @@ function _buildPetDisplay() {
     let t = 0;
     _petLabel.onUpdate(() => {
         t += k.dt();
-        _petLabel.pos = k.vec2(GAME_WIDTH / 2, 240 + Math.sin(t * 2) * 6);
+        _petLabel.pos = k.vec2(GAME_WIDTH / 2, 255 + Math.sin(t * 2) * 6);
         _petLabel.text = state.petEmoji;
 
         // Reaction bubble
