@@ -223,6 +223,19 @@ const games = [
             { emoji: '🖱️', label: 'Mouse' },
             { emoji: '💡', label: 'Logic' }
         ]
+    },
+    {
+        id: 'game-018',
+        title: 'Village of the Wandering Blade',
+        description: 'Explore a 3D countryside, slay monsters for resources, and return to build and develop your village. Fight slimes, goblins, wolves, and trolls — then spend your loot on a blacksmith, healer, market, watchtower, and tavern. Grow stronger. Build further.',
+        icon: '⚔️',
+        folder: 'game-018',
+        cssClass: 'wandering-blade',
+        tags: [
+            { emoji: '⚔️', label: 'Action RPG' },
+            { emoji: '🏘️', label: 'Village Builder' },
+            { emoji: '🖱️', label: 'Mouse + Keys' }
+        ]
     }
 ];
 

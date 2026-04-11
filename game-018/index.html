@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Village of the Wandering Blade</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        canvas { display: block; }
+
+        /* HUD overlay */
+        #hud {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Splash screen */
+        #splash {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, #1a2a1a 0%, #0a100a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            color: #fff;
+        }
+        #splash h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #c8a844;
+            text-shadow: 0 0 30px #c8a84480, 0 2px 4px #000;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+        #splash .subtitle {
+            font-size: 1.1rem;
+            color: #88bb88;
+            margin-bottom: 2.5rem;
+        }
+        #splash .controls-grid {
+            display: grid;
+            grid-template-columns: auto auto;
+            gap: 0.3rem 1.5rem;
+            font-size: 0.9rem;
+            color: #aad4aa;
+            margin-bottom: 2.5rem;
+            background: rgba(255,255,255,0.05);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(200,168,68,0.2);
+        }
+        #splash .controls-grid .key { color: #c8a844; font-weight: bold; }
+        #splash .start-btn {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #0a100a;
+            background: #c8a844;
+            border: none;
+            padding: 0.8rem 2.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            pointer-events: all;
+            letter-spacing: 1px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        #splash .start-btn:hover { background: #e0be5a; transform: scale(1.04); }
+        #splash .phase-tag {
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: #446644;
+        }
+
+        /* HUD panels */
+        #hud-stats {
+            position: absolute;
+            top: 12px; left: 12px;
+            background: rgba(0,0,0,0.65);
+            border: 1px solid rgba(200,168,68,0.4);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #eee;
+            font-size: 13px;
+            min-width: 160px;
+        }
+        #hud-stats .stat { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+        #hud-stats .stat-label { color: #88aa88; width: 52px; font-size: 11px; text-transform: uppercase; }
+        .bar-wrap { flex: 1; background: #222; border-radius: 3px; height: 8px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 3px; transition: width 0.2s; }
+        #bar-hp { background: #e05555; }
+        #bar-xp { background: #55aaee; }
+        #stat-gold { color: #c8a844; font-weight: bold; }
+        #stat-level { color: #88ddff; font-weight: bold; }
+
+        #hud-resources {
+            position: absolute;
+            top: 12px; right: 12px;
+            background: rgba(0,0,0,0.65);
+            border: 1px solid rgba(200,168,68,0.4);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #eee;
+            font-size: 13px;
+            min-width: 140px;
+        }
+        #hud-resources .res { display: flex; justify-content: space-between; gap: 12px; margin: 3px 0; }
+        #hud-resources .res-label { color: #88aa88; font-size: 11px; }
+        #hud-resources .res-val { color: #c8e8a0; font-weight: bold; }
+
+        #hud-mode {
+            position: absolute;
+            bottom: 18px; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            border: 1px solid rgba(200,168,68,0.5);
+            border-radius: 20px;
+            padding: 6px 20px;
+            color: #c8a844;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        #hud-controls {
+            position: absolute;
+            bottom: 18px; right: 12px;
+            background: rgba(0,0,0,0.55);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #667766;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+        #hud-controls .key { color: #c8a844; }
+
+        #msg-log {
+            position: absolute;
+            bottom: 60px; left: 12px;
+            background: rgba(0,0,0,0.55);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 12px;
+            max-width: 260px;
+            color: #aaccaa;
+            line-height: 1.5;
+        }
+
+        /* Village build panel */
+        #build-panel {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10,16,10,0.95);
+            border: 2px solid #c8a844;
+            border-radius: 12px;
+            padding: 20px 28px;
+            color: #eee;
+            min-width: 340px;
+            display: none;
+            pointer-events: all;
+            z-index: 50;
+        }
+        #build-panel h2 { color: #c8a844; margin-bottom: 14px; font-size: 1.3rem; }
+        .build-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .build-item:last-child { border-bottom: none; }
+        .build-item .b-name { font-weight: bold; color: #c8e8a0; }
+        .build-item .b-cost { font-size: 12px; color: #c8a844; margin: 2px 0; }
+        .build-item .b-desc { font-size: 11px; color: #88aa88; }
+        .build-item button {
+            background: #c8a844;
+            color: #0a100a;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 12px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .build-item button:hover { background: #e0be5a; }
+        .build-item button:disabled { background: #555; color: #888; cursor: not-allowed; }
+        #build-close {
+            margin-top: 14px;
+            background: transparent;
+            border: 1px solid #c8a844;
+            color: #c8a844;
+            border-radius: 4px;
+            padding: 5px 14px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        #build-close:hover { background: rgba(200,168,68,0.15); }
+
+        #hidden { display: none; }
+    </style>
+</head>
+<body>
+    <!-- Splash screen -->
+    <div id="splash">
+        <h1>Village of the<br>Wandering Blade</h1>
+        <div class="subtitle">Explore. Slay. Build. Grow.</div>
+        <div class="controls-grid">
+            <span class="key">WASD / Arrows</span> <span>Move hero</span>
+            <span class="key">Mouse</span> <span>Rotate camera</span>
+            <span class="key">Space / Click</span> <span>Attack</span>
+            <span class="key">E</span> <span>Interact / Build menu</span>
+            <span class="key">Tab</span> <span>Switch mode (Explore / Village)</span>
+            <span class="key">Escape</span> <span>Menu</span>
+        </div>
+        <button class="start-btn" id="splash-start">ENTER THE WORLD</button>
+        <div class="phase-tag">Phase 1 — Foundation</div>
+    </div>
+
+    <!-- HUD (hidden until game starts) -->
+    <div id="hud" style="display:none">
+        <!-- Player stats -->
+        <div id="hud-stats">
+            <div class="stat">
+                <span class="stat-label">HP</span>
+                <div class="bar-wrap"><div class="bar-fill" id="bar-hp" style="width:100%"></div></div>
+                <span id="stat-hp-text" style="font-size:11px;width:40px;text-align:right">100/100</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">XP</span>
+                <div class="bar-wrap"><div class="bar-fill" id="bar-xp" style="width:0%"></div></div>
+                <span id="stat-xp-text" style="font-size:11px;width:40px;text-align:right">0/100</span>
+            </div>
+            <div class="stat" style="margin-top:6px">
+                <span class="stat-label">Level</span>
+                <span id="stat-level">1</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Gold</span>
+                <span id="stat-gold">0</span>
+            </div>
+        </div>
+
+        <!-- Resources -->
+        <div id="hud-resources">
+            <div style="color:#c8a844;font-size:11px;font-weight:bold;margin-bottom:5px;text-transform:uppercase;">Resources</div>
+            <div class="res"><span class="res-label">Wood</span><span class="res-val" id="res-wood">0</span></div>
+            <div class="res"><span class="res-label">Stone</span><span class="res-val" id="res-stone">0</span></div>
+            <div class="res"><span class="res-label">Iron</span><span class="res-val" id="res-iron">0</span></div>
+            <div class="res"><span class="res-label">Herbs</span><span class="res-val" id="res-herbs">0</span></div>
+        </div>
+
+        <!-- Mode indicator -->
+        <div id="hud-mode">EXPLORING</div>
+
+        <!-- Controls hint -->
+        <div id="hud-controls">
+            <span class="key">WASD</span> Move &nbsp;
+            <span class="key">Space</span> Attack &nbsp;
+            <span class="key">E</span> Interact &nbsp;
+            <span class="key">Tab</span> Mode
+        </div>
+
+        <!-- Message log -->
+        <div id="msg-log"></div>
+
+        <!-- Build panel -->
+        <div id="build-panel">
+            <h2>Village Builder</h2>
+            <div id="build-list"></div>
+            <button id="build-close">Close</button>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
