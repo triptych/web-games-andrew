@@ -31,12 +31,13 @@ import { initWorld }    from './world.js';
 import { initPlayer, requestPointerLock } from './player.js';
 import { initMonsters } from './monsters.js';
 import { initPickups }  from './pickups.js';
-import { initVillage }  from './village.js';
+import { initVillage, builtPositions } from './village.js';
 import { initUI, showBuildPanel, hideBuildPanel } from './ui.js';
 import { state }        from './state.js';
 import { events }       from './events.js';
 import { initAudio, playUiClick, playLevelUp, playGameOver } from './sounds.js';
-import { VILLAGE_RADIUS } from './config.js';
+import { VILLAGE_RADIUS, DAY_CYCLE_DURATION, DAY_AMBIENT_INT, NIGHT_AMBIENT_INT, DAY_SUN_INT, NIGHT_SUN_INT, DAY_SKY_HEX, NIGHT_SKY_HEX } from './config.js';
+import { showInventory, hideInventory, initInventory } from './inventory.js';
 
 // ============================================================
 // Splash → Game start
@@ -70,7 +71,7 @@ document.addEventListener('keydown', (e) => {
 
 function _initGame() {
     // --- World ---
-    const { scene, camera, renderer, fireGroup } = initWorld();
+    const { scene, camera, renderer, fireGroup, ambient, sun, stars } = initWorld();
 
     // --- Systems ---
     const { playerGroup, update: updatePlayer } = initPlayer(scene, camera);
@@ -79,6 +80,7 @@ function _initGame() {
     const { update: updateVillage }             = initVillage(scene);
 
     initUI();
+    initInventory();
 
     // --- Event sounds ---
     events.on('playerLevelUp', () => playLevelUp());
@@ -89,6 +91,13 @@ function _initGame() {
             document.getElementById('hud-mode').style.color = '#e05555';
         }, 200);
     });
+
+    // --- Day/night state ---
+    let dayTime = 0;  // 0..1, 0=dawn, 0.5=noon, 1=midnight
+    const dayColor      = new THREE.Color(DAY_SKY_HEX);
+    const nightColor    = new THREE.Color(NIGHT_SKY_HEX);
+    const fogDayColor   = new THREE.Color(DAY_SKY_HEX);
+    const fogNightColor = new THREE.Color(0x040610);
 
     // --- Input: Tab = toggle mode ---
     document.addEventListener('keydown', (e) => {
@@ -115,9 +124,20 @@ function _initGame() {
             }
         }
 
+        if (e.code === 'KeyI') {
+            const inv = document.getElementById('inventory-panel');
+            if (!inv || inv.style.display === 'none' || inv.style.display === '') {
+                showInventory();
+            } else {
+                hideInventory();
+            }
+            playUiClick();
+        }
+
         if (e.code === 'Escape') {
-            // Unlock pointer or close build panel
-            if (document.getElementById('build-panel').style.display === 'block') {
+            if (document.getElementById('inventory-panel')?.style.display === 'block') {
+                hideInventory();
+            } else if (document.getElementById('build-panel').style.display === 'block') {
                 hideBuildPanel();
             } else if (document.pointerLockElement) {
                 document.exitPointerLock();
@@ -146,10 +166,23 @@ function _initGame() {
         if (!state.isGameOver) {
             const pPos = playerGroup.position;
 
-            updatePlayer(dt, monsters, pickups);
+            updatePlayer(dt, monsters, pickups, builtPositions);
             updateMonsters(dt, pPos);
             updatePickups(dt);
-            updateVillage(dt);
+
+            // Day/night cycle
+            dayTime = (dayTime + dt / DAY_CYCLE_DURATION) % 1;
+            // nightBlend: 0 at noon, 1 at midnight
+            const rawBlend   = Math.sin(dayTime * Math.PI * 2) * -0.5 + 0.5; // 0=day, 1=night
+            const nightBlend = Math.max(0, (rawBlend - 0.3) / 0.7);           // sharpen transition
+            ambient.intensity = DAY_AMBIENT_INT + (NIGHT_AMBIENT_INT - DAY_AMBIENT_INT) * nightBlend;
+            sun.intensity     = DAY_SUN_INT     + (NIGHT_SUN_INT     - DAY_SUN_INT)     * nightBlend;
+            scene.background  = new THREE.Color().lerpColors(dayColor, nightColor, nightBlend);
+            scene.fog.color.lerpColors(fogDayColor, fogNightColor, nightBlend);
+            stars.visible     = nightBlend > 0.2;
+
+            // Pass nightBlend to village for torch lights
+            updateVillage(dt, nightBlend);
 
             // Animate campfire flame
             if (fireGroup.userData.flame) {
@@ -161,15 +194,15 @@ function _initGame() {
                 );
             }
 
-            // Campfire light flicker
+            // Campfire light flicker (brighter at night)
             if (fireGroup.userData.fireLight) {
-                fireGroup.userData.fireLight.intensity = 2.2 + Math.sin(Date.now() * 0.012) * 0.5;
+                const flicker = Math.sin(Date.now() * 0.012) * 0.5;
+                fireGroup.userData.fireLight.intensity = (2.2 + flicker) * (0.5 + nightBlend * 0.8);
             }
 
-            // Dead monster cleanup every 300 frames
+            // Dead monster cleanup every 300 frames (keep dying for fade animation)
             if (frameCount % 300 === 0) {
-                const before = monsters.length;
-                monsters.splice(0, before, ...monsters.filter(m => m.alive));
+                monsters.splice(0, monsters.length, ...monsters.filter(m => m.alive || m.dying));
             }
         }
 

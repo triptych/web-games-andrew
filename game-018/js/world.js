@@ -127,7 +127,25 @@ export function initWorld() {
     // ---- Decorative rocks ----
     _spawnRocks(scene, 40, VILLAGE_RADIUS + 4, WORLD_SIZE - 5);
 
-    return { scene, camera, renderer, villageCenter: new THREE.Vector3(0, 0, 0), fireGroup };
+    // ---- Stars (visible at night) ----
+    const starGeo  = new THREE.BufferGeometry();
+    const starVerts = [];
+    for (let i = 0; i < 300; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const phi   = Math.acos(2 * Math.random() - 1);
+        starVerts.push(
+            Math.sin(phi) * Math.cos(theta) * 190,
+            Math.abs(Math.cos(phi)) * 190 + 10,
+            Math.sin(phi) * Math.sin(theta) * 190
+        );
+    }
+    starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVerts, 3));
+    const starMat  = new THREE.PointsMaterial({ color: 0xffffff, size: 0.8, sizeAttenuation: true });
+    const stars    = new THREE.Points(starGeo, starMat);
+    stars.visible  = false;
+    scene.add(stars);
+
+    return { scene, camera, renderer, villageCenter: new THREE.Vector3(0, 0, 0), fireGroup, ambient, sun, stars };
 }
 
 // ---- Tree helper ----

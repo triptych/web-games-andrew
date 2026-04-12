@@ -1,7 +1,7 @@
 import { events } from './events.js';
 import {
     PLAYER_HP_BASE, PLAYER_ATK_BASE, XP_PER_LEVEL,
-    BUILDING_DEFS,
+    BUILDING_DEFS, WEAPON_DEFS,
 } from './config.js';
 
 /**
@@ -34,6 +34,10 @@ class GameState {
 
         // --- Mode ---
         this._mode = 'explore';  // 'explore' | 'village'
+
+        // --- Weapons ---
+        this._equippedWeapon = 'sword';
+        this._inventory = ['sword'];
     }
 
     // ---- Player HP ----
@@ -143,6 +147,14 @@ class GameState {
 
         this._buildings[id] = lvl + 1;
         events.emit('buildingBuilt', id, this._buildings[id]);
+
+        // Weapon unlocks via blacksmith
+        if (id === 'blacksmith') {
+            const newLvl = this._buildings[id];
+            if (newLvl === 2) this.addWeapon('axe');
+            if (newLvl === 3) this.addWeapon('bow');
+        }
+
         return true;
     }
 
@@ -166,6 +178,23 @@ class GameState {
     }
 
     get isGameOver() { return this._isGameOver; }
+
+    // ---- Weapons ----
+    get equippedWeapon() { return this._equippedWeapon; }
+    set equippedWeapon(type) {
+        if (this._equippedWeapon === type) return;
+        this._equippedWeapon = type;
+        events.emit('weaponChanged', type);
+    }
+
+    hasWeapon(type) { return this._inventory.includes(type); }
+
+    addWeapon(type) {
+        if (!this._inventory.includes(type)) {
+            this._inventory.push(type);
+            events.emit('inventoryChanged');
+        }
+    }
 }
 
 export const state = new GameState();

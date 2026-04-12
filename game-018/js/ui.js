@@ -5,7 +5,7 @@
 
 import { state }  from './state.js';
 import { events } from './events.js';
-import { BUILDING_DEFS, SELL_PRICES } from './config.js';
+import { BUILDING_DEFS, SELL_PRICES, WEAPON_DEFS } from './config.js';
 import { playUiClick, playBuild } from './sounds.js';
 
 // ---- DOM refs ----
@@ -151,8 +151,18 @@ export function initUI() {
 
     // Game over
     events.on('gameOver', () => {
-        pushMsg('You have fallen! Refresh to try again.', '#e05555');
+        pushMsg('You have fallen!', '#e05555');
+        const overlay = document.getElementById('game-over');
+        if (overlay) overlay.style.display = 'flex';
     });
+
+    // Weapon indicator
+    const statWeapon = document.getElementById('stat-weapon');
+    if (statWeapon) {
+        events.on('weaponChanged', (type) => {
+            statWeapon.textContent = WEAPON_DEFS[type]?.label || type;
+        });
+    }
 
     // Build panel close button
     buildClose.addEventListener('click', () => {

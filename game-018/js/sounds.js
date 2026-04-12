@@ -136,3 +136,22 @@ export function playGameOver() {
 export function playFootstep() {
     _noise(0.04, 0.04);
 }
+
+/** Axe swing (heavier, slower) */
+export function playAxeSwing() {
+    _sweep('sawtooth', 180, 50, 0.14, 0.35);
+    _noise(0.1, 0.2);
+}
+
+/** Bow shot */
+export function playBowShot() {
+    _sweep('sine', 400, 800, 0.04, 0.15);
+    _sweep('sawtooth', 800, 200, 0.12, 0.1, 0.03);
+}
+
+/** Heal / tavern rest */
+export function playHeal() {
+    _osc('sine',  528, 0.15, 0.2);
+    _osc('sine',  660, 0.15, 0.15, 0.08);
+    _osc('sine',  792, 0.12, 0.12, 0.15);
+}

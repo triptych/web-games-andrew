@@ -1,11 +1,9 @@
 /**
  * village.js — Village building meshes and mode management.
  *
- * When a building is constructed (via state.upgradeBuilding),
- * this module places/updates a 3D mesh in the village area.
- *
  * Exports:
- *   initVillage(scene) → { update(dt) }
+ *   initVillage(scene) → { update(dt, nightBlend) }
+ *   builtPositions — live object mapping building id to THREE.Vector3 world pos
  */
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js';
@@ -30,7 +28,11 @@ const BUILDING_COLORS = {
     tavern:     0xaa6644,
 };
 
-const _builtMeshes = {};
+const _builtMeshes  = {};
+const _torchLights  = {};
+
+// Live export: player.js imports this directly to check tavern position
+export const builtPositions = {};
 
 function _buildBuildingMesh(scene, defId, slotIndex) {
     const def  = BUILDING_DEFS.find(b => b.id === defId);
@@ -72,7 +74,17 @@ function _buildBuildingMesh(scene, defId, slotIndex) {
         roof.position.y  = 4.8 + 0.6;
     }
 
+    // Torch point light beside building (starts at 0 intensity, brightens at night)
+    const torch = new THREE.PointLight(0xff9955, 0, 7, 2);
+    torch.position.set(1.6, 2.2, 0);
+    group.add(torch);
+    _torchLights[defId] = torch;
+
     scene.add(group);
+
+    // Record world position for proximity checks
+    builtPositions[defId] = new THREE.Vector3(slot.x, 0, slot.z);
+
     return group;
 }
 
@@ -98,13 +110,15 @@ export function initVillage(scene) {
         }
     });
 
-    // Mode: dim world when in village mode
-    events.on('modeChanged', (mode) => {
-        // Placeholder — could toggle enemy AI pause, etc.
-    });
+    // Mode: placeholder
+    events.on('modeChanged', (mode) => {});
 
-    function update(dt) {
-        // Future: animate buildings (smoke, flags, etc.)
+    function update(dt, nightBlend = 0) {
+        // Update torch intensities based on time of day
+        const torchIntensity = nightBlend * 2.0;
+        for (const light of Object.values(_torchLights)) {
+            light.intensity = torchIntensity + Math.sin(Date.now() * 0.005 + light.position.x) * 0.15 * nightBlend;
+        }
     }
 
     return { update };

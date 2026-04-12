@@ -212,7 +212,99 @@
         }
         #build-close:hover { background: rgba(200,168,68,0.15); }
 
+        /* Inventory panel */
+        #inventory-panel {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10,16,10,0.95);
+            border: 2px solid #88ddff;
+            border-radius: 12px;
+            padding: 20px 28px;
+            color: #eee;
+            min-width: 300px;
+            display: none;
+            pointer-events: all;
+            z-index: 50;
+        }
+        #inventory-panel h2 { color: #88ddff; margin-bottom: 14px; font-size: 1.3rem; }
+        .inv-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            gap: 12px;
+        }
+        .inv-item:last-child { border-bottom: none; }
+        .inv-item.inv-equipped { background: rgba(136,221,255,0.07); border-radius: 4px; padding: 8px 6px; }
+        .inv-name { font-weight: bold; color: #c8e8a0; flex: 1; }
+        .inv-stats { font-size: 11px; color: #88aa88; flex: 1; }
+        .inv-item button {
+            background: #88ddff;
+            color: #0a100a;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 12px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .inv-item button:hover { background: #aaeeff; }
+        .inv-item button:disabled { background: #445566; color: #88aacc; cursor: not-allowed; }
+        #inventory-close {
+            margin-top: 14px;
+            background: transparent;
+            border: 1px solid #88ddff;
+            color: #88ddff;
+            border-radius: 4px;
+            padding: 5px 14px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        #inventory-close:hover { background: rgba(136,221,255,0.15); }
+
         #hidden { display: none; }
+
+        /* Game over overlay */
+        #game-over {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            color: #fff;
+        }
+        #game-over h2 {
+            font-size: 3rem;
+            color: #e05555;
+            text-shadow: 0 0 30px #e0555580;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+        }
+        #game-over p {
+            color: #aaaaaa;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+        #game-over .restart-btn {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #0a100a;
+            background: #c8a844;
+            border: none;
+            padding: 0.8rem 2.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        #game-over .restart-btn:hover { background: #e0be5a; transform: scale(1.04); }
     </style>
 </head>
 <body>
@@ -226,10 +318,11 @@
             <span class="key">Space / Click</span> <span>Attack</span>
             <span class="key">E</span> <span>Interact / Build menu</span>
             <span class="key">Tab</span> <span>Switch mode (Explore / Village)</span>
+            <span class="key">I</span> <span>Inventory / weapons</span>
             <span class="key">Escape</span> <span>Menu</span>
         </div>
         <button class="start-btn" id="splash-start">ENTER THE WORLD</button>
-        <div class="phase-tag">Phase 1 — Foundation</div>
+        <div class="phase-tag">Phase 2 — Combat & World</div>
     </div>
 
     <!-- HUD (hidden until game starts) -->
@@ -254,6 +347,10 @@
                 <span class="stat-label">Gold</span>
                 <span id="stat-gold">0</span>
             </div>
+            <div class="stat">
+                <span class="stat-label">Weapon</span>
+                <span id="stat-weapon" style="color:#c8e8a0;font-size:11px">Sword</span>
+            </div>
         </div>
 
         <!-- Resources -->
@@ -273,6 +370,7 @@
             <span class="key">WASD</span> Move &nbsp;
             <span class="key">Space</span> Attack &nbsp;
             <span class="key">E</span> Interact &nbsp;
+            <span class="key">I</span> Inventory &nbsp;
             <span class="key">Tab</span> Mode
         </div>
 
@@ -285,6 +383,20 @@
             <div id="build-list"></div>
             <button id="build-close">Close</button>
         </div>
+
+        <!-- Inventory panel -->
+        <div id="inventory-panel">
+            <h2>Inventory</h2>
+            <div id="inventory-list"></div>
+            <button id="inventory-close">Close</button>
+        </div>
+    </div>
+
+    <!-- Game over screen -->
+    <div id="game-over">
+        <h2>YOU DIED</h2>
+        <p>Your journey ends here... for now.</p>
+        <button class="restart-btn" onclick="location.reload()">Restart</button>
     </div>
 
     <script type="module" src="js/main.js"></script>

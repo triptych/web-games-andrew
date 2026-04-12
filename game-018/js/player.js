@@ -12,9 +12,10 @@ import {
     PLAYER_SPEED, PLAYER_ATK_RANGE, PLAYER_ATK_CD,
     WORLD_SIZE, VILLAGE_RADIUS,
     CAM_OFFSET, CAM_LERP,
+    WEAPON_DEFS, TAVERN_HEAL_RADIUS, TAVERN_HEAL_RATE, TAVERN_HEAL_AMOUNT,
 } from './config.js';
 import {
-    playSwordSwing, playPlayerHurt, playPickup, playGoldPickup, playFootstep,
+    playSwordSwing, playAxeSwing, playBowShot, playPlayerHurt, playPickup, playGoldPickup, playFootstep, playHeal,
 } from './sounds.js';
 
 // ---- Input state ----
@@ -61,11 +62,12 @@ function _buildPlayerMesh() {
     head.castShadow = true;
     group.add(head);
 
-    // Sword arm
+    // Weapon (starts as sword)
     const swordGeo = new THREE.BoxGeometry(0.12, 0.8, 0.12);
     const swordMat = new THREE.MeshLambertMaterial({ color: 0xcccccc });
     const sword    = new THREE.Mesh(swordGeo, swordMat);
     sword.position.set(0.5, 1.1, -0.1);
+    sword.name = 'weapon';
     sword.castShadow = true;
     group.add(sword);
 
@@ -91,15 +93,37 @@ export function initPlayer(scene, camera) {
     let footTimer    = 0;
     let swingAnim    = 0;   // >0 = mid-swing
     let isMoving     = false;
+    let lastFacingDir = new THREE.Vector3(0, 0, -1);  // cached for arc attacks
+    let tavernHealTimer = 0;
 
-    // Arm bob reference
+    // Arm bob reference (always look up the current weapon by name)
     const sword = playerGroup.userData.sword;
+
+    // Weapon mesh swap on equip
+    events.on('weaponChanged', (type) => {
+        const wDef = WEAPON_DEFS[type];
+        const oldWeapon = playerGroup.getObjectByName('weapon');
+        if (oldWeapon) playerGroup.remove(oldWeapon);
+        let geo;
+        if (type === 'axe') {
+            geo = new THREE.BoxGeometry(0.35, 0.55, 0.1);
+        } else if (type === 'bow') {
+            geo = new THREE.TorusGeometry(0.3, 0.04, 6, 12, Math.PI);
+        } else {
+            geo = new THREE.BoxGeometry(0.12, 0.8, 0.12);
+        }
+        const mat = new THREE.MeshLambertMaterial({ color: wDef.color });
+        const newWeapon = new THREE.Mesh(geo, mat);
+        newWeapon.position.set(0.5, 1.1, -0.1);
+        newWeapon.name = 'weapon';
+        playerGroup.add(newWeapon);
+    });
 
     // Camera pivot
     const camPivot = new THREE.Object3D();
     scene.add(camPivot);
 
-    function update(dt, monsters, pickups) {
+    function update(dt, monsters, pickups, builtPositions) {
         if (state.isGameOver) return;
 
         // --- Movement ---
@@ -128,6 +152,9 @@ export function initPlayer(scene, camera) {
             // Face movement direction
             playerGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z);
 
+            // Cache facing direction for arc-based attacks
+            lastFacingDir.copy(moveDir);
+
             // Footstep sound (every ~0.35s)
             footTimer += dt;
             if (footTimer > 0.35) { footTimer = 0; playFootstep(); }
@@ -155,23 +182,48 @@ export function initPlayer(scene, camera) {
 
         // --- Attack trigger ---
         if ((keys['Space'] || keys['KeyF']) && atkCooldown <= 0) {
-            _doAttack(playerGroup, monsters);
-            atkCooldown = PLAYER_ATK_CD;
+            _doAttack(playerGroup, monsters, lastFacingDir);
+            const weapon = WEAPON_DEFS[state.equippedWeapon] || WEAPON_DEFS.sword;
+            atkCooldown = weapon.cooldown;
             swingAnim   = 0.25;
-            playSwordSwing();
+            if (state.equippedWeapon === 'axe') playAxeSwing();
+            else if (state.equippedWeapon === 'bow') playBowShot();
+            else playSwordSwing();
         }
 
-        // Sword swing animation
-        if (swingAnim > 0) {
-            swingAnim -= dt;
-            sword.rotation.x = (swingAnim / 0.25) * (Math.PI / 2);
-        } else {
-            // Idle bob
-            sword.rotation.x = Math.sin(Date.now() * 0.002) * 0.1;
+        // Weapon swing animation
+        const currentWeapon = playerGroup.getObjectByName('weapon');
+        if (currentWeapon) {
+            if (swingAnim > 0) {
+                swingAnim -= dt;
+                currentWeapon.rotation.x = (swingAnim / 0.25) * (Math.PI / 2);
+            } else {
+                // Idle bob
+                currentWeapon.rotation.x = Math.sin(Date.now() * 0.002) * 0.1;
+            }
         }
 
         // --- Pickup scan ---
         _checkPickups(playerGroup.position, pickups);
+
+        // --- Tavern proximity heal ---
+        if (builtPositions) {
+            const tavernPos = builtPositions['tavern'];
+            if (tavernPos && state.getBuildingLevel('tavern') > 0 && state.hp < state.maxHp) {
+                const distToTavern = playerGroup.position.distanceTo(tavernPos);
+                if (distToTavern <= TAVERN_HEAL_RADIUS) {
+                    tavernHealTimer -= dt;
+                    if (tavernHealTimer <= 0) {
+                        tavernHealTimer = TAVERN_HEAL_RATE;
+                        state.heal(TAVERN_HEAL_AMOUNT);
+                        playHeal();
+                        events.emit('message', 'Resting at the tavern... HP restored.', '#88ddaa');
+                    }
+                } else {
+                    tavernHealTimer = Math.min(tavernHealTimer, 0);
+                }
+            }
+        }
 
         // --- Emit position ---
         events.emit('playerMoved', playerGroup.position);
@@ -181,17 +233,23 @@ export function initPlayer(scene, camera) {
 }
 
 // ---- Attack ----
-function _doAttack(playerGroup, monsters) {
-    const reach = PLAYER_ATK_RANGE;
-    const pPos  = playerGroup.position;
+function _doAttack(playerGroup, monsters, lastFacingDir) {
+    const weapon  = WEAPON_DEFS[state.equippedWeapon] || WEAPON_DEFS.sword;
+    const reach   = weapon.range;
+    const pPos    = playerGroup.position;
+    const cosHalf = Math.cos(weapon.arcAngle / 2);
 
     for (const m of monsters) {
         if (!m.alive) continue;
-        const dist = pPos.distanceTo(m.mesh.position);
-        if (dist <= reach) {
-            const dmg = state.atk + Math.floor(Math.random() * 6);
-            m.takeDamage(dmg);
+        const diff = new THREE.Vector3().subVectors(m.mesh.position, pPos).setY(0);
+        const dist = diff.length();
+        if (dist > reach) continue;
+        if (dist > 0) {
+            const dot = diff.normalize().dot(lastFacingDir);
+            if (dot < cosHalf) continue;
         }
+        const dmg = Math.floor(state.atk * weapon.dmgMult) + Math.floor(Math.random() * 6);
+        m.takeDamage(dmg);
     }
 }
 

@@ -37,6 +37,8 @@ function _buildMonsterMesh(type) {
     const group = new THREE.Group();
 
     const body = new THREE.Mesh(_geos[type].body, _mats[type].body.clone());
+    body.material.transparent = true;
+    body.name = 'body';
     body.position.y = 0.45 * s;
     body.castShadow = true;
     group.add(body);
@@ -70,6 +72,9 @@ class Monster {
         this.alive    = true;
         this.scene    = scene;
         this.atkCd    = 0;
+        this.flashTimer = 0;
+        this.dying = false;
+        this.deathTimer = 0;
         this.state    = 'idle';  // 'idle' | 'chase' | 'attack'
         this.aggroRange = 35;
         this.loseRange  = 55;
@@ -95,6 +100,11 @@ class Monster {
         }
 
         playMonsterHit();
+        // Flash white
+        this.flashTimer = 0.14;
+        const bodyMesh = this.mesh.children.find(c => c.name === 'body');
+        if (bodyMesh) bodyMesh.material.color.setHex(0xffffff);
+
         events.emit('message', `Hit ${this.def.label} for ${amount} dmg!`, '#ffcc88');
 
         if (this.hp <= 0) this._die();
@@ -102,15 +112,15 @@ class Monster {
 
     _die() {
         this.alive = false;
-        this.scene.remove(this.mesh);
+        this.dying = true;
+        this.deathTimer = 0.6;
         playMonsterDie();
 
-        // Rewards
+        // Rewards (immediate — don't delay feedback)
         state.addXp(this.def.xp);
         state.addGold(this.def.gold);
         events.emit('playerGoldChanged', state.gold);
 
-        // Drop resources
         for (const [res, amt] of Object.entries(this.def.drops)) {
             if (amt > 0) state.addResource(res, amt);
         }
@@ -125,6 +135,21 @@ class Monster {
             '#88ddff'
         );
         events.emit('monsterDied', this.def, this.mesh.position.clone());
+    }
+
+    updateDeath(dt) {
+        this.deathTimer -= dt;
+        const progress = Math.max(0, 1 - this.deathTimer / 0.6);
+        const bodyMesh = this.mesh.children.find(c => c.name === 'body');
+        if (bodyMesh) {
+            bodyMesh.material.opacity = 1 - progress;
+            bodyMesh.material.color.setHex(this.def.color);
+        }
+        this.mesh.scale.setScalar(1 - progress * 0.4);
+        if (this.deathTimer <= 0) {
+            this.scene.remove(this.mesh);
+            this.dying = false;
+        }
     }
 
     update(dt, playerPos) {
@@ -174,6 +199,15 @@ class Monster {
         // Billboard HP bar to always face camera
         const bar = this.mesh.userData.hpBar;
         if (bar) bar.lookAt(playerPos.x, playerPos.y + 8, playerPos.z);
+
+        // Restore flash
+        if (this.flashTimer > 0) {
+            this.flashTimer -= dt;
+            if (this.flashTimer <= 0) {
+                const bodyMesh = this.mesh.children.find(c => c.name === 'body');
+                if (bodyMesh) bodyMesh.material.color.setHex(this.def.color);
+            }
+        }
     }
 }
 
@@ -209,15 +243,11 @@ export function initMonsters(scene) {
     }
 
     function update(dt, playerPos) {
-        // Update all alive monsters
         for (const m of monsters) {
+            if (m.dying) { m.updateDeath(dt); continue; }
             if (m.alive) m.update(dt, playerPos);
         }
 
-        // Remove dead monsters from array (GC sweep every 120 frames)
-        // (done lazily — dead ones are inactive, just skipped)
-
-        // Periodic spawn
         const aliveCount = monsters.filter(m => m.alive).length;
         if (aliveCount < MONSTER_CAP) {
             spawnTimer += dt;

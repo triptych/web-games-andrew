@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-04-11
+
+### Added
+- **Village of the Wandering Blade** (game-018): Game over overlay — when the player dies, a full-screen "YOU DIED" overlay appears with a Restart button that reloads the game
+
 ## [2.6.0] - 2026-04-01
 
 ### Added

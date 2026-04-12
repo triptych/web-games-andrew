@@ -63,7 +63,7 @@ export const BUILDING_DEFS = [
     {
         id: 'blacksmith',
         name: 'Blacksmith',
-        desc: 'Craft iron weapons. +5 ATK per level.',
+        desc: 'Craft iron weapons. +5 ATK per level. Lv2: Unlocks Axe. Lv3: Unlocks Bow.',
         emoji: '⚒️',
         cost: { wood: 10, stone: 5, iron: 8, gold: 0 },
         maxLevel: 3,
@@ -137,3 +137,24 @@ export const COLORS = {
 // --- Spawn tuning ---
 export const SPAWN_INTERVAL   = 4;    // seconds between spawn attempts
 export const ITEMS_ON_MAP_CAP = 30;   // max resource pickups in world
+
+// --- Weapons ---
+export const WEAPON_DEFS = {
+    sword: { label: 'Sword', dmgMult: 1.0, range: 2.5, arcAngle: Math.PI * 0.5,  cooldown: 0.55, color: 0xcccccc, isRanged: false },
+    axe:   { label: 'Axe',   dmgMult: 1.4, range: 2.0, arcAngle: Math.PI * 0.75, cooldown: 0.85, color: 0x886644, isRanged: false },
+    bow:   { label: 'Bow',   dmgMult: 0.8, range: 12,  arcAngle: Math.PI * 0.12, cooldown: 1.1,  color: 0x8b5a2b, isRanged: true  },
+};
+
+// --- Day/Night ---
+export const DAY_CYCLE_DURATION = 240;   // seconds for full day cycle
+export const DAY_AMBIENT_INT    = 0.55;
+export const NIGHT_AMBIENT_INT  = 0.10;
+export const DAY_SUN_INT        = 1.4;
+export const NIGHT_SUN_INT      = 0.0;
+export const DAY_SKY_HEX        = 0x87ceeb;
+export const NIGHT_SKY_HEX      = 0x080c18;
+
+// --- Tavern proximity ---
+export const TAVERN_HEAL_RADIUS = 4.5;
+export const TAVERN_HEAL_RATE   = 2.0;   // seconds between heals
+export const TAVERN_HEAL_AMOUNT = 8;

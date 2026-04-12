@@ -3,7 +3,7 @@
 **Genre:** Action RPG / Village Builder
 **Engine:** Three.js r165 (ES6 modules, CDN)
 **Target Resolution:** 1280 × 720 (responsive)
-**Status:** Phase 1 — Foundation Complete
+**Status:** Phase 2 — Polish Complete
 
 ---
 
@@ -130,13 +130,13 @@ Cost scales ×1.8 per existing level.
 - [x] Full HUD: HP/XP bars, resource counters, message log, mode indicator
 - [x] Sound effects: all key sounds procedurally generated
 
-### Phase 2 — Polish
-- [ ] Weapon system: sword, axe, bow with distinct attack arcs and ranges
-- [ ] Inventory screen: view carried items and equip weapons
-- [ ] Tavern: walk up to building to heal instead of build-panel button
-- [ ] Visual hit flash on monsters when damaged
-- [ ] Death animation (fade out) for monsters
-- [ ] Day/night cycle with torch lighting
+### Phase 2 — Polish (2026-04-11)
+- [x] Weapon system: sword, axe, bow with distinct attack arcs and ranges
+- [x] Inventory screen: view carried items and equip weapons (press I)
+- [x] Tavern: walk up to building to heal instead of build-panel button
+- [x] Visual hit flash on monsters when damaged
+- [x] Death animation (fade out) for monsters
+- [x] Day/night cycle with torch lighting
 
 ### Phase 3 — Depth
 - [ ] Quest system: simple "kill 10 goblins" style objectives
