@@ -190,7 +190,7 @@ export function initPlayer(scene, camera) {
     const camPivot = new THREE.Object3D();
     scene.add(camPivot);
 
-    function update(dt, monsters, pickups, builtPositions) {
+    function update(dt, monsters, pickups, builtPositions, worldLimit) {
         if (state.isGameOver) return;
 
         // --- Movement ---
@@ -212,9 +212,15 @@ export function initPlayer(scene, camera) {
             const speed = PLAYER_SPEED * dt;
             const nx = playerGroup.position.x + moveDir.x * speed;
             const nz = playerGroup.position.z + moveDir.z * speed;
-            const limit = WORLD_SIZE - 2;
-            playerGroup.position.x = Math.max(-limit, Math.min(limit, nx));
-            playerGroup.position.z = Math.max(-limit, Math.min(limit, nz));
+            if (worldLimit !== undefined) {
+                // Inside dungeon: clamp within dungeon staging bounds
+                playerGroup.position.x = Math.max(worldLimit.minX, Math.min(worldLimit.maxX, nx));
+                playerGroup.position.z = Math.max(worldLimit.minZ, Math.min(worldLimit.maxZ, nz));
+            } else {
+                const limit = WORLD_SIZE - 2;
+                playerGroup.position.x = Math.max(-limit, Math.min(limit, nx));
+                playerGroup.position.z = Math.max(-limit, Math.min(limit, nz));
+            }
 
             // Face movement direction
             playerGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z);

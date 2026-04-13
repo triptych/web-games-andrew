@@ -18,6 +18,39 @@ import { playMonsterHit, playMonsterDie, playPlayerHurt } from './sounds.js';
 // Reusable quaternion for billboard calculations (avoids per-frame allocation)
 const _invParentQ = new THREE.Quaternion();
 
+// ---- Monster attack arc (swish) ----
+function _buildMonsterArcMesh() {
+    const segments  = 12;
+    const range     = 2.2;
+    const halfAngle = Math.PI * 0.4;  // ~72° wide swipe arc
+    const vertices  = [];
+    const indices   = [];
+
+    vertices.push(0, 0.05, 0);  // centre
+
+    for (let i = 0; i <= segments; i++) {
+        const t   = i / segments;
+        const ang = -halfAngle + t * halfAngle * 2;
+        vertices.push(Math.sin(ang) * range, 0.05, Math.cos(ang) * range);
+    }
+    for (let i = 0; i < segments; i++) indices.push(0, i + 1, i + 2);
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geo.setIndex(indices);
+
+    const mat = new THREE.MeshBasicMaterial({
+        color: 0xff4400,
+        transparent: true,
+        opacity: 0.55,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.renderOrder = 1;
+    return mesh;
+}
+
 // Pre-build shared geometries/materials per monster type
 const _geos = {};
 const _mats = {};
@@ -188,6 +221,8 @@ class Monster {
         this.state    = 'idle';  // 'idle' | 'chase' | 'attack'
         this.aggroRange = 35;
         this.loseRange  = 55;
+        this.arcMesh  = null;   // attack swish arc
+        this.arcTimer = 0;
 
         this.mesh = _buildMonsterMesh(type);
         this.mesh.position.copy(pos);
@@ -225,6 +260,8 @@ class Monster {
         this.dying = true;
         this.deathTimer = 0.6;
         playMonsterDie();
+        if (this.arcMesh) { this.scene.remove(this.arcMesh); this.arcMesh = null; }
+        this.arcTimer = 0;
 
         // Rewards (immediate — don't delay feedback)
         state.addXp(this.def.xp);
@@ -289,13 +326,20 @@ class Monster {
             if (distToVillage >= VILLAGE_RADIUS * 0.5) {
                 this.mesh.position.x = nx;
                 this.mesh.position.z = nz;
-                // Face player
-                this.mesh.rotation.y = Math.atan2(dir.x, dir.z);
+                // Face player — add PI so the mesh's -Z face points toward them
+                this.mesh.rotation.y = Math.atan2(dir.x, dir.z) + Math.PI;
             }
 
             if (dist < 1.6) this.state = 'attack';
         } else if (this.state === 'attack') {
             if (dist > 2.5) { this.state = 'chase'; return; }
+
+            // Always face player while attacking
+            const dir2 = new THREE.Vector3()
+                .subVectors(playerPos, this.mesh.position)
+                .setY(0)
+                .normalize();
+            this.mesh.rotation.y = Math.atan2(dir2.x, dir2.z) + Math.PI;
 
             this.atkCd -= dt;
             if (this.atkCd <= 0) {
@@ -304,6 +348,19 @@ class Monster {
                 state.takeDamage(dmg);
                 playPlayerHurt();
                 events.emit('message', `${this.def.label} hit you for ${dmg} damage!`, '#ff8888');
+
+                // Spawn attack swish arc
+                if (this.arcMesh) { this.scene.remove(this.arcMesh); this.arcMesh = null; }
+                this.arcMesh = _buildMonsterArcMesh();
+                this.arcMesh.position.set(
+                    this.mesh.position.x,
+                    this.mesh.position.y + 0.05,
+                    this.mesh.position.z
+                );
+                // Arc points toward player (mesh faces -Z, so we use the raw atan2 without +PI)
+                this.arcMesh.rotation.y = Math.atan2(dir2.x, dir2.z);
+                this.scene.add(this.arcMesh);
+                this.arcTimer = 0.22;
             }
         }
 
@@ -332,6 +389,18 @@ class Monster {
             if (this.flashTimer <= 0) {
                 const bodyMesh = this.mesh.children.find(c => c.name === 'body');
                 if (bodyMesh) bodyMesh.material.color.setHex(this.def.color);
+            }
+        }
+
+        // Fade out attack arc
+        if (this.arcTimer > 0) {
+            this.arcTimer -= dt;
+            if (this.arcMesh) {
+                this.arcMesh.material.opacity = Math.max(0, 0.55 * (this.arcTimer / 0.22));
+                if (this.arcTimer <= 0) {
+                    this.scene.remove(this.arcMesh);
+                    this.arcMesh = null;
+                }
             }
         }
     }

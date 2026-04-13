@@ -55,6 +55,7 @@ import {
     POTION_COST_HERBS,
 } from './config.js';
 import { showInventory, hideInventory, initInventory } from './inventory.js';
+import { initDungeons } from './dungeon.js';
 
 // ============================================================
 // Splash → Game start
@@ -106,7 +107,8 @@ function _initGame(loadSave = false) {
     const { pickups, nodes, update: updatePickups, checkNodeHarvest } = initPickups(scene);
     const { update: updateVillage }             = initVillage(scene);
     const { npcs, update: updateQuests }        = initQuests(scene);
-    const minimap = initMinimap(playerGroup, () => monsters, nodes);
+    const dungeonSystem = initDungeons(scene);
+    const minimap = initMinimap(playerGroup, () => monsters, nodes, dungeonSystem.dungeonEntrances);
 
     initUI();
     initInventory();
@@ -211,6 +213,20 @@ function _initGame(loadSave = false) {
         // --- E: Interact ---
         if (e.code === 'KeyE') {
             const pPos = playerGroup.position;
+
+            // --- Inside dungeon ---
+            if (dungeonSystem.isInDungeon()) {
+                // Try exit portal
+                if (dungeonSystem.tryExitDungeon(pPos, playerGroup)) return;
+                // Try chest collect
+                if (dungeonSystem.tryCollectChest(pPos)) return;
+                events.emit('message', 'Walk to the blue portal to exit the dungeon.', '#8888cc');
+                return;
+            }
+
+            // --- Overworld: try enter dungeon ---
+            if (dungeonSystem.tryEnterDungeon(pPos, playerGroup)) return;
+
             const distToVillage = Math.sqrt(pPos.x * pPos.x + pPos.z * pPos.z);
             if (distToVillage <= VILLAGE_RADIUS + 2) {
                 const bp = document.getElementById('build-panel');
@@ -224,7 +240,7 @@ function _initGame(loadSave = false) {
                 // Try harvesting a nearby resource node
                 const harvested = checkNodeHarvest(pPos);
                 if (!harvested) {
-                    events.emit('message', 'Nothing to harvest here. Look for glowing resource nodes.', '#667766');
+                    events.emit('message', 'Nothing to harvest here. Look for glowing resource nodes or a dungeon entrance.', '#667766');
                 }
             }
             return;
@@ -273,8 +289,17 @@ function _initGame(loadSave = false) {
         if (!state.isGameOver) {
             const pPos = playerGroup.position;
 
-            updatePlayer(dt, monsters, pickups, builtPositions);
+            // When in dungeon, pass dungeon monsters to player attack system too
+            const activeDungeonMonsters = dungeonSystem.getActiveDungeonMonsters();
+            const allMonsters = dungeonSystem.isInDungeon()
+                ? activeDungeonMonsters
+                : monsters;
+            const dungeonBounds = dungeonSystem.isInDungeon()
+                ? dungeonSystem.getCurrentDungeon().getStageBounds()
+                : undefined;
+            updatePlayer(dt, allMonsters, pickups, builtPositions, dungeonBounds);
             updateMonsters(dt, pPos, camera);
+            dungeonSystem.update(dt, pPos, camera);
             updatePickups(dt, pPos);
             updateQuests(dt);
             minimap.update();

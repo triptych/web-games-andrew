@@ -35,7 +35,7 @@ function _dot(x, y, r, color) {
     ctx.fill();
 }
 
-export function initMinimap(playerGroup, getMonsters, nodes) {
+export function initMinimap(playerGroup, getMonsters, nodes, dungeonEntrances) {
     if (!ctx) return { update: () => {}, show: showMinimap, hide: hideMinimap, toggle: toggleMinimap };
 
     function update() {
@@ -71,6 +71,21 @@ export function initMinimap(playerGroup, getMonsters, nodes) {
 
         // Village center (campfire)
         _dot(vx, vy, 3, '#c8a844');
+
+        // Dungeon entrances (purple portals)
+        if (dungeonEntrances) {
+            for (const ep of dungeonEntrances) {
+                const [dx, dy] = _toPixel(ep.x, ep.z);
+                // Outer glow ring
+                ctx.beginPath();
+                ctx.arc(dx, dy, 5, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(170,80,255,0.5)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // Inner dot
+                _dot(dx, dy, 3, '#aa44ff');
+            }
+        }
 
         // Resource nodes
         const nodeColors = { wood: '#8b5a2b', stone: '#999', iron: '#8888cc', herbs: '#55cc55' };

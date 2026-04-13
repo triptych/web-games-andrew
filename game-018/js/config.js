@@ -290,3 +290,66 @@ export const NIGHT_SKY_HEX      = 0x080c18;
 export const TAVERN_HEAL_RADIUS = 4.5;
 export const TAVERN_HEAL_RATE   = 2.0;   // seconds between heals
 export const TAVERN_HEAL_AMOUNT = 8;
+
+// --- Dungeons ---
+export const DUNGEON_COUNT        = 4;    // number of dungeons in the world
+export const DUNGEON_MIN_DIST     = 35;   // min distance from village center
+export const DUNGEON_MAX_DIST     = 90;   // max distance from village center
+
+// Dungeon-specific monster definitions (stronger than overworld)
+export const DUNGEON_MONSTER_DEFS = {
+    dungeon_rat: {
+        label: 'Giant Rat',
+        color: 0x886644,
+        hp: 50, atk: 10, speed: 5.0,
+        xp: 18, gold: 4,
+        drops: { wood: 0, stone: 0, iron: 1, herbs: 1 },
+        scale: 0.55,
+    },
+    dungeon_skeleton: {
+        label: 'Cursed Skeleton',
+        color: 0xeeeebb,
+        hp: 120, atk: 28, speed: 3.5,
+        xp: 55, gold: 18,
+        drops: { wood: 0, stone: 3, iron: 3, herbs: 0 },
+        scale: 0.95,
+    },
+    dungeon_troll: {
+        label: 'Cave Troll',
+        color: 0x556633,
+        hp: 220, atk: 36, speed: 2.0,
+        xp: 90, gold: 35,
+        drops: { wood: 4, stone: 6, iron: 4, herbs: 0 },
+        scale: 1.5,
+    },
+    dungeon_wraith: {
+        label: 'Wraith',
+        color: 0x8844cc,
+        hp: 90, atk: 32, speed: 4.5,
+        xp: 70, gold: 22,
+        drops: { wood: 0, stone: 0, iron: 2, herbs: 3 },
+        scale: 0.85,
+    },
+};
+
+// Dungeon boss definition
+export const DUNGEON_BOSS_DEF = {
+    label: 'Dungeon Lord',
+    color: 0x220044,
+    hp: 600, atk: 55, speed: 2.8,
+    xp: 400, gold: 150,
+    drops: { wood: 8, stone: 12, iron: 15, herbs: 8 },
+    scale: 2.2,
+    isBoss: true,
+    // Bonus village resources awarded on boss kill
+    villageReward: { wood: 20, stone: 20, iron: 25, herbs: 15, gold: 200 },
+};
+
+// Treasure chest rewards
+export const TREASURE_DEFS = [
+    { wood: 5,  stone: 5,  iron: 8,  herbs: 3,  gold: 30 },
+    { wood: 3,  stone: 8,  iron: 5,  herbs: 6,  gold: 20 },
+    { wood: 0,  stone: 0,  iron: 15, herbs: 0,  gold: 50 },
+    { wood: 10, stone: 10, iron: 5,  herbs: 10, gold: 15 },
+    { wood: 0,  stone: 5,  iron: 10, herbs: 5,  gold: 60 },
+];
