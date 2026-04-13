@@ -18,6 +18,216 @@ import { playMonsterHit, playMonsterDie, playPlayerHurt } from './sounds.js';
 // Reusable quaternion for billboard calculations (avoids per-frame allocation)
 const _invParentQ = new THREE.Quaternion();
 
+// ============================================================
+// Procedural monster generator
+// ============================================================
+
+const _PROC_PALETTES = [
+    // [bodyColor, eyeColor, accentColor]
+    [0x44cc44, 0xff2222, 0x228822],   // green slimey
+    [0xcc4422, 0xffee00, 0x882211],   // red fiery
+    [0x4466cc, 0xffffff, 0x224488],   // blue icy
+    [0xaa44cc, 0x00ffcc, 0x661188],   // purple void
+    [0xcc9922, 0xff4400, 0x886600],   // golden desert
+    [0x228888, 0xffff00, 0x115555],   // teal swamp
+    [0xdd2277, 0x00ffff, 0x881144],   // pink arcane
+    [0x886644, 0xff8800, 0x553311],   // brown earthy
+    [0x55aadd, 0xff2299, 0x224466],   // sky blue
+    [0xcc6622, 0x88ff00, 0x774411],   // orange beast
+];
+
+/**
+ * generateProceduralMonster(seed) → def object compatible with MONSTER_DEFS entries.
+ *
+ * seed (0–1): controls overall power tier (0 = weak, 1 = powerful).
+ * Returns a def with: label, color, hp, atk, speed, xp, gold, drops, scale,
+ *   plus procedural visual flags: hasHorns, hasWings, hasTail, armCount, legCount.
+ */
+export function generateProceduralMonster(seed) {
+    const rng = _makeRng(seed * 9999 + 137);
+
+    // Power tier 0–1
+    const tier = seed;
+
+    // Pick palette
+    const pal = _PROC_PALETTES[Math.floor(rng() * _PROC_PALETTES.length)];
+
+    // Stats scale with tier
+    const hp    = Math.round(20 + tier * 180 + rng() * 40);
+    const atk   = Math.round(5  + tier * 35  + rng() * 8);
+    const speed = 2.5 + (1 - tier) * 2.5 + rng() * 1.5;   // weaker = faster
+    const scale = 0.5 + tier * 1.0 + rng() * 0.3;
+    const xp    = Math.round(hp * 0.4 + atk * 1.5);
+    const gold  = Math.round(hp * 0.07 + rng() * 6);
+
+    // Visual features — independent rolls, all features have meaningful presence
+    const hasHorns = rng() > 0.3;                          // 70% chance
+    const hasWings = tier > 0.45 && rng() > 0.4;           // 60% of mid+ tier
+    const hasTail  = rng() > 0.25;                         // 75% chance
+
+    // Arms: always 2 or 4, never 0 — monsters should look like creatures not blobs
+    const armCount = rng() > 0.45 ? 4 : 2;
+
+    // Legs: 2 or 4, with a small chance of none (slithering/floating types)
+    const legRoll  = rng();
+    const legCount = legRoll > 0.8 ? 0 : (legRoll > 0.4 ? 4 : 2);
+
+    // Build a readable label from palette + tier
+    const prefixes = ['Shadow', 'Feral', 'Cursed', 'Dire', 'Vile', 'Corrupt', 'Ancient', 'Wild'];
+    const suffixes = ['Brute', 'Beast', 'Creeper', 'Fiend', 'Lurker', 'Horror', 'Spawn', 'Ghoul'];
+    const label = `${prefixes[Math.floor(rng() * prefixes.length)]} ${suffixes[Math.floor(rng() * suffixes.length)]}`;
+
+    return {
+        label,
+        color:     pal[0],
+        eyeColor:  pal[1],
+        accentColor: pal[2],
+        hp, atk, speed, scale,
+        xp, gold,
+        drops: {
+            wood:  rng() > 0.6 ? Math.floor(rng() * 3) : 0,
+            stone: rng() > 0.6 ? Math.floor(rng() * 3) : 0,
+            iron:  rng() > 0.7 ? Math.floor(rng() * 2) : 0,
+            herbs: rng() > 0.6 ? Math.floor(rng() * 3) : 0,
+        },
+        minZone:    tier * 25,
+        // Visual flags
+        hasHorns, hasWings, hasTail, armCount, legCount,
+        isProc: true,
+    };
+}
+
+// Simple deterministic RNG (xorshift32)
+function _makeRng(seed) {
+    let s = (Math.floor(seed) >>> 0) || 1234567;  // avoid zero seed
+    return function() {
+        s ^= s << 13; s ^= s >> 17; s ^= s << 5;
+        return ((s >>> 0) / 0xFFFFFFFF);
+    };
+}
+
+// Build mesh for a procedurally-generated monster def
+function _buildProceduralMesh(def) {
+    const s     = def.scale;
+    const group = new THREE.Group();
+
+    const bodyMat = new THREE.MeshLambertMaterial({ color: def.color, transparent: true });
+    const eyeMat  = new THREE.MeshBasicMaterial({ color: def.eyeColor });
+    const accentMat = new THREE.MeshLambertMaterial({ color: def.accentColor });
+
+    // --- Body ---
+    const bodyH = 0.9 * s;
+    const body = new THREE.Mesh(
+        new THREE.BoxGeometry(0.75 * s, bodyH, 0.7 * s),
+        bodyMat.clone()
+    );
+    body.position.y = bodyH * 0.55 + (def.legCount > 0 ? 0.35 * s : 0);
+    body.name = 'body';
+    body.castShadow = true;
+    group.add(body);
+
+    const bodyTopY = body.position.y + bodyH * 0.5;
+
+    // --- Head ---
+    const headSize = 0.42 * s;
+    const head = new THREE.Mesh(
+        new THREE.BoxGeometry(headSize * 1.1, headSize, headSize * 1.0),
+        bodyMat.clone()
+    );
+    head.position.set(0, bodyTopY + headSize * 0.55, -0.05 * s);
+    group.add(head);
+
+    const headTopY = head.position.y + headSize * 0.5;
+
+    // --- Eyes ---
+    for (const ox of [-0.12 * s, 0.12 * s]) {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.07 * s, 6, 6), eyeMat);
+        eye.position.set(ox, head.position.y, head.position.z - headSize * 0.5 - 0.02);
+        group.add(eye);
+    }
+
+    // --- Horns ---
+    if (def.hasHorns) {
+        const hornGeo = new THREE.ConeGeometry(0.07 * s, 0.35 * s, 5);
+        for (const ox of [-0.12 * s, 0.12 * s]) {
+            const horn = new THREE.Mesh(hornGeo, accentMat.clone());
+            horn.position.set(ox, headTopY + 0.15 * s, head.position.z);
+            horn.rotation.z = ox < 0 ? 0.25 : -0.25;
+            group.add(horn);
+        }
+    }
+
+    // --- Tail ---
+    if (def.hasTail) {
+        const tailGeo = new THREE.CylinderGeometry(0.06 * s, 0.02 * s, 0.6 * s, 5);
+        const tail = new THREE.Mesh(tailGeo, accentMat.clone());
+        tail.position.set(0, body.position.y - 0.05 * s, 0.45 * s);
+        tail.rotation.x = 0.7;
+        tail.userData.isTail = true;
+        group.add(tail);
+    }
+
+    // --- Arms ---
+    if (def.armCount > 0) {
+        const armH = 0.5 * s;
+        const armGeo = new THREE.CylinderGeometry(0.07 * s, 0.05 * s, armH, 5);
+        const armYOffsets = def.armCount === 4 ? [0, -0.2 * s] : [0];
+        for (const yOff of armYOffsets) {
+            for (const side of [-1, 1]) {
+                const arm = new THREE.Mesh(armGeo, bodyMat.clone());
+                arm.position.set(side * (0.5 * s + 0.06 * s), body.position.y + yOff, 0);
+                arm.rotation.z = side * 0.6;
+                arm.castShadow = true;
+                group.add(arm);
+            }
+        }
+    }
+
+    // --- Legs ---
+    if (def.legCount > 0) {
+        const legH = 0.35 * s;
+        const legGeo = new THREE.CylinderGeometry(0.09 * s, 0.06 * s, legH, 5);
+        const legXPositions = def.legCount === 4
+            ? [-0.22 * s, -0.08 * s, 0.08 * s, 0.22 * s]
+            : [-0.2 * s, 0.2 * s];
+        for (const lx of legXPositions) {
+            const leg = new THREE.Mesh(legGeo, bodyMat.clone());
+            leg.position.set(lx, legH * 0.5, 0);
+            group.add(leg);
+        }
+    }
+
+    // --- Wings ---
+    // Each wing uses a pivot Group placed at the shoulder so rotation.z flaps from the root.
+    // The geometry is offset outward from the pivot so it extends away from the body.
+    if (def.hasWings) {
+        const wingW = 0.85 * s;   // half-span length
+        const wingGeo = new THREE.BoxGeometry(wingW, 0.05 * s, 0.5 * s);
+        const wingMat = new THREE.MeshLambertMaterial({
+            color: def.accentColor,
+            transparent: true, opacity: 0.82,
+        });
+        const shoulderX = 0.38 * s;   // flush with body edge
+        const shoulderY = body.position.y + 0.15 * s;
+        for (const sx of [-1, 1]) {
+            // Pivot sits at the shoulder joint
+            const pivot = new THREE.Group();
+            pivot.position.set(sx * shoulderX, shoulderY, 0.05 * s);
+            pivot.rotation.z = sx * 0.35;   // resting angle
+            pivot.userData.isWing = true;
+
+            // Geometry offset so its inner edge is at the pivot (x=0 in pivot space)
+            const wingMesh = new THREE.Mesh(wingGeo, wingMat.clone());
+            wingMesh.position.set(sx * wingW * 0.5, 0, 0);  // extends outward
+            pivot.add(wingMesh);
+            group.add(pivot);
+        }
+    }
+
+    _addHpBar(group, s);
+    return group;
+}
+
 // ---- Monster attack arc (swish) ----
 function _buildMonsterArcMesh() {
     const segments  = 12;
@@ -67,7 +277,8 @@ for (const [type, def] of Object.entries(MONSTER_DEFS)) {
 }
 
 // Build single monster mesh — skeleton and dragon get special meshes
-function _buildMonsterMesh(type) {
+function _buildMonsterMesh(type, procDef) {
+    if (procDef)             return _buildProceduralMesh(procDef);
     if (type === 'skeleton') return _buildSkeletonMesh();
     if (type === 'dragon')   return _buildDragonMesh();
 
@@ -207,9 +418,15 @@ function _buildDragonMesh() {
 
 // Monster class
 class Monster {
-    constructor(scene, type, pos) {
+    /**
+     * @param {THREE.Scene} scene
+     * @param {string} type  — key from MONSTER_DEFS, or 'proc' for procedural
+     * @param {THREE.Vector3} pos
+     * @param {object|null} procDef — procedural def from generateProceduralMonster(), or null
+     */
+    constructor(scene, type, pos, procDef = null) {
         this.type     = type;
-        this.def      = MONSTER_DEFS[type];
+        this.def      = procDef ?? MONSTER_DEFS[type];
         this.hp       = this.def.hp;
         this.maxHp    = this.def.hp;
         this.alive    = true;
@@ -224,7 +441,7 @@ class Monster {
         this.arcMesh  = null;   // attack swish arc
         this.arcTimer = 0;
 
-        this.mesh = _buildMonsterMesh(type);
+        this.mesh = _buildMonsterMesh(type, procDef);
         this.mesh.position.copy(pos);
         this.mesh.position.y = 0;
         scene.add(this.mesh);
@@ -364,13 +581,13 @@ class Monster {
             }
         }
 
-        // Dragon wing flap animation
-        if (this.type === 'dragon') {
+        // Wing flap animation (dragon + procedural winged monsters)
+        if (this.type === 'dragon' || (this.def.isProc && this.def.hasWings)) {
             this.mesh.userData.wingTimer = (this.mesh.userData.wingTimer || 0) + dt * 3;
             for (const child of this.mesh.children) {
                 if (child.userData.isWing) {
                     const side = child.position.x > 0 ? 1 : -1;
-                    child.rotation.z = side * (0.45 + Math.sin(this.mesh.userData.wingTimer) * 0.3);
+                    child.rotation.z = side * (0.35 + Math.sin(this.mesh.userData.wingTimer) * 0.28);
                 }
             }
         }
@@ -414,7 +631,20 @@ export function initMonsters(scene) {
     let bossAlive  = false;
 
     function spawnMonster(type, pos) {
-        const def = MONSTER_DEFS[type];
+        let procDef = null;
+        let def;
+
+        if (type === 'proc') {
+            // Generate a procedural monster with tier based on distance from village
+            const tier = pos
+                ? Math.min(1, Math.max(0, (pos.length() - MONSTER_ZONE_MIN) / (MONSTER_ZONE_MAX - MONSTER_ZONE_MIN)))
+                : Math.random();
+            procDef = generateProceduralMonster(tier * 0.7 + Math.random() * 0.3);
+            def = procDef;
+        } else {
+            def = MONSTER_DEFS[type];
+        }
+
         if (!pos) {
             const minR  = Math.max(MONSTER_ZONE_MIN, def.minZone ?? 0);
             const maxR  = MONSTER_ZONE_MAX;
@@ -422,7 +652,7 @@ export function initMonsters(scene) {
             const r     = minR + Math.random() * (maxR - minR);
             pos = new THREE.Vector3(Math.cos(angle) * r, 0, Math.sin(angle) * r);
         }
-        const m = new Monster(scene, type, pos);
+        const m = new Monster(scene, type, pos, procDef);
         monsters.push(m);
         if (type === 'dragon') bossAlive = true;
         return m;
@@ -434,17 +664,22 @@ export function initMonsters(scene) {
     });
 
     // Initial spawn — a few close to village edge, rest farther out
-    const closeTypes = ['slime', 'slime', 'goblin', 'slime', 'wolf'];
+    const closeTypes = ['slime', 'slime', 'goblin', 'proc', 'wolf'];
     for (let i = 0; i < closeTypes.length; i++) {
         const angle = (i / closeTypes.length) * Math.PI * 2;
         const r     = VILLAGE_RADIUS + 4 + Math.random() * 6;
         const pos   = new THREE.Vector3(Math.cos(angle) * r, 0, Math.sin(angle) * r);
         spawnMonster(closeTypes[i], pos);
     }
-    // More in the general zone (no bosses on initial spawn)
+    // More in the general zone (no bosses on initial spawn) — 40% procedural
     for (let i = 0; i < 10; i++) {
-        const type = COMMON_MONSTER_TYPES[Math.floor(Math.random() * COMMON_MONSTER_TYPES.length)];
-        spawnMonster(type);
+        const useProc = Math.random() < 0.4;
+        if (useProc) {
+            spawnMonster('proc');
+        } else {
+            const type = COMMON_MONSTER_TYPES[Math.floor(Math.random() * COMMON_MONSTER_TYPES.length)];
+            spawnMonster(type);
+        }
     }
 
     function update(dt, playerPos, camera) {
@@ -458,8 +693,13 @@ export function initMonsters(scene) {
             spawnTimer += dt;
             if (spawnTimer >= SPAWN_INTERVAL) {
                 spawnTimer = 0;
-                const type = COMMON_MONSTER_TYPES[Math.floor(Math.random() * COMMON_MONSTER_TYPES.length)];
-                spawnMonster(type);
+                // 35% chance to spawn a procedural monster
+                if (Math.random() < 0.35) {
+                    spawnMonster('proc');
+                } else {
+                    const type = COMMON_MONSTER_TYPES[Math.floor(Math.random() * COMMON_MONSTER_TYPES.length)];
+                    spawnMonster(type);
+                }
             }
         }
 

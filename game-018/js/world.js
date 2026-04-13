@@ -124,10 +124,23 @@ export function initWorld() {
     fireGroup.userData.flame = flame;
 
     // ---- Decorative trees ----
-    _spawnTrees(scene, 80, VILLAGE_RADIUS + 4, WORLD_SIZE - 5);
+    _spawnTrees(scene, 90, VILLAGE_RADIUS + 4, WORLD_SIZE - 5);
 
-    // ---- Decorative rocks ----
-    _spawnRocks(scene, 40, VILLAGE_RADIUS + 4, WORLD_SIZE - 5);
+    // ---- Decorative rocks (singles + clusters) ----
+    _spawnRocks(scene, 30, VILLAGE_RADIUS + 4, WORLD_SIZE - 5);
+    _spawnRockClusters(scene, 12, VILLAGE_RADIUS + 6, WORLD_SIZE - 8);
+
+    // ---- Forest trails ----
+    _spawnTrails(scene);
+
+    // ---- Bushes ----
+    _spawnBushes(scene, 55, VILLAGE_RADIUS + 3, WORLD_SIZE - 6);
+
+    // ---- Passive animals (rabbits) — returned for animation ----
+    const rabbits = _spawnRabbits(scene, 18, VILLAGE_RADIUS + 5, WORLD_SIZE - 10);
+
+    // ---- Flowers / grass tufts ----
+    _spawnFlowerPatches(scene, 60, VILLAGE_RADIUS + 3, WORLD_SIZE - 6);
 
     // ---- Stars (visible at night) ----
     const starGeo  = new THREE.BufferGeometry();
@@ -147,7 +160,7 @@ export function initWorld() {
     stars.visible  = false;
     scene.add(stars);
 
-    return { scene, camera, renderer, villageCenter: new THREE.Vector3(0, 0, 0), fireGroup, ambient, sun, stars };
+    return { scene, camera, renderer, villageCenter: new THREE.Vector3(0, 0, 0), fireGroup, ambient, sun, stars, rabbits };
 }
 
 // ---- Tree helper ----
@@ -205,5 +218,248 @@ function _spawnRocks(scene, count, minR, maxR) {
         rock.castShadow = true;
         rock.receiveShadow = true;
         scene.add(rock);
+    }
+}
+
+// ---- Rock cluster helper — groups of 3-5 rocks close together ----
+function _spawnRockClusters(scene, count, minR, maxR) {
+    const bigGeo  = new THREE.DodecahedronGeometry(0.6, 1);
+    const smlGeo  = new THREE.DodecahedronGeometry(0.3, 0);
+
+    for (let i = 0; i < count; i++) {
+        const angle  = Math.random() * Math.PI * 2;
+        const r      = minR + Math.random() * (maxR - minR);
+        const cx     = Math.cos(angle) * r;
+        const cz     = Math.sin(angle) * r;
+        const clrHex = 0x666666 + Math.floor(Math.random() * 0x333333);
+        const clusterSize = 3 + Math.floor(Math.random() * 3);
+
+        for (let j = 0; j < clusterSize; j++) {
+            const geo  = j === 0 ? bigGeo : smlGeo;
+            const rock = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: clrHex }));
+            const jOff = j === 0 ? 0 : (Math.random() - 0.5) * 1.8;
+            rock.position.set(
+                cx + (Math.random() - 0.5) * 2.0,
+                j === 0 ? 0.3 : 0.15,
+                cz + (Math.random() - 0.5) * 2.0
+            );
+            rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            const s = j === 0 ? (0.8 + Math.random() * 1.2) : (0.4 + Math.random() * 0.6);
+            rock.scale.set(s, s * (0.5 + Math.random() * 0.4), s * (0.8 + Math.random() * 0.4));
+            rock.castShadow = true;
+            rock.receiveShadow = true;
+            scene.add(rock);
+        }
+    }
+}
+
+// ---- Forest trails — winding dirt paths ----
+function _spawnTrails(scene) {
+    const trailMat = new THREE.MeshLambertMaterial({ color: 0xa08060 });
+
+    // 3 radial trails branching out from village edge
+    const trailAngles = [0.8, 2.5, 4.8];
+    for (const baseAngle of trailAngles) {
+        let x = Math.cos(baseAngle) * (VILLAGE_RADIUS + 2);
+        let z = Math.sin(baseAngle) * (VILLAGE_RADIUS + 2);
+        let angle = baseAngle;
+
+        for (let step = 0; step < 18; step++) {
+            const segLen = 3.5 + Math.random() * 2;
+            angle += (Math.random() - 0.5) * 0.35;   // gentle curve
+            const nx = x + Math.cos(angle) * segLen;
+            const nz = z + Math.sin(angle) * segLen;
+
+            const cx = (x + nx) * 0.5;
+            const cz = (z + nz) * 0.5;
+            const len = Math.sqrt((nx - x) ** 2 + (nz - z) ** 2);
+
+            const seg = new THREE.Mesh(
+                new THREE.PlaneGeometry(1.4 + Math.random() * 0.4, len),
+                trailMat
+            );
+            seg.rotation.x = -Math.PI / 2;
+            seg.rotation.z = -(angle - Math.PI / 2);
+            seg.position.set(cx, 0.015, cz);
+            seg.receiveShadow = true;
+            scene.add(seg);
+
+            x = nx; z = nz;
+            if (Math.sqrt(nx * nx + nz * nz) > WORLD_SIZE - 8) break;
+        }
+    }
+}
+
+// ---- Bush helper ----
+function _spawnBushes(scene, count, minR, maxR) {
+    for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const r     = minR + Math.random() * (maxR - minR);
+        const x     = Math.cos(angle) * r;
+        const z     = Math.sin(angle) * r;
+
+        // Pick a green shade
+        const greenBase = 0x1a5c1a + Math.floor(Math.random() * 0x184018);
+        const group = new THREE.Group();
+        group.position.set(x, 0, z);
+
+        // 2–3 overlapping sphere blobs
+        const blobCount = 2 + Math.floor(Math.random() * 2);
+        for (let b = 0; b < blobCount; b++) {
+            const blobR = 0.3 + Math.random() * 0.25;
+            const blob  = new THREE.Mesh(
+                new THREE.SphereGeometry(blobR, 6, 5),
+                new THREE.MeshLambertMaterial({ color: greenBase + Math.floor(Math.random() * 0x102010) })
+            );
+            blob.position.set(
+                (Math.random() - 0.5) * 0.5,
+                blobR * 0.85,
+                (Math.random() - 0.5) * 0.5
+            );
+            blob.castShadow = true;
+            group.add(blob);
+        }
+
+        const s = 0.6 + Math.random() * 0.9;
+        group.scale.set(s, s * (0.6 + Math.random() * 0.5), s);
+        scene.add(group);
+    }
+}
+
+// ---- Flower patches / grass tufts ----
+function _spawnFlowerPatches(scene, count, minR, maxR) {
+    const flowerColors = [0xffcc00, 0xff66aa, 0xffffff, 0xcc66ff, 0xff8833];
+    const stemMat = new THREE.MeshLambertMaterial({ color: 0x4a8a2a });
+
+    for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const r     = minR + Math.random() * (maxR - minR);
+        const cx    = Math.cos(angle) * r;
+        const cz    = Math.sin(angle) * r;
+
+        const flowerCount = 2 + Math.floor(Math.random() * 4);
+        for (let f = 0; f < flowerCount; f++) {
+            const fx = cx + (Math.random() - 0.5) * 1.4;
+            const fz = cz + (Math.random() - 0.5) * 1.4;
+
+            // Stem
+            const stem = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.02, 0.02, 0.28, 4),
+                stemMat
+            );
+            stem.position.set(fx, 0.14, fz);
+            scene.add(stem);
+
+            // Head
+            const col  = flowerColors[Math.floor(Math.random() * flowerColors.length)];
+            const head = new THREE.Mesh(
+                new THREE.SphereGeometry(0.08 + Math.random() * 0.05, 5, 4),
+                new THREE.MeshLambertMaterial({ color: col })
+            );
+            head.position.set(fx, 0.32, fz);
+            scene.add(head);
+        }
+    }
+}
+
+// ---- Passive rabbits ----
+function _spawnRabbits(scene, count, minR, maxR) {
+    const bodyMat = new THREE.MeshLambertMaterial({ color: 0xddccbb });
+    const earMat  = new THREE.MeshLambertMaterial({ color: 0xffaaaa });
+    const eyeMat  = new THREE.MeshBasicMaterial({ color: 0x220000 });
+    const list    = [];
+
+    for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const r     = minR + Math.random() * (maxR - minR);
+        const ox    = Math.cos(angle) * r;
+        const oz    = Math.sin(angle) * r;
+
+        const group = new THREE.Group();
+        group.position.set(ox, 0, oz);
+
+        // Body
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.22, 7, 6), bodyMat.clone());
+        body.scale.set(1, 0.8, 1.2);
+        body.position.y = 0.2;
+        body.castShadow = true;
+        group.add(body);
+
+        // Head
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.14, 6, 5), bodyMat.clone());
+        head.position.set(0, 0.38, -0.2);
+        group.add(head);
+
+        // Ears (two tall thin boxes)
+        for (const ex of [-0.07, 0.07]) {
+            const ear = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.22, 0.04), earMat);
+            ear.position.set(ex, 0.56, -0.2);
+            group.add(ear);
+        }
+
+        // Eyes
+        for (const ex of [-0.06, 0.06]) {
+            const eye = new THREE.Mesh(new THREE.SphereGeometry(0.03, 5, 4), eyeMat);
+            eye.position.set(ex, 0.4, -0.33);
+            group.add(eye);
+        }
+
+        // Tail (tiny white puff)
+        const tail = new THREE.Mesh(new THREE.SphereGeometry(0.07, 5, 4),
+            new THREE.MeshLambertMaterial({ color: 0xffffff }));
+        tail.position.set(0, 0.2, 0.22);
+        group.add(tail);
+
+        scene.add(group);
+
+        // Store wander state on group.userData
+        group.userData.rabbit = {
+            homeX: ox, homeZ: oz,
+            targetX: ox, targetZ: oz,
+            wanderTimer: Math.random() * 3,
+            hopTimer: 0,
+            hopPhase: 0,
+        };
+
+        list.push(group);
+    }
+
+    return list;
+}
+
+/**
+ * updateRabbits(rabbits, dt) — call from main game loop each frame.
+ * Rabbits wander near their spawn point and hop gently.
+ */
+export function updateRabbits(rabbits, dt) {
+    if (!rabbits) return;
+    for (const r of rabbits) {
+        const d = r.userData.rabbit;
+        d.wanderTimer -= dt;
+        if (d.wanderTimer <= 0) {
+            // Pick a new nearby target
+            const spread = 4 + Math.random() * 4;
+            const a = Math.random() * Math.PI * 2;
+            d.targetX = d.homeX + Math.cos(a) * spread;
+            d.targetZ = d.homeZ + Math.sin(a) * spread;
+            d.wanderTimer = 2.5 + Math.random() * 4;
+        }
+
+        // Move toward target
+        const dx = d.targetX - r.position.x;
+        const dz = d.targetZ - r.position.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist > 0.3) {
+            const spd = 1.8;
+            r.position.x += (dx / dist) * spd * dt;
+            r.position.z += (dz / dist) * spd * dt;
+            r.rotation.y  = Math.atan2(dx, dz);
+
+            // Hop animation
+            d.hopTimer += dt * 6;
+            r.position.y = Math.max(0, Math.sin(d.hopTimer) * 0.12);
+        } else {
+            r.position.y = 0;
+        }
     }
 }

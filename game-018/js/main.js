@@ -35,7 +35,7 @@
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js';
 
-import { initWorld }    from './world.js';
+import { initWorld, updateRabbits } from './world.js';
 import { initPlayer, requestPointerLock } from './player.js';
 import { initMonsters } from './monsters.js';
 import { initPickups }  from './pickups.js';
@@ -99,7 +99,7 @@ document.addEventListener('keydown', (e) => {
 
 function _initGame(loadSave = false) {
     // --- World ---
-    const { scene, camera, renderer, fireGroup, ambient, sun, stars } = initWorld();
+    const { scene, camera, renderer, fireGroup, ambient, sun, stars, rabbits } = initWorld();
 
     // --- Systems ---
     const { playerGroup, update: updatePlayer } = initPlayer(scene, camera);
@@ -302,6 +302,7 @@ function _initGame(loadSave = false) {
             dungeonSystem.update(dt, pPos, camera);
             updatePickups(dt, pPos);
             updateQuests(dt);
+            updateRabbits(rabbits, dt);
             minimap.update();
 
             // Gametic event for autosave
