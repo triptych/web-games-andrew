@@ -62,6 +62,22 @@ function _buildPlayerMesh() {
     head.castShadow = true;
     group.add(head);
 
+    // Face — eyes (on +Z face, which is forward since rotation uses atan2(x,z))
+    const eyeGeo = new THREE.BoxGeometry(0.09, 0.09, 0.05);
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+    for (const ox of [-0.13, 0.13]) {
+        const eye = new THREE.Mesh(eyeGeo, eyeMat);
+        eye.position.set(ox, 1.73, 0.29);   // front face of head (+Z)
+        group.add(eye);
+    }
+
+    // Face — nose dot
+    const noseGeo = new THREE.BoxGeometry(0.07, 0.05, 0.05);
+    const noseMat = new THREE.MeshBasicMaterial({ color: 0xcc8866 });
+    const nose    = new THREE.Mesh(noseGeo, noseMat);
+    nose.position.set(0, 1.64, 0.29);
+    group.add(nose);
+
     // Weapon (starts as sword)
     const swordGeo = new THREE.BoxGeometry(0.12, 0.8, 0.12);
     const swordMat = new THREE.MeshLambertMaterial({ color: 0xcccccc });
@@ -83,6 +99,52 @@ function _buildPlayerMesh() {
     return group;
 }
 
+// ---- Build weapon arc mesh ----
+// Returns a flat fan mesh lying on the XZ plane, centred at origin,
+// pointing in -Z (forward), with the given range and half-angle.
+function _buildArcMesh(range, arcAngle) {
+    const segments = 16;
+    const halfAngle = arcAngle / 2;
+
+    const vertices = [];
+    const indices  = [];
+
+    // Centre vertex
+    vertices.push(0, 0.08, 0);
+
+    // Arc vertices (fan from -halfAngle to +halfAngle in XZ plane, forward = +Z)
+    for (let i = 0; i <= segments; i++) {
+        const t   = i / segments;
+        const ang = -halfAngle + t * arcAngle;  // rotates around Y axis
+        // Forward direction is +Z (matches atan2(x,z) rotation convention)
+        const x = Math.sin(ang) * range;
+        const z = Math.cos(ang) * range;
+        vertices.push(x, 0.08, z);
+    }
+
+    // Triangles: centre(0) + arc[i] + arc[i+1]
+    for (let i = 0; i < segments; i++) {
+        indices.push(0, i + 1, i + 2);
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+
+    const mat = new THREE.MeshBasicMaterial({
+        color: 0xffee44,
+        transparent: true,
+        opacity: 0.55,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+    });
+
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.renderOrder = 1;
+    return mesh;
+}
+
 // ---- Init ----
 export function initPlayer(scene, camera) {
     const playerGroup = _buildPlayerMesh();
@@ -95,6 +157,11 @@ export function initPlayer(scene, camera) {
     let isMoving     = false;
     let lastFacingDir = new THREE.Vector3(0, 0, -1);  // cached for arc attacks
     let tavernHealTimer = 0;
+
+    // Weapon arc flash — shown briefly when player attacks
+    let arcMesh    = null;  // current arc mesh in scene
+    let arcTimer   = 0;     // >0 = visible
+    const ARC_DURATION = 0.22;
 
     // Arm bob reference (always look up the current weapon by name)
     const sword = playerGroup.userData.sword;
@@ -189,6 +256,28 @@ export function initPlayer(scene, camera) {
             if (state.equippedWeapon === 'axe') playAxeSwing();
             else if (state.equippedWeapon === 'bow') playBowShot();
             else playSwordSwing();
+
+            // Show weapon arc sweep
+            if (arcMesh) { scene.remove(arcMesh); arcMesh = null; }
+            arcMesh = _buildArcMesh(weapon.range, weapon.arcAngle);
+            // Position at player feet, rotated to face player's current direction
+            arcMesh.position.copy(playerGroup.position);
+            arcMesh.position.y = 0.05;
+            arcMesh.rotation.y = playerGroup.rotation.y;
+            scene.add(arcMesh);
+            arcTimer = ARC_DURATION;
+        }
+
+        // Animate arc fade-out (track player so it doesn't lag behind)
+        if (arcTimer > 0) {
+            arcTimer -= dt;
+            if (arcMesh) {
+                arcMesh.position.x = playerGroup.position.x;
+                arcMesh.position.z = playerGroup.position.z;
+                const fade = Math.max(0, arcTimer / ARC_DURATION);
+                arcMesh.material.opacity = 0.55 * fade;
+                if (arcTimer <= 0) { scene.remove(arcMesh); arcMesh = null; }
+            }
         }
 
         // Weapon swing animation
@@ -202,9 +291,6 @@ export function initPlayer(scene, camera) {
                 currentWeapon.rotation.x = Math.sin(Date.now() * 0.002) * 0.1;
             }
         }
-
-        // --- Pickup scan ---
-        _checkPickups(playerGroup.position, pickups);
 
         // --- Tavern proximity heal ---
         if (builtPositions) {
@@ -253,13 +339,3 @@ function _doAttack(playerGroup, monsters, lastFacingDir) {
     }
 }
 
-// ---- Pickup ----
-function _checkPickups(pPos, pickups) {
-    for (let i = pickups.length - 1; i >= 0; i--) {
-        const p = pickups[i];
-        if (!p.active) continue;
-        if (pPos.distanceTo(p.mesh.position) < 1.2) {
-            p.collect();
-        }
-    }
-}

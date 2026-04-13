@@ -9,11 +9,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.m
 import { state }  from './state.js';
 import { events } from './events.js';
 import {
-    MONSTER_DEFS, MONSTER_TYPES, MONSTER_CAP,
+    MONSTER_DEFS, COMMON_MONSTER_TYPES, MONSTER_CAP,
     MONSTER_ZONE_MIN, MONSTER_ZONE_MAX,
-    SPAWN_INTERVAL, VILLAGE_RADIUS,
+    SPAWN_INTERVAL, BOSS_SPAWN_INTERVAL, VILLAGE_RADIUS,
 } from './config.js';
 import { playMonsterHit, playMonsterDie, playPlayerHurt } from './sounds.js';
+
+// Reusable quaternion for billboard calculations (avoids per-frame allocation)
+const _invParentQ = new THREE.Quaternion();
 
 // Pre-build shared geometries/materials per monster type
 const _geos = {};
@@ -30,8 +33,11 @@ for (const [type, def] of Object.entries(MONSTER_DEFS)) {
     };
 }
 
-// Build single monster mesh
+// Build single monster mesh — skeleton and dragon get special meshes
 function _buildMonsterMesh(type) {
+    if (type === 'skeleton') return _buildSkeletonMesh();
+    if (type === 'dragon')   return _buildDragonMesh();
+
     const def   = MONSTER_DEFS[type];
     const s     = def.scale;
     const group = new THREE.Group();
@@ -50,15 +56,119 @@ function _buildMonsterMesh(type) {
         group.add(eye);
     }
 
-    // HP bar (sprite quad above head)
-    const hpBarGeo  = new THREE.PlaneGeometry(0.8 * s, 0.1 * s);
-    const hpBarMat  = new THREE.MeshBasicMaterial({ color: 0x44cc44, side: THREE.DoubleSide });
-    const hpBar     = new THREE.Mesh(hpBarGeo, hpBarMat);
+    _addHpBar(group, s);
+    return group;
+}
+
+function _addHpBar(group, s) {
+    const hpBarGeo = new THREE.PlaneGeometry(0.8 * s, 0.1 * s);
+    const hpBarMat = new THREE.MeshBasicMaterial({ color: 0x44cc44, side: THREE.DoubleSide });
+    const hpBar    = new THREE.Mesh(hpBarGeo, hpBarMat);
     hpBar.position.y = 1.0 * s + 0.15;
-    hpBar.name       = 'hpBar';
+    hpBar.name = 'hpBar';
     group.userData.hpBar = hpBar;
     group.add(hpBar);
+}
 
+function _buildSkeletonMesh() {
+    const def   = MONSTER_DEFS.skeleton;
+    const s     = def.scale;
+    const group = new THREE.Group();
+    const boneMat = new THREE.MeshLambertMaterial({ color: def.color, transparent: true });
+
+    // Ribcage body (thin, taller box)
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.55 * s, 0.7 * s, 0.25 * s), boneMat.clone());
+    torso.position.y = 0.55 * s;
+    torso.name = 'body';
+    torso.castShadow = true;
+    group.add(torso);
+
+    // Pelvis
+    const pelvis = new THREE.Mesh(new THREE.BoxGeometry(0.5 * s, 0.18 * s, 0.22 * s), boneMat.clone());
+    pelvis.position.y = 0.18 * s;
+    pelvis.name = 'body';
+    group.add(pelvis);
+
+    // Skull
+    const skull = new THREE.Mesh(new THREE.BoxGeometry(0.38 * s, 0.38 * s, 0.35 * s), boneMat.clone());
+    skull.position.y = 1.05 * s;
+    group.add(skull);
+
+    // Glowing eye sockets
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
+    for (const ox of [-0.1 * s, 0.1 * s]) {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.07 * s, 5, 5), eyeMat);
+        eye.position.set(ox, 1.08 * s, -0.18 * s);
+        group.add(eye);
+    }
+
+    // Arm bones (two thin boxes on sides)
+    for (const ox of [-0.38 * s, 0.38 * s]) {
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.1 * s, 0.55 * s, 0.1 * s), boneMat.clone());
+        arm.position.set(ox, 0.5 * s, 0);
+        group.add(arm);
+    }
+
+    _addHpBar(group, s);
+    return group;
+}
+
+function _buildDragonMesh() {
+    const def   = MONSTER_DEFS.dragon;
+    const s     = def.scale;
+    const group = new THREE.Group();
+    const bodyMat = new THREE.MeshLambertMaterial({ color: def.color, transparent: true });
+    const scaleMat = new THREE.MeshLambertMaterial({ color: 0x881100 });
+    const eyeMat  = new THREE.MeshBasicMaterial({ color: 0xffee00 });
+
+    // Main body
+    const body = new THREE.Mesh(new THREE.BoxGeometry(1.0 * s, 0.8 * s, 1.6 * s), bodyMat.clone());
+    body.position.y = 0.7 * s;
+    body.name = 'body';
+    body.castShadow = true;
+    group.add(body);
+
+    // Neck + head
+    const neck = new THREE.Mesh(new THREE.BoxGeometry(0.4 * s, 0.6 * s, 0.4 * s), bodyMat.clone());
+    neck.position.set(0, 1.3 * s, -0.65 * s);
+    neck.rotation.x = -0.4;
+    group.add(neck);
+
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.55 * s, 0.45 * s, 0.7 * s), bodyMat.clone());
+    head.position.set(0, 1.7 * s, -1.1 * s);
+    group.add(head);
+
+    // Snout
+    const snout = new THREE.Mesh(new THREE.BoxGeometry(0.3 * s, 0.22 * s, 0.4 * s), scaleMat.clone());
+    snout.position.set(0, 1.6 * s, -1.5 * s);
+    group.add(snout);
+
+    // Eyes
+    for (const ox of [-0.18 * s, 0.18 * s]) {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.1 * s, 6, 6), eyeMat);
+        eye.position.set(ox, 1.82 * s, -1.15 * s);
+        group.add(eye);
+    }
+
+    // Wings (flat planes angled out)
+    const wingGeo = new THREE.BoxGeometry(1.5 * s, 0.06 * s, 0.9 * s);
+    const wingMat = new THREE.MeshLambertMaterial({ color: 0x992200, transparent: true, opacity: 0.85 });
+    for (const sx of [-1, 1]) {
+        const wing = new THREE.Mesh(wingGeo, wingMat.clone());
+        wing.position.set(sx * 1.1 * s, 1.0 * s, 0.1 * s);
+        wing.rotation.z = sx * 0.45;
+        wing.userData.isWing = true;
+        group.add(wing);
+    }
+
+    // Tail
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.25 * s, 0.25 * s, 1.0 * s), bodyMat.clone());
+    tail.position.set(0, 0.6 * s, 1.1 * s);
+    tail.rotation.x = 0.25;
+    group.add(tail);
+
+    _addHpBar(group, s);
+    group.userData.wingTimer = 0;
     return group;
 }
 
@@ -132,9 +242,10 @@ class Monster {
 
         events.emit('message',
             `${this.def.label} slain! +${this.def.xp} XP, +${this.def.gold} gold${dropStr ? ', +' + dropStr : ''}.`,
-            '#88ddff'
+            this.def.isBoss ? '#ffcc00' : '#88ddff'
         );
         events.emit('monsterDied', this.def, this.mesh.position.clone());
+        events.emit('monsterKilled', this.type);  // quest tracking
     }
 
     updateDeath(dt) {
@@ -152,7 +263,7 @@ class Monster {
         }
     }
 
-    update(dt, playerPos) {
+    update(dt, playerPos, camera) {
         if (!this.alive) return;
 
         const dist = this.mesh.position.distanceTo(playerPos);
@@ -196,9 +307,24 @@ class Monster {
             }
         }
 
-        // Billboard HP bar to always face camera
+        // Dragon wing flap animation
+        if (this.type === 'dragon') {
+            this.mesh.userData.wingTimer = (this.mesh.userData.wingTimer || 0) + dt * 3;
+            for (const child of this.mesh.children) {
+                if (child.userData.isWing) {
+                    const side = child.position.x > 0 ? 1 : -1;
+                    child.rotation.z = side * (0.45 + Math.sin(this.mesh.userData.wingTimer) * 0.3);
+                }
+            }
+        }
+
+        // Billboard HP bar to always face camera (world-space quaternion copy)
         const bar = this.mesh.userData.hpBar;
-        if (bar) bar.lookAt(playerPos.x, playerPos.y + 8, playerPos.z);
+        if (bar && camera) {
+            // Undo the parent group's world rotation so the bar faces the camera in world space
+            this.mesh.getWorldQuaternion(_invParentQ).invert();
+            bar.quaternion.multiplyQuaternions(_invParentQ, camera.quaternion);
+        }
 
         // Restore flash
         if (this.flashTimer > 0) {
@@ -215,37 +341,47 @@ class Monster {
 export function initMonsters(scene) {
     const monsters = [];
     let spawnTimer = 0;
+    let bossTimer  = 0;
+    let bossAlive  = false;
 
     function spawnMonster(type, pos) {
+        const def = MONSTER_DEFS[type];
         if (!pos) {
-            // Random position in monster zone
+            const minR  = Math.max(MONSTER_ZONE_MIN, def.minZone ?? 0);
+            const maxR  = MONSTER_ZONE_MAX;
             const angle = Math.random() * Math.PI * 2;
-            const r     = MONSTER_ZONE_MIN + Math.random() * (MONSTER_ZONE_MAX - MONSTER_ZONE_MIN);
+            const r     = minR + Math.random() * (maxR - minR);
             pos = new THREE.Vector3(Math.cos(angle) * r, 0, Math.sin(angle) * r);
         }
         const m = new Monster(scene, type, pos);
         monsters.push(m);
+        if (type === 'dragon') bossAlive = true;
         return m;
     }
 
+    // Track boss death
+    events.on('monsterKilled', (type) => {
+        if (type === 'dragon') bossAlive = false;
+    });
+
     // Initial spawn — a few close to village edge, rest farther out
-    const closeTypes = ['slime', 'slime', 'goblin', 'slime'];
+    const closeTypes = ['slime', 'slime', 'goblin', 'slime', 'wolf'];
     for (let i = 0; i < closeTypes.length; i++) {
         const angle = (i / closeTypes.length) * Math.PI * 2;
-        const r     = VILLAGE_RADIUS + 4 + Math.random() * 6;  // just outside village
+        const r     = VILLAGE_RADIUS + 4 + Math.random() * 6;
         const pos   = new THREE.Vector3(Math.cos(angle) * r, 0, Math.sin(angle) * r);
         spawnMonster(closeTypes[i], pos);
     }
-    // More in the general zone
-    for (let i = 0; i < 8; i++) {
-        const type = MONSTER_TYPES[Math.floor(Math.random() * MONSTER_TYPES.length)];
+    // More in the general zone (no bosses on initial spawn)
+    for (let i = 0; i < 10; i++) {
+        const type = COMMON_MONSTER_TYPES[Math.floor(Math.random() * COMMON_MONSTER_TYPES.length)];
         spawnMonster(type);
     }
 
-    function update(dt, playerPos) {
+    function update(dt, playerPos, camera) {
         for (const m of monsters) {
             if (m.dying) { m.updateDeath(dt); continue; }
-            if (m.alive) m.update(dt, playerPos);
+            if (m.alive) m.update(dt, playerPos, camera);
         }
 
         const aliveCount = monsters.filter(m => m.alive).length;
@@ -253,8 +389,18 @@ export function initMonsters(scene) {
             spawnTimer += dt;
             if (spawnTimer >= SPAWN_INTERVAL) {
                 spawnTimer = 0;
-                const type = MONSTER_TYPES[Math.floor(Math.random() * MONSTER_TYPES.length)];
+                const type = COMMON_MONSTER_TYPES[Math.floor(Math.random() * COMMON_MONSTER_TYPES.length)];
                 spawnMonster(type);
+            }
+        }
+
+        // Boss dragon spawns periodically if not alive
+        if (!bossAlive) {
+            bossTimer += dt;
+            if (bossTimer >= BOSS_SPAWN_INTERVAL) {
+                bossTimer = 0;
+                spawnMonster('dragon');
+                events.emit('message', 'A Dragon has been spotted in the distance!', '#ff4400');
             }
         }
     }

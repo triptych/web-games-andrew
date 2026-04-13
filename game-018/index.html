@@ -110,14 +110,14 @@
 
         #hud-resources {
             position: absolute;
-            top: 12px; right: 12px;
+            top: 184px; right: 12px;
             background: rgba(0,0,0,0.65);
             border: 1px solid rgba(200,168,68,0.4);
             border-radius: 8px;
             padding: 10px 14px;
             color: #eee;
             font-size: 13px;
-            min-width: 140px;
+            min-width: 160px;
         }
         #hud-resources .res { display: flex; justify-content: space-between; gap: 12px; margin: 3px 0; }
         #hud-resources .res-label { color: #88aa88; font-size: 11px; }
@@ -265,6 +265,85 @@
         }
         #inventory-close:hover { background: rgba(136,221,255,0.15); }
 
+        /* Quest log panel */
+        #quest-panel {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10,16,10,0.96);
+            border: 2px solid #ffee44;
+            border-radius: 12px;
+            padding: 20px 28px;
+            color: #eee;
+            min-width: 360px;
+            max-width: 480px;
+            max-height: 70vh;
+            overflow-y: auto;
+            display: none;
+            pointer-events: all;
+            z-index: 50;
+        }
+        #quest-panel h2 { color: #ffee44; margin-bottom: 14px; font-size: 1.3rem; }
+        .quest-item {
+            padding: 8px 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 4px;
+        }
+        .quest-item:last-child { border-bottom: none; }
+        .q-title { font-weight: bold; color: #c8e8a0; margin-bottom: 2px; }
+        .quest-active .q-title { color: #ffee44; }
+        .q-desc { font-size: 11px; color: #88aa88; margin-bottom: 3px; }
+        .q-prog { font-size: 11px; color: #88ddff; }
+        .q-reward { font-size: 11px; color: #c8a844; margin-top: 2px; }
+        .q-accept-btn {
+            margin-top: 5px;
+            background: #88cc44;
+            color: #0a100a;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 12px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .q-accept-btn:hover { background: #aae055; }
+        #quest-close {
+            margin-top: 14px;
+            background: transparent;
+            border: 1px solid #ffee44;
+            color: #ffee44;
+            border-radius: 4px;
+            padding: 5px 14px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        #quest-close:hover { background: rgba(255,238,68,0.15); }
+
+        /* Minimap */
+        #minimap {
+            position: absolute;
+            top: 12px; right: 12px;
+            width: 160px; height: 160px;
+            background: rgba(0,0,0,0.75);
+            border: 1px solid rgba(200,168,68,0.5);
+            border-radius: 50%;
+            overflow: hidden;
+            display: block;
+        }
+        #minimap canvas { display: block; }
+
+        /* Potion HUD */
+        #hud-potions {
+            position: absolute;
+            bottom: 18px; left: 12px;
+            background: rgba(0,0,0,0.65);
+            border: 1px solid rgba(200,168,68,0.3);
+            border-radius: 8px;
+            padding: 6px 12px;
+            color: #eee;
+            font-size: 12px;
+        }
+
         #hidden { display: none; }
 
         /* Game over overlay */
@@ -315,14 +394,16 @@
         <div class="controls-grid">
             <span class="key">WASD / Arrows</span> <span>Move hero</span>
             <span class="key">Mouse</span> <span>Rotate camera</span>
-            <span class="key">Space / Click</span> <span>Attack</span>
-            <span class="key">E</span> <span>Interact / Build menu</span>
-            <span class="key">Tab</span> <span>Switch mode (Explore / Village)</span>
+            <span class="key">Space</span> <span>Attack</span>
+            <span class="key">E</span> <span>Interact / Harvest / Build</span>
             <span class="key">I</span> <span>Inventory / weapons</span>
-            <span class="key">Escape</span> <span>Menu</span>
+            <span class="key">Q</span> <span>Quest log</span>
+            <span class="key">H</span> <span>Use health potion</span>
+            <span class="key">C</span> <span>Craft potion (near alchemist)</span>
+            <span class="key">Escape</span> <span>Close panels / unlock mouse</span>
         </div>
         <button class="start-btn" id="splash-start">ENTER THE WORLD</button>
-        <div class="phase-tag">Phase 2 — Combat & World</div>
+        <div class="phase-tag">Phase 3 — Quests, Depth &amp; Crafting</div>
     </div>
 
     <!-- HUD (hidden until game starts) -->
@@ -369,9 +450,11 @@
         <div id="hud-controls">
             <span class="key">WASD</span> Move &nbsp;
             <span class="key">Space</span> Attack &nbsp;
-            <span class="key">E</span> Interact &nbsp;
+            <span class="key">E</span> Interact/Harvest &nbsp;
             <span class="key">I</span> Inventory &nbsp;
-            <span class="key">Tab</span> Mode
+            <span class="key">Q</span> Quests &nbsp;
+            <span class="key">H</span> Potion &nbsp;
+            <span class="key">C</span> Craft
         </div>
 
         <!-- Message log -->
@@ -389,6 +472,24 @@
             <h2>Inventory</h2>
             <div id="inventory-list"></div>
             <button id="inventory-close">Close</button>
+        </div>
+
+        <!-- Quest log panel -->
+        <div id="quest-panel">
+            <h2>&#x1F4DC; Quest Log</h2>
+            <div id="quest-list"></div>
+            <button id="quest-close">Close</button>
+        </div>
+
+        <!-- Minimap -->
+        <div id="minimap">
+            <canvas id="minimap-canvas" width="160" height="160"></canvas>
+        </div>
+
+        <!-- Potion HUD -->
+        <div id="hud-potions">
+            <span style="color:#c8a844;">&#x2697;</span> Potions: <span id="potion-count">0</span>/<span id="potion-max">3</span>
+            &nbsp;<span style="color:#667766;font-size:10px;">[H] Use &nbsp; [C] Craft</span>
         </div>
     </div>
 

@@ -18,6 +18,7 @@ const BUILDING_SLOTS = [
     { x: -8, z:  5  },
     { x:  8, z:  5  },
     { x:  0, z: -10 },
+    { x:  0, z:  10 },   // alchemist slot
 ];
 
 const BUILDING_COLORS = {
@@ -26,6 +27,7 @@ const BUILDING_COLORS = {
     market:     0xaa8844,
     watchtower: 0x8888aa,
     tavern:     0xaa6644,
+    alchemist:  0x6644aa,
 };
 
 const _builtMeshes  = {};

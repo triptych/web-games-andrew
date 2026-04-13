@@ -2,6 +2,7 @@ import { events } from './events.js';
 import {
     PLAYER_HP_BASE, PLAYER_ATK_BASE, XP_PER_LEVEL,
     BUILDING_DEFS, WEAPON_DEFS,
+    MAX_POTIONS, POTION_HEAL_AMOUNT, POTION_COST_HERBS,
 } from './config.js';
 
 /**
@@ -38,6 +39,15 @@ class GameState {
         // --- Weapons ---
         this._equippedWeapon = 'sword';
         this._inventory = ['sword'];
+
+        // --- Potions ---
+        this._potions    = 0;
+        this._maxPotions = MAX_POTIONS;
+
+        // --- Quests: id -> progress count ---
+        this._questProgress  = {};
+        this._completedQuests = new Set();
+        this._activeQuests    = new Set();
     }
 
     // ---- Player HP ----
@@ -155,6 +165,9 @@ class GameState {
             if (newLvl === 3) this.addWeapon('bow');
         }
 
+        // Alchemist: update max potions
+        if (id === 'alchemist') this.updateMaxPotions();
+
         return true;
     }
 
@@ -178,6 +191,55 @@ class GameState {
     }
 
     get isGameOver() { return this._isGameOver; }
+
+    // ---- Potions ----
+    get potions()    { return this._potions; }
+    get maxPotions() { return this._maxPotions; }
+
+    updateMaxPotions() {
+        this._maxPotions = MAX_POTIONS + this.buildingBonus('potionSlots');
+    }
+
+    craftPotion() {
+        if (this._potions >= this._maxPotions) return false;
+        if (!this.spendResource('herbs', POTION_COST_HERBS)) return false;
+        this._potions = Math.min(this._maxPotions, this._potions + 1);
+        events.emit('potionsChanged', this._potions, this._maxPotions);
+        return true;
+    }
+
+    usePotion() {
+        if (this._potions <= 0 || this._hp >= this._maxHp) return false;
+        this._potions--;
+        this.heal(POTION_HEAL_AMOUNT);
+        events.emit('potionsChanged', this._potions, this._maxPotions);
+        return true;
+    }
+
+    // ---- Quests ----
+    isQuestActive(id)    { return this._activeQuests.has(id); }
+    isQuestDone(id)      { return this._completedQuests.has(id); }
+    getQuestProgress(id) { return this._questProgress[id] ?? 0; }
+
+    activateQuest(id) {
+        if (this._activeQuests.has(id) || this._completedQuests.has(id)) return false;
+        this._activeQuests.add(id);
+        this._questProgress[id] = 0;
+        events.emit('questActivated', id);
+        return true;
+    }
+
+    advanceQuest(id, amount = 1) {
+        if (!this._activeQuests.has(id)) return;
+        this._questProgress[id] = (this._questProgress[id] ?? 0) + amount;
+        events.emit('questProgress', id, this._questProgress[id]);
+    }
+
+    completeQuest(id) {
+        this._activeQuests.delete(id);
+        this._completedQuests.add(id);
+        events.emit('questCompleted', id);
+    }
 
     // ---- Weapons ----
     get equippedWeapon() { return this._equippedWeapon; }

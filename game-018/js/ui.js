@@ -5,8 +5,8 @@
 
 import { state }  from './state.js';
 import { events } from './events.js';
-import { BUILDING_DEFS, SELL_PRICES, WEAPON_DEFS } from './config.js';
-import { playUiClick, playBuild } from './sounds.js';
+import { BUILDING_DEFS, SELL_PRICES, WEAPON_DEFS, POTION_COST_HERBS } from './config.js';
+import { playUiClick, playBuild, playGoldPickup } from './sounds.js';
 
 // ---- DOM refs ----
 const barHp       = document.getElementById('bar-hp');
@@ -98,8 +98,57 @@ function buildBuildPanel() {
     });
 }
 
+function buildSellSection() {
+    const marketLvl = state.getBuildingLevel('market');
+    if (marketLvl < 1) return '';
+
+    const sellMult = 1 + state.buildingBonus('sellBonus');
+    const resources = ['wood','stone','iron','herbs'];
+    let rows = '';
+    for (const res of resources) {
+        const amount = state.getResource(res);
+        const price  = Math.ceil(SELL_PRICES[res] * sellMult);
+        rows += `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:12px;">
+            <span style="color:#88aa88;text-transform:capitalize;">${res}: <span style="color:#c8e8a0">${amount}</span></span>
+            <span style="color:#c8a844;font-size:11px;">${price}g each</span>
+            <button class="sell-btn" data-res="${res}" data-price="${price}" ${amount === 0 ? 'disabled' : ''} style="padding:2px 8px;font-size:11px;">Sell All</button>
+        </div>`;
+    }
+
+    return `<div style="border-top:1px solid rgba(200,168,68,0.3);margin-top:10px;padding-top:10px;">
+        <div style="color:#c8a844;font-size:11px;font-weight:bold;margin-bottom:6px;">MARKET — Sell Resources (×${sellMult.toFixed(2)})</div>
+        ${rows}
+    </div>`;
+}
+
 export function showBuildPanel() {
     buildBuildPanel();
+    // Remove any existing sell section before re-appending
+    const oldSell = document.getElementById('sell-section');
+    if (oldSell) oldSell.remove();
+    // Append sell section if market is built
+    const sellHtml = buildSellSection();
+    if (sellHtml) {
+        const sellDiv = document.createElement('div');
+        sellDiv.id = 'sell-section';
+        sellDiv.innerHTML = sellHtml;
+        // Insert before the Close button
+        const closeBtn = document.getElementById('build-close');
+        buildPanel.insertBefore(sellDiv, closeBtn);
+        sellDiv.querySelectorAll('.sell-btn:not(:disabled)').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const res   = btn.dataset.res;
+                const price = parseInt(btn.dataset.price);
+                const amt   = state.getResource(res);
+                if (amt <= 0) return;
+                state.spendResource(res, amt);
+                state.addGold(price * amt);
+                playGoldPickup();
+                events.emit('message', `Sold ${amt} ${res} for ${price * amt} gold.`, '#c8a844');
+                showBuildPanel();  // refresh
+            });
+        });
+    }
     buildPanel.style.display = 'block';
 }
 

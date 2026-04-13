@@ -53,13 +53,15 @@ export function initWorld() {
 
     // ---- Ground ----
     const groundGeo = new THREE.PlaneGeometry(WORLD_SIZE * 2, WORLD_SIZE * 2, 40, 40);
-    // Slightly bump vertices for organic feel
+    // Slightly bump vertices for organic feel.
+    // PlaneGeometry is in the XY plane before rotation, so local X=x, local Y=y (world Z after -PI/2 rotation).
+    // We bump the Z component (local Z = world Y after rotation).
     const pos = groundGeo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i), z = pos.getZ(i);
-        const dist = Math.sqrt(x * x + z * z);
+        const x = pos.getX(i), y = pos.getY(i);   // local X and Y span the plane
+        const dist = Math.sqrt(x * x + y * y);
         if (dist > VILLAGE_RADIUS + 5) {
-            pos.setY(i, (Math.random() - 0.5) * 0.35);
+            pos.setZ(i, (Math.random() - 0.5) * 0.35);  // local Z becomes world Y after rotation
         }
     }
     groundGeo.computeVertexNormals();
