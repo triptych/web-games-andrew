@@ -95,7 +95,25 @@ function _buildPlayerMesh() {
     shadow.position.y = 0.01;
     group.add(shadow);
 
-    group.userData.sword = sword;
+    // Player HP bar (world-space, floats above head)
+    const hpBarBgGeo = new THREE.PlaneGeometry(0.9, 0.12);
+    const hpBarBgMat = new THREE.MeshBasicMaterial({ color: 0x330000, side: THREE.DoubleSide });
+    const hpBarBg   = new THREE.Mesh(hpBarBgGeo, hpBarBgMat);
+    hpBarBg.position.set(0, 2.45, 0);
+    hpBarBg.name = 'hpBarBg';
+    group.add(hpBarBg);
+
+    const hpBarGeo = new THREE.PlaneGeometry(0.9, 0.12);
+    const hpBarMat = new THREE.MeshBasicMaterial({ color: 0x44ee44, side: THREE.DoubleSide });
+    const hpBar    = new THREE.Mesh(hpBarGeo, hpBarMat);
+    // Offset so it shrinks left-to-right: start anchored at left edge
+    hpBar.position.set(0, 2.45, 0.01);
+    hpBar.name = 'playerHpBar';
+    group.add(hpBar);
+
+    group.userData.sword    = sword;
+    group.userData.hpBar    = hpBar;
+    group.userData.hpBarBg  = hpBarBg;
     return group;
 }
 
@@ -249,6 +267,29 @@ export function initPlayer(scene, camera) {
             playerGroup.position.y + 1,
             playerGroup.position.z
         );
+
+        // --- Player HP bar: update scale and billboard toward camera ---
+        const hpBar   = playerGroup.userData.hpBar;
+        const hpBarBg = playerGroup.userData.hpBarBg;
+        if (hpBar && hpBarBg) {
+            const pct = Math.max(0, Math.min(1, state.hp / state.maxHp));
+            hpBar.scale.x = pct;
+            // Shift pivot so bar shrinks from right
+            hpBar.position.x = -0.45 * (1 - pct);
+            // Color: green → yellow → red
+            if (pct > 0.5) {
+                hpBar.material.color.setHex(0x44ee44);
+            } else if (pct > 0.25) {
+                hpBar.material.color.setHex(0xddcc22);
+            } else {
+                hpBar.material.color.setHex(0xee2222);
+            }
+            // Billboard: rotate bar group to face camera (around Y only)
+            const toCam = new THREE.Vector3().subVectors(camera.position, playerGroup.position).setY(0).normalize();
+            const angle = Math.atan2(toCam.x, toCam.z);
+            hpBar.rotation.y   = angle - playerGroup.rotation.y;
+            hpBarBg.rotation.y = angle - playerGroup.rotation.y;
+        }
 
         // --- Attack cooldown ---
         if (atkCooldown > 0) atkCooldown -= dt;

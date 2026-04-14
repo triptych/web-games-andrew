@@ -375,20 +375,22 @@ function _buildMonsterArcMesh() {
     return mesh;
 }
 
-// Pre-build shared geometries/materials per monster type
+// Pre-build shared geometries per monster type (materials built fresh per instance for texture)
 const _geos = {};
-const _mats = {};
 for (const [type, def] of Object.entries(MONSTER_DEFS)) {
     const s = def.scale;
     _geos[type] = {
         body: new THREE.BoxGeometry(0.8 * s, 0.9 * s, 0.8 * s),
         eye:  new THREE.SphereGeometry(0.08 * s, 6, 6),
     };
-    _mats[type] = {
-        body: new THREE.MeshLambertMaterial({ color: def.color }),
-        eye:  new THREE.MeshBasicMaterial({ color: 0xff2222 }),
-    };
 }
+
+const _SKIN_STYLE_MAP = {
+    slime:  'spots',
+    goblin: 'stripes',
+    troll:  'cracked',
+    wolf:   'fur',
+};
 
 // Build single monster mesh — skeleton and dragon get special meshes
 function _buildMonsterMesh(type, procDef) {
@@ -400,16 +402,26 @@ function _buildMonsterMesh(type, procDef) {
     const s     = def.scale;
     const group = new THREE.Group();
 
-    const body = new THREE.Mesh(_geos[type].body, _mats[type].body.clone());
-    body.material.transparent = true;
+    // Apply procedural skin texture if we have a skin style for this type
+    const skinStyle = _SKIN_STYLE_MAP[type];
+    let bodyMat;
+    if (skinStyle && def.accentColor != null) {
+        const skinTex = makeSkinTexture(def.color, def.accentColor, skinStyle);
+        bodyMat = new THREE.MeshLambertMaterial({ color: 0xffffff, map: skinTex, transparent: true });
+    } else {
+        bodyMat = new THREE.MeshLambertMaterial({ color: def.color, transparent: true });
+    }
+
+    const body = new THREE.Mesh(_geos[type].body, bodyMat);
     body.name = 'body';
     body.position.y = 0.45 * s;
     body.castShadow = true;
     group.add(body);
 
     // Eyes
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff2222 });
     for (const ox of [-0.15 * s, 0.15 * s]) {
-        const eye = new THREE.Mesh(_geos[type].eye, _mats[type].eye);
+        const eye = new THREE.Mesh(_geos[type].eye, eyeMat);
         eye.position.set(ox, 0.6 * s, -0.4 * s);
         group.add(eye);
     }

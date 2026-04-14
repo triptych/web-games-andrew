@@ -25,7 +25,7 @@ export const CAM_LERP          = 0.1;
 export const MONSTER_DEFS = {
     slime: {
         label: 'Slime',
-        color: 0x44cc44,
+        color: 0x44cc44, accentColor: 0x228822,
         hp: 30, atk: 6, speed: 2.5,
         xp: 12, gold: 3,
         drops: { wood: 0, stone: 0, iron: 0, herbs: 2 },
@@ -34,7 +34,7 @@ export const MONSTER_DEFS = {
     },
     goblin: {
         label: 'Goblin',
-        color: 0x88bb44,
+        color: 0x88bb44, accentColor: 0x446622,
         hp: 55, atk: 12, speed: 4,
         xp: 25, gold: 8,
         drops: { wood: 2, stone: 0, iron: 1, herbs: 0 },
@@ -43,7 +43,7 @@ export const MONSTER_DEFS = {
     },
     troll: {
         label: 'Troll',
-        color: 0x887755,
+        color: 0x887755, accentColor: 0x554433,
         hp: 140, atk: 22, speed: 1.8,
         xp: 60, gold: 20,
         drops: { wood: 3, stone: 4, iron: 2, herbs: 0 },
@@ -52,7 +52,7 @@ export const MONSTER_DEFS = {
     },
     wolf: {
         label: 'Wolf',
-        color: 0x778899,
+        color: 0x778899, accentColor: 0x445566,
         hp: 45, atk: 15, speed: 5.5,
         xp: 20, gold: 5,
         drops: { wood: 0, stone: 0, iron: 0, herbs: 3 },

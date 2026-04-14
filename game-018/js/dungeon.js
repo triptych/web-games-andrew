@@ -55,6 +55,77 @@ const LOSE_RANGE  = 30;
 
 const _DUNGEON_SKIN_STYLES = ['scales', 'spots', 'stripes', 'cracked', 'fur'];
 
+// ============================================================
+// Portal shimmer animation
+// ============================================================
+
+function _drawPortalShimmer(ctx, canvas, phase) {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Deep void background
+    ctx.fillStyle = '#0a0015';
+    ctx.fillRect(0, 0, W, H);
+
+    // Churning swirl layers — each offset in phase so they counter-rotate
+    const cx = W * 0.5, cy = H * 0.5;
+    const layers = [
+        { r: W * 0.72, speed: 1.0,  colors: ['rgba(130,20,200,0.55)', 'rgba(60,0,120,0.0)'],  width: W * 0.55 },
+        { r: W * 0.55, speed: -1.4, colors: ['rgba(180,50,255,0.50)', 'rgba(80,0,160,0.0)'],  width: W * 0.40 },
+        { r: W * 0.38, speed: 2.1,  colors: ['rgba(220,100,255,0.45)', 'rgba(120,20,200,0.0)'], width: W * 0.30 },
+        { r: W * 0.22, speed: -2.8, colors: ['rgba(255,160,255,0.40)', 'rgba(160,60,240,0.0)'], width: W * 0.20 },
+    ];
+
+    for (const l of layers) {
+        const angle = phase * l.speed;
+        // Elongate along Y (portal is taller than wide)
+        for (let arm = 0; arm < 3; arm++) {
+            const a = angle + (arm / 3) * Math.PI * 2;
+            // Swirl arms: follow a spiral path
+            for (let t = 0; t < 1; t += 0.04) {
+                const r = l.r * (0.2 + t * 0.8);
+                const spiralA = a + t * Math.PI * 1.8;
+                const sx = cx + Math.cos(spiralA) * r * 0.85;
+                const sy = cy + Math.sin(spiralA) * r * 1.5;  // * 1.5 to stretch vertically
+                const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, l.width * (0.4 + t * 0.6));
+                grad.addColorStop(0, l.colors[0]);
+                grad.addColorStop(1, l.colors[1]);
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(sx, sy, l.width * (0.4 + t * 0.6), 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+
+    // Bright glowing core
+    const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.35);
+    coreGrad.addColorStop(0.0, `rgba(255,220,255,${0.55 + Math.sin(phase * 3.1) * 0.15})`);
+    coreGrad.addColorStop(0.3, `rgba(200,80,255,${0.35 + Math.sin(phase * 2.3) * 0.1})`);
+    coreGrad.addColorStop(1.0, 'rgba(80,0,160,0.0)');
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, W * 0.35, H * 0.40, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Edge vignette to soften boundary
+    const edgeGrad = ctx.createRadialGradient(cx, cy, W * 0.3, cx, cy, W * 0.82);
+    edgeGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    edgeGrad.addColorStop(1, 'rgba(0,0,0,0.75)');
+    ctx.fillStyle = edgeGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Scan-line shimmer streaks
+    const streakCount = 6;
+    for (let i = 0; i < streakCount; i++) {
+        const p = ((phase * 0.4 + i / streakCount) % 1);
+        const sy = p * H;
+        const alpha = Math.sin(p * Math.PI) * 0.18;
+        ctx.fillStyle = `rgba(200,140,255,${alpha})`;
+        ctx.fillRect(0, sy - 2, W, 4);
+    }
+}
+
 /**
  * Build a creature mesh for a dungeon monster def.
  * Uses the same limb logic as the overworld procedural system,
@@ -951,12 +1022,28 @@ function _buildEntranceMesh(scene, worldPos) {
     lintel.castShadow = true;
     group.add(lintel);
 
-    // Dark portal fill (rectangle)
-    const portalGeo = new THREE.PlaneGeometry(1.6, 2.8);
-    const portalMat = new THREE.MeshBasicMaterial({ color: 0x110022, side: THREE.DoubleSide });
-    const portal    = new THREE.Mesh(portalGeo, portalMat);
+    // Shimmering portal surface — animated canvas texture
+    const portalCanvas = document.createElement('canvas');
+    portalCanvas.width = 128; portalCanvas.height = 256;
+    const portalCtx = portalCanvas.getContext('2d');
+    const portalTex = new THREE.CanvasTexture(portalCanvas);
+    portalTex.needsUpdate = true;
+
+    const portalGeo = new THREE.PlaneGeometry(1.6, 2.8, 1, 1);
+    const portalMat = new THREE.MeshBasicMaterial({
+        map: portalTex, side: THREE.DoubleSide,
+        transparent: true, opacity: 0.92, depthWrite: false,
+    });
+    const portal = new THREE.Mesh(portalGeo, portalMat);
     portal.position.set(0, 1.4, 0.01);
+    portal.renderOrder = 1;
     group.add(portal);
+
+    // Store canvas refs for animation
+    group.userData.portalCanvas = portalCanvas;
+    group.userData.portalCtx    = portalCtx;
+    group.userData.portalTex    = portalTex;
+    group.userData.portalPhase  = Math.random() * 100;
 
     // Swirling purple point light above portal
     const portalLight = new THREE.PointLight(0x8833cc, 1.5, 10, 2);
@@ -1180,14 +1267,30 @@ class Dungeon {
             this.exitPortal.userData.exitLight.intensity = 1.0 + Math.sin(Date.now() * 0.003) * 0.4;
         }
 
-        // Entrance portal flicker (overworld side — update even when not active to animate on map)
+        // Entrance portal shimmer (also runs while inside dungeon)
+        const ud = this.entranceMesh.userData;
+        if (ud.portalCtx) {
+            ud.portalPhase = (ud.portalPhase || 0) + dt * 1.2;
+            _drawPortalShimmer(ud.portalCtx, ud.portalCanvas, ud.portalPhase);
+            ud.portalTex.needsUpdate = true;
+            if (ud.portalLight) {
+                ud.portalLight.intensity = 1.2 + Math.sin(ud.portalPhase * 2.5) * 0.5;
+            }
+        }
     }
 
     updateOverworld(dt) {
+        const ud = this.entranceMesh.userData;
         // Animate the portal light on the entrance even while player is in overworld
-        if (this.entranceMesh.userData.portalLight) {
-            this.entranceMesh.userData.portalLight.intensity =
+        if (ud.portalLight) {
+            ud.portalLight.intensity =
                 1.2 + Math.sin(Date.now() * 0.0025 + this.index) * 0.5;
+        }
+        // Animate portal shimmer texture
+        if (ud.portalCtx) {
+            ud.portalPhase += dt * 1.2;
+            _drawPortalShimmer(ud.portalCtx, ud.portalCanvas, ud.portalPhase);
+            ud.portalTex.needsUpdate = true;
         }
     }
 
