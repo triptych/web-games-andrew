@@ -13,7 +13,7 @@ import {
     MONSTER_ZONE_MIN, MONSTER_ZONE_MAX,
     SPAWN_INTERVAL, BOSS_SPAWN_INTERVAL, VILLAGE_RADIUS,
 } from './config.js';
-import { playMonsterHit, playMonsterDie, playPlayerHurt } from './sounds.js';
+import { playMonsterHit, playMonsterDie, playPlayerHurt, playMonsterGrunt } from './sounds.js';
 
 // Reusable quaternion for billboard calculations (avoids per-frame allocation)
 const _invParentQ = new THREE.Quaternion();
@@ -106,13 +106,122 @@ function _makeRng(seed) {
     };
 }
 
+// ---- Shared skin texture generator (also exported for dungeon.js) ----
+
+const _SKIN_STYLES = ['scales', 'spots', 'stripes', 'cracked', 'fur'];
+
+export function makeSkinTexture(baseColor, accentColor, style) {
+    const SIZE = 64;
+    const canvas = document.createElement('canvas');
+    canvas.width = SIZE; canvas.height = SIZE;
+    const ctx = canvas.getContext('2d');
+
+    const br = (baseColor >> 16) & 0xff;
+    const bg = (baseColor >> 8)  & 0xff;
+    const bb =  baseColor        & 0xff;
+    ctx.fillStyle = `rgb(${br},${bg},${bb})`;
+    ctx.fillRect(0, 0, SIZE, SIZE);
+
+    const ar = (accentColor >> 16) & 0xff;
+    const ag = (accentColor >> 8)  & 0xff;
+    const ab =  accentColor        & 0xff;
+    const baseLum = 0.299 * br + 0.587 * bg + 0.114 * bb;
+    const markLight = baseLum < 128;
+    const _mark  = a => markLight ? `rgba(255,255,255,${a})` : `rgba(0,0,0,${a})`;
+    const _accent = a => `rgba(${ar},${ag},${ab},${a})`;
+
+    if (style === 'scales') {
+        const rows = 7, cols = 5;
+        const tw = SIZE / cols, th = SIZE / rows;
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const ox = (row % 2) * tw * 0.5;
+                const x = col * tw + ox, y = row * th;
+                ctx.fillStyle = _mark(0.55);
+                ctx.beginPath();
+                ctx.ellipse(x + tw*0.5, y + th*0.55, tw*0.44, th*0.46, 0, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = _accent(0.5);
+                ctx.beginPath();
+                ctx.ellipse(x + tw*0.5, y + th*0.45, tw*0.28, th*0.30, 0, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = _mark(0.3);
+                ctx.beginPath();
+                ctx.arc(x + tw*0.4, y + th*0.35, tw*0.08, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+    } else if (style === 'spots') {
+        for (let i = 0; i < 18; i++) {
+            const x = Math.random() * SIZE, y = Math.random() * SIZE;
+            const r = 3 + Math.random() * 6;
+            ctx.fillStyle = _accent(0.7);
+            ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = _mark(0.4);
+            ctx.beginPath(); ctx.arc(x, y, r*0.45, 0, Math.PI*2); ctx.fill();
+        }
+    } else if (style === 'stripes') {
+        const count = 4 + Math.floor(Math.random() * 3);
+        const sw = SIZE / count;
+        for (let i = 0; i < count; i += 2) {
+            ctx.fillStyle = _accent(0.65);
+            ctx.fillRect(i * sw, 0, sw * 0.75, SIZE);
+            ctx.fillStyle = _mark(0.25);
+            ctx.fillRect(i * sw, 0, 2, SIZE);
+        }
+    } else if (style === 'cracked') {
+        ctx.fillStyle = _mark(0.12);
+        for (let i = 0; i < 8; i++) {
+            ctx.beginPath();
+            ctx.arc(Math.random()*SIZE, Math.random()*SIZE, 8+Math.random()*10, 0, Math.PI*2);
+            ctx.fill();
+        }
+        ctx.strokeStyle = _mark(0.7); ctx.lineWidth = 1.2;
+        for (let i = 0; i < 12; i++) {
+            ctx.beginPath();
+            let cx = Math.random()*SIZE, cy = Math.random()*SIZE;
+            ctx.moveTo(cx, cy);
+            for (let j = 0; j < 5; j++) {
+                cx += (Math.random()-0.5)*14; cy += (Math.random()-0.5)*14;
+                ctx.lineTo(cx, cy);
+            }
+            ctx.stroke();
+        }
+    } else { // fur
+        for (let i = 0; i < 140; i++) {
+            const x = Math.random()*SIZE, y = Math.random()*SIZE;
+            ctx.strokeStyle = i % 3 === 0 ? _accent(0.6) : _mark(0.35);
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + (Math.random()-0.5)*5, y - 2 - Math.random()*4);
+            ctx.stroke();
+        }
+    }
+
+    // Edge shading for roundness
+    const grad = ctx.createRadialGradient(SIZE*0.5, SIZE*0.4, SIZE*0.1, SIZE*0.5, SIZE*0.5, SIZE*0.7);
+    grad.addColorStop(0, 'rgba(255,255,255,0.08)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.22)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, SIZE, SIZE);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.needsUpdate = true;
+    return tex;
+}
+
 // Build mesh for a procedurally-generated monster def
 function _buildProceduralMesh(def) {
     const s     = def.scale;
     const group = new THREE.Group();
 
-    const bodyMat = new THREE.MeshLambertMaterial({ color: def.color, transparent: true });
-    const eyeMat  = new THREE.MeshBasicMaterial({ color: def.eyeColor });
+    const styleIdx = def.color % _SKIN_STYLES.length;
+    const skinTex  = makeSkinTexture(def.color, def.accentColor, _SKIN_STYLES[styleIdx]);
+
+    // color 0xffffff so the canvas texture isn't darkened by material tint
+    const bodyMat   = new THREE.MeshLambertMaterial({ color: 0xffffff, map: skinTex, transparent: true });
+    const eyeMat    = new THREE.MeshBasicMaterial({ color: def.eyeColor });
     const accentMat = new THREE.MeshLambertMaterial({ color: def.accentColor });
 
     // --- Body ---
@@ -224,7 +333,12 @@ function _buildProceduralMesh(def) {
         }
     }
 
-    _addHpBar(group, s);
+    // Top of the creature: head top + horn tip if present
+    const creatureTopY = def.hasHorns
+        ? headTopY + 0.15 * s + 0.35 * s   // horn centre + half horn height
+        : headTopY;
+
+    _addHpBar(group, s, creatureTopY);
     return group;
 }
 
@@ -300,15 +414,16 @@ function _buildMonsterMesh(type, procDef) {
         group.add(eye);
     }
 
-    _addHpBar(group, s);
+    _addHpBar(group, s, 0.9 * s);  // body top = 0.45s centre + 0.45s half-height
     return group;
 }
 
-function _addHpBar(group, s) {
+function _addHpBar(group, s, topY) {
     const hpBarGeo = new THREE.PlaneGeometry(0.8 * s, 0.1 * s);
     const hpBarMat = new THREE.MeshBasicMaterial({ color: 0x44cc44, side: THREE.DoubleSide });
     const hpBar    = new THREE.Mesh(hpBarGeo, hpBarMat);
-    hpBar.position.y = 1.0 * s + 0.15;
+    // topY is the highest point of the creature geometry; bar floats 0.3 units above it
+    hpBar.position.y = (topY ?? (1.0 * s)) + 0.3;
     hpBar.name = 'hpBar';
     group.userData.hpBar = hpBar;
     group.add(hpBar);
@@ -353,7 +468,7 @@ function _buildSkeletonMesh() {
         group.add(arm);
     }
 
-    _addHpBar(group, s);
+    _addHpBar(group, s, 1.05 * s + 0.19 * s);  // skull centre + half skull height
     return group;
 }
 
@@ -411,7 +526,7 @@ function _buildDragonMesh() {
     tail.rotation.x = 0.25;
     group.add(tail);
 
-    _addHpBar(group, s);
+    _addHpBar(group, s, 1.7 * s + 0.225 * s);  // head centre + half head height
     group.userData.wingTimer = 0;
     return group;
 }
@@ -433,13 +548,28 @@ class Monster {
         this.scene    = scene;
         this.atkCd    = 0;
         this.flashTimer = 0;
-        this.dying = false;
+        this.dying    = false;
         this.deathTimer = 0;
-        this.state    = 'idle';  // 'idle' | 'chase' | 'attack'
-        this.aggroRange = 35;
-        this.loseRange  = 55;
-        this.arcMesh  = null;   // attack swish arc
+        this.state    = 'patrol';  // 'patrol' | 'chase' | 'attack'
+        this.aggroRange = 22 + Math.random() * 14;  // 22–36, varies per monster
+        this.loseRange  = 45;
+        this.arcMesh  = null;
         this.arcTimer = 0;
+
+        // Knockback velocity (XZ plane)
+        this.knockVx = 0;
+        this.knockVz = 0;
+
+        // Patrol state — orbit a fixed home point with slight variation
+        this.homePos     = pos.clone();
+        this.patrolAngle = Math.random() * Math.PI * 2;
+        this.patrolRadius = 4 + Math.random() * 6;
+        this.patrolSpeed  = 0.35 + Math.random() * 0.25;  // angular speed rad/s
+        // Each monster pauses occasionally
+        this.patrolPauseTimer = 0;
+        this.patrolPauseDur   = 0;
+        // Small wander drift so orbits don't look perfectly circular
+        this.wanderAngle = 0;
 
         this.mesh = _buildMonsterMesh(type, procDef);
         this.mesh.position.copy(pos);
@@ -447,7 +577,7 @@ class Monster {
         scene.add(this.mesh);
     }
 
-    takeDamage(amount) {
+    takeDamage(amount, fromPos) {
         if (!this.alive) return;
         this.hp = Math.max(0, this.hp - amount);
 
@@ -462,6 +592,21 @@ class Monster {
         }
 
         playMonsterHit();
+        playMonsterGrunt(this.def.scale);
+
+        // Knockback — push away from attacker
+        if (fromPos) {
+            const kx = this.mesh.position.x - fromPos.x;
+            const kz = this.mesh.position.z - fromPos.z;
+            const klen = Math.sqrt(kx * kx + kz * kz) || 1;
+            const force = 4.5 / (this.def.scale || 1);  // lighter monsters fly further
+            this.knockVx = (kx / klen) * force;
+            this.knockVz = (kz / klen) * force;
+        }
+
+        // Aggro — if patrolling, snap to chase
+        if (this.state === 'patrol') this.state = 'chase';
+
         // Flash white
         this.flashTimer = 0.14;
         const bodyMesh = this.mesh.children.find(c => c.name === 'body');
@@ -522,32 +667,23 @@ class Monster {
 
         const dist = this.mesh.position.distanceTo(playerPos);
 
-        // State machine
-        if (this.state === 'idle') {
-            if (dist < this.aggroRange) this.state = 'chase';
-        } else if (this.state === 'chase') {
-            if (dist > this.loseRange) { this.state = 'idle'; return; }
-
-            // Move toward player (stay out of village)
-            const dir = new THREE.Vector3()
-                .subVectors(playerPos, this.mesh.position)
-                .setY(0)
-                .normalize();
-
-            const speed = this.def.speed * dt;
-            const nx    = this.mesh.position.x + dir.x * speed;
-            const nz    = this.mesh.position.z + dir.z * speed;
-
-            // Don't enter village core (campfire area)
-            const distToVillage = Math.sqrt(nx * nx + nz * nz);
-            if (distToVillage >= VILLAGE_RADIUS * 0.5) {
-                this.mesh.position.x = nx;
-                this.mesh.position.z = nz;
-                // Face player — add PI so the mesh's -Z face points toward them
-                this.mesh.rotation.y = Math.atan2(dir.x, dir.z) + Math.PI;
+        // ---- State machine ----
+        if (this.state === 'patrol') {
+            if (dist < this.aggroRange) {
+                // Spotted the player — give a short delay before full chase so it feels reactive
+                this.state = 'chase';
+            } else {
+                this._updatePatrol(dt);
             }
-
-            if (dist < 1.6) this.state = 'attack';
+        } else if (this.state === 'chase') {
+            if (dist > this.loseRange) {
+                // Lost the player — return home and resume patrol
+                this.state = 'patrol';
+                this.patrolPauseTimer = 0.8;  // short pause before resuming route
+            } else {
+                this._updateChase(dt, playerPos);
+                if (dist < 1.6) this.state = 'attack';
+            }
         } else if (this.state === 'attack') {
             if (dist > 2.5) { this.state = 'chase'; return; }
 
@@ -574,10 +710,26 @@ class Monster {
                     this.mesh.position.y + 0.05,
                     this.mesh.position.z
                 );
-                // Arc points toward player (mesh faces -Z, so we use the raw atan2 without +PI)
                 this.arcMesh.rotation.y = Math.atan2(dir2.x, dir2.z);
                 this.scene.add(this.arcMesh);
                 this.arcTimer = 0.22;
+            }
+        }
+
+        // ---- Knockback decay ----
+        if (this.knockVx !== 0 || this.knockVz !== 0) {
+            const decay = Math.exp(-12 * dt);  // fast exponential falloff
+            const nx = this.mesh.position.x + this.knockVx * dt;
+            const nz = this.mesh.position.z + this.knockVz * dt;
+            const dv = Math.sqrt(nx * nx + nz * nz);
+            if (dv >= VILLAGE_RADIUS * 0.5) {
+                this.mesh.position.x = nx;
+                this.mesh.position.z = nz;
+            }
+            this.knockVx *= decay;
+            this.knockVz *= decay;
+            if (Math.abs(this.knockVx) < 0.05 && Math.abs(this.knockVz) < 0.05) {
+                this.knockVx = 0; this.knockVz = 0;
             }
         }
 
@@ -619,6 +771,66 @@ class Monster {
                     this.arcMesh = null;
                 }
             }
+        }
+    }
+
+    // Orbit home position, pause occasionally, wander slightly
+    _updatePatrol(dt) {
+        // Pausing
+        if (this.patrolPauseTimer > 0) {
+            this.patrolPauseTimer -= dt;
+            return;
+        }
+
+        // Advance orbit angle
+        this.patrolAngle += this.patrolSpeed * dt;
+
+        // Wander: slowly shift the orbit center so routes feel organic, not perfect circles
+        this.wanderAngle += dt * 0.18;
+        const wx = Math.cos(this.wanderAngle) * 2.5;
+        const wz = Math.sin(this.wanderAngle * 0.7) * 2.5;
+
+        const tx = this.homePos.x + wx + Math.cos(this.patrolAngle) * this.patrolRadius;
+        const tz = this.homePos.z + wz + Math.sin(this.patrolAngle) * this.patrolRadius;
+
+        const dx = tx - this.mesh.position.x;
+        const dz = tz - this.mesh.position.z;
+        const d  = Math.sqrt(dx * dx + dz * dz) || 1;
+
+        // Patrol at ~40% of combat speed
+        const spd = this.def.speed * 0.4 * dt;
+        const nx  = this.mesh.position.x + (dx / d) * spd;
+        const nz  = this.mesh.position.z + (dz / d) * spd;
+
+        const distToVillage = Math.sqrt(nx * nx + nz * nz);
+        if (distToVillage >= VILLAGE_RADIUS * 0.5) {
+            this.mesh.position.x = nx;
+            this.mesh.position.z = nz;
+            this.mesh.rotation.y = Math.atan2(dx, dz) + Math.PI;
+        }
+
+        // Random pause every ~6–12 s (checked once per orbit completion)
+        if (Math.random() < dt * 0.08) {
+            this.patrolPauseTimer = 0.8 + Math.random() * 1.8;
+        }
+    }
+
+    // Move directly toward player, stay out of village
+    _updateChase(dt, playerPos) {
+        const dir = new THREE.Vector3()
+            .subVectors(playerPos, this.mesh.position)
+            .setY(0)
+            .normalize();
+
+        const speed = this.def.speed * dt;
+        const nx    = this.mesh.position.x + dir.x * speed;
+        const nz    = this.mesh.position.z + dir.z * speed;
+
+        const distToVillage = Math.sqrt(nx * nx + nz * nz);
+        if (distToVillage >= VILLAGE_RADIUS * 0.5) {
+            this.mesh.position.x = nx;
+            this.mesh.position.z = nz;
+            this.mesh.rotation.y = Math.atan2(dir.x, dir.z) + Math.PI;
         }
     }
 }

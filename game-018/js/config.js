@@ -300,47 +300,52 @@ export const DUNGEON_MAX_DIST     = 90;   // max distance from village center
 export const DUNGEON_MONSTER_DEFS = {
     dungeon_rat: {
         label: 'Giant Rat',
-        color: 0x886644,
+        color: 0x886644, eyeColor: 0xff4400, accentColor: 0x554422,
         hp: 50, atk: 10, speed: 5.0,
         xp: 18, gold: 4,
         drops: { wood: 0, stone: 0, iron: 1, herbs: 1 },
         scale: 0.55,
+        hasHorns: false, hasTail: true, armCount: 0, legCount: 4,
     },
     dungeon_skeleton: {
         label: 'Cursed Skeleton',
-        color: 0xeeeebb,
+        color: 0xeeeebb, eyeColor: 0x00ffcc, accentColor: 0xbbbb99,
         hp: 120, atk: 28, speed: 3.5,
         xp: 55, gold: 18,
         drops: { wood: 0, stone: 3, iron: 3, herbs: 0 },
         scale: 0.95,
+        hasHorns: false, hasTail: false, armCount: 2, legCount: 2,
     },
     dungeon_troll: {
         label: 'Cave Troll',
-        color: 0x556633,
+        color: 0x556633, eyeColor: 0xff8800, accentColor: 0x334422,
         hp: 220, atk: 36, speed: 2.0,
         xp: 90, gold: 35,
         drops: { wood: 4, stone: 6, iron: 4, herbs: 0 },
         scale: 1.5,
+        hasHorns: true, hasTail: true, armCount: 4, legCount: 2,
     },
     dungeon_wraith: {
         label: 'Wraith',
-        color: 0x8844cc,
+        color: 0x8844cc, eyeColor: 0xeeddff, accentColor: 0x551199,
         hp: 90, atk: 32, speed: 4.5,
         xp: 70, gold: 22,
         drops: { wood: 0, stone: 0, iron: 2, herbs: 3 },
         scale: 0.85,
+        hasHorns: true, hasTail: true, armCount: 2, legCount: 0, hasWings: true,
     },
 };
 
 // Dungeon boss definition
 export const DUNGEON_BOSS_DEF = {
     label: 'Dungeon Lord',
-    color: 0x220044,
+    color: 0x220044, eyeColor: 0xff0044, accentColor: 0x440088,
     hp: 600, atk: 55, speed: 2.8,
     xp: 400, gold: 150,
     drops: { wood: 8, stone: 12, iron: 15, herbs: 8 },
     scale: 2.2,
     isBoss: true,
+    hasHorns: true, hasTail: true, armCount: 4, legCount: 2, hasWings: true,
     // Bonus village resources awarded on boss kill
     villageReward: { wood: 20, stone: 20, iron: 25, herbs: 15, gold: 200 },
 };

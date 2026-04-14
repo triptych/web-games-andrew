@@ -46,7 +46,7 @@ import { initMinimap } from './minimap.js';
 import { initSave, saveGame, loadGame, hasSave } from './save.js';
 import { state }        from './state.js';
 import { events }       from './events.js';
-import { initAudio, playUiClick, playLevelUp, playGameOver, playHeal } from './sounds.js';
+import { initAudio, startAmbient, startDungeonAmbient, stopDungeonAmbient, playUiClick, playLevelUp, playGameOver, playHeal } from './sounds.js';
 import {
     VILLAGE_RADIUS, DAY_CYCLE_DURATION,
     DAY_AMBIENT_INT, NIGHT_AMBIENT_INT,
@@ -80,6 +80,7 @@ function _startGame(loadSave = false) {
     if (gameStarted) return;
     gameStarted = true;
     initAudio();
+    startAmbient();
     playUiClick();
     splashEl.style.display = 'none';
     hudEl.style.display    = 'block';
@@ -217,7 +218,10 @@ function _initGame(loadSave = false) {
             // --- Inside dungeon ---
             if (dungeonSystem.isInDungeon()) {
                 // Try exit portal
-                if (dungeonSystem.tryExitDungeon(pPos, playerGroup)) return;
+                if (dungeonSystem.tryExitDungeon(pPos, playerGroup)) {
+                    stopDungeonAmbient();   // resumes forest sounds internally
+                    return;
+                }
                 // Try chest collect
                 if (dungeonSystem.tryCollectChest(pPos)) return;
                 events.emit('message', 'Walk to the blue portal to exit the dungeon.', '#8888cc');
@@ -225,7 +229,10 @@ function _initGame(loadSave = false) {
             }
 
             // --- Overworld: try enter dungeon ---
-            if (dungeonSystem.tryEnterDungeon(pPos, playerGroup)) return;
+            if (dungeonSystem.tryEnterDungeon(pPos, playerGroup)) {
+                startDungeonAmbient();
+                return;
+            }
 
             const distToVillage = Math.sqrt(pPos.x * pPos.x + pPos.z * pPos.z);
             if (distToVillage <= VILLAGE_RADIUS + 2) {

@@ -341,7 +341,7 @@ function _doAttack(playerGroup, monsters, lastFacingDir) {
             if (dot < cosHalf) continue;
         }
         const dmg = Math.floor(state.atk * weapon.dmgMult) + Math.floor(Math.random() * 6);
-        m.takeDamage(dmg);
+        m.takeDamage(dmg, pPos);
     }
 }
 

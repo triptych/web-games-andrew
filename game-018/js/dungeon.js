@@ -23,7 +23,8 @@ import {
     DUNGEON_MONSTER_DEFS, DUNGEON_BOSS_DEF, TREASURE_DEFS,
     WORLD_SIZE,
 } from './config.js';
-import { playMonsterHit, playMonsterDie, playPlayerHurt, playPickup, playGoldPickup } from './sounds.js';
+import { playMonsterHit, playMonsterDie, playPlayerHurt, playPickup, playGoldPickup, playMonsterGrunt, startDungeonAmbient, stopDungeonAmbient } from './sounds.js';
+import { generateProceduralMonster, makeSkinTexture } from './monsters.js';
 
 // ============================================================
 // Constants
@@ -51,6 +52,164 @@ const TORCH_RANGE     = 8;
 // Monster aggro/lose ranges inside dungeon (tighter than overworld)
 const AGGRO_RANGE = 22;
 const LOSE_RANGE  = 30;
+
+const _DUNGEON_SKIN_STYLES = ['scales', 'spots', 'stripes', 'cracked', 'fur'];
+
+/**
+ * Build a creature mesh for a dungeon monster def.
+ * Uses the same limb logic as the overworld procedural system,
+ * plus a generated skin texture (makeSkinTexture imported from monsters.js).
+ */
+function _buildCreatureMesh(def, isBoss) {
+    const s     = def.scale;
+    const group = new THREE.Group();
+
+    // Pick texture style deterministically from color
+    const styleIdx  = def.color % _DUNGEON_SKIN_STYLES.length;
+    const skinStyle = _DUNGEON_SKIN_STYLES[styleIdx];
+    const accentHex = def.accentColor ?? (def.color ^ 0x333333);
+    const skinTex   = makeSkinTexture(def.color, accentHex, skinStyle);
+
+    // color: 0xffffff so the canvas texture isn't tinted/darkened by the material color
+    const bodyMat   = new THREE.MeshLambertMaterial({ color: 0xffffff, map: skinTex, transparent: true });
+    const accentMat = new THREE.MeshLambertMaterial({ color: accentHex });
+    const eyeColor  = def.eyeColor ?? 0xff2222;
+    const eyeMat    = new THREE.MeshBasicMaterial({ color: eyeColor });
+
+    // --- Body ---
+    const bodyH   = 0.9 * s;
+    const legCount = def.legCount ?? 2;
+    const armCount = def.armCount ?? 2;
+    const body = new THREE.Mesh(
+        new THREE.BoxGeometry(0.75 * s, bodyH, 0.7 * s),
+        bodyMat.clone()
+    );
+    body.position.y = bodyH * 0.55 + (legCount > 0 ? 0.35 * s : 0);
+    body.name = 'body';
+    body.castShadow = true;
+    group.add(body);
+    const bodyTopY = body.position.y + bodyH * 0.5;
+
+    // --- Head ---
+    const headSize = 0.42 * s;
+    const head = new THREE.Mesh(
+        new THREE.BoxGeometry(headSize * 1.1, headSize, headSize),
+        bodyMat.clone()
+    );
+    head.position.set(0, bodyTopY + headSize * 0.55, -0.05 * s);
+    group.add(head);
+    const headTopY = head.position.y + headSize * 0.5;
+
+    // --- Eyes ---
+    for (const ox of [-0.12 * s, 0.12 * s]) {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.07 * s, 6, 6), eyeMat);
+        eye.position.set(ox, head.position.y, head.position.z - headSize * 0.5 - 0.02);
+        group.add(eye);
+    }
+
+    // --- Horns (bosses always, others if def says so or every other type) ---
+    const hasHorns = def.hasHorns ?? (isBoss || (def.color & 1) === 1);
+    if (hasHorns) {
+        const hornGeo = new THREE.ConeGeometry(0.07 * s, 0.35 * s, 5);
+        for (const ox of [-0.12 * s, 0.12 * s]) {
+            const horn = new THREE.Mesh(hornGeo, accentMat.clone());
+            horn.position.set(ox, headTopY + 0.15 * s, head.position.z);
+            horn.rotation.z = ox < 0 ? 0.25 : -0.25;
+            group.add(horn);
+        }
+    }
+
+    // --- Tail ---
+    const hasTail = def.hasTail ?? ((def.color >> 4) & 1) === 1;
+    if (hasTail) {
+        const tail = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.06 * s, 0.02 * s, 0.6 * s, 5),
+            accentMat.clone()
+        );
+        tail.position.set(0, body.position.y - 0.05 * s, 0.45 * s);
+        tail.rotation.x = 0.7;
+        group.add(tail);
+    }
+
+    // --- Arms (always at least 2) ---
+    const armH   = 0.5 * s;
+    const armGeo = new THREE.CylinderGeometry(0.07 * s, 0.05 * s, armH, 5);
+    const armYOffsets = armCount === 4 ? [0, -0.2 * s] : [0];
+    for (const yOff of armYOffsets) {
+        for (const side of [-1, 1]) {
+            const arm = new THREE.Mesh(armGeo, bodyMat.clone());
+            arm.position.set(side * (0.5 * s + 0.06 * s), body.position.y + yOff, 0);
+            arm.rotation.z = side * 0.6;
+            arm.castShadow = true;
+            group.add(arm);
+        }
+    }
+
+    // --- Legs ---
+    if (legCount > 0) {
+        const legH   = 0.35 * s;
+        const legGeo = new THREE.CylinderGeometry(0.09 * s, 0.06 * s, legH, 5);
+        const legXPositions = legCount === 4
+            ? [-0.22 * s, -0.08 * s, 0.08 * s, 0.22 * s]
+            : [-0.2 * s, 0.2 * s];
+        for (const lx of legXPositions) {
+            const leg = new THREE.Mesh(legGeo, bodyMat.clone());
+            leg.position.set(lx, legH * 0.5, 0);
+            group.add(leg);
+        }
+    }
+
+    // --- Wings (bosses + high-tier defs) ---
+    const hasWings = def.hasWings ?? isBoss;
+    if (hasWings) {
+        const wingW   = 0.85 * s;
+        const wingGeo = new THREE.BoxGeometry(wingW, 0.05 * s, 0.5 * s);
+        const wingMat = new THREE.MeshLambertMaterial({ color: accentHex, transparent: true, opacity: 0.82 });
+        const shoulderX = 0.38 * s;
+        const shoulderY = body.position.y + 0.15 * s;
+        for (const sx of [-1, 1]) {
+            const pivot = new THREE.Group();
+            pivot.position.set(sx * shoulderX, shoulderY, 0.05 * s);
+            pivot.rotation.z = sx * 0.35;
+            pivot.userData.isWing = true;
+            const wingMesh = new THREE.Mesh(wingGeo, wingMat.clone());
+            wingMesh.position.set(sx * wingW * 0.5, 0, 0);
+            pivot.add(wingMesh);
+            group.add(pivot);
+        }
+    }
+
+    // --- Boss extras: robe + aura ---
+    if (isBoss) {
+        const robeMat = new THREE.MeshLambertMaterial({ color: accentHex });
+        const robe = new THREE.Mesh(new THREE.BoxGeometry(1.2 * s, 1.0 * s, 0.5 * s), robeMat);
+        robe.position.y = 0.3 * s;
+        group.add(robe);
+
+        const auraMat = new THREE.MeshBasicMaterial({
+            color: accentHex, transparent: true, opacity: 0.22, side: THREE.BackSide,
+        });
+        const aura = new THREE.Mesh(new THREE.SphereGeometry(1.4 * s, 10, 10), auraMat);
+        aura.position.y = 0.9 * s;
+        aura.name = 'aura';
+        group.add(aura);
+    }
+
+    // --- HP bar — placed 0.3 units above the actual creature top ---
+    const creatureTopY = hasHorns
+        ? headTopY + 0.15 * s + 0.35 * s   // horn centre + half horn height
+        : headTopY;
+    const hpBarGeo = new THREE.PlaneGeometry(0.8 * s, 0.1 * s);
+    const hpBarMat = new THREE.MeshBasicMaterial({ color: 0x44cc44, side: THREE.DoubleSide });
+    const hpBar    = new THREE.Mesh(hpBarGeo, hpBarMat);
+    hpBar.position.y = creatureTopY + 0.3;
+    hpBar.name = 'hpBar';
+    group.userData.hpBar = hpBar;
+    group.add(hpBar);
+
+    group.userData.wingTimer = 0;
+    return group;
+}
 
 // ============================================================
 // Helpers
@@ -447,6 +606,8 @@ class DungeonMonster {
         this.state     = 'idle';
         this.arcMesh   = null;
         this.arcTimer  = 0;
+        this.knockVx   = 0;
+        this.knockVz   = 0;
 
         this.mesh = this._buildMesh();
         this.mesh.position.copy(worldPos);
@@ -455,99 +616,10 @@ class DungeonMonster {
     }
 
     _buildMesh() {
-        const def   = this.def;
-        const s     = def.scale;
-        const group = new THREE.Group();
-
-        if (this.isBoss) {
-            // Boss: imposing tall dark figure with horns
-            const bodyMat = new THREE.MeshLambertMaterial({ color: def.color, transparent: true });
-            const accentMat = new THREE.MeshLambertMaterial({ color: 0x440088 });
-            const eyeMat    = new THREE.MeshBasicMaterial({ color: 0xff0044 });
-
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1.0 * s, 1.4 * s, 0.7 * s), bodyMat.clone());
-            body.position.y = 0.8 * s; body.name = 'body'; body.castShadow = true;
-            group.add(body);
-
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.65 * s, 0.65 * s, 0.6 * s), bodyMat.clone());
-            head.position.y = 1.7 * s; head.name = 'body';
-            group.add(head);
-
-            // Horns
-            for (const sx of [-1, 1]) {
-                const horn = new THREE.Mesh(new THREE.ConeGeometry(0.08 * s, 0.45 * s, 4), accentMat);
-                horn.position.set(sx * 0.22 * s, 2.1 * s, 0);
-                group.add(horn);
-            }
-
-            // Glowing red eyes
-            for (const ox of [-0.15 * s, 0.15 * s]) {
-                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.1 * s, 6, 6), eyeMat);
-                eye.position.set(ox, 1.75 * s, -0.31 * s);
-                group.add(eye);
-            }
-
-            // Robe/cloak (wide flat box)
-            const robe = new THREE.Mesh(new THREE.BoxGeometry(1.2 * s, 1.0 * s, 0.5 * s), accentMat.clone());
-            robe.position.y = 0.3 * s;
-            group.add(robe);
-
-            // Pulsing aura (outer sphere)
-            const auraMat = new THREE.MeshBasicMaterial({ color: 0x6600aa, transparent: true, opacity: 0.25, side: THREE.BackSide });
-            const aura    = new THREE.Mesh(new THREE.SphereGeometry(1.4 * s, 10, 10), auraMat);
-            aura.position.y = 0.9 * s;
-            aura.name = 'aura';
-            group.add(aura);
-
-        } else if (this.type === 'dungeon_wraith') {
-            const mat = new THREE.MeshLambertMaterial({ color: def.color, transparent: true, opacity: 0.75 });
-            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xeeddff });
-
-            const body = new THREE.Mesh(new THREE.ConeGeometry(0.4 * s, 1.2 * s, 8), mat.clone());
-            body.position.y = 0.7 * s; body.name = 'body'; body.castShadow = true;
-            group.add(body);
-
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.3 * s, 8, 8), mat.clone());
-            head.position.y = 1.45 * s; head.name = 'body';
-            group.add(head);
-
-            for (const ox of [-0.1 * s, 0.1 * s]) {
-                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.07 * s, 5, 5), eyeMat);
-                eye.position.set(ox, 1.5 * s, -0.28 * s);
-                group.add(eye);
-            }
-
-        } else {
-            // Generic dungeon monster
-            const mat    = new THREE.MeshLambertMaterial({ color: def.color, transparent: true });
-            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff2222 });
-            const s2 = def.scale;
-
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.8 * s2, 0.9 * s2, 0.8 * s2), mat.clone());
-            body.position.y = 0.45 * s2; body.name = 'body'; body.castShadow = true;
-            group.add(body);
-
-            for (const ox of [-0.15 * s2, 0.15 * s2]) {
-                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.08 * s2, 6, 6), eyeMat);
-                eye.position.set(ox, 0.6 * s2, -0.4 * s2);
-                group.add(eye);
-            }
-        }
-
-        // HP bar
-        const s2 = def.scale;
-        const hpBarGeo = new THREE.PlaneGeometry(0.8 * s2, 0.1 * s2);
-        const hpBarMat = new THREE.MeshBasicMaterial({ color: 0x44cc44, side: THREE.DoubleSide });
-        const hpBar    = new THREE.Mesh(hpBarGeo, hpBarMat);
-        hpBar.position.y = 1.2 * s2 + (this.isBoss ? 0.8 : 0.2);
-        hpBar.name = 'hpBar';
-        group.userData.hpBar = hpBar;
-        group.add(hpBar);
-
-        return group;
+        return _buildCreatureMesh(this.def, this.isBoss);
     }
 
-    takeDamage(amount) {
+    takeDamage(amount, fromPos) {
         if (!this.alive) return;
         this.hp = Math.max(0, this.hp - amount);
 
@@ -560,6 +632,20 @@ class DungeonMonster {
         }
 
         playMonsterHit();
+        playMonsterGrunt(this.def.scale);
+
+        // Knockback
+        if (fromPos) {
+            const kx = this.mesh.position.x - fromPos.x;
+            const kz = this.mesh.position.z - fromPos.z;
+            const klen = Math.sqrt(kx * kx + kz * kz) || 1;
+            const force = 4.0 / Math.max(0.5, this.def.scale);
+            this.knockVx = (kx / klen) * force;
+            this.knockVz = (kz / klen) * force;
+        }
+
+        if (this.state === 'idle') this.state = 'chase';
+
         this.flashTimer = 0.14;
         const bodyMesh = this.mesh.children.find(c => c.name === 'body');
         if (bodyMesh) bodyMesh.material.color.setHex(0xffffff);
@@ -693,6 +779,29 @@ class DungeonMonster {
                 aura.material.opacity = 0.15 + Math.sin(Date.now() * 0.003) * 0.12;
                 const sc = 1.0 + Math.sin(Date.now() * 0.004) * 0.08;
                 aura.scale.setScalar(sc);
+            }
+        }
+
+        // Knockback decay
+        if (this.knockVx !== 0 || this.knockVz !== 0) {
+            const decay = Math.exp(-12 * dt);
+            this.mesh.position.x += this.knockVx * dt;
+            this.mesh.position.z += this.knockVz * dt;
+            this.knockVx *= decay;
+            this.knockVz *= decay;
+            if (Math.abs(this.knockVx) < 0.05 && Math.abs(this.knockVz) < 0.05) {
+                this.knockVx = 0; this.knockVz = 0;
+            }
+        }
+
+        // Wing flap animation
+        if (this.def.hasWings) {
+            this.mesh.userData.wingTimer = (this.mesh.userData.wingTimer || 0) + dt * 3;
+            for (const child of this.mesh.children) {
+                if (child.userData.isWing) {
+                    const side = child.position.x > 0 ? 1 : -1;
+                    child.rotation.z = side * (0.35 + Math.sin(this.mesh.userData.wingTimer) * 0.28);
+                }
             }
         }
 

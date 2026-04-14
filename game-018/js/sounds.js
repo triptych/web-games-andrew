@@ -155,3 +155,159 @@ export function playHeal() {
     _osc('sine',  660, 0.15, 0.15, 0.08);
     _osc('sine',  792, 0.12, 0.12, 0.15);
 }
+
+/**
+ * Monster grunt on hit.
+ * scale controls pitch — bigger monsters = lower grunt.
+ */
+export function playMonsterGrunt(scale = 1) {
+    if (!_enabled || !audioCtx) return;
+    // Pitch inversely proportional to size
+    const baseFreq = 280 / Math.max(0.5, scale);
+    // Pick one of three grunt shapes at random so repeated hits vary
+    const roll = Math.random();
+    if (roll < 0.33) {
+        // Short low growl — downward sweep
+        _sweep('sawtooth', baseFreq * 1.1, baseFreq * 0.55, 0.13, 0.22);
+        _noise(0.09, 0.10, 0.02);
+    } else if (roll < 0.66) {
+        // Mid grunt — quick noise burst with tone
+        _osc('square', baseFreq * 0.9, 0.10, 0.18);
+        _noise(0.12, 0.12, 0.01);
+    } else {
+        // High yelp for smaller monsters
+        _sweep('triangle', baseFreq * 1.4, baseFreq * 0.7, 0.09, 0.20);
+    }
+}
+
+// ---- Ambient soundscape ----
+
+let _ambientHandle = null;  // ScriptProcessorNode or null
+
+/**
+ * Start a looping ambient forest soundscape (wind + crickets).
+ * Safe to call multiple times — only starts once.
+ */
+export function startAmbient() {
+    if (!_enabled || !audioCtx || _ambientHandle) return;
+
+    const ambGain = audioCtx.createGain();
+    ambGain.gain.value = 0.06;
+    ambGain.connect(audioCtx.destination);
+
+    // --- Wind: filtered noise, slowly LFO-modulated ---
+    function _windBurst() {
+        if (!audioCtx) return;
+        const bufSize = Math.floor(audioCtx.sampleRate * 2.5);
+        const buf     = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+        const data    = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+
+        const src    = audioCtx.createBufferSource();
+        src.buffer   = buf;
+        src.loop     = false;
+
+        const lpf    = audioCtx.createBiquadFilter();
+        lpf.type     = 'lowpass';
+        lpf.frequency.value = 400 + Math.random() * 200;
+        lpf.Q.value  = 0.5;
+
+        const g = audioCtx.createGain();
+        g.gain.setValueAtTime(0, audioCtx.currentTime);
+        g.gain.linearRampToValueAtTime(0.55 + Math.random() * 0.3, audioCtx.currentTime + 0.8);
+        g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2.5);
+
+        src.connect(lpf);
+        lpf.connect(g);
+        g.connect(ambGain);
+        src.start();
+
+        // Schedule the next burst at a random interval
+        const delay = 3 + Math.random() * 5;
+        _ambientHandle = setTimeout(_windBurst, delay * 1000);
+    }
+    _windBurst();
+
+    // --- Crickets: short high sine chirps ---
+    function _cricket() {
+        if (!audioCtx) return;
+        const chirps = 2 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < chirps; i++) {
+            const freq = 3200 + Math.random() * 800;
+            _osc('sine', freq, 0.04, 0.04, i * 0.06);
+        }
+        const nextDelay = 1.5 + Math.random() * 3.5;
+        setTimeout(_cricket, nextDelay * 1000);
+    }
+    // Crickets mostly at night — start slightly delayed so wind goes first
+    setTimeout(_cricket, 1200);
+}
+
+/** Stop ambient sounds (clears the wind timeout chain). */
+export function stopAmbient() {
+    if (_ambientHandle) { clearTimeout(_ambientHandle); _ambientHandle = null; }
+}
+
+// ---- Dungeon ambient soundscape ----
+
+let _dungeonDripHandle  = null;
+let _dungeonGrumbleHandle = null;
+
+/**
+ * Start dungeon ambient: stone drips + low rumbles.
+ * Stops the overworld ambient first.
+ */
+export function startDungeonAmbient() {
+    stopAmbient();
+    if (!_enabled || !audioCtx) return;
+
+    // --- Drips: short high pluck tones ---
+    function _drip() {
+        if (!audioCtx) return;
+        const freq = 800 + Math.random() * 600;
+        _sweep('sine', freq, freq * 0.5, 0.18, 0.12);
+        _noise(0.06, 0.06, 0.01);
+        _dungeonDripHandle = setTimeout(_drip, 1200 + Math.random() * 3000);
+    }
+    _drip();
+
+    // --- Deep rumbles: very low filtered noise ---
+    function _rumble() {
+        if (!audioCtx) return;
+        const bufSize = Math.floor(audioCtx.sampleRate * 1.2);
+        const buf     = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+        const data    = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+
+        const src = audioCtx.createBufferSource();
+        src.buffer = buf;
+
+        const hpf = audioCtx.createBiquadFilter();
+        hpf.type = 'highpass';
+        hpf.frequency.value = 20;
+
+        const lpf = audioCtx.createBiquadFilter();
+        lpf.type = 'lowpass';
+        lpf.frequency.value = 80 + Math.random() * 60;
+
+        const g = audioCtx.createGain();
+        const t = audioCtx.currentTime;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.18, t + 0.4);
+        g.gain.linearRampToValueAtTime(0, t + 1.2);
+
+        src.connect(hpf); hpf.connect(lpf); lpf.connect(g); g.connect(audioCtx.destination);
+        src.start();
+
+        _dungeonGrumbleHandle = setTimeout(_rumble, 4000 + Math.random() * 8000);
+    }
+    setTimeout(_rumble, 800);
+}
+
+/** Stop dungeon ambient and restart overworld ambient. */
+export function stopDungeonAmbient() {
+    if (_dungeonDripHandle)    { clearTimeout(_dungeonDripHandle);    _dungeonDripHandle    = null; }
+    if (_dungeonGrumbleHandle) { clearTimeout(_dungeonGrumbleHandle); _dungeonGrumbleHandle = null; }
+    // Resume forest sounds
+    startAmbient();
+}
