@@ -1228,6 +1228,22 @@ class Dungeon {
         };
     }
 
+    /**
+     * Returns true if world position (wx, wz) is on a floor tile.
+     * Uses a small radius check so the player can't clip through thin walls.
+     */
+    isWalkable(wx, wz) {
+        const RADIUS = 0.45;  // player collision half-width in world units
+        // Check four corners of the player footprint
+        for (const [ox, oz] of [[-RADIUS, -RADIUS], [RADIUS, -RADIUS], [-RADIUS, RADIUS], [RADIUS, RADIUS]]) {
+            const tx = Math.floor(((wx + ox) - this.stageX + (DUNGEON_W * TILE) / 2) / TILE);
+            const tz = Math.floor(((wz + oz) - this.stageZ + (DUNGEON_H * TILE) / 2) / TILE);
+            if (tx < 0 || tz < 0 || tx >= DUNGEON_W || tz >= DUNGEON_H) return false;
+            if (this.grid[tz][tx] !== 1) return false;
+        }
+        return true;
+    }
+
     /** Returns the world-space player spawn position when entering */
     getEntryPlayerPos() {
         return this.entryWorldPos.clone().add(new THREE.Vector3(0, 0, 1.5));

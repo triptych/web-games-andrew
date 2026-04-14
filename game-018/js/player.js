@@ -208,7 +208,7 @@ export function initPlayer(scene, camera) {
     const camPivot = new THREE.Object3D();
     scene.add(camPivot);
 
-    function update(dt, monsters, pickups, builtPositions, worldLimit) {
+    function update(dt, monsters, pickups, builtPositions, worldLimit, isWalkable) {
         if (state.isGameOver) return;
 
         // --- Movement ---
@@ -230,8 +230,24 @@ export function initPlayer(scene, camera) {
             const speed = PLAYER_SPEED * dt;
             const nx = playerGroup.position.x + moveDir.x * speed;
             const nz = playerGroup.position.z + moveDir.z * speed;
-            if (worldLimit !== undefined) {
-                // Inside dungeon: clamp within dungeon staging bounds
+            if (worldLimit !== undefined && isWalkable !== undefined) {
+                // Inside dungeon: tile-aware wall collision with axis separation
+                const cx = playerGroup.position.x;
+                const cz = playerGroup.position.z;
+                // Try full move first, then fall back to axis-separated slides
+                if (isWalkable(nx, nz)) {
+                    playerGroup.position.x = nx;
+                    playerGroup.position.z = nz;
+                } else if (isWalkable(nx, cz)) {
+                    playerGroup.position.x = nx;
+                } else if (isWalkable(cx, nz)) {
+                    playerGroup.position.z = nz;
+                }
+                // Clamp to outer dungeon bounds as safety net
+                playerGroup.position.x = Math.max(worldLimit.minX, Math.min(worldLimit.maxX, playerGroup.position.x));
+                playerGroup.position.z = Math.max(worldLimit.minZ, Math.min(worldLimit.maxZ, playerGroup.position.z));
+            } else if (worldLimit !== undefined) {
+                // Fallback: simple rectangular clamp
                 playerGroup.position.x = Math.max(worldLimit.minX, Math.min(worldLimit.maxX, nx));
                 playerGroup.position.z = Math.max(worldLimit.minZ, Math.min(worldLimit.maxZ, nz));
             } else {

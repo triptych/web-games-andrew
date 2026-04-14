@@ -301,10 +301,10 @@ function _initGame(loadSave = false) {
             const allMonsters = dungeonSystem.isInDungeon()
                 ? activeDungeonMonsters
                 : monsters;
-            const dungeonBounds = dungeonSystem.isInDungeon()
-                ? dungeonSystem.getCurrentDungeon().getStageBounds()
-                : undefined;
-            updatePlayer(dt, allMonsters, pickups, builtPositions, dungeonBounds);
+            const activeDungeon = dungeonSystem.getCurrentDungeon();
+            const dungeonBounds = activeDungeon ? activeDungeon.getStageBounds() : undefined;
+            const dungeonWalkable = activeDungeon ? (x, z) => activeDungeon.isWalkable(x, z) : undefined;
+            updatePlayer(dt, allMonsters, pickups, builtPositions, dungeonBounds, dungeonWalkable);
             updateMonsters(dt, pPos, camera);
             dungeonSystem.update(dt, pPos, camera);
             updatePickups(dt, pPos);
