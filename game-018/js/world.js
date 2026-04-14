@@ -53,9 +53,10 @@ export function initWorld() {
 
     // ---- Ground ----
     const groundGeo = new THREE.PlaneGeometry(WORLD_SIZE * 2, WORLD_SIZE * 2, 40, 40);
-    // Slightly bump vertices for organic feel.
+    // Vertex displacement pass — creates subtle organic terrain bumps outside the village.
     // PlaneGeometry is in the XY plane before rotation, so local X=x, local Y=y (world Z after -PI/2 rotation).
-    // We bump the Z component (local Z = world Y after rotation).
+    // We displace the local Z component (which becomes world Y after the -PI/2 X rotation applied below).
+    // Vertices within VILLAGE_RADIUS+5 of centre are left flat so the village sits on level ground.
     const pos = groundGeo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i), y = pos.getY(i);   // local X and Y span the plane
@@ -163,6 +164,19 @@ export function initWorld() {
     return { scene, camera, renderer, villageCenter: new THREE.Vector3(0, 0, 0), fireGroup, ambient, sun, stars, rabbits };
 }
 
+/**
+ * Pick a uniformly random position in an annulus (ring) defined by minR and maxR.
+ * Used by all scatter-spawn helpers to place objects at a random distance from origin.
+ * @param {number} minR - minimum radial distance from origin
+ * @param {number} maxR - maximum radial distance from origin
+ * @returns {{ x: number, z: number }}
+ */
+function _randRadialPos(minR, maxR) {
+    const angle = Math.random() * Math.PI * 2;
+    const r     = minR + Math.random() * (maxR - minR);
+    return { x: Math.cos(angle) * r, z: Math.sin(angle) * r };
+}
+
 // ---- Tree helper ----
 function _spawnTrees(scene, count, minR, maxR) {
     const trunkGeo = new THREE.CylinderGeometry(0.18, 0.28, 1.8, 6);
@@ -171,10 +185,7 @@ function _spawnTrees(scene, count, minR, maxR) {
     const foliageMat = new THREE.MeshLambertMaterial({ color: 0x2d6a2d });
 
     for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const r     = minR + Math.random() * (maxR - minR);
-        const x     = Math.cos(angle) * r;
-        const z     = Math.sin(angle) * r;
+        const { x, z } = _randRadialPos(minR, maxR);
 
         const group = new THREE.Group();
         group.position.set(x, 0, z);
@@ -204,10 +215,7 @@ function _spawnRocks(scene, count, minR, maxR) {
     const rockMat = new THREE.MeshLambertMaterial({ color: 0x888888 });
 
     for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const r     = minR + Math.random() * (maxR - minR);
-        const x     = Math.cos(angle) * r;
-        const z     = Math.sin(angle) * r;
+        const { x, z } = _randRadialPos(minR, maxR);
 
         const rock = new THREE.Mesh(rockGeo, rockMat.clone());
         rock.material.color.setHex(0x777777 + Math.floor(Math.random() * 0x222222));
@@ -227,10 +235,7 @@ function _spawnRockClusters(scene, count, minR, maxR) {
     const smlGeo  = new THREE.DodecahedronGeometry(0.3, 0);
 
     for (let i = 0; i < count; i++) {
-        const angle  = Math.random() * Math.PI * 2;
-        const r      = minR + Math.random() * (maxR - minR);
-        const cx     = Math.cos(angle) * r;
-        const cz     = Math.sin(angle) * r;
+        const { x: cx, z: cz } = _randRadialPos(minR, maxR);
         const clrHex = 0x666666 + Math.floor(Math.random() * 0x333333);
         const clusterSize = 3 + Math.floor(Math.random() * 3);
 
@@ -293,10 +298,7 @@ function _spawnTrails(scene) {
 // ---- Bush helper ----
 function _spawnBushes(scene, count, minR, maxR) {
     for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const r     = minR + Math.random() * (maxR - minR);
-        const x     = Math.cos(angle) * r;
-        const z     = Math.sin(angle) * r;
+        const { x, z } = _randRadialPos(minR, maxR);
 
         // Pick a green shade
         const greenBase = 0x1a5c1a + Math.floor(Math.random() * 0x184018);
@@ -332,10 +334,7 @@ function _spawnFlowerPatches(scene, count, minR, maxR) {
     const stemMat = new THREE.MeshLambertMaterial({ color: 0x4a8a2a });
 
     for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const r     = minR + Math.random() * (maxR - minR);
-        const cx    = Math.cos(angle) * r;
-        const cz    = Math.sin(angle) * r;
+        const { x: cx, z: cz } = _randRadialPos(minR, maxR);
 
         const flowerCount = 2 + Math.floor(Math.random() * 4);
         for (let f = 0; f < flowerCount; f++) {

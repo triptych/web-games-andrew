@@ -52,10 +52,11 @@ import {
     DAY_AMBIENT_INT, NIGHT_AMBIENT_INT,
     DAY_SUN_INT, NIGHT_SUN_INT,
     DAY_SKY_HEX, NIGHT_SKY_HEX,
-    POTION_COST_HERBS,
+    POTION_COST_HERBS, POTION_HEAL_AMOUNT,
 } from './config.js';
 import { showInventory, hideInventory, initInventory } from './inventory.js';
 import { initDungeons } from './dungeon.js';
+import { initSplashScene } from './splash.js';
 
 // ============================================================
 // Splash → Game start
@@ -65,6 +66,9 @@ const splashEl  = document.getElementById('splash');
 const hudEl     = document.getElementById('hud');
 const startBtn  = document.getElementById('splash-start');
 let gameStarted = false;
+
+// Start monster showcase immediately (torn down when game begins)
+const stopSplashScene = initSplashScene();
 
 // Show continue button if save exists
 if (hasSave()) {
@@ -79,6 +83,7 @@ if (hasSave()) {
 function _startGame(loadSave = false) {
     if (gameStarted) return;
     gameStarted = true;
+    stopSplashScene();   // free splash Three.js renderer before main game starts
     initAudio();
     startAmbient();
     playUiClick();
@@ -153,15 +158,23 @@ function _initGame(loadSave = false) {
     // Input handling
     // ============================================================
 
+    /**
+     * Toggle a UI panel open/closed, playing the UI click sound either way.
+     * @param {Function} showFn - function to call when opening
+     * @param {Function} hideFn - function to call when closing
+     * @param {string}   panelId - id of the panel element used to detect current state
+     */
+    function _togglePanel(showFn, hideFn, panelId) {
+        const el = document.getElementById(panelId);
+        const isOpen = el?.style.display === 'block';
+        isOpen ? hideFn() : showFn();
+        playUiClick();
+    }
+
     document.addEventListener('keydown', (e) => {
         // --- Q: Quest log ---
         if (e.code === 'KeyQ') {
-            const qp = document.getElementById('quest-panel');
-            if (!qp || qp.style.display === 'none' || qp.style.display === '') {
-                showQuestLog(); playUiClick();
-            } else {
-                hideQuestLog(); playUiClick();
-            }
+            _togglePanel(showQuestLog, hideQuestLog, 'quest-panel');
             return;
         }
 
@@ -169,7 +182,7 @@ function _initGame(loadSave = false) {
         if (e.code === 'KeyH') {
             if (state.usePotion()) {
                 playHeal();
-                events.emit('message', `Used a health potion! (+${50} HP)`, '#88ddaa');
+                events.emit('message', `Used a health potion! (+${POTION_HEAL_AMOUNT} HP)`, '#88ddaa');
             } else if (state.potions <= 0) {
                 events.emit('message', 'No potions. Craft some at the Alchemist!', '#cc8844');
             } else {
@@ -236,13 +249,7 @@ function _initGame(loadSave = false) {
 
             const distToVillage = Math.sqrt(pPos.x * pPos.x + pPos.z * pPos.z);
             if (distToVillage <= VILLAGE_RADIUS + 2) {
-                const bp = document.getElementById('build-panel');
-                if (bp.style.display === 'none' || bp.style.display === '') {
-                    showBuildPanel();
-                } else {
-                    hideBuildPanel();
-                }
-                playUiClick();
+                _togglePanel(showBuildPanel, hideBuildPanel, 'build-panel');
             } else {
                 // Try harvesting a nearby resource node
                 const harvested = checkNodeHarvest(pPos);
@@ -255,13 +262,7 @@ function _initGame(loadSave = false) {
 
         // --- I: Inventory ---
         if (e.code === 'KeyI') {
-            const inv = document.getElementById('inventory-panel');
-            if (!inv || inv.style.display === 'none' || inv.style.display === '') {
-                showInventory();
-            } else {
-                hideInventory();
-            }
-            playUiClick();
+            _togglePanel(showInventory, hideInventory, 'inventory-panel');
             return;
         }
 
@@ -330,17 +331,19 @@ function _initGame(loadSave = false) {
 
             updateVillage(dt, nightBlend);
 
-            // Campfire flame
-            if (fireGroup.userData.flame) {
-                const flame = fireGroup.userData.flame;
-                flame.position.y = 0.5 + Math.sin(Date.now() * 0.006) * 0.12;
-                flame.scale.setScalar(0.9 + Math.sin(Date.now() * 0.009) * 0.15);
-                flame.material.color.setHex(Date.now() % 400 < 200 ? 0xff7722 : 0xff9933);
-            }
-
-            if (fireGroup.userData.fireLight) {
-                const flicker = Math.sin(Date.now() * 0.012) * 0.5;
-                fireGroup.userData.fireLight.intensity = (2.2 + flicker) * (0.5 + nightBlend * 0.8);
+            // Campfire flame — capture timestamp once to keep all flicker calculations in sync
+            if (fireGroup.userData.flame || fireGroup.userData.fireLight) {
+                const now = Date.now();
+                if (fireGroup.userData.flame) {
+                    const flame = fireGroup.userData.flame;
+                    flame.position.y = 0.5 + Math.sin(now * 0.006) * 0.12;
+                    flame.scale.setScalar(0.9 + Math.sin(now * 0.009) * 0.15);
+                    flame.material.color.setHex(now % 400 < 200 ? 0xff7722 : 0xff9933);
+                }
+                if (fireGroup.userData.fireLight) {
+                    const flicker = Math.sin(now * 0.012) * 0.5;
+                    fireGroup.userData.fireLight.intensity = (2.2 + flicker) * (0.5 + nightBlend * 0.8);
+                }
             }
 
             // Dead monster cleanup every 300 frames

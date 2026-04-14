@@ -3,7 +3,7 @@
 **Genre:** Action RPG / Village Builder
 **Engine:** Three.js r165 (ES6 modules, CDN)
 **Target Resolution:** 1280 × 720 (responsive)
-**Status:** Phase 2 — Polish Complete
+**Status:** Phase 3 — Complete
 
 ---
 
@@ -138,13 +138,15 @@ Cost scales ×1.8 per existing level.
 - [x] Death animation (fade out) for monsters
 - [x] Day/night cycle with torch lighting
 
-### Phase 3 — Depth
-- [ ] Quest system: simple "kill 10 goblins" style objectives
-- [ ] More monster types: skeleton, dragon boss
-- [ ] Village NPCs (static characters that give quests/tips)
-- [ ] Save/load game state to localStorage
-- [ ] Map screen (Tab could open minimap)
-- [ ] Crafting: combine resources at blacksmith for weapons/potions
+### Phase 3 — Depth (2026-04-14)
+- [x] Quest system: 10 quests (kill / gather / build) with NPC givers in village
+- [x] More monster types: skeleton, dragon boss, procedural monster generator
+- [x] Village NPCs: Elder, Builder, Guard, Healer with floating quest indicators
+- [x] Save/load game state to localStorage (autosave every 30s + on exit)
+- [x] Minimap: 2D overhead canvas with player, monsters, nodes, dungeon portals
+- [x] Crafting: potion crafting at Alchemist's Lab (H to use, C to craft)
+- [x] Dungeons: 4 instanced dungeons with unique monsters, chests, and a boss
+- [x] Splash screen monster showcase: animated 3D monsters rotate in background
 
 ---
 

@@ -41,11 +41,11 @@ export function saveGame() {
         },
         buildings: {},
         equippedWeapon: state.equippedWeapon,
-        inventory: [...state._inventory],
+        inventory: state.inventory,
         potions:   state.potions,
-        activeQuests:    [...state._activeQuests],
-        completedQuests: [...state._completedQuests],
-        questProgress:   { ...state._questProgress },
+        activeQuests:    state.activeQuests,
+        completedQuests: state.completedQuests,
+        questProgress:   state.questProgress,
     };
 
     for (const b of BUILDING_DEFS) {

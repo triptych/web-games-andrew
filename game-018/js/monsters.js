@@ -97,7 +97,17 @@ export function generateProceduralMonster(seed) {
     };
 }
 
-// Simple deterministic RNG (xorshift32)
+/**
+ * Create a seeded deterministic pseudo-random number generator (xorshift32 algorithm).
+ *
+ * Used for procedural monster generation so that a given seed always produces the
+ * same creature — important for reproducibility when the same seed is reused across
+ * game sessions or dungeon floors.
+ *
+ * @param {number} seed - Any numeric seed; non-integer values are floored. Zero is
+ *   replaced with a safe default so the shift chain never stalls on an all-zero state.
+ * @returns {Function} A zero-argument function that returns a float in [0, 1).
+ */
 function _makeRng(seed) {
     let s = (Math.floor(seed) >>> 0) || 1234567;  // avoid zero seed
     return function() {
@@ -430,6 +440,28 @@ function _buildMonsterMesh(type, procDef) {
     return group;
 }
 
+/**
+ * Attach a floating HP bar to a monster group.
+ *
+ * Builds two planes: a green foreground fill (the visible "current HP" strip).
+ * The bar is placed 0.3 world units above the top of the creature geometry so it
+ * floats clearly above horns, wings, or any other tall features.
+ *
+ * The mesh is stored on `group.userData.hpBar` so the AI update loop can scale
+ * its X axis (0–1) to reflect current HP without needing to traverse children.
+ *
+ * Called from:
+ *   - `_buildMonsterMesh`    (overworld slime/goblin/troll/wolf)
+ *   - `_buildProceduralMesh` (procedurally generated monsters)
+ *   - `_buildSkeletonMesh`   (skeleton special mesh)
+ *   - `_buildDragonMesh`     (dragon boss special mesh)
+ *   — and equivalently in dungeon.js for dungeon-exclusive creatures.
+ *
+ * @param {THREE.Group} group      - The monster's root Group to attach the bar to.
+ * @param {number}      s          - The monster's scale factor (from its def).
+ * @param {number}      [topY]     - World-space Y of the highest point of the creature.
+ *   Defaults to `1.0 * s` when omitted.
+ */
 function _addHpBar(group, s, topY) {
     const hpBarGeo = new THREE.PlaneGeometry(0.8 * s, 0.1 * s);
     const hpBarMat = new THREE.MeshBasicMaterial({ color: 0x44cc44, side: THREE.DoubleSide });
@@ -541,6 +573,11 @@ function _buildDragonMesh() {
     _addHpBar(group, s, 1.7 * s + 0.225 * s);  // head centre + half head height
     group.userData.wingTimer = 0;
     return group;
+}
+
+// Exported so splash.js can build display meshes without spawning a full monster
+export function buildMonsterMeshForDisplay(type, procDef = null) {
+    return _buildMonsterMesh(type, procDef);
 }
 
 // Monster class

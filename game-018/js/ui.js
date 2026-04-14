@@ -98,27 +98,70 @@ function buildBuildPanel() {
     });
 }
 
+/**
+ * Build the market sell section as a DOM element.
+ * Returns null if the market has not been built yet.
+ * @returns {HTMLElement|null}
+ */
 function buildSellSection() {
     const marketLvl = state.getBuildingLevel('market');
-    if (marketLvl < 1) return '';
+    if (marketLvl < 1) return null;
 
-    const sellMult = 1 + state.buildingBonus('sellBonus');
-    const resources = ['wood','stone','iron','herbs'];
-    let rows = '';
+    const sellMult  = 1 + state.buildingBonus('sellBonus');
+    const resources = ['wood', 'stone', 'iron', 'herbs'];
+
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'border-top:1px solid rgba(200,168,68,0.3);margin-top:10px;padding-top:10px;';
+
+    const header = document.createElement('div');
+    header.style.cssText = 'color:#c8a844;font-size:11px;font-weight:bold;margin-bottom:6px;';
+    header.textContent = `MARKET — Sell Resources (×${sellMult.toFixed(2)})`;
+    wrapper.appendChild(header);
+
     for (const res of resources) {
         const amount = state.getResource(res);
         const price  = Math.ceil(SELL_PRICES[res] * sellMult);
-        rows += `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:12px;">
-            <span style="color:#88aa88;text-transform:capitalize;">${res}: <span style="color:#c8e8a0">${amount}</span></span>
-            <span style="color:#c8a844;font-size:11px;">${price}g each</span>
-            <button class="sell-btn" data-res="${res}" data-price="${price}" ${amount === 0 ? 'disabled' : ''} style="padding:2px 8px;font-size:11px;">Sell All</button>
-        </div>`;
+
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:12px;';
+
+        const label = document.createElement('span');
+        label.style.cssText = 'color:#88aa88;text-transform:capitalize;';
+        label.textContent = `${res}: `;
+        const amountSpan = document.createElement('span');
+        amountSpan.style.color = '#c8e8a0';
+        amountSpan.textContent = amount;
+        label.appendChild(amountSpan);
+
+        const priceSpan = document.createElement('span');
+        priceSpan.style.cssText = 'color:#c8a844;font-size:11px;';
+        priceSpan.textContent = `${price}g each`;
+
+        const btn = document.createElement('button');
+        btn.className = 'sell-btn';
+        btn.dataset.res   = res;
+        btn.dataset.price = price;
+        btn.style.cssText = 'padding:2px 8px;font-size:11px;';
+        btn.textContent   = 'Sell All';
+        if (amount === 0) btn.disabled = true;
+
+        btn.addEventListener('click', () => {
+            const amt = state.getResource(res);
+            if (amt <= 0) return;
+            state.spendResource(res, amt);
+            state.addGold(price * amt);
+            playGoldPickup();
+            events.emit('message', `Sold ${amt} ${res} for ${price * amt} gold.`, '#c8a844');
+            showBuildPanel();  // refresh
+        });
+
+        row.appendChild(label);
+        row.appendChild(priceSpan);
+        row.appendChild(btn);
+        wrapper.appendChild(row);
     }
 
-    return `<div style="border-top:1px solid rgba(200,168,68,0.3);margin-top:10px;padding-top:10px;">
-        <div style="color:#c8a844;font-size:11px;font-weight:bold;margin-bottom:6px;">MARKET — Sell Resources (×${sellMult.toFixed(2)})</div>
-        ${rows}
-    </div>`;
+    return wrapper;
 }
 
 export function showBuildPanel() {
@@ -126,28 +169,13 @@ export function showBuildPanel() {
     // Remove any existing sell section before re-appending
     const oldSell = document.getElementById('sell-section');
     if (oldSell) oldSell.remove();
-    // Append sell section if market is built
-    const sellHtml = buildSellSection();
-    if (sellHtml) {
-        const sellDiv = document.createElement('div');
-        sellDiv.id = 'sell-section';
-        sellDiv.innerHTML = sellHtml;
+    // Append sell section as a DOM element if market is built
+    const sellEl = buildSellSection();
+    if (sellEl) {
+        sellEl.id = 'sell-section';
         // Insert before the Close button
         const closeBtn = document.getElementById('build-close');
-        buildPanel.insertBefore(sellDiv, closeBtn);
-        sellDiv.querySelectorAll('.sell-btn:not(:disabled)').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const res   = btn.dataset.res;
-                const price = parseInt(btn.dataset.price);
-                const amt   = state.getResource(res);
-                if (amt <= 0) return;
-                state.spendResource(res, amt);
-                state.addGold(price * amt);
-                playGoldPickup();
-                events.emit('message', `Sold ${amt} ${res} for ${price * amt} gold.`, '#c8a844');
-                showBuildPanel();  // refresh
-            });
-        });
+        buildPanel.insertBefore(sellEl, closeBtn);
     }
     buildPanel.style.display = 'block';
 }

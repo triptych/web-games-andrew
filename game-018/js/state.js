@@ -241,6 +241,12 @@ class GameState {
         events.emit('questCompleted', id);
     }
 
+    // ---- Quest read-only getters (used by save.js to avoid reaching into private fields) ----
+    get inventory()       { return [...this._inventory]; }
+    get activeQuests()    { return [...this._activeQuests]; }
+    get completedQuests() { return [...this._completedQuests]; }
+    get questProgress()   { return { ...this._questProgress }; }
+
     // ---- Weapons ----
     get equippedWeapon() { return this._equippedWeapon; }
     set equippedWeapon(type) {

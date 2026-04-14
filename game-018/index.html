@@ -87,6 +87,21 @@
             color: #446644;
         }
 
+        /* Monster showcase canvas — fills splash, sits behind all content */
+        #splash-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.65;
+        }
+        /* Ensure splash children stack above canvas */
+        #splash > *:not(#splash-canvas) {
+            position: relative;
+            z-index: 1;
+        }
+
         /* HUD panels */
         #hud-stats {
             position: absolute;
@@ -389,6 +404,7 @@
 <body>
     <!-- Splash screen -->
     <div id="splash">
+        <canvas id="splash-canvas"></canvas>
         <h1>Village of the<br>Wandering Blade</h1>
         <div class="subtitle">Explore. Slay. Build. Grow.</div>
         <div class="controls-grid">
