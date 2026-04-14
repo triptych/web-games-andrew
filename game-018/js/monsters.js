@@ -622,7 +622,14 @@ class Monster {
         // Flash white
         this.flashTimer = 0.14;
         const bodyMesh = this.mesh.children.find(c => c.name === 'body');
-        if (bodyMesh) bodyMesh.material.color.setHex(0xffffff);
+        if (bodyMesh) {
+            // Store original color on first hit so restore is always correct
+            // (textured monsters use 0xffffff as their base color, not def.color)
+            if (this.mesh.userData.bodyBaseColor == null) {
+                this.mesh.userData.bodyBaseColor = bodyMesh.material.color.getHex();
+            }
+            bodyMesh.material.color.setHex(0xffffff);
+        }
 
         events.emit('message', `Hit ${this.def.label} for ${amount} dmg!`, '#ffcc88');
 
@@ -769,7 +776,10 @@ class Monster {
             this.flashTimer -= dt;
             if (this.flashTimer <= 0) {
                 const bodyMesh = this.mesh.children.find(c => c.name === 'body');
-                if (bodyMesh) bodyMesh.material.color.setHex(this.def.color);
+                if (bodyMesh) {
+                    const restoreColor = this.mesh.userData.bodyBaseColor ?? this.def.color;
+                    bodyMesh.material.color.setHex(restoreColor);
+                }
             }
         }
 
