@@ -19,6 +19,7 @@ From `$ARGUMENTS`:
 - **Game folder**: First token starting with `game-` (e.g. `game-009`). If not given, list existing `game-NNN` folders in `c:\Users\andre\OneDrive\Documents\web-games-andrew\` and use the next number.
 - **Game title**: The quoted string after the folder, or the first quoted string if no folder was given.
 - **Concept**: Everything after the title, or ask the user if missing. Keep it to 1–2 sentences.
+- **Engine**: If the arguments contain `phaser` or `phaser4` (case-insensitive), use Phaser. If they contain `kaplay`, use Kaplay. Otherwise, ask the user: "Which engine? **Kaplay** (default) or **Phaser 4**?"
 
 Set these variables for use below:
 - `GAME_FOLDER` — e.g. `game-009`
@@ -26,12 +27,20 @@ Set these variables for use below:
 - `GAME_CONCEPT` — e.g. `A brick breaker game with powerups and boss levels.`
 - `GAME_NUMBER` — numeric part, e.g. `009`
 - `GAME_DIR` — `c:\Users\andre\OneDrive\Documents\web-games-andrew\GAME_FOLDER`
+- `ENGINE` — `kaplay` or `phaser`
 
 ---
 
 ## Step 2: Create all scaffold files
 
 Create each file below. Substitute `GAME_TITLE`, `GAME_CONCEPT`, `GAME_FOLDER`, `GAME_NUMBER` where indicated.
+
+**If ENGINE = `kaplay`**: use the Kaplay templates (Sections 2A).
+**If ENGINE = `phaser`**: use the Phaser templates (Section 2B) instead — skip the Kaplay templates entirely.
+
+---
+
+# 2A — Kaplay scaffold (skip if ENGINE = phaser)
 
 ---
 
@@ -610,7 +619,7 @@ Write a proper game-plan document. Use the concept and title to fill in meaningf
 # GAME_TITLE
 
 **Genre:** [derive from concept]
-**Engine:** Kaplay v4000 (ES6 modules)
+**Engine:** Kaplay v4000 (ES6 modules)   ← use "Phaser 4.0.0" here if ENGINE = phaser
 **Target Resolution:** 1280 × 720
 **Status:** Planning — Phase 1
 
@@ -705,6 +714,8 @@ GAME_CONCEPT
 
 ## Module Overview
 
+*(Kaplay)*
+
 | File | Responsibility |
 |------|---------------|
 | `main.js`   | Kaplay init, scene definitions |
@@ -713,6 +724,19 @@ GAME_CONCEPT
 | `state.js`  | GameState singleton |
 | `sounds.js` | Web Audio API sound effects |
 | `ui.js`     | HUD rendering and game-over screen |
+
+*(Phaser — replace above table if ENGINE = phaser)*
+
+| File | Responsibility |
+|------|---------------|
+| `main.js`   | Phaser.Game init, scene boot |
+| `config.js` | Constants and definitions |
+| `events.js` | EventBus singleton |
+| `state.js`  | GameState singleton |
+| `sounds.js` | Web Audio API sound effects |
+| `SplashScene.js` | Title screen scene |
+| `GameScene.js`   | Main gameplay scene |
+| `UIScene.js`     | HUD overlay scene (runs in parallel) |
 
 ---
 
@@ -729,6 +753,323 @@ GAME_CONCEPT
 ```
 
 Fill in today's date where `YYYY-MM-DD` appears.
+
+---
+
+# 2B — Phaser scaffold (skip if ENGINE = kaplay)
+
+Create the following files when ENGINE = `phaser`. The shared `events.js`, `state.js`, `sounds.js`, and `config.js` are identical to the Kaplay versions above — create them unchanged. Only the files below differ.
+
+---
+
+### File: `GAME_DIR/index.html` (Phaser version)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAME_TITLE</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+        }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="../../lib/phaser/phaser.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
+```
+
+---
+
+### File: `GAME_DIR/js/main.js` (Phaser version)
+
+```js
+/**
+ * main.js — Phaser 4 game entry point.
+ *
+ * Scenes (loaded in order):
+ *   SplashScene — Title / start screen
+ *   GameScene   — Main gameplay
+ *   UIScene     — HUD overlay (runs in parallel with GameScene)
+ *
+ * Library: ../../lib/phaser/phaser.js (global `Phaser`)
+ */
+
+import { SplashScene } from './SplashScene.js';
+import { GameScene }   from './GameScene.js';
+import { UIScene }     from './UIScene.js';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
+
+// Helper: convert [r,g,b] array to Phaser hex integer 0xRRGGBB
+function rgb(arr) {
+    return (arr[0] << 16) | (arr[1] << 8) | arr[2];
+}
+
+const config = {
+    type: Phaser.AUTO,
+    width:  GAME_WIDTH,
+    height: GAME_HEIGHT,
+    backgroundColor: rgb(COLORS.bg),
+    scale: {
+        mode:            Phaser.Scale.FIT,
+        autoCenter:      Phaser.Scale.CENTER_BOTH,
+    },
+    scene: [SplashScene, GameScene, UIScene],
+};
+
+new Phaser.Game(config);
+```
+
+---
+
+### File: `GAME_DIR/js/SplashScene.js`
+
+```js
+/**
+ * SplashScene — Title screen.
+ * Waits for any key or pointer click, then starts GameScene + UIScene.
+ */
+
+import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
+import { initAudio, playUiClick } from './sounds.js';
+
+function rgb(arr) { return (arr[0] << 16) | (arr[1] << 8) | arr[2]; }
+function hex(arr) { return '#' + arr.map(v => v.toString(16).padStart(2, '0')).join(''); }
+
+export class SplashScene extends Phaser.Scene {
+    constructor() { super({ key: 'SplashScene' }); }
+
+    create() {
+        const CX = GAME_WIDTH  / 2;
+        const CY = GAME_HEIGHT / 2;
+
+        // Title
+        this.add.text(CX, CY - 100, 'GAME_TITLE', {
+            fontSize: '64px',
+            color: hex(COLORS.accent),
+            fontFamily: 'monospace',
+        }).setOrigin(0.5);
+
+        // Blinking prompt
+        this._prompt = this.add.text(CX, CY + 40, 'PRESS ANY KEY OR CLICK TO START', {
+            fontSize: '16px',
+            color: hex(COLORS.text),
+            fontFamily: 'monospace',
+        }).setOrigin(0.5);
+
+        // Controls hint
+        this.add.text(CX, CY + 100, 'TODO: add controls hint here', {
+            fontSize: '12px',
+            color: '#505078',
+            fontFamily: 'monospace',
+        }).setOrigin(0.5);
+
+        // Version tag
+        this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 10, 'Phase 1', {
+            fontSize: '10px',
+            color: '#323250',
+            fontFamily: 'monospace',
+        }).setOrigin(1, 1);
+
+        // Input
+        this._started = false;
+        this.input.keyboard.on('keydown', (e) => {
+            if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+            this._goToGame();
+        });
+        this.input.on('pointerdown', () => this._goToGame());
+
+        // Blink timer
+        this._blinkTimer = 0;
+    }
+
+    update(time, delta) {
+        this._blinkTimer += delta / 1000;
+        const alpha = (Math.sin(this._blinkTimer * Math.PI * 1.5) + 1) / 2 * 0.7 + 0.3;
+        this._prompt.setAlpha(alpha);
+    }
+
+    _goToGame() {
+        if (this._started) return;
+        this._started = true;
+        initAudio();
+        playUiClick();
+        this.scene.start('GameScene');
+        this.scene.start('UIScene');
+        this.scene.stop('SplashScene');
+    }
+}
+```
+
+---
+
+### File: `GAME_DIR/js/GameScene.js`
+
+```js
+/**
+ * GameScene — Main gameplay scene.
+ *
+ * Communicates with UIScene via the shared EventBus (events.js).
+ */
+
+import { state }  from './state.js';
+import { events } from './events.js';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
+import { initAudio } from './sounds.js';
+
+// TODO: import game-specific modules here
+// import { initPlayer } from './player.js';
+
+export class GameScene extends Phaser.Scene {
+    constructor() { super({ key: 'GameScene' }); }
+
+    create() {
+        state.reset();
+
+        // TODO: initialise game objects, physics, etc.
+        // initPlayer(this);
+
+        // Key bindings
+        this._keys = this.input.keyboard.addKeys({
+            restart: Phaser.Input.Keyboard.KeyCodes.R,
+            pause:   Phaser.Input.Keyboard.KeyCodes.P,
+            escape:  Phaser.Input.Keyboard.KeyCodes.ESC,
+        });
+
+        // Game-over handler
+        this._offGameOver = events.on('gameOver', () => this._handleGameOver());
+    }
+
+    update(time, delta) {
+        if (state.isGameOver) return;
+        if (state.isPaused)   return;
+
+        const dt = delta / 1000; // seconds
+
+        // TODO: update game objects here
+
+        // Key handling
+        if (Phaser.Input.Keyboard.JustDown(this._keys.restart)) {
+            this._restart();
+        }
+        if (Phaser.Input.Keyboard.JustDown(this._keys.pause)) {
+            state.isPaused = !state.isPaused;
+        }
+        if (Phaser.Input.Keyboard.JustDown(this._keys.escape)) {
+            this._goToMenu();
+        }
+    }
+
+    _handleGameOver() {
+        // GameScene freezes; UIScene shows the overlay
+    }
+
+    _restart() {
+        events.clearAll();
+        this.scene.restart();
+        this.scene.get('UIScene').scene.restart();
+    }
+
+    _goToMenu() {
+        events.clearAll();
+        this.scene.stop('UIScene');
+        this.scene.start('SplashScene');
+    }
+
+    shutdown() {
+        if (this._offGameOver) this._offGameOver();
+    }
+}
+```
+
+---
+
+### File: `GAME_DIR/js/UIScene.js`
+
+```js
+/**
+ * UIScene — HUD overlay, runs in parallel with GameScene.
+ * Listens to EventBus for state changes and updates labels.
+ */
+
+import { state }  from './state.js';
+import { events } from './events.js';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
+
+function hex(arr) { return '#' + arr.map(v => v.toString(16).padStart(2, '0')).join(''); }
+
+export class UIScene extends Phaser.Scene {
+    constructor() { super({ key: 'UIScene' }); }
+
+    create() {
+        // Score — top-left
+        this._scoreLabel = this.add.text(12, 10, `SCORE  ${state.score}`, {
+            fontSize: '16px',
+            color: hex(COLORS.text),
+            fontFamily: 'monospace',
+        }).setOrigin(0, 0);
+
+        // Lives — top-right
+        this._livesLabel = this.add.text(GAME_WIDTH - 12, 10, `LIVES  ${state.lives}`, {
+            fontSize: '16px',
+            color: hex(COLORS.danger),
+            fontFamily: 'monospace',
+        }).setOrigin(1, 0);
+
+        // TODO: add more HUD elements as needed
+
+        // Subscribe to state events
+        this._offs = [
+            events.on('scoreChanged', (v) => { this._scoreLabel.setText(`SCORE  ${v}`); }),
+            events.on('livesChanged', (v) => { this._livesLabel.setText(`LIVES  ${v}`); }),
+            events.on('gameOver',     ()  => { this._showGameOver(); }),
+        ];
+    }
+
+    _showGameOver() {
+        const CX = GAME_WIDTH  / 2;
+        const CY = GAME_HEIGHT / 2;
+
+        // Dim overlay
+        this.add.rectangle(CX, CY, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.6);
+
+        this.add.text(CX, CY - 40, 'GAME OVER', {
+            fontSize: '56px',
+            color: hex(COLORS.danger),
+            fontFamily: 'monospace',
+        }).setOrigin(0.5);
+
+        this.add.text(CX, CY + 30, `Final Score: ${state.score}`, {
+            fontSize: '24px',
+            color: hex(COLORS.text),
+            fontFamily: 'monospace',
+        }).setOrigin(0.5);
+
+        this.add.text(CX, CY + 80, 'Press R to restart  |  ESC for menu', {
+            fontSize: '14px',
+            color: hex(COLORS.accent),
+            fontFamily: 'monospace',
+        }).setOrigin(0.5);
+    }
+
+    shutdown() {
+        this._offs.forEach(off => off());
+    }
+}
+```
 
 ---
 
@@ -759,5 +1100,7 @@ Template:
 
 After creating all files, report:
 1. List every file created (with full path).
-2. Note any TODOs the user should address next (e.g., updating the `game-plan.md` phases, adding player/enemy modules).
-3. Tell the user to open `GAME_DIR/index.html` in a browser to verify the splash screen loads.
+2. State which engine was used (Kaplay or Phaser 4).
+3. Note any TODOs the user should address next (e.g., updating the `game-plan.md` phases, adding player/enemy modules).
+4. Tell the user to open `GAME_DIR/index.html` in a browser to verify the splash screen loads.
+   - **Phaser note**: `index.html` loads `phaser.js` as a plain `<script>` tag (not a module), so it must be served via a local HTTP server — opening the file directly (`file://`) will fail with CORS errors. Use `npx serve .` or VS Code Live Server from `GAME_DIR`.

@@ -48,6 +48,25 @@ Classic dungeon crawler with procedurally generated levels, turn-based combat, a
 
 **Location:** [game-003/](game-003/)
 
+### 19. Synthwave Breakout
+Neon brick-breaker with synthwave aesthetics, escalating ball speed, powerups, and visual effects.
+
+**Features:**
+- Paddle controlled by mouse or arrow keys
+- Ball speed escalates on every brick hit, capped at max
+- 8 rows × 14 columns of bricks with HP tiers and neon row colors
+- Combo multiplier resets on ball loss
+- Powerup drops: wide paddle, slow ball, multiball, laser cannon
+- Perspective grid background with horizon glow
+- Tron-style light trail on the ball (28-point segmented glow ribbon)
+- Screen shake on brick destruction, scaling with brick HP tier
+- CRT / old colour TV raster overlay: rolling scanline band, chromatic fringing, vignette, flicker
+- Built with Phaser 4.0.0 (ESM) and modular ES6 architecture
+
+**Location:** [game-019/](game-019/)
+
+---
+
 ### 4. Tower Defense
 Strategic tower defense game with 5 unique tower types, 5 enemy varieties, 20 progressive waves, and complete sound system.
 
@@ -126,6 +145,16 @@ Each game includes a `gemcore.config.json` file for customizing the build:
 ### Building
 Refer to the GemCore documentation for build instructions.
 
+## Developer Documentation
+
+The [docs/](docs/) directory contains reference material for AI-assisted development:
+
+- **[docs/kaplay/](docs/kaplay/)** — Kaplay v4000 API reference and patterns
+- **[docs/phaser/](docs/phaser/)** — Phaser 4.0.0 full API reference
+- **[docs/generic/](docs/generic/)** — Cross-game learnings, sound design patterns, and game ideas
+
+When building or modifying games, consult these docs for framework APIs, confirmed working patterns, and architectural guidance. See [docs/README.md](docs/README.md) for the full index.
+
 ## Project Structure
 
 ```
@@ -163,7 +192,8 @@ web-games-andrew/
 - **HTML5 Canvas** - For game graphics and rendering
 - **JavaScript** - Game logic and interactivity
 - **CSS3** - Styling and responsive design
-- **Kaplay Framework** - Game development framework (Match-3 game)
+- **Kaplay Framework** - Game development framework (games 002–018)
+- **Phaser 4.0.0** - Game framework used for Synthwave Breakout (game-019)
 - **GemCore/GemShell** - Desktop application packaging
 
 ## Attributions
@@ -199,7 +229,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-**Current Version:** 1.0.0
+**Current Version:** 2.9.0
 
 ---
 

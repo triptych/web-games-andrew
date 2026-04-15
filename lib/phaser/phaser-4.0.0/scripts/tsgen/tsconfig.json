@@ -1,0 +1,17 @@
+{
+    "version": "0.0.1",
+    "compilerOptions": {
+        "target": "es2018",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "declaration": false,
+        "noImplicitAny": false,
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "outDir": "./bin/"
+    },
+    "include": [
+        "src/**/*.ts",
+        "./node_modules/@types/**/*.d.ts"
+    ]
+}

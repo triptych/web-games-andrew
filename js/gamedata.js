@@ -236,6 +236,19 @@ const games = [
             { emoji: '🏘️', label: 'Village Builder' },
             { emoji: '🖱️', label: 'Mouse + Keys' }
         ]
+    },
+    {
+        id: 'game-019',
+        title: 'Synthwave Breakout',
+        description: 'Neon-drenched retro breakout with synthwave aesthetics! Smash 8 rows of vivid neon bricks, build combo multipliers, and catch explosive powerups — wide paddle, multiball, laser cannon, and slow-mo. Particle explosions and a perspective grid backdrop set the mood.',
+        icon: '🎆',
+        folder: 'game-019',
+        cssClass: 'synthwave-breakout',
+        tags: [
+            { emoji: '🕹️', label: 'Arcade' },
+            { emoji: '🖱️', label: 'Mouse' },
+            { emoji: '🌈', label: 'Synthwave' }
+        ]
     }
 ];
 

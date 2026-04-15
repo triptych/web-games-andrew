@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.0] - 2026-04-14
+
+### Added
+- **Synthwave Breakout** (game-019): Tron-style light trail on the ball
+  - Trail buffer extended to 28 points
+  - Three-pass render: wide colored glow layer, bright white core line, cyan accent edge near the head
+  - All trail segments taper off toward the tail using power curves
+  - Ball head upgraded with multi-layer glow halo and white core dot
+- **Synthwave Breakout** (game-019): Screen shake on brick destruction
+  - Uses Phaser camera shake (`cameras.main.shake`); intensity scales with brick HP tier
+- **Synthwave Breakout** (game-019): CRT / old colour TV raster overlay
+  - Fullscreen `<canvas>` layered above the game (`pointer-events: none`)
+  - Rolling scanline band that drifts down the screen like a real TV refresh bar
+  - Static scanline grid (1px dark line every 3px)
+  - RGB chromatic fringing — red bleed on the left edge, blue on the right
+  - Radial vignette darkening the screen edges
+  - Occasional random flicker and horizontal noise lines
+
+### Fixed
+- **Synthwave Breakout** (game-019): Migrated from Phaser 3.60 (`lib/phaser/phaser.js`) to Phaser 4.0.0 (`lib/phaser/phaser-4.0.0/dist/phaser.esm.js`)
+  - `index.html` no longer loads Phaser via `<script src>` — all loading is through `<script type="module">`
+  - `main.js` uses `import * as Phaser from '...phaser.esm.js'` (named-exports-only bundle)
+  - Each scene file (`SplashScene`, `GameScene`, `UIScene`) now imports `Scene` (and other needed APIs) directly from the Phaser 4 ESM — eliminates the `Phaser is not defined` error caused by relying on a global set at runtime
+
+## [2.8.0] - 2026-04-14
+
+### Changed
+- **Village of the Wandering Blade** (game-018): Code review and refactor pass
+  - Extracted `_togglePanel(showFn, hideFn, panelId)` helper in `main.js` — replaces three copies of the repeated open/close panel conditional (Q, I, and E keys)
+  - Fixed hardcoded `50` HP value in potion-use message to use the `POTION_HEAL_AMOUNT` constant
+  - Campfire flame/flicker animation now captures `Date.now()` once per frame instead of calling it multiple times
+  - Extracted `_randRadialPos(minR, maxR)` helper in `world.js` — removes a repeated 4-line radial scatter pattern duplicated across `_spawnTrees`, `_spawnRocks`, `_spawnRockClusters`, `_spawnBushes`, and `_spawnFlowerPatches`
+  - Added explanatory comment to the ground vertex displacement pass in `world.js` (intentionally leaves village area flat; local-Z maps to world-Y after rotation)
+  - `state.js` now exposes public read-only getters for `inventory`, `activeQuests`, `completedQuests`, and `questProgress` (each returns a shallow copy)
+  - `save.js` `saveGame()` updated to use the new public getters instead of directly accessing private `state._` fields
+  - Refactored `buildSellSection()` in `ui.js` from returning a raw HTML string (set via `innerHTML`) to building a DOM element with `document.createElement` — consistent with the rest of the file
+  - Added detailed JSDoc to `_makeRng` in `monsters.js` (xorshift32 seeded RNG, why it exists for reproducible procedural generation)
+  - Added detailed JSDoc to `_addHpBar` in `monsters.js` (params, what it builds, all call sites)
+
 ## [2.7.0] - 2026-04-11
 
 ### Added
