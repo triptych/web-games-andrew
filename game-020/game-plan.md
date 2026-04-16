@@ -3,7 +3,7 @@
 **Genre:** Narrative RPG / Roguelite
 **Engine:** Phaser 4.0.0
 **Target Resolution:** 1280 × 720
-**Status:** Phase 2 Complete
+**Status:** Phase 3 Complete
 
 ---
 
@@ -117,11 +117,11 @@ A single run takes roughly 3–6 minutes.
 - [x] Simple music track (procedural ambient drone via Web Audio)
 
 ### Phase 3 — Content Expansion
-- [ ] 20+ companion types (more archetypes, wider skill spread)
-- [ ] Ingredient crafting: combine two ingredients at a stop for a rarer one
-- [ ] Lord's secret preference (hidden weight multiplier revealed only at dinner)
-- [ ] Persistent high-score log across runs
-- [ ] Alternate endings (multiple dark lords, different river destinations)
+- [x] 22 companion types (8 common, 8 uncommon, 6 rare — wider skill spread)
+- [x] Ingredient crafting: combine two ingredients at a foraging stop for a rarer one (4 recipes)
+- [x] Lord's secret preference (hidden 1.5× multiplier revealed only at dinner; raven hint at segment 5)
+- [x] Persistent high-score log across runs (localStorage, top 5 runs shown on splash)
+- [x] Alternate endings (5 special endings based on party composition and crafted items)
 
 ---
 
@@ -174,6 +174,17 @@ A single run takes roughly 3–6 minutes.
 - GameScene with seeded encounter queue, companion + ingredient cards, dinner score
 - UIScene HUD overlay
 - Launcher entry added to gamedata.js
+
+### Phase 3 — Content Expansion (2026-04-16)
+- 22 companion types (added farmer, innkeeper, weaver, fisherman, scribe, candlemaker, hunter, monk, brewmaster, mapmaker)
+- 3 new incompatible pairs (monk/brewmaster, scribe/sailor, hunter/gardener)
+- 4 crafting recipes at foraging stops (herb+spice→tincture, fish+wine→stew, flower+ribbon→garland, candle+gem→centrepiece); CRAFT button replaces A button when inputs are held
+- Lord's secret preference system: seed-derived skill (cooking/decorating/music/stories/wisdom/strength) with 1.5× multiplier; raven hint delivered after segment 4; revealed at dinner with label
+- Crafted ingredient bonus: +6 score each; shown in breakdown
+- 5 alternate endings checked at dinner (all_music, all_wisdom, full_boat, lone_traveler, legendary_crafter)
+- Persistent high-score log (localStorage): best score + last 3 runs shown on splash screen
+- Dinner screen reworked: alternate ending label/text takes precedence over standard outcome; high-score comparison shown inline
+- Score cap raised from 120 to 150
 
 ### Phase 2 — Polish & Depth (2026-04-15)
 - Scrolling 3-layer river parallax (far/mid/near water strips with ripple lines)

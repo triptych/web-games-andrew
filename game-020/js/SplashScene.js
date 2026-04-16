@@ -10,7 +10,8 @@
  */
 
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
-import { initAudio, playUiClick, playNewsAlert } from './sounds.js';
+import { initAudio, playUiClick } from './sounds.js';
+import { state } from './state.js';
 
 function hex(arr) { return '#' + arr.map(v => v.toString(16).padStart(2, '0')).join(''); }
 
@@ -73,15 +74,35 @@ export class SplashScene extends Phaser.Scene {
             fontFamily: 'monospace',
         }).setOrigin(0.5);
 
+        // Persistent high-score display
+        const hi = state.getHighScore();
+        const log = state.getScoreLog();
+        if (hi > 0) {
+            this.add.text(CX, CY + 130, `Best feast score: ${hi}`, {
+                fontSize: '13px',
+                color: hex(COLORS.gold),
+                fontFamily: 'monospace',
+            }).setOrigin(0.5);
+
+            if (log.length > 0) {
+                const recent = log.slice(0, 3).map(e => `${e.score} — ${e.outcomeLabel}`).join('  |  ');
+                this.add.text(CX, CY + 150, recent, {
+                    fontSize: '10px',
+                    color: '#505060',
+                    fontFamily: 'monospace',
+                }).setOrigin(0.5);
+            }
+        }
+
         // Blinking prompt
-        this._prompt = this.add.text(CX, CY + 150, 'PRESS ANY KEY OR CLICK TO BEGIN YOUR JOURNEY', {
+        this._prompt = this.add.text(CX, CY + 178, 'PRESS ANY KEY OR CLICK TO BEGIN YOUR JOURNEY', {
             fontSize: '16px',
             color: hex(COLORS.text),
             fontFamily: 'monospace',
         }).setOrigin(0.5);
 
         // Version tag
-        this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 10, 'Phase 2', {
+        this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 10, 'Phase 3', {
             fontSize: '10px',
             color: '#323250',
             fontFamily: 'monospace',
@@ -98,7 +119,7 @@ export class SplashScene extends Phaser.Scene {
         this.input.on('pointerdown', () => this._goToGame());
     }
 
-    update(time, delta) {
+    update(_time, delta) {
         this._blinkTimer += delta / 1000;
         const alpha = (Math.sin(this._blinkTimer * Math.PI * 1.5) + 1) / 2 * 0.7 + 0.3;
         this._prompt.setAlpha(alpha);

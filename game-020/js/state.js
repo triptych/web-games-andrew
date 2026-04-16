@@ -1,5 +1,8 @@
 import { events } from './events.js';
-import { STARTING_SCORE, STARTING_LIVES, RIVER_SEGMENTS } from './config.js';
+import { STARTING_SCORE, STARTING_LIVES, RIVER_SEGMENTS, LORD_PREFERENCES } from './config.js';
+
+const HIGH_SCORE_KEY = 'theRiver_highScore';
+const HIGH_SCORE_LOG_KEY = 'theRiver_scoreLog';
 
 /**
  * Global game state for The River.
@@ -32,9 +35,13 @@ class GameState {
         this._runSeed       = Math.floor(Math.random() * 1_000_000);
         this._newsHistory   = [];       // array of { text, turn } objects
 
+        // Lord's secret preference for this run (set from seed in GameScene)
+        this._lordPreference = null;
+
         // Dinner result (set at the end)
         this._dinnerScore   = null;
         this._dinnerOutcome = null;
+        this._dinnerEnding  = null;
     }
 
     // --- Score ---
@@ -111,14 +118,51 @@ class GameState {
     // --- Run seed (for reproducible randomness) ---
     get runSeed() { return this._runSeed; }
 
+    // --- Lord's Secret Preference ---
+    get lordPreference() { return this._lordPreference; }
+    set lordPreference(pref) { this._lordPreference = pref; }
+
     // --- Dinner ---
     get dinnerScore()   { return this._dinnerScore; }
     get dinnerOutcome() { return this._dinnerOutcome; }
-    setDinnerResult(score, outcome) {
+    get dinnerEnding()  { return this._dinnerEnding; }
+
+    setDinnerResult(score, outcome, ending = null) {
         this._dinnerScore   = score;
         this._dinnerOutcome = outcome;
+        this._dinnerEnding  = ending;
         this._isWon = true;
-        events.emit('dinnerScored', { score, outcome });
+
+        // Persist high-score log
+        this._recordScore(score, outcome.label);
+
+        events.emit('dinnerScored', { score, outcome, ending });
+    }
+
+    // --- Persistent high-score ---
+    getHighScore() {
+        try { return parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0', 10); }
+        catch { return 0; }
+    }
+
+    getScoreLog() {
+        try {
+            const raw = localStorage.getItem(HIGH_SCORE_LOG_KEY);
+            return raw ? JSON.parse(raw) : [];
+        } catch { return []; }
+    }
+
+    _recordScore(score, outcomeLabel) {
+        try {
+            const current = this.getHighScore();
+            if (score > current) {
+                localStorage.setItem(HIGH_SCORE_KEY, String(score));
+            }
+            const log = this.getScoreLog();
+            log.unshift({ score, outcomeLabel, seed: this._runSeed, date: new Date().toLocaleDateString() });
+            // Keep last 5 entries
+            localStorage.setItem(HIGH_SCORE_LOG_KEY, JSON.stringify(log.slice(0, 5)));
+        } catch { /* storage unavailable */ }
     }
 }
 

@@ -19,6 +19,7 @@ import {
     COMPANION_TYPES, INGREDIENT_TYPES,
     RIVER_SEGMENTS, MAX_COMPANIONS,
     DINNER_THRESHOLDS,
+    LORD_PREFERENCES, CRAFTING_RECIPES, ALTERNATE_ENDINGS,
 } from './config.js';
 import {
     initAudio,
@@ -64,26 +65,39 @@ const TOWER_NEWS = [
 
 // Unique dialogue lines per companion archetype (shown on their encounter card)
 const COMPANION_DIALOGUE = {
-    chef:       '"My knives are dull and my hands are old — but I still know the secret to a proper broth."',
-    gardener:   '"I have grown the last of my prize roses. Perhaps they deserve a grander table."',
-    bard:       '"Every song I know ends in farewell. One more audience would make a fine epilogue."',
-    merchant:   '"My ledgers are balanced. My debts paid. I seek only honest company now."',
-    knight:     '"I have fought in seven wars and won none of them. I prefer a good meal to a good battle."',
-    herbalist:  '"The river plants whisper if you know how to listen. I have been listening for sixty years."',
-    painter:    '"I burned my last canvas. I carry only memory now — and one good brush."',
-    sailor:     '"I have sailed every river worth sailing. This one calls me back for reasons I cannot name."',
-    alchemist:  '"My greatest experiment is complete. Its name is retirement."',
-    sculptor:   '"Stone does not argue. Stone does not leave. I find I miss conversation after all."',
-    oracle:     '"I foresaw this moment seventeen years ago. I packed accordingly."',
-    troubadour: '"They exiled me for singing the wrong song. I intend to sing it one more time — at a finer venue."',
+    chef:        '"My knives are dull and my hands are old — but I still know the secret to a proper broth."',
+    gardener:    '"I have grown the last of my prize roses. Perhaps they deserve a grander table."',
+    bard:        '"Every song I know ends in farewell. One more audience would make a fine epilogue."',
+    merchant:    '"My ledgers are balanced. My debts paid. I seek only honest company now."',
+    farmer:      '"Forty harvests I\'ve seen come and go. This one I\'d like to taste somewhere new."',
+    innkeeper:   '"I kept the hearth lit for strangers my whole life. I\'d like to be the stranger for once."',
+    weaver:      '"These old hands have threaded a thousand looms. One last tapestry, somewhere worthy."',
+    fisherman:   '"The river has fed me for sixty years. It seems only fair I follow it to its end."',
+    knight:      '"I have fought in seven wars and won none of them. I prefer a good meal to a good battle."',
+    herbalist:   '"The river plants whisper if you know how to listen. I have been listening for sixty years."',
+    painter:     '"I burned my last canvas. I carry only memory now — and one good brush."',
+    sailor:      '"I have sailed every river worth sailing. This one calls me back for reasons I cannot name."',
+    scribe:      '"I have written down the history of four kingdoms. No one has read any of it. I should like to tell the stories instead."',
+    candlemaker: '"Every candle I made was for someone else\'s darkness. I thought I\'d carry one of my own for a while."',
+    hunter:      '"I can still read the forest better than any map. The tower is a fine quarry for a last hunt."',
+    monk:        '"I have prayed in silence for thirty years. I find I am ready for the noise of a feast."',
+    alchemist:   '"My greatest experiment is complete. Its name is retirement."',
+    sculptor:    '"Stone does not argue. Stone does not leave. I find I miss conversation after all."',
+    oracle:      '"I foresaw this moment seventeen years ago. I packed accordingly."',
+    troubadour:  '"They exiled me for singing the wrong song. I intend to sing it one more time — at a finer venue."',
+    brewmaster:  '"I have brewed ale for kings and beggars alike. The dark lord\'s cellar is a puzzle I\'ve always wanted to solve."',
+    mapmaker:    '"Every river on my maps leads here eventually. I thought I should see it for myself."',
 };
 
 // Incompatible companion pairs: [id_a, id_b, reason]
 const INCOMPATIBLE_PAIRS = [
-    ['knight',    'merchant',   'The knight bristles at the merchant\'s easy smiles. Old resentments die hard.'],
-    ['alchemist', 'herbalist',  'They argue about remedies before the card is even shown.'],
-    ['bard',      'troubadour', 'Two wandering musicians share a boat with considerable tension.'],
-    ['oracle',    'merchant',   'The oracle refuses to share a vessel with someone who "sells futures."'],
+    ['knight',     'merchant',   'The knight bristles at the merchant\'s easy smiles. Old resentments die hard.'],
+    ['alchemist',  'herbalist',  'They argue about remedies before the card is even shown.'],
+    ['bard',       'troubadour', 'Two wandering musicians share a boat with considerable tension.'],
+    ['oracle',     'merchant',   'The oracle refuses to share a vessel with someone who "sells futures."'],
+    ['monk',       'brewmaster', 'The monk eyes the brewmaster\'s casks with undisguised disapproval.'],
+    ['scribe',     'sailor',     'The scribe\'s meticulous notes drive the sailor to distraction.'],
+    ['hunter',     'gardener',   'The hunter and the gardener have very different opinions on what the forest is for.'],
 ];
 
 // Additional event card types for Phase 2
@@ -149,6 +163,11 @@ export class GameScene extends Phaser.Scene {
         // Determine this run's news order from the seed
         this._newsSequence = this._buildNewsSequence();
         this._newsIndex    = 0;
+
+        // Lord's secret preference (seed-derived; revealed only at dinner)
+        const prefIdx = this._rng() % LORD_PREFERENCES.length;
+        state.lordPreference = LORD_PREFERENCES[prefIdx];
+        this._lordHintDelivered = false;  // raven hint fires once mid-journey
 
         // Render initial state
         this._buildLayout();
@@ -470,8 +489,6 @@ export class GameScene extends Phaser.Scene {
     }
 
     _showEventCard(evt, CX, CY) {
-        const emojiY = evt.emoji ? CY - 70 : CY - 40;
-
         if (evt.emoji) {
             const emojiTxt = this.add.text(CX, CY - 70, evt.emoji, { fontSize: '40px' }).setOrigin(0.5);
             this._cardGroup.add(emojiTxt);
@@ -502,10 +519,40 @@ export class GameScene extends Phaser.Scene {
                 fontFamily: 'monospace',
             }).setOrigin(0.5);
             this._cardGroup.add(bonus);
+
+            // Check for crafting opportunity
+            const recipe = this._findAvailableRecipe();
+            if (recipe) {
+                const craftHint = this.add.text(CX, CY + 125,
+                    `Craft available: ${recipe.input[0]} + ${recipe.input[1]} → ${recipe.output.name}`, {
+                    fontSize: '11px',
+                    color: hex(COLORS.gold),
+                    fontFamily: 'monospace',
+                }).setOrigin(0.5);
+                this._cardGroup.add(craftHint);
+
+                this._btnA.setText('[ CRAFT ]').setColor(hex(COLORS.gold)).setVisible(true);
+                this._currentCraftRecipe = recipe;
+            } else {
+                this._btnA.setVisible(false);
+                this._currentCraftRecipe = null;
+            }
+        } else {
+            this._btnA.setVisible(false);
+            this._currentCraftRecipe = null;
         }
 
-        this._btnA.setVisible(false);
         this._btnB.setText('[ CONTINUE ]').setColor(hex(COLORS.accent)).setVisible(true);
+    }
+
+    // Return the first crafting recipe whose inputs are both in inventory, or null
+    _findAvailableRecipe() {
+        const heldIds = state.ingredients.map(i => i.id);
+        for (const recipe of CRAFTING_RECIPES) {
+            const [a, b] = recipe.input;
+            if (heldIds.includes(a) && heldIds.includes(b)) return recipe;
+        }
+        return null;
     }
 
     // --------------------------------------------------------
@@ -524,9 +571,29 @@ export class GameScene extends Phaser.Scene {
         } else if (enc.type === 'ingredient') {
             state.addIngredient(enc.data);
             playPickup();
+        } else if (enc.type === 'event' && this._currentCraftRecipe) {
+            // Crafting: consume inputs, add crafted result
+            this._applyCraft(this._currentCraftRecipe);
+            this._currentCraftRecipe = null;
         }
 
         this._advance();
+    }
+
+    _applyCraft(recipe) {
+        // Remove one of each input ingredient from inventory
+        const inv = state.ingredients;
+        const toRemove = [...recipe.input];
+        const remaining = [...inv];
+        for (const id of toRemove) {
+            const idx = remaining.findIndex(i => i.id === id);
+            if (idx !== -1) remaining.splice(idx, 1);
+        }
+        // Rebuild inventory: clear and re-add
+        state._ingredients = remaining;
+        // Add crafted item
+        state.addIngredient(recipe.output);
+        playPickup();
     }
 
     _chooseB() {
@@ -603,35 +670,65 @@ export class GameScene extends Phaser.Scene {
         // Calculate dinner score
         const score = this._calcDinnerScore();
         const outcome = this._dinnerOutcome(score);
-        state.setDinnerResult(score, outcome);
+
+        // Check for alternate ending
+        const companions  = state.companions;
+        const ingredients = state.ingredients;
+        let altEnding = null;
+        for (const ending of ALTERNATE_ENDINGS) {
+            if (ending.condition(companions, score, ingredients)) {
+                altEnding = ending;
+                break;
+            }
+        }
+
+        state.setDinnerResult(score, outcome, altEnding);
 
         // Show result
-        const title = this.add.text(CX, CY - 160, 'THE FEAST AT THE DARK TOWER', {
-            fontSize: '28px',
+        const title = this.add.text(CX, CY - 180, 'THE FEAST AT THE DARK TOWER', {
+            fontSize: '26px',
             color: hex(COLORS.gold),
             fontFamily: 'Georgia, serif',
             fontStyle: 'italic',
         }).setOrigin(0.5);
         this._cardGroup.add(title);
 
-        const outcomeTxt = this.add.text(CX, CY - 100, outcome.label, {
-            fontSize: '48px',
-            color: hex(score >= 50 ? COLORS.success : COLORS.danger),
+        // Alternate ending label (if any) shown above the outcome
+        const displayLabel = altEnding ? altEnding.label : outcome.label;
+        const displayText  = altEnding ? altEnding.text  : outcome.text;
+        const displayColor = altEnding ? COLORS.gold : (score >= 50 ? COLORS.success : COLORS.danger);
+
+        const outcomeTxt = this.add.text(CX, CY - 130, displayLabel, {
+            fontSize: altEnding ? '32px' : '44px',
+            color: hex(displayColor),
             fontFamily: 'Georgia, serif',
+            fontStyle: altEnding ? 'italic' : 'normal',
         }).setOrigin(0.5);
         this._cardGroup.add(outcomeTxt);
 
-        const desc = this.add.text(CX, CY - 30, outcome.text, {
-            fontSize: '15px',
+        const desc = this.add.text(CX, CY - 68, displayText, {
+            fontSize: '13px',
             color: hex(COLORS.text),
             fontFamily: 'Georgia, serif',
             fontStyle: 'italic',
-            wordWrap: { width: 700 },
+            wordWrap: { width: 680 },
             align: 'center',
         }).setOrigin(0.5);
         this._cardGroup.add(desc);
 
-        const scoreTxt = this.add.text(CX, CY + 60, `Feast Score: ${score}`, {
+        // Lord's secret preference reveal
+        const pref = state.lordPreference;
+        if (pref) {
+            const prefReveal = this.add.text(CX, CY + 15,
+                `The lord's secret passion: ${pref.label}`, {
+                fontSize: '13px',
+                color: hex(COLORS.gold),
+                fontFamily: 'monospace',
+            }).setOrigin(0.5);
+            this._cardGroup.add(prefReveal);
+        }
+
+        const scoreTxt = this.add.text(CX, CY + 50, `Feast Score: ${score}`, {
             fontSize: '22px',
             color: hex(COLORS.gold),
             fontFamily: 'monospace',
@@ -639,15 +736,24 @@ export class GameScene extends Phaser.Scene {
         this._cardGroup.add(scoreTxt);
 
         const breakdown = this._scoreBreakdown();
-        const brkTxt = this.add.text(CX, CY + 110, breakdown, {
-            fontSize: '12px',
+        const brkTxt = this.add.text(CX, CY + 95, breakdown, {
+            fontSize: '11px',
             color: '#606070',
             fontFamily: 'monospace',
             align: 'center',
         }).setOrigin(0.5);
         this._cardGroup.add(brkTxt);
 
-        const restart = this.add.text(CX, CY + 200, 'Press R to sail again  |  ESC for title', {
+        // High-score line
+        const hi = state.getHighScore();
+        const hiTxt = this.add.text(CX, CY + 135, `Best run: ${hi}`, {
+            fontSize: '12px',
+            color: score >= hi ? hex(COLORS.success) : '#484858',
+            fontFamily: 'monospace',
+        }).setOrigin(0.5);
+        this._cardGroup.add(hiTxt);
+
+        const restart = this.add.text(CX, CY + 185, 'Press R to sail again  |  ESC for title', {
             fontSize: '14px',
             color: hex(COLORS.accent),
             fontFamily: 'monospace',
@@ -687,6 +793,9 @@ export class GameScene extends Phaser.Scene {
         // Strength: minor contribution
         score += state.skillCount('strength') * 2;
 
+        // Crafted ingredient bonus: +6 each
+        score += state.ingredients.filter(i => i.crafted).length * 6;
+
         // Companion diversity bonus (variety is valued)
         score += Math.min(state.companionCount, MAX_COMPANIONS) * 2;
 
@@ -698,7 +807,27 @@ export class GameScene extends Phaser.Scene {
         }
         score -= clashes * 8;
 
-        return Math.max(0, Math.min(score, 120));
+        // Lord's secret preference multiplier (1.5× for the preferred skill)
+        const pref = state.lordPreference;
+        if (pref) {
+            const prefScore = this._skillScore(pref.id);
+            score += Math.round(prefScore * (pref.multiplier - 1));
+        }
+
+        return Math.max(0, Math.min(score, 150));
+    }
+
+    // Calculate raw points for a single skill (used by preference multiplier)
+    _skillScore(skill) {
+        switch (skill) {
+            case 'cooking':    return state.skillCount('cooking')    * 6 + state.countIngredientsByCategory('cooking')    * 4;
+            case 'decorating': return state.skillCount('decorating') * 5 + state.countIngredientsByCategory('decorating') * 4;
+            case 'music':      return state.skillCount('music')    * 5;
+            case 'stories':    return state.skillCount('stories')  * 4;
+            case 'wisdom':     return state.skillCount('wisdom')   * 3;
+            case 'strength':   return state.skillCount('strength') * 2;
+            default: return 0;
+        }
     }
 
     _dinnerOutcome(score) {
@@ -718,13 +847,16 @@ export class GameScene extends Phaser.Scene {
     }
 
     _scoreBreakdown() {
-        const cooking  = state.skillCount('cooking')    + ' cooking skill(s)';
-        const decor    = state.skillCount('decorating') + ' decorating skill(s)';
+        const cooking  = state.skillCount('cooking')    + ' cooking';
+        const decor    = state.skillCount('decorating') + ' decorating';
         const music    = state.skillCount('music')      + ' music';
         const stories  = state.skillCount('stories')    + ' stories';
         const ci       = state.countIngredientsByCategory('cooking')    + ' cooking ingredient(s)';
         const di       = state.countIngredientsByCategory('decorating') + ' decorating ingredient(s)';
-        return `${cooking}  •  ${decor}  •  ${music}  •  ${stories}\n${ci}  •  ${di}  •  ${state.companionCount} companion(s) total`;
+        const crafted  = state.ingredients.filter(i => i.crafted).length;
+        const craftStr = crafted > 0 ? `  •  ${crafted} crafted` : '';
+        const pref     = state.lordPreference ? `  •  pref: ${state.lordPreference.id}` : '';
+        return `${cooking}  •  ${decor}  •  ${music}  •  ${stories}\n${ci}  •  ${di}${craftStr}  •  ${state.companionCount} companion(s)${pref}`;
     }
 
     // --------------------------------------------------------
@@ -753,6 +885,15 @@ export class GameScene extends Phaser.Scene {
                 const news = TOWER_NEWS[newsIdx];
                 state.addNews(news);
                 this._newsTicker.setText(news);
+                playNewsAlert();
+            }
+
+            // Lord's raven hint fires once after segment 4 (mid-journey)
+            if (!this._lordHintDelivered && state.riverSegment >= 4) {
+                this._lordHintDelivered = true;
+                const hint = state.lordPreference.hint;
+                state.addNews(hint);
+                this._newsTicker.setText(hint);
                 playNewsAlert();
             }
         }
