@@ -249,6 +249,19 @@ const games = [
             { emoji: '🖱️', label: 'Mouse' },
             { emoji: '🌈', label: 'Synthwave' }
         ]
+    },
+    {
+        id: 'game-020',
+        title: 'The River',
+        description: 'A retired warrior sails their last adventure down a winding river. Invite fellow travelers at the end of their journeys, gather ingredients along the bank, and arrive at the Dark Lord\'s tower for a grand dinner. Every run is different — and the tower sends daily magical hints about what the lord desires at the feast.',
+        icon: '⛵',
+        folder: 'game-020',
+        cssClass: 'the-river',
+        tags: [
+            { emoji: '📖', label: 'Narrative' },
+            { emoji: '🎲', label: 'Roguelite' },
+            { emoji: '🍽️', label: 'Cozy' }
+        ]
     }
 ];
 

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-04-15
+
+### Added
+- **The River** (game-020): New narrative RPG / roguelite — Phase 1 + Phase 2 complete
+  - 10-stop river journey with seeded encounter queue (companion, ingredient, or event cards)
+  - 12 companion archetypes across common / uncommon / rare rarities, each contributing unique skill sets to the dinner score
+  - 8 ingredient types in two categories (cooking / decorating) that stack for flat dinner bonuses
+  - Dinner evaluation: weighted score from companion skills + ingredient counts yields six outcomes (Catastrophe → Legendary Feast) with flavor text
+  - Tower news broadcasts mid-journey hinting at what the dark lord values each run; order is now deterministically tied to the run seed
+  - **Phase 2 — Polish & Depth:**
+    - 3-layer scrolling water parallax (far / mid / near strips at different speeds with ripple line details)
+    - Unique first-person dialogue quote for every companion archetype on their encounter card
+    - 4 incompatible companion pairs (Knight/Merchant, Alchemist/Herbalist, Bard/Troubadour, Oracle/Merchant) — warning shown on card, each clash docks 8 dinner points
+    - 7 river event types: Calm Waters, Sudden Storm, Floating Debris, Foraging Stop (grants a bonus ingredient), River Festival, Morning Fog, Tower Raven
+    - Procedural ambient drone music: detuned bass sine pair + mid sine + slow-LFO shimmer, fades in on journey start and out on dinner / restart
+  - Built with Phaser 4.0.0 (ESM) and modular ES6 architecture
+
 ## [2.9.0] - 2026-04-14
 
 ### Added

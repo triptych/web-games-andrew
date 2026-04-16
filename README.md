@@ -65,6 +65,23 @@ Neon brick-breaker with synthwave aesthetics, escalating ball speed, powerups, a
 
 **Location:** [game-019/](game-019/)
 
+### 20. The River
+Narrative RPG / roguelite — sail down the river on your last adventure, gathering companions and ingredients for a feast at the dark lord's tower.
+
+**Features:**
+- 10-stop river journey with seeded encounter queue (different every run)
+- 12 companion archetypes (common / uncommon / rare) each contributing unique skills: cooking, decorating, music, stories, wisdom, strength
+- 8 ingredient types across cooking and decorating categories
+- Incompatible companion pairs — some travelers clash, reducing your dinner score
+- 7 river event types including foraging stops that grant bonus ingredients
+- Dinner evaluation: weighted score yields six outcomes from Catastrophe to Legendary Feast
+- Tower news broadcasts hinting at the lord's preferences mid-journey, order tied to run seed
+- 3-layer scrolling water parallax animation
+- Procedural ambient drone music (Web Audio API)
+- Built with Phaser 4.0.0 (ESM) and modular ES6 architecture
+
+**Location:** [game-020/](game-020/)
+
 ---
 
 ### 4. Tower Defense
@@ -229,7 +246,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-**Current Version:** 2.9.0
+**Current Version:** 3.0.0
 
 ---
 
