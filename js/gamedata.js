@@ -262,6 +262,19 @@ const games = [
             { emoji: '🎲', label: 'Roguelite' },
             { emoji: '🍽️', label: 'Cozy' }
         ]
+    },
+    {
+        id: 'game-021',
+        title: 'Dungeon Blobber',
+        description: 'A 3D first-person dungeon crawler with raycasting visuals and classic blobber stepwise movement. Navigate procedurally generated floors, fight monsters in turn-based combat, collect loot, level up, and descend 5 floors to escape the dungeon.',
+        icon: '🏰',
+        folder: 'game-021',
+        cssClass: 'dungeon-blobber',
+        tags: [
+            { emoji: '🏰', label: 'Dungeon' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '⚔️', label: 'RPG' }
+        ]
     }
 ];
 
