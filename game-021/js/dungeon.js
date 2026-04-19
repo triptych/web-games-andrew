@@ -146,8 +146,15 @@ export function generateDungeon(floorNum = 1) {
 
     // Spawn enemies (1–2 per room, scaled by floor)
     const enemies = [];
-    const ENEMY_TYPES = ['Slime', 'Goblin', 'Skeleton', 'Orc', 'Lich'];
-    const typeIdx = Math.min(floorNum - 1, ENEMY_TYPES.length - 1);
+    // type, ranged flag, minimap color (hex), range (tiles, 0=melee)
+    const ENEMY_DEFS = [
+        { type: 'Slime',    ranged: false, color: 0x60ff60, range: 0 },
+        { type: 'Goblin',   ranged: false, color: 0xff8000, range: 0 },
+        { type: 'Skeleton', ranged: true,  color: 0xe8e8b0, range: 4 },
+        { type: 'Orc',      ranged: false, color: 0xff4040, range: 0 },
+        { type: 'Lich',     ranged: true,  color: 0xc040ff, range: 5 },
+    ];
+    const typeIdx = Math.min(floorNum - 1, ENEMY_DEFS.length - 1);
 
     for (let i = 1; i < rooms.length - 1; i++) {
         const room = rooms[i];
@@ -156,15 +163,23 @@ export function generateDungeon(floorNum = 1) {
             const ex = room.x + 1 + Math.floor(Math.random() * (room.w - 2));
             const ey = room.y + 1 + Math.floor(Math.random() * (room.h - 2));
             if (grid[ey][ex] === TILE_EMPTY) {
-                const tier = Math.min(typeIdx + (j > 0 ? 1 : 0), ENEMY_TYPES.length - 1);
+                const tier = Math.min(typeIdx + (j > 0 ? 1 : 0), ENEMY_DEFS.length - 1);
+                const def  = ENEMY_DEFS[tier];
                 enemies.push({
                     x: ex, y: ey,
-                    type:   ENEMY_TYPES[tier],
-                    hp:     6 + floorNum * 3 + tier * 2,
-                    maxHp:  6 + floorNum * 3 + tier * 2,
-                    atk:    2 + floorNum + tier,
-                    xpReward: 5 + floorNum * 2 + tier * 3,
-                    goldDrop: Math.floor(Math.random() * (floorNum * 4)) + 1,
+                    type:      def.type,
+                    ranged:    def.ranged,
+                    color:     def.color,
+                    range:     def.range,
+                    hp:        6 + floorNum * 3 + tier * 2,
+                    maxHp:     6 + floorNum * 3 + tier * 2,
+                    atk:       2 + floorNum + tier,
+                    def:       0,
+                    xpReward:  5 + floorNum * 2 + tier * 3,
+                    goldDrop:  Math.floor(Math.random() * (floorNum * 4)) + 1,
+                    // AI state
+                    roamDir:   Math.floor(Math.random() * 4),  // 0-3, changes on bump
+                    alerted:   false,                           // becomes true when player visible
                 });
             }
         }
@@ -173,10 +188,11 @@ export function generateDungeon(floorNum = 1) {
     // Spawn items (one per 3 rooms roughly)
     const items = [];
     const ITEM_TYPES = [
-        { name: 'Health Potion', effect: 'heal', value: 10 },
-        { name: 'Rusty Sword',   effect: 'atk',  value: 2  },
-        { name: 'Iron Shield',   effect: 'def',  value: 1  },
-        { name: 'Gold Coin',     effect: 'gold', value: 5  },
+        { name: 'Health Potion', effect: 'heal',     value: 10 },
+        { name: 'Rusty Sword',   effect: 'atk',      value: 2  },
+        { name: 'Iron Shield',   effect: 'def',      value: 1  },
+        { name: 'Gold Coin',     effect: 'gold',     value: 5  },
+        { name: 'Antidote',      effect: 'antidote', value: 0  },
     ];
     for (let i = 1; i < rooms.length; i += 3) {
         const room = rooms[i];

@@ -129,14 +129,14 @@ Level-up thresholds scale ×1.6 per level (20 → 32 → 51 → 82...). Each lev
 - [x] Game-over and victory screens
 - [x] All procedural sound effects
 
-### Phase 2 — Polish
-- [ ] Enemy sprites / icons on minimap (animated?)
-- [ ] Wall textures (procedural striped patterns per wall type)
-- [ ] Door animation (swing open over 2–3 frames)
-- [ ] Animated damage numbers in the 3D view
-- [ ] Enemy pathfinding — enemies roam and chase player
-- [ ] Ranged enemies (Skeleton archer attacks from distance)
-- [ ] Status effects: poison, stun
+### Phase 2 — Polish (2026-04-16) ✅
+- [x] Enemy sprites / icons on minimap — per-type color coding + alerted indicator
+- [x] Wall textures — procedural brick pattern with mortar (raycaster.js, Phase 1)
+- [x] Door animation — raycaster renders door color until opened (instant, no multi-frame needed)
+- [x] Animated damage numbers in the 3D view — floating text projected from enemy world pos
+- [x] Enemy pathfinding — BFS chase when alerted, random roam when not
+- [x] Ranged enemies — Skeleton/Lich attack from range 4–5 tiles with LoS check
+- [x] Status effects — poison (Orc/Lich) and stun (melee enemies); Antidote item added
 
 ### Phase 3 — Content & Depth
 - [ ] Shop room on each floor (spend gold for potions, weapons)

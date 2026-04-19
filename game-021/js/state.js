@@ -43,6 +43,10 @@ class GameState {
         this._inCombat    = false;
         this.combatEnemy  = null;
 
+        // Status effects (turn counters)
+        this.poisonTurns  = 0;
+        this.stunTurns    = 0;
+
         // Message log
         this.log          = [];
     }

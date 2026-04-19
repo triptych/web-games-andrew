@@ -52,6 +52,11 @@ export class UIScene extends Phaser.Scene {
             fontSize: '13px', color: hex(COLORS.text), fontFamily: 'monospace',
         });
 
+        // Status effects row
+        this._statusLabel = this.add.text(220, 28, '', {
+            fontSize: '11px', color: '#40ff40', fontFamily: 'monospace',
+        });
+
         // Floor
         this._floorLabel = this.add.text(VIEW_WIDTH - 10, 8, '', {
             fontSize: '14px', color: hex(COLORS.accent), fontFamily: 'monospace',
@@ -113,7 +118,7 @@ export class UIScene extends Phaser.Scene {
             events.on('combatEnd',    ()  => this._hideCombat()),
             events.on('enemyDied',    ()  => this._hideCombat()),
             events.on('playerAttacked', () => this._refreshCombat()),
-            events.on('enemyAttacked',  () => this._refresh()),
+            events.on('enemyAttacked',  () => { this._refresh(); if (state.inCombat) this._refreshCombat(); }),
             events.on('logMessage',   (t) => this._updateLog()),
             events.on('gameOver',     ()  => this._showGameOver()),
             events.on('gameWon',      ()  => this._showVictory()),
@@ -142,6 +147,12 @@ export class UIScene extends Phaser.Scene {
         // Floor + gold
         this._floorLabel.setText(`Floor ${state.floor}`);
         this._goldLabel.setText(`Gold ${state.gold}`);
+
+        // Status effects
+        const effects = [];
+        if (state.poisonTurns > 0) effects.push(`POISON(${state.poisonTurns})`);
+        if (state.stunTurns   > 0) effects.push(`STUN(${state.stunTurns})`);
+        this._statusLabel.setText(effects.join('  '));
 
         this._updateLog();
     }

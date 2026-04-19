@@ -132,3 +132,21 @@ export function playGameOver() {
     _sweep('sawtooth', 400, 50, 0.8, 0.4);
     _noise(0.5, 0.15, 0.2);
 }
+
+export function playPoison() {
+    // Bubbly rising burble
+    _sweep('sine', 200, 400, 0.3, 0.15);
+    _noise(0.2, 0.08, 0.05);
+}
+
+export function playStun() {
+    // Sharp crack + ring
+    _noise(0.05, 0.3);
+    _sweep('square', 800, 300, 0.25, 0.2, 0.04);
+}
+
+export function playRangedAttack() {
+    // Whoosh + thwap
+    _sweep('sawtooth', 900, 300, 0.12, 0.2);
+    _noise(0.06, 0.15, 0.1);
+}
