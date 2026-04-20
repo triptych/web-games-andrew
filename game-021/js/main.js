@@ -10,7 +10,6 @@
  */
 
 import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
-window.Phaser = Phaser;
 
 import { SplashScene } from './SplashScene.js';
 import { GameScene }   from './GameScene.js';

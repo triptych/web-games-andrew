@@ -807,13 +807,9 @@ Create the following files when ENGINE = `phaser`. The shared `events.js`, `stat
  *   UIScene     — HUD overlay (runs in parallel with GameScene)
  *
  * Library: ../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js (ESM build)
- * Imported as a module and assigned to window.Phaser so scene classes
- * (which extend Phaser.Scene) can reference the global before their
- * own module code runs.
  */
 
 import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
-window.Phaser = Phaser;
 
 import { SplashScene } from './SplashScene.js';
 import { GameScene }   from './GameScene.js';
@@ -850,6 +846,7 @@ new Phaser.Game(config);
  * Waits for any key or pointer click, then starts GameScene + UIScene.
  */
 
+import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 import { initAudio, playUiClick } from './sounds.js';
 
@@ -932,6 +929,7 @@ export class SplashScene extends Phaser.Scene {
  * Communicates with UIScene via the shared EventBus (events.js).
  */
 
+import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
 import { state }  from './state.js';
 import { events } from './events.js';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
@@ -1013,6 +1011,7 @@ export class GameScene extends Phaser.Scene {
  */
 
 import { state }  from './state.js';
+import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
 import { events } from './events.js';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 

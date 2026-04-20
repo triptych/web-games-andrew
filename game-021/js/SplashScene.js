@@ -3,6 +3,7 @@
  * Waits for any key or pointer click, then starts GameScene + UIScene.
  */
 
+import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 import { initAudio, playUiClick } from './sounds.js';
 import { loadHighScores } from './storage.js';
