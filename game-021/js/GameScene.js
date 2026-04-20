@@ -130,6 +130,14 @@ function mdist(ax, ay, bx, by) {
 export class GameScene extends Phaser.Scene {
     constructor() { super({ key: 'GameScene' }); }
 
+    preload() {
+        this.load.image('sprite_Goblin',   'img/gobllin.png');
+        this.load.image('sprite_Lich',     'img/lich.png');
+        this.load.image('sprite_Orc',      'img/orc.png');
+        this.load.image('sprite_Skeleton', 'img/skeleton.png');
+        this.load.image('sprite_Slime',    'img/slime.png');
+    }
+
     create() {
         state.reset();
 
@@ -209,7 +217,7 @@ export class GameScene extends Phaser.Scene {
         // Render first frame
         this._updateVisibility();
         this._renderMinimap();
-        this._raycaster.render(state.playerX, state.playerY, DIR_ANGLE[state.playerFacing], this._enemies);
+        this._raycaster.render(state.playerX, state.playerY, DIR_ANGLE[state.playerFacing], [...this._enemies, ...this._items]);
 
         events.emit('floorChanged', floorNum);
         state.addMessage(`You descend to floor ${floorNum}.`);
@@ -352,7 +360,7 @@ export class GameScene extends Phaser.Scene {
     _afterMove() {
         this._updateVisibility();
         this._renderMinimap();
-        this._raycaster.render(state.playerX, state.playerY, DIR_ANGLE[state.playerFacing], this._enemies);
+        this._raycaster.render(state.playerX, state.playerY, DIR_ANGLE[state.playerFacing], [...this._enemies, ...this._items]);
         events.emit('playerMoved', {
             x: state.playerX, y: state.playerY, facing: state.playerFacing,
         });
@@ -874,7 +882,7 @@ export class GameScene extends Phaser.Scene {
 
     _handleGameOver() {
         playGameOver();
-        this._raycaster.render(state.playerX, state.playerY, DIR_ANGLE[state.playerFacing], this._enemies);
+        this._raycaster.render(state.playerX, state.playerY, DIR_ANGLE[state.playerFacing], [...this._enemies, ...this._items]);
     }
 
     _restart() {

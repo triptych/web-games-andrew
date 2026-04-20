@@ -28,7 +28,11 @@
       "Bash(python -c:*)",
       "Bash(grep -o \"o\\\\.font.*=.*\\\\`\\\\|t\\\\.font.*=.*\\\\`\" \"/c/Users/andre/OneDrive/Documents/web-games-andrew/lib/kaplay/kaplay.mjs\")",
       "Bash(grep -r \"onMousePress\\\\|isMousePressed\\\\|onClick\" \"/c/Users/andre/OneDrive/Documents/web-games-andrew/game-\"*)",
-      "Bash(grep -r \"onMousePress\\\\|isMousePressed\\\\|onMouse\" \"/c/Users/andre/OneDrive/Documents/web-games-andrew/game-\"* --include=\"*.js\" --include=\"*.html\")"
+      "Bash(grep -r \"onMousePress\\\\|isMousePressed\\\\|onMouse\" \"/c/Users/andre/OneDrive/Documents/web-games-andrew/game-\"* --include=\"*.js\" --include=\"*.html\")",
+      "Bash(file *.png)",
+      "Bash(identify *.png)",
+      "Bash(magick identify *)",
+      "Bash(magick /c/Users/andre/OneDrive/Documents/web-games-andrew/game-021/img/slime.png -format \"%[fx:p{0,0}.a]\" info:)"
     ]
   }
 }

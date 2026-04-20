@@ -35,15 +35,26 @@ const MORTAR_V_W   = 0.06;  // vertical mortar width as fraction of tile (0..1)
 const CEILING_COLOR = (20 << 16) | (20 << 8) | 40;
 const FLOOR_COLOR   = (50 << 16) | (40 << 8) | 30;
 
-// Sprite appearance per enemy type
+// Sprite appearance per enemy type (fallback colors + image crop)
+// crop: { x, y, w, h } — content bounding box within the 600x327 source image
 const SPRITE_DEFS = {
-    Slime:    { body: 0x40cc40, dark: 0x208820, label: 'Sl' },
-    Goblin:   { body: 0xcc7020, dark: 0x885010, label: 'Go' },
-    Skeleton: { body: 0xd0d0a0, dark: 0x909060, label: 'Sk' },
-    Orc:      { body: 0xcc3030, dark: 0x881818, label: 'Or' },
-    Lich:     { body: 0x9030cc, dark: 0x601888, label: 'Li' },
+    Slime:    { body: 0x40cc40, dark: 0x208820, label: 'Sl', crop: { x: 159, y: 44,  w: 282, h: 259 } },
+    Goblin:   { body: 0xcc7020, dark: 0x885010, label: 'Go', crop: { x: 164, y: 44,  w: 272, h: 259 } },
+    Skeleton: { body: 0xd0d0a0, dark: 0x909060, label: 'Sk', crop: { x: 184, y: 44,  w: 292, h: 259 } },
+    Orc:      { body: 0xcc3030, dark: 0x881818, label: 'Or', crop: { x: 154, y: 39,  w: 282, h: 264 } },
+    Lich:     { body: 0x9030cc, dark: 0x601888, label: 'Li', crop: { x: 159, y: 17,  w: 294, h: 308 } },
 };
 const SPRITE_DEFAULT = { body: 0xff4040, dark: 0xaa2020, label: '??' };
+
+// Sprite appearance per item effect
+const ITEM_DEFS = {
+    heal:     { body: 0xff4488, dark: 0xaa2255 },
+    atk:      { body: 0xff8800, dark: 0xaa5500 },
+    def:      { body: 0x4488ff, dark: 0x2255aa },
+    gold:     { body: 0xffd700, dark: 0xaa8800 },
+    antidote: { body: 0x44ff88, dark: 0x22aa55 },
+};
+const ITEM_DEFAULT = { body: 0xffd700, dark: 0xaa8800 };
 
 function toHex(r, g, b) {
     return (Math.max(0, Math.min(255, r | 0)) << 16)
@@ -61,10 +72,19 @@ export class Raycaster {
         this._grid  = grid;
         this._gridW = gridW;
         this._gridH = gridH;
-        this._gfx   = scene.add.graphics({ x: 0, y: 0 });
-        this._zBuf  = new Float32Array(RAY_COUNT); // depth buffer per column
+        this._gfx    = scene.add.graphics({ x: 0, y: 0 }).setDepth(0);
+        this._hpGfx  = scene.add.graphics({ x: 0, y: 0 }).setDepth(2);
+        this._zBuf   = new Float32Array(RAY_COUNT); // depth buffer per column
         // Pool of text objects for sprite labels
         this._labelPool = [];
+        // Pool of Phaser Image objects for enemy sprites, keyed by type
+        this._imgPool = {}; // type -> Image[]
+        // Geometry mask to clip images to the 3D view area
+        const maskGfx = scene.make.graphics({ add: false });
+        maskGfx.fillStyle(0xffffff);
+        maskGfx.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
+        this._viewMask = maskGfx.createGeometryMask();
+        this._maskGfx  = maskGfx;
     }
 
     setGrid(grid, gridW, gridH) {
@@ -85,6 +105,7 @@ export class Raycaster {
         const colW  = VIEW_WIDTH / RAY_COUNT;
 
         gfx.clear();
+        this._hpGfx.clear();
 
         // Ceiling
         gfx.fillStyle(CEILING_COLOR, 1);
@@ -141,24 +162,43 @@ export class Raycaster {
         }
 
         // --- Sprite pass ---
-        if (sprites && sprites.length > 0) {
-            this._renderSprites(gfx, px, py, angle, sprites);
+        this._renderSprites(gfx, px, py, angle, sprites || []);
+    }
+
+    // Return a pooled (or newly created) Phaser Image for the given enemy type.
+    _getPooledImage(type) {
+        const key = 'sprite_' + type;
+        if (!this._imgPool[type]) this._imgPool[type] = [];
+        const pool = this._imgPool[type];
+        // Find one not currently active
+        for (const img of pool) {
+            if (!img._inUse) { img._inUse = true; return img; }
         }
+        // Create new — textures may not exist for unknown types
+        if (!this._scene.textures.exists(key)) return null;
+        const img = this._scene.add.image(0, 0, key).setOrigin(0.5, 0.5).setDepth(1).setMask(this._viewMask);
+        img._inUse = true;
+        pool.push(img);
+        return img;
     }
 
     _renderSprites(gfx, px, py, angle, sprites) {
         const halfH = VIEW_HEIGHT / 2;
 
+        // Mark all pooled images as inactive before this frame
+        for (const pool of Object.values(this._imgPool)) {
+            for (const img of pool) { img._inUse = false; img.setVisible(false); }
+        }
+
         // Transform each sprite into camera space, sort back-to-front
         const transformed = [];
         for (const sp of sprites) {
-            if (!sp.alive) continue;
+            // Enemies must be alive; items must not be picked up
+            if (sp.effect !== undefined ? sp.picked : !sp.alive) continue;
             // Sprite world centre
             const sx = sp.x + 0.5 - px;
             const sy = sp.y + 0.5 - py;
 
-            // Rotate into camera space
-            // Camera plane: right-perpendicular of facing direction
             const cosA = Math.cos(angle);
             const sinA = Math.sin(angle);
 
@@ -177,17 +217,25 @@ export class Raycaster {
         transformed.sort((a, b) => b.distSq - a.distSq);
 
         for (const { sp, fwd, side } of transformed) {
-            const def = SPRITE_DEFS[sp.type] || SPRITE_DEFAULT;
+            const isItem = sp.effect !== undefined;
+            const def    = isItem
+                ? (ITEM_DEFS[sp.effect] || ITEM_DEFAULT)
+                : (SPRITE_DEFS[sp.type] || SPRITE_DEFAULT);
 
             // Screen X of sprite centre
-            // Project using same FOV as wall rays: half-plane width at dist 1 = tan(FOV/2)
             const screenX = Math.floor(VIEW_WIDTH / 2 + (side / fwd) * (VIEW_WIDTH / (2 * Math.tan(FOV / 2))));
 
-            // Sprite projected height (same formula as wall)
-            const spriteH = Math.min(VIEW_HEIGHT, Math.floor(VIEW_HEIGHT / fwd));
-            const spriteW = spriteH; // square sprite
+            // Full projected height
+            const projH = Math.min(VIEW_HEIGHT, Math.floor(VIEW_HEIGHT / fwd));
 
-            const drawTop    = Math.floor(halfH - spriteH / 2);
+            // Items are smaller (half height, sit on the floor)
+            const spriteH = isItem ? Math.max(4, Math.floor(projH * 0.45)) : projH;
+            const spriteW = isItem ? Math.max(4, Math.floor(projH * 0.35)) : projH;
+
+            // Vertical position: enemies centered, items sit on floor
+            const drawTop    = isItem
+                ? Math.floor(halfH + projH / 2) - spriteH   // floor-aligned
+                : Math.floor(halfH - spriteH / 2);
             const drawBottom = drawTop + spriteH;
             const drawLeft   = screenX - Math.floor(spriteW / 2);
             const drawRight  = drawLeft + spriteW;
@@ -195,72 +243,82 @@ export class Raycaster {
             // Brightness by distance
             const bright = Math.max(0.15, Math.min(1.0, 0.25 + 0.75 * (1 - fwd / MAX_DEPTH)));
 
-            // Unpack body color
-            const br = ((def.body >> 16) & 0xff) * bright;
-            const bg = ((def.body >>  8) & 0xff) * bright;
-            const bb = ( def.body        & 0xff) * bright;
-            const bodyHex = toHex(br, bg, bb);
-
-            const dr = ((def.dark >> 16) & 0xff) * bright;
-            const dg = ((def.dark >>  8) & 0xff) * bright;
-            const db = ( def.dark        & 0xff) * bright;
-            const darkHex = toHex(dr, dg, db);
-
-            // Draw column by column, depth-testing against zBuf
-            const colStart = Math.max(0, drawLeft);
-            const colEnd   = Math.min(VIEW_WIDTH - 1, drawRight);
-
-            for (let cx = colStart; cx <= colEnd; cx++) {
-                const zIdx = Math.floor(cx / (VIEW_WIDTH / RAY_COUNT));
-                if (zIdx < 0 || zIdx >= RAY_COUNT) continue;
-                if (fwd >= this._zBuf[zIdx]) continue; // occluded by wall
-
-                // Sprite column fraction (0..1 left to right)
-                const texX = (cx - drawLeft) / spriteW;
-
-                // Side shadows (left/right 12% of width = dark)
-                const isShadow = texX < 0.12 || texX > 0.88;
-                const colHex   = isShadow ? darkHex : bodyHex;
-
-                gfx.fillStyle(colHex, 1);
-                gfx.fillRect(cx, Math.max(0, drawTop), 1, Math.min(VIEW_HEIGHT, drawBottom) - Math.max(0, drawTop));
-            }
-
-            // Eye dots — two small dark squares in upper body area
-            const eyeY    = drawTop + Math.floor(spriteH * 0.28);
-            const eyeSize = Math.max(1, Math.floor(spriteW * 0.1));
-            const eyeLX   = screenX - Math.floor(spriteW * 0.22);
-            const eyeRX   = screenX + Math.floor(spriteW * 0.12);
-
-            if (eyeY >= 0 && eyeY + eyeSize < VIEW_HEIGHT) {
-                // Check depth for eye columns
-                const eyeLIdx = Math.floor(eyeLX / (VIEW_WIDTH / RAY_COUNT));
-                const eyeRIdx = Math.floor(eyeRX / (VIEW_WIDTH / RAY_COUNT));
-                if (eyeLIdx >= 0 && eyeLIdx < RAY_COUNT && fwd < this._zBuf[eyeLIdx]) {
-                    gfx.fillStyle(darkHex, 1);
-                    gfx.fillRect(eyeLX, eyeY, eyeSize, eyeSize);
+            if (!isItem) {
+                // --- Enemy: render using pooled Phaser Image ---
+                const img = this._getPooledImage(sp.type);
+                if (img && def.crop) {
+                    const crop = def.crop;
+                    // Check centre column is not occluded
+                    const zIdx = Math.floor(screenX / (VIEW_WIDTH / RAY_COUNT));
+                    const visible = zIdx >= 0 && zIdx < RAY_COUNT && fwd < this._zBuf[zIdx];
+                    if (visible) {
+                        // Crop to content bounding box so transparent margins don't inflate the sprite
+                        img.setCrop(crop.x, crop.y, crop.w, crop.h);
+                        // Scale to spriteH × spriteH (square billboard)
+                        img.setDisplaySize(spriteH, spriteH);
+                        img.setPosition(screenX, drawTop + spriteH / 2);
+                        img.setAlpha(bright);
+                        img.setVisible(true);
+                    }
+                } else if (img) {
+                    img.setVisible(false);
                 }
-                if (eyeRIdx >= 0 && eyeRIdx < RAY_COUNT && fwd < this._zBuf[eyeRIdx]) {
-                    gfx.fillStyle(darkHex, 1);
-                    gfx.fillRect(eyeRX, eyeY, eyeSize, eyeSize);
+
+                // HP bar above sprite (drawn on _hpGfx layer, above images)
+                if (spriteH > 20 && sp.hp !== undefined && sp.maxHp !== undefined) {
+                    const barW  = Math.min(spriteW, 40);
+                    const barX  = screenX - Math.floor(barW / 2);
+                    const barY  = Math.max(2, drawTop - 6);
+                    const hpPct = Math.max(0, sp.hp / sp.maxHp);
+
+                    const barZIdx = Math.floor(screenX / (VIEW_WIDTH / RAY_COUNT));
+                    if (barZIdx >= 0 && barZIdx < RAY_COUNT && fwd < this._zBuf[barZIdx]) {
+                        this._hpGfx.fillStyle(0x1a1a1a, 0.8);
+                        this._hpGfx.fillRect(barX, barY, barW, 3);
+                        const barColor = hpPct > 0.5 ? 0x40dc60 : hpPct > 0.25 ? 0xdcdc40 : 0xdc4040;
+                        this._hpGfx.fillStyle(barColor, 1);
+                        this._hpGfx.fillRect(barX, barY, Math.ceil(barW * hpPct), 3);
+                    }
                 }
-            }
+            } else {
+                // --- Item: draw as coloured diamond (graphics) ---
+                const br = ((def.body >> 16) & 0xff) * bright;
+                const bg = ((def.body >>  8) & 0xff) * bright;
+                const bb = ( def.body        & 0xff) * bright;
+                const bodyHex = toHex(br, bg, bb);
 
-            // HP bar above sprite (if in view and sprite is large enough)
-            if (spriteH > 20 && sp.hp !== undefined && sp.maxHp !== undefined) {
-                const barW  = Math.min(spriteW, 40);
-                const barX  = screenX - Math.floor(barW / 2);
-                const barY  = Math.max(2, drawTop - 6);
-                const hpPct = Math.max(0, sp.hp / sp.maxHp);
+                const dr = ((def.dark >> 16) & 0xff) * bright;
+                const dg = ((def.dark >>  8) & 0xff) * bright;
+                const db = ( def.dark        & 0xff) * bright;
+                const darkHex = toHex(dr, dg, db);
 
-                // Check depth at bar centre
-                const barZIdx = Math.floor(screenX / (VIEW_WIDTH / RAY_COUNT));
-                if (barZIdx >= 0 && barZIdx < RAY_COUNT && fwd < this._zBuf[barZIdx]) {
-                    gfx.fillStyle(0x1a1a1a, 0.8);
-                    gfx.fillRect(barX, barY, barW, 3);
-                    const barColor = hpPct > 0.5 ? 0x40dc60 : hpPct > 0.25 ? 0xdcdc40 : 0xdc4040;
-                    gfx.fillStyle(barColor, 1);
-                    gfx.fillRect(barX, barY, Math.ceil(barW * hpPct), 3);
+                const colStart = Math.max(0, drawLeft);
+                const colEnd   = Math.min(VIEW_WIDTH - 1, drawRight);
+
+                for (let cx = colStart; cx <= colEnd; cx++) {
+                    const zIdx = Math.floor(cx / (VIEW_WIDTH / RAY_COUNT));
+                    if (zIdx < 0 || zIdx >= RAY_COUNT) continue;
+                    if (fwd >= this._zBuf[zIdx]) continue;
+
+                    const texX = (cx - drawLeft) / spriteW;
+                    const distFromCenter = Math.abs(texX - 0.5);
+                    const colHex = distFromCenter < 0.35 ? bodyHex : darkHex;
+
+                    gfx.fillStyle(colHex, 1);
+                    const texX_c  = texX - 0.5;
+                    const halfSpan = 0.5 - Math.abs(texX_c);
+                    const itemTop    = Math.max(0, Math.floor(drawTop    + spriteH * (0.5 - halfSpan)));
+                    const itemBottom = Math.min(VIEW_HEIGHT, Math.ceil(drawBottom - spriteH * (0.5 - halfSpan)));
+                    if (itemBottom > itemTop) {
+                        gfx.fillRect(cx, itemTop, 1, itemBottom - itemTop);
+                    }
+                }
+
+                // Glint highlight at top of item diamond
+                const glintZIdx = Math.floor(screenX / (VIEW_WIDTH / RAY_COUNT));
+                if (glintZIdx >= 0 && glintZIdx < RAY_COUNT && fwd < this._zBuf[glintZIdx]) {
+                    gfx.fillStyle(0xffffff, 1);
+                    gfx.fillRect(screenX - 1, drawTop + Math.floor(spriteH * 0.15), 2, 2);
                 }
             }
         }
@@ -315,7 +373,14 @@ export class Raycaster {
 
     destroy() {
         this._gfx.destroy();
+        this._hpGfx.destroy();
+        this._viewMask.destroy();
+        this._maskGfx.destroy();
         for (const lbl of this._labelPool) lbl.destroy();
         this._labelPool = [];
+        for (const pool of Object.values(this._imgPool)) {
+            for (const img of pool) img.destroy();
+        }
+        this._imgPool = {};
     }
 }
