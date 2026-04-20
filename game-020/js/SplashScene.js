@@ -9,6 +9,7 @@
  * Starts GameScene + UIScene on any key / click.
  */
 
+import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 import { initAudio, playUiClick } from './sounds.js';
 import { state } from './state.js';

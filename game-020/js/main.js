@@ -7,13 +7,10 @@
  *   UIScene      — HUD overlay (runs in parallel with GameScene)
  *   DinnerScene  — Final dinner evaluation at the dark tower
  *
- * Library: ../../lib/phaser/phaser.js (global `Phaser`, UMD build)
- *
- * NOTE: index.html loads phaser.js as a plain <script> tag (not a module).
- * Serve this folder via a local HTTP server — file:// will fail with CORS errors.
- * Use: npx serve . or VS Code Live Server from game-020/
+ * Library: ../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js (ESM)
  */
 
+import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
 import { SplashScene } from './SplashScene.js';
 import { GameScene }   from './GameScene.js';
 import { UIScene }     from './UIScene.js';

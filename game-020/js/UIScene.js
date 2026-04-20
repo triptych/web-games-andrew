@@ -4,6 +4,7 @@
  * Listens to EventBus for state changes and updates labels.
  */
 
+import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
 import { state }  from './state.js';
 import { events } from './events.js';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
