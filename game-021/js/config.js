@@ -30,6 +30,8 @@ export const TILE_STAIRS_DOWN  = 3;
 export const TILE_STAIRS_UP    = 4;
 export const TILE_MONSTER      = 5;    // spawn marker (replaced at runtime)
 export const TILE_ITEM         = 6;    // spawn marker
+export const TILE_LOCKED_DOOR  = 7;   // requires a key to open
+export const TILE_SHOP         = 8;   // shop room entrance marker
 
 // --- 3D viewport (raycaster) ---
 export const VIEW_WIDTH        = 800;  // px — left panel
@@ -50,3 +52,18 @@ export const BASE_PLAYER_DEF   = 2;
 
 // --- Floors ---
 export const TOTAL_FLOORS      = 5;
+
+// --- Shop ---
+export const SHOP_ITEMS = [
+    { name: 'Health Potion',   effect: 'heal',    value: 20,  price: 15 },
+    { name: 'Greater Potion',  effect: 'heal',    value: 40,  price: 30 },
+    { name: 'Iron Sword',      effect: 'atk',     value: 3,   price: 25 },
+    { name: 'Steel Shield',    effect: 'def',     value: 2,   price: 20 },
+    { name: 'Antidote',        effect: 'antidote',value: 0,   price: 10 },
+    { name: 'Scroll of Fire',  effect: 'scroll',  value: 30,  price: 35 },
+    { name: 'Magic Wand',      effect: 'wand',    value: 15,  price: 40 },
+];
+
+// --- High scores ---
+export const HIGH_SCORE_KEY    = 'dungeonBlobber_highScores';
+export const HIGH_SCORE_COUNT  = 10;

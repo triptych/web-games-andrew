@@ -21,6 +21,7 @@ import {
     GAME_WIDTH, GAME_HEIGHT, COLORS,
     DUNGEON_COLS, DUNGEON_ROWS,
     TILE_EMPTY, TILE_WALL, TILE_DOOR, TILE_STAIRS_DOWN, TILE_STAIRS_UP,
+    TILE_LOCKED_DOOR, TILE_SHOP,
     VIEW_WIDTH, VIEW_HEIGHT,
     MAP_PANEL_X, MAP_PANEL_WIDTH, MAP_TILE_SIZE,
     TOTAL_FLOORS,
@@ -41,15 +42,17 @@ const DIR_DY = [ -1,  0,  1,  0 ];
 const DIR_ANGLE = [ -Math.PI / 2, 0, Math.PI / 2, Math.PI ];
 
 const MAP_COLORS = {
-    wall:    0x3c3c50,
-    floor:   0x181830,
-    player:  0x00e8ff,
-    enemy:   0xff4040,   // fallback (per-type colors used when available)
-    item:    0xffd700,
-    stDown:  0x00ff80,
-    stUp:    0x8060ff,
-    door:    0xc87820,
-    unknown: 0x0a0a14,
+    wall:       0x3c3c50,
+    floor:      0x181830,
+    player:     0x00e8ff,
+    enemy:      0xff4040,
+    item:       0xffd700,
+    stDown:     0x00ff80,
+    stUp:       0x8060ff,
+    door:       0xc87820,
+    lockedDoor: 0xff6000,
+    shop:       0x00ffcc,
+    unknown:    0x0a0a14,
 };
 
 // How many tiles the enemy can "see" the player to become alerted
@@ -86,7 +89,7 @@ function bfsStep(grid, fromX, fromY, toX, toY, enemies) {
             if (visited.has(key)) continue;
 
             const cell = grid[ny][nx];
-            const isWall = cell === TILE_WALL || cell === TILE_DOOR;
+            const isWall = cell === TILE_WALL || cell === TILE_DOOR || cell === TILE_LOCKED_DOOR;
             // Target tile may be occupied by player — allow it
             const isTarget = (nx === toX && ny === toY);
 
@@ -117,7 +120,7 @@ function hasLos(grid, ax, ay, bx, by) {
         const mx = Math.floor(x), my = Math.floor(y);
         if (mx < 0 || mx >= DUNGEON_COLS || my < 0 || my >= DUNGEON_ROWS) return false;
         const cell = grid[my][mx];
-        if (cell === TILE_WALL || cell === TILE_DOOR) return false;
+        if (cell === TILE_WALL || cell === TILE_DOOR || cell === TILE_LOCKED_DOOR) return false;
     }
     return true;
 }
@@ -180,11 +183,14 @@ export class GameScene extends Phaser.Scene {
         this._dmgNumbers = [];
         this._doorAnim   = [];
 
-        const { grid, rooms, startPos, stairsUp, stairsDown, enemies, items, wallVariants, torches, props } = generateDungeon(floorNum);
-        this._grid       = grid;
-        this._rooms      = rooms;
-        this._stairsDown = stairsDown;
-        this._stairsUp   = stairsUp;
+        const { grid, rooms, startPos, stairsUp, stairsDown, enemies, items,
+                wallVariants, torches, props, shopPos, lockedDoorPositions } = generateDungeon(floorNum);
+        this._grid               = grid;
+        this._rooms              = rooms;
+        this._stairsDown         = stairsDown;
+        this._stairsUp           = stairsUp;
+        this._shopPos            = shopPos;
+        this._lockedDoorPositions = lockedDoorPositions || [];
         this._enemies    = enemies.map(e => ({ ...e, alive: true }));
         this._items      = items.map(it => ({ ...it, picked: false }));
         this._torches    = (torches  || []).map(t => ({ ...t, isTorch: true }));
@@ -268,6 +274,12 @@ export class GameScene extends Phaser.Scene {
         const turnR    = jd(this._keys.d) || jd(this._cursors.right);
         const attack   = jd(this._keys.space);
 
+        // Inventory toggle
+        if (jd(this._keys.i)) {
+            events.emit('toggleInventory');
+            return;
+        }
+
         if (turnL)    { this._turn(-1); return; }
         if (turnR)    { this._turn( 1); return; }
         if (forward)  { this._move( 1); return; }
@@ -306,6 +318,20 @@ export class GameScene extends Phaser.Scene {
             return;
         }
 
+        if (cell === TILE_LOCKED_DOOR) {
+            if (state.keys > 0) {
+                state.keys--;
+                playDoorOpen();
+                this._grid[ny][nx] = TILE_EMPTY;
+                this._raycaster.setGrid(this._grid, DUNGEON_COLS, DUNGEON_ROWS);
+                state.addMessage('You unlock the door with a key.');
+            } else {
+                playBump();
+                state.addMessage('The door is locked! You need a key.');
+                return;
+            }
+        }
+
         if (cell === TILE_DOOR) {
             playDoorOpen();
             this._grid[ny][nx] = TILE_EMPTY;
@@ -324,6 +350,13 @@ export class GameScene extends Phaser.Scene {
         }
         if (cell === TILE_STAIRS_UP) {
             this._ascend();
+            return;
+        }
+
+        // Check shop
+        if (cell === TILE_SHOP) {
+            events.emit('openShop');
+            this._endPlayerTurn();
             return;
         }
 
@@ -440,7 +473,7 @@ export class GameScene extends Phaser.Scene {
                 continue;
             }
             const cell = this._grid[ny][nx];
-            if (cell === TILE_WALL || cell === TILE_DOOR) {
+            if (cell === TILE_WALL || cell === TILE_DOOR || cell === TILE_LOCKED_DOOR) {
                 e.roamDir = Math.floor(Math.random() * 4);
                 continue;
             }
@@ -686,6 +719,8 @@ export class GameScene extends Phaser.Scene {
                     let color;
                     if (cell === TILE_WALL)             color = MAP_COLORS.wall;
                     else if (cell === TILE_DOOR)        color = MAP_COLORS.door;
+                    else if (cell === TILE_LOCKED_DOOR) color = MAP_COLORS.lockedDoor;
+                    else if (cell === TILE_SHOP)        color = MAP_COLORS.shop;
                     else if (cell === TILE_STAIRS_DOWN) color = MAP_COLORS.stDown;
                     else if (cell === TILE_STAIRS_UP)   color = MAP_COLORS.stUp;
                     else                                color = MAP_COLORS.floor;
@@ -857,10 +892,74 @@ export class GameScene extends Phaser.Scene {
                 state.poisonTurns = 0;
                 state.addMessage(`Used ${item.name}. Poison cured!`);
                 break;
+            case 'key':
+                state.keys = (state.keys || 0) + 1;
+                state.addMessage(`Picked up ${item.name}. Keys: ${state.keys}.`);
+                break;
+            case 'scroll':
+                // Fire Scroll: damage all visible enemies
+                this._useScrollOfFire(item.value);
+                break;
+            case 'wand':
+                // Magic Wand: goes into inventory for use later (auto-use on pickup for simplicity)
+                this._useWand(item.value);
+                break;
         }
 
         state.inventory.push(item);
         events.emit('itemPickedUp', item);
+    }
+
+    _useScrollOfFire(damage) {
+        const px = Math.floor(state.playerX);
+        const py = Math.floor(state.playerY);
+        let hit = 0;
+        for (const e of this._enemies) {
+            if (!e.alive) continue;
+            if (hasLos(this._grid, px, py, e.x, e.y)) {
+                e.hp -= damage;
+                this._spawnEnemyDmgNumber(damage, e.x, e.y);
+                if (e.hp <= 0) {
+                    e.alive = false;
+                    playEnemyDie();
+                    state.gainXp(e.xpReward);
+                    state.gold += e.goldDrop;
+                    state.addScore(e.xpReward * 10);
+                    events.emit('enemyDied', { enemy: e });
+                }
+                hit++;
+            }
+        }
+        state.addMessage(`Fire Scroll! Burned ${hit} visible enem${hit === 1 ? 'y' : 'ies'} for ${damage} damage.`);
+    }
+
+    _useWand(damage) {
+        // Shoots the first enemy in the player's facing direction (line of sight)
+        const f  = state.playerFacing;
+        const px = Math.floor(state.playerX);
+        const py = Math.floor(state.playerY);
+        for (let dist = 1; dist <= 8; dist++) {
+            const tx = px + DIR_DX[f] * dist;
+            const ty = py + DIR_DY[f] * dist;
+            if (tx < 0 || tx >= DUNGEON_COLS || ty < 0 || ty >= DUNGEON_ROWS) break;
+            if (this._grid[ty][tx] === TILE_WALL) break;
+            const e = this._enemies.find(en => en.alive && en.x === tx && en.y === ty);
+            if (e) {
+                e.hp -= damage;
+                this._spawnEnemyDmgNumber(damage, e.x, e.y);
+                if (e.hp <= 0) {
+                    e.alive = false;
+                    playEnemyDie();
+                    state.gainXp(e.xpReward);
+                    state.gold += e.goldDrop;
+                    state.addScore(e.xpReward * 10);
+                    events.emit('enemyDied', { enemy: e });
+                }
+                state.addMessage(`Magic Wand hits ${e.type} for ${damage} damage!`);
+                return;
+            }
+        }
+        state.addMessage('Magic Wand fires but hits nothing.');
     }
 
     // -------------------------------------------------------

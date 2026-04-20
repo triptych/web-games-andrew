@@ -17,15 +17,17 @@
  *   Torches animate with a flicker by sampling a sine wave each frame.
  */
 
-import { TILE_WALL, TILE_DOOR, VIEW_WIDTH, VIEW_HEIGHT, FOV_DEGREES, RAY_COUNT, MAX_DEPTH } from './config.js';
+import { TILE_WALL, TILE_DOOR, TILE_LOCKED_DOOR,
+         VIEW_WIDTH, VIEW_HEIGHT, FOV_DEGREES, RAY_COUNT, MAX_DEPTH } from './config.js';
 
 const FOV  = (FOV_DEGREES * Math.PI) / 180;
 const HALF = FOV / 2;
 
 // Base wall colours per tile type and variant, [EW-face, NS-face]
 const TILE_BASE = {
-    [TILE_WALL]: { ew: { r: 160, g: 128, b: 88 },  ns: { r: 110, g:  88, b: 60 } },
-    [TILE_DOOR]: { ew: { r: 140, g:  88, b: 44 },  ns: { r:  96, g:  60, b: 30 } },
+    [TILE_WALL]:        { ew: { r: 160, g: 128, b: 88 },  ns: { r: 110, g:  88, b: 60 } },
+    [TILE_DOOR]:        { ew: { r: 140, g:  88, b: 44 },  ns: { r:  96, g:  60, b: 30 } },
+    [TILE_LOCKED_DOOR]: { ew: { r: 180, g:  60, b:  0 },  ns: { r: 120, g:  40, b:  0 } },
 };
 // Cracked wall tint (cooler/darker)
 const CRACKED_TINT = { r: 0.88, g: 0.84, b: 0.80 };
@@ -595,7 +597,7 @@ export class Raycaster {
             if (mapX < 0 || mapX >= this._gridW || mapY < 0 || mapY >= this._gridH) break;
 
             const cell = this._grid[mapY][mapX];
-            if (cell === TILE_WALL || cell === TILE_DOOR) {
+            if (cell === TILE_WALL || cell === TILE_DOOR || cell === TILE_LOCKED_DOOR) {
                 tileType = cell;
                 break;
             }

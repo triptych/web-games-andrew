@@ -35,6 +35,7 @@ class GameState {
         // Inventory / items (arrays of item objects)
         this.inventory    = [];
         this.gold         = 0;
+        this.keys         = 0;
 
         // Active enemies on current floor (managed by DungeonScene)
         this.enemies      = [];
@@ -118,6 +119,10 @@ class GameState {
         this.combatEnemy = null;
         events.emit('combatEnd');
     }
+
+    // --- Shop ---
+    canAfford(price) { return this.gold >= price; }
+    spendGold(price) { this.gold = Math.max(0, this.gold - price); }
 
     // --- Message log ---
     addMessage(text) {

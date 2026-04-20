@@ -1,10 +1,11 @@
 /**
- * SplashScene — Title screen.
+ * SplashScene — Title screen with high-score table.
  * Waits for any key or pointer click, then starts GameScene + UIScene.
  */
 
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 import { initAudio, playUiClick } from './sounds.js';
+import { loadHighScores } from './storage.js';
 
 function hex(arr) { return '#' + arr.map(v => v.toString(16).padStart(2, '0')).join(''); }
 
@@ -26,7 +27,7 @@ export class SplashScene extends Phaser.Scene {
         gfx.strokeRect(28, 28, GAME_WIDTH - 56, GAME_HEIGHT - 56);
 
         // Title
-        this.add.text(CX, CY - 160, 'DUNGEON', {
+        this.add.text(CX - 200, CY - 160, 'DUNGEON', {
             fontSize: '80px',
             color: hex(COLORS.accent),
             fontFamily: 'monospace',
@@ -34,7 +35,7 @@ export class SplashScene extends Phaser.Scene {
             strokeThickness: 4,
         }).setOrigin(0.5);
 
-        this.add.text(CX, CY - 80, 'BLOBBER', {
+        this.add.text(CX - 200, CY - 80, 'BLOBBER', {
             fontSize: '80px',
             color: hex(COLORS.gold),
             fontFamily: 'monospace',
@@ -42,35 +43,39 @@ export class SplashScene extends Phaser.Scene {
             strokeThickness: 4,
         }).setOrigin(0.5);
 
-        this.add.text(CX, CY, 'A 3D First-Person Dungeon Crawler', {
-            fontSize: '18px',
+        this.add.text(CX - 200, CY, 'A 3D First-Person Dungeon Crawler', {
+            fontSize: '16px',
             color: '#a0a0c8',
             fontFamily: 'monospace',
         }).setOrigin(0.5);
 
         // Blinking prompt
-        this._prompt = this.add.text(CX, CY + 70, 'PRESS ANY KEY OR CLICK TO BEGIN', {
-            fontSize: '16px',
+        this._prompt = this.add.text(CX - 200, CY + 60, 'PRESS ANY KEY OR CLICK TO BEGIN', {
+            fontSize: '15px',
             color: hex(COLORS.text),
             fontFamily: 'monospace',
         }).setOrigin(0.5);
 
         // Controls hint
         const controls = [
-            'W / Up Arrow — Move Forward   S / Down Arrow — Move Backward',
-            'A / Left Arrow — Turn Left    D / Right Arrow — Turn Right',
-            'Space — Attack   I — Inventory   M — Toggle Map   Escape — Menu',
+            'W/Up — Forward    S/Down — Backward',
+            'A/Left — Turn L   D/Right — Turn R',
+            'Space — Attack    I — Inventory',
+            'M — Toggle Map    Escape — Menu',
         ];
         controls.forEach((line, i) => {
-            this.add.text(CX, CY + 150 + i * 22, line, {
-                fontSize: '13px',
+            this.add.text(CX - 200, CY + 120 + i * 20, line, {
+                fontSize: '12px',
                 color: '#606080',
                 fontFamily: 'monospace',
             }).setOrigin(0.5);
         });
 
+        // High score panel (right side)
+        this._buildHighScorePanel(CX + 220, CY - 160);
+
         // Version tag
-        this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 10, 'Phase 1', {
+        this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 10, 'Phase 3', {
             fontSize: '10px',
             color: '#323250',
             fontFamily: 'monospace',
@@ -85,6 +90,50 @@ export class SplashScene extends Phaser.Scene {
         this.input.on('pointerdown', () => this._goToGame());
 
         this._blinkTimer = 0;
+    }
+
+    _buildHighScorePanel(cx, topY) {
+        const scores = loadHighScores();
+
+        this.add.text(cx, topY, 'HIGH SCORES', {
+            fontSize: '18px',
+            color: hex(COLORS.gold),
+            fontFamily: 'monospace',
+            stroke: '#000',
+            strokeThickness: 2,
+        }).setOrigin(0.5);
+
+        const gfx = this.add.graphics();
+        gfx.lineStyle(1, 0x4060a0, 0.5);
+        gfx.lineBetween(cx - 170, topY + 26, cx + 170, topY + 26);
+
+        if (scores.length === 0) {
+            this.add.text(cx, topY + 50, 'No scores yet.\nPlay to get on the board!', {
+                fontSize: '13px',
+                color: '#404060',
+                fontFamily: 'monospace',
+                align: 'center',
+            }).setOrigin(0.5, 0);
+            return;
+        }
+
+        for (let i = 0; i < Math.min(scores.length, 10); i++) {
+            const entry = scores[i];
+            const y     = topY + 38 + i * 26;
+            const rank  = i === 0 ? hex(COLORS.gold) : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#606080';
+
+            this.add.text(cx - 160, y, `#${i + 1}`, {
+                fontSize: '13px', color: rank, fontFamily: 'monospace',
+            });
+
+            this.add.text(cx, y, String(entry.score).padStart(7, ' '), {
+                fontSize: '13px', color: hex(COLORS.text), fontFamily: 'monospace',
+            }).setOrigin(0.5, 0);
+
+            this.add.text(cx + 155, y, entry.date, {
+                fontSize: '11px', color: '#404060', fontFamily: 'monospace',
+            }).setOrigin(1, 0);
+        }
     }
 
     update(time, delta) {

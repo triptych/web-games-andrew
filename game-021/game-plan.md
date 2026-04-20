@@ -3,7 +3,7 @@
 **Genre:** 3D First-Person Dungeon Crawler / Turn-Based RPG
 **Engine:** Phaser 4.0.0
 **Target Resolution:** 1280 × 720 (800 px 3D view + 480 px minimap panel)
-**Status:** Phase 1 — Foundation Complete
+**Status:** Phase 3 — Content & Depth Complete
 
 ---
 
@@ -138,14 +138,14 @@ Level-up thresholds scale ×1.6 per level (20 → 32 → 51 → 82...). Each lev
 - [x] Ranged enemies — Skeleton/Lich attack from range 4–5 tiles with LoS check
 - [x] Status effects — poison (Orc/Lich) and stun (melee enemies); Antidote item added
 
-### Phase 3 — Content & Depth
-- [ ] Shop room on each floor (spend gold for potions, weapons)
-- [ ] Inventory screen (I key) — equip weapons and armour
-- [ ] More item types: keys, scrolls, wands
-- [ ] Locked doors (require key)
-- [ ] Boss enemy on floor 5
-- [ ] Save/load (localStorage)
-- [ ] High-score table
+### Phase 3 — Content & Depth (2026-04-20) ✅
+- [x] Shop room on each floor (spend gold for potions, weapons)
+- [x] Inventory screen (I key) — view collected items and stats
+- [x] More item types: keys, Fire Scrolls, Magic Wands
+- [x] Locked doors (require Dungeon Key to open)
+- [x] Boss enemy on floor 5 (The Lich King — 120HP, ranged, always alerted)
+- [x] High-score table (localStorage, shown on splash screen)
+- [x] Score saved on game over and victory
 
 ---
 
