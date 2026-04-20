@@ -786,11 +786,12 @@ Create the following files when ENGINE = `phaser`. The shared `events.js`, `stat
     </style>
 </head>
 <body>
-    <script src="../../lib/phaser/phaser.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>
 ```
+
+> **Why no `<script src>` for Phaser?** The `../../lib/phaser/phaser.js` path works on Live Server (which roots at the repo) but 404s on GitHub Pages (which roots at the game subfolder, making `../../` escape the repo). Use the ESM import in `main.js` instead — it resolves correctly in both environments.
 
 ---
 
@@ -805,8 +806,14 @@ Create the following files when ENGINE = `phaser`. The shared `events.js`, `stat
  *   GameScene   — Main gameplay
  *   UIScene     — HUD overlay (runs in parallel with GameScene)
  *
- * Library: ../../lib/phaser/phaser.js (global `Phaser`)
+ * Library: ../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js (ESM build)
+ * Imported as a module and assigned to window.Phaser so scene classes
+ * (which extend Phaser.Scene) can reference the global before their
+ * own module code runs.
  */
+
+import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
+window.Phaser = Phaser;
 
 import { SplashScene } from './SplashScene.js';
 import { GameScene }   from './GameScene.js';
@@ -1103,4 +1110,4 @@ After creating all files, report:
 2. State which engine was used (Kaplay or Phaser 4).
 3. Note any TODOs the user should address next (e.g., updating the `game-plan.md` phases, adding player/enemy modules).
 4. Tell the user to open `GAME_DIR/index.html` in a browser to verify the splash screen loads.
-   - **Phaser note**: `index.html` loads `phaser.js` as a plain `<script>` tag (not a module), so it must be served via a local HTTP server — opening the file directly (`file://`) will fail with CORS errors. Use `npx serve .` or VS Code Live Server from `GAME_DIR`.
+   - **Phaser note**: Phaser is loaded as an ES module — opening `index.html` directly via `file://` will fail with CORS errors. Serve via VS Code Live Server or `npx serve .` from the repo root.

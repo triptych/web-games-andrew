@@ -6,8 +6,11 @@
  *   GameScene   — Main 3D dungeon gameplay (raycasting + turn-based combat)
  *   UIScene     — HUD overlay (runs in parallel with GameScene)
  *
- * Library: ../../lib/phaser/phaser.js (global `Phaser`, loaded via <script> in index.html)
+ * Library: ../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js (ESM, sets window.Phaser)
  */
+
+import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
+window.Phaser = Phaser;
 
 import { SplashScene } from './SplashScene.js';
 import { GameScene }   from './GameScene.js';
