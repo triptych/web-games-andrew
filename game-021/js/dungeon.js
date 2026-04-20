@@ -5,6 +5,11 @@
  * Returns a map object used by DungeonScene and Raycaster.
  *
  * Tile values: 0=empty/floor, 1=wall, 2=door, 3=stairs_down, 4=stairs_up
+ *
+ * Also generates:
+ *   - wallVariants: 2D array same size as grid, 0=normal 1=cracked 2=mossy
+ *   - torches:      array of { x, y } floor tiles adjacent to walls — torch positions
+ *   - props:        array of { x, y, type } decorative props in rooms
  */
 
 import {
@@ -204,5 +209,72 @@ export function generateDungeon(floorNum = 1) {
         }
     }
 
-    return { grid, rooms, startPos, stairsUp, stairsDown, enemies, items };
+    // --- Wall variants (per-tile style: 0=normal, 1=cracked, 2=mossy) ---
+    const wallVariants = [];
+    for (let r = 0; r < DUNGEON_ROWS; r++) {
+        const row = new Array(DUNGEON_COLS).fill(0);
+        for (let c = 0; c < DUNGEON_COLS; c++) {
+            if (grid[r][c] === TILE_WALL) {
+                const roll = Math.random();
+                row[c] = roll < 0.15 ? 1 : roll < 0.30 ? 2 : 0;
+            }
+        }
+        wallVariants.push(row);
+    }
+
+    // --- Torches: place on floor tiles adjacent to walls, near room perimeters ---
+    const torches = [];
+    const torchSet = new Set();
+    for (const room of rooms) {
+        // Walk the room border (1 tile inside the wall) and sample positions
+        for (let c = room.x; c < room.x + room.w; c++) {
+            for (const tryR of [room.y, room.y + room.h - 1]) {
+                if (grid[tryR] && grid[tryR][c] === TILE_EMPTY) {
+                    // Place torch every ~4 tiles along edge, randomly offset
+                    if (Math.random() < 0.35) {
+                        const key = `${c},${tryR}`;
+                        if (!torchSet.has(key)) { torchSet.add(key); torches.push({ x: c, y: tryR }); }
+                    }
+                }
+            }
+        }
+        for (let r = room.y; r < room.y + room.h; r++) {
+            for (const tryC of [room.x, room.x + room.w - 1]) {
+                if (grid[r] && grid[r][tryC] === TILE_EMPTY) {
+                    if (Math.random() < 0.35) {
+                        const key = `${tryC},${r}`;
+                        if (!torchSet.has(key)) { torchSet.add(key); torches.push({ x: tryC, y: r }); }
+                    }
+                }
+            }
+        }
+    }
+
+    // --- Props: barrels, dead skeletons, crates, bones scattered in rooms ---
+    const PROP_TYPES = ['barrel', 'barrel', 'skeleton', 'crate', 'bones', 'bones', 'bones'];
+    const props = [];
+    const propSet = new Set();
+    for (let i = 1; i < rooms.length; i++) {
+        const room = rooms[i];
+        const count = Math.floor(Math.random() * 3); // 0-2 props per room
+        for (let j = 0; j < count; j++) {
+            // Try a few random positions in the interior
+            for (let attempt = 0; attempt < 8; attempt++) {
+                const px2 = room.x + 1 + Math.floor(Math.random() * Math.max(1, room.w - 2));
+                const py2 = room.y + 1 + Math.floor(Math.random() * Math.max(1, room.h - 2));
+                const key = `${px2},${py2}`;
+                if (grid[py2][px2] === TILE_EMPTY && !propSet.has(key) && !torchSet.has(key)) {
+                    // Don't place on stairs or start pos
+                    if ((px2 === stairsDown.x && py2 === stairsDown.y) ||
+                        (stairsUp && px2 === stairsUp.x && py2 === stairsUp.y) ||
+                        (px2 === startPos.x && py2 === startPos.y)) break;
+                    propSet.add(key);
+                    props.push({ x: px2, y: py2, type: PROP_TYPES[Math.floor(Math.random() * PROP_TYPES.length)] });
+                    break;
+                }
+            }
+        }
+    }
+
+    return { grid, rooms, startPos, stairsUp, stairsDown, enemies, items, wallVariants, torches, props };
 }

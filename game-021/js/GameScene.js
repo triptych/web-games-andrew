@@ -180,13 +180,15 @@ export class GameScene extends Phaser.Scene {
         this._dmgNumbers = [];
         this._doorAnim   = [];
 
-        const { grid, rooms, startPos, stairsUp, stairsDown, enemies, items } = generateDungeon(floorNum);
+        const { grid, rooms, startPos, stairsUp, stairsDown, enemies, items, wallVariants, torches, props } = generateDungeon(floorNum);
         this._grid       = grid;
         this._rooms      = rooms;
         this._stairsDown = stairsDown;
         this._stairsUp   = stairsUp;
         this._enemies    = enemies.map(e => ({ ...e, alive: true }));
         this._items      = items.map(it => ({ ...it, picked: false }));
+        this._torches    = (torches  || []).map(t => ({ ...t, isTorch: true }));
+        this._props      = (props    || []).map(p => ({ ...p, isProp:  true }));
 
         // Visibility map (fog of war)
         this._visible = [];
@@ -205,7 +207,7 @@ export class GameScene extends Phaser.Scene {
         state.stunTurns   = 0;
 
         // Create raycaster
-        this._raycaster = new Raycaster(this, grid, DUNGEON_COLS, DUNGEON_ROWS);
+        this._raycaster = new Raycaster(this, grid, DUNGEON_COLS, DUNGEON_ROWS, wallVariants);
 
         // Create minimap graphics layer
         this._mapGfx = this.add.graphics();
@@ -217,7 +219,8 @@ export class GameScene extends Phaser.Scene {
         // Render first frame
         this._updateVisibility();
         this._renderMinimap();
-        this._raycaster.render(state.playerX, state.playerY, DIR_ANGLE[state.playerFacing], [...this._enemies, ...this._items]);
+        this._raycaster.render(state.playerX, state.playerY, DIR_ANGLE[state.playerFacing],
+            [...this._enemies, ...this._items, ...this._torches, ...this._props], 16);
 
         events.emit('floorChanged', floorNum);
         state.addMessage(`You descend to floor ${floorNum}.`);
@@ -229,11 +232,17 @@ export class GameScene extends Phaser.Scene {
 
     update(time, delta) {
         if (state.isGameOver) return;
-        if (this._inputLocked) return;
 
         // Animate damage numbers
         this._tickDmgNumbers(delta);
 
+        // Torch flicker: re-render the 3D view every frame so torches animate
+        if (this._torches && this._torches.length > 0) {
+            this._raycaster.render(state.playerX, state.playerY, DIR_ANGLE[state.playerFacing],
+                [...this._enemies, ...this._items, ...this._torches, ...this._props], delta);
+        }
+
+        if (this._inputLocked) return;
         this._handleInput();
     }
 
@@ -360,7 +369,8 @@ export class GameScene extends Phaser.Scene {
     _afterMove() {
         this._updateVisibility();
         this._renderMinimap();
-        this._raycaster.render(state.playerX, state.playerY, DIR_ANGLE[state.playerFacing], [...this._enemies, ...this._items]);
+        this._raycaster.render(state.playerX, state.playerY, DIR_ANGLE[state.playerFacing],
+            [...this._enemies, ...this._items, ...this._torches, ...this._props]);
         events.emit('playerMoved', {
             x: state.playerX, y: state.playerY, facing: state.playerFacing,
         });
@@ -882,7 +892,8 @@ export class GameScene extends Phaser.Scene {
 
     _handleGameOver() {
         playGameOver();
-        this._raycaster.render(state.playerX, state.playerY, DIR_ANGLE[state.playerFacing], [...this._enemies, ...this._items]);
+        this._raycaster.render(state.playerX, state.playerY, DIR_ANGLE[state.playerFacing],
+            [...this._enemies, ...this._items, ...this._torches, ...this._props]);
     }
 
     _restart() {
