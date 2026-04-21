@@ -40,7 +40,9 @@ export class GameScene extends Phaser.Scene {
         // Camera
         const worldH = WORLD_ROWS * TILE_SIZE;
         const worldW = WORLD_COLS * TILE_SIZE;
-        this.cameras.main.setBounds(0, 0, worldW, worldH);
+        // Extend top bound so the camera can center on the surface without clamping
+        const camTopPad = Math.ceil(GAME_HEIGHT / 2);
+        this.cameras.main.setBounds(0, -camTopPad, worldW, worldH + camTopPad);
         this.cameras.main.startFollow(
             { x: this._player.pixelX, y: this._player.pixelY },
             true, 0.12, 0.12
