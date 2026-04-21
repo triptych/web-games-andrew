@@ -275,6 +275,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '⚔️', label: 'RPG' }
         ]
+    },
+    {
+        id: 'game-022',
+        title: 'Depths Unknown',
+        description: 'A Motherload-style 2D mining game blending fantasy and sci-fi. Pilot AXIOM-7, a drill machine, through 7 depth tiers — from surface soil to the mysterious Void Layer. Collect 16 ore types, manage fuel and hull integrity, and spend credits on 38 upgrades across 7 categories. Uncover the fate of the lost Delverhaven colony.',
+        icon: '⛏️',
+        folder: 'game-022',
+        cssClass: 'depths-unknown',
+        tags: [
+            { emoji: '⛏️', label: 'Mining' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '🚀', label: 'Sci-Fi/Fantasy' }
+        ]
     }
 ];
 
