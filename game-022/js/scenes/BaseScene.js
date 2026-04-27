@@ -280,10 +280,7 @@ export class BaseScene extends Phaser.Scene {
             case 'void_map':
                 GameState.stats.voidMapFragments = (GameState.stats.voidMapFragments || 0) + 1;
                 break;
-            case 'seismic':
-                // Reveal next 20 rows — handled in GameScene
-                this.registry.set('seismicReveal', true);
-                break;
+            case 'seismic': c.seismic++; break;
         }
         GameState.save();
     }

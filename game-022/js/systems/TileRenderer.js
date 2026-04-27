@@ -46,6 +46,17 @@ export class TileRenderer {
     setLightRadius(r)  { this._lightRadius = r; }
     setDirty()         { this._dirty = true; }
 
+    // Reveal all tiles in a rectangle (seismic scan) — marks explored so fog lifts
+    seismicReveal(centerCol, startRow, numRows, halfWidth) {
+        for (let r = startRow; r < Math.min(WORLD_ROWS, startRow + numRows); r++) {
+            for (let dc = -halfWidth; dc <= halfWidth; dc++) {
+                const c = centerCol + dc;
+                if (c < 0 || c >= WORLD_COLS) continue;
+                this._explored[r * WORLD_COLS + c] = 1;
+            }
+        }
+    }
+
     // Mark tiles around player as explored
     revealAround(tileX, tileY, radius) {
         const r2 = radius * radius;

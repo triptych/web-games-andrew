@@ -110,19 +110,35 @@ export class GameScene extends Phaser.Scene {
         if (tierIdx !== this._ambientTier) {
             this._ambientTier = tierIdx;
             setAmbientTier(tierIdx);
-            this._drawBackground(camY);
         }
+        // Redraw gradient every frame so it smoothly tracks camera scroll
+        this._drawBackground(camY);
     }
 
     _drawBackground(camY) {
         const g = this._bgGfx;
         g.clear();
-        // Simple solid color per tier, fill full screen
-        const tierIdx = Math.min(this._ambientTier < 0 ? 0 : this._ambientTier, DT.length - 1);
-        const tier = DT[tierIdx];
-        const c = tier ? tier.bgTop : 0x050510;
-        g.fillStyle(c, 1);
-        g.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+        // Determine which tier the camera top and bottom are in, then lerp
+        const topRow    = Math.max(0, Math.floor(camY / TILE_SIZE));
+        const botRow    = topRow + Math.ceil(GAME_HEIGHT / TILE_SIZE);
+        const _topIdx = DT.findIndex(t => topRow <= t.rowEnd);
+        const _botIdx = DT.findIndex(t => botRow <= t.rowEnd);
+        const ti = _topIdx >= 0 ? _topIdx : DT.length - 1;
+        const bi = _botIdx >= 0 ? _botIdx : DT.length - 1;
+
+        const topColor = DT[ti].bgTop;
+        const botColor = DT[bi].bgBot;
+
+        // Draw a vertical gradient by stepping through GAME_HEIGHT in bands
+        const steps = 12;
+        const bandH = Math.ceil(GAME_HEIGHT / steps);
+        for (let s = 0; s < steps; s++) {
+            const t = s / (steps - 1);
+            const c = lerpColor(topColor, botColor, t);
+            g.fillStyle(c, 1);
+            g.fillRect(0, s * bandH, GAME_WIDTH, bandH + 1);
+        }
     }
 
     _togglePause() {
@@ -207,6 +223,21 @@ export class GameScene extends Phaser.Scene {
             this._tileRenderer.setDirty();
             return;
         }
+        if (c.seismic > 0) {
+            c.seismic--;
+            this._useSeismicScan();
+            if (ui) ui.showAlert('SEISMIC SCAN', '#00FFCC');
+            playUiClick();
+            return;
+        }
+    }
+
+    _useSeismicScan() {
+        const col  = this._player.tileCol;
+        const row  = this._player.tileRow;
+        // Reveal a 40-wide, 20-tall strip centered on player column, below current position
+        this._tileRenderer.seismicReveal(col, row + 1, 20, 20);
+        this._tileRenderer.setDirty();
     }
 
     shutdown() {
@@ -215,3 +246,12 @@ export class GameScene extends Phaser.Scene {
 }
 
 function hex(arr) { return '#' + arr.map(v => v.toString(16).padStart(2, '0')).join(''); }
+
+function lerpColor(a, b, t) {
+    const ar = (a >> 16) & 0xFF, ag = (a >> 8) & 0xFF, ab = a & 0xFF;
+    const br = (b >> 16) & 0xFF, bg = (b >> 8) & 0xFF, bb = b & 0xFF;
+    const r = Math.round(ar + (br - ar) * t);
+    const g = Math.round(ag + (bg - ag) * t);
+    const bl = Math.round(ab + (bb - ab) * t);
+    return (r << 16) | (g << 8) | bl;
+}

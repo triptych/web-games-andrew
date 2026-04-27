@@ -3,11 +3,13 @@
  * Renders: depth, fuel bar, hull bar, cargo bar, alerts, d-pad (mobile).
  */
 import * as Phaser from '../../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
-import { SCENE, GAME_WIDTH, GAME_HEIGHT, COLORS } from '../config.js';
+import { SCENE, GAME_WIDTH, GAME_HEIGHT, COLORS, WORLD_COLS, WORLD_ROWS, TILE_SIZE } from '../config.js';
 import { GameState } from '../systems/GameState.js';
 import { setDPad, isMobileDevice } from '../systems/InputManager.js';
 import { playUiClick, tickAlarms } from '../systems/SoundManager.js';
 import { DEPTH_TIERS } from '../config.js';
+import { ORE_DEFS, BLOCK } from '../data/ores.js';
+import { getBlock } from '../systems/WorldGen.js';
 
 function hex(arr) { return '#' + arr.map(v => v.toString(16).padStart(2, '0')).join(''); }
 
@@ -26,6 +28,11 @@ export class UIScene extends Phaser.Scene {
 
         this._buildHUD();
         if (isMobileDevice()) this._buildDPad();
+
+        // Minimap — only rendered when Depth Radar upgrade is active
+        this._minimapGfx = this.add.graphics().setDepth(55);
+        this._minimapTimer = 0;
+        this._world = null; // lazily fetched from registry
     }
 
     _buildHUD() {
@@ -179,6 +186,7 @@ export class UIScene extends Phaser.Scene {
         if (sp.includes('nanites'))  indicators.push('NAN');
         if (GameState.consumables.recall_flare > 0) indicators.push(`FLARE x${GameState.consumables.recall_flare}`);
         if (GameState.consumables.tnt > 0)          indicators.push(`TNT x${GameState.consumables.tnt}`);
+        if (GameState.consumables.seismic > 0)      indicators.push(`SEISMIC x${GameState.consumables.seismic}`);
         this._upgradeRow.setText(indicators.join('  '));
 
         // Tier label
@@ -219,5 +227,104 @@ export class UIScene extends Phaser.Scene {
         }
 
         tickAlarms(delta, fuelPct < 0.2, hullPct < 0.25);
+
+        // Minimap (Depth Radar upgrade)
+        this._minimapTimer += dt;
+        if (this._minimapTimer >= 0.25) {
+            this._minimapTimer = 0;
+            if (GameState.derived.depthRadar) {
+                this._drawMinimap();
+            } else {
+                this._minimapGfx.clear();
+                if (this._minimapLabel) this._minimapLabel.setVisible(false);
+            }
+        }
+    }
+
+    // Mini radar: 60×80px panel, right side of screen above HUD
+    _drawMinimap() {
+        if (!this._world) {
+            this._world = this.scene.get(SCENE.GAME)
+                ? this.scene.get(SCENE.GAME).registry.get('world')
+                : null;
+            if (!this._world) return;
+        }
+
+        const MAP_W = 60, MAP_H = 80;
+        const MAP_X = GAME_WIDTH - MAP_W - 4;
+        const MAP_Y = HUD_Y - MAP_H - 4;
+
+        // How many world rows/cols to show
+        const VIEW_ROWS = 50;  // rows visible in minimap height
+        const VIEW_COLS = 30;  // cols visible in minimap width
+        const playerCol = GameState.playerCol;
+        const playerRow = GameState.playerRow;
+
+        const startRow = Math.max(0, playerRow - Math.floor(VIEW_ROWS * 0.3));
+        const startCol = Math.max(0, Math.min(WORLD_COLS - VIEW_COLS, playerCol - Math.floor(VIEW_COLS / 2)));
+
+        const cellW = MAP_W / VIEW_COLS;
+        const cellH = MAP_H / VIEW_ROWS;
+
+        const g = this._minimapGfx;
+        g.clear();
+
+        // Background
+        g.fillStyle(0x050510, 0.85);
+        g.fillRect(MAP_X - 1, MAP_Y - 1, MAP_W + 2, MAP_H + 2);
+        g.lineStyle(1, 0x334466, 1);
+        g.strokeRect(MAP_X - 1, MAP_Y - 1, MAP_W + 2, MAP_H + 2);
+
+        // Tiles
+        for (let dr = 0; dr < VIEW_ROWS; dr++) {
+            const r = startRow + dr;
+            if (r >= WORLD_ROWS) break;
+            for (let dc = 0; dc < VIEW_COLS; dc++) {
+                const c = startCol + dc;
+                if (c >= WORLD_COLS) break;
+
+                const blockId = getBlock(this._world, r, c);
+                if (blockId === BLOCK.AIR) continue;
+
+                const def = ORE_DEFS[blockId];
+                if (!def) continue;
+
+                const px = MAP_X + dc * cellW;
+                const py = MAP_Y + dr * cellH;
+
+                // Show ore tiles bright; fill tiles dim
+                if (!def.isFill && blockId !== BLOCK.BEDROCK) {
+                    g.fillStyle(def.color, 1);
+                    g.fillRect(px, py, Math.ceil(cellW), Math.ceil(cellH));
+                } else if (blockId === BLOCK.BEDROCK) {
+                    g.fillStyle(0x333333, 0.8);
+                    g.fillRect(px, py, Math.ceil(cellW), Math.ceil(cellH));
+                } else {
+                    // dim fill block
+                    g.fillStyle(def.color, 0.25);
+                    g.fillRect(px, py, Math.ceil(cellW), Math.ceil(cellH));
+                }
+            }
+        }
+
+        // Player dot
+        const relCol = playerCol - startCol;
+        const relRow = playerRow - startRow;
+        if (relCol >= 0 && relCol < VIEW_COLS && relRow >= 0 && relRow < VIEW_ROWS) {
+            const px = MAP_X + relCol * cellW;
+            const py = MAP_Y + relRow * cellH;
+            g.fillStyle(0xFFFFFF, 1);
+            g.fillRect(px - 1, py - 1, Math.ceil(cellW) + 2, Math.ceil(cellH) + 2);
+            g.fillStyle(0x00CCFF, 1);
+            g.fillRect(px, py, Math.ceil(cellW), Math.ceil(cellH));
+        }
+
+        // Label
+        if (!this._minimapLabel) {
+            this._minimapLabel = this.add.text(MAP_X, MAP_Y - 12, 'RADAR', {
+                fontSize: '8px', color: '#446688', fontFamily: 'monospace',
+            }).setDepth(56);
+        }
+        this._minimapLabel.setVisible(true);
     }
 }

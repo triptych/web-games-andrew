@@ -30,6 +30,7 @@ const DEFAULT_STATE = {
         tnt:          0,
         recall_flare: 0,
         lucky_charm:  0,
+        seismic:      0,
     },
     // Derived from upgrades (recalculated on apply)
     derived: {
