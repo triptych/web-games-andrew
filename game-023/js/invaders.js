@@ -29,7 +29,7 @@ let _advanceSpeed   = FORMATION_ADVANCE;
 // March state (Space Invaders style)
 let _marchInterval  = 0.8;  // seconds between march steps
 let _marchSideStep  = 0.55; // X units per march step
-let _marchDrop      = 1.2;  // Z units to advance when hitting edge
+let _marchDrop      = 0.12; // Z units to advance when hitting edge
 
 export function createInvaders(wave) {
     invaders.forEach(inv => scene.remove(inv.mesh));
@@ -40,7 +40,7 @@ export function createInvaders(wave) {
     formation.x = 0;
     formation.z = FORMATION_START_Z - wave * 1.5;
     formation.dir = 1;
-    _advanceSpeed = FORMATION_ADVANCE + wave * 0.4;
+    _advanceSpeed = FORMATION_ADVANCE + wave * 0.03;
     _marchStep = 0;
     _marchTimer = 0;
     _shootTimer = 0;

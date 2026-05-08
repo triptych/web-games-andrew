@@ -32,7 +32,7 @@ export const ROWS = 5;
 export const INVADER_SPACING_X = 1.6;
 export const INVADER_SPACING_Y = 1.4;
 export const FORMATION_START_Z  = -10; // z at start of wave (far)
-export const FORMATION_ADVANCE  = 3.5; // z advance speed (units/sec) — accelerates per wave
+export const FORMATION_ADVANCE  = 0.3; // z advance speed (units/sec) — accelerates per wave
 export const FORMATION_WOBBLE   = 0.9; // side-to-side amplitude
 export const FORMATION_WOBBLE_SPEED = 0.5;
 
