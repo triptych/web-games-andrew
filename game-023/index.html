@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Synthwave Invaders</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,15 +29,16 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            padding: 16px 24px;
+            padding: 12px 20px;
             color: #ff00ff;
             text-shadow: 0 0 8px #ff00ff, 0 0 16px #ff00ff;
-            font-size: 18px;
+            font-size: 16px;
             letter-spacing: 2px;
             text-transform: uppercase;
         }
-        #hud-left, #hud-right { min-width: 160px; }
+        #hud-left, #hud-right { min-width: 140px; }
         #hud-center { text-align: center; color: #00ffff; text-shadow: 0 0 8px #00ffff, 0 0 16px #00ffff; }
+        #hud-hiscore { text-align: center; color: #ff80ff; text-shadow: 0 0 6px #ff80ff; font-size: 13px; }
         #message {
             position: absolute;
             top: 50%; left: 50%;
@@ -58,14 +59,70 @@
             color: #00ffff;
             text-shadow: 0 0 6px #00ffff;
             letter-spacing: 3px;
+            margin-top: 6px;
         }
         #message .sub {
-            margin-top: 10px;
+            margin-top: 12px;
             font-size: 13px;
             color: #ff80ff;
             text-shadow: 0 0 4px #ff80ff;
         }
         .hidden { display: none !important; }
+
+        /* Floating bonus score */
+        .float-score {
+            position: absolute;
+            pointer-events: none;
+            color: #ffff00;
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 0 0 8px #ffff00;
+            animation: floatUp 0.9s ease-out forwards;
+        }
+        @keyframes floatUp {
+            0%   { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-48px); }
+        }
+
+        /* Touch controls */
+        #touch-controls {
+            display: none;
+            position: absolute;
+            bottom: 24px;
+            left: 0; right: 0;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 24px;
+            pointer-events: all;
+            user-select: none;
+        }
+        .touch-group { display: flex; gap: 12px; }
+        .touch-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 14px;
+            border: 2px solid #ff00ff;
+            background: rgba(255, 0, 255, 0.12);
+            color: #ff00ff;
+            font-size: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 12px rgba(255, 0, 255, 0.4);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .touch-btn:active { background: rgba(255, 0, 255, 0.3); }
+        #btn-fire {
+            width: 80px;
+            height: 80px;
+            border-color: #ffff00;
+            color: #ffff00;
+            box-shadow: 0 0 14px rgba(255, 255, 0, 0.5);
+            background: rgba(255, 255, 0, 0.1);
+        }
+        #btn-fire:active { background: rgba(255, 255, 0, 0.3); }
     </style>
 </head>
 <body>
@@ -78,18 +135,32 @@
             <div id="hud-center">
                 <div>WAVE</div>
                 <div id="wave-val">1</div>
+                <div id="hud-hiscore">
+                    <div>BEST</div>
+                    <div id="hiscore-val">000000</div>
+                </div>
             </div>
             <div id="hud-right" style="text-align:right">
                 <div>LIVES</div>
-                <div id="lives-val">♥ ♥ ♥</div>
+                <div id="lives-val">&#9829; &#9829; &#9829;</div>
             </div>
         </div>
         <div id="message">
             <h1>SYNTHWAVE<br>INVADERS</h1>
-            <p>← → MOVE &nbsp;|&nbsp; SPACE FIRE</p>
+            <p>&#8592; &#8594; MOVE &nbsp;|&nbsp; SPACE FIRE</p>
             <p class="sub">PRESS ANY KEY TO START</p>
         </div>
     </div>
+
+    <!-- Touch controls (shown only on touch devices) -->
+    <div id="touch-controls">
+        <div class="touch-group">
+            <button class="touch-btn" id="btn-left">&#8592;</button>
+            <button class="touch-btn" id="btn-right">&#8594;</button>
+        </div>
+        <button class="touch-btn" id="btn-fire">&#9679;</button>
+    </div>
+
     <script type="importmap">
     {
         "imports": {

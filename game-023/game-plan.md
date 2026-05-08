@@ -3,7 +3,7 @@
 **Genre:** Arcade Shooter
 **Engine:** Three.js (ES module via importmap CDN)
 **Target Resolution:** 1280 × 720 (responsive)
-**Status:** Phase 1 — Complete
+**Status:** Phase 2 — Complete
 
 ---
 
@@ -100,12 +100,12 @@ Three.js scene with: convergent neon grid, layered star field, retro retrowave s
 - [x] Web Audio sound effects
 - [x] CSS neon HUD + overlay messages
 
-### Phase 2 — Polish (Future)
-- [ ] Shields / bunkers (destructible cover)
-- [ ] Mystery UFO across the top for bonus points
-- [ ] High score persistence (localStorage)
-- [ ] Mobile touch controls
-- [ ] More invader types / boss wave
+### Phase 2 — Polish (2026-05-08)
+- [x] Shields / bunkers (destructible cover) — `shields.js`, 4 bunkers with 3-hit blocks
+- [x] Mystery UFO across the top for bonus points — `ufo.js`, 50–300pts, random spawn 15–40s
+- [x] High score persistence (localStorage) — `synthwave_hiscore` key, shown in HUD
+- [x] Mobile touch controls — on-screen ← → ● buttons, auto-shown on touch devices
+- [x] Boss wave every 5 waves — `boss.js`, 8-hit boss with triple-shot bursts, HP bar
 
 ---
 
@@ -120,6 +120,9 @@ Three.js scene with: convergent neon grid, layered star field, retro retrowave s
 | `effects.js`  | Particle explosions                            |
 | `sounds.js`   | Web Audio API procedural SFX                   |
 | `config.js`   | All tunable constants                          |
+| `shields.js`  | Destructible bunker blocks                     |
+| `ufo.js`      | Mystery UFO bonus enemy                        |
+| `boss.js`     | Boss wave enemy with HP bar                    |
 
 ---
 
@@ -127,3 +130,6 @@ Three.js scene with: convergent neon grid, layered star field, retro retrowave s
 
 ### Phase 1 — Full Implementation (2026-05-06)
 - Complete working Space Invaders with synthwave Three.js scene
+
+### Phase 2 — Polish (2026-05-08)
+- Shields, UFO, boss waves, high score, touch controls

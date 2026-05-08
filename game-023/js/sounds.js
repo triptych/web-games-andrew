@@ -93,3 +93,23 @@ export function playMarchTick(step) {
     const freqs = [160, 120];
     _osc('square', freqs[step % 2], 0.05, 0.08);
 }
+
+export function playUFOHit() {
+    _sweep('sine', 1200, 300, 0.25, 0.35);
+    _osc('square', 600, 0.15, 0.2, 0.05);
+}
+
+export function playShieldHit() {
+    _noise(0.06, 0.12);
+    _sweep('square', 400, 200, 0.06, 0.1, 0.01);
+}
+
+export function playBossHit() {
+    _sweep('sawtooth', 900, 200, 0.25, 0.4);
+    _noise(0.15, 0.2, 0.02);
+}
+
+export function playBossAppear() {
+    const notes = [220, 330, 440, 330, 220, 165];
+    notes.forEach((f, i) => _osc('sawtooth', f, 0.18, 0.3, i * 0.12));
+}

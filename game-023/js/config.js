@@ -57,8 +57,16 @@ export const COLORS = {
     starNear:    0xffffff,
     starFar:     0x8844aa,
     sun:         0xff0066,
+    boss:        0xff00aa,
+    shield:      0x00ff88,
+    ufo:         0xff0066,
 };
 
 // Shots per wave for enemies (random one fires per interval)
 export const ENEMY_SHOOT_INTERVAL_MIN = 0.8;
 export const ENEMY_SHOOT_INTERVAL_MAX = 2.2;
+
+// Boss wave (every N waves)
+export const BOSS_WAVE_INTERVAL = 5;
+export const BOSS_HP            = 8;  // hits to kill boss
+export const BOSS_POINTS        = 500;
