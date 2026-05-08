@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthwave Invaders</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            font-family: 'Courier New', monospace;
+        }
+        canvas { display: block; }
+        #ui-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+        }
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 16px 24px;
+            color: #ff00ff;
+            text-shadow: 0 0 8px #ff00ff, 0 0 16px #ff00ff;
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        #hud-left, #hud-right { min-width: 160px; }
+        #hud-center { text-align: center; color: #00ffff; text-shadow: 0 0 8px #00ffff, 0 0 16px #00ffff; }
+        #message {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+        }
+        #message h1 {
+            font-size: 52px;
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff, 0 0 30px #ff00ff, 0 0 60px #ff00ff;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+        #message p {
+            font-size: 16px;
+            color: #00ffff;
+            text-shadow: 0 0 6px #00ffff;
+            letter-spacing: 3px;
+        }
+        #message .sub {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #ff80ff;
+            text-shadow: 0 0 4px #ff80ff;
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div id="ui-overlay">
+        <div id="hud">
+            <div id="hud-left">
+                <div>SCORE</div>
+                <div id="score-val">000000</div>
+            </div>
+            <div id="hud-center">
+                <div>WAVE</div>
+                <div id="wave-val">1</div>
+            </div>
+            <div id="hud-right" style="text-align:right">
+                <div>LIVES</div>
+                <div id="lives-val">♥ ♥ ♥</div>
+            </div>
+        </div>
+        <div id="message">
+            <h1>SYNTHWAVE<br>INVADERS</h1>
+            <p>← → MOVE &nbsp;|&nbsp; SPACE FIRE</p>
+            <p class="sub">PRESS ANY KEY TO START</p>
+        </div>
+    </div>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

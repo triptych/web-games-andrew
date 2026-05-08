@@ -288,6 +288,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '🚀', label: 'Sci-Fi/Fantasy' }
         ]
+    },
+    {
+        id: 'game-023',
+        title: 'Synthwave Invaders',
+        description: 'Retro Space Invaders in a neon synthwave world! 2D pixel-art invaders march toward you across a glowing perspective grid with a retrowave sunset. Shoot them down before they reach you — each wave faster than the last.',
+        icon: '👾',
+        folder: 'game-023',
+        cssClass: 'synthwave-invaders',
+        tags: [
+            { emoji: '🕹️', label: 'Arcade' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '🌈', label: 'Synthwave' }
+        ]
     }
 ];
 
