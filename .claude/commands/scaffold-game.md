@@ -19,7 +19,7 @@ From `$ARGUMENTS`:
 - **Game folder**: First token starting with `game-` (e.g. `game-009`). If not given, list existing `game-NNN` folders in `c:\Users\andre\OneDrive\Documents\web-games-andrew\` and use the next number.
 - **Game title**: The quoted string after the folder, or the first quoted string if no folder was given.
 - **Concept**: Everything after the title, or ask the user if missing. Keep it to 1–2 sentences.
-- **Engine**: If the arguments contain `phaser` or `phaser4` (case-insensitive), use Phaser. If they contain `kaplay`, use Kaplay. Otherwise, ask the user: "Which engine? **Kaplay** (default) or **Phaser 4**?"
+- **Engine**: If the arguments contain `phaser` or `phaser4` (case-insensitive), use Phaser. If they contain `three`, `threejs`, or `three.js`, use Three.js. If they contain `kaplay`, use Kaplay. Otherwise, ask the user: "Which engine? **Kaplay** (default), **Phaser 4**, or **Three.js**?"
 
 Set these variables for use below:
 - `GAME_FOLDER` — e.g. `game-009`
@@ -27,7 +27,7 @@ Set these variables for use below:
 - `GAME_CONCEPT` — e.g. `A brick breaker game with powerups and boss levels.`
 - `GAME_NUMBER` — numeric part, e.g. `009`
 - `GAME_DIR` — `c:\Users\andre\OneDrive\Documents\web-games-andrew\GAME_FOLDER`
-- `ENGINE` — `kaplay` or `phaser`
+- `ENGINE` — `kaplay`, `phaser`, or `three`
 
 ---
 
@@ -35,8 +35,9 @@ Set these variables for use below:
 
 Create each file below. Substitute `GAME_TITLE`, `GAME_CONCEPT`, `GAME_FOLDER`, `GAME_NUMBER` where indicated.
 
-**If ENGINE = `kaplay`**: use the Kaplay templates (Sections 2A).
+**If ENGINE = `kaplay`**: use the Kaplay templates (Section 2A).
 **If ENGINE = `phaser`**: use the Phaser templates (Section 2B) instead — skip the Kaplay templates entirely.
+**If ENGINE = `three`**: use the Three.js templates (Section 2C) instead — skip the other engine sections entirely.
 
 ---
 
@@ -619,7 +620,7 @@ Write a proper game-plan document. Use the concept and title to fill in meaningf
 # GAME_TITLE
 
 **Genre:** [derive from concept]
-**Engine:** Kaplay v4000 (ES6 modules)   ← use "Phaser 4.0.0" here if ENGINE = phaser
+**Engine:** Kaplay v4000 (ES6 modules)   ← use "Phaser 4.0.0" if ENGINE = phaser, or "three.js r165" if ENGINE = three
 **Target Resolution:** 1280 × 720
 **Status:** Planning — Phase 1
 
@@ -737,6 +738,18 @@ GAME_CONCEPT
 | `SplashScene.js` | Title screen scene |
 | `GameScene.js`   | Main gameplay scene |
 | `UIScene.js`     | HUD overlay scene (runs in parallel) |
+
+*(Three.js — replace above table if ENGINE = three)*
+
+| File | Responsibility |
+|------|---------------|
+| `main.js`   | Game state machine, animate() loop, module orchestration |
+| `scene.js`  | Renderer, scene, camera, clock — exports live bindings |
+| `config.js` | Constants and definitions |
+| `events.js` | EventBus singleton |
+| `state.js`  | GameState singleton |
+| `sounds.js` | Web Audio API sound effects |
+| `ui.js`     | DOM HUD bindings and game-over overlay |
 
 ---
 
@@ -1079,6 +1092,356 @@ export class UIScene extends Phaser.Scene {
 
 ---
 
+# 2C — Three.js scaffold (skip if ENGINE = kaplay or phaser)
+
+Create the following files when ENGINE = `three`. The shared `events.js` and `state.js` are identical to the Kaplay versions in Section 2A — create them unchanged. The `sounds.js` is also identical to the Kaplay version. Only the files below differ.
+
+Three.js is loaded **from a CDN via an import map**, not from `lib/`. The reference version is **three r165**.
+
+---
+
+### File: `GAME_DIR/index.html` (Three.js version)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GAME_TITLE</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            font-family: 'Courier New', monospace;
+        }
+        canvas { display: block; }
+
+        /* HUD overlay — drawn over the WebGL canvas */
+        #ui-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            color: #dcdcf0;
+        }
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 20px;
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        #message {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        #message h1 {
+            font-size: 52px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            color: #64c8ff;
+        }
+        #message p { font-size: 16px; margin-top: 6px; letter-spacing: 2px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div id="ui-overlay">
+        <div id="hud">
+            <div><div>SCORE</div><div id="score-val">0</div></div>
+            <div><div>LIVES</div><div id="lives-val">3</div></div>
+        </div>
+        <div id="message">
+            <h1>GAME_TITLE</h1>
+            <p>PRESS ANY KEY OR CLICK TO START</p>
+            <p style="opacity:0.6">TODO: add controls hint here</p>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
+```
+
+> **Why an import map?** Lets every JS module write `import * as THREE from 'three'` instead of repeating the full CDN URL. Bumping the three.js version is then a one-line change in `index.html`. See [docs/threejs/threejs-api.md](../../docs/threejs/threejs-api.md).
+
+---
+
+### File: `GAME_DIR/js/config.js` (Three.js version)
+
+```js
+// ============================================================
+// GAME_TITLE — Configuration
+// ============================================================
+
+// --- Starting resources ---
+export const STARTING_SCORE = 0;
+export const STARTING_LIVES = 3;
+
+// --- Camera ---
+export const CAM_FOV     = 60;
+export const CAM_NEAR    = 0.1;
+export const CAM_FAR     = 200;
+export const CAM_POS     = [0, 3, 12];   // x, y, z
+
+// --- Color palette (hex integers — three.js wants 0xRRGGBB, not [r,g,b]) ---
+export const COLORS = {
+    bg:       0x0a0a14,
+    text:     '#dcdcf0',
+    accent:   0x64c8ff,
+    danger:   0xff5050,
+    success:  0x50dc64,
+    gold:     0xffd700,
+};
+
+// --- TODO: Add game-specific constants below ---
+```
+
+> **Note**: Three.js takes `0xRRGGBB` integers for material colors, not the `[r,g,b]` tuples Kaplay uses. The `#RRGGBB` string is for DOM/CSS HUD text.
+
+---
+
+### File: `GAME_DIR/js/scene.js`
+
+```js
+/**
+ * scene.js — Three.js renderer, scene, camera.
+ * Exports live bindings — every other module imports and uses these directly.
+ *
+ * Call initScene() once before adding anything to the scene.
+ */
+
+import * as THREE from 'three';
+import { CAM_FOV, CAM_NEAR, CAM_FAR, CAM_POS, COLORS } from './config.js';
+
+export let renderer, scene, camera;
+export const clock = new THREE.Clock();
+
+export function initScene() {
+    // Renderer
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(COLORS.bg);
+    document.body.appendChild(renderer.domElement);
+
+    // Scene
+    scene = new THREE.Scene();
+
+    // Camera
+    camera = new THREE.PerspectiveCamera(
+        CAM_FOV,
+        window.innerWidth / window.innerHeight,
+        CAM_NEAR,
+        CAM_FAR,
+    );
+    camera.position.set(...CAM_POS);
+
+    // Lights — basic ambient + directional (delete if using only MeshBasicMaterial)
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+    dir.position.set(5, 10, 5);
+    scene.add(dir);
+
+    window.addEventListener('resize', _onResize);
+}
+
+function _onResize() {
+    // IMPORTANT: updateProjectionMatrix() is required, or aspect change has no effect.
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+```
+
+---
+
+### File: `GAME_DIR/js/ui.js` (Three.js version — DOM-based HUD)
+
+```js
+/**
+ * ui.js — DOM HUD bindings. The HUD lives in index.html as fixed DOM elements;
+ * this module just hooks up event listeners and shows/hides overlays.
+ */
+
+import { state }  from './state.js';
+import { events } from './events.js';
+
+let $score, $lives, $message;
+
+export function initUI() {
+    $score   = document.getElementById('score-val');
+    $lives   = document.getElementById('lives-val');
+    $message = document.getElementById('message');
+
+    _render();
+
+    events.on('scoreChanged', _render);
+    events.on('livesChanged', _render);
+    events.on('gameOver',     _showGameOver);
+}
+
+function _render() {
+    if ($score) $score.textContent = String(state.score);
+    if ($lives) $lives.textContent = String(state.lives);
+}
+
+export function hideSplash() {
+    if ($message) $message.classList.add('hidden');
+}
+
+function _showGameOver() {
+    if (!$message) return;
+    $message.innerHTML = `
+        <h1 style="color:#ff5050">GAME OVER</h1>
+        <p>Final Score: ${state.score}</p>
+        <p style="opacity:0.6">Press R to restart  |  ESC for menu</p>
+    `;
+    $message.classList.remove('hidden');
+}
+```
+
+---
+
+### File: `GAME_DIR/js/main.js` (Three.js version)
+
+```js
+/**
+ * main.js — Three.js entry point.
+ *
+ * Game states: 'splash' → 'playing' → 'gameover'
+ *
+ * Library: three.js r165 via import map (see index.html)
+ */
+
+import * as THREE from 'three';
+
+import { initScene, renderer, scene, camera, clock } from './scene.js';
+import { state }  from './state.js';
+import { events } from './events.js';
+import { initUI, hideSplash } from './ui.js';
+import { initAudio, playUiClick } from './sounds.js';
+
+// TODO: import your game-specific modules here
+// import { initPlayer, updatePlayer } from './player.js';
+
+// ============================================================
+// THREE.JS GOTCHAS (read before adding anything)
+// ============================================================
+//
+// 1. RESIZE — camera.updateProjectionMatrix() is REQUIRED after changing
+//    camera.aspect. The scaffold does this in scene.js — don't remove it.
+//
+// 2. CLOCK CAP — Math.min(clock.getDelta(), 0.05) is mandatory. A backgrounded
+//    tab returns a huge delta on first frame after unhide; without the cap
+//    physics will tunnel through walls.
+//
+// 3. COLOR — new THREE.Color(255, 0, 255) is WHITE, not magenta. Color takes
+//    floats 0..1. Use 0xRRGGBB hex integers everywhere instead.
+//
+// 4. GPU MEMORY — three.js does not auto-free geometries/materials. If you
+//    spawn/destroy lots of meshes, call mesh.geometry.dispose() and
+//    mesh.material.dispose() before removing. Negligible for a fixed scene.
+//
+// ============================================================
+// Init
+// ============================================================
+
+initScene();
+initUI();
+
+// TODO: initialize game-specific modules
+// initPlayer();
+
+// ============================================================
+// Game state machine
+// ============================================================
+
+let mode = 'splash';   // 'splash' | 'playing' | 'gameover'
+
+function startGame() {
+    if (mode === 'playing') return;
+    mode = 'playing';
+    state.reset();
+    initAudio();
+    playUiClick();
+    hideSplash();
+}
+
+events.on('gameOver', () => { mode = 'gameover'; });
+
+// ============================================================
+// Input
+// ============================================================
+
+function onAnyKey(e) {
+    if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+    if (mode === 'splash') {
+        startGame();
+        return;
+    }
+    if (e.key === 'r' || e.key === 'R') {
+        // Restart
+        location.reload();
+    }
+    if (e.key === 'Escape') {
+        // Back to splash
+        location.reload();
+    }
+}
+document.addEventListener('keydown', onAnyKey);
+document.addEventListener('click',   () => { if (mode === 'splash') startGame(); });
+
+// ============================================================
+// Render loop
+// ============================================================
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    // Cap dt — a hidden tab returns one giant delta on first frame.
+    const dt = Math.min(clock.getDelta(), 0.05);
+
+    if (mode === 'playing') {
+        // TODO: update game objects here
+        // updatePlayer(dt);
+    }
+
+    renderer.render(scene, camera);
+}
+animate();
+```
+
+---
+
+### File: `GAME_DIR/js/sounds.js` (Three.js version)
+
+Use the **same `sounds.js` as the Kaplay scaffold in Section 2A** — Web Audio API is engine-agnostic. Copy it verbatim.
+
+---
+
+### File: `GAME_DIR/js/events.js` and `GAME_DIR/js/state.js`
+
+Use the **same files as the Kaplay scaffold in Section 2A** — these are engine-agnostic. Copy them verbatim.
+
+---
+
 ## Step 3: Update the launcher
 
 Read `c:\Users\andre\OneDrive\Documents\web-games-andrew\js\gamedata.js` and add an entry for the new game. Append it to the `games` array before the closing `];`. Use a suitable emoji icon and appropriate tags based on the concept.
@@ -1109,4 +1472,4 @@ After creating all files, report:
 2. State which engine was used (Kaplay or Phaser 4).
 3. Note any TODOs the user should address next (e.g., updating the `game-plan.md` phases, adding player/enemy modules).
 4. Tell the user to open `GAME_DIR/index.html` in a browser to verify the splash screen loads.
-   - **Phaser note**: Phaser is loaded as an ES module — opening `index.html` directly via `file://` will fail with CORS errors. Serve via VS Code Live Server or `npx serve .` from the repo root.
+   - **Phaser / Three.js note**: Both engines load as ES modules — opening `index.html` directly via `file://` will fail with CORS errors. Serve via VS Code Live Server or `npx serve .` from the repo root.

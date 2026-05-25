@@ -3633,11 +3633,154 @@ This defers the sound call without blocking the animation frame. Used in gacha.j
 
 ---
 
-**Document Version**: 2.2
-**Last Updated**: 2026-03-03
-**Games Covered**: 001-012
-**Total Lines Analyzed**: ~40,000+
-**Latest Enhancement**: Game 012 — Arcana Pull, gacha/pity, animation state machines, sunburst draw component, tick-based auto battler, omen system
+**Document Version**: 2.3
+**Last Updated**: 2026-05-21
+**Games Covered**: 001-023
+**Total Lines Analyzed**: ~60,000+
+**Latest Enhancement**: Games 013-023 — three.js as a third engine (r165 via import map), Phaser multi-scene Boot/Preload/Game/UI pattern, DOM-canvas CRT overlay, software raycasting in Phaser
+
+---
+
+## Games 013–023 — New Patterns (2026-05-21)
+
+This batch adds **three.js** as a third engine alongside Kaplay and Phaser, plus several cross-cutting patterns worth pulling out.
+
+### Three.js arrives (games 014, 018, 023)
+
+Three games in this batch use three.js for true 3D. We do **not** vendor three.js under `lib/` — it ships from a CDN by version pin. Three loading patterns appear, in increasing order of cleanliness:
+
+1. **Global script tag (game-014, three r128)** — `<script src="https://cdnjs.cloudflare.com/.../three.min.js">`, then code uses the global `THREE.*`. Works but locks out ES modules and `examples/jsm/` addons. Do not copy for new games.
+2. **Inline ES module URL in every file (game-018, three r165)** — every module starts with `import * as THREE from 'https://cdn.jsdelivr.net/.../three.module.js'`. Works, but bumping the version requires a project-wide find/replace.
+3. **Import map (game-023, three r165) — the recommended pattern** — `index.html` declares an import map that aliases `"three"` to the CDN URL, and every module writes `import * as THREE from 'three'`. Version is pinned in one place.
+
+```html
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+    }
+}
+</script>
+```
+
+Full reference: [threejs/threejs-api.md](../threejs/threejs-api.md).
+
+### Three.js render loop — same shape in all three games
+
+```js
+const clock = new THREE.Clock();
+function animate() {
+    requestAnimationFrame(animate);
+    const dt = Math.min(clock.getDelta(), 0.05);   // cap — critical
+    update(dt);
+    renderer.render(scene, camera);
+}
+animate();
+```
+
+The `Math.min(clock.getDelta(), 0.05)` cap is non-optional. A backgrounded tab returns one giant `getDelta()` on first frame and physics goes through walls. Both game-018 and game-023 cap at 0.05–0.1s.
+
+### Three.js resize — `updateProjectionMatrix()` is the silent killer
+
+```js
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();        // forgetting this = silent stretching
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+```
+
+Forgetting `updateProjectionMatrix()` is the equivalent of Kaplay's `entity.pos.x = value` — the line of code looks correct, nothing logs an error, but the visual result is wrong. Always include it.
+
+### Three.js module organization (game-023)
+
+The pattern that scaled best: `scene.js` exports live `renderer / scene / camera / clock` bindings, and every other module imports them and adds to `scene` directly. No DI, no singleton class, no event bus needed for the rendering layer specifically. Game state still uses the existing EventBus + state singleton pattern from Kaplay/Phaser games.
+
+```js
+// scene.js
+export let renderer, scene, camera;
+export const clock = new THREE.Clock();
+export function initScene() { /* assign exports */ }
+
+// player.js — just imports and uses
+import { scene } from './scene.js';
+scene.add(playerMesh);
+```
+
+This works because ES module instances are shared across importers.
+
+### Three.js gotchas worth memorizing
+
+- **`new THREE.Color(255, 0, 255)` is white**, not magenta. `Color` constructor takes floats 0..1, not 0..255. Use `0xff00ff` hex or a small `rgb([r,g,b])` helper that bit-shifts.
+- **GPU resources don't auto-free** — `geometry.dispose()` and `material.dispose()` matter for procedural worlds (game-018 dungeon). For a fixed set of meshes you don't have to care.
+- **`material.depthTest = false` + `mesh.renderOrder = N`** is how game-023 stacks the synthwave-sun stripe cutouts — useful for flat overlay layering without z-fighting.
+- **`renderer.setPixelRatio(Math.min(devicePixelRatio, 2))`** is the safe default. Some devices report `devicePixelRatio = 3`+ and a naive setting tanks frame rate.
+
+---
+
+### Phaser multi-scene architecture (games 021, 022)
+
+By game-022 (Depths Unknown), the Phaser scene chain has grown beyond the simple `Splash → Game → UI` of the scaffold. Real game shape:
+
+```
+BootScene → PreloadScene → SplashScene → GameScene (+UIScene overlay) → BaseScene (overlay) → GameOverScene
+```
+
+- **BootScene**: minimal — sets up Scale plugin, loads font, transitions immediately.
+- **PreloadScene**: where procedural world generation runs (slow, blocking) so SplashScene can show a loader bar. Stores generated data in `this.registry` so later scenes pick it up without circular imports.
+- **GameScene + UIScene running in parallel** is the same pattern as the scaffold — UIScene listens to the shared EventBus and never knows about GameScene directly.
+- **BaseScene** in game-022 is an overlay scene (player home base) that pauses GameScene rather than replacing it.
+
+`this.registry` (Phaser's built-in shared store) is the right place for cross-scene data like a procgen seed or generated tile map — using a module-level singleton works but couples scene files together.
+
+### Phaser CRT post-processing via DOM canvas overlay (game-019)
+
+Game-019 (Synthwave Breakout) wanted scanlines + chromatic aberration + vignette. Rather than write a Phaser shader, it layers a second `<canvas id="crt-overlay">` on top of the Phaser canvas at `z-index: 9999` with `pointer-events: none`, and runs its own `requestAnimationFrame` loop drawing 2D effects over everything.
+
+Why this is a good trade-off:
+- No need to touch Phaser's render pipeline.
+- Engine-agnostic: the same overlay would work over Kaplay or three.js.
+- Easy to tune in DevTools without rebuilding shaders.
+- One extra `requestAnimationFrame` cost; for a 2D canvas at typical resolutions it's negligible.
+
+The effect anatomy (from game-019):
+- **Rolling scanline bar**: linear gradient swept down `(frame * 1.8) % H`.
+- **Static scanlines**: fill 1px rows every 3px with 18% black.
+- **Chromatic aberration**: red gradient on left edge, blue on right, both ~0.6% of width.
+- **Vignette**: radial gradient from transparent center to 55% black at edges.
+- **Random flicker**: `if (Math.random() < 0.004) ctx.fillRect(0,0,W,H)` for occasional whole-frame brightness blip.
+
+### Phaser software raycasting (game-021)
+
+Dungeon Blobber renders a first-person dungeon view using a **DDA software raycaster drawing into Phaser's 2D context**, not 3D meshes. The Phaser 2D pipeline carries the column draws. Used because:
+- The pixelated art style fit 2D column rasterizing better than GPU 3D.
+- No three.js / WebGL dependency needed.
+- Procedural brick texturing (mortar lines, cracks, moss) is trivially done per-column in 2D.
+
+Pattern to remember: Phaser doesn't have to mean "sprite-based 2D arcade game" — its 2D context is fine for renderer-pretending-to-be-3D effects.
+
+---
+
+### Touch controls + import map (game-023)
+
+Game-023 ships a working touch control layer: DOM buttons (`.touch-btn`) with `pointer-events: all` overlaid on the three.js canvas. The HUD overlay above uses `pointer-events: none` so taps fall through to the canvas; only the explicit touch buttons consume events. Pattern is engine-agnostic and slots in under any of Kaplay / Phaser / three.js.
+
+### High-score persistence (game-023)
+
+Trivial but standardize on it:
+
+```js
+let highScore = parseInt(localStorage.getItem('synthwave_hiscore') || '0', 10);
+function saveHighScore(s) {
+    if (s > highScore) {
+        highScore = s;
+        localStorage.setItem('synthwave_hiscore', String(highScore));
+    }
+}
+```
+
+Use a **game-prefixed key** (`synthwave_hiscore`, not `hiscore`). All games share `localStorage` for an origin — generic keys collide between game-001 and game-023.
 
 
 

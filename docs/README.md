@@ -6,6 +6,9 @@
 ## Phaser
 - [phaser/phaser4-api.md](phaser/phaser4-api.md) — Phaser 4.0.0 full API reference
 
+## three.js
+- [threejs/threejs-api.md](threejs/threejs-api.md) — three.js r165 patterns used in this repo (import map, render loop, gotchas)
+
 ## Generic
 - [generic/learnings.md](generic/learnings.md) — Architecture patterns and lessons learned across all games
 - [generic/sounds.md](generic/sounds.md) — Procedural Web Audio API sound design patterns
