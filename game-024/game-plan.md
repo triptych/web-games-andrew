@@ -3,7 +3,7 @@
 **Genre:** Top-down arcade shoot-'em-up (shmup)
 **Engine:** three.js r165 (ES6 modules, via CDN import map)
 **Target Resolution:** Fullscreen (responsive); gameplay framed by an overhead camera
-**Status:** Phase 1 complete → Phase 2 (Combat)
+**Status:** Phase 1 & 2 complete → Phase 3 (Waves & Juice)
 
 ---
 
@@ -109,22 +109,27 @@ Web Audio API — no file assets. All procedural (`sounds.js`).
 
 ## Phases
 
-### Phase 1 — Foundation (current)
+### Phase 1 — Foundation ✅
 - [x] Scaffold: index.html, config, events, state, sounds, scene, ui, main
 - [x] Animated neon grid backdrop (custom ShaderMaterial)
 - [x] Player module: movement, bounds, firing, emissive ship mesh
 
-### Phase 2 — Combat
-- [ ] Bullet pool + bullet shader/trail
-- [ ] Enemy module with pluggable movement patterns (dive/sine/orbit/swoop)
-- [ ] Circle collision system + scoring
-- [ ] Explosion particle bursts
+### Phase 2 — Combat ✅
+- [x] Bullets: shared geometry/material, additive-blend glow, off-field culling (`bullets.js`)
+- [x] Enemy module with all four pluggable movement patterns: dive/sine/orbit/swoop (`enemies.js`)
+- [x] Circle (distance-squared) collision system + scoring, with post-hit invulnerability (`collisions.js`)
+- [x] Explosion particle bursts via `THREE.Points` + additive blending (`explosions.js`)
+- [x] Screen-flash juice on player hit (DOM `#flash` overlay, wired in `main.js`)
+- [x] Placeholder spawner in `main.js` cycling all patterns on a timer (stand-in until Phase 3 `waves.js`)
+- ~~Bullet shader/trail~~ — deferred; bullets currently use a plain additive `MeshBasicMaterial` sphere, no trail yet
 
-### Phase 3 — Waves & Juice
-- [ ] Wave spawner with growing counts and pattern mixes
-- [ ] Screen flash / shake on hit, additive bloom-like glow tuning
-- [ ] Enemy-fire and a mini-boss
-- [ ] Audio polish and balance pass
+### Phase 3 — Waves & Juice (current)
+- [ ] `waves.js` — real wave spawner: growing counts (`WAVE_BASE_COUNT + wave * WAVE_COUNT_GROWTH`),
+      `WAVE_BREAK` pause + `playWaveStart()` fanfare, `nextWave()` progression (replaces `main.js` placeholder spawner)
+- [ ] Bullet trail / shader polish (carried over from Phase 2)
+- [ ] Screen shake on hit; additive bloom-like glow tuning (UnrealBloomPass vs. emissive — see Open Questions)
+- [ ] Enemy-fire and a mini-boss every Nth wave
+- [ ] Audio polish and balance pass (`playGameOver` on game over is wired in state but verify trigger path)
 
 ---
 
@@ -151,23 +156,43 @@ Web Audio API — no file assets. All procedural (`sounds.js`).
 | `state.js`   | GameState singleton (score / lives / wave)                |
 | `sounds.js`  | Web Audio API sound effects                               |
 | `ui.js`      | DOM HUD bindings and game-over overlay                    |
-| `player.js`  | Player ship: movement, bounds, firing             |
-| *(planned)* `bullets.js` | Bullet pool + update + collisions             |
-| *(planned)* `enemies.js` | Enemy meshes + movement patterns              |
-| *(planned)* `waves.js`   | Wave spawner / progression                    |
+| `player.js`  | Player ship: movement, bounds, firing                     |
+| `bullets.js` | Bullet list: spawn on `playerFired`, update + cull        |
+| `enemies.js` | Enemy meshes + the four movement-pattern functions        |
+| `collisions.js` | Circle collisions: bullet→enemy (score) & enemy→player (life) |
+| `explosions.js` | `THREE.Points` particle bursts on kills / hits         |
+| *(planned)* `waves.js`   | Wave spawner / progression (Phase 3)              |
 
 ---
 
 ## Open Questions
 
-- [ ] Lives-based or health-bar-based survival? (scaffold uses lives)
-- [ ] Should bullets be a fixed pool or spawn/destroy per shot?
-- [ ] Add post-processing bloom (UnrealBloomPass) or fake glow with emissive + additive?
+- [x] Lives-based or health-bar-based survival? → **Lives** (3 lives, `STARTING_LIVES`), with a
+      1.2s post-hit invulnerability window so a swarm can't drain all lives in one frame.
+- [x] Should bullets be a fixed pool or spawn/destroy per shot? → **Spawn/destroy per shot**, but
+      sharing one cached geometry + material across all bullets (only the `Mesh` wrappers churn).
+      Same approach for enemies. Revisit pooling only if GC churn shows up in profiling.
+- [ ] Add post-processing bloom (UnrealBloomPass) or fake glow with emissive + additive? — still open;
+      currently faked with emissive materials + additive blending. Decide during Phase 3 glow tuning.
 - [ ] Power-ups (spread shot, shield, etc.) — Phase 3 or later?
 
 ---
 
 ## Changelog
+
+### Phase 2 — Combat (2026-06-03)
+- Added `bullets.js`: bullets spawn on the `playerFired` event, share one cached
+  sphere geometry + additive `MeshBasicMaterial`, travel by velocity, and cull off-field
+- Added `enemies.js`: octahedron enemies with all four pattern functions
+  (dive/sine/orbit/swoop), per-pattern spawn defaults, cosmetic spin, HP, and off-field culling
+- Added `collisions.js`: distance-squared circle checks — bullet→enemy consumes the bullet
+  and (on HP 0) explodes + scores `value * wave`; enemy→player loses a life, emits `playerHit`,
+  and starts a 1.2s invulnerability window
+- Added `explosions.js`: short-lived `THREE.Points` bursts (18 sparks, additive, fade-out, drag),
+  geometry/material disposed per burst
+- Wired all four into `main.js` init/reset/update; added a screen-flash overlay on `playerHit`
+  and a placeholder timer-based spawner cycling every pattern (Phase 3 `waves.js` will replace it)
+- **Phase 2 complete.** Bullet trail/shader and bloom tuning deferred to Phase 3.
 
 ### Phase 1 — Player (2026-06-03)
 - Added `player.js`: emissive triangular ship, 8-directional WASD/arrow movement
