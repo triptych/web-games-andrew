@@ -17,8 +17,12 @@ import { FIELD_HALF_W, FIELD_HALF_H, COLORS } from './config.js';
 
 import { initPlayer, updatePlayer, resetPlayer } from './player.js';
 import { initBullets, updateBullets, resetBullets } from './bullets.js';
+import { initEnemies, updateEnemies, resetEnemies, spawnEnemy } from './enemies.js';
+import { initExplosions, updateExplosions, resetExplosions } from './explosions.js';
+import { updateCollisions, resetCollisions } from './collisions.js';
+import { PATTERNS } from './config.js';
 
-// TODO: import remaining game-specific modules here once built:
+// TODO (Phase 3): replace the placeholder spawner below with a real wave system:
 // import { initWaves, updateWaves } from './waves.js';
 
 // ============================================================
@@ -121,9 +125,10 @@ initUI();
 _buildNeonBackdrop();
 initPlayer();
 initBullets();
+initEnemies();
+initExplosions();
 
-// TODO: initialize remaining game-specific modules
-// initWaves();
+// TODO (Phase 3): initWaves();
 
 // ============================================================
 // Game state machine
@@ -140,10 +145,67 @@ function startGame() {
     hideSplash();
     resetPlayer();
     resetBullets();
-    // TODO: kick off first wave
+    resetEnemies();
+    resetExplosions();
+    resetCollisions();
+    _resetSpawner();
 }
 
 events.on('gameOver', () => { mode = 'gameover'; });
+
+// ============================================================
+// Placeholder enemy spawner (Phase 2)
+// ------------------------------------------------------------
+// Phase 2 proves out combat — bullets, patterns, collisions, explosions — so we
+// need enemies on the field. This trickles them in on a timer, cycling through
+// every movement pattern. Phase 3's waves.js replaces this wholesale with real
+// wave counts, breaks, and fanfare; until then this keeps the field populated.
+// ============================================================
+
+const _spawnPatterns = [
+    PATTERNS.DIVE, PATTERNS.SINE, PATTERNS.ORBIT, PATTERNS.SWOOP,
+];
+let _spawnTimer = 0;
+let _spawnIndex = 0;
+const SPAWN_INTERVAL = 1.1; // seconds between placeholder spawns
+
+function _resetSpawner() {
+    _spawnTimer = 0.5;
+    _spawnIndex = 0;
+}
+
+function _updateSpawner(dt) {
+    _spawnTimer -= dt;
+    if (_spawnTimer > 0) return;
+    _spawnTimer = SPAWN_INTERVAL;
+
+    const pattern = _spawnPatterns[_spawnIndex % _spawnPatterns.length];
+    _spawnIndex++;
+    spawnEnemy({
+        pattern,
+        speed: 5 + Math.random() * 3,
+        value: 100,
+    });
+}
+
+// ============================================================
+// Screen flash on player hit (Phase 2 "juice"; tuned further in Phase 3)
+// ============================================================
+
+const _flash = document.getElementById('flash');
+let _flashTimer = 0;
+
+events.on('playerHit', () => { _flashTimer = 0.25; });
+
+function _updateFlash(dt) {
+    if (!_flash) return;
+    if (_flashTimer > 0) {
+        _flashTimer -= dt;
+        _flash.style.opacity = String(Math.max(0, _flashTimer / 0.25) * 0.6);
+    } else {
+        _flash.style.opacity = '0';
+    }
+}
 
 // ============================================================
 // Input
@@ -180,10 +242,13 @@ function animate() {
     if (gridMaterial) gridMaterial.uniforms.uTime.value += dt;
 
     if (mode === 'playing' && !state.isPaused) {
+        _updateSpawner(dt);       // Phase 3: updateWaves(dt)
         updatePlayer(dt);
         updateBullets(dt);
-        // TODO: update remaining game objects here
-        // updateWaves(dt);
+        updateEnemies(dt);
+        updateCollisions(dt);     // after movement, before render
+        updateExplosions(dt);
+        _updateFlash(dt);
     }
 
     renderer.render(scene, camera);

@@ -49,9 +49,23 @@
         }
         #message p { font-size: 16px; margin-top: 6px; letter-spacing: 2px; }
         .hidden { display: none !important; }
+
+        /* Damage flash — a full-screen red wash that fades when the player is hit. */
+        #flash {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center,
+                rgba(255, 60, 60, 0.25) 0%, rgba(255, 30, 30, 0.85) 100%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.05s linear;
+        }
     </style>
 </head>
 <body>
+    <div id="flash"></div>
+
     <div id="ui-overlay">
         <div id="hud">
             <div><div>SCORE</div><div id="score-val">0</div></div>
