@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Neon Vanguard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            font-family: 'Courier New', monospace;
+        }
+        canvas { display: block; }
+
+        /* HUD overlay — drawn over the WebGL canvas */
+        #ui-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            color: #dcdcf0;
+            text-shadow: 0 0 8px rgba(100, 200, 255, 0.8);
+        }
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 20px;
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        #hud .wave { color: #ff64ff; text-shadow: 0 0 8px rgba(255, 100, 255, 0.8); }
+        #message {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        #message h1 {
+            font-size: 64px;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            color: #64c8ff;
+            text-shadow: 0 0 20px rgba(100, 200, 255, 0.9), 0 0 40px rgba(255, 100, 255, 0.5);
+        }
+        #message p { font-size: 16px; margin-top: 6px; letter-spacing: 2px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div id="ui-overlay">
+        <div id="hud">
+            <div><div>SCORE</div><div id="score-val">0</div></div>
+            <div class="wave"><div>WAVE</div><div id="wave-val">1</div></div>
+            <div><div>LIVES</div><div id="lives-val">3</div></div>
+        </div>
+        <div id="message">
+            <h1>Neon Vanguard</h1>
+            <p>PRESS ANY KEY OR CLICK TO START</p>
+            <p style="opacity:0.6">MOVE: WASD / ARROWS &nbsp;•&nbsp; FIRE: SPACE / MOUSE</p>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

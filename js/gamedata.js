@@ -301,6 +301,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '🌈', label: 'Synthwave' }
         ]
+    },
+    {
+        id: 'game-024',
+        title: 'Neon Vanguard',
+        description: 'A top-down arcade shoot-\'em-up rendered in Three.js with custom shaders. Blast through endless waves of enemies that swarm in choreographed movement patterns — dive, weave, orbit, and swoop — all wrapped in a colorful neon-retro aesthetic with a glowing animated grid.',
+        icon: '🛸',
+        folder: 'game-024',
+        cssClass: 'neon-vanguard',
+        tags: [
+            { emoji: '🔫', label: 'Shmup' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '🌈', label: 'Neon Retro' }
+        ]
     }
 ];
 
