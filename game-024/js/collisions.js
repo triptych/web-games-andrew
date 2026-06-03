@@ -25,6 +25,7 @@ import { getBullets } from './bullets.js';
 import { getEnemies, removeEnemy } from './enemies.js';
 import { getPlayer } from './player.js';
 import { spawnExplosion } from './explosions.js';
+import { spawnScorePopup } from './popups.js';
 import {
     BULLET_RADIUS,
     PLAYER_RADIUS,
@@ -68,9 +69,11 @@ export function updateCollisions(dt) {
 
                 e.hp -= 1;
                 if (e.hp <= 0) {
+                    const points = e.value * state.wave;
                     spawnExplosion(ep.x, ep.z, COLORS.gold);
+                    spawnScorePopup(ep.x, ep.z, points);
                     playExplosion();
-                    state.addScore(e.value * state.wave);
+                    state.addScore(points);
                     removeEnemy(e);
                 }
                 break; // this enemy is done being tested against bullets this frame

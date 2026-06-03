@@ -19,6 +19,7 @@ import { initPlayer, updatePlayer, resetPlayer } from './player.js';
 import { initBullets, updateBullets, resetBullets } from './bullets.js';
 import { initEnemies, updateEnemies, resetEnemies, spawnEnemy } from './enemies.js';
 import { initExplosions, updateExplosions, resetExplosions } from './explosions.js';
+import { initPopups, updatePopups, resetPopups } from './popups.js';
 import { updateCollisions, resetCollisions } from './collisions.js';
 import { PATTERNS } from './config.js';
 
@@ -127,6 +128,7 @@ initPlayer();
 initBullets();
 initEnemies();
 initExplosions();
+initPopups();
 
 // TODO (Phase 3): initWaves();
 
@@ -147,6 +149,7 @@ function startGame() {
     resetBullets();
     resetEnemies();
     resetExplosions();
+    resetPopups();
     resetCollisions();
     _resetSpawner();
 }
@@ -248,6 +251,7 @@ function animate() {
         updateEnemies(dt);
         updateCollisions(dt);     // after movement, before render
         updateExplosions(dt);
+        updatePopups(dt);
         _updateFlash(dt);
     }
 
