@@ -13,18 +13,15 @@ import { state }  from './state.js';
 import { events } from './events.js';
 import { initUI, hideSplash } from './ui.js';
 import { initAudio, playUiClick } from './sounds.js';
-import { FIELD_HALF_W, FIELD_HALF_H, COLORS } from './config.js';
+import { FIELD_HALF_W, FIELD_HALF_H, COLORS, CAM_POS } from './config.js';
 
 import { initPlayer, updatePlayer, resetPlayer } from './player.js';
 import { initBullets, updateBullets, resetBullets } from './bullets.js';
-import { initEnemies, updateEnemies, resetEnemies, spawnEnemy } from './enemies.js';
+import { initEnemies, updateEnemies, resetEnemies } from './enemies.js';
 import { initExplosions, updateExplosions, resetExplosions } from './explosions.js';
 import { initPopups, updatePopups, resetPopups } from './popups.js';
 import { updateCollisions, resetCollisions } from './collisions.js';
-import { PATTERNS } from './config.js';
-
-// TODO (Phase 3): replace the placeholder spawner below with a real wave system:
-// import { initWaves, updateWaves } from './waves.js';
+import { initWaves, updateWaves, resetWaves } from './waves.js';
 
 // ============================================================
 // THREE.JS GOTCHAS (read before adding anything)
@@ -129,8 +126,7 @@ initBullets();
 initEnemies();
 initExplosions();
 initPopups();
-
-// TODO (Phase 3): initWaves();
+initWaves();
 
 // ============================================================
 // Game state machine
@@ -151,45 +147,12 @@ function startGame() {
     resetExplosions();
     resetPopups();
     resetCollisions();
-    _resetSpawner();
+    resetWaves();
+    _shake = 0;
+    camera.position.set(CAM_POS[0], CAM_POS[1], CAM_POS[2]);
 }
 
 events.on('gameOver', () => { mode = 'gameover'; });
-
-// ============================================================
-// Placeholder enemy spawner (Phase 2)
-// ------------------------------------------------------------
-// Phase 2 proves out combat — bullets, patterns, collisions, explosions — so we
-// need enemies on the field. This trickles them in on a timer, cycling through
-// every movement pattern. Phase 3's waves.js replaces this wholesale with real
-// wave counts, breaks, and fanfare; until then this keeps the field populated.
-// ============================================================
-
-const _spawnPatterns = [
-    PATTERNS.DIVE, PATTERNS.SINE, PATTERNS.ORBIT, PATTERNS.SWOOP,
-];
-let _spawnTimer = 0;
-let _spawnIndex = 0;
-const SPAWN_INTERVAL = 1.1; // seconds between placeholder spawns
-
-function _resetSpawner() {
-    _spawnTimer = 0.5;
-    _spawnIndex = 0;
-}
-
-function _updateSpawner(dt) {
-    _spawnTimer -= dt;
-    if (_spawnTimer > 0) return;
-    _spawnTimer = SPAWN_INTERVAL;
-
-    const pattern = _spawnPatterns[_spawnIndex % _spawnPatterns.length];
-    _spawnIndex++;
-    spawnEnemy({
-        pattern,
-        speed: 5 + Math.random() * 3,
-        value: 100,
-    });
-}
 
 // ============================================================
 // Screen flash on player hit (Phase 2 "juice"; tuned further in Phase 3)
@@ -207,6 +170,35 @@ function _updateFlash(dt) {
         _flash.style.opacity = String(Math.max(0, _flashTimer / 0.25) * 0.6);
     } else {
         _flash.style.opacity = '0';
+    }
+}
+
+// ============================================================
+// Camera shake on player hit (Phase 3 juice)
+// ------------------------------------------------------------
+// A hit kicks _shake to 1; it decays toward 0 over SHAKE_DECAY. Each frame we
+// offset the camera on the XZ plane (it looks straight down, so X/Z reads as a
+// screen-space jolt) by a random amount scaled by the remaining shake, then
+// restore the base position so the offset never accumulates.
+// ============================================================
+
+const SHAKE_DECAY = 4.0;   // 1/sec — higher = snappier recovery
+const SHAKE_MAX   = 0.9;   // peak offset in world units
+let _shake = 0;
+
+events.on('playerHit', () => { _shake = 1; });
+
+function _updateShake(dt) {
+    if (_shake > 0) {
+        _shake = Math.max(0, _shake - SHAKE_DECAY * dt);
+        // Quadratic falloff so the tail settles smoothly rather than buzzing.
+        const mag = SHAKE_MAX * _shake * _shake;
+        camera.position.x = CAM_POS[0] + (Math.random() * 2 - 1) * mag;
+        camera.position.z = CAM_POS[2] + (Math.random() * 2 - 1) * mag;
+    } else {
+        // Idle: hold the exact base position.
+        camera.position.x = CAM_POS[0];
+        camera.position.z = CAM_POS[2];
     }
 }
 
@@ -245,7 +237,7 @@ function animate() {
     if (gridMaterial) gridMaterial.uniforms.uTime.value += dt;
 
     if (mode === 'playing' && !state.isPaused) {
-        _updateSpawner(dt);       // Phase 3: updateWaves(dt)
+        updateWaves(dt);
         updatePlayer(dt);
         updateBullets(dt);
         updateEnemies(dt);
@@ -253,6 +245,7 @@ function animate() {
         updateExplosions(dt);
         updatePopups(dt);
         _updateFlash(dt);
+        _updateShake(dt);
     }
 
     renderer.render(scene, camera);

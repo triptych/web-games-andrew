@@ -124,10 +124,13 @@ Web Audio API — no file assets. All procedural (`sounds.js`).
 - ~~Bullet shader/trail~~ — deferred; bullets currently use a plain additive `MeshBasicMaterial` sphere, no trail yet
 
 ### Phase 3 — Waves & Juice (current)
-- [ ] `waves.js` — real wave spawner: growing counts (`WAVE_BASE_COUNT + wave * WAVE_COUNT_GROWTH`),
-      `WAVE_BREAK` pause + `playWaveStart()` fanfare, `nextWave()` progression (replaces `main.js` placeholder spawner)
+- [x] `waves.js` — real wave spawner: growing counts (`WAVE_BASE_COUNT + (wave-1) * WAVE_COUNT_GROWTH`),
+      `WAVE_BREAK` pause + `playWaveStart()` fanfare, `nextWave()` progression. PREP→SPAWNING→ACTIVE→BREAK
+      state machine; speed and spawn-interval ramp per wave; replaced the `main.js` placeholder spawner
+- [x] Floating score popups on kill (`popups.js`) — glowing "+N" sprite that rises and fades
 - [ ] Bullet trail / shader polish (carried over from Phase 2)
-- [ ] Screen shake on hit; additive bloom-like glow tuning (UnrealBloomPass vs. emissive — see Open Questions)
+- [x] Screen shake on hit — camera jolt on `playerHit`, quadratic decay, layered over the red flash (`main.js`)
+- [ ] Additive bloom-like glow tuning (UnrealBloomPass vs. emissive — see Open Questions)
 - [ ] Enemy-fire and a mini-boss every Nth wave
 - [ ] Audio polish and balance pass (`playGameOver` on game over is wired in state but verify trigger path)
 
@@ -161,7 +164,8 @@ Web Audio API — no file assets. All procedural (`sounds.js`).
 | `enemies.js` | Enemy meshes + the four movement-pattern functions        |
 | `collisions.js` | Circle collisions: bullet→enemy (score) & enemy→player (life) |
 | `explosions.js` | `THREE.Points` particle bursts on kills / hits         |
-| *(planned)* `waves.js`   | Wave spawner / progression (Phase 3)              |
+| `popups.js`  | Floating "+N" score sprites that rise and fade            |
+| `waves.js`   | Wave spawner / progression state machine                  |
 
 ---
 
@@ -179,6 +183,25 @@ Web Audio API — no file assets. All procedural (`sounds.js`).
 ---
 
 ## Changelog
+
+### Phase 3 — Camera shake (2026-06-03)
+- Added a camera-shake juice effect in `main.js`: a `playerHit` kicks `_shake` to 1,
+  which decays over ~0.25s; each frame the overhead camera is offset on the XZ plane
+  by a random amount scaled by `shake²` (quadratic falloff for a smooth settle), then
+  restored to `CAM_POS`. Layered on top of the existing red screen-flash. Reset on
+  (re)start so the camera always begins centered
+
+### Phase 3 — Wave system & score popups (2026-06-03)
+- Added `waves.js`: a PREP→SPAWNING→ACTIVE→BREAK state machine. Each wave spawns
+  `WAVE_BASE_COUNT + (wave-1)*WAVE_COUNT_GROWTH` enemies on a tightening interval,
+  ramps descent speed per wave, and draws from a growing pattern pool (early waves
+  use dive/sine; wave 3+ adds orbit/swoop). When the field clears it pauses
+  `WAVE_BREAK`, calls `state.nextWave()`, and plays the `playWaveStart()` fanfare
+- Removed the Phase 2 placeholder spawner from `main.js`; wired init/reset/update
+  for waves into the same lifecycle hooks
+- Added `popups.js`: floating gold "+N" score sprite at each kill that rises and
+  fades over ~1s (canvas-texture sprite; glow padded so it isn't clipped). Wired
+  into the `collisions.js` kill path so the number matches the score awarded
 
 ### Phase 2 — Combat (2026-06-03)
 - Added `bullets.js`: bullets spawn on the `playerFired` event, share one cached
