@@ -2,7 +2,7 @@
 
 ## Overview
 
-Both games use **procedurally generated** sounds created with the Web Audio API. No audio files are used; instead, all sound effects are synthesized in real-time using oscillators, envelopes, noise generators, and audio processing nodes. This approach keeps the games lightweight and eliminates the need for external audio assets.
+Every game uses **procedurally generated** sounds created with the Web Audio API. No audio files are used; instead, all sound effects are synthesized in real-time using oscillators, envelopes, noise generators, and audio processing nodes. This approach keeps the games lightweight and eliminates the need for external audio assets. See the game-024 section below for the current reusable module shape.
 
 ---
 
@@ -246,6 +246,48 @@ Possible improvements to the sound system:
 3. **Additional Effects:** Add filters or reverb for richer sounds
 4. **Combo Sounds:** Special audio for chain reactions
 5. **Background Music:** Add an optional looping background track
+
+---
+
+# game-024: Neon Vanguard (reusable helper-trio pattern)
+
+By game-024 the procedural-sound module had settled into a clean, copyable shape worth reusing for new games: **three small primitives** plus a thin set of named effect functions built from them. A `startDelay` argument on every primitive makes arpeggios and layered hits trivial (just call it N times with staggered delays).
+
+```js
+let audioCtx = null, masterGain = null, _enabled = true;
+
+export function initAudio() {                 // call on the FIRST user gesture
+    if (audioCtx) return;                      // idempotent
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.25;              // one master volume knob
+    masterGain.connect(audioCtx.destination);
+}
+
+// Constant-pitch tone with exponential gain decay.
+function _osc(type, freq, dur, vol = 0.3, delay = 0) { /* osc + gain → masterGain */ }
+// Pitch glide from freqStart → freqEnd (lasers, hits, game-over).
+function _sweep(type, f0, f1, dur, vol = 0.3, delay = 0) { /* frequency.exponentialRampToValueAtTime */ }
+// White-noise burst (explosions, impacts) — fill an AudioBuffer with Math.random()*2-1.
+function _noise(dur, vol = 0.15, delay = 0) { /* bufferSource + gain → masterGain */ }
+```
+
+Effects are then one-liners, and layering = calling two primitives together:
+
+```js
+export const playShoot     = () => _sweep('square', 880, 440, 0.08, 0.12);
+export const playExplosion = () => { _sweep('sawtooth', 300, 60, 0.25, 0.3); _noise(0.25, 0.18); };  // tone + noise
+export const playWaveStart = () => [523, 659, 784, 1047].forEach((f, i) => _osc('triangle', f, 0.15, 0.18, i * 0.07));  // arpeggio via delay
+```
+
+**Reusable takeaways:**
+- The `_osc` / `_sweep` / `_noise` trio covers essentially every retro SFX. Copy this file as the starting point for new games.
+- `startDelay` on each primitive is what makes arpeggios (`playWaveStart`) and multi-burst death sounds (`playBossWarn`) trivial — no scheduling code.
+- Keep one `masterGain` so a single value mutes/balances everything; expose `setSoundEnabled` / `toggleSound`.
+- `initAudio()` must run on the first user gesture (browser autoplay policy) and be idempotent.
+- Make player vs. enemy variants of the same action *read differently* — `playShoot` is a bright square sweep, `playEnemyShoot` a lower, harsher sawtooth sweep.
+
+---
 
 ## Cross-Game Sound Design Principles
 

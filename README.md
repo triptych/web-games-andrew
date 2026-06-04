@@ -168,9 +168,10 @@ The [docs/](docs/) directory contains reference material for AI-assisted develop
 
 - **[docs/kaplay/](docs/kaplay/)** — Kaplay v4000 API reference and patterns
 - **[docs/phaser/](docs/phaser/)** — Phaser 4.0.0 full API reference
+- **[docs/threejs/](docs/threejs/)** — three.js r165 patterns (import map, render loop, bloom, gotchas)
 - **[docs/generic/](docs/generic/)** — Cross-game learnings, sound design patterns, and game ideas
 
-When building or modifying games, consult these docs for framework APIs, confirmed working patterns, and architectural guidance. See [docs/README.md](docs/README.md) for the full index.
+When building or modifying games, consult these docs for framework APIs, confirmed working patterns, and architectural guidance. **When you learn something reusable, fold it back into the matching doc** — see [docs/README.md](docs/README.md) for the full index and the "Maintaining these docs" guide on what to write and where.
 
 ## Project Structure
 
@@ -209,8 +210,9 @@ web-games-andrew/
 - **HTML5 Canvas** - For game graphics and rendering
 - **JavaScript** - Game logic and interactivity
 - **CSS3** - Styling and responsive design
-- **Kaplay Framework** - Game development framework (games 002–018)
-- **Phaser 4.0.0** - Game framework used for Synthwave Breakout (game-019)
+- **Kaplay Framework** - Game development framework (most games from game-002 onward)
+- **Phaser 4.0.0** - Game framework (e.g. game-019 Synthwave Breakout, game-020 The River)
+- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (e.g. game-024 Neon Vanguard)
 - **GemCore/GemShell** - Desktop application packaging
 
 ## Attributions
