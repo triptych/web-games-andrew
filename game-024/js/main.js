@@ -8,15 +8,16 @@
 
 import * as THREE from 'three';
 
-import { initScene, renderer, scene, camera, clock } from './scene.js';
+import { initScene, scene, camera, clock, renderScene } from './scene.js';
 import { state }  from './state.js';
 import { events } from './events.js';
 import { initUI, hideSplash } from './ui.js';
-import { initAudio, playUiClick } from './sounds.js';
+import { initAudio, playUiClick, playGameOver } from './sounds.js';
 import { FIELD_HALF_W, FIELD_HALF_H, COLORS, CAM_POS } from './config.js';
 
 import { initPlayer, updatePlayer, resetPlayer } from './player.js';
 import { initBullets, updateBullets, resetBullets } from './bullets.js';
+import { initEnemyBullets, updateEnemyBullets, resetEnemyBullets } from './enemyBullets.js';
 import { initEnemies, updateEnemies, resetEnemies } from './enemies.js';
 import { initExplosions, updateExplosions, resetExplosions } from './explosions.js';
 import { initPopups, updatePopups, resetPopups } from './popups.js';
@@ -123,6 +124,7 @@ initUI();
 _buildNeonBackdrop();
 initPlayer();
 initBullets();
+initEnemyBullets();
 initEnemies();
 initExplosions();
 initPopups();
@@ -143,6 +145,7 @@ function startGame() {
     hideSplash();
     resetPlayer();
     resetBullets();
+    resetEnemyBullets();
     resetEnemies();
     resetExplosions();
     resetPopups();
@@ -152,7 +155,10 @@ function startGame() {
     camera.position.set(CAM_POS[0], CAM_POS[1], CAM_POS[2]);
 }
 
-events.on('gameOver', () => { mode = 'gameover'; });
+events.on('gameOver', () => {
+    mode = 'gameover';
+    playGameOver();
+});
 
 // ============================================================
 // Screen flash on player hit (Phase 2 "juice"; tuned further in Phase 3)
@@ -240,6 +246,7 @@ function animate() {
         updateWaves(dt);
         updatePlayer(dt);
         updateBullets(dt);
+        updateEnemyBullets(dt);
         updateEnemies(dt);
         updateCollisions(dt);     // after movement, before render
         updateExplosions(dt);
@@ -248,6 +255,6 @@ function animate() {
         _updateShake(dt);
     }
 
-    renderer.render(scene, camera);
+    renderScene();
 }
 animate();

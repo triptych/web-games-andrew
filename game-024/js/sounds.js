@@ -77,6 +77,11 @@ export function playShoot() {
     _sweep('square', 880, 440, 0.08, 0.12);
 }
 
+export function playEnemyShoot() {
+    // Lower, harsher than the player's shot so the two read differently.
+    _sweep('sawtooth', 330, 180, 0.12, 0.10);
+}
+
 export function playExplosion() {
     _sweep('sawtooth', 300, 60, 0.25, 0.3);
     _noise(0.25, 0.18);
@@ -90,6 +95,13 @@ export function playPlayerHit() {
 export function playWaveStart() {
     const notes = [523, 659, 784, 1047];
     notes.forEach((f, i) => _osc('triangle', f, 0.15, 0.18, i * 0.07));
+}
+
+export function playBossWarn() {
+    // Two low ominous notes + a noise swell to announce the mini-boss.
+    _osc('sawtooth', 110, 0.5, 0.25);
+    _osc('sawtooth', 82,  0.6, 0.25, 0.25);
+    _noise(0.5, 0.10, 0.1);
 }
 
 export function playUiClick() {

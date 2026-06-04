@@ -30,8 +30,13 @@ import {
 
 // Shared resources — every bullet reuses these, so we never dispose them
 // per-bullet (only the Mesh wrappers are added/removed from the scene).
-let _geo = null;
-let _mat = null;
+let _geo  = null;   // bullet head (sphere)
+let _mat  = null;
+let _tGeo = null;   // trail (elongated plane laid flat on the XZ floor)
+let _tMat = null;
+
+// Length of the comet tail behind the head, in world units.
+const TRAIL_LEN = BULLET_RADIUS * 14;
 
 // Live bullets: each is { mesh, vx, vz }.
 const bullets = [];
@@ -45,12 +50,55 @@ function _ensureResources() {
         transparent: true,
         depthWrite: false,
     });
+
+    // Trail: a plane that runs from the head (+y end, opacity ~1) back to a
+    // faded tail (-y end). A vertex-alpha gradient gives the fade; the plane is
+    // laid flat on the floor and rotated per-bullet to point along travel.
+    _tGeo = new THREE.PlaneGeometry(BULLET_RADIUS * 1.4, TRAIL_LEN, 1, 1);
+    // Per-vertex colors: bright at the head edge, black (→ invisible under
+    // additive blending) at the tail edge.
+    const colors = new Float32Array([
+        // PlaneGeometry verts order: top-left, top-right, bottom-left, bottom-right.
+        1, 1, 1,  1, 1, 1,    // top edge = head end (full bright)
+        0, 0, 0,  0, 0, 0,    // bottom edge = tail end (fades to nothing)
+    ]);
+    _tGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    // Shift so the head end sits at the local origin and the tail extends -Y.
+    _tGeo.translate(0, -TRAIL_LEN / 2, 0);
+
+    _tMat = new THREE.MeshBasicMaterial({
+        color: COLORS.bullet,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+    });
 }
 
 function _spawn({ x, z, dirX, dirZ }) {
     _ensureResources();
     const mesh = new THREE.Mesh(_geo, _mat);
     mesh.position.set(x, 0, z);
+
+    // Trail child: laid flat on the floor and yawed so the tail (the -Y end of
+    // its local geometry) streams out behind the head along -velocity.
+    //
+    // Build the orientation as: flat-on-floor (rot.x = -90°) THEN a yaw about
+    // the world up axis. Chaining via Euler is ambiguous, so set the X tilt and
+    // the yaw on two nested objects — the outer yaws, the inner lies flat.
+    const trail = new THREE.Mesh(_tGeo, _tMat);
+    trail.rotation.x = -Math.PI / 2;                 // upright plane → flat on XZ
+    trail.position.y = -0.05;                        // just under the head
+
+    const trailYaw = new THREE.Group();
+    // After the flat tilt, the plane's local +Y maps to world -Z. We want the
+    // tail (local -Y → world +Z) to point along +velocity-reversed, i.e. the
+    // head leads. Yaw so world -Z aligns with the travel direction (dirX,dirZ).
+    trailYaw.rotation.y = Math.atan2(dirX, dirZ);
+    trailYaw.add(trail);
+    mesh.add(trailYaw);
+
     scene.add(mesh);
     bullets.push({
         mesh,

@@ -28,6 +28,19 @@ export const BULLET_RADIUS   = 0.25;
 export const ENEMY_RADIUS    = 0.7;
 export const ENEMY_BASE_HP   = 1;
 
+// --- Enemy fire ---
+export const ENEMY_BULLET_SPEED  = 16;    // world units / sec (slower than player's)
+export const ENEMY_BULLET_RADIUS = 0.3;
+export const ENEMY_FIRE_COOLDOWN = 2.2;   // base seconds between an enemy's shots
+export const ENEMY_FIRE_WAVE     = 2;     // enemies don't shoot until this wave
+
+// --- Mini-boss ---
+export const BOSS_EVERY      = 4;     // a mini-boss arrives every Nth wave
+export const BOSS_HP         = 30;    // base; scales with wave
+export const BOSS_RADIUS     = 2.2;
+export const BOSS_VALUE      = 1000;  // score (before the *wave multiplier)
+export const BOSS_FIRE_COOLDOWN = 0.9;
+
 // --- Waves ---
 export const WAVE_BASE_COUNT   = 6;    // enemies in wave 1
 export const WAVE_COUNT_GROWTH = 2;    // +N enemies per wave

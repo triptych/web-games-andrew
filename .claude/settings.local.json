@@ -35,7 +35,9 @@
       "Bash(magick /c/Users/andre/OneDrive/Documents/web-games-andrew/game-021/img/slime.png -format \"%[fx:p{0,0}.a]\" info:)",
       "Bash(find 'C:\\\\Users\\\\andre\\\\.claude\\\\skills' -type f 2>/dev/null | head -100)",
       "Read(//c/Users/andre/.claude/skills/**)",
-      "Bash(npx --version)"
+      "Bash(npx --version)",
+      "Bash(grep -rl 'export function __TRACKED_VAR__' .)",
+      "Bash(grep -c 'export const __TRACKED_VAR__' config.js)"
     ]
   }
 }

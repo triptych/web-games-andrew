@@ -3,7 +3,7 @@
 **Genre:** Top-down arcade shoot-'em-up (shmup)
 **Engine:** three.js r165 (ES6 modules, via CDN import map)
 **Target Resolution:** Fullscreen (responsive); gameplay framed by an overhead camera
-**Status:** Phase 1 & 2 complete → Phase 3 (Waves & Juice)
+**Status:** Phases 1–3 complete — feature-complete; polish/tuning remains
 
 ---
 
@@ -123,16 +123,26 @@ Web Audio API — no file assets. All procedural (`sounds.js`).
 - [x] Placeholder spawner in `main.js` cycling all patterns on a timer (stand-in until Phase 3 `waves.js`)
 - ~~Bullet shader/trail~~ — deferred; bullets currently use a plain additive `MeshBasicMaterial` sphere, no trail yet
 
-### Phase 3 — Waves & Juice (current)
+### Phase 3 — Waves & Juice ✅
 - [x] `waves.js` — real wave spawner: growing counts (`WAVE_BASE_COUNT + (wave-1) * WAVE_COUNT_GROWTH`),
       `WAVE_BREAK` pause + `playWaveStart()` fanfare, `nextWave()` progression. PREP→SPAWNING→ACTIVE→BREAK
       state machine; speed and spawn-interval ramp per wave; replaced the `main.js` placeholder spawner
 - [x] Floating score popups on kill (`popups.js`) — glowing "+N" sprite that rises and fades
-- [ ] Bullet trail / shader polish (carried over from Phase 2)
+- [x] Bullet trail — additive vertex-faded comet tail behind each player shot, oriented along travel (`bullets.js`)
 - [x] Screen shake on hit — camera jolt on `playerHit`, quadratic decay, layered over the red flash (`main.js`)
-- [ ] Additive bloom-like glow tuning (UnrealBloomPass vs. emissive — see Open Questions)
-- [ ] Enemy-fire and a mini-boss every Nth wave
-- [ ] Audio polish and balance pass (`playGameOver` on game over is wired in state but verify trigger path)
+- [x] Bloom glow — `EffectComposer` + `UnrealBloomPass` in `scene.js`; `main.js` renders via `renderScene()`.
+      Resolves the open question: real bloom on top of emissive materials, thresholded so only bright bits glow
+- [x] Enemy fire — armed enemies (a wave-scaled fraction, from `ENEMY_FIRE_WAVE` on) shoot aimed
+      shots at the player via `enemyBullets.js`; collisions damage the player
+- [x] Mini-boss — every `BOSS_EVERY` waves: a large magenta icosahedron with scaling HP, heavy fire,
+      a `playBossWarn()` cue, and a multi-burst death (`waves.js` / `enemies.js`)
+- [x] Audio polish — wired `playGameOver()` to the `gameOver` event; added `playEnemyShoot` and
+      `playBossWarn`; staggered enemy fire timers so waves don't volley in unison
+
+### Phase 4 — Tuning (optional / future)
+- [ ] Balance pass on wave counts, fire fractions, boss HP, bloom strength (all dialed in constants)
+- [ ] Power-ups (spread shot, shield) — see Open Questions
+- [ ] Pause overlay (P toggles `state.isPaused` but shows no on-screen indicator)
 
 ---
 
@@ -160,8 +170,9 @@ Web Audio API — no file assets. All procedural (`sounds.js`).
 | `sounds.js`  | Web Audio API sound effects                               |
 | `ui.js`      | DOM HUD bindings and game-over overlay                    |
 | `player.js`  | Player ship: movement, bounds, firing                     |
-| `bullets.js` | Bullet list: spawn on `playerFired`, update + cull        |
-| `enemies.js` | Enemy meshes + the four movement-pattern functions        |
+| `bullets.js` | Player bullets: spawn on `playerFired`, comet trail, update + cull |
+| `enemyBullets.js` | Enemy projectiles: aimed shots that damage the player |
+| `enemies.js` | Enemy + mini-boss meshes, movement patterns, and firing   |
 | `collisions.js` | Circle collisions: bullet→enemy (score) & enemy→player (life) |
 | `explosions.js` | `THREE.Points` particle bursts on kills / hits         |
 | `popups.js`  | Floating "+N" score sprites that rise and fade            |
@@ -176,13 +187,37 @@ Web Audio API — no file assets. All procedural (`sounds.js`).
 - [x] Should bullets be a fixed pool or spawn/destroy per shot? → **Spawn/destroy per shot**, but
       sharing one cached geometry + material across all bullets (only the `Mesh` wrappers churn).
       Same approach for enemies. Revisit pooling only if GC churn shows up in profiling.
-- [ ] Add post-processing bloom (UnrealBloomPass) or fake glow with emissive + additive? — still open;
-      currently faked with emissive materials + additive blending. Decide during Phase 3 glow tuning.
+- [x] Add post-processing bloom (UnrealBloomPass) or fake glow with emissive + additive? → **Real bloom.**
+      `scene.js` runs an `EffectComposer` with `RenderPass` + `UnrealBloomPass` (strength/radius/threshold
+      tunable at the top of the file), on top of the existing emissive materials.
 - [ ] Power-ups (spread shot, shield, etc.) — Phase 3 or later?
 
 ---
 
 ## Changelog
+
+### Phase 3 — Enemy fire, mini-boss, bloom, trails, audio (2026-06-04)
+- **Bullet trails** (`bullets.js`): each player shot now drags an additive comet
+  tail — an elongated plane with a vertex-color gradient (bright at the head,
+  fading to nothing at the tail), laid flat and yawed to point along travel.
+  Trail is a child of the bullet mesh, so existing movement/cull/collision code
+  is untouched
+- **Enemy fire** (`enemyBullets.js` + `enemies.js`): a new danger-colored
+  projectile module mirroring player bullets. Enemies carry `canFire`/`fireCd`
+  state; `waves.js` arms a wave-scaled fraction (from `ENEMY_FIRE_WAVE` on) that
+  loose aimed shots at the player's live position, with staggered initial timers.
+  `collisions.js` tests enemy bullets vs. the player and shares one `_damagePlayer()`
+  helper with body-contact damage
+- **Mini-boss** (`enemies.js` + `waves.js`): every `BOSS_EVERY` waves a large
+  magenta icosahedron spawns with scaling HP, heavy fire, a slow weaving descent,
+  a `playBossWarn()` cue, and a multi-burst death. Bosses ignore body-contact
+  death (only bullets whittle their HP)
+- **Bloom** (`scene.js`): added an `EffectComposer` → `RenderPass` +
+  `UnrealBloomPass` pipeline; `main.js` now renders through `renderScene()` and
+  the composer is resized alongside the renderer. Resolves the bloom open question
+- **Audio**: wired the long-dormant `playGameOver()` to the `gameOver` event;
+  added `playEnemyShoot` (low harsh saw) and `playBossWarn` (ominous low notes)
+- **Phase 3 complete.** Game is feature-complete; remaining work is tuning/optional polish
 
 ### Phase 3 — Camera shake (2026-06-03)
 - Added a camera-shake juice effect in `main.js`: a `playerHit` kicks `_shake` to 1,

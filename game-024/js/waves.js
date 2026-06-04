@@ -21,14 +21,20 @@
  */
 
 import { state }  from './state.js';
-import { playWaveStart } from './sounds.js';
+import { playWaveStart, playBossWarn } from './sounds.js';
 import { spawnEnemy, getEnemies } from './enemies.js';
 import {
     WAVE_BASE_COUNT,
     WAVE_COUNT_GROWTH,
     WAVE_BREAK,
     FIELD_HALF_W,
+    FIELD_HALF_H,
     PATTERNS,
+    ENEMY_FIRE_WAVE,
+    BOSS_EVERY,
+    BOSS_HP,
+    BOSS_VALUE,
+    BOSS_FIRE_COOLDOWN,
 } from './config.js';
 
 // --- Tunables ---
@@ -76,6 +82,17 @@ function _spawnInterval(wave) {
     return Math.max(0.25, SPAWN_INTERVAL - (wave - 1) * 0.03);
 }
 
+function _isBossWave(wave) {
+    return wave % BOSS_EVERY === 0;
+}
+
+// Fraction of a wave's enemies that shoot back. Climbs with the wave from
+// ENEMY_FIRE_WAVE onward, capped so a wave is never a total bullet wall.
+function _fireFraction(wave) {
+    if (wave < ENEMY_FIRE_WAVE) return 0;
+    return Math.min(0.6, 0.2 + (wave - ENEMY_FIRE_WAVE) * 0.08);
+}
+
 // Begin spawning the current wave (state.wave is already correct).
 function _beginWave() {
     const wave = state.wave;
@@ -84,6 +101,24 @@ function _beginWave() {
     timer      = 0;            // spawn the first enemy immediately
     phase      = PHASE.SPAWNING;
     playWaveStart();
+
+    // A mini-boss arrives at the top of every Nth wave alongside the regulars.
+    if (_isBossWave(wave)) {
+        playBossWarn();
+        spawnEnemy({
+            isBoss:  true,
+            pattern: PATTERNS.SINE,            // weaves so it's not a sitting duck
+            x:       0,
+            z:       -FIELD_HALF_H - 2,
+            hp:      BOSS_HP + wave * 2,       // tankier each appearance
+            speed:   2.2,                      // slow, looming
+            amp:     FIELD_HALF_W * 0.5,
+            freq:    0.8,
+            value:   BOSS_VALUE,
+            canFire: true,
+            fireCd:  BOSS_FIRE_COOLDOWN,
+        });
+    }
 }
 
 function _spawnOne() {
@@ -98,6 +133,8 @@ function _spawnOne() {
         // Spread starting X across the field so a wave doesn't stack in a column.
         x:     (Math.random() * 2 - 1) * (FIELD_HALF_W * 0.85),
         value: 100,
+        // Arm a share of the wave to shoot back.
+        canFire: Math.random() < _fireFraction(wave),
     });
 }
 
