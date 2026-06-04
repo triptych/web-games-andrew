@@ -27,10 +27,12 @@ import { getEnemies, removeEnemy } from './enemies.js';
 import { getPlayer } from './player.js';
 import { spawnExplosion } from './explosions.js';
 import { spawnScorePopup } from './popups.js';
+import { maybeDrop, dropBossLoot } from './powerups.js';
 import {
     BULLET_RADIUS,
     ENEMY_BULLET_RADIUS,
     PLAYER_RADIUS,
+    SHIELD_DURATION,
     COLORS,
 } from './config.js';
 
@@ -39,7 +41,18 @@ import {
 let _invuln = 0;
 const INVULN_TIME = 1.2; // seconds
 
-export function resetCollisions() { _invuln = 0; }
+// Separate, longer invulnerability granted by the SHIELD power-up. Tracked apart
+// from _invuln so a hit's brief i-frames never cut a shield short, and so the
+// HUD can show the shield independently.
+let _shield = 0;
+
+export function resetCollisions() { _invuln = 0; _shield = 0; }
+
+// The shield power-up: a window of full invulnerability.
+events.on('powerup', (p) => { if (p.kind === 'shield') _shield = SHIELD_DURATION; });
+
+// Exposed so the HUD can flag the buff.
+export function shieldRemaining() { return _shield; }
 
 function _hit(ax, az, ar, bx, bz, br) {
     const dx = ax - bx;
@@ -50,6 +63,7 @@ function _hit(ax, az, ar, bx, bz, br) {
 
 export function updateCollisions(dt) {
     if (_invuln > 0) _invuln -= dt;
+    if (_shield > 0) _shield -= dt;
 
     const bullets = getBullets();
     const enemies = getEnemies();
@@ -77,8 +91,11 @@ export function updateCollisions(dt) {
                         spawnExplosion(ep.x, ep.z, COLORS.magenta);
                         spawnExplosion(ep.x + 1, ep.z - 1, COLORS.gold);
                         spawnExplosion(ep.x - 1, ep.z + 1, COLORS.gold);
+                        dropBossLoot(ep.x, ep.z);   // guaranteed loot shower
                     } else {
-                        spawnExplosion(ep.x, ep.z, COLORS.gold);
+                        // Tint the burst to the enemy's own color so types read.
+                        spawnExplosion(ep.x, ep.z, e.type ? e.type.color : COLORS.gold);
+                        maybeDrop(ep.x, ep.z);      // chance of a pickup
                     }
                     spawnScorePopup(ep.x, ep.z, points);
                     playExplosion();
@@ -91,8 +108,10 @@ export function updateCollisions(dt) {
     }
 
     // --- Things vs player (only when not currently invulnerable) ---
+    // While shielded the player still clears enemy bodies on contact (below),
+    // but takes no damage — handled in _damagePlayer via the _shield guard.
     const ship = getPlayer();
-    if (!ship || _invuln > 0) return;
+    if (!ship || _invuln > 0 || _shield > 0) return;
 
     const sp = ship.position;
 

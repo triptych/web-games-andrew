@@ -31,14 +31,17 @@ import {
     FIELD_HALF_W,
     FIELD_HALF_H,
     ENEMY_FIRE_COOLDOWN,
+    ENEMY_TYPES,
     PATTERNS,
     COLORS,
 } from './config.js';
 
 // Shared per-type resources. Enemies reuse these; only the Mesh wrappers are
 // added/removed from the scene, so we never dispose these per-enemy.
-let _geo  = null;
-let _mat  = null;
+//
+// _typeRes caches { geo, mat } per enemy archetype (config.ENEMY_TYPES). Every
+// enemy of a type shares one geometry + material — only the Mesh wrappers churn.
+const _typeRes = new Map();
 let _bGeo = null;   // mini-boss geometry (bigger, busier shape)
 let _bMat = null;   // mini-boss material (magenta, hotter glow)
 
@@ -46,18 +49,42 @@ let _bMat = null;   // mini-boss material (magenta, hotter glow)
 //   { mesh, hp, radius, pattern, t, speed, ... , isBoss, canFire, fireCd, fireTimer }
 const enemies = [];
 
-function _ensureResources() {
-    if (_geo) return;
-    // Octahedron reads as a sharp diamond from overhead — clearly "not the ship".
-    _geo = new THREE.OctahedronGeometry(ENEMY_RADIUS, 0);
-    _mat = new THREE.MeshStandardMaterial({
-        color: COLORS.danger,
-        emissive: COLORS.danger,
-        emissiveIntensity: 1.2,
-        metalness: 0.3,
-        roughness: 0.5,
-    });
+// Build the geometry for a type's `geo` key, sized to the base ENEMY_RADIUS
+// (per-spawn radiusMul is applied via mesh.scale, so one geometry serves all).
+function _buildGeo(geoKey) {
+    const r = ENEMY_RADIUS;
+    switch (geoKey) {
+        case 'tetrahedron':  return new THREE.TetrahedronGeometry(r, 0);
+        case 'box':          return new THREE.BoxGeometry(r * 1.4, r * 1.4, r * 1.4);
+        case 'dodecahedron': return new THREE.DodecahedronGeometry(r, 0);
+        case 'octahedron':
+        default:             return new THREE.OctahedronGeometry(r, 0);
+    }
+}
 
+// Look up (or lazily build) the shared geometry + material for an enemy type.
+function _resourcesFor(type) {
+    let res = _typeRes.get(type.key);
+    if (res) return res;
+    res = {
+        geo: _buildGeo(type.geo),
+        mat: new THREE.MeshStandardMaterial({
+            color: type.color,
+            emissive: type.color,
+            emissiveIntensity: 1.2,
+            metalness: 0.3,
+            roughness: 0.5,
+        }),
+    };
+    _typeRes.set(type.key, res);
+    return res;
+}
+
+function _ensureResources() {
+    // Pre-build every enemy archetype so the first spawn of each isn't a stutter.
+    for (const t of Object.values(ENEMY_TYPES)) _resourcesFor(t);
+
+    if (_bGeo) return;
     // Mini-boss: a larger, faceted icosahedron in neon magenta so it reads as
     // a distinct threat at a glance.
     _bGeo = new THREE.IcosahedronGeometry(BOSS_RADIUS, 0);
@@ -99,6 +126,8 @@ export function resetEnemies() {
  *   cx, cz   — orbit center
  *   orbitR   — orbit radius
  *   isBoss   — bigger mesh, BOSS_RADIUS, heavier fire (default false)
+ *   type     — an ENEMY_TYPES.* profile (default GRUNT); ignored for bosses.
+ *              Supplies the mesh shape/color and multiplies hp/speed/radius/value.
  *   canFire  — whether this enemy shoots at the player (default false)
  *   fireCd   — seconds between this enemy's shots (default ENEMY_FIRE_COOLDOWN)
  */
@@ -107,7 +136,8 @@ export function spawnEnemy(opts = {}) {
 
     const pattern = opts.pattern || PATTERNS.DIVE;
     const isBoss  = !!opts.isBoss;
-    const radius  = isBoss ? BOSS_RADIUS : ENEMY_RADIUS;
+    const type    = opts.type || ENEMY_TYPES.GRUNT;
+    const radius  = isBoss ? BOSS_RADIUS : ENEMY_RADIUS * type.radiusMul;
 
     // Sensible per-pattern defaults so a bare spawnEnemy({pattern}) still works.
     const topZ = -FIELD_HALF_H - radius;             // just off the top edge
@@ -115,23 +145,32 @@ export function spawnEnemy(opts = {}) {
         ? opts.x
         : (Math.random() * 2 - 1) * (FIELD_HALF_W - radius);
 
-    const mesh = new THREE.Mesh(
-        isBoss ? _bGeo : _geo,
-        isBoss ? _bMat : _mat,
-    );
+    let mesh;
+    if (isBoss) {
+        mesh = new THREE.Mesh(_bGeo, _bMat);
+    } else {
+        const res = _resourcesFor(type);
+        mesh = new THREE.Mesh(res.geo, res.mat);
+        // The geometry is built at base radius; per-type size comes from scale.
+        if (type.radiusMul !== 1) mesh.scale.setScalar(type.radiusMul);
+    }
     const startX = baseX;
     const startZ = (opts.z !== undefined) ? opts.z : topZ;
     mesh.position.set(startX, 0, startZ);
     scene.add(mesh);
 
+    // Base descent speed, then scaled by the type (darters fast, brutes slow).
+    const baseSpeed = opts.speed ?? 6;
+
     const e = {
         mesh,
         isBoss,
-        hp:      opts.hp     ?? ENEMY_BASE_HP,
+        type,
+        hp:      opts.hp     ?? (isBoss ? ENEMY_BASE_HP : type.hp),
         radius,
         pattern,
         t:       0,
-        speed:   opts.speed  ?? 6,
+        speed:   isBoss ? baseSpeed : baseSpeed * type.speedMul,
         amp:     opts.amp    ?? (FIELD_HALF_W * 0.6),
         freq:    opts.freq   ?? 2.0,
         phase:   opts.phase  ?? Math.random() * Math.PI * 2,
@@ -142,8 +181,8 @@ export function spawnEnemy(opts = {}) {
         orbitR:  opts.orbitR ?? (FIELD_HALF_W * 0.4),
         // Swoop: which side it enters from (-1 left, +1 right)
         side:    opts.side   ?? (Math.random() < 0.5 ? -1 : 1),
-        // Score awarded on kill (set by waves later; default modest)
-        value:   opts.value  ?? 100,
+        // Score awarded on kill: explicit > type profile > modest default.
+        value:   opts.value  ?? (isBoss ? 1000 : type.value),
         // Firing
         canFire:   !!opts.canFire,
         fireCd:    opts.fireCd ?? ENEMY_FIRE_COOLDOWN,

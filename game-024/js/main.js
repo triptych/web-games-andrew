@@ -15,14 +15,17 @@ import { initUI, hideSplash } from './ui.js';
 import { initAudio, playUiClick, playGameOver } from './sounds.js';
 import { FIELD_HALF_W, FIELD_HALF_H, COLORS, CAM_POS } from './config.js';
 
-import { initPlayer, updatePlayer, resetPlayer } from './player.js';
+import { initPlayer, updatePlayer, resetPlayer, grantSpread } from './player.js';
 import { initBullets, updateBullets, resetBullets } from './bullets.js';
 import { initEnemyBullets, updateEnemyBullets, resetEnemyBullets } from './enemyBullets.js';
 import { initEnemies, updateEnemies, resetEnemies } from './enemies.js';
 import { initExplosions, updateExplosions, resetExplosions } from './explosions.js';
 import { initPopups, updatePopups, resetPopups } from './popups.js';
+import { initPowerups, updatePowerups, resetPowerups } from './powerups.js';
 import { updateCollisions, resetCollisions } from './collisions.js';
 import { initWaves, updateWaves, resetWaves } from './waves.js';
+import { initWaveBanner, updateWaveBanner, resetWaveBanner } from './waveBanner.js';
+import { showPause, hidePause } from './ui.js';
 
 // ============================================================
 // THREE.JS GOTCHAS (read before adding anything)
@@ -96,15 +99,22 @@ function _buildNeonBackdrop() {
                 vec2 p = vUv * vec2(20.0, 14.0);
                 p.y += uTime * 1.5;
 
-                float l = gridLine(p, 1.6);
+                // Thinner lines read as higher contrast against the dark gaps.
+                float l = gridLine(p, 1.1);
 
-                // Colour blends across the field from cyan to magenta.
+                // Push the line intensity into a sharper core: gamma < 1 on the
+                // mask brightens the line centres while keeping the gaps black,
+                // so the field reads crisp rather than washed out.
+                float core = pow(l, 0.6);
+
+                // Colour blends across the field from cyan to magenta, boosted
+                // above 1.0 at the line cores so the neon really pops.
                 vec3 col = mix(uColorA, uColorB, vUv.y);
-                col *= l * 0.9;
+                col *= core * 1.4;
 
-                // Subtle vignette so edges fade into the fog.
-                float vig = smoothstep(1.1, 0.2, length(vUv - 0.5));
-                gl_FragColor = vec4(col, l * vig);
+                // Vignette so edges fade into the fog (kept gentle near centre).
+                float vig = smoothstep(1.15, 0.35, length(vUv - 0.5));
+                gl_FragColor = vec4(col, core * vig);
             }
         `,
     });
@@ -128,7 +138,9 @@ initEnemyBullets();
 initEnemies();
 initExplosions();
 initPopups();
+initPowerups();
 initWaves();
+initWaveBanner();
 
 // ============================================================
 // Game state machine
@@ -149,11 +161,17 @@ function startGame() {
     resetEnemies();
     resetExplosions();
     resetPopups();
+    resetPowerups();
     resetCollisions();
     resetWaves();
+    resetWaveBanner();
+    hidePause();
     _shake = 0;
     camera.position.set(CAM_POS[0], CAM_POS[1], CAM_POS[2]);
 }
+
+// Spread power-up: route the pickup event to the player's firing mode.
+events.on('powerup', (p) => { if (p.kind === 'spread') grantSpread(); });
 
 events.on('gameOver', () => {
     mode = 'gameover';
@@ -223,7 +241,10 @@ function onAnyKey(e) {
         if (e.key === 'Escape') location.reload();
     }
     if (e.key === 'p' || e.key === 'P') {
-        if (mode === 'playing') state.isPaused = !state.isPaused;
+        if (mode === 'playing') {
+            state.isPaused = !state.isPaused;
+            if (state.isPaused) showPause(); else hidePause();
+        }
     }
 }
 document.addEventListener('keydown', onAnyKey);
@@ -248,9 +269,11 @@ function animate() {
         updateBullets(dt);
         updateEnemyBullets(dt);
         updateEnemies(dt);
+        updatePowerups(dt);
         updateCollisions(dt);     // after movement, before render
         updateExplosions(dt);
         updatePopups(dt);
+        updateWaveBanner(dt);
         _updateFlash(dt);
         _updateShake(dt);
     }

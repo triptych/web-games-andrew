@@ -3,7 +3,7 @@
 **Genre:** Top-down arcade shoot-'em-up (shmup)
 **Engine:** three.js r165 (ES6 modules, via CDN import map)
 **Target Resolution:** Fullscreen (responsive); gameplay framed by an overhead camera
-**Status:** Phases 1–3 complete — feature-complete; polish/tuning remains
+**Status:** Phases 1–4 complete — enemy variety, power-ups, wave splash & pause added; balance tuning remains
 
 ---
 
@@ -139,10 +139,22 @@ Web Audio API — no file assets. All procedural (`sounds.js`).
 - [x] Audio polish — wired `playGameOver()` to the `gameOver` event; added `playEnemyShoot` and
       `playBossWarn`; staggered enemy fire timers so waves don't volley in unison
 
-### Phase 4 — Tuning (optional / future)
-- [ ] Balance pass on wave counts, fire fractions, boss HP, bloom strength (all dialed in constants)
-- [ ] Power-ups (spread shot, shield) — see Open Questions
-- [ ] Pause overlay (P toggles `state.isPaused` but shows no on-screen indicator)
+### Phase 4 — Variety & Polish ✅
+- [x] **Enemy variety** — four archetypes in `config.ENEMY_TYPES` (GRUNT diamond,
+      DARTER fast tetrahedron, BRUTE 3-HP box, WEAVER cyan dodecahedron). Each is a
+      distinct shape/color/stat profile; `enemies.js` caches one geometry+material
+      per type and `waves.js` draws from a wave-scaled type pool (grunts only early,
+      full bestiary by wave 6). Weavers prefer sine/orbit lanes
+- [x] **Between-wave splash** (`waveBanner.js`) — a big "WAVE N" neon sprite sweeps
+      in, holds, and fades at the top of every wave; boss waves add a red WARNING
+      subtitle. Reuses the popups canvas-texture sprite pattern
+- [x] **Power-ups** (`powerups.js`) — kills can drop SPREAD (triple-shot, timed),
+      SHIELD (timed invulnerability), or LIFE (+1) pickups that drift toward the
+      player; bosses shower guaranteed loot. Spread routed to `player.js`, shield to
+      `collisions.js`, life straight to state. A `powerup` event drives a HUD toast
+- [x] **Pause overlay** — P now shows a dim "PAUSED" wash (`#pause` in index.html)
+      instead of silently freezing
+- [ ] Balance pass on wave counts, fire fractions, boss HP, bloom strength (future)
 
 ---
 
@@ -176,7 +188,9 @@ Web Audio API — no file assets. All procedural (`sounds.js`).
 | `collisions.js` | Circle collisions: bullet→enemy (score) & enemy→player (life) |
 | `explosions.js` | `THREE.Points` particle bursts on kills / hits         |
 | `popups.js`  | Floating "+N" score sprites that rise and fade            |
-| `waves.js`   | Wave spawner / progression state machine                  |
+| `waves.js`   | Wave spawner / progression state machine + type pools     |
+| `waveBanner.js` | Between-wave "WAVE N" neon splash (boss = WARNING)      |
+| `powerups.js`| Spread / shield / extra-life drops: spawn, drift, collect |
 
 ---
 
@@ -195,6 +209,27 @@ Web Audio API — no file assets. All procedural (`sounds.js`).
 ---
 
 ## Changelog
+
+### Phase 4 — Enemy variety, power-ups, wave splash, pause (2026-06-04)
+- **Enemy variety** (`config.ENEMY_TYPES` + `enemies.js` + `waves.js`): added four
+  archetypes — GRUNT (red octahedron), DARTER (fast amber tetrahedron, 1 HP),
+  BRUTE (slow magenta box, 3 HP, big score), WEAVER (cyan dodecahedron, 2 HP).
+  `spawnEnemy` now takes a `type` that supplies the mesh shape/color and multiplies
+  hp/speed/radius/value; one geometry+material is cached per type. `waves.js` draws
+  from a wave-scaled type pool (grunts only through wave 2; full set by wave 6) and
+  steers weavers onto sine/orbit lanes. Kill explosions tint to the enemy's color
+- **Between-wave splash** (`waveBanner.js`): a large "WAVE N" neon sprite fades in,
+  holds (`WAVE_BANNER_TIME`), and fades out at the start of each wave; boss waves
+  add a red "WARNING — BOSS" subtitle. Built on the popups canvas-sprite pattern;
+  updates every frame so it animates over the brief spawn ramp
+- **Power-ups** (`powerups.js`): some kills drop a glowing pickup (SPREAD / SHIELD /
+  LIFE) that drifts down toward the player; a boss death showers `POWERUP_BOSS_DROPS`
+  guaranteed drops. Collection emits a `powerup` event: SPREAD grants timed triple-shot
+  in `player.js` (`grantSpread`), SHIELD grants timed invulnerability in `collisions.js`
+  (tracked separately from hit i-frames), LIFE adds a life. HUD shows a brief toast
+- **Pause overlay** (`index.html` + `ui.js`): P now shows a dim "PAUSED" wash with
+  `showPause`/`hidePause`, instead of silently freezing the field
+- **Phase 4 complete.** Remaining work is a numeric balance pass.
 
 ### Phase 3 — Enemy fire, mini-boss, bloom, trails, audio (2026-06-04)
 - **Bullet trails** (`bullets.js`): each player shot now drags an additive comet

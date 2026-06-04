@@ -28,11 +28,13 @@ import {
     FIRE_COOLDOWN,
     FIELD_HALF_W,
     FIELD_HALF_H,
+    SPREAD_DURATION,
     COLORS,
 } from './config.js';
 
 let ship = null;
 let fireTimer = 0;          // counts down to the next allowed shot
+let spreadTimer = 0;        // sec of spread-shot remaining (0 = single shot)
 
 // Live keyboard / mouse state. We poll these in updatePlayer() rather than
 // acting on keydown directly so movement is frame-rate independent and
@@ -122,8 +124,15 @@ export function getPlayer() { return ship; }
 export function resetPlayer() {
     if (ship) ship.position.set(0, 0, FIELD_HALF_H - 2);
     fireTimer = 0;
+    spreadTimer = 0;
     resetInput();
 }
+
+// Activate (or refresh) the triple-shot power-up.
+export function grantSpread() { spreadTimer = SPREAD_DURATION; }
+
+// True while spread-shot is active — used by the HUD to flag the buff.
+export function hasSpread() { return spreadTimer > 0; }
 
 export function resetInput() {
     keys.up = keys.down = keys.left = keys.right = keys.fire = false;
@@ -156,6 +165,8 @@ export function updatePlayer(dt) {
         ship.position.z = Math.max(-maxZ, Math.min(maxZ, ship.position.z));
     }
 
+    if (spreadTimer > 0) spreadTimer -= dt;
+
     // --- Firing: auto-fire while held, gated by the cooldown timer. ---
     fireTimer -= dt;
     if (keys.fire && fireTimer <= 0) {
@@ -164,13 +175,26 @@ export function updatePlayer(dt) {
     }
 }
 
-function _fire() {
-    playShoot();
-    // Spawn just ahead of the nose; bullets travel up-field (toward -Z).
+// Emit one shot in the given direction (a unit vector up-field by default).
+function _emitShot(dirX, dirZ) {
     events.emit('playerFired', {
         x: ship.position.x,
         z: ship.position.z - (PLAYER_RADIUS * 1.4),
-        dirX: 0,
-        dirZ: -1,
+        dirX,
+        dirZ,
     });
+}
+
+function _fire() {
+    playShoot();
+    // Bullets travel up-field (toward -Z). With spread active, fan three shots
+    // out at a small angle on either side of straight.
+    if (spreadTimer > 0) {
+        const a = 0.22;   // radians off-center for the side shots
+        _emitShot(0, -1);
+        _emitShot(Math.sin(a), -Math.cos(a));
+        _emitShot(-Math.sin(a), -Math.cos(a));
+    } else {
+        _emitShot(0, -1);
+    }
 }

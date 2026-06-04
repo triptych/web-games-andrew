@@ -14,8 +14,9 @@
  *   livesChanged(newLives)
  *   waveChanged(newWave)
  *   gameOver()
- *   gameWon()
- *   TODO: add game-specific events here
+ *   playerFired({x, z, dirX, dirZ})  — a player shot (player → bullets)
+ *   playerHit()                      — player took damage (collisions → ui/main)
+ *   powerup({kind})                  — pickup collected; kind: spread|shield|life
  */
 export class EventBus {
     constructor() {

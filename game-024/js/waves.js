@@ -23,6 +23,7 @@
 import { state }  from './state.js';
 import { playWaveStart, playBossWarn } from './sounds.js';
 import { spawnEnemy, getEnemies } from './enemies.js';
+import { showWaveBanner, resetWaveBanner } from './waveBanner.js';
 import {
     WAVE_BASE_COUNT,
     WAVE_COUNT_GROWTH,
@@ -30,6 +31,7 @@ import {
     FIELD_HALF_W,
     FIELD_HALF_H,
     PATTERNS,
+    ENEMY_TYPES,
     ENEMY_FIRE_WAVE,
     BOSS_EVERY,
     BOSS_HP,
@@ -48,6 +50,27 @@ const SPEED_GROWTH   = 0.6;   // +units/sec of descent speed per wave
 const EARLY_PATTERNS = [PATTERNS.DIVE, PATTERNS.SINE];
 const ALL_PATTERNS   = [PATTERNS.DIVE, PATTERNS.SINE, PATTERNS.ORBIT, PATTERNS.SWOOP];
 
+// Enemy-type pool by wave (Phase 4 variety). Wave 1–2 is all grunts so the
+// player learns the basics; darters join at 3, brutes/weavers at 4+, and from
+// 6 on the full bestiary is in rotation.
+function _typePoolForWave(wave) {
+    if (wave <= 2) return [ENEMY_TYPES.GRUNT];
+    if (wave <= 3) return [ENEMY_TYPES.GRUNT, ENEMY_TYPES.DARTER];
+    if (wave <= 5) return [ENEMY_TYPES.GRUNT, ENEMY_TYPES.DARTER, ENEMY_TYPES.WEAVER, ENEMY_TYPES.BRUTE];
+    return [
+        ENEMY_TYPES.GRUNT, ENEMY_TYPES.DARTER, ENEMY_TYPES.DARTER,
+        ENEMY_TYPES.WEAVER, ENEMY_TYPES.BRUTE,
+    ];
+}
+
+// Weavers feel best on weaving lanes; pair them with sine/orbit when possible.
+function _patternForType(type, defaultPattern) {
+    if (type.key === ENEMY_TYPES.WEAVER.key) {
+        return Math.random() < 0.5 ? PATTERNS.SINE : PATTERNS.ORBIT;
+    }
+    return defaultPattern;
+}
+
 const PHASE = { PREP: 'prep', SPAWNING: 'spawning', ACTIVE: 'active', BREAK: 'break' };
 
 let phase       = PHASE.PREP;
@@ -62,6 +85,7 @@ export function resetWaves() {
     timer      = PREP_DELAY;
     toSpawn    = 0;
     spawnIndex = 0;
+    resetWaveBanner();
     // state.reset() (in main.startGame) has already put us at wave 1.
 }
 
@@ -102,8 +126,12 @@ function _beginWave() {
     phase      = PHASE.SPAWNING;
     playWaveStart();
 
+    const bossWave = _isBossWave(wave);
+    // Splash the "WAVE N" banner (red WARNING variant on boss waves).
+    showWaveBanner(wave, bossWave);
+
     // A mini-boss arrives at the top of every Nth wave alongside the regulars.
-    if (_isBossWave(wave)) {
+    if (bossWave) {
         playBossWarn();
         spawnEnemy({
             isBoss:  true,
@@ -124,17 +152,23 @@ function _beginWave() {
 function _spawnOne() {
     const wave     = state.wave;
     const patterns = _patternsForWave(wave);
-    const pattern  = patterns[spawnIndex % patterns.length];
+    const types    = _typePoolForWave(wave);
+
+    // Rotate the base pattern; pick a type at random from the wave's pool.
+    const basePattern = patterns[spawnIndex % patterns.length];
+    const type        = types[Math.floor(Math.random() * types.length)];
+    const pattern     = _patternForType(type, basePattern);
     spawnIndex++;
 
     spawnEnemy({
+        type,
         pattern,
         speed: _speedForWave(wave) + Math.random() * 1.5,
         // Spread starting X across the field so a wave doesn't stack in a column.
         x:     (Math.random() * 2 - 1) * (FIELD_HALF_W * 0.85),
-        value: 100,
-        // Arm a share of the wave to shoot back.
-        canFire: Math.random() < _fireFraction(wave),
+        // value/hp/speed come from the type profile (spawnEnemy applies them).
+        // Arm a share of the wave to shoot back, scaled by the type's fireMul.
+        canFire: Math.random() < _fireFraction(wave) * type.fireMul,
     });
 }
 

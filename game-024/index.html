@@ -50,6 +50,35 @@
         #message p { font-size: 16px; margin-top: 6px; letter-spacing: 2px; }
         .hidden { display: none !important; }
 
+        /* Pause overlay — a dim wash + centered PAUSED text over the frozen field. */
+        #pause {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(6, 6, 15, 0.55);
+            color: #64c8ff;
+            font-size: 56px;
+            letter-spacing: 10px;
+            text-transform: uppercase;
+            text-shadow: 0 0 24px rgba(100, 200, 255, 0.9);
+            pointer-events: none;
+        }
+
+        /* Buff toast — brief power-up confirmation just under the HUD. */
+        #buffs {
+            position: absolute;
+            top: 64px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 22px;
+            letter-spacing: 4px;
+            color: #64ffd2;
+            text-shadow: 0 0 14px rgba(100, 255, 210, 0.9);
+            pointer-events: none;
+        }
+
         /* Damage flash — a full-screen red wash that fades when the player is hit. */
         #flash {
             position: absolute;
@@ -72,10 +101,13 @@
             <div class="wave"><div>WAVE</div><div id="wave-val">1</div></div>
             <div><div>LIVES</div><div id="lives-val">3</div></div>
         </div>
+        <div id="buffs" class="hidden"></div>
+        <div id="pause" class="hidden">Paused</div>
         <div id="message">
             <h1>Neon Vanguard</h1>
             <p>PRESS ANY KEY OR CLICK TO START</p>
-            <p style="opacity:0.6">MOVE: WASD / ARROWS &nbsp;•&nbsp; FIRE: SPACE / MOUSE</p>
+            <p style="opacity:0.6">MOVE: WASD / ARROWS &nbsp;•&nbsp; FIRE: SPACE / MOUSE &nbsp;•&nbsp; PAUSE: P</p>
+            <p style="opacity:0.6">COLLECT DROPS: SPREAD &nbsp;•&nbsp; SHIELD &nbsp;•&nbsp; EXTRA LIFE</p>
         </div>
     </div>
 
