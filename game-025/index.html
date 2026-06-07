@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Crypt Crawler</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            font-family: 'Courier New', monospace;
+        }
+        canvas { display: block; }
+
+        /* HUD overlay — drawn over the WebGL canvas */
+        #ui-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            color: #dcdcf0;
+        }
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 20px;
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        #hud .hud-cell { text-align: center; }
+        #hud .hud-cell .hud-label { font-size: 11px; opacity: 0.6; }
+        #hud #health-val { color: #50dc64; }
+        #hud #keys-val   { color: #ffd700; }
+        #message {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        #message h1 {
+            font-size: 52px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            color: #64c8ff;
+            text-shadow: 0 0 12px rgba(100, 200, 255, 0.6);
+        }
+        #message p { font-size: 16px; margin-top: 6px; letter-spacing: 2px; }
+        #message .class-row {
+            display: flex; gap: 24px; justify-content: center; margin-top: 22px;
+        }
+        #message .class-card {
+            border: 2px solid #2a2a4a; padding: 12px 18px; min-width: 120px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        #message .class-card .ck { color: #64c8ff; font-size: 22px; }
+        #message .class-card .cn { font-size: 14px; margin-top: 6px; }
+        #message .class-card .cs { font-size: 11px; opacity: 0.6; margin-top: 4px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div id="ui-overlay">
+        <div id="hud">
+            <div class="hud-cell"><div class="hud-label">Score</div><div id="score-val">0</div></div>
+            <div class="hud-cell"><div class="hud-label">Level</div><div id="level-val">1</div></div>
+            <div class="hud-cell"><div class="hud-label">Class</div><div id="class-val">—</div></div>
+            <div class="hud-cell"><div class="hud-label">Keys</div><div id="keys-val">0</div></div>
+            <div class="hud-cell"><div class="hud-label">Health</div><div id="health-val">100</div></div>
+        </div>
+        <div id="message">
+            <h1>Crypt Crawler</h1>
+            <p>PRESS A NUMBER TO CHOOSE YOUR CLASS</p>
+            <div class="class-row">
+                <div class="class-card"><div class="ck">1</div><div class="cn">Warrior</div><div class="cs">Tanky · melee</div></div>
+                <div class="class-card"><div class="ck">2</div><div class="cn">Valkyrie</div><div class="cs">Balanced</div></div>
+                <div class="class-card"><div class="ck">3</div><div class="cn">Wizard</div><div class="cs">Glass cannon</div></div>
+                <div class="class-card"><div class="ck">4</div><div class="cn">Elf</div><div class="cs">Fast · ranged</div></div>
+            </div>
+            <p style="opacity:0.6; margin-top:22px">WASD / Arrows to move · Space / Click to attack · P pause · R restart</p>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

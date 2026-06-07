@@ -314,6 +314,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '🌈', label: 'Neon Retro' }
         ]
+    },
+    {
+        id: 'game-025',
+        title: 'Crypt Crawler',
+        description: 'A top-down Gauntlet-style dungeon crawler in Three.js. Pick one of four classes, fight through retro 3D mazes, and blast endless monsters streaming from nests. Grab food to survive, snatch treasure for score, and hunt keys to open doors gating the level exit. Descend through harder levels until you escape the crypt — with crunchy 8-bit sound effects throughout.',
+        icon: '🏰',
+        folder: 'game-025',
+        cssClass: 'crypt-crawler',
+        tags: [
+            { emoji: '🗡️', label: 'Dungeon Crawler' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '👾', label: 'Retro' }
+        ]
     }
 ];
 
