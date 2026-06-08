@@ -19,9 +19,12 @@ export function initScene() {
     renderer.setClearColor(COLORS.bg);
     document.body.appendChild(renderer.domElement);
 
-    // Scene + atmospheric fog for the dungeon depths
+    // Scene + atmospheric fog for the dungeon depths.
+    // near ~28 (just past the camera-to-player distance of ~26) keeps the area
+    // around the player crisp; far ~62 fades the maze into darkness so corridors
+    // feel enclosed and torchlit rather than fully visible.
     scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(COLORS.bg, 30, 90);
+    scene.fog = new THREE.Fog(COLORS.bg, 28, 62);
 
     // Camera (overhead, slight tilt — set each frame by main.js to follow player)
     camera = new THREE.PerspectiveCamera(

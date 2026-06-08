@@ -119,18 +119,18 @@ noise for an 8-bit arcade feel.
 
 ## Phases
 
-### Phase 1 — Foundation (current)
+### Phase 1 — Foundation
 - [x] Scaffold: index.html, config, events, state, sounds, scene, ui, main
 - [x] Class-select splash + HUD wired to state
 - [x] Retro SFX library
-- [ ] First playable: maze + player movement
+- [x] First playable: maze + player movement
 
-### Phase 2 — Maze & Player
-- [ ] `maze.js` — grid maze generation/layout, wall meshes, floor, level loader
-- [ ] `player.js` — class-driven movement, wall collision, follow-cam + torch
-- [ ] Camera follow + fog tuning
+### Phase 2 — Maze & Player (complete)
+- [x] `maze.js` — grid maze layout, wall meshes, floor, level loader, circle-vs-wall collision, cell-lookup helpers
+- [x] `player.js` — class-driven movement, axis-separated wall collision (slides along walls), spawn placement
+- [x] Camera follow + torch light tracking the player + fog tuned for enclosed torchlit corridors
 
-### Phase 3 — Enemies, Nests & Combat
+### Phase 3 — Enemies, Nests & Combat (current)
 - [ ] `enemies.js` — enemy types, chase AI, contact damage
 - [ ] `nests.js` — spawners with caps, destroyable, bonus score
 - [ ] `combat.js` — melee arc + projectiles, cooldown, damage resolution
@@ -198,3 +198,13 @@ noise for an 8-bit arcade feel.
 ### Phase 1 — Scaffold (2026-06-07)
 - Initial scaffold: index.html, config, events, state, sounds, scene, ui, main
 - Class-select splash (1–4), 5-cell HUD, retro SFX library, follow-torch light stub
+
+### Phase 2 — Maze & Player (2026-06-07)
+- `maze.js`: hand-authored 20×19 starter level, wall/floor mesh builder (shared
+  geometry/material, dispose-safe level swapping), circle-vs-wall collision,
+  cell-lookup helpers (`findCell`/`findCells`/`getSpawn`) for later entity placement
+- `player.js`: class-driven 8-direction movement, axis-separated collision (slide
+  along walls), facing vector for future aiming, spawn-at-'S'
+- main.js: `loadLevel()` + `initPlayer()` on class select; per-frame `updatePlayer()`,
+  camera + torch follow; player input detaches on game over
+- scene.js: fog tuned to 28→62 for enclosed torchlit corridors
