@@ -3,7 +3,7 @@
 **Genre:** Top-down dungeon crawler / arcade (Gauntlet-like)
 **Engine:** three.js r165 (ES6 modules, loaded via CDN import map)
 **Target Resolution:** Full-window (responsive); HUD via DOM overlay
-**Status:** Planning — Phase 1 (scaffold complete)
+**Status:** In progress — Phases 1–3 complete (enemies, nests & combat playable)
 
 ---
 
@@ -130,10 +130,10 @@ noise for an 8-bit arcade feel.
 - [x] `player.js` — class-driven movement, axis-separated wall collision (slides along walls), spawn placement
 - [x] Camera follow + torch light tracking the player + fog tuned for enclosed torchlit corridors
 
-### Phase 3 — Enemies, Nests & Combat (current)
-- [ ] `enemies.js` — enemy types, chase AI, contact damage
-- [ ] `nests.js` — spawners with caps, destroyable, bonus score
-- [ ] `combat.js` — melee arc + projectiles, cooldown, damage resolution
+### Phase 3 — Enemies, Nests & Combat (complete)
+- [x] `enemies.js` — enemy types, chase AI (axis-separated wall slide), contact damage
+- [x] `nests.js` — spawners with per-nest caps, destroyable, bonus score, level-scaled rate + mix
+- [x] `combat.js` — melee cone + projectiles, cooldown, damage resolution vs enemies & nests
 
 ### Phase 4 — Pickups, Doors & Levels
 - [ ] `pickups.js` — food/treasure/key spawns
@@ -208,3 +208,19 @@ noise for an 8-bit arcade feel.
 - main.js: `loadLevel()` + `initPlayer()` on class select; per-frame `updatePlayer()`,
   camera + torch follow; player input detaches on game over
 - scene.js: fog tuned to 28→62 for enclosed torchlit corridors
+
+### Phase 3 — Enemies, Nests & Combat (2026-06-09)
+- `enemies.js`: shared box geometry + per-type material cache; chase AI reuses the
+  player's axis-separated `collidesCircle` slide so enemies don't tunnel; per-enemy
+  contact-damage cooldown; `spawnEnemy`/`damageEnemy`/`getEnemies` API for nests & combat;
+  death awards score + plays SFX (mesh removed, shared geo/mat never disposed)
+- `nests.js`: one spawner per 'N' cell; per-nest material clone (hit-flash mutates
+  emissive independently — shared mat would flash all), disposed on destroy/teardown;
+  spawn interval + enemy mix scale with `state.level`; per-nest `NEST_MAX_ALIVE` cap
+  tracked via `mesh.parent` pruning; destroy awards `NEST_SCORE`, emits `nestDestroyed`
+- `combat.js`: class `range` selects melee cone (instant arc damage, `MELEE_ARC`
+  half-angle) vs ranged projectile (`SHOT_SPEED`/`SHOT_LIFETIME`, consumed on
+  enemy/nest/wall); `ATTACK_COOLDOWN`-gated on Space / left-click; own input listeners
+  detached on game over alongside player input
+- main.js: Phase 3 modules init on class select, update order nests→enemies→combat;
+  combat input detaches on `gameOver`/`gameWon`

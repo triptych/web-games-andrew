@@ -21,12 +21,12 @@ import { CLASSES, CAM_OFFSET } from './config.js';
 
 import { loadLevel } from './maze.js';
 import { initPlayer, updatePlayer, getPlayerPos, detachPlayerInput } from './player.js';
+import { initEnemies, updateEnemies } from './enemies.js';
+import { initNests, updateNests }     from './nests.js';
+import { initCombat, updateCombat, detachCombatInput } from './combat.js';
 
-// TODO (Phase 3+): import your remaining game-specific modules here
-// import { initEnemies, updateEnemies }     from './enemies.js';
-// import { initNests, updateNests }         from './nests.js';
+// TODO (Phase 4+): import remaining game-specific modules here
 // import { initPickups, updatePickups }     from './pickups.js';
-// import { initCombat, updateCombat }       from './combat.js';
 
 // ============================================================
 // THREE.JS GOTCHAS (read before adding anything)
@@ -86,13 +86,16 @@ function startRun(classNum) {
     mode = 'playing';
     hideSplash();
 
-    // Load the first level and spawn the player into it.
+    // Load the first level and spawn the player + Phase 3 systems into it.
     loadLevel(state.level - 1);   // levels are 1-based in state, 0-based in LEVELS
     initPlayer(cls);
+    initEnemies();
+    initNests();
+    initCombat(cls);
 }
 
-events.on('gameOver', () => { mode = 'gameover'; detachPlayerInput(); });
-events.on('gameWon',  () => { mode = 'won';      detachPlayerInput(); });
+events.on('gameOver', () => { mode = 'gameover'; detachPlayerInput(); detachCombatInput(); });
+events.on('gameWon',  () => { mode = 'won';      detachPlayerInput(); detachCombatInput(); });
 
 // ============================================================
 // Input
@@ -140,11 +143,11 @@ function animate() {
 
     if (mode === 'playing' && !state.isPaused) {
         updatePlayer(dt);
-        // TODO (Phase 3+):
-        // updateEnemies(dt);
-        // updateNests(dt);
+        updateNests(dt);
+        updateEnemies(dt);
+        updateCombat(dt);
+        // TODO (Phase 4+):
         // updatePickups(dt);
-        // updateCombat(dt);
 
         // Follow the player with the camera + torch light.
         const p = getPlayerPos();
