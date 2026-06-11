@@ -19,7 +19,7 @@
 import * as THREE from 'three';
 import { scene } from './scene.js';
 import { collidesCircle } from './maze.js';
-import { getPlayerPos, getPlayerFacing } from './player.js';
+import { getPlayerPos, getPlayerFacing, triggerAttackAnim } from './player.js';
 import { getEnemies, damageEnemy } from './enemies.js';
 import { getNests, damageNest } from './nests.js';
 import { state } from './state.js';
@@ -93,6 +93,7 @@ export function updateCombat(dt) {
         _wantAttack = false;
         if (_cooldown <= 0) {
             _cooldown = ATTACK_COOLDOWN;
+            triggerAttackAnim();          // swing the avatar's arm (melee + ranged)
             if (_range > 0) _fireShot();
             else            _meleeSwing();
         }

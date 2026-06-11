@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:unpkg.com)"
+      "WebFetch(domain:unpkg.com)",
+      "Bash(cd \"c:/Users/andre/OneDrive/Documents/web-games-andrew/game-025\" && node --check js/maze.js && echo \"maze OK\" && rm -f _levels.txt /tmp/genmaze2.js && echo \"cleaned\")"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
     ]
   }
 }

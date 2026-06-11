@@ -282,3 +282,21 @@ noise for an 8-bit arcade feel.
 - `highscore.js`: localStorage best-score persistence (try/catch so blocked
   storage degrades gracefully). `ui.js` submits the score on game-over/victory,
   shows "★ NEW HIGH SCORE! ★" or the best, and shows the best on the splash.
+
+### Character & maze pass (2026-06-11)
+- `player.js`: avatar rebuilt as a `THREE.Group` (body + face + swing arm) so it
+  reads which way you face — white eyes + pupils + a dark brow on the +Z side
+  (the direction `rotation.y = atan2(dx,dz)` points), bright so they catch bloom.
+  Added an attack swing: `triggerAttackAnim()` (called by combat.js for melee AND
+  ranged) sweeps the arm forward/back over 0.25s via `sin(pi*k)`. All movement /
+  flash code now drives `_group`/`_body` instead of the old single mesh.
+- `enemies.js`: contact hits now trigger a 0.3s squash-stretch "bite" lunge
+  (`mesh.scale` only, so collision/chase are unaffected) — clear tell that an
+  enemy just damaged you.
+- `maze.js`: replaced the open pillar-grid levels with real **recursive-
+  backtracker mazes** (winding corridors + dead-ends), lightly **braided** (a few
+  dead-ends opened into loops so you can circle the horde). Generated +
+  flood-fill-verified by the new committed `_genmaze.mjs` (seeded RNG →
+  reproducible). Exit still sealed in a door-gated chamber; all three levels
+  verified rectangular, gated, every feature reachable, keys never behind their
+  own door.

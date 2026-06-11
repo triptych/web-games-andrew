@@ -26,7 +26,8 @@ const CONTACT_DIST   = 1.9;    // center distance at which an enemy hits the pla
 const CONTACT_COOLDOWN = 0.8;  // seconds between contact hits from one enemy
 const Y              = 0.7;    // resting height (slightly shorter than the player)
 
-const HIT_FLASH = 0.12;        // seconds an enemy stays lit white after a hit
+const HIT_FLASH  = 0.12;       // seconds an enemy stays lit white after a hit
+const ATK_ANIM   = 0.3;        // seconds an enemy's lunge/bite animation lasts
 
 // --- Shared geometry + per-type materials (created once, reused) ---
 const _geo = new THREE.BoxGeometry(1.2, 1.4, 1.2);
@@ -69,7 +70,7 @@ export function spawnEnemy(type, x, z) {
     mesh.position.set(x, Y, z);
     scene.add(mesh);
 
-    const enemy = { mesh, type, def, hp: def.hp, contactTimer: 0, flash: 0 };
+    const enemy = { mesh, type, def, hp: def.hp, contactTimer: 0, flash: 0, attack: 0 };
     _enemies.push(enemy);
     return enemy;
 }
@@ -118,6 +119,17 @@ export function updateEnemies(dt) {
             if (e.flash <= 0) e.mesh.material = _matFor(e.type);
         }
 
+        // Attack lunge — a squash-stretch "bite" toward the player. Scale only,
+        // so collision/chase (which read position) are unaffected.
+        if (e.attack > 0) {
+            e.attack -= dt;
+            const k = Math.max(0, e.attack / ATK_ANIM);   // 1 → 0
+            const s = Math.sin(Math.PI * k);              // 0 → 1 → 0
+            e.mesh.scale.set(1 - 0.25 * s, 1 - 0.35 * s, 1 + 0.6 * s);  // lunge along facing (+Z)
+        } else if (e.mesh.scale.z !== 1) {
+            e.mesh.scale.set(1, 1, 1);
+        }
+
         const ex = e.mesh.position.x;
         const ez = e.mesh.position.z;
 
@@ -129,6 +141,7 @@ export function updateEnemies(dt) {
         e.contactTimer -= dt;
         if (dist < CONTACT_DIST && e.contactTimer <= 0) {
             e.contactTimer = CONTACT_COOLDOWN;
+            e.attack = ATK_ANIM;          // trigger the bite animation
             state.damage(e.def.damage);
             playPlayerHurt();
         }
