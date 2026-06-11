@@ -9,17 +9,24 @@
 import * as THREE from 'three';
 import { scene } from './scene.js';
 import { collidesCircle, getSpawn } from './maze.js';
+import { events } from './events.js';
 
-const RADIUS = 1.0;   // collision radius (world units)
+const RADIUS     = 1.0;    // collision radius (world units)
+const HURT_FLASH = 0.18;   // seconds the avatar glows red after taking a hit
 
 let _mesh   = null;
 let _speed  = 6;
 let _color  = 0x64c8ff;
+let _hurt   = 0;           // remaining hurt-flash time (seconds)
 
 const _keys = new Set();
 
 function _onKeyDown(e) { _keys.add(e.key.toLowerCase()); }
 function _onKeyUp(e)   { _keys.delete(e.key.toLowerCase()); }
+
+// Subscribe ONCE at module load (initPlayer runs per level — subscribing there
+// would stack listeners). The flash is rendered/decayed in updatePlayer.
+events.on('playerHurt', () => { _hurt = HURT_FLASH; });
 
 /** Wire up movement key listeners (idempotent). */
 export function attachPlayerInput() {
@@ -47,6 +54,9 @@ export function initPlayer(cls) {
         _mesh.material.color.setHex(_color);
     }
 
+    _hurt = 0;
+    _mesh.material.emissive.setHex(0x000000);
+
     const spawn = getSpawn();
     _mesh.position.set(spawn.x, 0.8, spawn.z);
     attachPlayerInput();
@@ -64,6 +74,14 @@ export function getPlayerFacing() { return _facing.clone(); }
 /** Per-frame update. dt in seconds. */
 export function updatePlayer(dt) {
     if (!_mesh) return;
+
+    // Hurt flash: glow red, fading out. Decay before the no-input early return
+    // so the flash still fades when the player is standing still.
+    if (_hurt > 0) {
+        _hurt -= dt;
+        const k = Math.max(0, _hurt / HURT_FLASH);
+        _mesh.material.emissive.setRGB(k, 0, 0);
+    }
 
     let dx = 0, dz = 0;
     if (_keys.has('arrowup')    || _keys.has('w')) dz -= 1;

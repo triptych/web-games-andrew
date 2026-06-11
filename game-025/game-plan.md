@@ -3,7 +3,7 @@
 **Genre:** Top-down dungeon crawler / arcade (Gauntlet-like)
 **Engine:** three.js r165 (ES6 modules, loaded via CDN import map)
 **Target Resolution:** Full-window (responsive); HUD via DOM overlay
-**Status:** In progress — Phases 1–3 complete (enemies, nests & combat playable)
+**Status:** Complete — Phases 1–5 done (full game loop + polish: bloom, popups, minimap, high scores)
 
 ---
 
@@ -135,14 +135,20 @@ noise for an 8-bit arcade feel.
 - [x] `nests.js` — spawners with per-nest caps, destroyable, bonus score, level-scaled rate + mix
 - [x] `combat.js` — melee cone + projectiles, cooldown, damage resolution vs enemies & nests
 
-### Phase 4 — Pickups, Doors & Levels
-- [ ] `pickups.js` — food/treasure/key spawns
-- [ ] Doors (key-gated) + level exit + descend logic
-- [ ] Multi-level progression + difficulty scaling + victory
+### Phase 4 — Pickups, Doors & Levels (complete)
+- [x] `pickups.js` — food/treasure/key spawns (proximity collection, idle bob/spin)
+- [x] Doors (key-gated, auto-open near a held key, slide-down anim) + level exit + descend logic
+- [x] Multi-level progression (3 levels) + difficulty scaling + victory
 
-### Phase 5 — Polish
-- [ ] Floating damage/score popups, hit flashes, death effects
-- [ ] Bloom / lighting polish, minimap, high-score persistence
+### Phase 5 — Polish (complete)
+- [x] Floating damage/score popups (`effects.js` canvas-texture sprites) + enemy/
+      nest death bursts (additive shard spray)
+- [x] Hit flashes — enemies flash white when struck; player avatar glows red +
+      a red screen vignette pulses on taking damage (`playerHurt` event)
+- [x] Bloom (`EffectComposer` + `UnrealBloomPass`, threshold 0.82) + dimmer,
+      cooler lighting so torchlight/emissive carry the mood
+- [x] Minimap (`minimap.js` corner DOM canvas) + high-score persistence
+      (`highscore.js` localStorage; shown on splash + end screens)
 
 ---
 
@@ -156,6 +162,7 @@ noise for an 8-bit arcade feel.
 | `levelChanged`  | newLevel       | state      | ui          |
 | `classChosen`   | classKey       | state      | ui          |
 | `pickup`        | type, value    | pickups    | state, sfx  |
+| `playerHurt`    | amount         | state      | ui, player  |
 | `doorOpened`    | doorId         | doors      | sfx         |
 | `nestDestroyed` | nestId         | nests      | state, sfx  |
 | `gameOver`      | —              | state      | ui, main    |
@@ -168,7 +175,7 @@ noise for an 8-bit arcade feel.
 | File         | Responsibility |
 |--------------|----------------|
 | `main.js`    | Game state machine, animate() loop, input, module orchestration |
-| `scene.js`   | Renderer, scene, camera, clock, fog, lights — exports live bindings |
+| `scene.js`   | Renderer, scene, camera, clock, fog, lights, bloom composer — exports live bindings |
 | `config.js`  | Constants: classes, enemies, nests, pickups, colors, combat tuning |
 | `events.js`  | EventBus singleton |
 | `state.js`   | GameState singleton (score/health/keys/level/class) |
@@ -180,16 +187,22 @@ noise for an 8-bit arcade feel.
 | `nests.js`   | *(Phase 3)* spawners |
 | `combat.js`  | *(Phase 3)* attacks, projectiles, damage |
 | `pickups.js` | *(Phase 4)* food/treasure/keys + doors |
+| `effects.js`   | *(Phase 5)* floating popups + death bursts |
+| `minimap.js`   | *(Phase 5)* corner DOM-canvas overview map |
+| `highscore.js` | *(Phase 5)* localStorage best-score persistence |
 
 ---
 
 ## Open Questions
 
-- [ ] Maze generation: hand-authored level layouts vs procedural?
-- [ ] How many levels total before victory? (plan assumes ~5)
+- [x] Maze generation: **hand-authored** layouts (generated via a width-asserting,
+      flood-fill-verified script so every level is rectangular and the exit is
+      provably gated behind its doors).
+- [x] How many levels total before victory? **3** (`maze.LEVELS.length`, exported
+      as `FINAL_LEVEL`). Each adds a nest, a key/door, and grid size.
 - [ ] Should treasure/keys also be destructible by stray shots (Gauntlet-style)?
 - [ ] Multiplayer / co-op, or single-player only?
-- [ ] Movement: continuous 8-direction, or grid-snapped?
+- [x] Movement: **continuous 8-direction** (Phase 2).
 
 ---
 
@@ -224,3 +237,48 @@ noise for an 8-bit arcade feel.
   detached on game over alongside player input
 - main.js: Phase 3 modules init on class select, update order nests→enemies→combat;
   combat input detaches on `gameOver`/`gameWon`
+
+### Phase 4 — Pickups, Doors & Levels (2026-06-11)
+- `pickups.js`: scans the maze for `F`/`T`/`K`/`D`/`X` and builds floor items,
+  doors and the exit. Items use one shared geometry per shape + one shared
+  material per type (THREE.JS GOTCHA #4); they idle-bob/spin and are collected by
+  proximity (`PICKUP_DIST`). Keys add to `state.keys`; food heals; treasure scores.
+  Doors register as closed collision in `maze.js` and auto-open when the player
+  nears one holding a key (spends the key, clears collision, slides the mesh down).
+  The exit fires a one-shot `levelExit` event when stepped on.
+- `maze.js`: doors participate in collision via a `_closedDoors` Set —
+  `isWall()` treats a closed door cell as solid; `closeDoorCell`/`openDoorCell`
+  toggle it (cleared on each `loadLevel`). Added two more hand-authored levels
+  (22- and 24-wide) plus `FINAL_LEVEL`; every level was generated through a
+  width-asserting + flood-fill script that guarantees rectangular grids, an
+  exit sealed in a door-gated chamber, and no key locked behind the door it opens.
+- `state.js`: added `isGameWon` flag (mirrors `isGameOver`).
+- main.js: `loadCurrentLevel()` rebuilds player/enemies/nests/combat/pickups for
+  the current `state.level`; `onLevelExit()` plays the fanfare, bumps the level
+  with a 1.4s transition banner, and descends — or fires `gameWon` after
+  `FINAL_LEVEL`. Health does NOT refill between levels. `updatePickups(dt)` added
+  to the loop; victory/game-over SFX now play from the event handlers.
+
+### Phase 5 — Polish (2026-06-11)
+- Hit flashes: enemies swap to a shared white material for ~0.12s when struck
+  (can't tint the shared per-type material), restored in `updateEnemies`; the
+  player avatar glows red via `emissive` and a red DOM vignette pulses on the new
+  `playerHurt` event (emitted from `state.damage`, only on actual damage).
+- `effects.js`: floating popups (canvas-texture `THREE.Sprite`s, cached by
+  text|color, per-sprite material clone for independent opacity fade) + death
+  bursts (shared box geo + per-color additive material, shards shrink rather than
+  fade since the material is shared). Wired into enemy hit/death, nest death, and
+  pickups. Updates every frame outside `splash` so bursts settle during the
+  transition/end screens; frozen while paused.
+- `scene.js`: real bloom via `EffectComposer` + `RenderPass` + `UnrealBloomPass`
+  (strength 0.7, radius 0.5, threshold 0.82 so only bright emissive bits glow);
+  exported `composer`, `composer.setSize` added to the resize handler; ambient
+  dimmed (`0x303048`) and directional cooled (`0xaab4ff`) so torchlight carries
+  the mood. main.js renders via `composer.render()`.
+- `minimap.js`: corner DOM `<canvas>` redrawn each frame — maze cells, exit
+  (green), open/closed doors, nests (red squares), enemies (dots), player
+  (bright dot); cell size auto-fits the level. Reads grid via new
+  `maze.getGrid`/`getGridDims`/`isDoorClosed` getters.
+- `highscore.js`: localStorage best-score persistence (try/catch so blocked
+  storage degrades gracefully). `ui.js` submits the score on game-over/victory,
+  shows "★ NEW HIGH SCORE! ★" or the best, and shows the best on the splash.

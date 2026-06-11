@@ -10,7 +10,7 @@
 
 import * as THREE from 'three';
 
-import { initScene, renderer, scene, camera, clock } from './scene.js';
+import { initScene, renderer, scene, camera, clock, composer } from './scene.js';
 import { state }  from './state.js';
 import { events } from './events.js';
 import { initUI, hideSplash, showMessage } from './ui.js';
@@ -19,14 +19,15 @@ import {
 } from './sounds.js';
 import { CLASSES, CAM_OFFSET } from './config.js';
 
-import { loadLevel } from './maze.js';
+import { loadLevel, FINAL_LEVEL } from './maze.js';
 import { initPlayer, updatePlayer, getPlayerPos, detachPlayerInput } from './player.js';
 import { initEnemies, updateEnemies } from './enemies.js';
 import { initNests, updateNests }     from './nests.js';
 import { initCombat, updateCombat, detachCombatInput } from './combat.js';
-
-// TODO (Phase 4+): import remaining game-specific modules here
-// import { initPickups, updatePickups }     from './pickups.js';
+import { initPickups, updatePickups } from './pickups.js';
+import { initEffects, updateEffects } from './effects.js';
+import { initMinimap, updateMinimap } from './minimap.js';
+import { playLevelComplete, playGameWon, playGameOver } from './sounds.js';
 
 // ============================================================
 // THREE.JS GOTCHAS (read before adding anything)
@@ -59,16 +60,30 @@ const torch = new THREE.PointLight(0xffd9a0, 1.4, 30, 1.6);
 torch.position.set(0, 6, 0);
 scene.add(torch);
 
-// TODO (Phase 2+): initialize game-specific modules
-// initMaze();
-// initEnemies();
-// ...
+// Per-level systems (maze, player, enemies, nests, combat, pickups) are
+// initialized by loadCurrentLevel() on class select and on each descend.
 
 // ============================================================
 // Game state machine
 // ============================================================
 
-let mode = 'splash';   // 'splash' | 'playing' | 'gameover' | 'won'
+let mode = 'splash';   // 'splash' | 'playing' | 'transition' | 'gameover' | 'won'
+let _currentClass = null;
+
+/**
+ * Build (or rebuild) every per-level system for the current state.level and
+ * the active class. Used both on first spawn and on each descend.
+ */
+function loadCurrentLevel() {
+    loadLevel(state.level - 1);   // levels are 1-based in state, 0-based in LEVELS
+    initPlayer(_currentClass);
+    initEnemies();
+    initNests();
+    initCombat(_currentClass);
+    initPickups();
+    initEffects();
+    initMinimap();
+}
 
 function startRun(classNum) {
     if (mode === 'playing') return;
@@ -82,20 +97,48 @@ function startRun(classNum) {
     state.classKey = cls.key;
     state.maxHealth = cls.hp;
     state.health = cls.hp;   // setter clamps to maxHealth
+    _currentClass = cls;
 
     mode = 'playing';
     hideSplash();
 
-    // Load the first level and spawn the player + Phase 3 systems into it.
-    loadLevel(state.level - 1);   // levels are 1-based in state, 0-based in LEVELS
-    initPlayer(cls);
-    initEnemies();
-    initNests();
-    initCombat(cls);
+    loadCurrentLevel();
 }
 
-events.on('gameOver', () => { mode = 'gameover'; detachPlayerInput(); detachCombatInput(); });
-events.on('gameWon',  () => { mode = 'won';      detachPlayerInput(); detachCombatInput(); });
+/**
+ * Player reached the exit. Descend to the next level, or — if the final level
+ * was cleared — win. Health does NOT refill between levels (food management is
+ * the survival pressure, per the plan).
+ */
+function onLevelExit() {
+    if (mode !== 'playing') return;
+
+    if (state.level >= FINAL_LEVEL) {
+        state.isGameWon = true;
+        events.emit('gameWon');
+        return;
+    }
+
+    // Brief between-level pause: detach input, show a banner, then descend.
+    mode = 'transition';
+    detachPlayerInput();
+    detachCombatInput();
+    playLevelComplete();
+    state.nextLevel();
+    showMessage(`LEVEL ${state.level}`, 'Descending into the crypt…');
+
+    // Wait a beat so the fanfare + banner land, then load the next level.
+    setTimeout(() => {
+        if (mode !== 'transition') return;   // game may have ended meanwhile
+        hideSplash();
+        loadCurrentLevel();   // re-attaches player + combat input
+        mode = 'playing';
+    }, 1400);
+}
+
+events.on('levelExit', onLevelExit);
+events.on('gameOver', () => { mode = 'gameover'; detachPlayerInput(); detachCombatInput(); playGameOver(); });
+events.on('gameWon',  () => { mode = 'won';      detachPlayerInput(); detachCombatInput(); playGameWon(); });
 
 // ============================================================
 // Input
@@ -119,7 +162,7 @@ function onKeyDown(e) {
             return;
         }
         if (e.key === 'r' || e.key === 'R') { location.reload(); return; }
-        // TODO (Phase 2+): route movement / attack keys to player & combat modules
+        // Movement (player.js) and attack (combat.js) own their own listeners.
     }
 
     if (mode === 'gameover' || mode === 'won') {
@@ -146,16 +189,22 @@ function animate() {
         updateNests(dt);
         updateEnemies(dt);
         updateCombat(dt);
-        // TODO (Phase 4+):
-        // updatePickups(dt);
+        updatePickups(dt);
 
         // Follow the player with the camera + torch light.
         const p = getPlayerPos();
         camera.position.set(p.x + CAM_OFFSET[0], CAM_OFFSET[1], p.z + CAM_OFFSET[2]);
         camera.lookAt(p.x, 0, p.z);
         torch.position.set(p.x, 6, p.z);
+
+        updateMinimap();
     }
 
-    renderer.render(scene, camera);
+    // Cosmetic effects keep animating outside the playing state (so a death
+    // burst / final popup finishes during the level transition or game-over),
+    // but freeze while paused.
+    if (mode !== 'splash' && !state.isPaused) updateEffects(dt);
+
+    composer.render();
 }
 animate();

@@ -19,6 +19,7 @@ class GameState {
         this._level      = 1;
         this._classKey   = null;      // 'warrior' | 'valkyrie' | 'wizard' | 'elf'
         this._isGameOver = false;
+        this._isGameWon  = false;
         this._isPaused   = false;
     }
 
@@ -42,7 +43,10 @@ class GameState {
             events.emit('gameOver');
         }
     }
-    damage(n) { this.health -= n; }
+    damage(n) {
+        if (n > 0 && this._health > 0) events.emit('playerHurt', n);
+        this.health -= n;
+    }
     heal(n)   { this.health += n; }
 
     // --- Keys ---
@@ -71,6 +75,8 @@ class GameState {
 
     // --- Flags ---
     get isGameOver() { return this._isGameOver; }
+    get isGameWon()  { return this._isGameWon; }
+    set isGameWon(v) { this._isGameWon = v; }
     get isPaused()   { return this._isPaused; }
     set isPaused(v)  { this._isPaused = v; }
 }

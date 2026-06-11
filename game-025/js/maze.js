@@ -17,40 +17,108 @@ import * as THREE from 'three';
 import { scene } from './scene.js';
 import { TILE_SIZE, WALL_HEIGHT, COLORS } from './config.js';
 
-// --- Hand-authored levels (Phase 2: one starter level; more added in Phase 4) ---
+// --- Hand-authored levels (more levels added per Phase 4 progression) ---
+// Each deeper level adds nests, treasure, and key-gated doors ('D') guarding
+// the exit ('X'). Difficulty (spawn rate / enemy mix) is scaled separately in
+// nests.js by state.level; the layouts here grow the maze + threat count.
 export const LEVELS = [
+    // Level 1 — gentle intro: 2 nests, 1 door gating the exit (20 wide)
     [
         '####################',
-        '#S...#......#.....F.#',
-        '#.##.#.####.#.###.#.#',
-        '#.#..K.#..#...#.T#.#.#',
-        '#.#.####.#.#####.#.#.#',
-        '#.#......#.....#.#..N#',
-        '#.######.#####.#.####',
-        '#......#.....#.#....#',
-        '#.####.#####.#.####.#',
-        '#.#N.#.....#.....#..#',
-        '#.#.#####.#######.#.#',
-        '#.#.....#.......#.#.#',
-        '#.#####.#######.#.#.#',
-        '#.....#...F...#...#.#',
-        '#.###.#######.###.#.#',
-        '#...#...T...#...#...#',
-        '#.#.###.###.#.#.###.#',
-        '#.#.......#...#....X#',
+        '#S................F#',
+        '#.###.###.###.###.##',
+        '#....K........T....#',
+        '#.###.###.###.###.##',
+        '#...........N......#',
+        '#.###.###.###.###.##',
+        '#..................#',
+        '#.###.###.###.###.##',
+        '#..N...............#',
+        '#.###.###.###.###.##',
+        '#........F.........#',
+        '#.###.###.###.###.##',
+        '#......T...........#',
+        '#.###.###.###.######',
+        '#..............D...#',
+        '#.###.###.###.##...#',
+        '#..............#..X#',
         '####################',
     ],
+    // Level 2 — 3 nests, two keys/doors, more treasure (22 wide)
+    [
+        '######################',
+        '#S..................F#',
+        '#.###.###.###.###.####',
+        '#.....K..N...........#',
+        '#.###.###.###.###.####',
+        '#....................#',
+        '#.###.###.###.###.####',
+        '#............K.......#',
+        '#.###.###.###.###.####',
+        '#.................N..#',
+        '#.###.###.###.###.####',
+        '#..............T.....#',
+        '#.###.###.###.###.####',
+        '#.....N..............#',
+        '#.###.###.###.########',
+        '#..T.............D...#',
+        '#.###.###.###.##.D...#',
+        '#................#..X#',
+        '######################',
+    ],
+    // Level 3 — final level: 4 nests, three doors (24 wide)
+    [
+        '########################',
+        '#S....................F#',
+        '#.###.###.###.###.###.##',
+        '#......K..N.........T..#',
+        '#.###.###.###.###.###.##',
+        '#......................#',
+        '#.###.###.###.###.###.##',
+        '#........N.....K.......#',
+        '#.###.###.###.###.###.##',
+        '#............T.........#',
+        '#.###.###.###.###.###.##',
+        '#................N.....#',
+        '#.###.###.###.###.###.##',
+        '#..N...................#',
+        '#.###.###.###.###.###.##',
+        '#....K.................#',
+        '#.###.###.###.###.######',
+        '#.......T..........D...#',
+        '#.###.###.###.###..D...#',
+        '#..................D..X#',
+        '########################',
+    ],
 ];
+
+// Number of levels before victory (== LEVELS.length, named for clarity).
+export const FINAL_LEVEL = LEVELS.length;
 
 let _grid       = [];      // array of strings (current level)
 let _cols       = 0;
 let _rows       = 0;
 let _wallGroup  = null;    // THREE.Group holding all wall + floor meshes
 
+// Closed doors block movement like walls until opened. Keyed "col,row".
+// pickups.js owns the door meshes + open animation; it calls openDoorCell()
+// to clear the collision once a key is spent.
+const _closedDoors = new Set();
+const _doorKey = (col, row) => `${col},${row}`;
+
 // Shared geometries/materials (dispose-friendly: created once, reused).
 const _wallGeo   = new THREE.BoxGeometry(TILE_SIZE, WALL_HEIGHT, TILE_SIZE);
 const _wallMat   = new THREE.MeshLambertMaterial({ color: COLORS.wall });
 const _wallTopMat = new THREE.MeshLambertMaterial({ color: COLORS.wallTop });
+
+/** Current level grid dimensions (for the minimap). */
+export function getGridDims() { return { cols: _cols, rows: _rows }; }
+
+/** Raw grid (array of row strings) for the current level (for the minimap). */
+export function getGrid() { return _grid; }
+
+/** Is the door at this cell still closed? (minimap colors open vs closed doors) */
+export function isDoorClosed(col, row) { return _closedDoors.has(_doorKey(col, row)); }
 
 /** World position (center) of a grid cell. */
 export function cellToWorld(col, row) {
@@ -65,10 +133,21 @@ export function worldToCell(x, z) {
     };
 }
 
-/** Is this cell a wall (or out of bounds)? */
+/** Is this cell a wall (or out of bounds)? Closed doors count as walls. */
 export function isWall(col, row) {
     if (row < 0 || row >= _rows || col < 0 || col >= _cols) return true;
-    return _grid[row][col] === '#';
+    if (_grid[row][col] === '#') return true;
+    return _closedDoors.has(_doorKey(col, row));
+}
+
+/** Register a door cell as closed (blocks movement). Called by pickups.js. */
+export function closeDoorCell(col, row) {
+    _closedDoors.add(_doorKey(col, row));
+}
+
+/** Open a door cell so the player can pass through. Called by pickups.js. */
+export function openDoorCell(col, row) {
+    _closedDoors.delete(_doorKey(col, row));
 }
 
 /** True if a circle of `radius` centered at world (x,z) overlaps any wall. */
@@ -123,6 +202,7 @@ export function getSpawn() {
  */
 export function loadLevel(levelIndex) {
     disposeMaze();
+    _closedDoors.clear();   // doors are re-registered by pickups.initPickups()
 
     _grid = LEVELS[levelIndex % LEVELS.length];
     _rows = _grid.length;

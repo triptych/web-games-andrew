@@ -23,6 +23,7 @@ import {
     NEST_HP, NEST_SPAWN_EVERY, NEST_MAX_ALIVE, NEST_SCORE, COLORS,
 } from './config.js';
 import { playNestDestroy } from './sounds.js';
+import { spawnPopup, spawnBurst } from './effects.js';
 
 const Y = 0.9;   // nest sits low on the floor
 
@@ -105,9 +106,12 @@ function _destroyNest(nest) {
     const i = _nests.indexOf(nest);
     if (i === -1) return;
     _nests.splice(i, 1);
+    const { x, z } = nest.mesh.position;
     scene.remove(nest.mesh);
     nest.mesh.material.dispose();   // per-nest clone — dispose it (geometry is shared)
     state.addScore(NEST_SCORE);
+    spawnBurst(x, z, COLORS.nest, 22);   // bigger boom than an enemy
+    spawnPopup(x, z, `+${NEST_SCORE}`, '#ff9060');
     events.emit('nestDestroyed', nest.id);
     playNestDestroy();
 }

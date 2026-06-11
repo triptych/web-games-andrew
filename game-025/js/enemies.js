@@ -19,11 +19,14 @@ import { getPlayerPos } from './player.js';
 import { state } from './state.js';
 import { ENEMY_DEFS } from './config.js';
 import { playEnemyDeath, playPlayerHurt } from './sounds.js';
+import { spawnPopup, spawnBurst } from './effects.js';
 
 const RADIUS         = 0.9;    // enemy collision radius
 const CONTACT_DIST   = 1.9;    // center distance at which an enemy hits the player
 const CONTACT_COOLDOWN = 0.8;  // seconds between contact hits from one enemy
 const Y              = 0.7;    // resting height (slightly shorter than the player)
+
+const HIT_FLASH = 0.12;        // seconds an enemy stays lit white after a hit
 
 // --- Shared geometry + per-type materials (created once, reused) ---
 const _geo = new THREE.BoxGeometry(1.2, 1.4, 1.2);
@@ -34,6 +37,11 @@ function _matFor(type) {
     }
     return _mats[type];
 }
+
+// One shared bright material for the hit flash. Enemies share materials per type,
+// so we can't tint the type material (every enemy of that type would flash).
+// Instead we swap the mesh's material to this for the flash, then swap back.
+const _hitMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
 // Active enemies. Each: { mesh, type, def, hp, contactTimer }
 let _enemies = [];
@@ -61,7 +69,7 @@ export function spawnEnemy(type, x, z) {
     mesh.position.set(x, Y, z);
     scene.add(mesh);
 
-    const enemy = { mesh, type, def, hp: def.hp, contactTimer: 0 };
+    const enemy = { mesh, type, def, hp: def.hp, contactTimer: 0, flash: 0 };
     _enemies.push(enemy);
     return enemy;
 }
@@ -72,7 +80,15 @@ export function spawnEnemy(type, x, z) {
  */
 export function damageEnemy(enemy, dmg) {
     enemy.hp -= dmg;
-    if (enemy.hp > 0) return false;
+    const { x, z } = enemy.mesh.position;
+    if (enemy.hp > 0) {
+        // Survived — flash white briefly. Swap to the shared hit material now;
+        // updateEnemies swaps it back to the type material when the timer runs out.
+        enemy.flash = HIT_FLASH;
+        enemy.mesh.material = _hitMat;
+        spawnPopup(x, z, String(Math.round(dmg)), '#ffd0d0');
+        return false;
+    }
     _killEnemy(enemy);
     return true;
 }
@@ -81,8 +97,11 @@ function _killEnemy(enemy) {
     const i = _enemies.indexOf(enemy);
     if (i === -1) return;
     _enemies.splice(i, 1);
+    const { x, z } = enemy.mesh.position;
     scene.remove(enemy.mesh);   // shared geo/mat — do NOT dispose
     state.addScore(enemy.def.score);
+    spawnBurst(x, z, enemy.def.color, 10);
+    spawnPopup(x, z, `+${enemy.def.score}`, '#ffe070');
     playEnemyDeath();
 }
 
@@ -93,6 +112,12 @@ export function updateEnemies(dt) {
     const p = getPlayerPos();
 
     for (const e of _enemies) {
+        // Decay the hit flash — restore the enemy's type material when it ends.
+        if (e.flash > 0) {
+            e.flash -= dt;
+            if (e.flash <= 0) e.mesh.material = _matFor(e.type);
+        }
+
         const ex = e.mesh.position.x;
         const ez = e.mesh.position.z;
 

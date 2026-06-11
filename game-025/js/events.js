@@ -16,6 +16,7 @@
  *   levelChanged(newLevel)
  *   classChosen(classKey)
  *   pickup(type, value)
+ *   playerHurt(amount)
  *   doorOpened(doorId)
  *   nestDestroyed(nestId)
  *   gameOver()
