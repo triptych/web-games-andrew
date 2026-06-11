@@ -111,7 +111,7 @@ const games = [
         id: 'game-009',
         title: 'Chronicles of the Ember Crown',
         description: 'Classic turn-based RPG in the vein of early Final Fantasy. Lead a party of four heroes — Warrior, Mage, Healer, and Rogue — through 12 escalating battles. Manage MP, use status effects, level up your party, and defeat the Lich King.',
-        icon: '⚔️',
+        icon: '👑',
         folder: 'game-009',
         cssClass: 'ember-crown',
         tags: [
@@ -137,7 +137,7 @@ const games = [
         id: 'game-011',
         title: 'Nonogram Fleet',
         description: 'Solve nonogram puzzles to reveal hidden enemy spaceships, then fire torpedoes to sink the fleet. Limited shots per level — every deduction counts!',
-        icon: '🛸',
+        icon: '📡',
         folder: 'game-011',
         cssClass: 'nonogram-fleet',
         tags: [
@@ -228,7 +228,7 @@ const games = [
         id: 'game-018',
         title: 'Village of the Wandering Blade',
         description: 'Explore a 3D countryside, slay monsters for resources, and return to build and develop your village. Fight slimes, goblins, wolves, and trolls — then spend your loot on a blacksmith, healer, market, watchtower, and tavern. Grow stronger. Build further.',
-        icon: '⚔️',
+        icon: '🗡️',
         folder: 'game-018',
         cssClass: 'wandering-blade',
         tags: [
@@ -241,7 +241,7 @@ const games = [
         id: 'game-019',
         title: 'Synthwave Breakout',
         description: 'Neon-drenched retro breakout with synthwave aesthetics! Smash 8 rows of vivid neon bricks, build combo multipliers, and catch explosive powerups — wide paddle, multiball, laser cannon, and slow-mo. Particle explosions and a perspective grid backdrop set the mood.',
-        icon: '🎆',
+        icon: '🧱',
         folder: 'game-019',
         cssClass: 'synthwave-breakout',
         tags: [
@@ -267,7 +267,7 @@ const games = [
         id: 'game-021',
         title: 'Dungeon Blobber',
         description: 'A 3D first-person dungeon crawler with raycasting visuals and classic blobber stepwise movement. Navigate procedurally generated floors, fight monsters in turn-based combat, collect loot, level up, and descend 5 floors to escape the dungeon.',
-        icon: '🏰',
+        icon: '🧭',
         folder: 'game-021',
         cssClass: 'dungeon-blobber',
         tags: [
@@ -319,7 +319,7 @@ const games = [
         id: 'game-025',
         title: 'Crypt Crawler',
         description: 'A top-down Gauntlet-style dungeon crawler in Three.js. Pick one of four classes, fight through retro 3D mazes, and blast endless monsters streaming from nests. Grab food to survive, snatch treasure for score, and hunt keys to open doors gating the level exit. Descend through harder levels until you escape the crypt — with crunchy 8-bit sound effects throughout.',
-        icon: '🏰',
+        icon: '💀',
         folder: 'game-025',
         cssClass: 'crypt-crawler',
         tags: [
