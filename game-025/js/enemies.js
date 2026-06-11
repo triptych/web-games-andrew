@@ -39,12 +39,47 @@ function _matFor(type) {
     return _mats[type];
 }
 
+// --- Shared face parts (created once, reused across every enemy) ---
+// Enemies get a menacing face on their +Z side — the direction they chase/face —
+// so they read as "looking at you". Mirrors the player's friendly face (player.js)
+// but with glowing red eyes and an angry V-shaped brow.
+const _eyeGeo  = new THREE.BoxGeometry(0.24, 0.24, 0.12);
+const _pupGeo  = new THREE.BoxGeometry(0.1, 0.1, 0.12);
+const _browGeo = new THREE.BoxGeometry(0.5, 0.14, 0.12);
+const _eyeMat  = new THREE.MeshBasicMaterial({ color: 0xff3020 });   // bright red → catches bloom
+const _pupMat  = new THREE.MeshBasicMaterial({ color: 0x100000 });   // near-black pupils
+const _browMat = new THREE.MeshBasicMaterial({ color: 0x100000 });
+const _FZ = 0.61;   // just proud of the body's +Z surface (half-depth 0.6)
+
+/** Add an angry face (eyes + pupils + V-brow) to the +Z side of an enemy group. */
+function _addFace(group) {
+    const eyeL = new THREE.Mesh(_eyeGeo, _eyeMat);
+    const eyeR = new THREE.Mesh(_eyeGeo, _eyeMat);
+    eyeL.position.set(-0.3, 0.2, _FZ);
+    eyeR.position.set( 0.3, 0.2, _FZ);
+    group.add(eyeL, eyeR);
+
+    const pupL = new THREE.Mesh(_pupGeo, _pupMat);
+    const pupR = new THREE.Mesh(_pupGeo, _pupMat);
+    pupL.position.set(-0.3, 0.2, _FZ + 0.06);
+    pupR.position.set( 0.3, 0.2, _FZ + 0.06);
+    group.add(pupL, pupR);
+
+    // Two angled bars forming a downward "V" between the eyes → angry glare.
+    const browL = new THREE.Mesh(_browGeo, _browMat);
+    const browR = new THREE.Mesh(_browGeo, _browMat);
+    browL.position.set(-0.28, 0.46, _FZ);  browL.rotation.z =  0.5;
+    browR.position.set( 0.28, 0.46, _FZ);  browR.rotation.z = -0.5;
+    group.add(browL, browR);
+}
+
 // One shared bright material for the hit flash. Enemies share materials per type,
 // so we can't tint the type material (every enemy of that type would flash).
 // Instead we swap the mesh's material to this for the flash, then swap back.
 const _hitMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
-// Active enemies. Each: { mesh, type, def, hp, contactTimer }
+// Active enemies. Each: { mesh (Group), body (Mesh — holds the type material),
+//                         type, def, hp, contactTimer, flash, attack }
 let _enemies = [];
 
 /** Reset enemy state for a fresh level (removes all meshes from the scene). */
@@ -66,11 +101,18 @@ export function getEnemies() { return _enemies; }
 export function spawnEnemy(type, x, z) {
     if (!ENEMY_DEFS[type]) type = 'grunt';   // unknown type → safe default
     const def = ENEMY_DEFS[type];
-    const mesh = new THREE.Mesh(_geo, _matFor(type));
+
+    // The avatar is a Group (body + face) so the face rotates with the body to
+    // always look toward the player. `mesh` (the group) carries position/rotation/
+    // scale exactly as the old single Mesh did; `body` holds the swappable material.
+    const mesh = new THREE.Group();
+    const body = new THREE.Mesh(_geo, _matFor(type));
+    mesh.add(body);
+    _addFace(mesh);
     mesh.position.set(x, Y, z);
     scene.add(mesh);
 
-    const enemy = { mesh, type, def, hp: def.hp, contactTimer: 0, flash: 0, attack: 0 };
+    const enemy = { mesh, body, type, def, hp: def.hp, contactTimer: 0, flash: 0, attack: 0 };
     _enemies.push(enemy);
     return enemy;
 }
@@ -86,7 +128,7 @@ export function damageEnemy(enemy, dmg) {
         // Survived — flash white briefly. Swap to the shared hit material now;
         // updateEnemies swaps it back to the type material when the timer runs out.
         enemy.flash = HIT_FLASH;
-        enemy.mesh.material = _hitMat;
+        enemy.body.material = _hitMat;
         spawnPopup(x, z, String(Math.round(dmg)), '#ffd0d0');
         return false;
     }
@@ -116,7 +158,7 @@ export function updateEnemies(dt) {
         // Decay the hit flash — restore the enemy's type material when it ends.
         if (e.flash > 0) {
             e.flash -= dt;
-            if (e.flash <= 0) e.mesh.material = _matFor(e.type);
+            if (e.flash <= 0) e.body.material = _matFor(e.type);
         }
 
         // Attack lunge — a squash-stretch "bite" toward the player. Scale only,

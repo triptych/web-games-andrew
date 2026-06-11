@@ -36,7 +36,10 @@ import { spawnPopup } from './effects.js';
 
 const ITEM_Y       = 0.7;    // pickups hover just off the floor
 const PICKUP_DIST  = 1.6;    // center distance at which the player collects an item
-const DOOR_OPEN_DIST = 2.4;  // distance at which a held key opens a door
+const DOOR_TOUCH_DIST = 3.1; // Gauntlet-style: a held key opens a door the moment
+                             // the player presses against it. The door cell is solid,
+                             // so the player's center can't get closer than
+                             // TILE_SIZE/2 + player RADIUS = 3.0; this is just past that.
 const EXIT_DIST    = 1.8;    // distance at which the exit triggers a descend
 
 // --- Shared geometries (one per shape, reused across all instances) ---
@@ -166,10 +169,13 @@ export function updatePickups(dt) {
     for (let i = _doors.length - 1; i >= 0; i--) {
         const d = _doors[i];
         if (!d.opening) {
+            // Gauntlet-style: open only when the player is touching the door (and
+            // holds a key). The door cell is solid, so "touching" means pressed up
+            // against it — DOOR_TOUCH_DIST is just past the closest reachable center.
             if (state.keys > 0) {
                 const dx = d.mesh.position.x - p.x;
                 const dz = d.mesh.position.z - p.z;
-                if (dx * dx + dz * dz <= DOOR_OPEN_DIST * DOOR_OPEN_DIST) _openDoor(d);
+                if (dx * dx + dz * dz <= DOOR_TOUCH_DIST * DOOR_TOUCH_DIST) _openDoor(d);
             }
             continue;
         }
