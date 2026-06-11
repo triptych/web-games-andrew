@@ -158,7 +158,7 @@ export function updatePickups(dt) {
     for (let i = _items.length - 1; i >= 0; i--) {
         const it = _items[i];
         it.mesh.rotation.y = _spin * 1.5;
-        it.mesh.position.y = ITEM_Y + Math.sin(_spin * 3 + it.col) * 0.12;
+        it.mesh.position.y = ITEM_Y + Math.sin(_spin * 2 + it.col) * 0.18;
 
         const dx = it.mesh.position.x - p.x;
         const dz = it.mesh.position.z - p.z;
