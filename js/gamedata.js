@@ -327,6 +327,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '👾', label: 'Retro' }
         ]
+    },
+    {
+        id: 'game-026',
+        title: 'Crypt of the Forgotten',
+        description: 'A first-person grid-based dungeon crawler (blobber) with turn-based combat, built in Three.js. Step tile by tile and turn in 90° increments through a fog-shrouded crypt lit by a flickering lantern. Fight monsters in tactical turn-based battles, search for hidden switches and loot, and descend ever deeper to uncover the crypt\'s secret.',
+        icon: '🏚️',
+        folder: 'game-026',
+        cssClass: 'crypt-of-the-forgotten',
+        tags: [
+            { emoji: '🧭', label: 'Blobber' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '🎲', label: 'Turn-Based' }
+        ]
     }
 ];
 

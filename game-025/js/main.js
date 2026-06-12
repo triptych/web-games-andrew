@@ -2,8 +2,8 @@
  * main.js — Three.js entry point for Crypt Crawler.
  *
  * Game states: 'splash' → 'playing' → 'gameover' | 'won'
- * The splash is a CLASS SELECT: the player presses 1–4 to pick a class,
- * which starts the run.
+ * The splash is a CLASS SELECT: the player presses 1–4 or clicks a class
+ * card to pick a class, which starts the run.
  *
  * Library: three.js r165 via import map (see index.html)
  */
@@ -171,8 +171,16 @@ function onKeyDown(e) {
 }
 
 document.addEventListener('keydown', onKeyDown);
-// On the splash, a click does nothing (class must be chosen by number);
-// during play, Space/click attacks are wired in the combat module later.
+
+// Splash class select also works by clicking a card. The cards carry a
+// data-class attribute (1–4) and have pointer-events re-enabled in CSS.
+document.querySelectorAll('#message .class-card').forEach((card) => {
+    card.addEventListener('click', () => {
+        if (mode !== 'splash') return;
+        startRun(Number(card.dataset.class));
+    });
+});
+// During play, Space/click attacks are wired in the combat module later.
 
 // ============================================================
 // Render loop
