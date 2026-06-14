@@ -14,7 +14,10 @@
  *   livesChanged(newLives)
  *   gameOver()
  *   gameWon()
- *   TODO: add game-specific events here (playerMoved, combatStarted, etc.)
+ *   playerMoved({x, z, facing})   — after a step or turn commits (and on spawn)
+ *   tileEntered({x, z, tile})     — after a step commits; tile is the grid char
+ *   stairsReached({x, z})         — player stepped onto a '>' tile
+ *   TODO: combatStarted, combatEnded, hpChanged, depthChanged, tileRevealed, logMessage
  */
 export class EventBus {
     constructor() {

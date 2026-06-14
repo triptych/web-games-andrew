@@ -71,12 +71,27 @@ function _noise(duration, vol = 0.15, startDelay = 0) {
 }
 
 // --- Sound effects ---
-// TODO: replace / extend these stubs with game-appropriate sounds
-// Dungeon-crawler ideas: footstep (low thud), wall-bump, door creak,
-// sword swing, monster hiss, treasure chime, descend-stairs rumble.
 
 export function playUiClick() {
     _osc('sine', 660, 0.06, 0.15);
+}
+
+export function playFootstep() {
+    // Low square thud, pitch varied a little so repeated steps don't machine-gun.
+    _osc('square', 60 + Math.random() * 18, 0.07, 0.18);
+    _noise(0.04, 0.04);
+}
+
+export function playWallBump() {
+    // Dull noise burst — heavier and flatter than a footstep.
+    _noise(0.12, 0.22);
+    _osc('square', 50, 0.12, 0.22);
+}
+
+export function playDescend() {
+    // Low rumble sweep for taking the stairs.
+    _sweep('sawtooth', 130, 35, 0.9, 0.3);
+    _noise(0.6, 0.08, 0.1);
 }
 
 export function playSuccess() {

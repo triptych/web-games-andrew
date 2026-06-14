@@ -85,11 +85,149 @@ bottom and uncover the crypt's secret.
 
 ## UI / HUD
 
-DOM overlay drawn over the WebGL canvas (see `index.html` / `ui.js`):
-- **Score** — top-left.
-- **Lives** — top-right.
-- **Splash / message** — centered overlay for title, combat prompts, and game-over.
-- *Planned:* health bar, depth indicator, minimap, inventory panel, compass.
+The UI is a **DOM overlay** drawn over the full-bleed WebGL canvas (see `index.html` /
+`ui.js`). DOM is chosen over in-world sprites because the HUD is flat, text-heavy, and benefits
+from CSS layout, crisp font rendering, and easy responsive scaling. The 3D viewport stays
+unobstructed in the center; UI hugs the edges so the dungeon view reads as the "window" the
+player looks through — reinforcing the first-person, helmet-visor feel of the genre.
+
+### Visual language
+
+- **Aesthetic:** dark stone & aged parchment. Carved-frame panels with a subtle beveled border,
+  semi-transparent dark fill (`rgba(10,10,20,0.72)`) and a thin warm-gold inset line
+  (`COLORS.gold`). Lantern-amber accents on active elements; `COLORS.accent` (cyan) reserved for
+  interactive/selected states; `COLORS.danger` (red) for damage and low-HP warnings.
+- **Type:** monospace (`Courier New`) throughout, matching the repo's retro convention —
+  uppercase + wide letter-spacing for labels, normal case for body/flavor text.
+- **Motion:** numbers count up/down rather than snapping; panels slide/fade in; damage flashes a
+  brief red vignette at the screen edges; the lantern light already flickers in-world.
+- **Layout grid (16:9 reference 1280×720):** a 12px safe-area gutter. Top bar for vitals,
+  bottom bar for the action/turn context, right rail for the compact minimap, left rail for the
+  active-weapon/quick-item chip. Everything `pointer-events: none` except clickable controls.
+
+### Exploration HUD (default mode)
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  ❤ HP 18/20  ▓▓▓▓▓▓▓░░   |  DEPTH  1   |   ⛀ SCORE 1240  ╔══╗ │  ← top bar
+│                                                          ║▓▓║ │  ← minimap
+│                     ( 3D dungeon view )                  ║▓ ◣║ │     (right rail)
+│                                                          ╚══╝ │
+│ ┌──────┐                                          🧭 N        │  ← compass (facing)
+│ │ ⚔ SWD│                                                      │  ← weapon chip (left)
+│ └──────┘   ◄ A   ▲ W   ► D    ⟲ Q  step  E ⟳        🔍 F SEARCH│  ← bottom action hint
+└────────────────────────────────────────────────────────────┘
+```
+
+- **Top bar (vitals):**
+  - *Health* — left: a heart glyph + numeric `HP cur/max` + a segmented bar that drains/refills
+    with a tween; turns `danger` red and pulses below 25%.
+  - *Depth* — center: current dungeon level (e.g. `DEPTH 3`); briefly enlarges on descent.
+  - *Score* — right: counts up when gained.
+- **Compass** — small cardinal indicator (N/E/S/W) tied to `state.facing`; rotates as the player
+  turns. Critical for dead-reckoning in a maze.
+- **Minimap (right rail)** — a small top-down grid of *explored* tiles only (fog-of-war:
+  unexplored tiles hidden). Player shown as an arrow oriented to facing; stairs/doors/known items
+  marked with glyphs. Toggleable (`M`) and expandable to a full-screen automap overlay (`Tab`).
+- **Weapon / quick-item chip (left rail)** — the equipped weapon and a quick-use consumable slot
+  with hotkey labels.
+- **Bottom action hint** — context-sensitive control prompts; shows `SEARCH (F)` only when an
+  interactable (switch, chest, door, illusory wall) is in the tile/face ahead.
+- **Message log** — a 2–3 line transient feed bottom-left ("You found a rusted key.", "A draft
+  hints at a hidden passage."), fading after a few seconds. The diegetic narration channel.
+
+### Combat HUD (combat mode)
+
+When combat begins (`combatStarted`), the exploration hints recede and a combat layer fades in.
+Combat is turn-based, so the UI's job is to make **whose turn it is** and **what each action does**
+unambiguous.
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  ❤ HP 14/20 ▓▓▓▓▓░░░       ✦ YOUR TURN ✦         DEPTH 2     │
+│                                                              │
+│                  ┌─ CRYPT GHOUL ──────┐                      │
+│                   ❤ ▓▓▓▓▓▓░░  (hurt)                         │
+│                     ( enemy in 3D view )                     │
+│                                                              │
+│   ╔══════════╦══════════╦══════════╦══════════╗   TURN ORDER │
+│   ║ ⚔ ATTACK ║ 🛡 DEFEND ║ 🧪 ITEM  ║ 🏃 FLEE  ║   ▶ you      │
+│   ║   (1)    ║   (2)    ║   (3)    ║   (4)    ║     ghoul    │
+│   ╚══════════╩══════════╩══════════╩══════════╝     ghoul    │
+└────────────────────────────────────────────────────────────┘
+```
+
+- **Turn banner** — center-top: `✦ YOUR TURN ✦` (gold) vs. `ENEMY TURN` (red); enemy actions
+  pause briefly so the player can read them.
+- **Enemy nameplate** — floats above the enemy in-view: name + a small HP bar + a status word
+  (`hurt`, `enraged`, `poisoned`). Multiple enemies → stacked nameplates.
+- **Action bar** — bottom: ATTACK / DEFEND / ITEM / FLEE as labeled buttons, each with a number
+  hotkey (1–4) **and** clickable. Selecting ATTACK with multiple foes prompts target selection
+  (arrow keys cycle a highlight; click to pick). Disabled actions (e.g. ITEM with empty inventory)
+  are dimmed.
+- **Turn-order tracker** — right rail: upcoming initiative list so the player can plan.
+- **Floating combat text** — damage/heal numbers pop above the struck combatant and rise/fade;
+  crits are larger and gold; misses show `MISS`.
+
+### Inventory / character screen (overlay, `I`)
+
+A modal panel that **pauses** the game (turn-based, so safe to open mid-explore). Two columns:
+equipment & stats (left), backpack grid (right).
+
+```
+┌──── ◈ INVENTORY ◈ ──────────────────────────────┐
+│  EQUIPPED              │   PACK                   │
+│   ⚔ Weapon: Short Swd  │  ┌──┬──┬──┬──┬──┐         │
+│   🛡 Armor : Leather    │  │🧪│🗝│🍞│  │  │         │
+│   💍 Trinket: —         │  ├──┼──┼──┼──┼──┤         │
+│                        │  │  │  │  │  │  │         │
+│  STATS                 │  └──┴──┴──┴──┴──┘         │
+│   ATK 6   DEF 3        │   (click/arrow to select; │
+│   HP  20  SPD 4        │    Enter = use/equip)     │
+└──────────────────────────────────────────────────┘
+```
+
+- Items show a tooltip on hover/focus (name, effect, flavor). Equip/use via click or Enter.
+- Keys, quest items, and consumables share the grid but are visually grouped/tinted.
+
+### Screen states & overlays
+
+| State | Overlay | Notes |
+|-------|---------|-------|
+| Splash | Centered title + "press any key", controls hint, version tag | Current scaffold; add an animated lantern-glow vignette |
+| Playing | Exploration HUD | Default |
+| Combat | Combat HUD layer over the viewport | Exploration hints recede |
+| Inventory/Char | Modal panel, dimmed backdrop | Pauses the game |
+| Paused (`P`) | "PAUSED" banner + dimmed backdrop | |
+| Level transition | Brief fade-to-black + `DESCENDING… DEPTH n` | On taking the stairs |
+| Game over | "YOU DIED", final score, restart/menu prompt | Current scaffold |
+| Victory | "THE CRYPT IS YOURS", run summary (depth, score, kills) | Win condition |
+
+### Feedback & juice
+
+- **Damage taken** — red edge vignette flash + brief camera shake (small, grid-respecting).
+- **Wall bump** — short head-knock dip + the bump SFX (Phase 2 TODO).
+- **Low HP** — persistent slow red pulse on the screen border + heartbeat audio.
+- **Pickup / level-up** — gold flash on the relevant HUD element + chime.
+- **Reduced-motion** — respect `prefers-reduced-motion`: disable shake/vignette pulse, keep
+  instant state changes.
+
+### Responsiveness & accessibility
+
+- HUD scales with viewport via a root `--ui-scale` (clamp font/panel sizes between phone and
+  desktop); the 3D viewport always fills the screen, HUD reflows to edges.
+- Everything is keyboard-operable (the genre is keyboard-first); mouse/touch is additive.
+- Minimum 4.5:1 text contrast against panel fills; never encode info by color alone (icons +
+  text labels accompany color states like low-HP red).
+
+### Implementation notes
+
+- Keep the HUD as **declarative DOM** updated from `events` (`scoreChanged`, `livesChanged`,
+  plus planned `hpChanged`, `depthChanged`, `combatStarted`, `combatEnded`, `playerMoved`,
+  `logMessage`). `ui.js` owns all DOM; gameplay modules only emit events.
+- Minimap & compass derive from `state.playerTile` / `state.facing` + the dungeon's explored set.
+- Combat UI lives in a hidden DOM layer toggled by combat mode, not rebuilt each turn.
+- Floating combat text and the message log are pooled DOM nodes recycled to avoid churn.
 
 ---
 
@@ -121,13 +259,29 @@ Web Audio API — no file assets. Procedural SFX in `sounds.js`.
 - [x] `dungeon.js` — tile grid data + mesh generation (walls/floor/ceiling), hand-authored Level 1, `isWalkable()`/`tileAt()`, descent-stairs tile
 - [x] `player.js` — grid position/facing, animated step/turn/strafe tweens (smoothstep), wall collision
 - [x] Camera driven by the player's grid pose; input wired in `main.js`
-- [ ] Wall-bump feedback (sound + head-knock shake)
-- [ ] Footstep sound + on-arrival tile checks (stairs/loot/encounter)
+- [x] Wall-bump feedback (sound + head-knock shake)
+- [x] Footstep sound + on-arrival tile checks (stairs/loot/encounter)
 
-### Phase 3 — Combat & content
+### Phase 3 — Exploration HUD
+*(Builds the default-mode UI from the UI / HUD spec. DOM-only; gameplay modules just emit events.)*
+- [ ] HUD skeleton & visual language — carved-frame panels, gold-inset borders, monospace type, `--ui-scale` root var, safe-area gutter
+- [ ] Top bar: health bar (`hpChanged`, segmented + tween + low-HP red pulse), depth readout (`depthChanged`), score count-up (existing `scoreChanged`)
+- [ ] Compass tied to `state.facing` (`playerMoved`)
+- [ ] Minimap (right rail) with fog-of-war (`tileRevealed`); player arrow, stairs/door glyphs; `M` toggle, `Tab` full-screen automap
+- [ ] Message log — pooled transient feed (`logMessage`)
+- [ ] Context-sensitive action hint (shows `SEARCH (F)` when an interactable is ahead)
+- [ ] Weapon / quick-item chip (left rail)
+- [ ] Feedback/juice: damage edge-vignette + grid-safe camera shake, pickup gold-flash, `prefers-reduced-motion` support
+
+### Phase 4 — Combat & combat HUD
 - [ ] Monsters (billboards or low-poly meshes) with stats
-- [ ] Turn-based combat loop and combat HUD
-- [ ] Loot, keys, doors, descent stairs, depth progression, win condition
+- [ ] `combat.js` — turn-based combat loop; emits `combatStarted` / `combatEnded` / `hpChanged`
+- [ ] Combat HUD layer: turn banner, enemy nameplates (HP + status), ATTACK/DEFEND/ITEM/FLEE action bar (hotkeys 1–4 + clickable), target selection, turn-order tracker, floating combat text
+
+### Phase 5 — Content & progression
+- [ ] Loot, keys, doors; inventory / character screen overlay (`I`, pauses game) — equipment, stats, backpack grid, tooltips
+- [ ] Descent stairs → level transition overlay (fade + `DESCENDING… DEPTH n`), depth progression
+- [ ] Win condition + victory screen (run summary: depth, score, kills); pause overlay (`P`)
 
 ---
 
@@ -139,8 +293,15 @@ Web Audio API — no file assets. Procedural SFX in `sounds.js`.
 | `livesChanged` | newLives | state | ui |
 | `gameOver`     | —        | state | ui, main |
 | `gameWon`      | —        | (TODO)| ui, main |
-| *planned* `playerMoved` | {x, z, facing} | player | dungeon, monsters |
-| *planned* `combatStarted` | monster | combat | ui |
+| `playerMoved` | {x, z, facing} | player | ui (compass/minimap, Phase 3) |
+| `tileEntered` | {x, z, tile} | player | loot/encounter systems (Phases 4–5) |
+| `stairsReached` | {x, z} | player | level transition (Phase 5) |
+| *planned* `hpChanged`     | {cur, max} | combat/state | ui (health bar) |
+| *planned* `depthChanged`  | newDepth | dungeon | ui (depth readout) |
+| *planned* `combatStarted` | monster(s) | combat | ui (combat layer) |
+| *planned* `combatEnded`   | {result} | combat | ui (restore exploration HUD) |
+| *planned* `tileRevealed`  | {x, z} | player/dungeon | ui (minimap fog-of-war) |
+| *planned* `logMessage`    | string | any | ui (message log) |
 
 ---
 
@@ -182,3 +343,10 @@ Web Audio API — no file assets. Procedural SFX in `sounds.js`.
 - `player.js`: grid-aligned step/back/strafe + 90° turns with smoothstep tweens, input locked mid-move, wall collision, camera driven by logical pose
 - Wired `initDungeon`/`initPlayer`/`updatePlayer`/`handleInput` into `main.js`; game is now walkable
 - Visibility pass: ACES tone mapping + sRGB output, brighter warm lantern (intensity 22, decay 2) offset ahead of the eye, added hemisphere fill, pushed fog back to 12–40, lightened wall/floor/ceiling colors so surfaces actually read
+
+### Phase 2 — Feedback & arrival hooks (2026-06-12)
+- Wall-bump feedback: blocked moves now play a dull noise-burst thud and run a short 'bump' tween — the camera lurches `BUMP_DIST` into the wall with a `BUMP_DIP` head-knock dip, then returns (input stays locked during it, like any tween)
+- Footstep sound (pitch-varied low square thud) on every committed step
+- `_onArrive()` tile checks after each step: emits `tileEntered {x, z, tile}` for future loot/encounter systems; stepping onto `>` plays the descend rumble and emits `stairsReached` (level transition lands in Phase 5)
+- Player now emits `playerMoved {x, z, facing}` on spawn and after each step/turn — ready for the Phase 3 compass/minimap
+- New sounds in `sounds.js`: `playFootstep`, `playWallBump`, `playDescend`; new config: `BUMP_TIME`, `BUMP_DIST`, `BUMP_DIP`

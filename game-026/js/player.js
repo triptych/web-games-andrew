@@ -13,14 +13,16 @@
 import * as THREE from 'three';
 import { camera } from './scene.js';
 import { state } from './state.js';
-import { TILE_SIZE, DIRS, STEP_TIME, TURN_TIME, CAM_POS } from './config.js';
-import { isWalkable, startTile } from './dungeon.js';
-import { playUiClick } from './sounds.js';
+import { events } from './events.js';
+import { TILE_SIZE, DIRS, STEP_TIME, TURN_TIME, CAM_POS,
+         BUMP_TIME, BUMP_DIST, BUMP_DIP } from './config.js';
+import { isWalkable, tileAt, startTile } from './dungeon.js';
+import { playFootstep, playWallBump, playDescend } from './sounds.js';
 
 const EYE_Y = CAM_POS[1];
 
 // Tween state. When active, we lerp from `from` → `to` over `dur` seconds.
-let anim = null;   // { kind:'move'|'turn', from, to, t, dur }
+let anim = null;   // { kind:'move'|'turn'|'bump', from, to, t, dur }
 
 // Logical pose (authoritative). Camera is derived from these between tweens.
 let tileX, tileZ, facing;
@@ -35,6 +37,7 @@ export function initPlayer() {
     state.facing     = facing;
 
     _snapCamera();
+    events.emit('playerMoved', { x: tileX, z: tileZ, facing });
 }
 
 /** Yaw (radians) for a facing index. North looks toward -Z. */
@@ -71,7 +74,14 @@ function _tryMove(dir) {
     const nx = tileX + dx;
     const nz = tileZ + dz;
     if (!isWalkable(nx, nz)) {
-        // TODO: play a wall-bump sound + small head-knock shake
+        playWallBump();
+        anim = {
+            kind: 'bump',
+            from: _worldFor(tileX, tileZ),
+            dir:  new THREE.Vector3(dx, 0, dz),
+            t: 0,
+            dur: BUMP_TIME,
+        };
         return;
     }
     anim = {
@@ -107,21 +117,38 @@ export function updatePlayer(dt) {
 
     if (anim.kind === 'move') {
         camera.position.lerpVectors(anim.from, anim.to, p);
-    } else {
+    } else if (anim.kind === 'turn') {
         camera.rotation.set(0, anim.from + (anim.to - anim.from) * p, 0);
+    } else { // 'bump' — lurch into the wall and back, with a small head-knock dip
+        const knock = Math.sin(Math.min(anim.t / anim.dur, 1) * Math.PI);
+        camera.position.copy(anim.from).addScaledVector(anim.dir, knock * BUMP_DIST);
+        camera.position.y = EYE_Y - knock * BUMP_DIP;
     }
 
     if (anim.t >= anim.dur) {
         // Commit the logical pose and snap exactly onto the grid.
-        if (anim.kind === 'move') {
+        const kind = anim.kind;
+        if (kind === 'move') {
             tileX = anim.nx;
             tileZ = anim.nz;
             state.playerTile = { x: tileX, z: tileZ };
-            // TODO: footstep sound; check tile for stairs/loot/monster encounter
-        } else {
+        } else if (kind === 'turn') {
             state.facing = facing;
         }
         anim = null;
         _snapCamera();
+        if (kind === 'move') _onArrive();
+        if (kind !== 'bump') events.emit('playerMoved', { x: tileX, z: tileZ, facing });
+    }
+}
+
+/** Tile checks on completing a step: stairs now; loot/encounters hook in here (Phases 4–5). */
+function _onArrive() {
+    playFootstep();
+    const ch = tileAt(tileX, tileZ);
+    events.emit('tileEntered', { x: tileX, z: tileZ, tile: ch });
+    if (ch === '>') {
+        playDescend();
+        events.emit('stairsReached', { x: tileX, z: tileZ });
     }
 }

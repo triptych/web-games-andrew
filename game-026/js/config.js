@@ -17,6 +17,9 @@ export const TILE_SIZE   = 4;             // world units per dungeon tile
 export const WALL_HEIGHT = 4;
 export const STEP_TIME   = 0.18;          // seconds to slide one tile forward
 export const TURN_TIME   = 0.18;          // seconds to rotate 90 degrees
+export const BUMP_TIME   = 0.16;          // seconds for the blocked-move head-knock
+export const BUMP_DIST   = 0.35;          // world units the camera lurches into the wall
+export const BUMP_DIP    = 0.12;          // world units the eye dips during the knock
 
 // Facing directions (clockwise): 0=North, 1=East, 2=South, 3=West
 export const DIRS = [
