@@ -177,13 +177,16 @@ left-to-right via **binary (and occasionally trinary) decision points**, exactly
   candidate nodes**; the player picks one, committing to that branch (you cannot backtrack).
 - Branches **diverge and re-converge** across the layers so the map reads as a web of routes, not a
   single line — the *route you choose* is a meta-puzzle (greed vs. safety vs. resources).
-- **Node types** (each is an icon on the map):
-  - **⚗ Puzzle level** — a standard lattice level with a quest objective (the bulk of nodes).
+- **Node types** (each is an icon on the map). Puzzle nodes come in the three **level types** of
+  §11, so a node icon also signals its mode:
+  - **⚗ Exploration level** (§11a) — harvest deposits / hit a quest objective (the bulk of nodes).
+  - **🜲 Refinement level** (§11b) — brew a target potion by meeting recipe conditions; quality graded.
+  - **⚔ Battle grid** (§11c) — enemies on the lattice; clear lines over them to deal damage.
   - **🛒 Shop** — the apothecary market (§8); spend currency, no puzzle played.
   - **🎁 Cache / event** — a small narrative event or free reward (ingredient bundle, currency, a
     one-off consumable), sometimes a choice with a trade-off.
-  - **🔥 Elite** — a harder puzzle level (tighter board / nastier objective) with a richer reward.
-  - **💀 Boss** — the chapter finale at the far right: a large, multi-objective set-piece level.
+  - **🔥 Elite** — a harder puzzle level of any type (tighter board / nastier objective) with a richer reward.
+  - **💀 Boss** — the chapter finale at the far right: usually a large multi-phase **battle grid** (§11c).
 - **Generation:** seeded per chapter so a run is reproducible (retryable). Guarantees keep it fair —
   e.g. at least one shop reachable before the boss, no two elites back-to-back, boss always
   terminal. Exact density/rules are an open question.
@@ -193,7 +196,7 @@ left-to-right via **binary (and occasionally trinary) decision points**, exactly
 - **Persistence within a chapter:** currency, owned items, unlocked passives, XP, and stores carry
   **across nodes** within a run; whether they persist between chapters is the existing RPG-save
   open question.
-- **Failure on the run:** a failed puzzle node (jammed / infeasible) ends that node — open question
+- **Failure on the run:** a failed puzzle node (jammed / infeasible / defeated, §Failure) ends that node — open question
   whether it ends the whole run (Spire-like, restart the chapter from a fresh/again-seeded map) or
   just that node with a retry. Default plan: retry the node (campaign game, not a roguelike permadeath),
   but the branching structure makes a roguelike "fail = restart the chapter" mode a natural option.
@@ -230,6 +233,61 @@ Open questions for §10: does XP also grant a numeric **character level** (and d
 it, or are stats purely informational)? Is the tree a single campaign-long tree or per-chapter? Can
 nodes be **refunded/respec'd**? How big is the v1 tree?
 
+### 11. Level types (the same engine, three win conditions)
+A "puzzle node" on the run map (§9) is **one of three level types**. All three use the identical
+core — the lattice, the set-of-3 tray, fixed-orientation placement, line-clears, the cauldron, and
+the §8/§10 items/passives. What differs is **what occupies the grid** and **how you win/lose**. A
+node's icon on the map signals its type; the level intro states the objective.
+
+#### 11a. Exploration levels *(the default — §5)*
+The loop described throughout: clear lines to strip **deposit** covers and **harvest ingredients**.
+Win by meeting the quest objective (collect / score / spell-component). This is the baseline; the
+other two are variations on the same engine.
+
+#### 11b. Refinement levels (brew a potion on the grid)
+Here the lattice *is* the cauldron's working surface, and the goal isn't to harvest — it's to
+**refine a specific potion** by satisfying its **recipe conditions** through how you clear lines.
+Instead of a free "clear any line for points" objective, a refinement level prescribes a target:
+
+- **Conditions to meet.** The recipe demands particular clears — e.g. *"clear 3 rows made entirely
+  of ember"*, *"clear an N-line combo to reach a rolling boil"*, *"fill the central crucible cells
+  in order"*, or *"clear X lines without ever clearing a dew line"* (a constraint/forbidden
+  ingredient). Meeting all conditions = the potion brews → level complete.
+- **Quality tiers.** A refinement isn't just pass/fail — it produces a potion at a **quality grade**
+  (e.g. *crude → fine → pure → masterwork*) driven by how cleanly you hit the conditions: bigger
+  combos, fewer wasted placements, hitting bonus targets. Higher quality = better reward (more
+  currency/XP, a stronger consumable, or a higher-grade ingredient for stores).
+- **Enhancement ingredients.** Optional **enhancement ingredients** (spent from stores *before or
+  during* the brew) raise the ceiling or ease the conditions — e.g. a *stabilizer* widens the combo
+  window, a *potency dust* bumps the quality grade if conditions are met, a *flux* lets one
+  off-ingredient line still count. Using them is a risk/reward economy choice: spend rare matter for
+  a masterwork, or brew crude and bank the ingredients.
+- **Failure** is the usual jammed/infeasible (the recipe can no longer be satisfied), or — if a
+  level imposes it — running out of a required matter before conditions are met.
+
+#### 11c. Battle grids (clear lines over enemies to damage them)
+A combat variant: **enemies occupy cells on the lattice**, and you fight by **clearing rows/columns
+that pass over them**.
+
+- **Enemies on the grid.** Each enemy sits on one or more cells with an **HP** value shown on it.
+  Clearing a line **through** an enemy's cell deals damage (e.g. damage = base × combo multiplier);
+  reduce an enemy to 0 HP to destroy it. Enemy cells are **obstacles** for placement (you must build
+  *around* them, then clear over them), making them spatial threats as well as targets.
+- **Enemy turns / threat.** Between your placements (or every N placements), enemies act: they may
+  **advance** (occupy more cells, shrinking your space), **harden** (gain armor so a single clear
+  isn't enough), **spawn adds**, or **attack you** — chipping a **player HP / focus** bar that, at
+  zero, fails the level. This gives battle grids their own loss condition beyond jammed/infeasible.
+- **Win condition.** Defeat all enemies (or the wave/boss-enemy) before your HP runs out or the
+  board jams. **Boss nodes** (§9) are typically large battle grids with a multi-phase enemy.
+- **Shared economy.** Items/passives matter most here — a *Dissolvent* can clear a blocking cell, a
+  line-breaker power-up (§7, future) becomes a real weapon. Battle grids are where the consumable
+  and passive layers pay off.
+
+> Implementation note: all three reuse `grid.js` / `drag.js` / `pieces.js` / line-clear logic. The
+> differences are **what seeds the grid** (deposits vs. recipe-crucible cells vs. enemies) and the
+> **objective/fail module** that watches clears. Plan: a `levelType` field on each level def routes
+> to the right overlay module (`refine.js` / `battle.js`) layered over the shared puzzle core.
+
 ---
 
 ## Game Loop
@@ -237,13 +295,15 @@ nodes be **refunded/respec'd**? How big is the v1 tree?
 1. **Run map (§9):** view the branching path; pick one of the **2–3 forward nodes** to commit to.
 2. **Resolve the chosen node** by type:
    - *Shop* → spend currency, then back to the map. *Cache/event* → take a reward/choice → map.
-   - *Puzzle / elite / boss* → enter the level (continue below).
-3. **Enter level:** lattice seeded with its deposits + cover layers; objective shown (e.g. "harvest
-   the silver vein", "clear 12 lines", "reach 5,000 points").
-4. **Puzzle loop:** drag tray shapes → place → clear lines → strip deposit covers.
-5. **Harvest:** fully-uncovered deposits add ingredients to stores; cauldron can now brew new shapes.
-6. **Objective met → node cleared:** award score/currency/ingredients → advance along the chosen
-   branch, back to the map.
+   - *Exploration / refinement / battle / elite / boss* → enter the level (continue below).
+3. **Enter level:** lattice seeded for its **type** (§11) — deposits (exploration), a recipe crucible
+   + enhancement choice (refinement), or enemies (battle) — and the objective shown.
+4. **Puzzle loop (shared):** drag tray shapes → place → clear lines. The clears do type-specific work:
+   strip deposit covers / satisfy recipe conditions / damage enemies.
+5. **Resolve the type's goal:** harvest ingredients; or brew the potion at a **quality grade**
+   (optionally spending enhancement ingredients); or destroy all enemies before your HP runs out.
+6. **Objective met → node cleared:** award score/currency/ingredients/XP (refinement reward scales
+   with quality) → advance along the chosen branch, back to the map.
 7. **Failure (see below) → node failed (soft):** retry the node (default).
 8. **Reach & clear the boss (far right):** chapter complete → **upgrade cauldron tier**, story beat,
    next chapter's map. Repeat until the final cauldron and the guild-mark ending.
@@ -252,8 +312,9 @@ nodes be **refunded/respec'd**? How big is the v1 tree?
 
 ## Failure Conditions
 
-A level is **failed** (soft — always retryable from the same seed, or bail to the map) when either
-of these happens. Both are checked after every placement.
+A level is **failed** (soft — always retryable from the same seed, or bail to the map) when any of
+these happens. All are checked after every placement (and #3 also on the enemy turn). The first two
+apply to **every** level type; #3 is specific to **battle grids** (§11c).
 
 ### 1. Out of room — a forced piece can't be placed
 You're dealt sets of 3 and must place all 3. If, at any point, **a shape still in your hand has no
@@ -281,9 +342,19 @@ the pieces/ingredients that remain**, the level ends. Objective types and their 
 > bound (e.g. "best-case remaining score < target", "required deposit cells now unreachable") and
 > only fail when clearly impossible, rather than attempting a full solver. Better to occasionally
 > let a doomed board run one more set than to false-fail a winnable one. Tracked in Open Questions.
+>
+> For **refinement** levels, condition 2 reads as "the recipe conditions can no longer all be met";
+> for **battle** levels it reads as "the remaining enemies can no longer be killed" (rare, but e.g.
+> nowhere left to build a clearing line).
 
-Both failures emit `levelFailed {reason}` (`'jammed'` vs `'infeasible'`) so the result screen can
-show the right message.
+### 3. Defeated — player HP reaches zero *(battle grids only)*
+On a **battle grid** (§11c), enemies attack on their turn and chip a **player HP / focus** bar. If
+it hits zero, the level ends.
+- Shown as an HP bar in the battle HUD; low-HP warning pulse.
+- Result screen: *"You were overwhelmed."* → retry (same seed) / map.
+
+Failures emit `levelFailed {reason}` (`'jammed'` / `'infeasible'` / `'defeated'`) so the result
+screen can show the right message.
 
 ---
 
@@ -343,7 +414,10 @@ panel** (right rail: cauldron, stores, objective). Story/map/cauldron are separa
 - **Feedback:** valid ghost = soft green glow, invalid = red hatch; combo clears pop floating
   multiplier text; cauldron "bubbles" when a new shape is brewable.
 
-### In-level HUD
+### In-level HUD — Exploration (§11a, the base layout)
+
+The three level types share this skeleton (lattice center, tray + item bar bottom, side panels);
+refinement and battle **swap the objective/side panels** for type-specific readouts (below).
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -382,6 +456,55 @@ panel** (right rail: cauldron, stores, objective). Story/map/cauldron are separa
   passive greys while cooling down. Always-on passives (e.g. Deep Sight) don't appear here — they
   just apply.
 
+### In-level HUD — Refinement (§11b)
+
+The right rail becomes a **recipe panel**: the target potion, its conditions (checked off as met),
+the live **quality meter**, and an **enhancement** tray of ingredients you can spend.
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│  🜲 REFINING: Draught of Embers              QUALITY ▓▓▓▓░░  FINE       │  ← top bar
+│        ┌─────────────────────────────────┐    ╔══ RECIPE ════════════╗ │
+│        │            (lattice)            │    ║ ✓ clear 3 ember rows  ║ │
+│        │   crucible cells highlighted ◇  │    ║ ◻ reach a ×3 combo    ║ │
+│        │                                 │    ║ ◻ no dew lines        ║ │
+│        │                                 │    ╠══ ENHANCEMENTS ══════╣ │
+│        │                                 │    ║ + stabilizer  (×1)    ║ │
+│        │                                 │    ║ + potency dust(×2)    ║ │
+│        └─────────────────────────────────┘    ╚════════════════════════╝│
+│   TRAY: …                              ITEMS: …                         │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+- **Quality meter** (top) climbs with clean play and bonus targets; it sets the reward grade.
+- **Recipe panel** lists conditions (✓ met, ◻ pending) and any forbidden-ingredient constraints.
+- **Enhancements** are spendable ingredients that ease conditions / raise the ceiling (§11b); spent
+  counts deplete from stores.
+
+### In-level HUD — Battle (§11c)
+
+Adds a **player HP / focus** bar and **enemy nameplates** on-grid; each enemy cell shows its HP and
+a damage-on-clear hint.
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│  ⚔ BATTLE: Cinder Imps        ❤ HP 14/20 ▓▓▓▓▓░░     ✦ x2 combo        │  ← top bar
+│        ┌─────────────────────────────────┐    ╔══ THREATS ═══════════╗ │
+│        │ . . 👹6 . . . . . .              │    ║ 👹 Cinder Imp  HP 6   ║ │
+│        │ . . . . . 👹4 . . .   👹 = enemy │    ║ 👹 Cinder Imp  HP 4   ║ │
+│        │ . ▣ ▣ . . . . . .   (obstacle +  │    ║ next enemy turn in 2  ║ │
+│        │ . . . . . . . . .    target)     │    ╠══ STORES / SCORE ════╣ │
+│        │ . . . . . . . . .                │    ║  …                    ║ │
+│        └─────────────────────────────────┘    ╚════════════════════════╝│
+│   TRAY: …                              ITEMS: 🧪×2 (clear a blocker)     │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+- **Player HP bar** (top): drains on enemy attacks; zero = defeat (Failure §3); low-HP pulse.
+- **Enemy cells** show HP; clearing a line through one deals damage (× combo); destroyed at 0.
+- **Threats panel** lists enemies + a **turn timer** (placements until enemies act) so attacks aren't
+  a surprise. Consumables/passives shine here (e.g. Dissolvent to open a clearing lane).
+
 ### Other screens
 
 | Screen | Contents |
@@ -395,9 +518,9 @@ panel** (right rail: cauldron, stores, objective). Story/map/cauldron are separa
 | **Character (`B`)** | Tabbed: **Inventory** (owned consumables), **Stats** (vitals/XP/level), **Skill Tree** (mind-map of passive power-ups, spend XP to unlock). See below |
 | **Shop** | A shop *node* on the run map; spend currency on **consumables only**; see below |
 | Pause (`P`) | Resume / restart node / abandon run → map or title |
-| Node complete | Score, stars, rewards (currency/ingredients), "continue" → back to run map |
+| Node complete | Score, stars, rewards (currency/ingredients/XP); **refinement** also shows the potion's **quality grade**; "continue" → back to run map |
 | Boss complete | Chapter summary, **cauldron upgraded** flourish → story beat → next chapter's map |
-| Node failed | "The lattice is jammed" (no legal placement) **or** "The quest slips away" (objective impossible) → retry node / map (run-end behavior is an open question, §9) |
+| Node failed | Type-specific message — "The lattice is jammed" / "The quest slips away" / "You were overwhelmed" — → retry node / map (run-end behavior is an open question, §9) |
 
 ### Run map screen
 
@@ -529,6 +652,13 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 | Skill unlocked | Unlock a skill-tree node | Resonant unlock chime + sparkle |
 | Passive trigger | Activate a passive (e.g. Tile Swap) | Soft warp/whoosh |
 | Passive ready | Cooldown finishes | Tiny rising "ready" chime |
+| Condition met | Refinement recipe condition satisfied | Soft confirming bell |
+| Quality up | Refinement quality grade rises | Brightening shimmer |
+| Potion brewed | Refinement complete | Warm cork-pop + sparkle |
+| Enemy hit | Clear a line over an enemy | Crunchy impact (pitch ↓ with HP) |
+| Enemy defeated | Enemy destroyed | Shatter + descending puff |
+| Player hurt | Enemy attacks the player | Dull thud + low warble |
+| Defeated | Player HP → 0 (battle) | Heavy minor-chord collapse |
 | Level complete | Win | Major arpeggio flourish |
 | Jammed | No legal placement for a held shape | Low descending sawtooth |
 | Quest lost | Objective became impossible | Hollow detuned fall |
@@ -563,7 +693,8 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 - [ ] Brew sound; stores spent on brew
 
 ### Phase 4 — Levels, objectives & progression
-- [ ] Level definitions (objective type, grid size, seeded deposits, obstacles)
+- [ ] Level definitions with a **`levelType`** field (exploration default) + objective type, grid
+      size, seeded deposits, obstacles
 - [ ] Objective tracking (collect / score / spell-component quests) + node-complete (rewards) /
       cauldron-tier upgrade on **boss** clear
 - [ ] Story-beat interstitials between chapters
@@ -574,18 +705,33 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 - [ ] **Currency & XP:** award `grams` and `XP` on node completion; track in state
       (`currencyChanged`, `xpChanged`)
 
-### Phase 5 — Run map (Slay-the-Spire branching)
+### Phase 5 — Level types: refinement & battle (§11)
+*(The shared puzzle core stays in `grid`/`drag`/`pieces`; each type is an overlay module keyed off
+`levelType`.)*
+- [ ] `refine.js` — refinement levels: recipe conditions (incl. forbidden-ingredient constraints),
+      crucible cells, **quality grading**, optional **enhancement-ingredient** spend; events
+      `recipeConditionMet` / `qualityChanged` / `potionBrewed` / `enhancementUsed`
+- [ ] Refinement HUD overlay: recipe panel (conditions ✓/◻), quality meter, enhancement tray
+- [ ] `battle.js` — battle grids: enemies on cells with HP, **damage-on-clear** (× combo), enemy
+      **turn** logic (advance/harden/spawn/attack), **player HP**; events `enemyDamaged` /
+      `enemyDefeated` / `enemyTurn` / `playerDamaged`
+- [ ] **Failure 3 — defeated:** player HP → 0 on a battle grid → `levelFailed {reason:'defeated'}`
+- [ ] Battle HUD overlay: player HP bar, on-grid enemy HP, threats panel + turn timer
+- [ ] Refinement reward scales with quality grade; bosses authored as battle grids
+- [ ] Sounds: condition-met, quality-up, potion-brewed; enemy-hit, enemy-defeated, player-hurt, defeat
+
+### Phase 6 — Run map (Slay-the-Spire branching)
 - [ ] `map.js` — seeded procedural map generation: layered DAG, 2–3 forward edges per node,
       diverge/re-converge, boss terminal at far right; fairness guarantees (≥1 shop before boss,
       no back-to-back elites)
-- [ ] Node types: puzzle / shop / cache-event / elite / boss, each routing to its screen
+- [ ] Node types: puzzle (exploration/refine/battle, §11) / shop / cache-event / elite / boss, each routing to its screen
 - [ ] **Run map screen**: horizontal node graph, current/forward/visited node states, currency +
       item top bar, click-to-commit (no backtrack), node hover preview
 - [ ] Run state: carry currency/items/stores across nodes; node-clear advances the branch
 - [ ] Cache/event nodes (reward or trade-off choice); boss-clear → chapter complete → next map
 - [ ] Decide & implement run-failure behavior (retry-node default vs. roguelike chapter-restart, §9)
 
-### Phase 6 — Consumables, shop & character screen
+### Phase 7 — Consumables, shop & character screen
 - [ ] `items.js` — **consumables** model (count, deplete); use logic applying effects to grid/deposits/tray
 - [ ] In-level **item bar** (HUD): consumable counts (select → target)
 - [ ] First consumables (Dissolvent, Catalyst, Transmute Vial, Reveal Salts)
@@ -594,7 +740,7 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 - [ ] **Character screen (`B`)** with **Inventory** + **Stats** tabs; persist owned items & currency
 - [ ] Sounds: purchase, item use
 
-### Phase 7 — XP, skill tree & passives
+### Phase 8 — XP, skill tree & passives
 - [ ] XP model: award on clears/combos/harvests/elites/bosses; `xpChanged`; (optional) character level
 - [ ] `skilltree.js` — passive-power-up node graph (prereqs, XP cost), unlock state, spend logic
 - [ ] **Skill Tree tab** on the character screen: mind-map render, node states (unlocked/available/locked),
@@ -604,13 +750,14 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 - [ ] First passives across branches (Tile Swap, Deep Sight, Surveyor, Steady Hand…); persist unlocks in save
 - [ ] Sounds: skill unlock, passive trigger / ready-again
 
-### Phase 8 — Polish & content
+### Phase 9 — Polish & content
 - [ ] Full ingredient/recipe roster across all tiers; balance pass on economy + item prices + XP curve
-- [ ] More level objectives + obstacle variety; difficulty curve tuning; map-generation tuning; tree tuning
+- [ ] More level objectives + obstacle variety; difficulty curve tuning; map-generation tuning; tree tuning;
+      refinement-recipe & enemy roster
 - [ ] Reduced-motion support, keyboard-drag fallback, responsive scaling pass
 - [ ] Add to root launcher `js/gamedata.js`
 
-### Phase 9+ — Power-ups *(future enhancement)*
+### Phase 10+ — Power-ups *(future enhancement)*
 - [ ] Power-up framework (earn/charge/consume model — see §7 open questions)
 - [ ] Line-breaker & column-breaker (destroy a row/column; interacts with deposit cover-stripping)
 - [ ] Rotate power-up (temporarily allow rotating the held shape before placing)
@@ -646,7 +793,15 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 | `shapeNearlyStuck` | {shapeId, legalSpots} | grid | ui (jam warning) |
 | `noMovesLeft` | {heldShapes} | grid | level (→ `levelFailed 'jammed'`) |
 | `objectiveInfeasible` | {kind, reason} | level | level (→ `levelFailed 'infeasible'`) |
-| `levelFailed` | {reason: 'jammed' \| 'infeasible'} | level | main, ui, sounds |
+| `levelFailed` | {reason: 'jammed' \| 'infeasible' \| 'defeated'} | level | main, ui, sounds |
+| `recipeConditionMet` | {conditionId} | refine | ui (recipe panel), sounds |
+| `qualityChanged` | {grade, value} | refine | ui (quality meter) |
+| `potionBrewed` | {potionId, grade} | refine | level (→ node cleared), state, sounds |
+| `enhancementUsed` | {ingredientId} | refine | stores, ui |
+| `enemyDamaged` | {enemyId, dmg, hpLeft} | battle | ui (nameplate), sounds |
+| `enemyDefeated` | {enemyId} | battle | level, ui, sounds |
+| `enemyTurn` | {actions} | battle | grid, ui |
+| `playerDamaged` | {dmg, hpLeft} | battle | ui (HP bar), sounds (→ `levelFailed 'defeated'` at 0) |
 | `mapGenerated` | {nodes, edges, seed} | map | ui (run map), main |
 | `nodeSelected` | {nodeId, type} | map | main (route to node screen) |
 | `nodeCleared` | {nodeId, rewards} | level/shop/event | map (advance branch), state |
@@ -660,22 +815,24 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 | File | Responsibility |
 |------|---------------|
 | `main.js` | Scene state machine (splash/runmap/storybeat/shop/event/game/result), Kaplay init, orchestration |
-| `config.js` | Grid size, tray size, colors, ingredient/shape/recipe tables, item/shop/skill-tree tables, level + map-gen defs |
+| `config.js` | Grid size, tray size, colors, ingredient/shape/recipe tables, item/shop/skill-tree tables, **level-type/recipe/enemy** tables, level + map-gen defs |
 | `events.js` | EventBus singleton |
-| `state.js` | GameState singleton (score, combo, stores, currency, **XP/level**, owned consumables, **unlocked skills**, passive cooldowns, cauldron tier, progress) |
+| `state.js` | GameState singleton (score, combo, stores, currency, **XP/level**, owned consumables, **unlocked skills**, passive cooldowns, cauldron tier, **player HP in battle**, progress) |
 | `sounds.js` | Web Audio procedural SFX |
-| `ui.js` | HUD panels (objective, cauldron, stores, score, XP, tray, item bar) |
+| `ui.js` | HUD panels — shared skeleton + type overlays (exploration objective / refine recipe+quality / battle HP+threats), tray, item bar |
 | `grid.js` | Lattice data + render, line-clear detection, stuck detection |
 | `pieces.js` | Polyomino shape definitions |
 | `drag.js` | Drag-and-drop, snap, ghost preview, placement validation |
-| `deposits.js` | Buried deposits, cover layers, reveal/harvest logic |
+| `deposits.js` | Buried deposits, cover layers, reveal/harvest logic *(exploration §11a)* |
+| `refine.js` | Refinement levels (§11b): recipe conditions, quality grading, enhancement spend |
+| `battle.js` | Battle grids (§11c): enemies on cells, damage-on-clear, enemy turns, player HP |
 | `cauldron.js` | Ingredient→shape brewing, recipes, tray refill |
 | `items.js` | Consumable use + activated-passive cooldown logic; applies effects to grid/deposits/etc. |
 | `shop.js` | Shop node screen (consumables only), buy/sell, currency spend |
 | `character.js` | Character screen: Inventory / Stats / Skill-Tree tabs |
 | `skilltree.js` | Passive-power-up node graph, prereqs, XP unlock/spend logic |
 | `map.js` | Seeded run-map generation (branching DAG), node types, run-map screen, route state |
-| `level.js` | Level definitions, objectives, win/fail (jammed & infeasible), rewards, node/boss progression |
+| `level.js` | Level defs incl. **`levelType`** (exploration/refine/battle); routes to the type overlay (`deposits`/`refine`/`battle`); objectives, win/fail, rewards, node/boss progression |
 
 ---
 
@@ -718,6 +875,17 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
       (e.g. §7 → "board tools" / "spells") to avoid confusion?
 - [ ] Should consumables be **usable mid-level only**, or also from the run-map / cache nodes?
 - [ ] Currency name — placeholder is **grams** (refined essence); confirm or rename.
+- [ ] **Refinement recipes (§11b):** what's the v1 set of condition types (ingredient-specific lines,
+      combos, ordered crucible fills, forbidden ingredients)? How are **quality grades** scored
+      (combos? wasted-placement penalty? bonus targets?) and what does each grade reward?
+- [ ] **Enhancement ingredients (§11b):** spent **before** the brew, **during**, or both? Are they a
+      separate item class or just regular stores ingredients tagged as enhancers?
+- [ ] **Battle grids (§11c):** do enemies take a **turn every placement** or every N? Player-HP
+      source — a per-level pool, or a persistent run-wide HP that carries between battle nodes (more
+      Spire-like)? Enemy behaviors in v1 (advance / harden / spawn / attack — which ship first)?
+- [ ] **Damage formula (§11c):** flat per-clear, or scaled by combo / line length / shape size?
+- [ ] **Are all three level types in v1**, or is exploration the v1 scope with refinement/battle as
+      fast-follow phases? (current plan: all three, exploration first — Phase 5 adds the others)
 
 ---
 
@@ -764,3 +932,15 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
   the old Shop phase into **Phase 6 (consumables/shop/character)** and **Phase 7 (XP/skill tree/
   passives)**, pushing Polish→8 and Power-ups→9. Flagged XP-level/stat-scaling, tree shape/respec,
   and the §7-vs-§10 "power-up" naming clash as open questions.
+- **Generalized "levels" into three level types** sharing one engine (new §11), each a run-map node
+  type: **§11a exploration** (the existing deposit-harvest loop), **§11b refinement** (use the
+  lattice to *brew a target potion* by meeting **recipe conditions**, with a **quality grade** and
+  optional **enhancement ingredients** that ease/raise the brew), and **§11c battle grids**
+  (enemies occupy cells, clear lines over them to **deal damage × combo**; enemies take turns and
+  chip a **player HP** bar — bosses are typically battle grids). Added a **third failure condition**
+  (HP→0, `'defeated'`), refinement & battle **HUD overlay** mockups, `refine.js` + `battle.js`
+  modules and a `levelType` field on `level.js`, new events (`recipeConditionMet`, `qualityChanged`,
+  `potionBrewed`, `enhancementUsed`, `enemyDamaged`, `enemyDefeated`, `enemyTurn`, `playerDamaged`),
+  refinement/battle **sounds**, and a new **Phase 5 — Level types** (renumbering Run map→6, Shop→7,
+  XP→8, Polish→9, Power-ups→10). Flagged recipe/quality scoring, enhancement timing, enemy
+  turn cadence, player-HP model, damage formula, and v1 scope as open questions.
