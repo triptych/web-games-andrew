@@ -1,0 +1,4 @@
+# Claude Code local, machine-specific settings (personal permission allowlist,
+# local paths) — should not be version-controlled. The shared project config
+# lives in .claude/settings.json, which IS tracked.
+.claude/settings.local.json
