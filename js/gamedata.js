@@ -340,6 +340,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '🎲', label: 'Turn-Based' }
         ]
+    },
+    {
+        id: 'game-027',
+        title: "Alchemist's Lattice",
+        description: 'A drag-and-drop block-placement puzzle (1010!-style) with an alchemy twist, built in Phaser 4. Drag clusters of 1-4 connected blocks onto a 9x9 lattice and fill a full row or column to clear it. Pieces are dealt in sets of 3 from a finite supply and never rotate, so plan ahead - fill the board with no legal move left and the lattice jams. Chain clears for combos and streaks. (Phase 1: the core puzzle.)',
+        icon: '⚗️',
+        folder: 'game-027',
+        cssClass: 'alchemists-lattice',
+        tags: [
+            { emoji: '🧩', label: 'Puzzle' },
+            { emoji: '🖱️', label: 'Drag & Drop' },
+            { emoji: '💡', label: 'Strategy' }
+        ]
     }
 ];
 
