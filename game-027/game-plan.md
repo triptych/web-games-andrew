@@ -1,9 +1,9 @@
 # Game 027: Alchemist's Lattice
 
 **Genre:** Block-placement puzzle (Tetris-block / *1010!*-style) fused with light RPG / alchemy progression and a story campaign
-**Engine:** Kaplay v4000 (ES6 modules, shared `lib/kaplay/kaplay.mjs`)
-**Target Resolution:** 1280 × 720 (letterbox, responsive)
-**Status:** Planning — not yet scaffolded
+**Engine:** Phaser 4 (ES6 modules, shared `lib/phaser/phaser-4.0.0/dist/phaser.esm.js`)
+**Target Resolution:** 1280 × 720 (`Scale.FIT` + `CENTER_BOTH`, responsive)
+**Status:** Phase 1 scaffolded & playable (core puzzle loop)
 
 ---
 
@@ -496,7 +496,7 @@ Drag-and-drop first; full keyboard/mouse parity where sensible.
 
 ## UI / HUD
 
-Kaplay-rendered (canvas), following the repo's retro-monospace convention. The screen splits into
+Phaser-rendered (canvas), following the repo's retro-monospace convention. The screen splits into
 three zones: the **lattice** (center, the star), the **tray** (bottom), and the **alchemist
 panel** (right rail: cauldron, stores, objective). Story/map/cauldron are separate screens.
 
@@ -767,20 +767,24 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 
 ## Phases
 
-### Phase 1 — Scaffold & core puzzle (no alchemy yet)
-- [ ] Scaffold: `index.html`, `js/{main,config,events,state,sounds,ui}.js` (Kaplay module pattern,
-      splash → game → result scenes; `events.clearAll()` on scene leave)
-- [ ] `grid.js` — lattice data model, render, cell states (empty/filled/buried)
-- [ ] `pieces.js` — polyomino shape definitions (mono→tetromino families)
-- [ ] `drag.js` — drag-and-drop with snap + ghost preview (green/red), valid-placement test
-- [ ] `supply.js` — per-level finite tile pool (Phase 1 placeholder: a flat list; real sizing/mix
-      from §4 "Supply defaults" lands with the cauldron in Phase 3); deal **sets of 3** from it; must
-      place all 3, then deal the next set; **deal-fairness** ordering (prefer a set with ≥1 placeable
-      shape when the pool allows); `setDealt`/`supplyChanged`
-- [ ] Line-clear detection + scoring + combo/streak; dissolve juice
-- [ ] **Failure 1 — jammed:** after each placement / new set, if no held shape has any legal spot →
-      `levelFailed {reason:'jammed'}` → result screen; HUD warns when a held shape is nearly stuck
-- [ ] Sounds: click, pickup, place, invalid, line clear, combo, jammed
+### Phase 1 — Scaffold & core puzzle (no alchemy yet) ✅ COMPLETE
+- [x] Scaffold: `index.html`, `js/{main,config,events,state,sounds}.js` + Phaser scene classes
+      (`SplashScene` → `GameScene` + `UIScene` (parallel) → `ResultScene`); scene files import Phaser
+      directly from the ESM build (not `window.Phaser`); `events.clearAll()` in `GameScene.shutdown()`
+- [x] `grid.js` — lattice data model (empty/filled cells), `canPlace`/`place`/`clearLines`/
+      `hasAnyPlacement`/`countPlacements`; rendering done in `GameScene` (buried cells: Phase 2)
+- [x] `pieces.js` — polyomino shape definitions (16 fixed-orientation mono→tetromino shapes)
+- [x] Drag-and-drop in `GameScene` — **scene-level pointer handling + manual hit-testing** of tray
+      slots (Phaser 4 container `setInteractive` with a custom hitArea threw and aborted `create()`,
+      killing all input wiring — manual hit-testing is the robust fix); snap + green/red ghost preview
+- [x] `supply.js` — per-level finite tile pool (Phase 1 placeholder: flat seeded pool via mulberry32;
+      real sizing/mix from §4 "Supply defaults" lands with the cauldron in Phase 3); deal **sets of 3**;
+      place all 3, then deal the next set; **deal-fairness** ordering; `setDealt`/`supplyChanged`
+- [x] Line-clear detection (simultaneous rows+cols) + scoring + combo/streak (`state.applyPlacement`);
+      dissolve motes + settle flash juice; score counts up in the HUD
+- [x] **Failure 1 — jammed:** after each placement / new set, if no held shape has any legal spot →
+      `levelFailed {reason:'jammed'}` → `ResultScene`; HUD warns when a held shape has ≤3 spots left
+- [x] Sounds: click, pickup, place, invalid, line clear, combo, set dealt, jammed
 
 ### Phase 2 — Deposits (clearing reveals elements)
 - [ ] Deposit data: multi-cell regions + cover layers, seeded per level
@@ -931,7 +935,7 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 
 | File | Responsibility |
 |------|---------------|
-| `main.js` | Scene state machine (splash/runmap/storybeat/shop/event/game/result), Kaplay init, orchestration |
+| `main.js` | Phaser `Game` init + scene list (splash/runmap/storybeat/shop/event/game/result); orchestration |
 | `config.js` | Grid size, tray size, colors, element/tile-type tables, **tile-type unlock-recipe** tables, item/shop/skill-tree tables, **level-type/recipe/enemy** tables, per-level **tile-supply** + map-gen defs |
 | `events.js` | EventBus singleton |
 | `state.js` | GameState singleton (score, combo/streak, **element stores**, **unlocked tile types**, currency, **XP/level**, owned consumables, **unlocked skills**, passive cooldowns, cauldron tier, **player HP in battle**, run/save state, progress) |
@@ -1020,6 +1024,22 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 ---
 
 ## Changelog
+
+### Phase 1 scaffold — Phaser (2026-06-15)
+- **Switched the engine from Kaplay v4000 to Phaser 4** (shared `lib/phaser/phaser-4.0.0/dist/phaser.esm.js`),
+  matching game-019. Scene files import Phaser directly from the ESM build (never `window.Phaser`);
+  `index.html` loads only `<script type="module" src="js/main.js">`. Updated the Engine line, Status,
+  UI section, Phase 1 checklist, and `main.js` module note accordingly.
+- **Scaffolded & shipped Phase 1 (core puzzle loop, no alchemy):** `js/{main,config,events,state,
+  pieces,grid,supply,sounds}.js` + Phaser scenes `SplashScene → GameScene + UIScene (parallel) →
+  ResultScene`. Implements the 9×9 lattice, 16 fixed-orientation polyominoes (no rotation, v1),
+  the sets-of-3 finite seeded supply with deal-fairness, drag-and-drop with green/red ghost preview,
+  simultaneous row+column line-clears with combo/streak scoring + dissolve juice, and the *jammed*
+  failure with a near-stuck HUD warning. Playable end-to-end.
+- **Input gotcha (noted for future phases):** a Phaser 4 Container `setInteractive({hitArea, …})`
+  call threw during `create()`, silently aborting the rest of scene setup so *no* input (drag or
+  keyboard) wired up. Fixed by handling all pointer input at the scene level and **hit-testing tray
+  slots manually** against stored `Geom.Rectangle`s — the robust pattern for this game.
 
 ### Evaluation pass (2026-06-14)
 - **Corrected the core cauldron model (the plan had conflated two systems).** The original §2/§4
