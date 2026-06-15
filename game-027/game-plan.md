@@ -17,24 +17,32 @@ pieces — you are handed a small tray of shapes and must place all of them, pla
 never run out of room.
 
 The alchemy layer is what makes it a game-027 and not a clone. The blocks you place are not
-abstract tiles — they are **raw elements and ingredients** (salt, ember, dew, root, ash…) that
-you slowly acquire and must *convert* into placeable shapes at your **cauldron**. And the lattice
-itself is not empty: buried beneath it are **dormant ingredient deposits**. Clearing lines peels
-away the layers covering a deposit; reveal the whole deposit (which may span several cells and
-take several clears) and you harvest a new, rarer ingredient into your stores — which in turn
-unlocks new shapes to brew and place.
+abstract tiles — they are **tile types made of elements** (salt, ember, dew, root, ash…). At your
+**cauldron** — a *between-levels* workbench, never opened mid-puzzle — you combine the **primordial
+elements** you've gathered to **define and unlock new tile types**. The cauldron is *crafting*, not
+piece-minting: it decides *which kinds of tile exist* in your repertoire, and unlocking a richer
+type widens what a level can hand you. And the lattice itself is not empty: buried beneath it are
+**dormant element deposits**. Clearing lines peels away the layers covering a deposit; reveal the
+whole deposit (which may span several cells and take several clears) and you harvest a new, rarer
+element into your stores — fuel for unlocking the next tile type at the cauldron.
+
+Inside a level there is **no brewing**: you are given a **preset, finite supply** of each tile type
+the level stocks, dealt to the tray a few at a time. The cauldron stays back at the workbench. The
+two layers connect *between* levels — harvest elements in the field, then spend them at the cauldron
+to unlock the tile types future levels can stock.
 
 Wrapping all of this is a **story campaign**. You begin as an apprentice with a cracked starter
-cauldron that can only process the lowest-tier ingredients. Completing a level's objective
-upgrades your cauldron, letting you process higher-tier ingredients, brew larger/stranger shapes,
-and tackle deeper deposits — and advances the narrative of an alchemist earning their guild mark.
+cauldron that can only process the lowest-tier elements. Completing a level's objective upgrades
+your cauldron, letting you process higher-tier elements, unlock larger/stranger tile types, and
+tackle deeper deposits — and advances the narrative of an alchemist earning their guild mark.
 
 The same block-placement engine drives **three kinds of level** (see §11): **exploration** levels
 (harvest deposits, the loop described above), **refinement** levels (use the lattice to *brew a
 specific potion* under recipe conditions, with optional enhancement ingredients raising the
 quality), and **battle grids** (enemies occupy cells and you clear lines over them to deal damage).
-All three share the tray, line-clears, and cauldron economy — they differ in win/lose conditions
-and what lives on the grid.
+All three share the tray, line-clears, and the preset tile supply — they differ in win/lose
+conditions and what lives on the grid. (Only refinement levels "brew" anything, and that's the
+*potion objective on the grid*, §11b — distinct from the meta cauldron.)
 
 ---
 
@@ -43,15 +51,18 @@ and what lives on the grid.
 The game is deliberately two loops feeding each other; keeping them legibly separate in the
 design (and code) is the whole trick.
 
-- **The puzzle loop (moment-to-moment):** drag shapes from the tray → place on the lattice →
-  clear lines → don't get stuck. This is fast, tactile, and never blocks on the RPG layer.
-- **The alchemy/RPG loop (session-to-session):** clearing lines reveals deposits → harvested
-  ingredients fill your stores → spend ingredients at the cauldron to brew the *next* tray of
-  shapes → cauldron upgrades (earned via level objectives) gate which ingredients/shapes exist.
+- **The puzzle loop (moment-to-moment, in a level):** you're given a preset finite supply of tile
+  types; drag shapes from the tray → place on the lattice → clear lines → don't get stuck or run
+  out. This is fast, tactile, and never blocks on the RPG layer — the cauldron is not opened here.
+- **The alchemy/RPG loop (between levels, at the workbench):** clearing lines reveals deposits →
+  harvested elements fill your stores → at the **cauldron** you spend elements to **unlock new tile
+  types** → cauldron upgrades (earned via level objectives) gate which elements/tile types exist.
+  Unlocking a type widens what *future* levels can stock; it does **not** mint pieces into a live
+  tray.
 
 > Design rule: the puzzle loop must be **fully playable** before any alchemy exists. Alchemy is a
-> meta-layer that changes *what shapes you get* and *why you clear* — not a dependency the core
-> placement loop waits on.
+> meta-layer that changes *which tile types exist* and *why you clear* — not a dependency the core
+> placement loop waits on. The cauldron lives between levels, never inside one.
 
 ---
 
@@ -63,56 +74,113 @@ cell is empty, filled, or part of a **covered deposit** (see §5). The grid neve
 pieces never fall — placement is pure spatial planning.
 
 ### 2. The tray (drag-and-drop shapes)
-The player is dealt a **set of 3 shapes at a time** (config `TRAY_SIZE = 3`) and **must place all
-three before the next set is brewed** — this is the *1010!* cadence, and it's what creates real
-pressure: you can't fish for a piece that fits, you have to make room for the hand you hold. A
-shape is a small cluster of **1–4 connected blocks** (mono, domino, tromino, tetromino — all the
-*1010!*-style polyomino families). **Shapes are placed in fixed orientations — no rotation in v1.**
-So planning is about *where* a shape goes, not how you turn it (rotation returns later as a
-power-up — see §7). The player drags a shape onto the lattice; it snaps to grid cells and shows a
-**ghost preview** (green = fits, red = collision/out-of-bounds). Release on a valid spot to commit.
-A shape can only be placed where *all* its cells land on empty lattice cells. The three shapes may
-be placed in **any order**. When all three are placed, a new set of 3 is brewed (see §4) — and if
-none of the remaining shapes in the current set can fit anywhere, the level ends (see Failure
-Conditions).
+A level stocks a **preset, finite supply** of tile types (§4): a fixed pool of shapes the level was
+authored/seeded with. From that pool the player is dealt a **set of 3 shapes at a time** (config
+`TRAY_SIZE = 3`) and **must place all three before the next set is dealt** — this is the *1010!*
+cadence, and it's what creates real pressure: you can't fish for a piece that fits, you have to make
+room for the hand you hold. A shape is a small cluster of **1–4 connected blocks** (mono, domino,
+tromino, tetromino — all the *1010!*-style polyomino families). **Shapes are placed in fixed
+orientations — no rotation in v1.** So planning is about *where* a shape goes, not how you turn it
+(rotation returns later as a power-up — see §7). The player drags a shape onto the lattice; it snaps
+to grid cells and shows a **ghost preview** (green = fits, red = collision/out-of-bounds). Release
+on a valid spot to commit. A shape can only be placed where *all* its cells land on empty lattice
+cells. The three shapes may be placed in **any order**. When **all three** are placed, the next set
+of 3 is **drawn from the level's remaining supply** — *not* refilled slot-by-slot as each piece is
+placed. (This whole-set cadence is the *1010!* model and is what makes the jam check well-defined:
+you only re-deal once the hand is empty.) If none of the shapes currently in hand can fit anywhere,
+the level ends (see Failure Conditions); if the level's supply runs out before the objective is met,
+that is the *out-of-pieces* failure (§Failure 2). There is **no cauldron/brewing inside a level** —
+the supply is fixed when the level begins.
 
 ### 3. Line clears & scoring
 After each placement, any **fully filled row or column** clears simultaneously. Scoring:
 - Base points per cleared cell.
-- **Combo multiplier** for clearing multiple lines in one placement (e.g. an L that completes a
-  row *and* a column).
-- **Streak bonus** for clearing on consecutive placements.
+- **Combo** = the number of lines cleared by a *single* placement (an L that completes a row *and* a
+  column is a ×2 combo). Combo is computed per-placement and is the multiplier referenced by
+  refinement quality (§11b) and battle damage (§11c: `damage = base × combo`). A placement that
+  clears nothing is combo 0/×1.
+- **Streak** = consecutive *placements that each clear at least one line*; it adds a separate, gently
+  ramping bonus and **resets to zero on any placement that clears nothing**. (Combo is within one
+  placement; streak is across placements — they stack but are tracked independently.)
 Cleared cells dissolve with a particle/flash effect and free the space for new shapes.
 
-### 4. The cauldron (ingredients → shapes)
-Instead of random shapes, the tray is **brewed** from your ingredient stores. Each shape costs a
-small recipe of ingredients (e.g. a 2×2 square = 4× *salt*; an L-tromino = 2× *ember* + 1×
-*root*). When a tray slot is consumed you brew a replacement from whatever your **cauldron tier**
-allows. Higher-tier cauldrons unlock larger/rarer shape recipes and process higher-tier
-ingredients. If you can't afford any shape (stores depleted), low-tier "filler" shapes are always
-brewable from the most common ingredient so the puzzle loop never hard-stalls.
+### 4. The cauldron (elements → tile types) — a *between-levels* workbench
+The cauldron is **not** opened during a level and does **not** mint the tray. It is a meta-screen,
+visited at the workbench between levels (and from the run map / pause), where you **combine
+primordial elements from your stores to unlock new tile types** — *crafting recipes*, not pieces.
+Each tile type has an unlock recipe of elements (e.g. unlocking the *ember L-tromino* type costs
+2× *ember* + 1× *root*, paid **once**); once unlocked, that type is permanently in your repertoire
+and becomes eligible to appear in the **preset supply** of future levels. Your **cauldron tier**
+gates which elements it can process and which tile types it can unlock — higher tiers unlock
+larger/rarer types and accept higher-tier elements. Tier is earned by clearing a chapter boss (§6/§9),
+never bought.
 
-> This reframes the classic "you're handed random pieces" as "you *spend resources* to mint
-> pieces" — connecting the puzzle economy to the RPG economy.
+> **Repertoire → level supply.** Unlocking a tile type widens the *pool a level can draw from*; it
+> does not place pieces into a live tray. When a level (or run map node) is generated, it is **seeded
+> with a finite supply** of tiles chosen from the types you've unlocked (plus level-authored
+> additions), and that supply is fixed for the duration of the level (§2). So the cauldron's effect
+> is felt across runs ("now that I've unlocked the dew square, levels can stock it"), not within a
+> single placement.
+
+> **No in-level economy / no soft-lock.** Because tiles are a preset supply rather than purchased
+> per-set, a level can never "run out of money to brew" mid-puzzle. The only supply-side failure is
+> the authored finite pool being exhausted before the objective (§Failure 2). Level seeding
+> guarantees a baseline of common, flexible tiles so the opening is always playable.
+
+> This reframes the classic loop as **harvest elements (in levels) → unlock tile types (at the
+> cauldron) → richer levels** — keeping the puzzle economy (preset tiles) cleanly separate from the
+> RPG economy (elements + cauldron crafting).
+
+> **Supply defaults (v1 — tunable in Phase 9).** A level's supply is **objective-driven**, sized so a
+> competent player clears with comfortable margin and *out-of-pieces* (§Failure 2) is a real but rare
+> backstop — **jamming is the primary fail; exhaustion is the safety net.** Concretely:
+> - **Size.** Estimate the placements a clean solve needs, then grant slack. Default
+>   `SUPPLY_SLACK = 1.6×`: `supply_tiles = ceil( (objective_workload / avg_tile_cells) × 1.6 )`,
+>   rounded **up to a whole multiple of `TRAY_SIZE` (3)** so the last set is never a partial hand.
+>   `avg_tile_cells ≈ 2.5`. *Worked example, 9×9, "clear 6 lines":* a line is 9 cells but clears
+>   reuse space, so empirically ~3–4 placed tiles per line cleared → ~21 tiles of real work →
+>   `ceil(21 × 1.6) = 34 → round to 36 tiles (12 sets)`. Elite/boss nodes use a **tighter
+>   `SUPPLY_SLACK = 1.25×`** (scarcity is the difficulty); early/tutorial nodes `2.0×`.
+>   Refinement/battle objectives convert to a workload estimate the same way (clears needed to meet
+>   conditions / to kill the enemy HP pool).
+> - **Mix by rarity.** Draw tile types with **geometric tier weights** so commons dominate and the
+>   opening is always playable: **common 60% / uncommon 25% / rare 12% / exotic 3%** (un-unlocked
+>   tiers contribute 0 and their weight redistributes to commons). A type only appears if unlocked
+>   (§4) or level-authored.
+> - **Floors & shape guarantees.** Regardless of the roll: **≥40% of the supply is 1–2-cell tiles**
+>   (mono/domino — the flexible "filler" that prevents lock-ups), and **every level includes ≥1
+>   monomino** so a single-cell gap is always fillable. Authored levels may pin specific types
+>   (e.g. a refinement recipe needing ember tiles seeds a minimum count of them).
+> - **Determinism.** The supply list **and its deal order** are derived from the level/run **seed**
+>   (§9), so a retried level re-deals the identical sequence — fair retries, no re-rolling into an
+>   easier hand. The deal-fairness reordering (§Failure 1) operates within that seeded sequence.
+>
+> Config knobs: `SUPPLY_SLACK` (per node-class), `TIER_WEIGHTS`, `SMALL_TILE_FLOOR = 0.4`,
+> `MIN_MONOMINOES = 1`. All live in `config.js` and are the main Phase 9 economy dials.
 
 ### 5. Deposits (clearing reveals ingredients)
 Beneath the lattice, certain cells hide **deposit fragments**. A deposit is a multi-cell region
 (1–6 cells) of a specific ingredient, hidden under one or more **cover layers**. Mechanics:
 - Covered deposit cells render with a subtle "buried" overlay; they're still normal lattice cells
-  for placement purposes.
-- When a line clears and passes over a covered deposit cell, it **strips one cover layer** from
-  that cell (deep/rare deposits need multiple passes).
+  for placement purposes — you place blocks on top of them exactly as on any empty cell. (The
+  "do buried cells block placement?" open question is **resolved: no, placeable-over**.)
+- A cover layer is only stripped when a deposit cell is **part of a line that clears** — i.e. that
+  cell was filled by a block and its whole row or column completed. Each qualifying clear strips
+  **one** layer; deep/rare deposits need multiple separate clears over the same cell. (A clear that
+  doesn't include a given buried cell does nothing to it — covers are stripped per-cell, not per
+  whole deposit.) When the line clears, the block on the deposit cell dissolves like any other; the
+  cell returns to empty-but-buried (now one layer shallower) and can be filled and cleared again.
 - When **every** fragment of a deposit is fully uncovered, the deposit **harvests**: its
-  ingredient is added to your stores (often a higher tier than what you currently brew), with a
-  reveal flourish, and that ingredient becomes available to the cauldron.
+  element is added to your stores (often a higher tier than you can currently process), with a
+  reveal flourish, and that element becomes available to spend at the cauldron.
 - A level seeds a known set of deposits; uncovering specific "objective" deposits is often the
   level's win condition.
 
 ### 6. RPG / progression layer (the alchemist's story)
-- **Cauldron tiers (1→N):** each upgrade widens the ingredient/shape pool and unlocks deeper
-  deposits. Earned by completing level objectives, not bought.
-- **Ingredient tiers:** common → uncommon → rare → exotic. Higher tiers brew bigger/odder shapes
-  and are gated behind cauldron tier.
+- **Cauldron tiers (1→N):** each upgrade widens which elements it can process and which **tile types**
+  it can unlock, and unlocks deeper deposits. Earned by completing level objectives, not bought.
+- **Element tiers:** common → uncommon → rare → exotic. Higher tiers let the cauldron unlock
+  bigger/odder tile types and are gated behind cauldron tier.
 - **Chapters as run maps:** each chapter is a branching map you traverse to a boss (see §9); the
   boss is the cauldron-tier gate.
 - **Story beats:** short narrated interstitials between chapters (apprentice → journeyman → guild
@@ -196,6 +264,13 @@ left-to-right via **binary (and occasionally trinary) decision points**, exactly
 - **Persistence within a chapter:** currency, owned items, unlocked passives, XP, and stores carry
   **across nodes** within a run; whether they persist between chapters is the existing RPG-save
   open question.
+- **Save scope & timing (what localStorage actually holds).** To survive quitting mid-run, the save
+  must persist the **run state**, not just career totals: the chapter **seed**, the generated map,
+  the **current node + committed path**, and the carried currency/items/XP/stores/passives/cauldron
+  tier. Write the save **on every node resolution** (and on skill unlock / shop purchase) so a
+  crash/quit resumes at the last node boundary — mid-puzzle state is *not* saved (a level in
+  progress restarts from its seed on resume, consistent with retry-from-seed). One save slot for v1;
+  whether a failed run is wiped or resumable depends on the run-failure model (open question §9).
 - **Failure on the run:** a failed puzzle node (jammed / infeasible / defeated, §Failure) ends that node — open question
   whether it ends the whole run (Spire-like, restart the chapter from a fresh/again-seeded map) or
   just that node with a retry. Default plan: retry the node (campaign game, not a roguelike permadeath),
@@ -277,6 +352,14 @@ that pass over them**.
   **advance** (occupy more cells, shrinking your space), **harden** (gain armor so a single clear
   isn't enough), **spawn adds**, or **attack you** — chipping a **player HP / focus** bar that, at
   zero, fails the level. This gives battle grids their own loss condition beyond jammed/infeasible.
+  - **Advance into an occupied cell:** an enemy can only spread into **empty** cells (it cannot
+    overwrite a block you've placed); if it would have no empty cell to advance into it does its
+    next-preferred action instead. This keeps advance from silently deleting the player's work.
+  - **Enemy-caused jams:** because advancing shrinks the playable region, a battle can become jammed
+    *by the enemy turn* rather than by the player's placement. A jam detected immediately after an
+    enemy turn must still read as a fair loss — the **turn timer** (below) exists precisely so the
+    player can see the squeeze coming and clear space first. (It's still reported as `'jammed'`; the
+    HUD message can note it was the enemy advance.)
 - **Win condition.** Defeat all enemies (or the wave/boss-enemy) before your HP runs out or the
   board jams. **Boss nodes** (§9) are typically large battle grids with a multi-phase enemy.
 - **Shared economy.** Items/passives matter most here — a *Dissolvent* can clear a blocking cell, a
@@ -297,15 +380,19 @@ that pass over them**.
    - *Shop* → spend currency, then back to the map. *Cache/event* → take a reward/choice → map.
    - *Exploration / refinement / battle / elite / boss* → enter the level (continue below).
 3. **Enter level:** lattice seeded for its **type** (§11) — deposits (exploration), a recipe crucible
-   + enhancement choice (refinement), or enemies (battle) — and the objective shown.
-4. **Puzzle loop (shared):** drag tray shapes → place → clear lines. The clears do type-specific work:
-   strip deposit covers / satisfy recipe conditions / damage enemies.
-5. **Resolve the type's goal:** harvest ingredients; or brew the potion at a **quality grade**
+   + enhancement choice (refinement), or enemies (battle) — *and* seeded with a **finite tile supply**
+   drawn from your unlocked tile types (§4); the objective shown. No cauldron is opened here.
+4. **Puzzle loop (shared):** drag tray shapes (dealt 3 at a time from the supply) → place → clear
+   lines. The clears do type-specific work: strip deposit covers / satisfy recipe conditions / damage
+   enemies.
+5. **Resolve the type's goal:** harvest elements; or brew the potion at a **quality grade**
    (optionally spending enhancement ingredients); or destroy all enemies before your HP runs out.
-6. **Objective met → node cleared:** award score/currency/ingredients/XP (refinement reward scales
-   with quality) → advance along the chosen branch, back to the map.
-7. **Failure (see below) → node failed (soft):** retry the node (default).
-8. **Reach & clear the boss (far right):** chapter complete → **upgrade cauldron tier**, story beat,
+6. **Objective met → node cleared:** award score/currency/**harvested elements**/XP (refinement
+   reward scales with quality) → advance along the chosen branch, back to the map.
+7. **Between levels (workbench/run map):** optionally open the **cauldron** (`C`) to spend harvested
+   elements **unlocking new tile types** for future levels (§4) — never mid-level.
+8. **Failure (see below) → node failed (soft):** retry the node (default).
+9. **Reach & clear the boss (far right):** chapter complete → **upgrade cauldron tier**, story beat,
    next chapter's map. Repeat until the final cauldron and the guild-mark ending.
 
 ---
@@ -319,10 +406,18 @@ apply to **every** level type; #3 is specific to **battle grids** (§11c).
 ### 1. Out of room — a forced piece can't be placed
 You're dealt sets of 3 and must place all 3. If, at any point, **a shape still in your hand has no
 legal placement anywhere on the lattice**, the level ends — the lattice is jammed.
-- Checked after each placement *and* when a fresh set of 3 is brewed: if **no** remaining shape in
-  the set fits anywhere, fail immediately (don't make the player hunt for the dead end themselves).
-- The HUD should warn before the wall is hit — e.g. flag a shape that has very few legal spots
-  left, so a jam feels earned, not arbitrary.
+- Checked after each placement *and* when a fresh set of 3 is dealt from the level's supply: if
+  **no** shape now in hand fits anywhere, fail immediately (don't make the player hunt for the dead
+  end themselves).
+- **Deal-fairness rule:** because the next set is only *seen* once it's dealt, a jam triggered the
+  instant a set lands feels arbitrary (the player never had a move). The deal should therefore, when
+  the remaining supply allows it, **prefer a set containing at least one placeable shape** — order
+  the draw so an obviously-dead hand isn't forced while a workable one is still available. A
+  deal-time jam should only happen when the board is genuinely so full that *no* remaining tile fits
+  anywhere — a real dead end, not an unlucky draw order.
+- The HUD should warn before the wall is hit — e.g. flag a shape *currently in hand* that has very
+  few legal spots left, so a jam feels earned. (The warning applies to the held set; you can't
+  preview the next hand absent the *Surveyor* passive, §10.)
 - Result screen: *"The lattice is jammed."* → retry (same seed) / map.
 
 ### 2. Out of pieces — quest requirement can't be fulfilled
@@ -370,8 +465,8 @@ Drag-and-drop first; full keyboard/mouse parity where sensible.
 | Peek deposit info | Hover a buried cell → tooltip |
 | Use consumable / select item | Click an item in the in-level item bar, then click its target |
 | Trigger a ready passive | Click the passive's HUD chip (e.g. Tile Swap), then click the target tile |
-| Open cauldron / recipes | C |
-| Open ingredient stores | I |
+| Open cauldron (between levels) / view recipes | C — at the workbench it's the crafting screen; mid-level it's read-only (tile-type recipe book, no crafting) |
+| Open element stores | I |
 | Open character screen (inventory / stats / skill tree) | B |
 | Unlock a passive (skill tree) | Open character → Skill Tree tab → select node → UNLOCK (spends XP) |
 | Choose a node on the run map | Click a highlighted forward node |
@@ -384,16 +479,17 @@ Drag-and-drop first; full keyboard/mouse parity where sensible.
 
 ## Progression / Difficulty
 
-- **Cauldron tier** is the master progression dial — each tier unlocks ingredients, shapes, and
-  deposit depth, and is earned by **clearing a chapter's boss node** (§9).
+- **Cauldron tier** is the master progression dial — each tier widens which elements it can process
+  and which **tile types** it can unlock, plus deposit depth, and is earned by **clearing a
+  chapter's boss node** (§9).
 - **Route choice (§9):** the branching run map is itself a strategic layer — chase shops/caches for
   resources, or elites for bigger rewards at higher risk.
 - **Objectives escalate by depth into the run:** early nodes = "clear N lines"; mid = "harvest
   deposit X"; the boss = layered, multi-part ("harvest the exotic vein *and* survive 20 placements").
 - **Lattice pressure:** later levels seed more covered cells / pre-filled obstacles, shrinking
   workable space; bigger shapes (from higher tiers) demand better planning.
-- **Ingredient scarcity:** rare deposits gate rare shapes — the player must choose whether to
-  spend a scarce ingredient on a powerful shape now or hoard it.
+- **Element scarcity:** rare deposits gate rare tile types — at the cauldron the player must choose
+  whether to spend a scarce element unlocking a powerful tile type now or hoard it for a costlier one.
 - **Score** persists per level (stars/medals) to give replay incentive.
 
 ---
@@ -412,7 +508,7 @@ panel** (right rail: cauldron, stores, objective). Story/map/cauldron are separa
 - **Motion:** placed blocks settle with a tiny squash; cleared lines flash + dissolve into rising
   motes; harvested deposits bloom with a gold ring; score counts up rather than snapping.
 - **Feedback:** valid ghost = soft green glow, invalid = red hatch; combo clears pop floating
-  multiplier text; cauldron "bubbles" when a new shape is brewable.
+  multiplier text; a deposit "shivers" as its last cover layer is about to strip.
 
 ### In-level HUD — Exploration (§11a, the base layout)
 
@@ -423,17 +519,17 @@ refinement and battle **swap the objective/side panels** for type-specific reado
 ┌──────────────────────────────────────────────────────────────────────┐
 │  ⚗ ALCHEMIST'S LATTICE          ◷ OBJECTIVE: Harvest the Salt Vein 1/3 │  ← top bar
 │                                                                        │
-│        ┌─────────────────────────────────┐      ╔════ CAULDRON ═════╗  │
-│        │ . . . ▣ ▣ . . . .                │      ║  Tier 1 — Clay     ║  │
-│        │ . . . ▣ ▣ . . . .                │      ║  ◉ bubbling…       ║  │
-│        │ . . . . . ░ ░ . .   ░ = buried   │      ╠════ STORES ═══════╣  │
-│        │ . ▤ ▤ ▤ . ░ ░ . .   deposit      │      ║  ✦ salt   ×12      ║  │
-│        │ . . . . . . . . .                │      ║  ⬢ ember  ×3       ║  │
-│        │ . . . . . . . . .                │      ║  ❀ dew    ×0       ║  │
+│        ┌─────────────────────────────────┐      ╔════ SUPPLY ═══════╗  │
+│        │ . . . ▣ ▣ . . . .                │      ║  ✦ square  ×4 left ║  │
+│        │ . . . ▣ ▣ . . . .                │      ║  ⬢ L-trio  ×2 left ║  │
+│        │ . . . . . ░ ░ . .   ░ = buried   │      ║  ✦ mono    ×6 left ║  │
+│        │ . ▤ ▤ ▤ . ░ ░ . .   deposit      │      ╠══ HARVESTED ══════╣  │
+│        │ . . . . . . . . .                │      ║  ✦ salt   +12      ║  │
+│        │ . . . . . . . . .                │      ║  ⬢ ember  +3       ║  │
+│        │ . . . . . . . . .                │      ║  ❀ dew    +0       ║  │
 │        │ . . . . . . . . .                │      ╠════ SCORE ════════╣  │
 │        │ . . . . . . . . .                │      ║  4 820   ▲ x2 combo║  │
-│        │ . . . . . . . . .                │      ╚════════════════════╝  │
-│        └─────────────────────────────────┘                             │
+│        └─────────────────────────────────┘      ╚════════════════════╝  │
 │                                                                        │
 │   TRAY:   ┌──┐   ┌────┐   ┌──┐        ITEMS: 🧪×2  ♺×1  │ ⇄ Tile Swap   │  ← tray + item bar
 │          ✦│▣▣│  ⬢│▣   │  ✦│▣ │                         │   ready ●      │
@@ -444,12 +540,15 @@ refinement and battle **swap the objective/side panels** for type-specific reado
 
 - **Top bar:** title + current **objective** with live progress.
 - **Lattice (center):** the grid; empty/filled/buried cells distinct; drag-ghost overlays here.
-- **Cauldron panel:** current tier + a "brewing" indicator when a new shape can be minted.
-- **Stores panel:** ingredient counts with glyph+color; dims an ingredient at 0.
+- **Supply panel:** the level's **remaining tile supply** by type ("×N left") — the finite pool the
+  tray draws from (§4); a type dims/disappears when exhausted, telegraphing the *out-of-pieces* wall.
+- **Harvested panel:** elements harvested *this level* (glyph+color), which bank to your stores on
+  completion for later cauldron unlocks; an element at +0 dims.
 - **Score panel:** score (counts up) + active combo/streak multiplier + a small **XP** readout
   (XP earned this level).
-- **Tray (bottom):** the up-to-3 draggable shapes, each tinted by its dominant ingredient and
-  labeled with the ingredient glyph; consumed slots show "brewing…" until refilled.
+- **Tray (bottom):** the up-to-3 draggable shapes, each tinted by its tile type and labeled with its
+  glyph; once all three are placed the next set is dealt from the supply (consumed slots briefly
+  empty until the set re-deals).
 - **Item bar (bottom-right):** owned **consumables** (bought at shops) with counts (click to select
   → click a target) and **activated-passive** chips (unlocked in the skill tree) showing ready
   (`●`) or charging (a shrinking cooldown ring + remaining-N). A consumable greys out at count 0; a
@@ -509,12 +608,12 @@ a damage-on-clear hint.
 
 | Screen | Contents |
 |--------|----------|
-| Splash | Title, "press any key / click to start", controls hint, version tag |
+| Splash / title | Title, version tag, controls hint, and the run entry: **Continue** (resume a saved run — only if a save exists) and **New Run** (generates Chapter I's map from a fresh seed, wiping any prior run after a confirm). Plus a brief "press any key / click" on first boot |
 | **Run map** | Branching left→right node path to the boss; current node highlighted, reachable forward nodes selectable, taken path/visited nodes marked. Carries currency/items HUD. See below |
 | Story beat | Narrated interstitial (apprentice → journeyman → guild mark) between chapters / on boss clear |
 | Cache / event | Small narrative event node: a reward or a trade-off choice |
-| Cauldron (`C`) | Recipe book: shapes you can brew, their ingredient costs, tier-locked entries greyed |
-| Stores (`I`) | Full ingredient inventory with tiers + flavor/lore |
+| Cauldron (`C`) | **Between-levels crafting screen**: combine elements to **unlock new tile types**; lists each type's unlock recipe + element cost, tier-locked entries greyed, owned/unlocked types marked. Mid-level it opens **read-only** (recipe reference, no crafting) |
+| Stores (`I`) | Full **element** inventory with tiers + flavor/lore (the fuel spent at the cauldron) |
 | **Character (`B`)** | Tabbed: **Inventory** (owned consumables), **Stats** (vitals/XP/level), **Skill Tree** (mind-map of passive power-ups, spend XP to unlock). See below |
 | **Shop** | A shop *node* on the run map; spend currency on **consumables only**; see below |
 | Pause (`P`) | Resume / restart node / abandon run → map or title |
@@ -644,7 +743,8 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 | Combo | Multi-line clear | Shimmer + higher chime |
 | Cover stripped | Deposit layer removed | Gritty scrape |
 | Harvest | Deposit fully revealed | Warm bell bloom |
-| Brew | New shape minted | Bubbling glug |
+| Set dealt | New set of 3 drawn from supply | Soft triple shuffle/clack |
+| Tile type unlocked | Cauldron unlocks a new tile type (between levels) | Bubbling glug + soft chime |
 | Cauldron upgrade | Tier up | Triumphant chord |
 | Purchase | Buy a consumable in shop | Coin clink + register ding |
 | Item used | Consumable consumed | Quick fizzy pop |
@@ -673,24 +773,32 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 - [ ] `grid.js` — lattice data model, render, cell states (empty/filled/buried)
 - [ ] `pieces.js` — polyomino shape definitions (mono→tetromino families)
 - [ ] `drag.js` — drag-and-drop with snap + ghost preview (green/red), valid-placement test
-- [ ] **Set of 3** **random** shapes (placeholder for cauldron); must place all 3, then re-deal
+- [ ] `supply.js` — per-level finite tile pool (Phase 1 placeholder: a flat list; real sizing/mix
+      from §4 "Supply defaults" lands with the cauldron in Phase 3); deal **sets of 3** from it; must
+      place all 3, then deal the next set; **deal-fairness** ordering (prefer a set with ≥1 placeable
+      shape when the pool allows); `setDealt`/`supplyChanged`
 - [ ] Line-clear detection + scoring + combo/streak; dissolve juice
 - [ ] **Failure 1 — jammed:** after each placement / new set, if no held shape has any legal spot →
       `levelFailed {reason:'jammed'}` → result screen; HUD warns when a held shape is nearly stuck
 - [ ] Sounds: click, pickup, place, invalid, line clear, combo, jammed
 
-### Phase 2 — Deposits (clearing reveals ingredients)
+### Phase 2 — Deposits (clearing reveals elements)
 - [ ] Deposit data: multi-cell regions + cover layers, seeded per level
 - [ ] Buried-cell rendering + hover tooltip
-- [ ] Line-clear strips cover layers over deposit cells; harvest on full reveal
-- [ ] Stores model: ingredient counts; harvest adds to stores
-- [ ] Stores HUD panel; harvest flourish; cover-strip + harvest sounds
+- [ ] Line-clear strips cover layers over deposit cells (per-cell, on a clearing line); harvest on
+      full reveal
+- [ ] Stores model: **element** counts; harvest adds to stores (banked on level complete)
+- [ ] Harvested/stores HUD panel; harvest flourish; cover-strip + harvest sounds
 
-### Phase 3 — Cauldron (ingredients → shapes)
-- [ ] Ingredient & recipe definitions (cost per shape), ingredient tiers
-- [ ] Cauldron brews tray shapes from stores instead of pure random; filler-shape fallback
-- [ ] Cauldron + recipe-book screen (`C`); brewing indicator; shapes tinted by ingredient
-- [ ] Brew sound; stores spent on brew
+### Phase 3 — Cauldron (elements → tile types, *between levels*)
+- [ ] Element & tile-type definitions; **tile-type unlock recipes** (element cost per type), tiers
+- [ ] **Cauldron crafting screen (`C`)**, opened between levels: spend elements to **unlock tile
+      types**; tier-gated/greyed entries; `tileTypeUnlocked`; read-only recipe view mid-level
+- [ ] **Supply now seeds from unlocked tile types** (level def can add authored types) using the §4
+      **Supply defaults**: objective-driven size (`SUPPLY_SLACK`, rounded to whole sets), geometric
+      `TIER_WEIGHTS` mix, `SMALL_TILE_FLOOR` + `MIN_MONOMINOES`, all seed-deterministic; shapes tinted
+      by tile type
+- [ ] Unlock sound; elements spent on unlock
 
 ### Phase 4 — Levels, objectives & progression
 - [ ] Level definitions with a **`levelType`** field (exploration default) + objective type, grid
@@ -701,7 +809,10 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 - [ ] **Failure 2 — infeasible:** conservative feasibility check per objective type (best-case
       remaining score < target; required deposit cells unreachable; not enough qualifying lines
       formable) → `levelFailed {reason:'infeasible'}`; only fail when clearly impossible
-- [ ] Cauldron-upgrade & level-complete sounds; save progress (localStorage)
+- [ ] Cauldron-upgrade & level-complete sounds; **save/load (localStorage)** — persist run state
+      (seed, map, current node + path, carried currency/items/XP/stores/tier) on each node
+      resolution, resume at last node boundary (§9 "Save scope & timing"); mid-puzzle state is not
+      saved (level restarts from seed on resume)
 - [ ] **Currency & XP:** award `grams` and `XP` on node completion; track in state
       (`currencyChanged`, `xpChanged`)
 
@@ -751,7 +862,11 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 - [ ] Sounds: skill unlock, passive trigger / ready-again
 
 ### Phase 9 — Polish & content
-- [ ] Full ingredient/recipe roster across all tiers; balance pass on economy + item prices + XP curve
+- [ ] Full element / tile-type-unlock-recipe roster across all tiers; balance pass on economy + item
+      prices + XP curve
+- [ ] **Tile-supply tuning (§4):** validate `SUPPLY_SLACK` (1.6×/1.25×/2.0×), `TIER_WEIGHTS`
+      (60/25/12/3), `SMALL_TILE_FLOOR` (0.4), `MIN_MONOMINOES` and the per-objective workload
+      estimate against playtests across grid sizes
 - [ ] More level objectives + obstacle variety; difficulty curve tuning; map-generation tuning; tree tuning;
       refinement-recipe & enemy roster
 - [ ] Reduced-motion support, keyboard-drag fallback, responsive scaling pass
@@ -774,18 +889,20 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 | `placeInvalid` | — | drag | sounds |
 | `linesCleared` | {rows, cols, cells, combo} | grid | score, deposits, sounds, ui |
 | `scoreChanged` | newScore | state | ui |
-| `comboChanged` | multiplier | state | ui |
+| `comboChanged` | {combo} (lines cleared this placement) | state | ui |
+| `streakChanged` | {streak} (consecutive clearing placements) | state | ui |
 | `coverStripped` | {depositId, cell, layersLeft} | deposits | sounds, ui |
-| `depositHarvested` | {ingredientId, qty} | deposits | stores, sounds, ui |
-| `storesChanged` | {ingredientId, qty} | state | ui (stores), cauldron |
-| `shapeBrewed` | {slot, shapeId, cost} | cauldron | tray, sounds, ui |
-| `setDealt` | {shapes} | cauldron | drag, ui |
+| `depositHarvested` | {elementId, qty} | deposits | stores, sounds, ui |
+| `storesChanged` | {elementId, qty} | state | ui (stores), cauldron |
+| `setDealt` | {shapes:[{slot,shapeId}]} | supply (level) | drag, ui, sounds |
+| `supplyChanged` | {tileTypeId, remaining} | supply (level) | ui (supply panel) |
+| `tileTypeUnlocked` | {tileTypeId, elementCost} | cauldron | state, ui, sounds |
 | `objectiveProgress` | {kind, cur, target} | level | ui |
 | `objectiveMet` | {levelId} | level | main, ui |
 | `cauldronUpgraded` | {newTier} | state | ui, cauldron, sounds |
 | `currencyChanged` | newAmount | state | ui, shop |
 | `itemPurchased` | {itemId, cost} | shop | state, sounds |
-| `itemUsed` | {itemId} | items | grid/deposits/cauldron, state, sounds |
+| `itemUsed` | {itemId} | items | grid/deposits/tray, state, sounds |
 | `xpChanged` | {xp, level} | state | ui (HUD/stats) |
 | `skillUnlocked` | {skillId, xpSpent} | skilltree | state, ui, sounds |
 | `passiveTriggered` | {skillId} | items | grid, ui (start cooldown), sounds |
@@ -815,18 +932,19 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 | File | Responsibility |
 |------|---------------|
 | `main.js` | Scene state machine (splash/runmap/storybeat/shop/event/game/result), Kaplay init, orchestration |
-| `config.js` | Grid size, tray size, colors, ingredient/shape/recipe tables, item/shop/skill-tree tables, **level-type/recipe/enemy** tables, level + map-gen defs |
+| `config.js` | Grid size, tray size, colors, element/tile-type tables, **tile-type unlock-recipe** tables, item/shop/skill-tree tables, **level-type/recipe/enemy** tables, per-level **tile-supply** + map-gen defs |
 | `events.js` | EventBus singleton |
-| `state.js` | GameState singleton (score, combo, stores, currency, **XP/level**, owned consumables, **unlocked skills**, passive cooldowns, cauldron tier, **player HP in battle**, progress) |
+| `state.js` | GameState singleton (score, combo/streak, **element stores**, **unlocked tile types**, currency, **XP/level**, owned consumables, **unlocked skills**, passive cooldowns, cauldron tier, **player HP in battle**, run/save state, progress) |
 | `sounds.js` | Web Audio procedural SFX |
 | `ui.js` | HUD panels — shared skeleton + type overlays (exploration objective / refine recipe+quality / battle HP+threats), tray, item bar |
 | `grid.js` | Lattice data + render, line-clear detection, stuck detection |
-| `pieces.js` | Polyomino shape definitions |
+| `pieces.js` | Polyomino shape definitions + tile-type definitions |
+| `supply.js` | Per-level **finite tile supply**: seed the pool from unlocked types, deal sets of 3 (deal-fairness ordering), track remaining, emit `setDealt`/`supplyChanged` |
 | `drag.js` | Drag-and-drop, snap, ghost preview, placement validation |
 | `deposits.js` | Buried deposits, cover layers, reveal/harvest logic *(exploration §11a)* |
 | `refine.js` | Refinement levels (§11b): recipe conditions, quality grading, enhancement spend |
 | `battle.js` | Battle grids (§11c): enemies on cells, damage-on-clear, enemy turns, player HP |
-| `cauldron.js` | Ingredient→shape brewing, recipes, tray refill |
+| `cauldron.js` | **Between-levels** crafting screen: combine elements → **unlock tile types** (unlock recipes, tier gating, spend logic); read-only recipe view mid-level. Does *not* feed the in-level tray |
 | `items.js` | Consumable use + activated-passive cooldown logic; applies effects to grid/deposits/etc. |
 | `shop.js` | Shop node screen (consumables only), buy/sell, currency spend |
 | `character.js` | Character screen: Inventory / Stats / Skill-Tree tabs |
@@ -849,9 +967,21 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
       (only fail when clearly impossible) to avoid false-failing winnable boards — a full solver is
       out of scope. Per-objective heuristics need defining (best-case score bound, deposit
       reachability, qualifying-line count).
-- [ ] Do covered deposit cells block placement, or are they placeable-over (current plan: placeable)?
-- [ ] Cauldron economy: do shapes *always* cost ingredients (risk of soft-lock), or is there a
-      free common-shape stream with paid premium shapes? (current plan: free filler fallback)
+- [x] **Do covered deposit cells block placement?** — *Resolved: no, placeable-over* (§5). They are
+      normal lattice cells; a cover layer strips only when the cell is part of a line that clears.
+- [x] **In-level economy / brewing?** — *Resolved: there is none.* The cauldron is a **between-levels**
+      element→tile-type crafting station (§4); inside a level the tray draws from a **preset finite
+      tile supply** seeded from unlocked types. No per-set brewing, so no mid-puzzle soft-lock.
+- [~] **Level tile-supply composition (§4):** *defaults proposed* — objective-driven size
+      (`SUPPLY_SLACK` 1.6× normal / 1.25× elite-boss / 2.0× early, rounded to whole sets), geometric
+      rarity mix (60/25/12/3), a 40% small-tile floor + ≥1 monomino, all seed-deterministic. Remaining
+      to validate in Phase 9: the per-objective **workload estimate** (placements-per-line ≈ 3–4 is a
+      guess), and whether the slack multipliers feel right across grid sizes.
+- [ ] **Tile-type unlock recipes (§4):** element cost per tile type, and the **unlock order / tree**
+      (which types each cauldron tier exposes). Are unlocks permanent (current plan: yes, one-time)?
+- [ ] **Grid size vs. tile size scaling:** higher tiers unlock bigger tile types; on a 9×9 with
+      seeded obstacles, large tiles can make jams near-certain. Does the grid grow with tier, do
+      obstacle budgets shrink, or are big tiles rate-limited in a level's supply? (A balance risk.)
 - [ ] Keyboard-only drag fallback design, or mouse/touch-first and accept it?
 - [ ] Procedural deposit/level seeding vs. hand-authored *individual levels* — note the **run map
       itself is procedural** (§9); the question is now about the puzzle content inside each node.
@@ -890,6 +1020,47 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 ---
 
 ## Changelog
+
+### Evaluation pass (2026-06-14)
+- **Corrected the core cauldron model (the plan had conflated two systems).** The original §2/§4
+  described the cauldron as **minting the in-level tray** ("brewed from your stores", per-set), which
+  was self-contradictory (§2 said whole-set re-deal; §4 said per-slot) and wrong. Recast per the
+  intended design: the **cauldron is a *between-levels* workbench** where you **combine primordial
+  elements to unlock new tile types** (crafting recipes, paid once), and **inside a level the tray
+  draws from a *preset finite tile supply*** seeded from your unlocked types — **no brewing/minting
+  mid-puzzle**. Rewrote Concept, the two-loops, §2, §4, the Game Loop, the exploration HUD (CAULDRON
+  panel → **SUPPLY** + **HARVESTED** panels), the Cauldron/Stores screens, Progression, Phases 1–3,
+  Module Overview (new **`supply.js`**, recast `cauldron.js`), and the controls (`C` = between-levels
+  crafting, read-only mid-level).
+- **Reworked events for the corrected model.** Dropped per-slot `shapeBrewed`; `setDealt` now emits
+  from the **level supply** (no cost); added **`supplyChanged {tileTypeId, remaining}`** and
+  **`tileTypeUnlocked {tileTypeId, elementCost}`** (cauldron). Renamed the in-level "Brew" sound to a
+  **set-dealt** shuffle + a between-levels **tile-type-unlocked** glug; field names `ingredientId`→
+  `elementId`.
+- **Replaced the bootstrap/brew open questions** (now moot — no in-level economy) with: **level
+  tile-supply composition**, **tile-type unlock recipes/order**, and **grid vs. tile-size scaling**;
+  marked "in-level economy/brewing?" resolved (none).
+- **Proposed concrete tile-supply defaults (§4 "Supply defaults").** Objective-driven size with
+  `SUPPLY_SLACK` (1.6× normal / 1.25× elite-boss / 2.0× early, rounded to whole sets of 3, worked
+  example for "clear 6 lines on 9×9" → 36 tiles); geometric rarity mix `TIER_WEIGHTS` 60/25/12/3;
+  `SMALL_TILE_FLOOR = 0.4` + `MIN_MONOMINOES = 1` so the board stays unstickable; fully
+  seed-deterministic. Wired the knobs into `config.js`, Phase 3 (real seeding) and Phase 9 (tuning);
+  downgraded the supply open question to *defaults proposed, validate in playtest*.
+- **Added a deal-fairness rule to Failure §1.** Since the next set is unseen until dealt, the deal
+  should **prefer a set with ≥1 placeable shape** when the remaining supply allows, so a deal-time
+  jam only fires on a genuinely full board. Jam HUD warning applies to the *held* set.
+- **Disambiguated deposit cover-stripping (§5)** — a layer strips only when a buried cell is *part of
+  a clearing line*, per-cell not per-deposit; resolved the "do buried cells block placement?" open
+  question (no, placeable-over) and spelled out the block-dissolves / cell-stays-buried behavior.
+- **Defined enemy advance vs. existing blocks and enemy-caused jams (§11c)** — enemies spread only
+  into empty cells (can't overwrite placed blocks) and a jam right after an enemy turn is a fair
+  loss the turn-timer telegraphs.
+- **Specified save scope & timing (§9 + Phase 4)** — persist *run state* (seed, map, current node +
+  path, carried resources) on each node resolution; mid-puzzle restarts from seed. Added a
+  **Continue / New Run** entry flow to the splash screen (previously no resume path existed).
+- **Separated combo vs. streak (§3)** — combo = lines per single placement (the multiplier §11b/§11c
+  cite), streak = consecutive clearing placements (resets on a no-clear). Split `comboChanged` and
+  added `streakChanged`.
 
 ### Planning (2026-06-14)
 - Initial game plan authored: drag-and-drop polyomino placement puzzle fused with an alchemy
