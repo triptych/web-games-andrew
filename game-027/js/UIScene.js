@@ -7,12 +7,15 @@
  */
 
 import { Scene } from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
-import { GAME_WIDTH, GAME_HEIGHT, PANEL_X, PANEL_W, COLORS, SUPPLY_TILES } from './config.js';
+import { GAME_WIDTH, GAME_HEIGHT, PANEL_X, PANEL_W, COLORS, SUPPLY_TILES, ELEMENTS } from './config.js';
 import { events } from './events.js';
 import { state } from './state.js';
 
-function hex(arr)      { return '#' + arr.map(v => v.toString(16).padStart(2, '0')).join(''); }
+function hex(arr)      { return '#' + arr.map(v => Math.round(v).toString(16).padStart(2, '0')).join(''); }
 function toHexInt(arr) { return (arr[0] << 16) | (arr[1] << 8) | arr[2]; }
+
+const ELEM = {};
+for (const e of ELEMENTS) ELEM[e.id] = e;
 
 export class UIScene extends Scene {
     constructor() { super({ key: 'UIScene' }); }
@@ -20,16 +23,19 @@ export class UIScene extends Scene {
     create() {
         this._offs = [];
 
-        // Top bar
+        // Top bar — title and live objective
         this.add.text(24, 18, "⚗  ALCHEMIST'S LATTICE", {
             fontSize: '20px', fontFamily: 'monospace', fontStyle: 'bold', color: hex(COLORS.gold),
         });
-        this.add.text(GAME_WIDTH - 24, 22, 'CLEAR ROWS & COLUMNS', {
+        this._objectiveTxt = this.add.text(GAME_WIDTH - 24, 22, 'OBJECTIVE: —', {
             fontSize: '12px', fontFamily: 'monospace', color: hex(COLORS.textDim),
+        }).setOrigin(1, 0);
+        this._objectiveProgressTxt = this.add.text(GAME_WIDTH - 24, 40, '', {
+            fontSize: '11px', fontFamily: 'monospace', color: hex(COLORS.brass),
         }).setOrigin(1, 0);
 
         // Right-rail panel frame
-        this._panel(PANEL_X - 14, 70, PANEL_W + 28, 330);
+        this._panel(PANEL_X - 14, 70, PANEL_W + 28, 470);
 
         // SUPPLY panel
         this.add.text(PANEL_X, 84, '═══ SUPPLY ═══', {
@@ -39,27 +45,41 @@ export class UIScene extends Scene {
             fontSize: '14px', fontFamily: 'monospace', color: hex(COLORS.text),
         });
 
-        // SCORE panel
-        this.add.text(PANEL_X, 168, '═══ SCORE ═══', {
+        // HARVESTED panel (§5 — elements pulled from deposits this level)
+        this.add.text(PANEL_X, 166, '═══ HARVESTED ═══', {
             fontSize: '13px', fontFamily: 'monospace', color: hex(COLORS.brass),
         });
-        this._scoreText = this.add.text(PANEL_X, 194, '0', {
+        // One line per element (always listed so +0 dims, §UI), built once.
+        this._harvestLines = {};
+        ELEMENTS.forEach((e, i) => {
+            this._harvestLines[e.id] = this.add.text(PANEL_X, 192 + i * 22,
+                `${e.glyph} ${e.name.padEnd(7)} +0`, {
+                fontSize: '14px', fontFamily: 'monospace', color: hex(COLORS.textDim),
+            });
+        });
+
+        // SCORE panel
+        const scoreY = 192 + ELEMENTS.length * 22 + 16;
+        this.add.text(PANEL_X, scoreY, '═══ SCORE ═══', {
+            fontSize: '13px', fontFamily: 'monospace', color: hex(COLORS.brass),
+        });
+        this._scoreText = this.add.text(PANEL_X, scoreY + 26, '0', {
             fontSize: '34px', fontFamily: 'monospace', fontStyle: 'bold', color: hex(COLORS.gold),
         });
-        this._comboText = this.add.text(PANEL_X, 240, '', {
+        this._comboText = this.add.text(PANEL_X, scoreY + 72, '', {
             fontSize: '14px', fontFamily: 'monospace', color: hex(COLORS.text),
         });
-        this._streakText = this.add.text(PANEL_X, 264, '', {
+        this._streakText = this.add.text(PANEL_X, scoreY + 96, '', {
             fontSize: '13px', fontFamily: 'monospace', color: hex(COLORS.textDim),
         });
 
         // Jam-risk warning (hidden until triggered)
-        this._warnText = this.add.text(PANEL_X, 320, '', {
+        this._warnText = this.add.text(PANEL_X, scoreY + 130, '', {
             fontSize: '13px', fontFamily: 'monospace', color: hex(COLORS.danger), wordWrap: { width: PANEL_W },
         });
 
         // Controls hint
-        this.add.text(24, GAME_HEIGHT - 22, 'DRAG a shape onto the lattice   •   R to restart', {
+        this.add.text(24, GAME_HEIGHT - 22, 'DRAG onto lattice   •   C — cauldron   •   R — restart   •   Esc — save & title', {
             fontSize: '11px', fontFamily: 'monospace', color: hex(COLORS.textDim),
         });
 
@@ -72,8 +92,24 @@ export class UIScene extends Scene {
         this._offs.push(events.on('comboChanged',  (d) => this._setCombo(d.combo)));
         this._offs.push(events.on('streakChanged', (d) => this._setStreak(d.streak)));
         this._offs.push(events.on('shapeNearlyStuck', (d) => this._setWarn(d.legalSpots)));
+        this._offs.push(events.on('storesChanged', (d) => this._setHarvested(d.elementId, d.qty)));
+        this._offs.push(events.on('tooltipShow', (d) => this._showTooltip(d)));
+        this._offs.push(events.on('tooltipHide', ()  => this._hideTooltip()));
+        this._offs.push(events.on('levelStarted', (d) => this._setObjective(d.objectiveLabel, null, null)));
+        this._offs.push(events.on('objectiveProgress', (d) => this._setObjective(null, d.cur, d.target)));
+        this._offs.push(events.on('objectiveMet', () => this._setObjectiveMet()));
 
-        this._targetScore = state.score;
+        // Tooltip objects — created once, shown/hidden as needed
+        this._tooltipBg  = this.add.graphics();
+        this._tooltipTxt = this.add.text(0, 0, '', {
+            fontSize: '12px', fontFamily: 'monospace', color: hex(COLORS.text),
+            padding: { x: 8, y: 6 }, lineSpacing: 3,
+        });
+        this._tooltipBg.setVisible(false);
+        this._tooltipTxt.setVisible(false);
+
+        this._targetScore   = state.score;
+        this._objectiveLabel = '';
 
         this.events.on('shutdown', () => { this._offs.forEach(off => off()); this._offs = []; });
     }
@@ -104,6 +140,17 @@ export class UIScene extends Scene {
         this._supplyText.setText(`✦  ${remaining} tiles left\n   (${sets} set${sets === 1 ? '' : 's'} remaining)`);
     }
 
+    _setHarvested(elementId, qty) {
+        const line = this._harvestLines[elementId];
+        if (!line) return;
+        const e = ELEM[elementId];
+        line.setText(`${e.glyph} ${e.name.padEnd(7)} +${qty}`);
+        line.setColor(qty > 0 ? hex(e.color) : hex(COLORS.textDim));
+        // brief pop to draw the eye to the new harvest (§UI feedback)
+        line.setScale(1.25);
+        this.tweens.add({ targets: line, scale: 1, duration: 260, ease: 'Back.easeOut' });
+    }
+
     _setCombo(combo) {
         this._comboText.setText(combo > 0 ? `▲ x${combo} combo` : '');
     }
@@ -120,5 +167,42 @@ export class UIScene extends Scene {
         } else {
             this._warnText.setText('');
         }
+    }
+
+    _setObjective(label, cur, target) {
+        if (label !== null) {
+            this._objectiveLabel = label;
+            this._objectiveTxt.setText(`OBJECTIVE: ${label}`);
+        }
+        if (cur !== null && target !== null) {
+            this._objectiveProgressTxt.setText(`${cur} / ${target}`);
+        }
+    }
+
+    _setObjectiveMet() {
+        this._objectiveTxt.setText('OBJECTIVE: ✓ COMPLETE!').setColor(hex(COLORS.success));
+        this._objectiveProgressTxt.setText('');
+    }
+
+    _showTooltip({ x, y, label, color }) {
+        const txt = this._tooltipTxt;
+        txt.setText(label);
+        txt.setVisible(true);
+        const w = txt.width + 4, h = txt.height + 4;
+        let tx = x + 16, ty = y + 16;
+        if (tx + w > GAME_WIDTH) tx = x - w - 12;
+        txt.setPosition(tx, ty);
+        const bg = this._tooltipBg;
+        bg.clear();
+        bg.fillStyle(toHexInt(COLORS.panel), 0.96);
+        bg.fillRoundedRect(tx - 4, ty - 4, w, h, 5);
+        bg.lineStyle(1.5, toHexInt(color), 0.9);
+        bg.strokeRoundedRect(tx - 4, ty - 4, w, h, 5);
+        bg.setVisible(true);
+    }
+
+    _hideTooltip() {
+        this._tooltipBg.setVisible(false);
+        this._tooltipTxt.setVisible(false);
     }
 }

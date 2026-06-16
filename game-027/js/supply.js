@@ -13,9 +13,10 @@
  * null until the whole hand empties, then the next set is dealt.
  */
 
-import { TRAY_SIZE, SUPPLY_TILES, TILE_TYPES } from './config.js';
-import { SHAPE_IDS, SMALL_IDS, MONO_ID, getShape } from './pieces.js';
+import { TRAY_SIZE, SUPPLY_TILES, TILE_TYPES, TILE_TYPE_DEFS, TIER_WEIGHTS, SMALL_TILE_FLOOR } from './config.js';
+import { SMALL_IDS, MONO_ID, getShape } from './pieces.js';
 import { events } from './events.js';
+import { state } from './state.js';
 
 // --- Tiny seeded RNG (mulberry32) for deterministic, retryable deals ---
 function mulberry32(seed) {
@@ -50,20 +51,52 @@ export class Supply {
     }
 
     /**
-     * Build a flat pool. Phase 1 mix (light version of §4 floors): guarantee a
-     * decent fraction of small "filler" tiles so the opening is always playable,
-     * including ≥1 monomino; the rest is a uniform roll over all shapes.
+     * Build a flat pool using §4 Supply defaults (Phase 3+).
+     *
+     * - Shape ids drawn from UNLOCKED tile types, weighted by rarity tier
+     *   (TIER_WEIGHTS: common 60 / uncommon 25 / rare 12 / exotic 3).
+     * - SMALL_TILE_FLOOR: ≥40% of tiles are 1–2 cell shapes (mono/domino).
+     * - MIN_MONOMINOES = 1: at least one monomino guaranteed.
+     * - Tile element-type (color/glyph) is a random unlocked TILE_TYPE.
      */
     _seedPool(n) {
+        // Build weighted id lists for shape selection.
+        const byRarity = { common: [], uncommon: [], rare: [], exotic: [] };
+        for (const def of TILE_TYPE_DEFS) {
+            if (!state.isUnlocked(def.id)) continue;
+            const r = def.rarity || 'common';
+            if (byRarity[r]) byRarity[r].push(def.id);
+        }
+        // Fallback: if nothing unlocked, use mono.
+        if (!Object.values(byRarity).some(arr => arr.length > 0)) {
+            byRarity.common = [MONO_ID];
+        }
+
+        // Small tiles = shapes with ≤2 cells that are unlocked.
+        const smallIds = SMALL_IDS.filter(id => state.isUnlocked(id));
+        if (smallIds.length === 0) smallIds.push(MONO_ID);
+
+        const smallCount = Math.max(1, Math.floor(n * SMALL_TILE_FLOOR));
         const pool = [];
-        const smallCount = Math.max(1, Math.floor(n * 0.4)); // SMALL_TILE_FLOOR ≈ 0.4
 
-        // ≥1 monomino (MIN_MONOMINOES = 1)
+        // ≥1 monomino
         pool.push(this._makeTile(MONO_ID));
-        for (let i = 1; i < smallCount; i++) pool.push(this._makeTile(this._pick(SMALL_IDS)));
-        for (let i = smallCount; i < n; i++)  pool.push(this._makeTile(this._pick(SHAPE_IDS)));
 
-        // Fisher–Yates shuffle with the seeded rng.
+        // Small filler tiles
+        for (let i = 1; i < smallCount; i++) {
+            pool.push(this._makeTile(this._pick(smallIds)));
+        }
+
+        // Remaining tiles — tier-weighted random from unlocked shapes.
+        const totalWeight = Object.entries(TIER_WEIGHTS)
+            .filter(([r]) => byRarity[r] && byRarity[r].length > 0)
+            .reduce((s, [, w]) => s + w, 0);
+
+        for (let i = smallCount; i < n; i++) {
+            pool.push(this._makeTile(this._pickWeighted(byRarity, totalWeight)));
+        }
+
+        // Fisher–Yates shuffle.
         for (let i = pool.length - 1; i > 0; i--) {
             const j = Math.floor(this.rng() * (i + 1));
             [pool[i], pool[j]] = [pool[j], pool[i]];
@@ -71,9 +104,24 @@ export class Supply {
         return pool;
     }
 
+    /** Pick a random tile type id using TIER_WEIGHTS across unlocked shapes. */
+    _pickWeighted(byRarity, totalWeight) {
+        let r = this.rng() * totalWeight;
+        for (const [tier, weight] of Object.entries(TIER_WEIGHTS)) {
+            const ids = byRarity[tier];
+            if (!ids || ids.length === 0) continue;
+            r -= weight;
+            if (r <= 0) return this._pick(ids);
+        }
+        // Fallback
+        const all = Object.values(byRarity).flat();
+        return this._pick(all.length ? all : [MONO_ID]);
+    }
+
     _makeTile(shapeId) {
-        const tt = this._pick(TILE_TYPES).id;
-        return { shapeId, tileType: tt };
+        // Use a matching TILE_TYPE by element id if the shape id matches, else random.
+        const tileType = this._pick(TILE_TYPES).id;
+        return { shapeId, tileType };
     }
 
     /** Shape ids currently held (nulls filtered out). */

@@ -12,14 +12,15 @@
  *   UIScene     — HUD overlay, runs in parallel with GameScene
  *   ResultScene — win / jammed result screen
  *
- * Phase 1 only — core puzzle loop (no alchemy/deposits/cauldron yet).
+ * Phase 1–3 — core puzzle loop, deposits (§5), cauldron crafting (§4).
  */
 
 import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
-import { SplashScene } from './SplashScene.js';
-import { GameScene }   from './GameScene.js';
-import { UIScene }     from './UIScene.js';
-import { ResultScene } from './ResultScene.js';
+import { SplashScene }    from './SplashScene.js';
+import { GameScene }      from './GameScene.js';
+import { UIScene }        from './UIScene.js';
+import { ResultScene }    from './ResultScene.js';
+import { CauldronScene }  from './CauldronScene.js';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 
 function toHexInt(arr) { return (arr[0] << 16) | (arr[1] << 8) | arr[2]; }
@@ -33,7 +34,7 @@ const config = {
         mode:       Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
     },
-    scene: [SplashScene, GameScene, UIScene, ResultScene],
+    scene: [SplashScene, GameScene, UIScene, ResultScene, CauldronScene],
 };
 
 new Phaser.Game(config);

@@ -111,3 +111,53 @@ export function playJammed() {
     _sweep('sawtooth', 360, 50, 0.7, 0.35);
     _noise(0.4, 0.1, 0.1);
 }
+
+/** Cover stripped — gritty scrape as a deposit layer is removed (§5) */
+export function playCoverStripped() {
+    _noise(0.16, 0.13);
+    _sweep('sawtooth', 240, 150, 0.16, 0.07);
+}
+
+/** Tile-type unlocked — bubbling glug + soft chime (§4 cauldron unlock) */
+export function playTileUnlocked() {
+    // "glug" — descending noise burst evoking a bubbling cauldron
+    _sweep('sawtooth', 180, 90, 0.22, 0.18);
+    _noise(0.18, 0.09, 0.04);
+    // chime
+    _osc('sine', 880, 0.4, 0.18, 0.14);
+    _osc('sine', 1108, 0.3, 0.3, 0.22);
+    _osc('triangle', 1320, 0.2, 0.2, 0.30);
+}
+
+/** Harvest — warm bell bloom when a deposit is fully revealed (§5) */
+export function playHarvest() {
+    _osc('sine', 523.25, 0.5, 0.2);            // C5
+    _osc('sine', 659.25, 0.5, 0.16, 0.04);     // E5
+    _osc('sine', 783.99, 0.6, 0.14, 0.08);     // G5
+    _osc('triangle', 1046.5, 0.4, 0.08, 0.12); // C6 shimmer
+}
+
+/** Level complete — major arpeggio flourish (§Phase 4) */
+export function playLevelComplete() {
+    const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5]; // C5 E5 G5 C6 E6
+    notes.forEach((f, i) => _osc('sine', f, 0.45 - i * 0.06, 0.22, i * 0.07));
+    _osc('triangle', 1568, 0.25, 0.2, 0.32);  // top shimmer
+}
+
+/** Quest infeasible — hollow detuned fall (§Failure 2) */
+export function playInfeasible() {
+    _sweep('sawtooth', 320, 80, 0.9, 0.28);
+    _sweep('sine', 280, 60, 0.9, 0.12, 0.08);
+    _noise(0.3, 0.06, 0.2);
+}
+
+/** Cauldron tier upgrade — triumphant chord (§6) */
+export function playCauldronUpgrade() {
+    // root + major third + fifth + octave, staggered
+    _osc('sine', 261.63, 0.8, 0.25);           // C4
+    _osc('sine', 329.63, 0.8, 0.22, 0.06);     // E4
+    _osc('sine', 392.00, 0.8, 0.20, 0.12);     // G4
+    _osc('sine', 523.25, 0.9, 0.18, 0.18);     // C5
+    _osc('triangle', 1046.5, 0.6, 0.3, 0.22);  // sparkle
+    _noise(0.1, 0.05, 0.24);
+}

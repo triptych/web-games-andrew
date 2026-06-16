@@ -14,23 +14,30 @@
 
 import { Scene, Geom } from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
 import {
-    GRID_W, GRID_H, CELL_SIZE, CELL_GAP, GRID_X, GRID_Y,
+    GAME_WIDTH, GRID_W, GRID_H, CELL_SIZE, CELL_GAP, GRID_X, GRID_Y,
     TRAY_SLOT_X, TRAY_Y, TRAY_CELL, COLORS, TILE_TYPES,
-    SCORE_PER_CELL, STREAK_BONUS, SUPPLY_TILES,
+    SCORE_PER_CELL, STREAK_BONUS, SUPPLY_TILES, ELEMENTS, STARTING_LAYOUTS,
 } from './config.js';
 import { Grid } from './grid.js';
 import { Supply } from './supply.js';
+import { Deposits } from './deposits.js';
 import { getShape } from './pieces.js';
 import { state } from './state.js';
 import { events } from './events.js';
 import {
     playPickup, playPlace, playInvalid, playLineClear, playCombo,
-    playSetDealt, playJammed,
+    playSetDealt, playJammed, playCoverStripped, playHarvest,
+    playLevelComplete, playInfeasible, playCauldronUpgrade,
 } from './sounds.js';
+import { LevelManager, getLevelDef, objectiveLabel } from './level.js';
 
 function toHexInt(arr) { return (arr[0] << 16) | (arr[1] << 8) | arr[2]; }
+function hexStr(arr)   { return '#' + arr.map(v => Math.round(v).toString(16).padStart(2, '0')).join(''); }
 const TILE = {};
 for (const t of TILE_TYPES) TILE[t.id] = t;
+const ELEM = {};
+for (const e of ELEMENTS) ELEM[e.id] = e;
+const ELEM_FALLBACK = ELEMENTS[0];
 
 export class GameScene extends Scene {
     constructor() { super({ key: 'GameScene' }); }
@@ -38,21 +45,43 @@ export class GameScene extends Scene {
     create() {
         state.reset();
 
-        // A fixed seed for Phase 1 (retryable). Later phases derive it from run state.
-        this.grid   = new Grid(GRID_W, GRID_H);
-        this.supply = new Supply(20260614, SUPPLY_TILES);
+        // Load the current level definition (driven by run progression).
+        this.levelDef = getLevelDef(state.runLevelIndex);
+        const seed    = this.levelDef.seed || 20260614;
+        const slack   = this.levelDef.supplySlack ?? 1.6;
+        // Supply size: objective-driven (§4). For now use SUPPLY_TILES * slack / 1.6
+        // as a simple approximation; Phase 9 will tune per-objective workload.
+        const supplyTotal = Math.ceil(SUPPLY_TILES * (slack / 1.6) / 3) * 3;
+
+        this.grid     = new Grid(this.levelDef.gridW || GRID_W, this.levelDef.gridH || GRID_H);
+        this.supply   = new Supply(seed, supplyTotal);
+        this.deposits = new Deposits(this.levelDef.depositSet);   // §5
+
+        // LevelManager wires objective tracking / win / Failure 2.
+        this.levelMgr = new LevelManager(this.levelDef, this.grid, this.deposits, this.supply);
+
+        // Listen for objective-met here (GameScene is the orchestrator).
+        this._levelOffsets = [];
+        this._levelOffsets.push(events.on('objectiveMet', () => this._onObjectiveMet()));
+        this._levelOffsets.push(events.on('levelFailed',  (d) => {
+            if (d.reason === 'infeasible') this._onInfeasible();
+        }));
 
         // Layers (back → front)
         this.boardGfx   = this.add.graphics();                 // grid cells (rebuilt each change)
-        this.blockGfx   = this.add.graphics();                 // placed blocks
-        this.fxLayer    = this.add.container(0, 0);             // dissolve motes
+        this.buriedGfx  = this.add.graphics().setDepth(5);     // buried-deposit overlay
+        this.blockGfx   = this.add.graphics().setDepth(10);    // placed blocks
+        this.fxLayer    = this.add.container(0, 0).setDepth(20); // dissolve motes / harvest flourish
         this.ghostGfx   = this.add.graphics().setDepth(50);    // drag ghost
         this.trayLayer  = this.add.container(0, 0).setDepth(40);
 
         this.drag = null;     // active drag: { slot, shape, tileType, container, gx, gy, valid }
         this.traySprites = []; // per-slot { container, slot } | null
+        // tooltip is rendered by UIScene (top scene) via tooltipShow/tooltipHide events
 
+        this._applyStartingLayout(seed);
         this._drawBoard();
+        this._drawBuried();
         this._redrawBlocks();
 
         // Deal the first set.
@@ -63,17 +92,37 @@ export class GameScene extends Scene {
         // All pointer interaction is handled at the scene level and hit-tested
         // manually (robust — avoids fragile per-container hit areas in Phaser 4).
         this.input.on('pointerdown', (p) => this._onPointerDown(p));
-        this.input.on('pointermove', (p) => this._onDragMove(p));
+        this.input.on('pointermove', (p) => this._onPointerMove(p));
         this.input.on('pointerup',   (p) => this._onDragEnd(p));
 
-        // Restart key.
+        // Restart key — retries the same level (same seed, same index).
         this.input.keyboard.on('keydown-R', () => {
             this.scene.stop('UIScene');
             this.scene.start('GameScene');
             this.scene.launch('UIScene');
         });
 
+        // C — open cauldron in read-only recipe-reference mode mid-level (§4).
+        this.input.keyboard.on('keydown-C', () => {
+            this.scene.launch('CauldronScene', { readOnly: true, returnTo: 'GameScene' });
+            this.scene.pause('GameScene');
+            this.scene.pause('UIScene');
+        });
+
+        // Esc — save current run state and return to the title screen.
+        this.input.keyboard.on('keydown-ESC', () => {
+            state.save();
+            this.scene.stop('UIScene');
+            this.scene.start('SplashScene');
+        });
+
         events.emit('scoreChanged', state.score);
+        // Tell the UI about the current level and its objective.
+        events.emit('levelStarted', {
+            levelName: this.levelDef.name,
+            objective: this.levelDef.objective,
+            objectiveLabel: objectiveLabel(this.levelDef.objective),
+        });
         this._announceJamRisk();
     }
 
@@ -103,6 +152,58 @@ export class GameScene extends Scene {
                 const tint = ((x + y) % 2 === 0) ? COLORS.cellEmpty : COLORS.cellEmptyHi;
                 g.fillStyle(toHexInt(tint), 1);
                 g.fillRoundedRect(r.x, r.y, r.w, r.h, 4);
+            }
+        }
+    }
+
+    /** Pre-fill the grid with the level's starting block layout (pick by seed). */
+    _applyStartingLayout(seed) {
+        const layout = STARTING_LAYOUTS[seed % STARTING_LAYOUTS.length];
+        for (const { x, y, tileType } of layout) {
+            if (this.grid.inBounds(x, y) && this.grid.isEmpty(x, y)) {
+                this.grid.cells[y][x] = { tileType };
+            }
+        }
+    }
+
+    /**
+     * Buried-deposit overlay (§5): a subtle dark inset + the element glyph, with
+     * a small pip stack showing remaining cover layers. Buried cells are still
+     * normal lattice cells (placeable-over), so this draws UNDER the block layer
+     * and is only visible on empty deposit cells.
+     */
+    _drawBuried() {
+        const g = this.buriedGfx;
+        g.clear();
+        if (this._buriedGlyphs) this._buriedGlyphs.forEach(t => t.destroy());
+        this._buriedGlyphs = [];
+
+        for (const dep of this.deposits.all()) {
+            const nearly = this.deposits.isNearlyHarvested(dep);
+            const elem = ELEM[dep.element] || ELEM_FALLBACK;
+            for (const c of dep.cells) {
+                const layers = this.deposits.coverLayers(c.x, c.y);
+                if (layers <= 0) continue;  // fully uncovered cell — nothing to draw
+                const r = this._cellRect(c.x, c.y);
+
+                // "buried" inset: darker tile with a faint element-tinted glow.
+                g.fillStyle(0x000000, 0.30);
+                g.fillRoundedRect(r.x, r.y, r.w, r.h, 4);
+                g.lineStyle(2, toHexInt(elem.color), nearly ? 0.85 : 0.4);
+                g.strokeRoundedRect(r.x + 3, r.y + 3, r.w - 6, r.h - 6, 3);
+
+                // cover-layer pips (top-right corner): one dot per remaining layer.
+                for (let i = 0; i < layers; i++) {
+                    g.fillStyle(toHexInt(elem.color), 0.85);
+                    g.fillCircle(r.x + r.w - 7 - i * 7, r.y + 7, 2.4);
+                }
+
+                // dim element glyph hinting what's buried (full ident on hover).
+                const t = this.add.text(r.x + r.w / 2, r.y + r.h / 2, elem.glyph, {
+                    fontSize: '20px', fontFamily: 'monospace',
+                    color: '#' + elem.color.map(v => Math.round(v * 0.7).toString(16).padStart(2, '0')).join(''),
+                }).setOrigin(0.5).setDepth(6).setAlpha(nearly ? 0.9 : 0.5);
+                this._buriedGlyphs.push(t);
             }
         }
     }
@@ -194,6 +295,7 @@ export class GameScene extends Scene {
         if (state.failed) return;
         const tile = this.supply.hand[slot];
         if (!tile) return;
+        this._hideTooltip();
 
         const shape = getShape(tile.shapeId);
         const ts = this.traySprites[slot];
@@ -226,11 +328,16 @@ export class GameScene extends Scene {
         return c;
     }
 
-    _onDragMove(pointer) {
-        if (!this.drag) return;
-        this.drag.container.x = pointer.x;
-        this.drag.container.y = pointer.y;
-        this._updateGhost(pointer);
+    /** Scene-level move: drag the held shape, else show a buried-cell tooltip. */
+    _onPointerMove(pointer) {
+        if (this.drag) {
+            this.drag.container.x = pointer.x;
+            this.drag.container.y = pointer.y;
+            this._updateGhost(pointer);
+            this._hideTooltip();
+        } else {
+            this._updateTooltip(pointer);
+        }
     }
 
     /** Compute the snapped grid origin under the pointer and draw the ghost. */
@@ -305,6 +412,19 @@ export class GameScene extends Scene {
             state.score = state.score + base + streakBonus;
             events.emit('linesCleared', { rows, cols, cells, combo: lines });
             if (lines >= 2) playCombo(lines); else playLineClear(lines);
+
+            // §5 — strip deposit covers on cleared cells, harvest on full reveal.
+            const { stripped, harvested } = this.deposits.onLinesCleared(cells);
+            if (stripped.length) {
+                playCoverStripped();
+                this._drawBuried();
+            }
+            for (const h of harvested) {
+                state.addElement(h.elementId, h.qty);
+                const dep = this.deposits.byId.get(h.depositId);
+                this._harvestFlourish(dep);
+                playHarvest();
+            }
         } else {
             state.applyPlacement(0); // breaks streak
         }
@@ -319,6 +439,8 @@ export class GameScene extends Scene {
 
         this._checkJam();
         this._announceJamRisk();
+        // Objective / infeasibility check AFTER jam check (jam takes priority).
+        if (!state.failed) this.levelMgr.afterPlacement();
     }
 
     // ---- Failure 1: jammed -------------------------------------------------
@@ -327,9 +449,12 @@ export class GameScene extends Scene {
         if (state.failed) return;
         const held = this.supply.heldShapeIds();
         if (held.length === 0 && this.supply.remaining === 0) {
-            // No tiles left and board not won — out of pieces. (Phase 1 has no
-            // objective, so this simply ends the level as "complete".)
-            this._endLevel('complete');
+            // Supply exhausted without winning — let LevelManager decide infeasibility.
+            // If the objective was already met (_onObjectiveMet fires first), this won't
+            // be reached. Otherwise treat as infeasible (out of pieces, §Failure 2).
+            if (!this.levelMgr.isMet) {
+                this.levelMgr.afterPlacement(); // triggers infeasible emit if applicable
+            }
             return;
         }
         if (held.length > 0 && !this.grid.anyHeldFits(held)) {
@@ -353,12 +478,49 @@ export class GameScene extends Scene {
         if (worst) events.emit('shapeNearlyStuck', worst);
     }
 
-    _endLevel(reason) {
+    // ---- Objective met (win condition satisfied) ---------------------------
+
+    _onObjectiveMet() {
+        if (state.failed || this._objectiveAlreadyMet) return;
+        this._objectiveAlreadyMet = true;
+        playLevelComplete();
+
+        // Award rewards from the level def.
+        const rewards = this.levelDef.rewards || {};
+        if (rewards.currency) state.addCurrency(rewards.currency);
+        if (rewards.xp)       state.addXP(rewards.xp);
+        const upgradedCauldron = !!rewards.cauldronUpgrade;
+        if (upgradedCauldron) {
+            state.upgradeCauldron();
+            playCauldronUpgrade();
+        }
+
+        // Advance run progression and persist.
+        state.advanceLevel(); // also calls state.save()
+
+        this.time.delayedCall(400, () => this._endLevel('complete', rewards, upgradedCauldron));
+    }
+
+    // ---- Failure 2: infeasible --------------------------------------------
+
+    _onInfeasible() {
+        if (state.failed) return;
+        state.failed = true;
+        playInfeasible();
+        this.time.delayedCall(200, () => this._endLevel('infeasible'));
+    }
+
+    _endLevel(reason, rewards = {}, cauldronUpgraded = false) {
         this.scene.stop('UIScene');
         this.scene.start('ResultScene', {
             reason,
-            score: state.score,
-            maxCombo: state.maxCombo,
+            score:           state.score,
+            maxCombo:        state.maxCombo,
+            harvested:       state.harvested,
+            rewards,
+            cauldronUpgraded,
+            levelName:       this.levelDef.name,
+            nextLevelName:   getLevelDef(state.runLevelIndex).name,
         });
     }
 
@@ -406,7 +568,65 @@ export class GameScene extends Scene {
         }
     }
 
+    /** Harvest flourish (§UI): a gold ring blooms over the deposit + the element
+     *  glyph rises and fades from the deposit's center. */
+    _harvestFlourish(dep) {
+        // Center of the deposit's bounding box.
+        let cx = 0, cy = 0;
+        for (const c of dep.cells) { const r = this._cellRect(c.x, c.y); cx += r.x + r.w / 2; cy += r.y + r.h / 2; }
+        cx /= dep.cells.length; cy /= dep.cells.length;
+
+        const elem = ELEM[dep.element] || ELEM_FALLBACK;
+        const col = toHexInt(elem.color);
+
+        // expanding ring — draw as a Graphics object so we can tween its scale
+        const ring = this.add.graphics().setDepth(48);
+        ring.lineStyle(3, col, 0.95);
+        ring.strokeCircle(cx, cy, 8);
+        this.fxLayer.add(ring);
+        this.tweens.add({ targets: ring, scaleX: 9, scaleY: 9, alpha: 0, duration: 650,
+            ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+
+        // rising glyph
+        const glyph = this.add.text(cx, cy, elem.glyph, {
+            fontSize: '34px', fontFamily: 'monospace', fontStyle: 'bold',
+            color: hexStr(elem.color),
+        }).setOrigin(0.5).setDepth(49);
+        this.fxLayer.add(glyph);
+        this.tweens.add({ targets: glyph, y: cy - 52, alpha: 0, scale: 1.4, duration: 850,
+            ease: 'Sine.easeOut', onComplete: () => glyph.destroy() });
+
+        // redraw the (now-uncovered) cells
+        this._drawBuried();
+    }
+
+    // ---- Buried-cell hover tooltip ----------------------------------------
+
+    _updateTooltip(pointer) {
+        const gx = Math.floor((pointer.x - GRID_X) / CELL_SIZE);
+        const gy = Math.floor((pointer.y - GRID_Y) / CELL_SIZE);
+        let dep = null;
+        if (this.grid.inBounds(gx, gy) && this.deposits.coverLayers(gx, gy) > 0) {
+            dep = this.deposits.depositAt(gx, gy);
+        }
+        if (!dep) { this._hideTooltip(); return; }
+
+        const elem = ELEM[dep.element] || ELEM_FALLBACK;
+        const layers = this.deposits.coverLayers(gx, gy);
+        const label = `${elem.glyph} ${elem.name} (${elem.tier})\n` +
+                      `${layers} cover${layers === 1 ? '' : 's'} left · clear lines over it`;
+
+        events.emit('tooltipShow', { x: pointer.x, y: pointer.y, label, color: elem.color });
+    }
+
+    _hideTooltip() {
+        events.emit('tooltipHide');
+    }
+
     shutdown() {
+        if (this.levelMgr) { this.levelMgr.dispose(); this.levelMgr = null; }
+        this._levelOffsets && this._levelOffsets.forEach(off => off());
+        this._levelOffsets = [];
         events.clearAll();
     }
 }

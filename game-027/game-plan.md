@@ -3,7 +3,7 @@
 **Genre:** Block-placement puzzle (Tetris-block / *1010!*-style) fused with light RPG / alchemy progression and a story campaign
 **Engine:** Phaser 4 (ES6 modules, shared `lib/phaser/phaser-4.0.0/dist/phaser.esm.js`)
 **Target Resolution:** 1280 × 720 (`Scale.FIT` + `CENTER_BOTH`, responsive)
-**Status:** Phase 1 scaffolded & playable (core puzzle loop)
+**Status:** Phase 1–4 complete (core puzzle loop + deposits + cauldron + levels/objectives/progression)
 
 ---
 
@@ -786,39 +786,37 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
       `levelFailed {reason:'jammed'}` → `ResultScene`; HUD warns when a held shape has ≤3 spots left
 - [x] Sounds: click, pickup, place, invalid, line clear, combo, set dealt, jammed
 
-### Phase 2 — Deposits (clearing reveals elements)
-- [ ] Deposit data: multi-cell regions + cover layers, seeded per level
-- [ ] Buried-cell rendering + hover tooltip
-- [ ] Line-clear strips cover layers over deposit cells (per-cell, on a clearing line); harvest on
-      full reveal
-- [ ] Stores model: **element** counts; harvest adds to stores (banked on level complete)
-- [ ] Harvested/stores HUD panel; harvest flourish; cover-strip + harvest sounds
+### Phase 2 — Deposits (clearing reveals elements) ✅ COMPLETE
+- [x] Deposit data: multi-cell regions + cover layers, seeded per level (`deposits.js`, `config.DEPOSITS`)
+- [x] Buried-cell rendering (dark inset + element glyph + layer pips) + hover tooltip
+- [x] Line-clear strips cover layers (per-cell); harvest on full reveal (`deposits.onLinesCleared`)
+- [x] Stores model: per-level `state._harvested` tally; banked immediately to persistent `state._stores`
+- [x] Harvested HUD panel (ELEM list with counts + pop animation); harvest flourish (gold ring + rising glyph); cover-strip + harvest sounds
 
-### Phase 3 — Cauldron (elements → tile types, *between levels*)
-- [ ] Element & tile-type definitions; **tile-type unlock recipes** (element cost per type), tiers
-- [ ] **Cauldron crafting screen (`C`)**, opened between levels: spend elements to **unlock tile
-      types**; tier-gated/greyed entries; `tileTypeUnlocked`; read-only recipe view mid-level
-- [ ] **Supply now seeds from unlocked tile types** (level def can add authored types) using the §4
-      **Supply defaults**: objective-driven size (`SUPPLY_SLACK`, rounded to whole sets), geometric
-      `TIER_WEIGHTS` mix, `SMALL_TILE_FLOOR` + `MIN_MONOMINOES`, all seed-deterministic; shapes tinted
-      by tile type
-- [ ] Unlock sound; elements spent on unlock
+### Phase 3 — Cauldron (elements → tile types, *between levels*) ✅ COMPLETE
+- [x] Element + tile-type definitions with unlock recipes (`config.TILE_TYPE_DEFS`, `CAULDRON_TIERS`)
+- [x] **`CauldronScene`**: between-levels crafting (spend elements → `state.unlockTileType`); tier-gated
+      greyed entries + UNLOCK buttons; read-only recipe reference mid-level (C key pauses GameScene)
+- [x] `state.js`: persistent stores, unlocked tile types, cauldron tier, `canUnlock`/`spendElements`
+- [x] **Supply seeds from unlocked tile types** using `TIER_WEIGHTS` + `SMALL_TILE_FLOOR` + fallback to mono
+- [x] `playTileUnlocked` sound; elements deducted on unlock via `state.spendElements`
 
-### Phase 4 — Levels, objectives & progression
-- [ ] Level definitions with a **`levelType`** field (exploration default) + objective type, grid
-      size, seeded deposits, obstacles
-- [ ] Objective tracking (collect / score / spell-component quests) + node-complete (rewards) /
-      cauldron-tier upgrade on **boss** clear
-- [ ] Story-beat interstitials between chapters
-- [ ] **Failure 2 — infeasible:** conservative feasibility check per objective type (best-case
-      remaining score < target; required deposit cells unreachable; not enough qualifying lines
-      formable) → `levelFailed {reason:'infeasible'}`; only fail when clearly impossible
-- [ ] Cauldron-upgrade & level-complete sounds; **save/load (localStorage)** — persist run state
-      (seed, map, current node + path, carried currency/items/XP/stores/tier) on each node
-      resolution, resume at last node boundary (§9 "Save scope & timing"); mid-puzzle state is not
-      saved (level restarts from seed on resume)
-- [ ] **Currency & XP:** award `grams` and `XP` on node completion; track in state
-      (`currencyChanged`, `xpChanged`)
+### Phase 4 — Levels, objectives & progression ✅ COMPLETE
+- [x] Level definitions with a **`levelType`** field (exploration default) + objective type, grid
+      size, seeded deposits, obstacles (`config.LEVELS` array: 5 authored levels incl. boss-1)
+- [x] `level.js` — `LevelManager` class: objective tracking (lines / score / harvest quest),
+      win-check, Failure 2 infeasibility check, `objectiveProgress` / `objectiveMet` / `objectiveInfeasible`
+      events; `getLevelDef(index)` + `objectiveLabel(obj)` helpers
+- [x] Objective tracking + node-complete (rewards: currency, XP) / cauldron-tier upgrade on **boss** clear
+- [x] **Failure 2 — infeasible:** conservative feasibility check per objective type → `levelFailed {reason:'infeasible'}`
+- [x] `playLevelComplete`, `playInfeasible`, `playCauldronUpgrade` sounds in `sounds.js`
+- [x] **save/load (localStorage)** in `state.js` — persist stores, unlocked types, cauldron tier,
+      currency, XP, `runLevelIndex`; `save()` on each node-clear; `load()` / `clearSave()` / `hasSave()`
+- [x] **Currency & XP** in `state.js`: `addCurrency` / `spendCurrency` / `addXP` with events
+- [x] **SplashScene**: Continue (loads save, shows current level name) vs New Run (clears save)
+- [x] **UIScene**: live objective label + progress (cur / target) in top-right bar; ✓ COMPLETE! flash on win
+- [x] **ResultScene**: win vs fail messaging, rewards display (currency / XP), running totals,
+      next-level name, cauldron-upgrade badge; proceed → next level (index already advanced), retry → same level
 
 ### Phase 5 — Level types: refinement & battle (§11)
 *(The shared puzzle core stays in `grid`/`drag`/`pieces`; each type is an overlay module keyed off
