@@ -83,6 +83,11 @@ export class UIScene extends Scene {
             fontSize: '11px', fontFamily: 'monospace', color: hex(COLORS.textDim),
         });
 
+        // --- Phase 5 overlay panels (refinement / battle) ---
+        // These are built lazily when the levelStarted event carries the levelType.
+        this._refinePanel = null;
+        this._battlePanel = null;
+
         // --- live bindings ---
         this._displayScore = 0;
         this._setSupply(SUPPLY_TILES);
@@ -95,9 +100,20 @@ export class UIScene extends Scene {
         this._offs.push(events.on('storesChanged', (d) => this._setHarvested(d.elementId, d.qty)));
         this._offs.push(events.on('tooltipShow', (d) => this._showTooltip(d)));
         this._offs.push(events.on('tooltipHide', ()  => this._hideTooltip()));
-        this._offs.push(events.on('levelStarted', (d) => this._setObjective(d.objectiveLabel, null, null)));
+        this._offs.push(events.on('levelStarted', (d) => {
+            this._setObjective(d.objectiveLabel, null, null);
+            this._buildOverlayForType(d.levelType, d.levelDef);
+        }));
         this._offs.push(events.on('objectiveProgress', (d) => this._setObjective(null, d.cur, d.target)));
         this._offs.push(events.on('objectiveMet', () => this._setObjectiveMet()));
+
+        // Refinement events.
+        this._offs.push(events.on('qualityChanged',          (d) => this._refinePanel && this._refinePanel.onQualityChanged(d)));
+        this._offs.push(events.on('recipeConditionsUpdated',  (d) => this._refinePanel && this._refinePanel.onConditionsUpdated(d)));
+        this._offs.push(events.on('recipeConditionMet',       (d) => this._refinePanel && this._refinePanel.onConditionMet(d)));
+
+        // Battle events.
+        this._offs.push(events.on('battleStateChanged', (d) => this._battlePanel && this._battlePanel.onStateChanged(d)));
 
         // Tooltip objects — created once, shown/hidden as needed
         this._tooltipBg  = this.add.graphics();
@@ -112,6 +128,21 @@ export class UIScene extends Scene {
         this._objectiveLabel = '';
 
         this.events.on('shutdown', () => { this._offs.forEach(off => off()); this._offs = []; });
+    }
+
+    _buildOverlayForType(levelType, levelDef) {
+        // For non-exploration types, hide the standard supply/harvested panels so
+        // the overlay can use that space.
+        if (levelType === 'refine' || levelType === 'battle') {
+            this._supplyText.setVisible(false);
+            Object.values(this._harvestLines).forEach(t => t.setVisible(false));
+        }
+        if (levelType === 'refine' && levelDef && levelDef.recipe) {
+            this._refinePanel = new RefinementHUD(this, levelDef.recipe);
+        }
+        if (levelType === 'battle') {
+            this._battlePanel = new BattleHUD(this);
+        }
     }
 
     update() {
@@ -204,5 +235,186 @@ export class UIScene extends Scene {
     _hideTooltip() {
         this._tooltipBg.setVisible(false);
         this._tooltipTxt.setVisible(false);
+    }
+}
+
+// ============================================================
+// RefinementHUD — right-rail overlay for refine levels (§11b)
+// ============================================================
+// Swaps the right rail content from supply/harvested panels to a recipe panel:
+// conditions list (✓/◻/✗), quality meter, and the potion name.
+// Created lazily when levelStarted carries levelType:'refine'.
+
+class RefinementHUD {
+    constructor(scene, recipe) {
+        this._scene  = scene;
+        this._recipe = recipe;
+        const px = PANEL_X, pw = PANEL_W;
+
+        // Potion title.
+        scene.add.text(px, 84, '🜲 REFINING', {
+            fontSize: '13px', fontFamily: 'monospace', color: hex(COLORS.brass),
+        });
+        this._potionName = scene.add.text(px, 104, recipe.potionId || 'Unknown Potion', {
+            fontSize: '12px', fontFamily: 'monospace', color: hex(COLORS.text),
+        });
+
+        // Quality meter label + bar.
+        scene.add.text(px, 130, '═══ QUALITY ═══', {
+            fontSize: '13px', fontFamily: 'monospace', color: hex(COLORS.brass),
+        });
+        this._qualityLabel  = scene.add.text(px, 150, 'CRUDE', {
+            fontSize: '14px', fontFamily: 'monospace', fontStyle: 'bold', color: hex(COLORS.textDim),
+        });
+        this._qualityBarBg  = scene.add.graphics();
+        this._qualityBarFg  = scene.add.graphics();
+        this._drawQualityBar(0, 'crude');
+
+        // Conditions list.
+        scene.add.text(px, 190, '═══ RECIPE ═══', {
+            fontSize: '13px', fontFamily: 'monospace', color: hex(COLORS.brass),
+        });
+        this._conditionRows = [];
+        const conditions = recipe.conditions || [];
+        conditions.forEach((c, i) => {
+            const lbl = scene.add.text(px, 212 + i * 22, `◻ ${c.label}`, {
+                fontSize: '12px', fontFamily: 'monospace', color: hex(COLORS.textDim),
+            });
+            this._conditionRows.push(lbl);
+        });
+        this._conditionsMap = new Map(conditions.map(c => [c.id, { def: c, idx: conditions.indexOf(c) }]));
+    }
+
+    onQualityChanged({ grade, value }) {
+        this._drawQualityBar(value, grade);
+        const gradeLabel = grade.toUpperCase();
+        const gradeColors = { crude: COLORS.textDim, fine: COLORS.text, pure: COLORS.gold, masterwork: [255, 200, 80] };
+        const col = gradeColors[grade] || COLORS.text;
+        this._qualityLabel.setText(gradeLabel).setColor(hex(col));
+    }
+
+    onConditionsUpdated({ conditions }) {
+        for (const c of conditions) {
+            const entry = this._conditionsMap.get(c.id);
+            if (!entry) continue;
+            const lbl = this._conditionRows[entry.idx];
+            if (!lbl) continue;
+            if (c.violated) {
+                lbl.setText(`✗ ${c.def.label}`).setColor(hex(COLORS.danger));
+            } else if (c.satisfied) {
+                lbl.setText(`✓ ${c.def.label}`).setColor(hex(COLORS.success));
+            } else {
+                const prog = (c._progress != null && c.target != null)
+                    ? ` (${c._progress}/${c.target})` : '';
+                lbl.setText(`◻ ${c.def.label}${prog}`).setColor(hex(COLORS.textDim));
+            }
+        }
+    }
+
+    onConditionMet({ conditionId }) {
+        const entry = this._conditionsMap.get(conditionId);
+        if (!entry) return;
+        const lbl = this._conditionRows[entry.idx];
+        if (!lbl) return;
+        lbl.setColor(hex(COLORS.success));
+        // Brief scale pop.
+        this._scene.tweens.add({ targets: lbl, scale: 1.2, duration: 100,
+            yoyo: true, ease: 'Back.easeOut' });
+    }
+
+    _drawQualityBar(value, grade) {
+        const px = PANEL_X, pw = PANEL_W;
+        const barY = 168, barH = 10;
+        const bg = this._qualityBarBg, fg = this._qualityBarFg;
+        bg.clear(); fg.clear();
+        bg.fillStyle(toHexInt(COLORS.panel), 1);
+        bg.fillRoundedRect(px, barY, pw, barH, 3);
+        bg.lineStyle(1, toHexInt(COLORS.panelEdge), 0.6);
+        bg.strokeRoundedRect(px, barY, pw, barH, 3);
+        const fillW = Math.max(2, Math.round(pw * value / 100));
+        const gradeColor = { crude: COLORS.textDim, fine: COLORS.text, pure: COLORS.gold, masterwork: [255, 200, 80] };
+        const col = gradeColor[grade] || COLORS.text;
+        fg.fillStyle(toHexInt(col), 0.9);
+        fg.fillRoundedRect(px, barY, fillW, barH, 3);
+    }
+}
+
+// ============================================================
+// BattleHUD — right-rail overlay for battle levels (§11c)
+// ============================================================
+// Adds a player HP bar at the top and a threats panel listing enemies with HP
+// and a placement-countdown to the next enemy turn.
+
+class BattleHUD {
+    constructor(scene) {
+        this._scene = scene;
+        const px = PANEL_X, pw = PANEL_W;
+
+        // Player HP bar.
+        scene.add.text(px, 84, '❤ FOCUS', {
+            fontSize: '13px', fontFamily: 'monospace', color: hex(COLORS.danger),
+        });
+        this._hpLabel   = scene.add.text(px + 72, 84, '-- / --', {
+            fontSize: '13px', fontFamily: 'monospace', color: hex(COLORS.text),
+        });
+        this._hpBarBg   = scene.add.graphics();
+        this._hpBarFg   = scene.add.graphics();
+        this._drawHpBar(1, 1);
+
+        // Threats panel.
+        scene.add.text(px, 120, '═══ THREATS ═══', {
+            fontSize: '13px', fontFamily: 'monospace', color: hex(COLORS.brass),
+        });
+        this._threatLines  = [];
+        this._turnCountTxt = scene.add.text(px, 142, '', {
+            fontSize: '12px', fontFamily: 'monospace', color: hex(COLORS.textDim),
+        });
+
+        this._enemyRowsY = 164;
+        this._maxEnemyRows = 5;
+        for (let i = 0; i < this._maxEnemyRows; i++) {
+            const t = scene.add.text(px, this._enemyRowsY + i * 20, '', {
+                fontSize: '12px', fontFamily: 'monospace', color: hex(COLORS.text),
+            });
+            this._threatLines.push(t);
+        }
+    }
+
+    onStateChanged({ enemies, playerHp, playerMaxHp, placementsUntilTurn }) {
+        this._drawHpBar(playerHp, playerMaxHp);
+        this._hpLabel.setText(`${playerHp} / ${playerMaxHp}`);
+        const low = playerHp / playerMaxHp < 0.25;
+        this._hpLabel.setColor(low ? hex(COLORS.danger) : hex(COLORS.text));
+
+        this._turnCountTxt.setText(
+            `next enemy turn in ${placementsUntilTurn} placement${placementsUntilTurn === 1 ? '' : 's'}`
+        );
+
+        const alive = enemies.filter(e => e.hp > 0);
+        for (let i = 0; i < this._maxEnemyRows; i++) {
+            const e = alive[i];
+            if (!e) { this._threatLines[i].setText(''); continue; }
+            const bar = '▓'.repeat(Math.ceil(e.hp / e.maxHp * 6)).padEnd(6, '░');
+            this._threatLines[i].setText(`👹 ${e.name} ${bar} ${e.hp}hp`);
+            const ratio = e.hp / e.maxHp;
+            const col = ratio > 0.5 ? COLORS.success : ratio > 0.25 ? COLORS.gold : COLORS.danger;
+            this._threatLines[i].setColor(hex(col));
+        }
+    }
+
+    _drawHpBar(hp, maxHp) {
+        const px = PANEL_X, pw = PANEL_W;
+        const barY = 100, barH = 10;
+        const bg = this._hpBarBg, fg = this._hpBarFg;
+        bg.clear(); fg.clear();
+        bg.fillStyle(toHexInt(COLORS.panel), 1);
+        bg.fillRoundedRect(px, barY, pw, barH, 3);
+        bg.lineStyle(1, toHexInt(COLORS.panelEdge), 0.6);
+        bg.strokeRoundedRect(px, barY, pw, barH, 3);
+        const ratio = maxHp > 0 ? hp / maxHp : 0;
+        const fillW = Math.max(2, Math.round(pw * ratio));
+        const col = ratio > 0.5 ? COLORS.success : ratio > 0.25 ? COLORS.gold : COLORS.danger;
+        fg.fillStyle(toHexInt(col), 0.9);
+        fg.fillRoundedRect(px, barY, fillW, barH, 3);
     }
 }

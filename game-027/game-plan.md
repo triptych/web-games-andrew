@@ -3,7 +3,7 @@
 **Genre:** Block-placement puzzle (Tetris-block / *1010!*-style) fused with light RPG / alchemy progression and a story campaign
 **Engine:** Phaser 4 (ES6 modules, shared `lib/phaser/phaser-4.0.0/dist/phaser.esm.js`)
 **Target Resolution:** 1280 × 720 (`Scale.FIT` + `CENTER_BOTH`, responsive)
-**Status:** Phase 1–4 complete (core puzzle loop + deposits + cauldron + levels/objectives/progression)
+**Status:** Phase 1–5 complete (core puzzle loop + deposits + cauldron + levels/objectives/progression + refinement/battle level types)
 
 ---
 
@@ -818,20 +818,35 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 - [x] **ResultScene**: win vs fail messaging, rewards display (currency / XP), running totals,
       next-level name, cauldron-upgrade badge; proceed → next level (index already advanced), retry → same level
 
-### Phase 5 — Level types: refinement & battle (§11)
+### Phase 5 — Level types: refinement & battle (§11) ✅ COMPLETE
 *(The shared puzzle core stays in `grid`/`drag`/`pieces`; each type is an overlay module keyed off
 `levelType`.)*
-- [ ] `refine.js` — refinement levels: recipe conditions (incl. forbidden-ingredient constraints),
-      crucible cells, **quality grading**, optional **enhancement-ingredient** spend; events
-      `recipeConditionMet` / `qualityChanged` / `potionBrewed` / `enhancementUsed`
-- [ ] Refinement HUD overlay: recipe panel (conditions ✓/◻), quality meter, enhancement tray
-- [ ] `battle.js` — battle grids: enemies on cells with HP, **damage-on-clear** (× combo), enemy
-      **turn** logic (advance/harden/spawn/attack), **player HP**; events `enemyDamaged` /
-      `enemyDefeated` / `enemyTurn` / `playerDamaged`
-- [ ] **Failure 3 — defeated:** player HP → 0 on a battle grid → `levelFailed {reason:'defeated'}`
-- [ ] Battle HUD overlay: player HP bar, on-grid enemy HP, threats panel + turn timer
-- [ ] Refinement reward scales with quality grade; bosses authored as battle grids
-- [ ] Sounds: condition-met, quality-up, potion-brewed; enemy-hit, enemy-defeated, player-hurt, defeat
+- [x] `refine.js` — refinement levels: recipe conditions (`ingredient_rows`, `combo`, `forbidden`),
+      crucible cells, **quality grading** (crude→fine→pure→masterwork, 0–100 value), optional
+      **enhancement-ingredient** spend (quality_boost / combo_ease / allow_one_forbidden);
+      events `recipeConditionMet` / `recipeConditionsUpdated` / `qualityChanged` / `potionBrewed`
+- [x] Refinement HUD overlay (in UIScene): recipe panel (conditions ✓/◻/✗), quality meter +
+      grade label, potion name; hides supply/harvested panels for refine levels
+- [x] `battle.js` — battle grids: enemies on cells with HP, **damage-on-clear** (BASE_DAMAGE ×
+      hitsOnEnemy × combo), enemy **turn** logic (advance into empty cells / harden +armor /
+      attack player), **player HP** bar; events `enemyDamaged` / `enemyDefeated` / `enemyTurn` /
+      `playerDamaged` / `battleStateChanged`
+- [x] **Failure 3 — defeated:** player HP → 0 on a battle grid → `levelFailed {reason:'defeated'}`
+      → `_onDefeated()` in GameScene → `playDefeated()` → ResultScene 'defeated' message
+- [x] Battle HUD overlay (in UIScene): player HP bar (color-coded low/mid/full), threats panel
+      (enemy list with HP bar + turn countdown), hides supply/harvested panels
+- [x] Enemy cells rendered as red hatched obstacles on the grid; HP labels above first cell;
+      crucible cells highlighted (gold border) for refinement levels
+- [x] Refinement reward **scales with quality grade**: crude×1 / fine×1.3 / pure×1.6 /
+      masterwork×2 applied to currency+XP rewards; grade shown in ResultScene via `data.grade`
+- [x] Boss authored as battle grid (`boss-battle-1`): Ember Warden (6-cell, HP 40, armor 2,
+      faster turn interval 3); cauldronUpgrade on clear
+- [x] 4 new level defs in `config.js`: `refine-1` (Draught of Embers), `battle-1` (Cinder Imps),
+      `boss-battle-1` (Ember Warden); `refine-1` includes authored enhancements array
+- [x] `level.js` updated: `brew`/`defeat_all` objective kinds handled (win delegated to overlay
+      managers), `objectiveLabel()` covers both new kinds, `_emitProgress` skips brew/defeat_all
+- [x] Sounds: `playConditionMet`, `playQualityUp`, `playPotionBrewed`; `playEnemyHit` (pitch
+      by HP ratio), `playEnemyDefeated`, `playPlayerHurt`, `playDefeated`
 
 ### Phase 6 — Run map (Slay-the-Spire branching)
 - [ ] `map.js` — seeded procedural map generation: layered DAG, 2–3 forward edges per node,

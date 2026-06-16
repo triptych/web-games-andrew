@@ -105,6 +105,12 @@ export class LevelManager {
                 won = allHarvested;
                 break;
             }
+            // 'brew' and 'defeat_all' are handled by RefinementManager /
+            // BattleManager respectively — they emit objectiveMet directly
+            // so LevelManager never needs to check them here.
+            case 'brew':
+            case 'defeat_all':
+                break;
         }
 
         if (won) {
@@ -169,6 +175,10 @@ export class LevelManager {
                 }
                 break;
             }
+            // brew / defeat_all: infeasibility handled by their overlay managers.
+            case 'brew':
+            case 'defeat_all':
+                break;
         }
 
         if (infeasible && !this._failed) {
@@ -199,6 +209,10 @@ export class LevelManager {
                 target = ids.length;
                 break;
             }
+            // brew / defeat_all: progress reported by their overlay managers.
+            case 'brew':
+            case 'defeat_all':
+                return;
         }
         events.emit('objectiveProgress', { kind: obj.kind, cur, target });
     }
@@ -215,9 +229,11 @@ export function getLevelDef(index) {
 export function objectiveLabel(obj) {
     if (!obj) return 'Play on';
     switch (obj.kind) {
-        case 'lines':   return `Clear ${obj.target} lines`;
-        case 'score':   return `Reach ${obj.target} pts`;
-        case 'harvest': return `Harvest ${obj.depositIds.length} deposit${obj.depositIds.length === 1 ? '' : 's'}`;
-        default:        return 'Play on';
+        case 'lines':      return `Clear ${obj.target} lines`;
+        case 'score':      return `Reach ${obj.target} pts`;
+        case 'harvest':    return `Harvest ${obj.depositIds.length} deposit${obj.depositIds.length === 1 ? '' : 's'}`;
+        case 'brew':       return 'Brew the potion';
+        case 'defeat_all': return 'Defeat all enemies';
+        default:           return 'Play on';
     }
 }

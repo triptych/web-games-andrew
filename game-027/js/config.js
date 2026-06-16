@@ -49,81 +49,120 @@ export const STREAK_BONUS    = 25;   // per current streak step, added on a clea
 // (partial rows / columns already started, interesting gaps near deposits).
 // Coordinates are 0-indexed on the 9×9 grid.
 export const STARTING_LAYOUTS = [
-    // Layout 0 — "scattered corners": partial rows in the corners
+    // Layout 0 — "scattered corners": partial rows in the corners + inner pressure
     [
         { x: 0, y: 0, tileType: 'salt' },
         { x: 1, y: 0, tileType: 'ember' },
+        { x: 2, y: 0, tileType: 'salt' },
         { x: 0, y: 1, tileType: 'root' },
+        { x: 0, y: 2, tileType: 'ash' },
         { x: 7, y: 0, tileType: 'dew' },
         { x: 8, y: 0, tileType: 'salt' },
         { x: 8, y: 1, tileType: 'ash' },
+        { x: 8, y: 2, tileType: 'dew' },
         { x: 0, y: 7, tileType: 'ember' },
         { x: 0, y: 8, tileType: 'salt' },
         { x: 1, y: 8, tileType: 'root' },
+        { x: 2, y: 8, tileType: 'ember' },
         { x: 7, y: 8, tileType: 'dew' },
         { x: 8, y: 8, tileType: 'ember' },
         { x: 8, y: 7, tileType: 'salt' },
+        { x: 8, y: 6, tileType: 'root' },
         { x: 4, y: 4, tileType: 'ash' },
+        { x: 3, y: 4, tileType: 'ember' },
+        { x: 5, y: 4, tileType: 'salt' },
     ],
-    // Layout 1 — "cross arms": partial rows/cols along the mid-axes
+    // Layout 1 — "cross arms": heavier cross with inner fill
     [
         { x: 0, y: 4, tileType: 'salt' },
         { x: 1, y: 4, tileType: 'ember' },
+        { x: 2, y: 4, tileType: 'dew' },
         { x: 7, y: 4, tileType: 'dew' },
         { x: 8, y: 4, tileType: 'salt' },
+        { x: 6, y: 4, tileType: 'root' },
         { x: 4, y: 0, tileType: 'root' },
         { x: 4, y: 1, tileType: 'ash' },
+        { x: 4, y: 2, tileType: 'salt' },
         { x: 4, y: 7, tileType: 'ember' },
         { x: 4, y: 8, tileType: 'salt' },
+        { x: 4, y: 6, tileType: 'dew' },
         { x: 2, y: 2, tileType: 'dew' },
+        { x: 3, y: 2, tileType: 'root' },
         { x: 6, y: 2, tileType: 'root' },
+        { x: 7, y: 2, tileType: 'ash' },
         { x: 2, y: 6, tileType: 'ash' },
+        { x: 3, y: 6, tileType: 'ember' },
         { x: 6, y: 6, tileType: 'ember' },
+        { x: 7, y: 6, tileType: 'salt' },
     ],
-    // Layout 2 — "diagonal spine": a broken diagonal + edge clusters
+    // Layout 2 — "diagonal spine": denser diagonal + thicker edge clusters
     [
         { x: 0, y: 0, tileType: 'ember' },
+        { x: 1, y: 0, tileType: 'salt' },
         { x: 1, y: 1, tileType: 'salt' },
+        { x: 2, y: 1, tileType: 'dew' },
         { x: 3, y: 2, tileType: 'dew' },
+        { x: 4, y: 3, tileType: 'ash' },
         { x: 5, y: 4, tileType: 'root' },
+        { x: 6, y: 5, tileType: 'ember' },
         { x: 7, y: 6, tileType: 'ash' },
+        { x: 7, y: 7, tileType: 'salt' },
         { x: 8, y: 8, tileType: 'ember' },
+        { x: 8, y: 7, tileType: 'dew' },
         { x: 0, y: 8, tileType: 'salt' },
+        { x: 0, y: 7, tileType: 'root' },
         { x: 8, y: 0, tileType: 'dew' },
+        { x: 8, y: 1, tileType: 'ember' },
         { x: 4, y: 0, tileType: 'root' },
         { x: 4, y: 8, tileType: 'salt' },
         { x: 0, y: 4, tileType: 'ash' },
         { x: 8, y: 4, tileType: 'ember' },
     ],
-    // Layout 3 — "ring": a loose ring of blocks around the perimeter
+    // Layout 3 — "ring": denser ring + interior scatter
     [
-        { x: 2, y: 0, tileType: 'salt' },
+        { x: 1, y: 0, tileType: 'salt' },
+        { x: 2, y: 0, tileType: 'dew' },
         { x: 5, y: 0, tileType: 'dew' },
+        { x: 6, y: 0, tileType: 'root' },
         { x: 8, y: 2, tileType: 'root' },
+        { x: 8, y: 3, tileType: 'ash' },
         { x: 8, y: 5, tileType: 'ember' },
+        { x: 8, y: 6, tileType: 'salt' },
         { x: 6, y: 8, tileType: 'ash' },
+        { x: 7, y: 8, tileType: 'ember' },
         { x: 3, y: 8, tileType: 'salt' },
+        { x: 2, y: 8, tileType: 'dew' },
         { x: 0, y: 6, tileType: 'dew' },
+        { x: 0, y: 5, tileType: 'root' },
         { x: 0, y: 3, tileType: 'root' },
+        { x: 0, y: 2, tileType: 'ember' },
         { x: 3, y: 3, tileType: 'ember' },
+        { x: 4, y: 3, tileType: 'salt' },
         { x: 5, y: 5, tileType: 'ash' },
-        { x: 6, y: 2, tileType: 'salt' },
-        { x: 2, y: 6, tileType: 'dew' },
+        { x: 4, y: 5, tileType: 'dew' },
     ],
-    // Layout 4 — "clusters": three tight 2×2-ish clusters in different zones
+    // Layout 4 — "clusters": four tighter clusters spread across the board
     [
         { x: 1, y: 1, tileType: 'salt' },
         { x: 2, y: 1, tileType: 'ember' },
         { x: 1, y: 2, tileType: 'ember' },
+        { x: 2, y: 2, tileType: 'root' },
         { x: 6, y: 1, tileType: 'dew' },
         { x: 7, y: 1, tileType: 'root' },
         { x: 7, y: 2, tileType: 'dew' },
-        { x: 3, y: 6, tileType: 'ash' },
-        { x: 4, y: 6, tileType: 'salt' },
-        { x: 4, y: 7, tileType: 'ash' },
-        { x: 0, y: 4, tileType: 'root' },
-        { x: 8, y: 4, tileType: 'ember' },
+        { x: 6, y: 2, tileType: 'salt' },
+        { x: 1, y: 6, tileType: 'ash' },
+        { x: 2, y: 6, tileType: 'salt' },
+        { x: 1, y: 7, tileType: 'ember' },
+        { x: 6, y: 6, tileType: 'ash' },
+        { x: 7, y: 6, tileType: 'salt' },
+        { x: 7, y: 7, tileType: 'ember' },
+        { x: 3, y: 4, tileType: 'root' },
         { x: 4, y: 4, tileType: 'salt' },
+        { x: 5, y: 4, tileType: 'ash' },
+        { x: 4, y: 3, tileType: 'ember' },
+        { x: 4, y: 5, tileType: 'dew' },
+        { x: 0, y: 4, tileType: 'root' },
     ],
 ];
 
@@ -237,7 +276,7 @@ export const LEVELS = [
         levelType: 'exploration',
         gridW: 9, gridH: 9,
         seed: 20260614,
-        objective: { kind: 'lines', target: 4 },
+        objective: { kind: 'lines', target: 6 },
         supplySlack: 2.0,    // generous early node
         rewards: { currency: 30, xp: 40 },
     },
@@ -257,7 +296,7 @@ export const LEVELS = [
         levelType: 'exploration',
         gridW: 9, gridH: 9,
         seed: 20260616,
-        objective: { kind: 'score', target: 1500 },
+        objective: { kind: 'score', target: 2500 },
         supplySlack: 1.6,
         rewards: { currency: 50, xp: 80 },
     },
@@ -267,7 +306,7 @@ export const LEVELS = [
         levelType: 'exploration',
         gridW: 9, gridH: 9,
         seed: 20260617,
-        objective: { kind: 'lines', target: 8 },
+        objective: { kind: 'lines', target: 12 },
         supplySlack: 1.6,
         rewards: { currency: 60, xp: 100 },
     },
@@ -280,6 +319,119 @@ export const LEVELS = [
         objective: { kind: 'harvest', depositIds: ['salt-vein', 'ember-pocket', 'dew-seam'] },
         supplySlack: 1.25,   // tighter supply for boss difficulty
         rewards: { currency: 120, xp: 200, cauldronUpgrade: true },
+    },
+
+    // --- Phase 5: Refinement level (§11b) ---
+    {
+        id: 'refine-1',
+        name: "Draught of Embers",
+        levelType: 'refine',
+        gridW: 9, gridH: 9,
+        seed: 20260621,
+        objective: { kind: 'brew' },   // win handled by RefinementManager (potionBrewed)
+        supplySlack: 1.6,
+        recipe: {
+            potionId: 'ember-draught',
+            // Crucible cells: optional highlighted cells on the lattice.
+            crucibleCells: [
+                { x: 3, y: 3 }, { x: 4, y: 3 }, { x: 5, y: 3 },
+                { x: 3, y: 4 }, { x: 4, y: 4 }, { x: 5, y: 4 },
+                { x: 3, y: 5 }, { x: 4, y: 5 }, { x: 5, y: 5 },
+            ],
+            conditions: [
+                // Clear 3 rows that contain at least 1 ember-type tile.
+                { id: 'cond-ember-rows', type: 'ingredient_rows', ingredient: 'ember', target: 3,
+                  label: 'Clear 3 ember rows' },
+                // Achieve a ×2 combo (clear 2 lines in one placement).
+                { id: 'cond-combo', type: 'combo', target: 2,
+                  label: 'Reach a ×2 combo' },
+                // Do NOT clear any line containing dew tiles.
+                { id: 'cond-no-dew', type: 'forbidden', ingredient: 'dew',
+                  label: 'No dew lines', satisfied: true },
+            ],
+        },
+        // Optional enhancements the player can activate before the level.
+        enhancements: [
+            { id: 'stabilizer',   label: 'Stabilizer',   ingredientCost: { salt: 1 },
+              effect: 'combo_ease',         description: 'Widens the combo window by 1.' },
+            { id: 'potency-dust', label: 'Potency Dust', ingredientCost: { ember: 1 },
+              effect: 'quality_boost',      description: 'Raises the final quality by 1 grade.' },
+        ],
+        activeEnhancements: [],   // populated at runtime when player commits enhancements
+        rewards: { currency: 70, xp: 110 },
+    },
+
+    // --- Phase 5: Battle grid level (§11c) ---
+    {
+        id: 'battle-1',
+        name: "Cinder Imps",
+        levelType: 'battle',
+        gridW: 9, gridH: 9,
+        seed: 20260622,
+        objective: { kind: 'defeat_all' },  // win handled by BattleManager (allDefeated)
+        supplySlack: 1.6,
+        battle: {
+            playerHp: 20,
+            turnInterval: 4,     // enemy acts every 4 placements
+        },
+        enemies: [
+            {
+                id: 'imp-a',
+                name: 'Cinder Imp',
+                cells: [{ x: 2, y: 1 }],
+                hp: 6,
+                armor: 0,
+                damage: 3,
+                behavior: ['attack', 'advance'],
+            },
+            {
+                id: 'imp-b',
+                name: 'Cinder Imp',
+                cells: [{ x: 5, y: 1 }],
+                hp: 6,
+                armor: 0,
+                damage: 3,
+                behavior: ['attack', 'advance'],
+            },
+            {
+                id: 'imp-c',
+                name: 'Ash Hulk',
+                cells: [{ x: 3, y: 0 }, { x: 4, y: 0 }],
+                hp: 12,
+                armor: 1,
+                damage: 2,
+                behavior: ['harden', 'advance', 'attack'],
+            },
+        ],
+        rewards: { currency: 80, xp: 130 },
+    },
+
+    // --- Phase 5: Boss battle (§11c / §9 boss node) ---
+    {
+        id: 'boss-battle-1',
+        name: 'The Ember Warden',
+        levelType: 'battle',
+        gridW: 9, gridH: 9,
+        seed: 20260625,
+        objective: { kind: 'defeat_all' },
+        supplySlack: 1.25,
+        battle: {
+            playerHp: 30,
+            turnInterval: 3,     // faster turns on the boss
+        },
+        enemies: [
+            {
+                id: 'warden',
+                name: 'Ember Warden',
+                cells: [{ x: 3, y: 0 }, { x: 4, y: 0 }, { x: 5, y: 0 },
+                        { x: 3, y: 1 }, { x: 4, y: 1 }, { x: 5, y: 1 }],
+                hp: 40,
+                armor: 2,
+                damage: 5,
+                behavior: ['advance', 'harden', 'attack'],
+            },
+        ],
+        rewards: { currency: 150, xp: 250, cauldronUpgrade: true },
     },
 ];
 

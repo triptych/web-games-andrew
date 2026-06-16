@@ -28,8 +28,12 @@ import {
     playPickup, playPlace, playInvalid, playLineClear, playCombo,
     playSetDealt, playJammed, playCoverStripped, playHarvest,
     playLevelComplete, playInfeasible, playCauldronUpgrade,
+    playConditionMet, playQualityUp, playPotionBrewed,
+    playEnemyHit, playEnemyDefeated, playPlayerHurt, playDefeated,
 } from './sounds.js';
 import { LevelManager, getLevelDef, objectiveLabel } from './level.js';
+import { RefinementManager } from './refine.js';
+import { BattleManager } from './battle.js';
 
 function toHexInt(arr) { return (arr[0] << 16) | (arr[1] << 8) | arr[2]; }
 function hexStr(arr)   { return '#' + arr.map(v => Math.round(v).toString(16).padStart(2, '0')).join(''); }
@@ -60,12 +64,39 @@ export class GameScene extends Scene {
         // LevelManager wires objective tracking / win / Failure 2.
         this.levelMgr = new LevelManager(this.levelDef, this.grid, this.deposits, this.supply);
 
+        // Phase 5 overlays — created when the level type matches.
+        this.refineMgr = null;
+        this.battleMgr = null;
+        const levelType = this.levelDef.levelType || 'exploration';
+        if (levelType === 'refine') {
+            this.refineMgr = new RefinementManager(this.levelDef, this.grid);
+        }
+        if (levelType === 'battle') {
+            this.battleMgr = new BattleManager(this.levelDef, this.grid);
+        }
+
         // Listen for objective-met here (GameScene is the orchestrator).
         this._levelOffsets = [];
         this._levelOffsets.push(events.on('objectiveMet', () => this._onObjectiveMet()));
         this._levelOffsets.push(events.on('levelFailed',  (d) => {
             if (d.reason === 'infeasible') this._onInfeasible();
+            if (d.reason === 'defeated')   this._onDefeated();
         }));
+
+        // Refinement events.
+        this._levelOffsets.push(events.on('potionBrewed',  (d) => this._onPotionBrewed(d)));
+        this._levelOffsets.push(events.on('recipeConditionMet', () => playConditionMet()));
+        this._levelOffsets.push(events.on('qualityChanged', (d) => {
+            // Play quality-up sound on grade transitions (crude→fine→pure→masterwork).
+            if (this._lastQualityGrade && this._lastQualityGrade !== d.grade) playQualityUp();
+            this._lastQualityGrade = d.grade;
+        }));
+
+        // Battle events.
+        this._levelOffsets.push(events.on('enemyDamaged',  (d) => playEnemyHit(d.hpLeft / 20)));
+        this._levelOffsets.push(events.on('enemyDefeated', ()  => playEnemyDefeated()));
+        this._levelOffsets.push(events.on('playerDamaged', ()  => playPlayerHurt()));
+        this._levelOffsets.push(events.on('enemyTurn',     ()  => this._redrawBlocks()));
 
         // Layers (back → front)
         this.boardGfx   = this.add.graphics();                 // grid cells (rebuilt each change)
@@ -117,11 +148,13 @@ export class GameScene extends Scene {
         });
 
         events.emit('scoreChanged', state.score);
-        // Tell the UI about the current level and its objective.
+        // Tell the UI about the current level, its objective, and its type.
         events.emit('levelStarted', {
-            levelName: this.levelDef.name,
-            objective: this.levelDef.objective,
+            levelName:     this.levelDef.name,
+            objective:     this.levelDef.objective,
             objectiveLabel: objectiveLabel(this.levelDef.objective),
+            levelType:     this.levelDef.levelType || 'exploration',
+            levelDef:      this.levelDef,
         });
         this._announceJamRisk();
     }
@@ -211,12 +244,59 @@ export class GameScene extends Scene {
     _redrawBlocks() {
         const g = this.blockGfx;
         g.clear();
-        for (let y = 0; y < GRID_H; y++) {
-            for (let x = 0; x < GRID_W; x++) {
+        const gw = this.grid.w, gh = this.grid.h;
+        for (let y = 0; y < gh; y++) {
+            for (let x = 0; x < gw; x++) {
                 const cell = this.grid.cells[y][x];
                 if (!cell) continue;
-                this._drawBlockCell(g, x, y, cell.tileType, 1);
+                if (cell.enemy) {
+                    // Enemy cell — draw as a bold red obstacle.
+                    this._drawEnemyCell(g, x, y, cell.enemy);
+                } else {
+                    this._drawBlockCell(g, x, y, cell.tileType, 1);
+                }
             }
+        }
+        // Crucible cell highlights for refinement levels.
+        if (this.refineMgr) {
+            for (const c of this.refineMgr.crucibleCells) {
+                const r = this._cellRect(c.x, c.y);
+                g.lineStyle(2, 0xf0c060, 0.55);
+                g.strokeRoundedRect(r.x, r.y, r.w, r.h, 4);
+            }
+        }
+        // Enemy HP labels (rendered via text objects, rebuilt each time).
+        this._rebuildEnemyLabels();
+    }
+
+    _drawEnemyCell(g, cx, cy, enemyId) {
+        const r = this._cellRect(cx, cy);
+        // Dark red base.
+        g.fillStyle(0x7a1c1c, 1);
+        g.fillRoundedRect(r.x, r.y, r.w, r.h, 4);
+        // Red border pulse.
+        g.lineStyle(2, 0xff4040, 0.9);
+        g.strokeRoundedRect(r.x, r.y, r.w, r.h, 4);
+        // inner diagonal hatch (simple × pattern).
+        g.lineStyle(1, 0xff6060, 0.5);
+        g.lineBetween(r.x + 4, r.y + 4, r.x + r.w - 4, r.y + r.h - 4);
+        g.lineBetween(r.x + r.w - 4, r.y + 4, r.x + 4, r.y + r.h - 4);
+    }
+
+    _rebuildEnemyLabels() {
+        if (this._enemyHpLabels) this._enemyHpLabels.forEach(t => t.destroy());
+        this._enemyHpLabels = [];
+        if (!this.battleMgr) return;
+        for (const e of this.battleMgr.enemies) {
+            if (e.hp <= 0) continue;
+            // Place HP label above the enemy's first cell.
+            const first = e.cells[0];
+            const r = this._cellRect(first.x, first.y);
+            const txt = this.add.text(r.x + r.w / 2, r.y - 2, String(e.hp), {
+                fontSize: '11px', fontFamily: 'monospace', fontStyle: 'bold',
+                color: '#ff9090',
+            }).setOrigin(0.5, 1).setDepth(15);
+            this._enemyHpLabels.push(txt);
         }
     }
 
@@ -440,7 +520,22 @@ export class GameScene extends Scene {
         this._checkJam();
         this._announceJamRisk();
         // Objective / infeasibility check AFTER jam check (jam takes priority).
-        if (!state.failed) this.levelMgr.afterPlacement();
+        if (!state.failed) {
+            this.levelMgr.afterPlacement();
+            // Overlay managers run after LevelManager (they may emit objectiveMet).
+            if (this.refineMgr && !state.failed) this.refineMgr.afterPlacement();
+            if (this.battleMgr && !state.failed) {
+                this.battleMgr.afterPlacement();
+                // Redraw blocks after enemy turn (enemies may have advanced).
+                this._redrawBlocks();
+                // Re-check jam after enemy turn (enemy advance can jam the board).
+                this._checkJam();
+            }
+            // If battle enemies are all defeated, trigger win.
+            if (this.battleMgr && !state.failed && this.battleMgr.allDefeated) {
+                events.emit('objectiveMet', { levelId: this.levelDef.id });
+            }
+        }
     }
 
     // ---- Failure 1: jammed -------------------------------------------------
@@ -508,6 +603,37 @@ export class GameScene extends Scene {
         state.failed = true;
         playInfeasible();
         this.time.delayedCall(200, () => this._endLevel('infeasible'));
+    }
+
+    // ---- Failure 3: defeated (battle — player HP → 0) ---------------------
+
+    _onDefeated() {
+        if (this._objectiveAlreadyMet || this._defeatedAlreadyHandled) return;
+        this._defeatedAlreadyHandled = true;
+        playDefeated();
+        this.time.delayedCall(400, () => this._endLevel('defeated'));
+    }
+
+    // ---- Refinement: potion brewed ----------------------------------------
+
+    _onPotionBrewed({ grade }) {
+        if (state.failed || this._objectiveAlreadyMet) return;
+        this._objectiveAlreadyMet = true;
+        playPotionBrewed();
+
+        const rewards = this.levelDef.rewards || {};
+        // Quality multiplier: crude×1, fine×1.3, pure×1.6, masterwork×2
+        const multipliers = { crude: 1, fine: 1.3, pure: 1.6, masterwork: 2 };
+        const mult = multipliers[grade] || 1;
+        const scaledRewards = {
+            currency: Math.round((rewards.currency || 0) * mult),
+            xp:       Math.round((rewards.xp || 0) * mult),
+        };
+        if (scaledRewards.currency) state.addCurrency(scaledRewards.currency);
+        if (scaledRewards.xp)       state.addXP(scaledRewards.xp);
+
+        state.advanceLevel();
+        this.time.delayedCall(500, () => this._endLevel('complete', { ...scaledRewards, grade }));
     }
 
     _endLevel(reason, rewards = {}, cauldronUpgraded = false) {
@@ -624,7 +750,9 @@ export class GameScene extends Scene {
     }
 
     shutdown() {
-        if (this.levelMgr) { this.levelMgr.dispose(); this.levelMgr = null; }
+        if (this.levelMgr)  { this.levelMgr.dispose();  this.levelMgr  = null; }
+        if (this.refineMgr) { this.refineMgr.dispose(); this.refineMgr = null; }
+        if (this.battleMgr) { this.battleMgr.dispose(); this.battleMgr = null; }
         this._levelOffsets && this._levelOffsets.forEach(off => off());
         this._levelOffsets = [];
         events.clearAll();

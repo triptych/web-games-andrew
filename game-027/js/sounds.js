@@ -161,3 +161,62 @@ export function playCauldronUpgrade() {
     _osc('triangle', 1046.5, 0.6, 0.3, 0.22);  // sparkle
     _noise(0.1, 0.05, 0.24);
 }
+
+// --- Phase 5: Refinement sounds (§11b) ---
+
+/** Recipe condition satisfied — soft confirming bell */
+export function playConditionMet() {
+    _osc('sine', 740, 0.28, 0.18);
+    _osc('sine', 988, 0.28, 0.22, 0.06);
+    _osc('triangle', 1318, 0.2, 0.18, 0.12);
+}
+
+/** Quality grade rises — brightening shimmer */
+export function playQualityUp() {
+    _sweep('sine', 600, 1200, 0.2, 0.22);
+    _osc('triangle', 1760, 0.14, 0.16, 0.14);
+}
+
+/** Potion brewed (refinement complete) — warm cork-pop + sparkle */
+export function playPotionBrewed() {
+    // cork-pop: short noise burst + pluck
+    _noise(0.06, 0.22);
+    _osc('sine', 330, 0.12, 0.08, 0.02);
+    // sparkle arpeggio
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((f, i) => _osc('sine', f, 0.35 - i * 0.05, 0.2, 0.06 + i * 0.06));
+    _osc('triangle', 1568, 0.18, 0.22, 0.3);
+}
+
+// --- Phase 5: Battle sounds (§11c) ---
+
+/** Enemy hit — crunchy impact (pitch descends with remaining HP ratio) */
+export function playEnemyHit(hpRatio = 1) {
+    const freq = 180 + hpRatio * 200; // lower pitch = more damaged
+    _osc('square', freq, 0.1, 0.22);
+    _noise(0.1, 0.14);
+}
+
+/** Enemy defeated — shatter + descending puff */
+export function playEnemyDefeated() {
+    _noise(0.18, 0.24);
+    _sweep('sawtooth', 400, 80, 0.3, 0.22);
+    _osc('sine', 200, 0.25, 0.2, 0.08);
+}
+
+/** Player hurt — dull thud + low warble */
+export function playPlayerHurt() {
+    _osc('sine', 90, 0.25, 0.28);
+    _sweep('sine', 130, 70, 0.35, 0.18, 0.04);
+    _noise(0.12, 0.1, 0.06);
+}
+
+/** Player defeated (HP → 0) — heavy minor-chord collapse */
+export function playDefeated() {
+    // Minor chord collapse, descending
+    _osc('sine', 220, 0.8, 0.55);
+    _osc('sine', 261.63, 0.8, 0.5, 0.06);
+    _osc('sine', 174.61, 0.8, 0.6, 0.12);
+    _sweep('sawtooth', 200, 40, 0.9, 0.3, 0.2);
+    _noise(0.5, 0.18, 0.3);
+}
