@@ -848,7 +848,150 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 - [x] Sounds: `playConditionMet`, `playQualityUp`, `playPotionBrewed`; `playEnemyHit` (pitch
       by HP ratio), `playEnemyDefeated`, `playPlayerHurt`, `playDefeated`
 
-### Phase 6 — Run map (Slay-the-Spire branching)
+### Phase 6 — Story, characters & visual-novel dialog
+
+The narrative layer gives the alchemy progression a human face. All dialog is
+delivered through a **visual-novel (VN) panel** — a canvas-rendered overlay that
+slides up from the bottom of the screen, showing a character portrait on the left,
+a name plate, and a scrolling text box on the right. The same panel is reused for
+every story context (intros, boss taunts, post-level beats, cache events). No
+separate scene transition is needed: the VN panel overlays the current scene
+(run map, result screen, or the lattice itself).
+
+#### Characters (v1 roster)
+
+| ID | Name | Role | Portrait style |
+|----|------|------|----------------|
+| `player` | The Apprentice | Player avatar (silent protagonist — reactions shown via portrait swap) | Hooded figure, worn apron |
+| `guildmaster` | Madame Voss | Guild master; grants cauldron upgrades; dry mentor energy | Stern elder, brass monocle |
+| `rival` | Casimir | Rival apprentice; shows up to gloat/warn; comic relief turned antagonist | Flashy coat, smirking |
+| `spirit` | The Lattice Spirit | Ancient voice of the grid; speaks in riddles; hints at lore | Translucent, geometric |
+| `vendor` | Pellerin | The apothecary vendor; warm, mercantile; runs the shop nodes | Stout, many pockets |
+
+Each character has **2–4 portrait states** (neutral, pleased, alarmed, smug etc.)
+that swap mid-dialog via a tag in the script: `[portrait:alarmed]`.
+
+#### `dialog.js` — script engine
+
+Stores all authored dialog as a **JSON-like script format** and plays it back through
+the VN panel. A script is an array of *beats*:
+
+```js
+{ speaker: 'guildmaster', portrait: 'stern',
+  text: "So. You managed to brew something. Don't let it go to your head." }
+{ speaker: 'player', portrait: 'neutral', text: null }   // silent beat — portrait only
+{ choice: [
+    { label: "Thank you, Madame Voss.", next: 'grateful' },
+    { label: "I'll surpass you one day.", next: 'defiant' },
+]}
+{ id: 'grateful', speaker: 'guildmaster', portrait: 'pleased',
+  text: "Hmm. Manners. Rare in this guild." }
+{ id: 'defiant',  speaker: 'guildmaster', portrait: 'alarmed',
+  text: "...*That* is the first interesting thing you've said." }
+```
+
+Beat types:
+- **line** — `{ speaker, portrait, text }` — advance on click / Space
+- **silent** — `{ speaker, portrait, text: null }` — portrait swap, no text, auto-advance
+- **choice** — `{ choice: [{label, next}] }` — player picks a branch; choice result is
+  stored in `state.dialogFlags` for later scripts to read (`[if:flag]` conditional beats)
+- **flag** — `{ setFlag: 'key', value: true }` — sets a persistent story flag
+- **end** — `{ end: true }` — closes the VN panel and resumes whatever was paused
+
+Scripts are keyed by `scriptId` (e.g. `'chapter1-intro'`, `'boss1-taunt'`,
+`'cache-pellerin-1'`) and live in `dialog.js` as a plain export object.
+
+#### `VNScene` — the visual-novel overlay scene
+
+Launched in parallel with any other scene (run map, GameScene, ResultScene) via
+`this.scene.launch('VNScene', { scriptId, onComplete })`. It pauses its parent,
+runs the script, then resumes and calls `onComplete`. Components:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│  (run map / lattice / result screen sits behind, dimmed)         │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ ┌──────────┐  ╔══ MADAME VOSS ════════════════════════════╗│  │
+│  │ │ portrait │  ║ "So. You managed to brew something.      ║│  │
+│  │ │  image   │  ║  Don't let it go to your head."          ║│  │
+│  │ │  (canvas │  ║                                          ║│  │
+│  │ │  drawn)  │  ║                             ▶ click/Space║│  │
+│  │ └──────────┘  ╚══════════════════════════════════════════╝│  │
+│  └────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+- **Portrait panel** (left ~220px): character art drawn procedurally in canvas
+  (warm apothecary style — silhouettes + color fills, no raster assets). Portrait
+  state swaps with a brief cross-fade. The player's portrait swaps on the right
+  side when they speak.
+- **Name plate**: character name in brass, uppercase monospace.
+- **Text box** (right): text types out character-by-character (configurable speed);
+  click/Space skips the typewriter and shows the full line; click/Space again
+  advances. A `▶` cursor blinks at the end of a complete line.
+- **Choice buttons**: up to 3 options rendered as clickable monospace buttons in the
+  text area; selected with mouse or arrow keys + Space/Enter.
+- **Skip button** (top-right): skips the entire remaining script (for replays).
+- **Panel animation**: slides up from the bottom edge on open (200ms ease-out),
+  slides down on close.
+
+#### Story beats (v1 authored scripts)
+
+| Trigger | Script ID | Characters | Notes |
+|---------|-----------|-----------|-------|
+| New run / Chapter 1 intro | `ch1-intro` | guildmaster → player | Madame Voss assigns the apprentice task; introduces the lattice |
+| First harvest (tutorial) | `ch1-first-harvest` | spirit | The Lattice Spirit whispers the lore of deposits |
+| Pre-boss 1 | `ch1-boss-taunt` | rival | Casimir mocks the player before the Ember Warden fight |
+| Boss 1 cleared | `ch1-boss-clear` | guildmaster | Voss upgrades the cauldron; story beat advances |
+| Chapter 1 complete | `ch1-complete` | guildmaster + rival | Brief chapter-end scene; rival leaves in a huff |
+| First shop visit | `shop-pellerin-intro` | vendor | Pellerin introduces himself and his wares |
+| Cache/event node (flavor) | `cache-[id]` | spirit / rival / vendor | Short flavor beats for cache nodes |
+| Chapter 2 intro *(stub)* | `ch2-intro` | guildmaster | Seeds chapter 2 hook; content TBD |
+
+#### Integration points
+
+- **Run map (Phase 7):** `MapScene` calls `VNScene` on chapter start, boss approach,
+  boss clear, and cache/event nodes. The `onComplete` callback advances the map state.
+- **GameScene:** calls `VNScene` on first harvest (one-shot, gated by `state.dialogFlags`).
+- **ResultScene:** calls `VNScene` after a boss win before returning to the map.
+- **SplashScene:** calls `VNScene` for the Chapter 1 intro on a new run.
+- **Cauldron upgrade:** the `cauldronUpgraded` event fires `VNScene` with the tier-specific
+  script before resuming.
+
+#### `state.js` additions
+
+- `dialogFlags` — a `Map<string, any>` persisted in localStorage alongside the run.
+  Used by `[if:flag]` conditional beats and one-shot triggers (`firstHarvest`, `ch1Done`…).
+- `seenScripts` — a `Set<string>` of script IDs already played; used to skip re-showing
+  intros on retry and to unlock "skip" on revisit.
+
+#### Checklist
+
+- [ ] **Character definitions** — `dialog.js`: 5 character records (id, name, color palette,
+      portrait states list); procedural portrait renderer (canvas silhouette + color fills,
+      ~60×120px logical, scaled up 2×)
+- [ ] **Script engine** (`dialog.js`): `DialogRunner` class — load script by id, advance(),
+      getChoices(), setFlag(), resolveConditionals(); emits `dialogLineShown`,
+      `dialogChoiceMade`, `dialogEnded`
+- [ ] **`VNScene`** — Phaser scene launched in parallel; panel slide-in/out animation;
+      typewriter text effect; portrait cross-fade on state swap; choice UI (mouse +
+      keyboard); skip button; dim backdrop over parent scene
+- [ ] **Authored v1 scripts** in `dialog.js`: `ch1-intro`, `ch1-first-harvest`,
+      `ch1-boss-taunt`, `ch1-boss-clear`, `ch1-complete`, `shop-pellerin-intro`,
+      3–4 `cache-*` flavor beats
+- [ ] **Integration wiring**: SplashScene (new-run intro), GameScene (first-harvest
+      one-shot), ResultScene (boss-clear beat), cauldron upgrade beat; all gated by
+      `dialogFlags` so they never re-fire on retry
+- [ ] **`state.js`**: `dialogFlags` Map + `seenScripts` Set; persist/load in save;
+      `setDialogFlag(key, val)` / `getDialogFlag(key)` / `hasSeenScript(id)` /
+      `markScriptSeen(id)` helpers
+- [ ] **Sounds**: text-advance click (soft tick), choice-hover highlight, dialog-open
+      whoosh, dialog-close whoosh
+- [ ] **Module entry** in `main.js`: register `VNScene` in the Phaser scene list
+
+### Phase 7 — Run map (Slay-the-Spire branching)
 - [ ] `map.js` — seeded procedural map generation: layered DAG, 2–3 forward edges per node,
       diverge/re-converge, boss terminal at far right; fairness guarantees (≥1 shop before boss,
       no back-to-back elites)
@@ -856,19 +999,20 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 - [ ] **Run map screen**: horizontal node graph, current/forward/visited node states, currency +
       item top bar, click-to-commit (no backtrack), node hover preview
 - [ ] Run state: carry currency/items/stores across nodes; node-clear advances the branch
-- [ ] Cache/event nodes (reward or trade-off choice); boss-clear → chapter complete → next map
+- [ ] Cache/event nodes wire to `VNScene` for flavor beats (Phase 6 dialog scripts)
+- [ ] Boss-clear wires `VNScene` for chapter-complete story beat before advancing the map
 - [ ] Decide & implement run-failure behavior (retry-node default vs. roguelike chapter-restart, §9)
 
-### Phase 7 — Consumables, shop & character screen
+### Phase 8 — Consumables, shop & character screen
 - [ ] `items.js` — **consumables** model (count, deplete); use logic applying effects to grid/deposits/tray
 - [ ] In-level **item bar** (HUD): consumable counts (select → target)
 - [ ] First consumables (Dissolvent, Catalyst, Transmute Vial, Reveal Salts)
 - [ ] `shop.js` + **shop screen** as a **shop node**: **consumables only**, buy with currency,
-      owned-count/greyed states; leaving returns to the run map
+      owned-count/greyed states; leaving returns to the run map; wires `shop-pellerin-intro` on first visit
 - [ ] **Character screen (`B`)** with **Inventory** + **Stats** tabs; persist owned items & currency
 - [ ] Sounds: purchase, item use
 
-### Phase 8 — XP, skill tree & passives
+### Phase 9 — XP, skill tree & passives
 - [ ] XP model: award on clears/combos/harvests/elites/bosses; `xpChanged`; (optional) character level
 - [ ] `skilltree.js` — passive-power-up node graph (prereqs, XP cost), unlock state, spend logic
 - [ ] **Skill Tree tab** on the character screen: mind-map render, node states (unlocked/available/locked),
@@ -878,18 +1022,18 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 - [ ] First passives across branches (Tile Swap, Deep Sight, Surveyor, Steady Hand…); persist unlocks in save
 - [ ] Sounds: skill unlock, passive trigger / ready-again
 
-### Phase 9 — Polish & content
+### Phase 10 — Polish & content
 - [ ] Full element / tile-type-unlock-recipe roster across all tiers; balance pass on economy + item
       prices + XP curve
 - [ ] **Tile-supply tuning (§4):** validate `SUPPLY_SLACK` (1.6×/1.25×/2.0×), `TIER_WEIGHTS`
       (60/25/12/3), `SMALL_TILE_FLOOR` (0.4), `MIN_MONOMINOES` and the per-objective workload
       estimate against playtests across grid sizes
 - [ ] More level objectives + obstacle variety; difficulty curve tuning; map-generation tuning; tree tuning;
-      refinement-recipe & enemy roster
+      refinement-recipe & enemy roster; expand authored dialog (Chapter 2+ scripts, more cache beats)
 - [ ] Reduced-motion support, keyboard-drag fallback, responsive scaling pass
 - [ ] Add to root launcher `js/gamedata.js`
 
-### Phase 10+ — Power-ups *(future enhancement)*
+### Phase 11+ — Power-ups *(future enhancement)*
 - [ ] Power-up framework (earn/charge/consume model — see §7 open questions)
 - [ ] Line-breaker & column-breaker (destroy a row/column; interacts with deposit cover-stripping)
 - [ ] Rotate power-up (temporarily allow rotating the held shape before placing)
@@ -936,6 +1080,9 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 | `enemyDefeated` | {enemyId} | battle | level, ui, sounds |
 | `enemyTurn` | {actions} | battle | grid, ui |
 | `playerDamaged` | {dmg, hpLeft} | battle | ui (HP bar), sounds (→ `levelFailed 'defeated'` at 0) |
+| `dialogLineShown` | {scriptId, speaker, text} | dialog | ui (VN panel) |
+| `dialogChoiceMade` | {scriptId, choiceLabel, next} | dialog | dialog (branch), state |
+| `dialogEnded` | {scriptId} | dialog | main (resume), map, result |
 | `mapGenerated` | {nodes, edges, seed} | map | ui (run map), main |
 | `nodeSelected` | {nodeId, type} | map | main (route to node screen) |
 | `nodeCleared` | {nodeId, rewards} | level/shop/event | map (advance branch), state |
@@ -966,6 +1113,8 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 | `shop.js` | Shop node screen (consumables only), buy/sell, currency spend |
 | `character.js` | Character screen: Inventory / Stats / Skill-Tree tabs |
 | `skilltree.js` | Passive-power-up node graph, prereqs, XP unlock/spend logic |
+| `dialog.js` | Character definitions, authored script library, `DialogRunner` engine (advance/choice/flag/conditional) |
+| `VNScene` | Visual-novel overlay scene: portrait panel, typewriter text, choice UI, slide animation; launched in parallel over any scene |
 | `map.js` | Seeded run-map generation (branching DAG), node types, run-map screen, route state |
 | `level.js` | Level defs incl. **`levelType`** (exploration/refine/battle); routes to the type overlay (`deposits`/`refine`/`battle`); objectives, win/fail, rewards, node/boss progression |
 
