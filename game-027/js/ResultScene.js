@@ -199,6 +199,23 @@ export class ResultScene extends Scene {
         });
 
         this._t = 0;
+
+        // Phase 6: fire boss-clear / chapter-complete VN dialog (one-shot per boss).
+        this._maybeLaunchBossDialog(data, isWin);
+    }
+
+    _maybeLaunchBossDialog(data, isWin) {
+        if (!isWin || !data.cauldronUpgraded) return;
+        // Determine which boss-clear script to use (default ch1).
+        const scriptId = 'ch1-boss-clear';
+        if (state.hasSeenScript(scriptId)) return;
+        this.time.delayedCall(600, () => {
+            this.scene.launch('VNScene', {
+                scriptId,
+                pauseScenes: ['ResultScene'],
+                onComplete:  () => { /* ResultScene resumes; player can now navigate */ },
+            });
+        });
     }
 
     update(time, delta) {

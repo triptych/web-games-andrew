@@ -3,7 +3,7 @@
 **Genre:** Block-placement puzzle (Tetris-block / *1010!*-style) fused with light RPG / alchemy progression and a story campaign
 **Engine:** Phaser 4 (ES6 modules, shared `lib/phaser/phaser-4.0.0/dist/phaser.esm.js`)
 **Target Resolution:** 1280 × 720 (`Scale.FIT` + `CENTER_BOTH`, responsive)
-**Status:** Phase 1–5 complete (core puzzle loop + deposits + cauldron + levels/objectives/progression + refinement/battle level types)
+**Status:** Phase 1–6 complete (core puzzle loop + deposits + cauldron + levels/objectives/progression + refinement/battle level types + story/characters/VN dialog)
 
 ---
 
@@ -848,7 +848,7 @@ Web Audio API — procedural, no file assets (see repo `sounds.js` convention).
 - [x] Sounds: `playConditionMet`, `playQualityUp`, `playPotionBrewed`; `playEnemyHit` (pitch
       by HP ratio), `playEnemyDefeated`, `playPlayerHurt`, `playDefeated`
 
-### Phase 6 — Story, characters & visual-novel dialog
+### Phase 6 — Story, characters & visual-novel dialog ✅ COMPLETE
 
 The narrative layer gives the alchemy progression a human face. All dialog is
 delivered through a **visual-novel (VN) panel** — a canvas-rendered overlay that
@@ -969,27 +969,28 @@ runs the script, then resumes and calls `onComplete`. Components:
 
 #### Checklist
 
-- [ ] **Character definitions** — `dialog.js`: 5 character records (id, name, color palette,
+- [x] **Character definitions** — `dialog.js`: 5 character records (id, name, color palette,
       portrait states list); procedural portrait renderer (canvas silhouette + color fills,
-      ~60×120px logical, scaled up 2×)
-- [ ] **Script engine** (`dialog.js`): `DialogRunner` class — load script by id, advance(),
-      getChoices(), setFlag(), resolveConditionals(); emits `dialogLineShown`,
+      ~160×200px, fully procedural per-character)
+- [x] **Script engine** (`dialog.js`): `DialogRunner` class — load script by id, advance(),
+      selectChoice(), setFlag(), resolveConditionals(); emits `dialogLineShown`,
       `dialogChoiceMade`, `dialogEnded`
-- [ ] **`VNScene`** — Phaser scene launched in parallel; panel slide-in/out animation;
+- [x] **`VNScene`** — Phaser scene launched in parallel; panel slide-in/out animation;
       typewriter text effect; portrait cross-fade on state swap; choice UI (mouse +
       keyboard); skip button; dim backdrop over parent scene
-- [ ] **Authored v1 scripts** in `dialog.js`: `ch1-intro`, `ch1-first-harvest`,
+- [x] **Authored v1 scripts** in `dialog.js`: `ch1-intro`, `ch1-first-harvest`,
       `ch1-boss-taunt`, `ch1-boss-clear`, `ch1-complete`, `shop-pellerin-intro`,
-      3–4 `cache-*` flavor beats
-- [ ] **Integration wiring**: SplashScene (new-run intro), GameScene (first-harvest
-      one-shot), ResultScene (boss-clear beat), cauldron upgrade beat; all gated by
-      `dialogFlags` so they never re-fire on retry
-- [ ] **`state.js`**: `dialogFlags` Map + `seenScripts` Set; persist/load in save;
+      4 `cache-*` flavor beats, `ch2-intro` stub
+- [x] **Integration wiring**: SplashScene (new-run intro), GameScene (first-harvest
+      one-shot), ResultScene (boss-clear beat); all gated by `seenScripts` so they
+      never re-fire on retry
+- [x] **`state.js`**: `dialogFlags` Map + `seenScripts` Set; persist/load in save;
       `setDialogFlag(key, val)` / `getDialogFlag(key)` / `hasSeenScript(id)` /
       `markScriptSeen(id)` helpers
-- [ ] **Sounds**: text-advance click (soft tick), choice-hover highlight, dialog-open
-      whoosh, dialog-close whoosh
-- [ ] **Module entry** in `main.js`: register `VNScene` in the Phaser scene list
+- [x] **Sounds**: text-advance click (soft tick), choice-hover highlight, dialog-open
+      whoosh, dialog-close whoosh (`playDialogOpen`, `playDialogClose`,
+      `playDialogAdvance`, `playChoiceHover`)
+- [x] **Module entry** in `main.js`: register `VNScene` in the Phaser scene list
 
 ### Phase 7 — Run map (Slay-the-Spire branching)
 - [ ] `map.js` — seeded procedural map generation: layered DAG, 2–3 forward edges per node,
@@ -1186,6 +1187,32 @@ runs the script, then resumes and calls `onComplete`. Components:
 ---
 
 ## Changelog
+
+### Phase 6 — Story, characters & VN dialog (2026-06-17)
+- **`dialog.js`**: 5 character definitions with procedural portrait palettes (`player`,
+  `guildmaster`, `rival`, `spirit`, `vendor`); `DialogRunner` engine with line / silent /
+  choice / flag / end beat types; branch navigation via `id:` beat labels; 9 authored
+  v1 scripts (`ch1-intro`, `ch1-first-harvest`, `ch1-boss-taunt`, `ch1-boss-clear`,
+  `ch1-complete`, `shop-pellerin-intro`, `cache-spirit-1`, `cache-rival-1`,
+  `cache-vendor-1`, `cache-spirit-2`, `ch2-intro` stub).
+- **`VNScene`**: Phaser scene launched in parallel over any parent; 200ms slide-in / 180ms
+  slide-out panel from bottom; `drawPortrait()` per-character procedural silhouettes +
+  palette fills on a `Graphics` object; portrait cross-fade (old → fade out, new draws);
+  28 chars/second typewriter with skip-to-end on click/Space; blinking `▶` cursor;
+  choice buttons with mouse + arrow-key + Enter nav; SKIP button fast-forwards remaining
+  beats (picks first choice on each); backdrop dim with fade-out on close.
+- **`state.js`**: added `_dialogFlags Map` + `_seenScripts Set`, persisted in localStorage
+  alongside run state; helpers `setDialogFlag`, `getDialogFlag`, `markScriptSeen`,
+  `hasSeenScript`.
+- **Integration wiring**: SplashScene fires `ch1-intro` before launching GameScene on a
+  new run (one-shot); GameScene fires `ch1-first-harvest` (Spirit whisper) after the
+  first deposit harvest, pausing/resuming the game; ResultScene fires `ch1-boss-clear`
+  after a cauldron-upgrade win (one-shot). All three gated by `hasSeenScript` so they
+  never re-fire on retry.
+- **Sounds**: `playDialogOpen` (upward whoosh), `playDialogClose` (downward whoosh),
+  `playDialogAdvance` (soft tick per line advance), `playChoiceHover` (subtle tone on
+  choice navigation).
+- **`main.js`**: `VNScene` registered in the Phaser scene list.
 
 ### Phase 1 scaffold — Phaser (2026-06-15)
 - **Switched the engine from Kaplay v4000 to Phaser 4** (shared `lib/phaser/phaser-4.0.0/dist/phaser.esm.js`),

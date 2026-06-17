@@ -179,6 +179,9 @@ export class SplashScene extends Scene {
         initAudio();
         playUiClick();
         state.clearSave();
+        // Mark this as a fresh run so GameScene fires ch1-intro on its first create.
+        state.setDialogFlag('pendingIntro', 'ch1-intro');
+        // Start the game — GameScene will detect the flag and launch VNScene over itself.
         this.scene.start('GameScene');
         this.scene.launch('UIScene');
         this.scene.stop('SplashScene');

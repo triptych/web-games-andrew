@@ -38,6 +38,9 @@ class GameState {
         this._currency     = 0;   // §8 — grams earned from node clears, spent in shop
         this._xp           = 0;   // §10 — XP earned, spent in skill tree
         this._runLevelIndex = 0;  // which level in LEVELS the player is on
+        // Phase 6: dialog story flags and seen-script registry
+        this._dialogFlags  = new Map();
+        this._seenScripts  = new Set();
     }
 
     // --- Per-level reset ----------------------------------------------------
@@ -215,6 +218,8 @@ class GameState {
                 currency:       this._currency,
                 xp:             this._xp,
                 runLevelIndex:  this._runLevelIndex,
+                dialogFlags:    Object.fromEntries(this._dialogFlags),
+                seenScripts:    [...this._seenScripts],
             };
             localStorage.setItem(SAVE_KEY, JSON.stringify(data));
         } catch (_) { /* quota or private mode — silently ignore */ }
@@ -234,6 +239,8 @@ class GameState {
             this._currency      = data.currency      || 0;
             this._xp            = data.xp            || 0;
             this._runLevelIndex = data.runLevelIndex || 0;
+            this._dialogFlags   = new Map(Object.entries(data.dialogFlags || {}));
+            this._seenScripts   = new Set(data.seenScripts || []);
             return true;
         } catch (_) { return false; }
     }
@@ -250,6 +257,20 @@ class GameState {
     // --- Flags ---
     get failed() { return this._failed; }
     set failed(v) { this._failed = v; }
+
+    // --- Dialog flags & seen-scripts (§Phase 6) ----------------------------
+
+    /** Persistent story flags set by dialog scripts (e.g. choice branches). */
+    setDialogFlag(key, value) {
+        this._dialogFlags.set(key, value);
+    }
+    getDialogFlag(key) { return this._dialogFlags.get(key); }
+
+    /** Mark a script as having been seen (prevents re-firing intros on retry). */
+    markScriptSeen(scriptId) {
+        this._seenScripts.add(scriptId);
+    }
+    hasSeenScript(scriptId) { return this._seenScripts.has(scriptId); }
 }
 
 export const state = new GameState();

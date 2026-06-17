@@ -220,3 +220,27 @@ export function playDefeated() {
     _sweep('sawtooth', 200, 40, 0.9, 0.3, 0.2);
     _noise(0.5, 0.18, 0.3);
 }
+
+// --- Phase 6: Dialog / VN sounds ---
+
+/** VN panel slides in — soft whoosh upward */
+export function playDialogOpen() {
+    _sweep('sine', 180, 340, 0.22, 0.13);
+    _noise(0.1, 0.04, 0.01);
+}
+
+/** VN panel slides out — soft whoosh downward */
+export function playDialogClose() {
+    _sweep('sine', 320, 150, 0.20, 0.11);
+    _noise(0.1, 0.03);
+}
+
+/** Text advance click — soft tick (quiet, fires every line) */
+export function playDialogAdvance() {
+    _osc('sine', 520, 0.04, 0.10);
+}
+
+/** Choice hover highlight — subtle tone shift */
+export function playChoiceHover() {
+    _osc('triangle', 660, 0.03, 0.06);
+}

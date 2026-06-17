@@ -157,6 +157,10 @@ export class GameScene extends Scene {
             levelDef:      this.levelDef,
         });
         this._announceJamRisk();
+
+        // Phase 6: fire a pending intro dialog (set by SplashScene on new run)
+        // after one frame so the lattice is fully rendered behind the VN panel.
+        this._maybeLaunchPendingIntro();
     }
 
     // ---- Board rendering ---------------------------------------------------
@@ -504,6 +508,8 @@ export class GameScene extends Scene {
                 const dep = this.deposits.byId.get(h.depositId);
                 this._harvestFlourish(dep);
                 playHarvest();
+                // Phase 6: one-shot first-harvest dialog (Spirit whisper).
+                this._maybeFireFirstHarvestDialog();
             }
         } else {
             state.applyPlacement(0); // breaks streak
@@ -724,6 +730,48 @@ export class GameScene extends Scene {
 
         // redraw the (now-uncovered) cells
         this._drawBuried();
+    }
+
+    // ---- Phase 6: pending intro dialog (set by SplashScene on new run) ----
+
+    _maybeLaunchPendingIntro() {
+        const scriptId = state.getDialogFlag('pendingIntro');
+        if (!scriptId) return;
+        state.setDialogFlag('pendingIntro', null);
+        // Wait one frame so the lattice finishes rendering before the panel slides in.
+        this.time.delayedCall(80, () => {
+            if (!this.scene.isActive('GameScene')) return;
+            this.scene.pause('GameScene');
+            this.scene.pause('UIScene');
+            this.scene.launch('VNScene', {
+                scriptId,
+                pauseScenes: [],  // already paused above
+                onComplete:  () => {
+                    this.scene.resume('GameScene');
+                    this.scene.resume('UIScene');
+                },
+            });
+        });
+    }
+
+    // ---- Phase 6: first-harvest one-shot dialog ---------------------------
+
+    _maybeFireFirstHarvestDialog() {
+        if (state.hasSeenScript('ch1-first-harvest')) return;
+        state.markScriptSeen('ch1-first-harvest');   // guard immediately so it can't double-fire
+        this.time.delayedCall(400, () => {
+            if (!this.scene.isActive('GameScene')) return;
+            this.scene.pause('GameScene');
+            this.scene.pause('UIScene');
+            this.scene.launch('VNScene', {
+                scriptId:    'ch1-first-harvest',
+                pauseScenes: [],  // already paused above
+                onComplete:  () => {
+                    this.scene.resume('GameScene');
+                    this.scene.resume('UIScene');
+                },
+            });
+        });
     }
 
     // ---- Buried-cell hover tooltip ----------------------------------------
