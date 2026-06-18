@@ -131,10 +131,12 @@ export class ResultScene extends Scene {
             rowY += 22;
         }
 
-        // Cauldron hint
-        this.add.text(CX, rowY + 6, 'C — open Cauldron to spend harvested elements', {
-            fontSize: '12px', fontFamily: 'monospace', color: hex(COLORS.brass),
-        }).setOrigin(0.5);
+        // Cauldron hint (win only — on fail just retry)
+        if (isWin) {
+            this.add.text(CX, rowY + 6, 'C — open Cauldron to spend harvested elements', {
+                fontSize: '12px', fontFamily: 'monospace', color: hex(COLORS.brass),
+            }).setOrigin(0.5);
+        }
 
         // Next level hint (win)
         if (isWin && data.nextLevelName) {
@@ -179,8 +181,18 @@ export class ResultScene extends Scene {
 
         const proceed = () => {
             playUiClick();
-            this.scene.start('GameScene');
-            this.scene.launch('UIScene');
+            if (isWin) {
+                // Go back to the run map to pick the next node.
+                this.scene.start('MapScene');
+            } else {
+                // Retry: re-enter GameScene with the same node.
+                this.scene.start('GameScene', {
+                    nodeId:   data.nodeId,
+                    nodeType: data.nodeType,
+                    retry:    true,
+                });
+                this.scene.launch('UIScene');
+            }
             this.scene.stop('ResultScene');
         };
 

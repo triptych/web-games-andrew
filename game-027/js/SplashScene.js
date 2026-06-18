@@ -79,11 +79,11 @@ export class SplashScene extends Scene {
         if (hasSave) {
             // Load save just to read its metadata for the button label.
             state.load();
-            const lvl = getLevelDef(state.runLevelIndex);
+            const chLabel = `Chapter ${state.runChapter}`;
 
             // Save info strip
             this.add.text(CX, CY + 54,
-                `Saved run:  ${lvl.name}  ·  ${state.currency} grams  ·  ${state.xp} XP`, {
+                `Saved run:  ${chLabel}  ·  ${state.currency} grams  ·  ${state.xp} XP`, {
                 fontSize: '12px', fontFamily: 'monospace', color: hex(COLORS.textDim),
             }).setOrigin(0.5);
 
@@ -133,7 +133,7 @@ export class SplashScene extends Scene {
             fontSize: '11px', fontFamily: 'monospace', color: hex(COLORS.textDim),
         }).setOrigin(0.5);
 
-        this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 10, 'Phase 4', {
+        this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 10, 'Phase 7', {
             fontSize: '10px', fontFamily: 'monospace', color: '#3a2e20',
         }).setOrigin(1, 1);
 
@@ -167,9 +167,8 @@ export class SplashScene extends Scene {
         this._started = true;
         initAudio();
         playUiClick();
-        // Save was already loaded in create(); just launch.
-        this.scene.start('GameScene');
-        this.scene.launch('UIScene');
+        // Save was already loaded in create(); go to the run map.
+        this.scene.start('MapScene');
         this.scene.stop('SplashScene');
     }
 
@@ -181,9 +180,8 @@ export class SplashScene extends Scene {
         state.clearSave();
         // Mark this as a fresh run so GameScene fires ch1-intro on its first create.
         state.setDialogFlag('pendingIntro', 'ch1-intro');
-        // Start the game — GameScene will detect the flag and launch VNScene over itself.
-        this.scene.start('GameScene');
-        this.scene.launch('UIScene');
+        // Go to the run map — MapScene will generate the first chapter map.
+        this.scene.start('MapScene');
         this.scene.stop('SplashScene');
     }
 }

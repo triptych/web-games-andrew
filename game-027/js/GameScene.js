@@ -46,8 +46,13 @@ const ELEM_FALLBACK = ELEMENTS[0];
 export class GameScene extends Scene {
     constructor() { super({ key: 'GameScene' }); }
 
-    create() {
+    create(data) {
+        data = data || {};
         state.reset();
+
+        // Phase 7: track which map node this level corresponds to.
+        this._mapNodeId   = data.nodeId   || null;
+        this._mapNodeType = data.nodeType || 'explore';
 
         // Load the current level definition (driven by run progression).
         this.levelDef = getLevelDef(state.runLevelIndex);
@@ -588,16 +593,26 @@ export class GameScene extends Scene {
 
         // Award rewards from the level def.
         const rewards = this.levelDef.rewards || {};
-        if (rewards.currency) state.addCurrency(rewards.currency);
-        if (rewards.xp)       state.addXP(rewards.xp);
-        const upgradedCauldron = !!rewards.cauldronUpgrade;
-        if (upgradedCauldron) {
+        const isBoss  = this._mapNodeType === 'boss';
+        const upgradedCauldron = isBoss || !!rewards.cauldronUpgrade;
+        if (upgradedCauldron && !isBoss) {
+            // Non-boss cauldron upgrade (authored in level def).
             state.upgradeCauldron();
             playCauldronUpgrade();
         }
+        if (upgradedCauldron && isBoss) {
+            playCauldronUpgrade();
+        }
 
-        // Advance run progression and persist.
-        state.advanceLevel(); // also calls state.save()
+        // Phase 7: resolve the map node (handles rewards, boss upgrade, chapter advance).
+        if (this._mapNodeId) {
+            state.resolveGameNode(this._mapNodeId, rewards, isBoss);
+        } else {
+            // Legacy linear fallback (no map node).
+            if (rewards.currency) state.addCurrency(rewards.currency);
+            if (rewards.xp)       state.addXP(rewards.xp);
+            state.advanceLevel();
+        }
 
         this.time.delayedCall(400, () => this._endLevel('complete', rewards, upgradedCauldron));
     }
@@ -635,10 +650,14 @@ export class GameScene extends Scene {
             currency: Math.round((rewards.currency || 0) * mult),
             xp:       Math.round((rewards.xp || 0) * mult),
         };
-        if (scaledRewards.currency) state.addCurrency(scaledRewards.currency);
-        if (scaledRewards.xp)       state.addXP(scaledRewards.xp);
-
-        state.advanceLevel();
+        // Phase 7: resolve via map node if available.
+        if (this._mapNodeId) {
+            state.resolveGameNode(this._mapNodeId, scaledRewards, false);
+        } else {
+            if (scaledRewards.currency) state.addCurrency(scaledRewards.currency);
+            if (scaledRewards.xp)       state.addXP(scaledRewards.xp);
+            state.advanceLevel();
+        }
         this.time.delayedCall(500, () => this._endLevel('complete', { ...scaledRewards, grade }));
     }
 
@@ -653,6 +672,9 @@ export class GameScene extends Scene {
             cauldronUpgraded,
             levelName:       this.levelDef.name,
             nextLevelName:   getLevelDef(state.runLevelIndex).name,
+            // Phase 7: pass map node context so ResultScene can wire retry correctly.
+            nodeId:          this._mapNodeId,
+            nodeType:        this._mapNodeType,
         });
     }
 

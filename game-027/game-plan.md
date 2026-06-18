@@ -3,7 +3,7 @@
 **Genre:** Block-placement puzzle (Tetris-block / *1010!*-style) fused with light RPG / alchemy progression and a story campaign
 **Engine:** Phaser 4 (ES6 modules, shared `lib/phaser/phaser-4.0.0/dist/phaser.esm.js`)
 **Target Resolution:** 1280 × 720 (`Scale.FIT` + `CENTER_BOTH`, responsive)
-**Status:** Phase 1–6 complete (core puzzle loop + deposits + cauldron + levels/objectives/progression + refinement/battle level types + story/characters/VN dialog)
+**Status:** Phase 1–7 complete (core puzzle loop + deposits + cauldron + levels/objectives/progression + refinement/battle level types + story/characters/VN dialog + run map / branching campaign)
 
 ---
 
@@ -992,17 +992,21 @@ runs the script, then resumes and calls `onComplete`. Components:
       `playDialogAdvance`, `playChoiceHover`)
 - [x] **Module entry** in `main.js`: register `VNScene` in the Phaser scene list
 
-### Phase 7 — Run map (Slay-the-Spire branching)
-- [ ] `map.js` — seeded procedural map generation: layered DAG, 2–3 forward edges per node,
+### Phase 7 — Run map (Slay-the-Spire branching) ✅ COMPLETE
+- [x] `map.js` — seeded procedural map generation: layered DAG, 2–3 forward edges per node,
       diverge/re-converge, boss terminal at far right; fairness guarantees (≥1 shop before boss,
       no back-to-back elites)
-- [ ] Node types: puzzle (exploration/refine/battle, §11) / shop / cache-event / elite / boss, each routing to its screen
-- [ ] **Run map screen**: horizontal node graph, current/forward/visited node states, currency +
-      item top bar, click-to-commit (no backtrack), node hover preview
-- [ ] Run state: carry currency/items/stores across nodes; node-clear advances the branch
-- [ ] Cache/event nodes wire to `VNScene` for flavor beats (Phase 6 dialog scripts)
-- [ ] Boss-clear wires `VNScene` for chapter-complete story beat before advancing the map
-- [ ] Decide & implement run-failure behavior (retry-node default vs. roguelike chapter-restart, §9)
+- [x] Node types: puzzle (exploration/refine/battle, §11) / shop / cache-event / elite / boss, each routing to its screen
+- [x] **Run map screen** (`MapScene.js`): horizontal node graph, current/forward/visited node states,
+      currency + XP + cauldron tier top bar, click-to-commit (no backtrack), node hover tooltip
+- [x] Run state: carry currency/items/stores across nodes; node-clear advances the branch
+- [x] Cache/event nodes wire to `VNScene` for flavor beats (Phase 6 dialog scripts)
+- [x] Boss-clear wires `VNScene` for chapter-complete story beat before advancing the map
+- [x] Run-failure behavior: retry-node default (re-enters GameScene with same nodeId/nodeType)
+- [x] Shop node: Phase 8 stub overlay (no puzzle, marks node resolved, returns to map)
+- [x] `state.js` — `initRunMap`, `commitNode`, `resolveNode`, `resolveGameNode`, `isChapterComplete`
+- [x] `SplashScene` → `MapScene` on Continue/New Run; `ResultScene` → `MapScene` on win, retry on fail
+- [x] `GameScene` receives `{ nodeId, nodeType }` from MapScene; passes them through to ResultScene
 
 ### Phase 8 — Consumables, shop & character screen
 - [ ] `items.js` — **consumables** model (count, deplete); use logic applying effects to grid/deposits/tray

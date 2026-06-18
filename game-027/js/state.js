@@ -18,6 +18,11 @@ const SAVE_KEY = 'alchemist-lattice-v1';
 // Element lookup for tier checks.
 const ELEM_MAP = new Map(ELEMENTS.map(e => [e.id, e]));
 
+// Generate a pseudo-random integer seed from current time + noise.
+function _makeSeed() {
+    return (Date.now() ^ (Math.random() * 0x7fffffff | 0)) >>> 0;
+}
+
 class GameState {
     constructor() {
         this._initPersistent();
@@ -37,10 +42,14 @@ class GameState {
         this._cauldronTier = 1;   // §6 — gates which elements the cauldron can process
         this._currency     = 0;   // §8 — grams earned from node clears, spent in shop
         this._xp           = 0;   // §10 — XP earned, spent in skill tree
-        this._runLevelIndex = 0;  // which level in LEVELS the player is on
+        this._runLevelIndex = 0;  // which level in LEVELS the player is on (legacy linear)
         // Phase 6: dialog story flags and seen-script registry
         this._dialogFlags  = new Map();
         this._seenScripts  = new Set();
+        // Phase 7: run-map state
+        this._runSeed    = _makeSeed();
+        this._runChapter = 1;
+        this._runMap     = null; // { mapData, currentNodeId, visitedIds, committedPath }
     }
 
     // --- Per-level reset ----------------------------------------------------
@@ -198,7 +207,7 @@ class GameState {
         events.emit('xpChanged', { xp: this._xp });
     }
 
-    // --- Run progression (level index) ------------------------------------
+    // --- Run progression (level index — legacy linear fallback) -------------
 
     get runLevelIndex() { return this._runLevelIndex; }
 
@@ -207,10 +216,95 @@ class GameState {
         this.save();
     }
 
+    // --- Run-map state (Phase 7) -------------------------------------------
+
+    get runSeed()    { return this._runSeed; }
+    get runChapter() { return this._runChapter; }
+    get runMap()     { return this._runMap; }
+
+    /**
+     * Call once when a new run map is generated.
+     * Sets up the tracking object; currentNodeId=null means we haven't entered
+     * any node yet — MapScene treats this as "show entry node as forward choice".
+     */
+    initRunMap(mapData) {
+        this._runMap = {
+            mapData,
+            currentNodeId:  null,
+            visitedIds:     new Set(),
+            committedPath:  [],
+        };
+        this.save();
+    }
+
+    /**
+     * Player commits to a node (clicks it on the map).
+     * Marks the prior currentNodeId as visited and sets the new one.
+     */
+    commitNode(nodeId) {
+        if (!this._runMap) return;
+        if (this._runMap.currentNodeId) {
+            this._runMap.visitedIds.add(this._runMap.currentNodeId);
+        }
+        this._runMap.currentNodeId = nodeId;
+        this._runMap.committedPath.push(nodeId);
+        this.save();
+    }
+
+    /**
+     * Called when a non-puzzle node (shop/cache) resolves without going to
+     * GameScene — marks it complete and clears currentNodeId so the map shows
+     * forward choices again.
+     */
+    resolveNode(nodeId) {
+        if (!this._runMap) return;
+        this._runMap.visitedIds.add(nodeId);
+        this._runMap.currentNodeId = nodeId;
+        this.save();
+    }
+
+    /**
+     * Called by GameScene on win — marks the node done, advances rewards.
+     * If it's the boss node, upgrades the cauldron and advances the chapter.
+     * @param {string} nodeId
+     * @param {object} rewards — { currency, xp }
+     * @param {boolean} isBoss
+     */
+    resolveGameNode(nodeId, rewards = {}, isBoss = false) {
+        if (!this._runMap) return;
+        this._runMap.visitedIds.add(nodeId);
+        this._runMap.currentNodeId = nodeId;
+        if (rewards.currency) this.addCurrency(rewards.currency);
+        if (rewards.xp)       this.addXP(rewards.xp);
+        if (isBoss) {
+            this.upgradeCauldron();
+            this._runChapter += 1;
+            // Clear the map so the next MapScene visit regenerates it.
+            this._runMap = null;
+            this._runSeed = _makeSeed();
+        }
+        this._runLevelIndex += 1;
+        this.save();
+    }
+
+    /** True when the boss node has been visited (chapter complete). */
+    isChapterComplete() {
+        if (!this._runMap) return false;
+        const { mapData, visitedIds } = this._runMap;
+        return visitedIds.has(mapData.bossNodeId);
+    }
+
     // --- Save / Load (localStorage, §9 save scope) ------------------------
 
     save() {
         try {
+            const mapSnapshot = this._runMap ? {
+                mapData:       this._runMap.mapData,
+                currentNodeId: this._runMap.currentNodeId,
+                visitedIds:    [...this._runMap.visitedIds],
+                committedPath: this._runMap.committedPath,
+            } : null;
+
             const data = {
                 stores:         Object.fromEntries(this._stores),
                 unlockedTypes:  [...this._unlockedTypes],
@@ -220,6 +314,10 @@ class GameState {
                 runLevelIndex:  this._runLevelIndex,
                 dialogFlags:    Object.fromEntries(this._dialogFlags),
                 seenScripts:    [...this._seenScripts],
+                // Phase 7
+                runSeed:        this._runSeed,
+                runChapter:     this._runChapter,
+                runMap:         mapSnapshot,
             };
             localStorage.setItem(SAVE_KEY, JSON.stringify(data));
         } catch (_) { /* quota or private mode — silently ignore */ }
@@ -241,6 +339,19 @@ class GameState {
             this._runLevelIndex = data.runLevelIndex || 0;
             this._dialogFlags   = new Map(Object.entries(data.dialogFlags || {}));
             this._seenScripts   = new Set(data.seenScripts || []);
+            // Phase 7
+            this._runSeed    = data.runSeed    || _makeSeed();
+            this._runChapter = data.runChapter || 1;
+            if (data.runMap) {
+                this._runMap = {
+                    mapData:       data.runMap.mapData,
+                    currentNodeId: data.runMap.currentNodeId || null,
+                    visitedIds:    new Set(data.runMap.visitedIds || []),
+                    committedPath: data.runMap.committedPath || [],
+                };
+            } else {
+                this._runMap = null;
+            }
             return true;
         } catch (_) { return false; }
     }

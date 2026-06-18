@@ -12,9 +12,10 @@
  *   UIScene     — HUD overlay, runs in parallel with GameScene
  *   ResultScene — win / jammed result screen
  *
- * Phase 1–6 — core puzzle loop, deposits (§5), cauldron crafting (§4),
+ * Phase 1–7 — core puzzle loop, deposits (§5), cauldron crafting (§4),
  *              levels/objectives/progression (§4), level types (§11),
- *              story/characters/VN dialog (§Phase 6).
+ *              story/characters/VN dialog (§Phase 6),
+ *              run map / branching campaign (§Phase 7).
  */
 
 import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
@@ -24,6 +25,7 @@ import { UIScene }        from './UIScene.js';
 import { ResultScene }    from './ResultScene.js';
 import { CauldronScene }  from './CauldronScene.js';
 import { VNScene }        from './VNScene.js';
+import { MapScene }       from './MapScene.js';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 
 function toHexInt(arr) { return (arr[0] << 16) | (arr[1] << 8) | arr[2]; }
@@ -37,7 +39,7 @@ const config = {
         mode:       Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
     },
-    scene: [SplashScene, GameScene, UIScene, ResultScene, CauldronScene, VNScene],
+    scene: [SplashScene, MapScene, GameScene, UIScene, ResultScene, CauldronScene, VNScene],
 };
 
 new Phaser.Game(config);
