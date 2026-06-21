@@ -27,16 +27,21 @@ let anim = null;   // { kind:'move'|'turn'|'bump', from, to, t, dur }
 // Logical pose (authoritative). Camera is derived from these between tweens.
 let tileX, tileZ, facing;
 
+// Fog-of-war: set of 'x,z' strings for tiles the player has visited.
+const _visited = new Set();
+
 export function initPlayer() {
     tileX  = startTile.x;
     tileZ  = startTile.z;
     facing = 2;            // face south (into the maze) by default
     anim   = null;
+    _visited.clear();
 
     state.playerTile = { x: tileX, z: tileZ };
     state.facing     = facing;
 
     _snapCamera();
+    _revealTile(tileX, tileZ);
     events.emit('playerMoved', { x: tileX, z: tileZ, facing });
 }
 
@@ -145,10 +150,23 @@ export function updatePlayer(dt) {
 /** Tile checks on completing a step: stairs now; loot/encounters hook in here (Phases 4–5). */
 function _onArrive() {
     playFootstep();
+    _revealTile(tileX, tileZ);
     const ch = tileAt(tileX, tileZ);
     events.emit('tileEntered', { x: tileX, z: tileZ, tile: ch });
     if (ch === '>') {
         playDescend();
         events.emit('stairsReached', { x: tileX, z: tileZ });
+        events.emit('logMessage', 'Stairs descend deeper into the dark...');
     }
 }
+
+function _revealTile(x, z) {
+    const key = `${x},${z}`;
+    if (!_visited.has(key)) {
+        _visited.add(key);
+        events.emit('tileRevealed', { x, z });
+    }
+}
+
+/** Returns a copy of the visited tile set (for minimap rendering). */
+export function getVisited() { return _visited; }

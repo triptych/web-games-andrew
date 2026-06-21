@@ -17,7 +17,13 @@
  *   playerMoved({x, z, facing})   — after a step or turn commits (and on spawn)
  *   tileEntered({x, z, tile})     — after a step commits; tile is the grid char
  *   stairsReached({x, z})         — player stepped onto a '>' tile
- *   TODO: combatStarted, combatEnded, hpChanged, depthChanged, tileRevealed, logMessage
+ *   hpChanged({cur, max})         — player HP changed
+ *   depthChanged(newDepth)        — dungeon depth changed
+ *   tileRevealed({x, z})          — tile first stepped into (fog-of-war reveal)
+ *   logMessage(string)            — narrative message for the message log
+ *   pickupGold()                  — loot/gold acquired (triggers HUD flash)
+ *   damageTaken()                 — player took a hit (triggers vignette)
+ *   TODO: combatStarted, combatEnded
  */
 export class EventBus {
     constructor() {

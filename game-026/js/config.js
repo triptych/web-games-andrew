@@ -42,6 +42,11 @@ export const COLORS = {
     ceiling:  0x3c3848,
 };
 
-// --- TODO: Add game-specific constants below ---
-// export const MONSTER_DEFS = { ... };
-// export const PLAYER_STATS  = { hp: 20, atk: 4, def: 2 };
+// --- Player starting stats ---
+export const PLAYER_HP_MAX = 20;
+export const PLAYER_ATK    = 4;
+export const PLAYER_DEF    = 2;
+export const STARTING_DEPTH = 1;
+
+// --- Minimap ---
+export const MINIMAP_CELL = 6;    // px per tile in the minimap canvas

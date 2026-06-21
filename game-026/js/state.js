@@ -1,5 +1,5 @@
 import { events } from './events.js';
-import { STARTING_SCORE, STARTING_LIVES } from './config.js';
+import { STARTING_SCORE, STARTING_LIVES, PLAYER_HP_MAX, STARTING_DEPTH } from './config.js';
 
 /**
  * Global game state.
@@ -17,11 +17,12 @@ class GameState {
         this._isGameOver = false;
         this._isPaused   = false;
 
-        // TODO: add game-specific state properties here
-        // this.playerTile = { x: 1, z: 1 };
-        // this.facing     = 0;        // index into DIRS
-        // this.hp         = 20;
-        // this.depth      = 1;        // current dungeon level
+        this.playerTile  = { x: 1, z: 1 };
+        this.facing      = 0;
+
+        this._hp         = PLAYER_HP_MAX;
+        this._hpMax      = PLAYER_HP_MAX;
+        this._depth      = STARTING_DEPTH;
     }
 
     // --- Score ---
@@ -45,6 +46,22 @@ class GameState {
     }
 
     loseLife() { this.lives -= 1; }
+
+    // --- HP ---
+    get hp()    { return this._hp; }
+    get hpMax() { return this._hpMax; }
+    set hp(val) {
+        this._hp = Math.max(0, Math.min(this._hpMax, val));
+        events.emit('hpChanged', { cur: this._hp, max: this._hpMax });
+        if (this._hp <= 0 && !this._isGameOver) this.loseLife();
+    }
+
+    // --- Depth ---
+    get depth() { return this._depth; }
+    set depth(val) {
+        this._depth = val;
+        events.emit('depthChanged', val);
+    }
 
     // --- Flags ---
     get isGameOver() { return this._isGameOver; }

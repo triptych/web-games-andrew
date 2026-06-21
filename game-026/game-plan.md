@@ -3,7 +3,7 @@
 **Genre:** First-person grid-based dungeon crawler ("blobber") with turn-based combat
 **Engine:** three.js r165 (ES6 modules, loaded via CDN import map)
 **Target Resolution:** Fullscreen (responsive); reference 1280 × 720
-**Status:** Phase 2 complete — walkable dungeon
+**Status:** Phase 3 complete — Exploration HUD
 
 ---
 
@@ -262,16 +262,15 @@ Web Audio API — no file assets. Procedural SFX in `sounds.js`.
 - [x] Wall-bump feedback (sound + head-knock shake)
 - [x] Footstep sound + on-arrival tile checks (stairs/loot/encounter)
 
-### Phase 3 — Exploration HUD
-*(Builds the default-mode UI from the UI / HUD spec. DOM-only; gameplay modules just emit events.)*
-- [ ] HUD skeleton & visual language — carved-frame panels, gold-inset borders, monospace type, `--ui-scale` root var, safe-area gutter
-- [ ] Top bar: health bar (`hpChanged`, segmented + tween + low-HP red pulse), depth readout (`depthChanged`), score count-up (existing `scoreChanged`)
-- [ ] Compass tied to `state.facing` (`playerMoved`)
-- [ ] Minimap (right rail) with fog-of-war (`tileRevealed`); player arrow, stairs/door glyphs; `M` toggle, `Tab` full-screen automap
-- [ ] Message log — pooled transient feed (`logMessage`)
-- [ ] Context-sensitive action hint (shows `SEARCH (F)` when an interactable is ahead)
-- [ ] Weapon / quick-item chip (left rail)
-- [ ] Feedback/juice: damage edge-vignette + grid-safe camera shake, pickup gold-flash, `prefers-reduced-motion` support
+### Phase 3 — Exploration HUD (complete)
+- [x] HUD skeleton & visual language — carved-frame panels, gold-inset borders, monospace type, `--ui-scale` root var, safe-area gutter
+- [x] Top bar: health bar (`hpChanged`, animated fill + low-HP red pulse), depth readout (`depthChanged`), score count-up (`scoreChanged`)
+- [x] Compass tied to `state.facing` (`playerMoved`)
+- [x] Minimap (right rail) with fog-of-war (`tileRevealed`); player arrow, stairs glyph; `M` toggle, `Tab` full-screen automap
+- [x] Message log — pooled transient feed (`logMessage`), 3-line pool with auto-fade
+- [x] Context-sensitive action hint (shows `SEARCH (F)` when an interactable is ahead)
+- [x] Weapon / quick-item chip (left rail)
+- [x] Feedback/juice: damage edge-vignette + grid-safe camera shake, pickup gold-flash, `prefers-reduced-motion` support
 
 ### Phase 4 — Combat & combat HUD
 - [ ] Monsters (billboards or low-poly meshes) with stats
@@ -343,6 +342,17 @@ Web Audio API — no file assets. Procedural SFX in `sounds.js`.
 - `player.js`: grid-aligned step/back/strafe + 90° turns with smoothstep tweens, input locked mid-move, wall collision, camera driven by logical pose
 - Wired `initDungeon`/`initPlayer`/`updatePlayer`/`handleInput` into `main.js`; game is now walkable
 - Visibility pass: ACES tone mapping + sRGB output, brighter warm lantern (intensity 22, decay 2) offset ahead of the eye, added hemisphere fill, pushed fog back to 12–40, lightened wall/floor/ceiling colors so surfaces actually read
+
+### Phase 3 — Exploration HUD (2026-06-21)
+- Full DOM HUD with carved-panel visual language: `--ui-scale`, `--panel-bg/border/inset` tokens, gold accents
+- Top bar: animated HP fill bar (smoothstep tween) with low-HP red pulse below 25%; depth readout with pop animation on descent; score count-up animation
+- Compass: N/E/S/W cardinal indicator with `state.facing` rotation, updates on every `playerMoved`
+- Minimap (right rail): fog-of-war canvas, `M` toggle, player gold arrow, stairs `>` glyph; `Tab` full-screen automap overlay
+- Message log: 3-node DOM pool, auto-fade after 4s, driven by `logMessage` event
+- Context-sensitive "SEARCH (F)" hint: live on `playerMoved`, checks tile ahead for interactable chars
+- Weapon chip (left rail): shows equipped weapon name (defaults to "Fists")
+- Juice: `damageTaken` → edge-vignette flash + grid-safe camera shake (offset applied/removed each frame); `pickupGold` → score flash; persistent low-HP vignette pulse; all disabled under `prefers-reduced-motion`
+- State: added `hp/hpMax/depth` with auto-emit setters; `tileRevealed` fog-of-war tracking in `player.js` via `_visited` Set + `getVisited()` export
 
 ### Phase 2 — Feedback & arrival hooks (2026-06-12)
 - Wall-bump feedback: blocked moves now play a dull noise-burst thud and run a short 'bump' tween — the camera lurches `BUMP_DIST` into the wall with a `BUMP_DIP` head-knock dip, then returns (input stays locked during it, like any tween)

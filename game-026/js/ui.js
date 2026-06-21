@@ -1,32 +1,114 @@
 /**
- * ui.js — DOM HUD bindings. The HUD lives in index.html as fixed DOM elements;
- * this module just hooks up event listeners and shows/hides overlays.
+ * ui.js — DOM HUD for Phase 3 Exploration HUD.
+ *
+ * Owns all DOM. Gameplay modules only emit events; this module reacts.
+ *
+ * Public API:
+ *   initUI()       — wire everything up; call once after DOM is ready
+ *   hideSplash()   — hide the center splash overlay
+ *   showDamage()   — trigger edge-vignette + camera shake
+ *   showPickup()   — trigger score-counter gold flash
+ *   logMessage(s)  — push a line to the message log (also callable directly)
  */
 
 import { state }  from './state.js';
 import { events } from './events.js';
+import { MINIMAP_CELL, DIRS } from './config.js';
+import { grid, gridW, gridH, tileAt } from './dungeon.js';
+import { getVisited } from './player.js';
 
-let $score, $lives, $message;
+// ── DOM refs ────────────────────────────────────────────────
+let $message, $vignette;
+let $hpNums, $hpFill;
+let $depthVal;
+let $scoreVal;
+let $compassDir;
+let $minimapWrap, $minimapCanvas, $minimapCtx;
+let $automapOverlay, $automapCanvas, $automapCtx;
+let $hintSearch;
+let $messageLog;
+
+// ── HP animation state ─────────────────────────────────────
+let _hpDisplayed = 1.0;    // fraction (0–1) currently shown in bar
+let _hpTarget    = 1.0;
+let _hpAnimId    = null;
+
+// ── Log pool ────────────────────────────────────────────────
+const LOG_POOL_SIZE = 3;
+const LOG_DURATION  = 4000;  // ms before a message fades
+const _logPool = [];
+let _logNext = 0;            // round-robin index
+
+// ── Compass directions ──────────────────────────────────────
+const COMPASS_LABELS = ['N', 'E', 'S', 'W'];
+
+// ── Minimap / automap state ─────────────────────────────────
+let _minimapVisible  = false;
+let _automapVisible  = false;
+
+// ============================================================
+// Init
+// ============================================================
 
 export function initUI() {
-    $score   = document.getElementById('score-val');
-    $lives   = document.getElementById('lives-val');
-    $message = document.getElementById('message');
+    $message        = document.getElementById('message');
+    $vignette       = document.getElementById('vignette');
+    $hpNums         = document.getElementById('hp-nums');
+    $hpFill         = document.getElementById('hp-bar-fill');
+    $depthVal       = document.getElementById('depth-val');
+    $scoreVal       = document.getElementById('score-val');
+    $compassDir     = document.getElementById('compass-dir');
+    $minimapWrap    = document.getElementById('minimap-wrap');
+    $minimapCanvas  = document.getElementById('minimap-canvas');
+    $automapOverlay = document.getElementById('automap-overlay');
+    $automapCanvas  = document.getElementById('automap-canvas');
+    $hintSearch     = document.getElementById('hint-search');
+    $messageLog     = document.getElementById('message-log');
 
-    _render();
+    // Build canvas contexts
+    $minimapCtx = $minimapCanvas.getContext('2d');
+    $automapCtx = $automapCanvas.getContext('2d');
 
-    events.on('scoreChanged', _render);
-    events.on('livesChanged', _render);
-    events.on('gameOver',     _showGameOver);
+    // Build log pool
+    for (let i = 0; i < LOG_POOL_SIZE; i++) {
+        const el = document.createElement('div');
+        el.className = 'log-entry';
+        $messageLog.appendChild(el);
+        _logPool.push(el);
+    }
+
+    // Initial render from current state
+    _renderHP(state.hp, state.hpMax);
+    _renderDepth(state.depth);
+    _renderScore(state.score);
+    _renderCompass(state.facing);
+
+    // Subscribe to events
+    events.on('hpChanged',      ({ cur, max }) => _renderHP(cur, max));
+    events.on('depthChanged',   d  => _renderDepth(d));
+    events.on('scoreChanged',   s  => _renderScore(s));
+    events.on('playerMoved',    ({ facing }) => _renderCompass(facing));
+    events.on('tileRevealed',   () => _drawMinimap());
+    events.on('playerMoved',    () => _drawMinimap());
+    events.on('logMessage',     s  => logMessage(s));
+    events.on('damageTaken',    () => showDamage());
+    events.on('pickupGold',     () => showPickup());
+    events.on('gameOver',       _showGameOver);
+
+    // M = toggle minimap, Tab = toggle automap
+    document.addEventListener('keydown', e => {
+        if (e.key === 'm' || e.key === 'M') _toggleMinimap();
+        if (e.key === 'Tab') { e.preventDefault(); _toggleAutomap(); }
+    });
 }
 
-function _render() {
-    if ($score) $score.textContent = String(state.score);
-    if ($lives) $lives.textContent = String(state.lives);
-}
+// ============================================================
+// Splash / overlays
+// ============================================================
 
 export function hideSplash() {
     if ($message) $message.classList.add('hidden');
+    _showMinimap(true);
 }
 
 function _showGameOver() {
@@ -38,4 +120,285 @@ function _showGameOver() {
         <p style="opacity:0.6">Press R to restart &middot; ESC for menu</p>
     `;
     $message.classList.remove('hidden');
+}
+
+// ============================================================
+// HP bar
+// ============================================================
+
+function _renderHP(cur, max) {
+    if (!$hpNums) return;
+    $hpNums.textContent = `${cur}/${max}`;
+    const frac = max > 0 ? cur / max : 0;
+    const isLow = frac <= 0.25;
+    $hpNums.style.color = isLow ? 'var(--danger)' : '';
+
+    // Animate bar toward target
+    _hpTarget = frac;
+    if (!_hpAnimId) _animateHP();
+
+    // Low-HP vignette persistent pulse
+    if ($vignette) {
+        if (isLow) $vignette.classList.add('low-hp');
+        else       $vignette.classList.remove('low-hp');
+    }
+}
+
+function _animateHP() {
+    const SPEED = 3.0;  // fraction per second
+    let last = performance.now();
+    function step(now) {
+        const dt = Math.min((now - last) / 1000, 0.05);
+        last = now;
+        const diff = _hpTarget - _hpDisplayed;
+        if (Math.abs(diff) < 0.001) {
+            _hpDisplayed = _hpTarget;
+            _hpAnimId = null;
+            _applyHPBar();
+            return;
+        }
+        _hpDisplayed += diff * Math.min(SPEED * dt * 8, 1);
+        _applyHPBar();
+        _hpAnimId = requestAnimationFrame(step);
+    }
+    _hpAnimId = requestAnimationFrame(step);
+}
+
+function _applyHPBar() {
+    if (!$hpFill) return;
+    $hpFill.style.transform = `scaleX(${_hpDisplayed.toFixed(4)})`;
+    const isLow = _hpTarget <= 0.25;
+    if (isLow) $hpFill.classList.add('low');
+    else       $hpFill.classList.remove('low');
+}
+
+// ============================================================
+// Depth
+// ============================================================
+
+function _renderDepth(d) {
+    if (!$depthVal) return;
+    $depthVal.textContent = String(d);
+    $depthVal.classList.remove('pop');
+    // Force reflow to restart animation
+    void $depthVal.offsetWidth;
+    $depthVal.classList.add('pop');
+}
+
+// ============================================================
+// Score (count-up)
+// ============================================================
+
+let _scoreDisplayed = 0;
+let _scoreTarget    = 0;
+let _scoreAnimId    = null;
+
+function _renderScore(s) {
+    _scoreTarget = s;
+    if (!_scoreAnimId) _animateScore();
+}
+
+function _animateScore() {
+    let last = performance.now();
+    function step(now) {
+        const dt = Math.min((now - last) / 1000, 0.05);
+        last = now;
+        const diff = _scoreTarget - _scoreDisplayed;
+        if (Math.abs(diff) < 1) {
+            _scoreDisplayed = _scoreTarget;
+            _scoreAnimId = null;
+            if ($scoreVal) $scoreVal.textContent = String(_scoreDisplayed);
+            return;
+        }
+        _scoreDisplayed += diff * Math.min(8 * dt, 1);
+        if ($scoreVal) $scoreVal.textContent = String(Math.round(_scoreDisplayed));
+        _scoreAnimId = requestAnimationFrame(step);
+    }
+    _scoreAnimId = requestAnimationFrame(step);
+}
+
+// ============================================================
+// Compass
+// ============================================================
+
+function _renderCompass(facing) {
+    if (!$compassDir) return;
+    $compassDir.textContent = COMPASS_LABELS[facing] || 'N';
+    // Rotate the compass label to reflect facing
+    const rotMap = { 0: 0, 1: 90, 2: 180, 3: 270 };
+    $compassDir.style.transform = `rotate(${rotMap[facing] || 0}deg)`;
+}
+
+// ============================================================
+// Minimap / automap
+// ============================================================
+
+const MM_CELL  = MINIMAP_CELL;      // px per tile in minimap
+const AM_CELL  = 14;                // px per tile in automap
+
+function _showMinimap(show) {
+    _minimapVisible = show;
+    if ($minimapWrap) {
+        if (show) $minimapWrap.classList.remove('hidden');
+        else      $minimapWrap.classList.add('hidden');
+    }
+    if (show) _drawMinimap();
+}
+
+function _toggleMinimap() {
+    _showMinimap(!_minimapVisible);
+}
+
+function _toggleAutomap() {
+    _automapVisible = !_automapVisible;
+    if ($automapOverlay) {
+        if (_automapVisible) {
+            $automapOverlay.classList.remove('hidden');
+            _drawAutomap();
+        } else {
+            $automapOverlay.classList.add('hidden');
+        }
+    }
+}
+
+function _drawMinimap() {
+    if (!_minimapVisible || !$minimapCtx || !grid.length) return;
+
+    const w = gridW * MM_CELL;
+    const h = gridH * MM_CELL;
+    $minimapCanvas.width  = w;
+    $minimapCanvas.height = h;
+    _drawMap($minimapCtx, MM_CELL);
+}
+
+function _drawAutomap() {
+    if (!$automapCtx || !grid.length) return;
+    const w = gridW * AM_CELL;
+    const h = gridH * AM_CELL;
+    $automapCanvas.width  = w;
+    $automapCanvas.height = h;
+    _drawMap($automapCtx, AM_CELL);
+}
+
+function _drawMap(ctx, cell) {
+    const visited = getVisited();
+    const px = state.playerTile;
+    const facing = state.facing;
+
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+    for (let z = 0; z < gridH; z++) {
+        for (let x = 0; x < gridW; x++) {
+            const key = `${x},${z}`;
+            const ch  = grid[z][x];
+            const seen = visited.has(key);
+
+            if (!seen) {
+                // Fog of war — don't draw
+                continue;
+            }
+
+            const rx = x * cell;
+            const rz = z * cell;
+
+            if (ch === '#') {
+                ctx.fillStyle = 'rgba(120,110,100,0.9)';
+            } else if (ch === '>') {
+                ctx.fillStyle = 'rgba(100,200,255,0.9)';
+            } else if (ch === 'S') {
+                ctx.fillStyle = 'rgba(80,220,100,0.7)';
+            } else {
+                ctx.fillStyle = 'rgba(50,45,60,0.9)';
+            }
+            ctx.fillRect(rx, rz, cell, cell);
+
+            // Tile outline
+            ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+            ctx.lineWidth = 0.5;
+            ctx.strokeRect(rx + 0.25, rz + 0.25, cell - 0.5, cell - 0.5);
+
+            // Glyph markers
+            if (cell >= 10) {
+                ctx.font = `${Math.floor(cell * 0.55)}px Courier New`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                if (ch === '>') {
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText('>', rx + cell / 2, rz + cell / 2);
+                }
+            }
+        }
+    }
+
+    // Player arrow
+    if (px) {
+        const cx = px.x * cell + cell / 2;
+        const cz = px.z * cell + cell / 2;
+        const r  = cell * 0.38;
+
+        ctx.save();
+        ctx.translate(cx, cz);
+        // facing: 0=N(-z)=up, 1=E(+x)=right, 2=S(+z)=down, 3=W(-x)=left
+        const angleDeg = [270, 0, 90, 180][facing] || 0;
+        ctx.rotate((angleDeg * Math.PI) / 180);
+
+        ctx.beginPath();
+        ctx.moveTo(0, -r);
+        ctx.lineTo(r * 0.6,  r * 0.7);
+        ctx.lineTo(-r * 0.6, r * 0.7);
+        ctx.closePath();
+        ctx.fillStyle = '#ffd700';
+        ctx.fill();
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+// ============================================================
+// Message log
+// ============================================================
+
+export function logMessage(text) {
+    if (!$messageLog) return;
+    const el = _logPool[_logNext % LOG_POOL_SIZE];
+    _logNext++;
+    el.textContent = text;
+    el.classList.remove('show');
+    // Force reflow
+    void el.offsetWidth;
+    el.classList.add('show');
+
+    // Auto-fade after LOG_DURATION
+    clearTimeout(el._fadeTimer);
+    el._fadeTimer = setTimeout(() => el.classList.remove('show'), LOG_DURATION);
+}
+
+// ============================================================
+// Context-sensitive action hint
+// ============================================================
+
+export function updateActionHint(interactableAhead) {
+    if (!$hintSearch) return;
+    if (interactableAhead) $hintSearch.classList.add('visible');
+    else                   $hintSearch.classList.remove('visible');
+}
+
+// ============================================================
+// Juice: damage vignette & pickup flash
+// ============================================================
+
+export function showDamage() {
+    if (!$vignette) return;
+    $vignette.classList.remove('flash');
+    void $vignette.offsetWidth;
+    $vignette.classList.add('flash');
+}
+
+export function showPickup() {
+    if (!$scoreVal) return;
+    $scoreVal.classList.remove('flash');
+    void $scoreVal.offsetWidth;
+    $scoreVal.classList.add('flash');
 }
