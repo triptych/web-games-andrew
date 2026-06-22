@@ -67,6 +67,48 @@ export const SHADING = {
 // --- Phase 4: Wall variant types ---
 export const WALL_VARIANTS = { none: 0, crack: 1, moss: 2, arch: 3, torch: 4 };
 
+// --- Phase 5: Monster definitions ---
+// hp, atk, def, xp, name, description
+export const MONSTERS = {
+    ghoul: {
+        id:   'ghoul',
+        name: 'Crypt Ghoul',
+        hp:   12,
+        atk:  3,
+        def:  1,
+        xp:   30,
+        icon: '☠',
+    },
+    skeleton: {
+        id:   'skeleton',
+        name: 'Rattling Skeleton',
+        hp:   8,
+        atk:  4,
+        def:  0,
+        xp:   20,
+        icon: '💀',
+    },
+    wraith: {
+        id:   'wraith',
+        name: 'Shadow Wraith',
+        hp:   16,
+        atk:  5,
+        def:  2,
+        xp:   55,
+        icon: '👻',
+    },
+};
+
+// Monster spawn tiles: 'x,z' → monster id. Add 'M' tiles in the level
+// and list them here so dungeon.js can report them on tileEntered.
+export const LEVEL_1_SPAWNS = {
+    '5,2':  'skeleton',   // corridor junction near first torch
+    '7,5':  'ghoul',      // center passage
+    '11,5': 'skeleton',   // east side
+    '1,7':  'wraith',     // northwest room
+    '7,9':  'ghoul',      // south corridor
+};
+
 // --- Phase 4: Level theme configurations ---
 export const LEVEL_THEMES = {
     1: {

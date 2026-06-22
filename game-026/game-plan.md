@@ -3,7 +3,7 @@
 **Genre:** First-person grid-based dungeon crawler ("blobber") with turn-based combat
 **Engine:** three.js r165 (ES6 modules, loaded via CDN import map)
 **Target Resolution:** Fullscreen (responsive); reference 1280 × 720
-**Status:** Phase 4 complete — Visual Polish; Phase 5 (Combat) planned
+**Status:** Phase 5 complete — Combat; Phase 6 (Content & Progression) planned
 
 ---
 
@@ -280,10 +280,14 @@ Web Audio API — no file assets. Procedural SFX in `sounds.js`.
 - [x] **Floor & ceiling tile variety** — alternate worn/rubble material on deterministic hash `(x*7+z*13)%5===0` tiles; separate ceiling hash for variation; both shaded via `SHADING` table
 - [x] **Level theme config** — `LEVEL_THEMES` in `config.js` keyed by depth 1–3; defines `wallTint/floorTint/ceilTint` (multiplied onto base `COLORS`), `fogColor/fogNear/fogFar`, `ambientIntensity`, `allowedVariants`; applied in `buildLevel()`
 
-### Phase 5 — Combat & combat HUD
-- [ ] Monsters (billboards or low-poly meshes) with stats
-- [ ] `combat.js` — turn-based combat loop; emits `combatStarted` / `combatEnded` / `hpChanged`
-- [ ] Combat HUD layer: turn banner, enemy nameplates (HP + status), ATTACK/DEFEND/ITEM/FLEE action bar (hotkeys 1–4 + clickable), target selection, turn-order tracker, floating combat text
+### Phase 5 — Combat & combat HUD (complete)
+- [x] Monster definitions in `config.js` (`MONSTERS`: ghoul, skeleton, wraith; stats: hp/atk/def/xp/icon)
+- [x] `LEVEL_1_SPAWNS` map in `config.js` keyed by `'x,z'`; 'M' spawn tiles in level data (walkable, consumed on first entry via `clearSpawnTile`)
+- [x] `combat.js` — turn-based state machine: `startCombat(id)`, player/enemy turn cycle, ATTACK/DEFEND/ITEM/FLEE actions; emits `combatStarted / combatEnded / combatLog / enemyHpChanged / combatTurnChanged / combatPlayerAttack / combatEnemyAttack`; player movement blocked during combat via `state.isPaused`
+- [x] Combat HUD DOM layer (`#combat-layer`): turn banner (gold `✦ YOUR TURN ✦` vs red `ENEMY TURN`), enemy nameplate (icon + name + HP bar + status word), turn-order tracker (right rail), ATTACK/DEFEND/ITEM/FLEE action buttons with [1]–[4] hotkey labels + click handlers, combat message log (4-node pool)
+- [x] Floating combat text: damage numbers pop above the viewport center, rise and fade; crits are gold and larger; enemy hits are red
+- [x] Combat sounds: `playSwordSwing`, `playMonsterHit`, `playCombatStart` added to `sounds.js`
+- [x] Keyboard hotkeys 1–4 routed to `combatAction` event in `main.js`; combat takes priority over movement input while active
 
 ### Phase 6 — Content & progression
 - [ ] Loot, keys, doors; inventory / character screen overlay (`I`, pauses game) — equipment, stats, backpack grid, tooltips
@@ -370,6 +374,13 @@ Web Audio API — no file assets. Procedural SFX in `sounds.js`.
 - Torch sconces: `PlaneGeometry` flame + bracket `BoxGeometry` + `PointLight`; `updateTorches(dt)` in `main.js` animate loop runs dual-sin flicker per torch with LCG-seeded desync
 - Floor/ceiling variety: deterministic hash selects `floorAlt` material on ~20% of tiles; separate hash for ceiling
 - `LEVEL_THEMES[1-3]` in `config.js`: warm amber Upper Crypt → cooler blue Cold Depths; `buildLevel()` applies fog color/range and theme tints at build time
+
+### Phase 5 — Combat & combat HUD (2026-06-22)
+- Monster definitions added to `config.js`: ghoul (12 HP), skeleton (8 HP), wraith (16 HP); each with atk/def/xp/icon
+- `LEVEL_1_SPAWNS` keyed map; Level 1 grid updated with 5 'M' spawn tiles; `clearSpawnTile()` in `dungeon.js` prevents re-triggering
+- `combat.js`: turn-based state machine with ATTACK/DEFEND/ITEM/FLEE; d4 player attack roll + defense reduction; d3 enemy attack + defend bonus (+3 DEF when player chose Defend); 50% flee chance; XP awarded on win via `state.addScore`; `state.isPaused` blocks movement during combat
+- Combat HUD: hidden `#combat-layer` div slides in on `combatStarted`; animated enemy HP bar with status word (hurt/critical/dead); turn-order tracker; action buttons with [1]–[4] hotkeys; 4-node combat log pool; floating damage numbers (player gold, enemy red, crits oversized gold)
+- Sounds: `playSwordSwing`, `playMonsterHit`, `playCombatStart` added; existing `playSuccess`/`playFailure`/`playUiClick` reused for win/lose/flee
 
 ### Phase 2 — Feedback & arrival hooks (2026-06-12)
 - Wall-bump feedback: blocked moves now play a dull noise-burst thud and run a short 'bump' tween — the camera lurches `BUMP_DIST` into the wall with a `BUMP_DIP` head-knock dip, then returns (input stays locked during it, like any tween)

@@ -14,8 +14,10 @@ import { events } from './events.js';
 import { initUI, hideSplash, logMessage, showDamage, updateActionHint } from './ui.js';
 import { initAudio, playUiClick } from './sounds.js';
 
-import { initDungeon, tileAt, updateTorches } from './dungeon.js';
+import { initDungeon, tileAt, updateTorches, clearSpawnTile } from './dungeon.js';
 import { initPlayer, updatePlayer, handleInput } from './player.js';
+import { initCombat, startCombat, isInCombat, updateCombat } from './combat.js';
+import { LEVEL_1_SPAWNS } from './config.js';
 
 // ============================================================
 // THREE.JS GOTCHAS (read before adding anything)
@@ -42,6 +44,7 @@ import { initPlayer, updatePlayer, handleInput } from './player.js';
 initScene();
 initUI();
 initDungeon();   // build the level mesh once; player spawns into it on start
+initCombat();    // wire combat event listener
 
 // ============================================================
 // Game state machine
@@ -63,6 +66,20 @@ function startGame() {
 }
 
 events.on('gameOver', () => { mode = 'gameover'; });
+
+// Monster encounter: player steps onto an 'M' tile
+events.on('tileEntered', ({ x, z, tile }) => {
+    if (tile !== 'M') return;
+    const spawnKey = `${x},${z}`;
+    const monsterId = LEVEL_1_SPAWNS[spawnKey];
+    if (!monsterId) return;
+    clearSpawnTile(x, z);   // prevent re-triggering on the same tile
+    startCombat(monsterId);
+});
+
+// Block player movement while in combat
+events.on('combatStarted', () => { state.isPaused = true; });
+events.on('combatEnded',   () => { state.isPaused = false; });
 
 // Context-sensitive action hint: show "SEARCH (F)" when an interactable is ahead.
 // INTERACTABLE_TILES = doors, switches, chests (Phase 5). For now nothing is interactive,
@@ -104,7 +121,17 @@ function onAnyKey(e) {
         location.reload();
         return;
     }
-    if (mode === 'playing') handleInput(e);
+    if (mode === 'playing') {
+        // Combat hotkeys 1-4 take priority when in combat
+        if (isInCombat()) {
+            const actionMap = { '1': 'attack', '2': 'defend', '3': 'item', '4': 'flee' };
+            if (actionMap[e.key]) {
+                events.emit('combatAction', { action: actionMap[e.key] });
+                return;
+            }
+        }
+        handleInput(e);
+    }
 }
 document.addEventListener('keydown', onAnyKey);
 document.addEventListener('click',   () => { if (mode === 'splash') startGame(); });
@@ -121,6 +148,7 @@ function animate() {
 
     if (mode === 'playing') {
         updatePlayer(dt);
+        updateCombat(dt);
     }
 
     updateTorches(dt);

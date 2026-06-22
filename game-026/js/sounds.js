@@ -117,3 +117,20 @@ export function playGameOver() {
     _sweep('sawtooth', 400, 50, 0.8, 0.4);
     _noise(0.5, 0.15, 0.2);
 }
+
+// Combat-specific sounds
+export function playSwordSwing() {
+    _sweep('square', 400, 120, 0.12, 0.2);
+    _noise(0.06, 0.06, 0.04);
+}
+
+export function playMonsterHit() {
+    _sweep('square', 280, 60, 0.15, 0.28);
+    _noise(0.08, 0.12, 0.05);
+}
+
+export function playCombatStart() {
+    _osc('square', 220, 0.1, 0.2);
+    _osc('square', 180, 0.12, 0.2, 0.08);
+    _noise(0.05, 0.05, 0.1);
+}

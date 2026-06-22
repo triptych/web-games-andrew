@@ -28,6 +28,19 @@ let $automapOverlay, $automapCanvas, $automapCtx;
 let $hintSearch;
 let $messageLog;
 
+// Combat DOM refs
+let $combatLayer;
+let $combatTurnBanner;
+let $enemyNameplate, $enemyIcon, $enemyName, $enemyStatus;
+let $enemyHpFill, $enemyHpNums;
+let $combatTurnOrder, $turnYou, $turnEnemy;
+let $combatActionBar;
+let $combatLog;
+let _combatLogPool = [];
+let _combatLogNext = 0;
+const COMBAT_LOG_POOL = 4;
+const COMBAT_LOG_DUR  = 5000;
+
 // ── HP animation state ─────────────────────────────────────
 let _hpDisplayed = 1.0;    // fraction (0–1) currently shown in bar
 let _hpTarget    = 1.0;
@@ -94,6 +107,46 @@ export function initUI() {
     events.on('damageTaken',    () => showDamage());
     events.on('pickupGold',     () => showPickup());
     events.on('gameOver',       _showGameOver);
+
+    // Wire combat DOM
+    $combatLayer       = document.getElementById('combat-layer');
+    $combatTurnBanner  = document.getElementById('combat-turn-banner');
+    $enemyIcon         = document.getElementById('enemy-icon');
+    $enemyName         = document.getElementById('enemy-name');
+    $enemyStatus       = document.getElementById('enemy-status');
+    $enemyHpFill       = document.getElementById('enemy-hp-bar-fill');
+    $enemyHpNums       = document.getElementById('enemy-hp-nums');
+    $turnYou           = document.getElementById('turn-you');
+    $turnEnemy         = document.getElementById('turn-enemy');
+    $combatActionBar   = document.getElementById('combat-action-bar');
+    $combatLog         = document.getElementById('combat-log');
+
+    // Build combat log pool
+    for (let i = 0; i < COMBAT_LOG_POOL; i++) {
+        const el = document.createElement('div');
+        el.className = 'combat-log-entry';
+        $combatLog.appendChild(el);
+        _combatLogPool.push(el);
+    }
+
+    // Action button clicks
+    if ($combatActionBar) {
+        $combatActionBar.querySelectorAll('.combat-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.dataset.action;
+                events.emit('combatAction', { action });
+            });
+        });
+    }
+
+    // Combat events
+    events.on('combatStarted',     _onCombatStarted);
+    events.on('combatEnded',       _onCombatEnded);
+    events.on('combatLog',         _addCombatLog);
+    events.on('enemyHpChanged',    _updateEnemyHp);
+    events.on('combatTurnChanged', _updateCombatTurn);
+    events.on('combatPlayerAttack', ({ dmg, isCrit }) => _spawnFloatText(dmg, isCrit ? 'crit' : 'player'));
+    events.on('combatEnemyAttack',  ({ dmg }) => _spawnFloatText(dmg, 'enemy'));
 
     // M = toggle minimap, Tab = toggle automap
     document.addEventListener('keydown', e => {
@@ -401,4 +454,117 @@ export function showPickup() {
     $scoreVal.classList.remove('flash');
     void $scoreVal.offsetWidth;
     $scoreVal.classList.add('flash');
+}
+
+// ============================================================
+// Combat UI
+// ============================================================
+
+function _onCombatStarted({ monster }) {
+    if (!$combatLayer) return;
+
+    // Populate enemy nameplate
+    $enemyIcon.textContent  = monster.icon || '☠';
+    $enemyName.textContent  = monster.name.toUpperCase();
+    $enemyStatus.textContent = '';
+    _updateEnemyHp({ cur: monster.curHp, max: monster.hp, name: monster.name });
+
+    // Turn order labels
+    if ($turnEnemy) $turnEnemy.textContent = monster.name.toUpperCase();
+    _updateCombatTurn({ turn: 'player' });
+
+    // Show combat layer; hide exploration hints
+    $combatLayer.classList.remove('hidden');
+    if ($minimapWrap)  $minimapWrap.classList.add('hidden');
+    if ($hintSearch)   $hintSearch.classList.remove('visible');
+
+    // Enable buttons
+    _setCombatButtonsEnabled(true);
+}
+
+function _onCombatEnded({ result }) {
+    if (!$combatLayer) return;
+    $combatLayer.classList.add('hidden');
+
+    // Restore exploration HUD
+    if (_minimapVisible && $minimapWrap) $minimapWrap.classList.remove('hidden');
+
+    // Clear combat log pool
+    _combatLogPool.forEach(el => { el.classList.remove('show'); clearTimeout(el._fadeTimer); });
+    _combatLogNext = 0;
+
+    if (result === 'win') {
+        logMessage('You are victorious!');
+    } else if (result === 'flee') {
+        logMessage('You escape into the darkness...');
+    }
+}
+
+function _updateEnemyHp({ cur, max }) {
+    if (!$enemyHpFill) return;
+    const frac = max > 0 ? cur / max : 0;
+    $enemyHpFill.style.transform = `scaleX(${frac.toFixed(4)})`;
+    if ($enemyHpNums) $enemyHpNums.textContent = `♥ ${cur}/${max}`;
+
+    // Status word
+    if ($enemyStatus) {
+        if (frac <= 0)        $enemyStatus.textContent = 'dead';
+        else if (frac < 0.25) $enemyStatus.textContent = 'critical';
+        else if (frac < 0.55) $enemyStatus.textContent = 'hurt';
+        else                  $enemyStatus.textContent = '';
+    }
+}
+
+function _updateCombatTurn({ turn }) {
+    if (!$combatTurnBanner) return;
+    if (turn === 'player') {
+        $combatTurnBanner.textContent = '✦ YOUR TURN ✦';
+        $combatTurnBanner.classList.remove('enemy-turn');
+        if ($turnYou)   $turnYou.classList.add('active');
+        if ($turnEnemy) $turnEnemy.classList.remove('active');
+        _setCombatButtonsEnabled(true);
+    } else {
+        $combatTurnBanner.textContent = 'ENEMY TURN';
+        $combatTurnBanner.classList.add('enemy-turn');
+        if ($turnYou)   $turnYou.classList.remove('active');
+        if ($turnEnemy) $turnEnemy.classList.add('active');
+        _setCombatButtonsEnabled(false);
+    }
+}
+
+function _setCombatButtonsEnabled(enabled) {
+    if (!$combatActionBar) return;
+    $combatActionBar.querySelectorAll('.combat-btn').forEach(btn => {
+        if (enabled) btn.classList.remove('disabled');
+        else         btn.classList.add('disabled');
+    });
+}
+
+function _addCombatLog(text) {
+    if (!$combatLog) return;
+    const el = _combatLogPool[_combatLogNext % COMBAT_LOG_POOL];
+    _combatLogNext++;
+    el.textContent = text;
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+    clearTimeout(el._fadeTimer);
+    el._fadeTimer = setTimeout(() => el.classList.remove('show'), COMBAT_LOG_DUR);
+}
+
+function _spawnFloatText(dmg, kind) {
+    // Position roughly in the center of the screen (where the enemy is in view)
+    const el = document.createElement('div');
+    el.className = 'float-text';
+    if (kind === 'crit')   el.classList.add('crit');
+    else if (kind === 'enemy') el.classList.add('enemy');
+    el.textContent = kind === 'crit' ? `CRIT ${dmg}!` : `-${dmg}`;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    el.style.left = `${vw / 2 - 30 + (Math.random() - 0.5) * 80}px`;
+    el.style.top  = `${vh * 0.38 + (Math.random() - 0.5) * 40}px`;
+
+    document.getElementById('ui-overlay').appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
 }

@@ -23,18 +23,18 @@ import { TILE_SIZE, WALL_HEIGHT, COLORS, SHADING, LEVEL_THEMES } from './config.
 
 // Hand-authored Level 1.
 // Rows = Z (north→south), columns = X (west→east).
-// '#' wall   '.' floor   'S' start   '>' stairs
+// '#' wall   '.' floor   'S' start   '>' stairs   'M' monster spawn (walkable)
 const LEVEL_1 = [
     '################',
     '#S....#.....>..#',
-    '#.###.#.###.##.#',
+    '#.###M#.###.##.#',
     '#.#...#...#....#',
     '#.#.#####.#.##.#',
-    '#...#.....#.#..#',
+    '#...#..M..#M#..#',
     '###.#.###.#.#.##',
-    '#...#.#.#.#.#..#',
+    '#M..#.#.#.#.#..#',
     '#.###.#.#.#.##.#',
-    '#.....#...#....#',
+    '#.....#M..#....#',
     '################',
 ];
 
@@ -312,7 +312,15 @@ export function initDungeon() {
 
 export function isWalkable(x, z) {
     if (z < 0 || z >= gridH || x < 0 || x >= gridW) return false;
-    return grid[z][x] !== '#';
+    const ch = grid[z][x];
+    return ch !== '#';
+}
+
+// Remove an 'M' spawn tile after it has been consumed (monster entered combat).
+export function clearSpawnTile(x, z) {
+    if (z >= 0 && z < gridH && x >= 0 && x < gridW && grid[z][x] === 'M') {
+        grid[z][x] = '.';
+    }
 }
 
 export function tileAt(x, z) {
