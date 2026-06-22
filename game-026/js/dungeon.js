@@ -41,16 +41,24 @@ const LEVEL_1 = [
 // Wall variant map: 'x,z:face' → variant string ('crack'|'moss'|'arch'|'torch')
 // face: 'N'|'S'|'E'|'W' (the outward-facing side of the wall block)
 const LEVEL_1_VARIANTS = {
-    '3,1:S':  'torch',
-    '7,3:E':  'torch',
-    '11,7:W': 'torch',
-    '5,5:N':  'moss',
+    // torches — spread around the level on corridor walls
+    '6,1:W':  'torch',   // west face of wall col 6, row 1 (corridor junction)
+    '6,1:E':  'torch',   // east face opposite
+    '6,3:W':  'torch',   // further south
+    '10,3:E': 'torch',   // east passage
+    // moss — damp lower sections
+    '0,3:E':  'moss',
+    '15,2:W': 'moss',
+    '2,4:W':  'moss',
+    '15,3:W': 'moss',
+    // crack — scattered throughout
     '9,2:S':  'crack',
     '2,4:E':  'crack',
-    '6,8:N':  'arch',
-    '12,9:W': 'moss',
-    '1,6:S':  'crack',
-    '13,4:W': 'torch',
+    '1,6:S':  'crack',   // already confirmed valid
+    '8,2:N':  'crack',
+    // arch — doorway-like openings
+    '6,2:W':  'arch',
+    '6,2:E':  'arch',
 };
 
 export let grid = [];
