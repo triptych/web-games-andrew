@@ -252,7 +252,8 @@ function _getMat(face, theme, variant) {
 // ============================================================
 
 function _addTorch(group, wx, wz, face) {
-    const offset = TILE_SIZE * 0.45;
+    // 0.52 pushes just past the face plane (which sits at 0.5 * TILE_SIZE from wall centre)
+    const offset = TILE_SIZE * 0.52;
     let sx = wx, sz = wz;
     if (face === 'N') sz -= offset;
     else if (face === 'S') sz += offset;
