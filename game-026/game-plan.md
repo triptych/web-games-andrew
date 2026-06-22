@@ -3,7 +3,7 @@
 **Genre:** First-person grid-based dungeon crawler ("blobber") with turn-based combat
 **Engine:** three.js r165 (ES6 modules, loaded via CDN import map)
 **Target Resolution:** Fullscreen (responsive); reference 1280 × 720
-**Status:** Phase 3 complete — Exploration HUD
+**Status:** Phase 4 complete — Visual Polish; Phase 5 (Combat) planned
 
 ---
 
@@ -272,14 +272,22 @@ Web Audio API — no file assets. Procedural SFX in `sounds.js`.
 - [x] Weapon / quick-item chip (left rail)
 - [x] Feedback/juice: damage edge-vignette + grid-safe camera shake, pickup gold-flash, `prefers-reduced-motion` support
 
-### Phase 4 — Combat & combat HUD
+### Phase 4 — Visual polish: wall shading, textures & level variety (complete)
+- [x] **Procedural wall textures** — canvas-generated `CanvasTexture` patterns (stone block grid, subtle crack/grunge noise) baked per-surface type and cached; set `colorSpace = THREE.SRGBColorSpace` to avoid color wash
+- [x] **Per-face shading** — directional tint so north/south walls read darker than east/west (side-lit crypt feel); ceiling darker than floor; all driven by a `SHADING` config table so it's easy to tune
+- [x] **Wall variety flags in tile data** — `variantMap` keyed by `'x,z:face'`; 10 authored variants on Level 1 (`crack`, `moss`, `arch`, `torch`); variant texture overlay painted into `_makeStoneTexture`
+- [x] **Torch sconces** — emissive `PlaneGeometry` flame sprite + bracket mesh + `PointLight` at `torch`-variant faces; dual-sin-wave flicker via `updateTorches(dt)` called each frame from `main.js`
+- [x] **Floor & ceiling tile variety** — alternate worn/rubble material on deterministic hash `(x*7+z*13)%5===0` tiles; separate ceiling hash for variation; both shaded via `SHADING` table
+- [x] **Level theme config** — `LEVEL_THEMES` in `config.js` keyed by depth 1–3; defines `wallTint/floorTint/ceilTint` (multiplied onto base `COLORS`), `fogColor/fogNear/fogFar`, `ambientIntensity`, `allowedVariants`; applied in `buildLevel()`
+
+### Phase 5 — Combat & combat HUD
 - [ ] Monsters (billboards or low-poly meshes) with stats
 - [ ] `combat.js` — turn-based combat loop; emits `combatStarted` / `combatEnded` / `hpChanged`
 - [ ] Combat HUD layer: turn banner, enemy nameplates (HP + status), ATTACK/DEFEND/ITEM/FLEE action bar (hotkeys 1–4 + clickable), target selection, turn-order tracker, floating combat text
 
-### Phase 5 — Content & progression
+### Phase 6 — Content & progression
 - [ ] Loot, keys, doors; inventory / character screen overlay (`I`, pauses game) — equipment, stats, backpack grid, tooltips
-- [ ] Descent stairs → level transition overlay (fade + `DESCENDING… DEPTH n`), depth progression
+- [ ] Descent stairs → level transition overlay (fade + `DESCENDING… DEPTH n`), depth progression; apply `LEVEL_THEMES` on descent
 - [ ] Win condition + victory screen (run summary: depth, score, kills); pause overlay (`P`)
 
 ---
@@ -353,6 +361,15 @@ Web Audio API — no file assets. Procedural SFX in `sounds.js`.
 - Weapon chip (left rail): shows equipped weapon name (defaults to "Fists")
 - Juice: `damageTaken` → edge-vignette flash + grid-safe camera shake (offset applied/removed each frame); `pickupGold` → score flash; persistent low-HP vignette pulse; all disabled under `prefers-reduced-motion`
 - State: added `hp/hpMax/depth` with auto-emit setters; `tileRevealed` fog-of-war tracking in `player.js` via `_visited` Set + `getVisited()` export
+
+### Phase 4 — Visual polish (2026-06-21)
+- `dungeon.js` completely rewritten for Phase 4: wall-face planes replace BoxGeometry walls, giving per-face materials and shading
+- Procedural stone-block `CanvasTexture` with deterministic LCG grunge noise; variant overlays (crack zigzag, moss corner patches, arch arc) painted in `_makeStoneTexture`; `colorSpace = SRGBColorSpace` set on all textures
+- `SHADING` table in `config.js` drives face brightness: N/S walls 0.72×, E/W 0.90×, ceiling 0.55×, alt floor 0.85×
+- `LEVEL_1_VARIANTS` map (10 authored entries) tags wall faces with `crack/moss/arch/torch`
+- Torch sconces: `PlaneGeometry` flame + bracket `BoxGeometry` + `PointLight`; `updateTorches(dt)` in `main.js` animate loop runs dual-sin flicker per torch with LCG-seeded desync
+- Floor/ceiling variety: deterministic hash selects `floorAlt` material on ~20% of tiles; separate hash for ceiling
+- `LEVEL_THEMES[1-3]` in `config.js`: warm amber Upper Crypt → cooler blue Cold Depths; `buildLevel()` applies fog color/range and theme tints at build time
 
 ### Phase 2 — Feedback & arrival hooks (2026-06-12)
 - Wall-bump feedback: blocked moves now play a dull noise-burst thud and run a short 'bump' tween — the camera lurches `BUMP_DIST` into the wall with a `BUMP_DIP` head-knock dip, then returns (input stays locked during it, like any tween)

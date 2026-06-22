@@ -50,3 +50,56 @@ export const STARTING_DEPTH = 1;
 
 // --- Minimap ---
 export const MINIMAP_CELL = 6;    // px per tile in the minimap canvas
+
+// --- Phase 4: Per-face shading multipliers ---
+// Lower = darker. North/South walls are slightly darker to create side-lit crypt feel.
+export const SHADING = {
+    wallNorth:  0.72,
+    wallSouth:  0.72,
+    wallEast:   0.90,
+    wallWest:   0.90,
+    floor:      1.00,
+    ceiling:    0.55,
+    floorAlt:   0.85,   // worn/rubble patch alternate tile
+    stairsTile: 1.00,
+};
+
+// --- Phase 4: Wall variant types ---
+export const WALL_VARIANTS = { none: 0, crack: 1, moss: 2, arch: 3, torch: 4 };
+
+// --- Phase 4: Level theme configurations ---
+export const LEVEL_THEMES = {
+    1: {
+        name:             'Upper Crypt',
+        wallTint:         0xb0a080,
+        floorTint:        0x907868,
+        ceilTint:         0x504040,
+        fogColor:         0x0a0a14,
+        fogNear:          12,
+        fogFar:           40,
+        ambientIntensity: 0.9,
+        allowedVariants:  ['crack', 'moss', 'torch'],
+    },
+    2: {
+        name:             'Deep Passages',
+        wallTint:         0x8090a8,
+        floorTint:        0x506070,
+        ceilTint:         0x283040,
+        fogColor:         0x060810,
+        fogNear:          10,
+        fogFar:           32,
+        ambientIntensity: 0.65,
+        allowedVariants:  ['crack', 'arch', 'torch'],
+    },
+    3: {
+        name:             'Cold Depths',
+        wallTint:         0x607090,
+        floorTint:        0x3a4858,
+        ceilTint:         0x1c2030,
+        fogColor:         0x04060c,
+        fogNear:          8,
+        fogFar:           24,
+        ambientIntensity: 0.45,
+        allowedVariants:  ['crack', 'torch'],
+    },
+};

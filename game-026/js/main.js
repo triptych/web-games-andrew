@@ -14,7 +14,7 @@ import { events } from './events.js';
 import { initUI, hideSplash, logMessage, showDamage, updateActionHint } from './ui.js';
 import { initAudio, playUiClick } from './sounds.js';
 
-import { initDungeon, tileAt } from './dungeon.js';
+import { initDungeon, tileAt, updateTorches } from './dungeon.js';
 import { initPlayer, updatePlayer, handleInput } from './player.js';
 
 // ============================================================
@@ -122,6 +122,8 @@ function animate() {
     if (mode === 'playing') {
         updatePlayer(dt);
     }
+
+    updateTorches(dt);
 
     // Grid-safe camera shake — offset is applied and removed each frame
     if (_shake) {
