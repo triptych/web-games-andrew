@@ -72,7 +72,7 @@ export const WALL_VARIANTS = { none: 0, crack: 1, moss: 2, arch: 3, torch: 4 };
 export const ITEMS = {
     short_sword: { id: 'short_sword', name: 'Short Sword',  type: 'weapon',    icon: '⚔',  atk: 3,  def: 0,  desc: 'A worn but serviceable blade.' },
     iron_shield:  { id: 'iron_shield', name: 'Iron Shield',  type: 'armor',     icon: '🛡', atk: 0,  def: 2,  desc: 'Solid iron. A bit heavy.' },
-    health_potion:{ id: 'health_potion',name: 'Health Potion',type: 'consumable',icon: '🧪', heal: 8,         desc: 'Restores 8 HP when used.' },
+    health_potion:{ id: 'health_potion',name: 'Health Potion',type: 'consumable',icon: '🧪', heal: 12,        desc: 'Restores 12 HP when used.' },
     torch_oil:    { id: 'torch_oil',   name: 'Torch Oil',   type: 'consumable', icon: '🫙', heal: 0,         desc: 'Keeps the flame bright. No combat use.' },
     crypt_key:    { id: 'crypt_key',   name: 'Crypt Key',   type: 'key',        icon: '🗝', desc: 'A heavy iron key. Opens a sealed door.' },
     bone_charm:   { id: 'bone_charm',  name: 'Bone Charm',  type: 'quest',      icon: '💎', desc: 'A relic fragment from the crypt\'s heart.' },
@@ -81,27 +81,28 @@ export const ITEMS = {
 // Loot spawn map for Level 1: 'x,z' → item id.
 // 'C' tiles in the level grid become chest markers; stepping on them yields the loot.
 export const LEVEL_1_LOOT = {
-    '13,1':  'health_potion',
-    '3,3':   'crypt_key',
-    '13,3':  'short_sword',
-    '13,7':  'health_potion',
-    '5,9':   'bone_charm',
-    '13,9':  'iron_shield',
+    '13,1':  'health_potion',   // row 1, col 13
+    '1,3':   'crypt_key',       // row 3, col 1
+    '13,3':  'short_sword',     // row 3, col 13 (C added to grid)
+    '13,7':  'health_potion',   // row 7, col 13
+    '2,9':   'bone_charm',      // row 9, col 2
+    '14,9':  'iron_shield',     // row 9, col 14
 };
 
 export const LEVEL_2_LOOT = {
-    '3,1':   'health_potion',
-    '11,3':  'short_sword',
-    '3,7':   'health_potion',
+    '4,1':   'health_potion',   // row 1, col 4
+    '11,3':  'short_sword',     // row 3, col 11
+    '6,9':   'health_potion',   // row 9, col 6
 };
 
 export const LEVEL_3_LOOT = {
-    '5,1':   'health_potion',
-    '9,5':   'torch_oil',
+    '10,1':  'health_potion',   // row 1, col 10
+    '9,5':   'torch_oil',       // row 5, col 9
 };
 
 // --- Phase 5: Monster definitions ---
 // hp, atk, def, xp, name, description
+// drops: array of { item, chance } — each entry rolled independently (0–1 probability)
 export const MONSTERS = {
     ghoul: {
         id:   'ghoul',
@@ -111,6 +112,9 @@ export const MONSTERS = {
         def:  1,
         xp:   30,
         icon: '☠',
+        drops: [
+            { item: 'health_potion', chance: 0.40 },
+        ],
     },
     skeleton: {
         id:   'skeleton',
@@ -120,6 +124,9 @@ export const MONSTERS = {
         def:  0,
         xp:   20,
         icon: '💀',
+        drops: [
+            { item: 'health_potion', chance: 0.25 },
+        ],
     },
     wraith: {
         id:   'wraith',
@@ -129,6 +136,10 @@ export const MONSTERS = {
         def:  2,
         xp:   55,
         icon: '👻',
+        drops: [
+            { item: 'health_potion', chance: 0.50 },
+            { item: 'bone_charm',    chance: 0.20 },
+        ],
     },
 };
 
@@ -138,7 +149,7 @@ export const LEVEL_1_SPAWNS = {
     '5,2':  'skeleton',   // corridor junction near first torch
     '7,5':  'ghoul',      // center passage
     '11,5': 'skeleton',   // east side
-    '1,7':  'wraith',     // northwest room
+    '1,7':  'ghoul',      // northwest room (was wraith — too hard for depth 1)
     '7,9':  'ghoul',      // south corridor
 };
 

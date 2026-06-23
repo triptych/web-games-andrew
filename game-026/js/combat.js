@@ -367,8 +367,10 @@ function _endCombat(result) {
 
     if (result === 'win') {
         state.addScore(_monster.xp);
+        state.kills += 1;
         playSuccess();
         events.emit('combatLog', `Victory! +${_monster.xp} XP`);
+        _rollDrops(_monster);
     } else if (result === 'flee') {
         playUiClick();
     } else if (result === 'lose') {
@@ -379,4 +381,16 @@ function _endCombat(result) {
     const monster = _monster;
     _monster = null;
     events.emit('combatEnded', { result, monster });
+}
+
+function _rollDrops(monster) {
+    if (!monster.drops || monster.drops.length === 0) return;
+    for (const drop of monster.drops) {
+        if (Math.random() < drop.chance) {
+            const def = ITEMS[drop.item];
+            if (!def) continue;
+            state.addItem(drop.item);
+            events.emit('logMessage', `The ${monster.name} dropped a ${def.name}!`);
+        }
+    }
 }

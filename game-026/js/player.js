@@ -72,6 +72,10 @@ export function handleInput(e) {
     if (k === 'e')                       return _tryMove((facing + 1) % 4); // strafe right
     if (k === 'a' || k === 'arrowleft')  return _turn(-1);
     if (k === 'd' || k === 'arrowright') return _turn(+1);
+    if (k === 'f') {
+        const { dx, dz } = DIRS[facing];
+        events.emit('playerSearch', { x: tileX, z: tileZ, facing, aheadX: tileX + dx, aheadZ: tileZ + dz });
+    }
 }
 
 function _tryMove(dir) {

@@ -101,10 +101,6 @@ events.on('tileEntered', ({ x, z, tile }) => {
     }
 });
 
-// Track kills from combat wins
-events.on('combatEnded', ({ result }) => {
-    if (result === 'win') state.kills++;
-});
 
 function _pickupLoot(x, z) {
     const itemId = lootAt(x, z);
@@ -140,6 +136,9 @@ events.on('stairsReached', () => {
         _currentSpawns = { ...[LEVEL_1_SPAWNS, LEVEL_2_SPAWNS, LEVEL_3_SPAWNS][idx] };
         buildLevelByDepth(nextDepth);
         initPlayer();
+        // Partial rest on descent: restore up to 50% of max HP (never reduces HP)
+        const restoreTarget = Math.floor(state.hpMax * 0.5);
+        if (state.hp < restoreTarget) state.hp = restoreTarget;
         events.emit('hpChanged', { cur: state.hp, max: state.hpMax });
         state.isPaused = false;
         events.emit('levelTransitionEnd');
@@ -154,6 +153,24 @@ events.on('playerMoved', ({ x, z, facing }) => {
     const { dx, dz } = [{ dx:0,dz:-1 },{ dx:1,dz:0 },{ dx:0,dz:1 },{ dx:-1,dz:0 }][facing];
     const ahead = tileAt(x + dx, z + dz);
     updateActionHint(INTERACTABLE_TILES.has(ahead));
+});
+
+// Search action (F) — check tile ahead for interactables or describe the wall
+events.on('playerSearch', ({ aheadX, aheadZ }) => {
+    const ahead = tileAt(aheadX, aheadZ);
+    if (ahead === 'C') {
+        _pickupLoot(aheadX, aheadZ);
+    } else if (INTERACTABLE_TILES.has(ahead)) {
+        logMessage('You find something here...');
+    } else {
+        const wallMessages = [
+            'You run your hand along the cold stone. Nothing.',
+            'The wall is solid. No hidden passages here.',
+            'Damp moss clings to the stonework. Nothing unusual.',
+            'Ancient carvings, but no mechanism to activate.',
+        ];
+        logMessage(wallMessages[(aheadX * 7 + aheadZ * 13) % wallMessages.length]);
+    }
 });
 
 // Camera shake state — grid-safe (no position stored between frames)
