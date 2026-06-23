@@ -3,7 +3,7 @@
 **Genre:** First-person grid-based dungeon crawler ("blobber") with turn-based combat
 **Engine:** three.js r165 (ES6 modules, loaded via CDN import map)
 **Target Resolution:** Fullscreen (responsive); reference 1280 × 720
-**Status:** Phase 5 complete — Combat; Phase 6 (Content & Progression) planned
+**Status:** Phase 6 complete — Content & Progression; all core systems implemented
 
 ---
 
@@ -289,10 +289,16 @@ Web Audio API — no file assets. Procedural SFX in `sounds.js`.
 - [x] Combat sounds: `playSwordSwing`, `playMonsterHit`, `playCombatStart` added to `sounds.js`
 - [x] Keyboard hotkeys 1–4 routed to `combatAction` event in `main.js`; combat takes priority over movement input while active
 
-### Phase 6 — Content & progression
-- [ ] Loot, keys, doors; inventory / character screen overlay (`I`, pauses game) — equipment, stats, backpack grid, tooltips
-- [ ] Descent stairs → level transition overlay (fade + `DESCENDING… DEPTH n`), depth progression; apply `LEVEL_THEMES` on descent
-- [ ] Win condition + victory screen (run summary: depth, score, kills); pause overlay (`P`)
+### Phase 6 — Content & progression (complete)
+- [x] Item definitions in `config.js` (`ITEMS`: short_sword, iron_shield, health_potion, torch_oil, crypt_key, bone_charm); `LEVEL_1/2/3_LOOT` keyed maps; `LEVEL_2/3_SPAWNS` monster maps
+- [x] Levels 2 and 3 hand-authored in `dungeon.js`; 'C' chest tiles auto-picked-up on walk-in; 'W' win tile triggers victory; `buildLevelByDepth()` rebuilds geometry + loot map per depth; `lootAt()`/`consumeLootTile()` API; special loot/win floor materials
+- [x] `state.js`: `inventory[]`, `equipped{}`, `kills`, `atk/def` derived stats with equipment bonuses, `addItem/removeItem/equipItem`, `win()` method emitting `gameWon`
+- [x] `combat.js`: item action uses real inventory (finds first healing consumable); player ATK/DEF driven by `state.atk`/`state.def` so equipped weapons/armor apply in combat
+- [x] Inventory/character screen overlay (`I`): two-column panel (equipped + stats left, backpack grid right); click-to-equip weapons/armor, click-to-use consumables, tooltips via `title`; updates weapon chip in exploration HUD; `ESC` or `I` to close
+- [x] Descent stairs: `stairsReached` event builds next level, restores player, shows 1.8 s fade overlay (`DESCENDING... DEPTH n`), applies `LEVEL_THEMES` via `buildLevelByDepth`; spawns rebuilt per depth; max depth 3
+- [x] Win condition: stepping on 'W' tile calls `state.win()` → `gameWon` event → victory screen overlay (score, depth, kills run summary, gold title); `playVictory()` fanfare
+- [x] Pause overlay (`P`): toggles `state.isPaused`, shows dark overlay with PAUSED banner + hint text; blocked during combat/inventory
+- [x] Sounds: `playItemPickup`, `playOpenChest`, `playLevelTransition`, `playVictory` added to `sounds.js`
 
 ---
 
@@ -374,6 +380,17 @@ Web Audio API — no file assets. Procedural SFX in `sounds.js`.
 - Torch sconces: `PlaneGeometry` flame + bracket `BoxGeometry` + `PointLight`; `updateTorches(dt)` in `main.js` animate loop runs dual-sin flicker per torch with LCG-seeded desync
 - Floor/ceiling variety: deterministic hash selects `floorAlt` material on ~20% of tiles; separate hash for ceiling
 - `LEVEL_THEMES[1-3]` in `config.js`: warm amber Upper Crypt → cooler blue Cold Depths; `buildLevel()` applies fog color/range and theme tints at build time
+
+### Phase 6 — Content & Progression (2026-06-22)
+- 6 item types (weapon/armor/consumable/key/quest) in `config.js`; loot keyed by 'x,z' per level
+- 3 hand-authored levels; 'C' chest tiles + 'W' win tile; `buildLevelByDepth()` rebuilds full dungeon per descent; loot/win floor get distinct colored materials
+- `state.js` gains inventory, equipped slots, kill counter, derived `atk`/`def` with equipment bonuses; `win()` emits `gameWon`
+- Combat ITEM action finds real healing potions from inventory; player stats live from `state.atk`/`state.def`
+- Inventory overlay (I): click-to-equip/use, backpack grid, stat panel, weapon chip HUD update
+- Pause overlay (P): dark overlay with PAUSED banner, blocked during combat
+- Level transition: 1.8 s fade overlay on stairsReached, `buildLevelByDepth` + `initPlayer` per depth
+- Victory screen: gold title + run summary (score/depth/kills) on reaching 'W' tile
+- Sounds: `playItemPickup`, `playOpenChest`, `playLevelTransition`, `playVictory`
 
 ### Phase 5 — Combat & combat HUD (2026-06-22)
 - Monster definitions added to `config.js`: ghoul (12 HP), skeleton (8 HP), wraith (16 HP); each with atk/def/xp/icon

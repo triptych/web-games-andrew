@@ -15,26 +15,56 @@
 
 import * as THREE from 'three';
 import { scene } from './scene.js';
-import { TILE_SIZE, WALL_HEIGHT, COLORS, SHADING, LEVEL_THEMES } from './config.js';
+import { TILE_SIZE, WALL_HEIGHT, COLORS, SHADING, LEVEL_THEMES,
+         LEVEL_1_LOOT, LEVEL_2_LOOT, LEVEL_3_LOOT } from './config.js';
 
 // ============================================================
 // Level data
 // ============================================================
 
 // Hand-authored Level 1.
-// Rows = Z (north→south), columns = X (west→east).
-// '#' wall   '.' floor   'S' start   '>' stairs   'M' monster spawn (walkable)
+// '#' wall  '.' floor  'S' start  '>' stairs  'M' monster spawn  'C' chest/loot
 const LEVEL_1 = [
     '################',
-    '#S....#.....>..#',
+    '#S....#.....>C.#',
     '#.###M#.###.##.#',
-    '#.#...#...#....#',
+    '#C#...#...#....#',
     '#.#.#####.#.##.#',
     '#...#..M..#M#..#',
     '###.#.###.#.#.##',
-    '#M..#.#.#.#.#..#',
+    '#M..#.#.#.#.#C.#',
     '#.###.#.#.#.##.#',
-    '#.....#M..#....#',
+    '#.C...#M..#...C#',
+    '################',
+];
+
+// Level 2 — Deep Passages (theme 2). Larger, darker, tighter.
+const LEVEL_2 = [
+    '################',
+    '#S..C#......##.#',
+    '#.##.#.M###....#',
+    '#....#.....C..>#',
+    '#.##.#.##.###..#',
+    '#M#....#....#..#',
+    '#.####.#.M#.#..#',
+    '#......#....#..#',
+    '#.M###.######..#',
+    '#.....C........#',
+    '################',
+];
+
+// Level 3 — Cold Depths (theme 3). Tight, monster-dense, leads to win tile.
+const LEVEL_3 = [
+    '################',
+    '#S....#...C.#..#',
+    '#.##.##.##.##..#',
+    '#....#.M...#...#',
+    '#.##.######.##.#',
+    '#....#...C..#..#',
+    '#.M#.#.###..#..#',
+    '#...M#....M.#..#',
+    '#####.######...#',
+    '#......W.......#',   // 'W' = win tile (crypt heart)
     '################',
 ];
 
@@ -66,6 +96,27 @@ export let gridW = 0, gridH = 0;
 export let startTile = { x: 1, z: 1 };
 
 let _group = null;
+
+// Active loot map for the current level: 'x,z' → item id string.
+let _lootMap = {};
+
+export function lootAt(x, z) { return _lootMap[`${x},${z}`] || null; }
+
+// Remove a loot tile after the player picks it up.
+export function consumeLootTile(x, z) {
+    const key = `${x},${z}`;
+    if (_lootMap[key]) {
+        delete _lootMap[key];
+        if (z >= 0 && z < gridH && x >= 0 && x < gridW) grid[z][x] = '.';
+    }
+}
+
+// Level layouts and their associated data by depth.
+const LEVELS = [
+    { layout: LEVEL_1, loot: LEVEL_1_LOOT },
+    { layout: LEVEL_2, loot: LEVEL_2_LOOT },
+    { layout: LEVEL_3, loot: LEVEL_3_LOOT },
+];
 
 // Torch flicker state: array of { light, flameMat, t, baseIntensity, freq }
 let _torches = [];
@@ -206,7 +257,8 @@ function _getMat(face, theme, variant) {
 
     const shadingKey = {
         N: 'wallNorth', S: 'wallSouth', E: 'wallEast', W: 'wallWest',
-        floor: 'floor', floorAlt: 'floorAlt', ceil: 'ceiling', stairs: 'stairsTile',
+        floor: 'floor', floorAlt: 'floorAlt', ceil: 'ceiling',
+        stairs: 'stairsTile', loot: 'stairsTile', win: 'stairsTile',
     }[face] || 'floor';
     const shade = SHADING[shadingKey];
 
@@ -218,6 +270,19 @@ function _getMat(face, theme, variant) {
             color: new THREE.Color(rgb.r / 255, rgb.g / 255, rgb.b / 255),
             roughness: 0.6,
             emissive: new THREE.Color(0x0a2030),
+        });
+    } else if (face === 'loot') {
+        mat = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(0.55, 0.42, 0.12),
+            roughness: 0.5,
+            emissive: new THREE.Color(0x1a1000),
+        });
+    } else if (face === 'win') {
+        mat = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(0.6, 0.5, 0.1),
+            roughness: 0.4,
+            emissive: new THREE.Color(0x2a1800),
+            emissiveIntensity: 0.6,
         });
     } else if (face === 'floor' || face === 'floorAlt' || face === 'ceil') {
         const baseTintHex = (face === 'ceil') ? theme.ceilTint : theme.floorTint;
@@ -307,13 +372,21 @@ function _addTorch(group, wx, wz, face) {
 // ============================================================
 
 export function initDungeon() {
-    buildLevel(LEVEL_1, LEVEL_1_VARIANTS, 1);
+    buildLevelByDepth(1);
+}
+
+// Build the level for the given depth (1-indexed). Clamps to the available set.
+export function buildLevelByDepth(depth) {
+    const idx   = Math.max(0, Math.min(depth - 1, LEVELS.length - 1));
+    const entry = LEVELS[idx];
+    _lootMap = { ...entry.loot };
+    buildLevel(entry.layout, LEVEL_1_VARIANTS, depth);
 }
 
 export function isWalkable(x, z) {
     if (z < 0 || z >= gridH || x < 0 || x >= gridW) return false;
     const ch = grid[z][x];
-    return ch !== '#';
+    return ch !== '#';   // '#' = wall; everything else is walkable
 }
 
 // Remove an 'M' spawn tile after it has been consumed (monster entered combat).
@@ -369,6 +442,8 @@ export function buildLevel(layout, variantMap, depth) {
             } else {
                 const isAlt = (x * 7 + z * 13) % 5 === 0;
                 const floorMat = (ch === '>') ? _getMat('stairs', theme, null)
+                               : (ch === 'C') ? _getMat('loot', theme, null)
+                               : (ch === 'W') ? _getMat('win', theme, null)
                                : _getMat(isAlt ? 'floorAlt' : 'floor', theme, null);
                 const floor = new THREE.Mesh(floorGeo, floorMat);
                 floor.rotation.x = -Math.PI / 2;

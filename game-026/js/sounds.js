@@ -118,6 +118,32 @@ export function playGameOver() {
     _noise(0.5, 0.15, 0.2);
 }
 
+// Phase 6 sounds
+export function playItemPickup() {
+    // Rising sine arpeggio — treasure feeling
+    const notes = [440, 554, 660, 880];
+    notes.forEach((f, i) => _osc('sine', f, 0.12, 0.18, i * 0.06));
+}
+
+export function playVictory() {
+    // Triumphant fanfare: ascending arpeggios + a sustained high note
+    const fanfare = [262, 330, 392, 523, 659, 784, 1047];
+    fanfare.forEach((f, i) => _osc('sine', f, 0.25, 0.22, i * 0.09));
+    _osc('sine', 1047, 0.8, 0.18, fanfare.length * 0.09);
+}
+
+export function playLevelTransition() {
+    // Deep rumble + a resonant low drone
+    _sweep('sawtooth', 160, 40, 1.1, 0.28);
+    _noise(0.7, 0.06, 0.15);
+    _osc('sine', 55, 0.9, 0.18, 0.2);
+}
+
+export function playOpenChest() {
+    _osc('square', 330, 0.06, 0.2);
+    _osc('sine',   660, 0.12, 0.18, 0.05);
+}
+
 // Combat-specific sounds
 export function playSwordSwing() {
     _sweep('square', 400, 120, 0.12, 0.2);

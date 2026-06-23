@@ -11,13 +11,16 @@ import * as THREE from 'three';
 import { initScene, renderer, scene, camera, clock } from './scene.js';
 import { state }  from './state.js';
 import { events } from './events.js';
-import { initUI, hideSplash, logMessage, showDamage, updateActionHint } from './ui.js';
-import { initAudio, playUiClick } from './sounds.js';
+import { initUI, hideSplash, logMessage, showDamage, updateActionHint,
+         showInventory, hideInventory, showPause, hidePause } from './ui.js';
+import { initAudio, playUiClick, playItemPickup, playOpenChest,
+         playLevelTransition, playVictory } from './sounds.js';
 
-import { initDungeon, tileAt, updateTorches, clearSpawnTile } from './dungeon.js';
+import { initDungeon, buildLevelByDepth, tileAt, updateTorches,
+         clearSpawnTile, lootAt, consumeLootTile } from './dungeon.js';
 import { initPlayer, updatePlayer, handleInput } from './player.js';
 import { initCombat, startCombat, isInCombat, updateCombat } from './combat.js';
-import { LEVEL_1_SPAWNS } from './config.js';
+import { LEVEL_1_SPAWNS, LEVEL_2_SPAWNS, LEVEL_3_SPAWNS, ITEMS } from './config.js';
 
 // ============================================================
 // THREE.JS GOTCHAS (read before adding anything)
@@ -50,15 +53,23 @@ initCombat();    // wire combat event listener
 // Game state machine
 // ============================================================
 
-let mode = 'splash';   // 'splash' | 'playing' | 'gameover'
+let mode = 'splash';   // 'splash' | 'playing' | 'paused' | 'gameover' | 'won'
+
+// Spawn data per depth (1-indexed)
+const SPAWN_DATA = [LEVEL_1_SPAWNS, LEVEL_2_SPAWNS, LEVEL_3_SPAWNS];
+
+// Active spawns for the current level — rebuilt on each descent
+let _currentSpawns = {};
 
 function startGame() {
     if (mode === 'playing') return;
     mode = 'playing';
     state.reset();
+    _currentSpawns = { ...LEVEL_1_SPAWNS };
+    buildLevelByDepth(1);
     events.emit('depthChanged', state.depth);
     events.emit('hpChanged', { cur: state.hp, max: state.hpMax });
-    initPlayer();      // spawn onto the start tile, facing into the maze
+    initPlayer();
     initAudio();
     playUiClick();
     hideSplash();
@@ -66,25 +77,79 @@ function startGame() {
 }
 
 events.on('gameOver', () => { mode = 'gameover'; });
+events.on('gameWon',  () => { mode = 'won'; playVictory(); });
 
 // Monster encounter: player steps onto an 'M' tile
 events.on('tileEntered', ({ x, z, tile }) => {
-    if (tile !== 'M') return;
-    const spawnKey = `${x},${z}`;
-    const monsterId = LEVEL_1_SPAWNS[spawnKey];
-    if (!monsterId) return;
-    clearSpawnTile(x, z);   // prevent re-triggering on the same tile
-    startCombat(monsterId);
+    if (tile === 'M') {
+        const spawnKey = `${x},${z}`;
+        const monsterId = _currentSpawns[spawnKey];
+        if (!monsterId) return;
+        clearSpawnTile(x, z);
+        startCombat(monsterId);
+        return;
+    }
+    if (tile === 'C') {
+        // Chest/loot tile — auto-pickup
+        _pickupLoot(x, z);
+        return;
+    }
+    if (tile === 'W') {
+        // Win tile — crypt heart
+        state.win();
+        return;
+    }
 });
+
+// Track kills from combat wins
+events.on('combatEnded', ({ result }) => {
+    if (result === 'win') state.kills++;
+});
+
+function _pickupLoot(x, z) {
+    const itemId = lootAt(x, z);
+    if (!itemId) return;
+    const def = ITEMS[itemId];
+    if (!def) return;
+    consumeLootTile(x, z);
+    state.addItem(itemId);
+    playOpenChest();
+    playItemPickup();
+    logMessage(`Found: ${def.name}`);
+    events.emit('pickupGold');   // score flash as visual feedback
+}
 
 // Block player movement while in combat
 events.on('combatStarted', () => { state.isPaused = true; });
 events.on('combatEnded',   () => { state.isPaused = false; });
 
-// Context-sensitive action hint: show "SEARCH (F)" when an interactable is ahead.
-// INTERACTABLE_TILES = doors, switches, chests (Phase 5). For now nothing is interactive,
-// but the hook is live so Phase 5 just adds tile chars to the set.
-const INTERACTABLE_TILES = new Set(['?', 'C', '+']);   // placeholder chars
+// Level transition on stairs
+events.on('stairsReached', () => {
+    if (mode !== 'playing') return;
+    const nextDepth = state.depth + 1;
+    if (nextDepth > 3) {
+        // No level 4 — already won via 'W' tile, but guard anyway
+        return;
+    }
+    state.isPaused = true;
+    events.emit('levelTransitionStart', { depth: nextDepth });
+    playLevelTransition();
+    setTimeout(() => {
+        state.depth = nextDepth;
+        const idx = Math.max(0, nextDepth - 1);
+        _currentSpawns = { ...[LEVEL_1_SPAWNS, LEVEL_2_SPAWNS, LEVEL_3_SPAWNS][idx] };
+        buildLevelByDepth(nextDepth);
+        initPlayer();
+        events.emit('hpChanged', { cur: state.hp, max: state.hpMax });
+        state.isPaused = false;
+        events.emit('levelTransitionEnd');
+        logMessage(`You descend to Depth ${nextDepth}. The darkness thickens.`);
+    }, 1800);
+});
+
+// Context-sensitive action hint: 'C' chest tiles are interactable (walkable auto-pickup),
+// and we show SEARCH when any interactable tile is directly ahead.
+const INTERACTABLE_TILES = new Set(['C']);
 events.on('playerMoved', ({ x, z, facing }) => {
     const { dx, dz } = [{ dx:0,dz:-1 },{ dx:1,dz:0 },{ dx:0,dz:1 },{ dx:-1,dz:0 }][facing];
     const ahead = tileAt(x + dx, z + dz);
@@ -105,6 +170,8 @@ events.on('damageTaken', () => {
 // Input
 // ============================================================
 
+let _inventoryOpen = false;
+
 function onAnyKey(e) {
     if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
     if (mode === 'splash') {
@@ -112,17 +179,36 @@ function onAnyKey(e) {
         return;
     }
     if (e.key === 'r' || e.key === 'R') {
-        // Restart
         location.reload();
         return;
     }
     if (e.key === 'Escape') {
-        // Back to splash
+        if (_inventoryOpen) { _closeInventory(); return; }
         location.reload();
         return;
     }
+    if (mode === 'gameover' || mode === 'won') return;
+
+    // Inventory toggle (I)
+    if ((e.key === 'i' || e.key === 'I') && !isInCombat()) {
+        if (_inventoryOpen) _closeInventory();
+        else _openInventory();
+        return;
+    }
+    // Pause toggle (P)
+    if ((e.key === 'p' || e.key === 'P') && !isInCombat() && !_inventoryOpen) {
+        if (mode === 'paused') {
+            mode = 'playing';
+            state.isPaused = false;
+            hidePause();
+        } else if (mode === 'playing') {
+            mode = 'paused';
+            state.isPaused = true;
+            showPause();
+        }
+        return;
+    }
     if (mode === 'playing') {
-        // Combat hotkeys 1-4 take priority when in combat
         if (isInCombat()) {
             const actionMap = { '1': 'attack', '2': 'defend', '3': 'item', '4': 'flee' };
             if (actionMap[e.key]) {
@@ -130,8 +216,22 @@ function onAnyKey(e) {
                 return;
             }
         }
-        handleInput(e);
+        if (!_inventoryOpen) handleInput(e);
     }
+}
+
+function _openInventory() {
+    if (_inventoryOpen) return;
+    _inventoryOpen = true;
+    state.isPaused = true;
+    showInventory();
+}
+
+function _closeInventory() {
+    if (!_inventoryOpen) return;
+    _inventoryOpen = false;
+    state.isPaused = false;
+    hideInventory();
 }
 document.addEventListener('keydown', onAnyKey);
 document.addEventListener('click',   () => { if (mode === 'splash') startGame(); });

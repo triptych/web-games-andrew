@@ -555,6 +555,232 @@
             #depth-val.pop          { animation: none; }
             #combat-turn-banner     { animation: none; }
             .float-text             { animation: none; opacity: 0; }
+            #level-trans-overlay    { animation: none; opacity: 1; }
+        }
+
+        /* ── PHASE 6: INVENTORY OVERLAY ──────────────────────────── */
+        #inventory-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.82);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: all;
+            z-index: 30;
+        }
+        #inventory-overlay.hidden { display: none !important; }
+
+        #inventory-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            box-shadow: inset 0 0 0 1px var(--panel-inset);
+            border-radius: 2px;
+            padding: 20px 24px;
+            display: flex;
+            gap: 28px;
+            min-width: 560px;
+        }
+
+        #inv-left { flex: 0 0 220px; }
+        #inv-right { flex: 1; }
+
+        .inv-section-label {
+            font-size: 9px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.45;
+            margin-bottom: 8px;
+        }
+
+        .inv-equip-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .inv-equip-label {
+            font-size: calc(10px * var(--ui-scale));
+            letter-spacing: 2px;
+            opacity: 0.55;
+            min-width: 60px;
+            text-transform: uppercase;
+        }
+        .inv-equip-val {
+            font-size: calc(12px * var(--ui-scale));
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+
+        #inv-stats {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 14px;
+        }
+        .inv-stat-entry {
+            display: flex;
+            gap: 6px;
+            align-items: baseline;
+        }
+        .inv-stat-label {
+            font-size: 9px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.55;
+        }
+        .inv-stat-val {
+            font-size: calc(14px * var(--ui-scale));
+            color: var(--accent);
+            letter-spacing: 1px;
+        }
+
+        #inv-pack {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+        .inv-slot {
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--panel-border);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .inv-slot:hover { background: rgba(255,215,0,0.15); border-color: var(--gold); }
+        .inv-slot:empty { cursor: default; }
+        .inv-slot:empty:hover { background: rgba(255,255,255,0.05); border-color: var(--panel-border); }
+
+        #inventory-title {
+            font-size: calc(14px * var(--ui-scale));
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        #inventory-hint {
+            font-size: 9px;
+            letter-spacing: 2px;
+            opacity: 0.38;
+            text-align: center;
+            margin-top: 12px;
+            text-transform: uppercase;
+        }
+
+        /* ── PHASE 6: PAUSE OVERLAY ──────────────────────────────── */
+        #pause-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            pointer-events: none;
+            z-index: 20;
+        }
+        #pause-overlay.hidden { display: none !important; }
+        #pause-title {
+            font-size: calc(36px * var(--ui-scale));
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+        #pause-hint {
+            font-size: calc(12px * var(--ui-scale));
+            letter-spacing: 3px;
+            opacity: 0.55;
+            text-transform: uppercase;
+        }
+
+        /* ── PHASE 6: LEVEL TRANSITION OVERLAY ───────────────────── */
+        #level-trans-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            pointer-events: none;
+            z-index: 25;
+            animation: trans-fade 0.4s ease;
+        }
+        #level-trans-overlay.hidden { display: none !important; }
+        @keyframes trans-fade {
+            0%   { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        #level-trans-label {
+            font-size: calc(13px * var(--ui-scale));
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            opacity: 0.55;
+        }
+        #level-trans-depth {
+            font-size: calc(48px * var(--ui-scale));
+            letter-spacing: 6px;
+            color: var(--gold);
+        }
+        #level-trans-sub {
+            font-size: calc(11px * var(--ui-scale));
+            letter-spacing: 4px;
+            opacity: 0.45;
+            text-transform: uppercase;
+        }
+
+        /* ── PHASE 6: VICTORY OVERLAY ─────────────────────────────── */
+        #victory-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.88);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            pointer-events: none;
+            z-index: 35;
+        }
+        #victory-overlay.hidden { display: none !important; }
+        #victory-title {
+            font-size: calc(40px * var(--ui-scale));
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            text-shadow: 0 0 24px rgba(255,215,0,0.5);
+        }
+        #victory-sub {
+            font-size: calc(13px * var(--ui-scale));
+            letter-spacing: 3px;
+            opacity: 0.65;
+            text-transform: uppercase;
+        }
+        #victory-stats {
+            margin-top: 10px;
+            display: flex;
+            gap: 32px;
+            font-size: calc(14px * var(--ui-scale));
+            letter-spacing: 2px;
+        }
+        .victory-stat { text-align: center; }
+        .victory-stat-label { font-size: 9px; letter-spacing: 3px; opacity: 0.45; text-transform: uppercase; display: block; margin-bottom: 3px; }
+        .victory-stat-val { color: var(--gold); font-size: calc(20px * var(--ui-scale)); }
+        #victory-restart {
+            margin-top: 18px;
+            font-size: calc(11px * var(--ui-scale));
+            letter-spacing: 3px;
+            opacity: 0.45;
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -679,7 +905,80 @@
         <div id="message">
             <h1>Crypt of the Forgotten</h1>
             <p>PRESS ANY KEY OR CLICK TO START</p>
-            <p style="opacity:0.6">WASD / Arrows to move &middot; M minimap &middot; Tab automap</p>
+            <p style="opacity:0.6">WASD / Arrows &middot; M map &middot; I inventory &middot; P pause</p>
+        </div>
+
+        <!-- Phase 6: Pause overlay -->
+        <div id="pause-overlay" class="hidden">
+            <div id="pause-title">PAUSED</div>
+            <div id="pause-hint">P to resume &middot; R to restart &middot; ESC for menu</div>
+        </div>
+
+        <!-- Phase 6: Level transition overlay -->
+        <div id="level-trans-overlay" class="hidden">
+            <div id="level-trans-label">Descending to Depth</div>
+            <div id="level-trans-depth">2</div>
+            <div id="level-trans-sub">The darkness grows...</div>
+        </div>
+
+        <!-- Phase 6: Victory overlay -->
+        <div id="victory-overlay" class="hidden">
+            <div id="victory-title">THE CRYPT IS YOURS</div>
+            <div id="victory-sub">The forgotten secrets lie exposed.</div>
+            <div id="victory-stats">
+                <div class="victory-stat">
+                    <span class="victory-stat-label">Score</span>
+                    <span class="victory-stat-val" id="victory-score">0</span>
+                </div>
+                <div class="victory-stat">
+                    <span class="victory-stat-label">Depth</span>
+                    <span class="victory-stat-val" id="victory-depth">1</span>
+                </div>
+                <div class="victory-stat">
+                    <span class="victory-stat-label">Kills</span>
+                    <span class="victory-stat-val" id="victory-kills">0</span>
+                </div>
+            </div>
+            <div id="victory-restart">Press R to play again</div>
+        </div>
+
+        <!-- Phase 6: Inventory overlay -->
+        <div id="inventory-overlay" class="hidden">
+            <div id="inventory-panel">
+                <div id="inv-left">
+                    <div id="inventory-title">&#9670; Inventory &#9670;</div>
+                    <div class="inv-section-label">Equipped</div>
+                    <div class="inv-equip-row">
+                        <span class="inv-equip-label">&#9876; Weapon</span>
+                        <span class="inv-equip-val" id="inv-equip-weapon">&#8212; none &#8212;</span>
+                    </div>
+                    <div class="inv-equip-row">
+                        <span class="inv-equip-label">&#9745; Armor</span>
+                        <span class="inv-equip-val" id="inv-equip-armor">&#8212; none &#8212;</span>
+                    </div>
+                    <div id="inv-stats">
+                        <div class="inv-stat-entry">
+                            <span class="inv-stat-label">ATK</span>
+                            <span class="inv-stat-val" id="inv-atk-val">4</span>
+                        </div>
+                        <div class="inv-stat-entry">
+                            <span class="inv-stat-label">DEF</span>
+                            <span class="inv-stat-val" id="inv-def-val">2</span>
+                        </div>
+                        <div class="inv-stat-entry">
+                            <span class="inv-stat-label">HP</span>
+                            <span class="inv-stat-val" id="inv-hp-val">20/20</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="inv-right">
+                    <div class="inv-section-label">Pack &mdash; click to use / equip</div>
+                    <div id="inv-pack">
+                        <!-- .inv-slot divs inserted by ui.js -->
+                    </div>
+                    <div id="inventory-hint">I or ESC to close</div>
+                </div>
+            </div>
         </div>
 
     </div>

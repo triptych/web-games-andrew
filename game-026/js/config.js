@@ -67,6 +67,39 @@ export const SHADING = {
 // --- Phase 4: Wall variant types ---
 export const WALL_VARIANTS = { none: 0, crack: 1, moss: 2, arch: 3, torch: 4 };
 
+// --- Phase 6: Item definitions ---
+// type: 'weapon' | 'armor' | 'consumable' | 'key' | 'quest'
+export const ITEMS = {
+    short_sword: { id: 'short_sword', name: 'Short Sword',  type: 'weapon',    icon: '⚔',  atk: 3,  def: 0,  desc: 'A worn but serviceable blade.' },
+    iron_shield:  { id: 'iron_shield', name: 'Iron Shield',  type: 'armor',     icon: '🛡', atk: 0,  def: 2,  desc: 'Solid iron. A bit heavy.' },
+    health_potion:{ id: 'health_potion',name: 'Health Potion',type: 'consumable',icon: '🧪', heal: 8,         desc: 'Restores 8 HP when used.' },
+    torch_oil:    { id: 'torch_oil',   name: 'Torch Oil',   type: 'consumable', icon: '🫙', heal: 0,         desc: 'Keeps the flame bright. No combat use.' },
+    crypt_key:    { id: 'crypt_key',   name: 'Crypt Key',   type: 'key',        icon: '🗝', desc: 'A heavy iron key. Opens a sealed door.' },
+    bone_charm:   { id: 'bone_charm',  name: 'Bone Charm',  type: 'quest',      icon: '💎', desc: 'A relic fragment from the crypt\'s heart.' },
+};
+
+// Loot spawn map for Level 1: 'x,z' → item id.
+// 'C' tiles in the level grid become chest markers; stepping on them yields the loot.
+export const LEVEL_1_LOOT = {
+    '13,1':  'health_potion',
+    '3,3':   'crypt_key',
+    '13,3':  'short_sword',
+    '13,7':  'health_potion',
+    '5,9':   'bone_charm',
+    '13,9':  'iron_shield',
+};
+
+export const LEVEL_2_LOOT = {
+    '3,1':   'health_potion',
+    '11,3':  'short_sword',
+    '3,7':   'health_potion',
+};
+
+export const LEVEL_3_LOOT = {
+    '5,1':   'health_potion',
+    '9,5':   'torch_oil',
+};
+
 // --- Phase 5: Monster definitions ---
 // hp, atk, def, xp, name, description
 export const MONSTERS = {
@@ -107,6 +140,22 @@ export const LEVEL_1_SPAWNS = {
     '11,5': 'skeleton',   // east side
     '1,7':  'wraith',     // northwest room
     '7,9':  'ghoul',      // south corridor
+};
+
+export const LEVEL_2_SPAWNS = {
+    '3,2':  'skeleton',
+    '9,3':  'ghoul',
+    '5,5':  'wraith',
+    '11,6': 'skeleton',
+    '3,8':  'ghoul',
+};
+
+export const LEVEL_3_SPAWNS = {
+    '5,2':  'wraith',
+    '9,2':  'wraith',
+    '3,4':  'skeleton',
+    '11,5': 'ghoul',
+    '7,7':  'wraith',
 };
 
 // --- Phase 4: Level theme configurations ---

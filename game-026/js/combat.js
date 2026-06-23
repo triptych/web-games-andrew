@@ -24,7 +24,7 @@ import * as THREE from 'three';
 import { scene, camera } from './scene.js';
 import { state }   from './state.js';
 import { events }  from './events.js';
-import { MONSTERS, PLAYER_ATK, PLAYER_DEF, TILE_SIZE, DIRS } from './config.js';
+import { MONSTERS, ITEMS, TILE_SIZE, DIRS } from './config.js';
 import { playSwordSwing, playMonsterHit, playCombatStart, playSuccess, playFailure, playUiClick } from './sounds.js';
 
 // ── Combat state ─────────────────────────────────────────────
@@ -270,13 +270,22 @@ function _playerAction(action) {
         events.emit('combatLog', 'You brace for the attack. (DEF +3)');
         _scheduleEnemyTurn();
     } else if (action === 'item') {
-        // Phase 6 will add real items; for now, try to heal a little
-        if (state.hp < state.hpMax) {
-            const heal = Math.min(4, state.hpMax - state.hp);
-            state.hp += heal;
-            events.emit('combatLog', `You bandage your wounds. +${heal} HP`);
+        const healPotion = state.inventory.find(id => {
+            const def = ITEMS[id];
+            return def && def.type === 'consumable' && def.heal > 0;
+        });
+        if (healPotion) {
+            const def = ITEMS[healPotion];
+            const heal = Math.min(def.heal, state.hpMax - state.hp);
+            if (heal > 0) {
+                state.hp += heal;
+                state.removeItem(healPotion);
+                events.emit('combatLog', `Used ${def.name}: +${heal} HP`);
+            } else {
+                events.emit('combatLog', 'Already at full HP!');
+            }
         } else {
-            events.emit('combatLog', 'You have no items to use!');
+            events.emit('combatLog', 'No usable items!');
         }
         _scheduleEnemyTurn();
     } else if (action === 'flee') {
@@ -292,11 +301,11 @@ function _playerAction(action) {
 }
 
 function _playerAttack() {
-    const raw    = PLAYER_ATK + Math.floor(Math.random() * 4);   // ATK + d4
+    const raw    = state.atk + Math.floor(Math.random() * 4);   // ATK + d4
     const dmg    = Math.max(1, raw - _monster.def);
     _monster.curHp = Math.max(0, _monster.curHp - dmg);
 
-    const isCrit = dmg >= PLAYER_ATK + 3;
+    const isCrit = dmg >= state.atk + 3;
     if (isCrit) {
         events.emit('combatLog', `CRITICAL HIT! You deal ${dmg} damage!`);
     } else {
@@ -330,7 +339,7 @@ function _scheduleEnemyTurn() {
 function _enemyTurn() {
     if (!_active) return;
     const raw = _monster.atk + Math.floor(Math.random() * 3);   // ATK + d3
-    const def = PLAYER_DEF + (_defending ? 3 : 0);
+    const def = state.def + (_defending ? 3 : 0);
     const dmg = Math.max(0, raw - def);
 
     if (dmg === 0) {

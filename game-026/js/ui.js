@@ -13,7 +13,7 @@
 
 import { state }  from './state.js';
 import { events } from './events.js';
-import { MINIMAP_CELL, DIRS } from './config.js';
+import { MINIMAP_CELL, ITEMS } from './config.js';
 import { grid, gridW, gridH, tileAt } from './dungeon.js';
 import { getVisited } from './player.js';
 
@@ -27,6 +27,14 @@ let $minimapWrap, $minimapCanvas, $minimapCtx;
 let $automapOverlay, $automapCanvas, $automapCtx;
 let $hintSearch;
 let $messageLog;
+let $weaponChipName;
+
+// Phase 6 overlays
+let $inventoryOverlay, $invEquipWeapon, $invEquipArmor, $invPack;
+let $invAtkVal, $invDefVal, $invHpVal;
+let $pauseOverlay;
+let $levelTransOverlay, $levelTransDepth;
+let $victoryOverlay, $victoryScore, $victoryDepth, $victoryKills;
 
 // Combat DOM refs
 let $combatLayer;
@@ -147,6 +155,30 @@ export function initUI() {
     events.on('combatTurnChanged', _updateCombatTurn);
     events.on('combatPlayerAttack', ({ dmg, isCrit }) => _spawnFloatText(dmg, isCrit ? 'crit' : 'player'));
     events.on('combatEnemyAttack',  ({ dmg }) => _spawnFloatText(dmg, 'enemy'));
+
+    // Phase 6 DOM refs
+    $inventoryOverlay  = document.getElementById('inventory-overlay');
+    $invEquipWeapon    = document.getElementById('inv-equip-weapon');
+    $invEquipArmor     = document.getElementById('inv-equip-armor');
+    $invPack           = document.getElementById('inv-pack');
+    $invAtkVal         = document.getElementById('inv-atk-val');
+    $invDefVal         = document.getElementById('inv-def-val');
+    $invHpVal          = document.getElementById('inv-hp-val');
+    $weaponChipName    = document.getElementById('weapon-chip-name');
+    $pauseOverlay      = document.getElementById('pause-overlay');
+    $levelTransOverlay = document.getElementById('level-trans-overlay');
+    $levelTransDepth   = document.getElementById('level-trans-depth');
+    $victoryOverlay    = document.getElementById('victory-overlay');
+    $victoryScore      = document.getElementById('victory-score');
+    $victoryDepth      = document.getElementById('victory-depth');
+    $victoryKills      = document.getElementById('victory-kills');
+
+    // Phase 6 events
+    events.on('inventoryChanged',  _renderInventory);
+    events.on('equippedChanged',   _renderEquipped);
+    events.on('levelTransitionStart', ({ depth }) => _showLevelTransition(depth));
+    events.on('levelTransitionEnd',   () => _hideLevelTransition());
+    events.on('gameWon',           ({ score, depth, kills }) => _showVictory(score, depth, kills));
 
     // M = toggle minimap, Tab = toggle automap
     document.addEventListener('keydown', e => {
@@ -553,7 +585,6 @@ function _addCombatLog(text) {
 }
 
 function _spawnFloatText(dmg, kind) {
-    // Position roughly in the center of the screen (where the enemy is in view)
     const el = document.createElement('div');
     el.className = 'float-text';
     if (kind === 'crit')   el.classList.add('crit');
@@ -567,4 +598,123 @@ function _spawnFloatText(dmg, kind) {
 
     document.getElementById('ui-overlay').appendChild(el);
     el.addEventListener('animationend', () => el.remove());
+}
+
+// ============================================================
+// Phase 6: Inventory overlay
+// ============================================================
+
+export function showInventory() {
+    if (!$inventoryOverlay) return;
+    _renderInventory(state.inventory);
+    _renderEquipped(state.equipped);
+    $inventoryOverlay.classList.remove('hidden');
+}
+
+export function hideInventory() {
+    if ($inventoryOverlay) $inventoryOverlay.classList.add('hidden');
+}
+
+function _renderInventory(inventory) {
+    if (!$invPack) return;
+    $invPack.innerHTML = '';
+    // Show all items in the backpack (not equipped)
+    const equipped = new Set(Object.values(state.equipped).filter(Boolean));
+    const pack = inventory.filter(id => !equipped.has(id));
+    const PACK_SLOTS = 10;
+    for (let i = 0; i < PACK_SLOTS; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'inv-slot';
+        if (pack[i]) {
+            const def = ITEMS[pack[i]];
+            slot.textContent = def ? def.icon : '?';
+            slot.title = def ? `${def.name}: ${def.desc}` : pack[i];
+            slot.dataset.itemId = pack[i];
+            slot.addEventListener('click', () => _onInvItemClick(pack[i]));
+        }
+        $invPack.appendChild(slot);
+    }
+    // Update stat display
+    if ($invAtkVal) $invAtkVal.textContent = state.atk;
+    if ($invDefVal) $invDefVal.textContent = state.def;
+    if ($invHpVal)  $invHpVal.textContent  = `${state.hp}/${state.hpMax}`;
+}
+
+function _renderEquipped(equipped) {
+    if (!$invEquipWeapon) return;
+    const w = equipped.weapon ? ITEMS[equipped.weapon] : null;
+    const a = equipped.armor  ? ITEMS[equipped.armor]  : null;
+    $invEquipWeapon.textContent = w ? `${w.icon} ${w.name}` : '— none —';
+    $invEquipArmor.textContent  = a ? `${a.icon} ${a.name}` : '— none —';
+    // Update weapon chip in exploration HUD
+    if ($weaponChipName) {
+        $weaponChipName.textContent = w ? w.name.toUpperCase() : 'FISTS';
+    }
+}
+
+function _onInvItemClick(itemId) {
+    const def = ITEMS[itemId];
+    if (!def) return;
+    if (def.type === 'weapon') {
+        state.removeItem(itemId);
+        if (state.equipped.weapon) state.addItem(state.equipped.weapon);
+        state.equipItem(itemId, 'weapon');
+        logMessage(`Equipped: ${def.name}`);
+    } else if (def.type === 'armor') {
+        state.removeItem(itemId);
+        if (state.equipped.armor) state.addItem(state.equipped.armor);
+        state.equipItem(itemId, 'armor');
+        logMessage(`Equipped: ${def.name}`);
+    } else if (def.type === 'consumable' && def.heal) {
+        const heal = Math.min(def.heal, state.hpMax - state.hp);
+        if (heal > 0) {
+            state.hp += heal;
+            state.removeItem(itemId);
+            logMessage(`Used ${def.name}: +${heal} HP`);
+        } else {
+            logMessage('Already at full HP!');
+        }
+    } else {
+        logMessage(`${def.name} — ${def.desc}`);
+    }
+    _renderInventory(state.inventory);
+    _renderEquipped(state.equipped);
+}
+
+// ============================================================
+// Phase 6: Pause overlay
+// ============================================================
+
+export function showPause() {
+    if ($pauseOverlay) $pauseOverlay.classList.remove('hidden');
+}
+
+export function hidePause() {
+    if ($pauseOverlay) $pauseOverlay.classList.add('hidden');
+}
+
+// ============================================================
+// Phase 6: Level transition overlay
+// ============================================================
+
+function _showLevelTransition(depth) {
+    if (!$levelTransOverlay) return;
+    if ($levelTransDepth) $levelTransDepth.textContent = String(depth);
+    $levelTransOverlay.classList.remove('hidden');
+}
+
+function _hideLevelTransition() {
+    if ($levelTransOverlay) $levelTransOverlay.classList.add('hidden');
+}
+
+// ============================================================
+// Phase 6: Victory screen
+// ============================================================
+
+function _showVictory(score, depth, kills) {
+    if (!$victoryOverlay) return;
+    if ($victoryScore) $victoryScore.textContent = score;
+    if ($victoryDepth) $victoryDepth.textContent = depth;
+    if ($victoryKills) $victoryKills.textContent = kills;
+    $victoryOverlay.classList.remove('hidden');
 }
