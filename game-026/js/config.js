@@ -4,7 +4,7 @@
 
 // --- Starting resources ---
 export const STARTING_SCORE = 0;
-export const STARTING_LIVES = 3;
+export const STARTING_LIVES = 1;
 
 // --- Camera ---
 export const CAM_FOV     = 75;
