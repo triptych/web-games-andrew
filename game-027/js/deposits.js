@@ -124,4 +124,24 @@ export class Deposits {
             && dep.cells.filter(c => this.coverLayers(c.x, c.y) > 0)
                    .every(c => this.coverLayers(c.x, c.y) === 1);
     }
+
+    /**
+     * Strip one cover layer from a specific cell without a line-clear.
+     * Used by the Reveal Salts consumable (§8).
+     * Emits coverStripped; if the deposit is now fully revealed, emits depositHarvested.
+     * @returns {boolean} true if a layer was stripped.
+     */
+    stripCoverAt(x, y) {
+        const cover = this.coverAt.get(key(x, y));
+        if (!cover || cover.layers <= 0) return false;
+        cover.layers -= 1;
+        const dep = this.byId.get(cover.depositId);
+        events.emit('coverStripped', { depositId: dep.id, cell: { x, y }, layersLeft: cover.layers });
+        if (cover.layers === 0) this.coverAt.delete(key(x, y));
+        if (!dep.harvested && this._coveredCount(dep) === 0) {
+            dep.harvested = true;
+            events.emit('depositHarvested', { depositId: dep.id, elementId: dep.element, qty: dep.qty });
+        }
+        return true;
+    }
 }

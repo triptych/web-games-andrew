@@ -218,8 +218,10 @@ export class ResultScene extends Scene {
 
     _maybeLaunchBossDialog(data, isWin) {
         if (!isWin || !data.cauldronUpgraded) return;
-        // Determine which boss-clear script to use (default ch1).
-        const scriptId = 'ch1-boss-clear';
+        // Use chapter-specific boss-clear script; runChapter has already been incremented
+        // by resolveGameNode so subtract 1 to get the chapter that was just cleared.
+        const clearedChapter = Math.max(1, state.runChapter - 1);
+        const scriptId = `ch${clearedChapter}-boss-clear`;
         if (state.hasSeenScript(scriptId)) return;
         this.time.delayedCall(600, () => {
             this.scene.launch('VNScene', {

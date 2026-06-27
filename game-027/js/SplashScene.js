@@ -133,7 +133,7 @@ export class SplashScene extends Scene {
             fontSize: '11px', fontFamily: 'monospace', color: hex(COLORS.textDim),
         }).setOrigin(0.5);
 
-        this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 10, 'Phase 7', {
+        this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 10, 'Phase 10', {
             fontSize: '10px', fontFamily: 'monospace', color: '#3a2e20',
         }).setOrigin(1, 1);
 

@@ -17,6 +17,7 @@ import {
     GAME_WIDTH, GRID_W, GRID_H, CELL_SIZE, CELL_GAP, GRID_X, GRID_Y,
     TRAY_SLOT_X, TRAY_Y, TRAY_CELL, COLORS, TILE_TYPES,
     SCORE_PER_CELL, STREAK_BONUS, SUPPLY_TILES, ELEMENTS, STARTING_LAYOUTS,
+    REDUCED_MOTION,
 } from './config.js';
 import { Grid } from './grid.js';
 import { Supply } from './supply.js';
@@ -34,6 +35,9 @@ import {
 import { LevelManager, getLevelDef, objectiveLabel } from './level.js';
 import { RefinementManager } from './refine.js';
 import { BattleManager } from './battle.js';
+import { itemManager } from './items.js';
+import { playItemUse, playPassiveTrigger, playPassiveReady } from './sounds.js';
+import { resetAllCooldowns, tickCooldowns, getActivated, isReady, startCooldown, getSkillDef } from './skilltree.js';
 
 function toHexInt(arr) { return (arr[0] << 16) | (arr[1] << 8) | arr[2]; }
 function hexStr(arr)   { return '#' + arr.map(v => Math.round(v).toString(16).padStart(2, '0')).join(''); }
@@ -80,6 +84,12 @@ export class GameScene extends Scene {
             this.battleMgr = new BattleManager(this.levelDef, this.grid);
         }
 
+        // Phase 8: init item manager with game systems for this level.
+        itemManager.init(this.grid, this.deposits, this.supply);
+        // Phase 9: reset skill cooldowns at level start; clear any stale pending passive.
+        resetAllCooldowns();
+        this._pendingPassive = null;
+
         // Listen for objective-met here (GameScene is the orchestrator).
         this._levelOffsets = [];
         this._levelOffsets.push(events.on('objectiveMet', () => this._onObjectiveMet()));
@@ -87,6 +97,21 @@ export class GameScene extends Scene {
             if (d.reason === 'infeasible') this._onInfeasible();
             if (d.reason === 'defeated')   this._onDefeated();
         }));
+
+        // Item bar click: select or use (no-target items trigger immediately).
+        this._levelOffsets.push(events.on('itemBarClicked', (d) => this._onItemBarClicked(d.itemId)));
+        // Passive bar click: trigger an activated skill.
+        this._levelOffsets.push(events.on('passiveBarClicked', (d) => this._onPassiveBarClicked(d.skillId)));
+        // cellDissolved: redraw the board to show the cleared cell.
+        this._levelOffsets.push(events.on('cellDissolved', () => {
+            this._redrawBlocks();
+            this._drawBuried();
+            this._checkJam();
+            this._announceJamRisk();
+        }));
+
+        // Phase 9: passive ready sound
+        this._levelOffsets.push(events.on('passiveReady', () => playPassiveReady()));
 
         // Refinement events.
         this._levelOffsets.push(events.on('potionBrewed',  (d) => this._onPotionBrewed(d)));
@@ -145,11 +170,27 @@ export class GameScene extends Scene {
             this.scene.pause('UIScene');
         });
 
-        // Esc — save current run state and return to the title screen.
+        // B — open character screen (inventory / stats) mid-level.
+        this.input.keyboard.on('keydown-B', () => {
+            this.scene.launch('CharacterScene', { returnTo: 'GameScene' });
+            this.scene.pause('GameScene');
+            this.scene.pause('UIScene');
+        });
+
+        // Esc — cancel item/passive selection if active, else save & return to map.
         this.input.keyboard.on('keydown-ESC', () => {
+            if (this._pendingPassive) {
+                this._pendingPassive = null;
+                events.emit('passiveDeselected');
+                return;
+            }
+            if (itemManager.selectedItem) {
+                itemManager.cancel();
+                return;
+            }
             state.save();
             this.scene.stop('UIScene');
-            this.scene.start('SplashScene');
+            this.scene.start('MapScene');
         });
 
         events.emit('scoreChanged', state.score);
@@ -341,9 +382,157 @@ export class GameScene extends Scene {
         });
     }
 
+    // ── Phase 8: item bar interaction ────────────────────────────────────────
+
+    /** Called when the player clicks an item button in the item bar. */
+    _onItemBarClicked(itemId) {
+        if (state.failed) return;
+        const def = itemManager.get(itemId);
+        if (!def) return;
+
+        // If this item is already selected, cancel the selection.
+        if (itemManager.selectedItem === itemId) {
+            itemManager.cancel();
+            return;
+        }
+
+        // For no-target items (Catalyst), use immediately.
+        if (def.targetType === 'none') {
+            if (itemManager.use(itemId, null)) {
+                playItemUse();
+                this._buildTray();
+                this._checkJam();
+                this._announceJamRisk();
+            }
+            return;
+        }
+
+        // For targeted items, enter selection mode — the next lattice/tray click applies it.
+        itemManager.select(itemId);
+    }
+
+    /** Called when the player clicks an activated-passive chip in the passive bar. */
+    _onPassiveBarClicked(skillId) {
+        if (state.failed) return;
+        if (!isReady(skillId)) return;
+        const def = getSkillDef(skillId);
+        if (!def) return;
+
+        if (def.targetType === 'shape') {
+            // Tile Swap: enter shape-selection mode, reuse the item targeting flow.
+            // We store the pending passive so _tryApplyPassiveAt can finalize it.
+            this._pendingPassive = skillId;
+            events.emit('passiveSelected', { skillId });
+            return;
+        }
+
+        // Reclaim (no-target, once per level): push hand back to supply.
+        if (def.targetType === 'none') {
+            this._applyPassive(skillId, null);
+        }
+    }
+
+    /** Apply an activated passive after target is chosen (or immediately for no-target). */
+    _applyPassive(skillId, target) {
+        const def = getSkillDef(skillId);
+        if (!def) return false;
+
+        if (skillId === 'tile_swap') {
+            // Swap the target tray slot's tile type to a random other unlocked type.
+            if (!target || target.slot == null) return false;
+            const ok = this.supply.transmuteSlot(target.slot, [...state.unlockedTypes]);
+            if (!ok) return false;
+            startCooldown(skillId);
+            playPassiveTrigger();
+            events.emit('passiveTriggered', { skillId });
+            events.emit('passiveDeselected');
+            this._pendingPassive = null;
+            this._buildTray();
+            return true;
+        }
+
+        if (skillId === 'reclaim') {
+            // Return all held shapes back to supply and re-deal.
+            const held = this.supply.heldShapeIds();
+            for (const sid of held) {
+                this.supply.returnToPool(sid);
+            }
+            const dealt = this.supply.deal(this.grid);
+            if (dealt) { this._buildTray(); playSetDealt(); }
+            startCooldown(skillId);
+            playPassiveTrigger();
+            events.emit('passiveTriggered', { skillId });
+            return true;
+        }
+
+        return false;
+    }
+
+    /** Try to apply the currently selected item to a cell or tray slot. */
+    _tryApplyItemAt(pointer) {
+        const selId = itemManager.selectedItem;
+        if (!selId) return false;
+        const def = itemManager.get(selId);
+        if (!def) return false;
+
+        if (def.targetType === 'cell') {
+            const gx = Math.floor((pointer.x - GRID_X) / CELL_SIZE);
+            const gy = Math.floor((pointer.y - GRID_Y) / CELL_SIZE);
+            if (!this.grid.inBounds(gx, gy)) return false;
+            if (itemManager.use(selId, { x: gx, y: gy })) {
+                playItemUse();
+                this._drawBuried();
+                return true;
+            }
+            return false;
+        }
+
+        if (def.targetType === 'shape') {
+            // Find which tray slot was clicked.
+            for (const ts of this.traySprites) {
+                if (ts && ts.container.visible && Geom.Rectangle.Contains(ts.hit, pointer.x, pointer.y)) {
+                    if (itemManager.use(selId, { slot: ts.slot })) {
+                        playItemUse();
+                        this._buildTray();
+                        return true;
+                    }
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        return false;
+    }
+
     /** Scene-level pointerdown: pick up a tray shape if the press lands on one. */
     _onPointerDown(pointer) {
-        if (this.drag || state.failed) return;
+        if (state.failed) return;
+
+        // Phase 9: if a passive is pending (Tile Swap targeting), check tray click first.
+        if (this._pendingPassive) {
+            for (const ts of this.traySprites) {
+                if (ts && ts.container.visible && Geom.Rectangle.Contains(ts.hit, pointer.x, pointer.y)) {
+                    this._applyPassive(this._pendingPassive, { slot: ts.slot });
+                    return;
+                }
+            }
+            // Click outside tray — cancel passive selection.
+            this._pendingPassive = null;
+            events.emit('passiveDeselected');
+            return;
+        }
+
+        // Phase 8: if an item is selected, try to apply it to the click target first.
+        if (itemManager.selectedItem) {
+            const applied = this._tryApplyItemAt(pointer);
+            if (applied) return;
+            // Click outside a valid target — cancel the selection.
+            itemManager.cancel();
+            return;
+        }
+
+        if (this.drag) return;
         for (const ts of this.traySprites) {
             if (ts && ts.container.visible && Geom.Rectangle.Contains(ts.hit, pointer.x, pointer.y)) {
                 this._onDragStart(ts.slot, pointer);
@@ -498,9 +687,15 @@ export class GameScene extends Scene {
             const base = cells.length * SCORE_PER_CELL * Math.max(1, lines); // combo multiplier
             state.applyPlacement(lines);
             const streakBonus = state.streak > 1 ? (state.streak - 1) * STREAK_BONUS : 0;
-            state.score = state.score + base + streakBonus;
+            // Phase 9: Overflow passive — +20 per extra line beyond 2
+            const overflowBonus = (state.isSkillUnlocked('overflow') && lines >= 3)
+                ? (lines - 2) * 20 : 0;
+            state.score = state.score + base + streakBonus + overflowBonus;
             events.emit('linesCleared', { rows, cols, cells, combo: lines });
             if (lines >= 2) playCombo(lines); else playLineClear(lines);
+
+            // Phase 9: XP for clearing
+            state.awardXP('clear', lines);
 
             // §5 — strip deposit covers on cleared cells, harvest on full reveal.
             const { stripped, harvested } = this.deposits.onLinesCleared(cells);
@@ -513,12 +708,17 @@ export class GameScene extends Scene {
                 const dep = this.deposits.byId.get(h.depositId);
                 this._harvestFlourish(dep);
                 playHarvest();
+                // Phase 9: XP for harvest
+                state.awardXP('harvest');
                 // Phase 6: one-shot first-harvest dialog (Spirit whisper).
                 this._maybeFireFirstHarvestDialog();
             }
         } else {
             state.applyPlacement(0); // breaks streak
         }
+
+        // Phase 9: tick down activated-passive cooldowns after every placement.
+        tickCooldowns();
 
         // Refill the hand if empty, then check for a jam.
         if (this.supply.handEmpty()) {
@@ -604,6 +804,9 @@ export class GameScene extends Scene {
             playCauldronUpgrade();
         }
 
+        // Phase 9: award base node/boss XP on top of authored rewards.
+        state.awardXP(isBoss ? 'boss' : 'node');
+
         // Phase 7: resolve the map node (handles rewards, boss upgrade, chapter advance).
         if (this._mapNodeId) {
             state.resolveGameNode(this._mapNodeId, rewards, isBoss);
@@ -681,6 +884,7 @@ export class GameScene extends Scene {
     // ---- Juice -------------------------------------------------------------
 
     _settleFlash(cells) {
+        if (REDUCED_MOTION) return;
         const g = this.add.graphics().setDepth(45);
         g.fillStyle(0xffffff, 0.25);
         for (const { x, y } of cells) {
@@ -692,6 +896,7 @@ export class GameScene extends Scene {
 
     /** Cleared cells flash + dissolve into rising motes (§UI motion). */
     _dissolve(cells) {
+        if (REDUCED_MOTION) return;
         const flash = this.add.graphics().setDepth(46);
         flash.fillStyle(0xffffff, 0.55);
         for (const { x, y } of cells) {
@@ -723,9 +928,11 @@ export class GameScene extends Scene {
     }
 
     /** Harvest flourish (§UI): a gold ring blooms over the deposit + the element
-     *  glyph rises and fades from the deposit's center. */
+     *  glyph rises and fades from the deposit's center. Skipped when reduced-motion. */
     _harvestFlourish(dep) {
-        // Center of the deposit's bounding box.
+        this._drawBuried();
+        if (REDUCED_MOTION) return;
+
         let cx = 0, cy = 0;
         for (const c of dep.cells) { const r = this._cellRect(c.x, c.y); cx += r.x + r.w / 2; cy += r.y + r.h / 2; }
         cx /= dep.cells.length; cy /= dep.cells.length;
@@ -733,7 +940,6 @@ export class GameScene extends Scene {
         const elem = ELEM[dep.element] || ELEM_FALLBACK;
         const col = toHexInt(elem.color);
 
-        // expanding ring — draw as a Graphics object so we can tween its scale
         const ring = this.add.graphics().setDepth(48);
         ring.lineStyle(3, col, 0.95);
         ring.strokeCircle(cx, cy, 8);
@@ -741,7 +947,6 @@ export class GameScene extends Scene {
         this.tweens.add({ targets: ring, scaleX: 9, scaleY: 9, alpha: 0, duration: 650,
             ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
 
-        // rising glyph
         const glyph = this.add.text(cx, cy, elem.glyph, {
             fontSize: '34px', fontFamily: 'monospace', fontStyle: 'bold',
             color: hexStr(elem.color),
@@ -749,9 +954,6 @@ export class GameScene extends Scene {
         this.fxLayer.add(glyph);
         this.tweens.add({ targets: glyph, y: cy - 52, alpha: 0, scale: 1.4, duration: 850,
             ease: 'Sine.easeOut', onComplete: () => glyph.destroy() });
-
-        // redraw the (now-uncovered) cells
-        this._drawBuried();
     }
 
     // ---- Phase 6: pending intro dialog (set by SplashScene on new run) ----

@@ -7,7 +7,9 @@
  */
 
 import { Scene } from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
-import { GAME_WIDTH, GAME_HEIGHT, PANEL_X, PANEL_W, COLORS, SUPPLY_TILES, ELEMENTS } from './config.js';
+import { GAME_WIDTH, GAME_HEIGHT, PANEL_X, PANEL_W, COLORS, SUPPLY_TILES, ELEMENTS, REDUCED_MOTION } from './config.js';
+import { ITEM_DEFS } from './items.js';
+import { getActivated, isReady, getCooldown, getSkillDef } from './skilltree.js';
 import { events } from './events.js';
 import { state } from './state.js';
 
@@ -79,9 +81,24 @@ export class UIScene extends Scene {
         });
 
         // Controls hint
-        this.add.text(24, GAME_HEIGHT - 22, 'DRAG onto lattice   •   C — cauldron   •   R — restart   •   Esc — save & title', {
+        this.add.text(24, GAME_HEIGHT - 22, 'DRAG onto lattice   •   C — cauldron   •   B — character   •   Esc — map', {
             fontSize: '11px', fontFamily: 'monospace', color: hex(COLORS.textDim),
         });
+
+        // ── Phase 8: Item bar (bottom-right of tray area) ─────────────────
+        this._itemBar = new ItemBar(this);
+        this._offs.push(events.on('itemCountChanged', (d) => this._itemBar.refresh()));
+        this._offs.push(events.on('itemSelected',     (d) => this._itemBar.setSelected(d.itemId)));
+        this._offs.push(events.on('itemDeselected',   ()  => this._itemBar.setSelected(null)));
+        this._offs.push(events.on('itemUsed',         ()  => this._itemBar.refresh()));
+
+        // ── Phase 9: Passive bar (activated skills to the right of item bar) ─
+        this._passiveBar = new PassiveBar(this);
+        this._offs.push(events.on('passiveCooldownChanged', (d) => this._passiveBar.setCooldown(d.skillId, d.remaining)));
+        this._offs.push(events.on('passiveReady',           (d) => this._passiveBar.setCooldown(d.skillId, 0)));
+        this._offs.push(events.on('passiveSelected',        (d) => this._passiveBar.setSelected(d.skillId)));
+        this._offs.push(events.on('passiveDeselected',      ()  => this._passiveBar.setSelected(null)));
+        this._offs.push(events.on('skillUnlocked',          ()  => this._passiveBar.rebuild()));
 
         // --- Phase 5 overlay panels (refinement / battle) ---
         // These are built lazily when the levelStarted event carries the levelType.
@@ -177,9 +194,10 @@ export class UIScene extends Scene {
         const e = ELEM[elementId];
         line.setText(`${e.glyph} ${e.name.padEnd(7)} +${qty}`);
         line.setColor(qty > 0 ? hex(e.color) : hex(COLORS.textDim));
-        // brief pop to draw the eye to the new harvest (§UI feedback)
-        line.setScale(1.25);
-        this.tweens.add({ targets: line, scale: 1, duration: 260, ease: 'Back.easeOut' });
+        if (!REDUCED_MOTION) {
+            line.setScale(1.25);
+            this.tweens.add({ targets: line, scale: 1, duration: 260, ease: 'Back.easeOut' });
+        }
     }
 
     _setCombo(combo) {
@@ -235,6 +253,208 @@ export class UIScene extends Scene {
     _hideTooltip() {
         this._tooltipBg.setVisible(false);
         this._tooltipTxt.setVisible(false);
+    }
+}
+
+// ============================================================
+// ItemBar — in-level consumable item bar (game-plan §8, §UI)
+// ============================================================
+// Rendered along the bottom-right of the tray area. Shows owned consumables
+// with counts; click one to select it (highlights), then the player clicks a
+// target on the lattice or tray. Emits 'itemBarClicked' so GameScene can route
+// the targeting.
+
+const ITEM_BTN_W = 60;
+const ITEM_BTN_H = 44;
+const ITEM_BAR_X = 840;
+const ITEM_BAR_Y = 630;
+const ITEM_BAR_GAP = 6;
+
+class ItemBar {
+    constructor(scene) {
+        this._scene    = scene;
+        this._selected = null; // itemId of selected item | null
+        this._btns     = [];   // per-item button objects
+
+        // Background strip
+        const barW = ITEM_DEFS.length * (ITEM_BTN_W + ITEM_BAR_GAP) - ITEM_BAR_GAP + 16;
+        const bgGfx = scene.add.graphics();
+        bgGfx.fillStyle(toHexInt(COLORS.panel), 0.88);
+        bgGfx.fillRoundedRect(ITEM_BAR_X - 8, ITEM_BAR_Y - 4, barW, ITEM_BTN_H + 8, 6);
+        bgGfx.lineStyle(1, toHexInt(COLORS.panelEdge), 0.6);
+        bgGfx.strokeRoundedRect(ITEM_BAR_X - 8, ITEM_BAR_Y - 4, barW, ITEM_BTN_H + 8, 6);
+
+        // Label
+        scene.add.text(ITEM_BAR_X - 8, ITEM_BAR_Y - 18, 'ITEMS', {
+            fontSize: '10px', fontFamily: 'monospace', color: hex(COLORS.textDim),
+        });
+
+        ITEM_DEFS.forEach((item, i) => {
+            const bx = ITEM_BAR_X + i * (ITEM_BTN_W + ITEM_BAR_GAP);
+            const bgG = scene.add.graphics();
+            const glyphT = scene.add.text(bx + ITEM_BTN_W / 2, ITEM_BAR_Y + 10, item.glyph, {
+                fontSize: '16px', fontFamily: 'monospace', color: hex(COLORS.gold),
+            }).setOrigin(0.5);
+            const cntT = scene.add.text(bx + ITEM_BTN_W / 2, ITEM_BAR_Y + 28, '×0', {
+                fontSize: '11px', fontFamily: 'monospace', color: hex(COLORS.textDim),
+            }).setOrigin(0.5);
+
+            // Click zone
+            const zone = scene.add.zone(bx + ITEM_BTN_W / 2, ITEM_BAR_Y + ITEM_BTN_H / 2,
+                ITEM_BTN_W, ITEM_BTN_H).setInteractive({ useHandCursor: true });
+            zone.on('pointerdown', () => {
+                events.emit('itemBarClicked', { itemId: item.id });
+            });
+            zone.on('pointerover', () => {
+                events.emit('tooltipShow', {
+                    x: bx, y: ITEM_BAR_Y,
+                    label: `${item.name}\n${item.description}`,
+                    color: toHexInt(COLORS.gold),
+                });
+            });
+            zone.on('pointerout', () => events.emit('tooltipHide'));
+
+            this._btns.push({ item, bgG, glyphT, cntT, bx });
+        });
+
+        this.refresh();
+    }
+
+    refresh() {
+        this._btns.forEach(({ item, bgG, glyphT, cntT, bx }) => {
+            const count    = state.itemCount(item.id);
+            const hasItem  = count > 0;
+            const selected = this._selected === item.id;
+            bgG.clear();
+            const fillCol = selected ? toHexInt(COLORS.brass) : toHexInt(COLORS.panelEdge);
+            bgG.fillStyle(fillCol, selected ? 0.7 : 0.25);
+            bgG.fillRoundedRect(bx, ITEM_BAR_Y, ITEM_BTN_W, ITEM_BTN_H, 5);
+            if (selected) {
+                bgG.lineStyle(1.5, toHexInt(COLORS.gold), 0.9);
+                bgG.strokeRoundedRect(bx, ITEM_BAR_Y, ITEM_BTN_W, ITEM_BTN_H, 5);
+            }
+            glyphT.setAlpha(hasItem ? 1 : 0.35);
+            cntT.setText(`×${count}`).setColor(
+                hasItem ? hex(COLORS.parchment) : hex(COLORS.textDim));
+        });
+    }
+
+    setSelected(itemId) {
+        this._selected = itemId;
+        this.refresh();
+    }
+}
+
+// ============================================================
+// PassiveBar — activated-skill chips (Phase 9)
+// ============================================================
+// Renders to the right of the ItemBar. Shows each unlocked activated-skill as
+// a chip with its glyph, name, and a cooldown counter. Ready = gold ring;
+// on cooldown = dimmed + remaining placement count.
+// Emits 'passiveBarClicked' so GameScene can route the activation.
+
+const PASSIVE_BTN_W  = 66;
+const PASSIVE_BTN_H  = 44;
+const PASSIVE_BAR_GAP = 6;
+
+class PassiveBar {
+    constructor(scene) {
+        this._scene    = scene;
+        this._selected = null;
+        this._btns     = [];
+        this._container = scene.add.container(0, 0);
+        this._build();
+    }
+
+    _build() {
+        // Destroy old buttons.
+        this._container.removeAll(true);
+        this._btns = [];
+        const activated = getActivated();
+        if (activated.length === 0) return;
+
+        // Position to the right of the item bar.
+        const itemBarEndX = ITEM_BAR_X + ITEM_DEFS.length * (ITEM_BTN_W + ITEM_BAR_GAP);
+        const startX = itemBarEndX + 24;
+
+        // Label
+        const lbl = this._scene.add.text(startX, ITEM_BAR_Y - 18, 'PASSIVES', {
+            fontSize: '10px', fontFamily: 'monospace', color: hex(COLORS.textDim),
+        });
+        this._container.add(lbl);
+
+        activated.forEach((skill, i) => {
+            const bx = startX + i * (PASSIVE_BTN_W + PASSIVE_BAR_GAP);
+            const by = ITEM_BAR_Y;
+
+            const bgG = this._scene.add.graphics();
+            const glyphT = this._scene.add.text(bx + PASSIVE_BTN_W / 2, by + 10, skill.glyph, {
+                fontSize: '15px', fontFamily: 'monospace', color: hex(COLORS.gold),
+            }).setOrigin(0.5);
+            const cdT = this._scene.add.text(bx + PASSIVE_BTN_W / 2, by + 28, '●', {
+                fontSize: '11px', fontFamily: 'monospace', color: hex(COLORS.success),
+            }).setOrigin(0.5);
+
+            const zone = this._scene.add.zone(bx + PASSIVE_BTN_W / 2, by + PASSIVE_BTN_H / 2,
+                PASSIVE_BTN_W, PASSIVE_BTN_H).setInteractive({ useHandCursor: true });
+            zone.on('pointerdown', () => {
+                events.emit('passiveBarClicked', { skillId: skill.id });
+            });
+            zone.on('pointerover', () => {
+                const def = getSkillDef(skill.id);
+                events.emit('tooltipShow', {
+                    x: bx, y: by,
+                    label: `${skill.name}\n${def ? def.desc : ''}`,
+                    color: toHexInt(COLORS.gold),
+                });
+            });
+            zone.on('pointerout', () => events.emit('tooltipHide'));
+
+            this._container.add([bgG, glyphT, cdT, zone]);
+            this._btns.push({ skill, bgG, glyphT, cdT, bx, by });
+            this._redrawBtn(this._btns[i]);
+        });
+    }
+
+    rebuild() {
+        this._build();
+    }
+
+    _redrawBtn({ skill, bgG, glyphT, cdT, bx, by }) {
+        const ready    = isReady(skill.id);
+        const selected = this._selected === skill.id;
+        const cd       = getCooldown(skill.id);
+
+        bgG.clear();
+        const fillCol = selected ? toHexInt(COLORS.brass) :
+                        ready    ? toHexInt(COLORS.panelEdge) : toHexInt(COLORS.bg);
+        bgG.fillStyle(fillCol, selected ? 0.7 : ready ? 0.35 : 0.2);
+        bgG.fillRoundedRect(bx, by, PASSIVE_BTN_W, PASSIVE_BTN_H, 5);
+        if (ready || selected) {
+            bgG.lineStyle(1.5, selected ? toHexInt(COLORS.gold) : toHexInt(COLORS.brass),
+                selected ? 1 : 0.7);
+            bgG.strokeRoundedRect(bx, by, PASSIVE_BTN_W, PASSIVE_BTN_H, 5);
+        }
+
+        glyphT.setAlpha(ready ? 1 : 0.4);
+
+        if (skill.oncePerLevel && cd === Infinity) {
+            cdT.setText('✓').setColor(hex(COLORS.textDim));
+        } else if (ready) {
+            cdT.setText('●').setColor(hex(COLORS.success));
+        } else {
+            cdT.setText(`${cd}`).setColor(hex(COLORS.textDim));
+        }
+    }
+
+    setCooldown(skillId, remaining) {
+        const btn = this._btns.find(b => b.skill.id === skillId);
+        if (btn) this._redrawBtn(btn);
+    }
+
+    setSelected(skillId) {
+        this._selected = skillId;
+        this._btns.forEach(b => this._redrawBtn(b));
     }
 }
 
@@ -317,9 +537,10 @@ class RefinementHUD {
         const lbl = this._conditionRows[entry.idx];
         if (!lbl) return;
         lbl.setColor(hex(COLORS.success));
-        // Brief scale pop.
-        this._scene.tweens.add({ targets: lbl, scale: 1.2, duration: 100,
-            yoyo: true, ease: 'Back.easeOut' });
+        if (!REDUCED_MOTION) {
+            this._scene.tweens.add({ targets: lbl, scale: 1.2, duration: 100,
+                yoyo: true, ease: 'Back.easeOut' });
+        }
     }
 
     _drawQualityBar(value, grade) {

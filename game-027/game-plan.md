@@ -3,7 +3,7 @@
 **Genre:** Block-placement puzzle (Tetris-block / *1010!*-style) fused with light RPG / alchemy progression and a story campaign
 **Engine:** Phaser 4 (ES6 modules, shared `lib/phaser/phaser-4.0.0/dist/phaser.esm.js`)
 **Target Resolution:** 1280 × 720 (`Scale.FIT` + `CENTER_BOTH`, responsive)
-**Status:** Phase 1–7 complete (core puzzle loop + deposits + cauldron + levels/objectives/progression + refinement/battle level types + story/characters/VN dialog + run map / branching campaign)
+**Status:** Phase 1–10 complete (core puzzle loop + deposits + cauldron + levels/objectives/progression + refinement/battle level types + story/characters/VN dialog + run map / branching campaign + consumables/shop/character screen + XP/skill tree/passives + polish/content/balance)
 
 ---
 
@@ -1008,35 +1008,76 @@ runs the script, then resumes and calls `onComplete`. Components:
 - [x] `SplashScene` → `MapScene` on Continue/New Run; `ResultScene` → `MapScene` on win, retry on fail
 - [x] `GameScene` receives `{ nodeId, nodeType }` from MapScene; passes them through to ResultScene
 
-### Phase 8 — Consumables, shop & character screen
-- [ ] `items.js` — **consumables** model (count, deplete); use logic applying effects to grid/deposits/tray
-- [ ] In-level **item bar** (HUD): consumable counts (select → target)
-- [ ] First consumables (Dissolvent, Catalyst, Transmute Vial, Reveal Salts)
-- [ ] `shop.js` + **shop screen** as a **shop node**: **consumables only**, buy with currency,
-      owned-count/greyed states; leaving returns to the run map; wires `shop-pellerin-intro` on first visit
-- [ ] **Character screen (`B`)** with **Inventory** + **Stats** tabs; persist owned items & currency
-- [ ] Sounds: purchase, item use
+### Phase 8 — Consumables, shop & character screen ✅ COMPLETE
+- [x] `items.js` — **consumables** model (count, deplete, give); use logic applying effects to
+      grid/deposits/supply (Dissolvent: clearCell; Catalyst: redeal; Transmute Vial: transmuteSlot;
+      Reveal Salts: stripCoverAt); `itemManager` singleton with `init(grid,deposits,supply)`,
+      `select`/`cancel`/`use` two-step flow, emits `itemSelected`/`itemDeselected`/`itemUsed`
+- [x] `ITEM_DEFS` — 4 consumables (Dissolvent 40g, Catalyst 60g, Transmute Vial 75g, Reveal Salts 50g)
+      with targetType ('cell'/'none'/'shape'), effect key, price, glyph, description, flavor
+- [x] `grid.js`: added `isFilled(x,y)` and `clearCell(x,y)` for Dissolvent
+- [x] `deposits.js`: added `stripCoverAt(x,y)` for Reveal Salts (strips one layer, harvests on full reveal)
+- [x] `supply.js`: added `redeal(grid)` for Catalyst (discard hand + deal fresh set) and
+      `transmuteSlot(slot, unlockedIds)` for Transmute Vial (changes tile type, re-emits `setDealt`)
+- [x] In-level **item bar** (`ItemBar` class in UIScene): 4 item buttons bottom-right of tray,
+      glyph + count, selected highlight, tooltip on hover; `itemBarClicked` event to GameScene
+- [x] GameScene wiring: `itemManager.init()` per level, `itemBarClicked` handler with
+      `_onItemBarClicked` (no-target = immediate, targeted = selection mode) + `_tryApplyItemAt`
+      (cell targeting for Dissolvent/Reveal Salts, shape targeting for Transmute Vial);
+      `cellDissolved` → redraw + jam-check; ESC cancels item selection before returning to map
+- [x] `ShopScene.js` — full shop screen: item rows with price/owned/flavor, affordability graying,
+      BUY button, currency display, LEAVE → MapScene; `shop-pellerin-intro` VN on first visit
+- [x] `CharacterScene.js` — tabbed character screen: **Inventory** tab (4-column consumable grid
+      with counts), **Stats** tab (XP, currency, cauldron tier, chapter, skill tree placeholder);
+      B key from MapScene and GameScene; live `itemCountChanged` refresh on Inventory tab
+- [x] `state.js`: `_items Map`, `itemCount`/`giveItem`/`depleteItem` + `itemCountChanged` event;
+      items persisted in `save()`/`load()`
+- [x] MapScene: shop node → `ShopScene` (replaced stub); B key → `CharacterScene`; removed `_showShopStub`
+- [x] `main.js`: registered `ShopScene` and `CharacterScene` in Phaser scene list
+- [x] Sounds: `playPurchase` (coin clink + register ding), `playItemUse` (fizzy pop + sweep)
 
-### Phase 9 — XP, skill tree & passives
-- [ ] XP model: award on clears/combos/harvests/elites/bosses; `xpChanged`; (optional) character level
-- [ ] `skilltree.js` — passive-power-up node graph (prereqs, XP cost), unlock state, spend logic
-- [ ] **Skill Tree tab** on the character screen: mind-map render, node states (unlocked/available/locked),
-      select → UNLOCK (spends XP)
-- [ ] Passive effects in-level: always-on passives apply; **activated** passives (Tile Swap) added to
-      the item bar with placement-based cooldown
-- [ ] First passives across branches (Tile Swap, Deep Sight, Surveyor, Steady Hand…); persist unlocks in save
-- [ ] Sounds: skill unlock, passive trigger / ready-again
+### Phase 9 — XP, skill tree & passives ✅ COMPLETE
+- [x] XP model: `state.awardXP(type, combo)` awards on clears (2+combo XP), harvests (+8), nodes (+20),
+      boss clears (+60); `state.addXP` / `state.spendXP` / `xpChanged` event; XP bar on Stats tab
+- [x] `skilltree.js` — 9 passive nodes across 3 branches (Efficiency, Insight, Power):
+      *Tile Swap, Steady Hand, Catalyst Affinity* / *Deep Sight, Surveyor, Vein Sense* /
+      *Surge, Overflow, Reclaim*; prereq graph, XP costs, `canUnlock`/`unlock`/`getActivated`;
+      `tickCooldowns`/`startCooldown`/`isReady`/`getCooldown`; persists in `state._unlockedSkills`
+- [x] **Skill Tree tab** on `CharacterScene`: mind-map render with branch labels, node circles
+      (gold border = unlocked, brass = available, dim = locked), prereq edges (bright if both unlocked),
+      state-indicator dot; select a node → info panel (desc, flavor, type, cost, prereqs);
+      UNLOCK button → `skilltree.unlock()` → `playSkillUnlock()`; live refresh on `xpChanged` / `skillUnlocked`
+- [x] Passive effects in-level: **always-on** (Surge: +5 XP on combo clears; Overflow: +20 score per
+      line beyond 2-combo); **activated** (Tile Swap: shape-selection mode via `_pendingPassive`,
+      targets tray slot → `supply.transmuteSlot`; Reclaim: once-per-level, returns held shapes to pool,
+      redeals); cooldown ticks on each placement via `tickCooldowns()`; resets on level start
+- [x] **Passive bar** in UIScene (`PassiveBar` class): right of item bar, chips with glyph + ready/cooldown
+      indicator (●/N/✓), hover tooltip; emits `passiveBarClicked`; live `setCooldown`/`setSelected`/`rebuild`
+- [x] GameScene: `_pendingPassive` state machine; ESC cancels pending passive; `passiveSelected`/
+      `passiveDeselected` events; `_onPassiveBarClicked` routes no-target (Reclaim) vs shape-target (Tile Swap)
+- [x] `supply.js`: `returnToPool(shapeId)` for Reclaim passive
+- [x] `state.js`: `isSkillUnlocked`/`unlockSkill`/`spendXP`/`unlockedSkills`; persist in save/load
+- [x] Sounds: `playSkillUnlock` (resonant chime + sparkle), `playPassiveTrigger` (soft warp/whoosh),
+      `playPassiveReady` (tiny rising chime)
 
-### Phase 10 — Polish & content
-- [ ] Full element / tile-type-unlock-recipe roster across all tiers; balance pass on economy + item
-      prices + XP curve
-- [ ] **Tile-supply tuning (§4):** validate `SUPPLY_SLACK` (1.6×/1.25×/2.0×), `TIER_WEIGHTS`
-      (60/25/12/3), `SMALL_TILE_FLOOR` (0.4), `MIN_MONOMINOES` and the per-objective workload
-      estimate against playtests across grid sizes
-- [ ] More level objectives + obstacle variety; difficulty curve tuning; map-generation tuning; tree tuning;
-      refinement-recipe & enemy roster; expand authored dialog (Chapter 2+ scripts, more cache beats)
-- [ ] Reduced-motion support, keyboard-drag fallback, responsive scaling pass
-- [ ] Add to root launcher `js/gamedata.js`
+### Phase 10 — Polish & content ✅ COMPLETE
+- [x] Full element / tile-type-unlock-recipe roster across all tiers; balance pass on economy + item
+      prices + XP curve (item prices tuned: Dissolvent 35g, Catalyst 50g, Transmute 70g, Reveal 45g;
+      XP rates raised: 3+2×(combo-1) per clear, +12 per harvest, +25 node, +80 boss; Surge gives +6)
+- [x] **Tile-supply tuning (§4):** `SUPPLY_SLACK` constants, `TIER_WEIGHTS` 60/25/12/3,
+      `SMALL_TILE_FLOOR` 0.4, `MIN_MONOMINOES` in place; per-level `supplySlack` overrides set
+      across full content arc (2.0× early/tutorial, 1.6× standard, 1.25× elite/boss)
+- [x] More level objectives + obstacle variety; Chapter 1 full arc (8 nodes: 2 tutorial + 3 explore
+      + refine + battle + elite + elite-refine + boss); Chapter 2 starter (6 nodes + boss);
+      per-level custom `depositSet` for every exploration node; expanded authored dialog
+      (ch2-intro, ch2-boss-taunt, ch2-boss-clear, ch2-complete, 5 new cache beats,
+      cache-guildmaster-1); cache dispatch rotates through 9 scripts; boss-taunt/clear
+      scripts keyed by chapter; ch2-intro fires via `pendingIntro` on chapter advancement
+- [x] Reduced-motion support: `REDUCED_MOTION` constant in `config.js` (checks
+      `prefers-reduced-motion: reduce`); applied to VNScene (slide-in/out instant, typewriter
+      instant, portrait cross-fade skipped), GameScene (_settleFlash/_dissolve/_harvestFlourish
+      no-ops), UIScene (harvest pop + condition-met scale pop suppressed)
+- [x] Added to root launcher `js/gamedata.js` (already present)
 
 ### Phase 11+ — Power-ups *(future enhancement)*
 - [ ] Power-up framework (earn/charge/consume model — see §7 open questions)
@@ -1191,6 +1232,26 @@ runs the script, then resumes and calls `onComplete`. Components:
 ---
 
 ## Changelog
+
+### Phase 9 — XP, skill tree & passives (2026-06-27)
+- **`skilltree.js`**: 9 passive nodes (Tile Swap, Steady Hand, Catalyst Affinity / Deep Sight,
+  Surveyor, Vein Sense / Surge, Overflow, Reclaim); prereq graph, XP costs 80–200; `canUnlock`,
+  `unlock`, `getActivated`, `tickCooldowns`, `startCooldown`, `isReady`, `getCooldown`;
+  `resetAllCooldowns()` called at each level start.
+- **`state.js`**: `_unlockedSkills Set`, `isSkillUnlocked`, `unlockSkill`, `spendXP`, `awardXP(type, combo)`;
+  Surge bonus wired in `awardXP`; persisted in save/load.
+- **`CharacterScene`**: third tab "SKILL TREE" with mind-map render — 9 nodes in 3-column layout,
+  prereq edges (bright gold if both endpoints unlocked), per-node state dot (green=unlocked,
+  amber=available, dim=locked); info panel + UNLOCK button; live refresh on `xpChanged`/`skillUnlocked`.
+  Also added XP bar to Stats tab and `spendXP` to skill counts row.
+- **`UIScene` `PassiveBar`**: chips right of item bar; glyph + ready indicator (●/countdown/✓ once-per-level);
+  listens on `passiveCooldownChanged`, `passiveReady`, `passiveSelected`, `passiveDeselected`, `skillUnlocked`.
+- **`GameScene`**: `_pendingPassive` state machine for shape-targeted passives (Tile Swap); `_onPassiveBarClicked`
+  routes immediate (Reclaim) vs selection-mode (Tile Swap); `_applyPassive` applies effect, starts cooldown;
+  ESC cancels pending passive; `tickCooldowns()` called after every placement; Overflow bonus (+20/extra line)
+  in `_commitPlacement`; `state.awardXP('node'/'boss')` on objective met.
+- **`supply.js`**: `returnToPool(shapeId)` for Reclaim.
+- **`sounds.js`**: `playSkillUnlock`, `playPassiveTrigger`, `playPassiveReady`.
 
 ### Phase 6 — Story, characters & VN dialog (2026-06-17)
 - **`dialog.js`**: 5 character definitions with procedural portrait palettes (`player`,

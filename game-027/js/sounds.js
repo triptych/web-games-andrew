@@ -221,6 +221,22 @@ export function playDefeated() {
     _noise(0.5, 0.18, 0.3);
 }
 
+// --- Phase 8: Shop / item sounds ---
+
+/** Purchase — coin clink + register ding (§8) */
+export function playPurchase() {
+    _osc('triangle', 1318, 0.10, 0.14);
+    _osc('sine', 1760, 0.08, 0.10, 0.06);
+    _noise(0.04, 0.06, 0.02);
+}
+
+/** Item used — quick fizzy pop (§8) */
+export function playItemUse() {
+    _noise(0.06, 0.18);
+    _sweep('sine', 440, 880, 0.14, 0.14, 0.02);
+    _osc('triangle', 1046, 0.10, 0.12, 0.08);
+}
+
 // --- Phase 6: Dialog / VN sounds ---
 
 /** VN panel slides in — soft whoosh upward */
@@ -243,4 +259,26 @@ export function playDialogAdvance() {
 /** Choice hover highlight — subtle tone shift */
 export function playChoiceHover() {
     _osc('triangle', 660, 0.03, 0.06);
+}
+
+// ─── Phase 9 sounds ──────────────────────────────────────────────────────────
+
+/** Skill tree unlock — resonant unlock chime + sparkle */
+export function playSkillUnlock() {
+    _osc('sine',     440, 0.15, 0.30);
+    _osc('sine',     660, 0.12, 0.20, 0.04);
+    _osc('triangle', 880, 0.10, 0.18, 0.10);
+    _sweep('sine',   1100, 1760, 0.25, 0.08, 0.15);
+}
+
+/** Activated passive triggered — soft warp/whoosh */
+export function playPassiveTrigger() {
+    _sweep('sine',   330, 660, 0.12, 0.22);
+    _osc('triangle', 880, 0.07, 0.10, 0.08);
+}
+
+/** Activated passive cooldown finished — tiny rising "ready" chime */
+export function playPassiveReady() {
+    _osc('sine',     740, 0.06, 0.10);
+    _osc('sine',     990, 0.05, 0.08, 0.05);
 }

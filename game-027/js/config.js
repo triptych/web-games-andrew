@@ -7,6 +7,14 @@
 // ghost preview, line clears + combo/streak scoring, and the "jammed"
 // failure. No alchemy / deposits / cauldron yet (those are Phase 2+).
 
+// --- Accessibility ---
+// True when the OS requests reduced-motion (prefers-reduced-motion: reduce).
+// Use this to skip or shorten animations in GameScene, UIScene, VNScene, etc.
+export const REDUCED_MOTION =
+    typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 // --- Canvas ---
 export const GAME_WIDTH  = 1280;
 export const GAME_HEIGHT = 720;
@@ -259,7 +267,7 @@ export const TILE_TYPE_DEFS = [
     { id: 'tetZ',    name: 'Tet-Z',      rarity: 'exotic',   startUnlocked: false, recipe: { ash: 1, dew: 1 } },
 ];
 
-// --- Level definitions (§Phase 4) ---
+// --- Level definitions (§Phase 4 / Phase 10) ---
 // Each entry is one authored level node. `levelType` routes to the right overlay
 // (exploration is the default; refine/battle land in Phase 5).
 // Objectives:
@@ -270,6 +278,13 @@ export const TILE_TYPE_DEFS = [
 // `supplySlack` overrides SUPPLY_SLACK for this level.
 // `rewards` = { currency, xp } awarded on node-clear.
 export const LEVELS = [
+
+    // ═══════════════════════════════════════════════════════════════
+    //  CHAPTER 1 — "The Cracked Cauldron"
+    //  Cauldron Tier 1 (common elements only). Tutorials + discovery.
+    // ═══════════════════════════════════════════════════════════════
+
+    // --- Tutorial arc (2 easy exploration nodes) ---
     {
         id: 'tutorial-1',
         name: 'The First Stir',
@@ -277,8 +292,12 @@ export const LEVELS = [
         gridW: 9, gridH: 9,
         seed: 20260614,
         objective: { kind: 'lines', target: 6 },
-        supplySlack: 2.0,    // generous early node
-        rewards: { currency: 30, xp: 40 },
+        supplySlack: 2.0,
+        depositSet: [
+            { id: 'salt-vein',    element: 'salt',  qty: 2,
+              cells: [{ x: 1, y: 3 }, { x: 2, y: 3 }, { x: 3, y: 3 }], layers: 1 },
+        ],
+        rewards: { currency: 25, xp: 30 },
     },
     {
         id: 'tutorial-2',
@@ -288,125 +307,177 @@ export const LEVELS = [
         seed: 20260615,
         objective: { kind: 'harvest', depositIds: ['salt-vein'] },
         supplySlack: 2.0,
-        rewards: { currency: 40, xp: 60 },
+        depositSet: [
+            { id: 'salt-vein',    element: 'salt',  qty: 3,
+              cells: [{ x: 2, y: 2 }, { x: 3, y: 2 }, { x: 4, y: 2 }, { x: 4, y: 3 }], layers: 1 },
+            { id: 'ember-pocket', element: 'ember', qty: 1,
+              cells: [{ x: 6, y: 5 }, { x: 7, y: 5 }], layers: 2 },
+        ],
+        rewards: { currency: 35, xp: 45 },
     },
+
+    // --- Mid-chapter exploration nodes ---
     {
-        id: 'level-3',
+        id: 'ch1-explore-3',
         name: 'Ember Pocket',
         levelType: 'exploration',
         gridW: 9, gridH: 9,
         seed: 20260616,
-        objective: { kind: 'score', target: 2500 },
+        objective: { kind: 'score', target: 2000 },
         supplySlack: 1.6,
-        rewards: { currency: 50, xp: 80 },
+        depositSet: [
+            { id: 'ember-pocket', element: 'ember', qty: 2,
+              cells: [{ x: 4, y: 2 }, { x: 5, y: 2 }, { x: 5, y: 3 }], layers: 2 },
+            { id: 'salt-seam',    element: 'salt',  qty: 1,
+              cells: [{ x: 1, y: 6 }, { x: 2, y: 6 }], layers: 1 },
+        ],
+        rewards: { currency: 45, xp: 60 },
     },
     {
-        id: 'level-4',
+        id: 'ch1-explore-4',
         name: 'Dew and Embers',
         levelType: 'exploration',
         gridW: 9, gridH: 9,
         seed: 20260617,
-        objective: { kind: 'lines', target: 12 },
+        objective: { kind: 'lines', target: 10 },
         supplySlack: 1.6,
-        rewards: { currency: 60, xp: 100 },
+        depositSet: [
+            { id: 'dew-seam',     element: 'dew',   qty: 1,
+              cells: [{ x: 6, y: 6 }, { x: 7, y: 6 }], layers: 2 },
+            { id: 'ember-pocket', element: 'ember', qty: 1,
+              cells: [{ x: 2, y: 1 }, { x: 3, y: 1 }], layers: 1 },
+        ],
+        rewards: { currency: 50, xp: 70 },
     },
     {
-        id: 'boss-1',
-        name: 'The Cracked Cauldron Boss',
+        id: 'ch1-explore-5',
+        name: 'The Deep Seam',
         levelType: 'exploration',
         gridW: 9, gridH: 9,
-        seed: 20260620,
-        objective: { kind: 'harvest', depositIds: ['salt-vein', 'ember-pocket', 'dew-seam'] },
-        supplySlack: 1.25,   // tighter supply for boss difficulty
-        rewards: { currency: 120, xp: 200, cauldronUpgrade: true },
+        seed: 20260618,
+        objective: { kind: 'harvest', depositIds: ['dew-cache', 'salt-vein'] },
+        supplySlack: 1.6,
+        depositSet: [
+            { id: 'dew-cache',    element: 'dew',   qty: 2,
+              cells: [{ x: 3, y: 5 }, { x: 4, y: 5 }, { x: 4, y: 6 }], layers: 2 },
+            { id: 'salt-vein',    element: 'salt',  qty: 2,
+              cells: [{ x: 1, y: 2 }, { x: 2, y: 2 }], layers: 1 },
+        ],
+        rewards: { currency: 60, xp: 85 },
     },
 
-    // --- Phase 5: Refinement level (§11b) ---
+    // --- Refinement level (§11b) ---
     {
         id: 'refine-1',
-        name: "Draught of Embers",
+        name: 'Draught of Embers',
         levelType: 'refine',
         gridW: 9, gridH: 9,
         seed: 20260621,
-        objective: { kind: 'brew' },   // win handled by RefinementManager (potionBrewed)
+        objective: { kind: 'brew' },
         supplySlack: 1.6,
         recipe: {
             potionId: 'ember-draught',
-            // Crucible cells: optional highlighted cells on the lattice.
             crucibleCells: [
                 { x: 3, y: 3 }, { x: 4, y: 3 }, { x: 5, y: 3 },
                 { x: 3, y: 4 }, { x: 4, y: 4 }, { x: 5, y: 4 },
                 { x: 3, y: 5 }, { x: 4, y: 5 }, { x: 5, y: 5 },
             ],
             conditions: [
-                // Clear 3 rows that contain at least 1 ember-type tile.
                 { id: 'cond-ember-rows', type: 'ingredient_rows', ingredient: 'ember', target: 3,
                   label: 'Clear 3 ember rows' },
-                // Achieve a ×2 combo (clear 2 lines in one placement).
                 { id: 'cond-combo', type: 'combo', target: 2,
-                  label: 'Reach a ×2 combo' },
-                // Do NOT clear any line containing dew tiles.
+                  label: 'Reach a x2 combo' },
                 { id: 'cond-no-dew', type: 'forbidden', ingredient: 'dew',
                   label: 'No dew lines', satisfied: true },
             ],
         },
-        // Optional enhancements the player can activate before the level.
         enhancements: [
             { id: 'stabilizer',   label: 'Stabilizer',   ingredientCost: { salt: 1 },
-              effect: 'combo_ease',         description: 'Widens the combo window by 1.' },
+              effect: 'combo_ease',    description: 'Widens the combo window by 1.' },
             { id: 'potency-dust', label: 'Potency Dust', ingredientCost: { ember: 1 },
-              effect: 'quality_boost',      description: 'Raises the final quality by 1 grade.' },
+              effect: 'quality_boost', description: 'Raises the final quality by 1 grade.' },
         ],
-        activeEnhancements: [],   // populated at runtime when player commits enhancements
-        rewards: { currency: 70, xp: 110 },
+        activeEnhancements: [],
+        rewards: { currency: 70, xp: 100 },
     },
 
-    // --- Phase 5: Battle grid level (§11c) ---
+    // --- Battle grid level (§11c) ---
     {
         id: 'battle-1',
-        name: "Cinder Imps",
+        name: 'Cinder Imps',
         levelType: 'battle',
         gridW: 9, gridH: 9,
         seed: 20260622,
-        objective: { kind: 'defeat_all' },  // win handled by BattleManager (allDefeated)
+        objective: { kind: 'defeat_all' },
         supplySlack: 1.6,
-        battle: {
-            playerHp: 20,
-            turnInterval: 4,     // enemy acts every 4 placements
-        },
+        battle: { playerHp: 20, turnInterval: 4 },
         enemies: [
-            {
-                id: 'imp-a',
-                name: 'Cinder Imp',
-                cells: [{ x: 2, y: 1 }],
-                hp: 6,
-                armor: 0,
-                damage: 3,
-                behavior: ['attack', 'advance'],
-            },
-            {
-                id: 'imp-b',
-                name: 'Cinder Imp',
-                cells: [{ x: 5, y: 1 }],
-                hp: 6,
-                armor: 0,
-                damage: 3,
-                behavior: ['attack', 'advance'],
-            },
-            {
-                id: 'imp-c',
-                name: 'Ash Hulk',
-                cells: [{ x: 3, y: 0 }, { x: 4, y: 0 }],
-                hp: 12,
-                armor: 1,
-                damage: 2,
-                behavior: ['harden', 'advance', 'attack'],
-            },
+            { id: 'imp-a', name: 'Cinder Imp',
+              cells: [{ x: 2, y: 1 }], hp: 6, armor: 0, damage: 3,
+              behavior: ['attack', 'advance'] },
+            { id: 'imp-b', name: 'Cinder Imp',
+              cells: [{ x: 5, y: 1 }], hp: 6, armor: 0, damage: 3,
+              behavior: ['attack', 'advance'] },
+            { id: 'imp-c', name: 'Ash Hulk',
+              cells: [{ x: 3, y: 0 }, { x: 4, y: 0 }], hp: 12, armor: 1, damage: 2,
+              behavior: ['harden', 'advance', 'attack'] },
         ],
-        rewards: { currency: 80, xp: 130 },
+        rewards: { currency: 80, xp: 110 },
     },
 
-    // --- Phase 5: Boss battle (§11c / §9 boss node) ---
+    // --- Elite node: tougher exploration ---
+    {
+        id: 'ch1-elite-1',
+        name: 'The Buried Trove',
+        levelType: 'exploration',
+        gridW: 9, gridH: 9,
+        seed: 20260623,
+        objective: { kind: 'harvest', depositIds: ['trove-salt', 'trove-ember', 'trove-dew'] },
+        supplySlack: 1.25,
+        depositSet: [
+            { id: 'trove-salt',   element: 'salt',  qty: 3,
+              cells: [{ x: 1, y: 1 }, { x: 2, y: 1 }, { x: 1, y: 2 }], layers: 2 },
+            { id: 'trove-ember',  element: 'ember', qty: 2,
+              cells: [{ x: 6, y: 1 }, { x: 7, y: 1 }, { x: 7, y: 2 }], layers: 2 },
+            { id: 'trove-dew',    element: 'dew',   qty: 2,
+              cells: [{ x: 4, y: 6 }, { x: 5, y: 6 }, { x: 4, y: 7 }], layers: 3 },
+        ],
+        rewards: { currency: 110, xp: 160 },
+    },
+
+    // --- Elite refinement node ---
+    {
+        id: 'ch1-elite-refine',
+        name: 'Moonfire Tincture',
+        levelType: 'refine',
+        gridW: 9, gridH: 9,
+        seed: 20260624,
+        objective: { kind: 'brew' },
+        supplySlack: 1.25,
+        recipe: {
+            potionId: 'moonfire-tincture',
+            crucibleCells: [
+                { x: 1, y: 4 }, { x: 2, y: 4 }, { x: 3, y: 4 },
+                { x: 5, y: 4 }, { x: 6, y: 4 }, { x: 7, y: 4 },
+            ],
+            conditions: [
+                { id: 'cond-salt-rows',  type: 'ingredient_rows', ingredient: 'salt',  target: 2,
+                  label: 'Clear 2 salt rows' },
+                { id: 'cond-ember-rows', type: 'ingredient_rows', ingredient: 'ember', target: 2,
+                  label: 'Clear 2 ember rows' },
+                { id: 'cond-big-combo',  type: 'combo', target: 3,
+                  label: 'Reach a x3 combo' },
+            ],
+        },
+        enhancements: [
+            { id: 'potency-dust', label: 'Potency Dust', ingredientCost: { ember: 1 },
+              effect: 'quality_boost', description: 'Raises the final quality by 1 grade.' },
+        ],
+        activeEnhancements: [],
+        rewards: { currency: 120, xp: 170 },
+    },
+
+    // --- Chapter 1 Boss ---
     {
         id: 'boss-battle-1',
         name: 'The Ember Warden',
@@ -415,34 +486,184 @@ export const LEVELS = [
         seed: 20260625,
         objective: { kind: 'defeat_all' },
         supplySlack: 1.25,
-        battle: {
-            playerHp: 30,
-            turnInterval: 3,     // faster turns on the boss
-        },
+        battle: { playerHp: 30, turnInterval: 3 },
         enemies: [
-            {
-                id: 'warden',
-                name: 'Ember Warden',
-                cells: [{ x: 3, y: 0 }, { x: 4, y: 0 }, { x: 5, y: 0 },
-                        { x: 3, y: 1 }, { x: 4, y: 1 }, { x: 5, y: 1 }],
-                hp: 40,
-                armor: 2,
-                damage: 5,
-                behavior: ['advance', 'harden', 'attack'],
-            },
+            { id: 'warden',
+              name: 'Ember Warden',
+              cells: [{ x: 3, y: 0 }, { x: 4, y: 0 }, { x: 5, y: 0 },
+                      { x: 3, y: 1 }, { x: 4, y: 1 }, { x: 5, y: 1 }],
+              hp: 40, armor: 2, damage: 5,
+              behavior: ['advance', 'harden', 'attack'] },
         ],
         rewards: { currency: 150, xp: 250, cauldronUpgrade: true },
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    //  CHAPTER 2 — "The Tin Cauldron"
+    //  Cauldron Tier 2 (uncommon elements: dew, root). Wider board.
+    // ═══════════════════════════════════════════════════════════════
+
+    {
+        id: 'ch2-explore-1',
+        name: 'Root Hollow',
+        levelType: 'exploration',
+        gridW: 9, gridH: 9,
+        seed: 20260701,
+        objective: { kind: 'harvest', depositIds: ['root-vein'] },
+        supplySlack: 1.8,
+        depositSet: [
+            { id: 'root-vein',    element: 'root',  qty: 3,
+              cells: [{ x: 2, y: 4 }, { x: 3, y: 4 }, { x: 3, y: 5 }, { x: 4, y: 5 }], layers: 2 },
+            { id: 'ember-thread', element: 'ember', qty: 1,
+              cells: [{ x: 6, y: 2 }, { x: 7, y: 2 }], layers: 1 },
+        ],
+        rewards: { currency: 55, xp: 80 },
+    },
+    {
+        id: 'ch2-explore-2',
+        name: 'The Dew Cavern',
+        levelType: 'exploration',
+        gridW: 9, gridH: 9,
+        seed: 20260702,
+        objective: { kind: 'score', target: 3500 },
+        supplySlack: 1.6,
+        depositSet: [
+            { id: 'dew-pool',     element: 'dew',   qty: 3,
+              cells: [{ x: 1, y: 5 }, { x: 2, y: 5 }, { x: 2, y: 6 }, { x: 3, y: 6 }], layers: 2 },
+            { id: 'root-stub',    element: 'root',  qty: 1,
+              cells: [{ x: 7, y: 3 }, { x: 7, y: 4 }], layers: 1 },
+        ],
+        rewards: { currency: 65, xp: 90 },
+    },
+    {
+        id: 'ch2-explore-3',
+        name: 'Twin Veins',
+        levelType: 'exploration',
+        gridW: 9, gridH: 9,
+        seed: 20260703,
+        objective: { kind: 'lines', target: 14 },
+        supplySlack: 1.6,
+        depositSet: [
+            { id: 'root-left',    element: 'root',  qty: 2,
+              cells: [{ x: 1, y: 3 }, { x: 1, y: 4 }, { x: 2, y: 4 }], layers: 2 },
+            { id: 'dew-right',    element: 'dew',   qty: 2,
+              cells: [{ x: 6, y: 4 }, { x: 7, y: 4 }, { x: 7, y: 5 }], layers: 2 },
+            { id: 'salt-base',    element: 'salt',  qty: 1,
+              cells: [{ x: 4, y: 7 }, { x: 5, y: 7 }], layers: 1 },
+        ],
+        rewards: { currency: 70, xp: 100 },
+    },
+
+    // --- Chapter 2 refinement ---
+    {
+        id: 'ch2-refine-1',
+        name: "Dew's Clarity",
+        levelType: 'refine',
+        gridW: 9, gridH: 9,
+        seed: 20260704,
+        objective: { kind: 'brew' },
+        supplySlack: 1.6,
+        recipe: {
+            potionId: 'dew-clarity',
+            crucibleCells: [
+                { x: 2, y: 2 }, { x: 3, y: 2 }, { x: 4, y: 2 },
+                { x: 2, y: 3 }, { x: 3, y: 3 }, { x: 4, y: 3 },
+            ],
+            conditions: [
+                { id: 'cond-dew-rows',  type: 'ingredient_rows', ingredient: 'dew',  target: 3,
+                  label: 'Clear 3 dew rows' },
+                { id: 'cond-no-ember',  type: 'forbidden', ingredient: 'ember',
+                  label: 'No ember lines', satisfied: true },
+                { id: 'cond-combo2',    type: 'combo', target: 2,
+                  label: 'Reach a x2 combo' },
+            ],
+        },
+        enhancements: [
+            { id: 'dew-catalyst',  label: 'Dew Catalyst',  ingredientCost: { dew: 1 },
+              effect: 'combo_ease',    description: 'Widens the combo window by 1.' },
+            { id: 'potency-dust',  label: 'Potency Dust',  ingredientCost: { root: 1 },
+              effect: 'quality_boost', description: 'Raises the final quality by 1 grade.' },
+        ],
+        activeEnhancements: [],
+        rewards: { currency: 90, xp: 130 },
+    },
+
+    // --- Chapter 2 battle ---
+    {
+        id: 'ch2-battle-1',
+        name: 'Root Crawlers',
+        levelType: 'battle',
+        gridW: 9, gridH: 9,
+        seed: 20260705,
+        objective: { kind: 'defeat_all' },
+        supplySlack: 1.6,
+        battle: { playerHp: 25, turnInterval: 4 },
+        enemies: [
+            { id: 'crawler-a', name: 'Root Crawler',
+              cells: [{ x: 1, y: 0 }, { x: 2, y: 0 }], hp: 8, armor: 0, damage: 3,
+              behavior: ['advance', 'attack'] },
+            { id: 'crawler-b', name: 'Root Crawler',
+              cells: [{ x: 6, y: 0 }, { x: 7, y: 0 }], hp: 8, armor: 0, damage: 3,
+              behavior: ['advance', 'attack'] },
+            { id: 'vine-lord', name: 'Vine Lord',
+              cells: [{ x: 3, y: 0 }, { x: 4, y: 0 }, { x: 5, y: 0 }], hp: 18, armor: 1, damage: 4,
+              behavior: ['harden', 'advance', 'attack'] },
+        ],
+        rewards: { currency: 100, xp: 140 },
+    },
+
+    // --- Chapter 2 elite ---
+    {
+        id: 'ch2-elite-1',
+        name: 'The Ashfall Cache',
+        levelType: 'exploration',
+        gridW: 9, gridH: 9,
+        seed: 20260706,
+        objective: { kind: 'harvest', depositIds: ['ash-vein', 'root-seam', 'dew-bloom'] },
+        supplySlack: 1.25,
+        depositSet: [
+            { id: 'ash-vein',     element: 'ash',  qty: 2,
+              cells: [{ x: 4, y: 1 }, { x: 4, y: 2 }, { x: 5, y: 2 }], layers: 3 },
+            { id: 'root-seam',    element: 'root', qty: 2,
+              cells: [{ x: 1, y: 5 }, { x: 2, y: 5 }, { x: 2, y: 6 }], layers: 2 },
+            { id: 'dew-bloom',    element: 'dew',  qty: 2,
+              cells: [{ x: 6, y: 5 }, { x: 7, y: 5 }, { x: 7, y: 6 }], layers: 2 },
+        ],
+        rewards: { currency: 140, xp: 200 },
+    },
+
+    // --- Chapter 2 Boss ---
+    {
+        id: 'boss-battle-2',
+        name: 'The Dew Serpent',
+        levelType: 'battle',
+        gridW: 9, gridH: 9,
+        seed: 20260710,
+        objective: { kind: 'defeat_all' },
+        supplySlack: 1.25,
+        battle: { playerHp: 35, turnInterval: 3 },
+        enemies: [
+            { id: 'serpent-head',
+              name: 'Dew Serpent',
+              cells: [{ x: 3, y: 0 }, { x: 4, y: 0 }, { x: 5, y: 0 },
+                      { x: 4, y: 1 }],
+              hp: 30, armor: 1, damage: 4,
+              behavior: ['advance', 'attack'] },
+            { id: 'serpent-tail',
+              name: 'Serpent Tail',
+              cells: [{ x: 3, y: 1 }, { x: 5, y: 1 }],
+              hp: 20, armor: 0, damage: 3,
+              behavior: ['advance', 'harden', 'attack'] },
+        ],
+        rewards: { currency: 200, xp: 320, cauldronUpgrade: true },
     },
 ];
 
 // --- Deposits (§5 — buried ingredient regions revealed by line clears) ---
-// A level seeds a known set of deposits. Each is a connected region of cells,
-// each cell buried under `layers` cover layers; a cover strips when that cell
-// is part of a clearing line, and the deposit harvests when ALL its cells are
-// uncovered. `qty` elements of `element` bank to stores on harvest.
-//
-// Phase 2 uses a fixed authored set on the 9×9 board (real per-level seeding
-// arrives with level defs in Phase 4). Coordinates are {x, y} lattice cells.
+// Default DEPOSITS used when a level has no `depositSet` override.
+// Each is a connected region of cells buried under `layers` cover layers.
+// A cover strips when the cell is part of a clearing line; harvests when all
+// cells are uncovered. `qty` elements bank to stores on harvest.
 export const DEPOSITS = [
     {
         id: 'salt-vein',

@@ -27,6 +27,19 @@ export class Grid {
         return this.inBounds(x, y) && this.cells[y][x] === null;
     }
 
+    isFilled(x, y) {
+        return this.inBounds(x, y) && this.cells[y][x] !== null;
+    }
+
+    /**
+     * Remove a single filled cell (Dissolvent consumable, §8).
+     * No-op if the cell is already empty or out of bounds.
+     */
+    clearCell(x, y) {
+        if (!this.inBounds(x, y)) return;
+        this.cells[y][x] = null;
+    }
+
     /**
      * Can `shape` be placed with its origin at (ox, oy)?
      * All cells must land in-bounds on empty lattice cells.

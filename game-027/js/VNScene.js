@@ -19,7 +19,7 @@
  */
 
 import { Scene }  from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
-import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS, REDUCED_MOTION } from './config.js';
 import { DialogRunner, CHARACTERS }        from './dialog.js';
 import { playDialogAdvance, playDialogOpen, playDialogClose, playChoiceHover } from './sounds.js';
 
@@ -401,15 +401,20 @@ export class VNScene extends Scene {
         this.input.on('pointerdown', (p) => this._onPointerDown(p));
         this.input.on('pointermove', (p) => this._onPointerMove(p));
 
-        // Slide the panel in.
+        // Slide the panel in (instant when prefers-reduced-motion).
         playDialogOpen();
-        this.tweens.add({
-            targets:  this._panelContainer,
-            y:        PANEL_Y,
-            duration: 200,
-            ease:     'Sine.easeOut',
-            onComplete: () => this._refreshDisplay(),
-        });
+        if (REDUCED_MOTION) {
+            this._panelContainer.y = PANEL_Y;
+            this._refreshDisplay();
+        } else {
+            this.tweens.add({
+                targets:  this._panelContainer,
+                y:        PANEL_Y,
+                duration: 200,
+                ease:     'Sine.easeOut',
+                onComplete: () => this._refreshDisplay(),
+            });
+        }
     }
 
     // ---- Display refresh ----------------------------------------------------
@@ -458,11 +463,19 @@ export class VNScene extends Scene {
 
     _startTyping(fullText) {
         this._typeTarget = fullText;
-        this._typeIndex  = 0;
-        this._typing     = true;
-        this._showCursor = false;
-        this._dialogText.setText('');
-        this._cursorText.setAlpha(0);
+        if (REDUCED_MOTION) {
+            // Skip typewriter — show text immediately.
+            this._typeIndex = fullText.length;
+            this._typing    = false;
+            this._dialogText.setText(fullText);
+            this._showCursor = true;
+        } else {
+            this._typeIndex  = 0;
+            this._typing     = true;
+            this._showCursor = false;
+            this._dialogText.setText('');
+            this._cursorText.setAlpha(0);
+        }
     }
 
     _finishTyping() {
@@ -481,10 +494,9 @@ export class VNScene extends Scene {
         if (this._currentChar === charDef.id && this._currentPortraitState === portraitState) return;
 
         // Cross-fade: snapshot current portrait via alpha, draw new on main.
-        if (this._currentChar) {
-            // Copy current portrait to fade-out layer
+        if (this._currentChar && !REDUCED_MOTION) {
+            // Copy current portrait to fade-out layer, then cross-fade.
             this._portraitFadeGfx.clear();
-            // Re-draw the old portrait on the fade layer.
             const oldChar  = CHARACTERS[this._currentChar];
             const oldState = this._currentPortraitState || 'neutral';
             if (oldChar) drawPortrait(this._portraitFadeGfx, oldChar, oldState);
@@ -640,19 +652,23 @@ export class VNScene extends Scene {
         if (this._closingDown) return;
         this._closingDown = true;
         playDialogClose();
-        this.tweens.add({
-            targets:  this._panelContainer,
-            y:        GAME_HEIGHT,
-            duration: 180,
-            ease:     'Sine.easeIn',
-            onComplete: () => this._teardown(),
-        });
-        this.tweens.add({
-            targets:  this._backdrop,
-            alpha:    0,
-            duration: 200,
-            ease:     'Linear',
-        });
+        if (REDUCED_MOTION) {
+            this._teardown();
+        } else {
+            this.tweens.add({
+                targets:  this._panelContainer,
+                y:        GAME_HEIGHT,
+                duration: 180,
+                ease:     'Sine.easeIn',
+                onComplete: () => this._teardown(),
+            });
+            this.tweens.add({
+                targets:  this._backdrop,
+                alpha:    0,
+                duration: 200,
+                ease:     'Linear',
+            });
+        }
     }
 
     _teardown() {

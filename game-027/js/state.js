@@ -50,6 +50,10 @@ class GameState {
         this._runSeed    = _makeSeed();
         this._runChapter = 1;
         this._runMap     = null; // { mapData, currentNodeId, visitedIds, committedPath }
+        // Phase 8: owned consumable item counts (item id → count)
+        this._items = new Map();
+        // Phase 9: unlocked skill-tree passives
+        this._unlockedSkills = new Set();
     }
 
     // --- Per-level reset ----------------------------------------------------
@@ -184,6 +188,31 @@ class GameState {
         events.emit('cauldronUpgraded', { newTier: this._cauldronTier });
     }
 
+    // --- Owned consumable items (§8) --------------------------------------
+
+    /** How many of itemId the player owns. */
+    itemCount(itemId) { return this._items.get(itemId) || 0; }
+
+    /** Add qty of itemId to inventory; emits itemCountChanged. */
+    giveItem(itemId, qty = 1) {
+        const next = (this._items.get(itemId) || 0) + qty;
+        this._items.set(itemId, next);
+        events.emit('itemCountChanged', { itemId, count: next });
+    }
+
+    /** Use one of itemId (count → 0 min). Returns false if not owned. */
+    depleteItem(itemId) {
+        const cur = this._items.get(itemId) || 0;
+        if (cur <= 0) return false;
+        const next = cur - 1;
+        this._items.set(itemId, next);
+        events.emit('itemCountChanged', { itemId, count: next });
+        return true;
+    }
+
+    /** Full item inventory snapshot { itemId: count }. */
+    get items() { return Object.fromEntries(this._items); }
+
     // --- Currency & XP (§8/§10) -------------------------------------------
 
     get currency() { return this._currency; }
@@ -203,8 +232,50 @@ class GameState {
     get xp() { return this._xp; }
 
     addXP(amount) {
+        if (amount <= 0) return;
         this._xp += amount;
         events.emit('xpChanged', { xp: this._xp });
+    }
+
+    /** Spend XP for a skill unlock. Returns false if insufficient. */
+    spendXP(amount) {
+        if (this._xp < amount) return false;
+        this._xp -= amount;
+        events.emit('xpChanged', { xp: this._xp });
+        return true;
+    }
+
+    // --- Skill tree (§10) --------------------------------------------------
+
+    isSkillUnlocked(skillId) { return this._unlockedSkills.has(skillId); }
+
+    /** Mark a skill as unlocked (called by skilltree.unlock after spending XP). */
+    unlockSkill(skillId) {
+        this._unlockedSkills.add(skillId);
+        this.save();
+    }
+
+    get unlockedSkills() { return new Set(this._unlockedSkills); }
+
+    /**
+     * Award XP for in-level actions (§10).
+     * combo: lines cleared in one placement (0 = no clear)
+     * type: 'clear' | 'harvest' | 'node' | 'boss'
+     */
+    awardXP(type, combo = 0) {
+        let base = 0;
+        switch (type) {
+            // 3 base + 2 per extra line cleared (combo=1 → 3, combo=2 → 5, combo=3 → 7)
+            case 'clear':   base = 3 + Math.max(0, combo - 1) * 2; break;
+            case 'harvest': base = 12;  break;   // harvesting a deposit feels meaningful
+            case 'node':    base = 25;  break;   // node completion bonus
+            case 'boss':    base = 80;  break;   // boss is a big milestone
+        }
+        // Surge passive: +6 bonus XP on any combo (2+ lines cleared in one placement)
+        if (type === 'clear' && combo >= 2 && this._unlockedSkills.has('surge')) {
+            base += 6;
+        }
+        if (base > 0) this.addXP(base);
     }
 
     // --- Run progression (level index — legacy linear fallback) -------------
@@ -279,6 +350,9 @@ class GameState {
         if (isBoss) {
             this.upgradeCauldron();
             this._runChapter += 1;
+            // Queue the chapter intro dialog for the next MapScene visit.
+            const introId = `ch${this._runChapter}-intro`;
+            this._dialogFlags.set('pendingIntro', introId);
             // Clear the map so the next MapScene visit regenerates it.
             this._runMap = null;
             this._runSeed = _makeSeed();
@@ -318,6 +392,10 @@ class GameState {
                 runSeed:        this._runSeed,
                 runChapter:     this._runChapter,
                 runMap:         mapSnapshot,
+                // Phase 8
+                items:          Object.fromEntries(this._items),
+                // Phase 9
+                unlockedSkills: [...this._unlockedSkills],
             };
             localStorage.setItem(SAVE_KEY, JSON.stringify(data));
         } catch (_) { /* quota or private mode — silently ignore */ }
@@ -342,6 +420,8 @@ class GameState {
             // Phase 7
             this._runSeed    = data.runSeed    || _makeSeed();
             this._runChapter = data.runChapter || 1;
+            this._items          = new Map(Object.entries(data.items || {}));
+            this._unlockedSkills = new Set(data.unlockedSkills || []);
             if (data.runMap) {
                 this._runMap = {
                     mapData:       data.runMap.mapData,

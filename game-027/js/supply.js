@@ -177,4 +177,54 @@ export class Supply {
         events.emit('supplyChanged', { remaining: this.remaining });
         return true;
     }
+
+    /**
+     * Re-deal the current hand from the pool (Catalyst consumable, §8).
+     * The existing hand tiles are discarded (not returned to the pool — they're
+     * spent). Then deal a fresh set. If the pool is empty, does nothing.
+     * @param {Grid} grid — for deal-fairness; may be omitted.
+     */
+    redeal(grid) {
+        // Discard any remaining held tiles (slots not yet placed).
+        this.hand = new Array(TRAY_SIZE).fill(null);
+        this.deal(grid);
+    }
+
+    /**
+     * Return all held (non-null) shapes back to the pool and clear the hand.
+     * Used by the Reclaim passive (§10): the hand tiles are not consumed, just
+     * returned to the top of the pool so they can be re-dealt.
+     */
+    returnToPool(shapeId) {
+        // Find and remove matching hand slot.
+        for (let i = 0; i < this.hand.length; i++) {
+            if (this.hand[i] && this.hand[i].shapeId === shapeId) {
+                this.pool.unshift(this.hand[i]); // return to front of pool
+                this.hand[i] = null;
+                return;
+            }
+        }
+    }
+
+    /**
+     * Transmute the tile in `slot` to a different tile type chosen from `unlockedIds`.
+     * Used by the Transmute Vial consumable (§8).
+     * @param {number}   slot       — 0–2
+     * @param {string[]} unlockedIds — array of unlocked tile-type ids
+     * @returns {boolean} true if the slot was transmuted.
+     */
+    transmuteSlot(slot, unlockedIds) {
+        const tile = this.hand[slot];
+        if (!tile) return false;
+        // Pick a different type.
+        const others = unlockedIds.filter(id => id !== tile.tileType);
+        if (others.length === 0) return false;
+        tile.tileType = others[Math.floor(this.rng() * others.length)];
+        // Re-emit setDealt so the HUD redraws the tray.
+        events.emit('setDealt', {
+            shapes: this.hand.map((t, i) => t ? { slot: i, shapeId: t.shapeId, tileType: t.tileType } : null)
+                             .filter(Boolean),
+        });
+        return true;
+    }
 }

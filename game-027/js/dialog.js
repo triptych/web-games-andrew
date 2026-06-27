@@ -235,14 +235,120 @@ export const SCRIPTS = {
         { end: true },
     ],
 
-    // --- Chapter 2 intro stub ------------------------------------------------
+    // --- Chapter 2 intro (fires after Chapter 1 complete, before Chapter 2 map) ---
     'ch2-intro': [
         { speaker: 'guildmaster', portrait: 'stern',
-          text: "The second chapter. The lattice runs deeper; the deposits older." },
+          text: "Welcome to Chapter Two. I'll be direct: it is harder." },
         { speaker: 'guildmaster', portrait: 'neutral',
-          text: "Your Tin cauldron will prove its worth here. Elements you have only glimpsed before will now be workable." },
+          text: "Your Tin cauldron can now process Dew and Root. Uncommon elements. The kind that unlock tile-types you haven't seen before." },
         { speaker: 'guildmaster', portrait: 'stern',
-          text: "Stay focused. The difficulty is not an accident." },
+          text: "The deposits run three layers deep in places. Patience is no longer a virtue — it is a requirement." },
+        { speaker: 'player', portrait: 'determined', text: null },
+        { speaker: 'guildmaster', portrait: 'pleased',
+          text: "Good. That look. Hold onto that." },
+        { end: true },
+    ],
+
+    // --- Chapter 2 pre-boss taunt -------------------------------------------
+    'ch2-boss-taunt': [
+        { speaker: 'rival', portrait: 'neutral',
+          text: "The Dew Serpent. Two heads — well, a head and a tail, technically — but the guild counts them separately." },
+        { speaker: 'rival', portrait: 'smug',
+          text: "The tail regenerates armor after every two placements that don't damage it. I thought you should know that." },
+        { choice: [
+            { label: "How do you know all this?", next: 'casimir-knows' },
+            { label: "I'll handle it.",             next: 'handle' },
+        ]},
+        { id: 'casimir-knows', speaker: 'rival', portrait: 'neutral',
+          text: "I faced it last week. Lost." },
+        { speaker: 'rival', portrait: 'smug',
+          text: "Strategically." },
+        { speaker: 'rival', portrait: 'neutral',
+          text: "...I retreated. To reassess." },
+        { end: true },
+
+        { id: 'handle', speaker: 'rival', portrait: 'smug',
+          text: "Famous last words. But I've heard worse confidence from worse alchemists." },
+        { speaker: 'rival', portrait: 'neutral',
+          text: "Good luck. I mean it this time." },
+        { end: true },
+    ],
+
+    // --- Chapter 2 boss cleared ---------------------------------------------
+    'ch2-boss-clear': [
+        { speaker: 'guildmaster', portrait: 'pleased',
+          text: "The Dew Serpent. Taken apart methodically." },
+        { speaker: 'guildmaster', portrait: 'neutral',
+          text: "A Brass cauldron now. It can refine Ash — a Rare element. The kinds of tile-types this unlocks are... larger. Less forgiving." },
+        { speaker: 'player', portrait: 'pleased', text: null },
+        { speaker: 'guildmaster', portrait: 'stern',
+          text: "Don't let this become arrogance. The third chapter has been waiting." },
+        { end: true },
+    ],
+
+    // --- Chapter 2 complete -------------------------------------------------
+    'ch2-complete': [
+        { speaker: 'guildmaster', portrait: 'neutral',
+          text: "Two chapters. You are no longer a beginner." },
+        { speaker: 'rival', portrait: 'neutral',
+          text: "You beat it." },
+        { speaker: 'rival', portrait: 'smug',
+          text: "Don't make a thing of it." },
+        { speaker: 'rival', portrait: 'neutral',
+          text: "...Fine. You beat it. And I didn't. There. Said." },
+        { speaker: 'guildmaster', portrait: 'pleased',
+          text: "The Assembly is watching the both of you. Don't disappoint us." },
+        { end: true },
+    ],
+
+    // --- Additional cache flavor beats (more variety) -----------------------
+    'cache-spirit-3': [
+        { speaker: 'spirit', portrait: 'calm',
+          text: "The roots go very deep here." },
+        { speaker: 'spirit', portrait: 'serene',
+          text: "Some deposits have waited since before the guild had a name." },
+        { speaker: 'spirit', portrait: 'calm',
+          text: "They are patient. I hope you are too." },
+        { end: true },
+    ],
+
+    'cache-rival-2': [
+        { speaker: 'rival', portrait: 'smug',
+          text: "I was going to take this cache myself. Then I thought: let it be a test." },
+        { speaker: 'rival', portrait: 'neutral',
+          text: "If you found it, you're still in the game. That matters." },
+        { speaker: 'rival', portrait: 'smug',
+          text: "Don't tell anyone I said that." },
+        { end: true },
+    ],
+
+    'cache-vendor-2': [
+        { speaker: 'vendor', portrait: 'curious',
+          text: "Hm. I don't usually leave supplies unattended, but the alchemist who ordered these never came back." },
+        { speaker: 'vendor', portrait: 'warm',
+          text: "They always say the lattice calls the right person. I believe it." },
+        { speaker: 'vendor', portrait: 'pleased',
+          text: "Take it. You'll need the edge." },
+        { end: true },
+    ],
+
+    'cache-spirit-4': [
+        { speaker: 'spirit', portrait: 'curious',
+          text: "You are beginning to read the lattice, I think." },
+        { speaker: 'spirit', portrait: 'serene',
+          text: "Not every shape will fit cleanly. But every solution exists somewhere in the remaining pool." },
+        { speaker: 'spirit', portrait: 'calm',
+          text: "Trust the supply. Trust the grid." },
+        { end: true },
+    ],
+
+    'cache-guildmaster-1': [
+        { speaker: 'guildmaster', portrait: 'neutral',
+          text: "I left this here for a student who deserved a head start." },
+        { speaker: 'guildmaster', portrait: 'stern',
+          text: "Whether or not that student is you remains to be seen." },
+        { speaker: 'guildmaster', portrait: 'neutral',
+          text: "Take it anyway. Potential deserves the chance to prove itself." },
         { end: true },
     ],
 };

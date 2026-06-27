@@ -88,8 +88,8 @@ export class MapScene extends Scene {
             fontSize: '13px', fontFamily: 'monospace', color: hex(COLORS.gold),
         }).setOrigin(0, 0.5);
 
-        // Cauldron hint
-        this.add.text(GAME_WIDTH - 24, 28, 'C — Cauldron', {
+        // Key hints
+        this.add.text(GAME_WIDTH - 24, 28, 'C — Cauldron   B — Character', {
             fontSize: '12px', fontFamily: 'monospace', color: hex(COLORS.textDim),
         }).setOrigin(1, 0.5);
 
@@ -147,6 +147,11 @@ export class MapScene extends Scene {
         this.input.keyboard.on('keydown-C', () => {
             playUiClick();
             this.scene.start('CauldronScene', { readOnly: false, returnTo: 'MapScene' });
+        });
+        // B — character screen (inventory / stats).
+        this.input.keyboard.on('keydown-B', () => {
+            playUiClick();
+            this.scene.start('CharacterScene', { returnTo: 'MapScene' });
         });
         this.input.keyboard.on('keydown-ESC', () => {
             playUiClick();
@@ -271,15 +276,22 @@ export class MapScene extends Scene {
 
         // Resolve to which Phaser scene to launch
         if (node.type === 'shop') {
-            // Phase 8 stub — show a simple message for now
-            this._showShopStub(nodeId, mapData);
+            // Phase 8: launch the real ShopScene.
+            this.scene.start('ShopScene', { nodeId });
             return;
         }
 
         if (node.type === 'cache') {
-            // Cache/event: launch VNScene for a flavor beat, then return to map
+            // Cache/event: pick a flavor script that hasn't been seen yet (or cycle).
+            const CACHE_SCRIPTS = [
+                'cache-spirit-1', 'cache-rival-1', 'cache-vendor-1',
+                'cache-spirit-2', 'cache-spirit-3', 'cache-rival-2',
+                'cache-vendor-2', 'cache-spirit-4', 'cache-guildmaster-1',
+            ];
+            const unseen = CACHE_SCRIPTS.filter(id => !state.hasSeenScript(id));
+            const scriptId = unseen.length > 0 ? unseen[0] : CACHE_SCRIPTS[0];
             this.scene.start('VNScene', {
-                scriptId: 'cache-event',
+                scriptId,
                 nodeId,
                 pauseScenes: [],
                 onComplete: () => {
@@ -290,7 +302,23 @@ export class MapScene extends Scene {
             return;
         }
 
-        // Puzzle nodes (explore / refine / battle / elite / boss)
+        // Boss node: fire a chapter-specific pre-boss taunt (one-shot) then launch.
+        if (node.type === 'boss') {
+            const tautId = `ch${state.runChapter}-boss-taunt`;
+            if (!state.hasSeenScript(tautId)) {
+                this.scene.start('VNScene', {
+                    scriptId: tautId,
+                    pauseScenes: [],
+                    onComplete: () => {
+                        this.scene.start('GameScene', { nodeId: node.id, nodeType: node.type });
+                        this.scene.launch('UIScene');
+                    },
+                });
+                return;
+            }
+        }
+
+        // Puzzle nodes (explore / refine / battle / elite)
         this.scene.start('GameScene', { nodeId: node.id, nodeType: node.type });
         this.scene.launch('UIScene');
     }
@@ -311,50 +339,4 @@ export class MapScene extends Scene {
         });
     }
 
-    _showShopStub(nodeId, mapData) {
-        // Phase 8 placeholder — show a brief overlay then mark the node done.
-        const CX = GAME_WIDTH / 2;
-        const CY = GAME_HEIGHT / 2;
-
-        const panel = this.add.graphics().setDepth(20);
-        panel.fillStyle(toHexInt(COLORS.panel), 0.97);
-        panel.fillRoundedRect(CX - 260, CY - 120, 520, 240, 10);
-        panel.lineStyle(2, toHexInt(COLORS.gold), 0.8);
-        panel.strokeRoundedRect(CX - 260, CY - 120, 520, 240, 10);
-
-        this.add.text(CX, CY - 72, '🛒 APOTHECARY MARKET', {
-            fontSize: '22px', fontFamily: 'monospace', fontStyle: 'bold',
-            color: hex(COLORS.gold),
-        }).setOrigin(0.5).setDepth(21);
-
-        this.add.text(CX, CY - 30, 'The shopkeeper nods as you browse the shelves.\n(Shop — Phase 8 coming soon)', {
-            fontSize: '14px', fontFamily: 'monospace', color: hex(COLORS.parchment),
-            align: 'center',
-        }).setOrigin(0.5).setDepth(21);
-
-        const btnY = CY + 52;
-        const btnGfx = this.add.graphics().setDepth(21);
-        btnGfx.fillStyle(toHexInt(COLORS.panelEdge), 0.9);
-        btnGfx.fillRoundedRect(CX - 80, btnY, 160, 38, 6);
-
-        this.add.text(CX, btnY + 19, 'LEAVE SHOP', {
-            fontSize: '14px', fontFamily: 'monospace', color: hex(COLORS.parchment),
-        }).setOrigin(0.5).setDepth(22);
-
-        const close = () => {
-            state.resolveNode(nodeId);
-            this.scene.restart();
-        };
-
-        this.input.once('pointerdown', (p) => {
-            if (p.x >= CX - 80 && p.x <= CX + 80 && p.y >= btnY && p.y <= btnY + 38) {
-                playUiClick();
-                close();
-            }
-        });
-
-        this.input.keyboard.once('keydown-SPACE', () => { playUiClick(); close(); });
-        this.input.keyboard.once('keydown-ENTER', () => { playUiClick(); close(); });
-        this.input.keyboard.once('keydown-ESC',   () => { playUiClick(); close(); });
-    }
 }
