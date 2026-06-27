@@ -353,6 +353,19 @@ const games = [
             { emoji: '🖱️', label: 'Drag & Drop' },
             { emoji: '💡', label: 'Strategy' }
         ]
+    },
+    {
+        id: 'game-028',
+        title: 'Echoes of Aethermoor',
+        description: 'A Phaser 4 visual novel fantasy RPG. Lead a party of four heroes — mage, knight, ranger, warlock — through four chapters of branching dialogue, turn-based battles, tile-based maps, quests, and a deep storyline. Uncover the truth of the Lich of Aethermoor before the ancient seals break for good.',
+        icon: '📖',
+        folder: 'game-028',
+        cssClass: 'echoes-of-aethermoor',
+        tags: [
+            { emoji: '⚔️', label: 'RPG' },
+            { emoji: '📖', label: 'Visual Novel' },
+            { emoji: '🎲', label: 'Turn-Based' }
+        ]
     }
 ];
 
