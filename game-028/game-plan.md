@@ -3,7 +3,7 @@
 **Genre:** Visual Novel / Fantasy RPG
 **Engine:** Phaser 4.0.0 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Planning — Phase 1
+**Status:** Phase 2 complete
 
 ---
 
@@ -27,7 +27,7 @@ Typewriter-speed text, speaker portraits, and choice menus. Choices can trigger 
 Combatants are sorted by SPD. Player chooses actions (Attack / Abilities / Item / Flee) from a menu. Abilities cost MP. Enemy AI picks random abilities. Status effects planned (poison, stun, weaken, taunt, guard, lifesteal). Win → XP + gold + loot. Lose → game over.
 
 ### 4. Party & Progression
-Four recruitable party members each with unique ability kits. Global XP shared across party (levelling raises all stats proportionally — TODO Phase 2). Gold buys items from shops.
+Four recruitable party members each with unique ability kits. Global XP shared across party — levelling raises max HP/MP (8%/6% per level) and ATK/DEF/SPD (5% per level). Orin recruits in Thornhaven (Ch2), Sera in Thornwood (Ch2), Thane in the Ruins (Ch3). Gold buys items from shops.
 
 ### 5. Quests
 Quests are accepted via NPC dialogue and tracked in state. Objectives include: defeat N enemies, collect N items, talk to NPC, visit map, trigger story flag. Completions grant XP, gold, and items.
@@ -161,7 +161,7 @@ All sounds are procedural Web Audio API — no file assets.
 
 ## Phases
 
-### Phase 1 — Foundation (current)
+### Phase 1 — Foundation ✅ (2026-06-27)
 - [x] Scaffold: index.html, config, events, state, sounds, main
 - [x] SplashScene with lore blurb and star field
 - [x] MapScene: tile rendering, player movement, NPC detection, random encounters, map exits, event tiles, condition checks
@@ -174,26 +174,22 @@ All sounds are procedural Web Audio API — no file assets.
 - [x] quests.js: 8 quests across 4 chapters
 - [x] dialog.js: 7 NPCs + 7 dialog trees
 - [x] maps.js: 3 tile-based maps (thornhaven, thornwood, map_ruins)
-- [ ] Wire party member join (Orin Ch2, Sera Ch2, Thane Ch3) via dialog action
-- [ ] Full per-character HP/MP tracking in battle (currently uses base defs)
 
-### Phase 2 — Content & Systems
-- [ ] Per-character HP/MP persistence across battles (clone state)
-- [ ] Status effects: poison, stun, slow, weaken, taunt, guard, lifesteal
-- [ ] Item use in battle (Item menu)
-- [ ] Shop system (blacksmith, general store) in dialog
-- [ ] Inn rest: full HP/MP restore for 30 gold
-- [ ] Orin Chapter 2 story beat + Sera recruitment
-- [ ] World Tree map + Sylvara quest flow
-- [ ] Character-level stat scaling on level up
-- [ ] Death / game over with restart from last inn
+### Phase 2 — Content & Systems ✅ (2026-06-27)
+- [x] Per-character HP/MP persistence across battles (state._partyHp/Mp maps, written back on battle end)
+- [x] Status effects: poison (6% maxHP/turn for 3 turns), stun (skip 1 turn) — applied by abilities, shown as ☠/💫 icons; enemies can inflict too
+- [x] Item use in battle — new `item` phase in action menu; heals lowest-HP ally, restores MP, revives fallen
+- [x] Inn rest: full HP/MP restore for 30 gold, "not enough gold" message if broke (DialogScene `rest` action)
+- [x] Party member recruitment: Orin dialog tree in Thornhaven (Ch2+), Sera in Thornwood (Ch2+), Thane in Ruins (Ch3+); NPCs removed from map after joining
+- [x] Character-level stat scaling: maxHP +8%/level, maxMP +6%/level, ATK/DEF/SPD +5%/level; HP healed for gained portion on level-up
+- [x] MapScene blocked exit message: floating tooltip shows chapter requirement when player hits a gated exit
+- [x] MenuScene Party tab: shows live HP/MP from state with color-coded bars (red <30%, yellow <60%, green), scaled stats
 
 ### Phase 3 — Maps & Story
-- [ ] Chapters 3 and 4 full story flow
-- [ ] map_ruins enemy encounters and final boss trigger
-- [ ] Scholar Aneth dialog tree
-- [ ] Thane recruitment dialog
-- [ ] Ending screen (victory cutscene text)
+- [ ] Chapters 3 and 4 full story flow (chapter advancement gating via NPC dialog actions)
+- [ ] map_ruins enemy encounters and final boss trigger (flag_seal_broken → boss event at tx:10, ty:18)
+- [ ] Ending screen (victory cutscene text after defeating Aethermoor Lich)
+- [ ] Shop system (blacksmith_stock, general_stock) — dialog `shop` action currently a stub
 - [ ] Save/load via localStorage
 
 ### Phase 4 — Polish
@@ -223,7 +219,7 @@ All sounds are procedural Web Audio API — no file assets.
 | `battleEnd` | { won, fled, xpGained, goldGained, loot } | BattleScene | MapScene, UIScene |
 | `dialogStart` | npcId | MapScene | DialogScene |
 | `dialogEnd` | npcId | DialogScene | MapScene |
-| `restoreParty` | — | DialogScene | (TODO: BattleScene) |
+| `partyRestored` | — | state.restorePartyFull() | (UIScene future toast) |
 | `gameOver` | — | state | MapScene |
 
 ---
@@ -253,11 +249,11 @@ All sounds are procedural Web Audio API — no file assets.
 
 ## Open Questions
 
-- [ ] Should chapter progression be linear (talk to the right NPC) or require all quests in the chapter to be completed first?
-- [ ] How many party members can be in the active battle party? (Currently: all recruited members, max 4)
-- [ ] Should the game have permadeath or a retry-from-inn system?
-- [ ] What visual style for the tile maps — colored rectangles (current), emoji tiles, or a pixel art sprite sheet?
-- [ ] Should dialog choices affect the ending, or just unlock quests/party members?
+- [x] **Chapter progression**: Linear — talk to the right NPC to advance (decided: no quest-completion gating)
+- [x] **Battle party size**: All recruited members fight, max 4 (decided)
+- [x] **Permadeath vs. retry**: Retry-from-inn system — defeat returns to SplashScene; inn rest restores full HP/MP (decided)
+- [ ] **Tile visual style**: Colored rectangles + emoji icons (current); sprite art deferred to Phase 4
+- [x] **Dialog choices**: Affect quest unlocks, party recruitment, and story flags; ending variations planned for Chapter 4
 
 ---
 
@@ -276,3 +272,12 @@ All sounds are procedural Web Audio API — no file assets.
 - quests.js: 8 quests across 4 chapters
 - dialog.js: Elder Varec, Farmer Holt, Borin, Blacksmith, Innkeeper, Sylvara, Scholar Aneth
 - maps.js: thornhaven (village), thornwood (forest), map_ruins (Aethermoor ruins)
+
+### Phase 2 — Content & Systems (2026-06-27)
+- state.js: per-character HP/MP maps (_partyHp/_partyMp); getMaxHp/Mp (level-scaled), getScaledStat, restorePartyFull, _applyLevelUpStats
+- BattleScene: reads persisted HP/MP + scaled stats on entry; writes back on exit; item menu phase (heal/MP/revive); poison + stun status effects applied from abilities and shown as icons; lifesteal and MP drain effects for enemy abilities; enemy attacks use correct sound (magic vs physical)
+- DialogScene: inn rest calls state.restorePartyFull(); "not enough gold" fallback message
+- dialog.js: added orin, sera, thane NPC defs; orin_recruit, sera_recruit, thane_recruit dialog trees with branching join/refuse choices
+- maps.js: Orin placed in Thornhaven (Ch2+, tx:9 ty:6), Sera in Thornwood (Ch2+, tx:3 ty:8), Thane in Ruins (Ch3+, tx:5 ty:10)
+- MapScene: recruited party members no longer appear as NPCs on map; _showBlockedMessage() displays chapter requirement tooltip on gated exits
+- MenuScene: Party tab shows live HP/MP from state with color-coded bars and level-scaled ATK/DEF/SPD values

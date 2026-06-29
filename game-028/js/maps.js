@@ -63,6 +63,7 @@ export const MAP_DEFS = {
             { id: 'farmer_holt', treeId: 'farmer_holt_ch1', tx: 13, ty: 3 },
             { id: 'blacksmith',  treeId: 'blacksmith_shop',  tx: 16, ty: 8 },
             { id: 'innkeeper',   treeId: 'innkeeper_rest',   tx: 4,  ty: 8 },
+            { id: 'orin',        treeId: 'orin_recruit',     tx: 9,  ty: 6, condition: 'chapter_2' },
         ],
         exits: [
             { tx: 6, ty: 13, toMap: 'thornwood', toTx: 10, toTy: 2,  label: 'Thornwood Forest' },
@@ -102,6 +103,7 @@ export const MAP_DEFS = {
         npcs: [
             { id: 'npc_dryad', treeId: 'npc_dryad_ch2', tx: 9, ty: 13, condition: 'chapter_2' },
             { id: 'borin',     treeId: 'borin_found',    tx: 9, ty: 5,  condition: 'quest_active_the_missing_merchant' },
+            { id: 'sera',      treeId: 'sera_recruit',   tx: 3, ty: 8,  condition: 'chapter_2' },
         ],
         exits: [
             { tx: 9, ty: 2,  toMap: 'thornhaven', toTx: 6,  toTy: 12, label: 'Back to Thornhaven' },
@@ -143,6 +145,7 @@ export const MAP_DEFS = {
         ],
         npcs: [
             { id: 'npc_scholar', treeId: 'npc_scholar_ch3', tx: 10, ty: 10, condition: 'chapter_3' },
+            { id: 'thane',       treeId: 'thane_recruit',   tx: 5,  ty: 10, condition: 'chapter_3' },
         ],
         exits: [
             { tx: 10, ty: 2, toMap: 'thornwood', toTx: 9, toTy: 17, label: 'Back to Thornwood' },

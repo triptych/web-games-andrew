@@ -15,7 +15,7 @@ import { state }  from './state.js';
 import { events } from './events.js';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 import { PARTY_DEFS, ENEMY_DEFS } from './characters.js';
-import { rollLoot } from './items.js';
+import { rollLoot, getItem, ITEM_DEFS } from './items.js';
 import {
     playSwordSwing, playMagicCast, playHeal, playHit,
     playDeath, playVictory, playGameOver, playUiClick,
@@ -26,9 +26,10 @@ function hex(arr) { return '#' + arr.map(v => v.toString(16).padStart(2, '0')).j
 // Battle state (local, not in global state)
 let _combatants = [];   // { ...def, currentHp, currentMp, isEnemy, statusEffects[] }
 let _turnIdx    = 0;
-let _phase      = 'select';  // 'select' | 'ability' | 'target' | 'execute' | 'end'
+let _phase      = 'select';  // 'select' | 'ability' | 'target' | 'item' | 'execute' | 'end'
 let _selectedAbilityIdx = 0;
 let _selectedTargetIdx  = 0;
+let _itemTargetIdx      = 0;
 let _callerScene = 'MapScene';
 
 export class BattleScene extends Phaser.Scene {
@@ -52,14 +53,19 @@ export class BattleScene extends Phaser.Scene {
     _buildCombatants() {
         _combatants = [];
 
-        // Party
+        // Party — use persisted HP/MP and level-scaled stats from state
         for (const id of state.party) {
             const def = PARTY_DEFS[id];
             if (!def) continue;
             _combatants.push({
                 ...def,
-                currentHp: def.maxHp,
-                currentMp: def.maxMp,
+                maxHp: state.getMaxHp(id),
+                maxMp: state.getMaxMp(id),
+                atk:   state.getScaledStat(id, 'atk'),
+                def:   state.getScaledStat(id, 'def'),
+                spd:   state.getScaledStat(id, 'spd'),
+                currentHp: Math.min(state.getHp(id), state.getMaxHp(id)),
+                currentMp: Math.min(state.getMp(id), state.getMaxMp(id)),
                 isEnemy: false,
                 statusEffects: [],
             });
@@ -76,6 +82,13 @@ export class BattleScene extends Phaser.Scene {
                 isEnemy: true,
                 statusEffects: [],
             });
+        }
+    }
+
+    _persistPartyHp() {
+        for (const c of _combatants.filter(c => !c.isEnemy)) {
+            state.setHp(c.id, c.currentHp);
+            state.setMp(c.id, c.currentMp);
         }
     }
 
@@ -122,6 +135,12 @@ export class BattleScene extends Phaser.Scene {
                 fontSize: '14px', color: '#ff8080', fontFamily: 'monospace',
             }).setOrigin(0.5).setAlpha(alive ? 1 : 0.3));
 
+            // Status effect icons
+            const eStatIcons = (e.statusEffects || []).map(s => s.type === 'poison' ? '☠' : s.type === 'stun' ? '💫' : '').join('');
+            if (eStatIcons) {
+                this._uiContainer.add(this.add.text(x + 40, y - 60, eStatIcons, { fontSize: '14px' }).setOrigin(0, 0.5));
+            }
+
             // HP bar
             this._drawBar(x - 60, y + 10, 120, 10, e.currentHp, e.maxHp, 0xff4040, 0x200000);
 
@@ -155,6 +174,14 @@ export class BattleScene extends Phaser.Scene {
                     .setStrokeStyle(2, 0xa07cff));
             }
 
+            // Status effect icons
+            const pStatIcons = (p.statusEffects || []).map(s => s.type === 'poison' ? '☠' : s.type === 'stun' ? '💫' : '').join('');
+            if (pStatIcons) {
+                this._uiContainer.add(this.add.text(x - 20, y + 44, pStatIcons, {
+                    fontSize: '13px', fontFamily: 'monospace',
+                }));
+            }
+
             // HP / MP bars
             this._drawBar(x - 20, y + 20, 160, 8, p.currentHp, p.maxHp, 0x40cc40, 0x102010);
             this._uiContainer.add(this.add.text(x - 20, y + 14, 'HP', {
@@ -176,7 +203,7 @@ export class BattleScene extends Phaser.Scene {
     }
 
     _drawActionMenu() {
-        if (_phase !== 'select' && _phase !== 'ability' && _phase !== 'target') return;
+        if (_phase !== 'select' && _phase !== 'ability' && _phase !== 'target' && _phase !== 'item') return;
 
         const actor = _combatants[_turnIdx];
         if (!actor || actor.isEnemy) return;
@@ -231,6 +258,26 @@ export class BattleScene extends Phaser.Scene {
                         fontFamily: 'monospace',
                     }));
             });
+
+        } else if (_phase === 'item') {
+            const usable = state.inventory.filter(i => getItem(i.id)?.usable);
+            if (usable.length === 0) {
+                this._uiContainer.add(this.add.text(menuX + 24, menuY + 40, '  No usable items.', {
+                    fontSize: '14px', color: '#666666', fontFamily: 'monospace',
+                }));
+            } else {
+                usable.slice(0, 4).forEach((entry, i) => {
+                    const def = getItem(entry.id);
+                    const y   = menuY + 34 + i * 34;
+                    const sel = i === _itemTargetIdx;
+                    this._uiContainer.add(this.add.text(menuX + 24, y,
+                        (sel ? '> ' : '  ') + def.name + ` x${entry.qty}`, {
+                            fontSize: '14px',
+                            color: sel ? hex(COLORS.gold) : hex(COLORS.text),
+                            fontFamily: 'monospace',
+                        }));
+                });
+            }
         }
     }
 
@@ -252,12 +299,34 @@ export class BattleScene extends Phaser.Scene {
             _turnIdx = (_turnIdx + 1) % _combatants.length;
         }
 
-        // Process status effects (TODO: poison, etc.)
-
         const actor = _combatants[_turnIdx];
         if (!actor) return;
 
-        this._log = `${actor.name}'s turn.`;
+        // Process status effects
+        let skipTurn = false;
+        let statusMessage = null;
+        actor.statusEffects = (actor.statusEffects || []).map(se => {
+            if (se.type === 'poison') {
+                const dmg = Math.max(1, Math.floor(actor.maxHp * 0.06));
+                actor.currentHp = Math.max(0, actor.currentHp - dmg);
+                statusMessage = `${actor.name} takes ${dmg} poison damage!`;
+                playHit();
+                return { ...se, turns: se.turns - 1 };
+            }
+            if (se.type === 'stun') {
+                skipTurn = true;
+                statusMessage = `${actor.name} is stunned and cannot act!`;
+                return { ...se, turns: se.turns - 1 };
+            }
+            return { ...se, turns: se.turns - 1 };
+        }).filter(se => se.turns > 0);
+
+        this._log = statusMessage || `${actor.name}'s turn.`;
+        this._refresh();
+        if (skipTurn) {
+            this.time.delayedCall(800, () => this._nextTurn());
+            return;
+        }
 
         if (actor.isEnemy) {
             // AI takes action after short delay
@@ -278,14 +347,18 @@ export class BattleScene extends Phaser.Scene {
     _onKey(key) {
         const actor   = _combatants[_turnIdx];
         const enemies = _combatants.filter(c => c.isEnemy && c.currentHp > 0);
+        const usableItems = state.inventory.filter(i => getItem(i.id)?.usable);
 
         if (key === 'ArrowUp' || key === 'w' || key === 'W') {
-            _selectedAbilityIdx = Math.max(0, _selectedAbilityIdx - 1);
+            if (_phase === 'target') _selectedTargetIdx = Math.max(0, _selectedTargetIdx - 1);
+            else if (_phase === 'item') _itemTargetIdx = Math.max(0, _itemTargetIdx - 1);
+            else _selectedAbilityIdx = Math.max(0, _selectedAbilityIdx - 1);
             playUiClick();
         } else if (key === 'ArrowDown' || key === 's' || key === 'S') {
             if (_phase === 'select')  _selectedAbilityIdx = Math.min(3, _selectedAbilityIdx + 1);
             if (_phase === 'ability') _selectedAbilityIdx = Math.min(actor.abilities.length - 1, _selectedAbilityIdx + 1);
             if (_phase === 'target')  _selectedTargetIdx  = Math.min(enemies.length - 1, _selectedTargetIdx + 1);
+            if (_phase === 'item')    _itemTargetIdx      = Math.min(Math.max(0, usableItems.length - 1), _itemTargetIdx + 1);
             playUiClick();
         } else if (key === 'Enter' || key === ' ') {
             this._confirm(actor, enemies);
@@ -306,8 +379,8 @@ export class BattleScene extends Phaser.Scene {
                 _phase = 'ability';
                 _selectedAbilityIdx = 0;
             } else if (_selectedAbilityIdx === 2) {
-                // Item (TODO Phase 2)
-                this._log = 'Inventory not yet implemented.';
+                _phase = 'item';
+                _itemTargetIdx = 0;
             } else if (_selectedAbilityIdx === 3) {
                 // Flee
                 if (Math.random() < 0.5) {
@@ -334,7 +407,51 @@ export class BattleScene extends Phaser.Scene {
             const ab  = this._selectedAbility;
             const tgt = enemies[_selectedTargetIdx];
             this._executePlayerAction(actor, ab, tgt);
+
+        } else if (_phase === 'item') {
+            const usable = state.inventory.filter(i => getItem(i.id)?.usable);
+            const entry  = usable[_itemTargetIdx];
+            if (!entry) return;
+            this._useItemInBattle(actor, entry);
         }
+    }
+
+    _useItemInBattle(actor, entry) {
+        const def = getItem(entry.id);
+        if (!def) return;
+        _phase = 'execute';
+        this.input.keyboard.off('keydown');
+
+        const party = _combatants.filter(c => !c.isEnemy && c.currentHp > 0);
+        const fallen = _combatants.filter(c => !c.isEnemy && c.currentHp <= 0);
+
+        if (def.effect.heal) {
+            const tgt = party.sort((a, b) => (a.currentHp / a.maxHp) - (b.currentHp / b.maxHp))[0];
+            if (!tgt) { this._log = 'No injured allies.'; _phase = 'select'; this._setupBattleInput(); this._refresh(); return; }
+            const amt = def.effect.heal;
+            tgt.currentHp = Math.min(tgt.maxHp, tgt.currentHp + amt);
+            playHeal();
+            this._log = `${actor.name} used ${def.name}! ${tgt.name} recovered ${amt} HP.`;
+        } else if (def.effect.mpRestore) {
+            const tgt = party.sort((a, b) => (a.currentMp / a.maxMp) - (b.currentMp / b.maxMp))[0];
+            if (!tgt) { this._log = 'No allies need MP.'; _phase = 'select'; this._setupBattleInput(); this._refresh(); return; }
+            const amt = def.effect.mpRestore;
+            tgt.currentMp = Math.min(tgt.maxMp, tgt.currentMp + amt);
+            playHeal();
+            this._log = `${actor.name} used ${def.name}! ${tgt.name} recovered ${amt} MP.`;
+        } else if (def.effect.revive) {
+            const tgt = fallen[0];
+            if (!tgt) { this._log = 'No fallen allies.'; _phase = 'select'; this._setupBattleInput(); this._refresh(); return; }
+            tgt.currentHp = 1;
+            playHeal();
+            this._log = `${actor.name} used ${def.name}! ${tgt.name} is revived!`;
+        } else {
+            this._log = `Used ${def.name}.`;
+        }
+
+        state.removeItem(entry.id, 1);
+        this._refresh();
+        this.time.delayedCall(900, () => this._nextTurn());
     }
 
     _executePlayerAction(actor, ability, target) {
@@ -368,6 +485,25 @@ export class BattleScene extends Phaser.Scene {
             target.currentHp = Math.max(0, target.currentHp - dmg);
             playHit();
             this._log = `${actor.name} uses ${ability.name} on ${target.name} for ${dmg} damage!`;
+
+            // Apply status effects
+            if (ability.effect === 'poison' && Math.random() < 0.6) {
+                target.statusEffects = target.statusEffects || [];
+                if (!target.statusEffects.find(s => s.type === 'poison')) {
+                    target.statusEffects.push({ type: 'poison', turns: 3 });
+                    this._log += ' Poisoned!';
+                }
+            } else if (ability.effect === 'stun' && Math.random() < 0.4) {
+                target.statusEffects = target.statusEffects || [];
+                if (!target.statusEffects.find(s => s.type === 'stun')) {
+                    target.statusEffects.push({ type: 'stun', turns: 1 });
+                    this._log += ' Stunned!';
+                }
+            } else if (ability.effect === 'lifesteal' && dmg > 0) {
+                const heal = Math.floor(dmg / 2);
+                actor.currentHp = Math.min(actor.maxHp, actor.currentHp + heal);
+                this._log += ` ${actor.name} healed ${heal} HP.`;
+            }
         }
 
         this._refresh();
@@ -382,12 +518,31 @@ export class BattleScene extends Phaser.Scene {
 
         const target = targets[Math.floor(Math.random() * targets.length)];
 
-        playSwordSwing();
+        if (ability.type === 'magic') playMagicCast(); else playSwordSwing();
         const dmg = this._calcDamage(enemy, target, ability);
         target.currentHp = Math.max(0, target.currentHp - dmg);
         playHit();
 
         this._log = `${enemy.name} uses ${ability.name} on ${target.name} for ${dmg} damage!`;
+
+        if (ability.effect === 'poison' && Math.random() < 0.5) {
+            target.statusEffects = target.statusEffects || [];
+            if (!target.statusEffects.find(s => s.type === 'poison')) {
+                target.statusEffects.push({ type: 'poison', turns: 3 });
+                this._log += ' Poisoned!';
+            }
+        } else if (ability.effect === 'stun' && Math.random() < 0.3) {
+            target.statusEffects = target.statusEffects || [];
+            if (!target.statusEffects.find(s => s.type === 'stun')) {
+                target.statusEffects.push({ type: 'stun', turns: 1 });
+                this._log += ' Stunned!';
+            }
+        } else if (ability.effect === 'mp_drain' && dmg > 0) {
+            const mpDrain = Math.min(target.currentMp, Math.floor(dmg / 2));
+            target.currentMp = Math.max(0, target.currentMp - mpDrain);
+            if (mpDrain > 0) this._log += ` -${mpDrain} MP!`;
+        }
+
         this._refresh();
 
         this.time.delayedCall(800, () => this._nextTurn());
@@ -421,6 +576,7 @@ export class BattleScene extends Phaser.Scene {
     _endBattle(won, fled = false) {
         _phase = 'end';
         this.input.keyboard.off('keydown');
+        this._persistPartyHp();
 
         let result;
         if (won) {

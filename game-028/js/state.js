@@ -5,6 +5,7 @@ import {
     STARTING_GOLD, STARTING_LEVEL, STARTING_XP, XP_PER_LEVEL,
     STARTING_PARTY,
 } from './config.js';
+import { PARTY_DEFS } from './characters.js';
 
 /**
  * Global game state.
@@ -32,6 +33,14 @@ class GameState {
         // Party & inventory
         this._party     = [...STARTING_PARTY];   // array of character ids in active party
         this._inventory = [];                     // array of item objects { id, qty, ... }
+
+        // Per-character HP/MP — keyed by character id, initialized on first add
+        this._partyHp = {};
+        this._partyMp = {};
+        for (const id of this._party) {
+            const def = PARTY_DEFS[id];
+            if (def) { this._partyHp[id] = def.maxHp; this._partyMp[id] = def.maxMp; }
+        }
 
         // Quests
         this._quests = {
@@ -84,8 +93,42 @@ class GameState {
         while (this._xp >= XP_PER_LEVEL * this._level) {
             this._xp -= XP_PER_LEVEL * this._level;
             this._level++;
+            this._applyLevelUpStats();
             events.emit('levelUp', this._level);
         }
+    }
+
+    _applyLevelUpStats() {
+        for (const id of this._party) {
+            const def = PARTY_DEFS[id];
+            if (!def) continue;
+            const newMaxHp = def.maxHp + (this._level - 1) * Math.round(def.maxHp * 0.08);
+            const newMaxMp = def.maxMp + (this._level - 1) * Math.round(def.maxMp * 0.06);
+            // Heal the gained portion so party doesn't lose % health on level-up
+            const gainedHp = newMaxHp - (def.maxHp + (this._level - 2) * Math.round(def.maxHp * 0.08));
+            this._partyHp[id] = Math.min(newMaxHp, (this._partyHp[id] ?? newMaxHp) + gainedHp);
+            this._partyMp[id] = Math.min(newMaxMp, (this._partyMp[id] ?? newMaxMp));
+        }
+    }
+
+    /** Returns effective max HP/MP for a character at current level. */
+    getMaxHp(id) {
+        const def = PARTY_DEFS[id];
+        if (!def) return 0;
+        return def.maxHp + (this._level - 1) * Math.round(def.maxHp * 0.08);
+    }
+
+    getMaxMp(id) {
+        const def = PARTY_DEFS[id];
+        if (!def) return 0;
+        return def.maxMp + (this._level - 1) * Math.round(def.maxMp * 0.06);
+    }
+
+    /** Returns effective ATK/DEF/SPD at current level (5% per level). */
+    getScaledStat(id, stat) {
+        const def = PARTY_DEFS[id];
+        if (!def) return 0;
+        return Math.round(def[stat] * (1 + (this._level - 1) * 0.05));
     }
 
     // --- Chapter / story flags ---
@@ -97,8 +140,48 @@ class GameState {
 
     // --- Party ---
     get party() { return this._party; }
-    addToParty(id)      { if (!this._party.includes(id)) { this._party.push(id); events.emit('partyChanged', this._party); } }
+
+    addToParty(id) {
+        if (!this._party.includes(id)) {
+            this._party.push(id);
+            const def = PARTY_DEFS[id];
+            if (def && this._partyHp[id] === undefined) {
+                this._partyHp[id] = def.maxHp;
+                this._partyMp[id] = def.maxMp;
+            }
+            events.emit('partyChanged', this._party);
+        }
+    }
+
     removeFromParty(id) { this._party = this._party.filter(x => x !== id); events.emit('partyChanged', this._party); }
+
+    // Per-character HP/MP accessors
+    getHp(id) { return this._partyHp[id] ?? (PARTY_DEFS[id]?.maxHp ?? 0); }
+    getMp(id) { return this._partyMp[id] ?? (PARTY_DEFS[id]?.maxMp ?? 0); }
+    setHp(id, val) { this._partyHp[id] = Math.max(0, val); }
+    setMp(id, val) { this._partyMp[id] = Math.max(0, val); }
+
+    healMember(id, amount) {
+        if (!PARTY_DEFS[id]) return;
+        const max = this.getMaxHp(id);
+        this._partyHp[id] = Math.min(max, (this._partyHp[id] ?? max) + amount);
+    }
+
+    restoreMpMember(id, amount) {
+        if (!PARTY_DEFS[id]) return;
+        const max = this.getMaxMp(id);
+        this._partyMp[id] = Math.min(max, (this._partyMp[id] ?? max) + amount);
+    }
+
+    restorePartyFull() {
+        for (const id of this._party) {
+            if (PARTY_DEFS[id]) {
+                this._partyHp[id] = this.getMaxHp(id);
+                this._partyMp[id] = this.getMaxMp(id);
+            }
+        }
+        events.emit('partyRestored');
+    }
 
     // --- Inventory ---
     get inventory() { return this._inventory; }

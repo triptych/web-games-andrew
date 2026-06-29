@@ -256,8 +256,11 @@ export class DialogScene extends Phaser.Scene {
             case 'rest':
                 if (state.gold >= action.payload.cost) {
                     state.spendGold(action.payload.cost);
-                    // Restore party HP/MP (simplified — full restore for now)
-                    events.emit('restoreParty');
+                    state.restorePartyFull();
+                } else {
+                    this._currentText = "You don't have enough gold for a room.";
+                    this._charIdx = this._currentText.length;
+                    this._dialogText.setText(this._currentText);
                 }
                 break;
         }

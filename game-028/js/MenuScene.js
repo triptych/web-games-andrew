@@ -112,17 +112,31 @@ export class MenuScene extends Phaser.Scene {
                 fontSize: '18px', color: def.color || hex(COLORS.accent), fontFamily: 'Georgia, serif', fontStyle: 'bold',
             }).setDepth(4));
 
-            // Stats
+            // Live HP/MP + scaled stats
+            const curHp  = state.getHp(id);
+            const curMp  = state.getMp(id);
+            const maxHp  = state.getMaxHp(id);
+            const maxMp  = state.getMaxMp(id);
+            const sAtk   = state.getScaledStat(id, 'atk');
+            const sDef   = state.getScaledStat(id, 'def');
+            const sSpd   = state.getScaledStat(id, 'spd');
+
+            const hpColor = curHp < maxHp * 0.3 ? '#ff5050' : curHp < maxHp * 0.6 ? '#ffcc44' : '#80ff80';
             const stats = [
-                `HP:  ${def.maxHp} / ${def.maxHp}`,
-                `MP:  ${def.maxMp} / ${def.maxMp}`,
-                `ATK: ${def.atk}   DEF: ${def.def}   SPD: ${def.spd}`,
+                { label: `HP:  ${curHp} / ${maxHp}`,             color: hpColor },
+                { label: `MP:  ${curMp} / ${maxMp}`,             color: '#8888ff' },
+                { label: `ATK: ${sAtk}   DEF: ${sDef}   SPD: ${sSpd}`, color: hex(COLORS.text) },
             ];
             stats.forEach((s, si) => {
-                this._container.add(this.add.text(px + 80, py + 50 + si * 22, s, {
-                    fontSize: '13px', color: hex(COLORS.text), fontFamily: 'monospace',
+                this._container.add(this.add.text(px + 80, py + 50 + si * 22, s.label, {
+                    fontSize: '13px', color: s.color, fontFamily: 'monospace',
                 }).setDepth(4));
             });
+
+            // HP/MP bars
+            const barW = 280;
+            this._drawBar(px + 80, py + 48, barW, 6, curHp, maxHp, 0x40cc40, 0x102010);
+            this._drawBar(px + 80, py + 70, barW, 6, curMp, maxMp, 0x4080ff, 0x101030);
 
             // Abilities
             this._container.add(this.add.text(px + 80, py + 122, `Abilities: ${def.abilities.map(a => a.name).join(', ')}`, {
@@ -130,6 +144,14 @@ export class MenuScene extends Phaser.Scene {
                 wordWrap: { width: 380 },
             }).setDepth(4));
         });
+    }
+
+    _drawBar(x, y, w, h, val, max, fillColor, bgColor) {
+        const ratio = Math.max(0, Math.min(1, val / max));
+        this._container.add(this.add.rectangle(x + w / 2, y, w, h, bgColor).setOrigin(0.5).setDepth(4));
+        if (ratio > 0) {
+            this._container.add(this.add.rectangle(x + (w * ratio) / 2, y, w * ratio, h, fillColor).setOrigin(0.5).setDepth(4));
+        }
     }
 
     _drawItems(y) {

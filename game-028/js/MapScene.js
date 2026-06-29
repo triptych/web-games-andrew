@@ -101,8 +101,11 @@ export class MapScene extends Phaser.Scene {
 
     _buildNPCs() {
         if (!this._map.npcs) return;
+        const partyIds = new Set(['orin', 'sera', 'thane']);
         for (const npc of this._map.npcs) {
             if (npc.condition && !this._checkCondition(npc.condition)) continue;
+            // Skip recruitment NPCs if the character has already joined
+            if (partyIds.has(npc.id) && state.party.includes(npc.id)) continue;
             const def = getNPC(npc.id);
             const x   = npc.tx * TILE_SIZE + TILE_SIZE / 2;
             const y   = npc.ty * TILE_SIZE + TILE_SIZE / 2;
@@ -246,13 +249,28 @@ export class MapScene extends Phaser.Scene {
         for (const exit of this._map.exits) {
             if (exit.tx === tx && exit.ty === ty) {
                 if (exit.condition && !this._checkCondition(exit.condition)) {
-                    // TODO: show "You cannot go this way yet" message
+                    this._showBlockedMessage(exit);
                     return;
                 }
                 this.scene.start('MapScene', { mapId: exit.toMap, tx: exit.toTx, ty: exit.toTy });
                 return;
             }
         }
+    }
+
+    _showBlockedMessage(exit) {
+        if (this._blockedLabel) { this._blockedLabel.destroy(); this._blockedLabel = null; }
+        const hint = exit.condition?.startsWith('chapter_')
+            ? `Reach Chapter ${exit.condition.split('_')[1]} to proceed.`
+            : 'You cannot go this way yet.';
+        this._blockedLabel = this.add.text(
+            this._player.x, this._player.y - 36, hint,
+            { fontSize: '13px', color: '#ffcc44', fontFamily: 'monospace',
+              backgroundColor: '#000000aa', padding: { x: 6, y: 3 } }
+        ).setOrigin(0.5).setDepth(200);
+        this.time.delayedCall(2000, () => {
+            if (this._blockedLabel) { this._blockedLabel.destroy(); this._blockedLabel = null; }
+        });
     }
 
     _checkEvents(tx, ty) {

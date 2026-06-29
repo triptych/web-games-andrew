@@ -12,6 +12,21 @@
  */
 
 export const NPC_DEFS = {
+    orin: {
+        id: 'orin', name: 'Orin', portrait: '🛡️', color: '#64c8ff',
+        title: 'Iron Vanguard',
+        bio: 'A disgraced knight who carries an oath-debt to protect the innocent.',
+    },
+    sera: {
+        id: 'sera', name: 'Sera', portrait: '🏹', color: '#64dc8c',
+        title: 'Thornwood Ranger',
+        bio: 'An elf ranger who knows the Thornwood better than anyone.',
+    },
+    thane: {
+        id: 'thane', name: 'Thane', portrait: '💀', color: '#ff8050',
+        title: 'Soulbrand Warlock',
+        bio: 'A former imperial warlock seeking redemption in the ruins.',
+    },
     elder_varec: {
         id: 'elder_varec', name: 'Elder Varec', portrait: '🧓', color: '#c8a060',
         title: 'Village Elder',
@@ -186,6 +201,86 @@ export const DIALOG_TREES = {
             accept: {
                 speaker: 'Scholar Aneth',
                 text: 'Then go. I will stay here and keep the entry clear for your return. Do not die — I am not much of a fighter.',
+                next: 'end',
+            },
+        },
+    },
+
+    orin_recruit: {
+        start: 'greet',
+        nodes: {
+            greet: {
+                speaker: 'Orin',
+                text: 'You there. Are you heading into the Thornwood? The bandits have been bold lately — someone with a sword arm would be useful to you.',
+                choices: [
+                    { label: 'Join us, then. We could use you.', next: 'join', action: { type: 'joinParty', payload: 'orin' } },
+                    { label: 'We can handle ourselves.', next: 'refuse' },
+                ],
+            },
+            join: {
+                speaker: 'Orin',
+                text: 'Hah. I had hoped you would say that. My oath demands I protect those who cannot protect themselves — and right now, that means stopping whatever stirs in those ruins. Let us go.',
+                next: 'end',
+            },
+            refuse: {
+                speaker: 'Orin',
+                text: 'As you wish. If you change your mind, I will be here. The darkness ahead is not something to face alone.',
+                next: 'end',
+            },
+        },
+    },
+
+    sera_recruit: {
+        start: 'greet',
+        nodes: {
+            greet: {
+                speaker: 'Sera',
+                text: 'Careful — the wolf pack has moved east again. I\'ve been tracking them for a week. You look like you\'re heading deeper into the wood. Mind if I guide you?',
+                choices: [
+                    { label: 'Please — we need someone who knows this forest.', next: 'join', action: { type: 'joinParty', payload: 'sera' } },
+                    { label: 'We have a map. We will manage.', next: 'refuse' },
+                ],
+            },
+            join: {
+                speaker: 'Sera',
+                text: 'Good. My people cast me out for walking with humans — so I may as well walk with humans worth following. Stay behind me and keep quiet when I raise my hand.',
+                next: 'end',
+            },
+            refuse: {
+                speaker: 'Sera',
+                text: 'Brave or foolish — hard to tell the difference in the Thornwood. Find me if you reconsider.',
+                next: 'end',
+            },
+        },
+    },
+
+    thane_recruit: {
+        start: 'greet',
+        nodes: {
+            greet: {
+                speaker: 'Thane',
+                text: 'You are here for the Lich. I can feel its resonance from here — it woke when you broke those shards. Do not look at me like that. I am not your enemy.',
+                choices: [
+                    { label: 'Then help us. We need every edge we can get.', next: 'join', action: { type: 'joinParty', payload: 'thane' } },
+                    { label: 'How do we know we can trust you?', next: 'trust' },
+                ],
+            },
+            trust: {
+                speaker: 'Thane',
+                text: 'You cannot — not entirely. I was bound to a demon once. I broke that bond. The darkness still clings, but I direct it. What I am offering is my power against a greater darkness. That is all.',
+                choices: [
+                    { label: 'Good enough. Come with us.', next: 'join', action: { type: 'joinParty', payload: 'thane' } },
+                    { label: 'We will face the Lich without you.', next: 'refuse' },
+                ],
+            },
+            join: {
+                speaker: 'Thane',
+                text: 'Then let us end this. I have waited long enough for a chance at redemption.',
+                next: 'end',
+            },
+            refuse: {
+                speaker: 'Thane',
+                text: 'Admirable stubbornness. I will be here if the Lich proves more than you bargained for.',
                 next: 'end',
             },
         },
