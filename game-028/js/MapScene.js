@@ -73,6 +73,22 @@ export class MapScene extends Phaser.Scene {
             backgroundColor: '#00000080',
             padding: { x: 6, y: 3 },
         }).setScrollFactor(0).setDepth(100);
+
+        // Hotkey legend (bottom-left, fixed to camera)
+        const hotkeys = [
+            'Arrow/WASD  Move',
+            'Space/Enter  Interact',
+            'M           Menu',
+            '  Party / Items / Quests / Map',
+        ].join('\n');
+        this.add.text(10, GAME_HEIGHT - 10, hotkeys, {
+            fontSize: '11px',
+            color: '#8888aa',
+            fontFamily: 'monospace',
+            backgroundColor: '#00000070',
+            padding: { x: 6, y: 4 },
+            lineSpacing: 3,
+        }).setOrigin(0, 1).setScrollFactor(0).setDepth(100);
     }
 
     _buildMap() {
