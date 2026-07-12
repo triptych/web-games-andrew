@@ -1,0 +1,209 @@
+/**
+ * ui.js — DOM HUD bindings, loot comparison modal, and shop modal.
+ * The HUD lives in index.html as fixed DOM elements; this module hooks up
+ * event listeners, shows/hides overlays, and renders the modal(s) into
+ * #modal-root.
+ */
+
+import { state }  from './state.js';
+import { events } from './events.js';
+import { WEAPON_ATTRS, ARMOR_ATTRS } from './config.js';
+import { playUiClick } from './sounds.js';
+
+let $hp, $distance, $coins, $message, $modalRoot;
+
+export function initUI() {
+    $hp        = document.getElementById('hp-val');
+    $distance  = document.getElementById('score-val');
+    $coins     = document.getElementById('lives-val');
+    $message   = document.getElementById('message');
+    $modalRoot = document.getElementById('modal-root');
+
+    _render();
+
+    events.on('hpChanged',       _render);
+    events.on('coinsChanged',    _render);
+    events.on('distanceChanged', _render);
+    events.on('gameOver',        _showGameOver);
+}
+
+function _render() {
+    if ($hp)       $hp.textContent = `${state.hp} / ${state.maxHp}`;
+    if ($distance) $distance.textContent = `${Math.floor(state.distance)}m`;
+    if ($coins)    $coins.textContent = String(state.coins);
+}
+
+export function hideSplash() {
+    if ($message) $message.classList.add('hidden');
+}
+
+function _showGameOver() {
+    if (!$message) return;
+    $message.innerHTML = `
+        <h1 style="color:#ff5050">YOU DIED</h1>
+        <p>Distance walked: ${Math.floor(state.distance)}m — Coins: ${state.coins}</p>
+        <p style="opacity:0.6">Press R to restart</p>
+    `;
+    $message.classList.remove('hidden');
+}
+
+// ============================================================
+// Loot comparison modal
+// ============================================================
+//
+// An "item" is a plain object, e.g.:
+//   { name: 'Iron Sword', slot: 'weapon', rarity: 'common',
+//     damage: 5, attackSpeed: 1.0, critChance: 0.05 }
+//
+// TODO(loot.js / monsters.js): generate items with this shape and call
+//   showLootComparison(item) whenever a monster drops gear.
+
+const ATTR_LABELS = {
+    damage:      'Damage',
+    attackSpeed: 'Attack Speed',
+    critChance:  'Crit Chance',
+    defense:     'Defense',
+    maxHp:       'Max HP',
+    moveSpeed:   'Move Speed',
+};
+
+function _attrsForSlot(slot) {
+    if (slot === 'weapon') return WEAPON_ATTRS;
+    if (slot === 'armor')  return ARMOR_ATTRS;
+    return [];
+}
+
+/**
+ * Show the equip-vs-new comparison panel. Resolves 'equip' or 'sell'
+ * depending on the player's choice. Sale coin value is left to the caller
+ * (loot.js should decide pricing based on rarity — see config.RARITY).
+ */
+export function showLootComparison(newItem, saleValue = 0) {
+    return new Promise((resolve) => {
+        const slot     = newItem.slot;
+        const equipped = state.equipped[slot];
+        const attrs    = _attrsForSlot(slot);
+
+        $modalRoot.innerHTML = `
+            <div class="loot-compare-backdrop">
+                <div class="loot-compare-panel">
+                    <h2>New ${slot} found!</h2>
+                    <div class="loot-compare-columns">
+                        ${_renderItemColumn('Equipped', equipped, attrs)}
+                        ${_renderItemColumn('New', newItem, attrs, equipped)}
+                    </div>
+                    <div class="loot-compare-actions">
+                        <button id="btn-equip">Equip</button>
+                        <button id="btn-sell">Sell for ${saleValue} coins</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        _injectStylesOnce();
+        $modalRoot.classList.add('active');
+
+        const cleanup = (choice) => {
+            $modalRoot.classList.remove('active');
+            $modalRoot.innerHTML = '';
+            resolve(choice);
+        };
+
+        document.getElementById('btn-equip').onclick = () => { playUiClick(); cleanup('equip'); };
+        document.getElementById('btn-sell').onclick  = () => { playUiClick(); cleanup('sell'); };
+    });
+}
+
+function _renderItemColumn(label, item, attrs, compareAgainst = null) {
+    if (!item) {
+        return `<div class="loot-compare-col"><h3>${label}</h3><p class="empty">— none —</p></div>`;
+    }
+    const rows = attrs.map((key) => {
+        const val = item[key] ?? 0;
+        let arrow = '';
+        if (compareAgainst) {
+            const base = compareAgainst[key] ?? 0;
+            if (val > base) arrow = '<span class="arrow up">&#9650;</span>';
+            else if (val < base) arrow = '<span class="arrow down">&#9660;</span>';
+        }
+        return `<div class="attr-row"><span>${ATTR_LABELS[key] ?? key}</span><span>${val} ${arrow}</span></div>`;
+    }).join('');
+    return `
+        <div class="loot-compare-col">
+            <h3>${label}</h3>
+            <p class="item-name rarity-${item.rarity ?? 'common'}">${item.name}</p>
+            ${rows}
+        </div>
+    `;
+}
+
+let _stylesInjected = false;
+function _injectStylesOnce() {
+    if (_stylesInjected) return;
+    _stylesInjected = true;
+    const style = document.createElement('style');
+    style.textContent = `
+        .loot-compare-backdrop {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.65);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .loot-compare-panel {
+            background: #14141f; border: 1px solid #383858;
+            border-radius: 8px; padding: 24px 32px; min-width: 420px;
+            color: #dcdcf0;
+        }
+        .loot-compare-panel h2 { margin-bottom: 16px; font-size: 18px; letter-spacing: 1px; }
+        .loot-compare-columns { display: flex; gap: 24px; }
+        .loot-compare-col { flex: 1; }
+        .loot-compare-col h3 { font-size: 12px; opacity: 0.6; margin-bottom: 6px; text-transform: uppercase; }
+        .item-name { font-size: 15px; margin-bottom: 10px; }
+        .rarity-common   { color: #cccccc; }
+        .rarity-uncommon { color: #50dc64; }
+        .rarity-rare     { color: #64c8ff; }
+        .rarity-epic     { color: #b060ff; }
+        .attr-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+        .arrow.up   { color: #50dc64; }
+        .arrow.down { color: #ff5050; }
+        .empty { opacity: 0.4; font-size: 13px; }
+        .loot-compare-actions { margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end; }
+        .loot-compare-actions button {
+            font-family: inherit; font-size: 13px; letter-spacing: 1px; text-transform: uppercase;
+            background: #232338; border: 1px solid #4a4a70; color: #dcdcf0;
+            padding: 8px 16px; border-radius: 4px; cursor: pointer;
+        }
+        .loot-compare-actions button:hover { background: #2e2e4a; }
+    `;
+    document.head.appendChild(style);
+}
+
+// ============================================================
+// Shop modal (town visits)
+// ============================================================
+// TODO(town.js): call showShop() when the player enters a town's shop
+// trigger volume. Phase 1 stub only — no buying yet, just cash-in/sell.
+
+export function showShop() {
+    return new Promise((resolve) => {
+        $modalRoot.innerHTML = `
+            <div class="loot-compare-backdrop">
+                <div class="loot-compare-panel">
+                    <h2>Town Shop</h2>
+                    <p style="opacity:0.7; font-size:13px; margin-bottom:16px;">
+                        Coins: ${state.coins} — TODO: list sellable inventory here.
+                    </p>
+                    <div class="loot-compare-actions">
+                        <button id="btn-leave">Leave shop</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        _injectStylesOnce();
+        $modalRoot.classList.add('active');
+        document.getElementById('btn-leave').onclick = () => {
+            playUiClick();
+            $modalRoot.classList.remove('active');
+            $modalRoot.innerHTML = '';
+            resolve();
+        };
+    });
+}

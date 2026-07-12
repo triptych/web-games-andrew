@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Wayfarer's Path</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            font-family: 'Courier New', monospace;
+        }
+        canvas { display: block; }
+
+        /* HUD overlay — drawn over the WebGL canvas */
+        #ui-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            color: #dcdcf0;
+        }
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 20px;
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        #hud > div { text-align: center; }
+        #message {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        #message h1 {
+            font-size: 52px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            color: #64c8ff;
+        }
+        #message p { font-size: 16px; margin-top: 6px; letter-spacing: 2px; }
+        .hidden { display: none !important; }
+
+        /* Loot comparison / shop modal — receives pointer events */
+        #modal-root {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        #modal-root.active { pointer-events: auto; }
+    </style>
+</head>
+<body>
+    <div id="ui-overlay">
+        <div id="hud">
+            <div><div>HP</div><div id="hp-val">0 / 0</div></div>
+            <div><div>DISTANCE</div><div id="score-val">0m</div></div>
+            <div><div>COINS</div><div id="lives-val">0</div></div>
+        </div>
+        <div id="message">
+            <h1>Wayfarer's Path</h1>
+            <p>PRESS ANY KEY OR CLICK TO START</p>
+            <p style="opacity:0.6">WASD to walk, SPACE to swing your sword</p>
+        </div>
+    </div>
+    <div id="modal-root"></div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -366,6 +366,19 @@ const games = [
             { emoji: '📖', label: 'Visual Novel' },
             { emoji: '🎲', label: 'Turn-Based' }
         ]
+    },
+    {
+        id: 'game-029',
+        title: "Wayfarer's Path",
+        description: 'An endless procedurally generated road RPG built in three.js. Walk forever, fight monsters with your sword, and loot coins and gear along the way. New weapons and armor pop up in a side-by-side comparison panel against your current gear — up/down arrows show every stat change — so you can equip or sell on the spot. Rest at towns to cash in coins and sell extra loot before the road gets harder.',
+        icon: '🥾',
+        folder: 'game-029',
+        cssClass: 'wayfarers-path',
+        tags: [
+            { emoji: '⚔️', label: 'RPG' },
+            { emoji: '🎲', label: 'Procedural' },
+            { emoji: '⌨️', label: 'Keyboard' }
+        ]
     }
 ];
 
