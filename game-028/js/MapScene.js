@@ -158,7 +158,15 @@ export class MapScene extends Phaser.Scene {
 
     _setupEvents() {
         this._offBattleEnd = events.on('battleEnd', (result) => {
-            if (!result.won) {
+            this._applyBossWin(result);
+
+            if (result.won && result.isFinalBoss) {
+                events.clearAll();
+                this.scene.start('EndingScene');
+                this.scene.stop('UIScene');
+                return;
+            }
+            if (!result.won && !result.fled) {
                 events.clearAll();
                 this.scene.start('SplashScene');
                 this.scene.stop('UIScene');
@@ -276,9 +284,10 @@ export class MapScene extends Phaser.Scene {
 
     _showBlockedMessage(exit) {
         if (this._blockedLabel) { this._blockedLabel.destroy(); this._blockedLabel = null; }
-        const hint = exit.condition?.startsWith('chapter_')
-            ? `Reach Chapter ${exit.condition.split('_')[1]} to proceed.`
-            : 'You cannot go this way yet.';
+        const hint = exit.blockedMsg
+            || (exit.condition?.startsWith('chapter_')
+                ? `Reach Chapter ${exit.condition.split('_')[1]} to proceed.`
+                : 'You cannot go this way yet.');
         this._blockedLabel = this.add.text(
             this._player.x, this._player.y - 36, hint,
             { fontSize: '13px', color: '#ffcc44', fontFamily: 'monospace',
@@ -295,9 +304,10 @@ export class MapScene extends Phaser.Scene {
             if (ev.tx === tx && ev.ty === ty) {
                 if (ev.condition && !this._checkCondition(ev.condition)) continue;
                 if (ev._triggered && ev.once) continue;
-                ev._triggered = true;
 
                 if (ev.type === 'lore') {
+                    ev._triggered = true;
+                    this._applyOnTrigger(ev.payload.onTrigger);
                     this.scene.launch('DialogScene', {
                         npcId: null,
                         treeId: null,
@@ -306,10 +316,33 @@ export class MapScene extends Phaser.Scene {
                     });
                     this.scene.pause('MapScene');
                 } else if (ev.type === 'treasure') {
+                    ev._triggered = true;
                     state.addItem({ id: ev.payload.itemId, qty: 1 });
                     events.emit('itemAdded', { id: ev.payload.itemId });
+                } else if (ev.type === 'anchor') {
+                    // Placing a soul gem at a World Tree anchor point — only consumes/triggers if the player has one
+                    if (!state.hasItem('soul_gem')) {
+                        this._showBlockedMessage({ blockedMsg: 'This anchor point calls for a soul gem.' });
+                        continue;
+                    }
+                    ev._triggered = true;
+                    state.removeItem('soul_gem', 1);
+                    state.setFlag('flag_' + ev.payload.anchorId, true);
+                    events.emit('anchorCleansed', ev.payload.anchorId);
+                    this.scene.launch('DialogScene', {
+                        npcId: null,
+                        treeId: null,
+                        singleText: 'You press the soul gem into the anchor point. Corruption sloughs away from the roots like ash in the wind.',
+                        callerScene: 'MapScene',
+                    });
+                    this.scene.pause('MapScene');
                 } else if (ev.type === 'boss') {
-                    this._triggerBattle(ev.payload.enemyGroup);
+                    // Only mark as triggered on an actual win — a fled/lost boss fight can be retried
+                    this._triggerBattle(ev.payload.enemyGroup, {
+                        isFinalBoss: ev.payload.isFinalBoss,
+                        onWin: ev.payload.onWin,
+                        markTriggered: ev.once ? () => { ev._triggered = true; } : null,
+                    });
                 }
             }
         }
@@ -328,26 +361,52 @@ export class MapScene extends Phaser.Scene {
         this._triggerBattle(groupKey);
     }
 
-    _triggerBattle(groupKey) {
+    _triggerBattle(groupKey, opts = {}) {
         const groups = ENCOUNTER_GROUPS[groupKey];
         if (!groups) return;
         const group = groups[Phaser.Math.Between(0, groups.length - 1)];
         playBattleStart();
         state.isPaused = true;
-        this.scene.launch('BattleScene', { enemyIds: group, callerScene: 'MapScene' });
+        this._pendingBossOpts = opts;
+        this.scene.launch('BattleScene', { enemyIds: group, callerScene: 'MapScene', isFinalBoss: !!opts.isFinalBoss });
         this.scene.pause('MapScene');
     }
 
+    _applyBossWin(result) {
+        const opts = this._pendingBossOpts;
+        this._pendingBossOpts = null;
+        if (!opts) return;
+        if (result.won) {
+            if (opts.markTriggered) opts.markTriggered();
+            this._applyOnTrigger(opts.onWin);
+        }
+    }
+
+    /** Shared side-effect applier for lore/anchor/boss event payloads: { setFlag, giveItem, completeQuest, setChapter } */
+    _applyOnTrigger(effects) {
+        if (!effects) return;
+        if (effects.setFlag) state.setFlag(effects.setFlag, true);
+        if (effects.giveItem) state.addItem({ id: effects.giveItem.id, qty: effects.giveItem.qty || 1 });
+        if (effects.completeQuest) state.completeQuest(effects.completeQuest);
+        if (effects.setChapter) state.setChapter(effects.setChapter);
+    }
+
     _checkCondition(condition) {
-        if (condition.startsWith('chapter_')) {
-            return state.chapter >= parseInt(condition.split('_')[1]);
+        if (condition.startsWith('chapter_')) return state.chapter >= parseInt(condition.split('_')[1]);
+        if (condition.startsWith('quest_done_')) return state.isQuestDone(condition.replace('quest_done_', ''));
+        if (condition.startsWith('quest_active_')) return state.quests.active.includes(condition.replace('quest_active_', ''));
+        if (condition.startsWith('has_item_')) return state.hasItem(condition.replace('has_item_', ''));
+        if (condition.startsWith('has_qty:')) {
+            const [, id, qty] = condition.split(':');
+            return state.getItemQty(id) >= parseInt(qty);
         }
-        if (condition.startsWith('quest_active_')) {
-            return state.quests.active.includes(condition.replace('quest_active_', ''));
+        if (condition.startsWith('all_flags:')) {
+            const names = condition.slice('all_flags:'.length).split(',');
+            return names.every(n => !!state.getFlag(n));
         }
-        if (condition.startsWith('flag_')) {
-            return !!state.getFlag(condition);
-        }
+        if (condition.startsWith('not_flag_')) return !state.getFlag(condition.replace('not_', ''));
+        if (condition.startsWith('flag_')) return !!state.getFlag(condition);
+        if (condition.startsWith('party_has_')) return state.party.includes(condition.replace('party_has_', ''));
         return true;
     }
 

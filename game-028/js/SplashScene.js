@@ -6,6 +6,8 @@
 import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 import { initAudio, playUiClick } from './sounds.js';
+import { hasSave, loadGame } from './save.js';
+import { state } from './state.js';
 
 function hex(arr) { return '#' + arr.map(v => v.toString(16).padStart(2, '0')).join(''); }
 
@@ -64,7 +66,9 @@ export class SplashScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Blinking start prompt
-        this._prompt = this.add.text(CX, CY + 130, 'PRESS ANY KEY OR CLICK TO BEGIN', {
+        const hasExistingSave = hasSave();
+        this._prompt = this.add.text(CX, CY + 130,
+            hasExistingSave ? 'PRESS C TO CONTINUE   OR ANY OTHER KEY FOR A NEW GAME' : 'PRESS ANY KEY OR CLICK TO BEGIN', {
             fontSize: '16px',
             color: hex(COLORS.accent),
             fontFamily: 'monospace',
@@ -79,7 +83,7 @@ export class SplashScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Version tag
-        this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 10, 'Phase 1', {
+        this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 10, 'Phase 3', {
             fontSize: '10px',
             color: '#323250',
             fontFamily: 'monospace',
@@ -89,9 +93,10 @@ export class SplashScene extends Phaser.Scene {
         this._started = false;
         this.input.keyboard.on('keydown', (e) => {
             if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
-            this._goToGame();
+            if (hasExistingSave && (e.key === 'c' || e.key === 'C')) { this._goToGame(true); return; }
+            this._goToGame(false);
         });
-        this.input.on('pointerdown', () => this._goToGame());
+        this.input.on('pointerdown', () => this._goToGame(false));
 
         this._blinkTimer = 0;
     }
@@ -102,11 +107,13 @@ export class SplashScene extends Phaser.Scene {
         this._prompt.setAlpha(alpha);
     }
 
-    _goToGame() {
+    _goToGame(continueSave) {
         if (this._started) return;
         this._started = true;
         initAudio();
         playUiClick();
+        if (continueSave) loadGame();
+        else state.reset();
         this.scene.start('MapScene');
         this.scene.launch('UIScene');
         this.scene.stop('SplashScene');

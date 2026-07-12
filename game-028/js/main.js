@@ -20,6 +20,7 @@ import { BattleScene }  from './BattleScene.js';
 import { DialogScene }  from './DialogScene.js';
 import { MenuScene }    from './MenuScene.js';
 import { UIScene }      from './UIScene.js';
+import { EndingScene }  from './EndingScene.js';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 
 function rgb(arr) {
@@ -35,7 +36,7 @@ const config = {
         mode:       Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
     },
-    scene: [SplashScene, MapScene, BattleScene, DialogScene, MenuScene, UIScene],
+    scene: [SplashScene, MapScene, BattleScene, DialogScene, MenuScene, UIScene, EndingScene],
 };
 
 new Phaser.Game(config);

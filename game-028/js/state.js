@@ -42,10 +42,10 @@ class GameState {
             if (def) { this._partyHp[id] = def.maxHp; this._partyMp[id] = def.maxMp; }
         }
 
-        // Quests
+        // Quests — Lyra starts already pursuing the truth of her exile
         this._quests = {
-            active:    [],   // array of quest ids
-            completed: [],   // array of quest ids
+            active:    ['lyras_past'],
+            completed: [],
         };
 
         // Current map
@@ -205,6 +205,7 @@ class GameState {
     }
 
     hasItem(id) { return this._inventory.some(i => i.id === id && i.qty > 0); }
+    getItemQty(id) { return this._inventory.find(i => i.id === id)?.qty || 0; }
 
     // --- Quests ---
     get quests() { return this._quests; }
@@ -237,6 +238,27 @@ class GameState {
     get isGameOver() { return this._isGameOver; }
     get isPaused()   { return this._isPaused; }
     set isPaused(v)  { this._isPaused = v; }
+
+    // --- Save / Load ---
+    serialize() {
+        return {
+            _score: this._score, _lives: this._lives, _gold: this._gold,
+            _xp: this._xp, _level: this._level,
+            _chapter: this._chapter, _storyFlags: this._storyFlags,
+            _party: this._party, _inventory: this._inventory,
+            _partyHp: this._partyHp, _partyMp: this._partyMp,
+            _quests: this._quests,
+            _currentMap: this._currentMap,
+            _playerTileX: this._playerTileX, _playerTileY: this._playerTileY,
+        };
+    }
+
+    deserialize(data) {
+        this.reset();
+        Object.assign(this, data);
+        this._isGameOver = false;
+        this._isPaused   = false;
+    }
 }
 
 export const state = new GameState();

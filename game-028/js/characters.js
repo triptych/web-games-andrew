@@ -137,6 +137,38 @@ export const ENEMY_DEFS = {
         ],
         loot: [{ id: 'soul_gem', chance: 0.4 }],
     },
+    academy_wisp: {
+        id: 'academy_wisp', name: 'Academy Wisp', portrait: '🔵',
+        maxHp: 40, atk: 10, def: 4, spd: 13,
+        xpReward: 20, goldReward: 10,
+        abilities: [
+            { id: 'attack',   name: 'Spark',    mpCost: 0, damage: 1.0, type: 'magic', target: 'single' },
+            { id: 'flicker',  name: 'Flicker',  mpCost: 0, damage: 0,   type: 'buff',   target: 'self', effect: 'atk_up' },
+        ],
+        loot: [{ id: 'ether', chance: 0.25 }],
+    },
+    corrupted_knight: {
+        id: 'corrupted_knight', name: 'Corrupted Knight', portrait: '⚔️',
+        maxHp: 70, atk: 17, def: 12, spd: 8,
+        xpReward: 40, goldReward: 22,
+        abilities: [
+            { id: 'attack',    name: 'Tainted Blade', mpCost: 0, damage: 1.0, type: 'physical', target: 'single' },
+            { id: 'dark_smite', name: 'Dark Smite',   mpCost: 0, damage: 1.3, type: 'magic',    target: 'single' },
+        ],
+        loot: [{ id: 'chain_mail', chance: 0.15 }, { id: 'potion', chance: 0.4 }],
+    },
+    korvas: {
+        id: 'korvas', name: 'Korvas the Fallen Paladin', portrait: '🗡️',
+        maxHp: 220, atk: 22, def: 14, spd: 8,
+        xpReward: 220, goldReward: 90,
+        isBoss: true,
+        abilities: [
+            { id: 'attack',       name: 'Oathbreaker Strike', mpCost: 0, damage: 1.1, type: 'physical', target: 'single' },
+            { id: 'corrupt_smite', name: 'Corrupt Smite',      mpCost: 0, damage: 1.6, type: 'magic',    target: 'single', effect: 'weaken' },
+            { id: 'dark_judgment', name: 'Dark Judgment',      mpCost: 0, damage: 1.3, type: 'magic',    target: 'all' },
+        ],
+        loot: [{ id: 'stone_heart', chance: 0.3 }, { id: 'runic_blade', chance: 0.5 }],
+    },
     aethermoor_lich: {
         id: 'aethermoor_lich', name: 'The Lich of Aethermoor', portrait: '☠️',
         maxHp: 500, atk: 28, def: 18, spd: 14,
@@ -155,9 +187,14 @@ export const ENEMY_DEFS = {
 // --- Encounter groups (used by map/battle system) ---
 export const ENCOUNTER_GROUPS = {
     thornwood_easy:  [['slime'], ['slime', 'slime'], ['forest_wolf']],
-    thornwood_hard:  [['forest_wolf', 'slime'], ['bandit'], ['bandit', 'bandit']],
+    thornwood_hard:  [['forest_wolf', 'slime'], ['bandit'], ['bandit', 'bandit'], ['lich_shard']],
+    academy_easy:    [['academy_wisp'], ['academy_wisp', 'academy_wisp'], ['slime', 'academy_wisp']],
+    grove_easy:      [['forest_wolf'], ['forest_wolf', 'forest_wolf']],
+    chapel_hard:     [['corrupted_knight'], ['corrupted_knight', 'corrupted_knight']],
     ruins_normal:    [['golem'], ['lich_shard', 'slime'], ['bandit', 'lich_shard']],
     ruins_hard:      [['golem', 'lich_shard'], ['lich_shard', 'lich_shard', 'bandit']],
+    sanctum_hard:    [['lich_shard', 'lich_shard'], ['golem', 'lich_shard'], ['lich_shard', 'corrupted_knight']],
     boss_thornwood:  [['golem']],
+    boss_korvas:     [['korvas']],
     final_boss:      [['aethermoor_lich']],
 };

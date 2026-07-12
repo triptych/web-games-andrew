@@ -2,13 +2,21 @@
  * dialog.js — NPC dialogue trees and dialog box display.
  *
  * Dialog trees are keyed by npc id. Each node has:
- *   text   — what the NPC says
+ *   text    — what the NPC says
  *   speaker — who is talking (npc name or party member name)
  *   choices — optional array of { label, next, condition?, action? }
  *   next    — id of next node (if no choices), or 'end'
  *   action  — optional { type, payload } side-effect
+ *   routes  — optional array of { condition?, next }, checked in order; first
+ *             match is jumped to silently (no text shown) — used to make a
+ *             tree branch on live game state when the NPC is revisited
  *
- * Action types: 'giveQuest', 'completeQuest', 'giveItem', 'setFlag', 'joinParty', 'shop'
+ * Condition strings (see DialogScene._checkCondition):
+ *   chapter_N, quest_done_ID, quest_active_ID, has_item_ID, has_qty:ID:N,
+ *   flag_NAME, not_flag_NAME, party_has_ID
+ *
+ * Action types: 'giveQuest', 'completeQuest', 'giveItem', 'setFlag', 'setChapter',
+ *   'joinParty', 'shop', 'turnInItems' ({itemId, qty, questId}), 'multi' (array of actions), 'rest'
  */
 
 export const NPC_DEFS = {
@@ -66,8 +74,14 @@ export const NPC_DEFS = {
 
 export const DIALOG_TREES = {
     elder_varec_ch1: {
-        start: 'greet',
+        start: 'route',
         nodes: {
+            route: {
+                routes: [
+                    { condition: 'flag_borin_found', next: 'report_borin' },
+                ],
+                next: 'greet',
+            },
             greet: {
                 speaker: 'Elder Varec',
                 text: 'Ah, travelers. The stars guided you to Thornhaven, I think. We are in dire need of those willing to protect the innocent.',
@@ -99,12 +113,32 @@ export const DIALOG_TREES = {
                 text: 'Of course. But perhaps you will reconsider if you hear of our troubles? The Ember Hearth Inn will give you a warm bed.',
                 next: 'end',
             },
+            report_borin: {
+                speaker: 'Elder Varec',
+                text: 'Borin lives! And "the Lich\'s hand" directs the bandits, you say... This is graver than I feared. Thornhaven owes you a great debt.',
+                next: 'advance_ch2',
+                action: { type: 'completeQuest', payload: 'the_missing_merchant' },
+            },
+            advance_ch2: {
+                speaker: 'Elder Varec',
+                text: 'The road to the Thornwood should be safer now, but the corruption runs deeper than bandits. The trees themselves are dying. Seek out whatever spirit still watches over that forest — and take care. I sense your party will need more hands before this is through.',
+                next: 'end',
+                action: { type: 'setChapter', payload: 2 },
+            },
         },
     },
 
     farmer_holt_ch1: {
-        start: 'greet',
+        start: 'route',
         nodes: {
+            route: {
+                routes: [
+                    { condition: 'quest_done_slime_infestation', next: 'farewell' },
+                    { condition: 'has_qty:slime_core:3', next: 'turn_in' },
+                    { condition: 'quest_active_slime_infestation', next: 'reminder' },
+                ],
+                next: 'greet',
+            },
             greet: {
                 speaker: 'Farmer Holt',
                 text: 'Oh thank the gods, adventurers! Those blasted slimes have eaten half my turnips. If something is not done I will lose the whole harvest!',
@@ -118,9 +152,25 @@ export const DIALOG_TREES = {
                 text: 'Wonderful! Bring me their cores — three should do it. I need proof for the Elder\'s ledger, you see. I cannot pay much, but I will share what I can.',
                 next: 'end',
             },
+            reminder: {
+                speaker: 'Farmer Holt',
+                text: 'Still overrun with slimes, I\'m afraid. Bring me three cores and I\'ll square you away.',
+                next: 'end',
+            },
+            turn_in: {
+                speaker: 'Farmer Holt',
+                text: 'Three cores, just as I asked! You have my thanks, and the little I can spare besides.',
+                next: 'end',
+                action: { type: 'turnInItems', payload: { itemId: 'slime_core', qty: 3, questId: 'slime_infestation' } },
+            },
             refuse: {
                 speaker: 'Farmer Holt',
                 text: '... Fine. I will manage somehow.',
+                next: 'end',
+            },
+            farewell: {
+                speaker: 'Farmer Holt',
+                text: 'The turnips are safe now, thanks to you. My family won\'t go hungry this winter.',
                 next: 'end',
             },
         },
@@ -166,6 +216,7 @@ export const DIALOG_TREES = {
                 text: 'Welcome to the Ember Hearth! A room and a hot meal will set you right. Only 30 gold for the party — shall I make up the beds?',
                 choices: [
                     { label: 'Yes, we need rest. (30 gold)', next: 'rest', action: { type: 'rest', payload: { cost: 30 } } },
+                    { label: 'Show me your traveling goods.', next: 'shop', action: { type: 'shop', payload: 'general_stock' } },
                     { label: 'Perhaps later.', next: 'end' },
                 ],
             },
@@ -174,12 +225,21 @@ export const DIALOG_TREES = {
                 text: 'Wonderful! Sleep well, brave ones. Tomorrow\'s troubles can wait until tomorrow.',
                 next: 'end',
             },
+            shop: { speaker: 'Aldric', text: '...', next: 'end' },
         },
     },
 
     npc_scholar_ch3: {
-        start: 'greet',
+        start: 'route',
         nodes: {
+            route: {
+                routes: [
+                    { condition: 'flag_seal_broken', next: 'farewell' },
+                    { condition: 'has_qty:soul_gem:2', next: 'turn_in' },
+                    { condition: 'quest_active_the_third_shard', next: 'reminder' },
+                ],
+                next: 'greet',
+            },
             greet: {
                 speaker: 'Scholar Aneth',
                 text: 'You made it to the ruins. Good. There is no time — the lich shards are the key. Three of them power the sealing lock on the inner sanctum.',
@@ -187,7 +247,7 @@ export const DIALOG_TREES = {
             },
             explain: {
                 speaker: 'Scholar Aneth',
-                text: 'Destroy five shards anywhere in these ruins and the resonance will shatter the seal. It will also wake whatever is inside. Are you prepared for that?',
+                text: 'Destroy the shards anywhere in these ruins and bring me two soul gems as proof — the resonance will shatter the seal. It will also wake whatever is inside. Are you prepared for that?',
                 choices: [
                     { label: 'We are ready.', next: 'accept', action: { type: 'giveQuest', payload: 'the_third_shard' } },
                     { label: 'Tell me more about the Lich.', next: 'lore' },
@@ -201,6 +261,40 @@ export const DIALOG_TREES = {
             accept: {
                 speaker: 'Scholar Aneth',
                 text: 'Then go. I will stay here and keep the entry clear for your return. Do not die — I am not much of a fighter.',
+                next: 'end',
+            },
+            reminder: {
+                speaker: 'Scholar Aneth',
+                text: 'The shards still animate in these halls. Bring me two soul gems and the seal will break.',
+                next: 'end',
+            },
+            turn_in: {
+                speaker: 'Scholar Aneth',
+                text: 'This is it — the resonance is already building. Stand back!',
+                next: 'seal_break',
+                action: { type: 'multi', payload: [
+                    { type: 'turnInItems', payload: { itemId: 'soul_gem', qty: 2, questId: 'the_third_shard' } },
+                    { type: 'setFlag', payload: { name: 'flag_seal_broken', value: true } },
+                ] },
+            },
+            seal_break: {
+                speaker: 'Scholar Aneth',
+                text: 'The seal is broken. Gods help us — I can feel it waking below. Vaelthas stirs. The sanctum doors stand open to the south now. I will give you what strength I have.',
+                next: 'advance_ch4',
+                action: { type: 'giveItem', payload: { id: 'phoenix_down', qty: 1 } },
+            },
+            advance_ch4: {
+                speaker: 'Scholar Aneth',
+                text: 'This is the last of it. Go — end what my order began, one way or another.',
+                next: 'end',
+                action: { type: 'multi', payload: [
+                    { type: 'setChapter', payload: 4 },
+                    { type: 'giveQuest', payload: 'echoes_end' },
+                ] },
+            },
+            farewell: {
+                speaker: 'Scholar Aneth',
+                text: 'The depths await, when you are ready to face them.',
                 next: 'end',
             },
         },
@@ -287,8 +381,33 @@ export const DIALOG_TREES = {
     },
 
     npc_dryad_ch2: {
-        start: 'greet',
+        start: 'route',
         nodes: {
+            route: {
+                routes: [
+                    // Orin's thread can trigger on any visit once he's recruited, even after the main quest is done —
+                    // e.g. if the player recruits him only after already cleansing the grove.
+                    { condition: 'not_flag_flag_broken_oath_offered', next: 'orin_check' },
+                    { condition: 'quest_done_spirit_of_the_wood', next: 'farewell' },
+                    { condition: 'all_flags:flag_grove_anchor_1,flag_grove_anchor_2,flag_grove_anchor_3', next: 'turn_in' },
+                    { condition: 'quest_active_spirit_of_the_wood', next: 'reminder' },
+                ],
+                next: 'greet',
+            },
+            orin_check: {
+                routes: [
+                    { condition: 'party_has_orin', next: 'orin_thread_text' },
+                ],
+                next: 'post_orin_check',
+            },
+            post_orin_check: {
+                routes: [
+                    { condition: 'quest_done_spirit_of_the_wood', next: 'farewell' },
+                    { condition: 'all_flags:flag_grove_anchor_1,flag_grove_anchor_2,flag_grove_anchor_3', next: 'turn_in' },
+                    { condition: 'quest_active_spirit_of_the_wood', next: 'reminder' },
+                ],
+                next: 'greet',
+            },
             greet: {
                 speaker: 'Sylvara',
                 text: 'Mortals... you carry the smell of lich-shadow on you. But also light. You are not enemies of the forest.',
@@ -296,9 +415,9 @@ export const DIALOG_TREES = {
             },
             plea: {
                 speaker: 'Sylvara',
-                text: 'The corruption seeps from the ruins. Lich-shards animate in the wood and poison my roots. I cannot halt it alone. Bring me soul gems from the shards — three will be enough to begin the cleansing.',
+                text: 'The corruption seeps from the ruins and poisons my roots through three anchor points scattered around this grove. I cannot cleanse them myself. Carry soul gems to each anchor and press them into the wood — the lich-shards in the Thornwood carry the gems within them.',
                 choices: [
-                    { label: 'We will gather the soul gems.', next: 'accept', action: { type: 'giveQuest', payload: 'spirit_of_the_wood' } },
+                    { label: 'We will cleanse the anchor points.', next: 'accept', action: { type: 'giveQuest', payload: 'spirit_of_the_wood' } },
                     { label: 'What is the World Tree?', next: 'world_tree' },
                 ],
             },
@@ -309,7 +428,35 @@ export const DIALOG_TREES = {
             },
             accept: {
                 speaker: 'Sylvara',
-                text: 'Bless you. I will mark the path to my deepest roots on your map. The gems must be placed at each anchor point. Go swiftly.',
+                text: 'Bless you. Look for the roots that pulse faintly with corruption — those are the anchor points. You will need three soul gems, one for each.',
+                next: 'end',
+            },
+            reminder: {
+                speaker: 'Sylvara',
+                text: 'The anchor points still ache with corruption. Hunt lich-shards in the Thornwood for soul gems, then press one into each pulsing root.',
+                next: 'end',
+            },
+            turn_in: {
+                speaker: 'Sylvara',
+                text: 'I feel it — all three anchors cleansed. The poison recedes from my roots at last. Thank you, mortals. Take this token of the forest\'s gratitude.',
+                next: 'farewell',
+                action: { type: 'multi', payload: [
+                    { type: 'completeQuest', payload: 'spirit_of_the_wood' },
+                    { type: 'giveItem', payload: { id: 'hi_potion', qty: 1 } },
+                ] },
+            },
+            orin_thread_text: {
+                speaker: 'Sylvara',
+                text: 'The path south, past my deepest roots, now lies open — a shattered chapel. I felt a name echo from it just now: Korvas. The iron-hearted one among you will know it.',
+                next: 'end',
+                action: { type: 'multi', payload: [
+                    { type: 'giveQuest', payload: 'broken_oath' },
+                    { type: 'setFlag', payload: { name: 'flag_broken_oath_offered', value: true } },
+                ] },
+            },
+            farewell: {
+                speaker: 'Sylvara',
+                text: 'The wood breathes easier because of you. Walk safely, friends of the forest.',
                 next: 'end',
             },
         },

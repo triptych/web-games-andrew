@@ -16,7 +16,9 @@ import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 import { PARTY_DEFS } from './characters.js';
 import { getItem } from './items.js';
 import { getQuest } from './quests.js';
+import { getMap } from './maps.js';
 import { playUiClick, playMenuOpen } from './sounds.js';
+import { saveGame } from './save.js';
 
 function hex(arr) { return '#' + arr.map(v => v.toString(16).padStart(2, '0')).join(''); }
 
@@ -234,7 +236,7 @@ export class MenuScene extends Phaser.Scene {
     }
 
     _drawMap(y) {
-        const mapName = state.currentMap;
+        const mapName = getMap(state.currentMap)?.name || state.currentMap;
         const tx = state.playerTileX;
         const ty = state.playerTileY;
 
@@ -249,6 +251,16 @@ export class MenuScene extends Phaser.Scene {
         this._container.add(this.add.text(GAME_WIDTH / 2, y + 130, `Chapter ${state.chapter}  |  Level ${state.level}  |  ${state.gold} gold`, {
             fontSize: '14px', color: hex(COLORS.gold), fontFamily: 'monospace',
         }).setOrigin(0.5).setDepth(4));
+
+        this._container.add(this.add.text(GAME_WIDTH / 2, y + 180, 'Press S to save your progress', {
+            fontSize: '13px', color: hex(COLORS.muted), fontFamily: 'monospace',
+        }).setOrigin(0.5).setDepth(4));
+
+        if (this._saveMsg) {
+            this._container.add(this.add.text(GAME_WIDTH / 2, y + 210, this._saveMsg, {
+                fontSize: '13px', color: hex(COLORS.success), fontFamily: 'monospace',
+            }).setOrigin(0.5).setDepth(4));
+        }
     }
 
     _setupInput() {
@@ -281,6 +293,13 @@ export class MenuScene extends Phaser.Scene {
                 } else if (key === ' ' || key === 'Enter') {
                     this._useSelectedItem();
                 }
+            }
+
+            if (TABS[this._tabIdx] === 'Map' && (key === 's' || key === 'S')) {
+                const ok = saveGame();
+                this._saveMsg = ok ? 'Game saved!' : 'Save failed.';
+                playUiClick();
+                this.time.delayedCall(2000, () => { this._saveMsg = null; this._refresh(); });
             }
 
             this._refresh();

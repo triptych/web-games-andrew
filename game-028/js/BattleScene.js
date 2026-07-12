@@ -36,7 +36,8 @@ export class BattleScene extends Phaser.Scene {
     constructor() { super({ key: 'BattleScene' }); }
 
     init(data) {
-        this._enemyIds   = data.enemyIds || ['slime'];
+        this._enemyIds    = data.enemyIds || ['slime'];
+        this._isFinalBoss = !!data.isFinalBoss;
         _callerScene      = data.callerScene || 'MapScene';
     }
 
@@ -590,8 +591,9 @@ export class BattleScene extends Phaser.Scene {
             state.addXP(xpGained);
             state.addGold(goldGained);
             for (const id of loot) state.addItem({ id, qty: 1 });
+            if (this._isFinalBoss) state.completeQuest('echoes_end');
             this._log = `Victory! +${xpGained} XP, +${goldGained} gold.`;
-            result = { won: true, fled: false, xpGained, goldGained, loot };
+            result = { won: true, fled: false, xpGained, goldGained, loot, isFinalBoss: this._isFinalBoss };
         } else if (fled) {
             this._log = 'Fled from battle.';
             result = { won: false, fled: true };
