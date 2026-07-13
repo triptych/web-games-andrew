@@ -73,6 +73,18 @@ export const SWORD_SWING_COOLDOWN = 0.35; // seconds between swings
 export const MONSTER_CONTACT_RANGE = 1.4; // distance at which a monster can hit the player
 export const MONSTER_ATTACK_COOLDOWN = 1.0; // seconds between monster attacks
 
+// --- Combat arena ---
+// When the player's forward position comes within ARENA_LOCK_RANGE of any
+// live monster, auto-walk halts and the player is confined to a
+// forward/backward-movable arena of +/- ARENA_Z_RADIUS around their locked
+// position until every monster in that encounter is dead.
+export const ARENA_LOCK_RANGE  = 6;   // world units ahead a live monster triggers the lock
+export const ARENA_Z_RADIUS    = 14;  // how far the player can move fwd/back within the arena
+                                       // (must comfortably cover ARENA_LOCK_RANGE + the monster
+                                       // spawn cluster's spread, or a chased monster in the same
+                                       // encounter can end up unreachable — see monsters.js)
+export const MONSTER_CHASE_SPEED = 3; // world units / second, monster closing speed on the player
+
 // --- Monster spawning ---
 export const MONSTER_SPAWN_CHANCE_PER_CHUNK = 0.8; // chance a road chunk gets a monster
 export const MONSTER_MAX_PER_CHUNK = 2;

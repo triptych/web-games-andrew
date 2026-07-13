@@ -3,7 +3,7 @@
 **Genre:** Endless walker / action RPG with procedural loot
 **Engine:** three.js r165 (ES6 modules via import map)
 **Target Resolution:** Fullscreen (responsive, `renderer.setSize(innerWidth, innerHeight)`)
-**Status:** Phase 1 complete — starting Phase 2
+**Status:** Phase 2 complete — starting Phase 3
 
 ---
 
@@ -37,15 +37,34 @@ behind the camera, so the world has no memory limit.
 ### 2. Auto-Walk / Steering
 The player character walks forward automatically along the path at
 `WALK_SPEED`; left/right input steers within the road's width to dodge or
-approach monsters, rather than controlling forward speed directly. (Open
-question below: fully automatic vs. WASD-driven forward movement — see Open
-Questions.)
+approach monsters, rather than controlling forward speed directly — *except*
+while combat-locked (see Mechanic 3), when forward auto-walk halts entirely.
 
-### 3. Real-Time Sword Combat
-Monsters spawn on the path ahead. Pressing the attack key swings the
-equipped sword in an arc; monsters within range and swing timing take
-damage. Monsters attack back on contact/cooldown. Player HP is shown in the
-HUD; hitting 0 HP ends the run.
+### 3. Real-Time Sword Combat & the Combat Arena
+Originally monsters were static in world space while the player
+auto-walked straight through them — the player couldn't out-swing the
+0.35s-cooldown sword against a target that only stayed in range for a
+fraction of a second, so most encounters were unwinnable by design. Combat
+now locks into an arena: once the player's forward position comes within
+`ARENA_LOCK_RANGE` of a live encounter (`main.js` checks
+`findEncounterAhead()` every frame), forward auto-walk halts completely
+(`state.distance` freezes) and the player gains forward/back movement
+(W/S or Up/Down) in addition to left/right steering, confined to
+`ARENA_Z_RADIUS` around the lock point (`player.js`'s `setCombatLock()`).
+Monsters in an active arena actively chase the player's exact (x, z)
+instead of just drifting toward their lane (`MONSTER_CHASE_SPEED` in
+`config.js`). The lock releases and forward walking resumes automatically
+once every monster spawned in that encounter's chunk is dead
+(`isEncounterClear()`). All monsters from one spawn roll cluster tightly
+around one point in the chunk (rather than scattering across the full
+40-unit chunk length) so every member of an encounter stays reachable
+within the arena's fixed radius.
+
+Pressing the attack key swings the equipped sword in an arc; monsters
+within range (now checked symmetrically fwd/back, since arena monsters can
+end up behind the player) and swing timing take damage. Monsters attack
+back on contact/cooldown. Player HP is shown in the HUD; hitting 0 HP ends
+the run.
 
 ### 4. Procedural Loot & the Comparison UI
 Monster kills roll for a coin drop and a chance at an equipment drop (see
@@ -90,9 +109,14 @@ gear/upgrades from the shop is a stretch goal — see Open Questions.)
 | Action        | Key(s)              |
 |---------------|----------------------|
 | Steer left/right | A/D or Left/Right Arrow |
+| Move fwd/back (combat arena only) | W/S or Up/Down Arrow |
 | Attack (swing sword) | Space |
 | Pause         | P |
 | Restart       | R (from game-over screen) |
+
+Fwd/back movement only does anything while combat-locked (see Combat
+Arena below) — outside combat the player auto-walks forward and only
+steers laterally.
 
 ---
 
@@ -158,11 +182,21 @@ Web Audio API only — no file assets.
       `townEntered`/`townExited` directly and `main.js` awaits `showShop()`
       from `ui.js` (kept it inline since there was no non-UI shop logic yet)
 
-### Phase 2 — Combat & Loot Loop
-- [ ] Sword swing hitbox + monster contact damage
-- [ ] Coin drop + auto-collect
-- [ ] Equipment drop → comparison modal → equip/sell wired end-to-end
-- [ ] Equipped stats actually affect player damage/defense/speed
+### Phase 2 — Combat & Loot Loop (complete)
+- [x] Sword swing hitbox + monster contact damage
+- [x] Coin drop + auto-collect
+- [x] Equipment drop → comparison modal → equip/sell wired end-to-end
+- [x] Equipped stats actually affect player damage/defense/speed —
+      weapon `critChance` rolls a 2x damage crit per hit, weapon
+      `attackSpeed` scales the swing cooldown, armor `defense` reduces
+      incoming contact damage (floored at 1), armor `maxHp` resizes
+      `state.maxHp` on equip (via new `state.equip()`), armor `moveSpeed`
+      adds to lateral steer speed
+- [x] Pause (P key) — was in the controls table since Phase 1 but never
+      wired; now toggles `state.isPaused` and freezes the update loop
+- [x] Combat arena — fixed a design bug where monsters were static in
+      world space and the player auto-walked straight through them,
+      making most encounters unwinnable; see Mechanic 3 above
 
 ### Phase 3 — Towns, Shop, Polish
 - [ ] Town chunk with distinct visuals (buildings/props) vs. road chunk
@@ -201,8 +235,8 @@ Web Audio API only — no file assets.
 | `sounds.js` | Web Audio API sound effects |
 | `ui.js`     | DOM HUD bindings, loot comparison modal, shop modal |
 | `path.js`   | Procedural chunk generation/streaming, town cadence, `chunkSpawned`/`townEntered`/`townExited` events |
-| `player.js` | Steering, sword swing arc/hitbox, per-swing hit tracking, camera-follow |
-| `monsters.js` | Spawning (via `chunkSpawned`), AI, combat, death → loot roll |
+| `player.js` | Steering, combat-lock fwd/back movement, sword swing arc/hitbox, per-swing hit tracking, camera-follow |
+| `monsters.js` | Spawning (via `chunkSpawned`), chase AI, encounter lock queries, combat, death → loot roll |
 | `loot.js`   | Item generation, rarity, sale value |
 
 Town/shop flow has no dedicated `town.js` — `path.js` owns the trigger
@@ -213,9 +247,11 @@ split if the shop grows real buy logic in Phase 3.
 
 ## Open Questions
 
-- [ ] Fully auto-walk (only steer + attack) vs. WASD forward movement? Auto-walk
-      keeps the "endless" pacing consistent; WASD gives more player agency.
-      Leaning auto-walk + steer for now.
+- [x] Fully auto-walk (only steer + attack) vs. WASD forward movement?
+      Resolved as a hybrid: auto-walk + steer between encounters (keeps the
+      endless pacing), but forward/back (WASD) unlocks during a combat
+      arena so the player can actually chase/dodge monsters instead of
+      auto-walking straight through them — see Mechanic 3.
 - [ ] Should the shop allow *buying* new gear/potions, or stay sell-only?
 - [ ] Cap on how many pending loot drops can queue up if the player declines
       to stop (probably: combat pauses immediately on drop, so no queue
@@ -264,3 +300,89 @@ split if the shop grows real buy logic in Phase 3.
 - Not yet verified live in a browser this session (no headless browser
   driver available); user runs via VS Code Live Server at
   `http://127.0.0.1:5501/game-029/index.html` — needs an eyeball pass
+
+### Phase 2 — Combat & loot stat wiring (2026-07-13)
+- Turned out most of Phase 2's checklist (sword hitbox, contact damage,
+  coin drop, comparison-modal equip/sell) was already built during the
+  Phase 1 pass — the real gap was that equipped items' stats were inert.
+  `state.equipped.weapon/armor` got set on equip but nothing ever read
+  `critChance`, `attackSpeed`, `defense`, `maxHp`, or `moveSpeed`.
+- `state.js`: added `equip(item)` — re-derives `maxHp` from
+  `STARTING_HP + armor.maxHp` on every armor equip (not incremental, so
+  swapping armor can't double-count a previous bonus); `takeDamage()`
+  now subtracts armor `defense` from incoming damage, floored at 1 so
+  defense can't fully negate a hit.
+- `monsters.js`: replaced the flat `_currentWeaponDamage()` with
+  `_rolledWeaponDamage()` — rolls the equipped weapon's `critChance` for
+  a 2x damage crit per swing hit.
+- `player.js`: swing cooldown now divides by weapon `attackSpeed`
+  (bare-handed baseline 1.0); lateral steer speed adds armor
+  `moveSpeed` on top of `PLAYER_STEER_SPEED`.
+- Added the Pause control (P key) — it had been sitting in the controls
+  table since Phase 1 planning but nothing implemented it. Toggles
+  `state.isPaused` and a `'paused'` mode that the render loop already
+  treated as "don't update" (only `mode === 'playing'` drives updates);
+  `ui.js` gained `showPaused()`/`hidePaused()` reusing the splash/game-
+  over message overlay.
+- Did not add crit/defense visual or sound feedback (e.g. a distinct
+  crit hit sound) — deferred to Phase 3 polish pass alongside hit
+  particles and screen shake.
+- Not verified live in a browser this session per user request (skipped
+  Playwright setup) — still needs an eyeball pass via Live Server at
+  `http://127.0.0.1:5501/game-029/index.html`, specifically: equip a
+  crit-chance weapon and confirm occasional bigger hits, equip
+  high-defense armor and confirm reduced damage taken, and confirm P
+  pauses/resumes cleanly mid-fight.
+
+### Combat arena redesign (2026-07-13)
+- User-reported bug: monsters were static in world space while the player
+  auto-walked straight through them at `WALK_SPEED`, so the ~0.25s sword
+  hitbox on a 0.35s cooldown almost never landed enough hits to kill
+  anything before the player had already walked past — most encounters
+  were effectively unwinnable.
+- Redesigned combat as an arena lock rather than a drive-by: `main.js`
+  now calls `monsters.js`'s `findEncounterAhead(state.distance,
+  ARENA_LOCK_RANGE)` every frame; when it returns a chunk index,
+  `state.distance` stops advancing and `player.js`'s `setCombatLock()`
+  freezes the player's world Z to that moment (`_lockedZ`) while granting
+  a new bounded fwd/back offset (`_zOffset`, ±`ARENA_Z_RADIUS`) driven by
+  new W/S + Up/Down input. The lock releases via `clearCombatLock()` once
+  `monsters.js`'s `isEncounterClear(chunkIndex)` is true (every monster
+  spawned in that chunk is dead), and `state.distance` resumes advancing
+  from wherever it was frozen.
+- `monsters.js` monster AI changed from "drift toward the player's lane"
+  to actively chasing the player's exact (x, z) via `MONSTER_CHASE_SPEED`
+  once `updateMonsters(dt, inCombat)` is told combat is locked — otherwise
+  a stationary/slow monster could just be walked past again inside the
+  arena.
+- Encounter identity is tracked by `chunkIndex` (which chunk a monster's
+  spawn roll belongs to), not distance-to-player, specifically so a
+  monster that gets chased away from its spawn point can't cause the lock
+  to spuriously release early or fail to re-trigger. `spawnZ` (fixed at
+  spawn time) is what `findEncounterAhead` checks against, never the
+  monster's live position.
+- Caught during implementation, not just hypothetically: with the
+  original spawn logic monsters in the same chunk could land up to 40
+  units apart (`CHUNK_LENGTH`), which could put one monster outside the
+  arena's reachable radius and make an encounter unclearable. Fixed by
+  clustering every monster from one spawn roll within ±2 units of a
+  single random point in the chunk, and sized `ARENA_Z_RADIUS` (14) with
+  margin over `ARENA_LOCK_RANGE` (6) + the cluster spread so every member
+  of an encounter is always reachable from the lock point.
+- `player.js`'s `trySwordHit` reach was `dz >= 0` (forward-only) since the
+  player previously only ever approached monsters from behind while
+  walking; changed to `Math.abs(dz)` since arena monsters can end up on
+  either side of the player.
+- Added a HUD "⚔ In Combat" indicator (`index.html`/`ui.js`'s
+  `setCombatIndicator()`) so the player understands why forward movement
+  stopped and that W/S now do something.
+- Did not add visual arena bounds (fence/glow ring) — went with the
+  simpler auto-lock-on-proximity design per user's answer rather than the
+  visible-boundary variant; revisit if playtesting shows the arena extent
+  isn't legible without it.
+- Not verified live in a browser this session (skipped Playwright setup
+  per user request) — needs an eyeball pass specifically on: does the
+  lock trigger reliably before the player overlaps the monster, can every
+  monster in a 2-monster encounter actually be reached and killed, does
+  the indicator show/hide at the right moments, and does forward walking
+  resume smoothly (no camera pop) once the arena clears.

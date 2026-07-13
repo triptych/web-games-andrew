@@ -10,14 +10,15 @@ import { events } from './events.js';
 import { WEAPON_ATTRS, ARMOR_ATTRS } from './config.js';
 import { playUiClick } from './sounds.js';
 
-let $hp, $distance, $coins, $message, $modalRoot;
+let $hp, $distance, $coins, $message, $modalRoot, $combatIndicator;
 
 export function initUI() {
-    $hp        = document.getElementById('hp-val');
-    $distance  = document.getElementById('score-val');
-    $coins     = document.getElementById('lives-val');
-    $message   = document.getElementById('message');
-    $modalRoot = document.getElementById('modal-root');
+    $hp              = document.getElementById('hp-val');
+    $distance        = document.getElementById('score-val');
+    $coins           = document.getElementById('lives-val');
+    $message         = document.getElementById('message');
+    $modalRoot       = document.getElementById('modal-root');
+    $combatIndicator = document.getElementById('combat-indicator');
 
     _render();
 
@@ -34,6 +35,23 @@ function _render() {
 }
 
 export function hideSplash() {
+    if ($message) $message.classList.add('hidden');
+}
+
+export function setCombatIndicator(active) {
+    if ($combatIndicator) $combatIndicator.classList.toggle('hidden', !active);
+}
+
+export function showPaused() {
+    if (!$message) return;
+    $message.innerHTML = `
+        <h1>PAUSED</h1>
+        <p style="opacity:0.6">Press P to resume</p>
+    `;
+    $message.classList.remove('hidden');
+}
+
+export function hidePaused() {
     if ($message) $message.classList.add('hidden');
 }
 

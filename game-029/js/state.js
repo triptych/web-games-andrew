@@ -1,5 +1,5 @@
 import { events } from './events.js';
-import { STARTING_HP, STARTING_COINS } from './config.js';
+import { STARTING_HP, STARTING_COINS, BASE_ARMOR } from './config.js';
 
 /**
  * Global game state.
@@ -32,6 +32,20 @@ class GameState {
         // rather than immediately converted to coins.
     }
 
+    /**
+     * Equip an item in its slot. Armor's maxHp bonus is re-derived from
+     * scratch each time (STARTING_HP + new armor's bonus) rather than
+     * incrementally adjusted, so swapping armor never double-counts a
+     * previous bonus. Current HP is preserved, only re-clamped to the
+     * new max.
+     */
+    equip(item) {
+        this.equipped[item.slot] = item;
+        if (item.slot === 'armor') {
+            this.maxHp = STARTING_HP + item.maxHp;
+        }
+    }
+
     // --- HP ---
     get hp() { return this._hp; }
     set hp(val) {
@@ -49,7 +63,10 @@ class GameState {
         events.emit('hpChanged', this._hp, this._maxHp);
     }
 
-    takeDamage(n) { this.hp -= n; }
+    takeDamage(n) {
+        const defense = this.equipped.armor ? this.equipped.armor.defense : BASE_ARMOR.defense;
+        this.hp -= Math.max(1, n - defense);
+    }
     heal(n)       { this.hp += n; }
 
     // --- Coins ---

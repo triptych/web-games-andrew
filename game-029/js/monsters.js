@@ -1,9 +1,15 @@
 /**
- * monsters.js — spawns monsters along road chunks, simple approach AI,
+ * monsters.js — spawns monsters along road chunks, active chase AI,
  * contact damage against the player, and death -> coin/loot roll.
  *
  * Monster tier is chosen from MONSTER_TIERS by the chunk's start distance,
  * so difficulty is purely a function of how far the player has walked.
+ *
+ * Combat lock: main.js calls findEncounterAhead()/isEncounterClear() every
+ * frame to decide whether to freeze forward auto-walk into a combat arena
+ * (see player.js's setCombatLock/clearCombatLock). Once locked, monsters
+ * actively chase the player's exact (x, z) instead of just drifting toward
+ * their lane.
  */
 
 import * as THREE from 'three';
@@ -15,8 +21,9 @@ import { generateItem, getSaleValue } from './loot.js';
 import {
     MONSTER_TIERS, MONSTER_SPAWN_CHANCE_PER_CHUNK, MONSTER_MAX_PER_CHUNK,
     MONSTER_CONTACT_RANGE, MONSTER_ATTACK_COOLDOWN, ROAD_WIDTH, RARITY,
+    MONSTER_CHASE_SPEED,
 } from './config.js';
-import { getPlayerX, trySwordHit } from './player.js';
+import { getPlayerX, getPlayerZ, trySwordHit } from './player.js';
 
 let _monsters = [];
 
@@ -39,11 +46,16 @@ export function trySpawnInChunk(chunk) {
     chunk.monsterSpawned = true;
     if (Math.random() > MONSTER_SPAWN_CHANCE_PER_CHUNK) return;
 
+    // All monsters in an encounter cluster tightly around one point in the
+    // chunk (rather than scattering independently across the full chunk
+    // length) so every member stays reachable within the combat arena's
+    // fixed radius once the player locks into the fight.
     const count = 1 + Math.floor(Math.random() * MONSTER_MAX_PER_CHUNK);
+    const clusterZ = chunk.z0 + 4 + Math.random() * (chunk.z1 - chunk.z0 - 8);
     for (let i = 0; i < count; i++) {
-        const z = chunk.z0 + Math.random() * (chunk.z1 - chunk.z0);
+        const z = clusterZ + (Math.random() - 0.5) * 4;
         const x = (Math.random() - 0.5) * (ROAD_WIDTH - 1.5);
-        _spawnMonster(x, z, chunk.z0);
+        _spawnMonster(x, z, chunk.z0, chunk.index);
     }
 }
 
@@ -55,7 +67,7 @@ function _tierForDistance(distance) {
     return tier;
 }
 
-function _spawnMonster(x, z, distance) {
+function _spawnMonster(x, z, distance, chunkIndex) {
     const tier = _tierForDistance(distance);
     const mesh = new THREE.Mesh(
         new THREE.ConeGeometry(0.6, 1.6, 6),
@@ -67,6 +79,8 @@ function _spawnMonster(x, z, distance) {
     _monsters.push({
         mesh,
         x, z,
+        spawnZ: z,       // original spawn position — used to find/trigger the encounter,
+        chunkIndex,      // stable even as the monster chases the player around the arena
         tier,
         hp: tier.hp,
         maxHp: tier.hp,
@@ -75,27 +89,33 @@ function _spawnMonster(x, z, distance) {
     });
 }
 
-export function updateMonsters(dt, playerDistance) {
+export function updateMonsters(dt, inCombat) {
     const playerX = getPlayerX();
+    const playerZ = getPlayerZ();
 
     for (const m of _monsters) {
         if (m.dead) continue;
 
-        // Simple AI: drift toward the player's lane once they're close ahead.
-        const dz = m.z - playerDistance;
-        if (dz < 15 && dz > -2) {
-            m.x += Math.sign(playerX - m.x) * Math.min(0.6 * dt, Math.abs(playerX - m.x));
-            m.mesh.position.x = m.x;
+        if (inCombat) {
+            // Actively chase the player's exact position once combat locks.
+            const dx = playerX - m.x;
+            const dz = playerZ - m.z;
+            const dist = Math.hypot(dx, dz);
+            if (dist > MONSTER_CONTACT_RANGE * 0.6) {
+                m.x += (dx / dist) * MONSTER_CHASE_SPEED * dt;
+                m.z += (dz / dist) * MONSTER_CHASE_SPEED * dt;
+                m.mesh.position.set(m.x, m.mesh.position.y, m.z);
+            }
         }
 
         // Sword hit check.
         if (trySwordHit(m, m.x, m.z)) {
-            _damageMonster(m, _currentWeaponDamage());
+            _damageMonster(m, _rolledWeaponDamage());
         }
 
         // Contact damage against the player.
         if (m.attackCooldown > 0) m.attackCooldown -= dt;
-        const distToPlayer = Math.hypot(m.x - playerX, m.z - playerDistance);
+        const distToPlayer = Math.hypot(m.x - playerX, m.z - playerZ);
         if (distToPlayer <= MONSTER_CONTACT_RANGE && m.attackCooldown <= 0) {
             m.attackCooldown = MONSTER_ATTACK_COOLDOWN;
             playPlayerHurt();
@@ -110,9 +130,39 @@ export function updateMonsters(dt, playerDistance) {
     });
 }
 
-function _currentWeaponDamage() {
+/**
+ * Returns the chunkIndex of the nearest not-yet-cleared encounter whose
+ * spawn point is within `range` ahead of `playerDistance`, or null. Uses
+ * spawnZ (fixed at spawn time) rather than the monster's current position,
+ * so a chased monster drifting away from the trigger point can't cause the
+ * lock to falsely re-trigger or fail to trigger.
+ */
+export function findEncounterAhead(playerDistance, range) {
+    let best = null;
+    for (const m of _monsters) {
+        if (m.dead) continue;
+        const dz = m.spawnZ - playerDistance;
+        if (dz >= -1 && dz <= range) {
+            if (best === null || m.spawnZ < best.spawnZ) best = m;
+        }
+    }
+    return best ? best.chunkIndex : null;
+}
+
+/** True once every monster spawned in the given chunk is dead. */
+export function isEncounterClear(chunkIndex) {
+    return !_monsters.some((m) => m.chunkIndex === chunkIndex && !m.dead);
+}
+
+const BARE_HANDED_DAMAGE = 3;
+const CRIT_MULTIPLIER = 2;
+
+/** Rolls the weapon's crit chance and returns damage for a single swing hit. */
+function _rolledWeaponDamage() {
     const weapon = state.equipped.weapon;
-    return weapon ? weapon.damage : 3; // bare-handed baseline
+    const damage = weapon ? weapon.damage : BARE_HANDED_DAMAGE;
+    const critChance = weapon ? weapon.critChance : 0;
+    return Math.random() < critChance ? damage * CRIT_MULTIPLIER : damage;
 }
 
 function _damageMonster(m, dmg) {

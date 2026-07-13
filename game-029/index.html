@@ -32,6 +32,15 @@
             text-transform: uppercase;
         }
         #hud > div { text-align: center; }
+        #combat-indicator {
+            position: absolute;
+            top: 60px; left: 50%;
+            transform: translate(-50%, 0);
+            font-size: 14px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #ff5050;
+        }
         #message {
             position: absolute;
             top: 50%; left: 50%;
@@ -65,6 +74,7 @@
             <div><div>DISTANCE</div><div id="score-val">0m</div></div>
             <div><div>COINS</div><div id="lives-val">0</div></div>
         </div>
+        <div id="combat-indicator" class="hidden">&#9876; In Combat &mdash; W/S to move, Space to swing</div>
         <div id="message">
             <h1>Wayfarer's Path</h1>
             <p>PRESS ANY KEY OR CLICK TO START</p>
