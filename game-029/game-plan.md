@@ -3,7 +3,7 @@
 **Genre:** Endless walker / action RPG with procedural loot
 **Engine:** three.js r165 (ES6 modules via import map)
 **Target Resolution:** Fullscreen (responsive, `renderer.setSize(innerWidth, innerHeight)`)
-**Status:** Planning — Phase 1
+**Status:** Phase 1 complete — starting Phase 2
 
 ---
 
@@ -137,18 +137,26 @@ Web Audio API only — no file assets.
 
 ## Phases
 
-### Phase 1 — Foundation (current)
+### Phase 1 — Foundation (complete)
 - [x] Scaffold: index.html, config, events, state, sounds, scene, ui, main
 - [x] Loot comparison modal (generic, slot-aware, works for weapon/armor)
 - [x] Shop modal stub
-- [ ] TODO: procedural path generation (`path.js`) — chunk streaming, road
-      width, town chunk layout
-- [ ] TODO: player module (`player.js`) — steering, sword swing arc/hitbox
-- [ ] TODO: monster module (`monsters.js`) — spawn along path, simple AI,
-      contact damage, death → loot roll
-- [ ] TODO: loot generation (`loot.js`) — rarity roll, base stats per
-      monster tier, sale value formula
-- [ ] TODO: town/shop module (`town.js`) — trigger volume, shop flow
+- [x] Procedural path generation (`path.js`) — chunk streaming (ahead/behind
+      window), road width + edge markers, town chunk layout with placeholder
+      buildings, `chunkSpawned`/`townEntered`/`townExited` events
+- [x] Player module (`player.js`) — A/D + arrow-key steering clamped to road
+      width, Space to swing sword (arc animated via sword mesh rotation),
+      per-swing hit tracking so one swing can't multi-hit a monster,
+      camera-follow
+- [x] Monster module (`monsters.js`) — spawns per road chunk (chance +
+      count from config), tier chosen by distance, simple drift-toward-player
+      AI, contact damage on cooldown, death → coin + 25% loot roll
+- [x] Loot generation (`loot.js`) — rarity roll from `RARITY` weights, base
+      weapon/armor stats scaled by monster tier level and rarity multiplier,
+      sale value formula from summed attributes
+- [x] Town/shop flow — no separate `town.js`; `path.js` emits
+      `townEntered`/`townExited` directly and `main.js` awaits `showShop()`
+      from `ui.js` (kept it inline since there was no non-UI shop logic yet)
 
 ### Phase 2 — Combat & Loot Loop
 - [ ] Sword swing hitbox + monster contact damage
@@ -172,9 +180,11 @@ Web Audio API only — no file assets.
 | `coinsChanged` | coins | state | ui |
 | `distanceChanged` | distance | state | ui |
 | `gameOver` | — | state | ui, main |
-| `townEntered` | town | TODO: town.js | main, ui |
-| `townExited` | — | TODO: town.js | main |
-| `lootFound` | item | TODO: loot.js | main (drives comparison modal) |
+| `chunkSpawned` | chunk | path.js | main (drives monster spawn roll) |
+| `townEntered` | town | path.js | main (opens shop modal) |
+| `townExited` | — | path.js | main |
+| `swordSwing` | — | player.js | (unused so far — available for VFX/SFX hooks) |
+| `lootFound` | item, saleValue | monsters.js | main (drives comparison modal) |
 | `itemEquipped` | slot, item | TODO: equip flow | ui, player stats |
 
 ---
@@ -190,11 +200,14 @@ Web Audio API only — no file assets.
 | `state.js`  | GameState singleton — HP, coins, distance, equipped gear |
 | `sounds.js` | Web Audio API sound effects |
 | `ui.js`     | DOM HUD bindings, loot comparison modal, shop modal |
-| `path.js`   | TODO — procedural chunk generation/streaming |
-| `player.js` | TODO — steering, sword swing |
-| `monsters.js` | TODO — spawning, AI, combat, death → loot roll |
-| `loot.js`   | TODO — item generation, rarity, sale value |
-| `town.js`   | TODO — town trigger, shop flow |
+| `path.js`   | Procedural chunk generation/streaming, town cadence, `chunkSpawned`/`townEntered`/`townExited` events |
+| `player.js` | Steering, sword swing arc/hitbox, per-swing hit tracking, camera-follow |
+| `monsters.js` | Spawning (via `chunkSpawned`), AI, combat, death → loot roll |
+| `loot.js`   | Item generation, rarity, sale value |
+
+Town/shop flow has no dedicated `town.js` — `path.js` owns the trigger
+(town chunk enter/exit) and `main.js`/`ui.js` own the modal. Revisit this
+split if the shop grows real buy logic in Phase 3.
 
 ---
 
@@ -221,3 +234,33 @@ Web Audio API only — no file assets.
   components (not just stubs) since they're central to the concept
 - game-plan.md fleshed out with path/monster/loot/town design ahead of
   implementation
+
+### Phase 1 — Foundation complete (2026-07-12)
+- `path.js`: chunk streaming (generate-ahead/dispose-behind window), road
+  width + edge markers, town chunks every `CHUNKS_BETWEEN_TOWNS` with
+  placeholder buildings; emits `chunkSpawned`/`townEntered`/`townExited`
+- `player.js`: A/D + arrow-key lateral steering clamped to the road,
+  Space-to-swing sword with an animated arc and per-swing hit tracking
+  (a `Set` of already-hit monster refs, cleared each swing) so a single
+  swing can't tick damage across multiple frames — caught and fixed this
+  as a real bug during review, not just a hypothetical
+- `monsters.js`: spawns off `chunkSpawned` (road chunks only), tier chosen
+  by the chunk's distance, simple drift-toward-player-lane AI, contact
+  damage on a cooldown, death rolls coins + 25% chance of `loot.js` gear
+  via `lootFound`
+- `loot.js`: rarity roll from `RARITY` weights, weapon/armor base stats
+  scaled by monster tier level and rarity multiplier, sale value from
+  summed attributes
+- Removed the placeholder ground plane from `scene.js` — `path.js` now
+  owns all ground/road geometry per chunk
+- `main.js` wired end-to-end: `chunkSpawned` → monster spawn roll,
+  `townEntered` → await shop modal, `lootFound` → await comparison modal
+  and equip/sell, render loop now calls `updatePath`/`updatePlayer`/
+  `updateMonsters` every frame while `mode === 'playing'`
+- Did not add a separate `town.js` — town trigger logic lives in
+  `path.js` (it already tracks which chunk the player occupies) and the
+  shop modal itself lives in `ui.js`; revisit only if buy-logic in
+  Phase 3 needs a home
+- Not yet verified live in a browser this session (no headless browser
+  driver available); user runs via VS Code Live Server at
+  `http://127.0.0.1:5501/game-029/index.html` — needs an eyeball pass

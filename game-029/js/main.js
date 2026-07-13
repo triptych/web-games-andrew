@@ -6,21 +6,16 @@
  * Library: three.js r165 via import map (see index.html)
  */
 
-import * as THREE from 'three';
-
 import { initScene, renderer, scene, camera, clock } from './scene.js';
 import { state }  from './state.js';
 import { events } from './events.js';
-import { initUI, hideSplash, showLootComparison } from './ui.js';
+import { initUI, hideSplash, showLootComparison, showShop } from './ui.js';
 import { initAudio, playUiClick } from './sounds.js';
 import { WALK_SPEED } from './config.js';
 
-// TODO: import your game-specific modules here as they're built
-// import { initPath, updatePath }         from './path.js';
-// import { initPlayer, updatePlayer }     from './player.js';
-// import { initMonsters, updateMonsters } from './monsters.js';
-// import { rollLoot }                     from './loot.js';
-// import { enterTown, exitTown }          from './town.js';
+import { initPath, updatePath }         from './path.js';
+import { initPlayer, updatePlayer }     from './player.js';
+import { initMonsters, updateMonsters, trySpawnInChunk } from './monsters.js';
 
 // ============================================================
 // THREE.JS GOTCHAS (read before adding anything)
@@ -48,41 +43,42 @@ import { WALK_SPEED } from './config.js';
 initScene();
 initUI();
 
-// TODO: initialize game-specific modules once they exist
-// initPath();
-// initPlayer();
-// initMonsters();
-
 // ============================================================
 // Game state machine
 // ============================================================
 
-let mode = 'splash';   // 'splash' | 'playing' | 'gameover'
+let mode = 'splash';   // 'splash' | 'playing' | 'paused-for-loot' | 'town' | 'gameover'
 
 function startGame() {
     if (mode === 'playing') return;
     mode = 'playing';
     state.reset();
     initAudio();
+    initPath();
+    initPlayer();
+    initMonsters();
     playUiClick();
     hideSplash();
 }
 
 events.on('gameOver', () => { mode = 'gameover'; });
+events.on('chunkSpawned', (chunk) => trySpawnInChunk(chunk));
 
-// TODO: wire town entry/exit into the mode machine, e.g.
-// events.on('townEntered', () => { mode = 'town'; });
-// events.on('townExited',  () => { mode = 'playing'; });
+events.on('townEntered', async () => {
+    if (mode !== 'playing') return;
+    mode = 'town';
+    await showShop();
+    mode = 'playing';
+});
 
-// TODO: example of how loot.js should present the comparison UI —
-// remove once real drop logic exists.
-// async function onLootDropped(item, saleValue) {
-//     mode = 'paused-for-loot';
-//     const choice = await showLootComparison(item, saleValue);
-//     if (choice === 'equip') state.equipped[item.slot] = item;
-//     else state.addCoins(saleValue);
-//     mode = 'playing';
-// }
+events.on('lootFound', async (item, saleValue) => {
+    if (mode !== 'playing') return;
+    mode = 'paused-for-loot';
+    const choice = await showLootComparison(item, saleValue);
+    if (choice === 'equip') state.equipped[item.slot] = item;
+    else state.addCoins(saleValue);
+    mode = 'playing';
+});
 
 // ============================================================
 // Input
@@ -113,11 +109,9 @@ function animate() {
 
     if (mode === 'playing') {
         state.distance += WALK_SPEED * dt;
-        // TODO: replace the auto-walk distance tick above with real
-        // player-driven movement once player.js exists.
-        // updatePlayer(dt);
-        // updatePath(dt);
-        // updateMonsters(dt);
+        updatePath(state.distance);
+        updatePlayer(dt);
+        updateMonsters(dt, state.distance);
     }
 
     renderer.render(scene, camera);

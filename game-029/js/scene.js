@@ -39,14 +39,7 @@ export function initScene() {
     dir.position.set(5, 10, 5);
     scene.add(dir);
 
-    // Ground plane placeholder — TODO: replace with generated path geometry
-    const ground = new THREE.Mesh(
-        new THREE.PlaneGeometry(40, CAM_FAR * 2),
-        new THREE.MeshStandardMaterial({ color: 0x223322 }),
-    );
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.z = CAM_FAR / 2;
-    scene.add(ground);
+    // Ground is generated per-chunk by path.js — see initPath()/updatePath().
 
     window.addEventListener('resize', _onResize);
 }

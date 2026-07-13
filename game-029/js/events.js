@@ -16,7 +16,9 @@
  *   gameOver()
  *   townEntered(town)
  *   townExited()
- *   lootFound(item)            — TODO: emit from loot.js when a monster drops gear
+ *   chunkSpawned(chunk)        — emitted by path.js whenever a new chunk is generated
+ *   swordSwing()               — emitted by player.js when the attack key is pressed
+ *   lootFound(item, saleValue) — emitted by monsters.js when a monster drops gear
  *   itemEquipped(slot, item)   — TODO: emit from equipment.js
  *   itemSoldForCoins(item, coins) — TODO: emit from loot.js / shop.js
  */
