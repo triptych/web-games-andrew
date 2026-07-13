@@ -18,7 +18,7 @@ import {
 } from './config.js';
 import { getRoadHalfWidth } from './path.js';
 
-let mesh, swordMesh;
+let mesh, swordPivot;
 let _x = 0;                 // lateral offset from road center
 let _steerDir = 0;          // -1, 0, 1 — set by input
 let _swingTimer = 0;        // >0 while the swing hitbox is active
@@ -41,13 +41,20 @@ export function initPlayer() {
     body.position.y = 1.1;
     group.add(body);
 
-    swordMesh = new THREE.Mesh(
+    // Pivot sits at the hilt, near the player's hand; the blade extends
+    // forward from there so rotating the pivot swings the sword like an
+    // arm swinging from the shoulder, instead of spinning around its middle.
+    swordPivot = new THREE.Group();
+    swordPivot.position.set(0.5, 1.0, 0);
+    swordPivot.visible = false;
+    group.add(swordPivot);
+
+    const swordMesh = new THREE.Mesh(
         new THREE.BoxGeometry(0.15, 0.15, SWORD_RANGE),
         new THREE.MeshStandardMaterial({ color: 0xdcdcf0 }),
     );
-    swordMesh.position.set(0.5, 1.0, SWORD_RANGE / 2);
-    swordMesh.visible = false;
-    group.add(swordMesh);
+    swordMesh.position.set(0, 0, SWORD_RANGE / 2);
+    swordPivot.add(swordMesh);
 
     mesh = group;
     scene.add(mesh);
@@ -82,9 +89,9 @@ export function updatePlayer(dt) {
     if (_swingCooldown > 0) _swingCooldown -= dt;
     if (_swingTimer > 0) {
         _swingTimer -= dt;
-        swordMesh.visible = true;
-        swordMesh.rotation.y = Math.sin((1 - _swingTimer / SWORD_SWING_DURATION) * Math.PI) * 1.2 - 0.6;
-        if (_swingTimer <= 0) swordMesh.visible = false;
+        swordPivot.visible = true;
+        swordPivot.rotation.y = Math.sin((1 - _swingTimer / SWORD_SWING_DURATION) * Math.PI) * 1.2 - 0.6;
+        if (_swingTimer <= 0) swordPivot.visible = false;
     }
 
     // Camera trails behind/above the player but stays fixed laterally, so
