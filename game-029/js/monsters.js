@@ -21,7 +21,7 @@ import { generateItem, getSaleValue } from './loot.js';
 import {
     MONSTER_TIERS, MONSTER_SPAWN_CHANCE_PER_CHUNK, MONSTER_MAX_PER_CHUNK,
     MONSTER_CONTACT_RANGE, MONSTER_ATTACK_COOLDOWN, ROAD_WIDTH, RARITY,
-    MONSTER_CHASE_SPEED,
+    MONSTER_CHASE_SPEED, FIRST_ENCOUNTER_DISTANCE,
 } from './config.js';
 import { getPlayerX, getPlayerZ, trySwordHit } from './player.js';
 
@@ -44,14 +44,21 @@ export function teardownMonsters() {
 export function trySpawnInChunk(chunk) {
     if (chunk.type !== 'road' || chunk.monsterSpawned) return;
     chunk.monsterSpawned = true;
-    if (Math.random() > MONSTER_SPAWN_CHANCE_PER_CHUNK) return;
+
+    // Guarantee the very first road chunk always spawns an encounter, close
+    // to the start, so the player is never left walking for several chunks
+    // before their first fight regardless of the spawn-chance roll.
+    const isFirstRoadChunk = chunk.index === 0;
+    if (!isFirstRoadChunk && Math.random() > MONSTER_SPAWN_CHANCE_PER_CHUNK) return;
 
     // All monsters in an encounter cluster tightly around one point in the
     // chunk (rather than scattering independently across the full chunk
     // length) so every member stays reachable within the combat arena's
     // fixed radius once the player locks into the fight.
     const count = 1 + Math.floor(Math.random() * MONSTER_MAX_PER_CHUNK);
-    const clusterZ = chunk.z0 + 4 + Math.random() * (chunk.z1 - chunk.z0 - 8);
+    const clusterZ = isFirstRoadChunk
+        ? chunk.z0 + FIRST_ENCOUNTER_DISTANCE
+        : chunk.z0 + 4 + Math.random() * (chunk.z1 - chunk.z0 - 8);
     for (let i = 0; i < count; i++) {
         const z = clusterZ + (Math.random() - 0.5) * 4;
         const x = (Math.random() - 0.5) * (ROAD_WIDTH - 1.5);

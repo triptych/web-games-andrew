@@ -22,6 +22,7 @@ export function initScene() {
     // Scene
     scene = new THREE.Scene();
     scene.fog = new THREE.Fog(COLORS.bg, 30, CAM_FAR);
+    scene.background = _buildSkyTexture();
 
     // Camera — trails behind and above the walker, looking forward down +Z
     camera = new THREE.PerspectiveCamera(
@@ -49,4 +50,22 @@ function _onResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+/** Vertical gradient sky (dark horizon fog color -> a lighter zenith blue) baked to a canvas texture. */
+function _buildSkyTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 2;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, '#1b2447');   // zenith
+    grad.addColorStop(0.6, '#3a4a72'); // mid sky
+    grad.addColorStop(1, '#0a0a14');   // horizon — matches COLORS.bg / fog color
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
 }

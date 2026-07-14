@@ -3,7 +3,7 @@
 **Genre:** Endless walker / action RPG with procedural loot
 **Engine:** three.js r165 (ES6 modules via import map)
 **Target Resolution:** Fullscreen (responsive, `renderer.setSize(innerWidth, innerHeight)`)
-**Status:** Phase 2 complete — starting Phase 3
+**Status:** Phase 2 complete — Phase 3 in progress (pacing + scenery pass done)
 
 ---
 
@@ -386,3 +386,57 @@ split if the shop grows real buy logic in Phase 3.
   monster in a 2-monster encounter actually be reached and killed, does
   the indicator show/hide at the right moments, and does forward walking
   resume smoothly (no camera pop) once the arena clears.
+
+### Pacing + scenery pass (2026-07-14)
+- User-reported: first encounter took too long to reach, and the path was
+  visually plain (flat color ground, two edge boxes, nothing else).
+- `monsters.js`/`config.js`: chunk 0 now always spawns its encounter
+  (`FIRST_ENCOUNTER_DISTANCE` = 10 world units in) instead of rolling
+  `MONSTER_SPAWN_CHANCE_PER_CHUNK` like every other chunk — at
+  `WALK_SPEED` that's under 2 seconds to first contact, and it can no
+  longer be pushed out further by a bad RNG roll on top of a bad roll.
+- `scene.js`: `scene.background` is now a vertical-gradient sky baked to a
+  `CanvasTexture` (zenith → mid-sky → horizon, horizon color matches the
+  existing fog/bg color so the join is invisible) instead of a flat clear
+  color.
+- `path.js`: each chunk now also builds a wide grass/dirt terrain strip
+  under the road (so the world doesn't cut to void past the road edges),
+  a scattered flanking forest (cone+cylinder trees, 3-5 per side, road
+  chunks only — towns keep their placeholder buildings instead), and two
+  low-poly background hills per side per chunk for depth.
+- Trees and hills share cached geometries (`_treeGeoCache`,
+  `_hillGeoCache`) across every chunk instead of allocating new geometry
+  per spawn, since dozens of chunks' worth of trees/hills can be live at
+  once; `_disposeChunk` was updated to skip disposing shared geometries
+  (only per-chunk materials + non-shared geometry like the terrain/road
+  planes get disposed) — missing this would have freed a geometry still
+  in use by a neighboring chunk and corrupted rendering.
+- Not yet verified live in a browser this session — needs an eyeball
+  pass on: time-to-first-fight feel, whether the forest density/hill
+  placement reads well at the default camera angle, and whether the
+  gradient sky's horizon band actually matches the fog color seamlessly.
+
+### Fantasy road texture (2026-07-14)
+- User-reported: the first scenery pass gave the road a flat green fill
+  plus a dashed centerline, which read as a modern painted asphalt road
+  rather than a fantasy dirt/cobblestone trail.
+- `path.js`: replaced the flat `ROAD_COLOR` fill + dashed centerline with
+  `_getRoadTexture()` — a 128x128 `CanvasTexture` baked once (irregular
+  cobblestone/dirt blotches + two worn travel-groove lines, no straight
+  painted markings), tiled via `RepeatWrapping` and cloned per road chunk
+  so each chunk can set its own `repeat` without fighting over one shared
+  texture instance. Town chunks keep a flat packed-earth color
+  (`TOWN_COLOR`) so the safe zone still reads as visually distinct from
+  the road.
+- Road edge curbs changed from a bright accent-blue box (read as a
+  reflective modern lane marker) to a dull stone-gray (`0x6b6558`); town
+  edges keep the gold accent as the "this is safe" visual cue.
+- Caught during implementation, not hypothetically: `material.dispose()`
+  does not free textures attached to a material — since each road
+  chunk clones its own texture instance, `_disposeChunk` now also calls
+  `material.map.dispose()` before disposing the material itself, or every
+  passed/disposed chunk would leak a texture on the GPU over a long run.
+- Not yet verified live in a browser this session — needs an eyeball
+  pass on how the cobblestone tiling reads at the player's camera angle/
+  distance (may need bigger cobblestones or a coarser repeat if it looks
+  too noisy/small from behind-camera).

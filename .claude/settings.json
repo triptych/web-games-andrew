@@ -3,7 +3,9 @@
     "allow": [
       "WebFetch(domain:unpkg.com)",
       "Bash(cd \"c:/Users/andre/OneDrive/Documents/web-games-andrew/game-025\" && node --check js/maze.js && echo \"maze OK\" && rm -f _levels.txt /tmp/genmaze2.js && echo \"cleaned\")",
-      "Bash(chromium-cli --session game029)"
+      "Bash(chromium-cli --session game029)",
+      "Bash(curl -sf -o /dev/null -w \"%{http_code}\\\\n\" http://127.0.0.1:5501/game-029/index.html; which chromium-cli 2>/dev/null; echo \"---\"; ls /tmp 2>/dev/null | grep -i chromium)",
+      "Read(//c/tmp/**)"
     ],
     "additionalDirectories": [
       "\\tmp"

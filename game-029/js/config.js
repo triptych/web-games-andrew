@@ -20,6 +20,10 @@ export const COLORS = {
     danger:   0xff5050,
     success:  0x50dc64,
     gold:     0xffd700,
+    hills:    0x232c4a,
+    foliage:  0x1e5c2e,
+    foliageDark: 0x144019,
+    trunk:    0x4a3626,
 };
 
 // --- Procedural path ---
@@ -88,3 +92,4 @@ export const MONSTER_CHASE_SPEED = 3; // world units / second, monster closing s
 // --- Monster spawning ---
 export const MONSTER_SPAWN_CHANCE_PER_CHUNK = 0.8; // chance a road chunk gets a monster
 export const MONSTER_MAX_PER_CHUNK = 2;
+export const FIRST_ENCOUNTER_DISTANCE = 10; // world units into chunk 0 — first fight is guaranteed here, not rolled
