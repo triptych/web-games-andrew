@@ -3,7 +3,7 @@
 **Genre:** Endless walker / action RPG with procedural loot
 **Engine:** three.js r165 (ES6 modules via import map)
 **Target Resolution:** Fullscreen (responsive, `renderer.setSize(innerWidth, innerHeight)`)
-**Status:** Phase 2 complete — Phase 3 in progress (pacing + scenery pass done)
+**Status:** Phase 3 complete
 
 ---
 
@@ -198,11 +198,16 @@ Web Audio API only — no file assets.
       world space and the player auto-walked straight through them,
       making most encounters unwinnable; see Mechanic 3 above
 
-### Phase 3 — Towns, Shop, Polish
-- [ ] Town chunk with distinct visuals (buildings/props) vs. road chunk
-- [ ] Shop: sell inventory, maybe buy potions/upgrades
-- [ ] Monster variety (2-3 silhouettes/behaviors per tier)
-- [ ] Camera polish, hit particles, screen shake on hit/hurt
+### Phase 3 — Towns, Shop, Polish (complete)
+- [x] Town chunk with distinct visuals (buildings/props) vs. road chunk —
+      varied-size houses with peaked roofs, a well landmark, a market
+      stall
+- [x] Shop: sell inventory, buy potions — "sell inventory" means selling
+      whatever's currently equipped (no bag in this design, see resolved
+      Open Question below); added a buyable heal-to-partial potion
+- [x] Monster variety (2-3 silhouettes/behaviors per tier) — 3 archetypes
+      (skirmisher/brute/stalker) layered on top of the existing 4 tiers
+- [x] Camera polish, hit particles, screen shake on hit/hurt
 
 ---
 
@@ -236,12 +241,15 @@ Web Audio API only — no file assets.
 | `ui.js`     | DOM HUD bindings, loot comparison modal, shop modal |
 | `path.js`   | Procedural chunk generation/streaming, town cadence, `chunkSpawned`/`townEntered`/`townExited` events |
 | `player.js` | Steering, combat-lock fwd/back movement, sword swing arc/hitbox, per-swing hit tracking, camera-follow |
-| `monsters.js` | Spawning (via `chunkSpawned`), chase AI, encounter lock queries, combat, death → loot roll |
+| `monsters.js` | Spawning (via `chunkSpawned`), archetypes, chase AI, encounter lock queries, combat, death → loot roll |
 | `loot.js`   | Item generation, rarity, sale value |
+| `fx.js`     | Hit particle bursts, screen shake (camera offset read by `player.js`) |
 
 Town/shop flow has no dedicated `town.js` — `path.js` owns the trigger
-(town chunk enter/exit) and `main.js`/`ui.js` own the modal. Revisit this
-split if the shop grows real buy logic in Phase 3.
+(town chunk enter/exit) and `main.js`/`ui.js` own the modal. The Phase 3
+shop (sell-equipped + buy-potion) fit fine inside `ui.js`/`state.js`
+without a dedicated module; revisit only if the shop grows a real
+buyable-gear inventory later.
 
 ---
 
@@ -252,7 +260,11 @@ split if the shop grows real buy logic in Phase 3.
       endless pacing), but forward/back (WASD) unlocks during a combat
       arena so the player can actually chase/dodge monsters instead of
       auto-walking straight through them — see Mechanic 3.
-- [ ] Should the shop allow *buying* new gear/potions, or stay sell-only?
+- [x] Should the shop allow *buying* new gear/potions, or stay sell-only?
+      Resolved: buy a heal potion only (flat coin cost, restores fixed HP),
+      not new gear — gear only ever comes from loot drops per the
+      equip-or-sell design, so a gear shop would need an inventory to
+      browse and undercut the loot-drop excitement.
 - [ ] Cap on how many pending loot drops can queue up if the player declines
       to stop (probably: combat pauses immediately on drop, so no queue
       needed).
@@ -440,3 +452,57 @@ split if the shop grows real buy logic in Phase 3.
   pass on how the cobblestone tiling reads at the player's camera angle/
   distance (may need bigger cobblestones or a coarser repeat if it looks
   too noisy/small from behind-camera).
+
+### Phase 3 — Towns, Shop, Polish (2026-07-14)
+- `config.js`: added `MONSTER_ARCHETYPES` (skirmisher/brute/stalker — each
+  scales a tier's hp/damage/chase speed and picks a distinct
+  geometry+color) and `POTION_COST`/`POTION_HEAL` for the shop.
+- `monsters.js`: `_spawnMonster` now rolls an archetype (weighted) on top
+  of the existing distance-based tier, so power still scales with
+  distance but silhouette/behavior varies independently — a skirmisher
+  darts in fast and dies quick, a brute closes slowly but hits hard.
+  Monster geometry moved to a shared `_monsterGeoCache` (cone/box) since
+  many monsters now reuse the same two geometries; `_disposeMonster`
+  updated to stop disposing that now-shared geometry (only the per-
+  monster material is disposed) — would have corrupted every other live
+  monster of that archetype otherwise.
+- `fx.js` (new): hit-particle bursts (small fading spheres with gravity,
+  tinted per-event) on both sword-hits-monster and monster-hits-player,
+  plus a screen-shake system (`triggerShake`/`updateShake`/
+  `getShakeOffset`) that a stronger/longer shake overrides rather than
+  stacks with, so rapid hits don't compound into unreadable jitter.
+  `player.js`'s camera-follow now adds the shake offset on top of the
+  base follow position every frame; `main.js`'s `animate()` calls
+  `updateParticles`/`updateShake` unconditionally (even during the loot/
+  shop modals) so a kill's burst doesn't freeze mid-flight.
+- `path.js`: `_addTown()` replaces the old two-box placeholder — 1-2
+  houses per side with randomized size/color and a peaked roof, a
+  centered stone well (landmark, no interaction), and a market stall
+  prop. All town geometries are cached/shared (`_townGeoCache`) like the
+  existing tree/hill caches and added to `_sharedGeometries` so
+  `_disposeChunk` doesn't free geometry still in use by a neighboring
+  town chunk.
+- `ui.js`/`state.js`: `showShop()` rebuilt from a stub into a functional
+  panel — sells whatever's currently equipped per slot (there's no bag in
+  this design, so "sell inventory" means reverting to bare hands/no
+  armor for coins via the same `getSaleValue()` formula loot uses) and
+  buys a flat-cost healing potion (disabled once at full HP or too poor
+  to afford it). Added `state.unequip(slot)`, mirroring `equip()`'s
+  maxHp re-derivation so selling armor correctly drops maxHp back to
+  `STARTING_HP`. Re-renders the modal in place after each transaction
+  instead of closing/reopening, so the player can sell then immediately
+  buy a potion with the proceeds in one visit.
+- Resolved the "should the shop allow buying new gear" open question:
+  potion-only, not gear — a gear shop would need its own inventory to
+  browse, which undercuts the loot-drop-is-exciting design goal.
+- Did not add a distinct "brute is slow but tough" visual tell beyond
+  size/color (e.g. a distinct attack windup) — deferred; the archetype's
+  scale/color already reads as different at a glance during playtesting
+  intent, but a dedicated telegraph animation would need its own pass.
+- Not verified live in a browser this session per user request (no
+  Playwright) — needs an eyeball pass via Live Server at
+  `http://127.0.0.1:5501/game-029/index.html` on: all three monster
+  archetypes spawning with visibly different size/color/chase feel,
+  town buildings/well/stall rendering without z-fighting or floating,
+  hit particles/screen shake not feeling excessive, and the shop's
+  sell→buy-potion flow updating coins/HP correctly in place.

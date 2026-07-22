@@ -46,6 +46,30 @@ export const MONSTER_TIERS = [
     { minDistance: 1600, level: 4, hp: 42, damage: 7,  coinDrop: [6, 12] },
 ];
 
+// --- Monster archetypes ---
+// Each archetype scales a tier's base hp/damage/chase speed and picks a
+// distinct silhouette, so encounters look and behave differently rather
+// than every monster being the same cone at a different tint. `weight` is
+// relative spawn chance; all archetypes are eligible from the start (tier
+// controls power, archetype controls shape/behavior).
+export const MONSTER_ARCHETYPES = [
+    {
+        key: 'skirmisher', weight: 2,
+        hpMult: 0.65, damageMult: 0.8, chaseSpeedMult: 1.8,
+        color: 0x50dc64, geo: 'cone', scale: 0.75,
+    },
+    {
+        key: 'brute', weight: 2,
+        hpMult: 1.8, damageMult: 1.4, chaseSpeedMult: 0.55,
+        color: 0xb06060, geo: 'box', scale: 1.35,
+    },
+    {
+        key: 'stalker', weight: 3,
+        hpMult: 1.0, damageMult: 1.0, chaseSpeedMult: 1.0,
+        color: 0x64c8ff, geo: 'cone', scale: 1.0,
+    },
+];
+
 // --- Item rarity ---
 // Drives both drop chance and comparison-UI accent color. TODO: use in loot.js.
 export const RARITY = {
@@ -93,3 +117,7 @@ export const MONSTER_CHASE_SPEED = 3; // world units / second, monster closing s
 export const MONSTER_SPAWN_CHANCE_PER_CHUNK = 0.8; // chance a road chunk gets a monster
 export const MONSTER_MAX_PER_CHUNK = 2;
 export const FIRST_ENCOUNTER_DISTANCE = 10; // world units into chunk 0 — first fight is guaranteed here, not rolled
+
+// --- Shop ---
+export const POTION_COST   = 15;  // coins to buy a healing potion in town
+export const POTION_HEAL   = 20;  // HP restored per potion

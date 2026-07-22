@@ -7,8 +7,9 @@
 
 import { state }  from './state.js';
 import { events } from './events.js';
-import { WEAPON_ATTRS, ARMOR_ATTRS } from './config.js';
-import { playUiClick } from './sounds.js';
+import { WEAPON_ATTRS, ARMOR_ATTRS, POTION_COST, POTION_HEAL } from './config.js';
+import { getSaleValue } from './loot.js';
+import { playUiClick, playCoinPickup } from './sounds.js';
 
 let $hp, $distance, $coins, $message, $modalRoot, $combatIndicator;
 
@@ -190,6 +191,21 @@ function _injectStylesOnce() {
             padding: 8px 16px; border-radius: 4px; cursor: pointer;
         }
         .loot-compare-actions button:hover { background: #2e2e4a; }
+        .shop-panel { min-width: 380px; }
+        .shop-coins { opacity: 0.7; font-size: 13px; margin-bottom: 16px; }
+        .shop-section { margin-bottom: 16px; }
+        .shop-section h3 { font-size: 12px; opacity: 0.6; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .shop-row {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 13px; padding: 6px 0; gap: 12px;
+        }
+        .shop-row button {
+            font-family: inherit; font-size: 12px; letter-spacing: 0.5px;
+            background: #232338; border: 1px solid #4a4a70; color: #dcdcf0;
+            padding: 5px 10px; border-radius: 4px; cursor: pointer; white-space: nowrap;
+        }
+        .shop-row button:hover:not(:disabled) { background: #2e2e4a; }
+        .shop-row button:disabled { opacity: 0.35; cursor: not-allowed; }
     `;
     document.head.appendChild(style);
 }
@@ -197,31 +213,86 @@ function _injectStylesOnce() {
 // ============================================================
 // Shop modal (town visits)
 // ============================================================
-// TODO(town.js): call showShop() when the player enters a town's shop
-// trigger volume. Phase 1 stub only — no buying yet, just cash-in/sell.
+// Called by main.js when the player enters a town's shop trigger volume.
+// There's no bag (per the design's "equip or sell, no inventory" rule), so
+// "sell inventory" here means selling whatever is *currently equipped* —
+// reverting to bare hands/no armor in exchange for coins. Buying is limited
+// to a heal potion (full-HP restore for a flat coin cost) rather than new
+// gear, since gear only ever comes from loot drops in this design.
 
 export function showShop() {
     return new Promise((resolve) => {
-        $modalRoot.innerHTML = `
-            <div class="loot-compare-backdrop">
-                <div class="loot-compare-panel">
-                    <h2>Town Shop</h2>
-                    <p style="opacity:0.7; font-size:13px; margin-bottom:16px;">
-                        Coins: ${state.coins} — TODO: list sellable inventory here.
-                    </p>
-                    <div class="loot-compare-actions">
-                        <button id="btn-leave">Leave shop</button>
+        const render = () => {
+            $modalRoot.innerHTML = `
+                <div class="loot-compare-backdrop">
+                    <div class="loot-compare-panel shop-panel">
+                        <h2>Town Shop</h2>
+                        <p class="shop-coins">Coins: ${state.coins}</p>
+                        <div class="shop-section">
+                            <h3>Sell Equipped Gear</h3>
+                            ${_renderSellRow('weapon')}
+                            ${_renderSellRow('armor')}
+                        </div>
+                        <div class="shop-section">
+                            <h3>Buy</h3>
+                            <div class="shop-row">
+                                <span>Healing Potion (restores ${POTION_HEAL} HP)</span>
+                                <button id="btn-buy-potion" ${state.coins < POTION_COST || state.hp >= state.maxHp ? 'disabled' : ''}>
+                                    Buy for ${POTION_COST}
+                                </button>
+                            </div>
+                        </div>
+                        <div class="loot-compare-actions">
+                            <button id="btn-leave">Leave shop</button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-        _injectStylesOnce();
-        $modalRoot.classList.add('active');
-        document.getElementById('btn-leave').onclick = () => {
-            playUiClick();
-            $modalRoot.classList.remove('active');
-            $modalRoot.innerHTML = '';
-            resolve();
+            `;
+            _injectStylesOnce();
+            $modalRoot.classList.add('active');
+
+            for (const slot of ['weapon', 'armor']) {
+                const btn = document.getElementById(`btn-sell-${slot}`);
+                if (btn) btn.onclick = () => {
+                    const item = state.equipped[slot];
+                    if (!item) return;
+                    playUiClick();
+                    state.addCoins(getSaleValue(item));
+                    state.unequip(slot);
+                    render();
+                };
+            }
+
+            const potionBtn = document.getElementById('btn-buy-potion');
+            if (potionBtn) potionBtn.onclick = () => {
+                if (state.coins < POTION_COST || state.hp >= state.maxHp) return;
+                playCoinPickup();
+                state.coins -= POTION_COST;
+                state.heal(POTION_HEAL);
+                render();
+            };
+
+            document.getElementById('btn-leave').onclick = () => {
+                playUiClick();
+                $modalRoot.classList.remove('active');
+                $modalRoot.innerHTML = '';
+                resolve();
+            };
         };
+        render();
     });
+}
+
+function _renderSellRow(slot) {
+    const item = state.equipped[slot];
+    if (!item) {
+        return `<div class="shop-row"><span class="empty">${slot} — none equipped</span></div>`;
+    }
+    const value = getSaleValue(item);
+    return `
+        <div class="shop-row">
+            <span class="item-name rarity-${item.rarity ?? 'common'}">${item.name}</span>
+            <button id="btn-sell-${slot}">Sell for ${value}</button>
+        </div>
+    `;
 }

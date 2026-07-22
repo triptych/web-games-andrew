@@ -18,10 +18,11 @@ import { state } from './state.js';
 import { events } from './events.js';
 import { playSwordHit, playMonsterDeath, playPlayerHurt } from './sounds.js';
 import { generateItem, getSaleValue } from './loot.js';
+import { spawnHitParticles, triggerShake } from './fx.js';
 import {
     MONSTER_TIERS, MONSTER_SPAWN_CHANCE_PER_CHUNK, MONSTER_MAX_PER_CHUNK,
-    MONSTER_CONTACT_RANGE, MONSTER_ATTACK_COOLDOWN, ROAD_WIDTH, RARITY,
-    MONSTER_CHASE_SPEED, FIRST_ENCOUNTER_DISTANCE,
+    MONSTER_CONTACT_RANGE, MONSTER_ATTACK_COOLDOWN, ROAD_WIDTH,
+    MONSTER_CHASE_SPEED, FIRST_ENCOUNTER_DISTANCE, MONSTER_ARCHETYPES,
 } from './config.js';
 import { getPlayerX, getPlayerZ, trySwordHit } from './player.js';
 
@@ -74,23 +75,42 @@ function _tierForDistance(distance) {
     return tier;
 }
 
+const _totalArchetypeWeight = MONSTER_ARCHETYPES.reduce((sum, a) => sum + a.weight, 0);
+function _rollArchetype() {
+    let roll = Math.random() * _totalArchetypeWeight;
+    for (const a of MONSTER_ARCHETYPES) {
+        roll -= a.weight;
+        if (roll <= 0) return a;
+    }
+    return MONSTER_ARCHETYPES[MONSTER_ARCHETYPES.length - 1];
+}
+
+const _monsterGeoCache = {
+    cone: new THREE.ConeGeometry(0.6, 1.6, 6),
+    box: new THREE.BoxGeometry(0.9, 1.4, 0.9),
+};
+
 function _spawnMonster(x, z, distance, chunkIndex) {
     const tier = _tierForDistance(distance);
+    const archetype = _rollArchetype();
     const mesh = new THREE.Mesh(
-        new THREE.ConeGeometry(0.6, 1.6, 6),
-        new THREE.MeshStandardMaterial({ color: RARITY.uncommon.color }),
+        _monsterGeoCache[archetype.geo] ?? _monsterGeoCache.cone,
+        new THREE.MeshStandardMaterial({ color: archetype.color }),
     );
-    mesh.position.set(x, 0.8, z);
+    mesh.scale.setScalar(archetype.scale);
+    mesh.position.set(x, 0.8 * archetype.scale, z);
     scene.add(mesh);
 
+    const hp = Math.round(tier.hp * archetype.hpMult);
     _monsters.push({
         mesh,
         x, z,
         spawnZ: z,       // original spawn position — used to find/trigger the encounter,
         chunkIndex,      // stable even as the monster chases the player around the arena
         tier,
-        hp: tier.hp,
-        maxHp: tier.hp,
+        archetype,
+        hp,
+        maxHp: hp,
         attackCooldown: 0,
         dead: false,
     });
@@ -105,12 +125,15 @@ export function updateMonsters(dt, inCombat) {
 
         if (inCombat) {
             // Actively chase the player's exact position once combat locks.
+            // Chase speed is scaled per archetype (skirmishers dart in fast,
+            // brutes lumber) rather than a single shared speed.
             const dx = playerX - m.x;
             const dz = playerZ - m.z;
             const dist = Math.hypot(dx, dz);
+            const chaseSpeed = MONSTER_CHASE_SPEED * m.archetype.chaseSpeedMult;
             if (dist > MONSTER_CONTACT_RANGE * 0.6) {
-                m.x += (dx / dist) * MONSTER_CHASE_SPEED * dt;
-                m.z += (dz / dist) * MONSTER_CHASE_SPEED * dt;
+                m.x += (dx / dist) * chaseSpeed * dt;
+                m.z += (dz / dist) * chaseSpeed * dt;
                 m.mesh.position.set(m.x, m.mesh.position.y, m.z);
             }
         }
@@ -126,7 +149,9 @@ export function updateMonsters(dt, inCombat) {
         if (distToPlayer <= MONSTER_CONTACT_RANGE && m.attackCooldown <= 0) {
             m.attackCooldown = MONSTER_ATTACK_COOLDOWN;
             playPlayerHurt();
-            state.takeDamage(m.tier.damage);
+            state.takeDamage(Math.round(m.tier.damage * m.archetype.damageMult));
+            spawnHitParticles(playerX, 1.2, playerZ, 0xff5050);
+            triggerShake(0.25, 0.2);
         }
     }
 
@@ -176,6 +201,8 @@ function _damageMonster(m, dmg) {
     if (m.dead) return;
     m.hp -= dmg;
     playSwordHit();
+    spawnHitParticles(m.x, m.mesh.position.y, m.z, m.archetype.color);
+    triggerShake(0.12, 0.1);
     if (m.hp <= 0) {
         m.dead = true;
         playMonsterDeath();
@@ -198,6 +225,8 @@ function _onMonsterKilled(m) {
 
 function _disposeMonster(m) {
     scene.remove(m.mesh);
-    m.mesh.geometry.dispose();
+    // Geometry comes from _monsterGeoCache and is shared across every
+    // monster of that archetype — never dispose it here, only the
+    // per-monster material (each monster gets its own material instance).
     m.mesh.material.dispose();
 }

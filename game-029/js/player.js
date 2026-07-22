@@ -21,6 +21,7 @@ import {
     SWORD_SWING_DURATION, SWORD_SWING_COOLDOWN, CAM_POS, ARENA_Z_RADIUS,
 } from './config.js';
 import { getRoadHalfWidth } from './path.js';
+import { getShakeOffset } from './fx.js';
 
 let mesh, swordPivot;
 let _x = 0;                 // lateral offset from road center
@@ -118,8 +119,10 @@ export function updatePlayer(dt) {
 
     // Camera trails behind/above the player but stays fixed laterally, so
     // steering visibly moves the player left/right on screen instead of
-    // the whole rig (and the road) sliding the opposite way.
-    camera.position.set(0, CAM_POS[1], z - CAM_POS[2]);
+    // the whole rig (and the road) sliding the opposite way. Shake offset
+    // is added on top and never accumulates into the base follow position.
+    const shake = getShakeOffset();
+    camera.position.set(shake.x, CAM_POS[1] + shake.y, z - CAM_POS[2]);
     camera.lookAt(0, 1, z + 20);
 }
 

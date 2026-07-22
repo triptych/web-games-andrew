@@ -46,6 +46,14 @@ class GameState {
         }
     }
 
+    /** Sells/removes whatever is equipped in `slot`, reverting to bare hands/no armor. */
+    unequip(slot) {
+        this.equipped[slot] = null;
+        if (slot === 'armor') {
+            this.maxHp = STARTING_HP;
+        }
+    }
+
     // --- HP ---
     get hp() { return this._hp; }
     set hp(val) {

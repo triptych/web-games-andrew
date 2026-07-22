@@ -379,6 +379,19 @@ const games = [
             { emoji: '🎲', label: 'Procedural' },
             { emoji: '⌨️', label: 'Keyboard' }
         ]
+    },
+    {
+        id: 'game-030',
+        title: 'Coppergate Lane',
+        description: "A cozy-fantasy RPG-Maker-style adventure. Explore Coppergate Lane, the Whistling Wilds, and Gutter Gully, help the townsfolk with quests, battle clockwork critters in turn-based combat, and recover the Mayor's stolen Golden Gear from the brute Big Bertha.",
+        icon: '⚙️',
+        folder: 'game-030',
+        cssClass: 'coppergate-lane',
+        tags: [
+            { emoji: '🗺️', label: 'Adventure' },
+            { emoji: '🎲', label: 'Turn-Based' },
+            { emoji: '⌨️', label: 'Keyboard' }
+        ]
     }
 ];
 

@@ -16,6 +16,7 @@ import { WALK_SPEED } from './config.js';
 import { initPath, updatePath }         from './path.js';
 import { initPlayer, updatePlayer, setCombatLock, clearCombatLock } from './player.js';
 import { initMonsters, updateMonsters, trySpawnInChunk, findEncounterAhead, isEncounterClear } from './monsters.js';
+import { updateParticles, updateShake } from './fx.js';
 import { ARENA_LOCK_RANGE } from './config.js';
 
 // ============================================================
@@ -137,6 +138,11 @@ function animate() {
         updatePlayer(dt);
         updateMonsters(dt, _lockedChunkIndex !== null);
     }
+
+    // Particles/shake keep animating through pause-for-loot/town so a kill's
+    // burst doesn't freeze mid-flight when the comparison modal pops up.
+    updateParticles(dt);
+    updateShake(dt);
 
     renderer.render(scene, camera);
 }

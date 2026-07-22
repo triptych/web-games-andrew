@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coppergate Lane</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="game-frame">
+  <canvas id="game" width="640" height="480"></canvas>
+
+  <!-- Textbox for dialogue -->
+  <div id="textbox" class="panel hidden">
+    <div id="textbox-speaker"></div>
+    <div id="textbox-body"></div>
+    <div id="textbox-prompt">▼</div>
+  </div>
+
+  <!-- Choice menu (yes/no, shop root, etc) -->
+  <div id="choice" class="panel hidden"></div>
+
+  <!-- Main pause menu -->
+  <div id="menu" class="panel hidden">
+    <h2>Menu</h2>
+    <ul id="menu-list"></ul>
+    <div class="hint">Esc / X to close</div>
+  </div>
+
+  <!-- Inventory -->
+  <div id="inventory" class="panel hidden">
+    <h2>Inventory</h2>
+    <ul id="inventory-list"></ul>
+    <div class="hint">Enter: use · Esc: back</div>
+  </div>
+
+  <!-- Quest log -->
+  <div id="quests" class="panel hidden">
+    <h2>Quest Log</h2>
+    <ul id="quest-list"></ul>
+    <div class="hint">Esc: back</div>
+  </div>
+
+  <!-- Shop -->
+  <div id="shop" class="panel hidden">
+    <h2 id="shop-title">Shop</h2>
+    <div id="shop-gold"></div>
+    <div class="shop-cols">
+      <div>
+        <h3>Buy</h3>
+        <ul id="shop-buy"></ul>
+      </div>
+      <div>
+        <h3>Sell</h3>
+        <ul id="shop-sell"></ul>
+      </div>
+    </div>
+    <div class="hint">Tab: switch column · Enter: confirm · Esc: leave</div>
+  </div>
+
+  <!-- Battle overlay -->
+  <div id="battle" class="hidden">
+    <div id="battle-enemies"></div>
+    <div id="battle-party"></div>
+    <div id="battle-log"></div>
+    <div id="battle-menu"></div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <span id="hud-gold">◈ 0</span>
+    <span id="hud-loc"></span>
+  </div>
+
+  <!-- Title screen -->
+  <div id="title" class="panel">
+    <h1>Coppergate Lane</h1>
+    <p class="subtitle">a cozy tinker's tale</p>
+    <button id="btn-start">Begin</button>
+    <div class="controls-hint">
+      Arrows/WASD move · Enter/Space interact · M menu · Esc back
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

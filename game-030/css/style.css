@@ -1,0 +1,200 @@
+/* ============================================================
+   Coppergate Lane — styling
+   Cozy warm palette: parchment, copper, lantern-glow.
+   ============================================================ */
+
+:root {
+  --bg:        #1a1410;
+  --panel:     #2a2018;
+  --panel-lit: #3a2c20;
+  --ink:       #f4e8d0;
+  --ink-dim:   #c8b490;
+  --copper:    #c87f4a;
+  --copper-lt: #e6a068;
+  --gold:      #f0c860;
+  --danger:    #d05858;
+  --success:   #78c060;
+  --border:    #6a4a30;
+  --font: "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: #000;
+  display: flex; justify-content: center; align-items: center;
+  font-family: var(--font);
+  color: var(--ink);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#game-frame {
+  position: relative;
+  width: 640px; height: 480px;
+  background: var(--bg);
+  box-shadow: 0 0 40px rgba(200,127,74,0.15);
+  border: 2px solid var(--border);
+  user-select: none;
+}
+
+#game {
+  display: block;
+  image-rendering: pixelated;
+  width: 640px; height: 480px;
+  background: #0e0b08;
+}
+
+/* ---- Panels (shared RPG-Maker window look) ---- */
+.panel {
+  position: absolute;
+  background: linear-gradient(180deg, var(--panel-lit), var(--panel));
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(240,200,96,0.08);
+  z-index: 10;
+}
+.hidden { display: none !important; }
+
+.panel h2 {
+  font-size: 18px; color: var(--gold);
+  margin-bottom: 8px; letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border); padding-bottom: 4px;
+}
+.panel h3 { font-size: 13px; color: var(--copper-lt); margin-bottom: 4px; }
+.hint { margin-top: 10px; font-size: 11px; color: var(--ink-dim); opacity: 0.8; }
+
+ul { list-style: none; }
+li {
+  padding: 5px 8px; font-size: 14px; border-radius: 4px;
+  display: flex; justify-content: space-between; gap: 12px;
+  cursor: pointer;
+}
+li.sel { background: var(--copper); color: #1a1008; font-weight: 600; }
+li.disabled { color: var(--ink-dim); opacity: 0.5; }
+li .price { color: var(--gold); }
+li.sel .price { color: #1a1008; }
+li .qty { color: var(--ink-dim); }
+li.sel .qty { color: #3a2408; }
+
+/* ---- Textbox ---- */
+#textbox {
+  left: 20px; right: 20px; bottom: 20px;
+  min-height: 90px;
+}
+#textbox-speaker { color: var(--copper-lt); font-weight: 700; margin-bottom: 4px; font-size: 14px; }
+#textbox-body { font-size: 15px; line-height: 1.5; min-height: 44px; }
+#textbox-prompt { text-align: right; color: var(--gold); animation: bob 0.8s infinite; }
+@keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(3px)} }
+
+/* ---- Choice ---- */
+#choice { right: 20px; bottom: 120px; min-width: 160px; }
+
+/* ---- Menu ---- */
+#menu { top: 40px; right: 40px; min-width: 180px; }
+
+/* ---- Inventory / Quests ---- */
+#inventory, #quests {
+  top: 40px; left: 40px; right: 40px; bottom: 40px;
+  overflow-y: auto;
+}
+#quest-list li { flex-direction: column; align-items: flex-start; cursor: default; }
+.quest-name { font-weight: 600; }
+.quest-name.done { color: var(--success); text-decoration: line-through; }
+.quest-desc { font-size: 12px; color: var(--ink-dim); margin-top: 2px; }
+
+/* ---- Shop ---- */
+#shop { top: 30px; left: 30px; right: 30px; bottom: 30px; overflow: hidden; }
+#shop-gold { color: var(--gold); margin-bottom: 8px; font-size: 14px; }
+.shop-cols { display: flex; gap: 20px; height: calc(100% - 90px); }
+.shop-cols > div { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 4px; padding: 6px; }
+
+/* ---- Battle ---- */
+#battle {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; flex-direction: column;
+  background: radial-gradient(circle at 50% 30%, #2a1e14, #0e0906);
+  padding: 16px;
+}
+#battle-enemies {
+  flex: 1; display: flex; justify-content: center; align-items: center;
+  gap: 30px; flex-wrap: wrap;
+}
+.enemy {
+  text-align: center; cursor: pointer; transition: transform 0.1s;
+  padding: 8px; border-radius: 8px;
+}
+.enemy.target { background: rgba(208,88,88,0.25); outline: 2px solid var(--danger); }
+.enemy.dead { opacity: 0.25; filter: grayscale(1); }
+.enemy-sprite { font-size: 52px; line-height: 1; }
+.enemy.hurt { animation: shake 0.3s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.enemy-name { font-size: 12px; margin-top: 2px; }
+.hpbar { width: 80px; height: 6px; background: #000; border-radius: 3px; margin: 3px auto 0; overflow: hidden; }
+.hpbar > i { display: block; height: 100%; background: var(--success); transition: width 0.3s; }
+.hpbar.low > i { background: var(--danger); }
+
+#battle-party { display: flex; justify-content: center; gap: 16px; margin: 10px 0; }
+.pc {
+  background: var(--panel); border: 2px solid var(--border);
+  border-radius: 6px; padding: 8px 14px; min-width: 150px;
+}
+.pc.active { border-color: var(--gold); box-shadow: 0 0 12px rgba(240,200,96,0.4); }
+.pc-name { font-weight: 700; color: var(--copper-lt); }
+.pc-stats { font-size: 12px; margin-top: 4px; }
+.pc-stats .mp { color: var(--copper-lt); }
+
+#battle-log {
+  height: 46px; background: rgba(0,0,0,0.4); border-radius: 4px;
+  padding: 6px 10px; font-size: 13px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+#battle-menu { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+#battle-menu button, .sub-btn {
+  background: var(--panel-lit); color: var(--ink);
+  border: 2px solid var(--border); border-radius: 5px;
+  padding: 8px 16px; font-size: 14px; cursor: pointer; font-family: var(--font);
+}
+#battle-menu button.sel, .sub-btn.sel { background: var(--copper); color: #1a1008; border-color: var(--gold); }
+#battle-menu button:disabled { opacity: 0.4; cursor: default; }
+
+/* ---- HUD ---- */
+#hud {
+  position: absolute; top: 8px; left: 8px; z-index: 5;
+  display: flex; gap: 14px; font-size: 14px;
+  background: rgba(26,20,16,0.7); padding: 4px 10px; border-radius: 4px;
+  pointer-events: none;
+}
+#hud-gold { color: var(--gold); }
+#hud-loc { color: var(--ink-dim); }
+
+/* ---- Title ---- */
+#title {
+  inset: 0; display: flex; flex-direction: column;
+  justify-content: center; align-items: center; text-align: center;
+  border: none; border-radius: 0; z-index: 30;
+  background: radial-gradient(circle at 50% 40%, #2a1e12, #120c08);
+}
+#title h1 {
+  font-size: 46px; color: var(--gold); letter-spacing: 2px;
+  text-shadow: 0 3px 0 #6a3818, 0 0 30px rgba(240,200,96,0.4);
+}
+.subtitle { color: var(--copper-lt); font-style: italic; margin: 6px 0 30px; }
+#btn-start {
+  background: var(--copper); color: #1a1008; border: none;
+  padding: 12px 40px; font-size: 18px; border-radius: 6px;
+  cursor: pointer; font-family: var(--font); font-weight: 700;
+  box-shadow: 0 4px 0 #8a4a24;
+}
+#btn-start:hover { background: var(--copper-lt); }
+#btn-start:active { transform: translateY(3px); box-shadow: 0 1px 0 #8a4a24; }
+.controls-hint { margin-top: 30px; font-size: 12px; color: var(--ink-dim); }
+
+/* floating combat text */
+.float-dmg {
+  position: absolute; font-weight: 800; font-size: 20px;
+  pointer-events: none; z-index: 25; animation: floatUp 0.8s ease-out forwards;
+}
+@keyframes floatUp { to { transform: translateY(-40px); opacity: 0; } }

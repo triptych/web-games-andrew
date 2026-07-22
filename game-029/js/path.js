@@ -197,14 +197,7 @@ function _buildChunkMesh(chunk) {
     }
 
     if (chunk.type === 'town') {
-        // Placeholder "buildings" flanking the safe zone so towns read distinctly.
-        const buildingGeo = new THREE.BoxGeometry(4, 5, 4);
-        const buildingMat = new THREE.MeshStandardMaterial({ color: 0x554433 });
-        for (const side of [-1, 1]) {
-            const b = new THREE.Mesh(buildingGeo, buildingMat);
-            b.position.set(side * (ROAD_WIDTH / 2 + 3), 2.5, cz);
-            group.add(b);
-        }
+        _addTown(group, chunk);
     } else {
         _addForest(group, chunk);
     }
@@ -218,6 +211,99 @@ const _treeGeoCache = {
     trunk: new THREE.CylinderGeometry(0.18, 0.24, 1.6, 6),
     foliage: new THREE.ConeGeometry(1.1, 2.2, 7),
 };
+
+const _townGeoCache = {
+    building: new THREE.BoxGeometry(1, 1, 1),   // scaled per-building
+    roof: new THREE.ConeGeometry(1, 1, 4),      // scaled per-building, rotated 45deg
+    wellWall: new THREE.CylinderGeometry(0.9, 0.9, 0.8, 10),
+    wellRoofPost: new THREE.CylinderGeometry(0.06, 0.06, 1.6, 6),
+    stallTop: new THREE.BoxGeometry(1.8, 0.1, 1.4),
+    stallLeg: new THREE.CylinderGeometry(0.05, 0.05, 1, 6),
+};
+
+const BUILDING_COLORS = [0x554433, 0x5c4a38, 0x4a3d30, 0x63503c];
+const ROOF_COLORS     = [0x7a3030, 0x6b3a28, 0x5a3838];
+
+/**
+ * Builds a small village: a couple of houses with peaked roofs flanking
+ * the road (count/size/color varied so towns don't all look identical),
+ * plus a well centered as a landmark and a market stall for flavor.
+ */
+function _addTown(group, chunk) {
+    const cz = chunk.z0 + CHUNK_LENGTH / 2;
+    const perSide = 1 + Math.floor(Math.random() * 2); // 1-2 buildings per side
+
+    for (const side of [-1, 1]) {
+        for (let i = 0; i < perSide; i++) {
+            const w = 3 + Math.random() * 2;
+            const h = 3.5 + Math.random() * 2.5;
+            const d = 3 + Math.random() * 2;
+            const x = side * (ROAD_WIDTH / 2 + 3 + Math.random() * 4);
+            const z = cz + (i - (perSide - 1) / 2) * 7 + (Math.random() - 0.5) * 2;
+
+            const buildingMat = new THREE.MeshStandardMaterial({
+                color: BUILDING_COLORS[Math.floor(Math.random() * BUILDING_COLORS.length)],
+            });
+            const building = new THREE.Mesh(_townGeoCache.building, buildingMat);
+            building.scale.set(w, h, d);
+            building.position.set(x, h / 2, z);
+            group.add(building);
+
+            const roofMat = new THREE.MeshStandardMaterial({
+                color: ROOF_COLORS[Math.floor(Math.random() * ROOF_COLORS.length)],
+            });
+            const roof = new THREE.Mesh(_townGeoCache.roof, roofMat);
+            roof.scale.set(w * 0.8, h * 0.5, d * 0.8);
+            roof.rotation.y = Math.PI / 4;
+            roof.position.set(x, h + (h * 0.25), z);
+            group.add(roof);
+        }
+    }
+
+    _addWell(group, cz);
+    _addStall(group, cz);
+}
+
+const WELL_STONE = 0x8a8378;
+
+/** A stone well centered on the road as a small landmark/checkpoint feel. */
+function _addWell(group, cz) {
+    const stoneMat = new THREE.MeshStandardMaterial({ color: WELL_STONE });
+    const wall = new THREE.Mesh(_townGeoCache.wellWall, stoneMat);
+    wall.position.set(0, 0.4, cz);
+    group.add(wall);
+
+    const woodMat = new THREE.MeshStandardMaterial({ color: COLORS.trunk });
+    for (const dx of [-0.7, 0.7]) {
+        const post = new THREE.Mesh(_townGeoCache.wellRoofPost, woodMat);
+        post.position.set(dx, 1.6, cz);
+        group.add(post);
+    }
+    const roofMat = new THREE.MeshStandardMaterial({ color: ROOF_COLORS[0] });
+    const roof = new THREE.Mesh(_townGeoCache.roof, roofMat);
+    roof.scale.set(2.2, 0.9, 1.6);
+    roof.rotation.y = Math.PI / 4;
+    roof.position.set(0, 2.5, cz);
+    group.add(roof);
+}
+
+/** A simple market stall off to one side — pure flavor, no interaction. */
+function _addStall(group, cz) {
+    const woodMat = new THREE.MeshStandardMaterial({ color: COLORS.trunk });
+    const clothMat = new THREE.MeshStandardMaterial({ color: COLORS.danger });
+    const x = ROAD_WIDTH / 2 + 1.2;
+    const z = cz + 4 + (Math.random() - 0.5) * 3;
+
+    const top = new THREE.Mesh(_townGeoCache.stallTop, clothMat);
+    top.position.set(x, 1.4, z);
+    group.add(top);
+
+    for (const [ldx, ldz] of [[-0.8, -0.6], [0.8, -0.6], [-0.8, 0.6], [0.8, 0.6]]) {
+        const leg = new THREE.Mesh(_townGeoCache.stallLeg, woodMat);
+        leg.position.set(x + ldx, 0.9, z + ldz);
+        group.add(leg);
+    }
+}
 
 /** Scatters a handful of simple cone-and-trunk trees on both sides of a road chunk. */
 function _addForest(group, chunk) {
@@ -268,10 +354,11 @@ function _addBackgroundHills(group, chunk) {
     }
 }
 
-// Geometries reused across every chunk (trees, hills) must never be disposed
-// per-chunk — other still-live chunks reference the same instance.
+// Geometries reused across every chunk (trees, hills, town props) must never
+// be disposed per-chunk — other still-live chunks reference the same instance.
 const _sharedGeometries = new Set([
     _treeGeoCache.trunk, _treeGeoCache.foliage, _hillGeoCache,
+    ...Object.values(_townGeoCache),
 ]);
 
 function _disposeChunk(chunk) {
