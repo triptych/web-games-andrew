@@ -71,6 +71,12 @@ export function drawStatusBar(fb, game) {
     if (s) {
         drawText(fb, right, BAR_Y + 24, `GOLD ${s.gold}`, P.YELLOW, P.BLACK);
         if (s.keys > 0) drawText(fb, right + 62, BAR_Y + 24, `KEYS ${s.keys}`, P.LTCYAN, P.BLACK);
+        if (s.pack) {
+            const p1 = s.pack.potion || 0, p2 = s.pack.mana || 0, p3 = s.pack.scroll || 0;
+            drawText(fb, 140, BAR_Y + 4, `1:${p1}`, p1 ? P.LTRED : P.DKGRAY, P.BLACK);
+            drawText(fb, 140, BAR_Y + 14, `2:${p2}`, p2 ? P.LTBLUE : P.DKGRAY, P.BLACK);
+            drawText(fb, 140, BAR_Y + 24, `3:${p3}`, p3 ? P.LTCYAN : P.DKGRAY, P.BLACK);
+        }
     }
 }
 

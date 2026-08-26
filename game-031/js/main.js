@@ -13,13 +13,24 @@ import {
 import { buildTheme, createWorldView } from './themes.js';
 import { Player, DIR_VECTORS } from './player.js';
 import { Input } from './input.js';
-import { populateLevel, decorate, ITEM_SPRITES, Projectile } from './entities.js';
+import {
+    populateLevel, decorate, ITEM_SPRITES, Projectile, Monster, monsterDef
+} from './entities.js';
+import { hasSave, readSave, writeSave, clearSave } from './save.js';
 import * as HUD from './hud.js';
 
 const MAX_MESSAGES = 32;
 export const FINAL_DEPTH = 10;
 
 const FIREBALL_COST = 4;
+const AUTOSAVE_EVERY = 20;
+
+/** Pack slots, in the order the number keys address them. */
+const SLOTS = [
+    { kind: 'potion', label: 'healing draught', color: P.LTRED },
+    { kind: 'mana', label: 'flask of cold fire', color: P.LTBLUE },
+    { kind: 'scroll', label: 'scroll of true seeing', color: P.LTCYAN }
+];
 
 class Game {
     constructor(canvas) {
@@ -38,8 +49,11 @@ class Game {
         this.stats = {
             hp: 40, hpMax: 40, mana: 20, manaMax: 20,
             level: 1, xp: 0, xpNext: 20, gold: 0, keys: 0,
-            atk: 5, def: 1, kills: 0
+            atk: 5, def: 1, kills: 0,
+            pack: { potion: 1, mana: 0, scroll: 0 }
         };
+        this.saveTimer = AUTOSAVE_EVERY;
+        this.canContinue = hasSave();
         this.projectiles = [];
         this.flash = null;
         this.castTimer = 0;
@@ -82,6 +96,7 @@ class Game {
         if (fresh && depth === FINAL_DEPTH) {
             this.say('something ancient stirs down here.', P.LTMAGENTA);
         }
+        if (this.stats) this.saveGame('descend');
     }
 
     say(text, color = P.LTGRAY) {
@@ -105,9 +120,24 @@ class Game {
 
     handleActions() {
         for (const action of this.input.drain()) {
-            if (this.state === 'title') { this.state = 'playing'; continue; }
+            if (this.state === 'title') {
+                if (action === 'continue') {
+                    if (this.loadGame()) this.state = 'playing';
+                    continue;
+                }
+                clearSave();
+                this.canContinue = false;
+                this.state = 'playing';
+                continue;
+            }
             if (this.state === 'dead' || this.state === 'won') {
                 if (action === 'use') location.reload();
+                continue;
+            }
+            if (action.startsWith('item')) {
+                if (this.state === 'playing' || this.state === 'inventory') {
+                    this.useSlot(parseInt(action.slice(4), 10) - 1);
+                }
                 continue;
             }
             switch (action) {
@@ -116,6 +146,12 @@ class Game {
                     break;
                 case 'help':
                     this.state = this.state === 'help' ? 'playing' : 'help';
+                    break;
+                case 'inventory':
+                    this.state = this.state === 'inventory' ? 'playing' : 'inventory';
+                    break;
+                case 'save':
+                    if (this.state === 'playing') this.saveGame('manual');
                     break;
                 case 'pause':
                     this.state = this.state === 'playing' ? 'paused' : 'playing';
@@ -161,6 +197,8 @@ class Game {
             this.say('a hidden door swings inward!', P.YELLOW);
             return;
         }
+
+        if (this.openChest()) return;
 
         const here = this.level.at(p.cellX, p.cellY);
         if (here === STAIRS) { this.enterLevel(this.depth + 1, 'down'); return; }
@@ -215,6 +253,7 @@ class Game {
         const r = Math.random();
         if (m.spec.boss) {
             this.state = 'won';
+            clearSave();
         } else if (r < 0.22) {
             this.level.items.push({ kind: 'gold', x: m.cellX, y: m.cellY });
         } else if (r < 0.32) {
@@ -239,22 +278,28 @@ class Game {
             s.mana = s.manaMax;
             this.say(`you feel stronger. level ${s.level}!`, P.YELLOW);
             this.setFlash(P.YELLOW, 0.3);
+            this.saveGame('level');
         }
     }
 
     monsterAttack(m) {
         const dmg = Math.max(1, m.spec.atk + ((Math.random() * 3) | 0) - this.stats.def);
-        this.stats.hp -= dmg;
-        this.setFlash(P.RED, 0.22);
         if (m.spec.drainsMana && this.stats.mana > 0) {
             this.stats.mana = Math.max(0, this.stats.mana - 2);
-            this.say(`the ${m.name} drains you for ${dmg}.`, P.LTMAGENTA);
+            this.takeDamage(dmg, `the ${m.name}`, P.LTMAGENTA, 'drains');
         } else {
-            this.say(`the ${m.name} hits you for ${dmg}.`, P.LTRED);
+            this.takeDamage(dmg, `the ${m.name}`);
         }
+    }
+
+    takeDamage(amount, source, color = P.LTRED, verb = 'hits') {
+        this.stats.hp -= amount;
+        this.setFlash(P.RED, 0.22);
+        this.say(`${source} ${verb} you for ${amount}.`, color);
         if (this.stats.hp <= 0) {
             this.stats.hp = 0;
             this.state = 'dead';
+            clearSave();
         }
     }
 
@@ -269,44 +314,132 @@ class Game {
         for (let i = items.length - 1; i >= 0; i--) {
             const it = items[i];
             if (it.x !== x || it.y !== y) continue;
+            if (it.kind === 'hoard') continue;      // a chest must be opened
             items.splice(i, 1);
             switch (it.kind) {
                 case 'key':
                     s.keys++;
                     this.say('you pocket an iron key.', P.LTCYAN);
                     break;
-                case 'hoard': {
-                    const gold = 40 + this.depth * 25 + ((Math.random() * 30) | 0);
-                    s.gold += gold;
-                    this.say(`a forgotten hoard! ${gold} gold.`, P.YELLOW);
-                    break;
-                }
                 case 'gold': {
                     const gold = 8 + ((Math.random() * (6 + this.depth * 4)) | 0);
                     s.gold += gold;
                     this.say(`${gold} gold pieces.`, P.YELLOW);
                     break;
                 }
-                case 'potion': {
-                    const heal = Math.min(s.hpMax - s.hp, 18);
-                    s.hp += heal;
-                    this.say(`you drink a healing draught. +${heal} hp.`, P.LTRED);
+                case 'potion':
+                case 'mana':
+                case 'scroll': {
+                    s.pack[it.kind]++;
+                    const slot = SLOTS.find(sl => sl.kind === it.kind);
+                    const n = SLOTS.indexOf(slot) + 1;
+                    this.say(`you take a ${slot.label}. press ${n} to use.`, slot.color);
                     break;
                 }
-                case 'mana': {
-                    const gain = Math.min(s.manaMax - s.mana, 12);
-                    s.mana += gain;
-                    this.say(`cold fire fills you. +${gain} power.`, P.LTBLUE);
-                    break;
-                }
-                case 'scroll':
-                    for (let yy = 0; yy < this.level.height; yy++)
-                        for (let xx = 0; xx < this.level.width; xx++)
-                            if (this.level.at(xx, yy) !== 0) this.level.markSeen(xx, yy);
-                    this.say('a scroll of true seeing. the level is revealed.', P.LTCYAN);
-                    break;
             }
         }
+    }
+
+    useSlot(index) {
+        const slot = SLOTS[index];
+        if (!slot) return;
+        const s = this.stats;
+        if (!s.pack[slot.kind]) {
+            this.say(`no ${slot.label} in your pack.`, P.DKGRAY);
+            return;
+        }
+        s.pack[slot.kind]--;
+        if (slot.kind === 'potion') {
+            const heal = Math.min(s.hpMax - s.hp, 18);
+            s.hp += heal;
+            this.say(`you drink deep. +${heal} hit points.`, P.LTRED);
+            this.setFlash(P.RED, 0.16);
+        } else if (slot.kind === 'mana') {
+            const gain = Math.min(s.manaMax - s.mana, 14);
+            s.mana += gain;
+            this.say(`cold fire fills you. +${gain} power.`, P.LTBLUE);
+            this.setFlash(P.BLUE, 0.16);
+        } else {
+            for (let yy = 0; yy < this.level.height; yy++)
+                for (let xx = 0; xx < this.level.width; xx++)
+                    if (this.level.at(xx, yy) !== 0) this.level.markSeen(xx, yy);
+            this.say('the level lies open in your mind.', P.LTCYAN);
+            this.setFlash(P.CYAN, 0.2);
+        }
+    }
+
+    openChest() {
+        const p = this.player;
+        const items = this.level.items;
+        const i = items.findIndex(it => it.kind === 'hoard' && it.x === p.cellX && it.y === p.cellY);
+        if (i < 0) return false;
+        items.splice(i, 1);
+        const gold = 40 + this.depth * 25 + ((Math.random() * 30) | 0);
+        this.stats.gold += gold;
+        this.say(`the chest holds ${gold} gold.`, P.YELLOW);
+        const roll = Math.random();
+        if (roll < 0.45) { this.stats.pack.potion++; this.say('...and a healing draught.', P.LTRED); }
+        else if (roll < 0.75) { this.stats.pack.mana++; this.say('...and a flask of cold fire.', P.LTBLUE); }
+        else if (roll < 0.9) { this.stats.pack.scroll++; this.say('...and a scroll of true seeing.', P.LTCYAN); }
+        this.setFlash(P.YELLOW, 0.25);
+        return true;
+    }
+
+    // --- persistence ------------------------------------------------------
+
+    saveGame(reason) {
+        // Never write from the title screen: the constructor enters level 1
+        // before the player has chosen new-game or continue, and saving
+        // there would clobber the run they are about to resume.
+        if (this.state !== 'playing') return;
+        this.saveTimer = AUTOSAVE_EVERY;
+        if (writeSave(this)) this.canContinue = true;
+        if (reason === 'manual') this.say('progress recorded.', P.LTGRAY);
+    }
+
+    /** Rebuild a run from a save: regenerate each floor, then apply deltas. */
+    loadGame() {
+        const data = readSave();
+        if (!data) { this.say('no run to continue.', P.DKGRAY); return false; }
+        this.seed = data.seed;
+        this.deepest = data.deepest;
+        this.time = data.time || 0;
+        this.stats = data.stats;
+        if (!this.stats.pack) this.stats.pack = { potion: 0, mana: 0, scroll: 0 };
+        this.levels.clear();
+        this.themes.clear();
+        this.player = null;
+        for (const saved of data.levels) {
+            const depth = saved.depth;
+            const seed = this.seed + depth * 104729;
+            const level = generateLevel(depth, seed);
+            level.monsters = [];
+            level.props = decorate(level, seed);
+            level.tiles.set(saved.tiles);
+            level.seen.set(saved.seen);
+            level.items = saved.items;
+            for (const m of saved.monsters) {
+                const spec = monsterDef(m.id);
+                if (!spec) continue;
+                const mob = new Monster(spec, m.x, m.y);
+                mob.hp = m.hp;
+                mob.awake = m.awake;
+                level.monsters.push(mob);
+                if (spec.boss) level.boss = mob;
+            }
+            this.levels.set(depth, level);
+            this.themes.set(depth, buildTheme(depth, this.seed + depth * 7919));
+        }
+        this.enterLevel(data.depth, 'down');
+        this.player.cellX = data.player.x;
+        this.player.cellY = data.player.y;
+        this.player.x = data.player.x + 0.5;
+        this.player.y = data.player.y + 0.5;
+        this.player.facing = data.player.facing;
+        this.player.angle = data.player.facing * Math.PI / 2;
+        this.messages.length = 0;
+        this.say(`you take up the descent again on level ${data.depth}.`, this.theme.accent);
+        return true;
     }
 
     // --- loop -------------------------------------------------------------
@@ -335,8 +468,18 @@ class Game {
             attack: (m) => this.monsterAttack(m),
             blocked: (x, y) => (this.player.cellX === x && this.player.cellY === y) ||
                 this.monsters.some(m => m.alive && m.cellX === x && m.cellY === y),
-            monsterAtPoint: (x, y) => this.monsterAtPoint(x, y),
+            targetAt: (x, y, owner) => {
+                if (owner === 'player') return this.monsterAtPoint(x, y);
+                return (Math.abs(x - this.player.x) < 0.5 && Math.abs(y - this.player.y) < 0.5)
+                    ? 'player' : null;
+            },
+            rangedAttack: (m, sx, sy, damage) => {
+                this.projectiles.push(new Projectile(
+                    m.x + sx * 0.45, m.y + sy * 0.45, sx, sy, damage, 'monster'));
+                this.say(`the ${m.name} hurls a bolt of cold fire.`, P.LTMAGENTA);
+            },
             onHit: (proj, target) => {
+                if (target === 'player') { this.takeDamage(proj.damage, 'the bolt'); return; }
                 if (target.hit(proj.damage)) this.killMonster(target, 'your fire consumes');
                 else this.say(`the fireball sears the ${target.name} for ${proj.damage}.`, P.YELLOW);
             },
@@ -349,6 +492,9 @@ class Game {
         // power seeps back slowly; hit points do not
         const s = this.stats;
         if (s.mana < s.manaMax) s.mana = Math.min(s.manaMax, s.mana + dt * 0.5);
+
+        this.saveTimer -= dt;
+        if (this.saveTimer <= 0) this.saveGame('auto');
     }
 
     /** Walking into something. A monster in the way gets hit instead. */
@@ -450,6 +596,7 @@ class Game {
 
         if (this.state === 'map') HUD.drawAutomap(fb, this.level, this.player, this.theme);
         if (this.state === 'help') this.drawHelp();
+        if (this.state === 'inventory') this.drawInventory();
         if (this.state === 'paused') {
             HUD.drawPanel(fb, 'paused', ['esc to resume'], { width: 160, center: true });
         }
@@ -490,24 +637,43 @@ class Game {
     drawTitle() {
         const fb = this.fb;
         fb.setPalette(1, null);
-        // a dithered glow rising from the floor of the pit
+        // A glow rising from the floor of the pit. Blue holds its value for
+        // most of its darkening chain, so a shade ramp would come out flat;
+        // dithering blue against black directly is the only way to get a
+        // real gradient out of a 16-colour palette.
         for (let y = 0; y < HUD.SCREEN_H; y++) {
-            const level = Math.max(0, 2.4 - (y / HUD.SCREEN_H) * 2.6);
+            const density = Math.pow(y / HUD.SCREEN_H, 1.6) * 1.15;
             for (let x = 0; x < HUD.SCREEN_W; x++) {
-                const l = Math.min(P.SHADES - 1, P.ditherLevel(level, x, y));
-                fb.pixels[y * fb.width + x] = P.shadeTable[l * 16 + P.BLUE];
+                const threshold = (P.BAYER[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
+                fb.pixels[y * fb.width + x] = density > threshold ? P.BLUE : P.BLACK;
             }
         }
         drawTextCentered(fb, 160, 44, 'GRIMHOLD', P.YELLOW, P.BLACK);
         drawTextCentered(fb, 160, 60, 'ABYSS', P.YELLOW, P.BLACK);
-        drawTextCentered(fb, 160, 84, `TEN LEVELS DOWN, THE LICH WAITS`, P.LTGRAY, P.BLACK);
-        fb.blit(S.SKELETON, 40, 96, 2.0);
-        fb.blit(S.DEMON, 232, 100, 1.8);
-        if (Math.floor(this.time * 2) % 2 === 0)
-            drawTextCentered(fb, 160, 132, 'PRESS ANY KEY', P.WHITE, P.BLACK);
+        drawTextCentered(fb, 160, 84, 'TEN LEVELS DOWN, THE LICH WAITS', P.LTGRAY, P.BLACK);
+        fb.blit(S.SKELETON, 34, 92, 2.0);
+        fb.blit(S.DEMON, 234, 96, 1.8);
+        const blink = Math.floor(this.time * 2) % 2 === 0;
+        if (blink) drawTextCentered(fb, 160, 128, 'ENTER   BEGIN THE DESCENT', P.WHITE, P.BLACK);
+        if (this.canContinue)
+            drawTextCentered(fb, 160, 142, 'C       CONTINUE YOUR RUN', P.LTCYAN, P.BLACK);
         drawTextCentered(fb, 160, 172, 'ARROWS MOVE  SPACE FIREBALL', P.DKGRAY);
-        drawTextCentered(fb, 160, 182, 'TAB MAP  H HELP', P.DKGRAY);
+        drawTextCentered(fb, 160, 182, 'TAB MAP  I PACK  H HELP', P.DKGRAY);
         fb.present(this.ctx);
+    }
+
+    drawInventory() {
+        const pack = this.stats.pack;
+        const lines = SLOTS.map((slot, i) => ({
+            text: `${i + 1}.  ${String(pack[slot.kind]).padStart(2)}  ${slot.label}`,
+            color: pack[slot.kind] ? slot.color : P.DKGRAY
+        }));
+        lines.push({ text: '', color: P.BLACK });
+        lines.push({ text: `iron keys    ${this.stats.keys}`, color: this.stats.keys ? P.LTCYAN : P.DKGRAY });
+        lines.push({ text: `gold         ${this.stats.gold}`, color: P.YELLOW });
+        lines.push({ text: '', color: P.BLACK });
+        lines.push({ text: 'press a number to use  ·  I to close', color: P.DKGRAY });
+        HUD.drawPanel(this.fb, 'your pack', lines, { width: 250 });
     }
 
     drawHelp() {
@@ -518,8 +684,10 @@ class Game {
             'Q / E         sidestep',
             'SPACE / CTRL  hurl a fireball',
             'F or walk in  strike with your blade',
-            'ENTER         doors, stairs, search',
-            'TAB           automap · ESC pause'
+            'ENTER         doors, stairs, chests',
+            'I             pack · 1-3 use an item',
+            'TAB           automap · ESC pause',
+            'F2            save now (it autosaves too)'
         ], { width: 254 });
     }
 

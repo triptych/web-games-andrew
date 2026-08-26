@@ -55,7 +55,7 @@ same array does sprite occlusion for free.
 - [x] **Phase 3 — Bestiary and combat.** Billboard monsters with sprite
   animation and simple grid AI, melee, the fireball hand, damage, death,
   loot drops.
-- [ ] **Phase 4 — RPG systems.** XP and levels, HP/mana, inventory,
+- [x] **Phase 4 — RPG systems.** XP and levels, HP/mana, inventory,
   potions/scrolls/treasure, chests, the boss on the final floor, win and
   lose screens, save/load.
 - [ ] **Phase 5 — Feel.** Procedural Web Audio SFX, palette flash effects,

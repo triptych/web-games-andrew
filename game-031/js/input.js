@@ -18,7 +18,8 @@ const ONE_SHOT = {
     Escape: 'pause', KeyH: 'help', Slash: 'help', KeyR: 'rest',
     Digit1: 'item1', Digit2: 'item2', Digit3: 'item3', Digit4: 'item4',
     Digit5: 'item5', Digit6: 'item6', Digit7: 'item7', Digit8: 'item8',
-    Digit9: 'item9'
+    Digit9: 'item9',
+    KeyC: 'continue', F2: 'save'
 };
 
 export class Input {

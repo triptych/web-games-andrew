@@ -45,10 +45,11 @@ export const BESTIARY = [
         height: 0.95, yOffset: 0, aggro: 10, minDepth: 7, maxDepth: 99, weight: 3
     },
     {
-        id: 'lich', name: 'the grimhold lich', bmp: S.LICH,
+        id: 'lich', name: 'grimhold lich', bmp: S.LICH,
         hp: 220, atk: 22, def: 9, xp: 500, step: 0.52, attackEvery: 0.9,
         height: 1.05, yOffset: 0.02, aggro: 99, minDepth: 99, maxDepth: 99, weight: 0,
-        boss: true, drainsMana: true
+        boss: true, drainsMana: true,
+        ranged: { range: 9, every: 2.2, damage: 14 }
     }
 ];
 
@@ -136,6 +137,22 @@ export class Monster {
             return;
         }
 
+        // A caster with a clear line down a row or column throws instead of
+        // closing, which is what makes the lich fight about cover.
+        const r = this.spec.ranged;
+        if (r && this.attackTimer <= 0 && dist <= r.range && (dx === 0 || dy === 0)) {
+            const sx = Math.sign(dx), sy = Math.sign(dy);
+            let clear = true;
+            for (let i = 1; i < dist; i++) {
+                if (!ctx.level.walkable(this.cellX + sx * i, this.cellY + sy * i)) { clear = false; break; }
+            }
+            if (clear) {
+                this.attackTimer = r.every;
+                ctx.rangedAttack(this, sx, sy, r.damage);
+                return;
+            }
+        }
+
         this.moveTimer -= dt;
         if (this.moveTimer > 0) return;
         this.moveTimer = this.spec.step;
@@ -170,7 +187,7 @@ export class Monster {
 
 /** The fireball: travels in a straight line, cell by cell, fast. */
 export class Projectile {
-    constructor(x, y, dx, dy, damage, owner = 'player') {
+    constructor(x, y, dx, dy, damage, owner = 'player', bmp = S.FIREBALL) {
         this.x = x;
         this.y = y;
         this.dx = dx;
@@ -180,7 +197,7 @@ export class Projectile {
         this.owner = owner;
         this.life = 1.6;
         this.dead = false;
-        this.bmp = S.FIREBALL;
+        this.bmp = bmp;
     }
 
     update(dt, ctx) {
@@ -193,7 +210,7 @@ export class Projectile {
             this.y += this.dy * this.speed * sub;
             const cx = Math.floor(this.x), cy = Math.floor(this.y);
             if (!ctx.level.walkable(cx, cy)) { this.dead = true; ctx.onWall(this); return; }
-            const target = ctx.monsterAtPoint(this.x, this.y);
+            const target = ctx.targetAt(this.x, this.y, this.owner);
             if (target) { this.dead = true; ctx.onHit(this, target); return; }
         }
     }
