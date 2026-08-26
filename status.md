@@ -36,10 +36,11 @@ Completion audit of all games in this repo, based on each game's own game-plan.m
 | [game-028](game-028/index.html) | Echoes of Aethermoor | Solid | Phases 1–4 done (full 4-chapter story); Phase 5 polish (art, portraits, mobile input) entirely unstarted |
 | [game-029](game-029/index.html) | Wayfarer's Path | Solid (active dev) | Phases 1–3 done and playable; **currently mid-edit** — new fx.js (particles/screen-shake), monster archetypes, and a real town/shop pass just landed but are not yet verified live in a browser this session |
 | [game-030](game-030/index.html) | Coppergate Lane | Playable-but-partial | Full playable story arc to a boss fight, but no save/load, single hero only, uniform enemy AI — was missing from the launcher, now added |
+| [game-031](game-031/index.html) | Grimhold Abyss | **Complete** | All 5 phases done — custom software 3D engine, procedural dungeons, bestiary, RPG systems, audio/polish; full ten-floor run verified end to end on four seeds |
 
 ## Key takeaways
 
-- **Most finished:** game-008, 010, 011, 016, 020, 021, 023, 025 — all self-declared complete and verified against code with no meaningful gaps.
+- **Most finished:** game-008, 010, 011, 016, 020, 021, 023, 025, 031 — all self-declared complete and verified against code with no meaningful gaps.
 - **Real functional gap (not just polish):** game-022 (Depths Unknown) has no win condition — the only game that's genuinely unfinished at a functional level, not just missing stretch polish.
 - **Doc/code mismatches worth knowing about:** game-006, game-009, game-012, game-014, and game-019 have plan docs that *understate* real progress — the code is further along than the checklists suggest.
 - **In-flight right now:** game-029 has uncommitted local changes (new `fx.js`, monster archetypes, town/shop rework) — active work, not a stalled game. Its own plan doc flags this batch as not yet visually verified in a browser.

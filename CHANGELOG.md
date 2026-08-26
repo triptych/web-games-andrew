@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Grimhold Abyss** (game-031): New retro first-person dungeon crawler ("blobber") in the style of early-90s DOS shareware such as The Catacomb Abyss, built on a custom software 3D engine written from scratch for this game — no WebGL, no 3D library
+  - **Custom software renderer** (`js/engine/`): 320x200 palette-indexed framebuffer expanded to RGBA in a single present pass; perspective-correct textured wall columns with near-plane clipping and a per-column depth buffer; distance-shaded floor and ceiling; depth-tested billboard sprites; 5x7 bitmap font — everything on screen is rasterised by the game's own code
+  - No polygon sorting anywhere: every wall spans the same world height, so within a screen column a nearer wall always contains a farther one, which makes a one-dimensional depth buffer an exact visibility solution
+  - **16-colour EGA palette** with hand-authored per-colour darkening chains (EGA has no half brightness, so each colour gets an explicit ramp) and 4x4 Bayer dithering for gradients
+  - **Zero asset files**: wall textures, sprites, the font and every sound effect are generated at runtime
+  - **Grid-locked blobber movement**: cell-to-cell steps and 90-degree turns, animated, with one-deep input buffering so corridors run fast without ever leaving the grid
+  - **Procedural dungeons**: rooms and corridors with extra links so floors loop rather than forming dead-end trees; pillared halls; doors placed where a corridor meets a room; locked gates promoted only where locking genuinely cuts off the stairs, with the key dropped on the reachable side; secret doors hiding treasure vaults behind dead ends; six themes across ten floors
+  - **Bestiary**: skeleton, cave bat, ghoul, wraith, gargoyle, pit demon and the Grimhold Lich, all hand-drawn pixel art with a derived second animation frame; real-time grid AI; the lich fights at range down open rows and columns
+  - **RPG systems**: melee and a fireball hand, XP and levels, a pack with usable consumables, chests, gold, keys, an automap, and save/load that stores only what the player changed and regenerates each floor from its seed
+  - **Feel**: procedural Web Audio effects, EGA palette flashes for damage and level-ups, camera shake, a status-bar portrait that reacts to injury, wall torches and a dithered title screen
+  - `?seed=` makes any run reproducible
+
 ## [3.0.0] - 2026-04-15
 
 ### Added

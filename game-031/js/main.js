@@ -18,6 +18,7 @@ import {
 } from './entities.js';
 import { hasSave, readSave, writeSave, clearSave } from './save.js';
 import * as HUD from './hud.js';
+import { Sound } from './audio.js';
 
 const MAX_MESSAGES = 32;
 export const FINAL_DEPTH = 10;
@@ -56,6 +57,9 @@ class Game {
         this.canContinue = hasSave();
         this.projectiles = [];
         this.flash = null;
+        this.shake = 0;
+        this.hurtTimer = 0;
+        this.sound = new Sound();
         this.castTimer = 0;
         this.depth = 0;
         this.levels = new Map();     // depth -> Level, so floors persist
@@ -87,6 +91,8 @@ class Game {
         this.theme = this.themes.get(depth);
         this.world = createWorldView(level, this.theme);
         this.projectiles.length = 0;
+        this.sound.play('descend');
+        this.sound.setDroneDepth(depth);
         const spot = via === 'down' ? level.entry : level.stairs;
         this.player = new Player(spot.x, spot.y, this.player ? this.player.facing : 0);
         level.revealFrom(this.player.cellX, this.player.cellY);
@@ -100,7 +106,16 @@ class Game {
     }
 
     say(text, color = P.LTGRAY) {
-        this.messages.push({ text, color, t: this.time });
+        // Walking into the same wall five times should not fill the log
+        // with five identical lines; roguelikes have always counted them.
+        const last = this.messages[this.messages.length - 1];
+        if (last && last.base === text) {
+            last.count++;
+            last.text = `${text} (x${last.count})`;
+            last.t = this.time;
+            return;
+        }
+        this.messages.push({ base: text, text, color, t: this.time, count: 1 });
         if (this.messages.length > MAX_MESSAGES) this.messages.shift();
     }
 
@@ -119,7 +134,16 @@ class Game {
     // --- input ------------------------------------------------------------
 
     handleActions() {
+        if (this.input.consumeAnyKey()) {
+            this.sound.unlock();
+            this.sound.startDrone(this.depth);
+        }
         for (const action of this.input.drain()) {
+            if (action === 'mute') {
+                this.sound.setMuted(!this.sound.muted);
+                this.say(this.sound.muted ? 'sound off.' : 'sound on.', P.DKGRAY);
+                continue;
+            }
             if (this.state === 'title') {
                 if (action === 'continue') {
                     if (this.loadGame()) this.state = 'playing';
@@ -177,6 +201,7 @@ class Game {
         if (facing === DOOR) {
             this.level.set(f.x, f.y, DOOR_OPEN);
             this.level.revealFrom(p.cellX, p.cellY);
+            this.sound.play('door');
             this.say('the door grinds open.', P.LTGRAY);
             return;
         }
@@ -185,8 +210,10 @@ class Game {
                 this.stats.keys--;
                 this.level.set(f.x, f.y, DOOR_OPEN);
                 this.level.revealFrom(p.cellX, p.cellY);
+                this.sound.play('gate');
                 this.say('the key turns. the gate swings wide.', P.LTCYAN);
             } else {
+                this.sound.play('locked');
                 this.say('the gate is locked. you need a key.', P.LTRED);
             }
             return;
@@ -194,6 +221,7 @@ class Game {
         if (facing === SECRET) {
             this.level.set(f.x, f.y, DOOR_OPEN);
             this.level.revealFrom(p.cellX, p.cellY);
+            this.sound.play('secret');
             this.say('a hidden door swings inward!', P.YELLOW);
             return;
         }
@@ -227,15 +255,18 @@ class Game {
         const roll = this.stats.atk + ((Math.random() * 4) | 0);
         const dmg = Math.max(1, roll - target.spec.def);
         this.castTimer = 0.12;
+        this.sound.play('swing');
         if (target.hit(dmg)) this.killMonster(target, 'you cut down');
-        else this.say(`you hit the ${target.name} for ${dmg}.`, P.LTGRAY);
+        else { this.sound.play('enemyHit'); this.say(`you hit the ${target.name} for ${dmg}.`, P.LTGRAY); }
     }
 
     castFireball() {
         if (this.stats.mana < FIREBALL_COST) {
+            this.sound.play('locked');
             this.say('not enough power for a fireball.', P.LTBLUE);
             return;
         }
+        this.sound.play('cast');
         this.stats.mana -= FIREBALL_COST;
         this.castTimer = 0.28;
         const v = DIR_VECTORS[this.player.facing];
@@ -246,6 +277,7 @@ class Game {
 
     killMonster(m, verb) {
         m.hp = 0;
+        this.sound.play('enemyDie');
         this.stats.kills++;
         this.gainXp(m.spec.xp);
         this.say(`${verb} the ${m.name}!`, P.LTGREEN);
@@ -253,6 +285,7 @@ class Game {
         const r = Math.random();
         if (m.spec.boss) {
             this.state = 'won';
+            this.sound.play('victory');
             clearSave();
         } else if (r < 0.22) {
             this.level.items.push({ kind: 'gold', x: m.cellX, y: m.cellY });
@@ -278,6 +311,7 @@ class Game {
             s.mana = s.manaMax;
             this.say(`you feel stronger. level ${s.level}!`, P.YELLOW);
             this.setFlash(P.YELLOW, 0.3);
+            this.sound.play('levelUp');
             this.saveGame('level');
         }
     }
@@ -295,10 +329,14 @@ class Game {
     takeDamage(amount, source, color = P.LTRED, verb = 'hits') {
         this.stats.hp -= amount;
         this.setFlash(P.RED, 0.22);
+        this.shake = Math.min(1, this.shake + 0.5 + amount / 40);
+        this.hurtTimer = 1.2;
+        this.sound.play('hurt');
         this.say(`${source} ${verb} you for ${amount}.`, color);
         if (this.stats.hp <= 0) {
             this.stats.hp = 0;
             this.state = 'dead';
+            this.sound.play('death');
             clearSave();
         }
     }
@@ -319,11 +357,13 @@ class Game {
             switch (it.kind) {
                 case 'key':
                     s.keys++;
+                    this.sound.play('pickup');
                     this.say('you pocket an iron key.', P.LTCYAN);
                     break;
                 case 'gold': {
                     const gold = 8 + ((Math.random() * (6 + this.depth * 4)) | 0);
                     s.gold += gold;
+                    this.sound.play('gold');
                     this.say(`${gold} gold pieces.`, P.YELLOW);
                     break;
                 }
@@ -331,6 +371,7 @@ class Game {
                 case 'mana':
                 case 'scroll': {
                     s.pack[it.kind]++;
+                    this.sound.play('pickup');
                     const slot = SLOTS.find(sl => sl.kind === it.kind);
                     const n = SLOTS.indexOf(slot) + 1;
                     this.say(`you take a ${slot.label}. press ${n} to use.`, slot.color);
@@ -376,6 +417,7 @@ class Game {
         items.splice(i, 1);
         const gold = 40 + this.depth * 25 + ((Math.random() * 30) | 0);
         this.stats.gold += gold;
+        this.sound.play('gold');
         this.say(`the chest holds ${gold} gold.`, P.YELLOW);
         const roll = Math.random();
         if (roll < 0.45) { this.stats.pack.potion++; this.say('...and a healing draught.', P.LTRED); }
@@ -448,6 +490,8 @@ class Game {
         this.time += dt;
         this.handleActions();
         if (this.castTimer > 0) this.castTimer -= dt;
+        if (this.shake > 0) this.shake = Math.max(0, this.shake - dt * 2.4);
+        if (this.hurtTimer > 0) this.hurtTimer -= dt;
         if (this.flash) {
             this.flash.t -= dt;
             if (this.flash.t <= 0) this.flash = null;
@@ -480,6 +524,7 @@ class Game {
             },
             onHit: (proj, target) => {
                 if (target === 'player') { this.takeDamage(proj.damage, 'the bolt'); return; }
+                this.sound.play('impact');
                 if (target.hit(proj.damage)) this.killMonster(target, 'your fire consumes');
                 else this.say(`the fireball sears the ${target.name} for ${proj.damage}.`, P.YELLOW);
             },
@@ -501,6 +546,7 @@ class Game {
     onBump(target) {
         const m = this.monsterAt(target.x, target.y);
         if (m) { this.strike(m); return; }
+        this.sound.play('bump');
         if (this.level.at(target.x, target.y) === DOOR) {
             this.say('a closed door. press enter.', P.DKGRAY);
             return;
@@ -513,6 +559,7 @@ class Game {
     }
 
     onArrive(x, y) {
+        this.sound.play('step');
         this.level.revealFrom(x, y);
         this.collect(x, y);
         const here = this.level.at(x, y);
@@ -580,9 +627,16 @@ class Game {
     draw() {
         if (this.state === 'title') return this.drawTitle();
 
+        // A hit shoves the camera around for a moment. The renderer only
+        // offers pitch and yaw, which is plenty: a blobber that slid its
+        // whole viewport would break the illusion of a fixed window.
+        const k = this.shake;
+        const jitterA = k ? Math.sin(this.time * 71) * k * 0.02 : 0;
+        const jitterY = k ? Math.sin(this.time * 53) * k * 4 : 0;
         this.renderer.render(this.world, {
             x: this.player.x, y: this.player.y,
-            angle: this.player.angle, pitch: this.player.pitch
+            angle: this.player.angle + jitterA,
+            pitch: this.player.pitch + jitterY
         }, this.buildSpriteList());
 
         this.drawHand();

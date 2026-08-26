@@ -443,3 +443,105 @@ export const HAND_CAST = composite('hand-cast', 26, 32, [
     { bmp: HAND, x: 0, y: 12 },
     { bmp: FIREBALL, x: 5, y: 0 }
 ]);
+
+// --- status-bar portrait -------------------------------------------------
+
+export const FACE_OK = compile('face-ok', [
+    '......nnnnnnnnnnnn......',
+    '....nnnnnnnnnnnnnnnn....',
+    '...nnnnnnnnnnnnnnnnnn...',
+    '...nnllllllllllllllnn...',
+    '...nlllllllllllllllllnn.',
+    '..nnllllllllllllllllln..',
+    '..nlllllllllllllllllln..',
+    '..nllkkkkllllllkkkklln..',
+    '..nllkwwkllllllkwwklln..',
+    '..nllkkkkllllllkkkklln..',
+    '..nlllllllllllllllllln..',
+    '..nlllllllllllllllllln..',
+    '..nllllllllnnlllllllln..',
+    '..nllllllllnnlllllllln..',
+    '..nlllllllllllllllllln..',
+    '..nllllnnnnnnnnnnlllln..',
+    '..nlllllllllllllllllln..',
+    '..nlllllllllllllllllln..',
+    '..nnllllllllllllllllln..',
+    '...nnllllllllllllllnn...',
+    '....nnnnnnnnnnnnnnnn....',
+    '......nnnnnnnnnnnn......'
+]);
+
+export const FACE_HURT = compile('face-hurt', [
+    '......nnnnnnnnnnnn......',
+    '....nnnnnnnnnnnnnnnn....',
+    '...nnnnnnnnnnnnnnnnnn...',
+    '...nnllllllllllllllnn...',
+    '...nlllllllllllllllllnn.',
+    '..nnllllllllllllllllln..',
+    '..nlllllllllllllllllln..',
+    '..nllllllllllllkkkklln..',
+    '..nllkkkkllllllkwwklln..',
+    '..nllllllllllllkkkklln..',
+    '..nlllllllllllllllllln..',
+    '..nlllllllllllllllllln..',
+    '..nllllllllnnlllllllln..',
+    '..nllllllllnnlllllllln..',
+    '..nlllllllllllllllllln..',
+    '..nllllnnnnnnnnnnlllln..',
+    '..nllllwwwwwwwwwwlllln..',
+    '..nlllllllllllllllllln..',
+    '..nnllllllllllllllllln..',
+    '...nnllllllllllllllnn...',
+    '....nnnnnnnnnnnnnnnn....',
+    '......nnnnnnnnnnnn......'
+]);
+
+export const FACE_BAD = compile('face-bad', [
+    '......nnnnnnnnnnnn......',
+    '....nnnnnnnnnnnnnnnn....',
+    '...nnnnnnnnnnnnnnnnnn...',
+    '...nnllllllllllllllnn...',
+    '...nlllllllllllllllllnn.',
+    '..nnllllllllllllllllln..',
+    '..nlllllllllllllllllln..',
+    '..nllkkkkllllllkkkklln..',
+    '..nllkrrkllllllkrrklln..',
+    '..nllkkkkllllllkkkklln..',
+    '..nllllllllllllrllllln..',
+    '..nllllllllllllrllllln..',
+    '..nllllllllnnlllllllln..',
+    '..nllllllllnnlllllllln..',
+    '..nlllllllllllllllllln..',
+    '..nllllnnnnnnnnnnlllln..',
+    '..nllllwwwwwwwwwwlllln..',
+    '..nlllllllllllllllllln..',
+    '..nnllllllllllllllllln..',
+    '...nnllllllllllllllnn...',
+    '....nnnnnnnnnnnnnnnn....',
+    '......nnnnnnnnnnnn......'
+]);
+
+export const FACE_DEAD = compile('face-dead', [
+    '......nnnnnnnnnnnn......',
+    '....nnnnnnnnnnnnnnnn....',
+    '...nnnnnnnnnnnnnnnnnn...',
+    '...nnllllllrrllllllnn...',
+    '...nlllllllllllllllllnn.',
+    '..nnllllllllllllllllln..',
+    '..nlllllllllllllllllln..',
+    '..nllklllllllllkllllln..',
+    '..nlllkkllllllllkkllln..',
+    '..nllllklllllllllkllln..',
+    '..nlllllllllllllllllln..',
+    '..nlllllllllllllllllln..',
+    '..nllllllllnnlllllllln..',
+    '..nllllllllnnlllllllln..',
+    '..nlllllllllllllllllln..',
+    '..nllllkkkkkkkkkklllln..',
+    '..nllllkkkkkkkkkklllln..',
+    '..nlllllllllllllllllln..',
+    '..nnllllllllllllllllln..',
+    '...nnllllllllllllllnn...',
+    '....nnnnnnnnnnnnnnnn....',
+    '......nnnnnnnnnnnn......'
+]);

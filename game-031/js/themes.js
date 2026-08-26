@@ -19,7 +19,7 @@ const THEMES = [
         name: 'the brick vaults',
         tones: [P.BLACK, P.RED, P.BROWN, P.YELLOW],
         mortar: P.DKGRAY, moss: P.GREEN, mossAmount: 0.35,
-        floorColor: P.BROWN, ceilColor: P.RED,
+        floorColor: P.BROWN, ceilColor: P.DKGRAY,
         accent: P.YELLOW, style: 'brick'
     },
     {

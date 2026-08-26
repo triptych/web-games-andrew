@@ -326,11 +326,3 @@ export function generateLevel(depth, seed) {
 
     return level;
 }
-
-/** All floor cells of a room, minus any the caller wants to exclude. */
-export function roomCells(room) {
-    const cells = [];
-    for (let y = room.y; y < room.y + room.h; y++)
-        for (let x = room.x; x < room.x + room.w; x++) cells.push({ x, y });
-    return cells;
-}

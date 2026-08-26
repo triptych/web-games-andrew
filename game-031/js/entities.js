@@ -9,7 +9,6 @@
 
 import * as S from './engine/sprites.js';
 import { mulberry32 } from './engine/textures.js';
-import * as P from './engine/palette.js';
 
 export const BESTIARY = [
     {
@@ -309,5 +308,3 @@ export function decorate(level, seed) {
     }
     return props;
 }
-
-export const DAMAGE_COLOR = P.LTRED;

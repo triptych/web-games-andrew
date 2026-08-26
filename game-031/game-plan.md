@@ -58,16 +58,26 @@ same array does sprite occlusion for free.
 - [x] **Phase 4 — RPG systems.** XP and levels, HP/mana, inventory,
   potions/scrolls/treasure, chests, the boss on the final floor, win and
   lose screens, save/load.
-- [ ] **Phase 5 — Feel.** Procedural Web Audio SFX, palette flash effects,
-  status-bar portrait that reacts to damage, title screen, help screen.
+- [x] **Phase 5 — Feel.** Procedural Web Audio SFX and a depth-tuned
+  ambient drone, EGA palette flashes for damage and level-ups, camera
+  shake, a status-bar portrait that reacts to injury, dithered title
+  screen, help screen.
+
+## Sound
+There are no sound files either. `audio.js` is a handful of oscillators
+and one reusable second of white noise: footsteps are a filtered noise
+burst, the fireball is a rising sawtooth, a level-up is a four-note
+arpeggio. The audio context is created on the first key press, because
+browsers refuse to start audio before a gesture, and everything before
+that is a no-op rather than an error.
 
 ## Controls
 - **↑ / W** step forward · **↓ / S** step back
 - **← / →** turn 90° · **Q / E** strafe left / right
-- **Space / Ctrl** cast fireball · **F** melee attack (or bump a monster)
-- **Enter** open door / use stairs / open chest
-- **Tab** automap · **I** inventory · **1-9** use item · **? / H** help
-- **Esc** pause
+- **Space / Ctrl** hurl a fireball · **F** strike (or just walk into it)
+- **Enter** doors, stairs, chests, and searching a suspicious wall
+- **Tab** automap · **I** pack · **1-3** use an item · **H** help
+- **M** mute · **F2** save now · **Esc** pause
 
 ## Design rules
 - Movement is cell-to-cell and turns are 90° — animated, but never
@@ -76,3 +86,13 @@ same array does sprite occlusion for free.
   an animation is queued, not dropped, so movement stays responsive
   without breaking the grid.
 - No asset files. Textures, sprites, font and sound are all generated.
+- Anything the player changed is worth saving; anything derivable from the
+  seed is not. A save stores opened tiles, seen cells, surviving monsters
+  and remaining loot, and regenerates every floor around them.
+
+## Verification
+`?seed=` fixes a run, which is what made the automated checks possible:
+generation was validated over 400 seeds (no unreachable stairs, no
+unreachable key, no pointless lock), and a scripted playthrough descends
+all ten floors and kills the lich on several seeds. Frame cost on the
+largest floor with 18 monsters is about 2.3ms.

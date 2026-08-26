@@ -5,7 +5,8 @@
  */
 
 import * as P from './engine/palette.js';
-import { drawText, drawTextCentered, textWidth, CHAR_W } from './engine/font.js';
+import * as S from './engine/sprites.js';
+import { drawText, drawTextCentered } from './engine/font.js';
 import { DOOR, DOOR_OPEN, STAIRS, LOCKED, STAIRS_UP } from './dungeon.js';
 
 export const SCREEN_W = 320, SCREEN_H = 200;
@@ -42,6 +43,23 @@ function drawCompass(fb, x, y, facing, accent) {
     fb.pset(cx, cy, P.WHITE);
 }
 
+/**
+ * The portrait. Which face shows is a function of how much health is
+ * left, with a wince held for a moment after a hit — the trick every
+ * status-bar face in the genre used to make damage feel like it landed.
+ */
+function drawPortrait(fb, game) {
+    const s = game.stats;
+    const frac = s.hp / s.hpMax;
+    let face;
+    if (game.state === 'dead' || s.hp <= 0) face = S.FACE_DEAD;
+    else if (game.hurtTimer > 0.8 || frac < 0.25) face = S.FACE_BAD;
+    else if (frac < 0.6 || game.hurtTimer > 0) face = S.FACE_HURT;
+    else face = S.FACE_OK;
+    fb.panel(3, BAR_Y + 4, 28, 28, P.BLACK, P.DKGRAY, P.LTGRAY);
+    fb.blit(face, 5, BAR_Y + 7, 1);
+}
+
 export function drawStatusBar(fb, game) {
     const accent = game.theme ? game.theme.accent : P.LTGREEN;
 
@@ -51,10 +69,11 @@ export function drawStatusBar(fb, game) {
     if (msg) drawText(fb, 4, MSG_Y, msg.text.slice(0, 51), msg.color ?? P.LTGRAY);
 
     fb.panel(0, BAR_Y, SCREEN_W, SCREEN_H - BAR_Y, P.DKGRAY, P.LTGRAY, P.BLACK);
-    drawCompass(fb, 3, BAR_Y + 2, game.player.facing, accent);
+    drawPortrait(fb, game);
+    drawCompass(fb, 284, BAR_Y + 2, game.player.facing, accent);
 
     const s = game.stats;
-    const col = 40;
+    const col = 36;
     if (s) {
         drawText(fb, col, BAR_Y + 4, 'HP', P.LTRED, P.BLACK);
         drawBar(fb, col + 16, BAR_Y + 3, 74, 9, s.hp / s.hpMax, P.RED,
@@ -63,20 +82,24 @@ export function drawStatusBar(fb, game) {
         drawBar(fb, col + 16, BAR_Y + 15, 74, 9, s.mana / s.manaMax, P.BLUE,
             `${Math.max(0, Math.floor(s.mana))}/${s.manaMax}`);
         drawText(fb, col, BAR_Y + 27, `LVL ${s.level}  XP ${s.xp}/${s.xpNext}`, P.LTGRAY, P.BLACK);
+
+        if (s.pack) {
+            const counts = [
+                [s.pack.potion || 0, P.LTRED],
+                [s.pack.mana || 0, P.LTBLUE],
+                [s.pack.scroll || 0, P.LTCYAN]
+            ];
+            counts.forEach(([n, c], i) =>
+                drawText(fb, 140, BAR_Y + 4 + i * 10, `${i + 1}:${n}`, n ? c : P.DKGRAY, P.BLACK));
+        }
     }
 
-    const right = 200;
+    const right = 172;
     drawText(fb, right, BAR_Y + 4, `DEPTH ${game.depth}`, accent, P.BLACK);
-    drawText(fb, right, BAR_Y + 14, FACING_LABEL[game.player.facing], P.LTGRAY, P.BLACK);
+    drawText(fb, right, BAR_Y + 15, FACING_LABEL[game.player.facing], P.LTGRAY, P.BLACK);
     if (s) {
-        drawText(fb, right, BAR_Y + 24, `GOLD ${s.gold}`, P.YELLOW, P.BLACK);
-        if (s.keys > 0) drawText(fb, right + 62, BAR_Y + 24, `KEYS ${s.keys}`, P.LTCYAN, P.BLACK);
-        if (s.pack) {
-            const p1 = s.pack.potion || 0, p2 = s.pack.mana || 0, p3 = s.pack.scroll || 0;
-            drawText(fb, 140, BAR_Y + 4, `1:${p1}`, p1 ? P.LTRED : P.DKGRAY, P.BLACK);
-            drawText(fb, 140, BAR_Y + 14, `2:${p2}`, p2 ? P.LTBLUE : P.DKGRAY, P.BLACK);
-            drawText(fb, 140, BAR_Y + 24, `3:${p3}`, p3 ? P.LTCYAN : P.DKGRAY, P.BLACK);
-        }
+        drawText(fb, right, BAR_Y + 26, `GOLD ${s.gold}`, P.YELLOW, P.BLACK);
+        if (s.keys > 0) drawText(fb, right + 62, BAR_Y + 26, `KEYS ${s.keys}`, P.LTCYAN, P.BLACK);
     }
 }
 
@@ -86,12 +109,33 @@ export function drawStatusBar(fb, game) {
  */
 export function drawAutomap(fb, level, player, theme) {
     fb.fillRect(VIEW.x, VIEW.y, VIEW.w, VIEW.h, P.BLACK);
-    const scale = Math.max(2, Math.min(
-        Math.floor((VIEW.w - 8) / level.width),
-        Math.floor((VIEW.h - 16) / level.height)
-    ));
-    const ox = VIEW.x + ((VIEW.w - level.width * scale) >> 1);
-    const oy = VIEW.y + 10 + ((VIEW.h - 10 - level.height * scale) >> 1);
+    const top = VIEW.y + 11, bottom = VIEW.y + VIEW.h - 12;
+    const availW = VIEW.w - 8, availH = bottom - top;
+
+    // Never shrink below 3px a cell: a map you cannot read is not a map.
+    // If the floor will not fit at that size, centre it on the player and
+    // let the edges run off, the way a paper map on a small table does.
+    const scale = Math.max(3, Math.min(6,
+        Math.min(Math.floor(availW / level.width), Math.floor(availH / level.height))));
+
+    // Each axis is decided on its own: a floor can easily fit across but
+    // not down, and pinning both together threw the map into a corner.
+    const axis = (span, avail, origin, cell) => {
+        const size = span * scale;
+        if (size <= avail) return origin + ((avail - size) >> 1);
+        const centred = origin + (avail >> 1) - (cell * scale + (scale >> 1));
+        return Math.max(origin + avail - size, Math.min(origin, centred));
+    };
+    const ox = axis(level.width, availW, VIEW.x + 4, player.cellX);
+    const oy = axis(level.height, availH, top, player.cellY);
+
+    const plot = (cx, cy, color, inset = 0) => {
+        const px = ox + cx * scale + inset, py = oy + cy * scale + inset;
+        if (px + scale <= VIEW.x || px >= VIEW.x + VIEW.w) return;
+        if (py + scale <= top - scale || py > bottom) return;
+        fb.fillRect(Math.max(VIEW.x, px), Math.max(top - scale + 1, py),
+            scale - inset * 2, scale - inset * 2, color);
+    };
 
     for (let y = 0; y < level.height; y++) {
         for (let x = 0; x < level.width; x++) {
@@ -112,31 +156,31 @@ export function drawAutomap(fb, level, player, theme) {
                         if (level.hasSeen(x + dx, y + dy) && level.walkable(x + dx, y + dy)) touches = true;
                 if (touches) c = P.LTGRAY;
             }
-            if (c !== null) fb.fillRect(ox + x * scale, oy + y * scale, scale, scale, c);
+            if (c !== null) plot(x, y, c);
         }
     }
 
     // anything still lying on the floor that we have already walked past
     for (const it of level.items) {
         if (!level.hasSeen(it.x, it.y)) continue;
-        const c = it.kind === 'key' ? P.LTCYAN : P.YELLOW;
-        fb.fillRect(ox + it.x * scale, oy + it.y * scale, Math.max(1, scale - 1), Math.max(1, scale - 1), c);
+        plot(it.x, it.y, it.kind === 'key' ? P.LTCYAN : P.YELLOW, scale > 3 ? 1 : 0);
     }
 
     // player marker: a wedge pointing the way we face
     const px = ox + player.cellX * scale + (scale >> 1);
     const py = oy + player.cellY * scale + (scale >> 1);
-    const dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
-    const [dx, dy] = dirs[player.facing];
+    const [dx, dy] = [[0, -1], [1, 0], [0, 1], [-1, 0]][player.facing];
     fb.fillRect(px - 1, py - 1, 3, 3, P.YELLOW);
     for (let i = 1; i <= scale; i++) fb.pset(px + dx * i, py + dy * i, P.WHITE);
 
     drawTextCentered(fb, SCREEN_W / 2, VIEW.y + 2, `LEVEL ${level.depth} MAP`, P.WHITE, P.BLACK);
+    fb.fillRect(VIEW.x, VIEW.y + VIEW.h - 11, VIEW.w, 11, P.BLACK);
     drawText(fb, VIEW.x + 2, VIEW.y + VIEW.h - 9, 'TAB CLOSE', P.DKGRAY);
     drawText(fb, VIEW.x + 70, VIEW.y + VIEW.h - 9, 'DOWN', theme ? theme.accent : P.LTGREEN);
     drawText(fb, VIEW.x + 118, VIEW.y + VIEW.h - 9, 'UP', P.LTCYAN);
     drawText(fb, VIEW.x + 152, VIEW.y + VIEW.h - 9, 'GATE', P.LTRED);
     drawText(fb, VIEW.x + 196, VIEW.y + VIEW.h - 9, 'DOOR', P.BROWN);
+    drawText(fb, VIEW.x + 240, VIEW.y + VIEW.h - 9, 'LOOT', P.YELLOW);
 }
 
 /** A centred modal box with a title and lines of body text. */
@@ -157,5 +201,3 @@ export function drawPanel(fb, title, lines, opts = {}) {
     });
     return { x, y, w, h };
 }
-
-export { textWidth, CHAR_W };
