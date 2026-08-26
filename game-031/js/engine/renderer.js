@@ -256,6 +256,10 @@ export class Renderer {
         if (ry1 < ry0) return;
         const w = fb.width, px = fb.pixels, data = bmp.data;
 
+        // Sprites take a single shade step, like walls: dithering a
+        // 24-pixel-wide figure blown up to fill the screen turns it into a
+        // checkerboard rather than a creature.
+        const row = (Math.min(SHADES - 1, Math.round(level)) | 0) * 16;
         for (let x = drawX0; x <= drawX1; x++) {
             if (z >= this.depth[x - vp.x]) continue;
             let tx = (((x + 0.5 - (screenX - halfW)) / spanW) * bmp.w) | 0;
@@ -266,8 +270,7 @@ export class Renderer {
                 if (ty >= bmp.h) ty = bmp.h - 1; else if (ty < 0) ty = 0;
                 const c = data[ty * bmp.w + tx];
                 if (c === TRANSPARENT) continue;
-                const l = Math.min(SHADES - 1, ditherLevel(level, x, y));
-                px[y * w + x] = shadeTable[l * 16 + c];
+                px[y * w + x] = shadeTable[row + c];
             }
         }
     }

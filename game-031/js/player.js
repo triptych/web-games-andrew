@@ -53,14 +53,18 @@ export class Player {
     /**
      * Request an action. `action` is one of:
      * 'forward' | 'back' | 'strafeLeft' | 'strafeRight' | 'turnLeft' | 'turnRight'
+     *
+     * `nav` only has to answer walkable(x, y); the game passes a wrapper
+     * that also refuses cells a monster is standing in, so bumping a
+     * monster becomes an attack rather than a step.
      * Returns true if it started immediately.
      */
-    request(action, level, onBump) {
+    request(action, nav, onBump) {
         if (this.anim) { this.queued = action; return false; }
-        return this._begin(action, level, onBump);
+        return this._begin(action, nav, onBump);
     }
 
-    _begin(action, level, onBump) {
+    _begin(action, nav, onBump) {
         if (action === 'turnLeft') return this._startTurn(-1);
         if (action === 'turnRight') return this._startTurn(1);
 
@@ -70,7 +74,7 @@ export class Player {
         else if (action === 'strafeRight') dir = this.facing + 1;
         const target = this.cellInDirection(dir);
 
-        if (!level.walkable(target.x, target.y)) {
+        if (!nav.walkable(target.x, target.y)) {
             this._startBump(target);
             if (onBump) onBump(target);
             return false;
@@ -103,7 +107,7 @@ export class Player {
         };
     }
 
-    update(dt, level, onArrive, onBump) {
+    update(dt, nav, onArrive, onBump) {
         const a = this.anim;
         if (!a) {
             this.bob *= Math.max(0, 1 - dt * 8);
@@ -143,7 +147,7 @@ export class Player {
             if (this.queued) {
                 const q = this.queued;
                 this.queued = null;
-                this._begin(q, level, onBump);
+                this._begin(q, nav, onBump);
             }
         }
     }
