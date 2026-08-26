@@ -392,6 +392,19 @@ const games = [
             { emoji: '🎲', label: 'Turn-Based' },
             { emoji: '⌨️', label: 'Keyboard' }
         ]
+    },
+    {
+        id: 'game-031',
+        title: 'Grimhold Abyss',
+        description: "A retro first-person dungeon crawler in the style of early-90s DOS shareware. Grid-locked steps, 90-degree turns and a hand that throws fireballs, rendered by a custom software 3D engine written from scratch for this game - a 320x200 palette-indexed framebuffer, perspective-correct textured wall columns, dithered EGA distance shading and billboard sprites, with no WebGL and no 3D library. Every floor of the dungeon is procedurally generated.",
+        icon: '\u{1F52E}',
+        folder: 'game-031',
+        cssClass: 'grimhold-abyss',
+        tags: [
+            { emoji: '\u{1F5FA}\uFE0F', label: 'Dungeon Crawler' },
+            { emoji: '\u{1F3B2}', label: 'Procedural' },
+            { emoji: '\u2328\uFE0F', label: 'Keyboard' }
+        ]
     }
 ];
 
