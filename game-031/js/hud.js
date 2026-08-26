@@ -6,7 +6,7 @@
 
 import * as P from './engine/palette.js';
 import { drawText, drawTextCentered, textWidth, CHAR_W } from './engine/font.js';
-import { DOOR, DOOR_OPEN, STAIRS } from './dungeon.js';
+import { DOOR, DOOR_OPEN, STAIRS, LOCKED, STAIRS_UP } from './dungeon.js';
 
 export const SCREEN_W = 320, SCREEN_H = 200;
 export const VIEW = { x: 4, y: 4, w: 312, h: 148 };
@@ -93,6 +93,8 @@ export function drawAutomap(fb, level, player, theme) {
             const t = level.at(x, y);
             let c = null;
             if (t === STAIRS) c = theme ? theme.accent : P.LTGREEN;
+            else if (t === STAIRS_UP) c = P.LTCYAN;
+            else if (t === LOCKED) c = P.LTRED;
             else if (t === DOOR) c = P.BROWN;
             else if (t === DOOR_OPEN) c = P.YELLOW;
             else if (level.walkable(x, y)) c = P.DKGRAY;
@@ -108,6 +110,13 @@ export function drawAutomap(fb, level, player, theme) {
         }
     }
 
+    // anything still lying on the floor that we have already walked past
+    for (const it of level.items) {
+        if (!level.hasSeen(it.x, it.y)) continue;
+        const c = it.kind === 'key' ? P.LTCYAN : P.YELLOW;
+        fb.fillRect(ox + it.x * scale, oy + it.y * scale, Math.max(1, scale - 1), Math.max(1, scale - 1), c);
+    }
+
     // player marker: a wedge pointing the way we face
     const px = ox + player.cellX * scale + (scale >> 1);
     const py = oy + player.cellY * scale + (scale >> 1);
@@ -118,6 +127,10 @@ export function drawAutomap(fb, level, player, theme) {
 
     drawTextCentered(fb, SCREEN_W / 2, VIEW.y + 2, `LEVEL ${level.depth} MAP`, P.WHITE, P.BLACK);
     drawText(fb, VIEW.x + 2, VIEW.y + VIEW.h - 9, 'TAB CLOSE', P.DKGRAY);
+    drawText(fb, VIEW.x + 70, VIEW.y + VIEW.h - 9, 'DOWN', theme ? theme.accent : P.LTGREEN);
+    drawText(fb, VIEW.x + 118, VIEW.y + VIEW.h - 9, 'UP', P.LTCYAN);
+    drawText(fb, VIEW.x + 152, VIEW.y + VIEW.h - 9, 'GATE', P.LTRED);
+    drawText(fb, VIEW.x + 196, VIEW.y + VIEW.h - 9, 'DOOR', P.BROWN);
 }
 
 /** A centred modal box with a title and lines of body text. */

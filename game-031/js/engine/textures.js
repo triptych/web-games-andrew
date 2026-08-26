@@ -90,7 +90,9 @@ export function brickTexture(seed, { tones, mortar, moss = null, mossAmount = 0 
             tex.rect(x0 + 1, y0 + 1, bw - 2, bh - 2, base);
             // top-lit: highlight along the top and left, shadow below right
             tex.hline(x0 + 1, x0 + bw - 2, y0 + 1, tones[tones.length - 1]);
-            tex.vline(x0 + 1, y0 + 1, y0 + bh - 3, tones[tones.length - 1]);
+            // only the darker bricks get a lit left edge too, so the
+            // highlight colour does not take over the whole wall
+            if (base === tones[1]) tex.vline(x0 + 1, y0 + 1, y0 + bh - 3, tones[tones.length - 1]);
             tex.hline(x0 + 1, x0 + bw - 2, y0 + bh - 2, tones[0]);
             tex.vline(x0 + bw - 2, y0 + 2, y0 + bh - 2, tones[0]);
             // a crack or a chipped corner, sparingly
@@ -153,35 +155,69 @@ export function roughTexture(seed, { tones, mortar }) {
     return tex;
 }
 
-/** Planked wooden door with iron bands and a ring handle. */
-export function doorTexture(seed, { wood = P.BROWN, dark = P.RED, iron = P.DKGRAY, trim = P.LTGRAY }) {
+/**
+ * Planked wooden door with iron bands and a ring handle.
+ *
+ * Detail is deliberately clustered around the vertical middle: standing in
+ * the cell in front of a wall, the view only covers the middle third of
+ * its texture, so anything near the top or bottom edge is never seen.
+ */
+export function doorTexture(seed, { wood = P.BROWN, seam = P.BLACK, iron = P.DKGRAY, trim = P.LTGRAY, stud = P.YELLOW } = {}) {
     const rng = mulberry32(seed);
     const tex = new Tex();
-    tex.fill(dark);
-    tex.rect(4, 2, 56, 60, wood);
-    for (let x = 4; x < 60; x += 9) tex.vline(x, 2, 61, dark);           // plank seams
-    for (let i = 0; i < 260; i++) tex.set(4 + rng() * 56, 2 + rng() * 60, rng() < 0.5 ? dark : trim);
-    tex.rect(4, 10, 56, 5, iron);                                        // bands
-    tex.rect(4, 48, 56, 5, iron);
-    tex.hline(4, 59, 10, trim);
-    tex.hline(4, 59, 48, trim);
-    for (let x = 7; x < 60; x += 10) { tex.set(x, 12, trim); tex.set(x, 50, trim); }  // rivets
-    // ring handle
-    for (let a = 0; a < 64; a++) {
-        const t = (a / 64) * Math.PI * 2;
-        tex.set(46 + Math.cos(t) * 5, 32 + Math.sin(t) * 5, trim);
-        tex.set(46 + Math.cos(t) * 4, 32 + Math.sin(t) * 4, iron);
+    tex.fill(seam);
+    tex.rect(3, 2, 58, 60, wood);
+    // planks with a seam and a little grain each
+    for (let px = 3; px < 61; px += 12) {
+        tex.vline(px, 2, 61, seam);
+        for (let i = 0; i < 8; i++) {
+            const gx = px + 2 + rng() * 8, gy = 3 + rng() * 56;
+            tex.vline(gx, gy, gy + 1 + rng() * 3, rng() < 0.6 ? seam : trim);
+        }
     }
-    for (let y = 0; y < TEX_SIZE; y++) { tex.set(0, y, iron); tex.set(1, y, iron); tex.set(62, y, iron); tex.set(63, y, iron); }
+    // iron bands, placed where the close-up view can actually see them
+    for (const by of [17, 41]) {
+        tex.rect(3, by, 58, 6, iron);
+        tex.hline(3, 60, by, trim);
+        tex.hline(3, 60, by + 5, P.BLACK);
+        for (let x = 7; x < 60; x += 11) tex.set(x, by + 2, stud);
+    }
+    // ring handle, dead centre
+    for (let a = 0; a < 96; a++) {
+        const t = (a / 96) * Math.PI * 2;
+        tex.set(46 + Math.cos(t) * 6, 32 + Math.sin(t) * 6, trim);
+        tex.set(46 + Math.cos(t) * 5, 32 + Math.sin(t) * 5, iron);
+    }
+    tex.rect(44, 24, 5, 3, iron);
+    tex.hline(44, 48, 24, trim);
+    // heavy frame
+    for (let y = 0; y < TEX_SIZE; y++) {
+        tex.set(0, y, P.BLACK); tex.set(1, y, iron); tex.set(2, y, trim);
+        tex.set(63, y, P.BLACK); tex.set(62, y, iron); tex.set(61, y, trim);
+    }
     return tex;
 }
 
 /** Portcullis: iron bars over blackness. Used for locked gates. */
-export function gateTexture(seed, { iron = P.DKGRAY, trim = P.LTGRAY, back = P.BLACK }) {
+export function gateTexture(seed, { iron = P.DKGRAY, trim = P.LTGRAY, back = P.BLACK, lock = P.YELLOW } = {}) {
     const tex = new Tex();
     tex.fill(back);
-    for (let x = 4; x < 64; x += 10) { tex.rect(x, 0, 4, 64, iron); tex.vline(x, 0, 63, trim); }
-    for (let y = 6; y < 64; y += 18) { tex.rect(0, y, 64, 3, iron); tex.hline(0, 63, y, trim); }
+    for (let x = 3; x < 64; x += 9) {
+        tex.rect(x, 0, 4, 64, iron);
+        tex.vline(x, 0, 63, trim);
+        tex.vline(x + 3, 0, 63, P.BLACK);
+    }
+    for (const y of [14, 44]) {
+        tex.rect(0, y, 64, 4, iron);
+        tex.hline(0, 63, y, trim);
+        tex.hline(0, 63, y + 3, P.BLACK);
+    }
+    // a padlock in the middle, so a locked gate reads as locked
+    tex.rect(27, 28, 11, 9, iron);
+    tex.hline(27, 37, 28, trim);
+    tex.rect(30, 24, 5, 5, trim);
+    tex.rect(31, 25, 3, 4, back);
+    tex.set(32, 32, lock); tex.set(32, 33, lock); tex.set(32, 34, lock);
     return tex;
 }
 

@@ -52,13 +52,13 @@ same array does sprite occlusion for free.
 - [x] **Phase 2 — Dungeons.** Room-and-corridor generation with themes per
   depth, doors, locked doors and keys, secret doors, descent stairs,
   multi-level persistence, torch props.
-- [x] **Phase 3 — Bestiary and combat.** Billboard monsters with sprite
+- [ ] **Phase 3 — Bestiary and combat.** Billboard monsters with sprite
   animation and simple grid AI, melee, the fireball hand, damage, death,
   loot drops.
-- [x] **Phase 4 — RPG systems.** XP and levels, HP/mana, inventory,
+- [ ] **Phase 4 — RPG systems.** XP and levels, HP/mana, inventory,
   potions/scrolls/treasure, chests, the boss on the final floor, win and
   lose screens, save/load.
-- [x] **Phase 5 — Feel.** Procedural Web Audio SFX, palette flash effects,
+- [ ] **Phase 5 — Feel.** Procedural Web Audio SFX, palette flash effects,
   status-bar portrait that reacts to damage, title screen, help screen.
 
 ## Controls

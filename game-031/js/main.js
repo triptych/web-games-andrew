@@ -6,7 +6,9 @@ import { Framebuffer } from './engine/framebuffer.js';
 import { Renderer } from './engine/renderer.js';
 import * as P from './engine/palette.js';
 import { drawText, drawTextCentered } from './engine/font.js';
-import { generateLevel, STAIRS } from './dungeon.js';
+import {
+    generateLevel, FLOOR, DOOR, DOOR_OPEN, STAIRS, LOCKED, SECRET, STAIRS_UP
+} from './dungeon.js';
 import { buildTheme, createWorldView } from './themes.js';
 import { Player } from './player.js';
 import { Input } from './input.js';
@@ -33,17 +35,36 @@ class Game {
             level: 1, xp: 0, xpNext: 20, gold: 0, keys: 0
         };
         this.depth = 0;
-        this.enterLevel(1);
+        this.levels = new Map();     // depth -> Level, so floors persist
+        this.themes = new Map();
+        this.deepest = 1;
+        this.enterLevel(1, 'down');
     }
 
-    enterLevel(depth) {
+    /**
+     * @param {number} depth
+     * @param {'down'|'up'} via  which stairway we came out of, which
+     *        decides where on the floor we appear.
+     */
+    enterLevel(depth, via) {
+        let level = this.levels.get(depth);
+        const fresh = !level;
+        if (fresh) {
+            level = generateLevel(depth, this.seed + depth * 104729);
+            this.levels.set(depth, level);
+            this.themes.set(depth, buildTheme(depth, this.seed + depth * 7919));
+        }
         this.depth = depth;
-        this.level = generateLevel(depth, this.seed + depth * 104729);
-        this.theme = buildTheme(depth, this.seed + depth * 7919);
-        this.world = createWorldView(this.level, this.theme);
-        this.player = new Player(this.level.entry.x, this.level.entry.y, 0);
-        this.level.revealFrom(this.player.cellX, this.player.cellY);
-        this.say(`you descend into ${this.theme.name}.`, this.theme.accent);
+        this.deepest = Math.max(this.deepest, depth);
+        this.level = level;
+        this.theme = this.themes.get(depth);
+        this.world = createWorldView(level, this.theme);
+        const spot = via === 'down' ? level.entry : level.stairs;
+        this.player = new Player(spot.x, spot.y, this.player ? this.player.facing : 0);
+        level.revealFrom(this.player.cellX, this.player.cellY);
+        this.say(fresh
+            ? `you descend into ${this.theme.name}.`
+            : `you return to level ${depth}.`, this.theme.accent);
     }
 
     say(text, color = P.LTGRAY) {
@@ -75,11 +96,63 @@ class Game {
 
     interact() {
         const p = this.player;
-        if (this.level.at(p.cellX, p.cellY) === STAIRS) {
-            this.enterLevel(this.depth + 1);
+        const f = p.facingCell();
+        const facing = this.level.at(f.x, f.y);
+
+        if (facing === DOOR) {
+            this.level.set(f.x, f.y, DOOR_OPEN);
+            this.level.revealFrom(p.cellX, p.cellY);
+            this.say('the door grinds open.', P.LTGRAY);
             return;
         }
-        this.say('there is nothing to use here.', P.DKGRAY);
+        if (facing === LOCKED) {
+            if (this.stats.keys > 0) {
+                this.stats.keys--;
+                this.level.set(f.x, f.y, DOOR_OPEN);
+                this.level.revealFrom(p.cellX, p.cellY);
+                this.say('the key turns. the gate swings wide.', P.LTCYAN);
+            } else {
+                this.say('the gate is locked. you need a key.', P.LTRED);
+            }
+            return;
+        }
+        if (facing === SECRET) {
+            this.level.set(f.x, f.y, DOOR_OPEN);
+            this.level.revealFrom(p.cellX, p.cellY);
+            this.say('a hidden door swings inward!', P.YELLOW);
+            return;
+        }
+
+        const here = this.level.at(p.cellX, p.cellY);
+        if (here === STAIRS) { this.enterLevel(this.depth + 1, 'down'); return; }
+        if (here === STAIRS_UP) {
+            if (this.depth === 1) {
+                this.say('the way you came in has collapsed.', P.DKGRAY);
+            } else {
+                this.enterLevel(this.depth - 1, 'up');
+            }
+            return;
+        }
+
+        this.say('you search the stonework, and find nothing.', P.DKGRAY);
+    }
+
+    /** Anything lying on this cell goes into the pack. */
+    collect(x, y) {
+        const items = this.level.items;
+        for (let i = items.length - 1; i >= 0; i--) {
+            const it = items[i];
+            if (it.x !== x || it.y !== y) continue;
+            items.splice(i, 1);
+            if (it.kind === 'key') {
+                this.stats.keys++;
+                this.say('you pocket an iron key.', P.LTCYAN);
+            } else if (it.kind === 'hoard') {
+                const gold = 40 + this.depth * 25 + ((Math.random() * 30) | 0);
+                this.stats.gold += gold;
+                this.say(`a forgotten hoard! ${gold} gold.`, P.YELLOW);
+            }
+        }
     }
 
     // --- loop -------------------------------------------------------------
@@ -100,9 +173,23 @@ class Game {
 
     onArrive(x, y) {
         this.level.revealFrom(x, y);
-        if (this.level.at(x, y) === STAIRS) {
-            this.say('a stairway spirals down. press enter.', this.theme.accent);
-        }
+        this.collect(x, y);
+        const here = this.level.at(x, y);
+        if (here === STAIRS) this.say('a stairway spirals down. press enter.', this.theme.accent);
+        else if (here === STAIRS_UP) this.say('steps climb back the way you came.', P.DKGRAY);
+        else if (this.nearSecret(x, y)) this.say('a draught stirs the dust here.', P.DKGRAY);
+        else if (this.facingBlockedByLock(x, y)) this.say('a locked gate bars the way.', P.LTRED);
+    }
+
+    /** Hint that a secret door is adjacent, without saying which wall. */
+    nearSecret(x, y) {
+        return [[0, -1], [1, 0], [0, 1], [-1, 0]]
+            .some(([dx, dy]) => this.level.at(x + dx, y + dy) === SECRET);
+    }
+
+    facingBlockedByLock(x, y) {
+        return [[0, -1], [1, 0], [0, 1], [-1, 0]]
+            .some(([dx, dy]) => this.level.at(x + dx, y + dy) === LOCKED);
     }
 
     draw() {
@@ -152,7 +239,7 @@ class Game {
             'DOWN / S      step back',
             'LEFT / RIGHT  turn in place',
             'Q / E         sidestep',
-            'ENTER         use stairs, doors',
+            'ENTER         doors, stairs, search',
             'TAB           automap',
             'H             this screen'
         ], { width: 250 });

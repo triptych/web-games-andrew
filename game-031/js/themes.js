@@ -5,7 +5,7 @@
 
 import * as T from './engine/textures.js';
 import * as P from './engine/palette.js';
-import { DOOR } from './dungeon.js';
+import { DOOR, LOCKED, STAIRS, STAIRS_UP } from './dungeon.js';
 
 const THEMES = [
     {
@@ -101,9 +101,13 @@ export function createWorldView(level, theme) {
         wallTexture(x, y, face) {
             const t = level.at(x, y);
             if (t === DOOR) return theme.door;
-            // walls next to the stairs cell get the carved rune slab
-            if (level.stairs && Math.abs(x - level.stairs.x) + Math.abs(y - level.stairs.y) === 1)
-                return theme.stairs;
+            if (t === LOCKED) return theme.gate;
+            // walls flanking a stairway get the carved rune slab, which is
+            // the only signpost the dungeon offers
+            for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
+                const n = level.at(x + dx, y + dy);
+                if (n === STAIRS || n === STAIRS_UP) return theme.stairs;
+            }
             return theme.walls[hash2(x, y + face * 31) % theme.walls.length];
         }
     };
