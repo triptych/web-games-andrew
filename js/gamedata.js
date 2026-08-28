@@ -418,6 +418,19 @@ const games = [
             { emoji: '⌨️', label: 'Keyboard' },
             { emoji: '👾', label: '8-Bit' }
         ]
+    },
+    {
+        id: 'game-033',
+        title: 'Hearthbound',
+        description: "A cozy fantasy visual novel built with a hand-crafted vanilla JS engine (no game library) - DOM for the story layer, canvas for battles. Inherit a rundown countryside apothecary, get to know the townsfolk through branching dialogue, and handle the odd cellar slime or hedge wolf with light turn-based combat. Features inventory, equippable trinkets, leveling, and affinity-gated story branches.",
+        icon: '🌿',
+        folder: 'game-033',
+        cssClass: 'hearthbound',
+        tags: [
+            { emoji: '📖', label: 'Visual Novel' },
+            { emoji: '🖱️', label: 'Mouse' },
+            { emoji: '🌸', label: 'Cozy' }
+        ]
     }
 ];
 

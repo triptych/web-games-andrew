@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hearthbound</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #161320;
+            --panel: #211d2e;
+            --panel-light: #2b2440;
+            --text: #f0e9da;
+            --accent: #e0a458;
+            --danger: #d1495b;
+            --success: #7fb069;
+            --gold: #ffd166;
+            --border: #4a4160;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Georgia', 'Palatino Linotype', serif;
+            overflow: hidden;
+        }
+
+        .hidden { display: none !important; }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--panel-light);
+            color: var(--text);
+            border-radius: 6px;
+            padding: 8px 14px;
+            transition: background 0.15s, transform 0.1s;
+        }
+        button:hover:not(:disabled) { background: var(--accent); color: #1a1626; }
+        button:active:not(:disabled) { transform: scale(0.97); }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ============================================================
+           Title screen
+        ============================================================ */
+        #title-screen {
+            position: fixed; inset: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: radial-gradient(circle at 50% 30%, #2b2440, #100d18 80%);
+            text-align: center;
+        }
+        #title-screen h1 {
+            font-size: 56px;
+            letter-spacing: 3px;
+            color: var(--gold);
+            text-shadow: 0 0 24px rgba(255, 209, 102, 0.35);
+        }
+        #title-screen .subtitle {
+            margin-top: 8px;
+            font-style: italic;
+            opacity: 0.75;
+            font-size: 16px;
+        }
+        #title-buttons {
+            margin-top: 40px;
+            display: flex;
+            gap: 14px;
+        }
+        #title-buttons button { font-size: 16px; padding: 12px 24px; }
+
+        /* ============================================================
+           Game screen (VN layer)
+        ============================================================ */
+        #game-screen {
+            position: fixed; inset: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #hud {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 16px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+        #hud-level { font-weight: bold; color: var(--gold); min-width: 48px; }
+        .hud-bar-group { display: flex; align-items: center; gap: 6px; }
+        .hud-bar-track {
+            width: 100px; height: 10px;
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        #hud-hp-fill { height: 100%; background: var(--success); width: 100%; transition: width 0.3s; }
+        #hud-xp-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+        #hud-hp-label { font-size: 11px; opacity: 0.8; min-width: 44px; }
+        #hud-spacer { flex: 1; }
+        #hud button { font-size: 12px; padding: 5px 10px; }
+
+        #vn-stage {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            background: linear-gradient(180deg, #2b2440, #1a1626);
+            transition: background 0.5s ease;
+        }
+
+        #vn-portrait {
+            position: absolute;
+            bottom: 160px;
+            font-size: 140px;
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
+        }
+
+        #vn-box {
+            width: min(900px, 92%);
+            margin-bottom: 24px;
+            background: rgba(20, 16, 28, 0.92);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px 22px;
+            backdrop-filter: blur(2px);
+            z-index: 2;
+        }
+
+        #vn-speaker {
+            font-weight: bold;
+            color: var(--gold);
+            margin-bottom: 6px;
+            font-size: 15px;
+            letter-spacing: 1px;
+        }
+
+        #vn-text {
+            font-size: 17px;
+            line-height: 1.5;
+            min-height: 3.2em;
+            cursor: pointer;
+        }
+
+        #vn-advance-hint {
+            text-align: right;
+            font-size: 12px;
+            opacity: 0.6;
+            margin-top: 6px;
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } }
+
+        #vn-choices {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .vn-choice-btn {
+            text-align: left;
+            font-size: 15px;
+            padding: 10px 14px;
+        }
+
+        /* ============================================================
+           Inventory panel
+        ============================================================ */
+        #inventory-panel {
+            position: fixed; inset: 0;
+            background: rgba(10, 8, 14, 0.75);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 50;
+        }
+        #inventory-box {
+            width: min(560px, 90%);
+            max-height: 70vh;
+            overflow-y: auto;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        #inventory-box h2 { color: var(--gold); margin-bottom: 12px; }
+        .inventory-row {
+            display: grid;
+            grid-template-columns: 32px 140px 1fr auto;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-size: 13px;
+        }
+        .inv-icon { font-size: 20px; text-align: center; }
+        .inv-name { font-weight: bold; }
+        .inv-desc { opacity: 0.75; }
+        .inventory-empty { opacity: 0.6; font-style: italic; padding: 12px 0; }
+        #inventory-close { margin-top: 16px; }
+
+        /* ============================================================
+           Battle screen
+        ============================================================ */
+        #battle-screen {
+            position: fixed; inset: 0;
+            background: #0c0a12;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 40;
+        }
+        #battle-canvas {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #14101c;
+        }
+        #battle-log {
+            width: 640px;
+            max-width: 92vw;
+            height: 70px;
+            overflow-y: auto;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+        #battle-menu {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        /* ============================================================
+           Ending screen
+        ============================================================ */
+        #ending-screen {
+            position: fixed; inset: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: radial-gradient(circle at 50% 40%, #2b2440, #0c0a12 85%);
+            text-align: center;
+            padding: 40px;
+        }
+        #ending-screen h1 { color: var(--gold); font-size: 40px; margin-bottom: 20px; }
+        #ending-text { max-width: 600px; font-size: 16px; line-height: 1.6; opacity: 0.9; }
+        #btn-restart { margin-top: 32px; font-size: 15px; padding: 10px 22px; }
+
+        /* ============================================================
+           Level-up toast
+        ============================================================ */
+        .level-up-toast {
+            position: fixed;
+            top: 60px; left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: var(--gold);
+            color: #1a1626;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 100;
+        }
+        .level-up-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <!-- ============ Title Screen ============ -->
+    <div id="title-screen">
+        <h1>Hearthbound</h1>
+        <p class="subtitle">a cozy fantasy of apothecary shelves &amp; quiet quests</p>
+        <div id="title-buttons">
+            <button id="btn-new-game">New Game</button>
+            <button id="btn-continue" class="hidden">Continue</button>
+        </div>
+    </div>
+
+    <!-- ============ Game Screen ============ -->
+    <div id="game-screen" class="hidden">
+        <div id="hud">
+            <span id="hud-level">Lv. 1</span>
+            <div class="hud-bar-group">
+                <div class="hud-bar-track"><div id="hud-hp-fill"></div></div>
+                <span id="hud-hp-label">20/20</span>
+            </div>
+            <div class="hud-bar-group">
+                <div class="hud-bar-track"><div id="hud-xp-fill"></div></div>
+                <span style="opacity:0.6;">XP</span>
+            </div>
+            <div id="hud-spacer"></div>
+            <button id="inventory-open">🎒 Bag</button>
+            <button id="hud-save">💾 Save</button>
+            <button id="hud-mute">🔊</button>
+        </div>
+
+        <div id="vn-stage">
+            <div id="vn-portrait" class="hidden"></div>
+            <div id="vn-box">
+                <div id="vn-speaker" class="hidden"></div>
+                <div id="vn-text"></div>
+                <div id="vn-advance-hint" class="hidden">▼ click or press space to continue</div>
+                <div id="vn-choices" class="hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Inventory Panel ============ -->
+    <div id="inventory-panel" class="hidden">
+        <div id="inventory-box">
+            <h2>Your Bag</h2>
+            <div id="inventory-list"></div>
+            <button id="inventory-close">Close</button>
+        </div>
+    </div>
+
+    <!-- ============ Battle Screen ============ -->
+    <div id="battle-screen" class="hidden">
+        <canvas id="battle-canvas" width="640" height="320"></canvas>
+        <div id="battle-log"></div>
+        <div id="battle-menu"></div>
+    </div>
+
+    <!-- ============ Ending Screen ============ -->
+    <div id="ending-screen" class="hidden">
+        <h1>To Be Continued...</h1>
+        <p id="ending-text"></p>
+        <button id="btn-restart">Return to Title</button>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
