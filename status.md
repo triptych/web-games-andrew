@@ -2,7 +2,7 @@
 
 Completion audit of all games in this repo, based on each game's own game-plan.md / CHANGELOG.md / PHASE-COMPLETE docs cross-checked against code. Ratings reflect feature completeness against each game's own stated scope, not code quality or bugs.
 
-**Launcher note:** game-030 (Coppergate Lane) was built but missing from `js/gamedata.js` — this has been fixed, so it now appears on the home page.
+**Launcher note:** game-030 (Coppergate Lane) was built but missing from `js/gamedata.js` — this has been fixed and committed, so it now appears on the home page.
 
 | Game | Title | Rating | Notes |
 |---|---|---|---|
@@ -34,12 +34,12 @@ Completion audit of all games in this repo, based on each game's own game-plan.m
 | [game-026](game-026/index.html) | Crypt of the Forgotten | Near-Complete | Phase 6 complete/playable; a couple of design "open questions" never formally closed |
 | [game-027](game-027/index.html) | Alchemist's Lattice | Near-Complete | All 10 phases done with substantial real code; only explicitly deferred Phase 11 power-ups (out of v1 scope) missing |
 | [game-028](game-028/index.html) | Echoes of Aethermoor | Solid | Phases 1–4 done (full 4-chapter story); Phase 5 polish (art, portraits, mobile input) entirely unstarted |
-| [game-029](game-029/index.html) | Wayfarer's Path | Solid (active dev) | Phases 1–3 done and playable; **currently mid-edit** — new fx.js (particles/screen-shake), monster archetypes, and a real town/shop pass just landed but are not yet verified live in a browser this session |
-| [game-030](game-030/index.html) | Coppergate Lane | Playable-but-partial | Full playable story arc to a boss fight, but no save/load, single hero only, uniform enemy AI — was missing from the launcher, now added |
+| [game-029](game-029/index.html) | Wayfarer's Path | Solid | Phases 1–3 done and playable; new fx.js (particles/screen-shake), monster archetypes, and a town/shop pass have landed and are now committed, but per the plan doc were not yet verified live in a browser as of commit time |
+| [game-030](game-030/index.html) | Coppergate Lane | Playable-but-partial | Full playable story arc to a boss fight, but no save/load, single hero only, uniform enemy AI — was missing from the launcher, now added and committed |
 
 ## Key takeaways
 
 - **Most finished:** game-008, 010, 011, 016, 020, 021, 023, 025 — all self-declared complete and verified against code with no meaningful gaps.
 - **Real functional gap (not just polish):** game-022 (Depths Unknown) has no win condition — the only game that's genuinely unfinished at a functional level, not just missing stretch polish.
 - **Doc/code mismatches worth knowing about:** game-006, game-009, game-012, game-014, and game-019 have plan docs that *understate* real progress — the code is further along than the checklists suggest.
-- **In-flight right now:** game-029 has uncommitted local changes (new `fx.js`, monster archetypes, town/shop rework) — active work, not a stalled game. Its own plan doc flags this batch as not yet visually verified in a browser.
+- **Recently landed, not yet eyeballed:** game-029's latest batch (new `fx.js`, monster archetypes, town/shop rework) is now committed, but its own plan doc flags it as not yet visually verified live in a browser — worth a playtest pass before considering Phase 3 fully closed.
