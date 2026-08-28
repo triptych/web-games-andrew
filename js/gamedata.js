@@ -405,6 +405,19 @@ const games = [
             { emoji: '\u{1F3B2}', label: 'Procedural' },
             { emoji: '\u2328\uFE0F', label: 'Keyboard' }
         ]
+    },
+    {
+        id: 'game-032',
+        title: 'Ironhollow Depths',
+        description: "An 80's-style top-down 8-bit dungeon crawler in the vein of classic CRT-era action-RPGs. Guide a pixel-art knight through torch-lit brick dungeons, hack down green slimes with your sword, grab gold treasure, and survive as the depths grow harder — all under a chunky retro status-bar HUD.",
+        icon: '🗡️',
+        folder: 'game-032',
+        cssClass: 'ironhollow-depths',
+        tags: [
+            { emoji: '🏰', label: 'Dungeon Crawler' },
+            { emoji: '⌨️', label: 'Keyboard' },
+            { emoji: '👾', label: '8-Bit' }
+        ]
     }
 ];
 
