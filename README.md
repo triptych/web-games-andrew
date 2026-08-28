@@ -117,6 +117,19 @@ Strategic tower defense game with 5 unique tower types, 5 enemy varieties, 20 pr
 
 **Location:** [game-004/](game-004/)
 
+### 31. Grimhold Abyss
+Retro first-person dungeon crawler ("blobber") in the style of early-90s DOS shareware such as The Catacomb Abyss, rendered by a custom software 3D engine built from scratch for this game.
+
+**Features:**
+- **Custom software 3D renderer** — no WebGL, no 3D library: a 320x200 palette-indexed framebuffer, perspective-correct textured wall columns, a per-column depth buffer, dithered EGA distance shading and depth-tested billboard sprites
+- **Authentic 16-colour EGA palette** with hand-authored darkening ramps and 4x4 Bayer dithering
+- **Grid-locked blobber movement**: cell-to-cell steps and 90-degree turns, animated, with buffered input
+- **Procedurally generated dungeons**: rooms and corridors with loops, themed by depth, doors, keys and secret doors
+- **Zero asset files** — every wall texture, sprite, glyph and sound effect is generated at runtime
+- Automap, status bar and all text rasterised into the same pixel grid as the 3D view
+
+**Location:** [game-031/](game-031/)
+
 ## Getting Started
 
 ### Playing the Games

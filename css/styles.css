@@ -204,6 +204,15 @@ h1 {
     background: linear-gradient(135deg, #c0390b 0%, #e8890a 100%);
 }
 
+.game-preview.grimhold-abyss {
+    background: linear-gradient(135deg, #0a0a0a 0%, #2a2a2a 50%, #000000 100%);
+}
+
+.game-card.grimhold-abyss .play-button {
+    background: linear-gradient(135deg, #555555 0%, #aaaaaa 100%);
+    color: #000;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

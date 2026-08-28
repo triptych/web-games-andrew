@@ -1,0 +1,71 @@
+:root {
+    --ega-black: #000;
+    --ega-dkgray: #555;
+    --ega-ltgray: #aaa;
+    --ega-yellow: #ffff55;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    padding: 16px;
+    background: #101014;
+    color: var(--ega-ltgray);
+    font-family: "Courier New", Courier, monospace;
+    display: flex;
+    justify-content: center;
+}
+
+#cabinet {
+    width: 100%;
+    max-width: 900px;
+    text-align: center;
+}
+
+h1 {
+    margin: 0 0 12px;
+    font-size: 1.6rem;
+    letter-spacing: 0.3em;
+    color: var(--ega-yellow);
+    text-transform: uppercase;
+}
+
+#screen-frame {
+    background: #000;
+    border: 3px solid var(--ega-dkgray);
+    border-radius: 6px;
+    padding: 8px;
+    box-shadow: 0 0 0 1px #000, 0 12px 40px rgba(0, 0, 0, 0.8);
+}
+
+/*
+ * 320x200 was displayed on a 4:3 screen, so its pixels were taller than
+ * they were wide. Forcing 4/3 here reproduces that squash exactly.
+ */
+canvas#screen {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    height: auto;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #000;
+}
+
+.legend {
+    margin: 12px 0 0;
+    font-size: 0.85rem;
+    color: var(--ega-ltgray);
+}
+
+.legend b { color: var(--ega-yellow); }
+
+.legend.small {
+    color: var(--ega-dkgray);
+    font-size: 0.75rem;
+}
+
+.back { margin-top: 18px; font-size: 0.85rem; }
+.back a { color: var(--ega-dkgray); }
+.back a:hover { color: var(--ega-yellow); }
