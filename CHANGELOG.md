@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Notes
+- **Library version audit (2026-08-27)**: checked vendored/pinned JS libraries against latest upstream. Nothing upgraded — recorded here for future reference.
+  - **Kaplay**: pinned at `4000.0.0-alpha.26` (`lib/kaplay/kaplay.mjs` + `.js`); latest is `4000.0.0-alpha.27.1` (`next` dist-tag). Kaplay ships two incompatible tracks — stable `v3001` (`3001.0.19`, `latest` dist-tag) and experimental `v4000` (alphas). All games here use the v4000 API (see [docs/kaplay/](docs/kaplay/)), so stay on v4000 — do **not** move to v3001. Alpha.27 adds config-object RNG init (breaking if any game calls `new RNG()`/`setRNG()` with the old string/custom-rng param), plus `nextFrame()` and gamepad-type additions.
+  - **Phaser**: pinned at `4.0.0` (`lib/phaser/phaser-4.0.0/dist/phaser.esm.js`); latest is `4.2.1`. Highest breaking-change risk of the three: removed classes (`Point`, `Mesh`, `BitmapMask`), reworked tint/shader/FX/lighting APIs, `DynamicTexture`/`RenderTexture` now require an explicit `.render()` call, `Shader#setTextures()` semantics changed. Affects game-019, game-020, game-027, game-028.
+  - **three.js**: CDN-pinned (not vendored) at `0.165.0` / r165 via import maps in each game's `index.html`; latest is `0.185.1` / r185 — 20 releases behind. Affects game-014, game-018, game-024, game-025, game-026, game-029. Mechanically the easiest bump (just the version string, plus 8 hardcoded jsdelivr URLs in game-018), but r185 has a known breaking change around `updateWorldMatrix` worth checking for before bumping.
+
 ### Added
 - **Grimhold Abyss** (game-031): New retro first-person dungeon crawler ("blobber") in the style of early-90s DOS shareware such as The Catacomb Abyss, built on a custom software 3D engine written from scratch for this game — no WebGL, no 3D library
   - **Custom software renderer** (`js/engine/`): 320x200 palette-indexed framebuffer expanded to RGBA in a single present pass; perspective-correct textured wall columns with near-plane clipping and a per-column depth buffer; distance-shaded floor and ceiling; depth-tested billboard sprites; 5x7 bitmap font — everything on screen is rasterised by the game's own code

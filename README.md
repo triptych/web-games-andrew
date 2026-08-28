@@ -8,127 +8,63 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-### 1. Space Shooter
-Classic arcade space shooter game where you control a spaceship to battle waves of enemies.
+31 games, `game-001` through `game-031`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
-**Features:**
-- Keyboard controls (Arrow keys for movement, Space bar to shoot)
-- Progressive difficulty with enemy waves
-- Score tracking
-- Responsive canvas-based graphics
+| # | Game | Genre | Engine |
+|---|------|-------|--------|
+| 001 | [Space Shooter](game-001/) | Arcade shooter | Canvas |
+| 002 | [Match-3 Puzzle](game-002/) | Puzzle | Kaplay |
+| 003 | [NetHack Roguelike](game-003/) | Roguelike dungeon crawler | Kaplay |
+| 004 | [Tower Defense](game-004/) | Strategy / tower defense | Kaplay |
+| 005 | [Bullet Heaven](game-005/) | Survivors-like action RPG | Kaplay |
+| 006 | [Dungeon Crawler FPS](game-006/) | Raycasting FPS | Kaplay |
+| 007 | [The Forgotten Temple](game-007/) | Interactive fiction | Vanilla JS |
+| 008 | [Centipede Tower Defense](game-008/) | Arcade / tower defense hybrid | Kaplay |
+| 009 | [Chronicles of the Ember Crown](game-009/) | Turn-based RPG | Kaplay |
+| 010 | [Tiny Town](game-010/) | City builder / sandbox | Kaplay |
+| 011 | [Nonogram Fleet](game-011/) | Puzzle | Kaplay |
+| 012 | [Arcana Pull](game-012/) | Gacha auto battler | Kaplay |
+| 013 | [Petal & Purse](game-013/) | Cozy idle sim | Kaplay |
+| 014 | [Trackrunner](game-014/) | Endless runner | three.js |
+| 015 | [Tamagoji](game-015/) | Virtual pet | Kaplay |
+| 016 | [Crate Pusher](game-016/) | Sokoban puzzle | Kaplay |
+| 017 | [Pixel Picross](game-017/) | Nonogram puzzle | Kaplay |
+| 018 | [Village of the Wandering Blade](game-018/) | Action RPG / village builder | three.js |
+| 019 | [Synthwave Breakout](game-019/) | Arcade breakout | Phaser 4 |
+| 020 | [The River](game-020/) | Narrative RPG / roguelite | Phaser 4 |
+| 021 | [Dungeon Blobber](game-021/) | First-person dungeon crawler | Kaplay |
+| 022 | [Depths Unknown](game-022/) | Motherload-style mining | Kaplay |
+| 023 | [Synthwave Invaders](game-023/) | Space Invaders clone | Kaplay |
+| 024 | [Neon Vanguard](game-024/) | Top-down shmup | three.js |
+| 025 | [Crypt Crawler](game-025/) | Gauntlet-style dungeon crawler | three.js |
+| 026 | [Crypt of the Forgotten](game-026/) | First-person blobber | three.js |
+| 027 | [Alchemist's Lattice](game-027/) | Block-placement puzzle (1010!-style) | Phaser 4 |
+| 028 | [Echoes of Aethermoor](game-028/) | Visual novel fantasy RPG | Phaser 4 |
+| 029 | [Wayfarer's Path](game-029/) | Procedural road RPG | three.js |
+| 030 | [Coppergate Lane](game-030/) | Cozy-fantasy RPG-Maker-style adventure | Kaplay |
+| 031 | [Grimhold Abyss](game-031/) | Retro DOS-style dungeon crawler | Custom software renderer |
 
-**Location:** [game-001/](game-001/)
+### Highlights
 
-### 2. Match-3 Puzzle
-Strategic gem-matching puzzle game where you match three or more gems of the same color.
+**[Space Shooter](game-001/)** — Classic arcade space shooter. Arrow keys to move, space bar to shoot, progressive enemy waves.
 
-**Features:**
-- 30 moves limit gameplay
-- Color-coded gems with automatic match detection
-- Score tracking system
-- Built with Kaplay framework
-- Smooth animations and visual effects
+**[NetHack Roguelike](game-003/)** — Procedurally generated infinite-depth dungeons, full RPG systems (combat, leveling, inventory, magic), FOV/fog of war, NPCs, and save/load — all in modular ES6.
 
-**Location:** [game-002/](game-002/)
+**[Tower Defense](game-004/)** — 5 tower types (Archer, Cannon, Mage, Tesla, Sniper) with splash damage, slows, and chain lightning vs. 5 enemy types across 20 escalating waves, including boss waves every 5th wave. Full procedural sound system via Web Audio API.
 
-### 3. NetHack Roguelike
-Classic dungeon crawler with procedurally generated levels, turn-based combat, and ASCII graphics.
+**[Bullet Heaven](game-005/)** — Survivors-style bullet heaven with 3 RPG classes, 8 enemy types with distinct AI (orbiting, teleporting, splitting), auto-shoot, XP, and level-up upgrades.
 
-**Features:**
-- **Procedural Dungeon Generation**: Infinite depth with room-and-corridor algorithm
-- **Complete RPG Systems**: Combat, leveling, inventory, equipment, and magic
-- **Multiple Enemy Types**: 5 monster types with unique stats and AI pathfinding
-- **Item System**: Weapons, armor, potions, scrolls, and food with rarity levels
-- **Magic & Ranged Combat**: Fireball spells and bow-based arrow shooting
-- **Advanced Features**: Field of View (FOV), fog of war, multi-level dungeons
-- **NPC System**: Talk to merchants, guards, wizards, hermits, and healers
-- **Save/Load System**: Full game persistence with localStorage
-- **8-Directional Movement**: Arrow keys, WASD, and diagonal controls
-- Built with modular ES6 architecture
+**[Chronicles of the Ember Crown](game-009/)** — Final Fantasy-style turn-based RPG. Four-hero party through 12 battles, MP, status effects, leveling, and a Lich King boss fight.
 
-**Location:** [game-003/](game-003/)
+**[Synthwave Breakout](game-019/)** — Neon brick-breaker: escalating ball speed, 8×14 bricks with HP tiers, 4 powerups, Tron-style light trail, CRT scanline overlay. Built in Phaser 4.
 
-### 19. Synthwave Breakout
-Neon brick-breaker with synthwave aesthetics, escalating ball speed, powerups, and visual effects.
+**[The River](game-020/)** — Narrative roguelite: a 10-stop seeded river journey gathering companions and ingredients for a feast, with tower hints, companion synergies/clashes, and procedural ambient music.
 
-**Features:**
-- Paddle controlled by mouse or arrow keys
-- Ball speed escalates on every brick hit, capped at max
-- 8 rows × 14 columns of bricks with HP tiers and neon row colors
-- Combo multiplier resets on ball loss
-- Powerup drops: wide paddle, slow ball, multiball, laser cannon
-- Perspective grid background with horizon glow
-- Tron-style light trail on the ball (28-point segmented glow ribbon)
-- Screen shake on brick destruction, scaling with brick HP tier
-- CRT / old colour TV raster overlay: rolling scanline band, chromatic fringing, vignette, flicker
-- Built with Phaser 4.0.0 (ESM) and modular ES6 architecture
+**[Neon Vanguard](game-024/)** — Top-down shmup in three.js with custom shaders, real bloom post-processing, choreographed enemy movement patterns, and a glowing animated grid floor.
 
-**Location:** [game-019/](game-019/)
+**[Grimhold Abyss](game-031/)** — Retro first-person dungeon crawler in the style of early-90s DOS shareware, rendered by a **from-scratch software 3D engine**: a 320×200 palette-indexed framebuffer, perspective-correct textured walls, dithered EGA shading, and billboard sprites — no WebGL, no 3D library. Every floor is procedurally generated with zero asset files; all textures, sprites, and sounds are generated at runtime.
 
-### 20. The River
-Narrative RPG / roguelite — sail down the river on your last adventure, gathering companions and ingredients for a feast at the dark lord's tower.
-
-**Features:**
-- 10-stop river journey with seeded encounter queue (different every run)
-- 12 companion archetypes (common / uncommon / rare) each contributing unique skills: cooking, decorating, music, stories, wisdom, strength
-- 8 ingredient types across cooking and decorating categories
-- Incompatible companion pairs — some travelers clash, reducing your dinner score
-- 7 river event types including foraging stops that grant bonus ingredients
-- Dinner evaluation: weighted score yields six outcomes from Catastrophe to Legendary Feast
-- Tower news broadcasts hinting at the lord's preferences mid-journey, order tied to run seed
-- 3-layer scrolling water parallax animation
-- Procedural ambient drone music (Web Audio API)
-- Built with Phaser 4.0.0 (ESM) and modular ES6 architecture
-
-**Location:** [game-020/](game-020/)
-
----
-
-### 4. Tower Defense
-Strategic tower defense game with 5 unique tower types, 5 enemy varieties, 20 progressive waves, and complete sound system.
-
-**Features:**
-- **5 Unique Tower Types**:
-  - Archer: Fast attacks, medium range (balanced starter tower)
-  - Cannon: Slow, powerful splash damage with explosions
-  - Mage: Magic attacks that slow enemies
-  - Tesla: Chain lightning hitting multiple enemies
-  - Sniper: Long-range armor-piercing shots
-- **5 Enemy Types with Unique Mechanics**:
-  - Scout: Fast, low HP (basic enemy)
-  - Soldier: Medium stats with armor
-  - Tank: Heavily armored, requires anti-armor strategies
-  - Speedster: Very fast, dodges through defenses
-  - Boss: Massive HP and armor (appears every 5 waves)
-- **Armor System**: Damage reduction mechanics with sniper armor pierce
-- **20 Progressive Waves**: Escalating difficulty with mixed enemy compositions
-- **Boss Waves**: Special encounters every 5 waves with warning banners
-- **Wave Preview**: See upcoming enemy composition in HUD
-- **Special Attack Patterns**: Splash damage, slow effects, chain lightning
-- **Visual Effects**: Explosions, lightning bolts, slow indicators, impact flashes, boss banners
-- **Complete Sound System**: Procedurally generated audio using Web Audio API
-  - 10 unique sound effects for combat, waves, and UI interactions
-  - In-game sound toggle button for audio control
-  - Splash screen with animated start button
-- **Strategic Gameplay**: Grid-based tower placement with range indicators
-- **Resource Management**: Gold economy and life system
-- **Hotkeys 1-5**: Quick tower selection
-- Built with Kaplay framework and modular ES6 architecture
-
-**Location:** [game-004/](game-004/)
-
-### 31. Grimhold Abyss
-Retro first-person dungeon crawler ("blobber") in the style of early-90s DOS shareware such as The Catacomb Abyss, rendered by a custom software 3D engine built from scratch for this game.
-
-**Features:**
-- **Custom software 3D renderer** — no WebGL, no 3D library: a 320x200 palette-indexed framebuffer, perspective-correct textured wall columns, a per-column depth buffer, dithered EGA distance shading and depth-tested billboard sprites
-- **Authentic 16-colour EGA palette** with hand-authored darkening ramps and 4x4 Bayer dithering
-- **Grid-locked blobber movement**: cell-to-cell steps and 90-degree turns, animated, with buffered input
-- **Procedurally generated dungeons**: rooms and corridors with loops, themed by depth, doors, keys and secret doors
-- **Zero asset files** — every wall texture, sprite, glyph and sound effect is generated at runtime
-- Automap, status bar and all text rasterised into the same pixel grid as the 3D view
-
-**Location:** [game-031/](game-031/)
+See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
 ## Getting Started
 
@@ -155,11 +91,7 @@ python -m SimpleHTTPServer 8000
 
 ### Playing Individual Games
 
-You can also play games directly by opening their respective `index.html` files:
-- Space Shooter: `game-001/index.html`
-- Match-3 Puzzle: `game-002/index.html`
-- NetHack Roguelike: `game-003/index.html`
-- Tower Defense: `game-004/index.html`
+You can also play any game directly by opening its own `index.html` file, e.g. `game-001/index.html` for Space Shooter. See the [table above](#games-included) for the full list of 31 games and their folders.
 
 ## Building Desktop Versions
 
@@ -194,29 +126,21 @@ web-games-andrew/
 ├── css/                    # Shared stylesheets
 ├── js/                     # Shared JavaScript modules
 │   ├── main.js
-│   └── gamedata.js
-├── game-001/              # Space Shooter
+│   └── gamedata.js         # Metadata for all 31 games (drives the launcher)
+├── lib/
+│   ├── kaplay/              # Shared Kaplay engine (kaplay.mjs / kaplay.js)
+│   └── phaser/phaser-4.0.0/ # Shared Phaser 4 engine (ESM build)
+├── docs/                   # Framework API references and cross-game learnings
+├── game-001/ … game-031/   # One self-contained folder per game
 │   ├── index.html
-│   ├── gemcore.config.json
-│   └── manifest.json
-├── game-002/              # Match-3 Puzzle
-│   ├── index.html
-│   ├── kaplay.js
-│   ├── gemcore.config.json
-│   └── manifest.json
-├── game-003/              # NetHack Roguelike
-│   ├── index.html
-│   ├── styles.css
-│   └── js/                # Modular game code
-├── game-004/              # Tower Defense
-│   ├── index.html
-│   ├── game-plan.md
-│   ├── js/                # Modular game code
-│   └── lib/kaplay/        # Kaplay framework
-├── CHANGELOG.md           # Version history
-├── LICENSE                # MIT License
-└── README.md              # This file
+│   ├── js/ (or similarly organized modular game code)
+│   └── gemcore.config.json # Optional desktop-build config
+├── CHANGELOG.md            # Version history
+├── LICENSE                 # MIT License
+└── README.md               # This file
 ```
+
+Note: three.js is not vendored — three.js-based games (e.g. game-024, game-025, game-026, game-029) load it from a CDN via an import map in their `index.html`.
 
 ## Technologies Used
 
@@ -224,8 +148,8 @@ web-games-andrew/
 - **JavaScript** - Game logic and interactivity
 - **CSS3** - Styling and responsive design
 - **Kaplay Framework** - Game development framework (most games from game-002 onward)
-- **Phaser 4.0.0** - Game framework (e.g. game-019 Synthwave Breakout, game-020 The River)
-- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (e.g. game-024 Neon Vanguard)
+- **Phaser 4.0.0 (ESM)** - Game framework (game-019, game-020, game-027, game-028)
+- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029)
 - **GemCore/GemShell** - Desktop application packaging
 
 ## Attributions
@@ -261,7 +185,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-**Current Version:** 3.0.0
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 31 games are included as of the latest entry (game-031, Grimhold Abyss).
 
 ---
 
