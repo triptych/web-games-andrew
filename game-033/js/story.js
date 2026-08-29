@@ -10,7 +10,8 @@
  *   choices:    Array<{
  *       label:    string
  *       next:     string                              — id of the node to go to
- *       requires: { flag?, minAffinity?: {npcId:n}, item? } | null
+ *       requires: { flag?, negate?: boolean, minAffinity?: {npcId:n}, item? } | null
+ *                                                        — negate flips a `flag` check (available only if flag is NOT set)
  *       effects:  Array<{ type, ... }>                — applied when this choice is picked
  *   }>
  *   effects:    Array<...>          — applied automatically on node entry (before choices render)
@@ -27,16 +28,25 @@
  */
 
 export const PORTRAITS = {
-    mira_neutral:  { emoji: '🧑‍🌾', label: 'Mira' },
-    mira_worried:  { emoji: '😟', label: 'Mira' },
-    mira_smile:    { emoji: '🙂', label: 'Mira' },
-    narrator:      { emoji: '📖', label: '' },
+    mira_neutral:    { emoji: '🧑‍🌾', label: 'Mira' },
+    mira_worried:    { emoji: '😟', label: 'Mira' },
+    mira_smile:      { emoji: '🙂', label: 'Mira' },
+    bramwell_jolly:  { emoji: '🧔', label: 'Bramwell' },
+    bramwell_serious:{ emoji: '😐', label: 'Bramwell' },
+    bramwell_fond:   { emoji: '😊', label: 'Bramwell' },
+    hollow_wary:     { emoji: '🧙‍♀️', label: 'Hollow' },
+    hollow_neutral:  { emoji: '🙍‍♀️', label: 'Hollow' },
+    hollow_warm:     { emoji: '🥰', label: 'Hollow' },
+    narrator:        { emoji: '📖', label: '' },
 };
 
 export const BACKGROUNDS = {
     shop_interior: { gradient: 'linear-gradient(180deg, #2b2440, #1a1626)', label: 'The Apothecary' },
     shop_cellar:   { gradient: 'linear-gradient(180deg, #14121c, #0a0910)', label: 'The Cellar' },
     village_square:{ gradient: 'linear-gradient(180deg, #3a4a5c, #1c2733)', label: 'Village Square' },
+    bakery:        { gradient: 'linear-gradient(180deg, #4a3222, #241408)', label: 'Bramwell’s Bakery' },
+    whisperwood_edge: { gradient: 'linear-gradient(180deg, #1c2c22, #0a120c)', label: 'Edge of the Whisperwood' },
+    witch_cottage: { gradient: 'linear-gradient(180deg, #22283a, #0d1018)', label: 'Hollow’s Cottage' },
 };
 
 export const STORY = {
@@ -165,7 +175,351 @@ export const STORY = {
         text: 'You’re back! Oh — is that the old cellar key? I thought we’d lost that years ago. Thank you, truly.',
         effects: [ { type: 'addAffinity', npc: 'mira', amount: 1 }, { type: 'giveXp', amount: 12 } ],
         choices: [
-            { label: '(End of Phase 1 preview)', next: 'end_preview', requires: null, effects: [] },
+            { label: 'Step out for some air.', next: 'village_square', requires: null, effects: [] },
+        ],
+    },
+
+    // ============================================================
+    // Chapter 2 — Village Square (hub)
+    // ============================================================
+
+    village_square: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'village_square',
+        text: [
+            'The square is quiet at this hour — a few chickens, a cat asleep on a sunny step, and the smell of woodsmoke and baking bread drifting from across the way.',
+            'A stout, grey-bearded man waves at you from the bakery doorway. Beyond the last rooftop, the dark line of the Whisperwood watches the village the way it always has.',
+        ],
+        choices: [
+            { label: 'Go say hello to the baker.', next: 'bramwell_intro', requires: null, effects: [] },
+            {
+                label: '(Head toward the Whisperwood instead)',
+                next: 'whisperwood_first_look',
+                requires: { flag: 'metBramwell' },
+                effects: [],
+            },
+        ],
+    },
+
+    // ============================================================
+    // Chapter 2 — Bramwell the baker (retired adventurer)
+    // ============================================================
+
+    bramwell_intro: {
+        speaker: 'Bramwell',
+        portrait: 'bramwell_jolly',
+        background: 'bakery',
+        text: [
+            'Well, if it isn’t your aunt’s heir! I was wondering when you’d finally leave that shop long enough to say hello.',
+            'Bramwell — I run the bakery, these days. Used to swing a sword for a living, if you can believe it. Ovens are kinder to the knees.',
+        ],
+        effects: [ { type: 'setFlag', flag: 'metBramwell', value: true } ],
+        choices: [
+            {
+                label: 'An adventurer? What made you stop?',
+                next: 'bramwell_why_stop',
+                requires: null,
+                effects: [ { type: 'addAffinity', npc: 'bramwell', amount: 1 } ],
+            },
+            {
+                label: 'It’s good to finally meet you.',
+                next: 'bramwell_wolves',
+                requires: null,
+                effects: [],
+            },
+        ],
+    },
+
+    bramwell_why_stop: {
+        speaker: 'Bramwell',
+        portrait: 'bramwell_fond',
+        background: 'bakery',
+        text: 'Buried a few too many friends who didn’t stop in time. Bread doesn’t bite back — mostly. Ah, but listen, I’m glad you came by, actually.',
+        choices: [
+            { label: 'What’s wrong?', next: 'bramwell_wolves', requires: null, effects: [] },
+        ],
+    },
+
+    bramwell_wolves: {
+        speaker: 'Bramwell',
+        portrait: 'bramwell_serious',
+        background: 'bakery',
+        text: [
+            'I found wolf tracks at the edge of the herb patch this morning — bigger than any hedge wolf ought to leave. Whatever it is, it’s been getting bolder.',
+            'Now, I could send word to the watch captain in the next town over, get some spears out here in a week or so. Or — there’s a faster way, if you’re willing to hear it.',
+        ],
+        choices: [
+            {
+                label: 'Tell me the faster way.',
+                next: 'bramwell_suggests_witch',
+                requires: null,
+                effects: [],
+            },
+            {
+                label: 'Sending for the watch sounds safest. Let’s do that.',
+                next: 'bramwell_watch_path',
+                requires: null,
+                effects: [
+                    { type: 'setFlag', flag: 'calledTheWatch', value: true },
+                    { type: 'addAffinity', npc: 'bramwell', amount: 2 },
+                ],
+            },
+        ],
+    },
+
+    bramwell_suggests_witch: {
+        speaker: 'Bramwell',
+        portrait: 'bramwell_serious',
+        background: 'bakery',
+        text: 'There’s a witch out past the tree line — Hollow, she’s called. Keeps to herself, doesn’t think much of the village, but she knows these woods better than anyone living. If anyone can tell you what’s really out there, it’s her.',
+        choices: [
+            {
+                label: 'I’ll go find her.',
+                next: 'bramwell_watch_declined',
+                requires: null,
+                effects: [ { type: 'setFlag', flag: 'seekingHollow', value: true } ],
+            },
+            {
+                label: 'Actually, let’s just send for the watch. Safer.',
+                next: 'bramwell_watch_path',
+                requires: null,
+                effects: [
+                    { type: 'setFlag', flag: 'calledTheWatch', value: true },
+                    { type: 'addAffinity', npc: 'bramwell', amount: 2 },
+                ],
+            },
+        ],
+    },
+
+    bramwell_watch_declined: {
+        speaker: 'Bramwell',
+        portrait: 'bramwell_serious',
+        background: 'bakery',
+        text: 'Her, over the watch? ...Well. It’s your call to make, not mine. Just — be careful. She doesn’t suffer fools, and the wood doesn’t either.',
+        effects: [ { type: 'setFlag', flag: 'declinedTheWatch', value: true } ],
+        choices: [
+            { label: 'Head for the Whisperwood.', next: 'whisperwood_first_look', requires: null, effects: [] },
+        ],
+    },
+
+    bramwell_watch_path: {
+        speaker: 'Bramwell',
+        portrait: 'bramwell_fond',
+        background: 'bakery',
+        text: [
+            'Good. I’ll ride out myself and send word today — better a week’s wait than a mauled sheep, or worse.',
+            'Here — take this. Carved it myself, years back, from Whisperwood oak. Never did bring me any luck, but maybe it’ll do better by you.',
+        ],
+        effects: [
+            { type: 'giveItem', item: 'oak_charm', count: 1 },
+            { type: 'setFlag', flag: 'trustedBramwellOverHollow', value: true },
+        ],
+        choices: [
+            { label: 'Thank you, Bramwell.', next: 'bramwell_after_watch', requires: null, effects: [] },
+        ],
+    },
+
+    bramwell_after_watch: {
+        speaker: 'Bramwell',
+        portrait: 'bramwell_jolly',
+        background: 'bakery',
+        text: 'Go on, get back to that shop before Mira thinks I’ve talked your ear clean off. And come by anytime — the ovens are always warm.',
+        choices: [
+            { label: '(Return to the square)', next: 'village_square_post_bramwell', requires: null, effects: [] },
+        ],
+    },
+
+    village_square_post_bramwell: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'village_square',
+        text: 'With word sent to the watch, there’s little more to do here for now. The Whisperwood still waits at the edge of things, quieter than it should be.',
+        choices: [
+            { label: 'Head toward the Whisperwood anyway.', next: 'whisperwood_first_look', requires: null, effects: [] },
+        ],
+    },
+
+    // ============================================================
+    // Chapter 3 — The Whisperwood & Hollow the witch
+    // ============================================================
+
+    whisperwood_first_look: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'whisperwood_edge',
+        text: 'The trees close in fast once you leave the last fence post behind. Somewhere off the path, smoke rises in a thin, deliberate line — a chimney, not a wildfire.',
+        choices: [
+            {
+                label: 'Follow the smoke to Hollow’s cottage.',
+                next: 'hollow_intro',
+                requires: { flag: 'calledTheWatch', negate: true },
+                effects: [],
+            },
+            {
+                label: 'Follow the smoke to Hollow’s cottage.',
+                next: 'hollow_intro_cold',
+                requires: { flag: 'calledTheWatch' },
+                effects: [],
+            },
+        ],
+    },
+
+    // Reached only if the watch was already sent for — Hollow finds out and
+    // turns the player away. This is the real consequence of trusting Bramwell's
+    // "safer" option: it forecloses her whole questline (thimble, wolf hunt,
+    // deeper affinity) for this slice of the story.
+    hollow_intro_cold: {
+        speaker: 'Hollow',
+        portrait: 'hollow_wary',
+        background: 'witch_cottage',
+        text: [
+            'She’s waiting on the porch before you clear the tree line, arms folded, and she doesn’t look glad to see you.',
+            '“Word travels faster than you’d think, even out here. The watch, apothecary? You didn’t think to ask me first?”',
+        ],
+        choices: [
+            {
+                label: 'I didn’t know there was a "first." I’m sorry.',
+                next: 'hollow_cold_end',
+                requires: null,
+                effects: [ { type: 'addAffinity', npc: 'hollow', amount: -1 } ],
+            },
+            {
+                label: 'It seemed like the safer choice for everyone.',
+                next: 'hollow_cold_end',
+                requires: null,
+                effects: [ { type: 'addAffinity', npc: 'hollow', amount: -2 } ],
+            },
+        ],
+    },
+
+    hollow_cold_end: {
+        speaker: 'Hollow',
+        portrait: 'hollow_neutral',
+        background: 'witch_cottage',
+        text: '“Spears frighten a starving animal into the next farmstead over instead of home. But it’s done now.” She turns back toward the door. “I’ve nothing more to say to you today.”',
+        choices: [
+            { label: '(Leave quietly)', next: 'end_preview', requires: null, effects: [] },
+        ],
+    },
+
+    hollow_intro: {
+        speaker: 'Hollow',
+        portrait: 'hollow_wary',
+        background: 'witch_cottage',
+        text: [
+            'A woman steps out onto the porch before you’ve even knocked, a knife and a bundle of dried root still in her hands.',
+            '“The apothecary’s heir. I wondered how long before one of you came knocking. Well? Out with it.”',
+        ],
+        choices: [
+            {
+                label: 'There have been wolf tracks near the village. I was hoping you’d know something.',
+                next: 'hollow_wolves_direct',
+                requires: null,
+                effects: [ { type: 'addAffinity', npc: 'hollow', amount: 1 } ],
+            },
+            {
+                label: '(Say nothing about the wolves — just admire the cottage)',
+                next: 'hollow_smalltalk',
+                requires: null,
+                effects: [ { type: 'addAffinity', npc: 'hollow', amount: -1 } ],
+            },
+        ],
+    },
+
+    hollow_smalltalk: {
+        speaker: 'Hollow',
+        portrait: 'hollow_neutral',
+        background: 'witch_cottage',
+        text: '“Admiring it won’t fix the hinges.” She doesn’t look up from her work. “If you’ve nothing useful to say, I have roots to dry before nightfall.”',
+        choices: [
+            {
+                label: 'Fine — there are wolf tracks near the village. Bigger than usual.',
+                next: 'hollow_wolves_direct',
+                requires: null,
+                effects: [],
+            },
+        ],
+    },
+
+    hollow_wolves_direct: {
+        speaker: 'Hollow',
+        portrait: 'hollow_neutral',
+        background: 'witch_cottage',
+        text: [
+            '“Bigger, you say.” She finally looks at you properly. “There’s a hedge wolf denning too close to the path this season — driven out of the deep wood by something, though I couldn’t say what.”',
+            '“It’s not evil. It’s hungry and it’s scared, which is worse in a way. Someone will have to drive it back before a child wanders too far.”',
+        ],
+        choices: [
+            {
+                label: 'I’ll do it. Where do I find it?',
+                next: 'hollow_sends_you',
+                requires: null,
+                effects: [ { type: 'addAffinity', npc: 'hollow', amount: 2 } ],
+            },
+        ],
+    },
+
+    hollow_sends_you: {
+        speaker: 'Hollow',
+        portrait: 'hollow_warm',
+        background: 'witch_cottage',
+        text: [
+            '“Just past the fern hollow, north of here. Take this.” She presses a small silver thimble into your hand, its rim etched with careful, cramped runes.',
+            '“Steadies the hand and the nerve, both. My grandmother’s, before she wasn’t needing it anymore. Don’t lose it.”',
+        ],
+        effects: [
+            { type: 'giveItem', item: 'silver_thimble', count: 1 },
+            { type: 'setFlag', flag: 'trustedHollowOverBramwell', value: true },
+        ],
+        choices: [
+            { label: 'Head north to the fern hollow.', next: 'hedge_wolf_fight', requires: null, effects: [] },
+        ],
+    },
+
+    hedge_wolf_fight: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'whisperwood_edge',
+        text: 'The fern hollow is close and dim. A low growl rolls out of the shadows before you see the wolf itself — ribs showing, hackles up, more afraid than it wants to admit.',
+        battle: 'hedge_wolf',
+        onWin: 'hedge_wolf_won',
+        onLose: 'hedge_wolf_lost',
+        choices: [],
+    },
+
+    hedge_wolf_won: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'whisperwood_edge',
+        text: 'The wolf breaks off and flees deeper into the wood rather than press its luck further. It won’t trouble the herb patch again — not for a good while, anyway.',
+        effects: [ { type: 'giveXp', amount: 20 } ],
+        choices: [
+            { label: 'Return to tell Hollow it’s done.', next: 'hollow_thanks', requires: null, effects: [] },
+        ],
+    },
+
+    hedge_wolf_lost: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'whisperwood_edge',
+        text: 'The wolf gets the better of you and you beat a limping retreat back toward the tree line, pride more wounded than anything else.',
+        choices: [
+            { label: 'Return to tell Hollow what happened.', next: 'hollow_thanks', requires: null, effects: [] },
+        ],
+    },
+
+    hollow_thanks: {
+        speaker: 'Hollow',
+        portrait: 'hollow_warm',
+        background: 'witch_cottage',
+        text: [
+            'She listens to the whole account without interrupting, which from her feels like high praise.',
+            '“Good. Better it runs than either of you bleeds for it.” The faintest smile. “You’re not entirely useless, apothecary. Come back if you like — I don’t say that to everyone.”',
+        ],
+        effects: [ { type: 'addAffinity', npc: 'hollow', amount: 2 }, { type: 'giveXp', amount: 8 } ],
+        choices: [
+            { label: '(End of Phase 2 preview)', next: 'end_preview', requires: null, effects: [] },
         ],
     },
 
@@ -175,7 +529,7 @@ export const STORY = {
         background: 'village_square',
         text: [
             'That’s the end of this preview slice of Hearthbound.',
-            'More of the village, its people, and the Whisperwood beyond are still to come.',
+            'More of the village, its people, and the deeper Whisperwood are still to come.',
         ],
         choices: [],
         ending: true,

@@ -3,7 +3,7 @@
 **Genre:** Cozy fantasy visual novel with light RPG mechanics
 **Engine:** Custom vanilla JS engine — DOM+CSS for the VN layer, `<canvas>` for battle. No Kaplay/Phaser/three.js.
 **Target Resolution:** Responsive (fills viewport)
-**Status:** Planning — Phase 1
+**Status:** Planning — Phase 2
 
 ---
 
@@ -109,10 +109,10 @@ All Web Audio API procedural — no file assets.
 - [x] Save/Continue via localStorage
 - [x] HUD (level, HP, XP, bag, save, mute)
 
-### Phase 2 — More Story
-- [ ] Additional chapters: the village square, the baker, the forest witch
-- [ ] More affinity-gated branches and at least one branch that meaningfully forecloses another (real consequence)
-- [ ] A proper stat-point spending UI (currently only `state.spendStatPoint()` exists at the data layer)
+### Phase 2 — More Story (current)
+- [x] Additional chapters: the village square (hub), the baker (Bramwell), the forest witch (Hollow)
+- [x] More affinity-gated branches and a real forecloser: choosing to send for the watch (Bramwell's "safer" option) locks out Hollow's entire wolf-hunt questline — she turns you away instead of sending you after the hedge wolf, so `hollow_sends_you`, the Silver Thimble, the Hedge Wolf battle, and the deep-affinity ending are all skipped for that playthrough
+- [x] A proper stat-point spending UI: `statsPanel.js` + a HUD badge (`#hud-statpoints-badge`) that appears whenever `state.stats.statPoints > 0`, opening a modal with +buttons wired to `state.spendStatPoint()`
 
 ### Phase 3 — RPG Depth
 - [ ] More enemy variety and a scaling difficulty curve
@@ -165,6 +165,7 @@ All Web Audio API procedural — no file assets.
 | `progression.js` | Level-up feedback (sound + toast); XP math itself lives in state.js |
 | `battle.js` | Canvas-rendered light turn-based battle system |
 | `ui.js` | Persistent HUD chrome: level/HP/XP readout, save, mute |
+| `statsPanel.js` | Stat-point spending UI: HUD badge + modal, wired to `state.spendStatPoint()` |
 
 ---
 
@@ -177,6 +178,14 @@ All Web Audio API procedural — no file assets.
 ---
 
 ## Changelog
+
+### Phase 2 — More Story (2026-08-29)
+- Added `village_square` hub node plus two new NPC chapters: Bramwell the baker (`bramwell_*` nodes) and Hollow the forest witch (`hollow_*` nodes)
+- Added a real consequence branch: choosing to send for the watch instead of seeking out Hollow sets `calledTheWatch`, which routes `whisperwood_first_look` to a cold, foreclosed version of the Hollow meeting (`hollow_intro_cold` → `hollow_cold_end`) instead of her full questline
+- Added `negate` support to `choiceIsAvailable`'s flag check so a choice/route can require a flag be *unset*
+- Added a Hedge Wolf battle (`hedge_wolf_fight`) reachable only via Hollow's questline, granting the Silver Thimble (+2 Wit) beforehand and XP on resolution
+- New backgrounds (`bakery`, `whisperwood_edge`, `witch_cottage`) and portraits for Bramwell and Hollow in `story.js`
+- Added `statsPanel.js`: a HUD badge that appears when `state.stats.statPoints > 0`, opening a modal to spend points on Strength/Wit/Charm via `state.spendStatPoint()`
 
 ### Phase 1 — Scaffold (2026-08-28)
 - Initial custom-engine scaffold: DOM+CSS VN layer, canvas battle layer, config/events/state/sounds

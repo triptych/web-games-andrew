@@ -15,6 +15,7 @@ import { initInventory } from './inventory.js';
 import { initProgression } from './progression.js';
 import { initBattle } from './battle.js';
 import { initUI } from './ui.js';
+import { initStatsPanel } from './statsPanel.js';
 
 let $titleScreen, $gameScreen, $endingScreen, $btnNewGame, $btnContinue, $endingText, $btnRestart;
 
@@ -76,3 +77,4 @@ initInventory();
 initProgression();
 initBattle();
 initUI();
+initStatsPanel();

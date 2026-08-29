@@ -91,6 +91,17 @@
             font-size: 13px;
         }
         #hud-level { font-weight: bold; color: var(--gold); min-width: 48px; }
+        #hud-statpoints-badge {
+            background: var(--gold);
+            color: #1a1626;
+            font-weight: bold;
+            font-size: 12px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            border: none;
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+        #hud-statpoints-badge:hover { background: var(--accent); color: #1a1626; }
         .hud-bar-group { display: flex; align-items: center; gap: 6px; }
         .hud-bar-track {
             width: 100px; height: 10px;
@@ -204,6 +215,39 @@
         #inventory-close { margin-top: 16px; }
 
         /* ============================================================
+           Stats panel
+        ============================================================ */
+        #stats-panel {
+            position: fixed; inset: 0;
+            background: rgba(10, 8, 14, 0.75);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 51;
+        }
+        #stats-box {
+            width: min(480px, 90%);
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        #stats-box h2 { color: var(--gold); margin-bottom: 8px; }
+        #stats-points-remaining { font-size: 13px; opacity: 0.8; margin-bottom: 14px; }
+        .stats-row {
+            display: grid;
+            grid-template-columns: 90px 32px 1fr auto;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-size: 13px;
+        }
+        .stats-row-label { font-weight: bold; color: var(--text); }
+        .stats-row-value { color: var(--gold); font-weight: bold; text-align: center; }
+        .stats-row-desc { opacity: 0.75; font-size: 12px; }
+        .stats-row-btn { font-size: 15px; font-weight: bold; padding: 4px 12px; }
+        #stats-close { margin-top: 16px; }
+
+        /* ============================================================
            Battle screen
         ============================================================ */
         #battle-screen {
@@ -284,6 +328,7 @@
     <div id="game-screen" class="hidden">
         <div id="hud">
             <span id="hud-level">Lv. 1</span>
+            <button id="hud-statpoints-badge" class="hidden" title="Spend stat points"></button>
             <div class="hud-bar-group">
                 <div class="hud-bar-track"><div id="hud-hp-fill"></div></div>
                 <span id="hud-hp-label">20/20</span>
@@ -315,6 +360,16 @@
             <h2>Your Bag</h2>
             <div id="inventory-list"></div>
             <button id="inventory-close">Close</button>
+        </div>
+    </div>
+
+    <!-- ============ Stats Panel ============ -->
+    <div id="stats-panel" class="hidden">
+        <div id="stats-box">
+            <h2>Spend Stat Points</h2>
+            <p id="stats-points-remaining"></p>
+            <div id="stats-rows"></div>
+            <button id="stats-close">Close</button>
         </div>
     </div>
 

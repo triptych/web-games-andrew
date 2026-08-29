@@ -52,7 +52,10 @@ export function choiceIsAvailable(choice) {
     if (!choice.requires) return true;
     const req = choice.requires;
 
-    if (req.flag && !state.getFlag(req.flag)) return false;
+    if (req.flag) {
+        const flagIsSet = !!state.getFlag(req.flag);
+        if (req.negate ? flagIsSet : !flagIsSet) return false;
+    }
 
     if (req.minAffinity) {
         for (const [npc, min] of Object.entries(req.minAffinity)) {
