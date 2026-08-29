@@ -3,7 +3,7 @@
 **Genre:** Cozy fantasy visual novel with light RPG mechanics
 **Engine:** Custom vanilla JS engine — DOM+CSS for the VN layer, `<canvas>` for battle. No Kaplay/Phaser/three.js.
 **Target Resolution:** Responsive (fills viewport)
-**Status:** Phase 4 complete
+**Status:** Phase 5 planned
 
 ---
 
@@ -127,11 +127,20 @@ All Web Audio API procedural — no file assets.
 - [x] A second equip slot ("charm") with items that trade a bonus in one stat for a penalty in another, alongside the original flat-bonus "trinket" slot
 - [x] A brewing mechanic (`brewing.js` + `BREW_RECIPES` in `config.js`) turning material items (Dried Mintleaf, River Root, Thornback Quill, Moonpetal) into brewed consumables and a craftable charm item, gated behind a new `canBrew` story flag Mira sets
 
-### Phase 4 — Polish (current)
+### Phase 4 — Polish (complete)
 - [x] Replace emoji stand-ins with real portrait/background art (or a distinct painterly CSS treatment) — painterly CSS treatment applied now (no image-generation tool available in this environment); prompts for real art saved to `image_prompts/` for later
 - [x] Multiple distinct endings reflecting major branch choices — five endings (`ending_cold`, `ending_humbled_wolf`, `ending_cautious`, `ending_triumphant`, `ending_bested`)
 - [x] Settings: text speed slider, volume slider (`settings.js` + `settingsPanel.js`)
 - [x] Accessibility pass (keyboard-only navigation through choices)
+
+### Phase 5 — Mobile Pass (current)
+- [ ] Layout audit at small viewport widths (~360–414px) and short heights (landscape phones, browser chrome eating vertical space): HUD, VN stage, dialogue box, and choice buttons all need to reflow instead of clipping/overlapping.
+- [ ] Touch input pass: replace/augment any hover-dependent affordances, confirm every clickable element (textbox advance, choice buttons, HUD icon buttons, battle menu buttons, modal close/Escape-equivalent) responds correctly to `touchstart`/`click` on real touch devices without double-firing or requiring a hover state first.
+- [ ] Tap target sizing: HUD icon buttons and battle menu buttons audited against ~44×44px minimum touch target guidance; add padding/hit-area rather than shrinking visuals where needed.
+- [ ] Modal usability on small screens: inventory/brewing/stats/settings modals scroll properly and don't overflow the viewport; ensure a visible, tappable close affordance since Escape isn't available on-screen for touch-only devices.
+- [ ] Battle canvas scaling: confirm the canvas overlay resizes/scales correctly on small and rotated viewports and battle menu buttons remain reachable below it without page scroll fighting the layout.
+- [ ] Viewport meta + responsive CSS check: confirm `index.html`'s viewport meta tag prevents unwanted zoom/scroll, and audit `styles.css` for fixed px widths/heights that should be relative or clamped for narrow screens.
+- [ ] Manual test pass on an actual phone (or browser device-emulation at minimum) through the opening slice, a battle, and every modal.
 
 ---
 
