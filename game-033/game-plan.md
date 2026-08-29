@@ -3,7 +3,7 @@
 **Genre:** Cozy fantasy visual novel with light RPG mechanics
 **Engine:** Custom vanilla JS engine — DOM+CSS for the VN layer, `<canvas>` for battle. No Kaplay/Phaser/three.js.
 **Target Resolution:** Responsive (fills viewport)
-**Status:** Planning — Phase 3
+**Status:** Phase 4 complete
 
 ---
 
@@ -55,14 +55,16 @@ Once the player learns to brew (a story flag set by an early Mira dialogue), a B
 | Action | Key(s) |
 |--------|--------|
 | Advance dialogue | Click textbox / Space / Enter |
-| Pick a choice | Click the choice button |
-| Open/close bag | 🎒 Bag button |
-| Open/close brewing panel | 🍵 Brew button (visible once brewing is learned) |
+| Pick a choice | Click the choice button, or Tab/Arrow Up/Arrow Down to move focus + Enter/Space to select |
+| Open/close bag | 🎒 Bag button, or Escape to close |
+| Open/close brewing panel | 🍵 Brew button (visible once brewing is learned), or Escape to close |
+| Open/close stat-point panel | HUD badge (visible when stat points are unspent), or Escape to close |
+| Open/close settings | ⚙️ button, or Escape to close |
 | Save | 💾 Save button |
 | Mute/unmute | 🔊 button |
 | Battle actions | Click the battle menu buttons |
 
-No keyboard-only path is required for Phase 1 — this is a mouse-first, click-through experience by design (matching the VN genre), with space/enter as a convenience for advancing text.
+Phase 1 shipped mouse-first with space/enter as a convenience; Phase 4 added a full keyboard-only path for dialogue and choices (auto-focus on render, arrow-key roving focus between choice buttons, Escape to close any modal, and focus is restored to the current choice/textbox when a modal closes) as part of its accessibility pass.
 
 ---
 
@@ -76,12 +78,13 @@ No keyboard-only path is required for Phase 1 — this is a mouse-first, click-t
 
 ## UI / HUD
 
-- Top bar: level, HP bar + numeric label, XP bar, Bag/Save/Mute buttons.
-- VN stage: background gradient (stand-in for painted backgrounds), a large emoji "portrait" (stand-in for character art), speaker name, dialogue box with typewriter text, choice buttons that fade in once the current line(s) finish.
+- Top bar: level, HP bar + numeric label, XP bar, Bag/Save/Mute/Settings buttons.
+- VN stage: painterly gradient background with a vignette overlay (stand-in for painted backgrounds; see `image_prompts/` for real-art prompts), a large emoji portrait framed in a glowing medallion (stand-in for character art), speaker name, dialogue box with typewriter text, choice buttons that fade in once the current line(s) finish and auto-focus for keyboard play.
 - Inventory: modal overlay listing item icon/name/description, with an Equip/Unequip button on wearable items (equipping into whichever of the two slots — trinket or charm — the item declares).
 - Brewing: modal overlay listing each known recipe's icon/name/required materials, with a Brew button that's disabled (not hidden) until the player holds enough materials.
+- Settings: modal overlay with a text-speed slider (Slow/Normal/Fast/Instant) and a volume slider, both applied live.
 - Battle: canvas showing player/enemy emoji sprites with HP bars, a scrolling battle log, and a menu of actions below (Attack, one button per carried healing consumable, Flee).
-- Ending: dedicated screen with closing text and a restart button.
+- Ending: dedicated screen with closing text (one of five distinct endings) and a restart button.
 
 ---
 
@@ -124,11 +127,11 @@ All Web Audio API procedural — no file assets.
 - [x] A second equip slot ("charm") with items that trade a bonus in one stat for a penalty in another, alongside the original flat-bonus "trinket" slot
 - [x] A brewing mechanic (`brewing.js` + `BREW_RECIPES` in `config.js`) turning material items (Dried Mintleaf, River Root, Thornback Quill, Moonpetal) into brewed consumables and a craftable charm item, gated behind a new `canBrew` story flag Mira sets
 
-### Phase 4 — Polish
-- [ ] Replace emoji stand-ins with real portrait/background art (or a distinct painterly CSS treatment)
-- [ ] Multiple distinct endings reflecting major branch choices
-- [ ] Settings: text speed slider, volume slider
-- [ ] Accessibility pass (keyboard-only navigation through choices)
+### Phase 4 — Polish (current)
+- [x] Replace emoji stand-ins with real portrait/background art (or a distinct painterly CSS treatment) — painterly CSS treatment applied now (no image-generation tool available in this environment); prompts for real art saved to `image_prompts/` for later
+- [x] Multiple distinct endings reflecting major branch choices — five endings (`ending_cold`, `ending_humbled_wolf`, `ending_cautious`, `ending_triumphant`, `ending_bested`)
+- [x] Settings: text speed slider, volume slider (`settings.js` + `settingsPanel.js`)
+- [x] Accessibility pass (keyboard-only navigation through choices)
 
 ---
 
@@ -152,6 +155,7 @@ All Web Audio API procedural — no file assets.
 | `hpChanged` | hp, maxHp | state | ui |
 | `itemBrewed` | recipeId, resultItemId | state | brewing (re-renders the recipe list) |
 | `gameSaved` / `gameLoaded` | — | state | (available for a save-confirmation toast) |
+| `settingsChanged` | settings values object | settings | (available for future UI that mirrors current settings elsewhere) |
 
 ---
 
@@ -173,6 +177,8 @@ All Web Audio API procedural — no file assets.
 | `ui.js` | Persistent HUD chrome: level/HP/XP readout, save, mute |
 | `statsPanel.js` | Stat-point spending UI: HUD badge + modal, wired to `state.spendStatPoint()` |
 | `brewing.js` | Brewing panel: HUD button (gated by the `canBrew` flag) + modal listing `BREW_RECIPES`, wired to `state.brew()` |
+| `settings.js` | User preferences (text speed, volume), persisted separately from the save file; applies volume to `sounds.js` immediately |
+| `settingsPanel.js` | Settings modal: text speed + volume sliders, wired live to `settings.js` |
 
 ---
 
@@ -185,6 +191,14 @@ All Web Audio API procedural — no file assets.
 ---
 
 ## Changelog
+
+### Phase 4 — Polish (2026-08-29)
+- Five distinct endings (`ending_cold`, `ending_humbled_wolf`, `ending_cautious`, `ending_triumphant`, `ending_bested`) replace the single shared `end_preview` node; a new `lostToHedgeWolf` flag and a new choice on `hollow_thanks` make the hedge-wolf-loss ending reachable without forcing every playthrough into the deep wood.
+- New `settings.js` module (preferences persisted separately from the save file, under their own localStorage key) and `settingsPanel.js` (HUD-accessible modal): a text-speed slider (Slow/Normal/Fast/Instant, applied live to `vnRenderer.js`'s typewriter) and a volume slider (applied live via new `sounds.js` exports `setVolume()`/`getVolume()`).
+- Accessibility pass: choice buttons auto-focus on render, Arrow Up/Down move focus between them, Enter/Space activate the focused choice without double-firing the global advance handler, every modal (inventory/brewing/stats/settings) closes on Escape and hands focus back via a new shared `restoreStageFocus()` in `vnRenderer.js` rather than stranding it on a HUD button, and a visible `:focus-visible` ring was added.
+- Painterly CSS treatment in place of real art, since no image-generation tool is available in this environment: richer multi-stop gradients for every background in `story.js`, a vignette overlay on the VN stage, and a framed glow around portraits.
+- New `image_prompts/` directory: one Nano-Banana-2-ready prompt file per portrait and background plus a README with wiring instructions, so real art can be generated and dropped in later.
+- Test coverage: new `tests/settings.test.js`, new "Phase 4 endings" cases in `tests/story.test.js`, and extended Playwright smoke coverage (`tests/smoke.playwright.mjs` now also drives the settings modal and keyboard-only choice navigation; new `tests/smoke-ending.playwright.mjs` plays the full "called the watch" branch to its distinct ending in a real browser).
 
 ### Phase 3 — RPG Depth (2026-08-29)
 - Enemy scaling: `enemyScaleForLevel(level)` / `scaledEnemy(enemyId, level)` in `config.js` scale an enemy's hp/strength/xp multiplicatively based on the player's current level; `battle.js` calls `scaledEnemy` instead of reading `ENEMY_DEFS` directly, and strength scaling is clamped so it never drops below the base value.

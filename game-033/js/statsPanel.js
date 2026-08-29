@@ -9,6 +9,7 @@
 import { state } from './state.js';
 import { events } from './events.js';
 import { playUiClick, playChoiceSelect } from './sounds.js';
+import { restoreStageFocus } from './vnRenderer.js';
 
 const STAT_ROWS = [
     { key: 'strength', label: 'Strength', desc: 'Battle damage dealt' },
@@ -33,6 +34,9 @@ export function initStatsPanel() {
         playUiClick();
         closePanel();
     });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !$panel.classList.contains('hidden')) closePanel();
+    });
 
     events.on('statsChanged', render);
     events.on('levelUp', render);
@@ -43,10 +47,12 @@ export function initStatsPanel() {
 function openPanel() {
     $panel.classList.remove('hidden');
     render();
+    $closeBtn.focus();
 }
 
 function closePanel() {
     $panel.classList.add('hidden');
+    restoreStageFocus();
 }
 
 function render() {

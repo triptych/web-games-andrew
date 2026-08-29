@@ -527,6 +527,30 @@ function addSwarmBehavior(entity, k, def) {
 
 ---
 
+### 4. Programmatic `.focus()` Loses to Native Click-Focus (Game 033, any DOM UI)
+
+**Bug**: Calling `someOtherElement.focus()` synchronously inside a `click` handler on a focusable element (e.g. a `div` with `tabindex="0"`) has no visible effect — focus silently stays on (or returns to) the clicked element.
+
+**Cause**: The browser's native "focus the element that was clicked" behavior for a focusable target runs **after** your click listener returns, not before. A synchronous `.focus()` call inside the handler gets clobbered by that native behavior a tick later.
+
+**Symptoms:**
+- Keyboard-accessibility code (auto-focus the next interactive element after a click-driven UI transition) works when triggered from a plain `<button>` click, but silently fails when triggered from a click on something you made focusable for its own keyboard support (e.g. a "click or press space to advance" text box with `tabindex="0"`).
+- Only reproduces in a real browser — headless assertions that just check "did `.focus` get called" pass; the bug is specifically about *which element ends up focused after the click completes*.
+
+**Solution**: Defer the `.focus()` call past the click's own focus handling:
+```javascript
+// Runs inside a click handler on a focusable element (tabindex="0"):
+const nextBtn = renderNextInteractiveElement();
+setTimeout(() => nextBtn.focus(), 0); // not nextBtn.focus() directly
+```
+
+**Prevention:**
+- ✅ If a `click` handler on a focusable element re-focuses a *different* element, wrap that `.focus()` in `setTimeout(fn, 0)` (or `requestAnimationFrame`).
+- ✅ Verify focus behavior with a real Playwright browser, not just unit tests — this class of bug is invisible to jsdom/unit-level checks.
+- ✅ When restoring focus after closing a modal, don't assume "focus the button that opened it" — prefer focusing whatever the *current* on-screen state calls for (see Hearthbound's `restoreStageFocus()` in `vnRenderer.js`, called by every modal's close handler).
+
+---
+
 ## Performance Optimizations
 
 ### 1. Object Pooling (Not Yet Implemented)

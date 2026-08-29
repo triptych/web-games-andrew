@@ -244,5 +244,4 @@ export const COLORS = {
     gold:    '#ffd166',
 };
 
-// --- Typewriter text speed (ms per character) ---
-export const TYPEWRITER_MS_PER_CHAR = 18;
+// --- Typewriter text speed default lives in settings.js (Phase 4: user-adjustable) ---

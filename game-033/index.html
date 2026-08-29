@@ -44,6 +44,15 @@
         button:active:not(:disabled) { transform: scale(0.97); }
         button:disabled { opacity: 0.4; cursor: not-allowed; }
 
+        /* Accessibility pass (Phase 4): a clear, consistent focus ring for
+           keyboard navigation, on buttons and the click-to-advance textbox. */
+        button:focus-visible,
+        #vn-text:focus-visible,
+        input[type="range"]:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+        }
+
         /* ============================================================
            Title screen
         ============================================================ */
@@ -124,12 +133,39 @@
             justify-content: center;
             background: linear-gradient(180deg, #2b2440, #1a1626);
             transition: background 0.5s ease;
+            overflow: hidden;
+        }
+
+        /* Painterly stand-in treatment (Phase 4): a soft vignette over every
+           background gradient, in place of real painted art (see
+           image_prompts/ for prompts to generate that art later). */
+        #vn-stage::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse at 50% 30%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.45) 100%),
+                linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0) 30%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.35));
+            z-index: 1;
         }
 
         #vn-portrait {
             position: absolute;
             bottom: 160px;
-            font-size: 140px;
+            font-size: 110px;
+            width: 220px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.10), rgba(0,0,0,0.35) 70%);
+            border: 3px solid var(--border);
+            box-shadow:
+                0 10px 24px rgba(0,0,0,0.55),
+                0 0 0 6px rgba(224, 164, 88, 0.08),
+                inset 0 0 24px rgba(0,0,0,0.4);
             filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
         }
 
@@ -282,6 +318,37 @@
         #brewing-close { margin-top: 16px; }
 
         /* ============================================================
+           Settings panel
+        ============================================================ */
+        #settings-panel {
+            position: fixed; inset: 0;
+            background: rgba(10, 8, 14, 0.75);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 51;
+        }
+        #settings-box {
+            width: min(440px, 90%);
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        #settings-box h2 { color: var(--gold); margin-bottom: 14px; }
+        .settings-row {
+            display: grid;
+            grid-template-columns: 90px 1fr 48px;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-size: 13px;
+        }
+        .settings-row label { font-weight: bold; }
+        .settings-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+        .settings-row-value { color: var(--gold); font-weight: bold; text-align: right; }
+        #settings-close { margin-top: 16px; }
+
+        /* ============================================================
            Battle screen
         ============================================================ */
         #battle-screen {
@@ -376,6 +443,7 @@
             <button id="inventory-open">🎒 Bag</button>
             <button id="hud-save">💾 Save</button>
             <button id="hud-mute">🔊</button>
+            <button id="hud-settings" title="Settings">⚙️</button>
         </div>
 
         <div id="vn-stage">
@@ -414,6 +482,24 @@
             <h2>Brewing</h2>
             <div id="brewing-list"></div>
             <button id="brewing-close">Close</button>
+        </div>
+    </div>
+
+    <!-- ============ Settings Panel ============ -->
+    <div id="settings-panel" class="hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div id="settings-box">
+            <h2 id="settings-title">Settings</h2>
+            <div class="settings-row">
+                <label for="settings-speed-slider">Text speed</label>
+                <input type="range" id="settings-speed-slider" />
+                <span id="settings-speed-label" class="settings-row-value">Normal</span>
+            </div>
+            <div class="settings-row">
+                <label for="settings-volume-slider">Volume</label>
+                <input type="range" id="settings-volume-slider" />
+                <span id="settings-volume-label" class="settings-row-value">25%</span>
+            </div>
+            <button id="settings-close">Close</button>
         </div>
     </div>
 

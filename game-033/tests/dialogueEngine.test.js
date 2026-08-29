@@ -89,7 +89,7 @@ describe('goToNode / selectChoice traversal', () => {
         let order = [];
         events.on('nodeEntered', () => order.push('nodeEntered'));
         events.on('storyEnded', () => order.push('storyEnded'));
-        goToNode('end_preview');
+        goToNode('ending_triumphant');
         assert.deepEqual(order, ['nodeEntered', 'storyEnded']);
     });
 

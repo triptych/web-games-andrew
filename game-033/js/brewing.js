@@ -12,6 +12,7 @@ import { state } from './state.js';
 import { events } from './events.js';
 import { BREW_RECIPES, ITEM_DEFS } from './config.js';
 import { playUiClick, playChoiceSelect } from './sounds.js';
+import { restoreStageFocus } from './vnRenderer.js';
 
 let $openBtn, $panel, $list, $closeBtn;
 
@@ -23,6 +24,9 @@ export function initBrewing() {
 
     $openBtn.addEventListener('click', openPanel);
     $closeBtn.addEventListener('click', closePanel);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !$panel.classList.contains('hidden')) closePanel();
+    });
 
     events.on('inventoryChanged', render);
     events.on('flagChanged', onFlagChanged);
@@ -45,11 +49,13 @@ function openPanel() {
     playUiClick();
     render();
     $panel.classList.remove('hidden');
+    $closeBtn.focus();
 }
 
 function closePanel() {
     playUiClick();
     $panel.classList.add('hidden');
+    restoreStageFocus();
 }
 
 function render() {

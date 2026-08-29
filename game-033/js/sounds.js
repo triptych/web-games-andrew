@@ -7,18 +7,26 @@
 let audioCtx   = null;
 let masterGain = null;
 let _enabled   = true;
+let _volume    = 0.25;
 
 export function initAudio() {
     if (audioCtx) return;
     audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = audioCtx.createGain();
-    masterGain.gain.value = 0.25;
+    masterGain.gain.value = _volume;
     masterGain.connect(audioCtx.destination);
 }
 
 export function setSoundEnabled(val) { _enabled = val; }
 export function isSoundEnabled()     { return _enabled; }
 export function toggleSound()        { _enabled = !_enabled; return _enabled; }
+
+/** Master volume, 0–1. Settable before initAudio() runs — applied once it does. */
+export function setVolume(vol) {
+    _volume = Math.max(0, Math.min(1, vol));
+    if (masterGain) masterGain.gain.value = _volume;
+}
+export function getVolume() { return _volume; }
 
 // --- Internal helpers ---
 

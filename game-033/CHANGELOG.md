@@ -1,5 +1,14 @@
 # Changelog — Hearthbound
 
+## Phase 4 — Polish (2026-08-29)
+
+- Five distinct endings replacing the single shared `end_preview` node, branching on how the Bramwell/Hollow choice and the deep-wood encounters played out: `ending_cold` (called the watch, Hollow's questline foreclosed), `ending_humbled_wolf` (lost the Hedge Wolf fight and called it a season), `ending_cautious` (backed away from the Deep-Wood Stalker), `ending_triumphant` (beat the Deep-Wood Stalker), `ending_bested` (lost to the Deep-Wood Stalker but made it home). New `lostToHedgeWolf` flag and a new `hollow_thanks` choice make the wolf-loss ending reachable.
+- New `settings.js` (persisted separately from the save file under its own localStorage key) + `settingsPanel.js`: a HUD-accessible Settings modal with a text-speed slider (Slow/Normal/Fast/Instant) driving `vnRenderer.js`'s typewriter delay live, and a volume slider driving `sounds.js`'s new `setVolume()`/`getVolume()`.
+- Accessibility pass: choice buttons auto-focus when they render, arrow keys move focus between them, Enter/Space activate the focused choice without double-firing against the global advance handler, closing any modal (inventory/brewing/stats/settings) now calls a shared `restoreStageFocus()` in `vnRenderer.js` that returns focus to the current choice button (or the dialogue textbox) instead of stranding it on a HUD button, Escape closes every modal, and a visible `:focus-visible` ring was added for keyboard users.
+- Painterly CSS treatment in place of real art (no image-generation tool is available in this environment): richer multi-stop gradients for every `BACKGROUNDS` entry in `story.js`, a vignette overlay on the VN stage, and a framed/glowing medallion treatment around portraits.
+- New `image_prompts/` directory: one ready-to-paste Nano Banana 2 image-generation prompt per portrait (9) and background (7), plus a README with wiring instructions, so real art can be generated and dropped in later without re-deriving context.
+- Extended the Playwright smoke coverage: `tests/smoke.playwright.mjs` now also exercises the settings modal and keyboard-only choice navigation (auto-focus, arrow-key roving focus, Enter-to-activate, focus restoration after closing a modal); new `tests/smoke-ending.playwright.mjs` drives the full "called the watch" branch to its distinct ending in a real browser. Added `tests/settings.test.js` and new `Phase 4 endings` cases in `tests/story.test.js`.
+
 ## Phase 3 — RPG Depth (2026-08-29)
 
 - Enemy scaling (`enemyScaleForLevel` / `scaledEnemy` in `config.js`) so battle stats grow with the player's level; two new enemies (Thornback Boar, Deep-Wood Stalker) in a new deep-Whisperwood story chapter.

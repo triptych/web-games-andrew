@@ -17,6 +17,7 @@ import { initBattle } from './battle.js';
 import { initUI } from './ui.js';
 import { initStatsPanel } from './statsPanel.js';
 import { initBrewing } from './brewing.js';
+import { initSettingsPanel } from './settingsPanel.js';
 
 let $titleScreen, $gameScreen, $endingScreen, $btnNewGame, $btnContinue, $endingText, $btnRestart;
 
@@ -80,3 +81,4 @@ initBattle();
 initUI();
 initStatsPanel();
 initBrewing();
+initSettingsPanel();

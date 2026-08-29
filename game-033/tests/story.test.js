@@ -79,10 +79,23 @@ describe('story graph integrity', () => {
             if (node.onWin) queue.push(node.onWin);
             if (node.onLose) queue.push(node.onLose);
         }
-        assert.ok(visited.has('end_preview'), 'end_preview should be reachable from start');
         // Phase 3 deep-wood content must be reachable too.
         assert.ok(visited.has('deep_wood_edge'), 'deep_wood_edge should be reachable from start');
         assert.ok(visited.has('thornback_boar_fight'), 'thornback_boar_fight should be reachable from start');
+        // Phase 4: all five endings must be reachable from start.
+        for (const id of ['ending_cold', 'ending_humbled_wolf', 'ending_cautious', 'ending_triumphant', 'ending_bested']) {
+            assert.ok(visited.has(id), `${id} should be reachable from start`);
+        }
+    });
+
+    test('every ending node sets ending: true and has no further choices', () => {
+        const endingIds = ['ending_cold', 'ending_humbled_wolf', 'ending_cautious', 'ending_triumphant', 'ending_bested'];
+        for (const id of endingIds) {
+            const node = STORY[id];
+            assert.ok(node, `${id} should exist`);
+            assert.equal(node.ending, true, `${id} should set ending: true`);
+            assert.equal((node.choices || []).length, 0, `${id} should have no choices`);
+        }
     });
 });
 
@@ -103,5 +116,34 @@ describe('Phase 3 story content', () => {
         const gives = STORY.thornback_boar_won.effects.find(e => e.type === 'giveItem' && e.item === 'thornback_quill');
         assert.ok(gives, 'thornback_boar_won should grant thornback_quill');
         assert.ok(gives.count >= 1);
+    });
+});
+
+describe('Phase 4 endings', () => {
+    test('calling the watch routes to the cold ending without ever reaching the deep wood', () => {
+        assert.equal(STORY.hollow_cold_end.choices[0].next, 'ending_cold');
+    });
+
+    test('losing the hedge wolf fight sets a flag that unlocks a dedicated ending choice', () => {
+        const setsFlag = STORY.hedge_wolf_lost.effects.some(
+            e => e.type === 'setFlag' && e.flag === 'lostToHedgeWolf' && e.value === true
+        );
+        assert.ok(setsFlag, 'hedge_wolf_lost should set lostToHedgeWolf');
+
+        const choice = STORY.hollow_thanks.choices.find(c => c.next === 'ending_humbled_wolf');
+        assert.ok(choice, 'hollow_thanks should offer a choice leading to ending_humbled_wolf');
+        assert.deepEqual(choice.requires, { flag: 'lostToHedgeWolf' });
+    });
+
+    test('backing away from the Deep-Wood Stalker leads to the cautious ending', () => {
+        assert.equal(STORY.deep_wood_retreat.choices[0].next, 'ending_cautious');
+    });
+
+    test('beating the Deep-Wood Stalker leads to the triumphant ending', () => {
+        assert.equal(STORY.deep_wood_stalker_won.choices[0].next, 'ending_triumphant');
+    });
+
+    test('losing to the Deep-Wood Stalker leads to the bested ending', () => {
+        assert.equal(STORY.deep_wood_stalker_lost.choices[0].next, 'ending_bested');
     });
 });

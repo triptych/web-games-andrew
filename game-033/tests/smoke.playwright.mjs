@@ -96,6 +96,70 @@ const invRows = await page.locator('#inventory-list .inventory-row').count();
 console.log('Inventory rows after brewing lesson:', invRows);
 await page.click('#inventory-close');
 
+// --- Phase 4: settings panel (text speed + volume sliders) ---
+await page.click('#hud-settings');
+await page.waitForSelector('#settings-panel:not(.hidden)');
+await page.fill('#settings-speed-slider', '3'); // Instant
+await page.fill('#settings-volume-slider', '80');
+const speedLabel = await page.textContent('#settings-speed-label');
+const volumeLabel = await page.textContent('#settings-volume-label');
+console.log('Settings after adjusting sliders:', speedLabel, volumeLabel);
+if (speedLabel !== 'Instant' || volumeLabel !== '80%') {
+    console.error('FAIL: settings sliders did not update their labels');
+    process.exit(1);
+}
+await page.click('#settings-close');
+await page.waitForSelector('#settings-panel', { state: 'hidden' });
+
+// Closing a modal should hand focus back to the currently-visible choice
+// button (restoreStageFocus in vnRenderer.js), not strand it on the HUD.
+const focusAfterModalClose = await page.evaluate(() => document.activeElement.tagName);
+console.log('Focus after closing settings modal:', focusAfterModalClose);
+if (focusAfterModalClose !== 'BUTTON') {
+    console.error('FAIL: closing a modal did not restore focus to the choice button');
+    process.exit(1);
+}
+
+// Continue on ("Step out for some air.") into the village square, then to
+// Bramwell's intro, which has two always-available choices — a real spot to
+// exercise arrow-key roving focus and auto-focus-on-render together.
+await clickChoiceContaining('Step out for some air.');
+await advanceUntilChoices();
+await clickChoiceContaining('Go say hello to the baker');
+await advanceUntilChoices();
+
+const choiceCount = await page.locator('#vn-choices:not(.hidden) button').count();
+console.log('Choices visible at bramwell_intro:', choiceCount);
+if (choiceCount !== 2) {
+    console.error(`FAIL: expected 2 choices at bramwell_intro, got ${choiceCount}`);
+    process.exit(1);
+}
+const firstFocused = await page.evaluate(() => document.activeElement === document.querySelectorAll('#vn-choices button')[0]);
+console.log('First choice auto-focused on render:', firstFocused);
+if (!firstFocused) {
+    console.error('FAIL: first choice button was not auto-focused when choices rendered');
+    process.exit(1);
+}
+await page.keyboard.press('ArrowDown');
+const secondFocused = await page.evaluate(() => document.activeElement === document.querySelectorAll('#vn-choices button')[1]);
+console.log('ArrowDown moved focus to second choice:', secondFocused);
+if (!secondFocused) {
+    console.error('FAIL: ArrowDown did not move focus between choice buttons');
+    process.exit(1);
+}
+await page.keyboard.press('ArrowUp');
+const backToFirst = await page.evaluate(() => document.activeElement === document.querySelectorAll('#vn-choices button')[0]);
+console.log('ArrowUp moved focus back to first choice:', backToFirst);
+if (!backToFirst) {
+    console.error('FAIL: ArrowUp did not move focus back to the first choice button');
+    process.exit(1);
+}
+// Enter activates the focused choice natively (no double-fire from the
+// global Space/Enter advance handler).
+await page.keyboard.press('Enter');
+await advanceUntilChoices();
+console.log('Enter activated the focused choice, advanced to a new node with choices.');
+
 await browser.close();
 
 console.log('Console errors:', errors.length ? errors : 'none');

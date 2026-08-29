@@ -40,14 +40,39 @@ export const PORTRAITS = {
     narrator:        { emoji: '📖', label: '' },
 };
 
+// Painterly stand-in gradients (Phase 4) — richer multi-stop washes so each
+// place reads as a distinct "painting" even without real background art.
+// See image_prompts/backgrounds/ for prompts to generate that art later;
+// swapping in real images only requires adding an `image` key here.
 export const BACKGROUNDS = {
-    shop_interior: { gradient: 'linear-gradient(180deg, #2b2440, #1a1626)', label: 'The Apothecary' },
-    shop_cellar:   { gradient: 'linear-gradient(180deg, #14121c, #0a0910)', label: 'The Cellar' },
-    village_square:{ gradient: 'linear-gradient(180deg, #3a4a5c, #1c2733)', label: 'Village Square' },
-    bakery:        { gradient: 'linear-gradient(180deg, #4a3222, #241408)', label: 'Bramwell’s Bakery' },
-    whisperwood_edge: { gradient: 'linear-gradient(180deg, #1c2c22, #0a120c)', label: 'Edge of the Whisperwood' },
-    witch_cottage: { gradient: 'linear-gradient(180deg, #22283a, #0d1018)', label: 'Hollow’s Cottage' },
-    deep_whisperwood: { gradient: 'linear-gradient(180deg, #0e1812, #050805)', label: 'The Deep Whisperwood' },
+    shop_interior: {
+        gradient: 'linear-gradient(180deg, #35294a 0%, #2b2440 35%, #201a30 70%, #14101c 100%)',
+        label: 'The Apothecary',
+    },
+    shop_cellar: {
+        gradient: 'linear-gradient(180deg, #1c1a26 0%, #14121c 40%, #0d0c13 75%, #07060a 100%)',
+        label: 'The Cellar',
+    },
+    village_square: {
+        gradient: 'linear-gradient(180deg, #5a7590 0%, #3a4a5c 40%, #263140 75%, #161d26 100%)',
+        label: 'Village Square',
+    },
+    bakery: {
+        gradient: 'linear-gradient(180deg, #6b4a2e 0%, #4a3222 40%, #33210f 75%, #1a0f06 100%)',
+        label: 'Bramwell’s Bakery',
+    },
+    whisperwood_edge: {
+        gradient: 'linear-gradient(180deg, #2c4636 0%, #1c2c22 40%, #10190f 75%, #060a06 100%)',
+        label: 'Edge of the Whisperwood',
+    },
+    witch_cottage: {
+        gradient: 'linear-gradient(180deg, #333c54 0%, #22283a 40%, #161b28 75%, #0a0d14 100%)',
+        label: 'Hollow’s Cottage',
+    },
+    deep_whisperwood: {
+        gradient: 'linear-gradient(180deg, #16281d 0%, #0e1812 40%, #08100a 75%, #030503 100%)',
+        label: 'The Deep Whisperwood',
+    },
 };
 
 export const STORY = {
@@ -436,7 +461,7 @@ export const STORY = {
         background: 'witch_cottage',
         text: '“Spears frighten a starving animal into the next farmstead over instead of home. But it’s done now.” She turns back toward the door. “I’ve nothing more to say to you today.”',
         choices: [
-            { label: '(Leave quietly, deeper into the wood)', next: 'deep_wood_edge', requires: null, effects: [] },
+            { label: '(Leave quietly)', next: 'ending_cold', requires: null, effects: [] },
         ],
     },
 
@@ -541,6 +566,7 @@ export const STORY = {
         portrait: 'narrator',
         background: 'whisperwood_edge',
         text: 'The wolf gets the better of you and you beat a limping retreat back toward the tree line, pride more wounded than anything else.',
+        effects: [ { type: 'setFlag', flag: 'lostToHedgeWolf', value: true } ],
         choices: [
             { label: 'Return to tell Hollow what happened.', next: 'hollow_thanks', requires: null, effects: [] },
         ],
@@ -563,6 +589,12 @@ export const STORY = {
                 effects: [],
             },
             { label: '(Head deeper into the wood alone)', next: 'deep_wood_edge', requires: null, effects: [] },
+            {
+                label: '(Admit the wolf got the better of you — call it a season)',
+                next: 'ending_humbled_wolf',
+                requires: { flag: 'lostToHedgeWolf' },
+                effects: [],
+            },
         ],
     },
 
@@ -666,7 +698,7 @@ export const STORY = {
         background: 'deep_whisperwood',
         text: 'You back out of the hollow without ever taking your eyes off the branch. Whatever it was, it lets you go. For now, that’s enough of the deep wood.',
         choices: [
-            { label: '(End of Phase 3 preview)', next: 'end_preview', requires: null, effects: [] },
+            { label: 'Head home.', next: 'ending_cautious', requires: null, effects: [] },
         ],
     },
 
@@ -691,7 +723,7 @@ export const STORY = {
         ],
         effects: [ { type: 'giveXp', amount: 34 } ],
         choices: [
-            { label: '(End of Phase 3 preview)', next: 'end_preview', requires: null, effects: [] },
+            { label: 'Head home.', next: 'ending_triumphant', requires: null, effects: [] },
         ],
     },
 
@@ -701,17 +733,78 @@ export const STORY = {
         background: 'deep_whisperwood',
         text: 'The stalker is more than you bargained for. You retreat all the way back to the village, shaken, already thinking about what you’ll need to come back better prepared.',
         choices: [
-            { label: '(End of Phase 3 preview)', next: 'end_preview', requires: null, effects: [] },
+            { label: 'Head home.', next: 'ending_bested', requires: null, effects: [] },
         ],
     },
 
-    end_preview: {
+    // ============================================================
+    // Endings (Phase 4) — the story forks into five distinct closing
+    // nodes depending on how the Bramwell/Hollow choice and the deep
+    // wood played out. Every ending sets `ending: true` and none of
+    // them offer further choices.
+    // ============================================================
+
+    ending_cold: {
         speaker: null,
         portrait: 'narrator',
         background: 'village_square',
         text: [
-            'That’s the end of this preview slice of Hearthbound.',
-            'More of the village, its people, and whatever is stirring deeper in the Whisperwood are still to come.',
+            'You walk back through the village at dusk without a wolf pelt, a thimble, or a friend in the Whisperwood — only the quiet, nagging sense that you chose the safe thing over the right one.',
+            'The watch never did find anything to spear. Hollow, for her part, hasn’t sent word since. Maybe next season you’ll knock on her door yourself, and actually ask first.',
+            'This is where this slice of your story ends — for now.',
+        ],
+        choices: [],
+        ending: true,
+    },
+
+    ending_humbled_wolf: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'whisperwood_edge',
+        text: [
+            'You never did go back for a rematch with the hedge wolf, and if you’re honest, you’re not in a hurry to. Hollow doesn’t hold the loss against you — “Scared it worse than it scared you, probably” — but you both know it isn’t settled.',
+            'The shop shelves are a little fuller for the trying, at least, and Hollow’s door is open to you now. That will have to be enough for one season.',
+            'This is where this slice of your story ends — for now.',
+        ],
+        choices: [],
+        ending: true,
+    },
+
+    ending_cautious: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'shop_interior',
+        text: [
+            'You tell Mira about the pale-eyed thing in the hollow, and she goes very quiet, and then makes you promise to bring someone next time. You promise. You mostly mean it.',
+            'Whatever watches the deep Whisperwood is still watching it. You’ve decided that’s someone else’s problem for now — or at least next month’s.',
+            'This is where this slice of your story ends — for now.',
+        ],
+        choices: [],
+        ending: true,
+    },
+
+    ending_triumphant: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'village_square',
+        text: [
+            'Word gets around, as it does in a village this size — the apothecary’s heir, who drove something ancient back into the dark. You mostly just remember being terrified and lucky in roughly equal measure.',
+            'Hollow nods at you like an equal now, which from her is a coronation. Even Bramwell saves you the good end of the loaf, no charge, "for the trouble."',
+            'The shop bell rings a little more often these days. Whatever comes next, you’ll be ready for more of it than you were in spring.',
+            'This is where this slice of your story ends — for now.',
+        ],
+        choices: [],
+        ending: true,
+    },
+
+    ending_bested: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'shop_interior',
+        text: [
+            'You make it home in one piece, which on reflection is the part that matters. The stalker is still out there, and so is whatever it answers to, but so are you — a little wiser about your own limits, and already re-reading your aunt’s notes for anything about deep-wood things with pale eyes.',
+            'Hollow doesn’t scold you for retreating. "Came back breathing. That’s the whole trick, most days."',
+            'This is where this slice of your story ends — for now.',
         ],
         choices: [],
         ending: true,
