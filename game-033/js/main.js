@@ -16,6 +16,7 @@ import { initProgression } from './progression.js';
 import { initBattle } from './battle.js';
 import { initUI } from './ui.js';
 import { initStatsPanel } from './statsPanel.js';
+import { initBrewing } from './brewing.js';
 
 let $titleScreen, $gameScreen, $endingScreen, $btnNewGame, $btnContinue, $endingText, $btnRestart;
 
@@ -78,3 +79,4 @@ initProgression();
 initBattle();
 initUI();
 initStatsPanel();
+initBrewing();

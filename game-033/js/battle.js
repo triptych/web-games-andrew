@@ -11,9 +11,17 @@
 
 import { state } from './state.js';
 import { events } from './events.js';
-import { ENEMY_DEFS, ITEM_DEFS } from './config.js';
+import { ITEM_DEFS, scaledEnemy } from './config.js';
 import { playHit, playSuccess, playFailure, playUiClick } from './sounds.js';
 import { goToNode } from './dialogueEngine.js';
+
+// Any consumable item with a `heal` value can be used mid-battle; battle.js
+// doesn't hardcode which one — it lists whatever the player is carrying.
+function healingConsumables() {
+    return state.inventory
+        .map(stack => ({ stack, def: ITEM_DEFS[stack.id] }))
+        .filter(({ def }) => def && def.type === 'consumable' && def.heal);
+}
 
 let canvas, ctx;
 let $screen, $log, $menu;
@@ -22,6 +30,7 @@ let onWinNode = null;
 let onLoseNode = null;
 let playerHp, playerMaxHp, enemyHp, enemyMaxHp;
 let busy = false;
+let pendingGuaranteedFlee = false;
 
 export function initBattle() {
     $screen = document.getElementById('battle-screen');
@@ -34,7 +43,9 @@ export function initBattle() {
 }
 
 function startBattle({ enemyId, onWin, onLose }) {
-    enemy = { ...ENEMY_DEFS[enemyId] };
+    // Scale the base enemy def to the player's current level (Phase 3) so
+    // later encounters keep pace instead of staying flat the whole game.
+    enemy = scaledEnemy(enemyId, state.stats.level);
     onWinNode = onWin;
     onLoseNode = onLose;
 
@@ -43,6 +54,7 @@ function startBattle({ enemyId, onWin, onLose }) {
     enemyMaxHp = enemy.hp;
     enemyHp = enemy.hp;
     busy = false;
+    pendingGuaranteedFlee = false;
 
     $screen.classList.remove('hidden');
     logLine(`A wild ${enemy.name} appears!`);
@@ -53,7 +65,11 @@ function startBattle({ enemyId, onWin, onLose }) {
 function buildMenu() {
     $menu.innerHTML = '';
     $menu.appendChild(makeBtn('Attack', () => playerTurn('attack')));
-    $menu.appendChild(makeBtn('Use Honey Tonic', () => playerTurn('item'), !state.hasItem('honey_tonic')));
+
+    for (const { stack, def } of healingConsumables()) {
+        $menu.appendChild(makeBtn(`Use ${def.name}`, () => playerTurn('item', stack.id)));
+    }
+
     if (enemy.fleeable) {
         $menu.appendChild(makeBtn('Flee', () => playerTurn('flee')));
     }
@@ -72,7 +88,7 @@ function makeBtn(label, onClick, disabled = false) {
     return btn;
 }
 
-function playerTurn(action) {
+function playerTurn(action, itemId = null) {
     busy = true;
     const stats = state.effectiveStats;
 
@@ -82,12 +98,13 @@ function playerTurn(action) {
         logLine(`You strike the ${enemy.name} for ${dmg} damage.`);
         playHit();
     } else if (action === 'item') {
-        const def = ITEM_DEFS.honey_tonic;
-        state.removeItem('honey_tonic', 1);
+        const def = ITEM_DEFS[itemId];
+        state.removeItem(itemId, 1);
         playerHp = Math.min(playerMaxHp, playerHp + def.heal);
-        logLine(`You drink a Honey Tonic and recover ${def.heal} HP.`);
+        logLine(`You use ${def.name} and recover ${def.heal} HP.`);
+        if (def.guaranteedFlee) pendingGuaranteedFlee = true;
     } else if (action === 'flee') {
-        const fleeChance = 0.4 + stats.wit * 0.05;
+        const fleeChance = pendingGuaranteedFlee ? 1 : 0.4 + stats.wit * 0.05;
         if (Math.random() < fleeChance) {
             logLine('You slip away safely.');
             draw();
@@ -120,6 +137,7 @@ function enemyTurn() {
         return;
     }
     busy = false;
+    buildMenu();
 }
 
 function onEnemyDefeated() {

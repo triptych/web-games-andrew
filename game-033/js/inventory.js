@@ -55,7 +55,10 @@ function render() {
         const row = document.createElement('div');
         row.className = 'inventory-row';
 
-        const isEquipped = state.equipped.trinket === stack.id;
+        // Equip items each declare their own slot (trinket / charm as of
+        // Phase 3) — only one item per slot can be equipped at a time.
+        const slot = def.slot || 'trinket';
+        const isEquipped = state.equipped[slot] === stack.id;
 
         row.innerHTML = `
             <span class="inv-icon">${def.icon}</span>
@@ -69,8 +72,8 @@ function render() {
             btn.textContent = isEquipped ? 'Unequip' : 'Equip';
             btn.addEventListener('click', () => {
                 playUiClick();
-                if (isEquipped) state.unequip('trinket');
-                else state.equip('trinket', stack.id);
+                if (isEquipped) state.unequip(slot);
+                else state.equip(slot, stack.id);
             });
             row.appendChild(btn);
         }

@@ -1,5 +1,20 @@
 # Changelog — Hearthbound
 
+## Phase 3 — RPG Depth (2026-08-29)
+
+- Enemy scaling (`enemyScaleForLevel` / `scaledEnemy` in `config.js`) so battle stats grow with the player's level; two new enemies (Thornback Boar, Deep-Wood Stalker) in a new deep-Whisperwood story chapter.
+- A second "charm" equip slot alongside the original "trinket" slot, with trade-off items (bonus in one stat, penalty in another): Thornback Bracer, Moonpetal Locket, Baker's Locket.
+- A brewing mechanic (`brewing.js` + `BREW_RECIPES`): material items (River Root, Thornback Quill, Moonpetal, Dried Mintleaf) combine into brewed consumables and a craftable charm item, gated behind a `canBrew` flag Mira sets in a new dialogue scene.
+- `battle.js` generalized to offer every carried healing consumable (not just Honey Tonic) as its own battle-menu action.
+- New Node.js test suite under `tests/` (`npm test`) plus a manual Playwright smoke script (`tests/smoke.playwright.mjs`).
+
+## Phase 2 — More Story (2026-08-29)
+
+- Added `village_square` hub node plus two new NPC chapters: Bramwell the baker and Hollow the forest witch.
+- Real consequence branch: choosing to send for the watch forecloses Hollow's questline.
+- Hedge Wolf battle reachable only via Hollow's questline.
+- Stat-point spending UI (`statsPanel.js`).
+
 ## Phase 1 — Scaffold (2026-08-28)
 
 - Initial scaffold of a hand-built custom engine (no Kaplay/Phaser/three.js): DOM+CSS visual novel layer, `<canvas>` for the light battle layer.

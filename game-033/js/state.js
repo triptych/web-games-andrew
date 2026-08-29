@@ -1,5 +1,7 @@
 import { events } from './events.js';
-import { STARTING_STATS, STARTING_INVENTORY, SAVE_KEY, xpToNextLevel, ITEM_DEFS } from './config.js';
+import { STARTING_STATS, STARTING_INVENTORY, SAVE_KEY, xpToNextLevel, ITEM_DEFS, BREW_RECIPES } from './config.js';
+
+const EQUIP_SLOTS = ['trinket', 'charm'];
 
 /**
  * Global game state.
@@ -14,7 +16,7 @@ class GameState {
     reset() {
         this._stats = { ...STARTING_STATS };
         this._inventory = STARTING_INVENTORY.map(i => ({ ...i }));
-        this._equipped = {}; // slot -> itemId (single "trinket" slot for Phase 1/3)
+        this._equipped = {}; // slot -> itemId ("trinket" from Phase 1, "charm" added in Phase 3)
         this._flags = {};    // storyFlagName -> value
         this._affinity = {}; // npcId -> number
         this._currentNodeId = 'start';
@@ -25,13 +27,21 @@ class GameState {
     get stats() { return this._stats; }
 
     get effectiveStats() {
-        // Base stats + bonuses from equipped items
+        // Base stats + bonuses/penalties from equipped items (one item per
+        // slot; Phase 3 adds a second "charm" slot alongside "trinket", and
+        // some charm items trade a bonus in one stat for a penalty in another).
         const eff = { ...this._stats };
         for (const itemId of Object.values(this._equipped)) {
             const def = ITEM_DEFS[itemId];
-            if (def && def.bonus) {
+            if (!def) continue;
+            if (def.bonus) {
                 for (const [k, v] of Object.entries(def.bonus)) {
                     eff[k] = (eff[k] || 0) + v;
+                }
+            }
+            if (def.penalty) {
+                for (const [k, v] of Object.entries(def.penalty)) {
+                    eff[k] = (eff[k] || 0) - v;
                 }
             }
         }
@@ -106,6 +116,30 @@ class GameState {
     }
 
     get equipped() { return this._equipped; }
+    get equipSlots() { return EQUIP_SLOTS; }
+
+    // --- Brewing ---
+    // Consumes the recipe's required material items and grants the result
+    // item. Returns true on success, false if materials are insufficient.
+    brew(recipeId) {
+        const recipe = BREW_RECIPES[recipeId];
+        if (!recipe) return false;
+        for (const req of recipe.requires) {
+            if (!this.hasItem(req.item, req.count)) return false;
+        }
+        for (const req of recipe.requires) {
+            this.removeItem(req.item, req.count);
+        }
+        this.addItem(recipe.result.item, recipe.result.count);
+        events.emit('itemBrewed', recipeId, recipe.result.item);
+        return true;
+    }
+
+    canBrew(recipeId) {
+        const recipe = BREW_RECIPES[recipeId];
+        if (!recipe) return false;
+        return recipe.requires.every(req => this.hasItem(req.item, req.count));
+    }
 
     // --- Story flags ---
     getFlag(name) { return this._flags[name]; }

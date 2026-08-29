@@ -47,6 +47,7 @@ export const BACKGROUNDS = {
     bakery:        { gradient: 'linear-gradient(180deg, #4a3222, #241408)', label: 'Bramwell’s Bakery' },
     whisperwood_edge: { gradient: 'linear-gradient(180deg, #1c2c22, #0a120c)', label: 'Edge of the Whisperwood' },
     witch_cottage: { gradient: 'linear-gradient(180deg, #22283a, #0d1018)', label: 'Hollow’s Cottage' },
+    deep_whisperwood: { gradient: 'linear-gradient(180deg, #0e1812, #050805)', label: 'The Deep Whisperwood' },
 };
 
 export const STORY = {
@@ -174,6 +175,25 @@ export const STORY = {
         background: 'shop_interior',
         text: 'You’re back! Oh — is that the old cellar key? I thought we’d lost that years ago. Thank you, truly.',
         effects: [ { type: 'addAffinity', npc: 'mira', amount: 1 }, { type: 'giveXp', amount: 12 } ],
+        choices: [
+            { label: 'Do you have a moment to show me something?', next: 'mira_teaches_brewing', requires: null, effects: [] },
+            { label: 'Step out for some air.', next: 'village_square', requires: null, effects: [] },
+        ],
+    },
+
+    mira_teaches_brewing: {
+        speaker: 'Mira',
+        portrait: 'mira_smile',
+        background: 'shop_interior',
+        text: [
+            'Oh — brewing! Yes, of course. Your aunt kept a little brewing corner behind the counter, see? Nothing fussy. Dried mintleaf, a bit of root, some patience.',
+            'Here, take these to start with — I always keep extra on hand. Just mind the proportions, or you’ll end up with something that tastes like a pond.',
+        ],
+        effects: [
+            { type: 'setFlag', flag: 'canBrew', value: true },
+            { type: 'giveItem', item: 'river_root', count: 2 },
+            { type: 'giveItem', item: 'dried_mintleaf', count: 2 },
+        ],
         choices: [
             { label: 'Step out for some air.', next: 'village_square', requires: null, effects: [] },
         ],
@@ -326,6 +346,23 @@ export const STORY = {
         background: 'bakery',
         text: 'Go on, get back to that shop before Mira thinks I’ve talked your ear clean off. And come by anytime — the ovens are always warm.',
         choices: [
+            {
+                label: '(He presses a small locket into your hand before you go)',
+                next: 'bramwell_locket_gift',
+                requires: { minAffinity: { bramwell: 2 } },
+                effects: [],
+            },
+            { label: '(Return to the square)', next: 'village_square_post_bramwell', requires: null, effects: [] },
+        ],
+    },
+
+    bramwell_locket_gift: {
+        speaker: 'Bramwell',
+        portrait: 'bramwell_fond',
+        background: 'bakery',
+        text: '“Here — for luck, and so you remember there’s a warm oven and a friendly face this side of the wood.” It’s a plain little locket, warm from his pocket.',
+        effects: [ { type: 'giveItem', item: 'bakers_locket', count: 1 } ],
+        choices: [
             { label: '(Return to the square)', next: 'village_square_post_bramwell', requires: null, effects: [] },
         ],
     },
@@ -399,7 +436,7 @@ export const STORY = {
         background: 'witch_cottage',
         text: '“Spears frighten a starving animal into the next farmstead over instead of home. But it’s done now.” She turns back toward the door. “I’ve nothing more to say to you today.”',
         choices: [
-            { label: '(Leave quietly)', next: 'end_preview', requires: null, effects: [] },
+            { label: '(Leave quietly, deeper into the wood)', next: 'deep_wood_edge', requires: null, effects: [] },
         ],
     },
 
@@ -519,7 +556,152 @@ export const STORY = {
         ],
         effects: [ { type: 'addAffinity', npc: 'hollow', amount: 2 }, { type: 'giveXp', amount: 8 } ],
         choices: [
-            { label: '(End of Phase 2 preview)', next: 'end_preview', requires: null, effects: [] },
+            {
+                label: '(Ask if there’s more to the wood than this)',
+                next: 'hollow_deep_wood_hint',
+                requires: { minAffinity: { hollow: 3 } },
+                effects: [],
+            },
+            { label: '(Head deeper into the wood alone)', next: 'deep_wood_edge', requires: null, effects: [] },
+        ],
+    },
+
+    hollow_deep_wood_hint: {
+        speaker: 'Hollow',
+        portrait: 'hollow_warm',
+        background: 'witch_cottage',
+        text: [
+            '“More than this? Apothecary, you’ve barely seen the hem of it.” She sets down her knife. “There’s a boar past the fern hollow — thornback, they call it, though it wasn’t born with those quills.”',
+            '“Something in the deep wood is changing what lives there. I don’t know what yet. If you go looking, take more than nerve with you.”',
+        ],
+        effects: [ { type: 'addAffinity', npc: 'hollow', amount: 1 } ],
+        choices: [
+            { label: 'I’ll be careful. Thank you, Hollow.', next: 'deep_wood_edge', requires: null, effects: [] },
+        ],
+    },
+
+    // ============================================================
+    // Chapter 4 — The Deep Whisperwood (Phase 3: scaling encounters,
+    // trade-off equipment, brewing materials)
+    // ============================================================
+
+    deep_wood_edge: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'deep_whisperwood',
+        text: [
+            'Past the fern hollow the trees grow close and old, and the birdsong thins to almost nothing. Something has been digging along the path — deep, deliberate furrows, not the scuffing of rabbits.',
+            'Pale flowers grow in the shade here that you don’t recognize from any of your aunt’s books. You gather a few, carefully.',
+        ],
+        effects: [
+            { type: 'giveItem', item: 'moonpetal', count: 2 },
+        ],
+        choices: [
+            { label: 'Follow the furrows.', next: 'thornback_boar_fight', requires: null, effects: [] },
+        ],
+    },
+
+    thornback_boar_fight: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'deep_whisperwood',
+        text: 'The furrows end at a clearing where a boar twice the size it should be roots through the undergrowth — its back bristling with quills that click together like knives.',
+        battle: 'thornback_boar',
+        onWin: 'thornback_boar_won',
+        onLose: 'thornback_boar_lost',
+        choices: [],
+    },
+
+    thornback_boar_won: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'deep_whisperwood',
+        text: 'The boar finally breaks and crashes off through the brush, shedding quills in its wake. You gather up the sturdiest ones — they might be worth brewing or binding into something useful.',
+        effects: [
+            { type: 'giveItem', item: 'thornback_quill', count: 3 },
+            { type: 'giveXp', amount: 26 },
+        ],
+        choices: [
+            { label: 'Press on, deeper still.', next: 'deep_wood_stalker_intro', requires: null, effects: [] },
+        ],
+    },
+
+    thornback_boar_lost: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'deep_whisperwood',
+        text: 'The boar is too much for you today. You retreat, quill-scratched and humbled, back toward the fern hollow to recover.',
+        choices: [
+            { label: 'Catch your breath, then press on.', next: 'deep_wood_stalker_intro', requires: null, effects: [] },
+        ],
+    },
+
+    deep_wood_stalker_intro: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'deep_whisperwood',
+        text: [
+            'The trees open onto a hollow so quiet your own footsteps sound rude. Something pale-eyed watches you from a low branch without blinking — an owl, if owls grew to that size.',
+            'It doesn’t look hungry so much as curious. That might be worse.',
+        ],
+        choices: [
+            {
+                label: 'Hold still and watch it back.',
+                next: 'deep_wood_stalker_fight',
+                requires: null,
+                effects: [],
+            },
+            {
+                label: 'Back away slowly, the way you came.',
+                next: 'deep_wood_retreat',
+                requires: null,
+                effects: [],
+            },
+        ],
+    },
+
+    deep_wood_retreat: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'deep_whisperwood',
+        text: 'You back out of the hollow without ever taking your eyes off the branch. Whatever it was, it lets you go. For now, that’s enough of the deep wood.',
+        choices: [
+            { label: '(End of Phase 3 preview)', next: 'end_preview', requires: null, effects: [] },
+        ],
+    },
+
+    deep_wood_stalker_fight: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'deep_whisperwood',
+        text: 'The stalker drops from the branch without a sound, wings wide, and the hollow goes darker than it has any right to.',
+        battle: 'deep_wood_stalker',
+        onWin: 'deep_wood_stalker_won',
+        onLose: 'deep_wood_stalker_lost',
+        choices: [],
+    },
+
+    deep_wood_stalker_won: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'deep_whisperwood',
+        text: [
+            'The stalker breaks off and vanishes back up into the canopy rather than press the fight further, leaving only a scattering of down and a strange quiet behind.',
+            'Whatever is changing this part of the wood, you’ve bought yourself — and the village — a little more time to figure out what.',
+        ],
+        effects: [ { type: 'giveXp', amount: 34 } ],
+        choices: [
+            { label: '(End of Phase 3 preview)', next: 'end_preview', requires: null, effects: [] },
+        ],
+    },
+
+    deep_wood_stalker_lost: {
+        speaker: null,
+        portrait: 'narrator',
+        background: 'deep_whisperwood',
+        text: 'The stalker is more than you bargained for. You retreat all the way back to the village, shaken, already thinking about what you’ll need to come back better prepared.',
+        choices: [
+            { label: '(End of Phase 3 preview)', next: 'end_preview', requires: null, effects: [] },
         ],
     },
 
@@ -529,7 +711,7 @@ export const STORY = {
         background: 'village_square',
         text: [
             'That’s the end of this preview slice of Hearthbound.',
-            'More of the village, its people, and the deeper Whisperwood are still to come.',
+            'More of the village, its people, and whatever is stirring deeper in the Whisperwood are still to come.',
         ],
         choices: [],
         ending: true,

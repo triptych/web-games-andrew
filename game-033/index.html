@@ -248,6 +248,40 @@
         #stats-close { margin-top: 16px; }
 
         /* ============================================================
+           Brewing panel
+        ============================================================ */
+        #brewing-panel {
+            position: fixed; inset: 0;
+            background: rgba(10, 8, 14, 0.75);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 51;
+        }
+        #brewing-box {
+            width: min(560px, 90%);
+            max-height: 70vh;
+            overflow-y: auto;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        #brewing-box h2 { color: var(--gold); margin-bottom: 12px; }
+        .brewing-row {
+            display: grid;
+            grid-template-columns: 32px 140px 1fr auto;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-size: 13px;
+        }
+        .brew-icon { font-size: 20px; text-align: center; }
+        .brew-name { font-weight: bold; }
+        .brew-req { opacity: 0.75; }
+        .brewing-empty { opacity: 0.6; font-style: italic; padding: 12px 0; }
+        #brewing-close { margin-top: 16px; }
+
+        /* ============================================================
            Battle screen
         ============================================================ */
         #battle-screen {
@@ -338,6 +372,7 @@
                 <span style="opacity:0.6;">XP</span>
             </div>
             <div id="hud-spacer"></div>
+            <button id="brewing-open" class="hidden">🍵 Brew</button>
             <button id="inventory-open">🎒 Bag</button>
             <button id="hud-save">💾 Save</button>
             <button id="hud-mute">🔊</button>
@@ -370,6 +405,15 @@
             <p id="stats-points-remaining"></p>
             <div id="stats-rows"></div>
             <button id="stats-close">Close</button>
+        </div>
+    </div>
+
+    <!-- ============ Brewing Panel ============ -->
+    <div id="brewing-panel" class="hidden">
+        <div id="brewing-box">
+            <h2>Brewing</h2>
+            <div id="brewing-list"></div>
+            <button id="brewing-close">Close</button>
         </div>
     </div>
 

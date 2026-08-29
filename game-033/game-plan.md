@@ -3,7 +3,7 @@
 **Genre:** Cozy fantasy visual novel with light RPG mechanics
 **Engine:** Custom vanilla JS engine — DOM+CSS for the VN layer, `<canvas>` for battle. No Kaplay/Phaser/three.js.
 **Target Resolution:** Responsive (fills viewport)
-**Status:** Planning — Phase 2
+**Status:** Planning — Phase 3
 
 ---
 
@@ -24,16 +24,19 @@ Every scene is a node in a story graph (`story.js`) with one or more lines of te
 Each named NPC has a hidden affinity counter nudged up or down by dialogue choices. Certain choices and whole story branches only unlock once affinity with a character crosses a threshold — a lightweight relationship system that rewards paying attention to what people say they want.
 
 ### 3. Inventory & equipment
-The player carries ingredients, quest items, and consumables. A single "trinket" equip slot holds one wearable item (found through the story) that grants a small permanent stat bonus (e.g. +2 Wit). Consumables like Honey Tonic can be used mid-battle to heal.
+The player carries ingredients, quest items, and consumables. Two equip slots hold wearable items found through the story: "trinket" (flat stat bonus, e.g. +2 Wit) and, as of Phase 3, "charm" (a trade-off item — a bonus in one stat paired with a penalty in another, e.g. +3 Strength/-1 Wit). Consumables with a `heal` value (Honey Tonic, and the Phase 3 brewed teas/tonics) can all be used mid-battle to heal; some also grant a guaranteed flee that turn.
 
 ### 4. Leveling
-Battles and certain story milestones grant XP. Leveling up raises max HP automatically and grants a stat point the player can spend on Strength, Wit, or Charm — Strength affects battle damage, Wit affects flee chance and gates some dialogue, Charm affects how much affinity certain choices grant. (Stat point spending UI is a Phase 3 follow-up; the state layer already supports it via `state.spendStatPoint()`.)
+Battles and certain story milestones grant XP. Leveling up raises max HP automatically and grants a stat point the player can spend on Strength, Wit, or Charm — Strength affects battle damage, Wit affects flee chance and gates some dialogue, Charm affects how much affinity certain choices grant. Stat point spending has a dedicated UI (`statsPanel.js`) wired to `state.spendStatPoint()`.
 
 ### 5. Light turn-based battles
-A handful of story nodes trigger a battle instead of continuing straight to the next line. Battle is a simple three-option menu (Attack / Use Item / Flee) resolved over a few turns against a single enemy, rendered on a `<canvas>` overlay with HP bars. Winning or losing branches the story to a different next node — losing is rarely a hard fail, just a different (often funnier or humbler) continuation.
+A handful of story nodes trigger a battle instead of continuing straight to the next line. Battle is a menu of Attack, one button per carried healing consumable, and Flee (when the enemy allows it), resolved over a few turns against a single enemy, rendered on a `<canvas>` overlay with HP bars. Enemy base stats scale with the player's level (Phase 3) so later encounters stay a real threat. Winning or losing branches the story to a different next node — losing is rarely a hard fail, just a different (often funnier or humbler) continuation.
 
 ### 6. Save / Continue
 The full game state (stats, inventory, equipment, flags, affinity, current story position) serializes to `localStorage`. The title screen offers "Continue" once a save exists.
+
+### 7. Brewing
+Once the player learns to brew (a story flag set by an early Mira dialogue), a Brew button appears in the HUD. Brewing (`brewing.js` + `BREW_RECIPES` in `config.js`) consumes material items — Dried Mintleaf, River Root, Thornback Quill, Moonpetal, gathered from the shop, battle loot, and the deep Whisperwood — to produce brewed consumables (Vigor Draught, Steady-Hand Tea) or a craftable charm-slot item (Moonpetal Locket). Recipes with insufficient materials show a disabled Brew button rather than being hidden, so the player can see what they're working toward.
 
 ---
 
@@ -54,6 +57,7 @@ The full game state (stats, inventory, equipment, flags, affinity, current story
 | Advance dialogue | Click textbox / Space / Enter |
 | Pick a choice | Click the choice button |
 | Open/close bag | 🎒 Bag button |
+| Open/close brewing panel | 🍵 Brew button (visible once brewing is learned) |
 | Save | 💾 Save button |
 | Mute/unmute | 🔊 button |
 | Battle actions | Click the battle menu buttons |
@@ -66,7 +70,7 @@ No keyboard-only path is required for Phase 1 — this is a mouse-first, click-t
 
 - XP curve: `20 + (level - 1) * 15` XP to reach the next level (see `config.js: xpToNextLevel`).
 - Leveling grants +4 max HP automatically, plus 1 free stat point.
-- Battle difficulty is currently flat (two enemy defs: Cellar Slime, Hedge Wolf) — Phase 3+ should scale enemy stats or introduce new enemies as the story progresses further into the Whisperwood.
+- Four enemy defs as of Phase 3: Cellar Slime, Hedge Wolf, Thornback Boar, Deep-Wood Stalker (deeper into the Whisperwood, and not fleeable). Base stats scale multiplicatively with the player's level via `enemyScaleForLevel`/`scaledEnemy` in `config.js`, applied when `battle.js` starts an encounter — so the same enemy id hits harder and has more HP at level 10 than at level 1.
 
 ---
 
@@ -74,8 +78,9 @@ No keyboard-only path is required for Phase 1 — this is a mouse-first, click-t
 
 - Top bar: level, HP bar + numeric label, XP bar, Bag/Save/Mute buttons.
 - VN stage: background gradient (stand-in for painted backgrounds), a large emoji "portrait" (stand-in for character art), speaker name, dialogue box with typewriter text, choice buttons that fade in once the current line(s) finish.
-- Inventory: modal overlay listing item icon/name/description, with an Equip/Unequip button on wearable items.
-- Battle: canvas showing player/enemy emoji sprites with HP bars, a scrolling battle log, and a menu of actions below.
+- Inventory: modal overlay listing item icon/name/description, with an Equip/Unequip button on wearable items (equipping into whichever of the two slots — trinket or charm — the item declares).
+- Brewing: modal overlay listing each known recipe's icon/name/required materials, with a Brew button that's disabled (not hidden) until the player holds enough materials.
+- Battle: canvas showing player/enemy emoji sprites with HP bars, a scrolling battle log, and a menu of actions below (Attack, one button per carried healing consumable, Flee).
 - Ending: dedicated screen with closing text and a restart button.
 
 ---
@@ -114,10 +119,10 @@ All Web Audio API procedural — no file assets.
 - [x] More affinity-gated branches and a real forecloser: choosing to send for the watch (Bramwell's "safer" option) locks out Hollow's entire wolf-hunt questline — she turns you away instead of sending you after the hedge wolf, so `hollow_sends_you`, the Silver Thimble, the Hedge Wolf battle, and the deep-affinity ending are all skipped for that playthrough
 - [x] A proper stat-point spending UI: `statsPanel.js` + a HUD badge (`#hud-statpoints-badge`) that appears whenever `state.stats.statPoints > 0`, opening a modal with +buttons wired to `state.spendStatPoint()`
 
-### Phase 3 — RPG Depth
-- [ ] More enemy variety and a scaling difficulty curve
-- [ ] More equip slots / items with trade-offs (not just flat bonuses)
-- [ ] A simple crafting or brewing mechanic using material items (mintleaf, etc.) tying inventory to dialogue outcomes
+### Phase 3 — RPG Depth (current)
+- [x] More enemy variety (Thornback Boar, Deep-Wood Stalker) and a scaling difficulty curve (`enemyScaleForLevel`/`scaledEnemy` in `config.js`, applied in `battle.js`)
+- [x] A second equip slot ("charm") with items that trade a bonus in one stat for a penalty in another, alongside the original flat-bonus "trinket" slot
+- [x] A brewing mechanic (`brewing.js` + `BREW_RECIPES` in `config.js`) turning material items (Dried Mintleaf, River Root, Thornback Quill, Moonpetal) into brewed consumables and a craftable charm item, gated behind a new `canBrew` story flag Mira sets
 
 ### Phase 4 — Polish
 - [ ] Replace emoji stand-ins with real portrait/background art (or a distinct painterly CSS treatment)
@@ -139,12 +144,13 @@ All Web Audio API procedural — no file assets.
 | `itemReceived` | itemId, count | dialogueEngine | (available for a future pickup toast) |
 | `inventoryChanged` | inventory array | state | inventory |
 | `equipmentChanged` | equipped map | state | inventory, battle (reads effectiveStats directly) |
-| `flagChanged` | flagName, value | state | (available for future conditional UI) |
+| `flagChanged` | flagName, value | state | brewing (watches `canBrew` to reveal its HUD button) |
 | `affinityChanged` | npcId, newValue | state | (available for future relationship UI) |
 | `xpChanged` | newXp | state | ui |
-| `levelUp` | newLevel | state | ui, progression |
-| `statsChanged` | stats object | state | ui |
+| `levelUp` | newLevel | state | ui, progression, statsPanel |
+| `statsChanged` | stats object | state | ui, statsPanel |
 | `hpChanged` | hp, maxHp | state | ui |
+| `itemBrewed` | recipeId, resultItemId | state | brewing (re-renders the recipe list) |
 | `gameSaved` / `gameLoaded` | — | state | (available for a save-confirmation toast) |
 
 ---
@@ -154,18 +160,19 @@ All Web Audio API procedural — no file assets.
 | File | Responsibility |
 |------|---------------|
 | `main.js` | Boot sequence, title/game/ending screen switching |
-| `config.js` | Constants: starting stats, XP curve, item defs, enemy defs, colors |
+| `config.js` | Constants: starting stats, XP curve, item defs, enemy defs + level-scaling, brew recipes, colors |
 | `events.js` | EventBus singleton |
-| `state.js` | GameState singleton: stats, inventory, equipment, flags, affinity, save/load |
+| `state.js` | GameState singleton: stats, inventory, equipment (2 slots), flags, affinity, brewing, save/load |
 | `sounds.js` | Web Audio API procedural sound effects |
 | `story.js` | The story graph data (nodes, portraits, backgrounds) — all the writing lives here |
 | `dialogueEngine.js` | Generic story-graph traversal: condition checks, effect application, node transitions |
 | `vnRenderer.js` | DOM rendering of the VN screen: background, portrait, typewriter text, choices |
-| `inventory.js` | Inventory panel DOM rendering + equip/unequip |
+| `inventory.js` | Inventory panel DOM rendering + equip/unequip (slot-aware) |
 | `progression.js` | Level-up feedback (sound + toast); XP math itself lives in state.js |
-| `battle.js` | Canvas-rendered light turn-based battle system |
+| `battle.js` | Canvas-rendered light turn-based battle system; scales enemies to player level, lists all carried healing consumables |
 | `ui.js` | Persistent HUD chrome: level/HP/XP readout, save, mute |
 | `statsPanel.js` | Stat-point spending UI: HUD badge + modal, wired to `state.spendStatPoint()` |
+| `brewing.js` | Brewing panel: HUD button (gated by the `canBrew` flag) + modal listing `BREW_RECIPES`, wired to `state.brew()` |
 
 ---
 
@@ -178,6 +185,16 @@ All Web Audio API procedural — no file assets.
 ---
 
 ## Changelog
+
+### Phase 3 — RPG Depth (2026-08-29)
+- Enemy scaling: `enemyScaleForLevel(level)` / `scaledEnemy(enemyId, level)` in `config.js` scale an enemy's hp/strength/xp multiplicatively based on the player's current level; `battle.js` calls `scaledEnemy` instead of reading `ENEMY_DEFS` directly, and strength scaling is clamped so it never drops below the base value.
+- Two new enemies: Thornback Boar and Deep-Wood Stalker (the latter not fleeable), reached via a new deep-Whisperwood chapter.
+- Second equip slot ("charm") alongside the original "trinket" slot — `state.effectiveStats` now applies both a `bonus` and a `penalty` object per equipped item; three new charm items (Thornback Bracer, Moonpetal Locket, Baker's Locket) each trade a bonus in one stat for a penalty in another. `inventory.js` reads each item's own `slot` instead of hardcoding `'trinket'`.
+- Brewing mechanic: `state.brew()` / `state.canBrew()` consume `BREW_RECIPES` material requirements (config.js) to produce a result item; new `brewing.js` module renders a HUD-gated panel (button hidden until the `canBrew` story flag is set). Emits a new `itemBrewed` event.
+- New material items (River Root, Thornback Quill, Moonpetal) and brewed items (Vigor Draught, Steady-Hand Tea, Moonpetal Locket); Steady-Hand Tea's `guaranteedFlee` flag makes the next flee attempt in battle always succeed.
+- `battle.js` no longer hardcodes Honey Tonic — it lists every carried consumable with a `heal` value as its own menu button, and rebuilds the menu after each player turn so consumed items disappear.
+- New story content: Mira teaches brewing (`mira_teaches_brewing`) after the cellar resolution, granting starter materials; a new deep-Whisperwood chapter (`deep_wood_edge` → Thornback Boar fight → Deep-Wood Stalker encounter) reachable from both the warm and cold Hollow branches.
+- Added a Node.js test suite (`tests/*.test.js`, run via `npm test` / `node --test tests/*.test.js`) covering enemy scaling, equip slot stacking, brewing, save/load, dialogue-engine condition/effect logic, and story-graph integrity (every node reference resolves, every battle node has both outcomes, the full graph is reachable from `start`). Also added a manual Playwright smoke driver (`tests/smoke.playwright.mjs`, not part of the automated suite) that boots the real page and clicks through the opening slice into the new brewing UI.
 
 ### Phase 2 — More Story (2026-08-29)
 - Added `village_square` hub node plus two new NPC chapters: Bramwell the baker (`bramwell_*` nodes) and Hollow the forest witch (`hollow_*` nodes)
