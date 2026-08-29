@@ -1,5 +1,15 @@
 # Changelog — Hearthbound
 
+## Phase 5 — Mobile Pass (2026-08-29)
+
+- Narrow-viewport (`max-width: 480px`) and short-viewport (`max-height: 480px`) media queries reflow the HUD, VN stage, and battle screen instead of clipping/overlapping — the HUD wraps its action buttons onto their own row rather than squeezing, the portrait medallion and dialogue padding shrink, and battle spacing tightens so a rotated phone doesn't need to scroll.
+- Every `button` now guarantees a 44×44px minimum touch target via padding (base rule, applies everywhere); range sliders get extra vertical padding so their tappable box clears the same minimum despite a visually thin track.
+- Tapping a modal's dimmed backdrop closes it, extended from `settingsPanel.js` to the inventory, brewing, and stats panels too — the touch-only equivalent of Escape.
+- Battle canvas switched from a fixed 640×320 pixel size to CSS scaling (`width: 100%; max-width: 640px; aspect-ratio: 640/320`), so it fits phone-width and short-landscape viewports; `battle.js`'s drawing code is untouched since it still draws in the same internal coordinate space.
+- Fixed two clipping bugs surfaced by the audit: the title screen's `h1` (fixed 56px) clipped "Hearthbound" at ~390px wide; the ending screen's `h1` had the same risk. Both now use `clamp()` for fluid sizing.
+- Added `viewport-fit=cover` + `env(safe-area-inset-*)` padding for notches/gesture bars, and `touch-action: manipulation` + `overscroll-behavior: none` to stop double-tap-zoom and pull-to-refresh from fighting rapid taps.
+- New `tests/smoke-mobile.playwright.mjs`: drives the real page under Playwright's `devices['iPhone 13']` emulation with `.tap()`, checking for horizontal overflow, touch-target sizing, canvas scaling, and backdrop-tap-to-close.
+
 ## Phase 4 — Polish (2026-08-29)
 
 - Five distinct endings replacing the single shared `end_preview` node, branching on how the Bramwell/Hollow choice and the deep-wood encounters played out: `ending_cold` (called the watch, Hollow's questline foreclosed), `ending_humbled_wolf` (lost the Hedge Wolf fight and called it a season), `ending_cautious` (backed away from the Deep-Wood Stalker), `ending_triumphant` (beat the Deep-Wood Stalker), `ending_bested` (lost to the Deep-Wood Stalker but made it home). New `lostToHedgeWolf` flag and a new `hollow_thanks` choice make the wolf-loss ending reachable.

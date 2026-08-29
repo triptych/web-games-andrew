@@ -3,7 +3,7 @@
 **Genre:** Cozy fantasy visual novel with light RPG mechanics
 **Engine:** Custom vanilla JS engine — DOM+CSS for the VN layer, `<canvas>` for battle. No Kaplay/Phaser/three.js.
 **Target Resolution:** Responsive (fills viewport)
-**Status:** Phase 5 planned
+**Status:** Phase 5 complete
 
 ---
 
@@ -64,7 +64,7 @@ Once the player learns to brew (a story flag set by an early Mira dialogue), a B
 | Mute/unmute | 🔊 button |
 | Battle actions | Click the battle menu buttons |
 
-Phase 1 shipped mouse-first with space/enter as a convenience; Phase 4 added a full keyboard-only path for dialogue and choices (auto-focus on render, arrow-key roving focus between choice buttons, Escape to close any modal, and focus is restored to the current choice/textbox when a modal closes) as part of its accessibility pass.
+Phase 1 shipped mouse-first with space/enter as a convenience; Phase 4 added a full keyboard-only path for dialogue and choices (auto-focus on render, arrow-key roving focus between choice buttons, Escape to close any modal, and focus is restored to the current choice/textbox when a modal closes) as part of its accessibility pass. Phase 5 confirmed the whole game is touch-friendly on top of that: every action above already fires on tap (all handlers use `click`, which browsers dispatch for taps with no separate touch wiring needed), and tapping a modal's dimmed backdrop now closes it too, standing in for Escape on devices with no keyboard.
 
 ---
 
@@ -133,14 +133,14 @@ All Web Audio API procedural — no file assets.
 - [x] Settings: text speed slider, volume slider (`settings.js` + `settingsPanel.js`)
 - [x] Accessibility pass (keyboard-only navigation through choices)
 
-### Phase 5 — Mobile Pass (current)
-- [ ] Layout audit at small viewport widths (~360–414px) and short heights (landscape phones, browser chrome eating vertical space): HUD, VN stage, dialogue box, and choice buttons all need to reflow instead of clipping/overlapping.
-- [ ] Touch input pass: replace/augment any hover-dependent affordances, confirm every clickable element (textbox advance, choice buttons, HUD icon buttons, battle menu buttons, modal close/Escape-equivalent) responds correctly to `touchstart`/`click` on real touch devices without double-firing or requiring a hover state first.
-- [ ] Tap target sizing: HUD icon buttons and battle menu buttons audited against ~44×44px minimum touch target guidance; add padding/hit-area rather than shrinking visuals where needed.
-- [ ] Modal usability on small screens: inventory/brewing/stats/settings modals scroll properly and don't overflow the viewport; ensure a visible, tappable close affordance since Escape isn't available on-screen for touch-only devices.
-- [ ] Battle canvas scaling: confirm the canvas overlay resizes/scales correctly on small and rotated viewports and battle menu buttons remain reachable below it without page scroll fighting the layout.
-- [ ] Viewport meta + responsive CSS check: confirm `index.html`'s viewport meta tag prevents unwanted zoom/scroll, and audit `styles.css` for fixed px widths/heights that should be relative or clamped for narrow screens.
-- [ ] Manual test pass on an actual phone (or browser device-emulation at minimum) through the opening slice, a battle, and every modal.
+### Phase 5 — Mobile Pass (complete)
+- [x] Layout audit at small viewport widths (~360–414px) and short heights (landscape phones, browser chrome eating vertical space): HUD, VN stage, dialogue box, and choice buttons all reflow via new media queries instead of clipping/overlapping.
+- [x] Touch input pass: audited — every interactive element already used `click` handlers (which fire correctly on tap) with no hover-dependent affordances; added a "tap the dimmed backdrop to close" handler to the inventory/brewing/stats panels (settings already had it) as the touch-only equivalent of Escape.
+- [x] Tap target sizing: base `button` rule now sets a 44×44px `min-height`/`min-width` (via padding, not shrunk visuals); HUD buttons keep a slightly tighter 40px min-width to stay compact; range sliders get invisible vertical padding so their tappable box also clears ~44px despite a thin visual track.
+- [x] Modal usability on small screens: inventory/brewing modals already clamped `max-height`; extended that to `dvh` units and added it to the stats/settings modals too, plus 16px outer padding on every modal backdrop so a box never touches the screen edge.
+- [x] Battle canvas scaling: canvas now scales via CSS (`width: 100%; max-width: 640px; aspect-ratio: 640/320`) instead of a fixed pixel size, with a shorter max-width and tighter spacing on short/landscape viewports; battle screen scrolls as a last resort instead of clipping the menu.
+- [x] Viewport meta + responsive CSS check: added `viewport-fit=cover` for notch/safe-area support; fixed two more clipping risks found during the audit — the title screen's `h1` (fixed 56px was clipping "Hearthbound" at 390px wide) and the ending screen's `h1`/padding — both now fluid via `clamp()`.
+- [x] Manual test pass via Playwright device emulation (`devices['iPhone 13']`, tap-driven) through the opening slice, a battle, and the inventory/settings modals, plus a manual screenshot check of a short landscape viewport (780×360) during battle. New `tests/smoke-mobile.playwright.mjs`.
 
 ---
 
@@ -200,6 +200,15 @@ All Web Audio API procedural — no file assets.
 ---
 
 ## Changelog
+
+### Phase 5 — Mobile Pass (2026-08-29)
+- Narrow-viewport media queries (`max-width: 480px` and `max-height: 480px`) reflow the HUD (wraps onto extra rows instead of squeezing), shrink the VN portrait medallion and dialogue box padding, and tighten battle-screen spacing so short/landscape viewports don't need to scroll.
+- Every `button` now has a 44×44px minimum touch target via padding (WCAG/Apple/Material guidance), and settings' range sliders get invisible vertical padding so their tappable box clears the same minimum despite a thin visual track.
+- Tapping a modal's dimmed backdrop now closes it on the inventory, brewing, and stats panels (matching the pattern `settingsPanel.js` already had) — the touch-only equivalent of pressing Escape, since there's no on-screen key for that.
+- Battle canvas (`battle.js` still draws at a fixed 640×320 internal resolution) now scales down via CSS `width/max-width/aspect-ratio` instead of rendering at a fixed pixel size, so it fits phone-width and short-landscape viewports without clipping.
+- Fixed two pre-existing clipping bugs found during the mobile audit: the title screen's `h1` was a fixed 56px and clipped "Hearthbound" at ~390px wide; the ending screen's `h1`/outer padding had the same risk. Both are now fluid via `clamp()`.
+- Added `viewport-fit=cover` to the viewport meta tag plus `env(safe-area-inset-*)` padding on the HUD and battle screen, `touch-action: manipulation` + `overscroll-behavior: none` on `html, body` to stop double-tap-zoom and pull-to-refresh from fighting rapid taps through dialogue.
+- New `tests/smoke-mobile.playwright.mjs`: drives the real page under Playwright's `devices['iPhone 13']` emulation using `.tap()`, and asserts no horizontal overflow, every button/slider meets the touch-target minimum, the battle canvas fits the viewport, and backdrop-tap-to-close works.
 
 ### Phase 4 — Polish (2026-08-29)
 - Five distinct endings (`ending_cold`, `ending_humbled_wolf`, `ending_cautious`, `ending_triumphant`, `ending_bested`) replace the single shared `end_preview` node; a new `lostToHedgeWolf` flag and a new choice on `hollow_thanks` make the hedge-wolf-loss ending reachable without forcing every playthrough into the deep wood.
