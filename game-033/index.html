@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Hearthbound</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -22,14 +22,25 @@
         html, body {
             width: 100%;
             height: 100%;
+            height: 100dvh;
             background: var(--bg);
             color: var(--text);
             font-family: 'Georgia', 'Palatino Linotype', serif;
             overflow: hidden;
+            /* Mobile pass (Phase 5): prevent the double-tap-to-zoom and
+               pull-to-refresh/overscroll gestures mobile browsers apply by
+               default, which otherwise fight tapping through dialogue and
+               battle menus quickly. */
+            touch-action: manipulation;
+            overscroll-behavior: none;
+            -webkit-text-size-adjust: 100%;
         }
 
         .hidden { display: none !important; }
 
+        /* Mobile pass (Phase 5): every button gets a comfortable minimum
+           touch target (~44x44px per WCAG/Apple/Material guidance) via
+           padding rather than shrinking any visible glyph/label. */
         button {
             font-family: inherit;
             cursor: pointer;
@@ -38,7 +49,10 @@
             color: var(--text);
             border-radius: 6px;
             padding: 8px 14px;
+            min-height: 44px;
+            min-width: 44px;
             transition: background 0.15s, transform 0.1s;
+            touch-action: manipulation;
         }
         button:hover:not(:disabled) { background: var(--accent); color: #1a1626; }
         button:active:not(:disabled) { transform: scale(0.97); }
@@ -61,9 +75,13 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: radial-gradient(circle at 50% 30%, #2b2440, #100d18 80%);
             text-align: center;
+            padding: 24px;
         }
         #title-screen h1 {
-            font-size: 56px;
+            /* Fluid instead of a fixed 56px (Phase 5): scales down smoothly
+               on narrow phones so "Hearthbound" doesn't clip off-screen,
+               without a hard jump at a single breakpoint. */
+            font-size: clamp(34px, 12vw, 56px);
             letter-spacing: 3px;
             color: var(--gold);
             text-shadow: 0 0 24px rgba(255, 209, 102, 0.35);
@@ -78,6 +96,8 @@
             margin-top: 40px;
             display: flex;
             gap: 14px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         #title-buttons button { font-size: 16px; padding: 12px 24px; }
 
@@ -98,6 +118,9 @@
             background: var(--panel);
             border-bottom: 1px solid var(--border);
             font-size: 13px;
+            flex-wrap: wrap;
+            /* Respect the phone notch / gesture-bar safe area (Phase 5). */
+            padding-top: max(8px, env(safe-area-inset-top));
         }
         #hud-level { font-weight: bold; color: var(--gold); min-width: 48px; }
         #hud-statpoints-badge {
@@ -106,6 +129,7 @@
             font-weight: bold;
             font-size: 12px;
             padding: 3px 9px;
+            min-height: 32px;
             border-radius: 999px;
             border: none;
             animation: pulse 1.4s ease-in-out infinite;
@@ -123,7 +147,58 @@
         #hud-xp-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
         #hud-hp-label { font-size: 11px; opacity: 0.8; min-width: 44px; }
         #hud-spacer { flex: 1; }
-        #hud button { font-size: 12px; padding: 5px 10px; }
+        /* HUD buttons are icon-sized labels — still comfortable to tap
+           (44px min-height inherited from the base `button` rule above)
+           without ballooning their footprint the way full padding would. */
+        #hud button { font-size: 12px; padding: 5px 10px; min-width: 40px; }
+
+        /* ============================================================
+           Mobile pass (Phase 5): narrow-viewport layout
+        ============================================================ */
+        @media (max-width: 480px) {
+            #hud {
+                gap: 8px;
+                padding: 6px 8px;
+                padding-top: max(6px, env(safe-area-inset-top));
+                font-size: 12px;
+            }
+            .hud-bar-track { width: 56px; }
+            #hud-hp-label { min-width: 0; font-size: 10px; }
+            #hud button { font-size: 11px; padding: 5px 8px; min-width: 40px; }
+            /* The two bar groups + spacer wrap onto their own row under
+               level/badge, then the action buttons wrap onto a third row,
+               rather than clipping or squeezing unreadably thin. */
+            #hud-spacer { flex-basis: 100%; height: 0; }
+        }
+
+        @media (max-width: 480px) {
+            #vn-portrait {
+                bottom: 132px;
+                font-size: 72px;
+                width: 140px;
+                height: 140px;
+            }
+            #vn-box { padding: 14px 16px; margin-bottom: 12px; }
+            #vn-text { font-size: 16px; min-height: 4.2em; }
+            .vn-choice-btn { font-size: 14px; padding: 12px 14px; }
+        }
+
+        /* Short/landscape viewports (phones rotated, or a lot of browser
+           chrome eating vertical space): shrink the portrait medallion and
+           tighten vertical spacing so the choice buttons stay reachable
+           without the page needing to scroll. */
+        @media (max-height: 480px) {
+            #vn-portrait {
+                bottom: 96px;
+                font-size: 56px;
+                width: 96px;
+                height: 96px;
+            }
+            #vn-box { padding: 10px 16px; margin-bottom: 8px; }
+            #vn-text { min-height: 2.4em; }
+            #vn-choices { gap: 6px; margin-top: 8px; }
+            .vn-choice-btn { padding: 8px 12px; }
+        }
 
         #vn-stage {
             flex: 1;
@@ -223,11 +298,12 @@
             position: fixed; inset: 0;
             background: rgba(10, 8, 14, 0.75);
             display: flex; align-items: center; justify-content: center;
+            padding: 16px;
             z-index: 50;
         }
         #inventory-box {
             width: min(560px, 90%);
-            max-height: 70vh;
+            max-height: min(70vh, 70dvh);
             overflow-y: auto;
             background: var(--panel);
             border: 1px solid var(--border);
@@ -257,10 +333,13 @@
             position: fixed; inset: 0;
             background: rgba(10, 8, 14, 0.75);
             display: flex; align-items: center; justify-content: center;
+            padding: 16px;
             z-index: 51;
         }
         #stats-box {
             width: min(480px, 90%);
+            max-height: min(85vh, 85dvh);
+            overflow-y: auto;
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 10px;
@@ -290,11 +369,12 @@
             position: fixed; inset: 0;
             background: rgba(10, 8, 14, 0.75);
             display: flex; align-items: center; justify-content: center;
+            padding: 16px;
             z-index: 51;
         }
         #brewing-box {
             width: min(560px, 90%);
-            max-height: 70vh;
+            max-height: min(70vh, 70dvh);
             overflow-y: auto;
             background: var(--panel);
             border: 1px solid var(--border);
@@ -324,10 +404,13 @@
             position: fixed; inset: 0;
             background: rgba(10, 8, 14, 0.75);
             display: flex; align-items: center; justify-content: center;
+            padding: 16px;
             z-index: 51;
         }
         #settings-box {
             width: min(440px, 90%);
+            max-height: min(85vh, 85dvh);
+            overflow-y: auto;
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 10px;
@@ -344,7 +427,16 @@
             font-size: 13px;
         }
         .settings-row label { font-weight: bold; }
-        .settings-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+        /* The native range track renders thin, but its clickable/tappable
+           box should still meet the ~44px touch-target minimum (Phase 5) —
+           padding grows the hit area without changing the track's look. */
+        .settings-row input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            min-height: 44px;
+            padding: 16px 0;
+            box-sizing: border-box;
+        }
         .settings-row-value { color: var(--gold); font-weight: bold; text-align: right; }
         #settings-close { margin-top: 16px; }
 
@@ -355,12 +447,28 @@
             position: fixed; inset: 0;
             background: #0c0a12;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 4px;
+            padding: 12px;
+            padding-top: max(12px, env(safe-area-inset-top));
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            /* Mobile pass (Phase 5): on very short viewports the canvas +
+               log + menu can exceed the available height even after the
+               canvas itself shrinks — let this screen scroll rather than
+               clipping the menu buttons off the bottom. */
+            overflow-y: auto;
             z-index: 40;
         }
         #battle-canvas {
             border: 1px solid var(--border);
             border-radius: 8px;
             background: #14101c;
+            /* The canvas keeps its internal 640x320 drawing resolution
+               (battle.js draws in those coordinates) but is scaled down via
+               CSS to fit small/short viewports, preserving aspect ratio. */
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+            aspect-ratio: 640 / 320;
         }
         #battle-log {
             width: 640px;
@@ -373,11 +481,21 @@
             padding: 8px 12px;
             font-size: 13px;
             margin-top: 10px;
+            flex-shrink: 0;
         }
         #battle-menu {
             display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 10px;
             margin-top: 10px;
+            flex-shrink: 0;
+        }
+
+        @media (max-height: 480px) {
+            #battle-canvas { max-width: 420px; }
+            #battle-log { height: 50px; margin-top: 6px; }
+            #battle-menu { margin-top: 6px; }
         }
 
         /* ============================================================
@@ -388,9 +506,10 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: radial-gradient(circle at 50% 40%, #2b2440, #0c0a12 85%);
             text-align: center;
-            padding: 40px;
+            padding: 24px;
+            overflow-y: auto;
         }
-        #ending-screen h1 { color: var(--gold); font-size: 40px; margin-bottom: 20px; }
+        #ending-screen h1 { color: var(--gold); font-size: clamp(28px, 9vw, 40px); margin-bottom: 20px; }
         #ending-text { max-width: 600px; font-size: 16px; line-height: 1.6; opacity: 0.9; }
         #btn-restart { margin-top: 32px; font-size: 15px; padding: 10px 22px; }
 
@@ -411,6 +530,43 @@
             z-index: 100;
         }
         .level-up-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* ============================================================
+           Mobile pass (Phase 5): narrow-viewport modal layout
+        ============================================================ */
+        @media (max-width: 480px) {
+            #inventory-box, #brewing-box, #stats-box, #settings-box { padding: 14px; }
+
+            /* Fixed pixel columns (item name / stat label) don't leave
+               enough room for the description column at ~320-360px wide;
+               drop each row to two lines instead — icon+name+action on one,
+               description on its own — rather than truncating text. */
+            .inventory-row, .brewing-row {
+                grid-template-columns: 28px 1fr auto;
+                grid-template-areas:
+                    "icon name action"
+                    "desc desc desc";
+                row-gap: 2px;
+            }
+            .inv-icon, .brew-icon { grid-area: icon; }
+            .inv-name, .brew-name { grid-area: name; }
+            .inv-desc, .brew-req { grid-area: desc; font-size: 12px; }
+            .inventory-row > button, .brewing-row > .brew-btn { grid-area: action; }
+
+            .stats-row {
+                grid-template-columns: 1fr auto auto;
+                grid-template-areas:
+                    "label value btn"
+                    "desc desc desc";
+                row-gap: 2px;
+            }
+            .stats-row-label { grid-area: label; }
+            .stats-row-value { grid-area: value; }
+            .stats-row-btn { grid-area: btn; }
+            .stats-row-desc { grid-area: desc; }
+
+            .settings-row { grid-template-columns: 70px 1fr 44px; gap: 8px; }
+        }
     </style>
 </head>
 <body>

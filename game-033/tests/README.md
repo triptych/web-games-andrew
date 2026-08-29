@@ -41,3 +41,29 @@ It boots the title screen, starts a new game, plays through the opening
 slice (Mira → cellar → slime battle → thanks → brewing lesson), opens the
 inventory/brewing panels, brews a Vigor Draught, and fails if any browser
 console error was logged.
+
+## Manual smoke test (`smoke-ending.playwright.mjs`)
+
+Same setup as above. Drives the "called the watch" branch all the way to
+its distinct ending (Phase 4) and asserts the ending screen shows the
+right text.
+
+```bash
+node game-033/tests/smoke-ending.playwright.mjs
+```
+
+## Manual smoke test (`smoke-mobile.playwright.mjs`)
+
+Phase 5 (mobile pass). Same setup as above, but boots the page with
+Playwright's `devices['iPhone 13']` emulation (390px-wide viewport, touch
+enabled) and drives everything with `.tap()` instead of `.click()`:
+
+```bash
+node game-033/tests/smoke-mobile.playwright.mjs
+```
+
+Checks that: the page never overflows horizontally on a 390px viewport;
+every HUD button, battle-menu button, and inventory action button meets a
+~40px minimum touch target; the battle canvas scales down to fit the
+viewport width; and tapping a modal's dimmed backdrop (the touch-only
+equivalent of pressing Escape) closes the inventory and settings panels.

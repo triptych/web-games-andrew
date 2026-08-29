@@ -34,6 +34,11 @@ export function initStatsPanel() {
         playUiClick();
         closePanel();
     });
+    // Tapping the dimmed backdrop closes the panel too — on touch devices
+    // there's no Escape key, so this is the only "click outside" affordance.
+    $panel.addEventListener('click', (e) => {
+        if (e.target === $panel) closePanel();
+    });
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && !$panel.classList.contains('hidden')) closePanel();
     });
