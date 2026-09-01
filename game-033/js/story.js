@@ -28,15 +28,15 @@
  */
 
 export const PORTRAITS = {
-    mira_neutral:    { emoji: '🧑‍🌾', label: 'Mira' },
-    mira_worried:    { emoji: '😟', label: 'Mira' },
-    mira_smile:      { emoji: '🙂', label: 'Mira' },
-    bramwell_jolly:  { emoji: '🧔', label: 'Bramwell' },
-    bramwell_serious:{ emoji: '😐', label: 'Bramwell' },
-    bramwell_fond:   { emoji: '😊', label: 'Bramwell' },
-    hollow_wary:     { emoji: '🧙‍♀️', label: 'Hollow' },
-    hollow_neutral:  { emoji: '🙍‍♀️', label: 'Hollow' },
-    hollow_warm:     { emoji: '🥰', label: 'Hollow' },
+    mira_neutral:    { emoji: '🧑‍🌾', label: 'Mira', image: 'assets/chars/mira.jpg' },
+    mira_worried:    { emoji: '😟', label: 'Mira', image: 'assets/chars/mira_worried.jpg' },
+    mira_smile:      { emoji: '🙂', label: 'Mira', image: 'assets/chars/mira_smile.jpg' },
+    bramwell_jolly:  { emoji: '🧔', label: 'Bramwell', image: 'assets/chars/bramwell_happy.jpg' },
+    bramwell_serious:{ emoji: '😐', label: 'Bramwell', image: 'assets/chars/bramwell_serious.jpg' },
+    bramwell_fond:   { emoji: '😊', label: 'Bramwell', image: 'assets/chars/bramwell.png' },
+    hollow_wary:     { emoji: '🧙‍♀️', label: 'Hollow', image: 'assets/chars/witch_serious.jpg' },
+    hollow_neutral:  { emoji: '🙍‍♀️', label: 'Hollow', image: 'assets/chars/witch.jpg' },
+    hollow_warm:     { emoji: '🥰', label: 'Hollow', image: 'assets/chars/witch_happy.jpg' },
     narrator:        { emoji: '📖', label: '' },
 };
 
@@ -48,30 +48,37 @@ export const BACKGROUNDS = {
     shop_interior: {
         gradient: 'linear-gradient(180deg, #35294a 0%, #2b2440 35%, #201a30 70%, #14101c 100%)',
         label: 'The Apothecary',
+        image: 'assets/backgrounds/shop_interior.png',
     },
     shop_cellar: {
         gradient: 'linear-gradient(180deg, #1c1a26 0%, #14121c 40%, #0d0c13 75%, #07060a 100%)',
         label: 'The Cellar',
+        image: 'assets/backgrounds/cellar.png',
     },
     village_square: {
         gradient: 'linear-gradient(180deg, #5a7590 0%, #3a4a5c 40%, #263140 75%, #161d26 100%)',
         label: 'Village Square',
+        image: 'assets/backgrounds/village_square.png',
     },
     bakery: {
         gradient: 'linear-gradient(180deg, #6b4a2e 0%, #4a3222 40%, #33210f 75%, #1a0f06 100%)',
         label: 'Bramwell’s Bakery',
+        image: 'assets/backgrounds/bakery.png',
     },
     whisperwood_edge: {
         gradient: 'linear-gradient(180deg, #2c4636 0%, #1c2c22 40%, #10190f 75%, #060a06 100%)',
         label: 'Edge of the Whisperwood',
+        image: 'assets/backgrounds/whisperwood_edge.png',
     },
     witch_cottage: {
         gradient: 'linear-gradient(180deg, #333c54 0%, #22283a 40%, #161b28 75%, #0a0d14 100%)',
         label: 'Hollow’s Cottage',
+        image: 'assets/backgrounds/witchs_cabin.png',
     },
     deep_whisperwood: {
         gradient: 'linear-gradient(180deg, #16281d 0%, #0e1812 40%, #08100a 75%, #030503 100%)',
         label: 'The Deep Whisperwood',
+        image: 'assets/backgrounds/whisperwood.png',
     },
 };
 

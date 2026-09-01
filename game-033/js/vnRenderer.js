@@ -37,14 +37,30 @@ export function initVnRenderer() {
 function showNode(node) {
     currentNode = node;
 
-    // Background
+    // Background — prefer real art (painted BG image) over the painterly
+    // gradient stand-in, so partial art coverage doesn't break locations
+    // that haven't been generated yet.
     const bg = BACKGROUNDS[node.background];
-    if (bg) $stage.style.background = bg.gradient;
+    if (bg) {
+        if (bg.image) {
+            $stage.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.25) 100%), url("${bg.image}")`;
+            $stage.style.backgroundSize = 'cover';
+            $stage.style.backgroundPosition = 'center';
+        } else {
+            $stage.style.backgroundImage = bg.gradient;
+        }
+    }
 
-    // Portrait / speaker
+    // Portrait / speaker — prefer real art over the emoji stand-in.
     if (node.portrait && PORTRAITS[node.portrait]) {
         const p = PORTRAITS[node.portrait];
-        $portrait.textContent = p.emoji;
+        if (p.image) {
+            $portrait.textContent = '';
+            $portrait.style.backgroundImage = `url("${p.image}")`;
+        } else {
+            $portrait.textContent = p.emoji;
+            $portrait.style.backgroundImage = '';
+        }
         $portrait.classList.remove('hidden');
         $speaker.textContent = node.speaker || p.label || '';
         $speaker.classList.toggle('hidden', !($speaker.textContent));
