@@ -13,9 +13,36 @@
             <p class="subtitle">Choose a game and start playing!</p>
         </header>
 
+        <section class="carousel" aria-label="Featured games">
+            <div class="carousel-viewport">
+                <div class="carousel-track">
+                    <!-- Carousel slides are dynamically rendered from js/gamedata.js -->
+                </div>
+            </div>
+            <button class="carousel-arrow carousel-arrow-prev" aria-label="Previous game">&#10094;</button>
+            <button class="carousel-arrow carousel-arrow-next" aria-label="Next game">&#10095;</button>
+            <div class="carousel-dots">
+                <!-- Dots are dynamically rendered -->
+            </div>
+        </section>
+
+        <section class="filter-bar">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="search" id="game-search" placeholder="Search games by title, description, or tag..." autocomplete="off">
+            </div>
+            <div class="tag-filters" id="tag-filters">
+                <!-- Tag filter chips are dynamically rendered -->
+            </div>
+        </section>
+
+        <p class="results-count" id="results-count"></p>
+
         <div class="games-grid">
             <!-- Game cards are dynamically rendered from js/gamedata.js -->
         </div>
+
+        <p class="no-results" id="no-results" hidden>No games match your search. Try a different keyword or tag.</p>
 
         <footer>
             <p>Web Games Collection &copy; 2026 <a href="https://andreww.xyz" target="_blank" rel="noopener">Andrew Wooldridge</a></p>

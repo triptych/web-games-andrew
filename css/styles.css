@@ -42,99 +42,323 @@ h1 {
     color: #e0e0e0;
 }
 
+/* ===================== Carousel ===================== */
+
+.carousel {
+    position: relative;
+    margin-bottom: 40px;
+}
+
+.carousel-viewport {
+    overflow: hidden;
+    border-radius: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+}
+
+.carousel-track {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+}
+
+.carousel-slide {
+    position: relative;
+    flex: 0 0 100%;
+    min-height: 260px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.carousel-slide-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0.85;
+}
+
+.carousel-slide-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 30px 40px;
+    width: 100%;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.05) 70%);
+}
+
+.carousel-icon {
+    font-size: 5em;
+    flex-shrink: 0;
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.5));
+}
+
+.carousel-text h2 {
+    font-size: 1.8em;
+    margin-bottom: 8px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.carousel-text p {
+    font-size: 1em;
+    line-height: 1.5;
+    opacity: 0.95;
+    margin-bottom: 12px;
+    max-width: 620px;
+}
+
+.carousel-play-button {
+    width: auto;
+    padding: 10px 24px;
+    font-size: 1em;
+}
+
+.carousel-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    z-index: 2;
+}
+
+.carousel-arrow:hover {
+    background: rgba(0, 0, 0, 0.65);
+    transform: translateY(-50%) scale(1.08);
+}
+
+.carousel-arrow-prev {
+    left: 16px;
+}
+
+.carousel-arrow-next {
+    right: 16px;
+}
+
+.carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.carousel-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    padding: 0;
+}
+
+.carousel-dot:hover {
+    background: rgba(255, 255, 255, 0.55);
+}
+
+.carousel-dot.active {
+    background: white;
+    transform: scale(1.2);
+}
+
+/* ===================== Filter bar ===================== */
+
+.filter-bar {
+    margin-bottom: 20px;
+}
+
+.search-box {
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto 16px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+#game-search {
+    width: 100%;
+    padding: 12px 16px 12px 44px;
+    border-radius: 25px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: white;
+    font-size: 1em;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+#game-search::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+#game-search:focus {
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.tag-filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+}
+
+.tag-chip {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.tag-chip:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.tag-chip.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: rgba(255, 255, 255, 0.5);
+    font-weight: bold;
+}
+
+.results-count {
+    text-align: center;
+    opacity: 0.75;
+    font-size: 0.9em;
+    margin-bottom: 16px;
+}
+
+.no-results {
+    text-align: center;
+    opacity: 0.8;
+    padding: 40px 0;
+    font-size: 1.1em;
+}
+
+/* ===================== Games grid (compact cards) ===================== */
+
 .games-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 18px;
     margin-bottom: 40px;
 }
 
 .game-card {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 14px;
     transition: transform 0.3s, box-shadow 0.3s;
     border: 2px solid rgba(255, 255, 255, 0.2);
     cursor: pointer;
 }
 
 .game-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
     border-color: rgba(255, 255, 255, 0.4);
 }
 
 .game-preview {
     width: 100%;
-    height: 200px;
+    height: 110px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 10px;
-    margin-bottom: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 4em;
+    font-size: 2.4em;
     position: relative;
     overflow: hidden;
 }
 
-.game-preview.space-shooter {
+.game-preview.space-shooter,
+.carousel-slide-bg.space-shooter {
     background: linear-gradient(to bottom, #0a0a1a, #1a1a3a);
 }
 
-.game-preview.match-3 {
+.game-preview.match-3,
+.carousel-slide-bg.match-3 {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.game-preview.roguelike {
+.game-preview.roguelike,
+.carousel-slide-bg.roguelike {
     background: linear-gradient(135deg, #2c1810 0%, #4a3520 50%, #1a0f0a 100%);
 }
 
 .preview-icon {
-    font-size: 4em;
+    font-size: 2.4em;
     opacity: 0.8;
 }
 
 .game-title {
-    font-size: 1.8em;
-    margin-bottom: 10px;
+    font-size: 1.1em;
+    margin-bottom: 6px;
     font-weight: bold;
 }
 
 .game-description {
-    font-size: 1em;
-    line-height: 1.6;
-    margin-bottom: 15px;
+    font-size: 0.82em;
+    line-height: 1.4;
+    margin-bottom: 10px;
     opacity: 0.9;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .game-info {
     display: flex;
-    gap: 10px;
+    gap: 6px;
     flex-wrap: wrap;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .tag {
     background: rgba(255, 255, 255, 0.2);
-    padding: 5px 12px;
-    border-radius: 15px;
-    font-size: 0.85em;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 0.72em;
 }
 
 .play-button {
     display: inline-block;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 12px 30px;
-    border-radius: 25px;
+    padding: 8px 20px;
+    border-radius: 20px;
     text-decoration: none;
     font-weight: bold;
     transition: all 0.3s;
     border: none;
     cursor: pointer;
-    font-size: 1.1em;
+    font-size: 0.9em;
     width: 100%;
     text-align: center;
 }
@@ -156,7 +380,8 @@ h1 {
     background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
 }
 
-.game-preview.tower-defense {
+.game-preview.tower-defense,
+.carousel-slide-bg.tower-defense {
     background: linear-gradient(135deg, #1a2a1a 0%, #2d4a2d 50%, #0f1f0f 100%);
 }
 
@@ -164,7 +389,8 @@ h1 {
     background: linear-gradient(135deg, #2d8b2d 0%, #4aad4a 100%);
 }
 
-.game-preview.bullet-heaven {
+.game-preview.bullet-heaven,
+.carousel-slide-bg.bullet-heaven {
     background: linear-gradient(135deg, #0a0a2a 0%, #1a0a3a 50%, #2a0a1a 100%);
 }
 
@@ -172,7 +398,8 @@ h1 {
     background: linear-gradient(135deg, #9b59b6 0%, #e74c3c 100%);
 }
 
-.game-preview.dungeon-fps {
+.game-preview.dungeon-fps,
+.carousel-slide-bg.dungeon-fps {
     background: linear-gradient(135deg, #1a1005 0%, #3a2a10 50%, #0f0a02 100%);
 }
 
@@ -180,7 +407,8 @@ h1 {
     background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
 }
 
-.game-preview.interactive-fiction {
+.game-preview.interactive-fiction,
+.carousel-slide-bg.interactive-fiction {
     background: linear-gradient(135deg, #1a1205 0%, #2e2010 50%, #120d03 100%);
 }
 
@@ -188,7 +416,8 @@ h1 {
     background: linear-gradient(135deg, #d4a017 0%, #f0c040 100%);
 }
 
-.game-preview.centipede-td {
+.game-preview.centipede-td,
+.carousel-slide-bg.centipede-td {
     background: linear-gradient(135deg, #0a1a0a 0%, #002200 50%, #0a1a0a 100%);
 }
 
@@ -196,7 +425,8 @@ h1 {
     background: linear-gradient(135deg, #00aa00 0%, #00dd00 100%);
 }
 
-.game-preview.ember-crown {
+.game-preview.ember-crown,
+.carousel-slide-bg.ember-crown {
     background: linear-gradient(135deg, #1a0a00 0%, #3a1800 50%, #2a0500 100%);
 }
 
@@ -204,13 +434,112 @@ h1 {
     background: linear-gradient(135deg, #c0390b 0%, #e8890a 100%);
 }
 
-.game-preview.grimhold-abyss {
+.game-preview.grimhold-abyss,
+.carousel-slide-bg.grimhold-abyss {
     background: linear-gradient(135deg, #0a0a0a 0%, #2a2a2a 50%, #000000 100%);
 }
 
 .game-card.grimhold-abyss .play-button {
     background: linear-gradient(135deg, #555555 0%, #aaaaaa 100%);
     color: #000;
+}
+
+.game-card.tiny-town .play-button {
+    background: linear-gradient(135deg, #52a35a 0%, #a3d977 100%);
+}
+
+.game-card.nonogram-fleet .play-button {
+    background: linear-gradient(135deg, #1c4e80 0%, #3aa0d0 100%);
+}
+
+.game-card.arcana-pull .play-button {
+    background: linear-gradient(135deg, #4b1d6e 0%, #9b4fd6 100%);
+}
+
+.game-card.petal-purse .play-button {
+    background: linear-gradient(135deg, #d6608a 0%, #f6a6c1 100%);
+    color: #2a0a16;
+}
+
+.game-card.trackrunner .play-button {
+    background: linear-gradient(135deg, #ff2e88 0%, #00e5ff 100%);
+}
+
+.game-card.tamagoji .play-button {
+    background: linear-gradient(135deg, #ffb347 0%, #ffe08a 100%);
+    color: #3a2400;
+}
+
+.game-card.crate-pusher .play-button {
+    background: linear-gradient(135deg, #a0522d 0%, #d2a679 100%);
+}
+
+.game-card.pixel-picross .play-button {
+    background: linear-gradient(135deg, #2f80ed 0%, #56ccf2 100%);
+}
+
+.game-card.wandering-blade .play-button {
+    background: linear-gradient(135deg, #3a3a3a 0%, #8c8c8c 100%);
+}
+
+.game-card.synthwave-breakout .play-button {
+    background: linear-gradient(135deg, #ff2eaa 0%, #7b2fff 100%);
+}
+
+.game-card.the-river .play-button {
+    background: linear-gradient(135deg, #1a5276 0%, #48c9b0 100%);
+}
+
+.game-card.dungeon-blobber .play-button {
+    background: linear-gradient(135deg, #4a2f1a 0%, #8a6a3a 100%);
+}
+
+.game-card.depths-unknown .play-button {
+    background: linear-gradient(135deg, #6e4a1f 0%, #2f8f8f 100%);
+}
+
+.game-card.synthwave-invaders .play-button {
+    background: linear-gradient(135deg, #ff5e5e 0%, #ffb347 100%);
+}
+
+.game-card.neon-vanguard .play-button {
+    background: linear-gradient(135deg, #00f0ff 0%, #ff2ee6 100%);
+    color: #10002a;
+}
+
+.game-card.crypt-crawler .play-button {
+    background: linear-gradient(135deg, #4b2e83 0%, #8e44ad 100%);
+}
+
+.game-card.crypt-of-the-forgotten .play-button {
+    background: linear-gradient(135deg, #2b2b2b 0%, #5a4a2f 100%);
+    color: #f0d9a0;
+}
+
+.game-card.alchemists-lattice .play-button {
+    background: linear-gradient(135deg, #1f7a5c 0%, #58d68d 100%);
+}
+
+.game-card.echoes-of-aethermoor .play-button {
+    background: linear-gradient(135deg, #2e1a47 0%, #6c5ce7 100%);
+}
+
+.game-card.wayfarers-path .play-button {
+    background: linear-gradient(135deg, #6b8e23 0%, #c2b280 100%);
+    color: #2a2a0a;
+}
+
+.game-card.coppergate-lane .play-button {
+    background: linear-gradient(135deg, #a05a2c 0%, #e0a458 100%);
+}
+
+.game-card.ironhollow-depths .play-button {
+    background: linear-gradient(135deg, #1a2a3a 0%, #3aa0a0 100%);
+}
+
+.game-card.hearthbound .play-button {
+    background: linear-gradient(135deg, #6b8f3e 0%, #a8c686 100%);
+    color: #1a2a0a;
 }
 
 footer {
@@ -237,6 +566,35 @@ footer a:hover {
     }
 
     .games-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+
+    .carousel-slide-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 24px;
+    }
+
+    .carousel-icon {
+        font-size: 3.5em;
+    }
+
+    .carousel-text p {
+        -webkit-line-clamp: 3;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .carousel-arrow {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9em;
+    }
+
+    .search-box {
+        max-width: 100%;
     }
 }
