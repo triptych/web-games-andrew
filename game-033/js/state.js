@@ -1,5 +1,8 @@
 import { events } from './events.js';
-import { STARTING_STATS, STARTING_INVENTORY, SAVE_KEY, xpToNextLevel, ITEM_DEFS, BREW_RECIPES } from './config.js';
+import {
+    STARTING_STATS, STARTING_INVENTORY, STARTING_DAY, SAVE_KEY, xpToNextLevel,
+    ITEM_DEFS, BREW_RECIPES, recipeIsKnown,
+} from './config.js';
 
 const EQUIP_SLOTS = ['trinket', 'charm'];
 
@@ -21,6 +24,9 @@ class GameState {
         this._affinity = {}; // npcId -> number
         this._currentNodeId = 'start';
         this._visitedNodes = new Set();
+        this._day = STARTING_DAY;   // Phase 6: the season advances when you rest
+        this._quests = {};          // questId -> 'active' | 'done'
+        this._lore = [];            // ordered list of collected lore ids
     }
 
     // --- Stats ---
@@ -74,6 +80,36 @@ class GameState {
         return true;
     }
 
+    // --- Coin (Phase 6) ---
+    get coin() { return this._stats.coin || 0; }
+
+    addCoin(amount) {
+        this._stats.coin = Math.max(0, (this._stats.coin || 0) + amount);
+        events.emit('coinChanged', this._stats.coin);
+        return this._stats.coin;
+    }
+
+    spendCoin(amount) {
+        if ((this._stats.coin || 0) < amount) return false;
+        this.addCoin(-amount);
+        return true;
+    }
+
+    // --- Days (Phase 6) ---
+    get day() { return this._day; }
+
+    advanceDay(count = 1) {
+        this._day += count;
+        events.emit('dayChanged', this._day);
+        return this._day;
+    }
+
+    /** A night's sleep at the shop: full HP, and the season moves on. */
+    rest() {
+        this.advanceDay(1);
+        this.setHp(this._stats.maxHp);
+    }
+
     setHp(val) {
         this._stats.hp = Math.max(0, Math.min(this._stats.maxHp, val));
         events.emit('hpChanged', this._stats.hp, this._stats.maxHp);
@@ -121,9 +157,15 @@ class GameState {
     // --- Brewing ---
     // Consumes the recipe's required material items and grants the result
     // item. Returns true on success, false if materials are insufficient.
+    /** Phase 6: some recipes have to be taught before they can be brewed. */
+    knowsRecipe(recipeId) {
+        return recipeIsKnown(recipeId, name => this.getFlag(name));
+    }
+
     brew(recipeId) {
         const recipe = BREW_RECIPES[recipeId];
         if (!recipe) return false;
+        if (!this.knowsRecipe(recipeId)) return false;
         for (const req of recipe.requires) {
             if (!this.hasItem(req.item, req.count)) return false;
         }
@@ -138,8 +180,47 @@ class GameState {
     canBrew(recipeId) {
         const recipe = BREW_RECIPES[recipeId];
         if (!recipe) return false;
+        if (!this.knowsRecipe(recipeId)) return false;
         return recipe.requires.every(req => this.hasItem(req.item, req.count));
     }
+
+    // --- Quests (Phase 6) ---
+    // The story graph still gates everything on flags and items; quests are a
+    // player-facing tracker so a long season stays legible between sessions.
+    get quests() { return this._quests; }
+
+    startQuest(id) {
+        if (this._quests[id]) return false; // already active or already done
+        this._quests[id] = 'active';
+        events.emit('questChanged', id, 'active');
+        return true;
+    }
+
+    completeQuest(id) {
+        if (this._quests[id] === 'done') return false;
+        this._quests[id] = 'done';
+        events.emit('questChanged', id, 'done');
+        return true;
+    }
+
+    questState(id) { return this._quests[id] || null; }
+    questIsActive(id) { return this._quests[id] === 'active'; }
+    questIsDone(id) { return this._quests[id] === 'done'; }
+    get activeQuestCount() {
+        return Object.values(this._quests).filter(v => v === 'active').length;
+    }
+
+    // --- Lore (Phase 6) ---
+    get lore() { return this._lore; }
+
+    addLore(id) {
+        if (this._lore.includes(id)) return false;
+        this._lore.push(id);
+        events.emit('loreAdded', id);
+        return true;
+    }
+
+    hasLore(id) { return this._lore.includes(id); }
 
     // --- Story flags ---
     getFlag(name) { return this._flags[name]; }
@@ -174,6 +255,9 @@ class GameState {
             affinity: this._affinity,
             currentNodeId: this._currentNodeId,
             visitedNodes: [...this._visitedNodes],
+            day: this._day,
+            quests: this._quests,
+            lore: this._lore,
         };
         localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
         events.emit('gameSaved');
@@ -195,6 +279,9 @@ class GameState {
             this._affinity = payload.affinity || {};
             this._currentNodeId = payload.currentNodeId || 'start';
             this._visitedNodes = new Set(payload.visitedNodes || []);
+            this._day = payload.day || STARTING_DAY;
+            this._quests = payload.quests || {};
+            this._lore = payload.lore || [];
             events.emit('gameLoaded');
             return true;
         } catch (e) {

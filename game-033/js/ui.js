@@ -7,7 +7,7 @@ import { events } from './events.js';
 import { xpToNextLevel } from './config.js';
 import { toggleSound, playUiClick } from './sounds.js';
 
-let $level, $hpFill, $hpLabel, $xpFill, $saveBtn, $muteBtn;
+let $level, $hpFill, $hpLabel, $xpFill, $saveBtn, $muteBtn, $day, $coin;
 
 export function initUI() {
     $level   = document.getElementById('hud-level');
@@ -16,6 +16,8 @@ export function initUI() {
     $xpFill  = document.getElementById('hud-xp-fill');
     $saveBtn = document.getElementById('hud-save');
     $muteBtn = document.getElementById('hud-mute');
+    $day     = document.getElementById('hud-day');
+    $coin    = document.getElementById('hud-coin');
 
     $saveBtn.addEventListener('click', () => {
         playUiClick();
@@ -28,6 +30,9 @@ export function initUI() {
         $muteBtn.textContent = enabled ? '🔊' : '🔇';
     });
 
+    events.on('dayChanged', renderDay);
+    events.on('coinChanged', renderCoin);
+    events.on('gameLoaded', renderAll);
     events.on('hpChanged', renderHp);
     events.on('statsChanged', renderAll);
     events.on('levelUp', renderAll);
@@ -39,7 +44,19 @@ export function initUI() {
 function renderAll() {
     renderHp(state.stats.hp, state.stats.maxHp);
     renderXp(state.stats.xp);
+    renderDay(state.day);
+    renderCoin(state.coin);
     $level.textContent = `Lv. ${state.stats.level}`;
+}
+
+// Phase 6: the season runs on days, and the shop runs on coin — both live
+// in the HUD so the player can see the two resources a long game spends.
+function renderDay(day) {
+    if ($day) $day.textContent = `Day ${day}`;
+}
+
+function renderCoin(coin) {
+    if ($coin) $coin.textContent = `${coin}c`;
 }
 
 function renderHp(hp, maxHp) {

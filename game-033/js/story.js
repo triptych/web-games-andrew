@@ -25,7 +25,25 @@
  *   { type: 'giveItem', item, count }
  *   { type: 'removeItem', item, count }
  *   { type: 'giveXp', amount }
+ *
+ * Phase 6 added a great many more of both (minStat/minCoin/minDay/questActive/
+ * noneFlags gates; coin, day, quest, lore and recipe effects) — see the header
+ * of dialogueEngine.js for the full list.
+ *
+ * The graph itself outgrew one file in Phase 6 and now lives in ./story/*.js,
+ * one module per chapter, merged into STORY at the bottom of this file. The
+ * Phase 1-4 nodes stay here as the spine they always were.
  */
+
+import { WORKROOM_NODES } from './story/chapter_workroom.js';
+import { SHOP_NODES } from './story/chapter_shop.js';
+import { VILLAGE_NODES } from './story/chapter_village.js';
+import { BRAMWELL_NODES } from './story/chapter_bramwell.js';
+import { HOLLOW_NODES } from './story/chapter_hollow.js';
+import { WATCH_NODES } from './story/chapter_watch.js';
+import { DEEPWOOD_NODES } from './story/chapter_deepwood.js';
+import { LONGNIGHT_NODES } from './story/chapter_longnight.js';
+import { ENDING_NODES } from './story/endings.js';
 
 export const PORTRAITS = {
     mira_neutral:    { emoji: '🧑‍🌾', label: 'Mira', image: 'assets/chars/mira.jpg' },
@@ -37,6 +55,21 @@ export const PORTRAITS = {
     hollow_wary:     { emoji: '🧙‍♀️', label: 'Hollow', image: 'assets/chars/witch_serious.jpg' },
     hollow_neutral:  { emoji: '🙍‍♀️', label: 'Hollow', image: 'assets/chars/witch.jpg' },
     hollow_warm:     { emoji: '🥰', label: 'Hollow', image: 'assets/chars/witch_happy.jpg' },
+    mira_tools:      { emoji: '🧑‍🔬', label: 'Mira', image: 'assets/chars/mira_tools.jpg' },
+    // Phase 6 cast. No image-generation tool is available in this environment,
+    // so these use the emoji stand-in path in vnRenderer (which falls back
+    // cleanly when a portrait has no `image`); prompts for real art are in
+    // image_prompts/portraits/.
+    sessily_neutral: { emoji: '👵', label: 'Granny Sessily' },
+    sessily_warm:    { emoji: '🫖', label: 'Granny Sessily' },
+    tobin_eager:     { emoji: '🧒', label: 'Tobin' },
+    tobin_scared:    { emoji: '😨', label: 'Tobin' },
+    ock_sly:         { emoji: '🧳', label: 'Peddler Ock' },
+    ock_grin:        { emoji: '🤝', label: 'Peddler Ock' },
+    dorne_stern:     { emoji: '🛡️', label: 'Sergeant Dorne' },
+    dorne_tired:     { emoji: '😓', label: 'Sergeant Dorne' },
+    biscuit:         { emoji: '🐕', label: 'Biscuit' },
+    thorn_crowned:   { emoji: '🦌', label: '' },
     narrator:        { emoji: '📖', label: '' },
 };
 
@@ -79,6 +112,50 @@ export const BACKGROUNDS = {
         gradient: 'linear-gradient(180deg, #16281d 0%, #0e1812 40%, #08100a 75%, #030503 100%)',
         label: 'The Deep Whisperwood',
         image: 'assets/backgrounds/whisperwood.png',
+    },
+
+    // --- Phase 6 locations. Where an existing painted background genuinely
+    // fits the new place (the workroom is off the cellar, the fern hollow is
+    // the wood's edge) it is reused; the two genuinely new places — the
+    // hearth-stone clearing and the night camp — are gradient-only for now,
+    // with prompts in image_prompts/backgrounds/.
+    shop_counter: {
+        gradient: 'linear-gradient(180deg, #3d3054 0%, #2f2745 35%, #221c34 70%, #15111f 100%)',
+        label: 'The Shop Counter',
+        image: 'assets/backgrounds/shop_interior.png',
+    },
+    shop_workroom: {
+        gradient: 'linear-gradient(180deg, #241f2e 0%, #1a1724 40%, #110f18 75%, #08070c 100%)',
+        label: "Wisteria's Workroom",
+        image: 'assets/backgrounds/cellar.png',
+    },
+    village_lane: {
+        gradient: 'linear-gradient(180deg, #6a7f92 0%, #45566a 40%, #2b3846 75%, #17202a 100%)',
+        label: 'The Lane',
+        image: 'assets/backgrounds/village_square.png',
+    },
+    bakery_kitchen: {
+        gradient: 'linear-gradient(180deg, #7c5731 0%, #573a22 40%, #3a2510 75%, #1d1207 100%)',
+        label: "Bramwell's Kitchen",
+        image: 'assets/backgrounds/bakery.png',
+    },
+    fern_hollow: {
+        gradient: 'linear-gradient(180deg, #35543c 0%, #223626 40%, #131f16 75%, #070c08 100%)',
+        label: 'The Fern Hollow',
+        image: 'assets/backgrounds/whisperwood_edge.png',
+    },
+    wolf_den: {
+        gradient: 'linear-gradient(180deg, #2a2f28 0%, #1c211b 40%, #101410 75%, #060806 100%)',
+        label: 'The Den',
+        image: 'assets/backgrounds/whisperwood.png',
+    },
+    hollow_heart: {
+        gradient: 'linear-gradient(180deg, #2e3b43 0%, #1e2a30 30%, #1a2320 60%, #0c110e 100%)',
+        label: 'The Hollow Heart',
+    },
+    night_camp: {
+        gradient: 'radial-gradient(ellipse at 50% 70%, #6b4a22 0%, #2b2418 22%, #14161a 55%, #06080c 100%)',
+        label: 'The Long Night',
     },
 };
 
@@ -195,8 +272,9 @@ export const STORY = {
         speaker: null,
         portrait: 'narrator',
         background: 'shop_cellar',
-        text: 'The slime gets the better of you this time. You retreat up the stairs, singed and sticky, to lick your wounds.',
+        text: 'The slime gets the better of you this time. You retreat up the stairs, singed and sticky, to lick your wounds — and without the key, which is still down there somewhere under all that.',
         choices: [
+            { label: 'Catch your breath and go straight back down.', next: 'cellar_slime_fight', requires: null, effects: [] },
             { label: 'Rest, then try again later.', next: 'mira_thanks', requires: null, effects: [] },
         ],
     },
@@ -227,6 +305,12 @@ export const STORY = {
             { type: 'giveItem', item: 'dried_mintleaf', count: 2 },
         ],
         choices: [
+            {
+                label: 'What’s behind the locked door at the back of the cellar?',
+                next: 'workroom_ask',
+                requires: { item: 'cellar_key', flag: 'workroomOpen', negate: true },
+                effects: [],
+            },
             { label: 'Step out for some air.', next: 'village_square', requires: null, effects: [] },
         ],
     },
@@ -245,6 +329,7 @@ export const STORY = {
         ],
         choices: [
             { label: 'Go say hello to the baker.', next: 'bramwell_intro', requires: null, effects: [] },
+            { label: '(Take a proper look around the square)', next: 'village_hub', requires: null, effects: [] },
             {
                 label: '(Head toward the Whisperwood instead)',
                 next: 'whisperwood_first_look',
@@ -330,7 +415,10 @@ export const STORY = {
                 label: 'I’ll go find her.',
                 next: 'bramwell_watch_declined',
                 requires: null,
-                effects: [ { type: 'setFlag', flag: 'seekingHollow', value: true } ],
+                effects: [
+                    { type: 'setFlag', flag: 'seekingHollow', value: true },
+                    { type: 'startQuest', quest: 'q_wolf' },
+                ],
             },
             {
                 label: 'Actually, let’s just send for the watch. Safer.',
@@ -385,6 +473,7 @@ export const STORY = {
                 effects: [],
             },
             { label: '(Return to the square)', next: 'village_square_post_bramwell', requires: null, effects: [] },
+            { label: '(Stay a while and talk properly)', next: 'bramwell_hub', requires: null, effects: [] },
         ],
     },
 
@@ -406,6 +495,7 @@ export const STORY = {
         text: 'With word sent to the watch, there’s little more to do here for now. The Whisperwood still waits at the edge of things, quieter than it should be.',
         choices: [
             { label: 'Head toward the Whisperwood anyway.', next: 'whisperwood_first_look', requires: null, effects: [] },
+            { label: '(Take a proper look around the square)', next: 'village_hub', requires: null, effects: [] },
         ],
     },
 
@@ -468,7 +558,8 @@ export const STORY = {
         background: 'witch_cottage',
         text: '“Spears frighten a starving animal into the next farmstead over instead of home. But it’s done now.” She turns back toward the door. “I’ve nothing more to say to you today.”',
         choices: [
-            { label: '(Leave quietly)', next: 'ending_cold', requires: null, effects: [] },
+            { label: '(Leave quietly, and let that be the end of it)', next: 'ending_cold', requires: null, effects: [] },
+            { label: '(Leave — but this isn’t finished. The watch is still coming.)', next: 'watch_walk_home', requires: null, effects: [] },
         ],
     },
 
@@ -480,6 +571,7 @@ export const STORY = {
             'A woman steps out onto the porch before you’ve even knocked, a knife and a bundle of dried root still in her hands.',
             '“The apothecary’s heir. I wondered how long before one of you came knocking. Well? Out with it.”',
         ],
+        effects: [ { type: 'setFlag', flag: 'metHollow', value: true } ],
         choices: [
             {
                 label: 'There have been wolf tracks near the village. I was hoping you’d know something.',
@@ -540,9 +632,11 @@ export const STORY = {
         effects: [
             { type: 'giveItem', item: 'silver_thimble', count: 1 },
             { type: 'setFlag', flag: 'trustedHollowOverBramwell', value: true },
+            { type: 'setFlag', flag: 'hollowSentYou', value: true },
+            { type: 'startQuest', quest: 'q_wolf' },
         ],
         choices: [
-            { label: 'Head north to the fern hollow.', next: 'hedge_wolf_fight', requires: null, effects: [] },
+            { label: 'Head north to the fern hollow.', next: 'wolf_track_start', requires: null, effects: [] },
         ],
     },
 
@@ -562,8 +656,13 @@ export const STORY = {
         portrait: 'narrator',
         background: 'whisperwood_edge',
         text: 'The wolf breaks off and flees deeper into the wood rather than press its luck further. It won’t trouble the herb patch again — not for a good while, anyway.',
-        effects: [ { type: 'giveXp', amount: 20 } ],
+        effects: [
+            { type: 'giveXp', amount: 20 },
+            { type: 'setFlag', flag: 'wolfResolved', value: true },
+            { type: 'completeQuest', quest: 'q_wolf' },
+        ],
         choices: [
+            { label: '(Follow the way she went, up the bank)', next: 'wolf_den', requires: null, effects: [] },
             { label: 'Return to tell Hollow it’s done.', next: 'hollow_thanks', requires: null, effects: [] },
         ],
     },
@@ -576,6 +675,7 @@ export const STORY = {
         effects: [ { type: 'setFlag', flag: 'lostToHedgeWolf', value: true } ],
         choices: [
             { label: 'Return to tell Hollow what happened.', next: 'hollow_thanks', requires: null, effects: [] },
+            { label: 'Rest up, then go straight back and finish it.', next: 'hedge_wolf_rematch', requires: null, effects: [] },
         ],
     },
 
@@ -596,6 +696,7 @@ export const STORY = {
                 effects: [],
             },
             { label: '(Head deeper into the wood alone)', next: 'deep_wood_edge', requires: null, effects: [] },
+            { label: '(Stay. There is a great deal you want to ask her.)', next: 'hollow_hub', requires: null, effects: [] },
             {
                 label: '(Admit the wolf got the better of you — call it a season)',
                 next: 'ending_humbled_wolf',
@@ -632,11 +733,14 @@ export const STORY = {
             'Past the fern hollow the trees grow close and old, and the birdsong thins to almost nothing. Something has been digging along the path — deep, deliberate furrows, not the scuffing of rabbits.',
             'Pale flowers grow in the shade here that you don’t recognize from any of your aunt’s books. You gather a few, carefully.',
         ],
-        effects: [
-            { type: 'giveItem', item: 'moonpetal', count: 2 },
-        ],
+        // The Phase 3 version granted moonpetal on entry, which was fine when
+        // this node could only be reached once. Phase 6 made the deep wood
+        // re-enterable from the tree line, so the standing crop moved to
+        // `deepwood_gather`, which costs a day.
         choices: [
+            { label: 'Gather what has fallen here (a day’s work).', next: 'deepwood_gather', requires: null, effects: [] },
             { label: 'Follow the furrows.', next: 'thornback_boar_fight', requires: null, effects: [] },
+            { label: '(Back to the tree line)', next: 'whisperwood_gate', requires: { visited: 'whisperwood_gate' }, effects: [] },
         ],
     },
 
@@ -694,7 +798,7 @@ export const STORY = {
                 label: 'Back away slowly, the way you came.',
                 next: 'deep_wood_retreat',
                 requires: null,
-                effects: [],
+                effects: [ { type: 'setFlag', flag: 'sparedTheStalker', value: true } ],
             },
         ],
     },
@@ -705,7 +809,8 @@ export const STORY = {
         background: 'deep_whisperwood',
         text: 'You back out of the hollow without ever taking your eyes off the branch. Whatever it was, it lets you go. For now, that’s enough of the deep wood.',
         choices: [
-            { label: 'Head home.', next: 'ending_cautious', requires: null, effects: [] },
+            { label: 'Head home, and let that be the season.', next: 'ending_cautious', requires: null, effects: [] },
+            { label: 'Head home — but come back better prepared.', next: 'whisperwood_gate', requires: null, effects: [] },
         ],
     },
 
@@ -728,9 +833,13 @@ export const STORY = {
             'The stalker breaks off and vanishes back up into the canopy rather than press the fight further, leaving only a scattering of down and a strange quiet behind.',
             'Whatever is changing this part of the wood, you’ve bought yourself — and the village — a little more time to figure out what.',
         ],
-        effects: [ { type: 'giveXp', amount: 34 } ],
+        effects: [
+            { type: 'giveXp', amount: 34 },
+            { type: 'setFlag', flag: 'sparedTheStalker', value: true },
+        ],
         choices: [
-            { label: 'Head home.', next: 'ending_triumphant', requires: null, effects: [] },
+            { label: 'Head home, and let that be the season.', next: 'ending_triumphant', requires: null, effects: [] },
+            { label: 'Head home — there is still something at the middle of this wood.', next: 'whisperwood_gate', requires: null, effects: [] },
         ],
     },
 
@@ -740,7 +849,8 @@ export const STORY = {
         background: 'deep_whisperwood',
         text: 'The stalker is more than you bargained for. You retreat all the way back to the village, shaken, already thinking about what you’ll need to come back better prepared.',
         choices: [
-            { label: 'Head home.', next: 'ending_bested', requires: null, effects: [] },
+            { label: 'Head home, and let that be the season.', next: 'ending_bested', requires: null, effects: [] },
+            { label: 'Head home, and start getting ready.', next: 'whisperwood_gate', requires: null, effects: [] },
         ],
     },
 
@@ -816,4 +926,17 @@ export const STORY = {
         choices: [],
         ending: true,
     },
+
+    // ============================================================
+    // Phase 6 chapters live in ./story/ — merged in below.
+    // ============================================================
+    ...WORKROOM_NODES,
+    ...SHOP_NODES,
+    ...VILLAGE_NODES,
+    ...BRAMWELL_NODES,
+    ...HOLLOW_NODES,
+    ...WATCH_NODES,
+    ...DEEPWOOD_NODES,
+    ...LONGNIGHT_NODES,
+    ...ENDING_NODES,
 };
