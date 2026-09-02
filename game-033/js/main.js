@@ -18,6 +18,8 @@ import { initUI } from './ui.js';
 import { initStatsPanel } from './statsPanel.js';
 import { initBrewing } from './brewing.js';
 import { initSettingsPanel } from './settingsPanel.js';
+import { initJournal } from './journal.js';
+import { initTrade } from './trade.js';
 
 let $titleScreen, $gameScreen, $endingScreen, $btnNewGame, $btnContinue, $endingText, $btnRestart;
 
@@ -82,3 +84,5 @@ initUI();
 initStatsPanel();
 initBrewing();
 initSettingsPanel();
+initJournal();
+initTrade();

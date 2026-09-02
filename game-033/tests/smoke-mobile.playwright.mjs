@@ -9,17 +9,29 @@
 //   - the battle canvas scales down without breaking the menu underneath
 import { chromium, devices } from 'playwright';
 
+// Some sandboxes ship a preinstalled Chromium that doesn't match the build
+// Playwright expects. Point PW_CHROMIUM_PATH at it to use that binary instead
+// of the one `npx playwright install` would download.
+const LAUNCH = process.env.PW_CHROMIUM_PATH
+    ? { executablePath: process.env.PW_CHROMIUM_PATH }
+    : {};
+
+
 const BASE = 'http://localhost:8765/game-033/index.html';
 const errors = [];
 
 const iPhone = devices['iPhone 13'];
-const browser = await chromium.launch();
+const browser = await chromium.launch(LAUNCH);
 const context = await browser.newContext({ ...iPhone });
 const page = await context.newPage();
 page.on('console', (msg) => {
     if (msg.type() === 'error') errors.push(msg.text());
 });
 page.on('pageerror', (err) => errors.push(String(err)));
+// A bare static file server has no favicon; that 404 is a harness artifact
+// rather than anything the game did, so stub it out before the first navigation.
+await page.route('**/favicon.ico', (route) => route.fulfill({ status: 200, body: '' }));
+
 
 await page.goto(BASE);
 await page.tap('#btn-new-game');

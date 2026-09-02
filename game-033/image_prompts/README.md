@@ -13,9 +13,12 @@ contents directly into the tool.
 
 ## Layout
 
-- `portraits/` — one file per `PORTRAITS` entry in `js/story.js`, minus `narrator`
-  (which has no character and doesn't need art). 9 files.
-- `backgrounds/` — one file per `BACKGROUNDS` entry in `js/story.js`. 7 files.
+- `portraits/` — one file per `PORTRAITS` character in `js/story.js`, minus
+  `narrator` (which has no character and doesn't need art). The Phase 1–4 cast
+  has one file per *mood key*; the Phase 6 cast (Granny Sessily, Tobin, Peddler
+  Ock, Sergeant Dorne, Biscuit, the Thorn-Crowned) has one file per *character*
+  with a prompt per mood inside it.
+- `backgrounds/` — one file per `BACKGROUNDS` entry in `js/story.js`.
 
 ## Shared style guidance (baked into every prompt)
 
@@ -51,6 +54,24 @@ Real art has been generated and wired in:
 - `js/vnRenderer.js`'s `showNode()` prefers `p.image`/`bg.image` when present
   (renders as a CSS `background-image`) and falls back to the emoji/gradient
   otherwise, so partial art coverage never breaks the rest of the game.
+
+## Status: Phase 6 art not yet generated
+
+Phase 6 added six new characters and seven new locations. None of them have
+painted art — no image-generation tool was available in the environment that
+wrote them — so:
+
+- Every new `PORTRAITS` entry is emoji-only (no `image:` key), which
+  `vnRenderer.js` already falls back to cleanly.
+- Five of the new `BACKGROUNDS` entries reuse an existing painted background
+  that genuinely fits the place (`shop_counter` and `shop_workroom` reuse the
+  shop and cellar art, `village_lane` the square, `bakery_kitchen` the bakery,
+  `fern_hollow` the wood's edge, `wolf_den` the deep wood), each with its own
+  distinct gradient so the painterly stand-in still reads as a separate room.
+- Two genuinely new places — `hollow_heart` and `night_camp` — are
+  **gradient-only**, with no `image:` key at all. They are the two most
+  important locations in the last act and are the highest-value prompts in this
+  directory to run first.
 
 If more art gets generated later (e.g. filling in `mira_tools` as its own mood,
 or replacing a placeholder), just drop the file in `assets/chars/` or

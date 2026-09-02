@@ -123,6 +123,15 @@
             padding-top: max(8px, env(safe-area-inset-top));
         }
         #hud-level { font-weight: bold; color: var(--gold); min-width: 48px; }
+        #hud-day, #hud-coin {
+            font-size: 11px;
+            opacity: 0.85;
+            padding: 2px 7px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+        #hud-coin { color: var(--gold); }
         #hud-statpoints-badge {
             background: var(--gold);
             color: #1a1626;
@@ -164,6 +173,7 @@
             }
             .hud-bar-track { width: 56px; }
             #hud-hp-label { min-width: 0; font-size: 10px; }
+            #hud-day, #hud-coin { font-size: 10px; padding: 2px 5px; }
             #hud button { font-size: 11px; padding: 5px 8px; min-width: 40px; }
             /* The two bar groups + spacer wrap onto their own row under
                level/badge, then the action buttons wrap onto a third row,
@@ -405,6 +415,100 @@
         .brewing-empty { opacity: 0.6; font-style: italic; padding: 12px 0; }
         #brewing-close { margin-top: 16px; }
 
+
+        /* ============================================================
+           Journal panel (Phase 6)
+        ============================================================ */
+        #journal-panel {
+            position: fixed; inset: 0;
+            background: rgba(10, 8, 14, 0.75);
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px;
+            z-index: 51;
+        }
+        #journal-box {
+            width: min(620px, 92%);
+            max-height: min(78vh, 78dvh);
+            overflow-y: auto;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        #journal-box h2 { color: var(--gold); margin-bottom: 6px; }
+        .journal-heading {
+            color: var(--accent);
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin: 16px 0 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 4px;
+        }
+        .journal-row {
+            display: grid;
+            grid-template-columns: 24px 160px 1fr;
+            align-items: baseline;
+            gap: 10px;
+            padding: 7px 0;
+            font-size: 13px;
+        }
+        .journal-mark { text-align: center; opacity: 0.8; }
+        .journal-name { font-weight: bold; }
+        .journal-desc { opacity: 0.78; line-height: 1.45; }
+        .journal-row-done { opacity: 0.5; }
+        .journal-row-done .journal-name { text-decoration: line-through; }
+        .journal-row-lore .journal-desc { font-style: italic; }
+        .journal-empty { opacity: 0.6; font-style: italic; padding: 6px 0; font-size: 13px; }
+        #journal-close { margin-top: 18px; }
+        /* A quest starting or finishing pulses the HUD button rather than
+           interrupting the scene with a toast. */
+        @keyframes journal-nudge-anim {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(224,164,88,0); }
+            50%      { box-shadow: 0 0 0 4px rgba(224,164,88,0.45); }
+        }
+        .journal-nudge { animation: journal-nudge-anim 0.9s ease-in-out 3; }
+
+        /* ============================================================
+           Trade panel (Phase 6)
+        ============================================================ */
+        #trade-panel {
+            position: fixed; inset: 0;
+            background: rgba(10, 8, 14, 0.75);
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px;
+            z-index: 51;
+        }
+        #trade-box {
+            width: min(640px, 92%);
+            max-height: min(78vh, 78dvh);
+            overflow-y: auto;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        #trade-box h2 { color: var(--gold); margin-bottom: 10px; }
+        .trade-purse { float: right; font-size: 14px; color: var(--accent); }
+        #trade-tabs { display: flex; gap: 8px; margin-bottom: 8px; }
+        .trade-tab { font-size: 13px; }
+        .trade-tab-active { background: var(--accent); color: #1a1626; border-color: var(--accent); }
+        .trade-row {
+            display: grid;
+            grid-template-columns: 30px 150px 1fr 52px auto;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-size: 13px;
+        }
+        .trade-icon { font-size: 20px; text-align: center; }
+        .trade-name { font-weight: bold; }
+        .trade-desc { opacity: 0.72; }
+        .trade-price { color: var(--gold); text-align: right; font-weight: bold; }
+        .trade-empty { opacity: 0.6; font-style: italic; padding: 12px 0; }
+        #trade-close { margin-top: 16px; }
+
         /* ============================================================
            Settings panel
         ============================================================ */
@@ -593,6 +697,8 @@
     <div id="game-screen" class="hidden">
         <div id="hud">
             <span id="hud-level">Lv. 1</span>
+            <span id="hud-day" title="Day of the season">Day 1</span>
+            <span id="hud-coin" title="Coin">15c</span>
             <button id="hud-statpoints-badge" class="hidden" title="Spend stat points"></button>
             <div class="hud-bar-group">
                 <div class="hud-bar-track"><div id="hud-hp-fill"></div></div>
@@ -603,6 +709,8 @@
                 <span style="opacity:0.6;">XP</span>
             </div>
             <div id="hud-spacer"></div>
+            <button id="journal-open" class="hidden" title="Wisteria's Journal">📔 Journal</button>
+            <button id="trade-open" class="hidden" title="Trade with Peddler Ock">🧳 Trade</button>
             <button id="brewing-open" class="hidden">🍵 Brew</button>
             <button id="inventory-open">🎒 Bag</button>
             <button id="hud-save">💾 Save</button>
@@ -650,6 +758,28 @@
     </div>
 
     <!-- ============ Settings Panel ============ -->
+    <!-- Journal panel (Phase 6): quests + collected lore -->
+    <div id="journal-panel" class="hidden" role="dialog" aria-modal="true" aria-labelledby="journal-title">
+        <div id="journal-box">
+            <h2 id="journal-title">Wisteria’s Journal</h2>
+            <div id="journal-list"></div>
+            <button id="journal-close">Close</button>
+        </div>
+    </div>
+
+    <!-- Trade panel (Phase 6): Peddler Ock's cart -->
+    <div id="trade-panel" class="hidden" role="dialog" aria-modal="true" aria-labelledby="trade-title">
+        <div id="trade-box">
+            <h2 id="trade-title">Ock’s Cart <span id="trade-coin" class="trade-purse">15c</span></h2>
+            <div id="trade-tabs">
+                <button id="trade-tab-buy" class="trade-tab trade-tab-active">Buy</button>
+                <button id="trade-tab-sell" class="trade-tab">Sell</button>
+            </div>
+            <div id="trade-list"></div>
+            <button id="trade-close">Close</button>
+        </div>
+    </div>
+
     <div id="settings-panel" class="hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
         <div id="settings-box">
             <h2 id="settings-title">Settings</h2>
