@@ -542,6 +542,11 @@ h1 {
     color: #1a2a0a;
 }
 
+.game-card.idle-delve .play-button {
+    background: linear-gradient(135deg, #3a2557 0%, #c99cff 100%);
+    color: #1a0f2a;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

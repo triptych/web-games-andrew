@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Idle Delve</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <header id="topbar">
+    <div class="topbar-group">
+      <span class="stat gold"><span class="icon">&#9679;</span><span id="gold-val">0</span></span>
+      <span class="stat floor">Floor <span id="floor-val">1</span> &middot; Room <span id="room-val">1</span>/<span id="room-total">1</span></span>
+    </div>
+    <div class="topbar-group">
+      <button id="speed-btn" class="icon-btn" title="Toggle speed">1x</button>
+      <button id="mute-btn" class="icon-btn" title="Mute/unmute">&#128266;</button>
+      <button id="town-btn" class="icon-btn primary" title="Open Town">&#127961; Town</button>
+    </div>
+  </header>
+
+  <main id="stage-wrap">
+    <canvas id="stage" width="960" height="540"></canvas>
+
+    <div id="log-panel">
+      <div id="log-list"></div>
+    </div>
+
+    <div id="party-strip"></div>
+  </main>
+
+  <!-- Town / upgrades panel -->
+  <div id="town-overlay" class="hidden">
+    <div id="town-panel">
+      <div id="town-header">
+        <h2>Town</h2>
+        <button id="town-close" class="icon-btn">&times;</button>
+      </div>
+      <div id="town-tabs">
+        <button class="tab-btn active" data-tab="heroes">Heroes</button>
+        <button class="tab-btn" data-tab="stats">Stats</button>
+        <button class="tab-btn" data-tab="delve">Delve</button>
+      </div>
+      <div id="town-body"></div>
+    </div>
+  </div>
+
+  <!-- Away summary toast -->
+  <div id="away-toast" class="hidden">
+    <div id="away-card">
+      <h3>While you were away&hellip;</h3>
+      <p id="away-text"></p>
+      <button id="away-dismiss">Nice</button>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

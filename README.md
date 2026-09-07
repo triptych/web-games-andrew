@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-33 games, `game-001` through `game-033`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+34 games, `game-001` through `game-034`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -45,6 +45,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 | 031 | [Grimhold Abyss](game-031/) | Retro DOS-style dungeon crawler | Custom software renderer |
 | 032 | [Ironhollow Depths](game-032/) | 8-bit top-down dungeon crawler | Kaplay |
 | 033 | [Hearthbound](game-033/) | Cozy fantasy visual novel | Vanilla JS (DOM + Canvas) |
+| 034 | [Idle Delve](game-034/) | Idle / incremental dungeon crawler | Vanilla JS (Canvas 2D) |
 
 ### Highlights
 
@@ -69,6 +70,8 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 **[Ironhollow Depths](game-032/)** — 80's-style top-down 8-bit dungeon crawler in the vein of classic CRT-era action-RPGs. Guide a pixel-art knight through torch-lit brick dungeons, hack down slimes, grab gold, and survive escalating depths under a chunky retro status-bar HUD.
 
 **[Hearthbound](game-033/)** — Cozy fantasy visual novel built on a **hand-crafted vanilla JS engine** (no game library) — DOM for the story layer, canvas for battles. Inherit a rundown countryside apothecary, get to know the townsfolk through branching dialogue, and handle the odd cellar slime or hedge wolf with light turn-based combat. Features inventory, equippable trinkets, leveling, and affinity-gated story branches.
+
+**[Idle Delve](game-034/)** — Idle/incremental dungeon crawler, **fully vanilla JS with zero image assets** — a raw Canvas 2D renderer draws every room, hero, and monster as procedural shapes. A party auto-battles room by room through a procedurally generated dungeon, even while the tab is closed (offline catch-up simulation on reload); bank the gold to recruit heroes and buy permanent stat/gold-find/deeper-floor upgrades in the Town panel between runs.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -132,14 +135,14 @@ web-games-andrew/
 ├── css/                    # Shared stylesheets
 ├── js/                     # Shared JavaScript modules
 │   ├── main.js
-│   └── gamedata.js         # Metadata for all 33 games (drives the launcher)
+│   └── gamedata.js         # Metadata for all 34 games (drives the launcher)
 ├── lib/
 │   ├── kaplay/              # Shared Kaplay engine (kaplay.mjs / kaplay.js)
 │   └── phaser/phaser-4.0.0/ # Shared Phaser 4 engine (ESM build)
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-033/   # One self-contained folder per game
+├── game-001/ … game-034/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -159,7 +162,7 @@ Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018
 - **Kaplay Framework (v4000 alpha)** - Game development framework (most games from game-002 onward, including game-032)
 - **Phaser 4.0.0 (ESM)** - Game framework (game-019, game-020, game-027, game-028)
 - **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029)
-- **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033)
+- **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034)
 - **GemCore/GemShell** - Desktop application packaging
 
 ## Attributions
@@ -195,7 +198,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 33 games are included as of the latest entries (game-032 Ironhollow Depths, game-033 Hearthbound).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 34 games are included as of the latest entries (game-033 Hearthbound, game-034 Idle Delve).
 
 ---
 

@@ -431,6 +431,19 @@ const games = [
             { emoji: '🖱️', label: 'Mouse' },
             { emoji: '🌸', label: 'Cozy' }
         ]
+    },
+    {
+        id: 'game-034',
+        title: 'Idle Delve',
+        description: "A party of heroes auto-battles through a procedurally generated dungeon, even while you're away. Bank the gold they find and spend it in Town on new recruits, stat training, and a deeper starting floor, then send them back down stronger. Built with vanilla HTML/CSS/JS and a raw canvas renderer - every room, hero, and monster is drawn with procedural shapes, no image assets.",
+        icon: '⏳',
+        folder: 'game-034',
+        cssClass: 'idle-delve',
+        tags: [
+            { emoji: '🏰', label: 'Dungeon' },
+            { emoji: '💤', label: 'Idle' },
+            { emoji: '🖱️', label: 'Mouse' }
+        ]
     }
 ];
 

@@ -39,8 +39,8 @@ Both VN-style games (game-028, game-033) are fantasy. A **sci-fi visual novel** 
 ### 7. City builder: full simulation depth
 game-010 (Tiny Town) is an intentionally small sandbox. A **deeper city builder** — zoning, traffic/pathing, resource chains, disasters — would round out the sim cluster the way game-031/032 rounded out dungeon crawlers (i.e., a bigger, more systemic take on an already-proven small idea).
 
-### 8. Idle/incremental: dungeon or crafting theme
-`docs/generic/suggestions.md` already flags idle clickers as a missing *mechanic*; themed through this collection's lens, an **idle dungeon** (auto-battling heroes delve while you're away, spend currency on upgrades between runs) would tie the idle-genre gap directly to the dungeon-crawler subject cluster instead of a generic clicker, giving it a stronger identity alongside game-022's tiered-upgrade shop pattern.
+### 8. ~~Idle/incremental: dungeon or crafting theme~~ — Done
+~~`docs/generic/suggestions.md` already flags idle clickers as a missing *mechanic*; themed through this collection's lens, an **idle dungeon** (auto-battling heroes delve while you're away, spend currency on upgrades between runs) would tie the idle-genre gap directly to the dungeon-crawler subject cluster instead of a generic clicker, giving it a stronger identity alongside game-022's tiered-upgrade shop pattern.~~ Completed as **game-034** (Idle Delve) on 2026-09-03 — vanilla JS, procedurally generated Canvas 2D graphics, offline catch-up simulation, Town upgrade shop.
 
 ### 9. Three.js: cozy/exploration (non-combat)
 Every three.js game so far (014/018/024/025/026/029) is action- or combat-focused. A **low-stakes three.js exploration/walking sim** (wander a small 3D valley, collect seasonal items, talk to a few NPCs — no combat) would extend the cozy cluster into 3D and prove three.js isn't just for shooters/crawlers in this repo.

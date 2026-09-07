@@ -1,0 +1,275 @@
+/* Idle Delve — styling. Dark dungeon theme, all procedural graphics live on <canvas>. */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0810;
+  --panel: #17121e;
+  --panel-2: #201a2b;
+  --border: #3a2f4a;
+  --text: #e8e2f0;
+  --text-dim: #a89bc0;
+  --accent: #c99cff;
+  --gold: #ffd34d;
+  --danger: #ff5d6c;
+  --success: #5de08a;
+  --hp-bg: #2a1620;
+  --hp-fill: #e2455a;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- Top bar ---------- */
+
+#topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border-bottom: 2px solid var(--border);
+  flex-shrink: 0;
+}
+
+.topbar-group { display: flex; align-items: center; gap: 12px; }
+
+.stat {
+  font-size: 15px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat.gold { color: var(--gold); }
+.stat.floor { color: var(--text-dim); font-weight: normal; }
+.stat .icon { font-size: 12px; }
+
+.icon-btn {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.icon-btn:hover { background: #2c2438; border-color: var(--accent); }
+.icon-btn.primary { background: #3a2557; border-color: var(--accent); color: var(--accent); font-weight: bold; }
+.icon-btn.primary:hover { background: #4a3070; }
+
+/* ---------- Stage ---------- */
+
+#stage-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+}
+
+#stage {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 960 / 540;
+  display: block;
+  image-rendering: pixelated;
+}
+
+#log-panel {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  width: min(320px, 34%);
+  max-height: 32%;
+  overflow: hidden;
+  background: rgba(10, 8, 16, 0.72);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  pointer-events: none;
+}
+
+#log-list { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--text-dim); }
+#log-list .log-entry { opacity: 0.9; }
+#log-list .log-entry.crit { color: var(--gold); font-weight: bold; }
+#log-list .log-entry.death { color: var(--danger); }
+#log-list .log-entry.gold { color: var(--gold); }
+#log-list .log-entry.clear { color: var(--success); }
+
+#party-strip {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.party-card {
+  width: 78px;
+  background: rgba(23, 18, 30, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+  text-align: center;
+  font-size: 10px;
+}
+.party-card.dead { opacity: 0.4; }
+.party-card .name { font-weight: bold; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.party-card .hpbar { height: 6px; background: var(--hp-bg); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+.party-card .hpbar-fill { height: 100%; background: var(--hp-fill); transition: width 0.2s; }
+
+/* ---------- Town overlay ---------- */
+
+#town-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+#town-overlay.hidden { display: none; }
+
+#town-panel {
+  width: min(640px, 92vw);
+  max-height: 82vh;
+  background: var(--panel);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+
+#town-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-2);
+}
+#town-header h2 { color: var(--accent); font-size: 20px; }
+
+#town-tabs { display: flex; gap: 4px; padding: 10px 14px 0; }
+.tab-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: bold; }
+
+#town-body {
+  padding: 14px 18px 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.upgrade-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.upgrade-card .up-icon { font-size: 26px; width: 34px; text-align: center; }
+.upgrade-card .up-info { flex: 1; }
+.upgrade-card .up-name { font-weight: bold; font-size: 14px; }
+.upgrade-card .up-desc { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.upgrade-card .up-level { font-size: 11px; color: var(--accent); margin-top: 2px; }
+.upgrade-card button.buy-btn {
+  background: #3a2557;
+  border: 1px solid var(--accent);
+  color: var(--gold);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 13px;
+  min-width: 92px;
+}
+.upgrade-card button.buy-btn:disabled {
+  background: #221a2c;
+  border-color: var(--border);
+  color: #6a5f80;
+  cursor: not-allowed;
+}
+.upgrade-card button.buy-btn:not(:disabled):hover { background: #4a3070; }
+
+/* ---------- Away toast ---------- */
+
+#away-toast {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+#away-toast.hidden { display: none; }
+
+#away-card {
+  background: var(--panel);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 24px 28px;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+#away-card h3 { color: var(--accent); margin-bottom: 12px; font-size: 20px; }
+#away-card p { color: var(--text); font-size: 14px; line-height: 1.6; margin-bottom: 16px; white-space: pre-line; }
+#away-card button {
+  background: #3a2557;
+  border: 1px solid var(--accent);
+  color: var(--gold);
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+#away-card button:hover { background: #4a3070; }
+
+.hidden { display: none !important; }
+
+/* ---------- Responsive / mobile ---------- */
+
+@media (max-width: 720px) {
+  #topbar { padding: 8px 10px; }
+  .stat { font-size: 12px; }
+  .icon-btn { padding: 5px 8px; font-size: 12px; }
+  #log-panel { width: 46%; font-size: 10px; }
+  .party-card { width: 58px; padding: 4px; font-size: 9px; }
+  #town-panel { max-height: 88vh; }
+}

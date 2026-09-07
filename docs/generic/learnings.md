@@ -3806,6 +3806,63 @@ function saveHighScore(s) {
 
 Use a **game-prefixed key** (`synthwave_hiscore`, not `hiscore`). All games share `localStorage` for an origin — generic keys collide between game-001 and game-023.
 
+---
+
+## Game 034: Idle Delve — Idle/Incremental Dungeon Crawler (2026-09-03)
+
+Vanilla HTML/CSS/JS, no engine, no image assets — the first purely idle-genre game in the collection. Same module + EventBus + state-singleton architecture as the Kaplay games, but the "engine" is just a raw `<canvas>` 2D context (`render.js`) plus a fixed-rate combat scheduler running independently of the `requestAnimationFrame` draw loop.
+
+### Two independent loops: render (rAF) vs. simulation (setTimeout)
+
+The visual loop (`requestAnimationFrame`) and the game-logic tick (one auto-battle "beat" per `BASE_TICK_MS / speed`) are deliberately **separate schedulers**:
+- `loop(now)` — rAF, draws every frame, decays hit-flash/particle animations by real `dt`.
+- `gameTick()` — a **self-rescheduling `setTimeout`**, not `setInterval`, so a speed-toggle click takes effect on the very next tick instead of waiting for a stale interval to fire once more at the old rate:
+  ```js
+  function scheduleNextTick() {
+      setTimeout(() => { gameTick(); scheduleNextTick(); }, tickIntervalMs());
+  }
+  ```
+  `setInterval(gameTick, ms)` would keep firing at whatever `ms` was when it was created — changing a variable it closed over doesn't re-arm it.
+
+### Offline catch-up simulation — the classic idle-game feature, and its sharp edge
+
+On boot, `state.load()` returns `Date.now() - lastSeenAt` from the save. If that's large, `simulateOffline()` fast-forwards a **non-visual** copy of the room loop (capped at a max iteration count as a safety net against a corrupted/absurd timestamp) using the exact same `CombatEngine` class as live play, just spun to completion in a tight loop instead of one tick per beat:
+```js
+function simulateCombatInstant(party, monsters) {
+    const engine = new CombatEngine(party, monsters);
+    let guard = 0;
+    while (!engine.finished && guard < 500) { engine.tick(); guard++; }
+    return engine.result;
+}
+```
+Reusing the real combat class (rather than a separate "fast-forward math" approximation) guarantees the offline result matches what live play would have produced.
+
+**Bug this caught**: the simulation loop advances `simRoomIdx` and only rolls over to the next floor at the *top* of the next iteration (`if (simRoomIdx >= rooms.length) { simFloor++; ... }`). If the iteration budget (`roomsToSim`) runs out on the exact tick that completed a floor's last room, the loop exits with `simRoomIdx === rooms.length` — one past the end — and that out-of-bounds index gets handed to the live scheduler, which immediately throws (`Cannot read properties of undefined (reading 'type')`) trying to read `currentFloor.rooms[roomIdx]`. Fix: normalize the floor/room pointer *after* the loop too, not just inside it:
+```js
+if (simRoomIdx >= simFloorDef.rooms.length) {
+    simFloor += 1; floorsCleared += 1;
+    simFloorDef = generateFloor(simFloor);
+    simRoomIdx = 0;
+}
+```
+Any "simulate N steps then hand off state to a live scheduler" loop needs this same boundary check on exit, not just mid-loop — a fixed iteration budget can always stop exactly on an edge.
+
+### Testing an idle game's offline path with Playwright — `page.reload()` lies to you
+
+To verify "away summary" behavior, the natural test is: load, mutate the saved `lastSeenAt` backward in `localStorage`, then `page.reload()`. **This doesn't work** — `beforeunload`/`visibilitychange` handlers in the page being reloaded fire *before* navigation completes and re-save `lastSeenAt: Date.now()`, silently overwriting the rewind before the new document ever reads it. `page.close()` has the same problem (Chromium still fires `beforeunload` on it).
+
+The fix is to never let a live page with those listeners attached witness the rewritten timestamp: use `context.addInitScript()` to seed `localStorage` on a **fresh page** in the same browser context, before that page's own `main.js` ever runs:
+```js
+await context.addInitScript(({ key, value }) => localStorage.setItem(key, value), { key, value: rewoundSave });
+const page2 = await context.newPage();
+await page2.goto(url);
+```
+This generalizes beyond this game: any test of "simulate the app being reopened after time has passed" that goes through `reload()`/`close()` on the same page that owns the save-on-unload logic will get its rewind clobbered. Use a new page/context instead.
+
+### Local static-file serving gotcha: `serve` 301-redirects `index.html` → extensionless, breaking relative paths
+
+Running `npx serve .` and navigating to `/game-034/index.html` gets a `301 Moved Permanently` to `/game-034/index` (no trailing `.html`), and that redirect resolves relative asset URLs (`css/style.css`, `js/main.js`) against a different base path than expected — silently 404ing them (or worse, loading the **launcher's** same-named `css/style.css`/`js/main.js` from the repo root instead, which fails in confusing, unrelated ways). Navigate to the **directory URL** (`/game-034/`) instead, which `serve` serves as `200` directly with no redirect.
+
 
 
 
