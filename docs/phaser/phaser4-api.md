@@ -574,3 +574,45 @@ This documentation covers the Phaser 4.0.0 public API. Phaser 4 introduces:
 - **Timeline** for sequenced time events
 
 Full interactive API reference: https://docs.phaser.io/api-documentation/api-documentation
+
+---
+
+## Confirmed Gotchas (found while building game-035)
+
+- **`Shader` game object uses a fragile GLSL templating system, not raw
+  Shadertoy-style GLSL.** Phaser 4's `Phaser.GameObjects.Shader` /
+  `Phaser.Display.BaseShader` do NOT work like Phaser 3's — fragment shaders go
+  through a `#pragma phaserTemplate(...)` preprocessor (`fragmentDefine`,
+  `outVariables`, `fragmentHeader`, `fragmentProcess`, etc.) and use
+  `varying vec2 outTexCoord`, not a raw `gl_FragCoord`-based Shadertoy shader.
+  `setUniform(name, value)` exists but per-frame-changing uniforms are meant to
+  go through a `setupUniforms(setUniform)` callback in the shader config.
+  This is hard to hand-write correctly without a live browser to test against —
+  if you need a fullscreen procedural effect and can't verify rendering
+  interactively, prefer drawing it with `Phaser.GameObjects.Graphics` redrawn
+  every frame instead. Fully verified, no shader-compile-error risk, still gets
+  you concentric rings / warps / vector effects at good mobile performance.
+
+- **Don't combine CSS flex-centering on `<body>` with Phaser
+  `Scale.CENTER_BOTH`.** `CENTER_BOTH` centers the canvas by setting inline
+  `margin-left`/`margin-top` on the canvas element itself. If the canvas's
+  parent (e.g. `<body>`) is *also* a flex container centering its child, the
+  two centering strategies stack: flex centers the box, then Phaser's margin
+  pushes it an *additional* half-viewport in the same direction, shoving the
+  canvas off-screen (confirmed via Playwright on a portrait mobile viewport —
+  canvas rendered at `margin-top: 250px` inside a body that had already
+  flex-centered it, landing far below the visible area). Pick one: either let
+  Phaser own centering (no flex on body) or disable Phaser's autoCenter
+  (`Scale.NO_CENTER`) and do it purely in CSS.
+
+- **For a responsive/mobile canvas, prefer `Scale.RESIZE` over `Scale.FIT` +
+  a fixed `width`/`height`.** `FIT` preserves a fixed aspect ratio and
+  letterboxes everything else — on a portrait phone with a 4:3 or 16:9 desktop
+  canvas size this wastes a large fraction of the screen as black bars. With
+  `Scale.RESIZE` (`width: '100%', height: '100%'` in scale config, plus
+  `autoCenter: Scale.NO_CENTER`) the canvas fills the actual viewport on any
+  device; listen for `game.scale.on(Phaser.Scale.Events.RESIZE, (gameSize) =>
+  ...)` and feed `gameSize.width`/`gameSize.height` into your own "live
+  viewport" module so game-space math (HUD positions, any center-relative
+  coordinate system) stays correct after a resize. Works well for any game
+  built around relative/center-based coordinates rather than a fixed pixel grid.

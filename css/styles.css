@@ -547,6 +547,11 @@ h1 {
     color: #1a0f2a;
 }
 
+.game-card.n2-overdrive .play-button {
+    background: linear-gradient(135deg, #36f0ff 0%, #ff2fe0 100%);
+    color: #05010f;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

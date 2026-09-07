@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>N2 Overdrive — a tube-shooter tribute</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            background: #000;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            overscroll-behavior: none;
+        }
+        /* Phaser's Scale.CENTER_BOTH already centers the canvas via inline
+           margins on the canvas element itself — do NOT also flex-center
+           the body, or the two centering strategies stack and push the
+           canvas off-screen (confirmed via mobile-viewport testing). */
+        canvas { display: block; touch-action: none; }
+    </style>
+</head>
+<body>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

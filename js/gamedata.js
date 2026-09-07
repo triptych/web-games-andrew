@@ -444,6 +444,19 @@ const games = [
             { emoji: '💤', label: 'Idle' },
             { emoji: '🖱️', label: 'Mouse' }
         ]
+    },
+    {
+        id: 'game-035',
+        title: 'N2 Overdrive',
+        description: "A tube-shooter tribute to N2O: Nitrous Oxide (PS1, 1998) built with Phaser 4. Steer your ship around the rim of a psychedelic, neon tunnel that rushes toward you, blasting insect swarms, shooting mushrooms to ripen them into shields, and grabbing coins to build your multiplier. Kill enemies to speed up the tunnel, collect 5 bonus stars to trigger a bonus round, and survive as the tube gets more hectic the longer you last. Fully playable with touch controls on mobile.",
+        icon: '🌀',
+        folder: 'game-035',
+        cssClass: 'n2-overdrive',
+        tags: [
+            { emoji: '🕹️', label: 'Tube Shooter' },
+            { emoji: '📱', label: 'Touch' },
+            { emoji: '💫', label: 'Retro PS1' }
+        ]
     }
 ];
 
