@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Island Walker</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+        width: 100%; height: 100%;
+        background: #0a0f14;
+        overflow: hidden;
+        font-family: 'Courier New', monospace;
+        color: #eef2f2;
+    }
+    #game-canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        cursor: crosshair;
+    }
+
+    #hud {
+        position: fixed; inset: 0;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    #hud-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 14px 18px 14px 130px;
+    }
+    .hud-panel {
+        background: rgba(10, 14, 18, 0.55);
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 13px;
+        letter-spacing: 1px;
+        backdrop-filter: blur(2px);
+    }
+    #region-label {
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        color: #bfe0ff;
+    }
+    #progress-panel div { margin-top: 4px; }
+    #progress-panel .label { opacity: 0.7; margin-right: 6px; }
+    #carried-line {
+        margin-top: 8px !important;
+        padding-top: 6px;
+        border-top: 1px solid rgba(255,255,255,0.18);
+        color: #ffd27a;
+        font-size: 12px;
+    }
+
+    #crosshair {
+        position: absolute; top: 50%; left: 50%;
+        width: 6px; height: 6px;
+        margin: -3px 0 0 -3px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.85);
+        box-shadow: 0 0 3px rgba(0,0,0,0.6);
+    }
+
+    #interact-prompt {
+        position: absolute; bottom: 90px; left: 50%;
+        transform: translateX(-50%);
+        background: rgba(10,14,18,0.6);
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        letter-spacing: 1px;
+    }
+
+    #toast {
+        position: absolute; bottom: 140px; left: 50%;
+        transform: translateX(-50%) translateY(10px);
+        background: rgba(20, 30, 20, 0.75);
+        border: 1px solid rgba(150,220,150,0.4);
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        opacity: 0;
+        transition: opacity 0.3s, transform 0.3s;
+    }
+    #toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    #controls-hint {
+        padding: 14px 18px;
+        font-size: 11px;
+        opacity: 0.65;
+        letter-spacing: 1px;
+    }
+
+    .hidden { display: none !important; }
+
+    #start-overlay, #complete-overlay, #lock-hint {
+        position: fixed; inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: rgba(6, 10, 14, 0.88);
+        z-index: 50;
+    }
+    #lock-hint { background: rgba(6,10,14,0.55); z-index: 40; pointer-events: none; }
+    #start-overlay h1, #complete-overlay h1 {
+        font-size: 42px;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        color: #8fd0ff;
+        margin-bottom: 18px;
+    }
+    #start-overlay p, #complete-overlay p, #lock-hint p {
+        font-size: 14px;
+        letter-spacing: 1px;
+        max-width: 520px;
+        line-height: 1.7;
+        opacity: 0.85;
+        margin-bottom: 8px;
+    }
+    #start-btn {
+        margin-top: 22px;
+        padding: 12px 32px;
+        font-size: 15px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        background: #1c6fa8;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-family: inherit;
+    }
+    #start-btn:hover { background: #2688c9; }
+    #lock-hint p { font-size: 16px; color: #ffd27a; }
+</style>
+</head>
+<body>
+    <a href="../index.html" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
+
+    <canvas id="game-canvas"></canvas>
+
+    <div id="hud">
+        <div id="hud-top">
+            <div class="hud-panel" id="region-label">The Shore</div>
+            <div class="hud-panel" id="progress-panel">
+                <div><span class="label">📚 Library</span><span id="books-count">0 / 10</span></div>
+                <div><span class="label">🏛️ Museum</span><span id="artifacts-count">0 / 8</span></div>
+                <div id="carried-line" class="hidden"></div>
+            </div>
+        </div>
+        <div id="controls-hint">WASD move · SHIFT sprint · SPACE jump · MOUSE look · ESC release cursor</div>
+    </div>
+
+    <div id="crosshair"></div>
+    <div id="interact-prompt" class="hidden"></div>
+    <div id="toast"></div>
+
+    <div id="start-overlay">
+        <h1>Island Walker</h1>
+        <p>A procedurally generated island awaits — forests, sea caves, a lighthouse, a cemetery, a garden, and ancient ruins, all rendered by a hand-built software 3D engine.</p>
+        <p>Walk close to an object to pick it up, then carry it home: books belong on the Library shelves, artifacts on the Museum pedestals. Both buildings fill up as you return what you find.</p>
+        <p style="opacity:0.55">10 books · 8 artifacts · a new island every reload</p>
+        <button id="start-btn">Begin Walking</button>
+    </div>
+
+    <div id="complete-overlay" class="hidden">
+        <h1>Collection Complete</h1>
+        <p>The library's shelves are full and the museum's pedestals hold every artifact. The island keeps its secrets no longer.</p>
+        <p style="opacity:0.5">Reload the page for a freshly generated island.</p>
+    </div>
+
+    <div id="lock-hint" class="hidden">
+        <p>Click anywhere to re-lock the mouse and keep walking</p>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

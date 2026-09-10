@@ -552,6 +552,11 @@ h1 {
     color: #05010f;
 }
 
+.game-card.island-walker .play-button {
+    background: linear-gradient(135deg, #3a7d5c 0%, #9fd8c0 100%);
+    color: #0a2418;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

@@ -11,6 +11,9 @@ This directory is the **canonical reference for AI-assisted development** in thi
 ## three.js
 - [threejs/threejs-api.md](threejs/threejs-api.md) — three.js r165 patterns used in this repo (import map, render loop, gotchas)
 
+## Software 3D (no engine)
+- [software3d/software3d-api.md](software3d/software3d-api.md) — writing a 3D rasterizer from scratch on Canvas2D: pipeline, winding/culling/seam gotchas, LOD, procedural placement validation
+
 ## Generic
 - [generic/learnings.md](generic/learnings.md) — Architecture patterns and lessons learned across all games
 - [generic/sounds.md](generic/sounds.md) — Procedural Web Audio API sound design patterns

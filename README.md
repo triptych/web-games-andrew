@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-34 games, `game-001` through `game-034`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+36 games, `game-001` through `game-036`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -46,6 +46,8 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 | 032 | [Ironhollow Depths](game-032/) | 8-bit top-down dungeon crawler | Kaplay |
 | 033 | [Hearthbound](game-033/) | Cozy fantasy visual novel | Vanilla JS (DOM + Canvas) |
 | 034 | [Idle Delve](game-034/) | Idle / incremental dungeon crawler | Vanilla JS (Canvas 2D) |
+| 035 | [N2 Overdrive](game-035/) | Neon tube shooter | Phaser 4 |
+| 036 | [Island Walker](game-036/) | First-person procedural walking simulator | Custom software 3D rasterizer |
 
 ### Highlights
 
@@ -72,6 +74,8 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 **[Hearthbound](game-033/)** — Cozy fantasy visual novel built on a **hand-crafted vanilla JS engine** (no game library) — DOM for the story layer, canvas for battles. Inherit a rundown countryside apothecary, get to know the townsfolk through branching dialogue, and handle the odd cellar slime or hedge wolf with light turn-based combat. Features inventory, equippable trinkets, leveling, and affinity-gated story branches.
 
 **[Idle Delve](game-034/)** — Idle/incremental dungeon crawler, **fully vanilla JS with zero image assets** — a raw Canvas 2D renderer draws every room, hero, and monster as procedural shapes. A party auto-battles room by room through a procedurally generated dungeon, even while the tab is closed (offline catch-up simulation on reload); bank the gold to recruit heroes and buy permanent stat/gold-find/deeper-floor upgrades in the Town panel between runs.
+
+**[Island Walker](game-036/)** — First-person walking simulator on a wholly procedural island, rendered by a **3D engine written from scratch — no three.js, no WebGL**: JavaScript transforms, culls, lights and depth-sorts every triangle into a 2D canvas. Terrain, trees, streams, a sea cave, clouds and buildings all generate from one seed, so every reload is a new island. Wander the forest, lighthouse point, cemetery, garden and ancient ruins to recover 10 lost books and 8 artifacts, then carry them home — the Library's shelves and the Museum's pedestals visibly fill with everything you return. No enemies, no fail state. Engine notes and gotchas in [docs/software3d/](docs/software3d/software3d-api.md).
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -142,7 +146,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-034/   # One self-contained folder per game
+├── game-001/ … game-036/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -160,9 +164,10 @@ Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018
 - **JavaScript** - Game logic and interactivity
 - **CSS3** - Styling and responsive design
 - **Kaplay Framework (v4000 alpha)** - Game development framework (most games from game-002 onward, including game-032)
-- **Phaser 4.0.0 (ESM)** - Game framework (game-019, game-020, game-027, game-028)
+- **Phaser 4.0.0 (ESM)** - Game framework (game-019, game-020, game-027, game-028, game-035)
 - **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029)
 - **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034)
+- **Custom software 3D** - Hand-written 3D renderers with no engine: a palette-indexed framebuffer (game-031) and a triangle rasterizer on Canvas2D (game-036)
 - **GemCore/GemShell** - Desktop application packaging
 
 ## Attributions
@@ -198,7 +203,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 34 games are included as of the latest entries (game-033 Hearthbound, game-034 Idle Delve).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 36 games are included as of the latest entries (game-035 N2 Overdrive, game-036 Island Walker).
 
 ---
 

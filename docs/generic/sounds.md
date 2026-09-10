@@ -326,6 +326,49 @@ export const playWaveStart = () => [523, 659, 784, 1047].forEach((f, i) => _osc(
 - Layered oscillators for richer sounds
 - Consistent moderate volumes (0.08-0.20)
 
+**Island Walker (game-036) — continuous ambience for an exploration game:**
+
+A walking sim has no combat to carry the audio, so the soundscape has to be a
+continuous bed rather than a set of event stingers. Two techniques:
+
+*Looping wind from filtered noise* — one buffer, one filter, started once and
+left running. Cheap, and never loops audibly because noise has no features:
+```js
+const src = ctx.createBufferSource();
+src.buffer = noiseBuffer(4);       // 4s of white noise
+src.loop = true;
+const filter = ctx.createBiquadFilter();
+filter.type = 'lowpass';
+filter.frequency.value = 380;      // low cutoff => wind, not hiss
+const gain = ctx.createGain();
+gain.gain.value = 0.05;            // must sit under everything else
+src.connect(filter); filter.connect(gain); gain.connect(masterGain);
+src.start();
+```
+
+*Randomly-scheduled birdsong* — a self-rescheduling `setTimeout` with a wide
+random interval reads as a living environment; a fixed interval reads as a
+machine:
+```js
+function chirpLoop() {
+    const base = 1400 + Math.random() * 800;
+    _osc('sine', base, 0.09, 0.04);
+    _osc('sine', base * 1.3, 0.07, 0.03, 0.08);   // slight delay = two notes
+    setTimeout(chirpLoop, 3000 + Math.random() * 6000);
+}
+```
+
+*Footsteps driven by distance, not time* — tie the trigger to accumulated
+movement so cadence automatically matches walking vs sprinting:
+```js
+this._footstepDist += distanceMovedThisFrame;
+if (this._footstepDist > 2.2) { this._footstepDist = 0; playFootstep(); }
+```
+
+*Progress cue* — a rising three-note chord (392 / 523 / 659 Hz, staggered 50 ms)
+for "this counted" moments like shelving a book. Distinct from the pickup blip,
+so the two stages of a collect-and-return loop sound different.
+
 ## References
 
 - [Web Audio API Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)

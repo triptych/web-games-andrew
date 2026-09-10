@@ -457,6 +457,19 @@ const games = [
             { emoji: '📱', label: 'Touch' },
             { emoji: '💫', label: 'Retro PS1' }
         ]
+    },
+    {
+        id: 'game-036',
+        title: 'Island Walker',
+        description: "A first-person walking simulator on a wholly procedural island, rendered by a 3D engine built from scratch — no three.js, no WebGL, just JavaScript transforming and shading triangles into a 2D canvas. Every tree, hill, stream, cave, cloud and building is generated from a seed, so each reload is a new island. Wander the forest, sea cave, lighthouse point, cemetery, garden and ancient ruins to recover 10 lost books and 8 artifacts, then carry them home: the Library's shelves and the Museum's pedestals visibly fill up with everything you return. No enemies, no failing — just exploring.",
+        icon: '🏝️',
+        folder: 'game-036',
+        cssClass: 'island-walker',
+        tags: [
+            { emoji: '🚶', label: 'Exploration' },
+            { emoji: '🌱', label: 'Procedural' },
+            { emoji: '🖥️', label: 'Software 3D' }
+        ]
     }
 ];
 
