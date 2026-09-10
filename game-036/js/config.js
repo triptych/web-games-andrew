@@ -45,6 +45,12 @@ export const FOG_COLOR = [162, 194, 216];
 // direction" so daylight can't leak through gaps between tunnel triangles.
 export const CAVE_DARK = [18, 16, 20];
 
+// Backdrop colour inside the library/museum. Interiors are drawn exclusively
+// (no outside geometry), so this stands in for "walls in every direction" and
+// keeps daylight from showing through the doorway gap. Warmer and much lighter
+// than CAVE_DARK — an indoor room, not a cave.
+export const INDOOR_DARK = [64, 54, 46];
+
 // Direction light travels *from* (i.e. toward the sun), normalised by the
 // renderer. Mid-morning and off-axis so building faces and terrain slopes
 // catch it at different angles instead of flattening out.

@@ -182,7 +182,7 @@ const shade   = clamp(ambient + skyFill + wrap * keyLight, 0, 1.15);
 Confirmed values: `ambient 0.38`, `fillLight 0.14`, `keyLight 0.55`. Because
 `shade` can exceed 1, clamp channels to 255 before packing to bytes.
 
-### 6. Painter's algorithm cannot render interiors
+### 6. Painter's algorithm cannot render interiors (caves *or* buildings)
 
 Sorting by average triangle depth means a large distant triangle can paint over
 a small near one. A thin tunnel is the worst case: outside terrain draws over
@@ -200,6 +200,39 @@ if (world.isInsideCave(camPos)) {
 
 Containment has to be an explicit spatial query (distance to the tunnel
 centreline) — depth sorting will never work it out for you.
+
+**This applies to every enclosed space, not just caves.** A building the player
+can walk into hits the same wall, and it bites even from *outside*: a 6-unit
+ground quad straddling a wall plane averages nearer than the wall's own
+triangles, so the terrain paints over the building and it looks like it
+disappeared as you approached. Concretely, from 14 units out:
+
+```
+front wall  avg depth: 11.41   (nearest vertex 11.36)
+ground quad avg depth: 11.09   (nearest vertex  7.99)  <- sorts last, paints over
+```
+
+So an enterable building needs the full treatment, same as the tunnel:
+
+- Build it **hollow** — wall panels with a doorway gap, not a solid box. A solid
+  box has no inside to stand in, and from within it every face is backfacing.
+- Return exterior and interior as **separate meshes**. Bake only the exterior
+  into the chunk; keep the interior out so it can be submitted alone.
+- Swap to the interior scene via an explicit **AABB containment query**, and
+  extend that box through the doorway's full wall thickness — otherwise there's
+  a 3–5 frame window mid-stride where the player is past the room but still in
+  the wall band, and the outdoor scene flashes through the opening.
+- Gate the loose-item and deposited-item lists on the same query, or
+  collectibles float in the void indoors and shelved ones hide behind walls.
+- Add **wall collision**. Without it the player walks into geometry that isn't
+  being drawn as an interior yet, which is what makes the building "vanish".
+- Register interiors **lazily but independently of chunk residency**. If the
+  interior is only created when its chunk generates, a query that runs before
+  the player has been nearby reads "not inside" and the swap never fires.
+
+Interiors drawn this way show the flat interior backdrop through the doorway
+rather than a view of the outdoors. That's inherent to the technique — pick a
+backdrop colour that reads as the room's gloom, not as a void.
 
 ### 7. Player collision must know about overhead geometry
 

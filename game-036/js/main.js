@@ -30,7 +30,7 @@ import { state } from './state.js';
 import { initAudio, playUiClick } from './sounds.js';
 import { drawSkyGradient } from './world/sky.js';
 import {
-    SKY_TOP, SKY_BOTTOM, FOG_COLOR, FOG_NEAR, FOG_FAR, RENDER_FAR, CAVE_DARK, SUN_DIR,
+    SKY_TOP, SKY_BOTTOM, FOG_COLOR, FOG_NEAR, FOG_FAR, RENDER_FAR, CAVE_DARK, INDOOR_DARK, SUN_DIR,
     SEED_STORAGE_KEY, WADE_FLOOR, PLAYER_EYE_HEIGHT,
 } from './config.js';
 import { v3norm } from './engine/math.js';
@@ -158,6 +158,7 @@ function frame(now) {
     // Underground the backdrop is rock, not sky — otherwise daylight shows through
     // every gap between tunnel triangles.
     const underground = world.isInsideCave(camera.pos);
+    const indoors = !underground && world.isInsideBuilding(camera.pos);
     if (underground) {
         drawSkyGradient(renderer.ctx, renderer.width, renderer.height, CAVE_DARK, CAVE_DARK);
         // Light the tunnel from the viewer's own position, lantern-style. Keeping
@@ -166,6 +167,18 @@ function frame(now) {
         renderer.lightDir = v3norm([Math.sin(camera.yaw), 0.35, -Math.cos(camera.yaw)]);
         renderer.ambient = 0.20;
         renderer.keyLight = 0.62;
+    } else if (indoors) {
+        // Indoors the outside world isn't drawn at all, so the backdrop has to be
+        // interior gloom or daylight shows through the doorway gap and the seams
+        // between wall panels. Lifted well above the cave's ambient — a library
+        // should read as warm and legible, not as a cave with shelves in it.
+        drawSkyGradient(renderer.ctx, renderer.width, renderer.height, INDOOR_DARK, INDOOR_DARK);
+        // Lit from the viewer, like the cave, but much flatter and brighter: the
+        // room is small enough that a directional key light just silhouettes the
+        // near wall, and a library wants to read as evenly lit rather than gloomy.
+        renderer.lightDir = v3norm([Math.sin(camera.yaw), 0.45, -Math.cos(camera.yaw)]);
+        renderer.ambient = 0.72;
+        renderer.keyLight = 0.30;
     } else {
         drawSkyGradient(renderer.ctx, renderer.width, renderer.height, SKY_TOP, SKY_BOTTOM);
         renderer.lightDir = SUN_DIR_N;
@@ -174,8 +187,19 @@ function frame(now) {
     }
 
     const instances = world.getVisibleInstances(camera.pos, time);
-    for (const inst of itemManager.getInstances(time)) instances.push(inst);
-    for (const inst of collections.getInstances()) instances.push(inst);
+    // Interiors and the cave are drawn as exclusive scenes — appending the outdoor
+    // item lists there would leave collectibles floating in the dark, and the
+    // shelved-book geometry belongs to the room the player is standing in. So the
+    // deposited items are submitted only indoors, and loose world items only
+    // outdoors. Both lists are small enough that filtering per frame is free.
+    if (indoors) {
+        const here = world.buildingContaining(camera.pos);
+        for (const inst of collections.getInstances()) {
+            if (collections.instanceBelongsTo(inst, here.type)) instances.push(inst);
+        }
+    } else if (!underground) {
+        for (const inst of itemManager.getInstances(time)) instances.push(inst);
+    }
 
     renderer.render(camera, instances);
 }

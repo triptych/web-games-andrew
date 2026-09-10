@@ -33,6 +33,9 @@ export class ChunkWorld {
         this.cache = new Map(); // "cx,cz" -> { mesh, structures: [{mesh,pos,rotY}], anchors }
         this._landmarksPlaced = new Set(); // region types already given their one big structure
         this.landmarkAnchors = {}; // type -> {x,z,y}
+        // Enterable buildings (library/museum): interior mesh + footprint, kept out
+        // of the chunk mesh so it can be drawn as an exclusive scene from inside.
+        this.buildingInteriors = {}; // type -> { mesh, pos, footprint, w, d, wallH }
     }
 
     key(cx, cz) { return `${cx},${cz}`; }
@@ -194,25 +197,50 @@ export class ChunkWorld {
 
         this._landmarksPlaced.add(region);
         const wy = this.heightmap.heightAt(seedPoint.x, seedPoint.z);
-        const mesh = builder(rng);
-        props.push({ mesh, pos: [seedPoint.x, wy, seedPoint.z], rotY: rng() * Math.PI * 2, scale: 1 });
+        const built = builder(rng);
+
+        // The library and museum are enterable, so their builders return
+        // { exterior, interior, footprint } instead of a bare mesh. Only the
+        // exterior is baked into the chunk; the interior is registered separately
+        // and drawn as its own exclusive scene when the player steps inside
+        // (the renderer has no depth buffer — see structures.js).
+        const enterable = built && built.exterior !== undefined;
+        const mesh = enterable ? built.exterior : built;
+
+        // Buildings are axis-aligned so the containment test can stay a cheap AABB;
+        // rotating them would need the yaw folded into every query. Everything else
+        // still gets a random spin.
+        const rotY = enterable ? 0 : rng() * Math.PI * 2;
+        props.push({ mesh, pos: [seedPoint.x, wy, seedPoint.z], rotY, scale: 1 });
         this.landmarkAnchors[region] = { x: seedPoint.x, y: wy, z: seedPoint.z };
 
-        // Museum/library get interior furniture anchored near the landmark for item placement.
-        if (region === 'museum') {
-            for (let i = 0; i < 6; i++) {
-                const a = (i / 6) * Math.PI * 2;
-                const px = seedPoint.x + Math.cos(a) * 4.2;
-                const pz = seedPoint.z + Math.sin(a) * 3.2;
-                props.push({ mesh: buildPedestal(rng), pos: [px, wy, pz], rotY: 0, scale: 1 });
+        // Museum/library get interior furniture anchored near the landmark for item
+        // placement. It lives in the interior mesh, not the chunk, so it's only ever
+        // drawn alongside the walls that are supposed to contain it.
+        if (enterable) {
+            const interior = { verts: [], tris: [] };
+            mergeMesh(interior, built.interior, 0, 0, 0, 0, 1);
+            const { w, d, wallH } = built.footprint;
+
+            if (region === 'museum') {
+                // Ring of pedestals, inset from the walls and clear of the doorway.
+                for (let i = 0; i < 6; i++) {
+                    const a = (i / 6) * Math.PI * 2;
+                    mergeMesh(interior, buildPedestal(rng), Math.cos(a) * 4.2, 0, Math.sin(a) * 3.2);
+                }
+            } else if (region === 'library') {
+                // Shelves along the back wall, facing the door.
+                for (let i = 0; i < 5; i++) {
+                    mergeMesh(interior, buildBookshelf(rng), -4 + i * 2, 0, -d / 2 + 1.2);
+                }
             }
-        }
-        if (region === 'library') {
-            for (let i = 0; i < 5; i++) {
-                const px = seedPoint.x - 4 + i * 2;
-                const pz = seedPoint.z - 3.5;
-                props.push({ mesh: buildBookshelf(rng), pos: [px, wy, pz], rotY: 0, scale: 1 });
-            }
+
+            this.buildingInteriors[region] = {
+                mesh: interior,
+                pos: [seedPoint.x, wy, seedPoint.z],
+                footprint: built.footprint,
+                w, d, wallH,
+            };
         }
     }
 }

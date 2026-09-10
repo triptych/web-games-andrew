@@ -56,15 +56,74 @@ export function buildCemeteryGate(rng) {
     return m;
 }
 
-/** Simple rectangular gabled-roof building shell, used for library & museum. */
+/** Wall thickness for enterable buildings. Thin enough to read as a wall, thick
+ *  enough that the player can't see through the seam at a grazing angle. */
+const WALL_T = 0.35;
+
+/** Width of the doorway gap punched through the front wall. */
+const DOOR_W = 2.6;
+
+/**
+ * Rectangular gabled-roof building the player can walk into.
+ *
+ * Returns `{ exterior, interior, footprint }` rather than one mesh, because the
+ * renderer has no depth buffer: with painter's-algorithm sorting, the ground
+ * quads around the building average *nearer* than its wall triangles (a 6-unit
+ * ground quad straddling the wall plane out-sorts the wall itself) and paint
+ * straight over it. So the inside has to be drawn as its own exclusive scene,
+ * exactly like the cave tunnel — see world.js getVisibleInstances().
+ *
+ *   exterior  — walls + roof as seen from outside, with a doorway gap
+ *   interior  — inward-facing walls, floor and ceiling, drawn only when inside
+ *   footprint — { w, d, wallH } for the containment query and collision
+ *
+ * The front wall (+Z) is split into two panels either side of the doorway so
+ * there's a real opening to walk through instead of a painted-on door.
+ */
 export function buildGabledBuilding(w, d, wallH, wallColor, roofColor) {
-    const m = makeMesh();
-    mergeMesh(m, buildBox(w, wallH, d, wallColor), 0, wallH / 2, 0);
-    // gabled roof: two boxes rotated slightly to fake a peak (kept simple/flat-shaded)
+    const exterior = makeMesh();
+    const hw = w / 2, hd = d / 2;
+
+    // --- walls (four panels, front one split around the doorway) ---
+    // Back (-Z) and the two sides are solid.
+    mergeMesh(exterior, buildBox(w, wallH, WALL_T, wallColor), 0, wallH / 2, -hd);
+    mergeMesh(exterior, buildBox(WALL_T, wallH, d, wallColor), -hw, wallH / 2, 0);
+    mergeMesh(exterior, buildBox(WALL_T, wallH, d, wallColor), hw, wallH / 2, 0);
+    // Front (+Z): two panels flanking the door, plus a lintel above it.
+    const sideW = (w - DOOR_W) / 2;
+    const doorH = Math.min(2.8, wallH - 0.6);
+    mergeMesh(exterior, buildBox(sideW, wallH, WALL_T, wallColor), -(DOOR_W / 2 + sideW / 2), wallH / 2, hd);
+    mergeMesh(exterior, buildBox(sideW, wallH, WALL_T, wallColor), (DOOR_W / 2 + sideW / 2), wallH / 2, hd);
+    mergeMesh(exterior, buildBox(DOOR_W, wallH - doorH, WALL_T, wallColor), 0, doorH + (wallH - doorH) / 2, hd);
+
+    // --- roof ---
     const roofH = 1.6;
-    mergeMesh(m, buildBox(w * 1.05, 0.3, d * 1.05, roofColor), 0, wallH + 0.15, 0);
-    mergeMesh(m, buildCone(Math.max(w, d) * 0.62, roofH, 4, roofColor), 0, wallH + roofH / 2 + 0.3, 0, 0);
-    return m;
+    mergeMesh(exterior, buildBox(w * 1.05, 0.3, d * 1.05, roofColor), 0, wallH + 0.15, 0);
+    mergeMesh(exterior, buildCone(Math.max(w, d) * 0.62, roofH, 4, roofColor), 0, wallH + roofH / 2 + 0.3, 0, 0);
+
+    // --- interior ---
+    // Drawn only while the camera is inside, so it needs its own floor and
+    // ceiling; the exterior's roof is invisible from below once we stop drawing
+    // it. Walls are double-sided at submit time rather than re-wound here, which
+    // keeps this builder simple and costs nothing at these triangle counts.
+    const interior = makeMesh();
+    const iw = w - WALL_T * 2, id = d - WALL_T * 2;
+    const floorColor = [120, 96, 66];   // warm boards
+    const ceilColor = [96, 88, 78];     // lighter than the floor so "up" reads as up
+    mergeMesh(interior, buildPlane(iw, id, floorColor), 0, 0.02, 0);
+    mergeMesh(interior, buildPlane(iw, id, ceilColor), 0, wallH - 0.02, 0);
+    // Inner wall faces, inset so they sit just inside the exterior shell.
+    const inWall = [wallColor[0] * 0.94, wallColor[1] * 0.94, wallColor[2] * 0.94];
+    mergeMesh(interior, buildBox(iw, wallH, 0.08, inWall), 0, wallH / 2, -id / 2);
+    mergeMesh(interior, buildBox(0.08, wallH, id, inWall), -iw / 2, wallH / 2, 0);
+    mergeMesh(interior, buildBox(0.08, wallH, id, inWall), iw / 2, wallH / 2, 0);
+    // Front wall, again split so the doorway stays open from the inside too.
+    const iSideW = (iw - DOOR_W) / 2;
+    mergeMesh(interior, buildBox(iSideW, wallH, 0.08, inWall), -(DOOR_W / 2 + iSideW / 2), wallH / 2, id / 2);
+    mergeMesh(interior, buildBox(iSideW, wallH, 0.08, inWall), (DOOR_W / 2 + iSideW / 2), wallH / 2, id / 2);
+    mergeMesh(interior, buildBox(DOOR_W, wallH - doorH, 0.08, inWall), 0, doorH + (wallH - doorH) / 2, id / 2);
+
+    return { exterior, interior, footprint: { w, d, wallH, doorW: DOOR_W, wallT: WALL_T } };
 }
 
 export function buildLibraryShell(rng) {
@@ -72,12 +131,13 @@ export function buildLibraryShell(rng) {
 }
 
 export function buildMuseumShell(rng) {
-    const m = buildGabledBuilding(14, 11, 4.8, [214, 210, 198], [120, 116, 108]);
-    // Columns across the front
+    const b = buildGabledBuilding(14, 11, 4.8, [214, 210, 198], [120, 116, 108]);
+    // Columns across the front, set clear of the doorway so they don't block it.
     for (let x = -5.5; x <= 5.5; x += 2.75) {
-        mergeMesh(m, buildCylinder(0.35, 4.4, 8, [230, 226, 214], true, true), x, 2.2, 5.6);
+        if (Math.abs(x) < DOOR_W / 2 + 0.5) continue;
+        mergeMesh(b.exterior, buildCylinder(0.35, 4.4, 8, [230, 226, 214], true, true), x, 2.2, 5.6);
     }
-    return m;
+    return b;
 }
 
 /** A wooden pier extending from shore into the water, for the shore region. */

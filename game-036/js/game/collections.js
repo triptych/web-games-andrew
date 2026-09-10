@@ -83,11 +83,14 @@ export class CollectionSites {
             const tier = Math.floor(slot / 5);
             const colors = [[176, 40, 40], [40, 76, 150], [150, 120, 30], [70, 110, 60]];
             this.shelvedBooks.push({
+                site: 'library',
                 mesh: buildBox(0.22, 0.32, 0.14, colors[slot % colors.length]),
                 pos: [
                     anchor.x - 4 + shelfIndex * 2 + (this.rng() - 0.5) * 0.4,
                     anchor.y + 0.45 + tier * 0.5,
-                    anchor.z - 3.5,
+                    // Shelves are placed by chunk.js at -d/2 + 1.2 (library d = 9),
+                    // nudged forward so the books sit on the shelf face, not in it.
+                    anchor.z - 3.3 + 0.2,
                 ],
                 rotY: (this.rng() - 0.5) * 0.3,
                 scale: 1,
@@ -112,6 +115,7 @@ export class CollectionSites {
                 ? buildCylinder(0.14, 0.05, 8, gold, true, true)
                 : (t < 0.66 ? buildBlob(0.18, 0, gold, 0.2, this.rng) : buildCone(0.14, 0.34, 6, gold));
             this.displayedArtifacts.push({
+                site: 'museum',
                 mesh,
                 pos: [
                     anchor.x + Math.cos(a) * 4.2,
@@ -130,5 +134,14 @@ export class CollectionSites {
     /** Deposited items as renderer instances. */
     getInstances() {
         return [...this.shelvedBooks, ...this.displayedArtifacts];
+    }
+
+    /**
+     * Whether a deposited instance belongs in `type`'s building. Interiors render
+     * exclusively, so main.js submits only the items that live in the room the
+     * player is actually standing in.
+     */
+    instanceBelongsTo(inst, type) {
+        return inst.site === type;
     }
 }

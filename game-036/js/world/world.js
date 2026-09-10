@@ -104,6 +104,70 @@ export class World {
     }
 
     /**
+     * Build the library/museum interiors if their chunks haven't been generated
+     * yet. Containment can be queried before the player has ever been near the
+     * building — the chunk at the draw-distance edge may not exist on the frame
+     * the query runs — and an unregistered interior would read as "not inside",
+     * so the exclusive-interior swap would never happen. Registering from the
+     * region seed point (the same source chunk.js places the landmark from) keeps
+     * the two in agreement whether or not the chunk is resident.
+     */
+    _ensureBuildingInteriors() {
+        // Called from a per-frame query, so short-circuit once both are known.
+        if (this._interiorsReady) return;
+        let missing = 0;
+        for (const type of ['library', 'museum']) {
+            if (this.chunks.buildingInteriors[type]) continue;
+            const p = this.regionMap.points.find(q => q.type === type);
+            if (!p) continue; // this seed has no such region — nothing to wait for
+            // Force the landmark's own chunk to generate, which registers the
+            // interior through the normal path rather than duplicating the
+            // furniture layout here.
+            const [cx, cz] = this.chunks.worldToChunk(p.x, p.z);
+            this.chunks.getChunk(cx, cz, 1);
+            if (!this.chunks.buildingInteriors[type]) missing++;
+        }
+        if (missing === 0) this._interiorsReady = true;
+    }
+
+    /**
+     * The enterable building containing `pos`, or null. Same reasoning as
+     * isInsideCave(): with no depth buffer, "inside" has to be an explicit
+     * spatial query so the scene can be swapped to interior-only geometry.
+     *
+     * Buildings are axis-aligned (chunk.js keeps their rotY at 0), so this is a
+     * plain AABB test inset by the wall thickness — the player counts as inside
+     * once they're past the inner wall face, not while still in the doorway.
+     */
+    buildingContaining(pos) {
+        this._ensureBuildingInteriors();
+        const interiors = this.chunks.buildingInteriors;
+        for (const type in interiors) {
+            const b = interiors[type];
+            const [bx, by, bz] = b.pos;
+            const t = b.footprint.wallT;
+            const lx = pos[0] - bx, lz = pos[2] - bz;
+            const hw = b.w / 2 - t, hd = b.d / 2 - t;
+            const withinHeight = pos[1] > by - 1 && pos[1] < by + b.wallH;
+            if (!withinHeight) continue;
+            if (lx > -hw && lx < hw && lz > -hd && lz < hd) return { type, ...b };
+            // Also count the doorway itself as inside. The opening spans the wall's
+            // full thickness, so a player mid-stride through it is past the
+            // containment box but not yet in the room — without this they'd get a
+            // few frames of the outdoor scene framed by the door before it snaps.
+            if (Math.abs(lx) < b.footprint.doorW / 2 && lz >= hd && lz <= b.d / 2) {
+                return { type, ...b };
+            }
+        }
+        return null;
+    }
+
+    /** True when the camera is inside the library or museum. */
+    isInsideBuilding(pos) {
+        return this.buildingContaining(pos) !== null;
+    }
+
+    /**
      * Floor height of the tunnel at (x,z), or null if that column isn't inside
      * the cave. Used by the player controller: the tunnel is the one place with
      * terrain overhead, so walking in has to override the heightmap or the
@@ -196,6 +260,20 @@ export class World {
         if (this.isInsideCave(playerPos)) {
             out.push({ mesh: this.caveMesh, pos: [0, 0, 0], rotY: 0, scale: 1, doubleSided: true, noFogFade: true });
             for (const c of this.caveCrystals) out.push({ ...c, noFogFade: true });
+            return out;
+        }
+
+        // Same story indoors: the ground quads around a building average nearer
+        // than its wall triangles and paint over them, so the interior is drawn
+        // as its own scene with the outside world excluded entirely. Walls are
+        // submitted double-sided because the interior panels are built from boxes
+        // whose outward winding would otherwise cull them from within.
+        const building = this.buildingContaining(playerPos);
+        if (building) {
+            out.push({
+                mesh: building.mesh, pos: building.pos, rotY: 0, scale: 1,
+                doubleSided: true, noFogFade: true,
+            });
             return out;
         }
 

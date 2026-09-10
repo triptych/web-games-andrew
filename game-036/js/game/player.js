@@ -45,6 +45,53 @@ export class Player {
      * them is the tunnel's, not the terrain's, or they'd be shoved back up
      * through the roof and could never get inside.
      */
+    /**
+     * True if (x,z) lies inside a building's wall band — i.e. the player is trying
+     * to walk through a wall rather than through the doorway.
+     *
+     * The test is a shell, not a solid: points well inside the building are fine
+     * (that's the interior) and points outside are fine; only the ring occupied by
+     * the walls blocks. The doorway is an explicit hole in that ring on the +Z
+     * face, matching the gap structures.js leaves in the front wall.
+     *
+     * `fromX/fromZ` is the pre-move position, used to keep a player who is somehow
+     * already embedded in a wall from being frozen there permanently.
+     */
+    _blockedByWall(x, z, fromX, fromZ) {
+        const interiors = this.world.chunks && this.world.chunks.buildingInteriors;
+        if (!interiors) return false;
+
+        for (const type in interiors) {
+            const b = interiors[type];
+            const [bx, , bz] = b.pos;
+            const t = b.footprint.wallT;
+            const lx = x - bx, lz = z - bz;
+            const hw = b.w / 2, hd = b.d / 2;
+
+            // Outside the outer shell entirely?
+            if (lx < -hw || lx > hw || lz < -hd || lz > hd) continue;
+            // Inside the inner void (the room itself)? Then we're not in a wall.
+            const inner = 0.001; // guard against exactly-on-the-face float cases
+            if (lx > -hw + t + inner && lx < hw - t - inner &&
+                lz > -hd + t + inner && lz < hd - t - inner) continue;
+            // In the wall band — unless this is the doorway gap on the +Z face.
+            if (lz > hd - t - inner && Math.abs(lx) < b.footprint.doorW / 2) continue;
+
+            // Already embedded in this wall before moving? Let them move freely so
+            // a bad spawn or a geometry change can't trap the player.
+            const fLx = fromX - bx, fLz = fromZ - bz;
+            const wasInWall =
+                fLx >= -hw && fLx <= hw && fLz >= -hd && fLz <= hd &&
+                !(fLx > -hw + t + inner && fLx < hw - t - inner &&
+                  fLz > -hd + t + inner && fLz < hd - t - inner) &&
+                !(fLz > hd - t - inner && Math.abs(fLx) < b.footprint.doorW / 2);
+            if (wasInWall) continue;
+
+            return true;
+        }
+        return false;
+    }
+
     _groundHeight(x, z, currentY) {
         const caveFloor = this.world.caveFloorAt
             ? this.world.caveFloorAt(x, z, currentY)
@@ -90,6 +137,22 @@ export class Player {
             cam.pos[0] = prevX;
             cam.pos[2] = prevZ;
             moved = 0;
+        }
+
+        // Building walls are solid. Without this the player walks through the shell
+        // and ends up inside geometry that isn't being drawn as an interior yet —
+        // which is what made the library look like it had vanished. Axis-separated
+        // so sliding along a wall still works instead of stopping dead.
+        if (this._blockedByWall(cam.pos[0], cam.pos[2], prevX, prevZ)) {
+            if (!this._blockedByWall(prevX, cam.pos[2], prevX, prevZ)) {
+                cam.pos[0] = prevX;                 // slide along Z
+            } else if (!this._blockedByWall(cam.pos[0], prevZ, prevX, prevZ)) {
+                cam.pos[2] = prevZ;                 // slide along X
+            } else {
+                cam.pos[0] = prevX;
+                cam.pos[2] = prevZ;
+                moved = 0;
+            }
         }
 
         // Resolve the standing surface only after the position is final, so a
