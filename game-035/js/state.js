@@ -76,9 +76,10 @@ class GameState {
     // --- Bonus stars ---
     get stars() { return this._stars; }
     addStar() {
+        if (this._inBonusRound) return; // stars already spent triggering this round
         this._stars++;
         events.emit('starsChanged', this._stars);
-        if (this._stars >= STARS_FOR_BONUS_ROUND && !this._inBonusRound) {
+        if (this._stars >= STARS_FOR_BONUS_ROUND) {
             this._stars = 0;
             events.emit('starsChanged', this._stars);
             this._inBonusRound = true;

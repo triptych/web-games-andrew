@@ -10,10 +10,25 @@
  */
 
 import { RING_SEGMENTS } from './config.js';
-import { projectRadius } from './tunnel.js';
 import { viewport } from './viewport.js';
 
 const RING_COUNT = 14;
+
+// Decorative ring spacing uses its OWN perspective curve, separate from
+// gameplay's projectRadius/depthScale (tunnel.js). projectRadius is tuned so
+// enemies spend most of their approach clearly spread out (gameplay pacing);
+// applying that same curve to the ring backdrop put rings CLOSE together near
+// the camera (z=0) and FAR apart near the vanishing point (z=1) — backwards
+// from real tunnel perspective, which reads as a fountain draining outward
+// instead of a tube receding into the distance. ringRadius() below inverts
+// the falloff so rings are tightly packed near the vanishing point (far/
+// small) and spread widely near the camera (near/large), like Tempest/N2O.
+const RING_EXP = 2.2;
+function ringRadius(z) {
+    const clamped = Math.min(1, Math.max(0, z));
+    const t = 1 - Math.pow(1 - clamped, RING_EXP);
+    return viewport.shipR + (viewport.vanishR - viewport.shipR) * t;
+}
 
 export class TunnelRenderer {
     constructor(scene) {
@@ -46,10 +61,13 @@ export class TunnelRenderer {
         const cx = viewport.centerX + wobX;
         const cy = viewport.centerY + wobY;
 
-        // Concentric warped rings, drawn far-to-near so near rings paint over far ones
+        // Concentric warped rings, drawn far-to-near so near rings paint over far ones.
+        // z must count DOWN toward 0 (the ship's near plane) as scrollZ grows, so rings
+        // appear to emerge from the vanishing point and rush outward past the camera —
+        // the correct tunnel-flythrough direction (not shrink inward like a fountain).
         for (let i = RING_COUNT; i >= 1; i--) {
-            const zRaw = (i / RING_COUNT + this.scrollZ) % 1;
-            const r = projectRadius(zRaw);
+            const zRaw = (((i / RING_COUNT - this.scrollZ) % 1) + 1) % 1;
+            const r = ringRadius(zRaw);
             const hue = (this.hue + zRaw * 0.5) % 1;
             const color = hsvToHex(hue, 0.85, 0.25 + zRaw * 0.55);
 
@@ -75,7 +93,7 @@ export class TunnelRenderer {
         for (let s = 0; s < RING_SEGMENTS; s++) {
             const a = (s / RING_SEGMENTS) * Math.PI * 2;
             const rOuter = viewport.maxR * 1.1;
-            const rInner = projectRadius(1);
+            const rInner = ringRadius(1);
             g.beginPath();
             g.moveTo(cx + Math.cos(a) * rInner, cy + Math.sin(a) * rInner);
             g.lineTo(cx + Math.cos(a) * rOuter, cy + Math.sin(a) * rOuter);

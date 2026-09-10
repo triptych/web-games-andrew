@@ -86,7 +86,8 @@ export class UIScene extends Phaser.Scene {
     }
 
     _renderStars() {
-        this.starsLabel.setText('★'.repeat(state.stars) + '☆'.repeat(STARS_FOR_BONUS_ROUND - state.stars));
+        const filled = Phaser.Math.Clamp(state.stars, 0, STARS_FOR_BONUS_ROUND);
+        this.starsLabel.setText('★'.repeat(filled) + '☆'.repeat(STARS_FOR_BONUS_ROUND - filled));
     }
 
     _renderSpeed(v) {
