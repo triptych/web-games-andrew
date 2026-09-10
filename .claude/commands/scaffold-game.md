@@ -69,10 +69,13 @@ Create each file below. Substitute `GAME_TITLE`, `GAME_CONCEPT`, `GAME_FOLDER`, 
     </style>
 </head>
 <body>
+    <a href="../index.html" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>
 ```
+
+> **Back-to-launcher link:** every game must include this. It must be the first element inside `<body>` (before the canvas/overlay) so its `z-index` and `pointer-events` win. Path is `../index.html` — one level up from `GAME_DIR/` reaches the repo root. See [docs/generic/learnings.md](../../docs/generic/learnings.md#5-back-to-launcher-link-️-required-all-games).
 
 ---
 
@@ -799,10 +802,13 @@ Create the following files when ENGINE = `phaser`. The shared `events.js`, `stat
     </style>
 </head>
 <body>
+    <a href="../index.html" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>
 ```
+
+> **Back-to-launcher link:** required on every game (see Section 2A note above) — first element in `<body>`, path `../index.html`.
 
 > **Why no `<script src>` for Phaser?** The `../../lib/phaser/phaser.js` path works on Live Server (which roots at the repo) but 404s on GitHub Pages (which roots at the game subfolder, making `../../` escape the repo). Use the ESM import in `main.js` instead — it resolves correctly in both environments.
 
@@ -1154,6 +1160,7 @@ Three.js is loaded **from a CDN via an import map**, not from `lib/`. The refere
     </style>
 </head>
 <body>
+    <a href="../index.html" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
     <div id="ui-overlay">
         <div id="hud">
             <div><div>SCORE</div><div id="score-val">0</div></div>
@@ -1180,6 +1187,8 @@ Three.js is loaded **from a CDN via an import map**, not from `lib/`. The refere
 ```
 
 > **Why an import map?** Lets every JS module write `import * as THREE from 'three'` instead of repeating the full CDN URL. Bumping the three.js version is then a one-line change in `index.html`. See [docs/threejs/threejs-api.md](../../docs/threejs/threejs-api.md).
+
+> **Back-to-launcher link:** required on every game (see Section 2A note above). Note it's placed *before* `#ui-overlay` (not inside it) since that div has `pointer-events: none`, which would swallow clicks on the link.
 
 ---
 
@@ -1473,3 +1482,4 @@ After creating all files, report:
 3. Note any TODOs the user should address next (e.g., updating the `game-plan.md` phases, adding player/enemy modules).
 4. Tell the user to open `GAME_DIR/index.html` in a browser to verify the splash screen loads.
    - **Phaser / Three.js note**: Both engines load as ES modules — opening `index.html` directly via `file://` will fail with CORS errors. Serve via VS Code Live Server or `npx serve .` from the repo root.
+5. Confirm the "← Games" back-to-launcher link is present in `GAME_DIR/index.html` (`grep -c '← Games' GAME_DIR/index.html` should return `1`) and that it points to `../index.html`.

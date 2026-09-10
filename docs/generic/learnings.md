@@ -681,6 +681,20 @@ function createSplashScreen() {
 - Optional: Share/leaderboard buttons
 - Smooth transitions in/out
 
+### 5. Back-to-Launcher Link ⚠️ REQUIRED (All Games)
+
+Every game must include a small "← Games" link back to the repo's root launcher (`index.html`), so players aren't stuck once they open a game. This is now baked into `/scaffold-game`'s templates for all three engines (Kaplay, Phaser, Three.js) — no manual step needed for new games. If you're hand-editing a game's `index.html` (not going through the scaffold command), add this as the **first element inside `<body>`**, before any canvas/overlay:
+
+```html
+<a href="../index.html" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
+```
+
+**Gotchas:**
+- **Path is `../index.html`, NOT `../../index.html`.** Every `game-NNN/` folder sits directly under the repo root, so one `../` reaches it. Getting this wrong (using `../../`) 404s silently — verify with `ls ../index.html` from inside the game folder before trusting it.
+- Fixed positioning + high `z-index` (`99999`) means it renders above a full-screen WebGL canvas or a `pointer-events:none` HUD overlay div — insert it as a sibling *before* those elements, not inside a `pointer-events:none` container, or clicks won't register.
+- Engine-agnostic: this is plain HTML/CSS in `index.html`, so it works identically for Kaplay, Phaser, and Three.js games without touching engine scene code.
+- If a game already has its own styled "back to browser" link (e.g. game-031), leave it as-is rather than adding a duplicate — just confirm its path resolves.
+
 ---
 
 ## Code Organization
