@@ -105,9 +105,13 @@ export function buildBlob(radius, detail, color, jitter = 0.15, rng = Math.rando
         [0, 1, 0], [0, -1, 0],
         [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1],
     ];
+    // Wound so (b-a)x(c-a) points away from the origin. The renderer culls by
+    // screen-space winding, so an inverted face here doesn't just shade wrong --
+    // the near side of every blob gets culled and you see the inside of the
+    // canopy through it.
     let faces = [
-        [0, 2, 4], [0, 4, 3], [0, 3, 5], [0, 5, 2],
-        [1, 4, 2], [1, 3, 4], [1, 5, 3], [1, 2, 5],
+        [0, 4, 2], [0, 3, 4], [0, 5, 3], [0, 2, 5],
+        [1, 2, 4], [1, 4, 3], [1, 3, 5], [1, 5, 2],
     ];
     for (let d = 0; d < detail; d++) {
         const midCache = new Map();

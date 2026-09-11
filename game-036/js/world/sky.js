@@ -6,7 +6,7 @@
  * so they parallax correctly and get culled/fogged like everything else.
  */
 
-import { makeMesh, addVert, addTri, mergeMesh } from '../engine/mesh.js';
+import { makeMesh, mergeMesh, buildBlob } from '../engine/mesh.js';
 
 export function drawSkyGradient(ctx, width, height, topColor, bottomColor) {
     const g = ctx.createLinearGradient(0, 0, 0, height);
@@ -16,31 +16,35 @@ export function drawSkyGradient(ctx, width, height, topColor, bottomColor) {
     ctx.fillRect(0, 0, width, height);
 }
 
-/** A single flat-ish cloud "blob" built from overlapping horizontal quads at varying height (cheap volumetric look). */
+/**
+ * A cloud: a few overlapping low-poly blobs.
+ *
+ * Clouds float 30-50 units up while the player walks at ground level, so the
+ * face you actually see is the UNDERSIDE. An earlier version built each puff
+ * from a top face and two sides only — cheap, but it meant looking up at a
+ * cloud showed either nothing or its unlit back faces, which rendered as dark
+ * grey shards against the sky. Closed blobs cost a few more triangles and are
+ * lit correctly from every angle.
+ *
+ * They're also deliberately bright and low-contrast: `noFogFade` exempts them
+ * from distance haze, so a strongly shaded cloud would keep its dark side at
+ * any range and read as a storm rather than fair weather. Near-white base
+ * colours mean even the least-lit face stays pale.
+ */
 export function buildCloud(rng) {
     const m = makeMesh();
-    const color = [250, 250, 252];
     const puffs = 3 + Math.floor(rng() * 3);
     for (let i = 0; i < puffs; i++) {
-        const w = 6 + rng() * 6, d = 4 + rng() * 4, h = 1.5 + rng() * 1.5;
-        const ox = (rng() - 0.5) * 8, oz = (rng() - 0.5) * 4, oy = rng() * 1.5;
-        addQuadBox(m, ox, oy, oz, w, h, d, color);
+        // Slight per-puff tint variation keeps a cloud from reading as one
+        // smooth mass without ever going grey.
+        const tint = 246 + rng() * 9;
+        const color = [tint, tint, Math.min(255, tint + 3)];
+        const r = 2.6 + rng() * 2.4;
+        const ox = (rng() - 0.5) * 9, oz = (rng() - 0.5) * 5, oy = (rng() - 0.5) * 1.6;
+        const puff = buildBlob(r, 0, color, 0.3, rng);
+        // Squash vertically — cumulus are wider than they are tall.
+        for (const v of puff.verts) { v[1] *= 0.55; v[0] *= 1.25; v[2] *= 1.1; }
+        mergeMesh(m, puff, ox, oy, oz);
     }
     return m;
-}
-
-function addQuadBox(m, cx, cy, cz, w, h, d, color) {
-    const x = w / 2, y = h / 2, z = d / 2;
-    const base = m.verts.length;
-    addVert(m, cx - x, cy - y, cz - z);
-    addVert(m, cx + x, cy - y, cz - z);
-    addVert(m, cx + x, cy + y, cz + z);
-    addVert(m, cx - x, cy + y, cz + z);
-    addVert(m, cx - x, cy + y, cz - z);
-    addVert(m, cx + x, cy + y, cz - z);
-    // top + a couple side faces are enough to sell a puffy shape at distance
-    addTri(m, base, base + 1, base + 5, color);
-    addTri(m, base, base + 5, base + 4, color);
-    addTri(m, base + 4, base + 5, base + 2, color);
-    addTri(m, base + 4, base + 2, base + 3, color);
 }

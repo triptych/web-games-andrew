@@ -167,6 +167,22 @@ ctx.stroke();   // widens coverage ~0.5px and closes the seam
 
 Cheaper and simpler than rendering to a supersampled offscreen buffer.
 
+**But stroking costs ~30% of rasterizer time** (measured: 39 fps -> 55 fps with
+it removed), so spend it only where it buys something. A seam's visibility
+scales with edge *length*, while the stroke's cost is *per triangle* — and tiny
+triangles (distant terrain, foliage, grass) are the bulk of the buffer with
+sub-pixel seams. Skip them:
+
+```js
+const ex = Math.max(x0,x1,x2) - Math.min(x0,x1,x2);
+const ey = Math.max(y0,y1,y2) - Math.min(y0,y1,y2);
+if (ex > 12 || ey > 12) ctx.stroke();   // device px
+```
+
+Track `fillStyle` and `strokeStyle` separately once you do this — they fall out
+of step, and re-assigning them per triangle is itself a measurable cost. Cache
+the colour string and only assign on change.
+
 ### 5. Flat shading needs half-Lambert, not clamped Lambert
 
 With `max(dot(n, L), 0)`, the faces a first-person camera looks at are usually
@@ -234,6 +250,96 @@ Interiors drawn this way show the flat interior backdrop through the doorway
 rather than a view of the outdoors. That's inherent to the technique — pick a
 backdrop colour that reads as the room's gloom, not as a void.
 
+### 6b. Painter's sort fails on big planes — bias them, and don't build hidden geometry ⚠️
+
+Three separate bugs in game-036 all trace to the same root: **the sort key is a
+triangle's *average* depth**, which is meaningless for a large or oblique face.
+All three showed up only after the draw distance grew — they are latent in any
+scene with a ground-plane backdrop.
+
+**Symptom: teal spikes stabbing up through the coastline.** The ocean was a disc
+of huge wedges running from the origin out past the island. A wedge's average
+depth could place it *in front of* a hillside it was actually buried inside, so
+water painted over land.
+
+Three fixes, all needed:
+
+1. **Tessellate backdrop planes.** Split the disc into many concentric rings so
+   each triangle's average depth is close to its real extent. Space the rings
+   geometrically — fine near the viewer where sorting errors show, coarse at
+   the horizon where they don't.
+2. **Don't generate surface that's inside solid ground.** Tessellation alone
+   isn't enough: with no depth buffer, water inside a hill isn't *hidden* by the
+   hill, merely sorted against it. Sample each quad's corners against the
+   heightmap and skip it when all of them are well inland. (Removed 61% of the
+   ocean's triangles as a bonus.)
+3. **Add a `depthBias` instance flag** and push the backdrop to the back of the
+   order outright. Nothing is ever behind the sea or the sky, so this is always
+   correct:
+   ```js
+   this._tdepth[i] = inst.depthBias ? depth + inst.depthBias : depth;
+   // ocean: depthBias 10000, clouds: 20000
+   ```
+
+**Also: skip chunks that are entirely under the waterline.** 148 of 376 loaded
+chunks were pure seabed — invisible beneath the ocean, but still built, sorted
+and drawn. Flag them at build time (`maxY < SEA_LEVEL`) and drop them from the
+instance list.
+
+**And extend the backdrop past the far plane.** If the ocean disc's outer edge
+falls *inside* the view distance you see sky through the gap and its polygon
+edge reads as a ring of spikes on the skyline. `OCEAN_OUTER_RADIUS` must exceed
+`RENDER_FAR`, not just the island radius.
+
+### 6b-ii. Ground-hugging decals need the *opposite* bias — and per-vertex draping
+
+The mirror image of the ocean bug. A stream ribbon in game-036 appeared bitten
+into a jagged zig-zag of teal wedges wherever it crossed a slope, as if the
+landscape were clipping it.
+
+Two independent causes, both from the same average-depth sort:
+
+1. **Segments spanned several ground quads.** The traced centreline stepped 4
+   units while terrain quads are 2, so one stream triangle covered multiple
+   quads and got a single averaged depth — sorting wholly in front of or wholly
+   behind ground it actually interpenetrated. **Resample the path so no segment
+   exceeds about one terrain quad** before ribboning it. Same lesson as
+   tessellating the ocean, but for a strip rather than a plane.
+2. **Both banks inherited the centreline's height.** A ribbon of any width
+   crossing a slope has banks at different ground heights; using the centre
+   height buries the uphill edge and floats the downhill one. Measured on a real
+   seed: **129 of 948 stream vertices (14%) sat below the terrain**, up to 0.43
+   units deep — those buried vertices are the bites. **Sample the heightmap at
+   each bank vertex's own x/z**, not the centreline's. Drops to zero buried.
+
+Then, because a decal sits only ~0.12 above the ground and is therefore nearly
+coplanar with it, the two average depths are nearly equal and the sort between
+them is a coin flip that flickers as the camera moves:
+
+```js
+// ocean/sky backdrop: large POSITIVE bias -> forced to the back
+{ mesh: oceanMesh, depthBias: 10000 }
+// ground decal (stream): small NEGATIVE bias -> wins the coplanar near-tie
+{ mesh: streamMesh, depthBias: -0.35 }
+```
+
+Keep the negative bias **well under the terrain quad size**. Too large and the
+stream shows through hills genuinely in front of it — you trade a near-tie
+artifact for a real occlusion bug. The same pattern applies to any decal:
+paths, roads, shadow blobs, scorch marks.
+
+### 6c. Build the faces the player will actually look at
+
+Clouds were built with a top face and two sides — no bottom. They float
+overhead, so the player only ever sees the *underside*: they rendered as dark
+grey shards (unlit back faces) against the sky. Closed blobs cost a few more
+triangles and light correctly from every angle.
+
+The general rule: work out which face of a prop is actually presented to the
+camera before economising on geometry. Also keep `noFogFade` backdrop props
+bright and low-contrast — exempt from distance haze, a strongly shaded cloud
+keeps its dark side at any range and reads as a storm.
+
 ### 7. Player collision must know about overhead geometry
 
 Ground collision against a heightmap pushes the player back up through a
@@ -252,6 +358,11 @@ _groundHeight(x, z, currentY) {
 If `fogFar > drawDistance`, chunks are culled at full saturation and pop in as
 hard-edged blocks, while anything exempt from culling (ocean, sky) washes out.
 Order them: `fogNear < fogFar <= drawDistance < renderFar`.
+
+Scale fog *proportionally* when you change draw distance. At 105u the haze had
+to start around 55u to hide the edge, which greyed out the mid-ground; pushing
+the horizon to 260u let it start at 150u, so the island reads sharp out to a
+real distance instead of dissolving a few steps away.
 
 Give backdrop geometry `noFarCull` so the horizon still reads as water and sky
 rather than showing the edge of the loaded world.
@@ -275,29 +386,84 @@ h += (hills - 0.5) * 30 * falloff;
 
 ## Performance
 
-Measured in game-036, headless Chromium at 1280×720:
+Measured in game-036, headless Chromium at 1280×720, 72 samples across 3 seeds
+and 6 positions x 4 view angles:
 
-| | Triangles/frame | Idle | Walking |
+| | min fps | p10 | median |
 |---|---|---|---|
-| No LOD | 47,750 | 44.7 fps | 38.1 fps |
-| Distance LOD | 19,268 | 60 fps | 60 fps |
+| Original (105u draw distance) | 35 | 60 | 61 |
+| 260u draw distance, ~2.5x the props, 12x12 ground grid | 40 | 50 | 61 |
 
-**What mattered:**
-- **LOD on the most numerous prop.** Trees dominated the count; dropping distant
-  canopies from 32-triangle blobs to 8 halved the scene. Nothing else came close.
-- **Chunk baking.** Merge each chunk's props into a single mesh so it's one
-  instance with one vertex-transform pass, not hundreds.
-- **Reuse the triangle buffer** across frames (`buf.length = 0`) instead of
-  allocating — this runs every frame over tens of thousands of items.
+The second row draws **2.5x the draw distance and far more geometry at the same
+median framerate** — and a better worst case. What paid for it:
+
+**1. Frustum culling, by far the biggest win.** Reject whole instances by
+bounding sphere before transforming a single vertex. At a 70° FOV you can see
+roughly a quarter of the world around you, and measurements confirm it:
+**69-86% of instances are rejected every frame.** Without this, nothing else on
+this list matters.
+
+The trick that keeps it cheap: in *view* space the six frustum planes depend
+only on FOV, aspect and near/far — never on camera position or heading. Compute
+them once on resize, then transform each instance's bounding-sphere centre into
+view space (one point) and test. No per-frame plane maths.
+
+```js
+// on resize only
+const tanH = Math.tan(fov/2) * aspect, invH = 1/Math.sqrt(1+tanH*tanH);
+planes = [ 0,0,-1,-near,  0,0,1,far,            // near, far
+           invH*1,0,-tanH*invH,0, -invH,0,-tanH*invH,0,   // left, right
+           0,cos(fov/2),-sin(fov/2),0, 0,-cos(fov/2),-sin(fov/2),0 ]; // top, bottom
+// per instance: inside iff dot(n, c) + d >= -radius for all six
+```
+
+Cache the bounding sphere on the mesh object (`mesh._bounds`) — recomputing it
+per frame gives most of the cost straight back.
+
+**2. Profile before optimising — the intuitive answer was wrong twice.**
+Bucketing triangles by distance showed the far 120-280u ring was only **10%** of
+the scene while the *nearest 12 chunks were 40%*. Draw distance was nearly free;
+near-field density was the whole problem. Likewise "distant grass is the waste"
+was wrong — cutting it saved almost nothing, while one overweight tree LOD
+(538 triangles, from subdividing canopy blobs to 128 tris each) was the real
+cost. **LOD_NEAR is the main framerate control**, not draw distance.
+
+**3. Keep the most numerous prop cheap.** Trees dominate. Several small jittered
+blobs at subdivision 1 read as foliage far better than one smooth subdivision-2
+ball, and cost a third as much — spend the budget on blob *count*, not
+tessellation.
+
+**4. Struct-of-arrays for the triangle buffer.** One object per triangle means
+tens of thousands of short-lived allocations per frame. Use parallel typed
+arrays (`Float32Array` verts, `Uint32Array` packed RGB) and sort an index
+`Uint32Array` so each swap moves 4 bytes, not a pointer into scattered heap.
+
+**5. Batch Canvas2D state changes.** Adjacent triangles usually share a colour;
+`fillStyle` is an expensive setter. Track the previous packed colour and skip
+both the assignment and the `rgb()` string build when unchanged.
+
+**6. Chunk baking.** Merge each chunk's props into a single mesh so it's one
+instance with one vertex-transform pass, not hundreds.
+
+**7. Budget chunk rebuilds per frame.** Crossing an LOD boundary at a run can
+otherwise request a dozen mesh rebuilds in one frame and drop it. Cap it
+(3/frame worked) and render the stale LOD until the budget comes round.
 
 **LOD hysteresis is required.** Switching on a single distance threshold makes a
 player standing at the boundary rebuild the chunk every frame:
 
 ```js
-if (d < LOD_DISTANCE * 0.85)      detail = 1;
-else if (d > LOD_DISTANCE * 1.15) detail = 0;
-else detail = cached ? cached.detail : (d > LOD_DISTANCE ? 0 : 1);
+// Three bands. Both ground grid and props get cheaper with distance.
+if (d < LOD_NEAR * 0.85)     detail = 2;
+else if (d < LOD_FAR * 0.85) detail = (cached?.detail === 2 && d < LOD_NEAR*1.15) ? 2 : 1;
+else if (d > LOD_FAR * 1.15) detail = 0;
+else detail = cached ? Math.min(cached.detail, 1) : 0;
 ```
+
+Make each band's ground resolution a divisor of the next (`[3, 6, 12]`) so a
+coarse chunk's verts are a strict subset of its detailed neighbour's grid. Since
+every vert samples `heightAt()` directly, the shared edge then agrees exactly
+and no cracks show between LOD levels.
 
 **Keep LOD rebuilds deterministic.** Seed the chunk RNG from its coordinates and
 draw from it in the *same order* regardless of detail level, or props shuffle

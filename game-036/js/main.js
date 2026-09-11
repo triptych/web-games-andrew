@@ -136,6 +136,9 @@ events.on('gameComplete', () => {
 
 // ---------- Frame loop ----------
 let last = performance.now();
+// Populated only under ?debug=1 (see the bottom of this file); the frame loop
+// checks it every frame, so it has to exist before the first frame runs.
+let debugHud = null;
 
 function frame(now) {
     requestAnimationFrame(frame);
@@ -202,6 +205,28 @@ function frame(now) {
     }
 
     renderer.render(camera, instances);
+
+    if (debugHud) updateDebugHud(dt);
+}
+
+/**
+ * Frame-time / triangle-count readout, opt-in via ?debug=1. The whole point of
+ * the LOD and culling work is that its effect is invisible, so there has to be
+ * some way to see what it is actually doing.
+ */
+let _fpsAccum = 0, _fpsFrames = 0, _fpsShown = 0;
+function updateDebugHud(dt) {
+    _fpsAccum += dt; _fpsFrames++;
+    if (_fpsAccum >= 0.25) {
+        _fpsShown = _fpsFrames / _fpsAccum;
+        _fpsAccum = 0; _fpsFrames = 0;
+    }
+    const s = renderer.stats;
+    debugHud.textContent =
+        `${_fpsShown.toFixed(0)} fps | ${s.trisDrawn.toLocaleString()} tris drawn ` +
+        `(${s.tris.toLocaleString()} submitted) | ` +
+        `${s.instances - s.instancesCulled}/${s.instances} instances | ` +
+        `${renderer.width}x${renderer.height}`;
 }
 
 requestAnimationFrame(frame);
@@ -210,6 +235,14 @@ requestAnimationFrame(frame);
 // (teleporting to a landmark, checking triangle counts, forcing a completion),
 // but they expose mutable engine internals, so they stay off by default.
 if (new URLSearchParams(location.search).has('debug')) {
+    debugHud = document.createElement('div');
+    debugHud.style.cssText =
+        'position:fixed;left:8px;bottom:8px;z-index:50;pointer-events:none;' +
+        'font:12px/1.4 ui-monospace,Consolas,monospace;color:#cfe8ff;' +
+        'background:rgba(8,14,22,.72);padding:5px 9px;border-radius:5px;' +
+        'white-space:nowrap;';
+    document.body.appendChild(debugHud);
+
     window.__debugTeleport = (x, z) => {
         const ground = Math.max(world.heightmap.heightAt(x, z), WADE_FLOOR);
         camera.pos = [x, ground + PLAYER_EYE_HEIGHT, z];

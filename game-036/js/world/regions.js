@@ -8,7 +8,7 @@
  * and item-placement weighting.
  */
 
-import { makeRng } from './noise.js';
+import { makeRng, ValueNoise2D } from './noise.js';
 
 export const REGION_TYPES = [
     'shore', 'forest', 'cave', 'lighthouse', 'cemetery',
@@ -41,6 +41,8 @@ export class RegionMap {
         this.radius = islandRadius;
         this.heightmap = heightmap;
         this.points = [];
+        // Drives the per-quad ground tint variation in groundColorAt().
+        this._tintNoise = new ValueNoise2D(seed + 8191, 256);
 
         // Hand-biased placement: pick an angle+distance band per region type so the
         // island reads as distinct areas rather than random noise soup.
@@ -135,7 +137,58 @@ export class RegionMap {
         return best ? best.type : 'meadow';
     }
 
+    /**
+     * Ground tint at (x,z): the region's base colour, varied per-quad.
+     *
+     * A single flat colour per region makes large open slopes read as untextured
+     * plastic — the terrain mesh is dense enough now that big areas share one
+     * exact RGB and the eye reads them as a single surface rather than ground.
+     * Three cheap modifiers break it up without any texturing:
+     *
+     *   - two octaves of noise, one broad (patchiness across a hillside) and one
+     *     tight (per-quad grain), so neighbouring triangles differ slightly;
+     *   - altitude, cooling and greying the palette toward the tops of ridges;
+     *   - slope, exposing brown earth where the ground is too steep to hold turf,
+     *     which also makes cliffs read as cliffs rather than tilted lawn.
+     */
     groundColorAt(x, z) {
-        return REGION_GROUND_COLOR[this.regionAt(x, z)] || [100, 130, 80];
+        const base = REGION_GROUND_COLOR[this.regionAt(x, z)] || [100, 130, 80];
+        if (!this._tintNoise) return base;
+
+        // Three scales, because one doesn't read as ground: a wide sweep that
+        // gives a whole hillside lighter and darker regions, a mid band for
+        // patchiness within that, and a tight per-quad grain so no two adjacent
+        // triangles match exactly.
+        const sweep = this._tintNoise.fbm(x, z, 2, 0.008, 0.5) - 0.5;
+        const patch = this._tintNoise.fbm(x, z, 2, 0.04, 0.5) - 0.5;
+        const grain = this._tintNoise.get(x * 0.45, z * 0.45) - 0.5;
+        const v = sweep * 30 + patch * 18 + grain * 9;
+
+        let r = base[0] + v, g = base[1] + v * 1.15, b = base[2] + v * 0.8;
+
+        if (this.heightmap) {
+            const h = this.heightmap.heightAt(x, z);
+            // Above ~28 units the turf thins out: desaturate toward cool grey.
+            const alt = Math.max(0, Math.min(1, (h - 28) / 34));
+            if (alt > 0) {
+                r += (150 - r) * alt * 0.55;
+                g += (152 - g) * alt * 0.55;
+                b += (146 - b) * alt * 0.55;
+            }
+            // Steep faces show bare earth rather than grass.
+            const slope = this.heightmap.slopeAt(x, z, 2.5);
+            const bare = Math.max(0, Math.min(1, (slope - 0.22) / 0.4));
+            if (bare > 0) {
+                r += (124 - r) * bare * 0.7;
+                g += (104 - g) * bare * 0.7;
+                b += (80 - b) * bare * 0.7;
+            }
+        }
+
+        return [
+            r < 0 ? 0 : (r > 255 ? 255 : r),
+            g < 0 ? 0 : (g > 255 ? 255 : g),
+            b < 0 ? 0 : (b > 255 ? 255 : b),
+        ];
     }
 }

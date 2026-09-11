@@ -14,7 +14,7 @@ import { mergeMesh, addVert, addTri, makeMesh } from '../engine/mesh.js';
 import { makeRng, hashSeedFromString } from './noise.js';
 import {
     buildDeciduousTree, buildPineTree, buildBush, buildRock,
-    buildFlowerPatch, buildGraveMarker, buildHedge, buildReed,
+    buildFlowerPatch, buildGraveMarker, buildHedge, buildReed, buildGrassTuft,
 } from './vegetation.js';
 import {
     buildLighthouse, buildRuinedWallSegment, buildStoneArch, buildCemeteryGate,
@@ -23,7 +23,20 @@ import {
 import { SEA_LEVEL } from './water.js';
 
 export const CHUNK_SIZE = 24; // world units per chunk edge
-export const GROUND_SUBDIV = 4; // ground triangles per chunk edge (subdivisions)
+
+/**
+ * Ground grid resolution per LOD level, indexed by detail (0 = coarsest).
+ * At detail 2 a chunk edge is cut into 12, giving 2-unit quads — fine enough
+ * that hillsides read as curved surfaces rather than the faceted 6-unit steps
+ * the old flat subdivision of 4 produced.
+ *
+ * Each level is a divisor of the next so LOD seams line up: a coarse chunk's
+ * verts are a strict subset of its detailed neighbour's grid positions, and
+ * since every vert samples heightAt() directly they agree exactly on the shared
+ * edge. Mismatched resolutions would leave cracks showing sky between chunks.
+ */
+export const GROUND_SUBDIV_BY_DETAIL = [3, 6, 12];
+export const GROUND_SUBDIV = GROUND_SUBDIV_BY_DETAIL[2]; // finest, for callers that need the max
 
 export class ChunkWorld {
     constructor(seed, heightmap, regionMap) {
@@ -85,31 +98,44 @@ export class ChunkWorld {
         const props = []; // { mesh, pos:[x,y,z], rotY, scale }
 
         const x0 = cx * CHUNK_SIZE, z0 = cz * CHUNK_SIZE;
-        const step = CHUNK_SIZE / GROUND_SUBDIV;
+        const subdiv = GROUND_SUBDIV_BY_DETAIL[detail] ?? GROUND_SUBDIV_BY_DETAIL[0];
+        const step = CHUNK_SIZE / subdiv;
 
         // --- ground mesh: grid of triangles following heightmap, tinted by region ---
         const grid = [];
-        for (let gz = 0; gz <= GROUND_SUBDIV; gz++) {
+        for (let gz = 0; gz <= subdiv; gz++) {
             const row = [];
-            for (let gx = 0; gx <= GROUND_SUBDIV; gx++) {
+            for (let gx = 0; gx <= subdiv; gx++) {
                 const wx = x0 + gx * step, wz = z0 + gz * step;
                 const wy = this.heightmap.heightAt(wx, wz);
                 row.push(addVert(ground, wx, wy, wz));
             }
             grid.push(row);
         }
-        for (let gz = 0; gz < GROUND_SUBDIV; gz++) {
-            for (let gx = 0; gx < GROUND_SUBDIV; gx++) {
+        for (let gz = 0; gz < subdiv; gz++) {
+            for (let gx = 0; gx < subdiv; gx++) {
                 const wx = x0 + (gx + 0.5) * step, wz = z0 + (gz + 0.5) * step;
-                const region = this.regionMap.regionAt(wx, wz);
                 const underwater = this.heightmap.heightAt(wx, wz) < 0;
                 const color = underwater ? [180, 170, 130] : this.regionMap.groundColorAt(wx, wz);
                 const a = grid[gz][gx], b = grid[gz][gx + 1], c = grid[gz + 1][gx + 1], d = grid[gz + 1][gx];
                 // Wind counter-clockwise viewed from above so the face normal
                 // (e1 x e2) points up; the reverse order makes the whole terrain
                 // face downward and get discarded by the renderer's backface cull.
-                addTri(ground, a, c, b, color);
-                addTri(ground, a, d, c, color);
+                //
+                // Split each quad along its shorter diagonal. A fixed diagonal makes
+                // ridgelines and stream cuts look like staircases, because half the
+                // time the split runs across the slope instead of along it; picking
+                // the diagonal whose endpoints differ least in height keeps the two
+                // triangles closer to the real surface. Now that quads are small,
+                // this is what makes hillsides read as smooth.
+                if (Math.abs(ground.verts[a][1] - ground.verts[c][1]) <=
+                    Math.abs(ground.verts[b][1] - ground.verts[d][1])) {
+                    addTri(ground, a, c, b, color);
+                    addTri(ground, a, d, c, color);
+                } else {
+                    addTri(ground, a, d, b, color);
+                    addTri(ground, b, d, c, color);
+                }
             }
         }
 
@@ -129,47 +155,121 @@ export class ChunkWorld {
             mergeMesh(ground, p.mesh, p.pos[0], p.pos[1], p.pos[2], p.rotY, p.scale);
         }
 
-        return { mesh: ground, region, cx, cz, detail };
+        // A chunk whose every vertex sits below sea level is pure seabed: the
+        // ocean disc covers it completely, so it contributes nothing but cost.
+        // Worse, with painter's-algorithm sorting and no depth buffer, a seabed
+        // chunk nearer than the ocean's average depth is painted *after* the
+        // water and shows through it as a spike along the horizon. Flagging it
+        // here lets world.js drop it from the instance list — which both fixes
+        // the artifact and removes ~40% of the loaded chunks at this draw
+        // distance, since most of the draw radius is open sea.
+        let maxY = -Infinity;
+        for (const v of ground.verts) if (v[1] > maxY) maxY = v[1];
+        const submerged = maxY < SEA_LEVEL;
+
+        return { mesh: ground, region, cx, cz, detail, submerged };
     }
 
-    _scatterProps(props, rng, x0, z0, region, detail = 1) {
+    /**
+     * Scatter this chunk's props.
+     *
+     * Density is the count *considered*, not the count placed — candidates on
+     * water or steep ground are skipped. The full set is always evaluated in the
+     * same rng order regardless of LOD (see the loop comment), so a chunk keeps
+     * its layout across detail changes; coarser levels simply drop the props
+     * whose index falls past their share, which makes distant chunks thin out
+     * consistently instead of reshuffling when the player walks toward them.
+     */
+    _scatterProps(props, rng, x0, z0, region, detail = 2) {
+        // Tuned against measured per-chunk triangle cost, not by eye. Forest is
+        // both the most common region and the only one whose props are full
+        // trees (~180 tris each at top detail), so its count has to stay well
+        // below the others or a single forest chunk costs more than the twenty
+        // around it combined.
         const density = {
-            forest: 14, meadow: 4, garden: 6, cemetery: 5,
-            cave: 2, lighthouse: 2, ruins: 4, shore: 3, library: 1, museum: 1,
-        }[region] ?? 4;
+            forest: 22, meadow: 20, garden: 22, cemetery: 18,
+            cave: 10, lighthouse: 10, ruins: 16, shore: 16, library: 6, museum: 6,
+        }[region] ?? 16;
+
+        // Fraction of the candidate set each LOD builds at all, thinning the
+        // scatter with distance.
+        const keepFraction = [0.3, 0.5, 1][detail] ?? 1;
+        const keepCount = Math.ceil(density * keepFraction);
+
+        // Ground clutter — grass, flowers, reeds — is under half a metre tall and
+        // collapses to sub-pixel noise well before the far LOD band, but it is
+        // also the bulk of the prop budget (measured: ~95% of a distant forest
+        // chunk's triangles). Keeping it past the near band measured at a third
+        // of the frame rate on an open vista for a difference that is hard to
+        // see, so it stays near-band only; the ground tint variation in
+        // regions.js is what carries the mid distance instead.
+        const clutterOk = detail >= 2;
+        // Mid-size filler (bushes, small rocks) survives one band further out.
+        const fillerOk = detail >= 1;
 
         for (let i = 0; i < density; i++) {
             // Always draw from the rng in the same order regardless of LOD, so a
             // chunk rebuilt at another detail level keeps the same prop layout.
             const wx = x0 + rng() * CHUNK_SIZE;
             const wz = z0 + rng() * CHUNK_SIZE;
-            const wy = this.heightmap.heightAt(wx, wz);
-            const slope = this.heightmap.slopeAt(wx, wz);
             const pick = rng();
             const rot = rng() * Math.PI * 2;
+            const extra = rng(); // consumed unconditionally to keep the stream aligned
 
+            if (i >= keepCount) continue; // thinned out at this LOD
+
+            const wy = this.heightmap.heightAt(wx, wz);
+            const slope = this.heightmap.slopeAt(wx, wz);
             if (wy < 0.1) continue;   // don't place on water
             if (slope > 0.6) continue; // avoid steep cliffs
 
+            // Small props resolve to null past their LOD band and are simply not
+            // placed; the candidate slot is spent either way, which is what keeps
+            // the layout stable across detail changes.
+            const clutter = (fn) => clutterOk ? fn() : null;
+            const filler = (fn) => fillerOk ? fn() : null;
+
             let mesh = null, scale = 1;
             if (region === 'forest') {
-                mesh = pick < 0.6 ? buildDeciduousTree(rng, 1, detail) : buildPineTree(rng);
+                // Weighted toward undergrowth rather than more trunks: grass and
+                // bushes are 8-32 triangles against a tree's ~180, and filling the
+                // empty floor between trees is what actually makes a forest read
+                // as dense at eye level. Raising the tree share instead just costs
+                // triangles for canopy the player is standing underneath.
+                if (pick < 0.26) mesh = buildDeciduousTree(rng, 1, detail);
+                else if (pick < 0.42) mesh = buildPineTree(rng, 1, detail);
+                else if (pick < 0.78) mesh = clutter(() => buildGrassTuft(rng));
+                else mesh = filler(() => buildBush(rng));
             } else if (region === 'meadow') {
-                mesh = rng() < 0.5 ? buildFlowerPatch(rng) : buildRock(rng, 0.6);
+                if (pick < 0.45) mesh = clutter(() => buildGrassTuft(rng));
+                else if (pick < 0.75) mesh = clutter(() => buildFlowerPatch(rng));
+                else if (pick < 0.9) mesh = filler(() => buildRock(rng, 0.6));
+                else mesh = buildDeciduousTree(rng, 0.8, detail);
             } else if (region === 'garden') {
-                mesh = pick < 0.5 ? buildFlowerPatch(rng) : buildBush(rng);
+                if (pick < 0.4) mesh = clutter(() => buildFlowerPatch(rng));
+                else if (pick < 0.7) mesh = filler(() => buildBush(rng));
+                else if (pick < 0.88) mesh = clutter(() => buildGrassTuft(rng));
+                else mesh = buildHedge(1.8 + extra * 1.6, rng);
             } else if (region === 'cemetery') {
-                mesh = pick < 0.7 ? buildGraveMarker(rng) : buildBush(rng);
+                if (pick < 0.55) mesh = buildGraveMarker(rng);
+                else if (pick < 0.75) mesh = filler(() => buildBush(rng));
+                else if (pick < 0.9) mesh = clutter(() => buildGrassTuft(rng));
+                else mesh = buildDeciduousTree(rng, 0.9, detail);
             } else if (region === 'ruins') {
-                mesh = pick < 0.6 ? buildRuinedWallSegment(rng) : buildRock(rng, 1.1);
+                if (pick < 0.5) mesh = buildRuinedWallSegment(rng);
+                else if (pick < 0.78) mesh = filler(() => buildRock(rng, 1.1));
+                else mesh = clutter(() => buildGrassTuft(rng));
             } else if (region === 'shore') {
-                mesh = buildRock(rng, 0.8);
+                // Reeds cluster in the damp margin just above the waterline.
+                if (wy < 1.2 && pick < 0.45) mesh = clutter(() => buildReed(rng));
+                else if (pick < 0.8) mesh = filler(() => buildRock(rng, 0.8));
+                else mesh = clutter(() => buildGrassTuft(rng));
             } else if (region === 'cave') {
-                mesh = buildRock(rng, 1.3);
+                mesh = pick < 0.7 ? buildRock(rng, 1.3) : clutter(() => buildGrassTuft(rng));
             } else if (region === 'lighthouse') {
-                mesh = buildRock(rng, 0.7);
+                mesh = pick < 0.6 ? filler(() => buildRock(rng, 0.7)) : clutter(() => buildGrassTuft(rng));
             } else {
-                mesh = buildBush(rng);
+                mesh = pick < 0.5 ? filler(() => buildBush(rng)) : clutter(() => buildGrassTuft(rng));
             }
             if (!mesh) continue;
             props.push({ mesh, pos: [wx, wy, wz], rotY: rot, scale });

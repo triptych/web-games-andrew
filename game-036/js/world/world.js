@@ -13,7 +13,7 @@ import { buildCloud } from './sky.js';
 import { buildBird, buildGroundCritter, Bird, Critter } from './fauna.js';
 import { generateCavePath, buildCaveTunnel, buildCrystalCluster } from './cave.js';
 import { makeRng, hashSeedFromString } from './noise.js';
-import { ISLAND_RADIUS, OCEAN_OUTER_RADIUS, DRAW_DISTANCE, LOD_DISTANCE, CHUNK_UNLOAD_DISTANCE } from '../config.js';
+import { ISLAND_RADIUS, OCEAN_OUTER_RADIUS, DRAW_DISTANCE, LOD_NEAR, LOD_FAR, CHUNK_UNLOAD_DISTANCE } from '../config.js';
 
 export class World {
     constructor(seed) {
@@ -23,7 +23,9 @@ export class World {
         this.regionMap = new RegionMap(seed, ISLAND_RADIUS, this.heightmap);
         this.chunks = new ChunkWorld(seed, this.heightmap, this.regionMap);
 
-        this.oceanMesh = buildOceanMesh(ISLAND_RADIUS, OCEAN_OUTER_RADIUS);
+        // The heightmap lets the ocean builder omit surface buried under dry
+        // land, which a depth-bufferless painter's sort cannot hide correctly.
+        this.oceanMesh = buildOceanMesh(ISLAND_RADIUS, OCEAN_OUTER_RADIUS, 96, this.heightmap);
 
         this._buildStreams();
         this._buildClouds();
@@ -32,28 +34,39 @@ export class World {
 
         this._lastCullCenter = null;
         this._visibleCache = [];
+        // Max chunk (re)builds per frame — see getVisibleInstances(). Chunk
+        // meshes at detail 2 are a few thousand triangles each, so building an
+        // unbounded number in one frame is the one remaining way to stutter.
+        this._chunkBuildBudget = 3;
     }
 
     _buildStreams() {
         const rng = makeRng(this.seed + 555);
         this.streamMeshes = [];
-        const sources = 3;
+        // More sources now that far more of the island is visible at once — with a
+        // 260-unit horizon you can see several drainages from one ridge.
+        const sources = 6;
         for (let i = 0; i < sources; i++) {
             const a = rng() * Math.PI * 2;
             const d = 0.15 + rng() * 0.1;
             const sx = Math.cos(a) * d * ISLAND_RADIUS;
             const sz = Math.sin(a) * d * ISLAND_RADIUS;
             const pts = traceStream(this.heightmap, sx, sz, rng);
-            if (pts.length > 2) this.streamMeshes.push(buildStreamMesh(pts));
+            // Pass the heightmap so each bank vertex drapes onto its own ground
+            // height instead of inheriting the centreline's — see water.js.
+            if (pts.length > 2) this.streamMeshes.push(buildStreamMesh(pts, 1.6, this.heightmap));
         }
     }
 
     _buildClouds() {
         const rng = makeRng(this.seed + 999);
         this.clouds = [];
-        for (let i = 0; i < 14; i++) {
+        // Clouds are exempt from the far cull and only a handful of triangles
+        // each, so a fuller sky is nearly free and gives the bigger horizon
+        // something to hold.
+        for (let i = 0; i < 40; i++) {
             const a = rng() * Math.PI * 2;
-            const d = rng() * ISLAND_RADIUS * 1.3;
+            const d = rng() * ISLAND_RADIUS * 1.6;
             this.clouds.push({
                 mesh: buildCloud(rng),
                 pos: [Math.cos(a) * d, 34 + rng() * 14, Math.sin(a) * d],
@@ -210,7 +223,7 @@ export class World {
     _buildFauna() {
         const rng = makeRng(this.seed + 3033);
         this.birds = [];
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 26; i++) {
             const a = rng() * Math.PI * 2;
             const d = rng() * ISLAND_RADIUS * 0.7;
             this.birds.push(new Bird(
@@ -224,7 +237,7 @@ export class World {
         }
 
         this.critters = [];
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 34; i++) {
             const a = rng() * Math.PI * 2;
             const d = rng() * ISLAND_RADIUS * 0.55;
             const home = [Math.cos(a) * d, 0, Math.sin(a) * d];
@@ -281,31 +294,78 @@ export class World {
 
         // Ocean + clouds are backdrop: exempt from the far-plane cull so the horizon
         // always reads as water and sky rather than the edge of the loaded chunks.
-        out.push({ mesh: this.oceanMesh, pos: [0, 0, 0], rotY: 0, scale: 1, noFarCull: true, doubleSided: true });
+        // depthBias pushes the sea to the back of the painter's sort. The ocean
+        // is one enormous ground plane reaching to the horizon, so its
+        // per-triangle average depth is a poor sort key against terrain — an
+        // offshore quad can average nearer than the hill standing in front of
+        // it. Nothing is ever behind the water (seabed chunks are skipped
+        // below), so forcing it to the back is always correct.
+        out.push({
+            mesh: this.oceanMesh, pos: [0, 0, 0], rotY: 0, scale: 1,
+            noFarCull: true, doubleSided: true, depthBias: 10000,
+        });
         // Streams are double-sided: a traced ribbon follows arbitrary headings, so
         // its winding isn't consistent enough to rely on backface culling.
-        for (const s of this.streamMeshes) out.push({ mesh: s, pos: [0, 0, 0], rotY: 0, scale: 1, doubleSided: true });
+        //
+        // The small NEGATIVE depthBias is the opposite case to the ocean's large
+        // positive one. A stream lies only ~0.12 above the ground it drapes over,
+        // so it and the ground quad beneath it are nearly coplanar and their
+        // average depths are nearly equal — the sort between them is a coin flip
+        // that changes as the camera moves, and whenever the ground wins it
+        // overpaints the ribbon and eats a wedge out of it. Biasing the stream
+        // slightly nearer makes it win those ties consistently. Kept small (well
+        // under the terrain quad size) so it only breaks genuine near-ties and
+        // doesn't let a stream show through a hill that's really in front of it.
+        for (const s of this.streamMeshes) {
+            out.push({ mesh: s, pos: [0, 0, 0], rotY: 0, scale: 1, doubleSided: true, depthBias: -0.35 });
+        }
         // The cave mouth stays visible from outside so the entrance reads as a hole
         // in the hillside; only the deep interior is swapped out above.
         if (this.caveMesh) out.push({ mesh: this.caveMesh, pos: [0, 0, 0], rotY: 0, scale: 1, doubleSided: true });
         for (const c of this.caveCrystals) out.push(c);
 
-        // Chunks past LOD_DISTANCE build their vegetation at reduced detail. Trees
-        // are the bulk of the island's triangles, and beyond ~45 units only their
-        // silhouette survives on screen, so the extra faces buy nothing.
+        // Three LOD bands. Both the ground grid and the vegetation get cheaper
+        // with distance: trees are the bulk of the island's triangles and beyond
+        // ~60 units only their silhouette survives, while the terrain grid can
+        // drop from 2-unit to 8-unit quads before the change is visible. This is
+        // what makes a 260-unit draw distance affordable — the far two thirds of
+        // it costs a small fraction of what the near band does.
+        //
+        // Chunk rebuilds are budgeted per frame: crossing a band boundary at a
+        // run can otherwise ask for a dozen rebuilds at once and drop a frame.
+        // Anything over budget renders at whatever detail it already has (or is
+        // skipped if it has never been built) and is picked up next frame.
+        let rebuildBudget = this._chunkBuildBudget;
         for (const { cx, cz, d } of nearby) {
-            // Hysteresis band around LOD_DISTANCE: a chunk only upgrades once it's
-            // clearly inside the threshold and only downgrades once clearly outside.
-            // Switching on a single distance would rebuild every frame for a player
-            // standing right at the boundary.
+            // Hysteresis around each boundary: a chunk only upgrades once clearly
+            // inside the threshold and only downgrades once clearly outside.
+            // Switching on a single distance would rebuild every frame for a
+            // player standing right at a boundary.
             const key = this.chunks.key(cx, cz);
             const current = this.chunks.cache.get(key);
             let detail;
-            if (d < LOD_DISTANCE * 0.85) detail = 1;
-            else if (d > LOD_DISTANCE * 1.15) detail = 0;
-            else detail = current ? current.detail : (d > LOD_DISTANCE ? 0 : 1);
+            if (d < LOD_NEAR * 0.85) detail = 2;
+            else if (d < LOD_FAR * 0.85) detail = current && current.detail === 2 && d < LOD_NEAR * 1.15 ? 2 : 1;
+            else if (d > LOD_FAR * 1.15) detail = 0;
+            else detail = current ? Math.min(current.detail, 1) : 0;
+
+            // Seabed never renders, so re-detailing it would spend the frame's
+            // build budget on geometry nobody sees. Its submerged-ness doesn't
+            // depend on LOD, so whatever level it was first built at stands.
+            if (current && current.submerged) continue;
+
+            if (current && current.detail !== detail) {
+                if (rebuildBudget > 0) rebuildBudget--;
+                else detail = current.detail; // keep the stale LOD this frame
+            } else if (!current) {
+                if (rebuildBudget > 0) rebuildBudget--;
+                else continue; // not built yet and out of budget — try next frame
+            }
 
             const chunk = this.chunks.getChunk(cx, cz, detail);
+            // Pure seabed — the ocean disc hides it, and without a depth buffer
+            // drawing it anyway makes it stab through the water. See chunk.js.
+            if (chunk.submerged) continue;
             out.push({ mesh: chunk.mesh, pos: [0, 0, 0], rotY: 0, scale: 1 });
         }
 
@@ -321,6 +381,11 @@ export class World {
                 scale: 1,
                 noFarCull: true,
                 noFogFade: true,
+                // Seen from below almost always, and the blobs are jittered
+                // enough that a stray inverted face would show as a dark notch.
+                doubleSided: true,
+                // Clouds are the one thing genuinely behind everything else.
+                depthBias: 20000,
             });
         }
 

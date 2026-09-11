@@ -3,20 +3,44 @@
 // ============================================================
 
 export const ISLAND_RADIUS = 260;
-export const OCEAN_OUTER_RADIUS = ISLAND_RADIUS * 1.8;
+// The ocean disc must reach past RENDER_FAR, not just past the island: it opts
+// out of the far-plane cull so it can be the horizon, and if its outer edge
+// falls inside the view distance you see sky through the gap beyond it and the
+// disc's polygon edge shows up as a ring of spikes against the skyline.
+export const OCEAN_OUTER_RADIUS = 900;
 
-export const DRAW_DISTANCE = 105;     // world units — chunk render radius
-export const LOD_DISTANCE = 45;       // beyond this, chunks rebuild props at low detail
-export const CHUNK_UNLOAD_DISTANCE = 160; // evict cached chunks beyond this to bound memory
+// Draw distance is affordable because the renderer rejects whole instances by
+// bounding sphere against the view frustum (renderer.js), so only the ~quarter
+// of loaded chunks actually in front of the camera costs anything per frame.
+// Chunks past LOD_NEAR/LOD_FAR drop to progressively cheaper geometry, which is
+// what keeps the far half of this radius nearly free.
+export const DRAW_DISTANCE = 260;     // world units — chunk render radius
+// The near band is the expensive one: a full-detail chunk is ~10x a mid one and
+// ~15x a far one, so the radius at which it ends is the main framerate control
+// — more so than DRAW_DISTANCE, since the outer ring is mostly cheap terrain.
+// This keeps the detailed shell to roughly a dozen chunks, which is what an
+// open hilltop view (the worst case — it sees every band at once) can afford.
+// 38 put the detail-2 -> detail-1 step inside the foreground: trees maybe ten
+// tree-heights away visibly shed canopy blobs and branches while in plain view.
+// 52 moves the step back far enough that it lands in the mid-ground, where the
+// crown-fill compensation in vegetation.js covers the rest.
+export const LOD_NEAR = 52;           // within this, full detail props + ground
+export const LOD_FAR = 105;           // beyond this, coarsest props + ground
+export const CHUNK_UNLOAD_DISTANCE = 340; // evict cached chunks beyond this to bound memory
 
 // Fog must finish fading *before* DRAW_DISTANCE, otherwise chunks are culled at
 // full colour and pop in as hard-edged blocks. Ending it a little short of the
 // draw radius means terrain has already dissolved into haze by the time it's
 // dropped. RENDER_FAR sits beyond both so the ocean and clouds still reach the
 // horizon (they opt out of the far-plane cull — see renderer.js).
-export const FOG_NEAR = 55;
-export const FOG_FAR = 100;
-export const RENDER_FAR = 400;
+//
+// Fog starts proportionally much later than it used to: at a 105-unit draw
+// distance haze had to begin at ~55 to hide the edge, which greyed out the
+// mid-ground. With the horizon pushed to 260 the fade can stay in the last
+// third, so the island reads sharp out to a genuine distance.
+export const FOG_NEAR = 150;
+export const FOG_FAR = 250;
+export const RENDER_FAR = 620;
 
 export const PLAYER_EYE_HEIGHT = 1.7;
 export const PLAYER_RADIUS = 0.4;
