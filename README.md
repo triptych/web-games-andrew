@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-36 games, `game-001` through `game-036`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+37 games, `game-001` through `game-037`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -48,6 +48,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 | 034 | [Idle Delve](game-034/) | Idle / incremental dungeon crawler | Vanilla JS (Canvas 2D) |
 | 035 | [N2 Overdrive](game-035/) | Neon tube shooter | Phaser 4 |
 | 036 | [Island Walker](game-036/) | First-person procedural walking simulator | Custom software 3D rasterizer |
+| 037 | [Lanternwake](game-037/) | Turn-based roguelike / Zelda-like fusion | Vanilla JS, no dependencies |
 
 ### Highlights
 
@@ -76,6 +77,8 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 **[Idle Delve](game-034/)** — Idle/incremental dungeon crawler, **fully vanilla JS with zero image assets** — a raw Canvas 2D renderer draws every room, hero, and monster as procedural shapes. A party auto-battles room by room through a procedurally generated dungeon, even while the tab is closed (offline catch-up simulation on reload); bank the gold to recruit heroes and buy permanent stat/gold-find/deeper-floor upgrades in the Town panel between runs.
 
 **[Island Walker](game-036/)** — First-person walking simulator on a wholly procedural island, rendered by a **3D engine written from scratch — no three.js, no WebGL**: JavaScript transforms, culls, lights and depth-sorts every triangle into a 2D canvas. Terrain, trees, streams, a sea cave, clouds and buildings all generate from one seed, so every reload is a new island. Wander the forest, lighthouse point, cemetery, garden and ancient ruins to recover 10 lost books and 8 artifacts, then carry them home — the Library's shelves and the Museum's pedestals visibly fill with everything you return. No enemies, no fail state. Engine notes and gotchas in [docs/software3d/](docs/software3d/software3d-api.md).
+
+**[Lanternwake](game-037/)** — Turn-based roguelike / Zelda-like fusion about a lantern-keeper walking a country where the lights have been going out. **Vanilla JS with no dependencies, no build step and no asset files whatsoever** — every sprite is drawn in code from declarative recipes, every sound is synthesised, and the whole 1536×1536 world is a pure function of one seed string. The overworld persists and remembers what you did to it; the Hollows underneath re-knit themselves on every descent, generated mission-first (a graph of keys, locks, puzzles and a boss, embedded into one of five layout algorithms). People come before quests: needs are generated from who somebody is, and a quest whose object cannot be resolved to a real thing is discarded rather than faked. You cannot die — you wake, and lose the light you had and the hours you had left. Design decisions and deviations from the spec are in [game-037/DECISIONS.md](game-037/DECISIONS.md); the test harness runs with no tooling at [game-037/test/harness.html](game-037/test/harness.html).
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -146,7 +149,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-036/   # One self-contained folder per game
+├── game-001/ … game-037/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -203,7 +206,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 36 games are included as of the latest entries (game-035 N2 Overdrive, game-036 Island Walker).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 37 games are included as of the latest entries (game-035 N2 Overdrive, game-036 Island Walker, game-037 Lanternwake).
 
 ---
 

@@ -1,0 +1,101 @@
+// ============================================================
+// data/objects.js - the object layer table. APPEND ONLY.
+// Objects sit above ground: trees, walls, doors, props, stairs.
+// ============================================================
+
+const o = (id, key, name, opt = {}) => ({
+  id, key, name,
+  solid: opt.solid !== false, opaque: !!opt.opaque, burn: opt.burn ?? 0,
+  sprite: opt.sprite ?? key, tall: !!opt.tall, prop: !!opt.prop,
+  verb: opt.verb ?? null,          // the context verb this object offers
+  container: !!opt.container, door: opt.door ?? null, cost: opt.cost ?? 0,
+  chop: !!opt.chop, desc: opt.desc ?? '', forage: opt.forage ?? null,
+});
+
+export const OBJECTS = [
+  o(0, 'none', '', { solid: false }),
+  o(1, 'oak', 'oak', { opaque: true, tall: true, burn: 2, chop: true, desc: 'An oak with a lot of years in it.' }),
+  o(2, 'birch', 'birch', { opaque: true, tall: true, burn: 2, chop: true, desc: 'Birch, pale and leaning.' }),
+  o(3, 'pine', 'pine', { opaque: true, tall: true, burn: 3, chop: true, desc: 'A pine. It smells of resin.' }),
+  o(4, 'dead_tree', 'dead tree', { opaque: true, tall: true, burn: 3, chop: true, desc: 'Dead, but still standing.' }),
+  o(5, 'bush', 'bush', { solid: false, cost: 30, burn: 2, desc: 'A bush with a bird in it.' }),
+  o(6, 'berry_bush', 'berry bush', { solid: false, cost: 30, burn: 2, prop: true, verb: 'take', forage: 'berries', desc: 'Berries, a few still good.' }),
+  o(7, 'rock', 'rock', { desc: 'A rock with lichen on the top.' }),
+  o(8, 'boulder', 'boulder', { opaque: true, tall: true, desc: 'A boulder somebody once sat behind.' }),
+  o(9, 'reeds_tall', 'tall reeds', { solid: false, opaque: true, cost: 40, burn: 3, desc: 'Reeds over your head.' }),
+  o(10, 'fallen_log', 'fallen log', { solid: false, cost: 40, burn: 2, prop: true, verb: 'search', desc: 'A log going soft in the middle.' }),
+  o(11, 'stump', 'stump', { solid: false, cost: 20, burn: 1, desc: 'A stump, cut clean.' }),
+  o(12, 'cairn', 'cairn', { prop: true, verb: 'examine', desc: 'Stones piled by hand. Someone counted them.' }),
+  o(13, 'standing_stone', 'standing stone', { tall: true, opaque: true, prop: true, verb: 'examine', desc: 'A stone stood on end, long ago.' }),
+  o(14, 'shrine', 'shrine', { prop: true, verb: 'pray', desc: 'A small shrine with a cup of rain in it.' }),
+  o(15, 'grave', 'grave', { solid: false, prop: true, verb: 'examine', desc: 'A grave with a name half gone.' }),
+  o(16, 'old_wall', 'old wall', { desc: 'A wall that stopped being a building.' }),
+  o(17, 'beehive', 'bee-skep', { prop: true, verb: 'take', forage: 'honey', desc: 'A skep. The bees are working.' }),
+  o(18, 'boat_wreck', 'wrecked boat', { solid: false, cost: 40, prop: true, verb: 'search', desc: 'A boat pulled up and left.' }),
+  o(19, 'abandoned_camp', 'cold camp', { solid: false, prop: true, verb: 'search', desc: 'A fire-ring, long cold.' }),
+  o(20, 'wall_stone', 'stone wall', { opaque: true, tall: true, desc: 'A built wall.' }),
+  o(21, 'wall_timber', 'timber wall', { opaque: true, tall: true, burn: 2, desc: 'Timber, tarred against the wet.' }),
+  o(22, 'wall_cob', 'cob wall', { opaque: true, tall: true, desc: 'Cob, whitewashed once.' }),
+  o(23, 'door', 'door', { prop: true, verb: 'open', door: 'plain', opaque: true, desc: 'A door on leather hinges.' }),
+  o(24, 'door_open', 'open door', { solid: false, prop: true, verb: 'close', desc: 'A door standing open.' }),
+  o(25, 'door_locked', 'locked door', { prop: true, verb: 'open', door: 'locked', opaque: true, desc: 'Locked. There will be a key.' }),
+  o(26, 'door_warded', 'warded door', { prop: true, verb: 'open', door: 'warded', opaque: true, desc: 'A ward, cut into the frame. It hums a little.' }),
+  o(27, 'door_sealed', 'sealed door', { prop: true, verb: 'open', door: 'sealed', opaque: true, desc: 'Sealed with pitch and time.' }),
+  o(28, 'window', 'window', { opaque: false, tall: true, desc: 'A window with a light behind it.' }),
+  o(29, 'chest', 'chest', { prop: true, verb: 'open', container: true, desc: 'A chest. The lid is not heavy.' }),
+  o(30, 'barrel', 'barrel', { prop: true, verb: 'open', container: true, burn: 2, desc: 'A barrel that smells of apples.' }),
+  o(31, 'crate', 'crate', { prop: true, verb: 'open', container: true, burn: 2, desc: 'A crate with a rope handle.' }),
+  o(32, 'sack', 'sack', { solid: false, prop: true, verb: 'open', container: true, desc: 'A sack, half full.' }),
+  o(33, 'bed', 'bed', { solid: false, prop: true, verb: 'sleep', desc: 'A bed with a wool blanket.' }),
+  o(34, 'table', 'table', { prop: true, verb: 'examine', burn: 2, desc: 'A table scrubbed pale.' }),
+  o(35, 'stool', 'stool', { solid: false, prop: true, verb: 'sit', burn: 2, desc: 'A three-legged stool.' }),
+  o(36, 'hearth', 'hearth', { solid: false, prop: true, verb: 'rest', desc: 'A hearth with a fire in it.' }),
+  o(37, 'anvil', 'anvil', { prop: true, verb: 'repair', desc: 'An anvil, ringing faintly if you touch it.' }),
+  o(38, 'mortar', 'mortar', { prop: true, verb: 'identify', desc: 'A mortar with green dust in the grain.' }),
+  o(39, 'loom', 'loom', { prop: true, verb: 'examine', burn: 2, desc: 'A loom with a half-finished piece on it.' }),
+  o(40, 'notice_board', 'notice board', { prop: true, verb: 'read', desc: 'A board with work pinned to it.' }),
+  o(41, 'well', 'well', { prop: true, verb: 'examine', desc: 'A well with a rope and no bucket.' }),
+  o(42, 'bell_frame', 'bell-frame', { prop: true, verb: 'ring', desc: 'A frame, and a bell in it.' }),
+  o(43, 'wash_line', 'wash-line', { solid: false, prop: true, verb: 'examine', desc: 'A line of washing, nearly dry.' }),
+  o(44, 'wood_stack', 'wood-stack', { prop: true, verb: 'take', forage: 'firewood', desc: 'Split wood, stacked by someone careful.' }),
+  o(45, 'sign', 'sign', { prop: true, verb: 'read', desc: 'A sign, weathered.' }),
+  o(46, 'hollow_mouth', 'hollow-mouth', { solid: false, prop: true, verb: 'enter', tall: true, desc: 'A stair going down into the dark.' }),
+  o(47, 'stair_down', 'stair down', { solid: false, prop: true, verb: 'descend', desc: 'Steps going further down.' }),
+  o(48, 'stair_up', 'stair up', { solid: false, prop: true, verb: 'ascend', desc: 'Steps going up.' }),
+  o(49, 'sconce', 'sconce', { prop: true, verb: 'light', desc: 'An iron sconce, unlit.' }),
+  o(50, 'sconce_lit', 'lit sconce', { prop: true, verb: 'examine', desc: 'A sconce burning steadily.' }),
+  o(51, 'standing_lantern', 'standing lantern', { prop: true, verb: 'light', desc: 'A keeper\'s lantern on a post. It has not been lit in years.' }),
+  o(52, 'standing_lantern_lit', 'lit lantern', { prop: true, verb: 'examine', desc: 'The lantern burns. The dark backs off.' }),
+  o(53, 'pillar', 'pillar', { opaque: true, tall: true, desc: 'A pillar holding up more than it should.' }),
+  o(54, 'rubble_pile', 'rubble', { solid: false, cost: 40, prop: true, verb: 'search', desc: 'Fallen stone you could stand on.' }),
+  o(55, 'cracked_wall', 'cracked wall', { opaque: true, tall: true, prop: true, verb: 'examine', desc: 'The mortar here has given up.' }),
+  o(56, 'buried_cache', 'disturbed earth', { solid: false, prop: true, verb: 'dig', desc: 'The ground here has been dug before.' }),
+  o(57, 'quiet_veil', 'veil', { solid: true, opaque: false, prop: true, verb: 'examine', desc: 'The air here refuses to be looked at.' }),
+  o(58, 'ledge_anchor', 'anchor stone', { solid: false, prop: true, verb: 'grapple', desc: 'A stone with a worn groove. Something was tied here.' }),
+  o(59, 'bridge', 'bridge', { solid: false, prop: true, verb: 'examine', burn: 2, desc: 'Planks over the water.' }),
+  o(60, 'pack', 'your pack', { solid: false, prop: true, verb: 'open', container: true, desc: 'The pack you dropped.' }),
+  o(61, 'boat', 'boat', { solid: false, prop: true, verb: 'enter', desc: 'A flat-bottomed boat.' }),
+  o(62, 'drying_rack', 'drying rack', { prop: true, verb: 'examine', burn: 2, desc: 'Herbs hung in bunches.' }),
+  o(63, 'forge', 'forge', { prop: true, verb: 'examine', desc: 'A forge banked for the night.' }),
+  o(64, 'market_stall', 'stall', { prop: true, verb: 'trade', desc: 'A stall with an awning.' }),
+  o(65, 'kitchen_garden', 'kitchen garden', { solid: false, prop: true, verb: 'take', forage: 'greens', desc: 'Beans, and something leafy.' }),
+  o(66, 'scarecrow', 'scarecrow', { prop: true, verb: 'examine', burn: 2, desc: 'A scarecrow in someone\'s old coat.' }),
+  o(67, 'goat_pen', 'pen', { solid: false, cost: 30, prop: true, verb: 'examine', desc: 'A pen. Goats regard you.' }),
+  o(68, 'mill_wheel', 'mill wheel', { tall: true, prop: true, verb: 'examine', desc: 'A wheel that has stopped turning.' }),
+  o(69, 'offering_bowl', 'offering bowl', { prop: true, verb: 'pray', desc: 'A bowl with three coins and a button in it.' }),
+  o(70, 'trap_pit', 'pit trap', { solid: false, prop: true, verb: 'examine', desc: 'A hole under a rug of sticks.' }),
+  o(71, 'sluice', 'sluice gate', { prop: true, verb: 'use', desc: 'A sluice gate. It has a handle, somewhere.' }),
+  o(72, 'crank', 'crank', { prop: true, verb: 'use', desc: 'A crank on a counterweight.' }),
+  o(73, 'nameplate', 'name-plate', { prop: true, verb: 'name', desc: 'A plate where a name has been scratched out.' }),
+  o(74, 'prize_stand', 'stand', { prop: true, verb: 'take', container: true, desc: 'A stand with something on it.' }),
+  o(75, 'stash', 'stash chest', { prop: true, verb: 'stash', desc: 'The keepers\' chest. Whatever you leave here, you can take from any inn.' }),
+  o(76, 'whetstone', 'whetstone', { prop: true, verb: 'repair', desc: 'A whetstone worn into a curve.' }),
+];
+
+export const O = {};
+for (const x of OBJECTS) O[x.key] = x.id;
+Object.freeze(O);
+for (const x of OBJECTS) Object.freeze(x);
+Object.freeze(OBJECTS);
+
+export const objDef = id => OBJECTS[id] || OBJECTS[0];

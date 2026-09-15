@@ -1,0 +1,6 @@
+{
+  "name": "lanternwake",
+  "private": true,
+  "type": "module",
+  "description": "Dev-only manifest so the node test harness can import the ES modules directly. The game itself needs no install and no build step."
+}

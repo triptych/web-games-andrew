@@ -557,6 +557,11 @@ h1 {
     color: #0a2418;
 }
 
+.game-card.lanternwake .play-button {
+    background: linear-gradient(135deg, #2b3040 0%, #e8b463 100%);
+    color: #1b1408;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
