@@ -518,7 +518,8 @@ strictly separate from the game:
 js/engine/   math, mesh, renderer, camera     — knows nothing about the game
 js/world/    noise, heightmap, regions, chunk, vegetation,
              structures, water, cave, sky, fauna, world
-js/game/     player, items, collections, interaction
+js/game/     player, items, collections, interaction,
+             mapstate, mapview, mapui
 js/          main, config, state, events, ui, sounds
 ```
 
@@ -535,6 +536,98 @@ if (new URLSearchParams(location.search).has('debug')) {
     window.__debugWorld = world;
 }
 ```
+
+---
+
+## Fog-of-war maps and 2D overlays over a 3D scene
+
+game-036's overmap is a grid the player fills in by walking. The pattern
+generalises to any world-exploration game, and splitting it three ways kept each
+piece testable: `mapstate` (data, no DOM), `mapview` (drawing, no state
+mutation), `mapui` (canvases, input, pointer lock).
+
+**Draw the grid through a 1px-per-cell offscreen canvas, not per-cell
+`fillRect`.** A ~94×94 grid is ~8,800 cells; filling each as its own rect every
+frame costs more than the entire 3D scene. Instead keep an offscreen canvas one
+pixel per cell, write it with `putImageData`, and blit it scaled with
+`imageSmoothingEnabled = false`:
+
+```js
+ctx.imageSmoothingEnabled = false;   // crisp cell edges, not a blurry smear
+ctx.drawImage(gridCanvas, x, y, size, size);
+```
+
+Rebuild the offscreen only when the explored count actually changes, so panning
+a minimap while standing still costs one `drawImage`.
+
+**Sample terrain colour lazily, once, on the frame a cell is revealed.** The
+sample is the expensive part (noise octaves + height + slope). Never sample a
+cell the player hasn't earned, and never twice. With that, revealing while
+walking costs ~0.2 ms in the worst frame and ~1 µs standing still.
+
+**Hard Voronoi region colours read as a political map from above.** They look
+fine in the 3D view — ground triangles are small and vegetation hides the seams
+— but at map scale the cell boundaries become straight lines of flat colour.
+Blend the nearest seeds by inverse distance (`1/(d²)^falloff`) instead. Tune
+`falloff` by measuring *both* properties rather than eyeballing it:
+
+| falloff | colour variety (sd) | worst adjacent-cell jump |
+|---|---|---|
+| unblended | 39 | 188 |
+| 1.1 | 22 (56%) | 37 (19%) |
+| 2.4 | 32 (83%) | 46 (24%) |
+| 3.5 | 35 (89%) | 61 (33%) |
+
+Too low and you dissolve every region into one wash — the failure is easy to
+miss because region *anchors* stay correct (the `+1` singularity guard makes a
+seed's own weight dominate); the washout is everywhere *between* anchors. Measure
+across the whole island, not at the anchors.
+
+**Add a hillshade or the map is a flat blob.** One `normalAt()` call per cell,
+lit from the north-west per cartographic convention, is what makes a ridge
+distinguishable from a valley.
+
+**An open full-screen map should freeze the simulation.** It takes the cursor, so
+mouse-look is gone anyway, and letting gravity run drops the player off whatever
+ledge they stopped on to check the map.
+
+**Releasing pointer lock deliberately collides with the Esc-to-pause hint.**
+Opening the map calls `exitLock()`, which fires `pointerlockchange`, which the
+usual handler reads as "the player pressed Esc" and answers with a
+click-to-resume overlay — stacked on top of the map. Have the map set a flag the
+lock handler consults:
+
+```js
+setLockHintVisible(started && !locked && !state.isComplete && !mapUI.suppressLockHint);
+```
+
+Keep the flag set across `close()`'s `requestLock()` too, or the hint flashes for
+a frame.
+
+**A `display:none` panel measures 0×0.** Sizing its canvas on load gives a
+zero-sized backing store and a blank first open. Re-measure in `open()`, after
+removing the hiding class. Size backing stores to CSS box × `devicePixelRatio`
+and `setTransform(dpr,...)` so 1px grid lines and 10px labels stay crisp.
+
+**Overlays survive the interior/cave scene swap for free**, since they live on
+their own 2D canvas layered over the game canvas — one of the few things that
+gets *easier* with a depth-bufferless renderer.
+
+**Nudge colliding map labels, and treat the player marker as an obstacle.**
+Independently placed region anchors can converge on the same shelf, overlapping
+their names into mush. A greedy pass — sort by importance, push each label down
+past whatever already occupies its slot — suffices for ~20 labels on a static
+map. Seed the occupied list with the player marker's box, or a region name gets
+written across the one thing you always need to find.
+
+**Prefer conservative symbols over emoji for map glyphs and toasts.** Emoji
+render at inconsistent sizes, ignore the monospace stack, and fall back to tofu
+boxes where a font is missing — visible in headless Chromium screenshots.
+`† ‡ ◒ ✿ ∏ ▤ ◊ ≈ ♣` all have coverage in standard monospace fonts.
+
+**Anchor an overlay's caption above its canvas, not below**, when the wrapper is
+bottom-anchored — below, it gets clipped against the viewport edge. And pad the
+opposite side of any full-width HUD line that shares the corner.
 
 ---
 

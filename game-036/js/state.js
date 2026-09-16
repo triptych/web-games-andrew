@@ -85,6 +85,26 @@ class GameState {
         }
     }
 
+    /**
+     * Overwrite progress wholesale from a save. Goes through here rather than
+     * letting save.js assign the private fields so the completion check and the
+     * progress event still fire exactly as they do during play — a save taken at
+     * the moment of completion must still light up the completion overlay.
+     *
+     * Carried counts come from the restored inventory rather than being stored
+     * twice; the pack is the source of truth for what is being carried.
+     */
+    restore({ collectedIds, booksShelved, artifactsDisplayed, carriedBooks, carriedArtifacts }) {
+        this.collectedIds = new Set(collectedIds || []);
+        this._booksShelved = booksShelved || 0;
+        this._artifactsDisplayed = artifactsDisplayed || 0;
+        this._carriedBooks = carriedBooks || 0;
+        this._carriedArtifacts = carriedArtifacts || 0;
+        this._complete = false;
+        this._emitProgress();
+        this._checkComplete();
+    }
+
     setRegion(name) {
         if (name !== this.currentRegion) {
             this.currentRegion = name;

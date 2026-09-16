@@ -12,6 +12,7 @@ import { makeRng } from '../world/noise.js';
 import { BOOK_COUNT, ARTIFACT_COUNT, PICKUP_RADIUS } from '../config.js';
 import { events } from '../events.js';
 import { state } from '../state.js';
+import { inventory } from './inventory.js';
 import { playPickupBook, playPickupArtifact } from '../sounds.js';
 
 const BOOK_TITLES = [
@@ -99,10 +100,16 @@ function _placeSet(rng, regionMap, heightmap, count, weights, kind, names, meshB
  * events + sounds, and hides collected items from the render list.
  */
 export class ItemManager {
-    constructor(books, artifacts) {
+    /**
+     * @param regionMap RegionMap, used only to record which region an item was
+     *        found in — the inventory shows it, and "the Cave" next to a find is
+     *        what makes the pack read as a record of a walk.
+     */
+    constructor(books, artifacts, regionMap) {
         this.books = books;
         this.artifacts = artifacts;
         this.all = [...books, ...artifacts];
+        this.regionMap = regionMap;
     }
 
     update(playerPos, dt, time) {
@@ -120,6 +127,11 @@ export class ItemManager {
 
     _collect(item) {
         item.collected = true;
+        const region = this.regionMap ? this.regionMap.regionAt(item.pos[0], item.pos[2]) : '';
+        // Into the pack before the counters, so anything listening to
+        // itemCollected (quests, the HUD, the save) sees a consistent world:
+        // the count and the pack contents always agree.
+        inventory.add({ id: item.id, kind: item.kind, name: item.name, region });
         if (item.kind === 'book') {
             state.collectBook(item.id);
             playPickupBook();
@@ -127,7 +139,7 @@ export class ItemManager {
             state.collectArtifact(item.id);
             playPickupArtifact();
         }
-        events.emit('itemCollected', { id: item.id, kind: item.kind, name: item.name });
+        events.emit('itemCollected', { id: item.id, kind: item.kind, name: item.name, region });
     }
 
     /** Instances ready for the renderer: gentle bob + spin, skip collected. */

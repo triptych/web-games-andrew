@@ -12,10 +12,10 @@ This directory is the **canonical reference for AI-assisted development** in thi
 - [threejs/threejs-api.md](threejs/threejs-api.md) — three.js r165 patterns used in this repo (import map, render loop, gotchas)
 
 ## Software 3D (no engine)
-- [software3d/software3d-api.md](software3d/software3d-api.md) — writing a 3D rasterizer from scratch on Canvas2D: pipeline, winding/culling/seam gotchas, LOD, procedural placement validation
+- [software3d/software3d-api.md](software3d/software3d-api.md) — writing a 3D rasterizer from scratch on Canvas2D: pipeline, winding/culling/seam gotchas, LOD, procedural placement validation, fog-of-war map overlays
 
 ## Generic
-- [generic/learnings.md](generic/learnings.md) — Architecture patterns and lessons learned across all games
+- [generic/learnings.md](generic/learnings.md) — Architecture patterns and lessons learned across all games (incl. seed-based save/load, RLE fog-of-war persistence, event-driven quest logs, inventory-vs-counter state)
 - [generic/sounds.md](generic/sounds.md) — Procedural Web Audio API sound design patterns
 - [generic/suggestions.md](generic/suggestions.md) — Future game ideas and backlog
 

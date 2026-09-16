@@ -92,13 +92,262 @@
     #toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     #controls-hint {
-        padding: 14px 18px;
+        /* Right padding clears the minimap, which is anchored to the same
+           bottom-right corner — without it the hint runs underneath it. */
+        padding: 14px 210px 14px 18px;
         font-size: 11px;
         opacity: 0.65;
         letter-spacing: 1px;
     }
 
     .hidden { display: none !important; }
+
+    /* ---- Overmap ---- */
+    #minimap-wrap {
+        position: fixed;
+        /* Bottom offset leaves room for the caption below the canvas, which was
+           otherwise clipped against the viewport edge. */
+        right: 16px; bottom: 12px;
+        z-index: 30;
+        pointer-events: none;
+        text-align: center;
+    }
+    #minimap-canvas {
+        display: block;
+        width: 158px; height: 158px;
+        background: rgba(10, 14, 18, 0.62);
+        border: 1px solid rgba(255,255,255,0.22);
+        border-radius: 8px;
+    }
+    #minimap-hint {
+        margin-bottom: 5px;
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        opacity: 0.6;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+
+    #map-panel {
+        position: fixed; inset: 0;
+        z-index: 60;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: rgba(6, 10, 14, 0.93);
+    }
+    #map-panel h2 {
+        font-size: 18px;
+        letter-spacing: 5px;
+        text-transform: uppercase;
+        color: #8fd0ff;
+        font-weight: normal;
+    }
+    #map-canvas {
+        /* Square and bounded by the shorter viewport axis so the island always
+           fits without the panel scrolling. */
+        width: min(74vh, 74vw);
+        height: min(74vh, 74vw);
+        background: #0d1118;
+        border: 1px solid rgba(255,255,255,0.22);
+        border-radius: 10px;
+    }
+    #map-footer {
+        display: flex;
+        gap: 22px;
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        opacity: 0.7;
+    }
+    #map-progress { color: #bfe0ff; }
+
+    /* ---- Journal & pause panels ----
+       Both reuse the overmap's full-screen-scrim treatment so the three
+       overlays read as one system. z-index sits above the map panel's 60, since
+       opening a panel closes the map rather than stacking under it. */
+    .overlay-panel {
+        position: fixed; inset: 0;
+        z-index: 70;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        background: rgba(6, 10, 14, 0.93);
+    }
+    .overlay-panel h2 {
+        font-size: 18px;
+        letter-spacing: 5px;
+        text-transform: uppercase;
+        color: #8fd0ff;
+        font-weight: normal;
+    }
+    .panel-hint {
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        opacity: 0.55;
+    }
+    .panel-empty {
+        font-size: 12px;
+        line-height: 1.8;
+        opacity: 0.6;
+        padding: 4px 2px;
+    }
+
+    #journal-body {
+        display: flex;
+        gap: 18px;
+        width: min(1000px, 92vw);
+        height: min(62vh, 620px);
+    }
+    .journal-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: rgba(12, 18, 24, 0.72);
+        border: 1px solid rgba(255,255,255,0.16);
+        border-radius: 10px;
+        padding: 14px 16px;
+        min-width: 0;
+    }
+    .journal-column h3 {
+        font-size: 12px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: #bfe0ff;
+        font-weight: normal;
+        padding-bottom: 9px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.14);
+        flex: none;
+    }
+    .journal-scroll {
+        /* The pack and the quest list are both open-ended, so the columns scroll
+           rather than the panel — the headers stay put while reading. */
+        overflow-y: auto;
+        flex: 1;
+        padding-right: 6px;
+    }
+    .journal-scroll::-webkit-scrollbar { width: 8px; }
+    .journal-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 4px; }
+    .journal-scroll::-webkit-scrollbar-thumb { background: rgba(143,208,255,0.32); border-radius: 4px; }
+
+    #journal-objective-line {
+        font-size: 12px;
+        letter-spacing: 1.5px;
+        color: #ffd27a;
+    }
+    #journal-objective-line .label { opacity: 0.6; margin-right: 8px; color: #eef2f2; }
+
+    .pack-row {
+        padding: 9px 0 11px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .pack-row:last-child { border-bottom: none; }
+    .pack-head {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .pack-tag {
+        font-size: 9px;
+        letter-spacing: 1.5px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        flex: none;
+    }
+    .pack-tag-book { background: rgba(120, 170, 230, 0.22); color: #bfe0ff; border: 1px solid rgba(120,170,230,0.4); }
+    .pack-tag-artifact { background: rgba(206, 176, 96, 0.2); color: #ffd27a; border: 1px solid rgba(206,176,96,0.42); }
+    .pack-name { font-size: 13px; color: #eef2f2; }
+    .pack-found { font-size: 10px; opacity: 0.5; letter-spacing: 1px; }
+    .pack-lore {
+        font-size: 11px;
+        line-height: 1.75;
+        opacity: 0.72;
+        margin-top: 6px;
+        font-style: italic;
+    }
+    .pack-dest { font-size: 10px; margin-top: 5px; opacity: 0.45; letter-spacing: 1px; }
+
+    .quest-row {
+        padding: 8px 0 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .quest-row:last-child { border-bottom: none; }
+    .quest-done { opacity: 0.42; }
+    .quest-head {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .quest-box { color: #8fd0ff; flex: none; font-size: 12px; }
+    .quest-done .quest-box { color: #9fd89f; }
+    .quest-title { font-size: 12px; letter-spacing: 0.5px; }
+    .quest-done .quest-title { text-decoration: line-through; }
+    .quest-badge {
+        font-size: 9px;
+        letter-spacing: 1.5px;
+        padding: 1px 5px;
+        border-radius: 3px;
+        border: 1px solid rgba(255,255,255,0.22);
+        opacity: 0.6;
+        flex: none;
+    }
+    .quest-progress { font-size: 10px; color: #ffd27a; margin-left: auto; flex: none; }
+    .quest-detail {
+        font-size: 11px;
+        line-height: 1.7;
+        opacity: 0.62;
+        margin-top: 5px;
+        padding-left: 26px;
+    }
+
+    #pause-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        width: min(340px, 84vw);
+    }
+    .menu-btn {
+        padding: 11px 18px;
+        font-size: 13px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        background: rgba(28, 111, 168, 0.85);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 6px;
+        cursor: pointer;
+        font-family: inherit;
+    }
+    .menu-btn:hover { background: #2688c9; }
+    .menu-btn.secondary { background: rgba(20, 30, 40, 0.8); }
+    .menu-btn.secondary:hover { background: rgba(36, 52, 68, 0.9); }
+    .menu-btn.danger { background: rgba(120, 42, 42, 0.8); }
+    .menu-btn.danger:hover { background: rgba(160, 56, 56, 0.9); }
+    #save-status {
+        font-size: 11px;
+        letter-spacing: 1px;
+        opacity: 0.6;
+        text-align: center;
+        min-height: 15px;
+        max-width: 360px;
+        line-height: 1.6;
+    }
+
+    #hud-objective {
+        margin-top: 8px !important;
+        padding-top: 6px;
+        border-top: 1px solid rgba(255,255,255,0.18);
+        font-size: 11px;
+        color: #8fd0ff;
+        max-width: 260px;
+        line-height: 1.5;
+    }
+    #hud-objective .label { opacity: 0.6; letter-spacing: 1.5px; color: #eef2f2; }
 
     #start-overlay, #complete-overlay, #lock-hint {
         position: fixed; inset: 0;
@@ -155,27 +404,74 @@
                 <div><span class="label">📚 Library</span><span id="books-count">0 / 10</span></div>
                 <div><span class="label">🏛️ Museum</span><span id="artifacts-count">0 / 8</span></div>
                 <div id="carried-line" class="hidden"></div>
+                <div id="hud-objective"><span class="label">NEXT</span><br><span id="hud-objective-text">Find something worth keeping</span></div>
             </div>
         </div>
-        <div id="controls-hint">WASD move · SHIFT sprint · SPACE jump · MOUSE look · ESC release cursor</div>
+        <div id="controls-hint">WASD move · SHIFT sprint · SPACE jump · MOUSE look · M map · TAB journal · ESC menu</div>
     </div>
 
     <div id="crosshair"></div>
     <div id="interact-prompt" class="hidden"></div>
     <div id="toast"></div>
 
+    <div id="minimap-wrap">
+        <!-- Caption above the canvas: below it, the bottom-anchored wrapper
+             pushes it against the viewport edge where it gets clipped. -->
+        <div id="minimap-hint">M — OVERMAP</div>
+        <canvas id="minimap-canvas" width="316" height="316"></canvas>
+    </div>
+
+    <div id="map-panel" class="hidden">
+        <h2>Island Overmap</h2>
+        <canvas id="map-canvas" width="900" height="900"></canvas>
+        <div id="map-footer">
+            <span id="map-progress">0% charted</span>
+            <span>M or ESC to close</span>
+        </div>
+    </div>
+
+    <div id="journal-panel" class="overlay-panel hidden">
+        <h2>Journal</h2>
+        <div id="journal-objective-line"><span class="label">CURRENT OBJECTIVE</span><span id="journal-objective"></span></div>
+        <div id="journal-body">
+            <div class="journal-column">
+                <h3>Your Pack</h3>
+                <div id="journal-items" class="journal-scroll"></div>
+            </div>
+            <div class="journal-column">
+                <h3>Objectives</h3>
+                <div id="journal-quests" class="journal-scroll"></div>
+            </div>
+        </div>
+        <div class="panel-hint">TAB or I to close</div>
+        <button id="journal-close" class="menu-btn secondary" style="width:200px">Close</button>
+    </div>
+
+    <div id="pause-panel" class="overlay-panel hidden">
+        <h2>Paused</h2>
+        <div id="pause-menu">
+            <button id="pause-resume" class="menu-btn">Resume Walking</button>
+            <button id="pause-save" class="menu-btn secondary">Save Now</button>
+            <button id="pause-load" class="menu-btn secondary">Load Saved Walk</button>
+            <button id="pause-new" class="menu-btn danger">New Island</button>
+        </div>
+        <div id="save-status"></div>
+        <div class="panel-hint">Progress saves itself as you walk</div>
+    </div>
+
     <div id="start-overlay">
         <h1>Island Walker</h1>
         <p>A procedurally generated island awaits — forests, sea caves, a lighthouse, a cemetery, a garden, and ancient ruins, all rendered by a hand-built software 3D engine.</p>
         <p>Walk close to an object to pick it up, then carry it home: books belong on the Library shelves, artifacts on the Museum pedestals. Both buildings fill up as you return what you find.</p>
-        <p style="opacity:0.55">10 books · 8 artifacts · a new island every reload</p>
+        <p id="start-fresh" style="opacity:0.55">10 books · 8 artifacts · press TAB for your journal and quests</p>
+        <p id="start-resumed" class="hidden" style="opacity:0.7;color:#ffd27a">Your saved walk on this island has been restored — same shore, same shelves, same map.</p>
         <button id="start-btn">Begin Walking</button>
     </div>
 
     <div id="complete-overlay" class="hidden">
         <h1>Collection Complete</h1>
         <p>The library's shelves are full and the museum's pedestals hold every artifact. The island keeps its secrets no longer.</p>
-        <p style="opacity:0.5">Reload the page for a freshly generated island.</p>
+        <p style="opacity:0.5">Open the pause menu and choose New Island to generate a fresh one.</p>
     </div>
 
     <div id="lock-hint" class="hidden">

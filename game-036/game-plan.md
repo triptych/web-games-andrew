@@ -187,6 +187,9 @@ units, staying bounded (~83 chunks) over long traversals.
 | `js/game/items.js` | Item placement and pickup |
 | `js/game/collections.js` | Library/Museum deposit mechanic |
 | `js/game/interaction.js` | Prompts and region labels |
+| `js/game/mapstate.js` | Overmap data: explored grid, region/item discovery |
+| `js/game/mapview.js` | Overmap drawing (Canvas2D, full map + minimap) |
+| `js/game/mapui.js` | Overmap canvases, M toggle, pointer-lock handling |
 
 ---
 
@@ -197,6 +200,8 @@ units, staying bounded (~83 chunks) over long traversals.
 | `progressChanged` | counts object | `state` | `ui` |
 | `itemCollected` | `{id, kind, name}` | `items` | `ui` |
 | `regionEntered` | region name | `state` | `ui` |
+| `mapExplored` | `{fraction, seen, total}` | `mapstate` | `mapui` |
+| `mapAnnotation` | `{kind, name, label}` | `mapstate` | `mapui` |
 | `gameComplete` | — | `state` | `ui`, `main` |
 
 ---
@@ -206,7 +211,8 @@ units, staying bounded (~83 chunks) over long traversals.
 - Day/night cycle — the lighting model already takes a light direction per frame
 - A z-buffer or per-instance depth bias, to allow true building interiors
 - Interior floors for the lighthouse (climbable) and more cave branches
-- A map or compass item, found rather than given
+- Making the overmap a found item rather than something you start with
+- Persisting the explored grid per seed, so revisiting a shared `?seed=` resumes
 
 ---
 
@@ -219,3 +225,63 @@ units, staying bounded (~83 chunks) over long traversals.
 - Collection loop: region-weighted item placement, carry-and-deposit, completion
 - Distance LOD + chunk eviction (60 fps, triangles halved)
 - Verified: 5 seeds fully completable, 60 seeds with valid landmark anchors, 0 errors
+
+### Overmap (2026-09-11)
+- Grid-based fog-of-war overmap that fills in as you walk (`M`), plus a
+  persistent corner minimap
+- Annotations discovered rather than given: region names appear once enough
+  ground around their anchor is charted; book/artifact pins appear once spotted
+  from a distance and stay on as hollow marks after collection
+- Map terrain samples the same region tints as the 3D ground, blended across
+  region borders (hard Voronoi edges read as a political map from above) with
+  a north-west hillshade so relief is legible
+- Explored cells composited via a 1px-per-cell offscreen canvas rather than
+  per-cell `fillRect`; worst-case reveal frame 0.19ms, standing still 1us
+- Verified in-browser: all 10 regions and 18 items resolve at 100% charted,
+  map survives the cave/interior scene swaps, movement frozen while open,
+  HiDPI backing store tracks resize, no console errors
+
+### Save/load, inventory & quests (2026-09-11)
+- **Save/load** (`js/game/save.js`): autosaves to `localStorage` on every
+  milestone (pickup, deposit, quest step, completion) plus a 20s throttle while
+  walking, and on `visibilitychange`/`pagehide`. Reloading resumes automatically
+  and the title screen says so ("Continue Walking"). Because the world is a pure
+  function of its seed, the save stores only player-authored state — position,
+  pack, collected ids, deposited counts, quest flags, fog-of-war grid — and
+  re-derives terrain, placement and map colours on load. **0.8 KB** after a short
+  walk; **1.5 KB** at 12% charted; **0.4 KB** fully charted (the fog grid is
+  run-length encoded, and a fully-revealed grid is one long run). A save whose
+  seed does not match the current island is refused rather than half-applied.
+- **Inventory** (`js/game/inventory.js`): real item records rather than counters
+  — each find keeps its name, the region it came from, a hand-written lore line,
+  and pickup order. No carry limit (the round trip home is already the decision;
+  a cap would just mean walking the same ground twice). The pack is the single
+  source of truth for what is carried, so `state`'s counts are derived from it on
+  load and the two can never disagree.
+- **Quests** (`js/game/quests.js`): a 6-step curated main chain (find something →
+  find the library → shelve a book → display an artifact → fill both collections)
+  plus 7 side quests keyed to landmark discovery and map coverage. Fully
+  event-driven — each quest declares the events that could advance it and a
+  predicate over live state, so adding one never touches the frame loop. Written
+  against regions the generator always seeds rather than templated from the seed,
+  so no island can produce an impossible or already-done objective.
+- **Journal panel** (`Tab`/`I`): two columns — the pack with lore and provenance,
+  and the objective list with the main chain revealed progressively and side
+  quests visible from the start. **Pause menu** (`Esc`): resume, save now, load
+  saved walk, new island. Both follow the overmap's pointer-lock/pause
+  convention, and only one overlay is ever open at a time.
+- HUD gains a one-line "NEXT" objective under the collection counters.
+- Fixed: deposited shelf/pedestal geometry was placed from a shared RNG stream,
+  so its arrangement depended on deposit order and could not be reproduced from a
+  count — now a pure function of the slot index, verified identical across a
+  save/load round trip.
+- Fixed: the main quest chain could deadlock. A step gated on being "active" was
+  never re-tested if its condition was satisfied by an event it did not subscribe
+  to, so shelving a book left the HUD stuck on "Find the Library" with the books
+  already on the shelf. The active step is now folded into every evaluation pass.
+- Verified: 32 headless assertions against the real world generator (save
+  round-trip field-by-field, RLE edge cases incl. first/last-cell-only and
+  all-revealed, seed-mismatch refusal, no spurious deposit after loading indoors,
+  full completion drives the chain and `gameComplete`), plus in-browser runs of
+  both panels, the one-overlay-at-a-time rule, reload-resume, and the
+  reload-driven Load/New-Island paths. 60 fps with panels open, no console errors.

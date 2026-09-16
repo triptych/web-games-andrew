@@ -7,6 +7,7 @@ import { state } from './state.js';
 import { events } from './events.js';
 
 let $region, $books, $artifacts, $carried, $prompt, $toast, $lockHint, $complete;
+let $objective, $objectiveText;
 let $toastTimer;
 
 export function initUI() {
@@ -18,6 +19,8 @@ export function initUI() {
     $toast = document.getElementById('toast');
     $lockHint = document.getElementById('lock-hint');
     $complete = document.getElementById('complete-overlay');
+    $objective = document.getElementById('hud-objective');
+    $objectiveText = document.getElementById('hud-objective-text');
 
     _render();
 
@@ -32,6 +35,23 @@ export function initUI() {
     events.on('gameComplete', () => {
         if ($complete) $complete.classList.remove('hidden');
     });
+}
+
+/**
+ * The one-line "what am I doing" readout under the collection counters.
+ *
+ * Pushed in by whoever owns the quest log rather than pulled from it, so ui.js
+ * stays a pure view over events and does not have to import the quest module —
+ * the HUD should not need to know that quests have tracks or predicates.
+ */
+export function setObjective(text) {
+    if (!$objective || !$objectiveText) return;
+    if (text) {
+        $objectiveText.textContent = text;
+        $objective.classList.remove('hidden');
+    } else {
+        $objective.classList.add('hidden');
+    }
 }
 
 function _prettyRegion(name) {

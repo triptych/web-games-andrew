@@ -13,6 +13,7 @@ import { buildBox, buildBlob, buildCylinder, buildCone } from '../engine/mesh.js
 import { makeRng } from '../world/noise.js';
 import { events } from '../events.js';
 import { state } from '../state.js';
+import { inventory } from './inventory.js';
 import { playDeposit } from '../sounds.js';
 import { showToast } from '../ui.js';
 
@@ -72,63 +73,119 @@ export class CollectionSites {
         }
     }
 
-    _depositBooks(anchor) {
-        const carried = state.carriedBooks;
-        if (carried === 0) return;
+    /**
+     * Geometry for the Nth book on the library shelves. Pure function of the
+     * slot index and the anchor — no RNG — because the save stores only a count
+     * and rebuildDisplays() has to reproduce the exact same arrangement on load.
+     * The jitter that used to come from this.rng() is derived from the slot
+     * instead, so it still looks hand-placed but is reproducible.
+     */
+    _bookSlot(slot, anchor) {
+        // Five shelves in a row, filling left to right then up a tier.
+        const shelfIndex = slot % 5;
+        const tier = Math.floor(slot / 5);
+        const colors = [[176, 40, 40], [40, 76, 150], [150, 120, 30], [70, 110, 60]];
+        // Deterministic pseudo-jitter: fractional part of an irrational multiple
+        // of the slot index, mapped to -0.5..0.5.
+        const j1 = ((slot * 0.7548776662) % 1) - 0.5;
+        const j2 = ((slot * 0.5698402909) % 1) - 0.5;
+        return {
+            site: 'library',
+            mesh: buildBox(0.22, 0.32, 0.14, colors[slot % colors.length]),
+            pos: [
+                anchor.x - 4 + shelfIndex * 2 + j1 * 0.4,
+                anchor.y + 0.45 + tier * 0.5,
+                // Shelves are placed by chunk.js at -d/2 + 1.2 (library d = 9),
+                // nudged forward so the books sit on the shelf face, not in it.
+                anchor.z - 3.3 + 0.2,
+            ],
+            rotY: j2 * 0.3,
+            scale: 1,
+        };
+    }
 
-        for (let i = 0; i < carried; i++) {
-            const slot = this.shelvedBooks.length;
-            // Five shelves in a row, filling left to right then up a tier.
-            const shelfIndex = slot % 5;
-            const tier = Math.floor(slot / 5);
-            const colors = [[176, 40, 40], [40, 76, 150], [150, 120, 30], [70, 110, 60]];
-            this.shelvedBooks.push({
-                site: 'library',
-                mesh: buildBox(0.22, 0.32, 0.14, colors[slot % colors.length]),
-                pos: [
-                    anchor.x - 4 + shelfIndex * 2 + (this.rng() - 0.5) * 0.4,
-                    anchor.y + 0.45 + tier * 0.5,
-                    // Shelves are placed by chunk.js at -d/2 + 1.2 (library d = 9),
-                    // nudged forward so the books sit on the shelf face, not in it.
-                    anchor.z - 3.3 + 0.2,
-                ],
-                rotY: (this.rng() - 0.5) * 0.3,
-                scale: 1,
-            });
+    /** As _bookSlot, for the museum's ring of pedestals. Also RNG-free. */
+    _artifactSlot(slot, anchor) {
+        // Match the ring of pedestals placed by chunk.js.
+        const a = (slot % 6) / 6 * Math.PI * 2;
+        const t = (slot * 0.7548776662) % 1;
+        const gold = [206, 176, 96];
+        // buildBlob wants an rng; give it a seeded one per slot so the shape is
+        // stable across a save/load rather than depending on deposit order.
+        const blobRng = makeRng(4400 + slot);
+        const mesh = t < 0.33
+            ? buildCylinder(0.14, 0.05, 8, gold, true, true)
+            : (t < 0.66 ? buildBlob(0.18, 0, gold, 0.2, blobRng) : buildCone(0.14, 0.34, 6, gold));
+        return {
+            site: 'museum',
+            mesh,
+            pos: [
+                anchor.x + Math.cos(a) * 4.2,
+                anchor.y + 1.25,
+                anchor.z + Math.sin(a) * 3.2,
+            ],
+            rotY: ((slot * 0.5698402909) % 1) * Math.PI * 2,
+            scale: 1,
+        };
+    }
+
+    _depositBooks(anchor) {
+        const returned = inventory.takeAll('book');
+        if (returned.length === 0) return;
+
+        for (let i = 0; i < returned.length; i++) {
+            this.shelvedBooks.push(this._bookSlot(this.shelvedBooks.length, anchor));
         }
         state.depositBooks();
         playDeposit();
-        showToast(`📚 Shelved ${carried} book${carried > 1 ? 's' : ''} — ${state.booksShelved} / ${state.booksTotal}`);
+        events.emit('itemsDeposited', { kind: 'book', items: returned });
+        const n = returned.length;
+        // Name it when there is one, count them when there are several: "Shelved
+        // Cave Songs" is a better sentence than "Shelved 1 book".
+        const what = n === 1 ? returned[0].name : `${n} books`;
+        showToast(`📚 Shelved ${what} — ${state.booksShelved} / ${state.booksTotal}`);
     }
 
     _depositArtifacts(anchor) {
-        const carried = state.carriedArtifacts;
-        if (carried === 0) return;
+        const returned = inventory.takeAll('artifact');
+        if (returned.length === 0) return;
 
-        for (let i = 0; i < carried; i++) {
-            const slot = this.displayedArtifacts.length;
-            // Match the ring of pedestals placed by chunk.js.
-            const a = (slot % 6) / 6 * Math.PI * 2;
-            const t = this.rng();
-            const gold = [206, 176, 96];
-            const mesh = t < 0.33
-                ? buildCylinder(0.14, 0.05, 8, gold, true, true)
-                : (t < 0.66 ? buildBlob(0.18, 0, gold, 0.2, this.rng) : buildCone(0.14, 0.34, 6, gold));
-            this.displayedArtifacts.push({
-                site: 'museum',
-                mesh,
-                pos: [
-                    anchor.x + Math.cos(a) * 4.2,
-                    anchor.y + 1.25,
-                    anchor.z + Math.sin(a) * 3.2,
-                ],
-                rotY: this.rng() * Math.PI * 2,
-                scale: 1,
-            });
+        for (let i = 0; i < returned.length; i++) {
+            this.displayedArtifacts.push(this._artifactSlot(this.displayedArtifacts.length, anchor));
         }
         state.depositArtifacts();
         playDeposit();
-        showToast(`🏛️ Displayed ${carried} artifact${carried > 1 ? 's' : ''} — ${state.artifactsDisplayed} / ${state.artifactsTotal}`);
+        events.emit('itemsDeposited', { kind: 'artifact', items: returned });
+        const n = returned.length;
+        const what = n === 1 ? returned[0].name : `${n} artifacts`;
+        showToast(`🏛️ Displayed ${what} — ${state.artifactsDisplayed} / ${state.artifactsTotal}`);
+    }
+
+    /**
+     * Recreate the shelf and pedestal geometry for a loaded save.
+     *
+     * Called with just the two counts, since the slot builders are deterministic
+     * — slot N always produces the same book in the same place.
+     *
+     * `playerPos` seeds the inside/outside flags. update() deposits on the
+     * *transition* into a site's radius, and a freshly loaded game starts with
+     * both flags false — so without this, a player who saved while standing in
+     * the library would have their pack emptied by the first frame after loading.
+     */
+    rebuildDisplays(bookCount, artifactCount, playerPos) {
+        const { library, museum } = this._anchors();
+        this.shelvedBooks = [];
+        this.displayedArtifacts = [];
+        if (library) {
+            for (let i = 0; i < bookCount; i++) this.shelvedBooks.push(this._bookSlot(i, library));
+        }
+        if (museum) {
+            for (let i = 0; i < artifactCount; i++) this.displayedArtifacts.push(this._artifactSlot(i, museum));
+        }
+        if (playerPos) {
+            if (library) this._insideLibrary = Math.hypot(library.x - playerPos[0], library.z - playerPos[2]) < DEPOSIT_RADIUS;
+            if (museum) this._insideMuseum = Math.hypot(museum.x - playerPos[0], museum.z - playerPos[2]) < DEPOSIT_RADIUS;
+        }
     }
 
     /** Deposited items as renderer instances. */

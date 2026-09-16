@@ -23,8 +23,14 @@ import { World } from './world/world.js';
 import { generateItems, ItemManager } from './game/items.js';
 import { CollectionSites } from './game/collections.js';
 import { Player } from './game/player.js';
+import { MapState } from './game/mapstate.js';
+import { MapUI } from './game/mapui.js';
+import { Panels } from './game/panels.js';
+import { QuestLog } from './game/quests.js';
+import { SaveManager } from './game/save.js';
+import { inventory } from './game/inventory.js';
 import { updateInteractionPrompt, updateRegionLabel } from './game/interaction.js';
-import { initUI, setLockHintVisible } from './ui.js';
+import { initUI, setLockHintVisible, setObjective } from './ui.js';
 import { events } from './events.js';
 import { state } from './state.js';
 import { initAudio, playUiClick } from './sounds.js';
@@ -36,19 +42,35 @@ import {
 import { v3norm } from './engine/math.js';
 
 // ---------- Seed resolution ----------
+/**
+ * Resolves both the hashed integer the generators use and the raw string it came
+ * from. The save keys on the string: resuming has to reproduce the same island,
+ * and the hash is one-way.
+ *
+ * Precedence is ?seed= over sessionStorage over a fresh random. A ?seed= link is
+ * an explicit request for a particular island, so it also gets written back to
+ * the session — otherwise loading a save would silently switch islands the
+ * moment the query string was dropped.
+ */
 function resolveSeed() {
     const params = new URLSearchParams(location.search);
     const fromUrl = params.get('seed');
-    if (fromUrl) return hashSeedFromString(fromUrl);
-    let stored = sessionStorage.getItem(SEED_STORAGE_KEY);
-    if (!stored) {
-        stored = String(Math.floor(Math.random() * 1e9));
-        sessionStorage.setItem(SEED_STORAGE_KEY, stored);
+    if (fromUrl) {
+        try { sessionStorage.setItem(SEED_STORAGE_KEY, fromUrl); } catch { /* ignore */ }
+        return { seed: hashSeedFromString(fromUrl), seedString: fromUrl };
     }
-    return hashSeedFromString(stored);
+    let stored = null;
+    try { stored = sessionStorage.getItem(SEED_STORAGE_KEY); } catch { /* ignore */ }
+    if (!stored) {
+        // Prefer the seed of an existing save, so a plain reload resumes the walk
+        // rather than stranding it on an island the player can no longer reach.
+        stored = SaveManager.storedSeedString() || String(Math.floor(Math.random() * 1e9));
+        try { sessionStorage.setItem(SEED_STORAGE_KEY, stored); } catch { /* ignore */ }
+    }
+    return { seed: hashSeedFromString(stored), seedString: stored };
 }
 
-const seed = resolveSeed();
+const { seed, seedString } = resolveSeed();
 
 // ---------- Build world ----------
 // Pre-normalised: assigning renderer.lightDir directly bypasses the constructor's
@@ -66,8 +88,13 @@ const camera = new FirstPersonCamera(canvas);
 
 const world = new World(seed);
 const { books, artifacts } = generateItems(seed, world.regionMap, world.heightmap);
-const itemManager = new ItemManager(books, artifacts);
+const itemManager = new ItemManager(books, artifacts, world.regionMap);
 const collections = new CollectionSites(world, itemManager);
+
+// The overmap is fog-of-war: it knows every item position (it needs them to test
+// proximity) but draws nothing until the player has been near enough to spot it.
+const mapState = new MapState(world);
+mapState.registerItems(itemManager.all);
 
 /**
  * Pick a spawn on comfortable dry land: start from the meadow region's anchor
@@ -97,10 +124,62 @@ camera.yaw = Math.atan2(-spawn[0], -spawn[2]); // look roughly toward island cen
 
 initUI();
 
+// After initUI(), because the map's annotation handler routes through the HUD's
+// toast element and that is only bound once initUI has run.
+const mapUI = new MapUI(mapState, camera);
+
+const quests = new QuestLog({ mapState });
+const save = new SaveManager({
+    seedString, camera, world, itemManager, collections, mapState, quests,
+});
+const panels = new Panels({ camera, quests, save, mapUI });
+
+/**
+ * Restore a saved walk, if there is one for this island.
+ *
+ * Order matters here. The save is applied *before* the spawn reveal and before
+ * quests.start(), because:
+ *   - loading overwrites the camera position, and the spawn reveal has to chart
+ *     the ground around wherever the player actually is, not around the spawn
+ *     point they left an hour ago;
+ *   - quests.start() re-tests every predicate on subscribe, so running it after
+ *     the restore lets a save from an older build complete anything it has
+ *     already earned under the current definitions.
+ */
+const resumed = save.load();
+
+// Chart the surroundings before the first frame, so the minimap opens on
+// recognisable ground rather than solid black. Silent: the player has not
+// started walking yet, and the discoveries here are just "where I am standing",
+// which does not warrant a queue of toasts behind the title screen. On a resumed
+// walk this is nearly a no-op, since those cells are already revealed.
+mapState.updateSilent(camera.pos);
+
+// Keep the HUD's one-line objective in step with the chain. Bound before
+// start(), so the initial re-test of every predicate paints the right line.
+const syncObjective = () => {
+    const active = quests.activeMain;
+    setObjective(active ? active.title : null);
+};
+events.on('questsChanged', syncObjective);
+
+quests.start();
+save.start();
+syncObjective();
+
 // ---------- Boot / start overlay ----------
 const $start = document.getElementById('start-overlay');
 const $startBtn = document.getElementById('start-btn');
+const $startResumed = document.getElementById('start-resumed');
+const $startFresh = document.getElementById('start-fresh');
 let started = false;
+
+// The title screen tells the player which of the two they are about to get.
+// Walking back onto a half-explored island without being told is disorienting —
+// especially since the fog map and the shelves will not match a fresh start.
+if ($startResumed) $startResumed.classList.toggle('hidden', !resumed);
+if ($startFresh) $startFresh.classList.toggle('hidden', resumed);
+if (resumed && $startBtn) $startBtn.textContent = 'Continue Walking';
 
 function beginGame() {
     if (started) return;
@@ -115,7 +194,10 @@ $startBtn.addEventListener('click', beginGame);
 
 document.addEventListener('pointerlockchange', () => {
     const locked = document.pointerLockElement === canvas;
-    setLockHintVisible(started && !locked && !state.isComplete);
+    // The map releases the cursor on purpose; showing "click to re-lock" over an
+    // open map would be telling the player to dismiss what they just opened.
+    setLockHintVisible(started && !locked && !state.isComplete
+        && !mapUI.suppressLockHint && !panels.suppressLockHint);
     if (started && !locked) {
         // paused via lock loss (e.g. Esc) — show hint, freeze isn't strictly required
         // since without lock there's no mouse-look input anyway.
@@ -123,7 +205,8 @@ document.addEventListener('pointerlockchange', () => {
 });
 
 canvas.addEventListener('click', () => {
-    if (started && document.pointerLockElement !== canvas && !state.isComplete) {
+    if (started && !mapUI.isOpen && !panels.isOpen
+        && document.pointerLockElement !== canvas && !state.isComplete) {
         camera.requestLock();
     }
 });
@@ -132,7 +215,16 @@ window.addEventListener('resize', () => renderer.onResize());
 
 events.on('gameComplete', () => {
     camera.exitLock();
+    save.save();
 });
+
+// Last-chance save. `visibilitychange` rather than `beforeunload`, which is
+// unreliable on mobile and is not fired at all when a backgrounded tab is
+// discarded; pagehide covers the desktop close case.
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && started) save.save();
+});
+window.addEventListener('pagehide', () => { if (started) save.save(); });
 
 // ---------- Frame loop ----------
 let last = performance.now();
@@ -148,7 +240,10 @@ function frame(now) {
 
     const time = now / 1000;
 
-    if (started && !state.isComplete) {
+    // The open map is a pause: it takes the cursor, so mouse-look is gone
+    // anyway, and letting gravity keep running would drop the player off the
+    // ledge they stopped on to check where they were.
+    if (started && !state.isComplete && !mapUI.isOpen && !panels.isOpen) {
         player.update(dt);
         world.update(dt, time);
         itemManager.update(camera.pos, dt, time);
@@ -156,6 +251,8 @@ function frame(now) {
         updateInteractionPrompt(itemManager, world, camera.pos);
         updateRegionLabel(world.regionMap, camera.pos);
         world.pruneChunks(camera.pos[0], camera.pos[2]);
+        mapUI.update(camera.pos);
+        save.update(dt);
     }
 
     // Underground the backdrop is rock, not sky — otherwise daylight shows through
@@ -205,6 +302,13 @@ function frame(now) {
     }
 
     renderer.render(camera, instances);
+    // Drawn after the 3D pass: it lives on its own 2D canvases layered over the
+    // game canvas, so it is unaffected by the scene swap for caves/interiors.
+    // Not gated on `started` — the spawn surroundings are charted before the
+    // first frame, and drawing them behind the title screen means the minimap
+    // is already showing where you are when the overlay clears, rather than
+    // being a black square until the first step.
+    mapUI.draw();
 
     if (debugHud) updateDebugHud(dt);
 }
@@ -252,4 +356,18 @@ if (new URLSearchParams(location.search).has('debug')) {
     window.__debugItems = itemManager;
     window.__debugCollections = collections;
     window.__debugRenderer = renderer;
+    window.__debugMap = mapState;
+    window.__debugQuests = quests;
+    window.__debugSave = save;
+    window.__debugInventory = inventory;
+    // Chart the whole island at once, for checking the map's terrain rendering
+    // without walking 260 units in every direction.
+    window.__debugRevealAll = () => {
+        for (let cz = 0; cz < mapState.size; cz++) {
+            for (let cx = 0; cx < mapState.size; cx++) {
+                const [wx, wz] = mapState.cellCenter(cx, cz);
+                mapState.update([wx, 0, wz]);
+            }
+        }
+    };
 }

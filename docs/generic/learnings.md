@@ -3880,3 +3880,163 @@ Running `npx serve .` and navigating to `/game-034/index.html` gets a `301 Moved
 
 
 
+
+---
+
+## Game 036: Island Walker — Save/Load, Inventory & Quests in a Procedural World (2026-09-11)
+
+### Save a procedural world by storing the seed, not the world
+
+When the world is a pure function of a seed, the save file holds **only what the player did**. Terrain, vegetation, structures, item placement and item names are all re-derived on load by re-running the generator. game-036's save is ~0.8 KB after a short walk and 1.5 KB after charting 12% of the island.
+
+```javascript
+// Store the raw seed STRING, not the hashed integer — the hash is one-way, and
+// boot has to reproduce the same string to regenerate the same world.
+{ version: 1, savedAt: Date.now(), seedString,
+  player: { pos, yaw, pitch },
+  progress: { collectedIds: [...], booksShelved, artifactsDisplayed },
+  inventory: inventory.serialize(),
+  quests: { completed: [...] },
+  collections: { shelvedBooks: 7, displayedArtifacts: 3 },  // counts only
+  map: { size, cells: rle, spotted: [...], regions: [0,1,1,...] } }
+```
+
+**Refuse a save whose seed does not match the current world.** Restoring a position and a fog-of-war map onto different terrain puts the player inside a hill with a map of somewhere else:
+```javascript
+if (data.seedString !== seedString) return false;  // leave everything at fresh-start values
+```
+
+**Boot has to read the saved seed *before* it can build anything**, because the world must be generated from the saved seed for the save to be loadable at all — and at that point no SaveManager exists yet (constructing one needs the world). Hence a static read:
+```javascript
+static storedSeedString() {           // called from resolveSeed(), pre-World
+    try { const d = JSON.parse(localStorage.getItem(SAVE_KEY));
+          return (d && d.version === SAVE_VERSION) ? d.seedString : null; } catch { return null; }
+}
+```
+
+### Derived geometry: persist the count, replay a pure slot function
+
+Deposited items became world geometry placed with `this.rng()`, so the arrangement depended on **deposit order** and could not be reproduced from a count. Replacing the RNG with a pure function of the slot index made the save 2 numbers instead of a list of meshes and positions:
+
+```javascript
+// Deterministic pseudo-jitter: fractional part of an irrational multiple of the
+// index. Still looks hand-placed, but slot N is always identical.
+const j1 = ((slot * 0.7548776662) % 1) - 0.5;
+const j2 = ((slot * 0.5698402909) % 1) - 0.5;
+// A builder needing an rng gets a per-slot seeded one, not a shared stream:
+const blobRng = makeRng(4400 + slot);
+```
+Test it by comparing geometry across a save/load: `JSON.stringify(before.map(b => b.pos)) === JSON.stringify(after.map(b => b.pos))`.
+
+### Run-length encode fog-of-war grids; re-sample their colours
+
+A 94×94 `Uint8Array` of 0/1 is ~18 KB as JSON. RLE takes it to a few hundred bytes, because revealed area is a disc swept along a walk and therefore strongly contiguous.
+
+```javascript
+// Flat array of run lengths, starting from UNKNOWN and alternating. A leading
+// 0-length run handles a grid whose first cell is already revealed, so the
+// decoder never needs to know the starting value.
+function encodeCells(cells) { /* push run, flip value */ }
+```
+Measured: 0 cells → 0.4 KB · 823 cells (12% charted) → 1.5 KB · **all 8836 cells → 0.4 KB** · pathological alternating (unreachable in play) → 17.7 KB.
+
+**Do not store per-cell map colours.** They are a deterministic sample of the heightmap + region map, so re-derive them on load — it quadruples the save otherwise. The bulk re-sample is the expensive operation the incremental reveal exists to avoid, but it costs a fraction of a second, once, on a frame where the title screen is still up. Recompute the seen-count from the grid rather than trusting the save, so a truncated file cannot desync the percentage.
+
+### "Load" and "New Game" mid-session: reload the page, do not rebuild by hand
+
+Restoring a save without a reload means regenerating the world, item placement, chunk cache and map grid — which is exactly what boot already does. A second construction path that only runs from one button **will** quietly diverge from the page-load path. Instead, put the target seed where boot looks for it and reload:
+
+```javascript
+reloadIntoSave() {
+    sessionStorage.setItem(SEED_STORAGE_KEY, data.seedString);
+    const url = new URL(location.href);
+    url.searchParams.delete('seed');  // ?seed= outranks sessionStorage in resolveSeed()
+    location.replace(url.toString());
+}
+```
+Two gotchas: **strip `?seed=`**, or the reload lands on a different island than the one being loaded; and set `_enabled = false` before a "New Island" reload so no autosave fires in the gap and resurrects the discarded walk.
+
+### Autosave: immediate on milestones, throttled on movement
+
+Split the triggers by whether the player would be annoyed to lose the event:
+```javascript
+// Milestones — save immediately.
+for (const ev of ['itemCollected','progressChanged','questCompleted','gameComplete'])
+    events.on(ev, () => this.save());
+// Walking — just mark dirty; the frame loop saves at most every 20s.
+events.on('mapExplored', () => { this._dirty = true; });
+```
+Use `visibilitychange` + `pagehide` for the last-chance save, **not** `beforeunload` — it is unreliable on mobile and never fires when a backgrounded tab is discarded.
+
+Handle a failed write: a blocked/full `localStorage` is not fatal (the game still plays) but the player must be told, or they will assume their walk is being kept.
+```javascript
+catch (err) { this._enabled = false; events.emit('saveFailed', { message: err.message }); }
+```
+
+### Event-driven quests: the active step must always be re-tested ⚠️
+
+Quests as `{ id, title, detail, track, on: [events], test: () => bool }` need no polling — subscribe one listener per distinct event name and re-test only the quests that named it.
+
+**The deadlock:** an ordered chain gated on "is this the active step" will hang if a step's condition gets satisfied by an event it does not subscribe to. It is never re-tested, and because *it* is the blocker, no later step can complete to trigger a cascade. In game-036, `find-library` listened for `mapExplored`/`regionEntered`, but shelving a book satisfied it via `progressChanged` — leaving the HUD on "Find the Library" with the books already on the shelf.
+
+```javascript
+// Fix: always fold the active step into the pass, whatever event fired.
+const active = this.activeMain;
+const pass = (active && !defs.includes(active)) ? [active, ...defs] : defs;
+```
+Also wrap `def.test()` in try/catch (a predicate reading not-yet-built world data must not kill the frame loop), loop `while (changed)` so a step already satisfied when it becomes active completes immediately, and drop unknown ids on load so deleting a quest cannot corrupt a save.
+
+**Curate the chain against generator guarantees, not the seed.** Templated objectives ("bring 3 artifacts from the ruins") occasionally ask for something a given island cannot provide, or something already done by accident — both read as bugs. Hand-written steps keyed to regions the generator *always* seeds work on every seed.
+
+### Inventory: keep the records, derive the counts
+
+A `carriedBooks++` counter answers "how many do I owe the library" — all the HUD needs — but cannot answer "what did I find", "where", or "what does this say", and those are what make a pickup feel like a discovery. Store full records (id, kind, name, region found in, lore, pickup order) and treat the counts as the derived view; on load, rebuild the counters *from* the restored pack so the two can never disagree:
+
+```javascript
+state.restore({ ...saved, carriedBooks: inventory.countOf('book'),
+                          carriedArtifacts: inventory.countOf('artifact') });
+```
+Persist only non-derivable fields — look `lore` up from the name on load, so editing the text never invalidates old saves. Give the pack a single owner: entries live there from pickup until `takeAll(kind)` hands them to the deposit site, so nothing is ever in two places.
+
+### Restoring "on entry" triggers: seed the inside/outside flag
+
+Any mechanic that fires on a *transition* (`if (inside && !wasInside)`) re-fires after a load, because the flag starts false. A player who saved standing in the library had their pack emptied by the first frame. Pass the restored position in and seed the flag:
+```javascript
+rebuildDisplays(bookCount, artifactCount, playerPos) { /* ... */
+    if (playerPos) this._insideLibrary = dist(library, playerPos) < DEPOSIT_RADIUS;
+}
+```
+
+### Load order at boot matters
+
+```javascript
+const resumed = save.load();      // 1. overwrites camera.pos
+mapState.updateSilent(camera.pos);// 2. chart around where the player ACTUALLY is
+quests.start();                   // 3. re-tests every predicate on subscribe, so a
+                                  //    save from an older build completes what it earned
+```
+Also tell the player which they got: walking back onto a half-explored island unannounced is disorienting, since the fog map and shelves will not match a fresh start.
+
+### Multiple full-screen overlays in a pointer-locked game
+
+Each panel (map, journal, pause) hits the same two problems, so they should share one convention:
+1. **Pointer lock** — a readable panel must release the cursor, but that fires `pointerlockchange`, which the main loop reads as "player pressed Esc" and answers with a click-to-resume hint *stacked on the panel*. Each panel exposes `suppressLockHint`, which the handler consults: `setLockHintVisible(started && !locked && !mapUI.suppressLockHint && !panels.suppressLockHint)`.
+2. **Pausing** — an open panel must freeze the update phase. The cursor is gone so mouse-look is dead anyway, but letting gravity run drops the player off whatever ledge they stopped on.
+
+Keep the flag set across `close()`: `exitLock()` and `requestLock()` both fire `pointerlockchange`, and clearing it first flashes the hint for a frame. Enforce one overlay at a time (opening any panel closes the others) so there is never a stack to dismiss. `preventDefault()` on `Tab` — otherwise it moves focus to on-page links and buttons, which in a pointer-locked game looks like nothing happening.
+
+### Testing game systems headlessly against the real generator
+
+Save/load, quest chains and inventory are pure logic; they do not need a browser. Stub the handful of globals the modules touch and drive the **real** world generator — which catches seed-dependent bugs a mocked world would hide:
+
+```javascript
+const store = new Map();
+globalThis.localStorage = { getItem: k => store.get(k) ?? null,
+                            setItem: (k,v) => store.set(k,String(v)), removeItem: k => store.delete(k) };
+globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+globalThis.location = { search: '', href: 'http://x/', replace() {} };
+globalThis.document = { getElementById: () => null, addEventListener: () => {} };
+globalThis.window = { addEventListener: () => {}, confirm: () => true };
+const { World } = await import('./js/world/world.js');   // real generator, real seed
+```
+Then snapshot state → save → reset the singletons → rebuild → load → compare field by field. This is what surfaced the quest deadlock and the shelf-geometry nondeterminism. Reserve Playwright for what genuinely needs a DOM (panel rendering, key handling, the reload-driven Load/New-Island paths) — and note that testing "Load" requires **diverging the live session from the save first**, or a no-op load passes trivially.
