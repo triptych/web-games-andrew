@@ -67,7 +67,10 @@ function render() {
     if (!$list) return;
     $list.innerHTML = '';
 
-    const recipeIds = Object.keys(BREW_RECIPES);
+    // Phase 6: recipes with a `flag` stay off the list until the story
+    // teaches them, so the panel grows over the season instead of showing
+    // eight greyed-out things you have no idea how to make.
+    const recipeIds = Object.keys(BREW_RECIPES).filter(id => state.knowsRecipe(id));
     if (recipeIds.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'brewing-empty';
