@@ -1,0 +1,25 @@
+{
+  "name": "Lanternwake",
+  "short_name": "Lanternwake",
+  "description": "A turn-based tile game about a lantern-keeper walking a country where the lights have been going out.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#12141b",
+  "theme_color": "#14161d",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%2312141b'/%3E%3Crect x='72' y='60' width='48' height='76' rx='6' fill='%232b3040'/%3E%3Cellipse cx='96' cy='98' rx='16' ry='22' fill='%23e8b463'/%3E%3Cellipse cx='96' cy='102' rx='7' ry='11' fill='%23fff0c8'/%3E%3Crect x='84' y='40' width='24' height='10' rx='5' fill='%232b3040'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%2312141b'/%3E%3Crect x='192' y='160' width='128' height='202' rx='16' fill='%232b3040'/%3E%3Cellipse cx='256' cy='262' rx='42' ry='58' fill='%23e8b463'/%3E%3Cellipse cx='256' cy='272' rx='18' ry='29' fill='%23fff0c8'/%3E%3Crect x='224' y='106' width='64' height='26' rx='13' fill='%232b3040'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

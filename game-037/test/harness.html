@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lanternwake &mdash; harness</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; padding: 20px; background: #12141b; color: #e7e1d2;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 14px; line-height: 1.5;
+  }
+  h1 { font-family: ui-serif, Georgia, serif; font-weight: 500; letter-spacing: 0.1em; color: #e8b463; }
+  .bar { display: flex; gap: 8px; align-items: center; margin: 12px 0 18px; flex-wrap: wrap; }
+  button { font: inherit; background: #232838; color: #e7e1d2; border: 1px solid #2b3040; border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+  button:hover { background: #2c3245; }
+  #out { white-space: pre-wrap; }
+  .pass { color: #9ec97f; }
+  .fail { color: #e08a7a; }
+  .err { color: #e08a7a; padding-left: 4ch; display: block; }
+  .ms { color: #6f7688; }
+  #summary { margin-top: 18px; padding-top: 12px; border-top: 1px solid #2b3040; font-size: 16px; }
+  a { color: #e8b463; }
+</style>
+</head>
+<body>
+<h1>LANTERNWAKE &mdash; determinism harness</h1>
+<p>Zero tooling: this page is the test runner. It loads the same modules the game does,
+from the same folder, and asserts the invariants in &sect;30 and &sect;31 of the spec.</p>
+<div class="bar">
+  <button id="run">Run all</button>
+  <a href="../index.html">Back to the game</a>
+</div>
+<div id="out"></div>
+<div id="summary"></div>
+
+<script type="module">
+import { runAll } from './tests.js';
+
+const out = document.getElementById('out');
+const summary = document.getElementById('summary');
+const run = document.getElementById('run');
+
+run.onclick = async () => {
+  run.disabled = true;
+  out.textContent = '';
+  summary.textContent = 'Running…';
+  const t0 = performance.now();
+  const res = await runAll(r => {
+    const line = document.createElement('div');
+    line.className = r.ok ? 'pass' : 'fail';
+    line.innerHTML = `${r.ok ? '✓' : '✗'} ${r.name} <span class="ms">(${r.ms}ms)</span>`;
+    if (!r.ok) {
+      const e = document.createElement('span');
+      e.className = 'err';
+      e.textContent = r.error;
+      line.appendChild(e);
+    }
+    out.appendChild(line);
+  });
+  summary.className = res.fail ? 'fail' : 'pass';
+  summary.textContent = `${res.pass}/${res.total} passed, ${res.fail} failed, ${Math.round(performance.now() - t0)}ms`;
+  run.disabled = false;
+};
+</script>
+</body>
+</html>

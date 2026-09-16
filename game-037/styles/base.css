@@ -1,0 +1,138 @@
+/* ============================================================
+   base.css - type, colour, and the frame everything sits in
+   Serif for prose, monospace for numbers. Nothing below 13px.
+   ============================================================ */
+:root {
+  --text-scale: 1;
+  --bg: #12141b;
+  --bg2: #191c25;
+  --ink: #e7e1d2;
+  --ink-dim: #a9a292;
+  --warm: #e8b463;
+  --good: #9ec97f;
+  --bad: #e08a7a;
+  --warn: #e0c07a;
+  --line: #2b3040;
+  --serif: ui-serif, Georgia, "Times New Roman", serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  --pad: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+/* `hidden` has to beat the display rules below it, or nothing ever closes. */
+[hidden] { display: none !important; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: calc(16px * var(--text-scale));
+  line-height: 1.45;
+  overscroll-behavior: none;
+}
+
+body { display: flex; flex-direction: column; }
+
+button {
+  font-family: var(--serif);
+  font-size: calc(15px * var(--text-scale));
+  color: var(--ink);
+  background: #232838;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-height: 44px;
+  cursor: pointer;
+}
+button:hover { background: #2c3245; }
+button:active { background: #353c52; }
+button.ghost { background: transparent; color: var(--ink-dim); }
+button.primary { background: var(--warm); color: #1b1408; border-color: #c89a52; font-weight: 600; }
+button.small { min-height: 34px; padding: 6px 10px; font-size: calc(13px * var(--text-scale)); }
+button:disabled { opacity: 0.35; cursor: default; }
+
+input[type="text"] {
+  font-family: var(--mono);
+  font-size: calc(16px * var(--text-scale));
+  background: #0e1017;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  width: 100%;
+  min-height: 44px;
+}
+
+.back-link {
+  position: fixed; top: 8px; left: 8px; z-index: 99999;
+  font-family: Arial, Helvetica, sans-serif; font-size: 13px;
+  color: #fff; background: rgba(0,0,0,0.55);
+  padding: 6px 12px; border-radius: 6px; text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.25);
+}
+.back-link:hover { background: rgba(0,0,0,0.8); }
+
+.overlay {
+  position: fixed; inset: 0; z-index: 900;
+  background: radial-gradient(circle at 50% 35%, #1d212c 0%, #0c0e14 75%);
+  display: flex; align-items: center; justify-content: center;
+  overflow-y: auto; padding: 48px 16px 24px;
+}
+
+/* --- title screen --- */
+.title { max-width: 460px; width: 100%; text-align: center; display: flex; flex-direction: column; gap: 12px; }
+.title h1 {
+  font-size: calc(34px * var(--text-scale));
+  letter-spacing: 0.22em; font-weight: 500; color: var(--warm);
+  text-shadow: 0 0 24px rgba(232,180,99,0.25);
+}
+.tagline { color: var(--ink-dim); font-style: italic; margin-bottom: 8px; }
+.seedform { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; text-align: left; }
+.seedform label { font-size: calc(14px * var(--text-scale)); color: var(--ink-dim); }
+.seedform small { grid-column: 1 / -1; color: var(--ink-dim); font-size: calc(12px * var(--text-scale)); }
+.preview {
+  width: 192px; height: 192px; margin: 4px auto;
+  border: 1px solid var(--line); border-radius: 6px; image-rendering: pixelated;
+}
+.difficulty { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.difficulty button { flex: 1 1 auto; min-width: 90px; }
+.muted { color: var(--ink-dim); }
+.small { font-size: calc(13px * var(--text-scale)); }
+
+/* --- loading --- */
+.loading-box { text-align: center; }
+.flame {
+  width: 18px; height: 26px; margin: 0 auto 14px;
+  background: radial-gradient(circle at 50% 70%, #ffd68a 0%, #e8a13c 45%, rgba(232,161,60,0) 72%);
+  border-radius: 50% 50% 45% 45%;
+  animation: flicker 1.1s ease-in-out infinite alternate;
+}
+@keyframes flicker { from { transform: scaleY(0.92) translateY(1px); opacity: 0.85; } to { transform: scaleY(1.06); opacity: 1; } }
+body.reduced-motion .flame { animation: none; }
+
+/* --- stage --- */
+main#game { display: flex; flex-direction: column; height: 100%; }
+#stage { position: relative; flex: 1 1 auto; min-height: 0; }
+#world { display: block; width: 100%; height: 100%; image-rendering: pixelated; background: #0c0e14; }
+#minimap {
+  position: absolute; top: 8px; right: 8px; width: 96px; height: 96px;
+  border: 1px solid var(--line); border-radius: 4px; opacity: 0.88; image-rendering: pixelated;
+}
+.dev {
+  position: absolute; left: 6px; bottom: 6px;
+  font-family: var(--mono); font-size: 10px; color: #8fa0c0;
+  background: rgba(8,10,16,0.7); padding: 3px 6px; border-radius: 4px;
+}
+
+.toasts { position: fixed; left: 50%; bottom: 210px; transform: translateX(-50%); z-index: 800; display: flex; flex-direction: column; gap: 6px; }
+.toast {
+  background: rgba(20,24,34,0.94); border: 1px solid var(--line); color: var(--ink);
+  padding: 8px 14px; border-radius: 999px; font-size: calc(14px * var(--text-scale));
+  transition: opacity 0.4s, transform 0.4s;
+}
+.toast.out { opacity: 0; transform: translateY(-6px); }
+
+@media (prefers-reduced-motion: reduce) { .flame { animation: none; } .toast { transition: none; } }

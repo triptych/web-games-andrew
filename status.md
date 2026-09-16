@@ -37,6 +37,7 @@ Completion audit of all games in this repo, based on each game's own game-plan.m
 | [game-029](game-029/index.html) | Wayfarer's Path | Solid | Phases 1–3 done and playable; new fx.js (particles/screen-shake), monster archetypes, and a town/shop pass have landed and are now committed, but per the plan doc were not yet verified live in a browser as of commit time |
 | [game-030](game-030/index.html) | Coppergate Lane | Playable-but-partial | Full playable story arc to a boss fight, but no save/load, single hero only, uniform enemy AI — was missing from the launcher, now added and committed |
 | [game-031](game-031/index.html) | Grimhold Abyss | **Complete** | All 5 phases done — custom software 3D engine, procedural dungeons, bestiary, RPG systems, audio/polish; full ten-floor run verified end to end on four seeds |
+| [game-037](game-037/index.html) | Lanternwake | **Complete** | Built from a 3,800-line spec; phases 0–10 done. 19/19 acceptance tests and the G1–G9 architecture lint pass; world validation clean on all 10 fixture seeds; 99.9% of 1,396 generated Hollow floors pass F1–F8. Errand loop, Thread, Long Thread and both endings verified end to end in a browser. Open: dialogue banks below the spec's ≥12-per-tier target, no input-replay test, world creation ~1.3s against a 500ms budget — see [DECISIONS.md](game-037/DECISIONS.md) |
 
 ## Key takeaways
 

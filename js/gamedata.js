@@ -470,6 +470,19 @@ const games = [
             { emoji: '🌱', label: 'Procedural' },
             { emoji: '🖥️', label: 'Software 3D' }
         ]
+    },
+    {
+        id: 'game-037',
+        title: 'Lanternwake',
+        description: "A turn-based tile game about a lantern-keeper walking a country where the lights have been going out. The overworld grows once from a seed and then remembers you \u2014 the same valleys, the same villages, the same people with the same griefs \u2014 while the Hollows underneath re-knit themselves every time you go down. Explore like a Zelda game (six tools that each open a kind of door you could already see) and fight like a roguelike (grid-tactical turns, real oil and weight pressure, unidentified loot). You cannot die: you wake, and lose the light you had and the hours you had left. Vanilla HTML/CSS/JS with no assets at all \u2014 every sprite is drawn in code, every sound is synthesised, and the whole thing works offline.",
+        icon: '\uD83C\uDFEE',
+        folder: 'game-037',
+        cssClass: 'lanternwake',
+        tags: [
+            { emoji: '\uD83C\uDFB2', label: 'Roguelike' },
+            { emoji: '\uD83C\uDF31', label: 'Procedural' },
+            { emoji: '\uD83D\uDCF1', label: 'Touch' }
+        ]
     }
 ];
 
