@@ -30,6 +30,7 @@ import { makeSimpleItem, generateItem } from '../gen/item.js';
 import { floorItemsAt, setFloorItems } from './grounditems.js';
 import { CAPABILITY_INFO } from '../gen/hollow/identity.js';
 import { regionAt } from '../gen/fields.js';
+import { MONSTERS } from '../data/monsters.js';
 import { doRest, doSleep, doRead, doPray, doRing, doLight, doName, doUse, doForage } from './placeverbs.js';
 
 const act0 = (fn, energy) => (fn() ? energy : 0);
@@ -279,9 +280,13 @@ export function doExamine(state, x, y) {
   const actor = actorAt(state, x, y);
   const unnamed = hasStatus(p, 'unnamed');
   if (actor && actor !== p) {
-    logLine(actor.isNpc
-      ? `${actor.npc.name}. ${actor.npc.look.build}, ${actor.npc.look.hair}, ${actor.npc.look.mark}.`
-      : `${actor.name}. ${actor.hp} of ${actor.maxHp} left. ${describeAwareness(actor)}`, 'plain');
+    if (actor.isNpc) {
+      logLine(`${actor.npc.name}. ${actor.npc.look.build}, ${actor.npc.look.hair}, ${actor.npc.look.mark}.`, 'plain');
+    } else {
+      logLine(`${actor.name}. ${actor.hp} of ${actor.maxHp} left. ${describeAwareness(actor)}`, 'plain');
+      const notes = describeDefences(actor);
+      if (notes) logLine(notes, 'plain');
+    }
     return ACTION_ENERGY.examine;
   }
   if (prop && prop.name) { logLine(unnamed ? 'You cannot hold on to what this is called.' : `${prop.name}. ${obj.desc || ''}`.trim(), 'plain'); return ACTION_ENERGY.examine; }
@@ -289,6 +294,20 @@ export function doExamine(state, x, y) {
   const dec = decorAt(state, x, y);
   logLine(unnamed ? 'Something. You have lost the word for it.' : (tile.desc || tile.name), 'plain');
   return ACTION_ENERGY.examine;
+}
+
+/** What a monster shrugs off and what it does not. Said plainly. */
+function describeDefences(a) {
+  const A = MONSTERS[a.archetype];
+  if (!A) return '';
+  const shrugs = Object.entries(A.resist || {}).filter(([, v]) => v < 1).map(([k]) => k);
+  const hates = Object.entries(A.weak || {}).filter(([, v]) => v > 1).map(([k]) => k);
+  const bits = [];
+  if (shrugs.length) {
+    bits.push(`${shrugs.join(' and ')} ${shrugs.length > 1 ? 'do' : 'does'} not trouble it`);
+  }
+  if (hates.length) bits.push(`it does not care for ${hates.join(' or ')}`);
+  return bits.length ? bits.join('; ') + '.' : '';
 }
 
 function describeAwareness(a) {

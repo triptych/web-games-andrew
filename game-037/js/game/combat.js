@@ -123,9 +123,10 @@ export function resolveAttack(state, attacker, tx, ty, opts = {}) {
     const mitigated = Math.max(1, preMit - (armour + evasionFlat));
     let dmgType = w.dmgType;
     if (w.mods.fire) dmgType = 'fire';
-    const final = Math.round(mitigated * resistMultiplier(dmgType, target, attacker));
+    const resist = resistMultiplier(dmgType, target, attacker);
+    const final = Math.round(mitigated * resist);
 
-    total += applyDamage(state, target, final, dmgType, attacker, crit);
+    total += applyDamage(state, target, final, dmgType, attacker, crit, resist);
 
     // affix riders
     if (w.mods.fire && final > 0 && rng.chance(0.3)) addStatus(target, 'burning', 4);
@@ -184,7 +185,7 @@ export function resistMultiplier(type, target, attacker) {
 }
 
 /** Apply damage, emit the events, and handle death. */
-export function applyDamage(state, target, amount, type, source, crit = false) {
+export function applyDamage(state, target, amount, type, source, crit = false, resist = 1) {
   if (amount <= 0) return 0;
   if (type === 'name') amount = Math.round(amount);            // ignores armour by design
   target.hp -= amount;
@@ -193,6 +194,9 @@ export function applyDamage(state, target, amount, type, source, crit = false) {
   const base = amount >= 12 ? pick(HIT_VERBS.heavy) : amount >= 5 ? pick(HIT_VERBS.solid) : pick(HIT_VERBS.light);
   if (source && source.isPlayer) {
     logLine(`You ${conjugate(base, true)} ${nameOf(target)}${crit ? ', hard' : ''}. ${amount}.`, 'hit');
+    // A resistance the player cannot see is a resistance they cannot play around.
+    if (resist <= 0.6) logLine(`${cap(type)} does not do much to that. Try something else.`, 'warn');
+    else if (resist >= 1.4) logLine(`That is what it does not like.`, 'good');
   } else if (target.isPlayer) {
     logLine(`${cap(nameOf(source))} ${conjugate(base, false)} you. ${amount}.`, 'bad');
   }
