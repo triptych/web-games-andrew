@@ -1,0 +1,106 @@
+/* ============================================================
+   battle.css - the fight screen (GDD 13)
+   Top to bottom: enemies, turn queue, your brood, log, commands.
+   The command strip is always within thumb reach.
+   ============================================================ */
+
+.battle {
+  display: flex; flex-direction: column;
+  gap: 8px; min-height: 100%;
+}
+
+.enemy-row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.enemy {
+  flex: 1 1 96px; max-width: 150px;
+  background: var(--panel); border: 2px solid var(--line); border-radius: var(--radius);
+  padding: 5px; text-align: center; cursor: pointer; position: relative;
+}
+.enemy[aria-pressed="true"] { border-color: var(--ember); background: #35231b; }
+.enemy.down { opacity: 0.32; }
+.enemy .ename { font-size: 11px; margin-top: 2px; }
+.enemy .elvl { font-size: 10px; color: var(--ink-faint); }
+.enemy canvas { margin: 0 auto; }
+.enemy .statuses { display: flex; gap: 2px; justify-content: center; font-size: 10px; min-height: 12px; }
+
+.queue {
+  display: flex; gap: 4px; overflow-x: auto; padding: 4px 0;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.queue-chip {
+  font-size: 10px; white-space: nowrap;
+  border: 1px solid var(--line); border-radius: 10px; padding: 3px 7px;
+  background: var(--panel); color: var(--ink-dim);
+}
+.queue-chip.ally { color: var(--good); border-color: #3f6b35; }
+.queue-chip.foe { color: var(--bad); border-color: #6d2f2a; }
+.queue-chip.now { background: var(--panel-2); font-weight: 700; }
+
+.surge-wrap { display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--ink-faint); }
+.surge-wrap .bar { flex: 1; }
+
+.ally-row { display: flex; gap: 6px; }
+.ally {
+  flex: 1; min-width: 0;
+  background: var(--panel); border: 2px solid var(--line); border-radius: var(--radius);
+  padding: 5px; position: relative;
+}
+.ally.acting { border-color: var(--ember); }
+.ally.down { opacity: 0.4; }
+.ally .aname { font-size: 11px; display: flex; justify-content: space-between; gap: 4px; }
+.ally .hp-num { font-size: 10px; color: var(--ink-faint); }
+.ally canvas { margin: 0 auto; }
+.ally .statuses { display: flex; gap: 2px; font-size: 10px; min-height: 12px; flex-wrap: wrap; }
+.ally .cmd { font-size: 9px; color: var(--ember); min-height: 12px; letter-spacing: 0.5px; }
+
+.battle-log {
+  background: #100c0a; border: 2px solid var(--line); border-radius: var(--radius);
+  padding: 8px; font-size: 12px; line-height: 1.5;
+  height: 108px; overflow-y: auto;
+}
+.battle-log p { margin: 0 0 3px; }
+.battle-log .hit { color: var(--ink); }
+.battle-log .crit { color: var(--gold); }
+.battle-log .good { color: var(--good); }
+.battle-log .bad { color: var(--bad); }
+.battle-log .surge { color: var(--ember); font-weight: 700; }
+.battle-log .boss { color: var(--violet); }
+
+.command-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.command-strip .btn { justify-content: center; text-align: center; font-size: 12px; min-height: 46px; padding: 6px; }
+
+.target-hint { font-size: 11px; color: var(--ember); min-height: 16px; text-align: center; }
+
+.move-pick { display: flex; flex-direction: column; gap: 6px; }
+.move-pick .btn { justify-content: space-between; }
+.move-pick .mult { font-size: 10px; letter-spacing: 1px; }
+.mult.strong, .mult.sundered { color: var(--good); }
+.mult.weak, .mult.shrugged { color: var(--bad); }
+
+/* the damage number that pops off a hit */
+.float-num {
+  position: absolute; left: 50%; top: 8px;
+  transform: translateX(-50%);
+  font-size: 15px; font-weight: 700; pointer-events: none;
+  animation: floatUp 700ms ease-out forwards;
+}
+.float-num.crit { color: var(--gold); font-size: 19px; }
+.float-num.heal { color: var(--good); }
+@keyframes floatUp {
+  0% { opacity: 0; transform: translate(-50%, 6px); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -26px); }
+}
+
+.shake { animation: shake 240ms; }
+@keyframes shake {
+  0%, 100% { transform: none; }
+  20% { transform: translateX(-4px); }
+  45% { transform: translateX(4px); }
+  70% { transform: translateX(-2px); }
+}
+
+.flash-overlay {
+  position: fixed; inset: 0; z-index: 70; pointer-events: none;
+  animation: flash 520ms ease-out forwards;
+}
+@keyframes flash { 0% { opacity: 0.85; } 100% { opacity: 0; } }

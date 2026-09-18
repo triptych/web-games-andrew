@@ -1,0 +1,10 @@
+{
+  "name": "Emberbrood",
+  "short_name": "Emberbrood",
+  "description": "An 8-bit procedurally generated dragon battler: fight, bind, raise and breed dragons across a dying country.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#16110f",
+  "theme_color": "#16110f"
+}

@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-37 games, `game-001` through `game-037`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+38 games, `game-001` through `game-038`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -49,6 +49,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 | 035 | [N2 Overdrive](game-035/) | Neon tube shooter | Phaser 4 |
 | 036 | [Island Walker](game-036/) | First-person procedural walking simulator | Custom software 3D rasterizer |
 | 037 | [Lanternwake](game-037/) | Turn-based roguelike / Zelda-like fusion | Vanilla JS, no dependencies |
+| 038 | [Emberbrood](game-038/) | Procedural dragon battler / turn-based RPG | Vanilla JS, no dependencies |
 
 ### Highlights
 
@@ -80,6 +81,8 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 **[Lanternwake](game-037/)** — Turn-based roguelike / Zelda-like fusion about a lantern-keeper walking a country where the lights have been going out. **Vanilla JS with no dependencies, no build step and no asset files whatsoever** — every sprite is drawn in code from declarative recipes, every sound is synthesised, and the whole 1536×1536 world is a pure function of one seed string. The overworld persists and remembers what you did to it; the Hollows underneath re-knit themselves on every descent, generated mission-first (a graph of keys, locks, puzzles and a boss, embedded into one of five layout algorithms). People come before quests: needs are generated from who somebody is, and a quest whose object cannot be resolved to a real thing is discarded rather than faked. You cannot die — you wake, and lose the light you had and the hours you had left. Design decisions and deviations from the spec are in [game-037/DECISIONS.md](game-037/DECISIONS.md); the test harness runs with no tooling at [game-037/test/harness.html](game-037/test/harness.html).
 
+**[Emberbrood](game-038/)** — An 8-bit **procedurally generated dragon battler**: fight them, bind them, raise them, breed them. Battles are Final Fantasy-shaped (a party of three, turn order by speed, MP, eleven statuses, an eight-element chart with real ×4 and ×0.25 matchups, a shared Ember Surge meter), but every wild fight can also end in a capture, and the odds are shown before you commit. Every dragon in the game — including the ones you hatch — comes out of a genome that decides its stats, skills, temperament **and its 32×32 sprite**, so a dragon you bred visibly resembles its parents, and each generation is measurably better than the last. Grey, nameless "ashbound" dragons can be cleansed mid-battle and get their real names back. 87 items, a forge, roost dungeons, 18 main quests across five acts, generated notice-board work, and three endings gated on what your brood can actually prove. **Vanilla HTML/CSS/JS, no libraries, no build step and no asset files at all** — every sprite is drawn in code, every sound synthesised, and the whole country grows from one seed. Design doc in [game-038/GDD.md](game-038/GDD.md); the test harness runs with no tooling at [game-038/test/harness.html](game-038/test/harness.html).
+
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
 ## Getting Started
@@ -107,7 +110,7 @@ python -m SimpleHTTPServer 8000
 
 ### Playing Individual Games
 
-You can also play any game directly by opening its own `index.html` file, e.g. `game-001/index.html` for Space Shooter. See the [table above](#games-included) for the full list of 33 games and their folders.
+You can also play any game directly by opening its own `index.html` file, e.g. `game-001/index.html` for Space Shooter. See the [table above](#games-included) for the full list of 38 games and their folders.
 
 ## Building Desktop Versions
 
@@ -142,14 +145,14 @@ web-games-andrew/
 ├── css/                    # Shared stylesheets
 ├── js/                     # Shared JavaScript modules
 │   ├── main.js
-│   └── gamedata.js         # Metadata for all 34 games (drives the launcher)
+│   └── gamedata.js         # Metadata for all 38 games (drives the launcher)
 ├── lib/
 │   ├── kaplay/              # Shared Kaplay engine (kaplay.mjs / kaplay.js)
 │   └── phaser/phaser-4.0.0/ # Shared Phaser 4 engine (ESM build)
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-037/   # One self-contained folder per game
+├── game-001/ … game-038/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -169,7 +172,7 @@ Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018
 - **Kaplay Framework (v4000 alpha)** - Game development framework (most games from game-002 onward, including game-032)
 - **Phaser 4.0.0 (ESM)** - Game framework (game-019, game-020, game-027, game-028, game-035)
 - **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029)
-- **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034)
+- **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034, game-037, game-038)
 - **Custom software 3D** - Hand-written 3D renderers with no engine: a palette-indexed framebuffer (game-031) and a triangle rasterizer on Canvas2D (game-036)
 - **GemCore/GemShell** - Desktop application packaging
 
@@ -206,7 +209,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 37 games are included as of the latest entries (game-035 N2 Overdrive, game-036 Island Walker, game-037 Lanternwake).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 38 games are included as of the latest entries (game-036 Island Walker, game-037 Lanternwake, game-038 Emberbrood).
 
 ---
 

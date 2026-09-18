@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emberbrood &mdash; test harness</title>
+<style>
+  body { background: #16110f; color: #f0e3d2; font-family: ui-monospace, monospace; margin: 0; padding: 16px; line-height: 1.5; }
+  h1 { color: #ff8a3d; font-size: 18px; letter-spacing: 2px; }
+  .ok { color: #7fc96a; }
+  .fail { color: #e05a4a; }
+  .summary { font-size: 16px; margin: 14px 0; padding: 10px; border: 2px solid #40312a; border-radius: 6px; }
+  pre { white-space: pre-wrap; font-size: 12px; margin: 2px 0; }
+  section { border-top: 1px solid #40312a; margin-top: 18px; padding-top: 10px; }
+  canvas { image-rendering: pixelated; margin: 2px; background: #0f0c0b; border: 1px solid #40312a; }
+  .gallery { display: flex; flex-wrap: wrap; gap: 4px; }
+  .cap { font-size: 10px; color: #7d7065; text-align: center; width: 128px; }
+</style>
+</head>
+<body>
+<h1>EMBERBROOD &mdash; TEST HARNESS</h1>
+<p style="color:#b3a394;font-size:12px">
+  No tooling: open this file over <code>http://</code> and it runs the same
+  assertions as <code>node test/run.mjs</code>, then draws a sprite gallery so
+  the generator can be eyeballed as well as asserted.
+</p>
+<div class="summary" id="summary">running&hellip;</div>
+<div id="results"></div>
+
+<section>
+  <h1>SPRITE GALLERY</h1>
+  <p style="color:#7d7065;font-size:11px">One dragon per lineage, plus every body plan and an ashbound pair. All drawn in code from genes.</p>
+  <div class="gallery" id="gallery"></div>
+</section>
+
+<script type="module">
+import { rngFrom } from '../js/core/rand.js';
+import { makeDragon, statsOf, describe } from '../js/gen/dragon.js';
+import { buildDragonSprite, palettteFor } from '../js/gen/sprite.js';
+import { blit } from '../js/gen/pixels.js';
+import { LINEAGE_IDS, LINEAGES } from '../js/data/lineages.js';
+import { BODY_PLANS } from '../js/gen/dragon.js';
+
+// ---- run the node suite in the browser -------------------------------
+const results = document.getElementById('results');
+const summary = document.getElementById('summary');
+let out = '';
+const origLog = console.log;
+console.log = (...a) => { out += a.join(' ') + '\n'; origLog(...a); };
+const origExit = globalThis.process?.exit;
+globalThis.process = globalThis.process || {};
+globalThis.process.exit = () => {};
+
+try {
+  await import('./run.mjs');
+} catch (err) {
+  out += '\nHARNESS ERROR: ' + err.message + '\n' + err.stack;
+}
+console.log = origLog;
+if (origExit) globalThis.process.exit = origExit;
+
+for (const line of out.split('\n')) {
+  const pre = document.createElement('pre');
+  pre.textContent = line;
+  if (line.includes(' ok ')) pre.className = 'ok';
+  if (line.includes('FAIL')) pre.className = 'fail';
+  results.append(pre);
+}
+const m = /(\d+) passed, (\d+) failed/.exec(out);
+if (m) {
+  summary.textContent = `${m[1]} passed, ${m[2]} failed`;
+  summary.className = 'summary ' + (Number(m[2]) ? 'fail' : 'ok');
+} else {
+  summary.textContent = 'the suite did not report a result';
+  summary.className = 'summary fail';
+}
+
+// ---- gallery ---------------------------------------------------------
+const gallery = document.getElementById('gallery');
+function tile(d, caption) {
+  const wrap = document.createElement('div');
+  const c = document.createElement('canvas');
+  c.width = 128; c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  blit(ctx, buildDragonSprite(d, false), palettteFor(d), 0, 0, 4);
+  const cap = document.createElement('div');
+  cap.className = 'cap';
+  cap.textContent = caption;
+  wrap.append(c, cap);
+  gallery.append(wrap);
+}
+
+const rng = rngFrom(String(Date.now()), 'gallery');
+for (const id of LINEAGE_IDS) {
+  const d = makeDragon(rng, { lineageId: id, level: 30 });
+  tile(d, `${LINEAGES[id].name} L${d.level}`);
+}
+for (const body of BODY_PLANS) {
+  const d = makeDragon(rng, { lineageId: 'cinderling', level: 30 });
+  d.genes.body = body;
+  tile(d, body);
+}
+for (const stage of ['hatchling', 'drake', 'wyrm', 'elder']) {
+  const d = makeDragon(rng, { lineageId: 'emberwyrm', level: 40 });
+  d.stage = stage;
+  tile(d, stage);
+}
+const grey = makeDragon(rng, { lineageId: 'ridgeback', level: 20, ashbound: true });
+tile(grey, 'ashbound');
+const { cleanse } = await import('../js/gen/dragon.js');
+const lit = JSON.parse(JSON.stringify(grey));
+cleanse(lit, rng);
+tile(lit, 'the same one, cleansed');
+</script>
+</body>
+</html>

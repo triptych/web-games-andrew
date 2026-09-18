@@ -4040,3 +4040,200 @@ globalThis.window = { addEventListener: () => {}, confirm: () => true };
 const { World } = await import('./js/world/world.js');   // real generator, real seed
 ```
 Then snapshot state → save → reset the singletons → rebuild → load → compare field by field. This is what surfaced the quest deadlock and the shelf-geometry nondeterminism. Reserve Playwright for what genuinely needs a DOM (panel rendering, key handling, the reload-driven Load/New-Island paths) — and note that testing "Load" requires **diverging the live session from the save first**, or a no-op load passes trivially.
+
+---
+
+## Game 038: Emberbrood — Procedural Creatures, Turn-Based Battle & Breeding (2026-09-18)
+
+### The genome is the single source of truth — including for the art
+
+The temptation with a creature-collector is to store a sprite (or a sprite id)
+next to the stats. Don't. Make the sprite a **pure function of the same genes
+that decide the stats**, and a whole class of bugs disappears: a save can never
+hold a dragon that looks like one thing and fights like another, breeding
+automatically produces a child that *resembles its parents*, and the save file
+stays tiny because there is nothing visual in it.
+
+```javascript
+// genes decide stats AND pixels; nothing visual is ever persisted
+genes: { body, wings, horns, tail, crest, pattern, hue, hue2, sat, light, eye, size }
+export const geneKey = d => [d.lineageId, d.stage, d.ashbound ? 'ash' : 'lit',
+  g.body, g.wings, /* … */, d.elements[0], d.elements[1] || '-'].join('|');
+```
+
+`geneKey` doubles as the sprite cache key and the "have I seen this variation"
+key for the collection log. A save of 20 dragons plus eggs is ~30 KB of JSON.
+
+### Drawing a creature from parts: order matters more than the parts do
+
+An indexed pixel buffer (`Uint8Array` of palette indices, 0 = transparent) beats
+drawing straight to canvas, because the later passes need to know what a pixel
+*is*, not what colour it is:
+
+- the **pattern pass** (bands, spots, veins) paints only pixels already in the
+  body mask, so a stripe can never leak outside the silhouette;
+- the **outline pass** wraps any drawn pixel that borders empty space — that one
+  pass is most of what makes it read as 8-bit;
+- the **shade pass** lifts pixels with open space above them and drops ones with
+  open space below, which fakes a light source for free.
+
+Draw order that worked, after two rewrites: **wing → tail → far limbs → body →
+near limbs → neck → head → jaw → crest → horns → pattern → shade → outline →
+eye**. Two mistakes are worth stating outright because both produced garbage:
+
+1. **Horns drawn from inside the skull** swallow the head. Anchor them at the
+   top edge and grow outward only.
+2. **A wing drawn on top of the body** reads as a smear. A side-on wing goes on
+   *first*, so the torso overlaps it and it reads as being behind the shoulder.
+
+Verify silhouettes headlessly with an ASCII dump (`0→' '`, outline→`#`, main→`o`)
+rather than by eye in a browser — it is faster, diffable, and catches "drew 40
+pixels" long before a screenshot would.
+
+### Two baked frames and one shared clock beats per-frame redraws
+
+Bake wings-up and wings-down into offscreen canvases once per gene key, then
+animate by swapping `drawImage` source. Register every animated sprite in one
+`Set` driven by a **single** `setInterval`, and drop entries whose canvas is no
+longer `isConnected`:
+
+```javascript
+function tick() {
+  frame ^= 1;
+  for (const e of [...animated]) {
+    if (!e.canvas.isConnected) { animated.delete(e); continue; }  // GC for free
+    drawDragon(e.canvas, e.d, { scale: e.scale, frame, flip: e.flip });
+  }
+  if (!animated.size) { clearInterval(timer); timer = null; }
+}
+```
+
+A roster screen with 20 dragons then costs 20 `drawImage` calls every 620ms, and
+every wing on screen beats in time, which looks deliberate rather than noisy.
+
+### Turn-based battle: resolve the whole round, then play it back
+
+The engine resolves a complete round and returns an **event list**; the UI plays
+that list back with delays. The payoff is that animation can never change what
+happened, a "fast text" setting is a one-line change, and — critically — the
+whole battle system is testable in node with no DOM:
+
+```javascript
+const events = battle.resolveRound();   // model is already final here
+playEvents(events, 0);                  // pure presentation
+```
+
+This is what made it possible to simulate 200 random fights, every boss against
+a matched and a mismatched party, and an entire playthrough, before the battle
+UI existed at all. **Balance numbers should be found by simulation, not by
+playing.** Three real problems surfaced this way and none would have been
+obvious in a play session: fights averaging 3 rounds (HP pools too shallow), the
+final boss healing more per turn than a full party could deal (an unwinnable
+stalemate that read as "hard"), and levelling raising max HP without granting
+it.
+
+Add a hard round limit anyway. A stalemate is a bug, and a UI that waits forever
+for a victor is worse than one that says "neither of you can keep this up".
+
+### Balance by simulation: the numbers that mattered
+
+- **Fight length** is set by the ratio of a pool to a hit. Aim for 4–6 rounds of
+  regular combat and 8–12 for a boss; measure it, don't guess it.
+- **XP rate** is best expressed as *fights per level*, and should stay roughly
+  flat across the curve. `fightsPerLevel = toNext(L) / (foes × killXP(L) / party)`
+  — solve for the divisor that keeps it near 4 at level 5 **and** level 50.
+- **A boss's difficulty should come from its matchup, not its numbers.** The
+  final boss here absorbs one element entirely; a party built on that element
+  wins 2/12, a matched party wins 12/12. That is a puzzle. The same boss with a
+  bigger health bar would just be tedious.
+
+### Creature-collector economy traps, all found by simulation
+
+- **A capture that sets bond to 5 is a soft lock** if bond is also the gate on
+  breeding and only party members gain it. Give the reserve a trickle (resting
+  at home), make feeding meaningful, and start a dragon you *rescued* higher
+  than one you merely beat.
+- **A lineage's own signature trait can undo the thing that removes it.** The
+  "ashbound" lineage's signature trait was `hollowed`; the cleanse routine
+  stripped `hollowed`, found the trait list empty, and helpfully re-added the
+  lineage default — permanently re-cursing the dragon you had just saved.
+- **Role names must not collide with your other vocabulary.** Breeding roles
+  called `ember`/`ash` rendered next to elemental tags called Ember and Ash, so
+  a dragon's card showed "EMBER" twice meaning two different things. Renamed to
+  kindler/clutcher.
+
+### Quest predicates as data, re-tested on every relevant event
+
+Goals are `{ kind, count, element?, lineage?, node?, … }` and one evaluator
+interprets them, so a quest can never depend on a system that is not watching
+it. Two details do the heavy lifting:
+
+**Snapshot a baseline when the quest is accepted.** Otherwise "defeat 3 Tide
+dragons" completes instantly for a player who already killed 50.
+
+```javascript
+acceptQuest(q) { state.quests.active.push({ id: q.id, baseline: snapshot() }); }
+const progress = counterNow(path) - (entry.baseline[path] ?? 0);
+```
+
+**Count what the player thinks they did, not what the flag says.** "Bring back
+three ashbound dragons" was uncompletable, because the intended method —
+cleansing one *before* binding it — cleared the `ashbound` flag before the
+capture was counted. Keep a `wasAshbound` history and count either.
+
+### Story beats must not live in the UI
+
+Act advancement was originally applied by the dialogue screen when it finished
+drawing a scene. That works until anything else needs the story to move — a
+headless test, a save loaded mid-scene, a player who closes the tab. Move the
+*effects* into a scene runner that applies them the moment a scene is
+**requested**, and leave the UI to draw the lines:
+
+```javascript
+export function requestScene(id, meta = {}) {
+  const s = scene(id);
+  if (state.flags[`scene_${id}`] && !meta.replay) return null;   // each scene once
+  setFlag(`scene_${id}`);
+  applyEffects(s);        // act, key items, flags, ending — now, not on render
+  queue.push({ scene: s, meta });
+}
+```
+
+### Four UI bugs worth never repeating
+
+1. **`display: flex` beats `[hidden]`.** A full-screen overlay panel styled
+   `display: flex` stays laid out when you set `hidden`, so it swallows every
+   tap on the page while being invisible. This cost an hour of "the button does
+   not work". Put `[hidden] { display: none !important; }` in the reset, once.
+2. **`pagehide` autosave fires on the title screen**, writing an empty save, so
+   a first-time visitor is offered "continue where you left off" into a game
+   that never existed. Gate saving on a "a game has actually begun" flag.
+3. **A scene that ends in a choice must render the choice as its navigation.**
+   The "next line" button was suppressed on the last line of a choice scene and
+   the choice list was only built by the button that no longer existed — the
+   final decision of the game was unreachable.
+4. **Do not ask for a tap that has one possible answer.** Targeting prompts
+   should resolve themselves when only one enemy is alive.
+
+### Testing a game like this without a browser
+
+Keep `js/game/` and `js/gen/` free of DOM references and the whole rules layer
+runs in node. The suite that paid for itself, in rough order of value:
+
+- **A full simulated playthrough** driving the real state, quests, encounters
+  and battles with a crude "competent player" stand-in. It found the quest
+  deadlock, the breeding soft lock and the act-gating dependency on the UI.
+- **Cross-reference assertions over the data tables**: every move a lineage can
+  learn exists, every status a move inflicts exists, every bad status has a cure
+  item, every forge recipe and quest reward names a real item, the element chart
+  is its own mirror, the map is connected and each act's boss is reachable under
+  that act's gating. These are ten lines each and catch typos permanently.
+- **Determinism checks**: same seed → same dragon → same sprite bytes; and a
+  save round-trip that compares `statsOf()` and the rendered sprite before and
+  after, which catches "a balance change silently invalidated old saves".
+
+Then use Playwright for what genuinely needs a DOM. Two lessons there: clear any
+open dialog before the next click (`dismiss()` helper) or a modal from step 3
+fails step 7 with a confusing timeout; and prefer `locator(...)` over
+`elementHandle` in any screen that re-renders, because a refresh detaches the
+handle.
