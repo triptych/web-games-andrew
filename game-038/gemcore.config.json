@@ -1,0 +1,14 @@
+{
+  "name": "Emberbrood",
+  "version": "1.0.0",
+  "description": "An 8-bit procedurally generated dragon battler: fight, bind, raise and breed dragons across a dying country.",
+  "author": "Andrew Wooldridge",
+  "window": {
+    "width": 480,
+    "height": 900,
+    "resizable": true,
+    "title": "Emberbrood"
+  },
+  "entry": "index.html",
+  "platforms": ["windows", "mac", "linux"]
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#16110f">
+<meta name="description" content="Emberbrood - an 8-bit procedurally generated dragon battler. Fight, bind, raise and breed dragons across a dying country.">
+<title>Emberbrood</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/ui.css">
+<link rel="stylesheet" href="styles/battle.css">
+</head>
+<body>
+<a href="../index.html" class="back-link" aria-label="Back to the games list">&larr; Games</a>
+
+<div id="app">
+  <header id="topbar" hidden>
+    <button class="chip" id="btn-place" aria-label="Where you are"><span id="place">The Broodwell</span></button>
+    <span class="chip" id="coin" aria-label="Coin">&#9679; 0</span>
+    <span class="chip" id="act" aria-label="Act">Act I</span>
+    <button class="chip" id="btn-settings" aria-label="Settings">&#9881;</button>
+  </header>
+
+  <main id="screen" tabindex="-1"></main>
+
+  <nav id="tabbar" hidden>
+    <button data-tab="map"><span class="tabicon">&#9906;</span><span>Map</span></button>
+    <button data-tab="brood"><span class="tabicon">&#128009;</span><span>Brood</span></button>
+    <button data-tab="items"><span class="tabicon">&#9776;</span><span>Pack</span></button>
+    <button data-tab="journal"><span class="tabicon">&#128220;</span><span>Journal</span></button>
+  </nav>
+</div>
+
+<div id="overlay" class="overlay" hidden></div>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<noscript><p style="color:#eadfd2;padding:2rem;font-family:monospace">Emberbrood needs JavaScript.</p></noscript>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

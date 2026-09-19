@@ -483,6 +483,19 @@ const games = [
             { emoji: '\uD83C\uDF31', label: 'Procedural' },
             { emoji: '\uD83D\uDCF1', label: 'Touch' }
         ]
+    },
+    {
+        id: 'game-038',
+        title: 'Emberbrood',
+        description: "An 8-bit procedurally generated dragon battler. The Emberlines that hold the sky together are going out and the dragons that tended them are forgetting their own names \u2014 so fight them, bind them, raise them, and breed them back. Final Fantasy-shaped turn-based battles (a party of three, turn order by speed, MP, eleven statuses, an eight-element chart) sit on top of a genome that decides a dragon's stats, skills, temperament AND its 32\u00d732 sprite, so a dragon you bred visibly resembles its parents. 87 items, 18 main quests across five acts, generated notice-board work, a forge, roost dungeons, and three endings gated on what your brood can actually prove. Vanilla HTML/CSS/JS with no libraries and no asset files whatsoever: every sprite is drawn in code, every sound synthesised, and the whole country grows from one seed. Built for a phone.",
+        icon: '\uD83D\uDC09',
+        folder: 'game-038',
+        cssClass: 'emberbrood',
+        tags: [
+            { emoji: '\u2694\uFE0F', label: 'Turn-based RPG' },
+            { emoji: '\uD83E\uDDEC', label: 'Procedural' },
+            { emoji: '\uD83D\uDCF1', label: 'Touch' }
+        ]
     }
 ];
 

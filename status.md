@@ -38,10 +38,11 @@ Completion audit of all games in this repo, based on each game's own game-plan.m
 | [game-030](game-030/index.html) | Coppergate Lane | Playable-but-partial | Full playable story arc to a boss fight, but no save/load, single hero only, uniform enemy AI — was missing from the launcher, now added and committed |
 | [game-031](game-031/index.html) | Grimhold Abyss | **Complete** | All 5 phases done — custom software 3D engine, procedural dungeons, bestiary, RPG systems, audio/polish; full ten-floor run verified end to end on four seeds |
 | [game-037](game-037/index.html) | Lanternwake | **Complete** | Built from a 3,800-line spec; phases 0–10 done. 19/19 acceptance tests and the G1–G9 architecture lint pass; world validation clean on all 10 fixture seeds; 99.9% of 1,396 generated Hollow floors pass F1–F8. Errand loop, Thread, Long Thread and both endings verified end to end in a browser. Open: dialogue banks below the spec's ≥12-per-tier target, no input-replay test, world creation ~1.3s against a 500ms budget — see [DECISIONS.md](game-037/DECISIONS.md) |
+| [game-038](game-038/index.html) | Emberbrood | **Complete** | Built from its own GDD; all 16 phases of the build plan done. 30/30 headless assertions pass, a full playthrough (act I → all five bosses → an ending) runs in node, and two Playwright suites cover the title, map, battle, Broodwell, shop, forge, boss and ending flows with no console errors on a 390×844 viewport. Open: the third ending (Succession) is reachable but long; balance past act IV is simulated rather than hand-played |
 
 ## Key takeaways
 
-- **Most finished:** game-008, 010, 011, 016, 020, 021, 023, 025, 031 — all self-declared complete and verified against code with no meaningful gaps.
+- **Most finished:** game-008, 010, 011, 016, 020, 021, 023, 025, 031, 037, 038 — all self-declared complete and verified against code with no meaningful gaps.
 - **Real functional gap (not just polish):** game-022 (Depths Unknown) has no win condition — the only game that's genuinely unfinished at a functional level, not just missing stretch polish.
 - **Doc/code mismatches worth knowing about:** game-006, game-009, game-012, game-014, and game-019 have plan docs that *understate* real progress — the code is further along than the checklists suggest.
 - **Recently landed, not yet eyeballed:** game-029's latest batch (new `fx.js`, monster archetypes, town/shop rework) is now committed, but its own plan doc flags it as not yet visually verified live in a browser — worth a playtest pass before considering Phase 3 fully closed.
