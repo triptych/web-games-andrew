@@ -44,7 +44,8 @@ registerScreen('title', () => {
   return el('div.title-screen', null,
     decorativeDragons(),
     el('h1.logo', null, 'EMBERBROOD'),
-    el('p.tagline', null, 'Fight them. Bind them. Raise them. Breed them.<br>Put the sky back together.', ),
+    el('p.tagline', null, 'Fight them. Bind them. Raise them. Breed them.',
+      el('br'), 'Put the sky back together.'),
     el('div.stack', null,
       el('button.btn.wide.primary', { onclick: startNew }, 'New game'),
       summaries.length
@@ -72,11 +73,24 @@ export function beginNewGame(seed, wardenName = 'Warden') {
   wireQuests();
   wireScenes();
 
+  markGameLive(true);
+
+  // Put the world up FIRST. Scenes play as an overlay over whatever screen is
+  // behind them, so without this the intro sits on top of the title screen and
+  // closing it drops the player straight back onto the title with no way
+  // forward - which is exactly what it did.
+  show('place');
+
+  // And queue the framing BEFORE handing over the starter dragon: adding a
+  // dragon emits roster:changed, which runs a quest pass, which queues the
+  // first quest's own scene. Do it the other way round and the player reads
+  // "here is the dragon she left you" before they have been told who she was.
+  requestScene('intro');
+
   const rng = rngFrom(seed, 'starter');
   // Maerin's last hatchling: an Emberwyrm, deliberately, so the first fight
   // teaches the elemental chart rather than punishing you with it.
   const starter = makeDragon(rng, { lineageId: 'emberwyrm', level: 5, bond: 20, temperament: 'fond' });
-  starter.name = starter.name;
   addDragon(starter, { toParty: true });
 
   for (const [id, n] of Object.entries({
@@ -84,8 +98,6 @@ export function beginNewGame(seed, wardenName = 'Warden') {
   })) addItem(id, n);
 
   checkQuests();
-  requestScene('intro');
-  markGameLive(true);
   saveTo('auto');
   playMusic('town');
   bus.emit('game:begun');
