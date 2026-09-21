@@ -49,20 +49,33 @@ await step('new game starts', async () => {
 
 await page.screenshot({ path: `${SHOTS}/02-intro.png` });
 
-await step('scene advances to the end', async () => {
-  for (let i = 0; i < 12; i++) {
+await step('the opening is read in the right order', async () => {
+  const firstLine = (await page.textContent('.scene .line')) || '';
+  if (!firstLine.includes('Maerin Colde')) {
+    throw new Error('the first thing shown was not the intro: ' + firstLine.slice(0, 60));
+  }
+  for (let i = 0; i < 24; i++) {
     const btn = await page.$('.scene-nav button.primary');
     if (!btn) break;
     await btn.click();
     await page.waitForTimeout(120);
   }
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(500);
 });
 
-await step('lands on a screen with the brood', async () => {
-  // after the intro the first main quest completes; get to the place screen
-  await page.evaluate(() => window.EMBERBROOD.show('place'));
-  await page.waitForTimeout(300);
+await step('the game walks itself into the world after the intro', async () => {
+  // Deliberately NOT calling show() here. A player only has the buttons the
+  // game gives them, and an earlier version of this test navigated on the
+  // game's behalf - which hid a dead end that dropped the player back on the
+  // title screen with no way forward.
+  const overlayOpen = await page.evaluate(() => !document.getElementById('overlay').hidden);
+  if (overlayOpen) throw new Error('a dialogue is still open after the opening');
+  const onTitle = await page.$('.title-screen');
+  if (onTitle) throw new Error('the opening dead-ends back on the title screen');
+  const tabbarVisible = await page.evaluate(() => !document.getElementById('tabbar').hidden);
+  if (!tabbarVisible) throw new Error('no navigation after the opening');
+  const screen = (await page.textContent('#screen')) || '';
+  if (!screen.includes('Broodwell')) throw new Error('did not land at the Broodwell: ' + screen.slice(0, 60));
   const roster = await page.evaluate(() => window.EMBERBROOD.state.roster.length);
   if (roster !== 1) throw new Error('roster is ' + roster);
 });

@@ -7,6 +7,7 @@
 import { rngFrom, RNG, hashStr } from '../js/core/rand.js';
 import { makeDragon, statsOf, maxHp, gainXp, checkStage, geneKey, describe, canBreed, cleanse, addBond } from '../js/gen/dragon.js';
 import { buildDragonSprite, buildEggSprite, palettteFor } from '../js/gen/sprite.js';
+import { BODY_IDX, IDX } from '../js/gen/pixels.js';
 import { Battle, SIDE } from '../js/game/battle.js';
 import { breed, hatch } from '../js/game/breeding.js';
 import { rollEncounter, makeBoss, buildRoost } from '../js/gen/encounters.js';
@@ -120,6 +121,63 @@ t('a sprite is a pure function of the genes', () => {
   const flap = buildDragonSprite(d, true);
   ok(flap.data.join('') !== one.data.join(''), 'the two frames are identical');
   ok(palettteFor(d).length === 14, 'palette is the wrong shape');
+});
+
+t('scales do not crawl between animation frames', () => {
+  // Reported from play: "sometimes the dragon animations have evenly spaced
+  // vertical bars as visual artifacts". The pattern pass was seeded with the
+  // frame mixed in, so a banded dragon re-rolled its stripe spacing AND offset
+  // twice a second. Scales belong to the animal, not to the frame.
+  const PATTERNS = ['plain', 'banded', 'spotted', 'mottled', 'gradient', 'veined'];
+  const SHAPES = [['membrane', 'quad'], ['feathered', 'drake'], ['twin', 'wyvern'],
+                  ['finned', 'serpent'], ['vestigial', 'amphithere']];
+
+  // How much of the shared body surface changes between the two frames. The
+  // wing is excluded by construction (a pixel must be body scale in BOTH
+  // frames to count), so what is left is the pattern moving, plus a little
+  // noise from the one-pixel bob re-rasterising curves.
+  const drift = (pattern, wings, body) => {
+    const d = makeDragon(rngFrom(`drift|${pattern}|${wings}|${body}`, 'x'), { lineageId: 'ridgeback', level: 20 });
+    Object.assign(d.genes, { pattern, wings, body, size: 1 });
+    const a = buildDragonSprite(d, false), b = buildDragonSprite(d, true);
+    let differ = 0, counted = 0;
+    for (let y = 0; y < 31; y++) for (let x = 0; x < 32; x++) {
+      const va = a.get(x, y + 1), vb = b.get(x, y);        // undo the 1px bob
+      if (!BODY_IDX.has(va) || !BODY_IDX.has(vb)) continue;
+      counted++;
+      if (va !== vb) differ++;
+    }
+    return counted ? differ / counted : 0;
+  };
+
+  // 'plain' has no pattern pass at all, so it is the floor: whatever it shows
+  // is the bob and the shading around the moving wing, and no patterned
+  // dragon should move much more than that.
+  for (const [wings, body] of SHAPES) {
+    const floor = drift('plain', wings, body);
+    for (const pattern of PATTERNS) {
+      const d = drift(pattern, wings, body);
+      ok(d <= floor + 0.06,
+        `${pattern}/${wings}/${body} scales move ${(d * 100).toFixed(0)}% between frames ` +
+        `against a ${(floor * 100).toFixed(0)}% floor - the pattern is being re-rolled per frame`);
+    }
+  }
+
+  // And the reported symptom itself: a banded dragon's stripes must land on
+  // exactly the same columns in both frames.
+  const striped = makeDragon(rngFrom('stripes', 'x'), { lineageId: 'ridgeback', level: 20 });
+  Object.assign(striped.genes, { pattern: 'banded', wings: 'vestigial', body: 'quad', size: 1 });
+  const columns = (buf) => {
+    const out = [];
+    for (let x = 0; x < 32; x++) {
+      let n = 0;
+      for (let y = 0; y < 32; y++) if (buf.get(x, y) === IDX.DARK) n++;
+      if (n > 3) out.push(x);
+    }
+    return out.join(',');
+  };
+  eq(columns(buildDragonSprite(striped, true)), columns(buildDragonSprite(striped, false)),
+     'the bands sit on different columns in the two frames');
 });
 
 t('every body plan, wing, horn, tail and crest draws something', () => {

@@ -16,14 +16,23 @@ let wired = false;
 export const pending = () => queue.slice();
 export const hasPending = () => queue.length > 0;
 
-/** Queue a scene and apply everything it changes about the world. */
+/**
+ * Queue a scene and apply everything it changes about the world.
+ *
+ * The queue push comes FIRST and deliberately so: setting the flag and
+ * applying the effects both emit, quests listen to those emissions, and a
+ * quest accepted by that cascade can request a scene of its own. Queue this
+ * one last and the cascade's scene jumps the line - which is how a new game
+ * came to show "here is the dragon she left you" before the opening.
+ */
 export function requestScene(id, meta = {}) {
   const s = scene(id);
   if (!s) return null;
   if (state.flags[`scene_${id}`] && !meta.replay) return null;   // each scene once
+  const entry = { scene: s, meta };
+  queue.push(entry);
   setFlag(`scene_${id}`);
   applyEffects(s);
-  queue.push({ scene: s, meta });
   bus.emit('scene:queued', { scene: s, meta });
   return s;
 }

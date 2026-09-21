@@ -205,7 +205,7 @@ function drawTailTip(buf, type, x, y, dx, dy, size) {
   }
 }
 
-function drawCrest(buf, type, crest, size, rng) {
+function drawCrest(buf, type, crest, size) {
   if (!crest || type === 'none') return;
   const [fx, fy] = crest.from, [tx, ty] = crest.to;
   const s = size;
@@ -298,7 +298,14 @@ function ashPass(buf, rng, bounds) {
  * @returns PixelBuffer of SPRITE_SIZE x SPRITE_SIZE, facing right
  */
 export function buildDragonSprite(d, flap = false) {
-  const seed = hashStr(geneKey(d) + (flap ? '|up' : '|down'));
+  // Seeded from the genes ALONE, with no frame in the mix. Every random
+  // decision in this function is about what the ANIMAL looks like, not about
+  // what this particular frame looks like: the only thing that may differ
+  // between the two frames is the pose (wing lift and a one-pixel bob), and
+  // both of those are computed, not rolled. Mix `flap` into this seed and the
+  // pattern pass re-rolls every frame - the bands change spacing and offset
+  // twice a second, which reads as flickering vertical bars, not as scales.
+  const seed = hashStr(geneKey(d) + '|skin');
   const rng = new RNG(seed, seed ^ 0x9e3779b9, seed ^ 0x85ebca6b, seed ^ 0xc2b2ae35);
   for (let i = 0; i < 6; i++) rng.next();
 
@@ -377,7 +384,7 @@ export function buildDragonSprite(d, flap = false) {
 
   // --- crest, horns -----------------------------------------------------
   const crestPts = { from: T(sk.crest.from[0], sk.crest.from[1]), to: T(sk.crest.to[0], sk.crest.to[1]) };
-  drawCrest(buf, g.crest, crestPts, size, rng);
+  drawCrest(buf, g.crest, crestPts, size);
   const hornPt = { x: T(sk.horn.x, sk.horn.y)[0], y: T(sk.horn.x, sk.horn.y)[1] };
   drawHorns(buf, g.horns, hornPt, size);
 
