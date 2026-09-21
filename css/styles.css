@@ -562,6 +562,11 @@ h1 {
     color: #1b1408;
 }
 
+.game-card.wakeform .play-button {
+    background: linear-gradient(135deg, #d8482c 0%, #2c7cd8 100%);
+    color: #f4f0e8;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

@@ -1,0 +1,89 @@
+/*
+ * Wakeform shell. The game draws everything itself into one canvas, so the page
+ * only has to centre that canvas on black and keep the browser from getting
+ * clever with it (no smoothing, no tap highlight, no rubber-band scrolling).
+ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    color: #b0b0b0;
+}
+
+#stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+}
+
+#screen {
+    display: block;
+    /* Nearest-neighbour upscaling is the whole look; never let the browser
+       smooth these pixels. */
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #000;
+    /* A soft phosphor glow around the tube. */
+    box-shadow: 0 0 0 2px #111, 0 0 28px rgba(80, 120, 200, 0.18);
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+.back-link {
+    position: fixed;
+    top: 10px;
+    left: 12px;
+    z-index: 10;
+    color: #5a5a6a;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    padding: 4px 8px;
+    border: 1px solid #23232c;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.6);
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.back-link:hover,
+.back-link:focus-visible {
+    color: #c8c8d8;
+    border-color: #4a4a5a;
+}
+
+.noscript {
+    padding: 2rem;
+    color: #c8c8d8;
+    text-align: center;
+}
+
+/* On short landscape phones the back link overlaps the tube; tuck it in. */
+@media (max-height: 480px) {
+    .back-link {
+        top: 4px;
+        left: 4px;
+        font-size: 10px;
+        padding: 2px 5px;
+    }
+}

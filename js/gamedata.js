@@ -496,6 +496,19 @@ const games = [
             { emoji: '\uD83E\uDDEC', label: 'Procedural' },
             { emoji: '\uD83D\uDCF1', label: 'Touch' }
         ]
+    },
+    {
+        id: 'game-039',
+        title: 'Wakeform',
+        description: "An Atari 2600-style arcade game built on one original idea: you have no weapon. Your probe can do exactly one thing — invert its own polarity — and as you fly you shed echoes: frozen copies of yourself that keep whatever polarity you had at that instant. Those echoes are not a trail. They push and pull the drifting motes exactly like you do, so you defend the reactor core by drawing a working machine out of your own movement history. Lay a wall to steer motes, funnel them into a knot of opposite echoes that holds them orbiting, then fly in and harvest the whole cluster in one enormous chain. Every echo and every flip costs flux, and flying back through your own past reclaims it, so good play is a loop: build, harvest, reclaim, rebuild. Five mote classes each attack a different weakness in your lattice. Every sprite, colour, backdrop and sound is generated from a run seed — no asset files at all. Three save slots plus autosave.",
+        icon: '◉',
+        folder: 'game-039',
+        cssClass: 'wakeform',
+        tags: [
+            { emoji: '🕹️', label: 'Arcade' },
+            { emoji: '⚡', label: 'Novel Mechanic' },
+            { emoji: '🌱', label: 'Procedural' }
+        ]
     }
 ];
 

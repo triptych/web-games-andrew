@@ -4237,3 +4237,138 @@ open dialog before the next click (`dismiss()` helper) or a modal from step 3
 fails step 7 with a confusing timeout; and prefer `locator(...)` over
 `elementHandle` in any screen that re-renders, because a refresh detaches the
 handle.
+
+---
+
+## Atari 2600-idiom rendering without assets (game-039 Wakeform)
+
+### The look comes from constraints, not filters
+Draw into a **160x192** offscreen canvas (the 2600's real visible resolution)
+and blit it up with `imageSmoothingEnabled = false` plus
+`image-rendering: pixelated`. Give each buffer pixel a **2:1 aspect** when
+blitting, because that is the shape a 2600 pixel actually was. Everything is
+then forced to integer positions and chunky shapes for free, which no amount of
+post-processing will fake.
+
+### Generate the palette from the real hardware ramp
+The TIA had 16 hues x 8 luminances. Store the 16 base RGBs and derive a
+luminance step by interpolating toward white. Picking a run palette then means
+picking hue *families* from that table, which keeps every seeded variation
+inside the hardware gamut instead of drifting into arbitrary web colours.
+
+One rule matters more than aesthetics: if two colours encode opposed game
+states, force their hues far apart on the wheel (game-039 requires >= 5 of 16
+steps). Reading state at a glance is load-bearing; a pretty analogous palette
+makes the game unplayable.
+
+### Symmetric bitmask sprites
+Generate a left half at random, mirror it, and force the centre column on.
+That is both how the 2600 drew playfields and why hand-drawn 2600 sprites read
+as creatures rather than noise. Add a highlight value on any pixel whose
+up/left neighbour is empty and you get free shading. Bake each mask into a
+small offscreen canvas once at load; never draw per-pixel per-frame.
+
+### A blocky font beats a web font
+3x5 bitmaps in a lookup table, drawn as one `fillRect` per lit cell. No font
+loading, no layout shift, no FOUT, and it matches the idiom. ~40 lines total.
+
+---
+
+## JavaScript `%` is a remainder, not a modulo
+
+`Math.floor(t * 6) % frames.length` returns **-1** when `t` is a hair below
+zero, and `drawImage(undefined, ...)` throws. Accumulated frame deltas *will*
+land slightly negative (floating-point drift, or a non-monotonic timestamp).
+Two defences, use both:
+
+```js
+dt = Math.min(Math.max((ts - last) / 1000, 0), 0.05);   // floor at 0, cap for stalls
+const i = ((Math.floor(t) % len) + len) % len;          // true modulo for cyclic indices
+```
+
+This is invisible until the one frame it is not, and it presents as a crash in
+the renderer far from its cause.
+
+---
+
+## Two keydown listeners will fight over one key
+
+Registering game-input and menu-input as separate `window` `keydown`
+listeners creates an ordering bug that is hard to read from the symptom. In
+game-039, Escape closed the pause menu in the first listener, and the second
+listener then observed the same event with **no menu open**, queued another
+pause, and reopened it on the next frame: pause became impossible to exit.
+
+Checking `menuOpen()` cannot fix it, because the state legitimately changed
+mid-dispatch. Tag the event instead:
+
+```js
+// menu listener (runs first)
+if (activeScreen) e.__menuHandled = true;
+// input listener (runs second)
+if (e.__menuHandled || menuOpen()) return;
+```
+
+Better still, have one listener and dispatch from it. If that is not practical,
+the tag is the reliable fix: decide ownership from state captured *before* any
+handler mutated it.
+
+---
+
+## Let the player win, but never let them stop the clock
+
+A wave that ends only when the board is empty can be held open forever by a
+player who is good at not-killing things. game-039's balance probe survived the
+full 300s cap **at wave 1**: infinite survival, zero progress, unable to lose.
+That is worse than dying.
+
+Any "clear the board to advance" rule needs a grace timer. Give the player a
+window to finish, then advance anyway and withhold the completion bonus. The
+strategy stays viable and becomes a gamble instead of an exploit.
+
+---
+
+## Tune difficulty with bots, not vibes
+
+Write 3-4 scripted players against the real game loop and print wave reached,
+score, and death rate over a handful of fixed seeds. It takes about an hour and
+replaces every "feels about right" argument with a table.
+
+What it caught in game-039:
+- An **idle** bot lost in 16s, leaving no room for a new player to learn. The
+  early curve was softened until that was ~30s.
+- The naive **chaser** out-scored the strategy the entire game was designed
+  around, which is a design failure rather than a balance nit. It surfaced that
+  the intended play (use the trail as an active tool while intercepting) had to
+  win on *survival* rather than raw score: 2/5 deaths vs 3/5. That trade is the
+  actual design, and the numbers are what found it.
+
+Critically, the bot harness must mirror the real state machine. When the loop in
+`main.js` changed, the probe kept measuring the old rules and reported a
+stall that had already been fixed. Factor out the shared step, or comment loudly
+in both places.
+
+---
+
+## Testing a canvas game in Node with a strict fake context
+
+A `Proxy` standing in for `CanvasRenderingContext2D` that **throws** rather
+than silently accepting is worth far more than a recording stub:
+
+- unknown method called -> throw (catches typos and API drift)
+- any non-finite coordinate -> throw (catches NaN propagation at its source)
+- `fillStyle` set to undefined -> throw (catches missing palette keys)
+- `drawImage(undefined)` -> throw (catches unbuilt or mis-keyed sprites)
+
+Capturing the `requestAnimationFrame` callback then lets you pump exact frame
+counts deterministically and walk every screen. This found the negative-modulo
+crash above on a code path a browser would only have hit intermittently.
+
+Two gotchas when faking the DOM for this:
+- A real browser dispatches to **every** registered listener. If your fake
+  `addEventListener` stores one function per event name you will silently test
+  half the app, and worse, mask exactly the multi-listener bugs described above.
+  Store an array and fan out.
+- Menus that wrap cannot be "homed" by pressing Up a fixed number of times; you
+  land on `(sel - n) mod rows`. Press a common multiple of every menu length,
+  or expose the selection index for tests.
