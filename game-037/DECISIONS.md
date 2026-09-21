@@ -156,10 +156,10 @@ reduced form and are flagged here rather than left as a surprise:
 - **Dialogue banks.** 103 templates across 12 intents &times; 4 warmth tiers,
   against the spec's "&ge; 12 per (intent, tier)" (which would be 576). Adding
   templates is append-only and safe.
-- **The balance harness (&sect;31.5).** A scripted bot exists as
-  `test/soak` driven from Playwright rather than an in-repo headless policy
-  sweep; it reports turns, kills, Wakes, quest completion and the Quiet
-  trajectory, but does not yet sweep the three named policies.
+- **The balance harness (&sect;31.5).** Not in the repo. Balance was tuned with
+  a throwaway Playwright-driven bot; it was never checked in, so there is no
+  in-repo headless policy sweep and none of the three named policies is
+  exercised by `node test/run.mjs`.
 - **The replay test (&sect;31.4).** Determinism is covered by golden hashes,
   order-independence and per-descent floor identity; an input-sequence recorder
   is not wired up.

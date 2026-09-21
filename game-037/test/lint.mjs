@@ -1,8 +1,9 @@
 // node test/lint.mjs - the global invariants G1-G9 (GDD §30)
 import { readdir, readFile, stat } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { join, relative, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = new URL('../js/', import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL('../js/', import.meta.url));
 const files = [];
 async function walk(dir) {
   for (const name of await readdir(dir)) {
@@ -17,7 +18,7 @@ const fails = [];
 const sources = new Map();
 for (const f of files) sources.set(f, await readFile(f, 'utf8'));
 
-const rel = f => relative(ROOT, f);
+const rel = f => relative(ROOT, f).split(sep).join('/');
 /** Strip comments and string literals so prose about a rule is not a breach. */
 const code = src => src
   .replace(/\/\*[\s\S]*?\*\//g, '')

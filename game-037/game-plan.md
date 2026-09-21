@@ -118,6 +118,6 @@ lantern, `e` listens, `>` and `<` for stairs, `i` `q` `c` `m` for the panels,
   Adding more is append-only and cannot break the binder.
 - The `&sect;31.4` replay test (record an input sequence, assert identical HP,
   positions and log text) is not wired up.
-- The `&sect;31.5` balance harness runs as a browser-driven bot rather than the
-  three named headless policies.
+- The `&sect;31.5` balance harness is not checked in; the bot used for tuning was
+  throwaway, so no policy sweep runs in CI.
 - World creation should come in under 500 ms; region profiling is the hot spot.
