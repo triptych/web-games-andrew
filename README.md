@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-38 games, `game-001` through `game-038`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+39 games, `game-001` through `game-039`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -50,6 +50,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 | 036 | [Island Walker](game-036/) | First-person procedural walking simulator | Custom software 3D rasterizer |
 | 037 | [Lanternwake](game-037/) | Turn-based roguelike / Zelda-like fusion | Vanilla JS, no dependencies |
 | 038 | [Emberbrood](game-038/) | Procedural dragon battler / turn-based RPG | Vanilla JS, no dependencies |
+| 039 | [Wakeform](game-039/) | Atari-2600-style arcade / field-drawing | Vanilla JS, no dependencies |
 
 ### Highlights
 
@@ -83,6 +84,8 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 **[Emberbrood](game-038/)** — An 8-bit **procedurally generated dragon battler**: fight them, bind them, raise them, breed them. Battles are Final Fantasy-shaped (a party of three, turn order by speed, MP, eleven statuses, an eight-element chart with real ×4 and ×0.25 matchups, a shared Ember Surge meter), but every wild fight can also end in a capture, and the odds are shown before you commit. Every dragon in the game — including the ones you hatch — comes out of a genome that decides its stats, skills, temperament **and its 32×32 sprite**, so a dragon you bred visibly resembles its parents, and each generation is measurably better than the last. Grey, nameless "ashbound" dragons can be cleansed mid-battle and get their real names back. 87 items, a forge, roost dungeons, 18 main quests across five acts, generated notice-board work, and three endings gated on what your brood can actually prove. **Vanilla HTML/CSS/JS, no libraries, no build step and no asset files at all** — every sprite is drawn in code, every sound synthesised, and the whole country grows from one seed. Design doc in [game-038/GDD.md](game-038/GDD.md); the test harness runs with no tooling at [game-038/test/harness.html](game-038/test/harness.html).
 
+**[Wakeform](game-039/)** — An **Atari-2600-shaped arcade game built on one original mechanic**, and the whole game is in that mechanic: you have no weapon. Your probe can do exactly one thing — invert its own polarity — and as you fly it continuously sheds **echoes**, frozen copies of itself holding whatever polarity you had at that instant. The echoes are not a trail and not a wall; each one exerts the same force you do, so like-polarity motes are shoved away and opposite ones are drawn in and absorbed. You defend the reactor core by *drawing a working machine out of your own movement history* — lay a stroke to steer motes, funnel them into a knot of opposite echoes that holds them orbiting, then fly in and harvest the cluster in one enormous chain. Every echo and every flip costs flux, and flying back through your own past reclaims it, so good play is a loop: build, harvest, reclaim, rebuild. Five mote classes each attack a different weakness in a lattice (the leech eats echoes you abandoned; the anchor ignores force entirely and has to be fetched by hand). **Vanilla HTML/CSS/JS, no libraries and no asset files** — a 160×192 internal buffer scaled nearest-neighbour, an 8-colour palette sampled from the real 2600 NTSC ramp, sprites and playfield generated per run seed, all audio synthesised. Difficulty was tuned against scripted bots rather than guesswork; the Node harnesses that verified it without a browser are in [game-039/dev/](game-039/dev/README.md).
+
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
 ## Getting Started
@@ -110,7 +113,7 @@ python -m SimpleHTTPServer 8000
 
 ### Playing Individual Games
 
-You can also play any game directly by opening its own `index.html` file, e.g. `game-001/index.html` for Space Shooter. See the [table above](#games-included) for the full list of 38 games and their folders.
+You can also play any game directly by opening its own `index.html` file, e.g. `game-001/index.html` for Space Shooter. See the [table above](#games-included) for the full list of 39 games and their folders.
 
 ## Building Desktop Versions
 
@@ -145,14 +148,14 @@ web-games-andrew/
 ├── css/                    # Shared stylesheets
 ├── js/                     # Shared JavaScript modules
 │   ├── main.js
-│   └── gamedata.js         # Metadata for all 38 games (drives the launcher)
+│   └── gamedata.js         # Metadata for all 39 games (drives the launcher)
 ├── lib/
 │   ├── kaplay/              # Shared Kaplay engine (kaplay.mjs / kaplay.js)
 │   └── phaser/phaser-4.0.0/ # Shared Phaser 4 engine (ESM build)
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-038/   # One self-contained folder per game
+├── game-001/ … game-039/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -172,7 +175,7 @@ Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018
 - **Kaplay Framework (v4000 alpha)** - Game development framework (most games from game-002 onward, including game-032)
 - **Phaser 4.0.0 (ESM)** - Game framework (game-019, game-020, game-027, game-028, game-035)
 - **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029)
-- **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034, game-037, game-038)
+- **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034, game-037, game-038, game-039)
 - **Custom software 3D** - Hand-written 3D renderers with no engine: a palette-indexed framebuffer (game-031) and a triangle rasterizer on Canvas2D (game-036)
 - **GemCore/GemShell** - Desktop application packaging
 
@@ -209,7 +212,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 38 games are included as of the latest entries (game-036 Island Walker, game-037 Lanternwake, game-038 Emberbrood).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 39 games are included as of the latest entries (game-037 Lanternwake, game-038 Emberbrood, game-039 Wakeform).
 
 ---
 
