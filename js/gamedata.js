@@ -509,6 +509,19 @@ const games = [
             { emoji: '⚡', label: 'Novel Mechanic' },
             { emoji: '🌱', label: 'Procedural' }
         ]
+    },
+    {
+        id: 'game-040',
+        title: 'Starcadet',
+        description: "A vertical bullet-hell shmup in three.js with a rescue mechanic at its centre. The Chorus takes Halcyon Flight Academy mid-examination and you are Cadet Theo Vance, the worst shot in your class, flying the only thing left: a trainer with practice cannons and a tow hook rated for target drones. Two hundred and eleven classmates are in escape pods. Shooting is how you survive; hooking pods is how you win, and a pod that falls past you is gone for the rest of the run. Six levels with distinct backdrops, 14 enemy archetypes with their own shooting patterns, a 12-pattern bullet-hell library, four weapons, flares, graze-fed Overdrive, and six multi-phase bosses \u2014 including one with destructible turrets that each remove an attack from its cycle, and a finale that opens one safe lane for every named classmate you brought back. Every ship, bullet, backdrop, portrait and sound is generated in code: no asset files.",
+        icon: '\uD83D\uDEF0\uFE0F',
+        folder: 'game-040',
+        cssClass: 'starcadet',
+        tags: [
+            { emoji: '\uD83D\uDCA5', label: 'Bullet Hell' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' },
+            { emoji: '\uD83D\uDCF1', label: 'Touch' }
+        ]
     }
 ];
 
