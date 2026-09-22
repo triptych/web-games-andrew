@@ -562,6 +562,11 @@ h1 {
     color: #1b1408;
 }
 
+.game-card.emberbrood .play-button {
+    background: linear-gradient(135deg, #7a1f10 0%, #ff9a3c 100%);
+    color: #24100a;
+}
+
 .game-card.wakeform .play-button {
     background: linear-gradient(135deg, #d8482c 0%, #2c7cd8 100%);
     color: #f4f0e8;
