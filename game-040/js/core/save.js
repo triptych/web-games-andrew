@@ -16,7 +16,7 @@ const DEFAULTS = {
     bestRank: '',
     clears: 0,
     seenIntro: false,
-    options: { autofire: true, screenShake: true, music: true, sfx: true, showFps: false },
+    options: { autofire: true, screenShake: true, music: true, sfx: true, showFps: false, quality: 'auto' },
     levelBests: {},         // { "1": { score, rescued, rank } }
 };
 

@@ -11,6 +11,8 @@ code. Run them from the game folder (`game-040/`).
 | `node dev/balance.mjs [difficulty]` | Three scripted bots play all six levels and print times, deaths, pods recovered, peak bullet counts and ranks. This is where the numbers in GDD §10a come from |
 | `node dev/playthrough.mjs [difficulty] [bot]` | A full six-level campaign, start to ending, carrying ship state and headcount between levels exactly as `main.js` does |
 | `node dev/boottest.mjs` | Boots `main.js` itself under a fake DOM and walks the real state machine: title → intro → briefing → launch → play → pause → resume → level clear |
+| `node dev/mobiletest.mjs` | **The phone pass.** An emulated iPhone-class device (touch, `isMobile`, dpr 3) driven *only* by touch input through CDP: taps through the menus, drags to fly, checks the ship does not teleport on a bare touch, exercises FLARE / OD / FOCUS-held / PAUSE, and asserts every on-screen control is ≥44px and clear of the HUD. `LANDSCAPE=1` runs the 844×390 pass |
+| `node dev/perf.mjs` | Simulation cost per rendered frame at boss-level entity counts. The renderer's cost is a GPU question, but the sim is plain JS and costs a phone the same work — it comes in around 0.1ms per frame against a 16.7ms budget |
 | `node dev/browsertest.mjs` | **Real Chromium, real WebGL, real three.js.** Loads `index.html` unmodified, plays through to a boss fight, screenshots each step at desktop and 390×844, and fails on any console error, page error or failed request. Needs Playwright and a static server — see the header of the file |
 
 ## Why a fake three.js?
@@ -37,6 +39,26 @@ harnesses.
 - A boss whose HP reached zero by any path other than `damageBoss()` (a flare field, a ram) sat in
   its last phase forever — `boottest.mjs` found it while driving the state machine.
 - One stray mouse movement permanently disabled the keyboard, because pointer-flying latched on.
+
+Things only the **mobile** test could show, because they are about a device with no keyboard:
+
+- Dragging was **absolute**: the first touch teleported the ship up to 3.3 units across the arena,
+  and flying meant holding a thumb over the bullets you were trying to read. It is relative now.
+- The on-screen buttons sat on top of the Overdrive and level meters.
+- A CSS specificity slip (`#touch button` beating `#touch-pause`) rendered the pause button at 64px
+  instead of 46px, on top of the ship readouts.
+- The top HUD row *overflowed* 390px once the launcher link and pause button were accounted for, and
+  an overflowing flex row with `space-between` silently pushes its last child off to the right —
+  which is why the right-hand column kept landing under the pause button even after two "fixes".
+- In landscape the menus could not be scrolled by finger **at all**: `touch-action: none` on `body`
+  (which stops dragging the ship from scrolling the page) also disables scrolling inside overlays,
+  so the LAUNCH button below the fold was simply unreachable.
+- The comms panel sat on top of the OD button *and* on top of the player's own ship.
+- Tapping a key-rebind button on a phone left the options panel stuck on "PRESS A KEY…" forever.
+- Nothing marked the arena walls: the camera fits whichever dimension binds, so on a landscape phone
+  the playable box is the middle ~40% of the glass with no indication of where it ends.
+- Long banner strings were clipped by the fixed text-sprite canvas ("1. HANGAR RING" rendered as
+  "ANGAR RI", and boss phase names are longer than that).
 
 Things only the **browser** test could show, since they are about what the frame looks like: the
 backdrop plane was small enough that its edges were visible on screen, the starfield was bright and

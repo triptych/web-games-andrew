@@ -13,7 +13,17 @@ export const input = {
     fire: false,
     flare: false,        // edge-triggered: cleared by consumeFlare()
     od: false,           // edge-triggered: cleared by consumeOd()
-    pointer: { active: false, x: 0, y: 0 },
+    /**
+     * pointer.relative distinguishes the two ways of flying with a pointer:
+     *  - mouse (relative: false) — the ship goes where the cursor is, which is
+     *    what a mouse user expects because the cursor is visible and precise
+     *  - touch (relative: true) — the ship moves by the DELTA of the finger, so
+     *    a thumb anywhere on the glass flies the ship without teleporting it and
+     *    without the hand covering the part of the screen you need to read
+     * pointer.rebase asks the consumer to re-anchor on the next frame (a new
+     * finger went down), which is what stops the jump.
+     */
+    pointer: { active: false, relative: false, rebase: false, x: 0, y: 0 },
     anyKey: false,
 };
 
@@ -33,10 +43,32 @@ let binds = structuredClone(DEFAULT_BINDS);
 const held = new Set();
 const listeners = { pause: [], anyKey: [], confirm: [], cancel: [] };
 let captureNext = null;
+let captureTimer = null;
 
 export function setBinds(next) { binds = { ...structuredClone(DEFAULT_BINDS), ...next }; }
 export function getBinds() { return structuredClone(binds); }
-export function captureBind(action, cb) { captureNext = { action, cb }; }
+/**
+ * Listen for the next key press and bind it. Times out, because on a phone
+ * there is no keyboard: without this, tapping a rebind button leaves the panel
+ * stuck on "PRESS A KEY…" with no way back.
+ */
+export function captureBind(action, cb, timeoutMs = 6000) {
+    if (captureTimer) clearTimeout(captureTimer);
+    captureNext = { action, cb };
+    captureTimer = setTimeout(() => {
+        captureTimer = null;
+        if (!captureNext) return;
+        const { cb: done } = captureNext;
+        captureNext = null;
+        done?.(null);
+    }, timeoutMs);
+}
+
+export function cancelCaptureBind() {
+    if (captureTimer) clearTimeout(captureTimer);
+    captureTimer = null;
+    captureNext = null;
+}
 
 function actionFor(code) {
     for (const [action, codes] of Object.entries(binds)) {
@@ -61,6 +93,17 @@ export function onAnyKey(fn)  { listeners.anyKey.push(fn); }
 export function onConfirm(fn) { listeners.confirm.push(fn); }
 export function onCancel(fn)  { listeners.cancel.push(fn); }
 
+/**
+ * On-screen buttons press the same virtual keys the keyboard does, rather than
+ * writing input.focus directly — otherwise any keyboard event would call
+ * refreshAxes() and silently clobber a held touch button.
+ */
+export function setVirtualHold(action, down) {
+    if (down) held.add(action);
+    else held.delete(action);
+    refreshAxes();
+}
+
 export function consumeFlare() { const v = input.flare; input.flare = false; return v; }
 export function consumeOd()    { const v = input.od;    input.od = false;    return v; }
 
@@ -72,6 +115,7 @@ export function initInput(canvas) {
             e.preventDefault();
             const { action, cb } = captureNext;
             captureNext = null;
+            if (captureTimer) { clearTimeout(captureTimer); captureTimer = null; }
             if (e.code !== 'Escape') binds[action] = [e.code];
             cb?.(binds[action]);
             return;
@@ -105,6 +149,7 @@ export function initInput(canvas) {
 
     target.addEventListener('mousemove', (e) => {
         input.pointer.active = true;
+        input.pointer.relative = false;       // a mouse flies the ship absolutely
         input.pointer.px = e.clientX;
         input.pointer.py = e.clientY;
     });
@@ -119,8 +164,11 @@ export function initInput(canvas) {
     });
     target.addEventListener('contextmenu', (e) => e.preventDefault());
 
-    // --- Touch: drag anywhere to fly; the ship tracks the finger with an offset
-    // so it is never hidden under the thumb. Two fingers = focus. ---
+    // --- Touch: drag ANYWHERE to fly, relative to where the finger went down.
+    // Relative rather than absolute is the whole game on a phone: the ship never
+    // jumps to the thumb, the thumb never has to sit on top of the bullets it is
+    // dodging, and a short drag near the bottom of the glass can still reach the
+    // top of the arena. Two fingers = focus (there is also a FOCUS button). ---
     let touchId = null;
     const onTouchStart = (e) => {
         listeners.anyKey.forEach((f) => f(e));
@@ -129,14 +177,16 @@ export function initInput(canvas) {
         const t = e.changedTouches[0];
         touchId = t.identifier;
         input.pointer.active = true;
+        input.pointer.relative = true;
+        input.pointer.rebase = true;        // re-anchor: do not teleport the ship
         input.pointer.px = t.clientX;
-        input.pointer.py = t.clientY - 60;   // lift above the finger
+        input.pointer.py = t.clientY;
     };
     const onTouchMove = (e) => {
         for (const t of e.changedTouches) {
             if (t.identifier !== touchId) continue;
             input.pointer.px = t.clientX;
-            input.pointer.py = t.clientY - 60;
+            input.pointer.py = t.clientY;
             e.preventDefault();
         }
     };
@@ -162,4 +212,5 @@ export function resetInput() {
     input.flare = false;
     input.od = false;
     input.pointer.active = false;
+    input.pointer.rebase = true;
 }

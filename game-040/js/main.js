@@ -7,16 +7,18 @@
  * the view, the audio and the UI — each decides what, if anything, to do.
  */
 
-import { TICK, MAX_FRAME_DT, DIFFICULTY, PLAYER } from './core/config.js';
+import { TICK, MAX_FRAME_DT, DIFFICULTY, PLAYER, ARENA } from './core/config.js';
 import { state, MODE, setMode, newRun, addCadet } from './core/state.js';
 import { loadSave, writeSave, recordRun } from './core/save.js';
 import { input, initInput, setPointerWorld, consumeFlare, consumeOd, onPause, onAnyKey,
-         resetInput, captureBind, setBinds, DEFAULT_BINDS, getBinds } from './core/input.js';
+         resetInput, captureBind, setBinds, DEFAULT_BINDS, getBinds,
+         setVirtualHold } from './core/input.js';
 import { createWorld, stepWorld, levelSummary } from './sim/world.js';
 import { LEVELS, LEVEL_COUNT } from './sim/levels.js';
 import { cadetForLevel, CADET_BY_ID } from './sim/story.js';
-import { initScene, screenToWorld, clock } from './view/scene.js';
+import { initScene, screenToWorld, clock, setQuality, quality, QUALITY } from './view/scene.js';
 import { initRender, renderWorld, setLevelVisuals, handleFxEvent, resetRender, spawnBanner } from './view/render.js';
+import { setBackdropQuality } from './view/backdrop.js';
 import { initHud, updateHud, showHud } from './ui/hud.js';
 import { initComms, updateComms, say, sayRaw, clearComms } from './ui/comms.js';
 import * as menus from './ui/menus.js';
@@ -27,6 +29,8 @@ let lastFpsT = 0;
 let frames = 0;
 let pendingSummary = null;
 let touchEls = {};
+let dragAnchor = null;      // where the finger and the ship were when a drag began
+let slowFrames = 0;         // consecutive half-second samples below target
 
 // --------------------------------------------------------------------- boot
 
@@ -68,8 +72,34 @@ function boot() {
     }
 
     applyAudioOptions();
+    const savedQuality = state.save.options.quality ?? 'auto';
+    if (savedQuality !== 'auto') { quality.auto = false; setQuality(Number(savedQuality)); }
+    setBackdropQuality(QUALITY[quality.tier].octaves);
     toTitle();
     requestAnimationFrame(frame);
+}
+
+/**
+ * Drop a quality tier if the frame rate will not hold. Only while playing, only
+ * downward, and only after three consecutive bad samples, so one hitch (a boss
+ * spawning, a tab regaining focus) never costs the player their visuals.
+ */
+function adaptQuality() {
+    if (state.mode !== MODE.PLAYING || !quality.auto) return;
+    if (state.fps > 0 && state.fps < 40) slowFrames++;
+    else slowFrames = 0;
+    if (slowFrames >= 3 && quality.tier < QUALITY.length - 1) {
+        slowFrames = 0;
+        if (setQuality(quality.tier + 1)) {
+            setBackdropQuality(QUALITY[quality.tier].octaves);
+            console.info(`[starcadet] frame rate low — dropped to quality tier ${quality.tier}`);
+        }
+    }
+}
+
+export function isTouchDevice() {
+    if (typeof window === 'undefined' || !window.matchMedia) return false;
+    try { return window.matchMedia('(pointer: coarse)').matches; } catch { return false; }
 }
 
 function applyAudioOptions() {
@@ -111,6 +141,18 @@ function initMenuActions() {
         if (state.mode === MODE.PAUSED) menus.showOptions(state.save, { fromPause: true });
         else if (state.mode === MODE.LEVEL_SELECT) menus.showLevelSelect(state.save);
         else menus.showOptions(state.save);
+    });
+    menus.registerAction('quality', (value) => {
+        const q = value === 'auto' ? null : Number(value);
+        state.save.options.quality = value;
+        quality.auto = q === null;
+        if (q !== null) {
+            setQuality(q);
+            setBackdropQuality(QUALITY[quality.tier].octaves);
+        }
+        writeSave(state.save);
+        sfx.ui();
+        menus.showOptions(state.save, { fromPause: state.mode === MODE.PAUSED });
     });
     menus.registerAction('toggle', (value) => {
         state.save.options[value] = !state.save.options[value];
@@ -176,7 +218,9 @@ function launchLevel() {
         level: run.level,
         run,
         seed: `${run.seed}:${run.difficulty}`,
-        autofire: state.save.options.autofire,
+        // On a touch device there is no fire button by design (you need both
+        // thumbs for flying and flares), so auto-fire is not optional there.
+        autofire: state.save.options.autofire || isTouchDevice(),
     });
     // carry the ship's condition between levels
     world.player.weapon = run.weapon;
@@ -192,6 +236,7 @@ function launchLevel() {
     showHud(true);
     showTouch(true);
     resetInput();
+    dragAnchor = null;
     setMode(MODE.PLAYING);
     accumulator = 0;
     clock.getDelta();
@@ -210,6 +255,8 @@ function resumeGame() {
     menus.hideScreens();
     setMode(MODE.PLAYING);
     accumulator = 0;
+    dragAnchor = null;               // the finger moved while the menu was up
+    input.pointer.rebase = true;
     clock.getDelta();
 }
 
@@ -302,6 +349,10 @@ function drainEvents(world) {
             const cadet = CADET_BY_ID[ev.cadet];
             if (cadet) sayRaw(cadet.callsign, cadet.rescueLine, 6);
         }
+        if (ev.type === 'playerRespawn' || ev.type === 'playerDeath') {
+            dragAnchor = null;
+            input.pointer.rebase = true;
+        }
         if (ev.type === 'podLost' && ev.reason === 'fell') maybeSay('l1_pod_lost', 0.1);
         if (ev.type === 'odReady') maybeSay('od_ready', 0.5);
     }
@@ -330,8 +381,10 @@ function frame() {
         frames = 0; lastFpsT = 0;
         const fpsEl = document.getElementById('fps');
         if (fpsEl) {
-            fpsEl.textContent = state.save.options.showFps ? `${state.fps} FPS` : '';
+            fpsEl.textContent = state.save.options.showFps
+                ? `${state.fps} FPS${quality.tier ? ` · Q${quality.tier}` : ''}` : '';
         }
+        adaptQuality();
     }
 
     updateComms(dt);
@@ -340,7 +393,28 @@ function frame() {
     if (state.mode === MODE.PLAYING && world) {
         if (input.pointer.active && input.pointer.px !== undefined) {
             const p = screenToWorld(input.pointer.px, input.pointer.py);
-            setPointerWorld(p.x, p.y);
+            if (input.pointer.relative) {
+                // Touch: move the ship BY the finger's travel, not TO the finger.
+                if (input.pointer.rebase || !dragAnchor) {
+                    input.pointer.rebase = false;
+                    dragAnchor = { wx: p.x, wy: p.y, sx: world.player.x, sy: world.player.y };
+                }
+                const pad = PLAYER.bounds.pad;
+                const gain = PLAYER.touchGain;
+                const rawX = dragAnchor.sx + (p.x - dragAnchor.wx) * gain;
+                const rawY = dragAnchor.sy + (p.y - dragAnchor.wy) * gain;
+                const tx = Math.max(ARENA.left + pad, Math.min(ARENA.right - pad, rawX));
+                const ty = Math.max(ARENA.bottom + pad, Math.min(ARENA.top - pad, rawY));
+                // Absorb the overshoot into the anchor. Without this, dragging
+                // past the wall builds up an offset and the ship ignores the
+                // first part of the drag back — the classic sticky-edge feel.
+                dragAnchor.sx += tx - rawX;
+                dragAnchor.sy += ty - rawY;
+                setPointerWorld(tx, ty);
+            } else {
+                dragAnchor = null;
+                setPointerWorld(p.x, p.y);
+            }
         }
         const snapshot = {
             ax: input.ax, ay: input.ay,
@@ -410,7 +484,7 @@ function initTouchControls() {
     };
     press(touchEls.flare, (down) => { if (down) input.flare = true; });
     press(touchEls.od, (down) => { if (down) input.od = true; });
-    press(touchEls.focus, (down) => { input.focus = down; touchEls.focus?.classList.toggle('on', down); });
+    press(touchEls.focus, (down) => { setVirtualHold('focus', down); touchEls.focus?.classList.toggle('on', down); });
     press(touchEls.pause, (down) => { if (down) (state.mode === MODE.PLAYING ? pauseGame() : resumeGame()); });
 }
 

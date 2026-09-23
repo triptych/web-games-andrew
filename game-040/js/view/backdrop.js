@@ -41,6 +41,7 @@ varying vec2 vUv;
 uniform float uTime;
 uniform float uScroll;
 uniform float uMode;
+uniform float uOctaves;
 uniform float uBeat;
 uniform float uFlash;
 uniform vec3 uColorA;
@@ -56,9 +57,14 @@ float noise(vec2 p) {
     return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
                mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
 }
+// uOctaves lets the quality tier buy frame rate back: the backdrop is the most
+// expensive per-pixel work in the game and three octaves still reads correctly.
 float fbm(vec2 p) {
     float v = 0.0, a = 0.5;
-    for (int i = 0; i < 5; i++) { v += a * noise(p); p *= 2.02; a *= 0.5; }
+    for (int i = 0; i < 5; i++) {
+        if (float(i) >= uOctaves) break;
+        v += a * noise(p); p *= 2.02; a *= 0.5;
+    }
     return v;
 }
 float grid(vec2 uv, float cells, float thick) {
@@ -135,6 +141,46 @@ void main() {
 }
 `;
 
+const railMeshes = [];
+
+/**
+ * The camera fits whichever arena dimension is binding, so on a wide screen the
+ * playable 20x28 box is only the middle of the glass (and on a tall one there is
+ * slack above and below). Without a frame the player cannot see where the walls
+ * are — so dim everything outside the arena and put a soft rail down each side.
+ */
+function addArenaFrame(parent) {
+    const halfW = ARENA.w / 2, halfH = ARENA.h / 2;
+    const maskMat = new THREE.MeshBasicMaterial({
+        color: 0x03040a, transparent: true, opacity: 0.55, depthWrite: false, depthTest: false,
+    });
+    const big = 140;
+    const masks = [
+        { w: big, h: big, x: halfW + big / 2, y: 0 },
+        { w: big, h: big, x: -(halfW + big / 2), y: 0 },
+        { w: big, h: big, x: 0, y: halfH + big / 2 },
+        { w: big, h: big, x: 0, y: -(halfH + big / 2) },
+    ];
+    for (const m of masks) {
+        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(m.w, m.h), maskMat);
+        mesh.position.set(m.x, m.y, -1.2);
+        mesh.renderOrder = -5;
+        parent.add(mesh);
+    }
+
+    const railGeo = new THREE.PlaneGeometry(0.12, ARENA.h * 1.02);
+    for (const side of [-1, 1]) {
+        const rail = new THREE.Mesh(railGeo, new THREE.MeshBasicMaterial({
+            color: 0x7ef2ff, transparent: true, opacity: 0.3,
+            blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false,
+        }));
+        rail.position.set(side * halfW, 0, -1.0);
+        rail.renderOrder = -4;
+        parent.add(rail);
+        railMeshes.push(rail);
+    }
+}
+
 export function initBackdrop() {
     group = new THREE.Group();
 
@@ -145,6 +191,7 @@ export function initBackdrop() {
         uniforms: {
             uTime: { value: 0 },
             uUvScale: { value: 2.6 },
+            uOctaves: { value: 5 },
             uScroll: { value: 0 },
             uMode: { value: 0 },
             uBeat: { value: 0 },
@@ -179,8 +226,15 @@ export function initBackdrop() {
         starLayers.push({ points, positions, speed: layer.speed, geo, mat: pmat });
     }
 
+    addArenaFrame(group);
+
     scene.add(group);
     return group;
+}
+
+/** Called by the quality manager: fewer FBM octaves on weaker GPUs. */
+export function setBackdropQuality(octaves) {
+    if (mat) mat.uniforms.uOctaves.value = octaves;
 }
 
 export function setBackdrop(name, palette = {}) {
@@ -190,6 +244,7 @@ export function setBackdrop(name, palette = {}) {
     if (palette.accentB !== undefined) mat.uniforms.uColorB.value.set(palette.accentB);
     if (palette.fog !== undefined) mat.uniforms.uFog.value.set(palette.fog);
     for (const layer of starLayers) if (palette.star !== undefined) layer.mat.color.set(palette.star);
+    if (palette.accentA !== undefined) for (const rail of railMeshes) rail.material.color.set(palette.accentA);
 }
 
 /** `beat` is 0..1, the decaying pulse from the Chorus's downbeat. */
@@ -199,6 +254,8 @@ export function updateBackdrop(dt, { beat = 0, flash = 0, speed = 1 } = {}) {
     mat.uniforms.uScroll.value += dt * 0.035 * speed;
     mat.uniforms.uBeat.value = beat;
     mat.uniforms.uFlash.value = flash;
+    // the rails breathe very slightly so they read as part of the world
+    for (const rail of railMeshes) rail.material.opacity = 0.26 + beat * 0.16;
 
     const top = ARENA.h * 0.9;
     for (const layer of starLayers) {

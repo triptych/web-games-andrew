@@ -19,9 +19,20 @@ export function textTexture(text, cssColor = '#ffffff', { size = 96, weight = 'b
     canvas.width = 512;
     canvas.height = 256;
     const ctx = canvas.getContext('2d');
-    ctx.font = `${weight} ${size}px "Courier New", monospace`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+
+    // Shrink to fit rather than clip. Banners carry real strings — level names,
+    // boss phase names like "DRILL THREE — THE THING I NEVER TAUGHT YOU" — and a
+    // fixed font size silently cut them in half ("ANGAR RI").
+    let fontSize = size;
+    ctx.font = `${weight} ${fontSize}px "Courier New", monospace`;
+    const maxWidth = canvas.width - 48;
+    const measured = ctx.measureText(text).width;
+    if (measured > maxWidth) {
+        fontSize = Math.max(18, Math.floor(fontSize * (maxWidth / measured)));
+        ctx.font = `${weight} ${fontSize}px "Courier New", monospace`;
+    }
     ctx.fillStyle = cssColor;
     ctx.shadowColor = cssColor;
     for (const blur of [28, 16, 8]) {           // neon halo

@@ -9,7 +9,7 @@
 import { DIFFICULTY, DIFFICULTY_IDS } from '../core/config.js';
 import { CADETS, CADET_BY_ID, INTRO, BRIEFINGS, TOTAL_CADETS, endingFor, cadetForLevel } from '../sim/story.js';
 import { LEVELS } from '../sim/levels.js';
-import { getBinds } from '../core/input.js';
+import { getBinds, cancelCaptureBind } from '../core/input.js';
 import { formatScore } from './hud.js';
 
 let root = null;
@@ -28,6 +28,8 @@ export function initMenus(callbacks = {}) {
 }
 
 export function hideScreens() {
+    // a rebind left waiting for a key must not outlive the panel that started it
+    cancelCaptureBind();
     root?.classList.add('hidden');
     if (root) root.innerHTML = '';
     currentPrimary = null;
@@ -192,6 +194,16 @@ export function showOptions(save, { fromPause = false } = {}) {
               PILOT: as designed.<br>
               ACE: faster bullets, an extra arm on every radial pattern, 2 lives.
             </div>
+            <h3>GRAPHICS</h3>
+            <div class="toggle-row">
+              ${[['auto', 'AUTO'], ['0', 'HIGH'], ['1', 'MEDIUM'], ['2', 'LOW']].map(([v, label]) => `
+                <button class="btn small ${(save.options.quality ?? 'auto') === v ? 'on' : ''}"
+                        data-action="quality" data-value="${v}">${label}</button>`).join('')}
+            </div>
+            <div class="opt-note">
+              AUTO starts a touch device one tier down and drops another if the frame
+              rate will not hold. Lower tiers render fewer pixels and a softer bloom.
+            </div>
             <h3>TOGGLES</h3>
             <div class="toggle-row">
               <button class="btn small ${save.options.autofire ? 'on' : ''}" data-action="toggle" data-value="autofire">AUTO-FIRE</button>
@@ -202,7 +214,7 @@ export function showOptions(save, { fromPause = false } = {}) {
             </div>
           </div>
           <div class="opt-col">
-            <h3>CONTROLS</h3>
+            <h3>CONTROLS <span class="dim-note">(keyboard)</span></h3>
             ${['up', 'down', 'left', 'right', 'fire', 'focus', 'flare', 'od', 'pause']
                 .map((a) => bindRow(a, a.toUpperCase())).join('')}
             <button class="btn tiny subtle" data-action="resetBinds">RESET TO DEFAULTS</button>

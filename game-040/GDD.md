@@ -312,15 +312,34 @@ the Choirmaster's attacks land on the downbeat by construction.
 
 | Action | Keyboard | Mouse | Touch |
 |---|---|---|---|
-| Move | Arrows / WASD | Pointer (ship follows) | Drag anywhere |
-| Fire | Auto (or Z / Space) | Auto | Auto |
-| Focus | Shift | Right button held | Two-finger hold |
-| Flare | X | Left button | Flare button |
+| Move | Arrows / WASD | Pointer (ship follows) | Drag anywhere, **relative** |
+| Fire | Auto (or Z / Space) | Auto | Auto (forced on) |
+| Focus | Shift | Right button held | FOCUS button, or two-finger hold |
+| Flare | X | Left button | FLARE button |
 | Overdrive | C | Middle button | OD button |
-| Pause | Esc / P | — | Pause button |
+| Pause | Esc / P | — | Pause button (top-right) |
 
 Auto-fire is on by default; manual fire exists for players who want it. Every action is rebindable
-in the options panel.
+in the options panel. Touching a movement key hands control back from the pointer, so a stray mouse
+movement never strands a keyboard player.
+
+### 8.1 Touch, specifically
+
+The phone build is not the desktop build with bigger buttons; the control scheme is different where
+it needs to be:
+
+- **Dragging is relative, not absolute.** The ship moves *by* the finger's travel, not *to* the
+  finger. A thumb anywhere on the glass flies the ship, the ship never teleports to a new touch, and
+  the hand is never parked on top of the bullets it is dodging. Overshoot at the arena wall is
+  absorbed into the anchor, so dragging back is immediate rather than dead for the first centimetre.
+- **Two thumbs, two corners.** FOCUS / OVERDRIVE / FLARE stack in the bottom-left for the left
+  thumb; the right thumb flies. Pause sits top-right, away from where a thumb rests.
+- **Auto-fire is forced on touch** — there is no fire button by design, so the option cannot strand
+  a player with a ship that will not shoot.
+- **Every control is at least 44px**, including the menu buttons and the launcher link.
+- **Quality tiers.** Touch devices start one tier down (a smaller pixel ratio, softer bloom, three
+  FBM octaves in the backdrop instead of five) and drop another automatically if the frame rate
+  will not hold for three consecutive samples. Options → GRAPHICS overrides it.
 
 ---
 

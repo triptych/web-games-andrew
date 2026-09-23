@@ -24,13 +24,29 @@ export let composer = null;
 export const clock = new THREE.Clock();
 
 const shake = { amount: 0, x: 0, y: 0 };
+
+/**
+ * Quality tiers. Phones vary by an order of magnitude in fill rate, and the
+ * expensive things here are per-pixel (the FBM backdrop and the bloom blur), so
+ * every tier is really about how many pixels get shaded.
+ *   0 full      — desktop and strong tablets
+ *   1 reduced   — the starting tier on touch devices
+ *   2 minimum   — dropped to automatically if the frame rate will not hold
+ */
+export const QUALITY = [
+    { pixelRatio: 2,   bloom: 0.85, octaves: 5 },
+    { pixelRatio: 1.5, bloom: 0.7,  octaves: 4 },
+    { pixelRatio: 1,   bloom: 0.5,  octaves: 3 },
+];
+export const quality = { tier: 0, auto: true };
 const camState = { baseY: 0, dist: 34, lean: 0, dolly: 0 };
 let _canvas = null;
 
 export function initScene(canvas) {
     renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas ?? undefined,
                                          powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio ?? 1, 2));
+    quality.tier = defaultQualityTier();
+    renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio ?? 1, QUALITY[quality.tier].pixelRatio));
     renderer.setSize(vw(), vh());
     renderer.setClearColor(COLORS.bg, 1);
     _canvas = renderer.domElement;
@@ -53,13 +69,42 @@ export function initScene(canvas) {
     composer.addPass(new RenderPass(scene, camera));
     const bloom = new UnrealBloomPass(
         new THREE.Vector2(vw(), vh()),
-        VIEW.bloomStrength, VIEW.bloomRadius, VIEW.bloomThreshold,
+        QUALITY[quality.tier].bloom, VIEW.bloomRadius, VIEW.bloomThreshold,
     );
     composer.addPass(bloom);
     composer.bloom = bloom;
 
     if (typeof window !== 'undefined') window.addEventListener('resize', onResize);
     return { renderer, scene, camera, composer };
+}
+
+/**
+ * Touch devices start one tier down rather than discovering it the hard way on
+ * the first boss. A coarse pointer is the honest signal here — the screen can be
+ * large (a tablet) and still be a mobile GPU.
+ */
+function defaultQualityTier() {
+    if (typeof window === 'undefined' || !window.matchMedia) return 0;
+    try {
+        const coarse = window.matchMedia('(pointer: coarse)').matches;
+        const small = Math.min(window.innerWidth, window.innerHeight) <= 500;
+        if (coarse && small) return 1;
+        if (coarse) return 1;
+        return 0;
+    } catch { return 0; }
+}
+
+/** Returns true if the tier actually changed. */
+export function setQuality(tier) {
+    const next = Math.max(0, Math.min(QUALITY.length - 1, tier));
+    if (next === quality.tier) return false;
+    quality.tier = next;
+    const q = QUALITY[next];
+    renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio ?? 1, q.pixelRatio));
+    renderer.setSize(vw(), vh());
+    composer.setSize(vw(), vh());
+    if (composer.bloom) composer.bloom.strength = q.bloom;
+    return true;
 }
 
 function vw() { return (typeof window !== 'undefined' ? window.innerWidth : 1280) || 1280; }

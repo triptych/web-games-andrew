@@ -41,6 +41,13 @@ export const PLAYER = {
     grazeOD: 0.9,             // OD meter units per graze (meter is 100)
     odDuration: 6.0,
     odFireMult: 2.0,
+    /**
+     * Touch drag gain. 1.0 maps a finger's travel 1:1 to the ship's, which means
+     * crossing the arena needs a full-screen-width stroke — more than a thumb
+     * can comfortably reach. A little over 1 lets a natural stroke cover the
+     * whole playfield without making fine dodging twitchy.
+     */
+    touchGain: 1.25,
     hookRadius: 1.2,          // pod auto-latch distance
     magnetRadius: 2.6,        // pickup magnet distance
     bounds: { pad: 0.9 },     // how close the ship can get to the arena edge

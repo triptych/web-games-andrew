@@ -56,8 +56,22 @@ Design doc: [GDD.md](GDD.md).
 - [x] Procedural Web Audio: weapons, impacts, rescues, boss windups, per-level drone beds
 
 ## Phase 11 — Input & mobile
-- [x] Keyboard, mouse, and touch drag with on-screen flare/OD buttons
-- [x] Responsive layout down to a 390×844 viewport
+- [x] Keyboard, mouse, and touch, with a pointer that yields to the keyboard on the first key press
+- [x] **Relative** touch dragging with wall-overshoot absorption (not absolute — the ship never
+      teleports to the thumb, and the hand never covers what it is dodging)
+- [x] Two-thumb control layout: FOCUS/OD/FLARE bottom-left, pause top-right, drag anywhere
+- [x] Auto-fire forced on touch devices (there is no fire button by design)
+- [x] Every control ≥44px, including menu buttons and the launcher link
+- [x] Adaptive quality tiers (pixel ratio, bloom strength, backdrop FBM octaves), auto-selected on
+      touch devices, auto-downgraded on sustained low frame rate, overridable in Options → GRAPHICS
+- [x] Responsive layout verified at 390×844 and 844×390, HUD width budgeted so the top row cannot
+      overflow and push controls under each other
+- [x] Menus scroll by finger (an overlay has to opt back into `touch-action`), and the primary
+      action sticks to the bottom of a panel on short screens
+- [x] Comms moved out of the play space on touch layouts; arena walls marked with rails and the
+      out-of-play area dimmed, so the playable box is visible at any aspect ratio
+- [x] Banner text auto-fits its sprite canvas instead of clipping; key rebinding times out so a
+      keyboard-less device can never dead-end on "PRESS A KEY…"
 
 ## Phase 12 — Verification (all green)
 - [x] `dev/check.mjs` — structure: `js/sim/` imports no three.js/DOM and never calls `Math.random`;
@@ -72,6 +86,10 @@ Design doc: [GDD.md](GDD.md).
 - [x] `dev/browsertest.mjs` — real Chromium + real WebGL + real three.js r165: title, intro,
       briefing, live play, a boss fight, flare, pause and a 390×844 phone viewport, with zero
       console errors, page errors or failed requests
+- [x] `dev/mobiletest.mjs` — an emulated phone driven *only* by touch (via CDP, so the browser
+      synthesises real clicks): menus, relative drag, no-teleport check, FLARE/OD/FOCUS/PAUSE,
+      44px tap targets, and no control overlapping the HUD — portrait and landscape
+- [x] `dev/perf.mjs` — simulation cost per frame at boss-level entity counts (~0.1ms p95)
 - [x] `dev/balance.mjs` — three scripted bots play all six levels; boss HP set from measured DPS
 - [x] `dev/playthrough.mjs` — full six-level campaign in Node, start to an ending
 
