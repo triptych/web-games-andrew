@@ -522,6 +522,19 @@ const games = [
             { emoji: '\uD83E\uDDCA', label: 'three.js' },
             { emoji: '\uD83D\uDCF1', label: 'Touch' }
         ]
+    },
+    {
+        id: 'game-041',
+        title: 'Burrowguard',
+        description: "An 8-bit arcade fusion of a digging game, a tower defence and a maze chase. Monsters come in off the surface and walk to the crystal core through the tunnels \u2014 and the tunnels are yours: every cell you dig pays gold and becomes part of the maze they walk, so a careless shortcut hands them the core. Build four kinds of tower into the dirt beside their route, pump monsters with a harpoon until they pop, drop boulders on them, and eat a power gem to turn every one of them blue and chase them down. Grubs, skitters, fire-breathing drakes, stalkers that phase through dirt as a pair of eyes, borers that drill their own shortcuts, and a crowned king every sixth wave. Vanilla JS with a hand-written WebGL renderer: a sprite batcher with sharp pixel-art scaling, neon tunnel edges, bloom and scanlines. No libraries, no asset files. Built for a phone: drag anywhere to dig, thumb the PUMP button, tap the tray to build.",
+        icon: '\u26CF\uFE0F',
+        folder: 'game-041',
+        cssClass: 'burrowguard',
+        tags: [
+            { emoji: '\uD83D\uDD79\uFE0F', label: 'Arcade' },
+            { emoji: '\uD83C\uDFF0', label: 'Tower Defense' },
+            { emoji: '\uD83D\uDCF1', label: 'Touch' }
+        ]
     }
 ];
 

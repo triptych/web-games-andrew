@@ -4575,3 +4575,60 @@ Two gotchas when faking the DOM for this:
 - Menus that wrap cannot be "homed" by pressing Up a fixed number of times; you
   land on `(sel - n) mod rows`. Press a common multiple of every menu length,
   or expose the selection index for tests.
+
+
+## A hand-written WebGL sprite renderer for pixel art (game-041 Burrowguard, 2026-09-23)
+
+Burrowguard draws everything — terrain, sprites, text, touch controls, menus — as quads from one
+atlas through ~450 lines of WebGL 1. Things worth reusing:
+
+### Sharp bilinear, not nearest-neighbour
+
+Nearest-neighbour at a non-integer scale (16px art at 3.7x on a phone) gives uneven pixel widths
+that shimmer as sprites move. Integer-only scaling wastes a lot of a phone screen. The fix is a
+few lines in the fragment shader, with the texture on `LINEAR`:
+
+```glsl
+vec2 px = vUV * uTexSize;
+vec2 seam = floor(px + 0.5);
+px = seam + clamp((px - seam) / max(fwidth(px), vec2(1e-4)), -0.5, 0.5);
+gl_FragColor = texture2D(uTex, px / uTexSize);
+```
+
+Nearest inside each texel, a one-screen-pixel blend at its edges. Needs
+`OES_standard_derivatives` in WebGL 1 (universal in practice); fall back to `NEAREST` without it.
+
+### Extrude atlas sprites
+
+Bilinear sampling at a sprite's edge reads the neighbouring atlas pixel. With transparent padding,
+opaque tiles laid edge to edge (dirt) show faint seams. Pad each sprite by 2px copied from its own
+edge pixels.
+
+### Don't name a field after a method
+
+`this.sprite = program(...)` in the constructor silently replaced the class's `sprite()` method,
+and every draw threw "R.sprite is not a function". Name GL resources `spriteProg`, `vbo`, etc.
+
+### Bloom threshold vs. terrain
+
+The bright pass has to sit above the brightest *terrain* colour, or the whole playfield glows. A
+sandy top stratum at 0.72 red bloomed into an orange haze at a 0.58 threshold; 0.7 keeps the glow
+on neon edges, sparks and highlights only.
+
+### Tint greyscale art, not coloured art
+
+A sprite tinted by multiplication loses its hue if it isn't neutral: a cyan gem tinted magenta came
+out a muddy purple. Author tintable sprites in greys.
+
+### Auto-quality will fight your browser tests
+
+Software GL in a sandbox runs at ~12fps, which trips a "drop to LOW after 3 slow seconds" rule
+mid-test — changing the device-pixel ratio, the layout, and every coordinate the test computed
+earlier. Pin the quality from the test (`ctx.addInitScript(() => localStorage.setItem(...))`).
+
+### Immediate-mode UI for canvas-drawn controls
+
+When the controls are drawn in WebGL too, let each draw call register its hit rect
+(`view.buttons.push({ id, x, y, w, h })`) and hit-test pointer-downs against *last frame's* list.
+Clearing the list before drawing a modal (pause, game over) makes the controls underneath inert
+without any extra state.

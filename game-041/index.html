@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#03030a">
+    <meta name="description" content="BURROWGUARD — an 8-bit arcade fusion of digging, tower defense and maze-chase. Dig the tunnels the monsters walk, build towers in the dirt, and eat a power gem to turn the hunt around.">
+    <title>BURROWGUARD</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%; height: 100%;
+            background: #03030a;
+            overflow: hidden;
+            touch-action: none;
+            overscroll-behavior: none;
+            -webkit-user-select: none; user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        canvas#gl {
+            position: fixed; inset: 0;
+            width: 100%; height: 100%;
+            display: block;
+            touch-action: none;
+            image-rendering: pixelated;
+        }
+        /* Read by main.js to learn the notch / home-bar insets. Never visible. */
+        #safe {
+            position: fixed; visibility: hidden; pointer-events: none;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        #fail {
+            position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+            padding: 32px; text-align: center; color: #ffd820; background: #03030a;
+            font: 16px/1.5 'Courier New', Courier, monospace; z-index: 5;
+        }
+        #fail[hidden] { display: none; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" style="position:fixed;top:calc(8px + env(safe-area-inset-top));left:calc(8px + env(safe-area-inset-left));z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
+    <canvas id="gl" aria-label="BURROWGUARD game screen"></canvas>
+    <div id="safe"></div>
+    <div id="fail" hidden></div>
+    <noscript><div style="color:#ffd820;font-family:monospace;padding:32px">BURROWGUARD needs JavaScript and WebGL.</div></noscript>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

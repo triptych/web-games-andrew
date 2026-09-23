@@ -577,6 +577,11 @@ h1 {
     color: #05060f;
 }
 
+.game-card.burrowguard .play-button {
+    background: linear-gradient(135deg, #ffd820 0%, #ff7a2a 50%, #b456ff 100%);
+    color: #05060f;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
