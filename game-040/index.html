@@ -225,6 +225,8 @@
             border: 1px solid var(--line); border-radius: 4px;
             padding: 26px 26px 22px; text-align: center;
             box-shadow: 0 0 60px rgba(40, 90, 200, 0.22), inset 0 0 40px rgba(20, 40, 90, 0.25);
+            /* the title sizes itself off the panel, not the viewport */
+            container-type: inline-size;
         }
         .panel.wide { width: min(880px, 100%); }
         .panel h1 {
@@ -241,8 +243,13 @@
         .panel li::before { content: '› '; color: var(--cyan); }
         .panel li.dim { color: var(--dim); }
 
+        /* STARCADET is 9 characters at 0.3em tracking, so one line costs about
+           9 * 1.3em of advance width. Sized in cqw it tracks the panel's own
+           width instead of the viewport, which is what actually clips it, and
+           the trailing letter-space is pulled back so the word stays centred. */
         .title-mark {
-            font-size: clamp(38px, 11vw, 82px); letter-spacing: 0.3em; font-weight: bold;
+            font-size: clamp(26px, 10.2cqw, 62px); letter-spacing: 0.3em; font-weight: bold;
+            margin-right: -0.3em;
             color: #fff; text-shadow: 0 0 26px rgba(126, 242, 255, 0.85), 0 0 60px rgba(255, 77, 109, 0.35);
             margin-bottom: 8px;
         }
@@ -415,7 +422,7 @@
             .panel h1 { font-size: 17px; letter-spacing: 0.2em; margin-bottom: 4px; }
             .panel h3 { margin: 8px 0 5px; }
             .panel li { font-size: 12px; line-height: 1.45; margin-bottom: 3px; }
-            .title-mark { font-size: 34px; letter-spacing: 0.2em; }
+            .title-mark { font-size: clamp(22px, 8.6cqw, 34px); letter-spacing: 0.2em; margin-right: -0.2em; }
             .title-blurb { font-size: 12px; line-height: 1.5; margin-bottom: 12px; }
             .crawl-line { font-size: 12px; line-height: 1.5; }
             .brief-cols { gap: 10px; }
