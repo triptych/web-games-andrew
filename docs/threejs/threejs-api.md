@@ -221,6 +221,128 @@ function animate(){ requestAnimationFrame(animate); mat.uniforms.uTime.value += 
 
 ---
 
+---
+
+## Instanced bullets: hundreds of sprites, one draw call (game-040)
+
+A bullet-hell boss puts 200+ live bullets on screen. One `Mesh` each is 200 draw calls. Use one
+`InstancedMesh` per *visual kind* and write a matrix + colour per live bullet each frame:
+
+```js
+const mesh = new THREE.InstancedMesh(geometryFor(kind), mat, 2200);  // max instances
+mesh.frustumCulled = false;      // the bounds are wrong once you move instances by matrix
+mesh.count = 0;                  // draw nothing until the first frame fills it
+
+// per frame, per live bullet i:
+_q.setFromAxisAngle(_axis, b.ang - Math.PI / 2);   // cone/dart geometry points +y
+_p.set(b.x, b.y, 0.25);
+_s.set(r, r, r);
+_m.compose(_p, _q, _s);
+mesh.setMatrixAt(i, _m);
+mesh.setColorAt(i, _color.set(b.color));
+// after the loop:
+mesh.count = liveCount;
+mesh.instanceMatrix.needsUpdate = true;
+if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+```
+
+- **`mesh.count` is the cheap culling knob** — set it to the live count each frame rather than
+  parking dead instances off-screen.
+- **`instanceColor` is null until the first `setColorAt`**, so guard the `needsUpdate` write.
+- `frustumCulled = false` matters: the instanced mesh's bounding sphere is computed from the base
+  geometry at the origin, so three.js will happily cull the whole swarm.
+- game-040 renders a 200-bullet Chorus Heart fight in **under 70 draw calls total**, HUD sprites and
+  ship meshes included.
+
+## Symptom: killing one enemy makes every other enemy of that type vanish (game-040)
+
+Caching geometry per shape and cloning meshes is the right call — but the usual
+`disposeObject()` helper walks a mesh tree calling `geometry.dispose()`, and a *shared* geometry
+disposed once is gone for every mesh still using it. In a browser this shows up as ships turning
+invisible or drawing garbage, with no console error.
+
+```js
+// models.js — flag anything owned by the cache
+function cached(key, make) {
+    if (!geoCache.has(key)) {
+        const geo = make();
+        geo.userData = { ...(geo.userData ?? {}), shared: true };
+        geoCache.set(key, geo);
+    }
+    return geoCache.get(key);
+}
+
+// scene.js — dispose the per-mesh materials, never the shared geometry
+export function disposeObject(obj) {
+    obj.traverse?.((o) => {
+        if (!o.geometry?.userData?.shared) o.geometry?.dispose?.();
+        (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => m?.dispose?.());
+    });
+}
+```
+
+## Fitting a fixed playfield at any aspect ratio, including portrait phones (game-040)
+
+A shmup has a fixed arena (game-040: 20 × 28 world units) that must be fully visible on a 21:9
+monitor *and* a 390×844 phone. Solve for the camera distance that satisfies **both** dimensions and
+take the larger — portrait simply sits further back:
+
+```js
+const halfFov = (CAM.fov * Math.PI) / 360;
+const needH = (ARENA.h * 1.06) / (2 * Math.tan(halfFov));
+const needW = (ARENA.w * 1.10) / (2 * Math.tan(halfFov) * aspect);
+camState.dist = Math.max(needH, needW);
+camera.aspect = aspect;
+camera.updateProjectionMatrix();
+```
+
+Re-run it from the resize handler. game-040's `dev/rendertest.mjs` asserts all four arena edges stay
+pointer-reachable at 1920×1080, 1280×720, 390×844, 844×390 and 768×1024.
+
+## Screen pixels → world coordinates without `unproject()` (game-040)
+
+For a camera looking at a single plane, explicit ray maths is fewer moving parts than
+`Vector3.unproject()` (which needs the matrices to be current) and stays testable headlessly:
+
+```js
+const ndcX = (px / w) * 2 - 1, ndcY = -((py / h) * 2 - 1), t = Math.tan(halfFov);
+// forward = normalize(target - camera); right = normalize(cross(forward, up)); up' = cross(right, forward)
+const dx = fx + rx * ndcX * t * (w / h) + ux * ndcY * t;   // and dy, dz the same way
+const k = -cam.z / dz;                                      // intersect the z = 0 plane
+return { x: cam.x + dx * k, y: cam.y + dy * k };
+```
+
+Mind the cross product: `cross(forward, (0,1,0))` is `(-fz, 0, fx)`. Getting that sign wrong mirrors
+the pointer horizontally, which reads as "the controls are inverted" rather than as a maths bug.
+
+## Testing three.js code in Node with a fake module (game-040)
+
+three.js is CDN-loaded, so headless CI (or a sandbox with no network) cannot import it — but the
+*view layer* is the part most likely to break silently. game-040 registers a Node
+module-resolution hook that points `import 'three'` at a hand-written stand-in:
+
+```js
+// dev/hooks.mjs
+export async function resolve(specifier, context, next) {
+    if (specifier === 'three') return { url: new URL('./fake-three.mjs', import.meta.url).href, shortCircuit: true };
+    if (specifier.startsWith('three/addons/')) return { url: new URL('./fake-three-addons.mjs', import.meta.url).href, shortCircuit: true };
+    return next(specifier, context);
+}
+
+// in the harness, BEFORE importing any view module:
+import { register } from 'node:module';
+register('./hooks.mjs', import.meta.url);
+const { initScene } = await import('../js/view/scene.js');
+```
+
+Make the fake **hostile**, not permissive: throw on a non-finite `position`/`scale`, an undefined
+material colour, a disposed material or geometry still reached during `render()`, and an
+out-of-range `setMatrixAt`. That converts "the screen is black" into a stack trace naming the
+object. See [game-040/dev/](../../game-040/dev/README.md) — it caught a shared-geometry disposal
+bug, effects leaking across level changes, and several NaN transforms before the game was ever
+opened in a browser.
+
+
 ## Common gotchas
 
 - **`updateProjectionMatrix()` missing** — see resize section above. Symptom: window resizes but render is squashed.
@@ -253,6 +375,7 @@ To use: `import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 - [three.js docs (r165)](https://threejs.org/docs/)
 - [three.js examples](https://threejs.org/examples/)
 - [game-024 — Neon Vanguard](../../game-024/) — top-down shmup; bloom, custom grid shader, canvas-sprite HUD text
+- [game-040 — Starcadet](../../game-040/) — vertical bullet-hell shmup; instanced bullets, six shader backdrops, aspect-fitting camera, and a fake-three.js Node harness
 - [game-023 — Synthwave Invaders](../../game-023/) — reference implementation for new three.js games
 - [game-018 — Village of Wandering Blade](../../game-018/) — large-scale three.js example
 - [game-014 — TRACKRUNNER](../../game-014/) — legacy r128 pattern (do not copy for new games)

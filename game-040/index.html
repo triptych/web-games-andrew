@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="STARCADET — a vertical bullet-hell shmup in three.js. You are a student pilot with a trainer and a tow hook, and 211 classmates are in escape pods.">
+    <title>STARCADET</title>
+    <style>
+        :root {
+            --cyan: #7ef2ff;
+            --mint: #8effc0;
+            --amber: #ffd166;
+            --rose: #ff4d6d;
+            --violet: #c9a7ff;
+            --pod: #7dffd4;
+            --ink: #05060f;
+            --panel: rgba(8, 10, 24, 0.86);
+            --line: rgba(126, 242, 255, 0.28);
+            --text: #dce4ff;
+            --dim: #7b86b0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: var(--ink);
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+            overscroll-behavior: none;
+        }
+
+        canvas#gl { display: block; position: fixed; inset: 0; width: 100%; height: 100%; }
+
+        /* A faint scanline wash ties the WebGL layer to the HUD typography. */
+        #grain {
+            position: fixed; inset: 0; pointer-events: none; z-index: 2;
+            background: repeating-linear-gradient(
+                to bottom, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px);
+            mix-blend-mode: screen;
+            opacity: 0.55;
+        }
+
+        /* A blended full-screen layer costs real fill rate on a phone GPU, and
+           the effect is subtle enough that nothing is lost by dropping it. */
+        @media (pointer: coarse), (max-width: 720px) { #grain { display: none; } }
+
+        #ui { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
+        .hidden { display: none !important; }
+
+        /* ------------------------------------------------------------- HUD */
+        #hud {
+            position: absolute; inset: 0;
+            padding: calc(10px + env(safe-area-inset-top)) 14px 12px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            letter-spacing: 0.14em; text-transform: uppercase;
+        }
+        #hud.hidden { display: none; }
+
+        .hud-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+        .hud-bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+
+        .stat { font-size: 10px; color: var(--dim); line-height: 1.5; }
+        .stat b { display: block; font-size: 19px; color: var(--text); letter-spacing: 0.08em; }
+        .stat.score b { font-size: 26px; color: #fff; text-shadow: 0 0 14px rgba(126, 242, 255, 0.55); }
+        .stat.rescue b { color: var(--pod); text-shadow: 0 0 12px rgba(125, 255, 212, 0.5); }
+        .stat.lost b { color: var(--rose); }
+        .stat .sub { font-size: 10px; color: var(--dim); letter-spacing: 0.1em; }
+
+        /* clears the fixed back-to-launcher link in the corner */
+        .hud-left { display: flex; gap: 22px; margin-left: 104px; }
+        .hud-right { text-align: right; display: flex; gap: 22px; }
+
+        #chain-val { color: var(--amber); font-size: 15px; }
+
+        .pip-row { display: flex; gap: 4px; justify-content: flex-end; font-size: 15px; line-height: 1; }
+        .life-pip { color: var(--cyan); text-shadow: 0 0 8px rgba(126, 242, 255, 0.8); }
+        .flare-pip { color: #ff8bd0; text-shadow: 0 0 8px rgba(255, 139, 208, 0.8); }
+
+        .weapon-box { text-align: right; }
+        #weapon-name { font-size: 14px; color: var(--cyan); letter-spacing: 0.22em; }
+        #power-pips { display: flex; gap: 3px; justify-content: flex-end; margin-top: 4px; }
+        .power-pip {
+            width: 14px; height: 5px; border: 1px solid rgba(126, 242, 255, 0.4); border-radius: 1px;
+        }
+        .power-pip.on { background: var(--cyan); box-shadow: 0 0 8px rgba(126, 242, 255, 0.9); }
+
+        /* Overdrive meter */
+        .od-wrap { flex: 1; max-width: 420px; }
+        .od-label { font-size: 9px; color: var(--dim); margin-bottom: 3px; letter-spacing: 0.24em; }
+        .meter {
+            height: 7px; border: 1px solid var(--line); border-radius: 2px;
+            background: rgba(126, 242, 255, 0.06); overflow: hidden;
+        }
+        .meter > span { display: block; height: 100%; width: 0%; transition: width 0.12s linear; }
+        #od-fill { background: linear-gradient(90deg, #2b7cff, var(--cyan)); }
+        #od-fill.ready { background: linear-gradient(90deg, var(--amber), #fff2c0); box-shadow: 0 0 14px rgba(255, 209, 102, 0.9); }
+        #od-fill.active { background: linear-gradient(90deg, #ff8bd0, var(--amber)); box-shadow: 0 0 16px rgba(255, 139, 208, 0.9); }
+
+        .level-wrap { width: 190px; }
+        #level-name { font-size: 10px; color: var(--dim); margin-bottom: 3px; }
+        #level-fill { background: linear-gradient(90deg, rgba(201, 167, 255, 0.5), var(--violet)); }
+
+        /* Boss bar */
+        #boss-bar {
+            position: absolute; top: calc(86px + env(safe-area-inset-top)); left: 50%;
+            transform: translateX(-50%); width: min(640px, 82vw); text-align: center;
+        }
+        .boss-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+        #boss-name { font-size: 15px; color: var(--rose); letter-spacing: 0.3em; text-shadow: 0 0 12px rgba(255, 77, 109, 0.8); }
+        #boss-title { font-size: 9px; color: var(--dim); letter-spacing: 0.2em; }
+        .boss-meter { position: relative; height: 11px; border: 1px solid rgba(255, 77, 109, 0.5); background: rgba(255, 77, 109, 0.08); }
+        #boss-fill {
+            height: 100%; width: 100%;
+            background: linear-gradient(90deg, #7a1030, var(--rose), #ffb0c0);
+            box-shadow: 0 0 18px rgba(255, 77, 109, 0.6); transition: width 0.1s linear;
+        }
+        .boss-ticks { position: absolute; inset: 0; pointer-events: none; }
+        .boss-ticks span { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(5, 6, 15, 0.9); }
+        #boss-parts { display: flex; gap: 6px; justify-content: center; margin-top: 5px; }
+        .part-pip {
+            width: 26px; height: 4px; background: var(--amber); border-radius: 1px;
+            box-shadow: 0 0 8px rgba(255, 209, 102, 0.8);
+        }
+        .part-pip.dead { background: rgba(120, 130, 160, 0.35); box-shadow: none; }
+
+        #fps { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--dim); }
+
+        /* ----------------------------------------------------------- comms */
+        #comms {
+            position: absolute; left: 14px; bottom: calc(74px + env(safe-area-inset-bottom));
+            display: flex; gap: 10px; align-items: flex-start;
+            max-width: min(520px, 76vw);
+            background: linear-gradient(90deg, rgba(8, 10, 24, 0.92), rgba(8, 10, 24, 0.55));
+            border-left: 2px solid var(--cyan);
+            padding: 8px 14px 8px 8px;
+            opacity: 0; transform: translateX(-10px);
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+        #comms.show { opacity: 1; transform: translateX(0); }
+        #comms-portrait { width: 52px; height: 52px; flex: none; image-rendering: auto; }
+        #comms-name { font-size: 10px; letter-spacing: 0.22em; color: var(--cyan); margin-bottom: 3px; }
+        #comms-text { font-size: 13px; line-height: 1.45; color: var(--text); letter-spacing: 0.02em; text-transform: none; }
+
+        /* -------------------------------------------------- touch controls
+           Layout is for two thumbs: you drag anywhere to fly (relative, so the
+           ship never jumps to your thumb), and the action buttons sit in the
+           bottom-left corner under the other one. Pause is in the top-right,
+           deliberately away from where a thumb rests during play. */
+        #touch {
+            position: absolute; left: calc(10px + env(safe-area-inset-left));
+            bottom: calc(12px + env(safe-area-inset-bottom));
+            display: flex; flex-direction: column; gap: 9px; pointer-events: auto;
+        }
+        #touch button {
+            width: 64px; height: 64px; border-radius: 50%;
+            background: rgba(10, 14, 30, 0.72); color: var(--text);
+            border: 1px solid var(--line); font-family: inherit; font-size: 10px;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            touch-action: none;
+        }
+        #touch button:active, #touch button.on { background: rgba(126, 242, 255, 0.3); }
+        #touch-flare { border-color: rgba(255, 139, 208, 0.65); color: #ff8bd0; }
+        #touch-od { border-color: rgba(255, 209, 102, 0.65); color: var(--amber); }
+        #touch button#touch-pause {
+            position: fixed; top: calc(8px + env(safe-area-inset-top));
+            right: calc(8px + env(safe-area-inset-right));
+            width: 46px; height: 46px; font-size: 13px;
+        }
+        @media (hover: hover) and (pointer: fine) { #touch { display: none; } }
+
+        /* Wherever the on-screen controls exist, the HUD gets out of their way.
+           Keyed to the pointer rather than the viewport width, because a phone
+           in landscape is 844px wide and would miss a width breakpoint. */
+        @media (pointer: coarse) {
+            .hud-bottom { margin-left: 84px; margin-right: 10px; }
+            .hud-right { margin-right: 58px; }
+            /* On a phone the bottom-left corner belongs to the thumb buttons,
+               and the bottom-centre is where the ship lives — a comms panel
+               there covers both. Put it under the HUD instead, translucent, so
+               it never hides the ship or the button it is sitting next to. */
+            #comms {
+                left: 8px; right: 8px; bottom: auto;
+                top: calc(96px + env(safe-area-inset-top));
+                max-width: none;
+                background: linear-gradient(90deg, rgba(8, 10, 24, 0.8), rgba(8, 10, 24, 0.45));
+            }
+            #comms-portrait { width: 42px; height: 42px; }
+            #comms-text { font-size: 12px; }
+        }
+        @media (pointer: coarse) and (max-height: 560px) {
+            .hud-bottom { margin-left: 196px; }
+            /* A landscape phone has no spare vertical space, so the two things
+               that want the top of the screen get a side each instead of
+               stacking on top of one another. */
+            #comms { left: 8px; right: auto; top: calc(54px + env(safe-area-inset-top)); max-width: 40vw; }
+            #boss-bar {
+                left: auto; right: 8px; transform: none;
+                /* clears the ship readouts above it, which end at ~55px */
+                width: 52vw; top: calc(60px + env(safe-area-inset-top));
+            }
+        }
+
+        /* --------------------------------------------------------- screens */
+        .overlay {
+            position: absolute; inset: 0; z-index: 4; pointer-events: auto;
+            display: flex; align-items: center; justify-content: center;
+            padding: 24px 16px; overflow-y: auto;
+            /* body sets touch-action: none so dragging the ship never scrolls
+               the page — which would otherwise make these panels unscrollable
+               by finger, stranding anything below the fold on a short screen. */
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            background: radial-gradient(ellipse at 50% 40%, rgba(10, 14, 36, 0.72), rgba(3, 4, 10, 0.94));
+        }
+        .overlay.dimmed { backdrop-filter: blur(3px); }
+        .panel {
+            width: min(560px, 100%); background: var(--panel);
+            border: 1px solid var(--line); border-radius: 4px;
+            padding: 26px 26px 22px; text-align: center;
+            box-shadow: 0 0 60px rgba(40, 90, 200, 0.22), inset 0 0 40px rgba(20, 40, 90, 0.25);
+        }
+        .panel.wide { width: min(880px, 100%); }
+        .panel h1 {
+            font-size: 26px; letter-spacing: 0.34em; text-transform: uppercase;
+            color: #fff; text-shadow: 0 0 22px rgba(126, 242, 255, 0.6); margin-bottom: 6px;
+        }
+        .panel h1.bad { color: var(--rose); text-shadow: 0 0 22px rgba(255, 77, 109, 0.7); }
+        .panel h3 {
+            font-size: 11px; letter-spacing: 0.28em; color: var(--cyan);
+            margin: 14px 0 8px; text-transform: uppercase;
+        }
+        .panel ul { list-style: none; text-align: left; }
+        .panel li { font-size: 13px; line-height: 1.65; color: var(--text); margin-bottom: 5px; }
+        .panel li::before { content: '› '; color: var(--cyan); }
+        .panel li.dim { color: var(--dim); }
+
+        .title-mark {
+            font-size: clamp(38px, 11vw, 82px); letter-spacing: 0.3em; font-weight: bold;
+            color: #fff; text-shadow: 0 0 26px rgba(126, 242, 255, 0.85), 0 0 60px rgba(255, 77, 109, 0.35);
+            margin-bottom: 8px;
+        }
+        .title-sub { font-size: 11px; letter-spacing: 0.24em; color: var(--amber); margin-bottom: 16px; }
+        .title-blurb { font-size: 13px; line-height: 1.7; color: var(--dim); margin-bottom: 22px; }
+        .title-best { margin-top: 14px; font-size: 11px; letter-spacing: 0.2em; color: var(--violet); }
+        .hint { margin-top: 14px; font-size: 10px; letter-spacing: 0.16em; color: var(--dim); }
+
+        .menu-list { display: flex; flex-direction: column; gap: 9px; align-items: center; }
+        .btn {
+            pointer-events: auto; cursor: pointer;
+            min-width: 220px; padding: 11px 18px;
+            background: rgba(126, 242, 255, 0.08); color: var(--text);
+            border: 1px solid var(--line); border-radius: 2px;
+            font-family: inherit; font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase;
+            transition: background 0.12s ease, transform 0.08s ease, box-shadow 0.12s ease;
+        }
+        .btn:hover { background: rgba(126, 242, 255, 0.2); box-shadow: 0 0 20px rgba(126, 242, 255, 0.3); }
+        .btn:active { transform: translateY(1px); }
+        .btn.primary { background: rgba(126, 242, 255, 0.22); border-color: var(--cyan); color: #fff; }
+        .btn.subtle { background: transparent; color: var(--dim); border-color: rgba(123, 134, 176, 0.35); }
+        .btn.small { min-width: 0; padding: 7px 14px; font-size: 11px; }
+        .btn.tiny { min-width: 0; padding: 5px 10px; font-size: 10px; letter-spacing: 0.1em; }
+        .btn.on { background: rgba(255, 209, 102, 0.22); border-color: var(--amber); color: #fff; }
+        .btn:disabled { opacity: 0.35; cursor: default; }
+
+        .crawl-panel { max-width: 720px; }
+        .crawl { text-align: left; margin-bottom: 20px; }
+        .crawl-line {
+            font-size: 14px; line-height: 1.85; color: var(--text); letter-spacing: 0.04em;
+            opacity: 0; animation: fadeUp 0.5s ease forwards;
+        }
+        .crawl-line:nth-child(n) { animation-delay: calc(var(--i, 0) * 0.1s); }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        .crawl-screen .crawl-line { animation-delay: 0s; opacity: 1; }
+
+        .difficulty-row, .toggle-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
+        .level-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin: 14px 0 18px; }
+        .level-card {
+            pointer-events: auto; cursor: pointer; display: flex; gap: 12px; text-align: left;
+            padding: 12px; background: rgba(126, 242, 255, 0.06);
+            border: 1px solid var(--line); border-radius: 3px; color: var(--text); font-family: inherit;
+        }
+        .level-card:hover { background: rgba(126, 242, 255, 0.16); }
+        .level-card.locked { opacity: 0.4; cursor: default; }
+        .lc-num { font-size: 26px; color: var(--cyan); opacity: 0.8; }
+        .lc-name { font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; }
+        .lc-sub { font-size: 10px; color: var(--dim); margin-top: 3px; letter-spacing: 0.1em; }
+        .lc-best { font-size: 10px; color: var(--amber); margin-top: 6px; }
+
+        .brief-head { margin-bottom: 14px; }
+        .brief-num { font-size: 10px; letter-spacing: 0.4em; color: var(--amber); }
+        .brief-sub { font-size: 11px; letter-spacing: 0.2em; color: var(--dim); }
+        .brief-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; text-align: left; margin-bottom: 18px; }
+        .brief-stat { font-size: 11px; color: var(--dim); letter-spacing: 0.12em; margin-top: 6px; }
+        .brief-stat b { color: var(--text); }
+        .brief-stat.hi b { color: var(--pod); }
+        .wing-list li { font-size: 12px; color: var(--dim); }
+        .wing-list li b { color: var(--cyan); }
+
+        .pause-stats { display: flex; gap: 22px; justify-content: center; margin: 16px 0 20px; }
+        .pause-stats span { display: block; font-size: 9px; color: var(--dim); letter-spacing: 0.2em; }
+        .pause-stats b { font-size: 18px; }
+
+        .result-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px; margin: 16px 0; text-align: left;
+        }
+        .result-grid > div { border-left: 2px solid var(--line); padding-left: 8px; }
+        .result-grid span { display: block; font-size: 9px; color: var(--dim); letter-spacing: 0.18em; }
+        .result-grid b { font-size: 17px; }
+        .result-grid b.bad { color: var(--rose); }
+
+        .clear-mark { font-size: 11px; letter-spacing: 0.5em; color: var(--pod); margin-bottom: 4px; }
+        .rank-row { font-size: 11px; letter-spacing: 0.3em; color: var(--dim); margin: 6px 0 4px; }
+        .rank { font-size: 36px; letter-spacing: 0; }
+        .rank-S { color: var(--amber); text-shadow: 0 0 22px rgba(255, 209, 102, 0.9); }
+        .rank-A { color: var(--pod); }
+        .rank-B { color: var(--cyan); }
+        .rank-C { color: var(--violet); }
+        .rank-D { color: var(--dim); }
+        .running-total { font-size: 11px; letter-spacing: 0.16em; color: var(--dim); margin-bottom: 14px; }
+
+        .cadet-card {
+            border: 1px solid rgba(125, 255, 212, 0.35); background: rgba(125, 255, 212, 0.07);
+            padding: 12px; margin-bottom: 16px; text-align: left; border-radius: 3px;
+        }
+        .cadet-name { font-size: 13px; letter-spacing: 0.2em; color: var(--pod); margin-bottom: 6px; }
+        .cadet-line { font-size: 13px; line-height: 1.6; font-style: italic; text-transform: none; margin-bottom: 8px; }
+        .cadet-ability { font-size: 11px; color: var(--amber); letter-spacing: 0.08em; }
+
+        .go-body { font-size: 13px; line-height: 1.7; color: var(--dim); margin-top: 10px; text-transform: none; }
+
+        .ending-tag { font-size: 10px; letter-spacing: 0.5em; color: var(--violet); }
+        .ending-lines { margin: 16px 0; }
+        .ending-lines div { font-size: 14px; line-height: 1.85; text-transform: none; }
+        .named-roll { margin: 14px 0 18px; font-size: 12px; color: var(--pod); letter-spacing: 0.08em; }
+
+        .roll-list { display: grid; gap: 10px; margin: 14px 0 18px; text-align: left; }
+        .roll-row { border-left: 2px solid var(--line); padding-left: 10px; }
+        .roll-name { font-size: 13px; letter-spacing: 0.14em; color: var(--cyan); }
+        .roll-call { color: var(--amber); }
+        .roll-bio { font-size: 12px; line-height: 1.6; color: var(--dim); text-transform: none; margin: 3px 0; }
+        .roll-ability { font-size: 11px; color: var(--pod); }
+        .roll-intro { font-size: 12px; line-height: 1.7; color: var(--dim); text-transform: none; }
+        .roll-intro.dim { margin-top: 10px; color: var(--violet); }
+
+        .opt-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; text-align: left; }
+        .opt-note { font-size: 11px; line-height: 1.7; color: var(--dim); text-transform: none; }
+        .dim-note { color: var(--dim); letter-spacing: 0.1em; font-size: 9px; }
+        .bind-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 5px; font-size: 11px; color: var(--dim); }
+
+        #back-link {
+            position: fixed; top: 8px; left: 8px; z-index: 99999;
+            font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #fff;
+            background: rgba(0, 0, 0, 0.55); padding: 6px 12px; border-radius: 6px;
+            text-decoration: none; pointer-events: auto; border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        #back-link:hover { background: rgba(0, 0, 0, 0.8); }
+
+        /* --------------------------------------------------------- mobile */
+        @media (max-width: 720px) {
+            #hud { padding: calc(6px + env(safe-area-inset-top)) 8px 8px; }
+            /* On a phone the top row has to fit score + headcount + ship state
+               + the launcher link + the pause button inside 390px. If it does
+               not fit, flexbox overflows the row and the right-hand column ends
+               up under the pause button, so the widths here are a budget:
+               52 (link) + ~190 (left stats) + 12 (gap) + ~57 (right) + 58 (pause). */
+            .hud-left { margin-left: 52px; gap: 7px; }
+            .stat b { font-size: 13px; }
+            /* stack lives over weapon instead of overflowing the right edge */
+            .hud-right { flex-direction: column; gap: 3px; align-items: flex-end; }
+            .stat .sub { display: none; }
+            .stat span { font-size: 9px; letter-spacing: 0.06em; }
+            .stat.score b { font-size: 14px; letter-spacing: 0; }
+            #weapon-name { font-size: 11px; letter-spacing: 0.1em; }
+            .power-pip { width: 9px; height: 4px; }
+            .pip-row { font-size: 12px; gap: 2px; }
+            /* every menu control clears the 44px minimum tap target */
+            .btn { padding: 14px 18px; min-width: 200px; }
+            .btn.small { padding: 11px 14px; }
+            .btn.tiny { padding: 9px 12px; }
+            .level-card { padding: 14px 12px; }
+            /* the launcher link becomes a round 44px tap target with no label */
+            #back-link {
+                font-size: 0; padding: 0; width: 44px; height: 44px; border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+            }
+            #back-link::before { content: '\2190'; font-size: 19px; line-height: 1; }
+            .brief-cols, .opt-cols { grid-template-columns: 1fr; gap: 14px; }
+            .panel { padding: 20px 16px 18px; }
+            .panel h1 { font-size: 20px; letter-spacing: 0.24em; }
+            .stat b { font-size: 16px; }
+            .stat.score b { font-size: 20px; }
+            .hud-left, .hud-right { gap: 14px; }
+            .level-wrap { width: 120px; }
+            #comms-text { font-size: 12px; }
+            #boss-bar { top: calc(92px + env(safe-area-inset-top)); width: 84vw; }
+        }
+        @media (max-height: 560px) {
+            /* Short screens have no vertical room to spare, but hiding comms
+               outright would drop the story for anyone playing in landscape.
+               Compact it instead: smaller portrait, one line of text. */
+            #comms { padding: 5px 10px 5px 5px; gap: 7px; }
+            #comms-portrait { width: 32px; height: 32px; }
+            #comms-name { font-size: 9px; margin-bottom: 1px; }
+            #comms-text { font-size: 11px; line-height: 1.3; max-height: 30px; overflow: hidden; }
+            .overlay { align-items: flex-start; padding: 10px 12px; }
+            .panel { padding: 14px 16px 12px; }
+            .panel h1 { font-size: 17px; letter-spacing: 0.2em; margin-bottom: 4px; }
+            .panel h3 { margin: 8px 0 5px; }
+            .panel li { font-size: 12px; line-height: 1.45; margin-bottom: 3px; }
+            .title-mark { font-size: 34px; letter-spacing: 0.2em; }
+            .title-blurb { font-size: 12px; line-height: 1.5; margin-bottom: 12px; }
+            .crawl-line { font-size: 12px; line-height: 1.5; }
+            .brief-cols { gap: 10px; }
+            .menu-list { gap: 7px; }
+            /* tighter, but never below a 44px tap target */
+            .btn { padding: 10px 16px; min-height: 44px; }
+            .result-grid { gap: 6px; margin: 10px 0; }
+            .ending-lines div { font-size: 12px; line-height: 1.5; }
+            /* the action you came for stays on screen however long the panel is */
+            .panel > .btn.primary, .panel > .menu-list {
+                position: sticky; bottom: 0; z-index: 2;
+                background: linear-gradient(to top, var(--panel) 60%, transparent);
+                padding-top: 6px;
+            }
+            #touch { flex-direction: row; gap: 8px; }
+            #touch button { width: 56px; height: 56px; font-size: 9px; }
+            #touch button#touch-pause { width: 44px; height: 44px; }
+            .hud-bottom { margin-left: 196px; margin-right: 10px; }
+            #hud { padding-bottom: 8px; }
+            #boss-bar { top: calc(60px + env(safe-area-inset-top)); }
+            .stat.score b { font-size: 15px; }
+            .stat .sub { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+    <canvas id="gl"></canvas>
+    <div id="grain"></div>
+
+    <div id="ui">
+        <div id="hud" class="hidden">
+            <div class="hud-top">
+                <div class="hud-left">
+                    <div class="stat score">
+                        <span>SCORE</span>
+                        <b id="score-val">000000000</b>
+                        <span class="sub" id="chain-val"></span>
+                    </div>
+                    <div class="stat rescue">
+                        <span>CADETS SAVED</span>
+                        <b id="saved-val">0</b>
+                        <span class="sub">OF <span id="roll-val">211</span> ON THE ROLL</span>
+                    </div>
+                    <div class="stat lost">
+                        <span>LOST</span>
+                        <b id="lost-val">0</b>
+                        <span class="sub">GRAZE <span id="graze-val">0</span></span>
+                    </div>
+                </div>
+                <div class="hud-right">
+                    <div class="stat">
+                        <span>KESTREL</span>
+                        <div class="pip-row" id="lives-row"></div>
+                        <div class="pip-row" id="flares-row"></div>
+                    </div>
+                    <div class="stat weapon-box">
+                        <span>WEAPON</span>
+                        <div id="weapon-name">VULCAN</div>
+                        <div id="power-pips"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="fps"></div>
+
+            <div id="boss-bar" class="hidden">
+                <div class="boss-head">
+                    <div id="boss-name">BOSS</div>
+                    <div id="boss-title"></div>
+                </div>
+                <div class="boss-meter">
+                    <span id="boss-fill" style="display:block;height:100%"></span>
+                    <div class="boss-ticks"></div>
+                </div>
+                <div id="boss-parts"></div>
+            </div>
+
+            <div class="hud-bottom">
+                <div class="od-wrap">
+                    <div class="od-label" id="od-label">OVERDRIVE</div>
+                    <div class="meter"><span id="od-fill"></span></div>
+                </div>
+                <div class="level-wrap">
+                    <div id="level-name">1. HANGAR RING</div>
+                    <div class="meter"><span id="level-fill"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="comms" class="hidden">
+            <canvas id="comms-portrait" width="96" height="96"></canvas>
+            <div>
+                <div id="comms-name">SPARROW</div>
+                <div id="comms-text"></div>
+            </div>
+        </div>
+
+        <div id="touch" class="hidden">
+            <button id="touch-focus" type="button">FOCUS</button>
+            <button id="touch-od" type="button">OD</button>
+            <button id="touch-flare" type="button">FLARE</button>
+            <button id="touch-pause" type="button">II</button>
+        </div>
+
+        <div id="screen" class="overlay hidden"></div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

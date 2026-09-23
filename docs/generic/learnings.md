@@ -4240,6 +4240,209 @@ handle.
 
 ---
 
+## Game 040: Starcadet — separating a game's simulation from its renderer (2026-09-22)
+
+### The split that made everything else testable
+
+`js/sim/` is a **pure simulation**: it imports no three.js, touches no DOM, never calls
+`Math.random`, and never imports anything from `js/view/` or `js/ui/`. The world is plain arrays of
+plain objects; the view reads them once a frame and syncs meshes. `dev/check.mjs` enforces the rule
+by grepping the source, so it cannot rot:
+
+```js
+for (const file of listFiles(join(jsDir, 'sim'))) {
+    const code = stripComments(readFileSync(file, 'utf8'));
+    if (/from\s+['"]three/.test(code)) fail(`${file} imports three`);
+    if (/\bdocument\.|\bwindow\.|localStorage/.test(code)) fail(`${file} touches the DOM`);
+    if (/Math\.random\(/.test(code)) fail(`${file} is non-deterministic`);
+}
+```
+
+The payoff is that a Node harness can play the actual game: `dev/playthrough.mjs` runs a full
+six-level campaign to an ending in about four seconds of wall clock, and `dev/balance.mjs` plays
+every level three times with different bots. Neither needs a browser or a mock of the game itself.
+
+To let entities call back into the world without a circular import, the world hangs its API on the
+world object (`w.fire()`, `w.spawnEnemy()`, `w.spawnPod()`, `w.fx()`), so `enemies.js` and
+`bosses.js` never import `world.js` at all.
+
+### Count the things you care about, not the containers that hold them
+
+Starcadet's story promises 211 cadets. The level data had a `podBudget` totalling 211 — but each pod
+carried 1–4 cadets, so a full campaign could return **357 cadets out of a roll of 211**. Nothing in
+the code was wrong; the two numbers were just different nouns.
+
+The fix generalises: when a resource has a headline number in the fiction, make that number the
+budget, and let the containers draw down from it.
+
+```js
+const podsAfterThis = w.podBudget - w.podsSpawned;
+const cadetsLeft = w.cadetBudget - w.cadetsAssigned;
+cadets = podsAfterThis <= 0
+    ? clamp(cadetsLeft, 1, 8)                       // last pod takes the remainder exactly
+    : clamp(Math.round(cadetsLeft / (podsAfterThis + 1) + rng.range(-0.8, 0.8)),
+            1, Math.max(1, Math.min(4, cadetsLeft - podsAfterThis)));
+```
+
+A full sweep now returns exactly the roll, and a unit test asserts it per level.
+
+### Tune boss HP against *measured* DPS, not nominal DPS
+
+The first pass set boss HP from the weapon table's damage-per-second. Three of six levels then could
+not be finished inside seven minutes, because a player who is dodging lands roughly **35–45% of
+nominal DPS** — they are out of line, out of range, or the boss is invulnerable between phases.
+
+Measure it with a bot, then set HP for the fight length you want at that efficiency. Same lesson as
+game-039's "tune difficulty with bots, not vibes", but the specific number is worth having: *assume
+a dodging player does about 40% of paper DPS against a moving boss*.
+
+### Fixed timestep + edge-triggered inputs
+
+A `1/120s` accumulator keeps pattern timing identical at 60Hz and 144Hz. The catch: an input that is
+an *event* (bomb, special) must only fire on the first sub-step, or one keypress spends four bombs
+on a slow frame.
+
+```js
+accumulator += dt;
+let steps = 0;
+while (accumulator >= TICK && steps < 8) {
+    stepWorld(world, snapshot, TICK);
+    snapshot.flare = false;      // edge-triggered: first sub-step only
+    snapshot.od = false;
+    accumulator -= TICK;
+    steps++;
+}
+if (steps >= 8) accumulator = 0;   // give up catching up rather than spiral
+```
+
+### A bounded event queue between the sim and everything else
+
+The simulation announces events by pushing onto `world.fxQueue`; the frame loop drains it once and
+hands each event to the view, the audio and the UI in turn. Two details matter:
+
+1. **Bound the queue** (`if (q.length > 600) q.splice(0, q.length - 600)`). A headless harness never
+   drains it, and without the bound a five-minute bot run allocates hundreds of thousands of events.
+2. **Don't let the payload shadow the event name.** `w.fx('enemyDeath', { type: e.type })` produced
+   events called `"skimmer"` because the payload spread over the `type` key. Name payload fields for
+   what they are (`enemy`, not `type`).
+
+### Symptom: "the keyboard stopped working" after touching the mouse
+
+If the ship follows the pointer whenever `pointer.active` is true, a single stray mouse movement
+disables the arrow keys forever. Hand control back the moment a movement key is pressed:
+
+```js
+if (input.ax !== 0 || input.ay !== 0) input.pointer.active = false;
+```
+
+### A state machine's wiring deserves its own test
+
+`main.js` (modes, menu action names, element ids, the accumulator, the event drain) is the most
+wiring-heavy module in a game and usually the least tested. Booting it under a fake DOM and walking
+title → briefing → launch → pause → resume → level clear caught a real simulation bug in passing: a
+boss whose HP reached zero by any path other than `damageBoss()` sat in its final phase forever.
+Guard the state transition on the *state*, not on the code path that caused it.
+
+
+## Making an action game genuinely playable on a phone (game-040 Starcadet, 2026-09-22)
+
+"Responsive layout" is not the same as "playable on mobile". These are the things that decided it,
+in the order they mattered.
+
+### Relative dragging, not absolute
+
+The obvious implementation — the ship goes where the finger is — is the wrong one for any game
+where you need to *see* what you are flying into:
+
+- the first touch teleports the ship across the arena (measured: 3.3 world units in Starcadet),
+  which in a bullet hell means an instant death you did not cause;
+- the hand sits on top of the part of the screen you are reading;
+- the reachable area is the screen, so precision is whatever your thumb can do at full stretch.
+
+Relative dragging fixes all three: record the finger *and* the ship position when the touch starts,
+then move the ship by the finger's delta. Re-anchor on every new touch (that is what stops the
+teleport), and also whenever the game moves the ship itself — respawn, level start, unpause —
+or the next drag inherits a stale offset and lurches.
+
+```js
+if (input.pointer.rebase || !anchor) {
+    input.pointer.rebase = false;
+    anchor = { wx: p.x, wy: p.y, sx: player.x, sy: player.y };
+}
+const rawX = anchor.sx + (p.x - anchor.wx);
+const tx = clamp(rawX, minX, maxX);
+anchor.sx += tx - rawX;    // absorb overshoot: no dead zone on the way back
+```
+
+That last line matters more than it looks. Without it, dragging past the wall accumulates an
+offset, and the first part of the drag back does nothing — the "sticky edge" feel.
+
+### Test with real touch input, not synthesised TouchEvents
+
+`new TouchEvent(...)` dispatched from `page.evaluate` does **not** make the browser synthesise a
+`click`, so every menu button appears broken and you go looking for a bug that isn't there. Drive
+CDP instead, which is real input:
+
+```js
+const cdp = await ctx.newCDPSession(page);
+await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 1 }] });
+```
+
+Pair it with a context that actually is a phone: `{ hasTouch: true, isMobile: true,
+deviceScaleFactor: 3, viewport: { width: 390, height: 844 } }`, and run the whole thing again at
+844×390 for landscape.
+
+### Assert the control layout, don't eyeball it
+
+Two bugs in game-040 survived a screenshot review and were caught by geometry assertions:
+
+- every on-screen control ≥44px (a CSS specificity slip — `#touch button` beating `#touch-pause` —
+  had the pause button rendering at 64px and covering the ship readouts);
+- no control's rect intersecting any HUD readout's rect.
+
+```js
+const overlap = await page.evaluate(() => { /* compare getBoundingClientRect() pairs */ });
+```
+
+### An overflowing flex row with `space-between` pushes its last child off-screen
+
+The HUD kept landing under the pause button even after the margins "fixed" it. The cause: at 390px
+the top row's content (launcher link + score + headcount + ship state + pause) was wider than the
+viewport, and once a flex line overflows, `justify-content: space-between` has no free space to
+distribute — the last item simply overhangs. Margins do not save you; the fix is to budget the
+widths so the row fits, and to write the budget down in a comment next to the media query.
+
+### Two thumbs, two corners
+
+Action buttons in the bottom-left for the left thumb, drag anywhere with the right, pause in the
+*top*-right where a thumb does not rest. And force any "auto" input mode the touch build depends
+on: Starcadet has no fire button on purpose, so an autofire option left off would have handed a
+phone player a ship that cannot shoot.
+
+### Quality tiers, chosen by pointer type and then by measurement
+
+Phone GPUs vary by an order of magnitude, and the expensive work is per-pixel (full-screen shaders,
+bloom). Start a coarse-pointer device one tier down, then drop another only after several
+consecutive bad frame-rate samples so one hitch never costs a player their visuals:
+
+```js
+if (state.fps > 0 && state.fps < 40) slowFrames++; else slowFrames = 0;
+if (slowFrames >= 3 && tier < MAX) setQuality(tier + 1);
+```
+
+Tiers should move *pixels*, not features: pixel ratio, bloom strength, and shader loop counts (an
+FBM at three octaves instead of five reads almost identically). Also drop full-screen blended
+overlays (scanlines, grain) on mobile — they are pure fill rate for a subtle effect.
+
+### Measure the simulation separately from the renderer
+
+A headless sandbox only has software GL, so its frame rate says nothing about a real phone. The
+simulation, though, is plain JavaScript and costs a phone the same work at a lower clock — so
+measure it on its own (game-040: ~0.1ms p95 per frame at 200 live bullets, against a 16.7ms
+budget). That splits "will it run on a phone?" into a CPU question you can answer headlessly and a
+GPU question you answer with quality tiers.
+
+
 ## Atari 2600-idiom rendering without assets (game-039 Wakeform)
 
 ### The look comes from constraints, not filters
