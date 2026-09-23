@@ -75,7 +75,7 @@ export function setMusicLevel(level) {
     if (droneOsc) {
         const root = ROOTS[level] ?? 110;
         droneOsc.forEach((o, i) => {
-            o.frequency.setTargetAtTime(root * (i === 0 ? 0.5 : i === 1 ? 1.001 : 1.5), now(), 0.6);
+            o.frequency.setTargetAtTime(root * (DRONE_VOICES[i]?.mult ?? 1), now(), 0.6);
         });
     }
 }
@@ -125,21 +125,66 @@ function noise({ dur = 0.3, gain = 0.3, freq = 1200, q = 1, type = 'lowpass', sw
 // ----------------------------------------------------------------- the ambient
 
 let droneOsc = null;
+
+/* The ambient bed used to be two sawtooths and a triangle held at fixed
+   pitch and fixed gain through a fixed filter, the lowest of them a 55Hz
+   sub. Nothing about it moved, so it read as a buzz rather than as room
+   tone -- and because it starts on the first input and never stops, you
+   heard it sitting on the title screen as much as in a fight.
+
+   This version keeps the same harmony but gives every part somewhere to
+   go: triangles instead of sawtooths (no high harmonics to rasp), the
+   sub dropped an octave up out of the buzz register, a real interval
+   instead of a 0.1% detune that beat against itself, and slow LFOs on
+   both filter and level so the pad breathes instead of droning. */
+const DRONE_VOICES = [
+    { mult: 1,    gain: 0.030, lfoRate: 0.045, lfoDepth: 0.011 },
+    { mult: 1.5,  gain: 0.022, lfoRate: 0.062, lfoDepth: 0.008 },
+    { mult: 2.01, gain: 0.014, lfoRate: 0.037, lfoDepth: 0.006 },
+];
+
 function startDrone() {
     if (!state.ctx || droneOsc) return;
     const root = ROOTS[state.level] ?? 110;
+    const t = now();
     droneOsc = [];
-    for (const [i, mult] of [0.5, 1.001, 1.5].entries()) {
+
+    // one shared lowpass that drifts across the pad, so the timbre opens
+    // and closes over ~40s rather than sitting on one static colour
+    const filt = state.ctx.createBiquadFilter();
+    filt.type = 'lowpass';
+    filt.frequency.value = 380;
+    filt.Q.value = 0.7;
+    const sweep = state.ctx.createOscillator();
+    sweep.frequency.value = 0.025;
+    const sweepAmt = state.ctx.createGain();
+    sweepAmt.gain.value = 140;
+    sweep.connect(sweepAmt).connect(filt.frequency);
+    sweep.start(t);
+
+    filt.connect(state.musicGain);
+
+    for (const v of DRONE_VOICES) {
         const osc = state.ctx.createOscillator();
-        osc.type = i === 2 ? 'triangle' : 'sawtooth';
-        osc.frequency.value = root * mult;
+        osc.type = 'triangle';
+        osc.frequency.value = root * v.mult;
+
         const g = state.ctx.createGain();
-        g.gain.value = i === 2 ? 0.035 : 0.055;
-        const filt = state.ctx.createBiquadFilter();
-        filt.type = 'lowpass';
-        filt.frequency.value = 420;
-        osc.connect(filt).connect(g).connect(state.musicGain);
-        osc.start();
+        // fade in rather than snapping on at full level
+        g.gain.value = 0;
+        g.gain.setTargetAtTime(v.gain, t, 2.5);
+
+        // independent slow swell per voice; the rates are mutually prime
+        // enough that the three never line up into an obvious pulse
+        const lfo = state.ctx.createOscillator();
+        lfo.frequency.value = v.lfoRate;
+        const depth = state.ctx.createGain();
+        depth.gain.value = v.lfoDepth;
+        lfo.connect(depth).connect(g.gain);
+        lfo.start(t);
+
+        osc.connect(g).connect(filt);
+        osc.start(t);
         droneOsc.push(osc);
     }
 }
