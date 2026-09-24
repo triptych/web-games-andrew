@@ -184,6 +184,61 @@ console.log('\n== weapons & balance table ==');
     ok(bad === 0, 'every weapon has 5 power levels with a strictly rising DPS curve');
 }
 
+console.log('\n== the hazard rule: safe things are green, dangerous things are warm ==');
+{
+    const rgb = (hex) => ({ r: (hex >> 16) & 255, g: (hex >> 8) & 255, b: hex & 255 });
+    // "green-dominant" = green clearly leads. A pale wash where every channel
+    // is nearly equal reads as white, not green, so it does not qualify.
+    const greenDominant = (hex) => {
+        const { r, g, b } = rgb(hex);
+        return g > r + 24 && g > b + 24;
+    };
+    const hx = (hex) => `#${hex.toString(16).padStart(6, '0')}`;
+    const C = config.COLORS;
+    const pickupHex = (t) => C[t === 'gem' ? 'gem' : `${t}Item`];
+
+    // 1. every pickup colour must be green-dominant
+    let bad = 0;
+    for (const type of config.PICKUP_TYPES) {
+        const hex = pickupHex(type);
+        if (hex === undefined) { console.log(`       no COLORS entry for pickup "${type}"`); bad++; continue; }
+        if (!greenDominant(hex)) { console.log(`       pickup "${type}" ${hx(hex)} is not green-dominant`); bad++; }
+    }
+    ok(bad === 0, 'every pickup colour is green-dominant');
+
+    // 2. nothing that can hurt the player may be green-dominant
+    const dangerous = {
+        enemyBullet: C.enemyBullet, enemyBulletHot: C.enemyBulletHot,
+        enemyBulletWhite: C.enemyBulletWhite, hazard: C.hazard, warn: C.warn,
+    };
+    let clash = 0;
+    for (const [name, hex] of Object.entries(dangerous)) {
+        if (greenDominant(hex)) { console.log(`       hazard colour "${name}" ${hx(hex)} is green`); clash++; }
+    }
+    for (const [id, e] of Object.entries(ENEMIES)) {
+        if (e.color !== undefined && greenDominant(e.color)) {
+            console.log(`       enemy "${id}" hull ${hx(e.color)} is green`); clash++;
+        }
+    }
+    const bulletColors = new Set();
+    for (const b of Object.values(BOSSES)) {
+        for (const ph of b.phases) for (const a of ph.attacks) if (a.color !== undefined) bulletColors.add(a.color);
+    }
+    for (const e of Object.values(ENEMIES)) {
+        for (const a of e.attacks ?? []) if (a.color !== undefined) bulletColors.add(a.color);
+    }
+    for (const hex of bulletColors) {
+        if (greenDominant(hex)) { console.log(`       an enemy fires green bullets ${hx(hex)}`); clash++; }
+    }
+    ok(clash === 0, 'nothing that damages the player is green');
+
+    // 3. the two sets must not share a single hex value
+    const pickupSet = new Set(config.PICKUP_TYPES.map(pickupHex));
+    const overlap = [...bulletColors, ...Object.values(dangerous)].filter((h) => pickupSet.has(h));
+    for (const h of overlap) console.log(`       ${hx(h)} is BOTH a pickup and enemy fire`);
+    ok(overlap.length === 0, 'no pickup colour is also used by enemy fire or a hazard');
+}
+
 console.log('\n== index.html wiring ==');
 {
     const html = readFileSync(join(here, '..', 'index.html'), 'utf8');

@@ -20,6 +20,52 @@ const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 
 // ------------------------------------------------------------ movement scripts
 
+/**
+ * MOVEMENT AND THE NO-TELEPORT RULE
+ *
+ * The oscillating scripts below (sway, dip, orbit) describe a *target* point on
+ * a curve, and the boss is then eased toward it — it is never assigned straight
+ * onto the curve.
+ *
+ * Assigning directly is what made bosses jump. `b.x = sin(moveT) * amp` is only
+ * continuous if b.x was already exactly on that curve, and it never is:
+ *
+ *   - `moveT` runs during the 2.4s entry while x is pinned at 0, so the instant
+ *     the fight began the sine was already a third of a cycle in and the boss
+ *     snapped across the arena (Tarpon: 5.3 units in one tick, 641 u/s).
+ *   - every phase change swaps amp/cx/moveSpeed, so the curve moves out from
+ *     under the boss and it snaps again.
+ *   - `ram` and Nimbus's cloud-hide both park the boss off-curve, and it
+ *     snapped back on resume.
+ *
+ * `approach()` caps how fast a boss may be corrected onto its curve, so all of
+ * those cases become a fast slide instead of a teleport. Genuine teleports —
+ * Kel's blink, Nimbus leaving the cloud — still exist, but they are explicit
+ * and they announce themselves with an fx event.
+ *
+ * `phaseT` (reset on every phase entry) drives the curves instead of `moveT`,
+ * so each phase starts at the beginning of its own oscillation.
+ */
+
+/** 3t^2-2t^3 on [0,1]: starts and ends with zero velocity. */
+function smoothstep(t) {
+    const x = clamp(t, 0, 1);
+    return x * x * (3 - 2 * x);
+}
+
+/** Move `cur` toward `target` no faster than `rate` units/sec. */
+function approach(cur, target, rate, dt) {
+    const d = target - cur;
+    const step = rate * dt;
+    if (d > step) return cur + step;
+    if (d < -step) return cur - step;
+    return target;
+}
+
+// How fast a boss is allowed to be dragged back onto its movement curve.
+const TRACK_X = 9;      // units/sec laterally
+const TRACK_Y = 5;      // units/sec vertically
+
 export const MOVES = {
     hold(b, w, dt, ph) {
         b.y += clamp((ph.y ?? 8) - b.y, -4, 4) * dt * 1.4;
@@ -27,7 +73,8 @@ export const MOVES = {
     },
     sway(b, w, dt, ph) {
         b.y += clamp((ph.y ?? 8) - b.y, -4, 4) * dt * 1.4;
-        b.x = (ph.cx ?? 0) + Math.sin(b.moveT * (ph.moveSpeed ?? 0.6)) * (ph.amp ?? 5);
+        const targetX = (ph.cx ?? 0) + Math.sin(b.phaseT * (ph.moveSpeed ?? 0.6)) * (ph.amp ?? 5);
+        b.x = approach(b.x, targetX, TRACK_X, dt);
     },
     hunt(b, w, dt, ph) {
         b.y += clamp((ph.y ?? 8) - b.y, -4, 4) * dt * 1.2;
@@ -36,13 +83,17 @@ export const MOVES = {
     },
     dip(b, w, dt, ph) {
         const base = ph.y ?? 8;
-        b.x = (ph.cx ?? 0) + Math.sin(b.moveT * (ph.moveSpeed ?? 0.5)) * (ph.amp ?? 6);
-        b.y = base - Math.max(0, Math.sin(b.moveT * 0.7)) * (ph.dip ?? 4);
+        const targetX = (ph.cx ?? 0) + Math.sin(b.phaseT * (ph.moveSpeed ?? 0.5)) * (ph.amp ?? 6);
+        const targetY = base - Math.max(0, Math.sin(b.phaseT * 0.7)) * (ph.dip ?? 4);
+        b.x = approach(b.x, targetX, TRACK_X, dt);
+        b.y = approach(b.y, targetY, TRACK_Y, dt);
     },
     orbit(b, w, dt, ph) {
-        const k = b.moveT * (ph.moveSpeed ?? 0.8);
-        b.x = (ph.cx ?? 0) + Math.cos(k) * (ph.amp ?? 5.5);
-        b.y = (ph.y ?? 7) + Math.sin(k * 2) * (ph.ampY ?? 2.2);
+        const k = b.phaseT * (ph.moveSpeed ?? 0.8);
+        const targetX = (ph.cx ?? 0) + Math.cos(k) * (ph.amp ?? 5.5);
+        const targetY = (ph.y ?? 7) + Math.sin(k * 2) * (ph.ampY ?? 2.2);
+        b.x = approach(b.x, targetX, TRACK_X, dt);
+        b.y = approach(b.y, targetY, TRACK_Y, dt);
     },
     // Nimbus: slides behind the cloud deck, only lightning betraying its position
     cloud(b, w, dt, ph) {
@@ -414,6 +465,7 @@ export function makeBoss(id, w, opts = {}) {
         repeatsLeft: 0,
         repeatTimer: 0,
         moveT: 0,
+        phaseT: 0,              // resets on every phase entry — drives the curves
         spiralPhase: 0,
         hitFlash: 0,
         hidden: false,
@@ -446,12 +498,13 @@ function nextAttack(b) {
 export function updateBoss(b, w, dt) {
     b.stateT += dt;
     b.moveT += dt;
+    b.phaseT += dt;
     if (b.hitFlash > 0) b.hitFlash = Math.max(0, b.hitFlash - dt * 4);
 
     if (b.state === 'entry') {
         b.y += ((b.def.entryY ?? 9) - b.y) * Math.min(1, dt * 1.6);
         b.invuln = true;
-        if (b.stateT > 2.4) { b.state = 'fight'; b.stateT = 0; b.invuln = false; }
+        if (b.stateT > 2.4) { b.state = 'fight'; b.stateT = 0; b.phaseT = 0; b.invuln = false; }
         return;
     }
 
@@ -486,6 +539,7 @@ export function updateBoss(b, w, dt) {
         b.phase = next;
         b.state = 'transition';
         b.stateT = 0;
+        b.phaseT = 0;
         b.atkIndex = 0;
         b.atkTimer = 1.0;
         b.windup = 0;
@@ -499,11 +553,15 @@ export function updateBoss(b, w, dt) {
     if (b.ramming) {
         const r = b.ramming;
         r.t += dt;
-        const k = r.t / r.dur;
-        b.y = k < 0.5
-            ? r.fromY + (r.toY - r.fromY) * (k * 2) ** 0.6
-            : r.toY + (r.fromY - r.toY) * ((k - 0.5) * 2) ** 1.4;
-        if (r.t >= r.dur) { b.y = r.fromY; b.ramming = null; }
+        const k = clamp(r.t / r.dur, 0, 1);
+        // Smoothstep in and back out. The old curve used an exponent below 1
+        // on the way down, which has an infinite slope at k=0 and so lurched
+        // ~0.44u on the ram's very first tick (53 u/s) before easing normally.
+        const lunge = k < 0.5 ? smoothstep(k * 2) : 1 - smoothstep((k - 0.5) * 2);
+        b.y = r.fromY + (r.toY - r.fromY) * lunge;
+        // Don't snap back to fromY — the ease above already returns to it, and
+        // assigning it outright put a visible hop on the last tick of a ram.
+        if (r.t >= r.dur) b.ramming = null;
     } else {
         (MOVES[b.phase.move] ?? MOVES.sway)(b, w, dt, b.phase);
     }

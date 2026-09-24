@@ -90,6 +90,35 @@
         }
         .power-pip.on { background: var(--cyan); box-shadow: 0 0 8px rgba(126, 242, 255, 0.9); }
 
+        /* Active timed power-ups. Green, like every other "this is good for
+           you" signal in the game, and sat just above the Overdrive meter so
+           the boost row and the OD row read as one status stack. Each chip
+           drains left-to-right as its timer runs out. */
+        #boosts {
+            display: flex; gap: 6px; flex-wrap: wrap;
+            margin: 0 0 6px 0; pointer-events: none;
+        }
+        .boost-chip {
+            position: relative; overflow: hidden;
+            display: flex; align-items: center; gap: 5px;
+            padding: 3px 8px;
+            border: 1px solid rgba(157, 255, 77, 0.55);
+            border-radius: 3px;
+            background: rgba(157, 255, 77, 0.1);
+            font-size: 9px; letter-spacing: 0.18em;
+            color: #d6ffb0;
+            text-shadow: 0 0 8px rgba(157, 255, 77, 0.8);
+        }
+        .boost-chip .boost-time {
+            position: absolute; inset: 0 auto 0 0;
+            background: rgba(157, 255, 77, 0.22);
+            transition: width 0.1s linear;
+        }
+        .boost-chip span.boost-text { position: relative; }
+        /* About to expire: flash, so it is never a surprise. */
+        .boost-chip.ending { animation: boostEnding 0.4s steps(2, end) infinite; }
+        @keyframes boostEnding { 50% { opacity: 0.35; } }
+
         /* Overdrive meter */
         .od-wrap { flex: 1; max-width: 420px; }
         .od-label { font-size: 9px; color: var(--dim); margin-bottom: 3px; letter-spacing: 0.24em; }
@@ -100,7 +129,7 @@
         .meter > span { display: block; height: 100%; width: 0%; transition: width 0.12s linear; }
         #od-fill { background: linear-gradient(90deg, #2b7cff, var(--cyan)); }
         #od-fill.ready { background: linear-gradient(90deg, var(--amber), #fff2c0); box-shadow: 0 0 14px rgba(255, 209, 102, 0.9); }
-        #od-fill.active { background: linear-gradient(90deg, #ff8bd0, var(--amber)); box-shadow: 0 0 16px rgba(255, 139, 208, 0.9); }
+        #od-fill.active { background: linear-gradient(90deg, var(--amber), #fff2c0, var(--cyan)); box-shadow: 0 0 16px rgba(255, 209, 102, 0.9); }
 
         .level-wrap { width: 190px; }
         #level-name { font-size: 10px; color: var(--dim); margin-bottom: 3px; }
@@ -500,6 +529,8 @@
                 </div>
                 <div id="boss-parts"></div>
             </div>
+
+            <div id="boosts"></div>
 
             <div class="hud-bottom">
                 <div class="od-wrap">

@@ -161,6 +161,35 @@ export const PICKUP = {
     scoreGem: 250,
 };
 
+// --- Timed power-ups ------------------------------------------------------
+// Each is a duration in seconds plus whatever that effect needs. Picking one
+// up again refreshes the timer rather than stacking, so the ceiling is knowable.
+export const BOOST = {
+    shield: {
+        hits: 1,            // absorbs this many hits, then pops
+        maxHits: 2,         // a second shield pickup while shielded stacks to here
+        regrace: 0.8,       // i-frames granted when a shield pops
+    },
+    invuln: {
+        duration: 5.0,
+    },
+    speed: {
+        duration: 8.0,
+        mult: 1.7,          // applies to both normal and focus speed
+        fireMult: 1.25,     // and a modest rate-of-fire bump, so it feels fast
+    },
+    rocket: {
+        duration: 12.0,
+        interval: 0.42,     // seconds between rocket pairs
+        speed: 15,
+        dmg: 22,
+        turn: 6.5,          // rad/s homing authority — much sharper than seekers
+        r: 0.3,
+        blastRadius: 2.2,
+        blastDamage: 14,
+    },
+};
+
 // --- Difficulty ---
 export const DIFFICULTY = {
     cadet: { id: 'cadet', name: 'CADET',  bulletSpeed: 0.82, density: -1, enemyHp: 0.85, lives: 5, scoreMult: 0.8 },
@@ -186,26 +215,63 @@ export const SCORE = {
 };
 
 // --- Bullet visual kinds (the view has one InstancedMesh per kind) ---
-export const BULLET_KINDS = ['orb', 'dart', 'petal', 'shard', 'lance', 'mine', 'wave', 'seeker', 'spark'];
+export const BULLET_KINDS = ['orb', 'dart', 'petal', 'shard', 'lance', 'mine', 'wave', 'seeker', 'spark', 'rocket'];
 
-// --- Palette. Rule from the GDD: enemy fire is warm, player fire is cool. ---
+// --- Palette ------------------------------------------------------------
+// THE HAZARD RULE (enforced by dev/check.mjs): the player must never have to
+// think about whether something is safe to touch. The hue wheel is split:
+//
+//   DANGER   — warm: red / orange / amber / hot pink.  Enemy fire, beams,
+//              hazards, enemy hulls. If it is warm, it hurts.
+//   PICKUP   — green: every collectable, without exception. Different shapes
+//              and pip glyphs tell them apart, never hue alone.
+//   PLAYER   — cyan / ice blue. Your ship, your bullets, your shield.
+//   NEUTRAL  — pod teal + desaturated hull grey. Rescue targets and scenery.
+//
+// Pickups used to be amber/pink/violet, which are also the three enemy-bullet
+// colours — an amber power-up and an amber orb were the same dot at speed.
 export const COLORS = {
     bg: 0x05060f,
     player: 0x7ef2ff,
     playerAlt: 0x8effc0,
     hull: 0xc8d4ff,
+
+    // --- DANGER (warm only) ---
     enemyBullet: 0xffb347,
     enemyBulletHot: 0xff4d6d,
     enemyBulletWhite: 0xfff2d0,
+    hazard: 0xff7a2a,
+    warn: 0xff3860,
+
+    // --- NEUTRAL ---
     pod: 0x7dffd4,
     podHurt: 0xff6b6b,
-    powerItem: 0xffd166,
-    flareItem: 0xff8bd0,
-    lifeItem: 0x9dff70,
-    gem: 0xc9a7ff,
-    warn: 0xff3860,
+
+    // --- PICKUPS (green only — see PICKUP_COLORS in view/models.js) ---
+    powerItem: 0x9dff4d,
+    flareItem: 0x5cffb0,
+    lifeItem: 0xd8ff5c,
+    gem: 0x7dffc8,
+    weaponItem: 0x00ffa8,
+    shieldItem: 0x66ffd9,
+    rocketItem: 0xa8ff3c,
+    speedItem: 0x3cffcf,
+    invulnItem: 0xc4ff5c,
+
+    // --- PLAYER SYSTEMS ---
+    shield: 0x7ef2ff,
+    rocket: 0x8effc0,
+
     text: '#dcdcf0',
 };
+
+/**
+ * Every hue a pickup is allowed to be. dev/check.mjs asserts each of these is
+ * green-dominant (g clearly the largest channel) and that no enemy-fire or
+ * hazard colour is green-dominant, so the two sets can never drift together.
+ */
+export const PICKUP_TYPES = ['power', 'weapon', 'flare', 'life', 'gem',
+                             'shield', 'rocket', 'speed', 'invuln'];
 
 // --- Camera ---
 export const CAM = {

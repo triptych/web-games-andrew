@@ -6,7 +6,7 @@
  * score, because it is the number the ending is based on.
  */
 
-import { MAX_POWER, PLAYER, WEAPONS } from '../core/config.js';
+import { MAX_POWER, PLAYER, WEAPONS, BOOST } from '../core/config.js';
 import { TOTAL_CADETS } from '../sim/story.js';
 
 const el = {};
@@ -17,7 +17,7 @@ export function initHud() {
                       'lives-row', 'flares-row', 'weapon-name', 'power-pips',
                       'od-fill', 'od-label', 'boss-bar', 'boss-name', 'boss-title',
                       'boss-fill', 'boss-parts', 'level-name', 'level-fill',
-                      'graze-val', 'hud']) {
+                      'graze-val', 'boosts', 'hud']) {
         el[id] = document.getElementById(id);
     }
     last = {};
@@ -97,7 +97,67 @@ export function updateHud(world, run) {
         el['level-fill'].style.width = `${pct.toFixed(1)}%`;
     }
 
+    updateBoosts(p);
     updateBossBar(world);
+}
+
+/**
+ * The active-boost row. Shield shows layers left; the timed boosts show a bar
+ * that drains, and start flashing under 1.5s so running out is never a
+ * surprise mid-dodge. Rebuilt only when the set of active boosts changes;
+ * the drain bars are written every frame because they always move.
+ */
+const BOOST_ROW = [
+    { key: 'shield', label: 'SHIELD' },
+    { key: 'invuln', label: 'INVULN', timer: 'invulnBoost', max: () => BOOST.invuln.duration },
+    { key: 'speed',  label: '2x SPD', timer: 'speedT',      max: () => BOOST.speed.duration },
+    { key: 'rocket', label: 'ROCKETS', timer: 'rocketT',    max: () => BOOST.rocket.duration },
+];
+
+function updateBoosts(p) {
+    const node = el.boosts;
+    if (!node) return;
+
+    const active = BOOST_ROW.filter((b) => (b.timer ? p[b.timer] > 0 : p.shield > 0));
+    const key = active.map((b) => b.key).join(',');
+    if (node.dataset.key !== key) {
+        node.dataset.key = key;
+        node.innerHTML = '';
+        for (const b of active) {
+            const chip = document.createElement('div');
+            chip.className = 'boost-chip';
+            chip.dataset.boost = b.key;
+            const bar = document.createElement('i');
+            bar.className = 'boost-time';
+            const text = document.createElement('span');
+            text.className = 'boost-text';
+            chip.appendChild(bar);
+            chip.appendChild(text);
+            // hold the two children directly: this runs every frame, and a
+            // querySelector per chip per frame is pure waste.
+            chip._bar = bar;
+            chip._text = text;
+            node.appendChild(chip);
+        }
+    }
+
+    for (const [i, b] of active.entries()) {
+        const chip = node.children[i];
+        if (!chip) continue;
+        const bar = chip._bar;
+        const text = chip._text;
+        if (!bar || !text) continue;
+        if (b.timer) {
+            const left = p[b.timer];
+            bar.style.width = `${Math.max(0, Math.min(1, left / b.max())) * 100}%`;
+            text.textContent = `${b.label} ${left.toFixed(1)}`;
+            chip.classList.toggle('ending', left < 1.5);
+        } else {
+            bar.style.width = '100%';
+            text.textContent = `${b.label} x${p.shield}`;
+            chip.classList.remove('ending');
+        }
+    }
 }
 
 function updateBossBar(world) {

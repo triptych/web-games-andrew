@@ -150,6 +150,7 @@ function attachApi(w) {
             color: spec.color ?? COLORS.player,
             pierce: spec.pierce ?? 0,
             homing: spec.homing ?? 0,
+            rocket: !!spec.rocket,      // detonates for splash — see collide.js
             hits: null,
             life: 0,
             alive: true,
@@ -350,19 +351,31 @@ export function damageEnemy(w, e, amount, source = 'bullet') {
         for (let i = 0; i < 2; i++) w.spawnPod(e.x + (i - 0.5) * 2, e.y);
         w.spawnPickup(e.x, e.y, 'flare');
         w.spawnPickup(e.x - 1.4, e.y, 'power');
+        w.spawnPickup(e.x + 1.4, e.y, BOOST_DROPS[w.rng.int(0, BOOST_DROPS.length - 1)]);
     } else {
         rollDrop(w, e);
     }
     return true;
 }
 
+/**
+ * Drop table. Tougher enemies roll from a better table, and the four timed
+ * boosts sit between "flare" and "gem" so they are a real but not constant
+ * presence — dev/balance.mjs measures roughly one boost every 12-18s of
+ * ordinary play, which is short enough to feel generous and long enough that
+ * losing one to a death still stings.
+ */
+const BOOST_DROPS = ['shield', 'rocket', 'speed', 'invuln'];
+
 function rollDrop(w, e) {
     const roll = w.rng();
     const big = (e.def.hp ?? 5) >= 14;
-    if (roll < (big ? 0.34 : 0.07)) w.spawnPickup(e.x, e.y, 'power');
-    else if (roll < (big ? 0.42 : 0.1)) w.spawnPickup(e.x, e.y, 'weapon');
-    else if (roll < (big ? 0.48 : 0.12)) w.spawnPickup(e.x, e.y, 'flare');
-    else if (roll < (big ? 0.62 : 0.24)) w.spawnPickup(e.x, e.y, 'gem');
+    if (roll < (big ? 0.30 : 0.06)) w.spawnPickup(e.x, e.y, 'power');
+    else if (roll < (big ? 0.38 : 0.09)) w.spawnPickup(e.x, e.y, 'weapon');
+    else if (roll < (big ? 0.44 : 0.11)) w.spawnPickup(e.x, e.y, 'flare');
+    else if (roll < (big ? 0.60 : 0.17)) {
+        w.spawnPickup(e.x, e.y, BOOST_DROPS[w.rng.int(0, BOOST_DROPS.length - 1)]);
+    } else if (roll < (big ? 0.72 : 0.28)) w.spawnPickup(e.x, e.y, 'gem');
 }
 
 // --------------------------------------------------------------- cue handling

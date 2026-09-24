@@ -28,27 +28,50 @@ function push(obj, life, update) {
 
 // ------------------------------------------------------------------ explosions
 
+/**
+ * A three-stage explosion, because one cloud of same-coloured dots reads as
+ * smoke rather than as a detonation:
+ *
+ *   core   — a white-hot ball that cools to the given colour over its life
+ *   debris — a slower, darker, gravity-affected ring of chunks
+ *   sparks — a few very fast streaks that outrun both
+ *
+ * Per-vertex colour is what makes it bright: each particle gets its own RGB,
+ * lerped from white through the explosion colour, so the middle of the blast
+ * is genuinely overexposed and the bloom pass has something to catch.
+ */
 export function spawnExplosion(x, y, { color = 0xffb347, scale = 1, count = 26, speed = 9 } = {}) {
-    const positions = new Float32Array(count * 3);
-    const vel = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
+    const base = new THREE.Color(color);
+
+    // --- core: hot, fast, fades from white ---
+    const n = Math.round(count * 1.35);
+    const positions = new Float32Array(n * 3);
+    const colors = new Float32Array(n * 3);
+    const vel = new Float32Array(n * 3);
+    const tint = new THREE.Color();
+    for (let i = 0; i < n; i++) {
         const a = Math.random() * Math.PI * 2;
-        const s = (0.35 + Math.random()) * speed * scale;
+        // sqrt keeps the cloud disc-uniform instead of clumping at the centre
+        const s = (0.25 + Math.sqrt(Math.random())) * speed * scale;
         positions[i * 3] = x; positions[i * 3 + 1] = y; positions[i * 3 + 2] = 0.3;
         vel[i * 3] = Math.cos(a) * s;
         vel[i * 3 + 1] = Math.sin(a) * s;
         vel[i * 3 + 2] = (Math.random() - 0.5) * s * 0.35;
+        // the fastest particles start whitest — that is what a fireball edge does
+        tint.copy(base).lerp(WHITE, 0.25 + Math.random() * 0.75);
+        colors[i * 3] = tint.r; colors[i * 3 + 1] = tint.g; colors[i * 3 + 2] = tint.b;
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     const mat = new THREE.PointsMaterial({
-        color, size: 0.42 * scale, transparent: true, opacity: 1,
+        size: 0.3 * scale, transparent: true, opacity: 1, vertexColors: true,
         blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false,
     });
     const pts = new THREE.Points(geo, mat);
     pts.frustumCulled = false;
 
-    const life = 0.55 + 0.25 * scale;
+    const life = 0.6 + 0.3 * scale;
     push(pts, life, (e, dt) => {
         const k = e.life / e.maxLife;
         const p = geo.attributes.position.array;
@@ -60,13 +83,61 @@ export function spawnExplosion(x, y, { color = 0xffb347, scale = 1, count = 26, 
             vel[i + 1] *= 1 - 2.6 * dt;
         }
         geo.attributes.position.needsUpdate = true;
-        mat.opacity = k;
-        mat.size = 0.42 * scale * (0.5 + k);
+        mat.opacity = k ** 0.7;
+        mat.size = 0.3 * scale * (0.25 + k * 0.9);
     });
 
-    spawnShockwave(x, y, { color, maxR: 2.4 * scale, life: 0.4 });
-    spawnFlash(x, y, { color, scale: scale * 1.1 });
+    spawnDebris(x, y, base, scale, Math.round(count * 0.5), speed);
+    // Two rings of different colour and timing give the blast a front and a
+    // wake, which one ring never does.
+    spawnShockwave(x, y, { color: 0xffffff, maxR: 1.9 * scale, life: 0.24, width: 0.07 });
+    spawnShockwave(x, y, { color, maxR: 2.9 * scale, life: 0.4, width: 0.1 });
+    spawnFlash(x, y, { color: 0xffffff, scale: scale * 0.9, life: 0.12 });
+    spawnFlash(x, y, { color, scale: scale * 1.5, life: 0.22 });
     return pts;
+}
+
+const WHITE = new THREE.Color(0xffffff);
+
+/** The slower half of a blast: heavier chunks that arc and fall. */
+function spawnDebris(x, y, base, scale, count, speed) {
+    if (count <= 0) return null;
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const vel = new Float32Array(count * 3);
+    const tint = new THREE.Color();
+    for (let i = 0; i < count; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const s = (0.15 + Math.random() * 0.55) * speed * scale;
+        positions[i * 3] = x; positions[i * 3 + 1] = y; positions[i * 3 + 2] = 0.2;
+        vel[i * 3] = Math.cos(a) * s;
+        vel[i * 3 + 1] = Math.sin(a) * s + speed * scale * 0.18;
+        vel[i * 3 + 2] = 0;
+        tint.copy(base).multiplyScalar(0.55 + Math.random() * 0.45);
+        colors[i * 3] = tint.r; colors[i * 3 + 1] = tint.g; colors[i * 3 + 2] = tint.b;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const mat = new THREE.PointsMaterial({
+        size: 0.17 * scale, transparent: true, opacity: 0.85, vertexColors: true,
+        blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false,
+    });
+    const pts = new THREE.Points(geo, mat);
+    pts.frustumCulled = false;
+    const gravity = 9 * scale;
+    return push(pts, 0.85 + 0.35 * scale, (e, dt) => {
+        const k = e.life / e.maxLife;
+        const p = geo.attributes.position.array;
+        for (let i = 0; i < p.length; i += 3) {
+            vel[i + 1] -= gravity * dt;
+            p[i] += vel[i] * dt;
+            p[i + 1] += vel[i + 1] * dt;
+            vel[i] *= 1 - 1.1 * dt;
+        }
+        geo.attributes.position.needsUpdate = true;
+        mat.opacity = 0.85 * k ** 1.3;
+    });
 }
 
 export function spawnShockwave(x, y, { color = 0xffffff, maxR = 3, life = 0.45, width = 0.16 } = {}) {

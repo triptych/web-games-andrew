@@ -1,0 +1,5 @@
+# Screenshot output from browsertest.mjs / mobiletest.mjs, and the local
+# three.js tarball THREE_PKG can point at. All regenerated on demand.
+shots/
+shots-mobile/
+package/

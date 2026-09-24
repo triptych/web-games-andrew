@@ -302,6 +302,39 @@ export const sfx = {
             setTimeout(() => tone({ freq: f, type: 'sawtooth', dur: 0.18, gain: 0.1 }), i * 60);
         }
     },
+    /** Each boost gets its own motif so you can hear which one you grabbed. */
+    boost(kind) {
+        if (!ok()) return;
+        const motif = {
+            shield: [330, 494, 659],
+            invuln: [523, 659, 880, 1047],
+            speed:  [440, 587, 784],
+            rocket: [262, 330, 392],
+        }[kind] ?? [523, 784];
+        for (const [i, f] of motif.entries()) {
+            setTimeout(() => tone({
+                freq: f, type: kind === 'rocket' ? 'sawtooth' : 'square',
+                dur: 0.13, gain: 0.09,
+            }), i * 52);
+        }
+    },
+    boostEnd() {
+        if (!ok()) return;
+        tone({ freq: 330, type: 'square', dur: 0.16, gain: 0.05, glide: 0.55 });
+    },
+    shieldPop() {
+        if (!ok()) return;
+        noise({ dur: 0.3, gain: 0.2, freq: 2600, sweep: 0.3 });
+        tone({ freq: 700, type: 'square', dur: 0.22, gain: 0.1, glide: 0.4 });
+    },
+    rocketFire() {
+        if (!ok()) return;
+        noise({ dur: 0.16, gain: 0.07, freq: 1500, sweep: 2.0 });
+    },
+    rocketBlast() {
+        if (!ok()) return;
+        noise({ dur: 0.3, gain: 0.16, freq: 900, sweep: 0.3 });
+    },
     ui() {
         if (!ok()) return;
         tone({ freq: 660, type: 'square', dur: 0.05, gain: 0.05 });
@@ -337,6 +370,11 @@ export function handleAudioEvent(ev) {
         case 'bossDefeated': sfx.bigExplosion(); break;
         case 'playerDeath': sfx.playerDeath(); break;
         case 'odStart':     sfx.odStart(); break;
+        case 'boostStart':  sfx.boost(ev.boost); break;
+        case 'boostEnd':    sfx.boostEnd(); break;
+        case 'shieldPop':   sfx.shieldPop(); break;
+        case 'rocketFire':  sfx.rocketFire(); break;
+        case 'rocketBlast': if (Math.random() < 0.5) sfx.rocketBlast(); break;
         case 'comms':       sfx.comms(); break;
         default: break;
     }

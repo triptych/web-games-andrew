@@ -11,6 +11,7 @@
  */
 
 import * as THREE from 'three';
+import { COLORS } from '../core/config.js';
 
 const geoCache = new Map();
 /**
@@ -111,7 +112,36 @@ export function makePlayerShip() {
         glow(0x7ef2ff, 0.0),
     ), { z: 0.45 });
 
-    g.userData = { engines: [e1, e2], dot, focusRing, canopy, hook };
+    // --- boost visuals, all hidden until the matching boost is active ---
+    // A shield bubble large enough to read as a bubble, but still transparent
+    // enough to see bullets through — you must be able to dodge while shielded.
+    const shieldBubble = add(g, new THREE.Mesh(
+        cached('p-shield', () => new THREE.SphereGeometry(1.15, 16, 12)),
+        glow(COLORS.shield, 0.0),
+    ), {});
+    const shieldRing = add(g, new THREE.Mesh(
+        cached('p-shield-ring', () => new THREE.RingGeometry(1.1, 1.26, 32)),
+        glow(COLORS.shield, 0.0),
+    ), { z: 0.2 });
+    // Invulnerability is a different shape from the shield on purpose: a pair
+    // of counter-rotating rings, not a sphere, so you can tell which you have.
+    const invulnRings = [0, 1].map((i) => add(g, new THREE.Mesh(
+        cached('p-inv-ring', () => new THREE.TorusGeometry(0.95, 0.07, 6, 24)),
+        glow(COLORS.invulnItem, 0.0),
+    ), { rx: i ? Math.PI / 2.6 : 0, ry: i ? Math.PI / 3 : 0 }));
+    const speedTrail = add(g, new THREE.Mesh(
+        cached('p-trail', () => new THREE.ConeGeometry(0.5, 2.6, 10, 1, true)),
+        glow(COLORS.speedItem, 0.0),
+    ), { y: -1.7, rz: Math.PI });
+    const rocketPods = [-1, 1].map((sx) => add(g, new THREE.Mesh(
+        cached('p-pod', () => new THREE.CylinderGeometry(0.11, 0.14, 0.5, 6)),
+        glow(COLORS.rocket, 0.0),
+    ), { x: sx * 0.62, y: 0.1 }));
+
+    g.userData = {
+        engines: [e1, e2], dot, focusRing, canopy, hook,
+        shieldBubble, shieldRing, invulnRings, speedTrail, rocketPods,
+    };
     return g;
 }
 
@@ -539,32 +569,73 @@ export function makePod() {
     return g;
 }
 
+/**
+ * Pickups are ALL green (COLORS.*Item), because green means "safe to touch"
+ * and nothing that hurts you is ever green — see the hazard rule in
+ * core/config.js. Hue therefore cannot tell them apart, so SHAPE does: each
+ * type has its own silhouette, readable at a glance and in peripheral vision.
+ */
 const PICKUP_COLORS = {
-    power: 0xffd166, flare: 0xff8bd0, life: 0x9dff70, gem: 0xc9a7ff, weapon: 0x7ef2ff,
+    power: COLORS.powerItem,
+    weapon: COLORS.weaponItem,
+    flare: COLORS.flareItem,
+    life: COLORS.lifeItem,
+    gem: COLORS.gem,
+    shield: COLORS.shieldItem,
+    rocket: COLORS.rocketItem,
+    speed: COLORS.speedItem,
+    invuln: COLORS.invulnItem,
 };
+
+/** One distinct silhouette per pickup type. */
+function pickupGeometry(type) {
+    switch (type) {
+        case 'gem':    return cached('pk-gem', () => new THREE.OctahedronGeometry(0.46));
+        case 'shield': return cached('pk-shield', () => new THREE.SphereGeometry(0.42, 12, 8));
+        case 'rocket': return cached('pk-rocket', () => new THREE.ConeGeometry(0.4, 0.95, 6));
+        case 'speed':  return cached('pk-speed', () => new THREE.TetrahedronGeometry(0.58));
+        case 'invuln': return cached('pk-invuln', () => new THREE.DodecahedronGeometry(0.46));
+        case 'life':   return cached('pk-life', () => new THREE.TorusGeometry(0.34, 0.15, 8, 16));
+        case 'flare':  return cached('pk-flare', () => new THREE.IcosahedronGeometry(0.46, 0));
+        case 'weapon': return cached('pk-weapon', () => new THREE.CylinderGeometry(0.38, 0.38, 0.62, 6));
+        default:       return cached('pk-box', () => new THREE.BoxGeometry(0.62, 0.62, 0.62));
+    }
+}
 
 export function makePickup(type) {
     const g = new THREE.Group();
     const color = PICKUP_COLORS[type] ?? 0xffffff;
-    const geo = type === 'gem'
-        ? cached('pk-gem', () => new THREE.OctahedronGeometry(0.34))
-        : cached('pk-box', () => new THREE.BoxGeometry(0.55, 0.55, 0.55));
-    const body = add(g, new THREE.Mesh(geo, hull(color, color, { emissiveIntensity: 1.1 })), {});
-    g.add(edges(body, 0xffffff, 0.8));
-    add(g, new THREE.Mesh(cached('pk-halo', () => new THREE.RingGeometry(0.42, 0.52, 20)),
-        glow(color, 0.7)), { z: -0.25 });
-    g.userData = { body, color, type };
+    const body = add(g, new THREE.Mesh(
+        pickupGeometry(type), hull(color, color, { emissiveIntensity: 1.35 })), {});
+    g.add(edges(body, 0xffffff, 0.85));
+    // A thin halo ring behind the body, and a wider, much fainter aura. Both
+    // sit BEHIND the mesh and stay narrow: an earlier version used a fat
+    // filled-looking aura that washed out the silhouette, and the silhouette
+    // is the only thing distinguishing one green pickup from another.
+    add(g, new THREE.Mesh(cached('pk-halo', () => new THREE.RingGeometry(0.6, 0.67, 22)),
+        glow(color, 0.5)), { z: -0.25 });
+    const aura = add(g, new THREE.Mesh(
+        cached('pk-aura', () => new THREE.RingGeometry(0.86, 0.94, 24)),
+        glow(color, 0.18)), { z: -0.3 });
+    g.userData = { body, aura, color, type };
     return g;
 }
 
+/**
+ * The claw is a HAZARD — touching it kills you — so it is painted from the
+ * danger end of the palette and given a pulsing warning stripe. It used to be
+ * the same amber as the old power-up.
+ */
 export function makeClawHazard() {
     const g = new THREE.Group();
     const arm = add(g, new THREE.Mesh(
         cached('hz-arm', () => new THREE.BoxGeometry(2.4, 0.5, 0.5)),
-        hull(0x8a8a9f, 0xff7a2a, { emissiveIntensity: 0.7 })), {});
-    g.add(edges(arm, 0xffb066, 0.7));
+        hull(0x8a8a9f, COLORS.hazard, { emissiveIntensity: 0.9 })), {});
+    g.add(edges(arm, COLORS.warn, 0.85));
     add(g, new THREE.Mesh(cached('hz-claw', () => new THREE.ConeGeometry(0.5, 1.2, 4)),
-        glow(0xff7a2a, 0.8)), { x: 1.6, rz: -Math.PI / 2 });
+        glow(COLORS.warn, 0.9)), { x: 1.6, rz: -Math.PI / 2 });
+    add(g, new THREE.Mesh(cached('hz-warn', () => new THREE.BoxGeometry(2.4, 0.16, 0.56)),
+        glow(COLORS.warn, 0.7)), { z: 0.01 });
     return g;
 }
 
