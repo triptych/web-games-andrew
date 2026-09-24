@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-40 games, `game-001` through `game-040`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+41 games, `game-001` through `game-041`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -52,6 +52,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 | 038 | [Emberbrood](game-038/) | Procedural dragon battler / turn-based RPG | Vanilla JS, no dependencies |
 | 039 | [Wakeform](game-039/) | Atari-2600-style arcade / field-drawing | Vanilla JS, no dependencies |
 | 040 | [Starcadet](game-040/) | Vertical bullet-hell shmup | three.js |
+| 041 | [Burrowguard](game-041/) | Dig / tower defence / maze-chase arcade fusion | Vanilla JS + hand-written WebGL |
 
 ### Highlights
 
@@ -84,6 +85,8 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 **[Lanternwake](game-037/)** — Turn-based roguelike / Zelda-like fusion about a lantern-keeper walking a country where the lights have been going out. **Vanilla JS with no dependencies, no build step and no asset files whatsoever** — every sprite is drawn in code from declarative recipes, every sound is synthesised, and the whole 1536×1536 world is a pure function of one seed string. The overworld persists and remembers what you did to it; the Hollows underneath re-knit themselves on every descent, generated mission-first (a graph of keys, locks, puzzles and a boss, embedded into one of five layout algorithms). People come before quests: needs are generated from who somebody is, and a quest whose object cannot be resolved to a real thing is discarded rather than faked. You cannot die — you wake, and lose the light you had and the hours you had left. Design decisions and deviations from the spec are in [game-037/DECISIONS.md](game-037/DECISIONS.md); the test harness runs with no tooling at [game-037/test/harness.html](game-037/test/harness.html).
 
 **[Emberbrood](game-038/)** — An 8-bit **procedurally generated dragon battler**: fight them, bind them, raise them, breed them. Battles are Final Fantasy-shaped (a party of three, turn order by speed, MP, eleven statuses, an eight-element chart with real ×4 and ×0.25 matchups, a shared Ember Surge meter), but every wild fight can also end in a capture, and the odds are shown before you commit. Every dragon in the game — including the ones you hatch — comes out of a genome that decides its stats, skills, temperament **and its 32×32 sprite**, so a dragon you bred visibly resembles its parents, and each generation is measurably better than the last. Grey, nameless "ashbound" dragons can be cleansed mid-battle and get their real names back. 87 items, a forge, roost dungeons, 18 main quests across five acts, generated notice-board work, and three endings gated on what your brood can actually prove. **Vanilla HTML/CSS/JS, no libraries, no build step and no asset files at all** — every sprite is drawn in code, every sound synthesised, and the whole country grows from one seed. Design doc in [game-038/GDD.md](game-038/GDD.md); the test harness runs with no tooling at [game-038/test/harness.html](game-038/test/harness.html).
+
+**[Burrowguard](game-041/)** — An **8-bit arcade fusion of a digging game, a tower defence and a maze chase**, where the three genres are one system rather than three modes. Monsters walk in off the surface and head for a crystal core at the bottom of the dig site, and they walk *only through tunnels* — tunnels you dig. The round starts with a pre-dug, pellet-filled maze (the maze chase), every cell of dirt you carve pays gold (the digging game), and gold buys towers you build into the dirt beside their route (the tower defence). The catch is that your tunnels are their maze: dig a shortcut between two corridors and the whole horde takes it. So good play is digging dead ends — to harvest ore, to reach the four power gems, and to get under the boulders — without ever connecting two parts of their route. Up close you fight it out by hand: a harpoon pumps monsters until they pop, boulders you undermine fall and crush whatever is beneath, and a power gem turns every monster blue so you can chase them down for 200-400-800-1600. Five enemy types each break a different rule — drakes breathe fire through dirt, stalkers hunt *you* and phase through solid ground as a pair of eyes, borers drill brand-new shortcuts to the core — plus a crowned king every sixth wave. **Vanilla JS and a hand-written WebGL renderer**: one sprite batcher, a sharp-bilinear filter so 16px pixel art stays crisp at any scale, neon vector-style tunnel edges, and a bloom + scanline post pass; every sprite, glyph and sound is generated in code. Built for a phone first (relative thumbstick, a PUMP button, a build tray, ≥44px targets, portrait and landscape layouts); the pure simulation and the phone layout are verified by the harnesses in [game-041/dev/](game-041/dev/README.md).
 
 **[Starcadet](game-040/)** — A **vertical bullet-hell shmup in three.js built around a rescue mechanic**, with a story attached to the scoreboard. The Chorus takes Halcyon Flight Academy mid-examination, the instructors die in the first ninety seconds, and the only thing left flying is a *trainer*: practice cannons and a tow hook rated for towing target drones. Two hundred and eleven of your classmates are in escape pods. **Shooting is how you survive, hooking pods is how you win** — pods drift down, enemies shoot them, and one that falls past you is gone for the rest of the run, so the safe lane at the bottom of the screen is exactly where the cadets aren't. Six levels, each with its own animated shader backdrop and palette; 14 enemy archetypes that each own a shooting pattern from a 12-pattern emitter library (aimed, fan, ring, spiral, whip, wall-with-a-gap, rain, homing, telegraphed laser, hanging nova, flower, cluster); four weapons at five power levels; flares with a death-bomb window; graze-fed Overdrive; and six multi-phase bosses — a battleship whose four destructible turrets each remove an attack from its cycle, your own flight instructor using the drills he taught you, and a finale that literally opens one safe lane per named classmate you brought back. Five rescued cadets each give a permanent ship ability, so the story and the build progression are the same system, and the headcount at the end decides which of four endings you get. Built for a phone as much as a desktop: **relative** touch dragging (the ship moves by your thumb's travel instead of teleporting to it, so your hand never covers what you are dodging), a two-corner control layout, forced auto-fire on touch, and quality tiers that step down automatically if the frame rate will not hold. Real bloom, instanced bullet rendering (200+ live bullets in one draw call), and **no asset files at all** — every ship, bullet, starfield, explosion, comms portrait and sound is generated in code. The simulation is a pure module that imports neither three.js nor the DOM, which is what let the Node harnesses in [game-040/dev/](game-040/dev/README.md) play whole levels, whole boss fights and a full six-level campaign with no browser.
 
@@ -158,7 +161,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-040/   # One self-contained folder per game
+├── game-001/ … game-041/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -215,7 +218,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 40 games are included as of the latest entries (game-037 Lanternwake, game-038 Emberbrood, game-039 Wakeform, game-040 Starcadet).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 41 games are included as of the latest entries (game-038 Emberbrood, game-039 Wakeform, game-040 Starcadet, game-041 Burrowguard).
 
 ---
 
