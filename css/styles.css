@@ -582,6 +582,11 @@ h1 {
     color: #05060f;
 }
 
+.game-card.popgunpip .play-button {
+    background: linear-gradient(135deg, #3cbcfc 0%, #fca044 55%, #f83800 100%);
+    color: #1a1026;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

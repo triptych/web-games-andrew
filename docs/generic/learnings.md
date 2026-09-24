@@ -4632,3 +4632,61 @@ When the controls are drawn in WebGL too, let each draw call register its hit re
 (`view.buttons.push({ id, x, y, w, h })`) and hit-test pointer-downs against *last frame's* list.
 Clearing the list before drawing a modal (pause, game over) makes the controls underneath inert
 without any extra state.
+
+
+## Procedural platformer levels you can prove are beatable (game-042 Popgun Pip, 2026-09-24)
+
+### Validate with the real physics, not a jump table
+
+A table of "max jump height / max gap" drifts from the game the moment someone tweaks gravity,
+and it can't see ceilings, one-way platforms, springs or wall jumps. Popgun Pip's `validate.js`
+imports the same `stepPlayer()` the game runs and **plays the level**: from every standable cell it
+runs a handful of input programs (walk; run off the edge and jump in coyote time; standing jumps
+held 3/8/14/∞ frames, with and without a running start; double jumps at three timings; a reactive
+wall-climb; a ground pound), records every cell Pip's body passes through and every landing, and
+BFSes over landings. ~115ms per level, cheap enough to run **at runtime** behind the level card and
+re-roll a sub-seed on failure.
+
+Three details that mattered:
+
+- **Start programs from where Pip actually landed, not the cell centre.** A snapped start can hang
+  over a pit edge and fall. Keep the exact landing x; add a centred start only for the programs that
+  are sensitive to it (wall climbs).
+- **Reactive programs need a way to stop.** The wall-climb program kicked off every wall it
+  touched — including the walls of the room at the top of the shaft — so it never landed and the
+  room's contents read as unreachable. Run it with a cap on kicks (2/5/8/12/∞) so one variant
+  always runs out and lands.
+- **Model breakables as what they become.** A cracked floor is "one-way": solid from above until
+  you pound it, and a hole you can jump back up through afterwards. Hidden blocks likewise.
+
+The test harness then asserts the Metroid contract per gate: *unreachable* with every gadget except
+the one it needs, *reachable* with all of them. That caught a shaft room whose ceiling loop skipped
+the same columns as its floor mouth — a hole in the roof that let Spring Boots in.
+
+### Integer scaling without a blit: size the backing store, not the CSS
+
+Instead of drawing into a fixed 256×240 buffer and scaling it to the screen, pick the scale first:
+`s = min(floor(deviceH / 200), floor(deviceW / 300))`, then make the canvas backing store
+`floor(deviceW / s) × floor(deviceH / s)` and its CSS size `W*s/dpr × H*s/dpr`, positioned on a
+device-pixel boundary. Every game pixel is exactly `s` device pixels — crisp with
+`image-rendering: pixelated`, no shimmer, no second canvas — and a wider screen simply sees more of
+the level. On a 390×844@3 phone in portrait with a controller deck that is 234×326 at 5×.
+
+### Bottomless pits need to be drawn
+
+Parallax layers extended down to the bottom of the screen made pits look like more green hill.
+Draw the pit: from the neighbouring ground height down, two dithered rows into a dark "abyss"
+colour. A hazard must never share a colour with a floor.
+
+### Platformer camera: anchor to the ground, chase only outside a band
+
+Following Pip's y directly bobs the screen on every jump. Anchor the camera to the last ground Pip
+stood on (feet ~25% up from the bottom edge) and only chase when Pip leaves a band near the top or
+bottom of the view.
+
+### Small interaction bugs worth a test each
+
+- A stomped shell must ignore the stomper for a few frames, or the player is still overlapping it
+  on the next frame and "kicks" it with the same stomp.
+- A goal that triggers on overlap with a thin pole must also trigger on touching the block at its
+  base, or a player who walks up to it at ground level just stands there.

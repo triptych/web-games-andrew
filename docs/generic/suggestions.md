@@ -18,10 +18,6 @@
 
 7. **Asteroids Remix** — Physics-based space ship with momentum, breaking asteroids into smaller pieces, weapon unlocks.
 
-## Platformer
-
-8. **2D Platformer** — Side-scrolling platformer with 5–10 levels, enemies, collectibles, and simple physics. Noticeably absent from the current collection.
-
 ## Card / Board Games
 
 9. **Solitaire / Patience** — Classic card game (Klondike or FreeCell) with animated card dealing and move validation.
@@ -43,3 +39,4 @@
 - ~~**Nonogram / Picross**~~ — Grid-fill logic puzzles revealing pixel art. Completed as **game-017** (Pixel Picross) on 2026-04-01.
 - ~~**Sokoban-style Crate Pusher**~~ — Grid-based box-pushing puzzles. Completed as **game-016** (Crate Pusher) on 2026-03-31.
 - ~~**Idle Clicker / Cookie Clicker Clone**~~ — Click to produce a resource, buy upgrades to automate and multiply production. Completed (dungeon-themed remix) as **game-034** (Idle Delve) on 2026-09-03 — auto-battling heroes delve while away, gold spent on Town upgrades between runs.
+- ~~**2D Platformer**~~ — Side-scrolling platformer with levels, enemies and collectibles. Completed as **game-042** (Popgun Pip) on 2026-09-24 — 25 procedural levels with Metroid-style gadget gates.
