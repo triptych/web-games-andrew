@@ -101,6 +101,18 @@ export class Color {
     copy(c) { this.r = c.r; this.g = c.g; this.b = c.b; return this; }
     clone() { const c = new Color(); return c.copy(this); }
     offsetHSL(h, s, l) { this.r = Math.min(1, this.r + l); this.g = Math.min(1, this.g + l); this.b = Math.min(1, this.b + l); return this; }
+    lerp(c, a) {
+        if (!finite(a)) fail(`Color.lerp(alpha=${a}) non-finite`);
+        this.r += (c.r - this.r) * a;
+        this.g += (c.g - this.g) * a;
+        this.b += (c.b - this.b) * a;
+        return this;
+    }
+    multiplyScalar(k) {
+        if (!finite(k)) fail(`Color.multiplyScalar(${k}) non-finite`);
+        this.r *= k; this.g *= k; this.b *= k;
+        return this;
+    }
     getHex() { return (Math.round(this.r * 255) << 16) | (Math.round(this.g * 255) << 8) | Math.round(this.b * 255); }
 }
 
@@ -211,6 +223,7 @@ export const SphereGeometry = geo('SphereGeometry', ['radius', 'widthSegments', 
 export const IcosahedronGeometry = geo('IcosahedronGeometry', ['radius', 'detail']);
 export const OctahedronGeometry = geo('OctahedronGeometry', ['radius', 'detail']);
 export const TetrahedronGeometry = geo('TetrahedronGeometry', ['radius', 'detail']);
+export const DodecahedronGeometry = geo('DodecahedronGeometry', ['radius', 'detail']);
 export const TorusGeometry = geo('TorusGeometry', ['radius', 'tube', 'radialSegments', 'tubularSegments', 'arc']);
 export const PlaneGeometry = geo('PlaneGeometry', ['width', 'height', 'widthSegments', 'heightSegments']);
 export const RingGeometry = geo('RingGeometry', ['innerRadius', 'outerRadius', 'thetaSegments']);

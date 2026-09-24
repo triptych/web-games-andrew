@@ -7,7 +7,7 @@
  * input instead of a human's.
  */
 
-import { ARENA, PLAYER, FLARE, WEAPONS, MAX_POWER, COLORS } from '../core/config.js';
+import { ARENA, PLAYER, FLARE, WEAPONS, MAX_POWER, COLORS, BOOST } from '../core/config.js';
 import { aimAt } from './patterns.js';
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
@@ -42,6 +42,15 @@ export function makePlayer(run) {
         patchworkT: 0,
         tilt: 0,
         firing: false,
+
+        // --- timed power-ups (see BOOST in core/config.js) ---
+        shield: 0,            // hits of shield remaining
+        shieldFlash: 0,       // view-only: counts down after a shield absorbs
+        invulnBoost: 0,       // seconds of *earned* invulnerability remaining
+        speedT: 0,            // seconds of 2x-speed remaining
+        rocketT: 0,           // seconds of homing-rocket pod remaining
+        rocketCd: 0,
+        rocketSide: 1,
     };
 }
 
@@ -65,6 +74,29 @@ export function updatePlayer(p, w, input, dt) {
     if (p.deathGrace > 0) {
         p.deathGrace -= dt;
         if (p.deathGrace <= 0 && p.pendingDeath) killPlayer(p, w);
+    }
+
+    // --- Timed power-ups ---
+    // invulnBoost is kept separate from p.invuln (which respawn/flare i-frames
+    // use) so a pickup can never be silently eaten by a respawn already in
+    // progress, and so the view can draw the two states differently.
+    if (p.invulnBoost > 0) {
+        p.invulnBoost = Math.max(0, p.invulnBoost - dt);
+        if (p.invulnBoost === 0) w.fx('boostEnd', { x: p.x, y: p.y, boost: 'invuln' });
+    }
+    if (p.speedT > 0) {
+        p.speedT = Math.max(0, p.speedT - dt);
+        if (p.speedT === 0) w.fx('boostEnd', { x: p.x, y: p.y, boost: 'speed' });
+    }
+    if (p.shieldFlash > 0) p.shieldFlash = Math.max(0, p.shieldFlash - dt);
+    if (p.rocketT > 0) {
+        p.rocketT = Math.max(0, p.rocketT - dt);
+        p.rocketCd -= dt;
+        if (p.rocketCd <= 0) {
+            p.rocketCd = BOOST.rocket.interval;
+            fireRockets(p, w);
+        }
+        if (p.rocketT === 0) w.fx('boostEnd', { x: p.x, y: p.y, boost: 'rocket' });
     }
 
     // --- Overdrive ---
@@ -94,6 +126,7 @@ export function updatePlayer(p, w, input, dt) {
     p.focus = !!input.focus;
     let speed = p.focus ? PLAYER.focusSpeed : PLAYER.speed;
     if (p.odActive > 0) speed *= PLAYER.odSpeedMult;
+    if (p.speedT > 0) speed *= BOOST.speed.mult;
 
     let dx = 0, dy = 0;
     if (input.pointer?.active) {
@@ -126,7 +159,9 @@ export function updatePlayer(p, w, input, dt) {
     if (wantFire && p.fireCd <= 0) {
         fireWeapon(p, w);
         const { def } = weaponSpec(p);
-        p.fireCd = def.cooldown / (p.odActive > 0 ? PLAYER.odFireMult : 1);
+        p.fireCd = def.cooldown
+            / (p.odActive > 0 ? PLAYER.odFireMult : 1)
+            / (p.speedT > 0 ? BOOST.speed.fireMult : 1);
     }
 
     // --- Bastion drone (Piotr) ---
@@ -172,6 +207,33 @@ export function fireWeapon(p, w) {
     w.fx('shot', { x: p.x, y: p.y + 0.6, weapon: p.weapon, od: p.odActive > 0 });
 }
 
+/**
+ * The rocket pod: a pair of hard-homing rockets on their own clock, fired
+ * alongside whatever your main gun is doing. They alternate sides so the pod
+ * reads as a pod, and they detonate for splash on contact (see collide.js).
+ */
+export function fireRockets(p, w) {
+    const R = BOOST.rocket;
+    const side = (p.rocketSide = -p.rocketSide);
+    for (const dx of [-0.62 * side, 0.62 * side]) {
+        w.spawnPlayerBullet({
+            x: p.x + dx,
+            y: p.y + 0.3,
+            // launch outward and up, so they visibly arc back onto a target
+            ang: Math.PI / 2 + (dx < 0 ? -0.5 : 0.5),
+            speed: R.speed,
+            dmg: R.dmg,
+            r: R.r,
+            kind: 'rocket',
+            pierce: 0,
+            homing: R.turn,
+            color: COLORS.rocket,
+            rocket: true,
+        });
+    }
+    w.fx('rocketFire', { x: p.x, y: p.y });
+}
+
 export function fireFlare(p, w) {
     if (p.flares <= 0 || p.flareCd > 0) return false;
     p.flares--;
@@ -194,6 +256,24 @@ export function fireFlare(p, w) {
 export function hitPlayer(p, w) {
     if (p.invuln > 0 || !p.alive || p.respawnTimer > 0) return false;
     if (p.pendingDeath) return false;
+
+    // Earned invulnerability simply refuses the hit.
+    if (p.invulnBoost > 0) {
+        w.fx('invulnDeflect', { x: p.x, y: p.y });
+        return false;
+    }
+
+    // A shield eats the hit, pops one layer, and hands back a moment of
+    // i-frames so you are not instantly clipped by the next bullet in the wall.
+    if (p.shield > 0) {
+        p.shield--;
+        p.shieldFlash = 0.35;
+        p.invuln = Math.max(p.invuln, BOOST.shield.regrace);
+        w.clearEnemyBullets({ x: p.x, y: p.y, radius: 3.2, score: false });
+        w.fx('shieldPop', { x: p.x, y: p.y, left: p.shield });
+        return false;
+    }
+
     // Open the death-bomb window rather than killing outright: a flare pressed
     // within 0.2s still saves the run. Genre courtesy, and it is in the GDD.
     p.pendingDeath = true;
@@ -210,6 +290,11 @@ export function killPlayer(p, w) {
     p.odActive = 0;
     p.od = 0;
     p.grazeStreak = 0;
+    // Dying strips every boost. They are power, and power is what a death costs.
+    p.shield = 0;
+    p.invulnBoost = 0;
+    p.speedT = 0;
+    p.rocketT = 0;
     // Dying costs a power level and scatters two power items — a chance to
     // recover, not a spiral.
     p.power = Math.max(1, p.power - 1);
@@ -254,6 +339,39 @@ export function addPower(p, w, n = 1) {
     }
     p.power = clamp(p.power + n, 1, MAX_POWER);
     w.fx('powerUp', { x: p.x, y: p.y, power: p.power });
+    return true;
+}
+
+/**
+ * The four timed boosts. Each refreshes rather than stacks (shield is the
+ * exception: it stacks to BOOST.shield.maxHits layers), and each announces
+ * itself so the HUD, the audio layer and the view all react from one event.
+ */
+export function addShield(p, w, n = 1) {
+    const before = p.shield;
+    p.shield = clamp(p.shield + n, 0, BOOST.shield.maxHits);
+    if (p.shield === before) { w.addScore(600); return false; }
+    w.fx('boostStart', { x: p.x, y: p.y, boost: 'shield', value: p.shield });
+    return true;
+}
+
+export function addInvuln(p, w, seconds = BOOST.invuln.duration) {
+    p.invulnBoost = Math.max(p.invulnBoost, seconds);
+    w.fx('boostStart', { x: p.x, y: p.y, boost: 'invuln', value: p.invulnBoost });
+    return true;
+}
+
+export function addSpeed(p, w, seconds = BOOST.speed.duration) {
+    p.speedT = Math.max(p.speedT, seconds);
+    w.fx('boostStart', { x: p.x, y: p.y, boost: 'speed', value: p.speedT });
+    return true;
+}
+
+export function addRockets(p, w, seconds = BOOST.rocket.duration) {
+    const fresh = p.rocketT <= 0;
+    p.rocketT = Math.max(p.rocketT, seconds);
+    if (fresh) p.rocketCd = 0;          // first pair goes out immediately
+    w.fx('boostStart', { x: p.x, y: p.y, boost: 'rocket', value: p.rocketT });
     return true;
 }
 

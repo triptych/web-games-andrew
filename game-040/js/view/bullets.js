@@ -33,6 +33,7 @@ function geometryFor(kind) {
         case 'wave':   return new THREE.TorusGeometry(1.0, 0.3, 6, 14);
         case 'seeker': return new THREE.OctahedronGeometry(1.15);
         case 'spark':  return new THREE.SphereGeometry(0.7, 6, 5);
+        case 'rocket': return new THREE.CapsuleGeometry(0.5, 1.5, 4, 8);
         default:       return new THREE.SphereGeometry(1, 8, 6);
     }
 }
@@ -97,7 +98,7 @@ function writeList(list, counts, time, isPlayer) {
         // screen from reading as static confetti.
         const r = b.r ?? 0.24;
         const pulse = kind === 'mine' ? 1 + Math.sin(time * 9 + b.x) * 0.16 : 1;
-        const stretch = kind === 'dart' || kind === 'lance' ? 1.35 : 1;
+        const stretch = kind === 'dart' || kind === 'lance' ? 1.35 : kind === 'rocket' ? 1.25 : 1;
         _s.set(r * 1.7 * pulse, r * 1.7 * pulse * stretch, r * 1.7 * pulse);
 
         _m.compose(_p, _q, _s);

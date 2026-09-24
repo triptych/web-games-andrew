@@ -7,11 +7,12 @@
  */
 
 import { createWorld, stepWorld, levelSummary } from '../js/sim/world.js';
-import { makeBoss } from '../js/sim/bosses.js';
+import { makeBoss, BOSS_IDS } from '../js/sim/bosses.js';
+import { addShield, addInvuln, addSpeed, addRockets, hitPlayer, killPlayer } from '../js/sim/player.js';
 import { newRun, addCadet } from '../js/core/state.js';
 import { CADET_BY_ID } from '../js/sim/story.js';
 import { buildPattern } from '../js/sim/patterns.js';
-import { PLAYER, ARENA, TICK, POD, MAX_POWER, WEAPONS, FLARE } from '../js/core/config.js';
+import { PLAYER, ARENA, TICK, POD, MAX_POWER, WEAPONS, FLARE, BOOST, PICKUP_TYPES } from '../js/core/config.js';
 import { loadSave, writeSave, recordRun, betterRank } from '../js/core/save.js';
 import { installFakeDom } from './fake-dom.mjs';
 import { makeRng } from '../js/core/rng.js';
@@ -38,7 +39,10 @@ const input = (o = {}) => ({ ...NO_INPUT, ...o, pointer: o.pointer ?? { active: 
 
 function freshWorld(opts = {}) {
     const run = opts.run ?? newRun(opts.difficulty ?? 'pilot', opts.level ?? 1);
-    const w = createWorld({ level: opts.level ?? 1, run, seed: opts.seed ?? 'test' });
+    const w = createWorld({
+        level: opts.level ?? 1, run, seed: opts.seed ?? 'test',
+        ...(opts.autofire === undefined ? {} : { autofire: opts.autofire }),
+    });
     w.player.invuln = 0;
     if (opts.quiet !== false) w.level = { ...w.level, cues: [] };   // no wave traffic unless asked
     return w;
@@ -310,6 +314,145 @@ t('a flare erases bullets in its radius and damages what is near', () => {
     const remaining = w.eBullets.filter((b) => b.alive).length;
     assert(remaining <= 10, `bullets near the player were erased (${remaining} left)`);
     assert(e.hp < hp, 'the flare damaged a nearby enemy');
+});
+
+t('no boss ever teleports: movement is continuous except for declared blinks', () => {
+    // Regression: MOVES.sway/dip/orbit used to ASSIGN b.x from a sine of the
+    // free-running moveT. Because moveT ran during the 2.4s entry while x was
+    // pinned at 0, every boss snapped across the arena on its first fight tick
+    // (Tarpon jumped 5.3 units — 641 u/s — which read as "the boss is jumping
+    // around"). Phase changes and the ram did the same thing.
+    //
+    // Deliberate teleports still exist (Kel blinks, Nimbus leaves the cloud);
+    // both announce themselves with an fx event, so this test allows a jump
+    // only on a tick that emitted one.
+    const TELEPORT_FX = new Set(['bossAppear', 'bossBlink', 'bossVanish']);
+    const MAX_SPEED = 25;            // u/s; ordinary boss movement peaks near 18
+
+    for (const id of BOSS_IDS) {
+        const w = freshWorld();
+        const b = makeBoss(id, w);
+        w.boss = b;
+        w.phase = 'boss';
+        let px = b.x, py = b.y;
+        let worst = 0, worstT = 0;
+
+        for (let i = 0; i < 120 * 30; i++) {
+            // force the boss down through its phases so transitions are covered
+            if (i === 120 * 8) b.hp = b.maxHp * 0.45;
+            if (i === 120 * 16) b.hp = b.maxHp * 0.2;
+            if (i === 120 * 22) b.hp = b.maxHp * 0.1;
+            w.fxQueue.length = 0;
+            stepWorld(w, input({}), TICK);
+            if (!b.alive) break;
+
+            const speed = Math.max(Math.abs(b.x - px), Math.abs(b.y - py)) / TICK;
+            const declared = w.fxQueue.some((e) => TELEPORT_FX.has(e.type));
+            if (!declared && speed > worst) { worst = speed; worstT = w.t; }
+            px = b.x; py = b.y;
+        }
+        assert(worst <= MAX_SPEED,
+               `${id} moved ${worst.toFixed(0)} u/s at t=${worstT.toFixed(2)} with no blink event`);
+    }
+});
+
+console.log('\n== timed power-ups ==');
+
+t('a shield absorbs a hit instead of costing a life, and pops one layer', () => {
+    const w = freshWorld();
+    const p = w.player;
+    p.invuln = 0;
+    addShield(p, w, 1);
+    assert(p.shield === 1, 'the shield was granted');
+    const lives = p.lives;
+    const died = hitPlayer(p, w);
+    assert(died === false, 'the hit was refused');
+    assert(p.shield === 0, 'one layer was spent');
+    assert(!p.pendingDeath, 'no death window opened');
+    assert(p.lives === lives, 'no life was lost');
+    assert(p.invuln > 0, 'popping a shield grants recovery i-frames');
+});
+
+t('shields stack to the configured cap and no further', () => {
+    const w = freshWorld();
+    const p = w.player;
+    addShield(p, w, 1);
+    addShield(p, w, 1);
+    assert(p.shield === BOOST.shield.maxHits, `stacked to ${BOOST.shield.maxHits}`);
+    const again = addShield(p, w, 1);
+    assert(again === false, 'a third shield is refused at the cap');
+    assert(p.shield === BOOST.shield.maxHits, 'and does not exceed it');
+});
+
+t('invulnerability refuses hits for its full duration, then stops', () => {
+    const w = freshWorld();
+    const p = w.player;
+    p.invuln = 0;
+    addInvuln(p, w);
+    near(p.invulnBoost, BOOST.invuln.duration, 0.01, 'the window was granted');
+    hitPlayer(p, w);
+    assert(!p.pendingDeath, 'a hit during the window does nothing');
+    run(w, BOOST.invuln.duration + 0.2, input({}));
+    assert(p.invulnBoost === 0, 'the window expired');
+    p.invuln = 0;
+    hitPlayer(p, w);
+    assert(p.pendingDeath, 'and hits land again afterwards');
+});
+
+t('the speed boost multiplies travel and expires', () => {
+    const plain = freshWorld();
+    run(plain, 0.5, input({ ax: 1 }));
+    const baseline = plain.player.x - PLAYER.startX;
+
+    const w = freshWorld();
+    addSpeed(w.player, w);
+    run(w, 0.5, input({ ax: 1 }));
+    const boosted = w.player.x - PLAYER.startX;
+    near(boosted / baseline, BOOST.speed.mult, 0.12, 'boosted travel vs normal');
+
+    run(w, BOOST.speed.duration + 0.2, input({}));
+    assert(w.player.speedT === 0, 'the boost expired');
+});
+
+t('rockets launch on their own clock, home, and splash nearby enemies', () => {
+    const w = freshWorld({ autofire: false });
+    addRockets(w.player, w);
+    // four drones close enough together that splash should catch the group
+    for (let i = 0; i < 4; i++) w.spawnEnemy('drone', -1.5 + i * 0.9, -4.5);
+
+    run(w, 0.05, input({}));
+    const rockets = w.pBullets.filter((b) => b.kind === 'rocket');
+    assert(rockets.length === 2, `a pair launched immediately (got ${rockets.length})`);
+    assert(rockets[0].homing > 0, 'rockets home');
+    assert(rockets[0].rocket === true, 'rockets are flagged for splash');
+
+    run(w, 3, input({}));
+    assert(w.stats.kills >= 4, `splash cleared the cluster (killed ${w.stats.kills})`);
+});
+
+t('dying strips every boost', () => {
+    const w = freshWorld();
+    const p = w.player;
+    addShield(p, w, 2);
+    addInvuln(p, w);
+    addSpeed(p, w);
+    addRockets(p, w);
+    killPlayer(p, w);
+    assert(p.shield === 0 && p.invulnBoost === 0 && p.speedT === 0 && p.rocketT === 0,
+           'shield, invuln, speed and rockets were all cleared');
+});
+
+t('every pickup type the drop table can roll is handled', () => {
+    for (const type of PICKUP_TYPES) {
+        const w = freshWorld();
+        const p = w.player;
+        // drop it right on top of the ship and let collision collect it
+        w.spawnPickup(p.x, p.y, type);
+        const before = w.pickups.length;
+        run(w, 0.2, input({}));
+        assert(before === 1, `spawned a "${type}"`);
+        assert(w.pickups.filter((i) => i.alive).length === 0, `"${type}" was collected`);
+    }
 });
 
 console.log('\n== wing abilities ==');

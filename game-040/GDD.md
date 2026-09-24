@@ -150,6 +150,21 @@ weapon's curve rises strictly with power level.
 - Full meter → press **Overdrive**: 6 s of double fire rate, +25% move speed, and all pickups magnetise.
   This is the game's risk-reward dial: the safest way to play is the slowest way to fill it.
 
+### 4.4a Timed power-ups
+
+Four green pickups that drop from the ordinary kill table (and are guaranteed from a midboss).
+Each **refreshes rather than stacks**, so the ceiling is knowable, and a death **strips all of
+them** — they are power, and power is what a death costs. Every one is announced with its own
+sound motif, an on-ship visual, and a HUD chip whose bar drains as the timer runs out (flashing
+under 1.5 s, so running out is never a surprise mid-dodge).
+
+| Pickup | Silhouette | Effect |
+|---|---|---|
+| **SHIELD** | sphere | Absorbs a hit outright instead of costing a life, pops one layer, clears nearby bullets and grants 0.8 s of recovery i-frames. Stacks to **2** layers — the only one that stacks. |
+| **INVULN** | dodecahedron | **5 s** where hits are simply refused. Drawn as two counter-rotating rings, deliberately a different shape from the shield bubble so you can tell at a glance which you have. |
+| **2x SPEED** | tetrahedron | **8 s** of 1.7× move speed (normal *and* focus) plus a 1.25× fire-rate bump, so it reads as fast rather than just slippery. |
+| **ROCKETS** | cone | **12 s** of a rocket pod firing a hard-homing pair every 0.42 s *alongside* your main gun, alternating sides. Each rocket detonates for splash — the answer to a tight formation. |
+
 ### 4.5 The rescue loop (the signature system)
 
 - **116 pods across the campaign carry exactly 211 cadets** — each level has a pod budget and a
@@ -280,16 +295,28 @@ small dolly during boss phase transitions. Screen shake on flares, boss deaths, 
 - **Backdrops are `ShaderMaterial` planes**, one per level, animated by a `uTime` uniform: nebula FBM,
   banded atmosphere with lightning flashes, debris parallax, organic pulsing veins, tether cables.
 - **Three parallax star layers** as `Points`, scrolling at different rates, recycled at the top.
-- **Explosions**: `Points` bursts + expanding shockwave rings + a light flash, with a hit-stop of
-  0.06 s on big kills.
+- **Explosions**: three staged layers so a blast reads as a detonation rather than a puff of smoke —
+  a white-hot core that cools to the enemy's colour (per-vertex colour, so the middle is genuinely
+  overexposed and the bloom pass catches it), a slower ring of gravity-affected debris, and two
+  shockwave rings of different colour and timing giving the blast a front and a wake. Plus a light
+  flash and a hit-stop of 0.06 s on big kills.
 
 ### 7.3 Readability rules (non-negotiable)
 
 1. Enemy bullets are **always warm** (amber → magenta → white-hot); player bullets are **always cool**
    (cyan/mint). No level palette may break this.
-2. Bullets render on top of everything (`depthTest: false`, high `renderOrder`).
-3. The backdrop never exceeds 45% brightness of the dimmest bullet.
-4. Every windup is a distinct colour flash on the emitter plus a ground-truth warning shape.
+2. **Pickups are always green, and nothing that can hurt you ever is.** The hue wheel is split three
+   ways — warm = danger (enemy fire, beams, claws, enemy hulls), green = collectable, cyan = you.
+   Because hue no longer distinguishes one pickup from another, **shape does**: each pickup type has
+   its own silhouette (cone = rockets, tetrahedron = speed, torus = 1UP, sphere = shield, …).
+   `dev/check.mjs` enforces this against the real colour values: every pickup must be green-dominant,
+   no enemy-fire or hazard colour may be, and the two sets may not share a single hex.
+3. Bullets render on top of everything (`depthTest: false`, high `renderOrder`).
+4. The backdrop never exceeds 45% brightness of the dimmest bullet.
+5. Every windup is a distinct colour flash on the emitter plus a ground-truth warning shape.
+6. **A boss never teleports** unless it is a declared ability that announces itself (Kel's blink,
+   Nimbus leaving the cloud). Movement curves are eased onto, never assigned.
+
 
 ### 7.4 Audio
 

@@ -14,7 +14,7 @@ import { initBackdrop, setBackdrop, updateBackdrop } from './backdrop.js';
 import { initBullets, syncBullets } from './bullets.js';
 import { ENEMIES } from '../sim/enemies.js';
 import { initFx, updateFx, clearFx, spawnExplosion, spawnShockwave, spawnSpark, spawnPopup,
-         spawnBanner, spawnTelegraph, spawnFlareBurst, makeBeamMesh, makeFieldMesh,
+         spawnBanner, spawnTelegraph, spawnFlareBurst, spawnFlash, makeBeamMesh, makeFieldMesh,
          makeWaveMesh } from './fx.js';
 import { makePlayerShip, makeEnemyModel, makeBossModel, makeBossPart, makePod,
          makePickup, makeClawHazard, makeDrone, glow } from './models.js';
@@ -140,6 +140,43 @@ function syncPlayer(world, dt) {
         e.material.opacity = 0.55 + thrust * 0.35;
         e.material.color.set(p.odActive > 0 ? 0xffd166 : COLORS.player);
     }
+    // --- boost visuals -------------------------------------------------
+    // Shield: brightness tracks how many layers are left, and it flares white
+    // for a moment when one pops.
+    const shieldOn = p.shield > 0;
+    const popped = p.shieldFlash > 0 ? p.shieldFlash / 0.35 : 0;
+    ud.shieldBubble.material.opacity = shieldOn
+        ? 0.1 + 0.05 * p.shield + Math.sin(time * 4) * 0.03 + popped * 0.5 : popped * 0.5;
+    ud.shieldRing.material.opacity = shieldOn
+        ? 0.35 + 0.18 * p.shield + Math.sin(time * 7) * 0.12 + popped * 0.6 : popped * 0.6;
+    ud.shieldRing.rotation.z += dt * 1.6;
+    ud.shieldBubble.scale.setScalar(1 + popped * 0.35);
+
+    // Invulnerability: two rings tumbling in opposite directions. They blink
+    // out over the last second so the end of the window is never a surprise.
+    const invOn = p.invulnBoost > 0;
+    const invFade = invOn ? Math.min(1, p.invulnBoost) : 0;
+    const invBlink = p.invulnBoost > 0 && p.invulnBoost < 1.2
+        ? (Math.floor(time * 12) % 2 === 0 ? 1 : 0.25) : 1;
+    for (const [i, ring] of ud.invulnRings.entries()) {
+        ring.material.opacity = invOn ? (0.55 + Math.sin(time * 8 + i) * 0.2) * invFade * invBlink : 0;
+        ring.rotation.z += dt * (i ? -2.6 : 2.6);
+        ring.rotation.x += dt * (i ? 1.4 : -1.0);
+    }
+
+    // Speed: a stretched exhaust cone that only exists while boosted.
+    const spdOn = p.speedT > 0;
+    ud.speedTrail.material.opacity = spdOn
+        ? (0.35 + Math.sin(time * 30) * 0.12) * Math.min(1, p.speedT) : 0;
+    ud.speedTrail.scale.set(1, spdOn ? 1 + Math.sin(time * 22) * 0.18 : 1, 1);
+
+    // Rocket pods: lit while armed, and they flash on each launch.
+    const rockOn = p.rocketT > 0;
+    for (const [i, pod] of ud.rocketPods.entries()) {
+        pod.material.opacity = rockOn
+            ? (0.6 + Math.sin(time * 16 + i * Math.PI) * 0.3) * Math.min(1, p.rocketT) : 0;
+    }
+
     ud.dot.material.opacity = p.focus ? 1 : 0.35;
     ud.dot.scale.setScalar(p.focus ? 1.15 + Math.sin(time * 9) * 0.1 : 0.85);
     ud.focusRing.material.opacity = p.focus ? 0.55 + Math.sin(time * 6) * 0.15 : 0;
@@ -349,6 +386,17 @@ function syncWaves(world) {
 // ------------------------------------------------------- simulation -> visuals
 
 /**
+ * Label, popup colour and ring colour for each timed boost. Kept next to the
+ * event handler so adding a boost is one table entry, not a switch arm.
+ */
+const BOOST_FX = {
+    shield: { label: 'SHIELD',     css: '#66ffd9', color: COLORS.shieldItem },
+    invuln: { label: 'INVULN',     css: '#c4ff5c', color: COLORS.invulnItem },
+    speed:  { label: '2x SPEED',   css: '#3cffcf', color: COLORS.speedItem },
+    rocket: { label: 'ROCKETS',    css: '#a8ff3c', color: COLORS.rocketItem },
+};
+
+/**
  * Translate one queued simulation event into visuals. main.js also hands the
  * same event to the audio and UI layers, so this only does pictures.
  */
@@ -400,16 +448,51 @@ export function handleFxEvent(ev, world) {
             spawnSpark(ev.x, ev.y, COLORS.podHurt);
             break;
         case 'powerUp':
-            spawnPopup(ev.x, ev.y, `POWER ${ev.power}`, '#ffd166');
+            spawnPopup(ev.x, ev.y, `POWER ${ev.power}`, '#9dff4d');
+            spawnShockwave(ev.x, ev.y, { color: COLORS.powerItem, maxR: 2.2, life: 0.4 });
+            break;
+
+        // --- timed boosts --------------------------------------------------
+        case 'boostStart': {
+            const b = BOOST_FX[ev.boost];
+            if (!b) break;
+            spawnPopup(ev.x, ev.y, b.label, b.css, { scale: 1.15 });
+            spawnShockwave(ev.x, ev.y, { color: b.color, maxR: 4.2, life: 0.55, width: 0.1 });
+            spawnShockwave(ev.x, ev.y, { color: 0xffffff, maxR: 2.4, life: 0.32 });
+            spawnFlash(ev.x, ev.y, { color: b.color, scale: 2.0, life: 0.22 });
+            break;
+        }
+        case 'boostEnd':
+            spawnShockwave(ev.x, ev.y, {
+                color: BOOST_FX[ev.boost]?.color ?? 0xffffff, maxR: 2.0, life: 0.35,
+            });
+            break;
+        case 'shieldPop':
+            spawnShockwave(ev.x, ev.y, { color: COLORS.shield, maxR: 5.0, life: 0.5, width: 0.08 });
+            spawnFlash(ev.x, ev.y, { color: 0xffffff, scale: 2.4, life: 0.2 });
+            spawnPopup(ev.x, ev.y, ev.left > 0 ? 'SHIELD HIT' : 'SHIELD DOWN', '#66ffd9');
+            addShake(0.5);
+            hitStop = VIEW.hitStop;
+            break;
+        case 'invulnDeflect':
+            spawnSpark(ev.x, ev.y, COLORS.invulnItem);
+            break;
+        case 'rocketFire':
+            spawnSpark(ev.x, ev.y, COLORS.rocket);
+            break;
+        case 'rocketBlast':
+            spawnExplosion(ev.x, ev.y, { color: COLORS.rocket, scale: 1.15, count: 22, speed: 11 });
+            addShake(0.18);
             break;
         case 'weaponSwap':
-            spawnPopup(ev.x, ev.y, 'WEAPON', '#7ef2ff');
+            spawnPopup(ev.x, ev.y, 'WEAPON', '#00ffa8');
             break;
         case 'flarePickup':
-            spawnPopup(ev.x, ev.y, 'FLARE', '#ff8bd0');
+            spawnPopup(ev.x, ev.y, 'FLARE', '#5cffb0');
             break;
         case 'lifePickup':
-            spawnPopup(ev.x, ev.y, '1UP', '#9dff70', { scale: 1.2 });
+            spawnPopup(ev.x, ev.y, '1UP', '#d8ff5c', { scale: 1.3 });
+            spawnShockwave(ev.x, ev.y, { color: COLORS.lifeItem, maxR: 3.4, life: 0.6 });
             break;
         case 'patchwork':
             spawnPopup(ev.x, ev.y, 'PATCHED', '#7dffd4', { scale: 0.8 });

@@ -25,8 +25,11 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const SP = path.dirname(new URL(import.meta.url).pathname);
+// fileURLToPath, not URL.pathname: on Windows the latter yields "/C:/...",
+// which path.join then turns into "C:\C:\..." and every write fails.
+const SP = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? path.join(SP, 'package');
 const BASE = process.env.BASE ?? 'http://127.0.0.1:8040';
 const OUT = process.env.OUT ?? path.join(SP, 'shots');

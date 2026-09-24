@@ -5,8 +5,8 @@ code. Run them from the game folder (`game-040/`).
 
 | Command | What it does |
 |---|---|
-| `node dev/check.mjs` | Structural checks: every module imports, `js/sim/` is pure (no three.js, no DOM, no `Math.random`), every attack spec names a real pattern/special/bullet-kind, every level cue names a real enemy/formation/boss/comms id, cadet budgets total the Halcyon roll, every weapon's DPS curve rises with power |
-| `node dev/simtest.mjs` | 30 assertions against the real simulation: hitbox vs ship size, graze and Overdrive, the death-bomb window, weapon muzzle counts, the whole rescue economy, shield facing, boss phase progression, Ironmaw's turrets removing attacks, laser warning vs firing, flares, every Wing Ability, determinism, entity-count bounds, save round-trip |
+| `node dev/check.mjs` | Structural checks: every module imports, `js/sim/` is pure (no three.js, no DOM, no `Math.random`), every attack spec names a real pattern/special/bullet-kind, every level cue names a real enemy/formation/boss/comms id, the hazard rule (every pickup colour is green-dominant, nothing that damages the player is, and the two sets share no hex), cadet budgets total the Halcyon roll, every weapon's DPS curve rises with power |
+| `node dev/simtest.mjs` | 38 assertions against the real simulation: hitbox vs ship size, graze and Overdrive, the death-bomb window, weapon muzzle counts, the whole rescue economy, shield facing, boss phase progression, Ironmaw's turrets removing attacks, laser warning vs firing, flares, every Wing Ability, determinism, entity-count bounds, save round-trip, the four timed power-ups (shield absorption and stacking, invulnerability, the speed multiplier, homing-rocket splash), and that **no boss ever teleports** except on a declared blink |
 | `node dev/rendertest.mjs` | Runs the **real view layer** — scene, bloom composer, procedural models, instanced bullets, shader backdrops, fx, HUD, comms portraits, every menu — against `fake-three.mjs` and a strict fake Canvas2D, for all six levels and three boss fights |
 | `node dev/balance.mjs [difficulty]` | Three scripted bots play all six levels and print times, deaths, pods recovered, peak bullet counts and ranks. This is where the numbers in GDD §10a come from |
 | `node dev/playthrough.mjs [difficulty] [bot]` | A full six-level campaign, start to ending, carrying ship state and headcount between levels exactly as `main.js` does |
@@ -28,6 +28,20 @@ It is never loaded by the game — `index.html` points at the real three.js r165
 harnesses.
 
 **Bugs these caught before the game ever ran in a browser:**
+
+- **Every boss teleported on its first fight tick.** `MOVES.sway/dip/orbit` *assigned* `b.x` from
+  a sine of the free-running `moveT`, but `moveT` ran throughout the 2.4s entry while `x` was pinned
+  at 0 — so the moment the fight started the sine was already a third of a cycle in and the boss
+  snapped across the arena. Tarpon, the *first boss in the game*, jumped 5.3 units in one tick
+  (641 u/s). Phase changes did it again (each phase swaps `amp`/`cx`), and Ironmaw's ram lurched
+  0.44u on its opening tick because the easing curve used an exponent below 1, which has infinite
+  slope at t=0. The scripts now ease toward a target point, each phase drives its curve from its own
+  `phaseT`, and `simtest.mjs` fails any boss that moves faster than 25 u/s without emitting a blink
+  event.
+- Pickups and enemy fire shared a palette: the amber power-up was `#ffd166` against `#ffb347` enemy
+  orbs, the pink flare pickup was a shade off the hot-pink bullets, and the violet gem matched the
+  Choirmaster's fire. Every pickup is now green and nothing that can hurt you is, which `check.mjs`
+  enforces on the actual colour values rather than by convention.
 
 - `disposeObject()` was disposing the *shared cached geometries* in `models.js`. In a browser,
   killing one Skimmer would have freed the GPU buffer out from under every other Skimmer on screen.

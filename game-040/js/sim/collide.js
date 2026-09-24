@@ -12,10 +12,11 @@
  * you still pays out its graze.
  */
 
-import { PLAYER, WEAPON_IDS } from '../core/config.js';
+import { PLAYER, WEAPON_IDS, BOOST } from '../core/config.js';
 import { damageEnemy, rescuePod, losePod } from './world.js';
 import { damageBoss, damageBossPart } from './bosses.js';
-import { hitPlayer, grazeBullet, addPower, addFlare, switchWeapon } from './player.js';
+import { hitPlayer, grazeBullet, addPower, addFlare, switchWeapon,
+         addShield, addInvuln, addSpeed, addRockets } from './player.js';
 
 const dist2 = (ax, ay, bx, by) => (ax - bx) ** 2 + (ay - by) ** 2;
 const hits = (ax, ay, ar, bx, by, br) => dist2(ax, ay, bx, by) <= (ar + br) ** 2;
@@ -60,10 +61,33 @@ function playerBulletsVsEnemies(w) {
 
             w.fx('hit', { x: b.x, y: b.y, dmg: b.dmg });
             damageEnemy(w, e, b.dmg);
+            if (b.rocket) detonate(w, b, e);
             consume(b, e);
             if (!b.alive) break;
         }
     }
+}
+
+/**
+ * A rocket does its listed damage to what it hit, then a smaller blast to
+ * everything nearby. The direct target is already damaged, so exclude it from
+ * the splash rather than double-dipping.
+ */
+function detonate(w, b, hitEntity) {
+    b.alive = false;
+    b.pierce = 0;
+    const R = BOOST.rocket;
+    const r2 = R.blastRadius ** 2;
+    for (const e of w.enemies) {
+        if (!e.alive || e === hitEntity) continue;
+        if ((e.x - b.x) ** 2 + (e.y - b.y) ** 2 > r2) continue;
+        damageEnemy(w, e, R.blastDamage, 'rocket');
+    }
+    if (w.boss?.alive && w.boss !== hitEntity && !w.boss.hidden
+        && (w.boss.x - b.x) ** 2 + (w.boss.y - b.y) ** 2 <= r2) {
+        damageBoss(w.boss, w, R.blastDamage);
+    }
+    w.fx('rocketBlast', { x: b.x, y: b.y });
 }
 
 function consume(b, e) {
@@ -90,7 +114,10 @@ function playerBulletsVsBoss(w) {
             damageBossPart(boss, w, part, b.dmg);
             w.fx('hit', { x: b.x, y: b.y, dmg: b.dmg, part: part.id });
             hitPart = true;
-            if (b.pierce > 0) { b.pierce--; } else { b.alive = false; }
+            // A rocket that hit a TURRET still splashes the hull — the hull was
+            // not the thing already damaged, so it is not double-dipping.
+            if (b.rocket) detonate(w, b, null);
+            else if (b.pierce > 0) { b.pierce--; } else { b.alive = false; }
             break;
         }
         if (hitPart || !b.alive) continue;
@@ -103,6 +130,7 @@ function playerBulletsVsBoss(w) {
         }
         w.fx('hit', { x: b.x, y: b.y, dmg: b.dmg, boss: true });
         damageBoss(boss, w, b.dmg);
+        if (b.rocket) { detonate(w, b, boss); continue; }
         if (b.pierce > 0) b.pierce--; else b.alive = false;
     }
 }
@@ -245,6 +273,22 @@ function applyPickup(w, p, it) {
             w.addScore(300);
             break;
         }
+        case 'shield':
+            addShield(p, w, 1);
+            w.addScore(250);
+            break;
+        case 'invuln':
+            addInvuln(p, w);
+            w.addScore(250);
+            break;
+        case 'speed':
+            addSpeed(p, w);
+            w.addScore(250);
+            break;
+        case 'rocket':
+            addRockets(p, w);
+            w.addScore(250);
+            break;
         default:
             w.addScore(100);
     }
