@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a1026">
+    <meta name="description" content="POPGUN PIP — an 8-bit platformer with Metroid-style unlocks. Hop, pop and stomp across five procedurally generated islands, win back Grandma's gadgets from the island bosses, and use them to open the secrets you couldn't reach before.">
+    <title>POPGUN PIP</title>
+    <style>
+        :root { --deckH: 0px; --ink: #1a1026; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%; height: 100%;
+            background: #0b0812;
+            overflow: hidden;
+            touch-action: none;
+            overscroll-behavior: none;
+            -webkit-user-select: none; user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        #back {
+            position: fixed; top: calc(8px + env(safe-area-inset-top)); left: calc(8px + env(safe-area-inset-left));
+            z-index: 99999; font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #fff;
+            background: rgba(0,0,0,0.55); padding: 6px 12px; border-radius: 6px; text-decoration: none;
+            pointer-events: auto; border: 1px solid rgba(255,255,255,0.25);
+        }
+        #back:hover { background: rgba(0,0,0,0.8); }
+        #back.hide { display: none; }
+        #stage { position: fixed; left: 0; top: 0; width: 100%; height: 100%; }
+        #screen {
+            position: absolute; display: block;
+            image-rendering: pixelated; image-rendering: crisp-edges;
+            touch-action: none;
+        }
+        /* Read by main.js to learn the notch / home-bar insets. Never visible. */
+        #safe {
+            position: fixed; visibility: hidden; pointer-events: none;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        #fail {
+            position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+            padding: 32px; text-align: center; color: #F8B800; background: #0b0812;
+            font: 16px/1.5 'Courier New', Courier, monospace; z-index: 5;
+        }
+        #fail[hidden] { display: none; }
+
+        /* ---------------- touch deck ---------------- */
+        #deck { display: none; }
+        body.touch #deck { display: block; }
+        #deck button, #b-pause {
+            font: bold 18px/1 'Courier New', Courier, monospace;
+            border: none; color: #fff; touch-action: none; cursor: pointer;
+            -webkit-user-select: none; user-select: none;
+        }
+        #dpad { position: absolute; touch-action: none; border-radius: 50%; }
+        #dpad .arm { position: absolute; background: #221a2b; border-radius: 8px; box-shadow: inset 0 -4px 0 #0b0812, 0 3px 0 #0b0812; }
+        #dpad .h { left: 6%; right: 6%; top: 36%; bottom: 36%; }
+        #dpad .v { top: 6%; bottom: 6%; left: 36%; right: 36%; }
+        #dpad .hub { position: absolute; left: 40%; top: 40%; width: 20%; height: 20%; border-radius: 50%; background: #120d18; }
+        #dpad .tick { position: absolute; width: 0; height: 0; border: 7px solid transparent; opacity: 0.55; }
+        #dpad .tu { left: calc(50% - 7px); top: 12%; border-bottom-color: #cfc3dc; }
+        #dpad .td { left: calc(50% - 7px); bottom: 12%; border-top-color: #cfc3dc; }
+        #dpad .tl { top: calc(50% - 7px); left: 12%; border-right-color: #cfc3dc; }
+        #dpad .tr { top: calc(50% - 7px); right: 12%; border-left-color: #cfc3dc; }
+        #dpad[data-dir*="u"] .tu, #dpad[data-dir*="d"] .td, #dpad[data-dir*="l"] .tl, #dpad[data-dir*="r"] .tr { opacity: 1; filter: drop-shadow(0 0 4px #F8B800); }
+        #abtns { position: absolute; }
+        .round {
+            position: absolute; border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #ff6a6a, #d8203a 55%, #8c0f24);
+            box-shadow: 0 5px 0 #4a0714, 0 0 0 3px #0b0812;
+        }
+        .round.on { transform: translateY(3px); box-shadow: 0 2px 0 #4a0714, 0 0 0 3px #0b0812; filter: brightness(1.25); }
+        .round small { display: block; font-size: 10px; margin-top: 3px; letter-spacing: 1px; opacity: 0.85; }
+        #b-swap {
+            position: absolute; border-radius: 16px; background: #3a3046; box-shadow: 0 3px 0 #0b0812;
+            font-size: 12px; letter-spacing: 1px;
+        }
+        #b-swap.on { transform: translateY(2px); background: #5a4a6a; }
+        #b-pause {
+            position: fixed; z-index: 50; width: 44px; height: 44px; border-radius: 10px;
+            background: rgba(26,16,38,0.7); border: 2px solid rgba(255,255,255,0.35); font-size: 15px; display: none;
+        }
+        body.touch #b-pause:not([hidden]) { display: block; }
+
+        /* portrait: a handheld — screen on top, controller below */
+        body.portrait #deck {
+            position: fixed; left: 0; right: 0; bottom: 0; height: var(--deckH);
+            background: linear-gradient(#2e2438, #1d1526);
+            border-top: 3px solid #0b0812;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        body.portrait #dpad { width: min(42vw, calc(var(--deckH) * 0.6), 176px); aspect-ratio: 1; left: calc(16px + env(safe-area-inset-left)); top: 50%; transform: translateY(-46%); }
+        body.portrait #abtns { right: calc(12px + env(safe-area-inset-right)); top: 50%; transform: translateY(-46%); width: min(48vw, 196px); height: min(calc(var(--deckH) * 0.66), 170px); }
+        body.portrait #b-jump { width: 78px; height: 78px; right: 0; top: 14%; }
+        body.portrait #b-fire { width: 72px; height: 72px; right: 90px; top: 40%; }
+        body.portrait #b-swap { width: 64px; height: 30px; right: 96px; top: 0; }
+        body.portrait #b-pause { right: calc(10px + env(safe-area-inset-right)); bottom: calc(var(--deckH) - 52px); }
+
+        /* landscape: controls float over the corners */
+        body.landscape #deck { position: fixed; inset: 0; pointer-events: none; }
+        body.landscape #dpad, body.landscape #abtns { pointer-events: auto; opacity: 0.55; }
+        body.landscape #dpad { width: 148px; height: 148px; left: calc(14px + env(safe-area-inset-left)); bottom: calc(12px + env(safe-area-inset-bottom)); }
+        body.landscape #abtns { width: 176px; height: 150px; right: calc(12px + env(safe-area-inset-right)); bottom: calc(10px + env(safe-area-inset-bottom)); }
+        body.landscape #b-jump { width: 72px; height: 72px; right: 0; top: 22px; }
+        body.landscape #b-fire { width: 66px; height: 66px; right: 84px; top: 64px; }
+        body.landscape #b-swap { width: 60px; height: 28px; right: 90px; top: 12px; }
+        body.landscape #b-pause { top: calc(8px + env(safe-area-inset-top)); right: calc(8px + env(safe-area-inset-right)); }
+    </style>
+</head>
+<body>
+    <a id="back" href="../index.html">← Games</a>
+    <div id="stage"><canvas id="screen" width="320" height="240" aria-label="POPGUN PIP game screen"></canvas></div>
+    <div id="deck">
+        <div id="dpad" aria-label="Direction pad"><div class="arm h"></div><div class="arm v"></div><div class="hub"></div><i class="tick tu"></i><i class="tick td"></i><i class="tick tl"></i><i class="tick tr"></i></div>
+        <div id="abtns">
+            <button id="b-swap" aria-label="Swap weapon">SWAP</button>
+            <button id="b-fire" class="round" aria-label="Shoot">B<small>POP</small></button>
+            <button id="b-jump" class="round" aria-label="Jump">A<small>JUMP</small></button>
+        </div>
+    </div>
+    <button id="b-pause" aria-label="Pause" hidden>II</button>
+    <div id="safe"></div>
+    <div id="fail" hidden></div>
+    <noscript><div style="color:#F8B800;font-family:monospace;padding:32px">POPGUN PIP needs JavaScript.</div></noscript>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

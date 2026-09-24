@@ -535,6 +535,19 @@ const games = [
             { emoji: '\uD83C\uDFF0', label: 'Tower Defense' },
             { emoji: '\uD83D\uDCF1', label: 'Touch' }
         ]
+    },
+    {
+        id: 'game-042',
+        title: 'Popgun Pip',
+        description: "An 8-bit platformer that crosses Mario-shaped worlds with Metroid-style unlocks. King Grumblewort stomped on the Sun and his goons stole Grandma Pip's inventions; hop, stomp and pop your way across five procedurally generated islands \u2014 25 levels of ? blocks, pipes, springs, lifts, firebars and lava \u2014 and win the gadgets back from the island bosses: Spring Boots, a Frost Ray that turns enemies and bubble blocks into ice you can stand on, Sticky Mitts for wall-jumping and a Rocket Popper that blasts red rock. Every level is generated with shelves, shafts, vaults and basements you can see but can't reach yet, so each new gadget reopens the map; a validator runs the real player physics to prove every level's route is beatable with the moves you have. Twelve enemy types, five multi-phase bosses, Sun Shards, heart containers, a chiptune composer that writes each level its own song, and not a single asset file. Built for a phone (handheld-style controls in portrait, floating controls in landscape) and fine on a keyboard or gamepad.",
+        icon: '\uD83D\uDC23',
+        folder: 'game-042',
+        cssClass: 'popgunpip',
+        tags: [
+            { emoji: '\uD83C\uDF44', label: 'Platformer' },
+            { emoji: '\uD83D\uDD13', label: 'Metroidvania' },
+            { emoji: '\uD83D\uDCF1', label: 'Touch' }
+        ]
     }
 ];
 
