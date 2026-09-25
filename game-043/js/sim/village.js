@@ -245,7 +245,7 @@ export const VillageMethods = {
     },
     talkTo(id) {
         if (id === 'mayor') return this.talkMayor();
-        if (id === 'glim') return this.talkGlim();
+        if (id === 'glim') return (this.p.shards ?? 0) > 0 ? this.returnShards() : this.talkGlim();
         if (id.startsWith('app_')) return this.talkApplicant(id.slice(4));
         if (JOBS[id]) return this.talkVillager(id);
     },

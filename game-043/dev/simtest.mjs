@@ -279,6 +279,30 @@ section('combat');
     ok(h2.rt.battle?.firstStrike, 'swinging at a monster gives the first strike');
 }
 
+// ------------------------------------------------------------------ companions
+section('companions');
+{
+    const c = mk(61);
+    Object.assign(c.vstate('herbalist'), { joined: 1, lot: 0, friendship: 300 });
+    Object.assign(c.vstate('guard'), { joined: 1, lot: 1, friendship: 300 });
+    c.setCompanion('guard');
+    const B = c.startBattle([{ sp: 'r1s0' }, { sp: 'r1s1' }], { region: 1 });
+    ok(B.allies.length === 2 && B.allies[1].job === 'guard', 'the companion joins the battle');
+    let acted = false, r = 0;
+    while (!B.over && r++ < 30) { const ev = c.battleAct({ type: 'attack' }); if (ev.some(e => e.a === 'c')) acted = true; }
+    ok(acted, 'the companion acts on their own');
+    ok(B.over === 'win', 'won with a companion');
+    c.battleDone();
+    c.setCompanion('herbalist');
+    const H = c.startBattle([{ sp: 'r2s0' }], { region: 2 });
+    c.p.hp = 10; H.allies[0].hp = 10;
+    let healed = false;
+    for (let k = 0; k < 4 && !H.over; k++) { const ev = c.battleAct({ type: 'guard' }); if (ev.some(e => e.t === 'heal' && e.a === 'c')) healed = true; }
+    ok(healed, 'the herbalist heals you when you are hurt');
+    c.rt.battle = null; c.s.time.min = 20 * 60 - 1; c.update(0.6, {});
+    ok(!c.p.companion, 'companions head home at 8pm');
+}
+
 // ------------------------------------------------------------------ dungeons
 section('dungeons');
 {

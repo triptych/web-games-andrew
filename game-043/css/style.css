@@ -64,7 +64,7 @@ img.icon, canvas.icon { image-rendering: pixelated; image-rendering: crisp-edges
 body.portrait #hud-bars { top: calc(8px + var(--safe-t)); right: calc(112px + var(--safe-r)); }
 @media (max-width: 420px) { #clock { font-size: 11px; gap: 5px; padding: 3px 7px; } #h-weather { display: none; } #hud-bars { width: 25vw; } }
 
-#toasts { position: fixed; top: calc(96px + var(--safe-t)); left: 50%; transform: translateX(-50%); z-index: 45; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; width: min(92vw, 460px); }
+#toasts { position: fixed; top: calc(122px + var(--safe-t)); left: 50%; transform: translateX(-50%); z-index: 45; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; width: min(92vw, 460px); }
 .toast { background: rgba(45, 36, 24, 0.9); color: var(--paper); padding: 5px 12px; border-radius: 16px; font-size: 13px; animation: toast 3.2s forwards; text-align: center; }
 @keyframes toast { 0% { opacity: 0; transform: translateY(-6px); } 8% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; } }
 

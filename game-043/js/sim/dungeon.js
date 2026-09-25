@@ -61,7 +61,7 @@ export const DungeonMethods = {
         this.emit('mapchange', { kind: site.kind, site: id, floor: n });
         this.emit('fade');
         this.sfx('stairs');
-        this.msg(`${site.name} — floor ${n}${f.boss ? ' (the deepest)' : ''}`);
+        this.s.log.unshift(`${site.name} — floor ${n}`);
         this.checkStory?.();
     },
     besideFree(f, p) {

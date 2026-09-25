@@ -290,34 +290,69 @@ export function paintBuilding(type, opt = {}) {
     return p;
 }
 
-// ---------------------------------------------------------------- the Heartwood (64 x 104), stage 0..5
+// ---------------------------------------------------------------- the Heartwood (96 x 128), stage 0..5
+function thick(p, x0, y0, x1, y1, w0, w1, c, c2) {
+    const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0));
+    for (let k = 0; k <= n; k++) {
+        const t = k / n, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t, w = w0 + (w1 - w0) * t;
+        p.circle(x, y, w / 2, c, c2 ? (dx) => (dx < -0.3 ? c2 : c) : null);
+    }
+}
+export const HEART_W = 96, HEART_H = 128;
 export function paintHeartwood(stage, season) {
-    const p = new Pix(80, 104);
-    const bark = ramp(25, 0.3, stage ? 0.36 : 0.3);
-    // roots and split trunk
-    for (let y = 56; y < 104; y++) {
-        const t = (y - 56) / 48, hw = 12 + t * t * 16;
-        for (let x = 40 - hw; x < 40 + hw; x++) {
-            const split = stage === 0 && Math.abs(x - 40) < 2.5 - t * 2 && y < 90;
-            if (split) continue;
-            const n = h2(x, y, 3);
-            p.set(x, y, n < 0.15 ? bark[0] : x < 40 - hw * 0.5 ? bark[2] : bark[1]);
+    const p = new Pix(HEART_W, HEART_H);
+    const cx = 48, base = 127;
+    const dead = stage === 0;
+    const bark = dead ? ramp(25, 0.12, 0.34) : ramp(24, 0.38, 0.36);
+    // roots
+    for (const [dx, len] of [[-1, 30], [1, 30], [-0.5, 20], [0.5, 22]]) thick(p, cx + dx * 6, base - 16, cx + dx * len, base - 1, 9, 3, bark[1], bark[2]);
+    // trunk
+    for (let y = 56; y <= base - 6; y++) {
+        const t = (y - 56) / (base - 62);
+        const hw = 10 + t * t * t * 10 + Math.sin(y * 0.3) * 0.6;
+        for (let x = Math.floor(cx - hw); x <= Math.ceil(cx + hw); x++) {
+            const u = (x - cx) / hw;
+            let c = u < -0.45 ? bark[2] : u > 0.55 ? bark[0] : bark[1];
+            if ((x * 7 + (y >> 2)) % 9 === 0) c = bark[0];
+            if (dead && Math.abs(x - cx - Math.sin(y * 0.2) * 1.5) < (1.8 - t) && y < base - 14) c = [26, 18, 22, 255];
+            p.set(x, y, c);
         }
     }
-    for (let k = 0; k < 6; k++) p.line(40 + (k - 2.5) * 5, 100, 40 + (k - 2.5) * 11, 103, bark[0]);
-    // branches
-    const br = [[40, 60, 18, 26], [40, 60, 62, 24], [40, 58, 30, 14], [40, 58, 52, 12], [40, 60, 40, 6]];
-    for (const [a, b, c, d] of br) { p.line(a, b, c, d, bark[1]); p.line(a + 1, b, c + 1, d, bark[0]); }
-    if (stage > 0) {
-        const leaf = season === 2 ? ramp(35, 0.7, 0.5) : season === 3 ? ramp(190, 0.3, 0.8) : ramp(120, 0.55, 0.42);
-        const clusters = [[40, 22, 14], [20, 30, 12], [60, 28, 12], [30, 14, 10], [52, 14, 10], [40, 40, 12], [14, 42, 9], [66, 40, 9]];
-        clusters.slice(0, 2 + stage + (stage >= 4 ? 2 : 0)).forEach(([x, y, r], k) => canopy(p, x, y, r * (0.6 + stage * 0.08), leaf, k * 31, null));
-        if (stage >= 3) for (let k = 0; k < stage * 12; k++) { const x = 8 + h2(k, 9) * 64, y = 4 + h2(9, k) * 44; if (p.get(x, y) > 0) p.set(x, y, stage >= 5 ? hsl(320 + h2(k, 1) * 60, 0.8, 0.8) : [255, 250, 200, 255]); }
-        if (stage >= 5) for (let k = 0; k < 30; k++) { const x = 6 + h2(k, 19) * 68, y = 2 + h2(19, k) * 50; if (p.get(x, y) > 0) p.set(x, y, [255, 240, 150, 255]); }
+    // branches (drawn under the canopy)
+    const br = [[cx, 64, 14, 28, 7, 2], [cx, 62, 82, 26, 7, 2], [cx, 58, 26, 12, 6, 2], [cx, 58, 70, 10, 6, 2], [cx, 60, cx + 2, 4, 7, 2], [cx - 4, 66, 4, 44, 5, 1], [cx + 4, 66, 92, 44, 5, 1]];
+    for (const [x0, y0, x1, y1, w0, w1] of br) thick(p, x0, y0, x1, y1, w0, w1, bark[1], bark[2]);
+    if (dead) {
+        for (const [x0, y0, x1, y1] of [[14, 28, 6, 18], [82, 26, 90, 14], [26, 12, 20, 4], [70, 10, 78, 3], [50, 4, 56, 0]]) thick(p, x0, y0, x1, y1, 2, 1, bark[0]);
+    } else {
+        // canopy: clusters fill in as the heart heals
+        const winter = season === 3 && stage < 5, fall = season === 2 && stage < 5;
+        const leaf = winter ? ramp(160, 0.18, 0.72) : fall ? ramp(32, 0.72, 0.5) : ramp(118, 0.5, 0.4);
+        const pts = [];
+        for (let k = 0; k < 22; k++) {
+            const a = Math.PI * (1.02 + (k % 11) / 10 * 0.96), r = k < 11 ? 30 : 17;
+            pts.push([cx + Math.cos(a) * r * 1.35, 44 + Math.sin(a) * r * 0.95 + (k < 11 ? 8 : 4), 10 + h2(k, 3) * 5]);
+        }
+        pts.push([cx, 22, 16], [cx - 16, 34, 14], [cx + 16, 34, 14]);
+        const order = pts.map((q, k) => [q, h2(k, 77)]).sort((a, b) => a[1] - b[1]).map(x => x[0]);
+        const show = Math.round(order.length * [0, 0.25, 0.45, 0.7, 0.9, 1][stage]);
+        const grow = [0, 0.6, 0.75, 0.85, 0.95, 1.05][stage];
+        order.slice(0, show).sort((a, b) => a[1] - b[1]).forEach(([x, y, r], k) => canopy(p, x, y, r * grow, leaf, k * 31 + 5, null));
+        if (stage >= 3) for (let k = 0; k < 14 + stage * 10; k++) {
+            const x = 4 + h2(k, 9) * 88, y = 2 + h2(9, k) * 66;
+            if (p.get(x, y) > 0 && p.get(x, y + 1) > 0) p.set(x, y, stage >= 5 ? (k % 3 ? hsl(330 + h2(k, 1) * 30, 0.8, 0.82) : hsl(48, 0.95, 0.72)) : [235, 255, 220, 255]);
+        }
+        if (stage >= 5) for (let k = 0; k < 90; k++) {
+            const x = Math.floor(4 + h2(k, 19) * 88), y = Math.floor(2 + h2(19, k) * 66);
+            if (!(p.get(x, y) > 0 && p.get(x + 1, y + 1) > 0)) continue;
+            const c = k % 5 === 0 ? hsl(46, 0.95, 0.7) : hsl(330 + h2(k, 4) * 25, 0.78, 0.8);
+            p.set(x, y, c); p.set(x + 1, y, c); p.set(x, y + 1, shade(c, -0.12)); p.set(x + 1, y + 1, c);
+            if (k % 3 === 0) p.set(x, y - 1, [255, 250, 240, 255]);
+        }
     }
-    // the heart hollow
-    p.ellipse(40, 76, 5, 7, stage >= 5 ? [255, 240, 170, 255] : stage > 0 ? [120, 240, 200, 255] : [30, 20, 26, 255]);
-    for (let k = 0; k < stage; k++) p.circle(34 + k * 3, 90, 1.2, [150, 255, 220, 255]);
+    // the heart hollow and the shard sockets
+    p.ellipse(cx, 92, 5, 8, [22, 14, 18, 255]);
+    if (stage > 0) p.ellipse(cx, 92, 3.6, 6.4, stage >= 5 ? [255, 238, 170, 255] : [120, 240, 205, 255], (x, y) => (x < -0.2 && y < -0.2 ? [240, 255, 250, 255] : null) ?? (stage >= 5 ? [255, 238, 170, 255] : [120, 240, 205, 255]));
+    for (let k = 0; k < 5; k++) p.circle(cx - 8 + k * 4, 106, 1.3, k < stage ? [150, 255, 225, 255] : [40, 30, 34, 255]);
     p.outline(OUTLINE);
     return p;
 }

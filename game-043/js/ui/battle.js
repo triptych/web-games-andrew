@@ -93,6 +93,7 @@ export class BattleView {
 
     // ------------------------------------------------------------ playback
     next() {
+        if (!this.B) { this.queue = []; this.busy = false; return; }
         const e = this.queue.shift();
         if (!e) { this.busy = false; this.menu(); return; }
         const B = this.B, sfx = n => this.ui.audio.sfx(n);

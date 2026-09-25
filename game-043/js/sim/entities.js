@@ -107,6 +107,7 @@ export const EntityMethods = {
     npcSchedule(id) {
         const w = this.world, g = w.glen, m = this.s.time.min;
         const plaza = (k) => { const a = k * 1.7 + Math.floor(m / 90) * 0.9; return { x: w.cx + Math.cos(a) * 5.2, y: w.cy + Math.sin(a) * 5.2 + 0.4 }; };
+        if (id === 'mayor' && !this.s.quests.flags.met_mayor) return { x: w.cx - 2.5, y: w.cy + 3.9 };
         if (id === 'mayor') return m < 21 * 60 ? { x: g.hall.x + 2.5 + (Math.floor(m / 120) % 2 ? 1.5 : -0.5), y: g.hall.y + 4.4 } : null;
         if (id === 'glim') return { x: w.cx + 0.5 + Math.cos(this.rt.t * 0.7) * 2.8, y: w.cy + 3.2 + Math.sin(this.rt.t * 0.9) * 0.5, float: true };
         if (id.startsWith('app_')) { const k = this.s.applicants.indexOf(id.slice(4)); return m < 21 * 60 ? plaza(k + 3) : null; }

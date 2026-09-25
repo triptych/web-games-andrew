@@ -168,6 +168,7 @@ export class UI {
         d.typing = true; d.shown = 0;
         clearInterval(this.typeT);
         this.typeT = setInterval(() => {
+            if (this.dlg !== d) { clearInterval(this.typeT); return; }
             d.shown += 2;
             el.textContent = text.slice(0, d.shown);
             if (d.shown % 6 === 0) this.audio.sfx('text');
@@ -176,7 +177,8 @@ export class UI {
         el.textContent = '';
     }
     lineDone() {
-        const d = this.dlg; d.typing = false;
+        const d = this.dlg; if (!d) return;
+        d.typing = false;
         $('#dlg-text').textContent = d.lines[d.line] ?? '';
         const last = d.line >= d.lines.length - 1;
         if (last && d.choices?.length) {
@@ -196,7 +198,7 @@ export class UI {
         this.closeDialog();
         d.done?.();
     }
-    closeDialog() { this.dlg = null; this.nextDialog(); }
+    closeDialog() { clearInterval(this.typeT); this.dlg = null; this.nextDialog(); }
 
     // ------------------------------------------------------------ menus from the game
     openMenu(m) {

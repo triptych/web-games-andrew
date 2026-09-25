@@ -50,7 +50,7 @@ export class Panels {
             case 'menu': return [['bag', '🎒 Bag'], ['journal', '📜 Journal'], ['village', '🏡 Village'], ['me', '⭐ You'], ['recipes', '🍲 Recipes'], ['system', '💾 Save']];
             case 'home': return [['cook', '🍲 Cook'], ['craft', '🔨 Craft'], ['storage', '📦 Chest'], ['sleep', '🛏 Sleep']];
             case 'shopfront': {
-                const job = d.job, t = [['talk', '💬 ' + g.people[job].name]];
+                const job = d.job, t = [['talk', '💬 Talk']];
                 if (g.shopFor(job)) t.push(['buy', '🛒 Buy']);
                 t.push(['sell', '💰 Sell']);
                 const st = BUILDING[d.building].station;
@@ -413,6 +413,7 @@ export class Panels {
         const g = this.game, lot = this.data.lot;
         b.append(h('p', { class: 'muted' }, `Lot ${lot + 1}. ${g.isResident('carpenter') ? 'The Carpenter takes 20% off.' : ''} Newcomers need their own building to move in.`));
         const types = BUILDINGS.slice().sort((a, b) => a.lvl - b.lvl);
+        if (types.every(B => g.builtTypes().has(B.id))) b.append(h('p', {}, 'Everything the village needs is already built. Decorate this lot instead — benches, planters and lamps make neighbours happy.'));
         for (const B of types) {
             if (g.builtTypes().has(B.id)) continue;
             const chk = g.buildable(B.id), cost = g.buildingCost(B.id);

@@ -3,7 +3,7 @@
 // ============================================================
 
 import { rngFor } from '../core/rng.js';
-import { ARCHETYPES, BIOMES, baseStats, BOSS_TITLES } from '../data/monsters.js';
+import { ARCHETYPES, BIOMES, baseStats, BOSS_TITLES, ELEM_HUE } from '../data/monsters.js';
 
 const ELEM_WORD = {
     leaf: ['Moss', 'Bramble', 'Fern', 'Thorn', 'Sprig', 'Bark'],
@@ -30,7 +30,7 @@ export function generateSpecies(seed) {
             usedWords.add(word);
             const sp = {
                 id: `r${R}s${j}`, name: `${word} ${rng.pick(A.noun)}`, arche: a, elem: b.elem, tier: R,
-                hue: (rng.range(0, 360)) | 0, hue2: (rng.range(0, 360)) | 0, sprite: rng.int(1, 1e9),
+                hue: (ELEM_HUE[b.elem] + rng.range(-40, 40) + 360) % 360 | 0, hue2: (rng.range(0, 360)) | 0, sprite: rng.int(1, 1e9),
                 drop: A.drop, ai: A.ai, boss: false,
                 // a little per-species variety on top of the archetype
                 mul: { hp: A.hp * rng.range(0.9, 1.1), atk: A.atk * rng.range(0.9, 1.1), def: A.def * rng.range(0.9, 1.1), spd: A.spd * rng.range(0.9, 1.1) },
@@ -42,7 +42,7 @@ export function generateSpecies(seed) {
         const A = ARCHETYPES[bArch];
         const boss = {
             id: `r${R}boss`, name: `${BOSS_NAMES[(rng.int(0, BOSS_NAMES.length - 1) + R * 2) % BOSS_NAMES.length]} ${rng.pick(BOSS_TITLES)}`,
-            arche: bArch, elem: b.elem, tier: R, hue: rng.int(0, 359), hue2: rng.int(0, 359), sprite: rng.int(1, 1e9),
+            arche: bArch, elem: b.elem, tier: R, hue: (ELEM_HUE[b.elem] + rng.int(-25, 25) + 360) % 360, hue2: rng.int(0, 359), sprite: rng.int(1, 1e9),
             drop: A.drop, ai: 'boss', boss: true,
             mul: { hp: 3.0, atk: 1.25, def: 1.2, spd: 1.0 },
         };

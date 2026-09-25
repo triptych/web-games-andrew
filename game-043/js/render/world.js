@@ -187,7 +187,7 @@ export class WorldRenderer {
         switch (o) {
             case O.HEART: {
                 const H = game.world.glen.heart;
-                if (x === H.x && y === H.y + 3) { const c = this.sp.heart(game.s.heartwood, season); g.drawImage(c, H.x * T - 8 - camX, (H.y + 4) * T - c.height - camY); }
+                if (x === H.x && y === H.y + 3) { const c = this.sp.heart(game.s.heartwood, season); g.drawImage(c, H.x * T + 32 - c.width / 2 - camX, (H.y + 4) * T - c.height - camY); }
                 return;
             }
             case O.FACADE: return;

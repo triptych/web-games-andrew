@@ -43,7 +43,7 @@ export class Pix {
         this.d[i] = (r * t + this.d[i] * da * (1 - t)) / oa; this.d[i + 1] = (g * t + this.d[i + 1] * da * (1 - t)) / oa;
         this.d[i + 2] = (b * t + this.d[i + 2] * da * (1 - t)) / oa; this.d[i + 3] = oa * 255;
     }
-    get(x, y) { if (x < 0 || y < 0 || x >= this.w || y >= this.h) return 0; return this.d[(y * this.w + x) * 4 + 3]; }
+    get(x, y) { x |= 0; y |= 0; if (x < 0 || y < 0 || x >= this.w || y >= this.h) return 0; return this.d[(y * this.w + x) * 4 + 3]; }
     rect(x, y, w, h, c) { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) this.set(i, j, c); }
     hline(x0, x1, y, c) { for (let x = x0; x <= x1; x++) this.set(x, y, c); }
     vline(x, y0, y1, c) { for (let y = y0; y <= y1; y++) this.set(x, y, c); }
