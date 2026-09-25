@@ -88,7 +88,8 @@ export const EntityMethods = {
         return best;
     },
     engage(m, firstStrike) {
-        const group = m.boss ? [m] : [m, ...this.rt.monsters.filter(o => o !== m && o.stun <= 0 && Math.hypot(o.x - m.x, o.y - m.y) < 3.2)].slice(0, 3);
+        const maxGroup = this.p.level < 3 ? 1 : this.p.level < 6 ? 2 : 3;
+        const group = m.boss ? [m] : [m, ...this.rt.monsters.filter(o => o !== m && o.stun <= 0 && Math.hypot(o.x - m.x, o.y - m.y) < 3.2)].slice(0, maxGroup);
         const depth = m.depth ?? 0;
         const inDungeon = !this.inWorld;
         const rg = inDungeon ? this.map.region : m.region;

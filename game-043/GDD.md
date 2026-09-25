@@ -2,6 +2,7 @@
 
 **Genre:** cozy village builder / farming sim crossed with a top-down Zelda-style adventure and turn-based battles
 **Tech:** vanilla HTML / CSS / ES modules, Canvas 2D for the world, DOM for menus, Web Audio. No libraries, no build step, **no asset files**
+**Status:** implemented (v1, 2026-09-25). Verification: see [dev/README.md](dev/README.md).
 **Target:** phones first (portrait and landscape, one or two thumbs), keyboard equally supported
 **Tone:** warm, gentle, a little bit magical. Monsters are "wild" rather than evil; losing a fight means waking up at home a bit poorer.
 **Seed rule:** everything that is generated — the land, its regions and their names, dungeons and caves, monsters, villagers, their faces and stories, job-board postings, the weather, every sprite and every song — comes from one **world seed** entered (or rolled) in the character creator. The same seed always makes the same world.
@@ -312,10 +313,11 @@ the next dungeon seal breaks, and the Mayor's hall grows.
 
 ### 8.5 The Mayor
 
-Generated name and look, fixed role. Talk options: **Village** (level, coziness, what's next),
-**Newcomers** (applicants and what they need), **Build** (the build menu), **Storehouse**, **Story**
-(the main-quest thread), **Forecast**. The Mayor also sells basic seeds until a Farmer arrives, so
-day 1 always works.
+Generated name and look, fixed role. The Mayor carries the main-quest thread (each step's lines are
+said once), and their talk menu offers: **Village celebration** (when a level is ready), **How is the
+village?** (level, coziness, residents, happiness), **Newcomers** (applicants and what they need),
+**Storehouse**, **Buy seeds** (until a Farmer arrives, so day 1 always works) and **Tomorrow's
+weather**. Building itself happens at each lot's sign.
 
 ### 8.6 The Job Board
 
@@ -341,7 +343,8 @@ assignment returns partial loot and a tired villager.
 ## 9. Combat
 
 Wild monsters roam the regions (more at night and in storms) and every dungeon floor. Touching one
-starts a battle. **Swinging the sword** at a monster before it touches you gives the **first strike**
+starts a battle; monsters within a few tiles join in, up to 1 while you are below level 3, 2 below
+level 6, then 3. **Swinging the sword** at a monster before it touches you gives the **first strike**
 (a free turn). Monsters in the Glen: never.
 
 ### 9.1 Battle rules
@@ -365,7 +368,7 @@ starts a battle. **Swinging the sword** at a monster before it touches you gives
 | 8 | Mend | 6 | heal 40% max HP, cleanse |
 | 10 | Starfall | 10 | 2.0× light to all foes |
 
-Player stats: HP 40 + 8/lv, SP 10 + 2/lv, ATK 5 + 1.5/lv, DEF 2 + 1/lv, SPD 5 + 0.5/lv, plus gear,
+Player stats: HP 50 + 8/lv, SP 10 + 2/lv, ATK 5 + 1.5/lv, DEF 2 + 1/lv, SPD 5 + 0.5/lv, plus gear,
 shrine blessings and food buffs. XP to next level: `20 × lv^1.6`.
 
 ### 9.3 Companions

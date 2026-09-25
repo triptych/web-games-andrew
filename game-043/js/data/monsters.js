@@ -57,8 +57,8 @@ export const GATE_RELIC = { thorn: 'thornbreaker', boulder: 'stonebreaker', shal
 export function baseStats(tier, floor = 0) {
     const t = tier + floor * 0.18;
     return {
-        hp: Math.round(8 + t * 14 + t * t * 3),
-        atk: Math.round(4 + t * 4.2),
+        hp: Math.round(6 + t * 14 + t * t * 1.5),
+        atk: Math.round(3 + t * 3.6),
         def: Math.round(1 + t * 2.2),
         spd: Math.round(4 + t * 1.6),
         xp: Math.round(6 + t * 9 + t * t * 1.5),

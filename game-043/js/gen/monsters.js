@@ -44,7 +44,7 @@ export function generateSpecies(seed) {
             id: `r${R}boss`, name: `${BOSS_NAMES[(rng.int(0, BOSS_NAMES.length - 1) + R * 2) % BOSS_NAMES.length]} ${rng.pick(BOSS_TITLES)}`,
             arche: bArch, elem: b.elem, tier: R, hue: (ELEM_HUE[b.elem] + rng.int(-25, 25) + 360) % 360, hue2: rng.int(0, 359), sprite: rng.int(1, 1e9),
             drop: A.drop, ai: 'boss', boss: true,
-            mul: { hp: 3.0, atk: 1.25, def: 1.2, spd: 1.0 },
+            mul: { hp: 4.2, atk: 1.25, def: 1.2, spd: 1.0 },
         };
         out[boss.id] = boss;
     });

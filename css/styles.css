@@ -587,6 +587,11 @@ h1 {
     color: #1a1026;
 }
 
+.game-card.glimmerglen .play-button {
+    background: linear-gradient(135deg, #6fae5f 0%, #f6ecd6 55%, #e0a832 100%);
+    color: #2d2418;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

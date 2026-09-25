@@ -107,6 +107,7 @@ export const DayMethods = {
     onHour() {
         const h = Math.floor(this.s.time.min / 60);
         if (h === 18) this.emit('dusk');
+        this.emit('hour', h);
         if (h === 20 && this.p.companion) { this.msg(`${this.people[this.p.companion].name} heads home for the night.`); this.setCompanion(null); }
     },
 };

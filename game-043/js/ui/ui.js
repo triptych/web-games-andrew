@@ -51,6 +51,7 @@ export class UI {
         game.on('festival', f => this.cutscene(f.lines, () => { this.audio.play('festival', this.game.s.seed); }));
         game.on('levelup', () => this.shake(0.2));
         game.on('dusk', () => this.updateMusic());
+        game.on('hour', () => this.updateMusic());
         game.on('board', () => this.panels.refresh());
         this.renderHotbar();
         this.updateObjective();
