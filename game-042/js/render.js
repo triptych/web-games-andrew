@@ -251,6 +251,15 @@ export class Renderer {
                 const s = slots[key];
                 if (!s) continue;
                 let dy = 0;
+                if (b && b.bubble) {
+                    // a nudged bubble jiggles and squashes in place instead of hopping
+                    const u = 1 - b.t / 0.22;
+                    const w = Math.sin(u * Math.PI * 3) * (1 - u);
+                    const sw = 16 + w * 3, sh = 16 - w * 3;
+                    ctx.drawImage(atlas, s[0], s[1], 16, 16,
+                        tx * TILE - this.cx + (16 - sw) / 2, ty * TILE - this.cy + (16 - sh) / 2, sw, sh);
+                    continue;
+                }
                 if (b && !b.spring) dy = -Math.round(Math.sin((1 - b.t / 0.15) * Math.PI) * 4);
                 if (tt === T.ICE) {
                     const it = g.iceTiles.find(q => q.x === tx && q.y === ty);

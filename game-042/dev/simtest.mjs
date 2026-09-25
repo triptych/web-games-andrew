@@ -139,6 +139,30 @@ section('gates');
     steps(g3, 60 * 9);
     ok(g3.tile(8, 17) === T.BUBBLE, 'ice melts back into a bubble');
 
+    // touching an unfrozen bubble without the Frost Ray: wobble + one-time hint
+    const L2b = room();
+    L2b.tiles[19 * L2b.w + 8] = T.BUBBLE;
+    const g3b = new Game(L2b, profileNone(), run());
+    g3b.player.x = 8 * TILE + 3; g3b.player.y = 16 * TILE; g3b.player.vy = 50;
+    steps(g3b, 30);
+    ok(g3b.tile(8, 19) === T.BUBBLE, 'a bubble stays non-solid without the Frost Ray');
+    ok(g3b.bumps.some(b => b.bubble) || g3b.bubbleTouch.size > 0 || g3b.bubbleHinted, 'touching a bubble registers a reaction');
+    ok(g3b.bubbleHinted, 'the freeze-ray hint fires on the first bubble touched');
+    const hint = g3b.parts.filter(q => q.k === 'text' && /FREEZE RAY/.test(q.text));
+    ok(hint.length === 1, 'exactly one freeze-ray hint popup is queued');
+    // walking back over more bubbles must not spam the hint
+    L2b.tiles[19 * L2b.w + 12] = T.BUBBLE;
+    steps(g3b, 90, () => inp({ right: true }));
+    ok(g3b.parts.filter(q => q.k === 'text' && /FREEZE RAY/.test(q.text)).length <= 1, 'the hint never repeats in a level');
+
+    // with the Frost Ray in hand the hint is pointless, so it stays quiet
+    const L2c = room();
+    L2c.tiles[19 * L2c.w + 8] = T.BUBBLE;
+    const g3d = new Game(L2c, profileAll(), run());
+    g3d.player.x = 8 * TILE + 3; g3d.player.y = 16 * TILE; g3d.player.vy = 50;
+    steps(g3d, 30);
+    ok(!g3d.bubbleHinted, 'no freeze-ray hint once you already have the Frost Ray');
+
     const L3 = room();
     L3.tiles[20 * L3.w + 8] = T.CRACK;
     for (let y = 21; y <= 22; y++) L3.tiles[y * L3.w + 8] = T.EMPTY;

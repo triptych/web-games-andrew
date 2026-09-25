@@ -116,6 +116,7 @@ export const sfx = {
     pop() { noise(0.1, 0.18, 0, 'lowpass', 2500); osc('p25', 700, 1400, 0.08, 0.09); },
     shatter() { noise(0.25, 0.2, 0, 'highpass', 2500); osc('p12', 2000, 800, 0.2, 0.06); },
     freeze() { osc('sine', 2400, 900, 0.25, 0.08); noise(0.2, 0.06, 0, 'highpass', 6000); },
+    wobble() { osc('sine', 900, 520, 0.14, 0.05); osc('sine', 1350, 780, 0.1, 0.025, 0.02); },
     boom() { noise(0.4, 0.4, 0, 'lowpass', 700); osc('triangle', 140, 40, 0.35, 0.3); },
     crumble() { noise(0.5, 0.3, 0, 'lowpass', 900); noise(0.3, 0.2, 0.15, 'lowpass', 500); },
     secret() { arp([79, 78, 75, 69, 68, 76, 80, 84], 0.07, 'p25', 0.1); },

@@ -174,10 +174,12 @@ export function drawMap(R, view, t, m) {
             const s = art.spr[GATE_ICON[g]];
             if (!s) continue;
             const have = m.gadgets.has(GATE_NEEDS[g]);
-            R.x.globalAlpha = have ? 1 : 0.35;
+            // a locked gate still needs to read clearly: it is a to-do, not a nothing
+            R.x.globalAlpha = have ? 1 : 0.75;
             R.x.drawImage(s.c, lx, py0 + 14, 12, 12);
             R.x.globalAlpha = 1;
-            lx += 13;
+            if (!have) R.text('!', lx + 13, py0 + 17, NES[0x28]);
+            lx += have ? 13 : 19;
         }
         if (!info.gates) R.text('NOT VISITED', lx, py0 + 17, NES[0x2d]);
     } else {

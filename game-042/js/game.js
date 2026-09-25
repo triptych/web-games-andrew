@@ -57,6 +57,8 @@ export class Game {
         this.boss = null; this.bossLocked = false;
         this.checkpoint = null; this.goal = null; this.castle = null;
         this.gotShards = new Set();
+        this.bubbleTouch = new Map();   // tile index -> cooldown, so one bubble blips once per pass
+        this.bubbleHinted = false;      // the "freeze ray" hint shows once per level
         this.stats = { kills: 0, coins: 0, stomps: 0, shots: 0, hurts: 0, pits: 0 };
         this.fireHeld = false;
 
@@ -286,6 +288,7 @@ export class Game {
             if (it.t <= 0) { if (this.tile(it.x, it.y) === T.ICE) this.setTile(it.x, it.y, T.BUBBLE); this.iceTiles.splice(i, 1); }
         }
         for (let i = this.bumps.length - 1; i >= 0; i--) { this.bumps[i].t -= dt; if (this.bumps[i].t <= 0) this.bumps.splice(i, 1); }
+        for (const [k, v] of this.bubbleTouch) { const n = v - dt; if (n <= 0) this.bubbleTouch.delete(k); else this.bubbleTouch.set(k, n); }
 
         this.updatePickups(dt);
         this.updateItems(dt);
@@ -423,6 +426,8 @@ export class Game {
                 if (p.y + p.h > ty * TILE + 7) this.hurt(true);
             } else if (t === T.LAVA || t === T.LAVA_FILL) {
                 if (p.y + p.h > ty * TILE + 6) { this.puff(p.x + 5, ty * TILE + 4, 'ember', 10, 90); this.event('sfx', { name: 'sizzle' }); this.fellInPit(); return; }
+            } else if (t === T.BUBBLE) {
+                this.touchBubble(tx, ty);
             }
         }
     }
@@ -610,6 +615,27 @@ export class Game {
         }
         this.event('sfx', { name: 'crumble' });
         this.event('secret');
+    }
+
+    /**
+     * Passing through an unfrozen bubble. It is meant to be non-solid until the
+     * Frost Ray hits it, but silently falling through reads as a broken platform,
+     * so wobble it, blip, and say what it wants the first time it is touched.
+     */
+    touchBubble(tx, ty) {
+        if (this.phase !== 'play') return;
+        const k = ty * this.w + tx;
+        if (this.bubbleTouch.has(k)) return;        // one reaction per bubble per pass
+        this.bubbleTouch.set(k, 0.45);
+        this.bumps.push({ x: tx, y: ty, t: 0.22, bubble: true });
+        this.puff(tx * TILE + 8, ty * TILE + 8, 'ring', 3, 26);
+        this.event('sfx', { name: 'wobble' });
+        if (!this.bubbleHinted && !this.profile.weapons.includes('frost')) {
+            this.bubbleHinted = true;
+            // keep the long hint inside the level so it cannot run off an edge
+            const hx = clamp(tx * TILE + 8, 88, Math.max(88, this.W - 88));
+            this.popup(hx, Math.max(12, ty * TILE - 8), 'IF ONLY I HAD A FREEZE RAY...');
+        }
     }
 
     freezeBubbles(tx, ty) {
