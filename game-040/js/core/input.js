@@ -183,6 +183,10 @@ export function initInput(canvas) {
         input.pointer.py = t.clientY;
     };
     const onTouchMove = (e) => {
+        // A drag on a menu panel is a scroll, not a flight input. Cancelling it
+        // here would override the overlay's touch-action: pan-y and strand any
+        // button below the fold on a short phone screen.
+        if (e.target?.closest?.('.overlay')) return;
         for (const t of e.changedTouches) {
             if (t.identifier !== touchId) continue;
             input.pointer.px = t.clientX;
