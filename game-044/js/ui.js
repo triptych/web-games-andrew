@@ -318,6 +318,9 @@ export function pages(list, buttons = null) {
     return new Promise((resolve) => {
         const el = $('pages');
         el.hidden = false;
+        // A page is always something to read: lift any fade-to-black left over
+        // from the transition that led here, or the page sits under it unseen.
+        fade(0, 250);
         let i = 0;
         const show = () => {
             const pg = list[i];

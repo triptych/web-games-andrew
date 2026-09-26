@@ -149,10 +149,34 @@ async function go(id, expectScene) {
     check(sc === expectScene, `walked to ${expectScene} (in ${sc})`);
 }
 
+/**
+ * Playwright's click happily clicks through #fade (pointer-events:none) and
+ * never notices a page hidden under the title, so check what a player would
+ * actually see: the button is topmost at its centre and the fade has lifted.
+ */
+async function assertSeen(sel, label) {
+    let why = null;
+    for (let n = 0; n < 15; n++) {
+        why = await page.evaluate((sel) => {
+            const el = document.querySelector(sel);
+            if (!el) return 'missing';
+            const r = el.getBoundingClientRect();
+            const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+            if (!top || !(top === el || el.contains(top))) return 'covered by ' + (top?.closest('[id]')?.id || top?.tagName);
+            const f = +getComputedStyle(document.getElementById('fade')).opacity;
+            return f > 0.05 ? 'under the fade' : null;
+        }, sel);
+        if (!why) break;
+        await page.waitForTimeout(60);
+    }
+    check(!why, `${label} is visible${why ? ' — ' + why : ''}`);
+}
+
 async function clickPageButton(label) {
     const btns = await page.$$eval('#pg-btns button', bs => bs.map(b => b.innerText));
     const i = btns.findIndex(b => b.includes(label));
     if (i < 0) throw new Error(`No page button "${label}" in ${JSON.stringify(btns)}`);
+    await assertSeen(`#pg-btns button:nth-child(${i + 1})`, `page button "${label}"`);
     await page.click(`#pg-btns button:nth-child(${i + 1})`);
 }
 
@@ -162,6 +186,7 @@ async function turnPagesUntil(finalLabel) {
         await page.waitForSelector('#pages:not([hidden])', { timeout: 30000 });
         const btns = await page.$$eval('#pg-btns button', bs => bs.map(b => b.innerText));
         if (btns.some(b => b.includes(finalLabel))) return btns;
+        await assertSeen('#pg-btns button:first-child', `page button "${btns[0]}"`);
         await page.click('#pg-btns button:first-child');
         await page.waitForTimeout(60);
     }
@@ -174,6 +199,10 @@ const has = async (id) => (await story()).inv.includes(id);
 // 1. The whole game, best ending
 // =====================================================================
 console.log('Route 1: the Keeper\'s Daughter');
+await assertSeen('#t-howto', 'How to Play button');
+await page.click('#t-howto');
+await clickPageButton('Continue');
+await assertSeen('#t-new', 'Begin a New Tale button');
 await page.click('#t-new');
 await turnPagesUntil('Begin');
 await clickPageButton('Begin');

@@ -588,17 +588,28 @@ function saveGame() {
 // Boot
 // ============================================================
 
+/**
+ * Size the scene to the window. Short landscape screens (phones on their side)
+ * put the verb bar beside the scene instead of under it, or there is no room
+ * for both. Two passes, because the bar's height depends on the width we give
+ * it (the satchel wraps), and that width depends on the scene's size.
+ */
 function fitScreen() {
+    const app = document.getElementById('app');
     const vp = document.getElementById('viewport');
     const bar = document.getElementById('bar');
-    const availW = Math.min(window.innerWidth, 1280);
-    const top = parseFloat(getComputedStyle(document.getElementById('app')).paddingTop) || 0;
-    const availH = window.innerHeight - bar.offsetHeight - top - 4;
-    let s = Math.min(availW / W, availH / H);
-    if (s >= 2) s = Math.floor(s * 2) / 2;          // prefer clean half-steps
-    vp.style.width = Math.floor(W * s) + 'px';
-    vp.style.height = Math.floor(H * s) + 'px';
-    document.getElementById('app').style.setProperty('--gw', Math.floor(W * s) + 'px');
+    const side = window.innerWidth > window.innerHeight && window.innerHeight < 560;
+    app.classList.toggle('side', side);
+    for (let pass = 0; pass < 2; pass++) {
+        const top = parseFloat(getComputedStyle(app).paddingTop) || 0;
+        const availW = side ? window.innerWidth - bar.offsetWidth - 16 : Math.min(window.innerWidth, 1280);
+        const availH = side ? window.innerHeight - 8 : window.innerHeight - bar.offsetHeight - top - 4;
+        let sc = Math.min(availW / W, availH / H);
+        if (sc >= 2) sc = Math.floor(sc * 2) / 2;          // prefer clean half-steps
+        vp.style.width = Math.floor(W * sc) + 'px';
+        vp.style.height = Math.floor(H * sc) + 'px';
+        app.style.setProperty('--gw', Math.floor(W * sc) + 'px');
+    }
 }
 
 function boot() {
@@ -638,6 +649,7 @@ function boot() {
     document.getElementById('t-howto').addEventListener('click', () => { initAudio(); sfx.click(); howTo(); });
 
     window.addEventListener('resize', fitScreen);
+    window.addEventListener('orientationchange', () => setTimeout(fitScreen, 150));
     fitScreen();
     requestAnimationFrame(frame);
     showTitle();

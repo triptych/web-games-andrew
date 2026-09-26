@@ -354,7 +354,8 @@ button { font-family: inherit; cursor: pointer; }
 .pages {
     position: fixed;
     inset: 0;
-    z-index: 70;
+    /* Above the title (80) so How to Play shows from it; below #fade (90). */
+    z-index: 85;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -455,3 +456,35 @@ button { font-family: inherit; cursor: pointer; }
     #pg-text { font-size: 16px; }
     #book-body { padding: 20px 18px 8px; font-size: 16px; }
 }
+
+/* ---------- phones on their side: the bar goes beside the scene ---------- */
+
+#app.side {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 4px;
+}
+#app.side #bar {
+    width: 188px;
+    max-width: none;
+    max-height: calc(100vh - 8px);
+    overflow-y: auto;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 6px;
+    border: 2px solid #6b4226;
+    border-radius: 8px;
+}
+#app.side #verbs { order: 0; display: grid; grid-template-columns: 1fr 1fr; }
+#app.side .verb { width: auto; min-height: 44px; flex-direction: row; gap: 6px; }
+#app.side .verb canvas { width: 22px; height: 22px; }
+#app.side #inv { order: 1; flex: none; grid-template-columns: repeat(4, 1fr); }
+#app.side .slot { min-height: 38px; }
+#app.side .slot canvas { width: 26px; height: 26px; }
+#app.side #sys { order: 2; flex-direction: row; align-items: center; margin: 0; }
+#app.side #score { flex: 1; }
+#app.side .sysbtn { min-width: 44px; min-height: 40px; flex: none; }
+#app.side ~ #msg { padding-bottom: 8px; }
