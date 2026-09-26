@@ -561,6 +561,19 @@ const games = [
             { emoji: '\u2694\uFE0F', label: 'Adventure' },
             { emoji: '\uD83D\uDCF1', label: 'Touch' }
         ]
+    },
+    {
+        id: 'game-044',
+        title: 'The Story Thief of Greymantle',
+        description: "A point-and-click fairy-tale adventure in the spirit of King's Quest and The Warlock of Firetop Mountain. On the longest night of the year the stories of Brackenford are vanishing \u2014 Gran's Book of Tales has gone blank, and she has forgotten your name \u2014 and a light is burning in the Warlock's tower. Walk, look, use and talk your way across ten hand-painted scenes: pay a troll's toll, trade with a magpie, answer a stone face's riddles, get past a hound who loves you far too much, and find out what the Warlock is really looking for. Light inventory puzzles, Sierra-style deaths you can undo with a turn of the page, a book that writes your adventure as you play it, and three endings. Vanilla JS, no libraries, no asset files.",
+        icon: '\uD83D\uDCD6',
+        folder: 'game-044',
+        cssClass: 'storythief',
+        tags: [
+            { emoji: '\uD83D\uDDB1\uFE0F', label: 'Point & Click' },
+            { emoji: '\uD83D\uDCDC', label: 'Story' },
+            { emoji: '\uD83E\uDDE9', label: 'Puzzle' }
+        ]
     }
 ];
 
