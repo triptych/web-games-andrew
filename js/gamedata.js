@@ -548,6 +548,19 @@ const games = [
             { emoji: '\uD83D\uDD13', label: 'Metroidvania' },
             { emoji: '\uD83D\uDCF1', label: 'Touch' }
         ]
+    },
+    {
+        id: 'game-043',
+        title: 'Glimmerglen',
+        description: "A cozy village builder in a forest that remembers magic \u2014 Stardew Valley meets Zelda. You inherit an overgrown glen with a split, leafless Heartwood tree and one resident: the Mayor of a village of one. Farm through four seasons, raise chickens, cows and sheep, forage, mine and chop; cook recipes you discover across the land and refine goods at forges, mills, looms and dairies. Rebuild the Job Board and travellers arrive \u2014 a carpenter, a farmer, a blacksmith, a cook and more \u2014 each needing a home and shop that fits their trade; every villager contributes something daily, has a three-part personal story, and can be sent on board postings or brought along as a companion. As the village grows, the Glen's sleeping magic wakes: sealed dungeons open, faded shrines, fairy rings and treasures shimmer back into sight, and each dungeon's relic opens the next land. Turn-based battles with telegraphed enemy intents and elements. The land, its five regions, dungeons, monsters, villagers, job postings, every sprite and every song are generated from one seed you choose in the character creator. Three save slots plus autosave and file export. Built for a phone.",
+        icon: '\uD83C\uDF33',
+        folder: 'game-043',
+        cssClass: 'glimmerglen',
+        tags: [
+            { emoji: '\uD83C\uDFE1', label: 'Village Sim' },
+            { emoji: '\u2694\uFE0F', label: 'Adventure' },
+            { emoji: '\uD83D\uDCF1', label: 'Touch' }
+        ]
     }
 ];
 
