@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0d0b14">
+    <meta name="description" content="The Story Thief of Greymantle — a point-and-click fairy-tale adventure. The stories of Brackenford are vanishing, and the light is on in the Warlock's tower.">
+    <title>The Story Thief of Greymantle</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <a id="back" href="../index.html">← Games</a>
+
+    <div id="app">
+        <div id="viewport">
+            <canvas id="screen" aria-label="The adventure scene. Click to walk, look, use or talk."></canvas>
+            <div id="hover" hidden></div>
+            <div id="toasts" aria-live="polite"></div>
+        </div>
+        <div id="bar">
+            <div id="verbs" role="toolbar" aria-label="Verbs">
+                <button id="v-walk" class="verb" title="Walk (1)"><span>Walk</span></button>
+                <button id="v-look" class="verb" title="Look (2)"><span>Look</span></button>
+                <button id="v-use" class="verb" title="Use (3)"><span>Use</span></button>
+                <button id="v-talk" class="verb" title="Talk (4)"><span>Talk</span></button>
+            </div>
+            <div id="inv" aria-label="Satchel"></div>
+            <div id="sys">
+                <div id="score" title="Score">0</div>
+                <button id="b-book" class="sysbtn" title="The Book of Tales (B)" aria-label="The Book of Tales">📖</button>
+                <button id="b-menu" class="sysbtn" title="Menu (Esc)" aria-label="Menu">☰</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- narration / dialogue -->
+    <div id="msg" hidden>
+        <div id="msg-box" role="dialog" aria-live="polite">
+            <div id="msg-who"></div>
+            <div id="msg-text"></div>
+            <div id="msg-choices"></div>
+            <div id="msg-more" aria-hidden="true">▼</div>
+        </div>
+    </div>
+
+    <!-- the Book of Tales -->
+    <div id="book" hidden>
+        <div id="book-sheet" role="dialog" aria-modal="true" aria-label="The Book of Tales">
+            <div id="book-body"></div>
+            <button id="book-close">Close the Book</button>
+        </div>
+    </div>
+
+    <!-- menu -->
+    <div id="menu" hidden>
+        <div id="menu-sheet" role="dialog" aria-modal="true" aria-label="Menu">
+            <h2>Menu</h2>
+            <button data-act="save">Save your tale</button>
+            <button data-act="load">Restore saved tale</button>
+            <button data-act="help">How to play</button>
+            <button data-act="sound" id="m-sound">Sound: On</button>
+            <button data-act="speed" id="m-speed">Text: Normal</button>
+            <button data-act="restart">Begin a new tale</button>
+            <button data-act="title">Back to the title</button>
+            <button data-act="close">Return to the story</button>
+        </div>
+    </div>
+
+    <!-- storybook pages: prologue, death, endings, help -->
+    <div id="pages" class="pages" hidden>
+        <div id="pg-sheet">
+            <h1 id="pg-title"></h1>
+            <div id="pg-art"></div>
+            <div id="pg-text"></div>
+            <div id="pg-btns"></div>
+        </div>
+    </div>
+
+    <!-- title -->
+    <div id="title" hidden>
+        <div id="title-art"></div>
+        <div id="title-card">
+            <div id="title-pre">A Tale of the Longest Night</div>
+            <h1>The Story Thief<br><small>of Greymantle</small></h1>
+            <div id="title-btns">
+                <button id="t-new">Begin a New Tale</button>
+                <button id="t-continue" hidden>Continue your Tale</button>
+                <button id="t-howto">How to Play</button>
+            </div>
+            <div id="t-endings"></div>
+        </div>
+    </div>
+
+    <div id="fade"></div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
