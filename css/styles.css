@@ -617,6 +617,16 @@ h1 {
     color: #1a1026;
 }
 
+.game-card.glimmerglen .play-button {
+    background: linear-gradient(135deg, #6fae5f 0%, #f6ecd6 55%, #e0a832 100%);
+    color: #2d2418;
+}
+
+.game-card.storythief .play-button {
+    background: linear-gradient(135deg, #2b3a67 0%, #7d4a78 50%, #f4c542 100%);
+    color: #f4ecd8;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

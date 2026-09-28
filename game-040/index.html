@@ -238,7 +238,12 @@
         /* --------------------------------------------------------- screens */
         .overlay {
             position: absolute; inset: 0; z-index: 4; pointer-events: auto;
-            display: flex; align-items: center; justify-content: center;
+            /* The panel centres itself with margin: auto rather than
+               align-items: center. Flex centring pushes a too-tall panel off
+               the TOP of the overlay as well as the bottom, and that half can
+               never be scrolled back into view; auto margins collapse to 0
+               instead, so a long panel starts at the top and scrolls down. */
+            display: flex; align-items: flex-start; justify-content: center;
             padding: 24px 16px; overflow-y: auto;
             /* body sets touch-action: none so dragging the ship never scrolls
                the page — which would otherwise make these panels unscrollable
@@ -250,6 +255,7 @@
         }
         .overlay.dimmed { backdrop-filter: blur(3px); }
         .panel {
+            margin: auto;
             width: min(560px, 100%); background: var(--panel);
             border: 1px solid var(--line); border-radius: 4px;
             padding: 26px 26px 22px; text-align: center;
@@ -438,6 +444,23 @@
             #comms-text { font-size: 12px; }
             #boss-bar { top: calc(92px + env(safe-area-inset-top)); width: 84vw; }
         }
+        /* The action you came for stays on screen however long the panel is.
+           A portrait phone needs this as much as a landscape one: the intro
+           crawl alone is taller than a 667px screen. */
+        @media (max-height: 560px), (max-width: 720px), (pointer: coarse) {
+            .panel > .btn.primary, .panel > .menu-list { position: sticky; bottom: 0; z-index: 2; }
+            .panel > .menu-list {
+                background: linear-gradient(to top, var(--panel) 60%, transparent);
+                padding-top: 6px;
+            }
+            /* A lone button has no wrapper to carry that gradient, and its own
+               fill is translucent, so the text scrolling under it would show
+               through. Give it an opaque fill and let a shadow do the fade. */
+            .panel > .btn.primary {
+                background: linear-gradient(rgba(126, 242, 255, 0.22), rgba(126, 242, 255, 0.22)), #080a18;
+                box-shadow: 0 -14px 18px 4px #080a18;
+            }
+        }
         @media (max-height: 560px) {
             /* Short screens have no vertical room to spare, but hiding comms
                outright would drop the story for anyone playing in landscape.
@@ -460,12 +483,6 @@
             .btn { padding: 10px 16px; min-height: 44px; }
             .result-grid { gap: 6px; margin: 10px 0; }
             .ending-lines div { font-size: 12px; line-height: 1.5; }
-            /* the action you came for stays on screen however long the panel is */
-            .panel > .btn.primary, .panel > .menu-list {
-                position: sticky; bottom: 0; z-index: 2;
-                background: linear-gradient(to top, var(--panel) 60%, transparent);
-                padding-top: 6px;
-            }
             #touch { flex-direction: row; gap: 8px; }
             #touch button { width: 56px; height: 56px; font-size: 9px; }
             #touch button#touch-pause { width: 44px; height: 44px; }

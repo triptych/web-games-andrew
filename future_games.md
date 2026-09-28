@@ -18,7 +18,9 @@ Looking across all 33 games, several strong clusters have emerged:
 
 ## Gaps and remix opportunities
 
-### 1. Cozy sim: seasonal farm/orchard
+### 1. ~~Cozy sim: seasonal farm/orchard~~ — Done
+Completed as **game-043** (Glimmerglen): farming, animals, a village builder and a Zelda-style adventure in one.
+
 A **farming sim** (Stardew-lite) is the obvious hole in the cozy cluster — game-010 (town), game-013 (flower shop), game-015 (pet), game-020 (river journey), and game-033 (apothecary) all touch adjacent cozy subjects, but nothing does crop-planting/seasons/harvest. Kaplay, top-down grid, day/night or season cycle, simple relationship/gifting mechanic to echo game-033's affinity system.
 
 ### 2. Dungeon crawler: isometric loot-focused hack-and-slash
