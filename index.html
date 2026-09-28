@@ -13,7 +13,7 @@
             <p class="subtitle">Choose a game and start playing!</p>
         </header>
 
-        <section class="carousel" aria-label="Featured games">
+        <section class="carousel" aria-label="Featured games" tabindex="0">
             <div class="carousel-viewport">
                 <div class="carousel-track">
                     <!-- Carousel slides are dynamically rendered from js/gamedata.js -->
@@ -21,8 +21,11 @@
             </div>
             <button class="carousel-arrow carousel-arrow-prev" aria-label="Previous game">&#10094;</button>
             <button class="carousel-arrow carousel-arrow-next" aria-label="Next game">&#10095;</button>
-            <div class="carousel-dots">
-                <!-- Dots are dynamically rendered -->
+            <div class="carousel-nav">
+                <div class="carousel-dots">
+                    <!-- Dots are dynamically rendered -->
+                </div>
+                <span class="carousel-counter" aria-live="polite"></span>
             </div>
         </section>
 

@@ -3,9 +3,10 @@ import games from './gamedata.js';
 // Newest-first ordering used everywhere in the browser
 const gamesNewestFirst = [...games].reverse();
 
-// How many of the newest games appear in the featured carousel
-const CAROUSEL_SIZE = 8;
 const CAROUSEL_INTERVAL_MS = 5000;
+
+// Max dots shown at once; the strip slides a window over the full game list
+const CAROUSEL_DOT_WINDOW = 9;
 
 /**
  * GameRenderer - Handles rendering game cards from data
@@ -89,6 +90,10 @@ class GameLauncher {
     /**
      * Initialize game launchers using event delegation, so this keeps working
      * after the grid or carousel re-renders their cards.
+     *
+     * Only the Play button launches a game. The card itself is deliberately not
+     * clickable: on touch devices a full-card hit area swallows carousel swipes
+     * and mistimed arrow taps, launching a game the player did not ask for.
      * @param {string} containerSelector - Selector for the container to delegate from
      */
     initializeGameCards(containerSelector) {
@@ -96,8 +101,12 @@ class GameLauncher {
         if (!container) return;
 
         container.addEventListener('click', (e) => {
-            const card = e.target.closest('.game-card, .carousel-slide');
+            const button = e.target.closest('.play-button');
+            if (!button) return;
+
+            const card = button.closest('.game-card, .carousel-slide');
             if (!card) return;
+
             const gameFolder = card.dataset.game;
             const gameTitle = card.dataset.title;
             if (gameFolder) {
@@ -108,17 +117,19 @@ class GameLauncher {
 }
 
 /**
- * Carousel - Cycling showcase of the newest games
+ * Carousel - Cycling showcase of every game in the collection
  */
 class Carousel {
     constructor(gamesData) {
-        this.games = gamesData.slice(0, CAROUSEL_SIZE);
+        this.games = gamesData;
         this.index = 0;
         this.track = document.querySelector('.carousel-track');
         this.dotsContainer = document.querySelector('.carousel-dots');
         this.prevBtn = document.querySelector('.carousel-arrow-prev');
         this.nextBtn = document.querySelector('.carousel-arrow-next');
+        this.counter = document.querySelector('.carousel-counter');
         this.timer = null;
+        this.dots = [];
     }
 
     slideHTML(game) {
@@ -145,7 +156,7 @@ class Carousel {
 
         this.track.innerHTML = this.games.map(game => this.slideHTML(game)).join('');
         this.dotsContainer.innerHTML = this.games
-            .map((_, i) => `<button class="carousel-dot${i === 0 ? ' active' : ''}" data-index="${i}" aria-label="Go to slide ${i + 1}"></button>`)
+            .map((game, i) => `<button class="carousel-dot" data-index="${i}" title="${game.title}" aria-label="Go to ${game.title}"></button>`)
             .join('');
 
         this.dots = Array.from(this.dotsContainer.querySelectorAll('.carousel-dot'));
@@ -159,7 +170,31 @@ class Carousel {
         this.track.style.transition = animate ? '' : 'none';
         this.track.style.transform = `translateX(-${this.index * 100}%)`;
 
-        this.dots.forEach((dot, i) => dot.classList.toggle('active', i === this.index));
+        this.updateDots();
+
+        if (this.counter) {
+            this.counter.textContent = `${this.index + 1} / ${count}`;
+        }
+    }
+
+    /**
+     * With 40+ games a full dot strip is unreadable, so only a window of dots
+     * around the current slide is shown; the rest are hidden.
+     */
+    updateDots() {
+        const count = this.dots.length;
+        const windowSize = Math.min(CAROUSEL_DOT_WINDOW, count);
+        const half = Math.floor(windowSize / 2);
+        const start = Math.min(Math.max(this.index - half, 0), count - windowSize);
+
+        this.dots.forEach((dot, i) => {
+            const inWindow = i >= start && i < start + windowSize;
+            dot.hidden = !inWindow;
+            dot.classList.toggle('active', i === this.index);
+            // Fade the dots at the edges of the window to hint there is more
+            const edge = inWindow && (i === start || i === start + windowSize - 1) && count > windowSize;
+            dot.classList.toggle('edge', edge);
+        });
     }
 
     next() {
@@ -203,6 +238,51 @@ class Carousel {
         const viewport = document.querySelector('.carousel-viewport');
         viewport?.addEventListener('mouseenter', () => this.stopAutoplay());
         viewport?.addEventListener('mouseleave', () => this.startAutoplay());
+
+        // Arrow keys move through the carousel while it (or its controls) has focus
+        document.querySelector('.carousel')?.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                this.prev();
+                this.startAutoplay();
+            } else if (e.key === 'ArrowRight') {
+                this.next();
+                this.startAutoplay();
+            } else {
+                return;
+            }
+            e.preventDefault();
+        });
+
+        this.bindSwipe(viewport);
+    }
+
+    /**
+     * Horizontal touch swipe on the viewport steps one slide
+     * @param {Element} viewport
+     */
+    bindSwipe(viewport) {
+        if (!viewport) return;
+
+        let startX = null;
+        let startY = null;
+
+        viewport.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            this.stopAutoplay();
+        }, { passive: true });
+
+        viewport.addEventListener('touchend', (e) => {
+            if (startX === null) return;
+            const dx = e.changedTouches[0].clientX - startX;
+            const dy = e.changedTouches[0].clientY - startY;
+            startX = null;
+
+            if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+                dx < 0 ? this.next() : this.prev();
+            }
+            this.startAutoplay();
+        }, { passive: true });
     }
 
     init() {

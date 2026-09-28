@@ -49,6 +49,14 @@ h1 {
     margin-bottom: 40px;
 }
 
+.carousel:focus {
+    outline: none;
+}
+
+.carousel:focus-visible .carousel-viewport {
+    border-color: rgba(255, 255, 255, 0.7);
+}
+
 .carousel-viewport {
     overflow: hidden;
     border-radius: 18px;
@@ -67,7 +75,6 @@ h1 {
     min-height: 260px;
     display: flex;
     align-items: center;
-    cursor: pointer;
     overflow: hidden;
 }
 
@@ -144,11 +151,30 @@ h1 {
     right: 16px;
 }
 
+.carousel-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 14px;
+}
+
 .carousel-dots {
     display: flex;
+    align-items: center;
     justify-content: center;
     gap: 8px;
-    margin-top: 14px;
+}
+
+.carousel-dot[hidden] {
+    display: none;
+}
+
+.carousel-counter {
+    font-size: 0.85em;
+    opacity: 0.75;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
 .carousel-dot {
@@ -164,6 +190,11 @@ h1 {
 
 .carousel-dot:hover {
     background: rgba(255, 255, 255, 0.55);
+}
+
+.carousel-dot.edge {
+    transform: scale(0.65);
+    background: rgba(255, 255, 255, 0.18);
 }
 
 .carousel-dot.active {
@@ -273,7 +304,6 @@ h1 {
     padding: 14px;
     transition: transform 0.3s, box-shadow 0.3s;
     border: 2px solid rgba(255, 255, 255, 0.2);
-    cursor: pointer;
 }
 
 .game-card:hover {
