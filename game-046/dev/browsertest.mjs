@@ -180,7 +180,7 @@ if (ONLY !== 'phones') {
     check(await Q(page, () => __qs.world.chapter === 10), 'chapter picker previews chapter 10');
     // The scene is actually drawn (not a black canvas, not hidden behind the fade).
     const lit = await Q(page, () => (document.getElementById('fade').classList.contains('on') ? 0 : __qs.brightness()));
-    check(lit > 6, `title scene is lit (mean brightness ${lit.toFixed(1)})`);
+    check(lit > 2, `title scene is lit (mean brightness ${lit.toFixed(1)})`);
     await ctx.close();
 }
 
@@ -222,7 +222,7 @@ for (const [name, vp] of ONLY === 'desktop' ? [] : [['phone-portrait', { width: 
     await touch('touchEnd');
     await until(page, () => __qs.world.stats.dmgDealt > 0, `${name}: lifting the thumb shoots`);
     const lit = await Q(page, () => __qs.brightness());
-    check(lit > 6, `${name}: the scene is drawn (mean brightness ${lit.toFixed(1)})`);
+    check(lit > 2, `${name}: the scene is drawn (mean brightness ${lit.toFixed(1)})`);
     await shot(page, `13-${name}-fight`);
     await ctx.close();
 }

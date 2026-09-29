@@ -6,7 +6,7 @@
  * along the room and fits the 11-wide room plus its walls to any aspect
  * ratio (portrait phones included).
  *
- * Post chain: RenderPass → UnrealBloom (only bright emissive things cross the
+ * Post chain: RenderPass → NaN scrub → UnrealBloom (only bright emissive things cross the
  * threshold) → a grade pass (vignette, damage flash, low-HP pulse) → OutputPass.
  */
 
@@ -22,7 +22,7 @@ export let hemi, sun;
 
 const FOV = 42;
 const TILT = THREE.MathUtils.degToRad(63);
-let bloom, grade;
+let bloom, grade, sanitize;
 let quality = 0;
 
 const rig = {
@@ -31,6 +31,23 @@ const rig = {
     want: new THREE.Vector3(),
     trauma: 0, punch: 0, flash: 0, flashColor: new THREE.Color(1, 1, 1), danger: 0,
     t: 0, minZ: -10, maxZ: 0, rows: 15, span: 16,
+};
+
+const SanitizeShader = {
+    uniforms: { tDiffuse: { value: null } },
+    vertexShader: /* glsl */`
+        varying vec2 vUv;
+        void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+    `,
+    fragmentShader: /* glsl */`
+        uniform sampler2D tDiffuse;
+        varying vec2 vUv;
+        void main() {
+            vec4 c = texture2D(tDiffuse, vUv);
+            bool bad = !(c.r == c.r) || !(c.g == c.g) || !(c.b == c.b) || !(c.a == c.a);
+            gl_FragColor = bad ? vec4(0.0, 0.0, 0.0, 1.0) : vec4(min(c.rgb, vec3(64.0)), c.a);
+        }
+    `,
 };
 
 const GradeShader = {
@@ -74,6 +91,8 @@ export function initScene() {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.prepend(renderer.domElement);
     renderer.domElement.id = 'game-canvas';
+    renderer.domElement.addEventListener('webglcontextlost', () => console.warn('Quiverspire: WebGL context lost'));
+    renderer.domElement.addEventListener('webglcontextrestored', () => console.warn('Quiverspire: WebGL context restored'));
 
     scene = new THREE.Scene();
     scene.fog = new THREE.Fog(0x000000, 18, 46);
@@ -94,6 +113,10 @@ export function initScene() {
 
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
+    // Scrub non-finite pixels before bloom: one NaN fragment would otherwise be
+    // blurred across the whole frame by the bloom mip chain (a black screen).
+    sanitize = new ShaderPass(SanitizeShader);
+    composer.addPass(sanitize);
     bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.5, 0.82);
     composer.addPass(bloom);
     grade = new ShaderPass(GradeShader);
@@ -115,6 +138,7 @@ export function setQuality(q) {
     sun.shadow.mapSize.set(quality === 0 ? 2048 : 1024, quality === 0 ? 2048 : 1024);
     if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
     bloom.enabled = quality < 2;
+    sanitize.enabled = quality < 2;      // only bloom can spread a stray NaN
     onResize();
 }
 export const getQuality = () => quality;

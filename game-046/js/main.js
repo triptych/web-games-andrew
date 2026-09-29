@@ -18,7 +18,7 @@ import { createRun, stepWorld, choose, runRewards, stageLabel } from './sim/worl
 import { makeBot, botInput } from './sim/bot.js';
 import { killEnemy } from './sim/combat.js';
 import {
-    scene as sceneRef, initScene, renderFrame, follow, snapCamera, setDanger, setQuality, getQuality,
+    scene as sceneRef, camera as cameraRef, renderer as rendererRef, initScene, renderFrame, follow, snapCamera, setDanger, setQuality, getQuality,
 } from './view/scene.js';
 import { buildRoom, updateRoom } from './view/roomView.js';
 import { initActors, resetActors, syncActors, setActorBiome } from './view/actors.js';
@@ -160,7 +160,7 @@ function startRun(opts) {
     sfx.click();
     runOpts = { ...opts };
     attract = false;
-    installWorld(createRun({ seed: (Date.now() ^ 0x9e3779b9) >>> 0, chapter: opts.chapter, endless: opts.endless, talents: state.talents }));
+    installWorld(createRun({ seed: opts.seed ?? ((Date.now() ^ 0x9e3779b9) >>> 0), chapter: opts.chapter, endless: opts.endless, talents: state.talents }));
     startMusic(world.chapter);
     setIntensity(1);
     mode = 'playing';
@@ -341,7 +341,7 @@ if (debug) {
         get world() { return world; },
         get mode() { return mode; },
         get attract() { return attract; },
-        start: (chapter = 1, endless = false) => startRun({ chapter, endless }),
+        start: (chapter = 1, endless = false, seed) => startRun({ chapter, endless, seed }),
         killAll() {
             for (let pass = 0; pass < 4; pass++) for (const e of [...world.enemies]) if (e.alive) killEnemy(world, e);
         },
@@ -353,11 +353,13 @@ if (debug) {
             world.player.y = world.grid.rows + 0.5; world.grid.doorOpen = true; world.phase = 'exit'; world.exitT = 0.01;
         },
         state,
+        quality: (q) => setQuality(q),
         scene: () => sceneRef,
+        cam: () => [cameraRef.position.x, cameraRef.position.y, cameraRef.position.z, cameraRef.aspect, cameraRef.fov],
         sound: isSoundEnabled,
         /** Mean brightness (0–255) of a freshly rendered frame, read in the same task as the render. */
-        brightness() {
-            renderFrame(0, elapsed);
+        brightness(raw = false) {
+            if (raw) rendererRef.render(sceneRef, cameraRef); else renderFrame(0, elapsed);
             const g = document.createElement('canvas');
             g.width = 64; g.height = 40;
             const x = g.getContext('2d');

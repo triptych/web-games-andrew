@@ -26,11 +26,12 @@ Load the game with `?debug=1` to get `window.__qs`:
 | Hook | Effect |
 |---|---|
 | `__qs.world` / `__qs.mode` / `__qs.attract` | Live simulation, UI mode, whether the bot is driving |
-| `__qs.start(chapter, endless)` | Start a run |
 | `__qs.killAll()` | Kill every enemy in the room (drops loot) |
 | `__qs.god(on)` | Make the player invulnerable |
 | `__qs.toStage(i)` | Jump to stage index `i` (0–11) of the chapter |
 | `__qs.state` | Persistent save (coins, talents, unlocks) |
-| `__qs.brightness()` | Mean brightness of a freshly rendered frame |
+| `__qs.start(chapter, endless, seed)` | Start a run, optionally from a fixed seed |
+| `__qs.brightness(raw)` | Mean brightness of a freshly rendered frame (`raw`: skip post-processing) |
+| `__qs.quality(q)` / `__qs.cam()` | Force a quality tier (0–2) / read the camera |
 
 `?debug=1` also disables the automatic quality downgrade.

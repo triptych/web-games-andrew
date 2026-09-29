@@ -252,7 +252,9 @@ the Slime King's landing blast and body contact double-dipping; the Lich's
 summons pinning a weak build forever; a revive clearing the bullet list
 mid-loop; knock-back banked during an enemy's spawn-in flinging it out of the
 room; the room fade never lifting after a chapter clear (a black title screen);
-pits hidden under the outer ground plane; a clipped title on landscape phones;
+pits hidden under the outer ground plane; a stray NaN fragment that the bloom
+blur smeared across the whole frame (a black screen on some rooms — now scrubbed
+before bloom); a clipped title on landscape phones;
 and — deep in Endless — Headshot ignoring HP scaling, an empty level-up roll and
 a Devil with nothing to sell freezing the run.
 
