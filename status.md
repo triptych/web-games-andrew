@@ -2,7 +2,7 @@
 
 Completion audit of all games in this repo, based on each game's own game-plan.md / CHANGELOG.md / PHASE-COMPLETE docs cross-checked against code. Ratings reflect feature completeness against each game's own stated scope, not code quality or bugs.
 
-**Launcher note:** all 45 games are present in `js/gamedata.js` and appear on the home page. Two historical gaps, both now fixed and committed: game-030 (Coppergate Lane) was built but missing from `gamedata.js` entirely, and game-038 (Emberbrood) was listed but had no `.game-card.emberbrood .play-button` rule in `css/styles.css`, so its card fell back to the default button styling while every other game had a themed one.
+**Launcher note:** all 46 games are present in `js/gamedata.js` and appear on the home page. Two historical gaps, both now fixed and committed: game-030 (Coppergate Lane) was built but missing from `gamedata.js` entirely, and game-038 (Emberbrood) was listed but had no `.game-card.emberbrood .play-button` rule in `css/styles.css`, so its card fell back to the default button styling while every other game had a themed one.
 
 | Game | Title | Rating | Notes |
 |---|---|---|---|
@@ -50,6 +50,7 @@ Completion audit of all games in this repo, based on each game's own game-plan.m
 | [game-042](game-042/index.html) | Popgun Pip | **Complete** | An 8-bit Mario-style platformer with Metroid-style gadget unlocks, in vanilla JS + Canvas 2D (no libraries, no asset files). 25 procedural levels whose routes and gadget gates are proven with the real player physics by `js/validate.js`; five bosses; chiptune composer. Verified by `game-042/dev/`: `gentest.mjs` (3,423 checks over 250 levels), `simtest.mjs` (46/46 incl. a bot beating all five bosses), `mobiletest.mjs` (CDP touch, 38/38 portrait, 33/33 landscape), `flowtest.mjs` (11/11 screen flow) and `shots.mjs` (three sizes, zero console errors). Open: difficulty is bot-tuned and nobody has hand-played the full campaign on a real phone yet |
 | [game-044](game-044/index.html) | The Story Thief of Greymantle | **Complete** | A King's Quest-style point-and-click fairy tale in vanilla JS + Canvas 2D (no libraries, no asset files): 10 scenes, 15 items, 8 deaths with undo, a self-writing Book of Tales, 200-point score, 3 endings. `game-044/dev/walkthrough.mjs` plays the perfect route and every ending through the real UI. |
 | [game-045](game-045/index.html) | PINBREAK '86 | **Complete** | Synthwave pinball × breakout in three.js: plunger, flippers, bumpers, slings, nudge/TILT, five brick layouts with explosive chains, six flipper-caught power-ups, combos, attract mode, adaptive music. `dev/simtest.mjs` bot-plays dozens of games checking every physics sub-step; `dev/browsertest.mjs` covers desktop and touch phones. |
+| [game-046](game-046/index.html) | Quiverspire | **Complete** | Archero-style roguelite in three.js: stand still to shoot, 10 chapters × 12 procedurally generated rooms plus Endless, 12 telegraphed enemy types, elites, angels, devil deals, 5 multi-phase bosses (Ascended in chapters 6–10), 29 stacking abilities, 6 talents; every texture, model and song generated in code. `dev/simtest.mjs` bot-plays every chapter checking every tick; `dev/browsertest.mjs` covers desktop flows, all ten biomes and touch-only phones. Open: balance is bot-derived; nobody has hand-played all ten chapters. |
 
 ## Key takeaways
 
