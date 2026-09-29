@@ -4690,3 +4690,90 @@ bottom of the view.
   on the next frame and "kicks" it with the same stomp.
 - A goal that triggers on overlap with a thin pole must also trigger on touching the block at its
   base, or a player who walks up to it at ground level just stands there.
+
+
+## Pinball physics you can trust (game-045 PINBREAK '86, 2026-09-29)
+
+[game-045](../../game-045/) is a pinball × breakout synthesis. Its simulation (`js/sim/world.js`) is
+pure JS in the game-040 style, and `dev/simtest.mjs` has a bot play dozens of games, checking every
+sub-step for a ball outside the table outline or inside a brick or bumper. Every bug below survived
+the "looks fine when I play it" test and was caught by that check within seconds of bot time.
+
+### A fixed 1/480 s sub-step makes capsule collision enough
+
+Walls are capsule segments (closest point on segment, push out along the normal, reflect the normal
+velocity). At 480 Hz a 42 u/s ball moves 0.09 units per step, far less than ball radius plus wall
+radius, so nothing tunnels and no swept collision is needed. The sim is still ~300× faster than real
+time in Node. The cost is one line in the frame loop: cap the sub-steps (`steps < 60`) and drop the
+accumulator if you hit the cap.
+
+### Flippers: put the surface velocity into the bounce
+
+A flipper is a tapered capsule rotating about its pivot. The contact point's velocity is `ω × r`, and
+the bounce uses the ball's velocity *relative* to that surface:
+
+```js
+const qx = cx + nx * r - f.px, qy = cy + ny * r - f.py;   // contact point relative to pivot
+const svx = -f.omega * qy, svy = f.omega * qx;             // ω × r (CCW-positive ω)
+const vn = (b.vx - svx) * nx + (b.vy - svy) * ny;
+if (vn < 0) { b.vx -= (1 + e) * vn * nx; b.vy -= (1 + e) * vn * ny; }
+```
+
+That single formula gives real pinball aiming for free: a ball near the tip leaves faster and at a
+different angle than one near the pivot, and a raised, stationary flipper cradles. Mirror the right
+flipper with `dir = (-cos a, sin a)`, and remember its CCW angular velocity is `-da/dt`.
+
+### Symptom: the ball appears *outside* the table, just below a funnel
+
+A rising flipper can shove the ball past the centre line of a thin funnel wall. The two-sided capsule
+test then sees the ball on the *far* side and pushes it out through the back. The fix is
+**one-sided boundary walls**: give each boundary a normal pointing into the field, and whenever the
+ball's centre projects inside the segment and sits within a small depth *behind* it, push it back to
+the open side:
+
+```js
+if (s.nx !== undefined && t > 0 && t < 1) {
+    const sd = dx * s.nx + dy * s.ny;          // signed distance from the wall's centre line
+    if (sd >= rr || sd < -0.6) continue;       // clear, or far behind (another region entirely)
+    nx = s.nx; ny = s.ny;                       // always push toward the open side
+}
+```
+
+Keep the depth limit tight. With `-1.2` the right funnel's "behind" zone reached into the plunger
+lane and grabbed the launching ball. Resolve walls **last** in the step (after flippers, bumpers
+and bricks) so the table boundary always wins a squeeze.
+
+### Every spawn point needs a clearance rule
+
+Two more escapes were things *appearing* inside other things:
+
+- **Multiball** cloned balls at the position of the ball that caught the pickup, often in the middle
+  of the brick wall. Their overlap push shoved them into bricks. Spawn them from a place that is
+  always clear by construction (here, the channel between the top arc and the bricks).
+- **A new wave** materialised bricks around a ball that was already in flight. Those bricks start as
+  ghosts (no collision) until no ball overlaps them.
+
+A related one: a power-up bar across the drain wider than the gap between the flipper tips kicked a
+drained ball up *under* a flipper and out behind the funnel. Close the space under the flippers with
+drain guides, so a ball that has passed between the tips can only fall.
+
+### Bots find the degenerate strategies
+
+The first bot re-flipped on the same frame it released, so the flipper never dropped. Two balls sat
+cradled on it for four minutes and the stuck-ball detector correctly ignored them (they were touching
+a raised flipper). A 0.14 s release cooldown fixed it. The simtest now asserts a minimum number of
+bricks and bumper hits per game, which is what flagged it.
+
+### Juice needs a budget, not just intensity knobs
+
+Every effect looked right on its own, but a fireball ploughing through 30 bricks in three frames
+stacked 1,500 additive sparks, 30 flares and 30 surface lights into a white screen. Cap the *count*
+per frame, not the brightness per effect: game-045 allows 260 sparks, 3 flares, 4 rings and 4 surface
+lights per frame. A big chain still reads as a storm, and nothing else changes.
+
+### One juice director, fed by the sim's event queue
+
+The sim pushes events (`brickBreak`, `blast`, `bumper`, `drain`...) and one module, `juice.js`, maps
+each to sound, particles, lights, shake, aberration, FOV punch, banners, hit-stop and slow-motion.
+Tuning the game's feel happens in one table. A `quiet` flag reuses the same director for the
+attract-mode demo behind the title, so you get the visuals without sounds or banners.

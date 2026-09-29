@@ -1,0 +1,412 @@
+/* PINBREAK '86 — DOM HUD and screens drawn over the WebGL canvas. */
+
+:root {
+    --pink:   #ff2fa8;
+    --cyan:   #35f2ff;
+    --purple: #8a2cff;
+    --gold:   #ffd23d;
+    --text:   #f4eaff;
+    --bg:     #07021a;
+    --display: 'Arial Black', 'Arial Bold', Impact, 'Helvetica Neue', sans-serif;
+    --mono: 'Courier New', ui-monospace, monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    overflow: hidden;
+    color: var(--text);
+    font-family: var(--mono);
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+canvas { display: block; }
+
+.hidden { display: none !important; }
+
+#ui-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* ------------------------------------------------------------------ HUD */
+
+#hud-top {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: clamp(10px, 3vw, 40px);
+    /* Left padding clears the fixed "← Games" link; right clears the corner buttons. */
+    padding: 10px 100px 0 100px;
+}
+
+.hud-block { text-align: center; min-width: 0; }
+
+.hud-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--cyan);
+    text-shadow: 0 0 6px var(--cyan);
+}
+
+#score-val {
+    font-family: var(--display);
+    font-size: clamp(22px, 4vw, 34px);
+    letter-spacing: 1px;
+    color: #fff;
+    text-shadow: 0 0 6px var(--pink), 0 0 18px var(--pink), 0 0 32px var(--purple);
+    font-variant-numeric: tabular-nums;
+    display: inline-block;
+    transform-origin: 50% 60%;
+}
+#score-val.bump { animation: bump 0.18s ease-out; }
+@keyframes bump {
+    0%   { transform: scale(1.22); color: var(--gold); }
+    100% { transform: scale(1); }
+}
+
+#wave-name {
+    font-family: var(--display);
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-shadow: 0 0 8px rgba(255, 210, 61, 0.8);
+    white-space: nowrap;
+}
+#brick-bar {
+    margin: 4px auto 0;
+    width: 120px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 2px;
+    overflow: hidden;
+}
+#brick-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, var(--pink), var(--gold));
+    box-shadow: 0 0 8px var(--pink);
+    transition: width 0.2s;
+}
+
+#balls-val { display: flex; gap: 5px; justify-content: center; padding-top: 6px; }
+.ball-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff, #9ff 40%, #0bd 75%);
+    box-shadow: 0 0 8px var(--cyan);
+}
+.ball-dot.lost { animation: lost 0.6s forwards; }
+@keyframes lost { to { transform: scale(0); opacity: 0; } }
+
+/* Combo meter */
+#combo {
+    position: absolute;
+    right: 18px;
+    top: 38%;
+    text-align: right;
+    transform: rotate(-4deg);
+}
+#combo-mult {
+    font-family: var(--display);
+    font-size: clamp(40px, 7vw, 72px);
+    font-style: italic;
+    line-height: 0.9;
+    color: #fff;
+    text-shadow: 0 0 8px var(--gold), 0 0 24px var(--pink), 0 0 48px var(--pink);
+}
+#combo-mult.pop { animation: comboPop 0.35s cubic-bezier(.2, 2.2, .4, 1); }
+@keyframes comboPop {
+    0%   { transform: scale(1.8) rotate(-8deg); }
+    100% { transform: scale(1); }
+}
+#combo-count {
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--cyan);
+    text-shadow: 0 0 6px var(--cyan);
+}
+#combo-timer {
+    margin-top: 4px;
+    margin-left: auto;
+    width: 110px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.15);
+}
+#combo-timer-fill { height: 100%; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+
+/* Active power-ups */
+#powers {
+    position: absolute;
+    left: 14px;
+    bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.power {
+    --c: #fff;
+    width: 150px;
+    padding: 4px 8px 5px;
+    border: 1px solid var(--c);
+    border-radius: 4px;
+    background: rgba(7, 2, 26, 0.6);
+    box-shadow: 0 0 10px var(--c), inset 0 0 8px var(--c);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: 0 0 6px var(--c);
+    animation: powerIn 0.3s cubic-bezier(.2, 1.8, .4, 1);
+}
+.power .bar { margin-top: 3px; height: 3px; background: var(--c); transform-origin: left; }
+.power.ending { animation: blink 0.25s steps(2) infinite; }
+@keyframes powerIn { from { transform: translateX(-120%); } }
+@keyframes blink { 50% { opacity: 0.25; } }
+
+#save-lamp {
+    position: absolute;
+    left: 50%;
+    bottom: 12px;
+    transform: translateX(-50%);
+    font-family: var(--display);
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #3dff8a;
+    text-shadow: 0 0 8px #3dff8a;
+    animation: blink 0.6s steps(2) infinite;
+}
+
+#plunger-hint {
+    position: absolute;
+    right: 16px;
+    bottom: 18px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    text-shadow: 0 0 6px var(--cyan);
+}
+#plunger-text { animation: blink 1s steps(2) infinite; max-width: 140px; text-align: right; }
+#plunger-meter {
+    width: 14px;
+    height: 90px;
+    border: 1px solid var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+    display: flex;
+    align-items: flex-end;
+}
+#plunger-fill {
+    width: 100%;
+    height: 0%;
+    background: linear-gradient(0deg, var(--cyan), var(--pink) 70%, var(--gold));
+    box-shadow: 0 0 12px var(--pink);
+}
+
+/* ------------------------------------------------------------------ Banners */
+
+#banners {
+    position: absolute;
+    left: 0; right: 0;
+    top: 34%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+.banner {
+    --c: var(--pink);
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(30px, 7vw, 76px);
+    letter-spacing: 2px;
+    white-space: nowrap;
+    color: #fff;
+    text-shadow: 0 0 6px var(--c), 0 0 20px var(--c), 0 0 42px var(--c);
+    animation: bannerLife var(--life, 1.6s) cubic-bezier(.2, .9, .3, 1) forwards;
+}
+.banner.small { font-size: clamp(16px, 3.4vw, 30px); letter-spacing: 4px; }
+.banner .sub {
+    display: block;
+    font-size: 0.34em;
+    letter-spacing: 6px;
+    text-align: center;
+    color: var(--gold);
+    text-shadow: 0 0 8px var(--gold);
+}
+@keyframes bannerLife {
+    0%   { transform: scale(2.6) skewX(-12deg); opacity: 0; filter: blur(6px); }
+    12%  { transform: scale(0.94) skewX(-8deg); opacity: 1; filter: blur(0); }
+    18%  { transform: scale(1.04) skewX(-8deg); }
+    24%  { transform: scale(1) skewX(-8deg); }
+    78%  { transform: scale(1) skewX(-8deg); opacity: 1; }
+    100% { transform: scale(1.3, 0.1) skewX(-8deg); opacity: 0; }
+}
+.banner.glitch { animation: bannerLife var(--life, 1.6s) cubic-bezier(.2, .9, .3, 1) forwards, glitch 0.18s steps(2) 6; }
+@keyframes glitch {
+    0%   { text-shadow: -4px 0 var(--cyan), 4px 0 var(--pink), 0 0 30px var(--c); }
+    100% { text-shadow: 4px 0 var(--cyan), -4px 0 var(--pink), 0 0 30px var(--c); }
+}
+
+/* ------------------------------------------------------------------ Screens */
+
+.screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    text-align: center;
+    pointer-events: auto;
+    background: radial-gradient(ellipse at 50% 50%, rgba(7, 2, 26, 0.72), rgba(7, 2, 26, 0.45) 60%, rgba(7, 2, 26, 0.2));
+    padding: 20px;
+}
+#pause, #over { background: rgba(7, 2, 26, 0.7); backdrop-filter: blur(3px); }
+
+.logo { position: relative; transform: skewX(-10deg); margin-bottom: 4px; }
+.logo-top {
+    font-family: var(--display);
+    font-size: clamp(46px, 12vw, 120px);
+    line-height: 1;
+    letter-spacing: 2px;
+    background: linear-gradient(180deg, #fff 0%, #bfe9ff 35%, #3a2a8c 50%, #ff9ee6 52%, #fff 78%, #ffd6f2 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.35);
+    filter: drop-shadow(0 0 8px var(--pink)) drop-shadow(0 0 22px var(--purple));
+    animation: logoPulse 2.4s ease-in-out infinite;
+}
+.logo-86 {
+    position: absolute;
+    right: -0.2em;
+    bottom: -0.55em;
+    font-family: 'Brush Script MT', 'Segoe Script', cursive;
+    font-style: italic;
+    font-size: clamp(40px, 9vw, 92px);
+    color: var(--pink);
+    text-shadow: 0 0 6px #fff, 0 0 16px var(--pink), 0 0 34px var(--pink);
+    transform: rotate(-10deg);
+}
+@keyframes logoPulse {
+    50% { filter: drop-shadow(0 0 14px var(--pink)) drop-shadow(0 0 36px var(--cyan)); }
+}
+.tagline {
+    margin-top: 18px;
+    font-size: clamp(11px, 1.8vw, 15px);
+    letter-spacing: 5px;
+    color: var(--cyan);
+    text-shadow: 0 0 8px var(--cyan);
+}
+
+.neon-btn {
+    pointer-events: auto;
+    font-family: var(--display);
+    font-size: 20px;
+    letter-spacing: 4px;
+    padding: 14px 38px;
+    min-width: 240px;
+    min-height: 48px;
+    color: #fff;
+    background: linear-gradient(180deg, rgba(255, 47, 168, 0.35), rgba(138, 44, 255, 0.35));
+    border: 2px solid var(--pink);
+    border-radius: 6px;
+    box-shadow: 0 0 12px var(--pink), inset 0 0 12px rgba(255, 47, 168, 0.6);
+    text-shadow: 0 0 8px var(--pink);
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.15s;
+}
+.neon-btn:hover, .neon-btn:focus-visible {
+    transform: scale(1.05);
+    box-shadow: 0 0 22px var(--pink), 0 0 44px var(--purple), inset 0 0 16px rgba(255, 47, 168, 0.8);
+    outline: none;
+}
+.neon-btn.ghost {
+    font-size: 14px;
+    border-color: var(--cyan);
+    background: transparent;
+    box-shadow: 0 0 8px var(--cyan);
+    text-shadow: 0 0 6px var(--cyan);
+}
+#start-btn { animation: coin 1.1s ease-in-out infinite; }
+@keyframes coin { 50% { box-shadow: 0 0 26px var(--pink), 0 0 60px var(--purple), inset 0 0 18px var(--pink); } }
+
+.controls {
+    font-size: 13px;
+    line-height: 1.8;
+    letter-spacing: 1px;
+    color: rgba(244, 234, 255, 0.85);
+    text-shadow: 0 0 4px #000;
+}
+.controls b { color: var(--gold); font-weight: normal; }
+.touch-only { display: none; color: var(--cyan); }
+@media (pointer: coarse) {
+    .touch-only { display: block; }
+}
+.best { font-size: 14px; letter-spacing: 4px; color: var(--gold); text-shadow: 0 0 8px var(--gold); }
+
+.neon-h {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(40px, 9vw, 84px);
+    color: #fff;
+    text-shadow: 0 0 8px var(--cyan), 0 0 26px var(--cyan), 0 0 48px var(--purple);
+}
+.neon-h.red { text-shadow: 0 0 8px #ff3b3b, 0 0 26px var(--pink), 0 0 48px var(--purple); }
+.final-score {
+    font-family: var(--display);
+    font-size: clamp(36px, 8vw, 64px);
+    color: var(--gold);
+    text-shadow: 0 0 12px var(--gold), 0 0 32px var(--pink);
+}
+.final-new { font-size: 16px; letter-spacing: 4px; color: var(--cyan); animation: blink 0.5s steps(2) infinite; }
+.final-stats { margin-top: 10px; font-size: 13px; line-height: 1.8; letter-spacing: 2px; opacity: 0.9; }
+
+/* ------------------------------------------------------------------ Corner buttons */
+
+#corner {
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 8px;
+    z-index: 50;
+}
+.corner-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
+    color: #fff;
+    background: rgba(7, 2, 26, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+}
+.corner-btn.off { opacity: 0.4; text-decoration: line-through; }
+
+/* ------------------------------------------------------------------ Small screens */
+
+@media (max-width: 640px) {
+    /* Width budget at 390px: 90 (Games link) + score ~110 + balls ~60 + 100 (buttons).
+       The wave block moves under the row so nothing overflows. */
+    #hud-top { padding: 8px 100px 0 92px; gap: 14px; flex-wrap: wrap; }
+    #wave-block { order: 3; flex-basis: 100%; }
+    #brick-bar { width: 90px; }
+    #combo { top: 30%; right: 10px; }
+    #powers { left: 8px; bottom: 10px; }
+    .power { width: 118px; font-size: 10px; letter-spacing: 1px; }
+    #plunger-hint { right: 8px; bottom: 10px; }
+    #plunger-text { max-width: 90px; }
+    .controls { font-size: 11px; }
+}

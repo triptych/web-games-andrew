@@ -574,6 +574,19 @@ const games = [
             { emoji: '\uD83D\uDCDC', label: 'Story' },
             { emoji: '\uD83E\uDDE9', label: 'Puzzle' }
         ]
+    },
+    {
+        id: 'game-045',
+        title: "PINBREAK '86",
+        description: 'A flashy synthwave pinball table whose upper half is a breakout brick wall. Plunge, flip, nudge and pop bumpers like pinball, but smash every brick to clear the wave: explosive bricks set off chain reactions, and power-ups (multiball, fireball, flipper lasers, a drain shield, wide flippers, double score) fall down the table to be caught with your flippers. Three.js with bloom, chrome balls, neon trails, shards, shockwaves, hit-stop, slow-mo and a beat-synced synthwave soundtrack.',
+        icon: '\uD83D\uDD79\uFE0F',
+        folder: 'game-045',
+        cssClass: 'pinbreak',
+        tags: [
+            { emoji: '\uD83C\uDFB0', label: 'Pinball' },
+            { emoji: '\uD83E\uDDF1', label: 'Breakout' },
+            { emoji: '\uD83C\uDF08', label: 'Synthwave' }
+        ]
     }
 ];
 

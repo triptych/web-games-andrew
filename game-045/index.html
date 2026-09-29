@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#07021a">
+    <title>PINBREAK '86</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a href="../index.html" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
+
+    <div id="ui-overlay">
+        <!-- In-game HUD -->
+        <div id="hud" class="hidden">
+            <div id="hud-top">
+                <div class="hud-block" id="score-block">
+                    <div class="hud-label">SCORE</div>
+                    <div id="score-val">0</div>
+                </div>
+                <div class="hud-block" id="wave-block">
+                    <div class="hud-label" id="wave-num">WAVE 1</div>
+                    <div id="wave-name">SUNSET STRIP</div>
+                    <div id="brick-bar"><div id="brick-fill"></div></div>
+                </div>
+                <div class="hud-block" id="balls-block">
+                    <div class="hud-label">BALLS</div>
+                    <div id="balls-val"></div>
+                </div>
+            </div>
+
+            <div id="combo" class="hidden">
+                <div id="combo-mult">x2</div>
+                <div id="combo-count">8 CHAIN</div>
+                <div id="combo-timer"><div id="combo-timer-fill"></div></div>
+            </div>
+
+            <div id="powers"></div>
+
+            <div id="save-lamp" class="hidden">BALL SAVE</div>
+            <div id="plunger-hint" class="hidden">
+                <div id="plunger-meter"><div id="plunger-fill"></div></div>
+                <span id="plunger-text">HOLD SPACE · RELEASE TO LAUNCH</span>
+            </div>
+        </div>
+
+        <!-- Big centre banners (WAVE CLEAR, MULTIBALL, TILT...) -->
+        <div id="banners"></div>
+
+        <!-- Title -->
+        <div id="title" class="screen">
+            <div class="logo">
+                <div class="logo-top">PINBREAK</div>
+                <div class="logo-86">'86</div>
+            </div>
+            <div class="tagline">PINBALL × BREAKOUT · A NEON SYNTHESIS</div>
+            <button id="start-btn" class="neon-btn">INSERT COIN</button>
+            <div class="controls">
+                <div><b>Z</b> / <b>←</b> / <b>A</b> — left flipper</div>
+                <div><b>/</b> / <b>→</b> / <b>D</b> — right flipper</div>
+                <div><b>SPACE</b> / <b>↓</b> — hold &amp; release plunger</div>
+                <div><b>↑</b> / <b>N</b> — nudge (careful: TILT)</div>
+                <div><b>P</b> pause · <b>M</b> mute</div>
+                <div class="touch-only">Touch: left / right half = flippers · hold to plunge</div>
+            </div>
+            <div class="best">BEST <span id="best-val">0</span></div>
+        </div>
+
+        <!-- Pause -->
+        <div id="pause" class="screen hidden">
+            <h2 class="neon-h">PAUSED</h2>
+            <button id="resume-btn" class="neon-btn">RESUME</button>
+            <button id="quit-btn" class="neon-btn ghost">QUIT TO TITLE</button>
+        </div>
+
+        <!-- Game over -->
+        <div id="over" class="screen hidden">
+            <h2 class="neon-h red">GAME OVER</h2>
+            <div class="final">
+                <div class="final-score" id="final-score">0</div>
+                <div class="final-new hidden" id="final-new">NEW HIGH SCORE!</div>
+                <div class="final-stats" id="final-stats"></div>
+            </div>
+            <button id="again-btn" class="neon-btn">PLAY AGAIN</button>
+            <button id="menu-btn" class="neon-btn ghost">TITLE</button>
+        </div>
+    </div>
+
+    <!-- Always-available corner buttons (touch-friendly) -->
+    <div id="corner">
+        <button id="mute-btn" class="corner-btn" aria-label="Mute">♪</button>
+        <button id="pause-btn" class="corner-btn hidden" aria-label="Pause">❚❚</button>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
