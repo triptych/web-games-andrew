@@ -627,6 +627,11 @@ h1 {
     color: #f4ecd8;
 }
 
+.game-card.pinbreak .play-button {
+    background: linear-gradient(135deg, #35f2ff 0%, #ff2fa8 55%, #ffd23d 100%);
+    color: #07021a;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

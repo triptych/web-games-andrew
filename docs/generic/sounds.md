@@ -863,3 +863,37 @@ running, ties the whole thing together and costs nothing per frame.
 Two practical notes: keep one shared noise `AudioBuffer` for every impact sound rather than
 allocating per shot, and route SFX and music through separate gain nodes so the options screen can
 mute one without the other.
+
+
+---
+
+## Look-ahead sequenced synthwave with side-chain pump (game-045 PINBREAK '86)
+
+`setTimeout`-driven notes drift whenever the frame rate stutters. game-045 uses the "two clocks"
+pattern: a 25 ms `setInterval` schedules every 16th note that falls within the next 120 ms **on the
+AudioContext clock**, so timing is sample-accurate however busy the main thread is.
+
+```js
+function scheduler() {
+    if (nextTime < ctx.currentTime - 0.2) {            // tab was backgrounded: skip, don't cram
+        const skip = Math.ceil((ctx.currentTime - nextTime) / STEP);
+        step += skip; nextTime += skip * STEP;
+    }
+    while (nextTime < ctx.currentTime + 0.12) { playStep(step, nextTime); nextTime += STEP; step++; }
+}
+```
+
+- **The synthwave "pump"**: route bass and pad through one gain node and, on every kick, drop it
+  to 0.35 and ramp it back to 1 over most of a beat
+  (`pump.gain.setValueAtTime(0.35, t); pump.gain.linearRampToValueAtTime(1, t + SPB * 0.8)`). This
+  one automation is most of the genre's feel.
+- **Layers follow the game**: intensity 0 = pad + octave bass (title), 1 = + kick/snare/hats, 2 =
+  + arpeggio (combo ×3 or multiball), 3 = + lead stabs. Switching layers at a step boundary never
+  clicks.
+- **Visuals on the same clock**: `getBeatPulse()` returns `exp(-phase * 5)` where
+  `phase = ((ctx.currentTime - musicStart) / SPB) % 1`. The sun, grid, sky and table pulse exactly on
+  the kick.
+- **Make the combo audible**: brick-break notes walk a pentatonic scale indexed by the chain count
+  (`64 + PENTA[i % 5] + 12 * floor(i / 5)`), so a long chain is a rising run. A per-sound rate
+  limiter (`limit(key, 0.025)`) stops a 30-brick explosive chain stacking 30 voices.
+- A `DynamicsCompressor` on the master bus keeps blasts, the pump and big chords from clipping.

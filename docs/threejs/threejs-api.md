@@ -343,6 +343,65 @@ bug, effects leaking across level changes, and several NaN transforms before the
 opened in a browser.
 
 
+## Tilted play surface in its own coordinate space (game-045)
+
+A pinball table leans back from the camera. Rather than converting between simulation and world
+coordinates everywhere, nest two groups: the root is tilted, and a child is offset so that
+**its local space *is* the simulation's** (x across, y up the table, z = height above the glass):
+
+```js
+tableRoot = new THREE.Group();
+tableRoot.rotation.x = -tilt;                    // lean back from vertical
+table = new THREE.Group();
+table.position.set(-centerX, -centerY, 0);       // table centre at the world origin
+tableRoot.add(table);
+// every view module: mesh.position.set(sim.x, sim.y, height); table.add(mesh)
+```
+
+Particles, shards, popups and trails all live in `table` too, so "fly up off the table" is just +z.
+
+## Showing the horizon *and* a readable table (game-045)
+
+Two angles decide it: the table's lean from vertical and the camera's elevation. The table reads
+well when the angle between the view ray and the table plane is 60° or more, but the horizon is only
+on screen if the camera looks down by less than half the vertical FOV. A 45° FOV, a table leaning
+**30° from vertical** and a camera **7° above horizontal** satisfy both. The first attempt (55° lean,
+25° camera) put the synthwave sun above the top of the screen.
+
+Then fit the distance per aspect ratio (as in game-040): project the table's corners and
+binary-search the camera distance until every corner lands inside the NDC box below the HUD, then
+shift the look target so the leftover space is split evenly.
+
+## Glass that fades toward the backdrop (game-045)
+
+With the table surface fully opaque, the sun behind it was invisible in portrait. The surface shader
+now fades its own alpha with height (`mix(0.94, 0.5, smoothstep(10.0, 27.0, vP.y))`), so the striped
+sun glows *through* the glass behind the bricks while the flipper area stays dark and readable.
+
+## Fake lights painted onto a surface shader (game-045)
+
+Explosions light up the neon grid under them without a single `PointLight`. A small registry holds
+short-lived `{x, y, radius, intensity, color}` lights, and the table surface shader takes the eight
+brightest as `uniform vec4 uL[8]; uniform vec3 uLC[8];`, adding
+`color * min(k, 1.5) * (0.1 + line * 0.8)` where `line` is the grid-line mask. The lights mostly
+brighten the grid *lines*, which reads as neon rather than as a blob. Clamp the intensity. Uncapped,
+three overlapping blasts blow the whole table out to white under bloom.
+
+## Neon env map for chrome from a tiny generated scene (game-045)
+
+`RoomEnvironment` makes chrome look like a grey photo studio. Instead, render a 10-unit sphere with a
+banded shader (pink horizon line, cyan sky, dark grid floor, one warm hot-spot) through
+`PMREMGenerator.fromScene(envScene, 0.02)` once at boot. Pass the result as `envMap` on a
+`metalness: 1, roughness: 0.1` material, and the pinballs reflect the synthwave palette.
+
+## Post chain with a custom pass: end with `OutputPass` (game-045)
+
+`RenderPass → UnrealBloomPass → ShaderPass(CRT) → OutputPass`. The custom CRT pass (chromatic
+aberration scaled by an impact uniform, scanlines, vignette, colour flash) works in linear space, and
+`OutputPass` does the sRGB conversion last. Keep bloom at half resolution
+(`bloom.resolution.set(w*pr/2, h*pr/2)`), which looks the same and costs a quarter of the fill.
+Drive the post uniforms from the gameplay events (`aberrate()`, `flash()`), not from time.
+
 ## Common gotchas
 
 - **`updateProjectionMatrix()` missing** — see resize section above. Symptom: window resizes but render is squashed.
@@ -376,6 +435,7 @@ To use: `import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 - [three.js examples](https://threejs.org/examples/)
 - [game-024 — Neon Vanguard](../../game-024/) — top-down shmup; bloom, custom grid shader, canvas-sprite HUD text
 - [game-040 — Starcadet](../../game-040/) — vertical bullet-hell shmup; instanced bullets, six shader backdrops, aspect-fitting camera, and a fake-three.js Node harness
+- [game-045 — PINBREAK '86](../../game-045/) — pinball × breakout; tilted table rig, horizon-aware camera, fake surface lights, neon env map, CRT post pass, per-frame fx budgets
 - [game-023 — Synthwave Invaders](../../game-023/) — reference implementation for new three.js games
 - [game-018 — Village of Wandering Blade](../../game-018/) — large-scale three.js example
 - [game-014 — TRACKRUNNER](../../game-014/) — legacy r128 pattern (do not copy for new games)
