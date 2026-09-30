@@ -179,6 +179,7 @@ async function desktop() {
 
     // each node type via debug jump
     for (const type of ['event', 'shop', 'rest', 'treasure', 'elite']) {
+        if (type === 'elite') await Q(page, () => window.__aa.jump(1, 0));   // realm 1 may have no elite; realm 2+ always does
         const entered = await Q(page, (t) => window.__aa.goto(t), type);
         check(entered === type, `${type}: node found on the map and entered`);
         await throughStory(page, type);
