@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-45 games, `game-001` through `game-045`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+46 games, `game-001` through `game-046`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -57,6 +57,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 | 043 | [Glimmerglen](game-043/) | Cozy village builder / farming sim / Zelda-like adventure with turn-based battles | Vanilla JS (Canvas 2D + DOM), no dependencies |
 | 044 | [The Story Thief of Greymantle](game-044/) | Point-and-click fairy-tale adventure (King's Quest / Warlock of Firetop Mountain) | Vanilla JS (Canvas 2D + DOM), no dependencies |
 | 045 | [PINBREAK '86](game-045/) | Synthwave pinball × breakout synthesis | three.js |
+| 046 | [Quiverspire](game-046/) | Archero-style roguelite archer | three.js |
 
 ### Highlights
 
@@ -103,6 +104,8 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 **[Wakeform](game-039/)** — An **Atari-2600-shaped arcade game built on one original mechanic**, and the whole game is in that mechanic: you have no weapon. Your probe can do exactly one thing — invert its own polarity — and as you fly it continuously sheds **echoes**, frozen copies of itself holding whatever polarity you had at that instant. The echoes are not a trail and not a wall; each one exerts the same force you do, so like-polarity motes are shoved away and opposite ones are drawn in and absorbed. You defend the reactor core by *drawing a working machine out of your own movement history* — lay a stroke to steer motes, funnel them into a knot of opposite echoes that holds them orbiting, then fly in and harvest the cluster in one enormous chain. Every echo and every flip costs flux, and flying back through your own past reclaims it, so good play is a loop: build, harvest, reclaim, rebuild. Five mote classes each attack a different weakness in a lattice (the leech eats echoes you abandoned; the anchor ignores force entirely and has to be fetched by hand). **Vanilla HTML/CSS/JS, no libraries and no asset files** — a 160×192 internal buffer scaled nearest-neighbour, an 8-colour palette sampled from the real 2600 NTSC ramp, sprites and playfield generated per run seed, all audio synthesised. Difficulty was tuned against scripted bots rather than guesswork; the Node harnesses that verified it without a browser are in [game-039/dev/](game-039/dev/README.md).
 
 **[PINBREAK '86](game-045/)** — A **flashy synthwave pinball table whose upper half is a breakout brick wall**. It plays like pinball — hold-and-release plunger, flippers, pop bumpers, slingshots, nudging and TILT — but you win like breakout: clear every brick to finish the wave. The genres meet in the middle: bricks drop power-ups that fall down the table and are **caught with the flippers**, which double as the breakout paddle (multiball, a fireball that ploughs through the wall, lasers fired from the flipper tips, a drain shield, wide flippers, double score), and explosive bricks detonate in cascading chains. Five layouts that loop tougher, a combo multiplier whose brick sounds climb a pentatonic scale, ball save, extra balls. Built to be juicy: real bloom plus a CRT pass (chromatic aberration that spikes on impacts, scanlines, vignette, colour flashes), chrome balls reflecting a neon environment, ribbon trails, pooled sparks, tumbling instanced shards, shockwave rings, a table-surface shader lit by every explosion, screen shake, FOV punches, hit-stop and slow-motion, all under a striped retro sun, wireframe mountains and a scrolling grid floor that pulse with a sequenced synthwave soundtrack (it grows layers as the combo climbs). The physics is a pure 480 Hz simulation with no three.js or DOM in it, so [game-045/dev/](game-045/dev/README.md) has a bot play thousands of balls headlessly and fail on any ball that leaves the table; an attract-mode demo of that same bot plays behind the title screen.
+
+**[Quiverspire](game-046/)** — An **Archero-style roguelite archer** in three.js. Your archer fires automatically at the nearest enemy, but only while standing still — moving stops the bow — so every room is a rhythm of dodge, plant your feet, loose arrows, dodge again. Climb ten chapters of twelve rooms (**120 procedurally generated rooms**, plus an **Endless** mode whose difficulty curve steepens as it climbs): mirrored layouts of rock, water, lava, acid, chasms and spike traps, validated so every room's door and every spawn is reachable on foot. Twelve enemy types that all telegraph their attacks (laser sights, charge lanes, marked landing circles, lobbed bombs you can watch arc in), elite champions, angels, devil's bargains that cost a slice of max HP forever, and five multi-phase bosses who return **Ascended** in the later chapters. Level-ups offer three of 29 stacking abilities — Multishot, Front/Diagonal/Side/Rear arrows, Ricochet, Piercing, Bouncy Wall, fire/frost/poison/lightning arrows, orbiting flame and frost circles, spirit wisps, Aegis, an Extra Life — and coins buy six permanent talents between runs. **Everything is generated in code**: floor textures painted per biome from a recipe, a seven-look liquid/chasm shader, obstacles, props, the hero, every enemy and boss modelled from primitives and hue-shifted per chapter, and a music sequencer that composes each chapter its own loop. Keyboard, gamepad, or a one-thumb floating joystick on a phone. The simulation is pure and seeded, so [game-046/dev/](game-046/dev/README.md) has a bot play every chapter headlessly (checking every tick that nothing leaves the room or stands in a wall) and a Playwright harness walk the real game on desktop and touch-only phones.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -173,7 +176,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-045/   # One self-contained folder per game
+├── game-001/ … game-046/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -183,7 +186,7 @@ web-games-andrew/
 └── README.md               # This file
 ```
 
-Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045) load it from a CDN via an import map in their `index.html`.
+Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046) load it from a CDN via an import map in their `index.html`.
 
 ## Technologies Used
 
@@ -192,7 +195,7 @@ Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018
 - **CSS3** - Styling and responsive design
 - **Kaplay Framework (v4000 alpha)** - Game development framework (most games from game-002 onward, including game-032)
 - **Phaser 4.0.0 (ESM)** - Game framework (game-019, game-020, game-027, game-028, game-035)
-- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045)
+- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046)
 - **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034, game-037, game-038, game-039)
 - **Custom software 3D** - Hand-written 3D renderers with no engine: a palette-indexed framebuffer (game-031) and a triangle rasterizer on Canvas2D (game-036)
 - **GemCore/GemShell** - Desktop application packaging
@@ -230,7 +233,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 45 games are included as of the latest entries (game-042 Popgun Pip, game-043 Glimmerglen, game-044 The Story Thief of Greymantle, game-045 PINBREAK '86).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 46 games are included as of the latest entries (game-043 Glimmerglen, game-044 The Story Thief of Greymantle, game-045 PINBREAK '86, game-046 Quiverspire).
 
 ---
 

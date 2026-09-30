@@ -587,6 +587,19 @@ const games = [
             { emoji: '\uD83E\uDDF1', label: 'Breakout' },
             { emoji: '\uD83C\uDF08', label: 'Synthwave' }
         ]
+    },
+    {
+        id: 'game-046',
+        title: 'Quiverspire',
+        description: "An Archero-style roguelite archer in three.js. Stand still and your archer fires on the nearest enemy; move and you stop shooting, so every room is a rhythm of dodge, plant your feet, loose arrows, dodge again. Climb ten chapters of twelve procedurally generated rooms each (120 in all, plus an Endless mode that never stops climbing): mirrored obstacle layouts of rock, water, lava, chasms and spike traps, twelve enemy types that all telegraph their attacks, elite champions, and five multi-phase bosses who come back Ascended in the later chapters. Level up mid-run and choose from 29 abilities that stack into real builds — Multishot, Front Arrow, Ricochet, Piercing, Bouncy Wall, fire, frost, poison and lightning arrows, orbiting flame circles, spirit wisps, an Extra Life — pray at angel shrines, and strike deals with the Devil for a slice of your max HP. Coins buy permanent talents between runs. Every room, texture, model and song is generated in code: ten distinct biomes from a mossy glade to a void crown, and no asset files at all. Keyboard, gamepad, or a one-thumb floating joystick on a phone.",
+        icon: '\uD83C\uDFF9',
+        folder: 'game-046',
+        cssClass: 'quiverspire',
+        tags: [
+            { emoji: '\uD83C\uDFF9', label: 'Roguelite' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' },
+            { emoji: '\uD83D\uDCF1', label: 'Touch' }
+        ]
     }
 ];
 

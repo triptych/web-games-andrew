@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#120d1c">
+    <title>Quiverspire</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a href="../index.html" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
+
+    <!-- Captures the floating joystick (under the UI, over the canvas). -->
+    <div id="touch-layer"></div>
+    <div id="stick"><div id="stick-knob"></div></div>
+    <div id="numbers"></div>
+    <div id="fade"></div>
+
+    <div id="ui-overlay">
+        <!-- In-run HUD -->
+        <div id="hud" class="hidden">
+            <div id="hud-top">
+                <div id="lvl-badge">Lv <span id="lvl">1</span></div>
+                <div id="xp-bar"><div id="xp-fill"></div></div>
+            </div>
+            <div id="hud-row">
+                <div id="stage-label">1-1</div>
+                <div id="coin-label"><span class="coin-ico"></span><span id="coin-val">0</span></div>
+            </div>
+            <div id="boss-bar" class="hidden">
+                <div id="boss-name">BOSS</div>
+                <div id="boss-track"><div id="boss-lag"></div><div id="boss-fill"></div></div>
+            </div>
+            <div id="hero-hp">
+                <div id="hero-hp-val">750</div>
+                <div id="hero-hp-track"><div id="hero-hp-fill"></div></div>
+            </div>
+            <div id="hint" class="hidden"></div>
+        </div>
+
+        <div id="banners"></div>
+
+        <!-- Title -->
+        <div id="title" class="screen">
+            <div class="logo">
+                <div class="logo-a">QUIVER</div>
+                <div class="logo-b">SPIRE</div>
+            </div>
+            <div class="tagline">Stand still to shoot · move to survive</div>
+
+            <div id="chapter-pick">
+                <button id="ch-prev" class="arrow-btn" aria-label="Previous chapter">◀</button>
+                <div id="ch-card">
+                    <div id="ch-num">CHAPTER 1</div>
+                    <div id="ch-name">Verdant Glade</div>
+                    <div id="ch-info">12 rooms</div>
+                </div>
+                <button id="ch-next" class="arrow-btn" aria-label="Next chapter">▶</button>
+            </div>
+
+            <button id="play-btn" class="btn primary">PLAY</button>
+            <div class="btn-row">
+                <button id="endless-btn" class="btn">ENDLESS</button>
+                <button id="talents-btn" class="btn">TALENTS</button>
+            </div>
+            <div class="wallet"><span class="coin-ico"></span><span id="title-coins">0</span></div>
+            <div class="controls">
+                <div><b>WASD</b> / <b>arrows</b> or <b>drag anywhere</b> to move</div>
+                <div>Stop moving and your archer fires automatically</div>
+                <div><b>P</b> / <b>Esc</b> pause · <b>M</b> mute</div>
+            </div>
+        </div>
+
+        <!-- Talents -->
+        <div id="talents" class="screen hidden">
+            <h2 class="screen-h">TALENTS</h2>
+            <div class="wallet big"><span class="coin-ico"></span><span id="talent-coins">0</span></div>
+            <div id="talent-grid"></div>
+            <button id="talents-back" class="btn">BACK</button>
+        </div>
+
+        <!-- Ability / angel / devil choice -->
+        <div id="choice" class="screen hidden">
+            <h2 id="choice-title" class="screen-h">LEVEL UP!</h2>
+            <div id="choice-sub">Choose an ability</div>
+            <div id="choice-cards"></div>
+            <button id="choice-refuse" class="btn ghost hidden">REFUSE</button>
+        </div>
+
+        <!-- Pause -->
+        <div id="pause" class="screen hidden">
+            <h2 class="screen-h">PAUSED</h2>
+            <div id="pause-stage"></div>
+            <div id="pause-abilities"></div>
+            <button id="resume-btn" class="btn primary">RESUME</button>
+            <button id="quit-btn" class="btn ghost">ABANDON RUN</button>
+        </div>
+
+        <!-- Run over -->
+        <div id="over" class="screen hidden">
+            <h2 id="over-title" class="screen-h">DEFEATED</h2>
+            <div id="over-sub"></div>
+            <div id="over-stats"></div>
+            <div id="over-coins" class="wallet big"><span class="coin-ico"></span><span id="over-coin-val">0</span></div>
+            <div id="over-unlock" class="hidden"></div>
+            <button id="again-btn" class="btn primary">AGAIN</button>
+            <button id="menu-btn" class="btn ghost">TITLE</button>
+        </div>
+    </div>
+
+    <div id="corner">
+        <button id="mute-btn" class="corner-btn" aria-label="Mute">♪</button>
+        <button id="pause-btn" class="corner-btn hidden" aria-label="Pause">❚❚</button>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
