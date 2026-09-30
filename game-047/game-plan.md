@@ -248,39 +248,42 @@ game-047/
   index.html          import map, DOM overlay skeleton
   style.css
   js/
-    main.js           boot, mode state machine, frame loop, event drain
-    config.js         tunables (mults, suit scales, hand size, deals…)
+    main.js           boot, frame loop, the run flow (advance), save/load, input, debug hooks
+    battle.js         combat director (plays sim events back) + table input
     sim/              PURE: no three, no DOM, no Math.random
-      rng.js          mulberry32 + hash
-      cards.js        ranks, suits, enchantments, arcana, card factory
-      poker.js        5-card evaluator with wilds/ash, line scorer
-      board.js        5×5 grid, lines, completion detection
-      combat.js       turn loop, deals, statuses, intents, resolution, event queue
-      monsters.js     species genomes, move-sets, encounters, bosses
-      relics.js       relic effects + generated names, elixirs
-      map.js          world maps, place names
-      events.js       templated & story events
-      story.js        world data, chapters, dialogue, endings, Chronicle
-      heroes.js       hero classes + generated appearance/name
-      run.js          run state, rewards, shop, rest, save/load, checkpoints
+      rng.js          mulberry32, hashes, serialisable RNG
+      rules.js        suits, hands, mults, tunables
+      cards.js        enchantments, Arcana, card factory, reward rolls
+      poker.js        5-card evaluator with wilds/Ash
+      combat.js       table, lines, turns, statuses, intents, scoring, event queue
+      monsters.js     species genomes, roles, encounters, the ten Wardens
+      relics.js       relics (procedural names) and elixirs
+      worlds.js       the ten realms: palettes, props, bestiary archetypes, music, scaling
+      map.js          branching 10-floor maps, place names
+      events.js       templated mystery events
+      story.js        The Last Hand: opening, chapters, interludes, Wardens, endings
+      heroes.js       three classes, starting decks, generated names/looks
+      run.js          run state, rewards, shop, rest, effects, checkpoints, Chronicle
       bot.js          heuristic player for tests
     view/
-      scene.js        renderer, two cameras, composer, grade pass, resize, quality
-      textures.js     canvas helpers, normal-from-height, noise
-      cardArt.js      card face/back painting + cache
-      cards3d.js      card meshes, table, hand, animations, hit-testing
-      world.js        per-world backgrounds, weather, lights
-      monsters3d.js   procedural monster/boss/hero models + animation
-      fx.js           particles, beams, motes, flashes, shake
-    audio/
-      audio.js        context, buses, reverb, sample baking, SFX
-      music.js        generative composer + look-ahead sequencer
+      scene.js        renderer, two scenes/cameras, composer, grade pass, quality
+      textures.js     canvas helpers, noise, normal-from-height
+      cardArt.js      card face/back painting (colour + normal + foil maps)
+      cards3d.js      card meshes, carved table, hand, piles, cell overlays, hit-testing
+      world.js        realm backdrops, weather, god rays, lights, PMREM env
+      creatures.js    procedural monsters, Warden signatures, heroes
+      stage.js        actors in the world, combat camera framing
+      fx.js           particles, homing motes, beams, rings
+    audio/audio.js    synth engine, baked instruments, generative score, SFX
     ui/
-      ui.js           screens: title, hero select, map, reward, shop, rest,
-                      event, story, deck, codex, pause, results; HUD; tooltips
+      dom.js          element builder, SVG icons, card thumbnails, tooltips, numbers
+      hud.js          top bar, combat panel, enemy plates
+      screens.js      title, heroes, story book, map, reward, event, shop, rest,
+                      treasure, picker, deck, ranks, how-to, settings, chronicle, death, ending
   dev/
-    simtest.mjs       bot plays whole 100-level runs headlessly + invariants + balance
+    simtest.mjs       bot plays whole 100-level runs headlessly + invariants + balance table
     browsertest.mjs   Playwright walk of the real game, desktop + phones
+    cards.html, creatures.html, wardens.html   visual review sheets
 ```
 
 Rules proven by earlier games in this repo: the simulation is pure and seeded (game-040), the sim
@@ -308,3 +311,7 @@ geometry (game-046).
 ## 10. Changelog
 
 - **v1.0** — first release: 10 worlds, 100 levels, 3 heroes, 10 Wardens, 3 endings.
+  Balance (bot, 24 runs): every run finishes the campaign with rekindles; normal battles cost
+  ~6–18% HP, elites ~9–23%, Wardens ~15–46%, and the last two Wardens are the hardest fights.
+  Flood and Void were made predictable (bottom row upward, left column rightward, shown on the
+  table) after random wipes made the Abbess fight drag.

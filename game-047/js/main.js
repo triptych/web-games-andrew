@@ -123,7 +123,7 @@ function heroSelect() {
     screen = 'heroes';
     let cls = 'knight', seed = newSeed();
     setWorld(0, 7);
-    setMode('map');
+    setMode('map', 'center');
     setMusic(0, 'map');
     const draw = () => {
         const ident = heroIdentity(seed, cls);
@@ -387,6 +387,18 @@ if (DEBUG) {
             const id = ids.find((x) => m.nodes[x].type === type) ?? ids[0];
             enterNode(id);
             return m.nodes[id].type;
+        },
+        /** Enter a node of this type in the current world (sets up the path to it). */
+        goto: (type) => {
+            endBattle();
+            const m = R.mapOf(run);
+            const node = Object.values(m.nodes).find((n) => n.type === type);
+            if (!node) return null;
+            run.phase = 'map'; run.pending = null; run.story = []; run.picks = [];
+            run.floor = node.floor - 1;
+            run.nodeId = node.prev[0] ?? null;
+            enterNode(node.id);
+            return node.type;
         },
         win: () => battleApi.win(),
         quality: (q) => setQuality(q),

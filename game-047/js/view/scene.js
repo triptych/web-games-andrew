@@ -51,7 +51,7 @@ const GradeShader = {
             float r2 = dot(d, d);
             vec3 col;
             if (uAberr > 0.0001) {
-                vec2 off = d * uAberr * 0.03;
+                vec2 off = d * min(uAberr, 1.5) * 0.012;
                 col = vec3(texture2D(tDiffuse, vUv + off).r, texture2D(tDiffuse, vUv).g, texture2D(tDiffuse, vUv - off).b);
             } else {
                 col = texture2D(tDiffuse, vUv).rgb;

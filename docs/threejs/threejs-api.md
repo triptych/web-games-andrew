@@ -402,6 +402,80 @@ aberration scaled by an impact uniform, scanlines, vignette, colour flash) works
 (`bloom.resolution.set(w*pr/2, h*pr/2)`), which looks the same and costs a quarter of the fill.
 Drive the post uniforms from the gameplay events (`aberrate()`, `flash()`), not from time.
 
+## Two scenes, one composer: a pixel-exact UI layer over a 3D world (game-047)
+
+A card game needs the table legible at any aspect ratio while the world behind it is a free 3D
+scene. game-047 renders two scenes through one `EffectComposer`; the second `RenderPass` must not
+clear colour but must clear depth, and both share the bloom/grade/output passes:
+
+```js
+composer.addPass(new RenderPass(worldScene, worldCam));
+const cardPass = new RenderPass(cardScene, cardCam);
+cardPass.clear = false;       // keep the world
+cardPass.clearDepth = true;   // but never let world depth hide a card
+composer.addPass(cardPass);
+```
+
+Place the card camera so that **one unit is one CSS pixel at z = 0** and lay everything out in
+pixels, while cards still tilt, flip and lift in real perspective:
+
+```js
+cardCam.fov = 20;
+const dist = h / (2 * Math.tan(cardCam.fov * Math.PI / 360));
+cardCam.position.set(0, 0, dist);          // (0,0) = screen centre, +y up
+// px → layer: x - w/2, h/2 - y
+```
+
+Hit-testing then needs no raycaster at all: cells and hand slots are rectangles in pixels.
+
+## Framing a group into a screen region with `setViewOffset` (game-047)
+
+To put the enemy line in the right 45% of a landscape screen (or the top quarter of a phone),
+solve the distance from the group's size and the region's share of the screen, then move the
+principal point onto the region's centre:
+
+```js
+const tan = Math.tan(cam.fov * Math.PI / 360);
+const d = Math.max(W / (2 * tan * (w / h) * rw), H / (2 * tan * rh));   // rw, rh = region fractions
+cam.position.set(0, lookY + d * 0.13, d);
+cam.lookAt(0, lookY, 0);
+cam.setViewOffset(w, h, w / 2 - regionCx, h / 2 - regionCy, w, h);    // centre → (regionCx, regionCy)
+cam.updateProjectionMatrix();
+```
+
+Anything that must stand on the same ground line elsewhere on screen (the hero) is found by
+casting a ray through its screen spot onto `y = 0`.
+
+## Patching MeshStandardMaterial instead of writing a shader (game-047)
+
+Monsters keep full PBR lighting and shadows but gain veins, rim light, a hit flash and a dissolve
+by injecting into `onBeforeCompile`. Share uniform *objects* across a creature's materials so one
+`uHit.value = 1` flashes the whole body, and set `customProgramCacheKey` when the injected code
+differs between materials, or three.js reuses the first compiled program:
+
+```js
+m.onBeforeCompile = (sh) => {
+    sh.uniforms.uHit = U.uHit;   // same object on every part
+    sh.vertexShader = 'varying vec3 vObjPos;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvObjPos = position;');
+    sh.fragmentShader = '...' + sh.fragmentShader
+        .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\nif (noise3(vObjPos * 3.5) < uDissolve) discard;')
+        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += vec3(uHit) + uRim * pow(1.0 - abs(dot(normal, normalize(vViewPosition))), 3.0);');
+};
+m.customProgramCacheKey = () => `creature${glow ? 1 : 0}`;
+```
+
+`normal` and `vViewPosition` are already in scope at `emissivemap_fragment`.
+
+## Smooth normals on a displaced icosahedron (game-047)
+
+`IcosahedronGeometry` is non-indexed, so `computeVertexNormals()` after displacing it gives flat
+facets. Delete `normal` and `uv`, `mergeVertices()` (from `three/addons/utils/BufferGeometryUtils.js`),
+displace, then compute normals — shared vertices get one displacement and one smooth normal.
+
+## Gotcha: `Object3D.add()` returns the parent (game-047)
+
+`group.add(mesh).rotation.x = ...` rotates the **group**. Build the mesh, set its transform, then add it.
+
 ## Common gotchas
 
 - **`updateProjectionMatrix()` missing** — see resize section above. Symptom: window resizes but render is squashed.
@@ -437,6 +511,7 @@ To use: `import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 - [game-024 — Neon Vanguard](../../game-024/) — top-down shmup; bloom, custom grid shader, canvas-sprite HUD text
 - [game-040 — Starcadet](../../game-040/) — vertical bullet-hell shmup; instanced bullets, six shader backdrops, aspect-fitting camera, and a fake-three.js Node harness
 - [game-045 — PINBREAK '86](../../game-045/) — pinball × breakout; tilted table rig, horizon-aware camera, fake surface lights, neon env map, CRT post pass, per-frame fx budgets
+- [game-047 — Ashes & Aces](../../game-047/) — card roguelite; two-scene composer with a pixel-exact card layer, region-framed camera, patched PBR creatures, canvas-painted card faces with normal/foil maps
 - [game-023 — Synthwave Invaders](../../game-023/) — reference implementation for new three.js games
 - [game-018 — Village of Wandering Blade](../../game-018/) — large-scale three.js example
 - [game-014 — TRACKRUNNER](../../game-014/) — legacy r128 pattern (do not copy for new games)

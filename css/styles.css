@@ -664,6 +664,16 @@ h1 {
     color: #120d1c;
 }
 
+.game-preview.ashesaces,
+.carousel-slide-bg.ashesaces {
+    background: radial-gradient(ellipse at 50% 35%, #e8a040 0%, #7a1a14 45%, #1a0806 100%);
+}
+
+.game-card.ashesaces .play-button {
+    background: linear-gradient(135deg, #5a1020 0%, #e8b848 50%, #fff0b0 100%);
+    color: #1a0a04;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

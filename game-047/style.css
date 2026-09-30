@@ -258,6 +258,7 @@ body.in-run #back-link { display: none; }
 .controls-hint { color: rgba(255,255,255,0.5); font: 12px var(--sans); }
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
 
+#scr-heroes { justify-content: flex-end; padding-bottom: 5vh; }
 #hero-cards { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; max-width: 980px; }
 .hero-card {
     width: min(290px, 90vw); padding: 14px; border-radius: 14px; cursor: pointer; text-align: center;
@@ -280,7 +281,7 @@ body.in-run #back-link { display: none; }
 }
 #story-kicker { color: var(--muted); letter-spacing: 4px; text-transform: uppercase; font-size: 13px; text-align: center; }
 #story-title { text-align: center; color: var(--gold-hi); font-size: clamp(26px, 4.4vw, 42px); text-shadow: 0 2px 0 #3a1a04, 0 0 20px rgba(255,190,80,0.35); }
-#story-body p { font-size: clamp(16px, 2vw, 19px); line-height: 1.6; color: var(--cream); margin: 0 0 12px; opacity: 0; animation: fadein 0.8s forwards; }
+#story-body p { font-size: clamp(16px, 2vw, 19px); line-height: 1.6; color: var(--cream); margin: 0 0 12px; opacity: 0; animation: fadein 0.45s forwards; }
 #story-body p.speech { color: #ffe8c0; }
 #story-body p.log { font: bold 15px var(--sans); color: var(--gold); }
 @keyframes fadein { to { opacity: 1; } }
@@ -302,7 +303,7 @@ body.in-run #back-link { display: none; }
 #map-world { color: var(--cream); font-size: 14px; text-shadow: 0 1px 3px #000; }
 #map-scroll {
     flex: 1; width: min(720px, 98vw); overflow-y: auto; overflow-x: hidden; border-radius: 14px;
-    background: linear-gradient(rgba(40,28,16,0.84), rgba(20,12,8,0.84)); border: 1px solid var(--edge);
+    background: linear-gradient(rgba(40,28,16,0.93), rgba(20,12,8,0.93)); border: 1px solid var(--edge);
     box-shadow: inset 0 0 40px rgba(0,0,0,0.6), 0 10px 40px rgba(0,0,0,0.6); touch-action: pan-y;
 }
 #map-canvas { position: relative; width: 100%; }
@@ -400,6 +401,9 @@ body.in-run #back-link { display: none; }
     .plate-name { font-size: 10px; }
 }
 @media (max-width: 520px) {
+    #hint-bar { white-space: normal; width: 92vw; text-align: center; font-size: 12px; }
+    #turn-panel .big-btn { padding: 8px 14px; min-height: 44px; }
+    #deals .gem { width: 16px; height: 16px; }
     #hud { flex-wrap: wrap; }
     #hud-right { width: 100%; justify-content: space-between; }
     #relics { max-width: 48vw; }

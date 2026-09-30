@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-46 games, `game-001` through `game-046`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+47 games, `game-001` through `game-047`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -58,6 +58,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 | 044 | [The Story Thief of Greymantle](game-044/) | Point-and-click fairy-tale adventure (King's Quest / Warlock of Firetop Mountain) | Vanilla JS (Canvas 2D + DOM), no dependencies |
 | 045 | [PINBREAK '86](game-045/) | Synthwave pinball × breakout synthesis | three.js |
 | 046 | [Quiverspire](game-046/) | Archero-style roguelite archer | three.js |
+| 047 | [Ashes & Aces](game-047/) | Deck-building roguelite × poker solitaire | three.js |
 
 ### Highlights
 
@@ -106,6 +107,8 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 **[PINBREAK '86](game-045/)** — A **flashy synthwave pinball table whose upper half is a breakout brick wall**. It plays like pinball — hold-and-release plunger, flippers, pop bumpers, slingshots, nudging and TILT — but you win like breakout: clear every brick to finish the wave. The genres meet in the middle: bricks drop power-ups that fall down the table and are **caught with the flippers**, which double as the breakout paddle (multiball, a fireball that ploughs through the wall, lasers fired from the flipper tips, a drain shield, wide flippers, double score), and explosive bricks detonate in cascading chains. Five layouts that loop tougher, a combo multiplier whose brick sounds climb a pentatonic scale, ball save, extra balls. Built to be juicy: real bloom plus a CRT pass (chromatic aberration that spikes on impacts, scanlines, vignette, colour flashes), chrome balls reflecting a neon environment, ribbon trails, pooled sparks, tumbling instanced shards, shockwave rings, a table-surface shader lit by every explosion, screen shake, FOV punches, hit-stop and slow-motion, all under a striped retro sun, wireframe mountains and a scrolling grid floor that pulse with a sequenced synthwave soundtrack (it grows layers as the combo climbs). The physics is a pure 480 Hz simulation with no three.js or DOM in it, so [game-045/dev/](game-045/dev/README.md) has a bot play thousands of balls headlessly and fail on any ball that leaves the table; an attract-mode demo of that same bot plays behind the title screen.
 
 **[Quiverspire](game-046/)** — An **Archero-style roguelite archer** in three.js. Your archer fires automatically at the nearest enemy, but only while standing still — moving stops the bow — so every room is a rhythm of dodge, plant your feet, loose arrows, dodge again. Climb ten chapters of twelve rooms (**120 procedurally generated rooms**, plus an **Endless** mode whose difficulty curve steepens as it climbs): mirrored layouts of rock, water, lava, acid, chasms and spike traps, validated so every room's door and every spawn is reachable on foot. Twelve enemy types that all telegraph their attacks (laser sights, charge lanes, marked landing circles, lobbed bombs you can watch arc in), elite champions, angels, devil's bargains that cost a slice of max HP forever, and five multi-phase bosses who return **Ascended** in the later chapters. Level-ups offer three of 29 stacking abilities — Multishot, Front/Diagonal/Side/Rear arrows, Ricochet, Piercing, Bouncy Wall, fire/frost/poison/lightning arrows, orbiting flame and frost circles, spirit wisps, Aegis, an Extra Life — and coins buy six permanent talents between runs. **Everything is generated in code**: floor textures painted per biome from a recipe, a seven-look liquid/chasm shader, obstacles, props, the hero, every enemy and boss modelled from primitives and hue-shifted per chapter, and a music sequencer that composes each chapter its own loop. Keyboard, gamepad, or a one-thumb floating joystick on a phone. The simulation is pure and seeded, so [game-046/dev/](game-046/dev/README.md) has a bot play every chapter headlessly (checking every tick that nothing leaves the room or stands in a wall) and a Playwright harness walk the real game on desktop and touch-only phones.
+
+**[Ashes & Aces](game-047/)** — **Slay the Spire meets poker solitaire** in a dark high-fantasy three.js roguelite. Every fight is played on a 5×5 table: place cards from your hand (three Deals a turn), and whenever a row, column or diagonal fills it fires as a **poker hand** — the hand sets the multiplier, and each card's chips flow into its suit: ♠ Blades damage your target, ♣ Staves hit every enemy, ♦ Coins raise Ward, ♥ Hearts heal. One card that finishes two lines is a **Cross** (×1.5 each). Monsters telegraph their intents and fight the table itself — sealing cells, stealing your best card, frosting cells so they score nothing, scrambling rows, shuffling dead Ash into your deck — and ten scripted **Crowned Wardens** add rising tides, erased columns, mirages and phase changes. Build a deck from ten enchantments, 22 Arcana spells, 52 relics and 8 elixirs across **10 realms × 10 levels = 100 levels** of branching Slay-the-Spire maps (battles, elites, mysteries, merchants, campfires, treasure). An authored epic, *The Last Hand*, with a chapter, interlude and Warden scene per realm and three endings, plus a Chronicle the run writes about you. **Everything is generated in code**: card faces painted at 512×720 with normal and foil maps (J/Q/K get generated portraits), eleven monster body plans grown from genomes with shader veins, rim light and dissolve deaths, ten realm backdrops (sky shaders, parallax ridges, props, GPU weather, god rays), heroes with generated names and looks, and a generative soundtrack (Karplus–Strong harp, FM bells, taiko, formant choir, convolution reverb) that composes each realm its own map, battle and Warden themes. The simulation is pure and seeded: [game-047/dev/](game-047/dev/README.md) has a bot play whole 100-level runs headlessly to balance the curve, and a Playwright harness walk the real game on desktop and touch-only phones.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -176,7 +179,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-046/   # One self-contained folder per game
+├── game-001/ … game-047/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -186,7 +189,7 @@ web-games-andrew/
 └── README.md               # This file
 ```
 
-Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046) load it from a CDN via an import map in their `index.html`.
+Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047) load it from a CDN via an import map in their `index.html`.
 
 ## Technologies Used
 
@@ -195,7 +198,7 @@ Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018
 - **CSS3** - Styling and responsive design
 - **Kaplay Framework (v4000 alpha)** - Game development framework (most games from game-002 onward, including game-032)
 - **Phaser 4.0.0 (ESM)** - Game framework (game-019, game-020, game-027, game-028, game-035)
-- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046)
+- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047)
 - **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034, game-037, game-038, game-039)
 - **Custom software 3D** - Hand-written 3D renderers with no engine: a palette-indexed framebuffer (game-031) and a triangle rasterizer on Canvas2D (game-036)
 - **GemCore/GemShell** - Desktop application packaging
@@ -233,7 +236,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 46 games are included as of the latest entries (game-043 Glimmerglen, game-044 The Story Thief of Greymantle, game-045 PINBREAK '86, game-046 Quiverspire).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 47 games are included as of the latest entries (game-044 The Story Thief of Greymantle, game-045 PINBREAK '86, game-046 Quiverspire, game-047 Ashes & Aces).
 
 ---
 

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Warden sheet</title>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.165.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.165.0/examples/jsm/"}}</script>
+<style>body{margin:0;background:#111;overflow:hidden}</style></head>
+<body><script type="module">
+// dev/wardens.html — the ten Wardens and the three heroes, for visual review.
+import * as THREE from 'three';
+import { Creature, Hero } from '../js/view/creatures.js';
+import { bossSpecies } from '../js/sim/monsters.js';
+import { heroIdentity } from '../js/sim/heroes.js';
+import { WORLD_DEFS } from '../js/sim/worlds.js';
+const W = innerWidth, H = innerHeight;
+const r = new THREE.WebGLRenderer({ antialias: true });
+r.setSize(W, H); r.toneMapping = THREE.ACESFilmicToneMapping; r.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x24242c);
+const cam = new THREE.PerspectiveCamera(30, W / H, 0.1, 200); cam.position.set(0, 9, 44); cam.lookAt(0, 4, 0);
+scene.add(new THREE.HemisphereLight(0xb0c0ff, 0x302010, 1.3));
+const sun = new THREE.DirectionalLight(0xfff0d0, 2.4); sun.position.set(5, 10, 10); scene.add(sun);
+const rim = new THREE.DirectionalLight(0x80c0ff, 2); rim.position.set(-5, 6, -10); scene.add(rim);
+const list = [];
+WORLD_DEFS.forEach((wd, w) => {
+  const c = new Creature(bossSpecies(wd.boss, w).look, { boss: true });
+  c.root.position.set((w % 5) * 8.5 - 17, w < 5 ? 7 : 0, w < 5 ? -6 : 0);
+  scene.add(c.root); list.push(c);
+});
+['knight','witch','rogue'].forEach((k, i) => { const h = new Hero(heroIdentity(55 + i, k).look); h.root.position.set(21 + (i % 2) * 2.5, i === 2 ? 0 : 7, i === 2 ? 0 : -6); h.root.scale.setScalar(1.6); h.root.rotation.y = 0.4; scene.add(h.root); list.push(h); });
+const clock = new THREE.Clock();
+function loop() { requestAnimationFrame(loop); const dt = Math.min(0.05, clock.getDelta()); for (const c of list) c.update(dt); r.render(scene, cam); }
+loop(); setTimeout(() => window.__done = true, 1500);
+</script></body></html>

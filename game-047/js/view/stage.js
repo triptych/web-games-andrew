@@ -39,7 +39,7 @@ export function setHero(look) {
     if (stage.hero) worldScene.add(stage.hero.root);
 }
 
-export function setMode(mode) { stage.mode = mode; }
+export function setMode(mode, focus = 'side') { stage.mode = mode; stage.focus = focus; }
 
 export function clearCreatures() {
     for (const c of stage.creatures.values()) { worldScene.remove(c.root); c.dispose(); }
@@ -106,7 +106,8 @@ function idleCamera() {
         return { pos: new THREE.Vector3(Math.sin(t * 0.05) * 6, 4 + Math.sin(t * 0.07) * 0.6, 16 + Math.cos(t * 0.05) * 3), look: new THREE.Vector3(0, 3.2, -10), off: { x: 0, y: 0 } };
     }
     const a = Math.sin(t * 0.06) * 0.5;
-    return { pos: new THREE.Vector3(Math.sin(a) * 8, 2.8, Math.cos(a) * 8), look: new THREE.Vector3(0, 1.6, 0), off: { x: 0, y: view.portrait ? -view.h * 0.12 : 0 } };
+    const side = stage.focus === 'center' || view.portrait ? 0 : view.w * 0.36;
+    return { pos: new THREE.Vector3(Math.sin(a) * 8, 2.8, Math.cos(a) * 8), look: new THREE.Vector3(0, 1.6, 0), off: { x: side, y: view.portrait ? -view.h * 0.12 : 0 } };
 }
 
 function placeHero() {

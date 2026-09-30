@@ -464,7 +464,17 @@ const PROPS = {
         const g = new THREE.Group();
         g.add(mesh(new THREE.CylinderGeometry(0.08, 0.08, 7, 6), M(0x3a2a1a), 0, 3.5, 0));
         const geo = new THREE.PlaneGeometry(1.4, 3, 8, 8);
-        const cloth = mesh(geo, new THREE.MeshStandardMaterial({ color: wd.accent, side: THREE.DoubleSide, roughness: 0.9, emissive: wd.accent, emissiveIntensity: 0.15 }), 0.75, 5.2, 0);
+        const cv = canvas(64, 128);
+        const cx = cv.getContext('2d');
+        const acc = '#' + wd.accent.toString(16).padStart(6, '0');
+        const gr = cx.createLinearGradient(0, 0, 0, 128);
+        gr.addColorStop(0, '#2a1410'); gr.addColorStop(1, '#120806');
+        cx.fillStyle = gr; cx.fillRect(0, 0, 64, 128);
+        cx.fillStyle = acc; cx.fillRect(0, 0, 64, 6); cx.fillRect(0, 0, 5, 128); cx.fillRect(59, 0, 5, 128);
+        cx.beginPath(); cx.moveTo(0, 110); cx.lineTo(32, 128); cx.lineTo(64, 110); cx.lineTo(64, 128); cx.lineTo(0, 128); cx.fill();
+        cx.font = 'bold 40px serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+        cx.fillText(['♠', '♣', '♦', '♥'][rng.int(0, 3)], 32, 58);
+        const cloth = mesh(geo, new THREE.MeshStandardMaterial({ map: colorTex(cv), side: THREE.DoubleSide, roughness: 0.9, emissive: wd.accent, emissiveIntensity: 0.08 }), 0.75, 5.2, 0);
         const base = geo.attributes.position.array.slice();
         g.add(cloth);
         g.userData.animate = (t) => {

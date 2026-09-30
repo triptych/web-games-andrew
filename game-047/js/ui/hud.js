@@ -128,16 +128,33 @@ export function placePiles(st) {
     if (st) { d.firstChild.textContent = st.draw.length; x.firstChild.textContent = st.discard.length; updatePiles(st.draw.length, st.discard.length); }
     // hand-name banners sit over the table
     const b = document.getElementById('banner');
-    if (layout.landscape) { b.style.left = (layout.tableCx - 400) + 'px'; b.style.right = 'auto'; b.style.width = '800px'; b.style.top = (layout.tableCy - layout.tableH * 0.32) + 'px'; } else { b.style.left = '0'; b.style.right = '0'; b.style.width = 'auto'; b.style.top = (layout.tableCy - layout.tableH * 0.3) + 'px'; }
+    if (layout.landscape && !layout.compact) { b.style.left = (layout.tableCx - 400) + 'px'; b.style.right = 'auto'; b.style.width = '800px'; b.style.top = (layout.tableCy - layout.tableH * 0.32) + 'px'; } else { b.style.left = '0'; b.style.right = '0'; b.style.width = 'auto'; b.style.top = (layout.tableCy - layout.tableH * 0.3) + 'px'; }
     const tp = $('turn-panel');
-    if (layout.landscape) {
+    if (layout.compact) {
+        tp.style.flexDirection = 'row';
+        tp.style.alignItems = 'center';
+        tp.style.right = '8px';
+        tp.style.bottom = `${Math.round(window.innerHeight - layout.hand.y + layout.hand.cw * 0.85)}px`;
+        $('hint-bar').style.bottom = 'auto';
+        $('hint-bar').style.top = '48px';
+    } else if (layout.landscape) {
         tp.style.right = '16px';
         tp.style.bottom = `calc(${Math.round(window.innerHeight - layout.discard.y + layout.hand.cw * 1.35)}px + var(--safe-b))`;
+        tp.style.flexDirection = 'column';
+        tp.style.alignItems = 'flex-end';
+        $('hint-bar').style.bottom = `${Math.round(window.innerHeight - layout.hand.y + layout.hand.cw * 1.05)}px`;
+        $('hint-bar').style.top = 'auto';
     } else {
+        // portrait: one row between the table and the hand; hints sit above the table
+        const tableBottom = layout.tableCy + layout.tableH / 2;
+        const handTop = layout.hand.y - layout.hand.cw * 1.406 * 0.5;
+        tp.style.flexDirection = 'row';
+        tp.style.alignItems = 'center';
         tp.style.right = '8px';
-        tp.style.bottom = `calc(${Math.round(window.innerHeight - layout.hand.y + layout.hand.cw * 1.25)}px + var(--safe-b))`;
+        tp.style.bottom = `${Math.round(window.innerHeight - Math.max(tableBottom + 54, (tableBottom + handTop) / 2 + 24))}px`;
+        $('hint-bar').style.bottom = 'auto';
+        $('hint-bar').style.top = `${Math.round(layout.tableCy - layout.tableH / 2 - 34)}px`;
     }
-    $('hint-bar').style.bottom = `${Math.round(window.innerHeight - layout.hand.y + layout.hand.cw * 1.05)}px`;
 }
 
 let hintTimer = null;

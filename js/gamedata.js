@@ -646,6 +646,20 @@ const games = [
             { emoji: '\uD83E\uDDCA', label: 'three.js' },
             { emoji: '\uD83D\uDCF1', label: 'Touch' }
         ]
+    },
+    {
+        id: 'game-047',
+        title: 'Ashes & Aces',
+        description: "Slay the Spire meets poker solitaire in a dark high-fantasy three.js roguelite. Every fight is played on a 5×5 table: place cards from your hand, and whenever a row, column or diagonal fills it fires as a poker hand — the hand sets the multiplier and the suits decide what it does (♠ Blades strike your target, ♣ Staves hit every enemy, ♦ Coins raise Ward, ♥ Hearts heal). Plan crosses where lines meet, dodge monsters that seal cells, steal your best card, frost the table or shuffle dead Ash into your deck, and build your deck with enchanted cards, 22 Arcana spells, 52 relics (nine of them Warden crowns) and 8 elixirs. Ten realms of ten levels — 100 in all — each with its own procedurally built landscape, bestiary, music and Crowned Warden, on branching maps of battles, elites, mysteries, merchants, campfires and treasure. An epic authored story (The Last Hand) with three endings, plus a Chronicle the run writes for you. Three Cardbound heroes whose names and looks are generated per run. Every card face, monster, realm, portrait and note of music is generated in code — no asset files. Saves after every step; fall and you can rekindle at the start of the realm. Mouse, touch or keyboard.",
+        icon: '\uD83C\uDCCF',
+        folder: 'game-047',
+        version: '1.0.0',
+        cssClass: 'ashesaces',
+        tags: [
+            { emoji: '\uD83C\uDCCF', label: 'Deckbuilder' },
+            { emoji: '\u2660\uFE0F', label: 'Poker Solitaire' },
+            { emoji: '\uD83C\uDFF0', label: 'Fantasy' }
+        ]
     }
 ];
 

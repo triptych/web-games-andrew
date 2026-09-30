@@ -39,7 +39,7 @@ async function newPage(viewport, extra = {}) {
     browser = await launch();
     const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1, ...extra });
     // pin quality (auto-quality would fight the test) and speed the animations up
-    await ctx.addInitScript(() => { try { localStorage.clear(); localStorage.setItem('ashes-aces-settings', JSON.stringify({ quality: '1', speed: '2.2', music: 0.2, sfx: 0.2 })); } catch { /* ignore */ } });
+    await ctx.addInitScript(() => { try { if (!sessionStorage.getItem('aa-init')) { sessionStorage.setItem('aa-init', '1'); localStorage.clear(); localStorage.setItem('ashes-aces-settings', JSON.stringify({ quality: '1', speed: '2.2', music: 0.2, sfx: 0.2 })); } } catch { /* ignore */ } });
     const page = await ctx.newPage();
     if (fs.existsSync(PKG)) {
         await page.route('https://unpkg.com/**', (route) => {
@@ -178,12 +178,10 @@ async function desktop() {
     await until(page, () => window.__aa.screen === 'map', 'back to the map');
 
     // each node type via debug jump
-    for (const [type, floor] of [['event', 1], ['shop', 2], ['rest', 7], ['treasure', 3], ['elite', 6]]) {
-        await Q(page, (f) => window.__aa.jump(0, f), floor);
-        await page.waitForTimeout(200);
-        const entered = await Q(page, (t) => window.__aa.enter(t), type);
+    for (const type of ['event', 'shop', 'rest', 'treasure', 'elite']) {
+        const entered = await Q(page, (t) => window.__aa.goto(t), type);
+        check(entered === type, `${type}: node found on the map and entered`);
         await throughStory(page, type);
-        if (entered !== type) { console.log(`  (no ${type} reachable here; entered ${entered})`); }
         await page.waitForTimeout(400);
         const scr = await Q(page, () => window.__aa.screen);
         await shot(page, `11-${type}`);
@@ -201,6 +199,12 @@ async function desktop() {
             await page.waitForTimeout(200);
             await shot(page, '12-event-result');
             if (await visible(page, '#story-next')) await page.locator('#story-next').click();
+            await page.waitForTimeout(300);
+            if (await Q(page, () => window.__aa.screen) === 'combat') {
+                await winBattle(page, 'event fight');
+                await until(page, () => window.__aa.screen === 'reward', 'event fight gives a reward');
+                await clickText(page, 'Leave');
+            }
         } else if (scr === 'shop') {
             await Q(page, () => { window.__aa.run.gold = 999; window.__aa.advance(); });
             await page.locator('#panel-body .item:not([disabled])').first().click();
@@ -220,7 +224,7 @@ async function desktop() {
             await waitIdle(page);
             await shot(page, '12-elite');
             await winBattle(page, 'elite');
-            await clickText(page, 'Continue').catch(() => clickText(page, 'Leave'));
+            await clickText(page, 'Leave');
         }
         await until(page, () => ['map', 'story'].includes(window.__aa.screen), `${type}: returns to map`);
     }

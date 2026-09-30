@@ -4777,3 +4777,44 @@ The sim pushes events (`brickBreak`, `blast`, `bumper`, `drain`...) and one modu
 each to sound, particles, lights, shake, aberration, FOV punch, banners, hit-stop and slow-motion.
 Tuning the game's feel happens in one table. A `quiet` flag reuses the same director for the
 attract-mode demo behind the title, so you get the visuals without sounds or banners.
+
+
+## Game 047: Ashes & Aces — a deck-builder with a 100-level campaign (2026-09-30)
+
+### The simulation is done; the view plays catch-up
+Every player action resolves instantly in `js/sim/combat.js` and leaves a list of events
+(`place`, `fire`, `hitEnemy`, `death`, `seal`…). `battle.js` is a director: it pops one event at a
+time and each handler returns how long to wait before the next. HP bars show values carried *in*
+the events (`hitEnemy.hp`), not the final state, so bars move in step with the hits. When the queue
+drains, one `sync()` reconciles every card, plate and bar with the true state — a flourish that
+goes wrong can never leave a card in the wrong place. Input is accepted only while the queue is empty.
+
+### Conserve the cards, and test the conservation
+Cards move between draw, hand, table, discard and exhaust. The headless test checks after every
+turn that each uid is in exactly one zone and that every deck card is somewhere. Temporary cards
+(conjured Jokers, Ash) get uids from a separate range so they can never collide with the deck.
+
+### Balance a long campaign with a per-world table
+One win-rate number hides the shape of a 100-level curve. `BALANCE=1 node game-047/dev/simtest.mjs`
+prints loss rate, turns and HP lost for battles, elites and Wardens per world. The first table
+showed the curve upside down: world 1 was deadly (enemy damage tuned against a player with no
+relics) and worlds 6–10 were trivial, because relics and deck upgrades compound faster than a linear
+HP scale. The fix was a quadratic HP scale, a gentler damage scale, and per-Warden tuning until the
+last two Wardens were the hardest fights. Targets that felt right: ~10–15% HP lost per normal
+battle, ~20% per elite, ~35–45% per Warden.
+
+### Make disruptive boss mechanics predictable
+The Abbess first washed away the player's *fullest* row: fights ran 18 turns and felt random.
+Making the tide rise from the bottom row, one row per cast, shown in the intent and as a red
+overlay on the threatened cells, turned it into a puzzle with counterplay; the bot's average fight fell from 17.8 to
+13.4 turns.
+
+### Story beats as a queue on the run
+The run carries `story: [{ kind, world }]` and `picks: [{ kind, count }]` queues. `advance()` shows
+queued story, then queued card choices, then the node. Because they live in the saved run, a
+reload in the middle of an interlude or a card removal resumes exactly there. An interlude records
+its outcome on the queue item before saving, so it cannot be chosen twice.
+
+### Test init scripts run on reload too
+`context.addInitScript(() => localStorage.clear())` also runs on `page.reload()`, so a
+"save survives a reload" test fails for the wrong reason. Guard it with a `sessionStorage` flag.

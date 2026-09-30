@@ -434,10 +434,8 @@ export function applyEffects(run, effects) {
         if (e.nextMight) run.nextMight += e.nextMight;
         if (e.chron) chron(run, `You ${e.chron}.`);
         if (e.fight) {
-            const node = mapOf(run).nodes[run.cur];
             run.pendingFight = e.fight;
             log.push(e.fight === 'elite' ? 'Something enormous turns towards you.' : 'Shapes move in the dark.');
-            void node;
         }
     }
     return log;
@@ -503,12 +501,8 @@ export function chooseInterlude(run, idx) {
     const ch = CHAPTERS[run.world].interlude.choices[idx];
     if (!ch) return null;
     if (ch.cost && run.gold < ch.cost) return null;
-    run.pending = run.pending ?? null;
-    const holder = run.pending;
-    // interludes can offer cards via cardOffer: park them on a temporary holder
     const log = applyEffects(run, ch.effects);
     chron(run, `${CHAPTERS[run.world].interlude.title}: you chose to ${ch.label.toLowerCase()}.`);
-    void holder;
     return log;
 }
 

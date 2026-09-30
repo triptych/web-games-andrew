@@ -308,6 +308,7 @@ const PLANS = {
         const armor = creatureMat(L.accent, U, { rough: 0.35, metal: 0.85, vein: 0.3 });
         const torso = M(new THREE.CylinderGeometry(0.5, 0.36, 1.1, 10), armor, 0, 1.65, 0);
         c.body.add(torso);
+        c.torso = torso;
         c.body.add(M(new THREE.CylinderGeometry(0.36, 0.42, 0.5, 10), c.mats.body, 0, 0.95, 0));
         for (const s of [-1, 1]) {
             c.body.add(M(new THREE.CylinderGeometry(0.12, 0.1, 0.9, 8), armor, s * 0.2, 0.45, 0));
@@ -597,6 +598,112 @@ const PLANS = {
     },
 };
 
+// ------------------------------------------------------------------ Warden signatures
+
+function wardenParts(c, L, U, rng) {
+    const glow = creatureMat(L.glow, U, { glow: true, emissive: L.glow, ei: 3 });
+    const gold = creatureMat(0xffc040, U, { rough: 0.25, metal: 1, glow: true });
+    const B = c.body;
+    const H = c.height;
+    switch (L.bossKey) {
+        case 'baron': {
+            // a lantern for a head, a wide straw hat, straw bursting from the sleeves
+            const lantern = new THREE.Group();
+            lantern.position.y = H - 0.35;
+            lantern.add(M(new THREE.SphereGeometry(0.3, 16, 12), glow));
+            for (let i = 0; i < 6; i++) { const r = M(new THREE.TorusGeometry(0.32, 0.02, 6, 20), creatureMat(0x2a1a0a, U, { metal: 0.6 }), 0, 0, 0); r.rotation.y = (i / 6) * Math.PI; lantern.add(r); }
+            B.add(lantern);
+            B.add(M(new THREE.CylinderGeometry(0.85, 0.85, 0.05, 24), creatureMat(0xc8a050, U, { rough: 0.95 }), 0, H - 0.02, 0));
+            B.add(M(bentCone(0.36, 0.7, 0.4, 16), creatureMat(0xc8a050, U, { rough: 0.95 }), 0, H - 0.02, 0));
+            const straw = creatureMat(0xe0c060, U, { rough: 1 });
+            for (let i = 0; i < 24; i++) {
+                const s2 = M(new THREE.CylinderGeometry(0.01, 0.015, rng.range(0.4, 0.8), 4), straw, (i % 2 ? 1 : -1) * rng.range(0.55, 0.8), rng.range(0.9, 1.9), rng.range(-0.2, 0.2));
+                s2.rotation.z = rng.range(-1, 1);
+                B.add(s2);
+            }
+            c.lantern = lantern;
+            break;
+        }
+        case 'abbess': {
+            const halo = M(new THREE.TorusGeometry(0.55, 0.035, 8, 40), glow, 0, H - 0.1, -0.25);
+            B.add(halo);
+            for (let i = 0; i < 5; i++) { const a = -0.9 + i * 0.45; B.add(M(new THREE.CylinderGeometry(0.04, 0.04, 0.3, 8), creatureMat(0xf0e8d8, U, {}), Math.sin(a) * 0.9, H - 0.4 + Math.cos(a) * 0.5, -0.3)); B.add(M(new THREE.SphereGeometry(0.04, 6, 6), creatureMat(0xffd080, U, { glow: true, emissive: 0xffa040, ei: 5 }), Math.sin(a) * 0.9, H - 0.2 + Math.cos(a) * 0.5, -0.3)); }
+            c.halo = halo;
+            break;
+        }
+        case 'briar': {
+            const ring = new THREE.Group();
+            ring.position.y = H * 0.8;
+            const thorn = creatureMat(0x2a1a10, U, { rough: 0.6 });
+            for (let i = 0; i < 18; i++) { const a = (i / 18) * Math.PI * 2; const t2 = M(new THREE.ConeGeometry(0.06, 0.7, 5), thorn, Math.cos(a) * 1.0, rng.range(-0.3, 0.3), Math.sin(a) * 1.0); t2.rotation.set(Math.sin(a) * 1.2, 0, -Math.cos(a) * 1.2); ring.add(t2); }
+            for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2; ring.add(M(new THREE.SphereGeometry(0.14, 10, 8), creatureMat(0xc01040, U, { rough: 0.5 }), Math.cos(a) * 1.05, 0.2, Math.sin(a) * 1.05)); }
+            B.add(ring);
+            c.spin = ring;
+            break;
+        }
+        case 'sultan': {
+            const turban = new THREE.Group();
+            turban.position.y = H * 0.83;
+            for (let i = 0; i < 3; i++) { const t2 = M(new THREE.TorusGeometry(0.28 - i * 0.05, 0.1, 8, 20), creatureMat(0xf0e8d8, U, {}), 0, i * 0.12, 0); t2.rotation.x = Math.PI / 2; turban.add(t2); }
+            turban.add(M(new THREE.OctahedronGeometry(0.1), glow, 0, 0.1, 0.3));
+            B.add(turban);
+            for (const sx of [-1, 1]) { const sc = M(bentCone(0.05, 1.1, sx * 0.4), creatureMat(0xe0e8f0, U, { metal: 1, rough: 0.15 }), sx * 0.7, 0.9, 0.2); B.add(sc); }
+            break;
+        }
+        case 'colossus': {
+            const ice = new THREE.MeshPhysicalMaterial({ color: 0xc8f0ff, roughness: 0.08, transmission: 0.3, transparent: true, opacity: 0.9, emissive: L.glow, emissiveIntensity: 0.3, flatShading: true });
+            for (let i = 0; i < 10; i++) { const sp = M(new THREE.ConeGeometry(0.14, rng.range(0.6, 1.4), 5), ice, rng.range(-0.9, 0.9), H * rng.range(0.55, 0.9), rng.range(-0.5, 0.1)); sp.rotation.set(rng.range(-0.6, 0.3), 0, rng.range(-0.7, 0.7)); B.add(sp); }
+            break;
+        }
+        case 'mammon': {
+            const hoard = new THREE.Group();
+            hoard.position.y = H * 0.55;
+            const coin = new THREE.CylinderGeometry(0.12, 0.12, 0.025, 14);
+            for (let i = 0; i < 40; i++) { const a = rng.range(0, Math.PI * 2), r = rng.range(1.0, 1.6); const cm = M(coin, gold, Math.cos(a) * r, rng.range(-0.8, 0.8), Math.sin(a) * r); cm.rotation.set(rng.range(0, 3), rng.range(0, 3), 0); hoard.add(cm); }
+            B.add(hoard);
+            c.spin = hoard;
+            B.add(M(new THREE.SphereGeometry(0.28, 16, 12), creatureMat(0xff8020, U, { glow: true, emissive: 0xff6010, ei: 4 }), 0, H * 0.62, 0.45));
+            break;
+        }
+        case 'roc': {
+            const bolt = creatureMat(0xd0e0ff, U, { glow: true, emissive: 0xa0c0ff, ei: 4 });
+            for (let i = 0; i < 6; i++) { const b2 = M(new THREE.CylinderGeometry(0.015, 0.015, rng.range(0.5, 1), 4), bolt, rng.range(-1.5, 1.5), H * rng.range(0.4, 1), rng.range(-0.5, 0)); b2.rotation.z = rng.range(-1, 1); B.add(b2); }
+            break;
+        }
+        case 'harlequin': {
+            const orbs = new THREE.Group();
+            orbs.position.y = H + 0.3;
+            const cols = [0xff4060, 0x40ffe0, 0xffe040];
+            for (let i = 0; i < 3; i++) orbs.add(M(new THREE.SphereGeometry(0.11, 12, 10), creatureMat(cols[i], U, { glow: true, emissive: cols[i], ei: 2.5 })));
+            B.add(orbs);
+            c.juggle = orbs;
+            break;
+        }
+        case 'leviathan': {
+            c.tendrils = addTendrils(B, 6, creatureMat(L.body, U, { vein: 0.4 }), rng, { y: 0.5, spread: 1.4, len: 1.6 });
+            c.tendrils.forEach((t2) => { t2.chain[0].parent.rotation.z = Math.PI * 0.85; });
+            break;
+        }
+        case 'king': {
+            // a hollow ribcage with the stolen Ace burning inside
+            if (c.torso) { c.torso.material = creatureMat(L.accent, U, { rough: 0.4, metal: 0.8, side: THREE.DoubleSide }); c.torso.geometry = new THREE.CylinderGeometry(0.5, 0.36, 1.1, 10, 1, true, Math.PI * 0.25, Math.PI * 1.5); }
+            const bone = creatureMat(0xd8d0c0, U, { rough: 0.6 });
+            for (let i = 0; i < 5; i++) { const rib = M(new THREE.TorusGeometry(0.34 - i * 0.03, 0.025, 6, 20, Math.PI * 1.3), bone, 0, H * 0.62 - i * 0.12, 0.05); rib.rotation.set(Math.PI / 2, 0, Math.PI * 0.85); B.add(rib); }
+            const heart = new THREE.Group();
+            heart.position.set(0, H * 0.55, 0.12);
+            const hm = creatureMat(0xff2040, U, { glow: true, emissive: 0xff1030, ei: 5 });
+            heart.add(M(new THREE.SphereGeometry(0.1, 12, 10), hm, -0.06, 0.04, 0), M(new THREE.SphereGeometry(0.1, 12, 10), hm, 0.06, 0.04, 0));
+            const tip = M(new THREE.ConeGeometry(0.14, 0.2, 12), hm, 0, -0.08, 0);
+            tip.rotation.z = Math.PI;
+            heart.add(tip);
+            B.add(heart);
+            c.heart = heart;
+            break;
+        }
+        default: break;
+    }
+}
+
 // ------------------------------------------------------------------ creature
 
 export class Creature {
@@ -607,7 +714,7 @@ export class Creature {
         this.root.add(this.body);
         const U = {
             uTime: { value: 0 }, uHit: { value: 0 }, uDissolve: { value: 0 },
-            uGlow: { value: new THREE.Color(look.glow) }, uRim: { value: new THREE.Color(look.glow).multiplyScalar(boss ? 0.9 : 0.55) },
+            uGlow: { value: new THREE.Color(look.glow) }, uRim: { value: new THREE.Color(look.glow).multiplyScalar(boss ? 0.45 : 0.35) },
         };
         this.U = U;
         this.mats = {
@@ -621,6 +728,7 @@ export class Creature {
         this.height = 2;
         this.anim = () => {};
         (PLANS[look.arch] ?? PLANS.blob)(this, look, rng, U);
+        if (look.bossKey) wardenParts(this, look, U, rng);
         if (look.crown) this.crown = addCrown(this.body, U, this.height + 0.1, 0.32 * (boss ? 1.1 : 0.9), look.glow);
         if (look.wings && !this.wings) this.wings = addWings(this.body, look, U, rng, { y: this.height * 0.7, span: 1.4 });
         if (look.shards) this.shards = addShards(this.root, look.shards, U, look, this.height * 0.6, 1.1);
@@ -685,6 +793,11 @@ export class Creature {
         if (this.tendrils) for (const td of this.tendrils) td.chain.forEach((j, k) => { j.rotation.z = Math.sin(t * 1.6 + td.ph + k * 0.6) * 0.18; j.rotation.x = Math.cos(t * 1.2 + td.ph + k * 0.5) * 0.12; });
         if (this.shards) this.shards.children.forEach((s) => { const a = s.userData.a + t * 0.8; s.position.set(Math.cos(a) * s.userData.r, Math.sin(a * 2) * 0.2, Math.sin(a) * s.userData.r); s.rotation.y = t * 2; });
         if (this.crown) this.crown.rotation.y = Math.sin(t * 0.4) * 0.1;
+        if (this.spin) this.spin.rotation.y = t * 0.35;
+        if (this.halo) this.halo.rotation.z = t * 0.2;
+        if (this.lantern) this.lantern.children[0].scale.setScalar(1 + Math.sin(t * 6) * 0.08);
+        if (this.heart) this.heart.scale.setScalar(1 + Math.max(0, Math.sin(t * 5)) * 0.25);
+        if (this.juggle) this.juggle.children.forEach((o, i) => { const a = t * 3 + (i * Math.PI * 2) / 3; o.position.set(Math.cos(a) * 0.5, Math.abs(Math.sin(a)) * 0.6, 0); });
         const rm = this.ring.material;
         rm.opacity += ((this.targeted && !this.dead ? 0.8 + 0.2 * Math.sin(t * 5) : 0) - rm.opacity) * Math.min(1, dt * 10);
         this.ring.rotation.z = t * 0.5;

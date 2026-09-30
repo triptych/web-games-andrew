@@ -373,14 +373,25 @@ export const BOSSES = {
     },
 };
 
+/** Each Warden's signature colours (body, accent, glow). */
+const BOSS_COLORS = {
+    baron: [0x8a6a2a, 0x3a2a18, 0xff8a20], abbess: [0x2a5a60, 0xd8e8e0, 0x60ffe0], briar: [0x2a4a1a, 0x8a1030, 0xff5080],
+    sultan: [0xe8d8b0, 0x2080c0, 0xffd060], colossus: [0x9ab8d8, 0xe0f4ff, 0x80d0ff], mammon: [0xc89020, 0x6a3a08, 0xffe060],
+    roc: [0x3a4a6a, 0xd8e0f0, 0xa0c0ff], harlequin: [0x2a1a3a, 0xe02060, 0x40ffe0], leviathan: [0x1a1030, 0x6040a0, 0xb080ff],
+    king: [0x3a3632, 0xc8a050, 0xff3040],
+};
+
 export function bossSpecies(key, w) {
     const b = BOSSES[key];
     const rng = makeRng(hashSeed(hashStr(key), 99));
     const wd = WORLD_DEFS[w];
-    return {
-        key: 'boss_' + key, bossKey: key, name: b.name, title: b.title, arch: b.arch, tier: 'boss',
-        look: makeLook(rng, wd, b.arch, { scale: 1.75, boss: true }),
-    };
+    const look = makeLook(rng, wd, b.arch, { scale: 1.75, boss: true });
+    const col = BOSS_COLORS[key];
+    if (col) { look.body = col[0]; look.belly = col[1]; look.accent = col[1]; look.glow = col[2]; }
+    look.bossKey = key;
+    if (key === 'baron' || key === 'king' || key === 'abbess') look.wings = false;
+    if (key === 'baron') look.crown = false;
+    return { key: 'boss_' + key, bossKey: key, name: b.name, title: b.title, arch: b.arch, tier: 'boss', look };
 }
 
 function minionSpecies(bossKey, w) {

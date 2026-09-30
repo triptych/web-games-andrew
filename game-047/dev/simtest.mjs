@@ -141,9 +141,7 @@ function playRun(seed, cls, { maxRekindles = 30, verbose = false } = {}) {
             };
             const id = opts.reduce((b, x) => (score(x) > score(b) ? x : b), opts[0]);
             R.enterNode(run, id);
-            // interlude first
-            const il = R.CHAPTERS_INTERLUDE?.(run);
-            void il;
+            // the interlude (floor 6) is answered before the node itself
             if (run.flags[`interlude${run.world}`] && !run.flags[`interludeDone${run.world}`]) {
                 run.flags[`interludeDone${run.world}`] = true;
                 R.chooseInterlude(run, rng.int(0, 2));

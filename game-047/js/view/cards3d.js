@@ -344,7 +344,21 @@ export function computeLayout() {
     const w = view.w, h = view.h;
     const L = layout;
     L.landscape = w / h > 1.15;
-    if (L.landscape) {
+    L.compact = L.landscape && h < 520;
+    if (L.compact) {
+        // short landscape (phones on their side): full-height table left, enemies top-right, hand bottom-right
+        const top = 46, bottom = h - 6;
+        L.cw = Math.min((bottom - top) / 7.75, (w * 0.42) / 5.72);
+        L.tableCx = 5.72 * L.cw / 2 + Math.max(8, w * 0.02);
+        L.tableCy = top + (bottom - top) / 2;
+        const right = L.tableCx + 5.72 * L.cw / 2;
+        L.enemyRegion = { x0: right + 8, x1: w * 0.99, y0: h * 0.16, y1: h * 0.5 };
+        L.heroRegion = null;
+        const hcw = Math.min(L.cw * 1.3, (w - right) / 5.5, h * 0.2);
+        L.hand = { cx: (right + w) / 2, y: h - hcw * ASPECT * 0.5 - 6, cw: hcw, maxW: (w - right) * 0.72 };
+        L.deck = { x: right + hcw * 0.55, y: h - hcw * ASPECT * 0.5 - 6 };
+        L.discard = { x: w - hcw * 0.55, y: h - hcw * ASPECT * 0.5 - 6 };
+    } else if (L.landscape) {
         const top = Math.max(56, h * 0.075), bottom = h * 0.77;
         const availH = bottom - top, availW = w * 0.38;
         L.cw = Math.min(availH / 7.75, availW / 5.72);
@@ -357,7 +371,7 @@ export function computeLayout() {
         L.deck = { x: Math.max(70, L.hand.cx - L.hand.maxW / 2 - L.hand.cw * 1.1), y: h - L.hand.cw * ASPECT * 0.6 };
         L.discard = { x: w - 70, y: h - L.hand.cw * ASPECT * 0.6 };
     } else {
-        const top = h * 0.29, bottom = h * 0.8;
+        const top = h * 0.285, bottom = h * 0.735;
         const availH = bottom - top, availW = w * 0.96;
         L.cw = Math.min(availH / 7.75, availW / 5.72);
         L.tableCx = w / 2;

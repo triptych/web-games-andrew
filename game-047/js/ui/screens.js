@@ -71,7 +71,7 @@ export function heroScreen({ onPick, onBack, onGo, onReroll, current, ident }) {
 // ------------------------------------------------------------------ story book
 
 function paras(lines, cls = '') {
-    return lines.map((t, i) => el('p', { class: (t.startsWith('"') || t.startsWith('“') ? 'speech ' : '') + cls, text: t, style: `animation-delay:${Math.min(i * 0.35, 2.4)}s` }));
+    return lines.map((t, i) => el('p', { class: (t.startsWith('"') || t.startsWith('“') ? 'speech ' : '') + cls, text: t, style: `animation-delay:${Math.min(i * 0.12, 0.8)}s` }));
 }
 
 export function book({ kicker = '', title = '', lines = [], choices = null, next = 'Continue', onNext = null, extra = null }) {
