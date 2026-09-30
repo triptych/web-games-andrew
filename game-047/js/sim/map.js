@@ -94,7 +94,7 @@ export function generateMap(runSeed, w) {
         const nr = makeRng(n.seed);
         let name = '';
         for (let i = 0; i < 6; i++) {
-            name = nr.chance(0.7) ? `The ${nr.pick(wd.placeAdj)} ${nr.pick(wd.placeNoun)}` : `${nr.pick(wd.placeNoun)} of the ${nr.pick(wd.placeAdj)}`;
+            name = `The ${nr.pick(wd.placeAdj)} ${nr.pick(wd.placeNoun)}`;
             if (!used.has(name)) break;
         }
         used.add(name);

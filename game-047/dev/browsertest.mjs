@@ -55,7 +55,7 @@ async function newPage(viewport, extra = {}) {
     return { ctx, page };
 }
 
-const shot = async (page, name) => { await page.screenshot({ path: path.join(OUT, `${name}.png`) }); console.log('  shot', name); };
+const shot = async (page, name) => { if (await page.evaluate(() => window.__aa?.screen === 'story' || window.__aa?.screen === 'done' || window.__aa?.screen === 'dead')) await page.waitForTimeout(1500); await page.screenshot({ path: path.join(OUT, `${name}.png`) }); console.log('  shot', name); };
 const check = (cond, msg) => { if (!cond) { errors.push(`check: ${msg}`); console.log('  FAIL', msg); } else console.log('  ok', msg); };
 const until = async (page, fn, msg, timeout = 120000, arg = null) => {
     const ok = await page.waitForFunction(fn, arg, { timeout }).then(() => true, () => false);
