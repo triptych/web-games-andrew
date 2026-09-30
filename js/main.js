@@ -9,6 +9,15 @@ const CAROUSEL_INTERVAL_MS = 5000;
 const CAROUSEL_DOT_WINDOW = 9;
 
 /**
+ * Small "v1.2.0" badge shown next to a game's title
+ * @param {Object} game - Game data object
+ * @returns {string} HTML string (empty if the game has no version)
+ */
+function versionBadge(game) {
+    return game.version ? `<span class="game-version">v${game.version}</span>` : '';
+}
+
+/**
  * GameRenderer - Handles rendering game cards from data
  */
 class GameRenderer {
@@ -29,7 +38,7 @@ class GameRenderer {
                 <div class="game-preview ${game.cssClass}">
                     <div class="preview-icon">${game.icon}</div>
                 </div>
-                <div class="game-title">${game.title}</div>
+                <div class="game-title">${game.title} ${versionBadge(game)}</div>
                 <div class="game-description">
                     ${game.description}
                 </div>
@@ -139,7 +148,7 @@ class Carousel {
                 <div class="carousel-slide-content">
                     <div class="carousel-icon">${game.icon}</div>
                     <div class="carousel-text">
-                        <h2>${game.title}</h2>
+                        <h2>${game.title} ${versionBadge(game)}</h2>
                         <p>${game.description}</p>
                         <div class="game-info">
                             ${game.tags.map(tag => `<span class="tag">${tag.emoji} ${tag.label}</span>`).join('')}
@@ -416,11 +425,10 @@ function initApp() {
  * Updates the total game count in the footer
  */
 function updateGameCount() {
-    const gameCards = document.querySelectorAll('.game-card');
-    const countElement = document.querySelector('footer strong');
+    const countElement = document.getElementById('game-count');
 
     if (countElement) {
-        countElement.textContent = gameCards.length;
+        countElement.textContent = games.length;
     }
 }
 

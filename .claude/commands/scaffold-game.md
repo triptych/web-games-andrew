@@ -2856,7 +2856,7 @@ export function startAmbience() {
 
 ## Step 3: Update the launcher
 
-Read `c:\Users\andre\OneDrive\Documents\web-games-andrew\js\gamedata.js` and add an entry for the new game. Append it to the `games` array before the closing `];`. Use a suitable emoji icon and appropriate tags based on the concept.
+Read `c:\Users\andre\OneDrive\Documents\web-games-andrew\js\gamedata.js` and add an entry for the new game. Append it to the `games` array before the closing `];`. Use a suitable emoji icon and appropriate tags based on the concept. New games start at `version: '1.0.0'` (shown as a badge next to the title in the launcher); bump the minor for new features/phases and the patch for fixes whenever the game changes later.
 
 Template:
 ```js
@@ -2866,6 +2866,7 @@ Template:
     description: 'GAME_CONCEPT',
     icon: '[pick a fitting emoji]',
     folder: 'GAME_FOLDER',
+    version: '1.0.0',
     cssClass: '[kebab-case of game title]',
     tags: [
         { emoji: '[emoji]', label: '[genre]' },

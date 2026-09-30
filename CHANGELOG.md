@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tests: new `game-033/tests/phase6.test.js` (44 cases) and `game-033/tests/smoke-season.playwright.mjs`; the Playwright drivers gained a `PW_CHROMIUM_PATH` override for sandboxes with a preinstalled Chromium
 
 ### Added
+- **Launcher: personalized header**: the main page heading/title is now "Andrew Wooldridge's Games" with an "About me & more links" link to https://linktr.ee/triptych (the footer name links there too). The footer's "Total Games" count now reads `games.length` from `js/gamedata.js` via `#game-count` (the static fallback was a stale `9`).
+- **Launcher: per-game versions**: every entry in `js/gamedata.js` now has a `version` field (semver), shown as a small `vX.Y.Z` badge next to the game's title on both the grid cards and the carousel. Initial versions were seeded from git history as `1.<commits touching the folder − 1>.0`. Going forward: new games start at `1.0.0`; bump the minor for new features/phases and the patch for bug fixes.
 - **Quiverspire** (game-046): New game &mdash; an **Archero-style roguelite archer** in three.js r165 (import map, no build step, **no asset files**). Design doc: [game-046/game-plan.md](game-046/game-plan.md).
   - **Stand still to shoot**: the archer auto-targets the nearest enemy (preferring line of sight) and fires only while not moving; the first volley after stopping comes early, so stutter-stepping pays
   - **120 procedural rooms**: ten chapters of twelve stages (combat, angel, elite, boss) plus an Endless mode; mirrored layouts from seven patterns (scatter, pillars, bars, pools, lanes, ring, noise) of rock, pits and spike traps, re-rolled until the door and every spawn are reachable, with sealed pockets filled in
