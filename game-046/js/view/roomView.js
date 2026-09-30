@@ -210,6 +210,10 @@ function buildPits(g, rows, b) {
     }
     const sg = track(new THREE.BufferGeometry());
     sg.setAttribute('position', new THREE.Float32BufferAttribute(surf, 3));
+    // The lit gloss sheet below shares this geometry: without normals the lighting
+    // normalises a zero vector, which some GPUs (D3D/ANGLE) turn into Inf specular
+    // that bloom smears into a white-out over the whole screen.
+    sg.setAttribute('normal', new THREE.Float32BufferAttribute(new Float32Array(surf.length).map((_, i) => (i % 3 === 1 ? 1 : 0)), 3));
     root.add(new THREE.Mesh(sg, pitMat));
     if (walls.length) {
         const wg = track(new THREE.BufferGeometry());

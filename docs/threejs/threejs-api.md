@@ -412,6 +412,7 @@ Drive the post uniforms from the gameplay events (`aberrate()`, `flash()`), not 
 - **No built-in `lookAt` for sprite billboarding** — for sprites that always face the camera, use `THREE.Sprite` (always faces camera) or call `mesh.lookAt(camera.position)` each frame for planes.
 - **Pixel ratio** — `renderer.setPixelRatio(Math.min(devicePixelRatio, 2))` is the safe default. Devices with `devicePixelRatio = 3` or `4` will tank performance otherwise.
 - **CanvasTexture looks washed-out / wrong color** — set `tex.colorSpace = THREE.SRGBColorSpace` on textures built from a 2D canvas (game-024 popups/banner), or the sRGB→linear conversion is skipped and colors render dark/dull.
+- **Lit material on a geometry with no `normal` attribute** — a hand-built `BufferGeometry` with only `position` works with `MeshBasicMaterial`/custom shaders, but a `MeshStandardMaterial` on it normalizes a zero vector. SwiftShader shrugs it off; real D3D/ANGLE GPUs produce Inf specular, and bloom smears it into a full-screen white-out (game-046 pit gloss sheet). Always `computeVertexNormals()` or set normals when a lit material touches the geometry. Test post-processing on a real GPU, not just the headless harness.
 - **EffectComposer not resized** — if you use bloom, the composer must be resized in the window-resize handler alongside the renderer, or the glow buffer mismatches the canvas after a resize.
 
 ---
