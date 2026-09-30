@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Card art sheet</title>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.165.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.165.0/examples/jsm/"}}</script>
+<style>body{background:#222;margin:0;display:flex;flex-wrap:wrap;gap:8px;padding:8px}canvas{width:170px;height:240px}</style></head>
+<body><script type="module">
+import { faceTextures, backTextures } from '../js/view/cardArt.js';
+const cards = [
+  {kind:'play',rank:2,suit:'S'},{kind:'play',rank:7,suit:'H',ench:'vampiric'},{kind:'play',rank:10,suit:'D'},{kind:'play',rank:5,suit:'C'},
+  {kind:'play',rank:11,suit:'S'},{kind:'play',rank:12,suit:'H'},{kind:'play',rank:13,suit:'D',ench:'glass'},{kind:'play',rank:14,suit:'C'},
+  {kind:'play',rank:14,suit:'H'},{kind:'play',joker:true,rank:0},{kind:'ash'},{kind:'arcana',id:'fireball'},{kind:'arcana',id:'transmute',up:true},{kind:'arcana',id:'thunder'},
+];
+for (const c of cards) document.body.appendChild(faceTextures(c).map.image);
+document.body.appendChild(backTextures().map.image);
+document.body.appendChild(faceTextures(cards[12]).normalMap.image);
+window.__done = true;
+</script></body></html>
