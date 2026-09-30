@@ -176,7 +176,7 @@ function makeGround(wd, seed) {
     const t = groundTextures(wd, seed);
     const water = wd.key === 'cathedral';
     const mat = new THREE.MeshStandardMaterial({
-        map: t.map, normalMap: t.normalMap, roughness: water ? 0.15 : 0.92, metalness: water ? 0.35 : 0.0,
+        map: t.map, normalMap: t.normalMap, normalScale: water ? new THREE.Vector2(0.35, 0.35) : new THREE.Vector2(1, 1), roughness: water ? 0.38 : 0.92, metalness: water ? 0.12 : 0.0,
         emissiveMap: t.emissiveMap, emissive: t.emissiveMap ? new THREE.Color(1, 1, 1) : new THREE.Color(0, 0, 0), emissiveIntensity: t.emissiveMap ? 1.4 : 0,
         color: water ? new THREE.Color(0x3a8a90) : new THREE.Color(1, 1, 1),
     });
@@ -594,7 +594,7 @@ const PROPS = {
 
 const WEATHER = {
     embers: { n: 700, color: [0xffa040, 0xff6020], size: 7, vel: [0, 0.9, 0], sway: 0.6, box: [60, 20, 40] },
-    bubbles: { n: 500, color: [0x80fff0, 0x40c0ff], size: 9, vel: [0, 0.6, 0], sway: 0.3, box: [60, 22, 40], ring: 1 },
+    bubbles: { n: 320, color: [0x80fff0, 0x40c0ff], size: 9, vel: [0, 0.6, 0], sway: 0.3, box: [60, 22, 40], ring: 1 },
     spores: { n: 600, color: [0xd0ff80, 0x80ffb0], size: 6, vel: [0.1, 0.25, 0], sway: 1.2, box: [60, 18, 40] },
     sand: { n: 900, color: [0xffe0b0, 0xe0b080], size: 4, vel: [3.5, 0.1, 0], sway: 0.4, box: [70, 12, 40] },
     snow: { n: 1100, color: [0xffffff, 0xd0e8ff], size: 6, vel: [0.3, -1.1, 0], sway: 0.8, box: [60, 24, 40] },

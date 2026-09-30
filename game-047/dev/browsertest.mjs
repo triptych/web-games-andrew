@@ -299,7 +299,7 @@ async function worlds() {
         const { page } = await newPage({ width: 1280, height: 720 });
         await openGame(page);
         await Q(page, (ww) => { window.__aa.newRun('knight', 777 + ww); window.__aa.jump(ww, 5); }, w);
-        await Q(page, () => window.__aa.enter(window.__aa.run.world % 2 ? 'elite' : 'battle'));
+        await Q(page, () => window.__aa.goto(window.__aa.run.world % 2 ? 'elite' : 'battle'));
         await throughStory(page, 'realm');
         await until(page, () => window.__aa.screen === 'combat', `realm ${w + 1}: battle`);
         await waitIdle(page);
