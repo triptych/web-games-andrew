@@ -281,10 +281,11 @@ body.in-run #back-link { display: none; }
 }
 #story-kicker { color: var(--muted); letter-spacing: 4px; text-transform: uppercase; font-size: 13px; text-align: center; }
 #story-title { text-align: center; color: var(--gold-hi); font-size: clamp(26px, 4.4vw, 42px); text-shadow: 0 2px 0 #3a1a04, 0 0 20px rgba(255,190,80,0.35); }
-#story-body p { font-size: clamp(16px, 2vw, 19px); line-height: 1.6; color: var(--cream); margin: 0 0 12px; opacity: 0; animation: fadein 0.45s forwards; }
+#story-body p { font-size: clamp(16px, 2vw, 19px); line-height: 1.6; color: var(--cream); margin: 0 0 12px; animation: fadein 0.45s backwards; }
 #story-body p.speech { color: #ffe8c0; }
 #story-body p.log { font: bold 15px var(--sans); color: var(--gold); }
-@keyframes fadein { to { opacity: 1; } }
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { #story-body p, .num, .ban, .toast { animation-duration: 0.01s !important; } }
 #story-choices { display: flex; flex-direction: column; gap: 8px; }
 .choice {
     text-align: left; padding: 11px 14px; border-radius: 10px; color: var(--cream); font: 16px var(--serif);
