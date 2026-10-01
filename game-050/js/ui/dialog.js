@@ -28,7 +28,7 @@ function show() {
     const s = state;
     const line = s.lines[s.i];
     const sp = SPEAKERS[line.who] || SPEAKERS.narrator;
-    $('dlg-icon').textContent = fill(sp.icon, s.ctx);
+    $('dlg-icon').textContent = line.who === 'boss' && s.ctx.bossIcon ? s.ctx.bossIcon : fill(sp.icon, s.ctx);
     $('dlg-icon').style.visibility = line.who === 'narrator' ? 'hidden' : 'visible';
     $('dlg-name').textContent = fill(sp.name, s.ctx);
     $('dlg-name').style.color = line.who === 'narrator' ? '#8a6a3a' : '';

@@ -35,7 +35,7 @@ import { BOOK_BY_ID } from './sim/books.js';
 import { WINGS } from './sim/regions.js';
 import { sceneFor } from './sim/story.js';
 import { itemScore } from './sim/items.js';
-import { questDone } from './sim/quests.js';
+import { questDone, FAMILY_ICON } from './sim/quests.js';
 import { SLOTS } from './sim/items.js';
 
 const DEBUG = new URLSearchParams(location.search).has('debug');
@@ -80,7 +80,7 @@ function boot() {
     window.addEventListener('resize', () => { if (G.mode === 'battle') layoutBattle(); });
 }
 
-function persist() { if (G.profile) { if (G.mode !== 'battle') tick(G.profile, Date.now()); saveProfile(G.profile); } }
+function persist() { if (G.profile && !G.frozen) { if (G.mode !== 'battle') tick(G.profile, Date.now()); saveProfile(G.profile); } }
 
 // ------------------------------------------------------------------ Modes
 
@@ -115,14 +115,14 @@ async function drainStory() {
     let key;
     while ((key = nextStory(p))) {
         const lines = sceneFor(key);
-        if (lines) await playScene(lines, storyCtx());
+        if (lines) await playScene(lines, storyCtx(G.lastBoss?.name, G.lastBoss?.family));
         saveProfile(p);
     }
 }
 
-function storyCtx(boss) {
+function storyCtx(boss, family) {
     const p = G.profile;
-    return { name: p.name, cls: CLASSES[p.cls].name.toLowerCase(), icon: CLASSES[p.cls].icon, boss };
+    return { name: p.name, cls: CLASSES[p.cls].name.toLowerCase(), icon: CLASSES[p.cls].icon, boss, bossIcon: family ? FAMILY_ICON[family] : null };
 }
 
 function updateTownHint() {
@@ -427,7 +427,7 @@ async function beginBattle(ctx) {
     G.pendingEnd = 'intro';
     if (pre && !p.story.seen[pre]) {
         p.story.seen[pre] = true;
-        await playScene(sceneFor(pre), storyCtx(run.mon.name));
+        await playScene(sceneFor(pre), storyCtx(run.mon.name, run.mon.family));
     }
     if (!p.flags.tutorial) {
         p.flags.tutorial = true;
@@ -665,6 +665,7 @@ async function endBattle() {
     else { sfx.defeat(); banner('DEFEAT'); }
     await new Promise((r) => setTimeout(r, 1300));
     const out = finishBattle(G.profile, run);
+    G.lastBoss = run.mon.boss ? { name: run.mon.name, family: run.mon.family } : null;
     saveProfile(G.profile);
     if (out.book) { sfx.book(); flash(0.6, 0xffffff); }
     P.resultPanel(G, run, out, async () => {
@@ -902,7 +903,8 @@ if (DEBUG) {
         mana: (n = 30) => { const s = G.run.bt.sides.p; for (const c of MANA) s.mana[c] = Math.min(s.manaCap, n); G.disp = dispFrom(G.run.bt); },
         clearTo: (wi, kind) => { const map = wingMap(G.profile, wi); G.profile.wingOpen = Math.max(G.profile.wingOpen, wi); for (const n of map.nodes) { if (n.kind === kind) return n.id; G.profile.wings[wi].cleared[n.id] = true; } return null; },
         basket: (id, n) => { G.profile.town[id].basket = n; G.profile.town[id].t = Date.now(); },
-        age: (ms) => { G.profile.t -= ms; for (const b of Object.values(G.profile.town)) b.t -= ms; saveProfile(G.profile); },
+        // Pretend the player left `ms` ago (and stop autosave so the reload doesn't undo it).
+        age: (ms) => { G.frozen = true; G.profile.t -= ms; for (const b of Object.values(G.profile.town)) b.t -= ms; saveProfile(G.profile); },
         save: () => saveProfile(G.profile),
         snap: () => { townView.yaw = townView.wantYaw; townView.dist = townView.wantDist; },
         SLOTS, questDone, carried, queueStory,

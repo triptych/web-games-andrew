@@ -320,9 +320,13 @@ async function tap(cdp, x, y) {
 }
 async function tapSel(page, cdp, sel, text) {
     const loc = text ? page.locator(sel, { hasText: text }).first() : page.locator(sel).first();
-    await loc.scrollIntoViewIfNeeded().catch(() => {});
+    await loc.evaluate((el) => el.scrollIntoView({ block: 'center', inline: 'center' })).catch(() => {});
+    // Panels slide in (CSS); at software-GL frame rates measure after the entrance settles.
+    await page.waitForFunction(() => !document.getAnimations().some((a) => a.playState === 'running' && /panelIn|rise|pop/.test(a.animationName || '')), null, { timeout: 5000 }).catch(() => {});
     const b = await loc.boundingBox();
     if (!b) { check(false, `tap target ${sel} ${text || ''} visible`); return; }
+    const hit = await loc.evaluate((el, p) => { const t = document.elementFromPoint(p.x, p.y); const own = el instanceof SVGElement ? el.closest('g') || el : el; return !!t && (own === t || own.contains(t) || t.contains(own)); }, { x: b.x + b.width / 2, y: b.y + b.height / 2 });
+    check(hit, `tap target ${sel} ${text || ''} is not covered`);
     await tap(cdp, b.x + b.width / 2, b.y + b.height / 2);
 }
 async function swipe(cdp, a, b) {
@@ -357,15 +361,17 @@ async function phone(w, hgt) {
     await Q(page, () => __tb.snap());
     await frames(page, 3);
     const ps = await Q(page, () => __tb.plotScreen(1));
+    check(await Q(page, (p) => document.elementFromPoint(p.x, p.y)?.id === 'game-canvas', ps), 'the plot is not covered by the HUD');
     await tap(cdp, ps.x, ps.y);
-    await until(page, () => !!__tb.G.profile.town.lumber, 'Lumber Camp built by tapping a plot');
+    await until(page, () => __tb.G.profile.town.lumber?.plot === 1, 'Lumber Camp built on the tapped plot', 20000);
+    if (!(await Q(page, () => __tb.G.profile.town.lumber?.plot === 1))) console.log('   debug', JSON.stringify(await Q(page, () => ({ town: __tb.G.profile.town, placing: __tb.G.placing, ps: __tb.plotScreen(1), panel: __tb.state() }))), JSON.stringify(ps));
     // Adventure by taps
     await tapSel(page, cdp, '#nav-adventure');
     await until(page, () => document.querySelector('.wing-card.current'), 'adventure (tap)');
     await tapSel(page, cdp, '.wing-card.current');
     await until(page, () => document.querySelector('.node-btn[data-node="0"]'), 'wing map (tap)');
     await shot(page, `p-${w}x${hgt}-map`);
-    await tapSel(page, cdp, '.node-btn[data-node="0"]');
+    await tapSel(page, cdp, '.node-btn[data-node="0"] circle');
     await until(page, () => document.querySelector('.panel[data-name="prebattle"]'), 'pre-battle (tap)');
     await tapSel(page, cdp, '.panel-foot .btn', 'Fight');
     await until(page, () => __tb.state().mode === 'battle', 'battle (phone)');

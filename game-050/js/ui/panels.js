@@ -377,8 +377,8 @@ export function wingPanel(G, wi) {
             const p = G.profile;
             const map = wingMap(p, wi);
             const rows = map.rows;
-            const Wd = 360, Hd = Math.max(180, rows * 82 + 30);
-            const pos = (n) => ({ x: 30 + n.x * (Wd - 60), y: Hd - 40 - n.row * 82 });
+            const Wd = 360, Hd = Math.max(180, rows * 82 + 46);
+            const pos = (n) => ({ x: 30 + n.x * (Wd - 60), y: Hd - 52 - n.row * 82 });
             const svgNS = 'http://www.w3.org/2000/svg';
             const svg = document.createElementNS(svgNS, 'svg');
             svg.setAttribute('viewBox', `0 0 ${Wd} ${Hd}`);
@@ -480,7 +480,7 @@ export function resultPanel(G, run, out, onDone) {
         name: 'result', icon: win ? '🏆' : '💫', title: win ? 'Victory!' : 'Knocked out!', dismiss: false,
         sub: win ? `${run.mon.name} is defeated.` : 'You wake up back in town, a little embarrassed. Half the loot you grabbed came with you.',
         render(body) {
-            body.append(h('div.row', { style: { justifyContent: 'center', gap: '12px', fontSize: '22px', fontWeight: 900 } }, h('span', `⭐ +${out.xp} XP`), h('span', `🪙 +${out.gold}`)));
+            body.append(h('div.row', { style: { justifyContent: 'center', gap: '24px', fontSize: '22px', fontWeight: 900 } }, h('span', `⭐ +${out.xp} XP`), h('span', `🪙 +${out.gold} gold`)));
             if (out.book) {
                 const b = BOOK_BY_ID[out.book];
                 body.append(h('div.section-title', 'A lost book returns!'), h('div.shelf', h('div.book', { style: { '--bc': b.color, minHeight: '120px' } }, h('span.b-icon', b.icon), h('span.b-title', b.title), h('span.b-bonus', b.bonus(1)))));

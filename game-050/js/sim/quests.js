@@ -29,7 +29,7 @@ export function questProgress(profile, q) {
 }
 export function questDone(profile, q) { return questProgress(profile, q) >= q.target; }
 
-const FAMILY_ICON = { slime: '🟢', sprite: '🧚', imp: '😈', crab: '🦀', eel: '🐍', wisp: '🔥', gargoyle: '🗿', golem: '🤖', mimic: '📕', mushroom: '🍄', specter: '👻', drake: '🐉', owlbear: '🦉', inkling: '🖤' };
+export const FAMILY_ICON = { slime: '🟢', sprite: '🧚', imp: '😈', crab: '🦀', eel: '🐍', wisp: '🔥', gargoyle: '🗿', golem: '🤖', mimic: '📕', mushroom: '🍄', specter: '👻', drake: '🐉', owlbear: '🦉', inkling: '🖤' };
 
 /** Families the player can currently meet (unlocked wings). */
 function knownFamilies(profile) {

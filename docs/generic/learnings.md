@@ -4979,3 +4979,15 @@ opacity 0.
 ### Off-centre models should face the camera
 The monster stands to the right of the board; facing +Z, the camera saw its side. Rotate it by
 `atan2(-x, cameraDistance)` when laying out.
+
+### Invisible pick boxes must not be taller than what they stand for
+Plot hit-boxes were 3.3×4×3.3 so a tap on a building's roof would register — but on an empty
+plot that 4-unit-tall invisible box sat in front of the plot *behind* it, and on a phone's
+steeper view a tap on a rear plot built on the front one. Empty plots now have flat boxes;
+built plots get a box sized to the building. The touch test caught it by asserting **which**
+plot was built, not just that something was.
+
+### Assert a tap target isn't covered before tapping it
+On an 844×390 phone the town's tutorial hint (bottom-centre) sat on top of the plots, and the
+taps landed on the hint. The phone test now checks `document.elementFromPoint()` at the tap
+point before every tap; that turned a vague "nothing happened" into "covered by #town-hint".

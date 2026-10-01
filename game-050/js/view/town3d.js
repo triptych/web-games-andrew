@@ -364,14 +364,17 @@ export class TownView {
             sign.position.set(0.9, 0, 0.9);
             base.add(sign);
             g.add(base);
-            const hb = new THREE.Mesh(new THREE.BoxGeometry(3.3, 4, 3.3), new THREE.MeshBasicMaterial({ visible: false }));
-            hb.position.y = 2;
+            // Flat while empty (so a tap on a rear plot can't land on the one in front);
+            // sized to the building once something is built (see sync()).
+            const hb = new THREE.Mesh(new THREE.BoxGeometry(3.3, 1, 3.3), new THREE.MeshBasicMaterial({ visible: false }));
+            hb.scale.y = 0.5;
+            hb.position.y = 0.25;
             hb.userData = { plot: i };
             g.add(hb);
             this.hit.push(hb);
             // facing: buildings look towards the camera side / the path
             g.rotation.y = Math.atan2(-p.x, -p.z + 6) * 0.35;
-            this.plotGroups.push({ g, base, sign, building: null, glow: null });
+            this.plotGroups.push({ g, base, sign, hb, building: null, glow: null });
         });
         // highlight ring for build mode
         this.plotGlow = new THREE.Mesh(new THREE.RingGeometry(1.9, 2.25, 4, 1), new THREE.MeshBasicMaterial({ color: 0xffe46a, transparent: true, opacity: 0.9, toneMapped: false, side: THREE.DoubleSide }));
@@ -554,7 +557,13 @@ export class TownView {
                 for (let i = 0; i < 6; i++) this._puff(wp.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, -1, (Math.random() - 0.5) * 3)), 0xf2d79a, 1.4);
             }
         }
-        for (const pg of this.plotGroups) pg.sign.visible = !Object.values(this.built).some((b) => b.pg === pg);
+        for (const pg of this.plotGroups) {
+            const b = Object.values(this.built).find((x) => x.pg === pg);
+            pg.sign.visible = !b;
+            const hgt = b ? Math.max(1, (b.group.userData.height || 3) * 0.8) : 0.5;
+            pg.hb.scale.y = hgt;
+            pg.hb.position.y = hgt / 2;
+        }
         this._synced = true;
     }
 
@@ -565,7 +574,7 @@ export class TownView {
         p.y += (b.group.userData.height || 3) + 0.6;
         return p;
     }
-    plotAnchor(i) { return this.plotGroups[i].g.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 1.4, 0)); }
+    plotAnchor(i) { return this.plotGroups[i].g.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.3, 0)); }
 
     setBuildMode(on, freePlots = []) {
         this.buildMode = on;
