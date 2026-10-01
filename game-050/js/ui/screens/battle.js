@@ -67,7 +67,7 @@ export const battleScreen = {
         const cfg = buildBattle(S, params.mode, params, params.team);
         this.B = createBattle(cfg);
         this.boss = cfg.waves.some((w) => w.some((u) => u.boss));
-        playMusic(this.boss ? 'boss' : 'battle');
+        playMusic('battle');
         this.buildHud();
         // allies + first wave
         const allies = this.B.allies.map((u) => ({ uid: u.uid, side: 'A', view: u.view, boss: false }));
@@ -347,6 +347,12 @@ export const battleScreen = {
         // allies: fresh wave clears statuses
         for (const u of B.allies) { const p = this.plates.get(u.uid); if (p) { p.statuses.clear(); this.renderStatuses(u.uid); } }
         if (!first || ev.of > 1) this.banner(units.some((u) => u.boss) ? `Boss: ${units.find((u) => u.boss).name}` : `Wave ${ev.n}`, units.some((u) => u.boss));
+        const boss = units.find((u) => u.boss);
+        if (boss) {
+            const e = this.st.get(boss.uid);
+            if (e) { this.st.focus(e.actor.root.position.clone().setY(1), 0.35); this.st.shake(0.25, 0.6); sfx('boom'); setTimeout(() => this.st.focus(null), 1500 / this.speed); }
+            playMusic('boss');
+        }
     },
     banner(text, big = false) {
         const b = h('div.turn-banner', { class: big ? 'ult' : '' }, text);

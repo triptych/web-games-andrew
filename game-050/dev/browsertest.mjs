@@ -167,6 +167,16 @@ async function desktop(browser) {
     await closeModals(page);
     await page.evaluate(() => { __sb.G.S.settings.auto = true; });
 
+    // a boss stage (wave banner, boss focus, boss music, enrage)
+    await page.evaluate(() => { __sb.G.S.settings.speed = 3; __sb.G.S.res.stamina = 99; for (const x of __sb.G.S.heroes) { x.star = 4; x.level = 25; } __sb.go('battle', { mode: 'campaign', idx: 7, team: __sb.G.S.heroes.map((h) => h.id) }); });
+    await waitScreen(page, 'battle');
+    await page.waitForFunction(() => [...document.querySelectorAll('.uplate.boss')].length > 0, null, { timeout: 180000 });
+    await page.waitForTimeout(600);
+    await shot(page, 'bt-boss');
+    ok(true, 'boss wave appears');
+    await battleToEnd(page);
+    await closeModals(page);
+
     // hero growth
     const hid = await page.evaluate(() => __sb.G.S.heroes[0].id);
     if (process.env.VERBOSE) console.log("   screen before hero:", await page.evaluate(() => [__sb.current(), document.querySelectorAll(".modal-back").length, document.querySelector("#fade").className]));
@@ -175,7 +185,9 @@ async function desktop(browser) {
     if (process.env.VERBOSE) { console.log('   after go(hero):', await page.evaluate(() => __sb.current())); await page.waitForTimeout(1000); console.log('   1s later:', await page.evaluate(() => [__sb.current(), document.querySelector('#fade').className])); }
     await waitScreen(page, 'hero');
     await page.locator('.hd-sheet .tbtn', { hasText: 'Grow' }).click();
-    const lv0 = await page.evaluate((id) => __sb.G.S.heroes.find((h) => h.id === id).level, hid);
+    const lv0 = await page.evaluate((id) => { const x = __sb.G.S.heroes.find((h) => h.id === id); x.level = 1; x.xp = 0; return 1; }, hid);
+    await page.locator('.hd-sheet .tbtn', { hasText: 'Stats' }).click();
+    await page.locator('.hd-sheet .tbtn', { hasText: 'Grow' }).click();
     await page.evaluate(() => __sb.grant({ items: { xpM: 3 } }));
     await page.locator('.hd-sheet .btn', { hasText: '(M)' }).first().click();
     const lv1 = await page.evaluate((id) => __sb.G.S.heroes.find((h) => h.id === id).level, hid);

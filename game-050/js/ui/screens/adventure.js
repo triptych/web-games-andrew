@@ -45,6 +45,7 @@ export const adventureScreen = {
         const S = G.S;
         const wrap = h('div.wrap');
         const stars3 = Object.values(S.campaign.stars).reduce((a, b) => a + b, 0);
+        app(wrap, this.worldMap());
         app(wrap, h('div.row', { style: { marginBottom: '10px' } }, h('div.chip', `Cleared ${S.campaign.cleared}/${TOTAL_STAGES}`), h('div.chip', { html: `<span class="star">★</span> ${stars3}/${TOTAL_STAGES * 3}` }), h('div.grow'), btn('Modes ›', () => { tab = 'modes'; this.render(); }, 'ghost small')));
         REGIONS.forEach((reg, r) => {
             const first = r * STAGES_PER_REGION;
@@ -71,6 +72,68 @@ export const adventureScreen = {
             app(wrap, card);
         });
         app(body, wrap);
+    },
+    /** An illustrated map of the eight regions joined by a road; tap one to jump to its stages. */
+    worldMap() {
+        const S = G.S;
+        const narrow = innerWidth < 560;
+        const W = narrow ? 380 : 760, H = narrow ? 400 : 250;
+        const cv = h('canvas', { width: W * 2, height: H * 2, style: { width: '100%', borderRadius: '14px', border: '1.5px solid var(--line)', display: 'block', marginBottom: '10px', cursor: 'pointer' }, 'aria-label': 'World map' });
+        const g = cv.getContext('2d');
+        g.scale(2, 2);
+        const bg = g.createLinearGradient(0, 0, 0, H);
+        bg.addColorStop(0, '#2a4a7a'); bg.addColorStop(1, '#16284a');
+        g.fillStyle = bg; g.fillRect(0, 0, W, H);
+        // sea sparkle
+        let seed = 7;
+        const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+        g.fillStyle = 'rgba(255,255,255,0.08)';
+        for (let i = 0; i < 90; i++) g.fillRect(rnd() * W, rnd() * H, 6 + rnd() * 12, 1.5);
+        const pts = narrow
+            ? [[90, 360], [285, 330], [95, 265], [285, 225], [90, 165], [285, 125], [95, 65], [285, 40]].map(([x, y]) => [x, y - 4])
+            : [[70, 170], [160, 95], [250, 175], [345, 100], [430, 170], [520, 90], [605, 165], [690, 85]];
+        const cleared = S.campaign.cleared;
+        // road
+        g.lineWidth = 4; g.setLineDash([8, 7]); g.strokeStyle = 'rgba(255,231,163,0.75)';
+        g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke(); g.setLineDash([]);
+        const COL = { verdant: '#4fae3a', ember: '#c8522a', tide: '#3aa0e0', sunspire: '#e0b03a', gloom: '#6a3aa8', frost: '#bfe0f8', crystal: '#a86ae8', throne: '#a82a5a' };
+        REGIONS.forEach((reg, r) => {
+            const [x, y] = pts[r];
+            const open = r * STAGES_PER_REGION <= cleared;
+            const done = (r + 1) * STAGES_PER_REGION <= cleared;
+            // island blob
+            g.save(); g.translate(x, y);
+            g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(4, 10, 44, 22, 0, 0, Math.PI * 2); g.fill();
+            g.fillStyle = open ? COL[reg.id] : '#4a4a5a';
+            g.beginPath();
+            for (let k = 0; k <= 16; k++) { const a = (k / 16) * Math.PI * 2; const rr = 36 + Math.sin(k * 2.3 + r) * 5; g.lineTo(Math.cos(a) * rr * 1.25, Math.sin(a) * rr * 0.62); }
+            g.closePath(); g.fill();
+            g.strokeStyle = 'rgba(0,0,0,0.45)'; g.lineWidth = 2; g.stroke();
+            g.fillStyle = 'rgba(255,255,255,0.18)'; g.beginPath(); g.ellipse(-8, -6, 22, 8, -0.2, 0, Math.PI * 2); g.fill();
+            g.restore();
+            // label
+            g.font = `900 ${narrow ? 14 : 13}px Nunito, sans-serif`; g.textAlign = 'center';
+            g.lineWidth = 4; g.strokeStyle = 'rgba(0,0,0,0.75)';
+            const label = `${r + 1}. ${reg.name.replace('The ', '')}`;
+            const ly = narrow ? y + 38 : y + 42;
+            g.strokeText(label, x, ly); g.fillStyle = open ? '#fff6dc' : '#9a9aaa'; g.fillText(label, x, ly);
+            if (done) { g.fillStyle = '#ffd24a'; g.font = '900 16px Nunito, sans-serif'; g.fillText('★', x + 34, y - 18); }
+            if (!open) { g.fillStyle = 'rgba(255,255,255,0.7)'; g.font = '900 12px Nunito, sans-serif'; g.fillText('LOCKED', x, y + 4); }
+        });
+        // you are here
+        const cur = Math.min(REGIONS.length - 1, Math.floor(cleared / STAGES_PER_REGION));
+        const [cx, cy] = pts[cur];
+        g.fillStyle = '#ffe08a'; g.strokeStyle = '#3a2204'; g.lineWidth = 2;
+        g.beginPath(); g.moveTo(cx, cy - 6); g.lineTo(cx - 9, cy - 24); g.arc(cx, cy - 26, 9, Math.PI * 0.85, Math.PI * 0.15, false); g.closePath(); g.fill(); g.stroke();
+        g.fillStyle = '#3a2204'; g.beginPath(); g.arc(cx, cy - 26, 3.5, 0, Math.PI * 2); g.fill();
+        cv.addEventListener('click', (e) => {
+            const rect = cv.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * W, y = ((e.clientY - rect.top) / rect.height) * H;
+            let best = -1, bd = 60;
+            pts.forEach(([px, py], i) => { const d = Math.hypot(px - x, py - y); if (d < bd) { bd = d; best = i; } });
+            if (best >= 0) { const card = this.root.querySelectorAll('.region-card')[best]; if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        });
+        return cv;
     },
     stagePopup(idx) {
         const S = G.S;
