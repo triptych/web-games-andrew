@@ -674,6 +674,16 @@ h1 {
     color: #1a0a04;
 }
 
+.game-preview.lanterndeep,
+.carousel-slide-bg.lanterndeep {
+    background: radial-gradient(ellipse at 50% 70%, #ffb050 0%, #6a3a10 22%, #1a1024 55%, #05030a 100%);
+}
+
+.game-card.lanterndeep .play-button {
+    background: linear-gradient(135deg, #1a1024 0%, #a8782a 55%, #ffd890 100%);
+    color: #120a04;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

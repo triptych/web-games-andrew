@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#07050a">
+    <meta name="description" content="Lanterndeep: a turn-based 3D roguelike. One hundred stairs, ten worlds, ten Wardens, and a lantern that is running out of oil.">
+    <title>Lanterndeep</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a href="../index.html" id="games-link" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
+
+    <div id="touch-layer"></div>
+    <div id="numbers"></div>
+    <div id="fade" class="on"></div>
+
+    <!-- ============================== HUD ============================== -->
+    <div id="hud" hidden>
+        <div id="hud-left">
+            <div id="hero-line"><span id="hero-cls">Warden</span> <span id="hero-lvl">Lv 1</span></div>
+            <div class="bar" id="hp-bar" title="Health"><div class="bar-lag" id="hp-lag"></div><div class="bar-fill" id="hp-fill"></div><span class="bar-text" id="hp-text">40 / 40</span></div>
+            <div class="bar" id="oil-bar" title="Lantern oil"><div class="bar-fill" id="oil-fill"></div><span class="bar-text" id="oil-text">Oil 100</span></div>
+            <div class="bar thin" id="xp-bar" title="Experience"><div class="bar-fill" id="xp-fill"></div></div>
+            <div id="statuses"></div>
+        </div>
+        <div id="hud-center">
+            <div id="floor-label">Floor 1</div>
+            <div id="world-label">The Rootcellars</div>
+            <div id="boss-bar" hidden>
+                <div id="boss-name">Warden</div>
+                <div class="bar boss"><div class="bar-lag" id="boss-lag"></div><div class="bar-fill" id="boss-fill"></div></div>
+            </div>
+        </div>
+        <div id="hud-right">
+            <div id="purse"><span class="ico">◆</span><span id="gold">0</span></div>
+            <div id="embers" title="Embers reclaimed"><span class="ico ember">✹</span><span id="ember-n">0</span></div>
+            <canvas id="minimap" width="160" height="120" title="Map (M)"></canvas>
+        </div>
+        <div id="log"></div>
+        <div id="target-hint" hidden><span id="target-text">Choose a target</span><button id="target-cancel" class="mini">Cancel</button></div>
+        <div id="explore-hint" hidden></div>
+
+        <div id="actions">
+            <div class="row" id="skill-row">
+                <button class="act skill" data-skill="0"><span class="ico"></span><span class="cd"></span><span class="key">1</span></button>
+                <button class="act skill" data-skill="1"><span class="ico"></span><span class="cd"></span><span class="key">2</span></button>
+                <button class="act skill" data-skill="2"><span class="ico"></span><span class="cd"></span><span class="key">3</span></button>
+                <button class="act skill" data-skill="3"><span class="ico"></span><span class="cd"></span><span class="key">4</span></button>
+                <button class="act" id="btn-heal" title="Drink a healing potion (Q)"><span class="ico">✚</span><span class="count" id="heal-n">0</span><span class="key">Q</span></button>
+            </div>
+            <div class="row" id="util-row">
+                <button class="act" id="btn-wait" title="Wait / search (Space)"><span class="ico">⏳</span><span class="key">␣</span></button>
+                <button class="act" id="btn-explore" title="Auto-explore (X)"><span class="ico">🧭</span><span class="key">X</span></button>
+                <button class="act" id="btn-stairs" title="Descend / go to stairs (&gt;)"><span class="ico">⤵</span><span class="key">&gt;</span></button>
+                <button class="act" id="btn-bag" title="Inventory (I)"><span class="ico">🎒</span><span class="key">I</span></button>
+                <button class="act" id="btn-journal" title="Journal (J)"><span class="ico">📜</span><span class="key">J</span></button>
+                <button class="act" id="btn-map" title="Map (M)"><span class="ico">🗺</span><span class="key">M</span></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="corner">
+        <button id="mute-btn" class="corner-btn" aria-label="Mute">♪</button>
+        <button id="pause-btn" class="corner-btn" aria-label="Menu" hidden>☰</button>
+    </div>
+
+    <div id="tooltip" hidden></div>
+
+    <!-- ============================== Screens ============================== -->
+    <div id="screens">
+        <div id="title" class="screen" hidden>
+            <div class="title-wrap">
+                <div class="logo"><span class="logo-a">LANTERN</span><span class="logo-b">DEEP</span></div>
+                <div class="tagline">The Hundred Stairs</div>
+                <div id="title-buttons">
+                    <button id="btn-continue" class="btn primary" hidden>Continue</button>
+                    <button id="btn-new" class="btn primary">New Descent</button>
+                    <button id="btn-help" class="btn">How to Play</button>
+                </div>
+                <div id="records"></div>
+                <div class="small-print">A turn-based roguelike · 100 floors · 10 worlds · 10 Wardens<br>Everything you see and hear is generated in code.</div>
+            </div>
+        </div>
+
+        <div id="classpick" class="screen" hidden>
+            <h2 class="screen-h">Who takes up the lantern?</h2>
+            <div id="class-cards"></div>
+            <div id="mode-pick">
+                <label><input type="radio" name="mode" value="lantern" checked> <b>Lantern</b> — fall, and rekindle at the start of the world</label>
+                <label><input type="radio" name="mode" value="ironwick"> <b>Ironwick</b> — one life. Permadeath.</label>
+            </div>
+            <div class="btn-row">
+                <button id="class-back" class="btn ghost">Back</button>
+                <button id="class-go" class="btn primary">Descend</button>
+            </div>
+        </div>
+
+        <div id="story" class="screen" hidden>
+            <div class="story-card">
+                <div id="story-kicker"></div>
+                <h2 id="story-title"></h2>
+                <div id="story-text"></div>
+                <div id="story-buttons"><button id="story-next" class="btn primary">Continue</button></div>
+            </div>
+        </div>
+
+        <div id="perk" class="screen" hidden>
+            <h2 class="screen-h">Level <span id="perk-lvl"></span></h2>
+            <div class="sub">Choose a gift of the Deep</div>
+            <div id="perk-cards"></div>
+            <div id="perk-skill"></div>
+        </div>
+
+        <div id="inventory" class="screen panel-screen" hidden>
+            <div class="panel">
+                <div class="panel-head"><h2>Pack</h2><span id="inv-count"></span><button class="mini close" data-close>✕</button></div>
+                <div id="equip-slots"></div>
+                <div id="hero-stats"></div>
+                <div id="inv-grid"></div>
+                <div id="item-detail" hidden></div>
+            </div>
+        </div>
+
+        <div id="shop" class="screen panel-screen" hidden>
+            <div class="panel">
+                <div class="panel-head"><h2 id="shop-title">Merchant</h2><span id="shop-gold"></span><button class="mini close" data-close>✕</button></div>
+                <div id="shop-greet"></div>
+                <button id="shop-oil" class="btn wide"></button>
+                <h3>For sale</h3>
+                <div id="shop-stock" class="list"></div>
+                <h3>Sell from your pack</h3>
+                <div id="shop-sell" class="list"></div>
+            </div>
+        </div>
+
+        <div id="dialog" class="screen" hidden>
+            <div class="story-card dialog-card">
+                <div id="dialog-who"></div>
+                <div id="dialog-text"></div>
+                <div id="dialog-goal"></div>
+                <div id="dialog-reward"></div>
+                <div class="btn-row" id="dialog-buttons"></div>
+            </div>
+        </div>
+
+        <div id="journal" class="screen panel-screen" hidden>
+            <div class="panel">
+                <div class="panel-head"><h2>Journal</h2><button class="mini close" data-close>✕</button></div>
+                <div class="tabs"><button class="tab on" data-tab="quests">Quests</button><button class="tab" data-tab="pages">Maren's Pages</button><button class="tab" data-tab="log">Log</button></div>
+                <div id="journal-body"></div>
+            </div>
+        </div>
+
+        <div id="bigmap" class="screen panel-screen" hidden>
+            <div class="panel map-panel">
+                <div class="panel-head"><h2 id="map-title">Map</h2><button class="mini close" data-close>✕</button></div>
+                <canvas id="bigmap-canvas"></canvas>
+                <div class="legend"><span class="lg hero">● you</span><span class="lg stairs">▼ stairs</span><span class="lg foe">● foe</span><span class="lg item">◆ item</span><span class="lg npc">! person</span></div>
+            </div>
+        </div>
+
+        <div id="pause" class="screen" hidden>
+            <div class="story-card">
+                <h2>Paused</h2>
+                <div id="pause-info"></div>
+                <div class="btn-col">
+                    <button id="pause-resume" class="btn primary">Resume</button>
+                    <button id="pause-help" class="btn">How to Play</button>
+                    <button id="pause-quality" class="btn">Graphics: High</button>
+                    <button id="pause-title" class="btn ghost">Save &amp; Quit to Title</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="help" class="screen" hidden>
+            <div class="story-card help-card">
+                <h2>How to Play</h2>
+                <div class="help-cols">
+                    <div>
+                        <h3>The descent</h3>
+                        <p>Every step is a turn. Monsters act when you act. Find the stairs <b>▼</b> on each floor and go down — 100 floors through 10 worlds. Every 10th floor holds a <b>Warden</b>.</p>
+                        <p>Your <b>lantern</b> is your light and your clock. It burns oil every turn; refill it with <b>Oil Flasks</b>. In the dark, the Hush gathers and hurts you.</p>
+                        <p>Red tiles are <b>telegraphed attacks</b>: they land after your next move. Step off them!</p>
+                        <p>Talk to <b>Wayfarers (!)</b> for quests, find <b>Maren's journal pages</b> (one per world), light braziers, open chests and vaults.</p>
+                    </div>
+                    <div>
+                        <h3>Controls</h3>
+                        <table>
+                            <tr><td>Move / attack</td><td>Arrows · WASD · numpad · QEZC diagonals — or tap a tile</td></tr>
+                            <tr><td>Shoot</td><td>Tap an enemy · F (nearest) · Tab cycles targets</td></tr>
+                            <tr><td>Skills</td><td>1 2 3 4 (press twice or tap a target)</td></tr>
+                            <tr><td>Wait / search</td><td>Space or . — or tap yourself</td></tr>
+                            <tr><td>Auto-explore</td><td>X</td></tr>
+                            <tr><td>Stairs</td><td>&gt; or Enter (walks there first)</td></tr>
+                            <tr><td>Drink potion</td><td>Q (best healing)</td></tr>
+                            <tr><td>Pack · Journal · Map</td><td>I · J · M</td></tr>
+                            <tr><td>Inspect</td><td>Right-click · long-press</td></tr>
+                            <tr><td>Zoom</td><td>Mouse wheel · pinch</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <button id="help-close" class="btn primary">Got it</button>
+            </div>
+        </div>
+
+        <div id="death" class="screen" hidden>
+            <div class="story-card">
+                <div class="kicker">The lantern goes out</div>
+                <h2 id="death-title">You have fallen</h2>
+                <div id="death-text"></div>
+                <div id="death-stats" class="stats"></div>
+                <div class="btn-col">
+                    <button id="death-rekindle" class="btn primary">Rekindle</button>
+                    <button id="death-title-btn" class="btn ghost">Title</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="victory" class="screen" hidden>
+            <div class="story-card">
+                <div class="kicker">The Hundred Stairs</div>
+                <h2 id="victory-title"></h2>
+                <div id="victory-text"></div>
+                <div id="victory-stats" class="stats"></div>
+                <button id="victory-title-btn" class="btn primary">Return to Lastlight</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

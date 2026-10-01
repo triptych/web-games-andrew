@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-47 games, `game-001` through `game-047`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+48 games, `game-001` through `game-048`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -59,6 +59,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 | 045 | [PINBREAK '86](game-045/) | Synthwave pinball × breakout synthesis | three.js |
 | 046 | [Quiverspire](game-046/) | Archero-style roguelite archer | three.js |
 | 047 | [Ashes & Aces](game-047/) | Deck-building roguelite × poker solitaire | three.js |
+| 048 | [Lanterndeep](game-048/) | Turn-based 3D roguelike, 100 floors | three.js |
 
 ### Highlights
 
@@ -109,6 +110,8 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 **[Quiverspire](game-046/)** — An **Archero-style roguelite archer** in three.js. Your archer fires automatically at the nearest enemy, but only while standing still — moving stops the bow — so every room is a rhythm of dodge, plant your feet, loose arrows, dodge again. Climb ten chapters of twelve rooms (**120 procedurally generated rooms**, plus an **Endless** mode whose difficulty curve steepens as it climbs): mirrored layouts of rock, water, lava, acid, chasms and spike traps, validated so every room's door and every spawn is reachable on foot. Twelve enemy types that all telegraph their attacks (laser sights, charge lanes, marked landing circles, lobbed bombs you can watch arc in), elite champions, angels, devil's bargains that cost a slice of max HP forever, and five multi-phase bosses who return **Ascended** in the later chapters. Level-ups offer three of 29 stacking abilities — Multishot, Front/Diagonal/Side/Rear arrows, Ricochet, Piercing, Bouncy Wall, fire/frost/poison/lightning arrows, orbiting flame and frost circles, spirit wisps, Aegis, an Extra Life — and coins buy six permanent talents between runs. **Everything is generated in code**: floor textures painted per biome from a recipe, a seven-look liquid/chasm shader, obstacles, props, the hero, every enemy and boss modelled from primitives and hue-shifted per chapter, and a music sequencer that composes each chapter its own loop. Keyboard, gamepad, or a one-thumb floating joystick on a phone. The simulation is pure and seeded, so [game-046/dev/](game-046/dev/README.md) has a bot play every chapter headlessly (checking every tick that nothing leaves the room or stands in a wall) and a Playwright harness walk the real game on desktop and touch-only phones.
 
 **[Ashes & Aces](game-047/)** — **Slay the Spire meets poker solitaire** in a dark high-fantasy three.js roguelite. Every fight is played on a 5×5 table: place cards from your hand (three Deals a turn), and whenever a row, column or diagonal fills it fires as a **poker hand** — the hand sets the multiplier, and each card's chips flow into its suit: ♠ Blades damage your target, ♣ Staves hit every enemy, ♦ Coins raise Ward, ♥ Hearts heal. One card that finishes two lines is a **Cross** (×1.5 each). Monsters telegraph their intents and fight the table itself — sealing cells, stealing your best card, frosting cells so they score nothing, scrambling rows, shuffling dead Ash into your deck — and ten scripted **Crowned Wardens** add rising tides, erased columns, mirages and phase changes. Build a deck from ten enchantments, 22 Arcana spells, 52 relics and 8 elixirs across **10 realms × 10 levels = 100 levels** of branching Slay-the-Spire maps (battles, elites, mysteries, merchants, campfires, treasure). An authored epic, *The Last Hand*, with a chapter, interlude and Warden scene per realm and three endings, plus a Chronicle the run writes about you. **Everything is generated in code**: card faces painted at 512×720 with normal and foil maps (J/Q/K get generated portraits), eleven monster body plans grown from genomes with shader veins, rim light and dissolve deaths, ten realm backdrops (sky shaders, parallax ridges, props, GPU weather, god rays), heroes with generated names and looks, and a generative soundtrack (Karplus–Strong harp, FM bells, taiko, formant choir, convolution reverb) that composes each realm its own map, battle and Warden themes. The simulation is pure and seeded: [game-047/dev/](game-047/dev/README.md) has a bot play whole 100-level runs headlessly to balance the curve, and a Playwright harness walk the real game on desktop and touch-only phones.
+
+**[Lanterndeep](game-048/)** — A **turn-based 3D roguelike** in three.js, in the Pixel Dungeon / DCSS line. The lamps of Lastlight are going out; your teacher Maren went down to tend the First Lantern a year ago and never came back. Take her spare lantern and descend **the Hundred Stairs: 100 procedurally generated floors in ten worlds** (rootcellars, a bioluminescent grotto, a drowned library, a dwarven forge split by lava, crystal hollows, an ossuary, a clockwork machine, a frozen abyss, a vault among the stars, the Heart of Night), each built by one of four generators (rooms, caves, halls, mixed) with liquids, pillars, props, traps, braziers and sealed vaults, and validated so the stairs are always reachable. Every 10th floor is a **Warden**: ten multi-phase bosses whose area attacks are telegraphed on the grid and land after your next move. **Your lantern is your light radius and your clock** — it burns oil every turn, braziers and torches light rooms you can see from across the dark, and when the oil runs out the Hush gathers. Three heroes (Warden, Ranger, Emberwitch) with four skills each and a perk choice every level; **procedural loot** (Common/Magic/Rare with 25 affixes, plus nine Warden relics), chests, mimics, shrines, fountains and merchants; **procedural quests** from Wayfarers — bounties, culls, lost heirlooms, rescues whose freed captive fights beside you, nests to purge, braziers to relight; **70 monster species** on eleven behaviour archetypes with elite affixes and generated names; and an authored story told through chapter cards, Warden scenes and **Maren's ten journal pages**, which unlock the best of three endings. **Everything is generated in code**: painted floor and wall textures per world, a fog-of-war texture every level material samples (the dark peels back smoothly, remembered rooms fall to a cold grey), walls cut away in the vertex shader so the hero is never hidden, animated water, lava and void, procedural props, monsters and Wardens, bloom and a graded post pass, and a generative score per world that swells for fights and Wardens. Tap-to-move with auto-explore and big buttons on phones (portrait or landscape), keyboard on desktop. The simulation is pure and seeded: [game-048/dev/](game-048/dev/README.md) has a bot play all 100 floors with each hero to balance the curve, and a Playwright harness walk the real game on desktop and touch-only phones.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -179,7 +182,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-047/   # One self-contained folder per game
+├── game-001/ … game-048/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -189,7 +192,7 @@ web-games-andrew/
 └── README.md               # This file
 ```
 
-Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047) load it from a CDN via an import map in their `index.html`.
+Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047, game-048) load it from a CDN via an import map in their `index.html`.
 
 ## Technologies Used
 
@@ -198,7 +201,7 @@ Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018
 - **CSS3** - Styling and responsive design
 - **Kaplay Framework (v4000 alpha)** - Game development framework (most games from game-002 onward, including game-032)
 - **Phaser 4.0.0 (ESM)** - Game framework (game-019, game-020, game-027, game-028, game-035)
-- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047)
+- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047, game-048)
 - **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034, game-037, game-038, game-039)
 - **Custom software 3D** - Hand-written 3D renderers with no engine: a palette-indexed framebuffer (game-031) and a triangle rasterizer on Canvas2D (game-036)
 - **GemCore/GemShell** - Desktop application packaging
@@ -236,7 +239,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 47 games are included as of the latest entries (game-044 The Story Thief of Greymantle, game-045 PINBREAK '86, game-046 Quiverspire, game-047 Ashes & Aces).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 48 games are included as of the latest entries (game-045 PINBREAK '86, game-046 Quiverspire, game-047 Ashes & Aces, game-048 Lanterndeep).
 
 ---
 

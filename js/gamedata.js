@@ -660,6 +660,20 @@ const games = [
             { emoji: '\u2660\uFE0F', label: 'Poker Solitaire' },
             { emoji: '\uD83C\uDFF0', label: 'Fantasy' }
         ]
+    },
+    {
+        id: 'game-048',
+        title: 'Lanterndeep',
+        description: "A turn-based 3D roguelike in three.js. Lastlight's lamps are going out: take your missing teacher's lantern and descend the Hundred Stairs \u2014 100 procedurally generated floors through ten buried worlds (cellars, a glowing grotto, a drowned library, a dwarven forge, crystal hollows, an ossuary, a clockwork machine, a frozen abyss, a vault among the stars and the Heart of Night), with a multi-phase Warden on every 10th floor whose attacks are telegraphed on the grid. Your lantern is your light radius and your clock: it burns oil every turn, and in the dark the Hush gathers. Play a Warden, Ranger or Emberwitch with four skills each and a perk choice every level; find procedural loot (magic, rare and relic gear with 25 affixes), chests, mimics, vaults, shrines and merchants; take procedural quests from Wayfarers (bounties, rescues that fight beside you, lost heirlooms, nests, braziers to relight); and collect Maren's ten journal pages for the true ending of three. Fog of war that peels back smoothly, dynamic torch and lantern light, animated water and lava, 70 procedurally modelled monster species plus elite affixes, and a generative score per world \u2014 every texture, model and sound is generated in code. Tap-to-move, auto-explore and big buttons on phones; keyboard on desktop. Saves every floor; Lantern mode lets you rekindle at the start of a world, Ironwick is permadeath.",
+        icon: '\uD83C\uDFEE',
+        folder: 'game-048',
+        version: '1.0.0',
+        cssClass: 'lanterndeep',
+        tags: [
+            { emoji: '\uD83D\uDDDD\uFE0F', label: 'Roguelike' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' },
+            { emoji: '\uD83D\uDCF1', label: 'Touch' }
+        ]
     }
 ];
 
