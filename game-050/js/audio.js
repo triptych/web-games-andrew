@@ -6,6 +6,7 @@
 let ac = null, master = null, sfxBus = null, musicBus = null, noiseBuf = null;
 let soundOn = true, musicOn = true;
 let music = null;
+let wanted = null; // the score the current screen asked for, started once audio unlocks
 
 export function initAudio() {
     if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
@@ -18,10 +19,15 @@ export function initAudio() {
     noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
     const d = noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    if (wanted) playMusic(wanted);
 }
 
 export function setSound(on) { soundOn = on; if (sfxBus) sfxBus.gain.value = on ? 0.6 : 0; }
-export function setMusic(on) { musicOn = on; if (musicBus) musicBus.gain.setTargetAtTime(on ? 0.22 : 0, ac.currentTime, 0.3); }
+export function setMusic(on) {
+    musicOn = on;
+    if (musicBus) musicBus.gain.setTargetAtTime(on ? 0.22 : 0, ac.currentTime, 0.3);
+    if (on && ac && !music && wanted) playMusic(wanted);
+}
 
 function tone(freq, dur, o = {}) {
     if (!ac || !soundOn) return;
@@ -108,6 +114,7 @@ const SCALES = {
 };
 
 export function playMusic(kind) {
+    wanted = kind;
     if (!ac) return;
     if (music && music.kind === kind) return;
     stopMusic();

@@ -63,10 +63,10 @@ const D = {
 function hairParts(look, R) {
     const c = look.hairColor, tip = look.hairTip || c;
     const g = [];
-    // a hair cap = a full crown plus a back/side skirt that leaves a window for the face
+    // the hair mass: a shell open only underneath, pushed back so the face shows through the front
+    // (no open window at the front, so no dark inner ring around the face)
     const cap = (len = 0.55, sc = 1.07) => {
-        g.push(part(new THREE.SphereGeometry(R * sc, 24, 8, 0, PI * 2, 0, PI * 0.36), c, [0, 0, -0.01], [-0.12, 0, 0]));
-        if (len > 0.36) g.push(part(new THREE.SphereGeometry(R * sc, 24, 10, PI * 0.9, PI * 1.2, PI * 0.355, PI * (len - 0.355)), c, [0, 0, -0.01], [-0.12, 0, 0]));
+        g.push(part(new THREE.SphereGeometry(R * sc, 28, 16, 0, PI * 2, 0, PI * Math.min(0.92, len + 0.08)), c, [0, 0.035, -R * 0.13], [-0.1, 0, 0]));
     };
     const fringe = (n = 5, len = 0.12, spread = 0.9) => {
         for (let i = 0; i < n; i++) {
@@ -644,6 +644,7 @@ export function buildCharacter(look, opts = {}) {
     const weapon = new THREE.Group();
     weapon.position.set(0, -D.armLen - 0.01, 0.01);
     weapon.rotation.x = PI / 2 - 0.35;
+    weapon.scale.setScalar(1.3);
     const wp = weaponParts(look, 'R');
     if (wp.g.length) weapon.add(M(wp.g, { outline: 0.01 }));
     if (wp.glow.length) weapon.add(new THREE.Mesh(merge(wp.glow), glowMat()));

@@ -19,7 +19,7 @@ function eye(g, cx, cy, style, color, flip, expr, skin) {
     const L = flip ? -1 : 1;
     g.save();
     g.translate(cx, cy);
-    g.scale(flip ? -1.35 : 1.35, 1.35);
+    g.scale(flip ? -1.55 : 1.55, 1.55);
     const ink = '#1a1020';
     g.lineCap = 'round';
     g.lineJoin = 'round';
@@ -181,7 +181,7 @@ export function faceTexture(look, expr = 'normal') {
     c.width = c.height = SIZE;
     const g = c.getContext('2d');
     const W = SIZE;
-    const ey = 124, ex = 62;
+    const ey = 128, ex = 66;
     if (look.blush || expr === 'happy') {
         for (const x of [W / 2 - ex - 4, W / 2 + ex + 4]) {
             const gr = g.createRadialGradient(x, 166, 2, x, 166, 22);
@@ -202,12 +202,12 @@ export function faceTexture(look, expr = 'normal') {
     eye(g, W / 2 - ex, ey, look.eyes, look.eyeColor, false, expr, skinC);
     eye(g, W / 2 + ex, ey, look.eyes, look.eyeColor, true, expr, skinC);
     if (look.eyes !== 9) {
-        brow(g, W / 2 - ex, ey - 42, look.brows, browCol, false, expr);
-        brow(g, W / 2 + ex, ey - 42, look.brows, browCol, true, expr);
+        brow(g, W / 2 - ex, ey - 50, look.brows, browCol, false, expr);
+        brow(g, W / 2 + ex, ey - 50, look.brows, browCol, true, expr);
     }
     if (look.scar === 1) { g.strokeStyle = '#a04050'; g.lineWidth = 4; g.beginPath(); g.moveTo(W / 2 + ex - 10, 160); g.lineTo(W / 2 + ex + 18, 178); g.moveTo(W / 2 + ex - 2, 162); g.lineTo(W / 2 + ex - 8, 174); g.moveTo(W / 2 + ex + 8, 166); g.lineTo(W / 2 + ex + 2, 178); g.stroke(); }
     if (look.scar === 2) { g.strokeStyle = '#a04050'; g.lineWidth = 5; g.beginPath(); g.moveTo(W / 2 - ex - 4, ey - 40); g.lineTo(W / 2 - ex + 8, ey + 40); g.stroke(); }
-    mouth(g, W / 2, 196, look.mouth, expr);
+    mouth(g, W / 2, 202, look.mouth, expr);
     if (!ebrow && expr === 'normal') { /* hollow eyes skip brows */ }
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;

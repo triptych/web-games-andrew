@@ -9,7 +9,7 @@ import { setStage } from '../view/engine.js';
 import { getStage3D } from './stages.js';
 import { on } from '../core/bus.js';
 import { updateHud, setTab, showChrome } from './hud.js';
-import { sfx } from '../audio.js';
+import { sfx, playMusic } from '../audio.js';
 
 const registry = new Map();
 const history = [];
@@ -43,6 +43,9 @@ export async function go(id, params = {}, opts = {}) {
     current = next;
     showChrome(next.chrome || 'normal');
     if (next.tab) setTab(next.tab);
+    // a default score per stage; screens (battle) may pick their own in enter()
+    const score = { summon: 'summon', spire: 'summon', battle: null }[next.stage];
+    if (score !== null && next.id !== 'title') playMusic(score || 'citadel');
     next.enter(root, params);
     updateHud();
     if (opts.fade || $('#fade').classList.contains('on')) await fade(false);
