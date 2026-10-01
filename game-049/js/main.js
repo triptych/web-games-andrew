@@ -29,6 +29,7 @@ import { SPECIES, ELITE_AFFIXES } from './sim/monsters.js';
 import { STATUS, damage as simDamage, gainXp, canEnter } from './sim/combat.js';
 import { makeMonster } from './sim/monsters.js';
 import { makeRng } from './sim/rng.js';
+import { lineOfFire } from './sim/path.js';
 import { CONSUMABLES } from './sim/items.js';
 
 const DEBUG = new URLSearchParams(location.search).has('debug');
@@ -821,6 +822,7 @@ function exposeDebug() {
             for (let k = 0; k < 60; k++) {
                 const x = r.p.x + Math.round((Math.random() - 0.5) * 2 * d), y = r.p.y + Math.round((Math.random() - 0.5) * 2 * d);
                 if (cheb(x, y, r.p.x, r.p.y) < 2 || !r._t.vis[y * r.lv.w + x] || !canEnter(r, { id: -1 }, x, y)) continue;
+                if (!lineOfFire(r.lv, r.p.x, r.p.y, x, y)) continue;   // tests aim at it
                 const m = makeMonster(r, sp, x, y, r.floor, makeRng(k + 1));
                 if (r.lv.tiles[y * r.lv.w + x] !== T.FLOOR) continue;
                 m.awake = true; r.mons.push(m); updateFov(r); return m.id;

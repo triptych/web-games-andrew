@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Lanterndeep** (game-049) v1.0.1: on phones the hero-select screen started above the top of the screen, cutting off the heading and the first hero card with no way to scroll back to them. Every screen was centred with `justify-content: center` inside a scrolling column, which pushes overflow above the scroll origin; screens now centre with auto margins (centred when they fit, scrolled from the top when they don't). On small screens unselected heroes collapse to name and tagline so all three fit, and portrait screens clear the fixed corner buttons. The browser test now asserts the hero select starts on screen on both phone sizes, and its debug spawn picks a tile with a clear line of fire so the targeting check is no longer luck.
+
 ### Notes
 - **Library version audit (2026-08-27)**: checked vendored/pinned JS libraries against latest upstream. Nothing upgraded — recorded here for future reference.
   - **Kaplay**: pinned at `4000.0.0-alpha.26` (`lib/kaplay/kaplay.mjs` + `.js`); latest is `4000.0.0-alpha.27.1` (`next` dist-tag). Kaplay ships two incompatible tracks — stable `v3001` (`3001.0.19`, `latest` dist-tag) and experimental `v4000` (alphas). All games here use the v4000 API (see [docs/kaplay/](docs/kaplay/)), so stay on v4000 — do **not** move to v3001. Alpha.27 adds config-object RNG init (breaking if any game calls `new RNG()`/`setRNG()` with the old string/custom-rng param), plus `nextFrame()` and gamepad-type additions.
