@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#05060f">
+    <meta name="description" content="SPINFRAME — a turn-based sci-fi mech RPG where your weapons are a slot machine.">
+    <title>SPINFRAME</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="stage"></canvas>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <!-- ============================== battle HUD -->
+    <div id="battle-ui" class="hidden">
+        <div id="b-top">
+            <button id="b-menu" class="icon-btn" title="Menu (Esc)" aria-label="Menu">☰</button>
+            <div id="b-title"></div>
+            <div id="b-lootbox" title="Scrap found this fight"><span class="coin"></span><span id="b-loot">0</span></div>
+        </div>
+        <div id="b-bottom">
+            <div id="b-left">
+                <div id="b-energy-wrap" title="Energy: spend it to nudge, respin, hold or purge reels"><div id="b-energy"></div><div id="b-free"></div></div>
+                <div id="b-boosters"></div>
+            </div>
+            <button id="b-spin" class="big-btn">SPIN</button>
+            <div id="b-right">
+                <button id="b-auto" class="small-btn" title="Auto-play (A)">AUTO</button>
+                <button id="b-speed" class="small-btn" title="Animation speed (S)">1×</button>
+            </div>
+        </div>
+        <div id="reel-menu" class="hidden">
+            <button id="rm-up" title="Nudge up (↑)">▲<small></small></button>
+            <button id="rm-down" title="Nudge down (↓)">▼<small></small></button>
+            <button id="rm-respin" title="Respin this reel (R)">⟳<small></small></button>
+            <button id="rm-hold" title="Hold this reel for the next spin (H)">HOLD<small></small></button>
+            <button id="rm-purge" title="Purge the jam and spin it (P)">PURGE<small></small></button>
+        </div>
+        <div id="chain" class="chain"></div>
+        <div id="b-tip" class="hidden"></div>
+        <div id="hover-tip" class="hidden"></div>
+        <div id="bark" class="hidden"><div class="bark-face"></div><div class="bark-text"></div></div>
+    </div>
+
+    <div id="banner"></div>
+
+    <!-- ============================== screens -->
+    <div id="screens">
+        <section id="scr-title" class="screen hidden">
+            <div class="title-wrap">
+                <div class="logo-kicker">The Halcyon Flight Academy presents</div>
+                <h1 class="logo"><span>SPIN</span><span class="logo-b">FRAME</span></h1>
+                <div class="logo-sub">a slot-machine mech RPG</div>
+                <div class="menu-col">
+                    <button id="t-continue" class="menu-btn primary hidden">Continue</button>
+                    <button id="t-new" class="menu-btn">New Cadet</button>
+                    <button id="t-how" class="menu-btn">How to Play</button>
+                    <button id="t-settings" class="menu-btn">Settings</button>
+                </div>
+                <div id="t-meta" class="meta-line"></div>
+            </div>
+        </section>
+
+        <section id="scr-callsign" class="screen hidden">
+            <div class="panel narrow">
+                <h2>Cadet Registration</h2>
+                <p class="dim">Every pilot at Halcyon flies under a callsign. What's yours?</p>
+                <div class="cs-row">
+                    <input id="cs-input" maxlength="14" autocomplete="off" spellcheck="false" aria-label="Callsign">
+                    <button id="cs-roll" class="small-btn" title="Random callsign">🎲</button>
+                </div>
+                <div class="btn-row">
+                    <button id="cs-back" class="menu-btn">Back</button>
+                    <button id="cs-go" class="menu-btn primary">Enlist</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="scr-story" class="screen hidden">
+            <div class="comm">
+                <div class="comm-head"><span id="story-kicker"></span><span id="story-title"></span></div>
+                <div class="comm-body">
+                    <canvas id="portrait" width="180" height="200"></canvas>
+                    <div class="comm-text">
+                        <div id="story-who"></div>
+                        <div id="story-line"></div>
+                    </div>
+                </div>
+                <div class="comm-foot">
+                    <button id="story-skip" class="small-btn">Skip scene</button>
+                    <span id="story-count"></span>
+                    <button id="story-next" class="menu-btn primary">Next ▸</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="scr-hub" class="screen hidden">
+            <header id="hub-head">
+                <div id="hub-pilot">
+                    <div id="hub-cs"></div>
+                    <div id="hub-lv"></div>
+                    <div class="xpbar"><div id="hub-xp"></div></div>
+                </div>
+                <div id="hub-wallet">
+                    <span class="wallet-item" title="Scrap"><span class="coin"></span><b id="hub-scrap">0</b></span>
+                    <span class="wallet-item" title="Probability Cores"><span class="corei"></span><b id="hub-cores">0</b></span>
+                    <button id="hub-menu" class="icon-btn" title="Menu (Esc)" aria-label="Menu">☰</button>
+                </div>
+            </header>
+            <nav id="hub-tabs"></nav>
+            <div id="hub-body"></div>
+        </section>
+
+        <section id="scr-map" class="screen hidden">
+            <header id="map-head">
+                <div>
+                    <div id="map-kicker"></div>
+                    <div id="map-title"></div>
+                </div>
+                <div id="map-hull"><div class="hullbar"><div id="map-hp"></div></div><span id="map-hp-t"></span></div>
+                <div class="map-btns">
+                    <button id="map-boost" class="small-btn" title="Boosters">Boosters</button>
+                    <button id="map-retreat" class="small-btn">Retreat</button>
+                </div>
+            </header>
+            <div id="map-scroll"><div id="map-canvas"><svg id="map-svg"></svg><div id="map-nodes"></div></div></div>
+            <div id="map-legend"></div>
+        </section>
+
+        <section id="scr-panel" class="screen modal hidden">
+            <div class="panel" id="panel">
+                <h2 id="panel-title"></h2>
+                <div id="panel-sub"></div>
+                <div id="panel-body"></div>
+                <div id="panel-foot"></div>
+            </div>
+        </section>
+    </div>
+    <div id="fade"></div>
+    <div id="toasts"></div>
+
+    <noscript><p style="color:#fff;padding:2em">SPINFRAME needs JavaScript.</p></noscript>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

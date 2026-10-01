@@ -674,6 +674,16 @@ h1 {
     color: #1a0a04;
 }
 
+.game-preview.spinframe,
+.carousel-slide-bg.spinframe {
+    background: radial-gradient(ellipse at 50% 30%, #ff4dff 0%, #2a3a9a 40%, #050614 100%);
+}
+
+.game-card.spinframe .play-button {
+    background: linear-gradient(135deg, #1fc8ff 0%, #7a4dff 50%, #ff4dff 100%);
+    color: #05060f;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
