@@ -4917,3 +4917,65 @@ weakening a boss's summons (the final boss's minions were full-strength floor-10
   mid-fade. Expose a debug `snap()` and wait for the screen, not the clock.
 - "Not black" brightness checks should test for 0 (the NaN-bloom failure), not for "bright enough":
   boss arenas are legitimately dark.
+
+
+## Game 050: Tomebound — a match-3 RPG with an idle town in three.js (2026-10-01)
+
+### Test the event stream, not just the board
+The board resolves a move instantly and emits `swap / clear / make / fall / shuffle / morph`
+events that the 3D view replays. A board that ends up correct is not enough: if a `fall` names
+a gem that isn't where the view thinks it is, the view desyncs even though the sim is right.
+`dev/simtest.mjs` keeps a **mirror** (id → x, y, type, special) and applies every event to it
+exactly as the view does, then compares it to the board after every action — over thousands of
+random moves, spells and potions. It also asserts the usual invariants (full board, unique ids,
+no standing match, a legal move exists). The view still calls `sync(board)` when the queue
+drains, but with the mirror test passing that sync never has anything to fix.
+
+### Linear curves, then a per-region trim
+A quadratic monster-HP curve outgrew the hero's damage per turn (4 → 19 over 30 levels, while
+HP grew 21×) and fights stretched to 40+ turns. Making monster HP and damage near-linear fixed
+the baseline (`dev/duel.mjs` probes fixed levels with no books), but in the full campaign books,
+spell ranks and forged gear compound and late fights dropped to 3 turns. A per-wing trim on top
+(`WING_HP`, `WING_DMG`) restored them — weighted towards **HP rather than damage**: the damage
+trim made big skull cascades one-shot the low-HP class (9% of max HP per skull), which reads as
+unfair, while more HP just makes a fight longer.
+
+### A class balance table, not a single win rate
+The first campaign table looked fine overall and hid that the Warrior never lost while the Mage
+lost 70% of boss fights. Per-class tables, plus a `BOSSLOG=1` line per boss attempt (turns, HP
+left on both sides), showed the cause in minutes: deaths in 2–3 turns (spikes, not attrition),
+and fire-resistant bosses walling a fire-heavy spell list. Fixes were a Mage start-of-fight
+shield, stun immunity after a stun, and making the bot weigh resistances.
+
+### An event with two paid choices is a soft-lock
+The bot stalled in wing 2 with "nothing to do": the only open node was a merchant event whose
+choices both cost gold, and it had none. Every event now has a free choice. Same family as
+game-049's sealed-vault teleports — only a bot that plays the whole map finds them.
+
+### Symptom: the grass is purple and has shadows on it
+A hand-built polar-grid terrain was wound clockwise seen from above, so the whole top was
+back-face culled — and what showed through was the *inside of the rocky cone underneath*,
+purple, receiving the buildings' shadows. It looked like a lighting bug. For a y-up surface
+built from `(ring r, angle s)`, the triangles are `(a, a+1, b)` and `(b, a+1, b+1)`.
+
+### Bloom per scene
+One bloom setting for a pastel daytime island and a gem board doesn't work: at threshold 0.82
+the island's sky and white clouds bloomed into fog. `setActive()` now sets bloom threshold and
+strength per scene (town 0.95 / 0.22, battle 0.9 / 0.42).
+
+### Small DOM traps
+- `Element.append(null)` appends the text **"null"** — filter optional children.
+- A "value changed" pop animation that starts from `opacity: 0`, re-triggered every second by
+  idle production, keeps the resource bar permanently invisible. Pulse `transform` only.
+- SVG `<animate>` on a map node means Playwright never sees it as "stable" and `click()` times
+  out; use `locator.dispatchEvent('click')` (real users are unaffected).
+
+### Software-GL tests: the dt cap slows game time
+At ~2 fps a 50 ms `dt` cap runs the game at 10% speed, so a cascade of 30 battle events took a
+minute to replay and "victory panel within 20 s" failed. In `?debug=1` the cap is 200 ms.
+Panels with entrance animations also need a beat before a screenshot or they're captured at
+opacity 0.
+
+### Off-centre models should face the camera
+The monster stands to the right of the board; facing +Z, the camera saw its side. Rotate it by
+`atan2(-x, cameraDistance)` when laying out.
