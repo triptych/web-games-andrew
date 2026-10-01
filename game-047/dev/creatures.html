@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Bestiary sheet</title>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.165.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.165.0/examples/jsm/"}}</script>
+<style>body{margin:0;background:#111;overflow:hidden}</style></head>
+<body><script type="module">
+// dev/creatures.html — every body plan side by side, plus a Warden and the three heroes.
+import * as THREE from 'three';
+import { Creature, Hero } from '../js/view/creatures.js';
+import { worldBestiary, bossSpecies } from '../js/sim/monsters.js';
+import { heroIdentity } from '../js/sim/heroes.js';
+const W = innerWidth, H = innerHeight;
+const r = new THREE.WebGLRenderer({ antialias: true });
+r.setSize(W, H); r.toneMapping = THREE.ACESFilmicToneMapping; r.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x202028);
+const cam = new THREE.PerspectiveCamera(35, W / H, 0.1, 200); cam.position.set(0, 5, 22); cam.lookAt(0, 2, -2);
+scene.add(new THREE.HemisphereLight(0xb0c0ff, 0x302010, 1.2));
+const sun = new THREE.DirectionalLight(0xfff0d0, 2.2); sun.position.set(5, 10, 10); scene.add(sun);
+const rim = new THREE.DirectionalLight(0x80c0ff, 2); rim.position.set(-5, 6, -10); scene.add(rim);
+const arches = ['blob','beast','knight','flyer','bloom','wraith','serpent','eye','golem','construct','jester'];
+const world = Number(new URLSearchParams(location.search).get('w') ?? 0);
+const best = worldBestiary(1234, world);
+const list = [];
+arches.forEach((a, i) => {
+  const look = { ...best.normals[i % 6].look, arch: a, scale: 1, seed: 100 + i, eyes: 2 + (i % 3), horns: i % 3, spikes: 2, wings: false, tendrils: 2, crown: i === 10, shards: i === 6 ? 3 : 0 };
+  const c = new Creature(look);
+  c.root.position.set((i % 6) * 5.2 - 13, 0, i < 6 ? 0 : -8);
+  scene.add(c.root); list.push(c);
+});
+const boss = new Creature(bossSpecies('king', 9).look, { boss: true }); boss.root.position.set(13, 0, -8); scene.add(boss.root); list.push(boss);
+['knight','witch','rogue'].forEach((k, i) => { const h = new Hero(heroIdentity(55 + i, k).look); h.root.position.set(-16 + i * 2, 0, 5); h.root.scale.setScalar(1.3); scene.add(h.root); list.push(h); });
+const clock = new THREE.Clock();
+function loop() { requestAnimationFrame(loop); const dt = Math.min(0.05, clock.getDelta()); for (const c of list) c.update(dt); r.render(scene, cam); }
+loop(); setTimeout(() => window.__done = true, 1500);
+</script></body></html>

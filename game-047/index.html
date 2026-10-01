@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0c0806">
+    <meta name="description" content="Ashes & Aces — a Slay the Spire × poker solitaire fantasy roguelite across ten realms and a hundred levels.">
+    <title>Ashes &amp; Aces</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+    <div id="gl"></div>
+
+    <!-- world-anchored overlays -->
+    <div id="plates"></div>
+    <div id="numbers"></div>
+    <div id="banner"></div>
+    <div id="preview" class="hidden"></div>
+    <div id="tip" class="hidden"></div>
+    <div id="suit-pick" class="hidden"></div>
+    <div id="fade"></div>
+
+    <!-- top HUD (map + combat) -->
+    <div id="hud" class="hidden">
+        <div id="hud-left">
+            <div id="hero-badge"><span id="hero-initial">A</span></div>
+            <div id="hud-vitals">
+                <div id="hud-name"></div>
+                <div id="hp-row">
+                    <div id="hp-bar"><div id="hp-lag"></div><div id="hp-fill"></div><span id="hp-text">0/0</span></div>
+                    <div id="ward-badge" class="hidden"><span id="ward-text">0</span></div>
+                </div>
+                <div id="p-status"></div>
+            </div>
+        </div>
+        <div id="hud-mid">
+            <div id="hud-gold"><span class="coin"></span><span id="gold-text">0</span></div>
+            <div id="hud-level"></div>
+        </div>
+        <div id="hud-right">
+            <div id="relics"></div>
+            <div id="elixirs"></div>
+            <div id="hud-buttons">
+                <button id="btn-deck" class="icon-btn" title="Deck (D)" aria-label="View deck"></button>
+                <button id="btn-ranks" class="icon-btn" title="Hand ranks (H)" aria-label="Hand ranks"></button>
+                <button id="btn-chron" class="icon-btn" title="Chronicle (C)" aria-label="Chronicle"></button>
+                <button id="btn-menu" class="icon-btn" title="Menu (Esc)" aria-label="Menu"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- combat controls -->
+    <div id="combat-ui" class="hidden">
+        <div id="turn-panel">
+            <div id="deals" title="Deals left this turn: placing a card costs 1"></div>
+            <button id="btn-redraw" class="small-btn" title="Discard the selected card and draw a new one (R)">Redraw <span id="redraw-n">1</span></button>
+            <button id="btn-end" class="big-btn" title="End your turn (E)">End Turn</button>
+        </div>
+        <div id="pile-draw" class="pile-label" title="Draw pile"><span>0</span></div>
+        <div id="pile-discard" class="pile-label" title="Discard pile"><span>0</span></div>
+        <div id="cast-bar" class="hidden"><button id="btn-cast" class="big-btn">Cast</button><span id="cast-hint"></span></div>
+        <div id="hint-bar"></div>
+    </div>
+
+    <!-- screens -->
+    <div id="screens">
+        <section id="scr-title" class="screen hidden">
+            <div class="title-logo">
+                <div class="logo-small">A Tale of the Last Hand</div>
+                <h1 class="logo">Ashes <span class="amp">&amp;</span> Aces</h1>
+                <div class="logo-sub">poker solitaire · ten realms · one hundred levels</div>
+            </div>
+            <div class="menu-col">
+                <button id="t-continue" class="menu-btn hidden">Continue</button>
+                <button id="t-new" class="menu-btn primary">New Journey</button>
+                <button id="t-how" class="menu-btn">How to Play</button>
+                <button id="t-settings" class="menu-btn">Settings</button>
+            </div>
+            <div id="t-meta" class="meta-line"></div>
+            <div class="controls-hint">Mouse, touch or keyboard · music and art made in code</div>
+        </section>
+
+        <section id="scr-heroes" class="screen hidden">
+            <h2 class="scr-h">Choose Your Cardbound</h2>
+            <div id="hero-cards"></div>
+            <div id="hero-ident"></div>
+            <div class="btn-row">
+                <button id="h-back" class="menu-btn">Back</button>
+                <button id="h-reroll" class="menu-btn">Another Face</button>
+                <button id="h-go" class="menu-btn primary">Begin</button>
+            </div>
+        </section>
+
+        <section id="scr-story" class="screen hidden">
+            <div class="book">
+                <div id="story-kicker"></div>
+                <h2 id="story-title"></h2>
+                <div id="story-body"></div>
+                <div id="story-choices"></div>
+                <button id="story-next" class="menu-btn primary">Continue</button>
+            </div>
+        </section>
+
+        <section id="scr-map" class="screen hidden">
+            <div id="map-head">
+                <div id="map-chapter"></div>
+                <div id="map-world"></div>
+            </div>
+            <div id="map-scroll"><div id="map-canvas"><svg id="map-svg"></svg><div id="map-nodes"></div></div></div>
+            <div id="map-legend"></div>
+        </section>
+
+        <section id="scr-panel" class="screen hidden">
+            <div class="panel">
+                <h2 id="panel-title"></h2>
+                <div id="panel-sub"></div>
+                <div id="panel-body"></div>
+                <div id="panel-foot"></div>
+            </div>
+        </section>
+
+        <section id="scr-modal" class="screen modal hidden">
+            <div class="panel wide">
+                <h2 id="modal-title"></h2>
+                <div id="modal-sub"></div>
+                <div id="modal-body"></div>
+                <div id="modal-foot"></div>
+            </div>
+        </section>
+    </div>
+    <div id="toasts"></div>
+
+    <noscript><p style="color:#fff;padding:2em">Ashes &amp; Aces needs JavaScript and WebGL.</p></noscript>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

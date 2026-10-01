@@ -9,7 +9,7 @@ This directory is the **canonical reference for AI-assisted development** in thi
 - [phaser/phaser4-api.md](phaser/phaser4-api.md) — Phaser 4.0.0 full API reference
 
 ## three.js
-- [threejs/threejs-api.md](threejs/threejs-api.md) — three.js r165 patterns used in this repo (import map, render loop, bloom + custom post passes, tilted play surfaces, fake surface lights, gotchas)
+- [threejs/threejs-api.md](threejs/threejs-api.md) — three.js r165 patterns used in this repo (import map, render loop, bloom + custom post passes, tilted play surfaces, fake surface lights, two-scene composer with a pixel-exact UI layer, region-framed cameras, patched PBR materials, gotchas)
 
 ## Software 3D (no engine)
 - [software3d/software3d-api.md](software3d/software3d-api.md) — writing a 3D rasterizer from scratch on Canvas2D: pipeline, winding/culling/seam gotchas, LOD, procedural placement validation, fog-of-war map overlays
