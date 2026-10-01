@@ -98,7 +98,8 @@ export const battleScreen = {
         this.autoBtn = h('button.bh-btn', { type: 'button', 'aria-label': 'Auto battle', html: `${icon('auto')}<span class="lbl">AUTO</span>`, onclick: () => this.toggleAuto() });
         this.speedBtn = h('button.bh-btn', { type: 'button', 'aria-label': 'Battle speed', onclick: () => this.cycleSpeed() });
         const pause = h('button.bh-btn', { type: 'button', 'aria-label': 'Pause', html: icon('pause'), onclick: () => this.pauseMenu() });
-        app(hud, h('div.bh-top', this.waveEl, this.turnbar, h('div.bh-btns', this.autoBtn, this.speedBtn, pause)));
+        this.topEl = h('div.bh-top', this.waveEl, this.turnbar, h('div.bh-btns', this.autoBtn, this.speedBtn, pause));
+        app(hud, this.topEl);
         this.mana = h('div.bar.tall.mana-bar', h('div.bar-fill'), h('span.bar-text', 'Mana'));
         this.spellRow = h('div.bh-spells');
         this.skillRow = h('div.bh-skills');
@@ -176,6 +177,7 @@ export const battleScreen = {
         const p = this.plates.get(uid);
         if (!p) return;
         p.st.innerHTML = '';
+        p.w = 0;
         for (const [id, n] of p.statuses) {
             const S = STATUS[id];
             const arrow = ['atkUp', 'defUp', 'spdUp', 'critUp'].includes(id) ? '▲' : ['atkDown', 'defDown', 'slow'].includes(id) ? '▼' : '';
@@ -190,6 +192,9 @@ export const battleScreen = {
         if (!this.B) return;
         const st = this.st;
         const v = new THREE.Vector3();
+        const top = this.topEl ? this.topEl.getBoundingClientRect().bottom + 4 : 0;
+        const W = this.root.clientWidth || innerWidth;
+        const placed = [];
         for (const [uid, p] of this.plates) {
             const e = st.get(uid);
             if (!e || !e.actor.root.visible) { p.el.style.display = 'none'; if (p.tb) p.tb.style.display = 'none'; continue; }
@@ -197,13 +202,25 @@ export const battleScreen = {
             const s = toScreen(v, st.camera);
             if (!s) { p.el.style.display = 'none'; continue; }
             p.el.style.display = '';
-            p.el.style.left = s.x + 'px';
-            p.el.style.top = s.y + 'px';
+            // keep the whole plate on screen and below the top HUD (wide names and bosses near the edges)
+            if (!p.w) { p.w = Math.max(p.el.offsetWidth, p.el.querySelector('.up-name').offsetWidth); p.h = p.el.offsetHeight; }
+            placed.push({ p, x: Math.min(W - 4 - p.w / 2, Math.max(4 + p.w / 2, s.x)), y: Math.max(top + p.h, s.y) });
             const u = unitById(this.B, uid);
             if (u) {
                 p.atb.style.width = Math.min(100, u.atb * 100) + '%';
                 if (p.tb) { p.tb.style.display = u.alive ? '' : 'none'; p.tb.style.left = `calc(18px + ${Math.min(1, u.atb)} * (100% - 36px))`; }
             }
+        }
+        // plates are anchored by their bottom edge; top-most first, push any plate that collides below the one it hits
+        placed.sort((a, b) => a.y - a.p.h - (b.y - b.p.h));
+        for (let i = 0; i < placed.length; i++) {
+            const a = placed[i];
+            for (let j = 0; j < i; j++) {
+                const b = placed[j];
+                if (Math.abs(a.x - b.x) < (a.p.w + b.p.w) / 2 && a.y - a.p.h < b.y && a.y > b.y - b.p.h) { a.y = b.y + a.p.h + 2; j = -1; }
+            }
+            a.p.el.style.left = a.x + 'px';
+            a.p.el.style.top = a.y + 'px';
         }
         const m = this.B.mana / this.B.manaMax;
         this.mana.querySelector('.bar-fill').style.width = m * 100 + '%';
