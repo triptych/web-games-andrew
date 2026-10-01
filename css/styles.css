@@ -694,6 +694,16 @@ h1 {
     color: #120a04;
 }
 
+.game-preview.sigilborn,
+.carousel-slide-bg.sigilborn {
+    background: radial-gradient(circle at 50% 38%, #ffe7a3 0%, #c879ff 18%, #3a1e7a 48%, #0e0a1c 100%);
+}
+
+.game-card.sigilborn .play-button {
+    background: linear-gradient(135deg, #3a1e7a 0%, #c879ff 50%, #ffd978 100%);
+    color: #1a0e2a;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

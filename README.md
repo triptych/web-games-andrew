@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-49 games, `game-001` through `game-049`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+50 games, `game-001` through `game-050`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -61,6 +61,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 | 047 | [Ashes & Aces](game-047/) | Deck-building roguelite × poker solitaire | three.js |
 | 048 | [SPINFRAME](game-048/) | Slot-machine mech RPG with incremental systems | Vanilla JS (Canvas 2D + DOM), no dependencies |
 | 049 | [Lanterndeep](game-049/) | Turn-based 3D roguelike, 100 floors | three.js |
+| 050 | [Sigilborn](game-050/) | Gacha auto-battler with idle citadel | three.js |
 
 ### Highlights
 
@@ -115,6 +116,8 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 **[SPINFRAME](game-048/)** — A **turn-based sci-fi mech RPG whose combat is a slot machine**. You are a cadet at the Halcyon Flight Academy, flying a training frame powered by a **Probability Engine**: every turn you spin its reels and **every symbol that lands fires** — Blades and Cannons at your target, Missiles at every enemy, Arcs that chain lightning between them, Shields, Repairs, Energy and Scrap. Three or more of a kind from the left on a payline hit far harder, every extra line in the same spin is a link in a multiplying **chain**, Overclock wilds stand in for anything, three Cores start an **Overdrive** (bonus spins at ×2 while the enemy is frozen) and five hit the **Jackpot**. After the reels land you can spend energy to nudge, respin, hold or purge a reel, with the lines you are about to hit previewed as dashed traces — because the enemy, the **Determinant**, a machine mind that cannot bear an outcome it did not predict, jams your reels and writes dead Glitch symbols into your strips. **Upgrading the mech rewrites the machine**: the Reel Array goes from 3 to 5 reels, the Targeting Matrix from 3 to 16 paylines and a fourth row, new hardpoints add Missile and Arc symbols to every strip, the reactor, servos and Probability Core change how much you can cheat fate, and the frame visibly changes with each install (a mini-slot window on its chest shows one reel per reel). 18 modules bend the rules (cascades, expanding and sticky wilds, mirror lines, clusters, echo lines, overheat vents…), three skill trees shape the pilot, and boosters drop mid-fight. Seven procedurally generated sectors (skirmishes, elites with affixes, Signals, salvage, depots, repair bays, a boss each), an authored story — *The Graduating Class* — told in comm scenes with a wry mech AI, a rival cadet and an instructor the enemy takes and rewrites, a contract board, and **incremental** systems: a Refinery that earns while you are away, drone bays, an archive and a core forge, exponential upgrade curves, an endless Sim Ladder and Threat levels after graduation. Built for juice: staggered reel stops with anticipation, chasing marquee bulbs, line traces, chain counters, cascades, orbs flying from the reels into the mech, lightning chains, missiles, hit-stop, slow-mo, shake, coin showers and BIG / MEGA / EPIC WIN banners. **Vanilla HTML/CSS/JS, no libraries and no asset files** — every symbol, mech, enemy, portrait and backdrop is drawn in code and every sound synthesised. The simulation is pure and seeded: [game-048/dev/](game-048/dev/README.md) has a bot play the whole campaign headlessly to balance it, and a Playwright harness walk the real game on desktop and touch-only phones.
 
 **[Lanterndeep](game-049/)** — A **turn-based 3D roguelike** in three.js, in the Pixel Dungeon / DCSS line. The lamps of Lastlight are going out; your teacher Maren went down to tend the First Lantern a year ago and never came back. Take her spare lantern and descend **the Hundred Stairs: 100 procedurally generated floors in ten worlds** (rootcellars, a bioluminescent grotto, a drowned library, a dwarven forge split by lava, crystal hollows, an ossuary, a clockwork machine, a frozen abyss, a vault among the stars, the Heart of Night), each built by one of four generators (rooms, caves, halls, mixed) with liquids, pillars, props, traps, braziers and sealed vaults, and validated so the stairs are always reachable. Every 10th floor is a **Warden**: ten multi-phase bosses whose area attacks are telegraphed on the grid and land after your next move. **Your lantern is your light radius and your clock** — it burns oil every turn, braziers and torches light rooms you can see from across the dark, and when the oil runs out the Hush gathers. Three heroes (Warden, Ranger, Emberwitch) with four skills each and a perk choice every level; **procedural loot** (Common/Magic/Rare with 25 affixes, plus nine Warden relics), chests, mimics, shrines, fountains and merchants; **procedural quests** from Wayfarers — bounties, culls, lost heirlooms, rescues whose freed captive fights beside you, nests to purge, braziers to relight; **70 monster species** on eleven behaviour archetypes with elite affixes and generated names; and an authored story told through chapter cards, Warden scenes and **Maren's ten journal pages**, which unlock the best of three endings. **Everything is generated in code**: painted floor and wall textures per world, a fog-of-war texture every level material samples (the dark peels back smoothly, remembered rooms fall to a cold grey), walls cut away in the vertex shader so the hero is never hidden, animated water, lava and void, procedural props, monsters and Wardens, bloom and a graded post pass, and a generative score per world that swells for fights and Wardens. Tap-to-move with auto-explore and big buttons on phones (portrait or landscape), keyboard on desktop. The simulation is pure and seeded: [game-049/dev/](game-049/dev/README.md) has a bot play all 100 floors with each hero to balance the curve, and a Playwright harness walk the real game on desktop and touch-only phones.
+
+**[Sigilborn](game-050/)** — A **fantasy gacha auto-battler** in the Summoners War / AFK Arena line, in three.js with toon shading and inverted-hull outlines. You are the **Overlord** who claims the shattered Sigil Throne — built in a **deep character creator** (10 races, 10 eye styles, 16 hairstyles, horns, tails, wings, 10 outfits, 13 headwear, 14 weapons, auras, free colours, per-group randomize locks) that doubles as every hero's Wardrobe. **Every hero is procedurally generated**: race, class (12), element (5), natural rarity from Common to Mythic, stat rolls with an S–C grade, 0–3 traits, a skill kit drawn from class pools with generated names, leader skills, a painted anime face and a chibi 3D body — and a one-in-fifty **Radiant**. Summoning has pity (soft from 60, hard at 90), a guaranteed 4★ per ten-pull and a weekly featured element+class, revealed by a 3D portal that charges blue → purple → gold. Battles use **Summoners War's attack-bar turns** (speed is a stat you build), element advantage and glancing hits, 20 statuses, a live turn-order bar, auto play at 1×–3× or manual skill-and-target play, and **Overlord spells** cast from mana. Content: **8 campaign regions × 8 stages** with bosses (a treant, a cinder wyrm, a kraken queen, a sun colossus, a lich king, a winter alpha, a crystal spider matriarch and the Usurper), **elemental Rifts**, the **Endless Spire** with pick-1-of-3 roguelite blessings, and an **Arena** of generated rival Overlords. **Sigilstones** (6 slots, 12 sets, random substats, +0 → +15 with falling odds, reforging, ore-and-jewel crafting), evolution with fodder, awakening with essences, skill-ups and release for Soul Dust. Between fights the **floating citadel** — day and night follow your clock, your heroes wander it — keeps working: the Treasury fills while you're away, the Training Grounds level heroes, a **diggable 3D mine** (ore veins, jewels, geodes, chests, fossils, sigil caches, deeper layers) with idle miners, a **real-time farm** with watering and golden mutations feeding a Kitchen of XP elixirs and timed feasts, a Forge, an expedition board with stories, dailies/weeklies/feats and a 31-step main questline, a rotating Market and a Fortune Wheel. Everything — models, faces, icons, music and sound — is generated in code. [game-050/dev/](game-050/dev/README.md) has a progression bot that plays three weeks to tune the curve, and a Playwright harness that plays the real game on desktop and touch-only phones.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -185,7 +188,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-049/   # One self-contained folder per game
+├── game-001/ … game-050/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -195,7 +198,7 @@ web-games-andrew/
 └── README.md               # This file
 ```
 
-Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047, game-049) load it from a CDN via an import map in their `index.html`.
+Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047, game-049, game-050) load it from a CDN via an import map in their `index.html`.
 
 ## Technologies Used
 
@@ -204,7 +207,7 @@ Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018
 - **CSS3** - Styling and responsive design
 - **Kaplay Framework (v4000 alpha)** - Game development framework (most games from game-002 onward, including game-032)
 - **Phaser 4.0.0 (ESM)** - Game framework (game-019, game-020, game-027, game-028, game-035)
-- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047, game-049)
+- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047, game-049, game-050)
 - **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034, game-037, game-038, game-039, game-048)
 - **Custom software 3D** - Hand-written 3D renderers with no engine: a palette-indexed framebuffer (game-031) and a triangle rasterizer on Canvas2D (game-036)
 - **GemCore/GemShell** - Desktop application packaging
@@ -242,7 +245,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 49 games are included as of the latest entries (game-046 Quiverspire, game-047 Ashes & Aces, game-048 SPINFRAME, game-049 Lanterndeep).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 50 games are included as of the latest entries (game-047 Ashes & Aces, game-048 SPINFRAME, game-049 Lanterndeep, game-050 Sigilborn).
 
 ---
 

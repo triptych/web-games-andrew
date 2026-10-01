@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sigilborn — model viewer (dev)</title>
+<style>html,body{margin:0;height:100%;background:#20283a;overflow:hidden}canvas{display:block}</style>
+</head>
+<body>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.165.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.165.0/examples/jsm/"}}</script>
+<script type="module">
+// Dev-only: renders a grid of generated heroes / monsters. ?mode=heroes|monsters&seed=N&rarity=R
+import * as THREE from 'three';
+import { buildCharacter } from '../js/view/chars.js';
+import { generateHero } from '../js/sim/heroes.js';
+const q = new URLSearchParams(location.search);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#8fb8e0');
+const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 100);
+scene.add(new THREE.HemisphereLight('#ffffff', '#6a7a9a', 1.2));
+const sun = new THREE.DirectionalLight('#ffffff', 2.2); sun.position.set(3, 6, 5); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.CircleGeometry(30, 32), new THREE.MeshToonMaterial({ color: '#7cc85a' }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+const seed = +(q.get('seed') || 1);
+const cols = +(q.get('cols') || 6), rows = +(q.get('rows') || 3);
+const rigs = [];
+window.__mods = { THREE, scene };
+const mode = q.get('mode') || 'heroes';
+const { buildMonster } = mode === 'monsters' ? await import('../js/view/monsters.js') : {};
+const PLANS = ['slime', 'wolf', 'mushroom', 'golem', 'whelp', 'wisp', 'spider', 'crab', 'treant', 'dragon', 'kraken', 'goblin', 'imp', 'skeleton', 'harpy', 'lich', 'slime', 'wolf'];
+for (let i = 0; i < cols * rows; i++) {
+  let rig;
+  if (mode === 'monsters') rig = buildMonster({ plan: PLANS[i % PLANS.length], el: ['fire','water','wind','light','dark'][i % 5], seed: seed + i, size: 1 });
+  else { const h = generateHero({ seed: seed * 1000 + i, rarity: +(q.get('rarity') || (1 + (i % 5))) }); rig = buildCharacter(h.look); rig.hero = h; }
+  const x = (i % cols - (cols - 1) / 2) * 1.25, z = -Math.floor(i / cols) * 1.6;
+  rig.root.position.set(x, 0, z);
+  rig.root.rotation.y = +(q.get('rot') || 0.25);
+  scene.add(rig.root); rigs.push(rig);
+}
+const span = cols * 1.25;
+cam.position.set(0, 1.8 + rows * 0.6, span * 1.2 + rows * 1.2);
+cam.lookAt(0, 0.6, -rows * 0.6);
+renderer.render(scene, cam);
+window.__ready = true;
+</script>
+</body>
+</html>
