@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { renderer } from '../view/engine.js';
 import { buildCharacter } from '../view/chars.js';
 import { buildMonster } from '../view/monsters.js';
+import { disposeObject } from '../view/toon.js';
 import { hashStr } from '../core/rng.js';
 
 const SIZE = 200;
@@ -67,7 +68,7 @@ function render(job) {
     renderer.setRenderTarget(prevTarget);
     renderer.setClearColor(prevClear, prevAlpha);
     scene.remove(rig.root);
-    rig.root.traverse((o) => { if (o.geometry && o.name !== 'outline') o.geometry.dispose(); });
+    disposeObject(rig.root);
     const img = ctx.createImageData(SIZE, SIZE);
     for (let y = 0; y < SIZE; y++) {
         const src = (SIZE - 1 - y) * SIZE * 4;

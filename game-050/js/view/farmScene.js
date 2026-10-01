@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import { skyDome, setSky, standardLights, size, raycast, blobShadow } from './engine.js';
-import { toonMat, toonMesh, part, glowMat, merge, paint, paintGradient, shade, mix } from './toon.js';
+import { toonMat, toonMesh, part, glowMat, merge, paint, paintGradient, shade, mix, disposeObject } from './toon.js';
 import { cyl, cone, box, tor, sph } from './chars.js';
 import { buildCharacter } from './chars.js';
 import { Actor } from './anim.js';
@@ -88,7 +88,6 @@ export function createFarmStage() {
             const open = i < unlocked;
             const p = plotState[i];
             P.soil.visible = true;
-            P.soil.material = toonMat({ vertexColors: true });
             P.rows.visible = open;
             P.lock.visible = !open;
             P.soil.scale.set(1, open ? 1 : 0.4, 1);
@@ -102,6 +101,7 @@ export function createFarmStage() {
             P.ready = stage === 3;
             if (key === P.key) return;
             P.key = key;
+            disposeObject(P.crop);
             P.crop.clear();
             if (stage >= 0) {
                 const g = cropModel(p.crop, stage, p.golden);
@@ -142,7 +142,7 @@ export function createFarmStage() {
     st.plantFx = (i) => fx.burst(st.plotPos(i).setY(0.35), '#a07a4a', 12, { speed: 1.5, size: 0.12, gravity: -4 });
 
     st.setFarmers = (looks) => {
-        for (const f of st.farmers) { scene.remove(f.rig.root); scene.remove(f.shadow); }
+        for (const f of st.farmers) { scene.remove(f.rig.root); scene.remove(f.shadow); disposeObject(f.rig.root); disposeObject(f.shadow); }
         st.farmers = looks.map((look, i) => {
             const rig = buildCharacter(look);
             const actor = new Actor(rig);

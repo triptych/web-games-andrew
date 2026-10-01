@@ -20,6 +20,8 @@ import { dur } from '../../core/fmt.js';
 import { BUFFS } from '../../data/items.js';
 import { playMusic, sfx } from '../../audio.js';
 import { showIntro } from './title.js';
+import { loginStatus, claimLogin, LOGIN_REWARDS } from '../../sim/codex.js';
+import { describeReward } from './quests.js';
 
 let labels = {}, detach = null, root0 = null, labelHost = null;
 const _v = new THREE.Vector3();
@@ -97,6 +99,24 @@ function buffRow(hud) {
     app(hud, h('div.buff-row', b.map((x) => h('div.buff-chip', { html: `${icon(BUFFS[x.id].icon)} ${BUFFS[x.id].desc} · <span class="timer">${dur(x.until - now())}</span>` }))));
 }
 
+export function loginModal(after) {
+    const S = G.S;
+    const st = loginStatus(S);
+    if (st.claimed) { if (after) after(); return; }
+    const row = h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '10px' } });
+    LOGIN_REWARDS.forEach((r, i) => {
+        const done = i < st.idx, today = i === st.idx;
+        const d = describeReward(r)[0];
+        row.append(h('div', { style: { textAlign: 'center', padding: '6px 2px', borderRadius: '10px', fontSize: '12px', border: `1.5px solid ${today ? 'var(--gold)' : 'var(--line-soft)'}`, background: today ? 'rgba(242,196,90,.15)' : 'rgba(0,0,0,.25)', opacity: done ? 0.45 : 1 } },
+            h('div', { style: { fontWeight: 900 } }, `Day ${i + 1}`), h('div', { style: { fontSize: '11px', color: 'var(--muted)' } }, i === 6 ? 'Big!' : done ? 'Got' : '')));
+    });
+    modal({
+        title: `Daily Login · Day ${st.idx + 1}`, dismiss: false,
+        body: h('div', row, h('p.muted.small', `Log in every day for a reward; the seventh day is the best, then the week repeats. Streak: ${st.streak} day${st.streak === 1 ? '' : 's'}.`), rewardGrid(describeReward(LOGIN_REWARDS[st.idx]))),
+        buttons: [{ label: 'Claim', cls: 'gold', onClick: () => { const got = claimLogin(S); changed('login'); sfx('reward'); if (after) setTimeout(after, 250); } }],
+    });
+}
+
 function awayModal() {
     const a = G.away;
     G.away = null;
@@ -143,8 +163,8 @@ export const citadelScreen = {
             onPinch: (k) => st.zoom(k),
             onTap: (x, y) => { const id = st.pick(x, y); if (id) open(id); },
         });
-        if (params.first) showIntro(() => { questBar(hud); });
-        else if (params.welcome && G.away) setTimeout(awayModal, 400);
+        if (params.first) showIntro(() => { questBar(hud); loginModal(); });
+        else if (params.welcome) setTimeout(() => loginModal(() => { if (G.away) awayModal(); }), 400);
     },
     update() {
         const st = peekStage('citadel');

@@ -104,6 +104,11 @@ async function desktop(browser) {
     await clickText(page, '.creator-panel .btn', 'Begin Reign');
     await waitScreen(page, 'citadel');
     for (let i = 0; i < 3; i++) { await page.locator('.modal-back.on .modal-btns .btn').first().click(); await page.waitForTimeout(350); }
+    await page.waitForSelector('.modal-back.on .modal-title', { timeout: 5000 });
+    ok((await page.locator('.modal-back.on .modal-title').innerText()).includes('Daily Login'), 'login calendar after the intro');
+    await clickText(page, '.modal-back.on .btn', 'Claim');
+    ok(await page.evaluate(() => __sb.G.S.login.streak === 1), 'login reward claimed');
+    await page.waitForTimeout(300);
     ok(await page.evaluate(() => __sb.G.S.overlord.name === 'Testarch'), 'overlord named');
     ok(await page.evaluate(() => __sb.G.S.overlord.look.weapon === 'scythe'), 'creator choices saved');
     await page.waitForTimeout(800);
@@ -244,6 +249,11 @@ async function desktop(browser) {
         const b = await page.evaluate(() => __sb.brightness());
         ok(b > 0.08, `${s} renders (brightness ${b.toFixed(2)})`);
     }
+
+    // codex tab
+    await page.evaluate(() => __sb.go('heroes', { view: 'codex' }));
+    await waitScreen(page, 'heroes');
+    ok(await page.locator('text=discovered').count() > 0, 'codex shows discoveries');
 
     // save + reload + continue
     await page.evaluate(() => __sb.saveGame(true));

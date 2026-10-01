@@ -7,6 +7,7 @@ import { G } from '../game.js';
 import { maxStamina, olXpToNext } from '../sim/overlord.js';
 import { staminaNext } from '../sim/idle.js';
 import { questBadges } from '../sim/quests.js';
+import { codexClaimable } from '../sim/codex.js';
 import { dur } from '../core/fmt.js';
 import { requestPortrait, portraitSrc } from './portraits.js';
 import { goTab, go } from './app.js';
@@ -70,7 +71,7 @@ export function updateHud() {
     setBadge('quests', questBadges(S));
     const sig = S.res.sigils;
     setBadge('summon', (sig.mystic || 0) + (sig.common || 0) + (sig.legend || 0) + (sig.ld || 0) + (sig.fire || 0) + (sig.water || 0) + (sig.wind || 0));
-    setBadge('heroes', S.heroes.filter((x) => x.isNew).length);
+    setBadge('heroes', S.heroes.filter((x) => x.isNew).length + Math.max(0, codexClaimable(S)));
 }
 
 export function invalidateOverlordPortrait() { lastLook = null; }

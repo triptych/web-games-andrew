@@ -85,7 +85,7 @@ export const summonScreen = {
     reveal(hero, next, label = 'Continue') {
         const wrap = h('div.reveal');
         const card = h('div.reveal-card',
-            hero.radiant ? h('div.reveal-radiant', '✦ RADIANT ✦') : null,
+            hero.radiant ? h('div.reveal-radiant', '★ RADIANT ★') : null,
             h('div.reveal-stars', { html: stars(hero.nat), style: { color: RARITY_COLOR[hero.nat] } }),
             h('div.reveal-name', { style: { color: hero.nat >= 5 ? '#ffe08a' : '#fff' } }, hero.name),
             h('div.reveal-sub', `${RARITY[hero.nat].name} · ${hero.epithet}`),

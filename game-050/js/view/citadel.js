@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { Rng } from '../core/rng.js';
 import { skyDome, setSky, blobShadow, standardLights, size, raycast } from './engine.js';
-import { toonMat, toonMesh, part, glowMat, merge, paint, paintGradient, jitterColor, shade, mix } from './toon.js';
+import { toonMat, toonMesh, part, glowMat, merge, paint, paintGradient, jitterColor, shade, mix, disposeObject } from './toon.js';
 import { cyl, cone, box, tor, sph, taper } from './chars.js';
 import { makeProp, groundDisc, rockGeo } from './props.js';
 import { buildCharacter } from './chars.js';
@@ -467,7 +467,7 @@ export function createCitadel() {
 
     // ---------------------------------------------------------------- api
     st.setOverlord = (look) => {
-        if (st.overlord) { world.remove(st.overlord.rig.root); st.overlord = null; }
+        if (st.overlord) { world.remove(st.overlord.rig.root); disposeObject(st.overlord.rig.root); st.overlord = null; }
         if (!look) return;
         const rig = buildCharacter(look);
         rig.root.scale.setScalar(1.15);
@@ -479,7 +479,7 @@ export function createCitadel() {
 
     const WAYPOINTS = [[-1.5, 0.5], [1.5, 0.5], [0, -1.2], [-2.8, -1.8], [2.8, -1.8], [-3.6, 1.6], [3.2, 1.2], [-1.4, 3.8], [1.6, 4.2], [0, -3.0], [-1.6, -3.4], [1.8, -3.2]];
     st.setHeroes = (looks) => {
-        for (const h of st.heroes) { world.remove(h.rig.root); world.remove(h.shadow); }
+        for (const h of st.heroes) { world.remove(h.rig.root); world.remove(h.shadow); disposeObject(h.rig.root); disposeObject(h.shadow); }
         st.heroes = [];
         looks.slice(0, 6).forEach((look, i) => {
             const rig = buildCharacter(look);
@@ -508,6 +508,7 @@ export function createCitadel() {
             }
             if (key === slot.key) return;
             slot.key = key;
+            disposeObject(slot.crop);
             slot.crop.clear();
             if (stage >= 0) {
                 const g = cropModel(p.crop, stage, p.golden);

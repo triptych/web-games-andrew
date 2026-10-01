@@ -109,7 +109,10 @@ export const teamScreen = {
                         ...[['power', 'Power'], ['star', 'Stars'], ['level', 'Level'], ['el', 'Element']].map(([v, l]) => h('option', { value: v, selected: this.sort === v ? true : null }, l))))),
                 this.roster(pw),
             ));
-        const foot = h('div.sheet-foot', h('div.btn-row',
+        const canRepeat = p.mode === 'campaign' || p.mode === 'rift';
+        this.repeat = this.repeat || 1;
+        const rep = canRepeat ? h('div.chips', { style: { marginBottom: '8px', alignItems: 'center' } }, h('span.small.muted', 'Repeat on win:'), ...[1, 3, 5, 10].map((n) => h('button.chip', { class: this.repeat === n ? 'on' : '', onclick: () => { this.repeat = n; this.render(); } }, n === 1 ? 'Off' : `×${n}`))) : null;
+        const foot = h('div.sheet-foot', rep, h('div.btn-row',
             btn('Auto-fill', () => { this.autofill(pw); }, 'ghost'),
             btn(`Battle!${cost ? ` <small>${icon('stamina')}${cost}</small>` : ''}`, () => this.fight(), 'gold', { disabled: !this.sel.length })));
         app(sheet, head, body, foot);
@@ -155,7 +158,7 @@ export const teamScreen = {
         }
         if (p.mode === 'arena' && S.arena.tickets < 1) { toast('No Arena tickets left — one returns every hour.'); return; }
         setTeam(S, this.key, this.sel);
-        go('battle', { ...p, team: this.sel.slice() }, { fade: true });
+        go('battle', { ...p, team: this.sel.slice(), repeat: (p.mode === 'campaign' || p.mode === 'rift') ? this.repeat || 1 : 1 }, { fade: true });
     },
     refresh() {},
 };

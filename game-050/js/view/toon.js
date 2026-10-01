@@ -67,7 +67,7 @@ export function toonMat(opts = {}) {
         map: opts.map || null,
     });
     injectRim(m, { flash: opts.flash, flashColor: opts.flashColor });
-    if (key) matCache.set(key, m);
+    if (key) { m.userData.shared = true; matCache.set(key, m); }
     return m;
 }
 
@@ -80,6 +80,7 @@ export function outlineMat(width = 0.018, color = '#1a1220') {
         shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\ntransformed += normalize(normal) * ${width.toFixed(4)};`);
     };
     m.customProgramCacheKey = () => 'outline' + key;
+    m.userData.shared = true;
     outlineCache.set(key, m);
     return m;
 }
@@ -188,8 +189,22 @@ export function glowMat(opts = {}) {
     const key = JSON.stringify(opts);
     if (glowCache.has(key)) return glowCache.get(key);
     const m = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: !!opts.transparent, opacity: opts.opacity ?? 1, blending: opts.additive ? THREE.AdditiveBlending : THREE.NormalBlending, depthWrite: !opts.additive, side: opts.side ?? THREE.FrontSide, toneMapped: false });
+    m.userData.shared = true;
     glowCache.set(key, m);
     return m;
+}
+
+/** Frees GPU memory for everything under root, skipping shared (cached) geometries and materials. */
+export function disposeObject(root) {
+    if (!root) return;
+    const geos = new Set(), mats = new Set();
+    root.traverse((o) => {
+        if (o.geometry && !o.geometry.userData.shared) geos.add(o.geometry);
+        const m = o.material;
+        if (m) for (const mm of Array.isArray(m) ? m : [m]) if (!mm.userData.shared) mats.add(mm);
+    });
+    for (const g of geos) g.dispose();
+    for (const m of mats) m.dispose();
 }
 
 export function shade(hex, k) {

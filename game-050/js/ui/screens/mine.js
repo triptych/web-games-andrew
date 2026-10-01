@@ -48,7 +48,7 @@ export const mineScreen = {
                     btn('Collect', () => { const r = collectMiners(S); if (!r) { toast('Nothing yet — miners dig while you are away.'); return; } sfx('coin'); changed('mine'); showRewards('Miners Report', r); this.render(); }, 'gold small', { disabled: pend < 1 }),
                     btn('Miners', () => this.minerPicker(), 'small')),
                 h('div.row', { style: { gap: '8px' } },
-                    btn('Descend ⤓', () => { if (!descend(S)) { toast('Dig a path to the bottom row first.'); return; } sfx('crumble'); changed('mine'); this.sync(); this.render(); toast(`Depth ${S.mine.depth}: richer ore ahead.`, 'good'); }, canDescend(S) ? 'gold grow' : 'grow', { disabled: !canDescend(S) }),
+                    btn('Descend ▼', () => { if (!descend(S)) { toast('Dig a path to the bottom row first.'); return; } sfx('crumble'); changed('mine'); this.sync(); this.render(); toast(`Depth ${S.mine.depth}: richer ore ahead.`, 'good'); }, canDescend(S) ? 'gold grow' : 'grow', { disabled: !canDescend(S) }),
                     btn(`${icon('hammer')} Forge`, () => go('forge', { tab: 'craft' }), 'ghost'))));
         root.append(hud);
         if (!S.story.tips.mine) {

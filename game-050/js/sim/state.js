@@ -59,6 +59,8 @@ export function newState(seed = 1) {
         counters: {},
         settings: { sound: true, music: true, quality: 'auto', speed: 1, auto: true, haptics: true },
         story: { intro: false, created: false, tips: {} },
+        login: { last: '', streak: 0 },
+        codex: { seen: [], claimed: 0 },
         log: [],
     };
 }

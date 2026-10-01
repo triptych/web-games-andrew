@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import { skyDome, blobShadow, standardLights, size } from './engine.js';
-import { toonMat, toonMesh, part, glowMat, merge, paint, paintGradient, shade } from './toon.js';
+import { toonMat, toonMesh, part, glowMat, merge, paint, paintGradient, shade, disposeObject } from './toon.js';
 import { cyl, cone, tor, box } from './chars.js';
 import { buildCharacter } from './chars.js';
 import { Actor, ease } from './anim.js';
@@ -78,7 +78,7 @@ export function createSummonStage() {
     };
 
     st.clearHero = () => {
-        if (st.hero) { scene.remove(st.hero.rig.root); scene.remove(st.hero.shadow); st.hero = null; }
+        if (st.hero) { scene.remove(st.hero.rig.root); scene.remove(st.hero.shadow); disposeObject(st.hero.rig.root); disposeObject(st.hero.shadow); st.hero = null; }
     };
 
     st.showHero = (hero) => {

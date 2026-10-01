@@ -16,11 +16,21 @@ function makeSprite() {
     g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
     return new THREE.CanvasTexture(c);
 }
-function glyphTex(ch, size = 64) {
+/** Shapes drawn with paths (no font glyphs, so they look the same on every device). */
+function glyphTex(kind, size = 64) {
     const c = document.createElement('canvas'); c.width = c.height = size;
     const g = c.getContext('2d');
-    g.fillStyle = '#fff'; g.font = `bold ${size * 0.8}px serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillText(ch, size / 2, size / 2 + 2);
+    g.fillStyle = '#fff'; g.strokeStyle = '#fff';
+    const k = size / 64;
+    if (kind === 'note') {
+        g.beginPath(); g.ellipse(22 * k, 46 * k, 10 * k, 7.5 * k, -0.4, 0, Math.PI * 2); g.fill();
+        g.fillRect(29 * k, 12 * k, 5 * k, 34 * k);
+        g.beginPath(); g.moveTo(29 * k, 12 * k); g.quadraticCurveTo(46 * k, 14 * k, 50 * k, 30 * k); g.quadraticCurveTo(42 * k, 22 * k, 34 * k, 22 * k); g.closePath(); g.fill();
+    } else {
+        g.beginPath();
+        for (let i = 0; i < 8; i++) { const r = (i % 2 ? 9 : 28) * k, a = (i / 8) * Math.PI * 2 - Math.PI / 2; g.lineTo(32 * k + Math.cos(a) * r, 32 * k + Math.sin(a) * r); }
+        g.closePath(); g.fill();
+    }
     return new THREE.CanvasTexture(c);
 }
 
@@ -28,8 +38,8 @@ const MAX = 2400;
 
 export function createFx(scene) {
     spriteTex ||= makeSprite();
-    noteTex ||= glyphTex('♪');
-    starTex ||= glyphTex('✦');
+    noteTex ||= glyphTex('note');
+    starTex ||= glyphTex('star');
     const geo = new THREE.BufferGeometry();
     const pos = new Float32Array(MAX * 3), col = new Float32Array(MAX * 3), siz = new Float32Array(MAX), alp = new Float32Array(MAX);
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));

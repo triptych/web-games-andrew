@@ -142,7 +142,7 @@ export const heroScreen = {
         }
         const st = heroStats(hero, { gearOf: gearLookup(S), talents: S.overlord.talents });
         app(body, grid,
-            st.sets.length ? h('div.chips', { style: { marginTop: '8px' } }, st.sets.map((s) => h('div.chip', { style: { borderColor: SETS[s].color, color: SETS[s].color } }, `${SETS[s].name} ✓ ${SETS[s].desc}`))) : h('p.muted.small', 'Equip 2 or 4 of the same set for a bonus.'),
+            st.sets.length ? h('div.chips', { style: { marginTop: '8px' } }, st.sets.map((s) => h('div.chip', { style: { borderColor: SETS[s].color, color: SETS[s].color } }, `${SETS[s].name}: ${SETS[s].desc}`))) : h('p.muted.small', 'Equip 2 or 4 of the same set for a bonus.'),
             h('div.btn-row', { style: { marginTop: '10px' } },
                 btn('Auto-equip', () => { const n = autoEquip(S, hero.id); toast(n ? `Equipped ${n} Sigilstone${n > 1 ? 's' : ''}.` : 'Nothing better to equip.'); changed('gear'); this.render(); }, 'gold'),
                 btn('Unequip All', () => { for (const s of SLOTS) unequip(S, hero.id, s); changed('gear'); this.render(); }, 'ghost'),
@@ -191,7 +191,7 @@ export const heroScreen = {
         app(body, evo);
         // awaken
         const ac = awakenCost(hero);
-        const aw = h('div.card', h('div.row', h('b.grow', hero.awake ? 'Awakened ✓' : 'Awaken')),
+        const aw = h('div.card', h('div.row', h('b.grow', hero.awake ? 'Awakened' : 'Awaken')),
             h('p.muted.small', hero.awake ? 'This hero has awakened: +15% stats, +5 SPD, +5% Crit and Accuracy, and an aura.' : `Awakening grants +15% stats, +5 SPD, +5% Crit Rate and Accuracy, and an elemental aura. Costs ${ELEMENT[hero.el].name} essences from Rifts, the Mine and expeditions.`),
             hero.awake ? null : btn(`Awaken · ${costLine({ gold: ac.gold, essences: { [ac.el]: { lo: ac.lo, mid: ac.mid, hi: ac.hi } } }, S)}`, () => {
                 if (!awakenHero(S, hero.id)) { sfx('error'); toast('Not enough essences or gold.'); return; }

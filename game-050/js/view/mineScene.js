@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { skyDome, standardLights, size, raycast } from './engine.js';
-import { toonMat, toonMesh, part, glowMat, merge, paint, paintGradient, shade, outlineMat } from './toon.js';
+import { toonMat, toonMesh, part, glowMat, merge, paint, paintGradient, shade, outlineMat, disposeObject } from './toon.js';
 import { cyl, cone, box, tor, sph } from './chars.js';
 import { buildCharacter } from './chars.js';
 import { Actor, ease } from './anim.js';
@@ -122,8 +122,9 @@ export function createMineStage() {
 
     st.setGrid = (grid, depth, hittable) => {
         st.grid = grid; st.depth = depth;
+        disposeObject(decoGroup);
         decoGroup.clear();
-        for (const c of crackMeshes) scene.remove(c);
+        for (const c of crackMeshes) { scene.remove(c); c.geometry.dispose(); c.material.dispose(); }
         crackMeshes.length = 0;
         let i = 0;
         for (let r = 0; r < MINE_H; r++) for (let c = 0; c < MINE_W; c++, i++) {
@@ -186,7 +187,7 @@ export function createMineStage() {
     };
 
     st.setMiners = (looks) => {
-        for (const m of st.miners) scene.remove(m.rig.root);
+        for (const m of st.miners) { scene.remove(m.rig.root); disposeObject(m.rig.root); }
         st.miners = looks.map((look, i) => {
             const rig = buildCharacter(look);
             const a = new Actor(rig);

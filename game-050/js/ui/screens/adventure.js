@@ -62,7 +62,7 @@ export const adventureScreen = {
                     const st = S.campaign.stars[String(idx)] || 0;
                     const open = isStageUnlocked(S, idx);
                     const b = h('button.stage-btn', { type: 'button', class: `${info.boss ? 'boss' : ''}${idx === S.campaign.cleared ? ' next' : ''}`, disabled: open ? null : true, onclick: () => this.stagePopup(idx) },
-                        h('span', info.boss ? `☠ ${info.label}` : info.label),
+                        h('span', info.boss ? `${info.label} Boss` : info.label),
                         h('span.ss', { html: [1, 2, 3].map((i) => `<span class="star${i <= st ? '' : ' off'}">★</span>`).join('') }));
                     app(row, b);
                 }

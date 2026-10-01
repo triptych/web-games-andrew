@@ -178,7 +178,8 @@ export const battleScreen = {
         p.st.innerHTML = '';
         for (const [id, n] of p.statuses) {
             const S = STATUS[id];
-            p.st.append(h('span.st-ico', { class: S.buff ? 'buff' : 'debuff', style: { '--c': S.color }, title: S.name }, S.glyph + (n > 1 ? n : '')));
+            const arrow = ['atkUp', 'defUp', 'spdUp', 'critUp'].includes(id) ? '▲' : ['atkDown', 'defDown', 'slow'].includes(id) ? '▼' : '';
+            p.st.append(h('span.st-ico', { class: S.buff ? 'buff' : 'debuff', style: { '--c': S.color }, title: `${S.name}: ${S.desc}` }, S.short + arrow + (n > 1 ? '×' + n : '')));
         }
         const sh = p.statuses.has('shield');
         const u = unitById(this.B, uid);
@@ -345,7 +346,7 @@ export const battleScreen = {
         this.waveEl.textContent = `Wave ${ev.n}/${ev.of}`;
         // allies: fresh wave clears statuses
         for (const u of B.allies) { const p = this.plates.get(u.uid); if (p) { p.statuses.clear(); this.renderStatuses(u.uid); } }
-        if (!first || ev.of > 1) this.banner(units.some((u) => u.boss) ? `⚔ ${units.find((u) => u.boss).name}` : `Wave ${ev.n}`, units.some((u) => u.boss));
+        if (!first || ev.of > 1) this.banner(units.some((u) => u.boss) ? `Boss: ${units.find((u) => u.boss).name}` : `Wave ${ev.n}`, units.some((u) => u.boss));
     },
     banner(text, big = false) {
         const b = h('div.turn-banner', { class: big ? 'ult' : '' }, text);
@@ -634,13 +635,27 @@ export const battleScreen = {
         const btns = [];
         const again = (params) => go('battle', { ...params, team: p.team }, { replace: true, fade: true });
         if (p.mode === 'campaign') {
-            if (win && p.idx + 1 < TOTAL_STAGES && p.idx + 1 <= S.campaign.cleared) btns.push({ label: 'Next Stage', cls: 'gold', onClick: () => { go('team', { mode: 'campaign', idx: p.idx + 1 }, { replace: true }); } });
-            btns.push({ label: 'Replay', cls: win ? '' : 'gold', onClick: () => { if (S.res.stamina < staminaCost('campaign', p)) { toast('Not enough stamina'); return false; } again(p); } });
+            if (win && p.idx + 1 < TOTAL_STAGES && p.idx + 1 <= S.campaign.cleared) btns.push({ label: 'Next Stage', cls: 'gold', onClick: () => { this.stopRepeat = true; go('team', { mode: 'campaign', idx: p.idx + 1 }, { replace: true }); } });
+            btns.push({ label: 'Replay', cls: win ? '' : 'gold', onClick: () => { this.stopRepeat = true; if (S.res.stamina < staminaCost('campaign', p)) { toast('Not enough stamina'); return false; } again({ ...p, repeat: 1 }); } });
         }
         if (p.mode === 'spire' && win) btns.push({ label: `Floor ${S.spire.floor}`, cls: 'gold', onClick: () => go('spire', {}, { replace: true }) });
         if (p.mode === 'rift' && win && p.tier < 10) btns.push({ label: 'Replay', cls: '', onClick: () => { if (S.res.stamina < staminaCost('rift', p)) { toast('Not enough stamina'); return false; } again(p); } });
-        btns.push({ label: 'Leave', cls: 'ghost', onClick: () => this.leave() });
-        modal({ title: win ? 'Battle Won' : 'Battle Lost', body, buttons: btns, dismiss: false, cls: 'wide' });
+        btns.push({ label: 'Leave', cls: 'ghost', onClick: () => { this.stopRepeat = true; this.leave(); } });
+        const left = (p.repeat || 1) - 1;
+        const cost = staminaCost(p.mode, p);
+        let m;
+        if (win && left > 0 && S.res.stamina >= cost) {
+            const note = h('div.notice', { style: { marginTop: '8px' } }, `Repeating… ${left} more`);
+            body.append(note);
+            this.stopRepeat = false;
+            btns.unshift({ label: 'Stop Repeat', cls: 'red', onClick: () => { this.stopRepeat = true; note.textContent = 'Repeat stopped.'; return false; } });
+            setTimeout(() => {
+                if (this.stopRepeat || G.S !== S) return;
+                if (m) m.close();
+                go('battle', { ...p, repeat: left }, { replace: true, fade: true });
+            }, 2600);
+        } else if (win && left > 0) body.append(h('div.notice', { style: { marginTop: '8px' } }, 'Out of stamina — repeat stopped.'));
+        m = modal({ title: win ? 'Battle Won' : 'Battle Lost', body, buttons: btns, dismiss: false, cls: 'wide' });
     },
 
     leave() {

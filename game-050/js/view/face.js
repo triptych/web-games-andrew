@@ -223,6 +223,7 @@ export function faceCap(r) {
     if (capCache.has(k)) return capCache.get(k);
     // a narrow cap: the canvas maps onto ~70° × 70° of the head, so features read big (chibi)
     const g = new THREE.SphereGeometry(r * 1.012, 28, 20, Math.PI / 2 - 0.62, 1.24, Math.PI * 0.3, Math.PI * 0.4);
+    g.userData.shared = true;
     capCache.set(k, g);
     return g;
 }

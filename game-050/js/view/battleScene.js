@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { Rng } from '../core/rng.js';
 import { skyDome, setSky, blobShadow, standardLights, size } from './engine.js';
 import { makeProp, groundDisc } from './props.js';
-import { toonMat } from './toon.js';
+import { toonMat, disposeObject } from './toon.js';
 import { buildCharacter } from './chars.js';
 import { buildMonster } from './monsters.js';
 import { Actor } from './anim.js';
@@ -19,7 +19,7 @@ export const BIOMES = {
 };
 
 function rebuildEnvironment(st, biome, seed) {
-    if (st.env) { st.scene.remove(st.env); st.env.traverse((o) => { if (o.geometry && !o.userData.keep) o.geometry.dispose?.(); }); }
+    if (st.env) { st.scene.remove(st.env); disposeObject(st.env); }
     const env = new THREE.Group();
     st.env = env;
     const rng = new Rng(seed);
@@ -146,12 +146,13 @@ export function createBattleStage() {
         for (const [uid, e] of [...st.actors]) {
             if (e.side !== side) continue;
             scene.remove(e.rig.root); scene.remove(e.shadow);
+            disposeObject(e.rig.root); e.shadow.geometry.dispose(); e.shadow.material.dispose();
             st.actors.delete(uid);
         }
     };
 
     st.clear = () => {
-        for (const e of st.actors.values()) { scene.remove(e.rig.root); scene.remove(e.shadow); }
+        for (const e of st.actors.values()) { scene.remove(e.rig.root); scene.remove(e.shadow); disposeObject(e.rig.root); e.shadow.geometry.dispose(); e.shadow.material.dispose(); }
         st.actors.clear();
         fx.clear();
     };

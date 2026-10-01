@@ -40,7 +40,7 @@ export const REGIONS = [
       biome: { ground: '#5a3a30', ground2: '#3a2420', sky: ['#ff8a4a', '#2a1020'], fog: '#5a2a20', props: ['rock', 'spire', 'lava', 'deadtree'], particles: 'embers' },
       blurb: 'Volcanic crags where the earth still bleeds fire.' },
     { id: 'tide', name: 'Tidewater Coast', element: 'water', boss: 'corallia', species: ['crab', 'slime', 'harpy', 'wisp'], elements: ['water', 'water', 'fire', 'light'],
-      biome: { ground: '#e8d7a0', ground2: '#c9b47a', sky: ['#5ac8ff', '#e0fbff'], fog: '#bfeaff', props: ['palm', 'coral', 'rock', 'shell'], particles: 'bubbles' },
+      biome: { ground: '#d8c088', ground2: '#b89a62', sky: ['#3aa8f0', '#cff4ff'], fog: '#a8dcf4', props: ['palm', 'coral', 'rock', 'shell'], particles: 'bubbles' },
       blurb: 'White sands and drowned shrines under a restless sea.' },
     { id: 'sunspire', name: 'Sunspire Steppe', element: 'light', boss: 'aurex', species: ['golem', 'wisp', 'harpy', 'skeleton'], elements: ['light', 'light', 'wind', 'fire'],
       biome: { ground: '#e8c870', ground2: '#c8a050', sky: ['#ffd88a', '#fff6dc'], fog: '#ffe8b0', props: ['pillar', 'ruin', 'rock', 'bush'], particles: 'motes' },

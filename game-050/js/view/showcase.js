@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import { skyDome, setSky, blobShadow, standardLights, size } from './engine.js';
-import { toonMat, toonMesh, part, glowMat, merge, paint, paintGradient, shade } from './toon.js';
+import { toonMat, toonMesh, part, glowMat, merge, paint, paintGradient, shade, disposeObject } from './toon.js';
 import { cyl, tor } from './chars.js';
 import { buildCharacter } from './chars.js';
 import { buildMonster } from './monsters.js';
@@ -82,8 +82,8 @@ export function createShowcase() {
     const st = { scene, camera, sky, fx, actors: [], spin: 0, spinVel: 0, mode: 'single', time: 0, focusY: 1, sheet: 0.5 };
 
     st.clear = () => {
-        for (const a of st.actors) { scene.remove(a.root); scene.remove(a.shadow); }
-        for (const p of pedestals) scene.remove(p);
+        for (const a of st.actors) { scene.remove(a.root); scene.remove(a.shadow); disposeObject(a.root); disposeObject(a.shadow); }
+        for (const p of pedestals) { scene.remove(p); disposeObject(p); }
         pedestals.length = 0;
         st.actors = [];
     };

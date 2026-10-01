@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import { skyDome, setSky, standardLights, size } from './engine.js';
-import { toonMesh, part, glowMat, merge, paintGradient, shade } from './toon.js';
+import { toonMesh, part, glowMat, merge, paintGradient, shade, disposeObject } from './toon.js';
 import { cyl, cone, box, tor } from './chars.js';
 import { createFx } from './fx.js';
 import { makeProp } from './props.js';
@@ -66,6 +66,7 @@ export function createSpireStage() {
         st.floor = floor;
         if (st.built === floor) return;
         st.built = floor;
+        disposeObject(tower);
         tower.clear();
         for (let f = Math.max(1, floor - 6); f <= floor + 6; f++) tower.add(floorSegment(f, floor - 1));
         const top = toonMesh([part(paintGradient(cone(1.5, 3, 12), '#5a4aa8', '#9a8aff', 1), null, [0, 0, 0])], { outline: 0.03 });
