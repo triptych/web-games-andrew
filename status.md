@@ -2,7 +2,7 @@
 
 Completion audit of all games in this repo, based on each game's own game-plan.md / CHANGELOG.md / PHASE-COMPLETE docs cross-checked against code. Ratings reflect feature completeness against each game's own stated scope, not code quality or bugs.
 
-**Launcher note:** all 51 games are present in `js/gamedata.js` and appear on the home page. Two historical gaps, both now fixed and committed: game-030 (Coppergate Lane) was built but missing from `gamedata.js` entirely, and game-038 (Emberbrood) was listed but had no `.game-card.emberbrood .play-button` rule in `css/styles.css`, so its card fell back to the default button styling while every other game had a themed one.
+**Launcher note:** all 51 games are present in `js/gamedata.js` and appear on the home page, now a walkable 3D garden where each game has a statue placed by its `genre` field (the old card grid is `classic.html`). Two historical gaps, both now fixed and committed: game-030 (Coppergate Lane) was built but missing from `gamedata.js` entirely, and game-038 (Emberbrood) was listed but had no `.game-card.emberbrood .play-button` rule in `css/styles.css`, so its card fell back to the default button styling while every other game had a themed one.
 
 | Game | Title | Rating | Notes |
 |---|---|---|---|

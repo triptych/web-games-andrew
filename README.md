@@ -8,7 +8,13 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-51 games, `game-001` through `game-051`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+51 games, `game-001` through `game-051`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+
+### The Garden of Games (launcher)
+
+[index.html](index.html) is a walkable three.js island in the spirit of *Myst*. You arrive on a wooden dock and climb to a hub where a **holographic carousel** cycles through every game, newest first, with brass arrow buttons that press in. One flagstone path per genre leads out from the hub, through a named gate, past a **statue for every game** and on to a pavilion. Each statue's bronze plaque shows the game's icon and title. Hover a statue for its description and click it to play (on a phone, tap for a card with a Play button). Everything is generated in code: the island and its granite cliffs, paths, gazebos (dome, onion, cone, pagoda and crystal roofs), statues sculpted per genre, pines, cypresses, hedges, grass, flowers, vines that grow as you approach, a day/night cycle with stars and an aurora, an ocean shader, and a generative ambient score with surf, birds and crickets. Set pieces sit between the paths: a great gear, an observatory, a lighthouse, a moon fountain, standing stones and a clock tower on its own islet. There's a map, a searchable Library list, a time-of-day panel, and touch controls with a joystick.
+
+The garden grows with the collection. A game's `genre` field picks its path (a game without one is placed by its tags), newer games stand nearer the hub, and paths lengthen and the island widens as games are added. The original card grid is still at [classic.html](classic.html). Code lives in [garden/](garden/), and [garden/dev/browsertest.mjs](garden/dev/browsertest.mjs) drives it in real Chromium on desktop and on touch-only phones.
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -126,10 +132,10 @@ See each game's own README/folder for full details, or browse the descriptions l
 
 ### Playing the Games
 
-1. Open [index.html](index.html) in your web browser
-2. Browse the game collection
-3. Click "Play Now" on any game to launch it in a modal player
-4. Use ESC key or click the close button to return to the game browser
+1. Open [index.html](index.html) in your web browser (serve the folder over HTTP: the garden uses ES modules)
+2. Click **Enter the Garden**, walk up from the dock and wander the paths, or open the 📚 Library for a searchable list
+3. Click a statue (tap, then **Play**, on phones) to open its game in a new tab
+4. Prefer a plain list? [classic.html](classic.html) is the original card launcher
 
 ### Running Locally
 
@@ -178,11 +184,13 @@ When building or modifying games, consult these docs for framework APIs, confirm
 
 ```
 web-games-andrew/
-├── index.html              # Game browser/launcher
+├── index.html              # 3D garden launcher (three.js)
+├── classic.html            # The original card-grid launcher
+├── garden/                 # Garden launcher code (js/, css/, dev/browsertest.mjs)
 ├── css/                    # Shared stylesheets
 ├── js/                     # Shared JavaScript modules
 │   ├── main.js
-│   └── gamedata.js         # Metadata for all 40 games (drives the launcher)
+│   └── gamedata.js         # Metadata for every game (drives both launchers)
 ├── lib/
 │   ├── kaplay/              # Shared Kaplay engine (kaplay.mjs / kaplay.js)
 │   └── phaser/phaser-4.0.0/ # Shared Phaser 4 engine (ESM build)
@@ -234,7 +242,7 @@ Feel free to fork this project and add your own games! Follow the existing struc
 1. Create a new `game-###` folder
 2. Include an `index.html` file with your game
 3. Add a `manifest.json` with game metadata
-4. Update the main `index.html` to include your game card
+4. Add an entry (with a `genre`) to `js/gamedata.js`; both launchers pick it up, and the garden gives it a statue
 
 ## Changelog
 

@@ -2,60 +2,179 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Andrew Wooldridge's Games</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0b1020">
+    <title>Andrew Wooldridge's Games — The Garden</title>
+    <meta name="description" content="Andrew Wooldridge's browser games, displayed as statues in a walkable 3D fantasy garden. Every statue links to a game.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="garden/css/garden.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🎮 Andrew Wooldridge's Games</h1>
-            <p class="subtitle">Browser games I've built &mdash; pick one and start playing!</p>
-            <p class="bio-link"><a href="https://linktr.ee/triptych" target="_blank" rel="noopener">About me &amp; more links &rarr;</a></p>
-        </header>
+    <canvas id="scene" aria-label="A 3D garden. Each statue is a game; use the Library button for a list of every game."></canvas>
 
-        <section class="carousel" aria-label="Featured games" tabindex="0">
-            <div class="carousel-viewport">
-                <div class="carousel-track">
-                    <!-- Carousel slides are dynamically rendered from js/gamedata.js -->
-                </div>
+    <!-- title / loading screen -->
+    <section id="title" class="title">
+        <div class="title-card">
+            <p class="title-kicker">Welcome to</p>
+            <h1>Andrew Wooldridge's<br><span>Garden of Games</span></h1>
+            <p class="title-sub">An island of statues, each one a browser game. Walk the paths, read the plaques, and step through.</p>
+            <div class="loader" id="loader">
+                <div class="loader-bar"><span id="loader-fill"></span></div>
+                <p id="loader-text">Raising the island…</p>
             </div>
-            <button class="carousel-arrow carousel-arrow-prev" aria-label="Previous game">&#10094;</button>
-            <button class="carousel-arrow carousel-arrow-next" aria-label="Next game">&#10095;</button>
-            <div class="carousel-nav">
-                <div class="carousel-dots">
-                    <!-- Dots are dynamically rendered -->
-                </div>
-                <span class="carousel-counter" aria-live="polite"></span>
+            <div class="title-actions" id="title-actions" hidden>
+                <button id="enter" class="btn btn-primary">Enter the Garden</button>
+                <button id="enter-library" class="btn">Browse the Library</button>
             </div>
-        </section>
-
-        <section class="filter-bar">
-            <div class="search-box">
-                <span class="search-icon">🔍</span>
-                <input type="search" id="game-search" placeholder="Search games by title, description, or tag..." autocomplete="off">
-            </div>
-            <div class="tag-filters" id="tag-filters">
-                <!-- Tag filter chips are dynamically rendered -->
-            </div>
-        </section>
-
-        <p class="results-count" id="results-count"></p>
-
-        <div class="games-grid">
-            <!-- Game cards are dynamically rendered from js/gamedata.js -->
-        </div>
-
-        <p class="no-results" id="no-results" hidden>No games match your search. Try a different keyword or tag.</p>
-
-        <footer>
-            <p>Web Games Collection &copy; 2026 <a href="https://linktr.ee/triptych" target="_blank" rel="noopener">Andrew Wooldridge</a></p>
-            <p style="margin-top: 10px; font-size: 0.9em;">
-                Total Games: <strong id="game-count">48</strong>
+            <p class="title-foot">
+                <a href="classic.html">Prefer a plain list? Classic view</a>
+                <span aria-hidden="true">·</span>
+                <a href="https://linktr.ee/triptych" target="_blank" rel="noopener">About me</a>
             </p>
-        </footer>
+        </div>
+        <p class="title-count"><strong id="game-count">50</strong> games and counting</p>
+    </section>
+
+    <!-- heads-up display -->
+    <header id="hud" class="hud" hidden>
+        <div class="hud-title">
+            <strong>Andrew Wooldridge's Games</strong>
+            <span id="hud-zone">The Dock</span>
+        </div>
+        <nav class="hud-buttons" aria-label="Garden controls">
+            <button class="hud-btn" id="btn-map" title="Map (M)" aria-label="Map"><span aria-hidden="true">🗺️</span></button>
+            <button class="hud-btn" id="btn-library" title="Library (L)" aria-label="Library of all games"><span aria-hidden="true">📚</span></button>
+            <button class="hud-btn hud-clock" id="btn-time" title="Time of day (T)" aria-label="Time of day"><span aria-hidden="true" id="clock-icon">☀️</span><span id="clock">08:00</span></button>
+            <button class="hud-btn" id="btn-sound" title="Sound (S)" aria-label="Toggle sound"><span aria-hidden="true" id="sound-icon">🔊</span></button>
+            <button class="hud-btn" id="btn-help" title="Help (H)" aria-label="Help"><span aria-hidden="true">❔</span></button>
+        </nav>
+    </header>
+
+    <div id="banner" class="banner" aria-live="polite"></div>
+    <div id="hint" class="hint" hidden></div>
+    <div id="tooltip" class="tooltip" hidden></div>
+    <div id="crosshair" class="crosshair" hidden></div>
+    <div id="joystick" class="joystick" hidden><span></span></div>
+    <div id="marker" class="ground-marker" hidden></div>
+    <div id="fade" class="fade"></div>
+
+    <!-- time-of-day panel -->
+    <div id="time-panel" class="panel time-panel" hidden role="dialog" aria-label="Time of day">
+        <label for="time-slider">Time of day <output id="time-out">08:00</output></label>
+        <input type="range" id="time-slider" min="0" max="1440" step="1">
+        <div class="time-buttons">
+            <button class="chip" data-time="0.30">Dawn</button>
+            <button class="chip" data-time="0.5">Noon</button>
+            <button class="chip" data-time="0.74">Dusk</button>
+            <button class="chip" data-time="0.95">Night</button>
+            <button class="chip" id="time-pause">Pause</button>
+        </div>
+        <label for="music-vol">Music <input type="range" id="music-vol" min="0" max="1" step="0.05"></label>
+        <label class="check"><input type="checkbox" id="quality-low"> Lighter graphics (for older devices)</label>
     </div>
 
-    <script type="module" src="js/main.js"></script>
+    <!-- game card (touch and hologram) -->
+    <aside id="card" class="panel card" hidden role="dialog" aria-modal="false" aria-labelledby="card-title">
+        <button class="close" data-close aria-label="Close">×</button>
+        <div class="card-head">
+            <div class="card-icon" id="card-icon"></div>
+            <div>
+                <p class="card-genre" id="card-genre"></p>
+                <h2 id="card-title"></h2>
+                <p class="card-meta" id="card-meta"></p>
+            </div>
+        </div>
+        <div class="card-tags" id="card-tags"></div>
+        <p class="card-desc" id="card-desc"></p>
+        <div class="card-actions">
+            <a id="card-play" class="btn btn-primary" target="_blank" rel="noopener">▶ Play</a>
+            <button id="card-walk" class="btn">Walk there</button>
+            <button id="card-link" class="btn">Link there</button>
+        </div>
+    </aside>
+
+    <!-- library overlay -->
+    <section id="library" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="library-title">
+        <div class="overlay-inner">
+            <header class="overlay-head">
+                <h2 id="library-title">The Library</h2>
+                <button class="close" data-close aria-label="Close">×</button>
+            </header>
+            <div class="lib-search">
+                <input type="search" id="lib-search" placeholder="Search by title, description or tag…" autocomplete="off">
+            </div>
+            <div class="lib-chips" id="lib-chips"></div>
+            <div class="lib-list" id="lib-list"></div>
+            <p class="lib-foot"><a href="classic.html">Open the classic list view</a></p>
+        </div>
+    </section>
+
+    <!-- map overlay -->
+    <section id="map" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="map-title">
+        <div class="overlay-inner map-inner">
+            <header class="overlay-head">
+                <h2 id="map-title">Map of the Island</h2>
+                <button class="close" data-close aria-label="Close">×</button>
+            </header>
+            <p class="map-hint">Tap a statue to see its game, or a place name to link there.</p>
+            <div class="map-wrap"><canvas id="map-canvas"></canvas></div>
+        </div>
+    </section>
+
+    <!-- help overlay -->
+    <section id="help" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <div class="overlay-inner help-inner">
+            <header class="overlay-head">
+                <h2 id="help-title">How to wander</h2>
+                <button class="close" data-close aria-label="Close">×</button>
+            </header>
+            <div class="help-cols">
+                <div>
+                    <h3>Mouse &amp; keyboard</h3>
+                    <ul>
+                        <li><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys to walk, <kbd>Shift</kbd> to run</li>
+                        <li>Drag with the mouse to look around</li>
+                        <li>Click the ground to walk there</li>
+                        <li>Hover a statue to read about its game, click it to play</li>
+                        <li><kbd>[</kbd> <kbd>]</kbd> turn the hologram at the hub</li>
+                        <li><kbd>M</kbd> map · <kbd>L</kbd> library · <kbd>T</kbd> time · <kbd>S</kbd> sound</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Touch</h3>
+                    <ul>
+                        <li>Hold the lower-left of the screen and slide to walk; push further to run</li>
+                        <li>Drag anywhere else to look around</li>
+                        <li>Tap the ground to walk there</li>
+                        <li>Tap a statue to read about its game, then <em>Play</em></li>
+                        <li>Tap the brass arrows at the hub to turn the hologram</li>
+                    </ul>
+                </div>
+            </div>
+            <p class="help-note">Each path from the hub leads to one kind of game and ends at a pavilion. Newest games stand nearest the hub. The vines wake up as you come near, and the garden keeps its own time: wait for dusk to see the lamps, fireflies and aurora.</p>
+        </div>
+    </section>
+
+    <div id="nogl" class="nogl" hidden>
+        <h1>Andrew Wooldridge's Games</h1>
+        <p>This garden needs WebGL, which isn't available in this browser.</p>
+        <p><a class="btn btn-primary" href="classic.html">Open the game list</a></p>
+    </div>
+
+    <noscript>
+        <p class="nogl">The 3D garden needs JavaScript. <a href="classic.html">Browse the game list instead.</a></p>
+    </noscript>
+
+    <script type="module" src="garden/js/main.js"></script>
 </body>
 </html>

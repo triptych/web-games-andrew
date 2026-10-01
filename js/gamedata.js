@@ -1,6 +1,10 @@
 /**
  * Game data configuration
- * Each game object contains all the information needed to render a game card
+ * Each game object contains all the information needed to render a game card.
+ *
+ * `genre` decides which path of the 3D garden launcher (index.html) the game's
+ * statue stands on. Known genres: arcade, puzzle, dungeon, rpg, story, strategy,
+ * cozy (see garden/js/genres.js). A game without one is placed by its tags.
  */
 const games = [
     {
@@ -11,6 +15,7 @@ const games = [
         folder: 'game-001',
         version: '1.2.0',
         cssClass: 'space-shooter',
+        genre: 'arcade',
         tags: [
             { emoji: '🎯', label: 'Arcade' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -25,6 +30,7 @@ const games = [
         folder: 'game-002',
         version: '1.3.0',
         cssClass: 'match-3',
+        genre: 'puzzle',
         tags: [
             { emoji: '🧩', label: 'Puzzle' },
             { emoji: '🖱️', label: 'Mouse' },
@@ -39,6 +45,7 @@ const games = [
         folder: 'game-003',
         version: '1.7.0',
         cssClass: 'roguelike',
+        genre: 'dungeon',
         tags: [
             { emoji: '🏰', label: 'Dungeon' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -53,6 +60,7 @@ const games = [
         folder: 'game-004',
         version: '1.8.0',
         cssClass: 'tower-defense',
+        genre: 'strategy',
         tags: [
             { emoji: '🎯', label: 'Strategy' },
             { emoji: '🖱️', label: 'Mouse' },
@@ -67,6 +75,7 @@ const games = [
         folder: 'game-005',
         version: '1.6.0',
         cssClass: 'bullet-heaven',
+        genre: 'rpg',
         tags: [
             { emoji: '🎮', label: 'Action' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -81,6 +90,7 @@ const games = [
         folder: 'game-006',
         version: '1.12.0',
         cssClass: 'dungeon-fps',
+        genre: 'dungeon',
         tags: [
             { emoji: '🏰', label: 'Dungeon' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -95,6 +105,7 @@ const games = [
         folder: 'game-007',
         version: '1.5.0',
         cssClass: 'interactive-fiction',
+        genre: 'story',
         tags: [
             { emoji: '📖', label: 'Interactive Fiction' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -109,6 +120,7 @@ const games = [
         folder: 'game-008',
         version: '1.11.0',
         cssClass: 'centipede-td',
+        genre: 'strategy',
         tags: [
             { emoji: '🎯', label: 'Strategy' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -123,6 +135,7 @@ const games = [
         folder: 'game-009',
         version: '1.9.0',
         cssClass: 'ember-crown',
+        genre: 'rpg',
         tags: [
             { emoji: '🎲', label: 'Turn-Based' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -137,6 +150,7 @@ const games = [
         folder: 'game-010',
         version: '1.10.0',
         cssClass: 'tiny-town',
+        genre: 'cozy',
         tags: [
             { emoji: '🏙️', label: 'City Builder' },
             { emoji: '🖱️', label: 'Mouse' },
@@ -151,6 +165,7 @@ const games = [
         folder: 'game-011',
         version: '1.4.0',
         cssClass: 'nonogram-fleet',
+        genre: 'puzzle',
         tags: [
             { emoji: '🧩', label: 'Puzzle' },
             { emoji: '🖱️', label: 'Mouse' },
@@ -165,6 +180,7 @@ const games = [
         folder: 'game-012',
         version: '1.5.0',
         cssClass: 'arcana-pull',
+        genre: 'strategy',
         tags: [
             { emoji: '🃏', label: 'Card Game' },
             { emoji: '⚔️', label: 'Auto Battler' },
@@ -179,6 +195,7 @@ const games = [
         folder: 'game-013',
         version: '1.2.0',
         cssClass: 'petal-purse',
+        genre: 'cozy',
         tags: [
             { emoji: '🌸', label: 'Cozy' },
             { emoji: '🖱️', label: 'Mouse' },
@@ -193,6 +210,7 @@ const games = [
         folder: 'game-014',
         version: '1.5.0',
         cssClass: 'trackrunner',
+        genre: 'arcade',
         tags: [
             { emoji: '🏁', label: 'Endless Runner' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -207,6 +225,7 @@ const games = [
         folder: 'game-015',
         version: '1.3.0',
         cssClass: 'tamagoji',
+        genre: 'cozy',
         tags: [
             { emoji: '🐾', label: 'Virtual Pet' },
             { emoji: '📱', label: 'Mobile-Friendly' },
@@ -221,6 +240,7 @@ const games = [
         folder: 'game-016',
         version: '1.1.0',
         cssClass: 'crate-pusher',
+        genre: 'puzzle',
         tags: [
             { emoji: '🧩', label: 'Puzzle' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -235,6 +255,7 @@ const games = [
         folder: 'game-017',
         version: '1.1.0',
         cssClass: 'pixel-picross',
+        genre: 'puzzle',
         tags: [
             { emoji: '🧩', label: 'Puzzle' },
             { emoji: '🖱️', label: 'Mouse' },
@@ -249,6 +270,7 @@ const games = [
         folder: 'game-018',
         version: '1.10.0',
         cssClass: 'wandering-blade',
+        genre: 'rpg',
         tags: [
             { emoji: '⚔️', label: 'Action RPG' },
             { emoji: '🏘️', label: 'Village Builder' },
@@ -263,6 +285,7 @@ const games = [
         folder: 'game-019',
         version: '1.1.0',
         cssClass: 'synthwave-breakout',
+        genre: 'arcade',
         tags: [
             { emoji: '🕹️', label: 'Arcade' },
             { emoji: '🖱️', label: 'Mouse' },
@@ -277,6 +300,7 @@ const games = [
         folder: 'game-020',
         version: '1.3.0',
         cssClass: 'the-river',
+        genre: 'story',
         tags: [
             { emoji: '📖', label: 'Narrative' },
             { emoji: '🎲', label: 'Roguelite' },
@@ -291,6 +315,7 @@ const games = [
         folder: 'game-021',
         version: '1.7.0',
         cssClass: 'dungeon-blobber',
+        genre: 'dungeon',
         tags: [
             { emoji: '🏰', label: 'Dungeon' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -305,6 +330,7 @@ const games = [
         folder: 'game-022',
         version: '1.3.0',
         cssClass: 'depths-unknown',
+        genre: 'rpg',
         tags: [
             { emoji: '⛏️', label: 'Mining' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -319,6 +345,7 @@ const games = [
         folder: 'game-023',
         version: '1.3.0',
         cssClass: 'synthwave-invaders',
+        genre: 'arcade',
         tags: [
             { emoji: '🕹️', label: 'Arcade' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -333,6 +360,7 @@ const games = [
         folder: 'game-024',
         version: '1.7.0',
         cssClass: 'neon-vanguard',
+        genre: 'arcade',
         tags: [
             { emoji: '🔫', label: 'Shmup' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -347,6 +375,7 @@ const games = [
         folder: 'game-025',
         version: '1.8.0',
         cssClass: 'crypt-crawler',
+        genre: 'dungeon',
         tags: [
             { emoji: '🗡️', label: 'Dungeon Crawler' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -361,6 +390,7 @@ const games = [
         folder: 'game-026',
         version: '1.10.0',
         cssClass: 'crypt-of-the-forgotten',
+        genre: 'dungeon',
         tags: [
             { emoji: '🧭', label: 'Blobber' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -375,6 +405,7 @@ const games = [
         folder: 'game-027',
         version: '1.10.0',
         cssClass: 'alchemists-lattice',
+        genre: 'puzzle',
         tags: [
             { emoji: '🧩', label: 'Puzzle' },
             { emoji: '🖱️', label: 'Drag & Drop' },
@@ -389,6 +420,7 @@ const games = [
         folder: 'game-028',
         version: '1.4.0',
         cssClass: 'echoes-of-aethermoor',
+        genre: 'story',
         tags: [
             { emoji: '⚔️', label: 'RPG' },
             { emoji: '📖', label: 'Visual Novel' },
@@ -403,6 +435,7 @@ const games = [
         folder: 'game-029',
         version: '1.6.0',
         cssClass: 'wayfarers-path',
+        genre: 'rpg',
         tags: [
             { emoji: '⚔️', label: 'RPG' },
             { emoji: '🎲', label: 'Procedural' },
@@ -417,6 +450,7 @@ const games = [
         folder: 'game-030',
         version: '1.1.0',
         cssClass: 'coppergate-lane',
+        genre: 'rpg',
         tags: [
             { emoji: '🗺️', label: 'Adventure' },
             { emoji: '🎲', label: 'Turn-Based' },
@@ -431,6 +465,7 @@ const games = [
         folder: 'game-031',
         version: '1.4.0',
         cssClass: 'grimhold-abyss',
+        genre: 'dungeon',
         tags: [
             { emoji: '\u{1F5FA}\uFE0F', label: 'Dungeon Crawler' },
             { emoji: '\u{1F3B2}', label: 'Procedural' },
@@ -445,6 +480,7 @@ const games = [
         folder: 'game-032',
         version: '1.1.0',
         cssClass: 'ironhollow-depths',
+        genre: 'dungeon',
         tags: [
             { emoji: '🏰', label: 'Dungeon Crawler' },
             { emoji: '⌨️', label: 'Keyboard' },
@@ -459,6 +495,7 @@ const games = [
         folder: 'game-033',
         version: '1.9.0',
         cssClass: 'hearthbound',
+        genre: 'story',
         tags: [
             { emoji: '📖', label: 'Visual Novel' },
             { emoji: '🖱️', label: 'Mouse' },
@@ -473,6 +510,7 @@ const games = [
         folder: 'game-034',
         version: '1.1.0',
         cssClass: 'idle-delve',
+        genre: 'dungeon',
         tags: [
             { emoji: '🏰', label: 'Dungeon' },
             { emoji: '💤', label: 'Idle' },
@@ -487,6 +525,7 @@ const games = [
         folder: 'game-035',
         version: '1.1.0',
         cssClass: 'n2-overdrive',
+        genre: 'arcade',
         tags: [
             { emoji: '🕹️', label: 'Tube Shooter' },
             { emoji: '📱', label: 'Touch' },
@@ -501,6 +540,7 @@ const games = [
         folder: 'game-036',
         version: '1.4.0',
         cssClass: 'island-walker',
+        genre: 'story',
         tags: [
             { emoji: '🚶', label: 'Exploration' },
             { emoji: '🌱', label: 'Procedural' },
@@ -515,6 +555,7 @@ const games = [
         folder: 'game-037',
         version: '1.2.0',
         cssClass: 'lanternwake',
+        genre: 'dungeon',
         tags: [
             { emoji: '\uD83C\uDFB2', label: 'Roguelike' },
             { emoji: '\uD83C\uDF31', label: 'Procedural' },
@@ -529,6 +570,7 @@ const games = [
         folder: 'game-038',
         version: '1.2.0',
         cssClass: 'emberbrood',
+        genre: 'rpg',
         tags: [
             { emoji: '\u2694\uFE0F', label: 'Turn-based RPG' },
             { emoji: '\uD83E\uDDEC', label: 'Procedural' },
@@ -543,6 +585,7 @@ const games = [
         folder: 'game-039',
         version: '1.0.0',
         cssClass: 'wakeform',
+        genre: 'arcade',
         tags: [
             { emoji: '🕹️', label: 'Arcade' },
             { emoji: '⚡', label: 'Novel Mechanic' },
@@ -557,6 +600,7 @@ const games = [
         folder: 'game-040',
         version: '1.5.0',
         cssClass: 'starcadet',
+        genre: 'arcade',
         tags: [
             { emoji: '\uD83D\uDCA5', label: 'Bullet Hell' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' },
@@ -571,6 +615,7 @@ const games = [
         folder: 'game-041',
         version: '1.0.0',
         cssClass: 'burrowguard',
+        genre: 'strategy',
         tags: [
             { emoji: '\uD83D\uDD79\uFE0F', label: 'Arcade' },
             { emoji: '\uD83C\uDFF0', label: 'Tower Defense' },
@@ -585,6 +630,7 @@ const games = [
         folder: 'game-042',
         version: '1.1.0',
         cssClass: 'popgunpip',
+        genre: 'arcade',
         tags: [
             { emoji: '\uD83C\uDF44', label: 'Platformer' },
             { emoji: '\uD83D\uDD13', label: 'Metroidvania' },
@@ -599,6 +645,7 @@ const games = [
         folder: 'game-043',
         version: '1.2.0',
         cssClass: 'glimmerglen',
+        genre: 'cozy',
         tags: [
             { emoji: '\uD83C\uDFE1', label: 'Village Sim' },
             { emoji: '\u2694\uFE0F', label: 'Adventure' },
@@ -613,6 +660,7 @@ const games = [
         folder: 'game-044',
         version: '1.1.0',
         cssClass: 'storythief',
+        genre: 'story',
         tags: [
             { emoji: '\uD83D\uDDB1\uFE0F', label: 'Point & Click' },
             { emoji: '\uD83D\uDCDC', label: 'Story' },
@@ -627,6 +675,7 @@ const games = [
         folder: 'game-045',
         version: '1.0.0',
         cssClass: 'pinbreak',
+        genre: 'arcade',
         tags: [
             { emoji: '\uD83C\uDFB0', label: 'Pinball' },
             { emoji: '\uD83E\uDDF1', label: 'Breakout' },
@@ -641,6 +690,7 @@ const games = [
         folder: 'game-046',
         version: '1.2.0',
         cssClass: 'quiverspire',
+        genre: 'dungeon',
         tags: [
             { emoji: '\uD83C\uDFF9', label: 'Roguelite' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' },
@@ -655,6 +705,7 @@ const games = [
         folder: 'game-047',
         version: '1.0.0',
         cssClass: 'ashesaces',
+        genre: 'strategy',
         tags: [
             { emoji: '\uD83C\uDCCF', label: 'Deckbuilder' },
             { emoji: '\u2660\uFE0F', label: 'Poker Solitaire' },
@@ -669,6 +720,7 @@ const games = [
         folder: 'game-048',
         version: '1.0.0',
         cssClass: 'spinframe',
+        genre: 'strategy',
         tags: [
             { emoji: '\uD83C\uDFB0', label: 'Slots' },
             { emoji: '\uD83E\uDD16', label: 'Mechs' },
@@ -683,6 +735,7 @@ const games = [
         folder: 'game-049',
         version: '1.0.1',
         cssClass: 'lanterndeep',
+        genre: 'dungeon',
         tags: [
             { emoji: '\uD83D\uDDDD\uFE0F', label: 'Roguelike' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' },
@@ -697,6 +750,7 @@ const games = [
         folder: 'game-050',
         version: '1.0.0',
         cssClass: 'tomebound',
+        genre: 'rpg',
         tags: [
             { emoji: '\uD83D\uDC8E', label: 'Match-3 RPG' },
             { emoji: '\uD83C\uDFE1', label: 'Idle Town' },
@@ -711,6 +765,7 @@ const games = [
         folder: 'game-051',
         version: '1.0.0',
         cssClass: 'sigilborn',
+        genre: 'strategy',
         tags: [
             { emoji: '\uD83C\uDFB2', label: 'Gacha' },
             { emoji: '\u2694\uFE0F', label: 'Auto Battler' },
