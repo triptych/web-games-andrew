@@ -4818,3 +4818,48 @@ its outcome on the queue item before saving, so it cannot be chosen twice.
 ### Test init scripts run on reload too
 `context.addInitScript(() => localStorage.clear())` also runs on `page.reload()`, so a
 "save survives a reload" test fails for the wrong reason. Guard it with a `sessionStorage` flag.
+
+
+## Game 048: SPINFRAME — a slot machine as an RPG combat system (2026-10-01)
+
+### Make every symbol fire; let lines be the bonus
+A classic payline machine with 3 reels × 3 rows and 3 lines hits a line on well under half of spins, which as a
+combat system means most turns do nothing. SPINFRAME's rule is that **every symbol that lands fires at base power**
+and symbols on a winning line fire at a multiple instead. A dead spin still chips the enemy, raises a little shield,
+banks a little energy — and lines, chains, Overdrive and the Jackpot are the spikes on top. Measured with the bot:
+~0.5 lines per spin at 3×3/3 lines (with nudges), ~2.2 at 5×4/17 lines. That gap *is* the progression: the machine
+upgrades (reels, rows, paylines) are what turn a trickle into chains, so they are gated by chapter and priced in Cores.
+
+### Scroll the real strip
+Each reel is a real strip (an array built from the loadout's symbol weights), and the view animates the strip itself,
+so what spins past is what the Probability Engine actually wrote — including the Glitches the enemy inserted. A spin
+is a tween of a float position: `D = mod(from − to, len) + len × loops`, `p = from − D × ease(u)`, draw indices with
+a true modulo. A nudge is the same tween with `D = ±1`. When the sim's grid differs from the strip window (sticky
+wilds, expanded reels, cascades) the reel shows an explicit override column until the next spin.
+
+### The balance table is only as good as the bot's shopping
+The first campaign table showed bosses that killed the bot half the time while skirmishes cost 4% hull. The enemy
+curve was fine — the bot bought machine upgrades first and never touched hull or weapons (hull 67 at chapter 2).
+Splitting the purse (half on the cheapest levelled system first, then machine upgrades, then save for the next
+machine upgrade) made the table sane and showed the real outliers (Varga and the Determinant), which is where the
+remaining tuning went. Check what the bot *owns* before blaming the curve.
+
+### One exception in the render loop freezes the game
+A wasp's wing flap computed `0.06 − sin(t) × 0.08` as an ellipse radius; Canvas throws on a negative radius. The
+throw escaped `requestAnimationFrame`, the loop never re-armed, and because the fx clock (which resolves every
+animation `wait()` the battle director awaits) only advances in that loop, the battle sat "busy" forever. Two fixes:
+`Math.abs(...) + ε` on oscillating radii, and a `try/catch` around each frame so one bad draw costs one frame.
+
+### Entrance animations fight positioning transforms
+The tutorial tip was centred with `transform: translate(-50%, -100%)` and faded in with a shared `panelIn` keyframe
+that animates `transform`. For the animation's duration the centring vanished and the tip jumped right and down.
+Give positioned overlays their own keyframes that include the positioning transform.
+
+### Transient overlays need an owner
+Battle banners ("MEGA WIN", "VICTORY") sat at a higher z-index than the modal rewards panel and outlived the fight.
+Banners now sit between the battle HUD and the screens layer, and leaving a battle clears banners, the chain counter
+and the hover tip in one place (`endBattleUi`).
+
+### ESM ignores NODE_PATH
+A globally installed `playwright` is not found by `import` from an `.mjs` script, even with `NODE_PATH` set. Symlink
+it into a `node_modules/` next to the script (ignored by git).

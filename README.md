@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-47 games, `game-001` through `game-047`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+48 games, `game-001` through `game-048`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -59,6 +59,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 | 045 | [PINBREAK '86](game-045/) | Synthwave pinball × breakout synthesis | three.js |
 | 046 | [Quiverspire](game-046/) | Archero-style roguelite archer | three.js |
 | 047 | [Ashes & Aces](game-047/) | Deck-building roguelite × poker solitaire | three.js |
+| 048 | [SPINFRAME](game-048/) | Slot-machine mech RPG with incremental systems | Vanilla JS (Canvas 2D + DOM), no dependencies |
 
 ### Highlights
 
@@ -109,6 +110,8 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 **[Quiverspire](game-046/)** — An **Archero-style roguelite archer** in three.js. Your archer fires automatically at the nearest enemy, but only while standing still — moving stops the bow — so every room is a rhythm of dodge, plant your feet, loose arrows, dodge again. Climb ten chapters of twelve rooms (**120 procedurally generated rooms**, plus an **Endless** mode whose difficulty curve steepens as it climbs): mirrored layouts of rock, water, lava, acid, chasms and spike traps, validated so every room's door and every spawn is reachable on foot. Twelve enemy types that all telegraph their attacks (laser sights, charge lanes, marked landing circles, lobbed bombs you can watch arc in), elite champions, angels, devil's bargains that cost a slice of max HP forever, and five multi-phase bosses who return **Ascended** in the later chapters. Level-ups offer three of 29 stacking abilities — Multishot, Front/Diagonal/Side/Rear arrows, Ricochet, Piercing, Bouncy Wall, fire/frost/poison/lightning arrows, orbiting flame and frost circles, spirit wisps, Aegis, an Extra Life — and coins buy six permanent talents between runs. **Everything is generated in code**: floor textures painted per biome from a recipe, a seven-look liquid/chasm shader, obstacles, props, the hero, every enemy and boss modelled from primitives and hue-shifted per chapter, and a music sequencer that composes each chapter its own loop. Keyboard, gamepad, or a one-thumb floating joystick on a phone. The simulation is pure and seeded, so [game-046/dev/](game-046/dev/README.md) has a bot play every chapter headlessly (checking every tick that nothing leaves the room or stands in a wall) and a Playwright harness walk the real game on desktop and touch-only phones.
 
 **[Ashes & Aces](game-047/)** — **Slay the Spire meets poker solitaire** in a dark high-fantasy three.js roguelite. Every fight is played on a 5×5 table: place cards from your hand (three Deals a turn), and whenever a row, column or diagonal fills it fires as a **poker hand** — the hand sets the multiplier, and each card's chips flow into its suit: ♠ Blades damage your target, ♣ Staves hit every enemy, ♦ Coins raise Ward, ♥ Hearts heal. One card that finishes two lines is a **Cross** (×1.5 each). Monsters telegraph their intents and fight the table itself — sealing cells, stealing your best card, frosting cells so they score nothing, scrambling rows, shuffling dead Ash into your deck — and ten scripted **Crowned Wardens** add rising tides, erased columns, mirages and phase changes. Build a deck from ten enchantments, 22 Arcana spells, 52 relics and 8 elixirs across **10 realms × 10 levels = 100 levels** of branching Slay-the-Spire maps (battles, elites, mysteries, merchants, campfires, treasure). An authored epic, *The Last Hand*, with a chapter, interlude and Warden scene per realm and three endings, plus a Chronicle the run writes about you. **Everything is generated in code**: card faces painted at 512×720 with normal and foil maps (J/Q/K get generated portraits), eleven monster body plans grown from genomes with shader veins, rim light and dissolve deaths, ten realm backdrops (sky shaders, parallax ridges, props, GPU weather, god rays), heroes with generated names and looks, and a generative soundtrack (Karplus–Strong harp, FM bells, taiko, formant choir, convolution reverb) that composes each realm its own map, battle and Warden themes. The simulation is pure and seeded: [game-047/dev/](game-047/dev/README.md) has a bot play whole 100-level runs headlessly to balance the curve, and a Playwright harness walk the real game on desktop and touch-only phones.
+
+**[SPINFRAME](game-048/)** — A **turn-based sci-fi mech RPG whose combat is a slot machine**. You are a cadet at the Halcyon Flight Academy, flying a training frame powered by a **Probability Engine**: every turn you spin its reels and **every symbol that lands fires** — Blades and Cannons at your target, Missiles at every enemy, Arcs that chain lightning between them, Shields, Repairs, Energy and Scrap. Three or more of a kind from the left on a payline hit far harder, every extra line in the same spin is a link in a multiplying **chain**, Overclock wilds stand in for anything, three Cores start an **Overdrive** (bonus spins at ×2 while the enemy is frozen) and five hit the **Jackpot**. After the reels land you can spend energy to nudge, respin, hold or purge a reel, with the lines you are about to hit previewed as dashed traces — because the enemy, the **Determinant**, a machine mind that cannot bear an outcome it did not predict, jams your reels and writes dead Glitch symbols into your strips. **Upgrading the mech rewrites the machine**: the Reel Array goes from 3 to 5 reels, the Targeting Matrix from 3 to 16 paylines and a fourth row, new hardpoints add Missile and Arc symbols to every strip, the reactor, servos and Probability Core change how much you can cheat fate, and the frame visibly changes with each install (a mini-slot window on its chest shows one reel per reel). 18 modules bend the rules (cascades, expanding and sticky wilds, mirror lines, clusters, echo lines, overheat vents…), three skill trees shape the pilot, and boosters drop mid-fight. Seven procedurally generated sectors (skirmishes, elites with affixes, Signals, salvage, depots, repair bays, a boss each), an authored story — *The Graduating Class* — told in comm scenes with a wry mech AI, a rival cadet and an instructor the enemy takes and rewrites, a contract board, and **incremental** systems: a Refinery that earns while you are away, drone bays, an archive and a core forge, exponential upgrade curves, an endless Sim Ladder and Threat levels after graduation. Built for juice: staggered reel stops with anticipation, chasing marquee bulbs, line traces, chain counters, cascades, orbs flying from the reels into the mech, lightning chains, missiles, hit-stop, slow-mo, shake, coin showers and BIG / MEGA / EPIC WIN banners. **Vanilla HTML/CSS/JS, no libraries and no asset files** — every symbol, mech, enemy, portrait and backdrop is drawn in code and every sound synthesised. The simulation is pure and seeded: [game-048/dev/](game-048/dev/README.md) has a bot play the whole campaign headlessly to balance it, and a Playwright harness walk the real game on desktop and touch-only phones.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -179,7 +182,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-047/   # One self-contained folder per game
+├── game-001/ … game-048/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -199,7 +202,7 @@ Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018
 - **Kaplay Framework (v4000 alpha)** - Game development framework (most games from game-002 onward, including game-032)
 - **Phaser 4.0.0 (ESM)** - Game framework (game-019, game-020, game-027, game-028, game-035)
 - **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047)
-- **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034, game-037, game-038, game-039)
+- **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034, game-037, game-038, game-039, game-048)
 - **Custom software 3D** - Hand-written 3D renderers with no engine: a palette-indexed framebuffer (game-031) and a triangle rasterizer on Canvas2D (game-036)
 - **GemCore/GemShell** - Desktop application packaging
 
@@ -236,7 +239,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 47 games are included as of the latest entries (game-044 The Story Thief of Greymantle, game-045 PINBREAK '86, game-046 Quiverspire, game-047 Ashes & Aces).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 48 games are included as of the latest entries (game-045 PINBREAK '86, game-046 Quiverspire, game-047 Ashes & Aces, game-048 SPINFRAME).
 
 ---
 

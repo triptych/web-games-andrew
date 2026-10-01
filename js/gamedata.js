@@ -660,6 +660,20 @@ const games = [
             { emoji: '\u2660\uFE0F', label: 'Poker Solitaire' },
             { emoji: '\uD83C\uDFF0', label: 'Fantasy' }
         ]
+    },
+    {
+        id: 'game-048',
+        title: 'SPINFRAME',
+        description: "A turn-based sci-fi mech RPG where your weapons are a slot machine. You are a cadet at the Halcyon Flight Academy, and your training frame runs on a Probability Engine: every turn you SPIN its reels and every symbol that lands fires \u2014 Blades, Cannons, Missiles that hit every enemy, Arcs that chain lightning between them, Shields, Repairs, Energy and Scrap. Three of a kind from the left on a payline hits far harder, every extra line in the same spin is a link in a multiplying chain, Overclock wilds stand in for anything, three Cores start an Overdrive and five hit the Jackpot. Spend energy to nudge, respin, hold or purge reels, because the Determinant \u2014 a machine mind that hates chance \u2014 jams your reels and writes Glitches into your strips. Upgrading your mech rewrites the machine: up to five reels and four rows, from 3 to 16 paylines, new weapon symbols, a bigger reactor, more wilds and cores; 18 modules bend the rules (cascades, expanding and sticky wilds, mirror lines, clusters\u2026), and three skill trees shape your pilot. Seven procedurally generated sectors with elites, Signals, salvage, depots and bosses, an authored story of a cadet, a rival and an instructor taken by the enemy, contracts, a Refinery that earns while you are away, an endless Sim Ladder and Threat levels. Big chains, cascades, hit-stop, coin showers and MEGA WINs. Vanilla JS, no libraries, no asset files.",
+        icon: '\uD83C\uDFB0',
+        folder: 'game-048',
+        version: '1.0.0',
+        cssClass: 'spinframe',
+        tags: [
+            { emoji: '\uD83C\uDFB0', label: 'Slots' },
+            { emoji: '\uD83E\uDD16', label: 'Mechs' },
+            { emoji: '\uD83D\uDCC8', label: 'Incremental' }
+        ]
     }
 ];
 
