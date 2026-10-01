@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-50 games, `game-001` through `game-051`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+51 games, `game-001` through `game-051`, each self-contained with its own `index.html`. Full metadata (title, description, tags) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -61,7 +61,8 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 | 047 | [Ashes & Aces](game-047/) | Deck-building roguelite × poker solitaire | three.js |
 | 048 | [SPINFRAME](game-048/) | Slot-machine mech RPG with incremental systems | Vanilla JS (Canvas 2D + DOM), no dependencies |
 | 049 | [Lanterndeep](game-049/) | Turn-based 3D roguelike, 100 floors | three.js |
-| 050 | [Sigilborn](game-051/) | Gacha auto-battler with idle citadel | three.js |
+| 050 | [Tomebound](game-050/) | Match-3 fantasy RPG with an idle village | three.js |
+| 051 | [Sigilborn](game-051/) | Gacha auto-battler with idle citadel | three.js |
 
 ### Highlights
 
@@ -198,7 +199,7 @@ web-games-andrew/
 └── README.md               # This file
 ```
 
-Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047, game-049, game-051) load it from a CDN via an import map in their `index.html`.
+Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047, game-049, game-050, game-051) load it from a CDN via an import map in their `index.html`.
 
 ## Technologies Used
 
@@ -207,7 +208,7 @@ Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018
 - **CSS3** - Styling and responsive design
 - **Kaplay Framework (v4000 alpha)** - Game development framework (most games from game-002 onward, including game-032)
 - **Phaser 4.0.0 (ESM)** - Game framework (game-019, game-020, game-027, game-028, game-035)
-- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047, game-049, game-051)
+- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047, game-049, game-050, game-051)
 - **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034, game-037, game-038, game-039, game-048)
 - **Custom software 3D** - Hand-written 3D renderers with no engine: a palette-indexed framebuffer (game-031) and a triangle rasterizer on Canvas2D (game-036)
 - **GemCore/GemShell** - Desktop application packaging
@@ -245,7 +246,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 50 games are included as of the latest entries (game-047 Ashes & Aces, game-048 SPINFRAME, game-049 Lanterndeep, game-051 Sigilborn).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 51 games are included as of the latest entries (game-048 SPINFRAME, game-049 Lanterndeep, game-050 Tomebound, game-051 Sigilborn).
 
 ---
 

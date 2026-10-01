@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#4a2a8a">
+    <meta name="description" content="Tomebound: a match-3 fantasy RPG with an idle town. Duel monsters on a gem board, rebuild a village while you're away, and rescue thirteen lost books from an ancient library.">
+    <title>Tomebound</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a href="../index.html" id="games-link" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
+
+    <div id="bubbles"></div>
+
+    <!-- ============================== Town HUD ============================== -->
+    <div id="town-ui" class="layer" hidden>
+        <div id="topbar">
+            <button id="hero-badge" class="badge" title="Hero (C)">
+                <span id="hb-icon" class="hb-icon">🧙</span>
+                <span class="hb-text"><span id="hb-name">Wren</span><span id="hb-level">Lv 1</span></span>
+                <span class="hb-xp"><span id="hb-xp-fill"></span></span>
+                <span id="hb-points" class="pip" hidden>+</span>
+            </button>
+            <div id="res-bar"></div>
+        </div>
+        <div id="town-hint" hidden></div>
+        <nav id="nav">
+            <button class="nav-btn primary" id="nav-adventure" data-key="A"><span class="ico">🗺️</span><span class="lbl">Adventure</span></button>
+            <button class="nav-btn" id="nav-build" data-key="B"><span class="ico">🏗️</span><span class="lbl">Build</span></button>
+            <button class="nav-btn" id="nav-hero" data-key="C"><span class="ico">🧙</span><span class="lbl">Hero</span><span class="pip" id="pip-hero" hidden></span></button>
+            <button class="nav-btn" id="nav-library" data-key="L"><span class="ico">📚</span><span class="lbl">Library</span></button>
+            <button class="nav-btn" id="nav-quests" data-key="Q"><span class="ico">📜</span><span class="lbl">Quests</span><span class="pip" id="pip-quests" hidden></span></button>
+            <button class="nav-btn gold" id="nav-collect" data-key="E"><span class="ico">🧺</span><span class="lbl">Collect</span><span class="pip" id="pip-collect" hidden></span></button>
+        </nav>
+    </div>
+
+    <!-- ============================== Battle HUD ============================== -->
+    <div id="battle-ui" class="layer" hidden>
+        <div id="battle-grid">
+            <section id="p-card" class="card side-p">
+                <div class="card-head"><span class="c-icon" id="p-icon">🧙</span><span class="c-name" id="p-name">Wren</span><span class="c-lvl" id="p-lvl">Lv 1</span></div>
+                <div class="hpbar"><div class="hp-lag" id="p-lag"></div><div class="hp-fill" id="p-hp"></div><div class="shield-fill" id="p-sh"></div><span class="hp-text" id="p-hpt">0</span></div>
+                <div class="mana" id="p-mana"></div>
+                <div class="status" id="p-status"></div>
+                <div class="spells" id="p-spells"></div>
+                <div class="potions" id="potions"></div>
+            </section>
+            <section id="board-wrap">
+                <div id="turn-banner"><span id="turn-text">Your turn</span></div>
+                <div id="board-area"></div>
+            </section>
+            <section id="e-side">
+                <div id="foe-area"></div>
+                <div id="e-card" class="card side-e">
+                    <div class="card-head"><span class="c-icon" id="e-icon">👾</span><span class="c-name" id="e-name">Monster</span><span class="c-lvl" id="e-lvl">Lv 1</span></div>
+                    <div class="hpbar"><div class="hp-lag" id="e-lag"></div><div class="hp-fill" id="e-hp"></div><div class="shield-fill" id="e-sh"></div><span class="hp-text" id="e-hpt">0</span></div>
+                    <div class="mana" id="e-mana"></div>
+                    <div class="status" id="e-status"></div>
+                    <div class="spells enemy" id="e-spells"></div>
+                    <div class="weak" id="e-weak"></div>
+                </div>
+            </section>
+        </div>
+        <div id="loot-line"><span id="loot-gold">🪙 0</span><span id="loot-xp">⭐ 0</span></div>
+        <button id="battle-menu" class="corner-btn" aria-label="Battle menu">☰</button>
+    </div>
+
+    <div id="floats"></div>
+    <div id="banner" hidden></div>
+
+    <!-- ============================== Title ============================== -->
+    <div id="title" class="layer" hidden>
+        <div class="title-wrap">
+            <div class="logo"><span class="logo-a">TOME</span><span class="logo-b">BOUND</span></div>
+            <div class="tagline">Gems of the Lost Library</div>
+            <div id="title-buttons">
+                <button id="btn-continue" class="btn primary big" hidden>Continue</button>
+                <button id="btn-new" class="btn primary big">New Adventure</button>
+                <button id="btn-help" class="btn">How to Play</button>
+            </div>
+            <div class="title-foot">Match gems · duel monsters · rebuild a village · rescue 13 books</div>
+        </div>
+    </div>
+
+    <div id="panel-root"></div>
+
+    <div id="dialog" hidden>
+        <div class="dlg-box">
+            <div class="dlg-portrait" id="dlg-icon">🦉</div>
+            <div class="dlg-body">
+                <div class="dlg-name" id="dlg-name">Professor Hootsworth</div>
+                <div class="dlg-text" id="dlg-text"></div>
+                <div class="dlg-foot"><button id="dlg-skip" class="mini">Skip ⏭</button><span class="dlg-next" id="dlg-next">▼</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <div id="corner">
+        <button id="mute-btn" class="corner-btn" aria-label="Sound">♪</button>
+        <button id="menu-btn" class="corner-btn" aria-label="Menu" hidden>⚙</button>
+    </div>
+    <div id="fade" class="on"></div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -690,6 +690,20 @@ const games = [
         ]
     },
     {
+        id: 'game-050',
+        title: 'Tomebound',
+        description: "A vivid match-3 fantasy RPG with an idle village, in three.js. The Great Library of Lumenhall has been unwritten: a smudge of living ink scattered its thirteen greatest books into the Library's wings. As a brand-new Mage or Warrior, duel procedurally generated monsters Puzzle Quest-style on a shared 8\u00d78 board of 3D gems \u2014 match fire, water, leaf and spark for mana, skulls to hit, coins for gold and stars for XP, and every gem you take is one the monster can't. Matches of four give extra turns and make Line gems, L and T shapes make Bombs, five in a row makes a Prism. Cast 19 spells (ranked up at the Mage Tower), drink potions you brewed yourself, and wear procedural gear with 17 affixes. Six procedurally mapped wings plus a finale, each with battles, elites, treasure, shrines, events, a Keeper and a Guardian holding a lost book; monsters are assembled from 14 families, nine modifiers and a seeded 3D body. Back home, a floating island village rebuilds itself in real time, even while the game is closed: 13 buildings on 13 plots \u2014 lumber camp, market, quarry, herb garden, forge, training yard, alchemist, crystal mine, mage tower, scriptorium, clocktower and more \u2014 unlocked by your level and by the books you return. Every book grants a permanent bonus and raises every building's level cap, and the Library visibly heals as they come home. Procedural quests, an upbeat authored story with Professor Hootsworth the owl, an Endless Stacks mode after the ending, a generative soundtrack, and no asset files at all. Mouse, keyboard or touch.",
+        icon: '\uD83D\uDCD6',
+        folder: 'game-050',
+        version: '1.0.0',
+        cssClass: 'tomebound',
+        tags: [
+            { emoji: '\uD83D\uDC8E', label: 'Match-3 RPG' },
+            { emoji: '\uD83C\uDFE1', label: 'Idle Town' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
+    },
+    {
         id: 'game-051',
         title: 'Sigilborn',
         description: "A fantasy gacha auto-battler in three.js with toon shading. Claim the shattered Sigil Throne as the Overlord \u2014 built in a deep character creator \u2014 and summon heroes who are each procedurally generated: ten races, twelve classes, five elements, rarity from Common to Mythic, rolled stats with a grade, traits, a skill kit and a full chibi 3D look, with a one-in-fifty Radiant variant. Summon with pity and a weekly featured pair, then fight Summoners War-style ATB battles on auto or by hand, with Overlord spells, element advantage and 20 status effects. Push eight campaign regions and their bosses, farm elemental Rifts, climb the Endless Spire with roguelite blessings, and duel rival Overlords in the Arena. Gear up with six-slot Sigilstones (12 sets, random substats, risky +15 enhancing, reforging, crafting). Between fights your floating citadel works on its own: the Treasury, Training Grounds, a diggable Mine with idle miners, a real-time Farm and Kitchen, a Forge, an expedition board, daily quests, a rotating Market and a Fortune Wheel. Every model, face, icon and sound is generated in code.",
