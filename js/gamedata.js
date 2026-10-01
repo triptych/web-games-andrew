@@ -702,6 +702,20 @@ const games = [
             { emoji: '\uD83C\uDFE1', label: 'Idle Town' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-051',
+        title: 'Sigilborn',
+        description: "A fantasy gacha auto-battler in three.js with toon shading. Claim the shattered Sigil Throne as the Overlord \u2014 built in a deep character creator \u2014 and summon heroes who are each procedurally generated: ten races, twelve classes, five elements, rarity from Common to Mythic, rolled stats with a grade, traits, a skill kit and a full chibi 3D look, with a one-in-fifty Radiant variant. Summon with pity and a weekly featured pair, then fight Summoners War-style ATB battles on auto or by hand, with Overlord spells, element advantage and 20 status effects. Push eight campaign regions and their bosses, farm elemental Rifts, climb the Endless Spire with roguelite blessings, and duel rival Overlords in the Arena. Gear up with six-slot Sigilstones (12 sets, random substats, risky +15 enhancing, reforging, crafting). Between fights your floating citadel works on its own: the Treasury, Training Grounds, a diggable Mine with idle miners, a real-time Farm and Kitchen, a Forge, an expedition board, daily quests, a rotating Market and a Fortune Wheel. Every model, face, icon and sound is generated in code.",
+        icon: '\u2728',
+        folder: 'game-051',
+        version: '1.0.0',
+        cssClass: 'sigilborn',
+        tags: [
+            { emoji: '\uD83C\uDFB2', label: 'Gacha' },
+            { emoji: '\u2694\uFE0F', label: 'Auto Battler' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

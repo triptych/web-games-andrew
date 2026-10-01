@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Sigilborn** (game-051) v1.0.0: a fantasy gacha auto-battler in three.js with toon shading, in the Summoners War / AFK Arena line. Design and research notes in [game-051/game-plan.md](game-051/game-plan.md).
+  - **Procedural heroes**: 10 races, 12 classes, 5 elements, natural rarity 1★–5★ (6★ by evolution), HP/ATK/DEF/SPD rolls with an S–C grade, 24 traits, skill kits drawn from per-class pools with generated names, passives and leader skills, a 1-in-50 Radiant variant, and a full appearance (painted anime face, 16 hairstyles, ears, horns, tails, wings, 10 outfits, headwear, 14 weapons, auras) built into a chibi 3D model with merged vertex-coloured toon meshes and inverted-hull outlines
+  - **Summoning**: seven sigils, soft pity from 60 and hard pity at 90, a 4★ floor per ten-pull, a weekly featured element + class, a 3D portal reveal that charges blue → purple → gold; the RNG stream lives in the save so reloads do not re-roll
+  - **Battles**: Summoners War-style attack-bar turns, element advantage/glancing, 20 statuses, 125 skill templates with effects (buffs, debuffs, DoTs, ATB push/pull, shields, revives, extra turns), boss enrage, a turn-order bar, auto or manual (skill + target) play at 1×–3×, and Overlord spells from mana; procedural animation and effects (lunges, projectiles, slashes, meteors, pillars, shields, floating numbers)
+  - **Content**: 8 campaign regions × 8 stages with eight bosses and biomes, 7 Rifts × 10 tiers, the Endless Spire (power ladder, guardians every 10th floor, pick-1-of-3 blessings every 5th), an Arena of generated rival Overlords with ranks and tokens
+  - **Gear**: Sigilstones in 6 slots, 5 rarities, 12 sets, random substats, +0 → +15 enhancing with falling odds, reforging, crafting from mined ore steered by jewels
+  - **Idle citadel**: a 3D floating island hub (real-clock day/night, wandering heroes) with the Treasury, Training Grounds, a diggable Mine with idle miners, a real-time Farm with watering and golden mutations, a Kitchen of elixirs and timed feasts, the Forge, an expedition board, upgradeable buildings and a "while you were away" summary
+  - **Meta**: dailies + weeklies with activity chests, feats with titles, a 31-step main questline, a rotating Market, token counters, a Fortune Wheel, mystery chests and seed packs; the Overlord's level, talents and spells
+  - **Character creator** for the Overlord, reused as every hero's Wardrobe
+  - Mobile-first UI: Cinzel/Nunito, 16 px base, ≥ 44 px targets, portrait and landscape battle framings, adaptive render quality; WebAudio sound effects and a generative score
+  - Tests: [game-051/dev/](game-051/dev/README.md) — `simtest.mjs` (≈30,800 assertions plus a 21-day progression bot) and `browsertest.mjs` (Playwright, desktop + touch-only phones, no console errors)
+
 ### Fixed
 - **Lanterndeep** (game-049) v1.0.1: on phones the hero-select screen started above the top of the screen, cutting off the heading and the first hero card with no way to scroll back to them. Every screen was centred with `justify-content: center` inside a scrolling column, which pushes overflow above the scroll origin; screens now centre with auto margins (centred when they fit, scrolled from the top when they don't). On small screens unselected heroes collapse to name and tagline so all three fit, and portrait screens clear the fixed corner buttons. The browser test now asserts the hero select starts on screen on both phone sizes, and its debug spawn picks a tile with a clear line of fire so the targeting check is no longer luck.
 

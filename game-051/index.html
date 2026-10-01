@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#120c24">
+    <meta name="description" content="Sigilborn: a fantasy gacha auto-battler. Summon procedurally generated heroes, lead them as the Overlord, climb the Endless Spire, and build an idle citadel with a mine, a farm and a forge.">
+    <title>Sigilborn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Nunito:wght@600;700;800;900&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a href="../index.html" id="games-link">← Games</a>
+
+    <div id="app">
+        <div id="gl-host"></div>
+        <div id="labels"></div>
+
+        <header id="topbar" hidden>
+            <button id="tb-overlord" class="tb-ol" type="button" aria-label="Overlord">
+                <img id="tb-portrait" class="tb-portrait" alt="">
+                <span class="tb-ol-text"><span id="tb-name" class="tb-name">Overlord</span><span class="tb-lv">Lv <b id="tb-level">1</b></span></span>
+                <span class="tb-xp"><span id="tb-xpfill"></span></span>
+            </button>
+            <div class="tb-res">
+                <button class="res-chip" id="tb-stamina" type="button" aria-label="Stamina"></button>
+                <button class="res-chip" id="tb-gold" type="button" aria-label="Gold"></button>
+                <button class="res-chip" id="tb-gems" type="button" aria-label="Gems"></button>
+            </div>
+        </header>
+
+        <main id="screen"></main>
+
+        <nav id="tabbar" hidden>
+            <button class="tab" data-tab="citadel" type="button"><span class="tab-ico"></span><span class="tab-label">Citadel</span><span class="badge" hidden></span></button>
+            <button class="tab" data-tab="heroes" type="button"><span class="tab-ico"></span><span class="tab-label">Heroes</span><span class="badge" hidden></span></button>
+            <button class="tab big" data-tab="summon" type="button"><span class="tab-ico"></span><span class="tab-label">Summon</span><span class="badge" hidden></span></button>
+            <button class="tab" data-tab="adventure" type="button"><span class="tab-ico"></span><span class="tab-label">Adventure</span><span class="badge" hidden></span></button>
+            <button class="tab" data-tab="quests" type="button"><span class="tab-ico"></span><span class="tab-label">Quests</span><span class="badge" hidden></span></button>
+        </nav>
+
+        <div id="modal-root"></div>
+        <div id="toasts" aria-live="polite"></div>
+        <div id="fade"></div>
+        <div id="boot">
+            <div class="boot-logo">SIGILBORN</div>
+            <div class="boot-bar"><div id="boot-fill"></div></div>
+            <div id="boot-text" class="boot-text">Gathering sigil-light…</div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
