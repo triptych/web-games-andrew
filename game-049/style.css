@@ -155,12 +155,16 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 #screens { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
 .screen {
     position: absolute; inset: 0; pointer-events: auto; overflow-y: auto;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
     padding: calc(16px + var(--safe-t)) 16px calc(16px + var(--safe-b));
     background: radial-gradient(ellipse at center, rgba(10, 6, 14, 0.55), rgba(0, 0, 0, 0.88));
     animation: fadein 0.25s ease;
 }
 @keyframes fadein { from { opacity: 0; } }
+/* Centre with auto margins, not justify-content: a centred column taller than the screen
+   overflows above the scroll origin, where its top can never be scrolled back into view. */
+.screen:not(.panel-screen) > :first-child { margin-top: auto; }
+.screen:not(.panel-screen) > :last-child { margin-bottom: auto; }
 .screen-h { font: 700 26px var(--serif); color: var(--gold); text-shadow: 0 2px 8px #000; margin-bottom: 6px; text-align: center; }
 .sub { font: italic 14px var(--serif); color: #d8c8b0; margin-bottom: 14px; }
 
@@ -317,7 +321,25 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 
 /* ------------------------------------------------------------------ Phones */
 
+/* Hero select: on small screens only the chosen hero shows its blurb and skills. */
+@media (max-width: 640px), (max-height: 500px) {
+    #classpick .screen-h { font-size: 22px; }
+    #class-cards { gap: 8px; align-items: flex-start; }
+    .class-card { display: flex; flex-direction: column; align-items: stretch; }
+    .class-card { padding: 10px 12px; }
+    .class-card h3 { font-size: 19px; }
+    .class-card .swatch { width: 28px; height: 28px; position: absolute; right: 12px; top: 10px; }
+    .class-card { position: relative; }
+    .class-card:not(.on) p, .class-card:not(.on) .skills { display: none; }
+    .class-card:not(.on) .tag { margin-bottom: 0; }
+    #mode-pick { margin-top: 10px; font-size: 13px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+    .class-card { width: min(250px, 30vw); }
+}
+
 @media (max-width: 640px) {
+    .screen:not(.panel-screen) { padding-top: calc(56px + var(--safe-t)); }
     #hud-left { top: calc(44px + var(--safe-t)); width: 52vw; }
     #hud-center { top: calc(10px + var(--safe-t)); left: 10px; transform: none; width: 60vw; text-align: left; }
     #floor-label { font-size: 15px; }

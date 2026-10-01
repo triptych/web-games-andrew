@@ -240,6 +240,11 @@ async function phone(w, h, name) {
     await page.goto(URL0);
     await until(page, () => window.__ld && !document.getElementById('title').hidden, `${name}: title`);
     await page.tap('#btn-new');
+    // A centred column taller than the screen used to start above the scroll origin: the
+    // heading and the first hero card could never be scrolled into view.
+    const pick = await Q(page, () => { const s = document.getElementById('classpick'); s.scrollTop = 0; return { h: s.querySelector('.screen-h').getBoundingClientRect().top, c: s.querySelector('.class-card').getBoundingClientRect().top }; });
+    check(pick.h >= 0 && pick.c >= 0, `${name}: hero select starts on screen (heading ${Math.round(pick.h)}, first card ${Math.round(pick.c)})`);
+    await shot(page, `${name}-0-classpick`);
     await page.tap('.class-card:nth-child(3)');
     await page.tap('#class-go');
     await until(page, () => !document.getElementById('story').hidden, `${name}: prologue`);
