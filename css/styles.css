@@ -694,6 +694,16 @@ h1 {
     color: #120a04;
 }
 
+.game-preview.tomebound,
+.carousel-slide-bg.tomebound {
+    background: radial-gradient(ellipse at 50% 35%, #ffe46a 0%, #ff5fa8 30%, #5432d8 65%, #2a1650 100%);
+}
+
+.game-card.tomebound .play-button {
+    background: linear-gradient(135deg, #ffdd55 0%, #ff9f1a 45%, #ff5fa8 100%);
+    color: #2a1650;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
