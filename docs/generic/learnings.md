@@ -4820,7 +4820,7 @@ its outcome on the queue item before saving, so it cannot be chosen twice.
 "save survives a reload" test fails for the wrong reason. Guard it with a `sessionStorage` flag.
 
 
-## Game 048: Lanterndeep — a 100-floor turn-based roguelike in three.js (2026-10-01)
+## Game 049: Lanterndeep — a 100-floor turn-based roguelike in three.js (2026-10-01)
 
 ### Fog of war is a texture, not a per-tile visibility flag
 One `DataTexture` (one texel per tile: 0 unseen, 0.35 remembered, 1 visible) eased on the CPU every

@@ -9,14 +9,14 @@
  * 844×390 with every control ≥ 44 px, on screen, and not overlapping the HUD.
  * Fails on any console error, page error or failed request. Shots → dev/shots/.
  *
- *   python3 -m http.server 8048                 # from the REPO ROOT
- *   node game-048/dev/browsertest.mjs
+ *   python3 -m http.server 8049                 # from the REPO ROOT
+ *   node game-049/dev/browsertest.mjs
  *
  * No network to unpkg.com? Fetch three.js once; CDN requests are then served
  * from disk (still the genuine r165):
- *   cd game-048/dev && npm pack three@0.165.0 && tar xzf three-0.165.0.tgz
+ *   cd game-049/dev && npm pack three@0.165.0 && tar xzf three-0.165.0.tgz
  *
- * Env: BASE (default http://127.0.0.1:8048), THREE_PKG, PW_CHROMIUM_PATH, OUT, ONLY=desktop|phones.
+ * Env: BASE (default http://127.0.0.1:8049), THREE_PKG, PW_CHROMIUM_PATH, OUT, ONLY=desktop|phones.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -25,8 +25,8 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? path.join(HERE, 'package');
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8048';
-const URL0 = `${BASE}/game-048/index.html?debug=1`;
+const BASE = process.env.BASE ?? 'http://127.0.0.1:8049';
+const URL0 = `${BASE}/game-049/index.html?debug=1`;
 const OUT = process.env.OUT ?? path.join(HERE, 'shots');
 fs.mkdirSync(OUT, { recursive: true });
 

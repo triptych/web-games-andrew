@@ -1,9 +1,9 @@
 /**
  * simtest.mjs — headless checks against the real simulation.
  *
- *   node game-048/dev/simtest.mjs                 bots play full runs (all three heroes), invariants checked every turn
- *   BALANCE=1 node game-048/dev/simtest.mjs       per-world table: deaths, turns, levels, HP and oil
- *   SEEDS=6 FLOORS=100 node game-048/dev/simtest.mjs
+ *   node game-049/dev/simtest.mjs                 bots play full runs (all three heroes), invariants checked every turn
+ *   BALANCE=1 node game-049/dev/simtest.mjs       per-world table: deaths, turns, levels, HP and oil
+ *   SEEDS=6 FLOORS=100 node game-049/dev/simtest.mjs
  *
  * Also: purity of js/sim (no three, DOM or Math.random), determinism, save/load
  * round-trips mid-run, and that every floor 1–100 generates and validates.

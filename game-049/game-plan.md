@@ -257,7 +257,7 @@ The **Journal** lists active/finished quests and the main story objective.
 ## 11. Architecture
 
 ```
-game-048/
+game-049/
 ├── index.html            import map, DOM HUD/screens
 ├── style.css
 ├── js/
