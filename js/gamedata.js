@@ -662,6 +662,20 @@ const games = [
         ]
     },
     {
+        id: 'game-048',
+        title: 'SPINFRAME',
+        description: "A turn-based sci-fi mech RPG where your weapons are a slot machine. You are a cadet at the Halcyon Flight Academy, and your training frame runs on a Probability Engine: every turn you SPIN its reels and every symbol that lands fires \u2014 Blades, Cannons, Missiles that hit every enemy, Arcs that chain lightning between them, Shields, Repairs, Energy and Scrap. Three of a kind from the left on a payline hits far harder, every extra line in the same spin is a link in a multiplying chain, Overclock wilds stand in for anything, three Cores start an Overdrive and five hit the Jackpot. Spend energy to nudge, respin, hold or purge reels, because the Determinant \u2014 a machine mind that hates chance \u2014 jams your reels and writes Glitches into your strips. Upgrading your mech rewrites the machine: up to five reels and four rows, from 3 to 16 paylines, new weapon symbols, a bigger reactor, more wilds and cores; 18 modules bend the rules (cascades, expanding and sticky wilds, mirror lines, clusters\u2026), and three skill trees shape your pilot. Seven procedurally generated sectors with elites, Signals, salvage, depots and bosses, an authored story of a cadet, a rival and an instructor taken by the enemy, contracts, a Refinery that earns while you are away, an endless Sim Ladder and Threat levels. Big chains, cascades, hit-stop, coin showers and MEGA WINs. Vanilla JS, no libraries, no asset files.",
+        icon: '\uD83C\uDFB0',
+        folder: 'game-048',
+        version: '1.0.0',
+        cssClass: 'spinframe',
+        tags: [
+            { emoji: '\uD83C\uDFB0', label: 'Slots' },
+            { emoji: '\uD83E\uDD16', label: 'Mechs' },
+            { emoji: '\uD83D\uDCC8', label: 'Incremental' }
+        ]
+    },
+    {
         id: 'game-049',
         title: 'Lanterndeep',
         description: "A turn-based 3D roguelike in three.js. Lastlight's lamps are going out: take your missing teacher's lantern and descend the Hundred Stairs \u2014 100 procedurally generated floors through ten buried worlds (cellars, a glowing grotto, a drowned library, a dwarven forge, crystal hollows, an ossuary, a clockwork machine, a frozen abyss, a vault among the stars and the Heart of Night), with a multi-phase Warden on every 10th floor whose attacks are telegraphed on the grid. Your lantern is your light radius and your clock: it burns oil every turn, and in the dark the Hush gathers. Play a Warden, Ranger or Emberwitch with four skills each and a perk choice every level; find procedural loot (magic, rare and relic gear with 25 affixes), chests, mimics, vaults, shrines and merchants; take procedural quests from Wayfarers (bounties, rescues that fight beside you, lost heirlooms, nests, braziers to relight); and collect Maren's ten journal pages for the true ending of three. Fog of war that peels back smoothly, dynamic torch and lantern light, animated water and lava, 70 procedurally modelled monster species plus elite affixes, and a generative score per world \u2014 every texture, model and sound is generated in code. Tap-to-move, auto-explore and big buttons on phones; keyboard on desktop. Saves every floor; Lantern mode lets you rekindle at the start of a world, Ironwick is permadeath.",
