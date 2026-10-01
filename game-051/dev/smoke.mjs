@@ -27,7 +27,7 @@ for (const [w, hgt, tag] of sizes) {
     await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`[${tag}] console: ${m.text()}`); });
     page.on('pageerror', (e) => errors.push(`[${tag}] pageerror: ${e.message}\n${e.stack}`));
-    await page.goto(`${BASE}/game-050/index.html?debug=1`);
+    await page.goto(`${BASE}/game-051/index.html?debug=1`);
     await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
     await page.evaluate(() => { __sb.newGame(); __sb.G.S.story.tips = { mine: 1, farm: 1 }; __sb.summon(__sb.G.S, 'mystic', 3); __sb.grant({ gold: 50000, items: { xpM: 3, chest: 2, seedPack: 2 }, ores: { copper: 40 } }); });
     for (const s of SCREENS) {

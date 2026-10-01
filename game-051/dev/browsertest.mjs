@@ -11,11 +11,11 @@
  * Fails on any console error, page error or failed request. Shots → dev/shots/.
  *
  *   python3 -m http.server 8050                 # from the REPO ROOT
- *   node game-050/dev/browsertest.mjs
+ *   node game-051/dev/browsertest.mjs
  *
  * No network to unpkg.com? Fetch three.js once; CDN requests are then served
  * from disk (still the genuine r165):
- *   cd game-050/dev && npm pack three@0.165.0 && tar xzf three-0.165.0.tgz
+ *   cd game-051/dev && npm pack three@0.165.0 && tar xzf three-0.165.0.tgz
  *
  * Env: BASE (default http://127.0.0.1:8050), THREE_PKG, PW_CHROMIUM_PATH, OUT, ONLY=desktop|phones.
  */
@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? path.join(HERE, 'package');
 const BASE = process.env.BASE ?? 'http://127.0.0.1:8050';
-const URL0 = `${BASE}/game-050/index.html?debug=1`;
+const URL0 = `${BASE}/game-051/index.html?debug=1`;
 const OUT = process.env.OUT ?? path.join(HERE, 'shots');
 fs.mkdirSync(OUT, { recursive: true });
 

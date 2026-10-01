@@ -1,8 +1,8 @@
 /**
  * simtest.mjs — headless checks on the pure simulation (js/sim, js/data, js/core).
  *
- *   node game-050/dev/simtest.mjs            # invariants + distributions + determinism
- *   BOT=1 DAYS=14 node game-050/dev/simtest.mjs   # also: a bot plays N days, prints progress per day
+ *   node game-051/dev/simtest.mjs            # invariants + distributions + determinism
+ *   BOT=1 DAYS=14 node game-051/dev/simtest.mjs   # also: a bot plays N days, prints progress per day
  *
  * Exits non-zero on the first failed assertion.
  */

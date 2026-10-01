@@ -1,6 +1,6 @@
 /**
  * shots.mjs — quick screenshots of any page in the game folder (dev aid).
- *   node game-050/dev/shots.mjs "dev/viewer.html?mode=heroes" out.png [w] [h]
+ *   node game-051/dev/shots.mjs "dev/viewer.html?mode=heroes" out.png [w] [h]
  * Serves three.js from dev/package when present (no CDN access needed).
  */
 import { chromium } from 'playwright';
@@ -24,7 +24,7 @@ await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 2
 await page.route('https://fonts.gstatic.com/**', (r) => r.abort());
 page.on('console', (m) => { if (m.type() === 'error' || process.env.VERBOSE) console.log('console.' + m.type(), m.text()); });
 page.on('pageerror', (e) => console.log('pageerror', e.message));
-await page.goto(`${BASE}/game-050/${page0}`);
+await page.goto(`${BASE}/game-051/${page0}`);
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 }).catch((e) => console.log('timeout waiting for __ready'));
 if (process.env.EVAL) await page.evaluate(process.env.EVAL);
 await page.waitForTimeout(+(process.env.WAIT || 300));
