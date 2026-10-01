@@ -4818,3 +4818,57 @@ its outcome on the queue item before saving, so it cannot be chosen twice.
 ### Test init scripts run on reload too
 `context.addInitScript(() => localStorage.clear())` also runs on `page.reload()`, so a
 "save survives a reload" test fails for the wrong reason. Guard it with a `sessionStorage` flag.
+
+
+## Game 048: Lanterndeep — a 100-floor turn-based roguelike in three.js (2026-10-01)
+
+### Fog of war is a texture, not a per-tile visibility flag
+One `DataTexture` (one texel per tile: 0 unseen, 0.35 remembered, 1 visible) eased on the CPU every
+frame and sampled with `LinearFilter` by **every** level material through one `onBeforeCompile`
+patch. The bilinear filter gives soft edges for free, the easing makes the dark peel back instead
+of popping, and remembered tiles fall back to a desaturated memory of their albedo
+(`dot(diffuseColor.rgb, lum) * coldTint`) rather than going black. Three things to remember:
+- Compute the world position yourself in the vertex patch (after `project_vertex`, applying
+  `instanceMatrix` under `USE_INSTANCING`) — `worldpos_vertex` only runs for some defines.
+- Lit tiles still need a floor: add `diffuseColor * 0.07` on visible fragments, or the far side of
+  the light radius reads as unexplored.
+- Set `customProgramCacheKey`, or two patched variants (walls with cutaway, floors without) share a
+  compiled program.
+
+### Cut walls away in the vertex shader
+A tilted camera hides the hero behind any wall south of them. Instead of fading meshes, the wall
+material's patch shrinks an instance's height when its centre (`modelMatrix * instanceMatrix * vec4(0,0,0,1)`)
+lies just south of a `uHero` uniform. One uniform write per frame; no per-wall CPU work.
+
+### Make the visual light radius match the gameplay radius
+The FOV radius was 8 tiles but a physically-decaying point light (decay 1.4–2) made only ~3 tiles
+bright, so the hero could "see" monsters standing in what looked like darkness. With `decay = 1`,
+intensity `≈ 2 + radius` and `distance ≈ 1.5 × radius + 3`, the edge of the light lands on the edge
+of sight. A pool of eight point lights reassigned (with fade-in) to the nearest *seen* static
+sources keeps shader light counts constant.
+
+### Teleports into sealed rooms, and other generator traps a bot finds in minutes
+Every one of these survived "looks fine when I play it" and was caught by a bot playing 100 floors:
+- **A random-floor-tile teleport landed inside a sealed vault** with no key. Exclude sealed rooms
+  from random placement *and* let the door open from the inside.
+- **Blocking objects (chests, braziers, NPCs) placed in a 1-wide corridor** cut the floor in two.
+  Only place blocking things on tiles with ≥ 7 walkable neighbours.
+- **Auto-explore that refuses to step on known traps** declares a floor "done" when the only way on
+  is past one. Report that case (`{ stop: 'trap' }`) instead of claiming the floor is explored.
+- **A bot that chases what it can see dithers** at the edge of sight (step towards, lose sight, step
+  back to explore). Give it a short memory of the last target position.
+
+### A per-world damage table beats a single curve
+A linear monster-damage curve made worlds 1–7 trivial and 8–10 a wall, because gear and perks
+compound. `dmgScale(L) * WORLD_DMG[world]` with values found by the balance table (deaths, lowest
+HP %, potions per floor, HP lost to each Warden) flattened it. Two non-numeric fixes mattered more:
+crowd-control immunity after a freeze/stun (chained freezes were the top killer in the ice world) and
+weakening a boss's summons (the final boss's minions were full-strength floor-100 monsters).
+
+### Software-GL browser tests: wait for state, and beware timers
+- A 60 ms touch under SwiftShader can arrive after a 480 ms long-press timer and become an inspect.
+  Dispatch `touchStart`/`touchEnd` back to back in the test.
+- Camera smoothing and CSS fade-ins progress per frame; at 3 fps a screenshot lands mid-glide or
+  mid-fade. Expose a debug `snap()` and wait for the screen, not the clock.
+- "Not black" brightness checks should test for 0 (the NaN-bloom failure), not for "bright enough":
+  boss arenas are legitimately dark.
