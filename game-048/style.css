@@ -355,3 +355,13 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
     #explore-hint { bottom: 100px; }
     .panel-screen { padding-top: 12px; }
 }
+
+/* Touch screens: corner buttons get full-size tap targets. */
+@media (pointer: coarse) {
+    .corner-btn { width: 46px; height: 44px; font-size: 18px; }
+    #hud-right { top: calc(58px + var(--safe-t)); }
+    .panel-screen { padding-top: calc(62px + var(--safe-t)); }
+}
+@media (pointer: coarse) and (max-height: 500px) and (orientation: landscape) {
+    .panel-screen { padding-top: 12px; padding-right: 64px; }
+}

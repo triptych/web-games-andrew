@@ -167,7 +167,7 @@ function syncFloor(snap, run = G.run) {
     const W = WORLDS[run.lv.world];
     clearActors(); clearFx();
     buildLevelView(run);
-    setAtmosphere(W.look);
+    setAtmosphere(W.look, run.lv.boss);
     setAmbient(W.look.particles);
     snapCamera(run.p.x, run.p.y);
     if (run !== (G.attract && G.attract.run)) {
@@ -811,6 +811,7 @@ function exposeDebug() {
         damageBoss(f = 0.5) { const b = G.run.mons.find((m) => m.boss); if (b) b.hp = Math.max(1, Math.round(b.hpMax * f)); },
         toFloor(n) { G.camAt = null; const w0 = (Math.floor((n - 1) / 10)) * 10 + 1; if (!G.run.checkpoint || G.run.checkpoint.floor !== w0) G.run.checkpoint = { floor: w0, p: JSON.parse(JSON.stringify(G.run.p)), nextId: G.run.nextId }; G.run.story = []; G.run.pending = null; G.run.dialog = null; G.run.perkQ = 0; enterFloor(G.run, n); G.run.story = []; drainEvents(G.run); G.lastLevel = null; syncFloor(false); UI.hideAll(); },
         reveal() { G.run.lv.seen.fill(1); },
+        snap() { G.camAt = null; snapCamera(G.run.p.x, G.run.p.y); },
         quality(q) { setQuality(q); }, brightness, setZoom,
         act: (a) => playerAct(a), step() { botStep(G.run); afterAct(); },
         start(cls = 'warden', mode = 'lantern', seed = 1234) { stopAttract(); clearRun(); G.run = newRun({ seed, cls, mode }); beginPlay(); },

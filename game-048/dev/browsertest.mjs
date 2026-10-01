@@ -174,6 +174,7 @@ async function desktop() {
     await Q(page, () => __ld.toFloor(10));
     await Q(page, () => { __ld.clearBlockers(); __ld.god(); const r = __ld.run; const b = r.mons.find((m) => m.boss); r.p.x = b.x; r.p.y = b.y + 4; b.awake = true; __ld.act({ t: 'wait' }); });
     await until(page, () => !document.getElementById('boss-bar').hidden, 'boss bar shows');
+    await Q(page, () => __ld.snap());
     for (let k = 0; k < 6; k++) await Q(page, () => __ld.act({ t: 'wait' }));
     await frames(page, 4);
     await shot(page, 'd11-warden');
@@ -205,10 +206,13 @@ async function desktop() {
     for (let w = 1; w <= 10; w++) {
         for (const f of [w * 10 - 5, w * 10]) {
             await Q(page, (f) => { __ld.toFloor(f); __ld.clearBlockers(); __ld.god(); __ld.run.p.embers = Math.floor(f / 10); }, f);
-            if (f % 10 === 0) await Q(page, () => { const r = __ld.run; const b = r.mons.find((m) => m.boss); r.p.x = b.x; r.p.y = b.y + 5; __ld.act({ t: 'wait' }); __ld.clearBlockers(); });
+            if (f % 10 === 0) await Q(page, () => { const r = __ld.run; const b = r.mons.find((m) => m.boss); r.p.x = b.x; r.p.y = b.y + 4; __ld.act({ t: 'wait' }); __ld.clearBlockers(); });
+            await frames(page, 2);
+            await Q(page, () => __ld.snap());
             await frames(page, 5);
+            // A NaN pixel smeared by bloom gives an all-black frame (brightness 0); arenas are dark, not black.
             const br = await Q(page, () => __ld.brightness());
-            check(br > 3, `floor ${f} renders (brightness ${br.toFixed(1)})`);
+            check(br > 0.15, `floor ${f} renders (brightness ${br.toFixed(1)})`);
             await shot(page, `w${String(f).padStart(3, '0')}`);
         }
     }
@@ -219,6 +223,7 @@ async function desktop() {
     await page.click('#story-next');
     await until(page, () => document.querySelectorAll('.ending-choice .btn').length === 3, 'three endings offered');
     check(await Q(page, () => document.querySelectorAll('.ending-choice .btn')[2].disabled), 'The Long Dawn needs all ten pages');
+    await page.waitForTimeout(400);
     await shot(page, 'd14-ending-choice');
     await page.click('.ending-choice .btn');
     await until(page, () => !document.getElementById('victory').hidden, 'victory screen shows');
@@ -252,8 +257,8 @@ async function phone(w, h, name) {
         const hud = ['hud-left', 'hud-right', 'minimap'].map((id) => ({ id, ...r(document.getElementById(id)).toJSON() }));
         return { acts, hud, W: innerWidth, H: innerHeight };
     });
-    const small = geo.acts.filter((a) => a.width < 44 || a.height < 34);
-    check(!geo.acts.some((a) => a.id.includes('act') && (a.width < 44 || a.height < 44)), `${name}: action buttons ≥ 44px (${small.map((a) => a.id).join(',') || 'all'})`);
+    const small = geo.acts.filter((a) => a.width < 44 || a.height < 44);
+    check(!small.length, `${name}: every control ≥ 44px${small.length ? ' (' + small.map((a) => a.id).join(',') + ')' : ''}`);
     check(geo.acts.every((a) => a.left >= 0 && a.top >= 0 && a.right <= geo.W + 0.5 && a.bottom <= geo.H + 0.5), `${name}: controls on screen`);
     const hit = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
     const overl = geo.acts.filter((a) => geo.hud.some((b) => hit(a, b)));

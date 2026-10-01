@@ -501,8 +501,8 @@ export function updateLevelView(run, dt, time, heroPos) {
             const l = pool[k];
             const c = cands[k];
             if (!c) { l.userData.want = 0; continue; }
-            if (l.userData.spot !== c.s) { l.userData.spot = c.s; l.intensity = 0; l.position.set(c.s.x, c.s.h, c.s.y); l.color.set(c.s.col); l.distance = c.s.r * 1.7 + 1; }
-            l.userData.want = c.s.src && c.s.src.k === 'glow' ? 5 : 9;
+            if (l.userData.spot !== c.s) { l.userData.spot = c.s; l.intensity = 0; l.position.set(c.s.x, c.s.h, c.s.y); l.color.set(c.s.col); l.distance = c.s.r * (c.s.src && c.s.src.k === 'brazier' ? 2.2 : 1.7) + 1; }
+            l.userData.want = c.s.src && c.s.src.k === 'glow' ? 5 : c.s.src && c.s.src.k === 'brazier' ? 16 : 9;
         }
     }
     for (const l of pool) {

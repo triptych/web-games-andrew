@@ -151,12 +151,12 @@ function fitDistance() {
 export function setZoom(z) { rig.zoom = Math.max(0.6, Math.min(1.8, z)); fitDistance(); }
 export const getZoom = () => rig.zoom;
 
-export function setAtmosphere(look) {
+export function setAtmosphere(look, arena = false) {
     scene.background = new THREE.Color(look.bg);
     scene.fog.color.set(look.bg);
     hemi.color.set(look.amb);
     hemi.groundColor.set(0x101010);
-    hemi.intensity = look.ambI * 1.35;
+    hemi.intensity = look.ambI * (arena ? 2.2 : 1.35);
     lantern.color.set(look.light);
 }
 
@@ -226,7 +226,7 @@ export function brightness() {
     const px = new Uint8Array(4 * 64);
     let sum = 0, n = 0;
     for (let k = 0; k < 8; k++) {
-        gl.readPixels(Math.floor(w * (0.2 + 0.08 * k)), Math.floor(h * 0.5), 8, 2, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        gl.readPixels(Math.floor(w * (0.2 + 0.08 * k)), Math.floor(h * (0.25 + 0.07 * k)), 8, 2, gl.RGBA, gl.UNSIGNED_BYTE, px);
         for (let i = 0; i < px.length; i += 4) { sum += px[i] + px[i + 1] + px[i + 2]; n += 3; }
     }
     return sum / n;

@@ -530,6 +530,7 @@ export function syncActors(run, dt, time, camera) {
             a.from = { x: a.g.position.x, z: a.g.position.z };
             a.x = m.x; a.y = m.y; a.t = 0;
             a.dist = Math.hypot(a.from.x - m.x, a.from.z - m.y);
+            if (a.dist > 8) { a.from = { x: m.x, z: m.y }; a.dist = 0; a.t = 1; g0(a).position.set(m.x, 0, m.y); }
             const dx = m.x - a.from.x, dz = m.y - a.from.z;
             if (Math.abs(dx) + Math.abs(dz) > 0.01) a.face = Math.atan2(dx, dz);
         }
@@ -553,6 +554,7 @@ export function syncActors(run, dt, time, camera) {
     return actors.get(0);
 }
 
+const g0 = (a) => a.g;
 const _q = new THREE.Quaternion();
 function animate(a, m, dt, time, camera) {
     const g = a.g, ud = g.userData;
