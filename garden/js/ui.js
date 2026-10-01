@@ -153,7 +153,7 @@ export class UI {
 
     // ----------------------------------------------------------- card
 
-    showCard(game, { fromHologram = false } = {}) {
+    showCard(game, { fromHologram = false, here = false } = {}) {
         this.closeAll(true);
         const g = genreOf(game);
         const card = $('card');
@@ -165,7 +165,8 @@ export class UI {
         $('card-tags').innerHTML = game.tags.map((t) => `<span class="tag">${t.emoji} ${esc(t.label)}</span>`).join('');
         $('card-desc').textContent = game.description;
         $('card-play').href = `${game.folder}/index.html`;
-        $('card-walk').hidden = !fromHologram;
+        $('card-walk').hidden = !fromHologram || here;
+        $('card-link').hidden = here;
         card.hidden = false;
         card.scrollTop = 0;
         this.cardGame = game;

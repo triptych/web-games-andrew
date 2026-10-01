@@ -374,7 +374,7 @@ async function boot() {
     world.onArrive = (r) => {
         if (r.statue) {
             highlight = { id: r.statue.id, until: performance.now() + 4000, accent: r.statue.genre.accent };
-            ui.showCard(r.statue.game);
+            ui.showCard(r.statue.game, { here: true });
         }
     };
 
@@ -445,7 +445,7 @@ async function boot() {
             else {
                 audio.hover();
                 highlight = { id: h.statue.id, until: Infinity, accent: h.statue.genre.accent };
-                ui.showCard(h.statue.game);
+                ui.showCard(h.statue.game, { here: h.t < 9 });
             }
         } else if (h.type === 'arrow') {
             hologram.step(h.dir);

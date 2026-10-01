@@ -235,8 +235,6 @@ async function desktop() {
     });
     await frames(page, 8);
     await shot(page, 'd11-pavilion');
-    const fps = await page.evaluate(() => window.__garden.world.fps);
-    console.log(`  fps (software GL): ${fps?.toFixed?.(1)}`);
     await browser.close();
 }
 

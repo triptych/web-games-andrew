@@ -228,7 +228,9 @@ export class Controls {
             const r = this.route;
             let tgt = r.points[r.i];
             let d = Math.hypot(tgt.x - this.pos.x, tgt.z - this.pos.z);
-            while (d < 1.2 && r.i < r.points.length - 1) {
+            // pass a waypoint once within reach of this frame's step
+            const reach = Math.max(1.2, (r.run ? RUN : WALK) * dt * 1.5);
+            while (d < reach && r.i < r.points.length - 1) {
                 r.i++;
                 tgt = r.points[r.i];
                 d = Math.hypot(tgt.x - this.pos.x, tgt.z - this.pos.z);
@@ -239,7 +241,8 @@ export class Controls {
                 if (r.face !== undefined) this.faceYaw = r.face;
                 this.world.onArrive?.(r);
             } else {
-                const speed = Math.min(r.run ? RUN : WALK * 1.15, last ? Math.max(1.2, d * 2.5) : 99);
+                // never step past the final point, whatever the frame time
+                const speed = Math.min(r.run ? RUN : WALK * 1.15, last ? Math.max(1.2, d * 2.5) : 99, last ? d / Math.max(dt, 1e-3) : 99);
                 wantX = ((tgt.x - this.pos.x) / d) * speed;
                 wantZ = ((tgt.z - this.pos.z) / d) * speed;
                 if (!r.freeLook) {
