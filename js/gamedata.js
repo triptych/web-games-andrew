@@ -786,6 +786,21 @@ const games = [
             { emoji: '\uD83C\uDF27\uFE0F', label: 'Synthwave' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-053',
+        title: 'Legend of the Jade Wyrm',
+        description: "A Legend of the Green Dragon-style browser RPG that simulates the whole online experience with no server. Every day you get a handful of forest fights in the Gloamwood: hunt creatures (about a hundred, each with its own weapon and death line) for gold and experience, stumble into 24 forest events (fairies, an old man's guessing game, an outhouse, mimics, a toll goblin, standing stones), beat your master at the Proving Yard to level up, and at level 15 seek out the Jade Wyrm \u2014 slay it and you start again at level 1 with a permanent gift and a new title. Hollowmere has it all: weapon and armour shops whose stock changes as you earn respect, a bank with interest, loans and transfers, a healer, the Crooked Antler (drinks and drunkenness, gossip, the bard, flirting with and marrying Willa or Corwin, a room so nobody can kill you in your sleep, a bounty broker), stables, a fortune teller's tent with potions, gardens, the Wyrmslayers' Standing Stone, guilds, a Lodge of deeds, the Herald, the Hall of Heroes and raven mail. Die and you wander the Pale Shore, tormenting souls for the Ferryman's favour. The server is simulated: 60 other players with personalities and real-clock schedules log in and out, chat in the square (and answer you), fight, level up, slay the Wyrm, marry, form guilds, place bounties and attack you if you sleep in the fields. Text-first pages with LoGD colour codes and hotkeys, framed in three.js: an oak header beam with crossed swords and a painted shield, a timber window onto a low-poly village the camera flies around, torches, a sky that follows the game clock, and 3D foes that lunge and fall. Three save slots, export and import, two day-pacing modes, phone-friendly.",
+        icon: '\uD83D\uDC09',
+        folder: 'game-053',
+        version: '1.0.0',
+        cssClass: 'jadewyrm',
+        genre: 'rpg',
+        tags: [
+            { emoji: '\uD83D\uDCDC', label: 'Text RPG' },
+            { emoji: '\uD83D\uDC65', label: 'Simulated MMO' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1a110a">
+    <meta name="description" content="Legend of the Jade Wyrm: a Legend of the Green Dragon-style browser RPG with a simulated online realm, text adventure pages and a three.js fantasy frame.">
+    <title>Legend of the Jade Wyrm</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cinzel+Decorative:wght@700&family=Alegreya:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="bg" aria-hidden="true"></div>
+
+    <div id="app" class="hidden">
+        <header id="top">
+            <div class="brand" aria-label="Legend of the Jade Wyrm">
+                <span class="b1">Legend</span><span class="b2">of the</span><span class="b3">Jade Wyrm</span>
+            </div>
+            <div class="shield-space" aria-hidden="true"></div>
+            <div class="top-btns">
+                <button type="button" class="ib" id="btn-mail" title="The Rookery (mail)" aria-label="Mail">✉<span class="mail-badge hidden">0</span></button>
+                <button type="button" class="ib" id="btn-save" title="Save now" aria-label="Save now">💾</button>
+                <button type="button" class="ib" id="btn-sound" title="Sound on/off" aria-label="Toggle sound">🔊</button>
+                <button type="button" class="ib" id="btn-menu" title="Preferences &amp; saves" aria-label="Menu">☰</button>
+                <a href="../index.html" class="ib games" title="Back to all games" aria-label="All games">⌂</a>
+            </div>
+        </header>
+
+        <div id="layout">
+            <aside id="navcol" aria-label="Navigation"></aside>
+            <main id="center">
+                <div id="scenewin">
+                    <div id="loc-banner"></div>
+                    <div id="clock-badge" aria-label="Day and time"></div>
+                    <div id="fx-layer" aria-hidden="true"></div>
+                </div>
+                <div id="page-scroll">
+                    <article id="page"></article>
+                </div>
+            </main>
+            <aside id="side" data-tab="vitals" aria-label="Character">
+                <div class="side-tabs">
+                    <button type="button" data-tab="vitals">Vitals</button>
+                    <button type="button" data-tab="online">Online</button>
+                    <button type="button" class="side-close" aria-label="Close">✕</button>
+                </div>
+                <div id="vitals" class="side-pane"></div>
+                <div id="online" class="side-pane"></div>
+            </aside>
+        </div>
+
+        <div id="scrim" class="hidden"></div>
+
+        <nav id="mbar" aria-label="Quick status">
+            <button type="button" class="mb-stat" id="mb-vitals" aria-label="Show vitals">
+                <span id="mb-level">Lv 1</span>
+                <span class="mb-hp" id="mb-hp"><i></i><span>10/10</span></span>
+            </button>
+            <span class="mb-num" title="Gold"><b class="c6b">●</b> <span id="mb-gold">0</span></span>
+            <span class="mb-num" title="Gems"><b class="c5b">◆</b> <span id="mb-gems">0</span></span>
+            <span class="mb-num" title="Forest fights"><b class="c2b">⚔</b> <span id="mb-turns">0</span></span>
+            <button type="button" class="mb-btn" id="mb-online" aria-label="Who is online">👥</button>
+            <button type="button" class="mb-btn" id="mb-mail" aria-label="Mail">✉<span class="mail-badge hidden">0</span></button>
+        </nav>
+    </div>
+
+    <div id="title-screen">
+        <div class="title-card">
+            <div class="logo">
+                <div class="l1">Legend</div>
+                <div class="l2">of the</div>
+                <div class="l3">Jade Wyrm</div>
+            </div>
+            <div class="realm" id="realm-status">Realm of Hollowmere · <span class="on">●</span> online</div>
+            <div id="title-body"></div>
+            <div class="title-foot">
+                <span>A tribute to <i>Legend of the Green Dragon</i> &amp; <i>LORD</i>. Everything runs in your browser.</span>
+                <a href="../index.html">← All games</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal" class="hidden"></div>
+    <div id="toasts" aria-live="polite"></div>
+    <div id="loading"><div class="spin"></div><div>Lighting the torches…</div></div>
+    <input type="file" id="import-file" accept=".json,application/json" hidden>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
