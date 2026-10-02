@@ -232,7 +232,7 @@ async function desktop() {
     ok(await ev(page, () => __jw.p.gold === 1000 && __jw.p.bank === 0), 'withdraw all');
 
     // ---- inn
-    await ev(page, () => { __jw.p.gold = 1000; __jw.game.goto('inn'); });
+    await ev(page, () => { __jw.p.gold = 1000; __jw.p.drunk = 0; __jw.p.buffs = []; __jw.p.flags = {}; __jw.game.goto('inn'); });
     await key(page, 'b');
     ok(await pageId(page) === 'bar', 'B: bar');
     await page.click('.navbtn:has-text("Antler Ale")');

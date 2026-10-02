@@ -148,6 +148,8 @@ class SceneCtl {
         this.dirty = 3;
     }
     removeFoe() {
+        this.queue = [];
+        const fx = document.getElementById('fx-layer'); if (fx) fx.replaceChildren();
         if (!this.foe) return;
         this.world.scene.remove(this.foe);
         this.foe.traverse((o) => { o.geometry?.dispose(); if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach((mm) => mm.dispose()); });

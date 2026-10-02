@@ -335,7 +335,7 @@ export class Game {
 
     // ------------------------------------------------------------ mail
     mail({ from, subject, body, gold = 0, gems = 0, fromId = null }) {
-        const m = { id: this.p.mailSeq++, from, fromId, subject, body, gold, gems, day: this.p.day, t: Date.now(), read: false };
+        const m = { id: this.p.mailSeq++, from, fromId, subject, body, gold, gems, day: Math.max(1, this.p.day), t: Date.now(), read: false };
         this.p.mail.unshift(m);
         if (this.p.mail.length > 60) this.p.mail.length = 60;
         this.ui.setMailBadge(this.p.mail.filter((x) => !x.read).length);

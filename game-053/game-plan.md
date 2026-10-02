@@ -21,7 +21,7 @@ The presentation keeps the text-first design (every interaction is a page of pro
 
 1. **Authentic loop.** Ten forest fights a day, one master challenge, three PvP attacks, healers that cost more each level, death that takes your gold, level 15 then the Wyrm, Wyrm kills that reset you with permanent bonuses and a new title.
 2. **A crowd that feels real.** People log in and out, greet you by name, ask newbie questions, give tips, brag, react to *your* news, attack you if you sleep in the fields, and answer your mail. Tuned so the square is lively but not noisy.
-3. **Text you want to read.** LoGD-style backtick colour codes (`` `@ `` green, `` `$ `` red, `` `^ `` yellow…) in narration *and* chat, original prose for every location, ~100 creatures each with a weapon and a death line, 25 forest events.
+3. **Text you want to read.** LoGD-style backtick colour codes (`` `@ `` green, `` `$ `` red, `` `^ `` yellow…) in narration *and* chat, original prose for every location, about 100 creatures each with a weapon and a death line, 24 forest events.
 4. **Modern sensibilities.** Auto-fight, animated combat with damage numbers, a stat panel that always shows what matters, toasts, deeds (achievements), a choice of day pacing, he/she/they, flirting with anyone, three save slots, file export/import, keyboard and touch parity, reduced motion, low-power mode.
 
 ---
@@ -70,12 +70,14 @@ The presentation keeps the text-first design (every interaction is a page of pro
 - Start: level 1, 10 HP, attack 1, defence 1, Fists (0) and Rags (0), 50 gold.
 - Level up: +10 max HP, +1 attack, +1 defence, full heal, +1 specialty skill.
 - XP to reach the next level, from level 1 to 15: 100, 400, 1002, 1912, 3140, 4707, 6641, 8985, 11795, 15143, 19121, 23840, 29437, 36071 (×(1 + 0.04 × Wyrm kills)).
-- Creatures at level *L*: HP ≈ 11L − 1, attack ≈ 2L − 1, defence ≈ 1.5L, gold ≈ LoGD's table (36 … 784), XP from LoGD's table (14 … 207). ±10% per creature.
-- Combat round: your blow = bell(0..attack) − bell(0..enemy defence); ≤ 0 is a miss. The same in reverse. 1 in 20 rounds the enemy fumbles and you land a **power move** (×2–3). Buffs multiply attack and defence, add regen, minions, damage shields, damage over time.
+- Creatures at level *L*: HP ≈ 7L − 1, attack ≈ 1.95L − 0.5, defence ≈ 1.1L − 0.4 (+2% per Wyrm kill), gold ≈ LoGD's table (36 … 784), XP from LoGD's table (14 … 207). ±10% per creature.
+- Combat round: your blow = 1.6 × bell(0..attack) − bell(0..enemy defence); ≤ 0 is a miss. The enemy's is 1.3 × bell(0..its attack) − bell(0..your defence). 1 in 20 rounds you land a **power move** (×2–3). Buffs multiply attack and defence, add regen, minions, damage shields, damage over time.
+- Tuned with `dev/balance.mjs` (a bot on the real engine) so a fight at your own level lasts about seven rounds and costs 15–30% of your health, a thrill-seeking fight costs more, masters are a real test, and the first Wyrm kill comes after about 27 days of sensible play.
+- Masters at level *L*: HP ≈ 7L + 6 + 0.12L², attack ≈ 1.75L + 0.3, defence ≈ 1.2L.
 - Flawless fight (no damage taken): +1 forest fight. Thrill-seeking: +1 level, +25% XP. Slumming: −1 level, −25% XP.
 - Death in the forest: lose all gold on hand and 10% of XP; you go to the Pale Shore until a new day or until you buy resurrection with favour.
 - Master: one challenge per day, needs the XP threshold; losing costs nothing but the day's try (you're patched up).
-- **The Jade Wyrm** (level 15 only): level 18, 300 HP, attack 45, defence 25, and it breathes fire every few rounds. Win: Wyrm kill +1, pick a permanent bonus (+5 max HP / +1 forest fight / +1 attack / +1 defence), reset to level 1 with basic gear and 50 gold, keep gems, charm, deeds and spouse. New title from a 25-step ladder (Farmhand → Page → Squire → … → Immortal).
+- **The Jade Wyrm** (level 15 only): level 18, 230 HP, attack 34, defence 22 (+4% per Wyrm kill). Every fourth round it breathes jade fire that ignores armour, but the round before it draws breath and your next blow lands harder. About half of first attempts at full health succeed. Win: Wyrm kill +1, pick a permanent bonus (+5 max HP / +1 forest fight / +1 attack / +1 defence), reset to level 1 with basic gear and 50 gold, keep gems, charm, deeds and spouse. New title from a 25-step ladder (Farmhand → Page → Squire → … → Immortal).
 
 ### Days
 A day is the turn budget. Two pacing modes (Preferences):

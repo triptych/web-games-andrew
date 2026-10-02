@@ -21,8 +21,8 @@ function makeNpc(id, name, opts = {}) {
     let dk = 0, level = 1;
     if (!opts.fresh) {
         if (pers === 'newbie') { level = R.i(1, 5); dk = R.chance(0.1) ? 1 : 0; }
-        else if (pers === 'veteran') { dk = R.i(3, 32); level = R.i(1, 15); }
-        else { dk = R.chance(0.45) ? 0 : Math.round(Math.pow(R.f(), 1.6) * 18); level = R.i(1, 15); }
+        else if (pers === 'veteran') { dk = 2 + Math.round(Math.pow(R.f(), 1.7) * 20); level = R.i(1, 15); }
+        else { dk = R.chance(0.45) ? 0 : Math.round(Math.pow(R.f(), 2) * 12); level = R.i(1, 15); }
     }
     const n = {
         id, name, pers, sex: R.pick(SEXES), race: R.pick(Object.keys(RACES)),
@@ -304,8 +304,10 @@ const CHANNEL_LINES = {
  * Returns an entry or null.
  */
 export function chatLine(w, channel, ctx) {
-    const speakers = ctx.online.filter((n) => speakerOk(n, channel, ctx.player));
+    let speakers = ctx.online.filter((n) => speakerOk(n, channel, ctx.player));
     if (!speakers.length) return null;
+    const last = (w.chat[channel] || []).slice(-1)[0];
+    if (last && speakers.length > 1) speakers = speakers.filter((n) => n.name !== last.who);
     const n = R.weighted(speakers, (s) => s.chatty + 0.02);
     let text;
     const pName = ctx.player?.name || 'friend';
