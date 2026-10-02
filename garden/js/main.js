@@ -17,8 +17,8 @@ import { buildArchitecture } from './architecture.js';
 import { buildPaths } from './paths.js';
 import { buildStatues, hoverUniforms, STATUE_TOP } from './statues.js';
 import { buildVegetation, updateGrass, windUniforms } from './vegetation.js';
-import { Vines } from './vines.js';
-import { Particles } from './particles.js';
+import { Vines, sparkleVine } from './vines.js';
+import { Particles, Bursts } from './particles.js';
 import { Hologram } from './hologram.js';
 import { Controls } from './controls.js';
 import { AudioEngine } from './music.js';
@@ -228,6 +228,7 @@ async function boot() {
     const hologram = new Hologram(world, games);
     const particles = new Particles(world);
     particles.build();
+    const bursts = new Bursts(world);
     const beams = lighthouseBeams(world, scene);
     world.finalize();
 
@@ -262,7 +263,10 @@ async function boot() {
         composer.setPixelRatio(pixelRatio);
         composer.setSize(w, h);
     };
-    addEventListener('resize', resize);
+    // Resizing clears the canvas, so it must happen right before a render,
+    // never after one — otherwise that frame is presented blank.
+    let resizePending = false;
+    addEventListener('resize', () => (resizePending = true));
     resize();
 
     ui.progress(0.94, 'Lighting the lamps…');
@@ -469,7 +473,8 @@ async function boot() {
         const surface = world.onDeck(p.x, p.z) ? 'wood' : island.pathDistAt(p.x, p.z) < PATH_HALF + 0.2 || Math.hypot(p.x, p.z) < PLAZA_R || world.inPlaza(p.x, p.z) ? 'stone' : 'grass';
         audio.step(surface);
     };
-    world.onVineGrow = () => {
+    world.onVineGrow = (k) => {
+        sparkleVine(k, bursts);
         if (entered) audio.sparkle();
     };
 
@@ -555,6 +560,10 @@ async function boot() {
         const dt = Math.min(rawDt, DEBUG && params.has('bigdt') ? 0.5 : 0.05);
         elapsed += dt;
         const t = elapsed;
+        if (resizePending) {
+            resizePending = false;
+            resize();
+        }
 
         // camera: title orbit, fly-in, or walking
         if (!entered) {
@@ -636,8 +645,9 @@ async function boot() {
         }
 
         hologram.update(dt, t, camPos, night);
-        vines.update(dt, camPos);
+        vines.update(dt, camPos, camera);
         particles.update(t, night, renderer.domElement.height);
+        bursts.update(t, renderer.domElement.height);
         for (const u of world.updaters) u(t, sky);
         updateGrass(world, camPos);
         audio.update(night, island.shoreAt(camPos.x, camPos.z));
@@ -668,7 +678,7 @@ async function boot() {
             else if (fps > 57 && pixelRatio < maxPR) next = Math.min(maxPR, pixelRatio + 0.1);
             if (Math.abs(next - pixelRatio) > 0.01) {
                 pixelRatio = next;
-                resize();
+                resizePending = true;
             }
             world.fps = fps;
             fpsAcc = fpsN = fpsTimer = 0;

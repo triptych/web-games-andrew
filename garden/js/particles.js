@@ -142,3 +142,73 @@ export class Particles {
         this.uniforms.uScale.value = viewportH * 0.9;
     }
 }
+
+const burstVert = /* glsl */ `
+uniform float uTime, uScale;
+attribute vec3 aColor;
+attribute vec3 aVel;
+attribute vec3 aParams; // size, birth, life
+varying vec3 vColor;
+varying float vAlpha;
+void main(){
+  float age = uTime - aParams.y;
+  float k = age / aParams.z;
+  vec3 p = position;
+  float a = 0.0;
+  if (k > 0.0 && k < 1.0) {
+    // a quick outward pop that settles into a slow lift
+    p += aVel * (1.0 - exp(-age * 2.5)) * 0.4 + vec3(0.0, age * 0.35, 0.0);
+    a = smoothstep(0.0, 0.08, k) * (1.0 - k) * (0.75 + 0.25 * sin(age * 18.0 + aParams.y * 40.0));
+  }
+  vColor = aColor;
+  vAlpha = a;
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  gl_PointSize = a > 0.0 ? aParams.x * uScale / -mv.z : 0.0;
+  gl_Position = projectionMatrix * mv;
+}`;
+
+/**
+ * One-shot sparkle bursts (the vines waking up). A fixed ring buffer of
+ * points: emitting overwrites the oldest slots, and the shader animates each
+ * from its birth time, so nothing is touched per frame but the clock.
+ */
+export class Bursts {
+    constructor(world, size = 512) {
+        this.size = size;
+        this.cursor = 0;
+        this.time = 0;
+        this.uniforms = { uTime: { value: 0 }, uScale: { value: 400 }, uMap: { value: glowSprite() } };
+        const g = new THREE.BufferGeometry();
+        const params = new Float32Array(size * 3);
+        for (let i = 0; i < size; i++) params[i * 3 + 1] = -1e4; // long dead
+        g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(size * 3), 3));
+        g.setAttribute('aColor', new THREE.BufferAttribute(new Float32Array(size * 3), 3));
+        g.setAttribute('aVel', new THREE.BufferAttribute(new Float32Array(size * 3), 3));
+        g.setAttribute('aParams', new THREE.BufferAttribute(params, 3));
+        this.geo = g;
+        const mat = new THREE.ShaderMaterial({ uniforms: this.uniforms, vertexShader: burstVert, fragmentShader: frag, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+        this.points = new THREE.Points(g, mat);
+        this.points.frustumCulled = false;
+        this.points.renderOrder = 6;
+        world.root.add(this.points);
+        this._c = new THREE.Color();
+    }
+
+    emit(x, y, z, { vx = 0, vy = 0, vz = 0, color = '#ffffff', size = 0.25, delay = 0, life = 1.6 } = {}) {
+        const i = this.cursor;
+        this.cursor = (i + 1) % this.size;
+        const a = this.geo.attributes;
+        a.position.setXYZ(i, x, y, z);
+        a.aVel.setXYZ(i, vx, vy, vz);
+        const c = this._c.set(color);
+        a.aColor.setXYZ(i, c.r, c.g, c.b);
+        a.aParams.setXYZ(i, size, this.time + delay, life);
+        for (const k of ['position', 'aVel', 'aColor', 'aParams']) a[k].needsUpdate = true;
+    }
+
+    update(t, viewportH) {
+        this.time = t;
+        this.uniforms.uTime.value = t;
+        this.uniforms.uScale.value = viewportH * 0.9;
+    }
+}

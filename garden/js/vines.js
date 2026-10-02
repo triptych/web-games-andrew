@@ -77,19 +77,28 @@ export class Vines {
             if (!keyIndex.has(v.key)) {
                 if (keyIndex.size >= MAX_KEYS) continue;
                 keyIndex.set(v.key, keyIndex.size);
-                this.keys.push({ key: v.key, x: 0, z: 0, n: 0, grow: 0.0, target: 0 });
+                this.keys.push({ key: v.key, x: 0, y: 0, z: 0, n: 0, r: 0, grow: 0.0, target: 0, curves: [] });
             }
             const k = this.keys[keyIndex.get(v.key)];
+            k.curves.push(v.pts);
             for (const p of v.pts) {
                 k.x += p.x;
+                k.y += p.y;
                 k.z += p.z;
                 k.n++;
             }
         }
+        // a bounding sphere per structure, for "is the player looking at it"
         for (const k of this.keys) {
             k.x /= k.n;
+            k.y /= k.n;
             k.z /= k.n;
+            k.center = new THREE.Vector3(k.x, k.y, k.z);
+            for (const pts of k.curves) for (const p of pts) k.r = Math.max(k.r, p.distanceTo(k.center));
         }
+        this._frustum = new THREE.Frustum();
+        this._viewProj = new THREE.Matrix4();
+        this._sphere = new THREE.Sphere();
         this.uniforms = { uGrow: { value: new Array(MAX_KEYS).fill(0) }, uRadius: { value: 0.03 } };
 
         // stems
@@ -174,18 +183,51 @@ export class Vines {
         return im;
     }
 
-    /** Grow vines near the player; distant ones creep along slowly. */
-    update(dt, player) {
+    /**
+     * Grow vines near the player; distant ones creep along slowly. A structure
+     * only wakes (fast growth, sparkle, chime) once it is both near and on
+     * screen — waking one behind the player played a chime with nothing to see.
+     */
+    update(dt, player, camera) {
         const g = this.uniforms.uGrow.value;
+        if (camera) {
+            this._viewProj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+            this._frustum.setFromProjectionMatrix(this._viewProj);
+        }
         this.keys.forEach((k, i) => {
             const d = Math.hypot(k.x - player.x, k.z - player.z);
-            const rate = d < 24 ? 0.16 : 0.004;
-            if (d < 24 && !k.sparked) {
+            if (d < 24 && !k.sparked && (!camera || this._frustum.intersectsSphere(this._sphere.set(k.center, k.r * 0.5)))) {
                 k.sparked = true;
                 this.world.onVineGrow?.(k);
             }
+            const rate = d < 24 && k.sparked ? 0.16 : 0.004;
             k.grow = clamp(k.grow + rate * dt, 0, 1);
             g[i] = k.grow * k.grow * (3 - 2 * k.grow);
+        });
+    }
+}
+
+const SPARKLE_COLORS = ['#b8ff8a', '#7fe07a', '#ffc4e1', '#fff3a8', '#ffffff'];
+
+/**
+ * The visible half of a structure waking up: sparkles scattered along its
+ * vines, released from the root end first so they travel with the growth.
+ */
+export function sparkleVine(k, bursts, count = 48) {
+    for (let n = 0; n < count; n++) {
+        const pts = k.curves[Math.floor(Math.random() * k.curves.length)];
+        const j = Math.floor(Math.random() * pts.length);
+        const p = pts[j];
+        const a = Math.random() * TAU;
+        const out = 0.2 + Math.random() * 0.5;
+        bursts.emit(p.x, p.y, p.z, {
+            vx: Math.cos(a) * out,
+            vy: 0.4 + Math.random() * 0.9,
+            vz: Math.sin(a) * out,
+            color: SPARKLE_COLORS[Math.floor(Math.random() * SPARKLE_COLORS.length)],
+            size: 0.18 + Math.random() * 0.2,
+            delay: (j / Math.max(1, pts.length - 1)) * 1.5,
+            life: 1.2 + Math.random() * 0.8,
         });
     }
 }

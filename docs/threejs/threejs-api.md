@@ -99,6 +99,8 @@ window.addEventListener('resize', () => {
 
 `updateProjectionMatrix()` is easy to forget and causes silent breakage — the aspect changes but the rendered image does not. If you added an `EffectComposer` (bloom etc.), you **must** resize it alongside the renderer in the same handler — game-024 (`scene.js`) does both.
 
+**Never resize after rendering in the same frame.** `setSize` / `setPixelRatio` reassign `canvas.width`, which clears the drawing buffer — if that happens after `render()`, the browser presents a blank frame (a one-frame flash). This bites adaptive-resolution code that checks FPS at the end of the loop. Set a `resizePending` flag instead (from both the FPS check and the `resize` event) and apply it at the top of the next frame, before rendering — see `garden/js/main.js`.
+
 ---
 
 ## Module organization (game-023 layout)
