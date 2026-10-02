@@ -5,7 +5,7 @@
  */
 
 import { ARROW, ROOM, xpToNext } from '../config.js';
-import { cellAt, colOf, rowOf, ROCK, lineClear } from './grid.js';
+import { cellAt, colOf, rowOf, ROCK, lineClear, resolveCircle } from './grid.js';
 import { healPlayer } from './abilities.js';
 
 const TAU = Math.PI * 2;
@@ -288,15 +288,20 @@ export function updatePickups(w, dt) {
         const dx = p.x - k.x, dy = p.y - k.y, d = Math.hypot(dx, dy);
         const pull = k.t > 0.45 && (vacuum || d < p.stat.magnet || k.kind === 'xp' && k.t > 5);
         if (pull) {
-            const sp = 7 + k.t * 9;
+            // Accelerate from when the pull began, not from the drop, and cap it:
+            // loot that lay around for a while must still visibly fly in.
+            k.pt = (k.pt ?? 0) + dt;
+            const sp = Math.min(22, 7 + k.pt * 18);
             k.x += (dx / d) * Math.min(d, sp * dt);
             k.y += (dy / d) * Math.min(d, sp * dt);
         } else {
+            k.pt = 0;
             k.x += k.vx * dt; k.y += k.vy * dt;
             const f = Math.pow(0.02, dt);
             k.vx *= f; k.vy *= f;
-            k.x = Math.max(-5.2, Math.min(5.2, k.x));
-            k.y = Math.max(0.3, Math.min(w.grid.rows - 0.3, k.y));
+            // Keep loot on open floor: a drop that scattered into a rock or pit
+            // was hidden (or unreachable) yet still got vacuumed up later.
+            resolveCircle(w.grid, k, 0.3, false);
         }
         if (d < 0.45 && k.t > 0.3) {
             w.pickups.splice(i, 1);
