@@ -1,0 +1,18 @@
+import { chromium } from 'playwright';
+import fs from 'node:fs'; import path from 'node:path';
+const PKG = path.join(path.dirname(new URL(import.meta.url).pathname), 'package');
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox'] });
+const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+await ctx.addInitScript(() => { try { localStorage.clear(); localStorage.setItem('jadewyrm.prefs', JSON.stringify({ quality: 'low' })); } catch {} });
+const page = await ctx.newPage();
+await page.route('https://unpkg.com/**', (route) => { const rel = new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, ''); route.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(path.join(PKG, rel)) }); });
+await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning' || m.type() === 'log') console.log('console:', m.text()); });
+page.on('pageerror', (e) => console.log('pageerror:', e.message, e.stack));
+await page.goto('http://127.0.0.1:8053/game-053/index.html?debug=1&seed=dbg');
+await page.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
+await page.evaluate(() => __jw.quickStart({ name: 'Dbg' }));
+const script = fs.readFileSync(process.argv[2], 'utf8');
+const fn = new Function('page', 'return (async () => {' + script + '})()');
+await fn(page);
+await browser.close();
