@@ -391,6 +391,16 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     animation: rise 0.35s ease-out;
 }
 @keyframes rise { from { transform: translate(-50%, 24px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+/* header (title + close) stays pinned while the card body scrolls */
+.card-top {
+    position: sticky;
+    top: -18px;
+    z-index: 1;
+    margin: -18px -18px 0;
+    padding: 18px 18px 10px;
+    background: linear-gradient(180deg, rgba(14, 18, 32, 0.97) 85%, transparent);
+}
+.card-top .close { top: 8px; right: 8px; }
 .card-head { display: flex; gap: 14px; align-items: center; padding-right: 40px; }
 .card-icon {
     flex: 0 0 auto;
@@ -406,7 +416,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 .card-genre { margin: 0; font: 600 0.75rem var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent, var(--gold)); }
 .card h2 { margin: 0.1em 0; font: 600 1.45rem/1.15 var(--display); }
 .card-meta { margin: 0; font: 500 0.85rem var(--sans); color: var(--ink-dim); }
-.card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; }
+.card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 0; }
 .card-desc { margin: 12px 0 14px; font-size: 1.08rem; line-height: 1.45; color: #ece2c8; }
 .card-actions { display: flex; flex-wrap: wrap; gap: 10px; position: sticky; bottom: -16px; padding: 10px 0 2px; background: linear-gradient(180deg, transparent, rgba(14, 18, 32, 0.95) 30%); }
 .card-actions .btn-primary { flex: 1 1 140px; font-size: 1.15rem; }

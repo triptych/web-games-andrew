@@ -486,7 +486,7 @@ async function boot() {
         } else if (e.key === '[') {
             hologram.step(-1);
             audio.arrow();
-        } else if (e.key.toLowerCase() === 's' && e.altKey) ui.emit('sound');
+        } else if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey && !e.altKey) ui.emit('sound');
     });
 
     const enter = (thenLibrary) => {

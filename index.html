@@ -55,7 +55,7 @@
             <button class="hud-btn" id="btn-map" title="Map (M)" aria-label="Map"><span aria-hidden="true">🗺️</span></button>
             <button class="hud-btn" id="btn-library" title="Library (L)" aria-label="Library of all games"><span aria-hidden="true">📚</span></button>
             <button class="hud-btn hud-clock" id="btn-time" title="Time of day (T)" aria-label="Time of day"><span aria-hidden="true" id="clock-icon">☀️</span><span id="clock">08:00</span></button>
-            <button class="hud-btn" id="btn-sound" title="Sound (S)" aria-label="Toggle sound"><span aria-hidden="true" id="sound-icon">🔊</span></button>
+            <button class="hud-btn" id="btn-sound" title="Sound (N)" aria-label="Toggle sound"><span aria-hidden="true" id="sound-icon">🔊</span></button>
             <button class="hud-btn" id="btn-help" title="Help (H)" aria-label="Help"><span aria-hidden="true">❔</span></button>
         </nav>
     </header>
@@ -85,13 +85,15 @@
 
     <!-- game card (touch and hologram) -->
     <aside id="card" class="panel card" hidden role="dialog" aria-modal="false" aria-labelledby="card-title">
-        <button class="close" data-close aria-label="Close">×</button>
-        <div class="card-head">
-            <div class="card-icon" id="card-icon"></div>
-            <div>
-                <p class="card-genre" id="card-genre"></p>
-                <h2 id="card-title"></h2>
-                <p class="card-meta" id="card-meta"></p>
+        <div class="card-top">
+            <button class="close" data-close aria-label="Close">×</button>
+            <div class="card-head">
+                <div class="card-icon" id="card-icon"></div>
+                <div>
+                    <p class="card-genre" id="card-genre"></p>
+                    <h2 id="card-title"></h2>
+                    <p class="card-meta" id="card-meta"></p>
+                </div>
             </div>
         </div>
         <div class="card-tags" id="card-tags"></div>
@@ -147,7 +149,7 @@
                         <li>Click the ground to walk there</li>
                         <li>Hover a statue to read about its game, click it to play</li>
                         <li><kbd>[</kbd> <kbd>]</kbd> turn the hologram at the hub</li>
-                        <li><kbd>M</kbd> map · <kbd>L</kbd> library · <kbd>T</kbd> time · <kbd>S</kbd> sound</li>
+                        <li><kbd>M</kbd> map · <kbd>L</kbd> library · <kbd>T</kbd> time · <kbd>N</kbd> sound</li>
                     </ul>
                 </div>
                 <div>
