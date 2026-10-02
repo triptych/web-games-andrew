@@ -771,6 +771,21 @@ const games = [
             { emoji: '\u2694\uFE0F', label: 'Auto Battler' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-052',
+        title: 'Nightline',
+        description: "A lo-fi synthwave night drive through an endless, rain-soaked, Blade Runner-style city, in three.js. No goals and nothing to crash into: set a cruise speed, change lanes (the blinker waits for a gap), and let the city slide past \u2014 downtown towers hung with neon and animated billboards, a paper-lantern night market, an elevated skyway nineteen metres above the lit grid, a harbour of cranes and black water, dense residential heights. Every kilometre or so there is somewhere to pull over: a noodle bar, an all-night diner, a charging station, a skyway overlook, a konbini, a record shop, an arcade, a motel, a laundromat, a pier. Park, sit in the rain while a few lines of description drift past, order a bowl or play one credit, then drive on. Wet streets reflect every sign and tail light, spinners cross the sky, a patrol spinner sweeps its searchlight, steam rises from the manholes, and the whole thing is rendered at 240 lines with dithering and scanlines. Three generative radio stations \u2014 synthwave, lo-fi hip-hop and slow analogue ambient \u2014 with invented track names, plus drift mode where the car drives itself, four cameras, photos and a night log. Keyboard or touch.",
+        icon: '\uD83C\uDF03',
+        folder: 'game-052',
+        version: '1.0.0',
+        cssClass: 'nightline',
+        genre: 'cozy',
+        tags: [
+            { emoji: '\uD83D\uDE97', label: 'Night Drive' },
+            { emoji: '\uD83C\uDF27\uFE0F', label: 'Synthwave' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

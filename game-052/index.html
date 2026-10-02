@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0b0612">
+    <meta name="description" content="Nightline: a lo-fi synthwave night drive through an endless rain-soaked neon city. No goals, no crashes — just the road, the radio, and places to pull over.">
+    <title>Nightline</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a href="../index.html" id="games-link">← Games</a>
+
+    <div id="view"></div>
+    <div id="crt" aria-hidden="true"></div>
+
+    <div id="hud" class="hidden">
+        <div id="banner" aria-live="polite"><div class="b-small" id="banner-small"></div><div class="b-big" id="banner-big"></div></div>
+
+        <div id="topbar">
+            <button class="ib" id="btn-cam" type="button" title="Camera (C)"><span class="k">C</span><span id="cam-label">Chase</span></button>
+            <button class="ib" id="btn-radio" type="button" title="Next station (R)"><span class="k">R</span>Radio</button>
+            <button class="ib" id="btn-drift" type="button" title="Drift mode — the car drives itself (Z)"><span class="k">Z</span>Drift</button>
+            <button class="ib" id="btn-photo" type="button" title="Take a photo (P)"><span class="k">P</span>Photo</button>
+            <button class="ib" id="btn-menu" type="button" title="Menu (Esc)"><span class="k">Esc</span>Menu</button>
+        </div>
+
+        <div id="dash">
+            <div class="d-speed"><span id="speed">000</span><span class="unit">KM/H</span></div>
+            <div class="d-row"><span>CRUISE</span><b id="cruise">60</b><span id="blinker" class="blink-ind"></span></div>
+            <div class="d-row"><span id="clock">01:12</span><span class="sep">·</span><span id="odo">0.0 KM</span></div>
+            <div class="d-row d-district" id="district"></div>
+        </div>
+
+        <div id="radio">
+            <div class="r-station"><span class="r-freq" id="r-freq">88.3</span> <span id="r-name">NIGHTWAVE</span></div>
+            <div class="r-track" id="r-track"></div>
+        </div>
+
+        <button id="prompt" type="button" class="hidden"></button>
+        <div id="toasts" aria-live="polite"></div>
+
+        <div id="touch" class="hidden">
+            <div class="t-left">
+                <button class="tb" id="t-left" type="button" aria-label="Lane left">◀</button>
+                <button class="tb" id="t-right" type="button" aria-label="Lane right">▶</button>
+            </div>
+            <div class="t-right">
+                <button class="tb" id="t-slower" type="button" aria-label="Slower">−</button>
+                <button class="tb" id="t-brake" type="button" aria-label="Brake">■</button>
+                <button class="tb" id="t-faster" type="button" aria-label="Faster">+</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="stopcard" class="hidden" role="dialog" aria-label="Parked">
+        <div class="sc-head">
+            <div class="sc-label" id="sc-label"></div>
+            <div class="sc-name" id="sc-name"></div>
+        </div>
+        <p class="sc-line" id="sc-line"></p>
+        <p class="sc-result hidden" id="sc-result"></p>
+        <div class="sc-btns">
+            <button class="btn" id="sc-action" type="button"></button>
+            <button class="btn primary" id="sc-go" type="button"><span class="k">E</span> Drive on</button>
+        </div>
+    </div>
+
+    <div id="title">
+        <div class="t-inner">
+            <div class="t-logo">NIGHTLINE</div>
+            <div class="t-sub">a lo-fi night drive</div>
+            <div class="t-start" id="t-start">click, tap or press any key to start the engine</div>
+            <div class="t-loading" id="t-loading">building the city…</div>
+            <ul class="t-keys">
+                <li><b>W / S</b> or <b>↑ / ↓</b> set your speed · <b>Space</b> brake</li>
+                <li><b>A / D</b> or <b>← / →</b> change lanes (the blinker waits for a gap)</li>
+                <li><b>E</b> pull over at the next stop · <b>R</b> radio · <b>C</b> camera</li>
+                <li><b>Z</b> drift mode — let the car drive · <b>H</b> hide the dash</li>
+            </ul>
+            <div class="t-note">No goals. No crashes. Just the city.</div>
+        </div>
+    </div>
+
+    <div id="menu" class="hidden" role="dialog" aria-label="Menu">
+        <div class="m-panel">
+            <div class="m-title">PAUSED</div>
+            <div class="m-tabs">
+                <button class="mt on" data-tab="settings" type="button">Settings</button>
+                <button class="mt" data-tab="log" type="button">Night log</button>
+                <button class="mt" data-tab="keys" type="button">Controls</button>
+            </div>
+            <div class="m-page" data-page="settings">
+                <div class="m-row"><span>Resolution</span>
+                    <div class="seg" id="set-res">
+                        <button data-v="lofi" type="button">Lo-fi</button><button data-v="mid" type="button">Mid</button><button data-v="hi" type="button">Hi</button><button data-v="crisp" type="button">Crisp</button>
+                    </div>
+                </div>
+                <div class="m-row"><span>Retro filter</span><div class="seg" id="set-retro"><button data-v="1" type="button">On</button><button data-v="0" type="button">Off</button></div></div>
+                <div class="m-row"><span>Wet reflections</span><div class="seg" id="set-refl"><button data-v="1" type="button">On</button><button data-v="0" type="button">Off</button></div></div>
+                <div class="m-row"><span>Rain</span><div class="seg" id="set-rain"><button data-v="auto" type="button">Auto</button><button data-v="0" type="button">Off</button><button data-v="0.4" type="button">Light</button><button data-v="1" type="button">Heavy</button></div></div>
+                <div class="m-row"><span>Radio volume</span><input type="range" id="set-music" min="0" max="1" step="0.05"></div>
+                <div class="m-row"><span>Sound volume</span><input type="range" id="set-sfx" min="0" max="1" step="0.05"></div>
+            </div>
+            <div class="m-page hidden" data-page="log">
+                <div class="log-empty" id="log-empty">Nowhere yet. Press <b>E</b> when a stop comes up.</div>
+                <ol id="log"></ol>
+            </div>
+            <div class="m-page hidden" data-page="keys">
+                <table class="keys">
+                    <tr><td>W / ↑</td><td>Speed up (sets cruise)</td></tr>
+                    <tr><td>S / ↓</td><td>Slow down</td></tr>
+                    <tr><td>Space</td><td>Brake (hold)</td></tr>
+                    <tr><td>A / ← · D / →</td><td>Change lane</td></tr>
+                    <tr><td>E / Enter</td><td>Pull over · drive on</td></tr>
+                    <tr><td>R · Shift+R</td><td>Next · previous station</td></tr>
+                    <tr><td>C</td><td>Camera: chase, hood, low, cinema</td></tr>
+                    <tr><td>Z</td><td>Drift mode (the car drives itself)</td></tr>
+                    <tr><td>P</td><td>Save a photo</td></tr>
+                    <tr><td>H</td><td>Hide / show the dash</td></tr>
+                    <tr><td>Esc · M</td><td>This menu</td></tr>
+                </table>
+            </div>
+            <div class="m-btns">
+                <a class="btn" href="../index.html">← Games</a>
+                <button class="btn primary" id="m-resume" type="button">Resume</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
