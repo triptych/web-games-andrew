@@ -714,6 +714,16 @@ h1 {
     color: #1a0e2a;
 }
 
+.game-preview.nightline,
+.carousel-slide-bg.nightline {
+    background: linear-gradient(180deg, #0b0612 0%, #2a0e3e 45%, #ff3fae 78%, #3ff2ff 100%);
+}
+
+.game-card.nightline .play-button {
+    background: linear-gradient(135deg, #12061f 0%, #ff3fae 55%, #3ff2ff 100%);
+    color: #fff;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
