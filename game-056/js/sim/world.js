@@ -523,7 +523,7 @@ export function damageEnemy(w, e, amt, opts = {}) {
     e.hitT = 0.12;
     e.lastHit = 0;
     if (opts.src) opts.src.dmgDone += a;
-    if (!opts.quiet) ev(w, 'hit', { id: e.id, amt: Math.round(a), crit: (opts.crit ?? 1) > 1, type, x: e.x, y: e.y, z: e.z });
+    if (!opts.quiet) ev(w, 'hit', { id: e.id, amt: Math.round(a), crit: (opts.crit ?? 1) > 1, dtype: type, x: e.x, y: e.y, z: e.z });
     if (e.hp <= 0) killEnemy(w, e, opts.src);
     return a;
 }
@@ -639,7 +639,7 @@ function rollRarity(w) {
     return 0;
 }
 
-function spawnPowerOrb(w, x, z, minRarity) {
+export function spawnPowerOrb(w, x, z, minRarity) {
     const o = {
         id: w.nextId++, kind: 'power', x: Math.min(9.2, Math.max(0.6, x)), z, y: 0.6, t: 0, life: 11,
         power: w.rng.pick(POWER_ORDER), rarity: Math.max(minRarity, rollRarity(w)),
@@ -648,7 +648,7 @@ function spawnPowerOrb(w, x, z, minRarity) {
     ev(w, 'orb', { id: o.id, power: o.power, rarity: o.rarity });
 }
 
-function spawnMote(w) {
+export function spawnMote(w) {
     const lanes = activeLanes(w.wave);
     const lane = w.rng.pick(lanes);
     const o = {

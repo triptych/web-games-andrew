@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-55 games, `game-001` through `game-055`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+56 games, `game-001` through `game-056`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -73,6 +73,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 053 | [Legend of the Jade Wyrm](game-053/) | Legend of the Green Dragon-style RPG with a simulated online realm | three.js |
 | 054 | [Pale Engine](game-054/) | DOOM-style FPS with procedural levels and monsters | three.js |
 | 055 | [Rotorstorm](game-055/) | Top-down helicopter bullet-hell shooter with a skill tree | Vanilla JS + hand-written WebGL2 |
+| 056 | [Keepfire](game-056/) | Castle defence × Plants vs. Zombies lanes × incremental | three.js |
 
 ### Highlights
 
@@ -137,6 +138,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 **[Pale Engine](game-054/)** — A **DOOM-style first-person shooter** on Io, 2291: the station's Pale Engine drilled through the bottom of everything, and you are the last Warden, with the station AI VESPER in your ear and its own reasons for wanting you at the bottom. Ten levels in three episodes are generated from a seed — rooms, stairs, lava pits, crates and open-air courtyards from per-cell heights, keycard doors, secret walls, barrels, ambushes and data logs — and every level is played by a validator (and, in the tests, walked by a bot through the real collision code) before you see it. Each run rolls its own monster species across ten archetypes (hitscan thralls, fireball imps, lunging hounds, flying skulls and eyes, spider turrets, brutes, missile revenants, a necromancer that calls down fire, a rocket juggernaut) that see and hear you, follow a flow field, infight, stagger and can be executed with the blade for health, plus three guardians ending with the Archon and its pylon shields. Nine weapons modelled in code up to a Rail Driver and a Singularity Cannon, six powerups including DOOM's inverted-colour invulnerability, baked lightmaps lit live by every muzzle flash, procedural bump-mapped textures, four skies, a post pass per powerup, a generative industrial-metal score, an automap, intermission tallies with par times, Endless Descent, and full touch controls. [game-054/dev/](game-054/dev/README.md) has a headless generator/bot test and a Playwright run on desktop and phones.
 
 **[Rotorstorm](game-055/)** — A **top-down helicopter bullet-hell shooter** in vanilla JavaScript and hand-written WebGL2, with no libraries or asset files. On the Shattered Coast in 2061 a storm-steering AI, MERIDIAN, has turned on the cities it protected, and you fly the AH-77 Kestrel through six operations over procedural terrain: archipelago, jungle river, desert highway, ice shelf, neon city and volcano. The CPU and the GPU share one noise function, so gunboats spawn on the water the shader paints. A director places the waves where the ground suits them (tanks on land, boats on water, convoys on the highway), with elite waves, a mid-boss, salvage caches and civilians to winch up. Six multi-phase bosses fight with named spell cards: rings, curving and accelerating bullets, bullets that stop and re-aim, splitting orbs, telegraphed lightning and sweeping lasers. Graze to charge Overdrive, wipe the screen with an EMP, chain kills, and spend salvage on a 28-node skill tree between operations. Terrain baked by shaders with animated water and lava, craters and treads stamped into the ground, falling wrecks, layered explosions, shockwaves, HDR bloom, weather, a generative soundtrack, radio portraits, an ending shaped by the survivors you saved, the endless Stormfront mode, and relative-drag touch controls. [game-055/dev/](game-055/dev/README.md) plays every operation headlessly with a god bot and a dodging bot, and drives the whole game in Chromium on desktop and phones.
+
+**[Keepfire](game-056/)** — A **castle-defence take on Plants vs. Zombies** with an incremental heart, in three.js. The last keep in Aldmere starts as one tower with one archer; procedurally generated monsters march down five lanes and every kill pays gold, spent mid-wave on party members placed on stepped tower platforms (safe from melee) or out in the bailey: archers, gold-brewing alchemists, knights, palisades, pyromancers, a frost witch, dwarf bombardiers with exploding barrels, clerics, a ballista, a thorn-rooting druid and a storm caller, each levelling to 10 with perks. The castle model is rebuilt from its upgrades, so you watch it grow: towers rise tier by tier, walls go from logs to banded stone, the keep sprouts turrets and the Keepfire beacon, which burns a whole lane when you call it. Ember motes and powerup orbs to tap, a relic choice after every wave (procedural names, affixes and canvas-drawn icons, eight slots), six biomes with day-to-night progression across each region's ten waves, six multi-phase bosses (Bramblejaw the Warg King, the Mire Mother, Warlord Skarn, the Rime Colossus, Morvane the Lich, Vael the Black Sun) and the endless Long Night. Every species is rolled per run from body plans (bipeds, quadrupeds, flyers, slimes, wraiths, siege engines) with names, palettes, features and elite affixes. Failing a wave keeps its gold for a retry, and Rekindling trades the run for Embers on a permanent Ember Tree. Generative medieval music; portrait phones get a camera behind the castle with the lanes running up the screen. [game-056/dev/](game-056/dev/README.md) balances the 60-wave campaign with a bot headlessly and drives every flow in Chromium on desktop and touch-only phones.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -266,7 +269,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 55 games are included as of the latest entries (game-052 Nightline, game-053 Legend of the Jade Wyrm, game-054 Pale Engine, game-055 Rotorstorm).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 56 games are included as of the latest entries (game-053 Legend of the Jade Wyrm, game-054 Pale Engine, game-055 Rotorstorm, game-056 Keepfire).
 
 ---
 

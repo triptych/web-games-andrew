@@ -33,8 +33,8 @@ wave 1 for Embers that buy permanent upgrades. That is the incremental loop.
        mid-wave (place, level up) → tap ember motes and powerup orbs →
        fire powerups and the Keepfire → final horde flag → clear
                              │
-            wall falls? ─────┴──► retry the wave (from its snapshot, keep
-                                  half the gold earned) or Rekindle
+            wall falls? ─────┴──► retry the wave (from its snapshot, keeping
+                                  all the gold earned in the attempt) or Rekindle
 ```
 
 Within a wave the pressure is PvZ's: gold flows in, cards recharge, the lanes
@@ -66,17 +66,17 @@ Perks arrive at levels 3, 6 and 10.
 
 | Card | Wave | Cost | Place | Power | Perks (3 / 6 / 10) |
 |---|---|---|---|---|---|
-| Archer | 1 | 50 | any | arrows down the lane, hits flyers | pierce 1 / twin shot / 25% crit |
-| Alchemist | 2 | 50 | any | brews gold every few seconds | +50% gold / mending draught for neighbours / doubled brew |
-| Knight | 3 | 75 | field | high-HP blocker, sword | −25% damage taken / cleave / taunts 3 lanes |
-| Palisade | 4 | 50 | field | very high-HP barricade | spikes / iron-shod +50% HP / thornwall slows |
-| Pyromancer | 6 | 150 | any | fireballs with splash and burn | bigger blast / burning ground / twin fireballs |
-| Frost Witch | 8 | 125 | any | ice shards that slow | longer slow / 15% freeze / shatter (frozen foes take ×2) |
-| Dwarf Bombardier | 11 | 175 | any | lobs exploding barrels (ground only, splash reaches neighbour lanes) | knockback / cluster bomblets / mega keg |
-| Cleric | 14 | 110 | any | heals nearby units and repairs the wall; holy bolts (×2 vs undead) | bigger heals / cleanse & shield / sanctuary aura |
-| Ballista | 18 | 225 | any | bolt that pierces the whole lane | faster reload / stun / twin bolt |
-| Druid | 22 | 150 | field | roots the first foes ahead in thorns | longer roots / roots 4 / entangle whole lane |
-| Storm Caller | 26 | 275 | any | chain lightning across lanes | +2 jumps / stun / storm surge |
+| Archer | 1 | 75 | any | arrows down the lane, hits flyers | pierce 1 / twin shot / 25% crit |
+| Alchemist | 2 | 50 | any | brews 12 gold every 10 s (PvZ's sunflower) | +30% gold / mending draught for neighbours / +60% gold |
+| Knight | 3 | 100 | field | high-HP blocker, sword | −25% damage taken / cleave / taunts 3 lanes |
+| Palisade | 4 | 75 | field | very high-HP barricade | spikes / iron-shod +50% HP / thornwall slows |
+| Pyromancer | 6 | 175 | any | fireballs with splash and burn | bigger blast / burning ground / twin fireballs |
+| Frost Witch | 8 | 150 | any | ice shards that slow | longer slow / 15% freeze / shatter (frozen foes take ×2) |
+| Dwarf Bombardier | 11 | 200 | any | lobs exploding barrels (ground only, splash reaches neighbour lanes) | knockback / cluster bomblets / mega keg |
+| Cleric | 14 | 125 | any | heals nearby units and repairs the wall; holy bolts (×2 vs undead) | bigger heals / cleanse & shield / sanctuary aura |
+| Ballista | 18 | 250 | any | bolt that pierces the whole lane | faster reload / stun / twin bolt |
+| Druid | 22 | 175 | field | roots the first foes ahead in thorns | longer roots / roots 4 / entangle whole lane |
+| Storm Caller | 26 | 300 | any | chain lightning across lanes | +2 jumps / stun / storm surge |
 
 Damage types: **physical, fire, frost, shock, holy**. Regions and elite
 affixes resist or are weak to some of them, so a balanced party matters.
@@ -164,8 +164,12 @@ tenth wave is a boss again, and scaling never stops.
   the budget, denser, with a horn and banner), like PvZ's flags. A progress
   bar with flags shows where you are.
 - **Elites** from wave 5, **treasure carriers** from wave 3.
-- **Scaling**: HP × (1 + 0.09(w−1)) · 1.04^(w−1); damage × (1 + 0.06w); bounty
-  grows slower than HP, which is what keeps the castle upgrades meaningful.
+- **Scaling**: HP × (1 + 0.1(w−1)) · 1.085^(w−1); damage × (1 + 0.06(w−1)) · 1.03^(w−1);
+  bounty × (1 + 0.12(w−1)). Bounty grows slower than HP, which is what keeps the
+  castle upgrades meaningful and makes the late game a wall that Rekindling climbs.
+- **Frenzy**: 45 s after a wave's schedule ends, its monsters speed up and shrug
+  off crowd control, so a wave can never stall (a frozen, regenerating elite
+  against a healed blocker once did).
 
 ## Pickups and powerups (during a wave)
 
@@ -181,7 +185,9 @@ tenth wave is a boss again, and scaling never stops.
 
 ## Relics (between waves, procedural)
 
-Pick one of three (four with the Ember perk). Rarity: common, rare, epic,
+Pick one of three (four with the Ember perk), or take gold instead. You hold
+at most eight relics; a ninth replaces one you choose. (Uncapped relics let the
+party outscale any HP curve, which the balance bot found in its first run.) Rarity: common, rare, epic,
 legendary; affixes 1/2/2/unique+1. Stat affixes: damage, attack speed, gold,
 wall strength, crit chance, crit damage, party health, blast radius, slow,
 card recharge, party cost, powerup drops, Keepfire charge, per-unit damage,
@@ -198,8 +204,7 @@ icon is drawn on a canvas from the relic's noun, rarity and colours.
 ## Incremental meta: Rekindling
 
 Reach wave 15 and you may **Rekindle**: the run resets to wave 1, and you get
-Embers ≈ 0.5 · best wave^1.4 (minus what earlier rekindles from the same best
-already paid). The Ember Tree (permanent):
+Embers = ⌊0.5 · best wave^1.4⌋. The Ember Tree (permanent):
 
 | Perk | Ranks | Effect |
 |---|---|---|
@@ -230,7 +235,10 @@ while you are away (capped at two hours, a quarter rate).
   wave / pause, S speed, K keep, Esc cancel / pause, M mute.
 - **Phones**: in portrait the camera swings behind the castle so the lanes run
   up the screen (the castle sits at the bottom); in landscape the castle is on
-  the left. Tap targets ≥ 44 px; the card bar scrolls sideways.
+  the left, and on landscape phones the camera crops most of the keep and
+  "Sound the Horn" moves into the card bar so the lanes stay big enough to tap.
+  Tap targets ≥ 44 px; the card bar scrolls sideways; pickups have a larger
+  touch radius than mouse radius.
 
 ## Presentation
 
@@ -304,6 +312,14 @@ the whole campaign in Node.
 - `browsertest.mjs`: title → new game → place cards → wave → pickups →
   unit panel → keep panel → relic choice → boss → defeat/retry → ember tree;
   touch-only phones in portrait and landscape; zero console errors.
+
+## Balance (bot-derived)
+
+See `dev/README.md`. Early regions are learnable, each region's boss is the
+real check (the first boss takes the wall to 0% for the bot), Mirefen and Ashen
+Pass press hardest mid-campaign, IV–V give breathing room and Vael takes many
+attempts. Retries keep their gold, so a stuck wave is always winnable by
+grinding; Rekindling makes it faster.
 
 ## Open questions
 

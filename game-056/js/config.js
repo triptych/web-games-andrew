@@ -87,7 +87,7 @@ export const UNITS = {
         color: '#a07a4a',
     },
     pyro: {
-        name: 'Pyromancer', title: 'Adept of the Cinder Choir', cost: 175, recharge: 10, place: 'any', hp: 110, unlock: 6,
+        name: 'Pyromancer', short: 'Pyromancer', title: 'Adept of the Cinder Choir', cost: 175, recharge: 10, place: 'any', hp: 110, unlock: 6,
         atk: { kind: 'fireball', dmg: 30, cd: 1.9, speed: 9, splash: 0.85, burn: 5, air: true, type: 'fire' },
         desc: 'Fireballs that burst and set foes alight.',
         perks: { 3: 'Wider blasts', 6: 'Burning ground where fireballs land', 10: 'Twin fireballs' },
@@ -101,7 +101,7 @@ export const UNITS = {
         color: '#8fd8ff',
     },
     dwarf: {
-        name: 'Dwarf Bombardier', title: 'Kegmaster of Deepforge', cost: 200, recharge: 14, place: 'any', hp: 240, unlock: 11,
+        name: 'Dwarf Bombardier', short: 'Bombardier', title: 'Kegmaster of Deepforge', cost: 200, recharge: 14, place: 'any', hp: 240, unlock: 11,
         atk: { kind: 'barrel', dmg: 72, cd: 3.4, splash: 1.35, lob: true, air: false, type: 'fire' },
         desc: 'Lobs exploding barrels. Big splash, ground only.',
         perks: { 3: 'Blasts knock foes back', 6: 'Barrels burst into bomblets', 10: 'Mega keg: +60% blast' },
@@ -130,7 +130,7 @@ export const UNITS = {
         color: '#5aa860',
     },
     storm: {
-        name: 'Storm Caller', title: 'Voice of the High Tempest', cost: 300, recharge: 20, place: 'any', hp: 140, unlock: 26,
+        name: 'Storm Caller', short: 'Stormcaller', title: 'Voice of the High Tempest', cost: 300, recharge: 20, place: 'any', hp: 140, unlock: 26,
         atk: { kind: 'chain', dmg: 42, cd: 2.4, range: 7.5, jumps: 4, jumpR: 2.5, air: true, type: 'shock' },
         desc: 'Chain lightning that leaps between lanes.',
         perks: { 3: '+2 jumps', 6: 'Lightning stuns', 10: 'Storm surge: double strikes' },
@@ -258,7 +258,7 @@ export const REGIONS = [
         boss: { kind: 'warlord', name: 'Warlord Skarn', title: 'Breaker of Gates', taunt: 'I have broken a hundred gates. Yours is kindling.' },
         intro: ['Orcs through the Ashen Pass. They shrug off fire; the cold bites them.', 'Catapults out past the fields. Reach them before your wall cracks.'],
         sky: { top: '#2a1414', bottom: '#b8562a', sun: '#ff9a4a' }, fog: '#6a3424',
-        ground: ['#3a302c', '#443832'], path: '#2a201c', accent: '#ff6a2a',
+        ground: ['#4a3c34', '#56463c'], path: '#2e221c', accent: '#ff6a2a',
         weather: 'ash',
     },
     {
