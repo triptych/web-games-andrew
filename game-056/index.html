@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a120c">
+    <title>Keepfire</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Alegreya+Sans:wght@400;500;700;800&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="c"></canvas>
+    <div id="numbers"></div>
+    <div id="flyers"></div>
+    <div id="vignette"></div>
+
+    <!-- ============ In-game HUD ============ -->
+    <div id="hud" class="hidden">
+        <div id="top">
+            <div id="gold-box" title="Gold"><span class="coin"></span><span id="gold">0</span></div>
+            <div id="wave-box">
+                <div id="wave-label">Wave 1</div>
+                <div id="progress"><div id="progress-fill"></div><div id="flags"></div></div>
+            </div>
+            <div id="wall-box" title="Wall">
+                <span class="shield-ico"></span>
+                <div id="wall-bar"><div id="wall-lag"></div><div id="wall-fill"></div></div>
+                <span id="wall-txt">220</span>
+            </div>
+            <div id="top-btns">
+                <button id="speed-btn" class="tbtn" aria-label="Game speed">×1</button>
+                <button id="pause-btn" class="tbtn" aria-label="Pause">❚❚</button>
+            </div>
+        </div>
+
+        <div id="boss-bar" class="hidden">
+            <div id="boss-name">BOSS</div>
+            <div id="boss-track"><div id="boss-lag"></div><div id="boss-fill"></div><div id="boss-ward"></div></div>
+        </div>
+
+        <div id="prep-panel" class="hidden">
+            <div id="prep-region"></div>
+            <div id="prep-wave"></div>
+            <div id="prep-foes"></div>
+            <button id="start-btn" class="btn primary big">Sound the Horn</button>
+        </div>
+
+        <div id="side">
+            <div id="powers"></div>
+            <button id="keepfire-btn" aria-label="Keepfire" class="hidden">
+                <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" class="kf-track"/><circle cx="20" cy="20" r="17" class="kf-ring" id="kf-ring"/></svg>
+                <span class="kf-ico"></span>
+            </button>
+        </div>
+
+        <div id="bottom">
+            <button id="keep-btn" aria-label="Keep upgrades"><span class="keep-ico"></span><span class="keep-lbl">Keep</span></button>
+            <div id="cards"></div>
+        </div>
+
+        <div id="target-hint" class="hidden"></div>
+        <div id="banners"></div>
+        <div id="toast"></div>
+    </div>
+
+    <!-- Unit panel (floats near a unit) -->
+    <div id="unit-panel" class="hidden">
+        <div class="up-head">
+            <img id="up-img" alt="">
+            <div>
+                <div id="up-name"></div>
+                <div id="up-title"></div>
+                <div id="up-level"></div>
+            </div>
+            <button id="up-close" class="x" aria-label="Close">✕</button>
+        </div>
+        <div id="up-stats"></div>
+        <div id="up-perks"></div>
+        <div class="up-btns">
+            <button id="up-upgrade" class="btn primary"></button>
+            <button id="up-sell" class="btn ghost"></button>
+        </div>
+    </div>
+
+    <!-- ============ Screens ============ -->
+    <div id="title" class="screen">
+        <div class="title-inner">
+            <div class="logo"><span class="logo-flame"></span>KEEPFIRE</div>
+            <div class="tagline">Hold the last keep in Aldmere. Feed the fire.</div>
+            <div id="title-info"></div>
+            <div class="title-btns">
+                <button id="continue-btn" class="btn primary big hidden">Continue</button>
+                <button id="new-btn" class="btn big">New Defence</button>
+                <div class="btn-row">
+                    <button id="embers-btn" class="btn"><span class="ember-ico"></span> Ember Tree <span id="ember-count"></span></button>
+                    <button id="bestiary-btn" class="btn">Bestiary</button>
+                </div>
+                <div class="btn-row">
+                    <button id="help-btn" class="btn ghost">How to play</button>
+                    <button id="settings-btn" class="btn ghost">Settings</button>
+                </div>
+            </div>
+            <div class="title-foot">Every model, monster, relic and note is generated in code.</div>
+        </div>
+    </div>
+
+    <div id="keep" class="screen hidden">
+        <div class="panel wide">
+            <div class="panel-head"><h2>The Keep</h2><div class="gold-chip"><span class="coin"></span><span id="keep-gold">0</span></div><button class="x" data-close="keep" aria-label="Close">✕</button></div>
+            <div class="tabs"><button class="tab on" data-tab="castle">Castle</button><button class="tab" data-tab="relics">Relics</button><button class="tab" data-tab="stats">Chronicle</button></div>
+            <div id="keep-castle" class="tab-body">
+                <div class="sub">Towers <span class="dim">— each tier adds a fighting platform on that lane's wall</span></div>
+                <div id="towers"></div>
+                <div id="upgrades"></div>
+            </div>
+            <div id="keep-relics" class="tab-body hidden"></div>
+            <div id="keep-stats" class="tab-body hidden"></div>
+        </div>
+    </div>
+
+    <div id="clear" class="screen hidden">
+        <div class="panel wide">
+            <h2 id="clear-title">Wave Cleared</h2>
+            <div id="clear-sum"></div>
+            <div class="sub center">Choose a relic</div>
+            <div id="relic-cards"></div>
+            <div id="relic-replace" class="hidden">
+                <div class="sub center">Your relic slots are full: choose one to give up</div>
+                <div id="relic-held"></div>
+                <button id="replace-cancel" class="btn ghost">Back</button>
+            </div>
+            <button id="relic-skip" class="btn ghost">Take gold instead</button>
+        </div>
+    </div>
+
+    <div id="modal" class="screen hidden">
+        <div class="panel" id="modal-panel">
+            <div id="modal-body"></div>
+            <button id="modal-ok" class="btn primary">Onward</button>
+        </div>
+    </div>
+
+    <div id="lost" class="screen hidden">
+        <div class="panel">
+            <h2 class="red">The Gates Have Fallen</h2>
+            <div id="lost-sum"></div>
+            <button id="retry-btn" class="btn primary big">Rally and Retry</button>
+            <button id="lost-rekindle" class="btn hidden">Rekindle</button>
+            <button id="lost-title" class="btn ghost">Title</button>
+        </div>
+    </div>
+
+    <div id="pause" class="screen hidden">
+        <div class="panel">
+            <h2>Paused</h2>
+            <div id="pause-info"></div>
+            <button id="resume-btn" class="btn primary big">Resume</button>
+            <button id="pause-settings" class="btn">Settings</button>
+            <button id="pause-help" class="btn">How to play</button>
+            <button id="pause-title" class="btn ghost">Save &amp; Quit to Title</button>
+        </div>
+    </div>
+
+    <div id="settings" class="screen hidden">
+        <div class="panel">
+            <div class="panel-head"><h2>Settings</h2><button class="x" data-close="settings" aria-label="Close">✕</button></div>
+            <label class="row"><span>Sound effects</span><input type="checkbox" id="set-sound"></label>
+            <label class="row"><span>Music</span><input type="checkbox" id="set-music"></label>
+            <label class="row"><span>Tutorial hints</span><input type="checkbox" id="set-hints"></label>
+            <label class="row"><span>Start waves automatically</span><input type="checkbox" id="set-auto"></label>
+            <label class="row"><span>Graphics</span><select id="set-quality"><option value="auto">Auto</option><option value="2">High</option><option value="1">Medium</option><option value="0">Low</option></select></label>
+            <button id="reset-btn" class="btn ghost danger">Erase all progress</button>
+        </div>
+    </div>
+
+    <div id="embers" class="screen hidden">
+        <div class="panel wide">
+            <div class="panel-head"><h2>The Ember Tree</h2><div class="gold-chip ember"><span class="ember-ico"></span><span id="ember-have">0</span></div><button class="x" data-close="embers" aria-label="Close">✕</button></div>
+            <div id="ember-intro" class="dim"></div>
+            <div id="ember-grid"></div>
+            <button id="rekindle-btn" class="btn primary hidden"></button>
+        </div>
+    </div>
+
+    <div id="bestiary" class="screen hidden">
+        <div class="panel wide">
+            <div class="panel-head"><h2>Bestiary</h2><button class="x" data-close="bestiary" aria-label="Close">✕</button></div>
+            <div id="bestiary-grid"></div>
+        </div>
+    </div>
+
+    <div id="help" class="screen hidden">
+        <div class="panel wide">
+            <div class="panel-head"><h2>How to Play</h2><button class="x" data-close="help" aria-label="Close">✕</button></div>
+            <div class="help-body">
+                <p><b>Monsters march in from the right.</b> If they reach the wall they batter it; if the wall falls, the wave is lost (you keep the gold you earned and can try again, stronger).</p>
+                <p><b>Place your party.</b> Tap a card at the bottom, then a glowing square: on a tower platform (safe from melee) or in the bailey field in front of the wall. On desktop you can also drag a card onto the field. Cards recharge after use during a wave.</p>
+                <p><b>Gold</b> comes from kills, alchemists, the treasury and the falling <b>embers</b>: tap them. Tap glowing <b>orbs</b> to stash powerups on the right, then tap one to use it.</p>
+                <p><b>Tap a party member</b> to level it up (perks at 3, 6 and 10) or sell it. <b>Tap the castle</b> (or Keep) to build towers, raise walls, widen the bailey, and buy the Forge, Treasury, Keepfire Beacon and Spiked Ramparts.</p>
+                <p><b>The Keepfire</b> charges as monsters fall: tap the flame, then a lane, to burn the whole lane.</p>
+                <p><b>Relics:</b> pick one after every wave (you can hold eight). <b>Rekindle</b> from wave 15 on: start over for Embers that buy permanent upgrades.</p>
+                <p class="dim">Keys: <kbd>1</kbd>–<kbd>0</kbd> cards · <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd><kbd>R</kbd> powerups · <kbd>F</kbd> Keepfire · <kbd>K</kbd> Keep · <kbd>Space</kbd> start wave / pause · <kbd>S</kbd> speed · <kbd>Esc</kbd> cancel · <kbd>M</kbd> mute</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="victory" class="screen hidden">
+        <div class="panel">
+            <h2 class="gold-h">The Black Sun Sets</h2>
+            <div id="victory-body"></div>
+            <button id="victory-ok" class="btn primary big">Into the Long Night</button>
+        </div>
+    </div>
+
+    <div id="loading">Kindling the fire…</div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -754,6 +754,16 @@ h1 {
     color: #fff6e8;
 }
 
+.game-preview.keepfire,
+.carousel-slide-bg.keepfire {
+    background: linear-gradient(180deg, #120c08 0%, #3a2414 40%, #c8641a 80%, #ffd24a 100%);
+}
+
+.game-card.keepfire .play-button {
+    background: linear-gradient(135deg, #2a1a0c 0%, #9a5a14 55%, #ffb02a 100%);
+    color: #fff6e0;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

@@ -831,6 +831,21 @@ const games = [
             { emoji: '💥', label: 'Bullet Hell' },
             { emoji: '✨', label: 'Vanilla WebGL2' }
         ]
+    },
+    {
+        id: 'game-056',
+        title: 'Keepfire',
+        description: "A castle-defence take on Plants vs. Zombies with an incremental heart, in three.js. Emberhold is the last keep in Aldmere and starts as one squat tower with a single archer on it; waves of procedurally generated fantasy monsters march in from the right along five lanes. Every kill pays gold, spent mid-wave on a party you place on the tower platforms or out in the bailey (archers, gold-brewing alchemists, knights and palisades, pyromancers throwing fireballs, a frost witch, dwarf bombardiers lobbing exploding barrels, clerics, a ballista, a druid that roots foes in thorns, and a storm caller whose lightning leaps between lanes), each levelling to 10 with perks. Grow the castle itself: towers rise floor by floor, walls go from logs to banded stone, the bailey widens, and the Forge, Treasury, Spiked Ramparts and the Keepfire beacon (a firestorm down a whole lane) appear. Tap falling embers for gold and glowing orbs for powerups (meteor, frost nova, thunderstorm, rally horn, arrow rain, earthquake), and pick one of three procedurally generated relics after every wave. Six regions (meadows, fens, a volcanic pass, frozen wastes, a necropolis and Dragonspire) each end in a boss: a warg king, the Mire Mother, Warlord Skarn, the Rime Colossus, Morvane the Lich and Vael the Black Sun, then the endless Long Night. Every monster species is rolled per run (bodies, colours, horns, weapons, names) with elite affixes; lose a wave and you keep the gold for a retry, or Rekindle for Embers that buy permanent upgrades. Generative medieval music, mouse, keyboard or touch, portrait or landscape.",
+        icon: '\uD83C\uDFF0',
+        folder: 'game-056',
+        version: '1.0.0',
+        cssClass: 'keepfire',
+        genre: 'strategy',
+        tags: [
+            { emoji: '\uD83C\uDFF0', label: 'Castle Defence' },
+            { emoji: '\uD83D\uDCC8', label: 'Incremental' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
