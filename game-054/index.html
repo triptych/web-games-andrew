@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#07080a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="description" content="Pale Engine: a DOOM-style first-person shooter in three.js. Procedural levels and monsters, nine weapons, a story on Io, and a demon god at the bottom of it.">
+    <title>Pale Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Teko:wght@400;600;700&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a href="../index.html" id="games-link" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
+
+    <div id="app"></div>
+
+    <!-- ============================== HUD ============================== -->
+    <div id="hud" hidden>
+        <div id="hud-msgs"></div>
+        <div id="comms"><div class="comms-head"><span class="dot"></span>VESPER <small>// station AI</small></div><div id="comms-text"></div></div>
+        <div id="boss" hidden><div id="boss-name">GUARDIAN</div><div class="bar"><div id="boss-lag"></div><div id="boss-fill"></div></div></div>
+        <div id="hud-powers"></div>
+        <div id="crosshair"><i></i><i></i><i></i><i></i><b></b></div>
+        <div id="hitmarker"></div>
+        <canvas id="dmg-dir" width="512" height="512"></canvas>
+        <div id="use-prompt" hidden></div>
+        <div id="statusbar">
+            <div class="sbg left">
+                <canvas id="face" width="96" height="96"></canvas>
+                <div class="sb vit">
+                    <div class="vrow"><span class="lbl">HP</span><span id="hud-health">100</span><div class="bar"><div id="hud-health-bar" class="fill"></div></div></div>
+                    <div class="vrow"><span class="lbl">AR</span><span id="hud-armor">0</span><div class="bar"><div id="hud-armor-bar" class="fill"></div></div></div>
+                </div>
+                <div id="hud-keys"></div>
+            </div>
+            <div class="sbg right">
+                <div class="sb tab"><div id="hud-ammo-table"></div></div>
+                <div id="hud-slots"></div>
+                <div class="sb amm">
+                    <div id="hud-weapon">M-9 Warden</div>
+                    <div class="arow2"><span id="hud-ammo-name">Self-charging</span><span id="hud-ammo">∞</span></div>
+                </div>
+            </div>
+        </div>
+        <div id="hud-level"></div>
+        <div id="fps" hidden></div>
+    </div>
+
+    <!-- ============================== TOUCH ============================== -->
+    <div id="touch" hidden>
+        <div id="stick-base"><div id="stick-knob"></div></div>
+        <button class="tbtn" id="t-fire" aria-label="Fire">FIRE</button>
+        <button class="tbtn" id="t-jump" aria-label="Jump">⤒</button>
+        <button class="tbtn" id="t-use" aria-label="Use">USE</button>
+        <button class="tbtn" id="t-melee" aria-label="Blade">⚔</button>
+        <button class="tbtn" id="t-prev" aria-label="Previous weapon">◀</button>
+        <button class="tbtn" id="t-next" aria-label="Next weapon">▶</button>
+        <button class="tbtn" id="t-map" aria-label="Map">MAP</button>
+        <button class="tbtn" id="t-pause" aria-label="Pause">❚❚</button>
+    </div>
+
+    <canvas id="automap" hidden></canvas>
+    <div id="flash-overlay"></div>
+
+    <!-- ============================== SCREENS ============================== -->
+    <div id="screens">
+        <div class="screen" id="s-loading">
+            <div class="loading"><div class="spinner"></div><div id="loading-text">Waking the Engine…</div></div>
+        </div>
+
+        <div class="screen" id="s-title" hidden>
+            <div class="title-wrap">
+                <h1 class="logo"><span>PALE</span><span>ENGINE</span></h1>
+                <div class="tagline">Io, 2291. The station stopped talking. Something underneath started singing.</div>
+                <nav class="menu" id="title-menu">
+                    <button data-act="continue" id="btn-continue" hidden>Continue</button>
+                    <button data-act="new">New Campaign</button>
+                    <button data-act="descent">Endless Descent</button>
+                    <button data-act="codex">Codex</button>
+                    <button data-act="options">Options</button>
+                    <button data-act="help">How to Play</button>
+                </nav>
+                <div class="title-foot" id="title-foot"></div>
+            </div>
+        </div>
+
+        <div class="screen" id="s-difficulty" hidden>
+            <div class="panel wide">
+                <h2>Choose your difficulty</h2>
+                <div class="cards" id="diff-cards"></div>
+                <div class="row"><button class="ghost" data-back>Back</button></div>
+            </div>
+        </div>
+
+        <div class="screen" id="s-options" hidden>
+            <div class="panel">
+                <h2>Options</h2>
+                <div class="opts" id="opts"></div>
+                <div class="row"><button data-back>Done</button></div>
+            </div>
+        </div>
+
+        <div class="screen" id="s-help" hidden>
+            <div class="panel wide">
+                <h2>How to play</h2>
+                <div class="help-grid">
+                    <div>
+                        <h3>Keyboard + mouse</h3>
+                        <table class="keys">
+                            <tr><td>Move</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td></tr>
+                            <tr><td>Look / fire</td><td>Mouse · <kbd>LMB</kbd></td></tr>
+                            <tr><td>Blade (quick melee)</td><td><kbd>F</kbd> · <kbd>RMB</kbd></td></tr>
+                            <tr><td>Use (doors, switches, logs)</td><td><kbd>E</kbd></td></tr>
+                            <tr><td>Jump</td><td><kbd>Space</kbd></td></tr>
+                            <tr><td>Walk (always-run is on)</td><td><kbd>Shift</kbd></td></tr>
+                            <tr><td>Weapons</td><td><kbd>1</kbd>–<kbd>9</kbd> · wheel · <kbd>Q</kbd> last</td></tr>
+                            <tr><td>Automap</td><td><kbd>Tab</kbd> / <kbd>M</kbd></td></tr>
+                            <tr><td>Pause</td><td><kbd>Esc</kbd> / <kbd>P</kbd></td></tr>
+                        </table>
+                    </div>
+                    <div>
+                        <h3>Touch</h3>
+                        <p>Left thumb: the move stick appears wherever you touch. Right thumb: drag anywhere to look. Hold <b>FIRE</b> — and keep dragging from it to aim while you shoot. <b>USE</b>, <b>⤒</b> jump, <b>⚔</b> blade, <b>◀ ▶</b> weapons. Vertical auto-aim is on.</p>
+                        <h3>Surviving</h3>
+                        <p>Find the keycard for each coloured door and reach the exit switch. Badly hurt demons <b>stagger</b> and glow — finish them with the blade for health. Barrels explode. Some walls are not walls. Guardians seal the exit until they fall.</p>
+                    </div>
+                </div>
+                <div class="row"><button data-back>Back</button></div>
+            </div>
+        </div>
+
+        <div class="screen" id="s-codex" hidden>
+            <div class="panel wide">
+                <h2>Codex</h2>
+                <div class="codex" id="codex"></div>
+                <div class="row"><button data-back>Back</button></div>
+            </div>
+        </div>
+
+        <div class="screen" id="s-briefing" hidden>
+            <div class="crawl">
+                <h2 id="brief-title"></h2>
+                <div id="brief-text"></div>
+                <button id="brief-go" class="big">Continue</button>
+            </div>
+        </div>
+
+        <div class="screen" id="s-card" hidden>
+            <div class="card-wrap">
+                <div class="card-id" id="card-id">E1M1</div>
+                <div class="card-name" id="card-name">Landing Bay Kappa</div>
+                <div class="card-obj" id="card-obj"></div>
+                <div class="card-hint" id="card-hint">Click to begin</div>
+            </div>
+        </div>
+
+        <div class="screen" id="s-lock" hidden>
+            <div class="lock-msg">Click to play<small>Esc pauses</small></div>
+        </div>
+
+        <div class="screen dim" id="s-pause" hidden>
+            <div class="panel">
+                <h2>Paused</h2>
+                <div class="pause-stats" id="pause-stats"></div>
+                <nav class="menu">
+                    <button data-act="resume">Resume</button>
+                    <button data-act="options">Options</button>
+                    <button data-act="map">Automap</button>
+                    <button data-act="restart">Restart level</button>
+                    <button data-act="quit">Quit to title</button>
+                </nav>
+            </div>
+        </div>
+
+        <div class="screen dim" id="s-log" hidden>
+            <div class="terminal">
+                <div class="term-head"><span>TARTARUS // DATA LOG</span><span id="log-count"></span></div>
+                <div class="term-from" id="log-from"></div>
+                <div class="term-text" id="log-text"></div>
+                <button id="log-close">Close <kbd>E</kbd></button>
+            </div>
+        </div>
+
+        <div class="screen" id="s-inter" hidden>
+            <div class="panel inter">
+                <div class="inter-done">Level complete</div>
+                <h2 id="inter-name"></h2>
+                <table class="inter-stats" id="inter-stats"></table>
+                <div class="inter-note" id="inter-note"></div>
+                <button id="inter-go" class="big">Continue</button>
+            </div>
+        </div>
+
+        <div class="screen" id="s-death" hidden>
+            <div class="death">
+                <h1>YOU DIED</h1>
+                <div id="death-note"></div>
+                <nav class="menu">
+                    <button data-act="restart">Try again</button>
+                    <button data-act="quit">Quit to title</button>
+                </nav>
+            </div>
+        </div>
+
+        <div class="screen" id="s-ending" hidden>
+            <div class="crawl">
+                <h2>The Engine runs backwards</h2>
+                <div id="ending-text"></div>
+                <button id="ending-go" class="big">Return to the surface</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

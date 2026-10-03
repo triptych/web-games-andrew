@@ -478,6 +478,29 @@ displace, then compute normals — shared vertices get one displacement and one 
 
 `group.add(mesh).rotation.x = ...` rotates the **group**. Build the mesh, set its transform, then add it.
 
+## A DOOM-style level from a height grid, lit by a baked XZ lightmap (game-054)
+
+game-054's levels are grids of 2 m cells with per-cell floor and ceiling heights. `build.js`
+emits one merged `BufferGeometry` per surface type (≈15 draw calls per level) with world-space
+UVs, and every lit surface — walls, floors, monsters, decals, gibs — samples the same baked
+lightmap by world XZ:
+
+```glsl
+vec2 luv = (vWorld.xz + Ng.xz * 0.35) / uLMSize;   // nudge off the wall into the open cell
+vec4 lm = texture2D(uLM, luv);                        // rgb light, a = ambient occlusion
+```
+
+The lightmap is a `DataTexture` of `HalfFloatType` (filterable in WebGL2), built on the CPU;
+dynamic lights are a fixed `uniform vec4 uDL[8]` / `vec3 uDLC[8]` array refilled every frame by
+priority, so muzzle flashes and rockets light the room without three.js lights or extra
+programs. All custom materials spread one shared uniforms object (`{ ...G, uMap: … }`) so a
+single `G.uTime.value = t` reaches every shader.
+
+The first-person weapon is a second scene and camera rendered by a second `RenderPass` with
+`clear = false, clearDepth = true` (the gun never clips into walls), lit by a hemisphere and a
+key light whose colours are set each frame from the CPU copy of the lightmap at the player's
+feet.
+
 ## Common gotchas
 
 - **`updateProjectionMatrix()` missing** — see resize section above. Symptom: window resizes but render is squashed.
@@ -513,6 +536,7 @@ To use: `import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 - [game-024 — Neon Vanguard](../../game-024/) — top-down shmup; bloom, custom grid shader, canvas-sprite HUD text
 - [game-040 — Starcadet](../../game-040/) — vertical bullet-hell shmup; instanced bullets, six shader backdrops, aspect-fitting camera, and a fake-three.js Node harness
 - [game-045 — PINBREAK '86](../../game-045/) — pinball × breakout; tilted table rig, horizon-aware camera, fake surface lights, neon env map, CRT post pass, per-frame fx budgets
+- [game-054 — Pale Engine](../../game-054/) — DOOM-style FPS; height-grid levels, baked XZ lightmap + dynamic light pool, derivative bump mapping, merged-per-bone procedural monsters, a viewmodel pass, a post pass per powerup
 - [game-047 — Ashes & Aces](../../game-047/) — card roguelite; two-scene composer with a pixel-exact card layer, region-framed camera, patched PBR creatures, canvas-painted card faces with normal/foil maps
 - [game-023 — Synthwave Invaders](../../game-023/) — reference implementation for new three.js games
 - [game-018 — Village of Wandering Blade](../../game-018/) — large-scale three.js example

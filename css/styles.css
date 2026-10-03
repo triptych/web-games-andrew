@@ -734,6 +734,16 @@ h1 {
     color: #fff4d8;
 }
 
+.game-preview.pale-engine,
+.carousel-slide-bg.pale-engine {
+    background: linear-gradient(180deg, #07080a 0%, #3a0c06 45%, #c8401a 80%, #ffb347 100%);
+}
+
+.game-card.pale-engine .play-button {
+    background: linear-gradient(135deg, #1a0a06 0%, #8a1e0c 50%, #ff6a2a 100%);
+    color: #fff4e0;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

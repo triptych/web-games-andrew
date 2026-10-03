@@ -4991,3 +4991,73 @@ plot was built, not just that something was.
 On an 844×390 phone the town's tutorial hint (bottom-centre) sat on top of the plots, and the
 taps landed on the hint. The phone test now checks `document.elementFromPoint()` at the tap
 point before every tap; that turned a vague "nothing happened" into "covered by #town-hint".
+
+
+## Game 054: Pale Engine — a DOOM-style FPS with procedural levels in three.js (2026-10-03)
+
+### Per-cell floor and ceiling heights are the whole level format
+DOOM's sectors map neatly onto a grid where every open cell has its own floor and ceiling.
+Stairs, daises, lava pits, crates you can shoot over, balconies and open-air courtyards all
+fall out of it, and so do collision (a DOOM body is an axis-aligned square that can step up at
+most `STEP`), ray casts (DDA through the grid, checking the ray's height against each cell's
+floor and ceiling) and the mesh build (floors, ceilings, walls where open meets solid, step
+faces and lintels where neighbouring heights differ).
+
+### Make the room graph exactly the tree you asked for
+Corridors are A*-routed with every room, every room's 8-ring and every earlier corridor's
+8-ring marked impassable, and doors only on a room's ring away from its corners. A corridor
+then never touches anything but its two rooms, so the generator *knows* the connectivity.
+That's what makes keys sound: lock edges on the start→exit path, define zones as components
+without the locks, put each key in the zone before its lock, and only add loop corridors
+inside a zone so a loop can never bypass a door.
+
+### Let the generator play its level, then let a bot walk it
+The generator validates by flood fill (collect keys, open their doors, repeat) and retries
+with the next attempt seed on failure. That proves the *graph* is right, not that a body fits
+through it. `dev/simtest.mjs` therefore walks a bot along the BFS path with the real
+`World.move` and the player's box: a stall of four simulated seconds fails the level. Two
+things that check caught or guards against: a terminal whose front cell could be given to
+solid decor (the cell wasn't reserved), and step heights after quantising stair interpolation
+(keep the ideal step ≤ 0.25 m so rounding to quarter metres can never exceed 0.5).
+
+### Wall winding: right = up × n
+`n = (0,0,1)` gives `up × n = (1,0,0)`. Writing the right vector as `(-nz, nx)` instead of
+`(nz, -nx)` silently flips every wall's winding — with `FrontSide` you see the sky through
+the walls from inside and the backs of walls from outside, which looks like "the level is
+open to the void". Floors and ceilings were right, so it only showed in the first screenshot.
+
+### A lightmap over the XZ plane lights walls, floors *and* monsters
+Bake light per texel (4 per 2 m cell) with hard line-of-sight against solid cells, blur once,
+soft-clip (`x / (1 + 0.22x)`) so stacked lamps saturate rather than blow out, and dilate into
+the walls so bilinear sampling beside a wall never pulls in black. The world shader samples it
+at `worldPos.xz + normal.xz * 0.35`; the actor shader samples it at the monster's position, so
+monsters walking under a lamp brighten without a single three.js light. Flickering lamps and
+glowing liquids go into a second map whose alpha is a per-light phase. Dynamic lights
+(muzzle flashes, rockets, explosions) are 8 uniform slots filled each frame by priority.
+
+### Bump scale is a length, not a strength
+With derivative bump mapping (`dFdx(height)` into `perturbNormalArb`), the gradient term is
+`Δheight / pixelWorldSize`, so `uBump` should be the real relief depth in metres (~0.035).
+7.0 (a typical "strength") turned every texture into noise.
+
+### Merge rigid parts per bone
+A procedural monster has 20–60 primitives (horns, teeth, plates, eyes). Merging every rigid
+part of a bone into one geometry with vertex colours and a glow attribute makes a monster 6–14
+draw calls; geometry is cached per species and shared by every instance, materials are per
+instance (hit flash, dissolve, elite tint).
+
+### First-person guns: keep the back of the gun 0.3 m from the camera
+The first viewmodels put stocks and receivers ~0.1 m from the eye: they filled the screen as
+dark planks, and the forearm cylinder pointed *at* the camera. Rest positions around
+`(0.2, -0.22, -0.55)`, forearms rotated down and back out of the bottom of the frame, a rim
+light behind the gun and lights tinted from the lightmap at the player's feet made them read.
+
+### Test waits must not match their own command line
+`until ! pgrep -f "dev/browsertest.mjs"; do sleep 5; done` never ends: `pgrep -f` matches the
+waiting shell, whose command line contains the same string. Run the test itself in the
+background and wait for it to exit instead.
+
+### Pin the seed in debug runs and print it
+A browser test that starts a fresh random campaign is a different level every run, so a
+failure that depends on the layout (a terminal in an awkward corner) won't reproduce.
+`?debug=1&seed=N` fixes the campaign seed, and the test prints the seed it used.
