@@ -816,6 +816,21 @@ const games = [
             { emoji: '\uD83D\uDC79', label: 'Procedural Demons' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-055',
+        title: 'Rotorstorm',
+        description: "A top-down helicopter bullet-hell shooter in vanilla JavaScript and hand-written WebGL2, with no libraries and no asset files. It is 2061 on the Shattered Coast: MERIDIAN, the AI built to steer storms away from the cities, has started steering them at them, and you fly the AH-77 Kestrel, the last experimental gunship of Task Force HALYARD. Six operations over procedural terrain (an archipelago at dawn, a monsoon jungle river, a sandstorm highway, a breaking ice shelf, a neon city at midnight under a superstorm, and a volcano that ends on MERIDIAN's own platform) are written as you fly by a director that sends drones, jets, gunships, bombers, carriers, mines, tanks, flak, SAM sites, gunboats, icebreakers and fuel convoys where the ground suits them, with elite storm-charged waves, a Warhawk mid-boss, salvage caches and stranded civilians to winch up. Six multi-phase bosses fight with named spell cards: the dreadnought Tidewarden, the walker Mantis and its laser scythes, a burrowing Sandwyrm, the Bastion behind orbiting shield plates and frost bullets that stop and re-aim, the crowned gunship Seraph flown by your captured wingman Ash, and MERIDIAN's core, with Ash on your wing for the last phase. Graze bullets to charge Overdrive, wipe the screen with a Thunderclap EMP, chain kills for a multiplier, and spend salvage in the hangar on a 28-node skill tree: a fan-spread chin gun, an Ion Lance, homing missiles, rocket pods, wingman drones, an Arc Caster, armour, a deflector, Phoenix Protocol and Storm Breaker. Terrain baked by shaders with animated water and lava, craters and tank treads stamped into the ground, falling wrecks, layered explosions, shockwaves, HDR bloom, weather, a night searchlight, a generative soundtrack per operation, radio portraits, an ending shaped by the survivors you saved, the endless Stormfront mode, and touch controls built for phones.",
+        icon: '🚁',
+        folder: 'game-055',
+        version: '1.0.0',
+        cssClass: 'rotorstorm',
+        genre: 'arcade',
+        tags: [
+            { emoji: '🚁', label: 'Helicopter Shmup' },
+            { emoji: '💥', label: 'Bullet Hell' },
+            { emoji: '✨', label: 'Vanilla WebGL2' }
+        ]
     }
 ];
 

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#06090d">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Rotorstorm: a top-down helicopter bullet-hell shooter. Six operations over procedural terrain, six bosses, a skill tree and a storm-making AI to stop.">
+    <title>Rotorstorm</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Russo+One&family=Share+Tech+Mono&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a href="../index.html" id="games-link" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
+
+    <div id="app">
+        <canvas id="gl" aria-label="Rotorstorm game view"></canvas>
+
+        <!-- ============================== HUD ============================== -->
+        <div id="hud" hidden>
+            <div id="hud-top">
+                <div class="hud-l">
+                    <div id="armor" aria-label="Armour"></div>
+                    <div id="shield-ico" hidden title="Deflector ready">◈</div>
+                </div>
+                <div class="hud-c">
+                    <div id="score">0</div>
+                    <div id="mult"><span id="mult-v">×1.0</span><span id="chain"></span></div>
+                </div>
+                <div class="hud-r">
+                    <div id="salv"><i class="gear-i"></i><span id="salv-v">0</span></div>
+                    <button id="pause-btn" class="ibtn" aria-label="Pause">❚❚</button>
+                </div>
+            </div>
+            <div id="progress"><div id="progress-fill"></div><div id="progress-boss"></div></div>
+            <div id="boss" hidden>
+                <div id="boss-head"><span id="boss-name">BOSS</span><span id="boss-phase"></span></div>
+                <div class="bar"><div id="boss-lag"></div><div id="boss-fill"></div></div>
+                <div id="boss-spell"></div>
+            </div>
+            <div id="comms" hidden>
+                <canvas id="comms-face" width="96" height="96"></canvas>
+                <div class="comms-body"><div id="comms-name"></div><div id="comms-text"></div></div>
+            </div>
+            <div id="banner" hidden><div id="banner-text"></div><div id="banner-sub"></div></div>
+            <div id="warning" hidden><div class="stripes"></div><div class="w-text">WARNING</div><div id="warning-sub"></div><div class="stripes"></div></div>
+            <div id="hud-bot">
+                <div id="bombs" aria-label="EMP charges"></div>
+                <div id="od"><div id="od-label">OVERDRIVE</div><div class="bar"><div id="od-fill"></div></div></div>
+            </div>
+            <div id="fps" hidden></div>
+        </div>
+
+        <!-- ============================== TOUCH ============================== -->
+        <div id="touch" hidden>
+            <div id="touch-hint">Drag anywhere to fly</div>
+            <button class="tbtn" id="t-focus" aria-label="Focus">FOCUS</button>
+            <button class="tbtn" id="t-bomb" aria-label="EMP">EMP<b id="t-bomb-n">2</b></button>
+            <button class="tbtn" id="t-od" aria-label="Overdrive">OD</button>
+        </div>
+
+        <!-- ============================== SCREENS ============================== -->
+        <div id="boot" class="screen show">
+            <div class="boot-logo">ROTORSTORM</div>
+            <div class="boot-bar"><div id="boot-fill"></div></div>
+            <div id="boot-msg">Spooling rotors…</div>
+        </div>
+
+        <div id="title" class="screen">
+            <div class="title-wrap">
+                <div class="logo"><span class="logo-a">ROTOR</span><span class="logo-b">STORM</span></div>
+                <div class="tagline">AH-77 KESTREL &nbsp;//&nbsp; THE SHATTERED COAST, 2061</div>
+                <nav class="menu" id="title-menu">
+                    <button data-act="continue" id="btn-continue" class="primary">Continue</button>
+                    <button data-act="new" id="btn-new">New Campaign</button>
+                    <button data-act="ops" id="btn-ops">Operations</button>
+                    <button data-act="hangar">Hangar</button>
+                    <button data-act="endless" id="btn-endless">Stormfront <small>endless</small></button>
+                    <button data-act="options">Options</button>
+                    <button data-act="howto">How to Play</button>
+                    <button data-act="credits">Credits</button>
+                </nav>
+                <div class="title-foot"><span id="title-salv"></span><span id="title-ver"></span></div>
+            </div>
+        </div>
+
+        <div id="prologue" class="screen">
+            <div class="crawl" id="crawl"></div>
+            <button class="skip" id="prologue-skip">Continue ▸</button>
+        </div>
+
+        <div id="ops" class="screen">
+            <div class="panel wide">
+                <h2>Operations</h2>
+                <div id="ops-list" class="ops-list"></div>
+                <div class="row end"><button data-back>Back</button></div>
+            </div>
+        </div>
+
+        <div id="briefing" class="screen">
+            <div class="panel brief">
+                <div class="brief-head">
+                    <div class="op-num" id="b-num">OP 1</div>
+                    <div>
+                        <h2 id="b-name">Operation</h2>
+                        <div class="sub" id="b-place"></div>
+                    </div>
+                </div>
+                <div class="brief-grid">
+                    <div class="brief-map"><canvas id="b-map" width="180" height="300"></canvas><div class="map-cap">RECON SWEEP</div></div>
+                    <div class="brief-main">
+                        <div class="obj"><b>OBJECTIVE</b><span id="b-obj"></span></div>
+                        <div class="threat"><b>PRIMARY TARGET</b><span id="b-boss"></span></div>
+                        <div id="b-lines" class="lines"></div>
+                    </div>
+                </div>
+                <div class="diff" id="b-diff" role="radiogroup" aria-label="Difficulty"></div>
+                <div class="row end">
+                    <button data-back>Back</button>
+                    <button id="b-hangar">Hangar</button>
+                    <button id="b-launch" class="primary">Launch ▸</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="hangar" class="screen">
+            <div class="panel hangar">
+                <div class="hangar-head">
+                    <div><h2>Hangar</h2><div class="sub">Chief Mbeki's workshop. Spend salvage between sorties.</div></div>
+                    <div class="salv-big"><i class="gear-i"></i><span id="h-salv">0</span></div>
+                </div>
+                <div class="hangar-body">
+                    <div class="heli-view"><canvas id="h-heli" width="220" height="220"></canvas><div id="h-stats" class="stats"></div></div>
+                    <div class="tree-wrap"><div id="tree"></div></div>
+                </div>
+                <div id="h-detail" class="detail"><div class="d-empty">Tap a system to inspect it.</div></div>
+                <div class="row end">
+                    <button id="h-respec" class="ghost">Refund all</button>
+                    <button data-back>Back</button>
+                    <button id="h-go" class="primary">To briefing ▸</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="pause" class="screen dim">
+            <div class="panel small">
+                <h2>Paused</h2>
+                <div id="pause-info" class="sub"></div>
+                <nav class="menu">
+                    <button id="p-resume" class="primary">Resume</button>
+                    <button id="p-options">Options</button>
+                    <button id="p-restart">Restart operation</button>
+                    <button id="p-quit">Abort to hangar</button>
+                </nav>
+            </div>
+        </div>
+
+        <div id="debrief" class="screen dim">
+            <div class="panel">
+                <div class="deb-head"><div><div class="sub" id="d-op"></div><h2 id="d-title">OPERATION COMPLETE</h2></div><div class="rank" id="d-rank">A</div></div>
+                <table class="tally" id="d-tally"></table>
+                <div class="story" id="d-story"></div>
+                <div class="row end">
+                    <button id="d-hangar">Hangar</button>
+                    <button id="d-next" class="primary">Next operation ▸</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="failed" class="screen dim">
+            <div class="panel small">
+                <h2 class="red">KESTREL DOWN</h2>
+                <div class="sub" id="f-info"></div>
+                <nav class="menu">
+                    <button id="f-boss" class="primary">Retry from the boss</button>
+                    <button id="f-retry">Retry operation</button>
+                    <button id="f-hangar">Hangar</button>
+                </nav>
+            </div>
+        </div>
+
+        <div id="ending" class="screen">
+            <div class="ending-inner">
+                <div id="end-text" class="end-text"></div>
+                <div id="end-credits" class="credits-roll"></div>
+                <button class="skip" id="end-skip">Continue ▸</button>
+            </div>
+        </div>
+
+        <div id="options" class="screen dim">
+            <div class="panel">
+                <h2>Options</h2>
+                <div class="opts" id="opts"></div>
+                <div class="row end"><button id="o-reset" class="ghost danger">Reset progress</button><button data-back class="primary">Done</button></div>
+            </div>
+        </div>
+
+        <div id="howto" class="screen dim">
+            <div class="panel wide">
+                <h2>How to Play</h2>
+                <div class="howto">
+                    <section>
+                        <h3>Fly</h3>
+                        <p><b>Phone:</b> drag anywhere; the Kestrel follows your finger's movement, not its position. FOCUS, EMP and OD are on the buttons.</p>
+                        <p><b>Keyboard:</b> WASD or arrows to fly · <kbd>Shift</kbd> focus · <kbd>X</kbd> / <kbd>K</kbd> EMP · <kbd>C</kbd> / <kbd>L</kbd> Overdrive · <kbd>Z</kbd> fire (if auto-fire is off) · <kbd>P</kbd> / <kbd>Esc</kbd> pause.</p>
+                        <p><b>Mouse:</b> hold the left button and drag. <b>Gamepad:</b> stick, A fire, LB focus, B EMP, Y Overdrive, Start pause.</p>
+                    </section>
+                    <section>
+                        <h3>Survive</h3>
+                        <p>Only the red dot in the cockpit can be hit. <b>Focus</b> slows you down, shows the dot and tightens your guns.</p>
+                        <p><b>Graze:</b> skimming past bullets scores and charges <b>Overdrive</b>: double fire rate and extra damage for a few seconds.</p>
+                        <p><b>Thunderclap EMP:</b> wipes every bullet on screen and makes you briefly invulnerable. Getting hit also clears the bullets around you.</p>
+                    </section>
+                    <section>
+                        <h3>Earn</h3>
+                        <p>Wrecks drop <b>salvage</b> gears: fly through them. Kills in quick succession build a <b>chain</b> multiplier that a hit resets.</p>
+                        <p>Hover over a flare to <b>winch up survivors</b>. They pay salvage, and the ending remembers them.</p>
+                        <p>Spend salvage in the <b>Hangar</b> on four upgrade branches. Refunds are free, so experiment.</p>
+                    </section>
+                </div>
+                <div class="row end"><button data-back class="primary">Got it</button></div>
+            </div>
+        </div>
+
+        <div id="credits" class="screen dim">
+            <div class="panel">
+                <h2>Credits</h2>
+                <div class="story">
+                    <p><b>Rotorstorm</b>: design, code, art, sound and music all generated in code: hand-written WebGL2 shaders, Canvas 2D sprites and Web Audio synthesis. No image or sound files.</p>
+                    <p>With a nod to <i>Desert Strike</i>, <i>Twin Cobra</i>, <i>Raiden</i>, <i>Choplifter</i>, the Touhou series' spell cards and <i>Ikaruga</i>'s nerve.</p>
+                    <p>Part of the <a href="../index.html">Web Games collection</a> by Andrew Wooldridge.</p>
+                </div>
+                <div class="row end"><button data-back class="primary">Back</button></div>
+            </div>
+        </div>
+
+        <div id="toast" hidden></div>
+        <div id="glfail" class="screen"><div class="panel small"><h2>WebGL2 needed</h2><p class="sub">Rotorstorm draws everything with WebGL2, which this browser didn't provide. Try a current Chrome, Edge, Firefox or Safari.</p></div></div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

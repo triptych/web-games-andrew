@@ -5061,3 +5061,66 @@ background and wait for it to exit instead.
 A browser test that starts a fresh random campaign is a different level every run, so a
 failure that depends on the layout (a terminal in an awkward corner) won't reproduce.
 `?debug=1&seed=N` fixes the campaign seed, and the test prints the seed it used.
+
+## Game 055: Rotorstorm — a helicopter bullet hell in hand-written WebGL2 (2026-10-03)
+
+### One noise function, two machines
+Ground units need to know where the water is, and the shader paints the water. Instead of
+baking a heightmap on the CPU and uploading it, the same value noise is written twice: in JS
+(`Math.imul`, `>>> 0`) and in GLSL ES 3.00 (`uint` arithmetic, which wraps mod 2³²). The two agree
+bit for bit on the hash, and to within float32 rounding on the interpolation. Two details matter:
+add 2³⁰ to the lattice coordinates *as integers* before hashing (converting a negative `int` to
+`uint` is the one step the languages might disagree on), and reduce `sin()` phases on the CPU
+before they become uniforms (mobile GPUs lose precision on large arguments). The browser test
+reads random texels back from the baked chunk (`readPixels` on the FBO) and compares their
+material with `terrain.kind()`. It has never disagreed.
+
+### Premultiplied alpha makes additive free
+With `blendFunc(ONE, ONE_MINUS_SRC_ALPHA)` and premultiplied output, a fragment with alpha 0
+simply adds its colour. So every sprite (normal, shadow, glow, fire, bullet) shares one shader,
+one blend state and one instanced draw per layer, and "additive" is a per-instance flag that zeroes
+alpha. Upload atlases with `UNPACK_PREMULTIPLY_ALPHA_WEBGL` so filtering stays correct.
+
+### Channel-coded bullets
+Bullet sprites store *core* in R, *body* in G and *rim* in B, computed from an SDF with 3×3
+supersampling. The shader builds `core·white + body·tint + rim·tint·0.22`, so one sprite serves
+every palette colour and every bullet has a white core that the bloom picks up. Readability on
+snow and sand came from the dark rim, not from making the bullets brighter.
+
+### Stamp decals into the terrain, not on top of it
+Craters, scorches, wrecks and tank treads are drawn with the sprite batch straight into the baked
+chunk's albedo attachment (`drawBuffers([COLOR_ATTACHMENT0, NONE])`, `colorMask(…, false)` so the
+material channel in alpha survives). They cost nothing per frame, scroll with the ground, and the
+water shader still knows a crater on a beach is land.
+
+### Name the unit in the signature
+`smokePuff(x, y, s)` took `s` as a size in world units at every call site, but used it as a sprite
+*scale*: every missile trail spawned puffs hundreds of units wide, and the whole screen filled with
+grey. Unit tests can't see that; the first close-up combat screenshot did. Write the unit into the
+parameter name and the JSDoc (`size` in world units, with the sprite's own size in the comment).
+
+### Gated bosses: let shots pass the core while it's shielded
+The dreadnought's missile silo sat directly behind its invulnerable bridge, so every bullet from
+below hit the bridge and stopped: the "destroy all turrets" phase could never end without the
+safety timeout. The headless god bot caught it at once (phase 1 took exactly 75 s). While a phase is
+gated on parts, the core no longer absorbs shots. Shield plates (Bastion) still do, because
+blocking is their job.
+
+### Balance from a bot needs a realistic shopping list
+The first balance table had ops 1–2 harder than ops 3–5, because the bot's assumed upgrades
+(`typicalOwned`) were far stingier than the salvage an operation pays out. With budgets set from
+measured income, an intensity ramp per operation (0.52 → 1.15) and boss HP set for 60–100 s fights,
+the curve runs the right way. A dodging bot sees every bullet, so its hit count is a floor for a
+human, not an average.
+
+### `touch-action: none` on body blocks scrolling overlays too (again)
+game-040 found this; it bit again. The canvas needs `touch-action: none`, but menus that overflow
+on a landscape phone need `touch-action: pan-x pan-y` on the overlay and panel, or the Launch button
+is unreachable. The phone test now scrolls the briefing with a real CDP touch drag rather than
+setting `scrollTop`, which is how the earlier version missed it.
+
+### SwiftShader runs the sim at a crawl
+At one or two frames a second, a 1/120 s fixed-step loop capped at 0.05 s per frame runs the game
+at about 7% speed, and a boss fight takes ten real minutes. A debug-only `fast=N` URL parameter
+runs N times more simulation per frame, so the browser tests stay under ten minutes without
+touching gameplay code paths.
