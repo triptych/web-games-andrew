@@ -10,7 +10,7 @@ Plain Node scripts, no build step, no test framework.
 | `node game-054/dev/gallery.mjs` | Every archetype, guardian and the pylon lined up in a big room for screenshots. `LV=9` uses the Archon's arena. |
 | `node game-054/dev/combat.mjs` | God mode, all weapons, a pack of monsters per weapon; screenshots mid-fight and the ammo/kill counts. |
 | `node game-054/dev/vmshots.mjs` | One screenshot per first-person weapon. |
-- `tour.mjs` — screenshots of level features (doors, key doors, pits, stairs, sky) per theme; `LVS=1,4,7` picks levels.
+| `node game-054/dev/tour.mjs` | Screenshots of level features (doors, key doors, pits, stairs, sky) per theme. `LVS=1,4,7` picks the levels. |
 | `node game-054/dev/sheet.mjs out.png cols a.png b.png …` | Tiles screenshots into one image. |
 
 No network to unpkg.com? Fetch three.js once and the browser scripts serve the
