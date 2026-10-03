@@ -171,7 +171,7 @@ const PAINTERS = {
         setRGB(o, c, c, c * 1.08);
         o.h = 0.3 + 0.5 * smooth(0.005, 0.02, g.d);
         // a light strip in alternate panels
-        if ((g.ix + g.iy) % 2 === 0 && g.lu > 0.2 && g.lu < 0.8 && g.lv > 0.42 && g.lv < 0.58) {
+        if (g.ix === 0 && g.iy === 0 && g.lu > 0.2 && g.lu < 0.8 && g.lv > 0.42 && g.lv < 0.58) {
             setRGB(o, 0.9, 0.95, 1.0); o.er = 0.9; o.eg = 0.95; o.eb = 1.0; o.h = 0.6;
         }
     },
@@ -542,22 +542,22 @@ function glyphs(text, u, v) {
  */
 export const THEMES = {
     station: {
-        surfaces: { wall: 'techwall', alt: 'techwall2', pillar: 'techpillar', corridor: 'corridorwall', floor: 'grate', floorAlt: 'tile', ceil: 'ceilpanel', crate: 'crate', step: 'step', door: 'door_station', exit: 'exit_station', terminal: 'terminal', liquid: 'acid' },
+        surfaces: { wall: 'techwall', alt: 'techwall2', pillar: 'techpillar', corridor: 'corridorwall', floor: 'grate', floorAlt: 'tile', corridorFloor: 'tile', ceil: 'ceilpanel', crate: 'crate', step: 'step', door: 'door_station', exit: 'exit_station', terminal: 'terminal', liquid: 'acid' },
         fog: 0x0a0e14, fogDensity: 0.022, ambient: [0.045, 0.05, 0.065], liquidLight: [0.25, 1.0, 0.2], liquidDamage: 5,
         sky: 'jupiter', grade: [1.0, 1.02, 1.08], music: { root: 40, mode: 'phrygian', tempo: 140 },
     },
     foundry: {
-        surfaces: { wall: 'rustplate', alt: 'rock', pillar: 'girder', corridor: 'rustplate', floor: 'brick', floorAlt: 'rustplate', ceil: 'rock', crate: 'metalcrate', step: 'step_rust', door: 'door_rust', exit: 'exit_foundry', terminal: 'terminal', liquid: 'lava', rockglow: 'rockglow' },
+        surfaces: { wall: 'rustplate', alt: 'rock', pillar: 'girder', corridor: 'rustplate', floor: 'brick', floorAlt: 'rustplate', corridorFloor: 'rustplate', ceil: 'rock', crate: 'metalcrate', step: 'step_rust', door: 'door_rust', exit: 'exit_foundry', terminal: 'terminal', liquid: 'lava', rockglow: 'rockglow' },
         fog: 0x1a0a05, fogDensity: 0.024, ambient: [0.09, 0.055, 0.03], liquidLight: [1.0, 0.45, 0.1], liquidDamage: 10,
         sky: 'io', grade: [1.08, 1.0, 0.92], music: { root: 38, mode: 'harmonicMinor', tempo: 150 },
     },
     hell: {
-        surfaces: { wall: 'flesh', alt: 'bonebrick', pillar: 'bonepillar', corridor: 'bonebrick', floor: 'hellstone', floorAlt: 'altar', ceil: 'flesh', crate: 'altar', step: 'step_bone', door: 'door_bone', exit: 'exit_hell', terminal: 'terminal_hell', liquid: 'blood' },
+        surfaces: { wall: 'flesh', alt: 'bonebrick', pillar: 'bonepillar', corridor: 'bonebrick', floor: 'hellstone', floorAlt: 'altar', corridorFloor: 'bonebrick', ceil: 'flesh', crate: 'altar', step: 'step_bone', door: 'door_bone', exit: 'exit_hell', terminal: 'terminal_hell', liquid: 'blood' },
         fog: 0x1c0404, fogDensity: 0.028, ambient: [0.06, 0.02, 0.02], liquidLight: [0.9, 0.08, 0.05], liquidDamage: 8,
         sky: 'hell', grade: [1.1, 0.95, 0.92], music: { root: 37, mode: 'locrian', tempo: 160 },
     },
     throne: {
-        surfaces: { wall: 'marble', alt: 'darkmarble', pillar: 'marble', corridor: 'darkmarble', floor: 'marblefloor', floorAlt: 'marble', ceil: 'darkmarble', crate: 'darkmarble', step: 'step_gold', door: 'darkmarble', exit: 'exit_throne', terminal: 'terminal', liquid: 'void' },
+        surfaces: { wall: 'marble', alt: 'darkmarble', pillar: 'marble', corridor: 'darkmarble', floor: 'marblefloor', floorAlt: 'marble', corridorFloor: 'darkmarble', ceil: 'darkmarble', crate: 'darkmarble', step: 'step_gold', door: 'darkmarble', exit: 'exit_throne', terminal: 'terminal', liquid: 'void' },
         fog: 0x0c0614, fogDensity: 0.016, ambient: [0.05, 0.04, 0.07], liquidLight: [0.5, 0.25, 1.0], liquidDamage: 12,
         sky: 'void', grade: [1.0, 0.98, 1.08], music: { root: 36, mode: 'phrygianDominant', tempo: 128 },
     },

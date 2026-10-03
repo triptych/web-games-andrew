@@ -779,10 +779,16 @@ function tryGenerate(spec, rng, opts) {
         }
     }
     for (const c of L.corridors) {
-        for (let k = 2; k < c.cells.length - 2; k += 5) {
+        // every corridor gets at least one lamp; long ones one every 5 cells
+        const n = c.cells.length;
+        const ks = [];
+        if (n <= 6) ks.push(n >> 1);
+        else for (let k = 2; k < n - 2; k += 5) ks.push(k);
+        for (const k of ks) {
             const i = c.cells[k];
+            if (L.door[i] >= 0) continue;
             const p = cellPos(i);
-            L.lights.push({ x: p.x, z: p.z, y: L.ceil[i] - 0.15, color: rng.pick(PAL.corridor), radius: 6, intensity: 1.3, flicker: rng.chance(PAL.flicker) ? 1 : 0, fixture: 'ceil' });
+            L.lights.push({ x: p.x, z: p.z, y: L.ceil[i] - 0.15, color: rng.pick(PAL.corridor), radius: 7, intensity: 1.45, flicker: rng.chance(PAL.flicker) ? 1 : 0, fixture: 'ceil' });
         }
     }
     for (const s of L.secrets) {

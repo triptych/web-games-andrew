@@ -437,6 +437,7 @@ class Flashes {
         this.live = [];
         for (let i = 0; i < max; i++) {
             const m = new THREE.Mesh(GLOW_GEO, glowMaterial(0xffffff, 0xffffff, 1, 2.0));
+            m.material.uniforms.uNearFade.value = 0;   // muzzle flashes live right at the eye
             m.visible = false; m.renderOrder = 25; m.frustumCulled = false;
             scene.add(m);
             this.pool.push(m);

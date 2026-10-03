@@ -80,7 +80,7 @@ export function buildLevel(L, opts = {}) {
         const x0 = x * CELL, x1 = (x + 1) * CELL, z0 = y * CELL, z1 = (y + 1) * CELL;
         // floor
         const k = L.kind[i];
-        const fb = L.liquid[i] ? 'liquid' : k === K_CRATE ? 'crate' : k === K_DAIS ? 'floorAlt' : k === K_CORRIDOR ? 'floorAlt' : 'floor';
+        const fb = L.liquid[i] ? 'liquid' : k === K_CRATE ? 'crate' : k === K_DAIS ? 'floorAlt' : k === K_CORRIDOR || L.door[i] >= 0 ? 'corridorFloor' : 'floor';
         const fuv = (px, pz) => [px / CELL, pz / CELL];
         const fq = (px, pz) => [px, f, pz, ...fuv(px, pz), 1];
         B(fb).quad(fq(x0, z0), fq(x0, z1), fq(x1, z1), fq(x1, z0), 0, 1, 0);
@@ -122,10 +122,11 @@ export function buildLevel(L, opts = {}) {
 
     const tex = (name) => paintTexture(name, texSize, opts.anisotropy ?? 4);
     const SURF_OPTS = {
+        corridorFloor: { spec: 0.6 },
         liquid: { liquid: true, bump: 0.02 },
         exit: { emitBoost: 2.2 },
         terminal: { emitBoost: 1.8 },
-        ceil: { emitBoost: 1.6 },
+        ceil: { emitBoost: 1.0 },
         floor: { spec: 0.7 },
     };
     const meshes = {};
@@ -159,8 +160,10 @@ export function buildLevel(L, opts = {}) {
             mesh = new THREE.Mesh(geo, doorMat(d.key));
             if (d.key) {
                 // glowing key-colour strips on both faces
-                const glowMat = actorMaterial({ tint: KEY_COLORS[d.key], glow: KEY_COLORS[d.key], unlit: true, rim: 0 });
-                const strip = new THREE.Mesh(d.alongX ? colorBox(thick + 0.04, 0.16, CELL * 0.8, 1) : colorBox(CELL * 0.8, 0.16, thick + 0.04, 1), glowMat);
+                const kc = new THREE.Color(KEY_COLORS[d.key]);
+                const rgb = [kc.r * 0.5, kc.g * 0.5, kc.b * 0.5];
+                const glowMat = actorMaterial({ glow: KEY_COLORS[d.key], unlit: true, rim: 0 });
+                const strip = new THREE.Mesh(d.alongX ? colorBox(thick + 0.04, 0.16, CELL * 0.8, 1, rgb) : colorBox(CELL * 0.8, 0.16, thick + 0.04, 1, rgb), glowMat);
                 strip.position.y = h * 0.18 - h / 2 + 0.6;
                 mesh.add(strip);
                 const strip2 = strip.clone();
@@ -190,10 +193,12 @@ export function buildLevel(L, opts = {}) {
             lamp.rotation.y = Math.atan2(lt.nx, lt.nz);
             fixtures.add(lamp);
             halo.position.set(wx + lt.nx * 0.22, lt.y, wz + lt.nz * 0.22);
-            halo.scale.setScalar(1.3);
+            halo.scale.setScalar(0.95);
+            halo.material.uniforms.uIntensity.value = 0.75;
         } else {
             halo.position.set(lt.x * CELL, lt.y - 0.05, lt.z * CELL);
-            halo.scale.setScalar(1.6);
+            halo.scale.setScalar(1.05);
+            halo.material.uniforms.uIntensity.value = 0.6;
         }
         halo.userData = { flicker: lt.flicker, base: 1, phase: Math.random() * 10 };
         halos.push(halo);

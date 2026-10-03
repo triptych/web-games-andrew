@@ -1087,7 +1087,8 @@ export class Session {
         for (const h of this.built.halos) {
             if (!h.userData.flicker) continue;
             const ph = h.userData.phase;
-            h.material.uniforms.uIntensity.value = 0.6 + 0.4 * Math.sin(this.time * 9 + ph * 7) * Math.sin(this.time * 23 + ph * 3);
+            h.userData.base0 ??= h.material.uniforms.uIntensity.value;
+            h.material.uniforms.uIntensity.value = h.userData.base0 * (0.6 + 0.4 * Math.sin(this.time * 9 + ph * 7) * Math.sin(this.time * 23 + ph * 3));
         }
         // hell skies throw lightning
         if (this.L.theme === 'hell' || this.L.theme === 'throne') {

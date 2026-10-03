@@ -289,10 +289,14 @@ export function actorMaterial(opts = {}) {
 
 const GLOW_VS = /* glsl */`
 uniform float uSize;
+uniform float uNearFade;
 varying vec2 vUv;
+varying float vNear;
 void main(){
     vUv = uv;
     vec4 mv = modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+    // sprites fade out as the eye closes in, so a lamp never fills the screen
+    vNear = mix(1.0, smoothstep(0.4, 2.4, -mv.z), uNearFade);
     vec2 scale = vec2(length(modelMatrix[0].xyz), length(modelMatrix[1].xyz));
     mv.xy += position.xy * scale * uSize;
     gl_Position = projectionMatrix * mv;
@@ -305,12 +309,13 @@ uniform float uIntensity;
 uniform float uFogD;
 uniform float uSharp;
 varying vec2 vUv;
+varying float vNear;
 void main(){
     float d = length(vUv - 0.5) * 2.0;
     float g = pow(clamp(1.0 - d, 0.0, 1.0), uSharp);
     float core = smoothstep(0.35, 0.0, d);
     vec3 col = uColor * g + uCore * core;
-    gl_FragColor = vec4(col * uIntensity, 1.0);
+    gl_FragColor = vec4(col * uIntensity * vNear, 1.0);
 }
 `;
 export function glowMaterial(color, core = 0xffffff, intensity = 1, sharp = 2.2) {
@@ -320,6 +325,7 @@ export function glowMaterial(color, core = 0xffffff, intensity = 1, sharp = 2.2)
             uCore: { value: new THREE.Color(core) },
             uIntensity: { value: intensity },
             uSize: { value: 1 },
+            uNearFade: { value: 1 },
             uFogD: G.uFogD,
             uSharp: { value: sharp },
         },
