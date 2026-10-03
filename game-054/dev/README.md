@@ -12,7 +12,6 @@ Plain Node scripts, no build step, no test framework.
 | `node game-054/dev/vmshots.mjs` | One screenshot per first-person weapon. |
 - `tour.mjs` — screenshots of level features (doors, key doors, pits, stairs, sky) per theme; `LVS=1,4,7` picks levels.
 | `node game-054/dev/sheet.mjs out.png cols a.png b.png …` | Tiles screenshots into one image. |
-- `tour.mjs` — screenshots of level features (doors, key doors, pits, stairs, sky) per theme; `LVS=1,4,7` picks levels.
 
 No network to unpkg.com? Fetch three.js once and the browser scripts serve the
 CDN requests from disk — still the genuine r165:
