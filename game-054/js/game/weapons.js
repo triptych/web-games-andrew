@@ -152,6 +152,15 @@ export class Weapons {
             if (this.charge >= w.charge) { this.charging = false; this._fire(w); this.charge = 0; }
         }
 
+        // what the crosshair is on (the HUD tints it red)
+        this.aimT = (this.aimT ?? 0) - dt;
+        if (this.aimT <= 0) {
+            this.aimT = 0.1;
+            const cp = Math.cos(P.pitch);
+            const r = S.traceBodies(P.eyePos(), [Math.sin(P.yaw) * cp, Math.sin(P.pitch), -Math.cos(P.yaw) * cp], 80, null);
+            this.onTarget = P.alive && !!r.body && !r.body.isBarrel;
+        }
+
         // ---- view model pose
         const moving = Math.hypot(P.vx, P.vz);
         const bobAmt = P.grounded ? Math.min(1, moving / 8) : 0.15;

@@ -391,6 +391,7 @@ export class ViewModels {
         // portrait screens are narrow: bring the gun in from the edge so it stays in view
         const a = this.camera.aspect;
         this.root.position.set(a < 1 ? (a - 1) * 0.22 : 0, a < 1 ? 0.02 : 0, 0);
+        this.root.scale.setScalar(a < 1 ? 0.85 : 1);
         const r = g.userData.rest;
         g.position.set(r[0] + p.x, r[1] + p.y, r[2] + p.z);
         // toe the barrel in a little so it points at the crosshair

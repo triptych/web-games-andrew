@@ -172,6 +172,8 @@ table.inter-stats tr.perfect td:last-child { color: #7dff8a; text-shadow: 0 0 12
 #crosshair i:nth-child(4) { top: -1px; left: 5px; width: 7px; height: 2px; }
 #crosshair b { position: absolute; left: -1.5px; top: -1.5px; width: 3px; height: 3px; border-radius: 50%; background: #ff6a3a; }
 #crosshair.hidden { display: none; }
+#crosshair.target i { background: #ff5a3a; box-shadow: 0 0 4px #ff2a0a; }
+#crosshair.target b { background: #fff; }
 #hitmarker { position: absolute; left: 50%; top: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px; opacity: 0; background: linear-gradient(45deg, transparent 46%, #fff 46%, #fff 54%, transparent 54%), linear-gradient(-45deg, transparent 46%, #fff 46%, #fff 54%, transparent 54%); -webkit-mask: radial-gradient(circle, transparent 5px, #000 6px); mask: radial-gradient(circle, transparent 5px, #000 6px); }
 #hitmarker.kill { background: linear-gradient(45deg, transparent 44%, #ff3a2a 44%, #ff3a2a 56%, transparent 56%), linear-gradient(-45deg, transparent 44%, #ff3a2a 44%, #ff3a2a 56%, transparent 56%); }
 #dmg-dir { position: absolute; left: 50%; top: 50%; width: min(70vh, 70vw); height: min(70vh, 70vw); transform: translate(-50%, -50%); }

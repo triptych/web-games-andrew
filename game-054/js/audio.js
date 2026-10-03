@@ -496,27 +496,37 @@ export const music = {
     newRiff() {
         const R = this.rand;
         const sc = MODES[this.theme.mode] ?? MODES.phrygian;
-        const steps = [];
-        // 32 sixteenths: chugs on the root, accented power chords on scale degrees
-        const chordDeg = [0, 1, 2, 3, 4, 5];
-        let k = 0;
-        while (k < 32) {
-            const r = R();
-            if (r < 0.45) { steps[k] = { type: 'chug', deg: 0 }; k += 1; }
-            else if (r < 0.62) { steps[k] = null; k += 1; }
-            else {
-                const deg = chordDeg[Math.floor(R() * chordDeg.length)];
-                const len = R() < 0.5 ? 2 : (R() < 0.6 ? 3 : 4);
-                steps[k] = { type: 'chord', deg, len };
-                for (let j = 1; j < len && k + j < 32; j++) steps[k + j] = null;
-                k += len;
+        // root-heavy chord choices: the flat second and sixth carry the menace
+        const DEG = [{ d: 0, w: 5 }, { d: 1, w: 2.2 }, { d: 5, w: 2 }, { d: 3, w: 1.4 }, { d: 4, w: 1.4 }, { d: 2, w: 0.8 }];
+        const pickDeg = () => { let r = R() * DEG.reduce((a, x) => a + x.w, 0); for (const x of DEG) { r -= x.w; if (r <= 0) return x.d; } return 0; };
+        // one bar (16 sixteenths): chugs on the root, accented power chords
+        const bar = () => {
+            const steps = new Array(16).fill(null);
+            let k = 0;
+            while (k < 16) {
+                const r = R();
+                if (r < 0.5) { steps[k] = { type: 'chug', deg: 0 }; k += 1; }
+                else if (r < 0.64) { k += 1; }
+                else {
+                    const len = R() < 0.55 ? 2 : (R() < 0.6 ? 3 : 4);
+                    steps[k] = { type: 'chord', deg: pickDeg(), len: Math.min(len, 16 - k) };
+                    k += len;
+                }
             }
-        }
-        steps[0] = { type: 'chord', deg: 0, len: 2 }; steps[1] = null;
-        this.riff = steps.slice(0, 32);
+            steps[0] = { type: 'chord', deg: 0, len: 2 }; steps[1] = null;
+            return steps;
+        };
+        const a = bar();
+        // the second bar repeats the first with a new turnaround in its last beat
+        const b2 = a.map((x) => (x ? { ...x } : null));
+        const turn = bar();
+        for (let k = 12; k < 16; k++) b2[k] = turn[k];
+        for (let k = 0; k < 12; k++) if (b2[k] && b2[k].len && k + b2[k].len > 12) b2[k].len = 12 - k;
+        this.riff = [...a, ...b2];
         this.scale = sc;
-        // a lead motif
-        this.motif = Array.from({ length: 16 }, () => (R() < 0.6 ? Math.floor(R() * 8) : -1));
+        // a lead motif built from the scale, mostly stepwise
+        let m = 4;
+        this.motif = Array.from({ length: 16 }, () => { if (R() < 0.35) return -1; m = Math.max(0, Math.min(9, m + Math.floor(R() * 5) - 2)); return m; });
         this.kickPat = Array.from({ length: 32 }, (_, i) => (i % 8 === 0 || (this.riff[i] && this.riff[i].type === 'chug' && R() < 0.6) ? 1 : 0));
     },
 

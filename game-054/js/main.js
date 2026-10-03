@@ -126,11 +126,15 @@ const callbacks = {
     onHitMarker: (k) => hud.hitMarker(k),
     onNewWeapon: () => hud.grin(),
     onKey: () => hud.grin(),
-    onKill: (m) => {
+    onKill: (m, source) => {
+        if (source === player) hud.hitMarker(2);
         const k = save.codex[m.arch] ?? (save.codex[m.arch] = { kills: 0 });
         k.kills++;
     },
-    onNewSpecies: (sp) => { save.codex[sp.arch] = { ...(save.codex[sp.arch] ?? { kills: 0 }), seen: true }; },
+    onNewSpecies: (sp) => {
+        save.codex[sp.arch] = { ...(save.codex[sp.arch] ?? { kills: 0 }), seen: true, name: sp.name, skin: sp.colors.skin };
+        writeSave();
+    },
 };
 
 function makeSession(demo = false) {
@@ -289,10 +293,23 @@ function loadLevel(spec) {
     vm.show(weapons.current);
     weapons.raise = 0; weapons.phase = 'raising';
     hud.clearComms();
+    precompile();
     $('hud-level').textContent = `${game.mode === 'campaign' ? spec.id : 'D' + game.depth} · ${spec.name}`;
 }
 
 function fade(on) { $('flash-overlay').classList.toggle('on', on); }
+
+/** Compile every shader now, behind the level card, so the first explosion or
+ *  weapon switch doesn't stall a frame. */
+function precompile() {
+    try {
+        R.renderer.compile(R.scene, R.camera);
+        const shown = Object.entries(vm.models).map(([k, g]) => [g, g.visible]);
+        for (const [g] of shown) g.visible = true;
+        R.renderer.compile(R.vmScene, R.vmCamera);
+        for (const [g, v] of shown) g.visible = v;
+    } catch (e) { console.warn('precompile', e); }
+}
 
 function beginPlay() {
     // fade in from black
@@ -534,14 +551,17 @@ function buildCodex() {
         archon: 'The thing on the throne. Shields itself with Engine pylons.',
     };
     for (const arch of Object.keys(notes)) {
-        const s = sp?.[arch];
-        const known = seen.has(arch) || save.codex[arch]?.seen;
+        const cx = save.codex[arch];
+        const known = seen.has(arch) || cx?.seen;
         const A = ARCHETYPES[arch];
         const d = document.createElement('div');
         d.className = 'cx' + (known ? '' : ' unknown');
-        const col = s ? `rgb(${s.colors.skin.map((v) => Math.round(v * 255)).join(',')})` : '#444';
-        d.innerHTML = known && s
-            ? `<b><span class="sw" style="background:${col}"></span>${s.name}</b><i>${A.cls} · ${A.hp} HP${save.codex[arch]?.kills ? ` · ${save.codex[arch].kills} slain` : ''}</i>${notes[arch]}`
+        // prefer the species from the run in progress, else the last one you met
+        const name = (save.campaign && seen.has(arch) ? sp?.[arch]?.name : null) ?? cx?.name ?? sp?.[arch]?.name;
+        const skin = (save.campaign && seen.has(arch) ? sp?.[arch]?.colors.skin : null) ?? cx?.skin ?? [0.3, 0.3, 0.3];
+        const col = `rgb(${skin.map((v) => Math.round(v * 255)).join(',')})`;
+        d.innerHTML = known && name
+            ? `<b><span class="sw" style="background:${col}"></span>${name}</b><i>${A.cls} · ${A.hp} HP${cx?.kills ? ` · ${cx.kills} slain` : ''}</i>${notes[arch]}`
             : `<b>??????</b><i>${A.boss ? 'Guardian' : 'Unknown hostile'}</i>Not yet encountered.`;
         box.appendChild(d);
     }

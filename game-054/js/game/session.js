@@ -535,7 +535,7 @@ export class Session {
             g.position.y = p.y + 0.45 + Math.sin(p.phase * 2.2) * 0.08;
             if (g.userData.spin) g.userData.mesh.rotation.y += dt * 1.6;
             g.userData.halo.material.uniforms.uIntensity.value = 0.8 + Math.sin(p.phase * 3) * 0.2;
-            if (g.userData.big) this.R.light(p.x, p.y + 0.8, p.z, PICKUPS[p.id].color ?? 0xffffff, 3.5, 0.7, 0.3);
+            if (g.userData.big) this.R.light(p.x, p.y + 0.8, p.z, PICKUPS[p.id].color ?? 0xffffff, 3.2, 0.45, 0.3);
             if (!P.alive) continue;
             if (Math.abs(P.x - p.x) < 0.95 && Math.abs(P.z - p.z) < 0.95 && Math.abs(P.y - p.y) < 1.4) this._take(p);
         }

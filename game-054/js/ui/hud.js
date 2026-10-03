@@ -126,6 +126,7 @@ export class HUD {
         this.set('pr', this.prompt, pr ? `<kbd>${S.touch ? 'USE' : 'E'}</kbd> ${pr}` : '', 'innerHTML');
         this.prompt.hidden = !pr;
         this.cross.classList.toggle('hidden', !P.alive);
+        this.cross.classList.toggle('target', !!W.onTarget);
 
         // messages
         for (const m of this.msgList) m.t -= dt;
