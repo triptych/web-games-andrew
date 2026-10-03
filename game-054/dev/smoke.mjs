@@ -1,0 +1,30 @@
+import { chromium } from 'playwright';
+import fs from 'node:fs'; import path from 'node:path';
+const HERE = path.dirname(new URL(import.meta.url).pathname);
+const PKG = path.join(HERE, 'package');
+const OUT = path.join(HERE, 'shots'); fs.mkdirSync(OUT, { recursive: true });
+const LV = +(process.env.LV ?? 0);
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await page.route('https://unpkg.com/**', (route) => { const rel = new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, ''); const f = path.join(PKG, rel); if (!fs.existsSync(f)) return route.abort(); route.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(f) }); });
+await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log('console.' + m.type(), m.text().slice(0, 400)); });
+page.on('pageerror', (e) => console.log('pageerror', e.message, e.stack?.slice(0, 600)));
+await page.goto('http://127.0.0.1:8054/game-054/index.html?debug=1');
+await page.waitForFunction(() => window.__pe && window.__pe.state() === 'title', null, { timeout: 90000 }).catch(() => console.log('no title'));
+await page.waitForTimeout(1500);
+if (!process.env.NOTITLE) await page.screenshot({ path: OUT + '/title.png' });
+await page.evaluate((lv) => __pe.start(1, lv), LV);
+await page.waitForFunction(() => __pe.game.cardReady, null, { timeout: 90000 }).catch(() => console.log('no card'));
+await page.screenshot({ path: OUT + '/card.png' });
+await page.evaluate(() => __pe.begin());
+await page.waitForTimeout(1500);
+const shots = (process.env.SHOTS ?? '0,90,180,270').split(',').map(Number);
+for (const a of shots) {
+  await page.evaluate((a) => { __pe.player.yaw = a * Math.PI / 180; }, a);
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: `${OUT}/play_${a}.png` });
+}
+if (process.env.EVAL) console.log(await page.evaluate(process.env.EVAL));
+console.log(await page.evaluate(() => ({ state: __pe.state(), hp: __pe.player.health, monsters: __pe.S.monsters.length, b: __pe.brightness() })));
+await browser.close();

@@ -801,6 +801,21 @@ const games = [
             { emoji: '\uD83D\uDC65', label: 'Simulated MMO' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-054',
+        title: 'Pale Engine',
+        description: "A DOOM-style first-person shooter in three.js, set on Io in 2291. The Hadal Consortium's deep-mantle station has gone silent, its Pale Engine drilled through the bottom of everything, and you are the last Warden standing \u2014 with the station AI VESPER in your ear and its own reasons for wanting you at the bottom. Ten levels across three episodes (Tartarus Station, the Sulfur Deep, the Underneath) are generated from a seed: rooms, stairs, lava pits, crates and courtyards from per-cell heights, blue, yellow and red keycard doors, secret walls, exploding barrels, ambushes that teleport in, data terminals that tell the story, and a validator that plays every level before you do. Every run rolls its own monster species \u2014 names, colours, horns, eyes, voices \u2014 across ten archetypes that sight, hear, chase, infight, stagger and get executed, plus three guardians: Overseer Kell's mech, the Furnace Mother and the Archon on the Pale Throne, who shields itself with Engine pylons. Nine weapons from the Arc Blade and a self-charging pistol to the Twin Reaper, the Rail Driver and the Singularity Cannon, modelled in code with working pumps and break-actions; Berserk, Overdrive, Haste, an inverted-colour Aegis Field, a Phase Cloak and a Hazard Suit. Baked lightmaps plus live muzzle-flash light, bump-mapped procedural textures, four skies, bloom and a post pass for every powerup, a generative industrial-metal score, an automap, a helmet portrait that bleeds, intermission tallies with par times, and Endless Descent after the credits. Mouse and keyboard, or full touch controls.",
+        icon: '\uD83D\uDD25',
+        folder: 'game-054',
+        version: '1.0.0',
+        cssClass: 'pale-engine',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83D\uDD2B', label: 'FPS' },
+            { emoji: '\uD83D\uDC79', label: 'Procedural Demons' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

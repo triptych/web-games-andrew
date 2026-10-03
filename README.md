@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-53 games, `game-001` through `game-053`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+54 games, `game-001` through `game-054`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -71,6 +71,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 051 | [Sigilborn](game-051/) | Gacha auto-battler with idle citadel | three.js |
 | 052 | [Nightline](game-052/) | Lo-fi synthwave night-drive simulator | three.js |
 | 053 | [Legend of the Jade Wyrm](game-053/) | Legend of the Green Dragon-style RPG with a simulated online realm | three.js |
+| 054 | [Pale Engine](game-054/) | DOOM-style FPS with procedural levels and monsters | three.js |
 
 ### Highlights
 
@@ -131,6 +132,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 **[Nightline](game-052/)** — A **lo-fi synthwave night drive** through an endless, rain-soaked, Blade Runner-style city. No goals and no crashes: you set a cruise speed, ask for a lane (the blinker waits for a gap that grows with the closing speed, so nothing can ever hit anything), and pull over when something looks good. The city is built in 96 m chunks as you drive — five districts with their own palettes (neon downtown with cross streets and animated billboards, a paper-lantern night market, a skyway viaduct above the lit grid, a harbour of cranes, piers and ships, residential heights), and every kilometre or so a stop with a pull-in bay: noodle bar, diner, charging station, overlook, konbini, record shop, arcade, motel, laundromat, pier. Parked, the camera frames the place and lines of description drift past while the rain falls; each stop has one small thing to do, and visits go in a night log. Every sign, lamp and tail light shows up in the wet road through a mirrored reflection pass, the street-lamp pools and your headlights are painted analytically in the road shader, and the frame is rendered at 240 lines with bloom, dithering and scanlines. Three **generative radio stations** (synthwave, lo-fi hip-hop, slow analogue ambient) invent their own tracks, under rain, tyre hiss, thunder, spinner fly-bys and a distant siren. Drift mode lets the car drive itself, with cinema cameras. [game-052/dev/](game-052/dev/README.md) fast-forwards a 40 km drive checking every step that nobody overlaps anybody.
 
 **[Legend of the Jade Wyrm](game-053/)** — A **Legend of the Green Dragon-style browser RPG** that recreates the whole online experience with no server. Each day you get a handful of forest fights in the Gloamwood (about a hundred creatures, 24 forest events), beat your master at the Proving Yard to level up, and at level 15 face the Jade Wyrm — slay it and you start over at level 1 with a permanent gift and a new title. The village has everything the original did: shops whose stock is renamed as you earn respect, a bank, a healer, an inn with drinks, a bard, flirting and marriage, a safe room and a bounty broker, stables, a fortune teller, gardens, the Wyrmslayers' stone, guilds, a lodge of deeds, the Herald, the Hall of Heroes and raven mail; die and you torment souls on the Pale Shore for the Ferryman's favour. **The other players are simulated**: 60 of them with personalities and real-clock schedules log in and out, chat in the square and answer you, level up, die, slay the Wyrm, marry and form guilds, and attack you if you sleep in the fields. The text-first pages (LoGD colour codes, a hotkey on every action) sit in a three.js frame: an oak beam with crossed swords and a painted shield, a timber window onto a low-poly village the camera flies around, torches, a sky that follows the game clock, and 3D foes that lunge and fall. Three save slots with export/import, two day-pacing modes, phone layout with drawers. [game-053/dev/](game-053/dev/README.md) plays the whole game in Playwright and balances the curve with a headless bot.
+
+**[Pale Engine](game-054/)** — A **DOOM-style first-person shooter** on Io, 2291: the station's Pale Engine drilled through the bottom of everything, and you are the last Warden, with the station AI VESPER in your ear and its own reasons for wanting you at the bottom. Ten levels in three episodes are generated from a seed — rooms, stairs, lava pits, crates and open-air courtyards from per-cell heights, keycard doors, secret walls, barrels, ambushes and data logs — and every level is played by a validator (and, in the tests, walked by a bot through the real collision code) before you see it. Each run rolls its own monster species across ten archetypes (hitscan thralls, fireball imps, lunging hounds, flying skulls and eyes, spider turrets, brutes, missile revenants, a necromancer that calls down fire, a rocket juggernaut) that see and hear you, follow a flow field, infight, stagger and can be executed with the blade for health, plus three guardians ending with the Archon and its pylon shields. Nine weapons modelled in code up to a Rail Driver and a Singularity Cannon, six powerups including DOOM's inverted-colour invulnerability, baked lightmaps lit live by every muzzle flash, procedural bump-mapped textures, four skies, a post pass per powerup, a generative industrial-metal score, an automap, intermission tallies with par times, Endless Descent, and full touch controls. [game-054/dev/](game-054/dev/README.md) has a headless generator/bot test and a Playwright run on desktop and phones.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -260,7 +263,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 53 games are included as of the latest entries (game-050 Tomebound, game-051 Sigilborn, game-052 Nightline, game-053 Legend of the Jade Wyrm).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 54 games are included as of the latest entries (game-051 Sigilborn, game-052 Nightline, game-053 Legend of the Jade Wyrm, game-054 Pale Engine).
 
 ---
 
