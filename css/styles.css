@@ -744,6 +744,16 @@ h1 {
     color: #fff4e0;
 }
 
+.game-preview.rotorstorm,
+.carousel-slide-bg.rotorstorm {
+    background: linear-gradient(180deg, #06121c 0%, #0d3a52 40%, #c4561a 82%, #ffc35a 100%);
+}
+
+.game-card.rotorstorm .play-button {
+    background: linear-gradient(135deg, #0b1a24 0%, #c4561a 55%, #ff8a2a 100%);
+    color: #fff6e8;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

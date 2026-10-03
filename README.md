@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-54 games, `game-001` through `game-054`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+55 games, `game-001` through `game-055`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -72,6 +72,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 052 | [Nightline](game-052/) | Lo-fi synthwave night-drive simulator | three.js |
 | 053 | [Legend of the Jade Wyrm](game-053/) | Legend of the Green Dragon-style RPG with a simulated online realm | three.js |
 | 054 | [Pale Engine](game-054/) | DOOM-style FPS with procedural levels and monsters | three.js |
+| 055 | [Rotorstorm](game-055/) | Top-down helicopter bullet-hell shooter with a skill tree | Vanilla JS + hand-written WebGL2 |
 
 ### Highlights
 
@@ -134,6 +135,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 **[Legend of the Jade Wyrm](game-053/)** — A **Legend of the Green Dragon-style browser RPG** that recreates the whole online experience with no server. Each day you get a handful of forest fights in the Gloamwood (about a hundred creatures, 24 forest events), beat your master at the Proving Yard to level up, and at level 15 face the Jade Wyrm — slay it and you start over at level 1 with a permanent gift and a new title. The village has everything the original did: shops whose stock is renamed as you earn respect, a bank, a healer, an inn with drinks, a bard, flirting and marriage, a safe room and a bounty broker, stables, a fortune teller, gardens, the Wyrmslayers' stone, guilds, a lodge of deeds, the Herald, the Hall of Heroes and raven mail; die and you torment souls on the Pale Shore for the Ferryman's favour. **The other players are simulated**: 60 of them with personalities and real-clock schedules log in and out, chat in the square and answer you, level up, die, slay the Wyrm, marry and form guilds, and attack you if you sleep in the fields. The text-first pages (LoGD colour codes, a hotkey on every action) sit in a three.js frame: an oak beam with crossed swords and a painted shield, a timber window onto a low-poly village the camera flies around, torches, a sky that follows the game clock, and 3D foes that lunge and fall. Three save slots with export/import, two day-pacing modes, phone layout with drawers. [game-053/dev/](game-053/dev/README.md) plays the whole game in Playwright and balances the curve with a headless bot.
 
 **[Pale Engine](game-054/)** — A **DOOM-style first-person shooter** on Io, 2291: the station's Pale Engine drilled through the bottom of everything, and you are the last Warden, with the station AI VESPER in your ear and its own reasons for wanting you at the bottom. Ten levels in three episodes are generated from a seed — rooms, stairs, lava pits, crates and open-air courtyards from per-cell heights, keycard doors, secret walls, barrels, ambushes and data logs — and every level is played by a validator (and, in the tests, walked by a bot through the real collision code) before you see it. Each run rolls its own monster species across ten archetypes (hitscan thralls, fireball imps, lunging hounds, flying skulls and eyes, spider turrets, brutes, missile revenants, a necromancer that calls down fire, a rocket juggernaut) that see and hear you, follow a flow field, infight, stagger and can be executed with the blade for health, plus three guardians ending with the Archon and its pylon shields. Nine weapons modelled in code up to a Rail Driver and a Singularity Cannon, six powerups including DOOM's inverted-colour invulnerability, baked lightmaps lit live by every muzzle flash, procedural bump-mapped textures, four skies, a post pass per powerup, a generative industrial-metal score, an automap, intermission tallies with par times, Endless Descent, and full touch controls. [game-054/dev/](game-054/dev/README.md) has a headless generator/bot test and a Playwright run on desktop and phones.
+
+**[Rotorstorm](game-055/)** — A **top-down helicopter bullet-hell shooter** in vanilla JavaScript and hand-written WebGL2, with no libraries or asset files. On the Shattered Coast in 2061 a storm-steering AI, MERIDIAN, has turned on the cities it protected, and you fly the AH-77 Kestrel through six operations over procedural terrain: archipelago, jungle river, desert highway, ice shelf, neon city and volcano. The CPU and the GPU share one noise function, so gunboats spawn on the water the shader paints. A director places the waves where the ground suits them (tanks on land, boats on water, convoys on the highway), with elite waves, a mid-boss, salvage caches and civilians to winch up. Six multi-phase bosses fight with named spell cards: rings, curving and accelerating bullets, bullets that stop and re-aim, splitting orbs, telegraphed lightning and sweeping lasers. Graze to charge Overdrive, wipe the screen with an EMP, chain kills, and spend salvage on a 28-node skill tree between operations. Terrain baked by shaders with animated water and lava, craters and treads stamped into the ground, falling wrecks, layered explosions, shockwaves, HDR bloom, weather, a generative soundtrack, radio portraits, an ending shaped by the survivors you saved, the endless Stormfront mode, and relative-drag touch controls. [game-055/dev/](game-055/dev/README.md) plays every operation headlessly with a god bot and a dodging bot, and drives the whole game in Chromium on desktop and phones.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -263,7 +266,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 54 games are included as of the latest entries (game-051 Sigilborn, game-052 Nightline, game-053 Legend of the Jade Wyrm, game-054 Pale Engine).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 55 games are included as of the latest entries (game-052 Nightline, game-053 Legend of the Jade Wyrm, game-054 Pale Engine, game-055 Rotorstorm).
 
 ---
 
