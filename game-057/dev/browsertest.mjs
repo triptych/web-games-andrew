@@ -78,7 +78,8 @@ const until = async (page, fn, msg, timeout = 60000, arg = null) => {
 const Q = (page, fn, arg) => page.evaluate(fn, arg);
 const visible = (page, id) => Q(page, (i) => { let e = document.getElementById(i); if (!e) return false; for (; e; e = e.parentElement) if (getComputedStyle(e).display === 'none') return false; return true; }, id);
 const toGame = async (page) => {
-    await until(page, () => !document.getElementById('sector-card').classList.contains('hidden'), 'sector card shows');
+    // In debug mode the card auto-dismisses quickly, so it may already be gone by the next poll.
+    await until(page, () => !document.getElementById('sector-card').classList.contains('hidden') || __hb.mode === 'game', 'sector card shows');
     await page.waitForTimeout(600);
     await Q(page, () => __hb.skipCard());
     await until(page, () => __hb.mode === 'game', 'into the game', 10000);
@@ -155,7 +156,7 @@ async function desktop() {
     await shot(page, 'd06-fight');
     for (let i = 0; i < 40 && await Q(page, () => __hb.world.activeRoom >= 0); i++) await Q(page, () => { __hb.killAll(); __hb.advance(1.5); });
     check(await Q(page, () => __hb.world.activeRoom < 0 && __hb.world.cleared >= 1), 'the room clears and the doors open');
-    const salv = await Q(page, () => { __hb.advance(3); return __hb.world.player.salvage; });
+    const salv = await Q(page, () => { __hb.advance(3); const w = __hb.world, r = w.lv.rooms.find((x) => x.state === 'cleared'); w.player.x = r.cx; w.player.y = r.cy; __hb.advance(3); return w.player.salvage; });
     check(salv > 0, `room rewards collected (salvage ${salv})`);
 
     // Supply Depot.

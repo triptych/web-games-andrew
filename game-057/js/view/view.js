@@ -205,8 +205,16 @@ export class View {
         this.fx.update(dt, renderer.domElement.height * camera.projectionMatrix.elements[5] * 0.5);
     }
 
+    /** Bullets are sized in metres; on small screens scale them up to a readable on-screen size. */
+    bulletScale() {
+        const visibleH = 2 * camera.position.distanceTo(this.camLook) * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+        const pxPerM = window.innerHeight / visibleH;
+        return THREE.MathUtils.clamp(48 / pxPerM, 1, 2.4);
+    }
+
     drawBullets(w, alpha) {
         const tr = this.fx.tracers, orb = this.fx.orbs;
+        const bs = this.bulletScale(), bl = Math.sqrt(bs);
         tr.begin(); orb.begin();
         const col = new THREE.Color();
         for (const b of w.pbullets) {
@@ -216,21 +224,21 @@ export class View {
             if (b.kind === 'flame') {
                 const f = 1 - b.life / b.max;
                 col.setHex(b.blue ? 0x4a8aff : 0xff6a1a).lerp(new THREE.Color(b.blue ? 0x8a4aff : 0xff2a0a), f);
-                tr.add(x, 0.9 + f * 0.5, y, 1, dx, dz, b.r * 2.6, b.r * 2.6, col.r, col.g, col.b, (1 - f) * 0.8);
+                tr.add(x, 0.9 + f * 0.5, y, 1, dx, dz, b.r * 2.6 * bl, b.r * 2.6 * bl, col.r, col.g, col.b, (1 - f) * 0.8);
             } else if (b.kind === 'plasma' || b.kind === 'micro') {
                 col.setHex(b.kind === 'plasma' ? 0xff5ce1 : 0xffd23a);
-                const s = b.kind === 'plasma' ? 1.1 : 0.45;
+                const s = (b.kind === 'plasma' ? 1.1 : 0.45) * bl;
                 tr.add(x, 1.05, y, 2, dx, dz, s, s, col.r, col.g, col.b, 1);
             } else {
                 col.setHex(b.weapon === 'drone' ? 0x8aff6a : b.weapon === 'ellie' ? 0xffd27a : (WEAPONS[b.weapon]?.color ?? 0xffffff));
-                const len = Math.min(1.6, sp * 0.045);
-                tr.add(x - dx * len * 0.5, 1.15, y - dz * len * 0.5, 0, dx, dz, len, b.r * 1.6, col.r, col.g, col.b, 1);
+                const len = Math.min(1.6, sp * 0.045) * bl;
+                tr.add(x - dx * len * 0.5, 1.15, y - dz * len * 0.5, 0, dx, dz, len, b.r * 1.6 * bs, col.r, col.g, col.b, 1);
             }
         }
         for (const b of w.ebullets) {
             const x = b.ox + (b.x - b.ox) * alpha, y = b.oy + (b.y - b.oy) * alpha;
             col.setHex(BULLET_COL[b.kind] ?? 0xff4a3a);
-            const s = b.r * 2.9;
+            const s = b.r * 2.9 * bs;
             const sp = Math.hypot(b.vx, b.vy) || 1;
             const stretch = b.kind === 'spine' || b.kind === 'slug' ? 1.6 : 1;
             orb.add(x, 1.0, y, b.kind === 'web' ? 3 : 0, b.vx / sp, b.vy / sp, s * stretch, s, col.r, col.g, col.b, 1);

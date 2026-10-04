@@ -27,8 +27,8 @@ export const LM = {
 };
 
 const TIERS = {
-    low:    { pixel: 0.75, bloom: false, shadows: false, particles: 0.45, lights: 3, decalRes: 8, cap: 150 },
-    medium: { pixel: 1,    bloom: true,  shadows: false, particles: 0.75, lights: 4, decalRes: 10, cap: 210 },
+    low:    { pixel: 1, bloom: false, shadows: false, particles: 0.45, lights: 3, decalRes: 8, cap: 150 },
+    medium: { pixel: 1.25, bloom: true,  shadows: false, particles: 0.75, lights: 4, decalRes: 10, cap: 210 },
     high:   { pixel: 1.5,  bloom: true,  shadows: true,  particles: 1,    lights: 6, decalRes: 12, cap: 260 },
 };
 
@@ -47,7 +47,8 @@ export function initScene(canvas, tier) {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x020304);
-    camera = new THREE.PerspectiveCamera(38, 1, 0.5, 140);
+    // A tight near/far range keeps depth precision high (the camera sits 20–45 m out).
+    camera = new THREE.PerspectiveCamera(38, 1, 6, 110);
     camera.position.set(0, 20, 12);
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
