@@ -22,18 +22,55 @@ export const PLAYER_ATTACK_RANGE = 36;
 export const PLAYER_ATTACK_COOLDOWN = 0.35;
 export const PLAYER_INVULN_TIME = 0.8;
 
+// --- Floors ---
+export const FINAL_FLOOR        = 10;   // clear it and claim the Hollow Crown to win
+export const POTION_HEAL        = 40;
+export const POTION_FLOORS      = [3, 5, 7, 9];
+
 // --- Enemies ---
+// `from` is the first floor a type appears on; `weight` its share of the mix.
 export const ENEMY_DEFS = {
     slime: {
         name: 'Slime',
         health: 30,
+        hpPerFloor: 6,
         speed: 45,
         damage: 10,
         score: 50,
         color: [88, 200, 90],
+        outline: [30, 90, 40],
+        from: 1,
+        weight: 3,
     },
-    // TODO: add more monster types (skeleton, bat, etc.) as game develops
+    bat: {
+        name: 'Bat',
+        health: 14,
+        hpPerFloor: 3,
+        speed: 95,
+        damage: 6,
+        score: 40,
+        color: [150, 110, 200],
+        outline: [60, 40, 90],
+        from: 2,
+        weight: 2,
+    },
+    skeleton: {
+        name: 'Skeleton',
+        health: 45,
+        hpPerFloor: 7,
+        speed: 50,
+        damage: 12,          // contact damage; bones use BONE_DAMAGE
+        score: 90,
+        color: [225, 220, 200],
+        outline: [110, 100, 80],
+        from: 3,
+        weight: 2,
+    },
 };
+
+export const BONE_SPEED    = 170;
+export const BONE_DAMAGE   = 10;
+export const BONE_COOLDOWN = 2.4;   // seconds between throws, per skeleton
 
 // --- Color palette (CRT / 8-bit dungeon aesthetic) ---
 export const COLORS = {
@@ -49,6 +86,9 @@ export const COLORS = {
     danger:    [255, 90, 90],
     success:   [90, 220, 100],
     gold:      [255, 215, 0],
+    stairs:    [30, 22, 18],
+    stairsOpen:[255, 190, 80],
+    potion:    [230, 60, 80],
 };
 
 // --- HUD ---

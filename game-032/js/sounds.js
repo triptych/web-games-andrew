@@ -116,3 +116,17 @@ export function playGameOver() {
     _sweep('sawtooth', 400, 50, 0.8, 0.4);
     _noise(0.5, 0.15, 0.2);
 }
+
+export function playStairsOpen() {
+    // A rising minor arpeggio: the way down is open
+    [330, 392, 494, 659].forEach((f, i) => _osc('square', f, 0.14, 0.12, i * 0.09));
+}
+
+export function playThrow() {
+    _sweep('triangle', 700, 300, 0.12, 0.12);
+}
+
+export function playVictory() {
+    [523, 659, 784, 1047].forEach((f, i) => _osc('square', f, 0.25, 0.14, i * 0.14));
+    _osc('triangle', 1047, 0.9, 0.18, 0.56);
+}
