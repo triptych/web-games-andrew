@@ -9,13 +9,14 @@
  *   UIScene      → HUD overlay (parallel to GameScene)
  *   BaseScene    → sell / upgrade / shop (pauses GameScene)
  *   GameOverScene → hull destroyed screen
+ *   EndingScene  → mission complete (Singing Vein brought home); over a paused BaseScene
  *
  * Phaser import note: use named exports only — no default export exists.
  * All scene files import Phaser directly (NOT via window.Phaser).
  */
 
 import * as Phaser from '../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
-import { setUpgradeData } from './systems/GameState.js';
+import { setUpgradeData, GameState } from './systems/GameState.js';
 import { UPGRADES } from './data/upgrades.js';
 
 import { BootScene }     from './scenes/BootScene.js';
@@ -25,7 +26,8 @@ import { GameScene }     from './scenes/GameScene.js';
 import { UIScene }       from './scenes/UIScene.js';
 import { BaseScene }     from './scenes/BaseScene.js';
 import { GameOverScene } from './scenes/GameOverScene.js';
-import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
+import { EndingScene }   from './scenes/EndingScene.js';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS, SCENE } from './config.js';
 
 // Wire upgrade data into GameState (avoids circular imports)
 setUpgradeData({ UPGRADES });
@@ -49,7 +51,13 @@ const config = {
         UIScene,
         BaseScene,
         GameOverScene,
+        EndingScene,
     ],
 };
 
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
+
+// ?debug=1 exposes hooks for dev/browsertest.mjs
+if (new URLSearchParams(location.search).has('debug')) {
+    window.__du = { game, GameState, SCENE };
+}

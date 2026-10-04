@@ -64,6 +64,7 @@ const DEFAULT_STATE = {
         totalRuns:      0,
         totalDeaths:    0,
         singingVeinFound: false,
+        missionComplete: false,   // Singing Vein ore brought back to base (the ending)
         loreUnlocked:   [],
     },
     // Runtime (not persisted across browser reload, but carried between runs in a session)

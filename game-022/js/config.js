@@ -69,6 +69,7 @@ export const SCENE = {
     UI:       'UIScene',
     BASE:     'BaseScene',
     GAMEOVER: 'GameOverScene',
+    ENDING:   'EndingScene',
 };
 
 // Colors used across scenes

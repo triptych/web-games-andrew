@@ -51,7 +51,8 @@ export class SplashScene extends Phaser.Scene {
             continueBtn.on('pointerout',   () => continueBtn.setColor(hex(COLORS.success)));
             continueBtn.on('pointerdown',  () => this._start(false));
 
-            this.add.text(CX, CY + 195, `Deepest: ${GameState.stats.maxDepth}m  |  Credits: ${GameState.credits}`, {
+            const done = GameState.stats.missionComplete ? '  |  MISSION COMPLETE' : '';
+            this.add.text(CX, CY + 195, `Deepest: ${GameState.stats.maxDepth}m  |  Credits: ${GameState.credits}${done}`, {
                 fontSize: '10px', color: '#667788', fontFamily: 'monospace',
             }).setOrigin(0.5);
         }
@@ -74,7 +75,7 @@ export class SplashScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Version
-        this.add.text(GAME_WIDTH - 8, GAME_HEIGHT - 8, 'v1.0', {
+        this.add.text(GAME_WIDTH - 8, GAME_HEIGHT - 8, 'v1.1', {
             fontSize: '9px', color: '#333344', fontFamily: 'monospace',
         }).setOrigin(1, 1);
 
