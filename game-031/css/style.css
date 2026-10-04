@@ -66,6 +66,19 @@ canvas#screen {
     font-size: 0.75rem;
 }
 
-.back { margin-top: 18px; font-size: 0.85rem; }
-.back a { color: var(--ega-dkgray); }
-.back a:hover { color: var(--ega-yellow); }
+/* The cabinet is taller than a laptop screen, so the way back is pinned to
+   the corner rather than sitting below the fold. */
+#back-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 10;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    color: var(--ega-ltgray);
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid var(--ega-dkgray);
+    border-radius: 4px;
+    text-decoration: none;
+}
+#back-link:hover { color: var(--ega-yellow); }

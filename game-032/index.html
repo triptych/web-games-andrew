@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <script src="../lib/page-audio.js"></script>
     <title>Ironhollow Depths</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -16,10 +18,79 @@
             height: 100vh;
         }
         canvas { display: block; image-rendering: pixelated; }
+
+        /* ── Touch controls (built by js/touch.js on touch devices) ── */
+        #touch-controls.hidden { display: none; }
+        #stick-zone {
+            position: fixed;
+            left: 0; top: 56px; bottom: 0;
+            width: 55%;
+            touch-action: none;           /* only here, so menus can still scroll */
+            z-index: 10;
+        }
+        #stick-base {
+            position: fixed;
+            width: 112px; height: 112px;
+            margin: -56px 0 0 -56px;
+            border-radius: 50%;
+            border: 2px solid rgba(180, 255, 210, 0.35);
+            background: rgba(180, 255, 210, 0.08);
+            display: none;
+            pointer-events: none;
+        }
+        #stick-base.active { display: block; }
+        #stick-knob {
+            position: absolute;
+            left: 50%; top: 50%;
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: rgba(180, 255, 210, 0.45);
+            transform: translate(-50%, -50%);
+        }
+        #touch-controls button {
+            position: fixed;
+            z-index: 11;
+            font-family: monospace;
+            color: #b4ffd2;
+            background: rgba(20, 16, 30, 0.7);
+            border: 2px solid rgba(90, 220, 255, 0.6);
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #attack-btn {
+            right: max(24px, env(safe-area-inset-right));
+            bottom: max(32px, env(safe-area-inset-bottom));
+            width: 84px; height: 84px;
+            border-radius: 50%;
+            font-size: 34px;
+        }
+        #attack-btn:active { background: rgba(90, 220, 255, 0.35); }
+        #pause-btn {
+            right: max(8px, env(safe-area-inset-right));
+            top: max(8px, env(safe-area-inset-top));
+            width: 48px; height: 44px;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        /* The room is landscape; on a portrait phone, suggest turning it */
+        #rotate-hint {
+            display: none;
+            position: fixed;
+            left: 0; right: 0; top: 18%;
+            text-align: center;
+            font: 14px monospace;
+            color: #5adcff;
+            pointer-events: none;
+        }
+        @media (orientation: portrait) and (pointer: coarse) {
+            #rotate-hint { display: block; }
+        }
     </style>
 </head>
 <body>
     <a href="../index.html" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
+    <div id="rotate-hint">↻ Turn your phone sideways for a bigger view</div>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>
