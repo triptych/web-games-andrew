@@ -25,13 +25,15 @@ const $hud      = document.getElementById('hud');
 const $hiscore  = document.getElementById('hiscore-val');
 
 // ── High score ────────────────────────────────────────────────
-let highScore = parseInt(localStorage.getItem('synthwave_hiscore') || '0', 10);
+// localStorage throws when the browser blocks site data; play on without saving.
+let highScore = 0;
+try { highScore = parseInt(localStorage.getItem('synthwave_hiscore') || '0', 10); } catch { /* storage blocked */ }
 $hiscore.textContent = String(highScore).padStart(6, '0');
 
 function _saveHighScore(s) {
     if (s > highScore) {
         highScore = s;
-        localStorage.setItem('synthwave_hiscore', String(highScore));
+        try { localStorage.setItem('synthwave_hiscore', String(highScore)); } catch { /* storage blocked */ }
         $hiscore.textContent = String(highScore).padStart(6, '0');
     }
 }

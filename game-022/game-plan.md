@@ -3,7 +3,7 @@
 **Genre:** 2D Mining / Progression RPG (Motherload-style)
 **Engine:** Phaser 4.0.0 (ES6 modules)
 **Target Resolution:** 480 × 720 (portrait, mobile-first)
-**Status:** Phase 1 Complete
+**Status:** Playable, v1.4 — Phase 1 done, plus the ending from Phase 3; Phase 2 polish and the rest of Phase 3 open
 
 ---
 
@@ -34,7 +34,10 @@ Hull starts at 100 HP. Lava deals 3/sec, cave-ins deal 5–25, fuel-empty deals 
 ### 5. Progression Loop
 Deploy → Drill down → Collect ore → Manage fuel/hull → Return to base → Sell → Upgrade → Go deeper.
 
-### 6. Fog of War
+### 6. The ending
+The mission is to bring the Singing Vein home. The first time Singing Vein ore reaches the base, the ore is sold as usual and then `EndingScene` plays over the paused base: a final mission log, the run's numbers, and a choice to **keep mining** (the world and upgrades stay), start a **new game**, or go to the **main menu**. `stats.missionComplete` is saved, so the ending plays once per world, and the title screen shows MISSION COMPLETE.
+
+### 7. Fog of War
 Tiles outside light radius are black (unexplored) or darkened (explored). Light radius upgrades from 3 to 14 tiles. Sonar Pulse upgrade adds ore pings.
 
 ---
@@ -167,7 +170,8 @@ Categories: Hull (5 tiers), Drill (5 tiers), Fuel Tank (5 tiers), Engine (5 tier
 
 ### Phase 3 — Content & Endings
 - [ ] Hostile entities (Crystal Golems tier 3, Alien Drones tier 5, Void Wraiths tier 6)
-- [ ] 3-fragment Singing Vein quest + ending cutscene at 6400m
+- [x] Ending: bringing Singing Vein ore back to base plays an epilogue and offers keep mining / new game (v1.4)
+- [ ] 3-fragment Singing Vein quest (would replace the single-ore trigger above)
 - [ ] Full lore log screen (accessible from base)
 - [ ] Minimap (Depth Radar upgrade)
 
@@ -195,6 +199,8 @@ Categories: Hull (5 tiers), Drill (5 tiers), Fuel Tank (5 tiers), Engine (5 tier
 | `js/scenes/UIScene.js` | HUD, alerts, lore display, mobile d-pad |
 | `js/scenes/BaseScene.js` | Sell cargo, upgrades, consumables shop |
 | `js/scenes/GameOverScene.js` | Machine destroyed — rebuild or new game |
+| `js/scenes/EndingScene.js` | Mission complete — epilogue, stats, keep mining / new game / menu |
+| `dev/browsertest.mjs` | Playwright test of the ending flow on desktop and a touch phone |
 
 ---
 
@@ -208,6 +214,11 @@ Categories: Hull (5 tiers), Drill (5 tiers), Fuel Tank (5 tiers), Engine (5 tier
 ---
 
 ## Changelog
+
+### v1.4 — An ending (2026-10-04)
+- Carrying Singing Vein ore back to base completes the mission: `EndingScene` plays an epilogue over the paused base, shows the run's numbers and offers keep mining, new game or main menu. Its buttons wait until the text has played, so a stray tap can't skip it
+- `stats.missionComplete` is saved; the ending plays once per world and the title shows MISSION COMPLETE
+- `?debug=1` exposes `window.__du`; `dev/browsertest.mjs` and `dev/README.md`
 
 ### Phase 1 — Full Scaffold (2026-04-21)
 - Full playable scaffold: world gen, drilling, fuel/hull, fog of war, 7 scenes

@@ -38,3 +38,20 @@ export const STORY_INTRO = [
     "",
     "Drill deep. Come back.",
 ];
+
+// Ending: shown once, when Singing Vein ore is first carried back to base
+export const EPILOGUE = [
+    "AXIOM-7 MISSION LOG — Final entry.",
+    "",
+    "The Vein sample is sealed in lead at Delverhaven base.",
+    "Its song stops at the surface. It only sings downward.",
+    "",
+    "The colony is not lost. Six thousand metres down,",
+    "they stand in the crystal where they stopped to listen.",
+    "",
+    "Excavation funded. Warning transmitted.",
+    "No one else goes below the Void Layer alone.",
+    "",
+    "Directive fulfilled. AXIOM-7 remains on site.",
+    "There is still ore in the dark.",
+];

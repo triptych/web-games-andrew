@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#667eea">
+    <script src="../lib/page-audio.js"></script>
     <title>Match-3 Game - Kaplay</title>
     <style>
         body {
@@ -200,9 +202,13 @@
         SoundFX.init();
 
         // Initialize Kaplay
+        // Shrink to fit small screens. Kaplay's own `scale` option keeps taps and
+        // clicks mapped to the right gem (CSS scaling would not).
+        const FIT_SCALE = Math.min(1, (window.innerWidth - 16) / 608, (window.innerHeight - 16) / 708);
         const k = kaplay({
             width: 600,
             height: 700,
+            scale: FIT_SCALE,
             background: [20, 20, 40]
         });
 

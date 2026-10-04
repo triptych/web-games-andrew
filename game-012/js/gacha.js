@@ -237,7 +237,7 @@ export function loadCollection() {
 }
 
 export function clearSave() {
-    localStorage.removeItem(STORAGE_KEY);
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* storage blocked */ }
 }
 
 let _loaded = false;

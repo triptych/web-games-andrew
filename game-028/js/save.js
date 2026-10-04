@@ -7,7 +7,11 @@ import { state } from './state.js';
 const SAVE_KEY = 'echoes_of_aethermoor_save';
 
 export function hasSave() {
-    return localStorage.getItem(SAVE_KEY) !== null;
+    try {
+        return localStorage.getItem(SAVE_KEY) !== null;
+    } catch {
+        return false; // storage blocked: play without saving
+    }
 }
 
 export function saveGame() {

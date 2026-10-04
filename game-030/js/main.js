@@ -12,6 +12,18 @@ import { Dialogue, Menu, Inventory, QuestLog, Shop, statusLines } from './ui.js'
 
 const $ = (id) => document.getElementById(id);
 
+// ---- Fit the 640×480 frame (canvas + DOM panels) to small screens ----
+// A CSS transform scales the canvas and the panels together; the scale is kept
+// on the frame for code that converts screen distances back to frame pixels.
+function fitFrame() {
+  const frame = $('game-frame');
+  const s = Math.min(1, (window.innerWidth - 8) / 644, (window.innerHeight - 8) / 484);
+  frame.style.transform = s < 1 ? `scale(${s})` : '';
+  frame.dataset.scale = String(s);
+}
+fitFrame();
+window.addEventListener('resize', fitFrame);
+
 // ---- Modes ----
 const MODE = { TITLE: 'title', WORLD: 'world', DIALOGUE: 'dialogue',
                MENU: 'menu', INVENTORY: 'inventory', QUESTS: 'quests',

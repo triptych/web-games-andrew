@@ -6,6 +6,8 @@ import {
     STARTING_LEVEL,
 } from './config.js';
 
+const BEST_KEY = 'ironhollow_best';
+
 /**
  * Global game state.
  * Setters auto-emit events so UI stays in sync.
@@ -23,9 +25,9 @@ class GameState {
         this._maxHealth  = STARTING_HEALTH;
         this._level      = STARTING_LEVEL;
         this._isGameOver = false;
+        this._isWon      = false;
         this._isPaused   = false;
-
-        // TODO: add game-specific state properties here (keys held, gold, etc.)
+        this._foesLeft   = 0;
     }
 
     // --- Score ---
@@ -44,6 +46,7 @@ class GameState {
         events.emit('livesChanged', this._lives);
         if (this._lives <= 0 && !this._isGameOver) {
             this._isGameOver = true;
+            this.recordBest();
             events.emit('gameOver');
         }
     }
@@ -77,8 +80,46 @@ class GameState {
 
     nextLevel() { this.level += 1; }
 
+    // --- Foes left on this floor (the stairs open at 0) ---
+    get foesLeft() { return this._foesLeft; }
+    set foesLeft(val) {
+        this._foesLeft = Math.max(0, val);
+        events.emit('foesChanged', this._foesLeft);
+    }
+
+    // --- Win: the Hollow Crown, on the final floor ---
+    get isWon() { return this._isWon; }
+    win() {
+        if (this._isWon || this._isGameOver) return;
+        this._isWon = true;
+        this.recordBest();
+        events.emit('gameWon');
+    }
+
+    // --- Best run, kept across sessions (if the browser allows storage) ---
+    get best() {
+        try {
+            const b = JSON.parse(localStorage.getItem(BEST_KEY));
+            if (b && typeof b.floor === 'number') return b;
+        } catch { /* storage blocked or corrupt */ }
+        return { floor: 0, score: 0, won: false };
+    }
+
+    recordBest() {
+        const b = this.best;
+        const next = {
+            floor: Math.max(b.floor, this._level),
+            score: Math.max(b.score, this._score),
+            won:   b.won || this._isWon,
+        };
+        try { localStorage.setItem(BEST_KEY, JSON.stringify(next)); } catch { /* storage blocked */ }
+        return next;
+    }
+
     // --- Flags ---
     get isGameOver() { return this._isGameOver; }
+    /** True once the run has ended either way; gameplay stops updating. */
+    get isOver()     { return this._isGameOver || this._isWon; }
     get isPaused()   { return this._isPaused; }
     set isPaused(v)  { this._isPaused = v; }
 }

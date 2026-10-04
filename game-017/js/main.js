@@ -78,9 +78,70 @@ function colClueFor(solution, c) {
     return clue.length ? clue : [0];
 }
 
+// ─── Touch, progress, buttons ─────────────────────────────────────────────────
+
+const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
+
+// ?debug=1 exposes the current scene's state as window.__px for dev/browsertest.mjs
+const DEBUG = new URLSearchParams(location.search).has('debug');
+
+// Fill or mark: a tool for anyone without a right mouse button. Kept between puzzles.
+let markTool = false;
+
+const SAVE_KEY = 'pixelPicross_solved';
+
+/** Indices of solved puzzles (saved if the browser allows storage). */
+function loadSolved() {
+    try {
+        const v = JSON.parse(localStorage.getItem(SAVE_KEY));
+        if (Array.isArray(v)) return new Set(v);
+    } catch { /* storage blocked or corrupt */ }
+    return new Set();
+}
+
+function saveSolved(set) {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify([...set])); } catch { /* storage blocked */ }
+}
+
+/** A clickable / tappable label button. */
+function addButton(label, x, y, w, h, onPress, { size = 16, color = C.accent, z = 20 } = {}) {
+    const btn = k.add([
+        k.rect(w, h, { radius: 6 }),
+        k.pos(x, y),
+        k.anchor('center'),
+        k.color(...C.panel),
+        k.outline(2, k.rgb(...color)),
+        k.area(),
+        k.z(z),
+        'btn',
+    ]);
+    // z above the button's own, or the button's fill is drawn over its label
+    const text = btn.add([k.text(label, { size }), k.pos(0, 0), k.anchor('center'), k.color(...color), k.z(z + 1)]);
+    btn.onClick(onPress);
+    btn.onHover(() => { btn.color = k.rgb(...C.border); });
+    btn.onHoverEnd(() => { btn.color = k.rgb(...C.panel); });
+    btn.label = text;
+    return btn;
+}
+
+/**
+ * Run `fn` on the release of the next tap / click. Switching scene on a touch
+ * *press* leaves Kaplay's touch input stuck, so scene changes wait for the
+ * release; and it needs a fresh press, so a drag that was still going when
+ * this was armed (say, the one that solved the puzzle) doesn't count.
+ */
+function onNextTap(fn) {
+    let pressed = false;
+    k.wait(0.15, () => {
+        k.onMousePress(() => { pressed = true; });
+        k.onMouseRelease(() => { if (pressed) fn(); });
+    });
+}
+
 // ─── Scene: splash ────────────────────────────────────────────────────────────
 
 k.scene('splash', () => {
+    if (DEBUG) window.__px = { scene: 'splash' };
     const CX = WIDTH  / 2;
     const CY = HEIGHT / 2;
 
@@ -120,9 +181,14 @@ k.scene('splash', () => {
     ]);
 
     // Controls
-    const lines = [
+    const lines = IS_TOUCH ? [
+        'Tap or drag to fill squares',
+        'Switch the Fill / Mark tool to mark squares as empty',
+        'Restart and Menu are below the puzzle',
+    ] : [
         'Left Click    Fill a square',
         'Right Click   Mark as empty (X)',
+        '      X       Switch tool (left click fills / marks)',
         '      R       Restart current puzzle',
         '     ESC      Return to menu',
     ];
@@ -136,17 +202,20 @@ k.scene('splash', () => {
         ]);
     });
 
+    const solved = loadSolved();
+    const firstOpen = PUZZLES.findIndex((_, i) => !solved.has(i));
+    const startAt = firstOpen === -1 ? 0 : firstOpen;
     k.add([
-        k.text(`${PUZZLES.length} puzzles to solve`, { size: 15 }),
-        k.pos(CX, CY + 118),
+        k.text(solved.size ? `${solved.size} of ${PUZZLES.length} puzzles solved` : `${PUZZLES.length} puzzles to solve`, { size: 15 }),
+        k.pos(CX, CY + 128),
         k.color(...C.dim),
         k.anchor('center'),
         k.z(2),
     ]);
 
     const prompt = k.add([
-        k.text('Press any key or click to start', { size: 20 }),
-        k.pos(CX, CY + 160),
+        k.text(`${IS_TOUCH ? 'Tap' : 'Press any key or click'} to ${solved.size && firstOpen !== -1 ? `continue with puzzle ${startAt + 1}` : 'start'}`, { size: 20 }),
+        k.pos(CX, CY + 165),
         k.color(...C.accent),
         k.anchor('center'),
         k.opacity(1),
@@ -166,7 +235,7 @@ k.scene('splash', () => {
         initAudio();
         playUiClick();
         document.removeEventListener('keydown', _onAnyKey);
-        k.go('game', 0);
+        k.go('game', startAt);
     }
 
     function _onAnyKey(e) {
@@ -175,7 +244,7 @@ k.scene('splash', () => {
     }
 
     document.addEventListener('keydown', _onAnyKey);
-    k.onClick(goToGame);
+    onNextTap(goToGame);
     k.onSceneLeave(() => document.removeEventListener('keydown', _onAnyKey));
 });
 
@@ -201,7 +270,7 @@ k.scene('game', (puzzleIndex) => {
     const CLUE_W    = maxRowNums * NUM_W + 16;   // left margin for row clues
     const CLUE_H    = maxColNums * NUM_H + 14;   // top margin for col clues
     const HEADER_H  = 38;
-    const FOOTER_H  = 24;
+    const FOOTER_H  = IS_TOUCH ? 104 : 72;   // tool, restart and menu buttons (+ a key hint on desktop)
     const MARGIN    = 28;
 
     const availW = WIDTH  - CLUE_W  - MARGIN * 2;
@@ -211,12 +280,20 @@ k.scene('game', (puzzleIndex) => {
     const gridW  = CELL * COLS;
     const gridH  = CELL * ROWS;
     const ox     = Math.floor((WIDTH  - CLUE_W  - gridW) / 2) + CLUE_W;
-    const oy     = Math.floor((HEIGHT - CLUE_H  - gridH) / 2) + CLUE_H + Math.floor(HEADER_H / 2);
+    const oy     = HEADER_H + Math.floor((HEIGHT - HEADER_H - FOOTER_H - CLUE_H - gridH) / 2) + CLUE_H;
 
     // ── Game state ────────────────────────────────────────────────────────────
     // 0 = unknown, 1 = filled, 2 = marked (X)
     const pg  = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
     let won   = false;
+    if (DEBUG) {
+        window.__px = {
+            scene: 'game', puzzle: puzzleIndex, solution, grid: pg,
+            get won() { return won; }, get markTool() { return markTool; },
+            /** Game coordinates of a cell's centre */
+            cell: (r, c) => ({ x: ox + (c + 0.5) * CELL, y: oy + (r + 0.5) * CELL }),
+        };
+    }
 
     // Drag-paint state
     let dragBtn   = null;   // 'left' | 'right'
@@ -384,7 +461,7 @@ k.scene('game', (puzzleIndex) => {
 
         if (!isFinal) {
             k.add([
-                k.text('SPACE — next puzzle', { size: 17 }),
+                k.text(IS_TOUCH ? 'Tap for the next puzzle' : 'SPACE or click — next puzzle', { size: 17 }),
                 k.pos(CX, CY + 55),
                 k.color(...C.accent),
                 k.anchor('center'),
@@ -399,7 +476,7 @@ k.scene('game', (puzzleIndex) => {
                 k.z(51),
             ]);
             k.add([
-                k.text('SPACE — play again from start', { size: 14 }),
+                k.text(IS_TOUCH ? 'Tap to continue' : 'SPACE or click to continue', { size: 14 }),
                 k.pos(CX, CY + 87),
                 k.color(...C.dim),
                 k.anchor('center'),
@@ -407,7 +484,7 @@ k.scene('game', (puzzleIndex) => {
             ]);
         }
 
-        k.add([
+        if (!IS_TOUCH) k.add([
             k.text('R — replay  |  ESC — menu', { size: 13 }),
             k.pos(CX, CY + 118),
             k.color(...C.dim),
@@ -415,42 +492,36 @@ k.scene('game', (puzzleIndex) => {
             k.z(51),
         ]);
 
-        k.onKeyPress('space', () => {
-            if (isFinal) { k.go('complete'); }
-            else         { k.go('game', puzzleIndex + 1); }
-        });
+        const solvedSet = loadSolved();
+        solvedSet.add(puzzleIndex);
+        saveSolved(solvedSet);
+
+        const next = () => k.go(isFinal ? 'complete' : 'game', puzzleIndex + 1);
+        k.onKeyPress('space', next);
+        onNextTap(next);
     }
 
-    // ── Mouse: left click — fill/unfill ───────────────────────────────────────
-    k.onMousePress('left', () => {
+    // ── Mouse / touch: press — fill or mark, then drag-paint ──────────────────
+    // A left click (or a tap) uses the current tool; a right click always marks.
+    function startPaint(mark, btn) {
         if (won) return;
         const mp  = k.mousePos();
         const hit = cellAt(mp.x, mp.y);
         if (!hit) return;
         const { r, c } = hit;
         const cur  = pg[r][c];
-        dragValue  = cur === 1 ? 0 : 1;
-        dragBtn    = 'left';
+        const val  = mark ? 2 : 1;
+        dragValue  = cur === val ? 0 : val;
+        dragBtn    = btn;
+        dragMark   = mark;
         dragLast   = `${r},${c}`;
         applyCell(r, c, dragValue);
-        playFill();
-        checkWin();
-    });
-
-    // ── Mouse: right click — mark/unmark ──────────────────────────────────────
-    k.onMousePress('right', () => {
-        if (won) return;
-        const mp  = k.mousePos();
-        const hit = cellAt(mp.x, mp.y);
-        if (!hit) return;
-        const { r, c } = hit;
-        const cur  = pg[r][c];
-        dragValue  = cur === 2 ? 0 : 2;
-        dragBtn    = 'right';
-        dragLast   = `${r},${c}`;
-        applyCell(r, c, dragValue);
-        playMark();
-    });
+        if (mark) playMark();
+        else { playFill(); checkWin(); }
+    }
+    let dragMark = false;
+    k.onMousePress('left',  () => startPaint(markTool, 'left'));
+    k.onMousePress('right', () => startPaint(true, 'right'));
 
     // ── Mouse: release — end drag ─────────────────────────────────────────────
     k.onMouseRelease('left',  () => { if (dragBtn === 'left')  { dragBtn = null; dragValue = null; dragLast = null; } });
@@ -466,27 +537,44 @@ k.scene('game', (puzzleIndex) => {
         if (key === dragLast) return;
         dragLast = key;
         applyCell(hit.r, hit.c, dragValue);
-        if (dragBtn === 'left') { playFill(); checkWin(); }
-        else                    { playMark(); }
+        if (dragMark) { playMark(); }
+        else          { playFill(); checkWin(); }
     });
 
+    // ── Footer: tool, restart, menu ───────────────────────────────────────────
+    const BH = IS_TOUCH ? 80 : 40;   // 80 game px ≈ 44 screen px on a landscape phone
+    const by = HEIGHT - (IS_TOUCH ? 12 : 30) - BH / 2;
+    const toolLabel = () => (markTool ? 'Tool: Mark X' : 'Tool: Fill');
+    const toolBtn = addButton(toolLabel(), WIDTH / 2 - 170, by, 190, BH, () => toggleTool(), { color: C.gold });
+    function toggleTool() {
+        if (won) return;
+        markTool = !markTool;
+        toolBtn.label.text = toolLabel();
+        playUiClick();
+    }
+    addButton('Restart', WIDTH / 2 + 20, by, 130, BH, () => k.go('game', puzzleIndex));
+    addButton('Menu', WIDTH / 2 + 170, by, 110, BH, () => k.go('splash'));
+
     // ── Keyboard ──────────────────────────────────────────────────────────────
+    k.onKeyPress('x',      toggleTool);
     k.onKeyPress('r',      () => k.go('game', puzzleIndex));
     k.onKeyPress('escape', () => k.go('splash'));
 
-    // ── Footer hint ───────────────────────────────────────────────────────────
-    k.add([
-        k.text('Left Click: fill  |  Right Click: mark X  |  R: restart  |  ESC: menu', { size: 11 }),
-        k.pos(WIDTH / 2, HEIGHT - 8),
-        k.color(...C.dim),
-        k.anchor('bot'),
-        k.z(5),
-    ]);
+    if (!IS_TOUCH) {
+        k.add([
+            k.text('Left click: use tool  |  Right click: mark X  |  X: switch tool  |  R: restart  |  ESC: menu', { size: 11 }),
+            k.pos(WIDTH / 2, HEIGHT - 6),
+            k.color(...C.dim),
+            k.anchor('bot'),
+            k.z(5),
+        ]);
+    }
 });
 
 // ─── Scene: complete ──────────────────────────────────────────────────────────
 
 k.scene('complete', () => {
+    if (DEBUG) window.__px = { scene: 'complete' };
     const CX = WIDTH  / 2;
     const CY = HEIGHT / 2;
 
@@ -518,7 +606,7 @@ k.scene('complete', () => {
     ]);
 
     const prompt = k.add([
-        k.text('SPACE — play again  |  ESC — menu', { size: 18 }),
+        k.text(IS_TOUCH ? 'Tap to play again' : 'SPACE or click — play again  |  ESC — menu', { size: 18 }),
         k.pos(CX, CY + 90),
         k.color(...C.accent),
         k.anchor('center'),
@@ -533,6 +621,7 @@ k.scene('complete', () => {
 
     k.onKeyPress('space',  () => k.go('game', 0));
     k.onKeyPress('escape', () => k.go('splash'));
+    onNextTap(() => k.go('game', 0));
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────

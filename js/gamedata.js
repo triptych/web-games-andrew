@@ -10,10 +10,10 @@ const games = [
     {
         id: 'game-001',
         title: 'Space Shooter',
-        description: 'Classic arcade space shooter! Control your spaceship with arrow keys and shoot enemies with the space bar. Survive as long as you can and rack up the highest score!',
+        description: 'Classic arcade space shooter! Steer with the arrow keys or A/D and hold Space to fire, or on a phone drag anywhere to steer and hold to fire. Survive as long as you can and beat your saved best score.',
         icon: '🚀',
         folder: 'game-001',
-        version: '1.2.0',
+        version: '1.3.0',
         cssClass: 'space-shooter',
         genre: 'arcade',
         tags: [
@@ -28,7 +28,7 @@ const games = [
         description: 'Match three or more gems of the same color to score points! You have 30 moves to get the highest score possible. Strategic puzzle fun!',
         icon: '💎',
         folder: 'game-002',
-        version: '1.3.0',
+        version: '1.3.1',
         cssClass: 'match-3',
         genre: 'puzzle',
         tags: [
@@ -43,7 +43,7 @@ const games = [
         description: 'Classic dungeon crawler with procedurally generated levels! Explore infinite depths, battle monsters, collect loot, cast spells, and talk to NPCs. Features permadeath, turn-based combat, and ASCII graphics. Can you survive the dungeon?',
         icon: '⚔️',
         folder: 'game-003',
-        version: '1.7.0',
+        version: '1.7.1',
         cssClass: 'roguelike',
         genre: 'dungeon',
         tags: [
@@ -58,7 +58,7 @@ const games = [
         description: 'Strategic tower defense with 5 unique tower types! Place Archer, Cannon, Mage, Tesla, and Sniper towers to defend against waves of enemies. Features splash damage, slow effects, chain lightning, and more. 10 progressive waves with increasing difficulty!',
         icon: '🗼',
         folder: 'game-004',
-        version: '1.8.0',
+        version: '1.8.1',
         cssClass: 'tower-defense',
         genre: 'strategy',
         tags: [
@@ -73,7 +73,7 @@ const games = [
         description: 'Survive endless waves in this bullet heaven shooter! Choose from 3 RPG classes (Warrior, Ranger, Mage) and face 8 unique enemy types with distinct AI behaviors. Auto-shoot, collect XP, level up, and choose powerful upgrades. Features orbiting, teleporting, and splitting enemies!',
         icon: '🎆',
         folder: 'game-005',
-        version: '1.6.0',
+        version: '1.6.1',
         cssClass: 'bullet-heaven',
         genre: 'rpg',
         tags: [
@@ -88,7 +88,7 @@ const games = [
         description: 'Retro-inspired first-person dungeon crawler with raycasting visuals. Explore procedurally generated floors, manage weapons and resources, and survive enemies in a fast-paced labyrinth adventure.',
         icon: '🏰',
         folder: 'game-006',
-        version: '1.12.0',
+        version: '1.12.1',
         cssClass: 'dungeon-fps',
         genre: 'dungeon',
         tags: [
@@ -103,7 +103,7 @@ const games = [
         description: 'Classic text adventure set in an ancient temple. Explore 20 interconnected rooms, solve puzzles, manage your inventory, and uncover the mystery of the Crystal of Light. Features NPCs with dialogue, hidden passages, dark rooms, and a full save/load system.',
         icon: '📜',
         folder: 'game-007',
-        version: '1.5.0',
+        version: '1.5.1',
         cssClass: 'interactive-fiction',
         genre: 'story',
         tags: [
@@ -133,7 +133,7 @@ const games = [
         description: 'Classic turn-based RPG in the vein of early Final Fantasy. Lead a party of four heroes — Warrior, Mage, Healer, and Rogue — through 12 escalating battles. Manage MP, use status effects, level up your party, and defeat the Lich King.',
         icon: '👑',
         folder: 'game-009',
-        version: '1.9.0',
+        version: '1.9.1',
         cssClass: 'ember-crown',
         genre: 'rpg',
         tags: [
@@ -148,7 +148,7 @@ const games = [
         description: 'A cozy city builder sandbox where you place roads, houses, parks, and shops on a grid to grow a small town. Manage your gold budget, drag-paint roads, and design the neighbourhood of your dreams.',
         icon: '🏘️',
         folder: 'game-010',
-        version: '1.10.0',
+        version: '1.10.1',
         cssClass: 'tiny-town',
         genre: 'cozy',
         tags: [
@@ -163,7 +163,7 @@ const games = [
         description: 'Solve nonogram puzzles to reveal hidden enemy spaceships, then fire torpedoes to sink the fleet. Limited shots per level — every deduction counts!',
         icon: '📡',
         folder: 'game-011',
-        version: '1.4.0',
+        version: '1.4.1',
         cssClass: 'nonogram-fleet',
         genre: 'puzzle',
         tags: [
@@ -178,7 +178,7 @@ const games = [
         description: 'Collect tarot cards through a gacha pull system and field them as fighters in wave-based auto battler combat. Build a four-card party from the 78-card tarot deck — harness the power of the Major Arcana to conquer all 10 waves and defeat The World.',
         icon: '🔮',
         folder: 'game-012',
-        version: '1.5.0',
+        version: '1.5.1',
         cssClass: 'arcana-pull',
         genre: 'strategy',
         tags: [
@@ -193,7 +193,7 @@ const games = [
         description: 'A cozy flower shop sim — buy seeds, grow blooms in your pots, and sell them for gold. Upgrade your pots and soil to grow rarer flowers faster. Low stakes, endlessly relaxing.',
         icon: '🌷',
         folder: 'game-013',
-        version: '1.2.0',
+        version: '1.2.1',
         cssClass: 'petal-purse',
         genre: 'cozy',
         tags: [
@@ -208,7 +208,7 @@ const games = [
         description: 'Endless three-lane runner in a neon cyberpunk world. Dodge obstacles, blast cyber bugs, collect Overdrive power-ups for a speed burst, and take down boss bugs for a permanent speed boost. How far can you run?',
         icon: '🏎️',
         folder: 'game-014',
-        version: '1.5.0',
+        version: '1.5.1',
         cssClass: 'trackrunner',
         genre: 'arcade',
         tags: [
@@ -235,10 +235,10 @@ const games = [
     {
         id: 'game-016',
         title: 'Crate Pusher',
-        description: 'Classic Sokoban-style puzzle game! Push crates onto their targets without getting stuck. Features 8 hand-crafted puzzles of increasing difficulty, an undo system, and a move counter. Can you solve them all?',
+        description: 'A Sokoban-style puzzle game: push every crate onto a target across 8 hand-made levels. Swipe or use the arrow keys, undo any move, and pick up where you left off with saved progress and best move counts per level.',
         icon: '📦',
         folder: 'game-016',
-        version: '1.1.0',
+        version: '1.2.0',
         cssClass: 'crate-pusher',
         genre: 'puzzle',
         tags: [
@@ -250,10 +250,10 @@ const games = [
     {
         id: 'game-017',
         title: 'Pixel Picross',
-        description: 'Classic nonogram puzzle game! Use number clues to fill in a grid and reveal hidden pixel art. Five hand-crafted puzzles scale from a tiny 5×5 Heart to a 10×10 Rocket. Left-click to fill, right-click to mark — drag to paint whole rows at once!',
+        description: 'Classic nonogram puzzles: use the row and column clues to fill in the grid and reveal pixel art. Fill and mark with the mouse, or tap with the Fill / Mark tool on a phone. Your solved puzzles are saved.',
         icon: '🖼️',
         folder: 'game-017',
-        version: '1.1.0',
+        version: '1.2.0',
         cssClass: 'pixel-picross',
         genre: 'puzzle',
         tags: [
@@ -268,7 +268,7 @@ const games = [
         description: 'Explore a 3D countryside, slay monsters for resources, and return to build and develop your village. Fight slimes, goblins, wolves, and trolls — then spend your loot on a blacksmith, healer, market, watchtower, and tavern. Grow stronger. Build further.',
         icon: '🗡️',
         folder: 'game-018',
-        version: '1.10.0',
+        version: '1.10.1',
         cssClass: 'wandering-blade',
         genre: 'rpg',
         tags: [
@@ -325,10 +325,10 @@ const games = [
     {
         id: 'game-022',
         title: 'Depths Unknown',
-        description: 'A Motherload-style 2D mining game blending fantasy and sci-fi. Pilot AXIOM-7, a drill machine, through 7 depth tiers — from surface soil to the mysterious Void Layer. Collect 16 ore types, manage fuel and hull integrity, and spend credits on 38 upgrades across 7 categories. Uncover the fate of the lost Delverhaven colony.',
+        description: 'A Motherload-style 2D mining game blending fantasy and sci-fi. Pilot AXIOM-7, a drill machine, through 7 depth tiers — from surface soil to the mysterious Void Layer. Collect 16 ore types, manage fuel and hull integrity, and spend credits on 38 upgrades across 7 categories. Uncover the fate of the lost Delverhaven colony, and bring the Singing Vein home to end the mission.',
         icon: '⛏️',
         folder: 'game-022',
-        version: '1.3.0',
+        version: '1.4.0',
         cssClass: 'depths-unknown',
         genre: 'rpg',
         tags: [
@@ -343,7 +343,7 @@ const games = [
         description: 'Retro Space Invaders in a neon synthwave world! 2D pixel-art invaders march toward you across a glowing perspective grid with a retrowave sunset. Shoot them down before they reach you — each wave faster than the last.',
         icon: '👾',
         folder: 'game-023',
-        version: '1.3.0',
+        version: '1.3.1',
         cssClass: 'synthwave-invaders',
         genre: 'arcade',
         tags: [
@@ -388,7 +388,7 @@ const games = [
         description: 'A first-person grid-based dungeon crawler (blobber) with turn-based combat, built in Three.js. Step tile by tile and turn in 90° increments through a fog-shrouded crypt lit by a flickering lantern. Fight monsters in tactical turn-based battles, search for hidden switches and loot, and descend ever deeper to uncover the crypt\'s secret.',
         icon: '🏚️',
         folder: 'game-026',
-        version: '1.10.0',
+        version: '1.10.1',
         cssClass: 'crypt-of-the-forgotten',
         genre: 'dungeon',
         tags: [
@@ -418,7 +418,7 @@ const games = [
         description: 'A Phaser 4 visual novel fantasy RPG. Lead a party of four heroes — mage, knight, ranger, warlock — through four chapters of branching dialogue, turn-based battles, tile-based maps, quests, and a deep storyline. Uncover the truth of the Lich of Aethermoor before the ancient seals break for good.',
         icon: '📖',
         folder: 'game-028',
-        version: '1.4.0',
+        version: '1.4.1',
         cssClass: 'echoes-of-aethermoor',
         genre: 'story',
         tags: [
@@ -448,7 +448,7 @@ const games = [
         description: "A cozy-fantasy RPG-Maker-style adventure. Explore Coppergate Lane, the Whistling Wilds, and Gutter Gully, help the townsfolk with quests, battle clockwork critters in turn-based combat, and recover the Mayor's stolen Golden Gear from the brute Big Bertha.",
         icon: '⚙️',
         folder: 'game-030',
-        version: '1.1.0',
+        version: '1.1.1',
         cssClass: 'coppergate-lane',
         genre: 'rpg',
         tags: [
@@ -463,7 +463,7 @@ const games = [
         description: "A retro first-person dungeon crawler in the style of early-90s DOS shareware. Grid-locked steps, 90-degree turns and a hand that throws fireballs, rendered by a custom software 3D engine written from scratch for this game - a 320x200 palette-indexed framebuffer, perspective-correct textured wall columns, dithered EGA distance shading and billboard sprites, with no WebGL and no 3D library. Every floor of the dungeon is procedurally generated.",
         icon: '\u{1F52E}',
         folder: 'game-031',
-        version: '1.4.0',
+        version: '1.4.1',
         cssClass: 'grimhold-abyss',
         genre: 'dungeon',
         tags: [
@@ -475,10 +475,10 @@ const games = [
     {
         id: 'game-032',
         title: 'Ironhollow Depths',
-        description: "An 80's-style top-down 8-bit dungeon crawler in the vein of classic CRT-era action-RPGs. Guide a pixel-art knight through torch-lit brick dungeons, hack down green slimes with your sword, grab gold treasure, and survive as the depths grow harder — all under a chunky retro status-bar HUD.",
+        description: "An 80's-style top-down 8-bit dungeon crawler in the vein of classic CRT-era action-RPGs. Guide a pixel-art knight through torch-lit brick dungeons, hack down monsters with your sword, grab gold treasure, and descend ten procedurally generated floors past slimes, bats and bone-throwing skeletons to claim the Hollow Crown. Touch controls included.",
         icon: '🗡️',
         folder: 'game-032',
-        version: '1.1.0',
+        version: '1.2.0',
         cssClass: 'ironhollow-depths',
         genre: 'dungeon',
         tags: [
@@ -493,7 +493,7 @@ const games = [
         description: "A cozy fantasy visual novel built with a hand-crafted vanilla JS engine (no game library) - DOM for the story layer, canvas for battles. Inherit a rundown countryside apothecary and spend a season running it: brew remedies to order for your neighbours, forage, trade with a travelling peddler, and work out why the wood at the edge of the village has gone so quiet since your aunt died. Roughly an hour of story across 195 branching nodes and 13 endings, with inventory, equippable trinkets and charms, leveling, a quest journal, and affinity-gated branches that decide who walks into the dark with you.",
         icon: '🌿',
         folder: 'game-033',
-        version: '1.9.0',
+        version: '1.9.1',
         cssClass: 'hearthbound',
         genre: 'story',
         tags: [

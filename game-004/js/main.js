@@ -1,4 +1,4 @@
-import kaplay from '../lib/kaplay/kaplay.mjs';
+import kaplay from '../../lib/kaplay/kaplay.mjs';
 import { GAME_WIDTH, GAME_HEIGHT } from './config.js';
 import { initMap } from './map.js';
 import { initTowers } from './towers.js';

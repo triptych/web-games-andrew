@@ -24,6 +24,7 @@ const k = kaplay({
     height: SCREEN_HEIGHT,
     crisp: true,
     pixelDensity: 1,
+    letterbox: true,   // fit any screen, keeping the 640×400 aspect (a fixed canvas was clipped on phones)
     // Transparent background - critical for layering
     background: [0, 0, 0, 0],
 });

@@ -11,7 +11,9 @@ let _enabled   = true;
 // Music
 let _musicSource  = null;
 let _musicGain    = null;
-let _musicEnabled = localStorage.getItem('nonogram_music') !== 'false';
+let _musicEnabled = (() => {
+    try { return localStorage.getItem('nonogram_music') !== 'false'; } catch { return true; }
+})();
 let _musicVolume  = 0.5;
 
 export function initAudio() {
@@ -59,7 +61,7 @@ export function stopMusic() {
 export function isMusicEnabled()  { return _musicEnabled; }
 export function setMusicEnabled(val) {
     _musicEnabled = val;
-    localStorage.setItem('nonogram_music', val ? 'true' : 'false');
+    try { localStorage.setItem('nonogram_music', val ? 'true' : 'false'); } catch { /* storage blocked */ }
     if (_musicGain) _musicGain.gain.value = val ? _musicVolume : 0;
 }
 export function toggleMusic() {

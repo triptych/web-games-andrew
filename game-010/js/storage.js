@@ -70,5 +70,9 @@ export function loadGame(state) {
 
 /** Returns true if a save exists in localStorage. */
 export function hasSave() {
-    return localStorage.getItem(SAVE_KEY) !== null;
+    try {
+        return localStorage.getItem(SAVE_KEY) !== null;
+    } catch {
+        return false; // storage blocked: play without saving
+    }
 }

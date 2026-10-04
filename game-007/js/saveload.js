@@ -51,7 +51,7 @@ export class SaveSystem {
             return { success: false, message: `Invalid slot. Use 1–${NUM_SAVE_SLOTS}.` };
         }
 
-        const raw = localStorage.getItem(this._key(slot));
+        const raw = this._read(slot);
         if (!raw) {
             return { success: false, message: `Slot ${slot} is empty.` };
         }
@@ -83,7 +83,7 @@ export class SaveSystem {
     listSaves() {
         const lines = [`Save Slots:`];
         for (let i = 1; i <= NUM_SAVE_SLOTS; i++) {
-            const raw = localStorage.getItem(this._key(i));
+            const raw = this._read(i);
             if (raw) {
                 try {
                     const state = JSON.parse(raw);
@@ -101,10 +101,19 @@ export class SaveSystem {
     }
 
     hasSave(slot) {
-        return localStorage.getItem(this._key(slot)) !== null;
+        return this._read(slot) !== null;
     }
 
     // ── Private helpers ────────────────────────────────────────────────────────
+
+    /** A slot's raw JSON, or null when empty or when the browser blocks storage. */
+    _read(slot) {
+        try {
+            return localStorage.getItem(this._key(slot));
+        } catch {
+            return null;
+        }
+    }
 
     _key(slot) { return `${SAVE_KEY_PREFIX}${slot}`; }
 

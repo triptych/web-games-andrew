@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — early-games refresh
+The later games (037+) share conventions the early ones predate. [docs/refresh-plan.md](docs/refresh-plan.md) lists them, records an audit of games 001–036 against them, and ranks what's left.
+- **Repo-wide smoke test** ([dev/smoketest.mjs](dev/smoketest.mjs), [dev/README.md](dev/README.md)): loads every game in Chromium on desktop and on a touch-only phone, clicks, taps and presses keys, and fails on console or page errors, failed requests, a missing or covered back link, sideways scroll or a clipped canvas. `NOSTORAGE=1` makes `localStorage` throw. CDN requests can be served from local npm packages.
+- **Blocked storage no longer crashes games**: nine games threw an uncaught `SecurityError` at load when the browser blocks site data (003, 010, 011, 013, 014, 018, 023, 028, 033), and 007, 009 and 012 would throw on save, load or clear. Every access is now guarded; the game plays on without saving.
+- **Silent in a background tab**: [lib/page-audio.js](lib/page-audio.js), included by every game from 001 to 036, tracks each `AudioContext` and media element the page creates and suspends them while the tab is hidden. It works the same for Kaplay, Phaser, three.js and plain Web Audio.
+- **Phone viewport**: `viewport-fit=cover` and a `theme-color` matching the page on every game from 001 to 036.
+- **Layout fixes**: game-002's fixed canvas is scaled to fit with Kaplay's `scale` option, so taps still hit the right gem; game-026's hint bar and message log no longer overflow a phone; game-031's back link is pinned to the corner instead of sitting below the fold; game-005 and game-006 letterbox their fixed Kaplay canvases (1280 and 640 px wide, clipped on phones); game-030 scales its 640×480 frame, canvas and panels together, to fit; game-004 uses the shared `/lib/kaplay` instead of an identical 560 KB copy.
+- **Space Shooter** (game-001) v1.3.0: the canvas scales to fit, movement is per second, not per frame (it used to run at double speed on 120 Hz screens), Space can be held to fire, touch steering by relative drag with auto-fire, a title screen, pause (P or a hidden tab) and a saved best score. [dev/browsertest.mjs](game-001/dev/browsertest.mjs).
+- **Crate Pusher** (game-016) v1.2.0: swipe or tap beside the pusher to move, Undo, Restart and Menu buttons (bigger on touch), levels unlock in order with best move counts saved, a level picker on the title, and the game's first [design doc](game-016/game-plan.md). [dev/browsertest.mjs](game-016/dev/browsertest.mjs) proves every level solvable with a breadth-first solver, then plays all eight through the real UI.
+- **Pixel Picross** (game-017) v1.2.0: a Fill / Mark tool (button or X key) so phones can mark squares without a right click, Restart and Menu buttons, tap to continue after a win, and solved puzzles saved. [dev/browsertest.mjs](game-017/dev/browsertest.mjs).
+- **Depths Unknown** (game-022) v1.4.0 gets an ending. It had no win condition: now the first time Singing Vein ore reaches the base, an epilogue plays over the paused base with the run's numbers, and you can keep mining, start a new game or go to the menu. The mission is saved, and the title shows MISSION COMPLETE. [dev/browsertest.mjs](game-022/dev/browsertest.mjs).
+- **Ironhollow Depths** (game-032) v1.2.0, Phase 2: it had one room and no way down. Now:
+  - ten procedurally generated floors, each rejected unless a flood fill reaches every tile
+  - stairs that open once every foe on a floor is dead, and the Hollow Crown on floor 10 to win
+  - bats (erratic, fly over pillars) and skeletons (keep their distance, throw bones you can swat)
+  - potions, depth-tinted floors, a saved best run
+  - touch controls (floating stick, hold-to-swing sword, pause), pause on P or a hidden tab, M for sound
+  - fixes: the hit flash never showed (a `color()` component was assigned instead of an `rgb()` value), and the slime wobble did nothing (`scale` set without a `scale()` component)
+  - [dev/browsertest.mjs](game-032/dev/browsertest.mjs) checks 60 generated floors, the desktop flow and touch-only phones
+- Launcher versions bumped in [js/gamedata.js](js/gamedata.js) for every game with a behaviour change; [status.md](status.md) and the README updated (game-022 is Phaser 4, not Kaplay).
+
 ### Changed
 - **Launcher remade as the Garden of Games** ([index.html](index.html), code in [garden/](garden/)): a walkable three.js r165 island in the spirit of *Myst*, with no asset files. The previous card grid moved to [classic.html](classic.html), unchanged apart from a link back.
   - **Layout grows with the collection** (`garden/js/layout.js`): one flagstone path per genre radiates from a colonnaded hub, plus a path down to the arrival dock. Statues stand in pairs every 7.5 m, newest nearest the hub, and each path ends at a pavilion. The coastline is a signed-distance union grown around the paths, so adding games lengthens paths and widens the island. Checked headlessly at 50, 100 and 160 games: no overlaps and every statue well inland.

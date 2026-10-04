@@ -87,7 +87,11 @@ function loadGame() {
 }
 
 function hasSavedGame() {
-    return localStorage.getItem('roguelike_save') !== null;
+    try {
+        return localStorage.getItem('roguelike_save') !== null;
+    } catch {
+        return false; // storage blocked: play without saving
+    }
 }
 
 // Auto-save every 30 seconds if game is running

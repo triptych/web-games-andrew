@@ -7,6 +7,10 @@ const BASE_SPEED     = 18;
 const MAX_SPEED      = 55;
 const ACCEL          = 0.003;       // speed increase per frame * deltaTime factor
 
+// localStorage throws when the browser blocks site data; play on without saving.
+function storeGet(key) { try { return localStorage.getItem(key); } catch { return null; } }
+function storeSet(key, value) { try { localStorage.setItem(key, value); } catch { /* storage blocked */ } }
+
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let gameState = 'start'; // 'start' | 'playing' | 'dead'
 let currentLane  = 1;
@@ -14,8 +18,8 @@ let targetLane   = 1;
 let laneT        = 1;       // lerp progress 0→1
 let playerX      = 0;
 let score        = 0;
-let bestScore    = parseInt(localStorage.getItem('trackrunner_best_score') || '0', 10);
-let bestKills    = parseInt(localStorage.getItem('trackrunner_best_kills') || '0', 10);
+let bestScore    = parseInt(storeGet('trackrunner_best_score') || '0', 10);
+let bestKills    = parseInt(storeGet('trackrunner_best_kills') || '0', 10);
 let kills        = 0;
 let speed        = BASE_SPEED;
 let bossSpeedBonus = 0;
@@ -1318,8 +1322,8 @@ function triggerCrash() {
   // Update best
   if (score > bestScore) bestScore = Math.floor(score);
   if (kills > bestKills) bestKills = kills;
-  localStorage.setItem('trackrunner_best_score', bestScore);
-  localStorage.setItem('trackrunner_best_kills', bestKills);
+  storeSet('trackrunner_best_score', bestScore);
+  storeSet('trackrunner_best_kills', bestKills);
   document.getElementById('best-display').textContent = bestScore;
   updateSplashBest();
 
@@ -1616,7 +1620,7 @@ const music = new Audio('sound/Cyberpunk Moonlight Sonata.mp3');
 music.loop = true;
 music.volume = 0.6;
 
-let muted = localStorage.getItem('trackrunner_muted') === 'true';
+let muted = storeGet('trackrunner_muted') === 'true';
 music.muted = muted;
 updateMuteIndicator();
 updateSplashBest();
@@ -1644,7 +1648,7 @@ function updateMuteIndicator() {
 function toggleMute() {
   muted = !muted;
   music.muted = muted;
-  localStorage.setItem('trackrunner_muted', muted);
+  storeSet('trackrunner_muted', muted);
   updateMuteIndicator();
 }
 

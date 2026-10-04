@@ -256,9 +256,11 @@ export class Battle {
     if (!el) return;
     const f = document.createElement('div');
     f.className = 'float-dmg'; f.textContent = dmg; f.style.color = color;
+    // Screen pixels → frame pixels (the frame is scaled down on small screens)
+    const scale = Number(document.getElementById('game-frame').dataset.scale) || 1;
     const r = el.getBoundingClientRect(), pr = this.dom.root.getBoundingClientRect();
-    f.style.left = (r.left - pr.left + r.width / 2) + 'px';
-    f.style.top = (r.top - pr.top) + 'px';
+    f.style.left = ((r.left - pr.left + r.width / 2) / scale) + 'px';
+    f.style.top = ((r.top - pr.top) / scale) + 'px';
     this.dom.root.appendChild(f);
     setTimeout(() => f.remove(), 800);
   }

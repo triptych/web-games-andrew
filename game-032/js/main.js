@@ -13,9 +13,10 @@ import kaplay from '../../lib/kaplay/kaplay.mjs';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
 import { state }  from './state.js';
 import { events } from './events.js';
-import { initUI }    from './ui.js';
-import { initAudio, playUiClick } from './sounds.js';
-import { initDungeon, updateDungeon } from './dungeon.js';
+import { initUI, showPaused } from './ui.js';
+import { initAudio, playUiClick, toggleSound } from './sounds.js';
+import { initDungeon, updateDungeon, debug } from './dungeon.js';
+import { initTouch, setTouchEnabled, isTouchDevice } from './touch.js';
 
 // ============================================================
 // KAPLAY API GOTCHAS (read before adding entities)
@@ -102,16 +103,37 @@ k.scene('splash', () => {
     // Controls hint
     k.add([
         k.pos(CX, CY + 100),
-        k.text('MOVE: Arrows / WASD   ATTACK: Space', { size: 13, font: 'monospace' }),
+        k.text(isTouchDevice()
+            ? 'MOVE: drag on the left   ATTACK: the sword button'
+            : 'MOVE: Arrows / WASD   ATTACK: Space   PAUSE: P   SOUND: M', { size: 13, font: 'monospace' }),
         k.color(120, 160, 140),
         k.anchor('center'),
         k.z(1),
     ]);
 
+    k.add([
+        k.pos(CX, CY + 130),
+        k.text('Clear ten floors and claim the Hollow Crown', { size: 13, font: 'monospace' }),
+        k.color(...COLORS.gold),
+        k.anchor('center'),
+        k.z(1),
+    ]);
+
+    const best = state.best;
+    if (best.floor > 0) {
+        k.add([
+            k.pos(CX, CY + 170),
+            k.text(`BEST: FLOOR ${best.floor}  ${best.score} PTS${best.won ? '  CROWN CLAIMED' : ''}`, { size: 13, font: 'monospace' }),
+            k.color(...COLORS.accent),
+            k.anchor('center'),
+            k.z(1),
+        ]);
+    }
+
     // Version tag
     k.add([
         k.pos(GAME_WIDTH - 10, GAME_HEIGHT - 10),
-        k.text('Phase 1', { size: 10 }),
+        k.text('v1.2', { size: 10 }),
         k.color(50, 50, 80),
         k.anchor('botright'),
         k.z(1),
@@ -143,32 +165,64 @@ k.scene('splash', () => {
 // SCENE: game
 // ============================================================
 
+let inGame = false;
+
+function setPaused(on) {
+    if (!inGame || state.isOver || state.isPaused === on) return;
+    state.isPaused = on;
+    showPaused(on);
+}
+
+initTouch(() => setPaused(!state.isPaused));
+
+// Pause when the tab is hidden, so a run isn't lost while you're away
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) setPaused(true);
+});
+
 k.scene('game', () => {
     state.reset();
 
     initUI(k);
     initDungeon(k);
+    setTouchEnabled(true);
+    inGame = true;
 
     k.onUpdate(() => {
         updateDungeon(k.dt());
     });
 
-    // Key bindings
-    k.onKeyPress('r', () => {
+    const restart = () => {
         events.clearAll();
         k.go('game');
-    });
+    };
 
-    k.onKeyPress('p', () => {
-        state.isPaused = !state.isPaused;
-    });
+    // Run over: hide the touch controls so a tap anywhere restarts
+    const offEnd = [
+        events.on('gameOver', () => setTouchEnabled(false)),
+        events.on('gameWon',  () => setTouchEnabled(false)),
+    ];
+    k.onClick(() => { if (state.isOver) restart(); });
+
+    // Key bindings
+    k.onKeyPress('r', restart);
+    k.onKeyPress('p', () => setPaused(!state.isPaused));
+    k.onKeyPress('m', () => toggleSound());
 
     k.onKeyPress('escape', () => {
         events.clearAll();
-        k.go('splash');
+        // ?debug=1 exposes hooks for dev/browsertest.mjs
+if (new URLSearchParams(location.search).has('debug')) {
+    window.__ih = { k, state, dungeon: debug, start: () => k.go('game') };
+}
+
+k.go('splash');
     });
 
     k.onSceneLeave(() => {
+        inGame = false;
+        offEnd.forEach(off => off());
+        setTouchEnabled(false);
         events.clearAll();
         k.destroyAll('dungeon');
     });
@@ -177,5 +231,10 @@ k.scene('game', () => {
 // ============================================================
 // Start
 // ============================================================
+
+// ?debug=1 exposes hooks for dev/browsertest.mjs
+if (new URLSearchParams(location.search).has('debug')) {
+    window.__ih = { k, state, dungeon: debug, start: () => k.go('game') };
+}
 
 k.go('splash');

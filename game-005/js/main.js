@@ -17,7 +17,7 @@ const k = kaplay({
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
     background: [10, 10, 15],
-    scale: 1,
+    letterbox: true,   // fit any screen, keeping 16:9 (a fixed 1280 px canvas was clipped on phones)
     pixelDensity: window.devicePixelRatio || 1,
     crisp: true,
 });

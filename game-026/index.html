@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <script src="../lib/page-audio.js"></script>
     <title>Crypt of the Forgotten</title>
     <style>
         :root {
@@ -253,12 +255,13 @@
             bottom: var(--gutter);
             left: var(--gutter);
             right: var(--gutter);
-            height: 40px;
+            min-height: 40px;
             display: flex;
+            flex-wrap: wrap;          /* narrow screens: wrap, never push hints off the edge */
             align-items: center;
             justify-content: center;
-            padding: 0 14px;
-            gap: 18px;
+            padding: 4px 14px;
+            gap: 4px 18px;
             font-size: calc(11px * var(--ui-scale));
             letter-spacing: 2px;
             text-transform: uppercase;
@@ -278,6 +281,7 @@
             bottom: calc(var(--gutter) + 50px);
             left: calc(var(--gutter) + 90px);
             width: 340px;
+            max-width: calc(100% - var(--gutter) * 2 - 90px);
             display: flex;
             flex-direction: column-reverse;
             gap: 3px;

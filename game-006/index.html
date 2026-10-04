@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <script src="../lib/page-audio.js"></script>
     <title>Game 006 - Wolfenstein-like Raycasting FPS</title>
     <style>
         * {
@@ -11,18 +13,20 @@
             box-sizing: border-box;
         }
 
+        /* Kaplay letterboxes the 640×400 game into the whole window */
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
         body {
             background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
             font-family: 'Courier New', monospace;
             overflow: hidden;
         }
 
         canvas {
-            border: 2px solid #333;
+            display: block;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
         }

@@ -221,13 +221,13 @@ class GameState {
             totalHarvested: this._totalHarvested,
             totalEarned:    this._totalEarned,
         };
-        localStorage.setItem('petalPurse_save', JSON.stringify(data));
+        try { localStorage.setItem('petalPurse_save', JSON.stringify(data)); } catch { /* storage blocked or full */ }
     }
 
     load() {
-        const raw = localStorage.getItem('petalPurse_save');
-        if (!raw) return false;
         try {
+            const raw = localStorage.getItem('petalPurse_save');
+            if (!raw) return false;
             const d = JSON.parse(raw);
             this._gold           = Math.max(0, Math.round(d.gold ?? STARTING_GOLD));
             this._day            = d.day            ?? 1;
@@ -253,7 +253,7 @@ class GameState {
     }
 
     deleteSave() {
-        localStorage.removeItem('petalPurse_save');
+        try { localStorage.removeItem('petalPurse_save'); } catch { /* storage blocked */ }
     }
 }
 

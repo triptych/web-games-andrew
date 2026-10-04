@@ -7,6 +7,7 @@ import * as Phaser from '../../../lib/phaser/phaser-4.0.0/dist/phaser.esm.js';
 import { SCENE, GAME_WIDTH, GAME_HEIGHT, COLORS } from '../config.js';
 import { GameState } from '../systems/GameState.js';
 import { UPGRADES, CONSUMABLES } from '../data/upgrades.js';
+import { BLOCK } from '../data/ores.js';
 import { playUiClick, playUpgrade } from '../systems/SoundManager.js';
 
 function hex(arr) { return '#' + arr.map(v => v.toString(16).padStart(2, '0')).join(''); }
@@ -62,12 +63,24 @@ export class BaseScene extends Phaser.Scene {
             this.scene.resume(SCENE.GAME);
         });
 
+        // Bringing Singing Vein ore home is the mission. Check before selling.
+        const vein = GameState.cargo.slots.find(s => s.blockId === BLOCK.SINGING_VEIN);
+        const missionDone = vein && !GameState.stats.missionComplete;
+
         // Auto-sell cargo on arrival, then show sell tab
         const sold = GameState.sellAllCargo();
         if (sold > 0) {
             this._sellFlash = sold;
         }
         this._switchTab(TAB.SELL);
+
+        if (missionDone) {
+            GameState.stats.missionComplete = true;
+            GameState.save();
+            this.scene.launch(SCENE.ENDING, { veinValue: vein.value * vein.qty });
+            this.scene.bringToTop(SCENE.ENDING);
+            this.scene.pause();
+        }
     }
 
     _clearContent() {
