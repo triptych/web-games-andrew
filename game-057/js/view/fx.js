@@ -211,7 +211,8 @@ class QuadBatch {
         this.g = g; this.attrs = attrs; this.n = 0;
         this.mat = new THREE.ShaderMaterial({
             uniforms: { uTime: { value: 0 } }, vertexShader: TRACER_VERT, fragmentShader: frag,
-            transparent: true, depthWrite: false, blending,
+            // The quad is laid flat by the shader, which flips its winding: draw both sides.
+            transparent: true, depthWrite: false, blending, side: THREE.DoubleSide,
         });
         if (blending === THREE.CustomBlending) {
             this.mat.blendSrc = THREE.OneFactor; this.mat.blendDst = THREE.OneMinusSrcAlphaFactor;
