@@ -774,6 +774,16 @@ h1 {
     color: #021014;
 }
 
+.game-preview.bumble-basket,
+.carousel-slide-bg.bumble-basket {
+    background: linear-gradient(180deg, #bfeaff 0%, #fff3dc 40%, #ff8a9a 72%, #8fd35a 100%);
+}
+
+.game-card.bumble-basket .play-button {
+    background: linear-gradient(135deg, #ffd25a 0%, #ffb72b 55%, #f08a12 100%);
+    color: #5a2a00;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

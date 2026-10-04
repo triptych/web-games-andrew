@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-57 games, `game-001` through `game-057`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+58 games, `game-001` through `game-058`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -75,6 +75,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 055 | [Rotorstorm](game-055/) | Top-down helicopter bullet-hell shooter with a skill tree | Vanilla JS + hand-written WebGL2 |
 | 056 | [Keepfire](game-056/) | Castle defence × Plants vs. Zombies lanes × incremental | three.js |
 | 057 | [Hivebreaker](game-057/) | Twin-stick bug-swarm shooter with a five-sector campaign | three.js |
+| 058 | [Bumble Basket](game-058/) | Casual fruit puzzle: trails where each hop shares a kind, colour, size or family | three.js |
 
 ### Highlights
 
@@ -143,6 +144,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 **[Keepfire](game-056/)** — A **castle-defence take on Plants vs. Zombies** with an incremental heart, in three.js. The last keep in Aldmere starts as one tower with one archer; procedurally generated monsters march down five lanes and every kill pays gold, spent mid-wave on party members placed on stepped tower platforms (safe from melee) or out in the bailey: archers, gold-brewing alchemists, knights, palisades, pyromancers, a frost witch, dwarf bombardiers with exploding barrels, clerics, a ballista, a thorn-rooting druid and a storm caller, each levelling to 10 with perks. The castle model is rebuilt from its upgrades, so you watch it grow: towers rise tier by tier, walls go from logs to banded stone, the keep sprouts turrets and the Keepfire beacon, which burns a whole lane when you call it. Ember motes and powerup orbs to tap, a relic choice after every wave (procedural names, affixes and canvas-drawn icons, eight slots), six biomes with day-to-night progression across each region's ten waves, six multi-phase bosses (Bramblejaw the Warg King, the Mire Mother, Warlord Skarn, the Rime Colossus, Morvane the Lich, Vael the Black Sun) and the endless Long Night. Every species is rolled per run from body plans (bipeds, quadrupeds, flyers, slimes, wraiths, siege engines) with names, palettes, features and elite affixes. Failing a wave keeps its gold for a retry, and Rekindling trades the run for Embers on a permanent Ember Tree. Generative medieval music; portrait phones get a camera behind the castle with the lanes running up the screen. [game-056/dev/](game-056/dev/README.md) balances the 60-wave campaign with a bot headlessly and drives every flow in Chromium on desktop and touch-only phones.
 
 **[Hivebreaker](game-057/)** — A **twin-stick shooter** in the spirit of Enter the Gungeon and Alien Breed, in three.js with no asset files. A black-site base under the ice of Erebus has gone silent with the President's daughter inside, and one Colonial Marine goes down through five procedurally generated sectors to get her out. Rooms seal behind you while the bug-like Brood pours out of the vents in waves and swarms of hundreds (ten bug types, glowing alphas, one instanced draw call per type with legs and wings animated in the vertex shader). Dodge-roll through bullet patterns, grenade the crowds, erase bullets with the Shock Pulse, and carry four of nine guns upgraded to Mk III. Five multi-phase bosses, a field upgrade after each, a supply depot, data logs and radio chatter tell the story, and the campaign ends in a timed escape with Ellie at your side. A procedural deck-plate and hive-creep floor shader, a baked lightmap, a shadowed flashlight, GPU particles, noise fireballs, bloom and chromatic aberration; a generative synth score; Horde Mode; keyboard and mouse, gamepad, or touch twin-sticks in portrait and landscape. [game-057/dev/](game-057/dev/README.md) plays the whole campaign headlessly with a perfect bot and a fallible one, and drives every flow in Chromium on desktop and touch-only phones.
+
+**[Bumble Basket](game-058/)** — A **cosy fruit-picking puzzle** with a matching rule of its own, in three.js with no asset files. Drag a bumblebee along a trail across a picnic blanket. Each fruit you hop to only has to share one trait with the last (kind, colour, size or family), so trails wander like a word ladder instead of needing identical pieces. The bee learns those traits as **senses**, one per garden: a Set level at the end of each garden teaches the next, as more kinds, colours and sizes of fruit arrive. Matching fruit pours into a jar for each sense, and a full set earns a power-up (Honey Dipper, Paint Pollen, Buzz Bomb, Rainbow Wings). Trails of seven grow golden fruit that links to anything, and leaf piles and frost get in the way. Thirty levels in four gardens, an endless Picnic mode and an 81-stamp Fruit Album. Sixteen kinds of fruit with faces that blink and beam, all modelled in code, plus generative ukulele-style music. Touch or mouse, portrait or landscape. [game-058/dev/](game-058/dev/README.md) checks the rules headlessly, gates every level on bot win rates, and drives the game in Chromium on desktop and touch-only phones.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -272,7 +275,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 57 games are included as of the latest entries (game-054 Pale Engine, game-055 Rotorstorm, game-056 Keepfire, game-057 Hivebreaker).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 58 games are included as of the latest entries (game-055 Rotorstorm, game-056 Keepfire, game-057 Hivebreaker, game-058 Bumble Basket).
 
 ---
 

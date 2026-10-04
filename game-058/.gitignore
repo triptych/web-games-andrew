@@ -1,0 +1,4 @@
+# Browser-test output and a locally unpacked three.js for offline runs.
+dev/shots/
+dev/package
+dev/*.tgz
