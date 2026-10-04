@@ -3,7 +3,7 @@
 **Genre:** Sokoban puzzle
 **Engine:** Kaplay v4000 (ES6 modules, shared `/lib/kaplay`)
 **Resolution:** 800 × 560, letterboxed to fit
-**Status:** Complete, v1.1
+**Status:** Complete, v1.2
 
 ---
 
@@ -53,12 +53,12 @@ Shortest solutions come from the breadth-first solver in `dev/browsertest.mjs`, 
 
 ## Changelog
 
-### v1.1 (2026-10-04)
+### v1.2 (2026-10-04)
 - Touch and mouse: swipe or tap beside the pusher to move; Undo, Restart and Menu buttons
 - Saved progress: levels unlock in order, best move counts are kept, and the title has a level picker
 - WASD as well as arrow keys; a click or tap skips the win screen's wait
 - Fixed: skipping the win screen on a touch *press* switched scene mid-touch and left every later swipe ignored, so it now happens on release
 - `dev/browsertest.mjs` with a solver; this design doc
 
-### v1.0
+### v1.0–1.1
 - Eight hand-made levels, undo, restart, win and complete screens

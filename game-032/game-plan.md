@@ -3,7 +3,7 @@
 **Genre:** Top-down 8-bit action dungeon crawler
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 1280 × 720
-**Status:** Playable, v1.1 — Phases 1 and 2 done; Phase 3 (art and juice) open
+**Status:** Playable, v1.2 — Phases 1 and 2 done; Phase 3 (art and juice) open
 
 ---
 
@@ -118,7 +118,7 @@ All Web Audio API procedural — no file assets.
 - [x] Retro CRT-style HUD (status readout + HP bar + lives)
 - [x] Game over flow
 
-### Phase 2 — Floor Descent (done, v1.1)
+### Phase 2 — Floor Descent (done, v1.2)
 - [x] Stairs tile that advances `state.level` and regenerates a harder room
 - [x] Multiple room layouts / simple procedural layout variation (flood-fill validated)
 - [x] More enemy types (skeleton, bat) with distinct movement patterns
@@ -180,7 +180,7 @@ All Web Audio API procedural — no file assets.
 
 ## Changelog
 
-### v1.1 — Phase 2: floor descent (2026-10-04)
+### v1.2 — Phase 2: floor descent (2026-10-04)
 - Ten procedurally generated floors (flood-fill validated), stairs that open when a floor is clear, the Hollow Crown on floor 10 as the win
 - Bats (floor 2+) and skeletons that throw bones (floor 3+); enemies no longer respawn
 - Health potions on floors 3, 5, 7, 9; gold value scales with depth

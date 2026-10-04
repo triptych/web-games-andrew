@@ -39,7 +39,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 019 | [Synthwave Breakout](game-019/) | Arcade breakout | Phaser 4 |
 | 020 | [The River](game-020/) | Narrative RPG / roguelite | Phaser 4 |
 | 021 | [Dungeon Blobber](game-021/) | First-person dungeon crawler | Kaplay |
-| 022 | [Depths Unknown](game-022/) | Motherload-style mining | Kaplay |
+| 022 | [Depths Unknown](game-022/) | Motherload-style mining | Phaser 4 |
 | 023 | [Synthwave Invaders](game-023/) | Space Invaders clone | Kaplay |
 | 024 | [Neon Vanguard](game-024/) | Top-down shmup | three.js |
 | 025 | [Crypt Crawler](game-025/) | Gauntlet-style dungeon crawler | three.js |
@@ -78,7 +78,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 
 ### Highlights
 
-**[Space Shooter](game-001/)** — Classic arcade space shooter. Arrow keys to move, space bar to shoot, progressive enemy waves.
+**[Space Shooter](game-001/)** — Classic arcade space shooter, the repo's first game. Arrow keys or A/D to move and hold Space to fire, or drag to steer on a phone; progressive enemy waves and a saved best score.
 
 **[NetHack Roguelike](game-003/)** — Procedurally generated infinite-depth dungeons, full RPG systems (combat, leveling, inventory, magic), FOV/fog of war, NPCs, and save/load — all in modular ES6.
 
@@ -96,7 +96,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 
 **[Grimhold Abyss](game-031/)** — Retro first-person dungeon crawler in the style of early-90s DOS shareware, rendered by a **from-scratch software 3D engine**: a 320×200 palette-indexed framebuffer, perspective-correct textured walls, dithered EGA shading, and billboard sprites — no WebGL, no 3D library. Every floor is procedurally generated with zero asset files; all textures, sprites, and sounds are generated at runtime.
 
-**[Ironhollow Depths](game-032/)** — 80's-style top-down 8-bit dungeon crawler in the vein of classic CRT-era action-RPGs. Guide a pixel-art knight through torch-lit brick dungeons, hack down slimes, grab gold, and survive escalating depths under a chunky retro status-bar HUD.
+**[Ironhollow Depths](game-032/)** — 80's-style top-down 8-bit dungeon crawler in the vein of classic CRT-era action-RPGs. Guide a pixel-art knight down ten procedurally generated floors (each checked by flood fill) past slimes, erratic bats and bone-throwing skeletons; clear a floor to open its stairs, and claim the Hollow Crown at the bottom. Touch controls on phones.
 
 **[Hearthbound](game-033/)** — Cozy fantasy visual novel built on a **hand-crafted vanilla JS engine** (no game library) — DOM for the story layer, canvas for battles. Inherit a rundown countryside apothecary and spend a season running it: brew remedies to order for your neighbours, forage, trade with a travelling peddler, and work out why the wood at the edge of the village has gone so quiet since your aunt died. About an hour of story across 195 branching nodes and 13 endings, with inventory, equippable trinkets and charms, leveling, a quest journal, and affinity-gated branches that decide who walks into the dark with you.
 
@@ -171,7 +171,7 @@ python -m SimpleHTTPServer 8000
 
 ### Playing Individual Games
 
-You can also play any game directly by opening its own `index.html` file, e.g. `game-001/index.html` for Space Shooter. See the [table above](#games-included) for the full list of 40 games and their folders.
+You can also play any game directly by opening its own `index.html` file, e.g. `game-001/index.html` for Space Shooter. See the [table above](#games-included) for the full list of 57 games and their folders.
 
 ## Building Desktop Versions
 
@@ -196,6 +196,9 @@ The [docs/](docs/) directory contains reference material for AI-assisted develop
 - **[docs/threejs/](docs/threejs/)** — three.js r165 patterns (import map, render loop, bloom, gotchas)
 - **[docs/generic/](docs/generic/)** — Cross-game learnings, sound design patterns, and game ideas
 
+- **[docs/refresh-plan.md](docs/refresh-plan.md)** — the conventions the later games share, an audit of games 001–036 against them, what was fixed, and a ranked backlog
+- **[dev/](dev/README.md)** — `dev/smoketest.mjs` loads every game in Chromium on desktop and on a touch-only phone and fails on console errors, failed requests, a broken back link, or a layout that doesn't fit; `NOSTORAGE=1` also checks that games survive blocked `localStorage`. Many games also have their own `game-NNN/dev/` harness.
+
 When building or modifying games, consult these docs for framework APIs, confirmed working patterns, and architectural guidance. **When you learn something reusable, fold it back into the matching doc** — see [docs/README.md](docs/README.md) for the full index and the "Maintaining these docs" guide on what to write and where.
 
 ## Project Structure
@@ -211,11 +214,13 @@ web-games-andrew/
 │   └── gamedata.js         # Metadata for every game (drives both launchers)
 ├── lib/
 │   ├── kaplay/              # Shared Kaplay engine (kaplay.mjs / kaplay.js)
-│   └── phaser/phaser-4.0.0/ # Shared Phaser 4 engine (ESM build)
+│   ├── phaser/phaser-4.0.0/ # Shared Phaser 4 engine (ESM build)
+│   └── page-audio.js        # Silences a game's audio while its tab is hidden (games 001–036)
+├── dev/                    # Repo-wide smoke test (dev/smoketest.mjs)
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-051/   # One self-contained folder per game
+├── game-001/ … game-057/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config

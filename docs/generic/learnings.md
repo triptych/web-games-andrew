@@ -693,7 +693,7 @@ Every game must include a small "← Games" link back to the repo's root launche
 - **Path is `../index.html`, NOT `../../index.html`.** Every `game-NNN/` folder sits directly under the repo root, so one `../` reaches it. Getting this wrong (using `../../`) 404s silently — verify with `ls ../index.html` from inside the game folder before trusting it.
 - Fixed positioning + high `z-index` (`99999`) means it renders above a full-screen WebGL canvas or a `pointer-events:none` HUD overlay div — insert it as a sibling *before* those elements, not inside a `pointer-events:none` container, or clicks won't register.
 - Engine-agnostic: this is plain HTML/CSS in `index.html`, so it works identically for Kaplay, Phaser, and Three.js games without touching engine scene code.
-- If a game already has its own styled "back to browser" link (e.g. game-031), leave it as-is rather than adding a duplicate — just confirm its path resolves.
+- If a game already has its own styled back link, keep one link, not two, and check it is **on screen**, not just that its path resolves. game-031's link sat under a 900 px cabinet, below the fold on a laptop, so it is now pinned to the corner like everyone else's. `dev/smoketest.mjs` checks every game's link is visible and not covered.
 
 ---
 
@@ -5124,3 +5124,65 @@ At one or two frames a second, a 1/120 s fixed-step loop capped at 0.05 s per fr
 at about 7% speed, and a boss fight takes ten real minutes. A debug-only `fast=N` URL parameter
 runs N times more simulation per frame, so the browser tests stay under ten minutes without
 touching gameplay code paths.
+
+---
+
+## Early-games refresh: conventions retrofitted to games 001–036 (2026-10-04)
+
+The full audit and backlog are in [docs/refresh-plan.md](../refresh-plan.md). These are the reusable lessons.
+
+### Symptom: a game shows a blank page in some browsers → `localStorage` threw
+Reading `window.localStorage` throws a `SecurityError` when the browser blocks site data (some private modes, strict privacy settings, sandboxed iframes). A bare `localStorage.getItem(...)` at module load stops the whole game. Nine early games did this. Guard **every** access, reads included, and fall back to defaults:
+
+```js
+let best = 0;
+try { best = parseInt(localStorage.getItem(KEY) || '0', 10) || 0; } catch { /* storage blocked */ }
+```
+
+Log a `console.warn`, not `console.error`, when storage is unavailable: it's an expected condition, and browser tests fail on console errors. `NOSTORAGE=1 node dev/smoketest.mjs` makes every access throw, so you can check all games at once.
+
+### Silence a background tab without touching game code
+[lib/page-audio.js](../../lib/page-audio.js) replaces `window.AudioContext` with a subclass that records each instance, and wraps `HTMLMediaElement.prototype.play`. On `visibilitychange` it suspends whatever was running and resumes exactly that when the tab returns. It must load before the game's own scripts, so it is a classic `<script>` in `<head>`. It works for Kaplay, Phaser, three.js and hand-written Web Audio because they all construct a standard `AudioContext`. It holds instances through `WeakRef`, so a game that makes a context per sound doesn't leak.
+
+To test it, fake **both** `document.hidden` and `document.visibilityState`. Kaplay reads `visibilityState`, and with only `hidden` faked it resumed its own context the moment it was suspended. Phaser also suspends its context on window `blur`, which a real tab switch fires first. So dispatch `blur` before `visibilitychange`, or Phaser's focus handling will resume it.
+
+### Symptom: the canvas is cut off on a phone, but nothing scrolls sideways
+A fixed-width canvas (800 px) centred by a flex container overflows **both** sides. The left half can't be scrolled to, so `document.documentElement.scrollWidth` doesn't grow and an overflow check passes. Check each canvas's `getBoundingClientRect()` against `innerWidth` instead. To fix it, keep the backing size and scale with CSS: `width: min(800px, 100%, (100dvh - 150px) * 4 / 3); aspect-ratio: 4 / 3; height: auto` *(game-001)*.
+
+**Kaplay 3001 exception** *(game-002)*: CSS-scaling a Kaplay canvas breaks input mapping. Kaplay maps `offsetX` through its own viewport, so taps land on the wrong gem. Pass Kaplay's own `scale` option instead, computed once at boot:
+
+```js
+const FIT_SCALE = Math.min(1, (innerWidth - 16) / 608, (innerHeight - 16) / 708);
+const k = kaplay({ width: 600, height: 700, scale: FIT_SCALE });
+```
+
+### Kaplay v4000: three silent no-ops, verified in the browser *(game-032, game-016)*
+- **`obj.scale = k.vec2(...)` without a `k.scale()` component** stores the value, but the transform stays at 1. The slime wobble in game-032 never moved for this reason.
+- **`obj.color = k.color(255, 255, 255)`** assigns a *component object*, not a colour. Use `k.rgb(...)`. game-032's hit flash never showed for this reason.
+- **A child at the same z as its parent is drawn under the parent's fill.** A text label added to a button rect was invisible until it got `k.z(parentZ + 1)`. A child placed *outside* the rect showed fine, which hides the bug.
+
+### Kaplay: switch scene on touch *release*, not press *(game-016)*
+In game-016, a global `k.onClick(next)` that called `k.go()` on a touch **press** left the new scene ignoring every later swipe. Kaplay's touch-to-mouse emulation never saw a fresh press. Moving the scene change to the release fixed it. Arm the handler after a short wait, and require a fresh press, so the release of the gesture that got you here doesn't count:
+
+```js
+function onNextTap(fn) {
+    let pressed = false;
+    k.wait(0.15, () => {
+        k.onMousePress(() => { pressed = true; });
+        k.onMouseRelease(() => { if (pressed) fn(); });
+    });
+}
+```
+
+### Tap targets in a fixed-resolution, letterboxed game
+A game drawn at, say, 900×680 and letterboxed onto a 390 px-tall landscape phone is scaled by `min(vw / W, vh / H)` ≈ 0.57. A 44 px finger target therefore needs `44 / scale` ≈ 77 game pixels. Size touch buttons (and taller bars to hold them) from that, only on `(pointer: coarse)`, and have the browser test assert the on-screen size rather than the game-unit size *(game-016, game-017)*. In portrait the scale is smaller still; say so in the test output rather than pretending it's 44 px.
+
+### Prove small puzzle levels solvable with a breadth-first search *(game-016)*
+For Sokoban-sized levels, a BFS over `(player, sorted crate positions)` finishes instantly. It proves every level can be solved and gives the shortest solution, which the browser test then plays through the real UI. That's stronger than "verified solvable" in a comment, and it documents the par for each level.
+
+### Floors you can trust: generate, flood-fill, retry *(game-032)*
+Scatter pillars, flood-fill from the spawn, and reject the layout unless the fill reaches every floor tile. After 60 failed attempts, fall back to an open room. Put the exit in the farthest fifth of the reachable tiles, so every floor is a crossing. Expose `check()` on a `?debug=1` hook so the browser test can assert reachability, exit placement and the enemy mix over 60 generated floors.
+
+### Software-GL: Phaser's clock runs slower than wall time *(game-022)*
+Phaser caps its frame delta, so under SwiftShader a 4.5 s `time.delayedCall` can take longer than 5.5 s of wall clock. Wait for the state you need (`btn.input.enabled`), not a fixed sleep. This is the same lesson as the three.js notes under game-049 and game-050.
+

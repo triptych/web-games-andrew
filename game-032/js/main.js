@@ -133,7 +133,7 @@ k.scene('splash', () => {
     // Version tag
     k.add([
         k.pos(GAME_WIDTH - 10, GAME_HEIGHT - 10),
-        k.text('v1.1', { size: 10 }),
+        k.text('v1.2', { size: 10 }),
         k.color(50, 50, 80),
         k.anchor('botright'),
         k.z(1),

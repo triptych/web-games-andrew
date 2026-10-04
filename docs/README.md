@@ -18,7 +18,7 @@ This directory is the **canonical reference for AI-assisted development** in thi
 - [refresh-plan.md](refresh-plan.md) — the conventions the later games share, an audit of games 001–036 against them, what was fixed, and a ranked backlog
 
 ## Generic
-- [generic/learnings.md](generic/learnings.md) — Architecture patterns and lessons learned across all games (incl. seed-based save/load, RLE fog-of-war persistence, event-driven quest logs, inventory-vs-counter state, trustworthy pinball physics)
+- [generic/learnings.md](generic/learnings.md) — Architecture patterns and lessons learned across all games (incl. seed-based save/load, RLE fog-of-war persistence, event-driven quest logs, inventory-vs-counter state, trustworthy pinball physics, and the early-games refresh: blocked storage, background-tab audio, clipped canvases, Kaplay touch and z gotchas)
 - [generic/sounds.md](generic/sounds.md) — Procedural Web Audio API sound design patterns (incl. look-ahead sequenced music with side-chain pump)
 - [generic/suggestions.md](generic/suggestions.md) — Future game ideas and backlog
 

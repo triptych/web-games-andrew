@@ -75,7 +75,7 @@ export class SplashScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Version
-        this.add.text(GAME_WIDTH - 8, GAME_HEIGHT - 8, 'v1.1', {
+        this.add.text(GAME_WIDTH - 8, GAME_HEIGHT - 8, 'v1.4', {
             fontSize: '9px', color: '#333344', fontFamily: 'monospace',
         }).setOrigin(1, 1);
 

@@ -3,7 +3,7 @@
 **Genre:** 2D Mining / Progression RPG (Motherload-style)
 **Engine:** Phaser 4.0.0 (ES6 modules)
 **Target Resolution:** 480 × 720 (portrait, mobile-first)
-**Status:** Playable, v1.1 — Phase 1 done, plus the ending from Phase 3; Phase 2 polish and the rest of Phase 3 open
+**Status:** Playable, v1.4 — Phase 1 done, plus the ending from Phase 3; Phase 2 polish and the rest of Phase 3 open
 
 ---
 
@@ -170,7 +170,7 @@ Categories: Hull (5 tiers), Drill (5 tiers), Fuel Tank (5 tiers), Engine (5 tier
 
 ### Phase 3 — Content & Endings
 - [ ] Hostile entities (Crystal Golems tier 3, Alien Drones tier 5, Void Wraiths tier 6)
-- [x] Ending: bringing Singing Vein ore back to base plays an epilogue and offers keep mining / new game (v1.1)
+- [x] Ending: bringing Singing Vein ore back to base plays an epilogue and offers keep mining / new game (v1.4)
 - [ ] 3-fragment Singing Vein quest (would replace the single-ore trigger above)
 - [ ] Full lore log screen (accessible from base)
 - [ ] Minimap (Depth Radar upgrade)
@@ -215,7 +215,7 @@ Categories: Hull (5 tiers), Drill (5 tiers), Fuel Tank (5 tiers), Engine (5 tier
 
 ## Changelog
 
-### v1.1 — An ending (2026-10-04)
+### v1.4 — An ending (2026-10-04)
 - Carrying Singing Vein ore back to base completes the mission: `EndingScene` plays an epilogue over the paused base, shows the run's numbers and offers keep mining, new game or main menu. Its buttons wait until the text has played, so a stray tap can't skip it
 - `stats.missionComplete` is saved; the ending plays once per world and the title shows MISSION COMPLETE
 - `?debug=1` exposes `window.__du`; `dev/browsertest.mjs` and `dev/README.md`

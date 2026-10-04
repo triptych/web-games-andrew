@@ -309,3 +309,18 @@ Prepare and publish your KAPLAY games:
 This documentation provides an overview of KAPLAY v4000 features and capabilities. For detailed API signatures, parameters, and usage examples, refer to the complete API reference at https://v4000.kaplayjs.com/docs/api
 
 For hands-on learning and experimentation, visit the KAPLAYGROUND interactive environment.
+
+---
+
+## Gotchas verified in the early-games refresh (2026-10-04)
+
+Each of these failed silently in a shipped game. Details and fixes are in [generic/learnings.md § Early-games refresh](../generic/learnings.md#early-games-refresh-conventions-retrofitted-to-games-001036-2026-10-04).
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| A squash/stretch animation does nothing | `obj.scale = k.vec2(...)` on an object with no `k.scale()` component | Add `k.scale(1)` at creation *(game-032)* |
+| A hit flash never shows | `obj.color = k.color(...)` assigns a component object | `obj.color = k.rgb(...)` *(game-032)* |
+| A button's label is invisible | A child at the same z as its parent is drawn under the parent's fill | Give the child `k.z(parentZ + 1)` *(game-016)* |
+| After a tap changes scene, swipes stop working | `k.go()` called from a touch **press** | Change scene on release, after a fresh press *(game-016)* |
+| Taps land on the wrong object after scaling the canvas with CSS | Kaplay maps input through its own viewport | Use the `scale` option (3001) or `letterbox: true` (v4000), not CSS *(game-002)* |
+| HUD shakes with `k.shake()` | HUD objects have no `k.fixed()` | Add `k.fixed()` to HUD objects *(game-032)* |
