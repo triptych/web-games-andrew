@@ -846,6 +846,21 @@ const games = [
             { emoji: '\uD83D\uDCC8', label: 'Incremental' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-057',
+        title: 'Hivebreaker',
+        description: "A twin-stick shooter in the spirit of Enter the Gungeon and Alien Breed, in three.js. Fort Kessler, a black-site base under the ice of Erebus, has gone silent, and the President's daughter Ellie Calder is somewhere below. You are Warden, one Colonial Marine with a pulse rifle and a flashlight, going down through five procedurally generated sectors (Hangar Deck, Barracks & Armory, Bio-Research Labs, Reactor Core and the Hive). Doors seal when you enter a room and the bug-like Brood pours out of the vents in waves and swarms of hundreds: skitters, lunging drones, acid spitters, bloaters, burrowers, armoured brutes, infested soldiers, wasps, cloaked stalkers and brood sacs, with glowing alphas. Dodge-roll through bullet patterns, throw grenades, erase bullets with the Shock Pulse, and carry four of nine guns (pulse rifle, scattergun, flamethrower, smartgun, arc caster, rail lance, grenade launcher, minigun, plasma cannon) upgraded to Mk III with Mod Chips. Timed power-ups, a supply depot, med bays, data logs that tell the story, and a field upgrade after every boss: the Ravager, the Goliath walker, Specimen Zero, the Magma Widow and the Brood Mother. Then cut Ellie free and run for the dropship before the base self-destructs. Shaders everywhere (procedural deck plates and hive creep, a baked lightmap, flashlight shadows, GPU particles, fireballs, bloom), a generative synth score, Horde Mode, mouse and keyboard, gamepad or touch twin-sticks.",
+        icon: '\uD83D\uDC1C',
+        folder: 'game-057',
+        version: '1.0.0',
+        cssClass: 'hivebreaker',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83D\uDD2B', label: 'Twin-stick' },
+            { emoji: '\uD83D\uDC1C', label: 'Swarms' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

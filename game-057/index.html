@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#020304">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Hivebreaker — a twin-stick shooter. One marine, a bug-infested black-site base, and the President's daughter somewhere below.">
+    <title>Hivebreaker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="c"></canvas>
+    <div id="fade"></div>
+
+    <!-- ============ HUD ============ -->
+    <div id="hud" class="hidden">
+        <div id="hp-box" class="panel">
+            <div class="bar-row">
+                <span class="ico hp-ico">✚</span>
+                <div id="hp-bar" class="bar"><div id="hp-lag" class="lag"></div><div id="hp-fill" class="fill"></div><div class="seg"></div></div>
+                <span id="hp-txt" class="num">100</span>
+            </div>
+            <div class="bar-row small">
+                <span class="ico ar-ico">⬢</span>
+                <div id="ar-bar" class="bar thin"><div id="ar-fill" class="fill"></div><div class="seg"></div></div>
+                <span id="ar-txt" class="num">0</span>
+            </div>
+            <div id="powers"></div>
+        </div>
+
+        <div id="top-center">
+            <div id="sector-label"></div>
+            <div id="objective"></div>
+            <div id="escape-timer" class="hidden">3:00</div>
+            <div id="boss-bar" class="hidden">
+                <div id="boss-name"></div>
+                <div id="boss-track"><div id="boss-lag"></div><div id="boss-fill"></div><div id="boss-ticks"></div></div>
+            </div>
+        </div>
+
+        <div id="top-right">
+            <div id="map-wrap" class="panel"><canvas id="minimap" width="168" height="168"></canvas><div id="tracker-sweep"></div></div>
+            <div id="salvage" class="panel"><span class="hexico"></span><span id="salvage-n">0</span></div>
+            <button id="pause-btn" class="tbtn" aria-label="Pause">❚❚</button>
+        </div>
+
+        <div id="weapon-panel" class="panel" title="Swap weapon (Tab / wheel)">
+            <div id="wpn-top">
+                <canvas id="wpn-icon" width="132" height="44"></canvas>
+                <div id="wpn-info"><div id="wpn-name">M41 PULSE RIFLE</div><div id="wpn-mk"></div></div>
+            </div>
+            <div id="wpn-ammo"><span id="mag">40</span><span id="reserve">/ ∞</span></div>
+            <div id="reload-bar"><div id="reload-fill"></div></div>
+            <div id="slots"></div>
+            <div id="consumables"><span id="gren" title="Grenades">●<b>3</b></span><span id="puls" title="Shock Pulse">◉<b>2</b></span></div>
+        </div>
+
+        <div id="radio" class="panel hidden">
+            <canvas id="portrait" width="72" height="72"></canvas>
+            <div id="radio-body"><div id="radio-name"></div><div id="radio-text"></div></div>
+        </div>
+
+        <div id="prompt" class="hidden"></div>
+        <div id="banners"></div>
+    </div>
+
+    <div id="crosshair" class="hidden"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" class="ch-ring"/><circle cx="24" cy="24" r="17" class="ch-reload" id="ch-reload"/><path d="M24 2v9M24 37v9M2 24h9M37 24h9" class="ch-tick"/><circle cx="24" cy="24" r="1.8" class="ch-dot"/></svg></div>
+
+    <!-- ============ Touch controls ============ -->
+    <div id="touch" class="hidden">
+        <div id="zone-left" class="tzone"></div>
+        <div id="zone-right" class="tzone"></div>
+        <div id="stick-l" class="stick hidden"><div class="knob"></div></div>
+        <div id="stick-r" class="stick hidden"><div class="knob"></div></div>
+        <div id="tbtns">
+            <button id="t-roll" class="tb big" aria-label="Roll">ROLL</button>
+            <button id="t-gren" class="tb" aria-label="Grenade">●</button>
+            <button id="t-pulse" class="tb" aria-label="Shock Pulse">◉</button>
+            <button id="t-use" class="tb use hidden" aria-label="Use">USE</button>
+            <button id="t-reload" class="tb small" aria-label="Reload">↻</button>
+        </div>
+    </div>
+
+    <!-- ============ Title ============ -->
+    <div id="title" class="screen">
+        <div id="logo">
+            <div class="logo-sub">A LONE MARINE · A BLACK-SITE BASE · A HIVE</div>
+            <h1 id="logo-text" data-text="HIVEBREAKER">HIVEBREAKER</h1>
+            <div class="logo-tag">Fort Kessler is not answering. Ellie Calder is still down there.</div>
+        </div>
+        <nav id="menu">
+            <button id="m-continue" class="mbtn hidden"></button>
+            <button id="m-new" class="mbtn primary">New Operation</button>
+            <button id="m-horde" class="mbtn">Horde Mode</button>
+            <button id="m-codex" class="mbtn">Codex</button>
+            <button id="m-settings" class="mbtn">Settings</button>
+            <button id="m-help" class="mbtn">Controls</button>
+        </nav>
+        <div id="title-foot"><a href="../index.html">← Games</a><span id="best-line"></span></div>
+    </div>
+
+    <!-- ============ Modals ============ -->
+    <div id="difficulty" class="screen modal hidden">
+        <div class="card">
+            <h2>Choose your briefing</h2>
+            <div id="diff-list"></div>
+            <button class="mbtn ghost" data-close>Back</button>
+        </div>
+    </div>
+
+    <div id="intro" class="screen hidden">
+        <div id="intro-text"></div>
+        <button id="intro-skip" class="mbtn ghost">Skip ▸</button>
+    </div>
+
+    <div id="sector-card" class="screen hidden">
+        <div class="sc-roman"></div>
+        <div class="sc-title"></div>
+        <div class="sc-sub"></div>
+        <div class="sc-text"></div>
+        <div class="sc-hint">tap or press any key</div>
+    </div>
+
+    <div id="pause" class="screen modal hidden">
+        <div class="card">
+            <h2>Paused</h2>
+            <div id="pause-stats"></div>
+            <div id="pause-perks"></div>
+            <button id="p-resume" class="mbtn primary">Resume</button>
+            <button id="p-map" class="mbtn">Map</button>
+            <button id="p-settings" class="mbtn">Settings</button>
+            <button id="p-help" class="mbtn">Controls</button>
+            <button id="p-quit" class="mbtn ghost">Abort to title</button>
+        </div>
+    </div>
+
+    <div id="perk" class="screen modal hidden">
+        <div class="card wide">
+            <div class="kicker">FIELD UPGRADE</div>
+            <h2>Overwatch drops a supply pod. Choose one.</h2>
+            <div id="perk-list"></div>
+        </div>
+    </div>
+
+    <div id="log" class="screen modal hidden">
+        <div class="card terminal">
+            <div class="term-head"><span id="log-title"></span><span id="log-author"></span></div>
+            <div id="log-text"></div>
+            <button id="log-close" class="mbtn">Close [E]</button>
+        </div>
+    </div>
+
+    <div id="bigmap" class="screen modal hidden">
+        <div class="card wide map-card">
+            <h2 id="bigmap-title">Sector map</h2>
+            <canvas id="bigmap-c" width="900" height="640"></canvas>
+            <div class="map-legend"><span><i style="background:#ffd23a"></i>Supply</span><span><i style="background:#ff5a5a"></i>Med bay</span><span><i style="background:#6aff8a"></i>Log</span><span><i style="background:#ffaa3a"></i>Crate</span><span><i style="background:#ff2a6a"></i>Boss</span></div>
+            <button class="mbtn" data-close>Close [M]</button>
+        </div>
+    </div>
+
+    <div id="gameover" class="screen modal hidden">
+        <div class="card">
+            <div class="kicker red">SIGNAL LOST</div>
+            <h2 id="go-line"></h2>
+            <div id="go-stats"></div>
+            <button id="go-retry" class="mbtn primary">Retry sector</button>
+            <button id="go-quit" class="mbtn ghost">Abort to title</button>
+        </div>
+    </div>
+
+    <div id="victory" class="screen hidden">
+        <div id="ending-text"></div>
+        <div id="victory-stats" class="hidden"></div>
+        <button id="v-done" class="mbtn primary hidden">Return to base</button>
+    </div>
+
+    <div id="codex" class="screen modal hidden">
+        <div class="card wide">
+            <h2>Codex</h2>
+            <div class="tabs"><button class="tab active" data-tab="brood">The Brood</button><button class="tab" data-tab="logs">Data logs</button><button class="tab" data-tab="arms">Armory</button></div>
+            <div id="codex-body"></div>
+            <button class="mbtn ghost" data-close>Close</button>
+        </div>
+    </div>
+
+    <div id="settings" class="screen modal hidden">
+        <div class="card">
+            <h2>Settings</h2>
+            <label class="row">Master <input type="range" id="s-master" min="0" max="1" step="0.05"></label>
+            <label class="row">Effects <input type="range" id="s-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="s-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Graphics
+                <select id="s-quality"><option value="auto">Auto</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select>
+            </label>
+            <label class="row check"><input type="checkbox" id="s-shake"> Screen shake</label>
+            <label class="row check"><input type="checkbox" id="s-assist"> Aim assist (touch &amp; gamepad)</label>
+            <label class="row check"><input type="checkbox" id="s-autofire"> Fire when the aim stick is pushed</label>
+            <label class="row check"><input type="checkbox" id="s-fps"> Show FPS</label>
+            <button class="mbtn" data-close>Done</button>
+        </div>
+    </div>
+
+    <div id="help" class="screen modal hidden">
+        <div class="card wide">
+            <h2>Controls</h2>
+            <div class="help-grid">
+                <div><h3>Keyboard &amp; mouse</h3>
+                    <p><kbd>WASD</kbd> move · <kbd>Mouse</kbd> aim · <kbd>LMB</kbd> fire</p>
+                    <p><kbd>Space</kbd>/<kbd>Shift</kbd> dodge roll (invulnerable)</p>
+                    <p><kbd>RMB</kbd>/<kbd>G</kbd> grenade at cursor · <kbd>Q</kbd> Shock Pulse</p>
+                    <p><kbd>E</kbd>/<kbd>F</kbd> use · <kbd>R</kbd> reload · <kbd>Tab</kbd>/<kbd>wheel</kbd>/<kbd>1–4</kbd> weapons</p>
+                    <p><kbd>M</kbd> map · <kbd>Esc</kbd>/<kbd>P</kbd> pause</p></div>
+                <div><h3>Gamepad</h3>
+                    <p>Left stick move · right stick aim</p>
+                    <p><b>RT</b> fire · <b>LT</b> grenade · <b>A</b>/<b>LB</b> roll</p>
+                    <p><b>B</b> pulse · <b>X</b> use/reload · <b>Y</b>/<b>RB</b> swap</p>
+                    <p><b>Back</b> map · <b>Start</b> pause</p></div>
+                <div><h3>Touch</h3>
+                    <p>Left thumb: move (the stick appears where you touch)</p>
+                    <p>Right thumb: aim — push past the ring to fire</p>
+                    <p><b>ROLL</b>, <b>●</b> grenade, <b>◉</b> pulse, <b>USE</b> when near something</p>
+                    <p>Tap the weapon panel to swap, the map to enlarge it</p></div>
+            </div>
+            <div class="tips">
+                <p><b>Rolling</b> makes you invulnerable. Roll <i>through</i> bullets, not away from them.</p>
+                <p><b>The Shock Pulse</b> erases every enemy bullet around you. You get two per sector.</p>
+                <p><b>Brutes</b> are armoured in front. Dodge the charge; they stun themselves on walls.</p>
+                <p><b>Barrels</b> explode, and chain. So do Bloaters.</p>
+            </div>
+            <button class="mbtn" data-close>Close</button>
+        </div>
+    </div>
+
+    <div id="fps" class="hidden"></div>
+    <div id="toast"></div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

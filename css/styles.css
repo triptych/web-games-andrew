@@ -764,6 +764,16 @@ h1 {
     color: #fff6e0;
 }
 
+.game-preview.hivebreaker,
+.carousel-slide-bg.hivebreaker {
+    background: linear-gradient(180deg, #020406 0%, #0a2a34 40%, #5a1a5a 78%, #ff4ad8 100%);
+}
+
+.game-card.hivebreaker .play-button {
+    background: linear-gradient(135deg, #061a20 0%, #1a8aa8 55%, #7fe8ff 100%);
+    color: #021014;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
