@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#8fd35a">
+    <meta name="description" content="Bumble Basket — a cosy fruit-picking puzzle. Drag a bumblebee from fruit to fruit; every hop must share a kind, colour, size or family.">
+    <title>Bumble Basket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="c"></canvas>
+    <div id="labels"></div>
+    <div id="hand" class="hidden">👆</div>
+
+    <!-- ============ In-game HUD ============ -->
+    <div id="hud" class="hidden">
+        <div id="topbar">
+            <button id="pause-btn" class="round-btn" aria-label="Pause">❚❚</button>
+            <div id="moves-box">
+                <div id="moves-val">0</div>
+                <div id="moves-lbl">moves</div>
+            </div>
+            <div id="tickets"></div>
+        </div>
+        <div id="score-pill"><span id="score-val">0</span></div>
+        <div id="jarbar"></div>
+        <div id="power-hint" class="hidden"></div>
+        <div id="toast"></div>
+    </div>
+
+    <!-- ============ Title ============ -->
+    <div id="title-screen" class="screen">
+        <div class="title-card">
+            <div class="logo">
+                <span class="logo-bee">🐝</span>
+                <h1><span>Bumble</span><span>Basket</span></h1>
+            </div>
+            <p class="tagline">Hop from fruit to fruit — every hop shares a <b>kind</b>, <b>colour</b>, <b>size</b> or <b>family</b>.</p>
+            <button id="play-btn" class="btn big primary">Play</button>
+            <div class="row">
+                <button id="picnic-btn" class="btn">🧺 Picnic</button>
+                <button id="album-btn" class="btn">📖 Album</button>
+                <button id="settings-btn" class="btn icon" aria-label="Settings">⚙️</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Garden map ============ -->
+    <div id="map-screen" class="screen hidden">
+        <div class="map-head">
+            <button id="map-back" class="round-btn" aria-label="Back">←</button>
+            <h2>The Gardens</h2>
+            <div id="map-stars" class="star-count">★ 0</div>
+        </div>
+        <div id="map-scroll"><div id="map-list"></div></div>
+        <div class="map-foot">
+            <button id="map-picnic" class="btn">🧺 Picnic</button>
+            <button id="map-album" class="btn">📖 Album</button>
+        </div>
+    </div>
+
+    <!-- ============ Level intro ============ -->
+    <div id="intro-screen" class="screen dim hidden">
+        <div class="card">
+            <div id="intro-garden" class="eyebrow"></div>
+            <h2 id="intro-title"></h2>
+            <div id="intro-goals" class="goal-list"></div>
+            <div id="intro-moves" class="moves-line"></div>
+            <div id="intro-senses" class="sense-row"></div>
+            <p id="intro-tip" class="tip"></p>
+            <div class="row">
+                <button id="intro-back" class="btn">Map</button>
+                <button id="intro-go" class="btn primary big">Let's pick!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ New sense ============ -->
+    <div id="sense-screen" class="screen dim hidden">
+        <div class="card sense-card">
+            <div class="eyebrow">Your bee learned a new sense!</div>
+            <div id="sense-icon" class="sense-big"></div>
+            <h2 id="sense-title"></h2>
+            <p id="sense-blurb"></p>
+            <div id="sense-example" class="sense-example"></div>
+            <div id="sense-jar" class="sense-jar"></div>
+            <button id="sense-ok" class="btn primary big">Buzz on!</button>
+        </div>
+    </div>
+
+    <!-- ============ Pause ============ -->
+    <div id="pause-screen" class="screen dim hidden">
+        <div class="card">
+            <h2>Taking a breather</h2>
+            <div id="pause-goals" class="goal-list"></div>
+            <div class="toggles">
+                <button id="pause-sound" class="btn toggle">🔊 Sound</button>
+                <button id="pause-music" class="btn toggle">🎵 Music</button>
+            </div>
+            <button id="pause-resume" class="btn primary big">Resume</button>
+            <div class="row">
+                <button id="pause-restart" class="btn">Restart</button>
+                <button id="pause-map" class="btn">Map</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Win ============ -->
+    <div id="win-screen" class="screen dim hidden">
+        <div class="card win-card">
+            <div id="win-eyebrow" class="eyebrow">Basket full!</div>
+            <div id="win-stars" class="stars"><span>★</span><span>★</span><span>★</span></div>
+            <h2 id="win-title">Lovely picking!</h2>
+            <div class="win-stats">
+                <div><b id="win-score">0</b><span>score</span></div>
+                <div><b id="win-longest">0</b><span>longest trail</span></div>
+                <div><b id="win-golden">0</b><span>golden</span></div>
+            </div>
+            <div id="win-bonus" class="bonus"></div>
+            <div id="win-stamps" class="stamps"></div>
+            <div class="row">
+                <button id="win-map" class="btn">Map</button>
+                <button id="win-replay" class="btn">Replay</button>
+                <button id="win-next" class="btn primary big">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Out of moves ============ -->
+    <div id="lose-screen" class="screen dim hidden">
+        <div class="card">
+            <div class="eyebrow">Out of moves</div>
+            <h2>So close!</h2>
+            <div id="lose-goals" class="goal-list"></div>
+            <button id="lose-more" class="btn primary big">+5 moves</button>
+            <div class="row">
+                <button id="lose-map" class="btn">Map</button>
+                <button id="lose-retry" class="btn">Try again</button>
+            </div>
+            <p class="small">Extra moves are free — they just cap this try at one star.</p>
+        </div>
+    </div>
+
+    <!-- ============ Picnic over ============ -->
+    <div id="picnic-screen" class="screen dim hidden">
+        <div class="card">
+            <div class="eyebrow">Picnic packed up</div>
+            <h2 id="picnic-title">What a feast!</h2>
+            <div class="win-stats">
+                <div><b id="picnic-score">0</b><span>score</span></div>
+                <div><b id="picnic-baskets">0</b><span>baskets</span></div>
+                <div><b id="picnic-best">0</b><span>best</span></div>
+            </div>
+            <div id="picnic-stamps" class="stamps"></div>
+            <div class="row">
+                <button id="picnic-map" class="btn">Map</button>
+                <button id="picnic-again" class="btn primary big">New picnic</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Album ============ -->
+    <div id="album-screen" class="screen hidden">
+        <div class="map-head">
+            <button id="album-back" class="round-btn" aria-label="Back">←</button>
+            <h2>Fruit Album</h2>
+            <div id="album-count" class="star-count">0 / 81</div>
+        </div>
+        <div id="album-scroll"><div id="album-list"></div></div>
+    </div>
+
+    <!-- ============ Settings ============ -->
+    <div id="settings-screen" class="screen dim hidden">
+        <div class="card">
+            <h2>Settings</h2>
+            <div class="toggles col">
+                <button id="set-sound" class="btn toggle">🔊 Sound</button>
+                <button id="set-music" class="btn toggle">🎵 Music</button>
+                <button id="set-fancy" class="btn toggle">✨ Fancy graphics</button>
+                <button id="set-motion" class="btn toggle">🌀 Gentle motion</button>
+            </div>
+            <button id="set-reset" class="btn danger">Reset progress</button>
+            <button id="set-close" class="btn primary big">Done</button>
+            <p class="small">Bumble Basket <span id="version"></span> · drag to pick · H for a hint · P to pause</p>
+        </div>
+    </div>
+
+    <div id="loading">Picking fruit…</div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

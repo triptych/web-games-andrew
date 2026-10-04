@@ -861,6 +861,21 @@ const games = [
             { emoji: '\uD83D\uDC1C', label: 'Swarms' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-058',
+        title: 'Bumble Basket',
+        description: "A light, cosy fruit-picking puzzle in three.js with a new kind of matching: drag a little bumblebee along a trail from fruit to fruit, where every hop only has to share something with the fruit before it — the same kind, colour, size or family. So a trail wanders like a word ladder: a red apple to a green apple, to a lime, to a lemon, to a banana. The bee starts out sensing only kind, and each of the four gardens (Sunny Orchard, Berry Patch, Giant's Garden, Tropic Tops) ends in a Set level that teaches it a new sense, while more kinds, colours and sizes of fruit crowd onto the blanket. Matching fruit pours into a jar for each sense; a full set earns a power-up — the Honey Dipper, Paint Pollen, the Buzz Bomb and Rainbow Wings. Trails of seven grow golden fruit that links to anything; leaf piles and frosted fruit get in the way. Thirty levels, an endless Picnic mode, and a Fruit Album with 81 stamps to collect. Sixteen kinds of chubby fruit with faces, all built in code, on a gingham blanket in a meadow, with plucky generative music. Nothing is timed and running out of moves offers five more for free. Touch or mouse, portrait or landscape.",
+        icon: '🐝',
+        folder: 'game-058',
+        version: '1.0.0',
+        cssClass: 'bumble-basket',
+        genre: 'puzzle',
+        tags: [
+            { emoji: '🍓', label: 'Trait chains' },
+            { emoji: '🐝', label: 'Casual' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 
