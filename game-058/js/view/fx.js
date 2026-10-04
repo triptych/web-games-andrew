@@ -37,6 +37,9 @@ function dotTexture(star = false) {
     return t;
 }
 
+const ROPE_Y = 0.78;
+const _white = new THREE.Color(0xffffff);
+
 class Particles {
     constructor(scene, max, additive, tex) {
         this.max = max;
@@ -135,13 +138,31 @@ export class FX {
         this.candGeo.rotateX(-Math.PI / 2);
         this.cands = [];
 
-        // Pollen trail dots.
+        // Glowing discs under trail fruit (drawn under the rings).
+        this.discGeo = new THREE.CircleGeometry(0.47, 32);
+        this.discGeo.rotateX(-Math.PI / 2);
+        this.discs = [];
+
+        // The trail rope: a dark outline tube and a coloured core tube, drawn
+        // over the fruit so the path is never hidden behind them.
+        const ropeMat = (opts) => new THREE.MeshBasicMaterial({ transparent: true, depthTest: false, depthWrite: false, toneMapped: false, ...opts });
+        this.ropeOutline = new THREE.Mesh(new THREE.BufferGeometry(), ropeMat({ color: 0x4a2a12, opacity: 0.55 }));
+        this.ropeCore = new THREE.Mesh(new THREE.BufferGeometry(), ropeMat({ vertexColors: true, opacity: 0.95 }));
+        this.ropeOutline.renderOrder = 6;
+        this.ropeCore.renderOrder = 7;
+        this.ropeOutline.frustumCulled = this.ropeCore.frustumCulled = false;
+        this.ropeOutline.visible = this.ropeCore.visible = false;
+        scene.add(this.ropeOutline, this.ropeCore);
+        this._ropeKey = '';
+        this._ropeSegs = null;
+
+        // Pollen sparkles that flow along the rope, plus the rubber band to the finger.
         this.dotMax = 400;
-        this.dots = new THREE.InstancedMesh(new THREE.SphereGeometry(0.075, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff }), this.dotMax);
+        this.dots = new THREE.InstancedMesh(new THREE.SphereGeometry(0.075, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false, toneMapped: false }), this.dotMax);
         this.dots.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
         this.dots.count = 0;
         this.dots.frustumCulled = false;
-        this.dots.renderOrder = 4;
+        this.dots.renderOrder = 8;
         scene.add(this.dots);
         this._m = new THREE.Matrix4();
         this._c = new THREE.Color();
@@ -221,47 +242,134 @@ export class FX {
     }
 
     // --- trail ---
-    setTrail(cells, colours, pulse, time, wild = false) {
-        // Rings
-        while (this.rings.length < cells.length) {
-            const r = new THREE.Mesh(this.ringGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9, depthWrite: false }));
+    /**
+     * Draw the trail being dragged: glowing discs and rings under each fruit,
+     * a rope through them coloured per hop by the linking trait, sparkles
+     * flowing along it, and a rubber band from the last fruit to the finger.
+     * `tail` is the finger's board-plane point (or null).
+     */
+    setTrail(cells, colours, tail, time, wild = false) {
+        const v = new THREE.Vector3();
+        const n = cells.length;
+        const rainbow = (k) => new THREE.Color().setHSL((time * 0.4 + k * 0.08) % 1, 0.85, 0.6).getHex();
+
+        // Discs + rings
+        while (this.rings.length < n) {
+            const d = new THREE.Mesh(this.discGeo, new THREE.MeshBasicMaterial({ color: 0xffe25a, transparent: true, opacity: 0.5, depthWrite: false, toneMapped: false }));
+            d.renderOrder = 1;
+            this.ringRoot.add(d);
+            this.discs.push(d);
+            const r = new THREE.Mesh(this.ringGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95, depthWrite: false, toneMapped: false }));
             r.renderOrder = 2;
             this.ringRoot.add(r);
             this.rings.push(r);
         }
-        const v = new THREE.Vector3();
         this.rings.forEach((r, i) => {
-            r.visible = i < cells.length;
+            const d = this.discs[i];
+            r.visible = d.visible = i < n;
             if (!r.visible) return;
             cellToWorld(cells[i][0], cells[i][1], v);
+            const last = i === n - 1;
+            const pulse = last ? 1 + Math.sin(time * 9) * 0.08 : 1 + Math.sin(time * 6 - i * 0.5) * 0.04;
             r.position.set(v.x, 0.03, v.z);
-            const s = 1 + Math.sin(time * 6 - i * 0.5) * 0.05;
-            r.scale.setScalar(s);
-            r.material.color.setHex(wild ? new THREE.Color().setHSL((time * 0.4 + i * 0.08) % 1, 0.8, 0.65).getHex() : (i === cells.length - 1 ? 0xffe25a : 0xffffff));
+            d.position.set(v.x, 0.025, v.z);
+            r.scale.setScalar(pulse);
+            d.scale.setScalar(pulse);
+            r.material.color.setHex(wild ? rainbow(i) : (last ? 0xffffff : 0xfff3c0));
+            d.material.color.setHex(wild ? rainbow(i) : (last ? 0xffd23a : 0xffe680));
+            d.material.opacity = last ? 0.75 : 0.5;
         });
-        // Dots between consecutive cells, coloured by the link trait.
-        let n = 0;
-        const a = new THREE.Vector3(), b = new THREE.Vector3();
-        for (let i = 1; i < cells.length; i++) {
-            cellToWorld(cells[i - 1][0], cells[i - 1][1], a);
-            cellToWorld(cells[i][0], cells[i][1], b);
-            const steps = 4;
-            this._c.setHex(colours[i - 1] ?? 0xffffff);
-            for (let k = 1; k < steps; k++) {
-                if (n >= this.dotMax) break;
-                const t = k / steps;
-                const y = 0.95 + Math.sin(t * Math.PI) * 0.12 + Math.sin(time * 8 + i + t * 3) * 0.02;
-                this._m.makeTranslation(a.x + (b.x - a.x) * t, y, a.z + (b.z - a.z) * t);
-                const s = 1 + 0.25 * Math.sin(time * 10 - (i + t) * 2);
-                this._m.scale(new THREE.Vector3(s, s, s));
-                this.dots.setMatrixAt(n, this._m);
-                this.dots.setColorAt(n, this._c);
-                n++;
+
+        // Rope (rebuilt only when the trail changes).
+        const key = cells.map(c => c.join(',')).join(';');
+        if (key !== this._ropeKey) {
+            this._ropeKey = key;
+            this._buildRope(cells);
+        }
+        if (this._ropeSegs) {
+            // Colour each ring of the core tube by the hop it belongs to.
+            const col = this.ropeCore.geometry.attributes.color;
+            const c = this._c;
+            for (let ring = 0; ring < this._ropeSegs.length; ring++) {
+                const seg = this._ropeSegs[ring];
+                c.setHex(wild ? rainbow(seg) : (colours[seg] ?? 0xffb72b));
+                // A bright band that travels toward the newest fruit.
+                const u = ring / (this._ropeSegs.length - 1);
+                const glow = Math.max(0, Math.sin((u * 6 - time * 3) * Math.PI)) ** 6 * 0.45;
+                c.lerp(_white, glow);
+                for (let k = 0; k < this._ropeRadial; k++) col.setXYZ(ring * this._ropeRadial + k, c.r, c.g, c.b);
+            }
+            col.needsUpdate = true;
+        }
+
+        // Sparkles along the rope, then the rubber band to the finger.
+        let m = 0;
+        if (this._ropeCurve) {
+            const count = Math.min(this.dotMax - 12, (n - 1) * 3);
+            for (let k = 0; k < count; k++) {
+                const u = ((k / count) + time * 0.35) % 1;
+                this._ropeCurve.getPointAt(u, v);
+                const s = 0.55 + 0.25 * Math.sin(time * 12 + k * 1.7);
+                this._m.makeScale(s, s, s).setPosition(v.x, v.y + 0.01, v.z);
+                this.dots.setMatrixAt(m, this._m);
+                this.dots.setColorAt(m, _white);
+                m++;
             }
         }
-        this.dots.count = n;
+        if (tail && n) {
+            const a = cellToWorld(cells[n - 1][0], cells[n - 1][1], new THREE.Vector3()).setY(ROPE_Y);
+            const b = new THREE.Vector3(tail.x, ROPE_Y, tail.z);
+            const dist = a.distanceTo(b);
+            if (dist > 0.3) {
+                const steps = Math.min(10, Math.ceil(dist / 0.2));
+                for (let k = 1; k <= steps && m < this.dotMax; k++) {
+                    const t = k / steps;
+                    v.lerpVectors(a, b, t);
+                    const s = 0.9 - t * 0.45;
+                    this._m.makeScale(s, s, s).setPosition(v.x, v.y, v.z);
+                    this.dots.setMatrixAt(m, this._m);
+                    this.dots.setColorAt(m, this._c.setHex(wild ? rainbow(n) : 0xfff3c0));
+                    m++;
+                }
+            }
+        }
+        this.dots.count = m;
         this.dots.instanceMatrix.needsUpdate = true;
         if (this.dots.instanceColor) this.dots.instanceColor.needsUpdate = true;
+    }
+
+    _buildRope(cells) {
+        this.ropeOutline.geometry.dispose();
+        this.ropeCore.geometry.dispose();
+        this._ropeSegs = null;
+        this._ropeCurve = null;
+        const n = cells.length;
+        this.ropeOutline.visible = this.ropeCore.visible = n >= 2;
+        if (n < 2) {
+            this.ropeOutline.geometry = new THREE.BufferGeometry();
+            this.ropeCore.geometry = new THREE.BufferGeometry();
+            return;
+        }
+        const pts = cells.map(([r, c]) => cellToWorld(r, c, new THREE.Vector3()).setY(ROPE_Y));
+        const curve = n === 2 ? new THREE.LineCurve3(pts[0], pts[1]) : new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+        const tubular = (n - 1) * 10, radial = 10;
+        this.ropeOutline.geometry = new THREE.TubeGeometry(curve, tubular, 0.155, radial, false);
+        const core = new THREE.TubeGeometry(curve, tubular, 0.105, radial, false);
+        core.setAttribute('color', new THREE.BufferAttribute(new Float32Array(core.attributes.position.count * 3), 3));
+        this.ropeCore.geometry = core;
+        // Which hop each ring of the tube belongs to, by arc length along the trail.
+        const lens = [0];
+        for (let i = 1; i < n; i++) lens.push(lens[i - 1] + pts[i].distanceTo(pts[i - 1]));
+        const total = lens[n - 1];
+        this._ropeSegs = [];
+        for (let ring = 0; ring <= tubular; ring++) {
+            const d = (ring / tubular) * total;
+            let seg = 0;
+            while (seg < n - 2 && d > lens[seg + 1]) seg++;
+            this._ropeSegs.push(seg);
+        }
+        this._ropeRadial = radial + 1;
+        this._ropeCurve = curve;
     }
 
     setCandidates(cells, time) {
@@ -283,6 +391,11 @@ export class FX {
 
     clearTrail() {
         for (const r of this.rings) r.visible = false;
+        for (const d of this.discs) d.visible = false;
+        this.ropeOutline.visible = this.ropeCore.visible = false;
+        this._ropeKey = '';
+        this._ropeSegs = null;
+        this._ropeCurve = null;
         for (const r of this.cands) r.visible = false;
         this.dots.count = 0;
     }

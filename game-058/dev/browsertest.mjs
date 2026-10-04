@@ -188,11 +188,30 @@ async function desktop() {
     ok((await page.textContent('#moves-val')) === '9', 'moves counter reads 9');
     await shot(page, 'd04-after-trail');
 
+    // Mid-drag the trail is drawn as a rope with a count bubble.
+    ({ pts } = await trailPoints(page, 4));
+    await page.mouse.move(pts[0].x, pts[0].y);
+    await page.mouse.down();
+    for (const q of pts.slice(1)) await page.mouse.move(q.x, q.y, { steps: 6 });
+    await page.waitForTimeout(150);
+    const mid = await bb(page, () => ({
+        rope: window.__bb.fx.ropeCore.visible && window.__bb.fx.ropeCore.geometry.attributes.position?.count > 0,
+        bubble: !document.getElementById('chain-count').classList.contains('hidden') ? document.querySelector('#chain-count b').textContent : null,
+        len: window.__bb.trail().length,
+    }));
+    ok(mid.rope && mid.bubble === String(mid.len) && mid.len === pts.length, `while dragging, the rope shows and the bubble counts ${mid.len} (${JSON.stringify(mid)})`);
+    await shot(page, 'd04b-dragging');
+    await page.mouse.up();
+    await page.waitForTimeout(100);
+    ok(await bb(page, () => !window.__bb.fx.ropeCore.visible && document.getElementById('chain-count').classList.contains('hidden')), 'releasing clears the rope and bubble');
+    await waitFor(page, () => !window.__bb.busy);
+    const usedBefore = await bb(page, () => window.__bb.game.movesUsed);
+
     // A trail of 2 spends nothing.
     ({ pts } = await trailPoints(page, 3));
     await mouseTrail(page, pts.slice(0, 2));
     await page.waitForTimeout(100);
-    ok((await bb(page, () => window.__bb.game.movesUsed)) === 1, 'a 2-fruit trail spends no move');
+    ok((await bb(page, () => window.__bb.game.movesUsed)) === usedBefore, 'a 2-fruit trail spends no move');
 
     // Pause and resume.
     await page.keyboard.press('p');
