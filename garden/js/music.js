@@ -25,6 +25,7 @@ export class AudioEngine {
     constructor() {
         this.ctx = null;
         this.muted = false;
+        this.paused = false;
         this.musicVol = 0.55;
         this.sfxVol = 0.7;
         this.night = 0;
@@ -39,14 +40,14 @@ export class AudioEngine {
 
     start() {
         if (this.ctx) {
-            this.ctx.resume?.();
+            if (!this.paused) this.ctx.resume?.();
             return;
         }
         const AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return;
         const ctx = (this.ctx = new AC());
         this.master = ctx.createGain();
-        this.master.gain.value = this.muted ? 0 : 0.9;
+        this.master.gain.value = this.muted || this.paused ? 0 : 0.9;
         const comp = ctx.createDynamicsCompressor();
         comp.threshold.value = -18;
         comp.ratio.value = 3;
@@ -110,7 +111,25 @@ export class AudioEngine {
 
     setMuted(m) {
         this.muted = m;
-        if (this.ctx) this.master.gain.setTargetAtTime(m ? 0 : 0.9, this.ctx.currentTime, 0.15);
+        if (this.ctx && !this.paused) this.master.gain.setTargetAtTime(m ? 0 : 0.9, this.ctx.currentTime, 0.15);
+    }
+
+    /** Fades out and suspends everything while the tab is in the background,
+     *  so the garden doesn't play over a game it just opened. Suspending the
+     *  context freezes currentTime, so the score picks up where it left off. */
+    setPaused(p) {
+        if (p === this.paused) return;
+        this.paused = p;
+        if (!this.ctx) return;
+        clearTimeout(this.pauseTimer);
+        const t = this.ctx.currentTime;
+        if (p) {
+            this.master.gain.setTargetAtTime(0, t, 0.08);
+            this.pauseTimer = setTimeout(() => this.ctx.suspend?.(), 400);
+        } else {
+            this.ctx.resume?.();
+            this.master.gain.setTargetAtTime(this.muted ? 0 : 0.9, t, 0.3);
+        }
     }
 
     setMusicVolume(v) {
