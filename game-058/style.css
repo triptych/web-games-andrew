@@ -30,7 +30,10 @@ html, body {
     overscroll-behavior: none;
 }
 /* Only the canvas swallows touch gestures: overlays must still scroll by finger. */
-#c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; touch-action: none; }
+/* Sized in px by the renderer to window.innerWidth × innerHeight. Never 100vh:
+   on phones that is the height with the URL bar hidden, which stretches the
+   picture below where taps are mapped and makes them land a fruit too low. */
+#c { position: fixed; top: 0; left: 0; display: block; touch-action: none; }
 
 #back-link {
     position: fixed; top: calc(8px + var(--safe-t)); left: calc(8px + var(--safe-l)); z-index: 99999;
