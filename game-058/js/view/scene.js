@@ -77,11 +77,11 @@ export function applyQuality(isFancy) {
     renderer.setPixelRatio(Math.min(dpr, isFancy ? 2 : 1.25));
     renderer.shadowMap.enabled = isFancy;
     if (scene) scene.traverse(o => { if (o.material) o.material.needsUpdate = true; });
-    if (renderer.domElement) renderer.setSize(window.innerWidth, window.innerHeight, false);
+    if (renderer.domElement) renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
 export function resize() {
-    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    renderer.setSize(window.innerWidth, window.innerHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     fitBoard(freeRect);
@@ -145,8 +145,9 @@ const nearBasket = (x, z, d = 1.4) => Math.hypot(x - COLS / 2 - 1.3, z - ROWS / 
 /** Screen position (CSS px) of a world point. */
 export function toScreen(p, out = { x: 0, y: 0 }) {
     const v = new THREE.Vector3().copy(p).project(camera);
-    out.x = (v.x * 0.5 + 0.5) * window.innerWidth;
-    out.y = (-v.y * 0.5 + 0.5) * window.innerHeight;
+    const rect = renderer.domElement.getBoundingClientRect();
+    out.x = rect.left + (v.x * 0.5 + 0.5) * rect.width;
+    out.y = rect.top + (-v.y * 0.5 + 0.5) * rect.height;
     return out;
 }
 
@@ -154,7 +155,9 @@ const _ray = new THREE.Raycaster();
 const _plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.4);
 /** Board-plane hit for a screen point, as fractional (row, col). */
 export function screenToCell(x, y) {
-    const ndc = new THREE.Vector2((x / window.innerWidth) * 2 - 1, -(y / window.innerHeight) * 2 + 1);
+    // Map through the canvas's on-screen box so taps always match the picture.
+    const rect = renderer.domElement.getBoundingClientRect();
+    const ndc = new THREE.Vector2(((x - rect.left) / rect.width) * 2 - 1, -((y - rect.top) / rect.height) * 2 + 1);
     _ray.setFromCamera(ndc, camera);
     const hit = new THREE.Vector3();
     if (!_ray.ray.intersectPlane(_plane, hit)) return null;

@@ -226,6 +226,13 @@ that.
 
 ## Changelog
 
+### 1.0.1 (2026-10-04)
+- Fixed taps on phones landing one fruit too low. The canvas was stretched to
+  `100vh`, which on phones with a URL bar is taller than the visible area, so
+  the picture sat lower than where taps were mapped. The renderer now sizes
+  the canvas to `innerWidth × innerHeight` in pixels, taps map through the
+  canvas's on-screen box, and the browser test checks both.
+
 ### 1.0.0 (2026-10-04)
 - Full game: 30 levels in 4 gardens, 4 senses, 4 power-ups, golden fruit,
   leaves and frost, Picnic mode, Fruit Album, music and sound, touch and mouse.

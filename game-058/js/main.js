@@ -131,6 +131,8 @@ function onResize() {
 }
 window.addEventListener('resize', onResize);
 window.addEventListener('orientationchange', () => setTimeout(onResize, 200));
+// Mobile URL bars slide in and out without always firing window resize.
+window.visualViewport?.addEventListener('resize', onResize);
 document.addEventListener('visibilitychange', () => {
     A.setHidden(document.hidden);
     if (document.hidden && mode === 'play') pause();
@@ -797,5 +799,6 @@ if (DEBUG) {
         layout,
         freeRect: UI.freeRect,
         thumb: fruitThumb,
+        trail() { return path.map(p => [...p]); },
     };
 }

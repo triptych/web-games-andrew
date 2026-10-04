@@ -363,6 +363,23 @@ async function phone(viewport, tag) {
     await page.waitForTimeout(300);
     await shot(page, `${tag}-02-play`);
 
+    // The canvas must be exactly the visible viewport: a 100vh canvas is taller
+    // than innerHeight on phones with a URL bar, so taps land a fruit too low.
+    const cv = await bb(page, () => { const r = document.getElementById('c').getBoundingClientRect(); const c = document.getElementById('c'); return { w: r.width, h: r.height, iw: innerWidth, ih: innerHeight, style: c.style.height }; });
+    ok(Math.abs(cv.w - cv.iw) < 1 && Math.abs(cv.h - cv.ih) < 1 && cv.style === `${cv.ih}px`, `canvas is sized to the visible viewport (${JSON.stringify(cv)})`);
+    // A tap on a fruit's drawn position picks that fruit.
+    const pick = await bb(page, () => {
+        const g = window.__bb.game;
+        for (let r = 0; r < g.rows; r++) for (let c = 0; c < g.cols; c++) if (g.selectable(r, c)) return [r, c];
+        return null;
+    });
+    const ps = await bb(page, ([r, c]) => window.__bb.cellScreen(r, c), pick);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: ps.x, y: ps.y }] });
+    await page.waitForTimeout(80);
+    const picked = await bb(page, () => window.__bb.trail());
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    ok(JSON.stringify(picked) === JSON.stringify([pick]), `a tap on a fruit picks that fruit (${JSON.stringify(picked)} vs ${JSON.stringify(pick)})`);
+
     const lay = await bb(page, () => {
         const vw = innerWidth, vh = innerHeight;
         const els = [...document.querySelectorAll('#pause-btn, #moves-box, .ticket, .jar, #score-pill')].map(el => {
