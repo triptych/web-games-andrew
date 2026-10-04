@@ -39,7 +39,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     backdrop-filter: blur(3px);
 }
 
-#hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; font-size: calc(16px * var(--ui)); }
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 7; font-size: calc(16px * var(--ui)); }
 #hud button, #weapon-panel, #map-wrap { pointer-events: auto; }
 
 /* Health */

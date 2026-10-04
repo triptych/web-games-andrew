@@ -697,7 +697,7 @@ function installDebug() {
             return true;
         },
         give(id, mk = 1) { const p = G.world.player; if (p.weapons.length < PLAYER.slots) p.weapons.push({ id, mk, mag: 99, reserve: 999 }); },
-        screen(x, y) { return G.view.worldToScreen(x, y); },
+        screen(x, y, h) { return G.view.worldToScreen(x, y, h); },
         skipCard() { const sc = $('sector-card'); if (!sc.classList.contains('hidden')) sc.click(); },
     };
 }

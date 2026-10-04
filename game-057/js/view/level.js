@@ -589,7 +589,8 @@ export function updateDoors(doorMeshes, lv) {
         const off = len / 4 + o * (len / 2 - 0.05);
         a.position.x = -off; b.position.x = off;
         a.visible = b.visible = o < 0.98;
-        lamp.material.color.setHex(d.target ? 0x3aff6a : 0xff2a1a);
+        lamp.visible = !d.target;
+        lamp.material.color.setHex(0xff2a1a);
     });
 }
 

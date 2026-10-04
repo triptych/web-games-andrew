@@ -185,6 +185,9 @@ section('bosses');
 for (let s = 0; s < 5; s++) {
     const run = newRun({ seed: 21 + s });
     run.sector = s;
+    // Arrive the way a player would: a found gun or two, upgraded as the sectors go.
+    if (s >= 1) run.loadout.weapons.push({ id: 'scatter', mk: Math.min(3, s), mag: 6, reserve: 48 });
+    if (s >= 3) run.loadout.weapons.push({ id: 'smart', mk: 2, mag: 120, reserve: 480 });
     const w = newWorld(run);
     w.god = true;
     const room = w.lv.rooms[w.lv.bossRoom];

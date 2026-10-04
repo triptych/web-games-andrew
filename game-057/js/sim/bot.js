@@ -76,6 +76,16 @@ function chooseGoal(w) {
         }
         if (it.kind === 'shopitem' && p.salvage >= (it.price || 999) && wantsShop(w, it)) return { x: it.x, y: it.y + 0.6, key: 'shop' + it.id };
     }
+    // A sealed room: hunt down whatever is left in it.
+    if (w.activeRoom >= 0) {
+        let best = null, bd = 1e9;
+        for (const e of w.enemies) {
+            if (e.dead || e.room !== w.activeRoom || e.spawnT > 0) continue;
+            const d = Math.hypot(e.x - p.x, e.y - p.y);
+            if (d < bd) { bd = d; best = e; }
+        }
+        if (best) return { x: best.x, y: best.y, key: 'hunt' + best.id + ':' + Math.floor(best.x) + ',' + Math.floor(best.y) };
+    }
     // Wanted pickups nearby.
     let pk = null, pd = 12;
     for (const k of w.pickups) {
@@ -134,7 +144,7 @@ export function botInput(w, bot, dt = 1 / 60) {
         const dx = e.x - p.x, dy = e.y - p.y, d = Math.hypot(dx, dy);
         if (d < 4.5) { near++; const f = 1 / Math.max(0.3, d * d); rx -= (dx / d) * f; ry -= (dy / d) * f; }
         if (d > 3.5 && d < 9) { crowdX += e.x; crowdY += e.y; crowdN++; }
-        const score = d - (e.boss ? 6 : 0) - (e.type === 'sac' ? 3 : 0);
+        const score = d - (e.boss ? (d < 3 ? 2 : 9) : 0) - (e.type === 'sac' ? 3 : 0);
         if (score < td && d < 15 && !e.hidden && los(w.lv, p.x, p.y, e.x, e.y)) { td = score; tgt = e; }
     }
     // Bullets about to hit: dodge sideways, roll if close.

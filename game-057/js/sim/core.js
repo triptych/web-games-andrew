@@ -29,6 +29,24 @@ export function solidAt(lv, tx, ty) {
 /** Push a circle (e.x, e.y, e.r) out of solid tiles. Returns true on contact. */
 export function collideCircle(lv, e) {
     let hit = false;
+    // Centre buried in a solid tile (a door shut on it, a crowd squeezed it into a corner):
+    // step out to the nearest free tile.
+    const cx = Math.floor(e.x), cy = Math.floor(e.y);
+    if (solidAt(lv, cx, cy) && e.ox !== undefined && !solidAt(lv, Math.floor(e.ox), Math.floor(e.oy))) {
+        // Go back the way it came, so nothing slips through a door as it shuts.
+        e.x = e.ox; e.y = e.oy; hit = true;
+    } else if (solidAt(lv, cx, cy)) {
+        let best = null, bd = Infinity;
+        for (let dy = -2; dy <= 2; dy++) {
+            for (let dx = -2; dx <= 2; dx++) {
+                if (solidAt(lv, cx + dx, cy + dy)) continue;
+                const px = clamp(e.x, cx + dx + 0.05, cx + dx + 0.95), py = clamp(e.y, cy + dy + 0.05, cy + dy + 0.95);
+                const d = (px - e.x) ** 2 + (py - e.y) ** 2;
+                if (d < bd) { bd = d; best = [px, py]; }
+            }
+        }
+        if (best) { e.x = best[0]; e.y = best[1]; hit = true; }
+    }
     for (let pass = 0; pass < 2; pass++) {
         const r = e.r;
         const x0 = Math.floor(e.x - r), x1 = Math.floor(e.x + r);
@@ -172,20 +190,24 @@ export function buildHash(w) {
     if (!w.hNext || w.hNext.length < w.enemies.length) w.hNext = new Int32Array(Math.max(256, w.enemies.length * 2));
     w.hHead.fill(-1);
     const E = w.enemies;
+    let maxR = 0.5;
     for (let i = 0; i < E.length; i++) {
         const e = E[i];
+        if (e.r > maxR) maxR = e.r;
         const cx = clamp(Math.floor(e.x / HC), 0, cw - 1), cy = clamp(Math.floor(e.y / HC), 0, ch - 1);
         const c = cy * cw + cx;
         w.hNext[i] = w.hHead[c];
         w.hHead[c] = i;
     }
+    w.hMargin = maxR;
 }
 
 /** Call fn(e) for each enemy whose cell is within r of (x, y); stop if fn returns true. */
 export function queryHash(w, x, y, r, fn) {
     const cw = w.hCW, ch = w.hCH;
-    const x0 = clamp(Math.floor((x - r - 1) / HC), 0, cw - 1), x1 = clamp(Math.floor((x + r + 1) / HC), 0, cw - 1);
-    const y0 = clamp(Math.floor((y - r - 1) / HC), 0, ch - 1), y1 = clamp(Math.floor((y + r + 1) / HC), 0, ch - 1);
+    const m = r + (w.hMargin ?? 1);
+    const x0 = clamp(Math.floor((x - m) / HC), 0, cw - 1), x1 = clamp(Math.floor((x + m) / HC), 0, cw - 1);
+    const y0 = clamp(Math.floor((y - m) / HC), 0, ch - 1), y1 = clamp(Math.floor((y + m) / HC), 0, ch - 1);
     const E = w.enemies;
     for (let cy = y0; cy <= y1; cy++) {
         for (let cx = x0; cx <= x1; cx++) {

@@ -200,6 +200,20 @@ function tryProp(lv, room, type, x, y) {
     const i = idx(lv, x, y);
     if (lv.propAt[i] >= 0) return false;
     if (nearDoor(lv, room, x, y, 2.5)) return false;
+    // Gaps between solids are either zero or two tiles: a one-tile or diagonal gap pins the big bugs.
+    for (let dy = -2; dy <= 2; dy++) {
+        for (let dx = -2; dx <= 2; dx++) {
+            if (!dx && !dy) continue;
+            const xx = x + dx, yy = y + dy;
+            if (!inb(lv, xx, yy) || lv.propAt[idx(lv, xx, yy)] < 0) continue;
+            if (Math.abs(dx) + Math.abs(dy) === 1) continue; // same cluster
+            if ((Math.abs(dx) === 2 && dy === 0) || (Math.abs(dy) === 2 && dx === 0)) {
+                // A straight two-tile neighbour is fine only if the tile between is part of the cluster.
+                if (lv.propAt[idx(lv, x + dx / 2, y + dy / 2)] >= 0) continue;
+            }
+            return false;
+        }
+    }
     const p = { id: lv.props.length, type, x, y, hp: PROPS[type].hp, rot: 0 };
     lv.props.push(p);
     lv.propAt[i] = p.id;
@@ -240,8 +254,9 @@ function decorate(lv, rng, room, theme, density) {
             else if (side === 2) { x = room.x; y = rng.int(room.y, room.y + room.h - 1); }
             else { x = room.x + room.w - 1; y = rng.int(room.y, room.y + room.h - 1); }
         } else {
-            x = rng.int(room.x + 1, room.x + room.w - 2);
-            y = rng.int(room.y + 1, room.y + room.h - 2);
+            // Two tiles clear of the walls: a one-tile gap would trap the bigger bugs.
+            x = rng.int(room.x + 2, room.x + room.w - 3);
+            y = rng.int(room.y + 2, room.y + room.h - 3);
         }
         if (centerClear(room, x, y, clearR)) continue;
         if (!tryProp(lv, room, type, x, y)) continue;
@@ -249,7 +264,9 @@ function decorate(lv, rng, room, theme, density) {
         // Crates and sandbags come in little clusters.
         if ((type === 'crate' || type === 'sandbag' || type === 'barrel') && rng.chance(0.55)) {
             const dx = rng.int(-1, 1), dy = dx === 0 ? rng.pick([-1, 1]) : 0;
-            if (!centerClear(room, x + dx, y + dy, clearR)) tryProp(lv, room, rng.chance(0.25) ? 'barrel' : type, x + dx, y + dy);
+            const nx = x + dx, ny = y + dy;
+            const inner = nx >= room.x + 2 && ny >= room.y + 2 && nx <= room.x + room.w - 3 && ny <= room.y + room.h - 3;
+            if (inner && !centerClear(room, nx, ny, clearR)) tryProp(lv, room, rng.chance(0.25) ? 'barrel' : type, nx, ny);
         }
     }
     for (const p of lv.props) if (p.rot === 0) p.rot = rng.int(0, 3);

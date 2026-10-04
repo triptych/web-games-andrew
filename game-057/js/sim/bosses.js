@@ -53,6 +53,11 @@ function arenaPoint(w, b, minFromPlayer, margin = 3) {
 
 function callSwarm(w, b, n, extra = {}) {
     const r = arena(w, b);
+    // Never bury the arena: top the swarm up to a ceiling rather than stacking it.
+    let alive = 0;
+    for (const e of w.enemies) if (!e.dead && !e.boss) alive++;
+    const ceiling = 18 + b.phase * 6;
+    n = Math.min(n, Math.max(0, ceiling - alive));
     const vents = r.vents.filter((v) => Math.hypot(v.x - w.player.x, v.y - w.player.y) > 5);
     const list = vents.length ? vents : r.vents;
     for (let i = 0; i < n && w.enemies.length < w.cap; i++) {

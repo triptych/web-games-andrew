@@ -282,7 +282,20 @@ function updateEnemies(w, dt) {
         const kd = Math.exp(-7 * dt);
         e.kx *= kd; e.ky *= kd;
         if (e.boss && e.hidden) { e.vx = 0; e.vy = 0; continue; }
+        const bx = e.x, by = e.y;
         e.wallHit = moveEntity(lv, e, (e.vx + e.kx) * dt, (e.vy + e.ky) * dt) && Math.hypot(e.vx, e.vy) > 6;
+        // Wedged between props: if it wants to move but can't, shove it sideways for a moment.
+        const want = Math.hypot(e.dvx || 0, e.dvy || 0);
+        if (!e.boss && want > 1 && Math.hypot(e.x - bx, e.y - by) < want * dt * 0.15) {
+            e.stuckT = (e.stuckT ?? 0) + dt;
+            if (e.stuckT > 0.6) {
+                e.stuckT = 0;
+                const side = e.seed > 0.5 ? 1 : -1;
+                e.kx += (-(e.dvy || 0) / want * side - (e.dvx || 0) / want * 0.5) * 6;
+                e.ky += ((e.dvx || 0) / want * side - (e.dvy || 0) / want * 0.5) * 6;
+                e.seed = 1 - e.seed;
+            }
+        } else e.stuckT = 0;
         e.anim += (Math.hypot(e.vx, e.vy) * 1.2 + 0.6) * dt;
     }
     // Separation between bugs, and bugs crowding the marine.
@@ -768,6 +781,17 @@ function runWaves(w, room, dt) {
         spawnEnemy(w, s.type, v.x + w.rng.range(-0.25, 0.25), v.y + w.rng.range(-0.25, 0.25), { alpha: s.alpha, room: room.id, emerge: 0.75 });
     }
     if (room.queue.length) return;
+    // A bug stranded outside the sealed room crawls back in through a vent.
+    for (const e of w.enemies) {
+        if (e.dead || e.room !== room.id || e.spawnT > 0) continue;
+        if (roomAtPos(w.lv, e.x, e.y) === room.id) { e.outT = 0; continue; }
+        e.outT = (e.outT ?? 0) + dt;
+        if (e.outT > 2) {
+            const v = pickVent(w, room.vents);
+            e.x = e.ox = v.x; e.y = e.oy = v.y; e.under = false; e.outT = 0; e.spawnT = 0.75;
+            emit(w, 'spawn', { x: v.x, y: v.y, kind: e.type, emerge: 0.75, alpha: e.alpha, id: e.id });
+        }
+    }
     const alive = roomAlive(w, room.id);
     const last = room.wave >= room.waves.length - 1;
     if (!last && (alive <= Math.floor(room.waveSize * 0.18) || w.t - room.waveStart > 26)) nextWave(w, room);
