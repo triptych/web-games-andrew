@@ -3,7 +3,7 @@
 **Genre:** Puzzle / Logic
 **Engine:** Kaplay v4000 (ES6 modules)
 **Target Resolution:** 900 × 680
-**Status:** Phase 1 — Complete
+**Status:** Phase 1 complete, v1.1 (touch play, saved progress); Phase 2 polish open
 
 ---
 
@@ -118,6 +118,12 @@ Splash → game(0) → solve puzzle → celebration overlay
 - [x] Scene flow: splash → game → complete
 - [x] Dynamic layout — grid centred with clue margins
 
+### v1.1 — Touch and progress (2026-10-04)
+- [x] Fill / Mark tool button (and the X key), so marking works without a right mouse button
+- [x] Restart and Menu buttons; tap or click to continue after a win
+- [x] Solved puzzles saved; the title continues at the first unsolved one
+- [x] `dev/browsertest.mjs`
+
 ### Phase 2 — Polish (future)
 - [ ] Clue "completed" highlighting per line
 - [ ] Timer / move counter per puzzle
@@ -127,6 +133,13 @@ Splash → game(0) → solve puzzle → celebration overlay
 ---
 
 ## Changelog
+
+### v1.1 — Touch and progress (2026-10-04)
+- A Fill / Mark tool, switched by a button below the puzzle or the X key. A left click or a tap uses the tool; a right click always marks
+- Restart and Menu buttons below the puzzle (80 game px tall on touch, about 44 px on a landscape phone); the key hint shows only on desktop
+- Tap or click to go on after a win; scene changes happen on release, because switching scene on a touch press leaves Kaplay's touch input stuck
+- Solved puzzles are saved, and the title offers to continue at the first unsolved puzzle
+- `dev/browsertest.mjs`: every puzzle solved by clicking on desktop, puzzle 1 by tapping on touch-only phones, the tool, drag-fill, Restart and Menu
 
 ### Phase 1 — Scaffold (2026-04-01)
 - Initial implementation: 5 puzzles, full play loop, drag-paint, win detection
