@@ -2,3 +2,9 @@
 # local paths) — should not be version-controlled. The shared project config
 # lives in .claude/settings.json, which IS tracked.
 .claude/settings.local.json
+
+# Repo-level dev harness output and local copies of CDN packages (see dev/README.md)
+dev/shots/
+dev/package/
+dev/package-r128/
+dev/node_modules/
