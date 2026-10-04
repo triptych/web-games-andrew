@@ -32,6 +32,7 @@ html, body {
 
 #game-frame {
   position: relative;
+  flex-shrink: 0;            /* keep 640×480 and let js/main.js scale it to fit */
   width: 640px; height: 480px;
   background: var(--bg);
   box-shadow: 0 0 40px rgba(200,127,74,0.15);
