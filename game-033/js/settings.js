@@ -46,7 +46,7 @@ class Settings {
         try {
             localStorage.setItem(SETTINGS_KEY, JSON.stringify(this._values));
         } catch (e) {
-            console.error('Failed to save settings:', e);
+            console.warn('Settings not saved:', e.message);
         }
     }
 
@@ -57,7 +57,7 @@ class Settings {
             const parsed = JSON.parse(raw);
             this._values = { ...DEFAULTS, ...parsed };
         } catch (e) {
-            console.error('Failed to load settings:', e);
+            console.warn('Settings not loaded:', e.message);
         }
     }
 }

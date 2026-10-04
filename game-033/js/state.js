@@ -259,18 +259,26 @@ class GameState {
             quests: this._quests,
             lore: this._lore,
         };
-        localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+        try {
+            localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+        } catch {
+            return; // storage blocked or full: keep playing, just unsaved
+        }
         events.emit('gameSaved');
     }
 
     hasSave() {
-        return !!localStorage.getItem(SAVE_KEY);
+        try {
+            return !!localStorage.getItem(SAVE_KEY);
+        } catch {
+            return false;
+        }
     }
 
     load() {
-        const raw = localStorage.getItem(SAVE_KEY);
-        if (!raw) return false;
         try {
+            const raw = localStorage.getItem(SAVE_KEY);
+            if (!raw) return false;
             const payload = JSON.parse(raw);
             this._stats = payload.stats;
             this._inventory = payload.inventory;

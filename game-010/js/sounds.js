@@ -141,12 +141,16 @@ function _playMelodyPhrase(phrase) {
 const MUSIC_PREF_KEY = 'tinyTown_music';
 
 function _loadMusicPref() {
-    const val = localStorage.getItem(MUSIC_PREF_KEY);
-    return val === null ? true : val === '1';
+    try {
+        const val = localStorage.getItem(MUSIC_PREF_KEY);
+        return val === null ? true : val === '1';
+    } catch {
+        return true; // storage blocked: default to music on
+    }
 }
 
 function _saveMusicPref(enabled) {
-    localStorage.setItem(MUSIC_PREF_KEY, enabled ? '1' : '0');
+    try { localStorage.setItem(MUSIC_PREF_KEY, enabled ? '1' : '0'); } catch { /* storage blocked */ }
 }
 
 let _ambientNodes  = [];

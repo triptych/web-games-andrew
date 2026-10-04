@@ -184,7 +184,11 @@ class GameState {
     static get _SAVE_KEY() { return 'emberCrown_save_v1'; }
 
     hasSave() {
-        return !!localStorage.getItem(GameState._SAVE_KEY);
+        try {
+            return !!localStorage.getItem(GameState._SAVE_KEY);
+        } catch {
+            return false; // storage blocked: play without saving
+        }
     }
 
     save() {
@@ -215,13 +219,15 @@ class GameState {
                 buffs:         { ...m.buffs },
             })),
         };
-        localStorage.setItem(GameState._SAVE_KEY, JSON.stringify(data));
+        try {
+            localStorage.setItem(GameState._SAVE_KEY, JSON.stringify(data));
+        } catch { /* storage blocked or full: keep playing unsaved */ }
     }
 
     load() {
-        const raw = localStorage.getItem(GameState._SAVE_KEY);
-        if (!raw) return false;
         try {
+            const raw = localStorage.getItem(GameState._SAVE_KEY);
+            if (!raw) return false;
             const data = JSON.parse(raw);
             this.reset();   // establish defaults first
 

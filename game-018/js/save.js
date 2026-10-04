@@ -19,7 +19,11 @@ const SAVE_KEY = 'votwb_save_v1';
 const AUTOSAVE_INTERVAL = 30; // seconds
 
 export function hasSave() {
-    return localStorage.getItem(SAVE_KEY) !== null;
+    try {
+        return localStorage.getItem(SAVE_KEY) !== null;
+    } catch {
+        return false; // storage blocked: play without saving
+    }
 }
 
 export function saveGame() {
@@ -60,7 +64,8 @@ export function saveGame() {
 }
 
 export function loadGame() {
-    const raw = localStorage.getItem(SAVE_KEY);
+    let raw = null;
+    try { raw = localStorage.getItem(SAVE_KEY); } catch { /* storage blocked */ }
     if (!raw) return false;
 
     let data;
@@ -127,7 +132,7 @@ export function loadGame() {
 }
 
 export function deleteSave() {
-    localStorage.removeItem(SAVE_KEY);
+    try { localStorage.removeItem(SAVE_KEY); } catch { /* storage blocked */ }
 }
 
 // Auto-save wiring
