@@ -19,37 +19,52 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            min-height: 100dvh;
+            padding: 48px 8px 12px;
             background: linear-gradient(to bottom, #0a0a1a, #1a1a3a);
             font-family: Arial, sans-serif;
             color: white;
         }
 
+        /* The game draws at 800×600; CSS scales it to whatever fits. */
         #gameCanvas {
+            display: block;
+            width: min(800px, 100%, (100dvh - 150px) * 4 / 3);
+            aspect-ratio: 4 / 3;
+            height: auto;
             border: 2px solid #4a4a6a;
             background: #000;
             box-shadow: 0 0 20px rgba(100, 100, 255, 0.3);
+            touch-action: none;       /* drag to steer without scrolling the page */
+            cursor: crosshair;
         }
 
         #ui {
-            margin-top: 20px;
+            margin-top: 12px;
             text-align: center;
         }
 
         #score {
             font-size: 24px;
-            margin-bottom: 10px;
+            margin-bottom: 4px;
+        }
+
+        #best {
+            font-size: 14px;
+            color: #aaa;
         }
 
         #gameOver {
             display: none;
             font-size: 32px;
             color: #ff4444;
-            margin-top: 20px;
+            margin-top: 12px;
         }
 
         #restartBtn {
             display: none;
-            margin-top: 20px;
+            margin: 12px auto 0;
+            min-height: 44px;
             padding: 10px 30px;
             font-size: 18px;
             background: #4a4aff;
@@ -65,7 +80,7 @@
         }
 
         #controls {
-            margin-top: 15px;
+            margin-top: 10px;
             font-size: 14px;
             color: #aaa;
         }
@@ -76,25 +91,30 @@
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <div id="ui">
         <div id="score">Score: 0</div>
+        <div id="best">Best: 0</div>
         <div id="gameOver">GAME OVER</div>
         <button id="restartBtn">Restart Game</button>
         <div id="controls">
-            Controls: Arrow Keys to Move | Space to Shoot
+            Arrow keys or A/D to move · Hold Space to shoot · P to pause
         </div>
     </div>
-
     <script>
         // Web Audio API - Sound Effects Module
         const SoundFX = {
             audioContext: null,
 
+            // Created on first use rather than at load, so it starts after a
+            // user gesture and the browser lets it play.
             init() {
-                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
             },
 
             // Resume audio context (required for some browsers)
             resume() {
-                if (this.audioContext && this.audioContext.state === 'suspended') {
+                this.init();
+                if (this.audioContext.state === 'suspended') {
                     this.audioContext.resume();
                 }
             },
@@ -292,19 +312,33 @@
             }
         };
 
-        // Initialize sound effects
-        SoundFX.init();
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreElement = document.getElementById('score');
+        const bestElement = document.getElementById('best');
         const gameOverElement = document.getElementById('gameOver');
         const restartBtn = document.getElementById('restartBtn');
+        const controlsElement = document.getElementById('controls');
 
-        // Game state
-        let gameRunning = true;
+        // Speeds are per second, so the game runs the same at 60 Hz and 120 Hz.
+        const PLAYER_SPEED = 300;
+        const BULLET_SPEED = 420;
+        const ENEMY_SPEED_START = 120;
+        const ENEMY_SPEED_STEP = 18;      // added every 100 points
+        const STAR_SPEED = 60;            // × each star's own 0.2–0.7
+
+        // Game state: 'ready' (title), 'playing', 'paused' or 'over'
+        let mode = 'ready';
         let score = 0;
         let keys = {};
+        let lastTime = 0;
+
+        // Best score, kept if the browser allows storage
+        const BEST_KEY = 'spaceShooter_best';
+        let best = 0;
+        try { best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0; } catch { /* storage blocked */ }
+        bestElement.textContent = `Best: ${best}`;
 
         // Player
         const player = {
@@ -312,13 +346,11 @@
             y: canvas.height - 80,
             width: 50,
             height: 50,
-            speed: 5,
             color: '#4aff4a'
         };
 
         // Bullets
         let bullets = [];
-        const bulletSpeed = 7;
         const bulletWidth = 4;
         const bulletHeight = 15;
         let lastShot = 0;
@@ -328,16 +360,29 @@
         let enemies = [];
         const enemyWidth = 40;
         const enemyHeight = 40;
-        let enemySpeed = 2;
+        let enemySpeed = ENEMY_SPEED_START;
         let lastEnemySpawn = 0;
         const enemySpawnRate = 1000;
+
+        // Touch / mouse: drag anywhere on the canvas to steer. The ship moves by
+        // as much as your finger does (relative, not "jump to the finger"), so
+        // your thumb never hides it, and it fires for as long as you hold on.
+        const pointer = { id: null, lastX: 0, firing: false };
+        const isTouch = window.matchMedia('(pointer: coarse)').matches;
+        if (isTouch) controlsElement.textContent = 'Drag anywhere on the game to steer · Hold to fire';
 
         // Input handling
         document.addEventListener('keydown', (e) => {
             keys[e.key] = true;
-            if (e.key === ' ' && gameRunning) {
-                e.preventDefault();
-                shoot();
+            if (e.key === ' ' || e.key.startsWith('Arrow')) e.preventDefault();
+            if (e.repeat) return;
+            if (e.key === ' ' || e.key === 'Enter') {
+                if (mode === 'ready' || mode === 'over') startGame();
+                else if (mode === 'paused') setPaused(false);
+            }
+            if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+                if (mode === 'playing') setPaused(true);
+                else if (mode === 'paused') setPaused(false);
             }
         });
 
@@ -345,11 +390,50 @@
             keys[e.key] = false;
         });
 
-        restartBtn.addEventListener('click', restartGame);
+        canvas.addEventListener('pointerdown', (e) => {
+            if (mode === 'ready' || mode === 'over') { startGame(); }
+            else if (mode === 'paused') { setPaused(false); }
+            pointer.id = e.pointerId;
+            pointer.lastX = e.clientX;
+            pointer.firing = true;
+            canvas.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('pointermove', (e) => {
+            if (e.pointerId !== pointer.id || mode !== 'playing') return;
+            // Screen pixels → game pixels
+            const scale = canvas.width / canvas.getBoundingClientRect().width;
+            player.x += (e.clientX - pointer.lastX) * scale;
+            player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+            pointer.lastX = e.clientX;
+        });
+
+        const releasePointer = (e) => {
+            if (e.pointerId !== pointer.id) return;
+            pointer.id = null;
+            pointer.firing = false;
+        };
+        canvas.addEventListener('pointerup', releasePointer);
+        canvas.addEventListener('pointercancel', releasePointer);
+
+        restartBtn.addEventListener('click', startGame);
+
+        // Pause when the tab is hidden, so a run isn't lost while you're away
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && mode === 'playing') setPaused(true);
+        });
+
+        function setPaused(on) {
+            mode = on ? 'paused' : 'playing';
+            keys = {};
+            pointer.firing = false;
+            lastTime = 0;
+        }
 
         // Shoot bullet
         function shoot() {
-            const now = Date.now();
+            const now = performance.now();
             if (now - lastShot > shootCooldown) {
                 bullets.push({
                     x: player.x + player.width / 2 - bulletWidth / 2,
@@ -379,42 +463,37 @@
         }
 
         // Update player
-        function updatePlayer() {
-            if (keys['ArrowLeft'] && player.x > 0) {
-                player.x -= player.speed;
+        function updatePlayer(dt) {
+            if ((keys['ArrowLeft'] || keys['a'] || keys['A']) && player.x > 0) {
+                player.x = Math.max(0, player.x - PLAYER_SPEED * dt);
             }
-            if (keys['ArrowRight'] && player.x < canvas.width - player.width) {
-                player.x += player.speed;
+            if ((keys['ArrowRight'] || keys['d'] || keys['D']) && player.x < canvas.width - player.width) {
+                player.x = Math.min(canvas.width - player.width, player.x + PLAYER_SPEED * dt);
             }
+            if (keys[' '] || pointer.firing) shoot();
         }
 
         // Update bullets
-        function updateBullets() {
+        function updateBullets(dt) {
             bullets = bullets.filter(bullet => {
-                bullet.y -= bulletSpeed;
+                bullet.y -= BULLET_SPEED * dt;
                 return bullet.y > -bulletHeight;
             });
         }
 
         // Update enemies
-        function updateEnemies() {
-            const now = Date.now();
+        function updateEnemies(dt, now) {
             if (now - lastEnemySpawn > enemySpawnRate) {
                 spawnEnemy();
                 lastEnemySpawn = now;
             }
 
             enemies.forEach(enemy => {
-                enemy.y += enemySpeed;
+                enemy.y += enemySpeed * dt;
             });
 
             // Remove enemies that went off screen
-            enemies = enemies.filter(enemy => {
-                if (enemy.y > canvas.height) {
-                    return false;
-                }
-                return true;
-            });
+            enemies = enemies.filter(enemy => enemy.y <= canvas.height);
         }
 
         // Check collisions
@@ -434,7 +513,7 @@
 
                         // Increase difficulty
                         if (score % 100 === 0) {
-                            enemySpeed += 0.3;
+                            enemySpeed += ENEMY_SPEED_STEP;
                             // Play power-up sound for milestone
                             SoundFX.powerUp();
                         }
@@ -482,15 +561,12 @@
         // Draw bullets
         function drawBullets() {
             ctx.fillStyle = '#ffff44';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ffff44';
             bullets.forEach(bullet => {
                 ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-
-                // Glow effect
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = '#ffff44';
-                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                ctx.shadowBlur = 0;
             });
+            ctx.shadowBlur = 0;
         }
 
         // Draw enemies
@@ -512,7 +588,7 @@
             });
         }
 
-        // Draw stars background
+        // Stars background
         const stars = [];
         for (let i = 0; i < 100; i++) {
             stars.push({
@@ -523,14 +599,9 @@
             });
         }
 
-        function drawStars() {
-            ctx.fillStyle = 'white';
+        function updateStars(dt) {
             stars.forEach(star => {
-                ctx.beginPath();
-                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                ctx.fill();
-
-                star.y += star.speed;
+                star.y += star.speed * STAR_SPEED * dt;
                 if (star.y > canvas.height) {
                     star.y = 0;
                     star.x = Math.random() * canvas.width;
@@ -538,61 +609,95 @@
             });
         }
 
-        // End game
-        function endGame() {
-            gameRunning = false;
-            gameOverElement.style.display = 'block';
-            restartBtn.style.display = 'inline-block';
+        function drawStars() {
+            ctx.fillStyle = 'white';
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
         }
 
-        // Restart game
-        function restartGame() {
-            gameRunning = true;
+        // A dimmed panel of centred text over the playfield
+        function drawMessage(title, lines) {
+            ctx.fillStyle = 'rgba(0, 0, 20, 0.6)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#4aff4a';
+            ctx.font = 'bold 48px Arial, sans-serif';
+            ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 30);
+            ctx.fillStyle = '#ddd';
+            ctx.font = '20px Arial, sans-serif';
+            lines.forEach((line, i) => ctx.fillText(line, canvas.width / 2, canvas.height / 2 + 20 + i * 30));
+            ctx.textAlign = 'start';
+        }
+
+        // End game
+        function endGame() {
+            mode = 'over';
+            pointer.firing = false;
+            if (score > best) {
+                best = score;
+                try { localStorage.setItem(BEST_KEY, String(best)); } catch { /* storage blocked */ }
+                bestElement.textContent = `Best: ${best} (new!)`;
+            }
+            gameOverElement.style.display = 'block';
+            restartBtn.style.display = 'block';
+        }
+
+        // Start or restart
+        function startGame() {
+            mode = 'playing';
             score = 0;
-            enemySpeed = 2;
+            enemySpeed = ENEMY_SPEED_START;
             scoreElement.textContent = `Score: ${score}`;
+            bestElement.textContent = `Best: ${best}`;
             gameOverElement.style.display = 'none';
             restartBtn.style.display = 'none';
-
             player.x = canvas.width / 2 - 25;
             bullets = [];
             enemies = [];
-            lastEnemySpawn = Date.now();
+            keys = {};
+            lastEnemySpawn = performance.now();
+            lastTime = 0;
 
             // Play game start sound
             SoundFX.gameStart();
-
-            gameLoop();
         }
 
-        // Main game loop
-        function gameLoop() {
-            if (!gameRunning) return;
+        // Main loop: always running, so the stars drift behind the title and pause screens
+        function gameLoop(now) {
+            // Seconds since the last frame, capped so a hitch can't teleport anything
+            const dt = lastTime ? Math.min((now - lastTime) / 1000, 0.05) : 0;
+            lastTime = now;
 
-            // Clear canvas
+            if (mode === 'playing') {
+                updatePlayer(dt);
+                updateBullets(dt);
+                updateEnemies(dt, now);
+                checkCollisions();
+            }
+            if (mode !== 'paused') updateStars(dt);
+
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw stars
             drawStars();
+            if (mode !== 'ready') {
+                drawPlayer();
+                drawBullets();
+                drawEnemies();
+            }
 
-            // Update
-            updatePlayer();
-            updateBullets();
-            updateEnemies();
-            checkCollisions();
-
-            // Draw
-            drawPlayer();
-            drawBullets();
-            drawEnemies();
+            if (mode === 'ready') {
+                drawMessage('SPACE SHOOTER', [isTouch ? 'Tap to start' : 'Press Space or click to start', `Best: ${best}`]);
+            } else if (mode === 'paused') {
+                drawMessage('PAUSED', [isTouch ? 'Tap to resume' : 'Press P, Space or click to resume']);
+            }
 
             requestAnimationFrame(gameLoop);
         }
 
-        // Start game
-        SoundFX.gameStart();
-        gameLoop();
+        requestAnimationFrame(gameLoop);
     </script>
 </body>
 </html>
