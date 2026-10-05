@@ -2,7 +2,7 @@
 
 *By Andrew Wooldridge*
 
-The collection just reached 58 games. Each new one gets a statue in the [Garden of Games](index.html), the walkable three.js island that serves as the launcher. The newest games stand closest to the hub, so these ten are the first ones you'll pass.
+The collection just reached 58 games. Each new one gets a statue in the [Garden of Games](https://triptych.github.io/web-games-andrew/), the walkable three.js island that serves as the launcher. The newest games stand closest to the hub, so these ten are the first ones you'll pass.
 
 This batch covers a lot of ground: a 100-floor roguelike, a match-3 RPG, a gacha battler, a night drive with no goal, a recreation of a classic browser RPG, a DOOM-like, a helicopter bullet-hell, a castle-defence game, a twin-stick bug shooter and a cosy fruit puzzle.
 
@@ -12,7 +12,7 @@ Here's a quick look at each one.
 
 ---
 
-## 049 · [Lanterndeep](game-049/)
+## 049 · [Lanterndeep](https://triptych.github.io/web-games-andrew/game-049/)
 
 **Turn-based 3D roguelike · three.js**
 
@@ -22,7 +22,7 @@ The lantern is the main idea. It sets how far you can see, and it also works as 
 
 The bot in `dev/` plays all 100 floors with each hero to balance the difficulty.
 
-## 050 · [Tomebound](game-050/)
+## 050 · [Tomebound](https://triptych.github.io/web-games-andrew/game-050/)
 
 **Match-3 fantasy RPG with an idle village · three.js**
 
@@ -30,7 +30,7 @@ A smudge of living ink has scattered the thirteen greatest books of the Great Li
 
 Back home, a floating-island village rebuilds itself in real time, even while the game is closed, across 13 buildings. Each book you return grants a permanent bonus, and the Library heals as the books come home. Professor Hootsworth the owl keeps the story cheerful.
 
-## 051 · [Sigilborn](game-051/)
+## 051 · [Sigilborn](https://triptych.github.io/web-games-andrew/game-051/)
 
 **Gacha auto-battler with an idle citadel · three.js**
 
@@ -38,7 +38,7 @@ Every hero in Sigilborn is **procedurally generated**: race, class, element, rar
 
 You play the Overlord, made in a deep character creator, and you have a lot to do: eight campaign regions with bosses, elemental Rifts, the roguelite Endless Spire and an Arena of rival Overlords. Between fights your floating citadel keeps working, with a Treasury, a mine you can dig in 3D, a real-time farm and kitchen, a forge, and expeditions. A progression bot plays three weeks of the game to tune the curve.
 
-## 052 · [Nightline](game-052/)
+## 052 · [Nightline](https://triptych.github.io/web-games-andrew/game-052/)
 
 **Lo-fi synthwave night-drive simulator · three.js**
 
@@ -46,7 +46,7 @@ This one has no goals and no crashes. You set a cruise speed, signal for a lane 
 
 Every sign and tail light reflects in the wet road, and the frame is rendered at 240 lines with bloom and scanlines. Three **generative radio stations** (synthwave, lo-fi hip-hop and slow analogue ambient) make up their own tracks as you drive. Turn on Drift mode and the car drives itself.
 
-## 053 · [Legend of the Jade Wyrm](game-053/)
+## 053 · [Legend of the Jade Wyrm](https://triptych.github.io/web-games-andrew/game-053/)
 
 **Legend of the Green Dragon-style RPG · three.js**
 
@@ -54,7 +54,7 @@ A tribute to the old LoGD browser games that recreates the whole online experien
 
 The clever part: **the other players are simulated**. Sixty of them, each with a personality and a real-clock schedule, log in and out, chat in the square, level up, die, marry, form guilds, and attack you if you sleep in the fields. The text-first pages sit inside a three.js frame with an oak beam, crossed swords and a window onto a low-poly village.
 
-## 054 · [Pale Engine](game-054/)
+## 054 · [Pale Engine](https://triptych.github.io/web-games-andrew/game-054/)
 
 **DOOM-style FPS with procedural levels and monsters · three.js**
 
@@ -62,7 +62,7 @@ It's Io, in 2291. The station's Pale Engine has drilled through the bottom of ev
 
 Each run rolls its own monster species from ten archetypes. They follow you, fight each other, stagger, and can be finished off with the blade for health. There are nine weapons up to a Singularity Cannon, DOOM's inverted-colour invulnerability, baked lightmaps lit by every muzzle flash, an industrial-metal score, an automap, par times and an Endless Descent mode.
 
-## 055 · [Rotorstorm](game-055/)
+## 055 · [Rotorstorm](https://triptych.github.io/web-games-andrew/game-055/)
 
 **Top-down helicopter bullet-hell · vanilla JS + hand-written WebGL2**
 
@@ -70,7 +70,7 @@ No libraries at all here, just vanilla JavaScript and hand-written WebGL2. A sto
 
 Six multi-phase bosses fight with named spell cards. You graze bullets to charge Overdrive, wipe the screen with an EMP, rescue civilians, and spend salvage on a 28-node skill tree. The ending changes with the number of survivors you saved.
 
-## 056 · [Keepfire](game-056/)
+## 056 · [Keepfire](https://triptych.github.io/web-games-andrew/game-056/)
 
 **Castle defence × Plants vs. Zombies × incremental · three.js**
 
@@ -78,7 +78,7 @@ Aldmere's last keep starts as one tower with one archer. Procedurally generated 
 
 The best part is watching the **castle model rebuild itself from your upgrades**: towers rise, walls go from logs to banded stone, and the Keepfire beacon appears on top, ready to burn a whole lane. There are six biomes, six multi-phase bosses, relics after every wave, and a permanent Ember Tree for when you choose to start a new run.
 
-## 057 · [Hivebreaker](game-057/)
+## 057 · [Hivebreaker](https://triptych.github.io/web-games-andrew/game-057/)
 
 **Twin-stick bug-swarm shooter · three.js**
 
@@ -86,7 +86,7 @@ Think Enter the Gungeon meets Alien Breed. A black-site base under the ice of Er
 
 You can dodge-roll, throw grenades, erase bullets with the Shock Pulse, and carry four of nine guns, upgraded up to Mk III. Five bosses lead to a timed escape. It plays with keyboard and mouse, a gamepad, or touch twin-sticks.
 
-## 058 · [Bumble Basket](game-058/)
+## 058 · [Bumble Basket](https://triptych.github.io/web-games-andrew/game-058/)
 
 **Cosy fruit puzzle · three.js**
 
@@ -113,6 +113,6 @@ Full jars earn power-ups like the Honey Dipper and Rainbow Wings, and trails of 
 
 ## Play them
 
-Open [the Garden](index.html), walk up from the dock, and look for the newest statues near the hub. The holographic carousel there shows the newest games first. If you'd rather click than walk, the [classic card grid](classic.html) has all 58.
+Open [the Garden](https://triptych.github.io/web-games-andrew/), walk up from the dock, and look for the newest statues near the hub. The holographic carousel there shows the newest games first. If you'd rather click than walk, the [classic card grid](https://triptych.github.io/web-games-andrew/classic.html) has all 58.
 
 If you want to see how a game is built, every folder has a `game-plan.md` design doc and a `dev/` folder with its test bots. Have fun!
