@@ -78,7 +78,7 @@ export function controlPlayer(w, p, inp, dt) {
     p.energy = Math.min(p.maxEnergy, p.energy + regen * dt);
     if (p.od > 0) { p.od -= dt; if (p.od <= 0) { p.od = 0; p.pal = p.basePal || 'base'; w.emit({ t: 'odEnd' }); } }
 
-    // Pulse shot: hold SPECIAL ~0.35 s and release
+    // Pulse shot: SPECIAL fires on press; keep holding ~0.35 s after it ends and release
     if (p.unlocks.pulse) {
         if (inp.specHeld && (isFree(p) || p.state === 'jump')) p.specCharge += dt;
         else {
@@ -113,7 +113,7 @@ export function controlPlayer(w, p, inp, dt) {
                 const ns = running ? 'run' : moving ? 'walk' : 'idle';
                 if (ns !== p.state) { p.state = ns; p.st = 0; p.anim = ns; p.animT = 0; }
             }
-            if (b.spec > 0 && !(p.unlocks.pulse && inp.specHeld)) { b.spec = 0; doSpecial(w, p, inp, 'ground'); return; }
+            if (b.spec > 0) { b.spec = 0; doSpecial(w, p, inp, 'ground'); return; }
             if (b.jump > 0) {
                 b.jump = 0;
                 setState(p, 'jump', 'jump');

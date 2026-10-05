@@ -36,6 +36,8 @@ let mode = 'boot';
 let S = null;            // session: { mode, difficulty, stage, profile, continues, character }
 let world = null, demo = null, demoBot = null, demoT = 0;
 let acc = 0, last = performance.now();
+const EDGES = ['atk', 'jump', 'spec', 'ovr'];
+let carry = {}; // button presses waiting for the next sim step
 let pendingBoss = null, clearTimer = 0, rotateHintShown = 0;
 const flags = {};        // per-stage one-shot barks
 
@@ -225,7 +227,7 @@ function beginPlay() {
     ui.showHUD(true);
     $('touch').classList.toggle('hidden', !isTouch);
     layout();
-    acc = 0;
+    acc = 0; carry = {};
 }
 
 // ---------------------------------------------------------------- story cards (prologue / ending)
@@ -425,7 +427,7 @@ function pause() {
     $('pause-info').textContent = `${world.level.name} · Score ${world.score}`;
     ui.open('modal-pause');
 }
-function resume() { ui.close('modal-pause'); mode = 'play'; acc = 0; }
+function resume() { ui.close('modal-pause'); mode = 'play'; acc = 0; carry = {}; }
 $('pause-btn').addEventListener('click', (e) => { e.stopPropagation(); pause(); });
 for (const b of document.querySelectorAll('#modal-pause .mbtn')) {
     b.addEventListener('click', () => {
@@ -478,6 +480,9 @@ function frame(now) {
         if (snap.pause) { pause(); }
         else {
             acc += dt;
+            // a frame shorter than STEP runs no sim step; carry its presses to the next one
+            for (const k of EDGES) if (carry[k]) snap[k] = true;
+            carry = {};
             let first = true, n = 0;
             while (acc >= STEP && n < 5 && mode === 'play') {
                 world.step(STEP, first ? snap : { ...snap, atk: false, jump: false, spec: false, ovr: false });
@@ -485,6 +490,7 @@ function frame(now) {
                 for (const e of world.drainEvents()) handleEvent(e);
                 if (world.paused && mode === 'play' && world.state !== 'gameover') mode = 'held';
             }
+            if (n === 0) for (const k of EDGES) if (snap[k]) carry[k] = true;
             if (mode === 'held') mode = 'play';
             if (acc > STEP * 5) acc = 0;
             // ambient barks

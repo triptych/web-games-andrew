@@ -326,7 +326,7 @@ export class UI {
             <h3>Suit specials</h3>
             <div>${K(k.spec)} · Arc Burst (20 energy, invulnerable)</div><div>${K(k.toward)} + ${K(k.spec)} · Rail Dash (25)</div>
             <div>in the air ${K(k.spec)} · Meteor Drop (20)</div><div>${K(k.ovr)} when the meter is full · OVERDRIVE</div>
-            <div${L(unlocks.pulse)}>hold ${K(k.spec)}, release · Pulse Shot ${unlocks.pulse ? '' : '(upgrade)'}</div><div${L(unlocks.rising)}>${K(k.spec)} mid-combo · Rising Arc ${unlocks.rising ? '' : '(upgrade)'}</div>
+            <div${L(unlocks.pulse)}>${K(k.spec)}, keep holding, release · Pulse Shot ${unlocks.pulse ? '' : '(upgrade)'}</div><div${L(unlocks.rising)}>${K(k.spec)} mid-combo · Rising Arc ${unlocks.rising ? '' : '(upgrade)'}</div>
             <div${L(unlocks.counter)}>${K(k.spec)} while hit · Counter Burst ${unlocks.counter ? '' : '(upgrade)'}</div><div${L(unlocks.aircombo)}>${K(k.atk)} again after an air hit · air combo ${unlocks.aircombo ? '' : '(upgrade)'}</div>
             <h3>Weapons</h3>
             <div>${K(k.atk)} over a weapon · pick it up</div><div>${K(k.spec)} while armed · throw it</div>
