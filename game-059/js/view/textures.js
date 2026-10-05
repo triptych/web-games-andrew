@@ -313,7 +313,7 @@ export function floorTex(kind, seed = 1) {
         }
         case 'helipad': {
             fill('#34343c'); noise('#3e3e46', 500); noise('#2a2a30', 400);
-            p.rect(0, 30, 128, 3, '#e8e8f0'); p.rect(0, 100, 128, 3, '#e8e8f0');
+            p.rect(0, 30, 128, 3, '#7a7a86'); p.rect(0, 100, 128, 3, '#7a7a86');
             break;
         }
         default: fill('#333');

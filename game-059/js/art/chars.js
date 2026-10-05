@@ -123,7 +123,7 @@ export const CHARS = {
         w: { thigh: [3.8, 2.8], shin: [2.8, 2.2], uarm: [2.3, 1.9], farm: [2, 2.6], hand: 2.2, waist: 3.2, chest: 4.7, hips: 4.5 },
         m: { shin: 'plate', foot: 'plate', forearm: 'plate', hand: 'glove' },
         emissive: ['glow', 'streak'],
-        variants: { freed: { glow: '#59ffd0' }, ghost: { suit: '#ff2d55', plate: '#ff2d55', hair: '#ff2d55', skin: '#ff8aa0', glove: '#ff2d55' } },
+        variants: { freed: { glow: '#59ffd0' }, od: { glow: '#ffffff', suit: '#f0e0ff', plate: '#c8a0ff' }, ghost: { suit: '#ff2d55', plate: '#ff2d55', hair: '#ff2d55', skin: '#ff8aa0', glove: '#ff2d55' } },
         extras: [
             { L: 'head', b: 'head', t: 'ell', at: [0.8, -1.4], rx: 5.6, ry: 5.0, m: 'hair' },
             { L: 'head', b: 'head', t: 'ell', at: [-2.4, -2.2], rx: 3.4, ry: 3.6, m: 'hair' },

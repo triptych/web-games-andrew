@@ -12,6 +12,7 @@
 let ctx = null, master = null, musicBus = null, sfxBus = null, comp = null, noiseBuf = null;
 const vol = { master: 0.8, music: 0.55, sfx: 0.8 };
 let muted = false;
+let wanted = null;   // song requested before the AudioContext existed
 
 export function initAudio() {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
@@ -27,6 +28,7 @@ export function initAudio() {
     const d = noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     document.addEventListener('visibilitychange', () => { if (!ctx) return; if (document.hidden) ctx.suspend(); else if (!muted) ctx.resume(); });
+    if (wanted) seq.play(wanted);
 }
 
 export function setVolumes(v) {
@@ -264,7 +266,7 @@ class Sequencer {
     }
 }
 const seq = new Sequencer();
-export function playMusic(name) { if (!ctx) return; seq.play(name); }
+export function playMusic(name) { wanted = name; if (!ctx) return; seq.play(name); }
 export function stopMusic(fade) { seq.stop(fade); }
 export function currentSong() { return seq.name; }
 

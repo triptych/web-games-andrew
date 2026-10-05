@@ -76,7 +76,7 @@ export function controlPlayer(w, p, inp, dt) {
     // energy & overdrive clocks
     const regen = p.energyRegen * (p.od > 0 ? 3 : 1);
     p.energy = Math.min(p.maxEnergy, p.energy + regen * dt);
-    if (p.od > 0) { p.od -= dt; if (p.od <= 0) { p.od = 0; p.pal = 'base'; w.emit({ t: 'odEnd' }); } }
+    if (p.od > 0) { p.od -= dt; if (p.od <= 0) { p.od = 0; p.pal = p.basePal || 'base'; w.emit({ t: 'odEnd' }); } }
 
     // Pulse shot: hold SPECIAL ~0.35 s and release
     if (p.unlocks.pulse) {

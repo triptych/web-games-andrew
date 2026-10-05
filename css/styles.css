@@ -784,6 +784,16 @@ h1 {
     color: #5a2a00;
 }
 
+.game-preview.sister-circuit,
+.carousel-slide-bg.sister-circuit {
+    background: linear-gradient(180deg, #05020e 0%, #2a0a3a 45%, #ff3f9e 80%, #44f2ff 100%);
+}
+
+.game-card.sister-circuit .play-button {
+    background: linear-gradient(135deg, #ff3f9e 0%, #9a2aff 55%, #44f2ff 100%);
+    color: #fff;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

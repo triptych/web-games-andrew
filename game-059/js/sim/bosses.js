@@ -296,7 +296,7 @@ export const BOSSES = {
             if (dz < 8 && r < 0.7) return 'wave';
             return null;
         } },
-    magnus2: { ...base, name: 'MAGNUS HALE — ASCENDANT', title: 'The Board Has Voted', sprite: 'magnus2', hp: 720, poise: 50, speed: 76, zspeed: 52, w: 20, h: 150, range: 96, p2At: 0.5, p2pal: 'rage', weight: 3, flying: true, alt: 34,
+    magnus2: { ...base, name: 'MAGNUS HALE — ASCENDANT', title: 'The Board Has Voted', sprite: 'magnus2', hp: 640, poise: 46, speed: 76, zspeed: 52, w: 20, h: 150, range: 96, p2At: 0.5, p2pal: 'rage', weight: 3, flying: true, alt: 34,
         moves: { slash: BM.aSlash, beam: BM.aBeam, dive: BM.aDive, orbs: BM.aOrbs, summon: BM.aSummon },
         idleAnim: 'fly',
         onPhase2(w, b) { b.ai.summonReady = true; },

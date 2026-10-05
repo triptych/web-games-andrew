@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-58 games, `game-001` through `game-058`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+59 games, `game-001` through `game-059`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -76,6 +76,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 056 | [Keepfire](game-056/) | Castle defence × Plants vs. Zombies lanes × incremental | three.js |
 | 057 | [Hivebreaker](game-057/) | Twin-stick bug-swarm shooter with a five-sector campaign | three.js |
 | 058 | [Bumble Basket](game-058/) | Casual fruit puzzle: trails where each hop shares a kind, colour, size or family | three.js |
+| 059 | [Sister Circuit](game-059/) | Neon beat-'em-up: a stolen combat suit, seven stages and bosses, a sister to rescue | three.js |
 
 ### Highlights
 
@@ -146,6 +147,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 **[Hivebreaker](game-057/)** — A **twin-stick shooter** in the spirit of Enter the Gungeon and Alien Breed, in three.js with no asset files. A black-site base under the ice of Erebus has gone silent with the President's daughter inside, and one Colonial Marine goes down through five procedurally generated sectors to get her out. Rooms seal behind you while the bug-like Brood pours out of the vents in waves and swarms of hundreds (ten bug types, glowing alphas, one instanced draw call per type with legs and wings animated in the vertex shader). Dodge-roll through bullet patterns, grenade the crowds, erase bullets with the Shock Pulse, and carry four of nine guns upgraded to Mk III. Five multi-phase bosses, a field upgrade after each, a supply depot, data logs and radio chatter tell the story, and the campaign ends in a timed escape with Ellie at your side. A procedural deck-plate and hive-creep floor shader, a baked lightmap, a shadowed flashlight, GPU particles, noise fireballs, bloom and chromatic aberration; a generative synth score; Horde Mode; keyboard and mouse, gamepad, or touch twin-sticks in portrait and landscape. [game-057/dev/](game-057/dev/README.md) plays the whole campaign headlessly with a perfect bot and a fallible one, and drives every flow in Chromium on desktop and touch-only phones.
 
 **[Bumble Basket](game-058/)** — A **cosy fruit-picking puzzle** with a matching rule of its own, in three.js with no asset files. Drag a bumblebee along a trail across a picnic blanket. Each fruit you hop to only has to share one trait with the last (kind, colour, size or family), so trails wander like a word ladder instead of needing identical pieces. The bee learns those traits as **senses**, one per garden: a Set level at the end of each garden teaches the next, as more kinds, colours and sizes of fruit arrive. Matching fruit pours into a jar for each sense, and a full set earns a power-up (Honey Dipper, Paint Pollen, Buzz Bomb, Rainbow Wings). Trails of seven grow golden fruit that links to anything, and leaf piles and frost get in the way. Thirty levels in four gardens, an endless Picnic mode and an 81-stamp Fruit Album. Sixteen kinds of fruit with faces that blink and beam, all modelled in code, plus generative ukulele-style music. Touch or mouse, portrait or landscape. [game-058/dev/](game-058/dev/README.md) checks the rules headlessly, gates every level on bot win rates, and drives the game in Chromium on desktop and touch-only phones.
+
+**[Sister Circuit](game-059/)** — A **neon beat-'em-up** in the spirit of Double Dragon, Streets of Rage and Turtles in Time, in three.js with no asset files. Juno Vega steals the VANTA-7 combat suit to get her little sister Mika back from Aurex Dynamics, with the suit's sarcastic AI, ECHO, in her ear (and a secret about where ECHO came from). Every fighter is pixel art generated from a 2D skeleton rig and a palette-index rasterizer, baked into atlases and palette-swapped on the GPU; the streets are real three.js sets drawn into a 240-pixel render target with bloom and scanlines, over a separate parallax skyline scene. Four-hit chains, launchers and juggles, grabs, throws, suplexes and vaults, pickup weapons, suit specials and an Overdrive meter; eleven enemy types with crowd AI that takes turns and flanks; seven stages (rainy Neon Row, the Line 9 maglev and its roof, the Lantern Market, the Ironwharf docks, the Biolabs, the Spire's express elevator, the Zenith penthouse at dawn) with gantries, forklifts, steam vents and laser gates; seven bosses with second phases, ending with Mika under neural control and CEO Magnus Hale in his Ascendant exo-frame, with Mika fighting beside you. Story with portraits, a safehouse shop, ranks, continues, three difficulties, Arcade, Boss Rush, Survival and playable Mika, generative synthwave, and touch controls. [game-059/dev/](game-059/dev/README.md) has the bot clear every stage headlessly and drives the whole game in Chromium on desktop and touch-only phones.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -223,7 +226,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-058/   # One self-contained folder per game
+├── game-001/ … game-059/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -280,7 +283,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 58 games are included as of the latest entries (game-055 Rotorstorm, game-056 Keepfire, game-057 Hivebreaker, game-058 Bumble Basket).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 59 games are included as of the latest entries (game-056 Keepfire, game-057 Hivebreaker, game-058 Bumble Basket, game-059 Sister Circuit).
 
 ---
 

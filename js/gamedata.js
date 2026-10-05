@@ -876,6 +876,21 @@ const games = [
             { emoji: '🐝', label: 'Casual' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-059',
+        title: 'Sister Circuit',
+        description: "A neon beat-'em-up in the spirit of Double Dragon, Streets of Rage and Turtles in Time, in three.js with no asset files. Port Solace, 2089: Aurex Dynamics owns the city and has taken Juno Vega's little sister Mika, the one mind that fits its VANTA neural-link program. Juno steals the VANTA-7 prototype combat suit, whose sarcastic AI ECHO turns out to have been trained on Mika's own brain scans, and fights north to the Aurex Spire through seven stages: rainy Neon Row, the Line 9 maglev (inside and on the roof, ducking signal gantries), the Lantern Market and its rooftops, the Ironwharf docks (forklifts, steam vents), Aurex Biolabs behind laser gates, an express elevator up the Spire, and the Zenith penthouse at dawn. A real 3D street drawn into a 240-pixel render target with bloom and scanlines, and every fighter is pixel art generated from a 2D skeleton rig with palette swaps. A deep move list: four-hit chains, launchers and juggles, backfists, dash knees, flying kicks and dive stomps, grabs with knees, throws, suplexes and vaults, pickup pipes, katanas, shock batons and knives, plus suit specials (Arc Burst, Rail Dash, Meteor Drop) and an Overdrive meter. Eleven enemy types with crowd AI that flanks and takes turns (punks, knife throwers, bruisers that charge and grab, shield guards, gunners, kunoichi that dodge, pouncing rippers, synth troopers that block, acid-spitting husks, drones, tick mines) and seven bosses with phase changes: Jackhammer Malone, Viper and her mirages, Kuroda the Oni and his counter stance, the Bulwark mech, Specimen G-7, Mika herself under neural control, and CEO Magnus Hale with his Ascendant exo-frame, with Mika fighting at your side. Story with portraits and a full ending, a safehouse to upgrade the suit between stages, ranks, continues, three difficulties, Arcade, Boss Rush, Survival and playable Mika to unlock, generative synthwave per stage, and touch controls for phones.",
+        icon: '\uD83D\uDC4A',
+        folder: 'game-059',
+        version: '1.0.0',
+        cssClass: 'sister-circuit',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83D\uDC4A', label: "Beat 'em up" },
+            { emoji: '\uD83C\uDF03', label: 'Cyberpunk' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

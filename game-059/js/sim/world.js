@@ -52,8 +52,10 @@ export class World {
         this.uid = 100000;
         this.survivalWave = 0;
 
-        const p = makeFighter({ ...PLAYER_DEF, sprite: this.profile.character === 'mika' ? 'juno' : 'juno' }, { team: 'player', x: 60, z: (this.zMin + this.zMax) / 2, face: 1 });
-        if (this.profile.character === 'mika') { p.pal = 'mika'; p.basePal = 'mika'; p.name = 'MIKA'; } else p.basePal = 'base';
+        const asMika = this.profile.character === 'mika';
+        const p = makeFighter({ ...PLAYER_DEF, sprite: asMika ? 'mika' : 'juno' }, { team: 'player', x: 60, z: (this.zMin + this.zMax) / 2, face: 1 });
+        p.basePal = asMika ? 'freed' : 'base'; p.pal = p.basePal;
+        if (asMika) p.name = 'MIKA';
         applyProfile(p, this.profile);
         p.hp = p.maxHp;
         initPlayer(p);

@@ -408,9 +408,9 @@ const SEG = {
         addWall(ctx, seg, (k) => T.labWall({ seed: 500 + k, dark: true }), { h: 128 });
         addWall(ctx, seg, () => T.labWall({ seed: 2, dark: true }), { y0: 128, h: 128 });
         const cx = (seg.x0 + seg.x1) / 2 + 200;
-        const big = new THREE.Mesh(new THREE.CylinderGeometry(60, 60, 200, 14, 1, true), new THREE.MeshBasicMaterial({ color: 0x3aff6a, transparent: true, opacity: 0.25, depthWrite: false, side: THREE.DoubleSide }));
-        big.position.set(cx, 110, WALL_Z + 40); ctx.fg.add(big);
-        boxDecor(ctx, cx, WALL_Z + 40, 140, 16, 140, 0x2a2e36);
+        const big = new THREE.Mesh(new THREE.CylinderGeometry(34, 34, 150, 14, 1, true), new THREE.MeshBasicMaterial({ color: 0x3aff6a, transparent: true, opacity: 0.28, depthWrite: false, side: THREE.DoubleSide }));
+        big.position.set(cx, 85, WALL_Z + 6); ctx.fg.add(big);
+        boxDecor(ctx, cx, WALL_Z + 6, 80, 12, 30, 0x2a2e36); boxDecor(ctx, cx, WALL_Z + 6, 80, 10, 30, 0x2a2e36, 158);
         // red alarm beacons
         for (let x = seg.x0 + 80; x < seg.x1; x += 260) {
             const b = boxDecor(ctx, x, WALL_Z + 4, 10, 10, 6, 0xff2a2a, 150);
@@ -464,7 +464,7 @@ const SEG = {
         const edge = boxDecor(ctx, (seg.x0 + seg.x1) / 2, WALL_Z + 4, seg.x1 - seg.x0, 14, 6, 0x3a3644); void edge;
         // big H and landing lights
         const cx = (seg.x0 + seg.x1) / 2 + 150;
-        const hm = new THREE.MeshBasicMaterial({ color: 0xe8e8f0 });
+        const hm = new THREE.MeshBasicMaterial({ color: 0xa8a8b4 });
         const legs = [[-30, 0, 8, 90], [30, 0, 8, 90], [0, 0, 60, 8]];
         for (const [dx, , w, d] of legs) { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), hm); m.rotation.x = -Math.PI / 2; m.position.set(cx + dx, 0.6, -70); ctx.fg.add(m); }
         const ring = new THREE.Mesh(new THREE.RingGeometry(80, 86, 32), new THREE.MeshBasicMaterial({ color: 0xffd23a })); ring.rotation.x = -Math.PI / 2; ring.scale.y = 1; ring.position.set(cx, 0.5, -70); ctx.fg.add(ring);
