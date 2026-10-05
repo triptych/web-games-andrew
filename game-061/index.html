@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#04060d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="STARWRIGHT: a procedurally generated space sim. Mine asteroids, trade with alien species, rebuild your base, upgrade your ship and warp across a galaxy grown from a seed.">
+    <title>STARWRIGHT</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="gl"></canvas>
+    <canvas id="overlay"></canvas>
+    <div id="flash"></div>
+
+    <!-- ============================================================ HUD -->
+    <div id="hud" class="hidden">
+        <div id="hud-tl" class="hpanel">
+            <div class="ship-name" id="h-shipname">WREN · SKIFF</div>
+            <div class="bar" id="b-shield"><label>SHD</label><i><b></b></i><span></span></div>
+            <div class="bar" id="b-hull"><label>HULL</label><i><b></b></i><span></span></div>
+            <div class="bar" id="b-energy"><label>BST</label><i><b></b></i><span></span></div>
+            <div class="bar" id="b-cargo"><label>HOLD</label><i><b></b></i><span></span></div>
+            <div class="fuel" id="h-fuel"><label>WARP</label><span class="cells"></span></div>
+        </div>
+        <div id="hud-tc">
+            <div id="h-sys">—</div>
+            <div id="h-sub">—</div>
+            <div id="h-alert" class="hidden"></div>
+        </div>
+        <div id="hud-tr">
+            <div class="wallet hpanel">
+                <div><span class="ico cr">◆</span><b id="h-credits">0</b><small>CR</small></div>
+                <div><span class="ico dt">◈</span><b id="h-data">0</b><small>DATA</small></div>
+            </div>
+            <div class="hbtns">
+                <button id="btn-map" title="Galaxy map (G)">MAP</button>
+                <button id="btn-sys" title="System map (Tab)">SYS</button>
+                <button id="btn-log" title="Journal (J)">LOG</button>
+                <button id="btn-pause" title="Pause (Esc)" aria-label="Pause">❚❚</button>
+            </div>
+        </div>
+        <div id="tracker"></div>
+        <div id="toasts"></div>
+        <div id="hud-bl" class="hpanel"><canvas id="scanner" width="260" height="170"></canvas></div>
+        <div id="hud-bc">
+            <div id="h-speed"><b>0</b><small>u/s</small></div>
+            <div id="h-throttle"><i><b></b></i></div>
+            <div id="h-mode"></div>
+            <div id="h-heat" class="hidden"><label>LASER</label><i><b></b></i></div>
+        </div>
+        <div id="hud-br" class="hpanel hidden">
+            <div class="t-kind" id="t-kind"></div>
+            <div class="t-name" id="t-name"></div>
+            <div class="t-dist" id="t-dist"></div>
+            <div class="t-info" id="t-info"></div>
+            <div class="t-bars" id="t-bars"></div>
+        </div>
+        <div id="ctx" class="hidden"><kbd>E</kbd><span id="ctx-text"></span><i id="ctx-prog"><b></b></i></div>
+        <div id="reticle"></div>
+        <div id="mouse-vec"></div>
+        <div id="banner" class="hidden"><div class="b1"></div><div class="b2"></div></div>
+        <div id="tip" class="hidden"></div>
+    </div>
+
+    <!-- ============================================================ TOUCH -->
+    <div id="touch" class="hidden">
+        <div id="stick-zone"><div id="stick-base"><div id="stick-knob"></div></div></div>
+        <div id="throttle-rail"><div id="throttle-fill"></div><div id="throttle-thumb"></div><span>THR</span></div>
+        <div id="tbtns">
+            <button id="tb-fire" class="tb big">FIRE</button>
+            <button id="tb-mine" class="tb big">MINE</button>
+            <button id="tb-boost" class="tb">BOOST</button>
+            <button id="tb-act" class="tb">ACT</button>
+            <button id="tb-cruise" class="tb">CRUISE</button>
+            <button id="tb-tgt" class="tb">TGT</button>
+        </div>
+    </div>
+
+    <!-- ============================================================ SCREENS -->
+    <div id="screens">
+        <section id="title" class="screen">
+            <div class="title-wrap">
+                <div class="logo"><span>STAR</span>WRIGHT</div>
+                <div class="tagline">Mine · Trade · Build · Wander</div>
+                <div class="title-menu" id="title-menu"></div>
+                <div class="title-foot">Every star, ship and stranger grown from a single seed.</div>
+            </div>
+        </section>
+        <section id="panel" class="screen hidden" aria-live="polite"></section>
+        <section id="mapscreen" class="screen hidden">
+            <canvas id="mapcanvas"></canvas>
+            <div id="map-side" class="mpanel"></div>
+            <div id="map-top">
+                <div id="map-title"></div>
+                <button id="map-close" class="x" aria-label="Close map">✕</button>
+            </div>
+            <div id="map-legend"></div>
+        </section>
+    </div>
+
+    <noscript><p class="noscript">STARWRIGHT needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
