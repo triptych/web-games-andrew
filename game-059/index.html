@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#05020e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Sister Circuit — a neon beat-'em-up. One stolen combat suit, one evil corporation, one sister to bring home.">
+    <title>Sister Circuit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <div id="stage-wrap">
+        <canvas id="game"></canvas>
+
+        <!-- ============ HUD ============ -->
+        <div id="hud" class="hidden">
+            <div id="p-panel">
+                <canvas id="p-face" width="72" height="72"></canvas>
+                <div id="p-bars">
+                    <div id="p-top"><span id="p-name">JUNO</span><span id="p-lives">×3</span><span id="p-score">0</span></div>
+                    <div class="bar hp"><div id="hp-lag" class="lag"></div><div id="hp-fill" class="fill"></div></div>
+                    <div class="bar en"><div id="en-fill" class="fill"></div></div>
+                    <div id="od-row"><div class="bar od"><div id="od-fill" class="fill"></div></div><span id="od-label">OVERDRIVE</span></div>
+                </div>
+            </div>
+            <div id="e-panel" class="hidden">
+                <div id="e-name"></div>
+                <div class="bar ehp"><div id="ehp-lag" class="lag"></div><div id="ehp-fill" class="fill"></div></div>
+            </div>
+            <div id="cred-chip"><span class="cr">¢</span><span id="cred-n">0</span></div>
+            <div id="weapon-chip" class="hidden"></div>
+            <div id="boss-panel" class="hidden">
+                <div id="boss-name"></div>
+                <div class="bar boss"><div id="boss-lag" class="lag"></div><div id="boss-fill" class="fill"></div><div id="boss-poise" class="poise"></div></div>
+            </div>
+            <div id="combo" class="hidden"><span id="combo-n">0</span><span id="combo-label">HITS</span><span id="combo-word"></span></div>
+            <div id="go-arrow" class="hidden">GO <span>➜</span></div>
+            <div id="banner"></div>
+            <div id="bark" class="hidden"><canvas id="bark-face" width="72" height="72"></canvas><div id="bark-text"></div></div>
+            <div id="low-en" class="hidden">LOW ENERGY</div>
+            <button id="pause-btn" aria-label="Pause">❚❚</button>
+        </div>
+
+        <!-- dialogue box -->
+        <div id="dialog" class="hidden">
+            <canvas id="dlg-face" width="72" height="72"></canvas>
+            <div id="dlg-body"><div id="dlg-name"></div><div id="dlg-text"></div><div id="dlg-next">▼</div></div>
+            <button id="dlg-skip">SKIP ▸▸</button>
+        </div>
+
+        <div id="flash"></div>
+    </div>
+
+    <!-- ============ Touch controls ============ -->
+    <div id="touch" class="hidden">
+        <div id="t-stickzone"></div>
+        <div id="t-stick"><div id="t-knob"></div></div>
+        <div id="t-btns">
+            <button class="tb ovr" data-btn="ovr" id="t-ovr">OVR</button>
+            <button class="tb spec" data-btn="spec">SP</button>
+            <button class="tb jump" data-btn="jump">JMP</button>
+            <button class="tb atk" data-btn="atk">ATK</button>
+        </div>
+    </div>
+
+    <!-- ============ Screens ============ -->
+    <div id="boot" class="screen">
+        <div class="logo small"><span class="l1">SISTER</span><span class="l2">CIRCUIT</span></div>
+        <div id="boot-msg">BOOTING VANTA-7...</div>
+        <div id="boot-bar"><div id="boot-fill"></div></div>
+    </div>
+
+    <div id="title" class="screen hidden">
+        <div id="title-art"><canvas id="title-juno"></canvas></div>
+        <div id="title-left">
+            <div class="logo"><span class="l0">A STOLEN SUIT · AN EVIL CORPORATION · ONE SISTER</span><span class="l1">SISTER</span><span class="l2">CIRCUIT</span></div>
+            <nav id="title-menu" class="menu">
+                <button data-act="continue" class="mbtn hidden" id="m-continue">Continue Story</button>
+                <button data-act="story" class="mbtn primary">Story</button>
+                <button data-act="arcade" class="mbtn">Arcade</button>
+                <button data-act="bossrush" class="mbtn" id="m-bossrush">Boss Rush</button>
+                <button data-act="survival" class="mbtn" id="m-survival">Survival</button>
+                <button data-act="moves" class="mbtn">Move List</button>
+                <button data-act="settings" class="mbtn">Settings</button>
+                <button data-act="credits" class="mbtn">Credits</button>
+            </nav>
+            <div id="title-foot"><span id="best-line"></span><span class="hint">↑↓ choose · Enter / tap to select</span></div>
+        </div>
+    </div>
+
+    <div id="modal-diff" class="screen modal hidden">
+        <div class="card">
+            <h2 id="diff-title">Choose your difficulty</h2>
+            <div id="char-pick" class="hidden">
+                <button class="cbtn" data-char="juno"><canvas width="72" height="72" id="pick-juno"></canvas><span>JUNO</span></button>
+                <button class="cbtn" data-char="mika"><canvas width="72" height="72" id="pick-mika"></canvas><span>MIKA</span></button>
+            </div>
+            <div class="menu" id="diff-menu">
+                <button class="mbtn" data-diff="easy"><b>STORY</b><small>Gentler fights, 5 lives, unlimited continues.</small></button>
+                <button class="mbtn primary" data-diff="normal"><b>ARCADE</b><small>The intended challenge. 3 lives, 3 continues.</small></button>
+                <button class="mbtn" data-diff="hard"><b>MANIA</b><small>Tougher, angrier, more of them. 1 continue.</small></button>
+            </div>
+            <div id="stage-pick" class="hidden"><span>START AT</span><div id="stage-list"></div></div>
+            <button class="mbtn ghost" data-close>Back</button>
+        </div>
+    </div>
+
+    <div id="story" class="screen hidden">
+        <div id="story-text"></div>
+        <div id="story-hint">tap · Enter · Space to continue</div>
+        <button id="story-skip" class="mbtn ghost small">Skip ▸▸</button>
+    </div>
+
+    <div id="stagecard" class="screen hidden">
+        <div id="sc-num"></div>
+        <div id="sc-name"></div>
+        <div id="sc-sub"></div>
+    </div>
+
+    <div id="bosscard" class="screen hidden">
+        <div id="bc-warning">WARNING</div>
+        <div id="bc-name"></div>
+        <div id="bc-title"></div>
+    </div>
+
+    <div id="modal-pause" class="screen modal hidden">
+        <div class="card">
+            <h2>Paused</h2>
+            <div id="pause-info"></div>
+            <div class="menu">
+                <button class="mbtn primary" data-act="resume">Resume</button>
+                <button class="mbtn" data-act="moves">Move List</button>
+                <button class="mbtn" data-act="settings">Settings</button>
+                <button class="mbtn" data-act="restart">Restart Stage</button>
+                <button class="mbtn ghost" data-act="quit">Quit to Title</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-results" class="screen modal hidden">
+        <div class="card wide">
+            <div class="kicker" id="res-kicker">STAGE CLEAR</div>
+            <h2 id="res-title"></h2>
+            <div id="res-grid"></div>
+            <div id="res-rank"></div>
+            <div class="menu"><button class="mbtn primary" data-act="next">Continue</button></div>
+        </div>
+    </div>
+
+    <div id="modal-shop" class="screen modal hidden">
+        <div class="card wide">
+            <div class="kicker">SAFEHOUSE</div>
+            <h2>Tune the suit</h2>
+            <div id="shop-cred"></div>
+            <div id="shop-list" class="menu"></div>
+            <div class="menu row"><button class="mbtn primary" data-act="depart" id="shop-go">Next Stage ▸</button></div>
+        </div>
+    </div>
+
+    <div id="modal-continue" class="screen modal hidden">
+        <div class="card">
+            <div class="kicker red">SUIT FAILURE</div>
+            <h2>CONTINUE?</h2>
+            <div id="cont-count">9</div>
+            <div id="cont-line"></div>
+            <div id="cont-left"></div>
+            <div class="menu row"><button class="mbtn primary" data-act="yes">Yes</button><button class="mbtn ghost" data-act="no">No</button></div>
+        </div>
+    </div>
+
+    <div id="modal-gameover" class="screen modal hidden">
+        <div class="card">
+            <div class="kicker red">GAME OVER</div>
+            <h2 id="go-title">The Spire keeps Mika tonight.</h2>
+            <div id="go-stats"></div>
+            <div class="menu"><button class="mbtn primary" data-act="title">Title Screen</button></div>
+        </div>
+    </div>
+
+    <div id="modal-moves" class="screen modal hidden">
+        <div class="card wide">
+            <h2>Move List</h2>
+            <div id="moves-body"></div>
+            <button class="mbtn" data-close>Close</button>
+        </div>
+    </div>
+
+    <div id="modal-settings" class="screen modal hidden">
+        <div class="card">
+            <h2>Settings</h2>
+            <label class="row">Master <input type="range" id="s-master" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="s-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Effects <input type="range" id="s-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row check"><input type="checkbox" id="s-crt"> CRT scanlines</label>
+            <label class="row check"><input type="checkbox" id="s-bloom"> Neon glow</label>
+            <label class="row check"><input type="checkbox" id="s-shake"> Screen shake</label>
+            <label class="row">Touch buttons <input type="range" id="s-touch" min="0.8" max="1.4" step="0.05"></label>
+            <button class="mbtn" data-close>Done</button>
+        </div>
+    </div>
+
+    <div id="modal-credits" class="screen modal hidden">
+        <div class="card">
+            <h2>Credits</h2>
+            <p class="credits">SISTER CIRCUIT<br><br>Design, code, pixel art and music generated in code — no image or audio files.<br><br>three.js r165 · Web Audio<br>Fonts: Press Start 2P, VT323<br><br>Made for the Web Games collection.</p>
+            <button class="mbtn" data-close>Close</button>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+    <div id="rotate-hint" class="hidden">Turn your phone sideways for a wider view ↻</div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
