@@ -446,10 +446,10 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     box-shadow: var(--shadow);
     overflow: hidden;
 }
-.overlay-head { padding: 16px 64px 8px 20px; }
+.overlay-head { flex: none; padding: 16px 64px 8px 20px; }
 .overlay-head h2 { margin: 0; font: 600 1.5rem var(--display); letter-spacing: 0.05em; }
 
-.lib-search { padding: 4px 20px 8px; }
+.lib-search { flex: none; padding: 4px 20px 8px; }
 .lib-search input {
     width: 100%;
     min-height: 46px;
@@ -461,9 +461,11 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     font: 1.1rem var(--serif);
 }
 .lib-search input:focus { outline: none; border-color: var(--gold); }
-.lib-chips { display: flex; gap: 6px; padding: 4px 20px 10px; overflow-x: auto; scrollbar-width: none; }
+/* flex: none — a scroll container's min-height is 0, so without it the column
+   flexbox squashes the chip row when the list is long (cut-off pills on phones). */
+.lib-chips { flex: none; display: flex; gap: 6px; padding: 4px 20px 10px; overflow-x: auto; scrollbar-width: none; }
 .lib-chips .chip { white-space: nowrap; }
-.lib-list { overflow: auto; padding: 0 12px 12px; -webkit-overflow-scrolling: touch; }
+.lib-list { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 0 12px 12px; -webkit-overflow-scrolling: touch; }
 .lib-group h3 { margin: 14px 8px 6px; font: 600 1.05rem var(--display); letter-spacing: 0.06em; color: var(--accent, var(--gold)); }
 .lib-item {
     display: grid;
@@ -483,7 +485,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 .lib-actions { display: flex; gap: 6px; }
 .lib-actions .btn { min-height: 40px; padding: 0.4em 0.9em; font-size: 0.95rem; }
 .lib-empty { padding: 30px; text-align: center; color: var(--ink-dim); font-style: italic; }
-.lib-foot { margin: 0; padding: 10px 20px 14px; border-top: 1px solid rgba(217, 180, 106, 0.2); text-align: center; }
+.lib-foot { flex: none; margin: 0; padding: 10px 20px 14px; border-top: 1px solid rgba(217, 180, 106, 0.2); text-align: center; }
 @media (max-width: 560px) {
     .lib-item { grid-template-columns: 40px 1fr; }
     .lib-icon { width: 40px; height: 40px; font-size: 1.4rem; }
