@@ -24,6 +24,7 @@ No image or audio files. Every sprite, letter, explosion, backdrop and note is g
 - **Perspective camera, pixel-exact plane.** The camera is far back with a narrow field of view, so z = 0 maps to the 240 × 320 grid exactly, but anything with depth (debris, backdrops, the logo assembling) really is 3D. Shakes roll the camera slightly, so you glimpse the side faces of the voxels.
 - **Five 3D backdrops**, one per sector, drawn into the same low-res target behind the playfield, kept dim so the action pops: a lunar surface with Earth rising, a neon nebula, an asteroid belt with tumbling rocks, a synthwave sun over a grid, and the inside of the mothership (a tunnel of rings). The starfield is 1-pixel points scrolling at three depths.
 - **CRT:** slight barrel curvature, scanlines on the low-res rows, an aperture-grille mask when the screen is large, bloom, vignette, chromatic aberration and colour flashes on big hits. Can be switched off.
+- **Readable at a glance.** The ball is the only white-and-cyan thing in play. Every enemy shot is a hot colour: red zigzags, pink plungers, magenta star-orbs, red-and-yellow bombs.
 - **Raster HUD and menus.** All text is a hand-made 5 × 7 pixel font drawn into the same render target, so it glows and scanlines like the rest. The only DOM is the cabinet around the screen (side art on wide screens, a control deck on phones) and the back link.
 
 ---

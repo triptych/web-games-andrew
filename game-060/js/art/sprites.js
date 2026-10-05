@@ -255,18 +255,19 @@ export const UFO = sprite({ X: PAL.red, w: PAL.white, r: PAL.orange, 1: PAL.yell
     '...rr..rr..rr...',
 ]);
 
-export const BALL_SPRITE = sprite({ W: [2.2, 2.2, 2.4], o: [0.9, 1.2, 1.6] }, ['oWo', 'WWW', 'oWo']);
-export const FIREBALL_SPRITE = sprite({ W: [2.6, 2.2, 1.0], o: [2.0, 0.8, 0.1] }, ['oWo', 'WWW', 'oWo']);
+// The ball is the only white-and-cyan thing in play; every enemy shot is red, pink or magenta.
+export const BALL_SPRITE = sprite({ W: [2.4, 2.4, 2.4], o: [0.35, 1.6, 2.4] }, ['oWo', 'WWW', 'oWo']);
+export const FIREBALL_SPRITE = sprite({ W: [2.6, 2.5, 1.4], o: [2.4, 1.3, 0.1] }, ['oWo', 'WWW', 'oWo']);
 
 export const BULLETS = {
-    zig: sprite({ X: [1.6, 1.6, 1.8] }, ['.X.', 'X..', '.X.', '..X', '.X.', 'X..', '.X.'],
+    zig: sprite({ X: [2.4, 0.22, 0.3] }, ['.X.', 'X..', '.X.', '..X', '.X.', 'X..', '.X.'],
         ['.X.', '..X', '.X.', 'X..', '.X.', '..X', '.X.']),
-    plunger: sprite({ X: [1.8, 1.4, 0.6] }, ['.X.', '.X.', '.X.', '.X.', 'XXX', '.X.'],
+    plunger: sprite({ X: [2.3, 0.3, 0.75] }, ['.X.', '.X.', '.X.', '.X.', 'XXX', '.X.'],
         ['.X.', 'XXX', '.X.', '.X.', '.X.', '.X.']),
     bomb: sprite({ X: [1.8, 0.4, 0.3], o: [2.2, 1.9, 0.6] }, ['.XXX.', 'XXoXX', 'XoooX', 'XXoXX', '.XXX.'],
         ['.XXX.', 'XoooX', 'XoXoX', 'XoooX', '.XXX.']),
     rock: sprite({ X: hex(0xa08868), o: hex(0x6a5a48) }, ['.XX.', 'XXoX', 'XoXX', '.XX.']),
-    orb: sprite({ X: [1.9, 0.5, 1.9], o: [2.4, 2.0, 2.4] }, ['.X.', 'XoX', '.X.'], ['.o.', 'oXo', '.o.']),
+    orb: sprite({ X: [2.0, 0.2, 1.6], o: [2.4, 0.6, 1.0] }, ['X.X', '.o.', 'X.X'], ['.X.', 'XoX', '.X.']),
 };
 
 // ------------------------------------------------------------------ capsules
