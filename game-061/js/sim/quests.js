@@ -2,7 +2,7 @@
 // so the same universe offers the same missions at the same moment.
 
 import { RNG, sub } from '../rng.js';
-import { ITEMS, RAW, REFINED, GOODS, BOARD_EPOCH, ENEMIES } from '../config.js';
+import { ITEMS, RAW, REFINED, GOODS, BOARD_EPOCH, ENEMIES, plural } from '../config.js';
 import { TEMPERAMENTS } from './species.js';
 import { getSystem, lyDist, warpRange } from './galaxy.js';
 import { pirateName } from './names.js';
@@ -91,9 +91,10 @@ function makeQuest(game, station, sp, type, rng, near, id) {
             : [...REFINED.filter((r) => ITEMS[r].tier <= Math.min(4, game.s.ship.hull)), ...GOODS.filter((x) => x !== sp?.taboo)];
         const item = rng.pick(pool);
         const price = ITEMS[item].price;
-        const n = type === 'mining' ? Math.max(10, Math.round(rng.range(400, 1100) / price)) : Math.max(3, Math.round(rng.range(250, 1100) / price));
-        return { ...base, title: `${type === 'mining' ? 'Mine' : 'Procure'} ${n} ${ITEMS[item].name}`, need: n,
-            desc: type === 'mining' ? `${station.name} is short of ${ITEMS[item].name}. Cut ${n} units and bring them in.` : `The ${spName} at ${station.name} want ${n} ${ITEMS[item].name}. They'll pay well above market.`,
+        const hold = Math.max(8, Math.floor(game.stats().cargo * 0.85));
+        const n = Math.min(hold, type === 'mining' ? Math.max(10, Math.round(rng.range(400, 1100) / price)) : Math.max(3, Math.round(rng.range(250, 1100) / price)));
+        return { ...base, title: `${type === 'mining' ? 'Mine' : 'Procure'} ${n} ${plural(item, n)}`, need: n,
+            desc: type === 'mining' ? `${station.name} is short of ${ITEMS[item].name}. Cut ${n} units and bring them in.` : `The ${spName} at ${station.name} want ${n} ${plural(item, n)}. They'll pay well above market.`,
             target: { system: sysId, station: station.id, item, name: station.name },
             reward: { credits: Math.round(n * price * (type === 'mining' ? 1.6 : 1.45) + 60), standing: 4 } };
     }
@@ -149,7 +150,8 @@ function makeQuest(game, station, sp, type, rng, near, id) {
             reward: { credits: Math.round(300 + distFactor(sid) * 60), standing: 5, data: 25 } };
     }
     if (type === 'envoy') {
-        const others = g.species.filter((x) => x.id !== station.species && !x.hostile && near.has(x.home));
+        const far = nearbySystems(g, sysId, warpRange(game.s.ship.comps.warp), 4);
+        const others = g.species.filter((x) => x.id !== station.species && !x.hostile && far.has(x.home));
         if (!others.length) return null;
         const to = rng.pick(others);
         const sys = getSystem(g, to.home);

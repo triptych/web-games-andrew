@@ -34,7 +34,7 @@ export class Menus {
         this.panel.classList.toggle('docked', kind === 'station' || kind === 'hearth');
         this.render(true);
     }
-    close() { this.kind = null; this.panel.classList.add('hidden'); this.panel.replaceChildren(); }
+    close() { if (this.app.view) this.app.view.showcase = false; this.kind = null; this.panel.classList.add('hidden'); this.panel.replaceChildren(); }
     isOpen() { return !!this.kind; }
     defaultTab(kind) { return { station: 'market', hearth: 'overview', journal: 'story' }[kind] || null; }
     refresh() { if (this.kind) this.render(false); }
@@ -50,6 +50,7 @@ export class Menus {
     }
 
     render(fresh) {
+        if (this.app.view) this.app.view.showcase = this.kind === 'hearth' && this.tab === 'yard';
         const scroll = fresh ? 0 : this.panel.querySelector('.win-body')?.scrollTop || 0;
         const fn = this[`render_${this.kind}`];
         if (!fn) return;

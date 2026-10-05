@@ -4,9 +4,9 @@ import * as THREE from 'three';
 import { NOISE_GLSL, glowTexture } from './renderer.js';
 import { hsl } from './sky.js';
 
-const LOG_V = '#include <common>\n#include <logdepthbuf_pars_vertex>';
+const LOG_V = '#include <common>\n#include <logdepthbuf_pars_vertex>\n';
 const LOG_VM = '\n#include <logdepthbuf_vertex>\n';
-const LOG_F = '#include <logdepthbuf_pars_fragment>';
+const LOG_F = '#include <logdepthbuf_pars_fragment>\n';
 const LOG_FM = '\n#include <logdepthbuf_fragment>\n';
 
 // ------------------------------------------------------------------ star
@@ -39,11 +39,11 @@ export function buildStar(sys) {
     });
     const sphere = new THREE.Mesh(new THREE.SphereGeometry(R, 64, 32), mat);
     g.add(sphere);
-    const corona = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: col.clone().multiplyScalar(1.6), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
-    corona.scale.setScalar(R * 5.2);
+    const corona = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: col.clone().multiplyScalar(1.15), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+    corona.scale.setScalar(R * 4.4);
     g.add(corona);
-    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: col.clone().multiplyScalar(0.45), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
-    halo.scale.setScalar(R * 16);
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: col.clone().multiplyScalar(0.22), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+    halo.scale.setScalar(R * 10);
     g.add(halo);
     if (core) {
         // The Heart: accretion rings.

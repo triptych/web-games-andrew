@@ -161,7 +161,7 @@ export class HUD {
             bars.append(mk('HULL', o.hp, o.maxHp, '#ff5470'));
         } else if (o.kind === 'planet') {
             const sc = game.s.scanned[o.id];
-            info.append(h('div', sc ? h('span.ok', '✓ Surveyed') : `Unsurveyed · worth ~${o.scanValue} data`), PLANET_TYPES[o.type].giant ? h('div.muted', game.stats().scoopGas ? 'Skim the upper atmosphere slowly for Helium-3' : 'Gas giant: a Mk II Scoop can skim Helium-3') : null);
+            info.append(...[h('div', sc ? h('span.ok', '✓ Surveyed') : `Unsurveyed · worth ~${o.scanValue} data`), PLANET_TYPES[o.type].giant ? h('div.muted', game.stats().scoopGas ? 'Skim the upper atmosphere slowly for Helium-3' : 'Gas giant: a Mk II Scoop can skim Helium-3') : null].filter(Boolean));
         } else if (o.kind === 'belt') {
             if (game.stats().scanComp) info.append(h('div.comp', Object.entries(o.comp).sort((a, b) => b[1] - a[1]).map(([k]) => h('span', { style: { color: ROCK_TYPES[k].glow || ROCK_TYPES[k].color, borderColor: ROCK_TYPES[k].glow || ROCK_TYPES[k].color } }, ROCK_TYPES[k].name))));
             else info.append(h('div.muted', 'Composition unknown (Scanner Mk II)'));

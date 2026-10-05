@@ -39,6 +39,7 @@ await page.goto(`${BASE}/game-061/index.html?debug=1${query ? '&' + query : ''}`
 await page.waitForFunction(() => window.__sw && window.__sw.world, null, { timeout: 30000 });
 await page.waitForTimeout(800);
 for (const step of code.split(';;').filter((s) => s.trim())) {
+    if (step.trim().startsWith('SHOT:')) { await page.screenshot({ path: path.join(OUT, `${step.trim().slice(5)}.png`) }); continue; }
     const r = await page.evaluate(`(async () => { const S = window.__sw; ${step} })()`).catch((e) => `ERR ${e.message}`);
     if (r !== undefined) console.log('→', typeof r === 'string' ? r : JSON.stringify(r));
     await page.waitForTimeout(+waitMs);

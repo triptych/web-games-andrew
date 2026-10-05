@@ -138,7 +138,7 @@ body.playing #back-link { display: none; }
 #banner.violet .b1 { text-shadow: 0 0 30px rgba(180, 140, 255, 0.9); }
 #banner.violet .b2 { color: var(--violet); }
 @keyframes bannerIn { from { opacity: 0; letter-spacing: 30px; } to { opacity: 1; } }
-#tip { position: absolute; left: 50%; top: calc(72px + var(--safe-t)); transform: translateX(-50%); max-width: min(560px, 80vw); text-align: center; font-family: var(--body); font-size: 15px; color: var(--text); background: rgba(8, 16, 32, 0.7); border: 1px solid var(--line2); padding: 6px 14px; border-radius: 3px; }
+#tip { position: absolute; left: 50%; top: calc(96px + var(--safe-t)); transform: translateX(-50%); max-width: min(560px, 80vw); text-align: center; font-family: var(--body); font-size: 15px; color: var(--text); background: rgba(8, 16, 32, 0.7); border: 1px solid var(--line2); padding: 6px 14px; border-radius: 3px; }
 #tip b { color: var(--amber); }
 
 /* ------------------------------------------------------------------ touch */
@@ -282,7 +282,8 @@ input[type=range] { width: 100%; accent-color: var(--amber); }
 .row.sp { justify-content: space-between; }
 .seedrow { display: flex; gap: 8px; }
 .seedrow input { flex: 1; }
-.preview-sp { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.preview-sp { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; min-height: 54px; }
+@media (max-width: 520px) { .preview-sp { min-height: 114px; } }
 .preview-sp img { width: 54px; height: 54px; border: 1px solid var(--line2); }
 .setting { display: grid; grid-template-columns: 150px 1fr; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(94, 240, 255, 0.06); font-size: 15px; }
 .seg { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -336,7 +337,7 @@ body.touch #toasts { top: calc(150px + var(--safe-t)); width: 250px; }
 body.touch #reticle { width: 26px; height: 26px; margin: -13px 0 0 -13px; }
 body.touch #hud-tc { top: calc(14px + var(--safe-t)); min-width: 0; }
 body.touch #hud-tc #h-sub { display: none; }
-body.touch .hbtns button { min-width: 44px; height: 44px; }
+body.touch .hbtns button, body.touch #btn-pause { min-width: 44px; height: 44px; }
 body.touch .wallet { padding: 5px 10px; gap: 10px; }
 body.touch .wallet b { font-size: 13px; }
 body.touch #tip { top: auto; bottom: calc(260px + var(--safe-b)); font-size: 13px; }
@@ -344,11 +345,17 @@ body.touch #tip { top: auto; bottom: calc(260px + var(--safe-b)); font-size: 13p
     body.touch #hud-tc { display: none; }
     body.touch #hud-tl { width: 160px; }
     body.touch #hud-tr .wallet { flex-direction: column; gap: 2px; }
-    body.touch #hud-bl { top: calc(150px + var(--safe-t)); }
-    body.touch #tracker { top: calc(258px + var(--safe-t)); width: 170px; }
-    body.touch #hud-br { top: auto; bottom: calc(290px + var(--safe-b)); right: calc(12px + var(--safe-r)); left: auto; }
-    body.touch #hud-bc { top: calc(150px + var(--safe-t)); left: calc(100px + var(--safe-l)); transform: none; width: 120px; }
-    body.touch #toasts { top: calc(330px + var(--safe-t)); width: 220px; }
+    body.touch #hud-bl { top: calc(132px + var(--safe-t)); }
+    body.touch #hud-bc { top: calc(132px + var(--safe-t)); left: calc(12px + var(--safe-l)); transform: none; width: 160px; text-align: left; }
+    body.touch #h-throttle i { margin: 4px 0; }
+    body.touch #h-heat { margin: 5px 0 0; }
+    body.touch #tracker { top: calc(244px + var(--safe-t)); width: 175px; }
+    body.touch #toasts { top: calc(244px + var(--safe-t)); width: 190px; }
+    body.touch .toast:nth-child(n+4) { display: none; }
+    body.touch #hud-br { top: auto; bottom: calc(280px + var(--safe-b)); left: calc(12px + var(--safe-l)); right: auto; width: 175px; }
+    body.touch #tip { top: calc(400px + var(--safe-t)); bottom: auto; max-width: 86vw; }
+    body.touch #banner { top: 22%; }
+    body.touch #banner .b1 { font-size: 22px; letter-spacing: 5px; }
     body.touch #tbtns { grid-template-columns: repeat(3, 58px); right: calc(60px + var(--safe-r)); }
     body.touch .tb { width: 58px; }
     #stick-zone { width: 50%; }
@@ -357,8 +364,12 @@ body.touch #tip { top: auto; bottom: calc(260px + var(--safe-b)); font-size: 13p
     body.touch #hud-tl { transform: scale(0.82); transform-origin: top left; }
     body.touch #tracker { display: none; }
     body.touch #hud-bl { display: none; }
-    body.touch #hud-br { top: calc(56px + var(--safe-t)); right: calc(12px + var(--safe-r)); width: 170px; }
-    body.touch #hud-bc { top: calc(48px + var(--safe-t)); }
+    body.touch #hud-br { top: calc(112px + var(--safe-t)); right: calc(66px + var(--safe-r)); width: 170px; }
+    body.touch #hud-bc { top: calc(100px + var(--safe-t)); left: calc(12px + var(--safe-l)); transform: none; width: 150px; text-align: left; }
+    body.touch #h-throttle i { margin: 4px 0; }
+    body.touch #tip { top: calc(64px + var(--safe-t)); }
+    body.touch #banner { top: 20%; }
+    body.touch #banner .b1 { font-size: 22px; }
     body.touch #toasts { top: calc(130px + var(--safe-t)); }
     body.touch #ctx { bottom: calc(150px + var(--safe-b)); }
     body.touch #throttle-rail { height: 150px; }

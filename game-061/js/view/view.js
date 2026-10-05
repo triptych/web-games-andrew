@@ -248,7 +248,11 @@ export class View {
             this.ensurePlayerShip();
             const p = world.player;
             const ship = this.playerShip;
-            ship.visible = !p.dead && !(world.docked && mode !== 'title');
+            ship.visible = !p.dead && (!(world.docked && mode !== 'title') || this.showcase);
+            if (this.showcase && world.docked) {
+                const st = world.sys.stations.find((x) => x.id === world.dockedId);
+                if (st) { p.pos = { x: st.pos.x + 140, y: st.pos.y + 20, z: st.pos.z + 40 }; p.yaw = this.t * 0.0; p.pitch = 0; p.roll = 0; }
+            }
             ship.position.set(p.pos.x, p.pos.y, p.pos.z);
             ship.rotation.set(-p.pitch, p.yaw, -p.roll, 'YXZ');
             const st = this.game.stats();
@@ -296,6 +300,17 @@ export class View {
             this.camLook.lerp(c.clone().add(new THREE.Vector3(Math.sin(a) * 80, 0, 0)), Math.min(1, dt * 2));
             cam.lookAt(this.camLook);
             fov = 55;
+        } else if (this.showcase && world?.docked && this.playerShip) {
+            const c = this.playerShip.position.clone();
+            const a = this.camT * 0.25;
+            const R = (this.playerShip.userData.length || 14) * 2.6 + 6;
+            const target = c.clone().add(new THREE.Vector3(Math.cos(a) * R, R * 0.35, Math.sin(a) * R));
+            cam.position.lerp(target, Math.min(1, dt * 3));
+            if (cam.position.distanceTo(target) > 400) cam.position.copy(target);
+            const right = new THREE.Vector3().subVectors(c, cam.position).cross(new THREE.Vector3(0, 1, 0)).normalize();
+            this.camLook.lerp(c.clone().addScaledVector(right, innerWidth > 700 ? R * 0.42 : 0), Math.min(1, dt * 4));
+            cam.lookAt(this.camLook);
+            fov = 40;
         } else if ((mode === 'docked' || world?.docked) && world) {
             const st = world.sys.stations.find((s) => s.id === world.dockedId);
             const c = st ? new THREE.Vector3(st.pos.x, st.pos.y, st.pos.z) : new THREE.Vector3();

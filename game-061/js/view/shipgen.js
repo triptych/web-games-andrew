@@ -89,8 +89,8 @@ function design(opts, style, col) {
     // --- canopy
     const canZ = L * r.range(0.12, 0.28);
     const canopy = new THREE.SphereGeometry(1, 12, 8);
-    canopy.scale(R * wide * 0.42, R * tall * 0.45, R * r.range(1.1, 1.8));
-    canopy.translate(0, R * tall * 0.68, canZ);
+    canopy.scale(R * wide * 0.3, R * tall * 0.34, R * r.range(0.8, 1.25));
+    canopy.translate(0, R * tall * 0.78, canZ);
 
     // --- wings
     const wingType = style === 'swarm' ? 'organic' : style === 'reaver' ? r.pick(['forward', 'jagged', 'delta']) : r.pick(['delta', 'swept', 'straight', 'swept', 'forward', 'split']);
@@ -245,16 +245,16 @@ function assemble(d, opts, style, col) {
     const hullMat = new THREE.MeshStandardMaterial({ vertexColors: true, metalness: 0.55, roughness: 0.42, flatShading: true });
     const hull = new THREE.Mesh(geo, hullMat);
     group.add(hull);
-    const glass = new THREE.Mesh(canopy, new THREE.MeshStandardMaterial({ color: style === 'swarm' ? col.c : '#0b1a2e', metalness: 0.9, roughness: 0.08, emissive: new THREE.Color(style === 'reaver' ? '#ff3020' : style === 'swarm' ? col.c : '#2a8cff'), emissiveIntensity: style === 'swarm' ? 1.2 : 0.35 }));
+    const glass = new THREE.Mesh(canopy, new THREE.MeshStandardMaterial({ color: style === 'swarm' ? col.c : '#0b1a2e', metalness: 0.9, roughness: 0.08, emissive: new THREE.Color(style === 'reaver' ? '#ff3020' : style === 'swarm' ? col.c : '#2a8cff'), emissiveIntensity: style === 'swarm' ? 1.2 : 0.18 }));
     if (style !== 'swarm') group.add(glass);
 
     // Engine glows: an additive cone (flame) + a sprite per engine.
     const glowCol = new THREE.Color(style === 'reaver' ? '#ff5a2a' : style === 'swarm' ? col.c : opts.engineColor || '#5ef0ff');
     const flames = [];
     for (const e of engines) {
-        const cone = new THREE.Mesh(new THREE.ConeGeometry(e.r, e.r * 6, 10, 1, true), new THREE.MeshBasicMaterial({ color: glowCol.clone().multiplyScalar(1.3), transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false }));
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(e.r * 0.9, e.r * 4, 10, 1, true), new THREE.MeshBasicMaterial({ color: glowCol.clone().multiplyScalar(1.3), transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false }));
         cone.rotation.x = -Math.PI / 2;
-        cone.position.set(e.x, e.y, e.z - e.r * 3);
+        cone.position.set(e.x, e.y, e.z - e.r * 2);
         group.add(cone);
         const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: glowCol.clone().multiplyScalar(1.5), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
         sp.position.set(e.x, e.y, e.z);
@@ -276,8 +276,8 @@ function assemble(d, opts, style, col) {
         for (const f of flames) {
             const len = 0.3 + k * 1.3;
             f.cone.scale.set(1, len, 1);
-            f.cone.position.z = f.z - f.r * 3 * len;
-            f.cone.material.opacity = 0.15 + k * 0.35 + Math.sin(t * 50) * 0.04;
+            f.cone.position.z = f.z - f.r * 2 * len;
+            f.cone.material.opacity = 0.08 + k * 0.22 + Math.sin(t * 50) * 0.03;
             f.sp.scale.setScalar(f.r * (1.6 + k * 2.2));
         }
         group.children.forEach((c) => { if (c.userData.blink) c.visible = Math.sin(t * 4 + c.position.x) > 0.2; });

@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-60 games, `game-001` through `game-060`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+61 games, `game-001` through `game-061`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -78,6 +78,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 058 | [Bumble Basket](game-058/) | Casual fruit puzzle: trails where each hop shares a kind, colour, size or family | three.js |
 | 059 | [Sister Circuit](game-059/) | Neon beat-'em-up: a stolen combat suit, seven stages and bosses, a sister to rescue | three.js |
 | 060 | [BRICKVADERS](game-060/) | Breakout × Space Invaders in a 1983 arcade cabinet: bounce, shoot, smash the Brick Armada | three.js |
+| 061 | [STARWRIGHT](game-061/) | Procedural space sim: mine, trade with aliens, rebuild your base, upgrade your ship, warp across a seeded galaxy | three.js |
 
 ### Highlights
 
@@ -152,6 +153,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 **[Sister Circuit](game-059/)** — A **neon beat-'em-up** in the spirit of Double Dragon, Streets of Rage and Turtles in Time, in three.js with no asset files. Juno Vega steals the VANTA-7 combat suit to get her little sister Mika back from Aurex Dynamics, with the suit's sarcastic AI, ECHO, in her ear (and a secret about where ECHO came from). Every fighter is pixel art generated from a 2D skeleton rig and a palette-index rasterizer, baked into atlases and palette-swapped on the GPU; the streets are real three.js sets drawn into a 240-pixel render target with bloom and scanlines, over a separate parallax skyline scene. Four-hit chains, launchers and juggles, grabs, throws, suplexes and vaults, pickup weapons, suit specials and an Overdrive meter; eleven enemy types with crowd AI that takes turns and flanks; seven stages (rainy Neon Row, the Line 9 maglev and its roof, the Lantern Market, the Ironwharf docks, the Biolabs, the Spire's express elevator, the Zenith penthouse at dawn) with gantries, forklifts, steam vents and laser gates; seven bosses with second phases, ending with Mika under neural control and CEO Magnus Hale in his Ascendant exo-frame, with Mika fighting beside you. Story with portraits, a safehouse shop, ranks, continues, three difficulties, Arcade, Boss Rush, Survival and playable Mika, generative synthwave, and touch controls. [game-059/dev/](game-059/dev/README.md) has the bot clear every stage headlessly and drives the whole game in Chromium on desktop and touch-only phones.
 
 **[BRICKVADERS](game-060/)** — **Breakout meets Space Invaders** in a 1983 arcade cabinet, in three.js with no asset files. The Brick Armada, aliens built out of living bricks, marches down in formation, and the STRIKER is half paddle, half laser base: bounce the plasma ball into the formation, shoot between bounces, chain hits for up to ×5 and catch Arkanoid-style capsules (laser, expand, catch, multi-ball, fireball, slow, barrier, Nova bomb, 1UP). Every sprite, brick and letter is a voxel pixel in a 240×320 vertical monitor with bloom, phosphor trails and a curved CRT, so invaders shed pixels when hit, kills burst into cubes that fly at the glass, and each wave assembles itself from flying bricks. The four-note march is the bassline and speeds up as the formation thins. Nine invader types (tanks, splitters, laser-reflecting mirrors, brick-laying builders, Galaga divers, ball-stealing captors), five brick types, erodible shields, drifting asteroids, the mystery ship; five sectors with their own 3D backdrops and five giant brick bosses to dig through to their cores; Galaga-style challenging stages; an attract mode with a demo, high scores with initials, CADET and ARCADE modes, continues, endless loops, and a phone control deck with a spinner pad. [game-060/dev/](game-060/dev/README.md) has a bot clear every stage of two loops headlessly and drives every flow in Chromium on desktop and touch-only phones.
+
+**[STARWRIGHT](game-061/)** — A **procedurally generated space sim** in three.js with no asset files: everything (230 star systems, planets, asteroid belts, eight alien species with their own faces, languages and tastes, stations, ships, missions) grows from one **seed** you can type in and share. You start with a tiny skiff and a derelict outpost called Hearth. Fly in third person, mine asteroids with a cutting beam, scoop fuel from stars and gas from giants, scan planets, salvage wrecks and trade at alien stations whose prices react to what you sell. Bring it all home to build Hearth module by module (refinery, shipyard, research lab, drones, hydroponics, trade depot, defences) and watch the station grow; upgrade the ship through five hull classes and eleven components, including the warp drive that opens the galaxy. Procedural missions, light combat with Reaver raiders and a hostile alien swarm, cruise autopilot, an Elite-style 3D scanner, and an eleven-chapter story about the Lattice Signal at the galactic core. Keyboard and mouse, gamepad or touch.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -229,7 +232,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-060/   # One self-contained folder per game
+├── game-001/ … game-061/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -286,7 +289,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 60 games are included as of the latest entries (game-057 Hivebreaker, game-058 Bumble Basket, game-059 Sister Circuit, game-060 BRICKVADERS).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 61 games are included as of the latest entries (game-058 Bumble Basket, game-059 Sister Circuit, game-060 BRICKVADERS, game-061 STARWRIGHT).
 
 ---
 

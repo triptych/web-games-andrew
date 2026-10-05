@@ -5186,3 +5186,32 @@ Scatter pillars, flood-fill from the spawn, and reject the layout unless the fil
 ### Software-GL: Phaser's clock runs slower than wall time *(game-022)*
 Phaser caps its frame delta, so under SwiftShader a 4.5 s `time.delayedCall` can take longer than 5.5 s of wall clock. Wait for the state you need (`btn.input.enabled`), not a fixed sleep. This is the same lesson as the three.js notes under game-049 and game-050.
 
+
+---
+
+## Game 061: STARWRIGHT — a seeded space sim, balanced by a macro bot (2026-10-05)
+
+### A macro bot that plays the economy finds design traps a playtest won't
+`dev/macrobot.mjs` plays the whole progression through the real `Game` actions (build, refine, research, upgrade, trade, missions, warp, story) and replaces flight with time costs derived from ship stats. It's a clumsy player, but every early run stalled on a real design problem, each in a few minutes of machine time:
+- **The refinery ate the ore that builds needed.** Builds that cost raw ore never became affordable, because unloaded ore was refined within seconds. Fixes: a raw *reserve* the refinery won't touch, and build costs moved onto refined materials after the first two modules.
+- **Serial production starved everything.** One recipe per cycle meant steel arrived at a trickle. Every enabled recipe now runs a batch each cycle, with a per-recipe stock cap so coolant can't eat the ice that polymer needs.
+- **A story gate needed a tier the player couldn't reach yet.** "Befriend two species" required Warp II, which required the next hull. The chapter now uses the species next door.
+- **Generated content outside the progression.** Story sites and the warlord's haven could land beyond the warp range of the chapter that sends you there. The generator now guarantees them by BFS jump count per warp tier, and the galaxy test asserts it on 50 seeds.
+- **A cap chain:** Shipyard Lv 5 → module cap 5 → Command Core Lv 8 (70 000 credits) stood between the player and the ending. Check the transitive cost of anything the ending needs.
+
+Log *time spent per activity*. "Waiting on the refinery: 190 minutes" pointed at the real bottleneck faster than any milestone table.
+
+### Log-depth buffer + ShaderMaterial: every chunk on its own line
+With `logarithmicDepthBuffer: true`, custom shaders need `#include <logdepthbuf_pars_vertex>` / `_vertex` / `_pars_fragment` / `_fragment`. A preprocessor directive must start a line, so `'#include <x>'` spliced into a one-line `main(){ … }` fails to compile, and so does `#endif varying vec2 vUv;` when the include string doesn't end in a newline. Shaders compile lazily on first draw, so the broken mining-beam shader only failed when the beam first appeared. The browser test caught it because it mines. **Make the browser test trigger every effect at least once.**
+
+### The payload-shadows-event-name bug, again
+`emit(type, data)` built `{ type, ...data }`, and a rock-break payload carrying `type: 'stony'` turned the event into `"stony"`. Spread the payload first (`{ ...data, type }`) and name payload fields for what they are (`rockType`). game-040 recorded the same trap.
+
+### Autopilot: avoid bodies, and align before accelerating
+The straight line from a belt to home went through the star, and cruise dropped out at the gravity well every time. Two rules fixed it: steer toward a waypoint that skirts the first star or planet blocking the line (closest point on the segment, pushed out to 3.2 radii), and scale cruise speed by alignment (`cos` of the heading error), so the ship turns before it accelerates.
+
+### Async content that changes layout breaks touch tests (and taps)
+The New Voyage panel added its species portraits a moment after opening, which pushed LAUNCH down by 60 px. A CDP touch measured before the shift landed on empty panel. Reserve the space (`min-height`), and have tests wait for the content.
+
+### Keep the subject beside the panel
+Docked menus fill the right-hand half of the screen, so the docked camera looks at a point *right* of the station (along the camera's right vector). The station then sits in the visible left half. The shipyard tab uses the same trick to frame the player's ship.

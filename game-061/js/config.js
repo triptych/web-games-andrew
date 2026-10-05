@@ -18,15 +18,15 @@ export const ITEMS = {
     voidstone: { name: 'Voidstone',     cat: 'raw', tier: 4, price: 110, color: '#b876ff', desc: 'Black crystal that hums. Found only in dangerous space.' },
     exotic:    { name: 'Exotic Matter', cat: 'raw', tier: 4, price: 160, color: '#ff72da', desc: 'Matter with negative opinions about physics.' },
 
-    steel:     { name: 'Steel Plate',   cat: 'refined', tier: 1, price: 32,  color: '#b9c2cc', desc: 'Rolled ferrite plate.' },
-    silicon:   { name: 'Silicon Wafer', cat: 'refined', tier: 1, price: 28,  color: '#8fb3d9', desc: 'Pure silicon wafers.' },
+    steel:     { name: 'Steel Plate', pl: 'Steel Plates',   cat: 'refined', tier: 1, price: 32,  color: '#b9c2cc', desc: 'Rolled ferrite plate.' },
+    silicon:   { name: 'Silicon Wafer', pl: 'Silicon Wafers', cat: 'refined', tier: 1, price: 28,  color: '#8fb3d9', desc: 'Pure silicon wafers.' },
     coolant:   { name: 'Coolant',       cat: 'refined', tier: 1, price: 24,  color: '#6fdcff', desc: 'Purified water-glycol coolant.' },
     polymer:   { name: 'Polymer',       cat: 'refined', tier: 1, price: 34,  color: '#9de38f', desc: 'Flexible structural polymer.' },
-    fuelcell:  { name: 'Warp Cell',     cat: 'refined', tier: 1, price: 40,  color: '#7af7ff', desc: 'Fuel for the warp drive. One cell per 4 ly.' },
+    fuelcell:  { name: 'Warp Cell', pl: 'Warp Cells',     cat: 'refined', tier: 1, price: 40,  color: '#7af7ff', desc: 'Fuel for the warp drive. One cell per 4 ly.' },
     alloy:     { name: 'Ti-Alloy',      cat: 'refined', tier: 2, price: 75,  color: '#e8f2ff', desc: 'Titanium-steel alloy for hulls.' },
     circuit:   { name: 'Circuitry',     cat: 'refined', tier: 2, price: 55,  color: '#ffb36b', desc: 'Copper-on-silicon logic boards.' },
-    lattice:   { name: 'Iridium Lattice', cat: 'refined', tier: 3, price: 190, color: '#a9b4ff', desc: 'Load-bearing crystal lattice.' },
-    voidcore:  { name: 'Void Core',     cat: 'refined', tier: 4, price: 520, color: '#d58bff', desc: 'A caged knot of Voidstone and exotic matter.' },
+    lattice:   { name: 'Iridium Lattice', pl: 'Iridium Lattices', cat: 'refined', tier: 3, price: 190, color: '#a9b4ff', desc: 'Load-bearing crystal lattice.' },
+    voidcore:  { name: 'Void Core', pl: 'Void Cores',     cat: 'refined', tier: 4, price: 520, color: '#d58bff', desc: 'A caged knot of Voidstone and exotic matter.' },
 
     rations:     { name: 'Food Rations', cat: 'goods', price: 14,  color: '#e8d27a', desc: 'Calories in a tin.' },
     medkits:     { name: 'Med Kits',     cat: 'goods', price: 40,  color: '#ff8a8a', desc: 'Broad-spectrum xenomedicine.' },
@@ -43,6 +43,7 @@ export const ITEMS = {
     relics:      { name: 'Antiquities',  cat: 'goods', price: 220, color: '#ffd27a', desc: 'Artifacts of fallen civilisations.' },
     stims:       { name: 'Stims',        cat: 'goods', price: 95,  color: '#b3ff4a', desc: 'Stimulants. Contraband in some space.' },
 };
+export const plural = (id, n) => (n === 1 ? ITEMS[id].name : ITEMS[id].pl || ITEMS[id].name);
 export const RAW = Object.keys(ITEMS).filter((k) => ITEMS[k].cat === 'raw');
 export const REFINED = Object.keys(ITEMS).filter((k) => ITEMS[k].cat === 'refined');
 export const GOODS = Object.keys(ITEMS).filter((k) => ITEMS[k].cat === 'goods');

@@ -135,10 +135,10 @@ Hearth starts as a derelict **Command Core** with four empty module slots. You b
 
 | Module | Does | Notes |
 |---|---|---|
-| Command Core (Lv 1–8) | sets module slots (4 + 2/level), the module level cap and power +6 | the main upgrade track |
+| Command Core (Lv 1–8) | sets module slots (5 + 2/level), the module level cap (1, 2, 2, 3, 4, 5…) and power +6 | the main upgrade track |
 | Solar Array | +8 power per level | |
 | Silo | +250 storage per level | storage starts at 300 |
-| Refinery | runs enabled recipes from storage (raw → refined), one batch per 8 s per level | |
+| Refinery | every enabled recipe runs one batch per cycle (6 s ÷ level) from storage | keeps a raw **reserve** (default 20) for building, and pauses a recipe once its product reaches a **stock cap** (default 150) |
 | Fabricator | crafts Warp Cells, Repair Nanites, Mining Charges, drones and the Lattice Key | instant |
 | Shipyard | allows ship upgrades up to Mk = level, and hull classes | needed for any upgrade |
 | Drone Bay | mining drones bring home-belt ore over time | idle income |
@@ -256,18 +256,22 @@ Rewards scale with distance and danger: credits, standing, sometimes data or rar
 
 ---
 
-## 11. Progression pacing (targets, checked by the macro bot)
+## 11. Progression pacing
 
-| Milestone | Target time |
+Measured by the macro bot (`dev/macrobot.mjs`). It's a clumsy player that wanders, waits on the refinery and follows a fixed plan, so real players should be noticeably faster.
+
+| Milestone | Bot time (seeds MACRO-2 / MACRO-3) |
 |---|---|
-| First unload at Hearth | 2–3 min |
-| Refinery built | ~6 min |
-| Warp Drive I | 20–30 min |
-| Hull II, Laser II | ~45 min |
-| Warp III, first shards | 1.5–2 h |
-| Lattice Key, Warp V, ending | 3–4 h |
+| Refinery built | 2 min |
+| Research Lab | 14 min |
+| Warp Drive I | 41–43 min |
+| First Precursor Shard | 54–56 min |
+| Warlord chapter begins | 95–105 min |
+| Third shard | 6–8 h |
+| Lattice Key | 11–14 h |
+| Ending | 15–18 h |
 
----
+Design changes the bot forced, all now in the game: the refinery's raw reserve and stock cap, parallel refinery lines, the "Friends Next Door" chapter (was "befriend two species", impossible before Warp II), generator guarantees for shard 1 (≤ 3 Warp-I jumps) and a Reaver haven 3–6 Warp-II jumps out, richer titanium and crystal belts, lower mid- and late-game credit costs, 40% higher mission pay, and module level 5 at Core 6 instead of Core 8.
 
 ## 12. Sound (all Web Audio)
 - **Generative music:** each system picks a root and mode from its seed. Slow detuned-saw pads go through a resonant low-pass, sparse bell arpeggios through a feedback delay, and a sub drone. A **combat layer** (pulse bass and noise drums) fades in when hostiles are engaged, and a warm **docked** layer plays in stations.
@@ -318,11 +322,13 @@ game-061/
 │       ├── dom.js      tiny helpers
 │       ├── hud.js      bars, scanner, target card, markers overlay, toasts, tracker
 │       ├── menus.js    station, Hearth, journal, settings, pause, title
-│       ├── galaxymap.js
-│       └── systemmap.js
+│       └── maps.js     galaxy map + system map (pan, zoom, pinch, side panel)
 └── dev/
     ├── simtest.mjs     determinism, galaxy rules on many seeds, flight/combat sim, quests, macro-bot pacing
+    ├── macrobot.mjs    plays the full progression through the real game actions
     ├── browsertest.mjs real Chromium: desktop flow + touch-only phones
+    ├── play.mjs        run snippets against the live game and screenshot
+    ├── persist.mjs     die → respawn → save → reload → continue
     └── README.md
 ```
 

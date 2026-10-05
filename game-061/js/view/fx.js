@@ -5,9 +5,9 @@ import * as THREE from 'three';
 import { glowTexture } from './renderer.js';
 import { ITEMS } from '../config.js';
 
-const LOG_V = '#include <common>\n#include <logdepthbuf_pars_vertex>';
+const LOG_V = '#include <common>\n#include <logdepthbuf_pars_vertex>\n';
 const LOG_VM = '\n#include <logdepthbuf_vertex>\n';
-const LOG_F = '#include <logdepthbuf_pars_fragment>';
+const LOG_F = '#include <logdepthbuf_pars_fragment>\n';
 const LOG_FM = '\n#include <logdepthbuf_fragment>\n';
 
 export class Particles {

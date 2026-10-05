@@ -31,7 +31,7 @@ const hud = new HUD(view, input);
 const maps = new Maps(audio);
 
 const app = {
-    game: null, world: null, mode: 'title', audio, settings, nav: { kind: 'story' },
+    game: null, world: null, mode: 'title', audio, settings, nav: { kind: 'story' }, view,
     toast: (t, k) => hud.toast(t, k),
 };
 const menus = new Menus(app);
@@ -62,7 +62,7 @@ for (const ev of ['pointerdown', 'keydown', 'touchend']) addEventListener(ev, un
 function setMode(m) {
     app.mode = m;
     const flying = m === 'flight';
-    hud.show(flying || m === 'warp');
+    hud.show(flying);
     $('touch').classList.toggle('hidden', !(flying && input.isTouch));
     document.body.classList.toggle('playing', m !== 'title');
     input.blockGame = !flying;
@@ -334,7 +334,8 @@ function tipFor() {
     const touch = input.isTouch;
     const st = G.s.story.stage;
     const K = (k, t) => `<b>${touch ? t : k}</b>`;
-    if (st === 0) {
+    const home = G.s.location.system === G.galaxy.home;
+    if (st === 0 && home) {
         if (G.cargoOf('ferrite') >= 20 || G.cargoFree() === 0) return `Hold loaded! ${K('T', 'TGT')} to target Hearth, ${K('C', 'CRUISE')} to fly home, then ${K('E', 'ACT')} to dock and unload.`;
         if ([...w.rocks()].some((r) => Math.hypot(r.pos.x - w.player.pos.x, r.pos.y - w.player.pos.y, r.pos.z - w.player.pos.z) < 700)) return `Aim at a rock (${touch ? 'drag left side' : 'move the mouse'}), close in and hold ${K('Q / right-click', 'MINE')}. Watch the laser heat.`;
         return `The belt is targeted. Press ${K('C', 'CRUISE')} to fly there on autopilot (fly clear of Hearth first).`;

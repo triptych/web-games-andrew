@@ -70,7 +70,7 @@ export class Maps {
         this.screen.classList.remove('hidden');
         const here = game.galaxy.systems[game.s.location.system];
         if (mode === 'galaxy') {
-            this.cam = { x: here.x, y: here.y, z: Math.min(innerWidth, innerHeight) / 50 };
+            this.cam = { x: here.x, y: here.y, z: Math.min(innerWidth, innerHeight) / 70 };
             this.sel = here.id;
             $('map-title').textContent = 'GALAXY MAP';
             $('map-legend').innerHTML = '<span style="color:#ffb547">◆ Hearth</span><span style="color:#5ef0ff">◯ warp range</span><span style="color:#b48cff">◈ objective</span><span>drag to pan · wheel/pinch to zoom · tap a star</span>';
@@ -187,6 +187,11 @@ export class Maps {
                 g.fillText(known || sys.star === 'core' ? sys.name : 'Uncharted', p.x, p.y - rr - 6);
             }
         }
+        // scale bar
+        const lyPx = 10 * z;
+        g.strokeStyle = 'rgba(138,160,196,0.8)'; g.lineWidth = 1;
+        g.beginPath(); g.moveTo(this.W - 30 - lyPx, this.H - 24); g.lineTo(this.W - 30, this.H - 24); g.moveTo(this.W - 30 - lyPx, this.H - 28); g.lineTo(this.W - 30 - lyPx, this.H - 20); g.moveTo(this.W - 30, this.H - 28); g.lineTo(this.W - 30, this.H - 20); g.stroke();
+        g.fillStyle = 'rgba(138,160,196,0.9)'; g.font = '600 11px Rajdhani, sans-serif'; g.fillText('10 ly', this.W - 30 - lyPx / 2, this.H - 30);
         // current + selection markers
         g.strokeStyle = '#5ef0ff'; g.lineWidth = 2;
         g.beginPath(); g.arc(hp.x, hp.y, 9 + Math.sin(t * 3), 0, Math.PI * 2); g.stroke();
@@ -230,7 +235,7 @@ export class Maps {
             if (it.shape === 'circle') { const r = Math.max(4, it.r * z); g.beginPath(); g.arc(q.x, q.y, r, 0, Math.PI * 2); g.fill(); }
             else if (it.shape === 'square') g.fillRect(q.x - 4, q.y - 4, 8, 8);
             else if (it.shape === 'diamond') { g.save(); g.translate(q.x, q.y); g.rotate(Math.PI / 4); g.fillRect(-4, -4, 8, 8); g.restore(); }
-            else if (it.shape === 'belt') { g.strokeStyle = it.color; g.beginPath(); g.arc(q.x, q.y, 6, 0, Math.PI * 2); g.stroke(); }
+            else if (it.shape === 'belt') { g.strokeStyle = it.color; g.lineWidth = 1.5; g.beginPath(); g.arc(q.x, q.y, 6, 0, Math.PI * 2); g.stroke(); }
             if (it.label) { g.fillStyle = sel ? '#ffb547' : 'rgba(219,232,255,0.85)'; g.fillText(it.name, q.x, q.y - Math.max(8, (it.r || 4) * z) - 5); }
             if (sel) { g.strokeStyle = '#ffb547'; g.lineWidth = 2; g.beginPath(); g.arc(q.x, q.y, 12 + Math.sin(t * 4), 0, Math.PI * 2); g.stroke(); }
             if (it.objective) { g.strokeStyle = '#b48cff'; g.lineWidth = 2; g.save(); g.translate(q.x, q.y); g.rotate(Math.PI / 4); const k = 10 + Math.sin(t * 4) * 2; g.strokeRect(-k, -k, 2 * k, 2 * k); g.restore(); }
@@ -269,8 +274,9 @@ export class Maps {
     }
 
     renderSide() {
-        const side = this.side;
-        side.replaceChildren();
+        const side0 = this.side;
+        side0.replaceChildren();
+        const side = { append: (...kids) => side0.append(...kids.flat().filter((k) => k != null && k !== false)) };
         const G = this.game;
         if (this.mode === 'galaxy') {
             if (this.sel == null) return;
