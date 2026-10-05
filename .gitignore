@@ -10,4 +10,4 @@ dev/package-r128/
 dev/node_modules/
 # Per-game harness output and local Playwright links
 game-*/dev/shots/
-game-*/dev/node_modules/
+game-*/dev/node_modules
