@@ -571,6 +571,7 @@ To use: `import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 - [three.js examples](https://threejs.org/examples/)
 - [game-024 — Neon Vanguard](../../game-024/) — top-down shmup; bloom, custom grid shader, canvas-sprite HUD text
 - [game-040 — Starcadet](../../game-040/) — vertical bullet-hell shmup; instanced bullets, six shader backdrops, aspect-fitting camera, and a fake-three.js Node harness
+- [game-061 — STARWRIGHT](../../game-061/) — seeded space sim; log depth buffer with custom shaders, one planet shader for nine world types, FBM nebula skybox, instanced asteroids with emissive veins (onBeforeCompile), merged procedural ships, PMREM env from a gradient scene
 - [game-060 — BRICKVADERS](../../game-060/) — Breakout × Invaders; instanced voxel-pixel raster with a pixel-exact perspective camera, scale-derived bevels, phosphor persistence, Bayer-dithered backdrops
 - [game-045 — PINBREAK '86](../../game-045/) — pinball × breakout; tilted table rig, horizon-aware camera, fake surface lights, neon env map, CRT post pass, per-frame fx budgets
 - [game-054 — Pale Engine](../../game-054/) — DOOM-style FPS; height-grid levels, baked XZ lightmap + dynamic light pool, derivative bump mapping, merged-per-bone procedural monsters, a viewmodel pass, a post pass per powerup

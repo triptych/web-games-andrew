@@ -906,6 +906,21 @@ const games = [
             { emoji: '\uD83E\uDDF1', label: 'Breakout' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-061',
+        title: 'STARWRIGHT',
+        description: "A procedurally generated space sim in three.js with no asset files: 230 star systems, planets, asteroid belts, stations, ships, eight alien species (with faces, languages, tastes and grudges) and their missions all grow from one seed you can type in and share. You are a newly licensed Wright with a tiny skiff and a derelict outpost called Hearth. Fly in third person, cut asteroids with a mining beam, scoop fuel from stars and Helium-3 from gas giants, scan planets for survey data, salvage derelicts and study anomalies. Trade at alien stations whose prices react to what you sell, take procedural missions (deliveries, bounties, surveys, salvage, raider nests, envoys), and fight off Reaver raiders and the hostile Swarm. Bring it home to build Hearth module by module (refinery, shipyard, research lab, fabricator, drones, hydroponics, trade depot, defences, warp beacon) and watch the station grow; upgrade your procedurally generated ship through five hull classes and eleven components, including the warp drive that opens the galaxy. Cruise autopilot, an Elite-style 3D scanner, galaxy and system maps, a generative score, and an eleven-chapter story about the Lattice Signal at the galactic core. Keyboard and mouse, gamepad or touch.",
+        icon: '\uD83D\uDE80',
+        folder: 'game-061',
+        version: '1.0.0',
+        cssClass: 'starwright',
+        genre: 'strategy',
+        tags: [
+            { emoji: '\uD83D\uDE80', label: 'Space sim' },
+            { emoji: '\u26CF\uFE0F', label: 'Mine & build' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
