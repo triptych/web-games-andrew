@@ -3,7 +3,7 @@
 **Genre:** Arcade: Breakout × Space Invaders (with nods to Arkanoid and Galaga)
 **Engine:** three.js r165 (ES modules, import map), Web Audio
 **Render:** a 3D scene drawn into a 240 × 320 render target (a vertical arcade monitor), nearest-neighbour upscale, bloom, CRT shader
-**Status:** v1.0.0, complete: five sectors, 24 stages per loop, endless loops
+**Status:** v1.0.1, complete: five sectors, 24 stages per loop, endless loops
 
 ---
 
@@ -24,6 +24,7 @@ No image or audio files. Every sprite, letter, explosion, backdrop and note is g
 - **Perspective camera, pixel-exact plane.** The camera is far back with a narrow field of view, so z = 0 maps to the 240 × 320 grid exactly, but anything with depth (debris, backdrops, the logo assembling) really is 3D. Shakes roll the camera slightly, so you glimpse the side faces of the voxels.
 - **Five 3D backdrops**, one per sector, drawn into the same low-res target behind the playfield, kept dim so the action pops: a lunar surface with Earth rising, a neon nebula, an asteroid belt with tumbling rocks, a synthwave sun over a grid, and the inside of the mothership (a tunnel of rings). The starfield is 1-pixel points scrolling at three depths.
 - **CRT:** slight barrel curvature, scanlines on the low-res rows, an aperture-grille mask when the screen is large, bloom, vignette, chromatic aberration and colour flashes on big hits. Can be switched off.
+- **Readable at a glance.** The ball is the only white-and-cyan thing in play. Every enemy shot is a hot colour: red zigzags, pink plungers, magenta star-orbs, red-and-yellow bombs.
 - **Raster HUD and menus.** All text is a hand-made 5 × 7 pixel font drawn into the same render target, so it glows and scanlines like the rest. The only DOM is the cabinet around the screen (side art on wide screens, a control deck on phones) and the back link.
 
 ---
@@ -187,6 +188,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` has the bot clear every stage 
 The game is an homage to the genre, not a copy of any one game: every alien, the mystery ship and the shields are original designs. The three basic grunts (GLOOP, BUZZ, PEEPER) replaced earlier sprites that were too close to the classic Space Invaders octopus, crab and squid.
 
 ## Changelog
+
+### v1.0.1 (2026-10-05)
+- Enemy shots are red (zigzag), pink (plunger) and magenta (orb, now an X-shaped star) and the ball is white with cyan edges, so they are never confused. The fireball is a paler yellow-orange.
 
 ### v1.0.0 (2026-10-05)
 - First release: five sectors, 15 waves, five bosses, four challenge stages, nine invader types, five brick types, nine capsules, attract mode, high scores with initials, CADET and ARCADE difficulties, endless loops, touch deck.
