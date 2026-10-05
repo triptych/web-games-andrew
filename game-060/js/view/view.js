@@ -261,6 +261,7 @@ export class View {
                 let k = ty.glow || 1;
                 const col = i % g.cols, row = Math.floor(i / g.cols);
                 if (ty.core) k *= coreP;
+                if (g.kind === 'shield' && (row % 4 === 0 || (col + Math.floor(row / 4) * 3) % 6 === 0)) k *= 0.45;
                 if (boss && code === 10 && w.boss && w.boss.id === 'saucer') k *= ((col + Math.floor(t * 10)) % 3 === 0) ? 2.2 : 0.6;
                 if (boss && ty.jaw) k *= 1.1;
                 if (ty.hp > 1 && g.hp[i] < ty.hp && !ty.core) k *= 0.55 + 0.45 * (g.hp[i] / ty.hp);
@@ -515,7 +516,7 @@ export class View {
     /** Big sprites for the title screen's marching row. */
     drawMarchers(t) {
         const v = this.vox;
-        const kinds = ['octo', 'krabbo', 'zippo', 'krabbo', 'octo'];
+        const kinds = ['gloop', 'buzz', 'peeper', 'buzz', 'gloop'];
         const fr = Math.floor(t * 2) % 2;
         const off = Math.round(Math.sin(t * 0.8) * 20);
         kinds.forEach((k, i) => {

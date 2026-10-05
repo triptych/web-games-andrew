@@ -32,62 +32,65 @@ function sprite(colors, ...frames) {
 
 // ------------------------------------------------------------------ invaders
 export const INVADERS = {
-    octo: sprite({ X: PAL.magenta, o: PAL.yellow }, [
-        '....XXXX....',
-        '.XXXXXXXXXX.',
-        'XXXXXXXXXXXX',
-        'XXXooXXooXXX',
-        'XXXXXXXXXXXX',
-        '...XX..XX...',
-        '..XX.XX.XX..',
-        'XX........XX',
+    // GLOOP: a one-eyed goo blob that drips as it marches
+    gloop: sprite({ X: PAL.magenta, w: PAL.white, o: PAL.cyan }, [
+        '...XXXX...',
+        '..XXXXXX..',
+        '.XXwwwwXX.',
+        'XXwwoowwXX',
+        'XXXwwwwXXX',
+        'XXXXXXXXXX',
+        'X.XX..XX.X',
+        '...X..X...',
     ], [
-        '....XXXX....',
-        '.XXXXXXXXXX.',
-        'XXXXXXXXXXXX',
-        'XXXooXXooXXX',
-        'XXXXXXXXXXXX',
-        '..XXX..XXX..',
-        '.XX..XX..XX.',
-        '..XX....XX..',
+        '...XXXX...',
+        '.XXXXXXXX.',
+        'XXXwwwwXXX',
+        'XXwwoowwXX',
+        'XXXwwwwXXX',
+        'XXXXXXXXXX',
+        '.XX.XX.XX.',
+        '.X..X..X..',
     ]),
-    krabbo: sprite({ X: PAL.cyan, o: PAL.red }, [
-        '..X.....X..',
-        '...X...X...',
-        '..XXXXXXX..',
-        '.XXoXXXoXX.',
-        'XXXXXXXXXXX',
-        'X.XXXXXXX.X',
-        'X.X.....X.X',
-        '...XX.XX...',
-    ], [
-        '..X.....X..',
-        'X..X...X..X',
-        'X.XXXXXXX.X',
-        'XXXoXXXoXXX',
-        'XXXXXXXXXXX',
-        '.XXXXXXXXX.',
-        '..X.....X..',
+    // BUZZ: a shelled space beetle scuttling on six legs
+    buzz: sprite({ X: PAL.cyan, d: 0x1a7a9a, o: PAL.red }, [
         '.X.......X.',
-    ]),
-    zippo: sprite({ X: PAL.green, o: PAL.white }, [
-        '...XX...',
-        '..XXXX..',
-        '.XXXXXX.',
-        'XXoXXoXX',
-        'XXXXXXXX',
-        '..X..X..',
-        '.X.XX.X.',
-        'X.X..X.X',
+        '..X.....X..',
+        '...XXXXX...',
+        'X.XoXdXoX.X',
+        '.XXXXdXXXX.',
+        'X.XXXdXXX.X',
+        '.XXXXdXXXX.',
+        'X..XX.XX..X',
     ], [
-        '...XX...',
-        '..XXXX..',
-        '.XXXXXX.',
-        'XXoXXoXX',
-        'XXXXXXXX',
-        '.X.XX.X.',
-        'X......X',
-        '.X....X.',
+        'X.........X',
+        '.X.......X.',
+        '...XXXXX...',
+        '.XXoXdXoXX.',
+        'X.XXXdXXX.X',
+        '.XXXXdXXXX.',
+        'X.XXXdXXX.X',
+        '..XX...XX..',
+    ]),
+    // PEEPER: a bat-winged eyeball that flaps
+    peeper: sprite({ X: PAL.green, w: PAL.white, o: PAL.red }, [
+        'X....XX....X',
+        'XX..XXXX..XX',
+        'XXXXwwwwXXXX',
+        '.XXwwoowwXX.',
+        '..XwwoowwX..',
+        '...XwwwwX...',
+        '....X..X....',
+        '...X....X...',
+    ], [
+        '.....XX.....',
+        '....XXXX....',
+        '..XXwwwwXX..',
+        '.XXwwoowwXX.',
+        'XXXwwoowwXXX',
+        'XX.XwwwwX.XX',
+        'X...X..X...X',
+        '...X....X...',
     ]),
     tank: sprite({ X: PAL.orange, o: PAL.steel, w: PAL.white, y: PAL.yellow }, [
         '...oooooo...',
@@ -229,9 +232,9 @@ export const INVADERS = {
 };
 
 export const INVADER_INFO = {
-    octo:     { hp: 1, pts: 10,  name: 'OCTO' },
-    krabbo:   { hp: 1, pts: 20,  name: 'KRABBO' },
-    zippo:    { hp: 1, pts: 30,  name: 'ZIPPO' },
+    gloop:    { hp: 1, pts: 10,  name: 'GLOOP' },
+    buzz:     { hp: 1, pts: 20,  name: 'BUZZ' },
+    peeper:   { hp: 1, pts: 30,  name: 'PEEPER' },
     tank:     { hp: 4, pts: 60,  name: 'TANK' },
     splitter: { hp: 2, pts: 40,  name: 'SPLITTER' },
     mini:     { hp: 1, pts: 15,  name: 'MINI' },
@@ -241,14 +244,15 @@ export const INVADER_INFO = {
     captor:   { hp: 3, pts: 150, name: 'CAPTOR' },
 };
 
-export const UFO = sprite({ X: PAL.red, w: PAL.white, 1: PAL.yellow, 2: PAL.cyan, 3: PAL.green, 4: PAL.magenta }, [
-    '.....XXXXXX.....',
-    '...XwwwwwwwwX...',
-    '..XXXXXXXXXXXX..',
-    '.XX1XX2XX3XX4XX.',
-    'XXXXXXXXXXXXXXXX',
-    '..XXX..XX..XXX..',
-    '...X........X...',
+// The mystery ship: a delta-winged raider with a bubble cockpit and three thrusters
+export const UFO = sprite({ X: PAL.red, w: PAL.white, r: PAL.orange, 1: PAL.yellow, 2: PAL.cyan, 3: PAL.green, 4: PAL.magenta }, [
+    '.......ww.......',
+    '......wXXw......',
+    '..X..XXXXXX..X..',
+    '.XXXXX1XX2XXXXX.',
+    'XX3XXXXXXXXXX4XX',
+    '.X.XXXXXXXXXX.X.',
+    '...rr..rr..rr...',
 ]);
 
 export const BALL_SPRITE = sprite({ W: [2.2, 2.2, 2.4], o: [0.9, 1.2, 1.6] }, ['oWo', 'WWW', 'oWo']);
@@ -320,11 +324,11 @@ export function paddlePixels(w, opts = {}) {
 }
 
 // ------------------------------------------------------------------ shields
+/** Shields are little brick forts: battlements on top, a gateway underneath. */
 export const SHIELD_SHAPE = [
-    '....XXXXXXXXXXXXXX....',
-    '...XXXXXXXXXXXXXXXX...',
-    '..XXXXXXXXXXXXXXXXXX..',
-    '.XXXXXXXXXXXXXXXXXXXX.',
+    'XXXX..XXXX..XXXX..XXXX',
+    'XXXX..XXXX..XXXX..XXXX',
+    'XXXX..XXXX..XXXX..XXXX',
     'XXXXXXXXXXXXXXXXXXXXXX',
     'XXXXXXXXXXXXXXXXXXXXXX',
     'XXXXXXXXXXXXXXXXXXXXXX',
@@ -332,9 +336,10 @@ export const SHIELD_SHAPE = [
     'XXXXXXXXXXXXXXXXXXXXXX',
     'XXXXXXXXXXXXXXXXXXXXXX',
     'XXXXXXXXXXXXXXXXXXXXXX',
-    'XXXXXXXXXXXXXXXXXXXXXX',
-    'XXXXXX..........XXXXXX',
-    'XXXXX............XXXXX',
-    'XXXX..............XXXX',
-    'XXXX..............XXXX',
+    'XXXXXXXXX....XXXXXXXXX',
+    'XXXXXXXX......XXXXXXXX',
+    'XXXXXXXX......XXXXXXXX',
+    'XXXXXXXX......XXXXXXXX',
+    'XXXXXXXX......XXXXXXXX',
+    'XXXXXXXX......XXXXXXXX',
 ];

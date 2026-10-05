@@ -664,7 +664,7 @@ export class World {
         }
         if (e.kind === 'captor') this.releaseHeld(e);
         if (!this.challenge) {
-            const p = e.kind === 'octo' || e.kind === 'krabbo' || e.kind === 'zippo' || e.kind === 'mini' ? 0.06 : 0.12;
+            const p = e.kind === 'gloop' || e.kind === 'buzz' || e.kind === 'peeper' || e.kind === 'mini' ? 0.06 : 0.12;
             if (this.rng() < p) this.spawnCapsule(cx, cy);
         }
         if (e.maxHp >= 3) this.freeze = Math.max(this.freeze, 0.05);
@@ -882,7 +882,7 @@ export class World {
         const sp = this.diff.bulletSpeed * (1 + this.loop * 0.12);
         const x = shooter.x + shooter.w / 2, y = shooter.y - 2;
         if (shooter.kind === 'tank') this.fireBullet(x, y, 0, -48 * sp, 'bomb');
-        else if (shooter.kind === 'zippo') this.fireBullet(x, y, 0, -105 * sp, 'plunger');
+        else if (shooter.kind === 'peeper') this.fireBullet(x, y, 0, -105 * sp, 'plunger');
         else this.fireBullet(x, y, 0, -78 * sp, 'zig');
     }
 

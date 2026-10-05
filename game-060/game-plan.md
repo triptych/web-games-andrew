@@ -65,9 +65,9 @@ The touch deck: on a portrait phone the screen sits on top and an arcade control
 ### Invaders
 | Invader | HP | Points | Behaviour |
 |---|---|---|---|
-| OCTO | 1 | 10 | the basic grunt |
-| KRABBO | 1 | 20 | grunt |
-| ZIPPO | 1 | 30 | grunt, fires the fast plunger shot |
+| GLOOP | 1 | 10 | a one-eyed goo blob that drips as it marches; the basic grunt |
+| BUZZ | 1 | 20 | a shelled space beetle on six legs |
+| PEEPER | 1 | 30 | a bat-winged eyeball; fires the fast plunger shot |
 | TANK | 4 | 60 | armoured; drops bombs that crater shields |
 | SPLITTER | 2 | 40 | splits into two MINIs (15 pts) that zigzag down and shoot |
 | MIRROR | 2 | 50 | crystal: lasers bounce off it and come back at you, so only the ball hurts it |
@@ -87,7 +87,7 @@ Multi-HP invaders shed pixels with every hit, so you can see how hurt they are.
 | `?` prize | always drops a capsule |
 
 ### Shields, asteroids, bosses: cell grids
-Shields are 22 × 16 grids of 1 px cells, eroded pixel by pixel by bullets, bombs and the ball, just like the original. Asteroids (sector 3) are round grids of 2 px cells that drift across the middle of the screen, and they block shots in both directions. Bosses are big grids of 3 px cells: armour to dig through, steel that won't break, gun ports that shoot (break them to silence them) and a pulsing **core** that is the only thing that kills the boss. Bosses rebuild armour around the core over time, so you have to keep digging. A ball that breaks a boss cell cracks a neighbour a third of the time, so tunnels open up. Gun ports, every 22nd cell and each phase change drop capsules. At a quarter core health the boss hits **CORE EXPOSED!**: every hard and steel cell crumbles to 1-hit armour for the finish.
+Shields are little brick forts (battlements on top, a gateway underneath) in 22 × 16 grids of 1 px cells with mortar lines, eroded pixel by pixel by bullets, bombs and the ball. Asteroids (sector 3) are round grids of 2 px cells that drift across the middle of the screen, and they block shots in both directions. Bosses are big grids of 3 px cells: armour to dig through, steel that won't break, gun ports that shoot (break them to silence them) and a pulsing **core** that is the only thing that kills the boss. Bosses rebuild armour around the core over time, so you have to keep digging. A ball that breaks a boss cell cracks a neighbour a third of the time, so tunnels open up. Gun ports, every 22nd cell and each phase change drop capsules. At a quarter core health the boss hits **CORE EXPOSED!**: every hard and steel cell crumbles to 1-hit armour for the finish.
 
 ### Capsules (Arkanoid-style)
 | Capsule | Effect |
@@ -105,7 +105,7 @@ Shields are 22 × 16 grids of 1 px cells, eroded pixel by pixel by bullets, bomb
 Drops: prize bricks and the mystery ship always drop one, specials drop 12% of the time, everything else 6%. At most two capsules fall at once.
 
 ### Mystery ship
-Crosses the top every 18–28 seconds with a warbling siren. It is worth 50–300 points (double with the ball) and always drops a capsule. As in the original, your 23rd laser shot, and every 15th after it, scores the full 300.
+A delta-winged raider with a bubble cockpit. It crosses the top every 18–28 seconds with a warbling siren. It is worth 50–300 points (double with the ball) and always drops a capsule. As in the original, your 23rd laser shot, and every 15th after it, scores the full 300.
 
 ---
 
@@ -140,7 +140,7 @@ After the Overmind: an ending with brick fireworks and credits, then **LOOP 2**.
 ---
 
 ## Attract mode and screens
-Title (the logo is made of bricks that fly in and assemble, and a ghost ball knocks bricks out of it) → SCORE ADVANCE TABLE (every invader with its points) → CAPSULE TABLE → HIGH SCORES → DEMO PLAY (the bot plays a random early stage) → title… Press start: a coin drop, then a raster menu (START, DIFFICULTY, START SECTOR once reached, SOUND, CRT). Pause has RESUME / SOUND / CRT / QUIT. Game over → CONTINUE? 9…0 → name entry (three initials) if you made the table → title.
+Title (the logo is made of bricks that fly in and assemble, and a ghost ball knocks bricks out of it) → MEET THE ARMADA (every invader with its points) → CAPSULE TABLE → HIGH SCORES → DEMO PLAY (the bot plays a random early stage) → title… Press start: a coin drop, then a raster menu (START, DIFFICULTY, START SECTOR once reached, SOUND, CRT). Pause has RESUME / SOUND / CRT / QUIT. Game over → CONTINUE? 9…0 → name entry (three initials) if you made the table → title.
 
 ---
 
@@ -181,6 +181,10 @@ See [dev/README.md](dev/README.md). `simtest.mjs` has the bot clear every stage 
 ## Open questions / next steps
 - Balance is bot-tested; a human pass on a real phone would tune the march speed and bullet rates further.
 - A two-player alternating mode (1UP / 2UP) would complete the cabinet fantasy.
+
+## Art direction note
+
+The game is an homage to the genre, not a copy of any one game: every alien, the mystery ship and the shields are original designs. The three basic grunts (GLOOP, BUZZ, PEEPER) replaced earlier sprites that were too close to the classic Space Invaders octopus, crab and squid.
 
 ## Changelog
 

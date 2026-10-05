@@ -185,8 +185,8 @@ export class Hud {
     }
 
     drawScoreTable(t, pageT) {
-        this.text('*SCORE ADVANCE TABLE*', W / 2, 44, C.white, 1, 'center');
-        const rows = [['ufo', null], ['zippo'], ['krabbo'], ['octo'], ['tank'], ['splitter'], ['mirror'], ['builder'], ['diver'], ['captor']];
+        this.text('*MEET THE ARMADA*', W / 2, 44, C.white, 1, 'center');
+        const rows = [['ufo', null], ['peeper'], ['buzz'], ['gloop'], ['tank'], ['splitter'], ['mirror'], ['builder'], ['diver'], ['captor']];
         rows.forEach((r, i) => {
             const at = 0.3 + i * 0.28;
             if (pageT < at) return;

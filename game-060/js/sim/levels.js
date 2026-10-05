@@ -1,7 +1,7 @@
 // Sectors, stages and formations.
 //
 // Formation characters (one 16×12 slot each):
-//   invaders  o octo · k krabbo · z zippo · t tank · s splitter · m mirror · b builder · d diver · c captor
+//   invaders  o gloop · k buzz · z peeper · t tank · s splitter · m mirror · b builder · d diver · c captor
 //   bricks    # brick · = silver · G gold · X TNT · ? prize
 //   .         empty
 
@@ -13,7 +13,7 @@ export const SECTORS = [
     { name: 'THE HIVE', backdrop: 'hive', shields: true, asteroids: false, shieldColor: 0xffc21a },
 ];
 
-export const INVADER_CHARS = { o: 'octo', k: 'krabbo', z: 'zippo', t: 'tank', s: 'splitter', m: 'mirror', b: 'builder', d: 'diver', c: 'captor' };
+export const INVADER_CHARS = { o: 'gloop', k: 'buzz', z: 'peeper', t: 'tank', s: 'splitter', m: 'mirror', b: 'builder', d: 'diver', c: 'captor' };
 export const BRICK_CHARS = new Set(['#', '=', 'G', 'X', '?']);
 
 const WAVES = [
@@ -159,25 +159,25 @@ export const PATHS = {
 
 export const CHALLENGES = [
     [
-        { kind: 'krabbo', path: 'loop', mirror: false },
-        { kind: 'krabbo', path: 'loop', mirror: true },
-        { kind: 'zippo', path: 'sine', mirror: false },
-        { kind: 'octo', path: 'dive', mirror: false },
-        { kind: 'octo', path: 'dive', mirror: true },
+        { kind: 'buzz', path: 'loop', mirror: false },
+        { kind: 'buzz', path: 'loop', mirror: true },
+        { kind: 'peeper', path: 'sine', mirror: false },
+        { kind: 'gloop', path: 'dive', mirror: false },
+        { kind: 'gloop', path: 'dive', mirror: true },
     ],
     [
         { kind: 'splitter', path: 'arc', mirror: false },
-        { kind: 'zippo', path: 'zigzag', mirror: false },
-        { kind: 'zippo', path: 'zigzag', mirror: true },
+        { kind: 'peeper', path: 'zigzag', mirror: false },
+        { kind: 'peeper', path: 'zigzag', mirror: true },
         { kind: 'builder', path: 'loop', mirror: true },
-        { kind: 'krabbo', path: 'spiral', mirror: false },
+        { kind: 'buzz', path: 'spiral', mirror: false },
     ],
     [
         { kind: 'mirror', path: 'sine', mirror: true },
         { kind: 'tank', path: 'arc', mirror: true },
-        { kind: 'zippo', path: 'spiral', mirror: false },
-        { kind: 'zippo', path: 'spiral', mirror: true },
-        { kind: 'octo', path: 'loop', mirror: false },
+        { kind: 'peeper', path: 'spiral', mirror: false },
+        { kind: 'peeper', path: 'spiral', mirror: true },
+        { kind: 'gloop', path: 'loop', mirror: false },
     ],
     [
         { kind: 'diver', path: 'dive', mirror: false },
