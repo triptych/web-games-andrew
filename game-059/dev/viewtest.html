@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}canvas{display:block}</style></head>
+<body><canvas id="c"></canvas>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.165.0/build/three.module.js"}}</script>
+<script type="module">
+import { View } from '../js/view/view.js';
+import { World, STEP } from '../js/sim/world.js';
+import { LEVELS } from '../js/sim/levels.js';
+import { makeBot } from '../js/sim/bot.js';
+const q = new URLSearchParams(location.search);
+const stage = +(q.get('stage') || 0), warp = +(q.get('t') || 0), startX = +(q.get('x') || 0);
+const view = new View(document.getElementById('c'));
+const lowW = view.resize(innerWidth, innerHeight, 1);
+const w = new World({ stage, difficulty: 'normal', seed: 5, profile: { upgrades: {}, credits: 0, score: 0, lives: 3 }, viewW: lowW });
+view.actors.preload(View.charsFor(LEVELS[stage]));
+view.loadStage(LEVELS[stage]);
+if (startX) { w.player.x = startX; w.camX = startX; w.evIdx = w.level.events.findIndex(e => e.x >= startX - 50); if (w.evIdx < 0) w.evIdx = w.level.events.length; }
+const bot = makeBot();
+let simT = 0;
+function stepN(n) { for (let i = 0; i < n; i++) { if (w.paused) { if (w.state === 'gameover') w.continueGame(); else w.resume(); } w.step(STEP, bot(w, STEP)); for (const e of w.drainEvents()) view.handle(e, w); } }
+stepN(Math.round(warp * 60));
+window.__w = w; window.__view = view; window.__ready = true;
+let last = performance.now();
+function loop(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; stepN(Math.round(dt * 60) || 1); view.frame(w, dt); requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+</script></body></html>
