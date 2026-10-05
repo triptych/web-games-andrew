@@ -794,6 +794,16 @@ h1 {
     color: #fff;
 }
 
+.game-preview.brickvaders,
+.carousel-slide-bg.brickvaders {
+    background: linear-gradient(180deg, #04020c 0%, #1a0a3a 40%, #ff2448 70%, #ffe23a 85%, #3ae8ff 100%);
+}
+
+.game-card.brickvaders .play-button {
+    background: linear-gradient(135deg, #ff2448 0%, #ffe23a 50%, #3ae8ff 100%);
+    color: #120820;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

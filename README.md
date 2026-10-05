@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-59 games, `game-001` through `game-059`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+60 games, `game-001` through `game-060`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -77,6 +77,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 057 | [Hivebreaker](game-057/) | Twin-stick bug-swarm shooter with a five-sector campaign | three.js |
 | 058 | [Bumble Basket](game-058/) | Casual fruit puzzle: trails where each hop shares a kind, colour, size or family | three.js |
 | 059 | [Sister Circuit](game-059/) | Neon beat-'em-up: a stolen combat suit, seven stages and bosses, a sister to rescue | three.js |
+| 060 | [BRICKVADERS](game-060/) | Breakout × Space Invaders in a 1983 arcade cabinet: bounce, shoot, smash the Brick Armada | three.js |
 
 ### Highlights
 
@@ -149,6 +150,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 **[Bumble Basket](game-058/)** — A **cosy fruit-picking puzzle** with a matching rule of its own, in three.js with no asset files. Drag a bumblebee along a trail across a picnic blanket. Each fruit you hop to only has to share one trait with the last (kind, colour, size or family), so trails wander like a word ladder instead of needing identical pieces. The bee learns those traits as **senses**, one per garden: a Set level at the end of each garden teaches the next, as more kinds, colours and sizes of fruit arrive. Matching fruit pours into a jar for each sense, and a full set earns a power-up (Honey Dipper, Paint Pollen, Buzz Bomb, Rainbow Wings). Trails of seven grow golden fruit that links to anything, and leaf piles and frost get in the way. Thirty levels in four gardens, an endless Picnic mode and an 81-stamp Fruit Album. Sixteen kinds of fruit with faces that blink and beam, all modelled in code, plus generative ukulele-style music. Touch or mouse, portrait or landscape. [game-058/dev/](game-058/dev/README.md) checks the rules headlessly, gates every level on bot win rates, and drives the game in Chromium on desktop and touch-only phones.
 
 **[Sister Circuit](game-059/)** — A **neon beat-'em-up** in the spirit of Double Dragon, Streets of Rage and Turtles in Time, in three.js with no asset files. Juno Vega steals the VANTA-7 combat suit to get her little sister Mika back from Aurex Dynamics, with the suit's sarcastic AI, ECHO, in her ear (and a secret about where ECHO came from). Every fighter is pixel art generated from a 2D skeleton rig and a palette-index rasterizer, baked into atlases and palette-swapped on the GPU; the streets are real three.js sets drawn into a 240-pixel render target with bloom and scanlines, over a separate parallax skyline scene. Four-hit chains, launchers and juggles, grabs, throws, suplexes and vaults, pickup weapons, suit specials and an Overdrive meter; eleven enemy types with crowd AI that takes turns and flanks; seven stages (rainy Neon Row, the Line 9 maglev and its roof, the Lantern Market, the Ironwharf docks, the Biolabs, the Spire's express elevator, the Zenith penthouse at dawn) with gantries, forklifts, steam vents and laser gates; seven bosses with second phases, ending with Mika under neural control and CEO Magnus Hale in his Ascendant exo-frame, with Mika fighting beside you. Story with portraits, a safehouse shop, ranks, continues, three difficulties, Arcade, Boss Rush, Survival and playable Mika, generative synthwave, and touch controls. [game-059/dev/](game-059/dev/README.md) has the bot clear every stage headlessly and drives the whole game in Chromium on desktop and touch-only phones.
+
+**[BRICKVADERS](game-060/)** — **Breakout meets Space Invaders** in a 1983 arcade cabinet, in three.js with no asset files. The Brick Armada, aliens built out of living bricks, marches down in formation, and the STRIKER is half paddle, half laser base: bounce the plasma ball into the formation, shoot between bounces, chain hits for up to ×5 and catch Arkanoid-style capsules (laser, expand, catch, multi-ball, fireball, slow, barrier, Nova bomb, 1UP). Every sprite, brick and letter is a voxel pixel in a 240×320 vertical monitor with bloom, phosphor trails and a curved CRT, so invaders shed pixels when hit, kills burst into cubes that fly at the glass, and each wave assembles itself from flying bricks. The four-note march is the bassline and speeds up as the formation thins. Nine invader types (tanks, splitters, laser-reflecting mirrors, brick-laying builders, Galaga divers, ball-stealing captors), five brick types, erodible shields, drifting asteroids, the mystery ship; five sectors with their own 3D backdrops and five giant brick bosses to dig through to their cores; Galaga-style challenging stages; an attract mode with a demo, high scores with initials, CADET and ARCADE modes, continues, endless loops, and a phone control deck with a spinner pad. [game-060/dev/](game-060/dev/README.md) has a bot clear every stage of two loops headlessly and drives every flow in Chromium on desktop and touch-only phones.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -226,7 +229,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-059/   # One self-contained folder per game
+├── game-001/ … game-060/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -283,7 +286,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 59 games are included as of the latest entries (game-056 Keepfire, game-057 Hivebreaker, game-058 Bumble Basket, game-059 Sister Circuit).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 60 games are included as of the latest entries (game-057 Hivebreaker, game-058 Bumble Basket, game-059 Sister Circuit, game-060 BRICKVADERS).
 
 ---
 

@@ -897,3 +897,25 @@ function scheduler() {
   (`64 + PENTA[i % 5] + 12 * floor(i / 5)`), so a long chain is a rising run. A per-sound rate
   limiter (`limit(key, 0.025)`) stops a 30-brick explosive chain stacking 30 voices.
 - A `DynamicsCompressor` on the master bus keeps blasts, the pump and big chords from clipping.
+
+
+---
+
+## Sim-stamped events on the audio clock (game-060 BRICKVADERS)
+
+Driving music from sim `beat` events (game-040) jitters by up to a frame, because a frame's sim
+steps all run at once. game-060 stamps every event with its sim time and maps it onto the
+AudioContext clock with a fixed latency, so the notes come out evenly spaced again:
+
+```js
+for (const e of world.events) {
+    const at = audio.now + 0.06 + (e.t - world.time);   // e.t <= world.time, the offset is ≤ one frame
+    if (e.type === 'beat') audio.beat(e.i, e.interval, e.song, e.march, at); else audio.onEvent(e, at);
+}
+```
+
+There the formation steps on every beat and the beat interval shrinks as invaders die, so **the
+march is the bassline**: four descending notes (`[0, -2, -3, -5]` under the bar's chord) on every
+step, plus kick/snare/hats, a pad per bar and a pulse lead from a 32-step table. The whole song
+speeds up with the Space Invaders heartbeat, and the lead plays on every other step once a beat is
+shorter than 110 ms. Menus run the same `beat()` from a fixed-interval clock in `main.js`.

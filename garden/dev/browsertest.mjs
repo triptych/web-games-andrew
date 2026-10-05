@@ -102,14 +102,14 @@ async function boot(page, query = '') {
 }
 
 /** Center of a statue in screen pixels, or null if off screen. */
-const statueScreen = (page, id) =>
-    page.evaluate((id) => {
+const statueScreen = (page, id, h = 2.2) =>
+    page.evaluate(([id, h]) => {
         const g = window.__garden;
         const st = g.statues[id];
-        const v = new g.camera.position.constructor(st.x, st.y + 2.2, st.z).project(g.camera);
+        const v = new g.camera.position.constructor(st.x, st.y + h, st.z).project(g.camera);
         if (v.z > 1 || Math.abs(v.x) > 1 || Math.abs(v.y) > 1) return null;
         return { x: ((v.x + 1) / 2) * innerWidth, y: ((1 - v.y) / 2) * innerHeight };
-    }, id);
+    }, [id, h]);
 
 async function desktop() {
     console.log('desktop 1280x800');
@@ -273,11 +273,19 @@ async function phone(viewport, name) {
     await page.evaluate(() => window.__garden.ui.closeAll());
     const sp = await statueScreen(page, 3);
     check(!!sp, 'statue on screen');
-    await touch('touchStart', sp.x, sp.y);
-    await new Promise((r) => setTimeout(r, 60)); // a quick tap, not a hold
-    await touch('touchEnd');
-    await frames(page, 2);
-    const card = await page.evaluate(() => ({ open: !document.getElementById('card').hidden, href: document.getElementById('card-play').getAttribute('href') }));
+    // Sculptures differ per game and some are open (orreries, comets), so a tap at one height can
+    // pass between their parts. Tap down the statue to the solid pedestal, as a person would.
+    let card = { open: false, href: null };
+    for (const h of [2.2, 1.6, 1.0, 0.6]) {
+        const p = await statueScreen(page, 3, h);
+        if (!p) continue;
+        await touch('touchStart', p.x, p.y);
+        await new Promise((r) => setTimeout(r, 60)); // a quick tap, not a hold
+        await touch('touchEnd');
+        await frames(page, 2);
+        card = await page.evaluate(() => ({ open: !document.getElementById('card').hidden, href: document.getElementById('card-play').getAttribute('href') }));
+        if (card.open) break;
+    }
     check(card.open && /game-\d+\/index\.html/.test(card.href), `tapping a statue opens its card with a Play link (${card.href})`);
     await shot(page, `${name}-3-card`);
     const play = await page.evaluate(() => {

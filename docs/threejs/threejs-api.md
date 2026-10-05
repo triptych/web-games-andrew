@@ -501,6 +501,42 @@ The first-person weapon is a second scene and camera rendered by a second `Rende
 key light whose colours are set each frame from the CPU copy of the lightmap at the player's
 feet.
 
+## A voxel raster: every pixel is an instanced box (game-060)
+
+game-060 draws a 240 × 320 "arcade monitor" in which every sprite pixel, brick and letter is one
+instance of a single `InstancedMesh(BoxGeometry(1,1,1))`. Three pieces make it work:
+
+- **Pixel-exact perspective.** A far camera with a narrow FOV (`CAM_DIST = 1600`,
+  `fov = 2·atan(160 / 1600)`) maps the z = 0 plane onto the render target 1 unit = 1 pixel, yet
+  anything with depth still gets real perspective: debris flying at +z grows, the logo assembles from
+  z ≈ 1000. Small z offsets (0–3) layer the ball over invaders; at 120 px off-centre z = 3 shifts by
+  only ~0.2 px.
+- **Write the instance arrays directly.** Boxes are axis-aligned, so skip `Matrix4.compose`: write
+  scale on the diagonal and the translation into `instanceMatrix.array`, colours into
+  `instanceColor.array`, then `addUpdateRange(0, n * 16)` and `count = n`. ~3–6k instances per frame
+  cost well under a millisecond. Colours above 1 feed bloom; there is no tone mapping
+  (`ColorManagement.enabled = false`, `LinearSRGBColorSpace` output, HalfFloat targets).
+- **A bevel from the instance scale.** The vertex shader recovers the box size with
+  `length(instanceMatrix[0].xyz)`; the fragment shader lightens the top/left 1 px and darkens the
+  bottom/right on any front face ≥ 3 px. Bricks look like bricks, single pixels stay flat, and there
+  is no texture.
+
+```glsl
+vSize = vec2(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz));   // vertex
+vec2 p = vUv * vSize;                                                          // fragment, front face
+if (p.y > vSize.y - 1.0 || p.x < 1.0) c *= 1.32; else if (p.y < 1.0 || p.x > vSize.x - 1.0) c *= 0.58;
+```
+
+**Phosphor persistence** is one extra pass at low res, ping-ponging two targets:
+`gl_FragColor = max(cur, prev * 0.55)`. Lasers and the ball leave short CRT trails for one full-screen
+pass at 240 × 320. Backdrops dither with a 4 × 4 Bayer matrix computed from `gl_FragCoord`, which in a
+low-res target *is* the pixel grid, so the dithering lands on real pixels. Write the Bayer value as a
+formula (`b2(p) = 2·|x−y| + y` on the low bits, combined twice), not a local array indexed in a loop.
+
+**Symptom: ghost copies of the previous screen in headless screenshots.** SwiftShader can render
+only a few frames in the first seconds after a mode change, so persistence hasn't decayed yet. Wait
+longer before judging; it isn't a bug on real GPUs.
+
 ## Common gotchas
 
 - **`updateProjectionMatrix()` missing** — see resize section above. Symptom: window resizes but render is squashed.
@@ -535,6 +571,7 @@ To use: `import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 - [three.js examples](https://threejs.org/examples/)
 - [game-024 — Neon Vanguard](../../game-024/) — top-down shmup; bloom, custom grid shader, canvas-sprite HUD text
 - [game-040 — Starcadet](../../game-040/) — vertical bullet-hell shmup; instanced bullets, six shader backdrops, aspect-fitting camera, and a fake-three.js Node harness
+- [game-060 — BRICKVADERS](../../game-060/) — Breakout × Invaders; instanced voxel-pixel raster with a pixel-exact perspective camera, scale-derived bevels, phosphor persistence, Bayer-dithered backdrops
 - [game-045 — PINBREAK '86](../../game-045/) — pinball × breakout; tilted table rig, horizon-aware camera, fake surface lights, neon env map, CRT post pass, per-frame fx budgets
 - [game-054 — Pale Engine](../../game-054/) — DOOM-style FPS; height-grid levels, baked XZ lightmap + dynamic light pool, derivative bump mapping, merged-per-bone procedural monsters, a viewmodel pass, a post pass per powerup
 - [game-047 — Ashes & Aces](../../game-047/) — card roguelite; two-scene composer with a pixel-exact card layer, region-framed camera, patched PBR creatures, canvas-painted card faces with normal/foil maps
