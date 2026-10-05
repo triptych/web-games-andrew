@@ -898,7 +898,7 @@ const games = [
         description: "Breakout meets Space Invaders in a 1983 arcade cabinet, in three.js with no asset files. The Brick Armada, aliens built out of living bricks, marches down on Earth in formation, and you fly the STRIKER: half Breakout paddle, half laser base. Bounce the plasma ball into the formation, shoot lasers between bounces, chain hits for up to x5 and catch Arkanoid-style capsules (Laser, Expand, Catch, Multi-ball, Fireball, Slow, Barrier, Nova Bomb, 1UP). Everything is a voxel pixel drawn into a 240x320 vertical monitor with bloom, phosphor trails and a curved CRT, so invaders shed pixels as you hit them, every kill bursts into tumbling cubes that fly at the glass, and each wave assembles itself from flying bricks. The march is the bassline and speeds up as the formation thins. Nine invader types (tanks that crater your shields, splitters, mirrors that bounce lasers back, builders that lay new bricks, Galaga-style divers, and captors whose tractor beams steal your ball), rainbow, silver, gold, TNT and prize bricks, erodible shields, drifting asteroids and the mystery ship. Five sectors (the Moon, a neon nebula, an asteroid belt, a synthwave Synth City and the inside of the mothership) with five giant brick bosses to dig through to their glowing cores: King Krabbo, the Saucerator, Rockjaw, the Phantom Queen and the Overmind. Galaga-style challenging stages, an attract mode with a demo, high scores with initials, CADET and ARCADE modes, continues, endless loops, and a touch control deck with a spinner pad for phones.",
         icon: '\uD83D\uDC7E',
         folder: 'game-060',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'brickvaders',
         genre: 'arcade',
         tags: [
