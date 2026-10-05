@@ -391,6 +391,14 @@ async function boot() {
         audio.setMuted(muted);
         ui.sound(muted);
     });
+    // pause the music while the garden tab is hidden or unfocused, e.g. after
+    // it opens a game in a new tab, so the two don't play over each other
+    const syncFocus = () => audio.setPaused(document.hidden || !document.hasFocus());
+    document.addEventListener('visibilitychange', syncFocus);
+    addEventListener('blur', syncFocus);
+    addEventListener('focus', syncFocus);
+    syncFocus();
+
     ui.on('mapOpen', () => map.draw(controls.pos, controls.yaw));
     ui.on('timeOpen', () => {
         document.getElementById('time-slider').value = Math.round(sky.time * 1440);
