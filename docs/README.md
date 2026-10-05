@@ -9,7 +9,7 @@ This directory is the **canonical reference for AI-assisted development** in thi
 - [phaser/phaser4-api.md](phaser/phaser4-api.md) — Phaser 4.0.0 full API reference
 
 ## three.js
-- [threejs/threejs-api.md](threejs/threejs-api.md) — three.js r165 patterns used in this repo (import map, render loop, bloom + custom post passes, tilted play surfaces, fake surface lights, two-scene composer with a pixel-exact UI layer, region-framed cameras, patched PBR materials, gotchas)
+- [threejs/threejs-api.md](threejs/threejs-api.md) — three.js r165 patterns used in this repo (import map, render loop, bloom + custom post passes, tilted play surfaces, fake surface lights, two-scene composer with a pixel-exact UI layer, region-framed cameras, patched PBR materials, an instanced voxel-pixel raster, gotchas)
 
 ## Software 3D (no engine)
 - [software3d/software3d-api.md](software3d/software3d-api.md) — writing a 3D rasterizer from scratch on Canvas2D: pipeline, winding/culling/seam gotchas, LOD, procedural placement validation, fog-of-war map overlays
@@ -19,7 +19,7 @@ This directory is the **canonical reference for AI-assisted development** in thi
 
 ## Generic
 - [generic/learnings.md](generic/learnings.md) — Architecture patterns and lessons learned across all games (incl. seed-based save/load, RLE fog-of-war persistence, event-driven quest logs, inventory-vs-counter state, trustworthy pinball physics, and the early-games refresh: blocked storage, background-tab audio, clipped canvases, Kaplay touch and z gotchas)
-- [generic/sounds.md](generic/sounds.md) — Procedural Web Audio API sound design patterns (incl. look-ahead sequenced music with side-chain pump)
+- [generic/sounds.md](generic/sounds.md) — Procedural Web Audio API sound design patterns (incl. look-ahead sequenced music with side-chain pump, and sim-stamped events mapped onto the audio clock)
 - [generic/suggestions.md](generic/suggestions.md) — Future game ideas and backlog
 
 ---

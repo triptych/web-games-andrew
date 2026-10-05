@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#04020c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="BRICKVADERS — Breakout meets Space Invaders in a 1983 arcade cabinet. Bounce the plasma ball, fire your lasers, smash the Brick Armada.">
+    <title>BRICKVADERS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <aside id="side-l" class="side" aria-hidden="true">
+        <div class="marquee">BRICK<br>VADERS</div>
+        <div class="panel">
+            <h3>HOW TO PLAY</h3>
+            <p>The <b class="c">BRICK ARMADA</b> is marching on Earth!</p>
+            <p>Bounce the <b class="y">PLASMA BALL</b> into the formation and blast it with your <b class="c">LASERS</b>.</p>
+            <p>Hit things in a row without touching the paddle to build a <b class="p">CHAIN</b>: every five hits is another ×1, up to ×5.</p>
+            <p>Catch falling <b class="g">CAPSULES</b>. Don't let the ball fall, and don't get shot!</p>
+            <p>Every fourth stage, a <b class="r">GIANT BRICK BOSS</b>. Dig to its glowing core.</p>
+        </div>
+    </aside>
+
+    <div id="screen">
+        <canvas id="game"></canvas>
+        <div id="glass"></div>
+    </div>
+
+    <aside id="side-r" class="side" aria-hidden="true">
+        <div class="panel">
+            <h3>CONTROLS</h3>
+            <table>
+                <tr><td>MOVE</td><td>MOUSE / ← →</td></tr>
+                <tr><td>LAUNCH · FIRE</td><td>CLICK / SPACE</td></tr>
+                <tr><td>NOVA BOMB</td><td>RIGHT CLICK / X</td></tr>
+                <tr><td>PAUSE</td><td>P / ESC</td></tr>
+                <tr><td>MUTE</td><td>M</td></tr>
+            </table>
+            <p class="small">Gamepads work too.</p>
+        </div>
+        <div class="panel">
+            <h3>CAPSULES</h3>
+            <ul class="caps">
+                <li><i style="--c:#ff2448">L</i> LASER</li>
+                <li><i style="--c:#3a6aff">E</i> EXPAND</li>
+                <li><i style="--c:#3aff5a">C</i> CATCH</li>
+                <li><i style="--c:#3ae8ff">M</i> MULTI-BALL</li>
+                <li><i style="--c:#ff8a1a">F</i> FIREBALL</li>
+                <li><i style="--c:#ffe23a">S</i> SLOW</li>
+                <li><i style="--c:#9a4aff">B</i> BARRIER</li>
+                <li><i style="--c:#ff7ab8">N</i> NOVA BOMB</li>
+                <li><i style="--c:#b8bcd0">P</i> 1UP</li>
+            </ul>
+        </div>
+    </aside>
+
+    <div id="deck">
+        <div id="pad" aria-label="Slide to move">
+            <div class="ridges"></div>
+            <span class="pad-label">◄ SLIDE ►</span>
+        </div>
+        <div id="btns">
+            <button id="btn-bomb" class="abtn" aria-label="Nova bomb">NOVA</button>
+            <button id="btn-fire" class="abtn" aria-label="Fire">FIRE</button>
+        </div>
+        <button id="btn-pause" aria-label="Pause">❚❚</button>
+    </div>
+
+    <noscript><p class="noscript">BRICKVADERS needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
