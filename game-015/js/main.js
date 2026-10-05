@@ -19,6 +19,7 @@ import { GAME_WIDTH, GAME_HEIGHT, COLORS, PET_SPECIES } from './config.js';
 import { state }  from './state.js';
 import { events } from './events.js';
 import { initUI, showGameOver, showHatchAnimation } from './ui.js';
+import { emoji }  from './emoji.js';
 import {
     initAudio, playUiClick, playHatch, playStageUp,
     playSad, playDeath, playHappy, playFeed, playEggGet,
@@ -94,7 +95,7 @@ k.scene('splash', () => {
 
         const icon = k.add([
             k.pos(cx, eggY),
-            k.text(species.egg, { size: 36, font: 'monospace' }),
+            emoji(k, species.egg, { size: 36 }),
             k.anchor('center'),
             k.z(4),
         ]);
@@ -160,7 +161,7 @@ k.scene('splash', () => {
     const stageLabels = ['egg','baby','child','teen','adult'];
     const previewRow = k.add([
         k.pos(CX, 610),
-        k.text('', { size: 22 }),
+        emoji(k, '', { size: 22 }),
         k.color(...COLORS.text),
         k.anchor('center'),
         k.z(1),

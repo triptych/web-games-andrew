@@ -10,6 +10,7 @@ import {
     STAT_BAR_START_Y, ACTION_BAR_Y, ACTION_BTN_SIZE,
     FOOD_TYPES, INTERACTION_TYPES, PET_SPECIES,
 } from './config.js';
+import { emoji } from './emoji.js';
 
 let k;
 
@@ -151,11 +152,9 @@ function _buildPetDisplay() {
     ]);
 
     // Pet emoji label (very large)
-    // Offset y slightly below circle center: emoji glyphs render with visual
-    // mass above the text-box center, so centering at 240 clips tall emojis.
     _petLabel = k.add([
-        k.pos(GAME_WIDTH / 2, 255),
-        k.text(state.petEmoji, { size: 96 }),
+        k.pos(GAME_WIDTH / 2, 240),
+        emoji(k, state.petEmoji, { size: 96 }),
         k.anchor('center'),
         k.z(5),
     ]);
@@ -163,7 +162,7 @@ function _buildPetDisplay() {
     // Reaction floating emoji
     _reactionLabel = k.add([
         k.pos(GAME_WIDTH / 2 + 80, 185),
-        k.text('', { size: 36 }),
+        emoji(k, '', { size: 36 }),
         k.anchor('center'),
         k.opacity(1),
         k.z(6),
@@ -173,7 +172,7 @@ function _buildPetDisplay() {
     let t = 0;
     _petLabel.onUpdate(() => {
         t += k.dt();
-        _petLabel.pos = k.vec2(GAME_WIDTH / 2, 255 + Math.sin(t * 2) * 6);
+        _petLabel.pos = k.vec2(GAME_WIDTH / 2, 240 + Math.sin(t * 2) * 6);
         _petLabel.text = state.petEmoji;
 
         // Reaction bubble
@@ -199,7 +198,7 @@ function _buildStatBars() {
         // Emoji icon
         k.add([
             k.pos(BAR_LEFT_X - 24, y + BAR_H / 2),
-            k.text(def.emoji, { size: 16 }),
+            emoji(k, def.emoji, { size: 16 }),
             k.anchor('left'),
             k.z(10),
         ]);
@@ -291,7 +290,7 @@ function _buildActionBar() {
         // Button emoji
         const icon = k.add([
             k.pos(cx, cy - 8),
-            k.text(def.emoji, { size: 28 }),
+            emoji(k, def.emoji, { size: 28 }),
             k.anchor('center'),
             k.z(21),
         ]);
@@ -357,7 +356,7 @@ function _showFeedMenu() {
 
         k.add([
             k.pos(cx, cy),
-            k.text(food.emoji, { size: 24 }),
+            emoji(k, food.emoji, { size: 24 }),
             k.anchor('center'),
             k.z(31),
             'menu-overlay',
@@ -406,7 +405,7 @@ function _showInteractMenu() {
 
         k.add([
             k.pos(cx, cy),
-            k.text(action.emoji, { size: 24 }),
+            emoji(k, action.emoji, { size: 24 }),
             k.anchor('center'),
             k.z(31),
             'menu-overlay',
@@ -466,7 +465,7 @@ function _showEggsMenu() {
 
         k.add([
             k.pos(cx, cy),
-            k.text(species.egg, { size: 28 }),
+            emoji(k, species.egg, { size: 28 }),
             k.anchor('center'),
             k.z(31),
             'menu-overlay',
@@ -526,7 +525,7 @@ function _showShopMenu() {
 
         k.add([
             k.pos(cx, cy),
-            k.text(species.egg, { size: 26 }),
+            emoji(k, species.egg, { size: 26 }),
             k.anchor('center'),
             k.z(31),
             'menu-overlay',
@@ -652,7 +651,7 @@ export function showGameOver() {
 
     k.add([
         k.pos(CX, CY - 80),
-        k.text('💔', { size: 80 }),
+        emoji(k, '💔', { size: 80 }),
         k.anchor('center'),
         k.z(201),
     ]);
