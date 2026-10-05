@@ -3,7 +3,7 @@
 // ============================================================
 // Pure data. Imported by the sim (Node-safe) and the view.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.1.0';
 export const SAVE_KEY = 'bumble-basket.save.v1';
 
 // --- Colours (the body colour of every fruit of that colour) ---

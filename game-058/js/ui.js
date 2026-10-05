@@ -359,6 +359,25 @@ export function renderAlbum(save) {
 export function setToggle(id, on) { $(id).classList.toggle('on', !!on); }
 export function setVersion() { $('version').textContent = `v${VERSION}`; }
 
+/** Trail-length bubble that follows the newest fruit while dragging. */
+export function chainCount(n, note, x, y, golden = false, ready = false) {
+    const el = $('chain-count');
+    if (n == null) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    el.classList.toggle('golden', golden);
+    el.classList.toggle('ready', ready);
+    const key = `${n}|${note}`;
+    if (el.dataset.key !== key) {
+        el.dataset.key = key;
+        el.innerHTML = `<b>${n}</b>${note ? `<span>${note}</span>` : ''}`;
+        el.classList.remove('bump');
+        void el.offsetWidth;
+        el.classList.add('bump');
+    }
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+}
+
 // ------------------------------------------------------------
 // Tutorial hand
 // ------------------------------------------------------------

@@ -329,6 +329,7 @@ async function run(events) {
     busy = true;
     board.clearTrail();
     fx.clearTrail();
+    UI.chainCount(null);
     board.setHint(null);
     UI.hand(null);
     handPath = null;
@@ -460,7 +461,9 @@ function tryCell(r, c, d) {
         A.sfxHop(path.length - 1);
         A.buzzPitch(path.length);
         const lc = linkColour(game.linkTraits(a, b), b);
-        const p = toScreen(cellToWorld(r, c).setY(1.25));
+        // Tag the middle of the hop; the count bubble sits over the new fruit.
+        const mid = cellToWorld(last[0], last[1]).add(cellToWorld(r, c)).multiplyScalar(0.5).setY(0.9);
+        const p = toScreen(mid);
         UI.linkTag(lc.label, lc.css, p.x, p.y);
         if (path.length === GOLDEN_CHAIN) fx.sparkle(cellToWorld(r, c), 0xffe066, 10);
         refreshTrail();
@@ -528,6 +531,7 @@ function endDrag(commit = true) {
     path = [];
     board.clearTrail();
     fx.clearTrail();
+    UI.chainCount(null);
     if (!commit || !game) return;
     if (p.length >= MIN_CHAIN) {
         const ev = game.playChain(p);
@@ -560,6 +564,16 @@ window.addEventListener('keydown', (e) => {
     if ((e.key === 'p' || e.key === 'P') && (mode === 'play' || mode === 'pause')) return mode === 'play' ? pause() : resume();
     if ((e.key === 'h' || e.key === 'H') && mode === 'play') showHint(false);
 });
+
+/** The bubble over the newest fruit: trail length, and how close golden is. */
+function updateChainCount() {
+    if (!path.length) { UI.chainCount(null); return; }
+    const [r, c] = path[path.length - 1];
+    const p = toScreen(cellToWorld(r, c).setY(1.35));
+    const n = path.length;
+    const note = n >= GOLDEN_CHAIN ? 'golden!' : n === GOLDEN_CHAIN - 1 ? '1 more for golden!' : n < MIN_CHAIN ? `${MIN_CHAIN - n} more` : '';
+    UI.chainCount(n, note, p.x, p.y, n >= GOLDEN_CHAIN, n >= MIN_CHAIN);
+}
 
 // ============================================================
 // Hints
@@ -743,7 +757,8 @@ function tick(dt) {
     fx.update(dt, elapsed);
     updateScene(dt, save.settings.gentle);
     if (dragging && game) {
-        fx.setTrail(path, trailColours(), 0, elapsed, game.wild);
+        fx.setTrail(path, trailColours(), lastSample?.point, elapsed, game.wild);
+        updateChainCount();
         fx.setCandidates(candidates(), elapsed);
     }
     if (mode === 'play' && game && !busy && !dragging && game.status === 'playing') {

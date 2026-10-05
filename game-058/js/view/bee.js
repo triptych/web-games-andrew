@@ -89,7 +89,8 @@ export class Bee {
 
     follow(p) {
         this.mode = 'follow';
-        this.target.set(p.x, 1.25, p.z + 0.15);
+        // Hover up and to the side of the finger so the trail's end stays visible.
+        this.target.set(p.x + 0.55, 1.35, p.z - 0.5);
     }
 
     idle() { if (this.mode !== 'zip') this.mode = 'idle'; }

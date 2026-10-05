@@ -279,6 +279,25 @@ button { font-family: inherit; color: inherit; cursor: pointer; border: none; ba
     text-shadow: 0 2px 0 rgba(160,80,10,0.85); animation: float-up 1.1s ease-out forwards; }
 @keyframes tag-up { 0% { opacity: 0; margin-top: 6px; } 15% { opacity: 1; margin-top: 0; } 75% { opacity: 1; } 100% { opacity: 0; margin-top: -18px; } }
 @keyframes float-up { 0% { opacity: 0; margin-top: 0; scale: 0.6; } 15% { opacity: 1; scale: 1.1; } 100% { opacity: 0; margin-top: -60px; scale: 1; } }
+/* Trail-length bubble over the newest fruit while dragging. */
+#chain-count {
+    position: fixed; z-index: 11; pointer-events: none; transform: translate(-50%, -100%);
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+#chain-count b {
+    display: grid; place-items: center; min-width: 38px; height: 38px; padding: 0 8px; border-radius: 99px;
+    background: #fff; color: var(--ink-soft); font-size: 22px; font-weight: 700;
+    border: 3px solid #e2c9a4; box-shadow: 0 3px 0 rgba(90,58,34,0.25), 0 4px 10px rgba(0,0,0,0.15);
+}
+#chain-count.ready b { color: #6a3a00; border-color: var(--honey); }
+#chain-count.golden b { background: radial-gradient(circle at 35% 30%, #fff8c0, #ffd040 55%, #e09a10); color: #5a2a00; border-color: #fff3a0; box-shadow: 0 0 14px #ffcf3a, 0 3px 0 rgba(160,90,10,0.5); }
+#chain-count span {
+    font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; background: rgba(90,58,34,0.85);
+    padding: 2px 8px; border-radius: 99px;
+}
+#chain-count.golden span { background: #e08a10; }
+#chain-count.bump b { animation: count-bump 0.25s ease-out; }
+@keyframes count-bump { 0% { transform: scale(1.35); } 100% { transform: scale(1); } }
 #hand { position: fixed; z-index: 11; font-size: 44px; pointer-events: none; transform: translate(-30%, -10%); filter: drop-shadow(0 3px 2px rgba(0,0,0,0.25)); transition: opacity 0.3s; }
 
 /* ------------------------------------------------------------ win / sense */

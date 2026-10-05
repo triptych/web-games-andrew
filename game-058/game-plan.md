@@ -51,8 +51,10 @@ come in. Each variant has a stamp in the **Fruit Album**.
 - A hop is legal if the two fruit share at least one trait the bee can
   **sense**. Neighbours you can hop to light up, the rest dim. Dragging back
   over the previous fruit undoes a hop.
-- The trail is drawn as dotted pollen, and a small tag names the trait each
-  hop used ("same colour!").
+- The trail is drawn as a thick rope over the fruit, each hop coloured by
+  the trait that linked it, with glowing discs under picked fruit, a rubber
+  band to the finger, a tag naming each hop's trait ("same colour!") and a
+  bubble counting the trail toward golden.
 
 ### 2. Bee Senses: the progression
 The bee starts out sensing only **Kind**. Each garden teaches one more sense:
@@ -225,6 +227,16 @@ that.
 - Daily picnic seed?
 
 ## Changelog
+
+### 1.1.0 (2026-10-04)
+- The trail is much easier to see while dragging: a thick rope with a dark
+  outline is drawn over the fruit, each hop coloured by the trait that linked
+  it, with sparkles and a bright band flowing toward the newest fruit. Picked
+  fruit sit on glowing discs (the newest pulses), a rubber band of dots runs
+  from the last fruit to your finger, and a bubble over the newest fruit
+  counts the trail ("1 more for golden!" at 6, gold at 7). Hop tags moved to
+  the middle of each hop, and the bee hovers beside your finger instead of on
+  top of the trail's end.
 
 ### 1.0.1 (2026-10-04)
 - Fixed taps on phones landing one fruit too low. The canvas was stretched to
