@@ -39,6 +39,7 @@ const rig = {
 const insets = { right: 0, bottom: 0, top: 0 };
 let quality = 1;   // 0 high, 1 medium, 2 low
 let pendingResize = true;
+let sizeKey = '';
 
 export function initStage(container, q) {
     quality = q;
@@ -86,12 +87,17 @@ function resize() {
     pendingResize = false;
     const w = window.innerWidth, h = window.innerHeight;
     const dpr = Math.min(window.devicePixelRatio || 1, [2, 1.5, 1][quality]);
-    renderer.setPixelRatio(dpr);
-    renderer.setSize(w, h);
-    composer.setPixelRatio(dpr);
-    composer.setSize(w, h);
-    const bloomScale = quality === 0 ? 0.5 : 0.35;
-    bloom.resolution.set(Math.max(64, w * bloomScale), Math.max(64, h * bloomScale));
+    // Reallocate the canvas and render targets only when the size really changes: an inset change just moves the camera.
+    const key = `${w}x${h}@${dpr}/${quality}`;
+    if (key !== sizeKey) {
+        sizeKey = key;
+        renderer.setPixelRatio(dpr);
+        renderer.setSize(w, h);
+        composer.setPixelRatio(dpr);
+        composer.setSize(w, h);
+        const bloomScale = quality === 0 ? 0.5 : 0.35;
+        bloom.resolution.set(Math.max(64, w * bloomScale), Math.max(64, h * bloomScale));
+    }
     camera.aspect = w / h;
     // Centre the tree in the uncovered part of the screen.
     const visW = Math.max(200, w - insets.right), visH = Math.max(200, h - insets.bottom - insets.top);

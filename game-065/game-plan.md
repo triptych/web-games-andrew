@@ -144,6 +144,9 @@ total motes ran away; and heartwood based on tree height plus a super-exponentia
 
 ## Changelog
 
+### v1.1.1 (2026-10-06)
+- Fixed a box-shaped blink over the right-hand panel, worst when moving the mouse quickly over it: no `backdrop-filter` over the WebGL canvas (panel and HUD chips use a more opaque tint instead), `layout()` only on the panel's own transition, and `resize()` reallocates the canvas and render targets only when width, height, pixel ratio or quality change.
+
 ### v1.1.0 (2026-10-06)
 - Every spirit and structure remodelled with smooth, vertex-coloured, softly glowing parts and new animation: Treant, White Stag, Dryad, Moonwell, Standing Stones, Glowcaps, Star Seed crystals and realm islands (`js/view/models.js`, shared parts in `js/view/kit.js`). Rigid parts are merged per material, so a full grove draws fewer calls than before.
 

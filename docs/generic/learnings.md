@@ -5310,6 +5310,9 @@ Remodelling six creatures from tubes, spheres and lathes took them from ~10 mesh
 ### A moving target in a slow browser test
 Under SwiftShader a frame can take most of a second, so a test that reads a moving target's screen position and then taps can miss it. That isn't a flake to re-run: re-read and tap again, a few times, like a player chasing it.
 
+### No `backdrop-filter` over a WebGL canvas
+A frosted-glass panel (`backdrop-filter: blur(...)`) over a canvas that redraws every frame blinks in Chrome: when the panel repaints (hovering its buttons, quickly), the compositor can drop or show a stale backdrop for a frame, and a panel-sized box flashes over the scene. Headless SwiftShader never shows it, so tests can't catch it. Use a plain translucent tint (a little more opaque to make up for the blur). Related: a `transitionend` listener on a container also hears every child's hover transition bubbling up, so check `e.target === e.currentTarget`; and make resize code skip `renderer.setSize`/`composer.setSize` when nothing changed, since they reallocate the canvas and every render target.
+
 ### Small traps the browser test caught
 - The Nourish button had no listener at all; only a test that clicks the real button finds that.
 - `setPointerCapture` throws for synthetic pointers (and already-released ones), aborting the handler before the click counted. Wrap it.
