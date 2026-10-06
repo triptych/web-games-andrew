@@ -988,7 +988,7 @@ const games = [
         description: "A steampunk COM-bot adventure in three.js with no asset files. On Midden, the junk planet where the galaxy dumps its dead starships, a scrap kid from Cinderwick finds, repairs, builds and evolves COM-bots (Companion Mechanoids): 250 of them in 126 lines across 16 types, each assembled from procedural parts (boiler drums, treads, spider legs, hover jets, saw arms, smokestacks, dish antennas) in its own palette. Evolving installs new parts, a new trait and the techniques those parts bring. Catch wild bots with Reboot Spikes, weld dormant wrecks back to life in a timing minigame, or build them from blueprints at the workbench. Turn-based battles with 170 techniques, statuses, atmospheres and traits, against 79 trainers, eight Forgemasters, the Rust Syndicate, the Furnace Four and Champion Vex, across 64 maps of scrap drifts, crashed ships, a refinery, frozen wrecks, a sky station and an airship. Win the championship and the Starward Ticket off-world. Bloom, sepia grade, heat haze, a gear-iris wipe, synthesised music, autosave, keyboard or touch.",
         icon: '\uD83E\uDD16',
         folder: 'game-066',
-        version: '1.0.2',
+        version: '1.0.3',
         cssClass: 'scrapwright',
         genre: 'rpg',
         tags: [

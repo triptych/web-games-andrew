@@ -572,6 +572,11 @@ export class BattleView {
         this.camera.position.copy(base).add(this.camFocus.clone().multiplyScalar(0.3));
         if (this.shake > 0) { this.camera.position.x += (R() - 0.5) * this.shake; this.camera.position.y += (R() - 0.5) * this.shake; this.shake *= Math.pow(0.02, dt); }
         this.camera.lookAt(this.camFocus);
+        // Centre the stage in the space above the command box rather than on the whole screen.
+        this.shift = (this.shift || 0) + ((this.boxShift || 0) - (this.shift || 0)) * Math.min(1, dt * 8);
+        const sh = Math.round(this.shift);
+        if (sh > 0) this.camera.setViewOffset(this.r.w, this.r.h, 0, sh, this.r.w, this.r.h);
+        else if (this.camera.view && this.camera.view.enabled) this.camera.clearViewOffset();
         this.sky.position.copy(this.camera.position);
         this.sky.material.uniforms.uTime.value = t;
     }
