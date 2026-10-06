@@ -141,6 +141,9 @@ total motes ran away; and heartwood based on tree height plus a super-exponentia
 
 ## Changelog
 
+### v1.0.2 (2026-10-06)
+- Click sparks no longer leave a still cloud of one-pixel dots where they faded: dead sparks are clipped, not drawn at size 0, and they really fade out.
+
 ### v1.0.1 (2026-10-06)
 - The ground is a polar grid instead of a triangle fan, so the hills under the forest are real and the trees stand on them instead of hovering.
 

@@ -537,6 +537,8 @@ export class WorldTree {
                 varying float vA;
                 void main() {
                     float g = smoothstep(aD.x, aD.x + 4.0, uGrow);
+                    // not grown yet: off screen, not a one-pixel dot
+                    if (g <= 0.0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); gl_PointSize = 0.0; vA = 0.0; return; }
                     vec3 p = position; p.y += sin(uTime * 1.2 + aD.y * 20.0) * 0.25;
                     vec4 mv = modelViewMatrix * vec4(p, 1.0);
                     vA = g * (0.6 + 0.4 * sin(uTime * 2.0 + aD.y * 30.0));

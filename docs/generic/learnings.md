@@ -5295,6 +5295,9 @@ The bark looked washed out at every stage. Rendering each shader term on its own
 ### Symptom: the distant trees hover over the hills → `CircleGeometry` has no inner vertices
 `CircleGeometry(radius, segments)` is a triangle fan: one centre vertex and one ring at the rim. Displacing its vertices by a height function only moves the centre and the rim, so hills that rise at radius 34–94 simply weren't in the mesh, and props placed with the same height function floated up to 5 units above a straight slope. Use a polar grid with real rings (`polarGrid()` in game-065's `ground.js`, radii growing as `(i/n)^1.7` so the clearing stays fine), check every triangle faces up, and raycast the mesh against the height function at the radii where props stand.
 
+### Symptom: a still cloud of dots builds up where particles faded → `gl_PointSize = 0` is not invisible
+A pooled point system "killed" a spark by setting its size to 0 and leaving its position and colour alone. The spec only defines point sizes from 1 up, and many GPUs clamp 0 to one pixel, so every dead spark stayed as a dot at the spot it died, and clicking built a frozen cloud above the tree. SwiftShader drew them too, which made it testable: diff a screenshot after the sparks die against one from before the clicks. Kill a point by moving it outside the clip volume (`gl_Position = vec4(2.0, 2.0, 2.0, 1.0)`) and drive its colour by an alpha that reaches 0. Make sure the fade you compute is actually applied: this one was computed and never used.
+
 ### Small traps the browser test caught
 - The Nourish button had no listener at all; only a test that clicks the real button finds that.
 - `setPointerCapture` throws for synthetic pointers (and already-released ones), aborting the handler before the click counted. Wrap it.

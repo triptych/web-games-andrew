@@ -462,6 +462,16 @@ if (DEBUG) {
         snap: () => { world.snap(grove); world.update(0.001, grove); updateStage(0.001); snapCamera(); },
         closeModal: () => ui.closeModal(),
         debugCam: () => ({ ...cameraState(), size: world.size, growth: world.growth }),
+        /** Burst pool health: a dead spark must never stay visible (it used to linger as a 1 px dot). */
+        bursts: () => {
+            const b = world.bursts;
+            let alive = 0, dead = 0, deadVisible = 0;
+            for (let i = 0; i < b.max; i++) {
+                if (b.life[i] > 0) alive++;
+                else if (b.age[i] > 0) { dead++; if (b.alpha[i] > 0 || b.size[i] > 0) deadVisible++; }
+            }
+            return { alive, dead, deadVisible };
+        },
         brightness: () => {
             render();       // read back in the same task as the draw, before the buffer is presented and cleared
             const c = renderer.domElement;

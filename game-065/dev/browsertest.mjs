@@ -123,6 +123,10 @@ async function desktop() {
     let s = await st(page);
     check(s.clicks === 12 && s.motes >= 12, `12 real clicks on the seed gather motes (${s.clicks} clicks, ${s.motes} motes)`);
     check(await page.evaluate(() => document.querySelectorAll('.floater').length > 0), 'floating numbers appear');
+    // every spark from those clicks dies, and none stays behind as a dot
+    await until(page, () => { const b = window.__wr.bursts(); return b.alive === 0 && b.dead > 0; }, 'click sparks all fade out');
+    const bs = await page.evaluate(() => window.__wr.bursts());
+    check(bs.deadVisible === 0, `dead sparks are not drawn (${bs.dead} dead, ${bs.deadVisible} still visible)`);
     await shot(page, 'd02-seed');
     // buy a firefly by clicking its row
     await realClickTree(page, 6);
