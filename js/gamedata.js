@@ -996,6 +996,21 @@ const games = [
             { emoji: '\uD83E\uDD16', label: 'Robots' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-067',
+        title: 'Tootle Isles',
+        description: "A cozy toy-train sandbox in the spirit of LEGO Loco, in three.js with no asset files, and everything unlocked. Choose one of eight islands (Sunny Cove, Pine Peaks, Twin Isles, Coral Ring, Blossom Bay, Maple Hollow, Snowdrop Isle or a Big Baseplate), each reshaped by a seed, and start blank or with a little town and a train already running. Drag to lay track: curves, crossings and switches come from the shape you draw, track over water becomes a bridge and track through a hill becomes a tunnel. Add station platforms and the residents of every home walk over, wait and climb aboard. Design your own trains in the Workshop (steam, little tank engine with a friendly face, diesel, bullet train or tram, and up to ten coaches, boxcars, tankers, log cars, sheep wagons, ice cream cars, circus cars and more, in sixteen toy colours) and keep them in a Train Shed shared by every island. Build from 80 pieces: homes, shops, a town hall, a fire station, a castle, a Ferris wheel, a carousel, a windmill, a lighthouse, farms, trees, boats and a friendly whale. Trains never crash: they brake for each other, stop at stations and shunt out of dead ends. Tap anything: trains toot, people wave, sheep baa, windmills whirl, points switch. Ride along in the driver's view, change the time of day, collect stickers, undo anything, save as many islands as you like with thumbnails and share codes. A studded baseplate, chunky bricks, minifig people, cotton-wool steam, a shore-foam sea, snow, petals and falling leaves, night lamps and fireflies, tilt-shift, synthesised music and touch controls for phones.",
+        icon: '\uD83D\uDE82',
+        folder: 'game-067',
+        version: '1.0.0',
+        cssClass: 'tootle-isles',
+        genre: 'cozy',
+        tags: [
+            { emoji: '\uD83D\uDE82', label: 'Trains' },
+            { emoji: '\uD83C\uDFDD\uFE0F', label: 'Sandbox' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
