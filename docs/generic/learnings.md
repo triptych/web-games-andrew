@@ -5218,10 +5218,36 @@ Docked menus fill the right-hand half of the screen, so the docked camera looks 
 
 ---
 
-## Game 062: Tee & Sorcery — a golf RPG whose courses the physics and the renderer share (2026-10-06)
+## Game 062: Rotten to the Core — a fruit Diablo, balanced by a bot that plays the real API (2026-10-06)
+
+### Line of sight must be an exact grid traversal
+Line of sight first sampled the segment every 0.3 tiles. Projectiles step every 0.25 tiles. Where a shot grazed a wall corner, one said "clear" and the other hit the wall, so a ranged hero standing in a corridor shot the same corner forever (the bot sat there for 150 simulated minutes). An Amanatides–Woo DDA visits every tile the segment touches, and when the ray passes exactly through a corner it requires both neighbours to be clear. Use one exact traversal for vision, aggro and "can I shoot that", and let projectiles be the generous one.
+
+### Every position write needs the same collision check
+Three different bugs put an actor inside a wall, and every one was an unchecked position write: a corner-slide nudge in `moveActor`, the fallback spot for a portal back down (`floor(x) + 0.5` of a spot that was already in a wall), and a knockback. Once embedded, `passable()` fails in every direction and the actor freezes. Two fixes: check every write, and as a safety net, if the hero ever starts a tick in a wall, spiral out to the nearest free spot (`unstick`).
+
+### Don't find "new" events by index in a capped queue
+The sim keeps its event queue bounded (game-040's advice). The game layer looked for the stairs event in `events.slice(before)`, where `before` was the length before the tick — but the cap had already trimmed the front, so the stairs event sat at an index below `before` and was never seen. In headless runs nothing drains the queue, so it was always at the cap. Count events with a sequence number and take the last `seq - seqBefore`.
+
+### A bot finds the soft-locks a playtest won't
+`js/sim/bot.js` explores every room, fights with a per-class rotation, loots, equips by score, uses Portal Pies, sells in town and takes the stairs. Each of its stalls was a real game bug: the corner shot above, a shrine that never worked (`{ ...defaults, ...mapSpec }` let the map's `kind: 'ripe'` overwrite the object's `kind: 'obj'`), a potion on the floor that could never be picked up with a full belt (and an intent that kept walking to it), and two equippable items that kept swapping (a two-hander pushes the shield out, the shield pushes the two-hander out). Give the bot an attention budget per target (`spent[id]`, then ignore it) so one unreachable chest doesn't stall a 40-minute run — and then go and fix why it was unreachable.
+
+### Balance a loot game with the full loop, not with fights
+The balance numbers that mattered came from the whole loop (explore → loot → equip → level → town → descend), not from duels: the first ranger died five times on floor 1 because a pack of six grapes outlasts a single-target seed shot at level 2. Seed Shot now pierces one enemy, and rangers start with a little more Freshness. Durian's summons (two Durian Brutes) were the top killer on floor 12; one brute plus three grapes keeps the fight hard without a wall. Final table: every class beats the game on three seeds in 33–55 simulated minutes, arriving at level 23–28 with 0–5 deaths.
+
+### Re-rendering a panel on click breaks double-click
+Selecting an inventory item rebuilt the panel's HTML, so the second click of a double-click landed on a brand-new element and `dblclick` never fired. Update the selection in place (move a `.sel` class, rebuild only the context row). The browser test caught it by double-clicking for real.
+
+### Wait for frames, not milliseconds, before clicking the 3D world
+Under SwiftShader the first frame after building a level can take seconds while shaders compile. A test that teleports the hero, waits 400 ms and projects an NPC's position to click it uses the *old* camera and clicks the HUD. Expose a frame counter from the view and wait for two new frames before projecting; also make the debug teleport clear the hero's path, or it keeps walking to the last click.
+
+### Characters for a top-down camera: faces up, hats small
+With the camera ~50° above the floor, a face placed at mid-height on a round fruit is foreshortened to nothing and a full-size helmet hides the fruit entirely. Faces sit higher on hero bodies (10% of the height above the profile's face line) and are 20% bigger; helms and caps are scaled to ~80% of the body radius at the top and sit on the crown. Decor attached to south-facing walls looked like it floated mid-room once those walls were cut away in the vertex shader — hang cobwebs and roots on north walls only.
+
+## Game 063: Tee & Sorcery — a golf RPG whose courses the physics and the renderer share (2026-10-06)
 
 ### Paint a course from ordered layers, and give both sides the same grids
-A hole is a list of shapes (ellipse, path, square), each with a surface and optional height operations (raise, plateau, flatten to the lake level, pyramid). Later layers paint over earlier ones, so an island green listed after its lake rises out of the water and an open-water hole listed after an ice sheet breaks through it. `buildCourse()` evaluates the layers once into three 0.5-unit grids — height, surface id and distance to playable ground — and everything reads those: the ball, the bot, the minimap and the terrain shader (which turns the surface grid into blurred per-surface mask textures). What you see is exactly what the ball hits. *(game-062 `js/sim/course.js`)*
+A hole is a list of shapes (ellipse, path, square), each with a surface and optional height operations (raise, plateau, flatten to the lake level, pyramid). Later layers paint over earlier ones, so an island green listed after its lake rises out of the water and an open-water hole listed after an ice sheet breaks through it. `buildCourse()` evaluates the layers once into three 0.5-unit grids — height, surface id and distance to playable ground — and everything reads those: the ball, the bot, the minimap and the terrain shader (which turns the surface grid into blurred per-surface mask textures). What you see is exactly what the ball hits. *(game-063 `js/sim/course.js`)*
 
 ### A golf search bot: geodesic distance, risk-aware refinement, scoring progress not HP
 `dev/simtest.mjs` proves all twenty holes playable with a bot that clones the world (`structuredClone` of a plain-data state) and plays candidate shots out with the real physics. Four things made it trustworthy:
@@ -5229,16 +5255,16 @@ A hole is a list of shapes (ellipse, path, square), each with a surface and opti
 - **Symptom: the Dijkstra reached 3% of the grid.** Distances were stored in a `Float32Array`; the float64 key popped from the heap was then *greater* than the rounded stored value, so `if (d > dist[k]) continue` skipped almost every node. Use `Float64Array` for any priority-queue distance store.
 - **Risk-aware refinement.** A bot that plans with perfect strikes but executes with timing errors is risk-blind: it kept hooking a "perfect" corner-cut into the woods. Re-score the best candidates under a hook, a slice, a fat and a thin strike and weight the average.
 - **Score boss progress, not HP.** The final boss's HP resets when he transforms, so "HP before − HP after" made the killing blow worth −2 and the bot never took it. Count damage across phases.
-Calibrate pars with the *noisy* bot. The perfect-strike search bot chips in from 100 yards and is no guide to a human. *(game-062 `js/sim/bot.js`)*
+Calibrate pars with the *noisy* bot. The perfect-strike search bot chips in from 100 yards and is no guide to a human. *(game-063 `js/sim/bot.js`)*
 
 ### Golf feel: backspin on the first landing, and a cup sized to dispersion
 Keeping all the tangential speed at landing let a drive roll 85 yards. Each club now keeps only part of its speed on the first bounce (driver 42%, wedge 16%), which also makes wedges check up on greens. A stylised cup must still be small relative to *shot dispersion*: at 0.5 yd, chip-ins from 100 yards were routine; 0.34 yd with a 4.6 u/s capture speed feels right.
 
 ### Floating islands: never interpolate heights into the void
-Bilinear sampling between a land cell and a void cell (−80) builds a fake cliff, and the contact code then teleports a ball falling past the edge back up onto it. On sky courses, a point over a void cell is void; a point over land replaces any void corners with the land corners' average, so the edge is sharp. *(game-062 `sampleH()`)*
+Bilinear sampling between a land cell and a void cell (−80) builds a fake cliff, and the contact code then teleports a ball falling past the edge back up onto it. On sky courses, a point over a void cell is void; a point over land replaces any void corners with the land corners' average, so the edge is sharp. *(game-063 `sampleH()`)*
 
 ### Fair moving bosses: move on their own turn
 A sandworm circling in real time could not be hit from beyond six yards, because the swing meter makes timing a lead impossible. It now holds still while you aim and slithers during its turn. A boss that knocks your ball into a hazard returns it without a penalty stroke.
 
 ### Rendered portraits from the 3D characters
-A second, tiny `WebGLRenderer` on an offscreen 160 px canvas (`preserveDrawingBuffer: true`) renders each speaker's rig head-and-shoulders and caches `canvas.toDataURL()` per speaker × expression. Dialogue portraits then always match the models, with no art files. *(game-062 `js/view/portrait.js`)*
+A second, tiny `WebGLRenderer` on an offscreen 160 px canvas (`preserveDrawingBuffer: true`) renders each speaker's rig head-and-shoulders and caches `canvas.toDataURL()` per speaker × expression. Dialogue portraits then always match the models, with no art files. *(game-063 `js/view/portrait.js`)*

@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-62 games, `game-001` through `game-062`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+63 games, `game-001` through `game-063`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -79,7 +79,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 059 | [Sister Circuit](game-059/) | Neon beat-'em-up: a stolen combat suit, seven stages and bosses, a sister to rescue | three.js |
 | 060 | [BRICKVADERS](game-060/) | Breakout × Space Invaders in a 1983 arcade cabinet: bounce, shoot, smash the Brick Armada | three.js |
 | 061 | [STARWRIGHT](game-061/) | Procedural space sim: mine, trade with aliens, rebuild your base, upgrade your ship, warp across a seeded galaxy | three.js |
-| 062 | [Tee & Sorcery](game-062/) | Fantasy golf RPG: twenty holes in five storybook realms, boss holes, levels, gear and spells | three.js |
+| 062 | [Rotten to the Core](game-062/) | A light, silly fruit Diablo: build a fruit hero, squash rotten fruit through procedural cellars, jam catacombs and the Rotten Core, loot kitchenware | three.js |
+| 063 | [Tee & Sorcery](game-063/) | Fantasy golf RPG: twenty holes in five storybook realms, boss holes, levels, gear and spells | three.js |
 
 ### Highlights
 
@@ -155,9 +156,11 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 
 **[BRICKVADERS](game-060/)** — **Breakout meets Space Invaders** in a 1983 arcade cabinet, in three.js with no asset files. The Brick Armada, aliens built out of living bricks, marches down in formation, and the STRIKER is half paddle, half laser base: bounce the plasma ball into the formation, shoot between bounces, chain hits for up to ×5 and catch Arkanoid-style capsules (laser, expand, catch, multi-ball, fireball, slow, barrier, Nova bomb, 1UP). Every sprite, brick and letter is a voxel pixel in a 240×320 vertical monitor with bloom, phosphor trails and a curved CRT, so invaders shed pixels when hit, kills burst into cubes that fly at the glass, and each wave assembles itself from flying bricks. The four-note march is the bassline and speeds up as the formation thins. Nine invader types (tanks, splitters, laser-reflecting mirrors, brick-laying builders, Galaga divers, ball-stealing captors), five brick types, erodible shields, drifting asteroids, the mystery ship; five sectors with their own 3D backdrops and five giant brick bosses to dig through to their cores; Galaga-style challenging stages; an attract mode with a demo, high scores with initials, CADET and ARCADE modes, continues, endless loops, and a phone control deck with a spinner pad. [game-060/dev/](game-060/dev/README.md) has a bot clear every stage of two loops headlessly and drives every flow in Chromium on desktop and touch-only phones.
 
+**[Rotten to the Core](game-062/)** — A **light, silly Diablo with fruit**, in three.js with no asset files. Grow a fruit hero (sixteen fruits, colours, eyes, mouths, twelve hats) as a Melon Knight, Seed Ranger or Citromancer and squash your way down from the town of Tristrawberry through twelve **procedurally generated** levels in three acts: the Root Cellar, the sticky Jam Catacombs and the Rotten Core with its rivers of boiling fruit punch. Click to walk and whack; eighteen skills (Big Slice, Blender, Pip Spray, Peel Trap, Raisin Rain, Brain Freeze, Chain Lime-ning, Melon Meteor…); fourteen kinds of rotten fruit and pests with their own brains plus champion and named elites; and three bosses with telegraphed attacks and phases: The Juicer ("Ahh… FRESH FRUIT!"), Mangophisto the Chutney Lord and Durian the Diabolical. Everything bursts into juice that stays on the floor. Kitchenware loot in four rarities up to Golden uniques, a paper doll and stash, shops, gambling, six quests, waypoints, three difficulties, fog of war, an automap, generative music and gibberish-talking townsfolk led by Deckard Cane, a candy cane who asks you to stay a while and glisten. Mouse and keyboard or touch. [game-062/dev/](game-062/dev/README.md) checks 480 generated levels, has a bot play each class to the ending headlessly, and drives the whole game in Chromium on desktop and touch-only phones.
+
 **[STARWRIGHT](game-061/)** — A **procedurally generated space sim** in three.js with no asset files: everything (230 star systems, planets, asteroid belts, eight alien species with their own faces, languages and tastes, stations, ships, missions) grows from one **seed** you can type in and share. You start with a tiny skiff and a derelict outpost called Hearth. Fly in third person, mine asteroids with a cutting beam, scoop fuel from stars and gas from giants, scan planets, salvage wrecks and trade at alien stations whose prices react to what you sell. Bring it all home to build Hearth module by module (refinery, shipyard, research lab, drones, hydroponics, trade depot, defences) and watch the station grow; upgrade the ship through five hull classes and eleven components, including the warp drive that opens the galaxy. Procedural missions, light combat with Reaver raiders and a hostile alien swarm, cruise autopilot, an Elite-style 3D scanner, and an eleven-chapter story about the Lattice Signal at the galactic core. Keyboard and mouse, gamepad or touch.
 
-**[Tee & Sorcery](game-062/)** — A **fantasy golf RPG** in three.js with no asset files. Lord Bogey, a sorcerer who never made par, shatters the Golden Tee; Pip, a caddie who pulled a talking sand wedge called Wedgewick out of a stone, sets off across five storybook realms to win it back. Real 3D golf (a three-press swing meter, four clubs, wind, backspin, bounces, rolls, PERFECT strikes, hooks and slices) on twenty holes that each play differently: windmills and spring mushrooms, quicksand and island greens, sheet ice and a frozen lake, lava rivers and geysers, and floating islands over the void. Every realm ends in a **boss hole** where the cup stays sealed until you beat the boss with your ball, from Grubbins the Gopher King to Lord Bogey's three-headed final form. Bonk monsters for XP, level up Power, Control, Luck and Magic, buy club sets, balls and charms, and cast Mulligan, Gust Ward, Fireball, Frost Step and Seeker. Chibi characters with painted faces and ink outlines, a storybook terrain shader, a floating-island world map with tilt-shift, typed dialogue with rendered portraits, procedural music per realm, and touch controls. [game-062/dev/](game-062/dev/README.md) proves every hole can be played at par with a search bot and drives the whole game in Chromium on desktop and touch-only phones.
+**[Tee & Sorcery](game-063/)** — A **fantasy golf RPG** in three.js with no asset files. Lord Bogey, a sorcerer who never made par, shatters the Golden Tee; Pip, a caddie who pulled a talking sand wedge called Wedgewick out of a stone, sets off across five storybook realms to win it back. Real 3D golf (a three-press swing meter, four clubs, wind, backspin, bounces, rolls, PERFECT strikes, hooks and slices) on twenty holes that each play differently: windmills and spring mushrooms, quicksand and island greens, sheet ice and a frozen lake, lava rivers and geysers, and floating islands over the void. Every realm ends in a **boss hole** where the cup stays sealed until you beat the boss with your ball, from Grubbins the Gopher King to Lord Bogey's three-headed final form. Bonk monsters for XP, level up Power, Control, Luck and Magic, buy club sets, balls and charms, and cast Mulligan, Gust Ward, Fireball, Frost Step and Seeker. Chibi characters with painted faces and ink outlines, a storybook terrain shader, a floating-island world map with tilt-shift, typed dialogue with rendered portraits, procedural music per realm, and touch controls. [game-062/dev/](game-062/dev/README.md) proves every hole can be played at par with a search bot and drives the whole game in Chromium on desktop and touch-only phones.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -235,7 +238,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-062/   # One self-contained folder per game
+├── game-001/ … game-063/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -292,7 +295,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 62 games are included as of the latest entries (game-059 Sister Circuit, game-060 BRICKVADERS, game-061 STARWRIGHT, game-062 Tee & Sorcery).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 63 games are included as of the latest entries (game-059 Sister Circuit, game-060 BRICKVADERS, game-061 STARWRIGHT, game-062 Rotten to the Core, game-063 Tee & Sorcery).
 
 ---
 
