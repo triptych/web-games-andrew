@@ -814,6 +814,16 @@ h1 {
     color: #04060d;
 }
 
+.game-preview.rotten-to-the-core,
+.carousel-slide-bg.rotten-to-the-core {
+    background: radial-gradient(ellipse at 50% 35%, rgba(255, 176, 46, 0.45) 0%, rgba(232, 64, 26, 0.18) 30%, transparent 55%), linear-gradient(180deg, #1a0b14 0%, #3a1230 45%, #a8104a 80%, #ff6a9a 100%);
+}
+
+.game-card.rotten-to-the-core .play-button {
+    background: linear-gradient(135deg, #ffb02e 0%, #e8401a 50%, #ff6a9a 100%);
+    color: #1a0b14;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
