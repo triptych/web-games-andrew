@@ -923,11 +923,11 @@ const games = [
         ]
     },
     {
-        id: 'game-062',
+        id: 'game-064',
         title: "Kraken's Gambit",
         description: "Chess on the high seas, in three.js with no asset files, where the sea plays too. The Royal Navy and the Pirates fight with procedurally modelled, cel-shaded fleets: Dinghies for pawns, seahorse-prowed Longships for knights, Schooners for bishops, Lighthouses on rocky islets for rooks, a two-deck Man-o'-War for the queen and a crowned Flagship for the king, on a chequered patch of toon sea framed by a rope-and-piling dock. The chess is exact (castling, en passant, promotion, every draw rule) against five AI captains from Cabin Boy to Captain, or a friend on the same screen. Between moves the sea may act: the Kraken drags a ship under, a mermaid lures one away, a storm drives every ship a square downwind, a whirlpool spins a ring of them, dolphins push a pawn (sometimes all the way to promotion), a ghost ship scatters a rank, salvage divers raise a sunk piece, and a sea serpent swaps two ships. Pick the sea state from Mirror Calm to Tempest and switch events on or off. The sea is wild but fair: it never takes a Flagship, never leaves a side illegally in check, and never ends the game by itself. Cannon fire, sinking ships, a squeezebox shanty, undo, hints, autosave, mouse, touch or keyboard.",
         icon: '\uD83D\uDC19',
-        folder: 'game-062',
+        folder: 'game-064',
         version: '1.0.0',
         cssClass: 'krakens-gambit',
         genre: 'strategy',

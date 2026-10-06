@@ -1,8 +1,8 @@
 // save.js — localStorage, guarded: a browser that blocks site data still plays,
 // it just can't remember anything.
 
-const GAME_KEY = 'game-062-voyage';
-const PREFS_KEY = 'game-062-prefs';
+const GAME_KEY = 'game-064-voyage';
+const PREFS_KEY = 'game-064-prefs';
 
 function read(key) {
     try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : null; } catch { return null; }

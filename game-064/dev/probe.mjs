@@ -1,7 +1,7 @@
 /**
  * probe.mjs — one screenshot for iterating on visuals.
- *   node game-062/dev/probe.mjs [WxH] [name]       EVAL='js' runs an expression first (awaited)
- * Needs a static server at BASE (default http://127.0.0.1:8062) from the repo root.
+ *   node game-064/dev/probe.mjs [WxH] [name]       EVAL='js' runs an expression first (awaited)
+ * Needs a static server at BASE (default http://127.0.0.1:8064) from the repo root.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -9,7 +9,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? path.join(HERE, 'package');
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8062';
+const BASE = process.env.BASE ?? 'http://127.0.0.1:8064';
 const [W, H] = (process.argv[2] || '1280x800').split('x').map(Number);
 const name = process.argv[3] || 'probe';
 const OUT = path.join(HERE, 'shots'); fs.mkdirSync(OUT, { recursive: true });
@@ -24,7 +24,7 @@ if (fs.existsSync(PKG)) await page.route('https://unpkg.com/**', (route) => {
 await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
 page.on('console', (m) => { if (m.type() === 'error' || process.env.VERBOSE) console.log('console.' + m.type(), m.text()); });
 page.on('pageerror', (e) => console.log('pageerror', e.message));
-await page.goto(`${BASE}/game-062/index.html?debug=1${process.env.QS || ''}`);
+await page.goto(`${BASE}/game-064/index.html?debug=1${process.env.QS || ''}`);
 await page.waitForFunction(() => window.__kg && window.__kg.ready, null, { timeout: 60000 });
 if (process.env.EVAL) console.log(await page.evaluate(`(async () => { ${process.env.EVAL} })()`));
 await page.waitForTimeout(+(process.env.WAIT || 2500));

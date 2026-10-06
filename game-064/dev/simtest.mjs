@@ -1,8 +1,8 @@
 /**
  * simtest.mjs — headless checks against the real simulation (no browser).
  *
- *   node game-062/dev/simtest.mjs            everything below
- *   GAMES=400 node game-062/dev/simtest.mjs  more chaotic games in section 4
+ *   node game-064/dev/simtest.mjs            everything below
+ *   GAMES=400 node game-064/dev/simtest.mjs  more chaotic games in section 4
  *
  * 1. Purity: js/sim never imports three.js, touches the DOM, calls Math.random or reads the clock.
  * 2. Move generator: perft on five standard positions (start, Kiwipete, and three tricky ones).

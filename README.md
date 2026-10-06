@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-62 games, `game-001` through `game-062`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+62 games, `game-001` through `game-064`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -79,7 +79,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 059 | [Sister Circuit](game-059/) | Neon beat-'em-up: a stolen combat suit, seven stages and bosses, a sister to rescue | three.js |
 | 060 | [BRICKVADERS](game-060/) | Breakout × Space Invaders in a 1983 arcade cabinet: bounce, shoot, smash the Brick Armada | three.js |
 | 061 | [STARWRIGHT](game-061/) | Procedural space sim: mine, trade with aliens, rebuild your base, upgrade your ship, warp across a seeded galaxy | three.js |
-| 062 | [Kraken's Gambit](game-062/) | Sea-themed chess (ships and lighthouses) where krakens, mermaids, storms and more strike between moves; 1 or 2 players | three.js |
+| 064 | [Kraken's Gambit](game-064/) | Sea-themed chess (ships and lighthouses) where krakens, mermaids, storms and more strike between moves; 1 or 2 players | three.js |
 
 ### Highlights
 
@@ -157,7 +157,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 
 **[STARWRIGHT](game-061/)** — A **procedurally generated space sim** in three.js with no asset files: everything (230 star systems, planets, asteroid belts, eight alien species with their own faces, languages and tastes, stations, ships, missions) grows from one **seed** you can type in and share. You start with a tiny skiff and a derelict outpost called Hearth. Fly in third person, mine asteroids with a cutting beam, scoop fuel from stars and gas from giants, scan planets, salvage wrecks and trade at alien stations whose prices react to what you sell. Bring it all home to build Hearth module by module (refinery, shipyard, research lab, drones, hydroponics, trade depot, defences) and watch the station grow; upgrade the ship through five hull classes and eleven components, including the warp drive that opens the galaxy. Procedural missions, light combat with Reaver raiders and a hostile alien swarm, cruise autopilot, an Elite-style 3D scanner, and an eleven-chapter story about the Lattice Signal at the galactic core. Keyboard and mouse, gamepad or touch.
 
-**[Kraken's Gambit](game-062/)** — **Chess on the high seas**, in three.js with no asset files, where the sea plays too. The Royal Navy and the Pirates field procedurally modelled, cel-shaded fleets (Dinghies, seahorse-prowed Longships, Schooners, Lighthouses on rocky islets, a Man-o'-War and a crowned Flagship) on a chequered patch of toon sea framed by a rope-and-piling dock. The chess is exact, against five AI captains or a friend on the same screen, but after any move the sea may act: the **Kraken** drags a ship under, a **mermaid** lures one away, a **storm** drives every ship a square downwind, a **whirlpool** spins a ring of them, **dolphins** push a pawn (sometimes to promotion), a **ghost ship** scatters a rank, **salvage** divers raise a sunk piece and a **sea serpent** swaps two ships. Choose the sea state from Mirror Calm to Tempest. The sea is wild but fair: it never takes a Flagship, never leaves a side illegally in check and never ends the game by itself. Cannon fire, sinking ships, a squeezebox shanty, undo, hints, autosave, and mouse, touch or keyboard. [game-062/dev/](game-062/dev/README.md) checks the rules with perft, soaks the events through 35 000 chaotic plies, and plays every event in Chromium on desktop and phones.
+**[Kraken's Gambit](game-064/)** — **Chess on the high seas**, in three.js with no asset files, where the sea plays too. The Royal Navy and the Pirates field procedurally modelled, cel-shaded fleets (Dinghies, seahorse-prowed Longships, Schooners, Lighthouses on rocky islets, a Man-o'-War and a crowned Flagship) on a chequered patch of toon sea framed by a rope-and-piling dock. The chess is exact, against five AI captains or a friend on the same screen, but after any move the sea may act: the **Kraken** drags a ship under, a **mermaid** lures one away, a **storm** drives every ship a square downwind, a **whirlpool** spins a ring of them, **dolphins** push a pawn (sometimes to promotion), a **ghost ship** scatters a rank, **salvage** divers raise a sunk piece and a **sea serpent** swaps two ships. Choose the sea state from Mirror Calm to Tempest. The sea is wild but fair: it never takes a Flagship, never leaves a side illegally in check and never ends the game by itself. Cannon fire, sinking ships, a squeezebox shanty, undo, hints, autosave, and mouse, touch or keyboard. [game-064/dev/](game-064/dev/README.md) checks the rules with perft, soaks the events through 35 000 chaotic plies, and plays every event in Chromium on desktop and phones.
 
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
@@ -235,7 +235,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-062/   # One self-contained folder per game
+├── game-001/ … game-064/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -292,7 +292,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 62 games are included as of the latest entries (game-059 Sister Circuit, game-060 BRICKVADERS, game-061 STARWRIGHT, game-062 Kraken's Gambit).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 62 games are included as of the latest entries (game-059 Sister Circuit, game-060 BRICKVADERS, game-061 STARWRIGHT, game-064 Kraken's Gambit).
 
 ---
 

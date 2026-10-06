@@ -14,12 +14,12 @@
  * NOSTORAGE=1 makes every localStorage access throw; the game must still play.
  * Fails on any console error, page error or failed request. Shots → dev/shots/.
  *
- *   python3 -m http.server 8062                  # from the REPO ROOT
- *   node game-062/dev/browsertest.mjs
+ *   python3 -m http.server 8064                  # from the REPO ROOT
+ *   node game-064/dev/browsertest.mjs
  *
  * No network to unpkg.com? Fetch three.js once; CDN requests are then served from disk:
- *   cd game-062/dev && npm pack three@0.165.0 && tar xzf three-0.165.0.tgz   # -> ./package
- * Env: BASE (default http://127.0.0.1:8062), THREE_PKG, PW_CHROMIUM_PATH,
+ *   cd game-064/dev && npm pack three@0.165.0 && tar xzf three-0.165.0.tgz   # -> ./package
+ * Env: BASE (default http://127.0.0.1:8064), THREE_PKG, PW_CHROMIUM_PATH,
  *      ONLY=desktop|phones, NOSTORAGE=1.
  */
 import { chromium } from 'playwright';
@@ -29,8 +29,8 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? path.join(HERE, 'package');
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8062';
-const URL0 = `${BASE}/game-062/index.html?debug=1`;
+const BASE = process.env.BASE ?? 'http://127.0.0.1:8064';
+const URL0 = `${BASE}/game-064/index.html?debug=1`;
 const OUT = path.join(HERE, 'shots');
 const NOSTORAGE = !!process.env.NOSTORAGE;
 fs.mkdirSync(OUT, { recursive: true });
