@@ -398,6 +398,8 @@ button.sm { padding: 3px 8px; font-size: 13px; }
 #tbtns button.down { transform: translateY(3px); box-shadow: 0 1px 0 #2a1606; filter: brightness(1.2); }
 /* With touch controls showing, lift the dialogue box above them. */
 body.touch #dialog { bottom: calc(190px + var(--safe-b)); }
+body.touch .pnl .pclose { width: 44px; height: 44px; top: 8px; right: 8px; font-size: 18px; }
+body.touch .phead { padding-right: 52px; }
 
 /* ------------------------------------------------------------------ narrow screens */
 @media (max-width: 720px) {
@@ -442,7 +444,7 @@ body.touch #dialog { bottom: calc(190px + var(--safe-b)); }
     .bbox { min-height: 0; padding: 8px; }
     .bmsg { font-size: 16px; }
     .bmenu.team, .bmenu.bag { max-height: 58vh; }
-    #battle .gauge.me { bottom: calc(118px + var(--safe-b)); top: auto; }
+    #battle .gauge.me { top: calc(16px + var(--safe-t)); bottom: auto; }
     #battle .gauge { padding: 5px 10px; }
     .gtypes { display: none; }
     #dpad { width: 130px; height: 130px; bottom: calc(14px + var(--safe-b)); }

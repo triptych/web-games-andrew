@@ -481,7 +481,7 @@ async function phone(w, h) {
         check(r && r.x >= 0 && r.y >= 0 && r.x + r.width <= w + 1 && r.y + r.height <= h + 1, `the ${p} panel fits (${r ? [r.x, r.y, r.width, r.height].map(Math.round).join(',') : 'none'})`);
         if (p === 'team') await shot(page, `bt-phone-${w}-team`);
         const close = await page.locator('.pnl .pclose').boundingBox();
-        check(close && close.width >= 36, 'panel close button is finger-sized');
+        check(close && close.width >= 40, 'panel close button is finger-sized');
         await tapEl('.pnl .pclose');
         await waitFor(page, 'A.menus.cur && A.menus.cur.name === "menu"');
     }
