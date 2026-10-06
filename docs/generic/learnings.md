@@ -5292,6 +5292,9 @@ The bark looked washed out at every stage. Rendering each shader term on its own
 ### Frame the subject inside what the HUD leaves visible
 `camera.setViewOffset` centres the tree in the uncovered part of the screen, but the fit distance must also be divided by the *fraction* of the screen left visible (`visibleHeight / height`, `visibleWidth / width`), or the tree overflows a phone whose bottom sheet covers half the screen. Fog density scaled to camera distance (`0.5 / distance`) keeps the subject clear from seed to World Tree while the forest beyond fades.
 
+### Symptom: the distant trees hover over the hills → `CircleGeometry` has no inner vertices
+`CircleGeometry(radius, segments)` is a triangle fan: one centre vertex and one ring at the rim. Displacing its vertices by a height function only moves the centre and the rim, so hills that rise at radius 34–94 simply weren't in the mesh, and props placed with the same height function floated up to 5 units above a straight slope. Use a polar grid with real rings (`polarGrid()` in game-065's `ground.js`, radii growing as `(i/n)^1.7` so the clearing stays fine), check every triangle faces up, and raycast the mesh against the height function at the radii where props stand.
+
 ### Small traps the browser test caught
 - The Nourish button had no listener at all; only a test that clicks the real button finds that.
 - `setPointerCapture` throws for synthetic pointers (and already-released ones), aborting the handler before the click counted. Wrap it.

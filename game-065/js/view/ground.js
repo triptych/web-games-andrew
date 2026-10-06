@@ -32,6 +32,37 @@ float noise2(vec2 p) {
 }
 float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += noise2(p) * a; p *= 2.03; a *= 0.5; } return s; }`;
 
+/**
+ * Disc of `rings` rings × `segs` segments out to `radius`, heights from heightFn.
+ * Ring radii grow as (i/rings)^1.7, so the clearing is finely tessellated.
+ * Wound counter-clockwise seen from above (normals up): (a, b, a+1), (a+1, b, b+1).
+ */
+export function polarGrid(radius, rings, segs, heightFn) {
+    const pos = [], idx = [];
+    pos.push(0, heightFn(0, 0), 0);
+    for (let i = 1; i <= rings; i++) {
+        const r = radius * Math.pow(i / rings, 1.7);
+        for (let j = 0; j < segs; j++) {
+            const a = (j / segs) * Math.PI * 2;
+            const x = Math.cos(a) * r, z = Math.sin(a) * r;
+            pos.push(x, heightFn(x, z), z);
+        }
+    }
+    const v = (i, j) => 1 + (i - 1) * segs + (j % segs);
+    for (let j = 0; j < segs; j++) idx.push(0, v(1, j + 1), v(1, j));
+    for (let i = 1; i < rings; i++) {
+        for (let j = 0; j < segs; j++) {
+            const a = v(i, j), a1 = v(i, j + 1), b = v(i + 1, j), b1 = v(i + 1, j + 1);
+            idx.push(a, a1, b, a1, b1, b);
+        }
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    return g;
+}
+
 /** Ground height: flat clearing, gentle hills where the forest begins. */
 export function groundY(x, z) {
     const r = Math.hypot(x, z);
@@ -57,11 +88,11 @@ export class Ground {
     }
 
     buildGround() {
-        const geo = new THREE.CircleGeometry(300, 160, 0, Math.PI * 2);
-        geo.rotateX(-Math.PI / 2);
-        const p = geo.attributes.position;
-        for (let i = 0; i < p.count; i++) p.setY(i, groundY(p.getX(i), p.getZ(i)));
-        geo.computeVertexNormals();
+        // A polar grid, dense near the tree and coarser outward, so the hills
+        // where the forest stands are really in the mesh. (A CircleGeometry is a
+        // triangle fan with no inner vertices: the hills existed only on its rim
+        // and the forest floated above a straight slope.)
+        const geo = polarGrid(300, 90, 160, groundY);
         const mat = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
             vertexShader: /* glsl */`
@@ -275,7 +306,9 @@ export class Ground {
         const place = (mesh, i, minR) => {
             const a = r() * Math.PI * 2, rad = minR + Math.pow(r(), 0.7) * 85;
             const x = Math.cos(a) * rad, z = Math.sin(a) * rad, sc = 0.8 + r() * 1.1 + rad * 0.01;
-            m.compose(new THREE.Vector3(x, groundY(x, z) - 0.3, z), new THREE.Quaternion().setFromEuler(new THREE.Euler((r() - 0.5) * 0.08, r() * 6, (r() - 0.5) * 0.08)), new THREE.Vector3(sc, sc * (0.85 + r() * 0.4), sc));
+            // sink the trunk by the slope under it so the downhill side never floats
+            const slope = Math.max(Math.abs(groundY(x + 1, z) - groundY(x - 1, z)), Math.abs(groundY(x, z + 1) - groundY(x, z - 1))) * 0.5;
+            m.compose(new THREE.Vector3(x, groundY(x, z) - 0.3 - slope * 0.9 * sc, z), new THREE.Quaternion().setFromEuler(new THREE.Euler((r() - 0.5) * 0.08, r() * 6, (r() - 0.5) * 0.08)), new THREE.Vector3(sc, sc * (0.85 + r() * 0.4), sc));
             mesh.setMatrixAt(i, m);
             mesh.setColorAt(i, col.setHSL(0.36 + (r() - 0.5) * 0.08, 0.35, 0.45 + r() * 0.35));
         };
