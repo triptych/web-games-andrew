@@ -141,5 +141,8 @@ total motes ran away; and heartwood based on tree height plus a super-exponentia
 
 ## Changelog
 
+### v1.0.1 (2026-10-06)
+- The ground is a polar grid instead of a triangle fan, so the hills under the forest are real and the trees stand on them instead of hovering.
+
 ### v1.0.0 (2026-10-06)
 - First release: everything above, with `dev/simtest.mjs`, `dev/browsertest.mjs` and `dev/pace.mjs`.
