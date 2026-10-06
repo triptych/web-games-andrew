@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-63 games, `game-001` through `game-063`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+64 games, `game-001` through `game-064`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -81,6 +81,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 061 | [STARWRIGHT](game-061/) | Procedural space sim: mine, trade with aliens, rebuild your base, upgrade your ship, warp across a seeded galaxy | three.js |
 | 062 | [Rotten to the Core](game-062/) | A light, silly fruit Diablo: build a fruit hero, squash rotten fruit through procedural cellars, jam catacombs and the Rotten Core, loot kitchenware | three.js |
 | 063 | [Tee & Sorcery](game-063/) | Fantasy golf RPG: twenty holes in five storybook realms, boss holes, levels, gear and spells | three.js |
+| 064 | [Kraken's Gambit](game-064/) | Sea-themed chess (ships and lighthouses) where krakens, mermaids, storms and more strike between moves; 1 or 2 players | three.js |
 
 ### Highlights
 
@@ -162,6 +163,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 
 **[Tee & Sorcery](game-063/)** — A **fantasy golf RPG** in three.js with no asset files. Lord Bogey, a sorcerer who never made par, shatters the Golden Tee; Pip, a caddie who pulled a talking sand wedge called Wedgewick out of a stone, sets off across five storybook realms to win it back. Real 3D golf (a three-press swing meter, four clubs, wind, backspin, bounces, rolls, PERFECT strikes, hooks and slices) on twenty holes that each play differently: windmills and spring mushrooms, quicksand and island greens, sheet ice and a frozen lake, lava rivers and geysers, and floating islands over the void. Every realm ends in a **boss hole** where the cup stays sealed until you beat the boss with your ball, from Grubbins the Gopher King to Lord Bogey's three-headed final form. Bonk monsters for XP, level up Power, Control, Luck and Magic, buy club sets, balls and charms, and cast Mulligan, Gust Ward, Fireball, Frost Step and Seeker. Chibi characters with painted faces and ink outlines, a storybook terrain shader, a floating-island world map with tilt-shift, typed dialogue with rendered portraits, procedural music per realm, and touch controls. [game-062/dev/](game-062/dev/README.md) proves every hole can be played at par with a search bot and drives the whole game in Chromium on desktop and touch-only phones.
 
+**[Kraken's Gambit](game-064/)** — **Chess on the high seas**, in three.js with no asset files, where the sea plays too. The Royal Navy and the Pirates field procedurally modelled, cel-shaded fleets (Dinghies, seahorse-prowed Longships, Schooners, Lighthouses on rocky islets, a Man-o'-War and a crowned Flagship) on a chequered patch of toon sea framed by a rope-and-piling dock. The chess is exact, against five AI captains or a friend on the same screen, but after any move the sea may act: the **Kraken** drags a ship under, a **mermaid** lures one away, a **storm** drives every ship a square downwind, a **whirlpool** spins a ring of them, **dolphins** push a pawn (sometimes to promotion), a **ghost ship** scatters a rank, **salvage** divers raise a sunk piece and a **sea serpent** swaps two ships. Choose the sea state from Mirror Calm to Tempest. The sea is wild but fair: it never takes a Flagship, never leaves a side illegally in check and never ends the game by itself. Cannon fire, sinking ships, a squeezebox shanty, undo, hints, autosave, and mouse, touch or keyboard. [game-064/dev/](game-064/dev/README.md) checks the rules with perft, soaks the events through 35 000 chaotic plies, and plays every event in Chromium on desktop and phones.
+
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
 ## Getting Started
@@ -238,7 +241,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-063/   # One self-contained folder per game
+├── game-001/ … game-064/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -295,7 +298,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 63 games are included as of the latest entries (game-059 Sister Circuit, game-060 BRICKVADERS, game-061 STARWRIGHT, game-062 Rotten to the Core, game-063 Tee & Sorcery).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 64 games are included as of the latest entries (game-059 Sister Circuit, game-060 BRICKVADERS, game-061 STARWRIGHT, game-062 Rotten to the Core, game-063 Tee & Sorcery, game-064 Kraken's Gambit).
 
 ---
 

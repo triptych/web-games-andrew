@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2c9ccc">
+    <meta name="description" content="Kraken's Gambit: sea-themed chess in 3D. Ships and lighthouses for pieces, and between moves the sea itself plays: krakens, mermaids, storms, whirlpools, dolphins, ghost ships and sea serpents. One or two players.">
+    <title>Kraken's Gambit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Nunito:wght@400;700;800&display=swap">
+    <link rel="stylesheet" href="style.css">
+    <script src="../lib/page-audio.js"></script>
+</head>
+<body>
+    <a href="../index.html" id="games-link" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
+
+    <div id="stage"></div>
+    <div id="flash"></div>
+    <div id="tip" hidden></div>
+
+    <!-- ============================== In-game HUD ============================== -->
+    <div id="hud" hidden>
+        <div id="topbar">
+            <div id="turn-pill" class="pill"><span id="turn-flag" class="flagdot"></span><span id="turn-text">Navy to move</span></div>
+            <button id="sea-pill" class="pill" title="Sea state and events"><span>🌊</span><span id="sea-text">Choppy</span></button>
+        </div>
+        <div id="thinking" class="pill" hidden><span class="spyglass">🔭</span><span id="thinking-text">The Pirate captain is plotting a course…</span></div>
+
+        <aside id="panel">
+            <button id="panel-toggle" class="pill" aria-expanded="false">📜 Log</button>
+            <div id="panel-body">
+                <section>
+                    <h3>Davy Jones' Locker</h3>
+                    <div class="locker-row"><span class="locker-label">Navy lost</span><div id="lost-w" class="locker"></div></div>
+                    <div class="locker-row"><span class="locker-label">Pirates lost</span><div id="lost-b" class="locker"></div></div>
+                    <div id="balance"></div>
+                </section>
+                <section id="log-section">
+                    <h3>Captain's Log</h3>
+                    <ol id="log-list"></ol>
+                </section>
+            </div>
+        </aside>
+
+        <nav id="toolbar">
+            <button class="tool" id="btn-undo" title="Take back (U)"><span class="ico">↶</span><span class="lbl">Undo</span></button>
+            <button class="tool" id="btn-hint" title="Hint (H)"><span class="ico">💡</span><span class="lbl">Hint</span></button>
+            <button class="tool" id="btn-turn" title="Turn the board (F)"><span class="ico">🔄</span><span class="lbl">Turn</span></button>
+            <button class="tool" id="btn-labels" title="Chess symbols over ships (L)"><span class="ico">♞</span><span class="lbl">Labels</span></button>
+            <button class="tool" id="btn-sound" title="Sound (M)"><span class="ico">🔊</span><span class="lbl">Sound</span></button>
+            <button class="tool" id="btn-music" title="Music (N)"><span class="ico">🎵</span><span class="lbl">Music</span></button>
+            <button class="tool" id="btn-help" title="How to play (?)"><span class="ico">❓</span><span class="lbl">Help</span></button>
+            <button class="tool" id="btn-menu" title="Menu (Esc)"><span class="ico">☰</span><span class="lbl">Menu</span></button>
+        </nav>
+
+        <div id="banner" hidden>
+            <div id="banner-icon">🐙</div>
+            <div id="banner-body"><div id="banner-title">The Kraken</div><div id="banner-text"></div></div>
+        </div>
+        <div id="toast" hidden></div>
+    </div>
+
+    <!-- ============================== Title ============================== -->
+    <div id="title" class="screen">
+        <div class="card title-card">
+            <div class="title-anchor">⚓</div>
+            <h1>Kraken's Gambit</h1>
+            <p class="tagline">Chess on the high seas, where the sea plays too.</p>
+            <div class="stack">
+                <button id="btn-continue" class="big gold" hidden>Continue Voyage</button>
+                <button id="btn-new" class="big">New Voyage</button>
+                <button id="btn-howto" class="big ghost">How to Play</button>
+            </div>
+            <p class="small">Royal Navy vs. Pirates · 1 or 2 players · krakens, mermaids, storms &amp; more</p>
+        </div>
+    </div>
+
+    <!-- ============================== Setup ============================== -->
+    <div id="setup" class="screen" hidden>
+        <div class="card setup-card">
+            <h2>Plot Your Voyage</h2>
+            <div class="field">
+                <div class="field-label">Opponent</div>
+                <div class="chips" id="opt-mode">
+                    <button data-v="ai" class="chip">🧭 vs Computer</button>
+                    <button data-v="pvp" class="chip">👥 Two Captains</button>
+                </div>
+            </div>
+            <div class="field" id="field-side">
+                <div class="field-label">Your fleet</div>
+                <div class="chips" id="opt-side">
+                    <button data-v="1" class="chip side-chip"><img alt="" data-thumb="6"> Royal Navy <small>moves first</small></button>
+                    <button data-v="-1" class="chip side-chip"><img alt="" data-thumb="-6"> Pirates</button>
+                    <button data-v="0" class="chip">🎲 Random</button>
+                </div>
+            </div>
+            <div class="field" id="field-level">
+                <div class="field-label">Enemy captain</div>
+                <div class="chips" id="opt-level"></div>
+                <div class="hint-text" id="level-desc"></div>
+            </div>
+            <div class="field">
+                <div class="field-label">Sea state</div>
+                <div class="chips" id="opt-sea"></div>
+                <div class="hint-text" id="sea-desc"></div>
+            </div>
+            <div class="field" id="field-events">
+                <div class="field-label">Sea events <button class="link" id="ev-all">all</button> · <button class="link" id="ev-none">none</button></div>
+                <div class="chips events" id="opt-events"></div>
+            </div>
+            <div class="field" id="field-auto">
+                <label class="check"><input type="checkbox" id="opt-autoturn"> Turn the board towards whoever moves next</label>
+            </div>
+            <div class="row-buttons">
+                <button id="btn-setup-back" class="ghost">Back</button>
+                <button id="btn-sail" class="big gold">Set Sail!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================== Modals ============================== -->
+    <div id="help" class="modal" hidden>
+        <div class="card help-card">
+            <button class="close" data-close="help" aria-label="Close">✕</button>
+            <h2>How to Play</h2>
+            <p>It's chess. Every rule is the real one: castling, en passant, promotion, check and mate. The Royal Navy (white) sails first. Tap or click one of your ships to see where it can go, then tap a square. Drag to swing the camera; pinch or scroll to zoom.</p>
+            <h3>The fleets</h3>
+            <div id="legend" class="legend"></div>
+            <h3>The sea plays too</h3>
+            <p>After a move there's a chance (set by the <b>sea state</b>) that something happens. The sea is wild but fair: it never takes a Flagship, never moves a Lighthouse (unless the Kraken drags one under), never leaves the side that just moved in check, and never ends the game by itself.</p>
+            <div id="event-legend" class="legend events"></div>
+            <h3>Keys</h3>
+            <p class="small">Arrows + Enter: move a cursor and select · U undo · H hint · F turn board · L labels · M sound · N music · Esc menu</p>
+        </div>
+    </div>
+
+    <div id="promo" class="modal" hidden>
+        <div class="card promo-card">
+            <h2>Refit your Dinghy</h2>
+            <p class="small">It reached the far shore. What should it become?</p>
+            <div id="promo-choices" class="promo-choices"></div>
+        </div>
+    </div>
+
+    <div id="menu" class="modal" hidden>
+        <div class="card menu-card">
+            <h2>Ship's Menu</h2>
+            <div class="stack">
+                <button id="menu-resume" class="big gold">Resume</button>
+                <button id="menu-resign" class="big">Strike Your Colours (resign)</button>
+                <button id="menu-new" class="big">New Voyage</button>
+                <button id="menu-title" class="big ghost">Title Screen</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="over" class="modal" hidden>
+        <div class="card over-card">
+            <div id="over-icon">🏆</div>
+            <h2 id="over-title">Victory!</h2>
+            <p id="over-text"></p>
+            <p id="over-stats" class="small"></p>
+            <div class="stack">
+                <button id="over-rematch" class="big gold">Rematch</button>
+                <button id="over-new" class="big">New Voyage</button>
+                <button id="over-review" class="big ghost">Review the Board</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading">Launching the fleet…</div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
