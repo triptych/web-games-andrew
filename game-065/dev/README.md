@@ -9,6 +9,7 @@ Plain Node scripts, no build step, no test framework.
 | `node game-065/dev/browsertest.mjs` | Real Chromium + WebGL + the genuine three.js r165. **Desktop**: title, help, 12 real clicks on the seed, buy a Firefly, Nourish, an upgrade, a stage-up and its lore banner, catch a golden wisp by clicking it, cast Verdant Surge, rebirth through the dialog, buy heartwood, begin and leave a trial, bind a realm, journal, stats, lore, settings, export. **Offline**: a fresh page whose save is two hours old shows "While you were away" with motes gained. **Phones** (touch only, CDP input, 390×844 and 844×390): start, tap the seed, buy, nourish, every tab by touch, controls finger-sized and on screen, nothing covering tap points, no sideways scroll, catch a wisp by touch. Fails on any console error, page error or failed request. `ONLY=desktop\|offline\|phones`; `NOSTORAGE=1` makes `localStorage` throw. Screenshots in `dev/shots/`. |
 | `node game-065/dev/shot.mjs "<page>" name [WxH] [frames]` | One screenshot, for iterating on visuals. `PRE='js'` runs before the page loads (e.g. seed `localStorage`), `EVAL='js'` after. |
 | `dev/view.html?g=<level>&s=<season>` | Just the clearing and the tree at any growth level and season, for working on the tree. |
+| `dev/creature.html?yaw=<rad>&pose=trot\|sit&t=<s>&n=<count>` | A Fox Spirit close up in the game's night lighting, from any angle and in any pose. |
 
 The browser scripts need `playwright` (symlink it in: ESM ignores `NODE_PATH`) and a static server from the repo root:
 
@@ -32,4 +33,4 @@ Load with `?debug=1` for `window.__wr`:
 `state()` (started, motes, motes/s, tree, stage, spirits, upgrades, wisp, rebirths, heartwood, realms, trial, frames, quality, growth, modal, tab, clicks),
 `give(n)`, `tree(level)`, `gens([...])`, `wisp()`, `wispScreen()`, `treeScreen(frac)` (client coordinates for real clicks),
 `offline(seconds)`, `speed(n)`, `autoplay(on)` (the balance bot plays in the browser), `season(i)`, `save()`, `snap()`, `closeModal()`,
-`brightness()`, `debugCam()`. `?q=0|1|2` forces a quality tier.
+`brightness()`, `debugCam()`, `bursts()` (spark pool health), `foxScreens()` (where each fox is on screen). `?q=0|1|2` forces a quality tier.

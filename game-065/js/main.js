@@ -462,6 +462,8 @@ if (DEBUG) {
         snap: () => { world.snap(grove); world.update(0.001, grove); updateStage(0.001); snapCamera(); },
         closeModal: () => ui.closeModal(),
         debugCam: () => ({ ...cameraState(), size: world.size, growth: world.growth }),
+        /** Client-space positions of the fox spirits (for close-up screenshots and tests). */
+        foxScreens: () => world.creatures.foxes.map((f) => world.screenOf(f.position.clone().setY(f.position.y + 0.4))),
         /** Burst pool health: a dead spark must never stay visible (it used to linger as a 1 px dot). */
         bursts: () => {
             const b = world.bursts;

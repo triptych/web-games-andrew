@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Worldroot — creature viewer</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#0b1a22}#stage{position:fixed;inset:0}</style>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div id="stage"></div>
+<script type="module">
+// Dev-only: one Fox Spirit close up in the game's night lighting.
+// ?yaw=<radians> camera angle, ?pose=trot|sit, ?t=<seconds> animation time, ?n=<count> a little skulk in a row.
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import * as TX from '../js/view/textures.js';
+import { makeFox, animateFox } from '../js/view/fox.js';
+const q = new URLSearchParams(location.search);
+const yaw = Number(q.get('yaw') ?? 0.9), pose = q.get('pose') ?? 'trot', t0 = Number(q.get('t') ?? 0.3), n = Number(q.get('n') ?? 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight); renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.getElementById('stage').appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b1a22);
+const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.01, 50);
+const d = 1.9 + (n - 1) * 0.5;
+camera.position.set(Math.sin(yaw) * d, 0.75, Math.cos(yaw) * d); camera.lookAt(0, 0.3, 0);
+scene.add(new THREE.HemisphereLight(0x6a8ab0, 0x18220f, 1.6));
+const moon = new THREE.DirectionalLight(0xa8c0ff, 1.5); moon.position.set(-3, 4, -4); scene.add(moon);
+const heart = new THREE.PointLight(0xffd27a, 3, 6, 1.6); heart.position.set(1.2, 1, 1); scene.add(heart);
+const ground = new THREE.Mesh(new THREE.CircleGeometry(4, 48).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2c5a2a, roughness: 1 }));
+scene.add(ground);
+const tex = { glow: TX.glowTexture(), critters: TX.critterAtlas() };
+const foxes = [];
+for (let i = 0; i < n; i++) { const f = makeFox(tex); f.position.x = (i - (n - 1) / 2) * 0.9; f.position.z = -i * 0.3; scene.add(f); foxes.push(f); }
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), 0.7, 0.5, 0.65));
+composer.addPass(new OutputPass());
+let frames = 0;
+(function loop() {
+  requestAnimationFrame(loop);
+  // settle the pose: run the animation a few frames at the chosen time
+  foxes.forEach((f, i) => animateFox(f, t0 + i * 0.13 + frames * 0.0001, 0.2, pose === 'trot', pose === 'sit' ? -0.9 : 0, i));
+  composer.render(); frames++; window.__frames = frames;
+})();
+</script>
+</body>
+</html>

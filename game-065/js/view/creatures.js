@@ -20,6 +20,7 @@
 import * as THREE from 'three';
 import { U } from './stage.js';
 import { groundY } from './ground.js';
+import { makeFox, animateFox } from './fox.js';
 
 function mulberry(seed) {
     let a = seed >>> 0;
@@ -235,46 +236,6 @@ function glowMat(color, emissive, intensity = 1) {
     return new THREE.MeshStandardMaterial({ color, emissive, emissiveIntensity: intensity, roughness: 0.7, flatShading: true });
 }
 
-// ------------------------------------------------------------------ fox spirit
-function makeFox(textures) {
-    const g = new THREE.Group();
-    const fur = glowMat(0xf2a86a, 0x8a3a10, 0.35);
-    const white = glowMat(0xfff4e8, 0x6a5040, 0.3);
-    const body = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6).scale(1.5, 0.85, 0.85), fur);
-    body.position.y = 0.32;
-    const head = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.32, 6).rotateZ(-Math.PI / 2), fur);
-    head.position.set(0.38, 0.45, 0);
-    const skull = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 6), fur);
-    skull.position.set(0.3, 0.46, 0);
-    for (const s of [-1, 1]) {
-        const ear = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.16, 4), fur);
-        ear.position.set(0.27, 0.62, s * 0.08);
-        g.add(ear);
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 4), new THREE.MeshBasicMaterial({ color: 0x9ff8ff }));
-        eye.position.set(0.39, 0.5, s * 0.07);
-        g.add(eye);
-    }
-    const legs = [];
-    for (const [x, z] of [[0.18, 0.1], [0.18, -0.1], [-0.18, 0.1], [-0.18, -0.1]]) {
-        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.025, 0.24, 5).translate(0, -0.12, 0), white);
-        leg.position.set(x, 0.26, z);
-        legs.push(leg); g.add(leg);
-    }
-    const tail = new THREE.Group();
-    const tailMesh = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.55, 7).rotateZ(Math.PI / 2 + 0.4).translate(-0.25, 0.1, 0), fur);
-    const tip = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 5), new THREE.MeshBasicMaterial({ color: 0xbff8ff }));
-    tip.position.set(-0.5, 0.22, 0);
-    tail.add(tailMesh, tip);
-    tail.position.set(-0.3, 0.38, 0);
-    const fire = new THREE.Sprite(new THREE.SpriteMaterial({ map: textures.glow, color: 0x7fdcff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
-    fire.scale.setScalar(0.6);
-    fire.position.set(-0.5, 0.25, 0);
-    tail.add(fire);
-    g.add(body, head, skull, tail);
-    g.userData = { legs, tail, fire };
-    return g;
-}
-
 // ------------------------------------------------------------------ treant
 function makeTreant(color) {
     const g = new THREE.Group();
@@ -468,7 +429,7 @@ export class Creatures {
         const want = (owned, max, steps) => Math.min(max, steps.filter((s) => owned >= s).length);
         this.grow(this.foxes, want(n(4), 9, [1, 3, 8, 15, 25, 40, 60, 90, 130]), (i) => {
             const f = makeFox(this.textures);
-            f.userData.r = 2.6 + i * 1.15; f.userData.speed = 0.35 + (i % 3) * 0.08; f.userData.phase = i * 1.9;
+            Object.assign(f.userData, { r: 2.6 + i * 1.15, speed: 0.3 + (i % 3) * 0.06, phase: i * 1.9 });
             return f;
         }, fresh, now);
         this.grow(this.wells, want(n(5), 6, [1, 5, 15, 35, 70, 120]), (i) => {
@@ -535,16 +496,18 @@ export class Creatures {
         this.moths.frame(spread, height, px);
         const trunkR = Math.max(0.3, size.crown * 0.12);
 
+        // Models face +x. Travelling anticlockwise round the tree at angle a, the
+        // heading is the tangent: rotation.y = -a - π/2 (local +z then points at the tree).
         this.foxes.forEach((f, i) => {
             const u = f.userData, r = u.r + trunkR * 1.5;
-            const a = u.phase + t * u.speed;
+            const moving = ((t * 0.06 + u.phase * 0.37) % 1) < 0.8;      // trot, then stop for ~3 s
+            u.walk += moving ? dt * u.speed : 0;
+            const a = u.phase + u.walk;
             const x = Math.cos(a) * r, z = Math.sin(a) * r;
-            f.position.set(x, groundY(x, z) + Math.abs(Math.sin(t * 8 + i)) * 0.04, z);
-            f.rotation.y = -a - Math.PI;      // face along the circle
-            u.legs.forEach((l, k) => { l.rotation.z = Math.sin(t * 9 + k * Math.PI * (k % 2 ? 1 : 0.5)) * 0.6; });
-            u.tail.rotation.y = Math.sin(t * 3 + i) * 0.4;
-            u.fire.material.opacity = 0.7 + Math.sin(t * 6 + i) * 0.3;
-            this.popScale(f, t, 1);
+            f.position.set(x, groundY(x, z), z);
+            f.rotation.y = -a - Math.PI / 2;
+            animateFox(f, t, dt, moving, -0.9, i);          // when paused, look round at the tree
+            this.popScale(f, t, 1.3);
         });
         this.wells.forEach((w) => this.popScale(w, t, 1));
         this.stones.forEach((s) => this.popScale(s, t, 1));
@@ -553,7 +516,7 @@ export class Creatures {
             const a = u.phase + t * u.speed;
             const x = Math.cos(a) * r, z = Math.sin(a) * r;
             tr.position.set(x, groundY(x, z), z);
-            tr.rotation.y = -a - Math.PI;
+            tr.rotation.y = -a - Math.PI / 2;
             const step = Math.sin(t * 2.2 + i);
             u.legs[0].rotation.z = step * 0.4; u.legs[1].rotation.z = -step * 0.4;
             u.arms[0].rotation.z = -step * 0.3; u.arms[1].rotation.z = step * 0.3;
@@ -568,7 +531,7 @@ export class Creatures {
             const a = u.phase + u.walk;
             const x = Math.cos(a) * r, z = Math.sin(a) * r;
             s.position.set(x, groundY(x, z), z);
-            s.rotation.y = -a - Math.PI;
+            s.rotation.y = -a - Math.PI / 2;
             u.legs.forEach((l, k) => { l.rotation.z = moving ? Math.sin(t * 6 + k * 1.6) * 0.45 : 0; });
             s.rotation.z = moving ? 0 : -0.15 * Math.min(1, cycle - 2) * 2;
             this.popScale(s, t, 1.25);
