@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tootle Isles — model gallery</title>
+<style>
+    body { font-family: system-ui, sans-serif; background: #bfe6fa; margin: 12px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, 150px); gap: 8px; }
+    .grid.wide { grid-template-columns: repeat(auto-fill, 300px); }
+    figure { margin: 0; background: #fff8e8; border-radius: 10px; padding: 4px; text-align: center; font-size: 12px; }
+    figure img { width: 100%; display: block; }
+    h2 { margin: 14px 0 6px; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<h2>Items</h2><div id="items" class="grid"></div>
+<h2>Engines</h2><div id="engines" class="grid wide"></div>
+<h2>Cars</h2><div id="cars" class="grid wide"></div>
+<script type="module">
+import { Mini } from '../js/view/mini.js';
+import { ITEMS } from '../js/sim/catalog.js';
+import { ENGINES, CARS } from '../js/sim/trainsets.js';
+const mini = new Mini();
+const fig = (src, label) => { const f = document.createElement('figure'); f.innerHTML = `<img src="${src}"><div>${label}</div>`; return f; };
+const only = new URLSearchParams(location.search).get('only');
+for (const it of ITEMS) {
+    if (only && !it.id.includes(only)) continue;
+    mini.thumbs.delete(it.id);
+    document.getElementById('items').append(fig(mini.itemThumb(it.id, 150), it.id));
+}
+let k = 0;
+for (const e of Object.keys(ENGINES)) document.getElementById('engines').append(fig(mini.trainThumb({ engine: e, body: k++ % 8, trim: 9, face: e === 'tank' || e === 'steam', cars: [] }, 300, 160), e));
+for (const c of Object.keys(CARS)) document.getElementById('cars').append(fig(mini.trainThumb({ engine: 'tank', body: 2, trim: 9, face: false, cars: [{ type: c, color: k++ % 16 }] }, 300, 120), c));
+window.__done = true;
+</script>
+</body>
+</html>

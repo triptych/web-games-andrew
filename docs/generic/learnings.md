@@ -5371,3 +5371,29 @@ A side-on view with both bots in frame needs a horizontal field of view a tall p
 
 ### Tests that teleport must wait for the transition
 `__rt.tp` swaps the world at once but the gear-iris transition runs for a few frames, and input is ignored meanwhile. The browser test's teleport waits until the view has caught up with the world and the iris is open before it presses anything.
+
+## Game 067: Tootle Isles — a toy-train sandbox where the track is drawn, not placed (2026-10-06)
+
+### A tile's track is six bits, and a switch is one counter
+Two straights and four quarter curves of radius ½ cover every piece a toy railway needs: two straights make a crossing, a straight and a curve sharing an edge make a switch. A train entering through edge `e` takes `exits(e)[switch % exits(e).length]` with "straight ahead" listed first, so one byte per tile is the whole switch state and a tap just increments it. The same exits list drives routing, look-ahead, placement and the arrow drawn on the points. *(game-067 `js/sim/world.js`, `js/sim/grid.js`)*
+
+### Draw track as a stroke that rewinds on every move
+Laying track incrementally as the pointer moves goes wrong as soon as an end tile becomes a middle tile: it already got an end piece. Instead, snapshot the track at pointer-down and, on every move, rewind to the snapshot and lay the whole path again (including putting back any trees the stroke cleared). Three rules make drawing feel right: an end that reaches a single piece with a loose end *turns* that piece to meet it; a path that returns to its first tile closes a loop, so its first and last tiles are middles (otherwise the corner keeps a stray straight and becomes a fake switch); and an end beside a straight running across *branches* toward whichever end of the straight the finger is nearer, while dragging right across makes a crossing.
+
+### Trains updated one after another can step into the same free tile
+A ten-minute soak with several trains per island found overlaps the scripted tests never did: two trains approaching a free tile from opposite sides both saw it free in the same tick. Each train now reserves the next tile once it is within braking distance of it (and keeps the reservation while it stays the next tile), and claims its body tiles straight after its own update rather than at the end of the tick. Nose-to-nose trains then wait, and the lower id backs off; any train that waits nine seconds reverses.
+
+### `Object.assign(el.style, { '--c': … })` does nothing
+Custom properties are not style object properties: assigning them is silently ignored, so every brick in the title logo and every active tool rendered colourless. Use `el.style.setProperty('--c', value)` for keys starting with `--`. *(game-067 `js/ui.js` `h()`)*
+
+### Darken in linear, judge in sRGB
+Multiplying the sea's colour by 0.35 at night looked barely darker on screen: a linear 0.3 becomes about 0.58 after the sRGB transfer. Night needed a factor of about 0.16 to read as night. Pick night/shadow multipliers by looking at the output, not by the number.
+
+### Hills that never spill onto the neighbouring track
+The hill height field is the distance from the nearest non-hill ground, but a vertex counts as "inside" only if *every* tile touching it is a hill tile, so slopes reach zero exactly on the tile boundary and track running beside a hill is never covered. For tunnels, the portal's dark mouth sits exactly on the tile edge and the hill is forced steeply up just behind it, so the mouth is always in front of the hillside and the hill covers the train inside. Rebuild the hills only when terrain changes or the set of track tiles *on* hills changes; a track drag otherwise rebuilt them every frame.
+
+### Celebrate what the player did, not what the generator did
+Count-based stickers ("ten homes", "forty trees") fired the moment a starter town loaded. Count the player's own actions instead (homes built, trees planted, track tiles laid) and keep world totals for things that are naturally passive (rides, distance).
+
+### Browser tests that tap tiles: let the layout settle, then check what's under the point
+Opening a tray shifts the 3D view up (a view offset), one or two frames later, so a tile's screen position computed straight after a tool change is stale. Wait for frames, then confirm `document.elementFromPoint` is the canvas and recentre the camera on the tile if a panel covers it, rather than tapping blind and debugging phantom failures.

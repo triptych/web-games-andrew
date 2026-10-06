@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#7cc6f2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Tootle Isles: a cozy toy-train sandbox. Pick an island, lay track, build a little town, design your own trains and watch them run. Everything is unlocked.">
+    <title>Tootle Isles</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="gl"></canvas>
+
+    <!-- ============================================================ TITLE -->
+    <div id="title" class="screen">
+        <div class="logo" aria-label="Tootle Isles">
+            <div class="logo-row" id="logo-a"></div>
+            <div class="logo-row" id="logo-b"></div>
+        </div>
+        <p class="tagline">Build a little railway on your very own island</p>
+        <div class="menu">
+            <button id="t-continue" class="brick b-green big hidden">▶ Keep Playing<small id="t-continue-name"></small></button>
+            <button id="t-new" class="brick b-yellow big">🏝️ New Island</button>
+            <div class="menu-row">
+                <button id="t-load" class="brick b-blue">📂 My Islands</button>
+                <button id="t-stickers" class="brick b-pink">⭐ Stickers</button>
+                <button id="t-settings" class="brick b-white">⚙️</button>
+            </div>
+        </div>
+        <p class="credit">Everything is unlocked. Make whatever you like!</p>
+    </div>
+
+    <!-- ============================================================ PLAY HUD -->
+    <div id="hud" class="hidden">
+        <div id="topbar">
+            <div id="island-chip" class="chip"><span id="island-emoji">🏝️</span> <span id="island-name">Island</span></div>
+            <div id="stats-chip" class="chip small"><span id="stat-trains">🚂 0</span> <span id="stat-people">🧍 0</span> <span id="stat-rides">🎟️ 0</span></div>
+            <div class="spacer"></div>
+            <button id="b-undo" class="round" aria-label="Undo" title="Undo (Ctrl+Z)">↶</button>
+            <button id="b-redo" class="round" aria-label="Redo" title="Redo (Ctrl+Y)">↷</button>
+            <button id="b-time" class="round" aria-label="Time of day" title="Time of day (T)">☀️</button>
+            <button id="b-sound" class="round" aria-label="Sound" title="Sound (M)">🔊</button>
+            <button id="b-menu" class="round" aria-label="Menu" title="Menu (Esc)">☰</button>
+        </div>
+        <div id="camctl">
+            <button id="c-left" class="round small" aria-label="Turn left" title="Turn left (Q)">⟲</button>
+            <button id="c-home" class="round small" aria-label="Recentre" title="Recentre (H)">⌂</button>
+            <button id="c-right" class="round small" aria-label="Turn right" title="Turn right (E)">⟳</button>
+            <button id="c-in" class="round small" aria-label="Zoom in" title="Zoom in (+)">＋</button>
+            <button id="c-out" class="round small" aria-label="Zoom out" title="Zoom out (−)">－</button>
+        </div>
+        <div id="hint" class="hidden"></div>
+        <div id="traincard" class="hidden"></div>
+        <div id="dock">
+            <div id="tray" class="hidden"></div>
+            <div id="toolbar"></div>
+        </div>
+    </div>
+
+    <div id="bubbles"></div>
+    <div id="toasts"></div>
+    <div id="modal" class="hidden"><div id="modal-panel" class="panel"></div></div>
+
+    <noscript><p class="noscript">Tootle Isles needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
