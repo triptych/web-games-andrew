@@ -325,6 +325,15 @@ async function desktop() {
     await waitFor(page, '!A.menus.open');
     ok('pause menu panels open and close');
 
+    // Animated parts move; the buildings that carry them stay put (the foundry and station once rolled around).
+    await tp(page, 'gasket', 13, 9, 'down');
+    const parts = `return JSON.stringify((() => { const out = []; A.view.ow.scene.traverse((o) => { const u = o.userData; if (u.gear || u.needle) out.push([o.rotation.x, o.rotation.y, o.rotation.z, (u.gear || u.needle).rotation.z]); }); return out; })())`;
+    const p0 = JSON.parse(await S(page, parts));
+    await frames(page, 4);
+    const p1 = JSON.parse(await S(page, parts));
+    check(p0.length >= 2 && p0.every((r, i) => r.slice(0, 3).every((v, j) => v === p1[i][j])), `buildings with gears and gauges hold still (${p0.length} checked)`);
+    check(p0.some((r, i) => r[3] !== p1[i][3]), 'their gears and gauge needles move');
+
     // Station heal, shop, workbench, locker.
     await S(page, 'G.state.party.forEach(u => u.hp = 1);');
     await talkAt(page, 'gasket-station', 6, 2, 'up');

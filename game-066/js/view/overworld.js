@@ -309,7 +309,14 @@ export class Overworld {
         obj.traverse((o) => {
             if (o.userData.emitters) for (const e of o.userData.emitters) this.emitters.push({ obj: o, ...e, acc: R() });
             if (o.userData.light) this.lightSpots.push({ obj: o, p: new THREE.Vector3(), color: o.userData.light, i: 2 });
-            if (o.userData.gear || o.userData.spin || o.userData.prop || o.userData.needle || o.userData.float) this.spinners.push(o);
+            // userData.gear / needle / prop / spin hold the moving part, not the object that carries them:
+            // spinning the carrier rolled whole buildings and ships around.
+            const u = o.userData;
+            if (u.gear) this.spinners.push({ k: 'gear', o: u.gear });
+            if (u.needle) this.spinners.push({ k: 'needle', o: u.needle });
+            if (u.prop) this.spinners.push({ k: 'prop', o: u.prop });
+            if (u.spin) this.spinners.push({ k: 'spin', o: u.spin });
+            if (u.float) this.spinners.push({ k: 'float', o });
         });
         void g;
     }
@@ -430,8 +437,6 @@ export class Overworld {
             g.add(b);
             this.collect(b, g);
             for (const e of b.userData.emitters) this.emitters.push({ obj: b, pos: e.pos, kind: e.kind, rate: e.rate, acc: R() });
-            if (b.userData.gear) this.spinners.push(b.userData.gear);
-            if (b.userData.needle) this.spinners.push(b.userData.needle);
             for (let wx = x0 + 1; wx <= x1; wx += 2) this.lightSpots.push({ p: new THREE.Vector3(wx, 1.4, y1 + 1.6), color: '#ffcc6a', i: 1.1, soft: true });
         }
     }
@@ -595,12 +600,12 @@ export class Overworld {
             }
         }
         // Animated bits.
-        for (const s of this.spinners) {
-            if (s.userData.float) s.position.y = 2 + Math.sin(t * 0.5) * 0.3;
-            else if (s.userData.prop) s.userData.prop.rotation.x += dt * 12;
-            else if (s.userData.spin) s.userData.spin.rotation.y += dt;
-            else if (s.geometry && s.geometry.type === 'BoxGeometry') s.rotation.z = Math.sin(t * 0.7) * 0.6 - 0.3;   // gauge needle
-            else s.rotation.z += dt * 0.4;
+        for (const { k, o } of this.spinners) {
+            if (k === 'float') o.position.y = 2 + Math.sin(t * 0.5) * 0.3;
+            else if (k === 'prop') o.rotation.x += dt * 12;
+            else if (k === 'spin') o.rotation.y += dt;
+            else if (k === 'needle') o.rotation.z = Math.sin(t * 0.7) * 0.6 - 0.3;
+            else o.rotation.z += dt * 0.4;     // gears and paddle wheels
         }
         if (this.mastLamps) this.mastLamps.visible = Math.sin(t * 3) > -0.2;
         // Shader time.
