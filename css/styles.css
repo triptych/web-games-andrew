@@ -814,6 +814,16 @@ h1 {
     color: #04060d;
 }
 
+.game-preview.krakens-gambit,
+.carousel-slide-bg.krakens-gambit {
+    background: repeating-conic-gradient(rgba(159, 241, 228, 0.55) 0 25%, rgba(44, 156, 204, 0.55) 0 50%) 50% 62% / 26% 26%, linear-gradient(180deg, #58b8f5 0%, #e9f8ff 45%, #2c9ccc 100%);
+}
+
+.game-card.krakens-gambit .play-button {
+    background: linear-gradient(135deg, #2c9ccc 0%, #8e4cc2 55%, #f2c14e 100%);
+    color: #fff;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
