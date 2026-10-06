@@ -79,6 +79,20 @@ async function frames(page, n = 2) {
 }
 async function press(page, key, hold = 0) { await page.keyboard.down(key); if (hold) await page.waitForTimeout(hold); else await frames(page, 1); await page.keyboard.up(key); }
 
+/** Mean absolute per-channel difference (0–255) between two PNG screenshots, decoded in the page. */
+async function imageDiff(page, a, b) {
+    return page.evaluate(async ([a64, b64]) => {
+        const load = async (b64) => { const img = new Image(); img.src = `data:image/png;base64,${b64}`; await img.decode(); return img; };
+        const [ia, ib] = await Promise.all([load(a64), load(b64)]);
+        const c = document.createElement('canvas'); c.width = 160; c.height = Math.round(160 * ia.height / ia.width);
+        const x = c.getContext('2d', { willReadFrequently: true });
+        x.drawImage(ia, 0, 0, c.width, c.height); const da = x.getImageData(0, 0, c.width, c.height).data;
+        x.drawImage(ib, 0, 0, c.width, c.height); const db = x.getImageData(0, 0, c.width, c.height).data;
+        let sum = 0; for (let i = 0; i < da.length; i += 4) sum += Math.abs(da[i] - db[i]) + Math.abs(da[i + 1] - db[i + 1]) + Math.abs(da[i + 2] - db[i + 2]);
+        return sum / (da.length / 4 * 3);
+    }, [a.toString('base64'), b.toString('base64')]);
+}
+
 /** What the player is looking at right now. */
 const STATE = `return JSON.stringify({ mode: A.mode, iris: A.view.iris, dialog: A.dialog.open, choices: !!document.querySelector('#dchoices:not(.hidden) button'),
     prompt: A.prompts.open ? A.prompts.kind : null, panel: A.menus.open ? A.menus.cur.name : null, pending: G && G.pending ? G.pending.type : null,
@@ -424,6 +438,15 @@ async function phone(w, h) {
     check((await S(page, 'return G.world.player.y')) > y0, 'the D-pad walks');
     await shot(page, `bt-phone-${w}-world`);
     await noScroll('world');
+    // Particles must never veil the scene (oversized smoke once greyed out the whole town on real phones).
+    await frames(page, 6);
+    const withFx = await page.screenshot();
+    await S(page, 'A.view.ow.scene.traverse((o) => { if (o.isPoints) o.visible = false; });');
+    await frames(page, 2);
+    const noFx = await page.screenshot();
+    await S(page, 'A.view.ow.scene.traverse((o) => { if (o.isPoints) o.visible = true; });');
+    const veil = await imageDiff(page, withFx, noFx);
+    check(veil < 6, `particles leave the scene readable (mean difference ${veil.toFixed(1)} / 255)`);
 
     // Talking with A.
     await tp(page, 'cinderwick', 11, 8, 'up');

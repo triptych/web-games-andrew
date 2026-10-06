@@ -5340,5 +5340,8 @@ With every technique out of PP, two bots that resist each other's struggle move 
 ### Battle camera on a portrait phone: look down the line
 A side-on view with both bots in frame needs a horizontal field of view a tall phone doesn't have; pulling the camera back just makes both bots tiny. On narrow screens the camera sits behind the player's bot, so the foe lines up above it.
 
+### Point sprites: size them in world units, and remember SwiftShader caps them
+`gl_PointSize = aSize * uScale / depth` with `uScale` set to 0.9 × the CSS height made a smoke puff thousands of pixels wide. SwiftShader clamps point sizes, so the headless tests and screenshots only looked a little hazy; a real phone GPU drew the full size, and leaving the first house showed a solid grey screen. Now `uScale` comes from the drawing-buffer height and the camera's field of view (so `aSize` is a world size), points are capped at 30% of the screen and fade out within a few units of the lens. The phone browser test compares the scene with particles on and off and fails if they wash it out. *(game-066 `js/view/fx.js`)*
+
 ### Tests that teleport must wait for the transition
 `__rt.tp` swaps the world at once but the gear-iris transition runs for a few frames, and input is ignored meanwhile. The browser test's teleport waits until the view has caught up with the world and the iris is open before it presses anything.
