@@ -1,6 +1,6 @@
 // Renders every hole's surface grid to dev/shots/maps/<id>.png: surfaces coloured, shaded by slope,
 // with tee, cup, colliders, pickups and monsters marked. A quick way to see a layout while authoring.
-//   node game-062/dev/holemap.mjs [ids...]
+//   node game-063/dev/holemap.mjs [ids...]
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

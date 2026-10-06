@@ -1,6 +1,6 @@
 // Opens the real game with ?debug=1 and runs snippets (S = window.__ts) with pauses between them,
 // taking "SHOT:name" screenshots along the way and a final one.
-//   node game-062/dev/play.mjs name "js;;SHOT:a;;js" [waitMs] [w h] [touch] [query]
+//   node game-063/dev/play.mjs name "js;;SHOT:a;;js" [waitMs] [w h] [touch] [query]
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? [path.join(HERE, 'package'), path.join(HERE, '../../dev/package')].find((p) => fs.existsSync(p));
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8062/game-062/';
+const BASE = process.env.BASE ?? 'http://127.0.0.1:8063/game-063/';
 const [name = 'play', script = '', wait = 1500, w = 1280, h = 760, touch = '', query = ''] = process.argv.slice(2);
 fs.mkdirSync(path.join(HERE, 'shots'), { recursive: true });
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });

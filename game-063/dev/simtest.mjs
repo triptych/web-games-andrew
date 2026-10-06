@@ -1,7 +1,7 @@
 /**
  * simtest.mjs — headless tests of the pure simulation (no browser).
  *
- *   node game-062/dev/simtest.mjs
+ *   node game-063/dev/simtest.mjs
  *   ONLY=purity,determinism,content,physics,rpg,story,bosses,bot   (comma list)
  *   HOLES=1-1,2-4   SEEDS=2 (noisy-bot seeds)   VERBOSE=1
  *

@@ -1,6 +1,6 @@
 // For a boss hole: places the ball at a few distances from the boss's current target and counts how many
 // shots in a grid (clubs × yaw × power, perfect strikes) land a hit. A boss nobody can hit shows up as 0.
-//   node game-062/dev/bossprobe.mjs <hole> [phase2]
+//   node game-063/dev/bossprobe.mjs <hole> [phase2]
 import { HOLE_BY_ID } from '../js/sim/holes.js';
 import { buildCourse } from '../js/sim/course.js';
 import { World } from '../js/sim/world.js';

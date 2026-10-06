@@ -1,5 +1,5 @@
 // Plays holes with the search bot and prints strokes against par.
-//   node game-062/dev/botrun.mjs [ids...] [--noise N] [--seeds N] [--tier T]
+//   node game-063/dev/botrun.mjs [ids...] [--noise N] [--seeds N] [--tier T]
 import { HOLES } from '../js/sim/holes.js';
 import { buildCourse } from '../js/sim/course.js';
 import { World } from '../js/sim/world.js';

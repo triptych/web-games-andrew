@@ -1,6 +1,6 @@
 // Tries one club at a grid of powers and aims from the tee (or a given ball position) and prints where
 // each shot finishes and how the bot would score it. For tuning holes.
-//   node game-062/dev/probe.mjs <hole> <club> [yaw ...] [--from x,z]
+//   node game-063/dev/probe.mjs <hole> <club> [yaw ...] [--from x,z]
 import { HOLE_BY_ID } from '../js/sim/holes.js';
 import { buildCourse } from '../js/sim/course.js';
 import { World } from '../js/sim/world.js';

@@ -12,11 +12,11 @@
  * SWING take a shot; nothing scrolls sideways; the canvas isn't clipped.
  * Fails on any console error, page error or failed request. Screenshots go to dev/shots/.
  *
- *   python3 -m http.server 8062                 # from the REPO ROOT
- *   node game-062/dev/browsertest.mjs
+ *   python3 -m http.server 8063                 # from the REPO ROOT
+ *   node game-063/dev/browsertest.mjs
  *
  * No network to unpkg.com? Unpack three@0.165.0 into dev/package (repo root) or point THREE_PKG at it.
- * Env: BASE (default http://127.0.0.1:8062), ONLY=desktop|phones.
+ * Env: BASE (default http://127.0.0.1:8063), ONLY=desktop|phones.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? [path.join(HERE, 'package'), path.join(HERE, '../../dev/package')].find((p) => fs.existsSync(p));
-const BASE = (process.env.BASE ?? 'http://127.0.0.1:8062') + '/game-062/';
+const BASE = (process.env.BASE ?? 'http://127.0.0.1:8063') + '/game-063/';
 const OUT = path.join(HERE, 'shots');
 const ONLY = process.env.ONLY ?? '';
 fs.mkdirSync(OUT, { recursive: true });

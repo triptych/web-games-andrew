@@ -1,5 +1,5 @@
 // Screenshots any page of the game (or the dev viewer) with real WebGL.
-//   node game-062/dev/shot.mjs "dev/view.html?hole=1-2&cam=aim" name [w h]
+//   node game-063/dev/shot.mjs "dev/view.html?hole=1-2&cam=aim" name [w h]
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? [path.join(HERE, 'package'), path.join(HERE, '../../dev/package')].find((p) => fs.existsSync(p));
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8062/game-062/';
+const BASE = process.env.BASE ?? 'http://127.0.0.1:8063/game-063/';
 const [url, name = 'shot', w = 1280, h = 760] = process.argv.slice(2);
 fs.mkdirSync(path.join(HERE, 'shots'), { recursive: true });
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox'] });

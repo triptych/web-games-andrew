@@ -310,7 +310,7 @@ DOM over the canvas. Parchment panels with gold trim, a rounded friendly font fo
 Same split as games 040–061: a **pure simulation** that a Node harness can play, and a renderer that reads it.
 
 ```
-game-062/
+game-063/
   index.html  style.css  game-plan.md
   js/
     main.js        boot, mode machine, fixed-step loop, event drain
