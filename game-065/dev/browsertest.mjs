@@ -5,12 +5,15 @@
  * buy a Firefly from the Grove tab → Nourish → an upgrade → a stage-up and its
  * lore banner → catch a golden wisp by clicking it → cast a spell → be reborn
  * through the confirm dialog → buy heartwood → begin a trial → bind a realm →
- * journal, stats and settings → export a save code.
+ * the Wilds by click (claim a whisper, send a party and welcome it home, plant and
+ * harvest a herb, buy a garden bed and a spark colour) → journal awards, badges (wear
+ * a title), codex, stats, lore and settings → export a save code.
  * Offline: a fresh page whose save is two hours old shows "While you were away"
  * with motes gained (seeded with addInitScript, never through reload: the old
  * page would re-save on unload and undo the rewind; see game-034's learnings).
  * Phones (touch only, CDP input) at 390×844 and 844×390: start, tap the seed,
- * buy, nourish and switch tabs by touch; every control ≥ 44 px and on screen;
+ * buy, nourish and switch tabs by touch (the Wilds too: plant a herb by touch);
+ * every control finger-sized and on screen;
  * nothing covers the tap point; no sideways scroll.
  * NOSTORAGE=1 makes every localStorage access throw; the game must still play.
  * Fails on any console error, page error or failed request. Shots → dev/shots/.
@@ -201,9 +204,50 @@ async function desktop() {
     await page.click('#modal-buttons .big-btn.purple');
     s = await st(page);
     check(s.realms.includes('midgard'), 'Midgard bound to the World Tree');
-    // journal, stats, settings
+    // the wilds
+    await page.click('.tab[data-tab="wilds"]');
+    await until(page, () => document.querySelectorAll('#wilds-body .whisper').length === 3, 'three whispers in the Wilds');
+    await page.evaluate(() => { const q = window.__wr.grove.s.quests[0]; q.from -= q.n; });
+    await page.waitForTimeout(400);
+    let amber = await page.evaluate(() => window.__wr.grove.s.amber);
+    await page.click('#wilds-body [data-a="claimW"][data-v="0"]');
+    check(await page.evaluate((a) => window.__wr.grove.s.amber > a && window.__wr.grove.s.stats.quests === 1, amber), 'a whisper claimed by click pays amber');
+    await page.click('#wilds-seg [data-w="travel"]');
+    await page.click('#wilds-body [data-a="send"][data-v="hollow:0"]');
+    check(await page.evaluate(() => window.__wr.grove.s.exps.length === 1), 'a party sent to Mossy Hollow');
+    await shot(page, 'd08-wilds-travel');
+    await page.evaluate(() => window.__wr.grove.tick(700));
+    await until(page, () => !document.querySelector('#wilds-body [data-a="claimE"]')?.disabled, 'the party is home');
+    await page.click('#wilds-body [data-a="claimE"]');
+    check(await page.evaluate(() => window.__wr.grove.s.stats.expeditions === 1 && window.__wr.grove.s.exps.length === 0), 'the party welcomed home by click');
+    await page.click('#wilds-seg [data-w="garden"]');
+    await page.click('#wilds-body .plot[data-v="0"]');
+    check(await page.evaluate(() => window.__wr.grove.s.garden[0]?.herb === 'moonpetal'), 'a moonpetal planted by click');
+    await page.evaluate(() => window.__wr.grove.tick(320));
+    await until(page, () => document.querySelector('#wilds-body .plot[data-v="0"]').classList.contains('ripe'), 'the moonpetal ripens');
+    await shot(page, 'd09-wilds-garden');
+    await page.click('#wilds-body .plot[data-v="0"]');
+    check(await page.evaluate(() => window.__wr.grove.s.stats.harvests === 1), 'harvested by click');
+    await page.evaluate(() => { window.__wr.grove.s.amber = 100; });
+    await page.click('#wilds-seg [data-w="peddler"]');
+    await page.click('#wilds-body [data-a="shop"][data-v="plots"]');
+    await page.click('#wilds-body [data-a="shop"][data-v="rose"]');
+    check(await page.evaluate(() => window.__wr.grove.gardenPlots() === 3 && window.__wr.grove.s.spark === 'rose'), 'a garden bed and a spark colour bought from Mab');
+    await realClickTree(page, 2);
+    // journal: awards, badges and titles, codex, stats, lore
+    await page.evaluate(() => { window.__wr.grove.s.stats.clicks = 26000; window.__wr.grove.checkWilds(); });
     await page.click('.tab[data-tab="journal"]');
+    await page.click('#journal-seg [data-j="ach"]');
     check(await page.evaluate(() => document.querySelectorAll('.ach.got').length > 5), 'achievements earned show in the journal');
+    check(await page.evaluate(() => document.querySelectorAll('.ach.feat.got').length >= 1), 'feats show in the journal');
+    await page.click('#journal-seg [data-j="badges"]');
+    check(await page.evaluate(() => document.querySelectorAll('.medal').length === 14 && document.querySelectorAll('.medal.t3').length >= 1), 'badges, a gold one among them');
+    await page.click('.title-chip[data-title="touch3"]');
+    await frames(page, 2);
+    check((await page.textContent('#title-line')) === 'Tender of the Seed' && await page.isVisible('#title-line'), 'a title is worn under the counter');
+    await shot(page, 'd10-badges');
+    await page.click('#journal-seg [data-j="codex"]');
+    check(await page.evaluate(() => document.querySelectorAll('.codex-entry').length === 12), 'the codex lists every spirit');
     await page.click('#journal-seg [data-j="stats"]');
     check(await page.isVisible('table.stats'), 'stats table');
     await page.click('#journal-seg [data-j="lore"]');
@@ -287,11 +331,25 @@ async function phone(w, h) {
     check((await st(page)).tree >= 1, 'Nourish by touch');
     await page.evaluate(() => { window.__wr.give(1e9); window.__wr.tree(35); window.__wr.gens([60, 50, 40, 30, 12, 6, 4, 0, 0, 0, 0, 0]); window.__wr.snap(); });
     await frames(page, 3);
-    for (const t of ['ups', 'tree', 'magic', 'rebirth', 'journal', 'settings', 'grove']) {
+    for (const t of ['ups', 'tree', 'magic', 'wilds', 'rebirth', 'journal', 'settings', 'grove']) {
         await tapEl(`.tab[data-tab="${t}"]`);
         const ok = await page.evaluate((t) => document.getElementById(`pane-${t}`).classList.contains('active'), t);
         check(ok, `tab ${t} opens by touch`);
     }
+    // the wilds by touch: the garden, and its controls are finger-sized
+    await tapEl('.tab[data-tab="wilds"]');
+    await tapEl('#wilds-seg [data-w="garden"]');
+    await tapEl('#wilds-body .plot[data-v="0"]');
+    check(await page.evaluate(() => !!window.__wr.grove.s.garden[0]), 'a herb planted by touch');
+    const wsmall = await page.evaluate(() => {
+        const out = [];
+        for (const sel of ['#wilds-seg button', '#wilds-body .plot', '#wilds-body .seed']) {
+            document.querySelectorAll(sel).forEach((e) => { const r = e.getBoundingClientRect(); if (r.width && (r.height < 32 || r.width < 32)) out.push(`${sel} ${Math.round(r.width)}×${Math.round(r.height)}`); });
+        }
+        return out;
+    });
+    check(wsmall.length === 0, `Wilds controls are finger-sized ${wsmall.join(', ')}`);
+    await tapEl('.tab[data-tab="grove"]');
     // layout checks
     const lay = await page.evaluate(() => {
         const small = [];

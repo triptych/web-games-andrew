@@ -43,6 +43,18 @@ The later games (037+) share conventions the early ones predate. [docs/refresh-p
 
 ### Changed
 - **Scrapwright** (game-066) v1.0.1: the town no longer disappears behind a grey veil on phones. Particles were sized as `size × 0.9 × screen height ÷ depth`, so a chimney smoke puff could be thousands of pixels wide; SwiftShader caps point sizes, which hid it in testing, but real phone GPUs drew them in full. Particles are now sized from the drawing buffer and the camera's field of view, capped at 30% of the screen, and fade out near the lens ([game-066/js/view/fx.js](game-066/js/view/fx.js)). The phone browser test now compares the scene with particles on and off.
+- **Worldroot** (game-065) v1.2.0: **the Wilds**, ten new systems around the core loop. None is needed to grow the tree, and all of them keep going while you are away ([game-065/js/sim/wilds.js](game-065/js/sim/wilds.js), [game-065/js/sim/wilds-data.js](game-065/js/sim/wilds-data.js), [game-065/js/ui/wilds-ui.js](game-065/js/ui/wilds-ui.js)).
+  - **Spirit kinship:** each kind of spirit levels up with time owned, up to 20; +1.5% per level.
+  - **Expeditions:** send parties to four Deepwood sites for 10 minutes to 8 hours.
+  - **Relics:** 24 to find, in four sets with set blessings.
+  - **Moonpetal garden:** eight herbs from 5 minutes to 12 hours, with a 6% glimmering variant.
+  - **Whispers:** small rotating goals that pay amber.
+  - **Mab's stall:** an amber shop with more parties and beds, faster herbs and trips, Bottled Starlight and four spark colours.
+  - **Badges and titles:** fourteen badge tracks in bronze, silver, gold and starlit; 28 titles to wear under the counter.
+  - **Feats:** 97 new achievements that pay amber and are counted apart from the 138, so Radiance and the core balance don't move.
+  - **The Codex:** three pages of lore per spirit, opened by kinship.
+  - **Balance:** the balance bots tend the Wilds too. Over twelve seeds the World Tree comes at 183 minutes for an active player (177 before) and 288 for a casual one (316), and an idle player's first rebirth at 310 (325).
+  - **Tests:** `dev/simtest.mjs` gains a section for the Wilds (1,052 checks). `dev/browsertest.mjs` plays the Wilds by click on desktop and by touch on phones.
 - **Worldroot** (game-065) v1.1.1: no more box flashing over the right-hand panel. The panel and HUD chips used `backdrop-filter: blur` over the WebGL canvas, which Chrome can drop or show stale for a frame when the panel repaints (hovering its buttons), so a panel-sized box blinked over the scene. They now use a plain, slightly more opaque tint. Hover transitions inside the panel no longer re-run the layout, and the canvas and bloom buffers are only reallocated when the size really changes.
 - **Worldroot** (game-065) v1.1.0: every spirit and structure remodelled to match the new Fox Spirit ([game-065/js/view/models.js](game-065/js/view/models.js), shared parts in [game-065/js/view/kit.js](game-065/js/view/kit.js)).
   - **Treant**: a lumbering walking tree with root legs and splayed root toes, a gnarled ridged trunk with moss, a carved face (deep amber eyes, knotted brows, a nose knot, a mossy beard), branching arms with twig fingers and leafy hands, and a crown of short branches carrying separate leaf clusters, blossoms and glowing berries. Rolls from foot to foot as it walks.

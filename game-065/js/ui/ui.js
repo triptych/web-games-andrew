@@ -15,6 +15,8 @@ import {
     WISP_KINDS, TREE_LEVEL_BONUS, HW_BONUS, REBIRTH_STAGE, MILESTONES, stageOf,
 } from '../sim/data.js';
 import { fmt, fmtTime, fmtLong } from './format.js';
+import { FEATS, KIN_BONUS, RELICS } from '../sim/wilds-data.js';
+import { initWilds, setWildsGrove, resetWilds, refreshWilds, wildsWaiting, badgesView, codexView, titleText, wireTitles } from './wilds-ui.js';
 
 export const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -47,11 +49,13 @@ export function initUI(grove, actions, s) {
     buildGenRows();
     wireTabs();
     wireStatic();
+    initWilds(grove, actions);
+    wireTitles($('journal-body'));
     setTab(s.tab || 'grove', true);
     refresh(true);
 }
 
-export function setGrove(grove) { G = grove; for (const k in keys) delete keys[k]; buildGenRows(); refresh(true); }
+export function setGrove(grove) { G = grove; for (const k in keys) delete keys[k]; setWildsGrove(grove); buildGenRows(); refresh(true); }
 
 // ------------------------------------------------------------------ tabs
 function wireTabs() {
@@ -95,7 +99,7 @@ function wireStatic() {
         const b = e.target.closest('button'); if (!b) return;
         journalView = b.dataset.j; act.ui();
         document.querySelectorAll('#journal-seg button').forEach((x) => x.classList.toggle('on', x === b));
-        keys.journal = null;
+        keys.journal = null; resetWilds();
         refresh(true);
     });
     $('journal-body').addEventListener('click', (e) => {
@@ -128,7 +132,7 @@ function buildGenRows() {
         b.className = 'gen';
         b.dataset.gen = i;
         b.innerHTML = `<div class="g-ico">${g.icon}</div>
-            <div class="g-mid"><div class="g-name">${esc(g.name)}</div><div class="g-info"></div><div class="g-ms"><i></i></div></div>
+            <div class="g-mid"><div class="g-name"><span class="g-nm">${esc(g.name)}</span> <span class="g-kin" hidden></span></div><div class="g-info"></div><div class="g-ms"><i></i></div></div>
             <div class="g-right"><div class="g-own">0</div><div class="g-cost"></div></div>`;
         b.title = g.desc;
         list.appendChild(b);
@@ -163,7 +167,8 @@ function refreshGens() {
         row.hidden = false;
         if (teaser) {
             row.className = 'gen locked';
-            row.querySelector('.g-name').textContent = '???';
+            row.querySelector('.g-nm').textContent = '???';
+            row.querySelector('.g-kin').hidden = true;
             const why = !G.genUnlocked(i) ? (s.trial === 'lonely' && i >= 3 ? 'Not in this trial' : `Grows near a ${STAGES[g.stage].name}`) : `Gather ${fmt(g.cost * 0.5)} motes to discover`;
             row.querySelector('.g-info').textContent = why;
             row.querySelector('.g-own').textContent = '';
@@ -172,7 +177,10 @@ function refreshGens() {
             row.querySelector('.g-ms i').style.width = '0%';
             return;
         }
-        row.querySelector('.g-name').textContent = g.name;
+        row.querySelector('.g-nm').textContent = g.name;
+        const kin = s.kinLv[i] | 0, ke = row.querySelector('.g-kin');
+        ke.hidden = !kin;
+        if (kin) { ke.textContent = `♥${kin}`; ke.title = `Kinship ${kin}: +${(kin * KIN_BONUS * 100).toFixed(1)}%`; }
         row.querySelector('.g-ico').textContent = g.icon;
         let n = buyAmt === 'max' ? Math.max(1, G.genMaxAffordable(i)) : buyAmt;
         const cost = G.genCost(i, n);
@@ -356,13 +364,17 @@ function refreshJournal() {
     const s = G.s;
     const body = $('journal-body');
     if (journalView === 'ach') {
-        const key = `ach|${G.achCount()}|${selAch}`;
+        const key = `ach|${G.achCount()}|${G.featCount()}|${selAch}|${G.wildsOpen()}`;
         if (keys.journal === key) return;
         keys.journal = key;
-        const a = selAch && ACHIEVEMENTS.find((x) => x.id === selAch);
-        body.innerHTML = `<div class="card" id="ach-detail">${a ? `<b class="${s.ach[a.id] ? 'gold' : ''}">${esc(a.name)}</b> ${s.ach[a.id] ? '✓' : ''}<br><span class="small dim">${esc(a.cat === 'secret' && !s.ach[a.id] ? 'A secret of the grove.' : a.desc)}</span>`
+        const a = selAch && (ACHIEVEMENTS.find((x) => x.id === selAch) || FEATS.find((x) => x.id === selAch));
+        const cell = (x) => `<button class="ach ${x.feat ? 'feat' : ''} ${s.ach[x.id] ? 'got' : ''} ${selAch === x.id ? 'sel' : ''}" data-id="${x.id}" title="${esc(x.name)}">${x.feat ? x.icon : ACH_ICON[x.cat] || '✦'}</button>`;
+        body.innerHTML = `<div class="card" id="ach-detail">${a ? `<b class="${s.ach[a.id] ? 'gold' : ''}">${esc(a.name)}</b> ${s.ach[a.id] ? '✓' : ''}${a.feat ? ' <span class="small amber">feat · +2 🟠</span>' : ''}<br><span class="small dim">${esc(a.cat === 'secret' && !s.ach[a.id] ? 'A secret of the grove.' : a.desc)}</span>`
             : `<b>${G.achCount()} / ${ACHIEVEMENTS.length}</b> achievements · each one makes the grove's Radiance upgrades stronger.<br><span class="small dim">Tap one for details.</span>`}</div>
-            <div class="ach-grid">${ACHIEVEMENTS.map((x) => `<button class="ach ${s.ach[x.id] ? 'got' : ''} ${selAch === x.id ? 'sel' : ''}" data-id="${x.id}" title="${esc(x.name)}">${ACH_ICON[x.cat] || '✦'}</button>`).join('')}</div>`;
+            <div class="ach-grid">${ACHIEVEMENTS.map(cell).join('')}</div>
+            ${G.wildsOpen() ? `<h3 class="sub">Feats of the Wilds <span class="dim">${G.featCount()} / ${FEATS.length}</span></h3>
+            <p class="small dim">Feats are earned all over the wood. Each one pays 2 amber.</p>
+            <div class="ach-grid">${FEATS.map(cell).join('')}</div>` : ''}`;
     } else if (journalView === 'stats') {
         keys.journal = null;
         const d = G.derive();
@@ -376,8 +388,20 @@ function refreshJournal() {
             ['Trials completed', `${Object.keys(s.trialsDone).length} / ${TRIALS.length}`], ['Time in this cycle', fmtTime(s.runT)],
             ['Time playing', fmtTime(s.stats.playTime)], ['Grove age', fmtTime(s.t)], ['Motes gathered while away', fmt(s.stats.offlineMotes)],
             ['Offline production', `${Math.round(d.offlineEff * 100)}% for up to ${d.offlineHours} h`], ['Longest time away', fmtTime(s.stats.longestAway)],
+            ...(G.wildsOpen() ? [
+                ['Amber now / ever', `${fmt(Math.floor(s.amber))} / ${fmt(Math.floor(s.amberEver))}`], ['Kinship levels', fmt(G.kinTotal())],
+                ['Expeditions home', fmt(s.stats.expeditions)], ['Relics found', `${G.relicCount()} / ${RELICS.length}`],
+                ['Herbs harvested', `${fmt(s.stats.harvests)} (${fmt(s.stats.glimmers)} glimmering)`], ['Whispers answered', fmt(s.stats.quests)],
+                ['Feats', `${G.featCount()} / ${FEATS.length}`], ['Seasons turned', fmt(s.stats.seasonsPassed)],
+            ] : []),
         ];
         body.innerHTML = `<table class="stats">${rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</table>`;
+    } else if (journalView === 'badges') {
+        keys.journal = null;
+        badgesView(body);
+    } else if (journalView === 'codex') {
+        keys.journal = null;
+        codexView(body);
     } else {
         const key = `lore|${s.bestStage}`;
         if (keys.journal === key) return;
@@ -434,7 +458,12 @@ export function refreshHUD() {
     const nUps = G.availableUpgrades().filter((u) => u.cost <= s.motes).length;
     badge('badge-ups', nUps);
     badge('badge-rebirth', (G.canRebirth() && !s.trial && G.hwGain() >= Math.max(1, s.hwEarned * 0.5)) || (s.trial && s.trialsDone[s.trial]) || G.treeMaxed() ? '!' : 0);
+    badge('badge-wilds', wildsWaiting());
+    const tt = titleText(), tl = $('title-line');
+    tl.hidden = !tt;
+    if (tt && tl.textContent !== tt) tl.textContent = tt;
     // magic / rebirth tabs dim until they matter
+    $('tab-wilds').classList.toggle('locked', !G.wildsOpen());
     $('tab-magic').classList.toggle('locked', G.stage < 2 && !s.rebirths);
     $('tab-rebirth').classList.toggle('locked', G.stage < 4 && !s.rebirths);
 }
@@ -443,7 +472,7 @@ function badge(id, v) { const b = $(id); b.hidden = !v; if (v) b.textContent = S
 /** Patch the open pane. `force` also rebuilds keyed lists. */
 export function refresh(force) {
     if (!G) return;
-    if (force) for (const k in keys) delete keys[k];
+    if (force) { for (const k in keys) delete keys[k]; resetWilds(); }
     refreshHUD();
     if ($('panel-body').offsetParent === null) return;     // sheet folded away
     if (tab === 'grove') refreshGens();
@@ -452,6 +481,7 @@ export function refresh(force) {
     else if (tab === 'magic') refreshMagic();
     else if (tab === 'rebirth') refreshRebirth();
     else if (tab === 'journal') refreshJournal();
+    else if (tab === 'wilds') refreshWilds();
 }
 
 // ------------------------------------------------------------------ floaters, toasts, lore, flash

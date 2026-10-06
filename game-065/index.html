@@ -25,6 +25,7 @@
                 <div id="motes-line"><span id="motes">0</span> <span class="unit">motes</span></div>
                 <div id="mps-line"><span id="mps">0</span> per second</div>
                 <div id="click-line">✦ <span id="click-val">1</span> per touch</div>
+                <div id="title-line" hidden></div>
             </div>
             <div id="chips">
                 <button id="chip-season" class="chip" title="Season"><span id="season-ico">🌸</span><span id="season-name">Spring</span><span id="season-left" class="dim"></span></button>
@@ -54,6 +55,7 @@
             <button class="tab" data-tab="ups" role="tab"><span class="t-ico">✨</span><span class="t-lbl">Upgrades</span><span class="badge" id="badge-ups" hidden></span></button>
             <button class="tab" data-tab="tree" role="tab"><span class="t-ico">🌳</span><span class="t-lbl">Tree</span></button>
             <button class="tab" data-tab="magic" role="tab" id="tab-magic"><span class="t-ico">🔮</span><span class="t-lbl">Magic</span></button>
+            <button class="tab" data-tab="wilds" role="tab" id="tab-wilds"><span class="t-ico">🧭</span><span class="t-lbl">Wilds</span><span class="badge" id="badge-wilds" hidden></span></button>
             <button class="tab" data-tab="rebirth" role="tab" id="tab-rebirth"><span class="t-ico">🌀</span><span class="t-lbl">Rebirth</span><span class="badge" id="badge-rebirth" hidden></span></button>
             <button class="tab" data-tab="journal" role="tab"><span class="t-ico">📖</span><span class="t-lbl">Journal</span><span class="badge" id="badge-journal" hidden></span></button>
             <button class="tab" data-tab="settings" role="tab"><span class="t-ico">⚙️</span><span class="t-lbl">Settings</span></button>
@@ -93,6 +95,12 @@
                 <h3 class="sub">Active effects</h3>
                 <div id="buff-list" class="card"></div>
             </section>
+            <section class="pane" id="pane-wilds">
+                <div class="pane-head"><h2>The Wilds</h2><span id="amber-have" class="amber-pill" title="Amber: spend it at Mab's stall">🟠 0</span></div>
+                <div class="seg wide" id="wilds-seg" hidden><button data-w="whispers" class="on">Whispers</button><button data-w="travel">Expeditions</button><button data-w="garden">Garden</button><button data-w="peddler">Peddler</button></div>
+                <div id="wilds-closed" class="card"><b>The Deepwood is still asleep.</b><p class="dim small">When the seed sprouts, the wider wood wakes up: whispers to answer, expeditions to send, a moonpetal garden, relics, badges and a peddler who trades in amber. None of it is needed to grow the tree; all of it keeps going while you are away.</p></div>
+                <div id="wilds-body" hidden></div>
+            </section>
             <section class="pane" id="pane-rebirth">
                 <div id="rebirth-card"></div>
                 <h3 class="sub">Heartwood <span id="hw-have" class="dim"></span></h3>
@@ -103,7 +111,7 @@
                 <div id="realm-list" class="list"></div>
             </section>
             <section class="pane" id="pane-journal">
-                <div class="pane-head"><h2>Journal</h2><div class="seg" id="journal-seg"><button data-j="ach" class="on">Achievements</button><button data-j="stats">Stats</button><button data-j="lore">Lore</button></div></div>
+                <div class="pane-head"><h2>Journal</h2><div class="seg" id="journal-seg"><button data-j="ach" class="on">Awards</button><button data-j="badges">Badges</button><button data-j="codex">Codex</button><button data-j="stats">Stats</button><button data-j="lore">Lore</button></div></div>
                 <div id="journal-body"></div>
             </section>
             <section class="pane" id="pane-settings">

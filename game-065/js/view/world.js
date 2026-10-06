@@ -120,9 +120,10 @@ export class World {
     }
 
     /** A click landed on the tree at world point p. */
-    clickBurst(p, big) {
+    clickBurst(p, big, colors) {
         const s = Math.max(0.08, this.size.height * 0.012);
-        this.bursts.emit(p, big ? 18 : 8, { color: Math.random() < 0.5 ? 0xfff0a0 : 0xa8ffd8, speed: 0.8 + this.size.height * 0.05, size: s * 1.6, life: 1.1, up: 0.5 + this.size.height * 0.02 });
+        const color = colors ? colors[Math.floor(Math.random() * colors.length)] : Math.random() < 0.5 ? 0xfff0a0 : 0xa8ffd8;
+        this.bursts.emit(p, big ? 18 : 8, { color, speed: 0.8 + this.size.height * 0.05, size: s * 1.6, life: 1.1, up: 0.5 + this.size.height * 0.02 });
     }
 
     hitTree(clientX, clientY) { return this.tree.hit(rayFrom(clientX, clientY)); }

@@ -18,6 +18,7 @@ import * as ui from './ui/ui.js';
 import { fmt, fmtTime, setNumberStyle } from './ui/format.js';
 import { initAudio, sfx, setSound, setMusic, setVolume, setSeason } from './audio.js';
 import { loadGame, saveGame, clearGame, loadSettings, saveSettings, exportCode, importCode } from './save.js';
+import { EXP_SITE_BY_ID, RELIC_BY_ID, HERB_BY_ID, SHOP_BY_ID, BADGE_BY_ID, BADGE_TIERS, FEAT_BY_ID, CODEX_LEVELS } from './sim/wilds-data.js';
 
 const $ = ui.$;
 const params = new URLSearchParams(location.search);
@@ -106,6 +107,21 @@ const act = {
             <p class="small dim">Beginning a trial is a rebirth${grove.canRebirth() ? ` (worth ${fmt(grove.hwGain())} heartwood now)` : ''}. You can leave at any time.</p>`,
         [{ label: 'Not now' }, { label: 'Begin the trial', cls: 'purple', fn: () => doRebirth(() => grove.startTrial(id)) }]);
     },
+    // the wilds
+    claimWhisper(i) { const r = grove.claimWhisper(i); if (!r) { sfx.error(); return; } sfx.achievement(); ui.toast('👂', 'Whisper answered', `+${fmt(r.amber)} amber`); ui.refresh(); },
+    rerollWhisper(i) { if (!grove.rerollWhisper(i)) { sfx.error(); return; } sfx.ui(); ui.refresh(); },
+    sendExpedition(site, ti) { if (!grove.sendExpedition(site, ti)) { sfx.error(); return; } sfx.ui(); ui.refresh(); },
+    claimExpedition(i) { if (!grove.claimExpedition(i)) sfx.error(); ui.refresh(); },
+    claimAllExpeditions() { grove.claimAllExpeditions(); ui.refresh(); },
+    plot(i, herb) {
+        const p = grove.s.garden[i];
+        if (!p) { if (grove.plant(i, herb)) sfx.ui(); else sfx.error(); } else if (grove.s.t >= p.end) grove.harvest(i);
+        ui.refresh();
+    },
+    harvestAll() { grove.harvestAll(); ui.refresh(); },
+    plantAll(herb) { if (grove.plantAll(herb)) sfx.ui(); ui.refresh(); },
+    buyShop(id) { if (!grove.buyShop(id)) { sfx.error(); return; } sfx.upgrade(); ui.refresh(true); },
+    setTitle(id) { if (grove.setTitle(id)) { sfx.ui(); ui.refresh(); } },
     askRealm(id) {
         const r = REALM_BY_ID[id];
         ui.modal(`<h2>Bind ${r.name}?</h2><p>${r.desc}</p><p class="small dim">Binding is a rebirth worth ${fmt(grove.hwGain())} heartwood. The realm floats in the World Tree's crown forever, and every later tree is ×30 hungrier.</p>`,
@@ -156,7 +172,44 @@ function handleEvents() {
             case 'wispMiss': sfx.wispMiss(); break;
             case 'spell': sfx.spell(); break;
             case 'gift': { const p = world.treeScreen(0.6); ui.floater(p.x, p.y, `+${fmt(e.value)}`, 'gift'); break; }
-            case 'ach': { const a = ACH_BY_ID[e.id]; sfx.achievement(); ui.toast('🏆', 'Achievement', a.name); break; }
+            case 'ach': {
+                sfx.achievement();
+                if (e.feat) ui.toast(FEAT_BY_ID[e.id].icon, 'Feat · +2 amber', FEAT_BY_ID[e.id].name);
+                else ui.toast('🏆', 'Achievement', ACH_BY_ID[e.id].name);
+                break;
+            }
+            case 'kin':
+                // a page of the codex opens at kinship 1, 5 and 10; a toast for every level would drown the screen
+                if (e.level % 5 === 0) ui.toast(GENERATORS[e.gen].icon, `Kinship ${e.level}`, `${GENERATORS[e.gen].plural} are closer to you${CODEX_LEVELS.includes(e.level) ? ': a new page in the Codex' : ''}.`);
+                break;
+            case 'expBack': sfx.wispAppear(); ui.toast(EXP_SITE_BY_ID[e.site].icon, 'Home from the Deepwood', `A party is back from ${EXP_SITE_BY_ID[e.site].name}.`); break;
+            case 'expClaim': {
+                sfx.harvest();
+                const p = world.treeScreen(0.6);
+                ui.floater(p.x, p.y, `+${fmt(e.amber)} 🟠${e.light >= 1 ? ` +${fmt(e.light)} ✨` : ''}`, 'gift');
+                break;
+            }
+            case 'relic': {
+                const r = RELIC_BY_ID[e.id];
+                if (e.dup) ui.toast(r.icon, 'Relic again', `Another ${r.name}: traded for ${fmt(e.amber)} amber.`);
+                else { sfx.relic(); ui.toast(r.icon, 'Relic found!', `${r.name}: ${r.text}`, 6000); }
+                break;
+            }
+            case 'ripe': if (ui.currentTab() !== 'wilds') ui.toast(HERB_BY_ID[e.herb].icon, 'Ready to pick', `${HERB_BY_ID[e.herb].name} has grown.`); break;
+            case 'harvest': {
+                sfx.harvest();
+                const h = HERB_BY_ID[e.herb], p = world.treeScreen(0.5);
+                ui.floater(p.x, p.y, `${h.icon} +${fmt(e.amber)} 🟠${e.glim ? ' 🌟' : ''}`, 'gift');
+                if (e.glim) ui.toast('🌟', 'Glimmering!', `A glimmering ${h.name}: twice the gift.`);
+                break;
+            }
+            case 'whisperReady': ui.toast('👂', 'A whisper is answered', 'Claim its amber in the Wilds.'); break;
+            case 'badge': {
+                const b = BADGE_BY_ID[e.id];
+                sfx.badge();
+                ui.toast(b.icon, `${BADGE_TIERS[e.tier - 1]} badge`, `${b.name}${e.tier >= 3 ? ` · new title: ${b.titles[e.tier - 3]}` : ''}`, 5000);
+                break;
+            }
             case 'rebirth': sfx.rebirth(); if (e.gain) ui.toast('🪵', 'Reborn', `+${fmt(e.gain)} heartwood.`, 5000); break;
             case 'trialStart': ui.toast('⚖️', 'Trial begun', TRIAL_BY_ID[e.id].rule, 6000); break;
             case 'trialDone': sfx.stage(); ui.toast('🏅', 'Trial passed', `${TRIAL_BY_ID[e.id].name}: ${TRIAL_BY_ID[e.id].reward}`, 7000); break;
@@ -198,7 +251,7 @@ function clickAt(x, y, p) {
     const v = grove.click(1);
     const big = grove.s.buffs.some((b) => b.kind === 'click');
     if (v > 0) ui.floater(x, y - 20, `+${fmt(v)}`, big ? 'big' : '');
-    world.clickBurst(p, big);
+    world.clickBurst(p, big, SHOP_BY_ID[grove.s.spark]?.colors);
     sfx.click(big);
     if (grove.s.stats.clicks >= 6) $('hint').hidden = true;
 }
@@ -319,6 +372,7 @@ function showHelp() {
         <li><b>Upgrades</b> multiply your spirits and touches. Owning 50, 100, 150… of a spirit doubles it.</li>
         <li><b>Golden wisps</b> drift by every few minutes: catch them for gifts. <b>Spells</b> spend sap for bursts of power. <b>Seasons</b> turn every five minutes.</li>
         <li>At the <b>Grove Tree</b> stage you can be <b>reborn</b> for heartwood: lasting power, automation, and trials. At the <b>World Tree</b>, bind the nine realms.</li>
+        <li>Once the seed sprouts, <b>the Wilds</b> wake: answer whispers, send expeditions for relics, grow herbs, and trade amber with Mab. Spirits grow <b>kinship</b> with you over time. The Journal keeps your badges, titles and codex.</li>
         </ul><p class="small dim">Drag to look around, pinch or scroll to zoom. Keys: Space touch · N nourish · W catch wisp · 1–5 spells · M music.</p>`,
     [{ label: 'Let it grow', cls: 'green' }]);
     settings.seenHelp = true; saveSettings(settings);
@@ -330,10 +384,16 @@ function showAway(a) {
     if (a.gens > 0) bits.push(`${fmt(a.gens)} spirits joined`);
     if (a.ups > 0) bits.push(`${a.ups} upgrades bought`);
     if (a.tree > 0) bits.push(`the tree grew ${a.tree} level${a.tree > 1 ? 's' : ''}`);
+    if (a.kin > 0) bits.push(`${a.kin} kinship level${a.kin > 1 ? 's' : ''}`);
+    const wild = [];
+    if (a.expsBack) wild.push(`${a.expsBack} part${a.expsBack > 1 ? 'ies are' : 'y is'} home`);
+    if (a.ripe) wild.push(`${a.ripe} herb${a.ripe > 1 ? 's are' : ' is'} ready`);
+    if (a.whispers) wild.push(`${a.whispers} whisper${a.whispers > 1 ? 's' : ''} answered`);
     ui.modal(`<h2>While you were away…</h2>
         <p>You were gone for <b>${fmtTime(a.seconds)}</b>. The grove kept gathering light${a.eff < 1 ? ` at ${Math.round(a.eff * 100)}%` : ''}.</p>
         <div class="big-num">+${fmt(a.motes)} ✨</div>
         ${bits.length ? `<p class="small">${bits.join(' · ')}.</p>` : ''}
+        ${wild.length ? `<p class="small mint">In the Wilds: ${wild.join(' · ')}.</p>` : ''}
         ${a.capped ? `<p class="small dim">Only the first ${fmtTime(a.counted)} counted. Heartwood (Long Sleep) lets the grove dream longer.</p>` : ''}`,
     [{ label: 'Wonderful', cls: 'green' }]);
 }
