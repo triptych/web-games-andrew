@@ -48,6 +48,8 @@ export class Input {
             this.touchDir = d;
             for (const k of ['up', 'down', 'left', 'right']) pad.classList.toggle(k, d === k);
         };
+        pad.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+        pad.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
         pad.addEventListener('pointerdown', (e) => { e.preventDefault(); pid = e.pointerId; pad.setPointerCapture?.(e.pointerId); set(dirAt(e)); });
         pad.addEventListener('pointermove', (e) => { if (e.pointerId === pid) set(dirAt(e)); });
         const up = (e) => { if (e.pointerId === pid) { pid = null; set(null); } };
@@ -56,6 +58,9 @@ export class Input {
             const b = $(id);
             if (!b) return;
             b.addEventListener('pointerdown', (e) => { e.preventDefault(); this.edges.add(edge); if (flag) this[flag] = true; b.classList.add('down'); b.setPointerCapture?.(e.pointerId); });
+            // No synthetic click afterwards: it would land on whatever this press just opened.
+            b.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+            b.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
             const off = () => { if (flag) this[flag] = false; b.classList.remove('down'); };
             b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('lostpointercapture', off);
         };

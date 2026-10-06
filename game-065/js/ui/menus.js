@@ -20,7 +20,9 @@ export class Menus {
         this.app = app;
         this.root = $('panel');
         this.stack = [];
-        this.root.addEventListener('click', (e) => { if (e.target === this.root) this.back(); });
+        // Clicking the backdrop backs out, but only a press that started there (not one that opened the panel).
+        this.root.addEventListener('pointerdown', (e) => { this.downOnBackdrop = e.target === this.root; });
+        this.root.addEventListener('click', (e) => { if (e.target === this.root && this.downOnBackdrop) this.back(); this.downOnBackdrop = false; });
     }
     get open() { return !this.root.classList.contains('hidden'); }
     get g() { return this.app.game; }
