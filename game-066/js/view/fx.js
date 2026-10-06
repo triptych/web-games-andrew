@@ -7,12 +7,15 @@ import * as THREE from 'three';
 const PVERT = /* glsl */`
     attribute float aSize; attribute float aAlpha; attribute vec3 aColor;
     varying float vAlpha; varying vec3 vColor;
-    uniform float uScale;
+    uniform float uScale, uMax;
     void main(){
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
         gl_Position = projectionMatrix * mv;
-        gl_PointSize = aSize * uScale / max(0.1, -mv.z);
-        vAlpha = aAlpha; vColor = aColor;
+        float z = max(0.1, -mv.z);
+        // aSize is in units of 1/40 of a tile; uScale turns world size at depth 1 into drawing-buffer pixels.
+        gl_PointSize = min(aSize * uScale / z, uMax);
+        // Fade out anything drifting up into the lens instead of letting it fill the screen.
+        vAlpha = aAlpha * smoothstep(1.2, 3.5, z); vColor = aColor;
     }`;
 const PFRAG = /* glsl */`
     varying float vAlpha; varying vec3 vColor; uniform float uSoft;
@@ -39,7 +42,7 @@ class Cloud {
         g.setAttribute('aAlpha', new THREE.BufferAttribute(this.alpha, 1).setUsage(THREE.DynamicDrawUsage));
         this.mat = new THREE.ShaderMaterial({
             vertexShader: PVERT, fragmentShader: PFRAG,
-            uniforms: { uScale: { value: 300 }, uSoft: { value: additive ? 0.0 : 0.15 } },
+            uniforms: { uScale: { value: 30 }, uMax: { value: 256 }, uSoft: { value: additive ? 0.0 : 0.15 } },
             transparent: true, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
         });
         this.points = new THREE.Points(g, this.mat);
@@ -96,7 +99,11 @@ export class FX {
         scene.add(this.add.points, this.alpha.points);
         this.objs = [];       // timed meshes: { obj, t, life, update }
     }
-    setScale(px) { this.add.mat.uniforms.uScale.value = px; this.alpha.mat.uniforms.uScale.value = px; }
+    /** Size particles for a camera: hPx is the drawing buffer height in pixels. */
+    setScale(hPx, fovDeg) {
+        const scale = (hPx * 0.5) / Math.tan((fovDeg * Math.PI) / 360) * 0.025;
+        for (const c of [this.add, this.alpha]) { c.mat.uniforms.uScale.value = scale; c.mat.uniforms.uMax.value = hPx * 0.3; }
+    }
     clear() { this.add.clear(); this.alpha.clear(); for (const o of this.objs) o.obj.parent && o.obj.parent.remove(o.obj); this.objs.length = 0; }
 
     /** Emit a particle kind at a world position. */

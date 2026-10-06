@@ -15,7 +15,7 @@ const [page0 = 'index.html?debug=1', script = '', w = '1280', h = '800'] = proce
 fs.mkdirSync(path.join(HERE, 'shots'), { recursive: true });
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox'] });
 const touch = process.env.TOUCH === '1';
-const page = await browser.newPage({ viewport: { width: +w, height: +h }, hasTouch: touch, isMobile: touch });
+const page = await browser.newPage({ viewport: { width: +w, height: +h }, hasTouch: touch, isMobile: touch, deviceScaleFactor: +(process.env.DPR || 1) });
 await page.route('https://unpkg.com/**', (route) => {
     const rel = new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, '');
     const file = path.join(PKG, rel);

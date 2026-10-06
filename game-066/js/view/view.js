@@ -28,8 +28,6 @@ export class View {
         this.r.resize(w, h);
         this.ow.camera.aspect = w / h; this.ow.camera.updateProjectionMatrix();
         this.bv.camera.aspect = w / h; this.bv.camera.updateProjectionMatrix();
-        this.ow.fx.setScale(h * 0.9);
-        this.bv.fx.setScale(h * 0.9);
         // Narrow screens see less sideways: pull the overworld camera back a little.
         this.ow.zoom = w / h < 0.8 ? 1.25 : 1;
     }
@@ -68,6 +66,10 @@ export class View {
             else if (this.irisDir < 0 && this.iris <= 0) this.irisDir = 0;
         }
         this.r.iris.uniforms.uK.value = this.iris;
+        // Particle size follows the drawing buffer (pixel ratio and graphics tier) and each stage's lens.
+        const hPx = this.r.h * this.r.gl.getPixelRatio();
+        this.ow.fx.setScale(hPx, this.ow.camera.fov);
+        this.bv.fx.setScale(hPx, this.bv.camera.fov);
         if (this.mode === 'battle') this.bv.update(dt);
         else if (this.world) {
             if (this.title) this.titleCam(dt);
