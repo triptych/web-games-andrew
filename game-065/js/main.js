@@ -446,7 +446,7 @@ if (DEBUG) {
         state: () => ({
             started, motes: grove.s.motes, mps: grove.mps(), tree: grove.s.tree, stage: grove.stage, gens: grove.s.gens.slice(),
             ups: Object.keys(grove.s.ups).length, wisp: !!grove.s.wisp.active, rebirths: grove.s.rebirths, hw: grove.s.hw, realms: grove.s.realms.slice(),
-            trial: grove.s.trial, frames, quality: getQuality(), growth: world.growth, modal: ui.modalOpen(), tab: ui.currentTab(), clicks: grove.s.stats.clicks,
+            trial: grove.s.trial, frames, quality: getQuality(), calls: renderer.info.render.calls, tris: renderer.info.render.triangles, growth: world.growth, modal: ui.modalOpen(), tab: ui.currentTab(), clicks: grove.s.stats.clicks,
         }),
         give: (n) => { grove.gain(n, 'debug'); ui.refresh(true); },
         tree: (L) => { grove.s.tree = L; grove.s.bestStage = Math.max(grove.s.bestStage, grove.stage); grove.mark(); world.snap(grove); ui.refresh(true); },
@@ -464,6 +464,16 @@ if (DEBUG) {
         debugCam: () => ({ ...cameraState(), size: world.size, growth: world.growth }),
         /** Client-space positions of the fox spirits (for close-up screenshots and tests). */
         foxScreens: () => world.creatures.foxes.map((f) => world.screenOf(f.position.clone().setY(f.position.y + 0.4))),
+        /** Draw objects (meshes, sprites, points) per creature of each kind, and triangles. */
+        creatureCost: () => Object.fromEntries(['foxes', 'wells', 'stones', 'treants', 'stags', 'dryads'].map((k) => {
+            const list = world.creatures[k];
+            if (!list.length) return [k, null];
+            let draws = 0, tris = 0;
+            list[0].traverse((o) => { if (o.isMesh || o.isSprite || o.isPoints) { draws++; const g = o.geometry; tris += g.index ? g.index.count / 3 : g.attributes.position.count / 3; } });
+            return [k, { each: draws, count: list.length, tris: Math.round(tris) }];
+        })),
+        /** Same for any creature list: foxes, wells, stones, treants, stags, dryads. */
+        screens: (kind, lift = 1) => world.creatures[kind].map((o) => world.screenOf(o.position.clone().setY(o.position.y + lift))),
         /** Burst pool health: a dead spark must never stay visible (it used to linger as a 1 px dot). */
         bursts: () => {
             const b = world.bursts;

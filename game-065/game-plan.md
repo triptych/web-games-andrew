@@ -129,6 +129,8 @@ total motes ran away; and heartwood based on tree height plus a super-exponentia
 | `js/view/ground.js` | Clearing, grass, flowers, ferns, rocks, forest that dissolves near the camera |
 | `js/view/creatures.js` | One presence per spirit |
 | `js/view/fox.js` | The Fox Spirit model and its trot / pause animation |
+| `js/view/models.js` | Treant, White Stag, Dryad, Moonwell, standing stone, glowcap and crystal geometry, realm island, and their animation |
+| `js/view/kit.js` | Shared model parts: tubes, blobs, lathes, rocks, eyes, the glowing vertex-colour material, `bake()` |
 | `js/view/particles.js` | Ambient motes, bursts, seasonal fall, the wisp, realm islands |
 | `js/view/sky.js` | Sky dome, stars, moon, aurora, season palettes |
 | `js/view/world.js` | Builds the view, reacts to sim events, per-frame sync |
@@ -141,6 +143,9 @@ total motes ran away; and heartwood based on tree height plus a super-exponentia
 ---
 
 ## Changelog
+
+### v1.1.0 (2026-10-06)
+- Every spirit and structure remodelled with smooth, vertex-coloured, softly glowing parts and new animation: Treant, White Stag, Dryad, Moonwell, Standing Stones, Glowcaps, Star Seed crystals and realm islands (`js/view/models.js`, shared parts in `js/view/kit.js`). Rigid parts are merged per material, so a full grove draws fewer calls than before.
 
 ### v1.0.3 (2026-10-06)
 - A new, polished Fox Spirit (`js/view/fox.js`): smooth fur with vertex colours and sheen, shaped head, glowing eyes, bushy white-tipped tail with foxfire, a diagonal-pair trot, pauses to look at the tree. Foxes, treants and stags now face the way they walk.

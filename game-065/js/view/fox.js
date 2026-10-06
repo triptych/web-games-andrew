@@ -13,6 +13,7 @@
  */
 
 import * as THREE from 'three';
+import { bake, featureMat, featureDark, colorize as kitColorize } from './kit.js';
 
 const RUSSET = new THREE.Color(0xe0773a);
 const RUSSET_DARK = new THREE.Color(0xa8471c);
@@ -157,7 +158,7 @@ export function makeFox(textures) {
         (t, n, c) => mix(RUSSET, CREAM, smooth(0.05, -0.45, n.y) + smooth(0.6, 0.95, t) * 0.5, c),
         12, 14, (t, a) => 0.85 + 0.15 * Math.abs(Math.cos(a)),
     ), head);
-    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.017, 12, 8).scale(1, 0.8, 1.15), new THREE.MeshStandardMaterial({ color: 0x120a08, roughness: 0.25 }));
+    const nose = new THREE.Mesh(kitColorize(new THREE.SphereGeometry(0.017, 12, 8).scale(1, 0.8, 1.15), featureDark), featureMat());
     nose.position.set(0.18, -0.035, 0);
     head.add(nose);
     // cheek ruffs: soft cream tufts pointing back and out
@@ -168,8 +169,8 @@ export function makeFox(textures) {
         ruff.rotation.y = s * 0.45;
     }
     // eyes: almond, glowing spirit-cyan with a dark rim
-    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x8ff6ff });
-    const rimMat = new THREE.MeshStandardMaterial({ color: 0x140c0a, roughness: 0.4 });
+    const F = featureMat();
+    const tint = (geo, hex) => kitColorize(geo, new THREE.Color(hex));
     for (const s of [-1, 1]) {
         // out from the skull's centre along the eye direction, so both sit on the surface
         const dir = new THREE.Vector3(0.8, 0.14, s * 0.58).normalize();
@@ -177,13 +178,13 @@ export function makeFox(textures) {
         // flat axis (local z) along the surface normal, long axis level, tilted up at the outer corner
         const look = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(dir, new THREE.Vector3(), new THREE.Vector3(0, 1, 0)))
             .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), s * 0.3));
-        const rim = new THREE.Mesh(new THREE.SphereGeometry(0.022, 16, 10).scale(1.35, 0.75, 0.35), rimMat);
+        const rim = new THREE.Mesh(tint(new THREE.SphereGeometry(0.022, 16, 10).scale(1.35, 0.75, 0.35), 0x120a08), F);
         rim.position.copy(at(0.092)); rim.quaternion.copy(look);
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.0165, 16, 10).scale(1.3, 0.7, 0.35), eyeMat);
+        const eye = new THREE.Mesh(tint(new THREE.SphereGeometry(0.0165, 16, 10).scale(1.3, 0.7, 0.35), 0x8ff6ff), F);
         eye.position.copy(at(0.097)); eye.quaternion.copy(look);
-        const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.0075, 10, 8).scale(0.55, 1.2, 0.3), rimMat);
+        const pupil = new THREE.Mesh(tint(new THREE.SphereGeometry(0.0075, 10, 8).scale(0.55, 1.2, 0.3), 0x120a08), F);
         pupil.position.copy(at(0.1006)); pupil.quaternion.copy(look);
-        const glint = new THREE.Mesh(new THREE.SphereGeometry(0.0035, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+        const glint = new THREE.Mesh(tint(new THREE.SphereGeometry(0.0035, 8, 6), 0xffffff), F);
         glint.position.copy(at(0.1025)).add(new THREE.Vector3(0.002, 0.005, 0));
         head.add(rim, eye, pupil, glint);
     }
@@ -235,10 +236,7 @@ export function makeFox(textures) {
     fire.scale.set(0.22, 0.3, 1);
     fire.position.set(-0.46, 0.33, 0);
     tail.add(fire);
-    const tipGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: textures.glow, color: 0x7fdcff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false }));
-    tipGlow.scale.setScalar(0.42);
-    tipGlow.position.set(-0.45, 0.24, 0);
-    tail.add(tipGlow);
+
 
     // ---- two little foxfires circling the fox
     const wisps = [];
@@ -249,8 +247,8 @@ export function makeFox(textures) {
         wisps.push(w);
     }
 
-    g.userData = { body, head, ears, legs, tail, fire, tipGlow, wisps, walk: 0, pause: 0, twitch: 0 };
-    return g;
+    g.userData = { body, head, ears, legs, tail, fire, wisps, walk: 0, pause: 0, twitch: 0 };
+    return bake(g);
 }
 
 function colorize(geo, color) {
@@ -295,7 +293,6 @@ export function animateFox(f, t, dt, moving, lookYaw, i = 0) {
     // flames
     u.fire.material.opacity = 0.75 + Math.sin(t * 7 + i) * 0.25;
     u.fire.scale.set(0.22, 0.3 + Math.sin(t * 9 + i) * 0.04, 1);
-    u.tipGlow.material.opacity = 0.55 + Math.sin(t * 5 + i) * 0.2;
     u.wisps.forEach((w, k) => {
         const a = t * (1.4 + k * 0.5) + k * Math.PI + i;
         w.position.set(Math.cos(a) * 0.32, 0.5 + Math.sin(t * 2.3 + k * 2) * 0.08, Math.sin(a) * 0.32);

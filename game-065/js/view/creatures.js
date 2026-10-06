@@ -21,6 +21,7 @@ import * as THREE from 'three';
 import { U } from './stage.js';
 import { groundY } from './ground.js';
 import { makeFox, animateFox } from './fox.js';
+import { makeTreant, animateTreant, makeStag, animateStag, makeDryad, animateDryad, makeWell, animateWell, makeStone, glowcapGeometry, crystalGeometry } from './models.js';
 
 function mulberry(seed) {
     let a = seed >>> 0;
@@ -143,9 +144,7 @@ class Flock {
 class Glowcaps {
     constructor(scene, max) {
         this.max = max;
-        const stem = new THREE.CylinderGeometry(0.035, 0.05, 0.22, 6).translate(0, 0.11, 0);
-        const cap = new THREE.SphereGeometry(0.12, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.75, 1).translate(0, 0.2, 0);
-        const merged = mergeGeos([stem, cap], [0, 1]);
+        const merged = glowcapGeometry();
         const r = mulberry(55);
         const ig = new THREE.InstancedBufferGeometry().copy(merged);
         const off = new Float32Array(max * 4), dat = new Float32Array(max * 4);
@@ -169,9 +168,10 @@ class Glowcaps {
             vertexShader: /* glsl */`
                 attribute vec4 iOff; attribute vec4 iDat; attribute float aPart;
                 uniform float uTime;
-                varying float vPart; varying vec3 vN; varying float vPulse; varying vec3 vCol; varying float vFogDepth; varying float vY;
+                varying float vPart; varying vec3 vN; varying float vPulse; varying vec3 vCol; varying float vFogDepth; varying float vY; varying vec3 vP;
                 void main() {
                     float g = clamp((uTime - iDat.x) / 0.9, 0.0, 1.0);
+                    vP = position;
                     float pop = g * (1.0 + sin(g * 3.1416) * 0.5);
                     vec3 p = position * iOff.w * pop;
                     p.x += sin(uTime * 0.8 + iDat.y * 20.0) * 0.01 * position.y;
@@ -185,13 +185,21 @@ class Glowcaps {
                 }`,
             fragmentShader: /* glsl */`
                 uniform vec3 uFogColor; uniform float uFogDensity; uniform vec3 uMoonDir;
-                varying float vPart; varying vec3 vN; varying float vPulse; varying vec3 vCol; varying float vFogDepth; varying float vY;
+                varying float vPart; varying vec3 vN; varying float vPulse; varying vec3 vCol; varying float vFogDepth; varying float vY; varying vec3 vP;
                 void main() {
                     vec3 col;
-                    if (vPart < 0.5) col = vec3(0.75, 0.8, 0.7) * (0.25 + 0.25 * max(dot(normalize(vN), uMoonDir), 0.0)) + vCol * 0.15;
-                    else {
-                        float spots = step(0.75, fract(sin(dot(floor(vN.xz * 6.0), vec2(12.9, 78.2))) * 43758.5));
-                        col = vCol * vPulse * 1.6 + vec3(1.0) * spots * 0.4;
+                    vec3 n = normalize(vN);
+                    if (vPart < 0.5) {
+                        // pale stem, faintly lit from the cap above
+                        col = vec3(0.8, 0.82, 0.74) * (0.28 + 0.25 * max(dot(n, uMoonDir), 0.0)) + vCol * 0.22 * smoothstep(0.08, 0.2, vY);
+                    } else if (vPart < 1.5) {
+                        // glowing cap, brighter at the crown, with pale spots
+                        vec2 q = vP.xz / max(0.02, vP.y) * 4.0;
+                        float spots = smoothstep(0.22, 0.12, length(fract(q * 1.6 + 0.3) - 0.5)) * step(0.22, vY);
+                        col = vCol * vPulse * (1.1 + smoothstep(0.2, 0.29, vY) * 0.7) + vec3(1.0, 0.98, 0.9) * spots * 0.55;
+                    } else {
+                        // gills: softer, lit from inside
+                        col = mix(vCol, vec3(1.0), 0.35) * vPulse * 0.75;
                     }
                     ${FOG}
                     gl_FragColor = vec4(col, 1.0);
@@ -212,187 +220,10 @@ class Glowcaps {
     positionOf(i) { const a = this.geo.attributes.iOff.array; return new THREE.Vector3(a[i * 4], a[i * 4 + 1] + 0.2, a[i * 4 + 2]); }
 }
 
-/** Merge geometries into one, tagging each part with aPart. */
-function mergeGeos(geos, parts) {
-    const pos = [], nor = [], part = [], idx = [];
-    let base = 0;
-    geos.forEach((g, gi) => {
-        const p = g.attributes.position, n = g.attributes.normal;
-        for (let i = 0; i < p.count; i++) { pos.push(p.getX(i), p.getY(i), p.getZ(i)); nor.push(n.getX(i), n.getY(i), n.getZ(i)); part.push(parts[gi]); }
-        if (g.index) for (let i = 0; i < g.index.count; i++) idx.push(g.index.getX(i) + base);
-        else for (let i = 0; i < p.count; i++) idx.push(i + base);
-        base += p.count;
-    });
-    const out = new THREE.BufferGeometry();
-    out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
-    out.setAttribute('aPart', new THREE.Float32BufferAttribute(part, 1));
-    out.setIndex(idx);
-    return out;
-}
-
-// ------------------------------------------------------------------ simple lit materials
-function glowMat(color, emissive, intensity = 1) {
-    return new THREE.MeshStandardMaterial({ color, emissive, emissiveIntensity: intensity, roughness: 0.7, flatShading: true });
-}
-
-// ------------------------------------------------------------------ treant
-function makeTreant(color) {
-    const g = new THREE.Group();
-    const bark = glowMat(0x5a4636, 0x1a120c, 0.4);
-    const leaf = glowMat(color, 0x1f5a2a, 0.5);
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 2.0, 7), bark);
-    trunk.position.y = 1.9;
-    const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(1.1, 0), leaf);
-    crown.position.y = 3.3; crown.scale.set(1, 0.85, 1);
-    const legs = [], arms = [];
-    for (const s of [-1, 1]) {
-        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 1.0, 5).translate(0, -0.5, 0), bark);
-        leg.position.set(0, 1.0, s * 0.25);
-        legs.push(leg); g.add(leg);
-        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.12, 1.3, 5).translate(0, -0.65, 0), bark);
-        arm.position.set(0, 2.5, s * 0.42);
-        arm.rotation.x = s * 0.5;
-        arms.push(arm); g.add(arm);
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffe28a }));
-        eye.position.set(0.33, 2.35, s * 0.13);
-        g.add(eye);
-    }
-    g.add(trunk, crown);
-    g.userData = { legs, arms };
-    return g;
-}
-
-// ------------------------------------------------------------------ white stag
-function makeStag() {
-    const g = new THREE.Group();
-    const coat = glowMat(0xf0f4ff, 0x7088b0, 0.55);
-    const silver = new THREE.MeshBasicMaterial({ color: 0xd8f0ff });
-    const body = new THREE.Mesh(new THREE.SphereGeometry(0.42, 9, 7).scale(1.6, 0.8, 0.75), coat);
-    body.position.y = 1.15;
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 0.7, 6), coat);
-    neck.position.set(0.55, 1.5, 0); neck.rotation.z = -0.6;
-    const head = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.5, 6).rotateZ(-Math.PI / 2), coat);
-    head.position.set(0.88, 1.78, 0);
-    const legs = [];
-    for (const [x, z] of [[0.45, 0.18], [0.45, -0.18], [-0.45, 0.18], [-0.45, -0.18]]) {
-        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.85, 5).translate(0, -0.42, 0), coat);
-        leg.position.set(x, 0.92, z);
-        legs.push(leg); g.add(leg);
-    }
-    // antlers: a few branching tines
-    const antler = new THREE.Group();
-    const tine = (len, rx, rz, x, y) => {
-        const m = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.028, len, 4).translate(0, len / 2, 0), silver);
-        m.position.set(x, y, 0); m.rotation.set(rx, 0, rz); return m;
-    };
-    for (const s of [-1, 1]) {
-        const side = new THREE.Group();
-        side.add(tine(0.6, s * 0.5, 0.25, 0, 0));
-        side.add(tine(0.3, s * 0.9, -0.3, 0.05, 0.25));
-        side.add(tine(0.32, s * 0.2, 0.8, 0.08, 0.38));
-        side.add(tine(0.25, s * 1.1, 0.1, 0.1, 0.5));
-        side.position.set(0, 0, s * 0.06);
-        antler.add(side);
-    }
-    antler.position.set(0.82, 1.9, 0);
-    g.add(body, neck, head, antler);
-    g.userData = { legs, head };
-    return g;
-}
-
-// ------------------------------------------------------------------ dryad
-function makeDryad(textures, hue) {
-    const g = new THREE.Group();
-    const c = new THREE.Color().setHSL(hue, 0.6, 0.7);
-    const mat = new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.9, transparent: true, opacity: 0.85, roughness: 0.4 });
-    const dress = new THREE.Mesh(new THREE.ConeGeometry(0.42, 1.2, 8, 1, true), mat);
-    dress.position.y = 0.6;
-    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.5, 7), mat);
-    torso.position.y = 1.35;
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), mat);
-    head.position.y = 1.75;
-    const hair = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.7, 7), mat);
-    hair.position.set(-0.08, 1.55, 0); hair.rotation.z = 0.25;
-    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: textures.glow, color: c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.8 }));
-    halo.scale.setScalar(2.6); halo.position.y = 1.1;
-    const arms = [];
-    for (const s of [-1, 1]) {
-        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.6, 5).translate(0, -0.3, 0), mat);
-        arm.position.set(0, 1.55, s * 0.16);
-        arms.push(arm); g.add(arm);
-    }
-    g.add(dress, torso, head, hair, halo);
-    g.userData = { arms };
-    return g;
-}
-
-// ------------------------------------------------------------------ moonwell
-function makeWell(textures) {
-    const g = new THREE.Group();
-    const stoneMat = glowMat(0x8a9890, 0x16202a, 0.5);
-    const rock = new THREE.DodecahedronGeometry(0.28, 0);
-    for (let i = 0; i < 11; i++) {
-        const a = i / 11 * Math.PI * 2;
-        const m = new THREE.Mesh(rock, stoneMat);
-        m.position.set(Math.cos(a) * 1.15, 0.12, Math.sin(a) * 1.15);
-        m.rotation.set(i, i * 2, i * 3);
-        m.scale.set(1, 0.7 + (i % 3) * 0.15, 1);
-        g.add(m);
-    }
-    const water = new THREE.Mesh(new THREE.CircleGeometry(1.0, 28).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({
-        uniforms: { uTime: U.uTime },
-        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-        fragmentShader: `uniform float uTime; varying vec2 vUv;
-            void main(){ vec2 p = vUv - 0.5; float r = length(p);
-              float rip = 0.5 + 0.5 * sin(r * 40.0 - uTime * 2.0);
-              vec3 col = mix(vec3(0.15, 0.4, 0.75), vec3(0.75, 0.95, 1.0), rip * 0.35 + smoothstep(0.25, 0.0, length(p - vec2(0.08, -0.05))) * 0.8);
-              gl_FragColor = vec4(col * 1.3, 1.0); }`,
-    }));
-    water.position.y = 0.08;
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 1.0, 9, 20, 1, true).translate(0, 4.5, 0), new THREE.ShaderMaterial({
-        uniforms: { uTime: U.uTime }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
-        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-        fragmentShader: `uniform float uTime; varying vec2 vUv;
-            void main(){ float a = (1.0 - vUv.y) * (1.0 - vUv.y) * (0.55 + 0.45 * sin(vUv.x * 40.0 + uTime * 1.5));
-              gl_FragColor = vec4(vec3(0.45, 0.7, 1.0) * a * 0.35, 1.0); }`,
-    }));
-    g.add(water, beam);
-    return g;
-}
-
-// ------------------------------------------------------------------ standing stone
-function makeStone(textures, h) {
-    const geo = new THREE.BoxGeometry(0.7, h, 0.35, 1, 4, 1);
-    const p = geo.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-        const y = p.getY(i) / h + 0.5;
-        p.setX(i, p.getX(i) * (1 - y * 0.25));
-        p.setZ(i, p.getZ(i) * (1 - y * 0.2));
-    }
-    geo.translate(0, h / 2, 0);
-    geo.computeVertexNormals();
-    const mat = new THREE.ShaderMaterial({
-        uniforms: { uTime: U.uTime, uRune: { value: textures.rune }, uMoonDir: U.uMoonDir, uFogColor: U.uFogColor, uFogDensity: U.uFogDensity, uH: { value: h } },
-        vertexShader: `varying vec3 vN; varying vec2 vUv; varying float vFogDepth;
-            void main(){ vN = normal; vUv = uv; vec4 mv = modelViewMatrix * vec4(position, 1.0); vFogDepth = -mv.z; gl_Position = projectionMatrix * mv; }`,
-        fragmentShader: `uniform float uTime; uniform sampler2D uRune; uniform vec3 uMoonDir; uniform vec3 uFogColor; uniform float uFogDensity;
-            varying vec3 vN; varying vec2 vUv; varying float vFogDepth;
-            void main(){ vec3 n = normalize(vN);
-              vec3 col = vec3(0.42, 0.45, 0.44) * (0.25 + 0.4 * max(dot(n, uMoonDir), 0.0));
-              float rune = texture2D(uRune, vUv * vec2(0.5, 0.35)).r;
-              col += vec3(0.4, 0.95, 1.0) * smoothstep(0.5, 1.0, rune) * (0.6 + 0.4 * sin(uTime * 1.2 + vUv.y * 4.0)) * 1.4;
-              ${FOG}
-              gl_FragColor = vec4(col, 1.0); }`,
-    });
-    return new THREE.Mesh(geo, mat);
-}
-
-// ------------------------------------------------------------------ star crystal
+// ------------------------------------------------------------------ star crystals (instanced)
 function makeCrystalMesh(max) {
-    const geo = new THREE.OctahedronGeometry(0.5, 0).scale(0.6, 1, 0.6);
-    const mat = new THREE.MeshStandardMaterial({ color: 0xfff0b0, emissive: 0xffc850, emissiveIntensity: 1.6, roughness: 0.2, flatShading: true });
-    const m = new THREE.InstancedMesh(geo, mat, max);
+    const mat = new THREE.MeshPhysicalMaterial({ color: 0xfff2c0, emissive: 0xffb83a, emissiveIntensity: 0.5, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.1, flatShading: true });
+    const m = new THREE.InstancedMesh(crystalGeometry(), mat, max);
     m.count = 0;
     m.frustumCulled = false;
     return m;
@@ -433,14 +264,14 @@ export class Creatures {
             return f;
         }, fresh, now);
         this.grow(this.wells, want(n(5), 6, [1, 5, 15, 35, 70, 120]), (i) => {
-            const w = makeWell(this.textures);
+            const w = makeWell(this.textures, i);
             const a = i * 2.1 + 0.5, r = 7.5 + (i % 3) * 3.2;
             const x = Math.cos(a) * r, z = Math.sin(a) * r;
             w.position.set(x, groundY(x, z), z);
             return w;
         }, fresh, now);
         this.grow(this.stones, want(n(6), 14, [1, 2, 4, 6, 9, 12, 16, 20, 25, 30, 40, 50, 65, 80]), (i) => {
-            const s = makeStone(this.textures, 2.2 + (i % 3) * 0.5);
+            const s = makeStone(this.textures, 2.2 + (i % 3) * 0.5, i);
             const a = i / 14 * Math.PI * 2 + 0.2, r = 19;
             const x = Math.cos(a) * r, z = Math.sin(a) * r;
             s.position.set(x, groundY(x, z) - 0.1, z);
@@ -448,12 +279,12 @@ export class Creatures {
             return s;
         }, fresh, now);
         this.grow(this.treants, want(n(7), 6, [1, 5, 15, 35, 70, 120]), (i) => {
-            const t = makeTreant([0x5fae5a, 0x6fbf6a, 0x4f9e6a][i % 3]);
+            const t = makeTreant(i);
             t.userData.r = 14 + i * 2.2; t.userData.speed = 0.035 + (i % 2) * 0.01; t.userData.phase = i * 1.3;
             return t;
         }, fresh, now);
         this.grow(this.stags, want(n(8), 5, [1, 6, 20, 50, 100]), (i) => {
-            const s = makeStag();
+            const s = makeStag(this.textures);
             s.userData.r = 22 + i * 2.5; s.userData.speed = 0.03; s.userData.phase = i * 2.2 + 1;
             return s;
         }, fresh, now);
@@ -509,7 +340,7 @@ export class Creatures {
             animateFox(f, t, dt, moving, -0.9, i);          // when paused, look round at the tree
             this.popScale(f, t, 1.3);
         });
-        this.wells.forEach((w) => this.popScale(w, t, 1));
+        this.wells.forEach((w, i) => { animateWell(w, t, i); this.popScale(w, t, 1); });
         this.stones.forEach((s) => this.popScale(s, t, 1));
         this.treants.forEach((tr, i) => {
             const u = tr.userData, r = u.r + trunkR;
@@ -517,9 +348,7 @@ export class Creatures {
             const x = Math.cos(a) * r, z = Math.sin(a) * r;
             tr.position.set(x, groundY(x, z), z);
             tr.rotation.y = -a - Math.PI / 2;
-            const step = Math.sin(t * 2.2 + i);
-            u.legs[0].rotation.z = step * 0.4; u.legs[1].rotation.z = -step * 0.4;
-            u.arms[0].rotation.z = -step * 0.3; u.arms[1].rotation.z = step * 0.3;
+            animateTreant(tr, t, dt, i);
             this.popScale(tr, t, 1);
         });
         this.stags.forEach((s, i) => {
@@ -532,18 +361,16 @@ export class Creatures {
             const x = Math.cos(a) * r, z = Math.sin(a) * r;
             s.position.set(x, groundY(x, z), z);
             s.rotation.y = -a - Math.PI / 2;
-            u.legs.forEach((l, k) => { l.rotation.z = moving ? Math.sin(t * 6 + k * 1.6) * 0.45 : 0; });
-            s.rotation.z = moving ? 0 : -0.15 * Math.min(1, cycle - 2) * 2;
+            animateStag(s, t, dt, moving, i);
             this.popScale(s, t, 1.25);
         });
         this.dryads.forEach((d, i) => {
             const u = d.userData;
             const a = u.phase + t * 0.18;
             const r = trunkR * 2.2 + 1.6;
-            d.position.set(Math.cos(a) * r, 0.05 + Math.sin(t * 2 + i) * 0.08, Math.sin(a) * r);
-            d.rotation.y = -a + Math.sin(t * 1.3 + i) * 0.6;
-            u.arms[0].rotation.x = 2.4 + Math.sin(t * 2 + i) * 0.4;
-            u.arms[1].rotation.x = -2.4 - Math.sin(t * 2 + i) * 0.4;
+            d.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+            d.rotation.y = -a - Math.PI / 2;
+            animateDryad(d, t, i);
             this.popScale(d, t, 1);
         });
         // star crystals orbiting the crown

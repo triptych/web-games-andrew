@@ -11,6 +11,7 @@
 
 import * as THREE from 'three';
 import { U } from './stage.js';
+import { makeIsland } from './models.js';
 
 function mulberry(seed) {
     let a = seed >>> 0;
@@ -336,35 +337,8 @@ export class Realms {
         return fresh;
     }
     makeIsland(color, i) {
-        const r = mulberry(100 + i);
-        const g = new THREE.Group();
-        const rock = new THREE.DodecahedronGeometry(1, 1);
-        const p = rock.attributes.position;
-        for (let k = 0; k < p.count; k++) {
-            const v = new THREE.Vector3().fromBufferAttribute(p, k);
-            if (v.y > 0.2) v.y = 0.2 + (v.y - 0.2) * 0.15; else v.y *= 1.6;
-            v.multiplyScalar(0.85 + r() * 0.3);
-            p.setXYZ(k, v.x, v.y, v.z);
-        }
-        rock.computeVertexNormals();
-        const rm = new THREE.Mesh(rock, new THREE.MeshStandardMaterial({ color: 0x6a6258, emissive: 0x15100c, flatShading: true }));
-        const grass = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.9, 0.12, 9), new THREE.MeshStandardMaterial({ color: 0x4f9a4a, emissive: 0x153a18, flatShading: true }));
-        grass.position.y = 0.26;
-        const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 0).scale(0.6, 1.4, 0.6), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 2.2, flatShading: true }));
-        crystal.position.y = 0.95;
-        const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.textures.glow, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
-        halo.scale.setScalar(2.4); halo.position.y = 0.95;
-        for (let k = 0; k < 3; k++) {
-            const tr = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.5, 6), new THREE.MeshStandardMaterial({ color: 0x2f6a3a, flatShading: true }));
-            const a = k * 2.1 + r();
-            tr.position.set(Math.cos(a) * 0.55, 0.52, Math.sin(a) * 0.55);
-            g.add(tr);
-        }
-        // little waterfall of light
-        const fall = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 1.6).translate(0, -0.8, 0), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-        fall.position.set(0.8, 0.1, 0);
-        g.add(rm, grass, crystal, halo, fall);
-        g.userData = { crystal, i };
+        const g = makeIsland(this.textures, color, i);
+        g.userData.i = i;
         return g;
     }
     update(t, size) {

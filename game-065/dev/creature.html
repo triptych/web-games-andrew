@@ -12,42 +12,72 @@
 <body>
 <div id="stage"></div>
 <script type="module">
-// Dev-only: one Fox Spirit close up in the game's night lighting.
-// ?yaw=<radians> camera angle, ?pose=trot|sit, ?t=<seconds> animation time, ?n=<count> a little skulk in a row.
+// Dev-only: one model close up in the game's night lighting.
+//   ?c=fox|treant|stag|dryad|well|stone|cap|crystal|island   which model (default fox)
+//   ?yaw=<radians>  camera angle     ?pose=walk|stop  (fox and stag pause poses)
+//   ?t=<seconds>    animation time   ?n=<count> a few in a row (fox only)
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import * as TX from '../js/view/textures.js';
+import { U } from '../js/view/stage.js';
 import { makeFox, animateFox } from '../js/view/fox.js';
+import * as M from '../js/view/models.js';
 const q = new URLSearchParams(location.search);
-const yaw = Number(q.get('yaw') ?? 0.9), pose = q.get('pose') ?? 'trot', t0 = Number(q.get('t') ?? 0.3), n = Number(q.get('n') ?? 1);
+const kind = q.get('c') ?? 'fox', yaw = Number(q.get('yaw') ?? 0.9), moving = (q.get('pose') ?? 'walk') !== 'stop', t0 = Number(q.get('t') ?? 0.3), n = Number(q.get('n') ?? 1);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight); renderer.toneMapping = THREE.ACESFilmicToneMapping;
 document.getElementById('stage').appendChild(renderer.domElement);
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b1a22);
-const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.01, 50);
-const d = 1.9 + (n - 1) * 0.5;
-camera.position.set(Math.sin(yaw) * d, 0.75, Math.cos(yaw) * d); camera.lookAt(0, 0.3, 0);
+U.uFogDensity.value = 0.0001;
+const tex = { glow: TX.glowTexture(), critters: TX.critterAtlas(), rune: TX.runeTexture() };
+// [model, animate(obj, t), camera distance, look-at height]
+const make = {
+    fox: () => [makeFox(tex), (o, t, i) => M && animateFox(o, t, 0.2, moving, moving ? 0 : -0.9, i), 1.9, 0.3],
+    treant: () => [M.makeTreant(0), (o, t) => M.animateTreant(o, t, 0.2), 9, 2.0],
+    stag: () => [M.makeStag(tex), (o, t) => M.animateStag(o, t, 0.2, moving), 5.2, 1.2],
+    dryad: () => [M.makeDryad(tex, 0.32), (o, t) => M.animateDryad(o, t), 4.2, 1.0],
+    well: () => [M.makeWell(tex, 1), (o, t) => M.animateWell(o, t), 5.5, 0.4],
+    stone: () => [M.makeStone(tex, 2.6, 1), () => {}, 6.5, 1.3],
+    cap: () => {
+        const g = new THREE.Group();
+        const geo = M.glowcapGeometry();
+        const cols = [0x4fe6ff, 0x8cff80, 0xf080ff, 0xffbf5a];
+        for (let k = 0; k < 5; k++) {
+            const mat = new THREE.MeshStandardMaterial({ color: 0xd8dcd0, emissive: cols[k % 4], emissiveIntensity: 0.9, roughness: 0.6 });
+            const m = new THREE.Mesh(geo, mat); m.position.set((k - 2) * 0.32, 0, (k % 2) * 0.2); m.scale.setScalar(0.8 + (k % 3) * 0.3); g.add(m);
+        }
+        return [g, () => {}, 2.2, 0.15];
+    },
+    crystal: () => [new THREE.Mesh(M.crystalGeometry(), new THREE.MeshPhysicalMaterial({ color: 0xfff2c0, emissive: 0xffb83a, emissiveIntensity: 0.5, roughness: 0.12, clearcoat: 1, flatShading: true })), (o, t) => { o.rotation.y = t; }, 3, 0],
+    island: () => [M.makeIsland(tex, 0xffcf5a, 3), () => {}, 5.5, -0.2],
+}[kind];
+const objs = [];
+let anim, d, lookY;
+for (let i = 0; i < (kind === 'fox' ? n : 1); i++) {
+    const [o, a, dist, ly] = make();
+    anim = a; d = dist + (n - 1) * 0.5; lookY = ly;
+    o.position.x = (i - (n - 1) / 2) * 0.9;
+    scene.add(o); objs.push(o);
+}
+const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.01, 100);
+camera.position.set(Math.sin(yaw) * d, lookY + d * 0.22, Math.cos(yaw) * d); camera.lookAt(0, lookY, 0);
 scene.add(new THREE.HemisphereLight(0x6a8ab0, 0x18220f, 1.6));
 const moon = new THREE.DirectionalLight(0xa8c0ff, 1.5); moon.position.set(-3, 4, -4); scene.add(moon);
-const heart = new THREE.PointLight(0xffd27a, 3, 6, 1.6); heart.position.set(1.2, 1, 1); scene.add(heart);
-const ground = new THREE.Mesh(new THREE.CircleGeometry(4, 48).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2c5a2a, roughness: 1 }));
-scene.add(ground);
-const tex = { glow: TX.glowTexture(), critters: TX.critterAtlas() };
-const foxes = [];
-for (let i = 0; i < n; i++) { const f = makeFox(tex); f.position.x = (i - (n - 1) / 2) * 0.9; f.position.z = -i * 0.3; scene.add(f); foxes.push(f); }
+const heart = new THREE.PointLight(0xffd27a, 3 * d, d * 3, 1.6); heart.position.set(d * 0.6, d * 0.5, d * 0.5); scene.add(heart);
+if (kind !== 'crystal' && kind !== 'island') scene.add(new THREE.Mesh(new THREE.CircleGeometry(d * 2, 48).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2c5a2a, roughness: 1 })));
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), 0.7, 0.5, 0.65));
 composer.addPass(new OutputPass());
 let frames = 0;
 (function loop() {
-  requestAnimationFrame(loop);
-  // settle the pose: run the animation a few frames at the chosen time
-  foxes.forEach((f, i) => animateFox(f, t0 + i * 0.13 + frames * 0.0001, 0.2, pose === 'trot', pose === 'sit' ? -0.9 : 0, i));
-  composer.render(); frames++; window.__frames = frames;
+    requestAnimationFrame(loop);
+    U.uTime.value = t0 + frames * 0.02;
+    objs.forEach((o, i) => anim(o, t0 + i * 0.13, i));
+    composer.render(); frames++; window.__frames = frames;
 })();
 </script>
 </body>

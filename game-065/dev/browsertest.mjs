@@ -320,8 +320,14 @@ async function phone(w, h) {
         const inside = (sel, pad) => { const r = document.querySelector(sel).getBoundingClientRect(); return w.x > r.left - pad && w.x < r.right + pad && w.y > r.top - pad && w.y < r.bottom + pad; };
         return !inside('#panel', 12) && !inside('#hud-top', 12) && !inside('#nourish-btn', 12) && !inside('#games-link', 12);
     }, 'the wisp is in the open', 120000);
-    const w2 = await page.evaluate(() => window.__wr.wispScreen());
-    if (w2) await tap(w2.x, w2.y);
+    // The wisp never stops moving, and under software GL a frame can take most of a
+    // second, so it can drift out of reach between reading its position and the
+    // touch landing. Tap where it is now, like a player chasing it, up to three times.
+    for (let k = 0; k < 3; k++) {
+        if (await page.evaluate(() => window.__wr.grove.s.stats.wisps >= 1)) break;
+        const w2 = await page.evaluate(() => window.__wr.wispScreen());
+        if (w2) await tap(w2.x, w2.y);
+    }
     check(await page.evaluate(() => window.__wr.grove.s.stats.wisps >= 1), 'wisp caught by touch');
     await shot(page, `p-${w}x${h}`);
 }
