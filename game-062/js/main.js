@@ -285,7 +285,15 @@ function handleInput(dt) {
             autoT = 0.2;
             const m = nearestEnemy(9);
             if (m) { if (!h.intent || h.intent.id !== m.id) w.heroAttack(m.id, 0); }
-            else castAuto(0);
+            else {
+                // Nothing to hit: grab the nearest loot, or open the nearest chest / shrine / breakable.
+                const near = (list, r) => list.filter((o) => Math.hypot(o.x - h.x, o.y - h.y) < r).sort((a, b) => Math.hypot(a.x - h.x, a.y - h.y) - Math.hypot(b.x - h.x, b.y - h.y))[0];
+                const loot = near(w.items.filter((i) => !i.dropped && w.visibleTile(i.x, i.y)), 4);
+                const obj = !loot && near(w.objs.filter((o) => (o.breakable && o.state !== 'broken') || ((o.type === 'chest' || o.type === 'bigchest' || o.type === 'shrine' || o.type === 'lectern' || o.type === 'anvil') && o.state === 'idle')), 3);
+                if (loot) { if (!h.intent || h.intent.id !== loot.id) w.heroInteract(loot.id); }
+                else if (obj) { if (!h.intent || h.intent.id !== obj.id) w.heroInteract(obj.id); }
+                else castAuto(0);
+            }
         }
         for (let s = 1; s <= 5; s++) {
             const b = input.tbtn.get('slot' + s);

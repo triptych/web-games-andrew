@@ -606,10 +606,16 @@ export class World {
 
     updateItems(dt) { for (const it of this.items) it.t += dt; }
 
+    /** Walking over loot picks it up: sugar and potions within reach, items you step on (unless you dropped them). */
     autoPickup(h) {
-        for (const gi of this.items) {
-            if (gi.t < 0.45 || gi.item || gi.quest) continue;
-            if ((gi.x - h.x) ** 2 + (gi.y - h.y) ** 2 > 0.9 * 0.9) continue;
+        const room = this.game.hero.inv.includes(null);
+        for (const gi of [...this.items]) {
+            if (gi.t < 0.45) continue;
+            const d2 = (gi.x - h.x) ** 2 + (gi.y - h.y) ** 2;
+            if (gi.item) {
+                if (gi.dropped || d2 > 0.6 * 0.6) continue;
+                if (!room) { if (!gi.warned) { gi.warned = true; this.emit('toast', { text: 'Your backpack is full!', kind: 'warn' }); } continue; }
+            } else if (d2 > 0.9 * 0.9) continue;
             this.pickup(gi);
         }
     }
@@ -637,7 +643,7 @@ export class World {
 
     dropItem(item) {
         const h = this.hero;
-        const gi = { id: this.id(), kind: 'item', item, x: h.x + Math.cos(h.face) * 0.6, y: h.y + Math.sin(h.face) * 0.6, fromX: h.x, fromY: h.y, t: 0, r: 0.3 };
+        const gi = { id: this.id(), kind: 'item', item, x: h.x + Math.cos(h.face) * 0.6, y: h.y + Math.sin(h.face) * 0.6, fromX: h.x, fromY: h.y, t: 0, r: 0.3, dropped: true };
         if (!walkable(this.tileAt(gi.x, gi.y))) { gi.x = h.x; gi.y = h.y; }
         this.items.push(gi);
         this.emit('drop', { id: gi.id, rarity: item.rarity, x: gi.x, y: gi.y, quiet: true });

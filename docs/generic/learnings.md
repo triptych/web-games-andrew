@@ -5247,6 +5247,9 @@ With the camera ~50° above the floor, a face placed at mid-height on a round fr
 ### A more specific selector silently keeps its transform
 On phones every panel was meant to stretch edge to edge with `.panel { left: 8px; right: 8px; transform: none }`, but the dialogue box kept `.panel.center { transform: translateX(-50%) }` — two classes beat one — and slid half off the left edge. Nothing in a desktop test notices. Override at the same specificity (`.panel.center { transform: none }`), and have the phone test open every kind of panel and assert its bounding box sits inside the viewport.
 
+### An invisible joystick zone eats every tap under it
+The floating stick was a transparent `#stick-zone` (bottom-left 44% × 55%) with `pointer-events: auto`, above the canvas and the loot labels. Tapping an item or its label there did nothing — on a phone that is a third of the screen, and the bug report was "items aren't getting picked up". Desktop tests never touch it. Make the zone `pointer-events: none` and treat it as a region: a canvas `pointerdown` inside it becomes a *pending* stick that only activates after ~14 px of drag; released before that, it's a tap. Test it by putting a label inside the zone and asserting `elementFromPoint` at its centre is the label. Also make pickup forgiving on touch: walk-over pickup (skip items the player dropped, or they bounce straight back) and an attack button that fetches loot when nothing is in range. *(game-062 `js/input.js`)*
+
 ## Game 063: Tee & Sorcery — a golf RPG whose courses the physics and the renderer share (2026-10-06)
 
 ### Paint a course from ordered layers, and give both sides the same grids

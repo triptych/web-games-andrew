@@ -126,7 +126,8 @@ body.playing #back-link { display: none; }
 
 /* ------------------------------------------------------------------ touch */
 #touch { position: fixed; inset: 0; pointer-events: none; z-index: 6; }
-#stick-zone { position: absolute; left: 0; bottom: 0; width: 44%; height: 55%; pointer-events: auto; touch-action: none; }
+/* A region, not a hit target: input.js starts the stick from canvas touches inside it, so taps pass through. */
+#stick-zone { position: absolute; left: 0; bottom: 0; width: 44%; height: 55%; pointer-events: none; }
 #stick-base { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(255, 255, 255, 0.25); display: none; }
 #stick-base.on { display: block; }
 #stick-knob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; background: rgba(255, 204, 74, 0.55); border: 2px solid rgba(255, 255, 255, 0.6); }
