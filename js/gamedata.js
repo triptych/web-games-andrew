@@ -923,6 +923,36 @@ const games = [
         ]
     },
     {
+        id: 'game-062',
+        title: 'Rotten to the Core',
+        description: "A light, silly Diablo with fruit, in three.js with no asset files. Something rotten has crawled up from under the town of Tristrawberry: grow a fruit hero (sixteen fruits, colours, eyes, mouths and twelve hats) as a Melon Knight, Seed Ranger or Citromancer, take a butter knife down the cellar stairs and squash your way through twelve procedurally generated levels in three acts (the Root Cellar, the sticky Jam Catacombs and the Rotten Core with its rivers of boiling fruit punch) to Durian the Diabolical. Click to walk and whack, eighteen skills (Big Slice, Blender, Pip Spray, Peel Trap, Raisin Rain, Brain Freeze, Chain Lime-ning, Melon Meteor…), fourteen kinds of rotten fruit and pests with their own tricks (shamans that revive their friends, worms in bowler hats, exploding tomatoes, mimic pies) plus champion and named elites, and three bosses: The Juicer, Mangophisto the Chutney Lord and Durian. Everything bursts into juice that stays on the floor. Loot is kitchenware in four rarities up to Golden uniques; Health is Freshness, mana is Juice, gold is Sugar and town portals are pies. Deckard Cane (a candy cane) identifies your loot and asks you to stay a while and glisten; Granny Smith heals, Grapeswold forges, Olivia sells magic, Kiwirt sells mystery smoothies. Six quests, waypoints, a stash, three difficulties, fog of war, an automap, generative music and gibberish-talking townsfolk. Mouse and keyboard or touch.",
+        icon: '\uD83C\uDF4E',
+        folder: 'game-062',
+        version: '1.0.0',
+        cssClass: 'rotten-to-the-core',
+        genre: 'dungeon',
+        tags: [
+            { emoji: '\uD83C\uDF53', label: 'Action RPG' },
+            { emoji: '\uD83D\uDDE1\uFE0F', label: 'Loot' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
+    },
+    {
+        id: 'game-063',
+        title: 'Tee & Sorcery',
+        description: "A fantasy golf RPG in three.js with no asset files. Lord Bogey, a sorcerer who never once made par, shatters the Golden Tee and curses every hole in Fairhaven; Pip, a clumsy caddie who pulled a talking sand wedge called Wedgewick out of a stone, sets off to win back the five Tee Shards. Twenty holes in five storybook realms, each playing differently: Meadowmere's windmill and spring mushrooms, the Sandsea's quicksand, island greens and strong winds, Frostpeak's sheet ice and frozen lake, Cinder Caldera's lava rivers and geysers that fling the ball skywards, and the Sky Citadel's floating islands over the void. Real 3D golf with a three-press swing meter, four clubs, wind, backspin, bounces and rolls, PERFECT strikes, hooks and slices, a preview arc and an overhead view. Every realm ends in a boss hole where the cup is sealed until you beat the boss with your ball: Grubbins the Gopher King, the sandworm Duneborn, Big Frosty behind his ice walls, the two-headed ogre Double Bogey on his ledge, and Lord Bogey, who becomes the three-headed Triple Bogey. Bonk slimes, scarabs, penguin knights, imps and wisps for XP; roll through coins, gems and mana orbs; level up and spend stat points on Power, Control, Luck and Magic; buy club sets, balls and charms at Old Man Eagle's Pro Shop; cast Mulligan, Gust Ward, Fireball, Frost Step and Seeker; and use Rocket Tees, Sticky, Spring and Ghost balls. Chibi characters with painted faces and toon outlines, a storybook terrain shader with mown stripes and inked edges, a floating-island world map with tilt-shift, a short funny story with rendered portraits, procedural music for every realm, and touch controls for phones.",
+        icon: '\u26F3',
+        folder: 'game-063',
+        version: '1.0.0',
+        cssClass: 'tee-sorcery',
+        genre: 'rpg',
+        tags: [
+            { emoji: '\u26F3', label: 'Golf' },
+            { emoji: '\uD83E\uDDD9', label: 'Fantasy RPG' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
+    },
+    {
         id: 'game-064',
         title: "Kraken's Gambit",
         description: "Chess on the high seas, in three.js with no asset files, where the sea plays too. The Royal Navy and the Pirates fight with procedurally modelled, cel-shaded fleets: Dinghies for pawns, seahorse-prowed Longships for knights, Schooners for bishops, Lighthouses on rocky islets for rooks, a two-deck Man-o'-War for the queen and a crowned Flagship for the king, on a chequered patch of toon sea framed by a rope-and-piling dock. The chess is exact (castling, en passant, promotion, every draw rule) against five AI captains from Cabin Boy to Captain, or a friend on the same screen. Between moves the sea may act: the Kraken drags a ship under, a mermaid lures one away, a storm drives every ship a square downwind, a whirlpool spins a ring of them, dolphins push a pawn (sometimes all the way to promotion), a ghost ship scatters a rank, salvage divers raise a sunk piece, and a sea serpent swaps two ships. Pick the sea state from Mirror Calm to Tempest and switch events on or off. The sea is wild but fair: it never takes a Flagship, never leaves a side illegally in check, and never ends the game by itself. Cannon fire, sinking ships, a squeezebox shanty, undo, hints, autosave, mouse, touch or keyboard.",

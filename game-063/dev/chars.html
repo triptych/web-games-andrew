@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tee &amp; Sorcery — character line-up</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#000}canvas{width:100%;height:100%;display:block}</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+<script type="module">
+// ?set=cast|monsters|bosses&expr=normal&pose=idle
+import * as THREE from 'three';
+import { Renderer } from '../js/view/renderer.js';
+import { PALETTES } from '../js/view/palette.js';
+import { buildHumanoid, buildWedgewick, buildMonster, buildBoss, heroLook, CAST } from '../js/view/chars.js';
+import { setPose, animate, animateWedge } from '../js/view/anim.js';
+import { LOOKS, OUTFITS } from '../js/sim/rpg.js';
+const q = new URLSearchParams(location.search);
+const set = q.get('set') ?? 'cast';
+const R = new Renderer(document.getElementById('c'));
+R.setQuality(1);
+R.setPalette(PALETTES[0]);
+R.scene.background = new THREE.Color('#8cc8f4');
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200).rotateX(-Math.PI / 2), new THREE.MeshToonMaterial({ color: '#7fd04c' }));
+ground.receiveShadow = true;
+R.scene.add(ground);
+const rigs = [];
+let items = [];
+if (set === 'cast') {
+    items = [...LOOKS.map((l, i) => buildHumanoid(heroLook(l, OUTFITS[i]))), ...Object.values(CAST).map((L) => buildHumanoid(L)), buildWedgewick()];
+} else if (set === 'monsters') {
+    items = ['slime', 'scarab', 'penguin', 'imp', 'wisp'].map((k) => buildMonster(k));
+} else {
+    items = ['gopher', 'worm', 'yeti', 'ogre', 'dragon'].map((k) => buildBoss(k));
+}
+const gap = set === 'bosses' ? 8 : set === 'monsters' ? 2.4 : 1.6;
+items.forEach((rig, i) => { rig.root.position.x = (i - (items.length - 1) / 2) * gap; if (rig.kind === 'wedge') rig.root.position.y = 1; R.scene.add(rig.root); rigs.push(rig); if (rig.kind === 'humanoid') setPose(rig, q.get('pose') ?? 'idle', { club: true }); rig.setExpr?.(q.get('expr') ?? 'normal'); });
+const span = (items.length - 1) * gap;
+const camH = set === 'bosses' ? 5 : 1.0, camD = (set === 'bosses' ? span * 0.62 : span * 0.42 + 1.2) * (+(q.get('zoom') ?? 1));
+R.camera.position.set(0, camH + 0.6, camD);
+R.camera.lookAt(0, camH * 0.75, 0);
+R.focusShadow(new THREE.Vector3(0, 0, 0));
+let t = 0;
+for (let i = 0; i < 20; i++) { t += 1 / 30; for (const r of rigs) { if (r.kind === 'humanoid') { r.blinkT = 99; animate(r, 1 / 30, t); } if (r.kind === 'wedge') animateWedge(r, 1 / 30, t); } R.render(1 / 30, t); }
+window.__ready = true;
+</script>
+</body>
+</html>

@@ -814,6 +814,26 @@ h1 {
     color: #04060d;
 }
 
+.game-preview.rotten-to-the-core,
+.carousel-slide-bg.rotten-to-the-core {
+    background: radial-gradient(ellipse at 50% 35%, rgba(255, 176, 46, 0.45) 0%, rgba(232, 64, 26, 0.18) 30%, transparent 55%), linear-gradient(180deg, #1a0b14 0%, #3a1230 45%, #a8104a 80%, #ff6a9a 100%);
+}
+
+.game-card.rotten-to-the-core .play-button {
+    background: linear-gradient(135deg, #ffb02e 0%, #e8401a 50%, #ff6a9a 100%);
+    color: #1a0b14;
+}
+
+.game-preview.tee-sorcery,
+.carousel-slide-bg.tee-sorcery {
+    background: radial-gradient(ellipse at 50% 18%, rgba(255, 224, 112, 0.55) 0%, transparent 38%), linear-gradient(180deg, #3f8fe6 0%, #8cc8f4 38%, #dff4ff 52%, #7fd04c 53%, #4f9a34 100%);
+}
+
+.game-card.tee-sorcery .play-button {
+    background: linear-gradient(135deg, #fff1a8 0%, #ffcf4a 45%, #e89a1a 100%);
+    color: #2a1a2a;
+}
+
 .game-preview.krakens-gambit,
 .carousel-slide-bg.krakens-gambit {
     background: repeating-conic-gradient(rgba(159, 241, 228, 0.55) 0 25%, rgba(44, 156, 204, 0.55) 0 50%) 50% 62% / 26% 26%, linear-gradient(180deg, #58b8f5 0%, #e9f8ff 45%, #2c9ccc 100%);
