@@ -46,9 +46,14 @@ void main() {
     }
     // aurora ribbons
     if (uAurora > 0.0 && y > 0.05) {
-        float a = sin(d.x * 6.0 + uTime * 0.3 + fbm(d.xz * 3.0 + uTime * 0.05) * 3.0);
-        float band = smoothstep(0.7, 1.0, a) * smoothstep(0.08, 0.3, y) * smoothstep(0.75, 0.35, y);
-        col += mix(vec3(0.2, 1.0, 0.6), vec3(0.6, 0.3, 1.0), d.z * 0.5 + 0.5) * band * 0.55 * uAurora;
+        // wavy curtains along the horizon, with fine vertical rays
+        float az = atan(d.x, d.z);
+        float h = 0.3 + 0.07 * sin(az * 3.0 + uTime * 0.08) + 0.03 * sin(az * 7.0 - uTime * 0.13);
+        float k = y - h;
+        float ribbon = smoothstep(-0.01, 0.03, k) * smoothstep(0.24, 0.0, k);
+        float rays = 0.55 + 0.45 * sin(az * 70.0 + fbm(vec2(az * 9.0, uTime * 0.12)) * 7.0);
+        vec3 ac = mix(vec3(0.25, 1.0, 0.65), vec3(0.7, 0.35, 1.0), smoothstep(0.0, 0.2, k));
+        col += ac * ribbon * rays * 0.42 * uAurora * (0.6 + 0.4 * sin(az * 2.0 + uTime * 0.2));
     }
     gl_FragColor = vec4(col, 1.0);
 }`;

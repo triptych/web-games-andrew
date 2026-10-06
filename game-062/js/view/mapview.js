@@ -174,6 +174,15 @@ export class MapView {
             ...[0, 1, 2, 3, 4, 5].map((i) => part(cyl(0.7, 0.7, 6, 8), '#f4eefc', [Math.sin(i * 1.05) * 19, 3, Math.cos(i * 1.05) * 19])),
         ], { outline: 0.12 });
         cit.add(ci);
+        // dressing: an arch over the path, statues, little gardens, cloud tufts round the rim
+        const arch = decorMesh('arch', P[4]); arch.position.set(0, 0.6, 6); arch.scale.setScalar(1.1); cit.add(arch);
+        for (const [x, z, r] of [[-12, -6, 0.6], [12, -6, -0.6], [-8, 12, 2.4], [8, 12, -2.4]]) { const st = decorMesh('statue', P[4]); st.position.set(x, 0.6, z); st.rotation.y = r; cit.add(st); }
+        const tufts = [];
+        for (let i = 0; i < 18; i++) { const a = (i / 18) * PI * 2; tufts.push(part(sph(2.2 + (i % 3) * 0.6, 10, 8), '#ffffff', [Math.sin(a) * 22, -1.6 - (i % 2), Math.cos(a) * 22])); }
+        cit.add(toonMesh(tufts, { outline: 0.06, shadow: false, emissive: '#d8c8ff', emissiveIntensity: 0.25 }));
+        const beds = [];
+        for (let i = 0; i < 40; i++) { const a = i * 2.39, r = 4 + (i % 9) * 1.9; beds.push(part(sph(0.35, 6, 5), P[4].flowers[i % 3], [Math.sin(a) * r, 0.75, Math.cos(a) * r])); }
+        cit.add(toonMesh(beds, { outline: false, shadow: false }));
         root.add(cit);
         this.citadel = cit;
         // ---- path stones and node flags
@@ -330,7 +339,8 @@ export class MapView {
         const sky = hp.y > 30;
         dir.mode = 'focus';
         dir.focusAt = new THREE.Vector3(hp.x, hp.y + 2, hp.z);
-        dir.focusFrom = new THREE.Vector3(hp.x + Math.sin(out) * r * (sky ? 0.9 : 1), hp.y + (sky ? 28 : 34), hp.z + Math.cos(out) * r * (sky ? 0.9 : 1));
+        const ox = sky ? Math.sin(0.4) : Math.sin(out), oz = sky ? Math.cos(0.4) : Math.cos(out);
+        dir.focusFrom = new THREE.Vector3(hp.x + ox * r * (sky ? 1.25 : 1), hp.y + (sky ? 30 : 34), hp.z + oz * r * (sky ? 1.25 : 1));
         dir.k = 2.5;
     }
 }

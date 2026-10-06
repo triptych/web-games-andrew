@@ -275,10 +275,11 @@ export function buildWedgewick() {
 }
 
 // ================================================================== monsters
-function faceOn(group, R, spec, y = 0, z = 0, sx = 1, sy = 1) {
+function faceOn(group, R, spec, y = 0, z = 0, sx = 1, sy = 1, sz = 1) {
     const faceMat = new THREE.MeshBasicMaterial({ transparent: true, map: faceTexture(spec, 'normal'), depthWrite: false });
     const f = new THREE.Mesh(faceCap(R, sx, sy), faceMat);
     f.position.set(0, y, z);
+    f.scale.z = sz;
     f.renderOrder = 2;
     group.add(f);
     return { f, faceMat, spec };
@@ -346,7 +347,7 @@ export function buildBoss(kind) {
     const root = new THREE.Group();
     const parts = {};
     const faces = [];
-    const addFace = (group, R, spec, y, z = 0, sx = 1, sy = 1) => { const f = faceOn(group, R, spec, y, z, sx, sy); faces.push(f); return f; };
+    const addFace = (group, R, spec, y, z = 0, sx = 1, sy = 1, sz = 1) => { const f = faceOn(group, R, spec, y, z, sx, sy, sz); faces.push(f); return f; };
     if (kind === 'gopher') {
         const body = new THREE.Group(); root.add(body); parts.body = body;
         body.add(toonMesh([
@@ -372,7 +373,7 @@ export function buildBoss(kind) {
             ...[-1, 1].map((s) => part(cone(0.22, 0.8, 8), '#f8f0e0', [s * 0.55, -0.35, 1.0], [1.3, 0, s * 0.4])),
             part(ico(0.32, 0), '#ff3a8a', [0, 0.85, 0.6]),
         ], { mat, outline: 0.04, emissive: '#100800' }));
-        addFace(head, 1.25, { skin: '#d8a860', eyes: '#ff2a6a', mouth: 'teeth', blush: false, eyeW: 16, eyeH: 16, eyeGap: 48 }, 0, 0.05, 1, 1);
+        addFace(head, 1.25, { skin: '#d8a860', eyes: '#ff2a6a', mouth: 'teeth', blush: false, eyeW: 16, eyeH: 16, eyeGap: 48 }, 0, 0.02, 1, 1, 1.12);
     } else if (kind === 'yeti') {
         const body = new THREE.Group(); root.add(body); parts.body = body;
         const fur = [part(sph(1.6, 24, 18), '#f4f8ff', [0, 1.7, 0], [0, 0, 0], [1, 1.05, 0.95])];
@@ -409,11 +410,26 @@ export function buildBoss(kind) {
         const body = new THREE.Group(); root.add(body); parts.body = body;
         body.add(toonMesh([
             part(sph(2.6, 24, 18), '#6a3aa8', [0, 2.4, 0], [0, 0, 0], [1.4, 1, 1]),
-            part(sph(2.0, 18, 12), '#d8b0ff', [0, 2.0, 1.0], [0, 0, 0], [1.2, 0.9, 0.6]),
-            ...[-1, 1].map((s) => part(new THREE.CircleGeometry(3.2, 5), '#4a2a7a', [s * 3.2, 4.4, -1.0], [0.3, s * 0.6, s * 0.4])),
+            part(sph(2.0, 18, 12), '#d8b0ff', [0, 2.1, 1.7], [0, 0, 0], [1.15, 0.9, 0.55]),
+
             part(cone(1.0, 4, 10), '#6a3aa8', [0, 1.4, -3.8], [-1.3, 0, 0]),
             ...[-1, 1].map((s) => part(caps(0.7, 0.8, 10), '#6a3aa8', [s * 2.0, 0.7, 0.6])),
+            ...[0, 1, 2, 3].map((i) => part(sph(0.55, 10, 8), '#f0d8ff', [0, 1.3 + i * 0.7, 2.75 - Math.abs(i - 1.5) * 0.3], [0, 0, 0], [1.6 - Math.abs(i - 1.5) * 0.2, 0.5, 0.35])),
         ], { mat, outline: 0.045 }));
+        // bat wings: a scalloped membrane on bony fingers, double-sided
+        for (const sgn of [-1, 1]) {
+            const sh = new THREE.Shape();
+            sh.moveTo(0, 0); sh.lineTo(5.2, 3.6); sh.lineTo(4.4, 1.6); sh.quadraticCurveTo(3.6, 1.2, 3.2, 0.4); sh.quadraticCurveTo(2.4, 0.2, 2.0, -0.6); sh.quadraticCurveTo(1.0, -0.6, 0, 0);
+            const wg = new THREE.ShapeGeometry(sh, 6);
+            if (sgn < 0) wg.scale(-1, 1, 1);
+            paintGrad(wg, '#5a2a9a', '#b07ae8', 0);
+            const wing = new THREE.Mesh(wg, toonMat({ vertexColors: true, side: THREE.DoubleSide, flash }));
+            wing.position.set(sgn * 1.6, 3.6, -1.2);
+            wing.rotation.set(-0.35, sgn * -0.5, 0);
+            withOutline(wing, 0.03);
+            body.add(wing);
+            parts['wing' + (sgn > 0 ? 'R' : 'L')] = wing;
+        }
         const cols = ['#e04a2a', '#4ab0f0', '#4ad070'];
         for (let i = 0; i < 3; i++) {
             const neck = new THREE.Group(); root.add(neck); parts['neck' + i] = neck;
@@ -423,7 +439,7 @@ export function buildBoss(kind) {
                 part(sph(0.6, 12, 10), shadeHex(cols[i], 0.3), [0, -0.3, 0.95], [0, 0, 0], [1.1, 0.7, 1]),
                 ...[-1, 1].map((s) => part(cone(0.2, 0.9, 8), '#f8f0d0', [s * 0.5, 0.95, -0.3], [-0.5, 0, s * -0.3])),
             ], { mat, outline: 0.035, emissive: shadeHex(cols[i], -0.8) }));
-            addFace(h, 1.1, { skin: cols[i], eyes: '#ffee40', mouth: 'teeth', blush: false, eyeW: 16, eyeH: 18, eyeGap: 46, eyeY: 108 }, 0, 0.1, 1, 0.95);
+            addFace(h, 1.1, { skin: cols[i], eyes: '#ffee40', mouth: 'teeth', blush: false, eyeW: 18, eyeH: 20, eyeGap: 46, eyeY: 112 }, 0.05, 0.02, 1, 0.95, 1.23);
         }
     }
     root.traverse((o) => { if (o.isMesh && !o.userData.outline) o.castShadow = true; });

@@ -204,8 +204,39 @@ export function buildTerrain(c, P, quality = 2) {
     const group = new THREE.Group();
     group.add(mesh);
     if (c.sky) group.add(islandUndersides(c, P));
+    else group.add(outerGround(c, P));
     for (const w of waterSheets(c, P, masks.W)) group.add(w);
     return { group, mesh, masks, dispose: () => { geo.dispose(); masks.A.dispose(); masks.B.dispose(); masks.W.dispose(); } };
+}
+
+// Land holes: the world carries on past the course grid — a coarse ring of ground from the same base
+// height function (with the full rough mound), so there is no edge to the world from any camera.
+function outerGround(c, P) {
+    const W = (c.nx - 1) * c.cell, H = (c.nz - 1) * c.cell;
+    const pad = 420, st = 6;
+    const x0 = c.x0 - pad, z0 = c.z0 - pad, nx = Math.ceil((W + pad * 2) / st) + 1, nz = Math.ceil((H + pad * 2) / st) + 1;
+    const mound = c.hole.mound ?? 2.2;
+    const pos = new Float32Array(nx * nz * 3), col = new Float32Array(nx * nz * 3);
+    const a = new THREE.Color(P.oob);
+    for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+        const x = x0 + i * st, z = z0 + j * st, k = j * nx + i;
+        // just under the course grid where they overlap, so the detailed terrain wins
+        const inside = x > c.x0 + 2 && x < c.x0 + W - 2 && z > c.z0 + 2 && z < c.z0 + H - 2;
+        pos[k * 3] = x; pos[k * 3 + 1] = c.base(x, z) + mound - (inside ? 3 : 0.15); pos[k * 3 + 2] = z;
+        const t = 0.97 + Math.sin(x * 0.05) * Math.cos(z * 0.043) * 0.05;
+        col[k * 3] = a.r * t; col[k * 3 + 1] = a.g * t; col[k * 3 + 2] = a.b * t;
+    }
+    const idx = [];
+    for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) { const p = j * nx + i; idx.push(p, p + nx, p + 1, p + 1, p + nx, p + nx + 1); }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    const m = new THREE.Mesh(g, new THREE.MeshToonMaterial({ vertexColors: true, gradientMap: gradientMap(3) }));
+    m.receiveShadow = true;
+    m.name = 'outer';
+    return m;
 }
 
 // Rocky cones under each floating island.

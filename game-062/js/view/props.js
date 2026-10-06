@@ -331,15 +331,22 @@ export function scatterBackground(c, P, seed = 1, density = 1) {
     let s = seed;
     const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
     const styles = { meadow: ['oak', 'oak', 'pine'], sand: ['palm', 'cactus', 'cactus'], frost: ['pine'], cinder: ['spire'], sky: ['column'] }[P.key];
-    const n = Math.round((c.sky ? 0 : 140) * density);
+    const n = Math.round((c.sky ? 0 : 230) * density);
     const roughW = c.hole.roughW ?? 16;
+    const W = (c.nx - 1) * c.cell, H = (c.nz - 1) * c.cell, pad = 150;
     for (let i = 0; i < n * 4 && list.length < n; i++) {
-        const x = c.x0 + rnd() * (c.nx - 1) * c.cell, z = c.z0 + rnd() * (c.nz - 1) * c.cell;
-        const d = c.dAt(x, z);
-        if (d < roughW + 2) continue;
-        const sid = c.surfAt(x, z);
-        if (sid === SURF.water || sid === SURF.lava || sid === SURF.void) continue;
-        list.push({ x, y: c.heightAt(x, z), z, s: 0.9 + rnd() * 0.6, style: styles[Math.floor(rnd() * styles.length)], rot: rnd() * PI * 2 });
+        // inside the course grid, or out in the wider world beyond it
+        const far = i % 3 === 2;
+        const x = far ? c.x0 - pad + rnd() * (W + pad * 2) : c.x0 + rnd() * W, z = far ? c.z0 - pad + rnd() * (H + pad * 2) : c.z0 + rnd() * H;
+        const inGrid = x >= c.x0 && x <= c.x0 + W && z >= c.z0 && z <= c.z0 + H;
+        if (far && inGrid) continue;
+        if (inGrid) {
+            if (c.dAt(x, z) < roughW + 2) continue;
+            const sid = c.surfAt(x, z);
+            if (sid === SURF.water || sid === SURF.lava || sid === SURF.void) continue;
+        }
+        const y = inGrid ? c.heightAt(x, z) : c.base(x, z) + (c.hole.mound ?? 2.2);
+        list.push({ x, y, z, s: 0.9 + rnd() * 0.7, style: styles[Math.floor(rnd() * styles.length)], rot: rnd() * PI * 2 });
     }
     return list;
 }

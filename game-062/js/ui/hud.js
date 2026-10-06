@@ -132,6 +132,8 @@ export class Hud {
         }
         // boss
         if (s.boss) {
+            const nm = s.boss.kind === 'bogey' && s.boss.phase === 2 ? 'Triple Bogey' : REALMS[h.realm].bossName;
+            if (c.bossName !== nm) { c.bossName = nm; $('boss-name').textContent = nm; }
             const pct = Math.max(0, s.boss.hp / s.boss.max) * 100;
             if (c.boss !== pct) { c.boss = pct; $('boss-fill').style.width = pct + '%'; }
         }

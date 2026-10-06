@@ -93,7 +93,7 @@ h2 { font-family: var(--title); font-size: 22px; color: var(--plum2); letter-spa
 .dlg-name { display: inline-block; font-weight: 700; font-size: 17px; color: #fff; background: var(--plum2); border: 2px solid var(--ink); border-radius: 10px; padding: 2px 12px; margin-bottom: 6px; }
 .dlg-text { font-size: 19px; line-height: 1.38; font-weight: 500; min-height: 3.6em; }
 .dlg-next { position: absolute; right: 16px; bottom: 8px; font-size: 14px; color: var(--plum2); animation: bob 0.8s ease-in-out infinite; }
-.dlg-skip { position: fixed; top: calc(10px + var(--safe-t)); right: calc(12px + var(--safe-r)); }
+.dlg-skip { align-self: flex-end; margin: 0 max(0px, calc((100% - 860px) / 2)) 8px 0; order: -1; }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
 
 /* map */

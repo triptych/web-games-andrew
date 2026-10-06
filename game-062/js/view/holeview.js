@@ -31,6 +31,13 @@ export class HoleView {
         this.ball = toonMesh([part(sph(0.2, 16, 12), '#ffffff')], { outline: 0.03 });
         this.ballShadow = new THREE.Mesh(new THREE.CircleGeometry(0.3, 16).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.35, depthWrite: false }));
         this.ballShadow.renderOrder = 3;
+        // a soft halo that keeps the ball visible at any distance
+        const hc = document.createElement('canvas'); hc.width = hc.height = 64;
+        const hg = hc.getContext('2d'); const gr = hg.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.35, 'rgba(255,250,220,0.45)'); gr.addColorStop(1, 'rgba(255,240,200,0)');
+        hg.fillStyle = gr; hg.fillRect(0, 0, 64, 64);
+        this.halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(hc), transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending }));
+        this.halo.renderOrder = 7;
         this.arcDots = new THREE.InstancedMesh(new THREE.SphereGeometry(0.13, 8, 6), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.9 }), 80);
         this.arcDots.frustumCulled = false;
         this.landRing = new THREE.Mesh(new THREE.RingGeometry(0.8, 1, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide }));
@@ -123,7 +130,7 @@ export class HoleView {
         this.wedge.root.scale.setScalar(1.3);
         this.root.add(this.wedge.root);
         // ball, shadow, aim helpers
-        this.root.add(this.ball, this.ballShadow, this.arcDots, this.landRing, this.aimArrow, ...this.ticks);
+        this.root.add(this.ball, this.ballShadow, this.halo, this.arcDots, this.landRing, this.aimArrow, ...this.ticks);
         this.fx.trail.cam = this.R.camera;
         this.fx.trail.reset();
         this.heroAt = null;
@@ -207,6 +214,11 @@ export class HoleView {
         const B = s.ball;
         this.ball.position.set(B.x, B.y, B.z);
         this.ball.visible = B.state !== 'holed' || s.phaseT < 0.2;
+        const camD = this.R.camera.position.distanceTo(this.ball.position);
+        this.halo.position.copy(this.ball.position);
+        this.halo.scale.setScalar(Math.max(0.7, camD * 0.035));
+        this.halo.visible = this.ball.visible && camD > 6;
+        this.halo.material.opacity = Math.min(1, (camD - 6) / 10) * (s.phase === 'flight' ? 1 : 0.6);
         const gy = c.heightAt(B.x, B.z);
         const ground = gy < -60 ? null : gy;
         this.ballShadow.visible = ground !== null && B.state !== 'holed';

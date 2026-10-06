@@ -20,6 +20,7 @@ import { Fx } from '../js/view/fx.js';
 import { CameraDirector } from '../js/view/camera.js';
 import { HoleView } from '../js/view/holeview.js';
 import { TOON } from '../js/view/toon.js';
+import { setPose } from '../js/view/anim.js';
 import { HOLE_BY_ID } from '../js/sim/holes.js';
 import { buildCourse } from '../js/sim/course.js';
 import { World } from '../js/sim/world.js';
@@ -34,6 +35,7 @@ const course = buildCourse(HOLE_BY_ID[id]);
 const prof = tierProfile(course.hole.realm);
 const world = new World(course, { profile: prof });
 hv.build(course, world, prof);
+if (q.get('phase2')) { const b = world.s.boss; b.phase = 2; b.hp = 6; b.max = 6; b.transformT = 0; }
 for (let i = 0; i < 5; i++) world.step(1 / 60);
 const cam = q.get('cam') ?? 'aim';
 const B = world.s.ball;
@@ -44,10 +46,14 @@ else if (cam === 'boss') { const T = world.target(); dir.setFocus(new THREE.Vect
 else if (cam === 'hero') { const h = hv.hero.root.position; const yaw = hv.heroYaw; dir.setFocus(new THREE.Vector3(h.x, h.y + 1.3, h.z), new THREE.Vector3(h.x + Math.sin(yaw) * 5, h.y + 2, h.z + Math.cos(yaw) * 5)); }
 else if (cam === 'cup') { const C = course.cup; dir.setFocus(new THREE.Vector3(C.x, C.y + 1, C.z), new THREE.Vector3(C.x + 6, C.y + 4, C.z - 10)); }
 dir.update(1 / 60); dir.snap();
+// ?shot=club,power,frames → fire a shot and follow it for that many frames
+if (q.get('shot')) { const [club, power] = q.get('shot').split(','); world.setClub(club); world.shoot({ club, power: +power, acc: 0, perfect: true }); dir.setFlight(world.s.ball); }
+// ?pose=swing,angle → freeze the hero mid-swing
+if (q.get('pose')) { const [p, a] = q.get('pose').split(','); setPose(hv.hero, p, { angle: +a }); }
 let t = 0;
 const T = +(q.get('t') ?? 1);
 window.__ready = false;
-function frame(dt) { t += dt; TOON.uTime.value = t; world.step(dt); hv.sync(dt, t, { }); dir.update(dt); sky.update(dt, t, R.camera.position); fx.update(dt, R.camera.position, hv.ball.position); R.render(dt, t); }
+function frame(dt) { t += dt; TOON.uTime.value = t; for (let k = 0; k < 8; k++) world.step(dt / 8); for (const e of world.events) hv.onEvent(e); world.events.length = 0; hv.sync(dt, t, { }); dir.update(dt); sky.update(dt, t, R.camera.position); fx.update(dt, R.camera.position, hv.ball.position); R.render(dt, t); }
 for (let i = 0; i < Math.round(T * 30); i++) frame(1 / 30);
 window.__ready = true;
 </script>
