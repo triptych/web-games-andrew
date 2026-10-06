@@ -4,6 +4,7 @@
     --dim: #9fbcb0;
     --glass: rgba(8, 22, 26, 0.74);
     --glass-2: rgba(16, 38, 40, 0.82);
+    --glass-panel: rgba(8, 22, 26, 0.88);
     --line: rgba(160, 255, 210, 0.16);
     --gold: #ffd27a;
     --gold-2: #ffb84a;
@@ -61,7 +62,7 @@ h3.sub { font-size: 13px; margin: 18px 2px 8px; color: var(--mint); text-transfo
 #chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; pointer-events: auto; }
 .chip {
     display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
-    background: rgba(6, 18, 22, 0.66); border: 1px solid var(--line); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    background: rgba(6, 18, 22, 0.8); border: 1px solid var(--line);
     min-height: 28px;
 }
 .chip.warn { border-color: rgba(255, 180, 90, 0.5); color: var(--gold); }
@@ -112,8 +113,9 @@ h3.sub { font-size: 13px; margin: 18px 2px 8px; color: var(--mint); text-transfo
 /* ---------------------------------------------------------------- panel */
 #panel {
     position: fixed; top: 0; right: 0; bottom: 0; width: var(--panel-w); z-index: 20;
-    display: flex; flex-direction: column; background: var(--glass); border-left: 1px solid var(--line);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: var(--shadow);
+    /* no backdrop-filter: over a WebGL canvas that redraws every frame it flickers as a box in Chrome */
+    display: flex; flex-direction: column; background: var(--glass-panel); border-left: 1px solid var(--line);
+    box-shadow: var(--shadow);
     padding-right: var(--safe-r);
 }
 #tabs { display: flex; gap: 2px; padding: 6px 6px 0; border-bottom: 1px solid var(--line); flex: 0 0 auto; }

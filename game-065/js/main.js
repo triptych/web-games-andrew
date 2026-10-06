@@ -264,7 +264,8 @@ function layout() {
     else setInsets(0, Math.max(0, h - panel.top), Math.min(h * 0.22, top));
 }
 window.addEventListener('resize', () => setTimeout(layout, 50));
-$('panel').addEventListener('transitionend', layout);
+// only the sheet's own slide, not every hover transition bubbling up from inside it
+$('panel').addEventListener('transitionend', (e) => { if (e.target === e.currentTarget) layout(); });
 
 // ------------------------------------------------------------------ settings pane
 function wireSettings() {
