@@ -968,6 +968,21 @@ const games = [
         ]
     },
     {
+        id: 'game-065',
+        title: 'Worldroot',
+        description: "An idle clicker in a magical forest, in three.js with no asset files. A seed of light lies in a sleeping clearing: touch it to gather motes, and grow it, level by level, from a sprout into the World Tree. The tree is one procedural model that really grows: trunk, limbs, roots and canopy appear on their own schedules, the bark is veined with pulsing light, and the camera pulls back as it towers over the forest. Twelve kinds of spirit gather motes for you, and each lives in the clearing as you buy it: swarms of fireflies, rings of glowcaps, dew sprites, lantern moths, fox spirits with foxfire tails, moonwells with beams of light, a rune henge, walking treants, white stags, the aurora, a dancing dryad court and orbiting star seeds. 143 upgrades (tier, synergy, click, radiance, wisp and sap), milestones every fifty owned, golden wisps to catch for frenzies and lucky gifts, five spells powered by sap, four seasons that change the bonuses and the whole palette (spring blossom, autumn gold, winter snow), 138 achievements, a heartwood rebirth layer with thirteen lasting gifts including automation, six trials with permanent rewards, and the nine Norse realms to bind to the World Tree as floating islands. Offline progress (automation keeps working while you sleep), a generative ambient score, save export, and touch controls for phones.",
+        icon: '\uD83C\uDF33',
+        folder: 'game-065',
+        version: '1.1.1',
+        cssClass: 'worldroot',
+        genre: 'cozy',
+        tags: [
+            { emoji: '\uD83D\uDCA4', label: 'Idle' },
+            { emoji: '\u2728', label: 'Incremental' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
+    },
+    {
         id: 'game-066',
         title: 'Scrapwright',
         description: "A steampunk COM-bot adventure in three.js with no asset files. On Midden, the junk planet where the galaxy dumps its dead starships, a scrap kid from Cinderwick finds, repairs, builds and evolves COM-bots (Companion Mechanoids): 250 of them in 126 lines across 16 types, each assembled from procedural parts (boiler drums, treads, spider legs, hover jets, saw arms, smokestacks, dish antennas) in its own palette. Evolving installs new parts, a new trait and the techniques those parts bring. Catch wild bots with Reboot Spikes, weld dormant wrecks back to life in a timing minigame, or build them from blueprints at the workbench. Turn-based battles with 170 techniques, statuses, atmospheres and traits, against 79 trainers, eight Forgemasters, the Rust Syndicate, the Furnace Four and Champion Vex, across 64 maps of scrap drifts, crashed ships, a refinery, frozen wrecks, a sky station and an airship. Win the championship and the Starward Ticket off-world. Bloom, sepia grade, heat haze, a gear-iris wipe, synthesised music, autosave, keyboard or touch.",

@@ -5275,6 +5275,51 @@ A sandworm circling in real time could not be hit from beyond six yards, because
 ### Rendered portraits from the 3D characters
 A second, tiny `WebGLRenderer` on an offscreen 160 px canvas (`preserveDrawingBuffer: true`) renders each speaker's rig head-and-shoulders and caches `canvas.toDataURL()` per speaker × expression. Dialogue portraits then always match the models, with no art files. *(game-063 `js/view/portrait.js`)*
 
+## Game 065: Worldroot — an idle clicker whose progress bar is a tree that really grows (2026-10-06)
+
+### An idle economy runs away unless something costs faster than everything else pays
+The first draft used Cookie Clicker's spirit ladder plus a tree track (+5% per level, cost ×1.36) and stage upgrades (×1.5 each). The bot finished *the whole game* in 17 minutes: every purchase paid back in seconds, so the economy compounded faster than any cost grew. Two fixes made the first run take ~50 minutes: weaker per-level and per-stage multipliers (1.03, ×1.3), and tree costs that take a ×4 step at every new stage. Measure payback (cost ÷ added income), not prices: `dev/pace.mjs` printing "stage N at time T" for a bot that buys whatever pays back fastest found every problem in minutes.
+
+### Prestige from total currency feeds back on itself; tie it to a bounded measure
+Heartwood first came from `cbrt(all-time motes)`, Cookie Clicker style, at +1% production each. Because income compounds inside a run (motes in a fixed time grow like income⁴ or more here), doubling production more than octupled the motes of the next run, and heartwood doubled every minute after the first hour. A fourth root only delayed it. What worked was paying heartwood for **how tall the tree grew** (`40 × 1.12^(level − 50)`) and making the tree cost **super-exponential** past level 50 (`× e^(0.005 (L − 50)²)`): extra production buys fewer and fewer levels, so each rebirth plateaus instead of exploding. Check the loop gain, d(log reward)/d(log income), and keep it below 1.
+
+### Growing a mesh in the vertex shader
+The whole tree is one merged mesh built once from a seeded skeleton; every segment carries the levels at which it starts and finishes growing. The shader slides each segment out of its start point, and children are always born after the part of the parent they sit on has finished, so nothing ever detaches. Two details: a ring's radius depends on *how long since the tip passed it* (`uGrow − reached`), which gives the growing end a natural taper instead of a flat cut; and the bark repeat count around a branch is `floor(span × thickness)`, so the pattern doesn't get squeezed into stripes on thin new wood.
+
+### Symptom: everything is pale lavender and the rim light is 1.0 everywhere → the tube is inside out
+The bark looked washed out at every stage. Rendering each shader term on its own (`gl_FragColor = vec4(term, 1.0)` patched in through `material.fragmentShader` from the test page) showed the rim term at 1.0 across the whole trunk: the camera was looking at the *inside* faces of the tubes, so every normal pointed away. For a ring built as `n·cos + b·sin` with `b = d × n`, the quad must be `(a, b, c), (b, d, c)`. Bisecting a shader by its terms beats guessing.
+
+### Frame the subject inside what the HUD leaves visible
+`camera.setViewOffset` centres the tree in the uncovered part of the screen, but the fit distance must also be divided by the *fraction* of the screen left visible (`visibleHeight / height`, `visibleWidth / width`), or the tree overflows a phone whose bottom sheet covers half the screen. Fog density scaled to camera distance (`0.5 / distance`) keeps the subject clear from seed to World Tree while the forest beyond fades.
+
+### Symptom: the distant trees hover over the hills → `CircleGeometry` has no inner vertices
+`CircleGeometry(radius, segments)` is a triangle fan: one centre vertex and one ring at the rim. Displacing its vertices by a height function only moves the centre and the rim, so hills that rise at radius 34–94 simply weren't in the mesh, and props placed with the same height function floated up to 5 units above a straight slope. Use a polar grid with real rings (`polarGrid()` in game-065's `ground.js`, radii growing as `(i/n)^1.7` so the clearing stays fine), check every triangle faces up, and raycast the mesh against the height function at the radii where props stand.
+
+### Symptom: a still cloud of dots builds up where particles faded → `gl_PointSize = 0` is not invisible
+A pooled point system "killed" a spark by setting its size to 0 and leaving its position and colour alone. The spec only defines point sizes from 1 up, and many GPUs clamp 0 to one pixel, so every dead spark stayed as a dot at the spot it died, and clicking built a frozen cloud above the tree. SwiftShader drew them too, which made it testable: diff a screenshot after the sparks die against one from before the clicks. Kill a point by moving it outside the clip volume (`gl_Position = vec4(2.0, 2.0, 2.0, 1.0)`) and drive its colour by an alpha that reaches 0. Make sure the fade you compute is actually applied: this one was computed and never used.
+
+### Walking round a circle: the heading is the tangent, −a − π/2
+Models built facing +x and moved anticlockwise round the tree at angle `a` (position `(cos a, sin a)` in x/z) need `rotation.y = -a - π/2`. Three creatures used `-a - π`, which points the nose at the tree, so foxes, treants and stags slid sideways round it for a whole release and it read as "the fox looks weird". Check a heading with one case by hand: at `a = 0` the creature moves along +z, and `rotation.y = -π/2` turns +x onto +z.
+
+### A creature that reads at a distance: one material, vertex colours, a faint self-glow
+The polished Fox Spirit is smooth tapered tubes along Catmull-Rom curves (body, neck, muzzle, legs, tail) plus a few shaped spheres and cones, all sharing one `MeshPhysicalMaterial` with `vertexColors` (russet top and cream belly decided per vertex from the normal's y, dark socks and a cream tail tip from the position along the tube) and `sheen` for a fur rim. In a dark, foggy night scene it still turned into a silhouette away from the light, so `onBeforeCompile` swaps `totalEmissiveRadiance = emissive` for `emissive * vColor.rgb`: it glows faintly in its own colours. Frenet frames along a curve can flip handedness, so check the tube's normals point outward and flip the winding if not. Eyes are flattened spheres whose thin axis is aligned with the surface normal (`Matrix4.lookAt(dir, origin, up)`); aligned any other way, the dark rim swallows the iris. Build a close-up viewer page (`dev/creature.html`) before judging a model in the game, where it is a few dozen pixels tall.
+
+### Detailed procedural models without a draw-call explosion
+Remodelling six creatures from tubes, spheres and lathes took them from ~10 meshes each to 30–60, and a full grove from 548 draw calls to ~1000. Two fixes brought it to 406, below where it started: `bake()` merges, in every group, the child meshes that share a material (applying their local matrices, keeping only position, normal and colour), so animated joints stay separate groups while everything rigid inside them becomes one mesh; and all small features (eye rims, irises, pupils, glints, noses, blossoms) use one unlit `vertexColors` material so they merge too. Per-object animation that isn't needed goes as well: fourteen fluttering petals became one skirt that sways as a whole. Measure with `renderer.info` across the whole frame (`autoReset = false`, reset before `composer.render()`), or it reports only the last post-processing pass.
+
+### A moving target in a slow browser test
+Under SwiftShader a frame can take most of a second, so a test that reads a moving target's screen position and then taps can miss it. That isn't a flake to re-run: re-read and tap again, a few times, like a player chasing it.
+
+### No `backdrop-filter` over a WebGL canvas
+A frosted-glass panel (`backdrop-filter: blur(...)`) over a canvas that redraws every frame blinks in Chrome: when the panel repaints (hovering its buttons, quickly), the compositor can drop or show a stale backdrop for a frame, and a panel-sized box flashes over the scene. Headless SwiftShader never shows it, so tests can't catch it. Use a plain translucent tint (a little more opaque to make up for the blur). Related: a `transitionend` listener on a container also hears every child's hover transition bubbling up, so check `e.target === e.currentTarget`; and make resize code skip `renderer.setSize`/`composer.setSize` when nothing changed, since they reallocate the canvas and every render target.
+
+### Small traps the browser test caught
+- The Nourish button had no listener at all; only a test that clicks the real button finds that.
+- `setPointerCapture` throws for synthetic pointers (and already-released ones), aborting the handler before the click counted. Wrap it.
+- `navigator.clipboard.writeText()` rejects without permission; an unhandled rejection is a page error. Handle the promise.
+- `readPixels` after the frame has been presented reads a cleared buffer (all zero). Render, then read, in the same task.
+- Testing offline progress: seed the rewound save with `addInitScript` on a fresh page, never through `reload()` (game-034's lesson, again).
+
 ## Game 066: Scrapwright — a creature-collecting RPG whose creatures are built from parts (2026-10-06)
 
 ### One part list drives stats, techniques and the 3D model

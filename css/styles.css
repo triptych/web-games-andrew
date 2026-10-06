@@ -844,6 +844,16 @@ h1 {
     color: #fff;
 }
 
+.game-preview.worldroot,
+.carousel-slide-bg.worldroot {
+    background: radial-gradient(ellipse at 50% 42%, rgba(255, 226, 140, 0.6) 0%, rgba(127, 224, 122, 0.25) 22%, transparent 45%), radial-gradient(ellipse at 50% 100%, #2c5a2a 0%, transparent 55%), linear-gradient(180deg, #050a1c 0%, #10303a 60%, #0b1a22 100%);
+}
+
+.game-card.worldroot .play-button {
+    background: linear-gradient(135deg, #a8f5a0 0%, #4fbf6a 50%, #ffd27a 100%);
+    color: #062010;
+}
+
 .game-preview.scrapwright,
 .carousel-slide-bg.scrapwright {
     background: radial-gradient(circle at 70% 30%, rgba(255, 214, 140, 0.55) 0 12%, transparent 13%), repeating-conic-gradient(from 0deg at 30% 65%, rgba(200, 144, 58, 0.5) 0 6deg, transparent 6deg 15deg), linear-gradient(180deg, #e8c890 0%, #a8703a 50%, #3a2414 100%);

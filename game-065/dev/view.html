@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Worldroot — tree viewer</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#000}#stage{position:fixed;inset:0}</style>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div id="stage"></div>
+<script type="module">
+// Dev-only: renders the clearing and the tree at ?g=<level> (0–100) and ?s=<season 0–3.9>.
+import * as THREE from 'three';
+import { initStage, scene, camera, updateStage, render, frameTree, U, orbitBy, snapCamera } from '../js/view/stage.js';
+import { Sky } from '../js/view/sky.js';
+import { Ground } from '../js/view/ground.js';
+import { WorldTree } from '../js/view/tree.js';
+import * as T from '../js/view/textures.js';
+const q = new URLSearchParams(location.search);
+const g = Number(q.get('g') ?? 50), season = Number(q.get('s') ?? 1);
+initStage(document.getElementById('stage'), 0);
+const tex = { glow: T.glowTexture(), leaf: T.leafAtlas(), bark: T.barkTexture(), rune: T.runeTexture(), fern: T.fernTexture() };
+const sky = new Sky(scene), ground = new Ground(scene, tex, 0), tree = new WorldTree(scene, tex, 0);
+scene.add(new THREE.HemisphereLight(0x6a8ab0, 0x18220f, 1.6));
+const moon = new THREE.DirectionalLight(0xa8c0ff, 1.5); moon.position.copy(U.uMoonDir.value).multiplyScalar(50); scene.add(moon);
+tree.setGrowth(g); if (q.get('dbg') === 'noveins') tree.barkU.uVein.value.setHex(0); if (q.get('dbg') === 'nobloom') { const st = await import('../js/view/stage.js'); st.bloom.enabled = false; } tree.setSeason(season); ground.setSeason(season);
+U.uGlow.value = 0.3 + g / 100 * 0.9;
+if (q.get('yaw')) orbitBy(Number(q.get('yaw')), 0);
+let t = 0, frames = 0;
+function loop() {
+  requestAnimationFrame(loop);
+  const dt = 0.05; t += dt; U.uTime.value = t;
+  const sz = tree.size(); frameTree(sz.height, sz.crown); ground.setPool(Math.max(0.6, sz.crown * 0.5));
+  sky.update(dt, camera.position, season, U.uFogColor.value); ground.setCamera(camera.position, camera.position.length()); scene.fog.color.copy(U.uFogColor.value);
+  tree.update(dt, t); if (frames < 2) snapCamera(); updateStage(dt); render(); frames++; window.__frames = frames; window.__size = sz;
+}
+window.__tree = tree;
+loop();
+</script>
+</body>
+</html>
