@@ -140,7 +140,10 @@ button.sm { padding: 3px 8px; font-size: 13px; }
     background: var(--rivets), var(--plate); border: 3px solid var(--brass2); border-radius: 12px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55); animation: gIn 0.35s ease-out;
 }
 #battle .gauge.foe { top: calc(16px + var(--safe-t)); left: calc(16px + var(--safe-l)); }
-#battle .gauge.me { right: calc(16px + var(--safe-r)); bottom: calc(176px + var(--safe-b)); }
+/* Like the classic layout: the foe's gauge top-left (its bot stands top-right), yours bottom-right just above
+   the command box (your bot stands bottom-left). --bbox-h tracks the box, whose height changes with each menu. */
+#battle .gauge.me { right: calc(16px + var(--safe-r)); bottom: calc(var(--bbox-h, 148px) + 22px + var(--safe-b)); }
+#battle.tall-menu .gauge.me { display: none; }
 @keyframes gIn { from { opacity: 0; transform: translateY(-10px); } }
 .grow { display: flex; align-items: baseline; gap: 6px; }
 .gname { font-family: var(--head); font-size: 17px; color: var(--cream); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -417,7 +420,7 @@ body.touch .phead { padding-right: 52px; }
     .bmenu .cmd { padding: 11px 6px; font-size: 16px; }
     .mvn { font-size: 15px; }
     #battle .gauge { width: min(300px, 62vw); padding: 6px 10px; }
-    #battle .gauge.me { bottom: auto; top: calc(100px + var(--safe-t)); }
+    #battle .gauge.me { bottom: calc(var(--bbox-h, 190px) + 18px + var(--safe-b)); }
     .gname { font-size: 15px; }
     .pnl { padding: 14px 12px; border-width: 3px; }
     .ptitle { font-size: 19px; }
@@ -444,7 +447,6 @@ body.touch .phead { padding-right: 52px; }
     .bbox { min-height: 0; padding: 8px; }
     .bmsg { font-size: 16px; }
     .bmenu.team, .bmenu.bag { max-height: 58vh; }
-    #battle .gauge.me { top: calc(16px + var(--safe-t)); bottom: auto; }
     #battle .gauge { padding: 5px 10px; }
     .gtypes { display: none; }
     #dpad { width: 130px; height: 130px; bottom: calc(14px + var(--safe-b)); }

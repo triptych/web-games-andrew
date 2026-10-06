@@ -32,8 +32,25 @@ export class BattleUI {
         this.root.classList.remove('hidden');
         this.gauge = [null, null];
         this.root.querySelector('.bbox').addEventListener('pointerdown', (e) => { if (!e.target.closest('button')) this.press(); });
+        // Keep the player's gauge just above the command box as menus change its height.
+        const box = this.root.querySelector('.bbox');
+        this.boxObs?.disconnect();
+        this.boxObs = new ResizeObserver(() => this.fitGauges(box));
+        this.boxObs.observe(box);
+        this.fitGauges(box);
     }
-    hide() { this.root.classList.add('hidden'); this.root.innerHTML = ''; this.menu = null; }
+    hide() { this.boxObs?.disconnect(); this.root.classList.add('hidden'); this.root.innerHTML = ''; this.menu = null; }
+    /** Track the box height; when a long list leaves no room for the player's gauge above it, hide the gauge
+     *  (the list shows every bot's hull anyway). */
+    fitGauges(box) {
+        const h = box.getBoundingClientRect().height;
+        this.root.style.setProperty('--bbox-h', `${Math.round(h)}px`);
+        this.app.view.bv.boxShift = Math.round(h * 0.5);
+        const foe = $('g1');
+        const foeBottom = foe && !foe.classList.contains('hidden') ? foe.getBoundingClientRect().bottom : 0;
+        const room = innerHeight - h - 22 - foeBottom;
+        this.root.classList.toggle('tall-menu', room < 90);
+    }
 
     // ------------------------------------------------------------------ gauges
     setGauge(side, s) {
