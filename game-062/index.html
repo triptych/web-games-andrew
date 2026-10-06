@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a0b14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Rotten to the Core: a light, silly, fruit-based action RPG. Build a fruit hero, descend through procedurally generated cellars, jam catacombs and the boiling Rotten Core, squash rotten fruit and loot kitchenware.">
+    <title>Rotten to the Core</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="gl"></canvas>
+    <div id="bars" class="layer"></div>
+    <div id="labels" class="layer"></div>
+    <div id="floaters" class="layer"></div>
+
+    <!-- ============================================================ HUD -->
+    <div id="hud" class="hidden">
+        <div id="area" class="plate"><div id="area-name">—</div><div id="area-sub"></div></div>
+        <canvas id="minimap" width="180" height="180"></canvas>
+        <div id="target" class="hidden"><div id="t-name"></div><div id="t-bar"><b></b></div><div id="t-sub"></div></div>
+        <div id="bossbar" class="hidden"><div id="bb-name"></div><div id="bb-bar"><b></b><i></i></div></div>
+        <div id="toasts"></div>
+        <div id="banner" class="hidden"><div class="b1"></div><div class="b2"></div></div>
+        <div id="buffs"></div>
+
+        <div id="dock">
+            <div class="globe hp" id="g-hp"><div class="liquid"><div class="wave"></div></div><div class="shine"></div><span id="g-hp-t"></span><label>FRESHNESS</label></div>
+            <div id="dock-mid">
+                <div id="belt">
+                    <button class="pot" id="pot-hp" data-key="Q" title="Strawberry Jam (Q)"><span class="pi">🍓</span><b id="pot-hp-n">0</b><kbd>Q</kbd></button>
+                    <button class="pot" id="pot-juice" data-key="E" title="Orange Juice (E)"><span class="pi">🍊</span><b id="pot-juice-n">0</b><kbd>E</kbd></button>
+                    <button class="pot" id="pot-pie" data-key="R" title="Portal Pie (R)"><span class="pi">🥧</span><b id="pot-pie-n">0</b><kbd>R</kbd></button>
+                </div>
+                <div id="skillbar"></div>
+                <div id="xp"><b></b><span id="xp-t"></span></div>
+            </div>
+            <div class="globe juice" id="g-juice"><div class="liquid"><div class="wave"></div></div><div class="shine"></div><span id="g-juice-t"></span><label>JUICE</label></div>
+        </div>
+        <div id="menubtns">
+            <button id="mb-char" title="Character (C)">🧑‍🌾<i class="dot hidden"></i></button>
+            <button id="mb-inv" title="Backpack (I)">🎒</button>
+            <button id="mb-skills" title="Skills (K)">✨<i class="dot hidden"></i></button>
+            <button id="mb-quests" title="Quests (J)">📜</button>
+            <button id="mb-map" title="Map (Tab)">🗺️</button>
+            <button id="mb-menu" title="Menu (Esc)">☰</button>
+        </div>
+    </div>
+
+    <!-- ============================================================ TOUCH -->
+    <div id="touch" class="hidden">
+        <div id="stick-zone"><div id="stick-base"><div id="stick-knob"></div></div></div>
+        <div id="tbtns">
+            <button id="tb-attack" class="tb big">⚔️</button>
+            <button class="tb sk" data-slot="1"></button>
+            <button class="tb sk" data-slot="2"></button>
+            <button class="tb sk" data-slot="3"></button>
+            <button class="tb sk" data-slot="4"></button>
+            <button class="tb sk" data-slot="5"></button>
+        </div>
+    </div>
+
+    <canvas id="automap" class="hidden"></canvas>
+
+    <!-- ============================================================ PANELS & SCREENS -->
+    <div id="panels"></div>
+    <div id="tooltip" class="hidden"></div>
+    <div id="screens">
+        <section id="title" class="screen">
+            <div class="title-wrap">
+                <div class="logo"><span class="l1">ROTTEN</span><span class="l2">to the</span><span class="l3">CORE</span></div>
+                <div class="tagline">A fruity dungeon crawl. Hold your nose.</div>
+                <div class="title-menu" id="title-menu"></div>
+                <div class="title-foot">Every cellar, monster and pair of oven mitts generated fresh. No fruit were harmed. Well. Some were.</div>
+            </div>
+        </section>
+        <section id="screen" class="screen hidden"></section>
+    </div>
+
+    <noscript><p class="noscript">Rotten to the Core needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

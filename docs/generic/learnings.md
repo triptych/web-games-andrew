@@ -5215,3 +5215,31 @@ The New Voyage panel added its species portraits a moment after opening, which p
 
 ### Keep the subject beside the panel
 Docked menus fill the right-hand half of the screen, so the docked camera looks at a point *right* of the station (along the camera's right vector). The station then sits in the visible left half. The shipyard tab uses the same trick to frame the player's ship.
+
+---
+
+## Game 062: Rotten to the Core — a fruit Diablo, balanced by a bot that plays the real API (2026-10-06)
+
+### Line of sight must be an exact grid traversal
+Line of sight first sampled the segment every 0.3 tiles. Projectiles step every 0.25 tiles. Where a shot grazed a wall corner, one said "clear" and the other hit the wall, so a ranged hero standing in a corridor shot the same corner forever (the bot sat there for 150 simulated minutes). An Amanatides–Woo DDA visits every tile the segment touches, and when the ray passes exactly through a corner it requires both neighbours to be clear. Use one exact traversal for vision, aggro and "can I shoot that", and let projectiles be the generous one.
+
+### Every position write needs the same collision check
+Three different bugs put an actor inside a wall, and every one was an unchecked position write: a corner-slide nudge in `moveActor`, the fallback spot for a portal back down (`floor(x) + 0.5` of a spot that was already in a wall), and a knockback. Once embedded, `passable()` fails in every direction and the actor freezes. Two fixes: check every write, and as a safety net, if the hero ever starts a tick in a wall, spiral out to the nearest free spot (`unstick`).
+
+### Don't find "new" events by index in a capped queue
+The sim keeps its event queue bounded (game-040's advice). The game layer looked for the stairs event in `events.slice(before)`, where `before` was the length before the tick — but the cap had already trimmed the front, so the stairs event sat at an index below `before` and was never seen. In headless runs nothing drains the queue, so it was always at the cap. Count events with a sequence number and take the last `seq - seqBefore`.
+
+### A bot finds the soft-locks a playtest won't
+`js/sim/bot.js` explores every room, fights with a per-class rotation, loots, equips by score, uses Portal Pies, sells in town and takes the stairs. Each of its stalls was a real game bug: the corner shot above, a shrine that never worked (`{ ...defaults, ...mapSpec }` let the map's `kind: 'ripe'` overwrite the object's `kind: 'obj'`), a potion on the floor that could never be picked up with a full belt (and an intent that kept walking to it), and two equippable items that kept swapping (a two-hander pushes the shield out, the shield pushes the two-hander out). Give the bot an attention budget per target (`spent[id]`, then ignore it) so one unreachable chest doesn't stall a 40-minute run — and then go and fix why it was unreachable.
+
+### Balance a loot game with the full loop, not with fights
+The balance numbers that mattered came from the whole loop (explore → loot → equip → level → town → descend), not from duels: the first ranger died five times on floor 1 because a pack of six grapes outlasts a single-target seed shot at level 2. Seed Shot now pierces one enemy, and rangers start with a little more Freshness. Durian's summons (two Durian Brutes) were the top killer on floor 12; one brute plus three grapes keeps the fight hard without a wall. Final table: every class beats the game on three seeds in 33–55 simulated minutes, arriving at level 23–28 with 0–5 deaths.
+
+### Re-rendering a panel on click breaks double-click
+Selecting an inventory item rebuilt the panel's HTML, so the second click of a double-click landed on a brand-new element and `dblclick` never fired. Update the selection in place (move a `.sel` class, rebuild only the context row). The browser test caught it by double-clicking for real.
+
+### Wait for frames, not milliseconds, before clicking the 3D world
+Under SwiftShader the first frame after building a level can take seconds while shaders compile. A test that teleports the hero, waits 400 ms and projects an NPC's position to click it uses the *old* camera and clicks the HUD. Expose a frame counter from the view and wait for two new frames before projecting; also make the debug teleport clear the hero's path, or it keeps walking to the last click.
+
+### Characters for a top-down camera: faces up, hats small
+With the camera ~50° above the floor, a face placed at mid-height on a round fruit is foreshortened to nothing and a full-size helmet hides the fruit entirely. Faces sit higher on hero bodies (10% of the height above the profile's face line) and are 20% bigger; helms and caps are scaled to ~80% of the body radius at the top and sit on the crown. Decor attached to south-facing walls looked like it floated mid-room once those walls were cut away in the vertex shader — hang cobwebs and roots on north walls only.
