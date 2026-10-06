@@ -134,6 +134,8 @@ export class World {
         return s.behind ? null : s;
     }
 
+    screenOf(p) { return toScreen(p); }
+
     /** Client-space anchor above the tree (for floating text). */
     treeScreen(frac = 0.6) { return toScreen(new THREE.Vector3(0, this.size.height * frac, 0)); }
 

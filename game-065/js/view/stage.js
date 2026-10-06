@@ -167,7 +167,12 @@ export function updateStage(dt) {
     scene.fog.density = U.uFogDensity.value;
 }
 
-export function render() { composer.render(); }
+export function render() {
+    // count draw calls for the whole frame (bloom + output passes included), not just the last pass
+    renderer.info.autoReset = false;
+    renderer.info.reset();
+    composer.render();
+}
 
 /** Project a world point to client pixels. */
 const _v = new THREE.Vector3();

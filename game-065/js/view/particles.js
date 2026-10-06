@@ -11,6 +11,7 @@
 
 import * as THREE from 'three';
 import { U } from './stage.js';
+import { makeIsland } from './models.js';
 
 function mulberry(seed) {
     let a = seed >>> 0;
@@ -81,6 +82,7 @@ export class Bursts {
         this.pos = new Float32Array(max * 3);
         this.col = new Float32Array(max * 3);
         this.size = new Float32Array(max);
+        this.alpha = new Float32Array(max);      // 0 = dead or invisible: not drawn at all
         this.vel = new Float32Array(max * 3);
         this.life = new Float32Array(max);
         this.age = new Float32Array(max);
@@ -89,16 +91,25 @@ export class Bursts {
         this.aPos = new THREE.BufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage);
         this.aCol = new THREE.BufferAttribute(this.col, 3).setUsage(THREE.DynamicDrawUsage);
         this.aSize = new THREE.BufferAttribute(this.size, 1).setUsage(THREE.DynamicDrawUsage);
+        this.aAlpha = new THREE.BufferAttribute(this.alpha, 1).setUsage(THREE.DynamicDrawUsage);
         g.setAttribute('position', this.aPos);
         g.setAttribute('aCol', this.aCol);
         g.setAttribute('aSize', this.aSize);
+        g.setAttribute('aAlpha', this.aAlpha);
         this.u = { uMap: { value: textures.glow }, uPx: { value: 1 } };
         this.points = new THREE.Points(g, new THREE.ShaderMaterial({
             uniforms: this.u, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
             vertexShader: /* glsl */`
-                attribute vec3 aCol; attribute float aSize; uniform float uPx; varying vec3 vC;
-                void main() { vC = aCol; vec4 mv = modelViewMatrix * vec4(position, 1.0);
-                    gl_PointSize = min(uPx * 34.0, uPx * aSize * 520.0 / -mv.z); gl_Position = projectionMatrix * mv; }`,
+                attribute vec3 aCol; attribute float aSize; attribute float aAlpha; uniform float uPx; varying vec3 vC;
+                void main() {
+                    // A point of size 0 is still drawn as one pixel on many GPUs, so a dead
+                    // spark is moved outside the clip volume instead.
+                    if (aAlpha <= 0.0 || aSize <= 0.0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); gl_PointSize = 0.0; vC = vec3(0.0); return; }
+                    vC = aCol * aAlpha;
+                    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+                    gl_PointSize = min(uPx * 34.0, uPx * aSize * 520.0 / -mv.z);
+                    gl_Position = projectionMatrix * mv;
+                }`,
             fragmentShader: /* glsl */`
                 uniform sampler2D uMap; varying vec3 vC;
                 void main() { float t = texture2D(uMap, gl_PointCoord).r; gl_FragColor = vec4(vC * t, 1.0); }`,
@@ -123,6 +134,7 @@ export class Bursts {
             this.life[i] = life * (0.6 + Math.random() * 0.6);
             this.age[i] = 0;
             this.size[i] = size * (0.6 + Math.random() * 0.8);
+            this.alpha[i] = 0;
             const v = 0.75 + Math.random() * 0.25;
             this.col[i * 3] = c.r * v; this.col[i * 3 + 1] = c.g * v; this.col[i * 3 + 2] = c.b * v;
         }
@@ -135,18 +147,18 @@ export class Bursts {
             if (this.life[i] <= 0) continue;
             this.age[i] += dt;
             const k = this.age[i] / this.life[i];
-            if (k >= 1) { this.life[i] = 0; this.size[i] = 0; continue; }
+            if (k >= 1) { this.life[i] = 0; this.size[i] = 0; this.alpha[i] = 0; continue; }
             this.vel[i * 3] *= drag; this.vel[i * 3 + 1] *= drag; this.vel[i * 3 + 2] *= drag;
             this.vel[i * 3 + 1] += dt * 0.4;
             this.pos[i * 3] += this.vel[i * 3] * dt;
             this.pos[i * 3 + 1] += this.vel[i * 3 + 1] * dt;
             this.pos[i * 3 + 2] += this.vel[i * 3 + 2] * dt;
-            const fade = k < 0.1 ? k / 0.1 : 1 - (k - 0.1) / 0.9;
-            this.col[i * 3] *= 0.995; this.col[i * 3 + 1] *= 0.995; this.col[i * 3 + 2] *= 0.995;
+            // fade in over the first 10% of life, out over the rest
+            this.alpha[i] = k < 0.1 ? k / 0.1 : Math.max(0, 1 - (k - 0.1) / 0.9);
             this.size[i] *= k > 0.6 ? 0.985 : 1;
-            if (fade <= 0) this.size[i] = 0;
         }
-        this.aPos.needsUpdate = true; this.aCol.needsUpdate = true; this.aSize.needsUpdate = true;
+        this.aPos.needsUpdate = true; this.aSize.needsUpdate = true; this.aAlpha.needsUpdate = true;
+        this.aCol.needsUpdate = true;
     }
 }
 
@@ -325,35 +337,8 @@ export class Realms {
         return fresh;
     }
     makeIsland(color, i) {
-        const r = mulberry(100 + i);
-        const g = new THREE.Group();
-        const rock = new THREE.DodecahedronGeometry(1, 1);
-        const p = rock.attributes.position;
-        for (let k = 0; k < p.count; k++) {
-            const v = new THREE.Vector3().fromBufferAttribute(p, k);
-            if (v.y > 0.2) v.y = 0.2 + (v.y - 0.2) * 0.15; else v.y *= 1.6;
-            v.multiplyScalar(0.85 + r() * 0.3);
-            p.setXYZ(k, v.x, v.y, v.z);
-        }
-        rock.computeVertexNormals();
-        const rm = new THREE.Mesh(rock, new THREE.MeshStandardMaterial({ color: 0x6a6258, emissive: 0x15100c, flatShading: true }));
-        const grass = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.9, 0.12, 9), new THREE.MeshStandardMaterial({ color: 0x4f9a4a, emissive: 0x153a18, flatShading: true }));
-        grass.position.y = 0.26;
-        const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 0).scale(0.6, 1.4, 0.6), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 2.2, flatShading: true }));
-        crystal.position.y = 0.95;
-        const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.textures.glow, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
-        halo.scale.setScalar(2.4); halo.position.y = 0.95;
-        for (let k = 0; k < 3; k++) {
-            const tr = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.5, 6), new THREE.MeshStandardMaterial({ color: 0x2f6a3a, flatShading: true }));
-            const a = k * 2.1 + r();
-            tr.position.set(Math.cos(a) * 0.55, 0.52, Math.sin(a) * 0.55);
-            g.add(tr);
-        }
-        // little waterfall of light
-        const fall = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 1.6).translate(0, -0.8, 0), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-        fall.position.set(0.8, 0.1, 0);
-        g.add(rm, grass, crystal, halo, fall);
-        g.userData = { crystal, i };
+        const g = makeIsland(this.textures, color, i);
+        g.userData.i = i;
         return g;
     }
     update(t, size) {

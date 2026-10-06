@@ -123,6 +123,10 @@ async function desktop() {
     let s = await st(page);
     check(s.clicks === 12 && s.motes >= 12, `12 real clicks on the seed gather motes (${s.clicks} clicks, ${s.motes} motes)`);
     check(await page.evaluate(() => document.querySelectorAll('.floater').length > 0), 'floating numbers appear');
+    // every spark from those clicks dies, and none stays behind as a dot
+    await until(page, () => { const b = window.__wr.bursts(); return b.alive === 0 && b.dead > 0; }, 'click sparks all fade out');
+    const bs = await page.evaluate(() => window.__wr.bursts());
+    check(bs.deadVisible === 0, `dead sparks are not drawn (${bs.dead} dead, ${bs.deadVisible} still visible)`);
     await shot(page, 'd02-seed');
     // buy a firefly by clicking its row
     await realClickTree(page, 6);
@@ -316,8 +320,14 @@ async function phone(w, h) {
         const inside = (sel, pad) => { const r = document.querySelector(sel).getBoundingClientRect(); return w.x > r.left - pad && w.x < r.right + pad && w.y > r.top - pad && w.y < r.bottom + pad; };
         return !inside('#panel', 12) && !inside('#hud-top', 12) && !inside('#nourish-btn', 12) && !inside('#games-link', 12);
     }, 'the wisp is in the open', 120000);
-    const w2 = await page.evaluate(() => window.__wr.wispScreen());
-    if (w2) await tap(w2.x, w2.y);
+    // The wisp never stops moving, and under software GL a frame can take most of a
+    // second, so it can drift out of reach between reading its position and the
+    // touch landing. Tap where it is now, like a player chasing it, up to three times.
+    for (let k = 0; k < 3; k++) {
+        if (await page.evaluate(() => window.__wr.grove.s.stats.wisps >= 1)) break;
+        const w2 = await page.evaluate(() => window.__wr.wispScreen());
+        if (w2) await tap(w2.x, w2.y);
+    }
     check(await page.evaluate(() => window.__wr.grove.s.stats.wisps >= 1), 'wisp caught by touch');
     await shot(page, `p-${w}x${h}`);
 }
