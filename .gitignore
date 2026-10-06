@@ -13,3 +13,4 @@ game-*/dev/shots/
 game-*/dev/node_modules
 game-*/dev/package/
 game-*/dev/*.tgz
+game-*/dev/itch/

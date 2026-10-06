@@ -24,6 +24,10 @@
  * No network to unpkg.com? Fetch three.js once; CDN requests are then served from disk:
  *   cd game-065/dev && npm pack three@0.165.0 && tar xzf three-0.165.0.tgz   # -> ./package
  * Env: BASE (default http://127.0.0.1:8065), THREE_PKG, ONLY=desktop|offline|phones, NOSTORAGE=1.
+ *
+ * ITCH=1 tests the itch.io build from dev/itch.mjs instead, served at its own root
+ * (python3 -m http.server 8066 -d game-065/dev/itch/worldroot): any request to the
+ * three.js CDN fails the run, and there is no back link to the repo's launcher.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -32,8 +36,9 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? path.join(HERE, 'package');
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8065';
-const URL0 = `${BASE}/game-065/index.html?debug=1`;
+const ITCH = !!process.env.ITCH;
+const BASE = process.env.BASE ?? (ITCH ? 'http://127.0.0.1:8066' : 'http://127.0.0.1:8065');
+const URL0 = ITCH ? `${BASE}/index.html?debug=1` : `${BASE}/game-065/index.html?debug=1`;
 const OUT = path.join(HERE, 'shots');
 const NOSTORAGE = !!process.env.NOSTORAGE;
 const ONLY = process.env.ONLY || '';
@@ -56,7 +61,10 @@ async function newPage(viewport, extra = {}, init = null) {
         });
     } else if (init) await ctx.addInitScript(init.fn, init.arg);
     const page = await ctx.newPage();
-    if (fs.existsSync(PKG)) {
+    if (ITCH) {
+        // the itch build carries its own three.js: reaching for the CDN is a failure
+        await page.route('https://unpkg.com/**', (route) => { errors.push(`CDN request in the itch build: ${route.request().url()}`); route.abort(); });
+    } else if (fs.existsSync(PKG)) {
         await page.route('https://unpkg.com/**', (route) => {
             const rel = new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, '');
             const file = path.join(PKG, rel);
@@ -85,6 +93,10 @@ const frames = async (page, n = 2) => { const f0 = (await st(page)).frames; awai
 async function boot(page) {
     await page.goto(URL0);
     await until(page, () => window.__wr && window.__wr.state().frames > 1, 'first frames');
+    if (ITCH) {
+        check(await page.evaluate(() => !document.getElementById('games-link') && !document.querySelector('a[href^="../"]')), 'the itch build has no link back to the repo');
+        return;
+    }
     const link = await page.evaluate(() => {
         const a = document.getElementById('games-link'); const r = a.getBoundingClientRect();
         const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
@@ -358,6 +370,7 @@ async function phone(w, h) {
         }
         const off = [];
         for (const sel of ['#panel', '#nourish-btn', '#hud-top', '#games-link']) {
+            if (!document.querySelector(sel)) continue;          // the itch build has no back link
             const r = document.querySelector(sel).getBoundingClientRect();
             if (r.left < -1 || r.right > innerWidth + 1 || r.top < -1 || r.bottom > innerHeight + 1) off.push(sel);
         }
@@ -375,7 +388,7 @@ async function phone(w, h) {
         const w = window.__wr.wispScreen();
         if (!w || window.__wr.grove.s.t - window.__wr.grove.s.wisp.active.born < 2) return false;
         if (w.x < 20 || w.x > innerWidth - 20 || w.y < 20 || w.y > innerHeight - 20) return false;
-        const inside = (sel, pad) => { const r = document.querySelector(sel).getBoundingClientRect(); return w.x > r.left - pad && w.x < r.right + pad && w.y > r.top - pad && w.y < r.bottom + pad; };
+        const inside = (sel, pad) => { const e = document.querySelector(sel); if (!e) return false; const r = e.getBoundingClientRect(); return w.x > r.left - pad && w.x < r.right + pad && w.y > r.top - pad && w.y < r.bottom + pad; };
         return !inside('#panel', 12) && !inside('#hud-top', 12) && !inside('#nourish-btn', 12) && !inside('#games-link', 12);
     }, 'the wisp is in the open', 120000);
     // The wisp never stops moving, and under software GL a frame can take most of a
