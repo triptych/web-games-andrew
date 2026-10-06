@@ -273,6 +273,30 @@ async function desktop() {
     check((await page.inputValue('#save-text')).length > 100, 'export produces a save code');
     const brightness = await page.evaluate(() => window.__wr.brightness());
     check(brightness > 0, `the scene is not black (${brightness})`);
+    // One NaN pixel must never become a box: bloom's blur chain smears it across the screen for a
+    // frame (players saw it as a blinking box over the forest). A tiny quad writing NaN, with the
+    // sanitize pass off and then on: off must reproduce the box, on must leave the frame untouched.
+    const nan = await page.evaluate(async () => {
+        const THREE = await import('three');
+        const stage = await import(new URL('js/view/stage.js', location.href).href);
+        const mat = new THREE.ShaderMaterial({ uniforms: { uZero: { value: 0 } },
+            vertexShader: 'void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+            fragmentShader: 'uniform float uZero; void main(){ float n = uZero / uZero; gl_FragColor = vec4(n, n, n, 1.0); }' });
+        const quad = new THREE.Mesh(new THREE.PlaneGeometry(0.02, 0.02), mat);
+        stage.camera.add(quad); quad.position.set(0, 0, -1); stage.scene.add(stage.camera);
+        const c = stage.renderer.domElement, gl = c.getContext('webgl2');
+        const grab = () => { stage.render(); const px = new Uint8Array(160 * 160 * 4); gl.readPixels(Math.floor(c.width / 2 - 80), Math.floor(c.height / 2 - 80), 160, 160, gl.RGBA, gl.UNSIGNED_BYTE, px); return px; };
+        const diff = (a, b) => { let n = 0; for (let i = 0; i < a.length; i += 4) if (Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]) > 60) n++; return n; };
+        const out = {};
+        for (const on of [false, true]) {
+            stage.sanitize.enabled = on;
+            quad.visible = false; const base = grab();
+            quad.visible = true; out[on ? 'on' : 'off'] = diff(base, grab());
+        }
+        stage.camera.remove(quad); stage.sanitize.enabled = true; stage.render();
+        return out;
+    });
+    check(nan.on <= 4, `a NaN pixel stays a pixel (${nan.on} pixels changed with the sanitize pass; ${nan.off} without it)`);
     await shot(page, 'd07-settings');
 }
 

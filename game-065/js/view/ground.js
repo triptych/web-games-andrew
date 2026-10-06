@@ -285,7 +285,10 @@ export class Ground {
             for (const g0 of geos) {
                 const g = g0.index ? g0.toNonIndexed() : g0;
                 g.computeVertexNormals();
-                pos.push(...g.attributes.position.array); nor.push(...g.attributes.normal.array);
+                // a cone's apex triangles are degenerate and get a zero normal: give them "up" instead of a NaN-to-be
+                const na = g.attributes.normal.array;
+                for (let i = 0; i < na.length; i += 3) if (na[i] * na[i] + na[i + 1] * na[i + 1] + na[i + 2] * na[i + 2] < 1e-12) na[i + 1] = 1;
+                pos.push(...g.attributes.position.array); nor.push(...na);
             }
             out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
             out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
@@ -349,7 +352,8 @@ export class Ground {
                     float lit = max(dot(n, uMoonDir), 0.0) * 0.55 + (n.y * 0.5 + 0.5) * 0.25 + 0.08;
                     vec3 col = uColor * vC * lit * 0.5;
                     col += uColor * 0.15 * smoothstep(3.0, 0.0, vW.y - vBase) * uGlow;
-                    float rim = pow(1.0 - abs(dot(n, normalize(uCam - vW))), 3.0);
+                    // clamped: a face square to the camera can round |dot| past 1, and pow() of a negative is NaN on most GPUs
+                    float rim = pow(clamp(1.0 - abs(dot(n, normalize(uCam - vW))), 0.0, 1.0), 3.0);
                     col += vec3(0.15, 0.3, 0.35) * rim * 0.25;
                     ${FOG_FS}
                 }`,

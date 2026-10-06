@@ -15,8 +15,33 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
-export let renderer, scene, camera, composer, bloom;
+/**
+ * Bloom blurs the frame through a chain of ever-smaller buffers, so a single
+ * NaN or infinite pixel (a shader's pow() of a rounding-error negative, say)
+ * comes out as a black or white box for a frame. This pass, just before the
+ * bloom, turns any such pixel into black, where one pixel is invisible. It
+ * tests the float's exponent bits, which a driver's fast-math can't skip.
+ */
+const SanitizeShader = {
+    name: 'SanitizeShader',
+    uniforms: { tDiffuse: { value: null } },
+    vertexShader: /* glsl */`
+        varying vec2 vUv;
+        void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: /* glsl */`
+        uniform sampler2D tDiffuse;
+        varying vec2 vUv;
+        bool bad(float x) { return (floatBitsToUint(x) & 0x7f800000u) == 0x7f800000u; }
+        void main() {
+            vec4 c = texture2D(tDiffuse, vUv);
+            if (bad(c.r) || bad(c.g) || bad(c.b) || bad(c.a)) c = vec4(0.0, 0.0, 0.0, 1.0);
+            gl_FragColor = min(c, vec4(60000.0));
+        }`,
+};
+
+export let renderer, scene, camera, composer, bloom, sanitize;
 export const clock = new THREE.Clock();
 
 /** Shared uniforms every custom shader reads. */
@@ -57,6 +82,8 @@ export function initStage(container, q) {
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.85, 0.55, 0.62);
+    sanitize = new ShaderPass(SanitizeShader);
+    composer.addPass(sanitize);
     composer.addPass(bloom);
     composer.addPass(new OutputPass());
 
@@ -73,6 +100,7 @@ export function setQuality(q) {
 }
 function applyQuality() {
     bloom.enabled = quality < 2;
+    sanitize.enabled = bloom.enabled;       // without bloom a stray pixel stays one pixel
     bloom.strength = quality === 0 ? 0.9 : 0.8;
     pendingResize = true;
 }

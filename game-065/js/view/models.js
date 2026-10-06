@@ -363,7 +363,7 @@ export function makeWell(textures, seed = 1) {
               float moon = smoothstep(0.11, 0.08, length(p - vec2(0.1, -0.08) + 0.006 * vec2(sin(uTime * 1.3), cos(uTime))));
               col += vec3(0.9, 0.95, 1.0) * moon * 0.9;
               vec2 cell = floor(vUv * 26.0);
-              float spark = step(0.94, h(cell)) * pow(0.5 + 0.5 * sin(uTime * 3.0 + h(cell + 3.1) * 40.0), 6.0);
+              float spark = step(0.94, h(cell)) * pow(clamp(0.5 + 0.5 * sin(uTime * 3.0 + h(cell + 3.1) * 40.0), 0.0, 1.0), 6.0);
               col += vec3(0.7, 0.9, 1.0) * spark * 0.8;
               col *= smoothstep(0.5, 0.46, r) * 0.4 + 0.6;
               gl_FragColor = vec4(col * 1.25, 1.0); }`,
@@ -397,7 +397,7 @@ export function makeWell(textures, seed = 1) {
         uniforms: { uTime: U.uTime }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
         vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
         fragmentShader: `uniform float uTime; varying vec2 vUv;
-            void main(){ float a = pow(1.0 - vUv.y, 2.2) * (0.6 + 0.4 * sin(vUv.x * 38.0 + uTime * 1.2 + sin(vUv.y * 9.0 + uTime) * 2.0));
+            void main(){ float a = pow(clamp(1.0 - vUv.y, 0.0, 1.0), 2.2) * (0.6 + 0.4 * sin(vUv.x * 38.0 + uTime * 1.2 + sin(vUv.y * 9.0 + uTime) * 2.0));
               a *= smoothstep(0.0, 0.08, vUv.y);
               gl_FragColor = vec4(vec3(0.5, 0.75, 1.0) * a * 0.15, 1.0); }`,
     }));

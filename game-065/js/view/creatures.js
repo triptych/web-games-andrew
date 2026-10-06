@@ -77,7 +77,7 @@ class Flock {
                         float ang = aA.y * 6.2831 + t * (0.05 + aA.z * 0.12) * (aA.w > 0.5 ? 1.0 : -1.0);
                         float h = uHeight * (0.05 + aA.z * 0.95) + sin(t * (0.6 + aA.w) + aA.x * 20.0) * 0.4 * (0.3 + uHeight * 0.05);
                         p = vec3(cos(ang) * rad + sin(t * 0.7 + aA.w * 9.0) * 0.6, h, sin(ang) * rad + cos(t * 0.5 + aA.x * 9.0) * 0.6);
-                        vA = pow(0.5 + 0.5 * sin(t * (1.5 + aA.w * 2.5) + aA.y * 40.0), 3.0);
+                        vA = pow(clamp(0.5 + 0.5 * sin(t * (1.5 + aA.w * 2.5) + aA.y * 40.0), 0.0, 1.0), 3.0);
                     } else if (uKind < 1.5) {
                         // dew sprites: skimming over the grass in loops
                         float rad = 0.8 + aA.x * (uSpread * 0.9 + 3.0);

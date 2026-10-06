@@ -51,7 +51,7 @@ void main() {
     }
     // milky way band
     vec3 band = normalize(vec3(0.3, 0.5, -0.8));
-    float b = 1.0 - abs(dot(d, band));
+    float b = clamp(1.0 - abs(dot(d, band)), 0.0, 1.0);
     float mw = pow(b, 6.0) * (0.5 + 0.8 * noise(d * 6.0)) * smoothstep(0.0, 0.3, h);
     col += vec3(0.12, 0.12, 0.2) * mw;
 
