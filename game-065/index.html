@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0b1a22">
+    <meta name="description" content="Worldroot: an idle clicker in a magical forest. Gather motes of light from a seed and grow it into the World Tree. Spirits, upgrades, wisps, spells, seasons, rebirth, trials and the nine realms, with offline progress.">
+    <title>Worldroot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Nunito:wght@400;600;700;800&display=swap">
+    <link rel="stylesheet" href="style.css">
+    <script src="../lib/page-audio.js"></script>
+</head>
+<body>
+    <a href="../index.html" id="games-link" style="position:fixed;top:8px;left:8px;z-index:99999;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fff;background:rgba(0,0,0,0.55);padding:6px 12px;border-radius:6px;text-decoration:none;pointer-events:auto;border:1px solid rgba(255,255,255,0.25);" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">← Games</a>
+
+    <div id="stage"></div>
+    <div id="floaters"></div>
+    <div id="flash"></div>
+
+    <!-- ============================== HUD ============================== -->
+    <div id="hud">
+        <div id="hud-top">
+            <div id="counter">
+                <div id="motes-line"><span id="motes">0</span> <span class="unit">motes</span></div>
+                <div id="mps-line"><span id="mps">0</span> per second</div>
+                <div id="click-line">✦ <span id="click-val">1</span> per touch</div>
+            </div>
+            <div id="chips">
+                <button id="chip-season" class="chip" title="Season"><span id="season-ico">🌸</span><span id="season-name">Spring</span><span id="season-left" class="dim"></span></button>
+                <button id="chip-stage" class="chip" title="The tree"><span>🌳</span><span id="stage-name">Seed</span><span id="stage-lv" class="dim"></span></button>
+                <div id="sap-chip" class="chip" title="Sap (for spells)" hidden><span>🍯</span><span id="sap-val">0</span></div>
+                <div id="trial-chip" class="chip warn" hidden></div>
+            </div>
+            <div id="buffs"></div>
+        </div>
+
+        <div id="nourish-wrap">
+            <button id="nourish-btn" title="Nourish the tree (N)">
+                <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" class="track"/><circle cx="50" cy="50" r="44" id="nourish-ring" class="ring"/></svg>
+                <span class="n-ico">🌱</span>
+                <span class="n-text"><b>Nourish</b><span id="nourish-cost">30</span></span>
+            </button>
+        </div>
+
+        <div id="wisp-hint" hidden>A golden wisp! Catch it ✨</div>
+        <div id="hint" hidden>Touch the seed to gather light</div>
+    </div>
+
+    <!-- ============================== Panel ============================== -->
+    <aside id="panel" class="open">
+        <nav id="tabs" role="tablist">
+            <button class="tab active" data-tab="grove" role="tab"><span class="t-ico">🌿</span><span class="t-lbl">Grove</span><span class="badge" id="badge-grove" hidden></span></button>
+            <button class="tab" data-tab="ups" role="tab"><span class="t-ico">✨</span><span class="t-lbl">Upgrades</span><span class="badge" id="badge-ups" hidden></span></button>
+            <button class="tab" data-tab="tree" role="tab"><span class="t-ico">🌳</span><span class="t-lbl">Tree</span></button>
+            <button class="tab" data-tab="magic" role="tab" id="tab-magic"><span class="t-ico">🔮</span><span class="t-lbl">Magic</span></button>
+            <button class="tab" data-tab="rebirth" role="tab" id="tab-rebirth"><span class="t-ico">🌀</span><span class="t-lbl">Rebirth</span><span class="badge" id="badge-rebirth" hidden></span></button>
+            <button class="tab" data-tab="journal" role="tab"><span class="t-ico">📖</span><span class="t-lbl">Journal</span><span class="badge" id="badge-journal" hidden></span></button>
+            <button class="tab" data-tab="settings" role="tab"><span class="t-ico">⚙️</span><span class="t-lbl">Settings</span></button>
+            <button id="panel-toggle" title="Show or hide the panel" aria-label="Show or hide the panel">▾</button>
+        </nav>
+        <div id="panel-body">
+            <section class="pane active" id="pane-grove">
+                <div class="pane-head">
+                    <h2>Spirits of the Grove</h2>
+                    <div class="seg" id="buy-amt">
+                        <button data-amt="1" class="on">×1</button><button data-amt="10">×10</button><button data-amt="100">×100</button><button data-amt="max">Max</button>
+                    </div>
+                </div>
+                <label class="auto-row" id="auto-gens-row" hidden><input type="checkbox" id="auto-gens"> Grove Keepers buy spirits for me</label>
+                <div id="gen-list" class="list"></div>
+            </section>
+            <section class="pane" id="pane-ups">
+                <div class="pane-head"><h2>Upgrades</h2><button id="buy-all-ups" class="small-btn">Buy all</button></div>
+                <label class="auto-row" id="auto-ups-row" hidden><input type="checkbox" id="auto-ups"> Rune Scribes buy upgrades for me</label>
+                <div id="up-list" class="list grid"></div>
+                <h3 class="sub">Owned <span id="owned-count" class="dim"></span></h3>
+                <div id="owned-ups" class="mini-grid"></div>
+            </section>
+            <section class="pane" id="pane-tree">
+                <div id="tree-card"></div>
+                <label class="auto-row" id="auto-tree-row" hidden><input type="checkbox" id="auto-tree"> The tree nourishes itself (Gardener's Will)</label>
+                <h3 class="sub">Stages</h3>
+                <ol id="stage-list"></ol>
+            </section>
+            <section class="pane" id="pane-magic">
+                <div id="sap-card"></div>
+                <div id="spell-list" class="list"></div>
+                <h3 class="sub">Golden wisps</h3>
+                <div id="wisp-card" class="card"></div>
+                <h3 class="sub">Seasons</h3>
+                <div id="season-card" class="card"></div>
+                <h3 class="sub">Active effects</h3>
+                <div id="buff-list" class="card"></div>
+            </section>
+            <section class="pane" id="pane-rebirth">
+                <div id="rebirth-card"></div>
+                <h3 class="sub">Heartwood <span id="hw-have" class="dim"></span></h3>
+                <div id="hw-list" class="list"></div>
+                <h3 class="sub" id="trials-head">Trials</h3>
+                <div id="trial-list" class="list"></div>
+                <h3 class="sub" id="realms-head">The Nine Realms</h3>
+                <div id="realm-list" class="list"></div>
+            </section>
+            <section class="pane" id="pane-journal">
+                <div class="pane-head"><h2>Journal</h2><div class="seg" id="journal-seg"><button data-j="ach" class="on">Achievements</button><button data-j="stats">Stats</button><button data-j="lore">Lore</button></div></div>
+                <div id="journal-body"></div>
+            </section>
+            <section class="pane" id="pane-settings">
+                <h2>Settings</h2>
+                <div class="card settings">
+                    <label><input type="checkbox" id="set-sound" checked> Sound effects</label>
+                    <label><input type="checkbox" id="set-music" checked> Music</label>
+                    <label class="range">Volume <input type="range" id="set-volume" min="0" max="1" step="0.05" value="0.7"></label>
+                    <label><input type="checkbox" id="set-sci"> Scientific numbers</label>
+                    <label><input type="checkbox" id="set-rotate" checked> Slowly circle the tree</label>
+                    <label><input type="checkbox" id="set-floaters" checked> Floating numbers</label>
+                    <label class="range">Graphics
+                        <select id="set-quality"><option value="auto">Auto</option><option value="0">High</option><option value="1">Medium</option><option value="2">Low</option></select>
+                    </label>
+                </div>
+                <div class="card">
+                    <p class="dim small">Your grove saves itself every few seconds, and keeps growing while you are away.</p>
+                    <div class="btn-row">
+                        <button id="btn-save" class="small-btn">Save now</button>
+                        <button id="btn-export" class="small-btn">Export save</button>
+                        <button id="btn-import" class="small-btn">Import save</button>
+                        <button id="btn-help" class="small-btn">How to play</button>
+                    </div>
+                    <textarea id="save-text" rows="3" placeholder="Your save code appears here. Paste one to import." hidden></textarea>
+                    <div class="btn-row"><button id="btn-import-go" class="small-btn" hidden>Load this save</button></div>
+                    <p id="save-msg" class="dim small"></p>
+                </div>
+                <div class="card danger">
+                    <p class="small">Start over from a single seed. Everything is lost, including heartwood and realms.</p>
+                    <button id="btn-wipe" class="small-btn red">Erase this grove</button>
+                </div>
+            </section>
+        </div>
+    </aside>
+
+    <!-- ============================== Modals ============================== -->
+    <div id="modal" class="modal" hidden>
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <div id="modal-body"></div>
+            <div id="modal-buttons" class="btn-row center"></div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <div id="lore-banner" hidden><div id="lore-title"></div><div id="lore-text"></div></div>
+
+    <!-- ============================== Title ============================== -->
+    <div id="title" class="screen">
+        <div class="title-inner">
+            <div class="title-glow"></div>
+            <h1>Worldroot</h1>
+            <p class="tagline">A seed of light lies in a sleeping forest.<br>Touch it, and grow it into the World Tree.</p>
+            <button id="btn-start" class="big-btn">Awaken the Seed</button>
+            <p class="small dim" id="title-note">Idle and incremental · keeps growing while you're away</p>
+        </div>
+    </div>
+    <div id="loading">Gathering light…</div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

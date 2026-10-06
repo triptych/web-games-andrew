@@ -966,6 +966,21 @@ const games = [
             { emoji: '\uD83C\uDFF4\u200D\u2620\uFE0F', label: 'Pirates' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-065',
+        title: 'Worldroot',
+        description: "An idle clicker in a magical forest, in three.js with no asset files. A seed of light lies in a sleeping clearing: touch it to gather motes, and grow it, level by level, from a sprout into the World Tree. The tree is one procedural model that really grows: trunk, limbs, roots and canopy appear on their own schedules, the bark is veined with pulsing light, and the camera pulls back as it towers over the forest. Twelve kinds of spirit gather motes for you, and each lives in the clearing as you buy it: swarms of fireflies, rings of glowcaps, dew sprites, lantern moths, fox spirits with foxfire tails, moonwells with beams of light, a rune henge, walking treants, white stags, the aurora, a dancing dryad court and orbiting star seeds. 143 upgrades (tier, synergy, click, radiance, wisp and sap), milestones every fifty owned, golden wisps to catch for frenzies and lucky gifts, five spells powered by sap, four seasons that change the bonuses and the whole palette (spring blossom, autumn gold, winter snow), 138 achievements, a heartwood rebirth layer with thirteen lasting gifts including automation, six trials with permanent rewards, and the nine Norse realms to bind to the World Tree as floating islands. Offline progress (automation keeps working while you sleep), a generative ambient score, save export, and touch controls for phones.",
+        icon: '\uD83C\uDF33',
+        folder: 'game-065',
+        version: '1.0.0',
+        cssClass: 'worldroot',
+        genre: 'cozy',
+        tags: [
+            { emoji: '\uD83D\uDCA4', label: 'Idle' },
+            { emoji: '\u2728', label: 'Incremental' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-64 games, `game-001` through `game-064`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+65 games, `game-001` through `game-065`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -82,6 +82,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 062 | [Rotten to the Core](game-062/) | A light, silly fruit Diablo: build a fruit hero, squash rotten fruit through procedural cellars, jam catacombs and the Rotten Core, loot kitchenware | three.js |
 | 063 | [Tee & Sorcery](game-063/) | Fantasy golf RPG: twenty holes in five storybook realms, boss holes, levels, gear and spells | three.js |
 | 064 | [Kraken's Gambit](game-064/) | Sea-themed chess (ships and lighthouses) where krakens, mermaids, storms and more strike between moves; 1 or 2 players | three.js |
+| 065 | [Worldroot](game-065/) | Idle clicker in a magical forest: grow a seed of light into the World Tree, with spirits, upgrades, wisps, spells, seasons, rebirth, trials, realms and offline progress | three.js |
 
 ### Highlights
 
@@ -165,6 +166,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 
 **[Kraken's Gambit](game-064/)** — **Chess on the high seas**, in three.js with no asset files, where the sea plays too. The Royal Navy and the Pirates field procedurally modelled, cel-shaded fleets (Dinghies, seahorse-prowed Longships, Schooners, Lighthouses on rocky islets, a Man-o'-War and a crowned Flagship) on a chequered patch of toon sea framed by a rope-and-piling dock. The chess is exact, against five AI captains or a friend on the same screen, but after any move the sea may act: the **Kraken** drags a ship under, a **mermaid** lures one away, a **storm** drives every ship a square downwind, a **whirlpool** spins a ring of them, **dolphins** push a pawn (sometimes to promotion), a **ghost ship** scatters a rank, **salvage** divers raise a sunk piece and a **sea serpent** swaps two ships. Choose the sea state from Mirror Calm to Tempest. The sea is wild but fair: it never takes a Flagship, never leaves a side illegally in check and never ends the game by itself. Cannon fire, sinking ships, a squeezebox shanty, undo, hints, autosave, and mouse, touch or keyboard. [game-064/dev/](game-064/dev/README.md) checks the rules with perft, soaks the events through 35 000 chaotic plies, and plays every event in Chromium on desktop and phones.
 
+**[Worldroot](game-065/)** — An **idle clicker in a magical forest**, in three.js with no asset files. A seed of light lies in a sleeping clearing: touch it to gather motes and grow it, level by level, from a sprout into the **World Tree**. The tree is one procedural model that really grows (every branch, root and leaf cluster appears on its own schedule in the vertex shader, the bark is veined with pulsing light, and the camera pulls back as it towers over the forest). Twelve kinds of spirit gather motes for you and each lives in the clearing as you buy it: fireflies, glowcap rings, dew sprites, lantern moths, fox spirits, moonwells, a rune henge, walking treants, white stags, the aurora, a dancing dryad court and orbiting star seeds. It borrows the best ideas of the genre (Cookie Clicker's tiered upgrades, golden cookies and kittens, AdVenture Capitalist's milestones and managers, Antimatter Dimensions' challenges and second prestige layer, Realm Grinder's spells, Kittens Game's seasons): 143 upgrades, golden wisps, five sap spells, four seasons that recolour the whole grove, 138 achievements, a heartwood rebirth with automation, six trials and the nine Norse realms bound to the tree as floating islands. Offline progress keeps automation running while you sleep. [game-065/dev/](game-065/dev/README.md) has a bot play 48 hours of every system headlessly to check the pacing, and drives the game in Chromium on desktop, after a two-hour absence, and on touch-only phones.
+
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
 ## Getting Started
@@ -241,7 +244,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-064/   # One self-contained folder per game
+├── game-001/ … game-065/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -298,7 +301,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 64 games are included as of the latest entries (game-059 Sister Circuit, game-060 BRICKVADERS, game-061 STARWRIGHT, game-062 Rotten to the Core, game-063 Tee & Sorcery, game-064 Kraken's Gambit).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 65 games are included as of the latest entries (game-060 BRICKVADERS, game-061 STARWRIGHT, game-062 Rotten to the Core, game-063 Tee & Sorcery, game-064 Kraken's Gambit, game-065 Worldroot).
 
 ---
 
