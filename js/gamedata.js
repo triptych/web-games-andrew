@@ -928,7 +928,7 @@ const games = [
         description: "A light, silly Diablo with fruit, in three.js with no asset files. Something rotten has crawled up from under the town of Tristrawberry: grow a fruit hero (sixteen fruits, colours, eyes, mouths and twelve hats) as a Melon Knight, Seed Ranger or Citromancer, take a butter knife down the cellar stairs and squash your way through twelve procedurally generated levels in three acts (the Root Cellar, the sticky Jam Catacombs and the Rotten Core with its rivers of boiling fruit punch) to Durian the Diabolical. Click to walk and whack, eighteen skills (Big Slice, Blender, Pip Spray, Peel Trap, Raisin Rain, Brain Freeze, Chain Lime-ning, Melon Meteor…), fourteen kinds of rotten fruit and pests with their own tricks (shamans that revive their friends, worms in bowler hats, exploding tomatoes, mimic pies) plus champion and named elites, and three bosses: The Juicer, Mangophisto the Chutney Lord and Durian. Everything bursts into juice that stays on the floor. Loot is kitchenware in four rarities up to Golden uniques; Health is Freshness, mana is Juice, gold is Sugar and town portals are pies. Deckard Cane (a candy cane) identifies your loot and asks you to stay a while and glisten; Granny Smith heals, Grapeswold forges, Olivia sells magic, Kiwirt sells mystery smoothies. Six quests, waypoints, a stash, three difficulties, fog of war, an automap, generative music and gibberish-talking townsfolk. Mouse and keyboard or touch.",
         icon: '\uD83C\uDF4E',
         folder: 'game-062',
-        version: '1.0.0',
+        version: '1.0.2',
         cssClass: 'rotten-to-the-core',
         genre: 'dungeon',
         tags: [

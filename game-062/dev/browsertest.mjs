@@ -411,6 +411,52 @@ async function phone(w, h) {
         await waitFor(page, '(S.world.hero.intent && S.world.hero.intent.kind === "attack") || window.__ev.includes("swing") || window.__ev.includes("cast")', 20000).catch(() => {});
         check(await S(page, 'const i = S.world.hero.intent; return (!!i && i.kind === "attack") || window.__ev.includes("swing") || window.__ev.includes("cast")'), 'tapping a grape attacks it');
     }
+    // Loot. A label down in the stick's corner takes the tap (the stick zone once swallowed every tap there).
+    const dropLoot = (dx, dy) => S(page, `const w = S.world, h = w.hero; for (const m of w.mons) { m.dead = true; m.deadT = 99; } w.items.length = 0; h.intent = null; const it = S.give("body", "rare", 1); S.game.hero.inv = S.game.hero.inv.map((x) => (x === it ? null : x)); w.spawnLoot({ items: [it], sugar: 0 }, h.x + ${dx}, h.y + ${dy}); window.__it = it; return w.items.at(-1).id;`);
+    const inBag = 'S.game.hero.inv.includes(window.__it)';
+    await dropLoot(-2.2, 1.0);
+    await waitFor(page, '[...document.querySelectorAll(".loot-label")].some((e) => e.style.display === "block")', 10000).catch(() => {});
+    await frames(page, 3);
+    const lab = await page.evaluate(() => {
+        const e = [...document.querySelectorAll('.loot-label')].find((x) => x.style.display === 'block');
+        if (!e) return null;
+        const r = e.getBoundingClientRect(), z = document.getElementById('stick-zone').getBoundingClientRect();
+        const x = r.x + r.width / 2, y = r.y + r.height / 2, top = document.elementFromPoint(x, y);
+        return { x, y, onTop: top === e || e.contains(top), inZone: x >= z.left && x <= z.right && y >= z.top && y <= z.bottom };
+    });
+    check(lab && lab.inZone && lab.onTop, `a loot label in the stick area is on top (${JSON.stringify(lab)})`);
+    if (lab) await tap(lab.x, lab.y);
+    await waitFor(page, inBag, 20000).catch(() => {});
+    check(await S(page, `return ${inBag}`), 'tapping that loot label picks the item up');
+    // Walking over an item picks it up; an item you dropped yourself stays put.
+    await dropLoot(1.5, 0);
+    // spawnLoot scatters the drop; put it right at the hero's feet.
+    await S(page, 'const h = S.world.hero, gi = S.world.items.at(-1); gi.x = h.x + 0.25; gi.y = h.y + 0.15;');
+    await waitFor(page, inBag, 10000).catch(() => {});
+    check(await S(page, `return ${inBag}`), 'walking over an item picks it up');
+    await S(page, 'const g = S.game.hero, i = g.inv.indexOf(window.__it); g.inv[i] = null; S.world.dropItem(window.__it);');
+    await page.waitForTimeout(1500);
+    check(await S(page, `return !${inBag} && S.world.items.some((gi) => gi.item === window.__it)`), 'an item you drop is not picked straight back up');
+    // ⚔️ with nothing to hit fetches the nearest loot.
+    await dropLoot(2.4, 0);
+    await page.waitForTimeout(700);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: atk.x + atk.width / 2, y: atk.y + atk.height / 2, id: 3 }] });
+    await page.waitForTimeout(150);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await waitFor(page, inBag, 20000).catch(() => {});
+    check(await S(page, `return ${inBag}`), '⚔️ with no enemy near picks up the nearest item');
+    await S(page, 'S.world.items.length = 0;');
+    // Every kind of panel sits fully on screen (a centre panel once slid half off the left edge).
+    for (const kind of ['dialog', 'menu', 'waypoint', 'inv', 'char', 'skills']) {
+        await S(page, kind === 'dialog' ? 'S.app.panels.showDialog(S.game.talk("cane"));' : `S.panels.open("${kind}");`);
+        await frames(page, 1);
+        const r = await page.locator('.panel').last().boundingBox();
+        check(r && r.x >= 0 && r.y >= 0 && r.x + r.width <= w + 1 && r.y + r.height <= h + 1, `the ${kind} panel fits on screen (${r ? [r.x, r.y, r.width, r.height].map(Math.round).join(',') : 'none'})`);
+        check(!(await page.locator('#touch').isVisible()), `touch controls hide behind the ${kind} panel`);
+        if (kind === 'dialog') await shot(page, `bt-phone-${w}-dialog`);
+        await S(page, 'S.panels.closeAll();');
+    }
+
     // Panels.
     await tapEl('#mb-inv');
     await waitFor(page, 'S.panels.isOpen("inv")');

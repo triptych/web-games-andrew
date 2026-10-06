@@ -3,7 +3,7 @@
 **Genre:** Action RPG / dungeon crawler (a light, silly Diablo)
 **Engine:** three.js r165 (ES modules via an import map), no asset files
 **Target Resolution:** any; desktop mouse + keyboard, or touch
-**Status:** v1.0.0 — complete
+**Status:** v1.0.2 — complete
 
 ---
 
@@ -62,12 +62,12 @@ Create a hero → town (talk, shop, quests) → cellar → explore, squash, loot
 
 | Action | Mouse / keys | Touch |
 |---|---|---|
-| Walk | Left-click ground (hold), WASD | Stick (left) or tap the ground |
-| Attack | Left-click a monster; Shift+click in place | Tap a monster; ⚔️ attacks the nearest |
+| Walk | Left-click ground (hold), WASD | Drag on the left (stick) or tap the ground |
+| Attack | Left-click a monster; Shift+click in place | Tap a monster; ⚔️ attacks the nearest (no enemy: picks up loot, opens a chest) |
 | Skills | Right-click, 1–4 (at the cursor) | Round buttons (auto-aim) |
 | Potions / pie | Q jam, E juice, R Portal Pie | 🍓 🍊 🥧 buttons |
 | Panels | C character, I backpack, K skills, J quests, Tab map, Esc menu, Space close | 🧑‍🌾 🎒 ✨ 📜 🗺️ ☰ |
-| Loot labels | Always on, or hold Alt | Always on |
+| Loot | Click the item or its label (Alt shows labels); walk over it | Tap the item or its label; walk over it; ⚔️ |
 | Zoom / mute | Mouse wheel / M | — |
 
 ---
@@ -126,6 +126,15 @@ All Web Audio, no files (`js/audio.js`). A generative score per area: a lute wal
 ---
 
 ## Changelog
+
+### v1.0.2 (2026-10-06)
+- Phones: loot couldn't be picked up when its label (or the item) was in the bottom-left of the screen — the invisible joystick area sat on top of everything there and swallowed every tap. The zone is now just a region: a touch that starts on the game there becomes the stick once it drags, and a quick tap reaches labels, items and monsters.
+- Walking over an item picks it up (items you dropped yourself stay put), and a full backpack says so once.
+- ⚔️ with no enemy near picks up the nearest visible loot, or else opens the nearest chest, shrine or breakable.
+- The phone browser test taps a loot label inside the stick area, walks over an item, drops one, and fetches one with ⚔️.
+
+### v1.0.1 (2026-10-06)
+- Phones: centre panels (dialogue, menu, waypoints) no longer slide half off the screen — `.panel.center`'s centring transform outranked the phone layout's `transform: none`; in landscape they no longer poke off the top. Touch buttons hide while a panel is open. The phone browser test now asserts every panel fits on screen.
 
 ### v1.0.0 (2026-10-06)
 - First release: three classes, eighteen skills, fourteen monsters plus elites and three bosses, twelve procedural levels in three acts, the town with five townsfolk and six quests, loot with Golden uniques, three difficulties, saves, touch controls, generative audio.

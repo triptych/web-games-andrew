@@ -31,27 +31,12 @@ export class Input {
         addEventListener('keyup', (e) => { this.keys.delete(e.code); if (e.code === 'AltLeft' || e.code === 'AltRight') e.preventDefault(); });
         addEventListener('blur', () => { this.keys.clear(); this.mouse.left = this.mouse.right = false; });
 
-        // Floating stick.
-        const zone = $('stick-zone'), base = $('stick-base'), knob = $('stick-knob');
-        zone.addEventListener('pointerdown', (e) => {
-            e.preventDefault();
-            this.stick.id = e.pointerId; this.stick.active = true; this.stick.ox = e.clientX; this.stick.oy = e.clientY;
-            const r = zone.getBoundingClientRect();
-            base.style.left = `${e.clientX - r.left}px`; base.style.top = `${e.clientY - r.top}px`;
-            base.classList.add('on'); knob.style.transform = '';
-            zone.setPointerCapture?.(e.pointerId);
-        });
-        zone.addEventListener('pointermove', (e) => {
-            if (e.pointerId !== this.stick.id) return;
-            let dx = e.clientX - this.stick.ox, dy = e.clientY - this.stick.oy;
-            const d = Math.hypot(dx, dy), max = 50;
-            if (d > max) { dx *= max / d; dy *= max / d; }
-            this.stick.x = dx / max; this.stick.y = dy / max;
-            if (Math.hypot(this.stick.x, this.stick.y) < 0.18) this.stick.x = this.stick.y = 0;
-            knob.style.transform = `translate(${dx}px, ${dy}px)`;
-        });
-        const end = (e) => { if (e.pointerId !== this.stick.id) return; this.stick = { x: 0, y: 0, active: false, id: null }; base.classList.remove('on'); knob.style.transform = ''; };
-        zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end);
+        // Floating stick. The zone is only a region, not a hit target: a touch that starts there on the
+        // canvas becomes the stick once it drags, but a quick tap still reaches loot labels, items and
+        // monsters (the zone used to swallow every tap in the bottom-left of the screen).
+        this.stickEls = { zone: $('stick-zone'), base: $('stick-base'), knob: $('stick-knob') };
+        addEventListener('pointermove', (e) => this.stickMove(e));
+        this.touches = new Map();
         // Touch buttons.
         for (const b of document.querySelectorAll('#tbtns .tb')) {
             const key = b.id === 'tb-attack' ? 'attack' : 'slot' + b.dataset.slot;
@@ -68,19 +53,52 @@ export class Input {
             if (e.button === 0) { this.mouse.left = true; this.mouse.leftPressed = true; }
             if (e.button === 2) { this.mouse.right = true; this.mouse.rightPressed = true; }
             this.mouse.shift = e.shiftKey;
-        } else {
-            this.touchStart = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now() };
+            return;
         }
+        const t = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), stick: false };
+        if (this.stick.id === null && this.inStickZone(e.clientX, e.clientY)) { t.stick = true; this.stick = { x: 0, y: 0, active: false, id: e.pointerId, ox: e.clientX, oy: e.clientY }; }
+        this.touches.set(e.pointerId, t);
     }
     up(e) {
         if (e.pointerType === 'mouse') {
             if (e.button === 0) this.mouse.left = false;
             if (e.button === 2) this.mouse.right = false;
-        } else if (this.touchStart && this.touchStart.id === e.pointerId) {
-            const ts = this.touchStart;
-            this.touchStart = null;
-            if (Math.hypot(e.clientX - ts.x, e.clientY - ts.y) < 24 && performance.now() - ts.t < 600 && e.target === this.canvas) this.taps.push({ x: e.clientX, y: e.clientY });
+            return;
         }
+        const t = this.touches.get(e.pointerId);
+        this.touches.delete(e.pointerId);
+        const wasStick = this.stick.id === e.pointerId;
+        const dragged = wasStick && this.stick.active;
+        if (wasStick) this.endStick();
+        if (!t || dragged) return;
+        if (Math.hypot(e.clientX - t.x, e.clientY - t.y) < 24 && performance.now() - t.t < 600) this.taps.push({ x: t.x, y: t.y });
+    }
+
+    inStickZone(x, y) {
+        const r = this.stickEls.zone.getBoundingClientRect();
+        return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+    }
+    stickMove(e) {
+        if (e.pointerId !== this.stick.id) return;
+        const { base, knob, zone } = this.stickEls;
+        let dx = e.clientX - this.stick.ox, dy = e.clientY - this.stick.oy;
+        if (!this.stick.active) {
+            if (Math.hypot(dx, dy) < 14) return;      // still might be a tap
+            this.stick.active = true;
+            const r = zone.getBoundingClientRect();
+            base.style.left = `${this.stick.ox - r.left}px`; base.style.top = `${this.stick.oy - r.top}px`;
+            base.classList.add('on');
+        }
+        const d = Math.hypot(dx, dy), max = 50;
+        if (d > max) { dx *= max / d; dy *= max / d; }
+        this.stick.x = dx / max; this.stick.y = dy / max;
+        if (Math.hypot(this.stick.x, this.stick.y) < 0.18) this.stick.x = this.stick.y = 0;
+        knob.style.transform = `translate(${dx}px, ${dy}px)`;
+    }
+    endStick() {
+        this.stick = { x: 0, y: 0, active: false, id: null, ox: 0, oy: 0 };
+        this.stickEls.base.classList.remove('on');
+        this.stickEls.knob.style.transform = '';
     }
 
     key(code) { return this.keys.has(code); }

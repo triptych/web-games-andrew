@@ -286,8 +286,8 @@ export class Panels {
     }
     r_help() {
         const t = this.app.input.isTouch;
-        const body = t ? `<p><b>Move</b> with the stick on the left. <b>Tap</b> a monster to attack it, an item to pick it up, a townsfolk to talk.</p>
-            <p><b>⚔️</b> attacks the nearest enemy. The round buttons are your skills — they aim at the nearest enemy too.</p>
+        const body = t ? `<p><b>Move</b> by dragging on the left (a stick appears). <b>Tap</b> a monster to attack it, an item to pick it up, a townsfolk to talk. Walking over an item picks it up too.</p>
+            <p><b>⚔️</b> attacks the nearest enemy; with none near it picks up loot or opens a chest. The round buttons are your skills — they aim at the nearest enemy too.</p>
             <p>Tap the 🍓 🍊 🥧 buttons to drink a Strawberry Jam (Freshness), an Orange Juice (Juice) or bake a Portal Pie home.</p>
             <p>🧑‍🌾 character · 🎒 backpack · ✨ skills · 📜 quests · 🗺️ map.</p>` :
             `<p><b>Left click</b> to walk; click a monster to keep whacking it until it pops; hold to keep walking toward the cursor. <b>Shift + click</b> attacks in place.</p>

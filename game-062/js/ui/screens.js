@@ -146,7 +146,7 @@ export class Screens {
 
 export const HELP_HTML = (touch) => `
     <p><b>Rotten to the Core</b> is a click-and-squash dungeon crawl. Something rotten has crawled up from under the town of Tristrawberry. Go down, squash it, take its stuff.</p>
-    ${touch ? '<p><b>Move</b> with the stick, <b>tap</b> monsters, loot and townsfolk. <b>⚔️</b> attacks the nearest enemy; the round buttons are your skills.</p>'
+    ${touch ? '<p><b>Move</b> with the stick, <b>tap</b> monsters, loot and townsfolk. <b>⚔️</b> attacks the nearest enemy (or grabs nearby loot); the round buttons are your skills.</p>'
         : '<p><b>Click</b> to walk and to attack. <b>Right-click</b> and <b>1–4</b> use skills at the cursor. <b>WASD</b> works too. <b>Q</b>/<b>E</b> drink potions, <b>R</b> bakes a Portal Pie home. <b>C I K J</b> open your character, backpack, skills and quests. <b>Tab</b> is the map.</p>'}
     <p>Every level is generated fresh: break crates for loot, avoid the soda kegs (or don't), drink from Smoothie Shrines, and watch the floor for red circles — that's where something big is about to land.</p>
     <p>Three acts: the Root Cellar, the Jam Catacombs and the Rotten Core, each ending in a boss. Loot comes Common, <span style="color:var(--r-magic)">Juicy</span>, <span style="color:var(--r-rare)">Ripe</span> and <span style="color:var(--r-legendary)">Golden</span>.</p>`;
