@@ -43,6 +43,7 @@ The later games (037+) share conventions the early ones predate. [docs/refresh-p
 
 ### Changed
 - **Scrapwright** (game-066) v1.0.1: the town no longer disappears behind a grey veil on phones. Particles were sized as `size × 0.9 × screen height ÷ depth`, so a chimney smoke puff could be thousands of pixels wide; SwiftShader caps point sizes, which hid it in testing, but real phone GPUs drew them in full. Particles are now sized from the drawing buffer and the camera's field of view, capped at 30% of the screen, and fade out near the lens ([game-066/js/view/fx.js](game-066/js/view/fx.js)). The phone browser test now compares the scene with particles on and off.
+- **Worldroot** (game-065): `node game-065/dev/itch.mjs` builds a self-contained zip for itch.io or any static host. It bundles three.js and `lib/page-audio.js` and drops the link back to the launcher. `ITCH=1 node game-065/dev/browsertest.mjs` plays that build with the three.js CDN blocked.
 - **Worldroot** (game-065) v1.2.0: **the Wilds**, ten new systems around the core loop. None is needed to grow the tree, and all of them keep going while you are away ([game-065/js/sim/wilds.js](game-065/js/sim/wilds.js), [game-065/js/sim/wilds-data.js](game-065/js/sim/wilds-data.js), [game-065/js/ui/wilds-ui.js](game-065/js/ui/wilds-ui.js)).
   - **Spirit kinship:** each kind of spirit levels up with time owned, up to 20; +1.5% per level.
   - **Expeditions:** send parties to four Deepwood sites for 10 minutes to 8 hours.

@@ -152,6 +152,16 @@ candle only stretch herb blessings and bottles, and herb gifts of light are abou
 
 ---
 
+## Hosting elsewhere (itch.io)
+
+The repo version loads three.js from unpkg, `../lib/page-audio.js` from the repo, and links back to the launcher. `node game-065/dev/itch.mjs`
+builds a copy that needs none of that: a 39-file, ~400 KB zip with `index.html` at the top. On itch.io: Kind of project HTML, upload
+the zip, tick "This file will be played in the browser", "Mobile friendly" and "Fullscreen button"; a 1280×720 embed, or "Click to
+launch in fullscreen", suits it. Only Google Fonts still come from outside, and the page plays the same without them.
+`node game-065/dev/promo.mjs` renders the store page images: a 630×500 cover and 1280×720 screenshots in `dev/itch/promo/`.
+
+---
+
 ## Module overview
 
 | File | Responsibility |
