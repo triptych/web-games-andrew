@@ -5323,6 +5323,19 @@ was already tuned. What kept the core pacing in place:
 - **Keep achievements that feed a multiplier apart from the new ones.** Radiance multiplies by the achievement count, so the new
   "feats" pay a side currency and `achCount()` skips their ids.
 
+### Symptom: a box blinks over the scene every few seconds, in a different place each time → a NaN pixel through bloom
+`UnrealBloomPass` blurs the frame through a chain of half-size buffers. One pixel whose colour is NaN (or infinite) poisons every
+blur tap that touches it, so it comes out as a black or white rectangle (its size depends on the mip level it reaches) for one frame.
+In Worldroot the NaN came from `pow(1.0 - abs(dot(n, v)), 3.0)`: when a face squares up to the camera, rounding pushes `|dot|` a hair
+past 1, and `pow()` of a negative is undefined in GLSL (most GPUs compute `exp2(y * log2(x))` → NaN). The slowly orbiting camera lined a
+forest tree up every few seconds. SwiftShader's `pow()` doesn't produce the NaN, so headless tests and screenshots never showed it.
+- Clamp every `pow()` base to [0, 1] (`1 - dot`, `1 - uv`, `0.5 + 0.5 * sin`), and give degenerate triangles a real normal.
+- Put a sanitize pass before the bloom that turns non-finite pixels black. Test the exponent bits
+  (`(floatBitsToUint(x) & 0x7f800000u) == 0x7f800000u`) rather than `isnan()`, which fast-math drivers may fold away.
+- Test it by putting a quad that writes `uZero / uZero` in front of the camera: without the pass the whole test window changes.
+- My first guess for this report (the panel's `backdrop-filter`, below) was plausible but wrong: if a blink can't be reproduced, build
+  the suspected mechanism on purpose and see whether it produces the same picture.
+
 ### No `backdrop-filter` over a WebGL canvas
 A frosted-glass panel (`backdrop-filter: blur(...)`) over a canvas that redraws every frame blinks in Chrome: when the panel repaints (hovering its buttons, quickly), the compositor can drop or show a stale backdrop for a frame, and a panel-sized box flashes over the scene. Headless SwiftShader never shows it, so tests can't catch it. Use a plain translucent tint (a little more opaque to make up for the blur). Related: a `transitionend` listener on a container also hears every child's hover transition bubbling up, so check `e.target === e.currentTarget`; and make resize code skip `renderer.setSize`/`composer.setSize` when nothing changed, since they reallocate the canvas and every render target.
 

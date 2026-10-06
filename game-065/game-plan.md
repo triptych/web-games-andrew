@@ -3,7 +3,7 @@
 **Genre:** Idle / incremental clicker
 **Engine:** three.js r165 (ES modules, import map), no asset files
 **Target:** any screen; desktop side panel, phone bottom sheet, landscape phone side panel
-**Status:** v1.2.0 — complete
+**Status:** v1.2.1 — complete
 
 ---
 
@@ -192,6 +192,14 @@ launch in fullscreen", suits it. Only Google Fonts still come from outside, and 
 ---
 
 ## Changelog
+
+### v1.2.1 (2026-10-06)
+- Fixed the box that blinked over the forest every few seconds (the real cause of the v1.1.1 report too). A pixel whose colour came out
+  NaN went into the bloom pass, whose blur chain smeared it into a black or white rectangle for a frame. The source was `pow()` of a
+  rounding-error negative (`1 − |dot|` when a face squares up to the camera): undefined in GLSL, NaN on most GPUs, fine in SwiftShader.
+  Every such `pow()` base is now clamped (forest and bark rim light, milky way, moonwell beam, pulses, sparkles), degenerate cone normals
+  get "up", and a sanitize pass before the bloom turns any NaN or infinite pixel black. `browsertest.mjs` puts a NaN quad in the scene
+  and checks that it changes nothing (without the pass it blacks out the whole test window).
 
 ### v1.2.0 (2026-10-06)
 - The Wilds: ten new systems around the core loop, none of them needed to grow the tree, all of them running while you are away. Spirit

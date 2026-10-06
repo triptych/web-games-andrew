@@ -287,13 +287,13 @@ void main() {
     // warm light from the tree's own heart: brighter near the trunk, low down
     float heart = exp(-length(vW.xz) * 0.05) * 0.35;
     col += base * vec3(1.0, 0.75, 0.4) * heart * uGlowAmt;
-    float rim = pow(1.0 - max(dot(wn, V), 0.0), 3.0);
+    float rim = pow(clamp(1.0 - dot(wn, V), 0.0, 1.0), 3.0);
     col += vec3(0.3, 0.45, 0.6) * rim * 0.35;
 
     // glowing veins that pulse upward through the wood
     float rune = texture2D(uRune, vec2(vUv.x * 0.5, vUv.y * 0.05 - uTime * 0.03)).r;
     rune = smoothstep(0.55, 1.0, rune);
-    float pulse = 0.35 + 0.65 * pow(0.5 + 0.5 * sin(vUv.y * 0.3 - uTime * 1.6), 3.0);
+    float pulse = 0.35 + 0.65 * pow(clamp(0.5 + 0.5 * sin(vUv.y * 0.3 - uTime * 1.6), 0.0, 1.0), 3.0);
     col += uVein * rune * pulse * vUv.z * uGlowAmt * 1.1;
 
     float fog = 1.0 - exp(-uFogDensity * uFogDensity * vFogDepth * vFogDepth);
