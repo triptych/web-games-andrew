@@ -5244,6 +5244,9 @@ Under SwiftShader the first frame after building a level can take seconds while 
 ### Characters for a top-down camera: faces up, hats small
 With the camera ~50° above the floor, a face placed at mid-height on a round fruit is foreshortened to nothing and a full-size helmet hides the fruit entirely. Faces sit higher on hero bodies (10% of the height above the profile's face line) and are 20% bigger; helms and caps are scaled to ~80% of the body radius at the top and sit on the crown. Decor attached to south-facing walls looked like it floated mid-room once those walls were cut away in the vertex shader — hang cobwebs and roots on north walls only.
 
+### A more specific selector silently keeps its transform
+On phones every panel was meant to stretch edge to edge with `.panel { left: 8px; right: 8px; transform: none }`, but the dialogue box kept `.panel.center { transform: translateX(-50%) }` — two classes beat one — and slid half off the left edge. Nothing in a desktop test notices. Override at the same specificity (`.panel.center { transform: none }`), and have the phone test open every kind of panel and assert its bounding box sits inside the viewport.
+
 ## Game 063: Tee & Sorcery — a golf RPG whose courses the physics and the renderer share (2026-10-06)
 
 ### Paint a course from ordered layers, and give both sides the same grids

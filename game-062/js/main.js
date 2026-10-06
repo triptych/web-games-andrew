@@ -144,7 +144,7 @@ app.travel = (f) => { if (app.game.travel(f)) { audio.sfx('portal'); worldChange
 app.drink = (k) => { if (app.mode === 'play' && app.world.drink(k)) audio.sfx('gulp'); else if (app.game && app.game.hero.potions[k] <= 0) hud.toast(`No ${k === 'hp' ? 'Strawberry Jam' : 'Orange Juice'} left!`, 'warn'); };
 app.pie = () => { if (app.mode === 'play' && app.game.usePie()) audio.sfx('portal'); };
 app.toggleMap = () => { if (app.mode === 'play') $('automap').classList.toggle('hidden'); };
-app.onPanels = () => { tooltip.hide(); };
+app.onPanels = () => { tooltip.hide(); document.body.classList.toggle('panel-open', panels.any()); };
 app.worldChanged = worldChanged;
 
 function worldChanged() {

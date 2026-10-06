@@ -142,6 +142,7 @@ body.playing #back-link { display: none; }
 .tb[data-slot="4"] { right: 140px; bottom: 44px; }
 .tb[data-slot="5"] { right: 98px; bottom: 124px; }
 .tb.empty { display: none; }
+body.panel-open #touch { display: none; }
 body.touch #menubtns { flex-direction: row; right: auto; left: 50%; transform: translateX(-50%); bottom: auto; top: calc(8px + var(--safe-t)); }
 body.touch #menubtns button { width: 44px; height: 44px; font-size: 18px; }
 body.touch #skillbar { display: none; }
@@ -301,7 +302,8 @@ select { font-family: var(--body); font-weight: 800; background: #2a1222; color:
     .pot { width: 40px; height: 34px; }
     #dock { gap: 6px; }
     .panel { top: calc(58px + var(--safe-t)); bottom: calc(8px + var(--safe-b)); width: auto; left: calc(8px + var(--safe-l)) !important; right: calc(8px + var(--safe-r)) !important; transform: none; }
-    .panel.center { width: auto; top: auto; max-height: calc(100% - 70px - var(--safe-t) - var(--safe-b)); }
+    /* .panel.center's translateX(-50%) outranks .panel { transform: none } — cancel it here, or centre panels slide half off a phone. */
+    .panel.center { width: auto; top: auto; transform: none; max-height: calc(100% - 70px - var(--safe-t) - var(--safe-b)); }
     .doll { grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(4, 58px); }
     #area { padding: 4px 10px; } #area-name { font-size: 14px; }
     #bossbar { width: 88vw; }
@@ -310,7 +312,7 @@ select { font-family: var(--body); font-weight: 800; background: #2a1222; color:
     .globe { width: 70px; height: 70px; }
     #tbtns { bottom: calc(76px + var(--safe-b)); transform: scale(0.85); transform-origin: bottom right; }
     .panel { top: calc(8px + var(--safe-t)); bottom: calc(8px + var(--safe-b)); }
-    .panel.center { top: auto; max-height: calc(100% - 16px - var(--safe-t) - var(--safe-b)); }
+    .panel.center { top: auto; bottom: calc(8px + var(--safe-b)); max-height: calc(100% - 16px - var(--safe-t) - var(--safe-b)); }
     body.touch #menubtns { top: auto; bottom: calc(6px + var(--safe-b)); left: calc(8px + var(--safe-l)); transform: none; flex-direction: column; }
     body.touch #minimap { top: calc(10px + var(--safe-t)); width: 90px; height: 90px; }
     body.touch #area { top: calc(10px + var(--safe-t)); left: calc(70px + var(--safe-l)); }

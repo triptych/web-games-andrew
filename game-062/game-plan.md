@@ -3,7 +3,7 @@
 **Genre:** Action RPG / dungeon crawler (a light, silly Diablo)
 **Engine:** three.js r165 (ES modules via an import map), no asset files
 **Target Resolution:** any; desktop mouse + keyboard, or touch
-**Status:** v1.0.0 — complete
+**Status:** v1.0.1 — complete
 
 ---
 
@@ -126,6 +126,9 @@ All Web Audio, no files (`js/audio.js`). A generative score per area: a lute wal
 ---
 
 ## Changelog
+
+### v1.0.1 (2026-10-06)
+- Phones: centre panels (dialogue, menu, waypoints) no longer slide half off the screen — `.panel.center`'s centring transform outranked the phone layout's `transform: none`; in landscape they no longer poke off the top. Touch buttons hide while a panel is open. The phone browser test now asserts every panel fits on screen.
 
 ### v1.0.0 (2026-10-06)
 - First release: three classes, eighteen skills, fourteen monsters plus elites and three bosses, twelve procedural levels in three acts, the town with five townsfolk and six quests, loot with Golden uniques, three difficulties, saves, touch controls, generative audio.

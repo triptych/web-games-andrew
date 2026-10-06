@@ -411,6 +411,17 @@ async function phone(w, h) {
         await waitFor(page, '(S.world.hero.intent && S.world.hero.intent.kind === "attack") || window.__ev.includes("swing") || window.__ev.includes("cast")', 20000).catch(() => {});
         check(await S(page, 'const i = S.world.hero.intent; return (!!i && i.kind === "attack") || window.__ev.includes("swing") || window.__ev.includes("cast")'), 'tapping a grape attacks it');
     }
+    // Every kind of panel sits fully on screen (a centre panel once slid half off the left edge).
+    for (const kind of ['dialog', 'menu', 'waypoint', 'inv', 'char', 'skills']) {
+        await S(page, kind === 'dialog' ? 'S.app.panels.showDialog(S.game.talk("cane"));' : `S.panels.open("${kind}");`);
+        await frames(page, 1);
+        const r = await page.locator('.panel').last().boundingBox();
+        check(r && r.x >= 0 && r.y >= 0 && r.x + r.width <= w + 1 && r.y + r.height <= h + 1, `the ${kind} panel fits on screen (${r ? [r.x, r.y, r.width, r.height].map(Math.round).join(',') : 'none'})`);
+        check(!(await page.locator('#touch').isVisible()), `touch controls hide behind the ${kind} panel`);
+        if (kind === 'dialog') await shot(page, `bt-phone-${w}-dialog`);
+        await S(page, 'S.panels.closeAll();');
+    }
+
     // Panels.
     await tapEl('#mb-inv');
     await waitFor(page, 'S.panels.isOpen("inv")');
