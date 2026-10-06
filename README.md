@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-65 games, `game-001` through `game-065`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+66 games, `game-001` through `game-066`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -83,6 +83,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 063 | [Tee & Sorcery](game-063/) | Fantasy golf RPG: twenty holes in five storybook realms, boss holes, levels, gear and spells | three.js |
 | 064 | [Kraken's Gambit](game-064/) | Sea-themed chess (ships and lighthouses) where krakens, mermaids, storms and more strike between moves; 1 or 2 players | three.js |
 | 065 | [Worldroot](game-065/) | Idle clicker in a magical forest: grow a seed of light into the World Tree, with spirits, upgrades, wisps, spells, seasons, rebirth, trials, realms and offline progress | three.js |
+| 066 | [Scrapwright](game-066/) | Steampunk COM-bot RPG on a junk planet: find, repair, build and evolve 250 scrap robots, turn-based battles, eight Forgemasters and a championship | three.js |
 
 ### Highlights
 
@@ -168,6 +169,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 
 **[Worldroot](game-065/)** — An **idle clicker in a magical forest**, in three.js with no asset files. A seed of light lies in a sleeping clearing: touch it to gather motes and grow it, level by level, from a sprout into the **World Tree**. The tree is one procedural model that really grows (every branch, root and leaf cluster appears on its own schedule in the vertex shader, the bark is veined with pulsing light, and the camera pulls back as it towers over the forest). Twelve kinds of spirit gather motes for you and each lives in the clearing as you buy it: fireflies, glowcap rings, dew sprites, lantern moths, fox spirits, moonwells, a rune henge, walking treants, white stags, the aurora, a dancing dryad court and orbiting star seeds. It borrows the best ideas of the genre (Cookie Clicker's tiered upgrades, golden cookies and kittens, AdVenture Capitalist's milestones and managers, Antimatter Dimensions' challenges and second prestige layer, Realm Grinder's spells, Kittens Game's seasons): 143 upgrades, golden wisps, five sap spells, four seasons that recolour the whole grove, 138 achievements, a heartwood rebirth with automation, six trials and the nine Norse realms bound to the tree as floating islands. Offline progress keeps automation running while you sleep. [game-065/dev/](game-065/dev/README.md) has a bot play 48 hours of every system headlessly to check the pacing, and drives the game in Chromium on desktop, after a two-hour absence, and on touch-only phones.
 
+**[Scrapwright](game-066/)** — A **steampunk COM-bot adventure** in three.js with no asset files. On Midden, the junk planet where the galaxy dumps its dead starships, a scrap kid from Cinderwick sets out to win the Grand Gearworks Circuit and its prize: the **Starward Ticket** off-world. **250 COM-bots** (Companion Mechanoids) in 126 lines and 16 types are each built from procedural parts in seven slots, and the same parts drive their stats, their techniques and their 3D models; **evolving installs new parts**, a new trait and the techniques those parts bring, by level, by an upgrade kit from the workbench, or by sync. Catch wild bots with Reboot Spikes, **weld dormant wrecks** back to life in a timing minigame, or **build bots from blueprints**. Turn-based battles (170 techniques, five statuses, five atmospheres, 55 traits) against 79 trainers, eight Forgemasters, the Rust Syndicate, the Furnace Four and your rival, Champion Vex, across 64 maps: scrap drifts, crashed starships, a refinery, frozen wrecks, a dark sky station and the Syndicate's airship. Tools (Steam Boots, Cutter Torch, Lift Coil, Hover Skiff, Arc Lantern) open the map as you go. Noise-weathered brass and rust shaders, swaying wire-weed, oil-film sludge, bloom and a sepia grade, a gear-iris wipe, synthesised music and sound, autosave, keyboard or touch. [game-066/dev/](game-066/dev/README.md) has an autoplayer that finishes the story in about a second and a browser test for desktop and phones.
+
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
 ## Getting Started
@@ -244,7 +247,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-065/   # One self-contained folder per game
+├── game-001/ … game-066/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -301,7 +304,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 65 games are included as of the latest entries (game-060 BRICKVADERS, game-061 STARWRIGHT, game-062 Rotten to the Core, game-063 Tee & Sorcery, game-064 Kraken's Gambit, game-065 Worldroot).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 66 games are included as of the latest entries (game-061 STARWRIGHT, game-062 Rotten to the Core, game-063 Tee & Sorcery, game-064 Kraken's Gambit, game-065 Worldroot, game-066 Scrapwright).
 
 ---
 

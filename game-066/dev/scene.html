@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCRAPWRIGHT — scene preview (dev)</title>
+<style>html,body{margin:0;background:#000;overflow:hidden}canvas{display:block;width:100vw;height:100vh}</style></head>
+<body><canvas id="c"></canvas>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }</script>
+<script type="module">
+// ?map=gasket&x=12&y=8 — renders one map with the real simulation (dev only).
+import { Renderer } from '../js/view/renderer.js';
+import { Overworld } from '../js/view/overworld.js';
+import { Game, newState } from '../js/sim/game.js';
+import { makeUnit } from '../js/sim/unit.js';
+import { RNG } from '../js/rng.js';
+const q = new URLSearchParams(location.search);
+const st = newState({ seed: 3 }); st.story = 30;
+const g = new Game(st); g.pending = null; g.frames.length = 0;
+g.state.party.push(makeUnit(new RNG(1), +(q.get('lead') || 3), 30, { uid: 1 }));
+const mapId = q.get('map') || 'cinderwick';
+g.placeAt(mapId, +(q.get('x') || 5), +(q.get('y') || 5), q.get('dir') || 'down');
+const r = new Renderer(document.getElementById('c'));
+r.setTier(+(q.get('tier') || 1), true);
+r.resize(innerWidth, innerHeight);
+const ow = new Overworld(r);
+ow.load(g.world, g);
+if (q.get('zoom')) ow.zoom = +q.get('zoom');
+r.use(ow.scene, ow.camera);
+let last = performance.now(); window.__frames = 0;
+function loop(now) { requestAnimationFrame(loop); const dt = Math.min(0.1, (now - last) / 1000); last = now; ow.update(dt, g); r.render(dt); window.__frames++; }
+requestAnimationFrame(loop);
+</script></body></html>
