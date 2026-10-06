@@ -468,7 +468,8 @@ async function phone(w, h) {
     await advance(page);
     await waitFor(page, SETTLED);
 
-    // Panels by touch.
+    // Panels by touch (the Registry button needs the Registry).
+    await S(page, 'G.give("registry", 1);');
     await tapEl('#tb-menu');
     await waitFor(page, 'A.menus.open');
     check(!(await page.locator('#touch').isVisible()) || (await S(page, 'return document.body.classList.contains("panel-open")')), 'the menu covers the controls');
