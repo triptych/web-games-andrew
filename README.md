@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-62 games, `game-001` through `game-062`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+63 games, `game-001` through `game-063`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -80,6 +80,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 060 | [BRICKVADERS](game-060/) | Breakout × Space Invaders in a 1983 arcade cabinet: bounce, shoot, smash the Brick Armada | three.js |
 | 061 | [STARWRIGHT](game-061/) | Procedural space sim: mine, trade with aliens, rebuild your base, upgrade your ship, warp across a seeded galaxy | three.js |
 | 062 | [Rotten to the Core](game-062/) | A light, silly fruit Diablo: build a fruit hero, squash rotten fruit through procedural cellars, jam catacombs and the Rotten Core, loot kitchenware | three.js |
+| 063 | [Tee & Sorcery](game-063/) | Fantasy golf RPG: twenty holes in five storybook realms, boss holes, levels, gear and spells | three.js |
 
 ### Highlights
 
@@ -159,6 +160,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 
 **[STARWRIGHT](game-061/)** — A **procedurally generated space sim** in three.js with no asset files: everything (230 star systems, planets, asteroid belts, eight alien species with their own faces, languages and tastes, stations, ships, missions) grows from one **seed** you can type in and share. You start with a tiny skiff and a derelict outpost called Hearth. Fly in third person, mine asteroids with a cutting beam, scoop fuel from stars and gas from giants, scan planets, salvage wrecks and trade at alien stations whose prices react to what you sell. Bring it all home to build Hearth module by module (refinery, shipyard, research lab, drones, hydroponics, trade depot, defences) and watch the station grow; upgrade the ship through five hull classes and eleven components, including the warp drive that opens the galaxy. Procedural missions, light combat with Reaver raiders and a hostile alien swarm, cruise autopilot, an Elite-style 3D scanner, and an eleven-chapter story about the Lattice Signal at the galactic core. Keyboard and mouse, gamepad or touch.
 
+**[Tee & Sorcery](game-063/)** — A **fantasy golf RPG** in three.js with no asset files. Lord Bogey, a sorcerer who never made par, shatters the Golden Tee; Pip, a caddie who pulled a talking sand wedge called Wedgewick out of a stone, sets off across five storybook realms to win it back. Real 3D golf (a three-press swing meter, four clubs, wind, backspin, bounces, rolls, PERFECT strikes, hooks and slices) on twenty holes that each play differently: windmills and spring mushrooms, quicksand and island greens, sheet ice and a frozen lake, lava rivers and geysers, and floating islands over the void. Every realm ends in a **boss hole** where the cup stays sealed until you beat the boss with your ball, from Grubbins the Gopher King to Lord Bogey's three-headed final form. Bonk monsters for XP, level up Power, Control, Luck and Magic, buy club sets, balls and charms, and cast Mulligan, Gust Ward, Fireball, Frost Step and Seeker. Chibi characters with painted faces and ink outlines, a storybook terrain shader, a floating-island world map with tilt-shift, typed dialogue with rendered portraits, procedural music per realm, and touch controls. [game-062/dev/](game-062/dev/README.md) proves every hole can be played at par with a search bot and drives the whole game in Chromium on desktop and touch-only phones.
+
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
 ## Getting Started
@@ -235,7 +238,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-062/   # One self-contained folder per game
+├── game-001/ … game-063/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -292,7 +295,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 62 games are included as of the latest entries (game-059 Sister Circuit, game-060 BRICKVADERS, game-061 STARWRIGHT, game-062 Rotten to the Core).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 63 games are included as of the latest entries (game-059 Sister Circuit, game-060 BRICKVADERS, game-061 STARWRIGHT, game-062 Rotten to the Core, game-063 Tee & Sorcery).
 
 ---
 

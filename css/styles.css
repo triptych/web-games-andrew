@@ -824,6 +824,16 @@ h1 {
     color: #1a0b14;
 }
 
+.game-preview.tee-sorcery,
+.carousel-slide-bg.tee-sorcery {
+    background: radial-gradient(ellipse at 50% 18%, rgba(255, 224, 112, 0.55) 0%, transparent 38%), linear-gradient(180deg, #3f8fe6 0%, #8cc8f4 38%, #dff4ff 52%, #7fd04c 53%, #4f9a34 100%);
+}
+
+.game-card.tee-sorcery .play-button {
+    background: linear-gradient(135deg, #fff1a8 0%, #ffcf4a 45%, #e89a1a 100%);
+    color: #2a1a2a;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

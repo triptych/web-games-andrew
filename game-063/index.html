@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2a1a40">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="TEE & SORCERY — a fantasy golf RPG. Win back the shattered Golden Tee across five storybook realms, one cursed hole at a time.">
+    <title>Tee &amp; Sorcery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Cinzel+Decorative:wght@700;900&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view"></canvas>
+
+    <!-- ============================================================ title -->
+    <section id="title" class="screen hidden">
+        <div class="logo">
+            <div class="logo-top">TEE <span>&amp;</span></div>
+            <div class="logo-main">SORCERY</div>
+            <div class="logo-sub">a fantasy golf quest</div>
+        </div>
+        <div class="title-low">
+            <nav class="menu" id="title-menu"></nav>
+            <div class="title-foot">Press <b>Enter</b> or tap to begin · v1.0.0</div>
+        </div>
+    </section>
+
+    <!-- ============================================================ hero creator -->
+    <section id="creator" class="screen hidden">
+        <div class="panel creator-panel">
+            <h2>Who pulled the club from the stone?</h2>
+            <label class="field">Name <input id="hero-name" maxlength="12" value="Pip" autocomplete="off" spellcheck="false"></label>
+            <div class="field">Look <div id="look-row" class="chips"></div></div>
+            <div class="field">Colours <div id="outfit-row" class="chips"></div></div>
+            <div class="row-buttons"><button class="btn ghost" data-act="creator-back">Back</button><button class="btn gold" data-act="creator-go">Begin the Quest</button></div>
+        </div>
+    </section>
+
+    <!-- ============================================================ dialogue -->
+    <section id="dialogue" class="hidden">
+        <div class="dlg-title" id="dlg-title"></div>
+        <div class="dlg-box">
+            <img id="dlg-portrait" alt="">
+            <div class="dlg-body">
+                <div class="dlg-name" id="dlg-name"></div>
+                <div class="dlg-text" id="dlg-text"></div>
+            </div>
+            <div class="dlg-next">▼</div>
+        </div>
+        <button class="btn small ghost dlg-skip" data-act="dlg-skip">Skip ⏭</button>
+    </section>
+
+    <!-- ============================================================ world map -->
+    <section id="map" class="screen hidden">
+        <div class="map-top">
+            <div class="hero-badge" id="map-hero"></div>
+            <div class="shards" id="map-shards"></div>
+            <button class="btn small ghost" data-act="map-menu">☰ Menu</button>
+        </div>
+        <div class="map-card panel" id="map-card"></div>
+        <div class="map-nav">
+            <button class="btn round" data-act="map-prev" aria-label="Previous">◀</button>
+            <button class="btn gold" data-act="map-go" id="map-go">Play</button>
+            <button class="btn round" data-act="map-next" aria-label="Next">▶</button>
+        </div>
+    </section>
+
+    <!-- ============================================================ clubhouse -->
+    <section id="clubhouse" class="screen hidden">
+        <div class="panel club-panel">
+            <div class="club-head">
+                <h2>The Royal Clubhouse</h2>
+                <div class="gold-chip" id="club-gold"></div>
+                <button class="btn small ghost" data-act="club-close">Back to the map</button>
+            </div>
+            <div class="tabs" id="club-tabs">
+                <button data-tab="shop" class="on">Pro Shop</button><button data-tab="gear">Gear</button><button data-tab="stats">Stats</button><button data-tab="spells">Spellbook</button><button data-tab="records">Records</button>
+            </div>
+            <div class="club-body" id="club-body"></div>
+        </div>
+    </section>
+
+    <!-- ============================================================ hole HUD -->
+    <section id="hud" class="hidden">
+        <div class="hud-tl panel slim" id="hud-hole"></div>
+        <div class="hud-boss hidden" id="hud-boss"><div class="boss-name" id="boss-name"></div><div class="boss-bar"><i id="boss-fill"></i></div></div>
+        <div class="hud-tr">
+            <div class="wind panel slim" id="hud-wind"><div class="wind-arrow" id="wind-arrow">➤</div><div class="wind-sp" id="wind-sp"></div></div>
+            <div class="mp panel slim"><span class="mp-label">MP</span><div class="mp-bar"><i id="mp-fill"></i></div><span id="mp-num"></span></div>
+            <div class="coins panel slim" id="hud-coins"></div>
+        </div>
+        <canvas id="minimap" width="150" height="210"></canvas>
+        <div class="hud-lie panel slim" id="hud-lie"></div>
+        <div class="hud-bl" id="hud-spells"></div>
+        <div class="hud-bc">
+            <div class="club-sel">
+                <button class="btn round small" data-act="club-prev" aria-label="Previous club">◀</button>
+                <div class="club-name" id="club-name">Driver</div>
+                <button class="btn round small" data-act="club-next" aria-label="Next club">▶</button>
+            </div>
+            <div class="meter" id="meter">
+                <div class="meter-track"><div class="meter-zone" id="meter-zone"></div><div class="meter-fill" id="meter-fill"></div><div class="meter-power" id="meter-power"></div><div class="meter-mark" id="meter-mark"></div></div>
+                <div class="meter-ticks"><span>sweet</span><span>25</span><span>50</span><span>75</span><span>100%</span></div>
+            </div>
+        </div>
+        <div class="hud-br">
+            <button class="btn round" data-act="view" id="btn-view" aria-label="Overhead view">🗺</button>
+            <button class="btn swing" data-act="swing" id="btn-swing">SWING</button>
+        </div>
+        <button class="btn round pause-btn" data-act="pause" id="btn-pause" aria-label="Pause">❚❚</button>
+        <div class="aim-pad" id="aim-pad"><span>◀ drag to aim ▶</span></div>
+        <div class="toast-wrap" id="toasts"></div>
+        <div class="big-banner hidden" id="banner"></div>
+        <div class="hole-card hidden" id="hole-card"></div>
+    </section>
+
+    <!-- ============================================================ results / overlays -->
+    <section id="result" class="overlay hidden"><div class="panel result-panel" id="result-panel"></div></section>
+    <section id="pause" class="overlay hidden"><div class="panel pause-panel" id="pause-panel"></div></section>
+    <section id="settings" class="overlay hidden"><div class="panel settings-panel" id="settings-panel"></div></section>
+    <section id="confirm" class="overlay hidden"><div class="panel confirm-panel" id="confirm-panel"></div></section>
+    <section id="credits" class="screen hidden"><div class="credits-roll" id="credits-roll"></div></section>
+
+    <div id="fade" class="fade"></div>
+    <div id="loading" class="loading"><div class="spinner"></div><div>Polishing the Golden Tee…</div></div>
+    <noscript><p class="noscript">Tee &amp; Sorcery needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
