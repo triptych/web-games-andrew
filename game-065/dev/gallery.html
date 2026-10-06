@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCRAPWRIGHT — bot gallery (dev)</title>
+<style>html,body{margin:0;background:#1a1410;overflow:hidden;color:#e8d8b0;font:12px sans-serif}#l{position:fixed;inset:0;pointer-events:none}#l div{position:absolute;transform:translateX(-50%);white-space:nowrap;text-shadow:0 1px 2px #000}</style>
+</head>
+<body>
+<canvas id="c"></canvas><div id="l"></div>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }</script>
+<script type="module">
+// Renders a grid of generated COM-bots: ?from=1&n=30&stage=1 (dev only, not linked from the game).
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { buildBot } from '../js/view/botgen.js';
+import { SPECIES } from '../js/sim/dex.js';
+import { buildPerson } from '../js/view/people.js';
+import { LOOKS } from '../js/sim/data/story.js';
+const q = new URLSearchParams(location.search);
+const from = +(q.get('from') || 1), n = +(q.get('n') || 30), cols = +(q.get('cols') || 6);
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
+r.setSize(innerWidth, innerHeight); r.toneMapping = THREE.ACESFilmicToneMapping; r.outputColorSpace = THREE.SRGBColorSpace; r.shadowMap.enabled = true;
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#2a2018');
+scene.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(new THREE.HemisphereLight('#ffe8c0', '#302010', 0.8));
+const sun = new THREE.DirectionalLight('#ffd8a0', 2.2); sun.position.set(4, 8, 6); sun.castShadow = true; sun.shadow.camera.left = -12; sun.shadow.camera.right = 12; sun.shadow.camera.top = 12; sun.shadow.camera.bottom = -12; sun.shadow.mapSize.set(2048, 2048); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ color: '#5a4a38', roughness: 1 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const rows = Math.ceil(n / cols), sp = 2.6;
+const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 200);
+cam.position.set(0, rows * 1.6 + 1.5, rows * 2.6 + 3.5); cam.lookAt(0, 0.6, 0);
+const bots = [], labels = document.getElementById('l');
+const people = q.get('people') ? [...Object.keys(LOOKS).filter((k) => k !== 'capsule'), 'rand', 'rand', 'rand', 'rand'] : null;
+for (let i = 0; i < n && (people ? i < people.length : from + i <= 250); i++) {
+  const id = from + i;
+  const b = people ? buildPerson(people[i], 'p' + i) : buildBot(id, { gilded: q.get('gilded') === '1' });
+  if (people) { b.species = null; const u = b.update; b.update = (dt) => u(dt, 0); }
+  b.root.position.set((i % cols - (cols - 1) / 2) * sp, 0, (Math.floor(i / cols) - (rows - 1) / 2) * sp);
+  b.root.rotation.y = 0.5;
+  scene.add(b.root); bots.push(b);
+  const d = document.createElement('div'); d.textContent = people ? people[i] : `#${id} ${SPECIES[id].name}`; labels.appendChild(d); b.label = d;
+}
+let last = performance.now(); window.__frames = 0;
+function loop(now) {
+  requestAnimationFrame(loop);
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  for (const b of bots) { b.update(dt, now / 1000); const p = b.root.position.clone(); p.y = -0.1; p.project(cam); b.label.style.left = `${(p.x * 0.5 + 0.5) * innerWidth}px`; b.label.style.top = `${(-p.y * 0.5 + 0.5) * innerHeight}px`; }
+  r.render(scene, cam); window.__frames++;
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

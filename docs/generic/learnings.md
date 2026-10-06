@@ -5274,3 +5274,26 @@ A sandworm circling in real time could not be hit from beyond six yards, because
 
 ### Rendered portraits from the 3D characters
 A second, tiny `WebGLRenderer` on an offscreen 160 px canvas (`preserveDrawingBuffer: true`) renders each speaker's rig head-and-shoulders and caches `canvas.toDataURL()` per speaker × expression. Dialogue portraits then always match the models, with no art files. *(game-063 `js/view/portrait.js`)*
+
+## Game 065: Scrapwright — a creature-collecting RPG whose creatures are built from parts (2026-10-06)
+
+### One part list drives stats, techniques and the 3D model
+Each COM-bot is a set of parts in seven slots (chassis, locomotion, head, eyes, arms, back, overlay). Base stats are a weighted sum of the parts and types, each part brings a technique, and `js/view/botgen.js` builds the model from the same list. Evolution is then data, not art: a stage adds or swaps parts, and the evolved screen lists exactly what was installed. 250 species came from 126 short line definitions, and they look and fight like what they are. *(game-065 `js/sim/dex.js`, `js/view/botgen.js`)*
+
+### A banned word needs a test, not good intentions
+The brief banned three letters in a row anywhere in the game. The first scan found 35 hits in the word for currency alone, plus more hidden inside ordinary words (a calendar unit, a gemstone, a preposition) and in comments, so the currency became cogs. The simtest now checks every file in the folder and every string the game can show (names, entries, techniques, traits, items, dialogue). Build the regex from pieces (`['m','o','n'].join('')`) so the test file passes its own check.
+
+### Decide whether the player is free before the UI handles the press
+The A that closed the last line of dialogue was also passed to the world in the same frame, so the player talked to the same person again, and the scripted flag never seemed to stick. Compute "free" (no dialogue, panel, prompt, pending prompt or transition) at the top of the frame, then let the UI consume input. *(game-065 `js/main.js`)*
+
+### `{ ...null }` is `{}`, and `{}` is truthy
+`setGauge(side, null)` stored `{ ...s }`, so clearing a gauge left an empty object that the draw code treated as a bot and crashed on. Spread only when there's something to spread.
+
+### An autoplayer finds stalemates
+With every technique out of PP, two bots that resist each other's struggle move fought forever. The struggle move (Sputter) is now typeless with recoil, so every fight ends. The same pilot found a warp into a wall, an Arena door that opened too early, a bot with no habitat, and a trait that let one boss sweep whole teams.
+
+### Battle camera on a portrait phone: look down the line
+A side-on view with both bots in frame needs a horizontal field of view a tall phone doesn't have; pulling the camera back just makes both bots tiny. On narrow screens the camera sits behind the player's bot, so the foe lines up above it.
+
+### Tests that teleport must wait for the transition
+`__rt.tp` swaps the world at once but the gear-iris transition runs for a few frames, and input is ignored meanwhile. The browser test's teleport waits until the view has caught up with the world and the iris is open before it presses anything.

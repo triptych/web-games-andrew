@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a120c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Scrapwright: a steampunk COM-bot adventure on the junk planet Midden. Find, repair, build and evolve 250 scrap robots, battle eight Forgemasters in turn-based fights, and win the championship and a ticket off-world.">
+    <title>Scrapwright</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Alegreya+Sans:wght@500;700;800;900&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="gl"></canvas>
+
+    <!-- ============================================================ OVERWORLD HUD -->
+    <div id="hud" class="hidden">
+        <div id="marks"></div>
+        <div id="objective" class="hidden"></div>
+        <div id="banner" class="hidden"></div>
+        <div id="toasts"></div>
+    </div>
+
+    <!-- ============================================================ LAYERS -->
+    <div id="battle" class="hidden"></div>
+    <div id="dialog" class="hidden"></div>
+    <div id="touch" class="hidden">
+        <div id="dpad"><i class="up"></i><i class="down"></i><i class="left"></i><i class="right"></i><b></b></div>
+        <div id="tbtns">
+            <button id="tb-menu" aria-label="Menu">☰</button>
+            <button id="tb-b" aria-label="B, hold to run">B</button>
+            <button id="tb-a" aria-label="A">A</button>
+        </div>
+    </div>
+    <div id="panel" class="hidden"></div>
+    <div id="prompt" class="hidden"></div>
+    <div id="screens" class="hidden"></div>
+
+    <noscript><p class="noscript">Scrapwright needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

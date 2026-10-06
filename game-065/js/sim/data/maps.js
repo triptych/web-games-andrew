@@ -300,7 +300,7 @@ map('route2', {
         '####################################',
     ],
     w: { 1: ['gasket', 2], 2: ['boilerburg', 1], 3: ['halcyon', 1] },
-    deco: [{ k: 'giantgear', x: 18, y: 13 }, { k: 'shiphull', x: 12, y: 2 }, { k: 'rocketfin', x: 32, y: 7 }],
+    deco: [{ k: 'giantgear', x: 18, y: 13 }, { k: 'shiphull', x: 12, y: 1 }, { k: 'rocketfin', x: 32, y: 7 }],
     ents: {
         a: { k: 'sign', text: 'THE WRECK OF THE HALCYON — a freighter that fell forty years ago. KEEP OUT. (Someone has scratched out "OUT".)' },
         b: { k: 'trainer', cls: 'prospector', name: 'Gus', face: 'down', sight: 3, team: [['Drillbit', 9], ['Siftle', 9]], say: 'Struck it rich! A trainer with bots to beat!', lose: 'Fool\'s brass.' },
