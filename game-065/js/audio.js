@@ -155,6 +155,9 @@ export const sfx = {
         noise(3, { vol: 0.09, freq: 120, sweep: 30, type: 'lowpass' });
         [0, 7, 12, 19, 24, 31].forEach((k, i) => tone({ f: midi(ROOTS[season] - 12 + k), type: 'sine', t: 0.4 + i * 0.15, dur: 4, vol: 0.08, attack: 0.4, rev: 0.9 }));
     },
+    harvest() { [0, 7, 12].forEach((k, i) => tone({ f: midi(ROOTS[season] + 12 + k), type: 'triangle', t: i * 0.04, dur: 0.35, vol: 0.05, rev: 0.5 })); },
+    relic() { [0, 7, 12, 19, 24].forEach((k, i) => bell(midi(ROOTS[season] + 19 + k), i * 0.09, 0.06, 1.8)); },
+    badge() { [0, 4, 7, 12].forEach((k, i) => bell(midi(ROOTS[season] + 12 + k), i * 0.06, 0.06, 1.2)); bell(midi(ROOTS[season] + 31), 0.3, 0.05, 2); },
     error() { tone({ f: 180, type: 'square', dur: 0.12, vol: 0.03, rev: 0 }); },
     ui() { tone({ f: midi(ROOTS[season] + 24), type: 'sine', dur: 0.08, vol: 0.04, rev: 0.1 }); },
 };

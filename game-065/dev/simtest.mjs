@@ -11,6 +11,9 @@
  * 5. Save/load: a JSON round trip mid-game plays on identically; same seed, same game.
  * 6. Pacing: an active bot plays 48 hours through every system. Invariants after every
  *    minute; milestones must land inside the windows below. Casual and idle bots too.
+ *    The bots tend the wilds as well, so the windows include them.
+ * 7. The wilds: kinship, expeditions and relics, the garden, whispers, the peddler,
+ *    badges, titles and feats keep their rules, run offline, and leave Radiance alone.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -21,6 +24,9 @@ import {
     GENERATORS, UPGRADES, ACHIEVEMENTS, HEARTWOOD, TRIALS, REALMS, SPELLS, TREE_LEVELS, treeCostRaw, STAGES,
 } from '../js/sim/data.js';
 import { fmt, fmtTime, setNumberStyle } from '../js/ui/format.js';
+import {
+    KIN_BONUS, kinCost, EXP_SITES, EXP_TIMES, RELICS, RELIC_SETS, HERBS, SHOP, BADGES, TITLES, FEATS, CODEX, CODEX_LEVELS, WHISPER_SLOTS,
+} from '../js/sim/wilds-data.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 let fails = 0, oks = 0;
@@ -170,7 +176,7 @@ function playProfile(name, profile, hours, seed) {
         const s = g.s;
         const ok = Number.isFinite(s.motes) && s.motes >= 0 && Number.isFinite(g.mps()) && g.mps() >= 0
             && s.sap >= -1e-9 && s.sap <= g.derive().sapMax + 1e-9 && s.tree >= 0 && s.tree <= TREE_LEVELS
-            && s.buffs.length <= 6 && Number.isFinite(s.hw) && s.hw >= 0 && s.gens.every((n) => Number.isInteger(n) && n >= 0);
+            && s.buffs.length <= 10 && Number.isFinite(s.hw) && s.hw >= 0 && s.gens.every((n) => Number.isInteger(n) && n >= 0);
         if (!ok && bad++ < 3) console.log('  invariant broken at', fmtTime(s.t), JSON.stringify({ motes: s.motes, sap: s.sap, tree: s.tree }));
         if (g.s.tree === TREE_LEVELS) mark('worldTree');
     }
@@ -191,6 +197,12 @@ check(Object.keys(act.g.s.trialsDone).length === TRIALS.length, 'active: every t
 check(act.g.s.realms.length >= 4, `active: at least four realms in 48 h (${act.g.s.realms.length})`);
 const usedSpells = new Set(act.g.eventsSince(0).filter((e) => e.type === 'spell').map((e) => e.id));
 check(act.g.s.stats.spells > 50 && act.g.s.stats.wisps > 50, 'active: spells and wisps are used');
+{
+    const s = act.g.s;
+    console.log(`  active wilds: kinship ${act.g.kinTotal()}, expeditions ${s.stats.expeditions}, relics ${act.g.relicCount()}/${RELICS.length}, harvests ${s.stats.harvests} (${s.stats.glimmers} glimmering), whispers ${s.stats.quests}, amber ${fmt(s.amberEver)}, feats ${act.g.featCount()}/${FEATS.length}, badge tiers ${Object.values(s.badges).reduce((a, b) => a + b, 0)}`);
+    check(s.stats.expeditions > 20 && act.g.relicCount() >= 12 && s.stats.harvests > 50 && s.stats.quests > 50, 'active: the wilds are played through');
+    check(act.g.kinTotal() > 60 && act.g.featCount() > 30 && Object.keys(s.badges).length >= 10, 'active: kinship, feats and badges accumulate');
+}
 
 const cas = playProfile('casual', CASUAL, 48, 8);
 within(cas.firsts.rebirth, 35, 120, 'casual: first rebirth');
@@ -224,6 +236,108 @@ within(idle.firsts.rebirth, 120, 600, 'idle: first rebirth');
     g.rebirth();
     g.startTrial('starless'); g.s.tree = 60; g.s.sap = 1e9; g.mark();
     check(!g.canCast('surge') && !g.wispsOpen(), 'Starless Night: no spells, no wisps');
+}
+
+// ------------------------------------------------------------------ 7. the wilds
+section('the wilds');
+uniq(RELICS.map((r) => r.id), 'relic');
+uniq(HERBS.map((h) => h.id), 'herb');
+uniq(SHOP.map((x) => x.id), 'shop');
+uniq(BADGES.map((b) => b.id), 'badge');
+uniq(TITLES.map((t) => t[1]), 'title');
+uniq([...ACHIEVEMENTS, ...FEATS].map((a) => a.id), 'achievement and feat');
+check(FEATS.every((f) => f.id.startsWith('f_')) && ACHIEVEMENTS.every((a) => !a.id.startsWith('f_')), 'feat ids are f_… and achievements never are');
+for (const x of EXP_SITES) check(RELICS.filter((r) => r.site === x.id).length === 6 && RELIC_SETS.some((st) => st.site === x.id), `${x.name}: six relics and a set`);
+for (const g of GENERATORS) check(CODEX[g.id]?.length === CODEX_LEVELS.length, `codex pages for ${g.plural}`);
+for (const b of BADGES) check(b.at.length === 4 && b.at.every((v, i) => i === 0 || v > b.at[i - 1]), `badge ${b.id} has four rising tiers`);
+for (let l = 1; l < 20; l++) check(kinCost(l) > kinCost(l - 1), `kinship cost rises at ${l}`);
+{
+    // closed at the seed, open at the sprout
+    const g = Grove.fresh(21);
+    check(!g.wildsOpen() && !g.sendExpedition('hollow', 0) && !g.plant(0, 'moonpetal'), 'the wilds sleep until the seed sprouts');
+    g.s.tree = 10; g.s.bestStage = 1; g.mark(); g.checkWilds();
+    check(g.wildsOpen() && g.s.quests.length === WHISPER_SLOTS, `three whispers once open (${g.s.quests.length})`);
+    check(!g.siteOpen('mere') && g.siteOpen('hollow') && !g.herbOpen('starmint') && g.herbOpen('moonpetal'), 'sites and herbs open with the tree');
+
+    // kinship grows with spirits owned, offline too, and brightens that spirit
+    g.s.gens[0] = 100; g.mark();
+    const m0 = g.derive().genMult[0];
+    for (let i = 0; i < 3600; i++) g.tick(1);
+    check(g.s.kinLv[0] >= 4, `an hour with 100 fireflies: kinship ${g.s.kinLv[0]}`);
+    check(Math.abs(g.derive().genMult[0] / m0 - (1 + KIN_BONUS * g.s.kinLv[0])) < 1e-9, 'kinship multiplies its spirit by 1 + 1.5% per level');
+    const before = g.s.kinLv[0];
+    g.offline(10 * 3600);
+    check(g.s.kinLv[0] > before, `kinship grows while away (${before} → ${g.s.kinLv[0]})`);
+
+    // expeditions: slots, timers, rewards, offline
+    check(g.sendExpedition('hollow', 3) && !g.sendExpedition('hollow', 0), 'one party at a time to begin with');
+    check(g.claimExpedition(0) === null, 'a party cannot be welcomed home early');
+    const amber0 = g.s.amberEver;
+    const sum = g.offline(9 * 3600);
+    check(sum.expsBack === 1, 'an eight-hour odyssey comes home while you are away');
+    const r = g.claimExpedition(0);
+    check(r && r.amber >= EXP_TIMES[3].amber && g.s.amberEver > amber0 && g.s.stats.expeditions === 1, `a returning party brings amber (${r && fmt(r.amber)})`);
+
+    // relics: every one findable, duplicates become amber, sets bless
+    const h = Grove.fresh(22);
+    h.s.bestStage = 8; h.s.tree = 80; h.mark();
+    for (let i = 0; i < 400; i++) for (const x of EXP_SITES) h.findRelic(x.id);
+    check(h.relicCount() === RELICS.length && h.relicSets().length === RELIC_SETS.length, 'every relic and set can be found');
+    check(h.s.amberEver > 0, 'duplicate relics turn into amber');
+    check(h.derive().w.prod > 0.15 && h.derive().w.gens.every((v) => v > 0), 'relics brighten production and every spirit');
+
+    // garden: plant, wait, harvest; glimmering about 6%
+    const k = Grove.fresh(23);
+    k.s.bestStage = 1; k.s.tree = 10; k.s.gens[0] = 5; k.mark(); k.checkWilds();
+    check(k.plant(0, 'moonpetal') && !k.plant(0, 'moonpetal') && k.harvest(0) === null, 'a bed holds one herb, and it must ripen first');
+    k.tick(301);
+    check(k.harvest(0) && k.s.stats.harvests === 1 && k.s.garden[0] === null, 'a ripe herb is harvested and the bed is free');
+    let glim = 0;
+    for (let i = 0; i < 2000; i++) { k.plant(1, 'moonpetal'); k.s.t += 400; if (k.harvest(1)?.glim) glim++; }
+    check(glim > 70 && glim < 190, `about 6% come up glimmering (${glim} / 2000)`);
+    check(k.herbOpen('dewbell') && k.herbOpen('starmint') === false, 'harvests open new seeds; stages open the rest');
+
+    // whispers: progress, claim, reroll
+    const q = k.s.quests;
+    const iTouch = q.findIndex((x) => x.id === 'touch');
+    if (iTouch >= 0) { k.click(q[iTouch].n); check(!!k.claimWhisper(iTouch) && k.s.quests.length === WHISPER_SLOTS, 'a whisper is claimed and replaced'); }
+    k.s.amber = 0;
+    check(!k.rerollWhisper(0), 'rerolling a whisper costs amber');
+    k.s.amber = 5;
+    check(k.rerollWhisper(0) && k.s.amber === 4, 'rerolling takes one amber');
+
+    // the peddler
+    k.s.amber = 1000; k.mark();
+    check(k.buyShop('plots') && k.gardenPlots() === 3 && k.s.garden.length >= 3, 'a new garden bed');
+    check(k.buyShop('bottle') && !k.canBuyShop('bottle'), 'one Bottled Starlight at a time');
+    check(k.buyShop('rose') && k.s.spark === 'rose' && k.buyShop('rose') && k.s.spark === null, 'a spark colour is bought once, then worn or taken off');
+    k.buyShop('wick'); k.buyShop('wick');
+    k.s.sap = 1e9; k.s.tree = 60; k.s.bestStage = 6; k.mark();
+    k.cast('surge');
+    check(k.s.buffs.find((b) => b.id === 'surge').dur === 60, 'the wick never stretches spells');
+    check(Math.abs(k.s.buffs.find((b) => b.id === 'bottle').dur - 900) < 1e-9, 'bought before the wick: the bottle kept its 15 minutes');
+
+    // feats pay amber and leave Radiance alone; badges and titles
+    const f = Grove.fresh(24);
+    f.s.bestStage = 1; f.s.tree = 10; f.mark();
+    f.s.stats.clicks = 30000; f.s.stats.harvests = 1; f.s.herbs.moonpetal = 1;
+    const ach0 = f.achCount();
+    f.checkAchievements(); f.checkWilds();
+    check(f.featCount() >= 2 && f.achCount() === ach0 + (f.achCount() - ach0) && f.s.amberEver >= 2 * f.featCount(), 'feats pay amber');
+    check(f.achCount() === ACHIEVEMENTS.filter((a) => f.s.ach[a.id]).length, 'Radiance counts achievements, never feats');
+    check(f.s.badges.touch === 3 && f.titleOpen('touch3') && !f.titleOpen('touch4'), 'a gold badge opens its title');
+    check(f.setTitle('touch3') && !f.setTitle('touch4') && f.s.title === 'touch3', 'only an earned title can be worn');
+
+    // an older save without any of this loads and plays on
+    const old = JSON.parse(JSON.stringify(newState(25)));
+    for (const key of ['amber', 'amberEver', 'kin', 'kinLv', 'exps', 'relics', 'garden', 'herbs', 'herbGlim', 'quests', 'shop', 'badges', 'title', 'spark']) delete old[key];
+    for (const key of ['gensBought', 'wispKinds', 'spellCasts', 'sites', 'offlineTime']) delete old.stats[key];
+    old.tree = 12; old.bestStage = 1; old.gens[0] = 10;
+    const m = migrate(old);
+    const mg = new Grove(m);
+    for (let i = 0; i < 600; i++) mg.tick(1);
+    mg.buyGen(0); mg.catchWisp(); mg.offline(3600);
+    check(m.kinLv.length === GENERATORS.length && Array.isArray(m.garden) && m.stats.wispKinds && Number.isFinite(mg.mps()) && m.quests.length === WHISPER_SLOTS, 'a save from before the wilds loads and plays on');
 }
 
 // formatting

@@ -12,6 +12,9 @@
  */
 
 import { GENERATORS, UPGRADE_BY_ID, HEARTWOOD, TRIALS, REALMS, SPELLS, REBIRTH_STAGE } from './data.js';
+import { EXP_SITES, HERBS } from './wilds-data.js';
+
+const SHOP_PRIORITY = ['plots', 'party', 'compass', 'loam', 'satchel', 'wick'];
 
 export const ACTIVE = { cps: 4, wisps: true, spells: true, every: 1 };
 export const CASUAL = { cps: 1, wisps: true, spells: true, every: 10 };
@@ -100,6 +103,31 @@ export class Bot {
         }
     }
 
+    /**
+     * The wilds, the way a player would tend them on each visit: bring parties
+     * home and send them out again, harvest and replant, answer whispers, and
+     * spend amber at the peddler. An idle player picks the long trips.
+     */
+    tendWilds() {
+        const g = this.g, s = g.s;
+        if (!g.wildsOpen()) return;
+        const long = this.p.every >= 300 ? 3 : this.p.every >= 10 ? 2 : 1;      // odyssey / quest / journey
+        g.claimAllExpeditions();
+        const sites = EXP_SITES.filter((x) => g.siteOpen(x.id));
+        // take turns between the open sites
+        for (let k = 0; sites.length && s.exps.length < g.expSlots() && k < 4; k++) {
+            g.sendExpedition(sites[(s.stats.expeditions + s.exps.length + k) % sites.length].id, long);
+        }
+        g.harvestAll();
+        const open = HERBS.filter((h) => g.herbOpen(h.id) && h.secs <= [0, 3600, 4 * 3600, 12 * 3600][long]);
+        if (open.length) g.plantAll(open[open.length - 1].id);
+        for (let i = s.quests.length - 1; i >= 0; i--) g.claimWhisper(i);
+        for (let guard = 0; guard < 20; guard++) {
+            const id = SHOP_PRIORITY.find((x) => g.canBuyShop(x));
+            if (!id || !g.buyShop(id)) break;
+        }
+    }
+
     /** Decide on rebirth / trials / realms. Returns a label if something happened. */
     prestige() {
         const g = this.g, s = g.s;
@@ -141,6 +169,7 @@ export class Bot {
             if (this.shopT >= this.p.every) {
                 this.shopT = 0;
                 this.castSpells();
+                this.tendWilds();
                 this.shop();
                 const what = this.prestige();
                 if (what && onEvent) onEvent(what);

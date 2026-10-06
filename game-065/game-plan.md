@@ -3,7 +3,7 @@
 **Genre:** Idle / incremental clicker
 **Engine:** three.js r165 (ES modules, import map), no asset files
 **Target:** any screen; desktop side panel, phone bottom sheet, landscape phone side panel
-**Status:** v1.0.0 — complete
+**Status:** v1.2.0 — complete
 
 ---
 
@@ -38,6 +38,15 @@ The tone is cozy and magical: a night forest, warm gold light, mint-green glow, 
 | Automation as a reward | AdVenture Capitalist (managers), Antimatter Dimensions (autobuyers) | Grove Keepers, Rune Scribes, Gardener's Will, Spirit Hands, Wisp Catcher |
 | Challenges with permanent rewards | Antimatter Dimensions | Six trials |
 | A second prestige layer | Antimatter Dimensions (Eternity), Realm Grinder | The nine realms, bound at the World Tree |
+| Mastery that grows with time spent | Melvor Idle (mastery), NGU Idle | Kinship: every kind of spirit you own levels up on its own (√owned xp per second, offline too), +1.5% per level, up to 20 |
+| Timed expeditions that run while away | Egg, Inc. (artifact ships), AFK Arena | Expeditions to four Deepwood sites, 10 minutes to 8 hours, for amber, light and relics |
+| Collectible artifacts with set bonuses | Realm Grinder (artifacts), Egg, Inc. | 24 relics in four sets of six; each a small lasting bonus, each set a blessing; duplicates become amber |
+| A garden of timed plants | Cookie Clicker (garden) | The moonpetal garden: eight herbs, 5 minutes to 12 hours, 2–6 beds, a 6% glimmering variant |
+| Rotating small goals | Egg, Inc. and most mobile idlers (missions) | Whispers: three (or four) goals at a time, scaled to how far you've grown, for amber |
+| A side currency and its shop | Egg, Inc. (golden eggs), Leaf Blower Revolution | Amber, spent at Mab's stall: more parties and beds, faster herbs and trips, Bottled Starlight, spark colours |
+| Badges, titles and cosmetics | Steam-style badge tiers, Melvor Idle | Fourteen badges in bronze, silver, gold and starlit; gold and starlit grant 28 titles to wear |
+| Achievements beyond the core | Antimatter Dimensions (achievement rows) | 97 feats for the wider wood, each worth amber, counted apart so Radiance is unchanged |
+| A bestiary that fills in as you play | Kittens Game, Melvor Idle | The Codex: three pages of lore per spirit, opened by kinship, plus every wisp kind caught |
 | Offline progress | almost all of them | Chunked catch-up through the real `tick()`, automation included |
 
 Sources: Anthony Pecorella's *The Math of Idle Games* (Kongregate, parts I–III) and GDC talk *Quest for Progress* for the cost and
@@ -83,6 +92,27 @@ before upgrades), up to 50 + 15 per stage. A spell that is running can't be reca
 Rebirth needs a Grove Tree and pays `40 × 1.12^(L−50)` heartwood: the taller the tree, the more. Trials open after the first rebirth and
 each needs some heartwood earned. Realms need the World Tree; binding one is a rebirth and makes every later tree ×30 costlier.
 
+### 6. The Wilds (v1.2.0)
+Everything around the core loop, in `js/sim/wilds.js` (logic, mixed into `Grove`) and `js/sim/wilds-data.js` (numbers). It opens at the
+Sprout stage, never resets on rebirth, and runs on the game clock, so it all keeps going offline. None of it is needed to grow the tree.
+
+- **Kinship.** Each kind of spirit you own gains √owned xp per second; level L→L+1 costs `600 × 1.6^L`. Each level: that spirit ×1.015.
+  Kinship 1, 5 and 10 open the spirit's three Codex pages.
+- **Expeditions.** One party at first (three with Mab's help) to Mossy Hollow (Sprout), Mirror Mere (Sapling), Barrow Hills (Grove Tree)
+  or Starfall Crater (Ancient Tree), for a stroll (10 min), journey (1 h), quest (4 h) or odyssey (8 h). Home with amber, a minute of
+  production per hour away, and an 8 / 30 / 65 / 90% chance of a relic from that site (60% of the time one you haven't found).
+- **Relics.** Six per site, each a small lasting bonus (+2–3% production, +15% to two spirits, wisps, sap, offline, amber, kinship,
+  herbs, trips). All six from a site: a set blessing. A duplicate is traded for amber.
+- **The garden.** Pick a seed, tap a bed. Eight herbs from Moonpetal (5 min) to Worldbloom (12 h), opened by harvests and tree stage;
+  gifts of light, short blessings (touches ×3, production ×1.5), sap, a wisp or a relic chance. 6% come up glimmering: double gift.
+- **Whispers.** Three small goals (touches, wisps, spells, spirits, upgrades, nourishes, harvests, expeditions, minutes, motes), sized
+  by the best stage reached, for amber. A new one comes when you claim; one amber asks for a different one.
+- **Mab's stall.** Amber buys another party (×2), garden beds (×4), a fourth whisper, Long-Burning Wick and Barrow Candle (herb blessings
+  and bottles only), Black Loam (herbs faster), Moth Compass (trips faster), Bottled Starlight (×2 for 15 min) and four spark colours.
+- **Badges and titles.** Fourteen tracks in four tiers; gold and starlit each grant a title, worn under the counter.
+- **Feats.** 97 achievements of the wider wood (every wisp kind, every spell, kinship, sites, relics, herbs, whispers, amber, badges,
+  nourishes, spirits, upgrades, play time, seasons). Each pays 2 amber. `achCount()` skips them (ids `f_…`), so Radiance is unchanged.
+
 ---
 
 ## Balance
@@ -100,6 +130,12 @@ Measured by `dev/pace.mjs` and asserted by `dev/simtest.mjs` (a bot that compare
 
 Three tuning lessons are recorded in `docs/generic/learnings.md`: the first draft finished the whole game in 17 minutes; heartwood based on
 total motes ran away; and heartwood based on tree height plus a super-exponential tree cost is what made it plateau.
+
+The Wilds were tuned so a player who tends all of it is only a little ahead of one who ignores it. The bots tend the Wilds too (they
+send parties, replant, claim whispers and shop at Mab's), and the medians over twelve seeds, before → after v1.2.0, are:
+active World Tree 177 → 183 min, casual World Tree 316 → 288 min, idle first rebirth 325 → 310 min. The first draft was 30% faster:
+anything that lengthens or feeds spells and wisp gifts (Starfall ×10, Wild Bloom ×7) is worth far more than it reads, so the wick and
+candle only stretch herb blessings and bottles, and herb gifts of light are about 5% of the time grown.
 
 ---
 
@@ -123,7 +159,9 @@ total motes ran away; and heartwood based on tree height plus a super-exponentia
 | `js/sim/data.js` | Every number and name: spirits, upgrades, stages, spells, wisps, seasons, heartwood, realms, trials, achievements |
 | `js/sim/game.js` | `Grove`: the pure simulation (no DOM, three.js, `Math.random` or clock); events with sequence numbers; `offline()` |
 | `js/sim/rng.js` | Seeded PRNG kept in the save |
-| `js/sim/bot.js` | The balance bot (also `?debug=1` → `__wr.autoplay()`) |
+| `js/sim/bot.js` | The balance bot (also `?debug=1` → `__wr.autoplay()`); it tends the Wilds too |
+| `js/sim/wilds.js` | Kinship, expeditions, relics, the garden, whispers, the peddler, badges, titles and feats, mixed into `Grove` |
+| `js/sim/wilds-data.js` | Their numbers, names and lore, and the Codex |
 | `js/view/stage.js` | Renderer, bloom, camera rig that frames the tree inside the uncovered part of the screen, quality tiers |
 | `js/view/tree.js` | The World Tree: skeleton, growth shader, leaves, fruit, sprout, seed, hit-testing |
 | `js/view/ground.js` | Clearing, grass, flowers, ferns, rocks, forest that dissolves near the camera |
@@ -135,6 +173,7 @@ total motes ran away; and heartwood based on tree height plus a super-exponentia
 | `js/view/sky.js` | Sky dome, stars, moon, aurora, season palettes |
 | `js/view/world.js` | Builds the view, reacts to sim events, per-frame sync |
 | `js/ui/ui.js` | HUD, tabs, lists patched in place, modals, toasts, lore |
+| `js/ui/wilds-ui.js` | The Wilds tab, and the Journal's Badges and Codex pages |
 | `js/ui/format.js` | Number and time formatting |
 | `js/audio.js` | Synthesised sound and generative music |
 | `js/save.js` | Guarded localStorage, save codes |
@@ -143,6 +182,13 @@ total motes ran away; and heartwood based on tree height plus a super-exponentia
 ---
 
 ## Changelog
+
+### v1.2.0 (2026-10-06)
+- The Wilds: ten new systems around the core loop, none of them needed to grow the tree, all of them running while you are away. Spirit
+  kinship; expeditions to four Deepwood sites; 24 relics in four sets; the moonpetal garden with eight herbs and glimmering variants;
+  whispers (rotating small goals); amber and Mab's stall (upgrades, Bottled Starlight, spark colours); fourteen badges in four tiers;
+  28 titles; 97 feats; the Codex. A new Wilds tab, Badges and Codex pages in the Journal, kinship hearts on the spirit rows, and the
+  away summary reports parties home, herbs ready and whispers answered.
 
 ### v1.1.1 (2026-10-06)
 - Fixed a box-shaped blink over the right-hand panel, worst when moving the mouse quickly over it: no `backdrop-filter` over the WebGL canvas (panel and HUD chips use a more opaque tint instead), `layout()` only on the panel's own transition, and `resize()` reallocates the canvas and render targets only when width, height, pixel ratio or quality change.

@@ -20,6 +20,8 @@ import {
     ACHIEVEMENTS, SPELLS, WISP_KINDS, SEASONS, stageOf, treeCostRaw,
 } from './data.js';
 import { rand, randRange, pickWeighted } from './rng.js';
+import { Wilds, wildState, WILD_STATS, migrateWilds } from './wilds.js';
+import { KIN_BONUS } from './wilds-data.js';
 
 const NG = GENERATORS.length;
 const EVENT_CAP = 300;
@@ -54,7 +56,9 @@ export function newState(seed = 12345) {
         stats: {
             clicks: 0, clickMotes: 0, wisps: 0, spells: 0, longestAway: 0, seasonMask: 0, seasonsSeen: 0,
             bestMps: 0, offlineMotes: 0, nourished: 0, playTime: 0,
+            ...structuredClone(WILD_STATS),
         },
+        ...wildState(),             // kinship, expeditions, relics, garden, whispers, amber (wilds.js)
     };
 }
 
@@ -73,6 +77,7 @@ export function migrate(raw) {
     for (const k of ['motes', 'runMotes', 'totalMotes', 'hw', 'hwEarned', 'sap', 't', 'runT']) {
         if (!Number.isFinite(s[k])) s[k] = 0;
     }
+    migrateWilds(s);
     return s;
 }
 
@@ -106,7 +111,8 @@ export class Grove {
     get stage() { return stageOf(this.s.tree); }
     hwLevel(id) { return this.s.hwUps[id] | 0; }
     hasRealm(id) { return this.s.realms.includes(id); }
-    achCount() { let n = 0; for (const k in this.s.ach) if (this.s.ach[k]) n++; return n; }
+    /** The grove's achievements (they feed Radiance). Feats (f_…) are counted apart: featCount(). */
+    achCount() { let n = 0; for (const k in this.s.ach) if (this.s.ach[k] && !k.startsWith('f_')) n++; return n; }
 
     derive() {
         if (this.d) return this.d;
@@ -114,6 +120,7 @@ export class Grove {
         const trial = s.trial, done = s.trialsDone;
         const ach = this.achCount();
         const stage = this.stage;
+        const w = this.wildFx();
 
         const genMult = new Array(NG).fill(1);
         let global = 1, click = 1, clickPct = 0;
@@ -139,7 +146,9 @@ export class Grove {
             if (done.silent) genMult[i] *= 1.5;
             if (done.lonely && i < 3) genMult[i] *= 10;
             if (trial === 'brief') genMult[i] *= 0.05;
+            genMult[i] *= (1 + KIN_BONUS * (s.kinLv[i] | 0)) * (1 + w.gens[i]);
         }
+        global *= 1 + w.prod;
         global *= Math.pow(TREE_LEVEL_BONUS, s.tree);
         global *= 1 + HW_BONUS * s.hwEarned;
         global *= Math.pow(1.25, this.hwLevel('heart'));
@@ -154,18 +163,21 @@ export class Grove {
         if (trial === 'brief') click *= 100;
         if (done.brief) click *= 5;
         if (this.hasRealm('jotunheim')) click *= 10;
+        click *= 1 + w.click;
 
         const wells = this.hwLevel('wells');
         sapMax += SAP_BASE_MAX + SAP_PER_STAGE * stage + 20 * wells;
         sapRegen *= SAP_REGEN * (1 + 0.2 * wells);
+        sapMax += w.sapMax; sapRegen *= 1 + w.sapRegen;
         if (this.hasRealm('niflheim')) { sapMax *= 2; sapRegen *= 2; }
 
         wispFreq *= 1 + 0.1 * this.hwLevel('kin');
         if (this.hasRealm('alfheim')) { wispFreq *= 2; wispPower *= 1.5; }
         if (done.starless) wispPower *= 1.5;
+        wispFreq *= 1 + w.wispFreq; wispDur *= 1 + w.wispDur; wispPower *= 1 + w.wispPower;
 
         this.d = {
-            genMult, global, rates, baseMps, click, clickPct, ach,
+            genMult, global, rates, baseMps, click, clickPct, ach, w,
             costRatio: trial === 'withered' ? 1.25 : (done.withered ? 1.14 : COST_RATIO),
             genDiscount: (1 - 0.04 * this.hwLevel('bark')) * (this.hasRealm('svartalf') ? 0.75 : 1),
             treeScale: (trial === 'hungry' ? 1000 : 1) * (done.hungry ? 0.1 : 1) * (this.hasRealm('helheim') ? 0.01 : 1)
@@ -174,7 +186,7 @@ export class Grove {
             spellCost: (done.starless ? 0.75 : 1) * (this.hasRealm('muspel') ? 0.5 : 1),
             spellPower: this.hasRealm('muspel') ? 2 : 1,
             seasonPower: this.hasRealm('vanaheim') ? 2 : 1,
-            offlineEff: Math.min(1, OFFLINE_BASE_EFF + 0.1 * this.hwLevel('dream')) + (this.hasRealm('niflheim') ? 0.25 : 0),
+            offlineEff: Math.min(1, OFFLINE_BASE_EFF + 0.1 * this.hwLevel('dream')) + (this.hasRealm('niflheim') ? 0.25 : 0) + w.offline,
             offlineHours: [OFFLINE_BASE_HOURS, 12, 24, 48, 72][this.hwLevel('sleep')] + (this.hasRealm('niflheim') ? 24 : 0),
             autoClicks: [0, 1, 2, 4, 6, 10][this.hwLevel('hands')] * (this.hasRealm('jotunheim') ? 2 : 1),
         };
@@ -213,8 +225,10 @@ export class Grove {
     addBuff(b) {
         const s = this.s;
         s.buffs = s.buffs.filter((x) => x.id !== b.id);
-        s.buffs.push({ ...b, until: s.t + b.dur });
-        this.emit('buff', { id: b.id, name: b.name, dur: b.dur });
+        // the wick and the candle stretch herb blessings and bottles, never spells or wisp gifts
+        const dur = b.dur * (b.id.startsWith('herb_') || b.id === 'bottle' ? 1 + this.derive().w.buffDur : 1);
+        s.buffs.push({ ...b, dur, until: s.t + dur });
+        this.emit('buff', { id: b.id, name: b.name, dur });
     }
 
     // ------------------------------------------------------------ income
@@ -270,6 +284,7 @@ export class Grove {
         const before = this.s.gens[i];
         this.s.motes -= cost;
         this.s.gens[i] += n;
+        this.s.stats.gensBought += n;
         this.mark();
         const ms = MILESTONES.find((m) => before < m && this.s.gens[i] >= m);
         this.emit('buyGen', { gen: i, n, count: this.s.gens[i], first: before === 0, milestone: ms || 0 });
@@ -300,6 +315,7 @@ export class Grove {
         if (!u || !this.upgradeReady(u) || this.s.motes < u.cost) return false;
         this.s.motes -= u.cost;
         this.s.ups[id] = true;
+        this.s.stats.upsBought++;
         this.mark();
         this.emit('buyUpgrade', { id });
         return true;
@@ -351,6 +367,7 @@ export class Grove {
         const p = this.derive().spellPower;
         this.s.sap -= this.spellCost(sp);
         this.s.stats.spells++;
+        this.s.stats.spellCasts[id] = (this.s.stats.spellCasts[id] | 0) + 1;
         this.emit('spell', { id });
         if (id === 'surge') this.addBuff({ id: 'surge', kind: 'prod', mult: 3 * p, dur: 60, name: 'Verdant Surge' });
         else if (id === 'hands') this.addBuff({ id: 'hands', kind: 'click', mult: 20 * p, dur: 30, name: 'Moonlit Hands' });
@@ -385,6 +402,7 @@ export class Grove {
         s.stats.wisps++;
         const d = this.derive();
         const kind = pickWeighted(s, WISP_KINDS.filter((k) => k.id !== 'spring' || this.spellsOpen()));
+        s.stats.wispKinds[kind.id] = (s.stats.wispKinds[kind.id] | 0) + 1;
         let value = 0;
         if (kind.id === 'lucky') {
             value = (Math.min(s.motes * 0.15, this.mps() * 900) + 13) * d.wispPower;
@@ -596,15 +614,19 @@ export class Grove {
             if (this.autoActive('gens')) this.autoBuyGens();
         }
 
+        // the wilds: kinship grows, parties come home, herbs ripen
+        this.tickKin(dt);
+        this.tickWilds();
+
         s.acc.ach += dt;
-        if (s.acc.ach >= 1) { s.acc.ach = 0; this.checkAchievements(); }
+        if (s.acc.ach >= 1) { s.acc.ach = 0; this.checkAchievements(); this.checkWilds(); }
 
         const si = this.seasonIndex();
         if (!(s.stats.seasonMask & (1 << si))) {
             s.stats.seasonMask |= 1 << si;
             s.stats.seasonsSeen = [0, 1, 2, 3].filter((k) => s.stats.seasonMask & (1 << k)).length;
         }
-        if (si !== seasonBefore) this.emit('season', { season: si });
+        if (si !== seasonBefore) { s.stats.seasonsPassed++; this.emit('season', { season: si }); }
     }
 
     /**
@@ -616,9 +638,11 @@ export class Grove {
         const s = this.s;
         const d = this.derive();
         s.stats.longestAway = Math.max(s.stats.longestAway, seconds);
+        s.stats.offlineTime += seconds;
         const cap = d.offlineHours * 3600;
         const sec = Math.min(seconds, cap);
-        const before = { motes: s.totalMotes, tree: s.tree, gens: s.gens.reduce((a, b) => a + b, 0), ups: Object.keys(s.ups).length, ach: this.achCount(), sap: s.sap };
+        const before = { motes: s.totalMotes, tree: s.tree, gens: s.gens.reduce((a, b) => a + b, 0), ups: Object.keys(s.ups).length, ach: this.achCount(), sap: s.sap,
+            kin: this.kinTotal(), amber: s.amberEver };
         const steps = Math.min(1500, Math.max(1, Math.ceil(sec / 20)));
         const dt = sec / steps;
         this.quiet = true;
@@ -634,10 +658,17 @@ export class Grove {
             gens: s.gens.reduce((a, b) => a + b, 0) - before.gens,
             ups: Object.keys(s.ups).length - before.ups,
             ach: this.achCount() - before.ach,
+            kin: this.kinTotal() - before.kin,
+            amber: s.amberEver - before.amber,
+            expsBack: s.exps.filter((p) => p.back).length,
+            ripe: s.garden.filter((p) => p && p.ripe).length,
+            whispers: s.quests.filter((q) => q.ready).length,
         };
         this.emit('offline', summary);
         return summary;
     }
 }
+
+Object.assign(Grove.prototype, Wilds);
 
 export { GENERATORS, UPGRADES, HEARTWOOD, REALMS, TRIALS, ACHIEVEMENTS, SPELLS, SEASONS };

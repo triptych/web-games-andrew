@@ -5310,6 +5310,19 @@ Remodelling six creatures from tubes, spheres and lathes took them from ~10 mesh
 ### A moving target in a slow browser test
 Under SwiftShader a frame can take most of a second, so a test that reads a moving target's screen position and then taps can miss it. That isn't a flake to re-run: re-read and tap again, a few times, like a player chasing it.
 
+### Adding side systems to a balanced idle game without moving its pacing
+Worldroot v1.2.0 added ten side systems (kinship, expeditions, relics, a garden, quests, a shop, badges, feats) to a game whose pacing
+was already tuned. What kept the core pacing in place:
+- **Make the bot play the new systems**, the way a player would on each visit. Otherwise the pacing tests only measure players who ignore them.
+- **Compare medians over many seeds, not one run.** Every new `rand()` call shifts the seeded stream, so each wisp after the first lands
+  differently. One seed looked 30% faster; the same old code ranged 253–439 minutes to the World Tree across seeds. Twelve seeds settled it.
+- **Switch off one system at a time** (copy `js/`, `sed` one effect out, rerun) to find what actually moves the pacing.
+- **Anything that feeds the big temporary multipliers is worth far more than it reads.** "+10% duration" on a ×10 spell and a ×7 wisp
+  gift, or "+40 sap" (half a spell), sped the late game up more than every "+X% production" relic together. Keep those bonuses to the new
+  system's own effects.
+- **Keep achievements that feed a multiplier apart from the new ones.** Radiance multiplies by the achievement count, so the new
+  "feats" pay a side currency and `achCount()` skips their ids.
+
 ### No `backdrop-filter` over a WebGL canvas
 A frosted-glass panel (`backdrop-filter: blur(...)`) over a canvas that redraws every frame blinks in Chrome: when the panel repaints (hovering its buttons, quickly), the compositor can drop or show a stale backdrop for a frame, and a panel-sized box flashes over the scene. Headless SwiftShader never shows it, so tests can't catch it. Use a plain translucent tint (a little more opaque to make up for the blur). Related: a `transitionend` listener on a container also hears every child's hover transition bubbling up, so check `e.target === e.currentTarget`; and make resize code skip `renderer.setSize`/`composer.setSize` when nothing changed, since they reallocate the canvas and every render target.
 
