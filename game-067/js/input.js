@@ -8,6 +8,9 @@
  * landing a moment later turns it into a camera gesture instead of a stray stroke. If a stroke had
  * already started, it's cancelled (the world rewinds it).
  *
+ * In 'pan' mode (Play, Build, Trains) a drag always moves the camera and only a press that never
+ * wandered more than a few pixels counts as a tap.
+ *
  * Handler h: { mode(): 'tool' | 'pan', down(p), move(p), up(p, tap), cancel(), hover(p),
  *              pan(dxPx, dyPx), orbit(dxPx, dyPx), zoom(factor), twist(rad), gesture() }
  */
@@ -15,7 +18,7 @@
 export function initInput(el, h) {
     const pts = new Map();
     let mode = 'none';        // 'pending' | 'tool' | 'pan' | 'orbit' | 'multi' | 'none'
-    let start = null, pendT = 0;
+    let start = null, pendT = 0, maxMove = 0;
     let multi = null;
 
     const P = (e) => ({ x: e.clientX, y: e.clientY, button: e.button, touch: e.pointerType === 'touch', shift: e.shiftKey });
@@ -39,6 +42,7 @@ export function initInput(el, h) {
         if (pts.size === 1) {
             start = p;
             pendT = performance.now();
+            maxMove = 0;
             if (!p.touch && (e.button === 1 || e.button === 2)) { mode = 'orbit'; h.gesture(); }
             else if (!p.touch) begin(p);
             else mode = 'pending';
@@ -56,6 +60,7 @@ export function initInput(el, h) {
         if (!prev) { if (e.pointerType === 'mouse') h.hover(p); return; }
         const dx = p.x - prev.x, dy = p.y - prev.y;
         prev.x = p.x; prev.y = p.y;
+        if (start && pts.size === 1) maxMove = Math.max(maxMove, Math.hypot(p.x - start.x, p.y - start.y));
         if (mode === 'pending') {
             const far = Math.hypot(p.x - start.x, p.y - start.y) > 9;
             if (far || performance.now() - pendT > 160) begin(p);
@@ -90,7 +95,8 @@ export function initInput(el, h) {
             h.up(p, tap);
             mode = 'none';
         } else if (mode === 'pan') {
-            const tap = Math.hypot(p.x - start.x, p.y - start.y) < 6 && performance.now() - pendT < 500;
+            // A tap is a press that never wandered (a drag that comes back is still a drag).
+            const tap = maxMove < 10 && performance.now() - pendT < 900;
             if (tap) h.up(p, true);
             mode = 'none';
         } else if (mode === 'multi') {

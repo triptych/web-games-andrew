@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Tootle Isles** (game-067) v1.0.1: taps on phones now land where the finger is, and dragging in Build moves the view instead of placing things.
+  - The canvas was stretched by CSS to `100vw × 100vh` while the renderer drew at `innerWidth × innerHeight` and taps were mapped against `innerHeight`. On phones with a URL bar `100vh` is taller than the visible area, so the picture was stretched downward and everything was built below the finger (the same bug game-058 had). The renderer now sizes the canvas in px, taps and screen projections go through the canvas's bounding box, and `visualViewport` resizes refit it ([game-067/js/view/stage.js](game-067/js/view/stage.js)).
+  - Build now acts on a tap only: a drag (one finger or the mouse) moves the camera and places nothing, and a press that wanders more than a few pixels is never a tap, even if it comes back ([game-067/js/input.js](game-067/js/input.js)). A refused spot now says why for small items too.
+  - The browser test checks that the canvas matches the visible viewport, that a tap on a tile's drawn position builds on that tile, and that a drag in Build moves the camera and places nothing, on desktop and both phone orientations.
+
 ### Changed — early-games refresh
 The later games (037+) share conventions the early ones predate. [docs/refresh-plan.md](docs/refresh-plan.md) lists them, records an audit of games 001–036 against them, and ranks what's left.
 - **Repo-wide smoke test** ([dev/smoketest.mjs](dev/smoketest.mjs), [dev/README.md](dev/README.md)): loads every game in Chromium on desktop and on a touch-only phone, clicks, taps and presses keys, and fails on console or page errors, failed requests, a missing or covered back link, sideways scroll or a clipped canvas. `NOSTORAGE=1` makes `localStorage` throw. CDN requests can be served from local npm packages.
