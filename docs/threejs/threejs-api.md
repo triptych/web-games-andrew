@@ -537,6 +537,28 @@ formula (`b2(p) = 2·|x−y| + y` on the low bits, combined twice), not a local 
 only a few frames in the first seconds after a mode change, so persistence hasn't decayed yet. Wait
 longer before judging; it isn't a bug on real GPUs.
 
+## A storybook terrain from surface-mask textures (game-062)
+
+One patched `MeshToonMaterial` draws every surface of a golf hole. The simulation's surface grid becomes two RGBA `DataTexture`s (one channel per surface: fairway, green, sand, ice | snow, quicksand, stone, cloud), blurred 3×3 and sampled with linear filtering. In the fragment shader each channel is turned into a crisp, anti-aliased edge with `fwidth`, and the same value draws an ink line where surfaces meet:
+
+```glsl
+float edgeW(float m) { float fw = max(fwidth(m), 0.02); return smoothstep(0.5 - fw, 0.5 + fw, m); }
+float inkL(float m)  { float fw = max(fwidth(m), 0.015); return 1.0 - smoothstep(0.0, fw * 1.6, abs(m - 0.5)); }
+// in color_fragment:
+vec3 fair = mix(uFair0, uFair1, step(0.5, fract(dot(p, uStripe) / 7.0)));   // mown stripes across the line of play
+col = mix(col, fair, edgeW(A.r)); ink = max(ink, inkL(A.r));
+```
+
+Water and lava are flat sheets at each lake's level, masked by a third texture (discard below 0.3, foam where the mask fades). Grid edges vanish behind a coarse outer ring of ground built from the same base-height function — and that ring must sit *well* below the course inside the grid, or it covers shallow ponds (it did). *(game-062 `js/view/terrain.js`)*
+
+## Inverted-hull outlines on InstancedMesh, and on MeshBasicMaterial (game-062)
+
+An outline is a `BackSide` `MeshBasicMaterial` whose vertices are pushed out along the normal in `onBeforeCompile`. **Symptom: "'objectNormal' : undeclared identifier"** — `MeshBasicMaterial`'s vertex shader only declares `objectNormal` when it needs normals; push along `normal` instead. For instanced trees, make the outline a second `InstancedMesh` sharing the geometry and the same instance matrices.
+
+## Animate a pivot, place the root (game-062)
+
+**Symptom: the hero always faced down the hole and "walked" on the spot.** The animator wrote `root.position.y` for hops and bobs, which fought the code placing the character on the terrain, so the hero never reached its target and kept turning toward its movement direction. Give each rig an inner pivot: the world places `root`, the animator only moves `pivot`.
+
 ## Common gotchas
 
 - **`updateProjectionMatrix()` missing** — see resize section above. Symptom: window resizes but render is squashed.
@@ -548,6 +570,7 @@ longer before judging; it isn't a bug on real GPUs.
 - **Pixel ratio** — `renderer.setPixelRatio(Math.min(devicePixelRatio, 2))` is the safe default. Devices with `devicePixelRatio = 3` or `4` will tank performance otherwise.
 - **CanvasTexture looks washed-out / wrong color** — set `tex.colorSpace = THREE.SRGBColorSpace` on textures built from a 2D canvas (game-024 popups/banner), or the sRGB→linear conversion is skipped and colors render dark/dull.
 - **Lit material on a geometry with no `normal` attribute** — a hand-built `BufferGeometry` with only `position` works with `MeshBasicMaterial`/custom shaders, but a `MeshStandardMaterial` on it normalizes a zero vector. SwiftShader shrugs it off; real D3D/ANGLE GPUs produce Inf specular, and bloom smears it into a full-screen white-out (game-046 pit gloss sheet). Always `computeVertexNormals()` or set normals when a lit material touches the geometry. Test post-processing on a real GPU, not just the headless harness.
+- **`group.add(...[])` logs "object not an instance of THREE.Object3D. undefined"** — `add()` with no arguments treats the missing argument as the object. Guard spreads of possibly-empty arrays (game-062's water sheets on holes without water).
 - **EffectComposer not resized** — if you use bloom, the composer must be resized in the window-resize handler alongside the renderer, or the glow buffer mismatches the canvas after a resize.
 
 ---
@@ -557,6 +580,7 @@ longer before judging; it isn't a bug on real GPUs.
 Available with the import map setup:
 
 - `postprocessing/EffectComposer.js` + `RenderPass.js` + `UnrealBloomPass.js` — bloom glow. **In use by game-024** (see Post-processing bloom above).
+- `utils/BufferGeometryUtils.js` — `mergeGeometries` / `mergeVertices` for one-mesh-per-part characters and props (games 051, 062)
 - `controls/OrbitControls.js` — mouse-drag camera (for debug scenes)
 - `controls/PointerLockControls.js` — FPS-style mouse look (game-018 implements its own equivalent)
 - `loaders/GLTFLoader.js` — load `.glb` / `.gltf` model files
@@ -571,6 +595,7 @@ To use: `import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 - [three.js examples](https://threejs.org/examples/)
 - [game-024 — Neon Vanguard](../../game-024/) — top-down shmup; bloom, custom grid shader, canvas-sprite HUD text
 - [game-040 — Starcadet](../../game-040/) — vertical bullet-hell shmup; instanced bullets, six shader backdrops, aspect-fitting camera, and a fake-three.js Node harness
+- [game-062 — Tee & Sorcery](../../game-062/) — fantasy golf RPG; terrain from surface-mask textures with inked edges, masked water/lava sheets, chibi rigs with canvas faces and outlines, offscreen-rendered dialogue portraits, a floating-island map with a tilt-shift pass
 - [game-061 — STARWRIGHT](../../game-061/) — seeded space sim; log depth buffer with custom shaders, one planet shader for nine world types, FBM nebula skybox, instanced asteroids with emissive veins (onBeforeCompile), merged procedural ships, PMREM env from a gradient scene
 - [game-060 — BRICKVADERS](../../game-060/) — Breakout × Invaders; instanced voxel-pixel raster with a pixel-exact perspective camera, scale-derived bevels, phosphor persistence, Bayer-dithered backdrops
 - [game-045 — PINBREAK '86](../../game-045/) — pinball × breakout; tilted table rig, horizon-aware camera, fake surface lights, neon env map, CRT post pass, per-frame fx budgets

@@ -921,6 +921,21 @@ const games = [
             { emoji: '\u26CF\uFE0F', label: 'Mine & build' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-062',
+        title: 'Tee & Sorcery',
+        description: "A fantasy golf RPG in three.js with no asset files. Lord Bogey, a sorcerer who never once made par, shatters the Golden Tee and curses every hole in Fairhaven; Pip, a clumsy caddie who pulled a talking sand wedge called Wedgewick out of a stone, sets off to win back the five Tee Shards. Twenty holes in five storybook realms, each playing differently: Meadowmere's windmill and spring mushrooms, the Sandsea's quicksand, island greens and strong winds, Frostpeak's sheet ice and frozen lake, Cinder Caldera's lava rivers and geysers that fling the ball skywards, and the Sky Citadel's floating islands over the void. Real 3D golf with a three-press swing meter, four clubs, wind, backspin, bounces and rolls, PERFECT strikes, hooks and slices, a preview arc and an overhead view. Every realm ends in a boss hole where the cup is sealed until you beat the boss with your ball: Grubbins the Gopher King, the sandworm Duneborn, Big Frosty behind his ice walls, the two-headed ogre Double Bogey on his ledge, and Lord Bogey, who becomes the three-headed Triple Bogey. Bonk slimes, scarabs, penguin knights, imps and wisps for XP; roll through coins, gems and mana orbs; level up and spend stat points on Power, Control, Luck and Magic; buy club sets, balls and charms at Old Man Eagle's Pro Shop; cast Mulligan, Gust Ward, Fireball, Frost Step and Seeker; and use Rocket Tees, Sticky, Spring and Ghost balls. Chibi characters with painted faces and toon outlines, a storybook terrain shader with mown stripes and inked edges, a floating-island world map with tilt-shift, a short funny story with rendered portraits, procedural music for every realm, and touch controls for phones.",
+        icon: '\u26F3',
+        folder: 'game-062',
+        version: '1.0.0',
+        cssClass: 'tee-sorcery',
+        genre: 'rpg',
+        tags: [
+            { emoji: '\u26F3', label: 'Golf' },
+            { emoji: '\uD83E\uDDD9', label: 'Fantasy RPG' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

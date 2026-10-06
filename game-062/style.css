@@ -261,6 +261,9 @@ body.touch .aim-pad { display: block; }
     .stat-row { grid-template-columns: 90px 1fr 40px 50px; }
     .aim-pad { bottom: calc(210px + var(--safe-b)); }
     #creator { justify-content: center; align-items: flex-end; }
+    .toast-wrap { top: calc(262px + var(--safe-t)); }
+    .toast { font-size: 14px; }
+    .btn.swing { font-size: 17px; }
 }
 /* landscape phones: short screens */
 @media (max-height: 500px) {
@@ -279,4 +282,7 @@ body.touch .aim-pad { display: block; }
     #clubhouse { padding-top: 44px; }
     .aim-pad { display: none !important; }
     .hole-card { top: 8%; }
+    .toast-wrap { top: calc(64px + var(--safe-t)); width: min(520px, calc(100vw - 460px)); left: calc(50% - 40px); }
+    .toast { font-size: 13px; }
+    .btn.swing { font-size: 16px; }
 }

@@ -5215,3 +5215,30 @@ The New Voyage panel added its species portraits a moment after opening, which p
 
 ### Keep the subject beside the panel
 Docked menus fill the right-hand half of the screen, so the docked camera looks at a point *right* of the station (along the camera's right vector). The station then sits in the visible left half. The shipyard tab uses the same trick to frame the player's ship.
+
+---
+
+## Game 062: Tee & Sorcery — a golf RPG whose courses the physics and the renderer share (2026-10-06)
+
+### Paint a course from ordered layers, and give both sides the same grids
+A hole is a list of shapes (ellipse, path, square), each with a surface and optional height operations (raise, plateau, flatten to the lake level, pyramid). Later layers paint over earlier ones, so an island green listed after its lake rises out of the water and an open-water hole listed after an ice sheet breaks through it. `buildCourse()` evaluates the layers once into three 0.5-unit grids — height, surface id and distance to playable ground — and everything reads those: the ball, the bot, the minimap and the terrain shader (which turns the surface grid into blurred per-surface mask textures). What you see is exactly what the ball hits. *(game-062 `js/sim/course.js`)*
+
+### A golf search bot: geodesic distance, risk-aware refinement, scoring progress not HP
+`dev/simtest.mjs` proves all twenty holes playable with a bot that clones the world (`structuredClone` of a plain-data state) and plays candidate shots out with the real physics. Four things made it trustworthy:
+- **Geodesic, not straight-line, distance to the cup** (Dijkstra over a 2-unit grid, hazards passable at a cost), so doglegs and island greens are understood.
+- **Symptom: the Dijkstra reached 3% of the grid.** Distances were stored in a `Float32Array`; the float64 key popped from the heap was then *greater* than the rounded stored value, so `if (d > dist[k]) continue` skipped almost every node. Use `Float64Array` for any priority-queue distance store.
+- **Risk-aware refinement.** A bot that plans with perfect strikes but executes with timing errors is risk-blind: it kept hooking a "perfect" corner-cut into the woods. Re-score the best candidates under a hook, a slice, a fat and a thin strike and weight the average.
+- **Score boss progress, not HP.** The final boss's HP resets when he transforms, so "HP before − HP after" made the killing blow worth −2 and the bot never took it. Count damage across phases.
+Calibrate pars with the *noisy* bot. The perfect-strike search bot chips in from 100 yards and is no guide to a human. *(game-062 `js/sim/bot.js`)*
+
+### Golf feel: backspin on the first landing, and a cup sized to dispersion
+Keeping all the tangential speed at landing let a drive roll 85 yards. Each club now keeps only part of its speed on the first bounce (driver 42%, wedge 16%), which also makes wedges check up on greens. A stylised cup must still be small relative to *shot dispersion*: at 0.5 yd, chip-ins from 100 yards were routine; 0.34 yd with a 4.6 u/s capture speed feels right.
+
+### Floating islands: never interpolate heights into the void
+Bilinear sampling between a land cell and a void cell (−80) builds a fake cliff, and the contact code then teleports a ball falling past the edge back up onto it. On sky courses, a point over a void cell is void; a point over land replaces any void corners with the land corners' average, so the edge is sharp. *(game-062 `sampleH()`)*
+
+### Fair moving bosses: move on their own turn
+A sandworm circling in real time could not be hit from beyond six yards, because the swing meter makes timing a lead impossible. It now holds still while you aim and slithers during its turn. A boss that knocks your ball into a hazard returns it without a penalty stroke.
+
+### Rendered portraits from the 3D characters
+A second, tiny `WebGLRenderer` on an offscreen 160 px canvas (`preserveDrawingBuffer: true`) renders each speaker's rig head-and-shoulders and caches `canvas.toDataURL()` per speaker × expression. Dialogue portraits then always match the models, with no art files. *(game-062 `js/view/portrait.js`)*

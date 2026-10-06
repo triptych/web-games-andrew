@@ -70,9 +70,11 @@ export class CameraDirector {
             const B = this.ball;
             const yaw = this.yaw + this.orbit;
             const putt = this.club === 'putter';
-            const back = putt ? 5.2 : 8.5, up = putt ? 2.2 + this.pitch * 3 : 3.6 + this.pitch * 5;
+            // narrow (portrait) screens: step back and up so the golfer and the ball both stay in frame
+            const narrow = Math.max(0, 1 - this.cam.aspect);
+            const back = (putt ? 5.2 : 8.5) * (1 + narrow * 0.9), up = (putt ? 2.2 + this.pitch * 3 : 3.6 + this.pitch * 5) * (1 + narrow * 0.6);
             const fx = Math.sin(yaw), fz = Math.cos(yaw);
-            const rx = -fz, rz = fx, side = putt ? 0.8 : 1.4;   // a little over the ball's right shoulder, so the golfer stands clear
+            const rx = -fz, rz = fx, side = (putt ? 0.8 : 1.4) * (1 - narrow * 0.8);   // a little over the ball's right shoulder, so the golfer stands clear
             this.wantPos.set(B.x - fx * back + rx * side, B.y + up, B.z - fz * back + rz * side);
             const ahead = putt ? Math.min(10, this.dist * 0.6 + 2) : Math.min(60, Math.max(14, this.dist * 0.45));
             this.wantLook.set(B.x + fx * ahead + rx * side * 0.5, B.y + (putt ? 0 : 1.2), B.z + fz * ahead + rz * side * 0.5);

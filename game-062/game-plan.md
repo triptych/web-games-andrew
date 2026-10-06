@@ -85,8 +85,9 @@ Meter speed is set by the club (putter slowest) and the **Control** stat; the pe
 - **Flight**: gravity, quadratic air drag, wind (scaled by ball type), sidespin curve from a hook/slice.
 - **Ground**: a heightfield. On contact the ball either bounces (restitution and tangential friction by surface) or rolls (rolling friction by surface, gravity along the slope). Rolling over a crest can launch it again — the same integrator handles both.
 - **Obstacles**: spheres, capsules (tree trunks, windmill blades, logs) and boxes (walls, ruins). Tree canopies are *soft*: they eat speed instead of reflecting.
-- **Cup**: radius 0.42. The ball drops if it passes within the cup at under ~5 u/s; faster balls lip out with a deflection.
-- **Hazards**: water and lava (+1 stroke, replay from the previous lie), out of bounds and the void (same), quicksand (stops the ball dead and costs a stroke to dig out… simplified: stops dead, plays like a bad lie).
+- **Cup**: radius 0.34. The ball drops if it passes over the cup at under 4.6 u/s (or drops into it from above); faster balls lip out with a deflection.
+- **Backspin**: each club keeps only part of its speed on the first landing (driver 42%, iron 30%, wedge 16%), so drives release and wedges check up.
+- **Hazards**: water and lava (+1 stroke, replay from the previous lie), out of bounds and the void (same). Quicksand stops the ball dead and leaves a bad lie. A ball a boss knocks into trouble comes back with no penalty.
 
 ### 3.5 Surfaces
 | Surface | Bounce | Roll | Lie (power) | Where |
@@ -115,7 +116,7 @@ Meter speed is set by the club (putter slowest) and the **Control** stat; the pe
 ### 4.1 Stats
 | Stat | Effect per point |
 |---|---|
-| **POW** Power | +2% ball speed (≈ +4% carry) |
+| **POW** Power | +1% ball speed (≈ +2% carry) |
 | **CTL** Control | meter 3% slower (to 55%), +4% of the preview arc shown, −4% hook/slice |
 | **LCK** Luck | perfect zone +6% wider, +3% gold, chance for a lucky bounce off a tree |
 | **MAG** Magic | +2 max MP (base 6) |
@@ -192,27 +193,27 @@ Five realms, four holes each (three regular holes and a boss hole): **20 holes**
 | Hole | Name | Par | Notes |
 |---|---|---|---|
 | 1-1 | Sheepish Start | 3 | Tutorial. Straight, one bunker, a slime |
-| 1-2 | Windmill Way | 4 | Turning windmill in front of the green; pond left |
+| 1-2 | Windmill Way | 4 | Turning windmill in the fairway; pond left |
 | 1-3 | Mushroom Hollow | 4 | Dogleg right around a wood; spring mushrooms |
-| 1-4 | **Burrow Royale** | 6 | Boss: Grubbins pops up between molehills |
+| 1-4 | **Burrow Royale** | 7 | Boss: Grubbins pops up between molehills |
 | 2-1 | Oasis Approach | 4 | Island green in the oasis |
-| 2-2 | Pyramid Pass | 5 | A pyramid in the fairway; long, windy |
+| 2-2 | Pyramid Pass | 4 | A stone pyramid at the bend; long, windy |
 | 2-3 | Quicksand Gulch | 3 | A ring of quicksand guards the green |
-| 2-4 | **The Sunken Coil** | 6 | Boss: Duneborn circles the green |
-| 3-1 | Icicle Run | 4 | Downhill ice: hit soft |
+| 2-4 | **The Sunken Coil** | 8 | Boss: Duneborn circles the green |
+| 3-1 | Icicle Run | 3 | Downhill ice: hit soft |
 | 3-2 | Frozen Lake | 3 | Across a frozen lake with open water holes |
-| 3-3 | Avalanche Ridge | 5 | Switchback down a ridge |
+| 3-3 | Avalanche Ridge | 4 | Switchback round a ravine |
 | 3-4 | **Yeti's Throne** | 6 | Boss: Big Frosty behind ice walls |
 | 4-1 | Lava Lane | 4 | Carry the lava river |
-| 4-2 | Geyser Garden | 4 | Geysers fling the ball skywards |
-| 4-3 | Obsidian Spiral | 5 | Round the caldera rim |
+| 4-2 | Geyser Garden | 4 | Geysers fling the ball skywards; a long last leg |
+| 4-3 | Obsidian Spiral | 4 | Round the caldera rim, or across the lava lake |
 | 4-4 | **Double Trouble** | 7 | Boss: Double Bogey's two heads on a ledge |
 | 5-1 | Cloudhopper | 4 | Island to island |
-| 5-2 | Rune Bridges | 4 | Narrow bridges, cloud bumpers |
+| 5-2 | Rune Bridges | 5 | Narrow bridges, cloud bumpers, a teleport rune |
 | 5-3 | Starfall Stair | 5 | Rising islands |
-| 5-4 | **The Final Tee** | 8 | Boss: Lord Bogey, then Triple Bogey |
+| 5-4 | **The Final Tee** | 9 | Boss: Lord Bogey, then Triple Bogey |
 
-Pars and lengths are confirmed by the bot (see §10): a competent bot must be able to make par or better on every hole, and a weak bot must finish inside the stroke limit.
+Pars were set from the bots (see §10 and `dev/README.md`): a search bot with perfect strikes makes par or better on every hole, and a noisy, risk-aware bot with human-like timing errors finishes every hole inside the stroke limit and averages close to par over the twenty.
 
 ### 5.1 Bosses
 A boss hole's cup is under a **Bogey Seal** (a shimmering dome) until the boss is beaten. The boss is beaten by hitting its weak spot with the ball. Damage per hit: 1, +1 for a PERFECT strike, ×2 with Fireball, +1 with the Iron Heart ball. Bosses move in real time and **act after every stroke**.
@@ -220,10 +221,10 @@ A boss hole's cup is under a **Bogey Seal** (a shimmering dome) until the boss i
 | Boss | HP | Pattern | Turn action |
 |---|---|---|---|
 | **Grubbins** | 4 | Pops up from one of six molehills round the green | Burrows to another hill; kicks your ball away if it rests near him |
-| **Duneborn** | 5 | Circles the green, surfacing in arcs; only the head takes damage, the body bounces the ball | Changes direction and speed |
-| **Big Frosty** | 5 | Sits on an icy throne behind three ice walls (two hits each, or one Fireball) | Hurls a snowball that leaves a snowdrift near your ball |
-| **Double Bogey** | 3 + 3 | Two heads on a high ledge — loft wedge shots at them | Stomps: a shockwave shoves your ball away |
-| **Lord Bogey** | 3 | Floats round the courtyard behind orbiting shield orbs | Teleports |
+| **Duneborn** | 4 | Coils round the green in a ring of sand; only the head takes damage, the coils bounce the ball | Slithers to a new spot on the ring (it holds still while you aim) |
+| **Big Frosty** | 4 | Sits on an icy throne behind three ice walls (two hits each, or one Fireball) | Hurls a snowball that leaves a snowdrift where your ball lies, or rebuilds a wall |
+| **Double Bogey** | 2 + 2 | Two heads above a stone ledge behind a lava moat — loft it | Stomps: a shockwave shoves a nearby ball away (no penalty if it lands in trouble) |
+| **Lord Bogey** | 3 | Floats round the green behind two orbiting shield orbs | Teleports to another spot |
 | **Triple Bogey** | 2 + 2 + 2 | Three heads: fire, frost, storm | Each living head breathes: a fire patch, an ice patch, or a new wind |
 
 ---
@@ -375,4 +376,5 @@ game-062/
 
 ## Changelog
 ### v1.0.0 (2026-10-06)
-- First release: 20 holes in five realms, six bosses, story, RPG systems, shop, spells and power-ups, world map, procedural music, touch controls, sim and browser tests.
+- First release: 20 holes in five realms, five bosses (Lord Bogey has two forms), a nine-beat story with typed dialogue and rendered portraits, the hero creator, levels and stats, the Pro Shop (six club sets, six balls, six charms, five items), five spells, course pickups and crystals, a floating-island world map, procedural music per realm and a full set of effects, touch controls for phones in both orientations.
+- Tests: `dev/simtest.mjs` (purity, determinism, content rules, physics invariants, RPG maths, story, bosses, and bots that play every hole) and `dev/browsertest.mjs` (desktop and touch phones, no console errors). The repo smoke test passes, with and without storage.

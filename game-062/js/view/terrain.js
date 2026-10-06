@@ -222,7 +222,7 @@ function outerGround(c, P) {
         const x = x0 + i * st, z = z0 + j * st, k = j * nx + i;
         // just under the course grid where they overlap, so the detailed terrain wins
         const inside = x > c.x0 + 2 && x < c.x0 + W - 2 && z > c.z0 + 2 && z < c.z0 + H - 2;
-        pos[k * 3] = x; pos[k * 3 + 1] = c.base(x, z) + mound - (inside ? 3 : 0.15); pos[k * 3 + 2] = z;
+        pos[k * 3] = x; pos[k * 3 + 1] = inside ? c.heightAt(x, z) - 8 : c.base(x, z) + mound - 0.15; pos[k * 3 + 2] = z;
         const t = 0.97 + Math.sin(x * 0.05) * Math.cos(z * 0.043) * 0.05;
         col[k * 3] = a.r * t; col[k * 3 + 1] = a.g * t; col[k * 3 + 2] = a.b * t;
     }
