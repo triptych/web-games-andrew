@@ -1,7 +1,7 @@
 /**
  * simtest.mjs — headless tests of the pure simulation (no browser).
  *
- *   node game-065/dev/simtest.mjs
+ *   node game-066/dev/simtest.mjs
  *
  * ONLY=purity,word,data,maps,battle,determinism,save,pilot   SEEDS=1,2,3   VERBOSE=1
  */

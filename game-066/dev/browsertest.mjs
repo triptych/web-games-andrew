@@ -12,10 +12,10 @@
  * panels fit, no sideways scroll.
  * Fails on any console error, page error or failed request. Screenshots go to dev/shots/.
  *
- *   python3 -m http.server 8065                 # from the REPO ROOT
- *   node game-065/dev/browsertest.mjs
+ *   python3 -m http.server 8066                 # from the REPO ROOT
+ *   node game-066/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8065), ONLY=desktop|phones, THREE_PKG.
+ * Env: BASE (default http://127.0.0.1:8066), ONLY=desktop|phones, THREE_PKG.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -24,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? [path.join(HERE, 'package'), path.join(HERE, '../../dev/package')].find((p) => fs.existsSync(p));
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8065';
+const BASE = process.env.BASE ?? 'http://127.0.0.1:8066';
 const OUT = path.join(HERE, 'shots');
 const ONLY = process.env.ONLY ?? '';
 fs.mkdirSync(OUT, { recursive: true });
@@ -142,7 +142,7 @@ async function talkAt(page, map, x, y, dir) {
 async function desktop() {
     console.log('\n== desktop 1280×760');
     const { page } = await newPage({ width: 1280, height: 760 });
-    await page.goto(`${BASE}/game-065/index.html?debug=1&seed=4242&fast=4`);
+    await page.goto(`${BASE}/game-066/index.html?debug=1&seed=4242&fast=4`);
     await waitFor(page, 'S && S.mode === "title" && S.view.frameNo > 2');
     const back = await page.locator('#back-link').boundingBox();
     check(back && back.y >= 0 && back.x >= 0, 'back link visible on the title');
@@ -387,7 +387,7 @@ async function phone(w, h) {
     const tapEl = async (sel) => { const b = await page.locator(sel).first().boundingBox(); await tapAt(b.x + b.width / 2, b.y + b.height / 2); await frames(page, 1); };
     const noScroll = async (what) => check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1 && document.body.scrollWidth <= innerWidth + 1), `no sideways scroll (${what})`);
 
-    await page.goto(`${BASE}/game-065/index.html?debug=1&seed=99&fast=4`);
+    await page.goto(`${BASE}/game-066/index.html?debug=1&seed=99&fast=4`);
     await waitFor(page, 'S && S.mode === "title" && S.view.frameNo > 2');
     await shot(page, `bt-phone-${w}-title`);
     await noScroll('title');
