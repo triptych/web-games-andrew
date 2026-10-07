@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2b2438">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Haven Road: a tower defense of healing. The living are walking out of a valley the dead have taken. Set up aid stations along the road, heal the wounded and the sick, and bring everyone home to the Haven.">
+    <title>Haven Road</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@500;700&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="gl"></canvas>
+    <div id="words"></div>
+
+    <!-- ============================================================ TITLE -->
+    <div id="title" class="screen">
+        <div class="logo">
+            <div class="logo-lantern" aria-hidden="true"></div>
+            <h1>Haven Road</h1>
+            <p class="tagline">Every life is worth the walk.</p>
+        </div>
+        <div class="menu">
+            <button id="t-play" class="btn big warm">Begin the Road</button>
+            <div class="menu-row">
+                <button id="t-journal" class="btn">📖 Journal</button>
+                <button id="t-settings" class="btn">⚙️ Settings</button>
+            </div>
+        </div>
+        <p class="credit">A tower defense of healing. Bandage, cure, feed, warm, and carry them home.</p>
+    </div>
+
+    <!-- ============================================================ VALLEY MAP -->
+    <div id="valley" class="screen hidden">
+        <div class="panel wide">
+            <header class="panel-head">
+                <h2>The Valley</h2>
+                <div id="v-summary" class="sub"></div>
+                <button id="v-close" class="x" aria-label="Back">✕</button>
+            </header>
+            <div id="v-acts" class="scroll"></div>
+        </div>
+    </div>
+
+    <!-- ============================================================ BRIEFING -->
+    <div id="brief" class="screen hidden">
+        <div class="panel">
+            <header class="panel-head">
+                <div id="b-act" class="sub"></div>
+                <h2 id="b-name"></h2>
+                <button id="b-close" class="x" aria-label="Back">✕</button>
+            </header>
+            <div class="scroll">
+                <p id="b-text" class="lead"></p>
+                <div id="b-new"></div>
+            </div>
+            <footer class="panel-foot">
+                <button id="b-start" class="btn big warm">Set out</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- ============================================================ PLAY HUD -->
+    <div id="hud" class="hidden">
+        <div id="topbar">
+            <div class="chips">
+                <div id="c-hope" class="chip hope" title="Hope: lose it all and the gates close">❤️ <b>10</b></div>
+                <div id="c-supplies" class="chip supplies" title="Supplies: build and upgrade aid stations">📦 <b>0</b></div>
+                <div id="c-wave" class="chip" title="Wave">🚶 <b>0/0</b></div>
+                <div id="c-saved" class="chip saved" title="Saved">🏕️ <b>0</b></div>
+                <div id="c-vols" class="chip hidden" title="Volunteers out / slots">🙋 <b>0/0</b></div>
+            </div>
+            <div class="buttons">
+                <button id="b-speed" class="round" aria-label="Speed" title="Speed (F)">1×</button>
+                <button id="b-pause" class="round" aria-label="Pause" title="Pause (P)">❚❚</button>
+                <button id="b-sound" class="round" aria-label="Sound" title="Sound (M)">🔊</button>
+                <button id="b-menu" class="round" aria-label="Menu" title="Menu (Esc)">☰</button>
+            </div>
+        </div>
+        <div id="bossbar" class="hidden"><span id="boss-name"></span><div class="bar"><i></i></div></div>
+        <div id="hint" class="hidden"></div>
+        <div id="card" class="hidden"></div>
+        <div id="dock">
+            <div class="dock-row">
+                <div id="tabs" class="hidden">
+                    <button data-tab="stations" class="tab on">⛑️ Stations</button>
+                    <button data-tab="vols" class="tab">🙋 Volunteers</button>
+                </div>
+                <button id="b-gate" class="btn warm gate">▶ Open the gate</button>
+            </div>
+            <div id="tray"></div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <div id="modal" class="hidden"><div id="modal-panel" class="panel"></div></div>
+
+    <noscript><p class="noscript">Haven Road needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

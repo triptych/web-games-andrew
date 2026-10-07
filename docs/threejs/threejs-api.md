@@ -559,6 +559,17 @@ An outline is a `BackSide` `MeshBasicMaterial` whose vertices are pushed out alo
 
 **Symptom: the hero always faced down the hole and "walked" on the spot.** The animator wrote `root.position.y` for hops and bobs, which fought the code placing the character on the terrain, so the hero never reached its target and kept turning toward its movement direction. Give each rig an inner pivot: the world places `root`, the animator only moves `pivot`.
 
+## Screen-sized billboards for health bars and icons (game-068)
+
+Bars and status icons over dozens of walkers: one `InstancedBufferGeometry` (a unit quad plus per-instance `aCenter`, `aOff`, `aSize` and data attributes) per kind, drawn with a `ShaderMaterial`, `depthTest: false` and a high `renderOrder`. The vertex shader sizes in CSS pixels, so they read the same zoomed out on a phone:
+
+```glsl
+vec4 c = projectionMatrix * modelViewMatrix * vec4(aCenter, 1.0);
+c.xy += (position.xy * aSize + aOff) * uScale * 2.0 / uRes * c.w;   // uRes = canvas CSS size
+```
+
+Set `geo.instanceCount` each frame and mark the attributes `needsUpdate`. Icons come from a canvas-drawn atlas (no emoji fonts needed headless). See `game-068/js/view/actors.js`.
+
 ## Common gotchas
 
 - **`updateProjectionMatrix()` missing** — see resize section above. Symptom: window resizes but render is squashed.
@@ -595,6 +606,7 @@ To use: `import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 - [three.js examples](https://threejs.org/examples/)
 - [game-024 — Neon Vanguard](../../game-024/) — top-down shmup; bloom, custom grid shader, canvas-sprite HUD text
 - [game-040 — Starcadet](../../game-040/) — vertical bullet-hell shmup; instanced bullets, six shader backdrops, aspect-fitting camera, and a fake-three.js Node harness
+- [game-068 — Haven Road](../../game-068/) — tower defense of healing; seeded road maps, instanced people with screen-sized billboard bars and icons, a portrait-turning fitted camera, sanitize → bloom → grade post
 - [game-063 — Tee & Sorcery](../../game-063/) — fantasy golf RPG; terrain from surface-mask textures with inked edges, masked water/lava sheets, chibi rigs with canvas faces and outlines, offscreen-rendered dialogue portraits, a floating-island map with a tilt-shift pass
 - [game-061 — STARWRIGHT](../../game-061/) — seeded space sim; log depth buffer with custom shaders, one planet shader for nine world types, FBM nebula skybox, instanced asteroids with emissive veins (onBeforeCompile), merged procedural ships, PMREM env from a gradient scene
 - [game-060 — BRICKVADERS](../../game-060/) — Breakout × Invaders; instanced voxel-pixel raster with a pixel-exact perspective camera, scale-derived bevels, phosphor persistence, Bayer-dithered backdrops
