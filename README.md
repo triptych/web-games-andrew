@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-67 games, `game-001` through `game-067`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+68 games, `game-001` through `game-068`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -85,6 +85,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 065 | [Worldroot](game-065/) | Idle clicker in a magical forest: grow a seed of light into the World Tree, with spirits, upgrades, wisps, spells, seasons, rebirth, trials, realms, expeditions, relics, a garden, badges and offline progress | three.js |
 | 066 | [Scrapwright](game-066/) | Steampunk COM-bot RPG on a junk planet: find, repair, build and evolve 250 scrap robots, turn-based battles, eight Forgemasters and a championship | three.js |
 | 067 | [Tootle Isles](game-067/) | Cozy toy-train sandbox in the spirit of LEGO Loco: pick an island, lay track, build a town, design trains and save many islands; everything unlocked | three.js |
+| 068 | [Haven Road](game-068/) | Tower defense of healing: aid stations heal the wounded and sick fleeing a zombie-held valley; in boss levels the people you saved fight back with the cure | three.js |
 
 ### Highlights
 
@@ -174,6 +175,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 
 **[Tootle Isles](game-067/)** — A **cozy toy-train sandbox** in the spirit of LEGO Loco, in three.js with no asset files, and **everything is unlocked**. Choose one of eight islands (Sunny Cove, Pine Peaks, Twin Isles, Coral Ring, Blossom Bay, Maple Hollow, Snowdrop Isle or a Big Baseplate), each reshaped by a seed you can reroll, and start blank or with a little town and a train already running. **Drag to lay track**: curves, crossings and switches come from the shape you draw, track over water becomes a **bridge** and track through a hill becomes a **tunnel** with a stone arch. Add station platforms and the residents of every home stroll over, wait and climb aboard. Design trains in the **Workshop** (steam engine, little tank engine with an optional friendly face, diesel, bullet train or tram, with up to ten coaches, boxcars, tankers, log cars, coal hoppers, mail vans, sheep wagons, ice cream cars, circus cars and toy car carriers, in sixteen toy colours) and keep them in a **Train Shed** shared by every island. Build from **80 pieces**: homes, shops, a town hall, a fire station, a school, a castle, a Ferris wheel, a carousel, a windmill, a lighthouse, farms and animals, trees, boats and a friendly whale. Trains never crash: they look ahead and brake for each other, stop at stations and shunt out of dead ends. Tap anything: trains toot, people wave and say hello, sheep baa, windmills whirl, points switch. Ride along in the driver's view, change the time of day, collect twenty stickers, undo anything, and save as many islands as you like with thumbnails, copies and share codes. A studded baseplate, chunky bricks with studs, minifig people, cotton-wool steam, a shore-foam sea, snow, blossom and falling leaves, lamp glows and fireflies at night, a tilt-shift diorama blur, synthesised music and sound, and touch controls built for phones. [game-067/dev/](game-067/dev/README.md) tests the track, trains and people headlessly (two trains never share a tile in ten simulated minutes on every island) and drives the whole game with a real mouse and real touches on desktop and phones.
 
+**[Haven Road](game-068/)** — A **tower defense of healing**, in three.js with no asset files. The dead have taken the valley and the living are walking out of it down a winding road to the **Haven**, everyone hurt somehow: bleeding, feverish with the blight, starving, frozen, limping on a broken leg or frozen with fear. You can't stop the dead; you can **keep the living walking**. Build aid stations beside the road: a **Medic Tent** bandages wounds and revives the collapsed, a **Remedy Lab** lobs cure vials, a **Field Kitchen** hands out soup and temporary health, a **Warming Fire** drives out the cold, a **Splint Post** sets bones, a **Song Circle** calms fear and builds courage, a **Stretcher Crew** carries the fallen, **Lantern Posts** slow the dead and a **Signal Bell** lures them off the road; each has three visible levels. Twelve **procedurally generated roads** in three acts (autumn Maple Hollow, snowy Frostford, Lantern City at night in the rain), some with a second road merging in, five kinds of dead (shamblers, spitters, runners, brutes, howlers) and families, elders, children and handcarts on the road. The dead only catch those they can keep up with, so care is the defence. Everyone who arrives thriving **joins the volunteers**, and in three **boss levels** (the Hollow Giant, the Winter Wailer, the Blight Heart) they walk back out to fight with the cure: firefighters' hoses, nurses' darts, gardeners' herb bombs, mechanics' floodlights, musicians' lullabies and storytellers' rallies turn the dead back into people, who walk home and join them. **Letters** from the people you saved are written about the care they actually got; the Journal keeps them, the roster and the names of anyone whose lantern rose; finishing the story opens an endless **Open Road**. The Haven grows a tent at a time as people arrive, kind words float over everyone you help, and the music stays hopeful even at the gates. [game-068/dev/](game-068/dev/README.md) has a balance bot win all twelve levels in a row headlessly (and an idle player lose every one) and drives the game with a real mouse and real touches on desktop and phones.
+
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
 ## Getting Started
@@ -250,7 +253,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-067/   # One self-contained folder per game
+├── game-001/ … game-068/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -307,7 +310,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 67 games are included as of the latest entries (game-062 Rotten to the Core, game-063 Tee & Sorcery, game-064 Kraken's Gambit, game-065 Worldroot, game-066 Scrapwright, game-067 Tootle Isles).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 68 games are included as of the latest entries (game-063 Tee & Sorcery, game-064 Kraken's Gambit, game-065 Worldroot, game-066 Scrapwright, game-067 Tootle Isles, game-068 Haven Road).
 
 ---
 
