@@ -476,7 +476,7 @@ function applyAt(t, first) {
                 const c = objCentre({ type: it.id, x: ox, z: oz, rot: app.rot });
                 fx.confetti(c.x, LAND_H + 0.2, c.z, it.small ? 8 : 18);
                 stroke.placed++;
-            } else if (first && !it.small) { sfx.error(); ui.setHint(reason(why)); }
+            } else if (first) { sfx.error(); ui.setHint(reason(why)); }
         }
     }
 }
@@ -489,7 +489,8 @@ const handler = {
     mode() {
         if (app.mode !== 'play' || app.modal) return 'pan';
         if (app.tool === 'play') return 'pan';
-        if (app.tool === 'trains') return 'pan';
+        // Build and Trains act on a tap; a drag moves the camera instead of placing things.
+        if (app.tool === 'trains' || app.tool === 'build') return 'pan';
         return 'tool';
     },
     gesture() { if (app.follow) stopFollow(); },
@@ -533,8 +534,9 @@ const handler = {
         const W = app.world;
         if (!W || app.mode !== 'play') return;
         if (!stroke) {
-            // Play (and Trains) taps
-            if (tap) tapAt(p);
+            // Play, Build and Trains act on taps only
+            if (tap && app.tool === 'build') placeAt(p);
+            else if (tap) tapAt(p);
             return;
         }
         if (app.tool === 'track' && app.trackMode === 'lay') {
@@ -567,6 +569,18 @@ const handler = {
     zoom(f) { zoomBy(f); },
     twist(da) { orbitBy(-da, 0); },
 };
+
+/** Build tool: a tap places the chosen item where the finger was (one undo step). */
+function placeAt(p) {
+    initAudio();
+    const t = tileAt(p);
+    if (!t || !app.world) return;
+    stroke = { kind: 'build', path: [[t.x, t.z]], before: beginOp(), last: t, placed: 0, clacks: 0, startW: t };
+    applyAt(t, true);
+    endOp(stroke.before);
+    stroke = null;
+    hover(p);
+}
 
 function hover(p) {
     if (!p || app.mode !== 'play' || !app.world) { objView.hideGhost(); return; }
@@ -815,6 +829,8 @@ function frame(now) {
 }
 
 window.addEventListener('resize', () => { resize(); ui.measureDock(); });
+// Phone URL bars slide in and out without always firing a window resize.
+window.visualViewport?.addEventListener('resize', () => { resize(); ui.measureDock(); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && app.dirty) saveNow(false); });
 window.addEventListener('pagehide', () => { if (app.dirty) saveNow(false); });
 

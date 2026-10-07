@@ -47,7 +47,7 @@ export const HINTS = {
     'track:lay': 'Drag to draw track · tap the yellow arrows to switch points',
     'track:station': 'Tap or drag along straight track to add a platform',
     'track:erase': 'Drag over track to take it up',
-    build: 'Tap to place · ⟳ turns it round',
+    build: 'Tap to place · drag to look around · ⟳ turns it round',
     land: 'Drag to paint the ground',
     trains: 'Pick a train, then tap your track to put it on',
     bulldoze: 'Drag to clear things away',

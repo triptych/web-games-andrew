@@ -219,6 +219,11 @@ async function desktop() {
     await clickTile(page, 21, 22);
     check(await TT(page, "return W.objectAt(21, 22)?.rot === 1"), 'R turns the next building');
     for (const [x, z] of [[20, 21], [21, 21], [22, 21], [25, 22], [26, 23]]) await clickTile(page, x, z);
+    const nBefore = await TT(page, 'return W.objs.size');
+    const gBefore = await TT(page, 'return [tt.rig.gx, tt.rig.gz]');
+    await mouseDrag(page, [[24, 23], [27, 23]]);
+    check(await TT(page, `return W.objs.size === ${nBefore}`), 'a drag in Build places nothing');
+    check(await TT(page, `return Math.hypot(tt.rig.gx - ${gBefore[0]}, tt.rig.gz - ${gBefore[1]}) > 0.5`), 'a drag in Build moves the camera');
     await page.click('[data-cat=water]');
     await page.click('[data-item=sailboat]');
     const objs1 = await TT(page, 'return W.objs.size');
@@ -445,6 +450,33 @@ async function phone(w, hgt) {
     await frames(page, 2);
     check(await inViewport(page, '#tray'), 'build tray on screen');
     check(await noSideScroll(page), 'no sideways scroll with the tray open');
+    // The canvas must be exactly the visible viewport, sized in px: a 100vh canvas is taller than
+    // innerHeight on phones with a URL bar, so every tap lands below the finger.
+    const cv = await page.evaluate(() => { const c = document.getElementById('gl'); const r = c.getBoundingClientRect(); return { w: r.width, h: r.height, iw: innerWidth, ih: innerHeight, sh: c.style.height }; });
+    check(Math.abs(cv.w - cv.iw) < 1 && Math.abs(cv.h - cv.ih) < 1 && cv.sh === `${cv.ih}px`, `canvas is sized to the visible viewport (${JSON.stringify(cv)})`);
+    // A tap on a tile's drawn position builds on that tile; a drag only moves the camera.
+    await TT(page, 'tt.rig.gdist = 14; return 1;');
+    await frames(page, 4);
+    const free = await TT(page, `
+        const cx = Math.floor(tt.rig.tx + 24), cz = Math.floor(tt.rig.tz + 24);
+        for (let r = 0; r < 10; r++) for (let dz = -r; dz <= r; dz++) for (let dx = -r; dx <= r; dx++) {
+            const x = cx + dx, z = cz + dz, i = z * 48 + x;
+            if (W.tiles[i] !== 0 && W.tiles[i] !== 6 && !W.track[i] && W.objAt[i] < 0 && !W.canPlace(A.buildItem, x, z, A.rot)) return [x, z];
+        }
+        return null;`);
+    if (free) {
+        const fp = await reveal(page, free[0], free[1]);
+        await tap(cdp, fp.x, fp.y);
+        await frames(page, 2);
+        const placed = await TT(page, `const o = W.objectAt(${free[0]}, ${free[1]}); return o ? o.type : null;`);
+        check(placed === await TT(page, 'return A.buildItem'), `a tap builds on the tile under the finger (${placed} at ${free})`);
+    } else fail('no free tile for the tap test');
+    const n0 = await TT(page, 'return W.objs.size');
+    const g0 = await TT(page, 'return [tt.rig.gx, tt.rig.gz]');
+    await touchDrag(cdp, [{ x: w * 0.3, y: hgt * 0.3 }, { x: w * 0.6, y: hgt * 0.4 }, { x: w * 0.7, y: hgt * 0.45 }]);
+    await frames(page, 2);
+    check(await TT(page, `return W.objs.size === ${n0}`), 'a drag in Build places nothing');
+    check(await TT(page, `return Math.hypot(tt.rig.gx - ${g0[0]}, tt.rig.gz - ${g0[1]}) > 0.5`), 'a drag in Build moves the camera');
     await shot(page, `p${w}-build`);
     // workshop fits
     await tapSel(page, cdp, '[data-tool=trains]');

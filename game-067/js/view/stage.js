@@ -152,7 +152,10 @@ export function resize() {
     if (w === lastW && h === lastH && dpr === lastDpr) return;
     lastW = w; lastH = h; lastDpr = dpr;
     renderer.setPixelRatio(dpr);
-    renderer.setSize(w, h, false);
+    // Size the canvas in px to exactly the visible viewport. A CSS 100vh canvas is taller than
+    // innerHeight on phones with a URL bar, which stretches the picture down and makes taps land
+    // below the finger (the same bug game-058 had).
+    renderer.setSize(w, h);
     composer.setPixelRatio(dpr);
     composer.setSize(w, h);
     camera.aspect = w / h;
@@ -276,7 +279,9 @@ export function render() {
 /** Ground point under a screen position, on the plane y = h (or null if looking at the sky). */
 const _ray = new THREE.Raycaster(), _v2 = new THREE.Vector2(), _plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), _hit = new THREE.Vector3();
 export function groundAt(clientX, clientY, h = LAND_H) {
-    _v2.set((clientX / window.innerWidth) * 2 - 1, -(clientY / window.innerHeight) * 2 + 1);
+    // Map through the canvas's on-screen box so a tap always matches the picture.
+    const r = renderer.domElement.getBoundingClientRect();
+    _v2.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
     _ray.setFromCamera(_v2, camera);
     _plane.constant = -h;
     return _ray.ray.intersectPlane(_plane, _hit) ? { x: _hit.x, z: _hit.z } : null;
@@ -287,5 +292,6 @@ const _p = new THREE.Vector3();
 export function toScreen(x, y, z) {
     _p.set(x, y, z).project(camera);
     if (_p.z > 1) return null;
-    return { x: (_p.x * 0.5 + 0.5) * window.innerWidth, y: (-_p.y * 0.5 + 0.5) * window.innerHeight };
+    const r = renderer.domElement.getBoundingClientRect();
+    return { x: r.left + (_p.x * 0.5 + 0.5) * r.width, y: r.top + (-_p.y * 0.5 + 0.5) * r.height };
 }

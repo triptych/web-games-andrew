@@ -2,7 +2,7 @@
 
 **Genre:** Cozy sandbox / toy train set
 **Engine:** three.js r165 (ES modules, import map), no asset files
-**Status:** v1.0.0, complete
+**Status:** v1.0.1, complete
 
 A cozy toy-train sandbox in the spirit of LEGO Loco, for kids and anyone who likes model railways. Pick an island, lay track across it, build a little town, design your own trains and watch them run. Nothing is locked, nothing can go wrong and there is no score: trains never crash, people never get hurt, and every tap does something friendly.
 
@@ -94,8 +94,8 @@ Every home has residents (1–4). They spawn on a doorstep, pick a nearby tile (
 
 | Action | Mouse / keyboard | Touch |
 |---|---|---|
-| Use a tool | Left drag / click | One finger |
-| Move the camera | Left drag in Play, WASD / arrows | One finger in Play, two-finger slide |
+| Use a tool | Left drag / click (Build and Trains: click) | One finger (Build and Trains: tap) |
+| Move the camera | Left drag in Play, Build and Trains, WASD / arrows | One finger in Play, Build and Trains, two-finger slide |
 | Turn | Right or middle drag, Q / E | Two-finger twist, ⟲ ⟳ buttons |
 | Zoom | Wheel, + / − | Pinch |
 | Tools | 1–6 | Toolbar |
@@ -130,3 +130,12 @@ Every home has residents (1–4). They spawn on a doorstep, pick a nearby tile (
 
 - Should there be signals the player can set, or is the automatic blocking enough? (So far it is enough: nothing ever crashes.)
 - Level crossings and roads with little cars would suit the theme.
+
+## Changelog
+
+### 1.0.1 (2026-10-06)
+- Taps on phones landed below the finger: the canvas was stretched to `100vh`, which is taller than the visible area on phones with a URL bar. The canvas is now sized in px and taps map through its on-screen box.
+- Build places on a tap only; a drag moves the camera instead of placing things.
+
+### 1.0.0 (2026-10-06)
+- First release.

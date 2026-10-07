@@ -40,7 +40,8 @@ html, body {
 button { font-family: inherit; color: inherit; cursor: pointer; border: none; background: none; }
 input { font-family: inherit; }
 
-#gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; touch-action: none; outline: none; }
+/* No 100vw/100vh here: the renderer sets the canvas size in px to innerWidth × innerHeight, so taps match the picture. */
+#gl { position: fixed; left: 0; top: 0; display: block; touch-action: none; outline: none; }
 
 .hidden { display: none !important; }
 
