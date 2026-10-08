@@ -14,7 +14,7 @@
  *                spends its winnings on upgrades, retries what it loses, and must win the Dirt Crown
  *                within a sensible number of races.
  *
- *   node game-068/dev/simtest.mjs            ONLY=purity,tracks,physics,determinism,rules,career
+ *   node game-069/dev/simtest.mjs            ONLY=purity,tracks,physics,determinism,rules,career
  */
 import fs from 'node:fs';
 import path from 'node:path';

@@ -13,10 +13,10 @@
  * story, the touch steering turns the car and auto-accelerate drives it.
  * Fails on any console error, page error or failed request. Screenshots go to dev/shots/.
  *
- *   python3 -m http.server 8068          # from the REPO ROOT
- *   node game-068/dev/browsertest.mjs
+ *   python3 -m http.server 8069          # from the REPO ROOT
+ *   node game-069/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8068), ONLY=desktop|phones, THREE_PKG.
+ * Env: BASE (default http://127.0.0.1:8069), ONLY=desktop|phones, THREE_PKG.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? [path.join(HERE, 'package'), path.join(HERE, '../../dev/package')].find((p) => fs.existsSync(p));
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8068';
+const BASE = process.env.BASE ?? 'http://127.0.0.1:8069';
 const OUT = path.join(HERE, 'shots');
 const ONLY = process.env.ONLY ?? '';
 fs.mkdirSync(OUT, { recursive: true });
@@ -66,7 +66,7 @@ async function newPage(viewport, touch = false, query = '') {
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message} @ ${(e.stack || '').split('\n').slice(1, 3).join(' ').trim()}`));
     page.on('requestfailed', (r) => { if (!r.url().includes('favicon')) errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`); });
-    await page.goto(`${BASE}/game-068/index.html?debug=1&fast=8${query}`);
+    await page.goto(`${BASE}/game-069/index.html?debug=1&fast=8${query}`);
     await page.waitForFunction('window.__dc && window.__dcApp.mode === "title"', null, { timeout: 120000 });
     return { page, ctx };
 }

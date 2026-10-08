@@ -1,6 +1,6 @@
 /**
  * shot.mjs — open the game in real Chromium with ?debug=1, run snippets, take screenshots.
- *   node game-068/dev/shot.mjs name "js;;WAIT:ms;;SHOT:x;;KEY:Down:KeyW;;KEY:Up:KeyW;;CLICK:#sel" [w h] [touch] [query]
+ *   node game-069/dev/shot.mjs name "js;;WAIT:ms;;SHOT:x;;KEY:Down:KeyW;;KEY:Up:KeyW;;CLICK:#sel" [w h] [touch] [query]
  * `S` inside snippets is window.__dc. Prints console errors.
  */
 import { chromium } from 'playwright';
@@ -9,7 +9,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = [path.join(HERE, 'package'), path.join(HERE, '../../dev/package')].find((p) => fs.existsSync(p));
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8068';
+const BASE = process.env.BASE ?? 'http://127.0.0.1:8069';
 const OUT = path.join(HERE, 'shots');
 fs.mkdirSync(OUT, { recursive: true });
 const [name = 'shot', script = '', w = '1280', h = '760', touch = '', query = ''] = process.argv.slice(2);
@@ -26,7 +26,7 @@ await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 2
 const errors = [];
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`${m.type()}: ${m.text()}`); });
 page.on('pageerror', (e) => errors.push(`pageerror: ${e.message} ${(e.stack || '').split('\n').slice(1, 3).join(' ')}`));
-await page.goto(`${BASE}/game-068/index.html?debug=1&${query}`);
+await page.goto(`${BASE}/game-069/index.html?debug=1&${query}`);
 await page.waitForFunction('window.__dc && window.__dcApp.mode !== "loading"', null, { timeout: 120000 });
 let n = 0;
 for (const part of script.split(';;').map((s) => s.trim()).filter(Boolean)) {

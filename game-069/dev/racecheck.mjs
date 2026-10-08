@@ -1,5 +1,5 @@
 // Run an all-bot race on each track and print lap times, resets and wall hits.
-// node game-068/dev/racecheck.mjs [trackIds] [rating]
+// node game-069/dev/racecheck.mjs [trackIds] [rating]
 import { Track } from '../js/sim/track.js';
 import { TRACKS, trackDef } from '../js/sim/tracks.js';
 import { Race } from '../js/sim/race.js';

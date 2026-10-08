@@ -93,7 +93,7 @@ function nameEntry() {
 
 export function credits() {
     modal(`<div class="credits"><h2>Dirt Crown</h2><div class="checker"></div>
-        <p>A backroads racing saga, game 068 of the <b>Web Games</b> collection by <b>Andrew Wooldridge</b>.</p>
+        <p>A backroads racing saga, game 069 of the <b>Web Games</b> collection by <b>Andrew Wooldridge</b>.</p>
         <p>Built with <b>three.js</b>. No asset files: every car, track, tree, cow, crowd, portrait, texture, tune and engine note is made in code.</p>
         <h3>The cast</h3>
         <p>${Object.entries(CAST).filter(([k]) => k !== 'you').map(([, c]) => `<b>${esc(c.name)}</b> · ${esc(c.role)}`).join('<br>')}</p>

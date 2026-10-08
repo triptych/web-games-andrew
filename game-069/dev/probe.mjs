@@ -1,5 +1,5 @@
 // Probe one event: race a bot (skill, rating) through it and print the order every few seconds.
-// node game-068/dev/probe.mjs dome-4 [rating=1000] [skill=0.82] [seeds=3]
+// node game-069/dev/probe.mjs dome-4 [rating=1000] [skill=0.82] [seeds=3]
 import { Track } from '../js/sim/track.js';
 import { trackDef } from '../js/sim/tracks.js';
 import { Race } from '../js/sim/race.js';
