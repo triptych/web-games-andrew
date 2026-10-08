@@ -1028,11 +1028,11 @@ const games = [
         ]
     },
     {
-        id: 'game-069',
+        id: 'game-070',
         title: 'PHOSPHOR PATROL',
         description: "A 1982 vector-monitor planet-defence shooter in three.js with no asset files, in the spirit of Defender with Asteroids meteor storms and Galaga dart squadrons. The Reapers are harvesting the colony world Lumen: snatchers grab colonists and carry them up, and one that reaches the top of the sky becomes a ravager. Fly the SENTRY around a planet eight screens wide that wraps at its ends, with inertia, an instant turnaround, a long-range scanner, lasers, smart bombs and hyperspace. Shoot a snatcher to drop its colonist, catch them in the air and fly them down to the ground; lose every colonist and the planet explodes and you fight on in open space until it's rebuilt. Nine kinds of Reaper (snatchers, ravagers, minelayers and their mines, tumbling wireframe hives that burst into stingers, hunters that come if you dawdle, diving dart squadrons and meteors that split in two), fifteen attack waves per loop and three bosses: the Harvester, a ring saucer with a tractor beam; the Leviathan, a segmented serpent; and the Overseer, an eye in a cage of shield plates with a sweeping beam. Everything is drawn as glowing beams by one instanced shader, with phosphor persistence, bloom and curved glass; explosions throw the destroyed shape's own lines at the screen. A thump-thump heartbeat that speeds up as the wave goes on, attract mode with a bot demo, high scores with initials, CADET and ARCADE modes, continues, endless loops, gamepads and a touch deck with a flight stick.",
         icon: '\uD83D\uDE80',
-        folder: 'game-069',
+        folder: 'game-070',
         version: '1.0.0',
         cssClass: 'phosphor-patrol',
         genre: 'arcade',

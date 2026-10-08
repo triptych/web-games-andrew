@@ -14,11 +14,11 @@
  * Fails on any console error, page error or failed request. Screenshots go to
  * dev/shots/.
  *
- *   python3 -m http.server 8069                 # from the REPO ROOT
- *   node game-069/dev/browsertest.mjs
+ *   python3 -m http.server 8070                 # from the REPO ROOT
+ *   node game-070/dev/browsertest.mjs
  *
  * No network to unpkg.com? Unpack three@0.165.0 into dev/package (repo root) or
- * point THREE_PKG at it. Env: BASE (default http://127.0.0.1:8069), ONLY=desktop|waves|phones.
+ * point THREE_PKG at it. Env: BASE (default http://127.0.0.1:8070), ONLY=desktop|waves|phones.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? [path.join(HERE, 'package'), path.join(HERE, '../../dev/package')].find((p) => fs.existsSync(p));
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8069';
+const BASE = process.env.BASE ?? 'http://127.0.0.1:8070';
 const OUT = path.join(HERE, 'shots');
 const ONLY = process.env.ONLY ?? '';
 fs.mkdirSync(OUT, { recursive: true });
@@ -58,7 +58,7 @@ async function newPage(viewport, touch = false) {
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
     page.on('requestfailed', (r) => { if (!r.url().includes('favicon')) errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`); });
-    await page.goto(`${BASE}/game-069/index.html?debug=1`);
+    await page.goto(`${BASE}/game-070/index.html?debug=1`);
     await page.waitForFunction(() => window.__pp && __pp.mode === 'attract', null, { timeout: 60000 });
     return { ctx, page };
 }

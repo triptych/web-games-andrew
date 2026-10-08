@@ -1,7 +1,7 @@
 /**
  * simtest.mjs — plays every wave headlessly with the bot, in Node (no browser).
  *
- *   node game-069/dev/simtest.mjs
+ *   node game-070/dev/simtest.mjs
  *
  * Fails on an exception, a NaN anywhere in the moving parts, something outside
  * the field, or a wave the bot can't finish within the time budget (continues
