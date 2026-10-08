@@ -452,7 +452,9 @@ export class World {
         let c = this.containers.get(id);
         if (!c) {
             const r = new Rng(hashStr(id) ^ (this.time.day * 977));
-            c = { id, kind, inv: opts.inv || rollLoot(kind, opts.level ?? this.player.sheet.level, r), locked: opts.locked || 0, owner: opts.owner || null };
+            c = { id, kind, inv: opts.inv || rollLoot(kind, opts.level ?? this.player.sheet.level, r), locked: opts.locked || 0, owner: opts.owner || null, gold: 0 };
+            // coins from the loot roll become the container's purse rather than an item in the list
+            for (const e of c.inv.filter((x) => x.id === 'gold')) { c.gold += e.n || 1; c.inv.splice(c.inv.indexOf(e), 1); }
             this.containers.set(id, c);
         }
         return c;

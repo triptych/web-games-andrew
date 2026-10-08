@@ -216,7 +216,8 @@ export class RunePanel extends Panel {
         card.appendChild(h('p.faint', { text: `Known runes: ${runesKnown(w).length}. Runecraft ${w.player.sheet.skills.enchanting}.` }));
         this.detail.appendChild(card);
         this.foot.innerHTML = '';
-        this.foot.append(h('span.sp'), this.step !== 'item' ? h('button.mbtn', { text: 'Back', on: { click: () => this.back() } }) : null);
+        this.foot.append(h('span.sp'));
+        if (this.step !== 'item') this.foot.append(h('button.mbtn', { text: 'Back', on: { click: () => this.back() } }));
     }
     pick(r) {
         if (!r?.data) return;
