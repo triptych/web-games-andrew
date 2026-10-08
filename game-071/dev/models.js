@@ -63,7 +63,7 @@ const span = total;
 const fitD = span / 2 / Math.tan((cam.fov * Math.PI / 180) / 2) / (W / H) * 1.05;
 const camY = SET === 'dragon' ? 6 : SET === 'beasts' ? 1.2 : 1.1;
 cam.position.set(+(q.get('cx') || 0), +(q.get('cy') || camY + fitD * 0.12), +(q.get('cz') || fitD));
-cam.lookAt(+(q.get('cx') || 0), SET === 'dragon' ? 3 : 0.9, 0);
+cam.lookAt(+(q.get('cx') || 0), +(q.get('ly') || (SET === 'dragon' ? 3 : 0.9)), +(q.get('lz') || 0));
 if (q.get('zoom')) { cam.zoom = +q.get('zoom'); cam.updateProjectionMatrix(); }
 
 let t = 0;

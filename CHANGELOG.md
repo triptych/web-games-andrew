@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **FROSTMARCH** (game-071) v1.0.2: people look like people.
+  - Proportions ([game-071/js/view/humanoid.js](game-071/js/view/humanoid.js)): the head sat about 6 cm too high on a thin cylinder of neck, over a torso made of two stacked balls. The head is lower, the neck short and thick, and the torso is one smooth shape (hips, waist, ribcage, shoulders sloping into the neck) built as two lathes skinned across the pelvis, spine and chest. Clothing follows the same shape with a collar, deltoids round the shoulders into the arms, and skin hidden under clothes is no longer built (it poked through at the shoulders). Eyes are larger, with pupils and upper lids. `dev/models.html` takes `ly` / `lz` to aim the camera for close-ups.
 - **FROSTMARCH** (game-071) v1.0.1: attacking on phones no longer ignores most taps, and the sea no longer rises through the floor indoors.
   - Presses and releases that arrived on a frame with no simulation step were thrown away (the same bug Sister Circuit had). On 90 and 120 Hz phone screens that is about every other frame. They are now carried to the next step, along with look movement ([game-071/js/main.js](game-071/js/main.js)).
   - A tap during a swing used to be ignored. It is now queued and starts the moment the swing ends; a queued press that is still held becomes a power attack ([game-071/js/sim/world.js](game-071/js/sim/world.js)).

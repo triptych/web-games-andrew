@@ -716,6 +716,9 @@ Out of scope for v1, with reasons:
 
 ## Changelog
 
+### v1.0.2 — 2026-10-08
+- People: lower head, short thick neck, one smooth torso with sloping shoulders, clothing that follows it, larger eyes.
+
 ### v1.0.1 — 2026-10-08
 - Phones: taps on the attack button are no longer lost on frames with no sim step, and a tap during a swing is queued.
 - Indoors: the sea, terrain and forests are properly hidden (they were drawing through interior floors).
