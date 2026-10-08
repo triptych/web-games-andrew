@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **FROSTMARCH** (game-071) v1.0.4: mountains no longer look like smooth cones streaked with vertical stripes.
+  - Distant terrain tiles built their vertices from every 8th, 16th or 32nd height sample with no filtering, so fine ridges aliased into a regular comb of false flutes. They now read averaged (mipmapped) heights and occlusion, with normals taken at the tile's own spacing ([game-071/js/view/terrain.js](game-071/js/view/terrain.js)).
+  - Most of the stripes were the baked ambient occlusion: its small-radius term darkened every groove on a steep face. It is gentler now ([game-071/js/sim/terrain.js](game-071/js/sim/terrain.js)).
+  - The base relief was upsampled bilinearly, leaving a crease on every 6 m cell line; it now uses a cubic B-spline. The slope cap was tight enough (1.15) to shave every ridge off a mountain flank and leave a perfect cone; it is 1.75 now, and big mountains get arêtes and couloirs running down from the summit, so the skyline is broken.
+  - Rock is coloured in large patches and soft height bands sampled in 3D, so steep faces don't smear the top-down colour maps into stripes.
 - **FROSTMARCH** (game-071) v1.0.3: on phones the ☰ quick menu no longer closes the moment you lift your finger.
   - Touch buttons act on finger-down, so the menu opened under a finger that was still pressed. Lifting it made the browser "click" whatever was now there, which was the menu's own backdrop, and a backdrop tap closes the menu. That click reports `detail` 0, the same as a keyboard click, so it couldn't be told apart that way. Every menu now ignores a pointer click unless the press began on the menu; keyboard clicks still count ([game-071/js/ui/ui.js](game-071/js/ui/ui.js)). The same applied to any menu opened from a touch button.
   - [dev/browsertest.mjs](game-071/dev/browsertest.mjs) presses ☰ with a real touch, checks the menu is still open after the finger lifts, then taps Map and checks the map opens.
