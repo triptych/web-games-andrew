@@ -10,6 +10,10 @@
  * The model faces +x, stands on y = 0 and is ~0.6 units tall at the ears.
  * animateFox() trots it (legs in diagonal pairs), and now and then it stops,
  * sits back a little, and looks at the tree.
+ *
+ * The Garden of Games launcher imports this file too (garden/js/fox.js: a fox
+ * that sometimes crosses the visitor's path), so keep it free of Worldroot's
+ * game state: it needs only three.js, kit.js and a { glow } texture.
  */
 
 import * as THREE from 'three';

@@ -25,6 +25,7 @@ import { AudioEngine } from './music.js';
 import { UI } from './ui.js';
 import { IslandMap } from './map.js';
 import { nextFrame, store, smoothstep, lerp, damp } from './util.js';
+import { FoxVisitor } from './fox.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -251,6 +252,8 @@ async function boot() {
 
     const controls = new Controls(world, camera, canvas);
     world.controls = controls;
+    // a fox spirit from Worldroot comes by on about one visit in five (?fox=1 always, ?fox=0 never)
+    const fox = new FoxVisitor(scene, world, controls, camera, { force: params.get('fox') });
     const map = new IslandMap(world, document.getElementById('map-canvas'));
 
     const resize = () => {
@@ -657,6 +660,7 @@ async function boot() {
         particles.update(t, night, renderer.domElement.height);
         bursts.update(t, renderer.domElement.height);
         for (const u of world.updaters) u(t, sky);
+        fox.update(dt, t, entered && !intro && controls.enabled, ui.blocking || !!ui.cardGame);
         updateGrass(world, camPos);
         audio.update(night, island.shoreAt(camPos.x, camPos.z));
 
@@ -697,7 +701,7 @@ async function boot() {
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { world, controls, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, linkToGame, walkToGame, scene, get entered() { return entered && !intro; } };
+        window.__garden = { world, controls, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
     }
 }
 
