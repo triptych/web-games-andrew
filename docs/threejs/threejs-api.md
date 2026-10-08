@@ -570,6 +570,20 @@ c.xy += (position.xy * aSize + aOff) * uScale * 2.0 / uRes * c.w;   // uRes = ca
 
 Set `geo.instanceCount` each frame and mark the attributes `needsUpdate`. Icons come from a canvas-drawn atlas (no emoji fonts needed headless). See `game-068/js/view/actors.js`.
 
+## Lessons from an open-world RPG (game-071)
+
+Frostmarch is the largest game here (a 3 km terrain, skinned procedural characters, interiors, a quest engine). What cost the most time:
+
+- **An event bus that sets `data.type` overwrites any payload field called `type`.** `world.emit('hit', { type: 'fire' })` arrived with `type: 'hit'` and every hit sounded and looked physical. Name payload fields something else (`dmgType`).
+- **Scratch objects must never alias an argument.** A pose helper used one module-level quaternion both as its input and its workspace, so IK and held weapons came out mirrored. Give each helper its own scratch (`_q3`, `_q4`, …) or copy the argument first.
+- **Colours you write into vertex attributes are linear.** Skin tones picked as hex looked chalk-white until converted with `color.setRGB(r, g, b, THREE.SRGBColorSpace)`.
+- **`BufferAttribute.updateRange` is a getter in r165** — assigning to it throws. Use `addUpdateRange()` or just set `needsUpdate`.
+- **A cinematic camera that lerps toward its target starts from wherever the camera was** — on a title screen that was under the terrain, looking up at the underside of the world. Snap when the target is far (more than ~40 m), lerp only small moves.
+- **A "pristine" snapshot for New Game must be a deep copy.** Serialising the world into an object that still pointed at the live `flags` meant playing mutated the snapshot. Round-trip through JSON once when you take it, and again when you apply it.
+- **Scripted foes need a way back.** A quest step that spawns its dragon once and then waits for its death breaks when the player loads a save, walks away, or goes through a door. Tag scripted actors (`questTag`) and let the step re-spawn them while none is alive and the player is near.
+- **Interiors are a different physics space with the same interface.** The tile-grid cell answers `ground`, `blocked`, `blockedRay`, `floorAt` and `path` exactly as the exterior does, so the player controller, AI and camera never ask where they are. An "open" cell (the finale's floating islands) skips the ceiling, turns walls into hanging cliffs and keeps the sky visible.
+- **Playwright's `click()` waits for the element to be "stable" across animation frames.** At a few frames per second under SwiftShader that never happens; click from `page.evaluate()` instead.
+
 ## Common gotchas
 
 - **`updateProjectionMatrix()` missing** — see resize section above. Symptom: window resizes but render is squashed.
@@ -604,6 +618,7 @@ To use: `import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 - [three.js docs (r165)](https://threejs.org/docs/)
 - [three.js examples](https://threejs.org/examples/)
+- [game-071 — FROSTMARCH](../../game-071/) — open-world RPG; quadtree terrain, skinned procedural rigs with IK, tile-grid interiors sharing the physics interface, a pure-sim quest engine, Web Audio score
 - [game-024 — Neon Vanguard](../../game-024/) — top-down shmup; bloom, custom grid shader, canvas-sprite HUD text
 - [game-040 — Starcadet](../../game-040/) — vertical bullet-hell shmup; instanced bullets, six shader backdrops, aspect-fitting camera, and a fake-three.js Node harness
 - [game-068 — Haven Road](../../game-068/) — tower defense of healing; seeded road maps, instanced people with screen-sized billboard bars and icons, a portrait-turning fitted camera, sanitize → bloom → grade post

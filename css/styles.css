@@ -895,6 +895,17 @@ h1 {
     box-shadow: 0 0 14px rgba(76, 242, 255, 0.5);
 }
 
+.game-preview.frostmarch,
+.carousel-slide-bg.frostmarch {
+    background: radial-gradient(ellipse at 70% 18%, rgba(170, 220, 255, 0.35), transparent 45%), linear-gradient(160deg, transparent 0 55%, rgba(230, 240, 250, 0.85) 55.5%, rgba(150, 170, 190, 0.9) 70%, transparent 70.5%), linear-gradient(200deg, transparent 0 60%, rgba(200, 215, 230, 0.7) 60.5%, rgba(90, 110, 130, 0.9) 78%, transparent 78.5%), linear-gradient(180deg, #0c1c30 0%, #31506e 55%, #1a2a22 100%);
+}
+
+.game-card.frostmarch .play-button {
+    background: linear-gradient(135deg, #1a2430 0%, #5a7894 55%, #d8c38a 100%);
+    color: #0b0d10;
+    box-shadow: 0 0 14px rgba(216, 195, 138, 0.45);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
