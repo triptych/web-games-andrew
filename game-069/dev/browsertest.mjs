@@ -164,7 +164,14 @@ async function desktop() {
     check(await visible(page, '#h-speedo') && await visible(page, '#h-map'), 'the HUD shows the speedometer and the minimap');
     await page.keyboard.up('KeyW');
     await S(page, 'S.autopilot()');
-    await until(page, 'A.race.t > 8');
+    // On the oval's banked turns every wheel sits on the road (the car rolls with the banking).
+    await until(page, 'A.race.t > 8 && Math.abs(A.track.bankTan[A.race.player.loc.i]) > 0.2', 120000);
+    const gaps = await S(page, `const tr = A.track, L = { i: 0, f: 0, d: 0 }, out = [];
+        A.models.forEach((m, k) => { const c = A.race.cars[k]; if (c.air) return; m.root.updateMatrixWorld(true);
+            for (const w of m.wheels) { const p = w.hub.getWorldPosition(w.hub.position.clone()); tr.locate(p.x, p.z, c.loc.i, L); out.push(p.y - w.baseY - tr.heightAt(L.i, L.f, L.d)); } });
+        return out;`);
+    const worst = Math.max(...gaps.map(Math.abs));
+    check(gaps.length >= 8 && worst < 0.12, `on a banked turn every wheel touches the road (worst ${worst.toFixed(2)} m over ${gaps.length} wheels)`);
     await S(page, 'S.win(1)');
     await until(page, 'A.mode === "results"', 60000);
     await page.waitForTimeout(1500);

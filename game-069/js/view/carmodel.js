@@ -29,6 +29,7 @@ const KINDS = {
 };
 
 const matCache = new Map();
+const _probe = { i: 0, f: 0, d: 0, tx: 0, tz: 1 };
 function std(hex, rough = 0.6, metal = 0, extra = {}) {
     const key = `${hex}|${rough}|${metal}|${JSON.stringify(extra)}`;
     if (matCache.has(key)) return matCache.get(key);
@@ -520,17 +521,21 @@ export class CarModel {
     update(car, track, dt, t) {
         const r = this.root;
         r.position.set(car.x, car.y, car.z);
-        // Ground pitch and roll under the car, from the track frame.
+        // Ground pitch and roll: sample the road surface under the nose, tail and both sides and
+        // tilt the car to match. Positive rotation.x drops the nose; positive rotation.z raises the
+        // car's left side (+x local; the right is -x).
         let gp = 0, gr = 0;
         if (track) {
-            const L = car.loc;
-            const slope = track.slopeAt(L.i);
-            const fwd = Math.sin(car.h) * L.tx + Math.cos(car.h) * L.tz;
-            const bank = track.bankTan[L.i];
-            gp = -Math.atan(slope * fwd);
-            const side = Math.cos(car.h) * L.tx - Math.sin(car.h) * L.tz;
-            gr = Math.atan(bank) * fwd + Math.atan(slope) * side * 0;
-            if (Math.abs(L.d) > track.hw) gr *= 0.5;
+            const fx = Math.sin(car.h), fz = Math.cos(car.h);
+            const hl = this.length * 0.4, hw = this.width * 0.5;
+            const g = (ox, oz) => {
+                track.locate(car.x + ox, car.z + oz, car.loc.i, _probe);
+                return track.heightAt(_probe.i, _probe.f, Math.max(-track.wall, Math.min(track.wall, _probe.d)));
+            };
+            const front = g(fx * hl, fz * hl), back = g(-fx * hl, -fz * hl);
+            const left = g(fz * hw, -fx * hw), right = g(-fz * hw, fx * hw);
+            gp = -Math.atan2(front - back, hl * 2);
+            gr = Math.atan2(left - right, hw * 2);
         }
         if (car.air) {
             this.pitch += (0.18 - this.pitch) * Math.min(1, dt * 0.8) + (car.throttle > 0 ? -0.15 * dt : 0.12 * dt);
@@ -564,7 +569,7 @@ export class CarModel {
         r.rotation.z = this.roll;
         this.body.position.y = this.bob + shake;
         this.body.rotation.x = -accLean;
-        this.body.rotation.z = -turnLean;
+        this.body.rotation.z = turnLean;   // a left turn (w > 0) leans the body out to the right
 
         // Wheels.
         this.spinA += (car.vLong / this.wr) * dt;

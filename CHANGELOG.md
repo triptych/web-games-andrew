@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Dirt Crown** (game-069) v1.0.1: cars sit flat on banked turns instead of sinking their left wheels into the road. The model rolled by the track's banking with the wrong sign, so on the banked Barnyard Oval one side of every car was up to 0.75 m underground and the other floated. Cars are now posed from the ground itself: the road height is sampled under the nose, tail and both sides, and pitch and roll follow it, so crests, banking and the run-off all line up from any heading. The body's lean in a turn also pointed into the bend; it now leans out ([game-069/js/view/carmodel.js](game-069/js/view/carmodel.js)). The browser test checks that every wheel touches the road on a banked turn.
+
 ### Added
 - **Haven Road** (game-068) v1.0.0: a tower defense turned around, in three.js r165 with no asset files. The dead have taken the valley; the living walk out of it, hurt, and you build aid stations to keep them walking home to the Haven. Design notes in [game-068/game-plan.md](game-068/game-plan.md).
   - **Roads**: twelve levels in three acts (autumn Maple Hollow, winter Frostford, Lantern City at night in the rain), each a seeded map: a road of waypoints joined by L-shaped legs, kept only if no road tile touches another except its neighbours, and on four levels a second road joining at a T. Themed scenery never crowds the roadside; the ground is painted into a canvas texture.

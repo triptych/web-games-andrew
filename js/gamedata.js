@@ -1033,7 +1033,7 @@ const games = [
         description: "A dirt-track racing RPG in three.js with no asset files. Grandpa Gus pulls a tarp off his first racer, the Bucket: a tiny, primer-grey off-roader without a single feature. Win races for coins and bolt on parts that all show on the car (exhausts, a hood scoop, a supercharger, wings, bigger tyres on better rims, coil springs, a bull bar, a roll cage, a light bar, riveted armour and nitro bottles), across six upgrade lines and a paint shop with liveries and race numbers. Race in third person on 20 tracks in seven places: farm ovals on Dustwater Flats, misty logging roads in Pinecrest Woods, big jumps in Redrock Canyon at sunset, lantern-lit mud and water in Gatorback Bayou, snow and sheet ice on Frostbite Pass, stadium supercross under the Thunderdome's floodlights, and the Crown Run on Ravenwood Mesa, with figure eights that cross on bridges. Sliding dirt physics, drifts that fill your nitro, tabletops, kickers and whoops, mud, water, gravel, sand, ice and oil, slipstreams, and computer drivers that pass. 26 events (races, eliminations, time trials and duels), six champions to beat, and a story: Ravenwood Motors has bought every track in the county, and whoever wins the Dirt Crown sets the rules. Face your rival Colt Ravenwood in the ultimate race. Painted portraits, a county map, bloom and colour grading, a synthesised engine and score, autosave, keyboard, gamepad or touch.",
         icon: '\uD83C\uDFC1',
         folder: 'game-069',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'dirt-crown',
         genre: 'rpg',
         tags: [
