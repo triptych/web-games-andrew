@@ -435,13 +435,22 @@ function frame(now) {
     if (ticking) {
         handlePlayKeys(snap);
         const control = app.mode === 'play' && !app.ui.open;
+        // presses and releases on a frame that runs no sim step (high-refresh screens, jitter) wait
+        // for the next step instead of being lost; so does look movement
+        const pend = app.pending || (app.pending = { pressed: new Set(), released: new Set(), dx: 0, dy: 0 });
+        for (const k of snap.pressed) pend.pressed.add(k);
+        for (const k of snap.released) pend.released.add(k);
+        pend.dx += snap.look.dx; pend.dy += snap.look.dy;
         app.acc += dt * FAST;
         let first = true, steps = 0;
         while (app.acc >= STEP && steps < 4 * FAST) {
-            world.tick(STEP, control ? (first ? snap : { ...snap, look: { dx: 0, dy: 0 }, pressed: new Set(), released: new Set() }) : null);
+            const inp = first ? { ...snap, pressed: pend.pressed, released: pend.released, look: { dx: pend.dx, dy: pend.dy } } : { ...snap, look: { dx: 0, dy: 0 }, pressed: new Set(), released: new Set() };
+            world.tick(STEP, control ? inp : null);
+            if (first) app.pending = null;
             first = false;
             app.acc -= STEP; steps++;
         }
+        if (!control) app.pending = null;
         if (steps >= 4 * FAST) app.acc = 0;
         app.playT += dt;
     } else if (app.mode === 'title') titleCamera(dt);

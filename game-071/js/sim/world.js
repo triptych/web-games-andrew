@@ -304,12 +304,25 @@ export class World {
         const right = weaponIn(p, 'right');
         const leftEntry = p.equip.left, leftDef = leftEntry && itemDef(leftEntry);
         const rSpell = p.hands.right, lSpell = p.hands.left;
+        const melee = !(rSpell && !right) && !right?.d.bow;
         if (inp.pressed.has('attack')) {
             p.drawn = true;
             if (rSpell && !right) startCast(this, p, 'right');
             else if (right?.d.bow) startDraw(this, p);
             else if (p.blocking) startBash(this, p);
+            else if (p.act.kind !== 'idle' && p.act.kind !== 'ready') p.attackBuf = { t: 0.6, released: false };   // mid-swing: queue the next one
             else p.attackHold = 0;
+        }
+        // a buffered tap starts as soon as the current swing ends (a held one becomes a power attack)
+        if (p.attackBuf) {
+            p.attackBuf.t -= dt;
+            if (inp.released.has('attack')) p.attackBuf.released = true;
+            if (!melee || p.attackBuf.t <= 0) p.attackBuf = null;
+            else if (p.act.kind === 'idle' || p.act.kind === 'ready') {
+                if (p.attackBuf.released) startAttack(this, p, 'right', false);
+                else if (inp.held.has('attack')) p.attackHold = 0;
+                p.attackBuf = null;
+            }
         }
         if (p.attackHold >= 0) {
             p.attackHold += dt;

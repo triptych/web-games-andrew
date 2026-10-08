@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **FROSTMARCH** (game-071) v1.0.1: attacking on phones no longer ignores most taps.
+  - Presses and releases that arrived on a frame with no simulation step were thrown away (the same bug Sister Circuit had). On 90 and 120 Hz phone screens that is about every other frame. They are now carried to the next step, along with look movement ([game-071/js/main.js](game-071/js/main.js)).
+  - A tap during a swing used to be ignored. It is now queued and starts the moment the swing ends; a queued press that is still held becomes a power attack ([game-071/js/sim/world.js](game-071/js/sim/world.js)).
+  - [dev/simtest.mjs](game-071/dev/simtest.mjs) taps every 0.3 s for four seconds and checks that the swings chain back to back.
 - **Dirt Crown** (game-069) v1.0.1: cars sit flat on banked turns instead of sinking their left wheels into the road. The model rolled by the track's banking with the wrong sign, so on the banked Barnyard Oval one side of every car was up to 0.75 m underground and the other floated. Cars are now posed from the ground itself: the road height is sampled under the nose, tail and both sides, and pitch and roll follow it, so crests, banking and the run-off all line up from any heading. The body's lean in a turn also pointed into the bend; it now leans out ([game-069/js/view/carmodel.js](game-069/js/view/carmodel.js)). The browser test checks that every wheel touches the road on a banked turn.
 
 ### Added
