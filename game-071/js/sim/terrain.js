@@ -178,9 +178,14 @@ export class Terrain {
                 const ang = Math.atan2(ddz, ddx);
                 const warp = this.n2.noise(x * 0.005, z * 0.005) * 1.1;
                 const spur = 1 - Math.abs(this.n3.noise(Math.cos(ang + warp) * 2.2 + f.x * 0.003, Math.sin(ang + warp) * 2.2 + d * 0.0035));
+                // arêtes: sharp radial ridges from the summit with couloirs between them, so a big
+                // mountain has buttresses and a broken skyline instead of smooth conical sides
+                const arete = 1 - Math.abs(this.n2.noise(Math.cos(ang + warp * 0.6) * 4.6 + f.z * 0.002, Math.sin(ang + warp * 0.6) * 4.6 + d * 0.006));
                 const ridge = n3.ridged(x * 0.0055 + f.x * 0.01, z * 0.0055, 4, 2.0, 0.42);
-                const rough = f.rough * Math.min(1, t * 3) * (1 - smoothstep(0.85, 1, t) * 0.6);
-                e += f.h * prof * (1 + rough * ((ridge * 2 - 1) * 0.8 + (spur * 2 - 1) * 0.5));
+                const big = smoothstep(250, 500, f.h);
+                const rough = f.rough * (1 + big * 1.4) * Math.min(1, t * 3) * (1 - smoothstep(0.85, 1, t) * 0.6);
+                const aW = big * 0.55 * smoothstep(0.08, 0.3, t) * (1 - smoothstep(0.8, 0.97, t));
+                e += f.h * prof * (1 + rough * ((ridge * 2 - 1) * 0.8 + (spur * 2 - 1) * 0.5) + aW * (Math.pow(arete, 3) - 0.12));
             } else if (f.kind === 'ridge') {
                 const d = segD(x, z, f.ax, f.az, f.bx, f.bz), t = segT;
                 if (d >= f.r) continue;
@@ -227,15 +232,27 @@ export class Terrain {
             for (let i = 0; i < M; i++) coarse[j * M + i] = this.baseHeight(-HALF + i * C2, z);
             if (onProgress && (j & 31) === 0) onProgress(0.45 * j / M);
         }
-        this.slopeLimit(coarse, M, C2, 1.15);
+        // a generous cap: tighter, and every mountain flank is shaved to one perfect cone
+        this.slopeLimit(coarse, M, C2, 1.75);
         this.erode(coarse, M, C2, 10, 0.9);
         if (onProgress) onProgress(0.5);
         const n1 = this.n1;
+        // upsample with a cubic B-spline: bilinear leaves a crease on every coarse cell line, and on a
+        // steep even face those creases line up into rows of false flutes
+        const bs = (t) => [(1 - t) ** 3 / 6, (3 * t * t * t - 6 * t * t + 4) / 6, (-3 * t * t * t + 3 * t * t + 3 * t + 1) / 6, t * t * t / 6];
+        const W0 = bs(0), W5 = bs(0.5);
+        const cAt = (i, j) => coarse[Math.max(0, Math.min(M - 1, j)) * M + Math.max(0, Math.min(M - 1, i))];
         for (let j = 0; j < N; j++) {
-            const z = -HALF + j * CELL, cj = j >> 1, v = (j & 1) * 0.5, cj1 = Math.min(cj + 1, M - 1);
+            const z = -HALF + j * CELL, cj = j >> 1, cj1 = Math.min(cj + 1, M - 1);
+            const wz = (j & 1) ? W5 : W0;
             for (let i = 0; i < N; i++) {
-                const ci = i >> 1, u = (i & 1) * 0.5, ci1 = Math.min(ci + 1, M - 1);
-                const b = (coarse[cj * M + ci] * (1 - u) + coarse[cj * M + ci1] * u) * (1 - v) + (coarse[cj1 * M + ci] * (1 - u) + coarse[cj1 * M + ci1] * u) * v;
+                const ci = i >> 1, ci1 = Math.min(ci + 1, M - 1);
+                const wx = (i & 1) ? W5 : W0;
+                let b = 0;
+                for (let q = 0; q < 4; q++) {
+                    const row = wz[q];
+                    b += row * (wx[0] * cAt(ci - 1, cj - 1 + q) + wx[1] * cAt(ci, cj - 1 + q) + wx[2] * cAt(ci + 1, cj - 1 + q) + wx[3] * cAt(ci + 2, cj - 1 + q));
+                }
                 const x = -HALF + i * CELL;
                 // steep ground gets gullies and buttresses back after the slope clamp
                 const gx = (coarse[cj * M + ci1] - coarse[cj * M + ci]) / C2, gz = (coarse[cj1 * M + ci] - coarse[cj * M + ci]) / C2;
@@ -569,9 +586,11 @@ export class Terrain {
         };
         const b1 = blur(this.h, 3), b2 = blur(this.h, 12);
         for (let k = 0; k < N * N; k++) {
-            const occ = Math.max(0, b1[k] - this.h[k]) * 0.06 + Math.max(0, b2[k] - this.h[k]) * 0.012;
-            const crest = Math.max(0, this.h[k] - b2[k]) * 0.004;   // ridges catch a little extra sky
-            this.ao[k] = Math.round(255 * clamp(1 - occ + crest, 0.35, 1));
+            // gentle: a strong small-radius term picks out every groove on a steep face and paints
+            // dark streaks down the whole mountainside
+            const occ = Math.max(0, b1[k] - this.h[k]) * 0.022 + Math.max(0, b2[k] - this.h[k]) * 0.013;
+            const crest = Math.max(0, this.h[k] - b2[k]) * 0.003;   // ridges catch a little extra sky
+            this.ao[k] = Math.round(255 * clamp(1 - occ + crest, 0.55, 1));
         }
     }
 

@@ -75,7 +75,8 @@ export function makeTerrainMaterial(terrain, tex, q, maps) {
                 float slope = 1.0 - gN.y;
                 float dist = length(vTW - cameraPosition);
                 vec2 uv = vTW.xz / 3.6;
-                float var = vnoise(vTW.xz * 0.05);
+                vec2 w3 = vTW.xz + vec2(vTW.y * 0.83, -vTW.y * 0.61);   // fold height in so steep faces don't streak
+                float var = vnoise(w3 * 0.05);
                 // soil base
                 vec4 a = L(uv, 1.0); vec3 col = a.rgb * ts; float h = a.a; vec3 nrm = N(uv, 1.0); float rough = 0.95;
                 vec4 g = L(uv * 0.9, 0.0); g.rgb *= tg;
@@ -91,7 +92,9 @@ export function makeTerrainMaterial(terrain, tex, q, maps) {
                 float rockW = smoothstep(0.26, 0.46, slope + (var - 0.5) * 0.12);
                 if (rockW > 0.001) {
                     vec4 rk; vec3 rn;
-                    vec3 rockTint = mix(vec3(1.0), ts * 0.85, 0.3);
+                    // rock colour varies with height in bands (strata), not with the top-down tint map
+                    float strata = vnoise(vec2(vTW.y * 0.07 + vnoise(vTW.xz * 0.015) * 2.5, 3.1));
+                    vec3 rockTint = mix(vec3(1.0), ts * 0.85, 0.15) * (0.9 + 0.14 * strata);
             #ifdef TRIPLANAR
                     vec3 bw = pow(abs(gN), vec3(4.0)); bw /= (bw.x + bw.y + bw.z);
                     vec2 ux = vTW.zy / 7.0, uy = vTW.xz / 7.0, uz = vTW.xy / 7.0;
@@ -102,6 +105,10 @@ export function makeTerrainMaterial(terrain, tex, q, maps) {
                     rk = L(vTW.xz / 7.0, 2.0); rn = N(vTW.xz / 7.0, 2.0);
             #endif
                     rk.rgb *= rockTint;
+                    // large patches of darker and paler rock (lichen, wet streaks, fresh scars), so a
+                    // mountain face reads as rock rather than one even plane
+                    float patchN = vnoise(w3 * 0.011) * 0.65 + vnoise(w3 * 0.031) * 0.35;
+                    rk.rgb *= 0.7 + 0.5 * smoothstep(0.2, 0.8, patchN);
                     blendLayer(col, h, nrm, rough, rk, rn, 0.82, rockW);
                 }
                 // snow sits on the flatter ground and drifts into the hollows
@@ -110,7 +117,7 @@ export function makeTerrainMaterial(terrain, tex, q, maps) {
                 blendLayer(col, h, nrm, rough, sw, N(uv * 0.7, 3.0), 0.55, sn);
                 tSnow = sn;
             #ifdef MACRO
-                float mac = vnoise(vTW.xz * 0.021) * 0.6 + vnoise(vTW.xz * 0.0063) * 0.4;
+                float mac = vnoise(w3 * 0.021) * 0.6 + vnoise(w3 * 0.0063) * 0.4;
                 col *= 0.84 + 0.32 * mac;
             #endif
                 // rain darkens and glosses everything but snow
@@ -153,9 +160,46 @@ export class TerrainView {
         this.tex = makeTerrainTextures(256, Math.min(8, renderer.maxAniso));
         this.maps = makeTerrainTextures2(terrain);
         this.G = G;
+        this.buildMips();
         this.setQuality(renderer.q);
         this.visibleCount = 0;
         this.built = 0;
+    }
+
+    /**
+     * Averaged copies of the height field (each level halves the resolution). A distant node that
+     * takes one vertex every 8 or 32 samples must read a filtered height there, or the fine ridges
+     * alias into a regular comb of false flutes and the mountain's real shape is lost.
+     */
+    buildMips() {
+        const T = this.terrain, N = T.N;
+        const pyramid = (src) => {
+            const out = [{ n: N, h: src }];
+            for (let k = 1; k <= 6; k++) {
+                const prev = out[k - 1], pn = prev.n, n = Math.ceil(pn / 2), h = new Float32Array(n * n);
+                for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+                    const i0 = Math.min(pn - 1, i * 2), i1 = Math.min(pn - 1, i * 2 + 1), j0 = Math.min(pn - 1, j * 2), j1 = Math.min(pn - 1, j * 2 + 1);
+                    h[j * n + i] = (prev.h[j0 * pn + i0] + prev.h[j0 * pn + i1] + prev.h[j1 * pn + i0] + prev.h[j1 * pn + i1]) * 0.25;
+                }
+                out.push({ n, h });
+            }
+            return out;
+        };
+        this.mips = pyramid(T.h);
+        this.aoMips = pyramid(T.ao);   // the baked occlusion aliases into stripes too if point-sampled
+    }
+    /** Height around grid sample (gi, gj) averaged over about ±2^k samples (k = 0: the raw sample). */
+    filtered(gi, gj, k, mips = this.mips) {
+        const N = this.terrain.N;
+        gi = Math.max(0, Math.min(N - 1, gi)); gj = Math.max(0, Math.min(N - 1, gj));
+        if (k <= 0) return mips[0].h[gj * N + gi];
+        const m = mips[Math.min(k, mips.length - 1)], s = 1 << Math.min(k, mips.length - 1), n = m.n;
+        // centre the window on the sample: blend the four blocks around it
+        const fx = gi / s - 0.5, fz = gj / s - 0.5;
+        const bi = Math.max(0, Math.min(n - 2, Math.floor(fx))), bj = Math.max(0, Math.min(n - 2, Math.floor(fz)));
+        const u = Math.max(0, Math.min(1, fx - bi)), v = Math.max(0, Math.min(1, fz - bj));
+        const h = m.h;
+        return (h[bj * n + bi] * (1 - u) + h[bj * n + bi + 1] * u) * (1 - v) + (h[(bj + 1) * n + bi] * (1 - u) + h[(bj + 1) * n + bi + 1] * u) * v;
     }
 
     setQuality(q) {
@@ -190,19 +234,22 @@ export class TerrainView {
         const V = (SEG + 1) * (SEG + 1);
         const skirtN = 4 * (SEG + 1);
         const pos = new Float32Array((V + skirtN) * 3), nrm = new Float32Array((V + skirtN) * 3), ao = new Float32Array(V + skirtN);
-        const gridAt = (gi, gj) => Hh[Math.min(N - 1, gj) * N + Math.min(N - 1, gi)];
+        // coarse nodes read a filtered height field (see buildMips) and take normals at their own spacing
+        const lk = Math.max(0, Math.round(Math.log2(gstep)));
+        const hAt = (gi, gj) => this.filtered(gi, gj, lk);
         let mn = 1e9, mx = -1e9;
         for (let j = 0; j <= SEG; j++) for (let i = 0; i <= SEG; i++) {
             const gi = Math.min(N - 1, gi0 + i * gstep), gj = Math.min(N - 1, gj0 + j * gstep);
             const k = j * (SEG + 1) + i;
-            const h = Hh[gj * N + gi];
+            const h = lk ? hAt(gi, gj) : Hh[gj * N + gi];
             pos[k * 3] = x0 + i * step; pos[k * 3 + 1] = h; pos[k * 3 + 2] = z0 + j * step;
             if (h < mn) mn = h; if (h > mx) mx = h;
-            const dx = gridAt(Math.min(N - 1, gi + 1), gj) - gridAt(Math.max(0, gi - 1), gj);
-            const dz = gridAt(gi, Math.min(N - 1, gj + 1)) - gridAt(gi, Math.max(0, gj - 1));
-            const l = Math.hypot(dx, 2 * WORLD.CELL, dz);
-            nrm[k * 3] = -dx / l; nrm[k * 3 + 1] = 2 * WORLD.CELL / l; nrm[k * 3 + 2] = -dz / l;
-            ao[k] = AO[gj * N + gi] / 255;
+            const ns = Math.max(1, gstep);
+            const dx = hAt(gi + ns, gj) - hAt(gi - ns, gj);
+            const dz = hAt(gi, gj + ns) - hAt(gi, gj - ns);
+            const l = Math.hypot(dx, 2 * ns * WORLD.CELL, dz);
+            nrm[k * 3] = -dx / l; nrm[k * 3 + 1] = 2 * ns * WORLD.CELL / l; nrm[k * 3 + 2] = -dz / l;
+            ao[k] = (lk ? this.filtered(gi, gj, lk, this.aoMips) : AO[gj * N + gi]) / 255;
         }
         // skirts: copies of the edge vertices dropped below the surface
         const drop = step * 1.5 + 2;

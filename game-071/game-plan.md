@@ -716,6 +716,9 @@ Out of scope for v1, with reasons:
 
 ## Changelog
 
+### v1.0.4 — 2026-10-08
+- Mountains: filtered distant terrain LODs, gentler AO, B-spline upsampling, a looser slope cap and arêtes on big peaks; rock colour in patches and bands.
+
 ### v1.0.3 — 2026-10-08
 - Phones: the ☰ quick menu (and any menu opened from a touch button) no longer closes when the finger lifts.
 
