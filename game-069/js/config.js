@@ -3,7 +3,7 @@
 // ============================================================
 
 export const SAVE_KEY = 'dirt-crown.v1';
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.1';
 
 // Fixed simulation step. Physics, AI and lap timing all run at this rate whatever the screen does.
 export const DT = 1 / 120;

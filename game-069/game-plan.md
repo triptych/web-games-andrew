@@ -3,7 +3,7 @@
 **Genre:** Dirt-track racing × light RPG (career, upgrades, story, a rival and a final)
 **Engine:** three.js r165 (import map, ES modules). No asset files: every car, track, prop, portrait, texture, tune and engine note is made in code.
 **Target:** desktop (keyboard, gamepad) and phones (touch, portrait and landscape)
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -180,6 +180,9 @@ Seven circuits of four events (the last has two), 26 events in all. An event ope
 ---
 
 ## 8. Changelog
+
+### v1.0.1 (2026-10-08)
+- Cars sit flat on banked turns: pitch and roll come from the road height sampled under the nose, tail and both sides (the roll from banking had the wrong sign, sinking the left wheels). The body leans out of turns, not into them.
 
 ### v1.0.0 (2026-10-07)
 - First release: 20 tracks in 7 environments, 26 events across 7 circuits, 6 champions and a rival, 6 upgrade lines that all show on the car, a paint shop, a story with 19 scenes and an ending, desktop, gamepad and touch controls, `dev/simtest.mjs` and `dev/browsertest.mjs`.
