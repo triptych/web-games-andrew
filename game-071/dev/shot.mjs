@@ -32,7 +32,7 @@ const errs = [];
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errs.push(`${m.type()}: ${m.text().slice(0, 3000)}`); });
 page.on('pageerror', (e) => errs.push(`pageerror: ${e.message}\n${e.stack}`));
 const t0 = Date.now();
-await page.goto(`${BASE}/game-071/index.html?debug=1${query ? '&' + query : ''}`);
+await page.goto(`${BASE}/game-071/${process.env.PAGE ?? "index.html"}?debug=1${query ? '&' + query : ''}`);
 await page.waitForFunction('window.__fm && window.__fm.mode !== "loading"', null, { timeout: 180000 }).catch(() => errs.push('timeout waiting for boot'));
 console.log('booted in', ((Date.now() - t0) / 1000).toFixed(1), 's');
 let n = 0;

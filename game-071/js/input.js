@@ -10,7 +10,7 @@ const KEYMAP = {
     KeyW: 'fwd', ArrowUp: 'fwd', KeyS: 'back', ArrowDown: 'back', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right',
     ShiftLeft: 'sprint', ShiftRight: 'sprint', Space: 'jump', KeyC: 'sneak', ControlLeft: 'sneak', KeyE: 'use', KeyF: 'use',
     KeyR: 'ready', KeyV: 'camera', Tab: 'tween', KeyI: 'inventory', KeyM: 'map', KeyJ: 'journal', KeyP: 'magic', KeyK: 'skills',
-    KeyT: 'wait', Escape: 'pause', KeyQ: 'favorites', KeyZ: 'shout', CapsLock: 'walk', F5: 'quicksave', F9: 'quickload',
+    KeyT: 'wait', Escape: 'pause', KeyQ: 'favorites', KeyZ: 'sigil', CapsLock: 'walk', F5: 'quicksave', F9: 'quickload',
     Digit1: 'hot1', Digit2: 'hot2', Digit3: 'hot3', Digit4: 'hot4', Digit5: 'hot5', Digit6: 'hot6', Digit7: 'hot7', Digit8: 'hot8',
     Enter: 'confirm', Backspace: 'back2', KeyX: 'sheathe', KeyB: 'debug',
 };
@@ -193,7 +193,7 @@ export class Input {
         if (lx || ly || rx || ry) this.lastDevice = 'pad';
         this.look.dx += Math.sign(rx) * rx * rx * 3.2 * dt * this.sens;
         this.look.dy += Math.sign(ry) * ry * ry * 2.4 * dt * this.sens * (this.invertY ? -1 : 1);
-        const map = { 0: 'jump', 1: 'sneak', 2: 'use', 3: 'ready', 4: 'favorites', 5: 'shout', 6: 'block', 7: 'attack', 8: 'map', 9: 'pause', 10: 'sprint', 11: 'camera', 12: 'padUp', 13: 'padDown', 14: 'padLeft', 15: 'padRight' };
+        const map = { 0: 'jump', 1: 'sneak', 2: 'use', 3: 'ready', 4: 'favorites', 5: 'sigil', 6: 'block', 7: 'attack', 8: 'map', 9: 'pause', 10: 'sprint', 11: 'camera', 12: 'padUp', 13: 'padDown', 14: 'padLeft', 15: 'padRight' };
         gp.buttons.forEach((b, i) => {
             const a = map[i]; if (!a) return;
             const on = b.pressed || b.value > 0.5;

@@ -82,7 +82,34 @@ export function makeFlora(terrain, keepOut = []) {
             bushes.push(x, y, z, 0.6 + hash01(ix, iz, 24) * 0.8, hash01(ix, iz, 25) * Math.PI * 2, hash01(ix, iz, 26) < 0.55 ? 0 : 1);
         }
     }
-    return { trees: new Float32Array(trees), rocks: new Float32Array(rocks), bushes: new Float32Array(bushes) };
+    // ---- harvestable plants: flowers, berries and mushrooms that give ingredients
+    const plants = [];
+    const PS = 7;
+    const PLANT_BY_REGION = {
+        plains: ['blue_gentian', 'red_campion', 'heather', 'lavender', 'cottongrass', 'fire_lily'],
+        pinewood: ['juniper', 'fly_amanita', 'palecap', 'blue_gentian', 'nightshade', 'mandrake', 'bloodcap'],
+        southwood: ['juniper', 'fly_amanita', 'heather', 'nightshade', 'mandrake', 'lavender'],
+        greyspine: ['thistle', 'red_campion', 'blue_gentian', 'ashmoss', 'mandrake'],
+        wastes: ['rimeberries', 'frostmint', 'thistle'], coast: ['rimeberries', 'frostmint', 'ashmoss'],
+        hrimgard: ['rimeberries', 'blue_gentian', 'thistle', 'juniper'], icefields: ['rimeberries', 'frostmint'],
+        ember: ['ashmoss', 'red_campion', 'cottongrass', 'fire_lily', 'scorchcap'],
+        mirefen: ['bogbean', 'nightshade', 'wolfsbane', 'beard_lichen', 'trollcap', 'lavender', 'heather'],
+    };
+    for (let gz = -H + PS / 2; gz < H; gz += PS) {
+        for (let gx = -H + PS / 2; gx < H; gx += PS) {
+            const ix = Math.round(gx * 11), iz = Math.round(gz * 11);
+            if (hash01(ix, iz, 31) > 0.11) continue;
+            const x = gx + (hash01(ix, iz, 32) - 0.5) * PS, z = gz + (hash01(ix, iz, 33) - 0.5) * PS;
+            if (Math.abs(x) > WORLD.BORDER || Math.abs(z) > WORLD.BORDER) continue;
+            if (terrain.roadAt(x, z) > 0.02 || terrain.padAt(x, z) > 0.05 || terrain.slopeAt(x, z) > 0.4) continue;
+            const y = terrain.heightAt(x, z);
+            if (y < 1.5 || terrain.waterAt(x, z) > y - 0.2) continue;
+            if (blocked(x, z, 1)) continue;
+            const list = PLANT_BY_REGION[regionAt(x, z)] || PLANT_BY_REGION.plains;
+            plants.push({ x, y, z, id: list[Math.floor(hash01(ix, iz, 34) * list.length)], rot: hash01(ix, iz, 35) * 6.28 });
+        }
+    }
+    return { trees: new Float32Array(trees), rocks: new Float32Array(rocks), bushes: new Float32Array(bushes), plants };
 }
 
 /** Add trunk and rock colliders for every instance. */

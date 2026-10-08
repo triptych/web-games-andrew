@@ -10,6 +10,8 @@ import { WaterView, makeHeightTexture } from './water.js';
 import { CameraRig } from './camera.js';
 import { VegetationView } from './vegetation.js';
 import { GrassView } from './grass.js';
+import { StructuresView } from './structures.js';
+import { ActorsView } from './actorsview.js';
 import { CAM, IS_TOUCH } from '../config.js';
 
 export class WorldView {
@@ -43,6 +45,15 @@ export class WorldView {
         this.veg = new VegetationView(this.scene, this.r, w.flora, this.terrainView);
         this.grass = new GrassView(this.scene, w.terrain, this.heightTex, this.terrainView.maps);
         yield 'forests';
+        this.structures = new StructuresView(this.scene, this.r, w.settlements, w.terrain, this.terrainView.maps, this.veg);
+        yield 'towns';
+        this.actors = new ActorsView(this.scene, w);
+        this.actors.syncAll();
+        yield 'people';
+    }
+
+    onEvents(evs) {
+        for (const e of evs) this.actors.onEvent(e);
     }
 
     setTier(t) {
@@ -52,6 +63,7 @@ export class WorldView {
         this.veg.dispose();
         this.veg.build(this.r.q, this.terrainView.maps.masks, this.terrainView.tex);
         this.grass.build(this.r.q);
+        this.actors.setQuality(this.r.q);
         this.r.build(this.scene, this.camera, this.vmScene, this.vmCamera);
     }
 
@@ -72,6 +84,9 @@ export class WorldView {
         this.water.update(this.camera.position);
         this.veg.update(this.camera.position);
         this.grass.update(this.camera.position, !interior);
+        this.structures.update(dt);
+        this.actors.showPlayer = !!p.third;
+        this.actors.update(dt, this.camera);
         // god rays
         const fx = this.r.fx;
         this.sky.sunScreen(this.camera, fx.uSun.value);

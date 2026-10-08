@@ -162,11 +162,11 @@ body.touch #prompt kbd { display: none; }
 #subtitle.on { opacity: 1; }
 #subtitle b { color: var(--gold-hi); font-weight: 500; }
 
-#shout { position: absolute; bottom: calc(18px + var(--safe-b)); right: calc(22px + var(--safe-r)); width: 40px; height: 40px; opacity: 0.85; }
-#shout svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-#shout .track { fill: rgba(0,0,0,0.4); stroke: rgba(236,230,216,0.25); stroke-width: 2; }
-#shout .arc { fill: none; stroke: var(--blue); stroke-width: 3; stroke-dasharray: 106.8; stroke-dashoffset: 0; transition: stroke-dashoffset 0.2s; }
-#shout.ready .arc { stroke: var(--ink); }
+#sigil { position: absolute; bottom: calc(18px + var(--safe-b)); right: calc(22px + var(--safe-r)); width: 40px; height: 40px; opacity: 0.85; }
+#sigil svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+#sigil .track { fill: rgba(0,0,0,0.4); stroke: rgba(236,230,216,0.25); stroke-width: 2; }
+#sigil .arc { fill: none; stroke: var(--blue); stroke-width: 3; stroke-dasharray: 106.8; stroke-dashoffset: 0; transition: stroke-dashoffset 0.2s; }
+#sigil.ready .arc { stroke: var(--ink); }
 #status-icons { position: absolute; bottom: calc(48px + var(--safe-b)); left: 50%; transform: translateX(-50%); display: flex; gap: 6px; font-size: 14px; }
 #debug-info { position: absolute; bottom: 4px; left: 6px; font: 11px monospace; color: #9fb; text-shadow: 0 0 2px #000; white-space: pre; }
 
@@ -187,7 +187,7 @@ body.touch #prompt kbd { display: none; }
 .tcluster.right .attack { right: 6px; bottom: 6px; }
 .tcluster.right .block { right: 102px; bottom: 0px; }
 .tcluster.right .jump { right: 0px; bottom: 102px; }
-.tcluster.right .shout { right: 84px; bottom: 84px; }
+.tcluster.right .sigil { right: 84px; bottom: 84px; }
 .tcluster.right .use { right: 160px; bottom: 120px; display: none; }
 .tcluster.right .use.on { display: grid; border-color: var(--gold); }
 .tcluster.left { left: calc(14px + var(--safe-l)); top: calc(50px + var(--safe-t)); width: 60px; height: 120px; }

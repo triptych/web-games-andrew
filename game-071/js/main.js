@@ -110,7 +110,7 @@ function frame(now) {
         }
         if (steps >= 4 * FAST) app.acc = 0;
     }
-    world.drain();
+    view.onEvents(world.drain());
     view.update(dt, { wheel: snap.wheel });
     view.render(dt);
     if (DEBUG) {

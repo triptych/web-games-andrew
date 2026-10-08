@@ -112,7 +112,7 @@ vec3 stars(vec3 d) {
             vec3 o = vec3(hash13(id + 1.7), hash13(id + 4.1), hash13(id + 9.3)) - 0.5;
             float dd = length(f - o * 0.7);
             float tw = 0.65 + 0.35 * sin(uTime * (2.0 + h * 6.0) + h * 40.0);
-            float b = smoothstep(0.08, 0.0, dd) * tw * (L == 0 ? 1.6 : 0.7);
+            float b = smoothstep(0.13, 0.0, dd) * tw * (L == 0 ? 5.0 : 2.2);
             vec3 tint = mix(vec3(0.75, 0.85, 1.0), vec3(1.0, 0.85, 0.65), hash13(id + 2.2));
             c += tint * b;
         }
@@ -157,7 +157,7 @@ vec3 aurora(vec3 d) {
         vec3 col = mix(vec3(0.1, 1.0, 0.45), vec3(0.55, 0.15, 1.0), smoothstep(0.25, 1.0, t));
         acc += col * sheet * streak * region * (1.0 - t * 0.6);
     }
-    return acc / steps * 1.8 * smoothstep(0.02, 0.25, d.y);
+    return acc / steps * 6.0 * smoothstep(0.02, 0.25, d.y);
 }
 void main() {
     vec3 d = normalize(vDir);
@@ -308,7 +308,7 @@ export class Sky {
         d.uNight.value = night;
         d.uStarVis.value = night;
         d.uCover.value = s.cover;
-        d.uAurora.value = night * (s.aurora || 0);
+        d.uAurora.value = night * (s.aurora || 0) * (0.45 + 0.55 * Math.abs(Math.sin(s.day * 1.7 + 0.6)));
         this.cloudOff.x += dt * G.uWind.value.x * 0.004;
         this.cloudOff.y += dt * G.uWind.value.y * 0.004;
         d.uCloudOff.value.copy(this.cloudOff);
@@ -329,7 +329,7 @@ export class Sky {
             col.setRGB(1.0, 0.93 - warm * 0.28, 0.82 - warm * 0.5);
         } else {
             dir = moonUp ? this.moon1 : new THREE.Vector3(0.2, 0.9, 0.3).normalize();
-            inten = (moonUp ? 0.42 : 0.18) * night * (1 - s.cover * 0.6);
+            inten = (moonUp ? 0.6 : 0.25) * night * (1 - s.cover * 0.6);
             col.setRGB(0.55, 0.66, 0.95);
         }
         if (s.interior) inten = 0;

@@ -253,6 +253,37 @@ function shrub(H, lod, rnd, rect = R.leaf) {
     return mergeGeometries(parts.map((g) => g.toNonIndexed()));
 }
 
+/** The Eldertree: a broad, gnarled blossom tree with a dense crown. */
+function greatTree(rnd) {
+    const H = 16;
+    const parts = [trunk(H * 0.55, 1.1, 0.55, 10, R.bark, 0.6)];
+    const limbs = [];
+    for (let b = 0; b < 7; b++) {
+        const a = b / 7 * Math.PI * 2 + rnd() * 0.5, L = 6 + rnd() * 3;
+        const br = trunk(L, 0.45, 0.12, 6, R.bark, 0.4);
+        br.rotateZ(0.75 + rnd() * 0.3); br.rotateY(a); br.translate(0, H * 0.45 + rnd() * 1.5, 0);
+        parts.push(br);
+        limbs.push([Math.cos(a) * L * 0.7, H * 0.45 + L * 0.55, -Math.sin(a) * L * 0.7]);
+    }
+    for (const [lx, ly, lz] of [...limbs, [0, H * 0.85, 0]]) {
+        for (let i = 0; i < 26; i++) {
+            const a = rnd() * Math.PI * 2, el = (rnd() - 0.3) * 1.4, r = 1.5 + rnd() * 3;
+            const s = 2.4 + rnd() * 1.6;
+            const g = new THREE.PlaneGeometry(s, s);
+            g.rotateX(-Math.PI / 2 + (rnd() - 0.5) * 1.4); g.rotateY(rnd() * Math.PI * 2);
+            const cx = lx + Math.cos(a) * Math.cos(el) * r, cy = ly + Math.sin(el) * r, cz = lz + Math.sin(a) * Math.cos(el) * r;
+            g.translate(cx, cy, cz);
+            remapUV(g, R.leaf);
+            const p = g.attributes.position, nn = new Float32Array(p.count * 3);
+            for (let k = 0; k < p.count; k++) { const v = new THREE.Vector3(p.getX(k), p.getY(k) - H * 0.6, p.getZ(k)).normalize(); nn.set([v.x, v.y, v.z], k * 3); }
+            g.setAttribute('normal', new THREE.BufferAttribute(nn, 3));
+            attr(g, 'leaf', 1);
+            parts.push(g);
+        }
+    }
+    return mergeGeometries(parts.map((g) => g.toNonIndexed()));
+}
+
 function rockGeo(detail, seed) {
     let g = new THREE.IcosahedronGeometry(1, detail);
     g.deleteAttribute('normal'); g.deleteAttribute('uv');
@@ -393,6 +424,7 @@ export class VegetationView {
             autumn: [birch(H * 0.85, 0, rnd), birch(H * 0.85, 1, rnd)],
             dead: [deadTree(H * 0.8, 0, rnd), deadTree(H * 0.8, 1, rnd)],
             shrub: [shrub(2.2, 0, rnd), shrub(2.2, 1, rnd)],
+            great: [greatTree(rnd)],
         };
         this.heights = { pine: H * 1.15, fir: H, birch: H * 0.9, autumn: H * 0.85, dead: H * 0.8, shrub: 2.2 };
         this.widths = { pine: H * 0.55, fir: H * 0.6, birch: H * 0.55, autumn: H * 0.52, dead: H * 0.45, shrub: 2.4 };
@@ -403,7 +435,11 @@ export class VegetationView {
         this.built = false;
         this.lastNear = new THREE.Vector3(1e9, 0, 0);
         this.lastFar = new THREE.Vector3(1e9, 0, 0);
+        this.specials = [];
     }
+
+    /** A one-off tree (the Eldertree in Brightwater's plaza). */
+    addSpecial(type, x, y, z, scale, color) { this.specials.push({ type, x, y, z, scale, color }); }
 
     buckets() {
         const make = (arr) => {
@@ -498,6 +534,14 @@ export class VegetationView {
         this.rocks = this.rockModels.map((lods) => lods.map((g) => {
             const m = new THREE.InstancedMesh(g, this.rockMats[0], 4000); m.count = 0; m.frustumCulled = false; m.castShadow = q.shadow > 0; m.receiveShadow = true; this.group.add(m); return m;
         }));
+        for (const sp of this.specials) {
+            const m = new THREE.InstancedMesh(this.models[sp.type][0], foliageMaterial(this.atlas, { fadeA: 1e5, fadeB: 1e5 + 1, stiff: 4 }), 1);
+            m.setMatrixAt(0, new THREE.Matrix4().compose(new THREE.Vector3(sp.x, sp.y - 0.2, sp.z), new THREE.Quaternion(), new THREE.Vector3(sp.scale, sp.scale, sp.scale)));
+            m.setColorAt(0, new THREE.Color(...sp.color));
+            m.castShadow = q.shadow > 0; m.receiveShadow = true;
+            m.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: this.atlas, alphaTest: 0.42 });
+            this.group.add(m);
+        }
         this.built = true;
         this.lastNear.set(1e9, 0, 0); this.lastFar.set(1e9, 0, 0);
     }

@@ -2,7 +2,7 @@
  * renderer.js — WebGLRenderer, the post-processing chain, quality tiers and resizing.
  *
  *   world RenderPass → viewmodel RenderPass (own depth) → Sanitize (kill NaN/Inf)
- *   → UnrealBloom (half res) → FX pass (god rays, shout ripple, underwater, damage/frost/heal, linear)
+ *   → UnrealBloom (half res) → FX pass (god rays, sigil ripple, underwater, damage/frost/heal, linear)
  *   → OutputPass (ACES + sRGB) → Grade (curves, saturation, vignette, grain) → FXAA (when no MSAA)
  */
 import * as THREE from 'three';
@@ -39,17 +39,17 @@ const FxShader = {
         uUnder: { value: 0 },
         uTime: { value: 0 },
         uSlow: { value: 0 },
-        uSoul: { value: 0 },
+        uEmber: { value: 0 },
     },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: /* glsl */`
         uniform sampler2D tDiffuse; varying vec2 vUv;
         uniform vec2 uRes; uniform vec3 uSun; uniform vec3 uSunTint; uniform float uRays; uniform float uRaySteps;
-        uniform vec4 uRipple; uniform float uUnder; uniform float uTime; uniform float uSlow; uniform float uSoul;
+        uniform vec4 uRipple; uniform float uUnder; uniform float uTime; uniform float uSlow; uniform float uEmber;
         float lum(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
         void main() {
             vec2 uv = vUv;
-            // shout ripple: an expanding ring that bends the picture
+            // sigil ripple: an expanding ring that bends the picture
             if (uRipple.w > 0.0) {
                 vec2 d = (uv - uRipple.xy) * vec2(uRes.x / uRes.y, 1.0);
                 float r = length(d), ring = uRipple.z * 1.4;
@@ -81,9 +81,9 @@ const FxShader = {
                 float depthTint = 0.55;
                 c = mix(c, vec3(0.02, 0.09, 0.12) + c * vec3(0.18, 0.45, 0.55), uUnder * depthTint);
             }
-            if (uSoul > 0.0) {
+            if (uEmber > 0.0) {
                 float l = lum(c);
-                c = mix(c, vec3(l) * vec3(1.25, 1.1, 0.75) + vec3(0.06, 0.04, 0.0), uSoul * 0.5);
+                c = mix(c, vec3(l) * vec3(1.25, 1.1, 0.75) + vec3(0.06, 0.04, 0.0), uEmber * 0.5);
             }
             if (uSlow > 0.0) {
                 float l = lum(c);

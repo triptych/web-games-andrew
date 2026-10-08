@@ -237,7 +237,12 @@ export class Terrain {
                 const ci = i >> 1, u = (i & 1) * 0.5, ci1 = Math.min(ci + 1, M - 1);
                 const b = (coarse[cj * M + ci] * (1 - u) + coarse[cj * M + ci1] * u) * (1 - v) + (coarse[cj1 * M + ci] * (1 - u) + coarse[cj1 * M + ci1] * u) * v;
                 const x = -HALF + i * CELL;
-                h[j * N + i] = b + n1.fbm(x * 0.011 + 31, z * 0.011 - 17, 3) * 3.5;
+                // steep ground gets gullies and buttresses back after the slope clamp
+                const gx = (coarse[cj * M + ci1] - coarse[cj * M + ci]) / C2, gz = (coarse[cj1 * M + ci] - coarse[cj * M + ci]) / C2;
+                const steep = smoothstep(0.45, 1.0, Math.sqrt(gx * gx + gz * gz));
+                let det = n1.fbm(x * 0.011 + 31, z * 0.011 - 17, 3) * 3.5;
+                if (steep > 0) det += (this.n4.ridged(x * 0.012, z * 0.012, 3, 2.1, 0.5) - 0.45) * 26 * steep;
+                h[j * N + i] = b + det;
             }
         }
         if (onProgress) onProgress(0.55);
@@ -405,7 +410,8 @@ export class Terrain {
             this.raster(p.x - reach, p.z - reach, p.x + reach, p.z + reach, (k, x, z) => {
                 const d = Math.hypot(x - p.x, z - p.z);
                 if (d > reach) return;
-                const t = smoothstep(reach, p.r, d);
+                let t = smoothstep(reach, p.r, d);
+                t *= smoothstep(8, 22, this.riverD[k]);    // leave the river channel and its banks alone
                 this.h[k] = lerp(this.h[k], level, t);
                 if (d < p.r * 0.95) this.pad[k] = 255;
             });

@@ -271,3 +271,127 @@ export function canvasTexture(w, h, draw, opts = {}) {
 }
 
 export { clamp01, sstep };
+
+// ---------------------------------------------------------------- structure layers
+// 0 logs · 1 planks · 2 shingles · 3 thatch · 4 masonry · 5 fieldstone · 6 plaster · 7 flagstones
+// 8 iron · 9 cloth · 10 beam · 11 straw · 12 carved stone · 13 brass · 14 window · 15 hide · 16 turf
+export const SLAYER = { log: 0, plank: 1, shingle: 2, thatch: 3, masonry: 4, field: 5, plaster: 6, flag: 7, iron: 8, cloth: 9, beam: 10, straw: 11, carved: 12, brass: 13, window: 14, hide: 15, turf: 16 };
+// metres covered by one tile of each layer
+export const SLAYER_SCALE = [2.4, 2.0, 2.0, 2.4, 3.0, 3.0, 2.5, 3.0, 1.5, 1.5, 1.6, 2.0, 2.5, 2.0, 1.2, 2.2, 3.0];
+export const SLAYER_ROUGH = [0.9, 0.85, 0.82, 0.95, 0.88, 0.92, 0.93, 0.85, 0.45, 0.95, 0.85, 0.97, 0.86, 0.35, 0.2, 0.8, 0.98];
+export const SLAYER_METAL = [0, 0, 0, 0, 0, 0, 0, 0, 0.8, 0, 0, 0, 0, 0.9, 0.1, 0, 0];
+
+function structLayer(k, S) {
+    const col = new Float32Array(S * S * 3), h = new Float32Array(S * S);
+    const set = (i, r, g, b, hh) => { col[i * 3] = r; col[i * 3 + 1] = g; col[i * 3 + 2] = b; h[i] = hh; };
+    const n1 = pfbm(S, 8, 4, 500 + k), n2 = pnoise(S, 64, 520 + k), grain = pnoise(S, 128, 540 + k);
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+        const i = y * S + x, u = x / S, v = y / S;
+        switch (k) {
+            case 0: { // horizontal logs, 8 per tile, rounded with end-grain-ish knots
+                const f = (v * 8) % 1, round = Math.sin(f * Math.PI);
+                const gr = 0.5 + 0.5 * Math.sin(u * 60 + n1[i] * 8 + Math.floor(v * 8) * 3);
+                const val = (0.3 + 0.18 * gr + 0.1 * (n2[i] - 0.5)) * (0.45 + 0.55 * round);
+                set(i, val * 1.15, val * 0.88, val * 0.62, round * 0.8 + gr * 0.1); break;
+            }
+            case 1: { // vertical planks, 6 per tile with gaps
+                const f = (u * 6) % 1, gap = sstep(0.0, 0.04, f) * sstep(1.0, 0.96, f);
+                const gr = 0.5 + 0.5 * Math.sin(v * 40 + n1[i] * 10 + Math.floor(u * 6) * 5);
+                const tone = 0.85 + 0.3 * ((Math.floor(u * 6) * 0.37) % 1);
+                const val = (0.32 + 0.12 * gr + 0.06 * (grain[i] - 0.5)) * tone * (0.35 + 0.65 * gap);
+                set(i, val * 1.12, val * 0.86, val * 0.62, gap * 0.6 + gr * 0.1); break;
+            }
+            case 2: { // wooden shingles in staggered rows
+                const row = Math.floor(v * 10), f = (v * 10) % 1, off = (row % 2) * 0.5;
+                const cu = (u * 7 + off) % 1, edge = sstep(0.0, 0.06, cu) * sstep(1.0, 0.94, cu);
+                const lift = f;   // each shingle thickens toward its bottom edge
+                const tone = 0.75 + 0.35 * hash01i(Math.floor(u * 7 + off), row);
+                const val = (0.24 + 0.1 * (n2[i] - 0.5) + 0.06 * Math.sin(v * 200 + n1[i] * 9)) * tone * (0.5 + 0.5 * edge) * (0.6 + 0.4 * lift);
+                set(i, val * 1.1, val * 0.9, val * 0.72, lift * 0.7 * edge); break;
+            }
+            case 3: { // thatch: dense straw strokes
+                const st = 0.5 + 0.5 * Math.sin(u * 220 + n1[i] * 30 + grain[i] * 6);
+                const val = 0.38 + 0.18 * st + 0.12 * (n1[i] - 0.5);
+                set(i, val * 1.05, val * 0.88, val * 0.55, st * 0.5 + n1[i] * 0.4); break;
+            }
+            case 4: case 12: { // masonry blocks (12 adds carved knotwork bands)
+                const rows = 6, row = Math.floor(v * rows), off = (row % 2) * 0.5;
+                const bu = (u * 3 + off) % 1, bv = (v * rows) % 1;
+                const mort = sstep(0.0, 0.05, bu) * sstep(1.0, 0.95, bu) * sstep(0.0, 0.08, bv) * sstep(1.0, 0.92, bv);
+                const tone = 0.8 + 0.3 * hash01i(Math.floor(u * 3 + off), row);
+                let val = (0.4 + 0.14 * (n1[i] - 0.5) + 0.06 * (grain[i] - 0.5)) * tone * (0.45 + 0.55 * mort);
+                if (k === 12) {
+                    const band = row === 2 || row === 3;
+                    const knot = band ? Math.abs(Math.sin(u * Math.PI * 12 + Math.sin(v * Math.PI * 12) * 2)) : 1;
+                    val *= band ? 0.75 + 0.35 * sstep(0.2, 0.5, knot) : 1;
+                    set(i, val * 0.92, val * 0.95, val * 1.0, mort * 0.7 + (band ? knot * 0.2 : 0));
+                } else set(i, val * 1.0, val * 0.97, val * 0.92, mort * 0.8 + n1[i] * 0.2);
+                break;
+            }
+            case 5: case 7: { // fieldstone / flagstones: cellular stones
+                if (!structLayer.w5) structLayer.w5 = pworley(S, 9, 555);
+                if (!structLayer.w7) structLayer.w7 = pworley(S, 6, 777);
+                const w = k === 5 ? structLayer.w5 : structLayer.w7;
+                const e = sstep(0.0, 0.08, w.f2[i] - w.f1[i]);
+                const val = (0.36 + 0.2 * w.id[i] + 0.1 * (n1[i] - 0.5)) * (0.35 + 0.65 * e);
+                set(i, val * 1.0, val * 0.97, val * 0.9, e * 0.6 + (1 - w.f1[i]) * 0.3); break;
+            }
+            case 6: { // plaster with stains
+                const val = 0.72 + 0.1 * (n1[i] - 0.5) + 0.05 * (grain[i] - 0.5) - sstep(0.6, 0.8, n1[i]) * 0.15;
+                set(i, val * 0.98, val * 0.94, val * 0.86, 0.5 + n1[i] * 0.2); break;
+            }
+            case 8: { // dark iron with hammer marks
+                const val = 0.25 + 0.1 * (n1[i] - 0.5) + 0.05 * grain[i];
+                set(i, val * 0.9, val * 0.92, val, 0.5 + grain[i] * 0.2); break;
+            }
+            case 9: { // woven cloth (white; tinted by vertex colour)
+                const weave = 0.5 + 0.25 * Math.sin(u * 400) + 0.25 * Math.sin(v * 400);
+                const val = 0.7 + 0.12 * weave + 0.08 * (n1[i] - 0.5);
+                set(i, val, val, val, weave * 0.3); break;
+            }
+            case 10: { // dark beam wood
+                const gr = 0.5 + 0.5 * Math.sin(v * 50 + n1[i] * 12);
+                const val = 0.18 + 0.08 * gr + 0.04 * (grain[i] - 0.5);
+                set(i, val * 1.1, val * 0.85, val * 0.62, gr * 0.3 + 0.3); break;
+            }
+            case 11: { // straw / hay
+                const st = 0.5 + 0.5 * Math.sin(u * 160 + v * 40 + n1[i] * 20);
+                const val = 0.55 + 0.2 * st;
+                set(i, val * 1.05, val * 0.9, val * 0.5, st * 0.4); break;
+            }
+            case 13: { // brass plates with rivets
+                const pu = (u * 4) % 1, pv = (v * 4) % 1;
+                const seam = sstep(0.0, 0.03, pu) * sstep(0.0, 0.03, pv);
+                const rivet = (Math.hypot(pu - 0.08, pv - 0.08) < 0.035 || Math.hypot(pu - 0.92, pv - 0.08) < 0.035) ? 1 : 0;
+                const val = (0.55 + 0.15 * (n1[i] - 0.5)) * (0.6 + 0.4 * seam) + rivet * 0.2;
+                set(i, val * 1.0, val * 0.72, val * 0.35, seam * 0.5 + rivet * 0.5); break;
+            }
+            case 14: { // leaded window: dark glass in a lattice (emissive at night via shader)
+                const lu = (u * 4) % 1, lv = (v * 4) % 1;
+                const lead = Math.min(sstep(0.0, 0.08, lu) * sstep(1.0, 0.92, lu), sstep(0.0, 0.08, lv) * sstep(1.0, 0.92, lv));
+                const val = 0.12 + 0.1 * n1[i];
+                set(i, lead > 0.5 ? val * 0.8 : 0.12, lead > 0.5 ? val * 0.9 : 0.1, lead > 0.5 ? val : 0.08, lead * 0.4); break;
+            }
+            case 15: { // stretched hide
+                const val = 0.48 + 0.14 * (n1[i] - 0.5) + 0.06 * (grain[i] - 0.5);
+                set(i, val * 1.08, val * 0.9, val * 0.68, n1[i] * 0.5); break;
+            }
+            case 16: { // turf / grass sod
+                const val = 0.3 + 0.12 * (n1[i] - 0.5) + 0.1 * grain[i];
+                set(i, val * 0.75, val * 1.0, val * 0.45, n1[i] * 0.4 + grain[i] * 0.3); break;
+            }
+        }
+    }
+    return { col, h };
+}
+function hash01i(a, b) { let h = Math.imul(a | 0, 374761393) ^ Math.imul(b | 0, 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+
+export function makeStructureTextures(size = 256, anisotropy = 4) {
+    const alb = [], nrm = [];
+    for (let k = 0; k < 17; k++) {
+        const { col, h } = structLayer(k, size);
+        alb.push(packRGBA(size, col, h));
+        nrm.push(heightToNormal(h, size, k === 14 ? 1 : k === 9 ? 1.5 : 4 * size / 256));
+    }
+    return { albedo: makeArray(alb, size, true, anisotropy), normal: makeArray(nrm, size, false, anisotropy) };
+}
