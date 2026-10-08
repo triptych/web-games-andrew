@@ -8,14 +8,16 @@
  * (tooltip + highlight) → click it (opens the game in a new tab) → library
  * search + Find statue → map → night. Phones (390×844 portrait, 844×390
  * landscape, touch only): enter by tap, joystick walk, tap a statue for its
- * card, HUD buttons ≥ 44 px. Screenshots → garden/dev/shots/.
+ * card, HUD buttons ≥ 44 px. Fox (?fox=1): the Worldroot fox comes in, stops to
+ * look, runs off and is gone; ?fox=0 builds nothing; the visit odds are one in
+ * five. Screenshots → garden/dev/shots/.
  *
  *   python3 -m http.server 8077            # from the REPO ROOT
  *   node garden/dev/browsertest.mjs
  *
  * No network to unpkg.com? Fetch three.js once and CDN requests are served
  * from disk:  cd garden/dev && npm pack three@0.165.0 && tar xzf three-0.165.0.tgz
- * Env: BASE (default http://127.0.0.1:8077), THREE_PKG, PW_CHROMIUM_PATH, ONLY=desktop|phones.
+ * Env: BASE (default http://127.0.0.1:8077), THREE_PKG, PW_CHROMIUM_PATH, ONLY=desktop|phones|fox.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -238,6 +240,41 @@ async function desktop() {
     await browser.close();
 }
 
+async function fox() {
+    console.log('\nfox (?fox=1)');
+    const { page } = await newPage({ width: 1100, height: 680 });
+    await boot(page, '&fox=1');
+    await page.click('#enter');
+    await page.waitForFunction(() => window.__garden.entered, null, { timeout: 120000 });
+    // stand on the path up to the hub, looking toward it, and don't make the test wait for the fox
+    await page.evaluate(() => { const g = window.__garden; g.controls.teleport(0, 30, 0); g.fox.wait = 0.3; });
+    const seen = [];
+    let shotTaken = false;
+    await page.waitForFunction(() => window.__garden.fox.state === 'coming', null, { timeout: 180000 });
+    for (let i = 0; i < 2000; i++) {
+        const st = await page.evaluate(() => window.__garden.fox.state);
+        if (seen[seen.length - 1] !== st) seen.push(st);
+        if (st === 'looking' && !shotTaken) { shotTaken = true; await shot(page, 'fox-looking'); }
+        if (st === 'gone') break;
+        await page.waitForTimeout(100);
+    }
+    check(seen.join(' → ') === 'coming → looking → fleeing → gone', `the fox comes, looks, runs and is gone (${seen.join(' → ')})`);
+    check(await page.evaluate(() => !window.__garden.fox.fox.visible), 'and it is no longer drawn');
+    // the odds: built only when the roll is under 0.2 (a stub scene, so nothing is added to the real one)
+    const odds = await page.evaluate(() => {
+        const g = window.__garden, F = g.fox.constructor, stub = { add() {} };
+        const at = (r) => new F(stub, g.world, g.controls, g.camera, { rand: () => r }).coming;
+        return { low: at(0.19), edge: at(0.2), high: at(0.7) };
+    });
+    check(odds.low && !odds.edge && !odds.high, 'the fox comes on one visit in five (a roll under 0.2)');
+    await browser.close();
+
+    const { page: p0 } = await newPage({ width: 900, height: 600 });
+    await boot(p0, '&fox=0');
+    check(await p0.evaluate(() => window.__garden.fox.state === 'none' && !window.__garden.fox.fox), '?fox=0: no fox, and no model built');
+    await browser.close();
+}
+
 async function phone(viewport, name) {
     console.log(`phone ${name} ${viewport.width}x${viewport.height}`);
     const { page } = await newPage(viewport, { hasTouch: true, isMobile: true });
@@ -298,6 +335,7 @@ async function phone(viewport, name) {
 
 try {
     if (!process.env.ONLY || process.env.ONLY === 'desktop') await desktop();
+    if (!process.env.ONLY || process.env.ONLY === 'fox') await fox();
     if (!process.env.ONLY || process.env.ONLY === 'phones') {
         await phone({ width: 390, height: 844 }, 'p');
         await phone({ width: 844, height: 390 }, 'l');

@@ -1,3 +1,4 @@
 dev/shots/
 dev/package/
 *.tgz
+dev/node_modules
