@@ -110,7 +110,7 @@ export class WorldView {
         this.rig.update(p, w.space, dt, opts);
         const interior = w.cellId !== 'ext';
         const open = interior && w.space.open;
-        this.sky.update(dt, open ? { hour: 21.5, day: w.time.day, cover: 0.95, fog: 0.15, aurora: 1, interior: false } : { hour: w.time.hour, day: w.time.day, cover: ws.cover, fog: ws.fog, aurora: ws.aurora, interior }, this.camera);
+        this.sky.update(dt, open ? { hour: 19.3, day: w.time.day, cover: 0.8, fog: 0.1, aurora: 1, interior: false } : { hour: w.time.hour, day: w.time.day, cover: ws.cover, fog: ws.fog, aurora: ws.aurora, interior }, this.camera);
         this.terrainView.update(this.camera.position);
         this.water.update(this.camera.position);
         this.veg.update(this.camera.position);

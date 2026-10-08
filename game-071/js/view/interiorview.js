@@ -182,7 +182,7 @@ export class InteriorView {
         }
         this.group = g;
         this.scene.add(g);
-        this.hemi.intensity = cell.open ? 0.5 : cell.kind === 'building' ? 1.1 : 0.75;
+        this.hemi.intensity = cell.open ? 1.0 : cell.kind === 'building' ? 1.1 : 0.75;
         this.hemi.color.set(cell.kind === 'building' ? 0xffd6a8 : 0x8090a8);
         this.scene.add(this.hemi);
         for (const L of this.lights) this.scene.add(L);
