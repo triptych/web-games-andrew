@@ -5403,3 +5403,23 @@ game-058 had taps landing one fruit too low; game-067 shipped the same bug a few
 
 ### Placement tools: tap to build, drag to look
 Placing on pointer-down (or on every tile a drag crossed) meant a finger trying to scroll the view built a row of houses. For tools that put one thing somewhere, a drag should move the camera and only a press that never wandered more than ~10 px should place. Track the *maximum* distance from the start, not the end point, so a drag that comes back to where it started is still a drag. Painting tools (track, land, bulldozer) keep drag-to-paint, with two fingers for the camera.
+
+## Game 068: Haven Road — a tower defense where the creeps are the people you heal (2026-10-07)
+
+### Inverting a genre: the dead are weather, not targets
+In a tower defense whose "creeps" are people to be saved, the towers act on the walkers (heal, cure, feed, warm, splint, calm) and the threat is a hazard that follows them. The lose condition is lives lost on the road, not enemies leaking. Two things keep that from collapsing into "build healers, wait": every walker starts hurt, with a clock (bleeding, spreading blight, rising cold) that kills them before the Haven without care, and the dead turn a cheap problem into an expensive one (a scratch adds a wound, blight and fear). Boss levels then hand the player the conventional "shoot the creeps" game, but the ammunition is a cure and the cured join your side. *(game-068 `js/sim/world.js`)*
+
+### Hazards spawned among the walkers: only catch who you can keep up with
+The dead spawn interleaved with the people, so later walkers come up behind slower zombies. The first balance runs lost most people to scratches *from behind*. Two rules fixed it and read naturally on screen: a zombie only scratches someone whose current speed is not faster than its own (the quick slip past; the limping, frozen, hungry and collapsed are caught), and walkers ease to the far side of the road when one of the dead is ahead in their lane. A scratch also gives the victim a short safety window and adrenaline, or one limping walker is mobbed by every zombie in the column in turn.
+
+### A balance bot needs two placement rules a human uses without thinking
+The bot's first heuristic, "the free tile whose range covers the most road", clustered every station where two roads overlapped and left the first third of the road bare, which is exactly where the hurt arrive. Weight road samples already covered by a station of the same kind at 0.3, put the first of each kind in a band of the road where that ailment bites, and the second early on the road. For boss levels it had to *leapfrog* volunteers (recall the ones the boss has walked past, redeploy ahead of it) before any boss was beatable without huge numbers; once a bot could do it, the bosses' blight could come down to where a human doing the same wins. Keep the bot in `js/sim/` and have the browser test import it to play levels out inside the page.
+
+### Overhead bars and icons in screen pixels, not world units
+A health bar sized in world units is a hair on a phone with the whole map in view. Billboard quads (one `InstancedBufferGeometry`, two draw calls for every bar and icon) whose vertex shader offsets the projected centre by a size in CSS pixels stay readable at any zoom: `c.xy += (position.xy * aSize + aOff) * 2.0 / uRes * c.w`. Draw them without depth test and with a high `renderOrder`. *(game-068 `js/view/actors.js`)*
+
+### Portrait phones: turn the map, don't shrink it
+A 24×15 map fitted into a 390×844 screen leaves tiles about 15 px wide. Turning the camera 90° on a portrait screen (yaw −π/2) so the long side of the map runs up the screen roughly doubles the tile size, and with the Haven at the top the road reads as a walk up toward safety. Fit the camera by binary-searching the distance at which all four map corners project inside the box the HUD leaves, after `setViewOffset` has centred that box.
+
+### Kind words without a wall of words
+Every heal can say something ("We've got you", "Almost there"), but at 3× speed with a dozen stations that is a wall of bubbles. Throttle in two places: the simulation emits at most one `say` event a second of sim time, and the UI shows at most one new word per 0.7 s of real time, never two at once over the same person, and five on screen in all.

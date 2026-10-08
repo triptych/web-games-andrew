@@ -864,6 +864,16 @@ h1 {
     color: #1a0e06;
 }
 
+.game-preview.haven-road,
+.carousel-slide-bg.haven-road {
+    background: radial-gradient(circle at 62% 34%, rgba(255, 214, 120, 0.85) 0 7%, rgba(255, 170, 80, 0.35) 14%, transparent 30%), radial-gradient(ellipse at 30% 100%, #6f8a3c 0%, transparent 55%), linear-gradient(180deg, #3a3f7a 0%, #c87a6a 55%, #7f9a45 100%);
+}
+
+.game-card.haven-road .play-button {
+    background: linear-gradient(135deg, #f8b062 0%, #f2994a 50%, #ffd98a 100%);
+    color: #3a2010;
+}
+
 .game-preview.dirt-crown,
 .carousel-slide-bg.dirt-crown {
     background: radial-gradient(circle at 72% 28%, rgba(255, 226, 150, 0.6) 0 10%, transparent 11%), repeating-linear-gradient(100deg, rgba(120, 70, 30, 0.35) 0 6px, transparent 6px 22px), linear-gradient(180deg, #ffb46a 0%, #e8823a 38%, #a8562a 62%, #4a2a14 100%);
