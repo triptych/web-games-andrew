@@ -82,8 +82,8 @@ export class CameraRig {
             if (space.blockedRay) {
                 // indoors: stop at walls and below the ceiling
                 for (let s = 1; s <= 10; s++) {
-                    const d = want * s / 10;
-                    const x = pivot.x + back.x * d + cy * shoulder, y = pivot.y + back.y * d + 0.2, z = pivot.z + back.z * d - sy * shoulder;
+                    const d = want * s / 10, m = d + 0.35;   // keep the near plane clear of the wall
+                    const x = pivot.x + back.x * m + cy * shoulder, y = pivot.y + back.y * d + 0.2, z = pivot.z + back.z * m - sy * shoulder;
                     if (space.blockedRay(pivot.x, pivot.y, pivot.z, x, y, z) || (!space.open && y > space.floorAt(x, z) + space.wallH - 0.3)) { want = Math.max(0.5, d - want / 10 - 0.2); break; }
                 }
             }

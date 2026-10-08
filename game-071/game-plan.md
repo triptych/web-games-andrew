@@ -717,6 +717,7 @@ Out of scope for v1, with reasons:
 ## Changelog
 
 ### v1.0.2 — 2026-10-08
+- Third-person camera no longer ends up inside walls when you arrive with your back to one.
 - People: lower head, short thick neck, one smooth torso with sloping shoulders, clothing that follows it, larger eyes.
 
 ### v1.0.1 — 2026-10-08

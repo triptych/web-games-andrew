@@ -96,6 +96,19 @@ section('dungeons');
             ok(c.usables.some((u) => u.kind === 'door'), `${c.id} has a door`);
         }
     }
+    // a line that ends inside a wall is blocked, even when the wall is close (third-person camera)
+    {
+        const c = w.interiors.get('undercroft:d0');
+        const [tx, tz] = c.tileAt(c.entry.x, c.entry.z);
+        let wall = null;
+        for (const [dx, dz] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) if (!c.isFloor(tx + dx, tz + dz)) { wall = [dx, dz]; break; }
+        ok(wall, 'the undercroft entry backs onto a wall');
+        if (wall) {
+            const e = c.center(tx, tz), y = c.floorAt(e.x, e.z) + 1.6;
+            ok(c.blockedRay(e.x, y, e.z, e.x + wall[0] * c.ts * 0.58, y, e.z + wall[1] * c.ts * 0.58), 'a ray ending just inside the wall is blocked');
+            ok(!c.blockedRay(e.x, y, e.z, e.x + wall[0] * c.ts * 0.3, y, e.z + wall[1] * c.ts * 0.3), 'a ray inside the room is clear');
+        }
+    }
     const eye = w.interiors.get('eye');
     ok(eye.open && eye.rooms.length === 6, 'the Eye arena');
     console.log(`  ${cells} dungeon levels, ${rooms} rooms`);

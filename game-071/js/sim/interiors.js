@@ -116,8 +116,9 @@ export class Cell {
     }
     /** Line of sight across the tile grid (walls and closed gates block it). */
     blockedRay(ex, ey, ez, tx, ty, tz) {
-        const d = Math.hypot(tx - ex, tz - ez), n = Math.ceil(d / (this.ts * 0.4));
-        for (let i = 1; i < n; i++) {
+        // sample finely enough to catch a wall corner, and include the end point itself
+        const d = Math.hypot(tx - ex, tz - ez), n = Math.max(1, Math.ceil(d / Math.min(this.ts * 0.25, 0.5)));
+        for (let i = 1; i <= n; i++) {
             const t = i / n, x = ex + (tx - ex) * t, z = ez + (tz - ez) * t, y = ey + (ty - ey) * t;
             const [cx, cz] = this.tileAt(x, z);
             if (!this.isFloor(cx, cz)) { if (this.open) continue; return true; }
