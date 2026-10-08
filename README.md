@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-68 games, `game-001` through `game-068`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+69 games, `game-001` through `game-069`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -86,6 +86,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 066 | [Scrapwright](game-066/) | Steampunk COM-bot RPG on a junk planet: find, repair, build and evolve 250 scrap robots, turn-based battles, eight Forgemasters and a championship | three.js |
 | 067 | [Tootle Isles](game-067/) | Cozy toy-train sandbox in the spirit of LEGO Loco: pick an island, lay track, build a town, design trains and save many islands; everything unlocked | three.js |
 | 068 | [Haven Road](game-068/) | Tower defense of healing: aid stations heal the wounded and sick fleeing a zombie-held valley; in boss levels the people you saved fight back with the cure | three.js |
+| 069 | [Dirt Crown](game-069/) | Dirt-track racing RPG: start in a tiny featureless buggy, win races for coins, upgrade it part by part across seven circuits, beat six champions and your rival for the Dirt Crown | three.js |
 
 ### Highlights
 
@@ -177,6 +178,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 
 **[Haven Road](game-068/)** — A **tower defense of healing**, in three.js with no asset files. The dead have taken the valley and the living are walking out of it down a winding road to the **Haven**, everyone hurt somehow: bleeding, feverish with the blight, starving, frozen, limping on a broken leg or frozen with fear. You can't stop the dead; you can **keep the living walking**. Build aid stations beside the road: a **Medic Tent** bandages wounds and revives the collapsed, a **Remedy Lab** lobs cure vials, a **Field Kitchen** hands out soup and temporary health, a **Warming Fire** drives out the cold, a **Splint Post** sets bones, a **Song Circle** calms fear and builds courage, a **Stretcher Crew** carries the fallen, **Lantern Posts** slow the dead and a **Signal Bell** lures them off the road; each has three visible levels. Twelve **procedurally generated roads** in three acts (autumn Maple Hollow, snowy Frostford, Lantern City at night in the rain), some with a second road merging in, five kinds of dead (shamblers, spitters, runners, brutes, howlers) and families, elders, children and handcarts on the road. The dead only catch those they can keep up with, so care is the defence. Everyone who arrives thriving **joins the volunteers**, and in three **boss levels** (the Hollow Giant, the Winter Wailer, the Blight Heart) they walk back out to fight with the cure: firefighters' hoses, nurses' darts, gardeners' herb bombs, mechanics' floodlights, musicians' lullabies and storytellers' rallies turn the dead back into people, who walk home and join them. **Letters** from the people you saved are written about the care they actually got; the Journal keeps them, the roster and the names of anyone whose lantern rose; finishing the story opens an endless **Open Road**. The Haven grows a tent at a time as people arrive, kind words float over everyone you help, and the music stays hopeful even at the gates. [game-068/dev/](game-068/dev/README.md) has a balance bot win all twelve levels in a row headlessly (and an idle player lose every one) and drives the game with a real mouse and real touches on desktop and phones.
 
+**[Dirt Crown](game-069/)** — A **dirt-track racing RPG** in three.js with no asset files, raced in third person. Grandpa Gus pulls a tarp off his first racer, **the Bucket**: tiny, primer-grey and without a single feature. Win races for coins and spend them in Halloway's Garage on six upgrade lines (engine, drivetrain, tyres, suspension, body and armour, nitro) whose every level **shows on the car**: exhausts, a hood scoop, a supercharger and a chrome blower, mud flaps and wings, bigger tyres on better rims, coil springs and long-travel arms, a bull bar, a roll cage, nerf bars, a light bar, riveted armour and nitro bottles. A paint shop adds 15 colours, liveries (stripes, flames, checkers, a lightning bolt, mud splatter) and your race number, painted so it reads the right way round on both doors. **Twenty tracks in seven places**, all generated from centrelines, features and surface patches: banked ovals and cornfields on Dustwater Flats, misty logging roads in Pinecrest Woods, tabletops and kickers in Redrock Canyon at sunset, lantern-lit mud, water and boardwalks in Gatorback Bayou (with gators), snow and sheet ice on Frostbite Pass, stadium supercross in front of twenty thousand fans in the Thunderdome, and the Crown Run on Ravenwood Mesa. Two are figure eights that cross on bridges. Arcade dirt physics: the body turns and the tyres catch the slide as their grip allows, so dirt, mud and ice each drive differently; holding drift through a bend fills the nitro, so do clean landings; slipstreams, car-to-car shoves, perfect-start launches, resets. Computer drivers plan their speed from the curvature and grip ahead, commit to passes and use nitro. **26 events** in seven cups (races, eliminations, time trials, duels), six champions with their own cars (a pickup, a rally hatch, a dune buggy, a swamp buggy with an airboat fan, an ice racer, a neon trophy truck), and a story told in 19 short scenes with painted portraits: Ravenwood Motors has bought every track in the county, and whoever wins the Dirt Crown sets the rules. It ends with your rival, Colt Ravenwood, in a one-on-one for the Crown on a track his father has had oiled. A painted county map, event cards with track previews, a HUD with a minimap and a speedometer ringed by the nitro gauge, bloom and a grade per time of day, wheel dust, spray, sparks, tyre marks and weather, a five-gear synthesised engine, a score with a style per place, autosave, keyboard, gamepad, or touch with auto-accelerate. [game-069/dev/](game-069/dev/README.md) races every track headlessly, has a bot play the whole career (it wins the Crown in about 45–60 races at three skill levels), and drives the real game on desktop and touch-only phones.
+
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
 ## Getting Started
@@ -253,7 +256,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-068/   # One self-contained folder per game
+├── game-001/ … game-069/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -310,7 +313,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 68 games are included as of the latest entries (game-063 Tee & Sorcery, game-064 Kraken's Gambit, game-065 Worldroot, game-066 Scrapwright, game-067 Tootle Isles, game-068 Haven Road).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 69 games are included as of the latest entries (game-064 Kraken's Gambit, game-065 Worldroot, game-066 Scrapwright, game-067 Tootle Isles, game-068 Haven Road, game-069 Dirt Crown).
 
 ---
 
