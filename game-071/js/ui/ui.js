@@ -93,6 +93,13 @@ export class Panel {
         this.el = h('div.overlay', { cls: overlayCls });
         this.box = h(`div.panel.menu`, { cls: cls });
         this.el.appendChild(this.box);
+        // A touch button opens menus on finger-down; lifting that finger then "clicks" whatever is now
+        // under it (the backdrop, which closes the menu, or a button). Only accept clicks whose press
+        // began on this panel. Keyboard-made clicks have no pointer type and always count. (A touch's
+        // stray click can report detail 0 like a keyboard one, so check the pointer type.)
+        this.armed = false;
+        this.el.addEventListener('pointerdown', () => { this.armed = true; }, true);
+        this.el.addEventListener('click', (e) => { if (!this.armed && (e.pointerType || e.detail > 0)) { e.stopPropagation(); e.preventDefault(); } }, true);
         this.el.addEventListener('click', (e) => { if (e.target === this.el && this.closeOnBackdrop !== false) this.ui.pop(); });
     }
     title(text, extra = null) {
