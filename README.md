@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-69 games, `game-001` through `game-069`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+70 games, `game-001` through `game-070`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -87,6 +87,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 067 | [Tootle Isles](game-067/) | Cozy toy-train sandbox in the spirit of LEGO Loco: pick an island, lay track, build a town, design trains and save many islands; everything unlocked | three.js |
 | 068 | [Haven Road](game-068/) | Tower defense of healing: aid stations heal the wounded and sick fleeing a zombie-held valley; in boss levels the people you saved fight back with the cure | three.js |
 | 069 | [Dirt Crown](game-069/) | Dirt-track racing RPG: start in a tiny featureless buggy, win races for coins, upgrade it part by part across seven circuits, beat six champions and your rival for the Dirt Crown | three.js |
+| 070 | [PHOSPHOR PATROL](game-070/) | 1982 vector-monitor planet defence: rescue colonists from abductors on a wrapping world, with meteor storms, dart squadrons and three bosses | three.js |
 
 ### Highlights
 
@@ -180,6 +181,8 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 
 **[Dirt Crown](game-069/)** — A **dirt-track racing RPG** in three.js with no asset files, raced in third person. Grandpa Gus pulls a tarp off his first racer, **the Bucket**: tiny, primer-grey and without a single feature. Win races for coins and spend them in Halloway's Garage on six upgrade lines (engine, drivetrain, tyres, suspension, body and armour, nitro) whose every level **shows on the car**: exhausts, a hood scoop, a supercharger and a chrome blower, mud flaps and wings, bigger tyres on better rims, coil springs and long-travel arms, a bull bar, a roll cage, nerf bars, a light bar, riveted armour and nitro bottles. A paint shop adds 15 colours, liveries (stripes, flames, checkers, a lightning bolt, mud splatter) and your race number, painted so it reads the right way round on both doors. **Twenty tracks in seven places**, all generated from centrelines, features and surface patches: banked ovals and cornfields on Dustwater Flats, misty logging roads in Pinecrest Woods, tabletops and kickers in Redrock Canyon at sunset, lantern-lit mud, water and boardwalks in Gatorback Bayou (with gators), snow and sheet ice on Frostbite Pass, stadium supercross in front of twenty thousand fans in the Thunderdome, and the Crown Run on Ravenwood Mesa. Two are figure eights that cross on bridges. Arcade dirt physics: the body turns and the tyres catch the slide as their grip allows, so dirt, mud and ice each drive differently; holding drift through a bend fills the nitro, so do clean landings; slipstreams, car-to-car shoves, perfect-start launches, resets. Computer drivers plan their speed from the curvature and grip ahead, commit to passes and use nitro. **26 events** in seven cups (races, eliminations, time trials, duels), six champions with their own cars (a pickup, a rally hatch, a dune buggy, a swamp buggy with an airboat fan, an ice racer, a neon trophy truck), and a story told in 19 short scenes with painted portraits: Ravenwood Motors has bought every track in the county, and whoever wins the Dirt Crown sets the rules. It ends with your rival, Colt Ravenwood, in a one-on-one for the Crown on a track his father has had oiled. A painted county map, event cards with track previews, a HUD with a minimap and a speedometer ringed by the nitro gauge, bloom and a grade per time of day, wheel dust, spray, sparks, tyre marks and weather, a five-gear synthesised engine, a score with a style per place, autosave, keyboard, gamepad, or touch with auto-accelerate. [game-069/dev/](game-069/dev/README.md) races every track headlessly, has a bot play the whole career (it wins the Crown in about 45–60 races at three skill levels), and drives the real game on desktop and touch-only phones.
 
+**[PHOSPHOR PATROL](game-070/)** — A **1982 vector-monitor planet-defence shooter**, in three.js with no asset files: Defender's rescue loop with Asteroids meteor storms and Galaga dart squadrons. The **Reapers** are harvesting the colony world Lumen. **Snatchers** warp in, drift down, grab a colonist and slowly lift them toward the top of the sky; one that makes it becomes a **ravager**. Fly the **SENTRY** around a planet eight screens wide that wraps at its ends, with inertia, an instant turnaround, a long-range **scanner**, multicolour lasers, **smart bombs** and **hyperspace**. Shoot a snatcher and its colonist falls: **catch** them (500) and fly them down to the ground (500 more), or watch a low fall land safely. Lose every colonist and the **planet explodes**; the waves go on in open space until it is rebuilt after the next boss. Minelayers sow mines, wireframe **hives** burst into stinger swarms, **hunters** come for you if you dawdle, **dart squadrons** loop in and dive, and **meteors** split big → medium → small and crush colonists where they land. Fifteen waves per loop and three bosses: **the Harvester** (a rotating ring saucer with armour pods, a tractor beam and shot rings), **the Leviathan** (a segmented serpent whose head is shielded until its body is short) and **the Overseer** (an eye in a cage of shield plates that opens to sweep a telegraphed beam). Everything is drawn as **glowing beams** by one instanced shader (white-hot cores, coloured halos, additive like a real vector CRT) with phosphor persistence, bloom and curved glass; explosions fling the destroyed shape's own lines at the screen. A thump-thump **heartbeat** that speeds up as the wave goes on, attract mode with a bot demo, high scores with initials, CADET and ARCADE modes, continues, endless loops, gamepads and a touch deck with a floating flight stick. [game-070/dev/](game-070/dev/README.md) has the bot play every wave of two loops headlessly and drives the real game on desktop and touch-only phones.
+
 See each game's own README/folder for full details, or browse the descriptions live in the [launcher](index.html).
 
 ## Getting Started
@@ -256,7 +259,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-069/   # One self-contained folder per game
+├── game-001/ … game-070/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -313,7 +316,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 69 games are included as of the latest entries (game-064 Kraken's Gambit, game-065 Worldroot, game-066 Scrapwright, game-067 Tootle Isles, game-068 Haven Road, game-069 Dirt Crown).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 70 games are included as of the latest entries (game-065 Worldroot, game-066 Scrapwright, game-067 Tootle Isles, game-068 Haven Road, game-069 Dirt Crown, game-070 PHOSPHOR PATROL).
 
 ---
 

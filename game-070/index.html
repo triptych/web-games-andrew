@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#020308">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="PHOSPHOR PATROL — a 1982 vector-monitor planet-defence shooter. Fly the SENTRY around a wrapping world, shoot the Reapers and catch the colonists they drop.">
+    <title>PHOSPHOR PATROL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <aside id="side-l" class="side" aria-hidden="true">
+        <div class="marquee">PHOSPHOR<br>PATROL</div>
+        <div class="panel">
+            <h3>THE MISSION</h3>
+            <p>The <b class="g">REAPERS</b> are harvesting the colony world <b class="c">LUMEN</b>.</p>
+            <p><b class="g">SNATCHERS</b> grab colonists and carry them up. Reach the sky and they become <b class="r">RAVAGERS</b>.</p>
+            <p>Shoot the snatcher, <b class="y">CATCH</b> the falling colonist and <b class="y">FLY THEM DOWN</b> to the ground.</p>
+            <p>Lose every colonist and the <b class="o">PLANET EXPLODES</b>.</p>
+            <p>Every fifth wave, a <b class="p">BOSS</b>.</p>
+        </div>
+    </aside>
+
+    <div id="screen">
+        <canvas id="game"></canvas>
+        <div id="glass"></div>
+    </div>
+
+    <aside id="side-r" class="side" aria-hidden="true">
+        <div class="panel">
+            <h3>CONTROLS</h3>
+            <table>
+                <tr><td>THRUST</td><td>← → / A D</td></tr>
+                <tr><td>CLIMB · DIVE</td><td>↑ ↓ / W S</td></tr>
+                <tr><td>FIRE</td><td>SPACE / Z</td></tr>
+                <tr><td>SMART BOMB</td><td>X / B</td></tr>
+                <tr><td>HYPERSPACE</td><td>H / C / SHIFT</td></tr>
+                <tr><td>PAUSE</td><td>P / ESC</td></tr>
+                <tr><td>MUTE</td><td>M</td></tr>
+            </table>
+            <p class="small">Gamepads work too. Press the other way to turn around.</p>
+        </div>
+        <div class="panel">
+            <h3>SCORING</h3>
+            <table>
+                <tr><td>CATCH A COLONIST</td><td>500</td></tr>
+                <tr><td>SET THEM DOWN</td><td>500</td></tr>
+                <tr><td>HIVE</td><td>1000</td></tr>
+                <tr><td>SQUADRON</td><td>1000</td></tr>
+                <tr><td>EXTRA SHIP</td><td>EVERY 10000</td></tr>
+            </table>
+        </div>
+    </aside>
+
+    <div id="deck">
+        <div id="stick" aria-label="Flight stick">
+            <div class="ring"></div>
+            <div class="knob"></div>
+            <span class="pad-label">FLY</span>
+        </div>
+        <div id="btns">
+            <button id="btn-hyper" class="abtn" aria-label="Hyperspace">HYPER</button>
+            <button id="btn-bomb" class="abtn" aria-label="Smart bomb">BOMB</button>
+            <button id="btn-fire" class="abtn" aria-label="Fire">FIRE</button>
+        </div>
+        <button id="btn-pause" aria-label="Pause">❚❚</button>
+    </div>
+
+    <noscript><p class="noscript">PHOSPHOR PATROL needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
