@@ -110,7 +110,16 @@ export class WorldView {
         this.rig.update(p, w.space, dt, opts);
         const interior = w.cellId !== 'ext';
         const open = interior && !!w.space.open;
-        this.sky.update(dt, open ? { hour: 19.3, day: w.time.day, cover: 0.8, fog: 0.1, aurora: 1, interior: false } : { hour: w.time.hour, day: w.time.day, cover: ws.cover, fog: ws.fog, aurora: ws.aurora, interior }, this.camera);
+        const sk = this.sky.update(dt, open ? { hour: 19.3, day: w.time.day, cover: 0.8, fog: 0.1, aurora: 1, interior: false } : { hour: w.time.hour, day: w.time.day, cover: ws.cover, fog: ws.fog, aurora: ws.aurora, interior }, this.camera);
+        // exposure: this is a game, not a light meter: nights and dungeons are opened up so they stay readable
+        const night = interior && !open ? 0 : (sk?.night || 0);
+        const wantExp = interior && !open ? (w.space.kind === 'dungeon' ? 1.55 : 1.3) : 0.9 + night * 0.7 + ws.cover * 0.12;
+        this.exposure = this.exposure == null ? wantExp : this.exposure + (wantExp - this.exposure) * Math.min(1, dt * 2.5);
+        this.r.gl.toneMappingExposure = this.exposure;
+        // lift the darkest tones a little in the dark so shadows never crush to black
+        const dark = interior && !open ? 1 : night;
+        this.r.grade.uLift.value.setRGB(0.012 * dark, 0.016 * dark + 0.004, 0.026 * dark + 0.012);
+        this.r.grade.uVignette.value = 0.32 - dark * 0.12;
         this.terrainView.update(this.camera.position);
         this.water.update(this.camera.position);
         this.veg.update(this.camera.position);

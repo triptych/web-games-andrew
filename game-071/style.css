@@ -202,7 +202,7 @@ body.touch #bars { bottom: calc(10px + var(--safe-b)); gap: 4vw; }
 body.touch #bars .bar { width: min(150px, 22vw); }
 @media (orientation: portrait) {
     body.touch #bars { bottom: auto; top: calc(48px + var(--safe-t)); }
-    body.touch #notes { top: calc(76px + var(--safe-t)); }
+    body.touch #notes { top: calc(76px + var(--safe-t)); left: calc(84px + var(--safe-l)); }
     body.touch #enemy { top: calc(72px + var(--safe-t)); }
     .tcluster.right { transform: scale(0.92); transform-origin: 100% 100%; }
 }
