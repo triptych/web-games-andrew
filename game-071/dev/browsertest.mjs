@@ -103,9 +103,8 @@ console.log('desktop 1280×720');
     ok(true, 'entered Coldmarrow Barrow');
     await F(page, "F.world.quests.start('mq11'); F.world.emit('useDoor', { door: { to: 'eye' } });");
     await until(page, "F.world.cellId === 'eye'");
-    await page.waitForTimeout(5000);
+    ok(await until(page, "F.world.actors.some((a) => a.tpl === 'vyrthax')", 180000).then(() => true, () => false), 'Vyrthax in the Eye');
     await shot(page, 'eye');
-    ok(await F(page, "return F.world.actors.some((a) => a.tpl === 'vyrthax')"), 'Vyrthax in the Eye');
     ok(!errs.length, `no page errors${errs.length ? ':\n    ' + [...new Set(errs)].slice(0, 8).join('\n    ') : ''}`);
     await ctx.close();
 }

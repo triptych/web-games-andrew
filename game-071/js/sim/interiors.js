@@ -299,7 +299,9 @@ function genEye() {
     for (const i of isl) { const x = i.x * 4, z = i.z * 4; P('brazier_in', x, z, 0, { s: 1.4 }); c.lights.push({ x, z, y: c.floorAt(x, z) + 1.6, r: 14, i: 1, col: 0x8ab0ff, fire: true }); P('rubble', x + 3, z - 2, i.a); }
     c.lights.push({ x: mid * 4, z: mid * 4, y: 6, r: 30, i: 0.8, col: 0x9ab8ff, fire: false });
     const ex = isl[1];
-    c.entry = { x: ex.x * 4, z: ex.z * 4 + 2, rot: Math.atan2(-(mid - ex.x), -(mid - ex.z)) };
+    // arrive on the island's inner edge, facing the central disc (the brazier stands at its centre)
+    const ix = ex.x - Math.cos(ex.a) * 2.2, iz = ex.z - Math.sin(ex.a) * 2.2;
+    c.entry = { x: ix * 4, z: iz * 4, rot: Math.atan2(-(mid - ix), -(mid - iz)) };
     c.upSpot = c.entry;
     // the way home appears once the storm breaks
     c.usables.push({ kind: 'door', x: ex.x * 4 - 4, y: c.floorAt(ex.x * 4 - 4, ex.z * 4) + 1.4, z: ex.z * 4, r: 1.4, door: { to: 'ext', name: 'Vahlokar Temple' }, name: 'Stair Down to Vahlokar', hidden: true, eyeExit: true });

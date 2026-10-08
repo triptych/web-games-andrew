@@ -452,7 +452,7 @@ function frame(now) {
     if (app.mode === 'chargen') view.actors.showPlayer = true;
     view.render(dt);
     app.audio.update(dt, world, view.camera, !ticking);
-    if (app.mode === 'play') app.hud.update(dt);
+    if (app.mode === 'play') app.hud.update(rdt);   // real time: notes and subtitles fade on schedule even when frames are slow
     // automatic quality: step down if the frame rate stays low
     if (app.mode === 'play' && app.settings.quality == null && app.playT > 8) {
         lowFpsT = app.fps < 28 ? lowFpsT + rdt : Math.max(0, lowFpsT - rdt * 0.5);
