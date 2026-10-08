@@ -314,10 +314,10 @@ export class Settlements {
         const ring = [[-48, -40], [48, -40], [48, 40], [-48, 40]];
         this.wall(L, ring, { closed: true, h: 8, gates: [0], style: 'stone' });
         for (const [x, z] of ring) this.prop(L, 'tower_small', x, z, 0, { s: 1.2 });
-        this.bld(L, 'keep', 'keep', 0, 18, Math.PI, { name: 'Hollowmere Keep', interiorKind: 'undercroft' });
+        this.bld(L, 'keep', 'keep', 0, 18, Math.PI, { name: 'Hollowmere Keep', interiorKind: 'keep' });
         this.bld(L, 'house1', 'house_s', -30, -18, Math.PI / 2, { burned: true, noDoor: true });
         this.bld(L, 'house2', 'house_s', 30, -16, -Math.PI / 2, { burned: true, noDoor: true });
-        this.prop(L, 'block', 0, -20, 0);
+        this.prop(L, 'cart', 0, -20, 0.3);
         this.prop(L, 'gatehouse', 0, -40, Math.PI);
     }
 
@@ -345,7 +345,7 @@ export class Settlements {
             if (id === 'undercroft') {
                 this.prop(id, 'cave_mouth', 0, 0, face);
                 const dx = Math.sin(face) * 3, dz = Math.cos(face) * 3;
-                this.doors.push({ id: 'undercroft:exit', x: L.x + dx, z: L.z + dz, y: this.ground(L.x + dx, L.z + dz), rot: face, to: 'hollowmere:keep', interior: 'undercroft', name: 'Hollowmere Undercroft', loc: id, locked: 0, exitOnly: true });
+                this.doors.push({ id: 'undercroft:exit', x: L.x + dx, z: L.z + dz, y: this.ground(L.x + dx, L.z + dz), rot: face, to: 'undercroft:d0', interior: 'dungeon', name: 'Hollowmere Undercroft', loc: id, locked: 0 });
             }
             if (L.kind === 'tower') { this.bld(id, 'tower', 'ruin_tower', 0, 0, 0); this.prop(id, 'rubble', 8, 4, 0); this.prop(id, 'rubble', -6, -8, 1); }
             if (id === 'twintolls') { this.bld(id, 'tower2', 'ruin_tower', 24, 4, 0); this.prop(id, 'campfire', 12, 10, 0); this.prop(id, 'tent', 6, 16, 0.4); }
@@ -368,7 +368,7 @@ function defaultName(kind) {
     return { house: 'House', inn: 'Inn', shop: 'Shop', hall: 'Hall', guild: 'Guild Hall', temple: 'Temple', barracks: 'Barracks', academy: 'Academy', monastery: 'Observatory' }[kind] || 'Door';
 }
 
-export const STATION_TYPES = ['forge', 'grindstone', 'workbench', 'smelter', 'tanning', 'alchemy', 'enchanter', 'cookpot'];
+export const STATION_TYPES = ['forge', 'grindstone', 'workbench', 'smelter', 'tanning', 'alchemy', 'runetable', 'cookpot'];
 const LIGHT_TYPES = { lamp: 2.6, brazier: 1.3, campfire: 0.5, bigfire: 1, forge: 1, torch: 0 };
 const PROP_COLLIDE = {
     well: { r: 1.3, h: 1.2 }, stall: { w: 3, d: 2, h: 2.6 }, bench: { w: 2, d: 0.6, h: 0.5 }, lamp: { r: 0.15, h: 3 },

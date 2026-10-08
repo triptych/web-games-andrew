@@ -135,7 +135,7 @@ export class ActorsView {
         this.frame++;
         const w = this.world, p = w.player;
         const cam = camera.position;
-        const terrain = w.cellId === 'ext' ? w.terrain : null;
+        const terrain = w.space;   // exterior or interior: both answer ground()
         const near = [];
         for (const rec of this.recs.values()) {
             const a = rec.a;
@@ -189,7 +189,7 @@ export class ActorsView {
             const ground = terrain && a.onGround && !a.swim && dist < 45 && a.rig !== 'dragon' || (a.rig === 'dragon' && !a.fly && terrain)
                 ? (lx, lz) => {
                     const wx = a.pos.x + (lx * cy + lz * sy) * sc, wz = a.pos.z + (-lx * sy + lz * cy) * sc;
-                    const h = terrain.heightAt(wx, wz) - a.pos.y;
+                    const h = terrain.ground(wx, wz, a.pos.y + 0.6) - a.pos.y;
                     return Math.max(-0.5, Math.min(0.5, h)) / sc;
                 }
                 : null;

@@ -246,39 +246,45 @@ export function animateDragon(P, st, ctx) {
         P.rot(`tail${i}`, st.fly * (0.04 + st.pitch * 0.1) - (1 - st.fly) * (i < 2 ? 0.06 : -0.03), sw + tailAttack, 0);
     }
 
-    // ---- wings
+    // ---- wings: flight is a flap about the body axis; on the ground the wing-arms fold into front legs
+    const folded = 1 - st.fly;
+    st.phase += (st.speed * dt) / 2.2 * Math.PI;
+    const mv = clamp01(st.speed / 1.5) * folded;
     for (const side of ['R', 'L']) {
         const sx = side === 'R' ? 1 : -1;
-        // flight: flap about the body axis; ground: folded
         const up = fl * 0.75 * (1 - glide) + glide * 0.08;
-        const folded = 1 - st.fly;
-        const shZ = sx * lerp(up, 0.95, folded);
-        const shY = sx * lerp(fl * 0.15 * (1 - glide), 0.9, folded);
-        const shX = lerp(0, 0.15, folded);
-        P.rot(`sh${side}`, shX, shY, shZ);
-        P.rot(`el${side}`, 0, sx * lerp(-fl * 0.12, -2.45, folded), sx * lerp(-up * 0.4, -1.0, folded));
-        P.rot(`wr${side}`, 0, sx * lerp(0.08 * fl, 2.2, folded), sx * lerp(-up * 0.35, 0.5, folded));
-        P.rot(`f1${side}`, 0, sx * lerp(0, 0.2, folded), 0);
-        P.rot(`f2${side}`, 0, sx * lerp(0, 0.5, folded), 0);
-        P.rot(`f3${side}`, 0, sx * lerp(0, 0.6, folded), 0);
-        if (st.fall > 0) { const f = ease(st.fall); P.rot(`sh${side}`, 0, sx * 0.3 * f, sx * lerp(shZ * sx, -0.35, f)); }
-    }
-    // ---- walking on the wing wrists and hind legs when grounded
-    if (st.fly < 0.98) {
-        st.phase += (st.speed * dt) / 2.2 * Math.PI;
-        const mv = clamp01(st.speed / 1.5) * (1 - st.fly);
-        for (const side of ['R', 'L']) {
-            const sx = side === 'R' ? 1 : -1;
-            const fp = st.phase + (side === 'R' ? 0 : Math.PI);
-            const along = -Math.cos(fp) * 1.0 * mv, lift = Math.max(0, Math.sin(fp)) * 0.4 * mv;
-            const g = ctx.ground ? ctx.ground(sx * 0.95, 1.55 + along) : 0;
-            const T = v3(sx * 0.95, 0.25 + lift + g, 1.6 + along);
-            T.lerp(v3(sx * 0.95, 1.0, 2.4), st.fly);
-            P.ik(`th${side}`, `sn${side}`, `ft${side}`, T, v3(0, 0, -1));
-            P.orient(`ft${side}`, v3(0, 0, -1), v3(0, 1, 0));
+        P.rot(`sh${side}`, 0, sx * fl * 0.15 * (1 - glide), sx * up);
+        P.rot(`el${side}`, 0, -sx * fl * 0.12, -sx * up * 0.4);
+        P.rot(`wr${side}`, 0, sx * 0.08 * fl, -sx * up * 0.35);
+        if (folded > 0.01) {
+            // walk on the wrist: two-bone IK from shoulder to a foot-fall ahead of the shoulder
+            const fp = st.phase + (side === 'R' ? Math.PI : 0);
+            const along = -Math.cos(fp) * 0.9 * mv, lift = Math.max(0, Math.sin(fp)) * 0.45 * mv;
+            const g = ctx.ground ? ctx.ground(sx * 2.1, -1.3 + along) : 0;
+            const flightWrist = P.mp[`wr${side}`].clone();
+            const T = v3(sx * 2.1, 0.12 + lift + g, -1.3 + along).lerp(flightWrist, 1 - folded);
+            P.ik(`sh${side}`, `el${side}`, `wr${side}`, T, v3(sx * 0.6, 0.7, 0.6));
+            // fingers fold back and up along the flank like a closed fan
+            const dirs = [[0.15, 0.75, 0.65], [0.1, 0.6, 0.8], [0.05, 0.45, 0.9]];
+            ['f1', 'f2', 'f3'].forEach((f, k) => {
+                const cur = P.mp[`${f}t${side}`].clone().sub(P.mp[`${f}${side}`]).normalize();
+                const want = v3(sx * dirs[k][0], dirs[k][1], dirs[k][2]).normalize();
+                P.sync(`${f}${side}`);
+                P.aim(`${f}${side}`, `${f}t${side}`, cur.lerp(want, folded).normalize());
+                P.sync(`${f}t${side}`);
+            });
         }
-    } else {
-        for (const side of ['R', 'L']) { const sx = side === 'R' ? 1 : -1; P.ik(`th${side}`, `sn${side}`, `ft${side}`, v3(sx * 0.95, 1.1, 2.5), v3(0, 0, -1)); }
+        if (st.fall > 0) { const f = ease(st.fall); P.rot(`sh${side}`, 0, sx * 0.3 * f, sx * -0.35 * f); }
+    }
+    // ---- hind legs
+    for (const side of ['R', 'L']) {
+        const sx = side === 'R' ? 1 : -1;
+        const fp = st.phase + (side === 'R' ? 0 : Math.PI);
+        const along = -Math.cos(fp) * 1.0 * mv, lift = Math.max(0, Math.sin(fp)) * 0.4 * mv;
+        const g = folded > 0.01 && ctx.ground ? ctx.ground(sx * 0.95, 1.55 + along) : 0;
+        const T = v3(sx * 0.95, 0.25 + lift + g, 1.6 + along).lerp(v3(sx * 0.95, 1.1, 2.5), st.fly);
+        P.ik(`th${side}`, `sn${side}`, `ft${side}`, T, v3(0, 0, -1));
+        P.orient(`ft${side}`, v3(0, 0, -1), v3(0, 1, 0));
     }
     // ---- death: slump to the ground, neck limp
     if (st.fall > 0) {

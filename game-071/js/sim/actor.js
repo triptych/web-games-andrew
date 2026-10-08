@@ -307,13 +307,13 @@ export function applyDamage(world, t, info) {
     if (info.type === 'frost') { t.sp = Math.max(0, t.sp - dmg); if (!info.dot && world) addEffect(world, t, { id: 'slow', mag: 1, dur: 2 }); }
     if (info.type === 'shock') t.mp = Math.max(0, t.mp - dmg * 0.5);
     if (info.type === 'fire' && !info.dot && dmg > 3) addEffect(world, t, { id: 'burning', mag: Math.max(1, dmg / 6), dur: 3 });
-    if (src && src !== t) { t.lastHitBy = src.id; t.combatT = 8; }
+    if (src && src !== t) { t.lastHitBy = src.id; t.combatT = 8; if (src.kind === 'player' && world?.lawHit && !info.trap) world.lawHit(t); }
     // armour skill use when the player is struck
     if (t.sheet && info.type === 'phys' && dmg > 0 && world) {
         if (st.heavyPieces) world.skillUse(t, 'heavyArmor', 0.5 + dmg * 0.08);
         if (st.lightPieces) world.skillUse(t, 'lightArmor', 0.5 + dmg * 0.08);
     }
-    if (!info.quiet && world) world.emit('hit', { target: t, source: src, dmg, type: info.type, blocked, power: !!info.power, sneak: !!info.sneak, crit: !!info.crit, pos: { x: t.pos.x, y: t.pos.y + t.h * 0.65, z: t.pos.z } });
+    if (!info.quiet && world) world.emit('hit', { target: t, source: src, dmg, dmgType: info.type, blocked, power: !!info.power, sneak: !!info.sneak, crit: !!info.crit, pos: { x: t.pos.x, y: t.pos.y + t.h * 0.65, z: t.pos.z } });
     // stagger / knockdown
     if ((info.stagger || info.knock) && !t.dead && t.hp > 0 && t.rig !== 'dragon' && !t.boss) {
         const towerOfStrength = t.sheet?.perks.ha_tower && st.fullHeavy;

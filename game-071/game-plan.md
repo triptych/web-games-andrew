@@ -354,7 +354,7 @@ Every crafting action gives skill XP in proportion to the item's value.
 
 ---
 
-## 8. Magic catalogue (37 spells)
+## 8. Magic catalogue (36 spells)
 
 | School | First circle | Second circle | Third circle | Fourth circle |
 |---|---|---|---|---|
@@ -636,46 +636,46 @@ Three manual slots, an autosave on every location change and quest stage, a quic
 
 ### Phase 1 — Engine
 - [x] Design document
-- [ ] Renderer, post chain, quality tiers, resize via `visualViewport`
-- [ ] Deterministic terrain, quadtree LOD with skirts, splat shader, baked AO
-- [ ] Sky (scattering, sun, moons, stars, aurora, clouds), lighting, height fog, weather
-- [ ] Water (sea, lakes, river)
-- [ ] Player controller, first/third person camera, keyboard/mouse/gamepad/touch input
+- [x] Renderer, post chain, quality tiers, resize via `visualViewport`
+- [x] Deterministic terrain, quadtree LOD with skirts, splat shader, baked AO
+- [x] Sky (scattering, sun, moons, stars, aurora, clouds), lighting, height fog, weather
+- [x] Water (sea, lakes, river)
+- [x] Player controller, first/third person camera, keyboard/mouse/gamepad/touch input
 
 ### Phase 2 — World
-- [ ] Geography: regions, 34 locations, roads, signposts
-- [ ] Vegetation (trees, rocks, bushes) with LODs and wind; GPU grass
-- [ ] Settlements and northern architecture; Wyrmguard Hall; docks; sawmill
-- [ ] Day/night, weather per region, ambient wildlife
+- [x] Geography: regions, 34 locations, roads, signposts
+- [x] Vegetation (trees, rocks, bushes) with LODs and wind; GPU grass
+- [x] Settlements and northern architecture; Wyrmguard Hall; docks; sawmill
+- [x] Day/night, weather per region, ambient wildlife
 
 ### Phase 3 — Actors and combat
-- [ ] Rigid-skinned humanoid, quadruped, arachnid and dragon rigs with procedural animation
-- [ ] AI states, schedules, followers, dragons
-- [ ] Melee, blocking, archery, magic, storm sigils, sneak, stagger, death, loot
+- [x] Rigid-skinned humanoid, quadruped, arachnid and dragon rigs with procedural animation
+- [x] AI states, schedules, followers, dragons
+- [x] Melee, blocking, archery, magic, storm sigils, sneak, stagger, death, loot
 
 ### Phase 4 — RPG systems
-- [ ] Items, levelled loot, inventory, equipment
-- [ ] Skills, XP, levels, perks, attributes
-- [ ] Smithing, tempering, smelting, tanning, alchemy, enchanting, cooking
-- [ ] Merchants and barter, lockpicking, pickpocketing, crime and bounty
+- [x] Items, levelled loot, inventory, equipment
+- [x] Skills, XP, levels, perks, attributes
+- [x] Smithing, tempering, smelting, tanning, alchemy, enchanting, cooking
+- [x] Merchants and barter, lockpicking, pickpocketing, crime and bounty
 
 ### Phase 5 — Dungeons and interiors
-- [ ] Generator (barrow, cave, mine, fort, deepforge, temple, buildings)
-- [ ] Traps, puzzles, sigil stones, boss chests
+- [x] Generator (barrow, cave, mine, fort, deepforge, temple, buildings)
+- [x] Traps, puzzles, sigil stones, boss chests
 
 ### Phase 6 — Story
-- [ ] Quest engine, journal, markers
-- [ ] Main quest 1–11 including the Eye of the Storm
-- [ ] Side quests and radiant bounties, dragon attacks
+- [x] Quest engine, journal, markers
+- [x] Main quest 1–11 including the Eye of the Storm
+- [x] Side quests and radiant bounties, dragon attacks
 
 ### Phase 7 — Presentation
-- [ ] HUD and every menu, touch layout
-- [ ] Music, ambience, SFX, sigil thunder
-- [ ] Save/load, settings, title, character creation, loading screens
+- [x] HUD and every menu, touch layout
+- [x] Music, ambience, SFX, sigil thunder
+- [x] Save/load, settings, title, character creation, loading screens
 
 ### Phase 8 — Ship
-- [ ] simtest, browsertest
-- [ ] Launcher entry, README, CHANGELOG, status, docs learnings
+- [x] simtest, browsertest
+- [x] Launcher entry, README, CHANGELOG, status, docs learnings
 
 ---
 
@@ -707,7 +707,7 @@ Three manual slots, an autosave on every location change and quest stage, a quic
 
 Out of scope for v1, with reasons:
 
-* **The civil war questline** — it is background and patrols only; its battles would double the AI work.
+* **Riding** — horses stand in the stables but can't be ridden; mounted movement and combat need their own animation set. Fast travel and carriages cover long distances instead.
 * **Werewolves, vampires, marriage, children, homestead building** — each is a system the size of a small game.
 * **Voiced dialogue** — the browser's speech synthesis varies too much between devices; subtitles only.
 * **Full physics ragdolls** — knockdowns and deaths use a scripted fall.

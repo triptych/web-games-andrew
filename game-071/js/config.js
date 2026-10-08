@@ -40,7 +40,7 @@ export const DEFAULT_SETTINGS = {
     crosshair: true,
     thirdPerson: null,      // null = phones third-person, desktop first-person
     aimAssist: true,
-    difficulty: 'adept',    // novice, apprentice, adept, expert, master
+    difficulty: 'normal',   // story, easy, normal, hard, deadly
 };
 
 export { DIFFICULTY } from './sim/rules.js';

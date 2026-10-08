@@ -61,15 +61,13 @@ export function buildQuad(actor, material) {
     }
 
     // ---- body
-    const segs = 5;
-    for (let i = 0; i <= segs; i++) {
-        const t = i / segs;
-        const z = lerp(zH + G * 0.25, zC - G * 0.15, t);
-        const r = G * (0.82 + 0.25 * Math.sin(t * Math.PI)) * (sp.hump && t > 0.6 ? 1.08 : 1) * (sp.head === 'cat' && t < 0.5 ? 0.85 : 1);
-        const ry = r * (sp.head === 'walrus' ? 0.75 : 1.05);
-        B.ellipsoid(t < 0.5 ? 'hips' : 'chest', [0, H * (t > 0.6 && sp.hump ? 1.0 : 0.96), z], [r * 0.95, ry, G * 0.75], col, skinM, { w: 12, h: 9, blend: t < 0.5 ? 'chest' : 'hips', blendFrom: t < 0.5 ? 1 - t * 2 : (t - 0.5) * 2, vary: 0.08 });
-        B.ellipsoid(t < 0.5 ? 'hips' : 'chest', [0, H * 0.96 - ry * 0.35, z], [r * 0.85, ry * 0.7, G * 0.7], belly, skinM, { w: 10, h: 6, t0: Math.PI * 0.5 });
-    }
+    // one long barrel skinned from hips to chest, plus shoulder and haunch masses
+    const mid = (zH + zC) / 2, half = (zH - zC) / 2 + G * 0.55;
+    const ry = G * (sp.head === 'seal' ? 0.8 : 1.05);
+    B.ellipsoid('hips', [0, H * 0.97, mid], [G * 0.95, ry, half], col, skinM, { w: 16, h: 12, blend: 'chest', blendFrom: 0.15, vary: 0.06 });
+    B.ellipsoid('hips', [0, H * 0.97 - ry * 0.32, mid], [G * 0.86, ry * 0.72, half * 0.94], belly, skinM, { w: 14, h: 6, t0: Math.PI * 0.5, blend: 'chest', blendFrom: 0.15 });
+    B.ellipsoid('chest', [0, H * 0.98, zC + G * 0.1], [G * 1.02, ry * 1.04, G * 0.95], col, skinM, { w: 14, h: 10, vary: 0.06 });
+    B.ellipsoid('hips', [0, H * 0.97, zH - G * 0.1], [G * 0.98, ry * 0.98, G * 0.9], col, skinM, { w: 14, h: 10, vary: 0.06 });
     if (sp.hump) B.ellipsoid('chest', [0, H * 1.12, zC + G * 0.3], [G * 0.6, G * 0.5, G * 0.7], col, skinM);
     if (sp.mane) for (let i = 0; i < 6; i++) { const t = i / 5; B.box('neck', [0, lerp(neckBase[1], headP[1], t) + 0.06, lerp(neckBase[2], headP[2], t) + 0.05], [0.04, 0.12, 0.13], dark, M.hair, { blend: 'head', blendFrom: 0.2 }); }
     if (sp.fur && (actor.body === 'mammoth' || actor.body === 'bear' || actor.body === 'wolf')) {

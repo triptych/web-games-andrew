@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-70 games, `game-001` through `game-070`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+71 games, `game-001` through `game-071`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -88,6 +88,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 068 | [Haven Road](game-068/) | Tower defense of healing: aid stations heal the wounded and sick fleeing a zombie-held valley; in boss levels the people you saved fight back with the cure | three.js |
 | 069 | [Dirt Crown](game-069/) | Dirt-track racing RPG: start in a tiny featureless buggy, win races for coins, upgrade it part by part across seven circuits, beat six champions and your rival for the Dirt Crown | three.js |
 | 070 | [PHOSPHOR PATROL](game-070/) | 1982 vector-monitor planet defence: rescue colonists from abductors on a wrapping world, with meteor storms, dart squadrons and three bosses | three.js |
+| 071 | [FROSTMARCH](game-071/) | Open-world fantasy RPG: a frozen province to explore, Storm Sigils, dragons, eleven main quests, guilds, crafting, alchemy, runes, generated dungeons, saves and touch controls | three.js |
 
 ### Highlights
 

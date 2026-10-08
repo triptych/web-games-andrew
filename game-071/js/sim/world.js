@@ -15,14 +15,17 @@ import { makeFlora, addFloraColliders } from './flora.js';
 import { Settlements } from './settlements.js';
 import { baseActor, createActor, recalc, tickEffects, applyDamage, dropLoot, addEffect, heal } from './actor.js';
 import { makeSheet, addSkillXp, KIN } from './stats.js';
-import { makeStorm, absorbEmber } from './magic.js';
+import { makeStorm, absorbEmber, learnRing, SIGILS, RINGS } from './magic.js';
+import { Interiors } from './interiors.js';
 import { addItem, equip, removeItem, weaponIn } from './inventory.js';
 import { ITEMS, itemDef, ESSENCE_IDS } from './items.js';
 import { startAttack, startBash, startDraw, releaseArrow, startCast, releaseCast, startSigil, releaseSigil, updateAct, updateProjectiles, aimDir, eye } from './combat.js';
-import { think, steer, hostile } from './ai.js';
+import { think, steer, hostile, canSee } from './ai.js';
+import { fineFor, townOf } from './crafting.js';
 import { updateDragon, updateDeadDragon } from './dragon.js';
 import { Population } from './population.js';
 import { rollLoot } from './loot.js';
+import { Quests } from './quests.js';
 
 export const SPEED = { walk: 2.3, run: 4.9, sprint: 7.4, sneak: 1.9, sneakRun: 2.7, swim: 2.5, swimFast: 3.6, encumbered: 1.6 };
 export const TIMESCALE = 20;   // game seconds per real second
@@ -76,26 +79,28 @@ export class World {
         this.harvested = {};         // plant index → game hour harvested
         this.flags = {};
         this.region = 'pinewood';
-        this.difficulty = opts.difficulty || 'adept';
+        this.difficulty = opts.difficulty || 'normal';
         this.godMode = false;
         this.slowTime = 0; this.slowScale = 1;
         this.timeScale = 1;
         this.pop = new Population(this);
         this.focus = null;
         this.uid = 1;
-        this.quests = null;          // attached by quests.js
-        this.interiors = null;       // attached by interiors.js
+        this.interiors = new Interiors(this);
+        this.extReturn = null;       // the exterior door we came in through
         this.onDamaged = null; this.onKill = null; this.onCrime = null;
         this.alchemyKnown = {};
         this.stats = { kills: 0, dragons: 0, embers: 0, locations: 0, potions: 0, crafted: 0, stolen: 0, days: 0 };
         this.discovered = new Set();
         this.cleared = new Set();
+        this.quests = new Quests(this);
     }
 
     // ---------------------------------------------------------------- events & lookups
     emit(type, data = {}) {
         data.type = type;
         this.events.push(data);
+        if (this.quests) this.quests.queue.push(data);
         if (this.events.length > 800) this.events.splice(0, this.events.length - 800);
         return data;
     }
@@ -188,8 +193,9 @@ export class World {
         if (p.boundEntry && this.time.total > p.boundUntil) { removeItem(p, p.boundEntry, 1); p.boundEntry = null; this.emit('note', { text: 'The spectral weapon fades.' }); }
         if (!p.dead && input) this.controlPlayer(dt, input);
         if (!p.dead) { updateAct(this, p, dt); tickEffects(this, p, dt); }
+        if (this.cellId !== 'ext') this.interiors.tick(sdt);
         for (const a of this.actors) {
-            if (a === p) continue;
+            if (a === p || a.cell !== this.cellId) continue;
             if (a.rig === 'dragon') {
                 if (a.dead) updateDeadDragon(this, a, sdt);
                 else { updateDragon(this, a, sdt); tickEffects(this, a, sdt); }
@@ -207,6 +213,7 @@ export class World {
         }
         updateProjectiles(this, sdt);
         this.pop.update(dt);
+        this.lawTick(dt);
         if (this.quests) this.quests.tick(dt);
         while (deferred.length) deferred.shift()();
         // the sneak eye: the most anyone has noticed you
@@ -227,6 +234,7 @@ export class World {
     controlPlayer(dt, inp) {
         const p = this.player;
         const st = p.stats;
+        p.lookDX = inp.look.dx * 600; p.lookDY = inp.look.dy * 600;
         p.camYaw -= inp.look.dx;
         p.camPitch = Math.max(-1.45, Math.min(1.45, p.camPitch - inp.look.dy));
         if (inp.pressed.has('sneak')) p.sneaking = !p.sneaking;
@@ -346,9 +354,11 @@ export class World {
         dropLoot(t, this.rng);
         if (t.kind === 'player') { this.emit('playerDeath', { by: src }); return; }
         if (src?.kind === 'player' || src?.faction === 'player') this.stats.kills++;
+        if (src?.kind === 'player' && ['guard', 'town', 'friend', 'hearth'].includes(t.faction) && !t.hostileToPlayer && !t.summoner && !t.campLoc) this.crime('murder', t.npcId || null, 0, null);
         this.emit('death', { actor: t, by: src });
         if (t.essence && t.kind !== 'npc') this.dropEssence(t, src);
         if (t.rig === 'dragon') this.dragonDeath(t);
+        if (this.cellId !== 'ext') this.interiors.onKill(t);
         if (t.npcId) this.pop.state[t.npcId] = { ...(this.pop.state[t.npcId] || {}), dead: true };
         if (t.campLoc) {
             const camp = this.pop.camps.get(t.campLoc);
@@ -458,10 +468,11 @@ export class World {
             if (a === p) continue;
             if (a.dead) { if (a.rig !== 'dragon' || a.deadT > 4) consider('corpse', a, a.pos.x, a.pos.y + 0.4, a.pos.z, a.rig === 'dragon' ? 4 : 1.0); }
             else if (a.rig === 'humanoid' && !hostile(a, p) && a.ai?.state !== 'combat' && !a.summoner) consider(p.sneaking && !a.follower ? 'pickpocket' : 'talk', a, a.pos.x, a.pos.y + 1.4 * a.scale, a.pos.z, 0.6);
+            else if (a.talkable && !hostile(a, p)) consider('talk', a, a.pos.x, a.pos.y + 3 * a.scale, a.pos.z, 3.5);
             else if (a.tpl === 'horse' && !hostile(a, p)) consider('mount', a, a.pos.x, a.pos.y + 1.2, a.pos.z, 1);
         }
         for (const it of this.items) if (it.cell === this.cellId) consider('item', it, it.pos.x, it.pos.y + 0.15, it.pos.z, 0.45);
-        const use = this.space.usables ? this.space.usables(p.pos, range + 2, this) : this.extUsables(p.pos, range + 2);
+        const use = this.space.usablesFor ? this.space.usablesFor(p.pos, range + 2) : this.extUsables(p.pos, range + 2);
         for (const u of use) consider(u.kind, u, u.x, u.y, u.z, u.r || 0.8, u);
         return best;
     }
@@ -494,7 +505,75 @@ export class World {
                 out.push({ kind: 'plant', x: pl.x, y: pl.y + 0.3, z: pl.z, r: 0.6, plant: i, name: ITEMS[pl.id].name });
             }
         }
+        for (const u of this.quests.extUsables(pos, r)) out.push(u);
         return out;
+    }
+
+    /** Touching a sigil stone: the scar copies the next ring of its sigil (once per stone). */
+    readSigilStone(f) {
+        const key = `stone:${f.loc}`;
+        const st = this.player.storm;
+        if (this.flags[key]) { this.emit('note', { text: 'The stone is silent; its ring is already part of you.' }); return; }
+        this.flags[key] = true;
+        const n = learnRing(st, f.ring);
+        const ring = RINGS[`${f.ring}:${n - 1}`];
+        this.emit('ringLearned', { sigil: f.ring, ring: n, name: ring?.name, sigilName: SIGILS[f.ring].name, loc: f.loc });
+    }
+
+    giveItem(entry, n = 1) { addItem(this.player, entry, n); this.emit('pickup', { entry, n }); }
+
+    // ---------------------------------------------------------------- doors and cells
+    /** Go through a load door (the UI fades out first, then calls this). */
+    travelDoor(door) {
+        if (this.cellId === 'ext') {
+            this.extReturn = door;
+            this.enterCell(door.to, 'entry');
+        } else if (door.to === 'ext') {
+            this.exitToExt((door.ext?.id && this.settlements.doors.find((d) => d.id === door.ext.id)) || (door.ext?.x != null ? door.ext : null) || this.settlements.doors.find((d) => d.loc === this.space.loc && d.interior === 'dungeon') || this.extReturn);
+        } else this.enterCell(door.to, door.arriveAt || 'entry');
+    }
+
+    /** Swap the world over to an interior cell. */
+    enterCell(id, arriveAt = 'entry') {
+        const p = this.player;
+        const followers = this.actors.filter((a) => a !== p && a.follower && !a.dead && !a.summoner);
+        // everything outside (or in the previous cell) goes to sleep
+        for (const a of [...this.actors]) if (a !== p && !followers.includes(a)) this.removeActor(a);
+        if (this.cellId === 'ext') this.pop.suspend();
+        this.items = this.items.filter((it) => it.cell === 'ext' || it.cell === id || it.owner === 'keep');
+        this.projectiles.length = 0; this.runes.length = 0;
+        const c = this.interiors.get(id);
+        this.interiors.usedSpots.clear();
+        this.space = c;
+        this.cellId = id;
+        p.cell = id;
+        const at = arriveAt === 'up' ? c.upSpot || c.entry : arriveAt === 'down' ? c.downSpot || c.entry : c.entry;
+        this.placePlayer(at.x, at.z, at.rot, c.floorAt(at.x, at.z) + 0.5);
+        followers.forEach((f, i) => { f.cell = id; f.pos.x = at.x + 1 + i * 0.8; f.pos.z = at.z + 0.6; f.pos.y = c.floorAt(f.pos.x, f.pos.z); });
+        this.interiors.populate(c);
+        this.quests.cellSetup(c);
+        this.pop.timer = 0;
+        this.emit('cellChanged', { cell: id, interior: true, name: c.kind === 'dungeon' ? LOC[c.loc]?.name : null });
+        if (c.loc && !this.discovered.has(c.loc) && c.kind === 'dungeon') { this.discovered.add(c.loc); this.emit('discovered', { loc: c.loc }); }
+    }
+
+    /** Back out into the open, in front of the door we used. */
+    exitToExt(door) {
+        const p = this.player;
+        const followers = this.actors.filter((a) => a !== p && a.follower && !a.dead && !a.summoner);
+        for (const a of [...this.actors]) if (a !== p && !followers.includes(a)) this.removeActor(a);
+        this.projectiles.length = 0; this.runes.length = 0;
+        this.space = this.ext;
+        this.cellId = 'ext';
+        p.cell = 'ext';
+        const d = door || this.extReturn || { x: p.pos.x, z: p.pos.z, rot: 0 };
+        const out = 2.2;
+        const x = d.x + Math.sin(d.rot || 0) * out, z = d.z + Math.cos(d.rot || 0) * out;
+        this.placePlayer(x, z, (d.rot || 0) + Math.PI);
+        followers.forEach((f, i) => { f.cell = 'ext'; f.pos.x = x + 1 + i; f.pos.z = z + 1; f.pos.y = this.terrain.heightAt(f.pos.x, f.pos.z); });
+        this.extReturn = null;
+        this.pop.timer = 0;
+        this.emit('cellChanged', { cell: 'ext', interior: false });
     }
 
     useFocus() {
@@ -505,8 +584,9 @@ export class World {
         switch (f.kind) {
             case 'item': {
                 const it = f.ref;
-                if (it.owner && !this.isOwnerOk(it.owner)) this.crime('theft', it.owner, ITEMS[it.entry.id]?.value || 1);
-                addItem(p, it.entry, it.entry.n);
+                const theft = it.owner && !this.isOwnerOk(it.owner);
+                if (theft) this.crime('theft', it.owner, ITEMS[it.entry.id]?.value || 1);
+                addItem(p, theft ? { ...it.entry, stolen: true } : it.entry, it.entry.n);
                 this.items.splice(this.items.indexOf(it), 1);
                 this.emit('pickup', { entry: it.entry, n: it.entry.n });
                 this.emit('itemTaken', { item: it });
@@ -530,18 +610,154 @@ export class World {
             }
             case 'talk': this.emit('talk', { actor: f.ref }); break;
             case 'pickpocket': this.emit('pickpocket', { actor: f.ref }); break;
-            case 'door': this.emit('useDoor', { door: f.door }); break;
+            case 'door':
+                if (f.door.locked > 0 && !this.flags[`unlocked:${f.door.id}`]) { this.emit('locked', { door: f.door, focus: f }); break; }
+                this.emit('useDoor', { door: f.door });
+                break;
             case 'station': this.emit('station', { station: f.station }); break;
             case 'totem': p.sheet.totem = f.totem; p.dirty = true; this.emit('totem', { totem: f.totem }); break;
-            case 'sigilstone': this.emit('sigilstone', { ring: f.ring, loc: f.loc }); break;
+            case 'sigilstone': this.readSigilStone(f); break;
             case 'sign': this.emit('sign', { to: f.to }); break;
             case 'mount': this.emit('mount', { horse: f.ref }); break;
-            default: if (this.space.use) this.space.use(f, this); else this.emit('use', { focus: f });
+            default:
+                if (this.quests.use(f)) break;
+                if (this.cellId !== 'ext') this.interiors.use(f, this); else this.emit('use', { focus: f });
         }
     }
 
     isOwnerOk(owner) { return !owner || owner === 'player' || this.flags[`owns:${owner}`]; }
-    crime(kind, owner, value) { this.emit('crime', { kind, owner, value }); if (this.onCrime) this.onCrime(kind, owner, value); }
+    // ---------------------------------------------------------------- the law
+    /** The town whose guards care about what happens here (null in the wilds). */
+    townAt() {
+        let loc = null;
+        if (this.cellId !== 'ext') loc = this.space.loc || this.cellId.split(':')[0];
+        else {
+            const p = this.player.pos;
+            for (const L of LOCATIONS) if ((L.kind === 'city' || L.kind === 'town' || L.kind === 'village') && Math.hypot(L.x - p.x, L.z - p.z) < (L.flat || 60) + 90) { loc = L.id; break; }
+        }
+        if (!loc || !LOC[loc] || !['city', 'town', 'village'].includes(LOC[loc].kind) && loc !== 'hollowmere' && loc !== 'highcairn') return null;
+        return townOf(loc);
+    }
+    lawful(a) { return a && !a.dead && a !== this.player && ['guard', 'town', 'friend', 'hearth'].includes(a.faction) && !a.summoner && !a.campLoc; }
+    /** Who saw it? Lawful folk nearby with a line of sight (the victim always counts). */
+    witnesses(victim = null) {
+        const p = this.player;
+        return this.actors.filter((a) => this.lawful(a) && a.cell === this.cellId && a.ai?.state !== 'sleep' && (a === victim || (Math.hypot(a.pos.x - p.pos.x, a.pos.z - p.pos.z) < 20 && canSee(this, a, p) && !(p.stats.invisible))));
+    }
+    crime(kind, owner, value, victim = null) {
+        const p = this.player;
+        if (kind === 'theft') this.stats.stolen++;
+        const seen = this.witnesses(victim);
+        this.emit('crime', { kind, owner, value, seen: seen.length > 0 });
+        if (this.onCrime) this.onCrime(kind, owner, value);
+        if (!seen.length) return false;
+        const town = this.townAt() || (victim?.homeLoc && townOf(victim.homeLoc)) || null;
+        if (!town) { for (const a of seen) { a.angry = a.angry || new Set(); a.angry.add(p.id); } return true; }
+        p.bounty[town] = (p.bounty[town] || 0) + fineFor(kind, value);
+        this.emit('crimeSeen', { kind, town, bounty: p.bounty[town] });
+        this.lawCool = Math.min(this.lawCool || 0, 1.5);
+        return true;
+    }
+    /** The player struck someone: an assault if they were minding their own business. */
+    lawHit(t) {
+        if (!this.lawful(t) || t.follower || t.hostileToPlayer || t.angry?.has(this.player.id) || t.ai?.state === 'combat' && hostile(t, this.player)) return;
+        t.angry = t.angry || new Set(); t.angry.add(this.player.id);
+        this.crime('assault', t.npcId || t.homeLoc || null, 0, t);
+    }
+    guardsOf(town) { return this.actors.filter((a) => a.tpl === 'guard' && !a.dead && townOf(a.homeLoc || '') === town); }
+    /** Guards walk up to wanted criminals; murderers and those who resisted are attacked on sight. */
+    lawTick(dt) {
+        this.lawCool = (this.lawCool ?? 2) - dt;
+        if (this.lawCool > 0) return;
+        this.lawCool = 1;
+        const p = this.player, town = this.townAt();
+        if (!town || p.dead) return;
+        const b = p.bounty[town] || 0;
+        if (b <= 0) return;
+        const guards = this.guardsOf(town);
+        if (b >= 1000 || this.flags[`resist:${town}`]) { for (const g of guards) if (!g.hostileToPlayer) { g.hostileToPlayer = true; g.ai.state = 'combat'; g.ai.target = p.id; } return; }
+        if ((this.arrestCool || 0) > this.time.total) return;
+        for (const g of guards) {
+            if (g.hostileToPlayer || g.ai.state === 'combat') continue;
+            const d = Math.hypot(g.pos.x - p.pos.x, g.pos.z - p.pos.z);
+            if (d < 26 && canSee(this, g, p)) g.ai.dest = { x: p.pos.x, z: p.pos.z, run: true };
+            if (d < 3.5) { this.arrestCool = this.time.total + 0.5; this.emit('arrest', { guard: g, town, bounty: b }); return; }
+        }
+    }
+    payFine(town) {
+        const p = this.player, b = p.bounty[town] || 0;
+        if (p.gold < b) return false;
+        p.gold -= b;
+        this.clearBounty(town);
+        // anything stolen is confiscated
+        const stolen = p.inv.filter((e) => e.stolen);
+        for (const e of stolen) removeItem(p, e, e.n || 1);
+        this.emit('note', { text: stolen.length ? 'You pay the fine. Your stolen goods are confiscated.' : 'You pay the fine.' });
+        return true;
+    }
+    serveTime(town) {
+        const p = this.player, b = p.bounty[town] || 0;
+        const days = Math.max(1, Math.min(10, Math.ceil(b / 100)));
+        this.clearBounty(town);
+        // a little of what you knew fades in the cell
+        const ids = Object.keys(p.sheet.skillXp).sort((a, c) => p.sheet.skillXp[c] - p.sheet.skillXp[a]);
+        for (const id of ids.slice(0, days)) p.sheet.skillXp[id] = 0;
+        for (const e of p.inv.filter((x) => x.stolen)) removeItem(p, e, e.n || 1);
+        this.wait(days * 24, true);
+        this.emit('note', { text: `You serve ${days} day${days > 1 ? 's' : ''} in the town cells. Some of your skill progress is lost.` });
+    }
+    resistArrest(town) {
+        this.flags[`resist:${town}`] = true;
+        this.player.bounty[town] = (this.player.bounty[town] || 0) + 40;
+        this.lawCool = 0;
+    }
+    clearBounty(town) {
+        this.player.bounty[town] = 0;
+        delete this.flags[`resist:${town}`];
+        for (const a of this.actors) {
+            if (a.angry) a.angry.delete(this.player.id);
+            if (a.tpl === 'guard' && townOf(a.homeLoc || '') === town) { a.hostileToPlayer = false; if (a.ai.target === this.player.id) { a.ai.target = null; a.ai.state = 'idle'; } a.ai.dest = null; }
+        }
+        this.arrestCool = this.time.total + 0.3;
+    }
+
+    // ---------------------------------------------------------------- fast travel
+    /** null if you may travel now, else the reason you can't. */
+    canFastTravel() {
+        const p = this.player;
+        if (!this.flags.prologueDone) return 'You cannot travel yet.';
+        if (this.cellId !== 'ext') return 'You cannot fast travel from inside.';
+        if (p.inCombat || this.actors.some((a) => !a.dead && a.ai?.target === p.id && a.ai.state === 'combat')) return 'You cannot fast travel with enemies nearby.';
+        if (p.stats.encumbered) return 'You are carrying too much to fast travel.';
+        if (p.swimming) return 'You cannot fast travel while swimming.';
+        return null;
+    }
+    fastTravel(locId) {
+        const L = LOC[locId];
+        if (!L || this.canFastTravel()) return false;
+        const p = this.player;
+        const dist = Math.hypot(L.x - p.pos.x, L.z - p.pos.z);
+        const hours = Math.max(0.5, dist / 450);
+        const followers = this.actors.filter((a) => a !== p && a.follower && !a.dead && !a.summoner);
+        for (const a of [...this.actors]) if (a !== p && !followers.includes(a) && a.rig !== 'dragon') this.removeActor(a);
+        this.pop.suspend();
+        this.hourAdvance(hours);
+        // arrive in front of the dungeon door, or at the edge of the settlement on its road
+        const door = this.settlements.doors.find((d) => d.loc === locId && d.interior === 'dungeon');
+        let x, z, yaw = 0;
+        if (door) { x = door.x + Math.sin(door.rot || 0) * 3; z = door.z + Math.cos(door.rot || 0) * 3; yaw = (door.rot || 0) + Math.PI; }
+        else {
+            const sp = this.settlements.props.find((pr) => pr.type === 'signpost' && Math.hypot(pr.x - L.x, pr.z - L.z) < (L.flat || 40) + 60);
+            if (sp) { x = sp.x + 2; z = sp.z + 2; } else { x = L.x; z = L.z + (L.flat ? Math.min(L.flat * 0.4, 20) : 6); }
+            yaw = Math.atan2(-(L.x - x), -(L.z - z));
+        }
+        this.placePlayer(x, z, yaw);
+        followers.forEach((f, i) => { f.pos.x = x + 1.5 + i; f.pos.z = z + 1; f.pos.y = this.terrain.heightAt(f.pos.x, f.pos.z); });
+        this.pop.timer = 0;
+        this.weather.update(hours, 200, regionAt(x, z), this.events);
+        this.emit('fastTravel', { loc: locId, hours });
+        return true;
+    }
 
     // ---------------------------------------------------------------- using items from the inventory
     useItem(entry) {

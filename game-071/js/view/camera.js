@@ -31,7 +31,9 @@ export class CameraRig {
         const cam = this.camera;
         if (this.override) {
             const o = this.override;
-            cam.position.lerp(this._v.set(o.pos.x, o.pos.y, o.pos.z), Math.min(1, dt * (o.speed || 2)));
+            this._v.set(o.pos.x, o.pos.y, o.pos.z);
+            if (o.snap || cam.position.distanceTo(this._v) > 40) { cam.position.copy(this._v); o.snap = false; }
+            else cam.position.lerp(this._v, Math.min(1, dt * (o.speed || 2)));
             cam.lookAt(o.look.x, o.look.y, o.look.z);
             return;
         }
@@ -76,6 +78,14 @@ export class CameraRig {
                 const ex = pivot.x + back.x * want + cy * shoulder, ez = pivot.z + back.z * want - sy * shoulder, ey = pivot.y + back.y * want;
                 const hit = space.colliders.raycast(pivot.x, pivot.y, pivot.z, ex, ey, ez);
                 if (hit >= 0) want = Math.max(0.6, want * hit - 0.25);
+            }
+            if (space.blockedRay) {
+                // indoors: stop at walls and below the ceiling
+                for (let s = 1; s <= 10; s++) {
+                    const d = want * s / 10;
+                    const x = pivot.x + back.x * d + cy * shoulder, y = pivot.y + back.y * d + 0.2, z = pivot.z + back.z * d - sy * shoulder;
+                    if (space.blockedRay(pivot.x, pivot.y, pivot.z, x, y, z) || (!space.open && y > space.floorAt(x, z) + space.wallH - 0.3)) { want = Math.max(0.5, d - want / 10 - 0.2); break; }
+                }
             }
             this.curDist += (want - this.curDist) * Math.min(1, dt * (want < this.curDist ? 18 : 4));
             const d = this.curDist;

@@ -10,7 +10,7 @@ import * as THREE from 'three';
 const V = () => new THREE.Vector3();
 const Q = () => new THREE.Quaternion();
 const _a = V(), _b = V(), _c = V(), _d = V(), _e = V(), _f = V();
-const _q1 = Q(), _q2 = Q(), _q3 = Q();
+const _q1 = Q(), _q2 = Q(), _q3 = Q(), _q4 = Q();
 const _m = new THREE.Matrix4();
 const _eul = new THREE.Euler();
 const ZERO = new THREE.Vector3();
@@ -46,7 +46,7 @@ export class Pose {
     setModelQ(n, q) {
         const p = this.parentName(n);
         this.mq[n].copy(q);
-        if (p) this.b[n].quaternion.copy(_q3.copy(this.mq[p]).invert().multiply(q));
+        if (p) this.b[n].quaternion.copy(_q4.copy(this.mq[p]).invert().multiply(q));
         else this.b[n].quaternion.copy(q);
         this.syncPos(n);
     }
@@ -257,9 +257,9 @@ export function animateHumanoid(P, st, ctx) {
             rightT.lerp(T, blend); leftT.lerp(inChest(tmpT2, 0.05, -0.36, -0.24), blend);
             rightF.lerp(dirChest(tmpF, -0.25, 0.85, -0.45), blend); rightU.lerp(v3(0, 0, 1), blend);
         } else {
-            rightT.lerp(inChest(tmpP, 0.24, -0.3, -0.24), blend);
+            rightT.lerp(inChest(tmpP, 0.22, -0.2, -0.3), blend);
             rightF.lerp(dirChest(tmpF, -0.1, 0.55, -0.82), blend); rightU.lerp(v3(1, 0, 0), blend);
-            if (lItem?.slot === 'shield') { leftT.lerp(inChest(tmpT2, -0.2, -0.28, -0.24), blend); leftF.lerp(dirChest(tmpF, -0.4, 0, -1), blend); leftU.lerp(v3(0, 1, 0), blend); }
+            if (lItem?.slot === 'shield') { leftT.lerp(inChest(tmpT2, -0.18, -0.16, -0.3), blend); leftF.lerp(dirChest(tmpF, -0.4, 0, -1), blend); leftU.lerp(v3(0, 1, 0), blend); }
             else if (lItem) { leftT.lerp(inChest(tmpT2, -0.24, -0.3, -0.22), blend); leftF.lerp(dirChest(tmpF, 0.1, 0.55, -0.82), blend); }
             else leftT.lerp(inChest(tmpT2, -0.2, -0.32, -0.16), blend * 0.6);
         }

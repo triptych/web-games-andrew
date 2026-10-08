@@ -227,6 +227,18 @@ export class Population {
         return d;
     }
 
+    /** Going indoors: everyone outside leaves the world; camps and guards rebuild on the way out. */
+    suspend() {
+        for (const [loc, c] of this.camps) {
+            if (!c.actors) continue;
+            const alive = c.actors.filter((a) => !a.dead).length;
+            this.camps.set(loc, { actors: null, clearedAt: alive === 0 ? (c.clearedAt ?? this.w.time.total) : c.clearedAt });
+        }
+        this.guards.clear();
+        this.wild = [];
+        for (const [id] of this.npcs) if (this.npcCell.get(id) === 'ext') this.npcCell.set(id, 'away');
+    }
+
     /** Persist what matters about named NPCs. */
     save() {
         const out = { state: this.state, dragonTimer: this.dragonTimer, camps: {}, npcs: {} };

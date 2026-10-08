@@ -51,6 +51,24 @@ export function updateDragon(world, a, dt) {
     ai.t += dt;
     const T = TEMPLATES[a.tpl];
     let t = world.byId(ai.target);
+    if (a.chained) {   // a captive on the summit: lies still, turns its head to follow you
+        a.fly = false; a.hovering = false; a.vel.x = a.vel.z = 0; ai.state = 'ground';
+        const p = world.player;
+        a.yaw += angDiff(a.yaw, Math.atan2(-(p.pos.x - a.pos.x), -(p.pos.z - a.pos.z))) * Math.min(1, dt * 0.5);
+        a.pos.y = world.space.ground(a.pos.x, a.pos.z, a.pos.y + 4);
+        return;
+    }
+    if (a.flyby != null) {   // a scripted pass: sweep low over the player with a roar, then climb away
+        a.flyby -= dt;
+        const p = world.player, g0 = world.space.ground(a.pos.x, a.pos.z, 1e4);
+        if (!a.leaving) {
+            const d = flyToward(a, p.pos.x, p.pos.y + 38, p.pos.z, 30, dt, 1.4);
+            if (d < 30 || a.flyby < 6) { a.leaving = true; world.emit('roar', { actor: a }); }
+        } else flyToward(a, a.pos.x - Math.sin(a.yaw) * 300, g0 + 150, a.pos.z - Math.cos(a.yaw) * 300, 32, dt, 0.4);
+        a.hovering = false; a.onGround = false;
+        if (a.flyby <= 0) { a.flyby = null; world.despawn(a); }
+        return;
+    }
     if (!t || t.dead || !hostile(a, t)) { t = pickTarget(world, a); ai.target = t?.id || null; }
     if (a.grounded > 0) a.grounded -= dt;
     const g = world.space.ground(a.pos.x, a.pos.z, 1e4);

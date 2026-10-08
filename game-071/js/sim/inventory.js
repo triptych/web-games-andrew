@@ -49,10 +49,12 @@ export function countItem(actor, id) {
 }
 
 export function unequipEntry(actor, e) {
+    if (!actor.equip) return;
     for (const k of Object.keys(actor.equip)) if (actor.equip[k] === e) actor.equip[k] = null;
 }
 
 export function isEquipped(actor, e) {
+    if (!actor.equip) return null;
     for (const k of Object.keys(actor.equip)) if (actor.equip[k] === e) return k;
     return null;
 }

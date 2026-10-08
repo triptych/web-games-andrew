@@ -306,7 +306,7 @@ function concTick(world, a, act, dt) {
         if (cos < 0.88 - Math.min(0.3, t.r / Math.max(d, 1))) continue;
         if (sp.heal) heal(t, 'hp', sp.heal * mult * dt);
         else applyDamage(world, t, { amount: sp.dmg * mult * dt, type: sp.elem, source: a, quiet: true, dot: true });
-        if (!sp.heal && world.rng.chance(dt * 2)) world.emit('hit', { target: t, source: a, dmg: sp.dmg * mult * 0.5, type: sp.elem, pos: { x: t.pos.x, y: t.pos.y + t.h * 0.6, z: t.pos.z } });
+        if (!sp.heal && world.rng.chance(dt * 2)) world.emit('hit', { target: t, source: a, dmg: sp.dmg * mult * 0.5, dmgType: sp.elem, pos: { x: t.pos.x, y: t.pos.y + t.h * 0.6, z: t.pos.z } });
     }
 }
 
@@ -548,7 +548,7 @@ export function breathCone(world, a, dir, origin, range, cosMin, dmg, elem, dt) 
         if (d > range) continue;
         if ((dx * dir.x + dy * dir.y + dz * dir.z) / (d || 1) < cosMin) continue;
         applyDamage(world, t, { amount: dmg * dt, type: elem, source: a, quiet: true, dot: true });
-        if (world.rng.chance(dt * 3)) world.emit('hit', { target: t, source: a, dmg: dmg * 0.3, type: elem, pos: { x: t.pos.x, y: t.pos.y + 1, z: t.pos.z } });
+        if (world.rng.chance(dt * 3)) world.emit('hit', { target: t, source: a, dmg: dmg * 0.3, dmgType: elem, pos: { x: t.pos.x, y: t.pos.y + 1, z: t.pos.z } });
     }
 }
 
