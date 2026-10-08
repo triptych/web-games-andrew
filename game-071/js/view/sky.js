@@ -329,7 +329,7 @@ export class Sky {
             col.setRGB(1.0, 0.93 - warm * 0.28, 0.82 - warm * 0.5);
         } else {
             dir = moonUp ? this.moon1 : new THREE.Vector3(0.2, 0.9, 0.3).normalize();
-            inten = (moonUp ? 0.6 : 0.25) * night * (1 - s.cover * 0.6);
+            inten = (moonUp ? 1.3 : 0.9) * night * (1 - s.cover * 0.45);   // a game night: readable moonlight
             col.setRGB(0.55, 0.66, 0.95);
         }
         if (s.interior) inten = 0;
@@ -344,8 +344,8 @@ export class Sky {
         G.uFogDensity.value = (0.00055 + s.fog * 0.006 + s.cover * 0.0006 + night * 0.0002) * (s.interior ? 0 : 1);
         G.uFogFalloff.value = 0.0045 + s.fog * 0.002;
         G.uFogBase.value = 30;
-        this.hemi.intensity = (0.12 + day * 0.25) * (s.interior ? 0 : 1);
-        this.hemi.color.setRGB(0.65 + day * 0.1, 0.72 + day * 0.1, 0.9);
+        this.hemi.intensity = (0.12 + day * 0.25 + night * 0.55) * (s.interior ? 0 : 1);
+        this.hemi.color.setRGB(0.65 + day * 0.1, 0.72 + day * 0.1, 0.9 + night * 0.1);
         this.hemi.groundColor.setRGB(0.25, 0.22, 0.18).multiplyScalar(0.4 + day * 0.6);
 
         // shadow box follows the camera, snapped to texels so edges don't crawl
@@ -372,7 +372,7 @@ export class Sky {
             this.envRT = rt;
             if (!s.interior) this.scene.environment = rt.texture;
         }
-        this.scene.environmentIntensity = s.interior ? 0 : 0.9;
+        this.scene.environmentIntensity = s.interior ? 0 : 0.9 + night * 0.9;
         return { sun, night, day, warm };
     }
 

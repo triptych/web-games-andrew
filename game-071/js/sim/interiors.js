@@ -15,7 +15,7 @@ import { applyDamage } from './actor.js';
 // ------------------------------------------------------------------ themes
 export const THEMES = {
     barrow:     { ts: 4, wallH: 4.6, layer: 'carved', floor: 'flag', foes: [['wight_husk', 3], ['wight', 3], ['wight_archer', 2], ['giantrat', 1], ['spider', 0.6]], sleepers: true, light: 0x6f9cff, ambient: 0.12, fog: 0x0b0d12, surface: 'stone' },
-    cave:       { ts: 4, wallH: 6.5, layer: 'rock', floor: 'rock', foes: [['wolf', 2], ['bear', 1], ['spider', 2], ['giantrat', 1.5], ['troll', 0.4]], light: 0x8ff0c8, ambient: 0.1, fog: 0x0c100e, surface: 'stone', organic: true },
+    cave:       { ts: 4, wallH: 6.5, layer: 'rock', floor: 'rock', foes: [['wolf', 2], ['bear', 1], ['spider', 2], ['giantrat', 1.5], ['troll', 0.4]], light: 0xbfe6d2, ambient: 0.1, fog: 0x0c100e, surface: 'stone', organic: true },
     mine:       { ts: 4, wallH: 4.2, layer: 'rock', floor: 'dirt', foes: [['bandit', 3], ['bandit_archer', 2], ['bandit_mage', 0.8]], light: 0xffb060, ambient: 0.14, fog: 0x100c0a, surface: 'dirt', organic: true },
     fort:       { ts: 4, wallH: 5.0, layer: 'masonry', floor: 'flag', foes: [['bandit', 3], ['bandit_archer', 2], ['reaver', 1.5]], light: 0xffa050, ambient: 0.16, fog: 0x0e0c0a, surface: 'stone' },
     deepforge:  { ts: 4, wallH: 7.0, layer: 'brass', floor: 'flag', foes: [['clockwork_spider', 3], ['sentinel', 0.8], ['gloomkin', 2], ['gloomkin_archer', 1]], light: 0x9cffa0, ambient: 0.14, fog: 0x0a0d0a, surface: 'stone' },

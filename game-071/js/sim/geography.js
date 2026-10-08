@@ -95,7 +95,7 @@ export const LOCATIONS = [
       desc: 'A hamlet at the foot of the Pilgrim\'s Stair.' },
     // --- main quest
     { id: 'undercroft', name: 'Hollowmere Undercroft', kind: 'cave', x: -180, z: 1135, flat: 10, face: Math.PI, region: 'pinewood',
-      dungeon: { theme: 'cave', boss: 'cavebear', small: true }, desc: 'The tunnels under the keep.' },
+      dungeon: { theme: 'undercroft', boss: 'wight_husk', small: true }, desc: 'The tunnels under the keep.' },
     { id: 'coldmarrow', name: 'Coldmarrow Barrow', kind: 'barrow', x: -578, z: 660, flat: 26, face: 0, region: 'pinewood',
       dungeon: { theme: 'barrow', boss: 'wight_captain', sigil: 'gale', dial: 'star', levels: 2 }, desc: 'An ancient tomb high on Coldmarrow Peak.' },
     { id: 'greywatch', name: 'Greywatch Tower', kind: 'tower', x: -380, z: -60, flat: 22, region: 'plains',

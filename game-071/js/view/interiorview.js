@@ -182,8 +182,8 @@ export class InteriorView {
         }
         this.group = g;
         this.scene.add(g);
-        this.hemi.intensity = cell.open ? 1.0 : cell.kind === 'building' ? 1.1 : 0.75;
-        this.hemi.color.set(cell.kind === 'building' ? 0xffd6a8 : 0x8090a8);
+        this.hemi.intensity = cell.open ? 1.3 : cell.kind === 'building' ? 1.6 : 1.45;
+        this.hemi.color.set(cell.kind === 'building' ? 0xffdcb4 : 0xa8b0c0);
         this.scene.add(this.hemi);
         for (const L of this.lights) this.scene.add(L);
     }
@@ -200,8 +200,8 @@ export class InteriorView {
             L.position.set(n.l.x, n.l.y + 0.3, n.l.z);
             L.color.set(n.l.col || c.lightCol || 0xffa860);
             const flick = n.l.fire !== false ? 0.85 + 0.15 * Math.sin(time * 9 + i * 3) * Math.sin(time * 13.7 + i) : 1;
-            L.intensity = n.l.i * 30 * flick;
-            L.distance = n.l.r * 2.2;
+            L.intensity = n.l.i * 42 * flick;
+            L.distance = n.l.r * 3;
         });
         for (const a of this.animated) {
             if (a.kind === 'gate') { const want = c.state.gates[a.id] ? 1 : 0; a.open += (want - a.open) * Math.min(1, dt * 1.5); a.mesh.position.y = a.y0 + a.open * (c.ts - 0.3); }
