@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1d1611">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Dirt Crown: a dirt-track racing RPG. Start with a tiny featureless buggy, win races for coins, upgrade it part by part across seven circuits, and beat your rival for the Dirt Crown.">
+    <title>Dirt Crown</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;700;900&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="gl"></canvas>
+    <div id="fade"></div>
+
+    <!-- ============================================================ LOADING -->
+    <div id="loading" class="screen">
+        <div class="logo small"><span class="l1">DIRT</span><span class="l2">CROWN</span></div>
+        <div class="bar"><i id="load-bar"></i></div>
+        <p id="load-msg">Warming up the engines…</p>
+    </div>
+
+    <!-- ============================================================ TITLE -->
+    <section id="title" class="screen hidden">
+        <div class="logo">
+            <span class="crown">👑</span>
+            <span class="l1">DIRT</span><span class="l2">CROWN</span>
+            <small>A BACKROADS RACING SAGA</small>
+        </div>
+        <div class="menu">
+            <button id="t-continue" class="btn big go hidden">▶ Continue<small id="t-cont-info"></small></button>
+            <button id="t-new" class="btn big">🏁 New Career</button>
+            <div class="row">
+                <button id="t-free" class="btn">🏎️ Free Race</button>
+                <button id="t-settings" class="btn">⚙️ Settings</button>
+                <button id="t-credits" class="btn">📜 Credits</button>
+            </div>
+        </div>
+        <p class="hint keys">W A S D / arrows to drive · Space drift · Shift nitro · R reset · C camera · Esc pause</p>
+        <p class="hint touchonly">Steer with the left buttons · brake, drift and nitro on the right · the car accelerates by itself</p>
+    </section>
+
+    <!-- ============================================================ STORY -->
+    <section id="story" class="hidden">
+        <div id="story-title"></div>
+        <div class="dlg">
+            <canvas id="dlg-portrait" width="256" height="256"></canvas>
+            <div class="dlg-body">
+                <div class="who"><b id="dlg-who"></b><small id="dlg-role"></small></div>
+                <p id="dlg-text"></p>
+                <div class="dlg-ctl"><button id="dlg-skip" class="btn small ghost">Skip ⏭</button><span id="dlg-next">Tap or press Enter ▼</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ HUB -->
+    <section id="hub" class="hidden">
+        <header id="hub-top">
+            <div class="chip name"><span id="hub-name">Kit</span><small id="hub-car">The Bucket</small></div>
+            <div class="chip coins">🪙 <b id="hub-coins">0</b></div>
+            <div class="chip rating">⚡ <b id="hub-rating">100</b><small>rating</small></div>
+            <div class="spacer"></div>
+            <nav id="hub-tabs">
+                <button data-tab="races" class="tab">🗺️ <span>Races</span></button>
+                <button data-tab="garage" class="tab">🔧 <span>Garage</span></button>
+                <button data-tab="paint" class="tab">🎨 <span>Paint</span></button>
+                <button data-tab="career" class="tab">🏆 <span>Career</span></button>
+            </nav>
+            <button id="hub-menu" class="round" aria-label="Menu" title="Menu (Esc)">☰</button>
+        </header>
+        <div id="hub-panel"></div>
+        <div id="hub-next"></div>
+    </section>
+
+    <!-- ============================================================ RACE HUD -->
+    <section id="hud" class="hidden">
+        <div id="h-left">
+            <div id="h-pos"><b id="h-posn">1</b><sup id="h-suf">st</sup><small id="h-of">/6</small></div>
+            <ol id="h-board"></ol>
+        </div>
+        <div id="h-top">
+            <div id="h-lapbox"><small>LAP</small><b id="h-lap">1/3</b></div>
+            <div id="h-timebox"><b id="h-time">0:00.00</b><small id="h-best"></small></div>
+            <div id="h-coinbox">🪙 <b id="h-coins">0</b></div>
+        </div>
+        <canvas id="h-map" width="180" height="180"></canvas>
+        <div id="h-speedo"><canvas id="h-speedo-cv" width="200" height="200"></canvas></div>
+        <div id="h-center"></div>
+        <div id="h-msg"></div>
+        <div id="h-rex"></div>
+        <div id="h-wrong" class="hidden">WRONG WAY</div>
+        <button id="h-pause" class="round" aria-label="Pause">❚❚</button>
+        <div id="touch">
+            <div class="tl">
+                <button data-ctl="left" class="tbtn steer" aria-label="Steer left">◀</button>
+                <button data-ctl="right" class="tbtn steer" aria-label="Steer right">▶</button>
+            </div>
+            <div class="tr">
+                <button data-ctl="nitro" class="tbtn nitro" aria-label="Nitro">N₂O</button>
+                <button data-ctl="drift" class="tbtn drift" aria-label="Drift">DRIFT</button>
+                <button data-ctl="brake" class="tbtn brake" aria-label="Brake">BRAKE</button>
+                <button data-ctl="gas" class="tbtn gas" aria-label="Gas">GAS</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ RESULTS -->
+    <section id="results" class="hidden"><div id="results-panel" class="panel"></div></section>
+
+    <div id="modal" class="hidden"><div id="modal-panel" class="panel"></div></div>
+    <div id="toasts"></div>
+
+    <noscript><p class="noscript">Dirt Crown needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

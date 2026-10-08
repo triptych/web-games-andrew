@@ -1028,6 +1028,21 @@ const games = [
         ]
     },
     {
+        id: 'game-069',
+        title: 'Dirt Crown',
+        description: "A dirt-track racing RPG in three.js with no asset files. Grandpa Gus pulls a tarp off his first racer, the Bucket: a tiny, primer-grey off-roader without a single feature. Win races for coins and bolt on parts that all show on the car (exhausts, a hood scoop, a supercharger, wings, bigger tyres on better rims, coil springs, a bull bar, a roll cage, a light bar, riveted armour and nitro bottles), across six upgrade lines and a paint shop with liveries and race numbers. Race in third person on 20 tracks in seven places: farm ovals on Dustwater Flats, misty logging roads in Pinecrest Woods, big jumps in Redrock Canyon at sunset, lantern-lit mud and water in Gatorback Bayou, snow and sheet ice on Frostbite Pass, stadium supercross under the Thunderdome's floodlights, and the Crown Run on Ravenwood Mesa, with figure eights that cross on bridges. Sliding dirt physics, drifts that fill your nitro, tabletops, kickers and whoops, mud, water, gravel, sand, ice and oil, slipstreams, and computer drivers that pass. 26 events (races, eliminations, time trials and duels), six champions to beat, and a story: Ravenwood Motors has bought every track in the county, and whoever wins the Dirt Crown sets the rules. Face your rival Colt Ravenwood in the ultimate race. Painted portraits, a county map, bloom and colour grading, a synthesised engine and score, autosave, keyboard, gamepad or touch.",
+        icon: '\uD83C\uDFC1',
+        folder: 'game-069',
+        version: '1.0.1',
+        cssClass: 'dirt-crown',
+        genre: 'rpg',
+        tags: [
+            { emoji: '\uD83C\uDFCE\uFE0F', label: 'Racing' },
+            { emoji: '\uD83D\uDD27', label: 'Upgrades' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
+    },
+    {
         id: 'game-070',
         title: 'PHOSPHOR PATROL',
         description: "A 1982 vector-monitor planet-defence shooter in three.js with no asset files, in the spirit of Defender with Asteroids meteor storms and Galaga dart squadrons. The Reapers are harvesting the colony world Lumen: snatchers grab colonists and carry them up, and one that reaches the top of the sky becomes a ravager. Fly the SENTRY around a planet eight screens wide that wraps at its ends, with inertia, an instant turnaround, a long-range scanner, lasers, smart bombs and hyperspace. Shoot a snatcher to drop its colonist, catch them in the air and fly them down to the ground; lose every colonist and the planet explodes and you fight on in open space until it's rebuilt. Nine kinds of Reaper (snatchers, ravagers, minelayers and their mines, tumbling wireframe hives that burst into stingers, hunters that come if you dawdle, diving dart squadrons and meteors that split in two), fifteen attack waves per loop and three bosses: the Harvester, a ring saucer with a tractor beam; the Leviathan, a segmented serpent; and the Overseer, an eye in a cage of shield plates with a sweeping beam. Everything is drawn as glowing beams by one instanced shader, with phosphor persistence, bloom and curved glass; explosions throw the destroyed shape's own lines at the screen. A thump-thump heartbeat that speeds up as the wave goes on, attract mode with a bot demo, high scores with initials, CADET and ARCADE modes, continues, endless loops, gamepads and a touch deck with a flight stick.",
