@@ -718,6 +718,7 @@ Out of scope for v1, with reasons:
 
 ### v1.0.1 — 2026-10-08
 - Phones: taps on the attack button are no longer lost on frames with no sim step, and a tap during a swing is queued.
+- Indoors: the sea, terrain and forests are properly hidden (they were drawing through interior floors).
 
 ### v1.0.0 — 2026-10-08
 - First release: everything listed in *Phases*.

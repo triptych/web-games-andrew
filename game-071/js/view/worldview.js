@@ -75,9 +75,9 @@ export class WorldView {
     /** Swap the drawn world between the open province and the current interior. */
     enterCell(interior) {
         const w = this.world;
-        const open = interior && w.space.open;
+        const open = interior && !!w.space.open;
         const skyParts = [this.sky.dome, this.sky.light, this.sky.light.target, this.sky.hemi];
-        for (const o of this.extObjects) o.visible = !interior || (open && skyParts.includes(o));
+        for (const o of this.extObjects) o.visible = !interior || (open && skyParts.includes(o));   // must be a real boolean: three skips only visible === false
         if (interior) this.interior.build(w.space, this.structures.tex);
         else this.interior.clear();
         this.scene.fog.color.set(interior ? (w.space.fog || 0x0b0b0c) : 0x8899aa);
@@ -109,7 +109,7 @@ export class WorldView {
         G.uLightning.value = ws.lightning;
         this.rig.update(p, w.space, dt, opts);
         const interior = w.cellId !== 'ext';
-        const open = interior && w.space.open;
+        const open = interior && !!w.space.open;
         this.sky.update(dt, open ? { hour: 19.3, day: w.time.day, cover: 0.8, fog: 0.1, aurora: 1, interior: false } : { hour: w.time.hour, day: w.time.day, cover: ws.cover, fog: ws.fog, aurora: ws.aurora, interior }, this.camera);
         this.terrainView.update(this.camera.position);
         this.water.update(this.camera.position);
