@@ -582,6 +582,7 @@ Frostmarch is the largest game here (a 3 km terrain, skinned procedural characte
 - **A "pristine" snapshot for New Game must be a deep copy.** Serialising the world into an object that still pointed at the live `flags` meant playing mutated the snapshot. Round-trip through JSON once when you take it, and again when you apply it.
 - **Scripted foes need a way back.** A quest step that spawns its dragon once and then waits for its death breaks when the player loads a save, walks away, or goes through a door. Tag scripted actors (`questTag`) and let the step re-spawn them while none is alive and the player is near.
 - **Interiors are a different physics space with the same interface.** The tile-grid cell answers `ground`, `blocked`, `blockedRay`, `floorAt` and `path` exactly as the exterior does, so the player controller, AI and camera never ask where they are. An "open" cell (the finale's floating islands) skips the ceiling, turns walls into hanging cliffs and keeps the sky visible.
+- **`object.visible` must be a real boolean.** three.js culls only `visible === false`; an expression like `!inside || (open && list.includes(o))` yields `undefined` when `open` is undefined, and the object keeps drawing. Wrap it in `!!` or compare explicitly. In game-071 this let the sea show through every interior floor.
 - **Playwright's `click()` waits for the element to be "stable" across animation frames.** At a few frames per second under SwiftShader that never happens; click from `page.evaluate()` instead.
 
 ## Common gotchas

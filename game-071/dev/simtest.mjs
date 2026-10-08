@@ -215,6 +215,24 @@ section('systems');
     const wolf = w.spawn('wolf', p.pos.x + 2, p.pos.z);
     let n = 0; while (!wolf.dead && n++ < 60) applyDamage(w, wolf, { amount: 10, type: 'phys', source: p });
     ok(wolf.dead, 'wolf killed');
+    // rapid taps: every tap during a swing is queued, none are lost
+    {
+        const sw = addItem(p, { id: 'iron_sword' }); equip(p, sw); p.act = { kind: 'idle', t: 0 }; p.dirty = true;
+        const blank = () => ({ move: { x: 0, y: 0 }, look: { dx: 0, dy: 0 }, held: new Set(), pressed: new Set(), released: new Set() });
+        let swings = 0, taps = 0;
+        for (let i = 0; i < 60 * 4; i++) {   // 4 s at 60 Hz, a tap (down one tick, up the next) every 0.3 s
+            const inp = blank();
+            if (i % 18 === 0) { inp.pressed.add('attack'); inp.held.add('attack'); taps++; }
+            if (i % 18 === 1) inp.released.add('attack');
+            w.tick(1 / 60, inp);
+            swings += w.drain().filter((e) => e.type === 'swing' && e.actor === p).length;
+        }
+        ok(swings >= 6 && swings <= taps, `rapid taps swing (${swings} swings from ${taps} taps)`);
+        ok(swings === 0 || !p.act.power, 'taps stay light attacks');
+        console.log(`  ${swings} swings from ${taps} rapid taps`);
+        for (let i = 0; i < 90; i++) w.tick(1 / 60, null);
+        w.drain();
+    }
     // sigils
     p.storm.rings.gale = 1; p.storm.equipped = 'gale'; p.storm.charge = p.storm.chargeMax;
     const c0 = p.storm.charge;

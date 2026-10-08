@@ -86,6 +86,7 @@ console.log('desktop 1280×720');
     await page.waitForTimeout(1500);
     await shot(page, 'keep');
     ok(true, 'entered the keep');
+    ok(await F(page, 'return F.view.extObjects.every((o) => o.visible === false)'), 'nothing from outside (sea, terrain, trees) draws indoors');
     await F(page, "const w = F.world; const a = w.pop.npc('ragna'); F.ui.show('talk', a);");
     ok(await until(page, "document.querySelectorAll('.dlg .opt').length >= 1", 30000).then(() => true, () => false), 'conversation shows options');
     await shot(page, 'talk');
