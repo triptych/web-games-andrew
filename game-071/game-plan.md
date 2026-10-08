@@ -716,6 +716,9 @@ Out of scope for v1, with reasons:
 
 ## Changelog
 
+### v1.0.3 — 2026-10-08
+- Phones: the ☰ quick menu (and any menu opened from a touch button) no longer closes when the finger lifts.
+
 ### v1.0.2 — 2026-10-08
 - Brighter dungeons, interiors and nights (exposure, moonlight, torch reach, lifted shadows); the Undercroft uses its stone-cellar style.
 - Third-person camera no longer ends up inside walls when you arrive with your back to one.

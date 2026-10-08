@@ -129,6 +129,20 @@ console.log('phone 390×844 (touch only)');
     ok(await until(page, `Math.abs(F.world.player.pos.z - ${z0}) > 0.5`, 90000).then(() => true, () => false), 'the stick moves the player');
     await tp('touchEnd', cy - 60);
     await shot(page, 'phone-play');
+    // the ☰ button opens the quick menu on finger-down; lifting the finger must not close it again
+    {
+        const mb = await page.locator('[data-act="tween"]').boundingBox();
+        const mx = mb.x + mb.width / 2, my = mb.y + mb.height / 2;
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: mx, y: my, id: 2 }] });
+        await until(page, 'F.ui.open', 60000);
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        await page.waitForTimeout(1500);
+        ok(await F(page, 'return F.ui.open'), 'the quick menu stays open after lifting the finger');
+        const mapBtn = await page.locator('.ring .down').boundingBox().catch(() => null);
+        if (mapBtn) await page.touchscreen.tap(mapBtn.x + mapBtn.width / 2, mapBtn.y + mapBtn.height / 2);
+        ok(await until(page, "F.ui.top && F.ui.top.constructor.name === 'MapPanel'", 60000).then(() => true, () => false), 'tapping Map in it opens the map');
+        await F(page, 'F.ui.closeAll()');
+    }
     ok(!errs.length, `no page errors${errs.length ? ':\n    ' + [...new Set(errs)].slice(0, 8).join('\n    ') : ''}`);
     await ctx.close();
 }
