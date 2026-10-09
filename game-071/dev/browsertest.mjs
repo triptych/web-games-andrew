@@ -87,6 +87,10 @@ console.log('desktop 1280×720');
     await shot(page, 'keep');
     ok(true, 'entered the keep');
     ok(await F(page, 'return F.view.extObjects.every((o) => o.visible === false)'), 'nothing from outside (sea, terrain, trees) draws indoors');
+    // a container's footer (and no other menu text) shows a stray "null"
+    await F(page, "F.ui.show('container', { inv: [{ id: 'torch', n: 2 }], name: 'Chest', owner: null })");
+    ok(await until(page, "!!document.querySelector('.foot')", 20000).then(() => true, () => false) && !(await F(page, "return document.getElementById('ui').textContent.includes('null')")), 'no stray "null" in the container menu');
+    await F(page, 'F.ui.closeAll()');
     await F(page, "const w = F.world; const a = w.pop.npc('ragna'); F.ui.show('talk', a);");
     ok(await until(page, "document.querySelectorAll('.dlg .opt').length >= 1", 30000).then(() => true, () => false), 'conversation shows options');
     await shot(page, 'talk');
@@ -129,6 +133,20 @@ console.log('phone 390×844 (touch only)');
     ok(await until(page, `Math.abs(F.world.player.pos.z - ${z0}) > 0.5`, 90000).then(() => true, () => false), 'the stick moves the player');
     await tp('touchEnd', cy - 60);
     await shot(page, 'phone-play');
+    // a chest: the ✋ button appears when it is in front of you, and "take all" empties it (a gold
+    // entry in loot once made it loop forever and freeze the page)
+    await F(page, "const w = F.world; w.travelDoor({ to: 'undercroft:d0' }); F.view.onEvents(w.drain());");
+    await until(page, "F.world.cellId === 'undercroft:d0'", 60000);
+    await F(page, "const w = F.world, c = w.space; const u = c.usables.find((x) => x.kind === 'container' && x.boss); const p = w.player; p.pos.x = u.x; p.pos.z = u.z + 1.6; p.pos.y = c.floorAt(p.pos.x, p.pos.z); p.yaw = p.camYaw = 0; p.camPitch = -0.35;");
+    ok(await until(page, "document.getElementById('t-use').classList.contains('on')", 60000).then(() => true, () => false), 'the use button appears at a chest');
+    const useB = await page.locator('#t-use').boundingBox();
+    if (useB) await page.touchscreen.tap(useB.x + useB.width / 2, useB.y + useB.height / 2);
+    ok(await until(page, "F.ui.top && F.ui.top.constructor.name === 'ContainerPanel'", 60000).then(() => true, () => false), 'tapping it opens the chest');
+    const g0 = await F(page, 'return F.world.player.gold');
+    const ta = await page.locator('button:has-text("Take all")').boundingBox();
+    if (ta) await page.touchscreen.tap(ta.x + ta.width / 2, ta.y + ta.height / 2);
+    ok(await until(page, '!F.ui.open', 60000).then(() => true, () => false), '"take all" empties the chest and closes it');
+    ok((await F(page, 'return F.world.player.gold')) > g0, 'its gold is taken');
     // the ☰ button opens the quick menu on finger-down; lifting the finger must not close it again
     {
         const mb = await page.locator('[data-act="tween"]').boundingBox();

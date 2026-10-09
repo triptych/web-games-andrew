@@ -716,6 +716,9 @@ Out of scope for v1, with reasons:
 
 ## Changelog
 
+### v1.0.5 — 2026-10-08
+- "Take all" no longer freezes on coins in loot; no stray "null" in container menus; the ✋ use button shows on phones.
+
 ### v1.0.4 — 2026-10-08
 - Mountains: filtered distant terrain LODs, gentler AO, B-spline upsampling, a looser slope cap and arêtes on big peaks; rock colour in patches and bands.
 

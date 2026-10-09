@@ -238,6 +238,8 @@ export class ContainerPanel extends TransferPanel {
     constructor(ui, src) {
         super(ui, src.name || 'Container');
         this.src = src;
+        // older saves (and corpses) may hold coins as an item: fold them into the purse
+        for (const e of (src.inv || []).filter((x) => x.id === 'gold')) { src.gold = (src.gold || 0) + (e.n || 1); src.inv.splice(src.inv.indexOf(e), 1); }
         this.tabTheirs.textContent = src.actor ? src.name : 'Contents';
         this.refresh();
     }
@@ -250,9 +252,10 @@ export class ContainerPanel extends TransferPanel {
         if (!rows.length) rows.push({ key: 'empty', label: 'Empty', cls: 'dim' });
         this.list.set(rows);
         this.foot.innerHTML = '';
-        this.foot.append(h('span.stat', { html: `Carry <b>${Math.round(carryWeight(p))}</b> / ${Math.round(p.stats.carry)}` }), h('span.sp'),
+        // (Element.append turns null into the text "null", so leave optional parts out rather than passing null)
+        this.foot.append(...[h('span.stat', { html: `Carry <b>${Math.round(carryWeight(p))}</b> / ${Math.round(p.stats.carry)}` }), h('span.sp'),
             this.stealing() ? h('span.redt', { text: 'Owned — taking is theft' }) : null,
-            h('button.mbtn', { text: 'Take all', on: { click: () => this.takeAll() } }), h('button.mbtn.gold', { text: this.side ? 'Store' : 'Take', on: { click: () => this.move(this.list.current) } }));
+            h('button.mbtn', { text: 'Take all', on: { click: () => this.takeAll() } }), h('button.mbtn.gold', { text: this.side ? 'Store' : 'Take', on: { click: () => this.move(this.list.current) } })].filter(Boolean));
     }
     move(r) {
         if (!r) return;
@@ -276,7 +279,16 @@ export class ContainerPanel extends TransferPanel {
         this.app.audio?.ui('take');
         this.refresh();
     }
-    takeAll() { const save = this.side; this.side = 0; while (this.src.inv.length || this.src.gold > 0) { const r = this.src.gold > 0 ? { gold: true } : { data: this.src.inv[0] }; this.move(r); if (this.src.inv.length > 200) break; } this.side = save; this.refresh(); if (!this.src.actor) this.ui.pop(); }
+    takeAll() {
+        const save = this.side; this.side = 0;
+        // stop the moment a pass makes no progress, whatever the contents: never spin forever
+        for (let guard = 0; guard < 500 && (this.src.inv.length || this.src.gold > 0); guard++) {
+            const before = this.src.inv.length, gold = this.src.gold || 0;
+            this.move(gold > 0 ? { gold: true } : { data: this.src.inv[0] });
+            if (this.src.inv.length === before && (this.src.gold || 0) === gold) break;
+        }
+        this.side = save; this.refresh(); if (!this.src.actor) this.ui.pop();
+    }
 }
 
 export class BarterPanel extends TransferPanel {

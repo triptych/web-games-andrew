@@ -117,6 +117,7 @@ export class Hud {
         this.el.cross.classList.toggle('target', !!f);
         if (showPrompt) this.setPrompt(f);
         app.touchUse?.classList.toggle('lit', !!f);
+        app.touchUse?.classList.toggle('on', !!f && !app.ui?.open);   // the ✋ button only shows when there is something to use
         // ---- enemy bar
         this.enemyT -= dt;
         const en = this.enemy;

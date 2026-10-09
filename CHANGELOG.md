@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **FROSTMARCH** (game-071) v1.0.5: "Take all" no longer freezes the game, the stray "null" is gone from container menus, and the ✋ use button appears on phones.
+  - Freeze: chest loot can include coins as an item ("Gold (82)"). Removing an item called `gold` was treated as spending the coin count, so the entry never left the list, and "Take all" (which loops until the chest is empty) spun forever. Taking that row by itself also duplicated the gold each time. Removing an entry now always takes it out of the list, containers turn rolled coins into their purse, older saves are folded on open, and "Take all" stops if a pass makes no progress ([game-071/js/sim/inventory.js](game-071/js/sim/inventory.js), [sim/world.js](game-071/js/sim/world.js), [ui/inventory.js](game-071/js/ui/inventory.js)).
+  - "null": the container footer passed a missing "owned — taking is theft" label to `Element.append`, which prints `null`; the rune table's footer did the same on its first step.
+  - Use button: on phones the ✋ button needs the class `on` to show, but the HUD only ever set `lit`, so it never appeared and things could only be used by tapping the world. It now shows whenever there is something in front of you.
+  - Tests: the sim test checks container coins and removing a gold entry; the browser test walks up to the Undercroft's ornate chest on a phone, taps ✋, taps "Take all" and checks the chest empties and the gold arrives, and checks no menu shows "null".
 - **FROSTMARCH** (game-071) v1.0.4: mountains no longer look like smooth cones streaked with vertical stripes.
   - Distant terrain tiles built their vertices from every 8th, 16th or 32nd height sample with no filtering, so fine ridges aliased into a regular comb of false flutes. They now read averaged (mipmapped) heights and occlusion, with normals taken at the tile's own spacing ([game-071/js/view/terrain.js](game-071/js/view/terrain.js)).
   - Most of the stripes were the baked ambient occlusion: its small-radius term darkened every groove on a steep face. It is gentler now ([game-071/js/sim/terrain.js](game-071/js/sim/terrain.js)).

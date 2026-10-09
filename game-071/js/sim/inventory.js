@@ -25,7 +25,9 @@ export function addItem(actor, entry, n = entry.n || 1) {
 
 /** Remove n of an entry (or of a base id). Returns how many were removed. */
 export function removeItem(actor, which, n = 1) {
-    if (which === 'gold' || which?.id === 'gold') { const k = Math.min(n, actor.gold || 0); actor.gold -= k; return k; }
+    // gold is normally a coin count; but an entry that is actually in the list (gold from a loot
+    // roll) must come out of the list, or a "take all" loops on it forever
+    if (which === 'gold' || (which?.id === 'gold' && !actor.inv.includes(which))) { const k = Math.min(n, actor.gold || 0); actor.gold -= k; return k; }
     let removed = 0;
     while (removed < n) {
         const e = typeof which === 'string' ? actor.inv.find((x) => x.id === which) : actor.inv.includes(which) ? which : null;

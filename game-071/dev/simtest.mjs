@@ -228,6 +228,14 @@ section('systems');
     const wolf = w.spawn('wolf', p.pos.x + 2, p.pos.z);
     let n = 0; while (!wolf.dead && n++ < 60) applyDamage(w, wolf, { amount: 10, type: 'phys', source: p });
     ok(wolf.dead, 'wolf killed');
+    // coins in loot never get stuck in a container (a "take all" used to spin forever on them)
+    {
+        const c = w.container('test:gold', 'boss', { inv: null, level: 5 });
+        ok(!c.inv.some((e) => e.id === 'gold'), 'container coins are a purse, not an item');
+        const box = { inv: [{ id: 'gold', n: 7 }, { id: 'torch', n: 1 }], gold: 0 };
+        const { removeItem } = await import('../js/sim/inventory.js');
+        ok(removeItem(box, box.inv[0], 7) === 7 && !box.inv.some((e) => e.id === 'gold'), 'a gold entry in a list can be removed');
+    }
     // rapid taps: every tap during a swing is queued, none are lost
     {
         const sw = addItem(p, { id: 'iron_sword' }); equip(p, sw); p.act = { kind: 'idle', t: 0 }; p.dirty = true;
