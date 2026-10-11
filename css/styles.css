@@ -906,6 +906,17 @@ h1 {
     box-shadow: 0 0 14px rgba(216, 195, 138, 0.45);
 }
 
+.game-preview.frosty-fling,
+.carousel-slide-bg.frosty-fling {
+    background: radial-gradient(circle at 76% 18%, rgba(255, 255, 235, 0.95) 0 7%, rgba(255, 230, 150, 0.45) 8% 15%, transparent 28%), radial-gradient(ellipse at 28% 74%, rgba(255, 255, 255, 0.9) 0 18%, transparent 19%), linear-gradient(155deg, transparent 0 55%, rgba(170, 68, 76, 0.68) 55.5%, rgba(120, 34, 52, 0.8) 68%, transparent 68.5%), linear-gradient(180deg, #173b5f 0%, #6bb5d4 58%, #f7fbff 100%);
+}
+
+.game-card.frosty-fling .play-button {
+    background: linear-gradient(135deg, #b91f42 0%, #f8f1dc 48%, #34a66a 100%);
+    color: #102418;
+    box-shadow: 0 0 14px rgba(248, 241, 220, 0.5);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

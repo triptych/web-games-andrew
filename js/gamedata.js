@@ -1071,6 +1071,21 @@ const games = [
             { emoji: '\uD83D\uDC09', label: 'Dragons' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-072',
+        title: 'Frosty Fling',
+        description: "A Christmas launch arcade game in vanilla HTML, CSS and JavaScript with Three.js r128. Build a procedural snowman, pull back the slingshot and fling through a toy-box winter village, timing the power needle for a perfect launch. Slam mid-air, bounce through gifts and candy canes, chase distance and coins, buy upgrades, and drop into Snowball Bonanza bonus rounds with arrow-key, drag or touch controls. Procedural snowman forms, props, characters, sky, aurora, mountains, biomes, particles, synthesized audio, pause, upgrades, saves and phone-friendly input are bundled into a single playable HTML file, with the readable source kept in src/.",
+        icon: '\u26C4',
+        folder: 'game-072',
+        version: '1.0.0',
+        cssClass: 'frosty-fling',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\u26C4', label: 'Snowman' },
+            { emoji: '\uD83C\uDF84', label: 'Christmas' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

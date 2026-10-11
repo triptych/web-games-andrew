@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Frosty Fling** (game-072) v1.0.0: added a Christmas launch arcade game from `frosty-fling.zip`. The built single-file game is now [game-072/index.html](game-072/index.html), the readable source lives in [game-072/src/](game-072/src/), and the launcher metadata/card styling now includes it as game 072.
+
 ### Fixed
 - **FROSTMARCH** (game-071) v1.0.5: "Take all" no longer freezes the game, the stray "null" is gone from container menus, and the ✋ use button appears on phones.
   - Freeze: chest loot can include coins as an item ("Gold (82)"). Removing an item called `gold` was treated as spending the coin count, so the entry never left the list, and "Take all" (which loops until the chest is empty) spun forever. Taking that row by itself also duplicated the gold each time. Removing an entry now always takes it out of the list, containers turn rolled coins into their purse, older saves are folded on open, and "Take all" stops if a pass makes no progress ([game-071/js/sim/inventory.js](game-071/js/sim/inventory.js), [sim/world.js](game-071/js/sim/world.js), [ui/inventory.js](game-071/js/ui/inventory.js)).
