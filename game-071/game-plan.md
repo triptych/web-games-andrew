@@ -716,6 +716,9 @@ Out of scope for v1, with reasons:
 
 ## Changelog
 
+### v1.0.6 — 2026-10-11
+- Barrels, urns, posts, pillars and other round props are solid again (cylinder walls were wound inside-out and culled).
+
 ### v1.0.5 — 2026-10-08
 - "Take all" no longer freezes on coins in loot; no stray "null" in container menus; the ✋ use button shows on phones.
 

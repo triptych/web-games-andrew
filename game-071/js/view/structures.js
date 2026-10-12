@@ -103,7 +103,7 @@ export class Builder {
         }
         for (let i = 0; i < segs; i++) {
             const a = base + i * 2;
-            this.idx.push(a, a + 3, a + 1, a, a + 2, a + 3);
+            this.idx.push(a, a + 1, a + 3, a, a + 3, a + 2);   // counter-clockwise from outside, so the walls face out
         }
         if (opts.cap && r1 > 0.001) {
             const c0 = this.vert(cx, cy + h, cz, 0, 1, 0, 0, 0, opts.capLayer ?? layer);
