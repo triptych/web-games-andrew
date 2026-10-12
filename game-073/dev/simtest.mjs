@@ -1,8 +1,8 @@
 /**
  * simtest.mjs — headless checks of RUNEBORE's simulation. No browser.
  *
- *   node game-072/dev/simtest.mjs            # everything
- *   SEEDS=3 node game-072/dev/simtest.mjs    # more bot playthroughs
+ *   node game-073/dev/simtest.mjs            # everything
+ *   SEEDS=3 node game-073/dev/simtest.mjs    # more bot playthroughs
  *   ONLY=rules|worlds|bot                    # one section
  *
  * 1. Purity: js/sim and js/rng.js never touch the DOM or three.js and never call Math.random.

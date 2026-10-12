@@ -16,10 +16,10 @@
  * Blocked storage: the game boots and plays with localStorage throwing.
  * Fails on any console error, page error or failed request.
  *
- *   python3 -m http.server 8072          # from the REPO ROOT
- *   node game-072/dev/browsertest.mjs
+ *   python3 -m http.server 8073          # from the REPO ROOT
+ *   node game-073/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8072), ONLY=desktop|phones|nostorage, THREE_PKG.
+ * Env: BASE (default http://127.0.0.1:8073), ONLY=desktop|phones|nostorage, THREE_PKG.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -28,7 +28,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? [path.join(HERE, 'package'), path.join(HERE, '../../dev/package')].find((p) => fs.existsSync(p));
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8072';
+const BASE = process.env.BASE ?? 'http://127.0.0.1:8073';
 const OUT = path.join(HERE, 'shots');
 const ONLY = process.env.ONLY ?? '';
 fs.mkdirSync(OUT, { recursive: true });
@@ -64,7 +64,7 @@ async function newPage(viewport, { touch = false, nostorage = false } = {}) {
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
     page.on('requestfailed', (r) => { if (!r.url().includes('favicon')) errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`); });
-    await page.goto(`${BASE}/game-072/index.html?debug=1&fast=4`);
+    await page.goto(`${BASE}/game-073/index.html?debug=1&fast=4`);
     await page.waitForFunction(() => window.__rb && __rb.mode === 'title', null, { timeout: 60000 });
     return { ctx, page };
 }
