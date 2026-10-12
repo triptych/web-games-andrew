@@ -69,8 +69,8 @@ export class View {
         this.renderer.setSize(w, h);   // sets the canvas CSS size in px too (no 100vh trap)
         const aspect = w / h;
         this.camera.aspect = aspect;
-        // Show at least 11.5 tiles across and 13 tall, whichever is the tighter fit.
-        const halfH = Math.max(6.6, 5.9 / aspect);
+        // Show at least 9.8 tiles across and 13 tall, whichever is the tighter fit.
+        const halfH = Math.max(6.6, 4.9 / aspect);
         this.cam.halfH = halfH;
         this.cam.halfW = halfH * aspect;
         this.cam.dist = halfH / Math.tan((FOV * Math.PI) / 360);
@@ -174,7 +174,7 @@ export class View {
         const k = 1 - Math.pow(0.0015, dt);
         cam.x += (tx - cam.x) * k;
         cam.y += (ty - cam.y) * k;
-        const sh = this.fx.shake + (rig.drill ? 0.03 : 0);
+        const sh = (this.fx.shake + (rig.drill ? 0.03 : 0)) * (this.shakeK ?? 1);
         const sx = (Math.random() - 0.5) * sh, sy = (Math.random() - 0.5) * sh;
         this.camera.position.set(cam.x + sx, cam.y + sy + 0.6, cam.dist);
         this.camera.lookAt(cam.x + sx, cam.y + sy, 0);

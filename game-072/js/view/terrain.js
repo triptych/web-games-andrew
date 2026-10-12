@@ -109,7 +109,7 @@ void main() {
     float s = texture2D(uStrat, vec2((clamp(c, 0.0, ${W - 1}.0) + 0.5) / ${W}.0, (clamp(r, 0.0, ${H - 1}.0) + 0.5) / ${H}.0)).r * 255.0;
     vec4 b = cellTex(28.0 + floor(s + 0.5), fract(vWorld.xy));
     float lan = lanternAt(vWorld.xy);
-    float amb = 0.06 + 0.85 * exp(-r / 18.0);
+    float amb = 0.008 + 0.9 * exp(-r / 9.0);
     vec3 col = b.rgb * (uAmbCol * amb * 0.8 + uLightCol * lan * 0.95);
     gl_FragColor = vec4(col, 1.0);
     #include <colorspace_fragment>
@@ -126,7 +126,8 @@ void main() {
 /** Ambient light of a row: daylight near the grass, fading to near-black by the Greystone. */
 export function ambientAt(r) {
     if (r < 0) return 1;
-    return 0.07 + 0.9 * Math.exp(-r / 20);
+    // Linear light: 0.02 already reads as ~15% grey after the sRGB transfer, so stay low.
+    return 0.012 + 0.95 * Math.exp(-r / 9);
 }
 
 export class Terrain {
@@ -207,7 +208,8 @@ export class Terrain {
                     a = world.aux[i];
                     s = world.strat[i];
                 }
-                const v = ((c * 7 + r * 13) ^ (r >> 1)) & 3;
+                const hv = Math.imul(c + 101, 73856093) ^ Math.imul(r + 7, 19349663);
+                const v = ((hv >>> 7) % 7) < 4 ? 0 : 1 + ((hv >>> 3) % 3);   // variant 0 is the common one
                 let base = ATLAS.base(s, v), over = -1, glow = 0, flags = r === 0 ? 1 : 0;
                 switch (t) {
                     case T.ORE: over = ATLAS.ore(a); glow = ORES[a].glow; break;

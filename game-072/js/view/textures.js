@@ -132,10 +132,10 @@ function paintRock(ctx, s, v, back) {
             break;
         case 4: // emberdeep: basalt with glowing cracks
             speckle(ctx, rng, 60, shade(col, 0.6), 1, 3);
-            ctx.strokeStyle = rgb(255, 110, 40, back ? 0.35 : 0.75);
+            ctx.strokeStyle = back ? rgb(30, 8, 4, 0.5) : rgb(255, 110, 40, 0.75);
             ctx.lineWidth = 1.3;
-            ctx.shadowColor = '#ff5010'; ctx.shadowBlur = 4;
-            for (let i = 0; i < 2; i++) {
+            ctx.shadowColor = '#ff5010'; ctx.shadowBlur = back ? 0 : 4;
+            for (let i = 0; i < (back ? 1 : 2); i++) {
                 ctx.beginPath();
                 let x = rng() * CELL, y = rng() * CELL;
                 ctx.moveTo(x, y);

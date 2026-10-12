@@ -170,7 +170,7 @@ export class Town {
             window: new THREE.MeshStandardMaterial({ color: 0xffd890, emissive: 0xffb050, emissiveIntensity: 1.2 }),
             door: new THREE.MeshStandardMaterial({ color: 0x4a2a14, roughness: 0.8 }),
             aether: new THREE.MeshStandardMaterial({ color: 0x80f0ff, emissive: 0x40d0ff, emissiveIntensity: 1.8 }),
-            fire: new THREE.MeshStandardMaterial({ color: 0xffa040, emissive: 0xff6010, emissiveIntensity: 2.2 }),
+            fire: new THREE.MeshStandardMaterial({ color: 0x802000, emissive: 0xff5010, emissiveIntensity: 1.1 }),
             purple: new THREE.MeshStandardMaterial({ color: 0xd0a0ff, emissive: 0xa050ff, emissiveIntensity: 1.4 }),
             banner: new THREE.MeshStandardMaterial({ color: 0xa02828, roughness: 0.9, side: THREE.DoubleSide }),
             leaf: new THREE.MeshStandardMaterial({ color: 0x2f6a30, roughness: 1 }),
@@ -399,7 +399,7 @@ export class Town {
         if (this.wheel) this.wheel.rotation.z += dt * 0.6;
         const flicker = 0.85 + Math.sin(time * 17) * 0.08 + Math.sin(time * 5.3) * 0.07;
         this.forgeLight.intensity = 3 * flicker;
-        this.M.fire.emissiveIntensity = 2.2 * flicker;
+        this.M.fire.emissiveIntensity = 1.1 * flicker;
         this.M.aether.emissiveIntensity = 1.5 + Math.sin(time * 2) * 0.4;
         this.crystalMat.emissiveIntensity = 0.6 + spire * 2.6 + Math.sin(time * 1.3) * 0.15 * (1 - spire);
         this.halo.scale.setScalar(3 + spire * 6 + Math.sin(time * 1.7) * 0.4);

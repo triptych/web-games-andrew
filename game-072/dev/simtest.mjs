@@ -221,7 +221,8 @@ if (!ONLY || ONLY === 'rules') {
         const m0 = G.money;
         const res = Gm.sellAll(G);
         ok(res.total === 4 * C.ORES[2].value + C.ARTIFACTS[2].value && G.money === m0 + res.total, 'selling pays ore and artifacts');
-        G.money = 500;
+        const bit = C.UPGRADES.drill.tiers[1].price;
+        G.money = bit + 50;
         ok(Gm.buyUpgrade(G, 'drill').ok && G.up.drill === 1 && G.money === 50, 'buying the Iron Bit');
         ok(!Gm.buyUpgrade(G, 'drill').ok, 'cannot afford the next auger');
         G.rig.fuel = 2; G.money = 100;
