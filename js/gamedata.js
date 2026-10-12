@@ -1093,7 +1093,7 @@ const games = [
         description: "A high-fantasy Motherload-style digging game in three.js with no asset files: The Delve of Old Thimble. In the hill-town of Emberwick you inherit your vanished grandmother's digging automaton, a brass barrel on treads with an auger for a nose and a cracked rune-core for a heart. Drill down through six strata (the Rootloam, the Greystone Halls, the Glimmerdeep, sunken Kharadun, the Emberdeep and the Gloam), manage aether and hull, dodge bogwind, falling boulders, magma, heat and gloam-wisps, sell ore and finds, and upgrade seven lines at the Forge. Seven relics lie in dwarven vaults: each slots into Thimble's heartcore, wakes a power (ore-sight, featherfall, a faster auger, a bigger hold, heat immunity, self-repair, a star-iron lance) and restores a memory, until you learn who is really inside the automaton. An eleven-chapter story with painted portraits, a rival to rescue, Guild contracts, waystones, a codex, the Gloamwyrm to free at the root of the world and an ending you choose. Procedural tiles, models, music and sound; saves; keyboard, gamepad or touch.",
         icon: '\u26CF\uFE0F',
         folder: 'game-073',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'runebore',
         genre: 'story',
         tags: [
