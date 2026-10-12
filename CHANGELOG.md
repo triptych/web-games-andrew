@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **RUNEBORE** (game-073) v1.0.1: Thimble's auger spins about its own point instead of swinging round in a circle while it drives. The cone was laid on its side with `rotation.z` and spun with `rotation.y` on the same mesh; three.js applies Euler angles in XYZ order, so the spin turned the tipped cone about the vertical axis. A holder group now lays it down and the cone spins on its own axis ([game-073/js/view/rigmodel.js](game-073/js/view/rigmodel.js)). The browser test checks that the tip stays on the auger's axis at any spin angle.
+
 ### Added
 - **Frosty Fling** (game-072) v1.0.0: added a Christmas launch arcade game from `frosty-fling.zip`. The built single-file game is now [game-072/index.html](game-072/index.html), the readable source lives in [game-072/src/](game-072/src/), and the launcher metadata/card styling now includes it as game 072.
 - **RUNEBORE — The Delve of Old Thimble** (game-073) v1.0.0: a high-fantasy Motherload-style digging game in three.js r165 with no asset files: every tile, model, portrait, sound and note is made in code. Design notes in [game-073/game-plan.md](game-073/game-plan.md).

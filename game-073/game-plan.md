@@ -3,7 +3,7 @@
 **Genre:** Mining / exploration with a full story (Motherload-style digging, high fantasy)
 **Engine:** three.js r165 (ES modules via import map); everything else vanilla JS, DOM and Web Audio
 **Target:** any screen from a 360 px phone (portrait or landscape) to a desktop monitor
-**Status:** Complete — v1.0.0
+**Status:** Complete — v1.0.1
 
 ---
 
@@ -158,6 +158,9 @@ Measured with the bot (`dev/simtest.mjs`, which knows where the relics are and n
 ---
 
 ## Changelog
+
+### 1.0.1 (2026-10-12)
+- The auger spins about its own axis while Thimble drives; it used to swing round the vertical axis (rotation and spin on one mesh, Euler XYZ order). Covered by the browser test.
 
 ### 1.0.0 (2026-10-12)
 - First release: the full game as described above.

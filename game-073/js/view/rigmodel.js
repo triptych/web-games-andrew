@@ -85,10 +85,14 @@ export class RigModel {
         arm.position.set(0.24, 0, 0);
         this.drillPivot.add(arm);
         this.drillMat = new THREE.MeshStandardMaterial({ map: tex(spiralCanvas('#9a9690', '#4a4844')), metalness: 0.7, roughness: 0.35 });
+        // The holder lays the cone on its side; the cone itself only spins about its own (local Y) axis.
+        // Doing both on one mesh spins it about the parent's vertical axis instead (Euler XYZ order).
+        const drillHolder = new THREE.Group();
+        drillHolder.rotation.z = -Math.PI / 2;
+        drillHolder.position.set(0.5, 0, 0);
+        this.drillPivot.add(drillHolder);
         this.drill = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.36, 14, 1), this.drillMat);
-        this.drill.rotation.z = -Math.PI / 2;
-        this.drill.position.set(0.5, 0, 0);
-        this.drillPivot.add(this.drill);
+        drillHolder.add(this.drill);
 
         // vanes
         this.vanes = [];

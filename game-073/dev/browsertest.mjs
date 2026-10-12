@@ -137,6 +137,21 @@ async function desktop() {
     const x0 = await Q(page, () => __rb.G.rig.x);
     await page.keyboard.down('ArrowLeft'); await page.waitForTimeout(700); await page.keyboard.up('ArrowLeft');
     check((await Q(page, () => __rb.G.rig.x)) < x0 - 0.5, 'ArrowLeft drives Thimble left');
+    // The auger must spin about its own long axis: its tip stays on that axis whatever the spin angle.
+    const wobble = await Q(page, () => {
+        const rig = __rb.view.rig, V = rig.drill.position.constructor;
+        let worst = 0;
+        for (const a of [0, 0.7, 1.6, 2.9, 4.4]) {
+            rig.drill.rotation.y = a;
+            rig.root.updateMatrixWorld(true);
+            const apex = rig.drill.localToWorld(new V(0, 0.18, 0)), base = rig.drill.localToWorld(new V(0, 0, 0));
+            const axis = rig.drillPivot.localToWorld(new V(1, 0, 0)).sub(rig.drillPivot.localToWorld(new V(0, 0, 0))).normalize();
+            const off = apex.sub(base);
+            worst = Math.max(worst, off.sub(axis.multiplyScalar(off.dot(axis))).length());
+        }
+        return worst;
+    });
+    check(wobble < 1e-3, `the auger spins about its own axis (tip strays ${wobble.toFixed(4)} off it)`);
     await page.keyboard.down('ArrowDown');
     await until(page, () => __rb.G.rig.y < -2.5, 'ArrowDown drills down three rows', 40000);
     await page.keyboard.up('ArrowDown');

@@ -595,6 +595,7 @@ RUNEBORE's rock is a 36 × 400 grid, but only the ~500–1200 tiles in view are 
 
 ## Common gotchas
 
+- **A part that is tipped over and spun on the same mesh spins about the wrong axis** — a drill cone laid on its side with `rotation.z = -π/2` and spun with `rotation.y` swings round in a circle, because Euler angles apply in XYZ order: the spin turns about the parent's axis, not the tipped cone's. Put the tilt on a holder `Group` and spin only the child about its own axis (game-073 `js/view/rigmodel.js`). (Wheels rotated `x = π/2` and spun on `y` are fine for the same reason in reverse: Y is applied before X.)
 - **`updateProjectionMatrix()` missing** — see resize section above. Symptom: window resizes but render is squashed.
 - **Forgetting to cap `clock.getDelta()`** — first frame after tab unhides can be huge, sending physics through walls.
 - **`new THREE.Color(255, 0, 255)` is white** — `Color` constructor takes 0..1 floats. Use `rgb(...)` helper or hex.
