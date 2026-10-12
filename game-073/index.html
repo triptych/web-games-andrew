@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0b0810">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="RUNEBORE — a high-fantasy digging game. Delve beneath Emberwick with your grandmother's brass automaton, find seven magical relics to upgrade it, and free the wyrm at the root of the world.">
+    <title>RUNEBORE</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Alegreya:ital,wght@0,400;0,700;1,400&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="gl" aria-label="RUNEBORE game view"></canvas>
+
+    <!-- ============================== HUD ============================== -->
+    <div id="hud" hidden>
+        <div id="hud-top">
+            <div id="gauges">
+                <div class="gauge" id="g-fuel" title="Aether">
+                    <span class="g-ico">⚗</span>
+                    <div class="bar"><i id="fuel-fill"></i></div>
+                    <b id="fuel-v">0</b>
+                </div>
+                <div class="gauge" id="g-hull" title="Hull">
+                    <span class="g-ico">⛨</span>
+                    <div class="bar"><i id="hull-fill"></i></div>
+                    <b id="hull-v">0</b>
+                </div>
+            </div>
+            <div id="readouts">
+                <div id="depth" title="Depth">0 fathoms</div>
+                <div id="money" title="Crowns">⚜ 0</div>
+                <div id="cargo" title="Cargo hold">▣ 0/8</div>
+            </div>
+            <div id="hud-btns">
+                <button id="btn-journal" class="ibtn" aria-label="Journal">❦</button>
+                <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
+            </div>
+        </div>
+        <div id="relic-row" aria-label="Relics in Thimble's heartcore"></div>
+        <div id="objective"><span class="obj-ch"></span><span class="obj-txt"></span></div>
+        <div id="bark" hidden><canvas id="bark-face" width="96" height="96"></canvas><div id="bark-txt"></div></div>
+        <div id="heat" hidden>♨ HEAT</div>
+        <div id="toasts"></div>
+        <div id="floaters"></div>
+    </div>
+
+    <!-- ============================== TOUCH ============================== -->
+    <div id="touch" hidden>
+        <div id="stick-zone">
+            <div id="stick"><div class="ring"></div><div class="knob"></div></div>
+            <div id="stick-hint">Drag: ← → move · ↑ fly · ↓ drill</div>
+        </div>
+        <div id="item-btns"></div>
+    </div>
+    <div id="item-keys" hidden></div>
+    <button id="btn-enter" hidden></button>
+
+    <!-- ============================== DIALOGUE ============================== -->
+    <div id="dialog" hidden>
+        <div class="dlg-box">
+            <canvas id="dlg-face" width="160" height="160"></canvas>
+            <div class="dlg-body">
+                <div class="dlg-name"><span id="dlg-name"></span><span id="dlg-title"></span></div>
+                <div id="dlg-text"></div>
+                <div id="dlg-choices"></div>
+                <div id="dlg-next">▼</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================== PANELS (shops, waystones) ============================== -->
+    <div id="panel" class="screen" hidden>
+        <div class="sheet">
+            <div class="sheet-head">
+                <canvas id="panel-face" width="160" height="160"></canvas>
+                <div>
+                    <h2 id="panel-title"></h2>
+                    <div id="panel-who"></div>
+                    <div id="panel-line"></div>
+                </div>
+            </div>
+            <div id="panel-body"></div>
+            <div class="sheet-foot">
+                <span id="panel-money"></span>
+                <button id="panel-talk" class="btn"></button>
+                <button id="panel-leave" class="btn primary">Leave ⏎</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================== JOURNAL ============================== -->
+    <div id="journal" class="screen" hidden>
+        <div class="sheet tall">
+            <div class="tabs" role="tablist">
+                <button data-tab="quest" class="on">Quest</button>
+                <button data-tab="relics">Relics</button>
+                <button data-tab="codex">Codex</button>
+                <button data-tab="map">Map</button>
+                <button data-tab="stats">Ledger</button>
+            </div>
+            <div id="journal-body"></div>
+            <div class="sheet-foot"><button id="journal-close" class="btn primary">Close</button></div>
+        </div>
+    </div>
+
+    <!-- ============================== TITLE ============================== -->
+    <div id="title" class="screen show">
+        <div class="title-wrap">
+            <div class="logo">RUNEBORE</div>
+            <div class="tagline">The Delve of Old Thimble</div>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <div id="continue-info"></div>
+                <button data-act="new" class="btn" id="btn-new">New Delve</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="credits" class="btn">Credits</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="newgame" class="screen" hidden>
+        <div class="sheet small">
+            <h2>A New Delver</h2>
+            <p>Maren Ashdown's grandchild has come to Emberwick. What do the townsfolk call you?</p>
+            <input id="name-input" maxlength="16" value="Rook" autocomplete="off" spellcheck="false" aria-label="Your name">
+            <p class="small" id="overwrite-warn" hidden>Starting anew replaces your saved delve.</p>
+            <div class="sheet-foot">
+                <button id="newgame-back" class="btn">Back</button>
+                <button id="newgame-go" class="btn primary">Begin</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Delve</h2>
+            <div class="howto-grid">
+                <div>
+                    <h3>Keyboard &amp; pad</h3>
+                    <table>
+                        <tr><td>← → / A D</td><td>Drive · bore sideways into a wall</td></tr>
+                        <tr><td>↑ / W / Space</td><td>Vanes: fly up (drinks aether)</td></tr>
+                        <tr><td>↓ / S</td><td>Drill down</td></tr>
+                        <tr><td>E / Enter</td><td>Enter a building or waystone</td></tr>
+                        <tr><td>1 – 5</td><td>Blast · Great Blast · Recall · Mend · Flask</td></tr>
+                        <tr><td>J</td><td>Journal &amp; map</td></tr>
+                        <tr><td>P / Esc</td><td>Pause</td></tr>
+                    </table>
+                    <p class="small">Gamepad: stick or d-pad moves (up flies, down drills), A enters, X blasts, Y mends, LB recalls, RB pours a flask, Start pauses.</p>
+                </div>
+                <div>
+                    <h3>Touch</h3>
+                    <p>Drag anywhere on the left half: sideways to drive, up to fly, down to drill. Tap the rune buttons on the right to use items, and the glowing button to enter a shop.</p>
+                    <h3>The rules of the deep</h3>
+                    <ul>
+                        <li>Thimble can't drill <i>up</i>. Fly up the shafts you dig.</li>
+                        <li>Watch the <b>aether</b> gauge. Run dry underground and the Guild crane hauls you up — for 15% of your crowns, and your cargo.</li>
+                        <li>Hard rock needs a better auger. Upgrade at Fennick's Forge.</li>
+                        <li>Bogwind explodes, boulders fall, magma burns, and the Emberdeep cooks an unwarded hull.</li>
+                        <li>Seven <b>relics</b> lie in brick vaults deep below. Each one wakes a power in Thimble's heartcore.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet small">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Graphics
+                <select id="set-quality"><option value="high">Glow (bloom)</option><option value="low">Fast (no bloom)</option></select>
+            </label>
+            <label class="row">Screen shake <input type="checkbox" id="set-shake"></label>
+            <label class="row">Touch controls
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete saved delve</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="credits" class="screen" hidden>
+        <div class="sheet small">
+            <h2>Credits</h2>
+            <p>RUNEBORE is a high-fantasy delving game in the spirit of the old Motherload, made for the web-games-andrew collection.</p>
+            <p>Every tile, model, portrait, sound and note is generated in code at load: no image or audio files. Rendered with three.js r165; sound is Web Audio.</p>
+            <p class="small">Thimble's rivets by Pell Fennick. Story by Maren Ashdown, mostly.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet small">
+            <h2>Paused</h2>
+            <nav class="menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="journal" class="btn">Journal &amp; Map</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="ending" class="screen" hidden>
+        <div class="sheet">
+            <div id="ending-card"></div>
+            <div class="sheet-foot"><button id="ending-next" class="btn primary">Continue</button></div>
+        </div>
+    </div>
+
+    <div id="cards" class="screen" hidden>
+        <div class="card-text" id="cards-text"></div>
+        <div class="card-hint">tap to continue</div>
+    </div>
+
+    <div id="fade"></div>
+    <noscript><p class="noscript">RUNEBORE needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

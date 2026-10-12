@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Frosty Fling** (game-072) v1.0.0: added a Christmas launch arcade game from `frosty-fling.zip`. The built single-file game is now [game-072/index.html](game-072/index.html), the readable source lives in [game-072/src/](game-072/src/), and the launcher metadata/card styling now includes it as game 072.
+- **RUNEBORE — The Delve of Old Thimble** (game-073) v1.0.0: a high-fantasy Motherload-style digging game in three.js r165 with no asset files: every tile, model, portrait, sound and note is made in code. Design notes in [game-073/game-plan.md](game-073/game-plan.md).
+  - **Digging** ([sim/game.js](game-073/js/sim/game.js), [sim/world.js](game-073/js/sim/world.js)): a seeded 36 × 400 world in six strata plus the Wyrmheart chamber; drill down, bore sideways, fly up with the vanes; aether, hull and a cargo hold; augers that only cut rock up to their power; bogwind that explodes and chains, boulders that fall when undermined, warded runestone, magma, Emberdeep heat, gloam-wisps; the Guild crane instead of a game over (15% fee, cargo lost).
+  - **Relics**: seven magical treasures in dwarven vaults, each a power in Thimble's heartcore (ore-sight, featherfall, a faster auger, a bigger hold, heat immunity, self-repair, the Starforged Lance) and a visible part on the model. Two deep waystones to wake and travel between.
+  - **Emberwick** ([ui.js](game-073/js/ui.js)): the Aether Well, Sedge's Assay House, Fennick's Forge (seven upgrade lines), Runes & Remedies (five consumables), the Lumen Spire and the Delvers' Guild with twelve contracts.
+  - **Story** ([sim/story.js](game-073/js/sim/story.js)): eleven chapters in 38 scenes with procedurally painted portraits for nine characters, two choices, six journal pages and seven finds in the rock, a 30-entry codex, chatter that follows the chapter, Thimble's voice that clears with each relic, and an epilogue for each ending.
+  - **The Gloamwyrm** ([sim/boss.js](game-073/js/sim/boss.js)): lunges, homing orbs and four heart-shards to drill out with the lance while it prowls; blast runes stun it.
+  - **Rendering** ([view/](game-073/js/view/)): instanced tiles with a lantern-lit custom shader and ore-sight glow, a stratum back wall from a `DataTexture`, a 72-cell procedural atlas, a brass Thimble from ~40 primitives, a 3D town with a Spire that brightens with your progress, particles, debris, an instanced serpent, bloom.
+  - **Audio** ([audio.js](game-073/js/audio.js)): auger, vanes and heat loops, one-shots for every event, generative music per stratum, a drum-driven fight and an ending hymn.
+  - **Shell**: keyboard, gamepad and a touch stick with rune buttons; journal with quest, relics, codex, a fog-of-war map and a ledger; guarded saves with autosave and Continue; settings.
+  - **Tests**: [game-073/dev/simtest.mjs](game-073/dev/simtest.mjs) (purity, 40 worlds, every rule, a bot that finishes the whole story on two seeds) and [game-073/dev/browsertest.mjs](game-073/dev/browsertest.mjs) (desktop flow to the ending with real keys, touch-only phones in both orientations, blocked storage).
+- Launcher: game-073 added to [js/gamedata.js](js/gamedata.js) (genre `story`) with a card style in [css/styles.css](css/styles.css); README and [status.md](status.md) updated.
 
 ### Fixed
 - **FROSTMARCH** (game-071) v1.0.6: barrels, urns, posts, pillars and other round props no longer look transparent.
