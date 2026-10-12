@@ -906,6 +906,17 @@ h1 {
     box-shadow: 0 0 14px rgba(216, 195, 138, 0.45);
 }
 
+.game-preview.frosty-fling,
+.carousel-slide-bg.frosty-fling {
+    background: radial-gradient(circle at 76% 18%, rgba(255, 255, 235, 0.95) 0 7%, rgba(255, 230, 150, 0.45) 8% 15%, transparent 28%), radial-gradient(ellipse at 28% 74%, rgba(255, 255, 255, 0.9) 0 18%, transparent 19%), linear-gradient(155deg, transparent 0 55%, rgba(170, 68, 76, 0.68) 55.5%, rgba(120, 34, 52, 0.8) 68%, transparent 68.5%), linear-gradient(180deg, #173b5f 0%, #6bb5d4 58%, #f7fbff 100%);
+}
+
+.game-card.frosty-fling .play-button {
+    background: linear-gradient(135deg, #b91f42 0%, #f8f1dc 48%, #34a66a 100%);
+    color: #102418;
+    box-shadow: 0 0 14px rgba(248, 241, 220, 0.5);
+}
+
 .game-preview.runebore,
 .carousel-slide-bg.runebore {
     background: radial-gradient(circle at 50% 30%, rgba(255, 210, 120, 0.55), transparent 22%), linear-gradient(180deg, transparent 0 42%, #4f8a32 42% 45%, transparent 45%), repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 22px), linear-gradient(180deg, #3a4a7a 0%, #c89060 40%, #6a4424 46%, #3a2414 70%, #120a10 100%);

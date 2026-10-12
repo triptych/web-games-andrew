@@ -1063,12 +1063,27 @@ const games = [
         description: "An open-world fantasy RPG in three.js with no asset files: Saga of the Stormsworn. A courier carrying a sealed letter reaches Hollowmere Keep on the night the dead walk out of the barrows and a black dragon splits the sky; struck by its lightning, you live, scarred with the shapes of the storm. Explore a frozen province three kilometres across, with five towns, villages, forts, barrows, caves, mines, clockwork ruins, totems and sigil stones, under a sky with weather, auroras and a full day and night. Trace the Storm Sigils (gale, stride, embers, rime, earthbind, stillness, veil) with rings learned from the stones, and absorb the embers of the dragons you kill. Fight with swords, axes, maces, bows, shields and four schools of magic; sneak, pick locks and pockets; forge, hone, smelt and tan; brew potions by discovering ingredients; inscribe runes with creature essences. Eleven main quests to the Eye of the Storm with a choice on Hrimgard's summit, guild lines for the Hunters' Lodge, the Frostspire Academy and the Lampless, town quests, bounties, a house to buy, followers, guards and fines, fast travel, books to read. Twenty-one generated dungeon levels with traps, star-dial puzzles and bosses. Skinned procedural characters, beasts and dragons, PBR terrain, water, grass and forests, bloom and god rays; a synthesised score and ambience; saves, keyboard, gamepad or touch.",
         icon: '\uD83D\uDC09',
         folder: 'game-071',
-        version: '1.0.5',
+        version: '1.0.6',
         cssClass: 'frostmarch',
         genre: 'rpg',
         tags: [
             { emoji: '\u2694\uFE0F', label: 'Open world' },
             { emoji: '\uD83D\uDC09', label: 'Dragons' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
+    },
+    {
+        id: 'game-072',
+        title: 'Frosty Fling',
+        description: "A Christmas launch arcade game in vanilla HTML, CSS and JavaScript with Three.js r128. Build a procedural snowman, pull back the slingshot and fling through a toy-box winter village, timing the power needle for a perfect launch. Slam mid-air, bounce through gifts and candy canes, chase distance and coins, buy upgrades, and drop into Snowball Bonanza bonus rounds with arrow-key, drag or touch controls. Procedural snowman forms, props, characters, sky, aurora, mountains, biomes, particles, synthesized audio, pause, upgrades, saves and phone-friendly input are bundled into a single playable HTML file, with the readable source kept in src/.",
+        icon: '\u26C4',
+        folder: 'game-072',
+        version: '1.0.0',
+        cssClass: 'frosty-fling',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\u26C4', label: 'Snowman' },
+            { emoji: '\uD83C\uDF84', label: 'Christmas' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
     },
