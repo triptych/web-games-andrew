@@ -5423,3 +5423,17 @@ A 24×15 map fitted into a 390×844 screen leaves tiles about 15 px wide. Turnin
 
 ### Kind words without a wall of words
 Every heal can say something ("We've got you", "Almost there"), but at 3× speed with a dozen stations that is a wall of bubbles. Throttle in two places: the simulation emits at most one `say` event a second of sim time, and the UI shows at most one new word per 0.7 s of real time, never two at once over the same person, and five on screen in all.
+
+## Game 072: RUNEBORE — a story-driven digging game (2026-10-12)
+
+### Dijkstra with a `Float32Array` of distances silently drops nodes
+The bot's planner stored distances in a `Float32Array` and skipped stale heap entries with `if (d > dist[k]) continue`. `d` is a float64 sum and `dist[k]` its float32 rounding, so `d` is often a hair larger than what was stored, and the node is skipped as stale even though it is the live entry. Whole regions of the map became "unreachable" and the bot hovered over its own shaft. Use `Float64Array` for path costs. *(game-072 `js/sim/bot.js`)*
+
+### An autoplayer must commit to a target
+Re-choosing "the best ore" every time the bot entered a new cell made it oscillate between two targets across a cell boundary, hovering for a minute. Keep the chosen target until it is dug or out of reach, and only re-path to it. The same bot exposed a real economy bug in its own shopping: buying and burning a 650-crown recall scroll every trip kept it broke forever.
+
+### The key that closes a dialogue must not also act in the world
+At SwiftShader frame rates two Enter presses can queue in one frame: the first finished the last line of dialogue and the second opened the shop Thimble was parked at. A fast double-tap does the same on a real device. Swallow the rest of the frame's presses once a scene closes, and ignore world actions for ~250 ms of *real* time (`performance.now()`, not the capped game clock, which crawls under SwiftShader). Also blur the name field when play starts, or every key goes to a hidden `<input>` and the game seems frozen. *(game-072 `js/main.js`)*
+
+### Fixed back links sit on top of scrolled sheets
+On a landscape phone a long shop sheet scrolled a button under the fixed `← Games` link, and a test tap on the button followed the link out of the game. Give full-screen overlays top padding that clears the link, and in touch tests `scrollIntoView({ block: 'center' })` before tapping, as a finger would.

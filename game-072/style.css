@@ -334,3 +334,8 @@ body.touch #btn-enter { left: auto; transform: none; right: calc(10px + var(--sa
     .item-btn { width: 50px; height: 50px; }
     .item-btn:first-child { grid-column: auto; width: 50px; height: 50px; }
 }
+/* On touch layouts the bottom of the screen belongs to the thumbs: toasts float above Thimble instead. */
+body.touch #toasts { bottom: auto; top: 30%; }
+@media (max-height: 460px) {
+    body.touch #toasts { top: auto; bottom: calc(10px + var(--safe-b)); width: min(380px, 50vw); }
+}

@@ -585,6 +585,14 @@ Frostmarch is the largest game here (a 3 km terrain, skinned procedural characte
 - **`object.visible` must be a real boolean.** three.js culls only `visible === false`; an expression like `!inside || (open && list.includes(o))` yields `undefined` when `open` is undefined, and the object keeps drawing. Wrap it in `!!` or compare explicitly. In game-071 this let the sea show through every interior floor.
 - **Playwright's `click()` waits for the element to be "stable" across animation frames.** At a few frames per second under SwiftShader that never happens; click from `page.evaluate()` instead.
 
+## A lantern-lit tile world from one instanced box (game-072)
+
+RUNEBORE's rock is a 36 × 400 grid, but only the ~500–1200 tiles in view are drawn: one `BoxGeometry`'s attributes copied into an `InstancedBufferGeometry`, plus per-instance `aPos` (vec2), `aCell` (base and overlay atlas cells) and `aInfo` (glow, crack progress, ambient, flags), all `DynamicDrawUsage`. Each frame the view walks the visible rows, writes the arrays and sets `geo.instanceCount`; there is no `instanceMatrix` and `frustumCulled` is off. A `ShaderMaterial` samples a 16 × 16 canvas atlas (`cellTex(idx, uv)` with a one-pixel inset against bleeding), lights the tile with the lantern (`smoothstep` falloff from a `uLight` uniform), adds emissive glow for gems from the overlay's alpha, and darkens box side faces by normal so tunnel walls read in 3D. Dug-out cells show a back-wall plane whose shader looks up the cell's stratum in a `DataTexture` (`RedFormat`, `NearestFilter`). *(game-072 `js/view/terrain.js`)*
+
+- **The ambient term in a custom shader is linear light.** An ambient of 0.144 for 60 m down looked like a lit room, because 0.144 linear is about 42% grey after the sRGB output. Darkness needs ~0.01–0.02. Check by temporarily writing `gl_FragColor = vec4(vec3(vInfo.z), 1.0)` and looking at the grey you get (the same lesson as game-067's night).
+- **A serpent built from a trail must sample the trail by distance, not time.** Pushing the head's position every 35 ms made the body pile up inside the head whenever it hovered to spit. Push a sample only when the head has moved `TRAIL_STEP`, interpolating if it moved several steps in one tick; the body keeps its length when the head stops. *(game-072 `js/sim/boss.js`)*
+- **Zoom out for an arena taller than the view**: multiply the camera distance and the terrain window by a zoom that eases in while the fight is on, and aim at the arena's centre rather than the player.
+
 ## Common gotchas
 
 - **`updateProjectionMatrix()` missing** — see resize section above. Symptom: window resizes but render is squashed.
