@@ -5437,3 +5437,35 @@ At SwiftShader frame rates two Enter presses can queue in one frame: the first f
 
 ### Fixed back links sit on top of scrolled sheets
 On a landscape phone a long shop sheet scrolled a button under the fixed `← Games` link, and a test tap on the button followed the link out of the game. Give full-screen overlays top padding that clears the link, and in touch tests `scrollIntoView({ block: 'center' })` before tapping, as a finger would.
+
+## Game 074: CINDERWING — an R-Type / Gradius shooter with a story (2026-10-12)
+
+### Symptom: the frame goes black except a strip of sky → `Color.copy(0xff8800)` is NaN
+A stage "look" table stored colours as hex numbers, and one call site did `uniform.value.copy(look.fog)` instead of `.set(look.fog)`. `Color.copy` reads `.r .g .b` off a number, gets `undefined`, and the fog colour becomes NaN. Every fragment that mixed in fog was NaN, and UnrealBloom's mip chain smeared it across most of the screen as black. Find a NaN source by rendering the scene into a HalfFloat render target, reading it back, and counting halves with exponent 31 and a non-zero mantissa while toggling objects one at a time; the culprit drops the count to zero. Then bisect its shader by swapping the final line for a constant. *(game-074 `js/view/terrain.js`)*
+
+### Terrain that reads as solid exactly where it is solid
+Under a perspective camera a floor's surface recedes toward the horizon, so anything behind the collision line projects *above* it and looks like ground you should be able to stand on. Build the floor as a rounded ridge whose crest sits on the collision line at z = 0 and falls away both toward the camera and behind it, then add a faint emissive line along the crest. The view samples the sim's own floor/ceiling functions, so the two can't drift apart. *(game-074 `js/view/terrain.js`)*
+
+### Shmup scale: draw enemies bigger than their hitboxes suggest
+A 32-unit field 1280 px wide makes a 1-unit imp about 40 px — 3% of the screen, where an arcade sprite is closer to 10%. The models read as smudges. Drawing every enemy model ~1.4× its first-pass size and raising the sim radii ~1.25× to match (shots must hit what you see) fixed readability without touching patterns. Keep the player's hitbox tiny and mark it with a glow at the chest.
+
+### Light hell from the front, not just from the lava
+A red hemisphere light, an orange key from below and a red rim made every model the same dark red as the sky. A neutral front fill per stage (0.8–1.0) plus a stronger rim gives forms back; the lava and the stage colour stay in the key and the rim.
+
+### Tint enemy fire per stage
+Pink bullets that read on lava vanish in the flesh labyrinth. One bullet shader (white core, colour body, dark rim, faint glow) with a per-stage colour table kept fire readable on all seven backdrops.
+
+### Deterministic bot + checkpoints = the same death forever
+On Seraph a death returns to the checkpoint, and the bot and the sim are both deterministic, so a death the bot couldn't dodge replayed identically until the continues ran out. The repeats are useful: they pointed at two real problems. The bot couldn't see a boss hand sweeping at 22 u/s (fix: predict boss parts from last frame's motion), and a stretch of the Foundry overlapped a pipe, two crushers and a pair of charging bulls into a trap with no exit (fix: the level, not the bot).
+
+### Debug "skip to the boss" must skip the script too
+Setting `scroll = len` without moving the script cursor fired every wave of the stage in the same frame. Advance the cursor and clear the spawn queue in the same hook.
+
+### Sprites that live one frame must be drawn before they expire
+The particle loop advanced time and dropped expired particles before drawing them, so a "one-frame" sprite (the hitbox glow, the charge orb) never appeared. Check expiry at the top of the loop, then advance and draw.
+
+### Menu presses belong in a queue, not a set of edges
+Edges collected in a `Set` between frames merge: at 1–2 fps (SwiftShader, or a phone under load) "Down, Down, Enter" arrives as one frame holding {Down, Enter}; the menu moved once and the confirm went to the wrong item (Restart instead of Options). Keep held keys and gameplay edges as they were, but push menu presses (arrows, confirm, back, and pad equivalents) onto a short FIFO, consume one per frame, and clear it while flying. *(game-074 `js/input.js`)*
+
+### Touch mode must switch on from the menus too
+The touch deck appeared only after a touch on the play area, so a phone player who tapped through the menus arrived in a stage with no BEAM button, and the test's tap on the missing button landed on the back link and left the page. Listen for `pointerdown` with `pointerType === 'touch'` on `window` in the capture phase, and start in touch mode when the only pointer is coarse.

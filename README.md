@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-73 games, `game-001` through `game-073`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+74 games, `game-001` through `game-074`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -91,6 +91,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 071 | [FROSTMARCH](game-071/) | Open-world fantasy RPG: a frozen province to explore, Storm Sigils, dragons, eleven main quests, guilds, crafting, alchemy, runes, generated dungeons, saves and touch controls | three.js |
 | 072 | [Frosty Fling](game-072/) | Christmas launch arcade: fling a procedural snowman through a toy-box winter village, slam mid-air, collect gifts, buy upgrades and play Snowball Bonanza bonus rounds | three.js |
 | 073 | [RUNEBORE](game-073/) | Fantasy Motherload-style digging: drill six strata with your grandmother's brass automaton, upgrade it at the Forge, recover seven relics that power its heartcore, an eleven-chapter story, a wyrm to free and touch controls | three.js |
+| 074 | [CINDERWING](game-074/) | R-Type / Gradius-style side-scrolling shooter: a young angel born in Hell fights up seven circles to his true home, with a detachable Halo, a charge beam, relics, seven bosses, a staged story and touch controls | three.js |
 
 ### Highlights
 
