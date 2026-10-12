@@ -11,7 +11,7 @@ export class Actors {
         this.glowTex = glowTex;
 
         // --- Wyrm body: instanced scaled icosahedra ---
-        this.segMat = new THREE.MeshStandardMaterial({ color: 0x3a1a5a, roughness: 0.4, metalness: 0.3, emissive: 0x4a1080, emissiveIntensity: 0.8 });
+        this.segMat = new THREE.MeshStandardMaterial({ color: 0x3a1a5a, roughness: 0.4, metalness: 0.3, emissive: 0x4a1080, emissiveIntensity: 0.45 });
         this.segs = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), this.segMat, WYRM_SEGS);
         this.segs.frustumCulled = false;
         this.segs.visible = false;
@@ -101,7 +101,7 @@ export class Actors {
             const g = this.gold;
             const flash = B.hurtFlash || 0;
             this.segMat.color.setRGB(0.23 + g * 0.7, 0.1 + g * 0.6, 0.35 - g * 0.15);
-            this.segMat.emissive.setRGB(0.3 + g * 0.5 + flash, 0.06 + g * 0.35 + flash * 0.5, 0.5 - g * 0.4 + flash);
+            this.segMat.emissive.setRGB(0.2 + g * 0.5 + flash, 0.04 + g * 0.35 + flash * 0.5, 0.32 - g * 0.2 + flash);
             this.headMat.color.copy(this.segMat.color);
             this.headMat.emissive.copy(this.segMat.emissive);
             this.finMat.emissive.setRGB(0.38 + g * 0.6, 0.12 + g * 0.5, 0.75 - g * 0.6);

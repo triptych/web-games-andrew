@@ -2,7 +2,7 @@
 // and a back wall behind the tunnels. Only the rows in view are written each frame.
 
 import * as THREE from 'three';
-import { W, H, T, STRATA, ORES } from '../config.js';
+import { W, H, T, STRATA, ORES, GATE_ROW } from '../config.js';
 import { ATLAS } from './textures.js';
 
 const MAX = 4200;
@@ -109,7 +109,7 @@ void main() {
     float s = texture2D(uStrat, vec2((clamp(c, 0.0, ${W - 1}.0) + 0.5) / ${W}.0, (clamp(r, 0.0, ${H - 1}.0) + 0.5) / ${H}.0)).r * 255.0;
     vec4 b = cellTex(28.0 + floor(s + 0.5), fract(vWorld.xy));
     float lan = lanternAt(vWorld.xy);
-    float amb = 0.008 + 0.9 * exp(-r / 9.0);
+    float amb = r >= ${GATE_ROW}.0 ? 0.08 : 0.008 + 0.9 * exp(-r / 9.0);
     vec3 col = b.rgb * (uAmbCol * amb * 0.8 + uLightCol * lan * 0.95);
     gl_FragColor = vec4(col, 1.0);
     #include <colorspace_fragment>
@@ -126,6 +126,7 @@ void main() {
 /** Ambient light of a row: daylight near the grass, fading to near-black by the Greystone. */
 export function ambientAt(r) {
     if (r < 0) return 1;
+    if (r >= GATE_ROW) return 0.07;   // the Wyrmheart chamber glows faintly violet
     // Linear light: 0.02 already reads as ~15% grey after the sRGB transfer, so stay low.
     return 0.012 + 0.95 * Math.exp(-r / 9);
 }

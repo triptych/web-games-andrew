@@ -166,9 +166,13 @@ export class View {
         } else {
             tx = rig.x;
             ty = rig.y + (rig.y > -4 ? 2.6 : 0.6);
-            if (G.boss && G.boss.active && !G.boss.freed) ty = rig.y * 0.6 + G.boss.head.y * 0.4;
         }
-        const minX = cam.halfW - 3.2, maxX = W - cam.halfW + 3.2;
+        // pull back for the wyrm's chamber so the whole fight is in frame
+        const wantZoom = G.boss && (G.boss.active || G.boss.dying) && !ui.title ? Math.max(1, Math.min(2.1, 15 / cam.halfH)) : 1;
+        cam.zoom = (cam.zoom ?? 1) + (wantZoom - (cam.zoom ?? 1)) * Math.min(1, dt * 1.5);
+        const zhw = cam.halfW * cam.zoom, zhh = cam.halfH * cam.zoom;
+        if (wantZoom > 1) ty = -(383 + 0.5) + 0.3 * (rig.y + 383.5);
+        const minX = zhw - 3.2, maxX = W - zhw + 3.2;
         tx = minX > maxX ? W / 2 : Math.max(minX, Math.min(maxX, tx));
         if (this.snapCam || Math.hypot(tx - cam.x, ty - cam.y) > 30) { cam.x = tx; cam.y = ty; this.snapCam = false; }
         const k = 1 - Math.pow(0.0015, dt);
@@ -176,7 +180,7 @@ export class View {
         cam.y += (ty - cam.y) * k;
         const sh = (this.fx.shake + (rig.drill ? 0.03 : 0)) * (this.shakeK ?? 1);
         const sx = (Math.random() - 0.5) * sh, sy = (Math.random() - 0.5) * sh;
-        this.camera.position.set(cam.x + sx, cam.y + sy + 0.6, cam.dist);
+        this.camera.position.set(cam.x + sx, cam.y + sy + 0.6, cam.dist * cam.zoom);
         this.camera.lookAt(cam.x + sx, cam.y + sy, 0);
 
         // --- surface vs deep lighting ---
@@ -198,7 +202,7 @@ export class View {
         u.uSense.value = S.sense;
         u.uFlash.value = this.flash * 0.5;
         this.flash = Math.max(0, this.flash - dt * 2.2);
-        this.terrain.update(G, { x: cam.x, y: cam.y, halfW: cam.halfW + 1, halfH: cam.halfH + 1.5 }, time, drill);
+        this.terrain.update(G, { x: cam.x, y: cam.y, halfW: zhw + 1, halfH: zhh + 1.5 }, time, drill);
 
         // --- rig ---
         this.rig.setRelics(G.relics);

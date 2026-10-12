@@ -8,6 +8,7 @@ import { storyEvent } from './story.js';
 const TOP = -(ARENA_TOP + 0.6), BOT = -(ARENA_BOTTOM + 0.4);
 export const WYRM_SEGS = 22;
 export const WYRM_SPACING = 3;   // trail samples between segments
+const TRAIL_STEP = 0.15;          // world units between trail samples
 
 export function startBoss(G) {
     const saved = G._bossShards;
@@ -17,7 +18,7 @@ export function startBoss(G) {
     }));
     const head = { x: W / 2, y: (TOP + BOT) / 2 - 3, vx: 0, vy: 0, ang: 0 };
     const trail = [];
-    for (let i = 0; i < WYRM_SEGS * WYRM_SPACING + 2; i++) trail.push({ x: head.x - i * 0.12, y: head.y });
+    for (let i = 0; i < WYRM_SEGS * WYRM_SPACING + 2; i++) trail.push({ x: head.x - i * TRAIL_STEP * Math.cos(i * 0.05), y: head.y - Math.sin(i * 0.12) * 1.5 });
     G.boss = {
         active: true,
         t: 0,
@@ -86,7 +87,7 @@ export function updateBoss(G, dt, api) {
         B.dying += dt;
         h.vx *= 0.96; h.vy = h.vy * 0.96 + 0.9 * dt;
         h.x += h.vx * dt; h.y += h.vy * dt;
-        pushTrail(B, dt);
+        pushTrail(B);
         if (B.dying > 4 && !B.freed) {
             B.freed = true;
             G.bossDefeated = true;
@@ -96,7 +97,7 @@ export function updateBoss(G, dt, api) {
         }
         return;
     }
-    if (!B.active) { pushTrail(B, dt); return; }
+    if (!B.active) { pushTrail(B); return; }
 
     const n = brokenCount(B);
     const aggro = 1 + n * 0.22;
@@ -158,7 +159,7 @@ export function updateBoss(G, dt, api) {
     if (h.y > TOP - 0.3) { h.y = TOP - 0.3; h.vy = -Math.abs(h.vy); }
     if (h.y < BOT + 0.3) { h.y = BOT + 0.3; h.vy = Math.abs(h.vy); }
     h.ang = Math.atan2(h.vy, h.vx);
-    pushTrail(B, dt);
+    pushTrail(B);
 
     // --- Contact ---
     {
@@ -210,11 +211,13 @@ function steer(h, tx, ty, speed, dt) {
     h.vx += (vx - h.vx) * k; h.vy += (vy - h.vy) * k;
 }
 
-function pushTrail(B, dt) {
-    B.trailT += dt;
-    while (B.trailT > 0.035) {
-        B.trailT -= 0.035;
-        B.trail.unshift({ x: B.head.x, y: B.head.y });
-        if (B.trail.length > WYRM_SEGS * WYRM_SPACING + 4) B.trail.pop();
-    }
+/** The body follows the path the head took, sampled by distance so it keeps its length when the head stops. */
+function pushTrail(B) {
+    const last = B.trail[0];
+    const dx = B.head.x - last.x, dy = B.head.y - last.y;
+    const d = Math.hypot(dx, dy);
+    if (d < TRAIL_STEP) return;
+    const n = Math.min(20, Math.floor(d / TRAIL_STEP));
+    for (let i = 1; i <= n; i++) B.trail.unshift({ x: last.x + (dx / d) * TRAIL_STEP * i, y: last.y + (dy / d) * TRAIL_STEP * i });
+    while (B.trail.length > WYRM_SEGS * WYRM_SPACING + 4) B.trail.pop();
 }

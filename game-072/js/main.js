@@ -98,6 +98,8 @@ function continueGame() {
 }
 
 function beginPlay() {
+    // the name field would otherwise keep focus and swallow every key press
+    if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
     ui.G = G;
     ui.closeScreen('title');
     mode = 'play';
@@ -165,14 +167,19 @@ window.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch' &&
 // ------------------------------------------------------------------
 // Input routing
 // ------------------------------------------------------------------
+let sceneClosedAt = -1;
 function handleKeys() {
+    let swallow = false;
     for (const { key } of input.drain()) {
         if (key !== 'Escape') audio.init();
         if (ui.cardsNext && ui.topScreen() === 'cards') { if (['Space', 'Enter', 'KeyE', 'NumpadEnter'].includes(key)) ui.cardsNext(); continue; }
         if (ui.scene) {
             if (['Space', 'Enter', 'KeyE', 'NumpadEnter', 'Escape', 'ArrowDown', 'KeyS'].includes(key)) ui.advance();
+            if (!ui.scene) { swallow = true; sceneClosedAt = performance.now(); }
             continue;
         }
+        // the press that closed a dialogue (or a quick double-tap) mustn't also open a shop
+        if (swallow || performance.now() - sceneClosedAt < 250) continue;
         if (ui.anyScreen()) {
             const top = ui.topScreen();
             if (key === 'Escape' && top !== 'title' && top !== 'ending') { audio.ui('close'); ui.closeTop(); }

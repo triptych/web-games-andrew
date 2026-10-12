@@ -181,7 +181,7 @@ body.touch #btn-enter { left: auto; transform: none; right: calc(10px + var(--sa
 /* ---------------------------------------------------------------- screens & sheets */
 .screen {
     position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center;
-    background: rgba(6, 4, 8, 0.6); padding: calc(10px + var(--safe-t)) 10px calc(10px + var(--safe-b));
+    background: rgba(6, 4, 8, 0.6); padding: calc(50px + var(--safe-t)) 10px calc(10px + var(--safe-b));
     overflow-y: auto; touch-action: pan-x pan-y;
 }
 .sheet {
