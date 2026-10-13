@@ -79,6 +79,8 @@ Every event has at least one page. The game shows the **last page whose conditio
 - *Touch* — when the hero walks into it, or it walks into the hero.
 - *Autorun* — as soon as this page is active. The hero can't move until it finishes, so make sure it changes a switch or erases itself, or it will run forever.
 
+**+ New page** makes the new page wait for the next free self switch (B, then C, then D), so it can't hide the pages before it by accident. If a later page has no conditions at all, it is always the one in use: the event editor marks it with ⚠ and asks before you save, and the map shows an event that starts the game invisible as a red ∅.
+
 A page with **no graphic and no commands** makes the event vanish: it neither shows nor blocks. That is the usual way to remove a guard or a gate once a switch is on: give it an empty last page that needs the switch.
 - *Parallel* — runs in the background over and over, without stopping the hero.
 

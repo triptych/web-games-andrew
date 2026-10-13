@@ -233,6 +233,29 @@ async function sample() {
     ok(await ev(page, () => __tal.meta.data.owned['theme.synthwave'] && document.body.dataset.theme === 'synthwave'), 'buying the Synthwave theme applies it');
     await shot(page, 'sample-synthwave');
     await closeModals(page);
+    // pages: a chest's new page must not hide it in the game; an old empty page is flagged
+    await ev(page, () => { __tal.openMap(4); __tal.setLayer(3); __tal.newEvent(__tal.curMap(), 6, 14, 'chest'); });
+    await until(page, () => document.querySelector('.evedit'));
+    await page.locator('.pagetabs button', { hasText: '+ New page' }).click();
+    ok(await ev(page, () => [...document.querySelectorAll('.pagetabs .tab')].length === 3 && !document.querySelector('.pagewarn')), 'a new page waits for a self switch, so no warning');
+    await page.locator('.modal-foot button.primary', { hasText: 'OK' }).last().click();
+    ok(await ev(page, () => { const e = __tal.curMap().events.find((q) => q.x === 6 && q.y === 14); return e && e.pages.length === 3 && e.pages[2].cond.self === 'B'; }), 'and the third page needs Self Switch B');
+    await closeModals(page);
+    await ev(page, () => __tal.startPlaytest({ at: { map: 4, x: 6, y: 15 } }));
+    await until(page, () => window.__twGame && __twGame.scene === 'map');
+    ok(await ev(page, () => { const e = __twGame.map.events.find((q) => q.c.x === 6 && q.c.y === 14); return e && e.page && e.page.gfx.id === 'chest'; }), 'the chest is there in the playtest');
+    await ev(page, () => { __twGame.map.player.dir = 8; });
+    await page.keyboard.press('z');
+    ok(await until(page, () => __twGame.ui.stack.length > 0, null, 3000), 'and it can be opened');
+    await page.click('.ptclose');
+    await ev(page, () => { const e = __tal.curMap().events.find((q) => q.x === 6 && q.y === 14); e.pages[2].cond.self = ''; __tal.store.commit('legacy page'); __tal.view().sel = e.id; });
+    await page.locator('.mapscroll').focus();
+    await page.keyboard.press('Enter');
+    ok(await until(page, () => document.querySelector('.pagewarn') && /invisible/.test(document.querySelector('.pagewarn').textContent)), 'an empty page with no conditions is explained in the event editor');
+    await page.locator('.modal-foot button.primary', { hasText: 'OK' }).last().click();
+    ok(await until(page, () => [...document.querySelectorAll('.modal-head h2')].some((x) => x.textContent === 'Check your pages')), 'and OK asks before saving it');
+    await closeModals(page);
+    await ev(page, () => __tal.openMap(1));
     // the event editor on a branching event
     await ev(page, () => { const m = __tal.curMap(); const e = m.events.find((q) => q.name === 'Granny Wren'); __tal.bus.emit('x'); document.querySelector('.mapscroll').focus(); __tal.view().sel = e.id; });
     await page.keyboard.press('Enter');

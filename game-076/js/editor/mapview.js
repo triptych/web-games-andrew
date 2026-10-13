@@ -6,6 +6,7 @@ import { h, toast, popMenu } from './ui.js';
 import { store } from './store.js';
 import { bus } from './bus.js';
 import { meta } from '../meta/progress.js';
+import { startPageIndex, isEmpty } from './pages.js';
 
 const T = 16;
 export const ZOOMS = [1, 1.5, 2, 3, 4];
@@ -141,7 +142,10 @@ export class MapView {
         // events
         const ts = T * z;
         for (const e of m.events) {
-            const pg = e.pages[0];
+            // draw the event as it looks when a new game starts (the last page with no
+            // conditions), not just page 1, so what you see here is what the game shows
+            const si = startPageIndex(e);
+            const pg = si >= 0 ? e.pages[si] : null;
             const x = o.x + e.x * ts, y = o.y + e.y * ts;
             if (x > vw || y > vh || x + ts < 0 || y + ts < 0) continue;
             g.globalAlpha = this.layer === 3 ? 1 : 0.8;
@@ -155,7 +159,13 @@ export class MapView {
             g.fillRect(x + 1, y + 1, ts - 2, ts - 2);
             g.strokeRect(x + 1.5, y + 1.5, ts - 3, ts - 3);
             if (this.sel === e.id) { g.lineWidth = 2; g.strokeRect(x + 0.5, y + 0.5, ts - 1, ts - 1); }
-            if (!gf || gf.kind === 'none') { g.fillStyle = '#fff'; g.font = 'bold ' + Math.max(7, 5 * z) + 'px system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('EV', x + ts / 2, y + ts / 2); }
+            const gone = !pg || isEmpty(pg);
+            if (gone) {
+                // nothing will be there when the game starts: say so plainly
+                g.fillStyle = 'rgba(255,74,106,0.25)'; g.fillRect(x + 1, y + 1, ts - 2, ts - 2);
+                g.setLineDash([3, 2]); g.strokeStyle = '#ff4a6a'; g.lineWidth = 1.5; g.strokeRect(x + 1.5, y + 1.5, ts - 3, ts - 3); g.setLineDash([]);
+                g.fillStyle = '#fff'; g.font = 'bold ' + Math.max(8, 6 * z) + 'px system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(pg ? '∅' : '?', x + ts / 2, y + ts / 2);
+            } else if (!gf || gf.kind === 'none') { g.fillStyle = '#fff'; g.font = 'bold ' + Math.max(7, 5 * z) + 'px system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('EV', x + ts / 2, y + ts / 2); }
         }
         // the hero's start
         const s = store.project.system;
