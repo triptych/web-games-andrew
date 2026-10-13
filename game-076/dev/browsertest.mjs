@@ -150,6 +150,16 @@ async function story() {
     await skipScenes(page);
     ok(await ev(page, () => __tal.meta.data.chapter === 1 && __tal.meta.has('events') && !document.getElementById('layer-3').classList.contains('locked')), 'Chapter 1 begins and Events unlock');
     ok(await ev(page, () => __tal.meta.data.ink >= 150), 'Ink was earned (' + (await ev(page, () => __tal.meta.data.ink)) + ')');
+    // right-click: our menu, never the browser's
+    const rp = await cellPoint(page, 5, 11);
+    const native = await ev(page, () => { window.__ctxPrevented = []; document.addEventListener('contextmenu', (e) => window.__ctxPrevented.push(e.defaultPrevented), { once: false }); });
+    void native;
+    await page.mouse.click(rp.x, rp.y, { button: 'right' });
+    ok(await until(page, () => document.querySelector('.popmenu'), null, 2000), 'right-clicking the map opens the Atelier\'s menu');
+    ok(await ev(page, () => window.__ctxPrevented.length > 0 && window.__ctxPrevented.every(Boolean)), 'and the browser\'s own context menu is suppressed');
+    // Windows fires contextmenu on mouse-up, on whatever is under the cursor: by then, our popup
+    ok(await ev(page, () => { const m = document.querySelector('.popmenu'); const r = m.getBoundingClientRect(); const e = new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: r.left + 5, clientY: r.top + 5 }); m.dispatchEvent(e); return e.defaultPrevented; }), 'a contextmenu event landing on the popup is suppressed too');
+    await page.keyboard.press('Escape');
     // an event made entirely through the UI
     await page.click('#layer-3');
     const ep = await cellPoint(page, 12, 7);
