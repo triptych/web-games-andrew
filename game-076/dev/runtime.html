@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TALEWRIGHT runtime test</title>
+<!-- the runtime, in registry order -->
+<script src="../js/runtime/core.js"></script>
+<script src="../js/runtime/tiles.js"></script>
+<script src="../js/runtime/sprites.js"></script>
+<script src="../js/runtime/audio.js"></script>
+<script src="../js/runtime/input.js"></script>
+<script src="../js/runtime/state.js"></script>
+<script src="../js/runtime/schema.js"></script>
+<script src="../js/runtime/interp.js"></script>
+<script src="../js/runtime/ui.js"></script>
+<script src="../js/runtime/menus.js"></script>
+<script src="../js/runtime/map.js"></script>
+<script src="../js/runtime/battle.js"></script>
+<script src="../js/runtime/game.js"></script>
+</head><body>
+<script type="module">
+import { sampleProject } from '../js/editor/sample.js';
+const TW = {}; for (const [, f] of TW_MODULES) f(TW);
+window.TW = TW;
+const q = new URLSearchParams(location.search);
+const p = sampleProject(TW);
+const at = q.get('at') ? q.get('at').split(',').map(Number) : null;
+window.__tw = TW.mount(document.body, p, { debug: true, playtest: true, saveKey: 'tw.test', startOverride: at ? { map: at[0], x: at[1], y: at[2] } : null, touch: q.has('touch'), onHook: (n, d) => (window.hooks = window.hooks || []).push([n, d]) });
+</script>
+</body></html>
