@@ -3,7 +3,7 @@
 **Genre:** Horizontal scrolling shooter (R-Type / Gradius lineage) with a told story
 **Engine:** three.js r165 (ES modules via import map); everything else vanilla JS, DOM and Web Audio
 **Target:** any screen from a 360 px phone to a desktop monitor; keyboard, gamepad or touch
-**Status:** Complete — v1.0.0
+**Status:** Complete — v1.0.1
 
 ---
 
@@ -141,5 +141,8 @@ The sim announces everything through a bounded event queue (`w.fxq`) that main.j
 The dodging bot (`js/sim/bot.js`) clears every circle on every trial without dying; it sees every bullet and reacts every frame, so that is a floor, not a human estimate. What the bot did find were real traps: a Foundry stretch where a pipe, two crushers and charging bulls left no exit (rebuilt), and a boss hand too fast to dodge without a wind-up (it has one). Boss HP is set so the god bot needs 50–80 s per warden; a dodging human lands perhaps 40% of that damage, so expect fights of one and a half to three minutes.
 
 ## Changelog
+### v1.0.1 — 2026-10-13
+- The angels are rebuilt as clothed, robed figures with faces, hair, sleeves, belts and skirts over their feet, and wings without visible bones; Cael no longer looks naked or washes out to white.
+
 ### v1.0.0 — 2026-10-12
 - First release: seven circles, seven bosses, the Halo, Radiance, Echoes and five other relics, three trials, a staged story with prologue, six interludes and an ending, procedural models, skies, terrain, effects, music and sound, touch and gamepad, saves and a Hall of Light.

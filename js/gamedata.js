@@ -1108,7 +1108,7 @@ const games = [
         description: "A side-scrolling shooter in three.js in the spirit of R-Type and Gradius, with no asset files: An Angel's Ascent from the Pit. When the war in Heaven ended, the last morning star fell into the Pit, and in the ashes a young angel with white wings opened his eyes. Guided by Vesper, a fallen angel in chains, Cael learns to fight his way up through seven circles of Hell to his true home. Win the Halo from the demons' reliquaries: it rides in front of you, swallows bullets and burns what it touches, and you can cast it ahead or call it home to your front or back. Hold to charge the Radiance beam, sing the Halo red, blue or gold, gather Wings, Echoes, Seeker Feathers and the Aegis, and break whole squadrons for their relics. Seven fixed, learnable circles (a lava sea, an orchard of bones, a weeping foundry, the drowned choir of the Styx, a living labyrinth, the frozen betrayal and the gate of dawn) with lava geysers, crushers, bone gates and flesh walls, and seven wardens from Gorrmaw to Malphas, Lord of the Pit. A staged 3D story between circles, three trials, checkpoints and continues. Procedural models, skies, terrain, shaders, bloom, music and sound; keyboard, gamepad or touch.",
         icon: '🕊️',
         folder: 'game-074',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'cinderwing',
         genre: 'arcade',
         tags: [
