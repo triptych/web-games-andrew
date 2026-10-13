@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **CHROME CHALICE** (game-075) v1.0.1: the cabinet's buttons were labelled A, B and C while the keys are Z, X and C. The buttons, the panel art and the on-screen prompts (how to play, CONTINUE?, name entry) now show Z, X and C ([game-075/index.html](game-075/index.html), [view/screens.js](game-075/js/view/screens.js)).
+
 ### Added
 - **CHROME CHALICE — Quest of the Neon Square** (game-075) v1.0.0: Atari's *Adventure* (1979) remade as a 1988 synthwave coin-op, in vanilla JavaScript (Canvas 2D, hand-written WebGL, DOM/CSS, Web Audio) with no asset files. Design notes in [game-075/game-plan.md](game-075/game-plan.md).
   - **Adventure's rules** ([sim/world.js](game-075/js/sim/world.js)): one item carried at a time, held at the offset where you touched it; touching another swaps them; keys raise their castle's portcullis; the sword kills dragons; the magnet pulls loose things through walls; the bridge crosses data rivers (it snaps across when dropped, and is lifted by its rails so you can walk down the deck); dragons bite and swallow; BYTE the bat swaps what it carries for what you hold; a grey pixel opens a wall to a secret room.

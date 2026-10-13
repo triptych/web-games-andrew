@@ -171,13 +171,13 @@ export class Screens {
         const ctx = this.ctx;
         drawText(ctx, 'HOW TO PLAY', W / 2, 12, CYAN, { align: 'center', scale: 2, glow: CYAN });
         const rows = [
-            [A.items.sword, 'THE SWORD SLAYS DRAGONS.  A: SLASH'],
+            [A.items.sword, 'THE SWORD SLAYS DRAGONS.  Z: SLASH'],
             [A.keys.gold, 'A KEY OPENS ITS OWN KEEP'],
             [A.chalice[Math.floor(t * 10) % 8], 'CARRY THE CHALICE HOME'],
             [A.items.magnet, 'THE MAGNET PULLS THINGS TO IT'],
             [A.items.lamp, 'THE LAMP LIGHTS THE DARK'],
             [A.items.shield, 'THE SHIELD STOPS FIRE'],
-            [A.items.charge, 'A: ARM THE CHARGE. RUN!'],
+            [A.items.charge, 'Z: ARM THE CHARGE. RUN!'],
             [A.items.pixel, 'AND IF YOU FIND A GREY DOT...'],
         ];
         rows.forEach(([img, s], i) => {
@@ -186,7 +186,7 @@ export class Screens {
             drawText(ctx, s, 58, y, WHITE, { shadow: '#000' });
         });
         drawText(ctx, 'CARRY ONE THING AT A TIME.', W / 2, 176, GOLD, { align: 'center' });
-        drawText(ctx, 'B: DROP    C: DASH', W / 2, 188, GOLD, { align: 'center' });
+        drawText(ctx, 'X: DROP    C: DASH', W / 2, 188, GOLD, { align: 'center' });
         this.footer(credits, hi, t);
         this.tap(0, 0, W, H, 'start');
     }
@@ -325,7 +325,7 @@ export class Screens {
         drawText(ctx, String(n), W / 2, 104, GOLD, { align: 'center', scale: 5, glow: ORANGE });
         drawText(ctx, credits > 0 ? 'PRESS START' : 'INSERT COIN', W / 2, 160, Math.floor(t * 3) % 2 ? CYAN : WHITE, { align: 'center' });
         drawText(ctx, `CREDIT ${credits}`, W / 2, 174, GREY, { align: 'center' });
-        drawText(ctx, 'B: GIVE UP', W / 2, 200, GREY, { align: 'center' });
+        drawText(ctx, 'X: GIVE UP', W / 2, 200, GREY, { align: 'center' });
         this.tap(0, 0, W, H * 0.75, 'confirm');
         this.tap(0, H * 0.75, W, H * 0.25, 'back');
     }
@@ -358,7 +358,7 @@ export class Screens {
             this.tap(x - 6, 96, 26, 20, { up: i });
             this.tap(x - 6, 116, 26, 24, { down: i });
         }
-        drawText(ctx, '▲▼ CHOOSE   A NEXT   B BACK', W / 2, 160, GREY, { align: 'center' });
+        drawText(ctx, '▲▼ CHOOSE   Z NEXT   X BACK', W / 2, 160, GREY, { align: 'center' });
         this.tap(W / 2 - 40, 176, 80, 18, 'confirm');
         drawText(ctx, pos >= 3 ? 'DONE' : 'OK', W / 2, 180, GOLD, { align: 'center' });
     }

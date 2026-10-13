@@ -4,7 +4,8 @@
 // never lost. Whatever the source, the cabinet's stick tilts and its buttons
 // press in, so the machine looks played.
 //
-//   A = use (Z J Space)   B = drop (X K)   C = dash (C L Shift)
+//   the cabinet's buttons are labelled with their keys:
+//   Z = use (Z J Space)   X = drop (X K)   C = dash (C L Shift)
 //   START (Enter 1)   COIN (5)   pause (P Esc)   mute (M)   view (V)
 
 const A_KEYS = ['KeyZ', 'KeyJ', 'Space'];
