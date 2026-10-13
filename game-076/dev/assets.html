@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>TALEWRIGHT assets</title>
+<style>body{background:#222;color:#ddd;font:12px sans-serif;margin:8px}canvas{image-rendering:pixelated}h3{margin:10px 0 4px}</style>
+<script src="../js/runtime/core.js"></script>
+<script src="../js/runtime/tiles.js"></script>
+<script src="../js/runtime/sprites.js"></script>
+</head><body>
+<div id="out"></div>
+<script>
+const TW = {}; for (const [, f] of TW_MODULES) f(TW);
+const out = document.getElementById('out');
+const Z = +(new URLSearchParams(location.search).get('z') || 3);
+const only = new URLSearchParams(location.search).get('only') || '';
+function sheetOf(title, items, w, h, draw, cols) {
+  const h3 = document.createElement('h3'); h3.textContent = title; out.appendChild(h3);
+  cols = cols || 16;
+  const rows = Math.ceil(items.length / cols);
+  const c = document.createElement('canvas'); c.width = cols * (w + 2); c.height = rows * (h + 2);
+  c.style.width = c.width * Z + 'px';
+  const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+  g.fillStyle = '#556'; g.fillRect(0, 0, c.width, c.height);
+  items.forEach((it, i) => draw(g, it, (i % cols) * (w + 2) + 1, Math.floor(i / cols) * (h + 2) + 1));
+  out.appendChild(c);
+}
+if (!only || only === 'tiles') for (const ts of TW.tiles.list()) {
+  const items = TW.tiles.TILESETS[ts.id].tiles.map((t, i) => i + 1);
+  sheetOf(ts.name, items, 16, 16, (g, n, x, y) => { g.drawImage(TW.tiles.tileCanvas(ts.id, n, 0, 0), x, y); });
+}
+if (!only || only === 'chars') sheetOf('Characters', Object.keys(TW.sprites.PRESETS), 48, 80, (g, id, x, y) => g.drawImage(TW.sprites.sheet(id), x, y), 12);
+if (!only || only === 'objs') sheetOf('Objects', Object.keys(TW.sprites.OBJECTS), 16, 16, (g, id, x, y) => g.drawImage(TW.sprites.object(id, 0), x, y));
+if (!only || only === 'mons') sheetOf('Monsters', Object.keys(TW.sprites.FAMILIES), 64, 64, (g, id, x, y) => g.drawImage(TW.sprites.monster({ family: id, size: 'M' }), x + 8, y + 8), 10);
+if (!only || only === 'icons') sheetOf('Icons', TW.sprites.ICONS, 12, 12, (g, id, x, y) => g.drawImage(TW.sprites.icon(id), x, y));
+window.done = true;
+</script></body></html>

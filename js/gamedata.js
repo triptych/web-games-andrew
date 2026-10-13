@@ -1131,6 +1131,21 @@ const games = [
             { emoji: '\uD83D\uDD79\uFE0F', label: 'Arcade' },
             { emoji: '\uD83C\uDF05', label: 'Synthwave' }
         ]
+    },
+    {
+        id: 'game-076',
+        title: 'TALEWRIGHT',
+        description: "An RPG maker that is also a game, in vanilla HTML, CSS and JavaScript with no asset files: The Atelier of Unwritten Worlds. You are the new apprentice in the workshop where every story was once drafted, and a grey nothing called the Blot has smudged its tools away. Quillon, an old enchanted quill, and Mott, an ink-moth who lives in the lamp, restore them chapter by chapter as you use them on your own project: a pencil and a meadow, then events and Show Text, items and chests, more maps and doors, choices, switches and variables, battles, shops and companions, cutscenes, wandering NPCs, music and the Sprite Forge, and finally the Glyph of Binding, which exports your game as one HTML file that runs anywhere. It is a real editor: a layered tile map with pencil, rectangle, fill, eraser and eyedropper; ten generated tilesets; an RPG Maker-style event editor with pages, conditions, triggers, movement and 27 commands in a branching tree; a Database of heroes, items, skills, enemies, troops, switches and system settings; quick templates; playtest from anywhere; undo, autosave, download and import. Quests check your real project and what really happens in playtests; you earn Ink, twenty Maker Ranks and forty trophies, and spend Ink at Mott's Emporium on tilesets, monster packs, songs, window skins, Atelier themes and a hat for Quillon. The runtime plays front-view battles, menus, shops and saves, and ships with a sample game, The Lantern of Fernhollow. Story Mode or Free Mode; mouse, keyboard or touch.",
+        icon: '\u2712\uFE0F',
+        folder: 'game-076',
+        version: '1.0.0',
+        cssClass: 'talewright',
+        genre: 'rpg',
+        tags: [
+            { emoji: '\uD83D\uDEE0\uFE0F', label: 'Game maker' },
+            { emoji: '\uD83D\uDCDC', label: 'Story' },
+            { emoji: '\uD83C\uDFF0', label: 'RPG' }
+        ]
     }
 ];
 
