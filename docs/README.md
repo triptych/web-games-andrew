@@ -18,8 +18,8 @@ This directory is the **canonical reference for AI-assisted development** in thi
 - [refresh-plan.md](refresh-plan.md) — the conventions the later games share, an audit of games 001–036 against them, what was fixed, and a ranked backlog
 
 ## Generic
-- [generic/learnings.md](generic/learnings.md) — Architecture patterns and lessons learned across all games (incl. seed-based save/load, RLE fog-of-war persistence, event-driven quest logs, inventory-vs-counter state, trustworthy pinball physics, a golf search bot and shared course grids, and the early-games refresh: blocked storage, background-tab audio, clipped canvases, Kaplay touch and z gotchas, and an inverted tower defense balanced by a bot)
-- [generic/sounds.md](generic/sounds.md) — Procedural Web Audio API sound design patterns (incl. look-ahead sequenced music with side-chain pump, and sim-stamped events mapped onto the audio clock)
+- [generic/learnings.md](generic/learnings.md) — Architecture patterns and lessons learned across all games (incl. seed-based save/load, RLE fog-of-war persistence, event-driven quest logs, inventory-vs-counter state, trustworthy pinball physics, a golf search bot and shared course grids, and the early-games refresh: blocked storage, background-tab audio, clipped canvases, Kaplay touch and z gotchas, an inverted tower defense balanced by a bot, and a lock planner that proves Adventure-style key puzzles solvable, procedural pixel art from shapes, and 8-bit phosphor persistence that never decays)
+- [generic/sounds.md](generic/sounds.md) — Procedural Web Audio API sound design patterns (incl. look-ahead sequenced music with side-chain pump, sim-stamped events mapped onto the audio clock, melodies generated from chords and a seed, gated reverb, and arcade ambience)
 - [generic/suggestions.md](generic/suggestions.md) — Future game ideas and backlog
 
 ---

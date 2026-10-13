@@ -1,0 +1,33 @@
+/**
+ * play.mjs — open the real game with ?debug=1, run a snippet, screenshot.
+ *
+ *   node game-075/dev/play.mjs name "js to run after boot" [waitMs] [w h] [touch]
+ *
+ * Needs a static server at the repo root (python3 -m http.server 8075) and
+ * playwright linked into dev/node_modules (see dev/README.md).
+ */
+import { chromium } from 'playwright';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const BASE = process.env.BASE ?? 'http://127.0.0.1:8075';
+const [name = 'shot', code = '', wait = '1500', w = '1280', h = '800', touch = ''] = process.argv.slice(2);
+const OUT = path.join(HERE, 'shots');
+fs.mkdirSync(OUT, { recursive: true });
+
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
+const ctx = await browser.newContext({ viewport: { width: +w, height: +h }, deviceScaleFactor: 1, hasTouch: !!touch, isMobile: !!touch });
+const page = await ctx.newPage();
+await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log('console', m.type(), m.text()); });
+page.on('pageerror', (e) => console.log('pageerror', e.message));
+await page.goto(`${BASE}/game-075/index.html?debug=1${process.env.Q || ''}`);
+await page.waitForFunction(() => window.__cc && __cc.mode === 'attract', null, { timeout: 30000 });
+if (code) { const r = await page.evaluate(code); if (r !== undefined) console.log('result', JSON.stringify(r)); }
+await page.waitForTimeout(+wait);
+if (process.env.PROBE) console.log('probe', JSON.stringify(await page.evaluate(process.env.PROBE)));
+await page.screenshot({ path: path.join(OUT, `${name}.png`) });
+console.log('saved', path.join(OUT, `${name}.png`));
+await browser.close();

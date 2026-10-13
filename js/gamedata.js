@@ -1116,6 +1116,21 @@ const games = [
             { emoji: '👼', label: 'Angel' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-075',
+        title: 'CHROME CHALICE',
+        description: "Atari's Adventure (1979) remade as a 1988 synthwave coin-op, in vanilla JavaScript with no asset files: Quest of the Neon Square. CHROMAGON, a dragon of liquid metal, has stolen the Chrome Chalice that keeps the sun rising over the Grid, and SQUIRE, a square of light, must carry it home through six realms. Adventure's rules are all here: carry one thing at a time, held where you touched it; keys open castles; the sword slays dragons; the magnet pulls things through walls; the bridge crosses what you can't; a dragon that catches you swallows you whole; BYTE the bat swaps what it carries for what you hold; and somewhere there is a grey dot. A decade of arcade games is added on top: score, lives, credits, continues, high scores with initials and an attract mode with a bot-played demo; a sword slash and an invulnerable dash; six dragons with health, fire and ice breath, lunges and twin blinks; the lamp, the crystal shield and plasma charges; dark catacombs, data rivers, laser galleries, teleporters and cracked walls; THE NULL, a hole of static that hunts you through walls if you dawdle; chrome shards, a three-phase boss and a collapsing Citadel to escape. ARCADE and REMIX modes (every REMIX shuffle proved solvable by a planner), NOVICE and EXPERT skill, loops, a Sound Test unlocked by cassettes. The monitor sits in a lit arcade cabinet with a joystick that tilts as you play, in a dark arcade full of other glowing machines; the screen is pixel art at 3× with neon glow, through a hand-written WebGL CRT (curvature, scanlines, bloom, phosphor trails), and every note of the synthwave soundtrack is generated. Keyboard, gamepad, or the cabinet's own stick and buttons on a phone.",
+        icon: '\uD83C\uDFC6',
+        folder: 'game-075',
+        version: '1.0.0',
+        cssClass: 'chrome-chalice',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83D\uDC09', label: 'Dragons' },
+            { emoji: '\uD83D\uDD79\uFE0F', label: 'Arcade' },
+            { emoji: '\uD83C\uDF05', label: 'Synthwave' }
+        ]
     }
 ];
 
