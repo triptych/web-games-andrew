@@ -13,7 +13,7 @@ This manual covers everything. Quillon (the quill in the side panel) will teach 
 1. **Choose a mode.** *Story Mode* starts with a blank page and a pencil; every chapter restores more tools. *Free Mode* unlocks everything at once (quests and achievements still count, marked ✦). You can switch to Free Mode later in ⚙ Settings.
 2. **Paint.** Pick a tile in the palette on the left and draw on the map. Ground first, then Decor (trees, rocks, furniture).
 3. **Place the start.** Choose the ⚑ Start tool and click where the hero begins.
-4. **Playtest.** Press ▶ Playtest (or F5) to play what you have made. Esc or the ✕ button returns to the editor.
+4. **Playtest.** Press ▶ Playtest (or F5) to play what you have made. Press ✕ Close (or F5 again) to return to the editor. Inside the game, Esc opens the game's own menu.
 
 Your project autosaves to this browser a few seconds after each change. Use **Project ▸ Download** to keep a copy as a file.
 
@@ -78,6 +78,8 @@ Every event has at least one page. The game shows the **last page whose conditio
 - *Action* — when the hero faces it and presses Confirm (or stands on it, if it is below the hero).
 - *Touch* — when the hero walks into it, or it walks into the hero.
 - *Autorun* — as soon as this page is active. The hero can't move until it finishes, so make sure it changes a switch or erases itself, or it will run forever.
+
+A page with **no graphic and no commands** makes the event vanish: it neither shows nor blocks. That is the usual way to remove a guard or a gate once a switch is on: give it an empty last page that needs the switch.
 - *Parallel* — runs in the background over and over, without stopping the hero.
 
 **Priority:** *Below hero* (walk over it, like a floor switch), *Same as hero* (blocks, like a person), *Above hero* (drawn over the hero).

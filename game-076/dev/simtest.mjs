@@ -7,11 +7,14 @@
  *   rules      the interpreter: text, choices, switches, variables, self switches, branches,
  *              items, gold, party, EXP and level-ups, pages, transfers, battles (win, lose,
  *              escape), shops, saves and loads, the loop guard, the battle maths
+ *   meta       every quest and achievement can be earned (against the sample, topped up) and
+ *              none is earned on a blank project; every chapter has quests and scenes; every
+ *              command's feature is granted by some chapter
  *   sample     the sample game's maps are connected: every event a player must reach is reachable
  *   play       a bot plays The Lantern of Fernhollow from the title screen to The End
  *   balance    a mortal bot plays it too, and the harness prints how it went
  *
- *   node game-076/dev/simtest.mjs            # ONLY=purity,assets,schema,rules,sample,play,balance
+ *   node game-076/dev/simtest.mjs            # ONLY=purity,assets,schema,rules,sample,meta,play,balance
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -85,7 +88,14 @@ export class Bot {
     /** React to whatever modal thing is up: messages, choices, battles. */
     service() {
         const g = this.g, TW = this.TW;
-        if (g.scene === 'title') { if (this.frames % 20 === 0) this.press('ok'); return; }
+        if (g.scene === 'title') {
+            // a save may exist, which puts the cursor on Continue: pick New Game
+            const top = g.ui.stack[g.ui.stack.length - 1];
+            if (top && top !== g.titleMenu && top.onCancel) { if (this.frames % 20 === 0) top.onCancel(); return; }
+            if (g.titleMenu) g.titleMenu.index = 0;
+            if (this.frames % 20 === 0) this.press('ok');
+            return;
+        }
         if (g.scene === 'gameover') { if (this.frames % 30 === 0) this.press('ok'); return; }
         if (g.scene === 'end') return;
         if (g.battle) {
@@ -330,6 +340,52 @@ async function main() {
             const seen = reach(m, ...starts[m.id]);
             for (const e of m.events) ok(near(seen, m, e.x, e.y), m.name + ': event "' + e.name + '" at ' + e.x + ',' + e.y + ' is reachable');
         }
+    }
+
+    if (run('meta')) {
+        section('quests and achievements');
+        const { QUESTS, qid } = await import(pathToFileURL(path.join(ROOT, 'js/meta/quests.js')).href);
+        const { ACHIEVEMENTS, progressOf } = await import(pathToFileURL(path.join(ROOT, 'js/meta/achievements.js')).href);
+        const { GRANTS, FEATURE_CHAPTER } = await import(pathToFileURL(path.join(ROOT, 'js/meta/progress.js')).href);
+        const { CHAPTERS, SCENES } = await import(pathToFileURL(path.join(ROOT, 'js/meta/story.js')).href);
+        const sample = TW.schema.validate(sampleProject(TW));
+        sample.system.title = 'Lantern';
+        // the sample has two of each thing the quests ask for except a Forge-made trophy count; top it up like a player would
+        const hooks = {};
+        for (const k of ['talk', 'item', 'transfer', 'choice', 'battleWin', 'shopBuy', 'ending', 'gameover', 'levelUp']) hooks['hook.' + k] = true;
+        sample.sprites.push(...Array.from({ length: 8 }, (_, i) => ({ id: 'f' + (i + 2), name: 'S' + i, parts: sample.sprites[0].parts })));
+        for (let i = 0; i < 12; i++) sample.maps.push(Object.assign(TW.schema.map(100 + i, 'Extra ' + i, 60, 60, 'meadow'), { music: ['haunted', 'frost', 'dunes', 'heroic'][i % 4] }));
+        for (let i = 0; i < 20; i++) sample.items.push(TW.schema.item(100 + i, 'Extra item ' + i));
+        for (let i = 0; i < 10; i++) { sample.enemies.push(TW.schema.enemy(100 + i, 'E' + i)); sample.skills.push(TW.schema.skill(100 + i, 'S' + i)); }
+        sample.actors.push(TW.schema.actor(3, 'C'), TW.schema.actor(4, 'D')); sample.system.party = [1, 2, 3, 4];
+        const town = sample.maps[0];
+        for (let i = 0; i < 90; i++) town.events.push(Object.assign(TW.schema.event(100 + i, i % 30, 21), { pages: [Object.assign(TW.schema.page(), { trigger: i < 3 ? 'autorun' : 'action', list: [Object.assign(TW.schema.command('text'), { text: 'x'.repeat(60) }), Object.assign(TW.schema.command('choice'), {}), Object.assign(TW.schema.command('shake'), { power: 11 })] })] }));
+        const full = { p: sample, stats: { painted: 99999, playtests: 99, exports: 9, downloads: 1, undos: 99, bought: 9, fills: 99 }, flags: Object.assign({ sample: true, nightowl: true, free: true, mott10: true, allquests: true, storydone: true }, hooks), inkEarned: 99999 };
+        const blank = { p: TW.schema.newProject(), stats: {}, flags: {}, inkEarned: 0 };
+        for (const q of QUESTS) {
+            const r = q.check(full);
+            ok(r && r.done, 'quest ' + qid(q) + ' "' + q.title + '" can be completed (the sample satisfies it)');
+            const b = q.check(blank);
+            ok(b && !b.done, 'quest ' + qid(q) + ' is not done on a blank project');
+        }
+        const ids = new Set(QUESTS.map(qid));
+        ok(ids.size === QUESTS.length, 'quest ids are unique');
+        for (let ch = 0; ch <= 8; ch++) {
+            ok(QUESTS.filter((q) => q.ch === ch).length >= 4, 'chapter ' + ch + ' has at least four quests');
+            ok(SCENES['ch' + ch + '-start'] && SCENES['ch' + ch + '-end'], 'chapter ' + ch + ' has an opening and a closing scene');
+        }
+        ok(CHAPTERS.length === 10 && GRANTS.length === 10, 'ten chapters with grants');
+        // every command, tool and template is restored by some chapter
+        const cmdsFile = fs.readFileSync(path.join(ROOT, 'js/editor/commands.js'), 'utf8');
+        for (const m of cmdsFile.matchAll(/f: '([a-z.]+)'/g)) ok(FEATURE_CHAPTER[m[1]] !== undefined, 'command feature ' + m[1] + ' is granted by a chapter');
+        for (const t of TW.schema.CMD_TYPES) ok(cmdsFile.includes('    ' + t + ':') || cmdsFile.includes("    '" + t + "':") || cmdsFile.includes(' ' + t + ': {'), 'command ' + t + ' is in the catalogue');
+        for (const a of ACHIEVEMENTS) {
+            const [n, g] = progressOf(a, full);
+            ok(n >= g, 'achievement ' + a.id + ' can be earned');
+            const [n0, g0] = progressOf(a, blank);
+            ok(n0 < g0, 'achievement ' + a.id + ' is not earned on a blank project');
+        }
+        ok(ACHIEVEMENTS.length === 40 && new Set(ACHIEVEMENTS.map((a) => a.id)).size === 40, 'forty unique achievements');
     }
 
     if (run('play')) {

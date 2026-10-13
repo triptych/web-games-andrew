@@ -83,6 +83,7 @@ The Atelier's currency. Earned for making things:
 | Playtest | 6 (at most once every two minutes) |
 | Finish a quest | 40 |
 | Earn an achievement | 15–100 by tier |
+| Export a game | 25 |
 | Finish a chapter | 150 |
 
 Ink is spent at the **Inkwell Emporium** (§ 4.4). Total Ink *earned* (not current Ink) sets the **Maker Rank**.
@@ -114,7 +115,7 @@ A shop run by Mott (he takes payment in Ink, which he drinks). Everything it sel
 - **Quillon's wardrobe:** top hat, monocle, scarf (shown in his portrait).
 
 ### Quests
-Quests come four or five to a chapter (§ 3). Each one is a pure function `check(project, stats, flags) → { done, progress, goal }` re-evaluated after every edit and after every playtest hook, so a quest can never be "lost" by an undo of something it already counted (once done, a quest stays done). The Quest panel shows the chapter's quests with checkboxes and progress, a hint from Quillon for the current one, and a **Show me** button that highlights the tool to use.
+Quests come four or five to a chapter (§ 3), 38 in all. Each one is a pure function `check(project, stats, flags) → { done, progress, goal }` re-evaluated after every edit and after every playtest hook, so a quest can never be "lost" by an undo of something it already counted (once done, a quest stays done). The Quest panel shows the chapter's quests with checkboxes and progress, a hint from Quillon for the current one, and a **Show me** button that highlights the tool to use.
 
 ### The Blot
 A CSS vignette of grey, noisy ink around the workspace whose size is `--blot` (1 at chapter 0, 0 after the Epilogue). Grey ink drips appear on locked tools. In each chapter the Blot comments once or twice in the mentor panel when you hesitate (no edit for 90 s): faint italic lines that Quillon then answers.
@@ -227,7 +228,7 @@ Build character sprites from parts: body (human, or the critter bodies), skin, h
 | Move | Arrows / WASD | stick, d-pad | d-pad, or tap a tile to walk there |
 | Confirm / talk | Z, Enter, Space | A | A button, or tap the event next to you |
 | Cancel / menu | X, Esc | B | B button |
-| Run | Shift (hold) | X | double-tap the d-pad |
+| Run | Shift (hold) | X (hold) | — |
 
 ### Map play
 - Grid movement at 4 tiles/s (6 running), with tile-to-tile tweening and a three-frame walk.
@@ -353,7 +354,7 @@ Each command is `{ t: type, …fields }`. Branching commands hold child lists: `
 { t: 'shake', power: 4, sec: 0.6 }  { t: 'tint', color: '#00000000', sec: 1 }
 { t: 'sfx', name: 'open' }  { t: 'bgm', name: 'village' }   { t: 'comment', text: '…' }
 ```
-`js/editor/schema.js` creates every one of these with defaults, validates imported projects (unknown fields are dropped, missing ones filled, numbers clamped) and migrates older versions.
+`js/runtime/schema.js` creates every one of these with defaults, validates imported projects (unknown fields are dropped, missing ones filled, numbers clamped) and migrates older versions.
 
 ### Meta save (`localStorage['talewright.meta.v1']`)
 `{ mode: 'story'|'free', chapter, seenScenes, quests: { id: true }, achievements: { id: { at, free } }, ink, inkEarned, owned: { shopId: true }, stats: { painted, events, commands, playtests, … }, settings: { theme, sound, music, volume, reduceMotion }, lastProject }`
@@ -386,11 +387,13 @@ Booting is `const TW = {}; for (const [, f] of TW_MODULES) f(TW);`. Exporting is
 | `runtime/audio.js` | `TW.audio`: context, sound effects, music themes and the sequencer |
 | `runtime/input.js` | `TW.input`: keyboard, gamepad and touch into one button state with edges and a queue |
 | `runtime/state.js` | `TW.State`: party, inventory, switches, variables, self switches, actor stats and levels, save/load serialisation |
-| `runtime/interp.js` | `TW.Interpreter`: the command interpreter |
-| `runtime/map.js` | `TW.MapScene`: map, characters, movement, collisions, events, encounters, the camera, map drawing |
-| `runtime/battle.js` | `TW.BattleScene` |
-| `runtime/ui.js` | `TW.ui`: window skins, text with codes, message box, choices, menus, shop, title, game over, the end |
-| `runtime/game.js` | `TW.Game`: scene stack, loop, screen effects, hooks, `TW.mount(root, project, opts)` |
+| `runtime/schema.js` | `TW.schema`: defaults for every record and command, `newProject()`, `validate()` (rebuilds untrusted data field by field), `walk()`, `nextId()`. In the runtime so exported games and the player validate exactly as the editor does |
+| `runtime/interp.js` | `TW.Interpreter`: the command interpreter; `TW.activePage()` |
+| `runtime/ui.js` | `TW.ui`: window skins, text with codes, the message box, choices, lists, the party panel |
+| `runtime/menus.js` | `TW.menus`: the main menu (items, skills, equip, status, save, quit), shops, save slots |
+| `runtime/map.js` | `TW.MapScene`: map, characters, movement, collisions, events, encounters, routes, tap-to-walk, the camera, map drawing |
+| `runtime/battle.js` | `TW.BattleScene` and the battle maths |
+| `runtime/game.js` | `TW.Game`: scenes (title, map, battle, game over, The End), the loop, screen effects, hooks, the DOM and touch controls; `TW.mount()`, `TW.boot()`, `TW.player()` |
 
 ### 9.3 `TW.mount(root, project, opts) → game`
 `opts`: `{ playtest, startOverride: { map, x, y }, onHook(name, data), saveKey, onExit, debug }`. Returns `{ destroy(), pause(), resume(), state, hooks }`. The editor calls it inside the playtest overlay; the exported file calls it on `document.body`.
@@ -424,7 +427,6 @@ The runtime player is the same file without `TW_GAME`; it shows a "Open a .talew
 | File | Role |
 |---|---|
 | `js/main.js` | Boot: build `TW`, load the meta save, open the last project, wire the toolbar, keyboard shortcuts |
-| `js/editor/schema.js` | Defaults for every record, `newProject()`, `validate()`, `migrate()`, id helpers |
 | `js/editor/store.js` | The open project, undo/redo, dirty flag, autosave, the project library in `localStorage` |
 | `js/editor/bus.js` | A tiny event bus (`on`, `off`, `emit`) for edit events |
 | `js/editor/mapview.js` | The map canvas: drawing, tools, selection, events on the map, zoom/pan, touch |
@@ -445,7 +447,8 @@ The runtime player is the same file without `TW_GAME`; it shows a "Open a .talew
 | `js/meta/quests.js` | Quest definitions and the evaluator |
 | `js/meta/achievements.js` | Achievement definitions and the evaluator |
 | `js/meta/shop.js` | The Inkwell Emporium |
-| `js/meta/mentor.js` | Quillon's panel, his portrait, scene player, the Blot vignette, toasts |
+| `js/meta/mentor.js` | The cast drawn in code (Quillon, Mott, the Blot, the First Talewright's note), the mentor panel and the story scene player |
+| `js/meta/atelier.js` | The controller: edit events and playtest hooks → stats and Ink; quests, trophies and chapter changes; the Trophy Case, Emporium, Journal and Settings; the Blot's whispers |
 
 ### Feature ids
 Unlock checks use ids such as `tool.rect`, `layer.over`, `events`, `cmd.choice`, `db.enemies`, `maps.many`, `export`, `forge`, `tileset.snow`, `sprites.critters`, `music.haunted`, `skin.neon`, `theme.synthwave`. `progress.has(id)` is true in Free Mode, when the chapter that grants it is finished, or when it was bought.
@@ -480,8 +483,8 @@ Available from Open at any time (it is the Atelier's own example; opening it is 
 
 | Harness | Checks |
 |---|---|
-| `dev/simtest.mjs` (Node, no browser) | The runtime registry loads in a `vm` sandbox; every tileset and sprite preset builds against a fake canvas; `validate()` round-trips the sample and rejects junk; the interpreter runs text, choices, switches, variables, self switches, conditionals, items, gold, party, EXP and level-ups, transfers, battles (win and lose), shops and the end; page selection; the battle maths; save/load round trip; every quest and achievement definition evaluates; a bot plays the sample game from title to The End through the real interpreter. |
-| `dev/browsertest.mjs` (Playwright) | The editor boots with no errors on desktop and phone; the back link; the first-run mode choice; the Prologue scene; painting with every tool; undo/redo; events and the event editor; the database; Sprite Forge; quests completing and a chapter advancing; a playtest (walk, talk, chest, battle, shop, menu, save); Free Mode; the Emporium; Download and Import; **Export, then the exported HTML opened by itself in a fresh page and played**; the runtime player opening a JSON; blocked storage. |
+| `dev/simtest.mjs` (Node, no browser) | The runtime registry loads in a `vm` sandbox with a fake canvas; export purity; every tile, sprite, object, monster, icon and song builds; `validate()` round-trips the sample and clamps hostile input; the interpreter runs text, codes, choices, switches, variables, self switches, conditionals, items, gold, party, EXP and level-ups, transfers, battles (win, lose-and-continue, game over), shops and The End; chest pages; save/load; the loop guard; the battle maths; every sample event is reachable; every quest and trophy can be earned and none fires on a blank project; a bot plays the sample from the title to The End; a mortal bot's balance runs. About 1,700 checks. |
+| `dev/browsertest.mjs` (Playwright) | Story mode through the real UI (mode choice, prologue, painting, undo/redo, start flag, playtest, Chapter 0 finishing, an event built in the event editor and talked to in a playtest); Free Mode with every dialog and Database tab; buying from the Emporium; a full playtest of the sample (intro, menu, battle, shop); **Export, then the exported HTML opened by itself from `file://` and played**; the runtime player opening the project file; Download and Import; a touch-only phone; blocked storage. See [dev/README.md](dev/README.md). |
 
 ---
 

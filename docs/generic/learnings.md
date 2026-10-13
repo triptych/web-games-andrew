@@ -5502,3 +5502,35 @@ Reading held arrow keys once a frame loses a tap that is pressed and released be
 - **A getter and a method with the same name in an object literal**: `{ get page() {…}, page(n) {…} }` — the later one silently wins, so `__cc.page` returned a function and a test compared it to a string.
 - **Touching edges isn't overlap**: an 8 px square at `x` and an item at `x + 8` don't intersect with strict `<`, so a test that "places the sword against the player" never picks it up. Place it at `x + 6`.
 - **A bridge you walk on must not be picked up by walking on it**: Adventure detected touches on the bridge's rails only. Lifting by the rails (`touchRails`) lets the deck be walked, and the bot's path avoids rail tiles.
+
+## Game 076: TALEWRIGHT — an RPG maker that is also a game, in vanilla JS (2026-10-13)
+
+### Export a runtime as one HTML file without a bundler: register functions, then `fn.toString()` them
+The same RPG engine has to run inside the editor (playtest), inside an exported single HTML file and inside a standalone player, including from `file://`, where fetching your own source fails. [game-076/js/runtime/](../../game-076/js/runtime/) is classic scripts that each push one function into a registry; booting is running them in order, and exporting writes each function's source back out ([exporter.js](../../game-076/js/editor/exporter.js)):
+```js
+(window.TW_MODULES = window.TW_MODULES || []).push(['tiles', function (TW) { /* defines TW.tiles */ }]);
+const TW = {}; for (const [, f] of TW_MODULES) f(TW);                       // boot
+parts.push('TW_MODULES.push([' + JSON.stringify(name) + ', ' + fn.toString() + ']);');   // export
+```
+The export runs exactly the code that was just playtested. Rules that keep it safe, all checked by `dev/simtest.mjs`: no `import`/`export`, nothing outside `TW` and browser globals, never the characters `</script` in runtime source, the player's CSS kept as a string in `TW.css`, and the project JSON escaped (`<` → `<`, plus U+2028/2029) before it goes inside a `<script>`.
+
+### Symptom: "Invalid regular expression: missing /" in a module that looks fine → a literal U+2028 in the source
+Writing `/ /g` through a tool that unescapes `\u` sequences put a real LINE SEPARATOR inside the regex literal, which JavaScript treats as a line break. `node --check` didn't catch it; importing the module in Chromium did. Build such patterns with `new RegExp('\\u2028', 'g')`.
+
+### Quests as pure checks, not scripts
+Every tutorial quest is `check({ project, stats, flags }) → { progress, goal, done }`, re-run after each edit and each playtest hook ([quests.js](../../game-076/js/meta/quests.js)). Nothing railroads the player, an import or Free Mode project can satisfy them, and once a quest is recorded it stays done, so undo can't take it back. Playtest moments ("talk to someone", "win a battle") are runtime hooks recorded as flags. The harness proves each quest and trophy *can* be earned (against the sample, topped up) and that none fires on a blank project. Two traps: a copy of the sample game must not award "make a sprite"-style trophies for content the player didn't make (`meta.sample` skips project checks), and a chapter's closing scene must wait until no playtest or dialog is open, or it pops up over the game.
+
+### A pixel layer and a crisp UI layer
+The runtime draws tiles and sprites into a 320×240 canvas scaled with `image-rendering: pixelated`, and windows and text into a second canvas over it at full device resolution with `setTransform(scale * dpr)`, so every coordinate stays in virtual pixels while dialogue in any language (or emoji) is sharp. Taps are converted to the 320×240 space once and handed to whichever widget is on top.
+
+### Map editor: a canvas under a transparent native scroller
+The map canvas is sized to the viewport and sits under a transparent `overflow: auto` div whose only child is a spacer the size of the zoomed map ([mapview.js](../../game-076/js/editor/mapview.js)). Scrollbars, wheel and trackpad scrolling are native; `render()` draws only the visible part from three baked layer canvases, and painting redraws a 3×3 cell neighbourhood per stamp (edge shading depends on neighbours). Pointer events on the scroller give one-finger paint, two-finger pan and long-press menus.
+
+### RPG Maker conventions worth copying, and two that bit
+- **Empty last page = the event is gone.** A page with no graphic and no commands must not block movement, or every "erase after the quest" gate stays solid.
+- **A scripted fade-out is not "busy".** Treating a black screen as busy stopped the next autorun cutscene from ever starting after `Fade Out → Transfer`.
+- **The title cursor starts on Continue when a save exists**, which sends a test bot pressing OK into the load screen. Bots should set the menu index, not assume it.
+- **A property and a method with the same name**: `game.battle` (the scene) shadowed `game.battle()` (start one) → "g.battle is not a function". Name the verb `startBattle`.
+
+### Pixel-art monsters from canvas paths
+Drawing each family with `ellipse`/`lineTo` at native size, then snapping alpha to 0/1, lightening pixels whose top or left neighbour is empty, darkening ones whose bottom or right neighbour is empty, and adding a one-pixel dark outline turns smooth canvas shapes into convincing pixel art at 32, 48 and 64 px from one description ([sprites.js](../../game-076/js/runtime/sprites.js) `pixelise`). The same `outline()` pass makes decor tiles read cleanly on any ground.

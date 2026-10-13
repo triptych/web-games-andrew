@@ -11,7 +11,7 @@ import { openEventEditor } from './editor/eventedit.js';
 import { openDatabase } from './editor/database.js';
 import { openForge } from './editor/forge.js';
 import { playtest, playtestOpen } from './editor/playtest.js';
-import { openExport, downloadProject } from './editor/exporter.js';
+import { openExport, downloadProject, buildStandalone, buildPlayer } from './editor/exporter.js';
 import { TEMPLATES, makeTemplate } from './editor/templates.js';
 import { sampleProject, SAMPLE_ID } from './editor/sample.js';
 import { meta } from './meta/progress.js';
@@ -113,8 +113,8 @@ function setLayer(li) {
     const l = LAYERS[li];
     if (l.f && !meta.has(l.f)) { toast(l.label + ' layer: ' + meta.why(l.f), 'warn'); return; }
     view.layer = li;
-    if (li === 3 && view.tool !== 'start') { view.tool = 'event'; }
-    else if (li !== 3 && view.tool === 'event') view.tool = 'pencil';
+    if (li === 3) view.tool = 'event';
+    else if (view.tool === 'event' || view.tool === 'start') view.tool = 'pencil';
     for (const b of document.querySelectorAll('.layer')) { b.classList.toggle('on', +b.dataset.layer === li); b.setAttribute('aria-checked', String(+b.dataset.layer === li)); }
     for (const b of document.querySelectorAll('.tool')) b.classList.toggle('on', b.dataset.tool === view.tool);
     view.render();
@@ -371,7 +371,7 @@ function boot() {
     const hr = new Date().getHours();
     if (hr >= 0 && hr < 4 && !meta.data.flags.nightowl) { meta.data.flags.nightowl = true; meta.save(); }
     // debug and test hooks
-    window.__tal = { TW, store, meta, atelier, view: () => view, ed, openMap, setTool, setLayer, startPlaytest, openSample, curMap, bus, newEvent };
+    window.__tal = { TW, store, meta, atelier, view: () => view, ed, openMap, setTool, setLayer, startPlaytest, openSample, curMap, bus, newEvent, buildStandalone, buildPlayer, playtestOpen };
 }
 
 boot();

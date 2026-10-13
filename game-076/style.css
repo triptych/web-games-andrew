@@ -42,8 +42,13 @@ kbd { font: 11px var(--sans); background: var(--bg2); border: 1px solid var(--li
 /* ── layout ── */
 #app { display: grid; height: 100vh; height: 100dvh; grid-template-columns: 260px 1fr 300px; grid-template-rows: auto 1fr; grid-template-areas: 'top top top' 'left center right'; }
 #topbar { grid-area: top; display: flex; align-items: center; gap: 10px; padding: 6px 10px; background: var(--bg2); border-bottom: 1px solid var(--line); min-height: 50px; flex-wrap: wrap; position: relative; z-index: 5; }
-#back-link { color: var(--dim); text-decoration: none; font-size: 13px; padding: 6px 8px; border-radius: 6px; white-space: nowrap; }
+/* the way back to the launcher stays on top of everything but a playtest */
+#back-link { position: fixed; top: 9px; left: 8px; z-index: 100; color: var(--dim); background: var(--bg2); text-decoration: none; font-size: 13px; padding: 6px 8px; border-radius: 6px; white-space: nowrap; line-height: 20px; }
 #back-link:hover { color: var(--text); background: var(--panel); }
+#topbar { padding-left: 88px; }
+body.playing #back-link { display: none; }
+@keyframes drawerl { from { transform: translateX(-100%); } }
+@keyframes drawerr { from { transform: translateX(100%); } }
 .brand { display: flex; align-items: center; gap: 6px; font: 700 17px var(--display); letter-spacing: .04em; color: var(--accent); white-space: nowrap; }
 .quillmark { font-size: 20px; }
 .mainmenu { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -372,10 +377,11 @@ body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after 
     .brandname { display: none; }
     .projtitle { display: none; }
     .mainmenu button { padding: 4px 8px; font-size: 13px; }
-    #left, #right { position: fixed; top: 0; bottom: 56px; width: min(340px, 88vw); z-index: 30; transform: translateX(-105%); transition: transform .2s; box-shadow: 0 0 40px rgba(0,0,0,.6); }
+    #left, #right { position: fixed; top: 0; bottom: 56px; width: min(340px, 88vw); z-index: 30; display: none; box-shadow: 0 0 40px rgba(0,0,0,.6); }
     #left { left: 0; }
-    #right { right: 0; left: auto; transform: translateX(105%); }
-    body.show-left #left, body.show-right #right { transform: none; }
+    #right { right: 0; left: auto; }
+    body.show-left #left { display: flex; animation: drawerl .2s ease-out; }
+    body.show-right #right { display: flex; animation: drawerr .2s ease-out; }
     #bottombar { display: flex; grid-area: bottom; gap: 4px; padding: 6px; background: var(--bg2); border-top: 1px solid var(--line); padding-bottom: max(6px, env(safe-area-inset-bottom)); }
     #bottombar button { flex: 1; min-height: 44px; }
     #toolbar { gap: 4px; padding: 4px; }
@@ -398,3 +404,6 @@ body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after 
     .status .icon { min-width: 30px; padding: 4px; }
     #btn-forge, #btn-export { display: none; }
 }
+/* while playing, achievements and quest toasts keep out of the way of the controls */
+body.playing #toasts { top: 52px; bottom: auto; left: auto; right: 10px; max-width: 280px; }
+body.playing .toast { padding: 6px 10px; font-size: 12px; opacity: .92; }

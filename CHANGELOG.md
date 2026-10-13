@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **TALEWRIGHT — The Atelier of Unwritten Worlds** (game-076) v1.0.0: an RPG maker that is also a game, in vanilla HTML, CSS and JavaScript with no asset files. Design in [game-076/game-plan.md](game-076/game-plan.md); the player's handbook in [game-076/MANUAL.md](game-076/MANUAL.md).
+  - **The runtime** ([js/runtime/](game-076/js/runtime/)): classic scripts that register in `window.TW_MODULES`, so the editor's playtest, the standalone export and the runtime player all run the same code. Generated tiles (ten tilesets, edge shading, animation), characters from parts in four facings, objects, nineteen monster families pixelised from canvas shapes, item icons, window skins, sixteen generated songs and 24 sound effects; grid movement and tap-to-walk; an interpreter over a branching command tree with parallel and autorun events; messages with text codes, choices, menus, equipment, shops, front-view battles and saves; touch, keyboard and gamepad; `schema.validate()` rebuilds untrusted projects field by field.
+  - **The maker** ([js/editor/](game-076/js/editor/)): a layered map view with pencil, rectangle, fill, eraser, eyedropper, events and the hero's start; a tile palette with block selection; an RPG Maker-style event editor (pages, conditions, graphic, trigger, priority, movement, 27 commands, copy and paste); quick templates; map properties and random encounters; a Database (heroes, items, skills, enemies, troops, switches and variables, system); a Sprite Forge; undo/redo, autosave, download and import; playtest from anywhere; Export as one standalone HTML file, as the runtime player, or as a project file.
+  - **The game around it** ([js/meta/](game-076/js/meta/)): Quillon the quill, Mott the ink-moth and the Blot; nine chapters that restore the tools with opening and closing scenes; 38 quests that check the real project and real playtest hooks; Ink, twenty Maker Ranks, forty trophies; Mott's Inkwell Emporium (tilesets, sprite parts, monster packs, songs, window skins, Atelier themes, a hat for Quillon); a Journal; Story and Free Modes.
+  - **The sample game**, *The Lantern of Fernhollow* ([js/editor/sample.js](game-076/js/editor/sample.js)): five maps, a quest with choices and switches, shops, an inn, a recruit, a lever puzzle with a variable and a boss.
+  - **Tests**: [game-076/dev/simtest.mjs](game-076/dev/simtest.mjs) and [game-076/dev/browsertest.mjs](game-076/dev/browsertest.mjs); see [game-076/dev/README.md](game-076/dev/README.md).
+- Launcher: game-076 added to [js/gamedata.js](js/gamedata.js) (genre `rpg`) with a card style in [css/styles.css](css/styles.css); README and [status.md](status.md) updated.
+- Docs: [learnings.md § Game 076](docs/generic/learnings.md).
+
 ### Fixed
 - **CHROME CHALICE** (game-075) v1.0.1: the cabinet's buttons were labelled A, B and C while the keys are Z, X and C. The buttons, the panel art and the on-screen prompts (how to play, CONTINUE?, name entry) now show Z, X and C ([game-075/index.html](game-075/index.html), [view/screens.js](game-075/js/view/screens.js)).
 

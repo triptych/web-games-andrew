@@ -64,6 +64,7 @@ export function sampleProject(TW) {
         S.troop(3, 'Wolf and Slime', [{ enemy: 3, x: 130, y: 155 }, { enemy: 1, x: 220, y: 150 }]),
         S.troop(4, 'Mushlings', [{ enemy: 4, x: 90, y: 150 }, { enemy: 4, x: 160, y: 156 }, { enemy: 4, x: 230, y: 150 }]),
         Object.assign(S.troop(5, 'The Gloom Wisp', [{ enemy: 5, x: 160, y: 160 }]), { music: 'boss' }),
+        S.troop(6, 'Lone Wolf', [{ enemy: 3, x: 160, y: 155 }]),
     ];
     p.sprites = [{ id: 'f1', name: 'Fernhollow Guard', parts: S.parts({ outfit: 'armor', c1: '#7a8a6a', c2: '#3a5a2a', head: 'helmet', hc: '#9aa08a', acc: 'cape', ac: '#3a7a3a' }) }];
 
@@ -150,7 +151,10 @@ export function sampleProject(TW) {
         ev(20, 11, 'Child', [
             { gfx: char('villager2', 4), move: 'random', speed: 2, list: [
                 T('My little brother Pip went into the Whisperwood to look for the Lantern\'s fire. He hasn\'t come back!', 'Hana', 'villager2'),
-                C('if', { cond: { kind: 'switch', id: SW.pip, value: true }, then: [T('Oh! Pip is with you! Thank you, thank you!', 'Hana', 'villager2')], else: [T('Please, if you see him, bring him home.', 'Hana', 'villager2')] }),
+                C('if', { cond: { kind: 'switch', id: SW.pip, value: true }, then: [
+                    T('Oh! Pip is with you! Thank you, thank you!', 'Hana', 'villager2'),
+                    C('if', { cond: { kind: 'self', key: 'A', value: false }, then: [T('Here, it\'s all my savings. Buy something that keeps him safe.', 'Hana', 'villager2'), C('gold', { amount: 30 }), C('sfx', { name: 'coin' }), T('Received \\c[4]30 G\\c[0].'), C('self', { key: 'A', value: true })], else: null }),
+                ], else: [T('Please, if you see him, bring him home.', 'Hana', 'villager2')] }),
             ] },
         ]);
         ev(2, 12, 'Granny Wren', [
@@ -298,7 +302,7 @@ export function sampleProject(TW) {
         ev(25, 14, 'Wolf', [
             { gfx: { kind: 'char', id: 'blackcat', dir: 4 }, move: 'approach', speed: 2, trigger: 'touch', list: [
                 T('A shadowy beast lunges from the trees!'),
-                C('battle', { troop: 3, escape: true, lose: 'gameover', win: [C('erase')] }),
+                C('battle', { troop: 6, escape: true, lose: 'gameover', win: [C('erase')] }),
             ] },
         ]);
         ev(30, 20, 'Signpost', [{ gfx: obj('sign'), list: [T('HOLLOW CAVE → north-east.\nBeware the Gloom.')] }]);

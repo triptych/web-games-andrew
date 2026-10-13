@@ -145,7 +145,11 @@ export const atelier = {
         // chapter progress (story mode)
         if (!meta.free && d.chapter < 9 && !this.busyScene) {
             const qs = questsFor(d.chapter);
-            if (qs.length && qs.every((q) => d.quests[qid(q)])) this.finishChapter();
+            if (qs.length && qs.every((q) => d.quests[qid(q)])) {
+                // wait until the apprentice is back at the desk: no playtest, dialog or scene open
+                if (document.querySelector('.playtest, .modal-back, .scene')) { clearTimeout(this.waitT); this.waitT = setTimeout(() => this.evaluate(), 1200); }
+                else this.finishChapter();
+            }
         }
         this.render();
     },
@@ -200,9 +204,13 @@ export const atelier = {
             this.questsEl.appendChild(li);
             if (!ok && first) { first = false; this.current = q; }
         }
-        if (store.project.meta && store.project.meta.sample) this.questsEl.prepend(h('li.quest.note', h('span.qbox', { text: '🏮' }), h('div.qtext', h('b', { text: 'This is the sample game' }), h('span', { text: 'Take it apart and learn from it. Quests count in your own projects (Project ▸ New or Open).' }))));
+        if (store.project && store.project.meta && store.project.meta.sample) this.questsEl.prepend(h('li.quest.note', h('span.qbox', { text: '🏮' }), h('div.qtext', h('b', { text: 'This is the sample game' }), h('span', { text: 'Take it apart and learn from it. Quests count in your own projects (Project ▸ New or Open).' }))));
         if (ch !== null && ch >= 9) this.questsEl.appendChild(h('li.quest.done', h('span.qbox', { text: '✦' }), h('div.qtext', h('b', { text: 'Worldsmith' }), h('span', { text: 'The story is finished. Every tool is yours: make anything.' }))));
         if (!qs.length && ch === null) this.questsEl.appendChild(h('li.quest.done', h('span.qbox', { text: '✦' }), h('div.qtext', h('b', { text: 'Every quest done' }))));
+        // Quillon moves on to the next quest's hint when one is finished
+        const cur = this.current && qid(this.current);
+        if (cur && this.lastHint && cur !== this.lastHint && d.settings.mentor && !document.querySelector('.scene')) this.panel.speak('Q', this.current.hint);
+        if (cur) this.lastHint = cur;
         const blot = meta.free ? 0 : Math.max(0, 1 - d.chapter / 9);
         document.documentElement.style.setProperty('--blot', blot.toFixed(3));
     },
