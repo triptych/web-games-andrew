@@ -116,10 +116,10 @@ export class Cinema {
         }
         // the speaker's light
         const sp = this.actors[this.speaker];
-        this.lights[0].intensity = sp ? 16 : 0;
+        this.lights[0].intensity = sp ? 5 : 0;
         if (sp) this.lights[0].position.set(sp.wrap.position.x + (sp.def.right ? -3 : 3), sp.wrap.position.y + 2, 5);
         const c = this.actors.cael;
-        this.lights[1].intensity = c ? 5 : 0;
+        this.lights[1].intensity = c ? 1.5 : 0;
         if (c) this.lights[1].position.set(c.wrap.position.x + 2, c.wrap.position.y, 4);
         this.v.r.base.x = 16 + Math.sin(t * 0.15) * 0.8;
         // floating motes

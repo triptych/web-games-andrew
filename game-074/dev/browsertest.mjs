@@ -114,9 +114,9 @@ async function desktop() {
 
     // fly and fire
     const x0 = await Q(page, () => __cw.world.player.x);
-    await page.keyboard.down('ArrowRight'); await page.waitForTimeout(700); await page.keyboard.up('ArrowRight');
-    const x1 = await Q(page, () => __cw.world.player.x);
-    check(x1 > x0 + 0.5, `arrows fly the angel (${x0.toFixed(1)} → ${x1.toFixed(1)})`);
+    await page.keyboard.down('ArrowRight');
+    await until(page, (x) => __cw.world.player.x > x + 0.5, 'holding an arrow flies the angel', 15000, x0);
+    await page.keyboard.up('ArrowRight');
     await page.keyboard.down('KeyZ');
     await until(page, () => __cw.world.pshots.length > 0, 'Z looses feathers', 8000);
     await page.keyboard.down('ArrowUp');

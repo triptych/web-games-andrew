@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **CINDERWING** (game-074) v1.0.1: the angels are clothed, recognisable figures instead of mangled ones, and Cael no longer looks naked.
+  - The old figures were a sausage-shaped body with no neck or shoulders, a robe almost the colour of skin, a glowing hitbox dot on the chest that read as a navel, bald heads with a thin cap, and grey wing-bone rods poking through the feathers. `buildAngel` is rebuilt ([game-074/js/view/models.js](game-074/js/view/models.js)): a head with a face and hair (golden curls for Cael, long hair for the others), a neck, robed shoulders, a collared robe with a gold stripe, a belt with sash ends, sleeves with cuffs and hands, and a skirt with folds that flows over sandalled feet. The wings have a feather-coloured leading edge under rows of coverts, and no visible bones.
+  - Cael wears white and blue-grey with gold trim against a warmer skin tone; Vesper, Sammael (now with a breastplate) and the fallen seraphs get matching robes. Sammael's second pair of wings sweeps back and his sword is smaller ([view/bossmodels.js](game-074/js/view/bossmodels.js)).
+  - Cael's own light and the story speaker's spotlight no longer wash him out to white ([view/view.js](game-074/js/view/view.js), [view/cinema.js](game-074/js/view/cinema.js)).
+  - [game-074/dev/models.html](game-074/dev/models.html) with [dev/studio.mjs](game-074/dev/studio.mjs): a neutral model studio for checking the angels without the game's lighting.
 - **RUNEBORE** (game-073) v1.0.2: Orla's portrait no longer has an enormous grin. Beards were drawn as a cheek-to-cheek crescent whose hollow inner edge read as a huge open smile, with two smile arcs drawn inside it. Beards are now a full beard with a moustache and a gap for the mouth, and every portrait gets one small, gentle smile drawn last ([game-073/js/view/textures.js](game-073/js/view/textures.js)). Brother Ansel's beard gets the same fix.
 
 ### Fixed
