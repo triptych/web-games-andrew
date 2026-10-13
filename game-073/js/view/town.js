@@ -362,7 +362,7 @@ export class Town {
             head.position.y = 0.8 * h + 0.14;
             g.add(body, head);
             if (key === 'runes') { const hat = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.45, 8), new THREE.MeshStandardMaterial({ color: 0x2a1a3a })); hat.position.y = head.position.y + 0.25; g.add(hat); }
-            if (key === 'guild') { const beard = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.3, 6), new THREE.MeshStandardMaterial({ color: 0xb8482a })); beard.position.set(0, head.position.y - 0.17, 0.08); beard.rotation.x = Math.PI; g.add(beard); }
+            if (key === 'guild') { for (const sx of [-1, 1]) { const braid = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.03, 0.32, 6), new THREE.MeshStandardMaterial({ color: 0xb8482a })); braid.position.set(sx * 0.14, head.position.y - 0.16, 0.03); g.add(braid); } }
             if (key === 'forge') { const gog = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.03, 6, 10), new THREE.MeshStandardMaterial({ color: 0xc89a40 })); gog.position.set(0, head.position.y + 0.05, 0.13); g.add(gog); }
             g.position.set(cx(key) + dx, 0, -1.25);
             group.add(g);
