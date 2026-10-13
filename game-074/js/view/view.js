@@ -55,7 +55,7 @@ export class View {
         this.world.add(this.halo.root);
         this.echoModels = [buildEcho(), buildEcho()];
         for (const e of this.echoModels) this.world.add(e.root);
-        this.playerLight = new THREE.PointLight(0xffd890, 3.2, 9, 1.4);
+        this.playerLight = new THREE.PointLight(0xffd890, 2.2, 11, 1.4);
         scene.add(this.playerLight);
         this.haloColor = new THREE.Color(0xffd890);
 
@@ -233,9 +233,9 @@ export class View {
         cm.root.visible = p.alive && !blink;
         cm.root.position.set(p.x, p.y, 0);
         cm.update(p, t, dt, { moving: p.moving });
-        this.playerLight.position.set(p.x + 0.4, p.y + 0.3, 1.6);
+        this.playerLight.position.set(p.x + 1.4, p.y + 0.6, 3.2);   // off the body, so it lights the world more than Cael
         this.playerLight.color.copy(this.haloColor);
-        this.playerLight.intensity = p.alive ? 3 + (p.charging ? p.charge * 6 : 0) : 0;
+        this.playerLight.intensity = p.alive ? 2.2 + (p.charging ? p.charge * 4 : 0) : 0;
 
         // ---- Halo + echoes
         const h = w.halo;

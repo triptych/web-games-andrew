@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CINDERWING — model studio</title>
+<style>html, body { margin: 0; background: #2a2a30; overflow: hidden; } canvas { display: block; } #lbl { position: fixed; top: 8px; left: 8px; color: #ddd; font: 13px monospace; }</style>
+</head>
+<body>
+<div id="lbl"></div>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+<script type="module">
+// Neutral studio for judging the procedural models: grey backdrop, plain
+// lights, no bloom. ?m=cael,vesper,vesperFree,seraph,sammael&yaw=0&t=0.4
+import * as THREE from 'three';
+import { buildCael, buildVesper, buildEnemy } from '../js/view/models.js';
+import { buildBoss } from '../js/view/bossmodels.js';
+import { BOSSES } from '../js/sim/bosses.js';
+
+const q = new URLSearchParams(location.search);
+const names = (q.get('m') || 'cael,vesper,vesperFree,seraph,sammael').split(',');
+const yaw = +(q.get('yaw') || 0), T = +(q.get('t') || 0.35), zoom = +(q.get('zoom') || 1);
+const r = new THREE.WebGLRenderer({ antialias: true });
+r.setSize(innerWidth, innerHeight);
+r.toneMapping = THREE.ACESFilmicToneMapping;
+r.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x3a3a42);
+scene.add(new THREE.HemisphereLight(0xdde4ff, 0x40362e, 1.1));
+const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(4, 8, 10); scene.add(key);
+const rim = new THREE.DirectionalLight(0xffc890, 0.8); rim.position.set(-6, 3, -6); scene.add(rim);
+const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 200);
+const W = names.length * 3.2;
+cam.position.set(Math.sin(yaw) * 14 / zoom + (W - 3.2) / 2, 1.2, Math.cos(yaw) * 14 / zoom);
+cam.lookAt((W - 3.2) / 2, 0, 0);
+const models = [];
+names.forEach((n, i) => {
+    let m;
+    if (n === 'cael') m = buildCael();
+    else if (n === 'vesper') m = buildVesper(false);
+    else if (n === 'vesperFree') m = buildVesper(true);
+    else if (n === 'seraph') m = buildEnemy('seraphling');
+    else if (n === 'sammael') { m = buildBoss('sammael'); const b = { parts: [], t: 0, mode: 'hover', mt: 0 }; BOSSES.sammael.init(b); m.fake = b; m.root.scale.setScalar(0.62); }
+    m.root.position.set(i * 3.2, 0, 0);
+    scene.add(m.root);
+    models.push(m);
+});
+document.getElementById('lbl').textContent = names.join(' · ') + `  yaw ${yaw}`;
+function frame(t) {
+    for (const m of models) m.update(m.fake || { bank: 0, moving: 0, x: 0, y: 0, id: 1, vy: 0 }, T, 0, { moving: 0 });
+    r.render(scene, cam);
+    window.__ready = true;
+}
+frame();
+</script>
+</body>
+</html>

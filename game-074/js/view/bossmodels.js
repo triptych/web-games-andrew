@@ -319,18 +319,18 @@ function brood() {
 // ============================================================================ 6. Sammael
 function sammael() {
     const m = buildAngel({
-        robe: 0xc8dcf0, robe2: 0x6a8ab8, trim: 0x9ae8ff, skin: 0xd8e4f0, hair: 0xe8f4ff, hair2: 0x8ab8e8, hairGlow: 0.5,
-        wing: 0xc8e8ff, wingTip: 0x5ab8ff, wingGlow: 1.0, eyes: 0x60d0ff, halo: false, tattered: false, pairs: 2,
+        robe: 0xc8dcf0, robe2: 0x5a7aa8, trim: 0x9ae8ff, skin: 0xe6d6cc, hair: 0xb8d0f0, hair2: 0x5a7ab0, hairGlow: 0.2, armor: 0xa8c8e8,
+        wing: 0xd8eeff, wingTip: 0x7ac0ff, wingGlow: 0.5, eyes: 0x60d0ff, halo: false, tattered: false, pairs: 2,
         crown: 0x9ae8ff, wingScale: 1.25, long: true,
     });
     const sb = new Builder();
-    sb.add(octa(0), { p: [1.2, -0.05, 0.14], s: [0.9, 0.07, 0.03], color: 0xd8f4ff, glow: 1.6 });
-    sb.add(box(), { p: [0.66, -0.05, 0.14], s: [0.05, 0.24, 0.06], color: 0x6a8ab8 });
+    sb.add(octa(0), { p: [1.0, -0.04, 0.13], s: [0.32, 0.035, 0.012], color: 0xd8f4ff, glow: 1.0 });
+    sb.add(box(), { p: [0.68, -0.04, 0.13], s: [0.02, 0.11, 0.03], color: 0x6a8ab8 });
     const sm = litMat({ rough: 0.05, glowMul: 1.6 });
     const sword = new THREE.Mesh(sb.build(), sm);
     m.lean.add(sword);
     m.mats.push(sm);
-    const aura = new THREE.Mesh(sphere(16, 12), glowMat(0x60b8ff, 0.12));
+    const aura = new THREE.Mesh(sphere(16, 12), glowMat(0x60b8ff, 0.06));
     aura.scale.setScalar(1.3);
     const inner = group(m.root, aura);
     m.root.scale.setScalar(1.7);

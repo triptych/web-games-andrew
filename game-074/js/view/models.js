@@ -37,50 +37,107 @@ export function setFlash(model, v) { for (const m of model.mats) if (m.userData.
 export function setFade(model, v) { for (const m of model.mats) if (m.userData.fade) m.userData.fade.value = v; }
 
 // =========================================================================== angels
+/** A lathe of cloth around the local y axis with folds that deepen toward `foldFrom`. */
+function clothLathe(profile, segs, folds, amp, foldFrom = 0) {
+    const g = lathe(profile, segs);
+    const p = g.attributes.position;
+    const y0 = profile[0][1], y1 = profile[profile.length - 1][1];
+    for (let i = 0; i < p.count; i++) {
+        const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+        const k = Math.max(0, Math.min(1, (y - y0) / (y1 - y0) - foldFrom) / (1 - foldFrom));
+        const a = Math.atan2(z, x);
+        const f = 1 + amp * k * Math.sin(a * folds + y * 4);
+        p.setXYZ(i, x * f, y, z * f);
+    }
+    g.computeVertexNormals();
+    return g;
+}
+
 /**
- * An angel: robed body, hair, a small halo, and one or two pairs of feathered
- * wings that flap about the body axis. Used for Cael, Vesper, Sammael and the
- * fallen seraphlings.
+ * An angel in flight: a robed figure lying along +x (head forward, back up),
+ * with a face, hair, sleeves, a belted robe whose skirt flows back over the
+ * feet, a small halo, and one or two pairs of feathered wings that flap about
+ * the body axis. Used for Cael, Vesper, Sammael and the fallen seraphlings.
  */
 export function buildAngel(o = {}) {
     const P = {
-        robe: 0xf4ecdc, robe2: 0xd8ccb8, trim: 0xe8b84a, skin: 0xf2d0b4, hair: 0xfff0c8, hair2: 0xffd88a, hairGlow: 0.18,
-        wing: 0xfbf8ff, wingTip: 0xffe0a0, wingGlow: 0.35, eyes: 0xffd060, halo: true, haloCol: 0xffd070,
-        tattered: false, pairs: 1, crown: null, wingScale: 1, long: false, ...o,
+        robe: 0xf6f6ff, robe2: 0xb8c4e0, trim: 0xd8a838, skin: 0xeec09a, hair: 0xf3d27a, hair2: 0xc8902e, hairGlow: 0.06,
+        wing: 0xffffff, wingTip: 0xffe6b0, wingGlow: 0.12, eyes: 0xffc850, halo: true, haloCol: 0xffd070,
+        tattered: false, pairs: 1, crown: null, wingScale: 1, long: false, armor: null, ...o,
     };
+    const C = (h) => new THREE.Color(h);
     const mats = [];
-    const bodyMat = litMat({ rough: 0.55, glowMul: 1.8 }); mats.push(bodyMat);
-    const wingMat = litMat({ rough: 0.5, side: THREE.DoubleSide, glowMul: 1.6, rimMul: 1.4 }); mats.push(wingMat);
+    const bodyMat = litMat({ rough: 0.7, glowMul: 1.5, rimMul: 0.8 }); mats.push(bodyMat);
+    const wingMat = litMat({ rough: 0.55, side: THREE.DoubleSide, glowMul: 1.4, rimMul: 1.1 }); mats.push(wingMat);
+    const ROT_X = [0, 0, -Math.PI / 2];     // lathe axis (y) → body axis (+x)
 
-    // ---- body
+    // ---- torso in the robe: the lathe's +x side is the chest (model −y)
     const b = new Builder();
-    const trimAt = (lo, hi) => (x, y, z, t) => new THREE.Color(y > lo && y < hi ? P.trim : P.robe).lerp(new THREE.Color(P.robe2), t * 0.5);
-    b.add(lathe([[0, -0.3], [0.1, -0.27], [0.15, -0.18], [0.17, -0.02], [0.165, 0.1], [0.13, 0.2], [0.07, 0.26], [0, 0.27]], 18),
-        { p: [0.12, 0.02, 0], r: [0, 0, -Math.PI / 2], s: [1, 1, 0.85], tint: trimAt(-0.07, -0.02), grad: 'y' });
-    // collar and sash
-    b.add(torus(0.25, 8, 20), { p: [0.33, 0.04, 0], r: [0, Math.PI / 2, 0], s: [0.12, 0.13, 0.12], color: P.trim, glow: 0.15 });
-    b.add(sphere(), { p: [0.47, 0.13, 0], s: [0.135, 0.13, 0.12], color: P.skin });              // head
-    b.add(sphere(), { p: [0.535, 0.075, 0], s: [0.06, 0.05, 0.08], color: P.skin });             // chin
-    b.add(sphere(10, 8), { p: [0.585, 0.15, 0.062], s: 0.02, color: P.eyes, glow: 3 });           // eyes
-    b.add(sphere(10, 8), { p: [0.585, 0.15, -0.062], s: 0.02, color: P.eyes, glow: 3 });
-    b.add(sphere(10, 8), { p: [0.12, 0.02, 0.15], s: 0.03, color: 0xfff2c0, glow: 2.4 });          // the heart-light
-    // hair: tapered strands swept back from the crown
-    for (let i = 0; i < 9; i++) {
-        const z = (i - 4) * 0.028, len = (P.long ? 0.55 : 0.32) + (i % 3) * 0.05;
-        const g = taperTube([V(0.5, 0.25, z), V(0.4, 0.29, z * 1.3), V(0.38 - len * 0.5, 0.25 - (i % 2) * 0.03, z * 1.6), V(0.42 - len, 0.17 - (P.long ? 0.12 : 0), z * 1.9)], 0.05, 0.006, 7, 10);
-        b.add(g, { color: P.hair, color2: P.hair2, grad: 'x', glow: P.hairGlow * 1.4, glow2: P.hairGlow * 0.4 });
+    b.add(clothLathe([[0.104, 0], [0.11, 0.06], [0.116, 0.13], [0.132, 0.2], [0.142, 0.26], [0.13, 0.31], [0.09, 0.345], [0.045, 0.36], [0, 0.365]], 22, 6, 0.03, 0.4),
+        {
+            p: [0.08, 0.01, 0], r: ROT_X, s: [1, 1, 0.8],
+            tint: (x, y, z) => {
+                if (y > 0.3) return C(P.trim);                                   // the collar
+                if (x > 0.05 && Math.abs(z) < 0.035) return C(P.trim);           // the tabard's stripe
+                return C(P.robe).lerp(C(P.robe2), Math.max(0, -x / 0.14) * 0.6);
+            },
+        });
+    if (P.armor) {
+        const pl = new THREE.SphereGeometry(1, 20, 12, 0, Math.PI, 0, Math.PI);
+        b.add(pl, { p: [0.26, -0.03, 0], r: [Math.PI / 2, 0, Math.PI / 2], s: [0.15, 0.12, 0.13], color: P.armor, glow: 0.15 });
     }
-    b.add(sphere(), { p: [0.46, 0.2, 0], s: [0.13, 0.08, 0.12], color: P.hair, glow: P.hairGlow });
-    // arms reaching forward
-    limb(b, [0.3, 0.06, 0.13], [0.5, -0.04, 0.16], 0.038, { color: P.robe });
-    limb(b, [0.5, -0.04, 0.16], [0.68, -0.02, 0.12], 0.03, { color: P.skin });
-    b.add(sphere(10, 8), { p: [0.7, -0.02, 0.12], s: 0.04, color: P.skin, glow: 0.2 });
-    limb(b, [0.3, 0.06, -0.13], [0.48, -0.08, -0.14], 0.036, { color: P.robe2 });
-    limb(b, [0.48, -0.08, -0.14], [0.62, -0.06, -0.1], 0.028, { color: P.skin });
+    // belt
+    b.add(torus(0.22, 8, 24), { p: [0.1, 0.01, 0], r: [0, Math.PI / 2, 0], s: [0.112 * 0.82, 0.114, 0.114], color: P.trim, glow: 0.1 });
+    // shoulders of the robe
+    for (const sz of [1, -1]) b.add(sphere(), { p: [0.355, 0.015, sz * 0.105], s: [0.07, 0.062, 0.06], color: P.robe2 });
+    // neck and head
+    limb(b, [0.4, 0.02, 0], [0.47, 0.06, 0], 0.04, { color: P.skin });
+    b.add(sphere(24, 18), { p: [0.535, 0.095, 0], s: [0.102, 0.112, 0.092], color: P.skin });
+    b.add(sphere(), { p: [0.585, 0.04, 0], s: [0.055, 0.045, 0.062], color: P.skin });                 // chin and jaw
+    b.add(cone(6), { p: [0.642, 0.085, 0], r: [0, 0, -Math.PI / 2], s: [0.016, 0.032, 0.018], color: P.skin }); // nose
+    for (const sz of [1, -1]) {
+        b.add(sphere(12, 8), { p: [0.623, 0.118, sz * 0.04], s: [0.012, 0.015, 0.021], color: 0x1e1a28 });       // eyes
+        b.add(sphere(8, 6), { p: [0.631, 0.12, sz * 0.04], s: 0.0065, color: P.eyes, glow: 1.6 });
+        b.add(box(), { p: [0.618, 0.142, sz * 0.042], r: [0, 0, -0.15], s: [0.012, 0.007, 0.034], color: P.hair2 }); // brows
+        b.add(sphere(10, 8), { p: [0.525, 0.09, sz * 0.09], s: [0.024, 0.034, 0.014], color: P.skin });          // ears
+    }
+    b.add(box(), { p: [0.612, 0.055, 0], s: [0.006, 0.006, 0.026], color: 0xa05a50 });                    // mouth
+    // hair: a cap open over the face, then curls or long locks
+    const cap = new THREE.SphereGeometry(1, 26, 16, 0, Math.PI * 2, 0, 1.95);
+    b.add(cap, { p: [0.53, 0.105, 0], r: [0, 0, 0.95], s: [0.112, 0.12, 0.104], color: P.hair, color2: P.hair2, grad: 'y', glow: P.hairGlow });
+    if (!P.long) {
+        for (let i = 0; i < 22; i++) {
+            const th = 0.25 + (i % 6) * 0.3, ph = (Math.floor(i / 6) - 1.5) * 0.55 + (i % 2) * 0.2;
+            // directions over the crown and back of the head, away from the face
+            const dx = -Math.sin(th) * Math.cos(ph) * 0.75, dy = Math.cos(th) * 0.9 + 0.25, dz = Math.sin(ph) * Math.sin(th);
+            const L = Math.hypot(dx, dy, dz);
+            b.add(sphere(10, 8), { p: [0.525 + dx / L * 0.11, 0.105 + dy / L * 0.115, dz / L * 0.1], s: 0.034 + (i % 3) * 0.006, color: i % 3 ? P.hair : P.hair2, glow: P.hairGlow });
+        }
+        for (const sz of [-0.05, 0, 0.05]) b.add(taperTube([V(0.47, 0.13, sz), V(0.42, 0.1, sz * 1.2), V(0.39, 0.06, sz * 1.3)], 0.03, 0.008, 6, 8), { color: P.hair, color2: P.hair2, grad: 'x' });
+    } else {
+        for (let i = 0; i < 11; i++) {
+            const z = (i - 5) * 0.017, len = 0.42 + (i % 4) * 0.08;
+            b.add(taperTube([V(0.52, 0.2, z), V(0.43, 0.2, z * 1.6), V(0.42 - len * 0.45, 0.14 + Math.sin(i) * 0.03, z * 2.2), V(0.44 - len, 0.1 + Math.cos(i * 1.7) * 0.04, z * 2.6)], 0.042, 0.006, 7, 12),
+                { color: P.hair, color2: P.hair2, grad: 'x', glow: P.hairGlow * 1.5, glow2: P.hairGlow * 0.3 });
+        }
+    }
+    // sleeves, cuffs and hands: the near arm reaches forward, the far arm trails
+    const arm = (S, E, Wr, z) => {
+        limb(b, S, E, 0.042, { color: P.robe });
+        limb(b, E, Wr, 0.036, { color: P.robe });
+        const d = new THREE.Vector3(Wr[0] - E[0], Wr[1] - E[1], Wr[2] - E[2]).normalize();
+        const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d);
+        const m = new THREE.Matrix4().compose(new THREE.Vector3(Wr[0] - d.x * 0.02, Wr[1] - d.y * 0.02, Wr[2] - d.z * 0.02), q, new THREE.Vector3(0.05, 0.05, 0.05));
+        b.add(cyl(1, 0.75, 14, true), { m, color: P.trim });
+        b.add(sphere(12, 8), { p: [Wr[0] + d.x * 0.04, Wr[1] + d.y * 0.04, Wr[2] + d.z * 0.04], s: [0.038, 0.022, 0.03], color: P.skin });
+        b.add(sphere(8, 6), { p: [Wr[0] + d.x * 0.03, Wr[1] + d.y * 0.03 + 0.012, Wr[2] + d.z * 0.03 + z * 0.02], s: [0.022, 0.013, 0.012], color: P.skin });
+    };
+    arm([0.36, -0.005, 0.12], [0.49, -0.07, 0.165], [0.625, -0.04, 0.13], 1);
+    arm([0.34, -0.005, -0.12], [0.24, -0.09, -0.15], [0.13, -0.1, -0.12], -1);
     if (P.crown) {
-        for (let i = 0; i < 7; i++) {
-            const a = -0.9 + i * 0.3;
-            b.add(cone(6), { p: [0.46 + Math.cos(a + 1.57) * 0.1, 0.27 + Math.sin(a + 1.57) * 0.04, (i - 3) * 0.04], r: [0, 0, a * 0.5], s: [0.025, 0.16 + (i % 2) * 0.08, 0.025], color: P.crown, glow: 1.2 });
+        for (let i = 0; i < 9; i++) {
+            const a = (i / 8 - 0.5) * 2.4;
+            b.add(cone(6), { p: [0.52 + Math.sin(a) * 0.02, 0.2 + Math.cos(a) * 0.03, Math.sin(a) * 0.1], r: [Math.sin(a) * 0.6, 0, 0.5], s: [0.022, 0.13 + (i % 2) * 0.07, 0.022], color: P.crown, glow: 1.0 });
         }
     }
     const body = new THREE.Mesh(b.build(), bodyMat);
@@ -90,68 +147,75 @@ export function buildAngel(o = {}) {
     if (P.halo) {
         const arc = P.halo === 'broken' ? Math.PI * 1.3 : TAU;
         const hb = new Builder();
-        hb.add(torus(0.12, 8, 32, arc), { s: 0.11, color: P.haloCol, glow: 2.6 });
+        hb.add(torus(0.12, 8, 32, arc), { s: 0.1, color: P.haloCol, glow: 2.2 });
         halo = new THREE.Mesh(hb.build(), bodyMat);
-        halo.position.set(0.42, 0.36, 0);
-        halo.rotation.set(Math.PI / 2 - 0.55, 0.25, 0);
+        halo.position.set(0.47, 0.3, 0);
+        halo.rotation.set(Math.PI / 2 - 0.5, 0.35, 0);
     }
 
-    // ---- robe tail (sways)
+    // ---- the skirt of the robe flowing back over the feet (sways)
     const tb = new Builder();
-    tb.add(lathe([[0.16, 0], [0.2, -0.18], [0.19, -0.38], [0.14, -0.58], [0.07, -0.76], [0.0, -0.86]], 18),
-        { r: [0, 0, -Math.PI / 2], s: [1, 1, 0.8], tint: (x, y) => new THREE.Color(y < -0.7 ? P.trim : P.robe).lerp(new THREE.Color(P.robe2), Math.min(1, -y)), glow: 0, });
-    for (let i = 0; i < 4; i++) tb.add(featherGeo(0.3, 0.05, 0.02), { p: [-0.6, -0.05 + i * 0.02, (i - 1.5) * 0.06], r: [0, 0, Math.PI + 0.25 - i * 0.12], color: P.robe, color2: P.trim, grad: 'x', glow: 0, glow2: 0.3 });
+    tb.add(clothLathe([[0.108, 0], [0.122, -0.1], [0.138, -0.26], [0.148, -0.42], [0.158, -0.56], [0.15, -0.6], [0.09, -0.61], [0, -0.612]], 22, 7, 0.09, 0.15),
+        { r: ROT_X, s: [1, 1, 0.84], tint: (x, y) => (y < -0.52 && y > -0.6 ? C(P.trim) : C(P.robe).lerp(C(P.robe2), Math.min(1, Math.max(0, -x / 0.15) * 0.6 + -y * 0.35))) });
+    for (const sz of [1, -1]) {
+        limb(tb, [-0.56, -0.02, sz * 0.045], [-0.68, -0.04, sz * 0.05], 0.026, { color: P.skin });                    // ankles and feet
+        tb.add(box(), { p: [-0.69, -0.035, sz * 0.05], r: [0, 0, 0.25], s: [0.075, 0.016, 0.042], color: P.trim });   // sandal soles
+    }
+    // two sash ends fluttering from the belt
+    for (const sz of [1, -1]) tb.add(featherGeo(0.34, 0.045, 0.03 * sz), { p: [0.02, 0.06, sz * 0.05], r: [0, 0, Math.PI + 0.35], color: P.trim, glow: 0.05 });
     const tail = new THREE.Mesh(tb.build(), wingMat);
     const tailPivot = group(tail);
-    tailPivot.position.set(-0.12, -0.01, 0);
+    tailPivot.position.set(0.09, 0.01, 0);
 
-    // ---- wings
+    // ---- wings: leading edge, coverts in rows over the flight feathers
     function wingGeo(outer, far) {
         const w = new Builder();
-        const tip = far ? 0.75 : 1;
-        const fcol = { color: P.wing, color2: P.wingTip, grad: 'x', glow: 0.0, glow2: P.wingGlow * tip };
+        const tipGlow = P.wingGlow * (far ? 0.6 : 1);
+        const shade = far ? C(P.wing).multiplyScalar(0.85) : C(P.wing);
+        const flight = { color: shade, color2: P.wingTip, grad: 'x', glow: 0, glow2: tipGlow };
         const skip = (i) => P.tattered && (i * 7 + (outer ? 3 : 0)) % 5 === 1;
         if (!outer) {
-            limb(w, [0, 0, 0], [-0.08, 0.5, 0], 0.032, { color: P.wing });
-            for (let i = 0; i < 9; i++) {
+            w.add(taperTube([V(0, 0, 0), V(-0.045, 0.2, 0.01), V(-0.035, 0.4, 0.01), V(0, 0.5, 0)], 0.05, 0.03, 10, 12), { color: shade });
+            for (let i = 0; i < 11; i++) {
                 if (skip(i)) continue;
+                const t = i / 10;
+                w.add(featherGeo((0.42 + t * 0.12) * (P.tattered && i % 4 === 2 ? 0.7 : 1), 0.088, 0.05), { p: [-0.035 - Math.sin(t * Math.PI) * 0.01, 0.03 + t * 0.45, -0.012 - t * 0.003], r: [0, 0, Math.PI + 0.2 - t * 0.14], ...flight });
+            }
+            for (let i = 0; i < 10; i++) {
+                const t = i / 9;
+                w.add(featherGeo(0.25, 0.095, 0.03), { p: [-0.02, 0.04 + t * 0.44, 0.012], r: [0, 0, Math.PI + 0.12 - t * 0.05], color: shade, color2: C(P.wing).lerp(C(P.wingTip), 0.3), grad: 'x' });
+            }
+            for (let i = 0; i < 9; i++) {
                 const t = i / 8;
-                w.add(featherGeo(0.42 + t * 0.14, 0.075, 0.06), { p: [-0.02 - t * 0.06, 0.04 + t * 0.46, -0.01], r: [0, 0, Math.PI + 0.25 - t * 0.12], ...fcol });
+                w.add(featherGeo(0.13, 0.085, 0.02), { p: [-0.005, 0.05 + t * 0.43, 0.028], r: [0, 0, Math.PI + 0.06], color: shade });
+            }
+        } else {
+            w.add(taperTube([V(0, 0, 0), V(0.02, 0.16, 0), V(0.03, 0.3, 0)], 0.03, 0.016, 8, 8), { color: shade });
+            for (let i = 0; i < 10; i++) {
+                if (skip(i)) continue;
+                const t = i / 9;
+                const len = (0.55 + Math.sin(t * Math.PI) * 0.24 + t * 0.06) * (P.tattered && i % 3 === 0 ? 0.65 : 1);
+                w.add(featherGeo(len, 0.088, 0.1), { p: [0.005 + t * 0.02, t * 0.3, -0.012 - t * 0.004], r: [0, 0, Math.PI + 0.06 - t * 1.05], ...flight });
             }
             for (let i = 0; i < 8; i++) {
                 const t = i / 7;
-                w.add(featherGeo(0.24, 0.07, 0.03), { p: [-0.0 - t * 0.07, 0.06 + t * 0.44, 0.012], r: [0, 0, Math.PI + 0.12], color: P.wing, glow: 0 });
-            }
-        } else {
-            limb(w, [0, 0, 0], [0.05, 0.38, 0], 0.026, { color: P.wing });
-            for (let i = 0; i < 9; i++) {
-                if (skip(i)) continue;
-                const t = i / 8;
-                const len = (0.82 - t * 0.28) * (P.tattered && i % 3 === 0 ? 0.7 : 1);
-                w.add(featherGeo(len, 0.085, 0.12), { p: [0.04 - t * 0.04, 0.38 - t * 0.36, -0.01], r: [0, 0, 2.0 + t * 0.95], ...fcol });
-            }
-            for (let i = 0; i < 6; i++) {
-                const t = i / 5;
-                w.add(featherGeo(0.26, 0.07, 0.03), { p: [0.02, 0.34 - t * 0.3, 0.012], r: [0, 0, 2.3 + t * 0.6], color: P.wing, glow: 0 });
+                w.add(featherGeo(0.22, 0.09, 0.03), { p: [0.015, t * 0.28, 0.014], r: [0, 0, Math.PI + 0.1 - t * 0.95], color: shade, color2: C(P.wing).lerp(C(P.wingTip), 0.3), grad: 'x' });
             }
         }
         return w.build();
     }
     const wings = [];
-    const pairs = [];
     for (let k = 0; k < P.pairs; k++) {
         for (const side of [1, -1]) {
             const far = side < 0;
             const inner = new THREE.Mesh(wingGeo(false, far), wingMat);
             const outer = new THREE.Mesh(wingGeo(true, far), wingMat);
-            const outerPivot = group(outer); outerPivot.position.set(-0.08, 0.5, 0);
+            const outerPivot = group(outer); outerPivot.position.set(0, 0.5, 0);
             const flap = group(inner, outerPivot);
             const tilt = group(flap);
-            const s = P.wingScale * (k ? 0.8 : 1);
-            tilt.scale.setScalar(s);
-            tilt.position.set(0.2 - k * 0.12, 0.14 - k * 0.04, side * 0.11);
-            tilt.rotation.z = 0.45 + k * 0.5;
-            if (k) tilt.rotation.z = 1.9;          // a lower pair, pointing back-down
+            tilt.scale.setScalar(P.wingScale * (k ? 0.75 : 1));
+            tilt.position.set(0.3 - k * 0.14, 0.1, side * 0.07);
+            tilt.rotation.z = k ? 1.3 : 0.45;        // a second pair sweeps back along the body
             wings.push({ tilt, flap, outerPivot, side, k });
         }
     }
@@ -163,19 +227,17 @@ export function buildAngel(o = {}) {
     for (const w of wings) lean.add(w.tilt);
     root.add(lean);
 
-    const st = { phase: 0 };
     function flapTo(t, speed = 1, open = 0.5) {
-        st.phase += speed;
-        const ph = t * 6.2 * speed + st.phase * 0;
+        const ph = t * 6.2 * speed;
         for (const w of wings) {
             const s = Math.sin(ph + w.k * 1.4);
             const ang = 0.35 + open * 0.4 + s * 0.55;
             w.flap.rotation.x = w.side * ang;
             w.flap.rotation.z = s * 0.08;
-            w.outerPivot.rotation.z = -0.25 + Math.max(0, -s) * 0.55;
+            w.outerPivot.rotation.z = -0.2 + Math.max(0, -s) * 0.5;
         }
-        tailPivot.rotation.z = Math.sin(t * 3.1) * 0.08;
-        tailPivot.rotation.y = Math.sin(t * 2.3) * 0.12;
+        tailPivot.rotation.z = Math.sin(t * 3.1) * 0.06;
+        tailPivot.rotation.y = Math.sin(t * 2.3) * 0.1;
     }
     flapTo(0);
     const model = finish(root, mats, () => {});
@@ -204,17 +266,17 @@ export function buildCael() {
 /** Vesper, the chained star (or freed, in the ending). */
 export function buildVesper(free = false) {
     const m = buildAngel(free ? {
-        robe: 0x6a58b8, robe2: 0x3a2e78, trim: 0xe8eaff, skin: 0xf4dce6, hair: 0x2a2050, hair2: 0x8070d0, hairGlow: 0.5,
-        wing: 0xe8e4f4, wingTip: 0xc8b8ff, wingGlow: 0.45, eyes: 0xe0d8ff, halo: true, haloCol: 0xe8e0ff, long: true,
+        robe: 0x8a78d8, robe2: 0x4a3a98, trim: 0xe8eaff, skin: 0xf0d2c4, hair: 0x2a2050, hair2: 0x8070d0, hairGlow: 0.25,
+        wing: 0xf0ecfa, wingTip: 0xc8b8ff, wingGlow: 0.3, eyes: 0xe0d8ff, halo: true, haloCol: 0xe8e0ff, long: true,
     } : {
-        robe: 0x2a2240, robe2: 0x16122a, trim: 0x9aa0c8, skin: 0xe0c4cc, hair: 0x18122a, hair2: 0x4a3a7a, hairGlow: 0.25,
+        robe: 0x3a3060, robe2: 0x1c1634, trim: 0x9aa0c8, skin: 0xdcbcb4, hair: 0x18122a, hair2: 0x4a3a7a, hairGlow: 0.1,
         wing: 0x7c7c94, wingTip: 0x4a4a64, wingGlow: 0.15, eyes: 0xc8b8ff, halo: 'broken', haloCol: 0xa898e8, tattered: true, long: true,
     });
     m.root.scale.setScalar(1.45);
     if (!free) {
         // chains from the wrists down into the dark
         const cb = new Builder();
-        for (const [hx, hy, hz] of [[0.7, -0.02, 0.12], [0.62, -0.06, -0.1]]) {
+        for (const [hx, hy, hz] of [[0.66, -0.04, 0.13], [0.14, -0.11, -0.12]]) {
             for (let i = 0; i < 18; i++) {
                 cb.add(torus(0.28, 6, 12), { p: [hx - i * 0.02, hy - 0.06 - i * 0.075, hz], r: [0, i % 2 ? Math.PI / 2 : 0, Math.PI / 2], s: [0.04, 0.05, 0.04], color: 0x6a6070 });
             }
@@ -752,7 +814,7 @@ const BUILDERS = {
 
     seraphling() {
         const m = buildAngel({
-            robe: 0x2a2a34, robe2: 0x101018, trim: 0x8a2030, skin: 0xb8b0c0, hair: 0x202028, hair2: 0x504858, hairGlow: 0.05,
+            robe: 0x34303e, robe2: 0x14121a, trim: 0x8a2030, skin: 0xa8a0b0, hair: 0x202028, hair2: 0x504858, hairGlow: 0.05, long: true,
             wing: 0x3a3a48, wingTip: 0x8a2030, wingGlow: 0.6, eyes: 0xff3030, halo: 'broken', haloCol: 0xff4040, tattered: true,
         });
         m.root.scale.setScalar(0.85);
