@@ -663,14 +663,34 @@ function drawPerson(ctx, p) {
     ctx.fillStyle = shadeHex(skin, 0.8);
     const nose = p.kind === 'gnome' ? 9 : p.kind === 'dwarf' ? 7 : 5;
     ctx.beginPath(); ctx.ellipse(80, headY + 8, nose * 0.7, nose, 0, 0, 7); ctx.fill();
-    ctx.strokeStyle = '#6a3a2a'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(80, headY + 16, 8, 0.2, Math.PI - 0.2); ctx.stroke();
     if (p.scar) { ctx.strokeStyle = 'rgba(150,60,50,0.8)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(94, headY - 14); ctx.lineTo(100, headY + 8); ctx.stroke(); }
     if (p.beard) {
+        // A full beard: cheeks and chin filled, a moustache across the top lip and a gap for the mouth.
+        // (A cheek-to-cheek crescent leaves a hollow that reads as an enormous grin.)
+        const cw = 28 * wide, len = p.kind === 'dwarf' ? 46 : 34;
         ctx.fillStyle = hair;
-        ctx.beginPath(); ctx.moveTo(52, headY + 4); ctx.quadraticCurveTo(80, headY + (p.kind === 'dwarf' ? 80 : 60), 108, headY + 4); ctx.quadraticCurveTo(80, headY + 30, 52, headY + 4); ctx.fill();
-        ctx.strokeStyle = '#6a3a2a'; ctx.beginPath(); ctx.arc(80, headY + 18, 6, 0.2, Math.PI - 0.2); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(80 - cw, headY - 2);
+        ctx.quadraticCurveTo(80 - cw - 2, headY + len * 0.8, 80, headY + len);
+        ctx.quadraticCurveTo(80 + cw + 2, headY + len * 0.8, 80 + cw, headY - 2);
+        ctx.quadraticCurveTo(80 + cw * 0.55, headY + 14, 80, headY + 13);
+        ctx.quadraticCurveTo(80 - cw * 0.55, headY + 14, 80 - cw, headY - 2);
+        ctx.fill();
+        // moustache
+        ctx.beginPath();
+        ctx.moveTo(80, headY + 11);
+        ctx.quadraticCurveTo(68, headY + 9, 64, headY + 17);
+        ctx.quadraticCurveTo(72, headY + 15, 80, headY + 16);
+        ctx.quadraticCurveTo(88, headY + 15, 96, headY + 17);
+        ctx.quadraticCurveTo(92, headY + 9, 80, headY + 11);
+        ctx.fill();
+        // a little shading so it reads as hair, not a mask
+        ctx.strokeStyle = shadeHex(hair, 0.75); ctx.lineWidth = 1.5;
+        for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(80 + i * 8, headY + 22); ctx.quadraticCurveTo(80 + i * 9, headY + len * 0.7, 80 + i * 6, headY + len - 6); ctx.stroke(); }
     }
+    // mouth: one small, gentle smile, drawn last so nothing frames it
+    ctx.strokeStyle = '#6a3a2a'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(80, headY + (p.beard ? 14 : 15), 6, 0.5, Math.PI - 0.5); ctx.stroke();
     if (p.moustache) {
         ctx.fillStyle = hair;
         ctx.beginPath(); ctx.moveTo(80, headY + 12); ctx.quadraticCurveTo(64, headY + 8, 60, headY + 18); ctx.quadraticCurveTo(70, headY + 14, 80, headY + 15); ctx.quadraticCurveTo(90, headY + 14, 100, headY + 18); ctx.quadraticCurveTo(96, headY + 8, 80, headY + 12); ctx.fill();

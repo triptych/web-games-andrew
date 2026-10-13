@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **RUNEBORE** (game-073) v1.0.2: Orla's portrait no longer has an enormous grin. Beards were drawn as a cheek-to-cheek crescent whose hollow inner edge read as a huge open smile, with two smile arcs drawn inside it. Beards are now a full beard with a moustache and a gap for the mouth, and every portrait gets one small, gentle smile drawn last ([game-073/js/view/textures.js](game-073/js/view/textures.js)). Brother Ansel's beard gets the same fix.
+
+### Fixed
 - **RUNEBORE** (game-073) v1.0.1: Thimble's auger spins about its own point instead of swinging round in a circle while it drives. The cone was laid on its side with `rotation.z` and spun with `rotation.y` on the same mesh; three.js applies Euler angles in XYZ order, so the spin turned the tipped cone about the vertical axis. A holder group now lays it down and the cone spins on its own axis ([game-073/js/view/rigmodel.js](game-073/js/view/rigmodel.js)). The browser test checks that the tip stays on the auger's axis at any spin angle.
 
 ### Added
