@@ -3,7 +3,7 @@
 **Genre:** Arcade action-adventure. Atari *Adventure* (1979) reimagined as a 1988 coin-op.
 **Engine:** none. Vanilla ES modules, Canvas 2D for the game, hand-written WebGL for the CRT, DOM and CSS for the cabinet, Web Audio for every sound and note.
 **Target:** any screen from a 360 px phone to a desktop monitor; keyboard, gamepad or touch.
-**Status:** v1.0.0, complete: six realms, a boss, an ending and endless loops.
+**Status:** v1.0.1, complete: six realms, a boss, an ending and endless loops.
 
 ---
 
@@ -57,8 +57,8 @@ No image or audio files. Every sprite, letter, room, sound and note is generated
 | Action | Keyboard | Gamepad | Touch |
 |---|---|---|---|
 | Move | Arrows / WASD | stick / d-pad | the cabinet joystick (drag) |
-| **USE** (slash with the sword, lay the bridge, arm a charge, flare the lamp) | Z / J / Space | A | A button |
-| **DROP** what you hold | X / K | B | B button |
+| **USE** (slash with the sword, lay the bridge, arm a charge, flare the lamp) | Z / J / Space | A | Z button |
+| **DROP** what you hold | X / K | B | X button |
 | **DASH** | C / L / Shift | X / RB | C button |
 | Insert coin | 5 or click the coin slot | Back | tap the coin slot |
 | Start | Enter / 1 | Start | 1P START |
@@ -278,6 +278,9 @@ The simulation follows the repo's rule (game-040 onward): `js/sim/` imports noth
 ---
 
 ## Changelog
+
+### v1.0.1 (2026-10-13)
+- The cabinet's buttons and every on-screen prompt name the keys that work them (Z use, X drop, C dash) instead of A, B and C.
 
 ### v1.0.0 (2026-10-13)
 - First release: six realms, CHROMAGON, the ending and loops; ARCADE and REMIX modes; the cabinet, the arcade and the CRT; the generated soundtrack; keyboard, gamepad and touch.
