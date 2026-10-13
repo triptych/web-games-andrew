@@ -153,7 +153,7 @@ export function sampleProject(TW) {
                 C('if', { cond: { kind: 'switch', id: SW.pip, value: true }, then: [T('Oh! Pip is with you! Thank you, thank you!', 'Hana', 'villager2')], else: [T('Please, if you see him, bring him home.', 'Hana', 'villager2')] }),
             ] },
         ]);
-        ev(2, 12, 'Old Tree', [
+        ev(2, 12, 'Granny Wren', [
             { gfx: char('oldwoman', 6), list: [
                 T('I\'ve a craving for a red apple. My knees won\'t take me to the orchard any more.', 'Granny Wren', 'oldwoman'),
                 C('if', { cond: { kind: 'item', id: 12, value: true }, then: [

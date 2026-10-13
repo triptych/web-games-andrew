@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1a1430">
+    <meta name="description" content="TALEWRIGHT — The Atelier of Unwritten Worlds. An RPG maker that is also a game: build a real RPG with maps, events, dialogue, items, battles and shops, unlock tools chapter by chapter, earn Ink and trophies, and export your game as one standalone HTML file.">
+    <title>TALEWRIGHT — The Atelier of Unwritten Worlds</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap">
+    <link rel="stylesheet" href="style.css">
+    <!-- The RPG runtime: classic scripts that register in window.TW_MODULES, so an
+         export can carry exactly this code (see js/editor/exporter.js). -->
+    <script src="js/runtime/core.js"></script>
+    <script src="js/runtime/tiles.js"></script>
+    <script src="js/runtime/sprites.js"></script>
+    <script src="js/runtime/audio.js"></script>
+    <script src="js/runtime/input.js"></script>
+    <script src="js/runtime/state.js"></script>
+    <script src="js/runtime/schema.js"></script>
+    <script src="js/runtime/interp.js"></script>
+    <script src="js/runtime/ui.js"></script>
+    <script src="js/runtime/menus.js"></script>
+    <script src="js/runtime/map.js"></script>
+    <script src="js/runtime/battle.js"></script>
+    <script src="js/runtime/game.js"></script>
+</head>
+<body data-theme="default">
+    <div id="blot" aria-hidden="true"></div>
+    <div id="app">
+        <header id="topbar">
+            <a id="back-link" href="../index.html">← Games</a>
+            <div class="brand" title="TALEWRIGHT — The Atelier of Unwritten Worlds"><span class="quillmark">✒</span><span class="brandname">TALEWRIGHT</span></div>
+            <nav class="mainmenu" aria-label="Atelier">
+                <button id="btn-project" aria-haspopup="menu">Project ▾</button>
+                <button id="btn-db" title="Database (F9)">Database</button>
+                <button id="btn-forge" title="Sprite Forge">Forge</button>
+                <button id="btn-playtest" class="primary" title="Playtest (F5)">▶ Playtest</button>
+                <button id="btn-export" title="Export your game">Export</button>
+            </nav>
+            <button id="proj-title" class="projtitle" title="Rename your game"></button>
+            <div class="status">
+                <span class="inkwrap"><span id="ink" class="ink">✒ 0</span></span>
+                <span class="rankwrap"><span id="rank" class="rank"></span><span class="rankbar"><i id="rankbar"></i></span></span>
+                <button id="btn-trophies" class="icon" title="Trophy Case" aria-label="Trophy Case">🏆</button>
+                <button id="btn-shop" class="icon" title="Inkwell Emporium" aria-label="Inkwell Emporium">🛍</button>
+                <button id="btn-journal" class="icon" title="Journal" aria-label="Journal">📖</button>
+                <button id="btn-settings" class="icon" title="Settings" aria-label="Settings">⚙</button>
+            </div>
+        </header>
+        <aside id="left" aria-label="Maps and tiles">
+            <section id="maps" class="panel"></section>
+            <section id="palette" class="panel">
+                <div class="panelhead"><b>Tiles</b><span id="tileset-name" class="dim"></span></div>
+            </section>
+        </aside>
+        <main id="center">
+            <div id="toolbar" role="toolbar" aria-label="Tools">
+                <div id="tools" class="group"></div>
+                <div id="layers" class="group" role="radiogroup" aria-label="Layer"></div>
+                <div class="group">
+                    <button id="btn-undo" class="icon" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+                    <button id="btn-redo" class="icon" title="Redo (Ctrl+Y)" aria-label="Redo">↷</button>
+                </div>
+                <div class="group">
+                    <button id="btn-zoomout" class="icon" title="Zoom out (−)" aria-label="Zoom out">−</button>
+                    <span id="zoom" class="dim">200%</span>
+                    <button id="btn-zoomin" class="icon" title="Zoom in (+)" aria-label="Zoom in">+</button>
+                    <button id="btn-grid" class="toggle on" title="Grid">#</button>
+                    <button id="btn-dim" class="toggle on" title="Dim other layers">◐</button>
+                </div>
+            </div>
+            <div id="stage"></div>
+            <div id="statusline"><span id="st-map"></span><span id="st-cell"></span><span id="st-tile"></span><span id="st-save"></span></div>
+        </main>
+        <aside id="right" aria-label="Quillon and quests"></aside>
+        <nav id="bottombar" aria-label="Panels">
+            <button data-panel="left">🗺 Maps &amp; tiles</button>
+            <button data-panel="none" class="on">✎ Map</button>
+            <button data-panel="right">✔ Quests</button>
+        </nav>
+    </div>
+    <div id="modal-root"></div>
+    <div id="toasts" aria-live="polite"></div>
+    <noscript>TALEWRIGHT needs JavaScript.</noscript>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

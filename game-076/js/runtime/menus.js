@@ -74,8 +74,8 @@
         open(i) {
             const game = this.ui.game, st = game.state;
             if (i === 0) this.items();
-            if (i === 1) this.picker((a) => this.skills(st.party[a]));
-            if (i === 2) this.picker((a) => this.equip(st.party[a]));
+            if (i === 1) this.picker((a) => { this.pick = null; this.skills(st.party[a]); });
+            if (i === 2) this.picker((a) => { this.pick = null; this.equip(st.party[a]); });
             if (i === 3) {
                 const show = (a) => {
                     this.status = st.party[a];
@@ -145,13 +145,14 @@
             const slots = [['weapon', 'Weapon'], ['armor', 'Armour'], ['acc', 'Accessory']];
             const mk = () => slots.map(([k, n]) => { const it = actor.equip[k] && st.itemDb(actor.equip[k]); return { label: n + ':  ' + (it ? it.name : '—'), slot: k, iconCanvas: it ? TW.sprites.icon(it.icon || 'sword') : null }; });
             const l = new ListWin(this.ui, { x: 8, y: 34, w: 190, rows: 3, items: mk(), title: actor.name });
+            this.info = null;
             this.equipActor = actor;
             l.onCancel = () => { this.equipActor = null; this.back(); };
             l.onChoose = (row) => {
                 const kind = row.slot === 'acc' ? 'accessory' : row.slot;
                 const opts = st.inventory().filter((it) => it.kind === kind).map((it) => ({ label: it.name, right: '×' + st.count(it.id), iconCanvas: TW.sprites.icon(it.icon || 'sword'), item: it }));
                 opts.unshift({ label: '(remove)', item: null });
-                const l2 = new ListWin(this.ui, { x: 8, y: 90, w: 190, rows: 6, items: opts });
+                const l2 = new ListWin(this.ui, { x: 8, y: 103, w: 190, rows: 6, items: opts });
                 l2.onMove = (r) => { this.preview = r && { slot: row.slot, item: r.item }; };
                 l2.onMove(opts[0]);
                 l2.onCancel = () => { this.preview = null; this.sub2 = null; this.focus = l; };
@@ -176,18 +177,22 @@
         }
         draw(g, s) {
             const game = this.ui.game, st = game.state;
-            partyPanel(g, s, game, this.panel.x, this.panel.y, this.panel.w, this.panel.h, this.pick ? this.pick.index : -1, this.t);
-            this.cmd.draw(g, s);
-            win(g, s, 8, 198, 86, 34);
-            text(g, s, st.gold + ' ' + ((game.project.system && game.project.system.currency) || 'G'), 88, 203, { align: 'right', color: s.accent, bold: true });
-            text(g, s, fmtTime(st.playtime), 88, 217, { align: 'right', color: s.dim, size: 8 });
-            if (this.status) drawStatus(g, s, game, this.status);
-            if (this.sub) {
+            g.fillStyle = 'rgba(0,0,12,0.55)'; g.fillRect(0, 0, VW, VH);
+            const full = this.sub && (this.sub.w >= 300 || this.equipActor) && !this.pick;
+            if (!full) {
+                partyPanel(g, s, game, this.panel.x, this.panel.y, this.panel.w, this.panel.h, this.pick ? this.pick.index : -1, this.t);
+                this.cmd.draw(g, s);
+                win(g, s, 8, 198, 86, 34);
+                text(g, s, st.gold + ' ' + ((game.project.system && game.project.system.currency) || 'G'), 88, 203, { align: 'right', color: s.accent, bold: true });
+                text(g, s, fmtTime(st.playtime), 88, 217, { align: 'right', color: s.dim, size: 8 });
+                if (this.sub && !this.pick) this.sub.draw(g, s);
+            } else {
                 this.sub.draw(g, s);
-                if (this.info !== null && this.info !== undefined && this.sub.y === 34) { win(g, s, 8, 8, 304, 22); text(g, s, this.info, 14, 13, { max: 292 }); }
+                if (this.info !== null && this.info !== undefined) { win(g, s, 8, 8, 304, 22); text(g, s, this.info, 14, 13, { max: 292 }); }
             }
             if (this.sub2) this.sub2.draw(g, s);
             if (this.equipActor) drawEquipStats(g, s, game, this.equipActor, this.preview);
+            if (this.status) drawStatus(g, s, game, this.status);
         }
     }
 
@@ -353,6 +358,7 @@
         }
         draw(g, s) {
             const game = this.ui.game, st = game.state;
+            g.fillStyle = 'rgba(0,0,12,0.55)'; g.fillRect(0, 0, VW, VH);
             win(g, s, 8, 8, 304, 20);
             text(g, s, this.info || '', 14, 12.5, { max: 292 });
             this.cmd.draw(g, s);

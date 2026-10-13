@@ -59,7 +59,7 @@
                 if (counts[m.enemy] > 1) { seen[m.enemy] = (seen[m.enemy] || 0) + 1; name += ' ' + 'ABCDEF'[seen[m.enemy] - 1]; }
                 const sprite = TW.sprites.monster(db.look);
                 const x = m.x || ((i + 1) * 320) / (members.length + 1);
-                const y = m.y || 150;
+                const y = Math.min(m.y || 150, 156);
                 return { db, name, hp: s.hp || 10, mhp: s.hp || 10, mp: s.mp || 0, stats: s, sprite, x, y, alive: true, fade: 1, hit: 0, isEnemy: true };
             });
             this.party = st.party;
@@ -110,7 +110,7 @@
             const a = this.party[this.actorI];
             const items = [{ label: 'Attack' }, { label: 'Skill', enabled: this.st().skillsOf(a).length > 0 }, { label: 'Item', enabled: this.battleItems().length > 0 }, { label: 'Guard' }];
             if (this.actorI === this.firstAlive()) items.push({ label: 'Escape', enabled: this.opts.escape !== false });
-            const l = new ListWin(this.game.ui, { x: 8, y: 172 - items.length * 14 - 14, w: 76, rows: items.length, items, tapSelects: true });
+            const l = new ListWin(this.game.ui, { x: 8, y: 164, w: 80, h: 70, rows: items.length, rowH: 12, items, tapSelects: true });
             l.onChoose = (it, i) => this.command(i);
             l.onCancel = () => { if (this.actorI > this.firstAlive()) { this.nextActor(-1); } };
             this.commands = l;
@@ -309,8 +309,12 @@
         posOf(t) {
             if (t.isEnemy) return { x: t.x, y: t.y - t.sprite.height / 2 };
             const i = this.party.indexOf(t);
-            const w = 304 / Math.max(1, this.party.length);
-            return { x: 8 + w * i + w / 2, y: 178 };
+            const r = this.rowRect(i);
+            return { x: r.x + 60, y: r.y + 6 };
+        }
+        rowRect(i) {
+            const n = Math.max(1, this.party.length), h = Math.min(20, 62 / n);
+            return { x: 96, y: 168 + i * h, w: 212, h };
         }
         anim(t, kind) {
             const p = this.posOf(t);
@@ -445,8 +449,8 @@
                     let hitI = -1;
                     T.pool.forEach((u, i) => {
                         const p = this.posOf(u);
-                        const w = u.isEnemy ? u.sprite.width : 304 / this.party.length, h = u.isEnemy ? u.sprite.height : 60;
-                        if (inRect(tap, p.x - w / 2, p.y - h / 2, w, h)) hitI = i;
+                        if (u.isEnemy) { const w = u.sprite.width, h = u.sprite.height; if (inRect(tap, p.x - w / 2, p.y - h / 2, w, h)) hitI = i; }
+                        else { const r = this.rowRect(this.party.indexOf(u)); if (inRect(tap, r.x, r.y, r.w, r.h)) hitI = i; }
                     });
                     if (hitI >= 0) { T.i = hitI; this.game.sfx('confirm'); T.done(T.pool[T.i]); }
                     else { this.game.sfx('cancel'); this.target = null; }
@@ -499,21 +503,19 @@
         drawUI(g) {
             const s = this.game.ui.skin(), st = this.st();
             if (this.msg) { win(g, s, 8, 6, 304, 20); text(g, s, this.msg, 160, 11, { align: 'center', max: 292 }); }
-            // party status
-            const n = Math.max(1, this.party.length), w = 304 / n;
-            win(g, s, 8, 172, 304, 62);
+            // party status: one row per hero, beside the command window
+            win(g, s, 92, 164, 220, 70);
             this.party.forEach((a, i) => {
-                const x = 8 + w * i + (a.hurt > 0 ? (Math.random() - 0.5) * 3 : 0), y = 172;
-                if (this.phase === 'input' && i === this.actorI && !this.steps.length) cursor(g, s, x + 4, y + 4, w - 8, 54, this.t);
-                if (this.target && this.target.kind !== 'enemy' && this.target.pool[this.target.i] === a) cursor(g, s, x + 4, y + 4, w - 8, 54, this.t * 2);
-                const db = st.actorDb(a.id) || {};
-                img(g, TW.sprites.face(db.sprite || 'hero'), x + 6, y + 7, 1.4);
-                text(g, s, a.name, x + 28, y + 7, { bold: true, max: w - 32, color: a.hp <= 0 ? '#ff6a6a' : s.text });
+                const r = this.rowRect(i);
+                const x = r.x + (a.hurt > 0 ? (Math.random() - 0.5) * 3 : 0), y = r.y;
+                if (this.phase === 'input' && i === this.actorI && !this.steps.length) cursor(g, s, x, y, r.w, r.h - 1, this.t);
+                if (this.target && this.target.kind !== 'enemy' && this.target.pool[this.target.i] === a) cursor(g, s, x, y, r.w, r.h - 1, this.t * 2);
                 const hpm = st.maxHp(a), mpm = st.maxMp(a);
-                text(g, s, 'HP', x + 8, y + 27, { size: 8, color: s.dim });
-                text(g, s, String(a.hp), x + w - 8, y + 27, { size: 8, align: 'right', color: a.hp <= 0 ? '#ff6a6a' : a.hp < hpm / 4 ? '#ffe066' : s.text });
-                bar(g, x + 8, y + 37, w - 16, a.hp / hpm, s.hp);
-                if (mpm) { text(g, s, 'MP', x + 8, y + 42, { size: 8, color: s.dim }); text(g, s, String(a.mp), x + w - 8, y + 42, { size: 8, align: 'right' }); bar(g, x + 8, y + 52, w - 16, a.mp / mpm, s.mp); }
+                text(g, s, a.name, x + 4, y + 2.5, { bold: true, max: 60, color: a.hp <= 0 ? '#ff6a6a' : s.text, size: 8.5 });
+                text(g, s, 'HP', x + 68, y + 2.5, { size: 7.5, color: s.dim });
+                text(g, s, a.hp + '/' + hpm, x + 138, y + 2.5, { size: 8, align: 'right', color: a.hp <= 0 ? '#ff6a6a' : a.hp < hpm / 4 ? '#ffe066' : s.text });
+                bar(g, x + 68, y + r.h - 3.5, 70, a.hp / hpm, s.hp);
+                if (mpm) { text(g, s, 'MP', x + 146, y + 2.5, { size: 7.5, color: s.dim }); text(g, s, String(a.mp), x + 206, y + 2.5, { size: 8, align: 'right' }); bar(g, x + 146, y + r.h - 3.5, 60, a.mp / mpm, s.mp); }
             });
             if (this.phase === 'input' && !this.steps.length) {
                 if (this.commands) this.commands.draw(g, s);

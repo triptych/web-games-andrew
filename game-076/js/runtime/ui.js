@@ -30,7 +30,7 @@
     }
     function win(g, s, x, y, w, h, alpha) {
         g.save();
-        g.globalAlpha = alpha === undefined ? 0.94 : alpha;
+        g.globalAlpha = alpha === undefined ? 0.97 : alpha;
         const gr = g.createLinearGradient(0, y, 0, y + h);
         gr.addColorStop(0, s.fill[0]); gr.addColorStop(1, s.fill[1]);
         rr(g, x, y, w, h, 3); g.fillStyle = gr; g.fill();

@@ -120,7 +120,7 @@
         const P = newProject();
         P.id = /^[A-Za-z0-9_-]{1,40}$/.test(raw.id || '') ? raw.id : P.id;
         const m = obj(raw.meta);
-        P.meta = { title: str(m.title, 80, 'Untitled Tale'), author: str(m.author, 80, ''), created: int(m.created, 0, 9e15, Date.now()), modified: int(m.modified, 0, 9e15, Date.now()) };
+        P.meta = { title: str(m.title, 80, 'Untitled Tale'), author: str(m.author, 80, ''), created: int(m.created, 0, 9e15, Date.now()), modified: int(m.modified, 0, 9e15, Date.now()), sample: bool(m.sample, false) };
 
         const tilesets = TW.tiles ? Object.keys(TW.tiles.TILESETS) : ['meadow'];
         const tileCount = (ts) => (TW.tiles && TW.tiles.TILESETS[ts] ? TW.tiles.TILESETS[ts].tiles.length : 255);
