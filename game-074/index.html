@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0204">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="CINDERWING — a side-scrolling shooter in the spirit of R-Type and Gradius. A young angel born in the pits of Hell learns to fight his way up through seven circles to his true home.">
+    <title>CINDERWING</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <div id="frame">
+        <canvas id="gl" aria-label="CINDERWING game view"></canvas>
+
+        <!-- ============================== HUD ============================== -->
+        <div id="hud" hidden>
+            <div id="hud-top">
+                <div class="hud-l">
+                    <div class="lbl">Score</div>
+                    <div id="score">0</div>
+                    <div class="sub">Hi <span id="hiscore">0</span></div>
+                </div>
+                <div class="hud-c">
+                    <div id="stage-name"></div>
+                    <div id="progress"><i></i></div>
+                </div>
+                <div class="hud-r">
+                    <div id="lives" aria-label="Lives"></div>
+                    <div id="health" aria-label="Health"></div>
+                </div>
+            </div>
+            <div id="bossbar" hidden>
+                <div id="boss-name"></div>
+                <div class="bar"><i></i></div>
+            </div>
+            <div id="hud-bot">
+                <div id="power">
+                    <span id="pw-halo" class="chip" title="Halo">◯</span>
+                    <span id="pw-speed" class="chip" title="Wings"></span>
+                    <span id="pw-echo" class="chip" title="Echoes"></span>
+                    <span id="pw-seek" class="chip" title="Seeker Feathers">➶</span>
+                    <span id="pw-aegis" class="chip" title="Aegis"></span>
+                </div>
+                <div id="beam-gauge"><span>Radiance</span><div class="bar"><i></i></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="play-area"></div>
+
+    <div id="comms" hidden><div class="who"></div><div class="txt"></div></div>
+    <div id="banner" hidden></div>
+    <div id="rotate-hint">Turn your phone sideways for a bigger view</div>
+    <div id="toasts"></div>
+
+    <!-- ============================== TOUCH ============================== -->
+    <div id="touch" hidden>
+        <div id="touch-hint">Drag anywhere to fly · fire is automatic</div>
+        <button id="t-halo" aria-label="Cast or call the Halo">HALO</button>
+        <button id="t-beam" aria-label="Hold to charge Radiance">BEAM</button>
+        <button id="t-pause" aria-label="Pause">❚❚</button>
+    </div>
+
+    <!-- ============================== SCREENS ============================== -->
+    <div id="screens">
+        <section id="s-title" class="screen" hidden>
+            <div class="logo">
+                <h1>Cinderwing</h1>
+                <p class="tag">An Angel's Ascent from the Pit</p>
+            </div>
+            <nav class="menu">
+                <button data-act="start">Begin the Ascent</button>
+                <button data-act="select" id="btn-select">Stage Select</button>
+                <button data-act="howto">How to Fly</button>
+                <button data-act="options">Options</button>
+                <button data-act="scores">Hall of Light</button>
+            </nav>
+            <p class="foot keys-only">Arrows move · Z fire · X hold for Radiance · C Halo · Shift focus · P pause</p>
+            <p class="foot touch-only">Drag to fly · BEAM to charge · HALO to cast</p>
+        </section>
+
+        <section id="s-diff" class="screen panel" hidden>
+            <h2>Choose your trial</h2>
+            <nav class="menu cards">
+                <button data-act="diff" data-diff="pilgrim"><b>Pilgrim</b><small></small></button>
+                <button data-act="diff" data-diff="seraph"><b>Seraph</b><small></small></button>
+                <button data-act="diff" data-diff="archangel"><b>Archangel</b><small></small></button>
+                <button data-act="back" class="back">Back</button>
+            </nav>
+        </section>
+
+        <section id="s-select" class="screen panel" hidden>
+            <h2>Stage Select</h2>
+            <nav class="menu stages" id="stage-list"></nav>
+        </section>
+
+        <section id="s-options" class="screen panel" hidden>
+            <h2>Options</h2>
+            <nav class="menu opts">
+                <button data-act="opt" data-opt="sound">Sound <span></span></button>
+                <button data-act="opt" data-opt="music">Music <span></span></button>
+                <button data-act="opt" data-opt="volume">Volume <span></span></button>
+                <button data-act="opt" data-opt="quality">Graphics <span></span></button>
+                <button data-act="opt" data-opt="shake">Screen shake <span></span></button>
+                <button data-act="opt" data-opt="autofire">Autofire <span></span></button>
+                <button data-act="back" class="back">Back</button>
+            </nav>
+        </section>
+
+        <section id="s-howto" class="screen panel wide" hidden>
+            <h2>How to Fly</h2>
+            <div class="howto">
+                <div>
+                    <h3>Controls</h3>
+                    <table>
+                        <tr><td>Fly</td><td>Arrows / WASD · stick · drag</td></tr>
+                        <tr><td>Feathers</td><td>Hold Z / Space · A</td></tr>
+                        <tr><td>Radiance</td><td>Hold X, release · X / LT · BEAM</td></tr>
+                        <tr><td>Halo</td><td>C · Y · HALO</td></tr>
+                        <tr><td>Focus (slow)</td><td>Shift · LB / RB</td></tr>
+                        <tr><td>Pause</td><td>P / Esc · Start · ❚❚</td></tr>
+                    </table>
+                    <h3>The Halo</h3>
+                    <p>Break a reliquary bearer's cage to win a Halo. It rides in front of you, swallows small fire, burns what it touches and fires with you. <b>Cast it</b> to send it ahead (or behind) where it holds the line on its own; cast again to <b>call it home</b>. It attaches to whichever side touches you.</p>
+                    <h3>Radiance</h3>
+                    <p>Hold the beam button to gather light — your feathers stop while you do. Release for a beam that pierces everything in its path. A full charge breaks gates of bone.</p>
+                </div>
+                <div>
+                    <h3>Relics</h3>
+                    <ul class="items">
+                        <li><i style="--c:#ff4a20"></i><b>Seraph Flame</b> — a fan of holy fire</li>
+                        <li><i style="--c:#3aa8ff"></i><b>Lance of Dawn</b> — piercing lasers; level 2 ricochets</li>
+                        <li><i style="--c:#ffc830"></i><b>Choir of Wings</b> — homing motes</li>
+                        <li><i style="--c:#ffffff"></i><b>Wing</b> — faster flight (four levels)</li>
+                        <li><i style="--c:#ffe0a0"></i><b>Echo</b> — a ghost of you that copies your shots (two)</li>
+                        <li><i style="--c:#9ad8ff"></i><b>Seeker Feathers</b> — homing feathers</li>
+                        <li><i style="--c:#88ffd8"></i><b>Aegis</b> — absorbs three hits</li>
+                        <li><i style="--c:#c070ff"></i><b>Soul Shard</b> — score</li>
+                    </ul>
+                    <p>A second crystal of the same colour powers the Halo up; another colour changes its song. Destroy a <b>whole squadron</b> and it leaves a relic behind.</p>
+                    <h3>Learn the Pit</h3>
+                    <p>Every circle plays the same way every time. Watch for tells — bubbling lava, a flickering line, a red warning at the edge — and you will learn where to be.</p>
+                </div>
+            </div>
+            <nav class="menu"><button data-act="back" class="back">Back</button></nav>
+        </section>
+
+        <section id="s-scores" class="screen panel" hidden>
+            <h2>Hall of Light</h2>
+            <table id="score-table" class="scores"></table>
+            <nav class="menu"><button data-act="back" class="back">Back</button></nav>
+        </section>
+
+        <section id="s-story" class="screen story" hidden>
+            <div class="scene-title"></div>
+            <button class="skip" data-act="skip">Skip ▸▸</button>
+            <div class="dialog">
+                <div class="name"></div>
+                <div class="text"></div>
+                <div class="next">▼</div>
+            </div>
+        </section>
+
+        <section id="s-pause" class="screen panel" hidden>
+            <h2>Paused</h2>
+            <nav class="menu">
+                <button data-act="resume">Resume</button>
+                <button data-act="restart">Restart Circle</button>
+                <button data-act="options">Options</button>
+                <button data-act="quit">Quit to Title</button>
+            </nav>
+        </section>
+
+        <section id="s-clear" class="screen panel" hidden>
+            <h2 class="gold">Circle Cleared</h2>
+            <table class="tally" id="tally"></table>
+            <nav class="menu"><button data-act="next">Ascend</button></nav>
+        </section>
+
+        <section id="s-continue" class="screen panel" hidden>
+            <h2 class="red">Continue?</h2>
+            <div id="cont-count">9</div>
+            <p class="small">Your score starts again from nothing.</p>
+            <nav class="menu">
+                <button data-act="cont-yes">Rise Again</button>
+                <button data-act="cont-no">Let the Light Go Out</button>
+            </nav>
+        </section>
+
+        <section id="s-over" class="screen panel" hidden>
+            <h2 class="red">The Light Goes Out</h2>
+            <p id="over-score"></p>
+            <nav class="menu"><button data-act="title">Return</button></nav>
+        </section>
+
+        <section id="s-credits" class="screen credits" hidden>
+            <div class="roll">
+                <h2>Cinderwing</h2>
+                <p class="tag">An Angel's Ascent from the Pit</p>
+                <p id="final-score"></p>
+                <p>Cael · Vesper · Gorrmaw · the Ossuary Wyrm · the Iron Penitent · the Ferryman · the Brood Mother · Sammael · Malphas</p>
+                <p>Every model, sky, sound and note was made in code at load.</p>
+                <p class="gold">Thank you for flying.</p>
+            </div>
+            <nav class="menu"><button data-act="title">Home</button></nav>
+        </section>
+
+        <div id="boot">Kindling…</div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

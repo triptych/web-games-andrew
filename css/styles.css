@@ -928,6 +928,17 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 200, 100, 0.45);
 }
 
+.game-preview.cinderwing,
+.carousel-slide-bg.cinderwing {
+    background: radial-gradient(circle at 30% 45%, rgba(255, 240, 200, 0.85), transparent 9%), radial-gradient(ellipse at 50% 100%, rgba(255, 110, 30, 0.75), transparent 45%), linear-gradient(180deg, #0a0204 0%, #3a0a08 45%, #8a2410 75%, #ff7a28 100%);
+}
+
+.game-card.cinderwing .play-button {
+    background: linear-gradient(135deg, #3a0a08 0%, #c8401a 55%, #ffe7b0 100%);
+    color: #1a0604;
+    box-shadow: 0 0 14px rgba(255, 140, 60, 0.5);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
