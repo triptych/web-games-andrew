@@ -939,6 +939,17 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 140, 60, 0.5);
 }
 
+.game-preview.chrome-chalice,
+.carousel-slide-bg.chrome-chalice {
+    background: radial-gradient(circle at 50% 58%, rgba(255, 242, 122, 0.95), rgba(255, 138, 26, 0.85) 12%, rgba(255, 46, 206, 0.6) 20%, transparent 26%), repeating-linear-gradient(0deg, transparent 0 10px, rgba(255, 46, 206, 0.45) 10px 11px), linear-gradient(180deg, #05010e 0%, #1a0430 45%, #5a0a5a 62%, #2a0440 63%, #05010a 100%);
+}
+
+.game-card.chrome-chalice .play-button {
+    background: linear-gradient(135deg, #2a6aff 0%, #bfe8ff 35%, #ff2ece 70%, #ffb03a 100%);
+    color: #12021e;
+    box-shadow: 0 0 14px rgba(255, 46, 206, 0.55);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

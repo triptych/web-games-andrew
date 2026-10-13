@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Sprite sheet</title>
+<style>body{background:#0a0614;margin:0}canvas{image-rendering:pixelated}</style></head>
+<body><canvas id="c" width="1200" height="760"></canvas>
+<script type="module">
+// A sheet of every baked sprite at 5×, for checking the art without the game.
+import { bakeAll } from '../js/view/sprites.js';
+const A = bakeAll();
+const c = document.getElementById('c'), g = c.getContext('2d');
+g.imageSmoothingEnabled = false;
+const Z = 5;
+let x = 10, y = 10, rowH = 0;
+const put = (img, glow) => {
+    if (x + img.width * Z > c.width - 10) { x = 10; y += rowH + 12; rowH = 0; }
+    if (glow) g.drawImage(glow, x - glow.pad * Z, y - glow.pad * Z, glow.width / 3 * Z, glow.height / 3 * Z);
+    g.drawImage(img, x, y, img.width * Z, img.height * Z);
+    x += img.width * Z + 14; rowH = Math.max(rowH, img.height * Z);
+};
+for (const k of Object.keys(A.dragons)) for (const f of A.dragons[k].frames) put(f.img, f.glow);
+x = 10; y += rowH + 16; rowH = 0;
+for (const f of A.boss.frames) put(f.img, f.glow);
+for (const f of A.bossDull.frames) put(f.img);
+x = 10; y += rowH + 16; rowH = 0;
+for (const f of A.bat) put(f.img, f.glow);
+for (const k of Object.keys(A.items)) put(A.items[k], A.glows[k]);
+for (const k of Object.keys(A.keys)) put(A.keys[k], A.glows['key:' + k]);
+for (const k of A.chalice) put(k);
+document.title = 'ready';
+</script></body></html>

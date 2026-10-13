@@ -5472,3 +5472,33 @@ The touch deck appeared only after a touch on the play area, so a phone player w
 
 ### Judge character models in a neutral studio, not in the scene
 In the game every angel sat under bloom, a red rim light and a spotlight, which hid what the geometry was actually doing: a sausage-shaped body with no neck or shoulders, a robe almost the colour of skin, a bright "heart-light" dot on the chest that read as a navel (the player looked naked), and grey wing-bone rods poking through the feathers. A plain page that renders the same model factories on grey with a key, fill and rim light (`game-074/dev/models.html`) made every one of those obvious in one screenshot. The fixes were anatomy and wardrobe: a neck, shoulders, a head with a face and a hair cap open over the face, sleeves with cuffs, a belt, a skirt that flows over the feet, a robe colour clearly unlike skin, coverts that hide the wing's leading edge. Then put the lights back and check them too: a point light parked on the player's chest blew his white robe to pure white under bloom. *(game-074 `js/view/models.js`)*
+
+## Game 075: CHROME CHALICE — Adventure as a 1988 coin-op, in vanilla Canvas 2D + WebGL (2026-10-13)
+
+### Prove key-and-door puzzles with a planner over lock states, then let the bot follow it
+An Adventure-style realm is places joined by locks: gates (a key), cracked walls (a charge), a river (the bridge), a sealed wall (the grey pixel), the boss. [game-075/js/sim/plan.js](../../game-075/js/sim/plan.js) floods the tile grid once per *lock state* and searches those states breadth-first: a lock can be opened when its item and its approach tiles are both inside the current flood. The search returns the order to open them, or `null`. That one function proves every hand-made realm solvable, rejects unsolvable REMIX shuffles (`World.create` tries the next seed), and is the bot's whole strategy — it replans from the live world every second, so a bat stealing its key only costs time.
+
+Two modelling details mattered. **A single-instance tool is a position, not a boolean**: the bridge can only span one river, so the state stores *which* spot it's on, and laying it elsewhere closes the old crossing. And **a gate that shuts behind you** (the boss arena) makes the realm look unsolvable mid-fight unless beating the boss also reopens it in the plan.
+
+### Procedural pixel art: rasterise shapes into a material grid, then shade and outline like a sprite artist
+Hand-drawing every dragon frame as character grids doesn't scale to six palettes and a 40 px boss. [game-075/js/view/sprites.js](../../game-075/js/view/sprites.js) describes one body plan as ellipses, polygons and thick lines in a 24-unit space, rasterises it at any size into an `Int8Array` of material ids, then shades per pixel — light where the pixel above is a different material, dark where the pixel below or to the right is — and draws a dark outline on every empty pixel touching the silhouette. Frames are parameters (wing up/down, jaw open, step), palettes are data, and the 40 px boss is the same code at `size = 40`. Bake once; draw with `imageSmoothingEnabled = false`.
+
+### Symptom: a dim copy of the last screen hangs on the CRT for seconds → 8-bit phosphor persistence never reaches zero
+`max(screen, previous × 0.5)` in an RGBA8 framebuffer rounds `0.5/255` back up to `1/255`, and a few such pixels plus bloom and the tube's gain stay visible as a ghost of the title's text in the HUD. Subtract a floor so trails always end:
+```glsl
+vec3 b = max(texture2D(prev, uv).rgb * decay - 0.025, 0.0);
+```
+
+### Don't read the screen back to light the room
+Sampling the game canvas's average colour (`drawImage` to 4×3, `getImageData`) to tint the cabinet's glow forces the GPU to finish every queued draw: 166 ms a call under SwiftShader. Derive the spill colour from game state (the realm's palette, darker in a dark room, the flash colour during a flash). And don't feed it into a CSS custom property used inside large blurred `box-shadow`s, which repaints them on every change; draw the spill into a canvas that already redraws.
+
+### Symptom: a perf bisect says every change makes it 6× faster → the first page of a fresh SwiftShader browser is slow
+Shader compilation makes the first page's first seconds crawl (1–2 fps against ~14 afterwards). A bisect that measures the baseline first blames whichever variant ran first. Warm up with a throwaway page, or measure the baseline last; the browser test waits after boot for the same reason.
+
+### Menu keys need an ordered queue, not polling
+Reading held arrow keys once a frame loses a tap that is pressed and released between frames, and two presses in one frame collapse into one; at 14 fps a test's `Down, Down, Enter` became `Down, Enter`. Queue menu tokens (`up`, `down`, `confirm`, `back`) on `keydown` (and on touch/pad edges), consume one per frame, and flush the queue when entering play or a new screen so a mashed key can't fall through (game-074's `navQ` is the same idea).
+
+### Small traps
+- **A getter and a method with the same name in an object literal**: `{ get page() {…}, page(n) {…} }` — the later one silently wins, so `__cc.page` returned a function and a test compared it to a string.
+- **Touching edges isn't overlap**: an 8 px square at `x` and an item at `x + 8` don't intersect with strict `<`, so a test that "places the sword against the player" never picks it up. Place it at `x + 6`.
+- **A bridge you walk on must not be picked up by walking on it**: Adventure detected touches on the bridge's rails only. Lifting by the rails (`touchRails`) lets the deck be walked, and the bot's path avoids rail tiles.

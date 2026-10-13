@@ -919,3 +919,18 @@ march is the bassline**: four descending notes (`[0, -2, -3, -5]` under the bar'
 step, plus kick/snare/hats, a pad per bar and a pulse lead from a 32-step table. The whole song
 speeds up with the Space Invaders heartbeat, and the lead plays on every other step once a beat is
 shorter than 110 ms. Menus run the same `beat()` from a fixed-interval clock in `main.js`.
+
+---
+
+## Generated melodies and an arcade around you (game-075 CHROME CHALICE)
+
+[game-075/js/music.js](../../game-075/js/music.js) stores each song as data — key, tempo, a progression of chord symbols (`'i', 'VI', 'Imaj7', 'V7'`) and a seed — and composes the rest on first play:
+
+- **Chords** from Roman numerals: degree from the numeral, major/minor from its case, `7`/`maj7` add the seventh, all relative to the song's scale.
+- **The lead**: two one-bar rhythms drawn from per-step onset weights (downbeats likely, off-16ths rare). Each bar's pitches are fitted to that bar's chord: strong steps snap to the nearest chord tone around a target that follows a seeded contour, weak steps to the nearest scale tone, with a pull back inside the range. Bars are arranged A A′ B A, and the last note of the cycle lands on the root, so the 8-bar loop resolves.
+- **Layers by context**: pad + bass in vaults (`calm`), no lead in dark rooms, an extra hat when a dragon is chasing. When THE NULL is close, steps randomly drop the music bus for a step (stutter) and the arp and lead detune — the glitch is in the score, not a separate sound.
+- **Gated reverb** for the snare is just an impulse that stays flat and then cuts dead:
+  ```js
+  d[i] = (Math.random() * 2 - 1) * 0.6 * (i < n * 0.92 ? 1 : 1 - (i - n * 0.92) / (n * 0.08));   // 0.26 s
+  ```
+- **The arcade around the cabinet** is its own bus: looped noise through a 520 Hz band-pass with a slow LFO (crowd murmur), and every 1.4–5 s a quiet, low-passed, hard-panned event from "another machine" — an attract-mode bleep run, a distant explosion, a coin drop. It sells the room far more than its cost, and has its own on/off option.

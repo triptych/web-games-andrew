@@ -1,0 +1,260 @@
+/* CHROME CHALICE — the cabinet. Sizes come from JS as --sw / --sh (the
+   monitor in CSS px), --mq (marquee height) and --pn (control panel height);
+   body[data-layout] is cabinet | portrait | landscape | screen. */
+
+:root {
+    --sw: 640px; --sh: 480px; --mq: 90px; --pn: 120px; --side: 60px; --bz: 18px;
+    --pink: #ff2ece; --cyan: #29e6ff; --gold: #ffd23a; --orange: #ff8a1a;
+    --spill: 255, 60, 200;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0; height: 100%; overflow: hidden;
+    background: #05010a; color: #fff;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none; user-select: none;
+    touch-action: none;
+}
+
+#back-link {
+    position: fixed; top: max(8px, env(safe-area-inset-top)); left: max(8px, env(safe-area-inset-left)); z-index: 99999;
+    font: 13px Arial, Helvetica, sans-serif; color: #fff; text-decoration: none;
+    background: rgba(0, 0, 0, 0.55); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.25);
+}
+#back-link:hover { background: rgba(0, 0, 0, 0.8); }
+
+#arcade { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+#boot {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 50;
+    background: #05010a; color: var(--cyan); font-size: 12px; letter-spacing: 2px;
+}
+#boot[hidden] { display: none; }
+
+/* ------------------------------------------------------------------ the cabinet */
+#cab {
+    position: fixed; left: 50%; top: var(--top, 0px); transform: translateX(-50%);
+    width: calc(var(--sw) + 2 * var(--side));
+    display: flex; flex-direction: column; align-items: center;
+    background:
+        linear-gradient(90deg, rgba(255, 46, 206, 0.0) 0, rgba(255, 46, 206, 0.0) 100%),
+        linear-gradient(180deg, #170a24 0%, #0c0616 40%, #08040e 100%);
+    border-left: 4px solid #2a0a36; border-right: 4px solid #2a0a36;
+    box-shadow:
+        -3px 0 0 0 var(--pink), 3px 0 0 0 var(--pink),
+        -6px 0 18px rgba(255, 46, 206, 0.55), 6px 0 18px rgba(255, 46, 206, 0.55);
+    border-radius: 10px 10px 0 0;
+}
+/* side art bleeding onto the front: sunset stripes and a grid */
+#cab::before, #cab::after {
+    content: ''; position: absolute; top: var(--mq); width: calc(var(--side) - 10px); bottom: 0; pointer-events: none;
+    background:
+        repeating-linear-gradient(0deg, transparent 0 9px, rgba(255, 46, 206, 0.35) 9px 10px),
+        linear-gradient(180deg, #ffe27a 0%, #ff8a1a 18%, #ff2ece 36%, #6a0a8a 58%, #12062a 80%);
+    opacity: 0.85;
+    -webkit-mask: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+    mask: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+}
+#cab::before { left: 6px; border-radius: 0 0 0 6px; }
+#cab > * { position: relative; z-index: 1; }
+#cab::before, #cab::after { z-index: 0; }
+#cab::after { right: 6px; }
+
+/* the marquee */
+#marquee {
+    position: relative; width: 100%; height: var(--mq); overflow: hidden;
+    border-radius: 8px 8px 0 0;
+    background:
+        radial-gradient(ellipse at 50% 120%, rgba(255, 138, 26, 0.85), transparent 60%),
+        linear-gradient(180deg, #120330 0%, #3a0a5a 45%, #b0127a 85%, #ff2ece 100%);
+    border-bottom: 3px solid #000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7), 0 6px 20px rgba(255, 46, 206, 0.35);
+}
+#marquee::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, transparent 0 calc(var(--mq) * 0.5 - 1px), rgba(255, 255, 255, 0.07) calc(var(--mq) * 0.5 - 1px) calc(var(--mq) * 0.5));
+    -webkit-mask: linear-gradient(180deg, transparent 50%, #000 100%);
+    mask: linear-gradient(180deg, transparent 50%, #000 100%);
+}
+.mq-light { position: absolute; inset: 0; will-change: opacity; background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 40%); animation: hum 4s infinite; pointer-events: none; }
+@keyframes hum { 0%, 100% { opacity: 1; } 47% { opacity: 1; } 48% { opacity: 0.55; } 49% { opacity: 1; } 75% { opacity: 0.9; } }
+.mq-logo {
+    position: relative; font-family: Orbitron, 'Arial Black', Impact, sans-serif; font-weight: 900; font-style: italic;
+    font-size: calc(var(--mq) * 0.42); letter-spacing: calc(var(--mq) * 0.02); line-height: 1; white-space: nowrap;
+    background: linear-gradient(180deg, #2a6aff 0%, #bfe8ff 30%, #ffffff 48%, #1a1040 52%, #6a3a8a 62%, #ff8a6a 82%, #ffe0a0 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 1px #ff2ece) drop-shadow(2px 3px 0 #3a0646) drop-shadow(0 0 12px rgba(255, 46, 206, 0.6));
+    transform: skewX(-6deg);
+}
+.mq-sub {
+    position: relative; font-family: Yellowtail, 'Brush Script MT', cursive; color: #fff;
+    font-size: calc(var(--mq) * 0.24); margin-top: calc(var(--mq) * 0.02);
+    text-shadow: 0 0 4px var(--pink), 0 0 10px var(--pink), 0 0 18px var(--pink);
+    transform: rotate(-3deg);
+}
+
+/* the bezel and the tube */
+#bezel {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    padding: var(--bz) 0; width: 100%;
+    background: transparent;
+    border-top: 1px solid #3a1a4a;
+}
+.bz-art {
+    position: absolute; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px;
+    font-size: calc(var(--sw) * 0.012); color: var(--cyan); opacity: 0.7; letter-spacing: 1px; text-shadow: 0 0 6px var(--cyan);
+    writing-mode: vertical-rl;
+}
+.bz-l { left: calc(var(--side) * 0.25); transform: translateY(-50%) rotate(180deg); }
+.bz-r { right: calc(var(--side) * 0.25); color: var(--pink); text-shadow: 0 0 6px var(--pink); }
+#tube {
+    position: relative; width: var(--sw); height: var(--sh);
+    border-radius: 3.5% / 4.5%; overflow: hidden; background: #000;
+    box-shadow: 0 0 0 3px #0a0610, 0 0 0 calc(var(--bz) + 2px) #030106, 0 0 0 calc(var(--bz) + 4px) #2a1238, 0 0 30px calc(var(--bz) - 4px) rgba(255, 46, 206, 0.25);
+}
+#tube canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#screen { image-rendering: pixelated; visibility: hidden; }
+body.no-crt #screen { visibility: visible; }
+body.no-crt #crt { display: none; }
+body.no-crt #tube::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) calc(var(--sh) / 480), rgba(0, 0, 0, 0.28) calc(var(--sh) / 480), rgba(0, 0, 0, 0.28) calc(var(--sh) / 240));
+}
+#glass {
+    position: absolute; inset: 0; pointer-events: none; border-radius: inherit; will-change: transform;
+    background:
+        radial-gradient(ellipse at 28% 12%, rgba(255, 255, 255, 0.10), transparent 38%),
+        linear-gradient(160deg, rgba(255, 255, 255, 0.05) 0%, transparent 35%);
+    box-shadow: inset 0 0 calc(var(--sw) * 0.04) rgba(0, 0, 0, 0.8);
+}
+/* paint the heavy, still decoration once and composite it */
+#marquee, #panel, #coindoor, #bezel .bz-art { will-change: transform; }
+#arcade { will-change: transform; }
+#tap { position: absolute; inset: 0; }
+
+/* the control panel */
+#panel {
+    position: relative; width: calc(100% + 30px); height: var(--pn); margin-top: 0;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 0 calc(var(--side) + 6%) 0 calc(var(--side) + 6%);
+    background:
+        repeating-linear-gradient(90deg, transparent 0 39px, rgba(41, 230, 255, 0.10) 39px 40px),
+        repeating-linear-gradient(0deg, transparent 0 19px, rgba(255, 46, 206, 0.12) 19px 20px),
+        linear-gradient(180deg, #3a1250 0%, #1e0a2e 60%, #12061c 100%);
+    border-top: 3px solid #ff2ece; border-radius: 6px 6px 0 0;
+    box-shadow: 0 -2px 16px rgba(255, 46, 206, 0.5), inset 0 8px 18px rgba(255, 255, 255, 0.06);
+}
+.panel-art { position: absolute; left: 50%; bottom: 8%; transform: translateX(-50%); font-size: 7px; color: rgba(255, 255, 255, 0.35); white-space: nowrap; pointer-events: none; }
+
+#stick { --stk: calc(var(--pn) * 0.8); position: relative; width: var(--stk); height: var(--stk); flex: none; touch-action: none; cursor: grab; }
+.st-base { position: absolute; inset: 18%; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #3a3a46, #0a0a10 70%); box-shadow: 0 3px 0 #000, inset 0 0 6px #000; }
+.st-top {
+    --jx: 0; --jy: 0;
+    position: absolute; left: 50%; top: 50%; width: 0; height: 0;
+    transform: translate(calc(var(--jx) * var(--stk) * 0.17), calc(var(--jy) * var(--stk) * 0.15));
+    transition: transform 0.05s linear;
+}
+.st-shaft { position: absolute; width: calc(var(--stk) * 0.09); height: calc(var(--stk) * 0.25); left: calc(var(--stk) * -0.045); top: calc(var(--stk) * -0.08); background: linear-gradient(90deg, #707080, #e0e0f0, #505060); border-radius: 3px; }
+.st-ball {
+    position: absolute; width: calc(var(--stk) * 0.4); height: calc(var(--stk) * 0.4); left: calc(var(--stk) * -0.2); top: calc(var(--stk) * -0.3);
+    border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffb0c0 0%, #ff2a50 30%, #8a0020 75%, #3a0010 100%);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6), 0 0 14px rgba(255, 42, 80, 0.45);
+}
+
+#btns { display: flex; gap: calc(var(--pn) * 0.12); align-items: center; }
+.abtn {
+    --c1: #ff8090; --c2: #ff2a50; --c3: #6a0018;
+    position: relative; width: calc(var(--pn) * 0.42); height: calc(var(--pn) * 0.42); min-width: 44px; min-height: 44px;
+    border-radius: 50%; border: 0; padding: 0; cursor: pointer; color: #fff; font: inherit;
+    background: radial-gradient(circle at 38% 30%, var(--c1) 0%, var(--c2) 40%, var(--c3) 100%);
+    box-shadow: 0 5px 0 #000, 0 7px 10px rgba(0, 0, 0, 0.7), 0 0 16px color-mix(in srgb, var(--c2) 55%, transparent), inset 0 -3px 6px rgba(0, 0, 0, 0.4);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; touch-action: none;
+    transition: transform 0.04s, box-shadow 0.04s;
+}
+.abtn span { font-size: calc(var(--pn) * 0.11); text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); }
+.abtn small { position: absolute; top: 108%; font-size: 7px; color: rgba(255, 255, 255, 0.75); letter-spacing: 1px; }
+.abtn.down { transform: translateY(4px); box-shadow: 0 1px 0 #000, 0 2px 4px rgba(0, 0, 0, 0.7), 0 0 26px var(--c2), inset 0 3px 6px rgba(0, 0, 0, 0.5); filter: brightness(1.25); }
+.abtn.yellow { --c1: #fff4a0; --c2: #ffc21a; --c3: #6a4a00; }
+.abtn.cyan { --c1: #c0faff; --c2: #20c8ff; --c3: #003a5a; }
+
+#sysbtns { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.sbtn {
+    min-width: 44px; min-height: 44px; padding: 6px 8px; border-radius: 6px; cursor: pointer;
+    font: 8px/1.3 'Press Start 2P', monospace; color: #1a0a20; border: 2px solid #000;
+    background: linear-gradient(180deg, #ffffff, #c8c0d8); box-shadow: 0 4px 0 #000, 0 0 10px rgba(255, 255, 255, 0.4);
+    touch-action: none;
+}
+.sbtn.down { transform: translateY(3px); box-shadow: 0 1px 0 #000; }
+body.has-credit #b-start { animation: blink 0.6s steps(1) infinite; }
+@keyframes blink { 50% { background: linear-gradient(180deg, #fff27a, #ff8a1a); box-shadow: 0 4px 0 #000, 0 0 22px #ffb03a; } }
+#b-pause { font-size: 10px; }
+
+/* the coin door */
+#coindoor {
+    width: 70%; height: 22vh; margin-top: 2vh; display: flex; align-items: flex-start; justify-content: center; gap: 6%;
+    padding-top: 2.5vh; border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, #2a2a34, #121218 70%);
+    box-shadow: inset 0 0 0 3px #44444f, inset 0 0 20px #000;
+}
+.door-label { font-size: 8px; color: #ff6060; text-shadow: 0 0 6px #ff2a50; margin-top: 18px; white-space: nowrap; }
+.slot {
+    width: 54px; height: 72px; border: 0; border-radius: 4px; cursor: pointer; padding: 6px 0 0;
+    background: linear-gradient(180deg, #3a3a46, #18181e); box-shadow: inset 0 0 0 2px #55556a, 0 3px 0 #000;
+    display: flex; flex-direction: column; align-items: center; gap: 6px; touch-action: none;
+}
+.slot i { will-change: opacity; display: block; width: 6px; height: 26px; border-radius: 3px; background: #ff2a50; box-shadow: 0 0 10px #ff2a50, 0 0 20px #ff2a50; animation: coinglow 1.4s infinite alternate; }
+.slot span { font-size: 8px; color: #ffb0b0; }
+.slot.down i { background: #fff; }
+@keyframes coinglow { to { opacity: 0.55; } }
+
+#keys-hint {
+    position: fixed; left: 50%; bottom: 6px; transform: translateX(-50%); z-index: 5;
+    font-size: 8px; color: rgba(255, 255, 255, 0.55); white-space: nowrap; text-shadow: 0 1px 2px #000; pointer-events: none;
+}
+body.touch #keys-hint, body[data-layout='portrait'] #keys-hint, body[data-layout='landscape'] #keys-hint { display: none; }
+
+/* ------------------------------------------------------------------ portrait phones */
+body[data-layout='portrait'] #cab { width: 100%; height: 100%; border-radius: 0; border: 0; box-shadow: none; top: 0; }
+body[data-layout='portrait'] #cab::before, body[data-layout='portrait'] #cab::after { display: none; }
+body[data-layout='portrait'] #marquee { border-radius: 0; padding-top: env(safe-area-inset-top); padding-left: 70px; }
+body[data-layout='portrait'] .bz-art { display: none; }
+body[data-layout='portrait'] #panel { width: 100%; flex: 1; height: auto; padding: 4% 6% max(4%, env(safe-area-inset-bottom)); border-radius: 0; flex-wrap: wrap; align-content: center; }
+body[data-layout='portrait'] #stick { --stk: min(44vw, calc(var(--pn) * 0.7), 200px); }
+body[data-layout='portrait'] #btns { flex-direction: column-reverse; gap: 10px; align-items: flex-end; }
+body[data-layout='portrait'] .abtn { width: min(17vw, 76px); height: min(17vw, 76px); }
+body[data-layout='portrait'] .abtn:nth-child(2) { margin-right: min(12vw, 50px); }
+body[data-layout='portrait'] .abtn small { top: 50%; right: 108%; transform: translateY(-50%); }
+body[data-layout='portrait'] #sysbtns { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); flex-direction: row; }
+body[data-layout='portrait'] #coindoor, body[data-layout='portrait'] .panel-art { display: none; }
+
+/* ------------------------------------------------------------------ landscape phones and SCREEN view */
+body[data-layout='landscape'] #cab, body[data-layout='screen'] #cab {
+    width: 100%; height: 100%; top: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none;
+    justify-content: center;
+}
+body[data-layout='landscape'] #cab::before, body[data-layout='landscape'] #cab::after,
+body[data-layout='screen'] #cab::before, body[data-layout='screen'] #cab::after { display: none; }
+body[data-layout='landscape'] #marquee, body[data-layout='screen'] #marquee,
+body[data-layout='landscape'] #coindoor, body[data-layout='screen'] #coindoor,
+body[data-layout='landscape'] .bz-art, body[data-layout='screen'] .bz-art,
+body[data-layout='landscape'] .panel-art, body[data-layout='screen'] .panel-art { display: none; }
+body[data-layout='landscape'] #bezel, body[data-layout='screen'] #bezel { background: transparent; border: 0; padding: 0; flex: 1; }
+body[data-layout='landscape'] #panel, body[data-layout='screen'] #panel {
+    position: fixed; inset: 0; width: auto; height: auto; background: none; border: 0; box-shadow: none; padding: 0; pointer-events: none; display: block;
+}
+body[data-layout='landscape'] #stick, body[data-layout='screen'] #stick {
+    --stk: max(96px, min(40vh, calc((100vw - var(--sw)) / 2 - 14px)));
+    position: fixed; left: max(10px, env(safe-area-inset-left)); bottom: 12px; pointer-events: auto;
+}
+body[data-layout='landscape'] #btns, body[data-layout='screen'] #btns {
+    position: fixed; right: max(10px, env(safe-area-inset-right)); bottom: 18px; pointer-events: auto; flex-direction: column-reverse; gap: 8px; align-items: flex-end;
+}
+body[data-layout='landscape'] .abtn, body[data-layout='screen'] .abtn { width: 58px; height: 58px; }
+body[data-layout='landscape'] .abtn:nth-child(2), body[data-layout='screen'] .abtn:nth-child(2) { margin-right: 34px; }
+body[data-layout='landscape'] .abtn small, body[data-layout='screen'] .abtn small { display: none; }
+body[data-layout='landscape'] #sysbtns, body[data-layout='screen'] #sysbtns { position: fixed; right: max(10px, env(safe-area-inset-right)); top: 10px; pointer-events: auto; flex-direction: row; }
+body[data-layout='screen']:not(.touch) #panel { display: none; }
