@@ -105,7 +105,7 @@ export function toast(text, kind, opts) {
 let openMenu = null;
 export function popMenu(anchorOrPoint, items) {
     closeMenu();
-    const m = h('div.popmenu', { role: 'menu' });
+    const m = h('div.popmenu', { role: 'menu', on: { contextmenu: (e) => e.preventDefault() } });
     for (const it of items) {
         if (it === '-') { m.appendChild(h('hr')); continue; }
         if (it.header) { m.appendChild(h('div.menu-head', { text: it.header })); continue; }

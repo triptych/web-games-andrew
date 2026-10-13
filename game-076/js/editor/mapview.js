@@ -301,7 +301,15 @@ export class MapView {
     bind() {
         const sc = this.scroller;
         sc.addEventListener('scroll', () => this.render());
-        sc.addEventListener('contextmenu', (e) => e.preventDefault());
+        // Open the menu from the contextmenu event itself. Opening it on pointerdown let
+        // Windows (which fires contextmenu on mouse-up) aim the event at our popup, which
+        // sat under the cursor by then, so the browser's own menu appeared on top of it.
+        sc.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (Date.now() - (this.lpAt || 0) < 800) return;   // a touch long-press already opened it
+            const c = this.cellAt(e);
+            if (c.inside && this.map) this.context(e, c);
+        });
         sc.addEventListener('wheel', (e) => {
             if (e.ctrlKey || e.metaKey) { e.preventDefault(); this.setZoom(ZOOMS[Math.max(0, Math.min(ZOOMS.length - 1, ZOOMS.indexOf(this.zoom) + (e.deltaY < 0 ? 1 : -1)))], e); }
         }, { passive: false });
@@ -326,12 +334,12 @@ export class MapView {
         if (this.pointers.size === 2) { this.cancelStroke(); this.rectDrag = null; this.drag = { pan: true, sx: this.scroller.scrollLeft, sy: this.scroller.scrollTop, ...this.mid() }; clearTimeout(this.lpTimer); return; }
         if (e.button === 1 || this.spaceDown) { e.preventDefault(); this.drag = { pan: true, sx: this.scroller.scrollLeft, sy: this.scroller.scrollTop, x: e.clientX, y: e.clientY }; return; }
         const c = this.cellAt(e);
-        if (e.button === 2) { if (c.inside) this.context(e, c); return; }
+        if (e.button === 2) return;   // the contextmenu event opens the menu
         if (!c.inside) return;
         try { this.scroller.setPointerCapture(e.pointerId); } catch { /* old browsers */ }
         if (e.pointerType === 'touch') {
             clearTimeout(this.lpTimer);
-            this.lpTimer = setTimeout(() => { if (this.drag && !this.drag.moved) { this.cancelStroke(); this.rectDrag = null; this.drag = null; this.context({ clientX: e.clientX, clientY: e.clientY }, c); } }, 550);
+            this.lpTimer = setTimeout(() => { if (this.drag && !this.drag.moved) { this.cancelStroke(); this.rectDrag = null; this.drag = null; this.lpAt = Date.now(); this.context({ clientX: e.clientX, clientY: e.clientY }, c); } }, 550);
         }
         const tool = e.altKey ? 'picker' : this.effectiveTool();
         if (!this.canUse(tool)) { toast(TOOLS.find((t) => t.id === tool).label + ': ' + meta.why(TOOLS.find((t) => t.id === tool).f), 'warn'); return; }

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **TALEWRIGHT** (game-076): right-clicking the map opened the Atelier's menu *and* the browser's own context menu. The menu opened on `pointerdown`, so by the time the browser fired `contextmenu` (on mouse-up on Windows) the popup was under the cursor and the event landed on it, where nothing cancelled it. The map now opens its menu from the `contextmenu` event itself, and popups cancel it too ([mapview.js](game-076/js/editor/mapview.js), [ui.js](game-076/js/editor/ui.js)). The browser test right-clicks the map and checks both.
+
 ### Added
 - **TALEWRIGHT — The Atelier of Unwritten Worlds** (game-076) v1.0.0: an RPG maker that is also a game, in vanilla HTML, CSS and JavaScript with no asset files. Design in [game-076/game-plan.md](game-076/game-plan.md); the player's handbook in [game-076/MANUAL.md](game-076/MANUAL.md).
   - **The runtime** ([js/runtime/](game-076/js/runtime/)): classic scripts that register in `window.TW_MODULES`, so the editor's playtest, the standalone export and the runtime player all run the same code. Generated tiles (ten tilesets, edge shading, animation), characters from parts in four facings, objects, nineteen monster families pixelised from canvas shapes, item icons, window skins, sixteen generated songs and 24 sound effects; grid movement and tap-to-walk; an interpreter over a branching command tree with parallel and autorun events; messages with text codes, choices, menus, equipment, shops, front-view battles and saves; touch, keyboard and gamepad; `schema.validate()` rebuilds untrusted projects field by field.
