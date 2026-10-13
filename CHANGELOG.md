@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Tests**: [game-075/dev/simtest.mjs](game-075/dev/simtest.mjs) (purity, every realm and 12 REMIX seeds solvable, 35 rule checks, a god bot clears every realm in both modes and a whole campaign, a balance table) and [game-075/dev/browsertest.mjs](game-075/dev/browsertest.mjs) (desktop flow, every realm, the boss and the ending, touch-only phones both ways, blocked storage).
 - Launcher: game-075 added to [js/gamedata.js](js/gamedata.js) (genre `arcade`) with a card style in [css/styles.css](css/styles.css); README and [status.md](status.md) updated.
 - Docs: [learnings.md § Game 075](docs/generic/learnings.md) and [sounds.md § Generated melodies and an arcade around you](docs/generic/sounds.md).
+### Changed
+- **RUNEBORE** (game-073) v1.0.3: Orla Brask, the Guildmistress, no longer has a beard. She is a woman throughout the story, and the old "dwarf women are bearded" trope only read as confusing. Her portrait keeps her red braids and scar and gains a little eye detail (as does Mirabel's), and her figure outside the Guild wears braids instead of a beard ([game-073/js/sim/story.js](game-073/js/sim/story.js), [game-073/js/view/textures.js](game-073/js/view/textures.js), [game-073/js/view/town.js](game-073/js/view/town.js)).
 
 ### Fixed
 - **CINDERWING** (game-074) v1.0.1: the angels are clothed, recognisable figures instead of mangled ones, and Cael no longer looks naked.

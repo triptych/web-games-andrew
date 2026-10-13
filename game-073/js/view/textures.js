@@ -658,6 +658,12 @@ function drawPerson(ctx, p) {
         ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(ex, ey, 1.4, 0, 7); ctx.fill();
         ctx.strokeStyle = shadeHex(hair, 0.8); ctx.lineWidth = 2.4;
         ctx.beginPath(); ctx.moveTo(ex - 7, ey - 8); ctx.lineTo(ex + 6, ey - 9); ctx.stroke();
+        if (p.lashes) {
+            ctx.strokeStyle = '#3a2418'; ctx.lineWidth = 1.6;
+            ctx.beginPath(); ctx.ellipse(ex, ey, 6, 4, 0, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke();
+            const side = ex < 80 ? -1 : 1;
+            ctx.beginPath(); ctx.moveTo(ex + side * 5.5, ey - 1.5); ctx.lineTo(ex + side * 8, ey - 3.5); ctx.stroke();
+        }
     }
     // nose and mouth
     ctx.fillStyle = shadeHex(skin, 0.8);
