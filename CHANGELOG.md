@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **`/scaffold-game` skill** ([.claude/commands/scaffold-game.md](.claude/commands/scaffold-game.md)): the lessons of games 057–076 folded back in.
+  - **A new default template, Section 2S (sim/view)**: the layout those twenty games converged on, as runnable files: a pure, seeded simulation (`js/sim/game.js`, `bot.js`), a three.js or Canvas 2D view that only reads it, guarded saves, keyboard/gamepad/touch input that never drops or merges a press, a phone-first page with 44 px controls, debug hooks, and `dev/simtest.mjs`, `dev/browsertest.mjs` (desktop, touch-only phones both ways, blocked storage) and `dev/play.mjs`. The templates were extracted from the skill text into a scratch game and every harness passed, with both renderers, along with `dev/smoketest.mjs` with and without storage.
+  - **Picking a number** checks `origin/main` and open branches first (five of the twenty were renumbered after a collision), and paths are relative to the repo root instead of one machine's folder.
+  - **Step 3** now lists all six files a new game touches outside its folder (launcher entry, card style, README, status, CHANGELOG, docs) with templates; **Step 4** runs the smoke test and the game's own harnesses and says to look at the screenshots; **Step 5** is a checklist of the bugs that needed patch releases in 057–076; **Step 6** covers version bumps and fixes.
+  - The Kaplay, Phaser, minimal three.js and Vanilla 3D templates are unchanged.
+- **Docs**: [learnings.md § Games 057–076](docs/generic/learnings.md#games-057076-the-shared-template-and-what-broke-after-release) (the shared layout and why, and the post-release bugs grouped by kind) and new sections for game-057, 059, 064, 069, 070 and 072, which had none; four three.js gotchas in [threejs-api.md](docs/threejs/threejs-api.md#common-gotchas); [docs/README.md](docs/README.md) says when to update the skill as well as the docs; [refresh-plan.md](docs/refresh-plan.md) and the root README brought up to date.
+- **game-072 Frosty Fling**: checked with `dev/smoketest.mjs` (desktop and phone, with and without storage: passes); [status.md](status.md) updated.
+
 ### Fixed
 - **The Garden** ([index.html](index.html)): sharing the link on Facebook, X, Discord, Slack and the like showed no picture and no description. The page now has Open Graph and Twitter card tags (title, description, canonical URL) and a 1200×630 share image of the title screen over the island ([og-image.jpg](garden/img/og-image.jpg)).
 - **The Garden** ([index.html](index.html)): picking **The Clock Tower** on the map left you stuck. The map set you down 8 m toward the hub from the tower, which was out in the strait, and the walking controls won't step into the sea, so every move was refused. The islet is now a real place you can walk to and around (see Added), the map sets you down on its bridge facing the tower door, and any other landmark now searches outward for dry, clear ground instead of guessing ([main.js](garden/js/main.js)).

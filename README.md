@@ -245,6 +245,7 @@ The [docs/](docs/) directory contains reference material for AI-assisted develop
 - **[docs/phaser/](docs/phaser/)** — Phaser 4.0.0 full API reference
 - **[docs/threejs/](docs/threejs/)** — three.js r165 patterns (import map, render loop, bloom, gotchas)
 - **[docs/generic/](docs/generic/)** — Cross-game learnings, sound design patterns, and game ideas
+- **[.claude/commands/scaffold-game.md](.claude/commands/scaffold-game.md)** — the `/scaffold-game` skill. Its default template is the sim/view layout games 057–076 share (a pure, seeded simulation a bot can play in Node, a view that only reads it, and `dev/` harnesses for Node, desktop Chromium and touch-only phones), with three.js or Canvas 2D, plus a checklist of the bugs those games fixed after release
 
 - **[docs/refresh-plan.md](docs/refresh-plan.md)** — the conventions the later games share, an audit of games 001–036 against them, what was fixed, and a ranked backlog
 - **[dev/](dev/README.md)** — `dev/smoketest.mjs` loads every game in Chromium on desktop and on a touch-only phone and fails on console errors, failed requests, a broken back link, or a layout that doesn't fit; `NOSTORAGE=1` also checks that games survive blocked `localStorage`. Many games also have their own `game-NNN/dev/` harness.
