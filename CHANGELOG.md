@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **TALEWRIGHT** (game-076): Chapter 6's quest **Fellowship** pointed at **System ▸ Party**, but the System tab doesn't unlock until Chapter 8. The quest now asks you to recruit a second hero with **Change Party** (unlocked in Chapter 6) ([quests.js](game-076/js/meta/quests.js)). A new simtest check reads every command, template and Database tab name from the editor and fails if a quest's text names one that its chapter hasn't unlocked yet.
 - **TALEWRIGHT** (game-076): in the story, the Chapter 3 quest **Home, Sweet Home** finished the moment you picked the Interior tileset in the New map dialog, and because it was the chapter's last quest, the closing scene and Chapter 4 started straight away, before you'd made anything. Now:
   - The quest asks you to paint a room (10 tiles) on a map that uses the Interior tileset ([quests.js](game-076/js/meta/quests.js)).
   - A chapter whose quests are all done no longer ends by itself. The Atelier says the chapter is complete and shows a **Continue the story ▸** button in the quest panel, and the next chapter starts only when you press it ([atelier.js](game-076/js/meta/atelier.js)).

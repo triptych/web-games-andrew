@@ -379,6 +379,21 @@ async function main() {
         const cmdsFile = fs.readFileSync(path.join(ROOT, 'js/editor/commands.js'), 'utf8');
         for (const m of cmdsFile.matchAll(/f: '([a-z.]+)'/g)) ok(FEATURE_CHAPTER[m[1]] !== undefined, 'command feature ' + m[1] + ' is granted by a chapter');
         for (const t of TW.schema.CMD_TYPES) ok(cmdsFile.includes('    ' + t + ':') || cmdsFile.includes("    '" + t + "':") || cmdsFile.includes(' ' + t + ': {'), 'command ' + t + ' is in the catalogue');
+        // a quest never points at a command, template or Database tab its chapter hasn't restored yet
+        const named = [];
+        for (const f of ['commands', 'templates', 'database']) {
+            const src = fs.readFileSync(path.join(ROOT, 'js/editor', f + '.js'), 'utf8');
+            for (const m of src.matchAll(/label: '([^']+)'[^\n]*?f: '([a-z.]+)'/g)) {
+                const label = m[1].replace(/^\S+ /, f === 'database' ? '' : '$&');
+                // Database tabs are matched as menu paths ("Database ▸ System", "System ▸ Party")
+                const re = f === 'database' ? new RegExp('(▸ ' + label + '\\b|\\b' + label + ' ▸)') : new RegExp('\\b' + label.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&') + '\\b');
+                named.push({ label, re, f: m[2] });
+            }
+        }
+        for (const q of QUESTS) for (const n of named) {
+            if (FEATURE_CHAPTER[n.f] > q.ch && n.re.test(q.desc + ' ' + q.hint)) ok(false, 'quest ' + qid(q) + ' (chapter ' + q.ch + ') mentions ' + n.label + ', which unlocks in chapter ' + FEATURE_CHAPTER[n.f]);
+        }
+        ok(named.length > 40, 'quest text is checked against ' + named.length + ' named features');
         for (const a of ACHIEVEMENTS) {
             const [n, g] = progressOf(a, full);
             ok(n >= g, 'achievement ' + a.id + ' can be earned');
