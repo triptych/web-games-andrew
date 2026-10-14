@@ -80,6 +80,14 @@ const Q = (page, fn, arg) => page.evaluate(fn, arg);
 const press = async (page, key, ms = 60) => { await page.keyboard.down(key); await page.waitForTimeout(ms); await page.keyboard.up(key); await page.waitForTimeout(250); };
 const clickSel = (page, sel) => Q(page, (s) => { const e = document.querySelector(s); if (!e) return false; e.click(); return true; }, sel);
 const visible = (page, sel) => Q(page, (s) => { const e = document.querySelector(s); if (!e) return false; const r = e.getBoundingClientRect(); if (!r.width || !r.height) return false; const st = getComputedStyle(e); return st.display !== 'none' && st.visibility !== 'hidden' && r.right > 0 && r.bottom > 0 && r.left < innerWidth && r.top < innerHeight; }, sel);
+/** The cinema car's centre in screen pixels, and the top of the story dialog box. */
+const carOnScreen = (page) => Q(page, () => {
+    const C = __cv.view.cinema, p = C.car.position.clone();
+    p.y = 0.5; p.project(C.camera);
+    const d = document.querySelector('#s-story .dialog')?.getBoundingClientRect();
+    return { x: (p.x + 1) / 2 * innerWidth, y: (1 - p.y) / 2 * innerHeight, w: innerWidth, h: innerHeight, dialogTop: d ? d.top : innerHeight };
+});
+const carVisible = (c) => c.x > c.w * 0.08 && c.x < c.w * 0.92 && c.y > c.h * 0.15 && c.y < c.dialogTop - 10;
 const backLinkOk = (page) => Q(page, () => {
     const a = document.getElementById('back-link');
     if (!a) return false;
@@ -125,6 +133,12 @@ async function desktop() {
     await page.mouse.click(640, 640); await page.waitForTimeout(200); await page.mouse.click(640, 640);
     const li = await Q(page, () => __cv.G.story?.li ?? -1);
     check(li >= 1, `clicking advances the story (line ${li})`);
+    for (const t of [0, 15, 30, 45]) {
+        await Q(page, (tt) => { __cv.view.cinema.t = tt; }, t);
+        await page.waitForTimeout(150);
+        const c = await carOnScreen(page);
+        check(carVisible(c), `the car is on screen above the dialog in a story scene (t=${t}: ${Math.round(c.x)},${Math.round(c.y)})`);
+    }
     await shot(page, 'story');
     await press(page, 'Escape');
     await until(page, () => __cv.G.mode === 'story' || __cv.G.mode === 'brief', 'Escape skips a scene');
@@ -280,6 +294,9 @@ async function phone(w, h) {
     await shot(page, `phone-${w}-title`);
     await page.tap('#s-title [data-act="new"]');
     await until(page, () => __cv.G.mode === 'story', 'tap New Game');
+    await page.waitForTimeout(500);
+    const pc = await carOnScreen(page);
+    check(carVisible(pc), `the car is on screen above the dialog (${Math.round(pc.x)},${Math.round(pc.y)}, dialog top ${Math.round(pc.dialogTop)})`);
     await page.tap('#s-story .skip'); await page.waitForTimeout(300);
     if (await Q(page, () => __cv.G.mode === 'story')) await page.tap('#s-story .skip');
     await until(page, () => __cv.G.mode === 'brief', 'Skip reaches the briefing');

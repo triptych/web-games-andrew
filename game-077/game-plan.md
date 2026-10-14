@@ -182,6 +182,7 @@ All mutable game state is one plain object (`World.S`), so Instant Replay is a `
 ### v1.0.1 (2026-10-14)
 - Warmer music mix: a short snare with a pitched body instead of held noise, a smoothed reverb impulse, quiet hats, rounder bass/lead/bell, darker echoes and a lowpass on the music bus.
 - Cars sit on a soft contact shadow with a pink or teal underglow instead of a hard slab in the paint colour.
+- The story scenes, briefing and title keep the car in frame: the cinema camera aims at the car and places it on a fixed spot of the screen, pulling back on portrait phones.
 
 ### v1.0.0 (2026-10-14)
 - Ten episodes, seven playable characters, story with painted portraits, garage upgrades, grades and Vice Tapes, Instant Replay, keyboard/gamepad/touch, saves.
