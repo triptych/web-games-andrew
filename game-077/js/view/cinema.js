@@ -14,6 +14,10 @@ const MOODS = {
     dawn: { top: 0x3a6ab0, mid: 0xf0a0b8, hor: 0xffd8a0, sea: 0x3a5a8a, sun: true, sunA: 0xfff8d0, sunB: 0xffa0b0, stars: 0, fog: 0xd8a8b8, light: 0xfff0e0, amb: 0.9, city: 0.2 },
     storm: { top: 0x0a0c14, mid: 0x1a2030, hor: 0x2a3448, sea: 0x0a1018, sun: false, stars: 0, fog: 0x1a2030, light: 0x8aa0c0, amb: 0.4, city: 0.6, rain: true },
 };
+// Where the car sits on screen (NDC) for each kind of screen: bottom-left of
+// the title menu, mid-screen above the story dialog box.
+export const FRAME = { title: { x: -0.5, y: -0.4 }, story: { x: -0.15, y: 0.05 }, brief: { x: -0.62, y: -0.45 } };
+
 const BG_MOOD = { causeway: 'sunset', sunset: 'sunset', marina: 'night', night: 'night', dawn: 'dawn', storm: 'storm' };
 
 export class Cinema {
@@ -212,6 +216,25 @@ export class Cinema {
 
     resize(aspect) { this.camera.aspect = aspect; this.camera.updateProjectionMatrix(); }
 
+    /**
+     * A slow orbit from behind the car round to its side, aimed so the car
+     * always lands at the same spot on screen (opts.frame, in NDC). Aiming down
+     * the road instead lost the car whenever the orbit swung wide.
+     */
+    placeCamera(t, opts = {}) {
+        const car = this.car.position, cam = this.camera;
+        const a = opts.angle ?? (Math.sin(t * 0.07) * 0.9 + 0.5);
+        // narrow (portrait) screens pull back so the whole car fits across
+        const r = (opts.dist ?? 11) * Math.max(1, 0.95 / cam.aspect);
+        cam.position.set(car.x + Math.sin(a) * r, opts.height ?? 2.6, car.z + Math.cos(a) * r);
+        cam.lookAt(car.x, 0.6, car.z);
+        const fr = opts.frame ?? FRAME.title;
+        const ty = Math.tan((cam.fov * Math.PI) / 360), tx = ty * cam.aspect;
+        cam.rotateY(Math.atan(fr.x * tx));
+        cam.rotateX(-Math.atan(fr.y * ty));
+        cam.updateMatrixWorld();
+    }
+
     update(dt, opts = {}) {
         this.t += dt;
         const t = this.t;
@@ -226,12 +249,7 @@ export class Cinema {
         this.car.position.x = -2.2 + Math.sin(t * 0.35) * 0.5;
         this.car.position.y = Math.sin(t * 7) * 0.01;
         this.headL.position.x = this.car.position.x; this.headL.target.position.x = this.car.position.x;
-        // camera: a slow orbit from behind-left to the side
-        const a = opts.angle ?? (Math.sin(t * 0.07) * 0.9 + 0.5);
-        const r = opts.dist ?? 11;
-        const cx = this.car.position.x + Math.sin(a) * r, cz = Math.cos(a) * r;
-        this.camera.position.set(cx, opts.height ?? 2.6, cz);
-        this.camera.lookAt(this.car.position.x * 0.5, 2.2, -22);
+        this.placeCamera(t, opts);
         this.skyMat.uniforms.uTime.value = t; this.sunMat.uniforms.uTime.value = t; this.seaMat.uniforms.uTime.value = t;
         if (this.rain.visible) {
             const p = this.rain.geometry.attributes.position.array;

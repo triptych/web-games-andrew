@@ -10,6 +10,7 @@ import { CREW, CREW_ORDER, UPGRADES, TEAM_UPGRADES } from './sim/data.js';
 import { SCENES, RADIO, TIP_START, sceneBefore, sceneAfter } from './sim/story.js';
 import { MOTION } from './config.js';
 import { View } from './view/view.js';
+import { FRAME } from './view/cinema.js';
 import { UI } from './ui.js';
 import { audio } from './audio.js';
 import * as store from './save.js';
@@ -102,7 +103,7 @@ function playStory(keys, then) {
     G.story = { keys, si: 0, li: 0, typed: 0, then };
     setMode('story');
     ui.show('s-story');
-    cinema(SCENES[keys[0]].bg);
+    cinema(SCENES[keys[0]].bg, { frame: FRAME.story });
     audio.play('story');
     for (const k of keys) data.seen[k] = true;
     store.save(data);
@@ -151,7 +152,7 @@ function brief(ep) {
     G.chosen = chosen;
     G.back = [];
     setMode('brief');
-    cinema(def.time === 'storm' ? 'storm' : def.time === 'night' || def.time === 'dusk' ? 'night' : def.time === 'dawn' ? 'dawn' : 'sunset', { angle: 1.2, dist: 12 });
+    cinema(def.time === 'storm' ? 'storm' : def.time === 'night' || def.time === 'dusk' ? 'night' : def.time === 'dawn' ? 'dawn' : 'sunset', { angle: 1.2, dist: 12, frame: FRAME.brief });
     const tips = {
         1: 'Rico works alone tonight. Hit them from behind; the bay takes care of the rest.',
         2: 'Bumpers on the dance floor kick hard. The office door opens from a switch behind the bar.',
