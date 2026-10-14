@@ -972,6 +972,20 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 63, 164, 0.55);
 }
 
+.game-preview.sugarplum-drop,
+.carousel-slide-bg.sugarplum-drop {
+    background: radial-gradient(circle at 78% 22%, rgba(255, 248, 220, 0.55) 0 6%, transparent 18%),
+        radial-gradient(circle at 30% 85%, #ffffff 0 10%, transparent 40%),
+        linear-gradient(180deg, #141a38 0%, #2c3a72 55%, #9fb4dc 85%, #e8f0fb 100%);
+}
+
+.game-card.sugarplum-drop .play-button {
+    background: repeating-linear-gradient(135deg, #e8394a 0 12px, #ffffff 12px 18px, #e8394a 18px 30px);
+    color: #3a0a12;
+    text-shadow: 0 1px 0 #fff;
+    box-shadow: 0 0 14px rgba(47, 174, 132, 0.8);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

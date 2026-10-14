@@ -1161,6 +1161,21 @@ const games = [
             { emoji: '\uD83D\uDD75\uFE0F', label: 'Stealth' },
             { emoji: '\uD83C\uDF34', label: 'Miami 1986' }
         ]
+    },
+    {
+        id: 'game-078',
+        title: 'Sugarplum Drop',
+        description: "A cozy Christmas merge puzzle with physics, in vanilla JavaScript and Canvas 2D with no asset files. Drop small candies into a glass jar on a snowy night: when two of the same treat touch, they merge into the next one up, and the new one is checked again, so one drop can set off a whole cascade. Peppermints become gumdrops, lollipops and truffles, then gingerbread men, holly wreaths, ornaments, presents, snow globes, gingerbread houses and finally the golden Jingle Bell; two Jingle Bells make a Christmas Miracle. Treats roll, tumble and stack with real disc physics; merges in quick succession make chains; let the pile sit over the candy-cane line for three seconds and the jar is full. An aim guide, a merge ladder that lights up as you go, a bot playing a demo behind the title, saves and a best score, falling snow and twinkling lights, and a music box playing Jingle Bells and We Wish You a Merry Christmas. Every treat, sparkle and note is generated in code; mouse, touch, keyboard or gamepad.",
+        icon: '\uD83C\uDF6C',
+        folder: 'game-078',
+        version: '1.0.0',
+        cssClass: 'sugarplum-drop',
+        genre: 'puzzle',
+        tags: [
+            { emoji: '\uD83C\uDF6D', label: 'Merge puzzle' },
+            { emoji: '\uD83C\uDF84', label: 'Christmas' },
+            { emoji: '\uD83D\uDD8C\uFE0F', label: 'Canvas 2D' }
+        ]
     }
 ];
 
