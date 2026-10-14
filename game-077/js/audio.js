@@ -2,6 +2,7 @@
 // machine with a gated snare, detuned saw pads, a sawtooth bass, an FM
 // "DX bell" and a delayed lead, plus every sound effect. No files.
 
+const MUSIC_VOL = 0.34;
 const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12);
 const M = { C: 0, 'C#': 1, Db: 1, D: 2, 'D#': 3, Eb: 3, E: 4, F: 5, 'F#': 6, Gb: 6, G: 7, 'G#': 8, Ab: 8, A: 9, 'A#': 10, Bb: 10, B: 11 };
 const n = (s) => { const m = s.match(/^([A-G][#b]?)(-?\d)$/); return 12 * (+m[2] + 1) + M[m[1]]; };
@@ -76,20 +77,37 @@ class Audio {
         this.master = c.createGain();
         this.master.gain.value = this.volume;
         const comp = c.createDynamicsCompressor();
-        comp.threshold.value = -14; comp.ratio.value = 4;
+        comp.threshold.value = -18; comp.ratio.value = 3; comp.knee.value = 20; comp.attack.value = 0.01; comp.release.value = 0.25;
         this.master.connect(comp); comp.connect(c.destination);
-        this.musicBus = c.createGain(); this.musicBus.gain.value = this.on.music ? 0.42 : 0; this.musicBus.connect(this.master);
+        // the music bus runs through a gentle lowpass so nothing fizzes
+        this.musicBus = c.createGain(); this.musicBus.gain.value = this.on.music ? MUSIC_VOL : 0;
+        const warm = c.createBiquadFilter(); warm.type = 'lowpass'; warm.frequency.value = 6500; warm.Q.value = 0.5;
+        this.musicBus.connect(warm); warm.connect(this.master);
         this.sfxBus = c.createGain(); this.sfxBus.gain.value = this.on.sound ? 0.8 : 0; this.sfxBus.connect(this.master);
-        // shared reverb (noise impulse) and a dotted-eighth delay for the lead
-        this.verb = c.createConvolver();
-        const len = c.sampleRate * 2.2, ir = c.createBuffer(2, len, c.sampleRate);
-        for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
-        this.verb.buffer = ir;
-        this.verbGain = c.createGain(); this.verbGain.gain.value = 0.35;
-        this.verb.connect(this.verbGain); this.verbGain.connect(this.musicBus);
+        // shared reverb and a dotted-eighth delay for the lead. The impulse is
+        // smoothed noise (a one-pole lowpass whose cutoff falls over the tail), so
+        // the reverb sounds like a room, not like hiss.
+        const pre = c.createBiquadFilter(); pre.type = 'lowpass'; pre.frequency.value = 3200;
+        this.verb = pre;
+        const conv = c.createConvolver();
+        const len = Math.floor(c.sampleRate * 2.0), ir = c.createBuffer(2, len, c.sampleRate);
+        for (let ch = 0; ch < 2; ch++) {
+            const d = ir.getChannelData(ch);
+            let y = 0;
+            for (let i = 0; i < len; i++) {
+                const k = i / len, a = 0.5 - k * 0.42;   // brighter early, darker late
+                y += ((Math.random() * 2 - 1) - y) * a;
+                d[i] = y * Math.pow(1 - k, 3);
+            }
+        }
+        conv.buffer = ir;
+        pre.connect(conv);
+        this.verbGain = c.createGain(); this.verbGain.gain.value = 0.3;
+        conv.connect(this.verbGain); this.verbGain.connect(this.musicBus);
         this.delay = c.createDelay(1); this.delay.delayTime.value = 0.45;
-        const fb = c.createGain(); fb.gain.value = 0.35;
-        this.delay.connect(fb); fb.connect(this.delay);
+        const fb = c.createGain(); fb.gain.value = 0.3;
+        const dark = c.createBiquadFilter(); dark.type = 'lowpass'; dark.frequency.value = 2200;   // each echo a little duller
+        this.delay.connect(dark); dark.connect(fb); fb.connect(this.delay);
         this.delayOut = c.createGain(); this.delayOut.gain.value = 0.4;
         this.delay.connect(this.delayOut); this.delayOut.connect(this.musicBus);
         this.noiseBuf = c.createBuffer(1, c.sampleRate, c.sampleRate);
@@ -100,7 +118,7 @@ class Audio {
     }
 
     setSound(v) { this.on.sound = v; if (this.sfxBus) this.sfxBus.gain.value = v ? 0.8 : 0; }
-    setMusic(v) { this.on.music = v; if (this.musicBus) this.musicBus.gain.value = v ? 0.42 : 0; }
+    setMusic(v) { this.on.music = v; if (this.musicBus) this.musicBus.gain.value = v ? MUSIC_VOL : 0; }
     setVolume(v) { this.volume = v; if (this.master) this.master.gain.value = v; }
     suspend(v) { if (!this.ctx) return; if (v) this.ctx.suspend(); else this.ctx.resume(); }
 
@@ -183,51 +201,52 @@ class Audio {
         return g;
     }
     _snare(t, v) {
-        // the gated 80s snare: a bright noise burst held flat, then cut
-        const g = this._noise(t, 0.26, this.musicBus, 'bandpass', 1900, 0.7, 1);
-        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.55 * v, t + 0.004);
-        g.gain.setValueAtTime(0.42 * v, t + 0.2); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
-        const s = this.ctx.createGain(); g.connect(s); s.gain.value = 0.6; s.connect(this.verb);
+        // a big 80s snare: a short, darkened noise crack plus a pitched body,
+        // with the size coming from the room reverb rather than held noise
+        const g = this._noise(t, 0.2, this.musicBus, 'bandpass', 1500, 0.9, 1);
+        this._env(g, t, 0.003, 0.26 * v, 0.14);
+        const s = this.ctx.createGain(); g.connect(s); s.gain.value = 0.55; s.connect(this.verb);
         const c = this.ctx, o = c.createOscillator(), og = c.createGain();
-        o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(160, t + 0.08);
-        this._env(og, t, 0.002, 0.35 * v, 0.1);
-        o.connect(og); og.connect(this.musicBus); o.start(t); o.stop(t + 0.15);
+        o.type = 'triangle';
+        o.frequency.setValueAtTime(210, t); o.frequency.exponentialRampToValueAtTime(150, t + 0.09);
+        this._env(og, t, 0.002, 0.32 * v, 0.12);
+        o.connect(og); og.connect(this.musicBus); og.connect(this.verb); o.start(t); o.stop(t + 0.18);
     }
-    _clap(t) { for (let k = 0; k < 3; k++) { const g = this._noise(t + k * 0.012, 0.12, this.musicBus, 'bandpass', 1200, 1.2, 1); this._env(g, t + k * 0.012, 0.002, 0.3, 0.09); } }
-    _hat(t, v, open) { const g = this._noise(t, open ? 0.2 : 0.05, this.musicBus, 'highpass', 7500, 0.5, 1); this._env(g, t, 0.001, 0.22 * v, open ? 0.18 : 0.04); }
+    _clap(t) { for (let k = 0; k < 3; k++) { const g = this._noise(t + k * 0.012, 0.12, this.musicBus, 'bandpass', 1300, 1.4, 1); this._env(g, t + k * 0.012, 0.002, 0.16, 0.08); } }
+    _hat(t, v, open) { const g = this._noise(t, open ? 0.18 : 0.04, this.musicBus, 'bandpass', 8000, 1.2, 1); this._env(g, t, 0.001, 0.08 * v, open ? 0.15 : 0.028); }
     _rim(t, v) { const c = this.ctx, o = c.createOscillator(), g = c.createGain(); o.type = 'square'; o.frequency.value = 820; this._env(g, t, 0.001, 0.12 * v, 0.03); o.connect(g); g.connect(this.musicBus); o.start(t); o.stop(t + 0.05); }
     _tom(t, f) { const c = this.ctx, o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.5, t + 0.2); this._env(g, t, 0.002, 0.45, 0.22); o.connect(g); g.connect(this.musicBus); g.connect(this.verb); o.start(t); o.stop(t + 0.3); }
     _bass(t, note, dur, vol = 1) {
         const c = this.ctx, o = c.createOscillator(), o2 = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
-        o.type = 'sawtooth'; o2.type = 'square'; o.frequency.value = NOTE(note); o2.frequency.value = NOTE(note) * 0.5;
-        f.type = 'lowpass'; f.Q.value = 6;
-        f.frequency.setValueAtTime(1400, t); f.frequency.exponentialRampToValueAtTime(180, t + Math.min(0.25, dur));
-        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.32 * vol, t + 0.005); g.gain.setValueAtTime(0.26 * vol, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.type = 'sawtooth'; o2.type = 'triangle'; o.frequency.value = NOTE(note); o2.frequency.value = NOTE(note) * 0.5;
+        f.type = 'lowpass'; f.Q.value = 2.5;
+        f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(160, t + Math.min(0.25, dur));
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.32 * vol, t + 0.008); g.gain.setValueAtTime(0.26 * vol, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
         o.connect(f); o2.connect(f); f.connect(g); g.connect(this.musicBus);
         o.start(t); o2.start(t); o.stop(t + dur + 0.05); o2.stop(t + dur + 0.05);
     }
     _pad(t, notes, dur, vol = 1) {
         const c = this.ctx, f = c.createBiquadFilter(), g = c.createGain();
-        f.type = 'lowpass'; f.frequency.value = 1300; f.Q.value = 0.8;
-        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.06 * vol, t + dur * 0.25); g.gain.setValueAtTime(0.06 * vol, t + dur * 0.8); g.gain.exponentialRampToValueAtTime(0.0001, t + dur * 1.05);
+        f.type = 'lowpass'; f.frequency.value = 950; f.Q.value = 0.6;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.055 * vol, t + dur * 0.25); g.gain.setValueAtTime(0.055 * vol, t + dur * 0.8); g.gain.exponentialRampToValueAtTime(0.0001, t + dur * 1.05);
         f.connect(g); g.connect(this.musicBus); g.connect(this.verb);
-        for (const nt of notes) for (const det of [-9, 9]) {
+        for (const nt of notes) for (const det of [-7, 7]) {
             const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = NOTE(nt); o.detune.value = det;
             o.connect(f); o.start(t); o.stop(t + dur * 1.1);
         }
     }
     _stab(t, notes) {
         const c = this.ctx, f = c.createBiquadFilter(), g = c.createGain();
-        f.type = 'lowpass'; f.frequency.setValueAtTime(3200, t); f.frequency.exponentialRampToValueAtTime(600, t + 0.15);
-        this._env(g, t, 0.003, 0.08, 0.16);
+        f.type = 'lowpass'; f.frequency.setValueAtTime(1900, t); f.frequency.exponentialRampToValueAtTime(500, t + 0.15);
+        this._env(g, t, 0.004, 0.06, 0.16);
         f.connect(g); g.connect(this.musicBus); g.connect(this.verb);
-        for (const nt of notes) { const o = c.createOscillator(); o.type = 'square'; o.frequency.value = NOTE(nt); o.connect(f); o.start(t); o.stop(t + 0.2); }
+        for (const nt of notes) { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = NOTE(nt); o.connect(f); o.start(t); o.stop(t + 0.2); }
     }
     _bell(t, note, vol) {
         // two-operator FM: the "E.PIANO 1" / marimba sound of every 80s cop show
         const c = this.ctx, car = c.createOscillator(), mod = c.createOscillator(), mg = c.createGain(), g = c.createGain();
-        car.frequency.value = NOTE(note); mod.frequency.value = NOTE(note) * 3.5;
-        mg.gain.setValueAtTime(NOTE(note) * 2.5, t); mg.gain.exponentialRampToValueAtTime(1, t + 0.4);
+        car.frequency.value = NOTE(note); mod.frequency.value = NOTE(note) * 2;
+        mg.gain.setValueAtTime(NOTE(note) * 1.1, t); mg.gain.exponentialRampToValueAtTime(1, t + 0.25);
         mod.connect(mg); mg.connect(car.frequency);
         this._env(g, t, 0.002, 0.09 * vol * 3, 0.9);
         car.connect(g); g.connect(this.musicBus); g.connect(this.delay);
@@ -235,10 +254,10 @@ class Audio {
     }
     _lead(t, note, dur) {
         const c = this.ctx, o = c.createOscillator(), o2 = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(), lfo = c.createOscillator(), lg = c.createGain();
-        o.type = 'sawtooth'; o2.type = 'square'; o.frequency.value = NOTE(note); o2.frequency.value = NOTE(note); o2.detune.value = 7;
-        lfo.frequency.value = 5.5; lg.gain.value = 6; lfo.connect(lg); lg.connect(o.detune); lg.connect(o2.detune);
-        f.type = 'lowpass'; f.frequency.value = 2600; f.Q.value = 2;
-        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.09, t + 0.02); g.gain.setValueAtTime(0.08, t + dur * 0.85); g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.08);
+        o.type = 'sawtooth'; o2.type = 'triangle'; o.frequency.value = NOTE(note); o2.frequency.value = NOTE(note); o2.detune.value = 6;
+        lfo.frequency.value = 5.2; lg.gain.value = 5; lfo.connect(lg); lg.connect(o.detune); lg.connect(o2.detune);
+        f.type = 'lowpass'; f.frequency.value = 1800; f.Q.value = 0.7;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.08, t + 0.03); g.gain.setValueAtTime(0.07, t + dur * 0.85); g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.08);
         o.connect(f); o2.connect(f); f.connect(g); g.connect(this.musicBus); g.connect(this.delay); g.connect(this.verb);
         for (const x of [o, o2, lfo]) { x.start(t); x.stop(t + dur + 0.12); }
     }

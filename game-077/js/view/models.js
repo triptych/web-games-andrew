@@ -159,6 +159,28 @@ export function makeRing(r, color) {
 }
 
 // ------------------------------------------------------------------ vehicles
+let _blob = null;
+/** A soft round falloff, used for contact shadows and underglow. */
+function blobTex() {
+    if (_blob) return _blob;
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d');
+    const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(0.55, 'rgba(255,255,255,0.6)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grd; g.fillRect(0, 0, 64, 64);
+    _blob = new THREE.CanvasTexture(c);
+    return _blob;
+}
+
+/** Underglow colour: hot pink, or teal under a car that is already pink. */
+function glowFor(paint) {
+    const c = new THREE.Color(typeof paint === 'number' ? paint : 0xffffff);
+    const hsl = {}; c.getHSL(hsl);
+    const pinkish = hsl.s > 0.4 && hsl.l < 0.85 && (hsl.h > 0.85 || hsl.h < 0.05);
+    return pinkish ? 0x2ff2e0 : 0xff3fa4;
+}
+
 function profileCar() {
     // side profile, x along length (front +x), y up; a wedge with a raked windshield
     const s = new THREE.Shape();
@@ -246,9 +268,15 @@ export function makeVehicle(kind = 'car', color = 0xff6fb0) {
         rr.rotation.x = Math.PI / 2;
         wheels.push(w);
     }
-    // neon underglow
-    const under = new THREE.Mesh(cached('under', () => new THREE.PlaneGeometry(2.2, 1.2)), new THREE.MeshBasicMaterial({ color: typeof color === 'number' ? color : 0xff3fa4, transparent: true, opacity: 0.35, depthWrite: false, blending: THREE.AdditiveBlending }));
+    // a soft dark contact shadow, then a neon underglow in an accent colour
+    // (never the paint: a white car would get a white slab under it)
+    const shadow = new THREE.Mesh(cached('under', () => new THREE.PlaneGeometry(2.5, 1.35)), new THREE.MeshBasicMaterial({ map: blobTex(), color: 0x000000, transparent: true, opacity: 0.55, depthWrite: false }));
+    shadow.rotation.x = -Math.PI / 2; shadow.rotation.z = Math.PI / 2; shadow.position.y = 0.015;
+    root.add(shadow);
+    const accent = glowFor(color);
+    const under = new THREE.Mesh(cached('under', () => new THREE.PlaneGeometry(2.5, 1.35)), new THREE.MeshBasicMaterial({ map: blobTex(), color: accent, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }));
     under.rotation.x = -Math.PI / 2; under.rotation.z = Math.PI / 2; under.position.y = 0.02;
+    under.scale.set(1.15, 1.25, 1);
     root.add(under);
     root.userData.wheels = wheels;
     return root;
