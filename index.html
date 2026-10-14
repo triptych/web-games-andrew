@@ -54,6 +54,7 @@
         <nav class="hud-buttons" aria-label="Garden controls">
             <button class="hud-btn" id="btn-map" title="Map (M)" aria-label="Map"><span aria-hidden="true">🗺️</span></button>
             <button class="hud-btn" id="btn-library" title="Library (L)" aria-label="Library of all games"><span aria-hidden="true">📚</span></button>
+            <button class="hud-btn" id="btn-starred" title="Starred games (F)" aria-label="Starred games"><span aria-hidden="true">⭐</span><span class="hud-count" id="starred-count" hidden>0</span></button>
             <button class="hud-btn hud-clock" id="btn-time" title="Time of day (T)" aria-label="Time of day"><span aria-hidden="true" id="clock-icon">☀️</span><span id="clock">08:00</span></button>
             <button class="hud-btn" id="btn-sound" title="Sound (N)" aria-label="Toggle sound"><span aria-hidden="true" id="sound-icon">🔊</span></button>
             <button class="hud-btn" id="btn-help" title="Help (H)" aria-label="Help"><span aria-hidden="true">❔</span></button>
@@ -102,6 +103,7 @@
             <a id="card-play" class="btn btn-primary" target="_blank" rel="noopener">▶ Play</a>
             <button id="card-walk" class="btn">Walk there</button>
             <button id="card-link" class="btn">Link there</button>
+            <button id="card-star" class="btn btn-star" aria-pressed="false">☆ Star</button>
         </div>
     </aside>
 
@@ -118,6 +120,18 @@
             <div class="lib-chips" id="lib-chips"></div>
             <div class="lib-list" id="lib-list"></div>
             <p class="lib-foot"><a href="classic.html">Open the classic list view</a></p>
+        </div>
+    </section>
+
+    <!-- starred games overlay -->
+    <section id="starred" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="starred-title">
+        <div class="overlay-inner">
+            <header class="overlay-head">
+                <h2 id="starred-title">Starred Games</h2>
+                <button class="close" data-close aria-label="Close">×</button>
+            </header>
+            <p class="starred-hint" id="starred-hint">Star a game from its card or the Library to keep it here.</p>
+            <div class="lib-list" id="starred-list"></div>
         </div>
     </section>
 
@@ -149,7 +163,7 @@
                         <li>Click the ground to walk there</li>
                         <li>Hover a statue to read about its game, click it to play</li>
                         <li><kbd>[</kbd> <kbd>]</kbd> turn the hologram at the hub</li>
-                        <li><kbd>M</kbd> map · <kbd>L</kbd> library · <kbd>T</kbd> time · <kbd>N</kbd> sound</li>
+                        <li><kbd>M</kbd> map · <kbd>L</kbd> library · <kbd>F</kbd> starred · <kbd>T</kbd> time · <kbd>N</kbd> sound</li>
                     </ul>
                 </div>
                 <div>
@@ -160,6 +174,7 @@
                         <li>Tap the ground to walk there</li>
                         <li>Tap a statue to read about its game, then <em>Play</em></li>
                         <li>Tap the brass arrows at the hub to turn the hologram</li>
+                        <li>Tap ☆ on a game to star it; ⭐ lists your starred games</li>
                     </ul>
                 </div>
             </div>
