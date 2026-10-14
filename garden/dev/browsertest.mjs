@@ -6,7 +6,7 @@
  * Desktop (1280×800): title screen → Enter → fly-in to the dock → walk with
  * the keyboard → link to the hub → press both hologram arrows → hover a statue
  * (tooltip + highlight) → click it (opens the game in a new tab) → library
- * search + Find statue → map → night. Phones (390×844 portrait, 844×390
+ * search + star a game + Find statue → starred list (F) → unstar → map → night. Phones (390×844 portrait, 844×390
  * landscape, touch only): enter by tap, joystick walk, tap a statue for its
  * card, HUD buttons ≥ 44 px. Fox (?fox=1): the Worldroot fox comes in, stops to
  * look, runs off and is gone; ?fox=0 builds nothing; the visit odds are one in
@@ -189,10 +189,34 @@ async function desktop() {
     const n = await page.evaluate(() => document.querySelectorAll('.lib-item').length);
     check(n > 0 && n < 50, `library search filters (${n} results)`);
     await shot(page, 'd6-library');
+    const starredTitle = await page.evaluate(() => document.querySelector('.lib-item strong').textContent);
+    await page.click('.lib-item [data-star]');
+    const starState = await page.evaluate(() => ({
+        pressed: document.querySelector('.lib-item [data-star]').getAttribute('aria-pressed'),
+        badge: document.getElementById('starred-count').hidden ? null : document.getElementById('starred-count').textContent,
+        saved: JSON.parse(localStorage.getItem('garden.starred') || '[]').length,
+    }));
+    check(starState.pressed === 'true' && starState.badge === '1' && starState.saved === 1, 'starring a library game marks it, badges the HUD and saves it');
     await page.click('.lib-item [data-find]');
     await frames(page, 4);
     check(await page.evaluate(() => document.getElementById('library').hidden), 'Find statue closes the library and links there');
     await shot(page, 'd7-found');
+
+    // starred list
+    await page.keyboard.press('f');
+    await frames(page, 2);
+    const starredList = await page.evaluate(() => [...document.querySelectorAll('#starred-list .lib-item strong')].map((e) => e.textContent));
+    check(!(await page.evaluate(() => document.getElementById('starred').hidden)) && starredList.length === 1 && starredList[0] === starredTitle, `F opens the starred list with the starred game (${starredTitle})`);
+    await shot(page, 'd7b-starred');
+    await page.click('#starred-list [data-star]');
+    await frames(page, 2);
+    const unstarred = await page.evaluate(() => ({
+        empty: !!document.querySelector('#starred-list .lib-empty'),
+        badgeHidden: document.getElementById('starred-count').hidden,
+        saved: JSON.parse(localStorage.getItem('garden.starred') || '[]').length,
+    }));
+    check(unstarred.empty && unstarred.badgeHidden && unstarred.saved === 0, 'unstarring empties the starred list and the HUD badge');
+    await page.keyboard.press('Escape');
 
     // map
     await page.keyboard.press('m');

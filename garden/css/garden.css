@@ -231,6 +231,16 @@ kbd {
 }
 .hud-btn span[aria-hidden] { font-size: 1.15rem; }
 .hud-btn:hover { border-color: var(--gold); background: rgba(30, 34, 56, 0.7); }
+.hud-btn .hud-count {
+    min-width: 1.4em;
+    padding: 0.1em 0.35em;
+    border-radius: 999px;
+    background: var(--gold);
+    color: #22160a;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    text-align: center;
+}
 
 @media (max-width: 640px) {
     .hud-title strong { display: none; }
@@ -421,6 +431,12 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 .card-actions { display: flex; flex-wrap: wrap; gap: 10px; position: sticky; bottom: -16px; padding: 10px 0 2px; background: linear-gradient(180deg, transparent, rgba(14, 18, 32, 0.95) 30%); }
 .card-actions .btn-primary { flex: 1 1 140px; font-size: 1.15rem; }
 
+/* star toggles on the card, library and starred list */
+.btn-star { color: var(--gold-hi); }
+.btn-star.on { background: rgba(217, 180, 106, 0.22); border-color: var(--gold); }
+.lib-actions .btn-star { min-width: 44px; padding: 0.4em 0.6em; font-size: 1.2rem; }
+.tt-star { margin-right: 0.3em; color: var(--gold-hi); }
+
 /* ------------------------------------------------------------ overlays */
 
 .overlay {
@@ -485,12 +501,14 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 .lib-actions { display: flex; gap: 6px; }
 .lib-actions .btn { min-height: 40px; padding: 0.4em 0.9em; font-size: 0.95rem; }
 .lib-empty { padding: 30px; text-align: center; color: var(--ink-dim); font-style: italic; }
+.starred-hint { flex: none; margin: 0; padding: 0 20px 8px; color: var(--ink-dim); font-style: italic; }
 .lib-foot { flex: none; margin: 0; padding: 10px 20px 14px; border-top: 1px solid rgba(217, 180, 106, 0.2); text-align: center; }
 @media (max-width: 560px) {
     .lib-item { grid-template-columns: 40px 1fr; }
     .lib-icon { width: 40px; height: 40px; font-size: 1.4rem; }
     .lib-actions { grid-column: 1 / -1; }
     .lib-actions .btn { flex: 1; }
+    .lib-actions .btn-star { flex: 0 0 auto; }
 }
 
 .map-inner { width: min(760px, 100%); }
