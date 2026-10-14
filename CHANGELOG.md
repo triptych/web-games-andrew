@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **TALEWRIGHT** (game-076): in the story, the Chapter 3 quest **Home, Sweet Home** finished the moment you picked the Interior tileset in the New map dialog, and because it was the chapter's last quest, the closing scene and Chapter 4 started straight away, before you'd made anything. Now:
+  - The quest asks you to paint a room (10 tiles) on a map that uses the Interior tileset ([quests.js](game-076/js/meta/quests.js)).
+  - A chapter whose quests are all done no longer ends by itself. The Atelier says the chapter is complete and shows a **Continue the story ▸** button in the quest panel, and the next chapter starts only when you press it ([atelier.js](game-076/js/meta/atelier.js)).
+  - The browser test makes an Interior map and checks that the quest and the chapter wait. Then it paints a room, checks that the quest finishes, and presses Continue.
 - **TALEWRIGHT** (game-076): a treasure chest could show on the map in the editor but be invisible and untouchable in the game. The game uses an event's *last* page whose conditions hold, so a later page with no conditions (for example one added with **+ New page**) always wins, and an empty one makes the event vanish; meanwhile the editor always drew page 1. Now:
   - The map view draws each event as it looks when a new game starts, and shows an event that starts invisible as a red ∅ ([mapview.js](game-076/js/editor/mapview.js)); hovering it explains why in the status line.
   - **+ New page** gives the new page the next free self switch (B, C, D) as its condition, so it can't hide the pages before it.

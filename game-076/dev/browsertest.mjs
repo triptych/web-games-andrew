@@ -141,7 +141,11 @@ async function story() {
     await page.click('.ptclose');
     ok(!(await page.$('.playtest')), 'the playtest closes');
     // chapter 0 complete
-    ok(await until(page, () => document.querySelector('.scene'), null, 6000), 'finishing the prologue plays its closing scene');
+    ok(await until(page, () => document.getElementById('btn-continue'), null, 6000), 'finishing the prologue offers Continue the story');
+    await wait(1500);
+    ok(!(await page.$('.scene')), 'and the story waits instead of cutting in');
+    await page.click('#btn-continue');
+    ok(await until(page, () => document.querySelector('.scene'), null, 4000), 'Continue the story plays the chapter\'s closing scene');
     await skipScenes(page);
     ok(await until(page, () => document.querySelector('.restored'), null, 3000), 'the restored-tools card lists the unlocks');
     await shot(page, 'story-restored');
@@ -200,6 +204,31 @@ async function story() {
     ok(await ev(page, () => ['ch1.npc', 'ch1.speaker'].every((k) => __tal.meta.data.quests[k])), 'the event and Show Text quests are done');
     await closeModals(page);
     await shot(page, 'story-ch1');
+    // Chapter 3's last quest: a new Interior map must be built before it counts, and even
+    // then the story waits for Continue instead of interrupting
+    await ev(page, () => { const d = __tal.meta.data; d.chapter = 3; for (const k of ['ch3.map2', 'ch3.door', 'ch3.travel']) d.quests[k] = Date.now(); __tal.meta.save(); __tal.bus.emit('unlocks', 3); __tal.atelier.render(); });
+    await page.locator('#maps button', { hasText: '+ New' }).click();
+    await page.waitForSelector('.modal select');
+    await page.locator('.modal select').first().selectOption('interior');
+    await page.locator('.modal-foot button.primary', { hasText: 'OK' }).click();
+    await wait(1200);
+    ok(await ev(page, () => !__tal.meta.data.quests['ch3.indoors'] && !document.querySelector('.scene') && __tal.meta.data.chapter === 3), 'choosing the Interior tileset alone doesn\'t finish the quest or the chapter');
+    await page.keyboard.press('Escape');
+    await paletteClick(page, 7);   // plaster wall
+    const w0 = await cellPoint(page, 2, 2);
+    await page.mouse.move(w0.x, w0.y); await page.mouse.down();
+    for (let x = 2; x < 14; x++) { const q = await cellPoint(page, x, 2); await page.mouse.move(q.x, q.y); }
+    await page.mouse.up();
+    ok(await until(page, () => __tal.meta.data.quests['ch3.indoors'], null, 4000), 'painting a room on the Interior map finishes the quest');
+    await wait(1500);
+    ok(await ev(page, () => !document.querySelector('.scene') && __tal.meta.data.chapter === 3 && document.getElementById('btn-continue')), 'and the chapter waits for Continue the story');
+    await page.click('#btn-continue');
+    await until(page, () => document.querySelector('.scene'), null, 4000);
+    await skipScenes(page);
+    await until(page, () => document.querySelector('.restored'), null, 3000);
+    await closeModals(page);
+    await skipScenes(page);
+    ok(await ev(page, () => __tal.meta.data.chapter === 4), 'Continue moves on to Chapter 4');
     await ctx.close();
 }
 

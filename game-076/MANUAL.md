@@ -209,7 +209,7 @@ The in-game menu (Cancel on the map) has Items, Skills, Equip, Status, Save and 
 
 ## The Atelier (the game around the maker)
 
-- **Chapters** — nine chapters, each restoring a Glyph and its tools. Finish a chapter's quests to finish the chapter.
+- **Chapters** — nine chapters, each restoring a Glyph and its tools. Finish a chapter's quests, then press **Continue the story ▸** in the quest panel when you're ready for the next one. The story waits, so you can finish what you're making first.
 - **Quests** — shown on the right. Each quest checks your real project, or something that really happened while you playtested. *Show me* points at the tool you need.
 - **Ink ✒** — earned by building: painting, making events and database entries, playtesting, finishing quests and earning achievements. Spend it in the Emporium.
 - **Maker Rank** — twenty ranks from Blank Page to Worldsmith, from the Ink you have ever earned.

@@ -15,6 +15,8 @@ function walkAll(p, fn) {
     for (const m of p.maps) for (const e of m.events) for (const pg of e.pages) visit(pg.list, { map: m, event: e, page: pg });
 }
 const pages = (p, pred) => { for (const m of p.maps) for (const e of m.events) for (const pg of e.pages) if (pred(pg, e, m)) return true; return false; };
+/** Cells a player has painted on a map: ground that isn't the blank fill, or anything on the decor and over layers. */
+const painted = (m) => { let n = 0; for (let i = 0; i < m.w * m.h; i++) if (m.layers[0][i] !== 1 || m.layers[1][i] || m.layers[2][i]) n++; return n; };
 const prog = (n, goal) => ({ progress: Math.min(n, goal), goal, done: n >= goal });
 const yes = (b) => ({ progress: b ? 1 : 0, goal: 1, done: !!b });
 const hooked = (ctx, name) => !!ctx.flags['hook.' + name];
@@ -39,7 +41,7 @@ export const QUESTS = [
     { ch: 3, id: 'map2', title: 'New Horizons', desc: 'Create a second map.', hint: 'Press + New above the map list.', show: 'maps', check: (x) => prog(x.p.maps.length, 2) },
     { ch: 3, id: 'door', title: 'A Door Opens', desc: 'Make a Transfer Player to another map.', hint: 'Right-click where the door is and choose Door / Exit, then click the spot on the other map.', show: 'layer-3', check: (x) => yes(cmds(x.p, (c, ctx) => c.t === 'transfer' && c.map && c.map !== ctx.map.id)) },
     { ch: 3, id: 'travel', title: 'Journey', desc: 'Travel between maps in a playtest.', hint: 'Playtest and walk through your door.', show: 'btn-playtest', check: (x) => yes(hooked(x, 'transfer')) },
-    { ch: 3, id: 'indoors', title: 'Home, Sweet Home', desc: 'Make a map with the Interior tileset.', hint: 'Open a map\'s ⋯ menu ▸ Properties and choose Interior.', show: 'maps', check: (x) => yes(x.p.maps.some((m) => m.tileset === 'interior')) },
+    { ch: 3, id: 'indoors', title: 'Home, Sweet Home', desc: 'Build a room on a map with the Interior tileset (paint 10 tiles).', hint: 'Make a new map (or open a map\'s ⋯ menu ▸ Properties) and choose Interior. Then paint walls, floors and furniture: a cottage, an inn, a shop.', show: 'maps', check: (x) => prog(Math.max(0, ...x.p.maps.filter((m) => m.tileset === 'interior').map(painted)), 10) },
     // 4 — Choices
     { ch: 4, id: 'choice', title: 'Fork in the Road', desc: 'Use Show Choices.', hint: 'Put Show Choices after a Show Text: the question appears with the message.', check: (x) => yes(cmds(x.p, (c) => c.t === 'choice')) },
     { ch: 4, id: 'switchpage', title: 'Flip the Switch', desc: 'Give an event a page that needs a switch, and turn that switch on with a command.', hint: 'Turn a switch ON with Control Switch in one event. In another (or the same), add a page whose condition is that switch.', check: (x) => { const on = new Set(); walkAll(x.p, (c) => { if (c.t === 'switch' && c.value !== 'off') on.add(c.id); }); return yes(pages(x.p, (pg) => (pg.cond.sw1 && on.has(pg.cond.sw1)) || (pg.cond.sw2 && on.has(pg.cond.sw2)))); } },
