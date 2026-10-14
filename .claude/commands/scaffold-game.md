@@ -7,7 +7,7 @@ Scaffold a new web game in the web-games-andrew project.
 Parse the arguments as: `[game-folder] [game-title] [genre/concept]`
 
 Examples:
-- `/scaffold-game game-077 "Breakout Royale" "brick breaker with powerups"`
+- `/scaffold-game game-078 "Breakout Royale" "brick breaker with powerups"`
 - `/scaffold-game "Asteroid Miner" "mining rocks in space" three`
 - `/scaffold-game "Pixel Picnic" "a cozy 2D farming sim" canvas`
 - `/scaffold-game` (pick the next number, then ask for title/concept)
@@ -27,7 +27,7 @@ are one line to avoid up front and a version bump to fix later.
 The repo root is wherever this repo is checked out (`git rev-parse --show-toplevel`);
 all paths below are relative to it.
 
-- **Game folder**: First token starting with `game-` (e.g. `game-077`). If not given, use the next free number, checked against **main and every open branch**, not just your checkout:
+- **Game folder**: First token starting with `game-` (e.g. `game-078`). If not given, use the next free number, checked against **main and every open branch**, not just your checkout:
   ```bash
   git fetch origin main && git ls-tree -d --name-only origin/main | grep '^game-' | tail -3
   git branch -r | grep -v HEAD | xargs -I{} git ls-tree -d --name-only {} | grep '^game-' | sort -u | tail -3
@@ -56,10 +56,10 @@ all paths below are relative to it.
 > in three.js.
 
 Set these variables for use below:
-- `GAME_FOLDER` — e.g. `game-077`
+- `GAME_FOLDER` — e.g. `game-078`
 - `GAME_TITLE` — e.g. `Breakout Royale`
 - `GAME_CONCEPT` — e.g. `A brick breaker game with powerups and boss levels.`
-- `GAME_NUMBER` — numeric part, e.g. `077`
+- `GAME_NUMBER` — numeric part, e.g. `078`
 - `GAME_DIR` — `GAME_FOLDER` under the repo root
 - `ENGINE` — `sim`, `kaplay`, `phaser`, `three`, or `vanilla3d`
 
@@ -166,7 +166,7 @@ Most are here because a game broke without them; the game that did is named.
 As well as the ones from Step 1:
 - `RENDERER`: `three` (default for 3D) or `canvas` (2D)
 - `DEBUG_NS`: `__` plus the title's initials, e.g. `__rb` for RUNEBORE, `__cc` for CHROME CHALICE
-- `PORT`: `8` + `GAME_NUMBER`, e.g. `8077` (each game's harness has its own port, so two can run at once)
+- `PORT`: `8` + `GAME_NUMBER`, e.g. `8078` (each game's harness has its own port, so two can run at once)
 - `SAVE_SLUG`: kebab-case title, e.g. `chrome-chalice`. The save key is `SAVE_SLUG.v1`.
 
 ### Directory layout
