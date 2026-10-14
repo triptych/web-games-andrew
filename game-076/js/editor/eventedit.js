@@ -6,6 +6,7 @@ import { bus } from './bus.js';
 import { meta } from '../meta/progress.js';
 import { COMMANDS, CATS, NO_FORM, describe, branches, form } from './commands.js';
 import { pickGraphic, spriteThumb, objectThumb, switchOptions, varOptions, dbOptions } from './pickers.js';
+import { hasConditions, pageWarning, nextSelfKey } from './pages.js';
 
 const TW = () => store.TW;
 let clipboard = null;       // a copied command
@@ -35,7 +36,13 @@ export function openEventEditor(map, ev, opts) {
                 return false;
             } },
             { label: 'Cancel' },
-            { label: 'OK', primary: true, onClick: () => save() },
+            { label: 'OK', primary: true, onClick: () => {
+                // a later page with no conditions silently replaces the ones before it: ask first
+                const warn = pageWarning(draft);
+                if (!warn) { save(); return true; }
+                confirmDialog('Check your pages', warn + ' Save it like this anyway?', 'Save anyway').then((yes) => { if (yes) { save(); m.close('ok'); } });
+                return false;
+            } },
         ],
     });
 
@@ -54,13 +61,26 @@ export function openEventEditor(map, ev, opts) {
         // header: name and page tabs
         const name = field('Name', 'text', draft.name, (v) => { draft.name = v; m.el.querySelector('.modal-head h2').textContent = 'Event ' + draft.id + ' — ' + v; }, { max: 48 });
         const tabsBar = h('div.pagetabs');
-        draft.pages.forEach((pg, i) => tabsBar.appendChild(h('button.tab' + (i === pi ? '.on' : ''), { text: 'Page ' + (i + 1), on: { click: () => { pi = i; sel = 0; render(); } } })));
+        draft.pages.forEach((pg, i) => {
+            const risky = i > 0 && !hasConditions(pg);
+            tabsBar.appendChild(h('button.tab' + (i === pi ? '.on' : '') + (risky ? '.warn' : ''), { text: 'Page ' + (i + 1) + (risky ? ' ⚠' : ''), title: risky ? 'No conditions: this page always replaces the pages before it' : '', on: { click: () => { pi = i; sel = 0; render(); } } }));
+        });
         const canPages = meta.has('pages');
-        tabsBar.appendChild(h('button.small', { text: '+ New page', title: canPages ? 'Add a page' : meta.why('pages'), disabled: !canPages || draft.pages.length >= 20, on: { click: () => { draft.pages.push(S.page()); pi = draft.pages.length - 1; sel = 0; render(); bus.emit('edit', { kind: 'pageAdd' }); } } }));
+        tabsBar.appendChild(h('button.small', { text: '+ New page', title: canPages ? 'Add a page' : meta.why('pages'), disabled: !canPages || draft.pages.length >= 20, on: { click: () => {
+            // a new page waits for the next free self switch, so it can't silently hide the pages before it
+            const pg = S.page();
+            const key = nextSelfKey(draft);
+            pg.cond.self = key;
+            draft.pages.push(pg); pi = draft.pages.length - 1; sel = 0; render();
+            toast('Page ' + draft.pages.length + ' appears once Self Switch ' + key + ' is ON. Turn it on with Control Self Switch.', 'ok', { ms: 5000 });
+            bus.emit('edit', { kind: 'pageAdd' });
+        } } }));
         tabsBar.appendChild(h('button.small', { text: 'Copy page', on: { click: () => { pageClip = JSON.parse(JSON.stringify(page)); toast('Page copied'); } } }));
         tabsBar.appendChild(h('button.small', { text: 'Paste page', disabled: !pageClip || !canPages, on: { click: () => { draft.pages.splice(pi + 1, 0, JSON.parse(JSON.stringify(pageClip))); pi++; render(); } } }));
         tabsBar.appendChild(h('button.small.danger', { text: 'Delete page', disabled: draft.pages.length < 2, on: { click: () => { draft.pages.splice(pi, 1); pi = Math.max(0, pi - 1); sel = 0; render(); } } }));
         root.appendChild(h('div.evhead', name, h('span.pos', { text: '(' + draft.x + ', ' + draft.y + ')' }), tabsBar));
+        const warn = pageWarning(draft);
+        if (warn) root.appendChild(h('div.pagewarn', { role: 'alert' }, h('b', { text: '⚠ ' }), warn + ' Give it a condition (such as a self switch) or delete it.'));
 
         // left column: page settings
         const left = h('div.evleft');
@@ -90,6 +110,7 @@ export function openEventEditor(map, ev, opts) {
         }
         sec.appendChild(field('Self switch', 'select', c.self, (v) => { c.self = v; }, { options: [['', '(none)']].concat(['A', 'B', 'C', 'D'].map((k) => lockOpt(k, k + ' is ON', 'pages', c.self))) }));
         sec.appendChild(h('p.hint', { text: 'The game shows the last page whose conditions are all true.' }));
+        if (pi > 0 && !hasConditions(page)) sec.appendChild(h('p.hint.warn', { text: 'This page has no conditions, so it is always true and the pages before it are never used.' }));
         return sec;
     }
 

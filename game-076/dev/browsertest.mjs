@@ -141,7 +141,11 @@ async function story() {
     await page.click('.ptclose');
     ok(!(await page.$('.playtest')), 'the playtest closes');
     // chapter 0 complete
-    ok(await until(page, () => document.querySelector('.scene'), null, 6000), 'finishing the prologue plays its closing scene');
+    ok(await until(page, () => document.getElementById('btn-continue'), null, 6000), 'finishing the prologue offers Continue the story');
+    await wait(1500);
+    ok(!(await page.$('.scene')), 'and the story waits instead of cutting in');
+    await page.click('#btn-continue');
+    ok(await until(page, () => document.querySelector('.scene'), null, 4000), 'Continue the story plays the chapter\'s closing scene');
     await skipScenes(page);
     ok(await until(page, () => document.querySelector('.restored'), null, 3000), 'the restored-tools card lists the unlocks');
     await shot(page, 'story-restored');
@@ -200,6 +204,31 @@ async function story() {
     ok(await ev(page, () => ['ch1.npc', 'ch1.speaker'].every((k) => __tal.meta.data.quests[k])), 'the event and Show Text quests are done');
     await closeModals(page);
     await shot(page, 'story-ch1');
+    // Chapter 3's last quest: a new Interior map must be built before it counts, and even
+    // then the story waits for Continue instead of interrupting
+    await ev(page, () => { const d = __tal.meta.data; d.chapter = 3; for (const k of ['ch3.map2', 'ch3.door', 'ch3.travel']) d.quests[k] = Date.now(); __tal.meta.save(); __tal.bus.emit('unlocks', 3); __tal.atelier.render(); });
+    await page.locator('#maps button', { hasText: '+ New' }).click();
+    await page.waitForSelector('.modal select');
+    await page.locator('.modal select').first().selectOption('interior');
+    await page.locator('.modal-foot button.primary', { hasText: 'OK' }).click();
+    await wait(1200);
+    ok(await ev(page, () => !__tal.meta.data.quests['ch3.indoors'] && !document.querySelector('.scene') && __tal.meta.data.chapter === 3), 'choosing the Interior tileset alone doesn\'t finish the quest or the chapter');
+    await page.keyboard.press('Escape');
+    await paletteClick(page, 7);   // plaster wall
+    const w0 = await cellPoint(page, 2, 2);
+    await page.mouse.move(w0.x, w0.y); await page.mouse.down();
+    for (let x = 2; x < 14; x++) { const q = await cellPoint(page, x, 2); await page.mouse.move(q.x, q.y); }
+    await page.mouse.up();
+    ok(await until(page, () => __tal.meta.data.quests['ch3.indoors'], null, 4000), 'painting a room on the Interior map finishes the quest');
+    await wait(1500);
+    ok(await ev(page, () => !document.querySelector('.scene') && __tal.meta.data.chapter === 3 && document.getElementById('btn-continue')), 'and the chapter waits for Continue the story');
+    await page.click('#btn-continue');
+    await until(page, () => document.querySelector('.scene'), null, 4000);
+    await skipScenes(page);
+    await until(page, () => document.querySelector('.restored'), null, 3000);
+    await closeModals(page);
+    await skipScenes(page);
+    ok(await ev(page, () => __tal.meta.data.chapter === 4), 'Continue moves on to Chapter 4');
     await ctx.close();
 }
 
@@ -233,6 +262,29 @@ async function sample() {
     ok(await ev(page, () => __tal.meta.data.owned['theme.synthwave'] && document.body.dataset.theme === 'synthwave'), 'buying the Synthwave theme applies it');
     await shot(page, 'sample-synthwave');
     await closeModals(page);
+    // pages: a chest's new page must not hide it in the game; an old empty page is flagged
+    await ev(page, () => { __tal.openMap(4); __tal.setLayer(3); __tal.newEvent(__tal.curMap(), 6, 14, 'chest'); });
+    await until(page, () => document.querySelector('.evedit'));
+    await page.locator('.pagetabs button', { hasText: '+ New page' }).click();
+    ok(await ev(page, () => [...document.querySelectorAll('.pagetabs .tab')].length === 3 && !document.querySelector('.pagewarn')), 'a new page waits for a self switch, so no warning');
+    await page.locator('.modal-foot button.primary', { hasText: 'OK' }).last().click();
+    ok(await ev(page, () => { const e = __tal.curMap().events.find((q) => q.x === 6 && q.y === 14); return e && e.pages.length === 3 && e.pages[2].cond.self === 'B'; }), 'and the third page needs Self Switch B');
+    await closeModals(page);
+    await ev(page, () => __tal.startPlaytest({ at: { map: 4, x: 6, y: 15 } }));
+    await until(page, () => window.__twGame && __twGame.scene === 'map');
+    ok(await ev(page, () => { const e = __twGame.map.events.find((q) => q.c.x === 6 && q.c.y === 14); return e && e.page && e.page.gfx.id === 'chest'; }), 'the chest is there in the playtest');
+    await ev(page, () => { __twGame.map.player.dir = 8; });
+    await page.keyboard.press('z');
+    ok(await until(page, () => __twGame.ui.stack.length > 0, null, 3000), 'and it can be opened');
+    await page.click('.ptclose');
+    await ev(page, () => { const e = __tal.curMap().events.find((q) => q.x === 6 && q.y === 14); e.pages[2].cond.self = ''; __tal.store.commit('legacy page'); __tal.view().sel = e.id; });
+    await page.locator('.mapscroll').focus();
+    await page.keyboard.press('Enter');
+    ok(await until(page, () => document.querySelector('.pagewarn') && /invisible/.test(document.querySelector('.pagewarn').textContent)), 'an empty page with no conditions is explained in the event editor');
+    await page.locator('.modal-foot button.primary', { hasText: 'OK' }).last().click();
+    ok(await until(page, () => [...document.querySelectorAll('.modal-head h2')].some((x) => x.textContent === 'Check your pages')), 'and OK asks before saving it');
+    await closeModals(page);
+    await ev(page, () => __tal.openMap(1));
     // the event editor on a branching event
     await ev(page, () => { const m = __tal.curMap(); const e = m.events.find((q) => q.name === 'Granny Wren'); __tal.bus.emit('x'); document.querySelector('.mapscroll').focus(); __tal.view().sel = e.id; });
     await page.keyboard.press('Enter');

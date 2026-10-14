@@ -13,6 +13,7 @@ import { openForge } from './editor/forge.js';
 import { playtest, playtestOpen } from './editor/playtest.js';
 import { openExport, downloadProject, buildStandalone, buildPlayer } from './editor/exporter.js';
 import { TEMPLATES, makeTemplate } from './editor/templates.js';
+import { pageWarning } from './editor/pages.js';
 import { sampleProject, SAMPLE_ID } from './editor/sample.js';
 import { meta } from './meta/progress.js';
 import './meta/shop.js';
@@ -37,7 +38,7 @@ function build() {
         onEditEvent: (map, ev) => editEvent(map, ev),
         onNewEvent: (map, x, y) => newEvent(map, x, y),
         onContext: (pt, map, c, ev) => contextMenu(pt, map, c, ev),
-        onHover: (c) => { $('#st-cell').textContent = c.inside ? '(' + c.x + ', ' + c.y + ')' : ''; const m = view.map; const t = c.inside && m.layers[Math.min(view.layer, 2)][c.y * m.w + c.x]; const d = t && TW.tiles.def(m.tileset, t); $('#st-tile').textContent = d ? d.n : ''; },
+        onHover: (c) => { $('#st-cell').textContent = c.inside ? '(' + c.x + ', ' + c.y + ')' : ''; const m = view.map; const t = c.inside && m.layers[Math.min(view.layer, 2)][c.y * m.w + c.x]; const d = t && TW.tiles.def(m.tileset, t); $('#st-tile').textContent = d ? d.n : ''; const ev = c.inside && m.events.find((q) => q.x === c.x && q.y === c.y); const w = ev && pageWarning(ev); if (ev) $('#st-tile').textContent = ev.name + (w ? ' — ⚠ ' + w : ''); },
         onZoom: (z) => { $('#zoom').textContent = Math.round(z * 100) + '%'; },
         onLayer: (li) => setLayer(li),
         onBrush: (b) => palette.show(b.tiles[0]),

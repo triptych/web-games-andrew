@@ -145,15 +145,23 @@ export const atelier = {
         // chapter progress (story mode)
         if (!meta.free && d.chapter < 9 && !this.busyScene) {
             const qs = questsFor(d.chapter);
-            if (qs.length && qs.every((q) => d.quests[qid(q)])) {
-                // wait until the apprentice is back at the desk: no playtest, dialog or scene open
-                if (document.querySelector('.playtest, .modal-back, .scene')) { clearTimeout(this.waitT); this.waitT = setTimeout(() => this.evaluate(), 1200); }
-                else this.finishChapter();
+            // A finished chapter waits for the apprentice: the quest panel offers
+            // "Continue the story", so the story never cuts into something half-built.
+            if (qs.length && qs.every((q) => d.quests[qid(q)]) && !this.chapterReady) {
+                this.chapterReady = true;
+                toast('Every quest in this chapter is done. Press Continue the story when you\'re ready.', 'quest', { icon: '✦', title: 'Chapter complete', ms: 6000 });
+                if (d.settings.mentor) this.panel.speak('Q', 'Splendid work. Finish what you are making; when you are ready, press Continue the story and we\'ll go on.');
             }
         }
         this.render();
     },
 
+    continueStory() {
+        if (this.busyScene || document.querySelector('.playtest, .scene')) return;
+        document.querySelectorAll('.modal-back').forEach((m) => m.remove());
+        this.chapterReady = false;
+        this.finishChapter();
+    },
     finishChapter() {
         const d = meta.data, ch = d.chapter;
         this.busyScene = true;
@@ -191,6 +199,9 @@ export const atelier = {
         if (ch === null) this.chapterEl.append(h('div.chlabel', { text: 'Free Mode' }), h('div.chtitle', { text: 'All quests' }));
         else this.chapterEl.append(h('div.chlabel', { text: ch >= 9 ? 'Epilogue' : ch === 0 ? 'Prologue' : 'Chapter ' + ch }), h('div.chtitle', { text: CHAPTERS[ch].title }));
         const qs = ch === null ? QUESTS.filter((q) => !d.quests[qid(q)]).slice(0, 8) : ch >= 9 ? [] : questsFor(ch);
+        if (this.chapterReady && ch !== null && ch < 9) {
+            this.chapterEl.appendChild(h('div.chready', h('span', { text: '✦ Chapter complete' }), h('button.primary', { id: 'btn-continue', text: 'Continue the story ▸', on: { click: () => this.continueStory() } })));
+        }
         const done = qs.filter((q) => d.quests[qid(q)]).length;
         if (qs.length) this.chapterEl.appendChild(h('div.chbar', h('i', { style: { width: (100 * done / qs.length) + '%' } })));
         let first = true;

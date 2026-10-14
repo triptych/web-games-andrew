@@ -109,6 +109,9 @@ body.playing #blot { display: none; }
 .chapter { padding: 8px 10px; background: var(--bg2); border-radius: var(--radius); border: 1px solid var(--line); }
 .chlabel { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); }
 .chtitle { font: 600 18px var(--serif); color: var(--accent); }
+.chready { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding: 8px; border-radius: 8px; background: rgba(255,207,90,.1); border: 1px solid var(--accent); }
+.chready span { font: 600 13px var(--serif); color: var(--accent); }
+.chready button { animation: pulse 1.6s ease-in-out infinite; }
 .chbar { height: 5px; background: var(--panel); border-radius: 3px; margin-top: 6px; overflow: hidden; }
 .chbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); transition: width .5s; }
 .quests { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
@@ -215,6 +218,9 @@ body.playing #blot { display: none; }
 .evhead { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
 .evhead .pos { color: var(--dim); padding-bottom: 10px; }
 .pagetabs { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.pagetabs .tab.warn { color: var(--warn); }
+.pagewarn { background: rgba(255,176,74,.12); border: 1px solid var(--warn); color: var(--text); border-radius: 8px; padding: 8px 10px; font-size: 13.5px; }
+.pagewarn b { color: var(--warn); }
 .evcols { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 12px; flex: 1; min-height: 0; }
 .evleft { overflow-y: auto; min-height: 0; padding-right: 4px; }
 .evright { display: flex; flex-direction: column; min-height: 0; }
