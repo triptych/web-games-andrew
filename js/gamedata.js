@@ -1146,6 +1146,21 @@ const games = [
             { emoji: '\uD83D\uDCDC', label: 'Story' },
             { emoji: '\uD83C\uDFF0', label: 'RPG' }
         ]
+    },
+    {
+        id: 'game-077',
+        title: 'CUE VICE',
+        description: "Metal Gear on a pool table, in three.js with no asset files: Miami, 1986. Detective Rico Vega's partner died on a bust somebody sold out, and the trail runs from a Coconut Grove marina to a kingpin called the Shark. Every member of the squad is a round, rolling character: pull back and let go like a cue, and they slide, bank off walls, rebound off neon bumpers and clack into each other with real billiard physics. Time only moves while something rolls, so every shot is also a turn against the patrols. Guards have ray-cast vision cones, suspicion, noise and Metal Gear-style alarm phases (alert, evasion, caution); hit one from behind and he goes down, bank first for style, bowl him into another for a combo, and sink him in the bay or a manhole before his friends find the body. Recruit seven teammates with their own billiard tricks: Rico's second shot, Lola's banking tranquilliser darts, Doc's healing touch, Dex's explosions, Jinx's ghost mode and hacking, Big Tito's three-times-the-mass wrecking ball and Roxy's boombox that makes guards dance. Ten episodes (a marina, a nightclub, a hospital escort where the witness is the object ball, a chop shop, a TV station, the port, a Star Island mansion with a boss in the pool, your own precinct with no alarms allowed, a causeway in live traffic and the Shark's island in a hurricane), a story told over a synthwave causeway with painted portraits and radio chatter, grades, Vice Tapes, a Garage of upgrades and VHS Instant Replay. Procedural characters, cars, palms, neon signs, a synthwave soundtrack and sound; mouse, keyboard, gamepad or touch.",
+        icon: '\uD83C\uDFB1',
+        folder: 'game-077',
+        version: '1.0.0',
+        cssClass: 'cue-vice',
+        genre: 'story',
+        tags: [
+            { emoji: '\uD83C\uDFB1', label: 'Billiards' },
+            { emoji: '\uD83D\uDD75\uFE0F', label: 'Stealth' },
+            { emoji: '\uD83C\uDF34', label: 'Miami 1986' }
+        ]
     }
 ];
 

@@ -593,6 +593,17 @@ RUNEBORE's rock is a 36 × 400 grid, but only the ~500–1200 tiles in view are 
 - **A serpent built from a trail must sample the trail by distance, not time.** Pushing the head's position every 35 ms made the body pile up inside the head whenever it hovered to spit. Push a sample only when the head has moved `TRAIL_STEP`, interpolating if it moved several steps in one tick; the body keeps its length when the head stops. *(game-073 `js/sim/boss.js`)*
 - **Zoom out for an arena taller than the view**: multiply the camera distance and the terrain window by a zoom that eases in while the fight is on, and aim at the arena's centre rather than the player.
 
+## Lessons from a tilted-camera tactics game (game-077)
+
+CUE VICE draws a whole tactical map under a perspective camera pitched ~57° down, with ball-shaped characters and neon everywhere. What cost time:
+
+- **Bloom washes a bright scene to pastel grey.** The same `UnrealBloomPass` settings that make a night level glow (strength 0.8, threshold 0.78) turned a dawn harbour into haze, because lit white walls and pale water all crossed the threshold and the wide radius smeared them over everything. It looked like a colour bug in the water shader (it wasn't: forcing the water red came out pink). Set bloom per time of day: night ~0.85/0.7, dawn and day ~0.35/0.94.
+- **Paint a ball character's face where the camera looks.** On a sphere, texture row *r* sits at *r*/H × 180° from the crown; a camera 33° off vertical sees rows ~30–90 of a 256-row equirect skin face-on. The first version had the face lower and a hair cap mesh 54° wide that covered it: from above, every character read as a black dome. Keep hair meshes to ~36° and tilt them back. Add a little `emissiveMap` (the skin itself, ~0.3) so faces read at night.
+- **Turn the camera, not the map, on a portrait phone.** A 30×14 map fitted to 390×844 is a strip in the middle. Yaw the tactical camera 90° (`camera = target + R_y(yaw)·offset`) and the long axis runs down the phone. Everything screen-relative then needs the yaw: drag-to-pan (use screen-right/screen-up vectors on the floor), stick aiming, upright sign planes (`rotation.order = 'YXZ'`, `rotation.y = yaw`) and idle characters turning to face the camera.
+- **Fit a tilted board by projecting its corners.** Binary-search the camera distance until all four corners fall inside an NDC box that leaves room for the HUD, then shift the target along screen-up by the difference between the projected box's middle and the box you want. The sign is easy to get backwards (it was: the board slid off the bottom of the screen); iterate a few times.
+- **Vision cones as ray fans.** One indexed fan per guard (30 segments), positions rewritten every frame from a DDA grid ray cast (`castRay` in the pure sim, shared with the AI so what you see is what they see), drawn with a tiny `ShaderMaterial` that brightens the rim and fades the middle.
+- **Undo is a `structuredClone`.** All mutable game state lives in one plain object (typed arrays included), so a VHS "Instant Replay" is a snapshot pushed before every shot. Keep three.js objects and functions out of that object, and let the view rebuild what it can't diff (actors) on a `rewind` event while board pieces (broken glass, open doors, pickups) are driven from the state every frame so they come back by themselves.
+
 ## Common gotchas
 
 - **A part that is tipped over and spun on the same mesh spins about the wrong axis** — a drill cone laid on its side with `rotation.z = -π/2` and spun with `rotation.y` swings round in a circle, because Euler angles apply in XYZ order: the spin turns about the parent's axis, not the tipped cone's. Put the tilt on a holder `Group` and spin only the child about its own axis (game-073 `js/view/rigmodel.js`). (Wheels rotated `x = π/2` and spun on `y` are fine for the same reason in reverse: Y is applied before X.)
@@ -628,6 +639,7 @@ To use: `import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 - [three.js docs (r165)](https://threejs.org/docs/)
 - [three.js examples](https://threejs.org/examples/)
+- [game-077 — CUE VICE](../../game-077/) — stealth × billiards; tilted tactical camera with corner fitting and a portrait yaw, ray-fan vision cones, painted ball characters, per-time-of-day bloom, a VHS grade pass, structuredClone undo
 - [game-071 — FROSTMARCH](../../game-071/) — open-world RPG; quadtree terrain, skinned procedural rigs with IK, tile-grid interiors sharing the physics interface, a pure-sim quest engine, Web Audio score
 - [game-024 — Neon Vanguard](../../game-024/) — top-down shmup; bloom, custom grid shader, canvas-sprite HUD text
 - [game-040 — Starcadet](../../game-040/) — vertical bullet-hell shmup; instanced bullets, six shader backdrops, aspect-fitting camera, and a fake-three.js Node harness
