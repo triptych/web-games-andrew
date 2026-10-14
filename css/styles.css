@@ -961,6 +961,17 @@ h1 {
     box-shadow: 0 0 14px rgba(143, 123, 255, 0.5);
 }
 
+.game-preview.cue-vice,
+.carousel-slide-bg.cue-vice {
+    background: radial-gradient(circle at 50% 46%, rgba(255, 240, 122, 0.95), rgba(255, 95, 160, 0.8) 13%, transparent 22%), repeating-linear-gradient(0deg, transparent 0 9px, rgba(42, 15, 74, 0.55) 9px 11px), linear-gradient(180deg, #2a0f4a 0%, #ff5f8a 45%, #ffb36a 55%, #1a1048 56%, #0a3a5a 100%);
+}
+
+.game-card.cue-vice .play-button {
+    background: linear-gradient(135deg, #2ff2e0 0%, #ff9ad0 50%, #ff3fa4 100%);
+    color: #14061e;
+    box-shadow: 0 0 14px rgba(255, 63, 164, 0.55);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

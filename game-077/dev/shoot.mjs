@@ -1,0 +1,27 @@
+// quick: start an episode, drag-shoot the selected teammate with the real mouse, screenshot mid-roll
+import { chromium } from 'playwright';
+import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const PKG = [path.join(HERE, 'package'), path.join(HERE, '../../dev/package')].find((p) => fs.existsSync(p));
+const [ep = '1', dx = '0', dy = '120'] = process.argv.slice(2);
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox'] });
+const page = await (await browser.newContext({ viewport: { width: 1280, height: 720 } })).newPage();
+await page.route('https://unpkg.com/**', (route) => { const rel = new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, ''); route.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(path.join(PKG, rel)) }); });
+await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+page.on('console', (m) => { if (m.type() === 'error') console.log('console', m.text()); });
+page.on('pageerror', (e) => console.log('pageerror', e.message));
+await page.goto(`http://127.0.0.1:8077/game-077/index.html?debug=1`);
+await page.waitForFunction(() => window.__cv && __cv.G.mode === 'title', null, { timeout: 90000 });
+await page.evaluate((ep) => { __cv.start(+ep); __cv.view.vhs = 0; }, ep);
+await page.waitForTimeout(1500);
+const p = await page.evaluate(() => { const b = __cv.W.body(__cv.G.sel); return __cv.view.screenOf(b.x, b.y); });
+await page.mouse.move(p.x, p.y); await page.mouse.down();
+await page.mouse.move(p.x + +dx / 2, p.y + +dy / 2, { steps: 4 }); await page.mouse.move(p.x + +dx, p.y + +dy, { steps: 4 });
+await page.waitForTimeout(800);
+await page.screenshot({ path: path.join(HERE, 'shots', `aim${ep}.png`) });
+await page.mouse.up();
+await page.waitForTimeout(700);
+await page.screenshot({ path: path.join(HERE, 'shots', `roll${ep}.png`) });
+const st = await page.evaluate(() => ({ phase: __cv.W.S.phase, shots: __cv.W.S.stats.shots, pos: __cv.W.crew.map((b) => [b.x.toFixed(2), b.y.toFixed(2)]) }));
+console.log(JSON.stringify(st));
+await browser.close();
