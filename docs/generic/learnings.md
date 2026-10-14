@@ -13,6 +13,7 @@ This document captures the key learnings, patterns, and insights gained from dev
 - [Code Organization](#code-organization)
 - [Testing & Debugging](#testing--debugging)
 - [Game-Specific Insights](#game-specific-insights)
+- [Games 057–076: the shared template, and what broke after release](#games-057076-the-shared-template-and-what-broke-after-release)
 
 ---
 
@@ -5189,6 +5190,84 @@ Phaser caps its frame delta, so under SwiftShader a 4.5 s `time.delayedCall` can
 
 ---
 
+## Games 057–076: the shared template, and what broke after release (2026-10-14)
+
+Twenty games went in between 2026-10-05 and 2026-10-13. Looking at them together: they
+converged on one layout without anyone asking them to, and their patch releases
+fixed the same few kinds of bug again and again. Both are now in the scaffold skill
+([.claude/commands/scaffold-game.md](../../.claude/commands/scaffold-game.md)): the
+layout as Section 2S, the default (its harnesses were run on the untouched
+scaffold, with three.js and with Canvas 2D), and the bugs as the Step 5 checklist.
+This section is the reasoning behind both.
+
+### The layout they converged on
+
+| | What | Why |
+|---|---|---|
+| `js/sim/` | Pure rules: no DOM, renderer, `Math.random`, clock or storage. `newGame(seed)`, `step(G, input, dt)`, `serialize`/`deserialize`, `G.events` | A bot plays the whole game in Node in seconds; a seed replays exactly; saves are a JSON round trip. Every `simtest.mjs` starts with a grep that enforces it |
+| `js/sim/bot.js` | An auto-player that drives the same input as the player | It balances the game, proves it finishable, plays the attract-mode demo, and finds soft-locks (game-061, 062, 066, 069, 073) |
+| `js/view/` | Reads `G`, answers events, never writes `G` | The game runs headless; the view can be rebuilt without touching rules |
+| `js/main.js` | Fixed step (1/120 s), a 50 ms frame cap, `?debug=1` hooks on `window.__xx`, `&fast=N` | Tests under SwiftShader (a few fps) finish in minutes and wait on state, not time |
+| `js/input.js` | Keyboard, gamepad and touch merged into one state, plus a press queue | See the input bugs below |
+| `js/save.js` | Every `localStorage` access guarded; a format version | Blocked storage crashed nine early games at load |
+| `dev/simtest.mjs` | purity · rules · generation over many seeds · determinism · save round trip · bot playthrough · balance table | |
+| `dev/browsertest.mjs` | Desktop flow by real keys and clicks; touch-only phones at 390×844 and 844×390 with real CDP touches; blocked storage; fails on any console error | |
+| `dev/play.mjs`, gallery pages | One screenshot after a snippet; models or sprites on a neutral page | Judging art in the scene hides what the geometry does (game-074) |
+
+Seventeen of the twenty render with three.js r165 from unpkg through an import map;
+game-075 and game-076 use Canvas 2D (075 adds a hand-written WebGL CRT); game-072 is
+an imported single-file build on three.js r128. None used Kaplay or Phaser.
+
+### What broke after release
+
+The fixes that went out as patch versions, grouped. The ones already written up
+elsewhere are linked; the rest are here.
+
+**Input on phones** (the largest group)
+- *The 100vh canvas* (game-058, game-067): see [§ The 100vh canvas bug, a second time](#the-100vh-canvas-bug-a-second-time).
+- *Symptom: on phones, rapid attack taps are ignored, but not on desktop.* A frame shorter than the fixed step runs no sim step, and the loop cleared the frame's presses anyway. High-refresh phones run many such frames. Keep presses (and releases, and look deltas) set until a step has consumed them (game-059 `main.js` `carry`, game-071 v1.0.1). Queue a tap that arrives mid-swing and start it when the swing ends.
+- *Symptom: a menu opens and instantly closes on a phone.* Touch buttons act on finger-down, so the menu opened under a pressed finger; lifting it sent a `click` to the menu's backdrop, which closed it. Ignore pointer clicks (`e.detail > 0`) whose `pointerdown` did not start inside that menu; keyboard clicks (detail 0) still count (game-071 v1.0.3).
+- *Symptom: a right-click on the map opens the game's menu and the browser's.* The game opened its menu on `pointerdown`; on Windows `contextmenu` fires on mouse-up, landed on the new popup and was never cancelled. Open context menus from the `contextmenu` event and `preventDefault()` it, on the popup too (game-076).
+- Menu presses merged at low frame rates, a key that closes a dialogue also opening a shop, the touch deck missing until the first in-game touch, and a scrolled button sitting under the back link: see game-074 and game-073 below.
+
+**Rendering**
+- *NaN pixels through bloom* (game-065, game-074): [§ a box blinks over the scene](#symptom-a-box-blinks-over-the-scene-every-few-seconds-in-a-different-place-each-time--a-nan-pixel-through-bloom), [§ `Color.copy(0xff8800)` is NaN](#symptom-the-frame-goes-black-except-a-strip-of-sky--colorcopy0xff8800-is-nan).
+- *Symptom: barrels, pillars and candles look hollow and see-through.* A shared `Builder.cylinder` wound its wall quads clockwise seen from outside, so three.js culled the outer faces and only the inside of the far wall drew. Wind counter-clockwise from outside (game-071 v1.0.6). When a hand-built mesh looks wrong, try `side: DoubleSide` once: if it fixes it, the winding is backwards.
+- *Symptom: whole buildings slowly roll.* The overworld registered every object with a moving part in `userData` (gear, needle, prop) as a spinner, so the building holding the gear spun with it. Register moving parts explicitly, by kind (game-066 v1.0.2).
+- *Symptom: arriving in a dungeon shows a flat beige screen.* The third-person camera's wall check sampled every 1.6 m and skipped the end point, so a camera just inside a wall was never pulled in. Sample every 0.5 m including the end, and keep the camera 35 cm clear (game-071).
+- *Symptom: cars sink into one side of a banked road and float on the other.* The model rolled by the track's banking with the wrong sign. Pose vehicles from the ground itself: sample the road height under the nose, tail and both sides, and derive pitch and roll from those (game-069 v1.0.1).
+- The drill spinning about the wrong axis (game-073): [threejs-api § Common gotchas](../threejs/threejs-api.md#common-gotchas).
+- Characters and portraits that read wrong (a naked-looking angel, a beard that looked like a huge grin, game-074 and game-073): build a neutral model page and look at every face at the size the player sees it.
+
+**Rules and content**
+- *Symptom: "Take all" freezes the game.* Coins rolled as a loot entry never left the container's list, so the loop never ended. Remove the entry when it is taken, and make every "until empty" loop stop when a pass makes no progress (game-071 v1.0.5).
+- A quest that points at a locked feature, and an empty event page that silently replaces a chest: see game-076.
+
+**Repo**
+- *Five of the twenty were renumbered* after another session's game took their number on main first (062 → 064, 065 → 066, 068 → 069, 069 → 070, 072 → 073). Check `origin/main` and the open branches for the next free number before creating the folder, and when it happens anyway, rename everything in one commit, including the `game-NNN` paths and port numbers inside `dev/`.
+
+### A browser test that checks state passes on a blank screen
+While the Section 2S scaffold was being written, its portrait-phone run passed every check (the player moved, the dash fired, the buttons were 44 px) while the screenshot was empty: the camera had backed off to fit the field into a tall screen, and a fixed `Fog(…, 30, 70)` hid everything past 70 units. Set fog and the far plane from the fitted camera distance, and open the screenshots after every run. game-065's NaN box and game-074's angels were also found by looking, not by asserting.
+
+## Game 057: Hivebreaker — a twin-stick shooter whose bot has a skill dial (2026-10-05)
+
+### A fallible bot is a model of a player, not a slower perfect one
+[game-057/js/sim/bot.js](../../game-057/js/sim/bot.js) takes a `skill` in [0, 1]. At 1 it sees every bullet and aims true. Below 1 it decides *once per bullet*, with its own seeded random, whether it noticed it (a `WeakMap` from bullet to "seen"), adds aim jitter that changes every 0.3 s and scales with `1 − skill`, and rolls away from danger only some of the time. A perfect bot that never dies tells you a level is possible; a skill-0.4 bot that dies a few times in the right places tells you it is fair. The balance table prints both, per sector and difficulty (`BALANCE=1`).
+
+### Two generation rules that keep a swarm moving
+Props keep either no gap or a two-tile gap to walls and to each other: a one-tile or diagonal gap pins the bigger bugs, and a pinned bug is a room that never unseals. And a bug that ends up outside its sealed room crawls back in through a vent, so a room can always be cleared. Both came from the bot getting stuck, not from playtesting.
+
+### Step the sim from the test, and let events flow as usual
+`__hb.advance(sec, input?)` steps the simulation synchronously and then drains its events into the view, sound and HUD the normal way, so a test reaches a boss in one call and the boss's arrival still plays its banner, music and camera. A hook that only moves the sim leaves the screen showing a state that never happened.
+
+## Game 059: Sister Circuit — a beat-'em-up with sprites baked from a rig (2026-10-05)
+
+### Bake sprites to a palette-index atlas, and swap palettes on the GPU
+[game-059/js/art/bake.js](../../game-059/js/art/bake.js) poses a 2D rig for every frame of every animation, rasterises it into an atlas whose red channel is a *palette index*, and ships a 32-entry palette row per character. The sprite shader looks the index up in a palette texture, so a grunt variant, a boss's rage colours or the hero's Overdrive glow is one uniform instead of another atlas, and a palette entry with alpha 255 is emissive (neon, visors) and ignores the stage's tint. The baker is pure JS, so `dev/spritesheet.mjs`, `strip.mjs` and `portraits.mjs` render the same art to PNG in Node for checking without a browser. Per-frame metadata (where the front hand is, at what angle) lets weapons attach to any pose.
+
+### Carry presses to the next sim step
+At 60 Hz steps on a 120 Hz screen every other frame runs no step; a jab pressed in one of those frames was cleared before the sim saw it. `main.js` keeps a `carry` of edges from frames that ran no step and ORs them into the next one. game-071 needed the same fix after release; it is now in the scaffold's input.
+
 ## Game 061: STARWRIGHT — a seeded space sim, balanced by a macro bot (2026-10-05)
 
 ### A macro bot that plays the economy finds design traps a playtest won't
@@ -5274,6 +5353,20 @@ A sandworm circling in real time could not be hit from beyond six yards, because
 
 ### Rendered portraits from the 3D characters
 A second, tiny `WebGLRenderer` on an offscreen 160 px canvas (`preserveDrawingBuffer: true`) renders each speaker's rig head-and-shoulders and caches `canvas.toDataURL()` per speaker × expression. Dialogue portraits then always match the models, with no art files. *(game-063 `js/view/portrait.js`)*
+
+## Game 064: Kraken's Gambit — chess with sea monsters, kept honest by perft (2026-10-06)
+
+### Test the move generator with perft, then let chaos loose on top
+Perft (counting the leaf nodes of the legal-move tree to a fixed depth) on five standard positions proves the move generator exact before anything else is built on it: the start position to depth 4, Kiwipete to depth 3, and three positions full of promotions, en passant and castling traps. Only then do the sea events go in, and the sim test plays 250 random Tempest games (about 35,000 plies) checking after every ply that both kings exist, no pawn sits on rank 1 or 8, the side that just moved is not in check, and each side still has 16 pieces between the board and the Locker.
+
+### One function says how a record moves the pieces, and the view replays it
+`Match.play()` returns records `{ move, event }`; `applyRecord(map, rec)` is the *only* description of how a record moves piece ids around, and the 3D view moves its ships with it. The sim test runs `applyRecord` on a mirror of piece ids for every ply of those 250 games and compares it square by square with the real board, so the fleet on screen can't drift from the game. When a view needs to animate what the sim did, give it a replayable description, not a second implementation.
+
+### Random events need fairness rules, applied to a copy
+Every candidate outcome of a sea event is applied to a copy of the position and rejected if a king is missing, a pawn is on its last rank, the side that just moved is in check (an illegal position), the side to move has no legal move, or the material is a dead draw. Up to ten candidates per event, then the next event type, then calm water. Castling and en passant rights are dropped when an event moves what they depend on. The test also checks that no event ever ends a game by itself.
+
+### Search in a worker, with the clock injected
+The negamax search runs in a module `Worker` (`new Worker(new URL('./aiWorker.js', import.meta.url), { type: 'module' })`) and falls back to the main thread if the worker fails. The search module takes `now` as an option instead of calling `performance.now()`, so it stays pure and the sim test can run it in Node with a fake clock.
 
 ## Game 065: Worldroot — an idle clicker whose progress bar is a tree that really grows (2026-10-06)
 
@@ -5423,6 +5516,36 @@ A 24×15 map fitted into a 390×844 screen leaves tiles about 15 px wide. Turnin
 
 ### Kind words without a wall of words
 Every heal can say something ("We've got you", "Almost there"), but at 3× speed with a dozen stations that is a wall of bubbles. Throttle in two places: the simulation emits at most one `say` event a second of sim time, and the UI shows at most one new word per 0.7 s of real time, never two at once over the same person, and five on screen in all.
+
+## Game 069: Dirt Crown — a racing RPG whose bots found five design bugs (2026-10-07)
+
+The career bot plays the whole game the way a player would: it races each event in its own car, buys the cheapest upgrade it can afford and retries what it loses, and must win the Dirt Crown in under 90 races with no event needing more than 12 tries. What it and the all-bot races found ([game-069/dev/README.md](../../game-069/dev/README.md)):
+
+- **Good suspension swallowed every jump.** Takeoff needed the ground to fall away by more than a threshold that grew with suspension, so a maxed car never flew. Suspension now sets how far the tyres keep biting through small hops and how much a landing costs, not whether you fly.
+- **The terrain sank under banked bends and tabletops.** The ground took the lowest road height of every nearby sample, including ones on the same stretch, so a tabletop's ramps pulled the ground under its top down and the road floated. The lowest-road rule now applies only between different stretches (a figure eight's bridge).
+- **Races were processions.** With equal cars nobody passed. Grids are now seeded slowest-first, blocked drivers commit to a passing side, there is a slipstream, and champions start third with traffic of their own.
+- **Fast cars flew off the ice.** The AI planned corner speeds with the track's base surface. It now plans with the grip under its racing line.
+- **"Rating" flattered an even build.** Opponents all spent their spare levels on the most efficient parts, so a local could match a player rated 80 points higher. Each local now spends them somewhere different.
+
+### Generated tracks need geometric proofs
+For every track in both directions the sim test checks that no bend is tighter than the barrier can follow, separate parts of the loop never come close (bridges excepted, and each figure eight really crosses on a bridge), slopes are climbable, coins sit on the road and the grid is behind the line. `dev/geocheck.mjs` prints each track's tightest bend and closest approach while you design.
+
+## Game 070: PHOSPHOR PATROL — a vector-monitor shooter drawn with one primitive (2026-10-08)
+
+### Everything is a beam
+[game-070/js/view/beams.js](../../game-070/js/view/beams.js) is the only thing the game draws: one instanced mesh where each instance is a line segment of light (two 3D endpoints, a colour, a brightness, a width). The vertex shader projects both ends and builds a screen-space quad around the segment wide enough for the halo; the fragment shader shades by distance to the segment, a white-hot core in a coloured glow; a segment whose ends meet is a dot. With additive blending, crossings add up the way they do on a vector CRT. Ships, text (a stroke font), explosions (the ship's own lines thrown at the glass) and the HUD all go through it, with phosphor persistence and bloom after.
+
+### Let the bot set the boss health
+The first pass let the bot kill the Harvester in five seconds on the easy setting; boss health was doubled. The Overseer's beam sweeps at 0.45 rad/s, slower than the ship can climb out of it at boss range, a number found by watching the bot die to a faster one. Under SwiftShader the screenshots show more phosphor trail than a real GPU, because frames are slower than the decay assumes; `__pp.ff(seconds)` runs the sim ahead when a screenshot needs a fight in progress.
+
+## Game 072: Frosty Fling — an imported single-file game (2026-10-11)
+
+Frosty Fling came in as a zip: a built single-file `index.html` plus readable source in `src/` (an HTML shell and six numbered script parts) and `src/build.sh`, which concatenates them. It is the one game of 057–076 outside the sim/view layout, on three.js r128 as a global script from cdnjs. When importing a game like this:
+
+- Edit `src/`, then run `sh src/build.sh`; an edit to the built `index.html` is lost on the next build. The back link and `../lib/page-audio.js` are in `src/shell.html`, and the build reproduces the committed `index.html` byte for byte (checked 2026-10-14).
+- Its own README suggests `npx serve`; in this repo use `python3 -m http.server` (see the serving gotcha in the scaffold skill).
+- The repo smoke test is the first check. It passes on desktop and a touch-only phone, with and without storage (checked 2026-10-14, with r128 served from `dev/package-r128`). On a 390 px phone the `← Games` link overlaps the title logo; it stays clickable.
+- Without a `dev/` harness, nothing checks it beyond boot and first input.
 
 ## Game 073: RUNEBORE — a story-driven digging game (2026-10-12)
 

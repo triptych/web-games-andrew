@@ -4,7 +4,7 @@ The games in this repo were built in order, and the later ones (037 onward) shar
 
 ## The conventions the later games share
 
-These are the conventions every game from 037 to 057 follows. The audit checked each early game against them. The last column shows where things stood before this pass.
+These are the conventions every game from 037 to 057 followed when this plan was written (2026-10-04), and every game since follows them too, through 076 (except game-072, an imported single-file build with no `dev/` harness or design doc of its own, C8 and C9). The Section 2S template in the [scaffold skill](../.claude/commands/scaffold-game.md) now starts new games with these conventions built in. The audit checked each early game against them. The last column shows where things stood before this pass.
 
 | # | Convention | Where it is written down | Early games that followed it before this pass |
 |---|---|---|---|
