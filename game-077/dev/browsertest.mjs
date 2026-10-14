@@ -289,12 +289,17 @@ async function phone(w, h) {
     await until(page, () => __cv.G.mode === 'play', 'tap Roll Out');
     await page.waitForTimeout(800);
     await shot(page, `phone-${w}-play`);
-    const aim = await dragShoot(page, 10, Math.min(w, h) * 0.25, true);
+    // pull back so Rico rolls north up his pier, whichever way the camera faces:
+    // north is (0, -1) on the floor, so drag along -north in screen pixels
+    const ax = await Q(page, () => __cv.view.screenAxes());
+    const len = Math.min(w, h) * 0.2;
+    const aim = await dragShoot(page, ax.ry * len, -ax.uy * len, true);
     check(aim.on && aim.power > 0.1, `a touch drag aims (power ${aim.power?.toFixed(2)})`);
     await until(page, () => __cv.W.S.stats.shots === 1, 'lifting the finger shoots');
-    const st = await Q(page, () => ({ phase: __cv.W.S.phase, on: !document.querySelector('#b-ability').disabled }));
+    await page.waitForTimeout(300);
+    const st = await Q(page, () => ({ ready: __cv.W.abilityReady(), on: !document.querySelector('#b-ability').disabled }));
     const btnOk = st.on;
-    check(st.on || st.phase !== 'motion', `ABILITY lights up while rolling (${JSON.stringify(st)})`);
+    check(st.on === st.ready, `ABILITY is lit exactly when the ability can fire (${JSON.stringify(st)})`);
     if (btnOk) {
         await page.tap('#b-ability');
         check(await Q(page, () => __cv.W.crew[0].charges === 1), 'tapping ABILITY fires it');
