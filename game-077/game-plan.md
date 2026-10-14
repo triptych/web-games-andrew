@@ -3,7 +3,7 @@
 **Genre:** Stealth tactics × billiards (story campaign)
 **Engine:** three.js r165 (ES modules, import map) — no asset files
 **Target Resolution:** any; the camera fits the map to the window (desktop, tablet, phone in either orientation)
-**Status:** v1.0.0 — complete: ten episodes, seven playable characters, story, upgrades, saves
+**Status:** v1.0.1 — complete: ten episodes, seven playable characters, story, upgrades, saves
 
 ---
 
@@ -178,6 +178,10 @@ All mutable game state is one plain object (`World.S`), so Instant Replay is a `
 ---
 
 ## Changelog
+
+### v1.0.1 (2026-10-14)
+- Warmer music mix: a short snare with a pitched body instead of held noise, a smoothed reverb impulse, quiet hats, rounder bass/lead/bell, darker echoes and a lowpass on the music bus.
+- Cars sit on a soft contact shadow with a pink or teal underglow instead of a hard slab in the paint colour.
 
 ### v1.0.0 (2026-10-14)
 - Ten episodes, seven playable characters, story with painted portraits, garage upgrades, grades and Vice Tapes, Instant Replay, keyboard/gamepad/touch, saves.
