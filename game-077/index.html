@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#14061e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="CUE VICE — Miami, 1986. A stealth game played like pool: pull back, let go, bank your squad of round undercover cops off the walls, knock guards out from behind and sink them in the bay.">
+    <title>CUE VICE</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Yellowtail&family=Russo+One&family=Barlow+Condensed:ital,wght@0,500;0,700;1,500&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="gl" aria-label="CUE VICE game view"></canvas>
+    <div id="scan"></div>
+
+    <!-- ============================== HUD ============================== -->
+    <div id="hud" hidden>
+        <div id="hud-tl">
+            <div id="ep-name"></div>
+            <ul id="objectives"></ul>
+        </div>
+        <div id="hud-tr">
+            <div id="alarm" class="sneak"><span id="alarm-label">INFILTRATION</span><div class="bar"><i></i></div></div>
+            <div id="shots">SHOTS <b id="shot-n">0</b> / PAR <b id="par-n">0</b></div>
+            <div id="tapes-hud"></div>
+        </div>
+        <div id="hint"></div>
+        <div id="hud-bot">
+            <div id="squad"></div>
+            <div id="actions">
+                <button id="b-ability" class="act big" disabled><span class="k">SPACE</span><b>ABILITY</b><small></small></button>
+                <button id="b-wait" class="act"><span class="k">T</span><b>WAIT</b></button>
+                <button id="b-rewind" class="act"><span class="k">R</span><b>REPLAY</b><small></small></button>
+                <button id="b-pause" class="act" aria-label="Pause"><span class="k">P</span><b>❚❚</b></button>
+            </div>
+        </div>
+        <div id="zoom-btns">
+            <button id="b-zin" aria-label="Zoom in">+</button>
+            <button id="b-zout" aria-label="Zoom out">−</button>
+        </div>
+    </div>
+
+    <div id="radio" hidden>
+        <img alt="">
+        <div><div class="who"></div><div class="txt"></div></div>
+    </div>
+    <div id="banner" hidden></div>
+    <div id="toasts"></div>
+
+    <!-- ============================== SCREENS ============================== -->
+    <div id="screens">
+        <section id="s-title" class="screen" hidden>
+            <div class="logo">
+                <div class="logo-cue">CUE</div>
+                <div class="logo-vice">Vice</div>
+                <p class="tag">Miami · 1986 · A bank-shot stealth story</p>
+            </div>
+            <nav class="menu">
+                <button data-act="continue" id="btn-continue">Continue</button>
+                <button data-act="new">New Game</button>
+                <button data-act="episodes">Episodes</button>
+                <button data-act="garage">The Garage</button>
+                <button data-act="dossier">Squad Dossiers</button>
+                <button data-act="howto">How to Play</button>
+                <button data-act="options">Options</button>
+            </nav>
+            <p class="foot keys-only">Mouse: drag back from a teammate and let go · Space for their ability</p>
+            <p class="foot touch-only">Drag back from a teammate and let go · tap for their ability</p>
+        </section>
+
+        <section id="s-episodes" class="screen panel wide" hidden>
+            <h2>Episodes</h2>
+            <div id="ep-list" class="grid"></div>
+            <nav class="menu row"><button data-act="back" class="back">Back</button></nav>
+        </section>
+
+        <section id="s-brief" class="screen panel wide" hidden>
+            <div class="brief-head">
+                <div class="ep-no"></div>
+                <h2 class="ep-title"></h2>
+                <div class="ep-place"></div>
+            </div>
+            <div class="brief-body">
+                <div class="brief-obj">
+                    <h3>The job</h3>
+                    <ul id="brief-objs"></ul>
+                    <p class="par"></p>
+                    <p class="tip"></p>
+                </div>
+                <div class="brief-squad">
+                    <h3>Your squad <span id="squad-count"></span></h3>
+                    <div id="pick" class="pick"></div>
+                </div>
+            </div>
+            <nav class="menu row">
+                <button data-act="back" class="back">Back</button>
+                <button data-act="garage-brief">Garage</button>
+                <button data-act="go" id="btn-go" class="hot">Roll Out</button>
+            </nav>
+        </section>
+
+        <section id="s-garage" class="screen panel wide" hidden>
+            <h2>The Garage</h2>
+            <p class="rep">Rep <b id="rep"></b></p>
+            <div id="garage-list" class="garage"></div>
+            <nav class="menu row"><button data-act="back" class="back">Done</button></nav>
+        </section>
+
+        <section id="s-dossier" class="screen panel wide" hidden>
+            <h2>Squad Dossiers</h2>
+            <div id="dossier-list" class="dossier"></div>
+            <nav class="menu row"><button data-act="back" class="back">Back</button></nav>
+        </section>
+
+        <section id="s-howto" class="screen panel wide" hidden>
+            <h2>How to Play</h2>
+            <div class="howto">
+                <div>
+                    <h3>Line it up</h3>
+                    <p><b>Drag back</b> from a teammate (like a slingshot or a pool cue) and <b>let go</b>. The dotted line shows where they will roll, the ring shows the first ball they will hit and where it will go.</p>
+                    <p>The world is frozen while you aim. <b>Time only moves while something rolls</b>, so every shot is also a move in a game of chess with the guards. <b>WAIT</b> lets time pass without moving.</p>
+                    <h3>Stay out of sight</h3>
+                    <p>White cones are what guards can see. Linger in one and a <b class="y">?</b> grows into a <b class="r">!</b>: the alarm. Out of sight for long enough, they give up, search, then go back to their rounds. Hedges hide you if you stop in them. Hard hits against walls are <b>loud</b>.</p>
+                    <h3>Takedowns</h3>
+                    <p>Hit a guard <b>from behind</b> (or while he is busy) and he goes down. Banks off cushions first score style. Head-on, you need real speed. Knocked-out guards wake up eventually and their friends will notice the body: <b>knock them into the water</b> or a manhole and they are gone for good.</p>
+                </div>
+                <div>
+                    <h3>The squad</h3>
+                    <ul id="howto-crew" class="items"></ul>
+                    <h3>Controls</h3>
+                    <table>
+                        <tr><td>Aim + shoot</td><td>Drag back from a teammate · or ←/→ aim, ↑/↓ power, Space</td></tr>
+                        <tr><td>Ability</td><td>Space / F / click while they roll · ABILITY</td></tr>
+                        <tr><td>Pick teammate</td><td>Click them · 1–4 · Tab</td></tr>
+                        <tr><td>Wait · Replay</td><td>T · R</td></tr>
+                        <tr><td>Camera</td><td>Wheel / pinch zoom · drag empty floor to pan · C reset</td></tr>
+                        <tr><td>Gamepad</td><td>Stick aim · RT/LT power · A shoot/ability · X wait · Y replay · LB/RB teammate</td></tr>
+                    </table>
+                </div>
+            </div>
+            <nav class="menu row"><button data-act="back" class="back">Back</button></nav>
+        </section>
+
+        <section id="s-options" class="screen panel" hidden>
+            <h2>Options</h2>
+            <nav class="menu opts">
+                <button data-act="opt" data-opt="sound">Sound <span></span></button>
+                <button data-act="opt" data-opt="music">Music <span></span></button>
+                <button data-act="opt" data-opt="volume">Volume <span></span></button>
+                <button data-act="opt" data-opt="quality">Graphics <span></span></button>
+                <button data-act="opt" data-opt="shake">Screen shake <span></span></button>
+                <button data-act="opt" data-opt="scanlines">Scanlines <span></span></button>
+                <button data-act="opt" data-opt="patrols">Patrol routes <span></span></button>
+                <button data-act="wipe" class="danger">Erase progress</button>
+                <button data-act="back" class="back">Back</button>
+            </nav>
+        </section>
+
+        <section id="s-story" class="screen story" hidden>
+            <div class="scene-title"></div>
+            <button class="skip" data-act="skip">Skip ▸▸</button>
+            <div class="dialog">
+                <img class="face" alt="">
+                <div class="lines">
+                    <div class="name"></div>
+                    <div class="text"></div>
+                </div>
+                <div class="next">▼</div>
+            </div>
+        </section>
+
+        <section id="s-pause" class="screen panel" hidden>
+            <h2>Paused</h2>
+            <nav class="menu">
+                <button data-act="resume">Resume</button>
+                <button data-act="restart">Restart Episode</button>
+                <button data-act="howto">How to Play</button>
+                <button data-act="options">Options</button>
+                <button data-act="quit">Quit to Title</button>
+            </nav>
+        </section>
+
+        <section id="s-result" class="screen panel" hidden>
+            <h2 class="gold">Case Closed</h2>
+            <div id="grade"></div>
+            <table class="tally" id="tally"></table>
+            <p id="rep-earned"></p>
+            <nav class="menu row">
+                <button data-act="garage-result">Garage</button>
+                <button data-act="next" class="hot" id="btn-next">Next Episode</button>
+            </nav>
+        </section>
+
+        <section id="s-fail" class="screen panel" hidden>
+            <h2 class="red">Busted</h2>
+            <p id="fail-why"></p>
+            <nav class="menu">
+                <button data-act="fail-rewind" id="btn-fail-rewind">Instant Replay</button>
+                <button data-act="restart">Try Again</button>
+                <button data-act="quit">Quit to Title</button>
+            </nav>
+        </section>
+
+        <section id="s-credits" class="screen credits" hidden>
+            <div class="roll">
+                <div class="logo-cue">CUE</div>
+                <div class="logo-vice">Vice</div>
+                <p class="tag">Miami · 1986</p>
+                <p id="final-score"></p>
+                <p>Rico Vega · Lola Reyes · Dr. Marisol Santos · Dex Monroe · Jinx · Big Tito Fuentes · Roxy Starr</p>
+                <p>with Lt. Dana Price · and in memory of Det. Benny Ortiz</p>
+                <p>Every car, palm, face, sign and note was made in code at load.</p>
+                <p class="gold">Rack 'em up.</p>
+            </div>
+            <nav class="menu"><button data-act="title">Home</button></nav>
+        </section>
+
+        <div id="boot">Rolling tape…</div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
