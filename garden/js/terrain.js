@@ -4,7 +4,7 @@
 
 import * as THREE from 'three';
 import { fbm2, ridged2, smoothstep, clamp, lerp } from './util.js';
-import { PLAZA_R, PATH_HALF, PAVILION_PLAZA, projectOnPath } from './layout.js';
+import { PLAZA_R, PATH_HALF, PAVILION_PLAZA, GATE_S, FIRST_STATUE } from './layout.js';
 import { terrainDetail } from './textures.js';
 
 const smin = (a, b, k) => {
@@ -137,12 +137,20 @@ export class Island {
         }
         const { dx, dz } = best;
         const ax = is.x + dx * best.d, az = is.z + dz * best.d;
-        // the trail joins whichever path passes closest
-        const lines = [...L.spokes.map((s) => s.pts), L.dock.pts];
+        // the trail joins the nearest stretch of path with no statues beside it:
+        // anywhere on the dock path, a path just past its gate, or a pavilion plaza's edge
         let join = null;
-        for (const pts of lines) {
-            const p = projectOnPath(pts, ax, az);
-            if (!join || p.d < join.d) join = { ...p, y: samplePathY(pts, p.s) };
+        const consider = (pts, s0, s1) => {
+            for (const p of pts) {
+                if (p.s < s0 || p.s > s1) continue;
+                const d = Math.hypot(p.x - ax, p.z - az);
+                if (!join || d < join.d) join = { x: p.x, z: p.z, d, y: p.y };
+            }
+        };
+        consider(L.dock.pts, 0, Infinity);
+        for (const sp of L.spokes) {
+            consider(sp.pts, GATE_S + 1.5, FIRST_STATUE - 2.5);
+            consider(sp.pts, sp.length - PAVILION_PLAZA, sp.length - PAVILION_PLAZA + 0.5);
         }
         const ay = lowGround(ax, az) + 0.25;
         const pts = [];

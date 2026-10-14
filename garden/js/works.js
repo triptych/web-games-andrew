@@ -19,6 +19,9 @@ const CEIL = 26;
 const WALK_IN = PIT_R + 0.55, WALK_OUT = HALL_R - 1.6;
 const SLOT = TAU / 12;      // the hall is laid out in twelve bays; bay 0 holds the stair door
 
+// the code screens' panels link to the file and line on GitHub
+export const REPO = 'https://github.com/triptych/web-games-andrew';
+
 // garden sources shown on the code screens (fetched from this folder)
 const SOURCES = ['works.js', 'terrain.js', 'controls.js', 'architecture.js', 'statues.js', 'hologram.js', 'music.js', 'vines.js', 'water.js', 'sky.js', 'fox.js'];
 
@@ -592,6 +595,7 @@ export class Works {
         this.screens = [];
         this.emitters = [];
         this.holos = [];
+        this.linkPanels = [];
         this.sources = [];
         this.time = 0;
         this.models = modelLibrary().map((m) => ({ ...m, ...modelEdges(m), game: this._gameFor(m.match) }));
@@ -871,7 +875,57 @@ export class Works {
         mesh.matrix.copy(local);
         this.scene.add(mesh);
         this.screens.push(scr);
+        if (kind === 'code') this._sourcePanel(batch, local, w, h, scr);
         return scr;
+    }
+
+    /** A panel under a code screen: click it to read that file on GitHub. */
+    _sourcePanel(batch, local, w, h, scr) {
+        const ph = Math.max(0.24, h * 0.2), pw = Math.min(w * 0.9, ph * 4.2);
+        const at = under(local, xf(0, -h / 2 - ph / 2 - 0.12, 0.02));
+        batch.add('brass', new THREE.BoxGeometry(pw + 0.08, ph + 0.08, 0.05), under(at, xf(0, 0, -0.03)));
+        const c = canvas(512, 128);
+        const tex = toTexture(c);
+        tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(pw, ph), new THREE.MeshBasicMaterial({ map: tex, color: new THREE.Color(1.2, 1.2, 1.2) }));
+        mesh.matrixAutoUpdate = false;
+        mesh.matrix.copy(at);
+        mesh.userData = { kind: 'source', screen: scr };
+        this.scene.add(mesh);
+        this.linkPanels.push(mesh);
+        scr.panel = { canvas: c, tex, name: null };
+        this._drawPanel(scr);
+    }
+
+    _drawPanel(scr) {
+        const p = scr.panel;
+        const name = scr.state.src?.name || 'garden/js/';
+        if (p.name === name) return;
+        p.name = name;
+        const ctx = p.canvas.getContext('2d');
+        ctx.fillStyle = '#0d1117';
+        ctx.fillRect(0, 0, 512, 128);
+        ctx.strokeStyle = '#3fb950';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(4, 4, 504, 120);
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#f0f6fc';
+        ctx.font = `700 40px ${MONO}`;
+        ctx.fillText('</> View on GitHub \u2197', 22, 42, 470);
+        ctx.fillStyle = '#8b949e';
+        ctx.font = `24px ${MONO}`;
+        ctx.fillText(`${REPO.replace('https://', '')}`, 22, 82, 470);
+        ctx.fillStyle = '#3fb950';
+        ctx.font = `20px ${MONO}`;
+        ctx.fillText(name, 22, 108, 470);
+        p.tex.needsUpdate = true;
+    }
+
+    /** The GitHub address for what a code screen is showing right now. */
+    sourceUrl(scr) {
+        const src = scr.state.src;
+        if (!src || !this.sources.includes(src)) return REPO;
+        return `${REPO}/blob/main/${src.name}#L${scr.state.line + 1}`;
     }
 
     /** A desk of three monitors against the wall, with a big screen above it. */
@@ -1049,7 +1103,8 @@ export class Works {
         // warm light from the stairwell
         const glowMat = new THREE.ShaderMaterial({
             vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-            fragmentShader: 'varying vec2 vUv; void main(){ vec3 c = mix(vec3(1.6, 0.95, 0.45), vec3(0.35, 0.18, 0.08), vUv.y); float steps = step(0.5, fract(vUv.y * 7.0)) * 0.25 * (1.0 - vUv.y); gl_FragColor = vec4(c * (1.0 - steps), 1.0); #include <colorspace_fragment> }',
+            // shape UVs are in metres: 3.5 tall; stair treads climb toward the light
+            fragmentShader: 'varying vec2 vUv; void main(){ float y = clamp(vUv.y / 3.5, 0.0, 1.0); vec3 c = mix(vec3(0.22, 0.11, 0.05), vec3(1.25, 0.78, 0.38), y * y); float tread = smoothstep(0.42, 0.5, fract(y * 9.0)) * (1.0 - y) * 0.6; gl_FragColor = vec4(c * (1.0 - tread), 1.0);\n#include <colorspace_fragment>\n}',
         });
         const glow = new THREE.Mesh(new THREE.ShapeGeometry(outer(1.25, 3.5, new THREE.Shape()), 16), glowMat);
         glow.position.set(0, 0, z - 0.1);
@@ -1186,6 +1241,7 @@ export class Works {
                 ctx.fillStyle = theme.fg;
                 ctx.fillRect(gutter + 8, 26 + (rows - 1) * lh, cw, lh - 3);
             }
+            if (scr.panel) this._drawPanel(scr);
         } else if (scr.kind === 'game') {
             if (!st.game || t > st.until) {
                 st.game = env.games[Math.floor(scr.r() * env.games.length)];

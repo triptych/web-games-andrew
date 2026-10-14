@@ -267,8 +267,30 @@ async function desktop() {
     await page.keyboard.up('w');
     const wz1 = await page.evaluate(() => window.__garden.controls.pos.z);
     check(wz1 < wz0 - 1, 'you can walk around the Works');
+    // the panel under a code screen opens that file on GitHub
     await page.evaluate(() => {
         const g = window.__garden;
+        const m = g.works.linkPanels[0].matrixWorld.elements;
+        const nx = m[8], nz = m[10], l = Math.hypot(nx, nz);
+        const x = m[12] + (nx / l) * 2.2, z = m[14] + (nz / l) * 2.2;
+        g.controls.teleport(x, z, Math.atan2(nx, nz));
+        g.controls.pitch = Math.atan2(m[13] - 1.65, 2.2);
+    });
+    await frames(page, 4);
+    const panelAt = await page.evaluate(() => {
+        const g = window.__garden;
+        const v = new g.camera.position.constructor().setFromMatrixPosition(g.works.linkPanels[0].matrixWorld).project(g.camera);
+        return { x: ((v.x + 1) / 2) * innerWidth, y: ((1 - v.y) / 2) * innerHeight };
+    });
+    await ctx.route('https://github.com/**', (route) => route.fulfill({ status: 200, contentType: 'text/html', body: '<title>GitHub</title>' }));
+    const [gh] = await Promise.all([ctx.waitForEvent('page', { timeout: 10000 }), page.mouse.click(panelAt.x, panelAt.y)]);
+    await gh.waitForLoadState('domcontentloaded').catch(() => {});
+    check(gh.url().startsWith('https://github.com/triptych/web-games-andrew'), `the panel under a code screen opens the source on GitHub (${gh.url().replace('https://github.com/', '')})`);
+    await gh.close();
+    await shot(page, 'd8e-github-panel');
+    await page.evaluate(() => {
+        const g = window.__garden;
+        g.controls.teleport(0, 24, 0);
         g.controls.walkTo([{ x: g.works.exit.x, z: g.works.exit.z }]);
     });
     await page.waitForFunction(() => !window.__garden.below, null, { timeout: 120000 });

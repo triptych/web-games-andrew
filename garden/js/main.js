@@ -488,8 +488,11 @@ async function boot() {
     function pickBelow(cx, cy) {
         ndc.set((cx / innerWidth) * 2 - 1, -(cy / innerHeight) * 2 + 1);
         ray.setFromCamera(ndc, camera);
-        const hit = ray.intersectObject(works.doorMesh, false)[0];
-        if (hit && hit.distance < 40) return { type: 'door', t: hit.distance };
+        const hit = ray.intersectObjects([works.doorMesh, ...works.linkPanels], false)[0];
+        if (hit && hit.distance < 40) {
+            if (hit.object.userData.kind === 'source') return hit.distance < 14 ? { type: 'source', url: works.sourceUrl(hit.object.userData.screen), t: hit.distance } : null;
+            return { type: 'door', t: hit.distance };
+        }
         const o = ray.ray.origin, d = ray.ray.direction;
         if (d.y >= -1e-4) return null;
         const t = -o.y / d.y;
@@ -574,7 +577,11 @@ async function boot() {
         if (ui.blocking) return;
         if (below) {
             const h = pickBelow(x, y);
-            if (h?.type === 'door') controls.walkTo([{ x: works.exit.x, z: works.exit.z }]);
+            if (h?.type === 'source') {
+                // a real new tab, opened inside the click so popup blockers allow it
+                window.open(h.url, '_blank', 'noopener');
+                audio.click();
+            } else if (h?.type === 'door') controls.walkTo([{ x: works.exit.x, z: works.exit.z }]);
             else if (h && h.t < 60) {
                 ui.marker(x, y);
                 controls.walkTo([{ x: h.point.x, z: h.point.z }]);
@@ -745,6 +752,11 @@ async function boot() {
             const hisses = works.update(dt, t, controls.pos, renderer.domElement.height);
             for (const v of hisses) audio.hiss(v);
             audio.update(night, -100);
+            // the pointer shows a hand over the GitHub panels and the stair door
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved) {
+                const h = pickBelow(mouse.x, mouse.y);
+                document.body.classList.toggle('can-hover-pick', h?.type === 'source' || h?.type === 'door');
+            }
         } else {
             water.update(t);
             windUniforms.uWindTime.value = t;
