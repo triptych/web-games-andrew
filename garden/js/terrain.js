@@ -4,7 +4,7 @@
 
 import * as THREE from 'three';
 import { fbm2, ridged2, smoothstep, clamp, lerp } from './util.js';
-import { PLAZA_R, PATH_HALF, PAVILION_PLAZA } from './layout.js';
+import { PLAZA_R, PATH_HALF, PAVILION_PLAZA, GATE_S, FIRST_STATUE } from './layout.js';
 import { terrainDetail } from './textures.js';
 
 const smin = (a, b, k) => {
@@ -22,6 +22,7 @@ function segDist(px, pz, ax, az, bx, bz) {
 /** Low-frequency ground level that paths follow. */
 export const lowGround = (x, z) => 3.6 + 1.5 * fbm2(x * 0.011 + 3.1, z * 0.011 - 7.3, 2);
 export const HUB_Y = lowGround(0, 0) + 0.3;
+const ISLET_R = 11;
 
 /** Uniform-grid index of line segments for nearest-path queries. */
 class SegmentGrid {
@@ -85,6 +86,13 @@ export class Island {
             this.capsules.push({ ax: f.x, az: f.z, bx: f.x, bz: f.z, ra: r, rb: 0 });
         }
 
+        // the clock-tower islet: out past the shore on the dock side
+        const a = (Math.PI / L.slots) * 0.75;
+        let r = L.hubR;
+        while (this.coast(Math.sin(a) * r, Math.cos(a) * r) < ISLET_R + 13 && r < 400) r += 2;
+        L.islet = { x: Math.sin(a) * r, z: Math.cos(a) * r, r: ISLET_R };
+        this._isletCrossing();
+
         // fine segments for flattening, carrying their heights
         this.paths = new SegmentGrid(12);
         const addLine = (pts, stride) => {
@@ -95,6 +103,7 @@ export class Island {
         };
         for (const sp of L.spokes) addLine(sp.pts, 3);
         addLine(L.dock.pts, 3);
+        addLine(L.trail.pts, 3);
 
         this.plazas = [{ x: 0, z: 0, r: PLAZA_R + 0.5, y: HUB_Y, fall: 9 }];
         for (const sp of L.spokes) this.plazas.push({ x: sp.pavilion.x, z: sp.pavilion.z, r: PAVILION_PLAZA + 0.3, y: sp.pavilion.y, fall: 7 });
@@ -104,12 +113,60 @@ export class Island {
         for (const f of L.features) {
             if (f.type === 'fountain') this.plazas.push({ x: f.x, z: f.z, r: 6.5, y: lowGround(f.x, f.z) + 0.3, fall: 6 });
         }
+        this.plazas.push({ x: L.islet.x, z: L.islet.z, r: 6.2, y: L.islet.y, fall: 2.5 });
 
-        // the clock-tower islet: out past the shore on the dock side
-        const a = (Math.PI / L.slots) * 0.75;
-        let r = L.hubR;
-        while (this.coast(Math.sin(a) * r, Math.cos(a) * r) < 22 && r < 400) r += 2;
-        L.islet = { x: Math.sin(a) * r, z: Math.cos(a) * r, r: 7 };
+    }
+
+    /**
+     * A trail from the nearest garden path to the shore facing the islet, and
+     * a stone bridge from there over the strait to the islet's flat top.
+     */
+    _isletCrossing() {
+        const L = this.layout, is = L.islet;
+        const toHub = Math.atan2(-is.x, -is.z);
+        // the shortest way back to solid ground, roughly toward the hub
+        let best = null;
+        for (let th = toHub - 1.3; th <= toHub + 1.3; th += 0.04) {
+            const dx = Math.sin(th), dz = Math.cos(th);
+            for (let d = is.r; d < 80; d += 0.5) {
+                if (this.coast(is.x + dx * d, is.z + dz * d) < -8) {
+                    if (!best || d < best.d) best = { d, dx, dz };
+                    break;
+                }
+            }
+        }
+        const { dx, dz } = best;
+        const ax = is.x + dx * best.d, az = is.z + dz * best.d;
+        // the trail joins the nearest stretch of path with no statues beside it:
+        // anywhere on the dock path, a path just past its gate, or a pavilion plaza's edge
+        let join = null;
+        const consider = (pts, s0, s1) => {
+            for (const p of pts) {
+                if (p.s < s0 || p.s > s1) continue;
+                const d = Math.hypot(p.x - ax, p.z - az);
+                if (!join || d < join.d) join = { x: p.x, z: p.z, d, y: p.y };
+            }
+        };
+        consider(L.dock.pts, 0, Infinity);
+        for (const sp of L.spokes) {
+            consider(sp.pts, GATE_S + 1.5, FIRST_STATUE - 2.5);
+            consider(sp.pts, sp.length - PAVILION_PLAZA, sp.length - PAVILION_PLAZA + 0.5);
+        }
+        const ay = lowGround(ax, az) + 0.25;
+        const pts = [];
+        const len = join.d;
+        for (let s = 0; s <= len + 0.01; s += 0.5) {
+            const t = Math.min(1, s / len);
+            pts.push({ x: lerp(join.x, ax, t), z: lerp(join.z, az, t), s, y: lerp(join.y, ay, smoothstep(0, 1, t)) });
+        }
+        L.trail = { pts, length: len };
+        this.capsules.push({ ax: join.x, az: join.z, bx: ax, bz: az, ra: 5, rb: 5 });
+
+        // the islet's top is levelled a little above the bridge's landing
+        is.y = ay + 0.6;
+        is.dir = { x: dx, z: dz }; // from the islet toward the bridge
+        const bx = is.x + dx * 4.6, bz = is.z + dz * 4.6;
+        L.bridge = { ax, az, ay, bx, bz, by: is.y, half: 1.25, arch: 1.4, length: Math.hypot(bx - ax, bz - az) };
     }
 
     /** Coastline distance without the islet (negative on land). */
@@ -126,10 +183,16 @@ export class Island {
         return d;
     }
 
+    /** Coastline distance of the islet alone. */
+    isletSdf(x, z) {
+        const is = this.layout.islet;
+        return Math.hypot(x - is.x, z - is.z) - is.r + fbm2(x * 0.2, z * 0.2) * 1.2;
+    }
+
     sdfAt(x, z) {
         const L = this.layout;
         let d = this.coast(x, z);
-        if (L.islet) d = Math.min(d, Math.hypot(x - L.islet.x, z - L.islet.z) - L.islet.r + fbm2(x * 0.2, z * 0.2) * 1.2);
+        if (L.islet) d = Math.min(d, this.isletSdf(x, z));
         return d;
     }
 
@@ -156,9 +219,11 @@ export class Island {
         for (const m of this.mounds) land += m.h * Math.exp(-((x - m.x) ** 2 + (z - m.z) ** 2) / (m.r * m.r));
         const f = this.flatten(x, z);
         land = lerp(land, f.y, f.w);
-        // granite cliffs drop into the sea
+        // granite cliffs drop into the sea; the islet's are sheer, to leave
+        // its top flat enough for the tower
         const rough = ridged2(x * 0.12, z * 0.12, 3);
-        const cliff = smoothstep(-7, 0.6, sdf + rough * 2.2);
+        const islet = this.layout.islet && this.isletSdf(x, z) <= sdf;
+        const cliff = islet ? smoothstep(-2.8, 0.6, sdf + rough * 0.8) : smoothstep(-7, 0.6, sdf + rough * 2.2);
         const sea = -1.6 - Math.max(sdf, 0) * 0.32 - rough * 1.2;
         let h = lerp(land, Math.max(sea, -15), Math.pow(cliff, 1.4));
         if (sdf > -1 && sdf < 6) h -= rough * 0.6; // tumbled rock at the waterline

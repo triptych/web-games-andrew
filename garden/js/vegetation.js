@@ -194,6 +194,12 @@ function clearOf(world, x, z, extra = 0) {
     }
     if (Math.abs(x) < 6 && z > layout.dock.start - 4 && z < layout.dock.end + 4) return false;
     if (island.pathDistAt(x, z) < PATH_HALF + 5.2 + extra) return false;
+    // the clock tower's plateau and the bridge out to it
+    const is = layout.islet, b = layout.bridge;
+    if (Math.hypot(x - is.x, z - is.z) < 6.2 + extra) return false;
+    const bdx = b.bx - b.ax, bdz = b.bz - b.az;
+    const t = clamp(((x - b.ax) * bdx + (z - b.az) * bdz) / (bdx * bdx + bdz * bdz), 0, 1);
+    if (Math.hypot(x - b.ax - bdx * t, z - b.az - bdz * t) < b.half + 3 + extra) return false;
     return true;
 }
 
@@ -241,9 +247,11 @@ function scatterTrees(world) {
     }
     // pines on the islet
     const is = layout.islet;
-    for (let k = 0; k < 4; k++) {
-        const a = k * 1.7 + 0.4;
-        trees.push({ x: is.x + Math.sin(a) * 4.4, z: is.z + Math.cos(a) * 4.4, kind: 'pine', s: 0.6 + k * 0.08, rot: a, v: k % 3 });
+    // (around the rim, leaving the bridge end clear)
+    const toBridge = Math.atan2(is.dir.x, is.dir.z);
+    for (let k = 0; k < 5; k++) {
+        const a = toBridge + 1.0 + k * 1.07;
+        trees.push({ x: is.x + Math.sin(a) * 6.6, z: is.z + Math.cos(a) * 6.6, kind: 'pine', s: 0.6 + k * 0.07, rot: a, v: k % 3 });
     }
     return trees;
 }
