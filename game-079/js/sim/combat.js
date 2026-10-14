@@ -36,7 +36,7 @@ export function hurtPlayer(G, dmg, fx, fz, src = 'enemy') {
     const p = G.player;
     if (p.dead || G.phase !== 'play') return;
     dmg *= G.diff.dmg;
-    if (G.god) dmg = 0;
+    if (G.god || dmg <= 0) return;
     const absorb = Math.min(p.armor, dmg * PLAYER.armorAbsorb);
     p.armor -= absorb;
     p.hp -= dmg - absorb;
@@ -68,7 +68,7 @@ export function damageEnemy(G, e, dmg, opts = {}) {
     e.lastHitBy = opts.src;
     G.tally.dealt += dmg;
     if (opts.gun?.vamp && opts.src === 'p') healPlayer(G, dmg * opts.gun.vamp, false);
-    ev(G, 'hit', { id: e.id, x: e.x, y: e.y + e.h * 0.6, z: e.z, dmg: Math.round(dmg), element: opts.element || null, kick: !!opts.kick });
+    ev(G, 'hit', { id: e.id, x: e.x, y: e.y + e.h * 0.6, z: e.z, dmg: Math.round(dmg), element: opts.element || null, kick: !!opts.kick, dot: !!opts.dot });
     if (opts.src === 'p' || opts.src === 'boom') alert(G, e);
     // elements
     const el = opts.element;

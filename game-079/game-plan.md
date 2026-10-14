@@ -63,12 +63,12 @@ A gun is a plain object rolled from a seed: an **archetype**, a **maker**, a **r
 
 Names: `[element or part prefix] [maker] [noun] [Mk. roman]`, e.g. *Searing Kane & Sons Boomstick Mk.III*.
 
-You start with **the Boot** (kick, always there) and **Ironjaw's Last Word**'s little brother, a common Hand Cannon. The legendary shotgun itself waits at the end of level 1.
+You start with **the Boot** (kick, always there) and **Dad's Spare Hand Cannon**, which never runs dry and rides outside the four swappable slots, so you can never end up with nothing to shoot (key 1; guns 2–5). The legendary shotgun, Ironjaw's Last Word, waits in the exit room of level 1.
 
 ### Kick, pipe bombs, Fury
 - **Kick** (V / right mouse): 40 damage in a 2.2 m cone, a big knockback, shatters frozen enemies. 0.55 s cooldown.
 - **Pipe bombs** (G): carry up to 5; thrown at 14 m/s, bounce, explode after 2.2 s (110 damage, 5 m). Enemies drop them.
-- **Fury** (0–100): +8 a kill, +6 for a gib, +4 per combo step. **OVERDRIVE** (F) when full: 8 s in which enemies and their shots move at 35% speed, your damage is ×1.5 and every kill heals 8.
+- **Fury** (0–100): +4 a kill, +3 for a gib, +2 per combo step. **OVERDRIVE** (F) when full: 8 s in which enemies and their shots move at 35% speed, your damage is ×1.5 and every kill heals 5 (up to 100).
 
 ### Combos and style
 Kills within 2.5 s of each other chain. 2: DOUBLE KILL, 3: TRIPLE KILL, 4: MEGA KILL, 6: RAMPAGE, 8: TOTALLY RADICAL, 12: UNSTOPPABLE. Style score = kills × combo multiplier, with bonuses for gibs, kicks and kills in the air.
@@ -86,7 +86,7 @@ Roxy's **one-liners** (an original set of about 40) fire on level starts, multi-
 | **Brainstalker** | 110 | 3.5 | Exposed brain on stilts; teleports when hurt, homing psi orbs |
 | **Octotank** | 420 | 2.6 | Tentacles on treads; rocket volleys with splash, armoured |
 
-AI: idle until it sees you (in range, line of sight) or hears a gun within 26 m; alerted enemies wake neighbours within 10 m. With line of sight they keep a preferred distance and strafe, without it they follow a breadth-first flow field from your cell (walkers obey step heights, drones don't). Every attack has a wind-up you can see (eyes flare) and hear. Hits stagger with a chance per type.
+AI: idle until it sees you (in range, line of sight, and in front of it or within 8 m) or hears a gun within 20 m. **Attack tokens:** only 3/4/5 enemies (by difficulty) may wind up or fire at once, so a crowd is a fight rather than a firing squad. With line of sight they keep a preferred distance and strafe, without it they follow a breadth-first flow field from your cell (walkers obey step heights, drones don't). Every attack has a wind-up you can see (eyes flare) and hear. Hits stagger with a chance per type.
 
 Difficulty: *Babysitter* (enemy damage ×0.55, 75% of the enemies), *Tough Cookie* (×1), *Total Carnage* (×1.45, 125%).
 
@@ -94,11 +94,11 @@ Difficulty: *Babysitter* (enemy damage ×0.55, 75% of the enemies), *Tough Cooki
 
 | Level | Boss | HP | Attacks |
 |---|---|---|---|
-| 2 | **Queen Chompra** | 2400 | Leap slam with a shockwave you can jump; spawns chomper broods; spit fans |
-| 4 | **Warlord Vrask, the Gilded Butcher** | 4200 | Golden arm cannon bursts, rocket barrage, jetpack hop across the arena, ground pound; at half health he stops talking |
-| 5 | **Major Dell Rourke, the Traitor King** | 6500 | Fused to the mothership's brain. Phase 1: orb rings and homing missiles. Phase 2 (⅔): shields up, kill the 4 pylons. Phase 3 (⅓): a sweeping beam you jump or duck behind cover for, and summons |
+| 2 | **Queen Chompra** | 3000 | Leap slam with a shockwave you can jump; spawns chomper broods; spit fans |
+| 4 | **Warlord Vrask, the Gilded Butcher** | 4600 | Golden arm cannon bursts, rocket barrage, jetpack hop across the arena, ground pound; at half health he stops talking |
+| 5 | **Major Dell Rourke, the Traitor King** | 6000 | Fused to the mothership's brain. Phase 1: orb rings and homing missiles. Phase 2 (⅔): shields up, kill the 4 pylons. Phase 3 (⅓): a sweeping beam you jump or duck behind cover for, and summons |
 
-Levels 1 and 3 end in an **ambush**: walking into the exit room locks it until the wave is dead.
+Levels 1 and 3 end in an **ambush**: walking into the exit room locks it until the wave is dead (ambushers who lose you for 8 s come back through the walls). Boss fights get a **supply drop** every 15 s.
 
 ### Levels (`js/sim/level.js`)
 A level is a grid of 3 m cells (48 × 48 to 60 × 60, so up to 180 m across). Each open cell has a floor height, a ceiling height (or open sky), a material, and flags (liquid, door, key colour, exit).
@@ -146,7 +146,7 @@ The fifteen VHS tapes (three per level) are Benny's helmet-cam recordings plus a
 | Kick | V / right mouse | B | KICK |
 | Reload | R | X | ⟲ |
 | Use / swap gun | E | X (near a gun) | SWAP (appears near a gun) |
-| Weapon | 1–4, Q (last), wheel | Y (next) | ⇄ |
+| Weapon | 1–5, Q (last), wheel | Y (next) | ⇄ |
 | Pipe bomb | G | LB | 💣 |
 | Overdrive | F | RB | OVERDRIVE (when full) |
 | Pause | Esc / P | Start | ❚❚ |
@@ -201,7 +201,19 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, the level gener
 
 ## Balance notes
 
-See the bottom of this file; filled in from the bot's tables.
+Every number below came from the bot table (`ONLY=bot SEEDS=6 node game-079/dev/simtest.mjs`), at Tough Cookie:
+
+| Change | Why the bot asked for it |
+|---|---|
+| Fury gains halved; the Overdrive heal capped at 100 | Overdrive fired seven times in 40 s and the bot sat at 200 HP all level |
+| The starter pistol never runs dry, rides outside the slots | Every gun at 0/0 before Queen Chompra; later, the bot traded the pistol away and ran dry fighting Vrask |
+| Ammo drops for a gun you carry (not the pistol), 38% of kills | Ammo starvation from level 2 on |
+| About a third fewer enemies (rooms at area/24, patrols at /75), HP +10% a level instead of +15% | ~110 enemies a level, and the Mothership killed the bot within 10 s of spawning |
+| Attack tokens; wider enemy spread and a random lead; idle enemies see only in front | 180–650 damage in 4 s from everything shooting at once |
+| Boss HP 3000 / 4600 / 6000, plus supply drops | First drafts melted in 16 s with good guns and were unwinnable with bad ones |
+| A breather of 9 cells round the start; a lighter Throne roster | The small last level woke ten drones at once |
+
+Result (6 seeds): the skill-1 bot wins every campaign with 0–6 deaths (3 on average); the skill-0.6 bot wins every one with 1–10 (6 on average). A bot clears a level in 1–3 minutes by rushing the objective and killing 50–90% of the enemies; a person exploring for tapes and guns takes several times that. The bot is a better shot than a person and a worse tactician: it never retreats round a corner. Treat its death count as a floor.
 
 ## Open questions / next steps
 
@@ -212,3 +224,4 @@ See the bottom of this file; filled in from the bot's tables.
 
 ### v1.0.0 (2026-10-14)
 - First release: five generated levels, seven gun archetypes rolled with makers, rarities, parts and elements, six enemies and three bosses, kick, pipe bombs, jetpack, Fury and Overdrive, combos and one-liners, fifteen VHS tapes, synthwave music, desktop, gamepad and touch controls.
+- Tested by `dev/simtest.mjs` (the bot plays the campaign at two skills) and `dev/browsertest.mjs` (desktop, touch-only phones both ways, blocked storage); models judged on `dev/models.html`.

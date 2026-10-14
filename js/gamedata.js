@@ -1176,6 +1176,22 @@ const games = [
             { emoji: '\uD83C\uDF84', label: 'Christmas' },
             { emoji: '\uD83D\uDD8C\uFE0F', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-079',
+        title: 'VENDETTA OVERDRIVE',
+        description: "An 80s action-movie revenge shooter in the spirit of Duke Nukem 3D, in three.js with no asset files. Neo Angeles, 1987: the Xerxid Hegemony burned the Sunset Strip, and Colonel Jack \"Ironjaw\" Kane died holding it. His daughter Roxy picks up his shotgun and goes through every alien between her and the mothership to find out who killed him. Five procedurally generated levels (neon city streets, a dead shopping mall, hive sewers, the mothership and the brain core) with keycard doors, ambushes and three bosses. Every gun is rolled from a seed: seven archetypes from hand cannons to disc slingers and tesla coils, five makers, rarities from Common to Legendary, parts and fire, shock, cryo and acid elements, with a stat card to compare and a loot beam on the floor. Kick, pipe bombs, a jetpack, combos and one-liners, and a Fury bar for OVERDRIVE: eight seconds of slow motion in which every kill heals you. Fifteen VHS tapes tell the story of what really happened to Jack. Procedural GLSL textures, baked neon lighting, bloom and a VHS filter, gibs that bounce, and a synthwave score; mouse and keyboard, gamepad or touch.",
+        icon: '\uD83D\uDCA5',
+        folder: 'game-079',
+        version: '1.0.0',
+        cssClass: 'vendetta-overdrive',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83D\uDD2B', label: 'FPS' },
+            { emoji: '\uD83C\uDF06', label: '80s action' },
+            { emoji: '\uD83C\uDFB2', label: 'Procedural guns' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

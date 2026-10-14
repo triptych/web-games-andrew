@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VENDETTA OVERDRIVE — model gallery</title>
+<style>
+    html, body { margin: 0; background: #6a6a72; overflow: hidden; font: 13px system-ui, sans-serif; color: #fff; }
+    canvas { display: block; }
+    #labels div { position: fixed; transform: translateX(-50%); text-shadow: 0 1px 2px #000; white-space: nowrap; }
+    #ctl { position: fixed; left: 8px; top: 8px; background: rgba(0,0,0,0.5); padding: 6px 10px; border-radius: 6px; }
+</style>
+</head>
+<body>
+<div id="ctl">Model gallery: neutral light, no bloom. <b>?row=enemies|bosses|guns</b> · drag to orbit</div>
+<div id="labels"></div>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { buildModel, animate } from '../js/view/models.js';
+import { buildGun } from '../js/view/guns.js';
+import { SU } from '../js/view/shaderlib.js';
+import { genWeapon, legendary, starterGun, ARCH_IDS } from '../js/sim/weapons.js';
+
+// a neutral grey lightmap so the patched actor shader has something sensible to read
+const lm = new THREE.DataTexture(new Uint8Array([40, 40, 40, 255]), 1, 1); lm.needsUpdate = true;
+SU.uLM.value = lm; SU.uAmbient.value.setRGB(0.05, 0.05, 0.05);
+
+const row = new URLSearchParams(location.search).get('row') || 'enemies';
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x6a6a72);
+const pm = new THREE.PMREMGenerator(renderer);
+scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x404048, 1.2));
+const sun = new THREE.DirectionalLight(0xffffff, 2); sun.position.set(3, 6, 4); scene.add(sun);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 20), new THREE.MeshStandardMaterial({ color: 0x8a8a90 }));
+floor.rotation.x = -Math.PI / 2; if (new URLSearchParams(location.search).get('row') !== 'guns') scene.add(floor);
+const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.05, 200);
+
+const items = [];
+const labels = document.getElementById('labels');
+let x = 0, span = 0;
+function place(obj, w, label) {
+    obj.position.x = x + w / 2;
+    scene.add(obj);
+    items.push({ obj, label, w, x: x + w / 2 });
+    x += w + 0.6;
+}
+if (row === 'enemies' || row === 'bosses') {
+    const types = row === 'enemies' ? ['chomper', 'trooper', 'drone', 'psy', 'brute', 'tank'] : ['chompra', 'vrask', 'rourke', 'pylon'];
+    for (const t of types) {
+        const m = buildModel(t);
+        const fake = { x: 0, y: t === 'drone' ? 1.2 : t === 'rourke' ? 3 : 0, z: 0, yaw: Math.PI, vx: 0, vz: 0, frozen: 0, burn: 0, windupT: 0, state: 'move', boss: t === 'rourke' ? 'rourke' : null };
+        const w = { chomper: 1.2, trooper: 1.2, drone: 1.2, psy: 1.8, brute: 2.2, tank: 2.6, chompra: 4.4, vrask: 2.2, rourke: 6, pylon: 2 }[t];
+        const g = new THREE.Group(); g.add(m.root);
+        place(g, w, t);
+        g.position.x = 0;            // animate() places the root itself
+        m.fake = fake;
+        items[items.length - 1].model = m;
+    }
+} else {
+    const guns = [starterGun(), legendary('lastword', 0), legendary('mixtape', 1), legendary('requiem', 4), legendary('bertha', 3)];
+    ARCH_IDS.forEach((a, k) => guns.push(genWeapon(100 + k, { arch: a, rarity: k % 5, level: 2 })));
+    guns.forEach((g, k) => {
+        const m = buildGun(g);
+        m.root.rotation.y = Math.PI / 2;          // barrel to the right
+        const grp = new THREE.Group(); grp.add(m.root);
+        const cx = (k % 4) * 1.4, cy = 1.9 - Math.floor(k / 4) * 0.55;
+        grp.position.set(cx + 0.3, cy, 0);
+        scene.add(grp);
+        items.push({ obj: grp, label: g.name.replace(/ Mk\..*/, ''), x: cx + 0.3, y: cy - 0.2 });
+    });
+    x = 4 * 1.4 - 0.4;
+}
+span = x;
+const h = row === 'bosses' ? 6 : row === 'guns' ? 1.2 : 2.6;
+let az = 0, drag = null;
+addEventListener('pointerdown', (e) => { drag = e.clientX; });
+addEventListener('pointerup', () => { drag = null; });
+addEventListener('pointermove', (e) => { if (drag !== null) { az += (e.clientX - drag) * 0.005; drag = e.clientX; } });
+function frame(t) {
+    requestAnimationFrame(frame);
+    const dist = row === 'guns' ? 4.6 : Math.max(span * 0.8, h * 2.2);
+    const ly = row === 'guns' ? 1.35 : h * 0.45;
+    camera.position.set(span / 2 + Math.sin(az) * dist, row === 'guns' ? 1.6 : h * 0.9, Math.cos(az) * dist);
+    camera.lookAt(span / 2, ly, 0);
+    for (const it of items) if (it.model) { it.model.fake.x = it.x; animate(it.model, it.model.fake, 0.016, t / 1000); }
+    renderer.render(scene, camera);
+    labels.innerHTML = items.map((it) => {
+        const v = new THREE.Vector3(it.x, it.y ?? -0.1, 0).project(camera);
+        return `<div style="left:${(v.x * 0.5 + 0.5) * innerWidth}px;top:${(-v.y * 0.5 + 0.5) * innerHeight + 6}px">${it.label}</div>`;
+    }).join('');
+}
+requestAnimationFrame(frame);
+window.__ready = true;
+</script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#120a1e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="VENDETTA OVERDRIVE — an 80s action-movie revenge FPS. Roxy Kane tears through an alien invasion of Neo Angeles with procedurally generated guns to find the alien who killed her father.">
+    <title>VENDETTA OVERDRIVE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=VT323&display=swap">
+    <script src="../lib/page-audio.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="VENDETTA OVERDRIVE game view"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" hidden>
+        <div id="objective"><span id="obj-arrow">▲</span><span id="obj-text"></span><span id="obj-dist"></span></div>
+        <div id="boss" hidden><div id="boss-name"></div><div class="bar"><div id="boss-fill"></div></div></div>
+        <div id="crosshair"><i></i><i></i><i></i><i></i><b id="hitmark"></b></div>
+        <div id="dmg-dir"></div>
+        <div id="combo"></div>
+        <div id="subtitle"></div>
+        <div id="feed"></div>
+        <div id="hud-bl">
+            <div class="stat"><span class="ico">✚</span><span id="hp">100</span></div>
+            <div class="stat armor"><span class="ico">⛨</span><span id="armor">0</span></div>
+            <div id="fuel"><div id="fuel-fill"></div></div>
+            <div id="keys"></div>
+        </div>
+        <div id="hud-br">
+            <div id="gun-name"></div>
+            <div class="ammo"><span id="clip">0</span><span class="sep">/</span><span id="reserve">0</span></div>
+            <div id="bombs"></div>
+            <div id="slots"></div>
+        </div>
+        <div id="fury"><div id="fury-fill"></div><span id="fury-label">FURY</span></div>
+        <div id="gun-card" hidden></div>
+        <div id="tape-panel" hidden><div class="rec">● PLAY ▶</div><div id="tape-title"></div><div id="tape-text"></div></div>
+        <div id="tapes-hud"></div>
+    </div>
+
+    <!-- Touch deck: shown on coarse pointers or after the first touch -->
+    <div id="touch" hidden>
+        <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div></div>
+        <div id="look-zone"></div>
+        <button id="t-fire" class="tbtn big" aria-label="Fire">FIRE</button>
+        <button id="t-jump" class="tbtn" aria-label="Jump">JUMP</button>
+        <button id="t-kick" class="tbtn" aria-label="Kick">KICK</button>
+        <button id="t-reload" class="tbtn small" aria-label="Reload">⟲</button>
+        <button id="t-next" class="tbtn small" aria-label="Next weapon">⇄</button>
+        <button id="t-bomb" class="tbtn small" aria-label="Pipe bomb">💣</button>
+        <button id="t-swap" class="tbtn small" aria-label="Swap gun" hidden>SWAP</button>
+        <button id="t-over" class="tbtn" aria-label="Overdrive" hidden>OVER<br>DRIVE</button>
+    </div>
+    <!-- above the touch deck's look pad, which would otherwise swallow the tap -->
+    <button id="btn-pause" class="ibtn" aria-label="Pause" hidden>❚❚</button>
+
+    <!-- Screens -->
+    <div id="title" class="screen">
+        <div class="sheet title-sheet">
+            <h1 class="logo"><span class="l1">VENDETTA</span><span class="l2">OVERDRIVE</span></h1>
+            <p class="tag">Neo Angeles, 1987. They killed her father. Big mistake.</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="newgame" class="btn primary">New Game</button>
+                <button data-act="tapes" class="btn">VHS Tapes</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="newgame" class="screen" hidden>
+        <div class="sheet">
+            <h2>Pick your poison</h2>
+            <nav class="menu" id="diff-menu">
+                <button data-diff="0" class="btn">Babysitter <small>enemies hit softer, fewer of them</small></button>
+                <button data-diff="1" class="btn primary">Tough Cookie <small>the way it was meant to be played</small></button>
+                <button data-diff="2" class="btn danger">Total Carnage <small>more of them, and they mean it</small></button>
+            </nav>
+            <div class="sheet-foot"><button class="btn" data-close>Back</button></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <table>
+                <tr><td>WASD</td><td>Move</td></tr>
+                <tr><td>Mouse · ← →</td><td>Look (click the game to capture the mouse)</td></tr>
+                <tr><td>Left mouse · Ctrl</td><td>Fire</td></tr>
+                <tr><td>Space</td><td>Jump · hold in the air for the jetpack</td></tr>
+                <tr><td>V · Right mouse</td><td>Kick (shatters frozen enemies)</td></tr>
+                <tr><td>R</td><td>Reload</td></tr>
+                <tr><td>E</td><td>Swap the gun in your hands for one on the floor</td></tr>
+                <tr><td>1–5 · Q · wheel</td><td>Pick a gun · last gun · cycle</td></tr>
+                <tr><td>G</td><td>Throw a pipe bomb</td></tr>
+                <tr><td>F</td><td>OVERDRIVE when the Fury bar is full</td></tr>
+                <tr><td>Esc · P</td><td>Pause</td></tr>
+            </table>
+            <p>Kills fill <b>Fury</b>. Fire <b>Overdrive</b> for eight seconds of slow motion: you hit harder and every kill heals you. Chain kills for combos. Guns drop from everything: every one is rolled from a maker, a rarity, parts and an element. Find the keycards, find the exit, and find the three <b>VHS tapes</b> on every level: they tell you who really killed Colonel Kane.</p>
+            <p>Touch: left thumb moves, right thumb looks; FIRE, JUMP (hold to fly), KICK and the small buttons. Gamepad: sticks, RT fire, A jump, B kick, X reload/swap, Y next gun, LB bomb, RB Overdrive, Start pause.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Look sensitivity <input type="range" id="set-sens" min="0.3" max="2.5" step="0.05"></label>
+            <label class="row">Field of view <input type="range" id="set-fov" min="65" max="100" step="1"></label>
+            <label class="row">Invert look up/down <input type="checkbox" id="set-invert"></label>
+            <label class="row">VHS scan lines <input type="range" id="set-scan" min="0" max="1" step="0.05"></label>
+            <label class="row">Graphics
+                <select id="set-quality"><option value="auto">Automatic</option><option value="2">High</option><option value="1">Medium</option><option value="0">Low</option></select>
+            </label>
+            <label class="row">Touch controls
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="tapes" class="screen" hidden>
+        <div class="sheet vhs">
+            <h2>VHS Tapes</h2>
+            <div id="tape-list"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Eject</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="tapes" class="btn">VHS Tapes</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="brief" class="screen" hidden>
+        <div class="sheet brief">
+            <div class="lvl" id="brief-num"></div>
+            <h2 id="brief-name"></h2>
+            <div class="sub" id="brief-sub"></div>
+            <p id="brief-text"></p>
+            <div class="sheet-foot"><button id="brief-go" class="btn primary">Lock &amp; Load</button></div>
+        </div>
+    </div>
+
+    <div id="tally" class="screen" hidden>
+        <div class="sheet tally">
+            <h2 id="tally-name"></h2>
+            <div id="tally-rank"></div>
+            <table id="tally-table"></table>
+            <div class="sheet-foot"><button id="tally-next" class="btn primary">Next Level</button></div>
+        </div>
+    </div>
+
+    <div id="dead" class="screen" hidden>
+        <div class="sheet dead">
+            <h2>CONTINUE?</h2>
+            <div id="dead-count">9</div>
+            <p id="dead-line"></p>
+            <div class="sheet-foot"><button id="dead-quit" class="btn">Title</button><button id="dead-go" class="btn primary">Continue</button></div>
+        </div>
+    </div>
+
+    <div id="won" class="screen" hidden>
+        <div class="sheet won">
+            <h2>VENDETTA COMPLETE</h2>
+            <div id="won-text"></div>
+            <table id="won-table"></table>
+            <div class="sheet-foot"><button id="won-title" class="btn primary">Roll Credits</button></div>
+        </div>
+    </div>
+
+    <div id="lock-hint" hidden>Click to take aim</div>
+    <div id="toasts"></div>
+    <noscript><p class="noscript">VENDETTA OVERDRIVE needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
