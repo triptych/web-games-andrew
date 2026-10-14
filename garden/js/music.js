@@ -2,7 +2,8 @@
 // pentatonic melody through delay and reverb, FM bells and a soft bass) that
 // moves to a darker progression at night, plus the island itself: surf that
 // swells nearer the shore, wind, birds by day, crickets and owls by night,
-// footsteps that know stone from grass, and chimes for the interface.
+// footsteps that know stone from grass, and chimes for the interface. Down
+// in the Works under the clock tower it all gives way to machinery.
 
 const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
@@ -36,6 +37,8 @@ export class AudioEngine {
         this.nextBeatAt = 0;
         this.nextAmbientAt = 0;
         this.beat = 60 / 68;
+        this.underground = false;
+        this.nextClankAt = 0;
     }
 
     start() {
@@ -134,7 +137,86 @@ export class AudioEngine {
 
     setMusicVolume(v) {
         this.musicVol = v;
-        if (this.ctx) this.music.gain.setTargetAtTime(v, this.ctx.currentTime, 0.2);
+        if (this.ctx) this.music.gain.setTargetAtTime(v * (this.underground ? 0.45 : 1), this.ctx.currentTime, 0.2);
+    }
+
+    /** Below ground the island's surf, wind and creatures fall away under the hum of the machines. */
+    setUnderground(on) {
+        this.underground = on;
+        if (!this.ctx) return;
+        if (!this.hum) this._machines();
+        const t = this.ctx.currentTime;
+        this.hum.gain.setTargetAtTime(on ? 0.16 : 0, t, 0.5);
+        this.music.gain.setTargetAtTime(this.musicVol * (on ? 0.45 : 1), t, 0.5);
+        this.nextClankAt = t + 0.5;
+    }
+
+    _machines() {
+        const ctx = this.ctx;
+        this.hum = ctx.createGain();
+        this.hum.gain.value = 0;
+        const lp = ctx.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.value = 240;
+        for (const [f, type, v] of [[41.2, 'sawtooth', 0.5], [82.4, 'triangle', 0.3], [123.5, 'sine', 0.12]]) {
+            const o = ctx.createOscillator();
+            o.type = type;
+            o.frequency.value = f;
+            const g = ctx.createGain();
+            g.gain.value = v;
+            o.connect(g).connect(lp);
+            o.start();
+        }
+        // the drive's slow throb
+        const throb = ctx.createGain();
+        throb.gain.value = 0.7;
+        const lfo = ctx.createOscillator();
+        lfo.frequency.value = 0.85;
+        const depth = ctx.createGain();
+        depth.gain.value = 0.3;
+        lfo.connect(depth).connect(throb.gain);
+        lfo.start();
+        lp.connect(throb).connect(this.hum).connect(this.master);
+        const send = ctx.createGain();
+        send.gain.value = 0.5;
+        this.hum.connect(send).connect(this.reverb);
+    }
+
+    /** A clank somewhere in the machinery: a low inharmonic ring and a knock. */
+    _clank(t) {
+        const f = [55, 73.4, 98, 61.7][Math.floor(Math.random() * 4)];
+        this._bell(f * (Math.random() < 0.3 ? 2 : 1), t, 0.03 + Math.random() * 0.02);
+        this._noiseBurst(t, 0.09, 380 + Math.random() * 200, 6, 0.08);
+    }
+
+    /** Steam venting; louder the nearer it is. */
+    hiss(near) {
+        if (!this.ctx || this.muted || near <= 0) return;
+        this._noiseBurst(this.ctx.currentTime, 1.6, 3800, 0.6, 0.07 * near, 'highpass');
+    }
+
+    /** A heavy door: a latch, a groan of hinges and a thud. */
+    door() {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const ctx = this.ctx;
+        this._noiseBurst(t, 0.06, 2200, 5, 0.1);
+        const o = ctx.createOscillator();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(110, t + 0.05);
+        o.frequency.linearRampToValueAtTime(70, t + 0.55);
+        const f = ctx.createBiquadFilter();
+        f.type = 'bandpass';
+        f.frequency.value = 600;
+        f.Q.value = 4;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, t + 0.05);
+        g.gain.linearRampToValueAtTime(0.05, t + 0.15);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+        o.connect(f).connect(g).connect(this.sfx);
+        o.start(t + 0.05);
+        o.stop(t + 0.65);
+        this._noiseBurst(t + 0.55, 0.25, 140, 1.2, 0.25, 'lowpass');
     }
 
     /** Called every frame with the world state. */
@@ -146,9 +228,10 @@ export class AudioEngine {
         this.padFilter.frequency.setTargetAtTime(1300 - night * 650, t, 1.5);
         // surf louder near the water
         const near = Math.max(0, Math.min(1, 1 - (-shoreDist) / 45));
-        this.surfGain.gain.setTargetAtTime(0.05 + near * 0.32, t, 0.5);
-        this.windGain.gain.setTargetAtTime(0.025 + night * 0.01, t, 1);
-        this.crickets.gain.setTargetAtTime(night * 0.045, t, 2);
+        const up = this.underground ? 0 : 1;
+        this.surfGain.gain.setTargetAtTime((0.05 + near * 0.32) * up, t, 0.5);
+        this.windGain.gain.setTargetAtTime((0.025 + night * 0.01) * up, t, 1);
+        this.crickets.gain.setTargetAtTime(night * 0.045 * up, t, 2);
     }
 
     _impulse(seconds, decay) {
@@ -262,8 +345,12 @@ export class AudioEngine {
             this.nextBeatAt += this.beat / 2;
         }
         while (this.nextAmbientAt < ahead) {
-            this._creature(this.nextAmbientAt);
+            if (!this.underground) this._creature(this.nextAmbientAt);
             this.nextAmbientAt += 1.5 + Math.random() * 4;
+        }
+        while (this.underground && this.nextClankAt < ahead) {
+            if (!this.muted) this._clank(this.nextClankAt);
+            this.nextClankAt += this.beat * (Math.random() < 0.7 ? 1 : 0.5);
         }
     }
 
@@ -446,6 +533,9 @@ export class AudioEngine {
         if (surface === 'stone') this._noiseBurst(t, 0.07, 1800 + Math.random() * 600, 1.5, 0.05);
         else if (surface === 'wood') {
             this._noiseBurst(t, 0.09, 500 + Math.random() * 100, 3, 0.09);
+        } else if (surface === 'metal') {
+            this._noiseBurst(t, 0.05, 2800 + Math.random() * 500, 7, 0.07);
+            this._noiseBurst(t, 0.14, 650 + Math.random() * 80, 12, 0.06);
         } else this._noiseBurst(t, 0.12, 900 + Math.random() * 400, 0.7, 0.03, 'lowpass');
     }
 

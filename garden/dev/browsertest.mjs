@@ -222,6 +222,62 @@ async function desktop() {
     await page.keyboard.press('m');
     await frames(page, 2);
     await shot(page, 'd8-map');
+
+    // the clock tower: click its name on the map, cross the bridge, go down into the Works and back
+    const towerAt = await page.evaluate(() => {
+        const g = window.__garden;
+        const p = g.map.places.find((q) => q.name === 'The Clock Tower');
+        const [px, py] = g.map.toPx(p.x, p.z);
+        const r = document.getElementById('map-canvas').getBoundingClientRect();
+        const side = Math.min(r.width, r.height);
+        return { x: r.left + (r.width - side) / 2 + (px / g.map.size) * side, y: r.top + (r.height - side) / 2 + (py / g.map.size) * side };
+    });
+    await page.mouse.click(towerAt.x, towerAt.y);
+    await page.waitForTimeout(1200);
+    await frames(page, 3);
+    const onBridge = await page.evaluate(() => {
+        const g = window.__garden;
+        const { x, z } = g.controls.pos;
+        return { dry: g.world.walkHeight(x, z) > 0.6, deck: g.world.onDeck(x, z), d: Math.hypot(x - g.layout.islet.x, z - g.layout.islet.z) };
+    });
+    check(onBridge.dry && onBridge.deck && onBridge.d < 9, `the map sets you down on the clock tower's bridge (${onBridge.d.toFixed(1)} m from the tower)`);
+    await shot(page, 'd8c-clock-tower');
+    const bz0 = await page.evaluate(() => ({ ...window.__garden.controls.pos }));
+    await page.keyboard.down('s');
+    await frames(page, 3);
+    await page.keyboard.up('s');
+    const bz1 = await page.evaluate(() => ({ ...window.__garden.controls.pos }));
+    check(Math.hypot(bz1.x - bz0.x, bz1.z - bz0.z) > 1, 'you can walk on the bridge');
+    await page.evaluate(() => {
+        const g = window.__garden;
+        g.controls.walkTo([{ x: g.world.clockDoor.x, z: g.world.clockDoor.z }]);
+    });
+    await page.waitForFunction(() => window.__garden.below, null, { timeout: 120000 });
+    await page.waitForTimeout(900);
+    await frames(page, 8);
+    const works = await page.evaluate(() => {
+        const w = window.__garden.works;
+        return { screens: w.screens.length, drawn: w.screens.filter((s) => s.next > 0).length, models: w.models.length };
+    });
+    check(works.screens >= 20 && works.drawn > 4, `walking into the door goes down into the Works (${works.screens} screens, ${works.drawn} drawn so far)`);
+    await shot(page, 'd8d-works');
+    const wz0 = await page.evaluate(() => window.__garden.controls.pos.z);
+    await page.keyboard.down('w');
+    await frames(page, 3);
+    await page.keyboard.up('w');
+    const wz1 = await page.evaluate(() => window.__garden.controls.pos.z);
+    check(wz1 < wz0 - 1, 'you can walk around the Works');
+    await page.evaluate(() => {
+        const g = window.__garden;
+        g.controls.walkTo([{ x: g.works.exit.x, z: g.works.exit.z }]);
+    });
+    await page.waitForFunction(() => !window.__garden.below, null, { timeout: 120000 });
+    await page.waitForTimeout(900);
+    const out = await page.evaluate(() => {
+        const g = window.__garden;
+        return Math.hypot(g.controls.pos.x - g.world.clockDoor.out.x, g.controls.pos.z - g.world.clockDoor.out.z);
+    });
+    check(out < 0.5, 'the stair door climbs back out at the foot of the clock tower');
     await page.keyboard.press('Escape');
 
     // walk there: from the hub to a statue on another path, by the paths

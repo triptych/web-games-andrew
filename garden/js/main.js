@@ -26,6 +26,7 @@ import { UI } from './ui.js';
 import { IslandMap } from './map.js';
 import { nextFrame, store, smoothstep, lerp, damp } from './util.js';
 import { FoxVisitor } from './fox.js';
+import { Works } from './works.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -53,14 +54,24 @@ function pickQuality() {
 function makeWorld(layout, island, quality) {
     const w = {
         layout, island, quality, root: new THREE.Group(),
-        colliders: [], floors: [], boxFloors: [], vines: [], lampSpots: [], updaters: [], glowMats: [], nightSigns: [],
+        colliders: [], floors: [], boxFloors: [], spans: [], vines: [], lampSpots: [], updaters: [], glowMats: [], nightSigns: [],
         flowerBeds: [], hedges: [], cypress: [], topiary: [], windows: [], runes: [], altars: [], beacons: [], fountains: [],
         landmarks: [], petalSources: [], sparkSources: [], statues: [], statueGlows: [],
     };
     w.groundAt = (x, z) => island.heightAt(x, z);
-    w.onDeck = (x, z) => w.boxFloors.some((b) => x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1);
+    // decks along a straight line, like the bridge: { ax, az, bx, bz, half, heightAt(t) }
+    w.spanAt = (x, z) => {
+        for (const s of w.spans) {
+            const dx = s.bx - s.ax, dz = s.bz - s.az, l2 = dx * dx + dz * dz;
+            const t = ((x - s.ax) * dx + (z - s.az) * dz) / l2;
+            if (t < 0 || t > 1) continue;
+            if (Math.abs((x - s.ax) * dz - (z - s.az) * dx) / Math.sqrt(l2) <= s.half) return s.heightAt(t);
+        }
+        return -Infinity;
+    };
+    w.onDeck = (x, z) => w.boxFloors.some((b) => x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1) || w.spanAt(x, z) > -Infinity;
     w.walkHeight = (x, z) => {
-        let h = island.heightAt(x, z);
+        let h = Math.max(island.heightAt(x, z), w.spanAt(x, z));
         for (const f of w.floors) if (!f.block && (x - f.x) ** 2 + (z - f.z) ** 2 < f.r * f.r && f.y > h) h = f.y;
         for (const b of w.boxFloors) if (x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1 && b.y > h) h = b.y;
         return h;
@@ -68,7 +79,7 @@ function makeWorld(layout, island, quality) {
     w.inPlaza = (x, z) => {
         for (const sp of layout.spokes) if (Math.hypot(x - sp.pavilion.x, z - sp.pavilion.z) < PAVILION_PLAZA + 0.4) return true;
         for (const f of layout.features) if (f.type === 'fountain' && Math.hypot(x - f.x, z - f.z) < 6.6) return true;
-        return false;
+        return w.spanAt(x, z) > -Infinity;
     };
     const CELL = 4;
     w.finalize = () => {
@@ -245,7 +256,8 @@ async function boot() {
     // post-processing
     const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: quality.samples });
     const composer = new EffectComposer(renderer, rt);
-    composer.addPass(new RenderPass(scene, camera));
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
     const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.42, 0.5, 1.15);
     if (quality.bloom) composer.addPass(bloom);
     composer.addPass(new OutputPass());
@@ -292,6 +304,12 @@ async function boot() {
     let zoneKey = '';
     const clock = new THREE.Clock();
     let elapsed = 0;
+    // the Works under the clock tower: built on the first visit
+    let works = null;
+    let below = false;
+    let transit = false;   // fading through a door
+    let doorArmed = false; // you must step away from a door before it takes you again
+    let worksHintShown = false, doorHintShown = false;
 
     const setHover = (h) => {
         const prevId = hovered?.statue?.id ?? -2;
@@ -324,6 +342,11 @@ async function boot() {
             bt = hits[0].distance;
             best = obj.userData.kind === 'arrow' ? { type: 'arrow', dir: obj.userData.dir, key: obj.userData.dir > 0 ? 'next' : 'prev', t: bt } : { type: 'panel', t: bt };
         }
+        const door = ray.intersectObject(world.clockDoor.mesh, false)[0];
+        if (door && door.distance < bt && door.distance < 60) {
+            bt = door.distance;
+            best = { type: 'door', t: bt };
+        }
         const tg = marchGround(world, o, d, Math.min(bt, 120));
         if (tg < bt) {
             const p = o.clone().addScaledVector(d, tg);
@@ -335,6 +358,23 @@ async function boot() {
     // ------------------------------------------------------------ actions
 
     const standForStatue = (st) => controls.standFor(st);
+
+    /** Somewhere dry and clear to stand near (x, z), searching outward and favouring the hub side. */
+    function standNear(x, z) {
+        const free = (px, pz) => {
+            if (!world.onDeck(px, pz) && island.heightAt(px, pz) < 0.6) return false;
+            return !world.collidersNear(px, pz).some((c) => Math.hypot(px - c.x, pz - c.z) < c.r + 0.5);
+        };
+        const toHub = Math.atan2(-x, -z);
+        for (let d = 8; d < 40; d += 1.5) {
+            for (let k = 0; k < 16; k++) {
+                const a = toHub + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * (Math.PI / 8);
+                const px = x + Math.sin(a) * d, pz = z + Math.cos(a) * d;
+                if (free(px, pz)) return { x: px, z: pz };
+            }
+        }
+        return layout.spawn;
+    }
 
     /** The linking flash and chord that accompany opening a game. */
     function play() {
@@ -354,6 +394,7 @@ async function boot() {
         ui.flash(true);
         controls.route = null;
         setTimeout(() => {
+            if (below) surface();
             controls.teleport(x, z, yaw);
             setTimeout(() => ui.flash(false), 120);
             after?.();
@@ -368,6 +409,7 @@ async function boot() {
     }
 
     function walkToGame(game) {
+        if (below) return linkToGame(game);
         const st = statueByGame.get(game);
         const s = standForStatue(st);
         ui.closeAll();
@@ -376,6 +418,83 @@ async function boot() {
         controls.route.statue = st;
         controls.route.run = route.length > 14;
         ui.hint(`Walking to ${game.title}…`, 3500);
+    }
+
+    // ------------------------------------------------------------ the Works
+
+    function setBelow(on) {
+        below = on;
+        controls.world = on ? works.world : world;
+        renderPass.scene = on ? works.scene : scene;
+        bloom.strength = on ? 0.6 : 0.42;
+        audio.setUnderground(on);
+        doorArmed = false;
+        mouse = null;
+        setHover(null);
+        ui.tooltip(null);
+    }
+
+    /** Back to the garden at once (the caller covers it with a flash). */
+    function surface() {
+        setBelow(false);
+        zoneKey = '';
+    }
+
+    function throughDoor(down) {
+        if (transit) return;
+        transit = true;
+        controls.route = null;
+        audio.door();
+        ui.flash(true);
+        setTimeout(() => {
+            if (down) {
+                works ??= new Works({ renderer, games, sky, island, layout, statues, ui, mats: world.mats });
+                setBelow(true);
+                const s = works.spawn;
+                controls.teleport(s.x, s.z, s.yaw);
+                ui.zone('The Works', 'Beneath the Clock Tower', '#ffb45a');
+                zoneKey = 'works';
+                if (!worksHintShown) {
+                    worksHintShown = true;
+                    setTimeout(() => ui.hint('The screens show the garden’s own code, its games and models from them · walk back into the stair door to climb out', 9000), 1200);
+                }
+            } else {
+                surface();
+                const o = world.clockDoor.out;
+                controls.teleport(o.x, o.z, o.yaw);
+            }
+            setTimeout(() => {
+                ui.flash(false);
+                transit = false;
+            }, 150);
+        }, 650);
+    }
+
+    /** Walking into a door's spot goes through it. */
+    function doorCheck() {
+        if (transit || !controls.enabled) return;
+        const p = controls.pos;
+        const d = below ? works.exit : world.clockDoor;
+        const dist = Math.hypot(p.x - d.x, p.z - d.z);
+        if (dist > 1.6) doorArmed = true;
+        if (doorArmed && dist < 0.6) throughDoor(!below);
+        else if (!below && !doorHintShown && dist < 6) {
+            doorHintShown = true;
+            ui.hint('A door at the foot of the clock tower: walk through it to go down into the Works', 6000);
+        }
+    }
+
+    /** Taps below ground: the stair door or the grating. */
+    function pickBelow(cx, cy) {
+        ndc.set((cx / innerWidth) * 2 - 1, -(cy / innerHeight) * 2 + 1);
+        ray.setFromCamera(ndc, camera);
+        const hit = ray.intersectObject(works.doorMesh, false)[0];
+        if (hit && hit.distance < 40) return { type: 'door', t: hit.distance };
+        const o = ray.ray.origin, d = ray.ray.direction;
+        if (d.y >= -1e-4) return null;
+        const t = -o.y / d.y;
+        const point = o.clone().addScaledVector(d, t);
+        return works.walkable(point.x, point.z) ? { type: 'ground', point, t } : null;
     }
 
     world.onArrive = (r) => {
@@ -402,7 +521,9 @@ async function boot() {
     addEventListener('focus', syncFocus);
     syncFocus();
 
-    ui.on('mapOpen', () => map.draw(controls.pos, controls.yaw));
+    // below ground the map shows you at the tower
+    const mapPos = () => (below ? world.clockDoor : controls.pos);
+    ui.on('mapOpen', () => map.draw(mapPos(), controls.yaw));
     ui.on('timeOpen', () => {
         document.getElementById('time-slider').value = Math.round(sky.time * 1440);
         document.getElementById('music-vol').value = audio.musicVol;
@@ -419,13 +540,11 @@ async function boot() {
                 linkTo(p.x, p.z, Math.atan2(-p.tx, -p.tz));
             } else if (place.landmark) {
                 const lm = place.landmark;
-                const l = Math.hypot(lm.x, lm.z) || 1;
-                let x = lm.x - (lm.x / l) * 8, z = lm.z - (lm.z / l) * 8;
-                if (world.walkHeight(x, z) < 0.4) {
-                    x = lm.x * 0.7;
-                    z = lm.z * 0.7;
+                if (lm.stand) linkTo(lm.stand.x, lm.stand.z, lm.stand.yaw);
+                else {
+                    const s = standNear(lm.x, lm.z);
+                    linkTo(s.x, s.z, Math.atan2(-(lm.x - s.x), -(lm.z - s.z)));
                 }
-                linkTo(x, z, Math.atan2(-(lm.x - x), -(lm.z - z)));
             }
         }
     };
@@ -451,8 +570,17 @@ async function boot() {
         }
     };
     controls.onTap = (x, y, type) => {
-        if (!entered || intro) return;
+        if (!entered || intro || transit) return;
         if (ui.blocking) return;
+        if (below) {
+            const h = pickBelow(x, y);
+            if (h?.type === 'door') controls.walkTo([{ x: works.exit.x, z: works.exit.z }]);
+            else if (h && h.t < 60) {
+                ui.marker(x, y);
+                controls.walkTo([{ x: h.point.x, z: h.point.z }]);
+            }
+            return;
+        }
         const h = pick(x, y);
         if (!h) return;
         if (h.type === 'statue') {
@@ -468,6 +596,9 @@ async function boot() {
         } else if (h.type === 'panel') {
             audio.click();
             ui.showCard(hologram.current, { fromHologram: true });
+        } else if (h.type === 'door') {
+            const d = world.clockDoor;
+            controls.walkTo([{ x: d.x, z: d.z }]);
         } else if (h.type === 'ground') {
             if (ui.cardGame) {
                 ui.closeAll();
@@ -480,6 +611,7 @@ async function boot() {
         }
     };
     controls.onStep = () => {
+        if (below) return audio.step('metal');
         const p = controls.pos;
         const surface = world.onDeck(p.x, p.z) ? 'wood' : island.pathDistAt(p.x, p.z) < PATH_HALF + 0.2 || Math.hypot(p.x, p.z) < PLAZA_R || world.inPlaza(p.x, p.z) ? 'stone' : 'grass';
         audio.step(surface);
@@ -608,73 +740,80 @@ async function boot() {
 
         sky.update(dt, camPos);
         const s = sky.state;
-        water.update(t);
-        windUniforms.uWindTime.value = t;
         const night = s.night;
-
-        // night lighting
-        world.mats.glass.emissiveIntensity = 0.15 + night * 3.2;
-        for (const g of world.glowMats) g.mat.emissiveIntensity = lerp(g.day, g.night, night);
-        for (const m of world.nightSigns) m.emissiveIntensity = 0.06 + night * 0.45;
-        hoverUniforms.uNightGlow.value = night;
-        hoverUniforms.uHoverTime.value = t;
-        lampTimer += dt;
-        if (lampTimer > 0.4) {
-            lampTimer = 0;
-            const near = world.lampSpots.map((l) => ({ l, d: (l.x - camPos.x) ** 2 + (l.z - camPos.z) ** 2 })).sort((a, b) => a.d - b.d);
-            lampLights.forEach((L, i) => {
-                const n = near[i];
-                if (n && n.d < 40 * 40) {
-                    L.position.copy(n.l.light);
-                    L.userData.on = true;
-                } else L.userData.on = false;
-            });
-        }
-        for (const L of lampLights) L.intensity = damp(L.intensity, L.userData.on ? night * 9 : 0, 4, dt);
-        beams(dt, night);
-
-        // hover highlight
-        if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved) {
-            const h = pick(mouse.x, mouse.y);
-            setHover(h);
-            if (h?.type === 'statue') ui.tooltip(h.statue.game, mouse.x, mouse.y);
-            else if (h?.type === 'panel') ui.tooltip(hologram.current, mouse.x, mouse.y, 'Click for details · [ ] to turn');
-            else ui.tooltip(null);
-        } else if (controls.look?.moved || ui.blocking) {
-            ui.tooltip(null);
-        }
-        const hid = hovered?.statue?.id ?? -1;
-        if (hid >= 0) {
-            hoverUniforms.uHover.value = hid;
-            hoverUniforms.uHoverColor.value.set(hovered.statue.genre.accent);
-        } else if (highlight.id >= 0 && performance.now() < highlight.until && (highlight.until !== Infinity || ui.cardGame)) {
-            hoverUniforms.uHover.value = highlight.id;
-            hoverUniforms.uHoverColor.value.set(highlight.accent);
+        if (below) {
+            const hisses = works.update(dt, t, controls.pos, renderer.domElement.height);
+            for (const v of hisses) audio.hiss(v);
+            audio.update(night, -100);
         } else {
-            hoverUniforms.uHover.value = -1;
-            if (highlight.until === Infinity && !ui.cardGame) highlight = { id: -1, until: 0 };
-        }
+            water.update(t);
+            windUniforms.uWindTime.value = t;
 
-        hologram.update(dt, t, camPos, night);
-        vines.update(dt, camPos, camera);
-        particles.update(t, night, renderer.domElement.height);
-        bursts.update(t, renderer.domElement.height);
-        for (const u of world.updaters) u(t, sky);
-        fox.update(dt, t, entered && !intro && controls.enabled, ui.blocking || !!ui.cardGame);
-        updateGrass(world, camPos);
-        audio.update(night, island.shoreAt(camPos.x, camPos.z));
+            // night lighting
+            world.mats.glass.emissiveIntensity = 0.15 + night * 3.2;
+            for (const g of world.glowMats) g.mat.emissiveIntensity = lerp(g.day, g.night, night);
+            for (const m of world.nightSigns) m.emissiveIntensity = 0.06 + night * 0.45;
+            hoverUniforms.uNightGlow.value = night;
+            hoverUniforms.uHoverTime.value = t;
+            lampTimer += dt;
+            if (lampTimer > 0.4) {
+                lampTimer = 0;
+                const near = world.lampSpots.map((l) => ({ l, d: (l.x - camPos.x) ** 2 + (l.z - camPos.z) ** 2 })).sort((a, b) => a.d - b.d);
+                lampLights.forEach((L, i) => {
+                    const n = near[i];
+                    if (n && n.d < 40 * 40) {
+                        L.position.copy(n.l.light);
+                        L.userData.on = true;
+                    } else L.userData.on = false;
+                });
+            }
+            for (const L of lampLights) L.intensity = damp(L.intensity, L.userData.on ? night * 9 : 0, 4, dt);
+            beams(dt, night);
+
+            // hover highlight
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved) {
+                const h = pick(mouse.x, mouse.y);
+                setHover(h);
+                if (h?.type === 'statue') ui.tooltip(h.statue.game, mouse.x, mouse.y);
+                else if (h?.type === 'panel') ui.tooltip(hologram.current, mouse.x, mouse.y, 'Click for details · [ ] to turn');
+                else ui.tooltip(null);
+            } else if (controls.look?.moved || ui.blocking) {
+                ui.tooltip(null);
+            }
+            const hid = hovered?.statue?.id ?? -1;
+            if (hid >= 0) {
+                hoverUniforms.uHover.value = hid;
+                hoverUniforms.uHoverColor.value.set(hovered.statue.genre.accent);
+            } else if (highlight.id >= 0 && performance.now() < highlight.until && (highlight.until !== Infinity || ui.cardGame)) {
+                hoverUniforms.uHover.value = highlight.id;
+                hoverUniforms.uHoverColor.value.set(highlight.accent);
+            } else {
+                hoverUniforms.uHover.value = -1;
+                if (highlight.until === Infinity && !ui.cardGame) highlight = { id: -1, until: 0 };
+            }
+
+            hologram.update(dt, t, camPos, night);
+            vines.update(dt, camPos, camera);
+            particles.update(t, night, renderer.domElement.height);
+            bursts.update(t, renderer.domElement.height);
+            for (const u of world.updaters) u(t, sky);
+            fox.update(dt, t, entered && !intro && controls.enabled && !transit, ui.blocking || !!ui.cardGame);
+            updateGrass(world, camPos);
+            audio.update(night, island.shoreAt(camPos.x, camPos.z));
+        }
 
         clockTimer += dt;
         if (clockTimer > 0.5) {
             clockTimer = 0;
             ui.clock(sky.clockText(), night);
-            if (ui.open === 'map') map.draw(controls.pos, controls.yaw);
+            if (ui.open === 'map') map.draw(mapPos(), controls.yaw);
         }
         zoneTimer += dt;
         if (entered && !intro && zoneTimer > 0.3) {
             zoneTimer = 0;
-            zoneCheck();
+            if (!below) zoneCheck();
         }
+        if (entered && !intro) doorCheck();
 
         composer.render(dt);
 
@@ -701,7 +840,7 @@ async function boot() {
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { world, controls, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
+        window.__garden = { map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
     }
 }
 

@@ -385,7 +385,7 @@ function buildDock(world, mats, batch) {
 
 // ----------------------------------------------------------- the set pieces
 
-function gearShape(R, teeth, toothH, hole) {
+export function gearShape(R, teeth, toothH, hole) {
     const s = new THREE.Shape();
     const steps = teeth * 4;
     for (let i = 0; i <= steps; i++) {
@@ -532,24 +532,122 @@ function clockFaceTexture() {
     return toTexture(c);
 }
 
+/** Arch outline: a rectangle of half-width w and height h with a round top. */
+function archShape(w, h, s = new THREE.Shape()) {
+    s.moveTo(-w, 0);
+    s.lineTo(w, 0);
+    s.lineTo(w, h - w);
+    s.absarc(0, h - w, w, 0, Math.PI, false);
+    s.lineTo(-w, 0);
+    return s;
+}
+
+/** A stone bridge from the shore to the islet: a gently arched deck with parapets, piers and lamps. */
+function buildBridge(world, batch) {
+    const b = world.layout.bridge;
+    const len = b.length;
+    const ux = (b.bx - b.ax) / len, uz = (b.bz - b.az) / len;
+    const nx = -uz, nz = ux;
+    const yaw = Math.atan2(ux, uz);
+    const deckY = (t) => lerp(b.ay, b.by, t) + b.arch * Math.sin(Math.PI * t);
+    world.spans.push({ ...b, heightAt: deckY });
+    // piers stand wherever the deck is well above the sea bed
+    const piers = [0.33, 0.67].filter((t) => world.groundAt(b.ax + ux * len * t, b.az + uz * len * t) < deckY(t) - 2.5);
+    const supports = [0, ...piers, 1];
+    const n = Math.ceil(len / 0.8);
+    const W = b.half * 2 + 0.6;
+    for (let i = 0; i < n; i++) {
+        const t0 = i / n, t1 = (i + 1) / n, tm = (t0 + t1) / 2;
+        const y0 = deckY(t0), y1 = deckY(t1);
+        const run = len / n;
+        const m = xf(b.ax + ux * len * tm, (y0 + y1) / 2, b.az + uz * len * tm, yaw, 1, 1, 1, -Math.atan2(y1 - y0, run));
+        const L = Math.hypot(run, y1 - y0) + 0.03;
+        // the spandrel deepens toward each support, so the underside reads as arches
+        let k = 0;
+        while (k < supports.length - 2 && tm > supports[k + 1]) k++;
+        const u = (tm - supports[k]) / (supports[k + 1] - supports[k]);
+        const depth = 0.55 + 2.6 * (1 - Math.sqrt(Math.max(0, 1 - (2 * u - 1) ** 2)));
+        batch.add('granite', new THREE.BoxGeometry(W, depth, L), under(m, xf(0, -depth / 2, 0)));
+        batch.add('sandstone', new THREE.BoxGeometry(W - 0.7, 0.04, L), under(m, xf(0, 0.0, 0)));
+        for (const sd of [-1, 1]) {
+            batch.add('sandstone', new THREE.BoxGeometry(0.28, 0.72, L), under(m, xf(sd * (b.half + 0.14), 0.36, 0)));
+            batch.add('granite', new THREE.BoxGeometry(0.4, 0.1, L), under(m, xf(sd * (b.half + 0.14), 0.75, 0)));
+        }
+    }
+    for (const t of piers) {
+        const x = b.ax + ux * len * t, z = b.az + uz * len * t;
+        const top = deckY(t) - 3.0, bottom = -10;
+        batch.add('granite', new THREE.BoxGeometry(W + 0.5, top - bottom, 1.6), xf(x, (top + bottom) / 2, z, yaw));
+        // cutwaters on both faces of the pier
+        for (const sd of [-1, 1]) batch.add('granite', new THREE.BoxGeometry(1.15, top - bottom, 1.15), xf(x + nx * sd * (W / 2 + 0.25), (top + bottom) / 2, z + nz * sd * (W / 2 + 0.25), yaw + Math.PI / 4));
+    }
+    // parapets keep walkers on the deck; the ends stay open
+    for (let d = 0.9; d < len - 0.9; d += 0.45) {
+        for (const sd of [-1, 1]) world.colliders.push({ x: b.ax + ux * d + nx * sd * (b.half + 0.14), z: b.az + uz * d + nz * sd * (b.half + 0.14), r: 0.16 });
+    }
+    for (const sd of [-1, 1]) {
+        world.lampSpots.push({ x: b.ax - ux * 0.6 + nx * sd * (b.half + 0.55), z: b.az - uz * 0.6 + nz * sd * (b.half + 0.55) });
+        world.lampSpots.push({ x: b.bx + ux * 0.4 + nx * sd * (b.half + 0.55), z: b.bz + uz * 0.4 + nz * sd * (b.half + 0.55) });
+    }
+}
+
 function buildIslet(world, mats, batch) {
     const { islet } = world.layout;
-    const y = world.groundAt(islet.x, islet.z) - 0.5;
+    const y = islet.y - 0.5;
     const H = 9;
-    const toHub = Math.atan2(-islet.x, -islet.z);
-    const base = xf(islet.x, y, islet.z, toHub);
+    // the door side faces the bridge
+    const face = Math.atan2(islet.dir.x, islet.dir.z);
+    const base = xf(islet.x, y, islet.z, face);
     batch.add('granite', new THREE.BoxGeometry(3.2, H, 3.2), under(base, xf(0, H / 2, 0)));
     batch.add('granite', new THREE.BoxGeometry(3.7, 0.4, 3.7), under(base, xf(0, H, 0)));
+    batch.add('granite', new THREE.BoxGeometry(3.6, 0.5, 3.6), under(base, xf(0, 0.6, 0)));
     batch.add('copper', new THREE.ConeGeometry(2.7, 3.0, 4, 1), under(base, xf(0, H + 1.7, 0, Math.PI / 4)));
     batch.add('brass', new THREE.SphereGeometry(0.22, 10, 8), under(base, xf(0, H + 3.3, 0)));
-    // two clock faces whose hands show the garden's time of day
-    const face = new THREE.MeshStandardMaterial({ map: clockFaceTexture(), emissive: 0xffe0a0, emissiveIntensity: 0.1, roughness: 0.6 });
-    world.nightSigns.push(face);
+
+    // the door down to the Works: an arched granite frame, a plank door and a step
+    const hole = archShape(0.62, 2.4);
+    const frameShape = archShape(0.95, 2.75);
+    frameShape.holes.push(new THREE.Path(hole.getPoints(12)));
+    batch.add('granite', new THREE.ExtrudeGeometry(frameShape, { depth: 0.24, bevelEnabled: false, curveSegments: 12 }), under(base, xf(0, 0.5, 1.58)));
+    batch.add('granite', new THREE.BoxGeometry(2.1, 0.14, 0.9), under(base, xf(0, 0.5, 2.1)));
+    for (const hy of [0.65, 1.75]) batch.add('iron', new THREE.BoxGeometry(1.2, 0.09, 0.04), under(base, xf(0, 0.5 + hy, 1.68)));
+    batch.add('brass', new THREE.TorusGeometry(0.09, 0.022, 6, 14), under(base, xf(0.38, 1.6, 1.7)));
+    for (const sd of [-1, 1]) {
+        batch.add('iron', new THREE.BoxGeometry(0.06, 0.06, 0.4), under(base, xf(sd * 1.2, 2.75, 1.78)));
+        batch.add('glass', new THREE.BoxGeometry(0.2, 0.3, 0.2), under(base, xf(sd * 1.2, 2.6, 1.98)));
+        batch.add('iron', new THREE.ConeGeometry(0.17, 0.16, 4), under(base, xf(sd * 1.2, 2.83, 1.98, Math.PI / 4)));
+    }
+    const leafGeo = new THREE.ExtrudeGeometry(archShape(0.62, 2.4), { depth: 0.06, bevelEnabled: false, curveSegments: 12 });
+    const leaf = new THREE.Mesh(leafGeo, mats.darkWood);
+    leaf.matrixAutoUpdate = false;
+    leaf.matrix.copy(under(base, xf(0, 0.5, 1.6)));
+    leaf.castShadow = leaf.receiveShadow = true;
+    leaf.userData.kind = 'door';
+    world.root.add(leaf);
+    leaf.updateMatrixWorld(true);
+    const plaque = signMesh(signTexture('\u2699\uFE0F', 'The Works', 'Mind the steam', '#d9b46a', 1024, 256), 1.9, 0.48, 0.3);
+    plaque.matrixAutoUpdate = false;
+    plaque.matrix.copy(under(base, xf(0, 3.65, 1.62)));
+    world.root.add(plaque);
+    world.nightSigns.push(plaque.userData.nightGlow);
+    world.colliders.push({ x: islet.x, z: islet.z, r: 2.05 });
+    const d = islet.dir;
+    world.clockDoor = {
+        mesh: leaf,
+        // walking into this spot goes through the door
+        x: islet.x + d.x * 2.45, z: islet.z + d.z * 2.45,
+        // where you come back out, facing the bridge
+        out: { x: islet.x + d.x * 4.4, z: islet.z + d.z * 4.4, yaw: Math.atan2(-d.x, -d.z) },
+    };
+
+    // clock faces on all four sides whose hands show the garden's time of day
+    const faceMat = new THREE.MeshStandardMaterial({ map: clockFaceTexture(), emissive: 0xffe0a0, emissiveIntensity: 0.1, roughness: 0.6 });
+    world.nightSigns.push(faceMat);
     const hands = [];
-    for (const side of [0, Math.PI / 2]) {
-        const a = toHub + side;
+    for (let k = 0; k < 4; k++) {
+        const a = face + (k * Math.PI) / 2;
         const cx = islet.x + Math.sin(a) * 1.62, cz = islet.z + Math.cos(a) * 1.62;
-        const disc = new THREE.Mesh(new THREE.CircleGeometry(1.15, 32), face);
+        const disc = new THREE.Mesh(new THREE.CircleGeometry(1.15, 32), faceMat);
         disc.position.set(cx, y + H - 1.6, cz);
         disc.rotation.y = a;
         world.root.add(disc);
@@ -568,8 +666,15 @@ function buildIslet(world, mats, batch) {
             hand.rotation.z = -(len < 0.8 ? (hours % 12) / 12 : (hours % 1)) * TAU;
         }
     });
-    world.windows.push({ x: islet.x + Math.sin(toHub) * 1.62, y: y + 3.2, z: islet.z + Math.cos(toHub) * 1.62, rot: toHub, w: 0.5, h: 1.0 });
-    world.landmarks.push({ name: 'The Clock Tower', x: islet.x, z: islet.z });
+    for (const k of [1, 2, 3]) {
+        const a = face + (k * Math.PI) / 2;
+        world.windows.push({ x: islet.x + Math.sin(a) * 1.62, y: y + 3.4 + (k === 2 ? 1.2 : 0), z: islet.z + Math.cos(a) * 1.62, rot: a, w: 0.5, h: 1.0 });
+    }
+    world.landmarks.push({
+        name: 'The Clock Tower', x: islet.x, z: islet.z,
+        // the map sets you down at the top of the bridge, facing the door
+        stand: { x: islet.x + d.x * 6.5, z: islet.z + d.z * 6.5, yaw: Math.atan2(d.x, d.z) },
+    });
 }
 
 /** Glowing windows, runes and the altar flame share one emissive material. */
@@ -614,6 +719,7 @@ export function buildArchitecture(world) {
         else if (f.type === 'fountain') buildFountain(world, mats, batch, f);
         else if (f.type === 'stones') buildStones(world, mats, batch, f);
     }
+    buildBridge(world, batch);
     buildIslet(world, mats, batch);
     world.root.add(batch.build(mats));
     buildLamps(world, mats);

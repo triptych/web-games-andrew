@@ -80,7 +80,17 @@ export class IslandMap {
         // paths
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        const lines = [...layout.spokes.map((s) => s.pts), layout.dock.pts];
+        const lines = [...layout.spokes.map((s) => s.pts), layout.dock.pts, layout.trail.pts];
+        // the bridge out to the clock tower
+        const br = layout.bridge;
+        for (const [w, col] of [[3.6, 'rgba(40,30,20,0.7)'], [2.6, '#b9ad9c']]) {
+            ctx.strokeStyle = col;
+            ctx.lineWidth = w * px;
+            ctx.beginPath();
+            ctx.moveTo(...toPx(br.ax, br.az));
+            ctx.lineTo(...toPx(br.bx, br.bz));
+            ctx.stroke();
+        }
         for (const [w, col] of [[3.8, 'rgba(60,40,20,0.55)'], [3.0, '#efe2c2']]) {
             ctx.strokeStyle = col;
             ctx.lineWidth = w * px;
