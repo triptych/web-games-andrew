@@ -5657,3 +5657,23 @@ The map canvas is sized to the viewport and sits under a transparent `overflow: 
 
 ### Pixel-art monsters from canvas paths
 Drawing each family with `ellipse`/`lineTo` at native size, then snapping alpha to 0/1, lightening pixels whose top or left neighbour is empty, darkening ones whose bottom or right neighbour is empty, and adding a one-pixel dark outline turns smooth canvas shapes into convincing pixel art at 32, 48 and 64 px from one description ([sprites.js](../../game-076/js/runtime/sprites.js) `pixelise`). The same `outline()` pass makes decor tiles read cleanly on any ground.
+
+---
+
+## Game 078: Sugarplum Drop — Suika-style disc physics (2026-10-14)
+
+A Christmas merge puzzle in vanilla Canvas 2D on the Section 2S layout: eleven treats as discs in a jar, two of a kind that touch merge into the next one up. The physics is hand-written ([game-078/js/sim/game.js](../../game-078/js/sim/game.js)), and most of what was learned is about making a pile of very differently sized discs sit still.
+
+### Stacking discs whose sizes differ by 7×
+- **Speculative contacts stop fast drops sinking in.** Build contacts for every pair within a margin larger than `maxSpeed × step` (here 0.45 units), and let the normal impulse allow the pair to close the gap this step but not pass it: `target = gap > 0 ? -gap / dt : bias`. A falling treat then stops exactly on the pile with no bounce, which is the soft, candy feel the genre wants.
+- **Accumulate the normal impulse and clamp friction to μ × the accumulated total.** Clamping to the current pass's impulse gives no friction after the first pass, because later passes see no approach speed; nothing then rolls, it slides.
+- **Position-only push-out can't win against a pile.** With mass ∝ r², a peppermint wedged in a bottom corner under a present stayed 0.12 units (a third of its radius) inside it for 40 seconds: each position pass moved the present 1/20 of the way and the pile pushed it back. Two changes fixed it: **mass ∝ r^1.5** (a Jingle Bell is still 17× a peppermint, which still reads as heavy) and a **small velocity bias for overlaps** (10 % of the overlap a step, capped at 1.2 units/s). The deep-overlap samples went from about a thousand to fifteen across eight bot games.
+- **Treating a wall-touching body as immovable made it far worse.** Giving the whole push to the free body when the other is against the glass sounds right, but deep samples went from 15 to 12,000. Removed; don't repeat it.
+- **A merge can spawn outside the jar.** The new treat goes at the parents' midpoint, and a parent still swelling from its own merge can sit lower than the new one's radius allows. Clamp the spawn inside the walls.
+- **Let a merge swell by position only.** The new treat starts at its parents' size and grows to its own over 0.14 s; push-out moves neighbours aside without adding speed, so a big merge in a tight heap never fires anything out of the jar.
+
+### Testing overlap fairly
+Measure overlap as a share of the **smaller** disc's radius (0.1 units is nothing between two presents and a third of a peppermint), skip fresh merges (they overlap by design while they swell), sample only while the jar isn't overflowing, and fail on how *often* it is deep (more than 25 % of a radius in over 2 % of samples), not on the single worst sample: a peppermint squeezed through a shifting pile can dip in for a moment. The [simtest](../../game-078/dev/simtest.mjs) does this for every bot game.
+
+### The Space key and menu buttons
+The Section 2S `input.js` called `preventDefault()` on every Space keydown so the page wouldn't scroll. That also cancels a focused button's click, so Space did nothing on Resume, New Game or Play Again. The template browser test never noticed because it clicks from inside the page. Leave Space alone when the target is a `<button>`, flush input when play resumes from a menu (the key that closed it must not also drop a treat), and press real keys on a focused button in the test. The skill's template and Step 5 list now include both.

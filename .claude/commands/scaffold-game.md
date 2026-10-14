@@ -630,7 +630,9 @@ export class Input {
         window.addEventListener('keydown', (e) => {
             const tag = e.target?.tagName;
             if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-            if (NO_SCROLL.includes(e.code)) e.preventDefault();
+            // Space and the arrows must not scroll the page, but Space must still press a focused
+            // button: preventDefault() on it cancels the click (game-078)
+            if (NO_SCROLL.includes(e.code) && !(e.code === 'Space' && tag === 'BUTTON')) e.preventDefault();
             this.lastDevice = 'keys';
             if (e.repeat) return;
             this.queue.push({ key: e.code });
@@ -1113,6 +1115,7 @@ let time = 0;
 let last = performance.now();
 let saveT = 0;
 let bot = null;
+let wasRunning = false;
 const seen = {};             // a count of every sim event drained, for the tests
 
 // ------------------------------------------------------------------ menus
@@ -1223,6 +1226,9 @@ function frame(now) {
     handlePresses();
 
     const running = mode === 'play' && !ui.anyScreen();
+    // back from a menu: the key or tap that closed it must not also act in the game (game-078)
+    if (running && !wasRunning) input.flush();
+    wasRunning = running;
     if (running) {
         acc += dt * FAST;
         let n = 0;
@@ -4693,6 +4699,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] Taps land under the finger: canvas sized in px, pointers mapped through its `getBoundingClientRect()` (game-058, game-067).
 - [ ] A fast tap is never dropped: presses carried to the next sim step (game-059, game-071).
 - [ ] A queued key or a double-tap that closes a dialogue doesn't also act in the world: swallow the rest of the frame and ~250 ms of real time (game-073).
+- [ ] Space presses a focused menu button: a keydown handler that calls `preventDefault()` on Space to stop scrolling also cancels the button's click, so Resume and Play Again did nothing from the keyboard (game-078). Test it with a real key press, not `element.click()`.
 - [ ] A menu opened by a finger-down button doesn't close when the finger lifts (game-071).
 - [ ] The touch deck is on before the first stage, not after the first touch on it (game-074).
 - [ ] No sheet scrolls a button under the fixed `← Games` link (game-073); centre panels stay on screen on a 390 px phone (game-062); HUD gauges sit next to what they describe in both orientations (game-066).

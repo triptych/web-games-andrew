@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sugarplum Drop — treat gallery</title>
+<style>
+    body { margin: 0; padding: 16px; font: 14px system-ui, sans-serif; color: #333; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px; }
+    .row.dark { background: #1b2340; color: #eee; }
+    figure { margin: 0; text-align: center; }
+    canvas { display: block; }
+</style>
+</head>
+<body>
+<h1>Treat gallery</h1>
+<p>Every treat on a neutral background and on the game's night sky, at a size big enough to see the drawing, and at the size a phone shows. The dashed circle is the disc the physics uses. Screenshot it with <code>node game-078/dev/play.mjs</code> or open it from the server.</p>
+<div class="row" id="light"></div>
+<div class="row dark" id="dark"></div>
+<div class="row dark" id="small"></div>
+<script type="module">
+    import { ITEMS } from '../js/config.js';
+    import { drawTreat } from '../js/view/items.js';
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    function add(where, i, r, ring) {
+        const size = Math.ceil(r * 2.3);
+        const fig = document.createElement('figure');
+        const c = document.createElement('canvas');
+        c.width = c.height = size * dpr;
+        c.style.width = c.style.height = size + 'px';
+        const ctx = c.getContext('2d');
+        ctx.scale(dpr, dpr);
+        ctx.translate(size / 2, size / 2);
+        drawTreat(ctx, i, r);
+        if (ring) {
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = 'rgba(255,0,120,0.6)';
+            ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+        }
+        fig.appendChild(c);
+        const cap = document.createElement('figcaption');
+        cap.textContent = `${i} ${ITEMS[i].name}`;
+        fig.appendChild(cap);
+        document.getElementById(where).appendChild(fig);
+    }
+    ITEMS.forEach((it, i) => add('light', i, 60, true));
+    ITEMS.forEach((it, i) => add('dark', i, 60, false));
+    ITEMS.forEach((it, i) => add('small', i, it.r * 34, false));   // 34 px per unit ≈ a 390 px phone
+</script>
+</body>
+</html>
