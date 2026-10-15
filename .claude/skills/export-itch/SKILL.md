@@ -14,6 +14,10 @@ The work is done by `dev/itch/export.mjs` (plain Node 18+, no dependencies). Rea
 `dev/itch/README.md` for exactly what it rewrites. This skill is how to run it,
 read what it says, check the result and hand it over.
 
+If the checkout has no `dev/itch/export.mjs` (an older branch), use the copy that
+ships with this skill, `scripts/export.mjs` next to this file. Run it from the repo
+root the same way; it finds the repo from the game folder.
+
 All paths are relative to the repo root (`git rev-parse --show-toplevel`).
 
 ---

@@ -15,13 +15,12 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const HERE = path.dirname(fileURLToPath(import.meta.url));
-const REPO = path.resolve(HERE, '..', '..');
 const CDN_DEFAULT = 'https://unpkg.com/three@0.165.0/';
 
 export async function buildItch(options = {}) {
     const gameDir = path.resolve(fromUrl(options.gameDir ?? process.argv[2] ?? 'game-065'));
-    const repoDir = path.resolve(fromUrl(options.repoDir ?? REPO));
+    // Games sit at the repo root, so this works from a copy of the script outside the repo.
+    const repoDir = path.resolve(fromUrl(options.repoDir ?? path.dirname(gameDir)));
     const htmlPath = path.join(gameDir, 'index.html');
     if (!fs.existsSync(htmlPath)) throw new Error(`${path.relative(repoDir, gameDir)} has no index.html`);
 
