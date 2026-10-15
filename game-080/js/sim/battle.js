@@ -81,6 +81,7 @@ function calmFoe(G, f, by) {
     }
     if (d.drop && G.rng() < d.drop[1]) { item = d.drop[0]; addItem(G, item, 1); }
     G.stats.calmed++;
+    G.dex[f.id] = (G.dex[f.id] || 0) + 1;      // the Compendium
     G.events.push({ type: 'b_calm', foe: f.n, id: f.id, book, item, by });
 }
 

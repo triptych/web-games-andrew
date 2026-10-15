@@ -40,6 +40,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Docs**: [learnings.md § Game 078](docs/generic/learnings.md#game-078-sugarplum-drop--suika-style-disc-physics-2026-10-14) (stacking discs of very different sizes, and testing overlap fairly).
 
 ### Added
+- **EMBERLEAF** (game-080) v1.2.0: a **Compendium** tab in the satchel lists every kind of runaway you've calmed.
+  - Each card shows the foe's sprite, how many you've calmed, its genre, and a snippet from the book it really was, e.g. "¹ The butler did not do it. ² Probably." from *Footnotes to a Missing Novel* ([js/sim/data/excerpts.js](game-080/js/sim/data/excerpts.js), 35 excerpts).
+  - Guardians quote their grimoires.
+  - Ones you haven't calmed are silhouettes with a hint of where they wander.
+  - Counts are kept in `G.dex` ([battle.js](game-080/js/sim/battle.js)); saves from before load with an empty Compendium.
+  - simtest checks the count, that every foe has an excerpt, and that old saves load. browsertest checks that the tab lists all 35.
+
+### Fixed
+- **EMBERLEAF** (game-080) v1.1.1: on a phone, just after an update, the title screen showed but tapping New Game (or anything) did nothing. The browser had kept some old files (GitHub Pages lets them be cached for ten minutes) and fetched new ones. The new `main.js` imported `prompt` from a cached `game.js` that didn't have it, so the modules failed to link and no script ran. Now:
+  - every module and the stylesheet are fetched as `file?v=VERSION` through an import map in [index.html](game-080/index.html), so a release always arrives as a whole. [dev/stamp.mjs](game-080/dev/stamp.mjs) writes the map and simtest fails if it's out of date.
+  - the game boots through `import('./js/main.js').catch(...)`, so if loading still fails, a "couldn't start" card offers Reload instead of a dead title screen.
+  - [browsertest.mjs](game-080/dev/browsertest.mjs) serves an old `game.js` to a touch phone and checks the card, Reload and New Game.
+
+### Added
 - **EMBERLEAF** (game-080) v1.1.0: houses, shops and inns now hide small things. 38 finds (coins, teas, biscuits, ink, tarts, candles) are tucked into the shelves, tables, barrels, crates, flowerboxes and mantelpieces of all 29 rooms, picked by a hash of each room's id. Furniture that hides something glints now and then ([worldgen.js](game-080/js/sim/worldgen.js), [world.js](game-080/js/view/world.js)).
 - **EMBERLEAF** (game-080) v1.1.0: a small key cap ("Z Talk", "Z Search", "Z Open", "Z Read", "Z Place books"…) floats over whatever Action would use; it reads A when playing by touch or gamepad. It comes from `prompt(G)` in [game.js](game-080/js/sim/game.js), which shares its lookup with `interact()`, so it never promises something Action won't do.
 

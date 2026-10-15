@@ -4,7 +4,9 @@
 import { VERSION } from './config.js';
 import { ITEMS, SHOPS, SLOTS, sellPrice } from './sim/data/items.js';
 import { GRIMOIRE, BOOK_ORDER, COMMON_BOOKS, GENRES, COMMON } from './sim/data/books.js';
-import { FOE } from './sim/data/enemies.js';
+import { FOE, ENEMIES, BOSSES, BIOME_FOES } from './sim/data/enemies.js';
+import { EXCERPTS } from './sim/data/excerpts.js';
+import { DUNGEONS } from './sim/data/maps.js';
 import { NPCS, speakerName } from './sim/data/npcs.js';
 import { QUESTS } from './sim/data/quests.js';
 import { ZONES } from './sim/data/world.js';
@@ -12,7 +14,7 @@ import { maxHp, maxInk, focus, poise, count, xpFor, wickPower } from './sim/rule
 import { liveFoes, elemMul } from './sim/battle.js';
 import { objective } from './sim/story.js';
 import { getWorld } from './sim/worldgen.js';
-import { personFrame, wickFrame, PLAYER_LOOK, icon } from './view/sprites.js';
+import { personFrame, wickFrame, foeFrame, PLAYER_LOOK, icon } from './view/sprites.js';
 import { GRASS } from './view/tiles.js';
 import { TILES } from './sim/data/tiles.js';
 
@@ -669,7 +671,7 @@ export class UI {
         const body = $('bag-body');
         const keep = document.activeElement?.dataset?.id;
         body.innerHTML = '';
-        ({ books: this.bagBooks, items: this.bagItems, gear: this.bagGear, shelves: this.bagShelves, journal: this.bagJournal, map: this.bagMap })[this.tab].call(this, G, body);
+        ({ books: this.bagBooks, items: this.bagItems, gear: this.bagGear, shelves: this.bagShelves, journal: this.bagJournal, dex: this.bagDex, map: this.bagMap })[this.tab].call(this, G, body);
         if (keep) body.querySelector(`[data-id="${keep}"]`)?.focus({ preventScroll: true });
     }
     bagBooks(G, body) {
@@ -749,6 +751,47 @@ export class UI {
             row.appendChild(slots);
             body.appendChild(row);
         }
+    }
+    /** Every kind of runaway you've calmed, how many, and a line from the book it really was. */
+    bagDex(G, body) {
+        const kinds = (set) => Object.keys(set).filter((id) => G.dex[id]).length;
+        const total = Object.values(G.dex).reduce((a, n) => a + n, 0);
+        body.appendChild(el('p', '', `You've calmed <b>${total}</b> runaway${total === 1 ? '' : 's'}: <b>${kinds(ENEMIES)}</b> of ${Object.keys(ENEMIES).length} kinds of book, and <b>${kinds(BOSSES)}</b> of ${Object.keys(BOSSES).length} guardians. Calm one to read a line of it.`));
+        for (const [head, set] of [['Runaway books', ENEMIES], ['Guardians', BOSSES]]) {
+            body.appendChild(el('h3', 'dex-h', head));
+            const grid = el('div', 'dex');
+            for (const id in set) {
+                const d = FOE[id], n = G.dex[id] || 0, ex = EXCERPTS[id];
+                const c = el('div', 'dcard' + (n ? '' : ' none'));
+                c.appendChild(this.foeIcon(d.look, !n));
+                const g = d.genre ? GENRES[d.genre] : null;
+                c.appendChild(el('div', 'dt', n
+                    ? `<h4>${esc(d.name)}</h4><div class="meta"><span class="n">Calmed × ${n}</span>${g ? `<span class="genre" style="--g:${g.colour}">${esc(g.name)}</span>` : ''}</div><blockquote>${esc(ex.text)}<cite>from <i>${esc(ex.title)}</i></cite></blockquote>`
+                    : `<h4>???</h4><div class="meta">${esc(this.habitat(id))}</div>`));
+                grid.appendChild(c);
+            }
+            body.appendChild(grid);
+        }
+    }
+    foeIcon(look, shadow) {
+        const img = foeFrame(look, 0, 24);
+        const cv = document.createElement('canvas');
+        cv.width = img.width; cv.height = img.height;
+        const g = cv.getContext('2d');
+        g.drawImage(img, 0, 0);
+        // not met yet: a silhouette
+        if (shadow) { g.globalCompositeOperation = 'source-in'; g.fillStyle = '#6a5a4a'; g.fillRect(0, 0, cv.width, cv.height); }
+        return cv;
+    }
+    /** Where an uncalmed runaway can be found, as a hint. */
+    habitat(id) {
+        const PLACE = { farm: 'the farms', meadow: 'the meadows', wood: 'the woods', hill: 'the hills', moor: 'the moors', thorn: 'the thornwood', quarry: 'the quarry', peak: 'the peaks', coast: 'the coast', lake: 'the lake', willow: 'the willow banks', sky: 'the sky', abbeyg: 'the abbey grounds', castleg: 'the castle grounds' };
+        const lair = DUNGEONS.find((d) => d.boss === id);
+        if (lair) return `Guards ${lair.name}.`;
+        const out = Object.keys(BIOME_FOES).filter((b) => BIOME_FOES[b].includes(id)).map((b) => PLACE[b]).filter(Boolean);
+        const inside = DUNGEONS.filter((d) => (d.foes || []).includes(id)).map((d) => d.name);
+        const where = [...new Set(out)].slice(0, 2).concat(out.length ? [] : inside.slice(0, 1));
+        return where.length ? `Wanders ${where.join(' and ')}.` : 'Somewhere out there.';
     }
     bagJournal(G, body) {
         const ob = objective(G);
