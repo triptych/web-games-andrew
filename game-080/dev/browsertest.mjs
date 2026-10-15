@@ -120,6 +120,23 @@ async function desktop() {
     check(await talkThrough(page), 'and you can read through it');
     await until(page, () => __el.G.flags.metWick === 1 && __el.G.mode === 'explore', 'Wick joins you');
 
+    // facing: walk left and right with real keys and look at which side of the face the eye is on
+    for (const [key, dir] of [['ArrowLeft', 'left'], ['ArrowRight', 'right']]) {
+        await page.keyboard.down(key);
+        await until(page, (d) => __el.G.p.dir === d, `holding ${key} turns you ${dir}`, 10000, dir);
+        await page.keyboard.up(key);
+        const eyeX = await Q(page, async (d) => {
+            const { personFrame, PLAYER_LOOK } = await import('./js/view/sprites.js');
+            const c = personFrame(PLAYER_LOOK, d, 0, 'player');
+            const px = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+            // the eye: the dark pixel in the face's eye row (the head starts at row 6)
+            for (let x = 0; x < c.width; x++) { const i = (10 * c.width + x) * 4; if (px[i] === 42 && px[i + 1] === 30 && px[i + 2] === 30) return x; }
+            return -1;
+        }, dir);
+        check(dir === 'left' ? eyeX >= 0 && eyeX < 8 : eyeX >= 8, `walking ${dir}, the librarian faces ${dir} (eye at x ${eyeX})`);
+    }
+    await page.keyboard.down('ArrowUp'); await page.waitForTimeout(150); await page.keyboard.up('ArrowUp');
+
     // pause
     await page.keyboard.press('Escape');
     await until(page, () => !document.getElementById('pause').hidden, 'Escape pauses');

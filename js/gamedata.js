@@ -1199,7 +1199,7 @@ const games = [
         description: "A cozy top-down adventure in vanilla Canvas 2D with no asset files. You are Vellumvale's new magical librarian, and the Lantern Library is empty: its twelve grimoires fled the night it fell and ran a little wild. With Wick, the fire sprite who lives in the hearth, walk a kingdom of 63 hand-planned regions (farms and woods, a castle town, misty moors, snowy peaks, a fishing port, a mouse village, a lake with a sunken archive and floating sky isles), calm the runaway books in gentle turn-based squabbles where nothing is ever hurt and every foe turns back into a book for your shelves, and bring the grimoires home. Each one lends you a power that opens a new part of the world, Metroid-style: light for dark caves, wind for fog, warmth for brambles, frost for rivers, swimming, shrinking through mouse doors, vines up cliffs, words for ghostly gates and rune seals, floating over chasms. Twelve dungeons with guardians, shops and inns, eighty people with side quests and overdue books, 48 books to reshelve, and a library that wakes up lamp by lamp as Wick remembers who she used to be.",
         icon: '\uD83D\uDD6F\uFE0F',
         folder: 'game-080',
-        version: '1.0.1',
+        version: '1.0.2',
         cssClass: 'emberleaf',
         genre: 'cozy',
         tags: [

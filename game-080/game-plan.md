@@ -3,7 +3,7 @@
 **Genre:** Cozy top-down adventure with Metroid-style progression and gentle turn-based battles
 **Engine:** Vanilla JS: Canvas 2D for the world and battles, DOM and CSS for every menu, Web Audio for every sound and note. No libraries, no asset files.
 **Target:** any screen from a 360 px phone (portrait or landscape) to a desktop monitor; keyboard, gamepad or touch.
-**Status:** v1.0.1
+**Status:** v1.0.2
 
 ---
 
@@ -152,6 +152,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, that every door
 - More side quests for the later regions; a bestiary page in the satchel.
 
 ## Changelog
+
+### v1.0.2 (2026-10-15)
+- Walking left or right, people faced the other way: the side view is painted facing right but was filed as the left-facing frame and mirrored for right.
 
 ### v1.0.1 (2026-10-15)
 - The Action key (Z, J, gamepad A, the touch A button) picks the highlighted dialogue choice and presses battle and menu buttons, not just Space and Enter; on landscape phones the A button works while a dialogue is open.
