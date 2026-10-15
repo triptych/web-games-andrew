@@ -78,6 +78,10 @@ if (want('purity')) {
         ok(!/from '\.\.?\/(\.\.\/)?(view|ui|audio|input|save|main)/.test(src), `${f} never imports the view, UI, audio, input or storage`);
     }
     console.log(`  ${files.length} files checked`);
+    // every module and the stylesheet are fetched at this release's version (see dev/stamp.mjs)
+    const SP = await import('./stamp.mjs');
+    const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    ok(SP.stamped(html) === html, `index.html stamps all ${SP.modules().length} modules and style.css with v${C.VERSION} (run node game-080/dev/stamp.mjs)`);
 }
 
 // =====================================================================

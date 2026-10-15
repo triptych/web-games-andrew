@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Nunito:wght@500;700;800&display=swap">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.1.1">
 </head>
 <body>
     <a id="back-link" href="../index.html">← Games</a>
@@ -191,6 +191,57 @@
     <div id="toasts"></div>
     <noscript><p class="noscript">EMBERLEAF needs JavaScript.</p></noscript>
 
-    <script type="module" src="js/main.js"></script>
+    <div id="boot-fail" hidden>
+        <div class="boot-card">
+            <p><b>EMBERLEAF couldn't start.</b></p>
+            <p>The game was probably just updated, and your browser kept some of the old files. Reloading fetches a fresh copy.</p>
+            <button id="boot-reload" type="button">Reload</button>
+        </div>
+    </div>
+
+    <!-- every module at this release's version (dev/stamp.mjs writes this; simtest checks it) -->
+    <script type="importmap">
+    { "imports": {
+        "./js/audio.js": "./js/audio.js?v=1.1.1",
+        "./js/config.js": "./js/config.js?v=1.1.1",
+        "./js/input.js": "./js/input.js?v=1.1.1",
+        "./js/main.js": "./js/main.js?v=1.1.1",
+        "./js/rng.js": "./js/rng.js?v=1.1.1",
+        "./js/save.js": "./js/save.js?v=1.1.1",
+        "./js/sim/battle.js": "./js/sim/battle.js?v=1.1.1",
+        "./js/sim/bot.js": "./js/sim/bot.js?v=1.1.1",
+        "./js/sim/data/books.js": "./js/sim/data/books.js?v=1.1.1",
+        "./js/sim/data/enemies.js": "./js/sim/data/enemies.js?v=1.1.1",
+        "./js/sim/data/items.js": "./js/sim/data/items.js?v=1.1.1",
+        "./js/sim/data/maps.js": "./js/sim/data/maps.js?v=1.1.1",
+        "./js/sim/data/npcs.js": "./js/sim/data/npcs.js?v=1.1.1",
+        "./js/sim/data/quests.js": "./js/sim/data/quests.js?v=1.1.1",
+        "./js/sim/data/tiles.js": "./js/sim/data/tiles.js?v=1.1.1",
+        "./js/sim/data/world.js": "./js/sim/data/world.js?v=1.1.1",
+        "./js/sim/game.js": "./js/sim/game.js?v=1.1.1",
+        "./js/sim/nav.js": "./js/sim/nav.js?v=1.1.1",
+        "./js/sim/plan.js": "./js/sim/plan.js?v=1.1.1",
+        "./js/sim/rules.js": "./js/sim/rules.js?v=1.1.1",
+        "./js/sim/story.js": "./js/sim/story.js?v=1.1.1",
+        "./js/sim/worldgen.js": "./js/sim/worldgen.js?v=1.1.1",
+        "./js/ui.js": "./js/ui.js?v=1.1.1",
+        "./js/view/battle.js": "./js/view/battle.js?v=1.1.1",
+        "./js/view/buildings.js": "./js/view/buildings.js?v=1.1.1",
+        "./js/view/paint.js": "./js/view/paint.js?v=1.1.1",
+        "./js/view/sprites.js": "./js/view/sprites.js?v=1.1.1",
+        "./js/view/tiles.js": "./js/view/tiles.js?v=1.1.1",
+        "./js/view/view.js": "./js/view/view.js?v=1.1.1",
+        "./js/view/world.js": "./js/view/world.js?v=1.1.1"
+    } }
+    </script>
+    <script type="module">
+        // A module that fails to load or link leaves nothing running: say so, and offer a fresh copy
+        // (the query string skips a stale cached page too).
+        import('./js/main.js').catch((err) => {
+            console.error(err);
+            document.getElementById('boot-fail').hidden = false;
+            document.getElementById('boot-reload').onclick = () => location.replace(location.pathname + '?fresh=' + Date.now());
+        });
+    </script>
 </body>
 </html>
