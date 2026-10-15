@@ -296,7 +296,9 @@ function frame(now) {
     ui.showPrompt(mode === 'play' && !ui.anyScreen() && !bot ? prompt(G) : null, input.lastDevice === 'keys' && !ui.touchOn ? 'Z' : 'A');
 }
 
-document.addEventListener('visibilitychange', () => { if (document.hidden) { if (G.mode === 'explore') pause(); saveGame(G); } });
+// Only a game you're playing is ever saved. On the title screen G is the empty demo game behind
+// the menu, and saving it here (a reload or a tab switch hides the page) wrote it over the real save.
+document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'play') { if (G.mode === 'explore') pause(); saveGame(G); } });
 window.addEventListener('pagehide', () => { if (mode === 'play') saveGame(G); });
 
 requestAnimationFrame((t) => { last = t; frame(t); });
