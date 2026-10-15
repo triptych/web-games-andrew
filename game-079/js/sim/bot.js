@@ -5,46 +5,11 @@
 
 import { PLAYER, STEP_UP, FURY, STEP } from '../config.js';
 import { makeRng } from '../rng.js';
-import { cellAt, cellX, cellZ, los } from './world.js';
+import { cellAt, cellX, cellZ, los, routeField, routeNext, routeClear } from './world.js';
 import { NO_INPUT, canTake, freeSlot } from './player.js';
-
-const DIR8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
 
 export function makeBot({ skill = 1, seed = 7 } = {}) {
     return { skill, rng: makeRng(seed), field: null, goal: -1, fieldT: 0, stuckT: 0, lx: 0, lz: 0, unstick: 0, ux: 0, uz: 0, strafe: 1, strafeT: 0, target: -1, scanT: 0, swapT: 0, bombT: 3, jitter: 0, done: new Set() };
-}
-
-/** Bot BFS: walls block; doors pass if we hold the key and they aren't locked. */
-function botField(G, goal) {
-    const L = G.L, p = G.player;
-    const d = new Int16Array(L.N).fill(-1);
-    if (goal < 0) return d;
-    const pass = (i) => {
-        if (L.solid[i]) return false;
-        const dr = L.door[i];
-        if (dr >= 0 && (G.doorLock[dr] || !(p.keys & (1 << L.doors[dr].key))) && G.doorOpen[dr] < 0.9) return false;
-        return L.ceil[i] - L.floor[i] >= 2;
-    };
-    const q = new Int32Array(L.N);
-    let h = 0, t = 0;
-    q[t++] = goal; d[goal] = 0;
-    while (h < t) {
-        const i = q[h++], x = i % L.W, y = (i / L.W) | 0;
-        for (const [ox, oy] of DIR8) {
-            const nx = x + ox, ny = y + oy;
-            if (nx < 0 || ny < 0 || nx >= L.W || ny >= L.H) continue;
-            const j = ny * L.W + nx;
-            if (d[j] >= 0 || !pass(j)) continue;
-            // corners: both orthogonal cells must be walkable and dry, the same rule nextCell() follows
-            if (ox && oy && (!pass(y * L.W + nx) || !pass(ny * L.W + x) || L.liquid[y * L.W + nx] || L.liquid[ny * L.W + x])) continue;
-            if (L.floor[i] - L.floor[j] > STEP_UP + 1e-4) continue;
-            if (ox && oy && (L.floor[y * L.W + nx] - L.floor[j] > STEP_UP || L.floor[ny * L.W + x] - L.floor[j] > STEP_UP)) continue;
-            if (L.liquid[i] && !L.liquid[j] && L.floor[j] > L.floor[i]) continue;   // j → i: don't route down into pits
-            d[j] = d[i] + 1;
-            q[t++] = j;
-        }
-    }
-    return d;
 }
 
 function angleTo(p, x, y, z) {
@@ -131,7 +96,7 @@ export function botInput(G, bot) {
     bot.fieldT -= dt;
     if (goal !== bot.goal || bot.fieldT <= 0 || !bot.field) {
         bot.goal = goal; bot.fieldT = 1.5;
-        bot.field = botField(G, goal);
+        bot.field = routeField(G, goal);
     }
     let mx = 0, mz = 0;
     const c = cellAt(L, p.x, p.z);
@@ -158,15 +123,15 @@ export function botInput(G, bot) {
             mx = dx / d * radial - dz / d * bot.strafe * 0.8;
             mz = dz / d * radial + dx / d * bot.strafe * 0.8;
         } else if (c >= 0 && bot.field[c] > 0) {
-            const nx = nextCell(G, bot.field, c);
+            const nx = routeNext(G, bot.field, c);
             if (nx >= 0) { mx = cellX(L, nx) - p.x; mz = cellZ(L, nx) - p.z; }
         }
     } else if (c >= 0 && bot.field[c] > 0) {
-        const nx = nextCell(G, bot.field, c);
+        const nx = routeNext(G, bot.field, c);
         if (nx >= 0) {
             // aim two cells ahead when it's a straight line, for smoother paths
-            const n2 = nextCell(G, bot.field, nx);
-            const tx = n2 >= 0 && clearWalk(G, bot.field, p.x, p.z, cellX(L, n2), cellZ(L, n2)) ? n2 : nx;
+            const n2 = routeNext(G, bot.field, nx);
+            const tx = n2 >= 0 && routeClear(G, bot.field, p.x, p.z, cellX(L, n2), cellZ(L, n2)) ? n2 : nx;
             mx = cellX(L, tx) - p.x; mz = cellZ(L, tx) - p.z;
         }
     } else if (c >= 0 && bot.field[c] === 0) {
@@ -253,32 +218,3 @@ export function botInput(G, bot) {
     return inp;
 }
 
-/** A straight walk that stays on the field and out of liquid (line of sight passes over pits). */
-function clearWalk(G, field, x0, z0, x1, z1) {
-    const L = G.L;
-    const n = Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 0.5);
-    for (let k = 1; k <= n; k++) {
-        const t = k / n;
-        for (const o of [-0.45, 0.45]) {
-            const dx = z1 - z0, dz = x0 - x1, l = Math.hypot(dx, dz) || 1;
-            const c = cellAt(L, x0 + (x1 - x0) * t + dx / l * o, z0 + (z1 - z0) * t + dz / l * o);
-            if (c < 0 || field[c] < 0 || L.liquid[c] || L.crate[c]) return false;
-        }
-    }
-    return true;
-}
-
-function nextCell(G, field, i) {
-    const L = G.L;
-    const x = i % L.W, y = (i / L.W) | 0;
-    let best = -1, bd = field[i];
-    for (const [ox, oy] of DIR8) {
-        const nx = x + ox, ny = y + oy;
-        if (nx < 0 || ny < 0 || nx >= L.W || ny >= L.H) continue;
-        const j = ny * L.W + nx;
-        if (field[j] < 0 || field[j] >= bd) continue;
-        if (ox && oy && (field[y * L.W + nx] < 0 || field[ny * L.W + x] < 0)) continue;
-        bd = field[j]; best = j;
-    }
-    return best;
-}

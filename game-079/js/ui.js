@@ -5,6 +5,7 @@ import { VERSION, RARITY, PLAYER, FURY } from './config.js';
 import { LEVELS, TAPES, ENDING, BRIEFINGS } from './sim/data.js';
 import { describe, ARCH, MAKERS } from './sim/weapons.js';
 import { tallyOf } from './sim/game.js';
+import { routeField, routeAhead, routeNext, cellAt } from './sim/world.js';
 
 const $ = (id) => document.getElementById(id);
 const KEY_CSS = ['#fff', '#ff2a1a', '#2a7bff', '#ffc020'];
@@ -75,7 +76,81 @@ export class UI {
     }
 
     // ------------------------------------------------------------------ HUD
-    showHud(on) { $('hud').hidden = !on; $('btn-pause').hidden = !on; this.setTouch(this.touchOn, on); }
+    showHud(on) { $('hud').hidden = !on; $('btn-pause').hidden = !on; $('minimap').hidden = !on; this.setTouch(this.touchOn, on); }
+    toggleMap() { $('minimap').classList.toggle('big'); this.mapT = 0; }
+
+    /** The walking route to the objective: recomputed when the goal, the keys or the doors change. */
+    updateRoute(G) {
+        const o = G.objective, p = G.player;
+        if (!o) return;
+        const sig = `${G.seed}:${G.level}:${o.cell}:${p.keys}:${G.doorOpen.map((v) => (v >= 0.9 ? 1 : 0)).join('')}:${G.doorLock.join()}`;
+        if (sig !== this.routeSig) { this.routeSig = sig; this.route = routeField(G, o.cell); }
+    }
+
+    /** A north-up map around the player: what you've seen, doors, the objective and the route to it. */
+    drawMap(G) {
+        const cv = $('minimap'), L = G.L, p = G.player;
+        const big = cv.classList.contains('big');
+        const css = cv.clientWidth || 150, dpr = Math.min(2, window.devicePixelRatio || 1);
+        if (cv.width !== Math.round(css * dpr)) { cv.width = cv.height = Math.round(css * dpr); }
+        const key = `${G.seed}:${G.level}`;
+        if (this.mapKey !== key) { this.mapKey = key; this.seen = new Uint8Array(L.N); }
+        // reveal what's around you
+        const pc = cellAt(L, p.x, p.z), px = pc % L.W, pz = (pc / L.W) | 0;
+        for (let dz = -5; dz <= 5; dz++) for (let dx = -5; dx <= 5; dx++) {
+            const x = px + dx, z = pz + dz;
+            if (x >= 0 && z >= 0 && x < L.W && z < L.H && dx * dx + dz * dz <= 30) this.seen[z * L.W + x] = 1;
+        }
+        const c = cv.getContext('2d');
+        const W = cv.width;
+        const span = big ? Math.max(L.W, L.H) + 2 : 30;          // cells across
+        const s = W / span;
+        const cx = big ? L.W / 2 : p.x / 3, cz = big ? L.H / 2 : p.z / 3;
+        const toX = (x) => (x - cx) * s + W / 2, toY = (z) => (z - cz) * s + W / 2;
+        c.clearRect(0, 0, W, W);
+        c.save();
+        if (!big) { c.beginPath(); c.arc(W / 2, W / 2, W / 2 - 1, 0, 7); c.clip(); }
+        const x0 = Math.max(0, Math.floor(cx - span / 2) - 1), x1 = Math.min(L.W - 1, Math.ceil(cx + span / 2) + 1);
+        const z0 = Math.max(0, Math.floor(cz - span / 2) - 1), z1 = Math.min(L.H - 1, Math.ceil(cz + span / 2) + 1);
+        for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) {
+            const i = z * L.W + x;
+            if (!this.seen[i]) continue;
+            if (L.solid[i]) { c.fillStyle = 'rgba(46,242,255,0.28)'; }
+            else if (L.door[i] >= 0) c.fillStyle = KEY_CSS[L.doors[L.door[i]].key];
+            else if (L.liquid[i]) c.fillStyle = 'rgba(120,255,60,0.45)';
+            else c.fillStyle = L.crate[i] || L.platform?.[i] ? 'rgba(160,120,200,0.55)' : 'rgba(90,60,130,0.6)';
+            c.fillRect(toX(x), toY(z), s + 0.5, s + 0.5);
+        }
+        // the route, as a dotted line from you to the objective
+        if (this.route && pc >= 0) {
+            c.strokeStyle = '#ffc531'; c.lineWidth = Math.max(1.5, s * 0.3); c.setLineDash([s * 0.6, s * 0.5]);
+            c.beginPath(); c.moveTo(toX(p.x / 3), toY(p.z / 3));
+            let i = pc;
+            if (this.route[i] < 0) i = -1;
+            for (let k = 0; k < 400 && i >= 0; k++) {
+                const n = routeNext(G, this.route, i);
+                if (n < 0) break;
+                i = n;
+                c.lineTo(toX(i % L.W + 0.5), toY(((i / L.W) | 0) + 0.5));
+            }
+            c.stroke(); c.setLineDash([]);
+        }
+        // the objective, pinned to the rim when it's off the map
+        const o = G.objective;
+        if (o && o.kind !== 'ambush') {
+            let ox = toX(o.x / 3), oy = toY(o.z / 3);
+            const r = Math.hypot(ox - W / 2, oy - W / 2), lim = W / 2 - 8;
+            if (!big && r > lim) { ox = W / 2 + (ox - W / 2) / r * lim; oy = W / 2 + (oy - W / 2) / r * lim; }
+            c.fillStyle = o.kind === 'key' ? KEY_CSS[o.key] : o.kind === 'boss' ? '#ff4060' : '#5dff7a';
+            c.beginPath(); c.arc(ox, oy, Math.max(4, s * 0.7), 0, 7); c.fill();
+            c.strokeStyle = '#fff'; c.lineWidth = 1.5; c.stroke();
+        }
+        // you
+        c.translate(toX(p.x / 3), toY(p.z / 3)); c.rotate(p.yaw);
+        const t = Math.max(6, s * 0.9);
+        c.fillStyle = '#ff3fa4'; c.beginPath(); c.moveTo(0, -t); c.lineTo(t * 0.65, t * 0.7); c.lineTo(-t * 0.65, t * 0.7); c.closePath(); c.fill();
+        c.restore();
+    }
     setTouch(on, playing = !$('hud').hidden) {
         this.touchOn = on;
         $('touch').hidden = !(on && playing);
@@ -117,11 +192,16 @@ export class UI {
         const o = G.objective;
         if (o) {
             set('obj-text', o.text);
-            const dx = o.x - p.x, dz = o.z - p.z;
-            const d = Math.hypot(dx, dz);
-            const a = Math.atan2(dx, -dz) - p.yaw;
+            // point along the walking route, not as the crow flies: the city is a maze of buildings
+            this.updateRoute(G);
+            const ahead = this.route ? routeAhead(G, this.route, p.x, p.z) : null;
+            const tx = ahead ? ahead.x : o.x, tz = ahead ? ahead.z : o.z;
+            const d = ahead ? ahead.dist : Math.hypot(o.x - p.x, o.z - p.z);
+            const a = Math.atan2(tx - p.x, -(tz - p.z)) - p.yaw;
             $('obj-arrow').style.transform = `rotate(${a}rad)`;
             set('obj-dist', o.kind === 'ambush' ? '' : `${Math.round(d)}m`);
+            this.mapT = (this.mapT || 0) - dt;
+            if (this.mapT <= 0) { this.mapT = 0.1; this.drawMap(G); }
         }
         // boss bar
         const boss = G.enemies.find((e) => e.boss && !e.pylon);

@@ -54,6 +54,14 @@ html, body {
 /* ---------------------------------------------------------------- HUD */
 #hud { position: fixed; inset: 0; z-index: 10; pointer-events: none; font-family: var(--hud); text-shadow: 0 0 6px rgba(0, 0, 0, 0.9), 0 2px 2px #000; }
 #hud .ibtn { pointer-events: auto; }
+/* the map sits above the touch deck too; M or a tap makes it big */
+#minimap {
+    position: fixed; z-index: 24; left: calc(12px + var(--safe-l)); top: calc(48px + var(--safe-t));
+    width: 150px; height: 150px; border-radius: 50%; border: 2px solid rgba(46, 242, 255, 0.45);
+    background: rgba(8, 3, 16, 0.55); box-shadow: 0 0 12px rgba(46, 242, 255, 0.25); cursor: pointer; touch-action: none;
+}
+#minimap.big { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(78vmin, 640px); height: min(78vmin, 640px); border-radius: 12px; background: rgba(8, 3, 16, 0.85); }
+body.touch #minimap:not(.big) { top: calc(150px + var(--safe-t)); width: 112px; height: 112px; }
 #btn-pause { position: fixed; z-index: 25; top: calc(8px + var(--safe-t)); right: calc(8px + var(--safe-r)); background: rgba(0, 0, 0, 0.45); font-size: 16px; }
 
 #objective {
