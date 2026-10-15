@@ -129,6 +129,12 @@ async function desktop() {
     await page.keyboard.up('ControlLeft');
     await page.keyboard.press('KeyV');
     await until(page, () => __vo.seen.kick >= 1, 'V kicks');
+    check(await Q(page, () => !document.getElementById('minimap').hidden && document.getElementById('minimap').width > 0), 'the minimap shows during play');
+    await page.keyboard.press('KeyM');
+    await until(page, () => document.getElementById('minimap').classList.contains('big'), 'M opens the big map');
+    await shot(page, 'desktop-map');
+    await page.keyboard.press('KeyM');
+    await until(page, () => !document.getElementById('minimap').classList.contains('big'), 'M closes it again');
     await shot(page, 'desktop-play');
 
     await page.keyboard.press('Escape');

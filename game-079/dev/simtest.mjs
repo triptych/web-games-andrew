@@ -13,9 +13,10 @@
  * 3. weapons: hundreds of rolled guns have finite, sane stats and names; rarity rises with level.
  * 4. rules: movement, steps, jumps, jetpack, doors and keys, hitscan, splash, rocket jumps,
  *    elements, kick, pickups and swaps, Overdrive, death and continue, ambush, bosses.
- * 5. determinism: same seed and inputs give the same game; a save round trip mid-fight plays on
+ * 5. guidance: walking only where the HUD arrow points reaches the keycard on every level.
+ * 6. determinism: same seed and inputs give the same game; a save round trip mid-fight plays on
  *    identically; an unknown save version is rejected.
- * 6. bot: the bot plays the whole campaign on SEEDS seeds at skill 1 and 0.6 with per-step
+ * 7. bot: the bot plays the whole campaign on SEEDS seeds at skill 1 and 0.6 with per-step
  *    invariants, and the balance table is printed.
  */
 import fs from 'node:fs';
@@ -472,6 +473,39 @@ if (want('rules')) {
             else ok(H.bossState === 'dead' && H.pickups.some((q) => q.kind === 'gun' && q.gun.legendary), `${boss} drops a legendary`);
         }
     }
+}
+
+// ============================================================================
+if (want('guidance')) {
+    section('guidance');
+    // A player who does nothing but walk where the HUD arrow points must reach the keycard.
+    // (v1.0.0's arrow pointed as the crow flies; in the city that walks you into a building.)
+    const N = +(process.env.GUIDE_SEEDS || 6);
+    let total = 0, reached = 0, worst = 0;
+    for (let lv = 0; lv < Gm.LEVEL_COUNT; lv++) for (let s = 1; s <= N; s++) {
+        const G = Gm.newGame(s * 1777 + lv, 1);
+        if (lv) Gm.startLevel(G, lv);
+        G.enemies.length = 0; G.god = true;
+        const p = G.player;
+        let field = null, sig = '', t = 0, lx = p.x, lz = p.z, stuck = 0;
+        for (; t < 240 && !p.keys; t += DT) {
+            const o = G.objective;
+            const k = `${o.cell}:${p.keys}`;
+            if (k !== sig) { sig = k; field = Wd.routeField(G, o.cell); }
+            const a = Wd.routeAhead(G, field, p.x, p.z) || o;
+            const want = Math.atan2(a.x - p.x, -(a.z - p.z));
+            const dyaw = Math.atan2(Math.sin(want - p.yaw), Math.cos(want - p.yaw));
+            // a person hops when they bump into something; that's all the cleverness allowed
+            stuck = Math.hypot(p.x - lx, p.z - lz) < 0.02 ? stuck + DT : 0;
+            lx = p.x; lz = p.z;
+            Gm.step(G, inp({ my: 1, dyaw: Math.max(-0.08, Math.min(0.08, dyaw)), jump: stuck > 0.4 }), DT);
+            G.events.length = 0;
+        }
+        total++;
+        if (p.keys) { reached++; worst = Math.max(worst, t); }
+        else ok(false, `level ${lv + 1} seed ${s}: following the arrow never reached the key (${G.objective.text})`);
+    }
+    ok(reached === total, `following the HUD arrow reaches the keycard on every level (${reached}/${total}, slowest ${worst.toFixed(0)} s)`);
 }
 
 // ============================================================================

@@ -190,3 +190,94 @@ export function flowNext(G, field, i) {
     }
     return best;
 }
+
+// ==================================================================== walking routes
+
+/** Walking route BFS from `goal` (the bot and the HUD's arrow and minimap share it): walls block; doors pass if we hold the key and they aren't locked. */
+export function routeField(G, goal) {
+    const L = G.L, p = G.player;
+    const d = new Int16Array(L.N).fill(-1);
+    if (goal < 0) return d;
+    const pass = (i) => {
+        if (L.solid[i]) return false;
+        const dr = L.door[i];
+        if (dr >= 0 && (G.doorLock[dr] || !(p.keys & (1 << L.doors[dr].key))) && G.doorOpen[dr] < 0.9) return false;
+        return L.ceil[i] - L.floor[i] >= 2;
+    };
+    const q = new Int32Array(L.N);
+    let h = 0, t = 0;
+    q[t++] = goal; d[goal] = 0;
+    while (h < t) {
+        const i = q[h++], x = i % L.W, y = (i / L.W) | 0;
+        for (const [ox, oy] of DIR8) {
+            const nx = x + ox, ny = y + oy;
+            if (nx < 0 || ny < 0 || nx >= L.W || ny >= L.H) continue;
+            const j = ny * L.W + nx;
+            if (d[j] >= 0 || !pass(j)) continue;
+            // corners: both orthogonal cells must be walkable and dry, the same rule nextCell() follows
+            if (ox && oy && (!pass(y * L.W + nx) || !pass(ny * L.W + x) || L.liquid[y * L.W + nx] || L.liquid[ny * L.W + x])) continue;
+            if (L.floor[i] - L.floor[j] > STEP_UP + 1e-4) continue;
+            if (ox && oy && (L.floor[y * L.W + nx] - L.floor[j] > STEP_UP || L.floor[ny * L.W + x] - L.floor[j] > STEP_UP)) continue;
+            if (L.liquid[i] && !L.liquid[j] && L.floor[j] > L.floor[i]) continue;   // j → i: don't route down into pits
+            d[j] = d[i] + 1;
+            q[t++] = j;
+        }
+    }
+    return d;
+}
+
+/** One step along a route field from cell i (no corner cutting), or -1. */
+export function routeNext(G, field, i) {
+    const L = G.L;
+    const x = i % L.W, y = (i / L.W) | 0;
+    let best = -1, bd = field[i];
+    for (const [ox, oy] of DIR8) {
+        const nx = x + ox, ny = y + oy;
+        if (nx < 0 || ny < 0 || nx >= L.W || ny >= L.H) continue;
+        const j = ny * L.W + nx;
+        if (field[j] < 0 || field[j] >= bd) continue;
+        if (ox && oy && (field[y * L.W + nx] < 0 || field[ny * L.W + x] < 0)) continue;
+        bd = field[j]; best = j;
+    }
+    return best;
+}
+
+/** A straight walk that stays on the field and out of liquid (line of sight passes over pits). */
+export function routeClear(G, field, x0, z0, x1, z1) {
+    const L = G.L;
+    const n = Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 0.5);
+    for (let k = 1; k <= n; k++) {
+        const t = k / n;
+        for (const o of [-0.45, 0.45]) {
+            const dx = z1 - z0, dz = x0 - x1, l = Math.hypot(dx, dz) || 1;
+            const c = cellAt(L, x0 + (x1 - x0) * t + dx / l * o, z0 + (z1 - z0) * t + dz / l * o);
+            if (c < 0 || field[c] < 0 || L.liquid[c] || L.crate[c]) return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Where the objective arrow should point: walk the route from (x, z) and return the farthest cell
+ * along it that can be reached in a straight line, plus the route's length in metres.
+ */
+export function routeAhead(G, field, x, z, maxSteps = 16) {
+    const L = G.L;
+    let c = cellAt(L, x, z);
+    if (c < 0 || field[c] < 0) return null;
+    const dist = field[c] * CELL;
+    // always at least one step along the route (pointing at your own cell spins the arrow round
+    // you), then as far ahead as a straight walk stays on the route
+    let best = routeNext(G, field, c);
+    if (best < 0) best = c;
+    c = best;
+    for (let k = 1; k < maxSteps; k++) {
+        const nx = routeNext(G, field, c);
+        if (nx < 0) break;
+        c = nx;
+        if (routeClear(G, field, x, z, cellX(L, c), cellZ(L, c))) best = c;
+        else break;
+    }
+    return { x: cellX(L, best), z: cellZ(L, best), dist };
+}
+

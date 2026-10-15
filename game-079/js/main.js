@@ -173,6 +173,7 @@ input.bindButton($('t-next'), () => input.cycle(1));
 input.bindButton($('t-bomb'), () => input.press('bomb'));
 input.bindButton($('t-swap'), () => input.press('use'));
 input.bindButton($('t-over'), () => input.press('over'));
+$('minimap').addEventListener('pointerdown', (e) => { e.preventDefault(); ui.toggleMap(); });
 let wasLocked = false;
 document.addEventListener('pointerlockchange', () => {
     const locked = document.pointerLockElement === $('view');
@@ -197,6 +198,7 @@ function handlePresses() {
         return;
     }
     if (mode === 'play' && (key === 'Escape' || key === 'KeyP')) pause();
+    if (mode === 'play' && (key === 'KeyM' || key === 'Tab')) ui.toggleMap();
 }
 
 /** Light aim assist for thumbs and sticks: a slow pull toward an enemy near the crosshair. */

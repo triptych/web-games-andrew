@@ -388,6 +388,32 @@ export class View {
         }
     }
 
+    /** A tall beam of light over the objective, so you can see it over the rooftops. */
+    objectiveBeam(G, time) {
+        const o = G.objective;
+        if (!this.objBeam) {
+            this.objBeam = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.9, 90, 16, 1, true).translate(0, 45, 0), new THREE.ShaderMaterial({
+                uniforms: { uC: { value: new THREE.Color() }, uTime: SU.uTime },
+                // seen through buildings, like any waypoint: it's there to find your way
+                transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+                vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+                fragmentShader: 'uniform vec3 uC; uniform float uTime; varying vec2 vUv; void main(){ float a = 0.55 * (0.25 + 0.75 * pow(clamp(1.0 - vUv.y, 0.0, 1.0), 3.0)) * (0.75 + 0.25 * sin(uTime * 3.0 - vUv.y * 40.0)); gl_FragColor = vec4(uC * a, a); }',
+            }));
+            this.objBeam.frustumCulled = false;
+            this.objBeam.renderOrder = 10;
+            this.root.add(this.objBeam);
+        }
+        const show = !!o && o.kind !== 'ambush' && !G.player.dead;
+        this.objBeam.visible = show;
+        if (!show) return;
+        const c = o.kind === 'key' ? KEY_HEX[o.key] : o.kind === 'boss' ? 0xff3050 : 0x40ff80;
+        this.objBeam.material.uniforms.uC.value.set(c).multiplyScalar(1.4);
+        this.objBeam.position.set(o.x, this.floorAt(o.x, o.z), o.z);
+        // keep it a few pixels wide however far away it is
+        const w = Math.max(1, Math.hypot(o.x - this.camera.position.x, o.z - this.camera.position.z) / 35) * (1 + Math.sin(time * 2) * 0.05);
+        this.objBeam.scale.set(w, 1, w);
+    }
+
     // ================================================================ per frame
     frame(G, dt, time, o = {}) {
         this.resize();
@@ -419,6 +445,7 @@ export class View {
             const on = Math.sin(time * 13 + f.seed) + Math.sin(time * 3.1 + f.seed * 2) > -1.2;
             f.mat.color.copy(f.base).multiplyScalar(on ? 1 : 0.15);
         }
+        this.objectiveBeam(G, time);
         const exitOn = G.exitOpen && G.ambush !== 'active' && G.L.boss !== 'rourke';
         lv.exit.visible = exitOn;
         if (exitOn) { lv.exit.userData.ring.rotation.z = time; lv.exit.userData.sign.rotation.y = time * 0.8; }
