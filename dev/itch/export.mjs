@@ -6,9 +6,9 @@
  *   node dev/itch/export.mjs game-064 --name krakens-gambit
  *
  * The build copies the game folder without dev/, vendors shared repo files that
- * the page references with ../lib/, vendors three.js import maps that point at
- * unpkg, removes the repo launcher link, and writes an itch-ready zip with
- * index.html at the top.
+ * the game references from /lib (script tags and ES module imports), vendors
+ * three.js import maps that point at unpkg, hides the repo launcher link, and
+ * writes an itch-ready zip with index.html at the top.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -31,21 +31,16 @@ export async function buildItch(options = {}) {
     const outRoot = path.resolve(fromUrl(options.outRoot ?? path.join(gameDir, 'dev', 'itch')));
     const outDir = path.join(outRoot, name);
     const zipPath = path.join(outRoot, `${name}-itch.zip`);
-    const pkg = path.resolve(fromUrl(options.threePackage ?? process.env.THREE_PKG ?? path.join(gameDir, 'dev', 'package')));
+    const pkg = path.resolve(fromUrl(options.threePackage ?? process.env.THREE_PKG ?? firstDir(path.join(gameDir, 'dev', 'package'), path.join(repoDir, 'dev', 'package'))));
 
     fs.rmSync(outDir, { recursive: true, force: true });
     fs.mkdirSync(outDir, { recursive: true });
     copyGame(gameDir, outDir);
 
-    let html = fs.readFileSync(path.join(outDir, 'index.html'), 'utf8');
-    html = copyRepoScripts(html, repoDir, outDir);
-    const three = await vendorThree(html, outDir, pkg);
-    html = three.html;
-    html = removeLauncherLink(html);
-    if (/\.\.\//.test(html)) {
-        throw new Error('index.html still contains ../ paths; add exporter support for those shared files before uploading');
-    }
-    fs.writeFileSync(path.join(outDir, 'index.html'), html);
+    fs.writeFileSync(path.join(outDir, 'index.html'), hideLauncherLinks(fs.readFileSync(path.join(outDir, 'index.html'), 'utf8')));
+    const shared = vendorRepoFiles(gameDir, outDir, repoDir);
+    const three = await vendorThree(fs.readFileSync(path.join(outDir, 'index.html'), 'utf8'), outDir, pkg);
+    fs.writeFileSync(path.join(outDir, 'index.html'), three.html);
 
     const files = [...walk(outDir)].sort();
     fs.writeFileSync(zipPath, zip(files.map((f) => [rel(outDir, f), fs.readFileSync(f)])));
@@ -54,10 +49,12 @@ export async function buildItch(options = {}) {
     if (three.used) {
         console.log(`three.js: build/three.module.js + ${three.addons.size} add-on files (${[...three.addons].map((f) => path.basename(f)).join(', ') || 'none'})`);
     }
+    if (shared.copied.size) console.log(`shared: ${[...shared.copied].join(', ')}`);
+    for (const w of shared.warnings) console.warn(`warning: ${w}`);
     console.log(`${files.length} files, ${kb(total)} -> ${path.relative(repoDir, zipPath)} (${kb(fs.statSync(zipPath).size)})`);
     console.log('Upload the zip to itch.io as an HTML project ("This file will be played in the browser").');
 
-    return { outDir, zipPath, files, title, name };
+    return { outDir, zipPath, files, title, name, warnings: shared.warnings };
 }
 
 function copyGame(gameDir, outDir) {
@@ -70,26 +67,65 @@ function copyGame(gameDir, outDir) {
     }
 }
 
-function copyRepoScripts(html, repoDir, outDir) {
-    return html.replace(/<script\b([^>]*?)\bsrc=["']\.\.\/lib\/([^"']+)["']([^>]*)><\/script>/g, (m, before, libFile, after) => {
-        const src = path.join(repoDir, 'lib', libFile);
-        if (!fs.existsSync(src)) throw new Error(`shared script ../lib/${libFile} not found`);
-        const dest = path.join(outDir, 'lib', libFile);
-        fs.mkdirSync(path.dirname(dest), { recursive: true });
-        fs.copyFileSync(src, dest);
-        return `<script${before}src="lib/${libFile}"${after}></script>`;
-    });
+// Rewrites every relative path in the game's HTML, JS and CSS that leaves the
+// game folder. Files under the repo's /lib are copied into lib/ in the build.
+// A link back to the repo launcher, or a path to a file that does not exist
+// (usually a comment), is left alone with a warning. Anything else stops the
+// build, because it would 404 on itch.io.
+function vendorRepoFiles(gameDir, outDir, repoDir) {
+    const libDir = path.join(repoDir, 'lib');
+    const launcher = path.join(repoDir, 'index.html');
+    const copied = new Set();
+    const warnings = [];
+    for (const file of [...walk(outDir)]) {
+        if (!/\.(html|m?js|css)$/.test(file)) continue;
+        const relPath = rel(outDir, file);
+        const srcDir = path.dirname(path.join(gameDir, relPath));
+        const src = fs.readFileSync(file, 'utf8');
+        const out = src.replace(/(["'`(])((?:\.\.\/)+[^"'`)\s?#]*)/g, (m, quote, spec) => {
+            const target = path.resolve(srcDir, spec);
+            // Script strings such as location.href resolve against the page, not the module.
+            if (target === launcher || (spec === '../index.html' && /\.m?js$/.test(file))) {
+                warnings.push(`${relPath} links to ../index.html (the repo launcher); that link is dead on itch.io`);
+                return m;
+            }
+            if (inside(gameDir, target)) return m;
+            if (!fs.existsSync(target)) {
+                warnings.push(`${relPath} mentions ${spec}, which does not exist (a comment?); left as is`);
+                return m;
+            }
+            if (!inside(libDir, target)) {
+                throw new Error(`${relPath}: ${spec} points outside the game folder; add exporter support for it before uploading`);
+            }
+            const libFile = rel(libDir, target);
+            const dest = path.join(outDir, 'lib', libFile);
+            if (!copied.has(libFile)) {
+                fs.mkdirSync(path.dirname(dest), { recursive: true });
+                fs.copyFileSync(target, dest);
+                copied.add(libFile);
+            }
+            const ref = rel(path.dirname(file), dest);
+            return quote + (ref.startsWith('.') ? ref : `./${ref}`);
+        });
+        if (out !== src) fs.writeFileSync(file, out);
+    }
+    return { copied, warnings };
 }
 
 async function vendorThree(html, outDir, pkg) {
     const map = parseThreeMap(html);
     if (!map) return { html, used: false, addons: new Set() };
     const cdn = map.core.slice(0, -'build/three.module.js'.length);
+    const want = cdn.match(/three@([\d.]+)/)?.[1];
+    const have = fs.existsSync(path.join(pkg, 'package.json')) && JSON.parse(fs.readFileSync(path.join(pkg, 'package.json'), 'utf8')).version;
+    if (want && have && want !== have) throw new Error(`${pkg} is three ${have}, but the game imports three ${want}`);
 
     async function threeFile(file) {
         const local = path.join(pkg, file);
         if (fs.existsSync(local)) return fs.readFileSync(local);
-        const res = await fetch(cdn + file);
+        const res = await fetch(cdn + file).catch((e) => {
+            throw new Error(`${cdn + file}: ${e.cause?.message ?? e.message}. No network? Put an npm pack of three in dev/package (see dev/itch/README.md)`);
+        });
         if (!res.ok) throw new Error(`${cdn + file}: ${res.status}`);
         return Buffer.from(await res.arrayBuffer());
     }
@@ -147,13 +183,20 @@ function parseThreeMap(html) {
     };
 }
 
-function removeLauncherLink(html) {
-    const before = html;
-    html = html.replace(/\n[ \t]*<a\b(?=[^>]*\bhref=["']\.\.\/index\.html["'])(?=[^>]*\bid=["'](?:games-link|back-link)["'])[^>]*>[\s\S]*?<\/a>/, '');
-    html = html.replace(/\n[ \t]*<a\b(?=[^>]*\bid=["'](?:games-link|back-link)["'])(?=[^>]*\bhref=["']\.\.\/index\.html["'])[^>]*>[\s\S]*?<\/a>/, '');
-    if (before === html && /\.\.\/index\.html/.test(html)) {
-        throw new Error('index.html: launcher link found but not recognized');
-    }
+// The "← Games" link back to the repo launcher means nothing on itch.io. Some
+// games' scripts look the link up, so it is hidden rather than removed; other
+// links to the launcher (in running text) are unwrapped to plain text.
+function hideLauncherLinks(html) {
+    const style = '<style>[data-itch-hidden] { display: none !important; }</style>';
+    const hasHead = /<\/head>/i.test(html);
+    let hidden = 0;
+    html = html.replace(/<a\b([^>]*?)\s+href=["']\.\.\/index\.html["']([^>]*)>([\s\S]*?)<\/a>/g, (m, before, after, text) => {
+        if (!/^\s*(←|&larr;|⌂)/.test(text)) return text;
+        const link = `<a${before}${after} data-itch-hidden aria-hidden="true" tabindex="-1">${text}</a>`;
+        // A page without </head> gets the style next to its first hidden link.
+        return hidden++ || hasHead ? link : style + link;
+    });
+    if (hidden && hasHead) html = html.replace(/<\/head>/i, `    ${style}\n</head>`);
     return html;
 }
 
@@ -213,6 +256,15 @@ function slug(s) {
 function cliValue(flag) {
     const i = process.argv.indexOf(flag);
     return i >= 0 ? process.argv[i + 1] : null;
+}
+
+function inside(dir, p) {
+    const r = path.relative(dir, p);
+    return r === '' || (!r.startsWith('..') && !path.isAbsolute(r));
+}
+
+function firstDir(...dirs) {
+    return dirs.find((d) => fs.existsSync(d)) ?? dirs[0];
 }
 
 function fromUrl(v) {

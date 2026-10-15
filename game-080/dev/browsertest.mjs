@@ -163,10 +163,11 @@ async function desktop() {
     // the satchel
     await page.keyboard.press('KeyI');
     await until(page, () => !document.getElementById('bag').hidden, 'I opens the satchel');
-    for (const tab of ['books', 'items', 'gear', 'shelves', 'journal', 'map']) {
+    for (const tab of ['books', 'items', 'gear', 'shelves', 'journal', 'dex', 'map']) {
         await click(page, `#bag-tabs [data-tab="${tab}"]`);
         await until(page, (t) => document.querySelector(`#bag-tabs [data-tab="${t}"]`).classList.contains('on') && document.getElementById('bag-body').children.length > 0, `the ${tab} tab renders`, 10000, tab);
         if (tab === 'map') await shot(page, 'desktop-map');
+        if (tab === 'dex') check(await Q(page, () => /calmed/.test(document.getElementById('bag-body').textContent) && document.querySelectorAll('#bag-body .dcard').length === 35), 'the Compendium lists all 22 runaways and 13 guardians');
     }
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('bag').hidden, 'Escape closes it');
@@ -423,6 +424,42 @@ async function phone(w, h) {
 }
 
 // ======================================================================
+// Just after an update a browser can hold some old files and fetch some new ones. Every module is
+// fetched at the release's version, so that can't mix; and if loading fails anyway, the page says
+// so and offers a fresh copy instead of a title screen whose buttons do nothing.
+async function stale() {
+    console.log('\n== a stale file after an update (touch phone)');
+    if (browser) await browser.close();
+    browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined, args: ['--no-sandbox'] });
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    const page = await ctx.newPage();
+    await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+    const js = [];
+    page.on('request', (r) => { if (/\/game-080\/(js\/.*\.js|style\.css)/.test(r.url())) js.push(r.url()); });
+    await page.goto(`${BASE}/game-080/index.html`);
+    await page.waitForFunction(() => document.getElementById('title') && !document.getElementById('title').hidden, null, { timeout: 60000 });
+    await page.waitForTimeout(1500);
+    const v = await Q(page, () => import('./js/config.js').then((m) => m.VERSION));
+    check(js.length >= 30 && js.every((u) => u.endsWith('?v=' + v)), `every module and the stylesheet carry ?v=${v} (${js.length} files)`);
+    // an old js/sim/game.js, from before prompt() existed
+    await page.route('**/game-080/js/sim/game.js*', async (r) => {
+        const res = await r.fetch();
+        r.fulfill({ response: res, body: (await res.text()).replace('export function prompt', 'function prompt') });
+    });
+    await page.goto(`${BASE}/game-080/index.html`);
+    await until(page, () => !document.getElementById('boot-fail').hidden, 'a module that fails to link shows "couldn\'t start" and a Reload button');
+    await shot(page, 'stale-bootfail');
+    await page.unroute('**/game-080/js/sim/game.js*');
+    const b = await page.locator('#boot-reload').boundingBox();
+    await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2);
+    await until(page, () => /fresh=/.test(location.search) && document.getElementById('boot-fail').hidden && !document.getElementById('title').hidden, 'tapping Reload loads a fresh copy');
+    await page.waitForTimeout(1000);
+    const nb = await page.locator('#title-menu [data-act="new"]').boundingBox();
+    await page.touchscreen.tap(nb.x + nb.width / 2, nb.y + nb.height / 2);
+    await until(page, () => document.getElementById('title').hidden && !document.getElementById('hud').hidden, 'and tapping New Game starts the game');
+}
+
+// ======================================================================
 async function nostorage() {
     console.log('\n== blocked storage');
     const page = await open({ width: 1280, height: 760 }, { nostorage: true });
@@ -438,6 +475,7 @@ try {
     if (want('desktop')) await desktop();
     if (want('phones')) { await phone(390, 844); await phone(844, 390); }
     if (want('nostorage')) await nostorage();
+    if (want('stale')) await stale();
 } catch (err) {
     fails++;
     console.log('  FAIL threw:', err.message);
