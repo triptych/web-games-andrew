@@ -8,6 +8,7 @@ import { canvas, painter, outline, shade, flipped, nz, mix } from './paint.js';
 
 export const CW = 16, CH = 24;
 const OUT = '#231a26';
+const mixRose = (c) => mix(c, '#ff8aa0', 0.55);
 const cache = new Map();
 
 export const PLAYER_LOOK = { k: 'human', skin: '#e9bf98', hair: 'short', hc: '#6b4026', top: '#3f7a5a', bottom: '#5a4636', acc: 'glasses', satchel: true, scarf: '#c2563c' };
@@ -97,7 +98,13 @@ function drawHuman(P, L, dir, fr, kid) {
     if (L.acc === 'beard' && !back) R(side ? 8 : 5, hy + 5 + hb, side ? 4 : 6, 4, L.hc === '#cfc6b8' || L.hair === 'bald' ? '#e8e4dc' : hc);
     if (L.acc === 'glasses' && !back) {
         if (side) { px(9, hy + 4 + hb, '#cfd8e8'); px(10, hy + 3 + hb, '#3a3a4a'); px(11, hy + 4 + hb, '#3a3a4a'); }
-        else { R(5, hy + 3 + hb, 3, 3, '#3a3a4a'); R(8, hy + 3 + hb, 3, 3, '#3a3a4a'); px(6, hy + 4 + hb, '#d8e4f4'); px(9, hy + 4 + hb, '#d8e4f4'); }
+        else {
+            // round rims above and beside the eyes, so the eyes still show
+            const rim = '#4a3a3a', lens = '#dbe8f6';
+            R(5, hy + 3 + hb, 3, 1, rim); R(8, hy + 3 + hb, 3, 1, rim);
+            px(5, hy + 4 + hb, lens); px(7, hy + 4 + hb, rim); px(8, hy + 4 + hb, rim); px(10, hy + 4 + hb, lens);
+            px(5, hy + 5 + hb, rim); px(10, hy + 5 + hb, rim);
+        }
     }
     // hats
     hat(P, L.hat, side, back, hy + hb, hc);
@@ -154,7 +161,7 @@ function drawMouse(P, L, dir, fr) {
         px(side ? 12 : 7, 14 + bob, pink); if (!side) px(8, 14 + bob, pink);
         if (side) R(11, 13 + bob, 2, 2, fur);
     }
-    if (L.acc === 'glasses' && !back) { R(5, 11 + bob, 3, 3, '#3a3a4a'); R(8, 11 + bob, 3, 3, '#3a3a4a'); px(6, 12 + bob, '#d8e4f4'); px(9, 12 + bob, '#d8e4f4'); }
+    if (L.acc === 'glasses' && !back) { R(5, 11 + bob, 3, 1, '#4a3a3a'); R(8, 11 + bob, 3, 1, '#4a3a3a'); px(7, 12 + bob, '#4a3a3a'); px(8, 12 + bob, '#4a3a3a'); }
     hat(P, L.hat, side, back, 9 + bob, fur);
 }
 
@@ -283,7 +290,67 @@ function drawFoe(P, look, f, S) {
     const b = f ? 1 : 0;
     const mid = S / 2;
     switch (look.body) {
-        case 'book': case 'bigbook': {
+        case 'bigbook': {
+            // a guardian: a grimoire gone wild, with gilt corners, a big emblem and an aura of its element
+            const w = Math.round(S * 0.6), h = Math.round(S * 0.66);
+            const x0 = Math.round(mid - w / 2), y0 = Math.round(S * 0.2) + b;
+            const gold = '#e8c040', goldD = '#a8862a';
+            const AURA = {
+                sun: ['#fff1a8', 'ray'], swirl: ['#d8fbf8', 'swirl'], flame: ['#ffb03a', 'flame'], stone: ['#a89880', 'pebble'],
+                flake: ['#e8f6ff', 'flake'], wave: ['#8ad0ff', 'drop'], mouse: ['#ffd0e8', 'dot'], leaf: ['#8fe07a', 'leaf'],
+                ripple: ['#e0d4ff', 'ring'], key: ['#f0d070', 'spark'], feather: ['#ffffff', 'feather'], star: ['#fff0a0', 'star'],
+            }[look.emblem] || ['#ffffff', 'dot'];
+            // the aura: bits of its element orbiting
+            for (let i = 0; i < 10; i++) {
+                const a = i / 10 * Math.PI * 2 + (f ? 0.3 : 0), r = S * 0.44;
+                const ax = Math.round(mid + Math.cos(a) * r), ay = Math.round(S * 0.52 + Math.sin(a) * r * 0.85);
+                const c = AURA[0];
+                if (AURA[1] === 'ray') { P.px(ax, ay, c); P.px(ax + 1, ay, c); }
+                else if (AURA[1] === 'flame') { P.R(ax, ay - 1, 2, 3, c); P.px(ax, ay - 2, '#ff7a2a'); }
+                else if (AURA[1] === 'flake' || AURA[1] === 'star') { P.px(ax, ay, c); P.px(ax - 1, ay, c); P.px(ax + 1, ay, c); P.px(ax, ay - 1, c); P.px(ax, ay + 1, c); }
+                else if (AURA[1] === 'leaf') { P.R(ax, ay, 2, 1, c); P.px(ax + 1, ay - 1, c); }
+                else if (AURA[1] === 'drop') { P.px(ax, ay - 1, c); P.R(ax - 1, ay, 3, 2, c); }
+                else if (AURA[1] === 'feather') { P.line(ax - 2, ay + 1, ax + 2, ay - 1, c); }
+                else if (AURA[1] === 'ring') { if (i % 2) { P.px(ax - 1, ay, c); P.px(ax + 1, ay, c); P.px(ax, ay - 1, c); P.px(ax, ay + 1, c); } }
+                else if (AURA[1] === 'pebble') P.R(ax, ay, 2, 2, c);
+                else P.px(ax, ay, c);
+            }
+            // loose pages fluttering off it
+            for (let i = 0; i < 3; i++) { const px0 = x0 - 6 + i * (w + 8) / 2, py0 = y0 - 4 + (i % 2) * 6 + (f ? -2 : 0); P.R(px0, py0, 5, 4, '#f6eedc'); P.R(px0, py0, 5, 1, '#d8ccb0'); }
+            // covers flapping
+            const flap = f ? 3 : 1;
+            P.R(x0 - 4 - flap, y0 + 3, 5, h - 6, cD);
+            P.R(x0 + w - 1 + flap, y0 + 3, 5, h - 6, cD);
+            P.R(x0, y0, w, h, c); P.R(x0, y0, w, 2, cL); P.R(x0, y0 + h - 2, w, 2, cD);
+            P.R(x0 + 3, y0 + 2, 3, h - 4, shade(c, -0.15));
+            P.R(x0 + w - 3, y0 + 2, 3, h - 4, '#f2ead6');
+            for (let y = y0 + 3; y < y0 + h - 2; y += 2) P.px(x0 + w - 1, y, '#d8ccb0');
+            // gilt corners and a title band
+            for (const [cx, cy, dx, dy] of [[x0, y0, 1, 1], [x0 + w - 4, y0, -1, 1], [x0, y0 + h - 1, 1, -1], [x0 + w - 4, y0 + h - 1, -1, -1]]) {
+                P.R(cx + (dx < 0 ? 0 : 0), cy + (dy < 0 ? -3 : 0), 4, 1 + 0, gold); P.R(cx + (dx < 0 ? 3 : 0), cy + (dy < 0 ? -3 : 0), 1, 4, gold);
+            }
+            P.R(x0 + 7, y0 + Math.round(h * 0.54), w - 13, 1, goldD);
+            P.R(x0 + 7, y0 + Math.round(h * 0.86), w - 13, 1, goldD);
+            // a big emblem
+            if (look.emblem && EMB[look.emblem]) {
+                const ex = Math.round(mid + 1), ey = y0 + Math.round(h * 0.7);
+                EMB[look.emblem](P, ex, ey, '#fff4c0');
+                EMB[look.emblem](P, ex + 1, ey, '#fff4c0');
+            }
+            if (look.thorns) for (let i = 0; i < 8; i++) { const tx = x0 + 2 + Math.round(nz(i, 1) * (w - 4)); P.px(tx, y0 - 1, '#2f5a22'); P.px(tx + 1, y0 - 2, '#2f5a22'); P.px(tx, y0 + h, '#2f5a22'); }
+            // a big, worried face
+            const ey = y0 + Math.round(h * 0.3);
+            for (const ex of [Math.round(x0 + w * 0.36), Math.round(x0 + w * 0.68)]) {
+                P.R(ex - 2, ey - 2, 5, 5, '#ffffff'); P.R(ex - 1, ey - 1, 3, 3, '#1a1420'); P.px(ex - 1, ey - 1, '#ffffff');
+                // worried brows: the inner ends lifted
+                if (ex < mid) P.line(ex - 3, ey - 3, ex + 1, ey - 5, '#1a1420'); else P.line(ex - 1, ey - 5, ex + 3, ey - 3, '#1a1420');
+            }
+            const my = ey + 6;
+            for (let i = -3; i <= 3; i++) P.px(Math.round(mid + 1) + i, my + (Math.abs(i) % 2), '#1a1420');
+            P.R(Math.round(x0 + w * 0.26), ey + 3, 2, 1, mixRose(c)); P.R(Math.round(x0 + w * 0.74), ey + 3, 2, 1, mixRose(c));
+            break;
+        }
+        case 'book': {
             const big = look.body === 'bigbook';
             const w = Math.round(S * 0.62), h = Math.round(S * 0.7);
             const x0 = Math.round(mid - w / 2), y0 = Math.round(S * 0.18) + b;
@@ -302,7 +369,6 @@ function drawFoe(P, look, f, S) {
             const es = [];
             for (let i = 0; i < n; i++) es.push([Math.round(x0 + w * (n === 1 ? 0.55 : 0.3 + 0.45 * i / (n - 1))) + 1, ey]);
             eyesAt(P, es);
-            if (big) { P.R(Math.round(mid) - 2, ey + 4, 6, 1, '#1a1420'); }
             break;
         }
         case 'fluff': {

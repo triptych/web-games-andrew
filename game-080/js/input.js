@@ -25,7 +25,7 @@ export class Input {
             if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
             // Space and the arrows must not scroll the page, but Space and Enter must still press a
             // focused button: preventDefault() on them cancels the click (game-078)
-            const onButton = tag === 'BUTTON' && (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter');
+            const onButton = tag === 'BUTTON' && e.target.offsetParent !== null && (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter');
             if (NO_SCROLL.includes(e.code) && !onButton) e.preventDefault();
             this.lastDevice = 'keys';
             if (e.repeat) { if (e.code.startsWith('Arrow')) this.queue.push({ key: e.code, repeat: true }); return; }

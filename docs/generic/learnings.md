@@ -5740,4 +5740,5 @@ Every person's `talk(G)` returns a list of ops (`say`, `choice`, `give`, `quest`
 
 ### Small traps
 - **The purity grep matched a sentence.** `/\bwindow\./` fired on Wick's line "A window. I always kept…". Strip string literals as well as comments before grepping sim sources.
+- **Symptom: after a battle, Space does nothing in the world → the focus is still on the hidden Continue button.** The game's keydown handler leaves Space alone on a focused `<button>` (so it can press it, game-078), but a button inside a container that has just been hidden keeps the focus until Chrome's next focus fix-up, which under a slow frame hasn't happened. Blur when returning to the world, and only treat a button as focused if `offsetParent !== null`. The browser test caught it as a flaky "Space at the counter talks to Pip".
 - **Lock art over the wrong floor.** Fog drawn with its own grass underneath looked like turf inside a brick kiln. Bake the real floor into the ground chunk and draw animated locks as transparent overlays.

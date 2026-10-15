@@ -6,6 +6,8 @@ import { GRIMOIRE, BOOK_ORDER } from './data/books.js';
 import { FOE } from './data/enemies.js';
 import { getWorld } from './worldgen.js';
 import { DUNGEONS } from './data/maps.js';
+import { ZONES } from './data/world.js';
+import { ZW, ZH } from '../config.js';
 
 const S = (who, text) => ['say', who, text];
 const W = (text) => ['say', 'wick', text];
@@ -180,6 +182,13 @@ export function lecternText(G, n) {
     return [N(`${b.title}: ${b.lore}`)];
 }
 
+// Places Wick can carry you to by hearth-smoke, once you've been there: [zone id, label, local x, y]
+export const HEARTH_STOPS = [
+    ['quillford', 'Quillford', 12, 8], ['auntown', 'Aubade', 12, 8], ['castle', 'Castle Aubade', 12, 10],
+    ['nettle', 'Nettle Hollow', 11, 9], ['lodge', 'Frostmantle Lodge', 12, 9], ['saltmere', 'Saltmere', 12, 8],
+    ['mousehold', 'Mousehold', 12, 6], ['steps', 'Skyreach Steps', 13, 9],
+];
+
 export function hearthScript(G) {
     const lines = [
         'Home sweet hearth. Did you know a library is the only building that\'s bigger on the inside? It\'s true. Because of the books.',
@@ -187,7 +196,18 @@ export function hearthScript(G) {
         'The Returns Cart in the Reading Room — put the little books there and they\'ll find their own shelves. They\'re very well trained.',
         'Runaway books calm down when you read them first. Understanding is half of calming. The other half is snacks.',
     ];
-    return [W(G.flags.won ? 'I\'m not in the hearth anymore! Well, a bit of me is. The warm bit. Marigold kept the warm bit.' : lines[(G.placed.length + G.lvl) % lines.length])];
+    const ops = [W(G.flags.won ? 'I\'m not in the hearth anymore! Well, a bit of me is. The warm bit. Marigold kept the warm bit.' : lines[(G.placed.length + G.lvl) % lines.length])];
+    const stops = HEARTH_STOPS.filter(([z]) => G.seen[z]);
+    if (stops.length) {
+        ops.push(W('Or I could carry us somewhere by hearth-smoke. Anywhere we\'ve been with a chimney nearby.'));
+        ops.push(['choice', [...stops.slice(0, 7).map(([z, label]) => [label, 'go_' + z]), ['Stay here', 'stay']]]);
+        for (const [z, , x, y] of stops.slice(0, 7)) {
+            const zone = ZONES.find((q) => q.id === z);
+            ops.push(['label', 'go_' + z], ['warp', 'world', zone.c * ZW + x, zone.r * ZH + y], ['end']);
+        }
+        ops.push(['label', 'stay'], W('Cosy choice.'));
+    }
+    return ops;
 }
 
 export function finalScript() {

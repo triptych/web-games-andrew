@@ -23,7 +23,7 @@ export const BIOMES = {
     willow:  { ground: 'grass', path: 'path', wall: 'bush', scatter: [['tree', 0.07], ['bush', 0.04], ['mushroom', 0.01]], flowers: 0.12, foes: 'willow', music: 'fields' },
     mouse:   { ground: 'grass', path: 'path', wall: 'hedge', scatter: [], music: 'mouse', town: true },
     green:   { ground: 'grass', path: 'path', wall: 'hedge', scatter: [['hedge', 0.05], ['bush', 0.05]], flowers: 0.25, foes: 'willow', music: 'fields' },
-    sky:     { ground: 'stone', path: null, wall: 'pit', scatter: [['rock', 0.05], ['pit', 0.03]], foes: 'sky', music: 'sky' },
+    sky:     { ground: 'grass', path: 'stone', wall: 'pit', scatter: [['rock', 0.05], ['bush', 0.03], ['pit', 0.025]], flowers: 0.2, foes: 'sky', music: 'sky' },
 };
 
 // tier: how lively the foes are (see enemies.js statsFor)

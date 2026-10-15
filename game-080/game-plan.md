@@ -86,6 +86,8 @@ Each guardian is its grimoire gone wild (the Flickering Primer, the Howling Alma
 
 **Numbers** ([js/sim/data/enemies.js](js/sim/data/enemies.js), [js/sim/rules.js](js/sim/rules.js)): a foe of tier *t* has 18·t^1.3 mischief, 3 + 4.4t + 0.2t² power, 2 + 2t poise. You have 34 + 6·level composure (+ cardigan, + 5 per Quilt Patch), 8 + 2·level ink (+ 4 per Silver Inkwell), focus 6 + 2.5·level + bookmark, poise 1 + level + cardigan. Damage is power × 25/(25 + poise); Shush is focus × 20/(20 + foe poise).
 
+**Getting about:** the world is large, so Wick can always lead you home to the library (Satchel → Journal), every guardian's farewell offers a lift home, and the study hearth carries you by hearth-smoke to the eight towns and outposts you've visited.
+
 ## Content
 
 - **People:** about 80, each with dialogue that changes with the story ([js/sim/data/npcs.js](js/sim/data/npcs.js)): the Mayor, Dot the postmistress, Pip and Mabel, Bramwell the baker, Queen Isolde and Princess Wren, Sir Percival and Lark the bard, Granny Nettle the moor witch, Brother Cairn (mostly fog with opinions), Mayor Whiskerton of Mousehold, Orrin the hermit, a shivering snowman, a heron that reads.
@@ -135,13 +137,14 @@ Every area has its own little tune ([js/audio.js](js/audio.js)): a seeded melody
 
 ## Testing
 
-See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, that every door and map lines up, proves with the planner that the kingdom can be finished and that each grimoire is needed exactly where the story says, runs every person's script at four points in the story, the rules of every power, determinism and save round trips, and has the bot play the whole game from the title to the ending at two skills. `browsertest.mjs` drives the real game by keys, clicks and real touches on desktop and phones. `tour.mjs` screenshots 36 places.
+See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, that every door and map lines up, proves with the planner that the kingdom can be finished and that each grimoire is needed exactly where the story says, runs every person's script at four points in the story, the rules of every power, determinism and save round trips, and has the bot play the whole game from the title to the ending at two skills. `browsertest.mjs` drives the real game by keys, clicks and real touches on desktop and phones. `tour.mjs` screenshots 36 places, `ending.mjs` plays the last stretch in a real browser to the ending screen, and `gallery.html` shows every person, foe and icon on a neutral background.
 
 ## Balance notes
 
 - The first bot couldn't win a level-1 fight against two foes: early foes lost a third of their power, groups only start at level 3, and Wick helps from the first squabble.
-- With power growing as 0.4·t², the Undercroft overwhelmed the bot three times in a row at level 20; now 0.2·t² and the Undercroft is tier 6.9. The bot is overwhelmed 0–6 times a game.
-- The bot reaches each guardian at levels 6, 7, 9, 11, 12, 13, 14, 15, 16, 17, 18 and 20, and finishes in about 25 game-minutes (it reads nothing, never gets lost, and walks into every foe). A person should take a few hours.
+- With power growing as 0.4·t², the Undercroft overwhelmed the bot three times in a row at level 20; now 0.2·t² and the Undercroft is tier 6.9. 
+- Guardians that *call friends* made fights of 26 to 52 rounds (the Blot beat the bot four times in seven). Now a guardian calls at most twice (other foes once), a called helper has 60 % of the usual mischief, and the Blot has 4× a tier-7.6 foe's mischief instead of 6.5×. Guardians take 3–15 rounds, the Blot 10–17; ordinary squabbles 2 (median) to 4 (90th percentile).
+- The bot reaches each guardian at levels 6, 7, 9, 11, 12, 13, 14, 15, 16, 16–17, 18 and 18–20, is overwhelmed 0–2 times a game, and finishes in about 25 game-minutes (it reads nothing, never gets lost, and walks into every foe). A person should take a few hours.
 
 ## Open questions / next steps
 

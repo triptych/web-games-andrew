@@ -185,6 +185,9 @@ function settle() {
             input.flush();
             swallowUntil = performance.now() + 250;
             ui.hideDialog();
+            // a button that just disappeared (Continue, a choice) must not keep the focus, or the
+            // next Space would press it instead of acting in the world
+            if (!ui.anyScreen()) document.activeElement?.blur?.();
             if (pendingEnding && !G.fade) { pendingEnding = false; showEnding(); }
         }
         if (G.mode === 'battle') document.activeElement?.blur?.();
@@ -242,6 +245,8 @@ function frame(now) {
     time += dt;
     handlePresses();
 
+    // the auto-player shops for itself (the shop screen would otherwise pause it)
+    if (bot && mode === 'play' && G.mode === 'shop' && ui.top() === 'shop') { const c = botAct(G, bot); if (c) game.act(c); }
     const running = mode === 'play' && !ui.anyScreen();
     // back from a menu: the key or tap that closed it must not also act in the game (game-078)
     if (running && !wasRunning) { input.flush(); swallowUntil = now + 200; }
@@ -302,6 +307,7 @@ if (DEBUG) {
             let guard = 0;
             const quiet = () => { for (const e of G.events.splice(0)) seen[e.type] = (seen[e.type] || 0) + 1; };
             while ((G.t < end || G.mode !== 'explore' || G.fade) && guard++ < 4e6) {
+                if (G.mode === 'explore' && !G.fade) { const c = botAct(G, b); if (c) act(G, c); }
                 if (G.mode === 'explore' || G.fade) step(G, G.fade ? NONE : botInput(G, b, STEP), STEP);
                 else { const c = botAct(G, b); if (c) act(G, c); step(G, NONE, STEP); }
                 if (o.until && o.until(G)) break;

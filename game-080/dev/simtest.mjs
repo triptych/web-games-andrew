@@ -346,6 +346,22 @@ if (want('rules')) {
     G.books.push('lumen');
     run(G, { x: 0, y: -1, a: false }, 1.5);
     ok(G.map === 'glimmer', 'and open once you have it');
+    // Wick's hearth-smoke stops all land on open ground, and "take me home" works from anywhere
+    for (const [z, label, x, y] of ST.HEARTH_STOPS) {
+        const zone = ZONES.find((q) => q.id === z);
+        const i = (zone.r * C.ZH + y) * W.w + zone.c * C.ZW + x;
+        ok(RU.passable(null, W, i, []) && !W.warps[i], `hearth-smoke to ${label} lands on open ground`);
+    }
+    G = fresh();
+    G.seen.quillford = 1;
+    Gm.openDialog(G, ST.hearthScript(G));
+    while (G.mode === 'dialog' && !G.dialog.choices) Gm.act(G, { type: 'advance' });
+    ok(G.dialog?.choices?.some((c) => c.label === 'Quillford'), 'the hearth offers places you have been');
+    Gm.act(G, { type: 'choose', i: 0 }); finishDialog(G); run(G, NONE, 1);
+    ok(G.map === 'world' && Math.floor(G.p.x / C.ZW) === 4 && Math.floor(G.p.y / C.ZH) === 3, 'and carries you there');
+    ok(Gm.act(G, { type: 'home' }), 'Wick, take me home');
+    run(G, NONE, 1);
+    ok(G.map === 'library' && RU.passable(G, maps.library, Math.floor(G.p.y) * maps.library.w + Math.floor(G.p.x)), 'lands you in the library');
     // stats are sane at every level
     G = fresh();
     for (let l = 1; l <= C.LEVEL_CAP; l++) { G.lvl = l; ok(RU.maxHp(G) > 0 && RU.focus(G) > 0 && RU.xpFor(l) > 0, `level ${l} stats`); }

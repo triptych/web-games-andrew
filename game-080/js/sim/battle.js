@@ -264,7 +264,7 @@ function foesTurn(G) {
         else {
             const opts = d.antics.filter(([k]) => {
                 if (k === 'tidy') return f.hp < f.max * 0.6;
-                if (k === 'call') return liveFoes(B).length < 3;
+                if (k === 'call') return liveFoes(B).length < 3 && (B.calls || 0) < (B.boss ? 2 : 1);
                 if (k === 'rustle') return !f.guard;
                 return true;
             });
@@ -287,6 +287,10 @@ function foesTurn(G) {
         if (a.call) {
             const kind = d.summon || f.id;
             const nf = makeFoe(kind, G, B.nextN++);
+            // a helper that's called in is a smaller one
+            nf.max = nf.hp = Math.round(nf.max * 0.6);
+            nf.xp = Math.round(nf.xp * 0.6);
+            B.calls = (B.calls || 0) + 1;
             B.foes.push(nf);
             say(G, text, { who: 'foe', foe: f.n, anim: 'call' });
             G.events.push({ type: 'b_join', foe: nf.n, id: nf.id });

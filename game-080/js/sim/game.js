@@ -207,6 +207,12 @@ export function act(G, cmd) {
             G.shop = null; G.mode = 'explore';
             G.events.push({ type: 'shopClose' });
             return true;
+        case 'home':
+            // Wick can always find the way home
+            if (G.mode !== 'explore' || G.fade || !G.flags.metWick || G.map === 'library') return false;
+            beginWarp(G, { to: 'library', x: 17, y: 12, dir: 'down' });
+            G.events.push({ type: 'home' });
+            return true;
         case 'use': return useItem(G, cmd.id);
         case 'equip': return equip(G, cmd.id);
         case 'unequip': {

@@ -58,7 +58,8 @@ function shopFor(G, bot) {
             if (it.kind !== 'gear' || !GEAR_ORDER[it.slot]) continue;
             const order = GEAR_ORDER[it.slot];
             const cur = order.indexOf(G.gear[it.slot]);
-            const owned = order.findIndex((g, i) => i > cur && count(G, g));
+            let owned = -1;
+            order.forEach((g, i) => { if (count(G, g)) owned = i; });
             if (order.indexOf(id) <= Math.max(cur, owned) || G.coins < it.price + 30) continue;
             opts.push({ sid, id, price: it.price });
         }

@@ -670,6 +670,11 @@ export class UI {
     }
     bagJournal(G, body) {
         const ob = objective(G);
+        if (G.flags.metWick && G.map !== 'library' && G.mode === 'explore') {
+            const home = el('button', 'btn small', '🕯️ Wick, take me home');
+            home.addEventListener('click', () => { this.audio.ui('click'); this.closeScreen('bag'); this.game.act({ type: 'home' }); });
+            body.appendChild(home);
+        }
         body.appendChild(el('div', 'quest', `<b>Wick says</b><small>${esc(ob.text)}</small>${ob.hint ? `<small><i>"${esc(ob.hint)}"</i></small>` : ''}`));
         const ids = Object.keys(QUESTS).filter((id) => G.quests[id]);
         if (!ids.length) body.appendChild(el('p', '', 'No side quests yet. People in Vellumvale will ask for your help.'));
