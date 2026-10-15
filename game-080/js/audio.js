@@ -246,6 +246,13 @@ export class Audio {
         this.osc(type, f, this.ctx.currentTime + delay, dur, vol, this.sfx, { to, send: 0.15 });
     }
     arp(notes, gap = 0.07, type = 'triangle', vol = 0.15, dur = 0.25) { notes.forEach((n, i) => this.tone(NOTE(n), dur, type, vol, i * gap)); }
+    /** A grimoire settles onto its lectern: a shimmering chime and a warm swell. */
+    land() {
+        if (!this.ok) return;
+        this.arp([65, 69, 72, 77, 81, 84], 0.09, 'sine', 0.13, 1.2);
+        this.arp([96, 93, 100], 0.05, 'triangle', 0.04, 0.6);
+        this.osc('sawtooth', NOTE(53), this.ctx.currentTime, 2.4, 0.04, this.sfx, { a: 0.3, send: 0.6 });
+    }
 
     ui(kind) {
         if (!this.ok) return;
@@ -296,7 +303,8 @@ export class Audio {
                 case 'notice': this.tone(900, 0.05, 'square', 0.04); this.tone(1200, 0.06, 'square', 0.04, 0.05); break;
                 case 'bark': this.blip('wick'); this.blip('wick'); break;
                 case 'levelUp': this.arp([72, 76, 79, 84, 88], 0.08, 'triangle', 0.14, 0.35); break;
-                case 'restore': this.arp([65, 69, 72, 77, 81, 84], 0.12, 'sine', 0.13, 1.2); this.osc('sawtooth', NOTE(53), this.ctx.currentTime, 2.4, 0.04, this.sfx, { a: 0.6, send: 0.6 }); break;
+                // the book lifts off with a rising whoosh; land() rings when it reaches its lectern
+                case 'restore': this.noise(this.ctx.currentTime, 0.9, 0.06, this.sfx, { lp: 600, to: 5000, hp: 300, send: 0.5 }); this.tone(NOTE(72), 0.9, 'sine', 0.05, 0, NOTE(84)); break;
                 case 'rest': this.arp([77, 74, 72, 65], 0.28, 'sine', 0.1, 0.8); break;
                 case 'shelve': this.arp([74, 77, 81], 0.05, 'triangle', 0.08); break;
                 case 'quest': this.arp(e.state === 'done' ? [72, 79, 84] : [72, 76], 0.08, 'triangle', 0.1); break;

@@ -137,6 +137,19 @@ async function desktop() {
     }
     await page.keyboard.down('ArrowUp'); await page.waitForTimeout(150); await page.keyboard.up('ArrowUp');
 
+    // a grimoire set on a lectern flies to its own lectern and lands in light
+    await Q(page, () => { __el.grant(['lumen']); __el.warp('library', 13, 2); __el.G.p.dir = 'up'; });
+    await page.waitForTimeout(400);
+    await page.keyboard.press('Space');
+    await until(page, () => __el.G.mode === 'dialog', 'the lectern offers to take the book');
+    for (let i = 0; i < 6 && !(await Q(page, () => __el.G.placed.length)); i++) { await page.keyboard.press('Space'); await page.waitForTimeout(200); }
+    await until(page, () => __el.G.placed.length === 1 && __el.view.world.restores.length === 1, 'placing it starts the flight to its lectern');
+    check(await Q(page, () => __el.view.world.awaiting(0)), 'the lectern stays empty while the book is in the air');
+    await until(page, () => __el.view.world.restores[0]?.landed, 'and it lands, in a burst of light', 5000);
+    await shot(page, 'desktop-lectern');
+    await until(page, () => !__el.view.world.restores.length, 'then the light settles', 5000);
+    check(await talkThrough(page), 'and Wick remembers something');
+
     // pause
     await page.keyboard.press('Escape');
     await until(page, () => !document.getElementById('pause').hidden, 'Escape pauses');

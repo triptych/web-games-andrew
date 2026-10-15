@@ -25,6 +25,7 @@ const audio = new Audio();
 audio.setVolumes(settings.sfx, settings.music);
 const input = new Input();
 const view = new View(document.getElementById('view'));
+view.onLand = () => audio.land();
 
 let G = newGame(1, { skipIntro: true });   // the title screen shows Lantern Square behind it
 let mode = 'title';                         // title | play
