@@ -68,6 +68,7 @@ export class View {
                     break;
                 }
                 case 'chest': this.world.burst(e.x + 0.5, e.y + 0.3, '#ffe08a', 18, 2.6); break;
+                case 'find': this.world.burst(e.x + 0.5, e.y + 0.3, '#fff4c0', 12, 1.8); break;
                 case 'unlock': this.world.burst(e.x + 0.5, e.y + 0.5, '#e8c040', 14, 2); break;
                 case 'levelUp': this.world.burst(G.p.x, G.p.y - 1, '#fff4c0', 24, 3); break;
                 case 'restore': this.world.restore(G, M, e.id, e.n - 1); this.world.burst(G.p.x, G.p.y - 1.1, GRIMOIRE[e.id].colour, 12, 1.6); break;

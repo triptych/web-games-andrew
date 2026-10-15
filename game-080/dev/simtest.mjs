@@ -287,6 +287,37 @@ if (want('rules')) {
     const patches = G.ups.patch || 0;
     Gm.step(G, { x: -0.3, y: 0, a: true }, DT); finishDialog(G);
     ok(G.flags.shelf_poetry && (G.ups.patch || 0) === patches + 1, 'a full shelf gives its gift');
+    // small things tucked into the furniture of houses, shops and inns
+    const rooms = Object.values(maps).filter((M) => M.kind === 'interior' && M.id !== 'library');
+    const stashes = rooms.flatMap((M) => Object.keys(M.objs).filter((k) => M.objs[k].kind === 'stash').map((k) => ({ M, k: +k, o: M.objs[k] })));
+    ok(rooms.every((M) => Object.values(M.objs).some((o) => o.kind === 'stash')), `every house, shop and inn hides something (${stashes.length} finds in ${rooms.length} rooms)`);
+    ok(new Set(stashes.map((s) => s.o.id)).size === stashes.length, 'each find has its own id');
+    let searched = 0, prompted = 0;
+    for (const { M, k, o } of stashes) {
+        const x = k % M.w, y = Math.floor(k / M.w);
+        const side = [[0, 1, 'up'], [0, -1, 'down'], [1, 0, 'left'], [-1, 0, 'right']].find(([dx, dy]) => !TILES[M.t[(y + dy) * M.w + x + dx]].solid && M.t[(y + dy) * M.w + x + dx] !== T.door);
+        if (!side) continue;
+        G = fresh();
+        place(G, M.id, x + side[0], y + side[1], side[2]);
+        if (Gm.prompt(G)?.verb === 'Search') prompted++;
+        const before = G.coins + Object.values(G.bag).reduce((a, n) => a + n, 0);
+        Gm.step(G, { x: 0, y: 0, a: true }, DT); finishDialog(G);
+        if (G.chests[o.id] && G.coins + Object.values(G.bag).reduce((a, n) => a + n, 0) > before && Gm.prompt(G) === null) searched++;
+    }
+    ok(searched === stashes.length, `every find can be reached, searched once and pocketed (${searched}/${stashes.length})`);
+    ok(prompted === stashes.length, `facing one, the prompt says Search (${prompted}/${stashes.length})`);
+    // the action prompt names what Action would do
+    G = fresh();
+    const mab = maps.mabels.npcs[0];
+    place(G, 'mabels', mab.x, mab.y + 2, 'up');
+    ok(Gm.prompt(G)?.verb === 'Talk', 'facing a shopkeeper across the counter, the prompt says Talk');
+    place(G, 'mabels', 6, 5, 'down');
+    ok(Gm.prompt(G) === null, 'facing open floor, there is no prompt');
+    G.books = ['lumen'];
+    place(G, 'library', lec.x, lec.y + 1, 'up');
+    ok(Gm.prompt(G)?.verb === 'Place books', 'at a lectern with a grimoire in hand, it says Place books');
+    Gm.openDialog(G, [['say', 'note', 'hi']]);
+    ok(Gm.prompt(G) === null, 'no prompt while a dialogue is open');
     // shops
     G = fresh(); G.coins = 500;
     Gm.openDialog(G, [['shop', 'quill_general']]);

@@ -291,6 +291,7 @@ export class Audio {
         for (const e of events) {
             switch (e.type) {
                 case 'chest': this.arp([72, 76, 79, 84], 0.06, 'triangle', 0.12); break;
+                case 'find': this.arp([79, 84, 88], 0.05, 'triangle', 0.1); break;
                 case 'gain': this.arp([76, 79, 84], 0.07, 'triangle', 0.12); break;
                 case 'gainBook': this.arp([69, 73, 76, 81], 0.07, 'sine', 0.12); break;
                 case 'coins': this.tone(1320, 0.08, 'square', 0.05); this.tone(1760, 0.12, 'square', 0.05, 0.07); break;

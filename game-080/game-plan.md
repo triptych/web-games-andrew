@@ -3,7 +3,7 @@
 **Genre:** Cozy top-down adventure with Metroid-style progression and gentle turn-based battles
 **Engine:** Vanilla JS: Canvas 2D for the world and battles, DOM and CSS for every menu, Web Audio for every sound and note. No libraries, no asset files.
 **Target:** any screen from a 360 px phone (portrait or landscape) to a desktop monitor; keyboard, gamepad or touch.
-**Status:** v1.0.3
+**Status:** v1.1.0
 
 ---
 
@@ -108,8 +108,10 @@ Each guardian is its grimoire gone wild (the Flickering Primer, the Howling Alma
 |---|---|---|---|
 | Walk | Arrows / WASD | Stick / d-pad | Drag on the left half |
 | Talk, read, open, use a power; next line | Space / Z / Enter | A | A button, or tap the dialogue |
-| Menus | Arrows, Enter, Esc | d-pad, A, B | Tap |
-| Satchel | I / Tab / X (M for the map) | X (Y for the map) | 🎒 |
+| Menus | Up / Down choose, Left / Right switch tabs or nudge a slider, Z / Enter pick, X / Esc close | d-pad, A, B | Tap |
+| Satchel | X / I / Tab to open and close again (M for the map) | X (Y for the map) | 🎒 |
+
+A small key cap ("Z Talk", "Z Search", "Z Open"…) floats over whatever Action would use; it shows A when you play by touch or gamepad. It comes from `prompt(G)` in the sim, which shares its lookup with `interact()`, so it can't promise something Action won't do.
 | Pause | P / Esc | Start | ❚❚ |
 
 ## Look and sound
@@ -152,6 +154,11 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, that every door
 - More side quests for the later regions; a bestiary page in the satchel.
 
 ## Changelog
+
+### v1.1.0 (2026-10-15)
+- Everything works by keyboard. X closes the satchel it opens (as do Esc, I, Tab), M flips it to the map and back. Left and Right switch tabs (satchel, shop) or nudge sliders and dropdowns in Settings; Up and Down walk through the rows, or scroll a page with none. Z presses the focused button; on a slider or dropdown it presses nothing (it used to fall through to Delete saved game). Key hints sit at the foot of the satchel and the shop.
+- A floating "Z Talk / Search / Open / Read / Rest / Place books…" prompt over whatever Action would use (A when playing by touch or gamepad).
+- 38 small finds tucked into the shelves, tables, barrels, crates, flowerboxes and mantelpieces of all 29 houses, shops and inns (coins and treats), with a faint glint now and then on the furniture that hides one.
 
 ### v1.0.3 (2026-10-15)
 - A grimoire set on a lectern flies to its own lectern and lands in a pillar of light with rings of energy, sparkles and a chime, instead of just appearing there.

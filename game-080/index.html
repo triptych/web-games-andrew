@@ -37,6 +37,7 @@
 
     <div id="zone-banner" aria-live="polite"></div>
     <div id="bark" hidden></div>
+    <div id="prompt" hidden><kbd id="prompt-key">Z</kbd><span id="prompt-verb"></span></div>
 
     <!-- Touch deck -->
     <div id="touch" hidden>
@@ -96,12 +97,14 @@
             <p>You are Vellumvale's new Librarian. The Lantern Library is empty: its twelve grimoires fled when it fell, and each one ran a little wild. Find them, calm them, and bring them home. Wick, the fire sprite in the hearth, will help.</p>
             <table>
                 <tr><td>Arrows / WASD</td><td>Walk</td></tr>
-                <tr><td>Space / Z / Enter</td><td>Talk, read, open, use a grimoire's power</td></tr>
-                <tr><td>I / Tab</td><td>Satchel: grimoires, treats, gear, shelves, journal, map</td></tr>
+                <tr><td>Space / Z / Enter</td><td>Talk, read, open, search, use a grimoire's power (a little <b>Z</b> sign shows what)</td></tr>
+                <tr><td>X / I / Tab</td><td>Satchel: grimoires, treats, gear, shelves, journal, map (M for the map)</td></tr>
                 <tr><td>P / Esc</td><td>Pause</td></tr>
+                <tr><td>In menus</td><td>Arrows to choose (← → for tabs and sliders), Z to pick, X or Esc to close</td></tr>
             </table>
             <p><b>Grimoires</b> lend you powers. Face fog, brambles, boulders, rivers and seals and press Action. Some places only open once you hold the right book.</p>
             <p><b>Squabbles</b> are turn-based and gentle: <i>Shush</i> a runaway book until its mischief runs out and it settles back into a book for your shelves. Read a foe to learn what calms it. Run out of composure and Wick simply takes you home for tea.</p>
+            <p><b>Poke about.</b> Houses, shops and inns hide little things in their shelves, barrels and crates. Watch for a glint.</p>
             <p><b>Far from home?</b> Wick can take you back to the library from anywhere (Satchel → Journal), and the study hearth carries you by hearth-smoke to towns you've already visited.</p>
             <p>Touch: drag the left half to walk, tap <b>A</b>. Gamepad: stick, A, B, Start.</p>
             <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
@@ -152,6 +155,7 @@
                 <button data-tab="map" class="tab">Map</button>
             </nav>
             <div id="bag-body"></div>
+            <p class="keyhint"><kbd>←</kbd><kbd>→</kbd> tabs · <kbd>↑</kbd><kbd>↓</kbd> choose · <kbd>Z</kbd> use · <kbd>X</kbd> close</p>
         </div>
     </div>
 
@@ -166,7 +170,7 @@
                 <button data-tab="sell" class="tab">Sell</button>
             </nav>
             <div id="shop-body"></div>
-            <div class="sheet-foot"><button id="shop-close" class="btn primary">Leave</button></div>
+            <div class="sheet-foot"><p class="keyhint"><kbd>←</kbd><kbd>→</kbd> buy / sell · <kbd>↑</kbd><kbd>↓</kbd> choose · <kbd>Z</kbd> pick · <kbd>X</kbd> leave</p><button id="shop-close" class="btn primary">Leave</button></div>
         </div>
     </div>
 
