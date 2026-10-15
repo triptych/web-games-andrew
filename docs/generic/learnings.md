@@ -5710,3 +5710,34 @@ A rotated `▲` is not an arrow: most fonts draw it nearly equilateral, so once 
 ### A full-screen touch look pad swallows the HUD
 The touch deck's right-half look pad sits above the HUD's stacking context (`#hud` is `position: fixed; z-index: 10`), so the ❚❚ button inside the HUD could not be tapped on a phone. A child's z-index can't escape its parent's context: move the button out of the HUD, above the deck.
 
+
+## Game 080: EMBERLEAF — a Metroidvania proved by a planner (2026-10-15)
+
+A cozy top-down adventure in vanilla Canvas 2D on the Section 2S layout: twelve grimoires, each a power that opens one kind of lock, across a 63-zone overworld, 30 interiors and 13 dungeons, with turn-based battles that nobody loses badly. [game-080/](../../game-080/).
+
+### Prove the gating both ways: sufficient *and* necessary
+Game-075's planner proved a realm *could* be finished. A Metroidvania also needs each lock to actually keep you out, or the progression silently collapses (a lake you can swim round, a gap in a hedge). [plan.js](../../game-080/js/sim/plan.js) floods every map at once holding a set of grimoires (dungeon keys picked up by fixpoint), and [simtest.mjs](../../game-080/dev/simtest.mjs) checks a requirements table in [story.js](../../game-080/js/sim/story.js) from both sides:
+```js
+// sufficient: reachable holding only its requirements (and theirs)
+ok(bookReachable(reach(closure(REQ[b])), b));
+// necessary: for each requirement r, unreachable holding EVERY grimoire that doesn't itself need r
+for (const r of REQ[b]) ok(!bookReachable(reach(ALL.filter((x) => x !== r && x !== b && !closure(REQ[x]).includes(r))), b));
+```
+Two design rules fell out of it. **Pass-locks leak**: if swimming works on any water, a river drawn as water lets the Tidal Hymnal skip the Frost Psalter's crossing, so the river is drawn as *rapids* (never passable) with calm gaps you freeze. And **zone borders must be walls even in water** (reefs), or the sea joins every coast zone.
+
+### A big hand-planned world from zone rules
+Hand-drawing 216 × 112 tiles is out; pure noise can't be trusted to keep locks watertight. [worldgen.js](../../game-080/js/sim/worldgen.js) uses a zone grid: each zone has a one-tile border of its biome's wall, a connection list opens four-tile gaps (or whole edges, or gaps *filled with a lock*), features are stamped first (dungeon doors, cottages, chests, people, 5 × 5 "pockets" closed by one lock), wandering paths are carved from every doorway and feature to the zone's middle and *reserved*, and only then is scenery scattered by noise on unreserved tiles. A last flood fill per zone carves a straight L to anything still unreached. Town zones are 22 × 14 letter pictures where each capital letter's bounding box is a building and its door is the middle of the bottom row, which a test checks has a walkable doorstep.
+
+### Two bot bugs that look like design bugs
+- **Pressing forever.** The bot set a 0.4 s "think again" timer *every frame* it stood at its goal pressing Action, so the timer never ran out and it pressed at an opened chest for an hour of game time. Press once, then clear the goal.
+- **Facing the wrong row.** Interaction looked at a point 0.85 tiles ahead of the feet, minus a little for the body. Standing at the very top of a tile (y = 12.03), that point fell in the row above, beside the chest. Look first at the tile straight ahead of the tile you stand on, then at the reach point.
+
+### Battles: resolve the round at once, play it back beat by beat
+The sim resolves a whole round in `act()` (your action, Wick's, every foe's, statuses) and pushes ordered `b_*` events; the UI's director plays them back with delays against a *display copy* of the hit points, so a bar drops when the hit is shown, not when it was computed. The menu is disabled until the queue is empty, and the in-browser autoplay bot waits for the same idle signal, so it plays at a person's pace without reaching into the director.
+
+### Dialogue as data, tested at four points in the story
+Every person's `talk(G)` returns a list of ops (`say`, `choice`, `give`, `quest`, `need`, `shop`…) built from the state when you speak; one runner executes them. That makes "does every script run to its end" a loop: the test runs all 80 people at the start, mid-game with no quests, mid-game with every quest active, and after the ending, through the real runner (395 scripts), and fails on an unknown op, label or item.
+
+### Small traps
+- **The purity grep matched a sentence.** `/\bwindow\./` fired on Wick's line "A window. I always kept…". Strip string literals as well as comments before grepping sim sources.
+- **Lock art over the wrong floor.** Fog drawn with its own grass underneath looked like turf inside a brick kiln. Bake the real floor into the ground chunk and draw animated locks as transparent overlays.
