@@ -203,30 +203,31 @@ function showEnding() {
 
 // ------------------------------------------------------------------ input routing
 const ARROW = { ArrowUp: -1, ArrowLeft: -1, ArrowDown: 1, ArrowRight: 1 };
+// Space and Enter on a focused button already press it (the browser does that); the other Action
+// keys, and a gamepad's A, must press it too
+const ACTION = ['Space', 'Enter', 'NumpadEnter', 'KeyZ', 'KeyJ'];
 function handlePresses() {
     const press = input.next();               // one per frame: presses never merge
     if (!press) return;
     const key = press.key;
+    const action = ACTION.includes(key) && !press.onButton;
     if (ui.anyScreen()) {
         if (ARROW[key]) ui.moveFocus(ARROW[key]);
         else if ((key === 'Escape' || key === 'KeyP' || key === 'KeyI' || key === 'Tab') && ui.top() !== 'title' && ui.top() !== 'ending') { audio.ui('close'); ui.closeTop(); }
-        else if ((key === 'Enter' || key === 'Space') && press.pad) document.activeElement?.click?.();
+        else if (action && document.activeElement?.tagName === 'BUTTON') ui.pressFocused(ui.top());
         return;
     }
     if (mode !== 'play') return;
     if (G.mode === 'dialog') {
         const choices = !!G.dialog?.choices && ui.dlg.done;
         if (choices && ARROW[key]) { ui.moveFocus(ARROW[key], 'dlg-choices'); return; }
-        if (['Space', 'Enter', 'NumpadEnter', 'KeyZ', 'KeyJ'].includes(key)) {
-            if (choices) { if (press.pad) document.activeElement?.click?.(); return; }
-            if (!press.onButton) ui.dialogPress();
-        }
+        if (action) ui.dialogPress();
         return;
     }
     if (G.mode === 'battle') {
         if (ARROW[key]) ui.moveFocus(ARROW[key], 'b-menu');
         else if (key === 'Escape' || key === 'KeyX' || key === 'Backspace') ui.battleBack();
-        else if ((key === 'Enter' || key === 'Space') && press.pad) document.activeElement?.click?.();
+        else if (action && ui.battleIdle()) ui.pressFocused('b-menu');
         return;
     }
     if (G.mode === 'explore') {
