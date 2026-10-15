@@ -6,7 +6,7 @@ Plain Node scripts, no build step, no test framework. Each newer game (037+) has
 |---|---|
 | `node dev/smoketest.mjs` | Loads every game in real Chromium, at 1280×760 and on a touch-only 390×844 phone. It clicks or taps, presses Enter, Space, the arrows and WASD, and takes screenshots. A game fails on any console error, page error, failed request or HTTP error, if its `← Games` link is missing, off screen or covered, or if on the phone the page scrolls sideways or a canvas is clipped. |
 | `NOSTORAGE=1 node dev/smoketest.mjs` | The same, with every `localStorage` access throwing a `SecurityError`, as it does when a browser blocks site data. A game must still boot and play; it just can't save. |
-| `node dev/itch/export.mjs game-065` | Builds a standalone itch.io zip for a game. It copies the game, vendors `../lib/*.js` and three.js import-map dependencies, removes the repo launcher link, and writes `game-NNN/dev/itch/<name>-itch.zip`. See `dev/itch/README.md`. |
+| `node dev/itch/export.mjs game-065` | Builds a standalone itch.io zip for a game. It copies the game, vendors the `/lib` files it uses and its three.js import-map dependencies, hides the repo launcher link, and writes `game-NNN/dev/itch/<name>-itch.zip`. See `dev/itch/README.md`. |
 
 Options: `ONLY=game-001,game-016` runs only those games. `FROM=game-001 TO=game-036` runs a range. `VIEWS=desktop` or `VIEWS=phone` runs one size. `OUT` sets the screenshot folder (default `dev/shots/`). `BASE` sets the server (default `http://127.0.0.1:8000`).
 
