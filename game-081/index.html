@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0b0a12">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Salve & Scale — a first-person monster-healer adventure. Run the Lantern Clinic, treat goblins, slimes, dragons and an Overlord by linking their afflictions in the Lumen Lens, and expose the adventurers hurting Gloamhollow.">
+    <title>Salve &amp; Scale</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@600;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+    <script src="../lib/page-audio.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="Salve and Scale game view"></canvas>
+
+    <!-- ============================================================ world HUD -->
+    <div id="hud" hidden>
+        <div id="hud-place">
+            <div id="hud-place-name">The Lantern Clinic</div>
+            <div id="hud-place-sub">Day 1 · Act I · Thorns</div>
+        </div>
+        <div id="hud-stats">
+            <div class="stat" id="hud-gold" title="Moonpetals"><span class="ico">🌙</span><b>0</b></div>
+            <div class="stat" id="hud-level" title="Renown"><span class="ico">✦</span><b>1</b><i class="bar"><i></i></i></div>
+            <div class="stat pts" id="hud-points" hidden title="Skill points to spend at the Grimoire">📖 <b>0</b></div>
+        </div>
+        <div id="objective">
+            <svg id="obj-arrow" viewBox="-20 -20 40 40" aria-hidden="true"><path d="M0,-15 L9,-2 L3.5,-2 L3.5,13 L-3.5,13 L-3.5,-2 L-9,-2 Z"/></svg>
+            <span id="obj-text">Say hello to Clasp</span>
+        </div>
+        <div id="crosshair"></div>
+        <div id="prompt" hidden><kbd id="prompt-key">E</kbd><span id="prompt-text">Talk</span></div>
+        <div id="lock-hint" hidden>Click to look around · WASD to walk · E to use</div>
+    </div>
+    <!-- buttons that must sit above the touch deck's look pad (game-079) -->
+    <div id="corner-btns" hidden>
+        <button id="btn-journal" class="ibtn" aria-label="Journal">📖</button>
+        <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
+    </div>
+
+    <!-- touch deck -->
+    <div id="touch" hidden>
+        <div id="look-zone"></div>
+        <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div></div>
+        <button id="btn-use" class="tbtn" aria-label="Use">✋</button>
+    </div>
+
+    <!-- ============================================================ dialogue -->
+    <div id="talk" hidden>
+        <div id="talk-box">
+            <div id="talk-portrait"><img id="talk-img" alt=""></div>
+            <div id="talk-body">
+                <div id="talk-name"></div>
+                <div id="talk-text"></div>
+                <div id="talk-more">▼</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ scan HUD -->
+    <div id="scanhud" hidden>
+        <div id="scan-top">
+            <div id="scan-who"><b id="scan-name"></b><span id="scan-ailment"></span></div>
+            <div id="scan-goals"></div>
+        </div>
+        <div id="scan-focus"><b id="focus-n">0</b><span>Focus</span></div>
+        <div id="scan-senses"></div>
+        <div id="scan-tag" hidden></div>
+        <div id="scan-bottom">
+            <div id="scan-vials"></div>
+            <div id="scan-tools">
+                <div id="scan-items"></div>
+                <button id="scan-hint" class="sbtn" title="Hint (H)">💡</button>
+                <button id="scan-quit" class="sbtn" title="Step back">↩</button>
+            </div>
+        </div>
+        <div id="scan-tip"></div>
+    </div>
+
+    <!-- ============================================================ screens -->
+    <div id="title" class="screen title-screen">
+        <div class="sheet title-sheet">
+            <div class="crest">⚕</div>
+            <h1 class="logo">Salve <span>&amp;</span> Scale</h1>
+            <p class="tagline">A monster healer's tale</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary" id="btn-new">New Game</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="credits" class="btn">Credits</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="confirm-new" class="screen" hidden>
+        <div class="sheet">
+            <h2>Start over?</h2>
+            <p>Your saved clinic will be replaced by a new one.</p>
+            <div class="sheet-foot"><button class="btn" data-close>Keep my clinic</button><button class="btn primary" id="btn-new-yes">Start a new game</button></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>How to Play</h2>
+            <h3>In the world</h3>
+            <table>
+                <tr><td>WASD / arrows</td><td>Walk (Shift to hurry); ← → also turn</td></tr>
+                <tr><td>Mouse</td><td>Look (click the view to lock the pointer)</td></tr>
+                <tr><td>E / Space / click</td><td>Talk, use, open</td></tr>
+                <tr><td>J / Tab</td><td>Journal: skills, codex, bestiary, evidence</td></tr>
+                <tr><td>Esc / P</td><td>Pause</td></tr>
+            </table>
+            <p>Touch: drag the left side to walk (double-tap and hold to hurry), drag the right side to look, tap ✋ to use. Gamepad: sticks, A to use, Y for the journal, Start to pause.</p>
+            <h3>In the Lumen Lens</h3>
+            <p>Every glowing mote inside the patient is something that hurts. <b>Drag</b> from mote to neighbouring mote (diagonals count). Each hop must share something you can <b>sense</b>: the same <b>form</b> (shape), and later the same <b>aura</b> (colour), <b>depth</b> (size) or <b>nature</b> (the ring behind it). Let go with three or more to treat them. Each trail costs one <b>Focus</b>; finish the goals at the top before you run out.</p>
+            <p>Trails of seven grow a <b>Lifebloom</b> that links to anything. Treated motes pour into the <b>vials</b>; a full vial is a power: tap it, then tap the grid. Remedies from the apothecary shelf help in a pinch. Keyboard: arrows move, Space picks, Enter treats, H for a hint.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Look speed <input type="range" id="set-sens" min="0.3" max="2.5" step="0.1"></label>
+            <label class="row">Invert look <input type="checkbox" id="set-invert"></label>
+            <label class="row">Graphics
+                <select id="set-quality"><option value="0">Fast</option><option value="1">Balanced</option><option value="2">Beautiful</option></select>
+            </label>
+            <label class="row">Touch controls
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <label class="row">Scan hints <input type="checkbox" id="set-hints"></label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="credits" class="screen" hidden>
+        <div class="sheet">
+            <h2>Credits</h2>
+            <p><b>Salve &amp; Scale</b> is game 081 of web-games-andrew.</p>
+            <p>Every monster, room, texture, sound and tune is made in code: three.js r165 for the 3D, Web Audio for the sound, no image or audio files. The healing puzzle is Bumble Basket's (game 058) trail-linking, rethemed.</p>
+            <p>Made with Claude Code.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="journal" class="btn">Journal</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="journal" class="screen" hidden>
+        <div class="sheet wide tall">
+            <div class="tabs" id="journal-tabs" role="tablist">
+                <button class="tab" data-tab="skills">Grimoire</button>
+                <button class="tab" data-tab="codex">Codex</button>
+                <button class="tab" data-tab="beasts">Bestiary</button>
+                <button class="tab" data-tab="evidence">Evidence</button>
+                <button class="tab" data-tab="story">Story</button>
+            </div>
+            <div id="journal-body"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="shop" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>The Apothecary Shelf</h2>
+            <p class="dim">Clasp keeps the till. <span id="shop-gold"></span></p>
+            <div id="shop-body"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="worldmap" class="screen" hidden>
+        <div class="sheet wide map-sheet">
+            <h2>Where to, Healer?</h2>
+            <div id="map-art"></div>
+            <div id="map-list"></div>
+            <div class="sheet-foot"><button class="btn" data-close>Stay in the clinic</button></div>
+        </div>
+    </div>
+
+    <div id="scanresult" class="screen" hidden>
+        <div class="sheet">
+            <h2 id="res-title">Healed!</h2>
+            <div id="res-stars"></div>
+            <div id="res-body"></div>
+            <div class="sheet-foot" id="res-foot"></div>
+        </div>
+    </div>
+
+    <div id="ending" class="screen ending-screen" hidden>
+        <div class="sheet ending-sheet">
+            <div id="end-art"></div>
+            <h2 id="end-title"></h2>
+            <p id="end-text"></p>
+            <div class="sheet-foot"><button class="btn primary" id="end-next">Continue</button></div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">Salve &amp; Scale needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

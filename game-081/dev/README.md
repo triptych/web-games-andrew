@@ -1,0 +1,28 @@
+# Salve & Scale — dev harnesses
+
+Plain Node scripts, no build step, no test framework. Run from the repo root.
+
+| Command | What it does |
+|---|---|
+| `node game-081/dev/simtest.mjs` | Headless, in Node. **purity**: `js/sim/`, `js/rng.js` and `js/config.js` never touch the DOM, a renderer, storage, `Math.random` or the clock (comments and string literals are stripped first, so dialogue can say "window"). **rules**: the scan puzzle on hand-placed grids — links by each sense, trails, gravity and refill, lifeblooms (and Bloom Lore), scar and bound motes (and Debride, Unbinding Word), all four powers (and Wide Lancet), vial filling, remedies, the tonic, Triage, stars, shuffles keeping a move on 30 crowded grids, the Overlord's three boards, skill mods. **scans**: every story, quest and boss scan plus four generated walk-ins per act, played by the scan bot at skill 1 and 0.6 on `SEEDS` (10) seeds with the act's senses and no skills — prints the win-rate and focus-left table, and fails a scan the casual bot can't heal (with the tonic) on 60% of seeds or the perfect bot finishes with more than ~60% of its Focus. **maps**: every map is rectangular, walled in and uses only known symbols; on each quest map the boss is behind the gate, every trap blocks something, everything else is reachable once the traps are cleared, the boss once the gate opens; every clinic interactable is reachable. **dialogue**: every speaker is known, every patient has an intro and thanks, the cast speaks at every act, 300 walk-ins are well formed, the codex has 33 entries. **determinism**: same seed and inputs → same game; a save round trip in the middle of a scan plays on identically; an unknown save version is rejected. **campaign**: the campaign bot walks the real maps through `step()` (turning and walking like a player) and plays the whole game through `act()` — clinic, four calls, the ending — on `CAMPAIGN_SEEDS` (2) seeds at skill 1 and 0.6, with per-step invariants (finite, never inside a wall), and prints the balance line. `ONLY=purity,rules,scans,maps,dialogue,determinism,campaign`, `SEEDS=n`, `CAMPAIGN_SEEDS=n`, `VERBOSE=1`. |
+| `node game-081/dev/browsertest.mjs` | Real Chromium + WebGL (SwiftShader). **desktop**: title and back link, New Game, the intro read with real Space presses, real W walks and → turns, E at Clasp's desk talks, Nib to the table, E at the Lens, Pip's tutorial, the scan opens, a real mouse drag treats a trail, a lone tap costs nothing, arrows + Space + Enter make a trail from the keyboard, the bot finishes the scan, the result screen, Nib's thanks, Escape pauses and the sim stops, Space presses Resume, J opens the journal and its tabs, the shop sells salts, Save & Quit → Continue, the bot plays to the first call, the world map's button travels to Bramblewood, the bot plays to the ending, its panels, home in the clinic. **phones** (touch only, real CDP touches) at 390×844 and 844×390: taps through menus and dialogue, the deck, the stick walks, the look pad turns, ✋ talks to Clasp, a real touch drag treats a trail, the scan HUD is on screen, ❚❚ pauses and stays open after the lift, controls ≥ 44 px, no sideways scroll, the canvas matches the visible viewport. **nostorage**: boots and plays with `localStorage` throwing. Fails on any console error, page error or failed request. `ONLY=desktop,phones,nostorage`. Screenshots in `dev/shots/`. |
+| `node game-081/dev/play.mjs name "js" [waitMs] [w h] [touch]` | Opens the game with `?debug=1`, runs a snippet (`return` prints a value), screenshots to `dev/shots/name.png`. `Q='&quality=2'` adds URL parameters. |
+| `node game-081/dev/shot.mjs "models.html?row=bosses&mood=hurt" name [w h] [waitMs]` | Screenshots a dev page. |
+| `dev/models.html?row=patients\|bosses\|cast&mood=hurt\|idle\|happy` | Every model on a neutral background under plain light, no bloom; drag to orbit. Judge anatomy here, not in the game. |
+| `node game-081/dev/mapview.mjs [map]` | Prints a quest map with the cells reachable from the start (gate shut, traps armed) marked `·`. For placing traps at chokepoints. |
+
+The browser scripts need `playwright` and a static server on port 8081:
+
+```bash
+python3 -m http.server 8081          # repo root
+mkdir -p dev/node_modules && ln -s "$(npm root -g)/playwright" dev/node_modules/playwright
+ln -s ../../dev/node_modules game-081/dev/node_modules
+```
+
+No network to unpkg.com? `npm pack three@0.165.0 && tar xzf three-0.165.0.tgz && mv package dev/package` (repo root); the scripts serve three.js from there, or set `THREE_PKG`. Chromium somewhere unusual? Set `PW_CHROMIUM_PATH`.
+
+SwiftShader draws this game at a frame or two a second, and the loop caps a frame at 0.05 s, so the tests open it with `&fast=4&quality=0` and wait on state, never on the clock; long stretches of the story are run ahead with `__ss.ff()`. Passing tests don't mean the screen shows anything: look at the screenshots.
+
+## Debug hooks (`?debug=1`)
+
+`window.__ss`: `G` (the game), `mode`, `seen` (a count of every sim event drained, with `scan:<type>` for scan events), `view`, `ui`, `audio`, `input`, `settings`, `start(seed, skipIntro)` (skips the title), `autoplay(on, opts)` (the campaign bot plays the real game), `ff(seconds, until)` (run the campaign bot synchronously), `act(action)`, `facing()`, `ents()`, `blocked(x, y)`, `objective()`, `scanCell(r, c)` (a scan cell's screen position), `scanPath()`, `hint()`, `solveScan()` (the scan bot plays the open scan to its end), `focusLeft()`, `save()`, `hasSave()`, `load()`. `&fast=N` runs N× the simulation per frame; `&quality=0|1|2` overrides the graphics setting.
