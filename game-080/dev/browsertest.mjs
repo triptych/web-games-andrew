@@ -128,6 +128,7 @@ async function desktop() {
     check(await Q(page, (t) => __el.G.t === t, t0), 'the sim stops while paused');
     await page.keyboard.press('Space');     // Resume has focus: Space must press it (game-078)
     await until(page, () => document.getElementById('pause').hidden, 'Space on the focused Resume button resumes');
+    await page.waitForTimeout(400);           // a key right after closing a menu is swallowed on purpose
 
     // the satchel
     await page.keyboard.press('KeyI');
@@ -182,6 +183,27 @@ async function desktop() {
     await page.keyboard.press('Space');
     await until(page, () => __el.G.hp > 3, 'Space on the focused "Rest" choice rests');
     await talkThrough(page);
+    // the same with the Action key Z, which the browser doesn't press buttons with by itself
+    await Q(page, () => { __el.G.hp = 3; __el.G.p.dir = 'left'; });
+    await page.waitForTimeout(400);
+    await page.keyboard.press('KeyZ');
+    await until(page, () => __el.G.mode === 'dialog', 'Z at the bed asks to rest');
+    for (let i = 0; i < 3 && !(await Q(page, () => document.querySelectorAll('#dlg-choices .choice').length === 2)); i++) { await page.keyboard.press('KeyZ'); await page.waitForTimeout(200); }
+    await until(page, () => document.querySelectorAll('#dlg-choices .choice').length === 2, 'the choices appear', 10000);
+    await page.keyboard.press('KeyZ');
+    await until(page, () => __el.G.hp > 3, 'Z picks the highlighted "Rest" choice');
+    await talkThrough(page);
+    // Z presses battle buttons too
+    await Q(page, () => { __el.warp('world', 30, 60); __el.fight(['dustbunny']); });
+    await until(page, () => __el.G.mode === 'battle', 'a squabble for the Z key');
+    for (let i = 0; i < 40; i++) {
+        if (await Q(page, () => __el.G.mode !== 'battle')) break;
+        await page.waitForFunction(() => __el.ui.battleIdle(), null, { timeout: 20000, polling: 100 }).catch(() => {});
+        await page.keyboard.press('KeyZ');
+        await page.waitForTimeout(250);
+    }
+    await until(page, () => __el.G.mode === 'explore', 'Z alone shushes, wins and continues');
+    await Q(page, () => __el.warp('library', 27, 8));
 
     // save and continue
     const before = await Q(page, () => ({ lvl: __el.G.lvl, coins: __el.G.coins, map: __el.G.map }));
@@ -260,6 +282,20 @@ async function phone(w, h) {
     await until(page, () => __el.G.mode === 'dialog' && __el.G.dialog.from === 'mayor', 'tapping A talks to the Mayor');
     for (let i = 0; i < 20; i++) { if (await Q(page, () => __el.G.mode) !== 'dialog') break; await tapSel('#btn-a'); await page.waitForTimeout(150); }
     await until(page, () => __el.G.mode === 'explore', 'tapping A again reads through it');
+
+    // a choice by the A button: the bed
+    await Q(page, () => { __el.G.flags.metWick = 1; __el.G.hp = 3; __el.warp('library', 27, 8); __el.G.p.dir = 'left'; });
+    await page.waitForTimeout(300);
+    await tapSel('#btn-a');
+    await until(page, () => __el.G.mode === 'dialog', 'tapping A at the bed asks to rest');
+    for (let i = 0; i < 6; i++) { if (await Q(page, () => __el.G.hp > 3 || __el.G.mode !== 'dialog')) break; await tapSel('#btn-a'); await page.waitForTimeout(250); }
+    if (!await until(page, () => __el.G.hp > 3, 'tapping A picks the highlighted "Rest" choice')) {
+        console.log('    ', JSON.stringify(await Q(page, () => ({ mode: __el.G.mode, line: __el.G.dialog?.line, choices: __el.G.dialog?.choices, focus: document.activeElement?.outerHTML?.slice(0, 80), a: (() => { const r = document.getElementById('btn-a').getBoundingClientRect(); const t = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return t?.id || t?.className; })() }))));
+        await shot(page, `phone-${w}x${h}-choice`);
+    }
+    // read the rest by tapping the dialogue box (another A here would ask about the bed again)
+    for (let i = 0; i < 10; i++) { if (await Q(page, () => __el.G.mode) !== 'dialog') break; await tapSel('#dlg-box'); await page.waitForTimeout(150); }
+    await Q(page, () => __el.warp('world', 30, 60));
 
     // a battle by taps
     await Q(page, () => { __el.G.flags.metWick = 1; __el.fight(['dustbunny']); });

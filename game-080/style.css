@@ -129,13 +129,14 @@ html, body {
     position: fixed; z-index: 40; left: 0; right: 0; bottom: 0;
     padding: 0 calc(10px + var(--safe-r)) calc(10px + var(--safe-b)) calc(10px + var(--safe-l));
     display: flex; justify-content: center;
+    pointer-events: none;      /* only the box takes taps: the A button beside it must still work */
 }
 #dlg-box {
     position: relative; width: min(720px, 100%); min-height: 112px; display: flex; gap: 12px; align-items: flex-start;
     padding: 14px 16px 16px; border-radius: 14px;
     background: linear-gradient(180deg, #fbf3e2, var(--paper)); border: 3px solid var(--line);
     box-shadow: 0 0 0 3px #6a4a3a, 0 6px 0 rgba(0, 0, 0, 0.3);
-    cursor: pointer; touch-action: manipulation;
+    cursor: pointer; touch-action: manipulation; pointer-events: auto;
 }
 #dlg-portrait { width: 72px; height: 72px; flex: none; image-rendering: pixelated; border-radius: 10px; background: #e8d8b8; border: 2px solid var(--line); }
 #dlg-portrait.hide { display: none; }

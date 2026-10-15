@@ -154,4 +154,5 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, that every door
 ## Changelog
 
 ### v1.0.0 (2026-10-15)
+- The Action key (Z, J, gamepad A, the touch A button) picks the highlighted dialogue choice and presses battle and menu buttons, not just Space and Enter; on landscape phones the A button works while a dialogue is open.
 - First release: the 63-zone kingdom, 30 interiors and 13 dungeons; twelve grimoires with powers and spells; squabbles; about 80 people, eleven side quests, eight overdue books; ten shops; the library that restores itself; day and night; music and sound; keyboard, gamepad and touch; tests.

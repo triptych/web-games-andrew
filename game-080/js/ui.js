@@ -269,9 +269,21 @@ export class UI {
         const G = this.game.G;
         if (!G.dialog) return;
         if (!this.dlg.done) { this.finishLine(); return; }
-        if (G.dialog.choices) return;
+        // with choices on screen, Action picks the highlighted one (the first if none is)
+        if (G.dialog.choices) { if (this.dlg.choicesShown) this.pressFocused('dlg-choices'); return; }
         this.audio.ui('click');
         this.game.act({ type: 'advance' });
+    }
+    /** Action on a menu: press the focused button in this container, or its first one. */
+    pressFocused(id) {
+        const box = $(id);
+        if (!box) return false;
+        const a = document.activeElement;
+        const ok = (b) => b && b.tagName === 'BUTTON' && !b.disabled && !b.hidden && b.offsetParent !== null && box.contains(b);
+        const b = ok(a) ? a : [...box.querySelectorAll('button')].find(ok);
+        if (!b) return false;
+        b.click();
+        return true;
     }
     hideDialog() { $('dialog').hidden = true; $('dlg-choices').innerHTML = ''; }
 
