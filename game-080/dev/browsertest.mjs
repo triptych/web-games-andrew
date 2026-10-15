@@ -44,7 +44,8 @@ async function open(viewport, { touch = false, nostorage = false } = {}) {
     const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1, hasTouch: touch, isMobile: touch });
     await ctx.addInitScript((ns) => {
         if (ns) Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('blocked', 'SecurityError'); } });
-        else try { localStorage.clear(); } catch { /* */ }
+        // a fresh start for each test, but not on a reload within it (that's what a save is for)
+        else try { if (!sessionStorage.getItem('bt-fresh')) { localStorage.clear(); sessionStorage.setItem('bt-fresh', '1'); } } catch { /* */ }
     }, nostorage);
     const page = await ctx.newPage();
     await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
@@ -305,8 +306,14 @@ async function desktop() {
     await until(page, () => !document.getElementById('pause').hidden, 'the ❚❚ button pauses');
     await click(page, '#pause-menu [data-act="quit"]');
     await until(page, () => __el.mode === 'title' && !document.getElementById('btn-continue').hidden, 'Save & Quit returns to the title with Continue');
+    // reload on the title screen: hiding the page used to save the empty demo game behind the menu
+    // over the real save
+    await page.reload();
+    await page.waitForFunction(() => window.__el && __el.mode === 'title', null, { timeout: 60000 });
+    await page.waitForTimeout(800);
+    check(await Q(page, () => !document.getElementById('btn-continue').hidden), 'after a reload, Continue is still there');
     await click(page, '#title-menu [data-act="continue"]');
-    await until(page, (b) => __el.mode === 'play' && __el.G.coins === b.coins && __el.G.map === b.map && __el.G.flags.metWick === 1, 'Continue restores the saved game', 30000, before);
+    await until(page, (b) => __el.mode === 'play' && __el.G.coins === b.coins && __el.G.map === b.map && __el.G.flags.metWick === 1, 'Continue restores the saved game (the same coins, map and Wick)', 30000, before);
     await shot(page, 'desktop-continue');
     reportErrors('desktop');
 }
