@@ -2,7 +2,7 @@
 
 **Genre:** First-person shooter: an 80s action-movie revenge rampage in the spirit of Duke Nukem 3D, with Borderlands-style procedural guns
 **Engine:** three.js r165 (import map, ES modules), no asset files: every model, texture, sound and song is generated in code
-**Status:** v1.0.1
+**Status:** v1.0.2
 
 ---
 
@@ -222,6 +222,9 @@ Result (6 seeds): the skill-1 bot wins every campaign with 0–6 deaths (3 on av
 - Co-op? Endless arcade mode with a new seed per level?
 
 ## Changelog
+
+### v1.0.2 (2026-10-15)
+- Fixed: the objective arrow was a `▲` text glyph that most fonts draw as a near-equilateral triangle, so it was hard to tell which way it pointed. It's now a compass dial: an SVG arrow with a long shaft, a big head and a notched tail, a tick at the top for straight ahead, and it turns green when you're facing the way to go. The minimap's player marker is a notched arrow too.
 
 ### v1.0.1 (2026-10-15)
 - Fixed: the objective arrow pointed straight at the keycard, through the buildings, so in the city it walked you into a wall (the walking route is 2.2× the straight line on a typical seed, up to 10×). The arrow now follows the walking route and shows its length; a minimap draws the route (M or Tab, or a tap, for the big map); a beam of light in the objective's colour shows through buildings. `simtest.mjs` has a new **guidance** section: a walker that only follows the arrow must reach the keycard on every level.

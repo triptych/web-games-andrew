@@ -148,7 +148,9 @@ export class UI {
         // you
         c.translate(toX(p.x / 3), toY(p.z / 3)); c.rotate(p.yaw);
         const t = Math.max(6, s * 0.9);
-        c.fillStyle = '#ff3fa4'; c.beginPath(); c.moveTo(0, -t); c.lineTo(t * 0.65, t * 0.7); c.lineTo(-t * 0.65, t * 0.7); c.closePath(); c.fill();
+        // a notched arrow, so which way you face is never in doubt
+        c.fillStyle = '#ff3fa4'; c.strokeStyle = '#fff'; c.lineWidth = 1.2;
+        c.beginPath(); c.moveTo(0, -t * 1.1); c.lineTo(t * 0.7, t * 0.75); c.lineTo(0, t * 0.3); c.lineTo(-t * 0.7, t * 0.75); c.closePath(); c.fill(); c.stroke();
         c.restore();
     }
     setTouch(on, playing = !$('hud').hidden) {
@@ -197,8 +199,10 @@ export class UI {
             const ahead = this.route ? routeAhead(G, this.route, p.x, p.z) : null;
             const tx = ahead ? ahead.x : o.x, tz = ahead ? ahead.z : o.z;
             const d = ahead ? ahead.dist : Math.hypot(o.x - p.x, o.z - p.z);
-            const a = Math.atan2(tx - p.x, -(tz - p.z)) - p.yaw;
-            $('obj-arrow').style.transform = `rotate(${a}rad)`;
+            let a = Math.atan2(tx - p.x, -(tz - p.z)) - p.yaw;
+            a = Math.atan2(Math.sin(a), Math.cos(a));
+            $('obj-arrow').setAttribute('transform', `rotate(${(a * 180 / Math.PI).toFixed(1)})`);
+            $('obj-dial').classList.toggle('on-track', Math.abs(a) < 0.2 && o.kind !== 'ambush');
             set('obj-dist', o.kind === 'ambush' ? '' : `${Math.round(d)}m`);
             this.mapT = (this.mapT || 0) - dt;
             if (this.mapT <= 0) { this.mapT = 0.1; this.drawMap(G); }

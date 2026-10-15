@@ -5704,6 +5704,9 @@ Hit flashes and screen flashes decay per *frame* by `dt`, which is capped at 0.0
 ### Point the objective arrow along the walk, not as the crow flies
 v1.0.0's arrow pointed straight at the keycard. In a city of building blocks the walk was 2.2× the straight line on a typical seed (up to 10×), and a player following the arrow met a wall about an eighth of the way there, with no door in sight: "the level is impossible". The bot never noticed, because the bot has its own BFS. Point the arrow at the farthest cell along the route that can be walked to in a straight line (and always at least one step along it, or the arrow spins round you when a corner clips the line), show the route's length, draw the route on a minimap, and put a beam over the objective that shows through walls. Test it with a walker that has *no* path finding: it may only follow the arrow and hop when stuck (`ONLY=guidance` in game-079's simtest). *(game-079 v1.0.1)*
 
+### A direction marker needs a direction
+A rotated `▲` is not an arrow: most fonts draw it nearly equilateral, so once it turns, any corner could be the point (game-079 v1.0.2). Draw an arrow with a shaft, a head and a notched tail (an SVG path), give it a fixed "straight ahead" tick to compare against, and change its colour when you're on course.
+
 ### A full-screen touch look pad swallows the HUD
 The touch deck's right-half look pad sits above the HUD's stacking context (`#hud` is `position: fixed; z-index: 10`), so the ❚❚ button inside the HUD could not be tapped on a phone. A child's z-index can't escape its parent's context: move the button out of the HUD, above the deck.
 
