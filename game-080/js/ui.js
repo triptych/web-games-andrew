@@ -99,6 +99,71 @@ export class UI {
         const pref = list.find((b) => b.classList.contains('primary') || b.classList.contains('on')) || list[0];
         pref?.focus({ preventScroll: true });
     }
+    /**
+     * Arrow keys on a screen. Left and Right switch tabs (satchel, shop) or nudge a slider or a
+     * dropdown; Up and Down walk through the buttons, or scroll a page that has none.
+     */
+    navigate(key) {
+        const id = this.top();
+        if (!id) return;
+        const a = document.activeElement;
+        const dir = key === 'ArrowUp' || key === 'ArrowLeft' ? -1 : 1;
+        const across = key === 'ArrowLeft' || key === 'ArrowRight';
+        const box = $(id);
+        if (across && a && box.contains(a)) {
+            if (a.type === 'range') {
+                const st = +a.step || 0.1;
+                a.value = Math.max(+a.min, Math.min(+a.max, +a.value + dir * st));
+                a.dispatchEvent(new Event('change'));
+                this.audio.ui('move');
+                return;
+            }
+            if (a.tagName === 'SELECT') {
+                a.selectedIndex = (a.selectedIndex + dir + a.options.length) % a.options.length;
+                a.dispatchEvent(new Event('change'));
+                this.audio.ui('move');
+                return;
+            }
+        }
+        const tabs = [...box.querySelectorAll('.tabs .tab')];
+        if (tabs.length) {
+            if (across) {
+                const i = Math.max(0, tabs.findIndex((t) => t.classList.contains('on')));
+                const t = tabs[(i + dir + tabs.length) % tabs.length];
+                t.click();
+                t.focus({ preventScroll: true });
+                return;
+            }
+            // up and down: the open tab, then the buttons on its page
+            const body = box.querySelector('#bag-body, #shop-body');
+            const list = [tabs.find((t) => t.classList.contains('on')), ...this.buttons(body.id)].filter(Boolean);
+            if (list.length > 1) {
+                const i = list.indexOf(a);
+                const next = list[i < 0 ? 0 : (i + dir + list.length) % list.length];
+                next.focus({ preventScroll: true });
+                next.scrollIntoView({ block: 'nearest' });
+                this.audio.ui('move');
+                return;
+            }
+        }
+        // nothing to choose between: Up and Down read down the page
+        const sheet = box.querySelector('.sheet');
+        if (!across && sheet && sheet.scrollHeight > sheet.clientHeight + 2) { sheet.scrollBy({ top: dir * 60 }); return; }
+        this.moveFocus(dir, id);
+    }
+
+    /** The floating "Z Talk" over whatever Action would use now (null hides it). */
+    showPrompt(p, keyLabel) {
+        const b = $('prompt');
+        if (!p) { if (!b.hidden) b.hidden = true; return; }
+        const s = this.view.tileToScreen(p.x, p.y);
+        if (b.hidden) b.hidden = false;
+        if ($('prompt-verb').textContent !== p.verb) $('prompt-verb').textContent = p.verb;
+        if ($('prompt-key').textContent !== keyLabel) $('prompt-key').textContent = keyLabel;
+        b.style.left = Math.round(s.x) + 'px';
+        b.style.top = Math.round(s.y) + 'px';
+    }
+
     /** Arrow keys move focus through a container's controls. */
     moveFocus(dir, id = this.top()) {
         const list = this.buttons(id);
@@ -116,6 +181,7 @@ export class UI {
     }
     setTouch(on, playing = !$('hud').hidden) {
         this.touchOn = on;
+        document.body.classList.toggle('touchmode', on);
         $('touch').hidden = !(on && playing);
     }
     hud(G) {
@@ -280,7 +346,11 @@ export class UI {
         if (!box) return false;
         const a = document.activeElement;
         const ok = (b) => b && b.tagName === 'BUTTON' && !b.disabled && !b.hidden && b.offsetParent !== null && box.contains(b);
-        const b = ok(a) ? a : [...box.querySelectorAll('button')].find(ok);
+        // a slider or dropdown has the focus: Action means nothing there (never "the first button",
+        // which on Settings is Delete saved game)
+        if (a && box.contains(a) && (a.tagName === 'INPUT' || a.tagName === 'SELECT')) return false;
+        const all = [...box.querySelectorAll('button')].filter(ok);
+        const b = ok(a) ? a : all.find((x) => x.classList.contains('primary')) || all.find((x) => !x.classList.contains('danger'));
         if (!b) return false;
         b.click();
         return true;

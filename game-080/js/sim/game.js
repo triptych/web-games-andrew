@@ -64,7 +64,7 @@ export function newGame(seed = 1, { skipIntro = false } = {}) {
         grace: 1.5,
         zone: null,
         bark: 0,
-        stats: { battles: 0, calmed: 0, steps: 0, chests: 0 },
+        stats: { battles: 0, calmed: 0, steps: 0, chests: 0, finds: 0 },
         events: [],
     };
     G.hp = maxHp(G);
@@ -380,12 +380,13 @@ const NEED_LINE = {
     lumen: 'It\'s pitch black in there. We need a light. A proper light, not me.',
 };
 
-function interact(G) {
+/** What Action would reach right now: a person, or a map tile (with its object, if any). */
+function reachable(G) {
     const M = mapOf(G);
     const pt = facingPoint(G);
     // people first
     const n = npcNear(G, pt);
-    if (n) return talkTo(G, n.id);
+    if (n) return { npc: n };
     // the tile straight ahead of the one you stand on, or failing that, the one you're reaching into
     const [dx, dy] = DIRS[G.p.dir];
     const ax = Math.floor(G.p.x) + dx, ay = Math.floor(G.p.y) + dy;
@@ -396,15 +397,23 @@ function interact(G) {
     };
     let tx = Math.floor(pt.x), ty = Math.floor(pt.y);
     if (useful(ax, ay) || !useful(tx, ty)) { tx = ax; ty = ay; }
-    if (tx < 0 || ty < 0 || tx >= M.w || ty >= M.h) return false;
+    if (tx < 0 || ty < 0 || tx >= M.w || ty >= M.h) return null;
     const i = ty * M.w + tx;
     const t = tileAt(G, M, i);
     const obj = M.objs[i];
     // a shop counter: talk to whoever is behind it
     if (t === T.counter && !obj) {
         const far = npcNear(G, facingPoint(G, PLAYER.reach + 1.0), 1.0);
-        if (far) return talkTo(G, far.id);
+        if (far) return { npc: far };
     }
+    return { M, i, tx, ty, t, obj };
+}
+
+function interact(G) {
+    const r = reachable(G);
+    if (!r) return false;
+    if (r.npc) return talkTo(G, r.npc.id);
+    const { M, i, tx, ty, t, obj } = r;
     if (obj) return useObject(G, M, i, obj);
     const d = TILES[t];
     if (d.lock) return usePower(G, M, i, t);
@@ -420,8 +429,67 @@ function interact(G) {
     return false;
 }
 
+const LOCK_VERB = { pass: 'Look' };
+/**
+ * The little "Z" prompt: what Action would do if pressed now, and where to show it (tile
+ * coordinates of the spot to float it over), or null when it would do nothing worth a prompt.
+ */
+export function prompt(G) {
+    if (G.mode !== 'explore' || G.fade) return null;
+    const r = reachable(G);
+    if (!r) return null;
+    if (r.npc) return NPCS[r.npc.id]?.talk ? { verb: 'Talk', x: r.npc.x + 0.5, y: r.npc.y - 0.6 } : null;
+    const { M, tx, ty, t, obj } = r;
+    const at = (verb) => ({ verb, x: tx + 0.5, y: ty - 0.3 });
+    if (obj) {
+        switch (obj.kind) {
+            case 'chest': return G.chests[obj.id] ? null : at('Open');
+            case 'stash': return G.chests[obj.id] ? null : at('Search');
+            case 'sign': return at('Read');
+            case 'bed': return at('Rest');
+            case 'lectern': return at(G.books.some((b) => !G.placed.includes(b)) ? 'Place books' : 'Read');
+            case 'hearth': return at('Hearth');
+            case 'returns': return at(COMMON_BOOKS.some((b) => G.common[b.id] === 1) ? 'Return books' : 'Look');
+            case 'telescope': return at('Look');
+            case 'boss': return G.bosses[obj.id] ? null : at('Approach');
+            default: return null;
+        }
+    }
+    const d = TILES[t];
+    if (d.lock) {
+        if (d.mode === 'pass') return hasBook(G, d.lock) ? null : at(LOCK_VERB.pass);
+        if (!hasBook(G, d.lock)) return at('Look');
+        if (t === T.starseal && G.placed.length < 12) return at('Look');
+        return at(GRIMOIRE[d.lock]?.short || 'Use');
+    }
+    if (d.keyDoor) return at((G.keys[M.id] || 0) > 0 ? 'Unlock' : 'Look');
+    return null;
+}
+
+const NOOK_LINE = {
+    shelf: 'Tucked behind a row of books', table: 'Under the table, in a little drawer', barrel: 'At the bottom of the barrel',
+    crate: 'In the crate, under the straw', flowerbox: 'Hidden behind the flowerpot', hearth: 'On the mantelpiece', clutter: 'Among the clutter',
+};
+
 function useObject(G, M, i, obj) {
     switch (obj.kind) {
+        case 'stash': {
+            if (G.chests[obj.id]) { bark(G, 'Nothing else tucked away here.'); return true; }
+            G.chests[obj.id] = 1;
+            G.stats.finds = (G.stats.finds || 0) + 1;
+            const where = NOOK_LINE[obj.nook] || 'Tucked away here';
+            if (obj.coins) {
+                G.coins += obj.coins;
+                G.events.push({ type: 'find', id: obj.id, coins: obj.coins, x: i % M.w, y: Math.floor(i / M.w) });
+                openDialog(G, [['say', 'note', `${where}: ${obj.coins} coins! Finders keepers, the owner would surely say.`]]);
+            } else {
+                addItem(G, obj.item, obj.n || 1);
+                G.events.push({ type: 'find', id: obj.id, item: obj.item, x: i % M.w, y: Math.floor(i / M.w) });
+                const it = ITEMS[obj.item];
+                openDialog(G, [['say', 'note', `${where}: ${(obj.n || 1) > 1 ? obj.n + ' × ' : 'a '}${it.name}!`]]);
+            }
+            return true;
+        }
         case 'chest': {
             if (G.chests[obj.id]) { bark(G, 'Empty. We already peeked.'); return true; }
             G.chests[obj.id] = 1;

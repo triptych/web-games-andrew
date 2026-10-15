@@ -108,6 +108,24 @@ html, body {
     background: #fff6e4; border: 2px solid #e8a050; color: var(--ink); font-size: 13px; font-weight: 700;
     pointer-events: none; box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
 }
+/* the action prompt: a key cap floating over whatever Action would use */
+#prompt {
+    position: fixed; z-index: 13; transform: translate(-50%, -100%);
+    display: flex; align-items: center; gap: 5px; padding: 3px 8px 3px 3px; border-radius: 10px;
+    background: rgba(255, 246, 228, 0.94); border: 2px solid #c89060; color: var(--ink);
+    font: 800 12px var(--sans); white-space: nowrap; pointer-events: none;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25); animation: prompt-bob 1.6s ease-in-out infinite;
+}
+#prompt kbd, .keyhint kbd {
+    display: inline-block; min-width: 18px; padding: 1px 4px; border-radius: 5px; text-align: center;
+    background: #fff; border: 1.5px solid #8a6a50; border-bottom-width: 3px; color: #6a3a2a; font: 800 11px var(--sans);
+}
+@keyframes prompt-bob { 50% { margin-top: -2px; } }
+.keyhint { margin: 10px 0 0; font-size: 12px; color: var(--ink2); }
+.keyhint kbd { margin-right: 2px; }
+.sheet-foot .keyhint { margin: 0 auto 0 0; align-self: center; }
+body.touchmode .keyhint { display: none; }
+
 #bark::after { content: ''; position: absolute; left: 50%; bottom: -8px; border: 7px solid transparent; border-top-color: #e8a050; transform: translateX(-50%); }
 
 /* ---------------------------------------------------------------- touch deck */

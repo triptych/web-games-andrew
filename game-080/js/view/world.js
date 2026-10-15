@@ -113,6 +113,21 @@ export class WorldView {
         }
     }
 
+    /** A four-point twinkle that shows for a moment every few seconds, somewhere on tile (x, y). */
+    glint(ctx, x, y, seed) {
+        const ph = (this.time + (seed % 7) * 0.53) % 3.2;
+        if (ph > 0.5) return;
+        const a = Math.sin((ph / 0.5) * Math.PI);
+        const gx = Math.round(x + 4 + (seed * 7) % 8), gy = Math.round(y + 2 + (seed * 3) % 7);
+        const r = a > 0.6 ? 2 : 1;
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.fillStyle = '#fff8d8';
+        ctx.fillRect(gx - r, gy, r * 2 + 1, 1);
+        ctx.fillRect(gx, gy - r, 1, r * 2 + 1);
+        ctx.restore();
+    }
+
     glow(ctx, x, y, r, colour, a) {
         if (a <= 0) return;
         ctx.save();
@@ -285,6 +300,9 @@ export class WorldView {
             if (d.name === 'shelf' && M.shelves) this.shelfBooks(ctx, G, M, it, sx, sy);
             if (d.name === 'hearth') this.fire(ctx, sx + 8, sy + 13, G.flags.metWick ? 1 : 0.35);
             if (d.name === 'kiln') this.fire(ctx, sx + 8, sy + 18, 0.6);
+            // something tucked away in it: now and then, a tiny glint
+            const o = M.objs[it.i];
+            if (o?.kind === 'stash' && !G.chests[o.id]) this.glint(ctx, ox + it.x * TILE, oy + it.ty * TILE, it.i);
             return;
         }
         if (it.kind === 'bld') {

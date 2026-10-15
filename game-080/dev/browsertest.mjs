@@ -170,6 +170,69 @@ async function desktop() {
     }
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('bag').hidden, 'Escape closes it');
+    await page.waitForTimeout(400);
+
+    // the satchel by keys alone: X opens and closes it, arrows walk the tabs and rows, Z uses
+    await Q(page, () => { __el.give('tea', 2); __el.G.hp = 10; });
+    await page.keyboard.press('KeyX');
+    await until(page, () => !document.getElementById('bag').hidden, 'X opens the satchel');
+    await Q(page, () => { __el.ui.bagTab('books'); document.querySelector('#bag-tabs .on').focus(); });
+    await page.keyboard.press('ArrowRight');
+    await until(page, () => document.querySelector('#bag-tabs .on')?.dataset.tab === 'items', 'Right turns to the next tab');
+    await page.keyboard.press('ArrowDown');
+    await until(page, () => document.activeElement?.closest('#bag-body') && /Tea/.test(document.activeElement.textContent), 'Down moves onto the first row');
+    await page.keyboard.press('KeyZ');
+    await until(page, () => __el.G.hp > 10, 'Z uses the tea on that row');
+    await page.keyboard.press('ArrowLeft');
+    await until(page, () => document.querySelector('#bag-tabs .on')?.dataset.tab === 'books', 'Left turns back a tab');
+    await page.keyboard.press('KeyM');
+    await until(page, () => document.querySelector('#bag-tabs .on')?.dataset.tab === 'map', 'M turns to the map');
+    await page.keyboard.press('KeyX');
+    await until(page, () => document.getElementById('bag').hidden, 'X closes the satchel again');
+    await page.waitForTimeout(400);
+
+    // settings by keys: Left and Right move a slider; Z on it doesn't press Delete
+    await page.keyboard.press('Escape');
+    await until(page, () => !document.getElementById('pause').hidden, 'Escape pauses again');
+    await Q(page, () => document.querySelector('#pause [data-act="settings"]').focus());
+    await page.keyboard.press('KeyZ');
+    await until(page, () => !document.getElementById('settings').hidden, 'Z on Settings opens it');
+    await Q(page, () => document.getElementById('set-sfx').focus());
+    const sfx0 = await Q(page, () => +document.getElementById('set-sfx').value);
+    await page.keyboard.press(sfx0 > 0 ? 'ArrowLeft' : 'ArrowRight');
+    await until(page, (v) => +document.getElementById('set-sfx').value !== v, 'Left / Right move the Sound slider', 10000, sfx0);
+    await page.keyboard.press('KeyZ');
+    await page.waitForTimeout(400);
+    check(await Q(page, () => !document.getElementById('settings').hidden && __el.hasSave()), 'Z on a slider presses nothing (the save is still there)');
+    await page.keyboard.press('KeyX');
+    await until(page, () => document.getElementById('settings').hidden && !document.getElementById('pause').hidden, 'X closes Settings, back to the pause menu');
+    await page.keyboard.press('KeyX');
+    await until(page, () => document.getElementById('pause').hidden, 'and X closes the pause menu');
+    await page.waitForTimeout(400);
+
+    // houses hide small things in their furniture; a "Z" prompt floats over anything Action would use
+    await Q(page, () => __el.warp('mabels', 6, 4));
+    await page.keyboard.down('ArrowUp'); await page.waitForTimeout(80); await page.keyboard.up('ArrowUp');
+    await until(page, () => !document.getElementById('prompt').hidden && /Talk/.test(document.getElementById('prompt').textContent), 'facing Mabel across the counter, a prompt says Z Talk');
+    check(await Q(page, () => document.getElementById('prompt-key').textContent === 'Z'), 'the prompt shows the Z key');
+    const spot = await Q(page, async () => {
+        const { getWorld } = await import('./js/sim/worldgen.js');
+        const M = getWorld().maps.mabels;
+        for (const k in M.objs) if (M.objs[k].kind === 'stash') return { x: k % M.w, y: Math.floor(k / M.w), id: M.objs[k].id };
+        return null;
+    });
+    check(!!spot, 'Mabel\'s shop has something tucked away in it');
+    await Q(page, (s) => { __el.warp('mabels', s.x, s.y + 1); __el.G.p.dir = 'up'; }, spot);
+    await until(page, () => /Search/.test(document.getElementById('prompt').textContent) && !document.getElementById('prompt').hidden, 'facing that piece of furniture, the prompt says Z Search');
+    await shot(page, 'desktop-search');
+    const had = await Q(page, () => ({ coins: __el.G.coins, n: Object.values(__el.G.bag).reduce((a, b) => a + b, 0) }));
+    await page.keyboard.press('KeyZ');
+    await until(page, () => __el.G.mode === 'dialog' && /!/.test(__el.G.dialog.line?.text || ''), 'Z searches it and finds something');
+    check(await Q(page, (b) => __el.G.coins > b.coins || Object.values(__el.G.bag).reduce((a, x) => a + x, 0) > b.n, had), 'and it goes in your satchel (or purse)');
+    check(await Q(page, () => document.getElementById('prompt').hidden), 'no prompt floats while a dialogue is open');
+    check(await talkThrough(page), 'and you read on');
+    await page.waitForTimeout(300);
+    check(await Q(page, () => document.getElementById('prompt').hidden), 'once searched, it has no prompt any more');
 
     // a squabble, by clicks
     await Q(page, () => { __el.warp('world', 30, 60); __el.fight(['paperback']); });

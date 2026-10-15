@@ -39,6 +39,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Launcher**: Sugarplum Drop added to [js/gamedata.js](js/gamedata.js) (genre `puzzle`) with a candy-cane card style in [css/styles.css](css/styles.css).
 - **Docs**: [learnings.md § Game 078](docs/generic/learnings.md#game-078-sugarplum-drop--suika-style-disc-physics-2026-10-14) (stacking discs of very different sizes, and testing overlap fairly).
 
+### Added
+- **EMBERLEAF** (game-080) v1.1.0: houses, shops and inns now hide small things. 38 finds (coins, teas, biscuits, ink, tarts, candles) are tucked into the shelves, tables, barrels, crates, flowerboxes and mantelpieces of all 29 rooms, picked by a hash of each room's id. Furniture that hides something glints now and then ([worldgen.js](game-080/js/sim/worldgen.js), [world.js](game-080/js/view/world.js)).
+- **EMBERLEAF** (game-080) v1.1.0: a small key cap ("Z Talk", "Z Search", "Z Open", "Z Read", "Z Place books"…) floats over whatever Action would use; it reads A when playing by touch or gamepad. It comes from `prompt(G)` in [game.js](game-080/js/sim/game.js), which shares its lookup with `interact()`, so it never promises something Action won't do.
+
+### Fixed
+- **EMBERLEAF** (game-080) v1.1.0: some things needed the mouse.
+  - X opened the satchel but didn't close it; X now closes any screen it can (as do Esc, I, Tab), and M flips the satchel to the map and back.
+  - Left and Right switch tabs in the satchel and the shop, Up and Down walk the rows (or scroll a page with none), and Z uses the focused row; key hints sit at the foot of both.
+  - Settings ignored every key once a slider or dropdown had focus, so you couldn't leave it. Left and Right now nudge them, Up and Down move on, and X closes. Z on one presses nothing; before, it could fall through to *Delete saved game* ([input.js](game-080/js/input.js), [ui.js](game-080/js/ui.js), [main.js](game-080/js/main.js)).
+  - [browsertest.mjs](game-080/dev/browsertest.mjs) does all of this by real keys, and searches a nook in Mabel's shop. [simtest.mjs](game-080/dev/simtest.mjs) reaches and searches every find, and checks the prompt.
+
 ### Changed
 - **EMBERLEAF** (game-080) v1.0.3: setting a grimoire on a lectern made it appear on its own lectern with no transition at all. Now the book lifts out of your hands and flies in an arc to its lectern, trailing sparkles. It lands with a pillar of light, two rings of energy rolling out across the floor, a burst of its colour and a soft flash, and motes keep rising off it for a moment ([world.js](game-080/js/view/world.js)). The lectern stays empty until the book arrives. The sound follows it: a rising whoosh as it leaves, a chime as it lands ([audio.js](game-080/js/audio.js)). Several books placed in a row take turns. [browsertest.mjs](game-080/dev/browsertest.mjs) sets a book on a lectern with real keys and watches it fly, land and settle.
 

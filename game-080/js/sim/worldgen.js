@@ -548,7 +548,37 @@ function buildRoom(def, kind) {
     }
     for (const wp of def.warps || []) M.warps[wp.y * w + wp.x] = { to: wp.to, need: wp.need, dir: 'down', star: true };
     for (const [id, x, y] of def.npcs || []) M.npcs.push({ id, x, y });
+    if (kind === 'interior' && def.id !== 'library') hideFinds(M, def);
     return M;
+}
+
+// Small things tucked into the furniture of homes, shops and inns, so an ordinary house is worth a
+// look round: one or two nooks per room, picked by a hash of the room's id (the same every game,
+// so a save only has to remember which ones you've searched).
+const NOOKS = { shelf: 'shelf', table: 'table', barrel: 'barrel', crate: 'crate', flowerbox: 'flowerbox', hearth: 'hearth', clutter: 'clutter' };
+const FINDS = [
+    { coins: 8 }, { coins: 12 }, { coins: 20 }, { item: 'tea' }, { item: 'tea', n: 2 }, { item: 'biscuit' },
+    { item: 'inkpot' }, { item: 'sachet' }, { item: 'jam' }, { coins: 15 }, { item: 'candle' }, { item: 'cocoa' },
+];
+function hideFinds(M, def) {
+    const seed = [...def.id].reduce((a, c) => a * 31 + c.charCodeAt(0), 7) % 9973;
+    const floorAt = (x, y) => x >= 0 && y >= 0 && x < M.w && y < M.h && !TILES[M.t[y * M.w + x]].solid && M.t[y * M.w + x] !== T.door;
+    const spots = [];
+    for (let y = 1; y < M.h - 1; y++) for (let x = 1; x < M.w - 1; x++) {
+        const i = y * M.w + x;
+        if (M.objs[i] || !NOOKS[TILES[M.t[i]].name]) continue;
+        // it has to be reachable: an open floor tile next to it to stand on
+        if (!(floorAt(x, y + 1) || floorAt(x, y - 1) || floorAt(x - 1, y) || floorAt(x + 1, y))) continue;
+        if ((def.npcs || []).some(([, nx, ny]) => Math.abs(nx - x) + Math.abs(ny - y) <= 1)) continue;
+        spots.push(i);
+    }
+    if (!spots.length) return;
+    spots.sort((a, b) => hash3(a % M.w, (a / M.w) | 0, seed) - hash3(b % M.w, (b / M.w) | 0, seed));
+    const n = Math.min(spots.length, hash3(seed, 3, 11) < 0.45 ? 2 : 1);
+    for (let k = 0; k < n; k++) {
+        const f = FINDS[Math.floor(hash3(seed, k, 29) * FINDS.length)];
+        M.objs[spots[k]] = { kind: 'stash', id: `${def.id}:nook${k}`, nook: NOOKS[TILES[M.t[spots[k]]].name], ...f };
+    }
 }
 
 // ------------------------------------------------------------------ the whole kingdom

@@ -22,7 +22,10 @@ export class Input {
 
         window.addEventListener('keydown', (e) => {
             const tag = e.target?.tagName;
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+            if (tag === 'TEXTAREA' || (tag === 'INPUT' && e.target.type !== 'range')) return;
+            // sliders and dropdowns are run by the game's keys too (arrows nudge them, X closes the
+            // screen), so the browser's own handling must not also move them or open the list
+            if ((tag === 'INPUT' || tag === 'SELECT') && (e.code.startsWith('Arrow') || e.code === 'Space' || e.code === 'Enter')) e.preventDefault();
             // Space and the arrows must not scroll the page, but Space and Enter must still press a
             // focused button: preventDefault() on them cancels the click (game-078)
             const onButton = tag === 'BUTTON' && e.target.offsetParent !== null && (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter');

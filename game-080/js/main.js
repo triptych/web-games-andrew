@@ -9,7 +9,7 @@ import { Audio } from './audio.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
-import { newGame, step, act, mapOf, _test } from './sim/game.js';
+import { newGame, step, act, mapOf, prompt, _test } from './sim/game.js';
 import { makeBot, botInput, botAct } from './sim/bot.js';
 import { BIOMES } from './sim/data/world.js';
 import { zoneAt } from './sim/worldgen.js';
@@ -207,15 +207,21 @@ const ARROW = { ArrowUp: -1, ArrowLeft: -1, ArrowDown: 1, ArrowRight: 1 };
 // Space and Enter on a focused button already press it (the browser does that); the other Action
 // keys, and a gamepad's A, must press it too
 const ACTION = ['Space', 'Enter', 'NumpadEnter', 'KeyZ', 'KeyJ'];
+const CLOSE = ['Escape', 'KeyX', 'Backspace', 'KeyP', 'KeyI', 'Tab', 'KeyM'];
 function handlePresses() {
     const press = input.next();               // one per frame: presses never merge
     if (!press) return;
     const key = press.key;
     const action = ACTION.includes(key) && !press.onButton;
     if (ui.anyScreen()) {
-        if (ARROW[key]) ui.moveFocus(ARROW[key]);
-        else if ((key === 'Escape' || key === 'KeyP' || key === 'KeyI' || key === 'Tab') && ui.top() !== 'title' && ui.top() !== 'ending') { audio.ui('close'); ui.closeTop(); }
-        else if (action && document.activeElement?.tagName === 'BUTTON') ui.pressFocused(ui.top());
+        const top = ui.top();
+        const fixed = top === 'title' || top === 'ending';
+        if (ARROW[key]) ui.navigate(key);
+        // M flips the satchel to the map and back off again
+        else if (key === 'KeyM' && top === 'bag' && ui.tab !== 'map') { audio.ui('move'); ui.bagTab('map'); document.querySelector('#bag-tabs .on')?.focus(); }
+        // X (the key that opens the satchel) closes any screen again, as do Escape and the rest
+        else if (CLOSE.includes(key) && !fixed) { audio.ui('close'); ui.closeTop(); }
+        else if (action) ui.pressFocused(top);
         return;
     }
     if (mode !== 'play') return;
@@ -287,6 +293,7 @@ function frame(now) {
     audio.tick();
     view.frame(G, dt, { dim: mode === 'title' ? 0.15 : 0 });
     if (mode === 'play') ui.hud(G);
+    ui.showPrompt(mode === 'play' && !ui.anyScreen() && !bot ? prompt(G) : null, input.lastDevice === 'keys' && !ui.touchOn ? 'Z' : 'A');
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) { if (G.mode === 'explore') pause(); saveGame(G); } });
