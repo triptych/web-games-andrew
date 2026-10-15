@@ -5677,3 +5677,30 @@ Measure overlap as a share of the **smaller** disc's radius (0.1 units is nothin
 
 ### The Space key and menu buttons
 The Section 2S `input.js` called `preventDefault()` on every Space keydown so the page wouldn't scroll. That also cancels a focused button's click, so Space did nothing on Resume, New Game or Play Again. The template browser test never noticed because it clicks from inside the page. Leave Space alone when the target is a `<button>`, flush input when play resumes from a menu (the key that closed it must not also drop a treat), and press real keys on a focused button in the test. The skill's template and Step 5 list now include both.
+
+## Game 079: VENDETTA OVERDRIVE — a procedural FPS balanced by a bot (2026-10-14)
+
+### A held button needs a latch too
+The Section 2S input latches *presses* until a sim step consumes them, but jump and fire are *held*, read from the key set each step. A `keyboard.press('Space')` (or a quick tap of a touch JUMP button, or a fast mouse click) puts keydown and keyup in the same frame, before any step runs, and the jump never happens. The browser test caught it. Latch the down edge as well (`tap.jump = true` on keydown, `jump = tap.jump || keys.has('Space')`, cleared in `consumeEdges()`).
+
+### Objective reachability is not validation reachability
+The generator's flood fill picks up keys as it goes and opens their doors, which is right for "can this level be finished". Reused to pick the next objective, it said the blue key (inside the red-locked vault) was reachable with no keys, and the bot walked at a wall forever. The objective fill must use only the keys in hand: `reachable(L, keys, collect = false)`.
+
+### The bot's path finder and path follower must agree on corners
+The bot's BFS allowed a diagonal step past a slime pit's corner (the pit cell is "passable"); the follower refused it (the pit cell has no field value). The bot stood at a local minimum of its own field. Give both the same corner rule: a diagonal needs both orthogonal cells walkable *and* dry.
+
+### Let the bot find the design bugs
+Every balance change here came from the bot table (`ONLY=bot SEEDS=6`): Fury filling seven times in 40 s (halved, and the Overdrive heal capped at 100); deaths 8 s after spawning on the Mothership (attack tokens, so at most 3–5 enemies wind up at once, and idle enemies only notice you in a forward cone); a level that could not be finished because the bot traded its bottomless pistol for a gun that ran dry during a boss (the pistol now rides outside the four swappable slots, and boss fights get supply drops); a bot hovering over pickups it could not take (one `canTake()` shared by the sim and the bot). A death report that lists the enemies near the player and the damage taken in the last four seconds found each of these in one run.
+
+### Caches in the sim must be a function of saved state
+Enemies follow a flow field from the player's cell. Recomputing it on a timer broke the save round trip (the loaded game computed a fresh field where the saved one used a stale one). Recompute it whenever a signature of (player cell, which doors block) changes: then the field is a pure function of saved state, and a loaded game recomputes exactly the field the saved one had.
+
+### Raise an arm forward with +x, and build the gun down the arm
+For a model facing −z, a pivot's `rotation.x > 0` swings a hanging arm *forward*; the first models had `−1.3` and every trooper aimed behind itself. Build a held gun or arm cannon along −z inside a holder rotated `−π/2` about x, so it points down the forearm and comes up with the arm. The same sign flip kept the chompers' jaws shut. All of it was invisible in play under bloom and fog, and obvious on the neutral `dev/models.html` page.
+
+### Judge flashes by time, and don't judge them under SwiftShader
+Hit flashes and screen flashes decay per *frame* by `dt`, which is capped at 0.05 s. SwiftShader draws this game at about one frame a second, so every enemy in a screenshot glowed white and a rocket blast whited out the screen. Some of that was real (an explosion light at 11× intensity under ACES and bloom); some was the test. Lower intensities until a single slow frame looks sane. UI timers that should be seconds (the delay before CONTINUE?, its countdown) run on the wall clock, not the capped frame time.
+
+### A full-screen touch look pad swallows the HUD
+The touch deck's right-half look pad sits above the HUD's stacking context (`#hud` is `position: fixed; z-index: 10`), so the ❚❚ button inside the HUD could not be tapped on a phone. A child's z-index can't escape its parent's context: move the button out of the HUD, above the deck.
+

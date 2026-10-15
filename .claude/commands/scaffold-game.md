@@ -4698,6 +4698,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 **Phones and input**
 - [ ] Taps land under the finger: canvas sized in px, pointers mapped through its `getBoundingClientRect()` (game-058, game-067).
 - [ ] A fast tap is never dropped: presses carried to the next sim step (game-059, game-071).
+- [ ] A *held* button (fire, jump) is latched too: a keydown and keyup in the same frame, before any step runs, still fire or jump once (game-079).
 - [ ] A queued key or a double-tap that closes a dialogue doesn't also act in the world: swallow the rest of the frame and ~250 ms of real time (game-073).
 - [ ] Space presses a focused menu button: a keydown handler that calls `preventDefault()` on Space to stop scrolling also cancels the button's click, so Resume and Play Again did nothing from the keyboard (game-078). Test it with a real key press, not `element.click()`.
 - [ ] A menu opened by a finger-down button doesn't close when the finger lifts (game-071).
