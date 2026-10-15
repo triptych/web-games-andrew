@@ -47,6 +47,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Launcher**: Sugarplum Drop added to [js/gamedata.js](js/gamedata.js) (genre `puzzle`) with a candy-cane card style in [css/styles.css](css/styles.css).
 - **Docs**: [learnings.md § Game 078](docs/generic/learnings.md#game-078-sugarplum-drop--suika-style-disc-physics-2026-10-14) (stacking discs of very different sizes, and testing overlap fairly).
 
+### Fixed
+- **EMBERLEAF** (game-080) v1.2.1: Save & Quit to the title, then reload, and your save was gone; Continue started a brand-new game. Hiding the page (which a reload or a tab switch does) saved the game "just in case" without checking you were still playing. On the title screen the game in memory is the empty demo game behind the menu, so a reload wrote it over the real save. The hidden-page save now runs only while you're playing ([main.js](game-080/js/main.js)). [browsertest.mjs](game-080/dev/browsertest.mjs) now reloads on the title after Save & Quit and checks that Continue restores the same coins and map; it failed before the fix. The harness keeps storage across a reload within a test.
+
 ### Added
 - **EMBERLEAF** (game-080) v1.2.0: a **Compendium** tab in the satchel lists every kind of runaway you've calmed.
   - Each card shows the foe's sprite, how many you've calmed, its genre, and a snippet from the book it really was, e.g. "¹ The butler did not do it. ² Probably." from *Footnotes to a Missing Novel* ([js/sim/data/excerpts.js](game-080/js/sim/data/excerpts.js), 35 excerpts).
