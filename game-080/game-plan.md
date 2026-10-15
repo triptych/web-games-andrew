@@ -3,7 +3,7 @@
 **Genre:** Cozy top-down adventure with Metroid-style progression and gentle turn-based battles
 **Engine:** Vanilla JS: Canvas 2D for the world and battles, DOM and CSS for every menu, Web Audio for every sound and note. No libraries, no asset files.
 **Target:** any screen from a 360 px phone (portrait or landscape) to a desktop monitor; keyboard, gamepad or touch.
-**Status:** v1.1.1
+**Status:** v1.2.0
 
 ---
 
@@ -154,6 +154,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, that every door
 - More side quests for the later regions; a bestiary page in the satchel.
 
 ## Changelog
+
+### v1.2.0 (2026-10-15)
+- A Compendium tab in the satchel: all 22 kinds of runaway book and 13 guardians, how many of each you've calmed, its genre, and a line from the book it really was ("from *Flambé for Beginners*: Step four: stand well back…"). Ones you haven't met are silhouettes with a hint of where they wander. Counts live in `G.dex`; older saves start with an empty one.
 
 ### v1.1.1 (2026-10-15)
 - Just after an update, a phone could show the title screen with buttons that did nothing: it had kept some old modules, the new ones failed to link against them, and nothing ran. Every module and the stylesheet are now fetched at the release's version (an import map written by `dev/stamp.mjs`), and if the game still can't load it says so and offers Reload.

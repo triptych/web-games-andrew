@@ -267,6 +267,18 @@ td:first-child { color: #9a4a1a; white-space: nowrap; font-weight: 800; }
 .gcard h4 { margin: 0 0 4px; font: 800 13px var(--serif); }
 .gcard .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
 .gcard .placed { color: #2a8a3a; font-weight: 800; }
+/* the Compendium */
+.dex-h { margin: 14px 0 6px; font: 800 15px var(--serif); color: var(--plum); }
+.dex { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.dcard { display: flex; gap: 8px; align-items: flex-start; border: 2px solid var(--line); border-radius: 10px; padding: 8px; background: #fff8ea; font-size: 12px; }
+.dcard canvas { width: 48px; height: 48px; image-rendering: pixelated; flex: none; }
+.dcard.none { background: #f3e8d2; color: var(--ink2); }
+.dcard h4 { margin: 0 0 3px; font: 800 13px var(--serif); }
+.dcard .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.dcard .n { font-weight: 800; color: #8a3a1a; }
+.dcard .genre { padding: 0 6px; border-radius: 6px; border: 1.5px solid var(--g); color: #4a3a3a; font-weight: 700; font-size: 11px; }
+.dcard blockquote { margin: 6px 0 0; padding-left: 8px; border-left: 3px solid #e0c9a0; font: italic 500 12.5px/1.4 var(--serif); color: #4a3530; }
+.dcard cite { display: block; margin-top: 3px; font: 600 11px var(--sans); color: var(--ink2); font-style: normal; }
 .shelfrow { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 13px; font-weight: 700; }
 .shelfrow .nm { width: 130px; flex: none; }
 .shelfrow .slots { display: flex; gap: 3px; }

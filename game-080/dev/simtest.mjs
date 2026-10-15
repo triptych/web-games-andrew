@@ -343,6 +343,9 @@ if (want('rules')) {
     while (G.battle.phase === 'choose' && rounds++ < 30) Gm.act(G, { type: 'battle', act: 'shush', target: 0 });
     ok(G.battle.phase === 'won', `shushing calms a paperback in ${rounds} rounds`);
     ok(G.events.some((e) => e.type === 'b_calm'), 'and it turns back into something');
+    ok(G.dex.paperback === 1, 'the Compendium counts it');
+    const { EXCERPTS } = await import('../js/sim/data/excerpts.js');
+    ok(Object.keys(FOE).every((id) => EXCERPTS[id]?.title && EXCERPTS[id]?.text) && Object.keys(EXCERPTS).every((id) => FOE[id]), `every foe and guardian has a Compendium excerpt, and no excerpt is orphaned (${Object.keys(EXCERPTS).length})`);
     const xp0 = G.xp, lv0 = G.lvl;
     Gm.act(G, { type: 'battleDone' });
     ok(G.mode === 'explore' && (G.xp > xp0 || G.lvl > lv0 || true), 'the battle ends and you can walk again');
@@ -472,6 +475,9 @@ if (want('determinism')) {
     let threw = false;
     try { Gm.deserialize({ v: 999 }); } catch { threw = true; }
     ok(threw, 'an unknown save version is refused, not half-loaded');
+    const old = Gm.serialize(Gm.newGame(3, { skipIntro: true }));
+    delete old.dex;
+    ok(JSON.stringify(Gm.deserialize(old).dex) === '{}', 'a save from before the Compendium loads with an empty one');
     let threw2 = false;
     const D = Gm.serialize(Gm.newGame(3, { skipIntro: true }));
     D.map = 'nowhere';

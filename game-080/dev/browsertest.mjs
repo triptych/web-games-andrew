@@ -163,10 +163,11 @@ async function desktop() {
     // the satchel
     await page.keyboard.press('KeyI');
     await until(page, () => !document.getElementById('bag').hidden, 'I opens the satchel');
-    for (const tab of ['books', 'items', 'gear', 'shelves', 'journal', 'map']) {
+    for (const tab of ['books', 'items', 'gear', 'shelves', 'journal', 'dex', 'map']) {
         await click(page, `#bag-tabs [data-tab="${tab}"]`);
         await until(page, (t) => document.querySelector(`#bag-tabs [data-tab="${t}"]`).classList.contains('on') && document.getElementById('bag-body').children.length > 0, `the ${tab} tab renders`, 10000, tab);
         if (tab === 'map') await shot(page, 'desktop-map');
+        if (tab === 'dex') check(await Q(page, () => /calmed/.test(document.getElementById('bag-body').textContent) && document.querySelectorAll('#bag-body .dcard').length === 35), 'the Compendium lists all 22 runaways and 13 guardians');
     }
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('bag').hidden, 'Escape closes it');

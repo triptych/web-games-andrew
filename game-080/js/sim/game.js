@@ -53,6 +53,7 @@ export function newGame(seed = 1, { skipIntro = false } = {}) {
         opened: {},
         chests: {},
         calmed: {},
+        dex: {},                // foe id → how many you've calmed (the satchel's Compendium)
         bosses: {},
         flags: {},
         quests: {},
@@ -744,6 +745,7 @@ export function deserialize(d) {
     const G = { ...JSON.parse(JSON.stringify(rest)), rng: makeRng(0), events: [] };
     G.rng.setState(rngState);
     if (!getWorld().maps[G.map]) throw new Error('save names an unknown map');
+    G.dex = G.dex || {};        // saves from before the Compendium
     return G;
 }
 
