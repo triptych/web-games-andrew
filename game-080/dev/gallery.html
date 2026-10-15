@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EMBERLEAF — sprite gallery</title>
+<style>
+    body { margin: 0; padding: 16px; background: #d8d0c4; font: 12px system-ui, sans-serif; color: #2a2226; }
+    h2 { margin: 18px 0 8px; font-size: 15px; }
+    .grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .cell { background: #ece6dc; border-radius: 8px; padding: 6px; text-align: center; width: 150px; }
+    .cell canvas { image-rendering: pixelated; display: block; margin: 0 auto 4px; }
+    .cell.wide { width: 210px; }
+</style>
+</head>
+<body>
+<h2>People (down, left, right, up × 3 frames) and their dialogue portrait</h2>
+<div class="grid" id="people"></div>
+<h2>Foes (world size 20, battle size 40) and guardians (72)</h2>
+<div class="grid" id="foes"></div>
+<h2>Item icons</h2>
+<div class="grid" id="icons"></div>
+<script type="module">
+import { NPCS } from '../js/sim/data/npcs.js';
+import { FOE } from '../js/sim/data/enemies.js';
+import { ITEMS } from '../js/sim/data/items.js';
+import { personFrame, foeFrame, wickFrame, icon, PLAYER_LOOK } from '../js/view/sprites.js';
+
+const S = 3;
+function cell(parent, label, w, h, draw, wide = false) {
+    const d = document.createElement('div');
+    d.className = 'cell' + (wide ? ' wide' : '');
+    const c = document.createElement('canvas');
+    c.width = w * S; c.height = h * S;
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.scale(S, S);
+    draw(g);
+    d.appendChild(c);
+    d.appendChild(document.createTextNode(label));
+    parent.appendChild(d);
+}
+const people = document.getElementById('people');
+const looks = [['you (the librarian)', PLAYER_LOOK, 'player'], ...Object.entries(NPCS).filter(([, n]) => n.look && n.look.k !== 'wick').map(([id, n]) => [n.name, n.look, id])];
+cell(people, 'Wick', 50, 24, (g) => { for (let i = 0; i < 3; i++) g.drawImage(wickFrame(i / 3), i * 16, 4); });
+for (const [name, look, id] of looks) {
+    cell(people, name, 68, 52, (g) => {
+        ['down', 'left', 'right', 'up'].forEach((dir, i) => g.drawImage(personFrame(look, dir, 0, id), i * 17, 0));
+        [0, 1, 2].forEach((f) => g.drawImage(personFrame(look, 'down', f, id), f * 17, 26));
+        // the portrait crop the dialogue box uses
+        const small = ['mouse', 'cat', 'kid', 'snowman', 'heron', 'scarecrow'].includes(look.k);
+        g.fillStyle = '#e8d8b8'; g.fillRect(52, 28, 16, 16);
+        g.drawImage(personFrame(look, 'down', 0, id), 0, small ? 2 : 0, 16, 16, 52, 29, 16, 16);
+    }, true);
+}
+const foes = document.getElementById('foes');
+for (const [id, f] of Object.entries(FOE)) {
+    const big = f.boss;
+    cell(foes, f.name, big ? 76 : 66, big ? 76 : 44, (g) => {
+        if (big) { g.drawImage(foeFrame(f.look, 0, 72), 2, 2); return; }
+        g.drawImage(foeFrame(f.look, 0, 20), 0, 12); g.drawImage(foeFrame(f.look, 1, 20), 0, 0);
+        g.drawImage(foeFrame(f.look, 0, 40), 24, 2);
+    }, big);
+}
+const icons = document.getElementById('icons');
+for (const [id, it] of Object.entries(ITEMS)) cell(icons, it.name, 14, 14, (g) => g.drawImage(icon(it.icon), 1, 1));
+</script>
+</body>
+</html>

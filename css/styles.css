@@ -1001,6 +1001,24 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 63, 164, 0.75);
 }
 
+.game-preview.emberleaf,
+.carousel-slide-bg.emberleaf {
+    background: radial-gradient(circle at 50% 46%, #ffd98a 0 5%, rgba(255, 154, 58, 0.75) 9%, transparent 20%),
+        radial-gradient(ellipse at 50% 100%, #6aac52 0 30%, transparent 31%),
+        repeating-linear-gradient(90deg, #6a4228 0 10px, #c0392b 10px 13px, #3f7a5a 13px 17px, #e8b84a 17px 20px, #6a4228 20px 26px),
+        linear-gradient(180deg, #3a2440 0%, #6a3a50 45%, #f6ecd6 100%);
+    background-size: auto, auto, 100% 34%, auto;
+    background-position: center, center, 0 0, center;
+    background-repeat: no-repeat;
+}
+
+.game-card.emberleaf .play-button {
+    background: linear-gradient(135deg, #ffb35a 0%, #ef8a3a 50%, #b8602a 100%);
+    color: #2a1408;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 14px rgba(255, 170, 80, 0.75);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
