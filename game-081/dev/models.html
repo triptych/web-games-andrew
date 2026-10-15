@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salve &amp; Scale — model gallery</title>
+<style>
+    html, body { margin: 0; height: 100%; background: #8a8f98; overflow: hidden; font: 13px system-ui, sans-serif; }
+    canvas { display: block; }
+    #bar { position: fixed; left: 8px; top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+    #bar button { padding: 6px 10px; border: 0; border-radius: 6px; background: #fff; cursor: pointer; }
+    #bar button.on { background: #ffd060; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div id="bar"></div>
+<script type="module">
+// Every model on a neutral background under plain light, no bloom. Judge anatomy here, not in the game.
+// ?row=patients|bosses|cast  &mood=hurt|idle|happy  &spin=0
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { buildModel } from '../js/view/models.js';
+import { timeUniform } from '../js/view/shaders.js';
+
+const q = new URLSearchParams(location.search);
+const ROWS = {
+    patients: ['goblin', 'slime', 'myconid', 'imp', 'skeleton', 'ghost', 'kobold', 'troll', 'gargoyle', 'golem'],
+    bosses: ['owlbear', 'banshee', 'dragon', 'overlord'],
+    cast: ['clasp', 'ossa', 'pip', 'aldric', 'vessa', 'corvin', 'lumina'],
+};
+const row = q.get('row') || 'patients';
+let mood = q.get('mood') || 'idle';
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x8a8f98);
+const pm = new THREE.PMREMGenerator(renderer);
+scene.environment = pm.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x666670, 1.2));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(3, 6, 5); scene.add(sun);
+const floor = new THREE.Mesh(new THREE.CircleGeometry(40, 48), new THREE.MeshStandardMaterial({ color: 0x9aa0a8, roughness: 1 }));
+floor.rotation.x = -Math.PI / 2; scene.add(floor);
+const ids = ROWS[row];
+const models = [];
+let x = 0;
+for (const id of ids) {
+    const m = buildModel(id, id);
+    const w = Math.max(1.2, m.userData.height * (id === 'dragon' ? 1.6 : 0.7));
+    x += w / 2;
+    m.position.x = x;
+    x += w / 2 + 0.3;
+    scene.add(m);
+    models.push(m);
+}
+const cx = x / 2;
+for (const m of models) m.position.x -= cx;
+const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 200);
+const maxH = Math.max(...models.map((m) => m.userData.height));
+camera.position.set(0, maxH * 0.6, Math.max(x * 0.9, maxH * 2.6));
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, maxH * 0.4, 0);
+controls.update();
+const bar = document.getElementById('bar');
+for (const r of Object.keys(ROWS)) { const b = document.createElement('button'); b.textContent = r; b.className = r === row ? 'on' : ''; b.onclick = () => { location.search = `?row=${r}&mood=${mood}`; }; bar.appendChild(b); }
+for (const md of ['hurt', 'idle', 'happy']) { const b = document.createElement('button'); b.textContent = md; b.className = md === mood ? 'on' : ''; b.onclick = () => { mood = md; [...bar.children].forEach((c) => { if (['hurt', 'idle', 'happy'].includes(c.textContent)) c.className = c.textContent === md ? 'on' : ''; }); }; bar.appendChild(b); }
+const clock = new THREE.Clock();
+window.__gallery = { ready: true, count: models.length };
+renderer.setAnimationLoop(() => {
+    const t = clock.getElapsedTime();
+    timeUniform.value = t;
+    for (const m of models) m.userData.anim(t, mood);
+    renderer.render(scene, camera);
+});
+addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
+</script>
+</body>
+</html>

@@ -1019,6 +1019,20 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 170, 80, 0.75);
 }
 
+.game-preview.salve-and-scale,
+.carousel-slide-bg.salve-and-scale {
+    background:
+        radial-gradient(circle at 70% 35%, rgba(98, 224, 240, 0.55) 0%, rgba(98, 224, 240, 0) 32%),
+        radial-gradient(circle at 25% 75%, rgba(255, 190, 90, 0.45) 0%, rgba(255, 190, 90, 0) 38%),
+        linear-gradient(160deg, #241430 0%, #3a2040 45%, #0b2a44 100%);
+}
+
+.game-card.salve-and-scale .play-button {
+    background: linear-gradient(135deg, #ffe39a, #d9a84e 55%, #62e0f0);
+    color: #24140a;
+    box-shadow: 0 0 14px rgba(98, 224, 240, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
