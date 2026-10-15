@@ -58,7 +58,7 @@ function drawHuman(P, L, dir, fr, kid) {
     if (L.acc === 'apron' && !back) R(side ? 6 : 5, by + 2 + bob, side ? 4 : 6, bh - 1, '#f2efe2');
     if (L.satchel) {
         if (back) R(5, by + 3 + bob, 6, 4, '#8a5a32');
-        else if (side) R(dir === 'left' ? 9 : 4, by + 3 + bob, 3, 4, '#8a5a32');
+        else if (side) R(4, by + 3 + bob, 3, 4, '#8a5a32');     // on the back, behind you
         else { R(10, by + 3 + bob, 3, 4, '#8a5a32'); px(10, by + 1 + bob, '#8a5a32'); px(9, by + bob, '#8a5a32'); }
     }
     if (L.scarf) R(side ? 5 : 4, by + bob, side ? 6 : 8, 2, L.scarf);
@@ -240,8 +240,9 @@ export function wickFrame(t, size = 1) {
 export function personFrame(look, dir, fr, id = '') {
     const key = 'p:' + (id || JSON.stringify(look)) + ':' + dir + ':' + fr;
     if (cache.has(key)) return cache.get(key);
-    const mirror = dir === 'right';
-    const d = mirror ? 'left' : dir;
+    // the side view is painted facing right; walking left is its mirror image
+    const mirror = dir === 'left';
+    const d = mirror ? 'right' : dir;
     const { c, g } = canvas(CW, CH);
     const P = painter(g);
     const k = look.k || 'human';
