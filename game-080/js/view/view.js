@@ -70,7 +70,7 @@ export class View {
                 case 'chest': this.world.burst(e.x + 0.5, e.y + 0.3, '#ffe08a', 18, 2.6); break;
                 case 'unlock': this.world.burst(e.x + 0.5, e.y + 0.5, '#e8c040', 14, 2); break;
                 case 'levelUp': this.world.burst(G.p.x, G.p.y - 1, '#fff4c0', 24, 3); break;
-                case 'restore': this.flash = 0.6; this.flashCol = GRIMOIRE[e.id].colour; this.world.burst(G.p.x, G.p.y - 1, GRIMOIRE[e.id].colour, 30, 3.5); break;
+                case 'restore': this.world.restore(G, M, e.id, e.n - 1); this.world.burst(G.p.x, G.p.y - 1.1, GRIMOIRE[e.id].colour, 12, 1.6); break;
                 case 'rest': this.flash = 0.5; this.flashCol = '#fff4c0'; break;
                 case 'shelve': this.world.burst(G.p.x, G.p.y - 1, '#c8a060', 20, 2.4); break;
                 case 'ending': this.flash = 1.2; this.flashCol = '#ffffff'; break;
@@ -92,6 +92,8 @@ export class View {
             this.world.draw(ctx, G, vw, vh, dt, { map: M, shake: this.shake > 0 ? 2 : 0 });
         }
         if (this.shake > 0) this.shake -= dt;
+        // a soft flash as each grimoire lands on its lectern
+        if (this.world.landing) { this.world.landing = 0; this.flash = Math.max(this.flash, 0.35); this.flashCol = '#fff4c0'; this.onLand?.(); }
         // warp fade
         if (this.fadeDir === 1) this.fade = Math.min(1, this.fade + dt / 0.3);
         else if (this.fadeDir === -1) { this.fade = Math.max(0, this.fade - dt / 0.35); if (!this.fade) this.fadeDir = 0; }

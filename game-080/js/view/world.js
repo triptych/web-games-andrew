@@ -12,7 +12,7 @@ import { tileAt, clutterGone } from '../sim/rules.js';
 import { npcsHere } from '../sim/game.js';
 import { ground, wallTile, waterTile, lockTile, prop, ROOM } from './tiles.js';
 import { building } from './buildings.js';
-import { personFrame, foeFrame, wickFrame, PLAYER_LOOK, spine } from './sprites.js';
+import { personFrame, foeFrame, wickFrame, PLAYER_LOOK, spine, icon } from './sprites.js';
 import { canvas } from './paint.js';
 
 const CH = 16;                      // chunk size in tiles
@@ -28,6 +28,100 @@ export class WorldView {
         this.light = canvas(8, 8);
         this.parts = [];
         this.time = 0;
+        this.restores = [];          // grimoires flying home to their lecterns
+    }
+
+    /** A grimoire goes home: it flies from your hands to lectern n and lands in a burst of light. */
+    restore(G, M, id, n) {
+        let to = null;
+        for (const k in M.objs) if (M.objs[k].kind === 'lectern' && M.objs[k].n === n) to = { x: k % M.w + 0.5, y: Math.floor(k / M.w) + 0.2 };
+        if (!to) return;
+        const delay = this.restores.reduce((a, r) => Math.max(a, r.start + 1.2), this.time) - this.time;
+        this.restores.push({ id, n, colour: GRIMOIRE[id].colour, from: { x: G.p.x, y: G.p.y - 1.1 }, to, start: this.time + Math.max(0, delay), landed: false });
+    }
+    /** Is lectern n still waiting for its book to arrive? (Its book isn't drawn until it lands.) */
+    awaiting(n) { return this.restores.some((r) => r.n === n && !r.landed); }
+
+    drawRestores(ctx, ox, oy, dt) {
+        const FLY = 0.95, AFTER = 2.4;
+        for (let k = this.restores.length - 1; k >= 0; k--) {
+            const r = this.restores[k];
+            const t = this.time - r.start;
+            if (t < 0) {
+                // waiting its turn: the book glows in your hands
+                const hx = ox + r.from.x * TILE, hy = oy + r.from.y * TILE;
+                this.glow(ctx, hx, hy, 10, r.colour, 0.5 + Math.sin(this.time * 8) * 0.2);
+                continue;
+            }
+            if (t > FLY + AFTER) { this.restores.splice(k, 1); continue; }
+            const tx = ox + r.to.x * TILE, ty = oy + r.to.y * TILE;
+            if (t < FLY) {
+                // the flight: an arc, the book turning, a trail of sparkles
+                const u = t / FLY, e = u * u * (3 - 2 * u);
+                const x = ox + (r.from.x + (r.to.x - r.from.x) * e) * TILE;
+                const y = oy + (r.from.y + (r.to.y - r.from.y) * e) * TILE - Math.sin(u * Math.PI) * 26;
+                this.glow(ctx, x, y, 14, r.colour, 0.7);
+                const bk = icon('book', r.colour);
+                ctx.save();
+                ctx.translate(Math.round(x), Math.round(y));
+                ctx.rotate(Math.sin(u * Math.PI * 3) * 0.5);
+                ctx.drawImage(bk, -6, -6);
+                ctx.restore();
+                if (Math.random() < 0.8) this.parts.push({ x: (x - ox) / TILE + (Math.random() - 0.5) * 0.3, y: (y - oy) / TILE + (Math.random() - 0.5) * 0.3, vx: (Math.random() - 0.5) * 0.6, vy: 0.2 + Math.random() * 0.4, life: 0.7, t: 0, kind: 'fx', c: Math.random() < 0.5 ? r.colour : '#fff4c0', s: 1 });
+                continue;
+            }
+            // it lands
+            if (!r.landed) {
+                r.landed = true;
+                this.burst(r.to.x, r.to.y + 0.2, r.colour, 28, 3.2);
+                this.burst(r.to.x, r.to.y + 0.2, '#fff4c0', 14, 2.2);
+                this.landing = (this.landing || 0) + 1;
+            }
+            const a = t - FLY;
+            // a pillar of light that fades
+            const pa = Math.max(0, 1 - a / 1.4);
+            if (pa > 0) {
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                const w = 10 + a * 6;
+                const gr = ctx.createLinearGradient(0, ty - 90, 0, ty + 10);
+                gr.addColorStop(0, 'rgba(255,255,255,0)');
+                gr.addColorStop(0.7, hexA(r.colour, 0.55 * pa));
+                gr.addColorStop(1, hexA('#fff4c0', 0.8 * pa));
+                ctx.fillStyle = gr;
+                ctx.fillRect(Math.round(tx - w / 2), Math.round(ty - 90), Math.round(w), 100);
+                ctx.restore();
+            }
+            // two rings of energy rolling out across the floor
+            for (const [d, sp] of [[0, 70], [0.25, 55]]) {
+                const ra = a - d;
+                if (ra < 0 || ra > 1.1) continue;
+                const rad = 4 + ra * sp, al = Math.max(0, 1 - ra / 1.1);
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.strokeStyle = hexA(r.colour, 0.85 * al);
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.ellipse(tx, ty + 8, rad, rad * 0.45, 0, 0, Math.PI * 2); ctx.stroke();
+                ctx.strokeStyle = hexA('#fff4c0', 0.6 * al);
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.ellipse(tx, ty + 8, rad * 0.8, rad * 0.36, 0, 0, Math.PI * 2); ctx.stroke();
+                ctx.restore();
+            }
+            // the book settles in with a glow, and motes rise off it for a while
+            this.glow(ctx, tx, ty + 2, 16, r.colour, Math.max(0, 0.9 - a / AFTER));
+            if (Math.random() < 0.5 * (1 - a / AFTER)) this.parts.push({ x: r.to.x + (Math.random() - 0.5) * 0.8, y: r.to.y + 0.3, vx: (Math.random() - 0.5) * 0.2, vy: -0.6 - Math.random() * 0.5, life: 1.2, t: 0, kind: 'fx', c: Math.random() < 0.6 ? r.colour : '#ffffff', s: 1 });
+        }
+    }
+
+    glow(ctx, x, y, r, colour, a) {
+        if (a <= 0) return;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        const gr = ctx.createRadialGradient(x, y, 0, x, y, r);
+        gr.addColorStop(0, hexA(colour, a)); gr.addColorStop(1, hexA(colour, 0));
+        ctx.fillStyle = gr;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
     }
 
     styleAt(M, i) {
@@ -88,7 +182,7 @@ export class WorldView {
         const p = G.p;
         // camera: follow, clamp to the map, centre small rooms
         const px = p.x * TILE, py = p.y * TILE - 10;
-        if (this.cam.map !== M.id) { this.cam.x = px; this.cam.y = py; this.cam.map = M.id; this.wick = { x: p.x - 0.8, y: p.y, map: M.id }; this.parts.length = 0; }
+        if (this.cam.map !== M.id) { this.cam.x = px; this.cam.y = py; this.cam.map = M.id; this.wick = { x: p.x - 0.8, y: p.y, map: M.id }; this.parts.length = 0; this.restores.length = 0; }
         const k = 1 - Math.exp(-dt * 8);
         this.cam.x += (px - this.cam.x) * k;
         this.cam.y += (py - this.cam.y) * k;
@@ -168,6 +262,8 @@ export class WorldView {
         items.sort((a, b) => a.y - b.y);
         for (const it of items) this.drawItem(ctx, G, M, it, ox, oy, lights);
 
+        if (this.restores.length && M.id === 'library') this.drawRestores(ctx, ox, oy, dt);
+
         // weather and motes
         this.weather(ctx, G, M, vw, vh, dt, ox, oy);
 
@@ -182,7 +278,7 @@ export class WorldView {
             const st = this.styleAt(M, it.i);
             let extra = 0;
             if (d.name === 'chest') extra = G.chests[M.objs[it.i]?.id] ? 1 : 0;
-            if (d.name === 'lectern' && M.objs[it.i]) { const id = G.placed[M.objs[it.i].n]; extra = id ? GRIMOIRE[id].colour : 0; if (id) lights.push([ox + it.x * TILE + 8, oy + it.ty * TILE + 2, [255, 230, 160, 22]]); }
+            if (d.name === 'lectern' && M.objs[it.i]) { const id = this.awaiting(M.objs[it.i].n) ? null : G.placed[M.objs[it.i].n]; extra = id ? GRIMOIRE[id].colour : 0; if (id) lights.push([ox + it.x * TILE + 8, oy + it.ty * TILE + 2, [255, 230, 160, 22]]); }
             const pr = prop(d.name === 'boulder' ? 'boulder' : d.name, st, M.v[it.i], extra);
             const sx = ox + it.x * TILE + pr.ox, sy = oy + it.ty * TILE + pr.oy;
             ctx.drawImage(pr.c, sx, sy);
@@ -418,3 +514,8 @@ function shadeHex(c, k) {
     return '#' + [r, gg, b].map((v) => v.toString(16).padStart(2, '0')).join('');
 }
 void ROOM;
+
+function hexA(c, a) {
+    const n = parseInt(c.slice(1), 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${Math.max(0, Math.min(1, a)).toFixed(3)})`;
+}
