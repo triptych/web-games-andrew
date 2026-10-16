@@ -1066,6 +1066,22 @@ h1 {
     box-shadow: 0 0 14px rgba(77, 255, 106, 0.6);
 }
 
+.game-preview.romancer,
+.carousel-slide-bg.romancer {
+    background:
+        radial-gradient(ellipse at 50% 46%, rgba(125, 255, 176, 0.55) 0%, rgba(47, 184, 176, 0.25) 14%, rgba(47, 184, 176, 0) 30%),
+        radial-gradient(circle at 82% 18%, rgba(99, 198, 255, 0.55) 0%, rgba(99, 198, 255, 0) 9%),
+        linear-gradient(180deg, rgba(255, 79, 216, 0) 70%, rgba(255, 79, 216, 0.35) 71%, rgba(255, 79, 216, 0) 73%),
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px),
+        linear-gradient(170deg, #060814 0%, #1a0f30 55%, #3a1e12 100%);
+}
+
+.game-card.romancer .play-button {
+    background: linear-gradient(135deg, #ffd23f, #ff8a2a 45%, #ff4fd8);
+    color: #160a1e;
+    box-shadow: 0 0 14px rgba(125, 255, 176, 0.55);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
