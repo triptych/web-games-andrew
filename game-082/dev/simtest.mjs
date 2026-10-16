@@ -78,6 +78,14 @@ if (want('purity')) {
     console.log(`  ${files.length} files checked`);
 }
 
+if (want('purity')) {
+    section('stamp');
+    const { execFileSync } = await import('node:child_process');
+    let stamped = true;
+    try { execFileSync(process.execPath, [path.join(HERE, 'stamp.mjs'), '--check'], { stdio: 'pipe' }); } catch { stamped = false; }
+    ok(stamped, 'index.html imports every module stamped with this VERSION (run dev/stamp.mjs)');
+}
+
 if (want('levels')) {
     section('levels');
     ok(Lv.LEVELS.length === 25 && Lv.LEVELS[Lv.LAST].boss, '25 sectors, the last is the Baron');

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUBBLE NEBULA — model gallery</title>
+    <style>
+        html, body { margin: 0; background: #6a7080; color: #fff; font: 13px system-ui, sans-serif; overflow: hidden; }
+        canvas { display: block; }
+        #labels { position: fixed; inset: 0; pointer-events: none; }
+        #labels div { position: absolute; transform: translateX(-50%); text-shadow: 0 1px 2px #000; }
+    </style>
+</head>
+<body>
+    <!-- Every model on a neutral grey, under plain light, from the game's own camera angle and from
+         the front: judge anatomy and facing here, not under bloom in the game (game-074, game-079). -->
+    <canvas id="c"></canvas>
+    <div id="labels"></div>
+    <script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { makePip, makeEnemy, makeWraith, makeBaron, makeItem, tint } from '../js/view/models.js';
+        const R = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
+        R.outputColorSpace = THREE.SRGBColorSpace;
+        R.setSize(innerWidth, innerHeight);
+        R.setClearColor(0x6a7080);
+        const scene = new THREE.Scene();
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 1.4));
+        const sun = new THREE.DirectionalLight(0xffffff, 1.8); sun.position.set(-3, 6, 8); scene.add(sun);
+        const list = [
+            ['Pip', makePip()], ['blip', makeEnemy('blip')], ['spark', makeEnemy('spark')], ['glooper', makeEnemy('glooper')],
+            ['grunt', makeEnemy('grunt')], ['moth', makeEnemy('moth')], ['saucer', makeEnemy('saucer')], ['wraith', makeWraith()],
+            ['blip angry', makeEnemy('blip')], ['grunt frozen', makeEnemy('grunt')],
+            ...['candy', 'cheese', 'cone', 'planet', 'gem', 'crown', 'diamond', 'diamond2', 'heart', 'p:boots', 'p:long', 'p:rapid', 'p:clock', 'p:bomb', 'p:warp'].map((k) => [k, makeItem(k)]),
+        ];
+        tint(list[8][1], 'angry', 0.7);
+        tint(list[9][1], 'frozen', 0.7);
+        const cols = 9, cw = 3.2;
+        const labels = document.getElementById('labels');
+        list.forEach(([name, m], i) => {
+            const row = Math.floor(i / cols), col = i % cols;
+            m.position.set(col * cw, -row * 3.2, 0);
+            m.rotation.y = -0.55;
+            scene.add(m);
+            const d = document.createElement('div');
+            d.textContent = name;
+            labels.appendChild(d);
+            m.userData.label = d;
+        });
+        const baron = makeBaron();
+        baron.position.set(cols * cw + 3, -6, 0);
+        baron.rotation.y = -0.35;
+        scene.add(baron);
+        const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 200);
+        cam.position.set((cols * cw + 3) / 2, -4.5, 36);
+        cam.lookAt(cam.position.x, cam.position.y, 0);
+        let t = 0;
+        function frame() {
+            t += 0.016;
+            for (const [, m] of list) {
+                m.userData.anim(t, { moving: true, air: false, angry: false, vy: 0 });
+                const v = m.position.clone().add(new THREE.Vector3(0, -0.4, 0)).project(cam);
+                Object.assign(m.userData.label.style, { left: `${(v.x + 1) / 2 * innerWidth}px`, top: `${(1 - v.y) / 2 * innerHeight}px` });
+            }
+            baron.userData.anim(t, {});
+            R.render(scene, cam);
+            requestAnimationFrame(frame);
+        }
+        frame();
+        window.__ready = true;
+    </script>
+</body>
+</html>

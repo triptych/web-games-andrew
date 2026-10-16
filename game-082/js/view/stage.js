@@ -22,7 +22,7 @@ export class Stage {
         this.camera = new THREE.PerspectiveCamera(30, 1, 1, 600);
         this.composer = new EffectComposer(this.renderer);
         this.composer.addPass(new RenderPass(this.scene, this.camera));
-        this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.85, 0.55, 0.72);
+        this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.7, 0.5, 0.82);
         this.composer.addPass(this.bloom);
         this.composer.addPass(new OutputPass());
         this.insets = { top: 0, bottom: 0, left: 0, right: 0 };
@@ -72,7 +72,7 @@ export class Stage {
         this.composer.setPixelRatio(pr);
         this.composer.setSize(w, h);
         this.bloom.resolution.set(Math.round(w * pr / 2), Math.round(h * pr / 2));
-        this.bloom.strength = [0, 0.75, 0.9][this.quality];
+        this.bloom.strength = [0, 0.6, 0.72][this.quality];
         this.camera.aspect = w / h;
         this.fit();
         return true;

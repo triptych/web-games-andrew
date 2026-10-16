@@ -43,7 +43,7 @@ void main() {
     col *= 1.0 - lane * 0.55;
     // vignette
     vec2 c = vUv - 0.5;
-    col *= 1.0 - dot(c, c) * 1.1;
+    col *= (1.0 - dot(c, c) * 1.1) * 0.62;
     gl_FragColor = vec4(max(col, vec3(0.0)), 1.0);
 }`,
 };
@@ -121,8 +121,8 @@ export class Backdrop {
             this.group.add(g);
             this.planets.push({ g, m, x, y, spin: 0.02 + r * 0.002 });
         };
-        mk(7, 0x6a4ab0, 0xd8c0ff, -14, 30, -70);
-        mk(3.2, 0x2a8a9f, null, 52, -2, -50);
+        mk(7, 0x6a4ab0, 0xd8c0ff, -34, 34, -70);
+        mk(3.2, 0x2a8a9f, null, 60, -4, -50);
         this.sun = new THREE.DirectionalLight(0xfff2e0, 1.4);
         this.sun.position.set(-40, 50, 60);
         this.group.add(this.sun);

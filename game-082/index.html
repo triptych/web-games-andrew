@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#05060f">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="BUBBLE NEBULA — a Bubble Bobble-style arcade platformer in space. Blow bubbles, trap the Void Baron's crew, pop them in chains for loot, and climb 25 sectors of his station.">
+    <title>BUBBLE NEBULA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="../lib/page-audio.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="BUBBLE NEBULA game view"></canvas>
+
+    <!-- ============================================================ HUD -->
+    <div id="hud" hidden>
+        <div id="hud-left">
+            <div class="hud-k">1UP</div>
+            <div id="hud-score" class="hud-v">0</div>
+        </div>
+        <div id="hud-mid">
+            <div id="hud-sector">SECTOR 1</div>
+            <div id="hud-letters"></div>
+        </div>
+        <div id="hud-right">
+            <div class="hud-k">HI <span id="hud-hi">0</span></div>
+            <div id="hud-lives"></div>
+            <div id="hud-powers"></div>
+        </div>
+    </div>
+    <div id="bossbar" hidden><span>VOID BARON</span><i><b id="boss-fill"></b></i></div>
+    <div id="banner" hidden></div>
+    <!-- above the touch deck, outside the HUD's stacking context (game-079) -->
+    <button id="btn-pause" class="ibtn" aria-label="Pause" hidden>❚❚</button>
+
+    <!-- touch deck: shown on coarse pointers or after the first touch -->
+    <div id="touch" hidden>
+        <div id="dpad" aria-label="Move">
+            <div class="arrow" id="dpad-l">◀</div>
+            <div class="arrow" id="dpad-r">▶</div>
+        </div>
+        <button id="btn-jump" class="tbtn" aria-label="Jump">JUMP</button>
+        <button id="btn-bubble" class="tbtn" aria-label="Blow a bubble">◯</button>
+    </div>
+
+    <!-- ============================================================ screens -->
+    <div id="title" class="screen">
+        <div class="sheet title-sheet">
+            <h1 class="logo"><span>BUBBLE</span><span>NEBULA</span></h1>
+            <p class="tagline">The Void Baron has bottled the stars. Pop his crew, sector by sector.</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Game</button>
+                <button data-act="scores" class="btn">High Scores</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="confirm-new" class="screen" hidden>
+        <div class="sheet">
+            <h2>Start over?</h2>
+            <p>Your saved run will be replaced.</p>
+            <div class="sheet-foot"><button class="btn" data-close>Cancel</button><button id="btn-new-yes" class="btn primary">New Game</button></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <p>You are <b>Pip</b>, a baby star-dragon in a fishbowl helmet. Blow bubbles to trap the Void Baron's crew, then <b>touch the bubble</b> to pop it. They come down as loot. Clear every enemy to scroll on to the next sector.</p>
+            <ul>
+                <li><b>Chains:</b> bubbles touching each other pop together, and each enemy in a chain is worth double the last.</li>
+                <li><b>Bounce:</b> land on a bubble while holding Jump to spring off it.</li>
+                <li><b>Hurry:</b> a trapped enemy breaks out in about 9 s, angry and fast. Take too long and the Void Wraith comes through the walls.</li>
+                <li><b>Specials:</b> ⚡ zap bubbles fire a bolt the way you face; ✹ nova bubbles drop a fire that runs along the floor.</li>
+                <li><b>N·E·B·U·L·A:</b> pop the six letter bubbles for an extra life and a free sector.</li>
+                <li>Fall out of a gap in the floor and you drop back in from the top.</li>
+            </ul>
+            <table>
+                <tr><td>←→ / A D</td><td>Move</td></tr>
+                <tr><td>Z / Space / ↑ / W</td><td>Jump</td></tr>
+                <tr><td>X / J / K</td><td>Blow a bubble</td></tr>
+                <tr><td>P / Esc</td><td>Pause</td></tr>
+                <tr><td>Gamepad</td><td>Stick or d-pad, A jump, B or X bubble, Start</td></tr>
+                <tr><td>Touch</td><td>◀ ▶ (slide between them), JUMP and ◯</td></tr>
+            </table>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Graphics
+                <select id="set-quality"><option value="-1">Automatic</option><option value="0">Low (no glow)</option><option value="1">Medium</option><option value="2">High</option></select>
+            </label>
+            <label class="row">Touch controls
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="scores" class="screen" hidden>
+        <div class="sheet">
+            <h2>High Scores</h2>
+            <ol id="score-list"></ol>
+            <div class="sheet-foot"><button class="btn primary" data-close>Back</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <p id="pause-info" class="dim"></p>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="over" class="screen" hidden>
+        <div class="sheet">
+            <h2 class="big">GAME OVER</h2>
+            <p id="over-text"></p>
+            <div id="over-name" hidden>
+                <label class="row">New high score! Your name <input id="name-input" maxlength="8" autocomplete="off" spellcheck="false"></label>
+            </div>
+            <nav class="menu" id="over-menu">
+                <button id="over-continue" class="btn primary">Continue</button>
+                <button id="over-title" class="btn">Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="ending" class="screen" hidden>
+        <div class="sheet">
+            <h2 class="big">THE STARS ARE BACK</h2>
+            <div id="ending-text"></div>
+            <p id="ending-score"></p>
+            <div id="ending-name" hidden>
+                <label class="row">Your name for the table <input id="name-input2" maxlength="8" autocomplete="off" spellcheck="false"></label>
+            </div>
+            <div class="sheet-foot"><button id="ending-done" class="btn primary">To the Title</button></div>
+        </div>
+    </div>
+
+    <div id="boot-fail" class="screen" hidden>
+        <div class="sheet">
+            <h2>BUBBLE NEBULA couldn't start</h2>
+            <p>Some of its files didn't load (often a half-finished update). Reloading usually fixes it.</p>
+            <div class="sheet-foot"><button class="btn primary" onclick="location.reload()">Reload</button></div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">BUBBLE NEBULA needs JavaScript.</p></noscript>
+
+    <!-- The module list is stamped with the version by dev/stamp.mjs, so a phone never mixes an old
+         file with a new one after an update (game-080). -->
+    <script type="importmap">
+    { "imports": {
+        "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/",
+        "./js/audio.js": "./js/audio.js?v=1.0.0",
+        "./js/config.js": "./js/config.js?v=1.0.0",
+        "./js/input.js": "./js/input.js?v=1.0.0",
+        "./js/main.js": "./js/main.js?v=1.0.0",
+        "./js/rng.js": "./js/rng.js?v=1.0.0",
+        "./js/save.js": "./js/save.js?v=1.0.0",
+        "./js/sim/boss.js": "./js/sim/boss.js?v=1.0.0",
+        "./js/sim/bot.js": "./js/sim/bot.js?v=1.0.0",
+        "./js/sim/enemies.js": "./js/sim/enemies.js?v=1.0.0",
+        "./js/sim/game.js": "./js/sim/game.js?v=1.0.0",
+        "./js/sim/levels.js": "./js/sim/levels.js?v=1.0.0",
+        "./js/sim/nav.js": "./js/sim/nav.js?v=1.0.0",
+        "./js/sim/physics.js": "./js/sim/physics.js?v=1.0.0",
+        "./js/ui.js": "./js/ui.js?v=1.0.0",
+        "./js/view/backdrop.js": "./js/view/backdrop.js?v=1.0.0",
+        "./js/view/bubbles.js": "./js/view/bubbles.js?v=1.0.0",
+        "./js/view/fx.js": "./js/view/fx.js?v=1.0.0",
+        "./js/view/models.js": "./js/view/models.js?v=1.0.0",
+        "./js/view/stage.js": "./js/view/stage.js?v=1.0.0",
+        "./js/view/tiles.js": "./js/view/tiles.js?v=1.0.0",
+        "./js/view/view.js": "./js/view/view.js?v=1.0.0"
+    } }
+    </script>
+    <script type="module">
+        import('./js/main.js').catch((err) => {
+            console.warn('[boot]', err);
+            document.getElementById('title').hidden = true;
+            document.getElementById('boot-fail').hidden = false;
+        });
+    </script>
+</body>
+</html>
