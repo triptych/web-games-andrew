@@ -185,6 +185,40 @@ void main() {
     });
 }
 
+/**
+ * A flame sheet: scrolling noise shaped by a teardrop, white-hot at the base and fading through
+ * orange to red at the tips. Additive, so crossed sheets read as a solid fire from any angle.
+ * uSeed offsets the noise so two sheets don't flicker in step.
+ */
+export function fireMaterial(seed = 0, strength = 1) {
+    return new THREE.ShaderMaterial({
+        uniforms: { uTime: timeUniform, uSeed: { value: seed }, uStrength: { value: strength } },
+        vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+        fragmentShader: /* glsl */`
+uniform float uTime, uSeed, uStrength; varying vec2 vUv;
+${NOISE}
+void main() {
+    vec2 p = vUv;
+    float t = uTime * 1.6 + uSeed * 7.0;
+    // rising, licking noise
+    float n = fbm3(vec3(p.x * 3.2 + uSeed, p.y * 2.4 - t, t * 0.35));
+    float n2 = vnoise(vec3(p.x * 7.0, p.y * 5.0 - t * 1.7, uSeed));
+    // a teardrop that narrows toward the top, pushed sideways by the noise
+    float x = (p.x - 0.5) * 2.0 + (n - 0.5) * 0.55 * p.y;
+    float width = mix(0.95, 0.08, pow(clamp(p.y, 0.0, 1.0), 0.8));
+    float body = clamp(1.0 - abs(x) / max(width, 0.001), 0.0, 1.0);
+    float heat = body * (1.0 - p.y) * 1.6 + (n * 0.8 + n2 * 0.4 - 0.55) * (1.0 - p.y * 0.6);
+    heat *= smoothstep(0.0, 0.08, p.y);
+    heat = clamp(heat, 0.0, 1.0);
+    vec3 col = mix(vec3(0.5, 0.05, 0.0), vec3(1.6, 0.5, 0.06), smoothstep(0.1, 0.5, heat));
+    col = mix(col, vec3(2.4, 1.7, 0.7), smoothstep(0.55, 0.95, heat));
+    float a = smoothstep(0.08, 0.35, heat);
+    gl_FragColor = vec4(col * a * uStrength, 1.0);
+}`,
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    });
+}
+
 /** A fake volumetric light shaft: an additive cone that fades along its length and at its edges. */
 export function shaftMaterial(color = 0xfff0c0, strength = 0.25) {
     return new THREE.ShaderMaterial({

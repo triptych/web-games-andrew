@@ -2,7 +2,7 @@
 
 **Genre:** First-person adventure with a trail-linking healing puzzle (Bumble Basket's rules, rethemed)
 **Engine:** three.js r165, no asset files: every model, texture, sound and tune is made in code
-**Status:** v1.0.1
+**Status:** v1.0.2
 
 ---
 
@@ -313,6 +313,15 @@ Tuned against the bots (`ONLY=scans,campaign node game-081/dev/simtest.mjs`):
 - Colour-blind mode (a pattern per aura).
 
 ## Changelog
+
+### v1.0.2 (2026-10-16)
+- The waiting-room fireplace looked like a stone box with a black panel stuck on the front, and it
+  stood sideways to the wall. Props were turned to face their first open neighbour, so the hearth
+  against the south wall faced east; now anything with a wall beside it backs onto that wall. The
+  hearth is rebuilt as a fireplace built into the wall: a stone surround with a recessed sooty
+  firebox, a mantel with candles and moonflowers, a chimney breast up to the ceiling, a hearthstone,
+  andirons, logs, glowing embers and a fire made of crossed flame sheets with a new noise shader
+  (`fireMaterial` in `js/view/shaders.js`). Stone is sized per part so the blocks match.
 
 ### v1.0.1 (2026-10-16)
 - Fixed flickering stripes on the study floor on phones. The rug builder grouped `,` cells into

@@ -263,15 +263,16 @@ export function buildLevel(mapId, quality = 1) {
         const L = legendAt(mapId, ch);
         if (!L) continue;
         const c = centre(x, y);
-        // face an open neighbour (the room side)
-        let ry = 0;
-        for (const [dx, dy, r] of [[0, 1, 0], [1, 0, Math.PI / 2], [-1, 0, -Math.PI / 2], [0, -1, Math.PI]]) {
-            const n = at(x + dx, y + dy);
-            if (!isWall(n) && n !== '~' && !(legendAt(mapId, n)?.solid && n !== 'w')) { ry = r; break; }
-        }
+        // back onto a wall when there is one beside it (face the open side opposite), otherwise face
+        // an open neighbour (the room side)
+        const DIRS4 = [[0, 1, 0], [1, 0, Math.PI / 2], [-1, 0, -Math.PI / 2], [0, -1, Math.PI]];
+        const openAt = (n) => !isWall(n) && n !== '~' && !(legendAt(mapId, n)?.solid && n !== 'w');
+        let ry = null;
+        for (const [dx, dy, r] of DIRS4) if (at(x - dx, y - dy) === '#' && openAt(at(x + dx, y + dy))) { ry = r; break; }
+        if (ry == null) { ry = 0; for (const [dx, dy, r] of DIRS4) if (openAt(at(x + dx, y + dy))) { ry = r; break; } }
         let obj = null;
         switch (L.kind) {
-            case 'prop': obj = PROPS[L.prop]?.(); break;
+            case 'prop': obj = L.prop === 'hearth' ? PROPS.hearth(H) : PROPS[L.prop]?.(); break;
             case 'cot': obj = PROPS.cot(); break;
             case 'grimoire': obj = PROPS.grimoire(); break;
             case 'shop': obj = PROPS.shop(); break;
