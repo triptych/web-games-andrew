@@ -120,11 +120,11 @@ export class ScanView {
         this.scene.add(this.patientRoot);
         this.bursts = new Bursts(900);
         this.scene.add(this.bursts.points);
-        this.pip = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow(), color: new THREE.Color(0.7, 1.4, 2.0), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+        this.pip = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow(), color: new THREE.Color(0.35, 0.7, 1.0), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
         this.pip.scale.setScalar(0.9);
         this.pip.renderOrder = 10;
         this.scene.add(this.pip);
-        this.pipCore = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 10), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.5, 2, 2.4) }));
+        this.pipCore = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 10), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.8, 1.05, 1.25) }));
         this.pip.add(this.pipCore);
         this.objs = new Map();      // mote id → { g, mat, ring, r, c, bound }
         this.tiles = [];
@@ -139,7 +139,7 @@ export class ScanView {
         this.raycaster = new THREE.Raycaster();
         this.plane = new THREE.Plane(V(0, 0, 1), 0);
         this.tileGeo = new RoundedBoxGeometry(0.94, 0.94, 0.12, 2, 0.06);
-        this.tileMat = new THREE.MeshPhysicalMaterial({ color: 0x0c2440, roughness: 0.15, metalness: 0.1, clearcoat: 1, transparent: true, opacity: 0.55, emissive: 0x0a3a6a, emissiveIntensity: 0.35 });
+        this.tileMat = new THREE.MeshPhysicalMaterial({ color: 0x06121f, roughness: 0.2, metalness: 0.1, clearcoat: 1, transparent: true, opacity: 0.68, emissive: 0x0a3a6a, emissiveIntensity: 0.1 });
         this.scarMat = new THREE.MeshStandardMaterial({ color: 0xb07a80, roughness: 0.85, emissive: 0x3a1a20, emissiveIntensity: 0.4 });
         this.chainMat = new THREE.MeshStandardMaterial({ color: 0xc0a8ff, metalness: 0.8, roughness: 0.3, emissive: 0x7a3aff, emissiveIntensity: 1.0 });
     }
@@ -157,7 +157,7 @@ export class ScanView {
             if (o.isMesh) { o.material = xr; o.castShadow = false; }
         });
         const h = model.userData.height;
-        const s = 9 / Math.max(1, h) * (species === 'dragon' ? 0.75 : 1);
+        const s = 8 / Math.max(1, h) * (species === 'dragon' ? 0.75 : 1);
         model.scale.setScalar(s);
         model.position.y = -h * s * 0.5;
         this.patient = model;
@@ -213,15 +213,15 @@ export class ScanView {
     makeMote(m) {
         const g = new THREE.Group();
         const hue = HUES[m.hue];
-        const mat = new THREE.MeshStandardMaterial({ color: hue.hex, emissive: hue.hex, emissiveIntensity: 0.55, roughness: 0.32, metalness: 0.15 });
+        const mat = new THREE.MeshStandardMaterial({ color: hue.hex, emissive: hue.hex, emissiveIntensity: 0.2, roughness: 0.32, metalness: 0.15 });
         const body = new THREE.Mesh(m.bloom ? BLOOM_GEO : glyph(m.kind), m.bloom ? new THREE.MeshStandardMaterial({ color: 0xffe9a0, emissive: 0xffc840, emissiveIntensity: 1.4, roughness: 0.2 }) : mat);
         body.position.z = 0.12;
         g.add(body);
-        const ringMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(SCHOOLS[m.school].css).multiplyScalar(1.3), transparent: true, opacity: 0.85 });
+        const ringMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(SCHOOLS[m.school].css).multiplyScalar(0.85), transparent: true, opacity: 0.8 });
         const ring = new THREE.Mesh(ringGeo(m.school), ringMat);
         ring.position.z = 0.02;
         g.add(ring);
-        const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow(), color: m.bloom ? new THREE.Color(1.6, 1.3, 0.5) : new THREE.Color(hue.hex).multiplyScalar(0.6), transparent: true, opacity: m.bloom ? 0.9 : 0.35, blending: THREE.AdditiveBlending, depthWrite: false }));
+        const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow(), color: m.bloom ? new THREE.Color(1.0, 0.8, 0.3) : new THREE.Color(hue.hex).multiplyScalar(0.45), transparent: true, opacity: m.bloom ? 0.7 : 0.2, blending: THREE.AdditiveBlending, depthWrite: false }));
         halo.scale.setScalar(m.bloom ? 1.6 : 1.0);
         halo.position.z = 0.05;
         g.add(halo);
@@ -379,9 +379,9 @@ export class ScanView {
             o.body.position.z = 0.12 + sel * 0.25 + o.pop * 0.3;
             const s = (o.bloom ? 1.05 : SEVS[o.sev].scale) * 1.45 * (1 + sel * 0.18 + o.pop * 0.4);
             if (!o.grow) o.body.scale.setScalar(s);
-            o.mat.emissiveIntensity = (o.bloom ? 1.2 : 0.32 + pulse * 0.6 + sel * 0.7) * (1 - o.dim * 0.75);
-            o.ringMat.opacity = 0.85 * (1 - o.dim * 0.7);
-            o.halo.material.opacity = (o.bloom ? 0.8 : 0.18 + sel * 0.6) * (1 - o.dim * 0.8);
+            o.mat.emissiveIntensity = (o.bloom ? 0.9 : 0.18 + pulse * 0.4 + sel * 0.55) * (1 - o.dim * 0.75);
+            o.ringMat.opacity = 0.8 * (1 - o.dim * 0.7);
+            o.halo.material.opacity = (o.bloom ? 0.6 : 0.06 + sel * 0.45) * (1 - o.dim * 0.8);
             o.chains.rotation.z = t * 0.6;
         }
         // treated motes swell, then fly into the patient and fade
@@ -399,7 +399,7 @@ export class ScanView {
         const tgt = this.path.length ? this.cellPos(...this.path[this.path.length - 1]).setZ(0.9) : this.cursor ? this.cellPos(...this.cursor).setZ(0.9) : this.pipTarget;
         const wpos = this.board.localToWorld(tgt.clone().add(V(0.35, 0.35, 0)));
         this.pip.position.lerp(wpos, Math.min(1, dt * 10));
-        this.pip.material.opacity = 0.8 + Math.sin(t * 6) * 0.15;
+        this.pip.material.opacity = 0.55 + Math.sin(t * 6) * 0.1;
         this.pip.scale.setScalar(this.armed ? 1.4 + Math.sin(t * 8) * 0.2 : 0.9);
         // the hint: a slow wave along the suggested trail
         if (this.hint && !this.path.length) {

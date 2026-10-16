@@ -41,12 +41,14 @@ void main() {
     float lines = 0.55 + 0.45 * sin(vW.y * 60.0 - uTime * 4.0);
     float band = smoothstep(0.35, 0.0, abs(fract(vW.y * 0.18 - uTime * 0.25) - 0.5) - 0.38);
     float organs = smoothstep(0.55, 0.8, fbm3(vW * 1.6 + vec3(0.0, uTime * 0.15, 0.0)));
-    vec3 col = uColor * (rim * 0.85 + 0.05 * lines) + uColor * band * 0.22;
-    col += mix(uHurt, uColor * 1.4, uHeal) * organs * (0.16 + 0.1 * sin(uTime * 3.0));
-    float a = clamp(rim * 0.6 + 0.05 + band * 0.08 + organs * 0.18, 0.0, 1.0);
+    // kept dim and rim-only: a big patient (the slime) stacks many additive surfaces behind the grid,
+    // and on a real GPU's HDR target their sum fed the bloom until the motes washed out (v1.0.3)
+    vec3 col = uColor * (rim * 0.65 + 0.02 * lines) + uColor * band * 0.1;
+    col += mix(uHurt, uColor * 1.2, uHeal) * organs * (0.06 + 0.04 * sin(uTime * 3.0));
+    float a = clamp(rim * 0.6 + band * 0.05 + organs * 0.1, 0.0, 1.0);
     gl_FragColor = vec4(col, a);
 }`,
-        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide,
     });
 }
 
