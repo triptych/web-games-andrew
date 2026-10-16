@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import * as TX from './textures.js';
 import { glow } from './textures.js';
-import { glowMaterial } from './shaders.js';
+import { glowMaterial, fireMaterial } from './shaders.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const std = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: o.rough ?? 0.8, metalness: o.metal ?? 0, emissive: o.emissive ?? 0, emissiveIntensity: o.ei ?? 1, side: o.side ?? THREE.FrontSide, transparent: !!o.transparent, opacity: o.opacity ?? 1 });
@@ -92,26 +92,83 @@ function plant() {
     return g;
 }
 
-function hearth() {
+/**
+ * A fireplace built into the wall behind it (the cell's back edge is z = −1): a stone surround with
+ * a recessed firebox, a mantel, a chimney breast up to the ceiling, a hearthstone, andirons, logs,
+ * glowing embers and a shader fire.
+ */
+function hearth(ceiling = 3.4) {
     const g = new THREE.Group();
-    const st = TX.texMat(TX.blocks, { color: 0xb0a090, repeat: [0.5, 0.5] });
-    g.add(rbox(1.6, 1.2, 1.0, st, V(0, 0.6, -0.3)));
-    g.add(box(0.9, 0.7, 0.5, std(0x0a0606), V(0, 0.45, 0.0)));
-    g.add(rbox(1.8, 0.12, 1.1, st, V(0, 1.25, -0.3)));
-    const fire = new THREE.Group(); fire.position.set(0, 0.15, 0.1); g.add(fire);
-    for (let i = 0; i < 3; i++) fire.add(m(new THREE.CylinderGeometry(0.05, 0.06, 0.6, 8), std(0x3a2414), V(0, 0.03, 0), [0, i * 1.05, Math.PI / 2]));
-    const flames = [];
-    for (let i = 0; i < 5; i++) {
-        const f = flame(3 + (i % 2), [2.4, 1.0 + (i % 3) * 0.2, 0.25]);
-        f.position.set((i - 2) * 0.12, 0.05, (i % 2) * 0.06);
-        fire.add(f); flames.push(f);
+    // stone sized to each part, so a block is about 0.4 × 0.2 m everywhere (one texture tile is 0.8 m)
+    const stone = (w, h) => TX.texMat(TX.blocks, { color: 0xc8b49a, repeat: [w / 0.8, h / 0.8] });
+    const stoneDark = (w, h) => TX.texMat(TX.blocks, { color: 0x6a5a4a, repeat: [w / 0.8, h / 0.8] });
+    const soot = std(0x120c0a, { rough: 1 });
+    const iron = std(0x2a2624, { metal: 0.7, rough: 0.5 });
+    const W = 1.9, D = 0.62, back = -1.0, front = back + D;
+    const openW = 1.0, openH = 0.9;
+    // surround: two jambs and a lintel framing the opening
+    const jambW = (W - openW) / 2;
+    for (const s of [-1, 1]) g.add(box(jambW, openH, D, stone(jambW, openH), V(s * (openW / 2 + jambW / 2), openH / 2, back + D / 2)));
+    g.add(box(W, 0.32, D, stone(W, 0.32), V(0, openH + 0.16, back + D / 2)));
+    // the firebox: a sooty recess with a back wall and splayed sides
+    g.add(box(openW, openH, 0.06, soot, V(0, openH / 2, back + 0.03)));
+    for (const s of [-1, 1]) g.add(box(0.05, openH, D - 0.08, soot, V(s * (openW / 2 - 0.02), openH / 2, back + D / 2 - 0.02)));
+    g.add(box(openW, 0.05, D - 0.06, soot, V(0, openH - 0.025, back + D / 2)));
+    g.add(box(openW, 0.04, D, stoneDark(openW, D), V(0, 0.02, back + D / 2)));
+    // mantel shelf with a candle and a jar of moonflowers
+    g.add(rbox(W + 0.25, 0.1, D + 0.18, woodMat(), V(0, openH + 0.37, back + (D + 0.18) / 2)));
+    const c1 = candle(0.2); c1.position.set(-0.7, openH + 0.42, front - 0.05); g.add(c1);
+    const c2 = candle(0.14); c2.position.set(-0.55, openH + 0.42, front - 0.12); g.add(c2);
+    g.add(m(new THREE.CylinderGeometry(0.07, 0.06, 0.2, 12), new THREE.MeshPhysicalMaterial({ color: 0x9ad0c0, roughness: 0.1, transparent: true, opacity: 0.6, clearcoat: 1 }), V(0.62, openH + 0.52, front - 0.08)));
+    for (let i = 0; i < 3; i++) g.add(m(new THREE.SphereGeometry(0.05, 8, 6), std(0xe8e0ff, { emissive: 0x8a7aff, ei: 0.8 }), V(0.62 + (i - 1) * 0.05, openH + 0.7 + (i % 2) * 0.05, front - 0.08)));
+    // chimney breast up to the ceiling
+    const breastH = ceiling - (openH + 0.42);
+    g.add(box(W - 0.3, breastH, D - 0.12, stone(W - 0.3, breastH), V(0, openH + 0.42 + breastH / 2, back + (D - 0.12) / 2)));
+    // hearthstone on the floor in front
+    g.add(rbox(W + 0.2, 0.06, 0.55, stoneDark(W + 0.2, 0.55), V(0, 0.03, front + 0.27)));
+    // andirons and logs
+    for (const s of [-1, 1]) {
+        g.add(box(0.04, 0.22, 0.04, iron, V(s * 0.3, 0.13, front - 0.12)));
+        g.add(box(0.04, 0.04, 0.42, iron, V(s * 0.3, 0.06, back + D / 2)));
     }
-    const light = new THREE.PointLight(0xff8a3a, 3, 9, 1.6);
-    light.position.set(0, 0.6, 0.6);
+    const logM = TX.texMat(TX.bark, { repeat: [1, 1] });
+    const logs = [[0, 0.12, back + 0.32, 0.12, 0.06], [0.02, 0.2, back + 0.36, -0.1, 0.055], [-0.05, 0.13, back + 0.22, 0.3, 0.05]];
+    for (const [x, y, z, rz, r] of logs) {
+        const l = m(new THREE.CylinderGeometry(r, r * 1.1, 0.78, 10), logM, V(x, y, z), [0, 0, Math.PI / 2]);
+        l.rotation.y = rz;
+        g.add(l);
+    }
+    // glowing embers on the firebox floor
+    const embers = m(new THREE.PlaneGeometry(openW - 0.15, D - 0.2), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.4, 0.35, 0.05) }), V(0, 0.045, back + D / 2), [-Math.PI / 2, 0, 0]);
+    embers.castShadow = false;
+    g.add(embers);
+    // the fire: three crossed flame sheets
+    const fire = new THREE.Group(); fire.position.set(0, 0.1, back + 0.3); g.add(fire);
+    const sheets = [];
+    for (let i = 0; i < 3; i++) {
+        const f = new THREE.Mesh(new THREE.PlaneGeometry(0.78 - i * 0.12, 0.78 - i * 0.1), fireMaterial(i * 1.37, 1 - i * 0.15));
+        f.position.y = (0.78 - i * 0.1) / 2;
+        f.rotation.y = (i - 1) * 0.7;
+        f.renderOrder = 4;
+        f.castShadow = false;
+        fire.add(f); sheets.push(f);
+    }
+    const glowS = new THREE.Sprite(glowMaterial(glow(), new THREE.Color(1.2, 0.5, 0.12), 0.55));
+    glowS.scale.set(1.6, 1.1, 1); glowS.position.set(0, 0.45, back + 0.4); g.add(glowS);
+    const light = new THREE.PointLight(0xff8a3a, 3.2, 10, 1.6);
+    light.position.set(0, 0.55, front + 0.4);
     g.add(light);
-    g.userData.update = (t) => { flames.forEach((f) => f.userData.update(t)); light.intensity = 2.6 + Math.sin(t * 9) * 0.3 + Math.sin(t * 23) * 0.2; };
+    g.userData.update = (t) => {
+        c1.userData.update(t); c2.userData.update(t);
+        const k = 0.85 + Math.sin(t * 9) * 0.08 + Math.sin(t * 23 + 1.3) * 0.06 + Math.sin(t * 3.1) * 0.05;
+        light.intensity = 3.2 * k;
+        glowS.material.opacity = 0.45 * k;
+        embers.material.color.setRGB(1.4 * k, 0.35 * k, 0.05);
+    };
     return g;
 }
+
+const woodMat = () => { mats(); return woodM; };
 
 function cot() {
     mats();

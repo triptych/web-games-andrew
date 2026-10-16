@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Salve & Scale** (game-081) v1.0.3: the Lumen Lens looked washed out on a real phone, worst on big patients like the slime. Its X-ray stacked double-sided additive surfaces whose sum fed a strong, low-threshold bloom until the grid went milky. The X-ray is now rim-only, front faces only and dimmer, the glass tiles darker, the scan's bloom weaker with a higher threshold, and motes, halos and Pip glow less ([board.js](game-081/js/view/board.js), [shaders.js](game-081/js/view/shaders.js), [view.js](game-081/js/view/view.js)).
+- **Salve & Scale** (game-081) v1.0.2: the waiting-room fireplace looked like a stone box with a black panel stuck on its front, and stood sideways to its wall. Props faced their first open neighbour, so the hearth against the south wall faced east; anything with a wall beside it now backs onto that wall ([level.js](game-081/js/view/level.js)). The hearth is rebuilt as a fireplace built into the wall — stone surround, recessed firebox, mantel, chimney breast to the ceiling, hearthstone, andirons, logs, embers — with a fire of crossed flame sheets on a new noise shader ([props.js](game-081/js/view/props.js), `fireMaterial` in [shaders.js](game-081/js/view/shaders.js)).
+
+### Fixed
 - **Salve & Scale** (game-081) v1.0.1: the clinic study's floor flickered with stripes on phones. The rug builder grouped `,` cells into rectangles but let a later one grow back over cells an earlier one had claimed, so the study had two overlapping rugs at the same height, which z-fought; each rug also had a full-size gold plane 4 mm beneath it. Now there is one rug per connected patch ([level.js](game-081/js/view/level.js)), its border is a ring rather than a plane underneath, both sit on a polygon offset, and the near plane moved from 0.05 to 0.1. [browsertest.mjs](game-081/dev/browsertest.mjs) checks that no two floor coverings overlap.
 
 ### Added
