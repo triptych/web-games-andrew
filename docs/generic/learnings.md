@@ -5795,3 +5795,28 @@ Collecting the Wormhole calls `startWarp()`, which replaces `G.items` with a new
 - **The whole frame turned white after a death → an exposure "flash" decayed per frame.** Under SwiftShader a frame is a second, so `toneMappingExposure = 1 + flash` stayed lit for every screenshot (the game-079 lesson, again). Particle bursts carry the moment well enough without it.
 - **A floating label clipped to "ongSho".** A canvas texture of fixed width cut long words. Measure the text first and size the canvas and the sprite's aspect from it; offset a new label that would land on one still rising from the same spot.
 - **A torus scaled up to make a halo became a fat band.** Scaling a `TorusGeometry` scales its tube too; build a thin ring at the size you want. The model gallery showed it at once; in the game it read as a glowing belt.
+
+---
+
+## Game 084: ROMANCER — a game-making game with an exportable fantasy console (2026-10-16)
+
+### One runtime for the editor, the tests and the exported file — and prove it in a fresh realm
+The VESTA-8 ([game-084/js/runtime/](../../game-084/js/runtime/)) is five ES modules, each exporting one function `part(V)` that adds to `V` and refers to nothing else; the app imports them, and `exportHTML()` writes `'(' + part.toString() + ')(V);'` for each, plus a standalone player and the cart, into one HTML file (TALEWRIGHT's trick, game-076, with modules instead of classic scripts). The test that makes it trustworthy: [simtest.mjs](../../game-084/dev/simtest.mjs) rebuilds the console from the stringified parts with `vm.runInContext` in a fresh realm, plays the RALLY cart to a win with the bot and checks it drew something. A part that reached for a module-level helper would pass every other test and fail only in exported files; this catches it in Node.
+
+### A scripting language for players: budget every statement, and be forgiving where kids trip
+VESTA SCRIPT ([lang.js](../../game-084/js/runtime/lang.js)) is lexed, parsed to an AST and compiled to closures; every statement increments a per-frame counter, so `while true do end` stops the game with "the script ran too long … line 2" instead of freezing the tab. Choices that saved support questions: an unset name reads as 0 (so `score += 1` just works), dividing by zero gives 0 (an `Infinity` position breaks everything downstream), bare names inside an object's script mean its own `x`, `vy`, `hp`… and every other name is shared, `me.thing` keeps per-object values, and a call to a function that exists nowhere is reported before the game runs, with its line. Handler headers need newlines: `on hit coin` takes the type only from the same line.
+
+### Look-ahead bots on cloned runs, scored by distance left along the route
+Frogger, Donkey Kong and Mario toys need a bot that sees what's coming. `V.cloneRun` copies a run (objects, map, globals, remapping object references held in variables) so [bots.js](../../game-084/js/meta/bots.js) `simulate()` can try each candidate input for 60–100 frames and keep the best. Two scoring traps: "floors climbed" let the Donkey Kong bot hide on a ladder (its x-distance stopped counting while climbing), fixed by scoring the remaining distance along the whole route, ladder by ladder; and a continuation policy of "hold right" walked every Mario candidate into the first enemy, fixed by a continuation that itself jumps at walls, gaps and walkers.
+
+### A grid hop pins the other axis
+A frog riding a log had `x += other.vx` applied mid-hop, so a hop up from the log clipped the corner of a bush beside the lily pad and was blocked. A grid hop now records the row or column it lands in and holds the other axis there until it lands ([core.js](../../game-084/js/runtime/core.js) `grid`).
+
+### A repair task must check the result, not the absence of the damage
+"No glitched tiles remain" was already true on a blank cart, so the test that no task fires on a blank cart failed for MAZE MUNCH and SCROLL RUN. The checks now ask that each damaged cell is **solid** again, which also stops a player "fixing" a maze wall by erasing it.
+
+### Small traps
+- **A camera glide timed in frames crawls under SwiftShader.** At about one frame a second, a 0.9 s glide with `dt` capped at 0.1 took nine seconds and the play screenshots showed the TV halfway there. Glides and power-on animations now run on `performance.now()`.
+- **Menu keys in tests must wait for the queue.** Menus consume one press per frame (game-074); pressing Enter 120 times in 7 s at two frames a second left 100 presses queued. The test waits for the queue to drain after each press.
+- **An auto-indenting code editor changes what a test types.** Backspacing over typed text left a fragment behind, because Enter had added indent. Clean up by setting the textarea's value and dispatching `input`.
+- **A workbench that covers the screen doesn't need the 3D scene at 60 fps**: it renders every sixth frame behind the panels.
