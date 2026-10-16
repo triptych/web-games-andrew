@@ -574,8 +574,12 @@ export class View {
         this.resize();
         // camera glide
         const target = this.poseTarget(this.pose, t);
+        // the glide runs on the wall clock, so a slow GPU still arrives on time
+        const now = performance.now();
+        const real = Math.min(0.5, (now - (this.lastNow || now)) / 1000);
+        this.lastNow = now;
         if (this.camT < 1) {
-            this.camT = Math.min(1, this.camT + dt / 0.9);
+            this.camT = Math.min(1, this.camT + real / 0.9);
             const k = this.camT * this.camT * (3 - 2 * this.camT);
             this.camPos.lerpVectors(this.camFrom.pos, target.pos, k);
             this.camLook.lerpVectors(this.camFrom.look, target.look, k);

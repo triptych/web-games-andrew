@@ -43,3 +43,5 @@ export function loadStudio() {
     return { carts: st.carts.filter((e) => e && e.cart).map((e) => ({ id: String(e.id), cart: V.normalize(e.cart), made: e.made | 0 })), nextId: st.nextId | 0 };
 }
 export function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch { /* blocked */ } }
+/** Only the Studio: used before an expedition has started, so a Studio visit doesn't create a save. */
+export function saveStudio(P) { return write(STUDIO_KEY, { carts: serializeProgress(P).creative, nextId: P.nextId }); }

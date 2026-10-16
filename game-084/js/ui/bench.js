@@ -57,6 +57,7 @@ export class Bench {
         $('bench').hidden = false;
         // start on the tab the first unfinished task needs
         const first = this.mission ? this.h.taskStates().map((s, i) => [s, this.mission.tasks[i]]).find(([s]) => !s.done) : null;
+        if (first) this.focusTask(first[1]);
         const want = opts.tab || (first && first[1].tool) || this.tab;
         this.openTab(this.tabOk(want) ? want : 'sprites');
         this.renderTasks();
@@ -182,7 +183,7 @@ export class Bench {
             const s = states[i];
             const hint = el('div', { class: 't-hint', hidden: true }, t.hint);
             const acts = el('div', { class: 't-acts', hidden: s.done });
-            if (t.tool && this.tabOk(t.tool) && !s.done) acts.append(el('button', { class: 'btn small ghost', onclick: () => { this.audio.ui('tab'); this.openTab(t.tool); } }, 'Go to ' + t.tool));
+            if (t.tool && this.tabOk(t.tool) && !s.done) acts.append(el('button', { class: 'btn small ghost', onclick: () => { this.audio.ui('tab'); this.focusTask(t); this.openTab(t.tool); } }, 'Go to ' + t.tool));
             if (t.play && !s.done) acts.append(el('button', { class: 'btn small play', onclick: () => this.h.onPlay() }, '▶ Play'));
             if (t.fix && !s.done) acts.append(el('button', { class: 'btn small ghost', onclick: () => this.confirmRepair(t) }, '🔧 VESTA, repair it'));
             const box = el('div', { class: 'task' + (s.done ? ' done' : ''), 'data-task': t.id }, [
@@ -198,6 +199,12 @@ export class Bench {
     renderLog(body) {
         const log = this.h.lastLog?.() || [];
         if (log.length) body.append(el('div', { class: 'console' }, log.slice(-12).join('\n')));
+    }
+    /** Point the tool at what the task is about: "sprite 3" selects slot 3. */
+    focusTask(t) {
+        const m = /sprite (\d+)/.exec(t.text);
+        if (m && t.tool === 'sprites') this.spr = +m[1];
+        if (t.tool === 'code') { const o = /(ball|ship|hero|frog|munch|runner)/.exec(t.hint || ''); if (o) this.editors.code.which = o[1]; }
     }
     confirmRepair(t) {
         this.ask('Ask VESTA to repair this?', 'VESTA will patch it from its memory banks. You can still do everything else yourself — but the Hands On commendation needs a cartridge you fixed alone.', [['Repair it', () => { this.snapshot(); this.h.onRepair(t.id); this.openTab(this.tab); }]]);

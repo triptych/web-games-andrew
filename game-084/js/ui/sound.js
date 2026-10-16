@@ -97,7 +97,7 @@ export class MusicEditor {
             el('div', { class: 'panel' }, [
                 el('div', { class: 'row' }, [
                     el('label', { class: 'hint' }, ['Tempo ', el('input', { type: 'range', min: 60, max: 240, step: 2, value: m.tempo, 'aria-label': 'Tempo', oninput: (e) => { tempoOut.textContent = e.target.value; this.b.snapshot(true); m.tempo = +e.target.value; this.b.changed('music'); if (this.playing) this.b.audio.synth.music.tempo = m.tempo; } }), tempoOut]),
-                    el('label', { class: 'hint' }, ['Lead ', el('select', { 'aria-label': 'Lead wave', onchange: (e) => { this.b.snapshot(); m.leadWave = e.target.value; this.b.changed('music'); this.restart(); } }, ['square', 'triangle', 'saw', 'sine'].map((w) => el('option', { value: w, selected: m.leadWave === w }, w))))]),
+                    el('label', { class: 'hint' }, ['Lead ', el('select', { 'aria-label': 'Lead wave', onchange: (e) => { this.b.snapshot(); m.leadWave = e.target.value; this.b.changed('music'); this.restart(); } }, ['square', 'triangle', 'saw', 'sine'].map((w) => el('option', { value: w, selected: m.leadWave === w }, w)))]),
                     el('label', { class: 'hint' }, ['Plays when the game starts ', el('input', { type: 'checkbox', checked: m.on, onchange: (e) => { this.b.snapshot(); m.on = e.target.checked; this.b.changed('music'); } })]),
                 ]),
                 el('div', { class: 'btnrow' }, [
