@@ -12,6 +12,21 @@ const lvl = (rows, legend) => V.levelFromRows(rows, legend);
 const setScript = (cart, type, src) => { typeOf(cart, type).script = src; };
 const played = (ctx, k, n) => ({ done: (ctx.play.maxG[k] || 0) >= n, have: Math.min(n, Math.floor(ctx.play.maxG[k] || 0)), need: n });
 const won = (ctx) => ({ done: (ctx.play.wins || 0) > 0 });
+/** Set a type's control, and give any other type that wrongly took it back its control as found. */
+function setControl(cart, build, name, control) {
+    const found = build();
+    for (const t of cart.types) {
+        if (t.name === name) t.control = control;
+        else if (t.control === control) t.control = (typeOf(found, t.name) || { control: 'none' }).control;
+    }
+}
+/** A control task: done when the named type has it; if another type got it instead, say so. */
+function controlOn(ctx, name, control) {
+    const T = typeOf(ctx.cart, name);
+    if (T && T.control === control) return { done: true };
+    const wrong = ctx.cart.types.filter((t) => t.name !== name && t.control === control).map((t) => '"' + t.name + '"');
+    return { done: false, note: wrong.length ? `That control is on ${wrong.join(' and ')} — it's "${name}" that needs it (set the other back to "No control").` : '' };
+}
 
 // ======================================================================
 // 1. RALLY — after PONG (Atari, 1972)
@@ -129,18 +144,18 @@ const M1 = {
             fix: (cart) => { cart.sprites[3] = BALL; },
         },
         {
-            id: 'bounce', text: 'Give the ball its bounce back: set its Bounce to 1.',
+            id: 'bounce', text: 'Give the ball its bounce back: pick "ball" in OBJECTS and set its Bounce to 1.', obj: 'ball',
             hint: 'Open OBJECTS, choose "ball" and drag Bounce up to 1. A ball with no bounce just slides along the wall.',
             tool: 'objects',
             check: (c) => ({ done: (typeOf(c.cart, 'ball') || {}).bounce >= 0.95 }),
             fix: (cart) => { typeOf(cart, 'ball').bounce = 1; },
         },
         {
-            id: 'paddle', text: 'Wire your paddle to the controller: Control → "Player: paddle up & down".',
-            hint: 'In OBJECTS, choose "player" and set its Control.',
+            id: 'paddle', text: 'Wire your paddle to the controller: pick "player" in OBJECTS and set its Control to "Player: paddle up & down".', obj: 'player',
+            hint: 'Your paddle is the object called "player" (the ball and the cpu paddle are separate objects). Choose it in the list on the left, then set Control.',
             tool: 'objects',
-            check: (c) => ({ done: (typeOf(c.cart, 'player') || {}).control === 'paddle_v' }),
-            fix: (cart) => { typeOf(cart, 'player').control = 'paddle_v'; },
+            check: (c) => controlOn(c, 'player', 'paddle_v'),
+            fix: (cart) => setControl(cart, () => M1.build(), 'player', 'paddle_v'),
         },
         {
             id: 'play', text: 'Playtest it and score a point past the console.', play: true,
@@ -256,7 +271,7 @@ const M2 = {
             },
         },
         {
-            id: 'bump', text: 'Rewrite the ball\'s lost "on bump" handler so a brick it hits disappears and scores.',
+            id: 'bump', text: 'Rewrite the ball\'s lost "on bump" handler so a brick it hits disappears and scores.', obj: 'ball',
             hint: 'In OBJECTS → ball → SCRIPT, add:\non bump\n  if tile >= 5 then\n    settile(tx, ty, 0)\n    score += 1\n  end\nend',
             tool: 'code',
             check: (c) => {
@@ -415,7 +430,7 @@ const M3 = {
             fix: (cart) => { cart.sprites[3] = ALIEN_B; },
         },
         {
-            id: 'fire', text: 'Arm the ship: pressing A must spawn a "bullet".',
+            id: 'fire', text: 'Arm the ship: in the "ship" script, pressing A must spawn a "bullet".', obj: 'ship',
             hint: 'OBJECTS → ship → SCRIPT:\non press a\n  if count("bullet") == 0 then\n    spawn("bullet", x, y - 6)\n  end\nend',
             tool: 'code',
             check: (c) => { const s = code((typeOf(c.cart, 'ship') || {}).script); return { done: /spawn\s*\(\s*["']bullet["']/.test(s) && !V.compile(s).error }; },
@@ -556,18 +571,18 @@ const M4 = {
             fix: (cart) => replaceTiles(cart, 0, 8, 1),
         },
         {
-            id: 'maze', text: 'Munch slides about loose: set its Control to "Player: maze runner".',
+            id: 'maze', text: 'Munch slides about loose: pick "munch" in OBJECTS and set its Control to "Player: maze runner".', obj: 'munch',
             hint: 'OBJECTS → munch → Control. A maze runner keeps going and turns at the next gap, like the arcade.',
             tool: 'objects',
-            check: (c) => ({ done: (typeOf(c.cart, 'munch') || {}).control === 'maze' }),
-            fix: (cart) => { typeOf(cart, 'munch').control = 'maze'; },
+            check: (c) => controlOn(c, 'munch', 'maze'),
+            fix: (cart) => setControl(cart, () => M4.build(), 'munch', 'maze'),
         },
         {
-            id: 'chase', text: 'The ghosts have no brains: set their Control to "AI: chase the player through a maze".',
+            id: 'chase', text: 'The ghosts have no brains: pick "ghost" in OBJECTS and set its Control to "AI: chase the player through a maze".', obj: 'ghost',
             hint: 'OBJECTS → ghost → Control.',
             tool: 'objects',
-            check: (c) => ({ done: (typeOf(c.cart, 'ghost') || {}).control === 'chase' }),
-            fix: (cart) => { typeOf(cart, 'ghost').control = 'chase'; },
+            check: (c) => controlOn(c, 'ghost', 'chase'),
+            fix: (cart) => setControl(cart, () => M4.build(), 'ghost', 'chase'),
         },
         {
             id: 'play', text: 'Playtest it and eat 50 dots.', play: true,
@@ -731,7 +746,7 @@ const M5 = {
             fix: (cart) => { cart.flags[4] |= V.FLAG.hazard; },
         },
         {
-            id: 'wrap', text: 'The logs drift away for ever: set the log\'s Edge to "wraps to the other side".',
+            id: 'wrap', text: 'The logs drift away for ever: pick "log" in OBJECTS and set its Edge to "wraps to the other side".', obj: 'log',
             hint: 'OBJECTS → log → Edge.',
             tool: 'objects',
             check: (c) => ({ done: (typeOf(c.cart, 'log') || {}).edge === 'wrap' }),
@@ -861,14 +876,14 @@ const M6 = {
             fix: (cart) => { cart.flags[3] |= V.FLAG.ladder; },
         },
         {
-            id: 'hero', text: 'Give the hero legs: Control → "Player: run & jump".',
+            id: 'hero', text: 'Give the hero legs: pick "hero" in OBJECTS and set its Control to "Player: run & jump".', obj: 'hero',
             hint: 'OBJECTS → hero → Control. Jump is how high it leaps; Gravity pulls it down.',
             tool: 'objects',
-            check: (c) => ({ done: (typeOf(c.cart, 'hero') || {}).control === 'platform' }),
-            fix: (cart) => { typeOf(cart, 'hero').control = 'platform'; },
+            check: (c) => controlOn(c, 'hero', 'platform'),
+            fix: (cart) => setControl(cart, () => M6.build(), 'hero', 'platform'),
         },
         {
-            id: 'gravity', text: 'The barrels float: give the barrel some Gravity (0.15 is right).',
+            id: 'gravity', text: 'The barrels float: pick "barrel" in OBJECTS and give it some Gravity (0.15 is right).', obj: 'barrel',
             hint: 'OBJECTS → barrel → Gravity. Without it they never fall through the gaps.',
             tool: 'objects',
             check: (c) => ({ done: ((typeOf(c.cart, 'barrel') || {}).gravity || 0) > 0.05 }),
@@ -1208,7 +1223,7 @@ const M8 = {
             fix: (cart) => { cart.sprites[11] = SWORD; },
         },
         {
-            id: 'attack', text: 'Teach the hero to attack: pressing A spawns a "sword" ahead of it.',
+            id: 'attack', text: 'Teach the hero to attack: in the "hero" script, pressing A spawns a "sword" ahead of it.', obj: 'hero',
             hint: 'OBJECTS → hero → SCRIPT:\non press a\n  if count("sword") == 0 then\n    spawn("sword", x + fx * 7, y + fy * 7)\n  end\nend',
             tool: 'code',
             check: (c) => { const s = code((typeOf(c.cart, 'hero') || {}).script); return { done: /spawn\s*\(\s*["']sword["']/.test(s) && !V.compile(s).error }; },

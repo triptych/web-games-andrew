@@ -186,12 +186,13 @@ export class Bench {
             const s = states[i];
             const hint = el('div', { class: 't-hint', hidden: true }, t.hint);
             const acts = el('div', { class: 't-acts', hidden: s.done });
-            if (t.tool && this.tabOk(t.tool) && !s.done) acts.append(el('button', { class: 'btn small ghost', onclick: () => { this.audio.ui('tab'); this.focusTask(t); this.openTab(t.tool); } }, 'Go to ' + t.tool));
+            if (t.tool && this.tabOk(t.tool) && !s.done) acts.append(el('button', { class: 'btn small ghost', onclick: () => { this.audio.ui('tab'); this.focusTask(t); this.openTab(t.tool); } }, t.obj ? `Go to ${t.tool}: ${t.obj}` : 'Go to ' + t.tool));
             if (t.play && !s.done) acts.append(el('button', { class: 'btn small play', onclick: () => this.h.onPlay() }, '▶ Play'));
             if (t.fix && !s.done) acts.append(el('button', { class: 'btn small ghost', onclick: () => this.confirmRepair(t) }, '🔧 VESTA, repair it'));
             const box = el('div', { class: 'task' + (s.done ? ' done' : ''), 'data-task': t.id }, [
                 el('div', { class: 't-text', style: { cursor: 'pointer' }, onclick: () => { hint.hidden = !hint.hidden; } }, [el('span', { class: 't-box' }, s.done ? '☑' : '☐'), el('span', {}, t.text)]),
                 s.need && !s.done ? el('div', { class: 't-prog' }, `${s.have} / ${s.need}`) : null,
+                s.note && !s.done ? el('div', { class: 't-note' }, s.note) : null,
                 hint, acts,
             ]);
             body.append(box);
@@ -207,7 +208,11 @@ export class Bench {
     focusTask(t) {
         const m = /sprite (\d+)/.exec(t.text);
         if (m && t.tool === 'sprites') this.spr = +m[1];
-        if (t.tool === 'code') { const o = /(ball|ship|hero|frog|munch|runner)/.exec(t.hint || ''); if (o) this.editors.code.which = o[1]; }
+        // the object the task is about: selected in OBJECTS, its script open in CODE
+        if (t.obj && this.cart.types.some((x) => x.name === t.obj)) {
+            if (t.tool === 'objects') this.editors.objects.sel = t.obj;
+            if (t.tool === 'code') this.editors.code.which = t.obj;
+        }
     }
     confirmRepair(t) {
         this.ask('Ask VESTA to repair this?', 'VESTA will patch it from its memory banks. You can still do everything else yourself — but the Hands On commendation needs a cartridge you fixed alone.', [['Repair it', () => { this.snapshot(); this.h.onRepair(t.id); this.openTab(this.tab); }]]);

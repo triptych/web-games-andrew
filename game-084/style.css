@@ -390,3 +390,4 @@ body.playing #toasts { top: calc(64px + var(--safe-t)); bottom: auto; }
     .title-wrap { padding-bottom: 0; text-align: left; }
     .title-wrap .eyebrow.center, .title-wrap .version { text-align: left; }
 }
+.task .t-note { font-size: 13px; color: #ffd27a; margin: 6px 0 0 24px; padding: 6px 8px; border-left: 2px solid var(--amber); background: rgba(255, 179, 71, 0.08); }

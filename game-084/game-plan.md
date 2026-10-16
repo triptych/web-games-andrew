@@ -163,6 +163,7 @@ See [dev/README.md](dev/README.md). `simtest.mjs` proves the runtime pure and se
 
 ### v1.0.1 (2026-10-16)
 - The title's last R was cut off with the real Orbitron font: the logo is gradient-clipped text, so the part that overflowed its 440 px column vanished. Smaller size, a 520 px column, and a fit-to-width once the font loads. On wide screens the title column is left-aligned throughout.
+- RALLY's paddle task didn't tick for a player who set the control on "ball" instead of "player". Object tasks now name the object, their Go to button selects it, a control on the wrong object gets a note, and repairs put it back.
 
 ### v1.0.0 (2026-10-16)
 - First release: the VESTA-8 runtime and VESTA SCRIPT, nine cartridges with tasks, repairs and bots, the story and commendations, the three.js lab, six editors, the Studio, save and load, and export to standalone HTML.
