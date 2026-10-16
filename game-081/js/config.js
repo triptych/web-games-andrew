@@ -1,6 +1,6 @@
 // Salve & Scale — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.3';
+export const VERSION = '1.0.4';
 export const SAVE_KEY = 'salve-and-scale.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)

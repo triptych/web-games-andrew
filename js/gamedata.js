@@ -1215,7 +1215,7 @@ const games = [
         description: "A first-person monster-healer adventure in three.js with no asset files. You run the Lantern Clinic in Gloamhollow, the kingdom under the hills: walk the clinic, greet goblins with thorns in their feet, slimes with curdled cores and skeletons with hexes carved on their ribs, send them to the exam table and look inside them through the Lumen Lens. Treatment is a puzzle with Bumble Basket's trail rules: the patient's silhouette fills with glowing afflictions, and you drag a trail where every hop shares something you can sense — the same form, aura, depth or nature — to purge venoms, mend wounds, dispel hexes and soothe blights before your Focus runs out. Each act teaches a new sense. Between clinic days you ride out on emergency calls to a bramble-choked forest hollow, a drowned crypt, a dragon's forge and the Overlord's citadel, treating monsters where they fell, disarming the traps of the Gilded Company and gathering the evidence of what they've done. The Overlord isn't evil: he is sick, and the last patient is Grimwald himself, three boards deep in adventurer-made madness. Fourteen species built in code with physical materials, shell fur and an X-ray shader, a skill tree of fifteen nodes, remedies, relics and clinic upgrades, a mimic receptionist, a skeleton nurse, a wisp who lives in the Lens, and a soundtrack sequenced in code.",
         icon: '\u2695\uFE0F',
         folder: 'game-081',
-        version: '1.0.3',
+        version: '1.0.4',
         cssClass: 'salve-and-scale',
         genre: 'rpg',
         tags: [
