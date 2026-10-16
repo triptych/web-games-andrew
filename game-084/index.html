@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#04050b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="ROMANCER — a game about making games. A researcher in 3126 revives the VESTA-8, an ancient console, by repairing tiny toy versions of the games that made history, then builds anything in its Studio: pixel editor, level maker, scripting language, sound and music, and export to standalone HTML.">
+    <title>ROMANCER</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap">
+    <script src="../lib/page-audio.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="The lab: the VESTA-8 console, its television and the cartridge shelf"></canvas>
+    <div id="vignette"></div>
+
+    <!-- ============================================================ lab HUD -->
+    <div id="hub" hidden>
+        <div id="hub-top">
+            <div class="card" id="hub-card">
+                <div class="eyebrow" id="hub-eyebrow">CARTRIDGE 1 · 1972</div>
+                <div class="hub-title" id="hub-title">RALLY</div>
+                <div class="hub-goal" id="hub-goal"></div>
+            </div>
+            <div class="card mem" id="hub-mem-card">
+                <div class="eyebrow">VESTA MEMORY</div>
+                <div class="mem-val" id="hub-mem">0%</div>
+                <div class="bar"><i id="hub-membar"></i></div>
+            </div>
+        </div>
+        <nav id="dock">
+            <button class="dock-btn" data-act="archive"><span class="ic">▤</span>Archive</button>
+            <button class="dock-btn primary" data-act="bench" id="dock-bench"><span class="ic">⌁</span>Workbench</button>
+            <button class="dock-btn" data-act="studio"><span class="ic">✦</span>Studio</button>
+            <button class="dock-btn" data-act="journal"><span class="ic">✎</span>Journal</button>
+            <button class="dock-btn" data-act="codex"><span class="ic">?</span>Codex</button>
+            <button class="dock-btn" data-act="menu" aria-label="Menu"><span class="ic">☰</span>Menu</button>
+        </nav>
+    </div>
+
+    <!-- ============================================================ workbench -->
+    <div id="bench" hidden>
+        <header id="bench-head">
+            <button class="btn ghost" id="bench-back" aria-label="Back to the lab">◀ Lab</button>
+            <div id="bench-name"><span class="eyebrow" id="bench-kind">CARTRIDGE</span><b id="bench-title">RALLY</b></div>
+            <nav id="bench-tabs" role="tablist"></nav>
+            <button class="btn play" id="bench-play">▶ Play</button>
+        </header>
+        <div id="bench-body">
+            <main id="bench-main"></main>
+            <aside id="tasks">
+                <button id="tasks-toggle" aria-expanded="true"><span id="tasks-count">VESTA</span><span class="chev">▾</span></button>
+                <div id="tasks-body"></div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- ============================================================ playing on the CRT -->
+    <div id="playbar" hidden>
+        <button class="btn ghost" id="play-stop">■ Stop</button>
+        <div id="play-title"></div>
+        <button class="btn ghost" id="play-restart" aria-label="Restart">⟲ Restart</button>
+    </div>
+    <div id="pad" hidden>
+        <div id="dpad">
+            <button class="pbtn" data-b="up" aria-label="Up">▲</button>
+            <button class="pbtn" data-b="left" aria-label="Left">◀</button>
+            <button class="pbtn" data-b="right" aria-label="Right">▶</button>
+            <button class="pbtn" data-b="down" aria-label="Down">▼</button>
+        </div>
+        <div id="abpad">
+            <button class="pbtn round" data-b="b" aria-label="B">B</button>
+            <button class="pbtn round a" data-b="a" aria-label="A">A</button>
+        </div>
+    </div>
+
+    <!-- ============================================================ dialogue -->
+    <div id="dialogue" hidden>
+        <div class="dlg">
+            <canvas id="dlg-face" width="24" height="24"></canvas>
+            <div class="dlg-body">
+                <div id="dlg-name"></div>
+                <div id="dlg-text"></div>
+            </div>
+            <div class="dlg-foot"><button class="btn ghost small" id="dlg-skip">Skip ▸▸</button><span class="dlg-next">▼</span></div>
+        </div>
+    </div>
+
+    <!-- ============================================================ screens -->
+    <div id="title" class="screen title-screen">
+        <div class="title-wrap">
+            <div class="eyebrow center">LUMEN INSTITUTE OF LUDIC ARCHAEOLOGY · 3126</div>
+            <h1 class="logo">ROMANCER</h1>
+            <div class="tagline">Revive an ancient console, one game at a time.</div>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary" id="btn-new">New Expedition</button>
+                <button data-act="studio" class="btn">Studio</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="name" class="screen" hidden>
+        <div class="sheet">
+            <h2>Sign the logbook</h2>
+            <p>Tycho Station security needs a name for the new researcher.</p>
+            <label class="field">Researcher <input id="name-input" maxlength="14" autocomplete="off" spellcheck="false" value="ORI"></label>
+            <div class="sheet-foot"><button class="btn ghost" data-close>Back</button><button class="btn primary" id="name-go">Report for duty</button></div>
+        </div>
+    </div>
+
+    <div id="confirm-new" class="screen" hidden>
+        <div class="sheet">
+            <h2>Start over?</h2>
+            <p>A new expedition replaces your saved progress. Your Studio cartridges are kept.</p>
+            <div class="sheet-foot"><button class="btn ghost" data-close>Keep my save</button><button class="btn danger" id="confirm-new-go">Start over</button></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>How to play</h2>
+            <p>The VESTA-8 came out of the ground with eight broken cartridges, each a tiny toy version of a game that made history. Open one on the <b>Workbench</b>, use the tools to repair it, and <b>Play</b> it on the television. Every cartridge you restore gives the console back a piece of itself: colours, sound, music, new powers for your own games.</p>
+            <p>The <b>Studio</b> is the same toolkit with no checklist: make any 2D game you like and export it as a single HTML file that plays anywhere.</p>
+            <table>
+                <tr><td>Sprites</td><td>Draw 8×8 pixel art. Tick SOLID, HAZARD, LADDER or ONE-WAY to make a sprite into that kind of tile.</td></tr>
+                <tr><td>Map</td><td>Paint sprites as tiles; place objects with the object brush.</td></tr>
+                <tr><td>Objects</td><td>Kinds of thing: how they move, fall, bounce and what they look like.</td></tr>
+                <tr><td>Code</td><td>VESTA SCRIPT: <code>on hit coin … end</code>. See the Codex.</td></tr>
+                <tr><td>Sound, Music</td><td>Eight sound effects and a three-voice song per cart.</td></tr>
+                <tr><td>Cart</td><td>Title, camera, HUD; save, load and export.</td></tr>
+            </table>
+            <h3>Playing a cart</h3>
+            <table>
+                <tr><td>Arrows / WASD</td><td>Move</td></tr>
+                <tr><td>Z / Space / J</td><td>A</td></tr>
+                <tr><td>X / K</td><td>B</td></tr>
+                <tr><td>Esc</td><td>Stop</td></tr>
+            </table>
+            <p>Touch: the pad appears on the left, A and B on the right. Gamepads work too.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music &amp; lab hum <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Graphics
+                <select id="set-quality"><option value="-1">Automatic</option><option value="0">Low</option><option value="1">Medium</option><option value="2">High</option></select>
+            </label>
+            <label class="row">CRT effect
+                <select id="set-crt"><option value="2">Full</option><option value="1">Light</option><option value="0">Off</option></select>
+            </label>
+            <label class="row">Touch pad
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <label class="row check">Open Archive: every tool unlocked in the Studio <input type="checkbox" id="set-open"></label>
+            <label class="row check">Fast text <input type="checkbox" id="set-fasttext"></label>
+            <button id="set-delete" class="btn danger">Erase saved expedition</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="menu" class="screen" hidden>
+        <div class="sheet">
+            <h2>Menu</h2>
+            <nav class="menu" id="menu-menu">
+                <button data-act="resume" class="btn primary">Back to the lab</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="archive" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>The Archive <span class="sub">crate 77-B</span></h2>
+            <div id="archive-list" class="cards"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="studio" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>The Studio <span class="sub">make anything</span></h2>
+            <p class="dim" id="studio-note"></p>
+            <div class="studio-new">
+                <label class="row">Start from <select id="studio-template"></select></label>
+                <div class="btnrow"><button class="btn primary" id="studio-create">＋ New cartridge</button><button class="btn" id="studio-import">⇪ Load a cart file</button></div>
+                <input type="file" id="studio-file" accept=".json,.html,.htm,application/json,text/html" hidden>
+            </div>
+            <div id="studio-list" class="cards"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="journal" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Research Journal <span class="sub" id="journal-name"></span></h2>
+            <div class="tabs-mini" id="journal-tabs">
+                <button data-jt="log" class="on">Log</button><button data-jt="ach">Commendations</button><button data-jt="stats">Stats</button>
+            </div>
+            <div id="journal-body"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="codex" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Codex <span class="sub">VESTA-8 technical reference</span></h2>
+            <div class="tabs-mini" id="codex-tabs">
+                <button data-ct="script" class="on">VESTA SCRIPT</button><button data-ct="funcs">Functions</button><button data-ct="objects">Objects</button><button data-ct="hardware">Hardware</button><button data-ct="history">History</button>
+            </div>
+            <div id="codex-body"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="brief" class="screen" hidden>
+        <div class="sheet">
+            <div class="eyebrow" id="brief-eyebrow"></div>
+            <h2 id="brief-title"></h2>
+            <div class="brief-after" id="brief-after"></div>
+            <p id="brief-history"></p>
+            <p class="dim" id="brief-teaches"></p>
+            <div class="sheet-foot" id="brief-foot"></div>
+        </div>
+    </div>
+
+    <div id="restored" class="screen restored" hidden>
+        <div class="sheet">
+            <div class="eyebrow center">CARTRIDGE RESTORED</div>
+            <h2 class="center glow" id="restored-title"></h2>
+            <div class="center" id="restored-mem"></div>
+            <ul id="restored-list"></ul>
+            <div class="sheet-foot"><button class="btn primary" data-close id="restored-ok">Wonderful</button></div>
+        </div>
+    </div>
+
+    <div id="ask" class="screen" hidden>
+        <div class="sheet">
+            <h2 id="ask-title"></h2>
+            <p id="ask-text"></p>
+            <div class="sheet-foot" id="ask-foot"></div>
+        </div>
+    </div>
+
+    <div id="toasts" aria-live="polite"></div>
+    <noscript><p class="noscript">ROMANCER needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
