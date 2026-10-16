@@ -93,6 +93,38 @@ const layout = (page) => Q(page, () => {
 });
 const reportErrors = (label) => { check(errors.length === 0, `${label}: no console errors, page errors or failed requests`); for (const e of errors.slice(0, 8)) console.log('    ', e); };
 
+/** The way out (the clinic's door, the cart on a call) is drawn somewhere a wall block doesn't swallow it (v1.0.4). */
+const exitShows = (page) => Q(page, () => {
+    const e = __ss.ents().find((x) => x.kind === 'exit');
+    const obj = e && __ss.view.level.ents.get(`${e.x},${e.y}`);
+    if (!obj) return { ok: false, why: 'no exit model' };
+    const root = __ss.view.level.root;
+    root.updateMatrixWorld(true);
+    const u = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] };
+    obj.traverse((o) => {
+        if (!o.isMesh || !o.visible) return;
+        o.geometry.computeBoundingBox();
+        const b = o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld);
+        ['x', 'y', 'z'].forEach((k, i) => { u.min[i] = Math.min(u.min[i], b.min[k]); u.max[i] = Math.max(u.max[i], b.max[k]); });
+    });
+    let hidden = false;
+    root.traverse((o) => {
+        if (!o.isInstancedMesh) return;
+        o.geometry.computeBoundingBox();
+        const g = o.geometry.boundingBox;
+        if (g.max.y - g.min.y < 2) return;
+        const a = o.instanceMatrix.array;
+        for (let i = 0; i < o.count; i++) {
+            const px = a[i * 16 + 12], py = a[i * 16 + 13], pz = a[i * 16 + 14];
+            const inside = u.min[0] >= px + g.min.x - 1e-3 && u.max[0] <= px + g.max.x + 1e-3
+                && u.min[1] >= py + g.min.y - 1e-3 && u.max[1] <= py + g.max.y + 1e-3
+                && u.min[2] >= pz + g.min.z - 1e-3 && u.max[2] <= pz + g.max.z + 1e-3;
+            if (inside) hidden = true;
+        }
+    });
+    return { ok: !hidden, why: hidden ? 'inside a wall block' : '' };
+});
+
 /** Teleport next to an entity (by key) and turn to face it. */
 const goTo = (page, key) => Q(page, (k) => {
     const G = __ss.G;
@@ -153,6 +185,8 @@ async function desktop() {
         return { n, flats: flats.length };
     });
     check(overlaps.flats >= 2 && overlaps.n === 0, `no overlapping floor coverings in the clinic (${overlaps.n} overlaps among ${overlaps.flats})`);
+    const door = await exitShows(page);
+    check(door.ok, `the clinic's front door shows (${door.why || 'in front of the wall'})`);
     await shot(page, 'desktop-title');
 
     await click(page, '#title-menu [data-act="new"]');
@@ -282,6 +316,20 @@ async function desktop() {
     await until(page, () => __ss.G.map === 'bramble', 'the map travels to Bramblewood Hollow');
     await Q(page, () => { while (__ss.G.talk) __ss.act({ type: 'talkEnd' }); });
     await page.waitForTimeout(1500);
+    const cart = await exitShows(page);
+    check(cart.ok, `the cart home shows in Bramblewood (${cart.why || 'on the floor'})`);
+    // a shut chest's lid sits on top of the body, curve up, not hanging off the front (v1.0.4)
+    const lid = await Q(page, () => {
+        const e = __ss.ents().find((x) => x.kind === 'chest' && !x.open);
+        const obj = e && __ss.view.level.ents.get(`${e.x},${e.y}`);
+        const g = obj?.children.find((c) => c.isGroup);
+        if (!g) return null;
+        obj.updateMatrixWorld(true);
+        let lo = Infinity, hi = -Infinity;
+        g.traverse((o) => { if (!o.isMesh) return; o.geometry.computeBoundingBox(); const b = o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld); lo = Math.min(lo, b.min.y); hi = Math.max(hi, b.max.y); });
+        return { lo, hi };
+    });
+    check(lid && lid.lo > 0.53 && lid.hi > 0.65 && lid.hi < 0.9, `a shut chest's lid sits on its body (${lid ? `${lid.lo.toFixed(2)}–${lid.hi.toFixed(2)} m` : 'no lid'})`);
     await shot(page, 'desktop-bramble');
 
     // and on to the end

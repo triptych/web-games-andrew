@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-83 games, `game-001` through `game-084`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+84 games, `game-001` through `game-084`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -100,6 +100,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 080 | [EMBERLEAF](game-080/) | A cozy Metroid-style adventure: the kingdom's new magical librarian and Wick the fire sprite recover twelve runaway grimoires whose powers open the world, calm escaped books in gentle turn-based squabbles, reshelve 48 books and free the old librarian from a curse | Canvas 2D |
 | 081 | [Salve & Scale](game-081/) | A first-person monster-healer adventure: run the Lantern Clinic, look inside goblins, slimes, dragons and an Overlord through the Lumen Lens and treat them with Bumble Basket's trail-linking puzzle, ride out on emergency calls to four dungeons, and expose the adventurers who drove the Overlord mad | three.js |
 | 082 | [BUBBLE NEBULA](game-082/) | Bubble Bobble in space: blow bubbles to trap the Void Baron's crew, pop them in chains for doubling loot, bounce on bubbles, dodge the Void Wraith when it's HURRY UP!, collect N-E-B-U-L-A, and climb 24 sectors to the Baron's Core | three.js |
+| 083 | [WYRMZONE](game-083/) | A wingless dragon walks home through a kingdom at war with dragons: Battlezone on foot in green vectors, then its wings return and it's Star Wars in the sky, down to a trench run at the Gorge of Chains | three.js |
 | 084 | [ROMANCER](game-084/) | A game about making games: revive the VESTA-8, a 1983 console, by repairing tiny toy versions of Pong, Breakout, Space Invaders, Pac-Man, Frogger, Donkey Kong, Super Mario Bros. and Zelda with its own pixel editor, level maker, scripting language, sound and music tools, then make anything in the Studio and export it as one HTML file | three.js |
 
 ### Highlights

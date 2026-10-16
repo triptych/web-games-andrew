@@ -106,7 +106,8 @@ export function buildLevel(mapId, quality = 1) {
     const mats = materialsFor(theme);
     const H = T.H;
     const at = (x, y) => (y >= 0 && y < Hh && x >= 0 && x < W ? grid[y][x] : '#');
-    const isWall = (ch) => ch === '#' || ch === 'X';
+    // the clinic's way out is a door in the wall; on a call it's your cart, standing on the floor
+    const isWall = (ch) => ch === '#' || (ch === 'X' && mapId === 'clinic');
     const open = (x, y) => !isWall(at(x, y)) && at(x, y) !== '~';
 
     // ---------------- floors and ceilings

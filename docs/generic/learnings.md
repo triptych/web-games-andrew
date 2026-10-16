@@ -5771,6 +5771,8 @@ Bumble Basket's goal sizes did not carry over: a 7 × 8 body with holes, four ki
 - **A shelf of bottles inside its own back panel.** The bottles sat at z = −0.42 inside a solid 0.5 m deep box. Build shelves from a thin back, sides and boards, and look at the prop from the front in a screenshot.
 - **Symptom: stripes flicker across a rug on a phone → two rugs over the same cells.** The builder grew rugs as rectangles of `,` cells and let a later rectangle extend back over cells an earlier one had already claimed, so two coplanar rugs overlapped (and each had a gold "border" plane 4 mm beneath it). SwiftShader drew a few stray fragments; a phone striped whole patches. Grow one decal per connected patch, make borders rings rather than planes underneath, put floor decals on a polygon offset, and check in the browser test that no two flat meshes overlap at one height (game-081 v1.0.1).
 - **Symptom: on a phone the scan grid is milky and the glyphs blur, but screenshots looked fine → additive layers summed into the bloom.** The X-ray patient was a double-sided additive shader, so a big model (the slime: a body, nine bubbles and a core) stacked a dozen surfaces behind every tile; under a 0.6 bloom threshold their sum glowed over everything. The screenshots had only checked a thin goblin. Keep see-through effects rim-only and front-faced, put an opaque-ish dark layer between them and anything that must be read, raise the bloom threshold where reading matters, and screenshot the biggest model, not the first one (game-081 v1.0.3).
+- **Symptom: "there's no door" but the prompt says Head out → the prop is inside its own cell's wall block.** A legend letter that is solid *and* counted as wall gets an instanced wall box filling the cell, so a door model placed within ±1 m of the centre is buried. Mount anything set into a wall proud of the wall face (here z ≥ 1.06, past the wainscot), and don't wall a free-standing exit (the cart). A cheap browser check: the exit's bounding box must not fit inside any tall instanced box.
+- **Symptom: a chest looks open when shut → a half-cylinder turned the wrong way.** `CylinderGeometry(r, r, len, n, 1, false, 0, Math.PI)` bulges along local +x; an Euler of `(π/2, 0, π/2)` lays the axis along x but points the curve forward (+z). Only `rotation.z = π/2` points it up. Hinge the lid group on the back top edge and lift with a negative `rotation.x`. Check a shut lid's lowest point is at the body's top.
 - **Portraits from the models.** Dialogue portraits are the 3D models rendered to a render target and read back with `readRenderTargetPixels`, cached per speaker. Chromium logs a "GPU stall due to ReadPixels" performance warning (not an error) the first time each is drawn.
 
 
@@ -5795,6 +5797,23 @@ Collecting the Wormhole calls `startWarp()`, which replaces `G.items` with a new
 - **The whole frame turned white after a death → an exposure "flash" decayed per frame.** Under SwiftShader a frame is a second, so `toneMappingExposure = 1 + flash` stayed lit for every screenshot (the game-079 lesson, again). Particle bursts carry the moment well enough without it.
 - **A floating label clipped to "ongSho".** A canvas texture of fixed width cut long words. Measure the text first and size the canvas and the sprite's aspect from it; offset a new label that would land on one still rising from the same spot.
 - **A torus scaled up to make a halo became a fat band.** Scaling a `TorusGeometry` scales its tube too; build a thin ring at the size you want. The model gallery showed it at once; in the game it read as a glowing belt.
+
+## Game 083: WYRMZONE — a first-person vector world from one beam primitive (2026-10-16)
+
+Battlezone on foot, then Star Wars on the wing, in three.js on the Section 2S layout, with every line drawn by game-070's beam primitive. [game-083/](../../game-083/).
+
+### A beam the camera can walk through must be clipped against the near plane
+game-070 looked at a flat playfield from far away, so its beam shader could clamp `w` and forget about it. In first person, segments of the ground, the obstacles and the dragon's own fireballs pass beside and behind the camera, and a clamped `w` flings the near end across the screen as a long streak. [beams.js](../../game-083/js/view/beams.js) clips in clip space before the divide: if one end has `w` below a small epsilon, slide it along the segment to the plane (`mix(ca, cb, (E - ca.w) / (cb.w - ca.w))`); if both do, send the quad off screen. Clip-space coordinates are linear along the segment, so this is exact. The same shader keeps widths constant in pixels (a vector monitor's beam does not get thinner with distance) and fades segments toward a far distance instead of popping them; a second instance with no far fade draws the horizon, moon and stars.
+
+### A portrait phone gets a periscope, not a 110° field of view
+Fitting a 70° horizontal field into a 390×844 window needs a vertical field over 100°, and everything at the edges stretches. Instead the world is drawn through a band of at least 1.2 : 1 (the render target's `viewport` set for the world pass only), framed like Battlezone's viewer, with the radar and score above it and the touch deck below. The beam shader's `uRes` must be the band's size, not the canvas's, or widths and halos come out wrong; the HUD keeps the whole screen in units where the shorter side is 300.
+
+### Steering by aiming needs both a rate cursor and a placed one
+Star Wars' yoke placed the cursor; arrow keys can only push it. The sim takes `{ x, y, abs }`: with `abs` (a touch stick, a gamepad stick, the mouse) the cursor chases the input and springs home when it is let go; without it, keys move the cursor at a rate and it drifts home slowly when nothing is held, so it never sticks in a corner. The mouse maps through the band and the camera's field of view back to aim angles (`screenToAim`), so the cross sits under the pointer.
+
+### Small traps
+- **The bot shot down every firebolt.** The first flight balance had both bots finishing Act II untouched; tightening fire rates moved the weaker bot to a few hits, but a perfect aimer still swats nearly everything. The balance notes say so: Act II is harder for a person than the bot table shows.
+- **A "runaway spawning" invariant tripped on the ramparts.** Forty-six static towers live in `G.enemies`; the invariant had been written for the march's handful of walkers. Bound what can actually run away (missiles, spawned foes), not the list's length.
 
 ---
 

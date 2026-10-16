@@ -1,0 +1,120 @@
+/* WYRMZONE. Phone first: everything fits 360 px wide. The menus look like vector-monitor text:
+   thin glowing outlines on black. */
+:root {
+    --bg: #000;
+    --panel: rgba(0, 8, 2, 0.88);
+    --line: rgba(80, 255, 110, 0.45);
+    --text: #b8ffc4;
+    --dim: #5fbf70;
+    --accent: #4dff6a;
+    --hot: #ff5a3c;
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-l: env(safe-area-inset-left, 0px);
+    --safe-r: env(safe-area-inset-right, 0px);
+    --glow: 0 0 6px rgba(77, 255, 106, 0.6);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--bg); color: var(--text);
+    font-family: ui-monospace, 'Courier New', Menlo, Consolas, monospace;
+    overflow: hidden; overscroll-behavior: none;
+    user-select: none; -webkit-user-select: none;
+}
+[hidden] { display: none !important; }
+
+/* The view sizes the canvas in px from JS. Never 100vw/100vh: on phones 100vh is taller than
+   the visible area, and taps land below the finger. */
+#view { position: fixed; left: 0; top: 0; display: block; touch-action: none; cursor: crosshair; }
+
+#back-link {
+    position: fixed; top: calc(8px + var(--safe-t)); left: calc(8px + var(--safe-l)); z-index: 99999;
+    font: 13px Arial, Helvetica, sans-serif; color: #fff; text-decoration: none;
+    background: rgba(0, 0, 0, 0.55); padding: 6px 12px; border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+#back-link:hover { background: rgba(0, 0, 0, 0.8); }
+
+/* ---------------------------------------------------------------- buttons */
+.btn, .ibtn, .tbtn {
+    font: inherit; color: var(--text); cursor: pointer;
+    min-height: 44px; min-width: 44px;           /* finger-sized */
+    border: 1px solid var(--line); border-radius: 4px;
+    background: rgba(0, 30, 6, 0.6);
+    text-shadow: var(--glow);
+}
+.btn { padding: 10px 18px; font-size: 16px; letter-spacing: 0.06em; text-transform: uppercase; }
+.btn.primary { border-color: var(--accent); color: #eaffee; box-shadow: 0 0 10px rgba(77, 255, 106, 0.35), inset 0 0 10px rgba(77, 255, 106, 0.15); }
+.btn.danger { border-color: var(--hot); color: #ffb3a6; text-shadow: 0 0 6px rgba(255, 90, 60, 0.6); }
+.btn:hover, .btn:focus-visible { background: rgba(20, 80, 30, 0.6); }
+.btn:focus-visible, .ibtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------- HUD */
+#hud {
+    position: fixed; z-index: 10; pointer-events: none;
+    top: calc(8px + var(--safe-t)); right: calc(8px + var(--safe-r));
+}
+#hud .ibtn { pointer-events: auto; background: rgba(0, 0, 0, 0.5); }
+
+/* ---------------------------------------------------------------- touch deck */
+#touch { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+#stick-zone { position: absolute; left: 0; bottom: 0; width: 55%; height: 55%; pointer-events: auto; touch-action: none; }
+#stick { position: absolute; width: 0; height: 0; opacity: 0.4; left: calc(84px + var(--safe-l)); bottom: calc(110px + var(--safe-b)); }
+#stick.on { opacity: 0.9; }
+#stick .ring { position: absolute; width: 120px; height: 120px; left: -60px; top: -60px; border-radius: 50%; border: 2px solid rgba(77, 255, 106, 0.6); box-shadow: 0 0 10px rgba(77, 255, 106, 0.3); }
+#stick .knob { position: absolute; width: 52px; height: 52px; left: -26px; top: -26px; border-radius: 50%; border: 2px solid rgba(180, 255, 190, 0.8); background: rgba(77, 255, 106, 0.18); }
+#stick-label { position: absolute; left: calc(14px + var(--safe-l)); bottom: calc(14px + var(--safe-b)); font-size: 11px; letter-spacing: 0.2em; color: var(--dim); }
+#touch[data-mode="flight"] #stick .ring, #touch[data-mode="flight"] #btn-fire { border-color: rgba(255, 240, 90, 0.75); box-shadow: 0 0 12px rgba(255, 240, 90, 0.35); }
+.tbtn {
+    position: absolute; pointer-events: auto; touch-action: none;
+    right: calc(22px + var(--safe-r)); bottom: calc(36px + var(--safe-b));
+    width: 86px; height: 86px; border-radius: 50%; font-size: 17px; font-weight: 700; letter-spacing: 0.08em;
+    border: 2px solid rgba(255, 120, 60, 0.85); color: #ffd2b8;
+    background: rgba(255, 90, 30, 0.16); box-shadow: 0 0 12px rgba(255, 90, 30, 0.35);
+    text-shadow: 0 0 6px rgba(255, 120, 60, 0.8);
+}
+.tbtn.down { background: rgba(255, 120, 40, 0.45); }
+
+/* ---------------------------------------------------------------- screens */
+.screen {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    /* top padding clears the fixed back link, so a scrolled button never sits under it */
+    padding: calc(52px + var(--safe-t)) calc(12px + var(--safe-r)) calc(12px + var(--safe-b)) calc(12px + var(--safe-l));
+    background: rgba(0, 0, 0, 0.35); overflow-y: auto;
+}
+#title { background: transparent; align-items: flex-end; padding-bottom: calc(24px + var(--safe-b)); }
+.sheet {
+    width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px;
+    box-shadow: 0 0 22px rgba(77, 255, 106, 0.15), inset 0 0 18px rgba(77, 255, 106, 0.06);
+}
+#title .sheet { background: rgba(0, 6, 2, 0.6); }
+.sheet h1, .sheet h2 { margin: 0 0 12px; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; text-shadow: var(--glow); color: #d8ffde; }
+.sheet h3 { margin: 16px 0 6px; font-weight: 400; letter-spacing: 0.1em; color: var(--accent); text-transform: uppercase; font-size: 14px; }
+.sheet p { line-height: 1.45; font-size: 14px; }
+.logo {
+    font-size: clamp(36px, 11vw, 64px); text-align: center; color: #9dffad !important;
+    letter-spacing: 0.18em !important; margin-bottom: 4px !important;
+    text-shadow: 0 0 4px #4dff6a, 0 0 14px rgba(77, 255, 106, 0.7), 0 0 30px rgba(77, 255, 106, 0.35) !important;
+    -webkit-text-stroke: 1px #c8ffd0; color: transparent !important;
+}
+.tag { text-align: center; color: #ffb066; letter-spacing: 0.18em; text-transform: uppercase; font-size: 12px; margin: 0 0 16px; text-shadow: 0 0 6px rgba(255, 150, 60, 0.6); }
+.menu { display: flex; flex-direction: column; gap: 10px; }
+.sheet-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; font-size: 14px; }
+.row input[type="checkbox"] { width: 22px; height: 22px; accent-color: #4dff6a; }
+.row input[type="range"] { accent-color: #4dff6a; }
+select { font: inherit; background: #001a05; color: var(--text); border: 1px solid var(--line); min-height: 36px; }
+.version { text-align: center; color: var(--dim); font-size: 12px; margin-top: 12px; letter-spacing: 0.08em; }
+.dim { color: var(--dim); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+td { padding: 6px 4px; border-bottom: 1px solid rgba(80, 255, 110, 0.2); }
+td:first-child { color: var(--accent); white-space: nowrap; padding-right: 10px; }
+#over h2 { color: #ffc7b8; text-shadow: 0 0 8px rgba(255, 90, 60, 0.7); }
+
+#toasts { position: fixed; left: 50%; bottom: calc(16px + var(--safe-b)); transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.toast { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 8px 14px; animation: toast 2.4s forwards; }
+@keyframes toast { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+.noscript { position: fixed; inset: 0; display: grid; place-items: center; }

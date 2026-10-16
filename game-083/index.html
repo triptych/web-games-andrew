@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="WYRMZONE — a wingless dragon walks home through a kingdom at war with dragons, in 1980s vector graphics: Battlezone on foot, then Star Wars on the wing.">
+    <title>WYRMZONE</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="WYRMZONE game view"></canvas>
+
+    <!-- The HUD is drawn in beams on the canvas; this holds only the pause button. -->
+    <div id="hud" hidden>
+        <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
+    </div>
+
+    <!-- Touch deck: shown on coarse pointers or after the first touch -->
+    <div id="touch" hidden data-mode="ground">
+        <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div><span id="stick-label">WALK</span></div>
+        <button id="btn-fire" class="tbtn" aria-label="Breathe fire">FIRE</button>
+    </div>
+
+    <!-- Screens -->
+    <div id="title" class="screen">
+        <div class="sheet">
+            <h1 class="logo">WYRMZONE</h1>
+            <p class="tag">A wingless dragon's road home</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Game</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version"><span id="title-best"></span> <span id="version"></span></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <p>The Kingdom of Varn has warred on dragons for a hundred years. Its wizards bound your wings with an iron ward and left you in the lowlands. Your home is the smoking mountain on the horizon. Walk there through their kingdom, break the engine that holds the ward, and fly.</p>
+            <h3>Act I · On foot</h3>
+            <table>
+                <tr><td>↑ ↓ / W S</td><td>Walk forward, back up</td></tr>
+                <tr><td>← → / A D</td><td>Turn</td></tr>
+                <tr><td>Space / Z / click</td><td>Breathe fire (two fireballs at once)</td></tr>
+            </table>
+            <p>Watch the radar: red blips are foes. Hide behind standing stones; dodge bolts by walking out of their line. Clear each march's quota of foes. A scale grows back each time.</p>
+            <h3>Act II · On the wing</h3>
+            <table>
+                <tr><td>Arrows / WASD / mouse</td><td>Move the targeting cross; your body follows it</td></tr>
+                <tr><td>Space / Z / click</td><td>Fire (hold for a stream)</td></tr>
+            </table>
+            <p>Shoot down firebolts before they reach you. Burn the crystals on the mage towers. In the gorge, climb or dive past the chains, and shoot the ward stone at its end.</p>
+            <h3>Touch &amp; gamepad</h3>
+            <p>Drag on the left half: walk and turn on foot, aim in the air. Hold <b>FIRE</b>. Gamepad: stick or d-pad, A to fire, Start to pause.</p>
+            <h3>Foes</h3>
+            <p>Footmen throw spears · ballistae fire bolts from range · lancers charge zig-zagging · wizards teleport and cast homing orbs (shoot them down) · trolls take three hits · war wagons fire pairs · a will-o-wisp is a 5000-point prize · griffon knights, mage towers and wall ballistae guard the sky.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">CRT glass and phosphor trails <input type="checkbox" id="set-crt"></label>
+            <label class="row">Invert flight up/down <input type="checkbox" id="set-invert"></label>
+            <label class="row">Touch controls
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="over" class="screen" hidden>
+        <div class="sheet">
+            <h2 id="over-title">The Dragon Falls</h2>
+            <p id="over-text"></p>
+            <p id="over-best" class="dim"></p>
+            <nav class="menu">
+                <button id="over-continue" class="btn primary">Continue (this stage, score kept from its start)</button>
+                <button id="over-cycle" class="btn primary" hidden>Fly the Kingdom Again (fiercer)</button>
+                <button id="over-title" class="btn">Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">WYRMZONE needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

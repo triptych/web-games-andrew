@@ -2,7 +2,7 @@
 
 **Genre:** First-person adventure with a trail-linking healing puzzle (Bumble Basket's rules, rethemed)
 **Engine:** three.js r165, no asset files: every model, texture, sound and tune is made in code
-**Status:** v1.0.3
+**Status:** v1.0.4
 
 ---
 
@@ -313,6 +313,19 @@ Tuned against the bots (`ONLY=scans,campaign node game-081/dev/simtest.mjs`):
 - Colour-blind mode (a pattern per aura).
 
 ## Changelog
+
+### v1.0.4 (2026-10-16)
+- There was no door out of the clinic. The exit cell `X` counts as wall, so it got a full wall block,
+  and the door model stood 0.85 m from the cell's centre, inside that block. On calls the cart's cell
+  was walled the same way, with no floor. `X` is now wall only in the clinic; the door is rebuilt
+  proud of the wall face (stone surround, oak door with iron straps, a lit window, a brass ring, a
+  step and mat, a lantern with its own light), and the cart stands on the floor.
+- Chests read backwards: the lid's half-cylinder was turned with its curve facing forward, so a shut
+  chest looked open, and opening it swung the curve up, floating off the back. The lid is a
+  flattened barrel vault, curve up, hinged on the back edge, with brass bands; an open chest shows a
+  dark inside.
+- browsertest: the exit (door or cart) isn't inside any wall block; a shut chest's lid sits on top of
+  its body.
 
 ### v1.0.3 (2026-10-16)
 - The Lumen Lens looked washed out on a real phone, worst on big patients. The slime's X-ray is a
