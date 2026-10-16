@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Salve & Scale** (game-081) v1.0.1: the clinic study's floor flickered with stripes on phones. The rug builder grouped `,` cells into rectangles but let a later one grow back over cells an earlier one had claimed, so the study had two overlapping rugs at the same height, which z-fought; each rug also had a full-size gold plane 4 mm beneath it. Now there is one rug per connected patch ([level.js](game-081/js/view/level.js)), its border is a ring rather than a plane underneath, both sit on a polygon offset, and the near plane moved from 0.05 to 0.1. [browsertest.mjs](game-081/dev/browsertest.mjs) checks that no two floor coverings overlap.
+
 ### Added
 - **Salve & Scale** (game-081) v1.0.0: a first-person monster-healer adventure in three.js with no asset files. You run the Lantern Clinic in Gloamhollow, treat monsters by looking inside them through the Lumen Lens, ride out on emergency calls, and expose the adventurers who drove the Overlord mad. Design in [game-plan.md](game-081/game-plan.md).
   - **The healing puzzle** ([js/sim/scan.js](game-081/js/sim/scan.js), [search.js](game-081/js/sim/search.js)): Bumble Basket's (game-058) trail rules rethemed and rewritten as plain, serializable state. Afflictions have a form, aura, depth and nature ([data/ailments.js](game-081/js/sim/data/ailments.js): 16 forms in 4 natures, 7 auras, 3 depths); trails link by the senses you have, lifeblooms grow from long trails, scar tissue and hex-bound motes get in the way, four reagent vials charge the Purging Draught, Prism Salve, Lancet Burst and Phoenix Feather, remedies and a tonic help in a pinch, and the Overlord is three boards in a row. The grid is the patient's silhouette ([data/species.js](game-081/js/sim/data/species.js)).

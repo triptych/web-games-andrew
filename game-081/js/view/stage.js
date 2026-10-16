@@ -65,7 +65,7 @@ export class Stage {
         this.renderer.toneMappingExposure = 1.0;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.setClearColor(0x05060c);
-        this.camera = new THREE.PerspectiveCamera(72, 1, 0.05, 220);
+        this.camera = new THREE.PerspectiveCamera(72, 1, 0.1, 220);   // near 0.1, not 0.05: twice the depth precision on phones
         this.camera.rotation.order = 'YXZ';
         const pm = new THREE.PMREMGenerator(this.renderer);
         this.envRoom = pm.fromScene(new RoomEnvironment(this.renderer), 0.04).texture;

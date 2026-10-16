@@ -38,7 +38,7 @@ export class View {
     get canvas() { return this.stage.canvas; }
 
     makeRing() {
-        const m = new THREE.Mesh(new THREE.RingGeometry(0.75, 0.9, 40), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.4, 1.2, 0.6), transparent: true, opacity: 0.6, depthWrite: false, side: THREE.DoubleSide }));
+        const m = new THREE.Mesh(new THREE.RingGeometry(0.75, 0.9, 40), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.4, 1.2, 0.6), transparent: true, opacity: 0.6, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8 }));
         m.rotation.x = -Math.PI / 2;
         m.renderOrder = 3;
         return m;
@@ -256,7 +256,7 @@ export class View {
         // the "use" ring under what you are facing, and the objective's beacon
         const f = ui.facing;
         this.ring.visible = !!f;
-        if (f) { this.ring.position.set((f.x + 0.5) * CELL, 0.03, (f.y + 0.5) * CELL); this.ring.material.opacity = 0.45 + Math.sin(time * 5) * 0.2; this.ring.rotation.z = time * 0.6; }
+        if (f) { this.ring.position.set((f.x + 0.5) * CELL, 0.05, (f.y + 0.5) * CELL); this.ring.material.opacity = 0.45 + Math.sin(time * 5) * 0.2; this.ring.rotation.z = time * 0.6; }
         const o = ui.objective;
         this.beacon.visible = !!(o && o.x != null && !(f && f.key === o.key));
         if (this.beacon.visible) {
