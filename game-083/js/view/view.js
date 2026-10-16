@@ -175,7 +175,7 @@ export class View {
             b.seg3(...c0, ...c1); b.seg3(...c1, ...c2); b.seg3(...c2, ...c3); b.seg3(...c3, ...c0);
         }
         // a crescent moon
-        const ma = -0.5, me = 0.11 - drop, mr = 0.035;
+        const ma = -0.5, me = drop ? 0.18 : 0.11, mr = 0.035;
         b.pen(col, inten * 0.9, 1);
         const M = (u, v) => P(ma + u, me + v);
         let p0 = null, q0 = null;
