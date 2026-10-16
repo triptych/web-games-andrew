@@ -259,15 +259,49 @@ function lens() {
     return g;
 }
 
+/** The clinic's front door, set in the wall behind it: the wall's face is at z = +1 (the cell is
+ *  solid), and the wainscot stands 5 cm proud of that, so everything here starts at z ≈ 1.06. */
 function door() {
     mats();
     const g = new THREE.Group();
-    g.add(rbox(1.3, 2.4, 0.16, darkWoodM, V(0, 1.2, 0.85)));
-    g.add(m(new THREE.TorusGeometry(0.08, 0.015, 8, 16), brassM, V(0.4, 1.15, 0.95)));
-    const lan = new THREE.Group(); lan.position.set(-0.85, 2.0, 0.7); g.add(lan);
-    lan.add(m(new THREE.CylinderGeometry(0.08, 0.1, 0.2, 6, 1, true), ironM));
-    const f = flame(1.8); f.position.y = -0.06; lan.add(f);
-    g.userData.update = f.userData.update;
+    const stone = (w, h) => TX.texMat(TX.blocks, { color: 0xc8b49a, repeat: [w / 0.8, h / 0.8] });
+    const iron = std(0x2a2624, { metal: 0.7, rough: 0.5 });
+    const face = 1.06;
+    // stone surround: two jambs, a lintel and a keystone
+    const jw = 0.24, jh = 2.5, openW = 1.24;
+    for (const s of [-1, 1]) g.add(box(jw, jh, 0.16, stone(jw, jh), V(s * (openW / 2 + jw / 2), jh / 2, face + 0.08)));
+    g.add(box(openW + jw * 2 + 0.1, 0.28, 0.2, stone(1.8, 0.28), V(0, jh + 0.14, face + 0.1)));
+    g.add(box(0.26, 0.36, 0.24, stone(0.26, 0.36), V(0, jh + 0.16, face + 0.12)));
+    // the door: oak planks with iron straps, a lit window and a brass ring
+    const panel = TX.texMat(TX.planks, { color: 0xc08a5e, rough: 0.8, repeat: [0.9, 1.2] });
+    for (const t of [panel.map, panel.normalMap, panel.roughnessMap]) t.rotation = Math.PI / 2;
+    g.add(box(openW, jh - 0.02, 0.08, panel, V(0, (jh - 0.02) / 2, face + 0.04)));
+    for (const y of [0.45, 1.25, 2.05]) {
+        g.add(box(openW - 0.12, 0.08, 0.02, iron, V(0, y, face + 0.09)));
+        for (const x of [-0.45, -0.15, 0.15, 0.45]) g.add(m(new THREE.SphereGeometry(0.018, 6, 4), iron, V(x, y, face + 0.1)));
+    }
+    const win = m(new THREE.PlaneGeometry(0.34, 0.4), lit(1.5, 0.95, 0.45), V(0, 1.72, face + 0.085));
+    win.castShadow = false;
+    g.add(win);
+    g.add(box(0.44, 0.05, 0.04, darkWoodM, V(0, 1.5, face + 0.1)));
+    g.add(box(0.44, 0.05, 0.04, darkWoodM, V(0, 1.94, face + 0.1)));
+    for (const x of [-0.2, 0.2]) g.add(box(0.05, 0.49, 0.04, darkWoodM, V(x, 1.72, face + 0.1)));
+    g.add(box(0.02, 0.4, 0.02, iron, V(0, 1.72, face + 0.1)));
+    g.add(box(0.34, 0.02, 0.02, iron, V(0, 1.72, face + 0.1)));
+    g.add(m(new THREE.CylinderGeometry(0.06, 0.06, 0.02, 14), brassM, V(0.42, 1.1, face + 0.09), [Math.PI / 2, 0, 0]));
+    g.add(m(new THREE.TorusGeometry(0.075, 0.014, 8, 18), brassM, V(0.42, 1.03, face + 0.11)));
+    // a stone step and a mat in front
+    g.add(box(openW + 0.3, 0.06, 0.36, stone(1.5, 0.36), V(0, 0.03, face + 0.18)));
+    g.add(box(1.1, 0.02, 0.55, std(0x6a3a2a, { rough: 1 }), V(0, 0.01, face + 0.7)));
+    // a lantern on a bracket beside it, lit so the door reads from across the waiting room
+    const lan = new THREE.Group(); lan.position.set(-1.05, 2.2, face + 0.28); g.add(lan);
+    lan.add(box(0.04, 0.04, 0.3, iron, V(0, 0.18, -0.13)));
+    lan.add(m(new THREE.CylinderGeometry(0.02, 0.1, 0.08, 6), iron, V(0, 0.12, 0)));
+    lan.add(m(new THREE.CylinderGeometry(0.09, 0.09, 0.2, 6, 1, true), std(0xffd8a0, { emissive: 0xffa040, ei: 1.4, transparent: true, opacity: 0.55, side: THREE.DoubleSide }), V(0, -0.02, 0)));
+    lan.add(m(new THREE.CylinderGeometry(0.1, 0.07, 0.04, 6), iron, V(0, -0.14, 0)));
+    const f = flame(1.8); f.position.y = -0.1; lan.add(f);
+    const light = new THREE.PointLight(0xffb060, 1.6, 6, 1.5); light.position.set(0, -0.05, 0.15); lan.add(light);
+    g.userData.update = (t) => { f.userData.update(t); light.intensity = 1.5 + Math.sin(t * 9) * 0.12 + Math.sin(t * 23) * 0.06; };
     return g;
 }
 
@@ -290,18 +324,30 @@ function cart() {
 function chest() {
     mats();
     const g = new THREE.Group();
-    g.add(rbox(1.0, 0.55, 0.65, woodM, V(0, 0.28, 0)));
-    for (const x of [-0.35, 0.35]) g.add(box(0.06, 0.57, 0.67, brassM, V(x, 0.28, 0)));
-    const lid = new THREE.Group(); lid.position.set(0, 0.55, -0.32); g.add(lid);
-    const top = m(new THREE.CylinderGeometry(0.32, 0.32, 1.0, 16, 1, false, 0, Math.PI), woodM, V(0, 0, 0.32), [0, 0, Math.PI / 2]);
-    top.rotation.set(Math.PI / 2, 0, Math.PI / 2);
-    lid.add(top);
+    const W = 1.0, D = 0.65, H = 0.55, R = D / 2;
+    // the body, with a dark inside showing when the lid is up
+    g.add(rbox(W, H, D, woodM, V(0, H / 2, 0)));
+    const inside = box(W - 0.1, 0.01, D - 0.1, std(0x140c08, { rough: 1 }), V(0, H + 0.003, 0));
+    inside.castShadow = false;
+    g.add(inside);
+    for (const x of [-0.35, 0.35]) g.add(box(0.06, H + 0.02, D + 0.02, brassM, V(x, H / 2, 0)));
+    g.add(box(0.16, 0.18, 0.03, brassM, V(0, H - 0.1, D / 2 + 0.01)));
+    // the lid hinges along the top back edge; closed, its barrel vault sits on the body, curve up
+    const lid = new THREE.Group(); lid.position.set(0, H, -R); g.add(lid);
+    const vault = (r, len, mat) => {
+        const c = m(new THREE.CylinderGeometry(r, r, len, 20, 1, false, 0, Math.PI), mat, V(0, 0, R), [0, 0, Math.PI / 2]);
+        c.scale.set(0.62, 1, 1);           // flatten the arch: local x is height after the turn
+        return c;
+    };
+    lid.add(vault(R, W, woodM));
+    lid.add(box(W, 0.02, D, darkWoodM, V(0, 0.01, R)));
+    for (const x of [-0.35, 0.35]) { const band = vault(R + 0.012, 0.06, brassM); band.position.x = x; lid.add(band); }
     const shine = new THREE.Sprite(glowMaterial(glow(), new THREE.Color(1.2, 0.95, 0.4), 0));
-    shine.scale.setScalar(1.2); shine.position.y = 0.7; g.add(shine);
+    shine.scale.setScalar(1.2); shine.position.y = 0.75; g.add(shine);
     let o = 0;
     g.userData.update = (t, st) => {
         o += ((st?.open ? 1 : 0) - o) * 0.08;
-        lid.rotation.x = -o * 1.6;
+        lid.rotation.x = -o * 1.95;        // lift the front edge up and over the hinge
         shine.material.opacity = st?.open ? Math.max(0, 1 - o) * 0.8 : 0.15 + Math.sin(t * 2) * 0.1;
     };
     return g;
