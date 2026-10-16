@@ -1256,6 +1256,22 @@ const games = [
             { emoji: '\u2728', label: 'Vector' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-084',
+        title: 'ROMANCER',
+        description: "A game about making games, in three.js with no asset files. Tycho Station, the Moon, 3126: nobody makes games any more, because the Stream generates them, and a salvage crate from Old Earth holds the VESTA-8, an 8-bit console from 1983, with nine cartridges. Eight are corrupted toy versions of games that made history: RALLY after Pong, BRICKBREAK after Breakout, INVASION after Space Invaders, MAZE MUNCH after Pac-Man, ROAD HOP after Frogger, GIRDER CLIMB after Donkey Kong, SCROLL RUN after Super Mario Bros. and DUNGEON KEY after Zelda. As the Lumen Institute's new researcher you repair each one on the Workbench with the console's own tools: a pixel editor, a level maker with layers of levels, an object inspector with a dozen movement presets, VESTA SCRIPT (a small Lua-like language with event handlers), a sound designer and a three-voice music tracker. Then you play it on a curved, glowing CRT in a moonlit lab. Every restored cartridge gives VESTA back a memory and a piece of its hardware: colours, the sound chip, music, scrolling maps, more levels. The ninth cartridge is handwritten and empty, so the last game is yours. The Studio is the same toolkit with no checklist: make any 2D game, save and load cart files, and export it as one HTML file that plays anywhere, offline. A story with a dry curator, a console that talks in capitals and a Stream auditor, fourteen commendations, and bots that prove every cartridge winnable.",
+        icon: '\uD83D\uDCFC',
+        folder: 'game-084',
+        version: '1.0.0',
+        cssClass: 'romancer',
+        genre: 'story',
+        tags: [
+            { emoji: '\uD83D\uDEE0\uFE0F', label: 'Game maker' },
+            { emoji: '\uD83D\uDD79\uFE0F', label: 'Gaming history' },
+            { emoji: '\uD83D\uDCFA', label: 'Retro-futurist' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
