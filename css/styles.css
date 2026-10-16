@@ -1049,6 +1049,23 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 106, 216, 0.6);
 }
 
+.game-preview.wyrmzone,
+.carousel-slide-bg.wyrmzone {
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0) 54%, rgba(77, 255, 106, 0.55) 55%, rgba(0, 0, 0, 0) 56.5%),
+        linear-gradient(160deg, rgba(0, 0, 0, 0) 38%, rgba(77, 255, 106, 0.28) 39%, rgba(0, 0, 0, 0) 40%),
+        linear-gradient(20deg, rgba(0, 0, 0, 0) 60%, rgba(77, 255, 106, 0.22) 61%, rgba(0, 0, 0, 0) 62%),
+        radial-gradient(circle at 78% 22%, rgba(255, 90, 60, 0.55) 0%, rgba(255, 90, 60, 0) 9%),
+        radial-gradient(ellipse at 50% 100%, rgba(255, 120, 40, 0.3) 0%, rgba(255, 120, 40, 0) 40%),
+        linear-gradient(180deg, #000 0%, #021006 60%, #000 100%);
+}
+
+.game-card.wyrmzone .play-button {
+    background: linear-gradient(135deg, #b8ffc4, #4dff6a 50%, #ff7a3c);
+    color: #021006;
+    box-shadow: 0 0 14px rgba(77, 255, 106, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

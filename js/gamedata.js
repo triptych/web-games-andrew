@@ -1240,6 +1240,22 @@ const games = [
             { emoji: '\uD83D\uDC7E', label: 'Arcade platformer' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-083',
+        title: 'WYRMZONE',
+        description: "A dragon who has lost its wings walks home through a kingdom at war with dragons, in the vector graphics of 1980s arcades, in three.js with no asset files. The first half is Battlezone on foot: a green wireframe plain seen through the dragon's eyes, jagged mountains and the smoking volcano of home on the horizon, a radar with a sweep, ENEMY IN RANGE, standing stones and ruins to hide behind. Breathe fireballs at footmen with spears, ballistae that hunt you like tanks, lancers charging in a zig-zag, wizards who teleport and cast homing orbs, three-hit trolls, war wagons and a will-o-wisp worth 5000, over four marches to the Dragonbane, a siege tower with a giant crossbow that holds the ward on your wings. Break it and the camera rises off the plain: the second half is Star Wars on the wing, in colour, with a targeting cross that fire converges on and that the dragon steers by. Bring down griffon knights and their firebolts in the open sky, burn the crystals on the mage towers over the ramparts, and fly the Gorge of Chains, climbing and diving under bridges, to shoot the ward stone at its end and fly home; then round the kingdom again, fiercer. Phosphor trails and curved glass, a periscope view on a portrait phone, procedural sound with a war march and a soaring flight theme, saves and continues; keyboard, mouse, gamepad or touch.",
+        icon: '\uD83D\uDC09',
+        folder: 'game-083',
+        version: '1.0.0',
+        cssClass: 'wyrmzone',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83D\uDC09', label: 'Dragon' },
+            { emoji: '\uD83D\uDCE1', label: 'Battlezone' },
+            { emoji: '\u2728', label: 'Vector' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
