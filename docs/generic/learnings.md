@@ -5813,4 +5813,5 @@ Star Wars' yoke placed the cursor; arrow keys can only push it. The sim takes `{
 
 ### Small traps
 - **The bot shot down every firebolt.** The first flight balance had both bots finishing Act II untouched; tightening fire rates moved the weaker bot to a few hits, but a perfect aimer still swats nearly everything. The balance notes say so: Act II is harder for a person than the bot table shows.
+- **The game-over sheet's Title button did nothing → two elements with one id.** The heading was `<h2 id="over-title">` and the button `<button id="over-title">`; `getElementById` returns the first, so the handler went on the heading. A test that clicks "the Title button" by looking it up the same way clicks the heading and passes. Check that every id in the page is unique, and click buttons where they are drawn. *(game-083 v1.0.1)*
 - **A "runaway spawning" invariant tripped on the ramparts.** Forty-six static towers live in `G.enemies`; the invariant had been written for the march's handful of walkers. Bound what can actually run away (missiles, spawned foes), not the list's length.

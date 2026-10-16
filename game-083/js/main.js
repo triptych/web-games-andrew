@@ -90,7 +90,7 @@ document.getElementById('over-cycle').addEventListener('click', () => {
     audio.ui('click');
     if (nextCycle(G)) resume();
 });
-document.getElementById('over-title').addEventListener('click', () => { audio.ui('click'); toTitle(); });
+document.getElementById('over-to-title').addEventListener('click', () => { audio.ui('click'); toTitle(); });
 
 function startGame(g) {
     G = g;

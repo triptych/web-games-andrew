@@ -99,6 +99,10 @@ async function desktop() {
     const page = await open({ width: 1280, height: 760 });
     check(await backLinkOk(page), '← Games link is on top and points at ../index.html');
     check(await Q(page, () => !document.getElementById('title').hidden), 'title screen is up');
+    // a repeated id sends getElementById to the wrong element: the game-over Title button shared
+    // its id with the sheet's heading, so its handler went on the heading and the button did nothing
+    const dup = await Q(page, () => { const ids = [...document.querySelectorAll('[id]')].map((e) => e.id); return ids.filter((id, i) => ids.indexOf(id) !== i); });
+    check(dup.length === 0, `every id in the page is unique${dup.length ? ` (repeated: ${dup.join(', ')})` : ''}`);
     check(await Q(page, () => document.getElementById('btn-continue').hidden), 'no Continue without a save');
     await until(page, () => __wz.G.t > 3, 'the attract demo plays behind the title');
     const L = await layout(page);
@@ -172,6 +176,12 @@ async function desktop() {
     await shot(page, 'desktop-over');
     await click(page, '#over-continue');
     await until(page, () => __wz.mode === 'play' && __wz.G.scales === 6 && __wz.G.continues === 1, 'Continue retries the stage with full scales');
+    // fall again, and leave by the Title button, clicked with the real mouse where it is drawn
+    await Q(page, () => { __wz.G.scales = 1; __wz.idle(40); });
+    await until(page, () => __wz.mode === 'over' && !document.getElementById('over').hidden, 'the dragon falls again');
+    const tb = await Q(page, () => { const r = document.getElementById('over-to-title').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    await page.mouse.click(tb.x, tb.y);
+    await until(page, () => __wz.mode === 'title' && !document.getElementById('title').hidden && document.getElementById('over').hidden, 'a mouse click on the game-over sheet\'s Title button returns to the title');
 
     // the gorge, the ward stone, home
     await Q(page, () => { __wz.start(5, 'gorge'); });
@@ -259,6 +269,11 @@ async function nostorage() {
     check(await Q(page, () => __wz.save() === false), 'saving fails quietly');
     await Q(page, () => { __wz.G.scales = 1; __wz.idle(40); });
     await until(page, () => __wz.mode === 'over', 'a game can still end (the best score just isn\'t kept)');
+    // the keyboard way out: Down from Continue to Title, then Enter
+    await page.keyboard.press('ArrowDown');
+    await until(page, () => document.activeElement?.id === 'over-to-title', 'Down moves the focus to the Title button');
+    await page.keyboard.press('Enter');
+    await until(page, () => __wz.mode === 'title' && !document.getElementById('title').hidden, 'Enter on Title returns to the title');
     reportErrors('nostorage');
 }
 
