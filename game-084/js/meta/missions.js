@@ -551,7 +551,8 @@ const M4 = {
             id: 'patch', text: 'Patch the maze: replace every glitched tile (sprite 8) with a wall.',
             hint: 'In MAP, pick the wall (sprite 1) and paint over the noisy tiles. There are five.',
             tool: 'map',
-            check: (c) => { const n = countTiles(c.cart, 0, 8); return { done: n === 0, have: 5 - Math.min(5, n), need: 5 }; },
+            // every glitched cell must be a wall again (painting them empty doesn't close the maze)
+            check: (c) => { const L = c.cart.levels[0]; const n = MAZE_GLITCH.filter(([y, x]) => L && hasFlag(c.cart, V.tileAtLevel(L, x, y), 'solid')).length; return { done: n === MAZE_GLITCH.length, have: n, need: MAZE_GLITCH.length }; },
             fix: (cart) => replaceTiles(cart, 0, 8, 1),
         },
         {
@@ -1024,7 +1025,8 @@ const M7 = {
             id: 'bridge', text: 'Repair the broken ground near the end: no glitched tiles (sprite 16) may remain.',
             hint: 'MAP → scroll right with two fingers or the arrows → paint ground (sprite 1) over the noisy tiles.',
             tool: 'map',
-            check: (c) => { const n = countTiles(c.cart, 0, 16); return { done: n === 0, have: 8 - Math.min(8, n), need: 8 }; },
+            // the eight cells of the broken bridge must be solid ground again
+            check: (c) => { const L = c.cart.levels[0]; let n = 0; for (let x = 74; x <= 81; x++) if (L && hasFlag(c.cart, V.tileAtLevel(L, x, 13), 'solid')) n++; return { done: n === 8, have: n, need: 8 }; },
             fix: (cart) => replaceTiles(cart, 0, 16, 1),
         },
         {
@@ -1230,6 +1232,13 @@ const M8 = {
 // ======================================================================
 // 9. THE LAST CARTRIDGE — yours
 // ======================================================================
+function lastObjects(cart) {
+    cart.types = [
+        { ...V.defaultType('ship'), spr: 1, control: 'paddle_h', speed: 2 },
+        { ...V.defaultType('star'), spr: 2, walls: false, edge: 'none' },
+    ];
+    cart.levels[0].objs = [{ t: 'ship', x: 76, y: 104 }];
+}
 const M9 = {
     id: 'last', n: 9, year: 0, title: 'THE LAST CARTRIDGE', after: 'YOUR OWN GAME', maker: 'You',
     color: '#ffffff',
@@ -1277,13 +1286,7 @@ const M9 = {
             hint: 'OBJECTS → NEW, then give one a Player control. Place them with the MAP\'s object brush.',
             tool: 'objects',
             check: (c) => ({ done: c.cart.types.length >= 2 && c.cart.types.some((t) => V.isPlayerControl(t.control)) }),
-            fix: (cart) => {
-                cart.types = [
-                    { ...V.defaultType('ship'), spr: 1, control: 'paddle_h', speed: 2 },
-                    { ...V.defaultType('star'), spr: 2, walls: false, edge: 'none' },
-                ];
-                cart.levels[0].objs = [{ t: 'ship', x: 76, y: 104 }];
-            },
+            fix: (cart) => lastObjects(cart),
         },
         {
             id: 'script', text: 'Write a script with at least one "on" handler.',
@@ -1291,9 +1294,10 @@ const M9 = {
             tool: 'code',
             check: (c) => ({ done: [c.cart.script, ...c.cart.types.map((t) => t.script)].some((s) => { const p = V.compile(s); return !p.error && Object.keys(p.handlers).some((k) => k !== 'init'); }) }),
             fix: (cart) => {
-                cart.script = 'on start\n  score = 0\n  missed = 0\nend\n\non update\n  if chance(0.02) then spawn("star", rndi(4, 148), -8) end\n  if score >= 15 then win() end\n  if missed >= 5 then lose() end\nend\n';
+                cart.script = 'on start\n  score = 0\n  missed = 0\nend\n\non update\n  if chance(0.015) then spawn("star", rndi(4, 148), -8) end\n  if score >= 12 then win() end\n  if missed >= 8 then lose() end\nend\n';
+                if (!cart.types.find((t) => t.name === 'star') || !cart.types.find((t) => t.name === 'ship')) lastObjects(cart);
                 const star = cart.types.find((t) => t.name === 'star');
-                star.script = 'on start\n  vy = 0.6 + rnd(0.6)\nend\n\non update\n  if y > 120 then\n    missed += 1\n    destroy()\n  end\nend\n';
+                star.script = 'on start\n  vy = 0.5 + rnd(0.4)\nend\n\non update\n  if y > 120 then\n    missed += 1\n    destroy()\n  end\nend\n';
                 const ship = cart.types.find((t) => t.name === 'ship');
                 ship.script = 'on hit star\n  destroy(other)\n  score += 1\n  sfx(1)\nend\n';
             },

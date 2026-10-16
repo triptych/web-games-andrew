@@ -701,7 +701,7 @@ export function core(V) {
             if (R.pendingRestart) {
                 R.pendingRestart = false;
                 const fresh = V.restartRun(R);
-                Object.assign(R, fresh, { events: R.events.concat(fresh.events), stats: R.stats });
+                Object.assign(R, fresh, { events: R.events.concat(fresh.events), stats: { ...fresh.stats, maxG: R.stats.maxG, wins: R.stats.wins, losses: R.stats.losses } });
                 return;
             }
             if (R.pendingLevel >= 0 && R.status === 'run') {
