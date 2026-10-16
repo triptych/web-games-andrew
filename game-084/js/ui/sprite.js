@@ -22,7 +22,8 @@ export class SpriteEditor {
     mount(root) {
         this.root = root;
         root.innerHTML = '';
-        const size = Math.max(200, Math.min(336, (root.clientWidth || 360) - 24));
+        // fit the width, and on a short screen the height too, so the canvas never needs scrolling to reach
+        const size = Math.max(160, Math.min(336, (root.clientWidth || 360) - 24, (root.clientHeight || 600) - 150));
         this.cv = el('canvas', { width: 8 * 32, height: 8 * 32, class: 'px', style: { width: size + 'px', height: size + 'px', cursor: 'crosshair' }, 'aria-label': 'Sprite canvas' });
         this.cv.addEventListener('contextmenu', (e) => e.preventDefault());
         this.bindDraw();

@@ -208,7 +208,7 @@ async function desktop() {
     p2.on('pageerror', (e) => errs2.push(e.message));
     p2.on('console', (m) => { if (m.type() === 'error') errs2.push(m.text()); });
     let net = 0;
-    await p2.route('**/*', (r) => { net++; r.abort(); });
+    await p2.route('**/*', (r) => { if (r.request().url().startsWith('file:')) return r.continue(); net++; return r.abort(); });
     await p2.goto('file://' + file);
     await p2.waitForTimeout(500);
     await p2.keyboard.press('Space');

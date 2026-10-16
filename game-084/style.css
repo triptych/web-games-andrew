@@ -367,5 +367,24 @@ canvas.px { image-rendering: pixelated; image-rendering: crisp-edges; touch-acti
 
 /* while a cart plays, toasts go to the top so they never cover the pad */
 body.playing #toasts { top: calc(64px + var(--safe-t)); bottom: auto; }
-#playbar .btn { min-height: 40px; padding: 6px 12px; font-size: 12px; white-space: nowrap; }
+#playbar .btn { min-height: 44px; padding: 6px 12px; font-size: 12px; white-space: nowrap; }
 @media (max-width: 520px) { #play-title { display: none; } }
+
+/* short screens (a phone on its side): one header row beside the back link, more room to work */
+@media (max-height: 560px) {
+    #bench { padding-top: calc(4px + var(--safe-t)); }
+    #bench-head { padding-left: 100px; flex-wrap: nowrap; }
+    #bench-name .eyebrow { display: none; }
+    #bench-name b { max-width: 18vw; font-size: 13px; }
+    #bench-tabs { order: 0; flex: 1 1 auto; }
+    #bench-tabs button { padding: 4px 8px; }
+    #bench-play { padding: 6px 12px; }
+    #tasks { max-height: 34%; }
+    .screen { padding-top: calc(44px + var(--safe-t)); }
+}
+
+/* wide screens: the title sits to the left so the lab and its television stay in view */
+@media (min-width: 900px) and (min-height: 561px) {
+    .title-screen { justify-content: flex-start; align-items: center; padding-left: 6vw; }
+    .title-wrap { padding-bottom: 0; }
+}

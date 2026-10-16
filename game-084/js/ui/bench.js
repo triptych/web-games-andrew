@@ -55,6 +55,9 @@ export class Bench {
         $('bench-kind').textContent = this.mode === 'studio' ? 'STUDIO CARTRIDGE' : this.mission.final ? 'THE LAST CARTRIDGE' : `CARTRIDGE ${this.mission.n} · ${this.mission.year} · AFTER ${this.mission.after}`;
         this.setTitle(this.cart.title);
         $('bench').hidden = false;
+        // a phone on its side starts with the checklist folded away
+        const short = innerHeight < 560 && innerWidth < 980;
+        $('tasks').classList.toggle('collapsed', short);
         // start on the tab the first unfinished task needs
         const first = this.mission ? this.h.taskStates().map((s, i) => [s, this.mission.tasks[i]]).find(([s]) => !s.done) : null;
         if (first) this.focusTask(first[1]);
