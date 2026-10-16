@@ -13,7 +13,8 @@ import { mapEnts } from '../sim/world.js';
 import { patientById } from '../sim/game.js';
 import { MAPS } from '../sim/data/maps.js';
 
-const SCAN_GRADE = { tint: [0.95, 1.0, 1.08], lift: [0, 0.01, 0.03], sat: 1.1, vignette: 0.55, grain: 0.03, exposure: 1.0, bloom: 0.9, threshold: 0.6 };
+// the Lens is for reading motes: a little bloom on what is really bright, nothing that washes the grid out
+const SCAN_GRADE = { tint: [0.95, 1.0, 1.06], lift: [0, 0.005, 0.02], sat: 1.0, vignette: 0.5, grain: 0.025, exposure: 0.95, bloom: 0.32, threshold: 0.9 };
 
 export class View {
     constructor(canvas, quality = 1) {
