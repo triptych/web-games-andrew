@@ -2,7 +2,7 @@
 
 **Genre:** First-person vector arcade shooter: Battlezone on foot, then Star Wars on the wing
 **Engine:** three.js r165, no asset files: everything is drawn as beams of light by one instanced shader
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -140,6 +140,9 @@ The bot plays whole games (`ONLY=bot node game-083/dev/simtest.mjs`):
 - A two-speed walk (Battlezone's treads let you turn on the spot faster than you could walk).
 
 ## Changelog
+
+### v1.0.1 (2026-10-16)
+- Fixed: the game-over sheet's **Title** button did nothing, by mouse, touch or keyboard. It shared the id `over-title` with the sheet's heading, so `getElementById` returned the heading and the handler went there. The button is now `over-to-title`; `dev/browsertest.mjs` checks every id in the page is unique and leaves the game-over sheet by Title with a real mouse click and with Down, Enter.
 
 ### v1.0.0 (2026-10-16)
 - First release: four marches on foot and the Dragonbane in Battlezone style; the ascent; the Open Sky, the Ramparts and the Gorge of Chains in Star Wars style; the homecoming and endless cycles.
