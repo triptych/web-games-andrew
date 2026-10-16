@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **WYRMZONE** (game-083) v1.0.1: the game-over sheet's Title button did nothing. It shared the id `over-title` with the sheet's heading, so `getElementById` returned the heading and the return-to-title handler was attached to the heading instead of the button. The button is now `over-to-title` ([index.html](game-083/index.html), [main.js](game-083/js/main.js)); [browsertest.mjs](game-083/dev/browsertest.mjs) checks every id in the page is unique and leaves the sheet by Title with a real mouse click and by keyboard.
+
 ### Added
 - **WYRMZONE** (game-083) v1.0.0: a dragon who has lost its wings walks home through a kingdom at war with dragons, in 1980s vector graphics, in three.js with no asset files: Battlezone on foot, then Star Wars on the wing. Design in [game-plan.md](game-083/game-plan.md).
   - **Act I, on foot** ([js/sim/ground.js](game-083/js/sim/ground.js), [world.js](game-083/js/sim/world.js)): tank controls, fireballs (two in the air at once), an endless plain whose standing stones, cairns, ruins, pines and barrows are hashed from the seed, never stored, and block movement and fire. Footmen throw spears, ballistae aim, strafe and fire bolts from range, lancers charge in a zig-zag, wizards teleport and cast homing orbs that can be shot down, trolls take three hits, war wagons fire pairs, and a will-o-wisp is a 5000-point prize. Four marches with kill quotas, then the Dragonbane: a siege tower with a crossbow turret that fires volleys, summons footmen and crushes.
