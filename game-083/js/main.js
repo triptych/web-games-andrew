@@ -22,12 +22,13 @@ const settings = loadSettings();
 const audio = new Audio();
 audio.setVolumes(settings.sfx, settings.music);
 const input = new Input();
+input.look.sens = settings.look;
 const canvas = document.getElementById('view');
 const view = new View(canvas);
 view.setCrt(settings.crt);
 const ui = new UI({
     audio, settings,
-    onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music); view.setCrt(s.crt); updateTouch(); },
+    onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music); view.setCrt(s.crt); input.look.sens = s.look; updateTouch(); },
     onDeleteSave: () => { clearSave(); refreshTitle(); },
 });
 let best = loadBest();
@@ -48,6 +49,7 @@ let saveT = 0;
 let bot = null;
 let wasRunning = false;
 let lastMode = null;
+let lockLostAt = -1e9;       // when Esc let the mouse go: that same Esc must not also close the pause sheet
 const seen = {};             // a count of every sim event drained, for the tests
 
 // ------------------------------------------------------------------ menus
@@ -114,6 +116,7 @@ function resume() {
 }
 
 function toTitle() {
+    input.unlock();
     for (const id of [...ui.stack]) ui.closeScreen(id);
     mode = 'title';
     ui.showHud(false);
@@ -128,6 +131,7 @@ function toTitle() {
 
 function pause() {
     if (mode !== 'play' || ui.anyScreen()) return;
+    input.unlock();
     audio.ui('open');
     saveGame(G);
     ui.openScreen('pause');
@@ -138,7 +142,18 @@ function updateTouch() {
     ui.setTouch(settings.touch === 'on' || (settings.touch === 'auto' && (coarse || input.lastDevice === 'touch')));
 }
 input.onTouch = updateTouch;
-input.bindMouse(canvas);
+// mouse look: a click on the view during play captures the mouse; letting it go (Esc) pauses
+input.bindMouse(canvas, () => mode === 'play' && !ui.anyScreen() && !bot);
+input.onLockChange = (on) => {
+    if (on) { input.syncAim(G.player.ax, G.player.ay); return; }
+    if (mode === 'play' && !ui.anyScreen()) { lockLostAt = performance.now(); pause(); }
+};
+const lookHint = document.getElementById('look-hint');
+const fineMouse = window.matchMedia?.('(pointer: fine)').matches;
+function updateLookHint(running) {
+    const show = running && fineMouse && !input.look.locked && !input.look.free && input.lastDevice !== 'touch' && input.lastDevice !== 'pad';
+    if (lookHint.hidden === show) lookHint.hidden = !show;
+}
 input.bindStick(document.getElementById('stick-zone'), document.getElementById('stick'), document.querySelector('#stick .knob'));
 input.bindFire(document.getElementById('btn-fire'));
 
@@ -150,7 +165,10 @@ function handlePresses() {
     if (ui.anyScreen()) {
         if (key === 'ArrowDown') ui.moveFocus(1);
         else if (key === 'ArrowUp') ui.moveFocus(-1);
-        else if ((key === 'Escape' || key === 'KeyP') && ui.top() !== 'title' && ui.top() !== 'over') { audio.ui('close'); ui.closeTop(); }
+        else if ((key === 'Escape' || key === 'KeyP') && ui.top() !== 'title' && ui.top() !== 'over') {
+            if (key === 'Escape' && performance.now() - lockLostAt < 400) return;
+            audio.ui('close'); ui.closeTop();
+        }
         else if (key === 'Enter' && press.pad) document.activeElement?.click?.();
         return;
     }
@@ -172,6 +190,7 @@ function flushEvents() {
         clearSave();
         saveBest(best);
         ui.showHud(false);
+        input.unlock();
         ui.showOver(G, best);
     }
 }
@@ -212,7 +231,8 @@ function frame(now) {
         demoT += dt;
         if (G.over || demoT > 24) { demoIdx++; demoT = 0; G = demoGame(); demoBot = makeBot({ skill: 1, seed: demoIdx }); }
     } else acc = 0;
-    if (G.mode !== lastMode) { lastMode = G.mode; ui.setMode(G.mode); }
+    if (G.mode !== lastMode) { lastMode = G.mode; ui.setMode(G.mode); input.syncAim(G.player.ax, G.player.ay); }
+    updateLookHint(running);
     flushEvents();
     audio.update(G, dt, running);
     view.hud.demo = mode === 'title';

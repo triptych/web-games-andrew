@@ -101,7 +101,7 @@ function victory(G) {
     G.events.push({ type: 'over', won: true, score: G.score });
 }
 
-/** Advance one fixed step. inp = { x, y, a, abs }: x, y in [-1, 1] (y down), a = fire, abs = x, y place the cursor. */
+/** Advance one fixed step. inp = { x, y, a, abs, turn }: x, y in [-1, 1] (y down), a = fire, abs = x, y place the cursor, turn = radians of mouse look to turn by on foot. */
 export function step(G, inp, dt) {
     if (G.over) return;
     G.t += dt;

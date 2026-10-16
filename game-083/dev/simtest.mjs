@@ -107,6 +107,11 @@ if (want('ground')) {
     run(G, { x: 1, y: 0, a: false }, 0.5);
     ok(Math.abs(G.player.h - C.GROUND.turn * 0.5) < 0.02, 'turns right at GROUND.turn');
     ok(U.bearing(0, 0, 0, 5, -5) > 0 && U.bearing(0, 0, 0, -5, -5) < 0, 'bearing: + is to the right');
+    G = at('march1'); clearSpot(G);
+    Gm.step(G, { x: 0, y: 0, a: false, turn: 0.25 }, DT);
+    ok(Math.abs(G.player.h - 0.25) < 1e-9, 'mouse look turns by the angle it hands over, in one step');
+    Gm.step(G, { x: 0, y: 0, a: false, turn: 5 }, DT);
+    ok(Math.abs(G.player.h - (0.25 + C.GROUND.lookMax)) < 1e-9, 'and a wild flick is capped at GROUND.lookMax a step');
 
     // obstacles block
     G = at('march1');
