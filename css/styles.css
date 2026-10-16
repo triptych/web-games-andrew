@@ -1033,6 +1033,22 @@ h1 {
     box-shadow: 0 0 14px rgba(98, 224, 240, 0.6);
 }
 
+.game-preview.bubble-nebula,
+.carousel-slide-bg.bubble-nebula {
+    background:
+        radial-gradient(circle at 30% 35%, rgba(127, 232, 255, 0.55) 0%, rgba(127, 232, 255, 0) 14%),
+        radial-gradient(circle at 68% 60%, rgba(255, 106, 216, 0.5) 0%, rgba(255, 106, 216, 0) 18%),
+        radial-gradient(circle at 55% 25%, rgba(255, 224, 102, 0.4) 0%, rgba(255, 224, 102, 0) 10%),
+        radial-gradient(ellipse at 50% 80%, #2a1260 0%, rgba(42, 18, 96, 0) 60%),
+        linear-gradient(160deg, #061226 0%, #12093a 55%, #05060f 100%);
+}
+
+.game-card.bubble-nebula .play-button {
+    background: linear-gradient(135deg, #b9f6ff, #7fe8ff 45%, #ff6ad8);
+    color: #10123a;
+    box-shadow: 0 0 14px rgba(255, 106, 216, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
