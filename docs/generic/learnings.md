@@ -5773,3 +5773,25 @@ Bumble Basket's goal sizes did not carry over: a 7 × 8 body with holes, four ki
 - **Symptom: on a phone the scan grid is milky and the glyphs blur, but screenshots looked fine → additive layers summed into the bloom.** The X-ray patient was a double-sided additive shader, so a big model (the slime: a body, nine bubbles and a core) stacked a dozen surfaces behind every tile; under a 0.6 bloom threshold their sum glowed over everything. The screenshots had only checked a thin goblin. Keep see-through effects rim-only and front-faced, put an opaque-ish dark layer between them and anything that must be read, raise the bloom threshold where reading matters, and screenshot the biggest model, not the first one (game-081 v1.0.3).
 - **Portraits from the models.** Dialogue portraits are the 3D models rendered to a render target and read back with `readRenderTargetPixels`, cached per speaker. Chromium logs a "GPU stall due to ReadPixels" performance warning (not an error) the first time each is drawn.
 
+
+
+## Game 082: BUBBLE NEBULA — a single-screen platformer proved by jumping (2026-10-16)
+
+Bubble Bobble in space, in three.js on the Section 2S layout: 25 hand-made sectors, bubbles that trap and chain, six crew types and a boss. [game-082/](../../game-082/).
+
+### Prove platform levels reachable with the real body mover, not with geometry
+Arguing that "platforms four rows apart and a 4.76-tile jump" make a sector climbable misses walls, ceilings, blocks you can't stand inside and the wrap. [nav.js](../../game-082/js/sim/nav.js) builds the graph by *doing it*: every run of standing surface is a node; from sample points on each one it simulates, with the same `moveBody` the player uses, a straight jump, jumps holding left or right for seven different times, and walking off each end, and the landing segment is an edge. It costs about 10 ms per sector and is cached per level (a pure function of the level, so it is safe in the sim). One graph does three jobs: the simtest proves every platform, every walker's spawn and the bubbles' air current reachable from the start; the bot plans routes on it and replays each edge's input from the take-off point; and the same mover proves that loot dropping in through the ceiling gap lands instead of wrapping forever. It caught two sectors whose air current (where every bubble gathers) no jump could reach.
+
+### A dodging bot should score moves, not flee from the nearest thing
+"Run from the closest shot" sidestepped one orb of a fan straight into the next, and "run from a close enemy" fled from the enemy it was lined up to bubble. The bot now forecasts each candidate move (left, right, still, each with or without a jump) for 1.2 s in straight lines, scores the closest approach to anything lethal, and takes the safest only when its planned move is in danger. Enemies in its line of fire are left out of the forecast, because firing is the answer to them. Regular-sector deaths halved.
+
+### Let the bot table redesign the boss
+The Baron first took bolts that flew straight along their row and hit him about a third of the time: the best bot needed 6 minutes and 67 deaths, and one seed never finished. Bolts that home in on him (and fewer, slower orbs) made it a 75-second fight where surviving is the skill. The rule that fell out: when the boss's weak point needs alignment *and* dodging, players get one of the two for free.
+
+### Symptom: a TypeError deep in the item loop → a pickup that ends the sector
+Collecting the Wormhole calls `startWarp()`, which replaces `G.items` with a new empty array, while `stepItems` is iterating the old one backwards by index. Any handler that can reset the world must stop the loop that called it (`if (G.phase === 'warp' || G.over) return;`). The campaign bot found it on its fourth seed.
+
+### Small traps
+- **The whole frame turned white after a death → an exposure "flash" decayed per frame.** Under SwiftShader a frame is a second, so `toneMappingExposure = 1 + flash` stayed lit for every screenshot (the game-079 lesson, again). Particle bursts carry the moment well enough without it.
+- **A floating label clipped to "ongSho".** A canvas texture of fixed width cut long words. Measure the text first and size the canvas and the sprite's aspect from it; offset a new label that would land on one still rising from the same spot.
+- **A torus scaled up to make a halo became a fat band.** Scaling a `TorusGeometry` scales its tube too; build a thin ring at the size you want. The model gallery showed it at once; in the game it read as a glowing belt.

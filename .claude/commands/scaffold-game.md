@@ -4720,6 +4720,8 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 
 **Rules and content**
 - [ ] Every loop that consumes a list stops when a pass makes no progress (Take All froze game-071).
+- [ ] A handler that can reset the world (a warp, a level change, a game over) returns out of the loop that called it: a pickup that warped replaced the list `stepItems` was iterating (game-082).
+- [ ] A platformer's levels are proved reachable by jumping with the real body mover, not by geometry: a jump graph also proves where bubbles or loot gather can be reached, and that nothing falls through the wrap forever (game-082's `nav.js`).
 - [ ] Hints and quests never point at something still locked (game-076); the simtest checks every one.
 - [ ] Nothing empty silently overrides something real (a blank later event page replaced a chest, game-076).
 

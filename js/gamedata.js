@@ -1224,6 +1224,22 @@ const games = [
             { emoji: '\uD83D\uDEB6', label: 'First person' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-082',
+        title: 'BUBBLE NEBULA',
+        description: "Bubble Bobble in space, in three.js with no asset files. The Void Baron, a round purple villain in a top hat and monocle, has bottled every star in the Bubble Nebula, and Pip, a baby star-dragon in a fishbowl helmet, climbs his station one sector at a time to get them back. Blow bubbles to trap his crew (wind-up Blips, springy Sparks, see-through Gloopers, Grunts with blasters, Comet Moths and little Saucers), then pop them to send them spinning off as loot; bubbles touching each other pop together and every enemy in a chain doubles the prize, from Star Candy up to a 64,000-point Singularity. Jump up through platforms, bounce on bubbles, fall out of the floor and drop back in from the ceiling. Trapped enemies break out angry, HURRY UP! brings the Void Wraith through the walls, zap bubbles fire lightning, nova bubbles set the floor alight, N-E-B-U-L-A letter bubbles give an extra life and skip a sector, and six power-ups include Rocket Boots, a Stasis Clock and a Wormhole. 24 sectors in five neon zones, each scrolling up into the next, then the Baron's Core, where only homing lightning can hurt him. A painted nebula, thin-film bubbles, a bouncy chiptune score that speeds up when you dawdle, a bot playing a demo behind the title, continues and a high-score table; keyboard, gamepad or touch.",
+        icon: '\uD83E\uDEE7',
+        folder: 'game-082',
+        version: '1.0.0',
+        cssClass: 'bubble-nebula',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83E\uDEE7', label: 'Bubble Bobble' },
+            { emoji: '\uD83C\uDF0C', label: 'Space' },
+            { emoji: '\uD83D\uDC7E', label: 'Arcade platformer' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
