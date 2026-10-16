@@ -1,6 +1,6 @@
 // WYRMZONE — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.1.0';
 export const SAVE_KEY = 'wyrmzone.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)
@@ -15,6 +15,7 @@ export const GROUND = {
     speed: 10,          // forward walk (u/s)
     back: 6,            // backing up
     turn: 1.6,          // rad/s
+    lookMax: 0.6,       // the most mouse look can turn the dragon in one step (rad)
     radius: 1.3,
     eye: 1.7,
     fireCd: 0.42,

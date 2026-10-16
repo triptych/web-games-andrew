@@ -301,7 +301,8 @@ export function stepGround(G, inp, dt) {
 
     if (live) {
         const fin = clamp(-inp.y, -1, 1), tin = clamp(inp.x, -1, 1);
-        p.h = wrapA(p.h + tin * GROUND.turn * dt);
+        // keys and sticks turn at a rate; mouse look hands over an angle (radians) to turn by now
+        p.h = wrapA(p.h + tin * GROUND.turn * dt + clamp(inp.turn || 0, -GROUND.lookMax, GROUND.lookMax));
         p.speed = fin >= 0 ? fin * GROUND.speed : fin * GROUND.back;
         p.x += fwdX(p.h) * p.speed * dt;
         p.z += fwdZ(p.h) * p.speed * dt;

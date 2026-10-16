@@ -22,6 +22,8 @@
         <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
     </div>
 
+    <div id="look-hint" hidden>Click the view to look with the mouse · Esc lets go</div>
+
     <!-- Touch deck: shown on coarse pointers or after the first touch -->
     <div id="touch" hidden data-mode="ground">
         <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div><span id="stick-label">WALK</span></div>
@@ -50,13 +52,13 @@
             <h3>Act I · On foot</h3>
             <table>
                 <tr><td>↑ ↓ / W S</td><td>Walk forward, back up</td></tr>
-                <tr><td>← → / A D</td><td>Turn</td></tr>
+                <tr><td>← → / A D / mouse</td><td>Turn (click the view to capture the mouse; Esc lets it go)</td></tr>
                 <tr><td>Space / Z / click</td><td>Breathe fire (two fireballs at once)</td></tr>
             </table>
             <p>Watch the radar: red blips are foes. Hide behind standing stones; dodge bolts by walking out of their line. Clear each march's quota of foes. A scale grows back each time.</p>
             <h3>Act II · On the wing</h3>
             <table>
-                <tr><td>Arrows / WASD / mouse</td><td>Move the targeting cross; your body follows it</td></tr>
+                <tr><td>Arrows / WASD / mouse</td><td>Move the targeting cross; your body follows it. With the mouse captured, moving it steers the cross</td></tr>
                 <tr><td>Space / Z / click</td><td>Fire (hold for a stream)</td></tr>
             </table>
             <p>Shoot down firebolts before they reach you. Burn the crystals on the mage towers. In the gorge, climb or dive past the chains, and shoot the ward stone at its end.</p>
@@ -74,6 +76,7 @@
             <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
             <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
             <label class="row">CRT glass and phosphor trails <input type="checkbox" id="set-crt"></label>
+            <label class="row">Mouse look speed <input type="range" id="set-look" min="0.3" max="3" step="0.1"></label>
             <label class="row">Invert flight up/down <input type="checkbox" id="set-invert"></label>
             <label class="row">Touch controls
                 <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>

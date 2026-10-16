@@ -2,7 +2,8 @@
  * browsertest.mjs — the real game in real Chromium (SwiftShader WebGL).
  *
  * desktop (1280×760): boot to the title with no errors, the ← Games link on top, the attract
- *   demo running → New Game by click → real keys walk and turn the dragon → Space breathes fire
+ *   demo running → New Game by click → real keys walk and turn the dragon → Space breathes fire →
+ *   a click captures the mouse and its motion turns the dragon; letting it go pauses
  *   → Escape pauses and the sim stops → Space on the focused Resume button resumes (game-078) →
  *   Save & Quit → Continue restores the game → the boss falls and the ascent leads into flight →
  *   the mouse moves the targeting cross and a held click streams fire → the dragon falls, the
@@ -124,6 +125,23 @@ async function desktop() {
     await page.keyboard.press('Space');
     await until(page, () => (__wz.seen.fire || 0) >= 1, 'Space breathes fire (the press reaches a sim step)');
 
+    // mouse look: a click on the view captures the mouse, and its sideways motion turns the dragon.
+    // Headless Chromium freezes the pointer under the lock, so the motion is dispatched as the
+    // browser would deliver it (movementX); the nostorage run drives real moves with the lock refused.
+    check(await Q(page, () => !document.getElementById('look-hint').hidden), 'the hint offers mouse look');
+    await page.mouse.click(640, 420);
+    await until(page, () => document.pointerLockElement?.id === 'view' && __wz.input.look.locked, 'a click on the view captures the mouse');
+    await until(page, () => document.getElementById('look-hint').hidden, 'and the hint goes away');
+    const hLook = await Q(page, () => __wz.G.player.h);
+    await Q(page, () => document.getElementById('view').dispatchEvent(new PointerEvent('pointermove', { pointerType: 'mouse', clientX: 640, clientY: 420, movementX: 150, movementY: 0, bubbles: true })));
+    await until(page, (h) => { let d = (__wz.G.player.h - h) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return Math.abs(d - 150 * 0.0035) < 0.05; }, 'moving the captured mouse right turns the dragon right', 30000, hLook);
+    await Q(page, () => document.exitPointerLock());
+    await until(page, () => !document.getElementById('pause').hidden, 'letting the mouse go pauses the game');
+    await page.waitForTimeout(500);
+    check(await Q(page, () => !document.getElementById('pause').hidden), 'and the pause sheet stays open');
+    await click(page, '#pause-menu [data-act="resume"]');
+    await until(page, () => document.getElementById('pause').hidden && __wz.mode === 'play', 'Resume returns to play');
+
     await page.keyboard.press('Escape');
     await until(page, () => !document.getElementById('pause').hidden, 'Escape pauses');
     const t0 = await Q(page, () => __wz.G.t);
@@ -167,6 +185,18 @@ async function desktop() {
     await page.keyboard.down('ArrowLeft');
     await until(page, () => __wz.G.player.ax < 0, 'keys push the cross the other way');
     await page.keyboard.up('ArrowLeft');
+    // captured, the mouse's motion steers the cross from where it is
+    await page.mouse.click(640, 380);
+    await until(page, () => __wz.input.look.locked, 'a click captures the mouse in flight too');
+    const a0 = await Q(page, () => [__wz.G.player.ax, __wz.G.player.ay]);
+    await Q(page, () => { const v = document.getElementById('view'); for (let i = 0; i < 4; i++) v.dispatchEvent(new PointerEvent('pointermove', { pointerType: 'mouse', clientX: 640, clientY: 380, movementX: 60, movementY: -40, bubbles: true })); });
+    // 4 × 60 px right and 4 × 40 px up is +0.96 and +0.64 of the cross's range, clamped at ±1
+    await until(page, ([x, y]) => __wz.G.player.ax > Math.min(x + 0.8, 0.95) && __wz.G.player.ay > Math.min(y + 0.5, 0.95), 'moving the captured mouse right and up steers the cross there', 30000, a0);
+    await Q(page, () => document.exitPointerLock());
+    await until(page, () => !document.getElementById('pause').hidden, 'letting it go pauses');
+    await click(page, '#pause-menu [data-act="resume"]');
+    await until(page, () => document.getElementById('pause').hidden, 'and Resume carries on');
+    await Q(page, () => { __wz.G.player.inv = 999; });
     await Q(page, () => { __wz.ff(6); __wz.G.player.inv = 0; });
     await shot(page, 'desktop-sky');
 
@@ -226,6 +256,7 @@ async function phone(w, h) {
         return { s, ok: r.width >= 44 && r.height >= 44 && r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight };
     }));
     for (const z of sizes) check(z.ok, `${z.s} is at least 44 px and on screen`);
+    check(await Q(page, () => document.getElementById('look-hint').hidden), 'no mouse-look hint on a touch screen');
 
     // push the stick up with a real touch: the dragon walks
     const zone = await Q(page, () => { const r = document.getElementById('stick-zone').getBoundingClientRect(); return { x: r.left + r.width * 0.4, y: r.top + r.height * 0.6 }; });
@@ -267,6 +298,16 @@ async function nostorage() {
     await until(page, () => __wz.mode === 'play', 'boots and starts a game with localStorage throwing');
     await Q(page, () => __wz.ff(6));
     check(await Q(page, () => __wz.save() === false), 'saving fails quietly');
+    // a browser that refuses the pointer lock (a sandboxed frame): real mouse moves turn the dragon
+    await Q(page, () => { HTMLCanvasElement.prototype.requestPointerLock = function () { throw new Error('refused'); }; __wz.G.player.inv = 999; __wz.G.enemies.length = 0; __wz.G.spawnT = 99; });
+    await page.mouse.move(600, 420);
+    await page.mouse.click(600, 420);
+    await until(page, () => __wz.input.look.free && !__wz.input.look.locked, 'with the lock refused, mouse look runs free');
+    const hFree = await Q(page, () => __wz.G.player.h);
+    await page.mouse.move(800, 420, { steps: 8 });
+    // headings wrap at ±π: compare the wrapped turn, not the raw angles
+    await until(page, (h) => { let d = (__wz.G.player.h - h) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return d > 0.4; }, 'and real mouse moves turn the dragon', 30000, hFree);
+    await Q(page, () => { __wz.G.player.inv = 0; __wz.G.spawnT = 0; });
     await Q(page, () => { __wz.G.scales = 1; __wz.idle(40); });
     await until(page, () => __wz.mode === 'over', 'a game can still end (the best score just isn\'t kept)');
     // the keyboard way out: Down from Continue to Title, then Enter

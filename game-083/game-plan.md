@@ -2,7 +2,7 @@
 
 **Genre:** First-person vector arcade shooter: Battlezone on foot, then Star Wars on the wing
 **Engine:** three.js r165, no asset files: everything is drawn as beams of light by one instanced shader
-**Status:** v1.0.1
+**Status:** v1.1.0
 
 ---
 
@@ -83,12 +83,12 @@ Numbers live in [js/config.js](js/config.js) and [js/sim/data.js](js/sim/data.js
 
 | Action | Keyboard | Mouse | Gamepad | Touch |
 |---|---|---|---|---|
-| Walk / turn (on foot) | ↑↓ / WS, ←→ / AD | — | Stick / d-pad | Drag on the left side |
-| Aim (in flight) | Arrows / WASD push the cross | Point | Stick places the cross | Drag on the left side places it |
+| Walk / turn (on foot) | ↑↓ / WS, ←→ / AD | Click the view to capture it; moving it turns | Stick / d-pad | Drag on the left side |
+| Aim (in flight) | Arrows / WASD push the cross | Captured, moving it steers the cross; free, the cross sits under the pointer | Stick places the cross | Drag on the left side places it |
 | Fire (hold for more) | Space / Z / J / F / Ctrl | Left button | A / RB / RT | FIRE |
-| Pause | P / Esc | ❚❚ | Start | ❚❚ |
+| Pause | P / Esc | ❚❚; letting go of a captured mouse (Esc) pauses | Start | ❚❚ |
 
-Settings: sound, music, CRT glass and phosphor trails, invert flight up/down, touch controls (auto / always / never), delete the save.
+Settings: sound, music, CRT glass and phosphor trails, mouse look speed, invert flight up/down, touch controls (auto / always / never), delete the save.
 
 ## Look and sound
 
@@ -140,6 +140,9 @@ The bot plays whole games (`ONLY=bot node game-083/dev/simtest.mjs`):
 - A two-speed walk (Battlezone's treads let you turn on the spot faster than you could walk).
 
 ## Changelog
+
+### v1.1.0 (2026-10-16)
+- Mouse look. A click on the view captures the mouse (Pointer Lock): on foot, moving it sideways turns the dragon (handed to the sim as `turn`, an angle, kept until a step uses it and capped at 0.6 rad a step); in flight, moving it steers the targeting cross from where it is. The left button fires. Letting the mouse go (Esc) pauses. A hint at the bottom offers it while the mouse is free, and a Mouse look speed setting scales it. Where the browser refuses the lock (a sandboxed frame), the free pointer's own movement looks instead.
 
 ### v1.0.1 (2026-10-16)
 - Fixed: the game-over sheet's **Title** button did nothing, by mouse, touch or keyboard. It shared the id `over-title` with the sheet's heading, so `getElementById` returned the heading and the handler went there. The button is now `over-to-title`; `dev/browsertest.mjs` checks every id in the page is unique and leaves the game-over sheet by Title with a real mouse click and with Down, Enter.

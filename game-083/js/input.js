@@ -6,6 +6,10 @@
 //   (and it springs home when let go); keys push it instead.
 // - Fire is held for autofire, and a press is also an edge that stays set until a sim step
 //   consumes it: a tap shorter than the fixed step must still fire once (game-059, game-079).
+// - Mouse look: a click on the view captures the mouse (pointer lock). On foot its sideways
+//   movement turns the dragon, carried to the sim as `turn` (radians) and kept until a step uses
+//   it, like a press; in flight its movement steers the cross. Without the lock, the cross in
+//   flight sits under the pointer.
 // - Menu presses go into a FIFO, one consumed per frame: at 2 fps "Down, Down, Enter" must not
 //   collapse into one frame's worth of keys.
 
@@ -22,6 +26,8 @@ export class Input {
         this.btnFire = false;
         this.mouseDown = false;
         this.mouse = { active: false, x: 0, y: 0 };
+        this.look = { locked: false, free: false, turn: 0, ax: 0, ay: 0, sens: 1, lx: null, ly: null };
+        this.onLockChange = null;           // called with true / false when the mouse is captured / let go
         this.stick = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
         this.pad = { x: 0, y: 0, fire: false, prev: [] };
         this.lastDevice = 'keys';
@@ -51,22 +57,68 @@ export class Input {
         }, { capture: true });
     }
 
-    /** The mouse over the game view: it aims in flight, and its button fires. */
-    bindMouse(canvas) {
+    /**
+     * The mouse over the game view: a click captures it for mouse look (when canLock() says play is
+     * running), its movement looks or aims, and its button fires.
+     */
+    bindMouse(canvas, canLock = () => true) {
+        this.canvas = canvas;
         canvas.addEventListener('pointermove', (e) => {
             if (e.pointerType !== 'mouse') return;
+            const L = this.look;
+            // captured, the motion is movementX/Y (the pointer itself stays put); free, it is the
+            // pointer's own step, so a lock refused or a browser without movement still looks
+            const dx = L.locked ? e.movementX || 0 : L.lx === null ? 0 : e.clientX - L.lx;
+            const dy = L.locked ? e.movementY || 0 : L.ly === null ? 0 : e.clientY - L.ly;
+            L.lx = e.clientX; L.ly = e.clientY;
             this.mouse.x = e.clientX; this.mouse.y = e.clientY;
             this.mouse.active = true;
+            this.lastDevice = 'mouse';
+            if (L.locked || (L.free && canLock())) this.moveLook(dx, dy);
         });
+        canvas.addEventListener('pointerleave', () => { this.look.lx = this.look.ly = null; });
         canvas.addEventListener('pointerdown', (e) => {
             if (e.pointerType !== 'mouse' || e.button !== 0) return;
             this.mouseDown = true;
             this.edges.a = true;
             this.mouse.x = e.clientX; this.mouse.y = e.clientY;
             this.mouse.active = true;
+            this.lastDevice = 'mouse';
+            if (!this.look.locked && canLock()) this.lock();
         });
+        document.addEventListener('pointerlockchange', () => {
+            const on = document.pointerLockElement === canvas;
+            if (on === this.look.locked) return;
+            this.look.locked = on;
+            this.look.turn = 0;
+            this.onLockChange?.(on);
+        });
+        // the lock refused (a sandboxed frame, say): look with the free pointer instead
+        document.addEventListener('pointerlockerror', () => { this.look.locked = false; this.look.free = true; });
         window.addEventListener('pointerup', (e) => { if (e.pointerType === 'mouse') this.mouseDown = false; });
         canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    }
+
+    /** Capture the mouse. Needs a user gesture; a refusal (or no Pointer Lock at all) just leaves it free. */
+    lock() {
+        const c = this.canvas;
+        if (!c?.requestPointerLock) { this.look.free = true; return; }
+        try {
+            const r = c.requestPointerLock();
+            r?.catch?.(() => { this.look.free = true; });
+        } catch { this.look.free = true; }
+    }
+    unlock() {
+        if (document.pointerLockElement && document.exitPointerLock) document.exitPointerLock();
+    }
+
+    /** Mouse movement while captured: turn on foot, steer the cross in flight (both are kept; the act picks). */
+    moveLook(dx, dy) {
+        const L = this.look;
+        // about 0.0035 rad per pixel at speed 1: a 900 px sweep turns the dragon half round
+        L.turn += dx * 0.0035 * L.sens;
+        L.ax = Math.max(-1, Math.min(1, L.ax + dx * 0.004 * L.sens));
+        L.ay = Math.max(-1, Math.min(1, L.ay - dy * 0.004 * L.sens));
     }
 
     /** A floating stick: zone captures the thumb, el is the visual ring, knob follows the thumb. */
@@ -159,19 +211,27 @@ export class Input {
             else if (Math.hypot(sx, sy) > 0.2) { x = sx; y = sy; }
         }
         if (flight && invertY) y = -y;
-        if (flight && this.mouse.active && aimAt && !x && !y && this.lastDevice !== 'touch') {
-            const a = aimAt(this.mouse.x, this.mouse.y);
-            x = a.x; y = -a.y; abs = true;
+        if (flight && this.mouse.active && !x && !y && this.lastDevice !== 'touch') {
+            if (this.look.locked || this.look.free) {
+                // captured: the mouse steers the cross, which stays where it is left
+                x = this.look.ax; y = -(invertY ? -this.look.ay : this.look.ay); abs = true;
+            } else if (aimAt) {
+                const a = aimAt(this.mouse.x, this.mouse.y);
+                x = a.x; y = -a.y; abs = true;
+            }
         }
         const held = FIRE_KEYS.some((c) => k.has(c)) || this.btnFire || this.mouseDown || this.pad.fire;
-        return { x, y, a: this.edges.a || held, abs };
+        return { x, y, a: this.edges.a || held, abs, turn: flight ? 0 : this.look.turn };
     }
 
-    consumeEdges() { this.edges.a = false; }
+    /** Start the captured cross where the game's cross already is, so it doesn't jump. */
+    syncAim(ax, ay) { this.look.ax = ax; this.look.ay = ay; }
+
+    consumeEdges() { this.edges.a = false; this.look.turn = 0; }
     /** The next queued press, or null. Menus take one per frame. */
     next() { return this.queue.shift() || null; }
     /** Drop queued presses, so a mashed key can't fall through into the next screen. */
-    flush() { this.queue.length = 0; this.edges.a = false; }
+    flush() { this.queue.length = 0; this.edges.a = false; this.look.turn = 0; }
     clear() {
         this.keys.clear();
         this.flush();

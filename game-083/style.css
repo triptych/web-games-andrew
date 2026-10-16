@@ -57,6 +57,13 @@ html, body {
 }
 #hud .ibtn { pointer-events: auto; background: rgba(0, 0, 0, 0.5); }
 
+#look-hint {
+    position: fixed; z-index: 15; left: 50%; transform: translateX(-50%); pointer-events: none;
+    bottom: calc(14px + var(--safe-b)); padding: 6px 12px; border-radius: 4px;
+    font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap;
+    color: var(--text); background: rgba(0, 0, 0, 0.6); border: 1px solid var(--line); text-shadow: var(--glow);
+}
+
 /* ---------------------------------------------------------------- touch deck */
 #touch { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
 #stick-zone { position: absolute; left: 0; bottom: 0; width: 55%; height: 55%; pointer-events: auto; touch-action: none; }

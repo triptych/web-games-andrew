@@ -27,14 +27,14 @@ export class UI {
             b.addEventListener('click', () => { audio.ui('close'); this.closeTop(); });
         }
 
-        const sfx = $('set-sfx'), music = $('set-music'), touch = $('set-touch'), crt = $('set-crt'), inv = $('set-invert');
-        sfx.value = settings.sfx; music.value = settings.music; touch.value = settings.touch;
+        const sfx = $('set-sfx'), music = $('set-music'), touch = $('set-touch'), crt = $('set-crt'), inv = $('set-invert'), look = $('set-look');
+        sfx.value = settings.sfx; music.value = settings.music; touch.value = settings.touch; look.value = settings.look;
         crt.checked = !!settings.crt; inv.checked = !!settings.invert;
         const changed = () => {
-            Object.assign(settings, { sfx: +sfx.value, music: +music.value, touch: touch.value, crt: crt.checked, invert: inv.checked });
+            Object.assign(settings, { sfx: +sfx.value, music: +music.value, touch: touch.value, crt: crt.checked, invert: inv.checked, look: +look.value });
             onSettings(settings);
         };
-        for (const el of [sfx, music, touch, crt, inv]) el.addEventListener('change', changed);
+        for (const el of [sfx, music, touch, crt, inv, look]) el.addEventListener('change', changed);
         $('set-delete').addEventListener('click', () => { onDeleteSave(); this.toast('Saved game deleted.'); });
     }
 
