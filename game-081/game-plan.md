@@ -2,7 +2,7 @@
 
 **Genre:** First-person adventure with a trail-linking healing puzzle (Bumble Basket's rules, rethemed)
 **Engine:** three.js r165, no asset files: every model, texture, sound and tune is made in code
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -313,6 +313,15 @@ Tuned against the bots (`ONLY=scans,campaign node game-081/dev/simtest.mjs`):
 - Colour-blind mode (a pattern per aura).
 
 ## Changelog
+
+### v1.0.1 (2026-10-16)
+- Fixed flickering stripes on the study floor on phones. The rug builder grouped `,` cells into
+  rectangles but let a later rectangle grow back over cells an earlier one had claimed, so the study
+  got two overlapping rugs at the same height, which z-fought; each rug also had a full-size gold
+  plane 4 mm under it. Now there is one rug per connected patch, its border is a ring around it rather
+  than a plane beneath, both sit on a polygon offset above the floor, and the camera's near plane
+  moved from 0.05 to 0.1 for more depth precision. The use ring and wainscot panels got the same
+  margin. The browser test checks that no two floor coverings overlap.
 
 ### v1.0.0 (2026-10-15)
 - First release.

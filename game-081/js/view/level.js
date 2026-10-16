@@ -139,23 +139,46 @@ export function buildLevel(mapId, quality = 1) {
         for (let y = 0; y < Hh; y++) for (let x = 0; x < W; x++) if (at(x, y) === '~') basin.push(mat4(centre(x, y).setY(-0.6)));
         root.add(instanced(new THREE.BoxGeometry(CELL, 0.8, CELL), new THREE.MeshStandardMaterial({ color: theme === 'forge' ? 0x1a0804 : 0x0a1418, roughness: 1, side: THREE.BackSide }), basin, false));
     }
-    // clinic rugs: one rug per rectangular run of ',' cells
+    // clinic rugs
     if (theme === 'clinic') {
         const seen = new Set();
         for (let y = 0; y < Hh; y++) for (let x = 0; x < W; x++) {
             if (at(x, y) !== ',' || seen.has(`${x},${y}`)) continue;
-            let x1 = x; while (at(x1 + 1, y) === ',') x1++;
-            let y1 = y; while ([...Array(x1 - x + 1).keys()].every((i) => at(x + i, y1 + 1) === ',')) y1++;
-            for (let yy = y; yy <= y1; yy++) for (let xx = x; xx <= x1; xx++) seen.add(`${xx},${yy}`);
-            const w = (x1 - x + 1) * CELL - 0.4, d = (y1 - y + 1) * CELL - 0.4;
-            const frame = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshStandardMaterial({ color: 0x9a7030, roughness: 0.9 }));
+            // one rug per connected patch of ',' cells, sized to the patch's bounding box (furniture
+            // standing in it just stands on the rug); never two rugs over the same cells, or they z-fight
+            let x1 = x, y1 = y, x0 = x, y0 = y;
+            const stack = [[x, y]];
+            seen.add(`${x},${y}`);
+            while (stack.length) {
+                const [cx, cy] = stack.pop();
+                x0 = Math.min(x0, cx); x1 = Math.max(x1, cx); y0 = Math.min(y0, cy); y1 = Math.max(y1, cy);
+                for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+                    const nx = cx + dx, ny = cy + dy, k = `${nx},${ny}`;
+                    if (at(nx, ny) === ',' && !seen.has(k)) { seen.add(k); stack.push([nx, ny]); }
+                }
+            }
+            const w = (x1 - x0 + 1) * CELL - 0.4, d = (y1 - y0 + 1) * CELL - 0.4;
+            // the gold border is a ring around the rug, not a plane under it: two coplanar layers a few
+            // millimetres apart z-fight on a phone's depth buffer. Both sit on a polygon offset so they
+            // always win over the floor.
+            const cx = (x0 + x1 + 1) / 2 * CELL, cz = (y0 + y1 + 1) / 2 * CELL;
+            const iw = w - 0.35, id = d - 0.35;
+            const border = new THREE.Shape();
+            border.moveTo(-w / 2, -d / 2); border.lineTo(w / 2, -d / 2); border.lineTo(w / 2, d / 2); border.lineTo(-w / 2, d / 2); border.lineTo(-w / 2, -d / 2);
+            const hole = new THREE.Path();
+            hole.moveTo(-iw / 2, -id / 2); hole.lineTo(-iw / 2, id / 2); hole.lineTo(iw / 2, id / 2); hole.lineTo(iw / 2, -id / 2); hole.lineTo(-iw / 2, -id / 2);
+            border.holes.push(hole);
+            const frameM = new THREE.MeshStandardMaterial({ color: 0x9a7030, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+            const frame = new THREE.Mesh(new THREE.ShapeGeometry(border), frameM);
             frame.rotation.x = -Math.PI / 2;
-            frame.position.set((x + x1 + 1) / 2 * CELL, 0.01, (y + y1 + 1) / 2 * CELL);
+            frame.position.set(cx, 0.02, cz);
             frame.receiveShadow = true;
             root.add(frame);
-            const rug = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.35, d - 0.35), TX.texMat(TX.rug, { repeat: [(w - 0.35) / 1.6, (d - 0.35) / 1.6] }));
+            const rugM = TX.texMat(TX.rug, { repeat: [iw / 1.6, id / 1.6] });
+            Object.assign(rugM, { polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+            const rug = new THREE.Mesh(new THREE.PlaneGeometry(iw, id), rugM);
             rug.rotation.x = -Math.PI / 2;
-            rug.position.set((x + x1 + 1) / 2 * CELL, 0.014, (y + y1 + 1) / 2 * CELL);
+            rug.position.set(cx, 0.02, cz);
             rug.receiveShadow = true;
             root.add(rug);
         }
@@ -170,7 +193,7 @@ export function buildLevel(mapId, quality = 1) {
         for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (open(x + dx, y + dy) || at(x + dx, y + dy) === '~') near = true;
         if (!near) continue;
         walls.push(mat4(centre(x, y).setY(H / 2)));
-        if (theme === 'clinic') wallTop.push(mat4(centre(x, y).setY(0.55), 0, 0, new THREE.Vector3(1.02, 1, 1.02)));
+        if (theme === 'clinic') wallTop.push(mat4(centre(x, y).setY(0.55), 0, 0, new THREE.Vector3(1.05, 1, 1.05)));
     }
     root.add(instanced(new THREE.BoxGeometry(CELL, H, CELL), mats.wall, walls, true));
     if (wallTop.length) {

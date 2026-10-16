@@ -131,6 +131,28 @@ async function desktop() {
     check(await Q(page, () => document.getElementById('btn-continue').hidden), 'no Continue without a save');
     const L = await layout(page);
     check(L.noHScroll && L.canvas, 'no sideways scroll; the canvas fills the window');
+    // the title shows the clinic: no two flat floor coverings may overlap at one height, or they z-fight (v1.0.1)
+    const overlaps = await Q(page, () => {
+        const flats = [];
+        const root = __ss.view.level.root;
+        root.updateMatrixWorld(true);
+        root.traverse((o) => {
+            if (!o.isMesh || o.isInstancedMesh || !o.visible) return;
+            o.geometry.computeBoundingBox();
+            const b = o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld);
+            if (b.max.y - b.min.y < 1e-4 && b.max.y < 0.2) flats.push(b);
+        });
+        let n = 0;
+        for (let i = 0; i < flats.length; i++) for (let j = i + 1; j < flats.length; j++) {
+            const a = flats[i], c = flats[j];
+            const ix = Math.min(a.max.x, c.max.x) - Math.max(a.min.x, c.min.x), iz = Math.min(a.max.z, c.max.z) - Math.max(a.min.z, c.min.z);
+            // a rug's border ring surrounds its own rug: same centre, bigger, so skip rings around a plane they enclose
+            const enclose = (p, q) => p.min.x <= q.min.x && p.max.x >= q.max.x && p.min.z <= q.min.z && p.max.z >= q.max.z && Math.abs((p.min.x + p.max.x) - (q.min.x + q.max.x)) < 1e-3;
+            if (ix > 0.01 && iz > 0.01 && Math.abs(a.max.y - c.max.y) < 0.01 && !enclose(a, c) && !enclose(c, a)) n++;
+        }
+        return { n, flats: flats.length };
+    });
+    check(overlaps.flats >= 2 && overlaps.n === 0, `no overlapping floor coverings in the clinic (${overlaps.n} overlaps among ${overlaps.flats})`);
     await shot(page, 'desktop-title');
 
     await click(page, '#title-menu [data-act="new"]');
