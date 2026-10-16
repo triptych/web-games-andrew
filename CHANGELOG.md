@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **ROMANCER** (game-084) v1.0.1: the title read "ROMANCE" — the last R was cut off. The logo is gradient-clipped text in Orbitron 900, much wider than the fallback font the tests use, so it overflowed its 440 px column and the overflow was invisible. The logo is smaller, the column 520 px, and it is fitted to its column once the real font has loaded ([style.css](game-084/style.css), [ui.js](game-084/js/ui/ui.js)); on wide screens the title column is left-aligned throughout instead of centred text in a left column. `REAL_FONTS=1` makes [play.mjs](game-084/dev/play.mjs) and [browsertest.mjs](game-084/dev/browsertest.mjs) load the real fonts, and the browser test checks the logo fits.
+
+### Fixed
 - **WYRMZONE** (game-083) v1.0.1: the game-over sheet's Title button did nothing. It shared the id `over-title` with the sheet's heading, so `getElementById` returned the heading and the return-to-title handler was attached to the heading instead of the button. The button is now `over-to-title` ([index.html](game-083/index.html), [main.js](game-083/js/main.js)); [browsertest.mjs](game-083/dev/browsertest.mjs) checks every id in the page is unique and leaves the sheet by Title with a real mouse click and by keyboard.
 
 ### Added

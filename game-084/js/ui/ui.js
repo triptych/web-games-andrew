@@ -12,6 +12,17 @@ export class UI {
         this.settings = settings;
         this.stack = [];
         $('version').textContent = 'v' + VERSION + ' · VESTA-8 BIOS 1.0';
+        // The logo is gradient-clipped text, so anything that overflows its column simply vanishes.
+        // Orbitron is far wider than the fallback font, so fit it once the real font has loaded.
+        this.fitLogo = () => {
+            const logo = document.querySelector('.logo');
+            if (!logo || !logo.clientWidth) return;
+            logo.style.fontSize = '';
+            const k = logo.clientWidth / logo.scrollWidth;
+            if (k < 1) logo.style.fontSize = Math.floor(parseFloat(getComputedStyle(logo).fontSize) * k * 0.98) + 'px';
+        };
+        document.fonts?.ready.then(this.fitLogo);
+        window.addEventListener('resize', this.fitLogo);
 
         // A press that began outside a screen (the finger that opened it) must not click inside it
         // when it lifts (game-071). Keyboard clicks have detail 0 and always count.

@@ -122,9 +122,9 @@ td:first-child { color: var(--amber); white-space: nowrap; padding-right: 12px; 
 
 /* ---------------------------------------------------------------- title */
 .title-screen { background: linear-gradient(180deg, rgba(2, 3, 8, 0.15), rgba(2, 3, 8, 0.6) 70%); backdrop-filter: none; align-items: flex-end; }
-.title-wrap { width: min(440px, 100%); text-align: center; padding-bottom: 4vh; }
+.title-wrap { width: min(520px, 100%); text-align: center; padding-bottom: 4vh; }
 .logo {
-    margin: 4px 0 2px; font: 900 clamp(40px, 12vw, 76px) var(--display); letter-spacing: 0.06em;
+    margin: 4px 0 2px; font: 900 clamp(32px, 9vw, 64px) var(--display); letter-spacing: 0.04em; white-space: nowrap;
     background: linear-gradient(180deg, #fff6d8 0%, #ffcf6e 38%, #ff7a2a 52%, #ff4fd8 78%, #7a3fb0 100%);
     -webkit-background-clip: text; background-clip: text; color: transparent;
     filter: drop-shadow(0 0 18px rgba(255, 120, 60, 0.45));
@@ -386,5 +386,7 @@ body.playing #toasts { top: calc(64px + var(--safe-t)); bottom: auto; }
 /* wide screens: the title sits to the left so the lab and its television stay in view */
 @media (min-width: 900px) and (min-height: 561px) {
     .title-screen { justify-content: flex-start; align-items: center; padding-left: 6vw; }
-    .title-wrap { padding-bottom: 0; }
+    /* a left column reads as one when its text is left-aligned too */
+    .title-wrap { padding-bottom: 0; text-align: left; }
+    .title-wrap .eyebrow.center, .title-wrap .version { text-align: left; }
 }

@@ -33,7 +33,8 @@ if (PKG) {
         route.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(file) });
     });
 }
-await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+// REAL_FONTS=1 loads Orbitron and Share Tech Mono for real: the system fallback is much narrower
+    if (!process.env.REAL_FONTS) await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log(`[${m.type()}]`, m.text()); });
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
 await page.goto(`${BASE}/game-084/index.html?debug=1${process.env.Q || ''}`);
