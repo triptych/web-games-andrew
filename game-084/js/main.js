@@ -337,6 +337,7 @@ function toTitle() {
     if (P) { view.setCarts(MISSIONS, P); view.setMemory(MISSIONS.map((x) => P.missions[x.id].state)); }
     $('btn-continue').hidden = !hasSave();
     ui.openScreen('title');
+    ui.fitLogo();
     updatePad();
     startAttract();
 }

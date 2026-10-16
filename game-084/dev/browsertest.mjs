@@ -52,7 +52,8 @@ async function route(page) {
             r.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(file) });
         });
     }
-    await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+    // REAL_FONTS=1 loads Orbitron and Share Tech Mono for real: the system fallback is much narrower
+    if (!process.env.REAL_FONTS) await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
     page.on('requestfailed', (r) => { if (!r.url().includes('favicon')) errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`); });
@@ -118,6 +119,9 @@ async function desktop() {
     check(await Q(page, () => document.getElementById('btn-continue').hidden), 'no Continue without a save');
     const L = await layout(page);
     check(L.noHScroll && L.canvas, 'no sideways scroll; the canvas fills the window');
+    // the logo is gradient-clipped text: if it overflows its column the overflow is simply invisible
+    await page.evaluate(() => document.fonts.ready);
+    check(await Q(page, () => { const l = document.querySelector('.logo'); return l.scrollWidth <= l.clientWidth + 1; }), 'the ROMANCER logo fits its column (run with REAL_FONTS=1 to check the real typeface)');
     await shot(page, 'desktop-title');
 
     await click(page, '#btn-new');
@@ -148,7 +152,9 @@ async function desktop() {
     await until(page, () => __rm.bench.tab === 'objects', 'OBJECTS opens');
     await Q(page, () => { [...document.querySelectorAll('#bench-main .list button')].find((b) => b.textContent.startsWith('ball')).click(); });
     await Q(page, () => { const s = document.querySelector('#bench-main input[aria-label="bounce"]'); s.value = 1; s.dispatchEvent(new Event('change')); });
-    await Q(page, () => { [...document.querySelectorAll('#bench-main .list button')].find((b) => b.textContent.startsWith('player')).click(); });
+    // the paddle task's own button selects the object it means (a player once set the ball's control instead)
+    await Q(page, () => [...document.querySelectorAll('[data-task="paddle"] .t-acts .btn')].find((b) => /Go to objects/i.test(b.textContent)).click());
+    await until(page, () => __rm.bench.tab === 'objects' && document.querySelector('#bench-main .list button.on')?.textContent.startsWith('player'), '"Go to objects: player" selects the paddle', 10000);
     await page.selectOption('#bench-main select[aria-label="Control"]', 'paddle_v', { timeout: 5000 }).catch(() => Q(page, () => { const s = document.querySelector('#bench-main select[aria-label="Control"]'); s.value = 'paddle_v'; s.dispatchEvent(new Event('change')); }));
     await until(page, () => ['bounce', 'paddle'].every((k) => __rm.tasks('rally').find((s) => s.id === k).done), 'the inspector fixes the bounce and the paddle');
     await shot(page, 'desktop-objects');

@@ -339,6 +339,7 @@ if (want('missions')) {
         }
         const c = repair(m, c0);
         ok(!V.prepare(c).errors.length, `${m.id}: the repaired cart compiles`);
+        for (const t of m.tasks) if (t.obj) ok(c.types.some((x) => x.name === t.obj), `${m.id}: task "${t.id}" names an object that exists ("${t.obj}")`);
         ok(taskStates(m, c).every((s, i) => s.done || m.tasks[i].play), `${m.id}: every non-playtest task is done after repairs`);
         let wins = 0, frames = 0, goal = 0;
         for (let s = 1; s <= SEEDS; s++) {
@@ -381,6 +382,15 @@ if (want('progress')) {
         ok(s.state === 'open', `${m.id} opens in turn`);
         s.cart = repair(m, s.cart);
         PG.recordPlay(P, m.id, { maxG: { score: 9999, homes: 3 }, wins: 1 });
+        if (m.id === 'rally') {
+            // the right control on the wrong object (a player's real mistake): not done, and the checklist says why
+            const wrong = JSON.parse(JSON.stringify(m.build()));
+            wrong.types.find((t) => t.name === 'ball').control = 'paddle_v';
+            const st = taskStates(m, wrong).find((x) => x.id === 'paddle');
+            ok(!st.done && /"ball"/.test(st.note) && /"player"/.test(st.note), 'a control set on the wrong object is not counted, and the note names both objects');
+            const fixed = repair(m, wrong, 'paddle');
+            ok(fixed.types.find((t) => t.name === 'player').control === 'paddle_v' && fixed.types.find((t) => t.name === 'ball').control === 'none', 'and VESTA\'s repair puts the ball\'s control back as well');
+        }
         ok(PG.tryComplete(P, m.id), `${m.id} restores`);
     }
     ok(P.ended && PG.memory(P) === 100 && !PG.currentMission(P), 'the last cartridge ends the story with 100% memory');
