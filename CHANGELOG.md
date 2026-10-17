@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **WYRMZONE** (game-083) v1.1.1: on phones the radar's blips were too small to see. They were 1.6 HUD units wide, and a HUD unit is about 1.3 px on a phone. Blips are now a dot in a diamond sized in screen pixels (at least 5 CSS px from centre to corner), stay at least 60% bright between sweeps, and the radar is bigger on a portrait phone ([hud.js](game-083/js/view/hud.js)). [browsertest.mjs](game-083/dev/browsertest.mjs) checks the blip size on both phone orientations.
+
 ### Added
 - **WYRMZONE** (game-083) v1.1.0: mouse look. On foot the mouse did nothing, and in flight the cross only followed the pointer while it stayed inside the window. Now a click on the view captures the mouse: moving it turns the dragon on foot and steers the targeting cross in flight, the left button fires, and letting it go (Esc) pauses. A hint offers it, a Mouse look speed setting scales it, and where the browser refuses the lock the free pointer looks instead ([input.js](game-083/js/input.js), [main.js](game-083/js/main.js), [ground.js](game-083/js/sim/ground.js)). [simtest.mjs](game-083/dev/simtest.mjs) checks the turn and its cap; [browsertest.mjs](game-083/dev/browsertest.mjs) checks capture, turning, steering, pausing on release, the refused-lock fallback with real mouse moves, and no hint on touch screens.
 
