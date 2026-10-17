@@ -188,10 +188,12 @@ async function desktop() {
     // captured, the mouse's motion steers the cross from where it is
     await page.mouse.click(640, 380);
     await until(page, () => __wz.input.look.locked, 'a click captures the mouse in flight too');
-    const a0 = await Q(page, () => [__wz.G.player.ax, __wz.G.player.ay]);
+    // start the captured cross from a known spot (the capturing click lands while the mouse is
+    // still free, so where the cross is at that moment depends on frame timing)
+    await Q(page, () => __wz.input.syncAim(-0.5, -0.5));
     await Q(page, () => { const v = document.getElementById('view'); for (let i = 0; i < 4; i++) v.dispatchEvent(new PointerEvent('pointermove', { pointerType: 'mouse', clientX: 640, clientY: 380, movementX: 60, movementY: -40, bubbles: true })); });
-    // 4 × 60 px right and 4 × 40 px up is +0.96 and +0.64 of the cross's range, clamped at ±1
-    await until(page, ([x, y]) => __wz.G.player.ax > Math.min(x + 0.8, 0.95) && __wz.G.player.ay > Math.min(y + 0.5, 0.95), 'moving the captured mouse right and up steers the cross there', 30000, a0);
+    // 4 × 60 px right and 4 × 40 px up is +0.96 and +0.64 of the cross's range: (-0.5, -0.5) → (0.46, 0.14)
+    await until(page, () => Math.abs(__wz.G.player.ax - 0.46) < 0.05 && Math.abs(__wz.G.player.ay - 0.14) < 0.05, 'moving the captured mouse right and up steers the cross there');
     await Q(page, () => document.exitPointerLock());
     await until(page, () => !document.getElementById('pause').hidden, 'letting it go pauses');
     await click(page, '#pause-menu [data-act="resume"]');
@@ -257,6 +259,8 @@ async function phone(w, h) {
     }));
     for (const z of sizes) check(z.ok, `${z.s} is at least 44 px and on screen`);
     check(await Q(page, () => document.getElementById('look-hint').hidden), 'no mouse-look hint on a touch screen');
+    // radar blips were 1.6 HUD units, about 2 px on a phone: too small to see
+    check(await Q(page, () => __wz.view.hud.blipCss >= 5), 'radar blips are at least 5 CSS px from the centre to a corner');
 
     // push the stick up with a real touch: the dragon walks
     const zone = await Q(page, () => { const r = document.getElementById('stick-zone').getBoundingClientRect(); return { x: r.left + r.width * 0.4, y: r.top + r.height * 0.6 }; });

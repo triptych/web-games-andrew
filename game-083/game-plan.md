@@ -2,7 +2,7 @@
 
 **Genre:** First-person vector arcade shooter: Battlezone on foot, then Star Wars on the wing
 **Engine:** three.js r165, no asset files: everything is drawn as beams of light by one instanced shader
-**Status:** v1.1.0
+**Status:** v1.1.1
 
 ---
 
@@ -140,6 +140,9 @@ The bot plays whole games (`ONLY=bot node game-083/dev/simtest.mjs`):
 - A two-speed walk (Battlezone's treads let you turn on the spot faster than you could walk).
 
 ## Changelog
+
+### v1.1.1 (2026-10-16)
+- Fixed: on phones the radar's blips were too small to see. They were dots 1.6 HUD units wide, about 2 px on a phone. Each is now a dot in a diamond at least 5 CSS px from centre to corner whatever the screen, never fades below 60% between sweeps, and the radar is a fifth bigger on a portrait phone.
 
 ### v1.1.0 (2026-10-16)
 - Mouse look. A click on the view captures the mouse (Pointer Lock): on foot, moving it sideways turns the dragon (handed to the sim as `turn`, an angle, kept until a step uses it and capped at 0.6 rad a step); in flight, moving it steers the targeting cross from where it is. The left button fires. Letting the mouse go (Esc) pauses. A hint at the bottom offers it while the mouse is free, and a Mouse look speed setting scales it. Where the browser refuses the lock (a sandboxed frame), the free pointer's own movement looks instead.

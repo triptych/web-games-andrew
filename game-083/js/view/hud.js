@@ -154,7 +154,8 @@ export class Hud {
     // ------------------------------------------------------------------ Battlezone
     drawGround(G, b, L, t, small) {
         const p = G.player, top = L.H / 2;
-        const R = Math.min(30, L.W * 0.1);
+        // a portrait phone has room above the periscope band: a bigger radar
+        const R = L.H > L.W * 1.3 ? Math.min(36, L.W * 0.12) : Math.min(30, L.W * 0.1);
         const cx = 0, cy = top - R - 12;
         // radar
         b.pen(RED, 0.85, 1);
@@ -166,6 +167,9 @@ export class Hud {
         b.seg(cx, cy, cx + Math.sin(-half) * R, cy + Math.cos(-half) * R);
         b.seg(cx, cy, cx + Math.sin(half) * R, cy + Math.cos(half) * R);
         const sweep = (t * 2.2) % (Math.PI * 2);
+        const cssPerUnit = L.cssBand.width / L.bw;
+        const blip = Math.max(2.2, 5 / cssPerUnit);         // half-size of a blip: at least 5 CSS px
+        this.blipCss = blip * cssPerUnit;                   // for the tests
         b.pen(RED, 0.9, 1);
         b.seg(cx, cy, cx + Math.sin(sweep) * R, cy + Math.cos(sweep) * R);
         let nearest = null, nd = Infinity;
@@ -175,9 +179,16 @@ export class Hud {
             if (ENEMY[e.kind].quota || e.kind === 'dragonbane') { if (d < nd) { nd = d; nearest = { e, d, br }; } }
             if (d > GROUND.radar) continue;
             let diff = ((sweep - br) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
-            const glow = Math.max(0.25, 1.3 - diff * 0.5);
-            b.pen(e.kind === 'wisp' ? CYAN : RED, glow, e.kind === 'dragonbane' ? 2.6 : 1.6);
-            b.dot(cx + Math.sin(br) * (d / GROUND.radar) * R, cy + Math.cos(br) * (d / GROUND.radar) * R);
+            // brightest as the sweep passes, but never so faint it can't be found between sweeps
+            const glow = Math.max(0.6, 1.4 - diff * 0.4);
+            const bx = cx + Math.sin(br) * (d / GROUND.radar) * R, by = cy + Math.cos(br) * (d / GROUND.radar) * R;
+            const big = e.kind === 'dragonbane' ? 1.6 : 1;
+            // sized in screen pixels, not HUD units: a HUD unit is barely more than a pixel on a phone
+            const s = blip * big;
+            b.pen(e.kind === 'wisp' ? CYAN : RED, glow, s * 0.75);
+            b.dot(bx, by);
+            b.pen(e.kind === 'wisp' ? CYAN : RED, glow * 0.8, 0.9);
+            b.poly([bx, by + s, bx + s, by, bx, by - s, bx - s, by], true);
         }
         // the warnings under the radar
         let msg = null;
