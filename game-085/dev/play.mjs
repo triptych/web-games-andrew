@@ -6,7 +6,7 @@
  *   node game-085/dev/play.mjs phone "__wq.start(3)" 1500 390 844 touch
  *
  * The snippet runs with ?debug=1, so window.__wq is there (see dev/README.md). It is the body of an async
- * function: `return` a value to print it. Q='&fast=4' adds URL parameters.
+ * function: `return` a value to print it. Q='&fast=4' adds URL parameters. REAL_FONTS=1 loads the real fonts.
  * Screenshot: game-085/dev/shots/<name>.png.
  */
 import { chromium } from 'playwright';
@@ -25,7 +25,8 @@ const browser = await chromium.launch({
 });
 const isTouch = touch === 'touch';
 const page = await (await browser.newContext({ viewport: { width: +w, height: +h }, deviceScaleFactor: 1, hasTouch: isTouch, isMobile: isTouch })).newPage();
-await page.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+// REAL_FONTS=1 loads the real Google Fonts (they are much wider than the fallback): check titles fit with it
+if (!process.env.REAL_FONTS) await page.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log(`[${m.type()}]`, m.text()); });
 page.on('pageerror', (e) => console.log('[pageerror]', process.env.STACK ? e.stack : e.message));
 await page.goto(`${BASE}/game-085/index.html?debug=1${process.env.Q || ''}`);

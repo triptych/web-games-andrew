@@ -225,6 +225,7 @@ async function phone(w, h) {
     const { page } = await open({ width: w, height: h }, { touch: true });
     const tap = async (sel) => { const c = await centre(page, sel); if (!c) return false; await page.touchscreen.tap(c.x, c.y); return true; };
     check(await backLinkOk(page), '← Games link is on top');
+    check(await Q(page, () => { const l = document.querySelector('.logo'); return l.textContent === 'WanderQuest' && l.scrollWidth <= l.clientWidth; }), 'the title WanderQuest fits its sheet');
     await tap('#btn-new');
     await until(page, () => __wq.mode === 'play', 'a tap on New Caravan starts the journey');
     await until(page, () => !document.getElementById('letter').hidden, 'the letter opens');
