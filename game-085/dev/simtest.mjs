@@ -14,6 +14,8 @@
  *    post and its streak, Rally, courses and turning back, Wardens and the Night Roads.
  * 3b. book: the scrapbook keeps every person, monster, item, good, material, town, road and letter, and stays
  *    bounded; older saves get one.
+ * 3c. scenery: the countryside beside the road is deterministic, varied, off the road, clumped into groves and
+ *    clearings, and fills the verge, the middle ground and the far band.
  * 4. determinism: same seed, same game; time away (advance) is exactly the same as playing it out; a save
  *    round trip plays on identically; an unknown save version is rejected.
  * 5. bot: the bot plays the whole realm on SEEDS seeds at two skills with invariants checked every game
@@ -370,6 +372,31 @@ if (want('book')) {
     const back = Gm.deserialize(old);
     ok(back.book && G.party.every((m) => back.book.people[m.id]) && Object.keys(back.book.places).length > 0, 'an older save gets a scrapbook built from what it knows');
     ok(ser(Gm.deserialize(JSON.parse(ser(G)))) === ser(G), 'the scrapbook survives a save round trip');
+}
+
+// ======================================================================
+if (want('scenery')) {
+    section('scenery');
+    // the countryside beside the road is pure too (no DOM at import), so it can be checked here
+    const Sc = await import('../js/view/scenery.js');
+    ok(JSON.stringify(Sc.scatter('meadow', 1234)) === JSON.stringify(Sc.scatter('meadow', 1234)), 'a stretch of road always has the same scenery');
+    for (const biome of ['meadow', 'desert', 'mire', 'frost', 'ember', 'star']) {
+        const all = [];
+        for (let k = 0; k < 600; k++) all.push(...Sc.scatter(biome, k));
+        const kinds = new Set(all.map((x) => x.kind));
+        ok(kinds.size >= 9, `${biome}: ${kinds.size} kinds of thing beside the road`);
+        ok(all.every((x) => x.dist - Sc.sizeOf(x.kind) / 2 >= 1100 * 1.05 || x.band === 0) && all.every((x) => x.dist >= 1100 * 1.15), `${biome}: nothing stands on the road`);
+        ok([0, 1, 2].every((b) => all.some((x) => x.band === b)) && all.some((x) => x.side < 0) && all.some((x) => x.side > 0), `${biome}: the verge, the middle ground and the far band are filled, on both sides`);
+        // groves and clearings: count the middle band in windows of 20 segments
+        const per = [];
+        for (let w = 0; w < 30; w++) { let n = 0; for (let k = w * 20; k < w * 20 + 20; k++) n += Sc.scatter(biome, k).filter((x) => x.band === 1).length; per.push(n); }
+        ok(Math.max(...per) >= Math.min(...per) * 2 + 2, `${biome}: groves and clearings (${Math.min(...per)}–${Math.max(...per)} things per 20 segments)`);
+        const far = all.filter((x) => x.band === 2);
+        ok(far.length > 0 && far.every((x) => x.dist >= 5000), `${biome}: the far band reaches out towards the horizon`);
+    }
+    const trees = [];
+    for (let k = 0; k < 400; k++) for (const x of Sc.scatter('meadow', k)) if (['oak', 'birch', 'poplar', 'blossom', 'autumn'].includes(x.kind)) trees.push(x);
+    ok(new Set(trees.map((x) => x.kind)).size === 5 && new Set(trees.map((x) => x.v)).size > trees.length * 0.95, `meadow trees come in 5 species, each one its own (${trees.length} trees)`);
 }
 
 // ======================================================================

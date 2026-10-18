@@ -104,6 +104,8 @@ export function scatter(biome, k) {
             out.push({ kind: pickW(F.far, r(k, 130 + sd, 5)), side, dist: 5500 + r(k, 140 + sd, 5) * 9000, dz: r(k, 150 + sd, 5) * 200, v: (r(k, 160 + sd, 5) * 65536) | 0, band: 2 });
         }
     }
+    // wide things (mesas, dunes, tree lines) are pushed back until their near edge clears the road
+    for (const it of out) it.dist = Math.max(it.dist, ROADW * 1.15 + sizeOf(it.kind) / 2);
     return out;
 }
 

@@ -143,8 +143,19 @@ async function desktop() {
     await until(page, () => __wq.G.orders.route === 'hold', 'a click sets the standing orders to Hold');
     await page.keyboard.press('Digit6');
     await until(page, () => !!document.querySelector('[data-act="buy"][data-g="grain"]'), 'the Town tab shows the market');
+    // buttons that spend are green when they can be pressed, and grey when they can't
+    const green = (sel) => Q(page, (q) => { const b = document.querySelector(q); if (!b) return null; const [r, g, bl] = getComputedStyle(b).backgroundColor.match(/\d+/g).map(Number); return { on: !b.disabled, green: g > r + 40 && g > bl + 40 }; }, sel);
+    let g1 = await green('[data-act="buy"][data-g="grain"]'), g2 = await green('[data-act="sell"][data-g="grain"]');
+    check(g1?.on && g1.green, 'the +5 button is green when you can buy');
+    check(g2 && !g2.on && !g2.green, 'the −5 button is grey with nothing to sell');
+    await Q(page, () => { __wq.G.gold0 = __wq.G.gold; __wq.G.gold = 0; });
+    await until(page, () => document.querySelector('[data-act="buy"][data-g="grain"]').disabled, 'with an empty purse it goes grey');
+    await Q(page, () => { __wq.G.gold = __wq.G.gold0; });
+    await until(page, () => !document.querySelector('[data-act="buy"][data-g="grain"]').disabled, 'and green again with gold');
     await clickSel(page, '[data-act="buy"][data-g="grain"]');
     await until(page, () => (__wq.G.cargo.grain?.n || 0) === 5, 'a click on +5 buys five grain');
+    g2 = await green('[data-act="sell"][data-g="grain"]');
+    check(g2?.on && g2.green, 'and then −5 turns green');
     await Q(page, () => { __wq.G.level = 3; });
     await until(page, () => { const b = document.querySelector('[data-act="hire"]'); return b && !b.disabled; }, 'a level-3 caravan can hire in the tavern');
     const n0 = await Q(page, () => __wq.G.party.length);
@@ -178,6 +189,9 @@ async function desktop() {
     check(await Q(page, () => (__wq.seen.rally || 0) >= 1), 'Space rallies the oxen on the road');
 
     // a fight on the road plays out in the view
+    // birds cross the sky now and then
+    await Q(page, () => { __wq.view.birds.wait = 0; });
+    await until(page, () => __wq.view.birds.flocks.length > 0 || __wq.view.birds.wait > 7, 'a flock of birds (or none, at night in some places) sets off', 30000);
     await Q(page, () => { __wq.G.fightIn = 0.001; });
     await until(page, () => !!__wq.view.fight, 'a fight starts its animation', 30000);
     await page.waitForTimeout(1200);
