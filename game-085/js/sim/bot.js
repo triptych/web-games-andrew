@@ -6,6 +6,8 @@
 import { CLASSES, UPGRADES, TOWN, cartUpCost, cartCap } from './data.js';
 import { partySlots } from './party.js';
 import { command, wardenHere, refreshOdds } from './game.js';
+import { nextWarden } from './world.js';
+import { REGIONS } from './data.js';
 
 const WANT = ['healer', 'cook', 'smith', 'alchemist', 'scout', 'trader', 'bard', 'guard'];
 
@@ -65,10 +67,13 @@ export function botCheckIn(G, bot) {
     }
     send({ type: 'equipBest' });
 
-    // a Warden in reach
+    // a Warden in reach: challenge it here, or head for its town when the odds look good
+    const p = refreshOdds(G);
     if (G.at && wardenHere(G) !== null) {
-        const p = refreshOdds(G);
         if (p >= (bot.skill >= 1 ? 0.6 : 0.8)) send({ type: 'challenge' });
+    } else if (p >= 0.8) {
+        send({ type: 'course', town: REGIONS[nextWarden(G)].warden.town });
+        send({ type: 'orders', key: 'autoChallenge', value: true });
     }
     return sent;
 }

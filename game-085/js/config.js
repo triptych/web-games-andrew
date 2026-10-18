@@ -54,7 +54,7 @@ export const RARITY = [
 ];
 
 // Experience: quick early levels, then a gentle exponential so the last regions take days, not hours.
-export const xpForLevel = (l) => Math.round(25 * l * l * Math.pow(1.06, l));      // traveller: to go from l to l + 1
-export const caravanXpFor = (l) => Math.round(40 * l * l * Math.pow(1.06, l));    // caravan: to go from l to l + 1
+export const xpForLevel = (l) => Math.round(25 * l * l * Math.pow(1.075, l));      // traveller: to go from l to l + 1
+export const caravanXpFor = (l) => Math.round(40 * l * l * Math.pow(1.075, l));    // caravan: to go from l to l + 1
 export const monsterXp = (L) => Math.round(6 + 5 * Math.pow(L, 1.25));
 export const monsterGold = (L) => 2 + 1.6 * Math.pow(L, 1.15);
