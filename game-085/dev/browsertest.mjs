@@ -143,8 +143,19 @@ async function desktop() {
     await until(page, () => __wq.G.orders.route === 'hold', 'a click sets the standing orders to Hold');
     await page.keyboard.press('Digit6');
     await until(page, () => !!document.querySelector('[data-act="buy"][data-g="grain"]'), 'the Town tab shows the market');
+    // buttons that spend are green when they can be pressed, and grey when they can't
+    const green = (sel) => Q(page, (q) => { const b = document.querySelector(q); if (!b) return null; const [r, g, bl] = getComputedStyle(b).backgroundColor.match(/\d+/g).map(Number); return { on: !b.disabled, green: g > r + 40 && g > bl + 40 }; }, sel);
+    let g1 = await green('[data-act="buy"][data-g="grain"]'), g2 = await green('[data-act="sell"][data-g="grain"]');
+    check(g1?.on && g1.green, 'the +5 button is green when you can buy');
+    check(g2 && !g2.on && !g2.green, 'the −5 button is grey with nothing to sell');
+    await Q(page, () => { __wq.G.gold0 = __wq.G.gold; __wq.G.gold = 0; });
+    await until(page, () => document.querySelector('[data-act="buy"][data-g="grain"]').disabled, 'with an empty purse it goes grey');
+    await Q(page, () => { __wq.G.gold = __wq.G.gold0; });
+    await until(page, () => !document.querySelector('[data-act="buy"][data-g="grain"]').disabled, 'and green again with gold');
     await clickSel(page, '[data-act="buy"][data-g="grain"]');
     await until(page, () => (__wq.G.cargo.grain?.n || 0) === 5, 'a click on +5 buys five grain');
+    g2 = await green('[data-act="sell"][data-g="grain"]');
+    check(g2?.on && g2.green, 'and then −5 turns green');
     await Q(page, () => { __wq.G.level = 3; });
     await until(page, () => { const b = document.querySelector('[data-act="hire"]'); return b && !b.disabled; }, 'a level-3 caravan can hire in the tavern');
     const n0 = await Q(page, () => __wq.G.party.length);
@@ -161,12 +172,43 @@ async function desktop() {
     await clickSel(page, '[data-act="course"][data-town="millbrook"]');
     await until(page, () => __wq.G.course === 'millbrook' || __wq.G.road?.to === 'millbrook', 'Set course heads for Millbrook even on Hold');
     await until(page, () => !!__wq.G.road, 'the caravan sets out', 30000);
+    // the distant mountains pan gently with the road's bends, by distance travelled (v1.0.1: they spun)
+    const pan0 = await Q(page, () => ({ s: __wq.view.bgShift || 0, o: __wq.G.odo }));
+    await page.waitForTimeout(3000);
+    const pan = await Q(page, (p) => ({ ds: Math.abs((__wq.view.bgShift || 0) - p.s), dm: __wq.G.odo - p.o }), pan0);
+    check(pan.dm > 0.05 && pan.ds / pan.dm < 0.25, `the mountains drift ${(pan.ds / Math.max(pan.dm, 1e-6)).toFixed(3)} screen widths per mile (under 0.25)`);
 
+    // Rally does nothing mid-fight, in camp or while a wheel is mended (the button greys out): like a player,
+    // wait until it's ready, and press again if a fight got there first
     await Q(page, () => document.activeElement?.blur());
-    await page.keyboard.press('Space');
-    await until(page, () => (__wq.seen.rally || 0) >= 1, 'Space rallies the oxen on the road');
+    for (let i = 0; i < 6 && !(await Q(page, () => (__wq.seen.rally || 0) >= 1)); i++) {
+        await page.waitForFunction(() => __wq.G.road && !__wq.G.camp && !__wq.G.busy && __wq.G.buffs.rallyCd <= __wq.G.t, null, { timeout: 60000, polling: 100 });
+        await page.keyboard.press('Space');
+        await page.waitForFunction(() => (__wq.seen.rally || 0) >= 1 || __wq.G.busy > 0 || __wq.G.camp, null, { timeout: 15000, polling: 100 }).catch(() => {});
+    }
+    check(await Q(page, () => (__wq.seen.rally || 0) >= 1), 'Space rallies the oxen on the road');
 
     // a fight on the road plays out in the view
+    // a sparkle on the road: click it where it's drawn
+    await Q(page, () => { const G = __wq.G; G.fightIn = 1e9; G.sparkle = { id: G.t, at: G.odo + 1.6, x: 0.25 }; });
+    await until(page, () => !!__wq.view.sparkleHit && !document.getElementById('btn-sparkle').hidden, 'a sparkle shows on the road, and the ✨ button with it');
+    const sh = await Q(page, () => __wq.view.sparkleHit);
+    await page.mouse.click(sh.X, sh.Y);
+    await until(page, () => (__wq.G.stats.sparkles || 0) === 1 && !__wq.G.sparkle, 'clicking the sparkle on the road grabs it');
+    await until(page, () => document.getElementById('btn-sparkle').hidden, 'and the ✨ button goes');
+    if (await Q(page, () => !document.getElementById('letter').hidden)) {
+        check(await Q(page, () => document.getElementById('letter-ok').textContent === 'Keep it' && __wq.G.book.lore.length === 1), 'it was lore, shown on a sheet and kept');
+        await clickSel(page, '#letter-ok');
+    }
+    await Q(page, () => { const G = __wq.G; G.sparkle = { id: G.t + 1, at: G.odo + 1.6, x: -0.2 }; document.activeElement?.blur(); });
+    await page.waitForTimeout(400);
+    await page.keyboard.press('KeyE');
+    await until(page, () => (__wq.G.stats.sparkles || 0) === 2, 'E grabs one too');
+    if (await Q(page, () => !document.getElementById('letter').hidden)) await clickSel(page, '#letter-ok');
+    await Q(page, () => { __wq.G.fightIn = 30; });
+    // birds cross the sky now and then
+    await Q(page, () => { __wq.view.birds.wait = 0; });
+    await until(page, () => __wq.view.birds.flocks.length > 0 || __wq.view.birds.wait > 7, 'a flock of birds (or none, at night in some places) sets off', 30000);
     await Q(page, () => { __wq.G.fightIn = 0.001; });
     await until(page, () => !!__wq.view.fight, 'a fight starts its animation', 30000);
     await page.waitForTimeout(1200);
@@ -278,9 +320,19 @@ async function phone(w, h) {
     check(small.length === 0, `every button on the Road tab is finger-sized${small.length ? ': ' + small.join(', ') : ''}`);
     await Q(page, () => __wq.cmd({ type: 'course', town: 'applewick' }));
     await until(page, () => !!__wq.G.road && !__wq.G.camp && !__wq.G.busy, 'the caravan takes the road', 40000);
-    await tap('#btn-rally');
-    await until(page, () => (__wq.seen.rally || 0) >= 1, 'tapping Rally hurries the oxen');
+    for (let i = 0; i < 6 && !(await Q(page, () => (__wq.seen.rally || 0) >= 1)); i++) {
+        await page.waitForFunction(() => __wq.G.road && !__wq.G.camp && !__wq.G.busy && __wq.G.buffs.rallyCd <= __wq.G.t, null, { timeout: 60000, polling: 100 });
+        await tap('#btn-rally');
+        await page.waitForFunction(() => (__wq.seen.rally || 0) >= 1 || __wq.G.busy > 0 || __wq.G.camp, null, { timeout: 15000, polling: 100 }).catch(() => {});
+    }
+    check(await Q(page, () => (__wq.seen.rally || 0) >= 1), 'tapping Rally hurries the oxen');
     await shot(page, `phone-${w}x${h}`);
+    await Q(page, () => { const G = __wq.G; G.sparkle = { id: G.t, at: G.odo + 1.6, x: 0 }; });
+    await until(page, () => !document.getElementById('btn-sparkle').hidden, 'the ✨ button appears with a sparkle');
+    check(await Q(page, () => { const r = document.getElementById('btn-sparkle').getBoundingClientRect(); return r.width >= 44 && r.height >= 44 && r.right <= innerWidth; }), 'and is finger-sized');
+    await tap('#btn-sparkle');
+    await until(page, () => (__wq.G.stats.sparkles || 0) >= 1 && !__wq.G.sparkle, 'tapping ✨ grabs the sparkle');
+    if (await Q(page, () => !document.getElementById('letter').hidden)) await tap('#letter-ok');
     await tap('#btn-menu');
     await until(page, () => !document.getElementById('menu').hidden, 'tapping ☰ opens the menu');
     await page.waitForTimeout(300);

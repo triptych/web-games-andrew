@@ -9,7 +9,7 @@ const MAX_ITEMS = 500;
 const MAX_LEGS = 1000;
 
 export function newBook() {
-    return { people: {}, monsters: {}, wardens: {}, items: {}, goods: {}, mats: {}, places: {}, legs: [], letters: [], seen: 0 };
+    return { people: {}, monsters: {}, wardens: {}, items: {}, goods: {}, mats: {}, places: {}, legs: [], letters: [], lore: [], seen: 0 };
 }
 
 /** Saves from before the scrapbook get one, filled from what the save already knows. */

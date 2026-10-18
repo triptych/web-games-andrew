@@ -5,12 +5,12 @@ import { VERSION, caravanXpFor, RARITY } from '../config.js';
 import { TOWN, CLASSES, SLOT_NAME, REGIONS } from '../sim/data.js';
 import { speed } from '../sim/world.js';
 import { canWear, itemScore, maxHp } from '../sim/party.js';
-import { larderCap } from '../sim/economy.js';
+import { larderCap, buyPrice, cargoUsed, cargoCap, rationPrice } from '../sim/economy.js';
 import { PANELS, LIVE, journalHtml, itemStats } from './panels.js';
 import { MapView } from '../view/map.js';
 import { drawPortrait } from '../view/portraits.js';
 import { bookCount } from '../sim/book.js';
-import { STORY, WAGON_NAMES } from '../sim/data.js';
+import { STORY, WAGON_NAMES, LORE } from '../sim/data.js';
 
 /** A name from the list (the UI may use Math.random: only the sim must be seeded). */
 export const suggestName = (not = '') => { const pool = WAGON_NAMES.filter((n) => n !== not); return pool[Math.floor(Math.random() * pool.length)]; };
@@ -191,6 +191,7 @@ export class UI {
             case 'rename': return this.openNaming('rename', this.G.wagon);
             case 'bookPage': this.bookPage = d.v; this.audio.ui('click'); $('panel').scrollTop = 0; this.sig = null; return;
             case 'moreLegs': this.legLimit += 100; this.sig = null; return;
+            case 'relore': { const l = LORE[+d.i]; if (l) { this.audio.ui('open'); this.showLetter(l, true, 'Fold it away'); } return; }
             case 'reread': {
                 const l = [STORY.intro, ...STORY.waystones].find((x) => x.title === d.title);
                 if (l) { this.audio.ui('open'); this.showLetter(l, true); }
@@ -239,6 +240,7 @@ export class UI {
                 t: [...panel.querySelectorAll('[data-t]')],
                 w: [...panel.querySelectorAll('[data-w]')],
                 gold: [...panel.querySelectorAll('[data-gold]')],
+                trade: [...panel.querySelectorAll('[data-buy], [data-sell], [data-rations]')],
                 html: [...panel.querySelectorAll('[data-html]')],
             };
             if (this.tab === 'map') {
@@ -267,6 +269,13 @@ export class UI {
                 if (ok && el.dataset.need) { const need = JSON.parse(el.dataset.need); for (const k in need) if (G.mats[k] < need[k]) ok = false; }
                 const capped = el.textContent.startsWith('Caravan level') || el.textContent.startsWith('No room');
                 el.disabled = !ok || capped;
+            }
+            // market buttons: live, because prices, the purse and the hold all change while you look
+            for (const el of this.liveEls.trade) {
+                const d = el.dataset;
+                el.disabled = !G.at || (d.buy ? G.gold < buyPrice(G, G.at, d.buy) || cargoUsed(G) >= cargoCap(G)
+                    : d.sell ? !(G.cargo[d.sell]?.n > 0)
+                        : G.rations >= larderCap(G) || G.gold < rationPrice(G, G.at));
             }
             for (const el of this.liveEls.html) if (el.dataset.html === 'journal' && G.log.length + G.log[G.log.length - 1]?.t !== this.journalLen) {
                 this.journalLen = G.log.length + G.log[G.log.length - 1]?.t;
@@ -312,6 +321,7 @@ export class UI {
         $('status-where').textContent = where;
         $('status-sub').textContent = sub;
         $('status-bar').firstElementChild.style.width = `${Math.round(k * 100)}%`;
+        $('btn-sparkle').hidden = !(G.sparkle && G.road);
         const rb = $('btn-rally');
         const cd = G.buffs.rallyCd - G.t;
         rb.disabled = !!G.at || !G.road || G.camp || G.busy > 0 || cd > 0;
@@ -330,6 +340,7 @@ export class UI {
             else if (e.type === 'hungry') this.toast('⚠️ Out of rations! The caravan slows.');
             else if (e.type === 'region') this.toast(`🏮 Into ${REGIONS[e.region].name}`);
             else if (e.type === 'event' && e.kind === 'wanderer') this.toast(`🤝 ${e.name} asks to join (Caravan tab)`);
+            else if (e.type === 'sparkleGot' && e.kind === 'lore') { const l = LORE[e.lore]; this.showLetter({ title: l.title, text: l.text + '\n\n(Kept in the Scrapbook, under Letters & lore.)' }, true, 'Keep it'); }
             else if (e.type === 'discover' && e.kind !== 'person') this.toast(`📔 New in the scrapbook: ${e.name}`);
         }
     }
@@ -347,8 +358,9 @@ export class UI {
         inp.select();
     }
 
-    showLetter(letter, reread = false) {
+    showLetter(letter, reread = false, button = null) {
         this.rereading = reread;
+        $('letter-ok').textContent = button || (reread ? 'Fold it away' : 'Fold the letter');
         $('letter-title').textContent = letter.title;
         $('letter-text').textContent = letter.text;
         this.openScreen('letter');

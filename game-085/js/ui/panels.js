@@ -2,7 +2,7 @@
 // html(G). The panel is rebuilt only when its sig changes, so a button never vanishes under a finger; the
 // numbers that tick every second are filled in place through data attributes (see LIVE below).
 
-import { CLASSES, UPGRADES, GOODS, GOOD, MATS, TOWN, TOWNS, REGIONS, FAMILIES, SLOTS, SLOT_NAME, cartUpCost, cartCap, STORY } from '../sim/data.js';
+import { LORE, CLASSES, UPGRADES, GOODS, GOOD, MATS, TOWN, TOWNS, REGIONS, FAMILIES, SLOTS, SLOT_NAME, cartUpCost, cartCap, STORY } from '../sim/data.js';
 import { RARITY, QUESTS, DAY, xpForLevel, caravanXpFor } from '../config.js';
 import { memberStats, maxHp, partySlots, partyHealth, partyPower, upgradeCost, itemScore, canWear, cartLevel } from '../sim/party.js';
 import { buyPrice, sellPrice, cargoCap, cargoUsed, larderCap, rationPrice } from '../sim/economy.js';
@@ -97,7 +97,7 @@ export const caravan = {
         p.push(`<div class="sec"><h3><span>${esc(G.wagon)}</span><button class="btn small rename" data-act="rename" aria-label="Rename the wagon">✎ Rename</button></h3>${Object.entries(UPGRADES).map(([k, u]) => {
             const l = G.up[k], cost = upgradeCost(G, k);
             return `<div class="card"><div class="row2"><span class="ico">${u.icon}</span><div class="grow"><div class="name small">${u.name} <span class="dim">${l}/${u.max}</span></div><div class="tiny">${u.text(l)}${cost !== null ? ` → <b>${u.text(l + 1)}</b>` : ''}</div></div>
-                ${cost !== null ? `<button class="btn small" data-act="upgrade" data-k="${k}" data-gold="${cost}">${fmtNum(cost)}g</button>` : '<span class="dim">max</span>'}</div></div>`;
+                ${cost !== null ? `<button class="btn small buy" data-act="upgrade" data-k="${k}" data-gold="${cost}">${fmtNum(cost)}g</button>` : '<span class="dim">max</span>'}</div></div>`;
         }).join('')}</div>`);
         p.push(`<div class="sec"><h3>Travellers and their carts</h3>${G.party.map((m) => memberCard(G, m)).join('')}</div>`);
         return p.join('');
@@ -120,7 +120,7 @@ function memberCard(G, m) {
         <div class="gear">${gear}</div>
         <div class="card" style="margin:8px 0 0;background:rgba(0,0,0,0.18)"><div class="small"><b>${m.cls === 'captain' ? esc(G.wagon) : c.cart}</b>${m.cls !== 'captain' ? ` · level ${m.cart}` : ''}</div><div class="tiny">${esc(c.text(m.cart))}</div>
         ${crafts ? `<div class="bar"><i data-w="craft:${m.id}"></i></div>` : ''}
-        ${up ? `<div class="btns"><button class="btn small" data-act="cartUp" data-id="${m.id}" data-gold="${up.gold}" data-need='${JSON.stringify(up.mats)}'${capped ? ' disabled' : ''}>${capped ? `Caravan level ${m.cart * 3} for more` : `Upgrade: ${costHtml(up.gold, up.mats)}`}</button>
+        ${up ? `<div class="btns"><button class="btn small buy" data-act="cartUp" data-id="${m.id}" data-gold="${up.gold}" data-need='${JSON.stringify(up.mats)}'${capped ? ' disabled' : ''}>${capped ? `Caravan level ${m.cart * 3} for more` : `Upgrade: ${costHtml(up.gold, up.mats)}`}</button>
             <button class="btn small danger" data-act="dismiss" data-id="${m.id}">Part ways</button></div>` : ''}</div></div>`;
 }
 
@@ -134,13 +134,13 @@ export const pack = {
         p.push(`<div class="sec"><h3>Supplies</h3><div class="stat-grid"><div>🍞 Rations<b data-t="rations"></b></div><div>🧪 Potions<b data-t="potions"></b></div><div>📦 Hold<b data-t="cargo"></b></div></div>
             <div class="stat-grid">${MATS.map((m) => `<div>${m.icon} ${m.name}<b data-t="mat:${m.id}"></b></div>`).join('')}</div></div>`);
         const cargo = Object.entries(G.cargo);
-        p.push(`<div class="sec"><h3>Cargo</h3>${cargo.length ? `<table class="market">${cargo.map(([g, c]) => `<tr><td>${GOOD[g].icon} ${GOOD[g].name}</td><td class="n">${c.n} × ~${Math.round(c.cost / c.n)}g</td>${G.at ? `<td class="n">sells <b data-t="sell:${g}"></b></td><td class="n"><button class="btn small" data-act="sell" data-g="${g}" data-n="999">Sell all</button></td>` : ''}</tr>`).join('')}</table>` : '<p class="dim">The hold is empty.</p>'}</div>`);
+        p.push(`<div class="sec"><h3>Cargo</h3>${cargo.length ? `<table class="market">${cargo.map(([g, c]) => `<tr><td>${GOOD[g].icon} ${GOOD[g].name}</td><td class="n">${c.n} × ~${Math.round(c.cost / c.n)}g</td>${G.at ? `<td class="n">sells <b data-t="sell:${g}"></b></td><td class="n"><button class="btn small buy" data-act="sell" data-g="${g}" data-n="999" data-sell="${g}">Sell all</button></td>` : ''}</tr>`).join('')}</table>` : '<p class="dim">The hold is empty.</p>'}</div>`);
         const items = [...G.pack].sort((a, b) => b.rarity - a.rarity || itemScore(b) - itemScore(a));
         p.push(`<div class="sec"><h3>Gear <span class="btns" style="margin:0"><button class="btn small" data-act="equipBest">Wear best</button><button class="btn small" data-act="sellJunk">Sell junk</button></span></h3>
             ${items.length ? items.map((it) => {
                 const who = G.party.filter((m) => canWear(m, it));
                 return `<div class="card"><div class="row2"><div class="grow"><div class="small ${rar(it)}"><b>${esc(it.name)}</b></div><div class="tiny">${RARITY[it.rarity].name} ${SLOT_NAME[it.slot].toLowerCase()} · item level ${it.ilvl} · ${itemStats(it)}</div></div>
-                <button class="btn small" data-act="give" data-item="${it.id}"${who.length ? '' : ' disabled'}>${who.length ? 'Give' : `Level ${it.ilvl - 2}`}</button><button class="btn small" data-act="sellItem" data-item="${it.id}">${it.value}g</button></div></div>`;
+                <button class="btn small" data-act="give" data-item="${it.id}"${who.length ? '' : ' disabled'}>${who.length ? 'Give' : `Level ${it.ilvl - 2}`}</button><button class="btn small buy" data-act="sellItem" data-item="${it.id}">${it.value}g</button></div></div>`;
             }).join('') : '<p class="dim">Nothing spare in the pack.</p>'}</div>`);
         p.push(`<div class="sec"><h3>Quartermaster</h3><div class="card">${TOGGLES.map(([k, l]) => `<label class="toggle"><span>${l}</span><input type="checkbox" data-act="toggle" data-k="${k}"${G.orders[k] ? ' checked' : ''}></label>`).join('')}</div></div>`);
         return p.join('');
@@ -215,14 +215,14 @@ export const town = {
             ${GOODS.filter((g) => regionOpen(G, g.region)).map((g) => {
                 const cls = T.produces.includes(g.id) ? 'cheap' : T.wants.includes(g.id) ? 'dear' : '';
                 return `<tr><td class="${cls}">${g.icon} ${g.name}${T.produces.includes(g.id) ? ' <span class="tiny">made here</span>' : T.wants.includes(g.id) ? ' <span class="tiny">wanted</span>' : ''}</td><td class="n" data-t="buy:${g.id}"></td><td class="n" data-t="sell:${g.id}"></td><td class="n" data-t="have:${g.id}"></td>
-                <td class="n"><button class="btn" data-act="buy" data-g="${g.id}" data-n="5"${free > 0 ? '' : ' disabled'}>+5</button> <button class="btn" data-act="sell" data-g="${g.id}" data-n="5"${G.cargo[g.id] ? '' : ' disabled'}>−5</button></td></tr>`;
+                <td class="n"><button class="btn buy" data-act="buy" data-g="${g.id}" data-n="5" data-buy="${g.id}">+5</button> <button class="btn buy" data-act="sell" data-g="${g.id}" data-n="5" data-sell="${g.id}">−5</button></td></tr>`;
             }).join('')}</table>
-            <div class="row2" style="margin-top:8px"><span class="grow small">🍞 Rations <span data-t="rations"></span> <span class="tiny" data-t="ration"></span></span><button class="btn small" data-act="rations">Fill the larder</button></div></div>`);
+            <div class="row2" style="margin-top:8px"><span class="grow small">🍞 Rations <span data-t="rations"></span> <span class="tiny" data-t="ration"></span></span><button class="btn small buy" data-act="rations" data-rations="1">Fill the larder</button></div></div>`);
         const full = G.party.length >= partySlots(G.level);
         p.push(`<div class="sec"><h3>Tavern</h3>${G.tavern.length ? G.tavern.map((o, i) => {
             const c = CLASSES[o.m.cls];
             return `<div class="card"><div class="row2"><span class="ico">${c.icon}</span><div class="grow"><div class="name">${esc(o.m.name)}</div><div class="dim small">${c.name} ${o.m.level} · ${c.cart}</div><div class="tiny">${esc(c.role)} ${esc(c.text(1))}</div></div></div>
-                <div class="btns"><button class="btn primary small" data-act="hire" data-idx="${i}" data-gold="${o.cost}"${full ? ' disabled' : ''}>${full ? 'No room in the caravan' : `Hire for ${fmtNum(o.cost)}g`}</button></div></div>`;
+                <div class="btns"><button class="btn small buy" data-act="hire" data-idx="${i}" data-gold="${o.cost}"${full ? ' disabled' : ''}>${full ? 'No room in the caravan' : `Hire for ${fmtNum(o.cost)}g`}</button></div></div>`;
         }).join('') : '<p class="dim">Nobody looking for a road today.</p>'}</div>`);
         p.push(`<div class="sec"><h3>Notice board</h3>${G.board.length ? G.board.map((q) => {
             const l = questLine(G, q);
@@ -233,7 +233,7 @@ export const town = {
 };
 
 // ------------------------------------------------------------------ Scrapbook
-const BOOK_PAGES = [['people', '🧑 People'], ['monsters', '🐺 Monsters'], ['items', '🎒 Things'], ['places', '🏘️ Places'], ['log', '🛤️ Travel log'], ['letters', '✉️ Letters']];
+const BOOK_PAGES = [['people', '🧑 People'], ['monsters', '🐺 Monsters'], ['items', '🎒 Things'], ['places', '🏘️ Places'], ['log', '🛤️ Travel log'], ['letters', '✉️ Letters & lore']];
 const STATUS = { riding: 'rides with you', asked: 'asked to join', passed: 'went their own way', parted: 'parted ways' };
 const dayOf = (t) => Math.floor(t / DAY) + 1;
 const whereText = (w) => (w && w.includes('>') ? `on the road to ${TOWN[w.split('>')[1]].name}` : w && TOWN[w] ? `in ${TOWN[w].name}` : 'on the road');
@@ -243,7 +243,7 @@ const portrait = (spec) => `<canvas class="portrait" data-portrait='${JSON.strin
 export const book = {
     sig: (G, ui) => {
         const b = G.book;
-        return [G.wagon, ui.bookPage, ui.legLimit, Object.values(b.people).map((p) => p.id + p.status + p.level).join(','), Object.keys(b.monsters).length, Object.keys(b.wardens).map((k) => k + (b.wardens[k].beaten ?? '')).join(','),
+        return [G.wagon, G.book.lore.length, ui.bookPage, ui.legLimit, Object.values(b.people).map((p) => p.id + p.status + p.level).join(','), Object.keys(b.monsters).length, Object.keys(b.wardens).map((k) => k + (b.wardens[k].beaten ?? '')).join(','),
             Object.keys(b.items).length, Object.keys(b.places).length, b.legs.length, b.letters.length, G.party.map((m) => m.level).join(',')].join('|');
     },
     html(G, ui) {
@@ -307,6 +307,14 @@ export const book = {
             p.push(`<div class="snaps letters">${got.map((l) => `<button class="letter-card" data-act="reread" data-title="${esc(l.title)}"><b>${esc(l.title)}</b><span>${esc(l.text.slice(0, 90))}…</span></button>`).join('') || '<p class="dim">Grandmother\'s letters will be kept here once you\'ve read them.</p>'}</div>`);
             const left = all.length - got.length;
             if (left) p.push(`<p class="dim">${left} more letter${left === 1 ? '' : 's'} to come.</p>`);
+            // lore from sparkles on the road, region by region
+            p.push(`<h3 class="book-h">Lore from the road <span>${b.lore.length}/${LORE.length}</span></h3>`);
+            for (const R of REGIONS) {
+                const items = LORE.map((l, i) => ({ ...l, i })).filter((l) => l.region === R.id);
+                p.push(`<h3 class="book-h small-h">${R.name}</h3><div class="snaps letters">${items.map((l) => b.lore.includes(l.i)
+                    ? `<button class="letter-card" data-act="relore" data-i="${l.i}"><b>${esc(l.title)}</b><span>${esc(l.text)}</span></button>`
+                    : '<div class="letter-card faded"><b>???</b><span>Not yet found. Tap the sparkles on the road.</span></div>').join('')}</div>`);
+            }
         }
         return `<div class="book-page">${p.join('')}</div>`;
     },

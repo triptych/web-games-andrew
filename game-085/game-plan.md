@@ -2,7 +2,7 @@
 
 **Genre:** Idle caravan RPG (mobile first)
 **Engine:** Vanilla JS: Canvas 2D (a pseudo-3D road) + DOM panels, no asset files
-**Status:** v1.0.0
+**Status:** v1.1.0
 
 ---
 
@@ -95,6 +95,9 @@ A seventh tab keeps a record of everything (`js/sim/book.js`, written by the rul
 - **Letters:** every letter of Grandmother's you've read, to read again.
 A badge says when there's something new. It looks like a scrapbook: lined paper, taped polaroids with drawn portraits (the same drawing code as the road, `js/view/portraits.js`) and handwritten captions in Caveat.
 
+### Sparkles
+While the caravan travels, a sparkle sometimes hovers over the road ahead (`SPARKLE` in `config.js`: chance 1/45 a moving tick, 1.2–2 miles ahead, never past the road's end, never in town). Grabbing it (`command({ type: 'sparkle', id })`, `grabSparkle` in `game.js`) rolls gold, gear, a Shimmering fight or lore; it fades when the caravan reaches it. The spawn uses `hash3(t, seed)` rather than `G.rng`, so `advance()` and `step()` stay identical. Lore (`LORE` in `data.js`) comes only from regions you can reach, never twice; after all thirty, sparkles hold something else.
+
 ### Time away
 On Continue, or when the tab comes back after more than 30 s hidden, the sim runs `min(seconds away, Great Lantern hours)` quietly, then the **chronicle** sheet shows the difference and up to 30 highlights. A day away runs in ~0.1 s.
 
@@ -114,6 +117,7 @@ Grandmother Odessa drove the wagon for fifty years. When the Hollow King's fog r
 | Action | Keyboard | Gamepad | Touch |
 |---|---|---|---|
 | Rally | Space / Z | X | Rally button, or tap the road |
+| Grab a sparkle | E | — | Tap it on the road, or ✨ |
 | Tabs | 1–7 | — | Tab bar |
 | Move through buttons | Arrows | D-pad | — |
 | Press | Enter / Space | A | Tap |
@@ -124,6 +128,7 @@ Grandmother Odessa drove the wagon for fifty years. When the Hollow King's fog r
 - **The road** (`js/view/view.js`): 150 segments of 200 world units projected by a pinhole camera behind, above and slightly right of the last cart. Curves are a sideways offset accumulated segment by segment, hills a height per segment; both come from stateless value noise over the segment index, so the road never needs storing and never changes when you come back. Segments fade into the sky's haze with distance. Six biomes cross-fade (grass stripes, road and verge colours, mountains, props, weather). Day and night follow the game clock (a 12-minute day): sky gradient, sun and moon on an arc, stars, lit windows, the lead wagon's lantern glow, a vignette.
 - **Carts** (`js/view/sprites.js`) are boxes projected corner by corner through the road's own projection: wheels with spokes that turn with the miles, a canopy of hoops in the traveller's colour, the cart's emblem on the back, the lantern on the lead wagon's pole, two oxen. Travellers walk beside their carts, sit round a fire at camp and step out to fight.
 - **Fights** are staged on the verge to the right; the camera eases forward and out to frame them, roadside props and houses clear out of the way, the round's script plays back hit by hit with lunges, flashes and damage numbers, and the camera drifts back after.
+- **The countryside** (`js/view/scenery.js`): three bands of scenery per road segment (verge, middle ground, far), placed from the segment's hash so the same road always looks the same, clumped into groves and clearings, every tree its own size, shape and colour, animals grazing, birds overhead. See the v1.1.0 changelog for the list.
 - **Monsters** (`js/view/creatures.js`): nine body shapes (beast, biped, brute, spirit, crawler, serpent, flyer, blob, golem) plus drake and king, coloured per family. `dev/gallery.html` shows them all.
 - **Sound** (`js/audio.js`): Web Audio, no files. Hits, heals, victory and rout jingles, coins, an arrival bell, level-ups, rare-loot chimes; a plucked travelling tune with a reverb tail whose scale changes by region and slows at night.
 - **UI:** a warm leather-and-parchment dock with seven tabs (Road, Caravan, Pack, Quests, Map, Town, Scrapbook); the map is parchment with region washes, lit Waystones and quest markers. Cinzel for headings, Nunito for text, Caveat for the scrapbook's handwriting, system fallbacks.
@@ -167,6 +172,14 @@ From the bot table (`SEEDS=3`, the median of three):
 - Push notifications would suit the genre, but a static page can't send them.
 
 ## Changelog
+
+### v1.1.0 (2026-10-18)
+- **A fuller countryside** (`js/view/scenery.js`): the road used to have one prop at most per segment, always near the path, from a handful of fixed shapes. Now every segment is scattered, from its own hash, in three bands: the verge (grass, flowers, pebbles, toadstools, reeds, ice shards, embers…), the middle ground (trees, rocks, logs, stumps, haystacks, pools, grazing sheep and deer), and a far band out to the horizon (tree lines, pine forests, mesas, outcrops, the odd windmill) that fades into the haze. Low-frequency noise along each side makes groves and clearings. Every tree, rock and cactus takes its size, shape, lean and colour from its own hash: oaks (some with apples), birches, poplars, blossom and autumn trees in Meadowmere; three cacti, mesas and palms in the Wastes; willows, swamp trees and giant toadstools in Mirewood; pines in four greens with or without snow in Frostfang; dead trees and obsidian in Emberreach; crystal groves and floating rocks in Starhaven. Where a road crosses into a new region the scenery changes at its midpoint, ahead of you. Flocks of birds cross the sky (loose flocks, V formations, circling vultures; bats at night).
+- **Sparkles on the road**, for someone who's watching: about once every 45 s of travel a sparkle appears on the road 1.2–2 miles ahead, and fades when the caravan rolls past it (10–15 s). Tap it on the road (or the ✨ button, or E) for gold (35%), a piece of Fine-or-better gear (25%), a **Shimmering** monster to fight on the spot (20%: an elite of the region one level up, glittering, worth three times the gold and always dropping Rare-or-better gear) or a fragment of **lore** (20%: thirty in all, five per region, shown on a sheet and kept in the Scrapbook under Letters & lore). Sparkles spawn from a hash of the clock, not the game's random stream, so time away plays out exactly as watching does; only someone watching can grab one.
+- **Green buttons:** every button that spends or trades (upgrades, cart upgrades, hiring, the market's +5 and −5, filling the larder, selling gear) is green when it can be pressed and flat grey when it can't; the market buttons check the price, the purse and the hold live.
+
+### v1.0.1 (2026-10-18)
+- The distant mountains spun wildly as the caravan set out. Their sideways pan was speed × frame time × the road's curve in world units (hundreds of times too much), and it kept turning while the caravan stood still between frames. They now pan by the distance actually travelled this frame and the bend under it, in screen widths (at most about one width a minute on the sharpest bends); a jump in distance (time away, a new game) moves nothing. `browsertest.mjs` checks the drift per mile and waits for Rally to be ready before pressing it.
 
 ### v1.0.0 (2026-10-18)
 - First release: a self-driving caravan on a pseudo-3D road through six regions; trade with price pressure, auto-battles staged beside the wagons, nine traveller classes with working carts (cooking, forging, brewing, healing, trading, scouting, performing), gear, upgrades, quests, daily contracts and the morning post, six Wardens and Waystones, the Night Roads; time away with a chronicle; Grandmother Odessa's letters; a Scrapbook of every person, monster, item, town and road; procedural sound; simtest, browsertest and a gallery page.

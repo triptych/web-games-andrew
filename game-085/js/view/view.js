@@ -11,6 +11,8 @@ import { speed } from '../sim/world.js';
 import { hash3 } from '../rng.js';
 import { drawProp, drawHouse, drawCart, drawOx, drawWalker, drawCampfire, mix, shade } from './sprites.js';
 import { drawCreature, creatureHeight } from './creatures.js';
+import { scatter, sizeOf, drawScenery, Birds } from './scenery.js';
+import { drawSparkle } from './sprites.js';
 
 const SEG = 200;              // world units per road segment
 const MILE = 2000;            // world units per mile of road
@@ -22,6 +24,7 @@ const CAMX = 260;             // and a little to the right, so the train shows i
 const FIGHT_X = 1750;         // fights happen on the verge to the right of the train
 const GATE_BACK = 2600;       // the town gate stops just behind the camera, so the train stands among the houses
 const NEAR = 120;
+const PAN = 0.003;             // how far the mountains slide per segment of curve, in screen widths
 const CART = { w: 460, h: 640, len: 620, gap: 300 };
 
 const BIOMES = {
@@ -55,6 +58,8 @@ export class View {
         this.biomeFrom = 'meadow';
         this.biomeK = 1;
         this.shakeT = 0;
+        this.birds = new Birds();
+        this.motes = [];             // sparkle bursts, in screen px
         this.resize();
         const onResize = () => this.resize();
         window.addEventListener('resize', onResize);
@@ -86,6 +91,7 @@ export class View {
             else if (e.type === 'levelup') this.say(G, `Caravan level ${e.level}!`, '#ffe08a', 0, 1.4);
             else if (e.type === 'craft') this.say(G, e.cls === 'cook' ? '+rations' : e.cls === 'smith' ? 'forged!' : '+potion', '#b8f0a0', G.party.findIndex((m) => m.id === e.id));
             else if (e.type === 'event' && e.kind === 'cache') this.say(G, `+${e.gold}g`, '#ffd36a', 0);
+            else if (e.type === 'sparkleGot') this.burstSparkle(e);
             else if (e.type === 'rareLoot') this.say(G, e.name, ['#fff', '#8f8', '#6af', '#c8f', '#fb4'][e.rarity], 0, 1.2);
         }
     }
@@ -189,7 +195,12 @@ export class View {
             segs.push({ k: kk, x, y: hill(kk), z: kk * SEG - L.camZ });
             x += dx; dx += curve(kk);
         }
-        this.bgShift = (this.bgShift || 0) + (L.moving ? curve(base) * dt * 0.02 * speed(G) * MILE : 0);
+        // The mountains pan as the road bends under the caravan: by the distance actually travelled this frame
+        // (not speed × time, which kept turning while the caravan stood still), in screen widths per segment.
+        // A jump (time away, a new game) moves nothing.
+        const dOdo = this.lastOdo === undefined ? 0 : L.odo - this.lastOdo;
+        this.lastOdo = L.odo;
+        if (dOdo > 0 && dOdo < 2) this.bgShift = (this.bgShift || 0) + curve(base) * ((dOdo * MILE) / SEG) * PAN;
         // project a world point; x is across the road relative to its centre line
         const roadX = (z) => {
             const kk = (z + L.camZ) / SEG - base, i = Math.max(0, Math.min(DRAW - 1, Math.floor(kk))), t = kk - i;
@@ -205,22 +216,40 @@ export class View {
         this.drawSky(ctx, R, horizon, pal, G, time, day);
         ctx.fillStyle = mix(pal.grass[0], pal.fog, 0.7);
         ctx.fillRect(R.x, horizon, R.w, R.y + R.h - horizon);
+        this.birds.update(dt, this.biome, night);
+        this.birds.draw(ctx, R, horizon, time);
 
         // the world, far to near: road quad, then whatever stands on that segment
         const items = [];
         const farZ = L.camZ + DRAW * SEG;
         const nearZ = L.camZ + NEAR;
-        // props
+        // the countryside: verge, middle ground and far band, from the segment's own hash (see scenery.js).
+        // Where the road crosses into a new region, the scenery changes at the road's midpoint, ahead of you.
+        let split = null;
+        if (G.road) {
+            const a = BIOME_OF[TOWN[G.road.from].region], b = BIOME_OF[TOWN[G.road.to].region];
+            if (a !== b) split = { z: L.caravanZ + (G.road.miles / 2 - G.road.done) * MILE, a, b };
+        }
+        const here = this.biome;
+        const townZ0 = this.town ? this.town.z - 400 : Infinity, townZ1 = this.town ? this.town.z + 16 * 650 : -Infinity;
+        const fogAt = (z) => Math.pow(Math.min(1, Math.max(0, (z - L.camZ) / (DRAW * SEG))), 1.6) * 0.75;
         for (let n = DRAW - 1; n >= 1; n--) {
-            const kk = base + n;
-            const h = hash3(kk, 5, 3);
-            if (h < B.density) {
-                const side = hash3(kk, 6, 3) < 0.5 ? -1 : 1;
-                const dist = ROADW + 350 + hash3(kk, 7, 3) * 2600;
-                const kind = B.props[Math.floor(hash3(kk, 8, 3) * B.props.length)];
-                // keep the verge clear where a fight is staged
-                if (ck > 0.05 && side > 0 && dist < FIGHT_X + 1800 && kk * SEG > L.camZ && kk * SEG < L.frontZ + 4000) continue;
-                items.push({ z: kk * SEG, draw: () => { const p = P(side * dist, 0, kk * SEG); drawProp(ctx, kind, p.X, p.Y, p.s, (hash3(kk, 9, 3) * 9) | 0, night); } });
+            const kk = base + n, zSeg = kk * SEG;
+            const biome = split ? (zSeg < split.z ? split.a : split.b) : here;
+            for (const it of scatter(biome, kk)) {
+                if (it.band === 0 && n > 70) continue;                            // grass far off is too small to see
+                const z = zSeg + it.dz, half = sizeOf(it.kind) / 2;
+                // keep the verge clear where a fight is staged, and the houses' frontage clear in town
+                if (ck > 0.05 && it.side > 0 && it.dist - half < FIGHT_X + 1800 && z > L.camZ && z < L.frontZ + 4000) continue;
+                if (it.band > 0 && z > townZ0 && z < townZ1 && it.dist - half < ROADW + 2600) continue;
+                const fog = it.band > 0 ? fogAt(z) : 0;
+                items.push({ z, draw: () => {
+                    const p = P(it.side * it.dist, 0, z);
+                    if (p.s * sizeOf(it.kind) < 1.5) return;
+                    if (fog > 0.05) ctx.globalAlpha = 1 - fog;
+                    drawScenery(ctx, it.kind, p.X, p.Y, p.s, it.v, night, time);
+                    ctx.globalAlpha = 1;
+                } });
             }
         }
         // the town
@@ -275,6 +304,19 @@ export class View {
             const z = L.caravanZ + 1400;
             items.push({ z, draw: () => { const p = P(CART.w / 2 + 900, 0, z); drawCampfire(ctx, p.X, p.Y, p.s, time); } });
         }
+        // a sparkle on the road ahead, for someone watching to tap
+        this.sparkleHit = null;
+        const sp = G.sparkle;
+        if (sp && G.road) {
+            const z = L.frontZ + (sp.at - L.odo) * MILE;
+            items.push({ z, draw: () => {
+                const p = P(sp.x * ROADW, 0, z);
+                const r = Math.max(9, 230 * p.s);
+                const y = p.Y - Math.max(14, 330 * p.s) - Math.sin(time * 3) * r * 0.25;
+                drawSparkle(ctx, p.X, y, r, time);
+                this.sparkleHit = { X: p.X, Y: y, r: Math.max(30, r * 1.6), id: sp.id };
+            } });
+        }
         // monsters
         if (fight) {
             this.stepFight(G, fight, dt);
@@ -305,6 +347,8 @@ export class View {
         }
         while (ii < items.length) { if (items[ii].z > nearZ) items[ii].draw(); ii++; }
 
+        if (this.sparkleHit) this.lastSparkle = this.sparkleHit;
+        this.drawMotes(ctx, dt);
         this.drawTexts(ctx, P, dt);
         this.drawWeather(ctx, R, dt, G, night);
         if (night) {
@@ -383,7 +427,7 @@ export class View {
             ctx.moveTo(R.x, horizon + 2);
             for (let i = 0; i <= 48; i++) {
                 const sx = R.x + (i / 48) * R.w;
-                const u = (sx + shift * par * R.w) / (R.w * 0.18) + layer * 50;
+                const u = ((sx - R.x) / R.w + shift * par) / 0.18 + layer * 50;
                 const hgt = (0.55 + 0.45 * noise1(u, 40 + layer)) * (horizon - R.y) * amp;
                 ctx.lineTo(sx, horizon - hgt);
             }
@@ -474,6 +518,37 @@ export class View {
         const c = L.carts[i];
         if (!c) return;
         this.texts.push({ text, color, x: FIGHT_X + (i - (L.carts.length - 1) / 2) * 300, y: 700, z: L.frontZ - 500 + (i % 2) * 220, age: 0, life: 1, size: 0.9 });
+    }
+
+/** A tap or click in client px: is it on the sparkle? (mapped through the canvas's own rect) */
+    hitSparkle(clientX, clientY) {
+        const h = this.sparkleHit;
+        if (!h) return null;
+        const r = this.canvas.getBoundingClientRect();
+        const x = clientX - r.left, y = clientY - r.top;
+        return Math.hypot(x - h.X, y - h.Y) <= h.r ? h.id : null;
+    }
+
+    burstSparkle(e) {
+        const h = this.lastSparkle || this.sparkleHit;
+        if (!h) return;
+        const text = e.kind === 'gold' ? `+${e.gold}g` : e.kind === 'item' ? e.name : e.kind === 'lore' ? 'Lore!' : '';
+        const col = e.kind === 'item' ? ['#fff', '#8f8', '#6af', '#c8f', '#fb4'][e.rarity] : '#ffe08a';
+        if (text) this.texts.push({ text, color: col, screen: { X: h.X, Y: h.Y }, age: 0, life: 2, size: 1.3 });
+        for (let i = 0; i < 26; i++) {
+            const a = Math.random() * Math.PI * 2, v = 60 + Math.random() * 160;
+            this.motes.push({ x: h.X, y: h.Y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, life: 0.6 + Math.random() * 0.6, age: 0 });
+        }
+    }
+
+    drawMotes(ctx, dt) {
+        for (const m of this.motes) {
+            m.age += dt; m.x += m.vx * dt; m.y += m.vy * dt; m.vy += 120 * dt;
+            const a = Math.max(0, 1 - m.age / m.life);
+            ctx.fillStyle = `rgba(255,236,150,${a})`;
+            ctx.fillRect(m.x - 2, m.y - 2, 4, 4);
+        }
+        this.motes = this.motes.filter((m) => m.age < m.life);
     }
 
     drawTexts(ctx, P, dt) {

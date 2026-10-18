@@ -51,6 +51,11 @@ b { font-weight: 800; }
 .btn.primary { background: var(--accent); color: #2a1a05; border-color: transparent; }
 .btn.danger { border-color: var(--bad); color: #ffc0b8; }
 .btn:disabled { opacity: 0.4; cursor: default; }
+/* Buttons that spend or trade are green when they can be pressed, flat grey when they can't */
+.btn.buy { background: #3f9a4a; border-color: #2f7a38; color: #fff; font-weight: 800; box-shadow: 0 2px 0 #24602c; }
+.btn.buy:hover { background: #4aae56; }
+.btn.buy:active { transform: translateY(1px); box-shadow: 0 1px 0 #24602c; }
+.btn.buy:disabled { background: #3a342c; border-color: rgba(255, 236, 200, 0.1); color: #8a7e6a; box-shadow: none; opacity: 1; transform: none; }
 .btn:focus-visible, .ibtn:focus-visible, .tab:focus-visible, .chipbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .ibtn { font-size: 18px; background: rgba(20, 14, 8, 0.7); }
 
@@ -89,6 +94,8 @@ b { font-weight: 800; }
 .bar.hp.low i { background: var(--bad); }
 .bar.xp i { background: #8ab4ff; }
 .btn.rally { background: #c8582e; border-color: transparent; color: #fff; min-width: 84px; }
+.btn.sparkle { background: radial-gradient(circle at 50% 40%, #fff6c8, #ffc857 60%, #c8902a); border-color: transparent; font-size: 20px; animation: twinkle 0.9s ease-in-out infinite alternate; }
+@keyframes twinkle { from { box-shadow: 0 0 4px rgba(255, 220, 120, 0.4); } to { box-shadow: 0 0 16px rgba(255, 220, 120, 0.95); } }
 
 #panel { flex: 1; overflow-y: auto; touch-action: pan-y; padding: 10px calc(10px + var(--safe-r)) 14px calc(10px + var(--safe-l)); -webkit-overflow-scrolling: touch; outline: none; }
 #tabs { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 1px solid var(--line); padding-bottom: var(--safe-b); background: #120e0a; }
@@ -203,6 +210,8 @@ table.market .btn { min-width: 44px; padding: 4px 6px; font-size: 13px; }
 .letter-card { text-align: left; font: inherit; color: #3a2a18; background: #fff8e4; border: 1px solid rgba(80, 50, 20, 0.25); border-radius: 4px; padding: 10px 12px; min-height: 44px; cursor: pointer; box-shadow: 0 2px 5px rgba(60, 40, 10, 0.2); }
 .letter-card b { display: block; font-family: 'Caveat', 'Segoe Print', cursive; font-size: 22px; }
 .letter-card span { display: block; font-family: Georgia, serif; font-size: 13px; color: #6a5638; }
+.letter-card.faded { opacity: 0.55; cursor: default; }
+.book-h.small-h { font-size: 19px; margin-top: 8px; }
 @media (max-width: 380px) { .snaps { grid-template-columns: repeat(2, 1fr); } }
 
 /* ---------------------------------------------------------------- naming the wagon */

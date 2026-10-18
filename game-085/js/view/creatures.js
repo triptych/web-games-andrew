@@ -28,6 +28,17 @@ export function drawCreature(ctx, f, x, y, s, anim, night) {
     }
     // shadow
     el(ctx, x, y, 320 * s, 70 * s, 'rgba(0,0,0,0.25)');
+    if (f.shimmer) {
+        // a Shimmering monster glitters gold
+        ctx.fillStyle = '#fff2a8';
+        for (let i = 0; i < 10; i++) {
+            const a = anim.t * 1.3 + i * 2.4, d = (200 + (i % 3) * 110) * s;
+            const tw = 0.5 + 0.5 * Math.sin(anim.t * 7 + i);
+            ctx.globalAlpha = tw * (anim.dead > 0 ? Math.max(0, 1 - anim.dead) : 1);
+            ctx.fillRect(x + Math.cos(a) * d - 4 * s, y - 380 * s + Math.sin(a) * d * 0.7 - 4 * s, 8 * s + 1, 8 * s + 1);
+        }
+        ctx.globalAlpha = anim.dead > 0 ? Math.max(0, 1 - anim.dead) : 1;
+    }
     if (f.elite || f.warden) {
         const g = ctx.createRadialGradient(x, y - 300 * s, 0, x, y - 300 * s, 700 * s);
         g.addColorStop(0, f.warden ? 'rgba(255,80,80,0.25)' : 'rgba(255,220,80,0.22)'); g.addColorStop(1, 'rgba(0,0,0,0)');

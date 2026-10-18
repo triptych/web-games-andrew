@@ -366,3 +366,29 @@ export function drawCampfire(ctx, x, y, s, t) {
         ctx.quadraticCurveTo(x + Math.sin(t * 7 + i) * 30 * s, y - h * 1.3, x + (90 - i * 25) * s, y - 20 * s); ctx.fill();
     }
 }
+
+/** A sparkle hovering over the road: a turning four-pointed star in a soft glow, with motes circling it. */
+export function drawSparkle(ctx, x, y, r, t) {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r * 2.6);
+    g.addColorStop(0, 'rgba(255,245,200,0.85)'); g.addColorStop(0.35, 'rgba(255,220,120,0.35)'); g.addColorStop(1, 'rgba(255,220,120,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r * 2.6, y - r * 2.6, r * 5.2, r * 5.2);
+    const pulse = 1 + Math.sin(t * 6) * 0.12;
+    for (const [rot, k, col] of [[t * 0.8, 1, '#fff6c8'], [t * 0.8 + Math.PI / 4, 0.6, '#ffd860']]) {
+        ctx.save();
+        ctx.translate(x, y); ctx.rotate(rot);
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+            const a = (i / 8) * Math.PI * 2, rr = (i % 2 ? 0.22 : 1) * r * k * pulse;
+            ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+        }
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
+    }
+    ctx.fillStyle = '#fffbe8';
+    for (let i = 0; i < 5; i++) {
+        const a = t * 1.7 + (i / 5) * Math.PI * 2, d = r * (1.4 + Math.sin(t * 3 + i) * 0.25);
+        ctx.fillRect(x + Math.cos(a) * d - 1.5, y + Math.sin(a) * d * 0.6 - 1.5, 3, 3);
+    }
+}
