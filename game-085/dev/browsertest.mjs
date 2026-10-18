@@ -189,6 +189,23 @@ async function desktop() {
     check(await Q(page, () => (__wq.seen.rally || 0) >= 1), 'Space rallies the oxen on the road');
 
     // a fight on the road plays out in the view
+    // a sparkle on the road: click it where it's drawn
+    await Q(page, () => { const G = __wq.G; G.fightIn = 1e9; G.sparkle = { id: G.t, at: G.odo + 1.6, x: 0.25 }; });
+    await until(page, () => !!__wq.view.sparkleHit && !document.getElementById('btn-sparkle').hidden, 'a sparkle shows on the road, and the ✨ button with it');
+    const sh = await Q(page, () => __wq.view.sparkleHit);
+    await page.mouse.click(sh.X, sh.Y);
+    await until(page, () => (__wq.G.stats.sparkles || 0) === 1 && !__wq.G.sparkle, 'clicking the sparkle on the road grabs it');
+    await until(page, () => document.getElementById('btn-sparkle').hidden, 'and the ✨ button goes');
+    if (await Q(page, () => !document.getElementById('letter').hidden)) {
+        check(await Q(page, () => document.getElementById('letter-ok').textContent === 'Keep it' && __wq.G.book.lore.length === 1), 'it was lore, shown on a sheet and kept');
+        await clickSel(page, '#letter-ok');
+    }
+    await Q(page, () => { const G = __wq.G; G.sparkle = { id: G.t + 1, at: G.odo + 1.6, x: -0.2 }; document.activeElement?.blur(); });
+    await page.waitForTimeout(400);
+    await page.keyboard.press('KeyE');
+    await until(page, () => (__wq.G.stats.sparkles || 0) === 2, 'E grabs one too');
+    if (await Q(page, () => !document.getElementById('letter').hidden)) await clickSel(page, '#letter-ok');
+    await Q(page, () => { __wq.G.fightIn = 30; });
     // birds cross the sky now and then
     await Q(page, () => { __wq.view.birds.wait = 0; });
     await until(page, () => __wq.view.birds.flocks.length > 0 || __wq.view.birds.wait > 7, 'a flock of birds (or none, at night in some places) sets off', 30000);
@@ -310,6 +327,12 @@ async function phone(w, h) {
     }
     check(await Q(page, () => (__wq.seen.rally || 0) >= 1), 'tapping Rally hurries the oxen');
     await shot(page, `phone-${w}x${h}`);
+    await Q(page, () => { const G = __wq.G; G.sparkle = { id: G.t, at: G.odo + 1.6, x: 0 }; });
+    await until(page, () => !document.getElementById('btn-sparkle').hidden, 'the ✨ button appears with a sparkle');
+    check(await Q(page, () => { const r = document.getElementById('btn-sparkle').getBoundingClientRect(); return r.width >= 44 && r.height >= 44 && r.right <= innerWidth; }), 'and is finger-sized');
+    await tap('#btn-sparkle');
+    await until(page, () => (__wq.G.stats.sparkles || 0) >= 1 && !__wq.G.sparkle, 'tapping ✨ grabs the sparkle');
+    if (await Q(page, () => !document.getElementById('letter').hidden)) await tap('#letter-ok');
     await tap('#btn-menu');
     await until(page, () => !document.getElementById('menu').hidden, 'tapping ☰ opens the menu');
     await page.waitForTimeout(300);

@@ -106,7 +106,18 @@ document.getElementById('btn-menu').addEventListener('click', () => openMenu());
 const rally = document.getElementById('btn-rally');
 rally.addEventListener('pointerdown', (e) => { e.preventDefault(); input.pressA(); });
 rally.addEventListener('click', (e) => { if (e.detail === 0) input.pressA(); });
-document.getElementById('view').addEventListener('pointerdown', () => { if (mode === 'play' && !ui.anyScreen()) input.pressA(); });
+// a tap on the road: grab the sparkle if it's under the finger, otherwise rally the oxen
+document.getElementById('view').addEventListener('pointerdown', (e) => {
+    if (mode !== 'play' || ui.anyScreen()) return;
+    const id = view.hitSparkle(e.clientX, e.clientY);
+    if (id !== null) grabSparkle(id);
+    else input.pressA();
+});
+document.getElementById('btn-sparkle').addEventListener('click', () => { if (G.sparkle) grabSparkle(G.sparkle.id); });
+function grabSparkle(id) {
+    const r = ui.cmd({ type: 'sparkle', id });
+    if (r?.ok) audio.ui('coin');
+}
 
 function startGame(g, awaySecs) {
     G = g;
@@ -174,6 +185,7 @@ function handlePresses() {
     else if (key === 'ArrowDown' || key === 'ArrowRight') ui.moveFocus(1);
     else if (key === 'ArrowUp' || key === 'ArrowLeft') ui.moveFocus(-1);
     else if (input.isRallyKey(key) && !press.onButton) input.pressA();
+    else if (key === 'KeyE' && G.sparkle) grabSparkle(G.sparkle.id);
     else if (key === 'Enter' && press.pad) document.activeElement?.click?.();
 }
 

@@ -145,6 +145,8 @@ export class Audio {
                 case 'recruit': this.tone({ freq: 523, to: 784, dur: 0.25, type: 'triangle', vol: 0.1 }); break;
                 case 'craft': this.tone({ freq: e.cls === 'smith' ? 1200 : 600, to: e.cls === 'smith' ? 800 : 900, dur: 0.08, type: 'square', vol: 0.04 }); break;
                 case 'event': if (e.kind === 'cache') this.ui('coin'); else if (e.kind === 'wheel') this.noise(0.25, 0.12, 400); break;
+                case 'sparkle': [1568, 2093].forEach((f, i) => this.tone({ freq: f, dur: 0.18, type: 'sine', vol: 0.05, delay: i * 0.07 })); break;
+                case 'sparkleGot': [1047, 1319, 1568, 2093, 2637].forEach((f, i) => this.tone({ freq: f, dur: 0.22, type: 'triangle', vol: 0.09, delay: i * 0.05 })); break;
                 case 'upgrade': this.tone({ freq: 440, to: 880, dur: 0.2, type: 'square', vol: 0.06 }); break;
             }
         }

@@ -2,7 +2,7 @@
 // html(G). The panel is rebuilt only when its sig changes, so a button never vanishes under a finger; the
 // numbers that tick every second are filled in place through data attributes (see LIVE below).
 
-import { CLASSES, UPGRADES, GOODS, GOOD, MATS, TOWN, TOWNS, REGIONS, FAMILIES, SLOTS, SLOT_NAME, cartUpCost, cartCap, STORY } from '../sim/data.js';
+import { LORE, CLASSES, UPGRADES, GOODS, GOOD, MATS, TOWN, TOWNS, REGIONS, FAMILIES, SLOTS, SLOT_NAME, cartUpCost, cartCap, STORY } from '../sim/data.js';
 import { RARITY, QUESTS, DAY, xpForLevel, caravanXpFor } from '../config.js';
 import { memberStats, maxHp, partySlots, partyHealth, partyPower, upgradeCost, itemScore, canWear, cartLevel } from '../sim/party.js';
 import { buyPrice, sellPrice, cargoCap, cargoUsed, larderCap, rationPrice } from '../sim/economy.js';
@@ -233,7 +233,7 @@ export const town = {
 };
 
 // ------------------------------------------------------------------ Scrapbook
-const BOOK_PAGES = [['people', '🧑 People'], ['monsters', '🐺 Monsters'], ['items', '🎒 Things'], ['places', '🏘️ Places'], ['log', '🛤️ Travel log'], ['letters', '✉️ Letters']];
+const BOOK_PAGES = [['people', '🧑 People'], ['monsters', '🐺 Monsters'], ['items', '🎒 Things'], ['places', '🏘️ Places'], ['log', '🛤️ Travel log'], ['letters', '✉️ Letters & lore']];
 const STATUS = { riding: 'rides with you', asked: 'asked to join', passed: 'went their own way', parted: 'parted ways' };
 const dayOf = (t) => Math.floor(t / DAY) + 1;
 const whereText = (w) => (w && w.includes('>') ? `on the road to ${TOWN[w.split('>')[1]].name}` : w && TOWN[w] ? `in ${TOWN[w].name}` : 'on the road');
@@ -243,7 +243,7 @@ const portrait = (spec) => `<canvas class="portrait" data-portrait='${JSON.strin
 export const book = {
     sig: (G, ui) => {
         const b = G.book;
-        return [G.wagon, ui.bookPage, ui.legLimit, Object.values(b.people).map((p) => p.id + p.status + p.level).join(','), Object.keys(b.monsters).length, Object.keys(b.wardens).map((k) => k + (b.wardens[k].beaten ?? '')).join(','),
+        return [G.wagon, G.book.lore.length, ui.bookPage, ui.legLimit, Object.values(b.people).map((p) => p.id + p.status + p.level).join(','), Object.keys(b.monsters).length, Object.keys(b.wardens).map((k) => k + (b.wardens[k].beaten ?? '')).join(','),
             Object.keys(b.items).length, Object.keys(b.places).length, b.legs.length, b.letters.length, G.party.map((m) => m.level).join(',')].join('|');
     },
     html(G, ui) {
@@ -307,6 +307,14 @@ export const book = {
             p.push(`<div class="snaps letters">${got.map((l) => `<button class="letter-card" data-act="reread" data-title="${esc(l.title)}"><b>${esc(l.title)}</b><span>${esc(l.text.slice(0, 90))}…</span></button>`).join('') || '<p class="dim">Grandmother\'s letters will be kept here once you\'ve read them.</p>'}</div>`);
             const left = all.length - got.length;
             if (left) p.push(`<p class="dim">${left} more letter${left === 1 ? '' : 's'} to come.</p>`);
+            // lore from sparkles on the road, region by region
+            p.push(`<h3 class="book-h">Lore from the road <span>${b.lore.length}/${LORE.length}</span></h3>`);
+            for (const R of REGIONS) {
+                const items = LORE.map((l, i) => ({ ...l, i })).filter((l) => l.region === R.id);
+                p.push(`<h3 class="book-h small-h">${R.name}</h3><div class="snaps letters">${items.map((l) => b.lore.includes(l.i)
+                    ? `<button class="letter-card" data-act="relore" data-i="${l.i}"><b>${esc(l.title)}</b><span>${esc(l.text)}</span></button>`
+                    : '<div class="letter-card faded"><b>???</b><span>Not yet found. Tap the sparkles on the road.</span></div>').join('')}</div>`);
+            }
         }
         return `<div class="book-page">${p.join('')}</div>`;
     },

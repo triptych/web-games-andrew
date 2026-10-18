@@ -16,6 +16,8 @@
  *    bounded; older saves get one.
  * 3c. scenery: the countryside beside the road is deterministic, varied, off the road, clumped into groves and
  *    clearings, and fills the verge, the middle ground and the far band.
+ * 3d. sparkle: sparkles appear on the road ahead, fade when passed, never past the road's end or in town;
+ *    grabbing one gives gold, gear, a Shimmering fight or lore; all 30 lore fragments can be found.
  * 4. determinism: same seed, same game; time away (advance) is exactly the same as playing it out; a save
  *    round trip plays on identically; an unknown save version is rejected.
  * 5. bot: the bot plays the whole realm on SEEDS seeds at two skills with invariants checked every game
@@ -400,6 +402,78 @@ if (want('scenery')) {
 }
 
 // ======================================================================
+if (want('sparkle')) {
+    section('sparkles');
+    // they come and go on the road
+    let G = Gm.newGame(41);
+    putOnRoad(G, 'hearthford', 'millbrook');
+    noFights(G);
+    let seenAt = null;
+    for (let i = 0; i < 2000 && !G.sparkle; i++) Gm.tick(G);
+    ok(G.sparkle && G.sparkle.at > G.odo && Math.abs(G.sparkle.x) <= 0.65, 'a sparkle appears on the road ahead while travelling');
+    seenAt = G.sparkle.at;
+    for (let i = 0; i < 2000 && G.sparkle && G.sparkle.at === seenAt && G.road; i++) Gm.tick(G);
+    ok(!G.sparkle || G.sparkle.at !== seenAt, 'and fades once the caravan rolls past it');
+    // how often, and never past the end of the road or in town
+    let spawns = 0, badEnd = 0, inTown = 0, moving = 0;
+    for (let s = 1; s <= 6; s++) {
+        const g = Gm.newGame(s * 53);
+        g.orders.route = 'explore';
+        for (const m of g.party) m.level = 6;
+        let last = null;
+        for (let i = 0; i < 3600; i++) {
+            Gm.tick(g);
+            if (g.road && !g.camp && !g.busy) moving++;
+            if (g.sparkle && g.sparkle.id !== last) {
+                last = g.sparkle.id; spawns++;
+                if (!g.road || g.road.done + (g.sparkle.at - g.odo) > g.road.miles) badEnd++;
+            }
+            if (g.at && g.sparkle) inTown++;
+        }
+    }
+    const per = moving / Math.max(1, spawns);
+    ok(per > 30 && per < 120, `one sparkle every ${Math.round(per)} s of travel`);
+    ok(badEnd === 0, 'never past the end of the road');
+    ok(inTown === 0, 'never in town');
+    // grabbing one
+    G = Gm.newGame(42);
+    putOnRoad(G, 'hearthford', 'millbrook', 5);
+    noFights(G);
+    G.sparkle = { id: 99, at: G.odo + 1.5, x: 0 };
+    ok(!Gm.command(G, { type: 'sparkle', id: 98 }).ok && G.sparkle, 'a stale tap does nothing');
+    const r = Gm.command(G, { type: 'sparkle', id: 99 });
+    ok(r.ok && !G.sparkle && ['gold', 'item', 'monster', 'lore'].includes(r.kind) && G.stats.sparkles === 1, `grabbing it gives something (${r.kind}) and it's gone`);
+    ok(!Gm.command(G, { type: 'sparkle', id: 99 }).ok, 'once');
+    const g0 = G.gold;
+    ok(Gm.grabSparkle(G, 'gold').ok && G.gold > g0, 'gold');
+    const n0 = G.stats.items;
+    const ri = Gm.grabSparkle(G, 'item');
+    ok(ri.ok && G.stats.items === n0 + 1 && ri.rarity >= 1, 'gear, Fine or better');
+    for (const m of G.party) { m.level = 15; m.hp = Pt.maxHp(m); m.down = false; }
+    G.busy = 0;
+    const items0 = G.stats.items;
+    G.events.length = 0;
+    const rm = Gm.grabSparkle(G, 'monster');
+    const ev = G.events.find((e) => e.type === 'battle');
+    ok(rm.ok && ev && ev.foes[0].shimmer && ev.foes[0].elite && G.busy > 0, 'a Shimmering monster to fight, right there on the road');
+    ok(!rm.won || G.stats.items > items0, 'which, beaten, always drops gear');
+    G.busy = 5;
+    ok(Gm.grabSparkle(G, 'monster').kind === 'gold', 'no second fight in the middle of one');
+    // lore: one at a time, never twice, only from regions you can reach, all 30 in the end
+    G = Gm.newGame(43);
+    putOnRoad(G, 'hearthford', 'millbrook', 5);
+    for (let i = 0; i < 8; i++) Gm.grabSparkle(G, 'lore');
+    ok(G.book.lore.length === 5 && G.book.lore.every((i) => D.LORE[i].region === 0), 'lore comes from the regions you can reach (5 in Meadowmere)');
+    G.lit = [true, true, true, true, true, true];
+    for (let i = 0; i < 40; i++) Gm.grabSparkle(G, 'lore');
+    ok(G.book.lore.length === D.LORE.length && new Set(G.book.lore).size === D.LORE.length, `all ${D.LORE.length} fragments can be found, none twice`);
+    ok(Gm.grabSparkle(G, 'lore').kind === 'gold', 'and after the last one, sparkles hold something else');
+    const old = Gm.serialize(G); delete old.book.lore; delete old.sparkle;
+    const back = Gm.deserialize(old);
+    ok(Array.isArray(back.book.lore) && back.sparkle === null, 'an older save gets an empty lore book');
+}
+
+// ======================================================================
 if (want('determinism')) {
     section('determinism');
     const play = (seed) => { const G = Gm.newGame(seed); const b = Bot.makeBot(); Bot.botPlay(G, b, 3 * 3600, Gm.advance, Gm.checkIn); return G; };
@@ -409,7 +483,7 @@ if (want('determinism')) {
     for (let i = 0; i < 1800 * 120; i++) Gm.step(a, { a: false }, C.STEP);
     Gm.advance(b, 1800);
     a.events.length = 0;
-    ok(a.t === b.t && ser(a) === ser(b), 'half an hour of play equals half an hour away');
+    ok(a.t === b.t && ser(a) === ser(b) && (a.stats.sparklesSeen || 0) > 0, 'half an hour of play equals half an hour away, sparkles and all');
     const G = Gm.newGame(13);
     const bot = Bot.makeBot();
     Bot.botPlay(G, bot, 7200, Gm.advance, Gm.checkIn);

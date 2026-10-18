@@ -94,6 +94,8 @@ b { font-weight: 800; }
 .bar.hp.low i { background: var(--bad); }
 .bar.xp i { background: #8ab4ff; }
 .btn.rally { background: #c8582e; border-color: transparent; color: #fff; min-width: 84px; }
+.btn.sparkle { background: radial-gradient(circle at 50% 40%, #fff6c8, #ffc857 60%, #c8902a); border-color: transparent; font-size: 20px; animation: twinkle 0.9s ease-in-out infinite alternate; }
+@keyframes twinkle { from { box-shadow: 0 0 4px rgba(255, 220, 120, 0.4); } to { box-shadow: 0 0 16px rgba(255, 220, 120, 0.95); } }
 
 #panel { flex: 1; overflow-y: auto; touch-action: pan-y; padding: 10px calc(10px + var(--safe-r)) 14px calc(10px + var(--safe-l)); -webkit-overflow-scrolling: touch; outline: none; }
 #tabs { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 1px solid var(--line); padding-bottom: var(--safe-b); background: #120e0a; }
@@ -208,6 +210,8 @@ table.market .btn { min-width: 44px; padding: 4px 6px; font-size: 13px; }
 .letter-card { text-align: left; font: inherit; color: #3a2a18; background: #fff8e4; border: 1px solid rgba(80, 50, 20, 0.25); border-radius: 4px; padding: 10px 12px; min-height: 44px; cursor: pointer; box-shadow: 0 2px 5px rgba(60, 40, 10, 0.2); }
 .letter-card b { display: block; font-family: 'Caveat', 'Segoe Print', cursive; font-size: 22px; }
 .letter-card span { display: block; font-family: Georgia, serif; font-size: 13px; color: #6a5638; }
+.letter-card.faded { opacity: 0.55; cursor: default; }
+.book-h.small-h { font-size: 19px; margin-top: 8px; }
 @media (max-width: 380px) { .snaps { grid-template-columns: repeat(2, 1fr); } }
 
 /* ---------------------------------------------------------------- naming the wagon */

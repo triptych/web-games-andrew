@@ -12,6 +12,7 @@ import { hash3 } from '../rng.js';
 import { drawProp, drawHouse, drawCart, drawOx, drawWalker, drawCampfire, mix, shade } from './sprites.js';
 import { drawCreature, creatureHeight } from './creatures.js';
 import { scatter, sizeOf, drawScenery, Birds } from './scenery.js';
+import { drawSparkle } from './sprites.js';
 
 const SEG = 200;              // world units per road segment
 const MILE = 2000;            // world units per mile of road
@@ -58,6 +59,7 @@ export class View {
         this.biomeK = 1;
         this.shakeT = 0;
         this.birds = new Birds();
+        this.motes = [];             // sparkle bursts, in screen px
         this.resize();
         const onResize = () => this.resize();
         window.addEventListener('resize', onResize);
@@ -89,6 +91,7 @@ export class View {
             else if (e.type === 'levelup') this.say(G, `Caravan level ${e.level}!`, '#ffe08a', 0, 1.4);
             else if (e.type === 'craft') this.say(G, e.cls === 'cook' ? '+rations' : e.cls === 'smith' ? 'forged!' : '+potion', '#b8f0a0', G.party.findIndex((m) => m.id === e.id));
             else if (e.type === 'event' && e.kind === 'cache') this.say(G, `+${e.gold}g`, '#ffd36a', 0);
+            else if (e.type === 'sparkleGot') this.burstSparkle(e);
             else if (e.type === 'rareLoot') this.say(G, e.name, ['#fff', '#8f8', '#6af', '#c8f', '#fb4'][e.rarity], 0, 1.2);
         }
     }
@@ -301,6 +304,19 @@ export class View {
             const z = L.caravanZ + 1400;
             items.push({ z, draw: () => { const p = P(CART.w / 2 + 900, 0, z); drawCampfire(ctx, p.X, p.Y, p.s, time); } });
         }
+        // a sparkle on the road ahead, for someone watching to tap
+        this.sparkleHit = null;
+        const sp = G.sparkle;
+        if (sp && G.road) {
+            const z = L.frontZ + (sp.at - L.odo) * MILE;
+            items.push({ z, draw: () => {
+                const p = P(sp.x * ROADW, 0, z);
+                const r = Math.max(9, 230 * p.s);
+                const y = p.Y - Math.max(14, 330 * p.s) - Math.sin(time * 3) * r * 0.25;
+                drawSparkle(ctx, p.X, y, r, time);
+                this.sparkleHit = { X: p.X, Y: y, r: Math.max(30, r * 1.6), id: sp.id };
+            } });
+        }
         // monsters
         if (fight) {
             this.stepFight(G, fight, dt);
@@ -331,6 +347,8 @@ export class View {
         }
         while (ii < items.length) { if (items[ii].z > nearZ) items[ii].draw(); ii++; }
 
+        if (this.sparkleHit) this.lastSparkle = this.sparkleHit;
+        this.drawMotes(ctx, dt);
         this.drawTexts(ctx, P, dt);
         this.drawWeather(ctx, R, dt, G, night);
         if (night) {
@@ -500,6 +518,37 @@ export class View {
         const c = L.carts[i];
         if (!c) return;
         this.texts.push({ text, color, x: FIGHT_X + (i - (L.carts.length - 1) / 2) * 300, y: 700, z: L.frontZ - 500 + (i % 2) * 220, age: 0, life: 1, size: 0.9 });
+    }
+
+/** A tap or click in client px: is it on the sparkle? (mapped through the canvas's own rect) */
+    hitSparkle(clientX, clientY) {
+        const h = this.sparkleHit;
+        if (!h) return null;
+        const r = this.canvas.getBoundingClientRect();
+        const x = clientX - r.left, y = clientY - r.top;
+        return Math.hypot(x - h.X, y - h.Y) <= h.r ? h.id : null;
+    }
+
+    burstSparkle(e) {
+        const h = this.lastSparkle || this.sparkleHit;
+        if (!h) return;
+        const text = e.kind === 'gold' ? `+${e.gold}g` : e.kind === 'item' ? e.name : e.kind === 'lore' ? 'Lore!' : '';
+        const col = e.kind === 'item' ? ['#fff', '#8f8', '#6af', '#c8f', '#fb4'][e.rarity] : '#ffe08a';
+        if (text) this.texts.push({ text, color: col, screen: { X: h.X, Y: h.Y }, age: 0, life: 2, size: 1.3 });
+        for (let i = 0; i < 26; i++) {
+            const a = Math.random() * Math.PI * 2, v = 60 + Math.random() * 160;
+            this.motes.push({ x: h.X, y: h.Y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, life: 0.6 + Math.random() * 0.6, age: 0 });
+        }
+    }
+
+    drawMotes(ctx, dt) {
+        for (const m of this.motes) {
+            m.age += dt; m.x += m.vx * dt; m.y += m.vy * dt; m.vy += 120 * dt;
+            const a = Math.max(0, 1 - m.age / m.life);
+            ctx.fillStyle = `rgba(255,236,150,${a})`;
+            ctx.fillRect(m.x - 2, m.y - 2, 4, 4);
+        }
+        this.motes = this.motes.filter((m) => m.age < m.life);
     }
 
     drawTexts(ctx, P, dt) {
