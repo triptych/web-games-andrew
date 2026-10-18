@@ -64,7 +64,7 @@ export const road = {
         const parts = [];
         parts.push(`<div class="sec"><h3>Standing orders</h3><div class="chips">${ROUTES.map(([k, l]) => `<button class="chipbtn${G.orders.route === k ? ' on' : ''}" data-act="route" data-v="${k}">${l}</button>`).join('')}</div>
             <p class="dim">${ROUTE_HELP[G.orders.route]}${G.course ? ` Heading for <b>${esc(TOWN[G.course].name)}</b> first. <button class="btn small" data-act="clearCourse">Cancel course</button>` : ''}</p>
-            <div class="row2"><span class="dim grow">Make camp when health falls below</span>${[0.25, 0.4, 0.6].map((v) => `<button class="chipbtn${Math.abs(G.orders.camp - v) < 0.01 ? ' on' : ''}" data-act="campAt" data-v="${v}">${v * 100}%</button>`).join('')}</div>
+            <div class="row2"><span class="dim grow">Make camp when health falls below</span>${[0.3, 0.5, 0.7].map((v) => `<button class="chipbtn${Math.abs(G.orders.camp - v) < 0.01 ? ' on' : ''}" data-act="campAt" data-v="${v}">${v * 100}%</button>`).join('')}</div>
             ${G.road ? `<div class="btns"><button class="btn small" data-act="rest">${G.camp ? '⛺ Break camp' : '🔥 Make camp now'}</button></div>` : ''}</div>`);
         parts.push(`<div class="sec"><h3>The party <span>health <i class="bar hp" style="display:inline-block;width:80px;vertical-align:middle"><i data-w="health"></i></i></span></h3>
             ${G.party.map((m) => `<div class="row2" style="margin-bottom:6px"><span class="ico">${CLASSES[m.cls].icon}</span><div class="grow"><div class="small"><b>${esc(m.name)}</b> <span class="dim">${CLASSES[m.cls].name} ${m.level}</span> <span class="tiny" data-t="hpText:${m.id}"></span></div><div class="bar hp"><i data-w="hp:${m.id}"></i></div></div></div>`).join('')}
@@ -195,7 +195,7 @@ export const map = {
 
 // ------------------------------------------------------------------ Town
 export const town = {
-    sig: (G) => [G.at, G.tavern.map((o) => o.m.id).join(','), G.board.map((q) => q.id).join(','), Object.keys(G.cargo).join(','), wardenHere(G), G.oddsCache?.p, G.party.length, G.quests.length, G.lit.join('')].join('|'),
+    sig: (G) => [G.at, G.tavern.map((o) => o.m.id).join(','), G.board.map((q) => q.id).join(','), Object.keys(G.cargo).join(','), wardenHere(G), G.oddsCache?.p, G.party.length, partySlots(G.level), G.quests.length, G.lit.join('')].join('|'),
     html(G) {
         if (!G.at) {
             const r = G.road;

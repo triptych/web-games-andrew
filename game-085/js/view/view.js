@@ -230,6 +230,7 @@ export class View {
             for (let i = 0; i < 16; i++) {
                 const z = this.town.z + 300 + i * 650;
                 for (const side of [-1, 1]) {
+                    if (ck > 0.05 && side > 0 && z > L.camZ && z < L.frontZ + 4000) continue;   // the fight's verge
                     const v = (hash3(i, side + 5, T.x) * 64) | 0;
                     items.push({ z, draw: () => { const p = P(side * (ROADW + 650 + (v % 3) * 120), 0, z); drawHouse(ctx, p.X, p.Y, p.s, v, tp, night); } });
                 }

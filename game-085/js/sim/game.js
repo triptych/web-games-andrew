@@ -51,6 +51,12 @@ export function newGame(seed = 1) {
     };
     G.party.push(makeMember(G, 'captain', 1, rng, 'You'));
     G.party.push(makeMember(G, 'guard', 1, rng, 'Old Tam'));
+    // Grandmother left a little kit in the wagon
+    for (const m of G.party) for (const slot of ['weapon', 'armor']) {
+        const it = makeItem(G, rng, 2, { slot });
+        m.gear[slot] = it;
+    }
+    for (const m of G.party) m.hp = maxHp(m);
     G.fightIn = drawMiles(G, TRAVEL.encounterMiles);
     G.eventIn = drawMiles(G, TRAVEL.eventMiles);
     G.towns.hearthford.visits = 1;
@@ -297,7 +303,8 @@ function applyBattle(G, foes, res, { warden = false } = {}) {
         G.stats.lost++;
         const guard = cartLevel(G, 'guard');
         const k = 1 - (guard ? Math.min(60, 20 + 4 * guard) / 100 : 0);
-        const lost = Math.round(G.gold * 0.1 * k);
+        // a tenth of the purse, but never more than a few fights' worth
+        const lost = Math.round(Math.min(G.gold * 0.1, 15 + 6 * foes[0].level) * k);
         G.gold -= lost;
         let cargoLost = '';
         const big = Object.keys(G.cargo).sort((a, b) => G.cargo[b].n - G.cargo[a].n)[0];

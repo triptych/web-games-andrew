@@ -69,9 +69,9 @@ export const MAT = Object.fromEntries(MATS.map((m) => [m.id, m]));
 // x, y on a 1000 × 700 map. danger is the level of the monsters on the roads out of the town.
 export const TOWNS = [
     { id: 'hearthford', name: 'Hearthford', region: 0, x: 110, y: 610, danger: 1, produces: ['grain', 'wool'], wants: ['spice'], blurb: 'Where the Wanderwain has always wintered. Your grandmother\'s barn, a mill, a duck pond.' },
-    { id: 'millbrook', name: 'Millbrook', region: 0, x: 240, y: 645, danger: 3, produces: ['grain', 'cheese'], wants: ['salt'], blurb: 'Waterwheels and cheese caves.' },
-    { id: 'applewick', name: 'Applewick', region: 0, x: 150, y: 490, danger: 4, produces: ['cheese', 'wool'], wants: ['glass'], blurb: 'Orchards, cider, and a goblin problem.' },
-    { id: 'thistlecross', name: 'Thistlecross', region: 0, x: 310, y: 540, danger: 6, produces: ['wool'], wants: ['salt', 'spice'], capital: true, blurb: 'A market town at the crossroads, and the first dark Waystone.' },
+    { id: 'millbrook', name: 'Millbrook', region: 0, x: 240, y: 645, danger: 2, produces: ['grain', 'cheese'], wants: ['salt'], blurb: 'Waterwheels and cheese caves.' },
+    { id: 'applewick', name: 'Applewick', region: 0, x: 150, y: 490, danger: 3, produces: ['cheese', 'wool'], wants: ['glass'], blurb: 'Orchards, cider, and a goblin problem.' },
+    { id: 'thistlecross', name: 'Thistlecross', region: 0, x: 310, y: 540, danger: 5, produces: ['wool'], wants: ['salt', 'spice'], capital: true, blurb: 'A market town at the crossroads, and the first dark Waystone.' },
     { id: 'sandhollow', name: 'Sandhollow', region: 1, x: 440, y: 610, danger: 8, produces: ['salt'], wants: ['cheese'], blurb: 'Salt pans that glitter like snow.' },
     { id: 'dunmarrow', name: 'Dunmarrow', region: 1, x: 560, y: 515, danger: 10, produces: ['glass', 'salt'], wants: ['wool'], blurb: 'Glassblowers work the dunes\' own sand.' },
     { id: 'kesh', name: 'Kesh Oasis', region: 1, x: 650, y: 645, danger: 11, produces: ['spice'], wants: ['grain'], blurb: 'Date palms, spice tents, and the coolest water in the Wastes.' },

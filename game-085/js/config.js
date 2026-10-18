@@ -21,7 +21,7 @@ export const TRAVEL = {
     encounterMiles: 11,                   // a fight every ~this many miles on average
     nightEncounter: 1.3,
     eventMiles: 26,                       // a road event (cache, shrine, wanderer…) every ~this many miles
-    campBelow: 0.4,                       // default: make camp when the party's health falls below this
+    campBelow: 0.5,                       // default: make camp when the party's health falls below this
     campUntil: 0.92,
 };
 
