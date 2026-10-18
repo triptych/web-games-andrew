@@ -1,7 +1,7 @@
-// Wanderwain — entry point. Boots the view, runs the fixed-step simulation, catches the caravan up on the
+// WanderQuest — entry point. Boots the view, runs the fixed-step simulation, catches the caravan up on the
 // time you were away, routes input, commands and events, and moves between the title and the road.
 //
-// ?debug=1 exposes window.__ww for the dev/ harnesses; &fast=N runs N× simulation per frame.
+// ?debug=1 exposes window.__wq for the dev/ harnesses; &fast=N runs N× simulation per frame.
 
 import { STEP, MAX_FRAME } from './config.js';
 import { View } from './view/view.js';
@@ -236,7 +236,7 @@ requestAnimationFrame((t) => { last = t; frame(t); });
 
 // ------------------------------------------------------------------ debug hooks (?debug=1)
 if (DEBUG) {
-    window.__ww = {
+    window.__wq = {
         get G() { return G; },
         get mode() { return mode; },
         seen, view, ui, audio, input,

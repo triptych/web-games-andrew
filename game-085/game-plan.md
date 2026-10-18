@@ -1,4 +1,4 @@
-# Wanderwain
+# WanderQuest
 
 **Genre:** Idle caravan RPG (mobile first)
 **Engine:** Vanilla JS: Canvas 2D (a pseudo-3D road) + DOM panels, no asset files
@@ -8,7 +8,7 @@
 
 ## Concept
 
-An idle adventure where you run a caravan that travels a realm gone dark. Your grandmother's wagon, the **Wanderwain**, drives itself from town to town: it trades, fights whatever comes down the road, takes on quests and travellers, and keeps going while the game is closed. You check in each day to see what the road brought you, spend what it earned, pick up the morning post and steer it towards the next Waystone.
+An idle adventure where you run a caravan that travels a realm gone dark. Your grandmother's wagon drives itself from town to town: it trades, fights whatever comes down the road, takes on quests and travellers, and keeps going while the game is closed. You check in each day to see what the road brought you, spend what it earned, pick up the morning post and steer it towards the next Waystone.
 
 It riffs on idle RPGs (Idle Slayer, Melvor's offline progress, the "check in each morning" loop of mobile idlers), on trade-route games (Merchant of Venice boards, Port Royale's buy-low-sell-high) and on caravan stories (The Banner Saga's travelling train, Oregon Trail's rations and camps). The tone is cosy: letters from Grandmother Odessa, painted towns, oxen.
 
@@ -18,7 +18,7 @@ The road is drawn like a 1980s racing game: a pseudo-3D road with curves and hil
 
 **Minute to minute (when you're watching):** the caravan rolls along a road; every few miles a fight plays out beside the wagons, an event happens (a cache, a shrine, a wanderer, a broken wheel, a storm) or the caravan reaches a town, where it rests at the inn, trades, takes quests and moves on. Tap the scene or **Rally** to hurry the oxen.
 
-**Each check-in (the real loop):** open the game → the **chronicle** tells you what happened while you were away (miles, towns, fights, gold, quests, gear, level-ups, highlights) → open the **morning post** → hire travellers, upgrade carts and the Wanderwain, sort gear → set standing orders or a course → challenge a Warden if the odds are good → close the game.
+**Each check-in (the real loop):** open the game → the **chronicle** tells you what happened while you were away (miles, towns, fights, gold, quests, gear, level-ups, highlights) → open the **morning post** → hire travellers, upgrade carts and the wagon, sort gear → set standing orders or a course → challenge a Warden if the odds are good → close the game.
 
 **The long arc:** light six Waystones by beating their Wardens; each opens the roads into the next region. Beating the Hollow King at Starhaven is the ending; after it the **Night Roads** go on for ever, each tier darker and richer.
 
@@ -53,7 +53,7 @@ Eight classes join the Captain (you). Each fights and brings a cart that does so
 
 | Class | In a fight | The cart |
 |---|---|---|
-| Captain | balanced | The Wanderwain itself: hold, lantern (upgraded separately) |
+| Captain | balanced | Grandmother's wagon itself: hold, lantern (upgraded separately) |
 | Guard | tank, draws attacks | Armoury Cart: party defence +5 + 2/lvl %, smaller losses in a rout |
 | Cook | weak | Kitchen Cart: 1 meat → 3 + lvl rations every ~110 s; "well fed" +4 + lvl % experience |
 | Smith | hits hard | Forge Cart: 2 ore + 1 hide/timber → gear every ~260 s, luckier with level |
@@ -68,7 +68,7 @@ Party size by caravan level: 2 at 1, 3 at 3, 4 at 6, 5 at 10, 6 at 15, 7 at 21, 
 ### Gear
 Weapon, armour, charm. Stats scale with item level × rarity (Common 1, Fine 1.25, Rare 1.6, Epic 2.1, Legendary 2.8); Rare and better often have a second stat. A traveller can wear gear up to two levels above their own. Auto-equip gives each new piece to whoever gains most; auto-sell sells Common and Fine pieces nobody wants (not ones somebody will grow into). The pack holds 24.
 
-### The Wanderwain's upgrades
+### The wagon's upgrades
 Iron-shod Wheels (+6% speed, 20 levels), Deeper Hold (+10 cargo, 20), **Great Lantern** (+2 h of travel while you're away, from 8 h to 24 h, 8 levels), Larder (+25 rations, 12), Caravan Banner (+3% experience and gold, 20).
 
 ### Quests
@@ -104,7 +104,7 @@ On Continue, or when the tab comes back after more than 30 s hidden, the sim run
 
 ## Story
 
-Grandmother Odessa drove the Wanderwain for fifty years. When the Hollow King's fog rose, the Waystones went dark and towns lost each other; hers is the last lantern still lit. She gives you the wagon and Old Tam, her guard of thirty years. Her letters arrive at the start, on lighting each Waystone, and at the ending; each region has a short introduction in the journal. The ending is defined (the sixth Waystone); the Night Roads after it are endless.
+Grandmother Odessa drove the wagon for fifty years. When the Hollow King's fog rose, the Waystones went dark and towns lost each other; hers is the last lantern still lit. She gives you the wagon and Old Tam, her guard of thirty years. Her letters arrive at the start, on lighting each Waystone, and at the ending; each region has a short introduction in the journal. The ending is defined (the sixth Waystone); the Night Roads after it are endless.
 
 ## Controls
 

@@ -5845,7 +5845,7 @@ A frog riding a log had `x += other.vx` applied mid-hop, so a hop up from the lo
 - **A checklist task about one object must point at that object.** A player set the paddle control on the ball (the object that happened to be selected) and the task never ticked: it said "your paddle" while the object was called "player". Tasks now carry `obj`, their Go to button selects it, and a check that sees the right setting on the wrong object returns a `note` the checklist shows. A task that silently refuses a near-miss reads as a bug.
 - **A workbench that covers the screen doesn't need the 3D scene at 60 fps**: it renders every sixth frame behind the panels.
 
-## Game 085: Wanderwain — an idle caravan RPG on a pseudo-3D road (2026-10-18)
+## Game 085: WanderQuest — an idle caravan RPG on a pseudo-3D road (2026-10-18)
 
 An idle game for phones in vanilla Canvas 2D: a caravan drives itself between towns, trades, fights and takes quests while the game is closed. The sim/view layout (Section 2S) with `RENDERER = canvas`, a DOM dock for almost all of the UI, and a racer-style road for the view.
 

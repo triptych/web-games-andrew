@@ -1,8 +1,8 @@
-// Wanderwain — tuning and constants. Shared by the sim, the view, the UI and the tests.
+// WanderQuest — tuning and constants. Shared by the sim, the view, the UI and the tests.
 // One tick of the simulation is one real second; every rate below is per second unless it says otherwise.
 
 export const VERSION = '1.0.0';
-export const SAVE_KEY = 'wanderwain.v1';
+export const SAVE_KEY = 'wanderquest.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s); the rules run on whole-second ticks inside it
 export const MAX_FRAME = 0.05;            // a long frame never runs more than this much game time

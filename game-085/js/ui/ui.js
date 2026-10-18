@@ -295,7 +295,7 @@ export class UI {
             else if (G.camp) sub = '🔥 Camped by the road while the party recovers.';
             else sub = `${Math.round(left)} mi to go · about ${fmtTime(left / speed(G))}${G.course && G.course !== r.to ? ` · course: ${TOWN[G.course].name}` : ''}`;
             k = r.done / r.miles;
-        } else { where = 'The Wanderwain'; sub = ''; }
+        } else { where = 'The caravan'; sub = ''; }
         $('status-where').textContent = where;
         $('status-sub').textContent = sub;
         $('status-bar').firstElementChild.style.width = `${Math.round(k * 100)}%`;

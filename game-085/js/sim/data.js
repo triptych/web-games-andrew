@@ -1,4 +1,4 @@
-// Wanderwain — the realm: regions, towns, roads, goods, materials, travellers, monsters, upgrades and the story.
+// WanderQuest — the realm: regions, towns, roads, goods, materials, travellers, monsters, upgrades and the story.
 // Tables only (and a few pure helpers that describe them). Numbers that tune pacing live in ../config.js.
 
 // ------------------------------------------------------------------ regions
@@ -68,7 +68,7 @@ export const MAT = Object.fromEntries(MATS.map((m) => [m.id, m]));
 // ------------------------------------------------------------------ towns
 // x, y on a 1000 × 700 map. danger is the level of the monsters on the roads out of the town.
 export const TOWNS = [
-    { id: 'hearthford', name: 'Hearthford', region: 0, x: 110, y: 610, danger: 1, produces: ['grain', 'wool'], wants: ['spice'], blurb: 'Where the Wanderwain has always wintered. Your grandmother\'s barn, a mill, a duck pond.' },
+    { id: 'hearthford', name: 'Hearthford', region: 0, x: 110, y: 610, danger: 1, produces: ['grain', 'wool'], wants: ['spice'], blurb: 'Where Grandmother\'s wagon has always wintered. Your grandmother\'s barn, a mill, a duck pond.' },
     { id: 'millbrook', name: 'Millbrook', region: 0, x: 240, y: 645, danger: 2, produces: ['grain', 'cheese'], wants: ['salt'], blurb: 'Waterwheels and cheese caves.' },
     { id: 'applewick', name: 'Applewick', region: 0, x: 150, y: 490, danger: 3, produces: ['cheese', 'wool'], wants: ['glass'], blurb: 'Orchards, cider, and a goblin problem.' },
     { id: 'thistlecross', name: 'Thistlecross', region: 0, x: 310, y: 540, danger: 5, produces: ['wool'], wants: ['salt', 'spice'], capital: true, blurb: 'A market town at the crossroads, and the first dark Waystone.' },
@@ -111,7 +111,7 @@ export const ROADS = [
 export const CLASSES = {
     captain: {
         name: 'Captain', icon: '🏮', color: '#e8b04a', cloth: '#a8452e', hp: [62, 12], atk: [9, 2.2], def: [4, 1.1], spd: 10,
-        cart: 'The Wanderwain', mat: null,
+        cart: 'Grandmother\'s Wagon', mat: null,
         role: 'You. Fights in the front rank and steers the caravan.',
         text: () => 'Carries the Great Lantern and the hold. Upgrade it below.',
     },
@@ -232,7 +232,7 @@ export const GEAR_BASE = {
 export const GEAR_MATERIAL = [[1, 'Copper'], [7, 'Bronze'], [14, 'Iron'], [21, 'Steel'], [29, 'Mithril'], [36, 'Starsteel'], [46, 'Dawnforged']];
 export const GEAR_SUFFIX = ['of the Fox', 'of Embers', 'of the Long Road', 'of Hearthford', 'of the Owl', 'of Thorns', 'of the Tide', 'of Dawn', 'of the Bear', 'of Whispers', 'of the Waystones', 'of Starlight'];
 
-// ------------------------------------------------------------------ the Wanderwain's own upgrades
+// ------------------------------------------------------------------ the wagon's own upgrades
 export const UPGRADES = {
     wheels: { name: 'Iron-shod Wheels', icon: '🛞', max: 20, cost: (l) => Math.round(60 * Math.pow(1.6, l)), text: (l) => `Travel speed +${6 * l}%` },
     hold: { name: 'Deeper Hold', icon: '📦', max: 20, cost: (l) => Math.round(50 * Math.pow(1.5, l)), text: (l) => `Hold ${20 + 10 * l} goods` },
@@ -249,11 +249,11 @@ export const cartUpCost = (cls, l) => {
 export const cartCap = (caravanLevel) => Math.min(10, 1 + Math.floor(caravanLevel / 3));
 
 // ------------------------------------------------------------------ story
-// Letters from Grandmother Odessa, who drove the Wanderwain for fifty years.
+// Letters from Grandmother Odessa, who drove the wagon for fifty years.
 export const STORY = {
     intro: {
-        title: 'The Wanderwain',
-        text: 'My dear,\n\nThe wagon is yours now. I drove her for fifty years, and the Lantern on her pole is the last one in the realm still lit.\n\nWhen the Hollow King\'s fog came, the Waystones went dark one by one, and the roads between the towns went dark with them. Towns that traded for a thousand years can\'t see each other any more. Monsters walk where carts used to.\n\nA caravan that keeps its lantern lit can still find the roads. So go. Trade, take on travellers who need a road, and light the Waystones again, starting at Thistlecross.\n\nDon\'t worry about watching her every minute. The Wanderwain knows the way. Come back each day and see what the road brought you.\n\n— Odessa',
+        title: 'The Wagon',
+        text: 'My dear,\n\nThe wagon is yours now. I drove her for fifty years, and the Lantern on her pole is the last one in the realm still lit.\n\nWhen the Hollow King\'s fog came, the Waystones went dark one by one, and the roads between the towns went dark with them. Towns that traded for a thousand years can\'t see each other any more. Monsters walk where carts used to.\n\nA caravan that keeps its lantern lit can still find the roads. So go. Trade, take on travellers who need a road, and light the Waystones again, starting at Thistlecross.\n\nDon\'t worry about watching her every minute. She knows the way. Come back each day and see what the road brought you.\n\n— Odessa',
     },
     waystones: [
         { title: 'The Thistlecross Waystone', text: 'Thistlecross! I can see its light from my window, you know. The road south to the Amber Wastes is open again. Take salt north and cheese south, and don\'t pay more than twenty for spice in Kesh, whatever they tell you.\n\nThe Glass Sphinx keeps Sunspire\'s stone. She used to ask riddles. I hear she doesn\'t any more, and that is worse.' },
@@ -261,7 +261,7 @@ export const STORY = {
         { title: 'The Hollowroot Waystone', text: 'The fen-lights are guiding carts again instead of drowning them. The passes into Frostfang are clear. Buy furs in Coldharbor, wrap the oxen\'s hooves, and keep the larder full: nothing grows up there but trouble.\n\nRimeclaw sleeps on the Whitecrown stone. He is old and very proud. So is your grandmother, and I beat him at cards once.' },
         { title: 'The Whitecrown Waystone', text: 'I felt that one in my knees. The way down into Emberreach is open. The Colossus walks the lava-roads around Cinderhold, and nothing your smith can make will be too heavy.\n\nYou are nearly at the heart of it. I am so proud of you I could spit.' },
         { title: 'The Cinderhold Waystone', text: 'Five stones. Five! From my window the whole realm is a string of lights.\n\nThe road to Duskmeet is open, and past it Starhaven, where all the roads began. The Hollow King is there. He wasn\'t always hollow. Nobody was ever going to come to him, so he made sure nobody could go anywhere.\n\nGo anyway. Take everyone.' },
-        { title: 'The Starhaven Waystone', text: 'The fog is gone. Every road in the realm is lit, and I can hear carts on the Hearthford road at night again, which I didn\'t think I would.\n\nThe road goes on, of course. It always does. The Night Roads are still out there, darker and richer than anything you\'ve driven, and the Wanderwain will take you down them whenever you\'re ready.\n\nThank you, my dear. Keep the lantern lit.\n\n— Odessa' },
+        { title: 'The Starhaven Waystone', text: 'The fog is gone. Every road in the realm is lit, and I can hear carts on the Hearthford road at night again, which I didn\'t think I would.\n\nThe road goes on, of course. It always does. The Night Roads are still out there, darker and richer than anything you\'ve driven, and the wagon will take you down them whenever you\'re ready.\n\nThank you, my dear. Keep the lantern lit.\n\n— Odessa' },
     ],
     regionIntro: [
         null,

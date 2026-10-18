@@ -65,7 +65,7 @@ export function newGame(seed = 1) {
     G.towns.hearthford.visits = 1;
     stockTown(G, 'hearthford');
     autoAccept(G);
-    log(G, 'story', 'Old Tam, who guarded your grandmother\'s wagon for thirty years, climbs up beside you. The Wanderwain sets out from Hearthford.', true);
+    log(G, 'story', 'Old Tam, who guarded your grandmother\'s wagon for thirty years, climbs up beside you. The wagon rolls out of Hearthford.', true);
     return G;
 }
 

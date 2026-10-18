@@ -1,4 +1,4 @@
-# Wanderwain — dev harnesses
+# WanderQuest — dev harnesses
 
 Plain Node scripts, no build step, no test framework. Run from the repo root.
 
@@ -25,7 +25,7 @@ Testing time away: never rewind a save and `reload()` the page that wrote it, be
 
 ## Debug hooks (`?debug=1`)
 
-`window.__ww`: `G` (the game), `mode`, `seen` (a count of every sim event drained), `view`, `ui`, `audio`, `input`, `start(seed)` (skips the title), `autoplay(on)` (the bot checks in every 10 s of play), `ff(seconds)` (run ahead quietly with the bot checking in), `away(seconds)` (exactly what coming back after that long does, chronicle and all), `cmd(command)` (any sim command), `day(n)` (move the calendar n days), `save()`, `hasSave()`. `&fast=N` runs N× the simulation per frame; it does nothing without `debug=1`.
+`window.__wq`: `G` (the game), `mode`, `seen` (a count of every sim event drained), `view`, `ui`, `audio`, `input`, `start(seed)` (skips the title), `autoplay(on)` (the bot checks in every 10 s of play), `ff(seconds)` (run ahead quietly with the bot checking in), `away(seconds)` (exactly what coming back after that long does, chronicle and all), `cmd(command)` (any sim command), `day(n)` (move the calendar n days), `save()`, `hasSave()`. `&fast=N` runs N× the simulation per frame; it does nothing without `debug=1`.
 
 ## Balance
 

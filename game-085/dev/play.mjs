@@ -2,10 +2,10 @@
  * play.mjs — open the real game, run a snippet, take a screenshot. For iterating on visuals.
  *
  *   node game-085/dev/play.mjs <name> "<js run after boot>" [waitMs] [w h] [touch]
- *   node game-085/dev/play.mjs road "__ww.start(3); __ww.ff(600)" 1500
- *   node game-085/dev/play.mjs phone "__ww.start(3)" 1500 390 844 touch
+ *   node game-085/dev/play.mjs road "__wq.start(3); __wq.ff(600)" 1500
+ *   node game-085/dev/play.mjs phone "__wq.start(3)" 1500 390 844 touch
  *
- * The snippet runs with ?debug=1, so window.__ww is there (see dev/README.md). It is the body of an async
+ * The snippet runs with ?debug=1, so window.__wq is there (see dev/README.md). It is the body of an async
  * function: `return` a value to print it. Q='&fast=4' adds URL parameters.
  * Screenshot: game-085/dev/shots/<name>.png.
  */
@@ -29,7 +29,7 @@ await page.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log(`[${m.type()}]`, m.text()); });
 page.on('pageerror', (e) => console.log('[pageerror]', process.env.STACK ? e.stack : e.message));
 await page.goto(`${BASE}/game-085/index.html?debug=1${process.env.Q || ''}`);
-await page.waitForFunction(() => window.__ww, null, { timeout: 60000 });
+await page.waitForFunction(() => window.__wq, null, { timeout: 60000 });
 if (code) {
     const out = await page.evaluate(`(async () => { ${code} })()`);
     if (out !== undefined) console.log(JSON.stringify(out, null, 1));

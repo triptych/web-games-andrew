@@ -2,7 +2,7 @@
  * browsertest.mjs — the real game in real Chromium.
  *
  * desktop (1280×760): boot to the title with no errors and the ← Games link on top → New Caravan by a real
- *   click → fold Grandmother's letter → number keys switch tabs → buy a Wanderwain upgrade, buy goods and hire
+ *   click → fold Grandmother's letter → number keys switch tabs → buy a wagon upgrade, buy goods and hire
  *   by real clicks → set a course by clicking a town on the map → Space rallies on the road → a fight plays
  *   its animation → Esc opens the menu and the road keeps going under it → Save & Quit → Continue → a fresh
  *   page whose save is two hours old shows the "while you were away" chronicle with two hours on the road,
@@ -48,7 +48,7 @@ async function newPage(ctx) {
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
     page.on('requestfailed', (r) => { if (!r.url().includes('favicon')) errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`); });
     await page.goto(URL);
-    await page.waitForFunction(() => window.__ww && __ww.mode === 'title', null, { timeout: 60000 });
+    await page.waitForFunction(() => window.__wq && __wq.mode === 'title', null, { timeout: 60000 });
     return page;
 }
 async function open(viewport, { touch = false, nostorage = false } = {}) {
@@ -107,32 +107,32 @@ async function desktop() {
     await shot(page, 'desktop-title');
 
     await clickSel(page, '#btn-new');
-    await until(page, () => __ww.mode === 'play' && document.getElementById('title').hidden, 'a click on New Caravan starts the journey');
+    await until(page, () => __wq.mode === 'play' && document.getElementById('title').hidden, 'a click on New Caravan starts the journey');
     await until(page, () => !document.getElementById('letter').hidden, 'Grandmother\'s letter opens');
     await clickSel(page, '#letter-ok');
-    await until(page, () => document.getElementById('letter').hidden && __ww.G.letters.length === 0, 'folding it puts it away');
+    await until(page, () => document.getElementById('letter').hidden && __wq.G.letters.length === 0, 'folding it puts it away');
 
     await page.keyboard.press('Digit2');
     await until(page, () => document.querySelector('#tabs .tab.on')?.dataset.tab === 'caravan' && document.getElementById('panel').textContent.includes('Iron-shod Wheels'), 'the 2 key opens the Caravan tab');
-    await Q(page, () => { __ww.G.gold = 5000; });
+    await Q(page, () => { __wq.G.gold = 5000; });
     await until(page, () => { const b = document.querySelector('[data-act="upgrade"][data-k="hold"]'); return b && !b.disabled; }, 'the Deeper Hold button is live once there\'s gold');
     await clickSel(page, '[data-act="upgrade"][data-k="hold"]');
-    await until(page, () => __ww.G.up.hold === 1, 'a click on it upgrades the hold');
+    await until(page, () => __wq.G.up.hold === 1, 'a click on it upgrades the hold');
 
     // the town: hold in Hearthford while we shop
     await clickSel(page, '#tabs [data-tab="road"]');
     await until(page, () => !!document.querySelector('[data-act="route"][data-v="hold"]'), 'the Road tab shows the standing orders');
     await clickSel(page, '[data-act="route"][data-v="hold"]');
-    await until(page, () => __ww.G.orders.route === 'hold', 'a click sets the standing orders to Hold');
+    await until(page, () => __wq.G.orders.route === 'hold', 'a click sets the standing orders to Hold');
     await page.keyboard.press('Digit6');
     await until(page, () => !!document.querySelector('[data-act="buy"][data-g="grain"]'), 'the Town tab shows the market');
     await clickSel(page, '[data-act="buy"][data-g="grain"]');
-    await until(page, () => (__ww.G.cargo.grain?.n || 0) === 5, 'a click on +5 buys five grain');
-    await Q(page, () => { __ww.G.level = 3; });
+    await until(page, () => (__wq.G.cargo.grain?.n || 0) === 5, 'a click on +5 buys five grain');
+    await Q(page, () => { __wq.G.level = 3; });
     await until(page, () => { const b = document.querySelector('[data-act="hire"]'); return b && !b.disabled; }, 'a level-3 caravan can hire in the tavern');
-    const n0 = await Q(page, () => __ww.G.party.length);
+    const n0 = await Q(page, () => __wq.G.party.length);
     await clickSel(page, '[data-act="hire"]');
-    await until(page, (n) => __ww.G.party.length === n + 1, 'a click hires a traveller with their cart', 30000, n0);
+    await until(page, (n) => __wq.G.party.length === n + 1, 'a click hires a traveller with their cart', 30000, n0);
     await shot(page, 'desktop-town');
 
     // set a course by clicking Millbrook on the map
@@ -142,29 +142,29 @@ async function desktop() {
     await page.mouse.click(town.x, town.y);
     await until(page, () => !!document.querySelector('[data-act="course"][data-town="millbrook"]'), 'a click on Millbrook on the map shows it');
     await clickSel(page, '[data-act="course"][data-town="millbrook"]');
-    await until(page, () => __ww.G.course === 'millbrook' || __ww.G.road?.to === 'millbrook', 'Set course heads for Millbrook even on Hold');
-    await until(page, () => !!__ww.G.road, 'the caravan sets out', 30000);
+    await until(page, () => __wq.G.course === 'millbrook' || __wq.G.road?.to === 'millbrook', 'Set course heads for Millbrook even on Hold');
+    await until(page, () => !!__wq.G.road, 'the caravan sets out', 30000);
 
     await Q(page, () => document.activeElement?.blur());
     await page.keyboard.press('Space');
-    await until(page, () => (__ww.seen.rally || 0) >= 1, 'Space rallies the oxen on the road');
+    await until(page, () => (__wq.seen.rally || 0) >= 1, 'Space rallies the oxen on the road');
 
     // a fight on the road plays out in the view
-    await Q(page, () => { __ww.G.fightIn = 0.001; });
-    await until(page, () => !!__ww.view.fight, 'a fight starts its animation', 30000);
+    await Q(page, () => { __wq.G.fightIn = 0.001; });
+    await until(page, () => !!__wq.view.fight, 'a fight starts its animation', 30000);
     await page.waitForTimeout(1200);
     await shot(page, 'desktop-fight');
-    await until(page, () => !__ww.view.fight, 'and finishes', 60000);
+    await until(page, () => !__wq.view.fight, 'and finishes', 60000);
 
     await page.keyboard.press('Escape');
     await until(page, () => !document.getElementById('menu').hidden, 'Esc opens the menu');
-    const t0 = await Q(page, () => __ww.G.t);
-    await until(page, (t) => __ww.G.t > t + 2, 'the road keeps going under the menu', 30000, t0);
+    const t0 = await Q(page, () => __wq.G.t);
+    await until(page, (t) => __wq.G.t > t + 2, 'the road keeps going under the menu', 30000, t0);
     await clickSel(page, '#menu-menu [data-act="quit"]');
-    await until(page, () => __ww.mode === 'title' && !document.getElementById('btn-continue').hidden, 'Save & Quit returns to the title with Continue');
-    const saved = await Q(page, () => JSON.parse(localStorage.getItem('wanderwain.v1')));
+    await until(page, () => __wq.mode === 'title' && !document.getElementById('btn-continue').hidden, 'Save & Quit returns to the title with Continue');
+    const saved = await Q(page, () => JSON.parse(localStorage.getItem('wanderquest.v1')));
     await clickSel(page, '#btn-continue');
-    await until(page, (t) => __ww.mode === 'play' && __ww.G.t >= t, 'Continue picks the caravan up again', 30000, saved.data.t);
+    await until(page, (t) => __wq.mode === 'play' && __wq.G.t >= t, 'Continue picks the caravan up again', 30000, saved.data.t);
     reportErrors('desktop');
 
     // time away: a fresh page whose save was written two hours ago
@@ -172,23 +172,23 @@ async function desktop() {
     await page.close();
     errors = [];
     const rewound = JSON.stringify({ ...saved, savedAt: Date.now() - 2 * 3600 * 1000 });
-    await ctx.addInitScript((v) => { sessionStorage.setItem('kept', '1'); localStorage.setItem('wanderwain.v1', v); }, rewound);
+    await ctx.addInitScript((v) => { sessionStorage.setItem('kept', '1'); localStorage.setItem('wanderquest.v1', v); }, rewound);
     const p2 = await newPage(ctx);
     await clickSel(p2, '#btn-continue');
     await until(p2, () => !document.getElementById('away').hidden, 'the "while you were away" chronicle opens');
-    check(await Q(p2, (t) => __ww.G.t - t >= 7190 && __ww.G.t - t <= 7300, saved.data.t), 'the caravan travelled for the two hours');
+    check(await Q(p2, (t) => __wq.G.t - t >= 7190 && __wq.G.t - t <= 7300, saved.data.t), 'the caravan travelled for the two hours');
     check(await Q(p2, () => /2h/.test(document.getElementById('away-title').textContent) && document.querySelectorAll('#away-body .stat-grid div').length >= 6), 'the chronicle says how long and what happened');
     await shot(p2, 'desktop-away');
     await until(p2, () => document.activeElement?.id === 'away-ok', 'its button has the focus');
     await p2.keyboard.press('Space');
     await until(p2, () => document.getElementById('away').hidden, 'Space presses it and the chronicle closes');
 
-    await Q(p2, () => __ww.day(1));
+    await Q(p2, () => __wq.day(1));
     await until(p2, () => !document.getElementById('badge-quests').hidden, 'a new day puts a badge on Quests');
     await p2.keyboard.press('Digit4');
     await until(p2, () => !!document.querySelector('[data-act="claimPost"]'), 'the Quests tab offers the morning post');
     await clickSel(p2, '[data-act="claimPost"]');
-    await until(p2, () => __ww.G.daily.claimed && !__ww.G.daily.contracts.some((q) => !q), 'a click opens it');
+    await until(p2, () => __wq.G.daily.claimed && !__wq.G.daily.contracts.some((q) => !q), 'a click opens it');
     // the scrapbook
     await until(p2, () => !document.getElementById('badge-book').hidden, 'new scrapbook entries put a badge on Book');
     await p2.keyboard.press('Digit7');
@@ -205,15 +205,15 @@ async function desktop() {
                 const bad = cs.filter((c) => { const x = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; const set = new Set(); for (let i = 0; i < x.length; i += 4 * 7) set.add(x[i] + ',' + x[i + 1] + ',' + x[i + 2]); return set.size < 12; });
                 return cs.length >= 33 && bad.length === 0;
             }), 'every creature has a portrait, met or not');
-            check(await Q(p2, () => document.getElementById('panel').textContent.includes('???') && Object.keys(__ww.G.book.monsters).length > 0), 'monsters met are named and the rest are ???');
+            check(await Q(p2, () => document.getElementById('panel').textContent.includes('???') && Object.keys(__wq.G.book.monsters).length > 0), 'monsters met are named and the rest are ???');
             await shot(p2, 'desktop-book');
         }
-        if (pg === 'log') check(await Q(p2, () => document.querySelectorAll('#panel .log-ledger li:not(.day)').length === Math.min(60, __ww.G.book.legs.length) && __ww.G.book.legs.length > 0), 'the travel log lists the roads driven');
+        if (pg === 'log') check(await Q(p2, () => document.querySelectorAll('#panel .log-ledger li:not(.day)').length === Math.min(60, __wq.G.book.legs.length) && __wq.G.book.legs.length > 0), 'the travel log lists the roads driven');
     }
     await clickSel(p2, '[data-act="reread"]');
     await until(p2, () => !document.getElementById('letter').hidden, 'a filed letter opens again');
     await clickSel(p2, '#letter-ok');
-    await until(p2, () => document.getElementById('letter').hidden && __ww.G.letters.length === 0 && __ww.G.book.letters.length >= 1, 're-reading it doesn\'t count as new post');
+    await until(p2, () => document.getElementById('letter').hidden && __wq.G.letters.length === 0 && __wq.G.book.letters.length >= 1, 're-reading it doesn\'t count as new post');
     const L2 = await layout(p2);
     check(L2.noHScroll && L2.canvas, 'still no sideways scroll, and the canvas fills the window');
     reportErrors('desktop, after time away');
@@ -226,7 +226,7 @@ async function phone(w, h) {
     const tap = async (sel) => { const c = await centre(page, sel); if (!c) return false; await page.touchscreen.tap(c.x, c.y); return true; };
     check(await backLinkOk(page), '← Games link is on top');
     await tap('#btn-new');
-    await until(page, () => __ww.mode === 'play', 'a tap on New Caravan starts the journey');
+    await until(page, () => __wq.mode === 'play', 'a tap on New Caravan starts the journey');
     await until(page, () => !document.getElementById('letter').hidden, 'the letter opens');
     await page.waitForTimeout(300);
     check(await Q(page, () => !document.getElementById('letter').hidden), 'and stays open after the finger lifts');
@@ -242,10 +242,10 @@ async function phone(w, h) {
         return { s: el.dataset.tab || el.id, ok: r.width >= 44 && r.height >= 44 && r.left >= 0 && r.top >= 0 && r.right <= innerWidth + 0.5 && r.bottom <= innerHeight + 0.5 };
     }));
     for (const z of sizes) check(z.ok, `${z.s} is at least 44 px and on screen`);
-    await Q(page, () => { __ww.G.gold = 1234567; __ww.G.rations = 315; __ww.G.level = 27; });
+    await Q(page, () => { __wq.G.gold = 1234567; __wq.G.rations = 315; __wq.G.level = 27; });
     await page.waitForTimeout(600);
     check(await Q(page, () => { const b = document.getElementById('back-link').getBoundingClientRect(); return [...document.querySelectorAll('#hud .chip, #hud .ibtn')].every((c) => c.getBoundingClientRect().left >= b.right); }), 'the HUD stays clear of the back link with a big purse');
-    const scene = await Q(page, () => __ww.ui.sceneRect());
+    const scene = await Q(page, () => __wq.ui.sceneRect());
     check(scene.w > 150 && scene.h > 150, `the scene keeps ${scene.w}×${scene.h} px beside the dock`);
 
     for (const t of ['caravan', 'pack', 'quests', 'map', 'town', 'book', 'road']) {
@@ -254,10 +254,10 @@ async function phone(w, h) {
     }
     const small = await Q(page, () => [...document.querySelectorAll('#panel button')].filter((b) => b.offsetParent && (b.getBoundingClientRect().height < 43.5 || b.getBoundingClientRect().width < 43.5)).map((b) => b.textContent.trim()).slice(0, 5));
     check(small.length === 0, `every button on the Road tab is finger-sized${small.length ? ': ' + small.join(', ') : ''}`);
-    await Q(page, () => __ww.cmd({ type: 'course', town: 'applewick' }));
-    await until(page, () => !!__ww.G.road && !__ww.G.camp && !__ww.G.busy, 'the caravan takes the road', 40000);
+    await Q(page, () => __wq.cmd({ type: 'course', town: 'applewick' }));
+    await until(page, () => !!__wq.G.road && !__wq.G.camp && !__wq.G.busy, 'the caravan takes the road', 40000);
     await tap('#btn-rally');
-    await until(page, () => (__ww.seen.rally || 0) >= 1, 'tapping Rally hurries the oxen');
+    await until(page, () => (__wq.seen.rally || 0) >= 1, 'tapping Rally hurries the oxen');
     await shot(page, `phone-${w}x${h}`);
     await tap('#btn-menu');
     await until(page, () => !document.getElementById('menu').hidden, 'tapping ☰ opens the menu');
@@ -273,10 +273,10 @@ async function nostorage() {
     console.log('\n== blocked storage');
     const { page } = await open({ width: 1280, height: 760 }, { nostorage: true });
     await clickSel(page, '#btn-new');
-    await until(page, () => __ww.mode === 'play', 'boots and starts a caravan with localStorage throwing');
-    await Q(page, () => __ww.ff(600));
-    check(await Q(page, () => __ww.G.t >= 600 && __ww.G.stats.miles > 0), 'it travels');
-    check(await Q(page, () => __ww.save() === undefined && !__ww.hasSave()), 'saving fails quietly');
+    await until(page, () => __wq.mode === 'play', 'boots and starts a caravan with localStorage throwing');
+    await Q(page, () => __wq.ff(600));
+    check(await Q(page, () => __wq.G.t >= 600 && __wq.G.stats.miles > 0), 'it travels');
+    check(await Q(page, () => __wq.save() === undefined && !__wq.hasSave()), 'saving fails quietly');
     reportErrors('nostorage');
 }
 

@@ -1,5 +1,5 @@
 /**
- * simtest.mjs — headless checks of Wanderwain's simulation. No browser.
+ * simtest.mjs — headless checks of WanderQuest's simulation. No browser.
  *
  *   node game-085/dev/simtest.mjs            # everything
  *   ONLY=purity,book node game-085/dev/simtest.mjs

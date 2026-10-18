@@ -85,7 +85,7 @@ export const caravan = {
     html(G) {
         const slots = partySlots(G.level), full = G.party.length >= slots;
         const p = [];
-        p.push(`<div class="sec"><div class="card"><div class="row2"><span class="ico">🏮</span><div class="grow"><div class="name">The Wanderwain · level ${G.level}</div>
+        p.push(`<div class="sec"><div class="card"><div class="row2"><span class="ico">🏮</span><div class="grow"><div class="name">The caravan · level ${G.level}</div>
             <div class="bar xp"><i data-w="cxp"></i></div><div class="tiny">${G.party.length}/${slots} travellers · power <span data-t="power"></span> · carts up to level ${cartCap(G.level)}</div></div></div></div></div>`);
         if (G.offers.length) {
             p.push(`<div class="sec"><h3>Met on the road</h3>${G.offers.map((o) => {
@@ -94,7 +94,7 @@ export const caravan = {
                 <div class="btns"><button class="btn primary small" data-act="acceptOffer" data-id="${o.m.id}"${full ? ' disabled' : ''}>${full ? 'No room' : 'Welcome aboard'}</button><button class="btn small" data-act="declineOffer" data-id="${o.m.id}">Send on their way</button></div></div>`;
             }).join('')}</div>`);
         }
-        p.push(`<div class="sec"><h3>The Wanderwain</h3>${Object.entries(UPGRADES).map(([k, u]) => {
+        p.push(`<div class="sec"><h3>Grandmother's wagon</h3>${Object.entries(UPGRADES).map(([k, u]) => {
             const l = G.up[k], cost = upgradeCost(G, k);
             return `<div class="card"><div class="row2"><span class="ico">${u.icon}</span><div class="grow"><div class="name small">${u.name} <span class="dim">${l}/${u.max}</span></div><div class="tiny">${u.text(l)}${cost !== null ? ` → <b>${u.text(l + 1)}</b>` : ''}</div></div>
                 ${cost !== null ? `<button class="btn small" data-act="upgrade" data-k="${k}" data-gold="${cost}">${fmtNum(cost)}g</button>` : '<span class="dim">max</span>'}</div></div>`;
@@ -249,13 +249,13 @@ export const book = {
     html(G, ui) {
         const b = G.book, page = ui.bookPage;
         const nMon = Object.keys(FAMILIES).length + REGIONS.length, haveMon = Object.keys(b.monsters).length + Object.keys(b.wardens).length;
-        const p = [`<div class="book-head"><h2>The Wanderwain's Scrapbook</h2><p>Day ${dayOf(G.t)} on the road · ${Object.keys(b.people).length + 1} people · ${haveMon}/${nMon} creatures · ${Object.keys(b.items).length} kinds of gear · ${Object.keys(b.places).length}/${TOWNS.length} towns</p></div>`,
+        const p = [`<div class="book-head"><h2>The Caravan Scrapbook</h2><p>Day ${dayOf(G.t)} on the road · ${Object.keys(b.people).length + 1} people · ${haveMon}/${nMon} creatures · ${Object.keys(b.items).length} kinds of gear · ${Object.keys(b.places).length}/${TOWNS.length} towns</p></div>`,
             `<div class="chips book-tabs">${BOOK_PAGES.map(([k, l]) => `<button class="chipbtn${page === k ? ' on' : ''}" data-act="bookPage" data-v="${k}">${l}</button>`).join('')}</div>`];
         if (page === 'people') {
             const people = Object.values(b.people);
             const order = { riding: 0, asked: 1, parted: 2, passed: 3 };
             people.sort((a, c) => order[a.status] - order[c.status] || a.met - c.met);
-            p.push(`<div class="snaps">${snap(portrait({ kind: 'odessa' }), 'Grandmother Odessa', 'drove the Wanderwain for fifty years · writes from Hearthford')}${people.map((x) => {
+            p.push(`<div class="snaps">${snap(portrait({ kind: 'odessa' }), 'Grandmother Odessa', 'drove this wagon for fifty years · writes from Hearthford')}${people.map((x) => {
                 const live = G.party.find((m) => m.id === x.id);
                 const lvl = live ? live.level : x.level;
                 return snap(portrait({ kind: 'person', key: x.cls, region: x.where && TOWN[x.where.split('>').pop()] ? TOWN[x.where.split('>').pop()].region : 0 }), esc(x.name),

@@ -1,4 +1,4 @@
-/* Wanderwain. Phone first: everything fits 360 px wide. --app-w/--app-h are set in px from visualViewport. */
+/* WanderQuest. Phone first: everything fits 360 px wide. --app-w/--app-h are set in px from visualViewport. */
 :root {
     --app-w: 100%;
     --app-h: 100%;
