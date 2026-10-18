@@ -205,6 +205,19 @@ table.market .btn { min-width: 44px; padding: 4px 6px; font-size: 13px; }
 .letter-card span { display: block; font-family: Georgia, serif; font-size: 13px; color: #6a5638; }
 @media (max-width: 380px) { .snaps { grid-template-columns: repeat(2, 1fr); } }
 
+/* ---------------------------------------------------------------- naming the wagon */
+.field { display: block; font-weight: 700; margin: 4px 0 6px; color: var(--accent); }
+.name-row { display: flex; gap: 8px; }
+.name-row input {
+    flex: 1; min-width: 0; min-height: 48px; padding: 8px 12px; border-radius: 10px;
+    border: 1px solid var(--line); background: #f6ecd8; color: #2a1a08;
+    font: 700 22px 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+    user-select: text; -webkit-user-select: text;
+}
+.name-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.name-row .btn { font-size: 20px; }
+.rename { margin-left: 6px; }
+
 /* ---------------------------------------------------------------- screens */
 .screen {
     position: fixed; inset: 0; z-index: 50;

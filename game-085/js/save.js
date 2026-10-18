@@ -22,6 +22,8 @@ export function loadSettings() {
 export function saveSettings(s) { write(SETTINGS_KEY, s); }
 
 export function hasSave() { return !!read(SAVE_KEY)?.data; }
+/** The saved wagon's name, for the title's Continue button, or null. */
+export function savedName() { const d = read(SAVE_KEY)?.data; return d ? d.wagon || 'Grandmother\'s Wagon' : null; }
 export function saveGame(G, now = Date.now()) { return write(SAVE_KEY, { savedAt: now, data: serialize(G) }); }
 /** { G, savedAt } or null. */
 export function loadGame() {

@@ -81,11 +81,11 @@ export function journalHtml(G) {
 
 // ------------------------------------------------------------------ Caravan
 export const caravan = {
-    sig: (G) => [G.level, JSON.stringify(G.up), G.party.map((m) => `${m.id}:${m.level}:${m.cart}:${SLOTS.map((s) => m.gear[s]?.id || 0).join('.')}`).join(','), G.offers.map((o) => o.m.id).join(','), G.at].join('|'),
+    sig: (G) => [G.wagon, G.level, JSON.stringify(G.up), G.party.map((m) => `${m.id}:${m.level}:${m.cart}:${SLOTS.map((s) => m.gear[s]?.id || 0).join('.')}`).join(','), G.offers.map((o) => o.m.id).join(','), G.at].join('|'),
     html(G) {
         const slots = partySlots(G.level), full = G.party.length >= slots;
         const p = [];
-        p.push(`<div class="sec"><div class="card"><div class="row2"><span class="ico">🏮</span><div class="grow"><div class="name">The caravan · level ${G.level}</div>
+        p.push(`<div class="sec"><div class="card"><div class="row2"><span class="ico">🏮</span><div class="grow"><div class="name">${esc(G.wagon)} · level ${G.level}</div>
             <div class="bar xp"><i data-w="cxp"></i></div><div class="tiny">${G.party.length}/${slots} travellers · power <span data-t="power"></span> · carts up to level ${cartCap(G.level)}</div></div></div></div></div>`);
         if (G.offers.length) {
             p.push(`<div class="sec"><h3>Met on the road</h3>${G.offers.map((o) => {
@@ -94,7 +94,7 @@ export const caravan = {
                 <div class="btns"><button class="btn primary small" data-act="acceptOffer" data-id="${o.m.id}"${full ? ' disabled' : ''}>${full ? 'No room' : 'Welcome aboard'}</button><button class="btn small" data-act="declineOffer" data-id="${o.m.id}">Send on their way</button></div></div>`;
             }).join('')}</div>`);
         }
-        p.push(`<div class="sec"><h3>Grandmother's wagon</h3>${Object.entries(UPGRADES).map(([k, u]) => {
+        p.push(`<div class="sec"><h3><span>${esc(G.wagon)}</span><button class="btn small rename" data-act="rename" aria-label="Rename the wagon">✎ Rename</button></h3>${Object.entries(UPGRADES).map(([k, u]) => {
             const l = G.up[k], cost = upgradeCost(G, k);
             return `<div class="card"><div class="row2"><span class="ico">${u.icon}</span><div class="grow"><div class="name small">${u.name} <span class="dim">${l}/${u.max}</span></div><div class="tiny">${u.text(l)}${cost !== null ? ` → <b>${u.text(l + 1)}</b>` : ''}</div></div>
                 ${cost !== null ? `<button class="btn small" data-act="upgrade" data-k="${k}" data-gold="${cost}">${fmtNum(cost)}g</button>` : '<span class="dim">max</span>'}</div></div>`;
@@ -118,7 +118,7 @@ function memberCard(G, m) {
         <div class="stats"><span>❤ <b>${s.hp}</b></span><span>⚔ <b>${s.atk}</b></span><span>🛡 <b>${s.def}</b></span><span>💨 <b>${s.spd}</b></span></div></div></div>
         <div class="tiny" style="margin-top:4px">${esc(c.role)}</div>
         <div class="gear">${gear}</div>
-        <div class="card" style="margin:8px 0 0;background:rgba(0,0,0,0.18)"><div class="small"><b>${c.cart}</b>${m.cls !== 'captain' ? ` · level ${m.cart}` : ''}</div><div class="tiny">${esc(c.text(m.cart))}</div>
+        <div class="card" style="margin:8px 0 0;background:rgba(0,0,0,0.18)"><div class="small"><b>${m.cls === 'captain' ? esc(G.wagon) : c.cart}</b>${m.cls !== 'captain' ? ` · level ${m.cart}` : ''}</div><div class="tiny">${esc(c.text(m.cart))}</div>
         ${crafts ? `<div class="bar"><i data-w="craft:${m.id}"></i></div>` : ''}
         ${up ? `<div class="btns"><button class="btn small" data-act="cartUp" data-id="${m.id}" data-gold="${up.gold}" data-need='${JSON.stringify(up.mats)}'${capped ? ' disabled' : ''}>${capped ? `Caravan level ${m.cart * 3} for more` : `Upgrade: ${costHtml(up.gold, up.mats)}`}</button>
             <button class="btn small danger" data-act="dismiss" data-id="${m.id}">Part ways</button></div>` : ''}</div></div>`;
@@ -243,13 +243,13 @@ const portrait = (spec) => `<canvas class="portrait" data-portrait='${JSON.strin
 export const book = {
     sig: (G, ui) => {
         const b = G.book;
-        return [ui.bookPage, ui.legLimit, Object.values(b.people).map((p) => p.id + p.status + p.level).join(','), Object.keys(b.monsters).length, Object.keys(b.wardens).map((k) => k + (b.wardens[k].beaten ?? '')).join(','),
+        return [G.wagon, ui.bookPage, ui.legLimit, Object.values(b.people).map((p) => p.id + p.status + p.level).join(','), Object.keys(b.monsters).length, Object.keys(b.wardens).map((k) => k + (b.wardens[k].beaten ?? '')).join(','),
             Object.keys(b.items).length, Object.keys(b.places).length, b.legs.length, b.letters.length, G.party.map((m) => m.level).join(',')].join('|');
     },
     html(G, ui) {
         const b = G.book, page = ui.bookPage;
         const nMon = Object.keys(FAMILIES).length + REGIONS.length, haveMon = Object.keys(b.monsters).length + Object.keys(b.wardens).length;
-        const p = [`<div class="book-head"><h2>The Caravan Scrapbook</h2><p>Day ${dayOf(G.t)} on the road · ${Object.keys(b.people).length + 1} people · ${haveMon}/${nMon} creatures · ${Object.keys(b.items).length} kinds of gear · ${Object.keys(b.places).length}/${TOWNS.length} towns</p></div>`,
+        const p = [`<div class="book-head"><h2>The Scrapbook of ${esc(G.wagon)}</h2><p>Day ${dayOf(G.t)} on the road · ${Object.keys(b.people).length + 1} people · ${haveMon}/${nMon} creatures · ${Object.keys(b.items).length} kinds of gear · ${Object.keys(b.places).length}/${TOWNS.length} towns</p></div>`,
             `<div class="chips book-tabs">${BOOK_PAGES.map(([k, l]) => `<button class="chipbtn${page === k ? ' on' : ''}" data-act="bookPage" data-v="${k}">${l}</button>`).join('')}</div>`];
         if (page === 'people') {
             const people = Object.values(b.people);

@@ -2,7 +2,7 @@
 // number of seconds (advance, for time spent away); the real-world day comes in through checkIn().
 // The view reads G and drains G.events; the UI, the tests and the bot change it only through command().
 
-import { TOWN, TOWNS, REGIONS, STORY, CLASSES, TAVERN, MATS, GOODS, UPGRADES, roadBetween, cartUpCost, cartCap, cookTime, forgeTime, brewTime } from './data.js';
+import { cleanName, DEFAULT_WAGON, TOWN, TOWNS, REGIONS, STORY, CLASSES, TAVERN, MATS, GOODS, UPGRADES, roadBetween, cartUpCost, cartCap, cookTime, forgeTime, brewTime } from './data.js';
 import { TRAVEL, FOOD, REGEN, OFFLINE, PARTY, QUESTS, monsterXp, monsterGold, RARITY } from '../config.js';
 import { makeRng } from '../rng.js';
 import { emit, log, clamp, plural } from './core.js';
@@ -18,7 +18,8 @@ import { newBook, ensureBook, notePerson, noteFoes, noteWarden, gainMat, notePla
 
 export const SAVE_VERSION = 1;
 
-export function newGame(seed = 1) {
+/** opts.wagon: the name the player gave the wagon. */
+export function newGame(seed = 1, opts = {}) {
     const rng = makeRng(seed);
     const G = {
         v: SAVE_VERSION,
@@ -26,6 +27,7 @@ export function newGame(seed = 1) {
         rng,
         t: 0,
         acc: 0,
+        wagon: cleanName(opts.wagon),
         level: 1, xp: 0,
         gold: 60, rations: 30, potions: 0,
         up: { wheels: 0, hold: 0, lantern: 0, larder: 0, banner: 0 },
@@ -65,7 +67,7 @@ export function newGame(seed = 1) {
     G.towns.hearthford.visits = 1;
     stockTown(G, 'hearthford');
     autoAccept(G);
-    log(G, 'story', 'Old Tam, who guarded your grandmother\'s wagon for thirty years, climbs up beside you. The wagon rolls out of Hearthford.', true);
+    log(G, 'story', `Old Tam, who guarded your grandmother's wagon for thirty years, climbs up beside you. ${G.wagon} rolls out of Hearthford.`, true);
     return G;
 }
 
@@ -585,6 +587,14 @@ export function command(G, c) {
         case 'claimPost': { const r = claimPost(G); return r ? ok(`Morning post: ${r.gold}g and a ${r.item.name}.`, r) : no('Already opened today.'); }
         case 'read': noteLetter(G, G.letters.shift()); return ok();
         case 'bookSeen': G.book.seen = c.n | 0; return ok();
+        case 'nameWagon': {
+            const name = cleanName(c.name);
+            if (name === G.wagon) return ok();
+            const was = G.wagon;
+            G.wagon = name;
+            log(G, 'story', `${was} has a new name painted on her tailboard: ${name}.`);
+            return ok(`She's ${name} now.`);
+        }
         case 'rest': {
             if (G.at || !G.road) return no('You rest at inns in town.');
             G.camp = !G.camp;
@@ -629,6 +639,7 @@ export function deserialize(d) {
     const G = { ...JSON.parse(JSON.stringify(rest)), rng: makeRng(0), events: [], quiet: false };
     G.rng.setState(rngState);
     ensureBook(G);
+    if (!G.wagon) G.wagon = DEFAULT_WAGON;
     return G;
 }
 

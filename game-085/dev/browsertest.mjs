@@ -2,7 +2,7 @@
  * browsertest.mjs — the real game in real Chromium.
  *
  * desktop (1280×760): boot to the title with no errors and the ← Games link on top → New Caravan by a real
- *   click → fold Grandmother's letter → number keys switch tabs → buy a wagon upgrade, buy goods and hire
+ *   click → name the wagon by typing (the dice, Enter) → fold Grandmother's letter → rename her on the Caravan tab → number keys switch tabs → buy a wagon upgrade, buy goods and hire
  *   by real clicks → set a course by clicking a town on the map → Space rallies on the road → a fight plays
  *   its animation → Esc opens the menu and the road keeps going under it → Save & Quit → Continue → a fresh
  *   page whose save is two hours old shows the "while you were away" chronicle with two hours on the road,
@@ -107,13 +107,30 @@ async function desktop() {
     await shot(page, 'desktop-title');
 
     await clickSel(page, '#btn-new');
-    await until(page, () => __wq.mode === 'play' && document.getElementById('title').hidden, 'a click on New Caravan starts the journey');
+    await until(page, () => !document.getElementById('naming').hidden && document.activeElement?.id === 'wagon-name' && document.getElementById('wagon-name').value.length > 0, 'New Caravan asks for the wagon\'s name, with a suggestion selected');
+    await clickSel(page, '#naming-dice');
+    await until(page, () => document.getElementById('wagon-name').value.length > 0, 'the dice suggests another');
+    await Q(page, () => { const i = document.getElementById('wagon-name'); i.focus(); i.select(); });
+    await page.keyboard.type('The Bramble Rose');
+    await page.keyboard.press('Enter');
+    await until(page, () => __wq.mode === 'play' && document.getElementById('title').hidden && __wq.G.wagon === 'The Bramble Rose', 'typing a name and pressing Enter sets out with it');
     await until(page, () => !document.getElementById('letter').hidden, 'Grandmother\'s letter opens');
     await clickSel(page, '#letter-ok');
     await until(page, () => document.getElementById('letter').hidden && __wq.G.letters.length === 0, 'folding it puts it away');
 
     await page.keyboard.press('Digit2');
     await until(page, () => document.querySelector('#tabs .tab.on')?.dataset.tab === 'caravan' && document.getElementById('panel').textContent.includes('Iron-shod Wheels'), 'the 2 key opens the Caravan tab');
+    check(await Q(page, () => document.getElementById('panel').textContent.includes('The Bramble Rose · level')), 'the Caravan tab carries her name');
+    await clickSel(page, '[data-act="rename"]');
+    await until(page, () => !document.getElementById('naming').hidden && document.getElementById('wagon-name').value === 'The Bramble Rose', 'Rename opens the sheet with her name in it');
+    await Q(page, () => { const i = document.getElementById('wagon-name'); i.focus(); i.select(); });
+    await page.keyboard.type('Old Faithful');
+    await clickSel(page, '#naming-go');
+    await until(page, () => __wq.G.wagon === 'Old Faithful' && document.getElementById('panel').textContent.includes('Old Faithful · level'), 'and renames her');
+    await clickSel(page, '[data-act="rename"]');
+    await until(page, () => !document.getElementById('naming').hidden, 'the sheet opens again');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('naming').hidden && __wq.G.wagon === 'Old Faithful', 'Escape in the name field closes it without renaming');
     await Q(page, () => { __wq.G.gold = 5000; });
     await until(page, () => { const b = document.querySelector('[data-act="upgrade"][data-k="hold"]'); return b && !b.disabled; }, 'the Deeper Hold button is live once there\'s gold');
     await clickSel(page, '[data-act="upgrade"][data-k="hold"]');
@@ -162,6 +179,7 @@ async function desktop() {
     await until(page, (t) => __wq.G.t > t + 2, 'the road keeps going under the menu', 30000, t0);
     await clickSel(page, '#menu-menu [data-act="quit"]');
     await until(page, () => __wq.mode === 'title' && !document.getElementById('btn-continue').hidden, 'Save & Quit returns to the title with Continue');
+    check(await Q(page, () => document.getElementById('btn-continue').textContent === 'Continue: Old Faithful'), 'Continue names the wagon');
     const saved = await Q(page, () => JSON.parse(localStorage.getItem('wanderquest.v1')));
     await clickSel(page, '#btn-continue');
     await until(page, (t) => __wq.mode === 'play' && __wq.G.t >= t, 'Continue picks the caravan up again', 30000, saved.data.t);
@@ -227,7 +245,10 @@ async function phone(w, h) {
     check(await backLinkOk(page), '← Games link is on top');
     check(await Q(page, () => { const l = document.querySelector('.logo'); return l.textContent === 'WanderQuest' && l.scrollWidth <= l.clientWidth; }), 'the title WanderQuest fits its sheet');
     await tap('#btn-new');
-    await until(page, () => __wq.mode === 'play', 'a tap on New Caravan starts the journey');
+    await until(page, () => !document.getElementById('naming').hidden, 'a tap on New Caravan asks for a name');
+    check(await Q(page, () => { const r = document.getElementById('wagon-name').getBoundingClientRect(), g = document.getElementById('naming-go').getBoundingClientRect(); return r.height >= 44 && g.height >= 44 && g.right <= innerWidth && r.left >= 0; }), 'the name field and Set out are finger-sized and on screen');
+    await tap('#naming-go');
+    await until(page, () => __wq.mode === 'play' && __wq.G.wagon.length > 0, 'a tap on Set out starts the journey with the suggested name');
     await until(page, () => !document.getElementById('letter').hidden, 'the letter opens');
     await page.waitForTimeout(300);
     check(await Q(page, () => !document.getElementById('letter').hidden), 'and stays open after the finger lifts');
@@ -274,6 +295,8 @@ async function nostorage() {
     console.log('\n== blocked storage');
     const { page } = await open({ width: 1280, height: 760 }, { nostorage: true });
     await clickSel(page, '#btn-new');
+    await until(page, () => !document.getElementById('naming').hidden, 'the naming sheet opens with localStorage throwing');
+    await clickSel(page, '#naming-go');
     await until(page, () => __wq.mode === 'play', 'boots and starts a caravan with localStorage throwing');
     await Q(page, () => __wq.ff(600));
     check(await Q(page, () => __wq.G.t >= 600 && __wq.G.stats.miles > 0), 'it travels');

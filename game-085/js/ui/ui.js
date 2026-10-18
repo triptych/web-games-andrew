@@ -10,7 +10,10 @@ import { PANELS, LIVE, journalHtml, itemStats } from './panels.js';
 import { MapView } from '../view/map.js';
 import { drawPortrait } from '../view/portraits.js';
 import { bookCount } from '../sim/book.js';
-import { STORY } from '../sim/data.js';
+import { STORY, WAGON_NAMES } from '../sim/data.js';
+
+/** A name from the list (the UI may use Math.random: only the sim must be seeded). */
+export const suggestName = (not = '') => { const pool = WAGON_NAMES.filter((n) => n !== not); return pool[Math.floor(Math.random() * pool.length)]; };
 import { esc, fmtTime, fmtNum, LOG_ICON } from './fmt.js';
 
 const $ = (id) => document.getElementById(id);
@@ -62,6 +65,15 @@ export class UI {
             const c = JSON.parse(b.dataset.pick);
             this.closeScreen('pick');
             this.cmd(c);
+        });
+        $('naming-dice').addEventListener('click', () => { audio.ui('click'); const i = $('wagon-name'); i.value = suggestName(i.value); i.focus({ preventScroll: true }); });
+        $('naming-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = $('wagon-name').value;
+            this.closeScreen('naming');
+            $('wagon-name').blur();
+            if (this.namingMode === 'rename') this.cmd({ type: 'nameWagon', name });
+            else this.onNamed?.(name);
         });
         $('letter-ok').addEventListener('click', () => {
             audio.ui('close');
@@ -176,6 +188,7 @@ export class UI {
             case 'course': this.mapSel = null; return this.cmd({ type: 'course', town: d.town });
             case 'give': return this.pickWearer(+d.item);
             case 'slot': return this.pickForSlot(+d.id, d.slot);
+            case 'rename': return this.openNaming('rename', this.G.wagon);
             case 'bookPage': this.bookPage = d.v; this.audio.ui('click'); $('panel').scrollTop = 0; this.sig = null; return;
             case 'moreLegs': this.legLimit += 100; this.sig = null; return;
             case 'reread': {
@@ -295,7 +308,7 @@ export class UI {
             else if (G.camp) sub = '🔥 Camped by the road while the party recovers.';
             else sub = `${Math.round(left)} mi to go · about ${fmtTime(left / speed(G))}${G.course && G.course !== r.to ? ` · course: ${TOWN[G.course].name}` : ''}`;
             k = r.done / r.miles;
-        } else { where = 'The caravan'; sub = ''; }
+        } else { where = G.wagon; sub = ''; }
         $('status-where').textContent = where;
         $('status-sub').textContent = sub;
         $('status-bar').firstElementChild.style.width = `${Math.round(k * 100)}%`;
@@ -319,6 +332,19 @@ export class UI {
             else if (e.type === 'event' && e.kind === 'wanderer') this.toast(`🤝 ${e.name} asks to join (Caravan tab)`);
             else if (e.type === 'discover' && e.kind !== 'person') this.toast(`📔 New in the scrapbook: ${e.name}`);
         }
+    }
+
+/** The naming sheet. mode 'new' starts a caravan, 'rename' renames this one. */
+    openNaming(mode, current = '') {
+        this.namingMode = mode;
+        $('naming-title').textContent = mode === 'new' ? 'Name your wagon' : 'Rename your wagon';
+        $('naming-go').textContent = mode === 'new' ? 'Set out' : 'Rename';
+        $('naming-blurb').hidden = mode !== 'new';
+        $('wagon-name').value = current || suggestName();
+        this.openScreen('naming');
+        const inp = $('wagon-name');
+        inp.focus({ preventScroll: true });
+        inp.select();
     }
 
     showLetter(letter, reread = false) {

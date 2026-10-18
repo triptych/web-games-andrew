@@ -164,6 +164,15 @@ export const CLASSES = {
         text: (l) => `Plays every town for gold (×${(1 + 0.25 * (l - 1)).toFixed(2)}). +${3 + l}% experience and gold.`,
     },
 };
+// ------------------------------------------------------------------ the wagon's name
+export const DEFAULT_WAGON = 'Grandmother\'s Wagon';
+export const WAGON_NAMES = ['The Bramble Rose', 'Old Faithful', 'The Lantern Belle', 'The Merry Thistle', 'Hearthbound', 'The Copper Kettle', 'Brass Bessie', 'The Wandering Star', 'Odessa\'s Pride', 'The Lucky Ox', 'Slow and Steady', 'The Gilded Goose', 'Marigold', 'The Long Way Round', 'The Creaking Comet', 'Second Breakfast', 'The Patient Moth', 'Honeycomb', 'The Last Lantern', 'Little Thunder'];
+/** A wagon's name as typed: trimmed, single-spaced, printable, at most 24 characters; empty gives the default. */
+export function cleanName(s) {
+    const t = String(s ?? '').replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim().slice(0, 24).trim();
+    return t || DEFAULT_WAGON;
+}
+
 export const HIRE_CLASSES = ['guard', 'cook', 'smith', 'alchemist', 'trader', 'scout', 'healer', 'bard'];
 // who drinks in which region's taverns
 export const TAVERN = [

@@ -259,6 +259,17 @@ if (want('rules')) {
     ok(G.daily.streak === 2, 'the next day continues the streak');
     Gm.checkIn(G, 105);
     ok(G.daily.streak === 1, 'a missed day restarts it');
+    // naming the wagon
+    G = Gm.newGame(30, { wagon: '  The   Bramble\u0007 Rose ' });
+    ok(G.wagon === 'The Bramble Rose', 'a typed name is trimmed, single-spaced and stripped of control characters');
+    ok(G.log.some((e) => e.s.includes('The Bramble Rose rolls out of Hearthford')), 'and the journal opens with it');
+    ok(Gm.newGame(31).wagon === D.DEFAULT_WAGON && Gm.newGame(31, { wagon: '   ' }).wagon === D.DEFAULT_WAGON, 'no name gives the default');
+    ok(D.cleanName('x'.repeat(60)).length === 24, 'a name is at most 24 characters');
+    ok(Gm.command(G, { type: 'nameWagon', name: 'Old Faithful' }).ok && G.wagon === 'Old Faithful' && G.log.at(-1).s.includes('Old Faithful'), 'the wagon can be renamed');
+    ok(Gm.deserialize(JSON.parse(ser(G))).wagon === 'Old Faithful', 'the name is saved');
+    const unnamed = Gm.serialize(G); delete unnamed.wagon;
+    ok(Gm.deserialize(unnamed).wagon === D.DEFAULT_WAGON, 'an older save without a name gets the default');
+    ok(D.WAGON_NAMES.every((n) => D.cleanName(n) === n), 'every suggested name survives cleaning');
     // Rally, courses and turning back
     G = Gm.newGame(11);
     putOnRoad(G, 'hearthford', 'millbrook', 10);

@@ -65,6 +65,21 @@
         </div>
     </div>
 
+    <div id="naming" class="screen" hidden>
+        <div class="sheet">
+            <h2 id="naming-title">Name your wagon</h2>
+            <p class="dim" id="naming-blurb">Grandmother drove her for fifty years and never gave her a name. "Wagons don't need names," she always said. "But it helps when you're shouting at one."</p>
+            <form id="naming-form" autocomplete="off">
+                <label class="field" for="wagon-name">Her name</label>
+                <div class="name-row">
+                    <input id="wagon-name" type="text" maxlength="24" spellcheck="false" autocapitalize="words" enterkeyhint="go" aria-describedby="naming-blurb">
+                    <button type="button" id="naming-dice" class="btn" aria-label="Suggest a name">🎲</button>
+                </div>
+                <div class="sheet-foot"><button type="button" class="btn" data-close>Back</button><button type="submit" class="btn primary" id="naming-go">Set out</button></div>
+            </form>
+        </div>
+    </div>
+
     <div id="howto" class="screen" hidden>
         <div class="sheet">
             <h2>How to Play</h2>

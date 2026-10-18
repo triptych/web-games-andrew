@@ -17,7 +17,8 @@ export class Input {
         this.lastDevice = 'keys';
         window.addEventListener('keydown', (e) => {
             const tag = e.target?.tagName;
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+            // typing in a field is typing, except Escape, which still closes the sheet it's on
+            if ((tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') && e.code !== 'Escape') return;
             // Space and the arrows must not scroll the page, but Space must still press a focused button
             if (NO_SCROLL.includes(e.code) && !(e.code === 'Space' && tag === 'BUTTON')) e.preventDefault();
             this.lastDevice = 'keys';

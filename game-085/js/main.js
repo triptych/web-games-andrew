@@ -8,7 +8,7 @@ import { View } from './view/view.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
 import { UI } from './ui/ui.js';
-import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
+import { loadSettings, saveSettings, hasSave, savedName, saveGame, loadGame, clearSave } from './save.js';
 import { newGame, step, advance, command, checkIn, offlineCap, snapshot, chronicle } from './sim/game.js';
 import { makeBot, botCheckIn, botPlay } from './sim/bot.js';
 import { TOWN } from './sim/data.js';
@@ -59,7 +59,11 @@ G = demoGame();
 const demoBot = makeBot();
 
 // ------------------------------------------------------------------ menus
-function refreshTitle() { document.getElementById('btn-continue').hidden = !hasSave(); }
+function refreshTitle() {
+    const b = document.getElementById('btn-continue'), name = savedName();
+    b.hidden = !name;
+    b.textContent = name ? `Continue: ${name}` : 'Continue';
+}
 refreshTitle();
 ui.openScreen('title');
 
@@ -73,13 +77,14 @@ document.getElementById('title-menu').addEventListener('click', (e) => {
     const act = b.dataset.act;
     if (act === 'new') {
         if (hasSave() && !confirmNew()) return;
-        startGame(newGame((Date.now() % 1e9) | 0), 0);
+        ui.openNaming('new');
     } else if (act === 'continue') {
         const s = loadGame();
         if (s) startGame(s.G, s.savedAt ? (Date.now() - s.savedAt) / 1000 : 0);
         else ui.toast('That save could not be read.');
     } else ui.openScreen(act);
 });
+ui.onNamed = (name) => startGame(newGame((Date.now() % 1e9) | 0, { wagon: name }), 0);
 let newArmed = 0;
 function confirmNew() {
     // a second tap within 4 s, so one stray tap can't throw away a caravan
@@ -240,7 +245,7 @@ if (DEBUG) {
         get G() { return G; },
         get mode() { return mode; },
         seen, view, ui, audio, input,
-        start(seed = 1) { startGame(newGame(seed), 0); return G; },
+        start(seed = 1, wagon) { startGame(newGame(seed, { wagon }), 0); return G; },
         autoplay(on = true) { bot = on ? makeBot() : null; },
         /** Run the game ahead quietly with the bot checking in; then the view and UI carry on from there. */
         ff(sec) { botPlay(G, makeBot(), sec, advance, (g) => checkIn(g, today())); G.events.length = 0; ui.sig = null; },
