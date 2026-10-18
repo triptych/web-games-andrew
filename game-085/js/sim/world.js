@@ -47,7 +47,7 @@ export function isNight(G) { const f = dayFrac(G); return f >= NIGHT_FROM || f <
 
 /** Miles per tick, everything included. */
 export function speed(G) {
-    let s = TRAVEL.speed * (1 + 0.12 * G.up.wheels);
+    let s = TRAVEL.speed * (1 + 0.06 * G.up.wheels);
     const scout = cartLevel(G, 'scout');
     if (scout) s *= 1 + (4 + 2 * scout) / 100;
     if (G.rations <= 0) s *= TRAVEL.hungry;

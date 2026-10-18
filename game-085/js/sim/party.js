@@ -81,7 +81,7 @@ export function partyPower(G) {
 
 // ------------------------------------------------------------------ experience
 export function xpMult(G) {
-    let k = 1 + 0.04 * G.up.banner;
+    let k = 1 + 0.03 * G.up.banner;
     const cook = cartLevel(G, 'cook');
     if (cook && G.rations > 0) k *= 1 + (4 + cook) / 100;
     const bard = cartLevel(G, 'bard');
@@ -91,7 +91,7 @@ export function xpMult(G) {
 }
 
 export function goldMult(G) {
-    let k = 1 + 0.04 * G.up.banner;
+    let k = 1 + 0.03 * G.up.banner;
     const bard = cartLevel(G, 'bard');
     if (bard) k *= 1 + (3 + bard) / 100;
     return k * (1 + 0.5 * G.tier);
@@ -138,15 +138,15 @@ export function makeItem(G, rng, ilvl, { slot = null, luck = 0, minRarity = 0 } 
     const L = Math.max(1, ilvl);
     const stats = {};
     const r1 = (v) => Math.max(1, Math.round(v));
-    if (slot === 'weapon') stats.atk = r1(2 + 1.4 * L * mult);
-    else if (slot === 'armor') { stats.def = r1(1 + 0.7 * L * mult); stats.hp = r1(3.5 * L * mult); }
+    if (slot === 'weapon') stats.atk = r1(1 + 0.8 * L * mult);
+    else if (slot === 'armor') { stats.def = r1(1 + 0.4 * L * mult); stats.hp = r1(2 * L * mult); }
     else {
         const k = rng.pick(['hp', 'atk', 'def', 'spd']);
-        stats[k] = k === 'hp' ? r1(5 * L * mult) : k === 'atk' ? r1(0.8 * L * mult + 1) : k === 'def' ? r1(0.6 * L * mult + 1) : r1(0.12 * L * mult + 1);
+        stats[k] = k === 'hp' ? r1(3 * L * mult) : k === 'atk' ? r1(0.5 * L * mult + 1) : k === 'def' ? r1(0.35 * L * mult + 1) : r1(0.08 * L * mult + 1);
     }
     if (rarity >= 2 && rng.chance(0.5)) {
         const k = rng.pick(['hp', 'atk', 'def', 'spd'].filter((s) => !(s in stats)));
-        stats[k] = k === 'hp' ? r1(2 * L * mult) : k === 'spd' ? r1(0.06 * L * mult + 1) : r1(0.35 * L * mult + 1);
+        stats[k] = k === 'hp' ? r1(1.2 * L * mult) : k === 'spd' ? r1(0.04 * L * mult + 1) : r1(0.2 * L * mult + 1);
     }
     let material = GEAR_MATERIAL[0][1];
     for (const [lv, n] of GEAR_MATERIAL) if (L >= lv) material = n;
@@ -172,9 +172,13 @@ export function itemScore(it) {
 }
 
 /** Who gains most from wearing it, and how much. */
+/** Gear asks for a level: a traveller can wear what is at most two levels above them. */
+export const canWear = (m, it) => m.level >= it.ilvl - 2;
+
 export function bestWearer(G, it) {
     let best = null, gain = 0;
     for (const m of G.party) {
+        if (!canWear(m, it)) continue;
         const g = itemScore(it) - itemScore(m.gear[it.slot]);
         if (g > gain) { gain = g; best = m; }
     }
@@ -186,6 +190,7 @@ export function equip(G, itemId, memberId) {
     const m = G.party.find((x) => x.id === memberId);
     if (i < 0 || !m) return false;
     const it = G.pack[i];
+    if (!canWear(m, it)) return false;
     G.pack.splice(i, 1);
     const old = m.gear[it.slot];
     const frac = m.hp / maxHp(m);
@@ -240,6 +245,7 @@ export function sellJunk(G) {
     for (const it of [...G.pack]) {
         if (it.rarity > 1) continue;
         if (bestWearer(G, it).gain > 0.01) continue;
+        if (G.party.some((m) => !canWear(m, it) && itemScore(it) > itemScore(m.gear[it.slot]))) continue;
         total += sellItem(G, it.id);
     }
     return total;

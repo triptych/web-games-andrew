@@ -11,14 +11,14 @@ export function makeFoe(fam, level, { elite = false, warden = null } = {}) {
     const b = monsterBase(level);
     let hp = b.hp * (F ? F.hp : 1), atk = b.atk * (F ? F.atk : 1), def = b.def * (F ? F.def : 1);
     if (elite) { hp *= 1.7; atk *= 1.3; def *= 1.15; }
-    if (warden) { hp *= WARDEN_MULT.hp; atk *= WARDEN_MULT.atk; def *= WARDEN_MULT.def; }
+    if (warden) { hp *= WARDEN_MULT.hp[warden.region]; atk *= WARDEN_MULT.atk; def *= WARDEN_MULT.def; }
     return {
         fam: warden ? warden.id : fam,
         name: warden ? warden.name : (elite ? 'Elite ' : '') + F.name,
         shape: warden ? warden.shape : F.shape,
         col: warden ? warden.col : F.col,
         level, elite, warden: !!warden,
-        hp: Math.round(hp), atk, def, spd: warden ? 11 : F.spd,
+        hp: Math.round(hp), atk, def, spd: warden ? 11 : F.spd, acts: warden ? WARDEN_MULT.acts[warden.region] : 1,
     };
 }
 
@@ -26,7 +26,7 @@ export function makeFoe(fam, level, { elite = false, warden = null } = {}) {
 export function rollFoes(G, rng, region, level, partySize) {
     const R = REGIONS[region];
     const fams = R.monsters.map((id) => ({ id, weight: FAMILIES[id].rare || 1 }));
-    const n = clamp(1 + Math.floor(partySize / 2) + (rng.chance(0.4) ? 1 : 0), 1, 5);
+    const n = clamp(1 + Math.floor(partySize * 0.6) + (rng.chance(0.4) ? 1 : 0), 1, 6);
     const foes = [];
     const main = rng.weighted(fams).id;
     for (let i = 0; i < n; i++) {
@@ -37,11 +37,12 @@ export function rollFoes(G, rng, region, level, partySize) {
     return foes;
 }
 
-export function wardenFoes(G, region) {
+/** The Warden and two of its creatures. night: a rematch on the Night Roads, one tier darker. */
+export function wardenFoes(G, region, night = false) {
     const R = REGIONS[region];
-    const L = R.warden.level + 10 * G.tier;
+    const L = R.warden.level + 10 * (G.tier + (night ? 1 : 0));
     return [
-        makeFoe(null, L, { warden: R.warden }),
+        makeFoe(null, L, { warden: { ...R.warden, region } }),
         makeFoe(R.monsters[0], L - 3),
         makeFoe(R.monsters[1], L - 3),
     ];
@@ -67,13 +68,15 @@ export function resolveBattle(G, foes, rng) {
         const s = memberStats(m);
         units.push({ side: 'p', i, cls: m.cls, hp: m.hp, max: maxHp(m), atk: s.atk * atkK, def: s.def * defK, spd: s.spd, turns: 0, level: m.level });
     });
-    foes.forEach((f, i) => units.push({ side: 'f', i, hp: f.hp, max: f.hp, atk: f.atk, def: f.def, spd: f.spd, turns: 0, warden: f.warden }));
+    foes.forEach((f, i) => units.push({ side: 'f', i, hp: f.hp, max: f.hp, atk: f.atk, def: f.def, spd: f.spd, turns: 0, warden: f.warden, acts: f.acts || 1, level: f.level }));
     const order = [...units].sort((a, b) => b.spd - a.spd || (a.side === 'p' ? -1 : 1) || a.i - b.i);
     const alive = (side) => units.filter((u) => u.side === side && u.hp > 0);
     const hits = [];
     const dmgOf = (a, d, k = 1) => {
         const crit = a.cls === 'scout' && rng.chance(0.2);
-        const raw = (a.atk * a.atk) / (a.atk + d.def) * rng.range(0.85, 1.15) * k * (crit ? 1.8 : 1);
+        // being out-levelled hurts: 4% per level of difference, either way
+        const lv = clamp(1 + 0.04 * (a.level - d.level), 0.4, 1.6);
+        const raw = (a.atk * a.atk) / (a.atk + d.def) * rng.range(0.85, 1.15) * k * lv * (crit ? 1.8 : 1);
         return { dmg: Math.max(1, Math.round(raw)), crit };
     };
     const note = (h) => { if (hits.length < 40) hits.push(h); };
@@ -117,11 +120,15 @@ export function resolveBattle(G, foes, rng) {
                 t.hp -= dmg;
                 note({ a: 'p', ai: u.i, d: 'f', di: t.i, dmg, crit });
             } else {
-                const g = foesOf.filter((x) => x.cls === 'guard');
-                const t = g.length && rng.chance(0.5) ? g[0] : rng.pick(foesOf);
-                const { dmg } = dmgOf(u, t);
-                t.hp -= dmg;
-                note({ a: 'f', ai: u.i, d: 'p', di: t.i, dmg });
+                for (let k = 0; k < u.acts; k++) {
+                    const targets = alive('p');
+                    if (!targets.length) break;
+                    const g = targets.filter((x) => x.cls === 'guard');
+                    const t = g.length && rng.chance(0.5) ? g[0] : rng.pick(targets);
+                    const { dmg } = dmgOf(u, t);
+                    t.hp -= dmg;
+                    note({ a: 'f', ai: u.i, d: 'p', di: t.i, dmg });
+                }
             }
         }
     }

@@ -119,7 +119,7 @@ export const CLASSES = {
         name: 'Guard', icon: '🛡️', color: '#8aa0b8', cloth: '#45607a', hp: [88, 17], atk: [7, 1.6], def: [7, 1.8], spd: 8,
         cart: 'Armoury Cart', mat: 'hide',
         role: 'A sellsword. Monsters go for the guard first.',
-        text: (l) => `Party defence +${5 + 2 * l}%. A rout loses ${Math.max(20, 60 - 4 * l)}% less.`,
+        text: (l) => `Party defence +${5 + 2 * l}%. A rout loses ${Math.min(60, 20 + 4 * l)}% less.`,
     },
     cook: {
         name: 'Cook', icon: '🍲', color: '#e0a060', cloth: '#c8743a', hp: [56, 11], atk: [6, 1.4], def: [4, 1], spd: 9,
@@ -217,8 +217,9 @@ export const FAMILIES = {
 };
 
 // a monster's numbers at level L, before its family's multipliers
-export const monsterBase = (L) => ({ hp: 34 + 15 * L, atk: 6 + 2.4 * L, def: 2 + 1.05 * L });
-export const WARDEN_MULT = { hp: 7, atk: 1.45, def: 1.25 };
+export const monsterBase = (L) => ({ hp: 40 + 18 * L, atk: 7 + 3.2 * L, def: 2 + 1.3 * L });
+// Wardens act several times a round, and the later ones more often
+export const WARDEN_MULT = { hp: [6, 7, 8, 9, 10, 12], atk: 1.3, def: 1.25, acts: [2, 3, 3, 4, 4, 5] };
 
 // ------------------------------------------------------------------ gear
 export const SLOTS = ['weapon', 'armor', 'charm'];
@@ -233,11 +234,11 @@ export const GEAR_SUFFIX = ['of the Fox', 'of Embers', 'of the Long Road', 'of H
 
 // ------------------------------------------------------------------ the Wanderwain's own upgrades
 export const UPGRADES = {
-    wheels: { name: 'Iron-shod Wheels', icon: '🛞', max: 12, cost: (l) => Math.round(60 * Math.pow(1.62, l)), text: (l) => `Travel speed +${12 * l}%` },
-    hold: { name: 'Deeper Hold', icon: '📦', max: 12, cost: (l) => Math.round(50 * Math.pow(1.55, l)), text: (l) => `Hold ${20 + 10 * l} goods` },
-    lantern: { name: 'Great Lantern', icon: '🏮', max: 8, cost: (l) => Math.round(120 * Math.pow(1.8, l)), text: (l) => `Travels ${8 + 2 * l} h while you're away` },
-    larder: { name: 'Larder', icon: '🥫', max: 10, cost: (l) => Math.round(40 * Math.pow(1.5, l)), text: (l) => `Stores ${40 + 25 * l} rations` },
-    banner: { name: 'Caravan Banner', icon: '🚩', max: 10, cost: (l) => Math.round(160 * Math.pow(1.75, l)), text: (l) => `+${4 * l}% experience and gold` },
+    wheels: { name: 'Iron-shod Wheels', icon: '🛞', max: 20, cost: (l) => Math.round(60 * Math.pow(1.6, l)), text: (l) => `Travel speed +${6 * l}%` },
+    hold: { name: 'Deeper Hold', icon: '📦', max: 20, cost: (l) => Math.round(50 * Math.pow(1.5, l)), text: (l) => `Hold ${20 + 10 * l} goods` },
+    lantern: { name: 'Great Lantern', icon: '🏮', max: 8, cost: (l) => Math.round(150 * Math.pow(2, l)), text: (l) => `Travels ${8 + 2 * l} h while you're away` },
+    larder: { name: 'Larder', icon: '🥫', max: 12, cost: (l) => Math.round(40 * Math.pow(1.55, l)), text: (l) => `Stores ${40 + 25 * l} rations` },
+    banner: { name: 'Caravan Banner', icon: '🚩', max: 20, cost: (l) => Math.round(160 * Math.pow(1.6, l)), text: (l) => `+${3 * l}% experience and gold` },
 };
 export const cartUpCost = (cls, l) => {
     const mat = CLASSES[cls].mat;

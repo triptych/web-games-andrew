@@ -53,8 +53,8 @@ export const RARITY = [
     { id: 'legendary', name: 'Legendary', mult: 2.8, weight: 0.5, color: '#ffb340' },
 ];
 
-// Experience: polynomial, not exponential, so the late levels don't run away from the early ones.
-export const xpForLevel = (l) => Math.round(50 * Math.pow(l, 2.2));          // traveller: to go from l to l + 1
-export const caravanXpFor = (l) => Math.round(90 * Math.pow(l, 2.15));       // caravan: to go from l to l + 1
+// Experience: quick early levels, then a gentle exponential so the last regions take days, not hours.
+export const xpForLevel = (l) => Math.round(25 * l * l * Math.pow(1.06, l));      // traveller: to go from l to l + 1
+export const caravanXpFor = (l) => Math.round(40 * l * l * Math.pow(1.06, l));    // caravan: to go from l to l + 1
 export const monsterXp = (L) => Math.round(6 + 5 * Math.pow(L, 1.25));
 export const monsterGold = (L) => 2 + 1.6 * Math.pow(L, 1.15);
