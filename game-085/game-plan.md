@@ -26,6 +26,9 @@ The road is drawn like a 1980s racing game: a pseudo-3D road with curves and hil
 
 All rules live in `js/sim/` and run on whole-second ticks (one tick = one real second). Time away runs the same ticks quietly (`advance`), so being away for an hour is exactly the same as watching for an hour; `simtest.mjs` checks this.
 
+### Naming the wagon
+New Caravan opens a sheet to name the wagon (Grandmother never did): a text field holding a suggestion from twenty names ("The Bramble Rose", "Old Faithful", "Second Breakfast"…), a 🎲 for another, Enter or Set out to start. The name (trimmed, at most 24 characters, `cleanName` in `data.js`; empty gives "Grandmother's Wagon") is saved and shown on the Caravan tab, as the captain's cart, in the Scrapbook's title, in the opening journal line and on the title's Continue button. ✎ Rename on the Caravan tab changes it later, and the journal notes the new name.
+
 ### Travel
 - Speed `0.14 mi/s × (1 + 6% × Wheels) × Scout bonus × (0.6 if out of rations) × Rally 1.5 × storm 0.7 × shrine 1.25`.
 - Roads are 30–80 miles (map distance × 0.4). A fight comes every ~11 miles (×1.3 at night), a road event every ~26 miles, both drawn from an exponential so they never come on a schedule.
