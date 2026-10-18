@@ -25,6 +25,9 @@ export const TRAVEL = {
     campUntil: 0.92,
 };
 
+// Sparkles on the road, for someone who's watching: about one every 45 s of travel, 1.2–2 miles ahead.
+export const SPARKLE = { chance: 1 / 45, ahead: [1.2, 2.0], kinds: { gold: 35, item: 25, monster: 20, lore: 20 } };
+
 export const FOOD = {
     perMember: 1 / 120,                   // rations each traveller eats per tick on the road
     larder: 40, larderPerLevel: 25,

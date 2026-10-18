@@ -282,6 +282,41 @@ export const STORY = {
     ],
 };
 
+// ------------------------------------------------------------------ lore found in sparkles on the road
+// Five fragments per region, found one at a time; the Scrapbook keeps them.
+export const LORE = [
+    { region: 0, title: 'The Hedge-Witch\'s Gate', text: 'A stile carved with a hare. Locals say you bow to it, or the road loops you back to Hearthford by supper.' },
+    { region: 0, title: 'Millbrook\'s Wheel', text: 'A cog of black oak, worn smooth. The first Millbrook wheel turned for two hundred years and was only stopped by the fog.' },
+    { region: 0, title: 'The Thornback\'s Tusk', text: 'A tusk chip as long as your hand. Before the fog the Thornback rooted acorns for the orchards of Applewick, and was fed apples at harvest.' },
+    { region: 0, title: 'A Carter\'s Song', text: '"Wheel and spoke, wheel and spoke, light the lamp and mind the oak." Odessa sang it every evening, badly.' },
+    { region: 0, title: 'The First Waystone', text: 'A shard of dull grey stone. Thistlecross was where the old roads were first measured; every mile in the realm counts from its Waystone.' },
+    { region: 1, title: 'Glass from Sunspire', text: 'A bead of sea-green glass. Sunspire\'s needle was blown in one breath by forty glassmakers, in turns, over a single night.' },
+    { region: 1, title: 'The Sphinx\'s Last Riddle', text: '"What walks on four wheels at dawn, on two legs at noon, and on none at night?" Nobody ever answered it. She stopped asking after the fog.' },
+    { region: 1, title: 'Salt Money', text: 'A salt cake stamped with a camel. In the Wastes, wages were once paid in salt, which is why a lazy hand is "not worth their salt."' },
+    { region: 1, title: 'Kesh Water', text: 'A tiny clay vial, still cold. The spring at Kesh is said to be the same water as the brook at Millbrook, gone the long way underground.' },
+    { region: 1, title: 'A Raider\'s Map', text: 'A scrap of hide with three crosses on it. Two are wells. The third has been scratched out so hard the hide is torn.' },
+    { region: 2, title: 'A Ferry Token', text: 'A wooden token stamped with a lantern. The Drowned Witch ran the Hollowroot ferry for sixty years and never once charged a child.' },
+    { region: 2, title: 'Lanternmoss', text: 'A sprig that glows when you breathe on it. Fen folk put it in jars on their porches so the dead know the way home.' },
+    { region: 2, title: 'The Sunken Bell', text: 'You hear it before you see the sparkle: a bell under the water, ringing once. Mirewood was a valley town before the river moved.' },
+    { region: 2, title: 'Bog Troll Manners', text: 'A carved spoon, enormous. Trolls were bridge-keepers once, and very particular about the toll being sung, not paid.' },
+    { region: 2, title: 'The Root Library', text: 'A page of pressed leaves with names under each. Hollowroot keeps a library inside its great tree, one leaf for every child born there.' },
+    { region: 3, title: 'Rimeclaw\'s Card', text: 'A playing card, frosted over: the Queen of Lanterns. Odessa won it from Rimeclaw, she says, with a hand of nothing at all.' },
+    { region: 3, title: 'Iron Bread', text: 'A hard black loaf that will not go stale. Ironvein miners bake it once a year and carry it until the next.' },
+    { region: 3, title: 'The Whitecrown Bells', text: 'A cold bronze clapper. When the wind is right, Whitecrown\'s bells can be heard in Coldharbor, three days\' walk away.' },
+    { region: 3, title: 'A Yeti\'s Mitten', text: 'A knitted mitten the size of a sack, beautifully made. Somebody up there knits, and nobody knows who.' },
+    { region: 3, title: 'The Frozen Harbour', text: 'A fishing float in a block of ice. Coldharbor\'s harbour has not thawed since the fog; the boats still wait in it, sails furled.' },
+    { region: 4, title: 'Obsidian Mirror', text: 'A palm-sized black mirror. In Emberreach you look into one before a journey; if you see your face, you will come home.' },
+    { region: 4, title: 'The Colossus\'s Name', text: 'A soot-black tablet: VERAN. The Colossus was built to carry the Pyre\'s fire to the far towns in winter, and was given a name for it.' },
+    { region: 4, title: 'Fire-Salt Prayer', text: 'A pinch of red salt in a twist of paper. Pilgrims throw it on the Everlasting Fire and make one wish each, never for themselves.' },
+    { region: 4, title: 'A Cultist\'s Doubt', text: 'A letter, unsent: "I do not think the Hollow King wants anything at all. I think he is only lonely." It is not signed.' },
+    { region: 4, title: 'Ash Gardens', text: 'A seed pod, warm. Ash is the richest soil there is; Cinderhold\'s gardens were the greenest in the realm, once.' },
+    { region: 5, title: 'The First Road', text: 'A cobble, worn to a curve. Every road in the realm was walked out from Starhaven by one woman with a lantern, a very long time ago.' },
+    { region: 5, title: 'Duskmeet\'s Clock', text: 'A clock hand stuck at the last minute of evening. Duskmeet stopped its clock so the day would never have to end without its travellers home.' },
+    { region: 5, title: 'Starsilk', text: 'A thread that is cold and bright. Starsilk is spun from the light that falls on Starhaven; it can only be woven at night.' },
+    { region: 5, title: 'A Knight\'s Promise', text: 'A dented gauntlet with a name scratched inside. The Hollow Knights were the King\'s honour guard. They still walk the roads he closed, still guarding.' },
+    { region: 5, title: 'The Hollow King\'s Lantern', text: 'An empty lantern, unlit. The King was the last lamplighter of Starhaven. When no one came to the city any more, he put the lights out himself.' },
+];
+
 // ------------------------------------------------------------------ helpers over the tables
 export const regionOf = (townId) => TOWN[townId].region;
 export const roadBetween = (a, b) => ROADS.find((r) => (r.a === a && r.b === b) || (r.a === b && r.b === a));

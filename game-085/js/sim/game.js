@@ -2,15 +2,15 @@
 // number of seconds (advance, for time spent away); the real-world day comes in through checkIn().
 // The view reads G and drains G.events; the UI, the tests and the bot change it only through command().
 
-import { cleanName, DEFAULT_WAGON, TOWN, TOWNS, REGIONS, STORY, CLASSES, TAVERN, MATS, GOODS, UPGRADES, roadBetween, cartUpCost, cartCap, cookTime, forgeTime, brewTime } from './data.js';
-import { TRAVEL, FOOD, REGEN, OFFLINE, PARTY, QUESTS, monsterXp, monsterGold, RARITY } from '../config.js';
-import { makeRng } from '../rng.js';
+import { LORE, cleanName, DEFAULT_WAGON, TOWN, TOWNS, REGIONS, STORY, CLASSES, TAVERN, MATS, GOODS, UPGRADES, roadBetween, cartUpCost, cartCap, cookTime, forgeTime, brewTime } from './data.js';
+import { SPARKLE, TRAVEL, FOOD, REGEN, OFFLINE, PARTY, QUESTS, monsterXp, monsterGold, RARITY } from '../config.js';
+import { makeRng, hash3 } from '../rng.js';
 import { emit, log, clamp, plural } from './core.js';
 import {
     makeMember, maxHp, partySlots, cartLevel, partyLevel, partyHealth, xpMult, goldMult, addXp, addCaravanXp,
     makeItem, gainItem, equip, unequip, sellItem, sellJunk, equipBest, upgradeCost,
 } from './party.js';
-import { rollFoes, wardenFoes, resolveBattle, predictOdds } from './battle.js';
+import { makeFoe, rollFoes, wardenFoes, resolveBattle, predictOdds } from './battle.js';
 import { autoTrade, logTrade, buy, sell, buyRations, larderCap, cargoUsed, cargoCap } from './economy.js';
 import { speed, planNext, roadLevel, isNight, miles, dijkstra, nextWarden, regionOpen } from './world.js';
 import { stockTown, autoAccept, accept, onArrive, onKill, newDay, claimPost } from './quests.js';
@@ -29,6 +29,7 @@ export function newGame(seed = 1, opts = {}) {
         acc: 0,
         wagon: cleanName(opts.wagon),
         level: 1, xp: 0,
+        sparkle: null,
         gold: 60, rations: 30, potions: 0,
         up: { wheels: 0, hold: 0, lantern: 0, larder: 0, banner: 0 },
         party: [],
@@ -122,6 +123,17 @@ export function tick(G) {
     const sp = speed(G);
     G.road.done += sp; G.odo += sp; G.stats.miles += sp;
     G.fightIn -= sp; G.eventIn -= sp;
+    // a sparkle on the road ahead: from a hash of the clock, not G.rng, so time away (where nobody can tap one)
+    // plays out exactly like watching; it fades once the caravan rolls past it
+    if (G.sparkle && G.odo >= G.sparkle.at) G.sparkle = null;
+    if (!G.sparkle && hash3(G.t, G.seed, 777) < SPARKLE.chance) {
+        const d = SPARKLE.ahead[0] + hash3(G.t, G.seed, 778) * (SPARKLE.ahead[1] - SPARKLE.ahead[0]);
+        if (G.road.done + d < G.road.miles - 0.3) {
+            G.sparkle = { id: G.t, at: G.odo + d, x: (hash3(G.t, G.seed, 779) - 0.5) * 1.3 };
+            G.stats.sparklesSeen = (G.stats.sparklesSeen || 0) + 1;
+            emit(G, { type: 'sparkle' });
+        }
+    }
     if (G.road.done >= G.road.miles) { arrive(G, G.road.to); return; }
     if (G.fightIn <= 0) {
         G.fightIn = drawMiles(G, TRAVEL.encounterMiles / (isNight(G) ? TRAVEL.nightEncounter : 1));
@@ -211,7 +223,7 @@ function depart(G) {
 
 function arrive(G, town) {
     const T = TOWN[town], from = G.road.from, leg = G.leg, roadMiles = G.road.miles;
-    G.at = town; G.road = null; G.camp = false; G.leg = null;
+    G.at = town; G.road = null; G.camp = false; G.leg = null; G.sparkle = null;
     G.towns[town].visits++;
     notePlace(G, town);
     noteLeg(G, from, town, roadMiles, leg);
@@ -267,12 +279,12 @@ function rewardsFor(G, foes, warden = false) {
     for (const f of foes) {
         const over = clamp(1 - 0.12 * (lvl - f.level - 2), 0.25, 1);
         xp += monsterXp(f.level) * (f.elite ? 2.5 : 1) * (f.warden ? 14 : 1) * over;
-        gold += monsterGold(f.level) * (f.elite ? 2 : 1) * (f.warden ? 25 : 1);
+        gold += monsterGold(f.level) * (f.elite ? 2 : 1) * (f.warden ? 25 : 1) * (f.shimmer ? 3 : 1);
     }
     return { xp: Math.round(xp * xpMult(G)), gold: Math.round(gold * goldMult(G) * G.rng.range(0.8, 1.2)) };
 }
 
-function applyBattle(G, foes, res, { warden = false } = {}) {
+function applyBattle(G, foes, res, { warden = false, shimmer = false } = {}) {
     G.party.forEach((m, i) => { m.hp = res.hp[i]; if (m.hp <= 0) { m.hp = 0; m.down = true; } });
     G.potions -= res.potions;
     G.stats.battles++;
@@ -298,10 +310,10 @@ function applyBattle(G, foes, res, { warden = false } = {}) {
         const counts = {};
         for (const f of foes) if (!f.warden) counts[f.fam] = (counts[f.fam] || 0) + 1;
         for (const fam in counts) onKill(G, fam, counts[fam]);
-        const gearChance = warden ? 1 : 0.1 + (foes.some((f) => f.elite) ? 0.5 : 0);
+        const gearChance = warden || shimmer ? 1 : 0.1 + (foes.some((f) => f.elite) ? 0.5 : 0);
         if (G.rng.chance(gearChance)) {
             const L = Math.max(...foes.map((f) => f.level));
-            const it = makeItem(G, G.rng, L, { luck: warden ? 1.2 : foes.some((f) => f.elite) ? 0.4 : 0.05 * (G.tier + regionHere(G)), minRarity: warden ? 3 : 0 });
+            const it = makeItem(G, G.rng, L, { luck: warden ? 1.2 : foes.some((f) => f.elite) ? 0.4 : 0.05 * (G.tier + regionHere(G)), minRarity: warden ? 3 : shimmer ? 2 : 0 });
             out.item = { name: it.name, rarity: it.rarity };
             gainItem(G, it, warden ? 'The Warden\'s hoard' : 'Loot');
         }
@@ -334,7 +346,7 @@ function applyBattle(G, foes, res, { warden = false } = {}) {
     G.busyKind = 'battle';
     emit(G, {
         type: 'battle', warden,
-        foes: foes.map((f) => ({ name: f.name, shape: f.shape, col: f.col, deco: f.deco, level: f.level, elite: f.elite, warden: f.warden, hp: f.hp })),
+        foes: foes.map((f) => ({ name: f.name, shape: f.shape, col: f.col, deco: f.deco, shimmer: !!f.shimmer, level: f.level, elite: f.elite, warden: f.warden, hp: f.hp })),
         hits: res.hits, rounds: res.rounds, won: res.won, lost: res.lost, gold: out.gold, xp: out.xp, drops: out.drops, item: out.item,
         dur: G.busy,
     });
@@ -419,6 +431,60 @@ function roadEvent(G) {
         log(G, 'event', `Caught in ${STORMS[region]}. The caravan slows.`);
         emit(G, { type: 'event', kind, region });
     }
+}
+
+// ------------------------------------------------------------------ sparkles
+/**
+ * What a grabbed sparkle holds: gold, a piece of gear, a Shimmering monster to fight, or a fragment of lore.
+ * kind forces one (for the tests); otherwise it is rolled. Returns the command result.
+ */
+export function grabSparkle(G, kind = null) {
+    const rng = G.rng;
+    const L = Math.max(1, Math.round(partyLevel(G))) + 10 * G.tier;
+    const region = TOWN[G.at || G.road?.to || 'hearthford'].region;
+    const lore = LORE.map((l, i) => ({ ...l, i })).filter((l) => !G.book.lore.includes(l.i) && regionOpen(G, l.region));
+    const canFight = !G.at && G.road && !G.busy && G.party.some((m) => !m.down);
+    if (!kind) kind = rng.weighted(Object.entries(SPARKLE.kinds).map(([k, weight]) => ({ k, weight: (k === 'monster' && !canFight) || (k === 'lore' && !lore.length) ? 0 : weight }))).k;
+    if (kind === 'monster' && !canFight) kind = 'gold';
+    if (kind === 'lore' && !lore.length) kind = 'gold';
+    G.stats.sparkles = (G.stats.sparkles || 0) + 1;
+    if (kind === 'gold') {
+        const gold = Math.round((20 + 9 * Math.pow(L, 1.15)) * goldMult(G) * rng.range(1, 2));
+        G.gold += gold; G.stats.goldEarned += gold;
+        log(G, 'event', `A sparkle on the road: a pouch someone dropped, with ${gold}g in it.`);
+        emit(G, { type: 'sparkleGot', kind, gold });
+        return ok(`✨ ${gold} gold!`, { kind, gold });
+    }
+    if (kind === 'item') {
+        const it = makeItem(G, rng, L + 1, { luck: 0.5, minRarity: 1 });
+        gainItem(G, it, 'A sparkle on the road');
+        log(G, 'loot', `A sparkle on the road: a ${RARITY[it.rarity].name} ${it.name}.`, it.rarity >= 2);
+        emit(G, { type: 'sparkleGot', kind, name: it.name, rarity: it.rarity });
+        return ok(`✨ ${RARITY[it.rarity].name}: ${it.name}`, { kind, item: it.name, rarity: it.rarity });
+    }
+    if (kind === 'monster') {
+        const fams = REGIONS[region].monsters.filter((f) => !FAMILIES[f].rare);
+        const fam = rng.pick(fams);
+        const foe = makeFoe(fam, (G.road ? roadLevel(G) : L) + 10 * G.tier + 1, { elite: true });
+        foe.name = 'Shimmering ' + FAMILIES[fam].name;
+        foe.shimmer = true;
+        const foes = [foe];
+        if (G.party.length >= 3) foes.push(makeFoe(fam, foe.level - 1));
+        log(G, 'fight', `The sparkle was a ${foe.name}, and it wasn't pleased to be grabbed!`, true);
+        const res = resolveBattle(G, foes, rng);
+        applyBattle(G, foes, res, { shimmer: true });
+        if (res.won) log(G, 'win', `Beat the ${foe.name}: three times the gold, and its hoard.`, true);
+        emit(G, { type: 'sparkleGot', kind, name: foe.name, won: res.won });
+        return ok(`✨ A ${foe.name}!`, { kind, won: res.won });
+    }
+    const pick = rng.pick(lore.filter((l) => l.region === region).length ? lore.filter((l) => l.region === region) : lore);
+    G.book.lore.push(pick.i);
+    const xp = Math.round(monsterXp(L) * 3 * xpMult(G));
+    addCaravanXp(G, xp);
+    for (const m of G.party) addXp(G, m, xp);
+    log(G, 'story', `A sparkle on the road: ${pick.title}. (+${xp} xp)`, true);
+    emit(G, { type: 'sparkleGot', kind: 'lore', lore: pick.i });
+    return ok(`✨ Lore: ${pick.title}`, { kind: 'lore', lore: pick.i });
 }
 
 // ------------------------------------------------------------------ the Warden
@@ -586,6 +652,12 @@ export function command(G, c) {
         case 'challenge': return challenge(G);
         case 'claimPost': { const r = claimPost(G); return r ? ok(`Morning post: ${r.gold}g and a ${r.item.name}.`, r) : no('Already opened today.'); }
         case 'read': noteLetter(G, G.letters.shift()); return ok();
+        case 'sparkle': {
+            const s = G.sparkle;
+            if (!s || (c.id !== undefined && c.id !== s.id)) return no('It faded away.');
+            G.sparkle = null;
+            return grabSparkle(G);
+        }
         case 'bookSeen': G.book.seen = c.n | 0; return ok();
         case 'nameWagon': {
             const name = cleanName(c.name);
@@ -640,6 +712,8 @@ export function deserialize(d) {
     G.rng.setState(rngState);
     ensureBook(G);
     if (!G.wagon) G.wagon = DEFAULT_WAGON;
+    if (!G.book.lore) G.book.lore = [];
+    if (G.sparkle === undefined) G.sparkle = null;
     return G;
 }
 
