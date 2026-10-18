@@ -11,6 +11,7 @@ import { speed } from '../sim/world.js';
 import { hash3 } from '../rng.js';
 import { drawProp, drawHouse, drawCart, drawOx, drawWalker, drawCampfire, mix, shade } from './sprites.js';
 import { drawCreature, creatureHeight } from './creatures.js';
+import { scatter, sizeOf, drawScenery, Birds } from './scenery.js';
 
 const SEG = 200;              // world units per road segment
 const MILE = 2000;            // world units per mile of road
@@ -56,6 +57,7 @@ export class View {
         this.biomeFrom = 'meadow';
         this.biomeK = 1;
         this.shakeT = 0;
+        this.birds = new Birds();
         this.resize();
         const onResize = () => this.resize();
         window.addEventListener('resize', onResize);
@@ -211,22 +213,40 @@ export class View {
         this.drawSky(ctx, R, horizon, pal, G, time, day);
         ctx.fillStyle = mix(pal.grass[0], pal.fog, 0.7);
         ctx.fillRect(R.x, horizon, R.w, R.y + R.h - horizon);
+        this.birds.update(dt, this.biome, night);
+        this.birds.draw(ctx, R, horizon, time);
 
         // the world, far to near: road quad, then whatever stands on that segment
         const items = [];
         const farZ = L.camZ + DRAW * SEG;
         const nearZ = L.camZ + NEAR;
-        // props
+        // the countryside: verge, middle ground and far band, from the segment's own hash (see scenery.js).
+        // Where the road crosses into a new region, the scenery changes at the road's midpoint, ahead of you.
+        let split = null;
+        if (G.road) {
+            const a = BIOME_OF[TOWN[G.road.from].region], b = BIOME_OF[TOWN[G.road.to].region];
+            if (a !== b) split = { z: L.caravanZ + (G.road.miles / 2 - G.road.done) * MILE, a, b };
+        }
+        const here = this.biome;
+        const townZ0 = this.town ? this.town.z - 400 : Infinity, townZ1 = this.town ? this.town.z + 16 * 650 : -Infinity;
+        const fogAt = (z) => Math.pow(Math.min(1, Math.max(0, (z - L.camZ) / (DRAW * SEG))), 1.6) * 0.75;
         for (let n = DRAW - 1; n >= 1; n--) {
-            const kk = base + n;
-            const h = hash3(kk, 5, 3);
-            if (h < B.density) {
-                const side = hash3(kk, 6, 3) < 0.5 ? -1 : 1;
-                const dist = ROADW + 350 + hash3(kk, 7, 3) * 2600;
-                const kind = B.props[Math.floor(hash3(kk, 8, 3) * B.props.length)];
-                // keep the verge clear where a fight is staged
-                if (ck > 0.05 && side > 0 && dist < FIGHT_X + 1800 && kk * SEG > L.camZ && kk * SEG < L.frontZ + 4000) continue;
-                items.push({ z: kk * SEG, draw: () => { const p = P(side * dist, 0, kk * SEG); drawProp(ctx, kind, p.X, p.Y, p.s, (hash3(kk, 9, 3) * 9) | 0, night); } });
+            const kk = base + n, zSeg = kk * SEG;
+            const biome = split ? (zSeg < split.z ? split.a : split.b) : here;
+            for (const it of scatter(biome, kk)) {
+                if (it.band === 0 && n > 70) continue;                            // grass far off is too small to see
+                const z = zSeg + it.dz, half = sizeOf(it.kind) / 2;
+                // keep the verge clear where a fight is staged, and the houses' frontage clear in town
+                if (ck > 0.05 && it.side > 0 && it.dist - half < FIGHT_X + 1800 && z > L.camZ && z < L.frontZ + 4000) continue;
+                if (it.band > 0 && z > townZ0 && z < townZ1 && it.dist - half < ROADW + 2600) continue;
+                const fog = it.band > 0 ? fogAt(z) : 0;
+                items.push({ z, draw: () => {
+                    const p = P(it.side * it.dist, 0, z);
+                    if (p.s * sizeOf(it.kind) < 1.5) return;
+                    if (fog > 0.05) ctx.globalAlpha = 1 - fog;
+                    drawScenery(ctx, it.kind, p.X, p.Y, p.s, it.v, night, time);
+                    ctx.globalAlpha = 1;
+                } });
             }
         }
         // the town
