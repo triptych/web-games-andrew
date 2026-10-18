@@ -51,6 +51,11 @@ b { font-weight: 800; }
 .btn.primary { background: var(--accent); color: #2a1a05; border-color: transparent; }
 .btn.danger { border-color: var(--bad); color: #ffc0b8; }
 .btn:disabled { opacity: 0.4; cursor: default; }
+/* Buttons that spend or trade are green when they can be pressed, flat grey when they can't */
+.btn.buy { background: #3f9a4a; border-color: #2f7a38; color: #fff; font-weight: 800; box-shadow: 0 2px 0 #24602c; }
+.btn.buy:hover { background: #4aae56; }
+.btn.buy:active { transform: translateY(1px); box-shadow: 0 1px 0 #24602c; }
+.btn.buy:disabled { background: #3a342c; border-color: rgba(255, 236, 200, 0.1); color: #8a7e6a; box-shadow: none; opacity: 1; transform: none; }
 .btn:focus-visible, .ibtn:focus-visible, .tab:focus-visible, .chipbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .ibtn { font-size: 18px; background: rgba(20, 14, 8, 0.7); }
 

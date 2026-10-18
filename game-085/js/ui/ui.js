@@ -5,7 +5,7 @@ import { VERSION, caravanXpFor, RARITY } from '../config.js';
 import { TOWN, CLASSES, SLOT_NAME, REGIONS } from '../sim/data.js';
 import { speed } from '../sim/world.js';
 import { canWear, itemScore, maxHp } from '../sim/party.js';
-import { larderCap } from '../sim/economy.js';
+import { larderCap, buyPrice, cargoUsed, cargoCap, rationPrice } from '../sim/economy.js';
 import { PANELS, LIVE, journalHtml, itemStats } from './panels.js';
 import { MapView } from '../view/map.js';
 import { drawPortrait } from '../view/portraits.js';
@@ -239,6 +239,7 @@ export class UI {
                 t: [...panel.querySelectorAll('[data-t]')],
                 w: [...panel.querySelectorAll('[data-w]')],
                 gold: [...panel.querySelectorAll('[data-gold]')],
+                trade: [...panel.querySelectorAll('[data-buy], [data-sell], [data-rations]')],
                 html: [...panel.querySelectorAll('[data-html]')],
             };
             if (this.tab === 'map') {
@@ -267,6 +268,13 @@ export class UI {
                 if (ok && el.dataset.need) { const need = JSON.parse(el.dataset.need); for (const k in need) if (G.mats[k] < need[k]) ok = false; }
                 const capped = el.textContent.startsWith('Caravan level') || el.textContent.startsWith('No room');
                 el.disabled = !ok || capped;
+            }
+            // market buttons: live, because prices, the purse and the hold all change while you look
+            for (const el of this.liveEls.trade) {
+                const d = el.dataset;
+                el.disabled = !G.at || (d.buy ? G.gold < buyPrice(G, G.at, d.buy) || cargoUsed(G) >= cargoCap(G)
+                    : d.sell ? !(G.cargo[d.sell]?.n > 0)
+                        : G.rations >= larderCap(G) || G.gold < rationPrice(G, G.at));
             }
             for (const el of this.liveEls.html) if (el.dataset.html === 'journal' && G.log.length + G.log[G.log.length - 1]?.t !== this.journalLen) {
                 this.journalLen = G.log.length + G.log[G.log.length - 1]?.t;
