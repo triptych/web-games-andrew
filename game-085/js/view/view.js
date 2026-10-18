@@ -16,8 +16,10 @@ const SEG = 200;              // world units per road segment
 const MILE = 2000;            // world units per mile of road
 const DRAW = 150;             // segments drawn ahead
 const ROADW = 1100;           // half the road's width
-const CAMH = 950;             // camera height over the road
-const CAMBACK = 2300;         // camera distance behind the last cart
+const CAMH = 1700;            // camera height over the road
+const CAMBACK = 3300;         // camera distance behind the last cart
+const CAMX = 380;             // and a little to the right, so the train shows its side
+const FIGHT_X = 1750;         // fights happen on the verge to the right of the train
 const NEAR = 120;
 const CART = { w: 460, h: 640, len: 620, gap: 300 };
 
@@ -149,6 +151,7 @@ export class View {
         const night = day < 0.4;
         const col = (a, bb) => mix(mix(a, bb, k), NIGHT_TINT, (1 - day) * 0.72);
         const pal = {
+            fog: col(P0.sky[1], P1.sky[1]),
             skyTop: col(P0.sky[0], P1.sky[0]), skyBot: col(P0.sky[1], P1.sky[1]),
             grass: [col(P0.grass[0], P1.grass[0]), col(P0.grass[1], P1.grass[1])],
             road: col(P0.road, P1.road), rumble: [col(P0.rumble[0], P1.rumble[0]), col(P0.rumble[1], P1.rumble[1])],
@@ -161,6 +164,11 @@ export class View {
         if (this.shakeT > 0) { this.shakeT -= dt; ctx.translate((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 4); }
 
         const L = this.layout(G);
+        // the camera dollies up the train to watch a fight, and drifts back after
+        this.camK = (this.camK || 0) + ((this.fight ? 1 : 0) - (this.camK || 0)) * Math.min(1, dt * 2.5);
+        const ck = this.camK * this.camK * (3 - 2 * this.camK);
+        L.camZ += ck * (L.frontZ - 3900 - L.camZ);
+        const camH = CAMH - ck * 420, camX = CAMX + ck * (FIGHT_X - CAMX);
         this.updateTown(G, L);
         const f = Math.min(R.h * 1.3, R.w * 1.15);
         const cx = R.x + R.w / 2;
@@ -172,7 +180,7 @@ export class View {
         const curve = (kk) => noise1(kk / 37, 11) * B.curves + noise1(kk / 9, 12) * 0.4;
         const hill = (kk) => (noise1(kk / 53, 21) * 0.8 + noise1(kk / 17, 22) * 0.2) * B.hills;
         const hillAt = (z) => { const kk = z / SEG, i = Math.floor(kk); return hill(i) + (hill(i + 1) - hill(i)) * (kk - i); };
-        const camY = hillAt(L.camZ) + CAMH;
+        const camY = hillAt(L.camZ) + camH;
         const segs = [];
         let x = 0, dx = -curve(base) * frac;
         for (let n = 0; n <= DRAW; n++) {
@@ -190,10 +198,12 @@ export class View {
         const P = (wx, wy, wz) => {
             const z = Math.max(NEAR, wz - L.camZ);
             const s = f / z;
-            return { X: cx + (roadX(wz - L.camZ) + wx) * s, Y: horizon + (camY - (hillAt(wz) + wy)) * s, s };
+            return { X: cx + (roadX(wz - L.camZ) + wx - camX) * s, Y: horizon + (camY - (hillAt(wz) + wy)) * s, s };
         };
 
         this.drawSky(ctx, R, horizon, pal, G, time, day);
+        ctx.fillStyle = mix(pal.grass[0], pal.fog, 0.7);
+        ctx.fillRect(R.x, horizon, R.w, R.y + R.h - horizon);
 
         // the world, far to near: road quad, then whatever stands on that segment
         const items = [];
@@ -207,6 +217,8 @@ export class View {
                 const side = hash3(kk, 6, 3) < 0.5 ? -1 : 1;
                 const dist = ROADW + 350 + hash3(kk, 7, 3) * 2600;
                 const kind = B.props[Math.floor(hash3(kk, 8, 3) * B.props.length)];
+                // keep the verge clear where a fight is staged
+                if (ck > 0.05 && side > 0 && dist < FIGHT_X + 1800 && kk * SEG > L.camZ && kk * SEG < L.frontZ + 4000) continue;
                 items.push({ z: kk * SEG, draw: () => { const p = P(side * dist, 0, kk * SEG); drawProp(ctx, kind, p.X, p.Y, p.s, (hash3(kk, 9, 3) * 9) | 0, night); } });
             }
         }
@@ -235,12 +247,12 @@ export class View {
             items.push({ z: c.z, draw: () => drawCart(ctx, P, c, night, time) });
             if (c.m.down) return;
             const fp = fight && fight.party[i];
-            let wx = -(CART.w / 2 + 220), wz = c.z + CART.len * 0.45;
+            let wx = CART.w / 2 + 220, wz = c.z + CART.len * 0.45;
             let pose = 0;
             if (fight) {
                 // step out in front of the lead wagon to fight
                 const into = Math.min(1, fight.age / 0.5) * Math.min(1, Math.max(0, (fight.dur - fight.age) / 0.6));
-                const bx = (i - (L.carts.length - 1) / 2) * 260, bz = L.frontZ + 700 + (i % 2) * 200;
+                const bx = FIGHT_X + (i - (L.carts.length - 1) / 2) * 300, bz = L.frontZ - 500 + (i % 2) * 220;
                 wx += (bx - wx) * into; wz += (bz - wz) * into;
                 wz += fp.lunge * 260;
                 pose = fp.lunge > 0.1 ? 1 : 0;
@@ -266,9 +278,9 @@ export class View {
             this.stepFight(G, fight, dt);
             for (const fo of fight.foes) {
                 const arrive = Math.min(1, fight.age / 0.6);
-                const z = L.frontZ + 2300 + fo.dz + (1 - arrive) * 2500 - fo.lunge * 500;
-                const scale = fo.warden ? 2.1 : fo.elite ? 1.3 : 1;
-                items.push({ z, draw: () => { const p = P(fo.x, 0, z); drawCreature(ctx, fo, p.X, p.Y, p.s * scale, { t: time + fo.x, flash: fo.flash, dead: fo.dead }, night); fo.screen = { X: p.X, Y: p.Y - creatureHeight(fo) * p.s * scale, s: p.s }; } });
+                const z = L.frontZ + 1300 + fo.dz + (1 - arrive) * 2500 - fo.lunge * 500;
+                const scale = fo.warden ? 2.3 : fo.elite ? 1.55 : 1.25;
+                items.push({ z, draw: () => { const p = P(FIGHT_X + fo.x, 0, z); drawCreature(ctx, fo, p.X, p.Y, p.s * scale, { t: time + fo.x, flash: fo.flash, dead: fo.dead }, night); fo.screen = { X: p.X, Y: p.Y - creatureHeight(fo) * p.s * scale, s: p.s }; } });
             }
         }
 
@@ -279,9 +291,9 @@ export class View {
             const a = segs[n], c = segs[n + 1];
             const za = a.z, zb = c.z;
             if (zb <= NEAR) continue;
-            const pa = this.projRoad(cx, horizon, f, camY, a, Math.max(NEAR, za));
-            const pb = this.projRoad(cx, horizon, f, camY, c, zb);
-            if (pa.Y > pb.Y) this.drawSegment(ctx, R, pa, pb, a.k, pal);
+            const pa = this.projRoad(cx, horizon, f, camY, camX, a, Math.max(NEAR, za));
+            const pb = this.projRoad(cx, horizon, f, camY, camX, c, zb);
+            if (pa.Y > pb.Y) this.drawSegment(ctx, R, pa, pb, a.k, pal, Math.pow(n / DRAW, 1.6) * 0.75);
             const segFarZ = L.camZ + zb, segNearZ = L.camZ + za;
             while (ii < items.length && items[ii].z >= segNearZ) {
                 if (items[ii].z < farZ && items[ii].z > nearZ) items[ii].draw();
@@ -302,26 +314,29 @@ export class View {
         ctx.restore();
     }
 
-    projRoad(cx, horizon, f, camY, seg, z) {
+    projRoad(cx, horizon, f, camY, camX, seg, z) {
         const s = f / z;
-        return { X: cx + seg.x * s, Y: horizon + (camY - seg.y) * s, W: ROADW * s, s };
+        return { X: cx + (seg.x - camX) * s, Y: horizon + (camY - seg.y) * s, W: ROADW * s, s };
     }
 
-    drawSegment(ctx, R, a, b, kk, pal) {
+    /** One slice of road and verge; fog (0..1) fades it into the sky's haze with distance. */
+    drawSegment(ctx, R, a, b, kk, pal, fog) {
         const stripe = Math.floor(kk / 3) % 2;
+        const F = (c) => (fog > 0.02 ? mix(c, pal.fog, fog) : c);
         const quad = (x1, w1, x2, w2, fill) => {
             ctx.beginPath();
             ctx.moveTo(x1 - w1, a.Y); ctx.lineTo(x1 + w1, a.Y); ctx.lineTo(x2 + w2, b.Y); ctx.lineTo(x2 - w2, b.Y); ctx.closePath();
             ctx.fillStyle = fill; ctx.fill();
         };
-        ctx.fillStyle = pal.grass[stripe];
+        ctx.fillStyle = F(pal.grass[stripe]);
         ctx.fillRect(R.x, b.Y, R.w, a.Y - b.Y + 1);
-        quad(a.X, a.W * 1.12, b.X, b.W * 1.12, pal.rumble[stripe]);
-        quad(a.X, a.W, b.X, b.W, pal.road);
+        quad(a.X, a.W * 1.12, b.X, b.W * 1.12, F(pal.rumble[stripe]));
+        quad(a.X, a.W, b.X, b.W, F(pal.road));
         if (stripe) {
             // ruts: two worn tracks rather than painted lanes, it's a cart road
-            quad(a.X - a.W * 0.42, a.W * 0.05, b.X - b.W * 0.42, b.W * 0.05, shade(pal.road, -0.12));
-            quad(a.X + a.W * 0.42, a.W * 0.05, b.X + b.W * 0.42, b.W * 0.05, shade(pal.road, -0.12));
+            const rut = F(shade(pal.road, -0.12));
+            quad(a.X - a.W * 0.42, a.W * 0.05, b.X - b.W * 0.42, b.W * 0.05, rut);
+            quad(a.X + a.W * 0.42, a.W * 0.05, b.X + b.W * 0.42, b.W * 0.05, rut);
         }
     }
 
@@ -456,7 +471,7 @@ export class View {
         const L = this.layout(G);
         const c = L.carts[i];
         if (!c) return;
-        this.texts.push({ text, color, x: (i - (L.carts.length - 1) / 2) * 260, y: 700, z: L.frontZ + 700 + (i % 2) * 200, age: 0, life: 1, size: 0.9 });
+        this.texts.push({ text, color, x: FIGHT_X + (i - (L.carts.length - 1) / 2) * 300, y: 700, z: L.frontZ - 500 + (i % 2) * 220, age: 0, life: 1, size: 0.9 });
     }
 
     drawTexts(ctx, P, dt) {

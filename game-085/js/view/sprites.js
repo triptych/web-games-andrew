@@ -4,12 +4,12 @@
 
 const TAU = Math.PI * 2;
 
+/** Darken (k < 0) or lighten (k > 0) a #rrggbb colour. Returns #rrggbb, so results can be shaded again. */
 export function shade(hex, k) {
-    // k < 0 darkens, k > 0 lightens
     const n = parseInt(hex.slice(1), 16);
     let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
     if (k < 0) { r *= 1 + k; g *= 1 + k; b *= 1 + k; } else { r += (255 - r) * k; g += (255 - g) * k; b += (255 - b) * k; }
-    return `rgb(${r | 0},${g | 0},${b | 0})`;
+    return '#' + ((1 << 24) | ((r | 0) << 16) | ((g | 0) << 8) | (b | 0)).toString(16).slice(1);
 }
 export function mix(a, b, t) {
     const A = parseInt(a.slice(1), 16), B = parseInt(b.slice(1), 16);

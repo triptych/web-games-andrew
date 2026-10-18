@@ -309,7 +309,8 @@ function applyBattle(G, foes, res, { warden = false } = {}) {
             cargoLost = ` and ${n} ${GOODS.find((g) => g.id === big).name}`;
         }
         if (!warden) {
-            log(G, 'loss', `Routed by ${plural(foes.length, foes[0].name.toLowerCase(), foes[0].name.toLowerCase() + 's')}! Lost ${lost}g${cargoLost}. The caravan makes camp to lick its wounds.`, true);
+            const F = FAMILIES[foes[0].fam];
+            log(G, 'loss', `Routed by ${foes.length === 1 ? 'a ' + foes[0].name.toLowerCase() : `${foes.length} ${F ? F.plural : 'foes'}`}! Lost ${lost}g${cargoLost}. The caravan makes camp to lick its wounds.`, true);
             G.camp = true;
         }
     }

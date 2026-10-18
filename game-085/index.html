@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#16120e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Wanderwain — an idle caravan RPG. Drive your grandmother's wagon across a realm gone dark: trade from town to town, fight monsters on the road, take on travellers whose carts cook, forge, brew and heal, and light the six Waystones. Check in each day to see what the road brought you.">
+    <title>Wanderwain</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Nunito:wght@500;700;800&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="The caravan on the road"></canvas>
+
+    <!-- HUD over the scene -->
+    <div id="hud" hidden>
+        <div class="chip" id="hud-gold" title="Gold">💰 <b>0</b></div>
+        <div class="chip" id="hud-food" title="Rations">🍞 <b>0</b></div>
+        <div class="chip lvl" id="hud-level" title="Caravan level">Lv <b>1</b><i class="xpbar"><i></i></i></div>
+        <button id="btn-menu" class="ibtn" aria-label="Menu">☰</button>
+    </div>
+
+    <!-- The dock: status strip, a panel, and the tabs -->
+    <div id="dock" hidden>
+        <div id="status">
+            <div id="status-text">
+                <div id="status-where">Hearthford</div>
+                <div id="status-sub"></div>
+                <div class="bar" id="status-bar"><i></i></div>
+            </div>
+            <button id="btn-rally" class="btn rally" aria-label="Rally: hurry the oxen">Rally!</button>
+        </div>
+        <div id="panel" tabindex="-1"></div>
+        <nav id="tabs" role="tablist">
+            <button role="tab" data-tab="road" class="tab on"><span>🛤️</span>Road</button>
+            <button role="tab" data-tab="caravan" class="tab"><span>🐂</span>Caravan</button>
+            <button role="tab" data-tab="pack" class="tab"><span>🎒</span>Pack</button>
+            <button role="tab" data-tab="quests" class="tab"><span>📜</span>Quests<em class="badge" id="badge-quests" hidden></em></button>
+            <button role="tab" data-tab="map" class="tab"><span>🗺️</span>Map</button>
+            <button role="tab" data-tab="town" class="tab"><span>🏘️</span>Town<em class="badge" id="badge-town" hidden></em></button>
+        </nav>
+    </div>
+
+    <!-- Screens -->
+    <div id="title" class="screen">
+        <div class="sheet title-sheet">
+            <h1 class="logo">Wanderwain</h1>
+            <p class="tagline">an idle caravan RPG</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary" id="btn-new">New Caravan</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <p>Your grandmother's wagon, the <b>Wanderwain</b>, drives itself. It travels from town to town, trades, fights whatever comes down the road and takes on quests, <b>even while the game is closed</b>. Come back each day to see what happened.</p>
+            <ul class="howto">
+                <li><b>Travellers</b> join from taverns and the road. Each one fights and brings a cart: a Cook turns meat into rations, a Smith forges gear, an Alchemist brews potions, a Healer patches you up, a Trader gets better prices, a Scout finds caches, a Bard plays for coin.</li>
+                <li><b>Level the caravan</b> for room for more travellers and better carts. Upgrade the Wanderwain's wheels, hold, larder, banner and <b>Great Lantern</b>, which sets how long it keeps travelling while you're away.</li>
+                <li><b>Standing orders</b> on the Road tab: follow quests, chase trade, explore, or hold in town. Tap a town on the Map to set a course.</li>
+                <li><b>Wardens</b> guard the six dark Waystones. Check your odds in a capital's Town tab and challenge them to open the next region.</li>
+                <li>Open the <b>morning post</b> every day for a gift (more each day in a row) and three contracts.</li>
+            </ul>
+            <table>
+                <tr><td>Space / A</td><td>Rally: the oxen hurry for 20 s</td></tr>
+                <tr><td>1–6</td><td>Road, Caravan, Pack, Quests, Map, Town</td></tr>
+                <tr><td>Esc / P</td><td>Menu</td></tr>
+                <tr><td>↑ ↓ Enter</td><td>Move through menus</td></tr>
+            </table>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Battle animations
+                <select id="set-fights"><option value="all">Every fight</option><option value="big">Elites and Wardens</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete saved caravan</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="menu" class="screen" hidden>
+        <div class="sheet">
+            <h2>Menu</h2>
+            <p class="dim">The road doesn't wait: the caravan keeps travelling while this is open.</p>
+            <nav class="menu" id="menu-menu">
+                <button data-act="resume" class="btn primary">Back to the road</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="away" class="screen" hidden>
+        <div class="sheet">
+            <h2 id="away-title">While you were away</h2>
+            <div id="away-body"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close id="away-ok">Onward!</button></div>
+        </div>
+    </div>
+
+    <div id="letter" class="screen" hidden>
+        <div class="sheet letter">
+            <h2 id="letter-title"></h2>
+            <div id="letter-text"></div>
+            <div class="sheet-foot"><button class="btn primary" id="letter-ok">Fold the letter</button></div>
+        </div>
+    </div>
+
+    <div id="pick" class="screen" hidden>
+        <div class="sheet">
+            <h2 id="pick-title">Give it to…</h2>
+            <div id="pick-body"></div>
+            <div class="sheet-foot"><button class="btn" data-close>Cancel</button></div>
+        </div>
+    </div>
+
+    <div id="toasts" aria-live="polite"></div>
+    <noscript><p class="noscript">Wanderwain needs JavaScript.</p></noscript>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

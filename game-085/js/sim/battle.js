@@ -26,7 +26,7 @@ export function makeFoe(fam, level, { elite = false, warden = null } = {}) {
 export function rollFoes(G, rng, region, level, partySize) {
     const R = REGIONS[region];
     const fams = R.monsters.map((id) => ({ id, weight: FAMILIES[id].rare || 1 }));
-    const n = clamp(1 + Math.floor(partySize * 0.6) + (rng.chance(0.4) ? 1 : 0), 1, 6);
+    const n = clamp(1 + Math.floor((partySize - 1) * 0.6) + (rng.chance(0.35) ? 1 : 0), 1, 6);
     const foes = [];
     const main = rng.weighted(fams).id;
     for (let i = 0; i < n; i++) {
