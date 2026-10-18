@@ -17,6 +17,7 @@ export function makeFoe(fam, level, { elite = false, warden = null } = {}) {
         name: warden ? warden.name : (elite ? 'Elite ' : '') + F.name,
         shape: warden ? warden.shape : F.shape,
         col: warden ? warden.col : F.col,
+        deco: warden ? warden.deco : null,
         level, elite, warden: !!warden,
         hp: Math.round(hp), atk, def, spd: warden ? 11 : F.spd, acts: warden ? WARDEN_MULT.acts[warden.region] : 1,
     };

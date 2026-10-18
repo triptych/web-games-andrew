@@ -27,7 +27,7 @@ const isTouch = touch === 'touch';
 const page = await (await browser.newContext({ viewport: { width: +w, height: +h }, deviceScaleFactor: 1, hasTouch: isTouch, isMobile: isTouch })).newPage();
 await page.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log(`[${m.type()}]`, m.text()); });
-page.on('pageerror', (e) => console.log('[pageerror]', e.message));
+page.on('pageerror', (e) => console.log('[pageerror]', process.env.STACK ? e.stack : e.message));
 await page.goto(`${BASE}/game-085/index.html?debug=1${process.env.Q || ''}`);
 await page.waitForFunction(() => window.__ww, null, { timeout: 60000 });
 if (code) {

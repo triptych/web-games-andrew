@@ -149,7 +149,7 @@ table.market .btn { min-width: 44px; padding: 4px 6px; font-size: 13px; }
 .dear { color: #ffb070; }
 .mapwrap { position: relative; }
 #map { display: block; width: 100%; border-radius: 12px; background: #2a2318; touch-action: manipulation; }
-.letter { background: #efe2c4; color: #3a2a18; font-family: Georgia, 'Times New Roman', serif; }
+.sheet.letter { background: #efe2c4; color: #3a2a18; font-family: Georgia, 'Times New Roman', serif; }
 .letter h2 { font-family: 'Cinzel', Georgia, serif; }
 #letter-text { white-space: pre-wrap; line-height: 1.5; font-size: 15px; }
 .letter .btn.primary { background: #7a4a20; color: #fff; }

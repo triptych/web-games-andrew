@@ -319,7 +319,7 @@ function applyBattle(G, foes, res, { warden = false } = {}) {
     G.busyKind = 'battle';
     emit(G, {
         type: 'battle', warden,
-        foes: foes.map((f) => ({ name: f.name, shape: f.shape, col: f.col, level: f.level, elite: f.elite, warden: f.warden, hp: f.hp })),
+        foes: foes.map((f) => ({ name: f.name, shape: f.shape, col: f.col, deco: f.deco, level: f.level, elite: f.elite, warden: f.warden, hp: f.hp })),
         hits: res.hits, rounds: res.rounds, won: res.won, lost: res.lost, gold: out.gold, xp: out.xp, drops: out.drops, item: out.item,
         dur: G.busy,
     });

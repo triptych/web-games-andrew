@@ -46,7 +46,14 @@ export function drawCreature(ctx, f, x, y, s, anim, night) {
             for (const k of [-1, 1]) { ctx.beginPath(); ctx.moveTo(x + k * 60 * s, y - 420 * s + bob); ctx.lineTo(x + k * 120 * s, y - 540 * s + bob); ctx.lineTo(x + k * 120 * s, y - 400 * s + bob); ctx.fill(); }
             el(ctx, x, y - 260 * s + bob, 60 * s, 40 * s, dark);
             eyes(ctx, x, y - 360 * s + bob, 55 * s, 20 * s, eye);
-            if (f.warden) { ctx.strokeStyle = '#f0e6c8'; ctx.lineWidth = 22 * s; ctx.beginPath(); ctx.moveTo(x - 60 * s, y - 240 * s); ctx.quadraticCurveTo(x - 180 * s, y - 240 * s, x - 190 * s, y - 360 * s); ctx.moveTo(x + 60 * s, y - 240 * s); ctx.quadraticCurveTo(x + 180 * s, y - 240 * s, x + 190 * s, y - 360 * s); ctx.stroke(); }
+            if (f.deco === 'wings') {
+                ctx.fillStyle = shade(eye, dim);
+                for (const k of [-1, 1]) { ctx.beginPath(); ctx.moveTo(x + k * 120 * s, y - 400 * s + bob); ctx.lineTo(x + k * 420 * s, y - 640 * s + bob); ctx.lineTo(x + k * 360 * s, y - 420 * s + bob); ctx.lineTo(x + k * 200 * s, y - 330 * s + bob); ctx.closePath(); ctx.fill(); }
+                el(ctx, x, y - 300 * s + bob, 240 * s, 170 * s, body);
+                el(ctx, x, y - 330 * s + bob, 150 * s, 130 * s, shade(b0, dim + 0.1));
+                eyes(ctx, x, y - 360 * s + bob, 55 * s, 20 * s, eye);
+            }
+            if (f.deco === 'tusks') { ctx.strokeStyle = '#f0e6c8'; ctx.lineWidth = 22 * s; ctx.beginPath(); ctx.moveTo(x - 60 * s, y - 240 * s); ctx.quadraticCurveTo(x - 180 * s, y - 240 * s, x - 190 * s, y - 360 * s); ctx.moveTo(x + 60 * s, y - 240 * s); ctx.quadraticCurveTo(x + 180 * s, y - 240 * s, x + 190 * s, y - 360 * s); ctx.stroke(); }
             break;
         }
         case 'biped': case 'king': {

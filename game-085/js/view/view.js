@@ -18,8 +18,9 @@ const DRAW = 150;             // segments drawn ahead
 const ROADW = 1100;           // half the road's width
 const CAMH = 1700;            // camera height over the road
 const CAMBACK = 3300;         // camera distance behind the last cart
-const CAMX = 380;             // and a little to the right, so the train shows its side
+const CAMX = 260;             // and a little to the right, so the train shows its side
 const FIGHT_X = 1750;         // fights happen on the verge to the right of the train
+const GATE_BACK = 2600;       // the town gate stops just behind the camera, so the train stands among the houses
 const NEAR = 120;
 const CART = { w: 460, h: 640, len: 620, gap: 300 };
 
@@ -226,7 +227,7 @@ export class View {
         if (this.town) {
             const T = TOWN[this.town.id];
             const tp = { walls: BIOMES[BIOME_OF[T.region]].walls, roofs: BIOMES[BIOME_OF[T.region]].roofs };
-            for (let i = 0; i < 14; i++) {
+            for (let i = 0; i < 16; i++) {
                 const z = this.town.z + 300 + i * 650;
                 for (const side of [-1, 1]) {
                     const v = (hash3(i, side + 5, T.x) * 64) | 0;
@@ -234,7 +235,7 @@ export class View {
                 }
             }
             const gz = this.town.z;
-            items.push({ z: gz, draw: () => this.drawGate(ctx, P, gz, T, night) });
+            if (gz - L.camZ > 1600) items.push({ z: gz, draw: () => this.drawGate(ctx, P, gz, T, night) });
             if (T.capital) {
                 const lit = G.lit[T.region];
                 items.push({ z: gz + 5200, draw: () => { const p = P(ROADW + 1400, 0, gz + 5200); drawProp(ctx, 'waystone', p.X, p.Y, p.s * 1.6, lit ? 1 : 0, night); } });
@@ -321,7 +322,7 @@ export class View {
 
     /** One slice of road and verge; fog (0..1) fades it into the sky's haze with distance. */
     drawSegment(ctx, R, a, b, kk, pal, fog) {
-        const stripe = Math.floor(kk / 3) % 2;
+        const stripe = ((Math.floor(kk / 3) % 2) + 2) % 2;      // kk is negative behind mile 0
         const F = (c) => (fog > 0.02 ? mix(c, pal.fog, fog) : c);
         const quad = (x1, w1, x2, w2, fill) => {
             ctx.beginPath();
@@ -412,11 +413,11 @@ export class View {
 
     updateTown(G, L) {
         if (G.at) {
-            if (!this.town || this.town.id !== G.at) this.town = { id: G.at, z: L.frontZ - 900 };
+            if (!this.town || this.town.id !== G.at) this.town = { id: G.at, z: L.caravanZ - GATE_BACK };
         } else if (G.road) {
             const left = G.road.miles - G.road.done;
             if (left * MILE < DRAW * SEG) {
-                const z = L.frontZ - 900 + left * MILE;
+                const z = L.caravanZ - GATE_BACK + left * MILE;
                 if (!this.town || this.town.id !== G.road.to) this.town = { id: G.road.to, z };
                 else this.town.z = z;
             } else if (this.town && this.town.id !== G.road.from) this.town = null;

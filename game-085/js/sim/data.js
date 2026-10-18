@@ -7,12 +7,12 @@ export const REGIONS = [
     {
         id: 0, name: 'Meadowmere', biome: 'meadow', lv: [1, 7], color: '#79b85a',
         monsters: ['wolf', 'goblin', 'bandit', 'boar', 'bramble'],
-        warden: { id: 'thornback', name: 'The Thornback', title: 'boar-king of the hedgerows', town: 'thistlecross', level: 8, shape: 'beast', col: ['#6b4a2e', '#3c2a1a', '#e0d0a0'] },
+        warden: { id: 'thornback', name: 'The Thornback', title: 'boar-king of the hedgerows', town: 'thistlecross', level: 8, shape: 'beast', deco: 'tusks', col: ['#6b4a2e', '#3c2a1a', '#e0d0a0'] },
     },
     {
         id: 1, name: 'The Amber Wastes', biome: 'desert', lv: [7, 14], color: '#d9a45a',
         monsters: ['scorpion', 'raider', 'wraith', 'jackal', 'wyrm'],
-        warden: { id: 'sphinx', name: 'The Glass Sphinx', title: 'who asks no riddles any more', town: 'sunspire', level: 15, shape: 'beast', col: ['#bfe6ff', '#6aa6c8', '#fff4c0'] },
+        warden: { id: 'sphinx', name: 'The Glass Sphinx', title: 'who asks no riddles any more', town: 'sunspire', level: 15, shape: 'beast', deco: 'wings', col: ['#bfe6ff', '#6aa6c8', '#fff4c0'] },
     },
     {
         id: 2, name: 'Mirewood', biome: 'mire', lv: [14, 21], color: '#4f9a86',
