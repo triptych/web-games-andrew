@@ -161,10 +161,21 @@ async function desktop() {
     await clickSel(page, '[data-act="course"][data-town="millbrook"]');
     await until(page, () => __wq.G.course === 'millbrook' || __wq.G.road?.to === 'millbrook', 'Set course heads for Millbrook even on Hold');
     await until(page, () => !!__wq.G.road, 'the caravan sets out', 30000);
+    // the distant mountains pan gently with the road's bends, by distance travelled (v1.0.1: they spun)
+    const pan0 = await Q(page, () => ({ s: __wq.view.bgShift || 0, o: __wq.G.odo }));
+    await page.waitForTimeout(3000);
+    const pan = await Q(page, (p) => ({ ds: Math.abs((__wq.view.bgShift || 0) - p.s), dm: __wq.G.odo - p.o }), pan0);
+    check(pan.dm > 0.05 && pan.ds / pan.dm < 0.25, `the mountains drift ${(pan.ds / Math.max(pan.dm, 1e-6)).toFixed(3)} screen widths per mile (under 0.25)`);
 
+    // Rally does nothing mid-fight, in camp or while a wheel is mended (the button greys out): like a player,
+    // wait until it's ready, and press again if a fight got there first
     await Q(page, () => document.activeElement?.blur());
-    await page.keyboard.press('Space');
-    await until(page, () => (__wq.seen.rally || 0) >= 1, 'Space rallies the oxen on the road');
+    for (let i = 0; i < 6 && !(await Q(page, () => (__wq.seen.rally || 0) >= 1)); i++) {
+        await page.waitForFunction(() => __wq.G.road && !__wq.G.camp && !__wq.G.busy && __wq.G.buffs.rallyCd <= __wq.G.t, null, { timeout: 60000, polling: 100 });
+        await page.keyboard.press('Space');
+        await page.waitForFunction(() => (__wq.seen.rally || 0) >= 1 || __wq.G.busy > 0 || __wq.G.camp, null, { timeout: 15000, polling: 100 }).catch(() => {});
+    }
+    check(await Q(page, () => (__wq.seen.rally || 0) >= 1), 'Space rallies the oxen on the road');
 
     // a fight on the road plays out in the view
     await Q(page, () => { __wq.G.fightIn = 0.001; });
@@ -278,8 +289,12 @@ async function phone(w, h) {
     check(small.length === 0, `every button on the Road tab is finger-sized${small.length ? ': ' + small.join(', ') : ''}`);
     await Q(page, () => __wq.cmd({ type: 'course', town: 'applewick' }));
     await until(page, () => !!__wq.G.road && !__wq.G.camp && !__wq.G.busy, 'the caravan takes the road', 40000);
-    await tap('#btn-rally');
-    await until(page, () => (__wq.seen.rally || 0) >= 1, 'tapping Rally hurries the oxen');
+    for (let i = 0; i < 6 && !(await Q(page, () => (__wq.seen.rally || 0) >= 1)); i++) {
+        await page.waitForFunction(() => __wq.G.road && !__wq.G.camp && !__wq.G.busy && __wq.G.buffs.rallyCd <= __wq.G.t, null, { timeout: 60000, polling: 100 });
+        await tap('#btn-rally');
+        await page.waitForFunction(() => (__wq.seen.rally || 0) >= 1 || __wq.G.busy > 0 || __wq.G.camp, null, { timeout: 15000, polling: 100 }).catch(() => {});
+    }
+    check(await Q(page, () => (__wq.seen.rally || 0) >= 1), 'tapping Rally hurries the oxen');
     await shot(page, `phone-${w}x${h}`);
     await tap('#btn-menu');
     await until(page, () => !document.getElementById('menu').hidden, 'tapping ☰ opens the menu');

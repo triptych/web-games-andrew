@@ -2,7 +2,7 @@
 
 **Genre:** Idle caravan RPG (mobile first)
 **Engine:** Vanilla JS: Canvas 2D (a pseudo-3D road) + DOM panels, no asset files
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -167,6 +167,9 @@ From the bot table (`SEEDS=3`, the median of three):
 - Push notifications would suit the genre, but a static page can't send them.
 
 ## Changelog
+
+### v1.0.1 (2026-10-18)
+- The distant mountains spun wildly as the caravan set out. Their sideways pan was speed × frame time × the road's curve in world units (hundreds of times too much), and it kept turning while the caravan stood still between frames. They now pan by the distance actually travelled this frame and the bend under it, in screen widths (at most about one width a minute on the sharpest bends); a jump in distance (time away, a new game) moves nothing. `browsertest.mjs` checks the drift per mile and waits for Rally to be ready before pressing it.
 
 ### v1.0.0 (2026-10-18)
 - First release: a self-driving caravan on a pseudo-3D road through six regions; trade with price pressure, auto-battles staged beside the wagons, nine traveller classes with working carts (cooking, forging, brewing, healing, trading, scouting, performing), gear, upgrades, quests, daily contracts and the morning post, six Wardens and Waystones, the Night Roads; time away with a chronicle; Grandmother Odessa's letters; a Scrapbook of every person, monster, item, town and road; procedural sound; simtest, browsertest and a gallery page.

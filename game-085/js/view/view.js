@@ -22,6 +22,7 @@ const CAMX = 260;             // and a little to the right, so the train shows i
 const FIGHT_X = 1750;         // fights happen on the verge to the right of the train
 const GATE_BACK = 2600;       // the town gate stops just behind the camera, so the train stands among the houses
 const NEAR = 120;
+const PAN = 0.003;             // how far the mountains slide per segment of curve, in screen widths
 const CART = { w: 460, h: 640, len: 620, gap: 300 };
 
 const BIOMES = {
@@ -189,7 +190,12 @@ export class View {
             segs.push({ k: kk, x, y: hill(kk), z: kk * SEG - L.camZ });
             x += dx; dx += curve(kk);
         }
-        this.bgShift = (this.bgShift || 0) + (L.moving ? curve(base) * dt * 0.02 * speed(G) * MILE : 0);
+        // The mountains pan as the road bends under the caravan: by the distance actually travelled this frame
+        // (not speed × time, which kept turning while the caravan stood still), in screen widths per segment.
+        // A jump (time away, a new game) moves nothing.
+        const dOdo = this.lastOdo === undefined ? 0 : L.odo - this.lastOdo;
+        this.lastOdo = L.odo;
+        if (dOdo > 0 && dOdo < 2) this.bgShift = (this.bgShift || 0) + curve(base) * ((dOdo * MILE) / SEG) * PAN;
         // project a world point; x is across the road relative to its centre line
         const roadX = (z) => {
             const kk = (z + L.camZ) / SEG - base, i = Math.max(0, Math.min(DRAW - 1, Math.floor(kk))), t = kk - i;
@@ -383,7 +389,7 @@ export class View {
             ctx.moveTo(R.x, horizon + 2);
             for (let i = 0; i <= 48; i++) {
                 const sx = R.x + (i / 48) * R.w;
-                const u = (sx + shift * par * R.w) / (R.w * 0.18) + layer * 50;
+                const u = ((sx - R.x) / R.w + shift * par) / 0.18 + layer * 50;
                 const hgt = (0.55 + 0.45 * noise1(u, 40 + layer)) * (horizon - R.y) * amp;
                 ctx.lineTo(sx, horizon - hgt);
             }
