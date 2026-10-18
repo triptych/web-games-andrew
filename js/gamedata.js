@@ -1279,7 +1279,7 @@ const games = [
         description: "An idle caravan RPG for phones, in vanilla Canvas 2D with no asset files. Your grandmother's wagon carries the last lit lantern in a realm whose Waystones went dark, and it drives itself: from town to town along a pseudo-3D road that curves and climbs to the horizon, trading goods whose prices rise and fall with what you buy and sell, fighting wolves, sand raiders, bog trolls, yetis and hollow knights in auto-battles staged on the verge beside the wagons, resting at inns, camping by the road and taking quests from notice boards, all while the game is closed. Come back each day to a chronicle of what happened, open the morning post, and spend what the road earned. Take on travellers who bring carts of their own: a Cook turns meat into rations, a Smith forges gear, an Alchemist brews potions, a Healer patches the party up, a Trader haggles, a Scout finds caches and a Bard plays every town for coin. Level the caravan for room and better carts, upgrade the wagon's wheels, hold, larder, banner and the Great Lantern that keeps it travelling while you're away, set standing orders or a course on the map, and challenge the six Wardens to light the Waystones, from the Thornback at Thistlecross to the Hollow King at Starhaven. A scrapbook of taped polaroids keeps everyone you've met, every monster and Warden, every piece of gear, every town and every road driven. Letters from Grandmother Odessa, day and night, six regions with their own weather, a plucked travelling tune, and the endless Night Roads after the ending.",
         icon: '\uD83D\uDC02',
         folder: 'game-085',
-        version: '1.0.1',
+        version: '1.1.0',
         cssClass: 'wanderquest',
         genre: 'rpg',
         tags: [
