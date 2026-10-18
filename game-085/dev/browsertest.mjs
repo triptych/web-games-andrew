@@ -6,7 +6,8 @@
  *   by real clicks → set a course by clicking a town on the map → Space rallies on the road → a fight plays
  *   its animation → Esc opens the menu and the road keeps going under it → Save & Quit → Continue → a fresh
  *   page whose save is two hours old shows the "while you were away" chronicle with two hours on the road,
- *   and Space closes it from the keyboard → a new day's morning post is opened from the Quests tab.
+ *   and Space closes it from the keyboard → a new day's morning post is opened from the Quests tab → the
+ *   Scrapbook by key and click: people, every creature's portrait drawn, the travel log, re-reading a letter.
  *   No sideways scroll; the canvas fills the window; every id in the page is unique.
  * phones (touch only, real taps) at 390×844 and 844×390: taps through the title, the letter and every tab;
  *   tabs and the Rally button are at least 44 px and on screen; Rally by tap; nothing sits under the back
@@ -188,6 +189,31 @@ async function desktop() {
     await until(p2, () => !!document.querySelector('[data-act="claimPost"]'), 'the Quests tab offers the morning post');
     await clickSel(p2, '[data-act="claimPost"]');
     await until(p2, () => __ww.G.daily.claimed && !__ww.G.daily.contracts.some((q) => !q), 'a click opens it');
+    // the scrapbook
+    await until(p2, () => !document.getElementById('badge-book').hidden, 'new scrapbook entries put a badge on Book');
+    await p2.keyboard.press('Digit7');
+    await until(p2, () => document.querySelector('#tabs .tab.on')?.dataset.tab === 'book' && document.getElementById('panel').classList.contains('book'), 'the 7 key opens the Scrapbook');
+    await until(p2, () => document.getElementById('badge-book').hidden, 'and the badge goes');
+    check(await Q(p2, () => [...document.querySelectorAll('#panel .snap figcaption b')].map((e) => e.textContent).includes('Old Tam')), 'People has Old Tam in it');
+    for (const pg of ['monsters', 'items', 'places', 'log', 'letters']) {
+        await clickSel(p2, `[data-act="bookPage"][data-v="${pg}"]`);
+        await until(p2, (v) => document.querySelector('[data-act="bookPage"].on')?.dataset.v === v, `a click opens ${pg}`, 30000, pg);
+        if (pg === 'monsters') {
+            check(await Q(p2, () => {
+                const cs = [...document.querySelectorAll('#panel canvas[data-portrait]')];
+                // a drawn portrait has more than its backdrop: count the distinct colours on a coarse grid
+                const bad = cs.filter((c) => { const x = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; const set = new Set(); for (let i = 0; i < x.length; i += 4 * 7) set.add(x[i] + ',' + x[i + 1] + ',' + x[i + 2]); return set.size < 12; });
+                return cs.length >= 33 && bad.length === 0;
+            }), 'every creature has a portrait, met or not');
+            check(await Q(p2, () => document.getElementById('panel').textContent.includes('???') && Object.keys(__ww.G.book.monsters).length > 0), 'monsters met are named and the rest are ???');
+            await shot(p2, 'desktop-book');
+        }
+        if (pg === 'log') check(await Q(p2, () => document.querySelectorAll('#panel .log-ledger li:not(.day)').length === Math.min(60, __ww.G.book.legs.length) && __ww.G.book.legs.length > 0), 'the travel log lists the roads driven');
+    }
+    await clickSel(p2, '[data-act="reread"]');
+    await until(p2, () => !document.getElementById('letter').hidden, 'a filed letter opens again');
+    await clickSel(p2, '#letter-ok');
+    await until(p2, () => document.getElementById('letter').hidden && __ww.G.letters.length === 0 && __ww.G.book.letters.length >= 1, 're-reading it doesn\'t count as new post');
     const L2 = await layout(p2);
     check(L2.noHScroll && L2.canvas, 'still no sideways scroll, and the canvas fills the window');
     reportErrors('desktop, after time away');
@@ -216,10 +242,13 @@ async function phone(w, h) {
         return { s: el.dataset.tab || el.id, ok: r.width >= 44 && r.height >= 44 && r.left >= 0 && r.top >= 0 && r.right <= innerWidth + 0.5 && r.bottom <= innerHeight + 0.5 };
     }));
     for (const z of sizes) check(z.ok, `${z.s} is at least 44 px and on screen`);
+    await Q(page, () => { __ww.G.gold = 1234567; __ww.G.rations = 315; __ww.G.level = 27; });
+    await page.waitForTimeout(600);
+    check(await Q(page, () => { const b = document.getElementById('back-link').getBoundingClientRect(); return [...document.querySelectorAll('#hud .chip, #hud .ibtn')].every((c) => c.getBoundingClientRect().left >= b.right); }), 'the HUD stays clear of the back link with a big purse');
     const scene = await Q(page, () => __ww.ui.sceneRect());
     check(scene.w > 150 && scene.h > 150, `the scene keeps ${scene.w}×${scene.h} px beside the dock`);
 
-    for (const t of ['caravan', 'pack', 'quests', 'map', 'town', 'road']) {
+    for (const t of ['caravan', 'pack', 'quests', 'map', 'town', 'book', 'road']) {
         await tap(`#tabs [data-tab="${t}"]`);
         await until(page, (tt) => document.querySelector('#tabs .tab.on')?.dataset.tab === tt && document.getElementById('panel').children.length > 0, `a tap opens ${t}`, 30000, t);
     }

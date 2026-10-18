@@ -82,6 +82,16 @@ Iron-shod Wheels (+6% speed, 20 levels), Deeper Hold (+10 cargo, 20), **Great La
 ### Wardens
 One per region at its capital: the Thornback (8), the Glass Sphinx (15), the Drowned Witch (22), Rimeclaw (29), the Cinder Colossus (36), the Hollow King (44). A Warden has 6–12× a monster's health, acts 2–5 times a round and brings two of its region's monsters. The Town tab shows your odds (16 simulated fights on their own random streams; G is not touched). Win → the Waystone burns, the next region's roads open and Grandmother writes. After the ending, the Hollow King can be fought again on the **Night Roads**: each win adds a tier (+10 monster levels everywhere, +15% party attack per tier, +50% gold).
 
+### The Scrapbook
+A seventh tab keeps a record of everything (`js/sim/book.js`, written by the rules as things happen):
+- **People:** Grandmother Odessa, everyone who rode with the caravan, and every wanderer who asked to join, with what became of them (rides with you, parted ways, went their own way), when and where they were met.
+- **Monsters:** every family and Warden in the realm, region by region. Met ones have a portrait and how many were seen, defeated and how strong; the rest are dark silhouettes marked ???, so the page is a collection to fill.
+- **Things:** every piece of gear found, by name (best rarity, item level, how many, when and from where; the 500 most notable are kept), the goods ledger (bought, sold, profit) and materials gathered.
+- **Places:** every town by region, with first visit and visits; unvisited towns are ??? and dark-Waystone regions say so.
+- **Travel log:** totals, then every road driven (the last 1,000), grouped by day on the road, with miles, fights and gold; the journal below.
+- **Letters:** every letter of Grandmother's you've read, to read again.
+A badge says when there's something new. It looks like a scrapbook: lined paper, taped polaroids with drawn portraits (the same drawing code as the road, `js/view/portraits.js`) and handwritten captions in Caveat.
+
 ### Time away
 On Continue, or when the tab comes back after more than 30 s hidden, the sim runs `min(seconds away, Great Lantern hours)` quietly, then the **chronicle** sheet shows the difference and up to 30 highlights. A day away runs in ~0.1 s.
 
@@ -101,7 +111,7 @@ Grandmother Odessa drove the Wanderwain for fifty years. When the Hollow King's 
 | Action | Keyboard | Gamepad | Touch |
 |---|---|---|---|
 | Rally | Space / Z | X | Rally button, or tap the road |
-| Tabs | 1–6 | — | Tab bar |
+| Tabs | 1–7 | — | Tab bar |
 | Move through buttons | Arrows | D-pad | — |
 | Press | Enter / Space | A | Tap |
 | Menu / back | Esc / P | B / Start | ☰ |
@@ -113,7 +123,7 @@ Grandmother Odessa drove the Wanderwain for fifty years. When the Hollow King's 
 - **Fights** are staged on the verge to the right; the camera eases forward and out to frame them, roadside props and houses clear out of the way, the round's script plays back hit by hit with lunges, flashes and damage numbers, and the camera drifts back after.
 - **Monsters** (`js/view/creatures.js`): nine body shapes (beast, biped, brute, spirit, crawler, serpent, flyer, blob, golem) plus drake and king, coloured per family. `dev/gallery.html` shows them all.
 - **Sound** (`js/audio.js`): Web Audio, no files. Hits, heals, victory and rout jingles, coins, an arrival bell, level-ups, rare-loot chimes; a plucked travelling tune with a reverb tail whose scale changes by region and slows at night.
-- **UI:** a warm leather-and-parchment dock with six tabs (Road, Caravan, Pack, Quests, Map, Town); the map is parchment with region washes, lit Waystones and quest markers. Cinzel for headings, Nunito for text, system fallbacks.
+- **UI:** a warm leather-and-parchment dock with seven tabs (Road, Caravan, Pack, Quests, Map, Town, Scrapbook); the map is parchment with region washes, lit Waystones and quest markers. Cinzel for headings, Nunito for text, Caveat for the scrapbook's handwriting, system fallbacks.
 
 ## Module overview
 
@@ -128,13 +138,14 @@ Grandmother Odessa drove the Wanderwain for fifty years. When the Hollow King's 
 | `js/sim/world.js` | The road graph, speed, day and night, the planner |
 | `js/sim/quests.js` | Notice boards, taverns, quests, daily contracts, the morning post |
 | `js/sim/bot.js` | A player who checks in: claims the post, hires, upgrades, heads for Wardens |
-| `js/view/view.js`, `sprites.js`, `creatures.js`, `map.js` | The pseudo-3D road, carts and props, monsters, the realm map |
+| `js/sim/book.js` | The scrapbook's records: people, monsters, Wardens, gear, goods, materials, places, roads, letters |
+| `js/view/view.js`, `sprites.js`, `creatures.js`, `map.js`, `portraits.js` | The pseudo-3D road, carts and props, monsters, the realm map, the scrapbook's portraits |
 | `js/ui/ui.js`, `panels.js`, `fmt.js` | Screens, HUD, status strip, the six panels (rebuilt only when their structure changes), pickers, the chronicle |
 | `js/input.js`, `js/audio.js`, `js/save.js`, `js/rng.js`, `js/config.js` | Keys and gamepad, sound, guarded storage with the save time, seeded RNG, tuning |
 
 ## Testing
 
-See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, the road network and gates, every rule, determinism (including play = time away) and saves, and has the bot play the whole realm at two skills. `browsertest.mjs` drives the real game on desktop by mouse and keyboard (including a two-hours-old save), on touch-only phones in both orientations and with storage blocked. `dev/gallery.html` shows every monster, cart and prop.
+See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, the road network and gates, every rule, the scrapbook's records, determinism (including play = time away) and saves, and has the bot play the whole realm at two skills. `browsertest.mjs` drives the real game on desktop by mouse and keyboard (including a two-hours-old save), on touch-only phones in both orientations and with storage blocked. `dev/gallery.html` shows every monster, cart and prop.
 
 ## Balance notes
 
@@ -155,4 +166,4 @@ From the bot table (`SEEDS=3`, the median of three):
 ## Changelog
 
 ### v1.0.0 (2026-10-18)
-- First release: a self-driving caravan on a pseudo-3D road through six regions; trade with price pressure, auto-battles staged beside the wagons, nine traveller classes with working carts (cooking, forging, brewing, healing, trading, scouting, performing), gear, upgrades, quests, daily contracts and the morning post, six Wardens and Waystones, the Night Roads; time away with a chronicle; Grandmother Odessa's letters; procedural sound; simtest, browsertest and a gallery page.
+- First release: a self-driving caravan on a pseudo-3D road through six regions; trade with price pressure, auto-battles staged beside the wagons, nine traveller classes with working carts (cooking, forging, brewing, healing, trading, scouting, performing), gear, upgrades, quests, daily contracts and the morning post, six Wardens and Waystones, the Night Roads; time away with a chronicle; Grandmother Odessa's letters; a Scrapbook of every person, monster, item, town and road; procedural sound; simtest, browsertest and a gallery page.

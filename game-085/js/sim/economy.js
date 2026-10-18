@@ -6,6 +6,7 @@ import { DAY, FOOD } from '../config.js';
 import { hash3 } from '../rng.js';
 import { cartLevel } from './party.js';
 import { clamp, log, emit } from './core.js';
+import { noteGood } from './book.js';
 
 const TOWN_IX = Object.fromEntries(TOWNS.map((t, i) => [t.id, i]));
 const GOOD_IX = Object.fromEntries(GOODS.map((g, i) => [g.id, i]));
@@ -71,6 +72,7 @@ export function buy(G, good, n = 1) {
         push(G, town, good, -1);
         got++;
         G.stats.goldSpent += p;
+        noteGood(G, good, { bought: 1, spent: p });
     }
     return got;
 }
@@ -89,6 +91,7 @@ export function sell(G, good, n = 1) {
         c.cost -= avg; c.n--;
         push(G, town, good, 1);
         sold++;
+        noteGood(G, good, { sold: 1, earned: p });
     }
     if (c.n <= 0) delete G.cargo[good];
     G.stats.goldEarned += take;

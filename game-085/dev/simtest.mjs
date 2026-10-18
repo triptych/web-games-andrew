@@ -2,7 +2,7 @@
  * simtest.mjs — headless checks of Wanderwain's simulation. No browser.
  *
  *   node game-085/dev/simtest.mjs            # everything
- *   ONLY=purity,rules node game-085/dev/simtest.mjs
+ *   ONLY=purity,book node game-085/dev/simtest.mjs
  *   SEEDS=6 VERBOSE=1 node game-085/dev/simtest.mjs
  *
  * 1. purity: js/sim, js/rng.js and js/config.js never touch the DOM, a canvas, storage, Math.random or the
@@ -12,6 +12,8 @@
  * 3. rules: travel, rations and hunger, camping and recovery, the inn, trade and price pressure, quests of
  *    every kind, the three crafting carts, gear and its level limit, upgrades, hiring, wanderers, the morning
  *    post and its streak, Rally, courses and turning back, Wardens and the Night Roads.
+ * 3b. book: the scrapbook keeps every person, monster, item, good, material, town, road and letter, and stays
+ *    bounded; older saves get one.
  * 4. determinism: same seed, same game; time away (advance) is exactly the same as playing it out; a save
  *    round trip plays on identically; an unknown save version is rejected.
  * 5. bot: the bot plays the whole realm on SEEDS seeds at two skills with invariants checked every game
@@ -297,6 +299,66 @@ if (want('rules')) {
     G.lit = [true, true, true, true, true, true]; G.ended = true; G.at = 'starhaven';
     ok(Gm.wardenHere(G) === 5, 'after the ending the Hollow King can be fought again');
     ok(Bt.wardenFoes(G, 5, true)[0].level === 54, 'one Night darker');
+}
+
+// ======================================================================
+if (want('book')) {
+    section('scrapbook');
+    const Bk = await import('../js/sim/book.js');
+    let G = Gm.newGame(21);
+    ok(Object.values(G.book.people).map((p) => p.name).join(',') === 'You,Old Tam', 'the scrapbook starts with you and Old Tam');
+    ok(G.book.places.hearthford, 'and Hearthford');
+    // every person the caravan meets is kept, with what became of them
+    G.level = 3; G.gold = 10000;
+    const hire = G.tavern[0].m;
+    Gm.command(G, { type: 'hire', idx: 0 });
+    ok(G.book.people[hire.id]?.status === 'riding', 'a hired traveller is kept as riding with you');
+    Gm.command(G, { type: 'dismiss', id: hire.id });
+    ok(G.book.people[hire.id].status === 'parted', 'and as parted when they leave');
+    putOnRoad(G, 'hearthford', 'millbrook');
+    let guard = 0;
+    while (!G.offers.length && guard++ < 200) { G.eventIn = 0.0001; G.fightIn = 1e9; Gm.tick(G); }
+    const w = G.offers[0]?.m;
+    ok(w && G.book.people[w.id]?.status === 'asked', 'a wanderer who asks to join is kept');
+    Gm.command(G, { type: 'declineOffer', id: w.id });
+    ok(G.book.people[w.id].status === 'passed', 'and still kept when sent on their way');
+    // monsters: seen and defeated
+    G = Gm.newGame(22);
+    putOnRoad(G, 'hearthford', 'millbrook');
+    noFights(G);
+    G.fightIn = 0.0001;
+    Gm.tick(G);
+    const fams = Object.keys(G.book.monsters);
+    ok(fams.length >= 1 && fams.every((f) => D.REGIONS[0].monsters.includes(f)), 'a fight puts its monsters in the scrapbook');
+    const rec = G.book.monsters[fams[0]];
+    ok(rec.seen >= 1 && rec.kills <= rec.seen && rec.top >= 1, 'with how many were seen, defeated and how strong');
+    // a long run: everything recorded is real and consistent
+    G = Gm.newGame(23);
+    Bot.botPlay(G, Bot.makeBot(), 12 * 3600, Gm.advance, Gm.checkIn);
+    const b = G.book;
+    const kills = Object.values(b.monsters).reduce((a, m) => a + m.kills, 0);
+    ok(kills === G.stats.kills - Object.values(b.wardens).reduce((a, w) => a + w.wins * 3, 0), `defeated counts add up to the kills (${kills})`);
+    ok(Object.keys(b.places).every((t) => G.towns[t].visits > 0) && Object.keys(G.towns).filter((t) => G.towns[t].visits > 0).every((t) => b.places[t]), 'every visited town is in the scrapbook and nothing else');
+    ok(b.legs.length === Math.min(1000, G.stats.arrivals), `one road per arrival (${b.legs.length})`);
+    ok(b.legs.every((l, i) => i === 0 || D.roadBetween(l.from, l.to)) && b.legs.every((l) => l.mi > 0), 'every road in the travel log is a real road');
+    for (let i = 1; i < b.legs.length; i++) if (b.legs[i].from !== b.legs[i - 1].to) { ok(false, 'the travel log is continuous'); break; }
+    ok(Object.values(b.items).reduce((a, x) => a + x.n, 0) <= G.stats.items && Object.keys(b.items).length > 0, 'gear found is kept by name');
+    const goodsBought = Object.values(b.goods).reduce((a, x) => a + x.bought, 0);
+    ok(goodsBought > 0, `goods bought are kept (${goodsBought})`);
+    ok(Object.values(b.mats).reduce((a, n) => a + n, 0) > 0, 'materials gathered are kept');
+    ok(G.party.every((m) => b.people[m.id]?.status === 'riding'), 'everyone in the caravan is in the scrapbook as riding');
+    ok(b.letters.length >= 1, 'read letters are filed');
+    // bounded
+    const many = Gm.newGame(24);
+    for (let i = 0; i < 1200; i++) Bk.noteLeg(many, 'hearthford', 'millbrook', 50, null);
+    for (let i = 0; i < 700; i++) Bk.noteItem(many, { name: 'Thing ' + i, slot: 'charm', rarity: i === 3 ? 4 : 0, ilvl: 1 }, 'test');
+    ok(many.book.legs.length === 1000 && Object.keys(many.book.items).length === 500, 'the travel log and the gear list are bounded');
+    ok(many.book.items['Thing 3'], 'and the rare pieces are the ones kept');
+    // saves from before the scrapbook get one
+    const old = Gm.serialize(G); delete old.book;
+    const back = Gm.deserialize(old);
+    ok(back.book && G.party.every((m) => back.book.people[m.id]) && Object.keys(back.book.places).length > 0, 'an older save gets a scrapbook built from what it knows');
+    ok(ser(Gm.deserialize(JSON.parse(ser(G)))) === ser(G), 'the scrapbook survives a save round trip');
 }
 
 // ======================================================================

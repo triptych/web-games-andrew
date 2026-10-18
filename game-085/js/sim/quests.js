@@ -7,6 +7,7 @@ import { regionOpen, dijkstra, maxRegion } from './world.js';
 import { partyLevel, addXp, addCaravanXp, makeMember, makeItem, gainItem, xpMult, goldMult } from './party.js';
 import { cargoCap } from './economy.js';
 import { log, emit, plural } from './core.js';
+import { gainMat } from './book.js';
 
 const COURIER = ['Carry a sealed letter to', 'Escort a pilgrim to', 'Deliver medicine to', 'Take a wedding cake to', 'Return a lost dog to', 'Bring the mail to'];
 
@@ -166,7 +167,7 @@ export function claimPost(G) {
     for (let i = 0; i < 3 + Math.min(d.streak, 5); i++) {
         const m = rng.pick(['hide', 'meat', 'ore', 'timber', 'herb', 'crystal']);
         mats[m] = (mats[m] || 0) + 1;
-        G.mats[m]++;
+        gainMat(G, m);
     }
     const it = makeItem(G, rng, Math.round(partyLevel(G)) + 10 * G.tier, { luck: 0.3 * k, minRarity: 1 });
     gainItem(G, it, 'Morning post');

@@ -14,6 +14,7 @@ import { rollFoes, wardenFoes, resolveBattle, predictOdds } from './battle.js';
 import { autoTrade, logTrade, buy, sell, buyRations, larderCap, cargoUsed, cargoCap } from './economy.js';
 import { speed, planNext, roadLevel, isNight, miles, dijkstra, nextWarden, regionOpen } from './world.js';
 import { stockTown, autoAccept, accept, onArrive, onKill, newDay, claimPost } from './quests.js';
+import { newBook, ensureBook, notePerson, noteFoes, noteWarden, gainMat, notePlace, noteLeg, noteLetter, noteGood } from './book.js';
 
 export const SAVE_VERSION = 1;
 
@@ -44,6 +45,7 @@ export function newGame(seed = 1) {
         daily: { day: -1, streak: 0, claimed: true, contracts: [] },
         stats: { miles: 0, battles: 0, won: 0, lost: 0, kills: 0, goldEarned: 0, goldSpent: 0, profit: 0, trades: 0, arrivals: 0, quests: 0, items: 0, crafted: 0, cooked: 0, brewed: 0, chests: 0, levelUps: 0, events: 0, eaten: 0 },
         log: [], letters: [STORY.intro],
+        book: newBook(),
         seenRegion: [true, false, false, false, false, false],
         leg: null, fightIn: 0, eventIn: 0, foodAcc: 0, hungry: false, oddsCache: null, odo: 0,
         events: [],
@@ -56,7 +58,8 @@ export function newGame(seed = 1) {
         const it = makeItem(G, rng, 2, { slot });
         m.gear[slot] = it;
     }
-    for (const m of G.party) m.hp = maxHp(m);
+    for (const m of G.party) { m.hp = maxHp(m); notePerson(G, m, 'riding', 'hearthford', true); }
+    notePlace(G, 'hearthford');
     G.fightIn = drawMiles(G, TRAVEL.encounterMiles);
     G.eventIn = drawMiles(G, TRAVEL.eventMiles);
     G.towns.hearthford.visits = 1;
@@ -91,7 +94,7 @@ export function tick(G) {
     regen(G);
     eat(G);
     craft(G);
-    if (G.offers.length) G.offers = G.offers.filter((o) => o.until > G.t);
+    if (G.offers.length) G.offers = G.offers.filter((o) => o.until > G.t || (notePerson(G, o.m, 'passed'), false));
     if (G.busy > 0) { if (--G.busy === 0) G.busyKind = null; return; }
     if (G.at) {
         if (G.dwell > 0) G.dwell--;
@@ -205,9 +208,11 @@ function depart(G) {
 }
 
 function arrive(G, town) {
-    const T = TOWN[town], from = G.road.from, leg = G.leg;
+    const T = TOWN[town], from = G.road.from, leg = G.leg, roadMiles = G.road.miles;
     G.at = town; G.road = null; G.camp = false; G.leg = null;
     G.towns[town].visits++;
+    notePlace(G, town);
+    noteLeg(G, from, town, roadMiles, leg);
     G.stats.arrivals++;
     if (leg) {
         const fights = leg.fights ? `, ${plural(leg.won, 'fight')} won${leg.fights > leg.won ? ` of ${leg.fights}` : ''}${leg.gold ? ` (+${Math.round(leg.gold)}g)` : ''}` : ', a quiet road';
@@ -269,6 +274,7 @@ function applyBattle(G, foes, res, { warden = false } = {}) {
     G.party.forEach((m, i) => { m.hp = res.hp[i]; if (m.hp <= 0) { m.hp = 0; m.down = true; } });
     G.potions -= res.potions;
     G.stats.battles++;
+    if (!warden) noteFoes(G, foes, res.won, regionHere(G));
     if (G.leg) G.leg.fights++;
     const out = { won: res.won, lost: res.lost, gold: 0, xp: 0, drops: {}, item: null };
     if (res.won) {
@@ -284,7 +290,7 @@ function applyBattle(G, foes, res, { warden = false } = {}) {
             const drops = f.warden ? { crystal: 1, ore: 1, hide: 1 } : (FAMS[fam] || {});
             for (const mat in drops) {
                 const n = f.warden ? 3 : (G.rng.chance(drops[mat]) ? 1 : 0) + (f.elite ? 1 : 0);
-                if (n) { G.mats[mat] += n; out.drops[mat] = (out.drops[mat] || 0) + n; }
+                if (n) { gainMat(G, mat, n); out.drops[mat] = (out.drops[mat] || 0) + n; }
             }
         }
         const counts = {};
@@ -370,7 +376,7 @@ function roadEvent(G) {
         const mats = [];
         for (let i = rng.int(1, 3); i > 0; i--) {
             const m = rng.weighted([{ k: 'hide', weight: 3 }, { k: 'ore', weight: 3 }, { k: 'timber', weight: 3 }, { k: 'herb', weight: 3 }, { k: 'meat', weight: 2 }, { k: 'crystal', weight: 1 + region }]).k;
-            G.mats[m]++; mats.push(m);
+            gainMat(G, m); mats.push(m);
         }
         let s = `Found a hidden cache by the road: ${gold}g and ${mats.join(', ')}.`;
         if (rng.chance(0.2)) { const it = makeItem(G, rng, L, { luck: 0.3 }); s += ` And a ${it.name}.`; gainItem(G, it, 'A cache'); }
@@ -380,6 +386,7 @@ function roadEvent(G) {
         const cls = rng.pick(TAVERN[region]);
         const m = makeMember(G, cls, Math.max(1, G.level - rng.int(0, 1)), rng);
         G.offers.push({ m, until: G.t + PARTY.offerLife });
+        notePerson(G, m, 'asked');
         log(G, 'recruit', `Met ${m.name}, a ${CLASSES[cls].name.toLowerCase()} with a ${CLASSES[cls].cart}, who asks to ride with you.`, true);
         emit(G, { type: 'event', kind, name: m.name });
     } else if (kind === 'shrine') {
@@ -395,6 +402,7 @@ function roadEvent(G) {
             G.gold -= n * p; G.stats.goldSpent += n * p;
             const c = G.cargo[g.id] || (G.cargo[g.id] = { n: 0, cost: 0 });
             c.n += n; c.cost += n * p;
+            noteGood(G, g.id, { bought: n, spent: n * p });
             log(G, 'trade', `A pedlar sold you ${n} ${g.name} cheap, at ${p}g each.`);
         } else log(G, 'event', 'A pedlar waved from the verge. You had nothing to trade.');
         emit(G, { type: 'event', kind });
@@ -431,6 +439,7 @@ function challenge(G) {
     const res = resolveBattle(G, foes, G.rng);
     const W = REGIONS[r].warden;
     applyBattle(G, foes, res, { warden: true });
+    noteWarden(G, r, res.won);
     if (res.won) {
         if (!night) {
             G.lit[r] = true;
@@ -506,6 +515,7 @@ export function command(G, c) {
             if (G.gold < o.cost) return no('Not enough gold.');
             G.gold -= o.cost; G.stats.goldSpent += o.cost;
             G.party.push(o.m);
+            notePerson(G, o.m, 'riding');
             G.tavern.splice(c.idx, 1);
             log(G, 'recruit', `${o.m.name} the ${CLASSES[o.m.cls].name.toLowerCase()} joins, bringing a ${CLASSES[o.m.cls].cart}.`, true);
             emit(G, { type: 'recruit', id: o.m.id });
@@ -519,16 +529,23 @@ export function command(G, c) {
             G.offers.splice(i, 1);
             m.hp = maxHp(m);
             G.party.push(m);
+            notePerson(G, m, 'riding');
             log(G, 'recruit', `${m.name} the ${CLASSES[m.cls].name.toLowerCase()} joins, bringing a ${CLASSES[m.cls].cart}.`, true);
             emit(G, { type: 'recruit', id: m.id });
             return ok(`${m.name} joins the caravan!`);
         }
-        case 'declineOffer': G.offers = G.offers.filter((o) => o.m.id !== c.id); return ok();
+        case 'declineOffer': {
+            const o = G.offers.find((x) => x.m.id === c.id);
+            if (o) notePerson(G, o.m, 'passed');
+            G.offers = G.offers.filter((x) => x !== o);
+            return ok();
+        }
         case 'dismiss': {
             const m = G.party.find((x) => x.id === c.id);
             if (!m || m.cls === 'captain') return no('You can\'t dismiss yourself.');
             for (const s in m.gear) if (m.gear[s]) G.pack.push(m.gear[s]);
             G.party = G.party.filter((x) => x !== m);
+            notePerson(G, m, 'parted');
             log(G, 'recruit', `${m.name} and the ${CLASSES[m.cls].cart} part ways with the caravan.`);
             return ok(`${m.name} leaves the caravan.`);
         }
@@ -566,7 +583,8 @@ export function command(G, c) {
         case 'abandon': G.quests = G.quests.filter((q) => q.id !== c.id); return ok();
         case 'challenge': return challenge(G);
         case 'claimPost': { const r = claimPost(G); return r ? ok(`Morning post: ${r.gold}g and a ${r.item.name}.`, r) : no('Already opened today.'); }
-        case 'read': G.letters.shift(); return ok();
+        case 'read': noteLetter(G, G.letters.shift()); return ok();
+        case 'bookSeen': G.book.seen = c.n | 0; return ok();
         case 'rest': {
             if (G.at || !G.road) return no('You rest at inns in town.');
             G.camp = !G.camp;
@@ -610,6 +628,7 @@ export function deserialize(d) {
     const { rngState, ...rest } = d;
     const G = { ...JSON.parse(JSON.stringify(rest)), rng: makeRng(0), events: [], quiet: false };
     G.rng.setState(rngState);
+    ensureBook(G);
     return G;
 }
 

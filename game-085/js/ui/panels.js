@@ -2,8 +2,8 @@
 // html(G). The panel is rebuilt only when its sig changes, so a button never vanishes under a finger; the
 // numbers that tick every second are filled in place through data attributes (see LIVE below).
 
-import { CLASSES, UPGRADES, GOODS, GOOD, MATS, TOWN, REGIONS, SLOTS, SLOT_NAME, cartUpCost, cartCap, STORY } from '../sim/data.js';
-import { RARITY, QUESTS, xpForLevel, caravanXpFor } from '../config.js';
+import { CLASSES, UPGRADES, GOODS, GOOD, MATS, TOWN, TOWNS, REGIONS, FAMILIES, SLOTS, SLOT_NAME, cartUpCost, cartCap, STORY } from '../sim/data.js';
+import { RARITY, QUESTS, DAY, xpForLevel, caravanXpFor } from '../config.js';
 import { memberStats, maxHp, partySlots, partyHealth, partyPower, upgradeCost, itemScore, canWear, cartLevel } from '../sim/party.js';
 import { buyPrice, sellPrice, cargoCap, cargoUsed, larderCap, rationPrice } from '../sim/economy.js';
 import { dijkstra, speed, nextWarden, regionOpen, miles } from '../sim/world.js';
@@ -41,6 +41,7 @@ export const LIVE = {
     offer: (G, id) => { const o = G.offers.find((x) => x.m.id === +id); return o ? `waits ${fmtTime(o.until - G.t)}` : ''; },
     odds: (G) => (G.oddsCache ? `${Math.round(G.oddsCache.p * 100)}%` : '?'),
     ration: (G) => (G.at ? `${rationPrice(G, G.at)}g each` : ''),
+    kills: (G, fam) => fmtNum(G.book.monsters[fam]?.kills || 0),
 };
 
 function buffText(G) {
@@ -231,5 +232,86 @@ export const town = {
     },
 };
 
-export const PANELS = { road, caravan, pack, quests, map, town };
+// ------------------------------------------------------------------ Scrapbook
+const BOOK_PAGES = [['people', '🧑 People'], ['monsters', '🐺 Monsters'], ['items', '🎒 Things'], ['places', '🏘️ Places'], ['log', '🛤️ Travel log'], ['letters', '✉️ Letters']];
+const STATUS = { riding: 'rides with you', asked: 'asked to join', passed: 'went their own way', parted: 'parted ways' };
+const dayOf = (t) => Math.floor(t / DAY) + 1;
+const whereText = (w) => (w && w.includes('>') ? `on the road to ${TOWN[w.split('>')[1]].name}` : w && TOWN[w] ? `in ${TOWN[w].name}` : 'on the road');
+const snap = (inner, caption, sub = '', cls = '') => `<figure class="snap ${cls}"><div class="pic">${inner}</div><figcaption><b>${caption}</b>${sub ? `<span>${sub}</span>` : ''}</figcaption></figure>`;
+const portrait = (spec) => `<canvas class="portrait" data-portrait='${JSON.stringify(spec)}'></canvas>`;
+
+export const book = {
+    sig: (G, ui) => {
+        const b = G.book;
+        return [ui.bookPage, ui.legLimit, Object.values(b.people).map((p) => p.id + p.status + p.level).join(','), Object.keys(b.monsters).length, Object.keys(b.wardens).map((k) => k + (b.wardens[k].beaten ?? '')).join(','),
+            Object.keys(b.items).length, Object.keys(b.places).length, b.legs.length, b.letters.length, G.party.map((m) => m.level).join(',')].join('|');
+    },
+    html(G, ui) {
+        const b = G.book, page = ui.bookPage;
+        const nMon = Object.keys(FAMILIES).length + REGIONS.length, haveMon = Object.keys(b.monsters).length + Object.keys(b.wardens).length;
+        const p = [`<div class="book-head"><h2>The Wanderwain's Scrapbook</h2><p>Day ${dayOf(G.t)} on the road · ${Object.keys(b.people).length + 1} people · ${haveMon}/${nMon} creatures · ${Object.keys(b.items).length} kinds of gear · ${Object.keys(b.places).length}/${TOWNS.length} towns</p></div>`,
+            `<div class="chips book-tabs">${BOOK_PAGES.map(([k, l]) => `<button class="chipbtn${page === k ? ' on' : ''}" data-act="bookPage" data-v="${k}">${l}</button>`).join('')}</div>`];
+        if (page === 'people') {
+            const people = Object.values(b.people);
+            const order = { riding: 0, asked: 1, parted: 2, passed: 3 };
+            people.sort((a, c) => order[a.status] - order[c.status] || a.met - c.met);
+            p.push(`<div class="snaps">${snap(portrait({ kind: 'odessa' }), 'Grandmother Odessa', 'drove the Wanderwain for fifty years · writes from Hearthford')}${people.map((x) => {
+                const live = G.party.find((m) => m.id === x.id);
+                const lvl = live ? live.level : x.level;
+                return snap(portrait({ kind: 'person', key: x.cls, region: x.where && TOWN[x.where.split('>').pop()] ? TOWN[x.where.split('>').pop()].region : 0 }), esc(x.name),
+                    `${CLASSES[x.cls].name} ${lvl} · ${STATUS[x.status]}<br>met on day ${dayOf(x.met)}, ${whereText(x.where)}`, x.status === 'riding' ? 'pinned' : x.status === 'passed' ? 'faded' : '');
+            }).join('')}</div>`);
+        } else if (page === 'monsters') {
+            for (const R of REGIONS) {
+                const cards = R.monsters.map((fam) => {
+                    const r = b.monsters[fam], F = FAMILIES[fam];
+                    if (!r) return snap(portrait({ kind: 'monster', key: fam, region: R.id, unknown: true }), '???', `not yet met${F.rare ? ' · rare' : ''}`, 'faded');
+                    return snap(portrait({ kind: 'monster', key: fam, region: R.id }), F.name, `defeated <b data-t="kills:${fam}"></b> of ${r.seen}${r.elites ? ` · ${r.elites} elite` : ''}<br>first on day ${dayOf(r.first)} · up to level ${r.top}`);
+                });
+                const w = b.wardens[R.id], W = R.warden;
+                cards.push(w ? snap(portrait({ kind: 'warden', key: R.id, region: R.id }), W.name, `${W.title}<br>${w.beaten !== null ? `beaten on day ${dayOf(w.beaten)}` : 'not yet beaten'} · ${w.tries} ${w.tries === 1 ? 'try' : 'tries'}`, 'warden')
+                    : snap(portrait({ kind: 'warden', key: R.id, region: R.id, unknown: true }), '???', `the Warden of ${TOWN[W.town].name}`, 'faded warden'));
+                p.push(`<h3 class="book-h">${R.name}</h3><div class="snaps">${cards.join('')}</div>`);
+            }
+        } else if (page === 'items') {
+            const items = Object.values(b.items).sort((a, c) => c.rarity - a.rarity || c.ilvl - a.ilvl);
+            p.push(`<h3 class="book-h">Gear found <span>${items.length} kinds</span></h3>
+                <ul class="ledger">${items.map((it) => `<li><span class="rar${it.rarity}">${SLOT_ICON[it.slot]} ${esc(it.name)}</span><span class="tiny">${RARITY[it.rarity].name} · item level ${it.ilvl}${it.n > 1 ? ` · ×${it.n}` : ''} · day ${dayOf(it.first)}, ${esc(it.source)}</span></li>`).join('') || '<li class="dim">Nothing found yet.</li>'}</ul>`);
+            const goods = GOODS.filter((g) => b.goods[g.id]);
+            p.push(`<h3 class="book-h">Goods traded</h3>${goods.length ? `<table class="market ledger-t"><tr class="tiny"><td>Good</td><td class="n">bought</td><td class="n">sold</td><td class="n">profit</td></tr>${goods.map((g) => { const r = b.goods[g.id]; return `<tr><td>${g.icon} ${g.name}</td><td class="n">${r.bought}</td><td class="n">${r.sold}</td><td class="n ${r.earned - r.spent >= 0 ? 'cheap' : 'dear'}">${fmtNum(r.earned - r.spent)}g</td></tr>`; }).join('')}</table>` : '<p class="dim">No trading yet.</p>'}`);
+            p.push(`<h3 class="book-h">Materials gathered</h3><div class="stat-grid">${MATS.map((m) => `<div>${m.icon} ${m.name}<b>${fmtNum(b.mats[m.id] || 0)}</b></div>`).join('')}</div>`);
+        } else if (page === 'places') {
+            for (const R of REGIONS) {
+                p.push(`<h3 class="book-h">${R.name}</h3><div class="snaps">${TOWNS.filter((t) => t.region === R.id).map((t) => {
+                    const pl = b.places[t.id];
+                    if (!pl) return snap(portrait({ kind: 'town', key: t.id, region: R.id, unknown: true }), '???', regionOpen(G, R.id) ? 'not yet visited' : 'behind a dark Waystone', 'faded');
+                    return snap(portrait({ kind: 'town', key: t.id, region: R.id, lit: G.lit[R.id] }), t.name + (t.capital ? (G.lit[R.id] ? ' 🔥' : ' 🪨') : ''), `${esc(t.blurb)}<br>first visit day ${dayOf(pl.first)} · ${G.towns[t.id].visits} visit${G.towns[t.id].visits === 1 ? '' : 's'}`);
+                }).join('')}</div>`);
+            }
+        } else if (page === 'log') {
+            const legs = b.legs.slice(-ui.legLimit).reverse();
+            p.push(`<div class="stat-grid"><div>Days<b>${dayOf(G.t)}</b></div><div>Miles<b>${fmtNum(G.stats.miles)}</b></div><div>Roads<b>${fmtNum(G.stats.arrivals)}</b></div><div>Fights won<b>${fmtNum(G.stats.won)}</b></div></div>`);
+            let day = null;
+            const rows = [];
+            for (const l of legs) {
+                const d = dayOf(l.t);
+                if (d !== day) { day = d; rows.push(`<li class="day">Day ${d}</li>`); }
+                rows.push(`<li><span>${esc(TOWN[l.from].name)} → <b>${esc(TOWN[l.to].name)}</b></span><span class="tiny">${l.mi} mi · ${l.f ? `${l.w}/${l.f} fights won${l.g ? `, +${fmtNum(l.g)}g` : ''}` : 'a quiet road'}</span></li>`);
+            }
+            p.push(`<h3 class="book-h">Roads travelled</h3><ul class="ledger log-ledger">${rows.join('') || '<li class="dim">The first road is still ahead.</li>'}</ul>`);
+            if (b.legs.length > ui.legLimit) p.push(`<div class="btns"><button class="btn small" data-act="moreLegs">Show older roads</button></div>`);
+            p.push(`<h3 class="book-h">Journal</h3><ul class="log" data-html="journal"></ul>`);
+        } else {
+            const all = [STORY.intro, ...STORY.waystones];
+            const got = all.filter((l) => b.letters.includes(l.title));
+            p.push(`<div class="snaps letters">${got.map((l) => `<button class="letter-card" data-act="reread" data-title="${esc(l.title)}"><b>${esc(l.title)}</b><span>${esc(l.text.slice(0, 90))}…</span></button>`).join('') || '<p class="dim">Grandmother\'s letters will be kept here once you\'ve read them.</p>'}</div>`);
+            const left = all.length - got.length;
+            if (left) p.push(`<p class="dim">${left} more letter${left === 1 ? '' : 's'} to come.</p>`);
+        }
+        return `<div class="book-page">${p.join('')}</div>`;
+    },
+};
+const SLOT_ICON = { weapon: '⚔️', armor: '🛡️', charm: '💍' };
+
+export const PANELS = { road, caravan, pack, quests, map, town, book };
 export { STORY, miles };

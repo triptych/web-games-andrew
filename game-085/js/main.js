@@ -31,7 +31,7 @@ const ui = new UI({
     onCommand: (c) => {
         if (mode !== 'play') return { ok: false, msg: '' };
         const r = command(G, c);
-        if (r.ok && c.type !== 'odds') saveSoon = true;
+        if (r.ok && c.type !== 'odds' && c.type !== 'bookSeen') saveSoon = true;
         return r;
     },
 });
@@ -150,7 +150,7 @@ function catchUp(secs) {
 }
 
 // ------------------------------------------------------------------ input routing
-const TAB_KEYS = { Digit1: 'road', Digit2: 'caravan', Digit3: 'pack', Digit4: 'quests', Digit5: 'map', Digit6: 'town' };
+const TAB_KEYS = { Digit1: 'road', Digit2: 'caravan', Digit3: 'pack', Digit4: 'quests', Digit5: 'map', Digit6: 'town', Digit7: 'book' };
 function handlePresses() {
     input.poll();
     const press = input.next();

@@ -8,10 +8,13 @@ import { canWear, itemScore, maxHp } from '../sim/party.js';
 import { larderCap } from '../sim/economy.js';
 import { PANELS, LIVE, journalHtml, itemStats } from './panels.js';
 import { MapView } from '../view/map.js';
+import { drawPortrait } from '../view/portraits.js';
+import { bookCount } from '../sim/book.js';
+import { STORY } from '../sim/data.js';
 import { esc, fmtTime, fmtNum, LOG_ICON } from './fmt.js';
 
 const $ = (id) => document.getElementById(id);
-const TABS = ['road', 'caravan', 'pack', 'quests', 'map', 'town'];
+const TABS = ['road', 'caravan', 'pack', 'quests', 'map', 'town', 'book'];
 
 export class UI {
     constructor({ audio, settings, onSettings, onDeleteSave, onCommand }) {
@@ -22,6 +25,9 @@ export class UI {
         this.tab = 'road';
         this.sig = null;
         this.mapSel = null;
+        this.bookPage = 'people';
+        this.legLimit = 60;
+        this.rereading = false;
         this.mapView = null;
         this.journalLen = -1;
         this.liveT = 0;
@@ -57,7 +63,13 @@ export class UI {
             this.closeScreen('pick');
             this.cmd(c);
         });
-        $('letter-ok').addEventListener('click', () => { audio.ui('close'); this.closeScreen('letter'); this.cmd({ type: 'read' }, true); });
+        $('letter-ok').addEventListener('click', () => {
+            audio.ui('close');
+            this.closeScreen('letter');
+            // a letter re-read from the scrapbook is already filed
+            if (this.rereading) this.rereading = false;
+            else this.cmd({ type: 'read' }, true);
+        });
         this.layout();
         const onResize = () => this.layout();
         window.addEventListener('resize', onResize);
@@ -126,6 +138,7 @@ export class UI {
         if (!TABS.includes(t)) return;
         this.tab = t;
         for (const b of document.querySelectorAll('#tabs .tab')) b.classList.toggle('on', b.dataset.tab === t);
+        $('panel').classList.toggle('book', t === 'book');
         this.sig = null;
         $('panel').scrollTop = 0;
     }
@@ -163,6 +176,13 @@ export class UI {
             case 'course': this.mapSel = null; return this.cmd({ type: 'course', town: d.town });
             case 'give': return this.pickWearer(+d.item);
             case 'slot': return this.pickForSlot(+d.id, d.slot);
+            case 'bookPage': this.bookPage = d.v; this.audio.ui('click'); $('panel').scrollTop = 0; this.sig = null; return;
+            case 'moreLegs': this.legLimit += 100; this.sig = null; return;
+            case 'reread': {
+                const l = [STORY.intro, ...STORY.waystones].find((x) => x.title === d.title);
+                if (l) { this.audio.ui('open'); this.showLetter(l, true); }
+                return;
+            }
         }
     }
 
@@ -217,6 +237,8 @@ export class UI {
                     if (t) { this.mapSel = t; this.audio.ui('click'); }
                 });
             } else this.mapView = null;
+            for (const c of panel.querySelectorAll('canvas[data-portrait]')) drawPortrait(c, JSON.parse(c.dataset.portrait));
+            if (this.tab === 'book') this.onCommand({ type: 'bookSeen', n: bookCount(G) });
             this.liveT = 0;
         }
         if (this.mapView) { this.mapView.sel = this.mapSel; this.mapView.draw(G, time); }
@@ -253,6 +275,9 @@ export class UI {
         const bt = $('badge-town');
         bt.hidden = !G.at || this.tab === 'town';
         bt.textContent = '•';
+        const bb = $('badge-book');
+        bb.hidden = this.tab === 'book' || bookCount(G) <= G.book.seen;
+        bb.textContent = 'new';
     }
 
     status(G) {
@@ -292,10 +317,12 @@ export class UI {
             else if (e.type === 'hungry') this.toast('⚠️ Out of rations! The caravan slows.');
             else if (e.type === 'region') this.toast(`🏮 Into ${REGIONS[e.region].name}`);
             else if (e.type === 'event' && e.kind === 'wanderer') this.toast(`🤝 ${e.name} asks to join (Caravan tab)`);
+            else if (e.type === 'discover' && e.kind !== 'person') this.toast(`📔 New in the scrapbook: ${e.name}`);
         }
     }
 
-    showLetter(letter) {
+    showLetter(letter, reread = false) {
+        this.rereading = reread;
         $('letter-title').textContent = letter.title;
         $('letter-text').textContent = letter.text;
         this.openScreen('letter');

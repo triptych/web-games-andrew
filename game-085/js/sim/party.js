@@ -3,6 +3,7 @@
 import { CLASSES, FIRST, LAST, SLOTS, GEAR_BASE, GEAR_MATERIAL, GEAR_SUFFIX, UPGRADES } from './data.js';
 import { RARITY, PARTY, PACK, xpForLevel, caravanXpFor } from '../config.js';
 import { emit, log } from './core.js';
+import { noteItem } from './book.js';
 
 // ------------------------------------------------------------------ members
 export function makeMember(G, cls, level, rng, name = null) {
@@ -223,6 +224,7 @@ export function sellItem(G, itemId) {
 export function gainItem(G, it, source) {
     G.pack.push(it);
     G.stats.items++;
+    noteItem(G, it, source);
     if (it.rarity >= 3) {
         log(G, 'loot', `${source}: ${RARITY[it.rarity].name} ${it.name}!`, true);
         emit(G, { type: 'rareLoot', rarity: it.rarity, name: it.name });
