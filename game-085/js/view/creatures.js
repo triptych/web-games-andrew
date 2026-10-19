@@ -76,12 +76,17 @@ export function drawCreature(ctx, f, x, y, s, anim, night) {
             if (k) { ctx.fillStyle = shade(d0, dim); ctx.beginPath(); ctx.moveTo(x - 160 * s, y); ctx.lineTo(x - 100 * s, y - 520 * s); ctx.lineTo(x + 100 * s, y - 520 * s); ctx.lineTo(x + 160 * s, y); ctx.closePath(); ctx.globalAlpha *= 0.7; ctx.fill(); ctx.globalAlpha = anim.dead > 0 ? Math.max(0, 1 - anim.dead) : 1; }
             el(ctx, x, y - 610 * s + bob, 75 * s, 80 * s, shade(b0, dim + 0.12));
             eyes(ctx, x, y - 620 * s + bob, 30 * s, 13 * s, eye);
-            // weapon arm
+            // the off-hand arm hangs at the side, swinging a little against the weapon arm
             ctx.strokeStyle = dark; ctx.lineWidth = 34 * s; ctx.lineCap = 'round';
             const sw = Math.sin(t * 3) * 0.3;
+            const ox = x - 165 * s - sw * 40 * s, oy = y - 330 * s + bob * 0.5;
+            ctx.beginPath(); ctx.moveTo(x - 90 * s, y - 500 * s + bob); ctx.lineTo(x - 140 * s, y - 420 * s + bob * 0.7); ctx.lineTo(ox, oy); ctx.stroke();
+            el(ctx, ox, oy, 24 * s, 24 * s, dark);
+            // weapon arm
             ctx.beginPath(); ctx.moveTo(x + 90 * s, y - 500 * s + bob); ctx.lineTo(x + 170 * s, y - 380 * s); ctx.stroke();
             ctx.strokeStyle = '#d0d4dc'; ctx.lineWidth = 16 * s;
             ctx.beginPath(); ctx.moveTo(x + 170 * s, y - 380 * s); ctx.lineTo(x + 170 * s + Math.sin(sw) * 260 * s, y - 380 * s - Math.cos(sw) * 260 * s); ctx.stroke();
+            el(ctx, x + 170 * s, y - 380 * s, 24 * s, 24 * s, dark);
             if (k) {
                 ctx.fillStyle = eye;
                 ctx.beginPath(); ctx.moveTo(x - 80 * s, y - 680 * s + bob); ctx.lineTo(x - 80 * s, y - 780 * s + bob); ctx.lineTo(x - 40 * s, y - 720 * s + bob); ctx.lineTo(x, y - 800 * s + bob); ctx.lineTo(x + 40 * s, y - 720 * s + bob); ctx.lineTo(x + 80 * s, y - 780 * s + bob); ctx.lineTo(x + 80 * s, y - 680 * s + bob); ctx.closePath(); ctx.fill();
