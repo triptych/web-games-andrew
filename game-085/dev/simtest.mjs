@@ -162,6 +162,27 @@ if (want('rules')) {
     ok(G.road.done === at, 'it does not move while camped');
     for (let i = 0; i < 2000 && G.camp; i++) Gm.tick(G);
     ok(!G.camp && Pt.partyHealth(G) >= C.TRAVEL.campUntil, 'it breaks camp once the party has recovered');
+    // a camp made by hand with nobody hurt is still a moment by the fire, and someone has something to say
+    ok(G.log.some((e) => e.k === 'camp' && e.s.includes('by the fire')), 'someone says something when the caravan makes camp');
+    for (const m of G.party) m.hp = Pt.maxHp(m);
+    G.events.length = 0;
+    const atRest = G.road.done;
+    ok(Gm.command(G, { type: 'rest' }).ok && G.camp, 'Make camp works with everyone well');
+    const talk = G.events.find((e) => e.type === 'campTalk');
+    ok(talk && talk.text && talk.who && G.party.some((m) => m.id === talk.id && m.cls !== 'captain'), 'and a traveller, not the captain, speaks by the fire');
+    let campTicks = 0;
+    for (let i = 0; i < 100 && G.camp; i++) { Gm.tick(G); campTicks++; }
+    ok(campTicks >= C.TRAVEL.campMin && campTicks <= C.TRAVEL.campMin + 2 && G.road.done === atRest, `the rest lasts ${campTicks} s, at least ${C.TRAVEL.campMin}, then the caravan goes on`);
+    const said = new Set();
+    for (let t = 0; t < 400; t++) { G.t++; G.camp = false; G.events.length = 0; Gm.command(G, { type: 'rest' }); said.add(G.events.find((e) => e.type === 'campTalk')?.text); }
+    ok(said.size >= 6, `camp talk varies (${said.size} different lines in 400 camps)`);
+    G.camp = false; G.campMin = 0;
+    const solo = Gm.newGame(5);
+    putOnRoad(solo, 'hearthford', 'millbrook');
+    solo.party.length = 1;
+    solo.events.length = 0;
+    Gm.command(solo, { type: 'rest' });
+    ok(solo.events.find((e) => e.type === 'campTalk')?.who === 'You', 'travelling alone, the captain talks to the oxen');
     // a downed traveller sits out fights until rested
     G.party[1].hp = 0; G.party[1].down = true;
     const foes = [Bt.makeFoe('wolf', 1)];

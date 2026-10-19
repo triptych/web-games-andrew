@@ -109,6 +109,8 @@ export class Audio {
                 const deg = (chord + Math.floor(r * 10)) % (sc.length * 2);
                 this.pluck(root + 12 * Math.floor(deg / sc.length) + sc[deg % sc.length], t, 0.07, 0.5);
             }
+            // the war drum while a fight is on: a heavy beat on the bar, lighter ones between
+            if (t < (this.drumUntil || 0) && b % 2 === 0) this.drum(t, b % 8 === 0 ? 0.5 : 0.28);
             this.nextNote += beat;
         }
     }
@@ -123,19 +125,39 @@ export class Audio {
         else if (kind === 'deny') this.tone({ freq: 200, to: 150, dur: 0.15, type: 'sawtooth', vol: 0.08 });
     }
 
-    onEvents(G, events, showFights = true) {
+    // ------------------------------------------------------------------ fights, as the view plays them
+    /** A war drum under the tune for as long as the fight runs, up to the fanfare. */
+    fightStart(dur) {
+        if (!this.ctx) return;
+        this.drumUntil = this.ctx.currentTime + Math.max(0.5, dur - 0.9);
+    }
+    fightHit(h) {
+        if (h.heal) this.tone({ freq: 660, to: 990, dur: 0.15, type: 'sine', vol: 0.08 });
+        else {
+            this.noise(0.07, h.crit ? 0.22 : 0.16, h.a === 'p' ? 1800 : 700);
+            this.tone({ freq: h.a === 'p' ? 300 : 160, to: 90, dur: 0.1, type: 'square', vol: 0.06 });
+        }
+    }
+    fightOver(e) {
+        if (this.ctx) this.drumUntil = 0;
+        if (e.won) [523, 659, 784, 1047].forEach((f, i) => this.tone({ freq: f, dur: 0.18, type: 'triangle', vol: 0.12, delay: i * 0.09 }));
+        else if (e.lost) [392, 330, 262].forEach((f, i) => this.tone({ freq: f, dur: 0.3, type: 'sawtooth', vol: 0.08, delay: i * 0.16 }));
+    }
+    /** A low tom: a sine dropping in pitch, on the music bus so the music slider covers it. */
+    drum(t, vol) {
+        const ctx = this.ctx;
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.22);
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+        o.connect(g); g.connect(this.music);
+        o.start(t); o.stop(t + 0.35);
+    }
+
+    onEvents(G, events) {
         for (const e of events) {
             switch (e.type) {
-                case 'battle':
-                    if (!showFights && !e.warden) break;
-                    e.hits.slice(0, 14).forEach((h, i) => {
-                        const d = 0.7 + i * Math.max(0.12, (e.dur * 0.95 - 1.6) / Math.max(1, e.hits.length));
-                        if (h.heal) this.tone({ freq: 660, to: 990, dur: 0.15, type: 'sine', vol: 0.08, delay: d });
-                        else { this.noise(0.07, 0.16, h.a === 'p' ? 1800 : 700, d); this.tone({ freq: h.a === 'p' ? 300 : 160, to: 90, dur: 0.1, type: 'square', vol: 0.06, delay: d }); }
-                    });
-                    if (e.won) [523, 659, 784, 1047].forEach((f, i) => this.tone({ freq: f, dur: 0.18, type: 'triangle', vol: 0.12, delay: e.dur * 0.95 - 0.9 + i * 0.09 }));
-                    else if (e.lost) [392, 330, 262].forEach((f, i) => this.tone({ freq: f, dur: 0.3, type: 'sawtooth', vol: 0.08, delay: e.dur * 0.95 - 0.9 + i * 0.16 }));
-                    break;
+                // fights sound from the view as they play (fightStart, fightHit, fightOver), so they last as long
+                case 'camp': this.noise(0.5, 0.05, 900); break;
                 case 'arrive': [784, 988].forEach((f, i) => this.tone({ freq: f, dur: 0.5, type: 'sine', vol: 0.1, delay: i * 0.22 })); break;
                 case 'depart': this.noise(0.2, 0.06, 300); break;
                 case 'trade': this.ui('coin'); break;
