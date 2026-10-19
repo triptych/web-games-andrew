@@ -314,7 +314,7 @@ function renderSkillCard() {
         el('p', { class: 'sc-wick' }, `Wick: “${s.wick}”`),
     );
     const row = el('div', { class: 'sc-buy' });
-    if (status === 'owned') row.append(el('span', { class: 'sc-note' }, '✦ Learned'));
+    if (status === 'owned') row.append(el('span', { class: 'sc-owned' }, '✦ Learned'));
     else {
         const btn = el('button', {
             class: 'btn primary small', type: 'button', id: 'skill-buy', disabled: !canBuy(st, s.id),
