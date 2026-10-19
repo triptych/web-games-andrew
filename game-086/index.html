@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#201b3d">
+  <meta name="description" content="Colorverse: a cozy sci-fi and fantasy coloring book. Fill line drawings, collect completed art, and share your creations.">
+  <title>Colorverse — a little coloring cosmos</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a id="back-link" href="../index.html">← Games</a>
+  <main class="app">
+    <header class="masthead"><div class="eyebrow">YOUR POCKET-SIZED ART UNIVERSE</div><h1>Colorverse <span>✦</span></h1><p>Little worlds. Lovely colors. No wrong answers.</p></header>
+    <section class="workspace" aria-label="Coloring studio">
+      <aside class="sidebar"><div class="section-heading"><span>01 / YOUR BOOK</span><span id="progress-count">0 / 3</span></div><div id="art-list" class="art-list"></div><div class="tip"><span>✧</span><p><b>A tiny tip</b><br>Tap any enclosed shape to fill it. You can change its color whenever you like.</p></div></aside>
+      <section class="studio">
+        <div class="studio-top"><div><div class="eyebrow" id="art-theme">COSMIC FRIENDS</div><h2 id="art-title">Starship Sprout</h2></div><span id="completion-badge" class="completion-badge">IN PROGRESS</span></div>
+        <div class="canvas-wrap"><canvas id="art-canvas" width="900" height="720" aria-label="Coloring canvas. Tap a shape to color it."></canvas><div class="canvas-caption"><span>✦</span> Made of stardust &amp; imagination <span>✦</span></div></div>
+        <div class="tools"><div class="palette-area"><div class="tool-label">02 / PICK A COLOR <span id="color-name">Starlight</span></div><div id="palette" class="palette" role="group" aria-label="Color palette"></div></div><div class="tool-actions"><button id="undo" class="icon-button" title="Undo last fill" aria-label="Undo last fill">↶</button><button id="reset" class="icon-button" title="Reset this drawing" aria-label="Reset drawing">⟲</button></div></div>
+        <div class="bottom-actions"><button id="gallery" class="secondary">▦ My collection <span id="collection-count">0</span></button><button id="share" class="primary">Share creation ↗</button></div><p id="status" class="status" aria-live="polite">Choose a color, then tap a shape to begin.</p>
+      </section>
+    </section>
+    <footer>COLORVERSE STUDIO <span>·</span> MADE FOR SLOW MOMENTS</footer>
+  </main>
+  <dialog id="collection-dialog"><div class="dialog-head"><div><div class="eyebrow">YOUR LITTLE GALLERY</div><h2>Collected worlds</h2></div><button id="close-gallery" class="icon-button" aria-label="Close gallery">×</button></div><p class="dialog-intro">Every finished page is a little universe you made yourself.</p><div id="collection-grid" class="collection-grid"></div></dialog>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

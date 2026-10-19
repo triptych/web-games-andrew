@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-85 games, `game-001` through `game-085`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+86 games, `game-001` through `game-086`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -103,6 +103,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 083 | [WYRMZONE](game-083/) | A wingless dragon walks home through a kingdom at war with dragons: Battlezone on foot in green vectors, then its wings return and it's Star Wars in the sky, down to a trench run at the Gorge of Chains | three.js |
 | 084 | [ROMANCER](game-084/) | A game about making games: revive the VESTA-8, a 1983 console, by repairing tiny toy versions of Pong, Breakout, Space Invaders, Pac-Man, Frogger, Donkey Kong, Super Mario Bros. and Zelda with its own pixel editor, level maker, scripting language, sound and music tools, then make anything in the Studio and export it as one HTML file | three.js |
 | 085 | [WanderQuest](game-085/) | An idle caravan RPG for phones: grandmother's self-driving wagon trades, fights and takes quests along a pseudo-3D road while you're away; travellers bring carts that cook, forge, brew and heal; check in daily, then light six Waystones | Canvas 2D |
+| 086 | [Colorverse](game-086/) | Cozy sci-fi/fantasy coloring book: fill line drawings, collect completed art, save progress and share PNG creations | Canvas 2D |
 
 ### Highlights
 
