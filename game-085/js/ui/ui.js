@@ -1,10 +1,10 @@
 // The DOM layer: screens, the HUD, the status strip, the dock and its panels, toasts and the pickers.
 // It reads the sim and sends commands through onCommand; it never changes G itself.
 
-import { VERSION, caravanXpFor, RARITY } from '../config.js';
+import { VERSION, caravanXpFor, RARITY, TRAVEL } from '../config.js';
 import { TOWN, CLASSES, SLOT_NAME, REGIONS } from '../sim/data.js';
 import { speed } from '../sim/world.js';
-import { canWear, itemScore, maxHp } from '../sim/party.js';
+import { canWear, itemScore, maxHp, partyHealth } from '../sim/party.js';
 import { larderCap, buyPrice, cargoUsed, cargoCap, rationPrice } from '../sim/economy.js';
 import { PANELS, LIVE, journalHtml, itemStats } from './panels.js';
 import { MapView } from '../view/map.js';
@@ -316,7 +316,7 @@ export class UI {
             where = `${TOWN[r.from].name} → ${TOWN[r.to].name}`;
             if (G.busyKind === 'battle') sub = '⚔️ Fighting on the road!';
             else if (G.busyKind === 'wheel') sub = '🔧 Mending a wheel…';
-            else if (G.camp) sub = '🔥 Camped by the road while the party recovers.';
+            else if (G.camp) sub = G.campMin > 0 && partyHealth(G) >= TRAVEL.campUntil ? '🔥 A short rest by the fire.' : '🔥 Camped by the road while the party recovers.';
             else sub = `${Math.round(left)} mi to go · about ${fmtTime(left / speed(G))}${G.course && G.course !== r.to ? ` · course: ${TOWN[G.course].name}` : ''}`;
             k = r.done / r.miles;
         } else { where = G.wagon; sub = ''; }

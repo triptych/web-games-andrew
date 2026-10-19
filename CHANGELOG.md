@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **WanderQuest** (game-085) v1.3.0: talk by the fire. Making camp with nobody hurt used to end at once; a camp made by hand now lasts at least 8 s, and whenever the caravan makes camp a traveller says something in a speech bubble (also kept in the journal), with lines for each class and for whether anyone needed the rest ([data.js](game-085/js/sim/data.js) `CAMP_TALK`, [game.js](game-085/js/sim/game.js) `campTalk`, [view.js](game-085/js/view/view.js) `drawBubble`). Chosen from a hash of the clock, so time away is unchanged.
+
+### Fixed
+- **WanderQuest** (game-085) v1.3.0: fight sounds stopped part-way through long fights (only the first 14 hits were scheduled); the view now plays each hit's sound as it shows it, with a war drum under the tune until the fanfare ([audio.js](game-085/js/audio.js)). After a fight the travellers glided back to their carts; they now walk, legs going, to and from fights and the campfire ([view.js](game-085/js/view/view.js)). [simtest.mjs](game-085/dev/simtest.mjs) checks the camp's length and talk; [browsertest.mjs](game-085/dev/browsertest.mjs) listens to a whole fight, follows a traveller's walk home and makes camp by a real click.
+
 ### Fixed
 - **WanderQuest** (game-085) v1.2.1: rolling into a town, the houses slid forward with the caravan and snapped back once a second instead of standing still like the trees. The town's place on the road mixed the view's smoothed odometer with the miles left (which only changes on each tick); it now uses the sim's odometer alone, and so does the point where the scenery changes between regions ([view.js](game-085/js/view/view.js)). [browsertest.mjs](game-085/dev/browsertest.mjs) watches the town's position over 90 frames of approach.
 

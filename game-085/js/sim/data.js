@@ -166,6 +166,51 @@ export const CLASSES = {
 };
 // ------------------------------------------------------------------ the wagon's name
 export const DEFAULT_WAGON = 'Grandmother\'s Wagon';
+
+// What someone says by the campfire: `well` when nobody needed the rest, `hurt` when they did.
+// Each class adds its own lines to the shared ones; the captain only speaks when travelling alone.
+export const CAMP_TALK = {
+    any: {
+        well: ['Nobody\'s hurt, but I won\'t say no to a sit-down.', 'Listen. You can hear the road settling.', 'Five minutes. Then onward.', 'Good spot for it. Flat, dry, no wolves.', 'Anyone else\'s boots full of road?'],
+        hurt: ['Patch up, then we go again.', 'That one hurt. Pass the bandages.', 'Sit. Breathe. The road will wait.', 'Next time, I\'m staying behind the wagon.'],
+    },
+    captain: {
+        well: ['Grandmother always stopped here. Now I see why.', 'Just me, the oxen and the lantern. Not bad company.', 'The lantern burns steady. Onward soon.'],
+        hurt: ['Grandmother would tell me to rest. So I rest.', 'A night by the fire and I\'ll be right again.'],
+    },
+    guard: {
+        well: ['I\'ll take first watch. Not that there\'s anything to watch.', 'Sharpening a blade that\'s already sharp. Habit.'],
+        hurt: ['Scratches. I\'ve had worse from a hedge.', 'Wake me if anything with teeth comes by.'],
+    },
+    cook: {
+        well: ['Nobody\'s hurt? Then this is a tea break, and I\'m making tea.', 'Who wants a toasted bun? Don\'t all shout at once.'],
+        hurt: ['Broth first, questions later.', 'Stew\'s on. Eat it, it\'s medicine.'],
+    },
+    smith: {
+        well: ['While we\'re stopped, I\'ll true that wheel rim.', 'Fire\'s too small for forging. Good for toes, though.'],
+        hurt: ['Bring me that dented helm. I\'ll hammer it straight.', 'Armour held. Mostly. I\'ll fix the mostly.'],
+    },
+    alchemist: {
+        well: ['Perfect light for reading labels. Mostly.', 'If anything bubbles, don\'t touch it.'],
+        hurt: ['Drink this. Ignore the colour.', 'Three drops on the cut. It stings because it works.'],
+    },
+    trader: {
+        well: ['Quiet roads mean full markets ahead. Mark my words.', 'I\'ve counted the purse twice. Still pleased.'],
+        hurt: ['Bandages cost money, you know. Worth every coin.', 'Let\'s not do that again. Bad for business.'],
+    },
+    scout: {
+        well: ['Road\'s clear for miles. I checked. Twice.', 'There\'s a hawk up there that\'s followed us since noon.'],
+        hurt: ['I saw them too late. Won\'t happen again.', 'Rest up. I\'ll walk the ridge and look.'],
+    },
+    healer: {
+        well: ['Everyone\'s whole! My favourite kind of camp.', 'No wounds to tend. I\'ll just enjoy the fire.'],
+        hurt: ['Hold still. This will only hurt a lot.', 'Sit by the fire and let me see that arm.'],
+    },
+    bard: {
+        well: ['A song, since nobody\'s bleeding? A short one!', 'This is going in the ballad. The cosy verse.'],
+        hurt: ['A tune for the wounded. It helps. Probably.', 'Every good ballad has a bruised middle.'],
+    },
+};
 export const WAGON_NAMES = ['The Bramble Rose', 'Old Faithful', 'The Lantern Belle', 'The Merry Thistle', 'Hearthbound', 'The Copper Kettle', 'Brass Bessie', 'The Wandering Star', 'Odessa\'s Pride', 'The Lucky Ox', 'Slow and Steady', 'The Gilded Goose', 'Marigold', 'The Long Way Round', 'The Creaking Comet', 'Second Breakfast', 'The Patient Moth', 'Honeycomb', 'The Last Lantern', 'Little Thunder'];
 /** A wagon's name as typed: trimmed, single-spaced, printable, at most 24 characters; empty gives the default. */
 export function cleanName(s) {

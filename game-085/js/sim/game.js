@@ -2,7 +2,7 @@
 // number of seconds (advance, for time spent away); the real-world day comes in through checkIn().
 // The view reads G and drains G.events; the UI, the tests and the bot change it only through command().
 
-import { LORE, cleanName, DEFAULT_WAGON, TOWN, TOWNS, REGIONS, STORY, CLASSES, TAVERN, MATS, GOODS, UPGRADES, roadBetween, cartUpCost, cartCap, cookTime, forgeTime, brewTime } from './data.js';
+import { CAMP_TALK, LORE, cleanName, DEFAULT_WAGON, TOWN, TOWNS, REGIONS, STORY, CLASSES, TAVERN, MATS, GOODS, UPGRADES, roadBetween, cartUpCost, cartCap, cookTime, forgeTime, brewTime } from './data.js';
 import { SPARKLE, TRAVEL, FOOD, REGEN, OFFLINE, PARTY, QUESTS, monsterXp, monsterGold, RARITY } from '../config.js';
 import { makeRng, hash3 } from '../rng.js';
 import { emit, log, clamp, plural } from './core.js';
@@ -38,7 +38,7 @@ export function newGame(seed = 1, opts = {}) {
         cargo: {},
         pack: [],
         at: 'hearthford', road: null, course: null,
-        dwell: 30, busy: 0, busyKind: null, camp: false,
+        dwell: 30, busy: 0, busyKind: null, camp: false, campMin: 0,
         buffs: { rally: 0, rallyCd: 0, shrine: null, storm: 0 },
         lit: [false, false, false, false, false, false],
         tier: 0, ended: false,
@@ -108,7 +108,8 @@ export function tick(G) {
     const anyDown = G.party.some((m) => m.down);
     const h = partyHealth(G);
     if (G.camp) {
-        if (h >= TRAVEL.campUntil && !anyDown) {
+        if (G.campMin > 0) G.campMin--;
+        else if (h >= TRAVEL.campUntil && !anyDown) {
             G.camp = false;
             emit(G, { type: 'breakCamp' });
         }
@@ -118,6 +119,7 @@ export function tick(G) {
         G.camp = true;
         G.stats.camps = (G.stats.camps || 0) + 1;
         emit(G, { type: 'camp' });
+        campTalk(G);
         return;
     }
     const sp = speed(G);
@@ -221,9 +223,27 @@ function depart(G) {
     G.at = null;
 }
 
+/**
+ * Someone by the fire says something, picked from a hash of the clock rather than the random stream so
+ * camping changes nothing else. Travellers speak before the captain, who only talks to the oxen.
+ */
+function campTalk(G) {
+    const up = G.party.filter((m) => !m.down);
+    const crew = up.filter((m) => m.cls !== 'captain');
+    const pool = crew.length ? crew : up;
+    if (!pool.length) return;
+    const why = partyHealth(G) >= TRAVEL.campUntil && up.length === G.party.length ? 'well' : 'hurt';
+    const m = pool[Math.floor(hash3(G.t, G.seed, 781) * pool.length)];
+    const lines = [...(CAMP_TALK[m.cls]?.[why] || []), ...CAMP_TALK.any[why]];
+    const text = lines[Math.floor(hash3(G.t, G.seed, 782) * lines.length)];
+    const who = m.cls === 'captain' ? 'You' : m.name;
+    emit(G, { type: 'campTalk', id: m.id, who, cls: m.cls, text });
+    log(G, 'camp', `${who}, by the fire: “${text}”`);
+}
+
 function arrive(G, town) {
     const T = TOWN[town], from = G.road.from, leg = G.leg, roadMiles = G.road.miles;
-    G.at = town; G.road = null; G.camp = false; G.leg = null; G.sparkle = null;
+    G.at = town; G.road = null; G.camp = false; G.campMin = 0; G.leg = null; G.sparkle = null;
     G.towns[town].visits++;
     notePlace(G, town);
     noteLeg(G, from, town, roadMiles, leg);
@@ -670,6 +690,14 @@ export function command(G, c) {
         case 'rest': {
             if (G.at || !G.road) return no('You rest at inns in town.');
             G.camp = !G.camp;
+            G.campMin = 0;
+            if (G.camp) {
+                // even with nobody hurt, a camp is a moment by the fire, not a blink
+                G.campMin = TRAVEL.campMin;
+                G.stats.camps = (G.stats.camps || 0) + 1;
+                emit(G, { type: 'camp' });
+                campTalk(G);
+            }
             return ok(G.camp ? 'The caravan makes camp.' : 'Breaking camp.');
         }
         case 'odds': return ok('', { p: refreshOdds(G) });
@@ -714,6 +742,7 @@ export function deserialize(d) {
     if (!G.wagon) G.wagon = DEFAULT_WAGON;
     if (!G.book.lore) G.book.lore = [];
     if (G.sparkle === undefined) G.sparkle = null;
+    if (G.campMin === undefined) G.campMin = 0;
     return G;
 }
 

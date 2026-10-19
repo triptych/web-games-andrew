@@ -23,6 +23,7 @@ const audio = new Audio();
 audio.setVolumes(settings.sfx, settings.music);
 const input = new Input();
 const view = new View(document.getElementById('view'));
+view.sfx = audio;                     // fight sounds follow the fight as the view plays it, hit by hit
 let G = null;
 const ui = new UI({
     audio, settings,
@@ -193,12 +194,12 @@ function handlePresses() {
 function flushEvents() {
     if (!G.events.length) return;
     const ev = G.events.splice(0);
-    if (mode !== 'play') { view.onEvents(G, ev.filter((e) => e.type === 'battle')); return; }
+    if (mode !== 'play') { view.onEvents(G, ev.filter((e) => e.type === 'battle'), true); return; }
     for (const e of ev) seen[e.type] = (seen[e.type] || 0) + 1;
     const big = settings.fights === 'big';
     const shown = big ? ev.filter((e) => e.type !== 'battle' || e.warden || e.foes.some((f) => f.elite)) : ev;
     view.onEvents(G, shown);
-    audio.onEvents(G, shown, !big);
+    audio.onEvents(G, shown);
     ui.onEvents(G, ev);
     if (ev.some((e) => ['quest', 'levelup', 'warden', 'recruit', 'newDay'].includes(e.type))) saveSoon = true;
 }

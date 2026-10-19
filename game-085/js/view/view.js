@@ -60,6 +60,9 @@ export class View {
         this.shakeT = 0;
         this.birds = new Birds();
         this.motes = [];             // sparkle bursts, in screen px
+        this.walkers = new Map();    // member id → { ox, oz, ph, go }: where each traveller stands, off their cart
+        this.bubble = null;          // { id, who, text, age, life }: someone talking by the fire
+        this.sfx = null;             // { fightStart, fightHit, fightOver }: the sound, played as the fight plays
         this.resize();
         const onResize = () => this.resize();
         window.addEventListener('resize', onResize);
@@ -84,9 +87,10 @@ export class View {
     setFrame(r) { this.frameRect = r; }
 
     // ------------------------------------------------------------------ events
-    onEvents(G, events) {
+    onEvents(G, events, silent = false) {
         for (const e of events) {
-            if (e.type === 'battle') this.startFight(G, e);
+            if (e.type === 'battle') this.startFight(G, e, silent);
+            else if (e.type === 'campTalk') this.bubble = { id: e.id, who: e.who, text: e.text, age: 0, life: 5.5 };
             else if (e.type === 'rally') this.say(G, 'Hup!', '#ffe08a', 0);
             else if (e.type === 'levelup') this.say(G, `Caravan level ${e.level}!`, '#ffe08a', 0, 1.4);
             else if (e.type === 'craft') this.say(G, e.cls === 'cook' ? '+rations' : e.cls === 'smith' ? 'forged!' : '+potion', '#b8f0a0', G.party.findIndex((m) => m.id === e.id));
@@ -104,14 +108,15 @@ export class View {
         this.texts.push({ text, color, x: c.x, y: CART.h + 300, z: c.z + CART.len / 2, age: 0, life: 1.8, size });
     }
 
-    startFight(G, e) {
+    startFight(G, e, silent = false) {
         const n = e.foes.length;
         this.fight = {
-            e, age: 0, dur: Math.max(3, e.dur * 0.95),
+            e, silent, age: 0, dur: Math.max(3, e.dur * 0.95),
             foes: e.foes.map((f, i) => ({ ...f, show: f.hp, dead: 0, flash: 0, lunge: 0, x: (i - (n - 1) / 2) * Math.min(520, 1500 / Math.max(1, n - 1 || 1)), dz: (i % 2) * 380 })),
             party: G.party.map(() => ({ flash: 0, lunge: 0, down: false })),
             next: 0,
         };
+        if (!silent) this.sfx?.fightStart(this.fight.dur);
     }
 
     // ------------------------------------------------------------------ layout
@@ -274,23 +279,32 @@ export class View {
         // carts, oxen and walkers
         const step = (L.odo * MILE) / 140;
         const fight = this.fight;
+        this.standAt = new Map();
         L.carts.forEach((c, i) => {
             items.push({ z: c.z, draw: () => drawCart(ctx, P, c, night, time) });
             if (c.m.down) return;
             const fp = fight && fight.party[i];
-            let wx = CART.w / 2 + 220, wz = c.z + CART.len * 0.45;
-            let pose = 0;
-            if (fight) {
-                // step out in front of the lead wagon to fight
-                const into = Math.min(1, fight.age / 0.5) * Math.min(1, Math.max(0, (fight.dur - fight.age) / 0.6));
-                const bx = FIGHT_X + (i - (L.carts.length - 1) / 2) * 300, bz = L.frontZ - 500 + (i % 2) * 220;
-                wx += (bx - wx) * into; wz += (bz - wz) * into;
-                wz += fp.lunge * 260;
+            // where they'd stand: beside their cart, out on the verge for a fight, or round the campfire.
+            // They walk there, legs going, rather than gliding: a dash out to fight, a jog back after.
+            const hx = CART.w / 2 + 220, hz = c.z + CART.len * 0.45;
+            const out = fight && fight.age < fight.dur - 0.6;
+            let tx = hx, tz = hz, pose = 0, lunge = 0;
+            if (out) {
+                tx = FIGHT_X + (i - (L.carts.length - 1) / 2) * 300; tz = L.frontZ - 500 + (i % 2) * 220;
+                lunge = fp.lunge * 260;
                 pose = fp.lunge > 0.1 ? 1 : 0;
-            }
-            if (G.camp && !fight) { wx = CART.w / 2 + 900 + Math.cos(i * 2.1) * 360; wz = L.caravanZ + 1400 + Math.sin(i * 2.1) * 300; }
-            const walking = L.moving && !fight;
-            const st = walking ? step + i * 1.3 : 0;
+            } else if (G.camp && !fight) { tx = CART.w / 2 + 900 + Math.cos(i * 2.1) * 360; tz = L.caravanZ + 1400 + Math.sin(i * 2.1) * 300; }
+            let w = this.walkers.get(c.m.id);
+            if (!w) this.walkers.set(c.m.id, (w = { ox: tx - hx, oz: tz - hz, ph: 0, go: false }));
+            const dx = tx - hx - w.ox, dz = tz - hz - w.oz, d = Math.hypot(dx, dz);
+            if (d > 2) {
+                const v = out ? Math.max(2400, d / 0.4) : Math.max(1500, d / 1.3);
+                const mv = Math.min(d, v * dt);
+                w.ox += (dx / d) * mv; w.oz += (dz / d) * mv; w.ph += mv / 110; w.go = true;
+            } else { w.ox = tx - hx; w.oz = tz - hz; w.go = false; }
+            const wx = hx + w.ox, wz = hz + w.oz + lunge;
+            const st = w.go ? w.ph + i * 1.3 : L.moving && !fight ? step + i * 1.3 : 0;
+            this.standAt.set(c.m.id, { x: wx, z: wz });
             const cl = CLASSES[c.cls];
             items.push({ z: wz, draw: () => { const p = P(wx, 0, wz); if (fp && fp.flash > 0) { ctx.save(); ctx.globalAlpha = 0.6 + 0.4 * Math.sin(time * 40); } drawWalker(ctx, p.X, p.Y, p.s, c.cls, cl.color, cl.cloth, st, night, pose); if (fp && fp.flash > 0) ctx.restore(); } });
         });
@@ -350,6 +364,7 @@ export class View {
         if (this.sparkleHit) this.lastSparkle = this.sparkleHit;
         this.drawMotes(ctx, dt);
         this.drawTexts(ctx, P, dt);
+        this.drawBubble(ctx, P, dt, R);
         this.drawWeather(ctx, R, dt, G, night);
         if (night) {
             // a soft vignette at night
@@ -478,8 +493,11 @@ export class View {
         const hits = F.e.hits;
         const play = Math.max(1, F.dur - 1.6);
         const gap = hits.length ? play / hits.length : 1;
+        let sounded = false;
         while (F.next < hits.length && F.age >= 0.7 + F.next * gap) {
             const h = hits[F.next++];
+            // one sound a frame at most, so a flurry of hits doesn't pile up into a roar
+            if (!F.silent && !sounded) { this.sfx?.fightHit(h); sounded = true; }
             const fo = h.d === 'f' ? F.foes[h.di] : null;
             if (h.a === 'p' && F.party[h.ai]) F.party[h.ai].lunge = h.heal ? 0 : 1;
             if (h.a === 'f' && F.foes[h.ai]) F.foes[h.ai].lunge = 1;
@@ -501,6 +519,7 @@ export class View {
         for (const p of F.party) { p.flash = Math.max(0, p.flash - dt * 2); p.lunge = Math.max(0, p.lunge - dt * 4); }
         if (F.age > F.dur - 0.9 && !F.ended) {
             F.ended = true;
+            if (!F.silent) this.sfx?.fightOver(F.e);
             if (F.e.won) {
                 for (const fo of F.foes) if (!fo.dead) fo.dead = 0.01;
                 this.say(G, `Victory! +${F.e.gold}g`, '#ffe08a', 0, 1.3);
@@ -570,6 +589,47 @@ export class View {
         }
         ctx.globalAlpha = 1;
         this.texts = this.texts.filter((t) => t.age < t.life);
+    }
+
+    /** A speech bubble over whoever is talking by the fire: their name, then their words, wrapped. */
+    drawBubble(ctx, P, dt, R) {
+        const b = this.bubble;
+        if (!b) return;
+        b.age += dt;
+        const at = this.standAt?.get(b.id);
+        if (b.age >= b.life || !at) { if (b.age >= b.life) this.bubble = null; return; }
+        const p = P(at.x, 820, at.z);
+        const a = Math.min(1, b.age / 0.25, (b.life - b.age) / 0.5);
+        const fs = Math.round(Math.max(12, Math.min(16, R.w / 34)));
+        ctx.font = `600 ${fs}px Nunito, system-ui, sans-serif`;
+        const maxW = Math.min(240, R.w * 0.6);
+        const words = `“${b.text}”`.split(' '), lines = [];
+        let line = '';
+        for (const wd of words) {
+            const t = line ? line + ' ' + wd : wd;
+            if (line && ctx.measureText(t).width > maxW) { lines.push(line); line = wd; } else line = t;
+        }
+        lines.push(line);
+        const lh = fs * 1.25, pad = 9;
+        const w = Math.max(...lines.map((l) => ctx.measureText(l).width), ctx.measureText(b.who).width) + pad * 2;
+        const h = lh * (lines.length + 1) + pad * 2 - 4;
+        const x = Math.max(R.x + 6, Math.min(R.x + R.w - w - 6, p.X - w / 2));
+        const y = Math.max(R.y + 6, p.Y - h - 12);
+        ctx.globalAlpha = a;
+        ctx.fillStyle = 'rgba(250,243,226,0.96)'; ctx.strokeStyle = 'rgba(60,40,20,0.55)'; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(x, y, w, h, 10) : ctx.rect(x, y, w, h);
+        ctx.fill(); ctx.stroke();
+        // the tail points down at the speaker
+        const tx = Math.max(x + 14, Math.min(x + w - 14, p.X));
+        ctx.beginPath(); ctx.moveTo(tx - 8, y + h - 1); ctx.lineTo(tx, Math.min(p.Y, y + h + 12)); ctx.lineTo(tx + 8, y + h - 1); ctx.closePath();
+        ctx.fill();
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        ctx.fillStyle = '#9a5a1c'; ctx.font = `800 ${Math.round(fs * 0.85)}px Nunito, system-ui, sans-serif`;
+        ctx.fillText(b.who, x + pad, y + pad);
+        ctx.fillStyle = '#2a1e14'; ctx.font = `600 ${fs}px Nunito, system-ui, sans-serif`;
+        lines.forEach((l, i) => ctx.fillText(l, x + pad, y + pad + lh * (i + 1) - 2));
+        ctx.globalAlpha = 1;
     }
 
     drawWeather(ctx, R, dt, G, night) {

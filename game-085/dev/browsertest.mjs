@@ -224,11 +224,67 @@ async function desktop() {
     // birds cross the sky now and then
     await Q(page, () => { __wq.view.birds.wait = 0; });
     await until(page, () => __wq.view.birds.flocks.length > 0 || __wq.view.birds.wait > 7, 'a flock of birds (or none, at night in some places) sets off', 30000);
+    // listen to the fight's sounds and watch the lead traveller's feet, frame by frame, until they're back
+    const watch = Q(page, () => new Promise((done) => {
+        const A = __wq.audio, hit = A.fightHit.bind(A), sounds = [];
+        A.fightHit = (h) => { if (seen) sounds.push(__wq.view.fight ? __wq.view.fight.age : -1); hit(h); };
+        const rows = [];
+        let seen = false;
+        const f = () => {
+            const F = __wq.view.fight;
+            // only a fight seen from its first moments (one already under way when we started doesn't count)
+            if (F && (seen || F.age < 0.3)) { seen = { dur: F.dur, hits: F.e.hits.length }; __wq.G.fightIn = 1e9; }
+            // everyone's offset from their cart; whoever is still standing at the end is the one we follow
+            if (seen) rows.push({ fight: !!F, w: __wq.G.party.map((m) => { const w = __wq.view.walkers.get(m.id); return w && { d: Math.hypot(w.ox, w.oz), ph: w.ph, go: w.go, down: m.down }; }) });
+            const home = seen && !F && rows.length > 10 && rows[rows.length - 1].w.every((w) => !w || w.down || w.d < 1);
+            if (home || rows.length > 3000) {
+                A.fightHit = hit;
+                const k = Math.max(0, __wq.G.party.findIndex((m) => !m.down));
+                done({ seen, sounds, rows: rows.map((r) => ({ fight: r.fight, ...(r.w[k] || { d: 0, ph: 0, go: false }) })) });
+            } else requestAnimationFrame(f);
+        };
+        requestAnimationFrame(f);
+    }));
     await Q(page, () => { __wq.G.fightIn = 0.001; });
     await until(page, () => !!__wq.view.fight, 'a fight starts its animation', 30000);
     await page.waitForTimeout(1200);
     await shot(page, 'desktop-fight');
     await until(page, () => !__wq.view.fight, 'and finishes', 60000);
+    const fw = await watch;
+    const lastSound = Math.max(...fw.sounds);
+    const lastHitDue = 0.7 + (fw.seen.hits - 1) * (Math.max(1, fw.seen.dur - 1.6) / fw.seen.hits);
+    check(fw.seen && fw.sounds.length >= Math.min(fw.seen.hits, 6) - 1 && lastSound >= lastHitDue - 0.05,
+        `the fight sounds right to its end (${fw.sounds.length} hit sounds for ${fw.seen.hits} hits, the last at ${lastSound.toFixed(1)} s, when the last hit lands at ${lastHitDue.toFixed(1)} s)`);
+    // the walk home starts the moment they leave their spot on the verge (just before the fight's last beat)
+    const far = Math.max(...fw.rows.map((r) => r.d));
+    let from = 0;
+    fw.rows.forEach((r, i) => { if (r.d >= far - 1) from = i; });
+    const back = fw.rows.slice(from);
+    let maxStep = 0;
+    for (let i = 1; i < fw.rows.length; i++) maxStep = Math.max(maxStep, Math.abs(fw.rows[i].d - fw.rows[i - 1].d));
+    const strides = back.length ? back[back.length - 1].ph - back[0].ph : 0;
+    check(back.length > 5 && back.some((r) => r.go) && strides > 3 && back[back.length - 1].d < 1 && maxStep < 400,
+        `after the fight the travellers walk back to their carts, legs going (${strides.toFixed(1)} radians of stride, at most ${maxStep.toFixed(0)} units a frame)`);
+
+    // making camp with nobody hurt is still a rest by the fire, and someone has something to say
+    await Q(page, async () => {
+        const { maxHp } = await import('./js/sim/party.js');
+        const G = __wq.G;
+        for (const m of G.party) { m.hp = maxHp(m); m.down = false; }
+        G.fightIn = 1e9; G.eventIn = 1e9; G.sparkle = null;
+    });
+    await page.keyboard.press('Digit1');
+    await until(page, () => __wq.G.road && !__wq.G.busy && !__wq.G.camp && !!document.querySelector('[data-act="rest"]'), 'the Road tab offers Make camp now', 30000);
+    const campT = await Q(page, () => __wq.G.t);
+    await clickSel(page, '[data-act="rest"]');
+    await until(page, () => __wq.G.camp && !!__wq.view.bubble, 'a click makes camp, and someone by the fire speaks');
+    check(await Q(page, () => { const b = __wq.view.bubble; return !!b && b.text.length > 5 && b.who !== 'You' && __wq.view.standAt.has(b.id); }), 'a traveller says their line in a bubble over where they stand');
+    check(await Q(page, () => document.getElementById('status-sub').textContent.includes('short rest')), 'the HUD calls it a short rest');
+    await page.waitForTimeout(400);
+    await shot(page, 'desktop-camp');
+    await until(page, () => !__wq.G.camp, 'and the caravan sets off again', 30000);
+    const campLen = await Q(page, (t) => __wq.G.t - t, campT);
+    check(campLen >= 7, `the rest lasted ${campLen} s of game time, not a blink`);
 
     await page.keyboard.press('Escape');
     await until(page, () => !document.getElementById('menu').hidden, 'Esc opens the menu');

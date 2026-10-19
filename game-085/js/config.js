@@ -1,7 +1,7 @@
 // WanderQuest — tuning and constants. Shared by the sim, the view, the UI and the tests.
 // One tick of the simulation is one real second; every rate below is per second unless it says otherwise.
 
-export const VERSION = '1.2.1';
+export const VERSION = '1.3.0';
 export const SAVE_KEY = 'wanderquest.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s); the rules run on whole-second ticks inside it
@@ -23,6 +23,7 @@ export const TRAVEL = {
     eventMiles: 26,                       // a road event (cache, shrine, wanderer…) every ~this many miles
     campBelow: 0.5,                       // default: make camp when the party's health falls below this
     campUntil: 0.92,
+    campMin: 8,                           // a camp made by hand lasts at least this long, even if nobody's hurt
 };
 
 // Sparkles on the road, for someone who's watching: about one every 45 s of travel, 1.2–2 miles ahead.
