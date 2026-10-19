@@ -5,7 +5,7 @@
  *   clicks → zoom with the wheel → click a right pixel (Glimmer goes up), a wrong one (a mistake),
  *   Ctrl+Z undoes it → a drag paints the run it crosses → number keys pick colours → finish Wick by
  *   real clicks → the reward card → Continue → the after-scene → Comet's page opens → Esc to the chart →
- *   the Constellation by click and Lantern Light learned → the gallery and a PNG download → reload: the
+ *   the Constellation by click and Lantern Light learned, the chart never resizing → the gallery and a PNG download → reload: the
  *   save is still there.
  * phones (touch only, real taps and CDP multi-touch) at 390×844 and 844×390: Begin and the dialogue by tap;
  *   the canvas fills its stage; a two-finger pinch zooms in and paints nothing; a two-finger drag pans; a tap
@@ -151,8 +151,13 @@ if (want('desktop')) {
     await page.screenshot({ path: path.join(OUT, 'desktop-chart.png') });
 
     await page.click('#chart-skills');
+    const skyH = () => S(page, () => document.getElementById('sky').getBoundingClientRect().height);
+    const sky0 = await skyH();
+    await page.click('.sk-node[data-skill="flourish"]');
+    ok(await skyH() === sky0, 'selecting another star does not resize the chart');
     await page.click('.sk-node[data-skill="lantern"]');
     await page.click('#skill-buy');
+    ok(await skyH() === sky0, `learning a skill does not resize the chart (${sky0} → ${await skyH()})`);
     ok(await S(page, () => __cv.state.skills.includes('lantern')), 'Lantern Light learned by click');
     ok((await state(page)).glimmer < gWick, 'it cost Glimmer');
     await page.screenshot({ path: path.join(OUT, 'desktop-skills.png') });
