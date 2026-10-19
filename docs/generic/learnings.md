@@ -552,6 +552,27 @@ setTimeout(() => nextBtn.focus(), 0); // not nextBtn.focus() directly
 
 ---
 
+### 5. A Drag on a `touch-action: none` Canvas Swallows the Next Tap (Game 086, Chromium touch)
+
+**Bug**: On a touch screen, after a one-finger drag on the painting canvas, the *next* tap anywhere on the page (a colour swatch, a tool button) did nothing. The tap after that worked.
+
+**Cause**: `touch-action: none` stops the browser scrolling, but Chromium's gesture detector still turns the drag into a fling. The next tap is spent "stopping the fling" (tap suppression), so it never becomes a `click`. Pointer events for that tap still fire (`pointerdown`/`pointerup` on the button), which makes it look like the button is being hit but ignoring you.
+
+**Solution**: Cancel the touch events on the canvas as well. Pointer events keep working.
+```javascript
+for (const t of ['touchstart', 'touchmove']) {
+    canvas.addEventListener(t, (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false });
+}
+```
+
+**Prevention:**
+- ✅ Any canvas that handles its own drags with pointer events: `touch-action: none` **and** cancel `touchstart`/`touchmove`.
+- ✅ Test with real touch input: Playwright `hasTouch` plus CDP `Input.dispatchTouchEvent` for drags and pinches, then `page.touchscreen.tap` on a button. `game-086/dev/browsertest.mjs` does this, and it's how the bug was found.
+
+### 6. Pinch vs Paint: Undo the First Finger (Game 086)
+
+A two-finger pinch always starts with one finger, which looks exactly like a tap-to-paint. Waiting before painting makes every tap feel laggy. Instead, paint at once, and if a second finger lands within ~260 ms, undo the stroke the first finger started and switch to pinching. After a pinch, ignore the remaining finger until every finger has lifted, or the hand coming off the glass paints a stray pixel. See `game-086/js/painter.js`.
+
 ## Performance Optimizations
 
 ### 1. Object Pooling (Not Yet Implemented)
@@ -5887,6 +5908,21 @@ Every panel has `sig(G)`, a string of what its structure depends on, and is rebu
 - Undiscovered entries drawn as dark silhouettes marked ??? turn a record into a collection to fill. The portraits reuse the road's own drawing functions on a small canvas, so a monster looks the same in the book as on the road.
 - Re-reading a letter opens the same sheet as new post; the sheet's button must know which it is, or closing a re-read letter would file away the next unread one.
 - **Symptom: on a 360 px phone the gold counter slides under the ← Games link.** The HUD was right-aligned with a left margin, and once the purse reached seven figures its row grew wider than the space, overflowing to the left. Shrink the chips on narrow screens, and test with the biggest numbers the game can show.
-## Game 086: Colorverse — a cozy coloring studio
+## Game 086: Colorverse — pixel colour-by-number, rebuilt
 
-Canvas `Path2D` can serve both rendering and point-in-region hit testing for compact coloring-book art. Stable region IDs keep saved fills compact and robust when artwork paths change.
+v1 (an imported vector "fill the region" book) never worked and was scrapped. v2 is a pixel game.
+
+### Art as code, sampled at pixel centres
+- Every mosaic is a `draw(P)` function over a tiny pixel-art language (`js/pixelart.js`): `rect`, `ellipse`, `poly`, `ring`, `line`, ASCII `stamp`, `outline` (a 1-px halo around a set of colours), `edge` (rim shading: pixels whose neighbour in a direction differs), `mirror`, seeded `scatter`, plus `clip(keys)` and `within(rect)` masks. Shapes test the pixel centre `(x + 0.5, y + 0.5)`, so a circle of radius 3.2 is always the same pixels. The one grid gives the numbers, thumbnails, the portraits (crops) and the exported PNG.
+- `edge` + `outline` do most of the work of looking "pixel arty": a dark rim under a shape and an ink outline around a character read well even at 16×16.
+- A dev gallery page (`dev/gallery.html`) draws every mosaic with its palette, pixel counts and colour pairs that are too alike. `simtest.mjs` fails a colour used fewer than 3 times (a chore to find), and any two colours closer than redmean 48 (indistinguishable once painted, so a mistake can't be seen).
+
+### Colour-by-number readability
+- Unpainted pixels are greys that keep the picture's lightness. Their range matters: 212–250 was so pale that painted pastels (cloud, moonstone, pale sky) looked unpainted. 170–224 separates them. The selected colour's pixels are a darker violet-grey, so they stand out at any zoom, before numbers are readable.
+- Numbers only from 15 px per cell, grid lines from 7 px; draw only the visible cells, every cell as a snapped `fillRect` in device pixels (no `drawImage` scaling, so grid lines and cells line up exactly).
+- Bigger brushes are "smart": they only take pixels with the selected number, so only the centre pixel can ever be a mistake.
+
+### Economy checked by a bot
+- The first costs let a cheapest-first bot learn all 17 skills by the end of chapter 2 of 5: Streak ×2 stacked with Paint Pour (which never breaks a streak) doubled income. Streak now caps at ×1.5 and costs ramp by tier (≈120 → 3200); the bot finishes the tree in chapter 4.
+
+See also Common Bugs §5 (a drag on a `touch-action: none` canvas swallowing the next tap) and §6 (pinch vs paint).

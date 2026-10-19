@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Colorverse — art gallery</title>
+<style>
+  body { background: #2b2840; color: #eee; font: 13px system-ui, sans-serif; margin: 16px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 18px; }
+  figure { margin: 0; background: #1c1a2c; padding: 10px; border-radius: 8px; }
+  canvas { image-rendering: pixelated; display: block; }
+  figcaption { margin-top: 6px; max-width: 330px; }
+  .sw { display: inline-block; width: 12px; height: 12px; vertical-align: middle; border: 1px solid #000; margin-right: 2px; }
+  .warn { color: #ff9f9f; }
+</style>
+</head>
+<body>
+<div class="grid" id="grid"></div>
+<script type="module">
+  import { ARTWORKS, PORTRAIT_ART } from '../js/artworks.js';
+  import { colorDistance } from '../js/pixelart.js';
+  const params = new URLSearchParams(location.search);
+  const scale = +(params.get('scale') || 0);
+  const only = params.get('only');
+  const grid = document.getElementById('grid');
+  for (const a of [...ARTWORKS, ...PORTRAIT_ART]) {
+    if (only && !only.split(',').includes(a.id)) continue;
+    const s = scale || Math.max(4, Math.floor(320 / a.w));
+    const fig = document.createElement('figure');
+    const c = document.createElement('canvas');
+    c.width = a.w; c.height = a.h; c.style.width = a.w * s + 'px';
+    const ctx = c.getContext('2d'), img = ctx.createImageData(a.w, a.h);
+    a.cells.forEach((ci, i) => {
+      const n = parseInt(a.palette[ci].hex.slice(1), 16);
+      img.data.set([(n >> 16) & 255, (n >> 8) & 255, n & 255, 255], i * 4);
+    });
+    ctx.putImageData(img, 0, 0);
+    let warn = '';
+    a.palette.forEach((p, i) => a.palette.forEach((q, j) => { if (j > i && colorDistance(p.hex, q.hex) < 80) warn += ` ${p.name}≈${q.name}`; }));
+    const cap = document.createElement('figcaption');
+    cap.innerHTML = `<b>${a.title}</b> ${a.w}×${a.h}<br>` + a.palette.map((p, i) => `<span class="sw" style="background:${p.hex}"></span>${i + 1}:${a.counts[i]}`).join(' ') + (warn ? `<div class="warn">close:${warn}</div>` : '');
+    fig.append(c, cap);
+    grid.append(fig);
+  }
+  document.title += ' ✓';
+</script>
+</body>
+</html>
