@@ -1,29 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#201b3d">
-  <meta name="description" content="Colorverse: a cozy sci-fi and fantasy coloring book. Fill line drawings, collect completed art, and share your creations.">
-  <title>Colorverse — a little coloring cosmos</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#16132b">
+    <meta name="description" content="Colorverse: a pixel colour-by-number adventure. Zoom into every pixel, restore five grey worlds, grow a constellation of skills, and meet the Grey Hush.">
+    <title>Colorverse — a pixel colouring adventure</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <a id="back-link" href="../index.html">← Games</a>
-  <main class="app">
-    <header class="masthead"><div class="eyebrow">YOUR POCKET-SIZED ART UNIVERSE</div><h1>Colorverse <span>✦</span></h1><p>Little worlds. Lovely colors. No wrong answers.</p></header>
-    <section class="workspace" aria-label="Coloring studio">
-      <aside class="sidebar"><div class="section-heading"><span>01 / YOUR BOOK</span><span id="progress-count">0 / 3</span></div><div id="art-list" class="art-list"></div><div class="tip"><span>✧</span><p><b>A tiny tip</b><br>Tap any enclosed shape to fill it. You can change its color whenever you like.</p></div></aside>
-      <section class="studio">
-        <div class="studio-top"><div><div class="eyebrow" id="art-theme">COSMIC FRIENDS</div><h2 id="art-title">Starship Sprout</h2></div><span id="completion-badge" class="completion-badge">IN PROGRESS</span></div>
-        <div class="canvas-wrap"><canvas id="art-canvas" width="900" height="720" aria-label="Coloring canvas. Tap a shape to color it."></canvas><div class="canvas-caption"><span>✦</span> Made of stardust &amp; imagination <span>✦</span></div></div>
-        <div class="tools"><div class="palette-area"><div class="tool-label">02 / PICK A COLOR <span id="color-name">Starlight</span></div><div id="palette" class="palette" role="group" aria-label="Color palette"></div></div><div class="tool-actions"><button id="undo" class="icon-button" title="Undo last fill" aria-label="Undo last fill">↶</button><button id="reset" class="icon-button" title="Reset this drawing" aria-label="Reset drawing">⟲</button></div></div>
-        <div class="bottom-actions"><button id="gallery" class="secondary">▦ My collection <span id="collection-count">0</span></button><button id="share" class="primary">Share creation ↗</button></div><p id="status" class="status" aria-live="polite">Choose a color, then tap a shape to begin.</p>
-      </section>
-    </section>
-    <footer>COLORVERSE STUDIO <span>·</span> MADE FOR SLOW MOMENTS</footer>
-  </main>
-  <dialog id="collection-dialog"><div class="dialog-head"><div><div class="eyebrow">YOUR LITTLE GALLERY</div><h2>Collected worlds</h2></div><button id="close-gallery" class="icon-button" aria-label="Close gallery">×</button></div><p class="dialog-intro">Every finished page is a little universe you made yourself.</p><div id="collection-grid" class="collection-grid"></div></dialog>
-  <script type="module" src="js/main.js"></script>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <div id="app">
+        <!-- Title -->
+        <section id="scr-title" class="screen" aria-label="Title">
+            <canvas id="title-sky" aria-hidden="true"></canvas>
+            <div class="title-inner">
+                <div class="eyebrow">A pixel colouring adventure</div>
+                <h1 class="logo" aria-label="Colorverse"><span>C</span><span>o</span><span>l</span><span>o</span><span>r</span><span>v</span><span>e</span><span>r</span><span>s</span><span>e</span></h1>
+                <p class="tagline">The Grey Hush has washed five little worlds to grey.<br>Bring them back, one pixel at a time.</p>
+                <div class="title-actions">
+                    <button id="btn-continue" class="btn primary" type="button">Continue</button>
+                    <button id="btn-new" class="btn" type="button">New journey</button>
+                </div>
+                <p class="title-hint">Pinch or scroll to zoom · tap or drag to paint</p>
+            </div>
+        </section>
+
+        <!-- Star Chart (chapter map) -->
+        <section id="scr-chart" class="screen" aria-label="Star Chart">
+            <header class="bar">
+                <h2 class="bar-title">Star Chart</h2>
+                <div class="glim" title="Glimmer"><span class="glim-icon">✦</span><span class="glim-n">0</span></div>
+                <button id="chart-skills" class="icon-btn" type="button" aria-label="Constellation (skills)" title="Constellation"><span>✧</span><i class="badge" hidden></i></button>
+                <button id="chart-gallery" class="icon-btn" type="button" aria-label="Gallery" title="Gallery"><span>▦</span></button>
+                <button id="chart-settings" class="icon-btn" type="button" aria-label="Settings" title="Settings"><span>⚙</span></button>
+            </header>
+            <div class="scroll" id="chart-scroll">
+                <button id="chart-next" class="next-card" type="button"></button>
+                <div id="chart-list"></div>
+            </div>
+        </section>
+
+        <!-- Painting -->
+        <section id="scr-paint" class="screen" aria-label="Painting">
+            <header class="bar paint-bar">
+                <button id="paint-back" class="pill-btn" type="button" aria-label="Back to the Star Chart">‹ <span>Chart</span></button>
+                <div class="paint-title">
+                    <b id="paint-name">—</b>
+                    <div class="progress" aria-hidden="true"><i id="paint-prog"></i></div>
+                </div>
+                <div class="glim" title="Glimmer"><span class="glim-icon">✦</span><span class="glim-n">0</span></div>
+            </header>
+            <div class="stage" id="stage">
+                <canvas id="paint-canvas" aria-label="Pixel canvas. Pick a colour, then tap or drag over the pixels with its number."></canvas>
+                <div class="zoom-ctl">
+                    <button id="zoom-in" type="button" aria-label="Zoom in" title="Zoom in (+)">+</button>
+                    <button id="zoom-out" type="button" aria-label="Zoom out" title="Zoom out (−)">−</button>
+                    <button id="zoom-fit" type="button" aria-label="Fit the picture" title="Fit (F)">⤢</button>
+                </div>
+                <canvas id="minimap" class="minimap" width="120" height="120" hidden aria-label="Star Map: tap to jump"></canvas>
+                <div id="streak" class="streak" hidden></div>
+                <div id="zoom-hint" class="zoom-hint" hidden>Pinch or scroll to zoom in and see the numbers</div>
+            </div>
+            <div class="dock">
+                <div class="tools" id="tools" role="toolbar" aria-label="Tools"></div>
+                <div class="palette" id="palette" role="radiogroup" aria-label="Colours"></div>
+            </div>
+        </section>
+
+        <!-- Constellation (skill tree) -->
+        <section id="scr-skills" class="screen" aria-label="Constellation">
+            <header class="bar">
+                <button id="skills-back" class="pill-btn" type="button">‹ <span>Chart</span></button>
+                <h2 class="bar-title">Constellation</h2>
+                <div class="glim" title="Glimmer"><span class="glim-icon">✦</span><span class="glim-n">0</span></div>
+            </header>
+            <div class="sky" id="sky">
+                <svg id="sky-svg" viewBox="-4 -4 108 104" preserveAspectRatio="xMidYMid meet" aria-label="Skill constellation"></svg>
+            </div>
+            <div class="skill-card" id="skill-card" aria-live="polite"></div>
+        </section>
+
+        <!-- Gallery -->
+        <section id="scr-gallery" class="screen" aria-label="Gallery">
+            <header class="bar">
+                <button id="gallery-back" class="pill-btn" type="button">‹ <span>Chart</span></button>
+                <h2 class="bar-title">Gallery</h2>
+                <div class="bar-note" id="gallery-count"></div>
+            </header>
+            <div class="scroll"><div class="gallery-grid" id="gallery-grid"></div></div>
+        </section>
+    </div>
+
+    <div id="dialogue" class="dialogue" hidden>
+        <div class="dlg-box" role="dialog" aria-live="polite">
+            <canvas class="dlg-face" width="16" height="16" aria-hidden="true"></canvas>
+            <div class="dlg-body">
+                <div class="dlg-name"></div>
+                <p class="dlg-text"></p>
+            </div>
+            <div class="dlg-next" aria-hidden="true">▸</div>
+        </div>
+        <button class="dlg-skip" type="button">Skip ›</button>
+    </div>
+
+    <div id="modal" class="modal" hidden><div class="modal-card" id="modal-card" role="dialog" aria-modal="true"></div></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
