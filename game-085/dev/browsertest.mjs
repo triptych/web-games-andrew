@@ -177,6 +177,21 @@ async function desktop() {
     await page.waitForTimeout(3000);
     const pan = await Q(page, (p) => ({ ds: Math.abs((__wq.view.bgShift || 0) - p.s), dm: __wq.G.odo - p.o }), pan0);
     check(pan.dm > 0.05 && pan.ds / pan.dm < 0.25, `the mountains drift ${(pan.ds / Math.max(pan.dm, 1e-6)).toFixed(3)} screen widths per mile (under 0.25)`);
+    // the town ahead stands still in the world as the caravan rolls up to it, like the trees (v1.2.1: its houses
+    // crept forward with the camera between ticks and snapped back on each one)
+    const townDrift = await Q(page, () => new Promise((done) => {
+        const r = __wq.G.road, back = r.done;
+        r.done = Math.max(r.done, r.miles - 3);
+        const zs = [], o0 = __wq.G.odo;
+        const tick = () => {
+            const t = __wq.view.town;
+            if (t && t.id === __wq.G.road?.to) zs.push(t.z);
+            if (zs.length < 90) requestAnimationFrame(tick);
+            else { const miles = __wq.G.odo - o0; if (__wq.G.road === r) r.done = back + miles; done({ spread: Math.max(...zs) - Math.min(...zs), miles }); }
+        };
+        requestAnimationFrame(tick);
+    }));
+    check(townDrift.miles > 0.05 && townDrift.spread < 1, `Millbrook's houses hold their place as the caravan rolls in (moved ${townDrift.spread.toFixed(1)} units over ${townDrift.miles.toFixed(2)} miles)`);
 
     // Rally does nothing mid-fight, in camp or while a wheel is mended (the button greys out): like a player,
     // wait until it's ready, and press again if a fight got there first
