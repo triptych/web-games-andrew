@@ -2,7 +2,7 @@
 
 **Genre:** Idle caravan RPG (mobile first)
 **Engine:** Vanilla JS: Canvas 2D (a pseudo-3D road) + DOM panels, no asset files
-**Status:** v1.2.0
+**Status:** v1.2.1
 
 ---
 
@@ -172,6 +172,9 @@ From the bot table (`SEEDS=3`, the median of three):
 - Push notifications would suit the genre, but a static page can't send them.
 
 ## Changelog
+
+### v1.2.1 (2026-10-19)
+- Rolling into a town, the houses slid forward with the caravan and snapped back once a second, out of step with the ground and the trees. The town's place on the road was worked out each frame from the view's odometer (smoothed between ticks) plus the miles left on the road (which only changes on the tick); it now comes from the sim's odometer alone, so the houses stay put in the world. The point where the scenery changes between regions had the same fault and the same fix. `browsertest.mjs` watches Millbrook's position over 90 frames of approach (261 units of wander before, none now).
 
 ### v1.2.0 (2026-10-19)
 - The "while you were away" chronicle tallies its numbers: miles, towns, fights, gold, quests, gear and the rest count up from 0 one after another (each over about a second, a quarter-second apart, easing out, with a soft tick), pop as they land, then a chime and the highlights fade in. Tapping the numbers finishes the tally at once; Onward always closes the sheet; with reduced motion the totals show straight away.

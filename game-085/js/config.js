@@ -1,7 +1,7 @@
 // WanderQuest — tuning and constants. Shared by the sim, the view, the UI and the tests.
 // One tick of the simulation is one real second; every rate below is per second unless it says otherwise.
 
-export const VERSION = '1.2.0';
+export const VERSION = '1.2.1';
 export const SAVE_KEY = 'wanderquest.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s); the rules run on whole-second ticks inside it

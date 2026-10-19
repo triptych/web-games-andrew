@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **WanderQuest** (game-085) v1.2.1: rolling into a town, the houses slid forward with the caravan and snapped back once a second instead of standing still like the trees. The town's place on the road mixed the view's smoothed odometer with the miles left (which only changes on each tick); it now uses the sim's odometer alone, and so does the point where the scenery changes between regions ([view.js](game-085/js/view/view.js)). [browsertest.mjs](game-085/dev/browsertest.mjs) watches the town's position over 90 frames of approach.
+
 ### Added
 - **Quillsworn** (game-087) v1.0.0: a storytellers’ guild RPG that is also a real tool for writing a fantasy novel, in vanilla JS (DOM, SVG and Canvas 2D) with no asset files. Thalion Silverquill, Master of the Guild of the Quillsworn, teaches you the craft while every new word you write is experience. Design in [game-plan.md](game-087/game-plan.md).
   - **The rules** ([js/sim/](game-087/js/sim/)): XP from new words above each scene’s high-water mark, so deleting and retyping never counts twice and pasted words earn nothing ([actions.js](game-087/js/sim/actions.js) `writeScene`); levels, nine ranks, four callings, five attributes derived from what you have done, 20 talents and 15 relics ([progress.js](game-087/js/sim/progress.js)); a twelve-quest road from the Spark to the Last Page, 21 side quests and three daily bounties chosen from the seed and the date, every one a pure check ([quests.js](game-087/js/sim/quests.js)); ink duels where a foe’s health is the words you owe ([duel.js](game-087/js/sim/duel.js)); the Muse’s Well, seeded ([oracle.js](game-087/js/sim/oracle.js)); word counts, a markup parser that always yields well-formed XHTML, and the Scribe’s Lens ([text.js](game-087/js/sim/text.js)); 39 lessons and every scene in Thalion’s voice ([data/](game-087/js/sim/data/)).

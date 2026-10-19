@@ -228,7 +228,7 @@ export class View {
         let split = null;
         if (G.road) {
             const a = BIOME_OF[TOWN[G.road.from].region], b = BIOME_OF[TOWN[G.road.to].region];
-            if (a !== b) split = { z: L.caravanZ + (G.road.miles / 2 - G.road.done) * MILE, a, b };
+            if (a !== b) split = { z: (G.odo + G.road.miles / 2 - G.road.done) * MILE, a, b };
         }
         const here = this.biome;
         const townZ0 = this.town ? this.town.z - 400 : Infinity, townZ1 = this.town ? this.town.z + 16 * 650 : -Infinity;
@@ -458,11 +458,13 @@ export class View {
 
     updateTown(G, L) {
         if (G.at) {
-            if (!this.town || this.town.id !== G.at) this.town = { id: G.at, z: L.caravanZ - GATE_BACK };
+            if (!this.town || this.town.id !== G.at) this.town = { id: G.at, z: G.odo * MILE - GATE_BACK };
         } else if (G.road) {
             const left = G.road.miles - G.road.done;
             if (left * MILE < DRAW * SEG) {
-                const z = L.caravanZ - GATE_BACK + left * MILE;
+                // from the sim's odometer, not the view's (which runs ahead between ticks while road.done waits),
+                // so the town stays put in the world like the trees do instead of creeping and snapping back
+                const z = (G.odo + left) * MILE - GATE_BACK;
                 if (!this.town || this.town.id !== G.road.to) this.town = { id: G.road.to, z };
                 else this.town.z = z;
             } else if (this.town && this.town.id !== G.road.from) this.town = null;
