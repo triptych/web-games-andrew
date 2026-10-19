@@ -17,6 +17,8 @@ export const suggestName = (not = '') => { const pool = WAGON_NAMES.filter((n) =
 import { esc, fmtTime, fmtNum, LOG_ICON } from './fmt.js';
 
 const $ = (id) => document.getElementById(id);
+/** A tallied number as the chronicle shows it. */
+const tallyText = (v, f) => (f === 'signed' ? (v >= 0 ? '+' : '') + fmtNum(v) : f === 'plus' ? '+' + fmtNum(v) : fmtNum(v));
 const TABS = ['road', 'caravan', 'pack', 'quests', 'map', 'town', 'book'];
 
 export class UI {
@@ -369,19 +371,61 @@ export class UI {
     showAway(c, cappedAt) {
         const h = c.secs;
         $('away-title').textContent = `While you were away · ${fmtTime(h)}`;
+        // [label, number, format, note]: the numbers are tallied up from 0 when the sheet opens
         const cells = [
-            ['Miles', fmtNum(c.miles)], ['Towns', c.towns], ['Fights won', `${c.won}${c.lost ? ` <span class="tiny">(${c.lost} lost)</span>` : ''}`],
-            ['Gold', `${c.goldNet >= 0 ? '+' : ''}${fmtNum(c.goldNet)}`], ['Quests', c.quests], ['Gear found', c.items],
+            ['Miles', c.miles, 'num'], ['Towns', c.towns, 'num'], ['Fights won', c.won, 'num', c.lost ? `${c.lost} lost` : ''],
+            ['Gold', c.goldNet, 'signed'], ['Quests', c.quests, 'num'], ['Gear found', c.items, 'num'],
         ];
-        if (c.crafted) cells.push(['Forged', c.crafted]);
-        if (c.cooked) cells.push(['Rations cooked', c.cooked]);
-        if (c.brewed) cells.push(['Potions', c.brewed]);
-        if (c.levels) cells.push(['Caravan levels', `+${c.levels}`]);
+        if (c.crafted) cells.push(['Forged', c.crafted, 'num']);
+        if (c.cooked) cells.push(['Rations cooked', c.cooked, 'num']);
+        if (c.brewed) cells.push(['Potions', c.brewed, 'num']);
+        if (c.levels) cells.push(['Caravan levels', c.levels, 'plus']);
+        $('away-body').classList.remove('tallied');
         $('away-body').innerHTML = `${cappedAt ? `<p class="dim small">The Great Lantern burns for ${fmtTime(cappedAt)} away; after that the caravan made camp and waited for you.</p>` : ''}
-            <div class="stat-grid">${cells.map(([k, v]) => `<div>${k}<b>${v}</b></div>`).join('')}</div>
+            <div class="stat-grid tally" id="away-stats" title="Tap to finish the tally">${cells.map(([k, v, f, note]) => `<div>${k}<b data-to="${v}" data-fmt="${f}">${tallyText(0, f)}</b>${note ? `<span class="tiny">${note}</span>` : ''}</div>`).join('')}</div>
+            <div class="after-tally">
             ${c.levelUps.length ? `<p class="small">⭐ ${c.levelUps.map(esc).join(' · ')}</p>` : ''}
-            <ul class="log">${c.highlights.slice().reverse().map((e) => `<li class="hi"><span>${LOG_ICON[e.k] || '•'}</span><span>${esc(e.s)}</span></li>`).join('') || '<li class="dim">A quiet stretch of road.</li>'}</ul>`;
+            <ul class="log">${c.highlights.slice().reverse().map((e) => `<li class="hi"><span>${LOG_ICON[e.k] || '•'}</span><span>${esc(e.s)}</span></li>`).join('') || '<li class="dim">A quiet stretch of road.</li>'}</ul></div>`;
         this.openScreen('away');
+        $('away-stats').addEventListener('click', () => this.finishTally());
+        this.startTally();
+    }
+
+    /** Count every number on the chronicle up from 0, one after another, like a quartermaster at the ledger. */
+    startTally() {
+        const els = [...document.querySelectorAll('#away-stats b[data-to]')];
+        const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        this.tally = { els, t0: performance.now(), done: false, lastTick: 0 };
+        if (reduce || !els.length) { this.finishTally(); return; }
+        const STAGGER = 220, DUR = 1000;
+        const step = (now) => {
+            const T = this.tally;
+            if (!T || T.done) return;
+            if ($('away').hidden) { T.done = true; return; }      // closed mid-tally: stop quietly
+            let all = true, moved = false;
+            T.els.forEach((el, i) => {
+                const k = Math.max(0, Math.min(1, (now - T.t0 - i * STAGGER) / DUR));
+                const e = 1 - Math.pow(1 - k, 3);
+                const to = +el.dataset.to, v = Math.round(to * e);
+                const text = tallyText(v, el.dataset.fmt);
+                if (el.textContent !== text) { el.textContent = text; moved = true; }
+                if (k >= 1 && !el.classList.contains('landed')) el.classList.add('landed');
+                if (k < 1) all = false;
+            });
+            if (moved && now - T.lastTick > 55) { T.lastTick = now; this.audio.ui('tick'); }
+            if (all) this.finishTally();
+            else requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    }
+
+    finishTally() {
+        const T = this.tally;
+        if (!T || T.done) return;
+        T.done = true;
+        for (const el of T.els) { el.textContent = tallyText(+el.dataset.to, el.dataset.fmt); el.classList.add('landed'); }
+        $('away-body').classList.add('tallied');
+        this.audio.ui('tallied');
     }
 }
 

@@ -170,6 +170,14 @@ table.market .btn { min-width: 44px; padding: 4px 6px; font-size: 13px; }
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; margin-bottom: 10px; }
 .stat-grid div { background: var(--panel2); border-radius: 10px; padding: 8px; text-align: center; font-size: 12px; color: var(--dim); }
 .stat-grid b { display: block; font-size: 18px; color: var(--text); }
+/* the chronicle's tally: numbers count up, each pops as it lands, then the highlights fade in */
+.stat-grid.tally { cursor: pointer; }
+.stat-grid.tally b { font-variant-numeric: tabular-nums; transition: color 0.3s; }
+.stat-grid.tally b.landed { color: var(--accent); animation: land 0.35s ease-out; }
+@keyframes land { 0% { transform: scale(1); } 45% { transform: scale(1.22); } 100% { transform: scale(1); } }
+#away-body .after-tally { opacity: 0; transform: translateY(6px); transition: opacity 0.5s, transform 0.5s; }
+#away-body.tallied .after-tally { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .stat-grid.tally b.landed { animation: none; } #away-body .after-tally { transition: none; } }
 .rar0 { color: #d8dae2; } .rar1 { color: #8fe08a; } .rar2 { color: #70b4ff; } .rar3 { color: #d090ff; } .rar4 { color: #ffbc50; }
 
 /* ---------------------------------------------------------------- the scrapbook */

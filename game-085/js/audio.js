@@ -118,6 +118,8 @@ export class Audio {
         else if (kind === 'open') this.tone({ freq: 440, to: 660, dur: 0.08, type: 'triangle', vol: 0.1 });
         else if (kind === 'close') this.tone({ freq: 660, to: 440, dur: 0.08, type: 'triangle', vol: 0.1 });
         else if (kind === 'coin') { this.tone({ freq: 1320, dur: 0.06, type: 'square', vol: 0.06 }); this.tone({ freq: 1760, dur: 0.12, type: 'square', vol: 0.06, delay: 0.06 }); }
+        else if (kind === 'tick') this.tone({ freq: 1500 + Math.random() * 300, dur: 0.025, type: 'triangle', vol: 0.035 });
+        else if (kind === 'tallied') [784, 1047, 1319].forEach((f, i) => this.tone({ freq: f, dur: 0.2, type: 'triangle', vol: 0.08, delay: i * 0.07 }));
         else if (kind === 'deny') this.tone({ freq: 200, to: 150, dur: 0.15, type: 'sawtooth', vol: 0.08 });
     }
 
