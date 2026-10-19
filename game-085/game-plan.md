@@ -2,7 +2,7 @@
 
 **Genre:** Idle caravan RPG (mobile first)
 **Engine:** Vanilla JS: Canvas 2D (a pseudo-3D road) + DOM panels, no asset files
-**Status:** v1.1.0
+**Status:** v1.2.0
 
 ---
 
@@ -99,7 +99,7 @@ A badge says when there's something new. It looks like a scrapbook: lined paper,
 While the caravan travels, a sparkle sometimes hovers over the road ahead (`SPARKLE` in `config.js`: chance 1/45 a moving tick, 1.2–2 miles ahead, never past the road's end, never in town). Grabbing it (`command({ type: 'sparkle', id })`, `grabSparkle` in `game.js`) rolls gold, gear, a Shimmering fight or lore; it fades when the caravan reaches it. The spawn uses `hash3(t, seed)` rather than `G.rng`, so `advance()` and `step()` stay identical. Lore (`LORE` in `data.js`) comes only from regions you can reach, never twice; after all thirty, sparkles hold something else.
 
 ### Time away
-On Continue, or when the tab comes back after more than 30 s hidden, the sim runs `min(seconds away, Great Lantern hours)` quietly, then the **chronicle** sheet shows the difference and up to 30 highlights. A day away runs in ~0.1 s.
+On Continue, or when the tab comes back after more than 30 s hidden, the sim runs `min(seconds away, Great Lantern hours)` quietly, then the **chronicle** sheet shows the difference and up to 30 highlights. A day away runs in ~0.1 s. The numbers count up from 0 when the sheet opens, as if the quartermaster were tallying the ledger; the highlights follow.
 
 ## Content
 
@@ -172,6 +172,9 @@ From the bot table (`SEEDS=3`, the median of three):
 - Push notifications would suit the genre, but a static page can't send them.
 
 ## Changelog
+
+### v1.2.0 (2026-10-19)
+- The "while you were away" chronicle tallies its numbers: miles, towns, fights, gold, quests, gear and the rest count up from 0 one after another (each over about a second, a quarter-second apart, easing out, with a soft tick), pop as they land, then a chime and the highlights fade in. Tapping the numbers finishes the tally at once; Onward always closes the sheet; with reduced motion the totals show straight away.
 
 ### v1.1.0 (2026-10-18)
 - **A fuller countryside** (`js/view/scenery.js`): the road used to have one prop at most per segment, always near the path, from a handful of fixed shapes. Now every segment is scattered, from its own hash, in three bands: the verge (grass, flowers, pebbles, toadstools, reeds, ice shards, embers…), the middle ground (trees, rocks, logs, stumps, haystacks, pools, grazing sheep and deer), and a far band out to the horizon (tree lines, pine forests, mesas, outcrops, the odd windmill) that fades into the haze. Low-frequency noise along each side makes groves and clearings. Every tree, rock and cactus takes its size, shape, lean and colour from its own hash: oaks (some with apples), birches, poplars, blossom and autumn trees in Meadowmere; three cacti, mesas and palms in the Wastes; willows, swamp trees and giant toadstools in Mirewood; pines in four greens with or without snow in Frostfang; dead trees and obsidian in Emberreach; crystal groves and floating rocks in Starhaven. Where a road crosses into a new region the scenery changes at its midpoint, ahead of you. Flocks of birds cross the sky (loose flocks, V formations, circling vultures; bats at night).

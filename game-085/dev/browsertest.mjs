@@ -238,6 +238,21 @@ async function desktop() {
     await until(p2, () => !document.getElementById('away').hidden, 'the "while you were away" chronicle opens');
     check(await Q(p2, (t) => __wq.G.t - t >= 7190 && __wq.G.t - t <= 7300, saved.data.t), 'the caravan travelled for the two hours');
     check(await Q(p2, () => /2h/.test(document.getElementById('away-title').textContent) && document.querySelectorAll('#away-body .stat-grid div').length >= 6), 'the chronicle says how long and what happened');
+    // the numbers are tallied up from 0, then the highlights fade in
+    const tally = await Q(p2, async () => {
+        let between = false;
+        for (let i = 0; i < 100 && !__wq.ui.tally?.done; i++) {
+            for (const b of document.querySelectorAll('#away-stats b')) {
+                const v = +b.textContent.replace(/[^0-9]/g, ''), to = Math.abs(+b.dataset.to);
+                if (to > 3 && v > 0 && v < to) between = true;
+            }
+            await new Promise((r) => setTimeout(r, 60));
+        }
+        const bs = [...document.querySelectorAll('#away-stats b')];
+        return { between, done: !!__wq.ui.tally?.done, exact: bs.every((b) => +b.textContent.replace(/[^0-9]/g, '') === Math.abs(+b.dataset.to)), landed: bs.every((b) => b.classList.contains('landed')), shown: document.getElementById('away-body').classList.contains('tallied') };
+    });
+    check(tally.between, 'the chronicle\'s numbers count up (a number was seen between 0 and its total)');
+    check(tally.done && tally.exact && tally.landed && tally.shown, 'and land on the exact totals before the highlights fade in');
     await shot(p2, 'desktop-away');
     await until(p2, () => document.activeElement?.id === 'away-ok', 'its button has the focus');
     await p2.keyboard.press('Space');
