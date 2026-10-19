@@ -5887,3 +5887,6 @@ Every panel has `sig(G)`, a string of what its structure depends on, and is rebu
 - Undiscovered entries drawn as dark silhouettes marked ??? turn a record into a collection to fill. The portraits reuse the road's own drawing functions on a small canvas, so a monster looks the same in the book as on the road.
 - Re-reading a letter opens the same sheet as new post; the sheet's button must know which it is, or closing a re-read letter would file away the next unread one.
 - **Symptom: on a 360 px phone the gold counter slides under the ← Games link.** The HUD was right-aligned with a left margin, and once the purse reached seven figures its row grew wider than the space, overflowing to the left. Shrink the chips on narrow screens, and test with the biggest numbers the game can show.
+## Game 086: Colorverse — a cozy coloring studio
+
+Canvas `Path2D` can serve both rendering and point-in-region hit testing for compact coloring-book art. Stable region IDs keep saved fills compact and robust when artwork paths change.

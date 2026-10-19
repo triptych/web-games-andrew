@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Colorverse** (game-086) v1.0.0: a cozy sci-fi/fantasy coloring studio with three generated line drawings, region fills, a pastel palette, a personal collection and PNG sharing.
 - **WanderQuest** (game-085) v1.2.0: the "while you were away" chronicle tallies its results. Each number counts up from 0 in turn, a quarter-second apart with a soft tick, pops as it lands on its total, then a chime plays and the highlights fade in. Tapping the numbers finishes the tally at once; with reduced motion the totals show straight away ([ui.js](game-085/js/ui/ui.js), [style.css](game-085/style.css), [audio.js](game-085/js/audio.js)). [browsertest.mjs](game-085/dev/browsertest.mjs) checks a number is seen part-way and that every one lands on its exact total.
 
 ### Added

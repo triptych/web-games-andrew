@@ -1096,6 +1096,19 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 200, 87, 0.55);
 }
 
+.game-preview.colorverse,
+.carousel-slide-bg.colorverse {
+    background: radial-gradient(circle at 50% 35%, rgba(245, 168, 212, 0.75), transparent 32%),
+        radial-gradient(circle at 78% 70%, rgba(145, 224, 204, 0.55), transparent 34%),
+        linear-gradient(145deg, #211b3d, #65548c 58%, #d7a8c9);
+}
+
+.game-card.colorverse .play-button {
+    background: linear-gradient(135deg, #f5a8d4, #cbb2ff 55%, #9ce9d2);
+    color: #251b3c;
+    box-shadow: 0 0 14px rgba(245, 168, 212, 0.4);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

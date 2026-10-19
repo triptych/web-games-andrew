@@ -1288,6 +1288,22 @@ const games = [
             { emoji: '\u2696\uFE0F', label: 'Trading' },
             { emoji: '\uD83C\uDFA8', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-086',
+        title: 'Colorverse',
+        description: 'A cozy sci-fi and fantasy coloring book. Fill line drawings, collect completed art, save progress, and share PNG creations.',
+        icon: '🎨',
+        folder: 'game-086',
+        version: '1.0.0',
+        cssClass: 'colorverse',
+        genre: 'cozy',
+        tags: [
+            { emoji: '🎨', label: 'Coloring' },
+            { emoji: '🌙', label: 'Cozy' },
+            { emoji: '🚀', label: 'Fantasy & Sci-fi' },
+            { emoji: '🖌️', label: 'Canvas 2D' }
+        ]
     }
 ];
 
