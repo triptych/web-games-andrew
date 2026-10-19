@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" data-desk="parchment" data-text="m">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#101416">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Quillsworn — a storytellers’ guild RPG. Write a fantasy novel with Thalion Silverquill, Master of the Guild: level up, go on quests, unlock rooms and talents, duel the foes of every writer, and bind your book as HTML, EPUB or PDF.">
+    <title>Quillsworn</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+    <canvas id="motes" aria-hidden="true"></canvas>
+
+    <div id="title" class="title-screen" hidden></div>
+
+    <div id="shell" hidden>
+        <header id="topbar">
+            <button id="tb-sheet" class="tb-me" aria-label="Your Sheet: level, talents and relics">
+                <span id="tb-sigil" class="tb-sigil"></span>
+                <span class="tb-who"><strong id="tb-name"></strong><span id="tb-rank"></span></span>
+            </button>
+            <div class="tb-xp" aria-label="Experience">
+                <div class="xpbar"><i id="tb-xpfill"></i></div>
+                <span id="tb-xp"></span>
+            </div>
+            <div id="tb-day" class="tb-day" aria-label="Words today and your streak">
+                <span id="tb-today-ring" class="ring" aria-hidden="true"></span>
+                <span><span id="tb-today"></span><span class="tb-lbl"> today</span></span>
+                <span id="tb-streak-wrap" class="tb-streak"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 C14 6 18 8 18 14 C18 18 15 22 12 22 C9 22 6 19 6 15 C6 12 8 10 9 8 C9.5 11 10.5 12 11.5 12.5 C10.5 9 11 5 12 2 Z" fill="currentColor"/></svg><span id="tb-streak">0</span></span>
+            </div>
+            <button id="tb-settings" class="icon-btn tb-gear" aria-label="Settings">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm9 4.6v-2.2l-2.4-.5a7 7 0 0 0-.8-1.9l1.4-2-1.6-1.6-2 1.4a7 7 0 0 0-1.9-.8L13.1 3h-2.2l-.5 2.4a7 7 0 0 0-1.9.8l-2-1.4-1.6 1.6 1.4 2a7 7 0 0 0-.8 1.9L3 10.9v2.2l2.4.5c.2.7.4 1.3.8 1.9l-1.4 2 1.6 1.6 2-1.4c.6.4 1.2.6 1.9.8l.5 2.5h2.2l.5-2.4a7 7 0 0 0 1.9-.8l2 1.4 1.6-1.6-1.4-2c.4-.6.6-1.2.8-1.9Z" fill="currentColor"/></svg>
+            </button>
+        </header>
+        <nav id="dock" aria-label="Rooms of the guild"></nav>
+        <main id="room" tabindex="-1"></main>
+    </div>
+
+    <div id="dialogue" hidden></div>
+    <div id="pop" hidden></div>
+    <div id="modals"></div>
+    <div id="toasts" aria-live="polite"></div>
+    <div id="banner" role="alert" hidden></div>
+    <noscript><p class="noscript">Quillsworn needs JavaScript.</p></noscript>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -4705,6 +4705,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] The touch deck is on before the first stage, not after the first touch on it (game-074).
 - [ ] No sheet scrolls a button under the fixed `← Games` link (game-073); centre panels stay on screen on a 390 px phone (game-062); HUD gauges sit next to what they describe in both orientations (game-066).
 - [ ] Right-click menus open on `contextmenu` and cancel it; opening on `pointerdown` lets the browser's own menu appear on top (game-076).
+- [ ] An off-screen drawer (`translateX(105%)`) doesn't make its scroller scrollable: `overflow: clip` and `contain: paint` on its container, or `scrollIntoView()` pans the room sideways on a phone (game-087).
 - [ ] On-screen button labels match the keys (the cabinet said A B C; the keys were Z X C, game-075).
 - [ ] A drag that moves the camera never also places or builds; a press that wandered ~10 px isn't a tap (game-067).
 
