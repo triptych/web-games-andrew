@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quillsworn — art gallery</title>
+<style>
+    body { margin: 0; padding: 16px; background: #2a2f33; color: #eee; font: 14px system-ui, sans-serif; }
+    h2 { margin: 18px 0 8px; font-weight: 600; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .cell { background: #3a4045; border-radius: 10px; padding: 6px; text-align: center; }
+    .cell svg { display: block; }
+    .face svg { width: 200px; height: 250px; }
+    .foe svg { width: 150px; height: 150px; }
+    .sig svg { width: 80px; height: 96px; }
+    canvas { border-radius: 6px; display: block; }
+</style>
+</head>
+<body>
+<h2>Thalion Silverquill, every mood</h2><div class="row" id="moods"></div>
+<h2>The foes of the Proving Grounds</h2><div class="row" id="foes"></div>
+<h2>Sigils: every shape and charge</h2><div class="row" id="sigils"></div>
+<h2>Maps from four seeds</h2><div class="row" id="maps"></div>
+<script type="module">
+    import { thalionSvg, MOODS } from '../js/view/portrait.js';
+    import { foeSvg, sigilSvg, CHARGES, SIGIL_SHAPES, SIGIL_FIELDS, SIGIL_TINCTURES } from '../js/view/art.js';
+    import { FOES } from '../js/sim/data/guild.js';
+    import { drawMap } from '../js/view/map.js';
+    const $ = (id) => document.getElementById(id);
+    const cell = (cls, html, label) => `<div class="cell ${cls}">${html}<div>${label}</div></div>`;
+    $('moods').innerHTML = MOODS.map((m) => cell('face', thalionSvg(m), m)).join('');
+    $('foes').innerHTML = FOES.map((f) => cell('foe', foeSvg(f.id, f.name), f.name)).join('');
+    $('sigils').innerHTML = Object.keys(CHARGES).map((c, i) => cell('sig', sigilSvg({ charge: c, shape: SIGIL_SHAPES[i % 4], field: SIGIL_FIELDS[i % SIGIL_FIELDS.length], tincture: SIGIL_TINCTURES[i % SIGIL_TINCTURES.length] }), c)).join('');
+    for (const seed of [1, 77, 4242, 909090]) {
+        const c = document.createElement('canvas');
+        c.width = 480; c.height = 320;
+        drawMap(c.getContext('2d'), 480, 320, { seed, title: `Seed ${seed}`, pins: [{ x: 0.5, y: 0.5, label: 'Saltmere' }, { x: 0.3, y: 0.62, label: 'Ashford', on: true }] });
+        const d = document.createElement('div'); d.className = 'cell'; d.append(c); $('maps').append(d);
+    }
+    window.__ready = true;
+</script>
+</body>
+</html>

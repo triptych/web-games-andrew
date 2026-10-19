@@ -1304,6 +1304,22 @@ const games = [
             { emoji: '✨', label: 'Skill Tree' },
             { emoji: '📱', label: 'Touch & Zoom' }
         ]
+    },
+    {
+        id: 'game-087',
+        title: 'Quillsworn',
+        description: "A storytellers’ guild RPG that is also a real tool for writing a fantasy novel, in vanilla JS with no asset files. You climb the stair to the Guild of the Quillsworn in the hill city of Vellmere, where every lamp is lit by a finished story and half of them have gone dark, and Master Thalion Silverquill, a handsome, six-hundred-year-old and slightly vain elf, takes you on as an apprentice. Choose a pen name, a sigil and a calling (Bard, Heartseer, Loremaster or Weaver), then walk the guild’s twelve-quest road from the Spark to the Last Page: found your novel in the Charter, write in the Scriptorium (chapters, scenes, a parchment page, word counts, drafts, find and replace), flesh out your cast in the Hall of Faces, shape the plot on the Loom (six structures, from the Hero’s Journey to Kishōtenketsu, and threads woven across chapters), build the world and pin it on a generated parchment map in the Cartographer’s Loft, and draw names, twists, magic systems and prophecies from the Muse’s Well. Every new word is experience: level up through nine guild ranks, raise five attributes, spend points on twenty talents (the Scribe’s Lens reads your prose for adverbs, echoes, clichés and rhythm), wear relics, and win ink duels, timed sprints against the Procrastination Imp, the Wraith of the Blank Page, the Mire-Hydra of the Sagging Middle and the Inner Critic. Thirty-nine lessons of craft in Thalion’s voice, daily bounties, side quests, laurels and a finale for your finished book; then bind it in the Bindery as a web page, an EPUB or a print-ready PDF, with drop caps, a map plate, a Dramatis Personae and a glossary. Saves as you write.",
+        icon: '🪶',
+        folder: 'game-087',
+        version: '1.0.0',
+        cssClass: 'quillsworn',
+        genre: 'story',
+        tags: [
+            { emoji: '✍️', label: 'Novel writing' },
+            { emoji: '🧝', label: 'Fantasy RPG' },
+            { emoji: '📚', label: 'EPUB & PDF' },
+            { emoji: '🎨', label: 'Vanilla JS' }
+        ]
     }
 ];
 

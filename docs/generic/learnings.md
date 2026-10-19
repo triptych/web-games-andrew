@@ -5926,3 +5926,35 @@ v1 (an imported vector "fill the region" book) never worked and was scrapped. v2
 - The first costs let a cheapest-first bot learn all 17 skills by the end of chapter 2 of 5: Streak ×2 stacked with Paint Pour (which never breaks a streak) doubled income. Streak now caps at ×1.5 and costs ramp by tier (≈120 → 3200); the bot finishes the tree in chapter 4.
 
 See also Common Bugs §5 (a drag on a `touch-action: none` canvas swallowing the next tap) and §6 (pinch vs paint).
+
+## Game 087: Quillsworn — a writing tool that is an RPG (2026-10-19)
+
+[game-087](../../game-087/) is a DOM app (a novel-writing tool) wearing a guild RPG: XP from words, quests that walk you through writing a novel, ink duels, and binding to HTML, EPUB and PDF. Notes that carry over to any tool-shaped game.
+
+### The sim/view layout without a frame loop
+- Nothing moves on its own, so there is no fixed step. The sim is a set of pure actions `(S, ...args, ctx)` in [actions.js](../../game-087/js/sim/actions.js), each ending in `settle(S, ctx)`, which pays one-off awards, raises derived attributes, completes bounties and laurels and flags quests that just became ready (once, keyed in `S.player.awarded`). Time comes in as `ctx = { now, today: 'YYYY-MM-DD', hour }`; the debug hook `__qs.days(n)` shifts it, so streaks and daily bounties are testable.
+- Every room calls `app.after()` after an action: it drains `S.events` into toasts and sounds and **returns the drained events**, so a room that wants its own (a duel's hits and taunts, a relic drop on the result card) reads them from the return value instead of racing the shell for them.
+- Quests are pure checks `(S) => [done, of]` per step ([quests.js](../../game-087/js/sim/quests.js)), as in TALEWRIGHT. The data test walks the road and checks that the room each quest needs is open by the time it starts.
+
+### XP from writing that can't be farmed
+- Credit only words above each scene's **high-water mark** (`sc.peak`): deleting a paragraph and typing it again earns nothing, and neither does undo/redo.
+- Paste is caught with `beforeinput` (flush the typed batch first) and `input` with `inputType === 'insertFromPaste' | 'insertFromDrop'`; those words raise the mark and go in the book but earn no XP. Find-and-replace also moves the mark, so replacing "dragon" with "great wyrm of the north" isn't income.
+- Recount every scene from its text on load: a stored word count is a claim, not a fact.
+
+### Markup that is always well-formed XHTML
+- The EPUB is XHTML, so one unbalanced `<em>` breaks the whole book in a reader. [text.js](../../game-087/js/sim/text.js) `inlineHtml` pairs `**`, `*` and `_` with a stack: a marker that would cross another (`**a *b** c*`) is literal, anything left open at the end is unwound into literal text, `_` counts only at word edges (snake_case stays). The simtest fuzzes 400 strings of marker soup and checks the tags balance, and a tiny XML checker reads every file in the EPUB.
+- XHTML has no `&nbsp;`; use `&#160;`. An XHTML file with inline SVG needs `properties="svg"` on its manifest item.
+
+### An EPUB from a store-only zip
+- [zip.js](../../game-087/js/book/zip.js) writes local headers, a central directory and the end record with a CRC-32 table, method 0 (stored), and no extra fields: that makes "`mimetype` first, uncompressed" true by construction and needs no deflate. A matching `unzip()` lets the tests read the book back. Add `toc.ncx` beside `nav.xhtml` for older readers, a `dcterms:modified`, and an SVG cover (`properties="cover-image"`): EPUBCheck 5.1 reports no errors or warnings, map plate and appendices included. Run it on the file the browser test downloads (see [dev/README.md](../../game-087/dev/README.md)).
+
+### PDF without a library
+- Build a print document with `@page { size: 6in 9in; margin: …; @bottom-center { content: counter(page) } }` and `@page :first` to drop the number, `break-before: page` per chapter, write it into a hidden iframe's `srcdoc`, wait for `contentDocument.fonts.ready`, then `contentWindow.print()`; the reader chooses Save as PDF. Chromium honours the margin boxes. Tests replace `app.printHtml` and inspect the HTML; `page.pdf({ preferCSSPageSize: true })` on the same HTML shows what a reader will get.
+
+### Small traps
+- **Symptom: on a phone, tapping into the editor pans the whole room sideways and the chapter drawer opens half off screen.** An inspector drawer parked off screen with `transform: translateX(105%)` inside an `overflow: hidden` scroller still widens the scroller's scrollable area, and `scrollIntoView()` (and focus) scroll an `overflow: hidden` box programmatically. Use `overflow: clip` (not scrollable at all) with `contain: paint` on the drawers' container. `contain: paint` makes a stacking context, so the drawer's scrim has to live inside it or it paints over the drawer.
+- **Symptom: the finale's dialogue is replaced mid-speech by "another book finished".** A completion event queued a scene with `setTimeout`, and the queue decided whether to play it when it ran, after the player had already started the finale. Decide at event time, and chain scenes on one promise so a second scene waits for the first.
+- A helper bubble from the mentor in a corner covered the page on a landscape phone. Asides close themselves on the first keystroke in a textarea or input, and lose their portrait on screens under 520 px tall.
+- A writing app's toasts go where you aren't typing: bottom-left beside the dock on desktop, at the top on phones (the keyboard owns the bottom).
+- Save each novel under its own key (`quillsworn.v1.p.<id>`) and the apprentice under another, so a keystroke in a 100,000-word book rewrites one key, not every book; on load, raise `nextId` above any id found in a saved novel in case the core was saved earlier than the book.
+- A user-supplied pen name went into an SVG `aria-label` through `innerHTML`; an imported backup could have carried markup. Escape attribute values in every SVG string builder, not just text.
