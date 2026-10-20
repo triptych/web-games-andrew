@@ -73,6 +73,10 @@ const ui = new UI({
         onRetry: () => { const n = G.dig.n; ui.closeScreen('lose'); Gm.leaveDig(G); flushEvents(true); startDig(n); },
         onQuitDig: () => { ui.closeScreen('lose'); leaveDig(); },
         onScreensChanged: () => {},
+        onLabel: (l) => {
+            if (l.kind === 'dig') { audio.ui('click'); const n = Gm.nextLevel(G); if (n) startDig(n); else { museum.focus('dig'); ui.toast('Finish this chapter’s tasks to open the next dig.'); } }
+            else { audio.ui('page'); museum.focus(l.at); }
+        },
     },
 });
 // the dig view's UI hooks
@@ -112,9 +116,8 @@ function refreshTitle() { document.getElementById('btn-continue').hidden = !hasS
 refreshTitle();
 museum.refresh(G);
 museum.enabled = false;
-museum.rig.wantDist = 86;
-museum.rig.pitch = 0.62;
-museum.rig.tz = -6;
+// the title flies slowly round the whole island
+Object.assign(museum.rig, { wantDist: 235, dist: 235, pitch: 0.72, tx: 0, tz: -70, cx: 0, cz: -70, spin: 0.035 });
 ui.openScreen('title');
 audio.play('title');
 
@@ -156,7 +159,7 @@ function begin(g, awaySec) {
     ui.closeAll();
     input.flush();
     document.activeElement?.blur?.();
-    Object.assign(museum.rig, { wantDist: 46, pitch: 0.8, tz: 1 });
+    Object.assign(museum.rig, { wantDist: 46, pitch: 0.8, tx: 0, tz: 1, spin: 0 });
     if (G.dig) Gm.leaveDig(G);          // a dig in progress when the game closed is abandoned
     G.events.length = 0;
     if (awaySec > 60) Gm.away(G, awaySec);
@@ -182,6 +185,13 @@ function toMuseum() {
     setInsets();
 }
 
+/** The 🗺 button: out to the whole island, or back home to the museum. */
+function toggleMap() {
+    audio.ui('page');
+    if (museum.rig.wantDist > 120) museum.focus('museum'); else museum.focus('all');
+}
+document.getElementById('m-map').addEventListener('click', toggleMap);
+
 function pulseDig() {
     const b = document.getElementById('m-dig');
     b.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.15)' }, { transform: 'scale(1)' }], { duration: 600, iterations: 3 });
@@ -205,6 +215,11 @@ function setInsets() {
 function museumTap(hit) {
     if (ui.anyScreen()) return;
     if (hit.kind === 'dig') { const n = Gm.nextLevel(G); if (n) startDig(n); else ui.toast('Finish this chapter’s tasks to open the next dig.'); return; }
+    if (hit.kind === 'site') {
+        audio.ui('click');
+        ui.toast(hit.state === 'locked' ? `${hit.name}: this dig site opens in Chapter ${hit.chapter}.` : `${hit.name}: all dug! Replay its digs from the Journal.`);
+        return;
+    }
     if (hit.kind === 'booth') { if (Gm.collectTill(G)) afterAction(); return; }
     if (hit.kind === 'person') {
         museum.poke(hit.id);
@@ -392,10 +407,16 @@ function handlePresses() {
         else if (k === 'KeyJ') document.getElementById('m-journal').click();
         else if (k === 'KeyS') document.getElementById('m-shop').click();
         else if (k === 'KeyC') ui.cb?.onTill?.();
-        else if (k === 'ArrowLeft') museum.rig.yaw += 0.15;
-        else if (k === 'ArrowRight') museum.rig.yaw -= 0.15;
-        else if (k === 'ArrowUp') museum.rig.wantDist = Math.max(museum.rig.minD, museum.rig.wantDist * 0.9);
-        else if (k === 'ArrowDown') museum.rig.wantDist = Math.min(museum.rig.maxD, museum.rig.wantDist * 1.1);
+        else if (k === 'ArrowLeft') museum.pan(60, 0);
+        else if (k === 'ArrowRight') museum.pan(-60, 0);
+        else if (k === 'ArrowUp') museum.pan(0, 60);
+        else if (k === 'ArrowDown') museum.pan(0, -60);
+        else if (k === 'KeyQ') museum.rig.yaw += 0.2;
+        else if (k === 'KeyE') museum.rig.yaw -= 0.2;
+        else if (k === 'Equal' || k === 'NumpadAdd') museum.zoom(-0.15);
+        else if (k === 'Minus' || k === 'NumpadSubtract') museum.zoom(0.15);
+        else if (k === 'KeyM') toggleMap();
+        else if (k === 'KeyH') museum.focus('museum');
         return;
     }
     if (mode === 'dig' && G.dig) {
@@ -456,6 +477,7 @@ function frame(now) {
         museum.frame(real, time);
         if (mode === 'museum') {
             ui.till(G, museum.anchor('till'));
+            ui.mapLabels(museum.labels());
             if (Math.floor(time * 2) !== Math.floor((time - real) * 2)) ui.museum(G);
             gullT -= real;
             if (gullT < 0) { gullT = 8 + Math.random() * 14; audio.gull(); }

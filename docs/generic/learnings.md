@@ -5993,3 +5993,11 @@ A player reported that the gold coins flashed hard enough to worry about epileps
 
 ### Screens that share a z-index stack in page order, not open order
 Settings opened from the pause menu was hidden under it, because both are `.screen` at z-index 50 and Settings comes first in the HTML. A test that tapped its checkbox hit the menu's Leave button instead. Give each screen a z-index from its place in the open stack.
+
+### Growing the island tenfold (v1.1.0)
+A player pointed out that an island barely bigger than the museum promises no exploring. The island ([island.js](../../game-088/js/view/island.js)) is now one height function built from a few pieces: a land field made of overlapping ellipses with noise on the coast and a disc cut out for the cove; a beach ramp on that field; noise hills only well inland; Gaussian bumps for named hills; a cone with a crater for the volcano; a highland bowl for the lake, a river bed cut along a polyline whose water level steps down at a waterfall; terraces snapped to 3.2-unit steps for the quarry; and flats blended in for the museum, the village and each dig camp. Three things to copy:
+- **Never let noise dig inland land below the sea**: `h = max(h, shore + inland * 0.9)`. Without it the sea plane showed through as stray ponds. A browser-test check walks a grid inside the coast and counts points below the waterline, skipping the lake and the river.
+- **Let the sea read the land**: a 320² float `DataTexture` of the height function, sampled in the sea shader, gives depth colour, shallows and foam that follow the real coast (the old shader assumed a circular island), and lets the sea discard itself under land.
+- **Shadows follow the view**: one 2048 shadow map can't cover 260 units. The sun's target moves with the camera's target and its shadow box grows with the camera's distance (30 to 150 units), with `normalBias` scaled to match.
+A map camera reads better than an orbit camera once there is somewhere to go: one finger pans the ground under it, two fingers pinch and twist, and a chip pinned to the screen edge points to the next dig.
+

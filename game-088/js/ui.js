@@ -136,6 +136,44 @@ export class UI {
         t.querySelector('b').textContent = n;
         t.classList.toggle('full', G.till >= Gm.tillCap(G) - 0.5);
     }
+    /** Place names over the island, and the current dig site's chip; tap one to go there. */
+    mapLabels(list) {
+        const box = $('maplabels');
+        this.labelEls ||= new Map();
+        const seen = new Set();
+        for (const l of list) {
+            let el = this.labelEls.get(l.id);
+            if (!el) {
+                el = document.createElement('button');
+                el.className = 'maplabel ' + l.kind;
+                el.addEventListener('click', () => this.cb.onLabel(el._l));
+                box.appendChild(el);
+                this.labelEls.set(l.id, el);
+            }
+            el._l = l;
+            if (el.textContent !== l.text) el.textContent = l.text;
+            // the dig chip stays on screen, pinned to the edge and pointing the way; names near the
+            // edge just hide
+            const top = 70, bottom = innerHeight - 120, left = 70, right = innerWidth - 70;
+            let x = l.x, y = l.y, edge = false;
+            if (l.kind === 'dig') {
+                if (x < left || x > right || y < top || y > bottom) {
+                    edge = true;
+                    const cx = innerWidth / 2, cy = (top + bottom) / 2, dx = x - cx, dy = y - cy;
+                    const k = Math.min(Math.abs((right - cx) / (dx || 1e-6)), Math.abs((bottom - cy) / (dy || 1e-6)));
+                    x = cx + dx * Math.min(1, k); y = cy + dy * Math.min(1, k);
+                    el.dataset.arrow = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? '▶' : '◀') : (dy > 0 ? '▼' : '▲');
+                }
+                el.classList.toggle('edge', edge);
+            }
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.opacity = l.alpha;
+            el.hidden = l.alpha < 0.05 || (l.kind !== 'dig' && (x < 40 || x > innerWidth - 40 || y < 90 || y > innerHeight - 110));
+            seen.add(l.id);
+        }
+        for (const [id, el] of this.labelEls) if (!seen.has(id)) el.hidden = true;
+    }
     museumInsets() {
         const h = innerHeight;
         const bottom = $('mhud').querySelector('.bar.bottom').getBoundingClientRect();

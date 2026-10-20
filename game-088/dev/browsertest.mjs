@@ -125,6 +125,54 @@ async function desktop() {
     check(await Q(page, () => document.querySelector('#m-dig .dig-lv').textContent === 'Level 1'), 'the Dig button offers level 1');
     await shot(page, 'desktop-museum');
 
+    // the island: geography, the map camera, labels, the camps
+    const geo = await Q(page, async () => {
+        const I = await import('./js/view/island.js');
+        const bad = [];
+        for (const s of I.DIG_SITES) {
+            const hs = [0, 1, 2, 3].map((k) => I.islandH(s.x + Math.cos(k * 1.57) * 3, s.z + Math.sin(k * 1.57) * 3));
+            if (Math.min(...hs) < 0.6) bad.push(`${s.name} is at the water's edge`);
+            if (Math.max(...hs) - Math.min(...hs) > 0.3) bad.push(`${s.name} is not level`);
+            if (Math.hypot((s.x - I.LAKE.x) / I.LAKE.rx, (s.z - I.LAKE.z) / I.LAKE.rz) < 1.6) bad.push(`${s.name} is in the lake`);
+        }
+        for (let x = -12; x <= 12; x += 4) for (let z = -14; z <= 10; z += 4) if (Math.abs(I.islandH(x, z) - (I.FLOOR_Y - 0.05)) > 0.01) bad.push(`museum floor not flat at ${x},${z}`);
+        // no sea inland: every point well inside the coast is above water
+        let wet = 0;
+        const nearRiver = (x, z) => I.RIVER.some((p, i) => i + 1 < I.RIVER.length && (() => { const [ax, az] = p, [bx, bz] = I.RIVER[i + 1]; const dx = bx - ax, dz = bz - az; const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz))); return Math.hypot(x - ax - dx * t, z - az - dz * t) < 8; })());
+        for (let x = -60; x <= 60; x += 6) for (let z = -120; z <= 0; z += 6) if (I.islandH(x, z) < 0.3 && Math.hypot((x - I.LAKE.x) / I.LAKE.rx, (z - I.LAKE.z) / I.LAKE.rz) > 1.1 && !nearRiver(x, z)) wet++;
+        if (wet) bad.push(`${wet} inland points below the sea`);
+        const v = I.islandH(I.VOLCANO.x, I.VOLCANO.z + I.VOLCANO.crater + 2);
+        if (v < 30) bad.push(`the volcano is only ${v.toFixed(1)} high at its rim`);
+        return bad;
+    });
+    check(geo.length === 0, `the island's geography holds (${geo.join('; ') || 'camps level and dry, museum flat, no inland sea, volcano tall'})`);
+    const rig0 = await Q(page, () => ({ ...__cc.museum.rig }));
+    await page.mouse.move(640, 420); await page.mouse.down();
+    for (let i = 1; i <= 6; i++) await page.mouse.move(640 - i * 30, 420 + i * 10);
+    await page.mouse.up();
+    await until(page, (r) => Math.hypot(__cc.museum.rig.tx - r.tx, __cc.museum.rig.tz - r.tz) > 5, 'a mouse drag pans over the island', 30000, rig0);
+    await page.mouse.wheel(0, 400);
+    await until(page, (r) => __cc.museum.rig.wantDist > r.wantDist, 'the wheel zooms out', 30000, rig0);
+    await page.mouse.move(640, 420); await page.mouse.down({ button: 'right' });
+    for (let i = 1; i <= 5; i++) await page.mouse.move(640 + i * 30, 420);
+    await page.mouse.up({ button: 'right' });
+    await until(page, (r) => Math.abs(__cc.museum.rig.yaw - r.yaw) > 0.3, 'a right-drag turns the view', 30000, rig0);
+    await click(page, '#m-map');
+    await until(page, () => __cc.museum.rig.wantDist > 200, 'the map button shows the whole island');
+    await until(page, () => [...document.querySelectorAll('.maplabel.region')].filter((e) => !e.hidden && +e.style.opacity > 0.5).length >= 6, 'and names its places');
+    await shot(page, 'desktop-map');
+    await click(page, '.maplabel.region:not([hidden])');
+    await until(page, () => __cc.museum.rig.wantDist <= 60, 'tapping a place name flies there');
+    const locked = await Q(page, () => { const c = __cc.museum.siteMarkers.find((m) => m.userData.state === 'locked'); return c && c.userData.site; });
+    await Q(page, (s) => { const r = __cc.museum.rig; r.tx = r.cx = s.x; r.tz = r.cz = s.z; r.wantDist = r.dist = 30; }, locked);
+    await page.waitForTimeout(800);
+    await Q(page, () => document.querySelectorAll('.toast').forEach((t) => t.remove()));
+    const lp = await Q(page, (s) => __cc.museum.screenOf(s.x + 1, __cc.museum.siteMarkers.find((m) => m.userData.site.name === s.name).position.y + 0.5, s.z + 1), locked);
+    await page.mouse.click(lp.x, lp.y);
+    await until(page, () => [...document.querySelectorAll('.toast')].some((t) => /opens in Chapter/.test(t.textContent)), 'tapping a locked camp says which chapter opens it');
+    await click(page, '#m-map'); await click(page, '#m-map');
+    await until(page, () => __cc.museum.rig.wantDist < 60, 'the map button goes home again');
+
     await click(page, '#m-dig');
     await until(page, () => __cc.mode === 'dig' && __cc.G.dig && !document.getElementById('dhud').hidden, 'Dig opens level 1 with its HUD');
     await page.waitForTimeout(400);
@@ -265,6 +313,19 @@ async function phone(w, h) {
     }));
     for (const z of msizes) check(z.ok, `${z.s} is at least 44 px and on screen`);
     await shot(page, `phone-museum-${w}x${h}`);
+    // one finger pans, two fingers pinch
+    const r0 = await Q(page, () => ({ ...__cc.museum.rig }));
+    const cx = w / 2, cy = h / 2;
+    await touch('touchStart', cx, cy);
+    for (let i = 1; i <= 5; i++) await touch('touchMove', cx - i * 20, cy + i * 8);
+    await touch('touchEnd', 0, 0);
+    await until(page, (r) => Math.hypot(__cc.museum.rig.tx - r.tx, __cc.museum.rig.tz - r.tz) > 3, 'one finger pans the island', 30000, r0);
+    const two = (type, d) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: cx - d, y: cy, id: 1 }, { x: cx + d, y: cy, id: 2 }] });
+    await two('touchStart', 40);
+    for (let i = 1; i <= 5; i++) await two('touchMove', 40 + i * 20);
+    await two('touchEnd', 0);
+    await until(page, (r) => __cc.museum.rig.wantDist < r.wantDist * 0.8, 'two fingers pinch to zoom in', 30000, r0);
+    await Q(page, () => __cc.museum.focus('museum'));
 
     await tapSel('#m-dig');
     await until(page, () => __cc.mode === 'dig', 'a tap on Dig opens the dig');

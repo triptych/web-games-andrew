@@ -119,6 +119,11 @@ export function sign(text, w = 4, h = 0.9, color = '#2f5a6a', ink = '#f6e7c0') {
     const face = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.98, h * 0.94), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6 }));
     face.position.set(0, 2.0, 0.065);
     g.add(face);
+    // the same words on the back, so a sign reads from any side
+    const back = face.clone();
+    back.position.z = -0.065;
+    back.rotation.y = Math.PI;
+    g.add(back);
     return g;
 }
 
