@@ -1122,6 +1122,19 @@ h1 {
     box-shadow: 0 0 14px rgba(242, 214, 143, 0.45);
 }
 
+.game-preview.curio-cove,
+.carousel-slide-bg.curio-cove {
+    background: radial-gradient(ellipse at 50% 62%, rgba(127, 174, 74, 0.85) 0 22%, rgba(236, 215, 164, 0.9) 24%, transparent 32%),
+        radial-gradient(circle at 78% 22%, rgba(255, 240, 200, 0.55), transparent 30%),
+        linear-gradient(170deg, #9fd8ea, #2fa3b8 55%, #1d6f86);
+}
+
+.game-card.curio-cove .play-button {
+    background: linear-gradient(135deg, #ffd56a, #f49a2a 55%, #e0653a);
+    color: #3a1d06;
+    box-shadow: 0 0 14px rgba(255, 213, 106, 0.5);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
