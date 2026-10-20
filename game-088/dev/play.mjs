@@ -7,7 +7,7 @@
  *
  * The snippet runs with ?debug=1, so window.__cc is there (see dev/README.md). It is the body of
  * an async function: `return` a value to print it. Q='&fast=4' adds URL parameters.
- * Screenshot: game-088/dev/shots/<name>.png.
+ * SCROLLBARS=1 shows classic desktop scrollbars. Screenshot: game-088/dev/shots/<name>.png.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -22,6 +22,8 @@ fs.mkdirSync(path.join(HERE, 'shots'), { recursive: true });
 
 const browser = await chromium.launch({
     executablePath: process.env.PW_CHROMIUM_PATH || undefined,
+    // SCROLLBARS=1 draws classic desktop scrollbars (headless hides them)
+    ignoreDefaultArgs: process.env.SCROLLBARS ? ['--hide-scrollbars'] : undefined,
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox', '--autoplay-policy=no-user-gesture-required'],
 });
 const isTouch = touch === 'touch';

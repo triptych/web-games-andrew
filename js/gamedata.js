@@ -1327,7 +1327,7 @@ const games = [
         description: "A cozy match-3 museum game in three.js with no asset files. Fresh from university, you inherit your great-aunt Marigold's tumbledown seaside museum on Puffin Isle (she has sailed off round the world), and you fill it by digging: every level is a dig at the site on the hill, where you swap amphorae, gold coins, leaf fossils, ammonites, amethysts and bones to dig away dirt, uncover fossils, crack boulders, break crusted sand and lift relics out. Line up four for a Trowel, an L for a Pickaxe, a square for a Scarab that flies to where it is needed, five for a Sunstone, and swap two specials together for combos. Every first win turns up a find for the collection (60 in all, from a fisherman's jug and a golden mask to a megalodon tooth) or a dinosaur bone, and stars pay for restoring the halls one cozy scene at a time: hire Moss the badger caretaker and his mop Duchess, Penny Quill the owl administrator, Tobias Ledger the tortoise accountant, Kit the fox tour guide and Rosa the raccoon restorer, stand up a Triceratops, a Plesiosaur and a Tyrannosaurus, and open the doors for the Grand Reopening. 60 story digs in five chapters, endless Night Digs, a till that fills while you are away, decorations for the island, and a 3D island with a wave shader, wandering visitors, bloom, particles, beams and procedural music.",
         icon: '🦴',
         folder: 'game-088',
-        version: '1.1.2',
+        version: '1.1.3',
         cssClass: 'curio-cove',
         genre: 'puzzle',
         tags: [
