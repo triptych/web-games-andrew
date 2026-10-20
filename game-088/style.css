@@ -119,6 +119,16 @@ button { font-family: inherit; }
 .till::after { content: ''; position: absolute; left: 50%; bottom: -10px; margin-left: -7px; border: 7px solid transparent; border-top-color: #fff; }
 .till.full { animation: wobble 1s infinite; }
 @keyframes wobble { 20% { transform: translate(-50%, -100%) rotate(-6deg); } 40% { transform: translate(-50%, -100%) rotate(6deg); } 60% { transform: translate(-50%, -100%) rotate(0); } }
+#maplabels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.maplabel {
+    position: absolute; transform: translate(-50%, -100%); white-space: nowrap; pointer-events: auto; cursor: pointer;
+    font: 600 13px var(--font); color: #fff; padding: 3px 10px; border-radius: 12px; border: none; min-height: 28px;
+    background: rgba(29, 95, 107, 0.72); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.maplabel.dig { font-size: 15px; padding: 6px 14px; min-height: 36px; background: linear-gradient(#ffd56a, #f49a2a); color: #4a2408; text-shadow: none; box-shadow: 0 3px 0 #b86a10, 0 6px 12px rgba(0, 0, 0, 0.3); animation: pulse 1.6s infinite; }
+.mapbtn { position: absolute; left: calc(10px + var(--safe-l)); top: calc(48px + var(--safe-t)); }
+.maplabel.dig.edge { animation: none; opacity: 0.95; }
+.maplabel.dig.edge::before { content: attr(data-arrow); margin-right: 4px; }
 .chapter-chip {
     position: absolute; left: 50%; transform: translateX(-50%); top: calc(56px + var(--safe-t));
     font-weight: 600; font-size: 14px; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); white-space: nowrap;

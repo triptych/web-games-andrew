@@ -9,10 +9,12 @@ import { buildArtifact } from './artifacts.js';
 import { buildSkeleton } from './skeleton.js';
 import { buildAnimal, animate, VISITOR_KINDS } from './animals.js';
 import * as P from './props.js';
-import { ITEM, ITEMS, DINOS, BONE_PARTS, STAFF, PEOPLE } from '../sim/data.js';
+import * as I from './island.js';
+import { islandH, FLOOR_Y, DIG_SITES, LIGHTHOUSE, REGIONS } from './island.js';
+import { ITEM, ITEMS, DINOS, BONE_PARTS, STAFF, PEOPLE, CHAPTERS } from '../sim/data.js';
 
 const PI = Math.PI;
-const FLOOR_Y = 1.0;
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 // Rooms on the plateau. x0..x1, z0..z1 in world units; doors are [wall, position] gaps.
 const ROOMS = {
@@ -32,23 +34,31 @@ export class MuseumView {
         const scene = this.scene = new THREE.Scene();
         scene.environment = stage.envMap;
         scene.environmentIntensity = 0.4;
-        this.camera = new THREE.PerspectiveCamera(42, 1, 0.5, 600);
-        scene.fog = new THREE.Fog(0xbfe0ec, 120, 330);
+        this.camera = new THREE.PerspectiveCamera(42, 1, 0.5, 1800);
+        scene.fog = new THREE.Fog(0xbfe0ec, 200, 520);
         this.hemi = new THREE.HemisphereLight(0xcfe8ff, 0x8a7a5a, 0.7);
         scene.add(this.hemi);
         const sun = this.sun = new THREE.DirectionalLight(0xfff0d8, 2.2);
         sun.position.set(-30, 45, 25);
         sun.castShadow = true;
         sun.shadow.mapSize.set(2048, 2048);
-        Object.assign(sun.shadow.camera, { left: -34, right: 34, top: 34, bottom: -34, near: 5, far: 140 });
+        Object.assign(sun.shadow.camera, { left: -34, right: 34, top: 34, bottom: -34, near: 5, far: 260 });
+        this.sunDir = new THREE.Vector3(-30, 45, 25).normalize();
         sun.shadow.bias = -0.0005;
         sun.shadow.normalBias = 0.04;
         scene.add(sun, sun.target);
 
         this.U = { uTime: { value: 0 } };
-        scene.add(this.sky = skyDome(this.U));
-        scene.add(this.water = waterPlane(this.U));
-        scene.add(this.island = islandMesh());
+        const quality = stage.quality || 'high';
+        scene.add(this.sky = I.skyDome(this.U));
+        scene.add(this.island = I.terrainMesh(quality));
+        scene.add(this.water = I.seaMesh(this.U, I.heightTexture(quality === 'low' ? 192 : 320)));
+        scene.add(this.fresh = I.freshWater(this.U));
+        scene.add(this.trees = I.plants(quality));
+        scene.add(this.landmarks = I.landmarks());
+        const lava = I.lava(this.U);
+        scene.add(lava);
+        this.smoke = new I.Smoke(scene, lava.position.y + 2);
 
         this.static = new THREE.Group();
         scene.add(this.static);
@@ -58,13 +68,14 @@ export class MuseumView {
         this.people = new Map();           // staff id -> { a, x, z, tx, tz, room }
         this.visitors = [];
         this.gulls = [];
-        for (let i = 0; i < 5; i++) { const g = P.gull(); g.userData.ph = i * 1.3; scene.add(g); this.gulls.push(g); }
+        // gulls over the cove, and a few birds over the woods
+        for (let i = 0; i < 9; i++) { const g = P.gull(); g.userData.ph = i * 1.3; g.userData.home = i < 5 ? [0, 34, 18] : [-80, -100, 26]; scene.add(g); this.gulls.push(g); }
         this.ferry = P.ferry();
         this.ferry.scale.setScalar(1.3);
         scene.add(this.ferry);
 
-        // camera rig: orbit round the museum
-        this.rig = { yaw: 0.55, pitch: 0.78, dist: 58, tx: 0, tz: 1, wantDist: 58, minD: 20, maxD: 120 };
+        // camera rig: a map camera that pans over the island, turns and zooms
+        this.rig = { yaw: 0.55, pitch: 0.8, dist: 46, tx: 0, tz: 1, wantDist: 46, minD: 14, maxD: 260, spin: 0 };
         this.drag = null;
         this.pinch = null;
         this.time = 0;
@@ -77,33 +88,16 @@ export class MuseumView {
     // ------------------------------------------------------------------ the parts that never change
     buildStatic() {
         const s = this.static;
-        // palms, rocks and bushes round the island (placed on the terrain)
         const place = (g, x, z, ry = 0) => { g.position.set(x, islandH(x, z), z); g.rotation.y = ry; s.add(g); return g; };
-        const palms = [[-20, 12], [-22, 4], [-17, 18], [20, 14], [23, 6], [18, 20], [-6, 22], [7, 23], [-24, -8], [24, -4], [-15, -20], [10, -22], [-4, -23], [22, -16]];
-        palms.forEach(([x, z], i) => place(P.palm(i, 4 + (i % 3) * 0.8), x, z));
-        for (let i = 0; i < 16; i++) {
-            const a = i * 2.1 + 0.4, r = 26 + (i % 4) * 2.5;
-            place(P.rock(0.8 + (i % 3) * 0.5, i), Math.cos(a) * r, Math.sin(a) * r, i);
-        }
-        for (let i = 0; i < 20; i++) {
-            const a = i * 1.37, r = 17 + (i % 5) * 1.7;
-            const x = Math.cos(a) * r, z = Math.sin(a) * r;
-            if (Math.abs(x) < 3 && z > 10) continue;
-            place(P.bush(i), x, z);
-        }
-        // the lighthouse point and the dig site hill
-        this.lighthousePos = [-23, 17];
-        this.digPos = [20, -11];
-        place(P.tent(), this.digPos[0], this.digPos[1], -0.7);
-        this.digSign = place(P.sign('DIG SITE', 2.4, 0.6, '#8a4a2a', '#ffe9b0'), this.digPos[0] - 3, this.digPos[1] + 2.4, -0.4);
+        this.lighthousePos = LIGHTHOUSE;
+        // a few palms on the museum's own lawn
+        [[-20, 12], [-17, 16], [20, 12], [17, 17], [-16, -17], [16, -17]].forEach(([x, z], i) => place(P.palm(i, 4 + (i % 3) * 0.8), x, z));
         // the path from the dock to the door
         const path = new Kit();
         for (let i = 0; i < 9; i++) {
             const z = 11 + i * 0.9;
             path.add(bumpy(new THREE.CylinderGeometry(0.55, 0.6, 0.1, 7), 0.03, 4, i), i % 2 ? '#d8cbb0' : '#cfc0a2', 'flat', { p: [Math.sin(i) * 0.25, islandH(0, z) + 0.04, z] });
         }
-        const toDig = [[6, 10], [10, 6], [14, 1], [17, -4], [19, -8]];
-        for (const [x, z] of toDig) path.add(bumpy(new THREE.CylinderGeometry(0.5, 0.55, 0.1, 7), 0.03, 4, x), '#d8cbb0', 'flat', { p: [x, islandH(x, z) + 0.04, z] });
         s.add(path.build());
         // the plateau's stone foundation under the museum
         const base = new Kit();
@@ -125,6 +119,8 @@ export class MuseumView {
             return g;
         });
         this.part('dock', `${done('dock')}`, () => dock(done('dock')));
+        const site = activeSite(G);
+        this.part('sites', `${site}|${G.finished}`, () => this.digSites(G));
         for (const [id, room] of Object.entries(ROOMS)) {
             const started = !HALL_START_TASK[id] || done(HALL_START_TASK[id]);
             const open = done(HALL_OPEN_TASK[id]);
@@ -180,7 +176,7 @@ export class MuseumView {
         if (done('banners')) for (const x of [-3.6, 3.6]) add(P.banner(x < 0 ? '#2f5a8a' : '#8a2f4a', 2.6), x, FLOOR_Y, 10.25);
         if (done('lights')) {
             add(P.stringLights([[-4, FLOOR_Y + 2.2, 10.5], [-1.5, 5, 18], [0, 3.5, 26], [1.5, 2.6, 34]], 0.7), 0, 0, 0);
-            add(P.stringLights([[4, FLOOR_Y + 2.2, 10.5], [9, 4.5, 14], [this.lighthousePos[0] + 46, 3, 15]], 0.8), 0, 0, 0);
+            add(P.stringLights([[4, FLOOR_Y + 2.2, 10.5], [9, 4.5, 14], [-58, 3, 15]], 0.8), 0, 0, 0);
         }
         if (done('grand')) {
             for (let i = 0; i < 6; i++) {
@@ -276,6 +272,77 @@ export class MuseumView {
         return g;
     }
 
+    /** One camp per chapter: the current one waits with a sign and an arrow, finished ones fly a
+     *  green flag, later ones are roped off with the chapter that opens them. */
+    digSites(G) {
+        const g = new THREE.Group();
+        const now = activeSite(G);
+        this.siteMarkers = [];
+        DIG_SITES.forEach((s, i) => {
+            const y = islandH(s.x, s.z);
+            const camp = new THREE.Group();
+            camp.position.set(s.x, y, s.z);
+            const toMuseum = Math.atan2(-s.x, -s.z);
+            const state = i === now ? 'active' : i < now || (G.finished && i < 5) ? 'done' : 'locked';
+            const tent = P.tent();
+            tent.position.set(-2.4, 0, -2.6);
+            tent.rotation.y = toMuseum + 0.6;
+            camp.add(tent);
+            // the pit: a grid of survey strings, a fence of rope on four posts, a bucket and a sieve
+            const k = new Kit();
+            k.add(box(5.6, 0.14, 5.6), '#a8814e', 'flat', { p: [1, 0.03, 1] });
+            for (let j = 1; j < 4; j++) {
+                k.add(box(5.6, 0.02, 0.02), '#f4efe2', 'matte', { p: [1, 0.14, -1.8 + j * 1.4] });
+                k.add(box(0.02, 0.02, 5.6), '#f4efe2', 'matte', { p: [-1.8 + j * 1.4, 0.14, 1] });
+            }
+            const rope = state === 'locked' ? '#d8433a' : '#e8dcc0';
+            for (const [px, pz] of [[-2.2, -2.2], [4.2, -2.2], [-2.2, 4.2], [4.2, 4.2]]) k.add(cyl(0.07, 0.08, 1.1, 6), '#b88a5a', 'flat', { p: [px, 0.55, pz] });
+            for (const z of [-2.2, 4.2]) k.add(box(6.4, 0.035, 0.035), rope, 'matte', { p: [1, 0.95, z] });
+            for (const x of [-2.2, 4.2]) k.add(box(0.035, 0.035, 6.4), rope, 'matte', { p: [x, 0.95, 1] });
+            k.add(new THREE.CylinderGeometry(0.34, 0.26, 0.5, 14, 1, true), '#3a8ac4', 'gloss', { p: [5.2, 0.25, 2.6] });
+            k.add(new THREE.CylinderGeometry(0.55, 0.55, 0.16, 18, 1, true), '#b07a48', 'flat', { p: [5.4, 0.1, 0.4] });
+            if (state !== 'locked') for (let j = 0; j < 4; j++) k.add(bumpy(new THREE.IcosahedronGeometry(0.22, 0), 0.05, 3, j + i * 7), '#8f8a80', 'flat', { p: [-0.4 + j * 0.9, 0.2, 2.2 - (j % 2) * 1.3] });
+            camp.add(k.build());
+            const sign = P.sign(state === 'locked' ? `Chapter ${i + 1}` : s.name, 3.6, 0.7, state === 'locked' ? '#6a5a4a' : state === 'done' ? '#3f7a4a' : '#8a4a2a', '#ffe9b0');
+            sign.position.set(3.2, 0, -2.6);
+            sign.rotation.y = toMuseum;
+            camp.add(sign);
+            if (state === 'done') { const f = P.banner('#4caf50', 2.8); f.position.set(-3.8, 0, 2); camp.add(f); }
+            if (state === 'active') {
+                const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.9, 1.8, 4), new THREE.MeshStandardMaterial({ color: 0xffc94a, emissive: 0x8a5000, emissiveIntensity: 0.6, roughness: 0.4, flatShading: true }));
+                arrow.rotation.x = PI;
+                arrow.position.set(1, 6, 1);
+                arrow.userData.bob = true;
+                camp.add(arrow);
+            }
+            const pit = new THREE.Object3D();
+            pit.position.set(1, -0.3, 1);          // tap() looks 0.8 above this: the middle of the pit
+            camp.add(pit);
+            camp.userData = { i, state, site: s, pit };
+            g.add(camp);
+            this.siteMarkers.push(camp);
+        });
+        return g;
+    }
+
+    /** Map labels for the UI: each place's name and where it is on screen, faded by zoom. */
+    labels() {
+        const out = [];
+        const far = smooth(55, 95, this.rig.dist);
+        for (const r of REGIONS) {
+            if (far <= 0.02) break;
+            const p = this.screenOf(r.x, islandH(r.x, r.z) + r.y, r.z);
+            if (p) out.push({ id: 'r:' + r.name, text: r.name, x: p.x, y: p.y, alpha: far, kind: 'region', at: [r.x, r.z] });
+        }
+        if (this.G) {
+            const i = activeSite(this.G);
+            const s = DIG_SITES[i];
+            const p = this.screenOf(s.x, islandH(s.x, s.z) + 7, s.z, true);
+            if (p) out.push({ id: 'dig', text: `⛏ ${s.name}`, x: p.x, y: p.y, alpha: 1, kind: 'dig', at: [s.x, s.z] });
+        }
+        return out;
+    }
+
     // ------------------------------------------------------------------ people
     syncPeople(G) {
         const want = ['gus', ...G.staff];
@@ -353,29 +420,41 @@ export class MuseumView {
     }
 
     // ------------------------------------------------------------------ input
+    /**
+     * Map controls. One finger or the left mouse button pans; two fingers pinch to zoom, twist to
+     * turn and slide to pan; the right mouse button (or Shift + left) turns and tilts; the wheel
+     * zooms. A press that hardly moves is a tap.
+     */
     bindInput() {
         const cv = this.stage.canvas;
         const pts = new Map();
+        cv.addEventListener('contextmenu', (e) => { if (this.enabled) e.preventDefault(); });
         cv.addEventListener('pointerdown', (e) => {
             if (!this.enabled) return;
-            pts.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY });
-            if (pts.size === 2) { const [a, b] = [...pts.values()]; this.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), dist: this.rig.wantDist }; }
-            this.moved = 0;
+            pts.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, turn: e.button === 2 || e.button === 1 || e.shiftKey });
+            if (pts.size === 2) this.pinch = this.twoFinger(pts);
             try { cv.setPointerCapture(e.pointerId); } catch { /* synthetic */ }
+            this.idleT = 0;
         });
         cv.addEventListener('pointermove', (e) => {
             const p = pts.get(e.pointerId);
             if (!p || !this.enabled) return;
             const dx = e.clientX - p.x, dy = e.clientY - p.y;
             p.x = e.clientX; p.y = e.clientY;
-            this.moved += Math.abs(dx) + Math.abs(dy);
-            if (pts.size === 2 && this.pinch) {
-                const [a, b] = [...pts.values()];
-                const d = Math.hypot(a.x - b.x, a.y - b.y);
-                this.rig.wantDist = clamp(this.pinch.dist * (this.pinch.d / Math.max(10, d)), this.rig.minD, this.rig.maxD);
+            if (pts.size >= 2 && this.pinch) {
+                const now = this.twoFinger(pts);
+                this.rig.wantDist = clamp(this.pinch.dist * (this.pinch.d / Math.max(10, now.d)), this.rig.minD, this.rig.maxD);
+                let da = now.a - this.pinch.a0;
+                while (da > PI) da -= PI * 2;
+                while (da < -PI) da += PI * 2;
+                this.rig.yaw = this.pinch.yaw + da;
+                this.pan(now.mx - this.pinch.mx, now.my - this.pinch.my);
+                this.pinch.mx = now.mx; this.pinch.my = now.my;
             } else if (pts.size === 1) {
-                this.rig.yaw -= dx * 0.006;
-                this.rig.pitch = clamp(this.rig.pitch + dy * 0.004, 0.32, 1.25);
+                if (p.turn) {
+                    this.rig.yaw -= dx * 0.006;
+                    this.rig.pitch = clamp(this.rig.pitch + dy * 0.004, 0.35, 1.3);
+                } else this.pan(dx, dy);
             }
             this.idleT = 0;
         });
@@ -383,16 +462,32 @@ export class MuseumView {
             const p = pts.get(e.pointerId);
             pts.delete(e.pointerId);
             if (pts.size < 2) this.pinch = null;
-            if (p && this.enabled && Math.hypot(e.clientX - p.x0, e.clientY - p.y0) < 10) this.tap(e.clientX, e.clientY);
+            if (p && this.enabled && !p.turn && Math.hypot(e.clientX - p.x0, e.clientY - p.y0) < 10) this.tap(e.clientX, e.clientY);
         };
         cv.addEventListener('pointerup', up);
         cv.addEventListener('pointercancel', (e) => { pts.delete(e.pointerId); this.pinch = null; });
         cv.addEventListener('wheel', (e) => {
             if (!this.enabled) return;
             e.preventDefault();
-            this.rig.wantDist = clamp(this.rig.wantDist * (1 + Math.sign(e.deltaY) * 0.1), this.rig.minD, this.rig.maxD);
+            this.zoom(Math.sign(e.deltaY) * 0.12);
         }, { passive: false });
     }
+    twoFinger(pts) {
+        const [a, b] = [...pts.values()];
+        return { d: Math.hypot(a.x - b.x, a.y - b.y), dist: this.rig.wantDist, a: Math.atan2(b.y - a.y, b.x - a.x), a0: Math.atan2(b.y - a.y, b.x - a.x), yaw: this.rig.yaw, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+    }
+    /** Move the view by a screen drag (px): the ground follows the finger. */
+    pan(dx, dy) {
+        const r = this.rig;
+        const k = (2 * r.dist * this.portrait() * Math.tan((this.camera.fov * PI) / 360)) / Math.max(1, this.stage.h);
+        const rx = Math.cos(r.yaw), rz = -Math.sin(r.yaw);          // screen right, on the ground
+        const fx = -Math.sin(r.yaw), fz = -Math.cos(r.yaw);         // screen up, on the ground
+        r.tx = clamp(r.tx - rx * dx * k + fx * dy * k / Math.max(0.35, Math.sin(r.pitch)), -125, 125);
+        r.tz = clamp(r.tz - rz * dx * k + fz * dy * k / Math.max(0.35, Math.sin(r.pitch)), -205, 55);
+        r.cx = r.tx; r.cz = r.tz;
+    }
+    zoom(by) { this.rig.wantDist = clamp(this.rig.wantDist * (1 + by), this.rig.minD, this.rig.maxD); }
+    portrait() { return Math.max(1, 1.15 / Math.max(0.1, this.camera.aspect)); }
 
     /** A tap in the world: a person, the dig site, the ticket booth. */
     tap(cx, cy) {
@@ -406,33 +501,37 @@ export class MuseumView {
             const s = p.clone().project(this.camera);
             const sx = rect.left + (s.x + 1) / 2 * rect.width, sy = rect.top + (1 - s.y) / 2 * rect.height;
             const d = Math.hypot(sx - cx, sy - cy);
-            const lim = kind === 'dig' ? 80 : 40;
+            const lim = kind === 'dig' || kind === 'site' ? 80 : 40;
             if (d < lim && d < bd) { bd = d; best = { id, kind }; }
         };
         for (const [id, p] of this.people) consider(p.a.group, id, 'person');
         consider(this.dyn.booth || this.static, 'booth', 'booth');
-        const dig = new THREE.Object3D(); dig.position.set(this.digPos[0], islandH(...this.digPos) + 1, this.digPos[1]); consider(dig, 'dig', 'dig');
+        for (const camp of this.siteMarkers || []) consider(camp.userData.pit, camp.userData.state === 'active' ? 'dig' : 'site:' + camp.userData.i, camp.userData.state === 'active' ? 'dig' : 'site');
+        if (best?.kind === 'site') { const c = this.siteMarkers[+best.id.slice(5)]; best.state = c.userData.state; best.chapter = c.userData.i + 1; best.name = c.userData.site.name; }
         if (best) this.hooks.onTap(best);
     }
 
     // ------------------------------------------------------------------ screen helpers
     /** Where a point of the world is on screen (client px), or null when behind the camera. */
-    screenOf(x, y, z) {
+    screenOf(x, y, z, always = false) {
         const v = new THREE.Vector3(x, y, z).project(this.camera);
-        if (v.z > 1) return null;
+        if (v.z > 1 && !always) return null;
+        if (v.z > 1) { v.x = -v.x * 50; v.y = -v.y * 50; }       // behind: far off the opposite edge
         const rect = this.stage.canvas.getBoundingClientRect();
         return { x: rect.left + (v.x + 1) / 2 * rect.width, y: rect.top + (1 - v.y) / 2 * rect.height };
     }
     anchor(name) {
         if (name === 'till') return this.screenOf(6.2, FLOOR_Y + 3.4, 12.5);
-        if (name === 'dig') return this.screenOf(this.digPos[0], islandH(...this.digPos) + 3.8, this.digPos[1]);
+        if (name === 'dig' && this.G) { const s = DIG_SITES[activeSite(this.G)]; return this.screenOf(s.x, islandH(s.x, s.z) + 4, s.z); }
         const p = this.people.get(name);
         if (p) return this.screenOf(p.x, FLOOR_Y + 1.6, p.z);
         return null;
     }
 
     focus(target) {
-        const f = { entrance: [0, 6, 34], ancients: [-8.5, 4.5, 30], fossils: [8.5, 4.5, 30], sea: [-8, -7, 32], great: [5, -7.5, 36], dig: [this.digPos[0], this.digPos[1], 30], all: [0, 1, 58] }[target];
+        let f = { entrance: [0, 6, 34], ancients: [-8.5, 4.5, 30], fossils: [8.5, 4.5, 30], sea: [-8, -7, 32], great: [5, -7.5, 36], museum: [0, 1, 46], all: [0, -75, 240] }[target];
+        if (target === 'dig' && this.G) { const s = DIG_SITES[activeSite(this.G)]; f = [s.x, s.z, 34]; }
+        if (Array.isArray(target)) f = [target[0], target[1], Math.min(this.rig.wantDist, 60)];
         if (!f) return;
         this.rig.tx = f[0]; this.rig.tz = f[1]; this.rig.wantDist = f[2];
     }
@@ -445,34 +544,50 @@ export class MuseumView {
         this.U.uTime.value = time;
         const r = this.rig;
         this.idleT = (this.idleT || 0) + dt;
-        if (this.idleT > 20) r.yaw += dt * 0.02;
+        r.yaw += dt * r.spin;
         r.dist += (r.wantDist - r.dist) * Math.min(1, dt * 4);
         r.cx = (r.cx ?? r.tx) + (r.tx - (r.cx ?? r.tx)) * Math.min(1, dt * 3);
         r.cz = (r.cz ?? r.tz) + (r.tz - (r.cz ?? r.tz)) * Math.min(1, dt * 3);
         const cam = this.camera;
         const w = this.stage.w, h = this.stage.h;
         cam.aspect = w / h;
-        // portrait screens need more distance to show the museum's width
-        const portrait = Math.max(1, 1.15 / cam.aspect);
-        const d = r.dist * portrait;
-        cam.position.set(r.cx + Math.sin(r.yaw) * Math.cos(r.pitch) * d, Math.sin(r.pitch) * d + 1, r.cz + Math.cos(r.yaw) * Math.cos(r.pitch) * d);
-        cam.lookAt(r.cx, 1.5, r.cz);
+        // portrait screens need more distance to show the same width
+        const d = r.dist * this.portrait();
+        const gy = Math.max(1, islandH(r.cx, r.cz));
+        cam.position.set(r.cx + Math.sin(r.yaw) * Math.cos(r.pitch) * d, gy + Math.sin(r.pitch) * d + 0.5, r.cz + Math.cos(r.yaw) * Math.cos(r.pitch) * d);
+        cam.lookAt(r.cx, gy + 0.5, r.cz);
+        // shadows cover what is on screen: the sun's box follows the view and grows with distance
+        const half = clamp(d * 0.75, 30, 150);
+        Object.assign(this.sun.shadow.camera, { left: -half, right: half, top: half, bottom: -half });
+        this.sun.shadow.camera.updateProjectionMatrix();
+        this.sun.target.position.set(r.cx, gy, r.cz);
+        this.sun.position.copy(this.sun.target.position).addScaledVector(this.sunDir, 120);
+        this.sun.shadow.normalBias = 0.04 * (half / 34);
+        this.scene.fog.near = d * 1.4 + 60;
+        this.scene.fog.far = d * 3.5 + 420;
+        this.water.material.uniforms.fogNear.value = this.scene.fog.near;
+        this.water.material.uniforms.fogFar.value = this.scene.fog.far;
         const ins = this.insets || { top: 0, bottom: 0, left: 0, right: 0 };
         const cy = ins.top + (h - ins.top - ins.bottom) / 2, cx = ins.left + (w - ins.left - ins.right) / 2;
         cam.setViewOffset(w, h, w / 2 - cx, h / 2 - cy, w, h);
-        cam.far = d * 6 + 200;
+        cam.far = d * 6 + 1600;
         cam.updateProjectionMatrix();
         // the sea moves, the ferry bobs at the dock, gulls circle
         this.ferry.position.set(3.6, Math.sin(time * 1.3) * 0.12 + 0.2, 31);
         this.ferry.rotation.set(Math.sin(time * 1.1) * 0.03, PI, Math.sin(time * 0.9) * 0.04);
         for (const g of this.gulls) {
-            const ph = g.userData.ph, a = time * 0.25 + ph;
-            g.position.set(Math.cos(a) * (18 + ph * 3), 12 + Math.sin(time * 0.7 + ph) * 1.5 + ph, Math.sin(a) * (14 + ph * 2));
+            const ph = g.userData.ph, a = time * 0.25 + ph, [hx, hz, hr] = g.userData.home;
+            g.position.set(hx + Math.cos(a) * (hr + (ph % 3) * 4), 14 + Math.sin(time * 0.7 + ph) * 1.5 + (ph % 4), hz + Math.sin(a) * (hr * 0.8 + (ph % 2) * 3));
             g.rotation.y = -a;
             const f = Math.sin(time * 6 + ph * 4) * 0.5;
             g.userData.wings[0].rotation.z = f; g.userData.wings[1].rotation.z = -f;
         }
         if (this.G) this.updatePeople(dt, time);
+        this.smoke.update(dt);
+        const wm = this.landmarks.userData.windmill;
+        if (wm) wm.userData.blades.rotation.z -= dt * 0.6;
+        this.landmarks.traverse((o) => { if (o.userData.bob !== undefined && o.userData.bob !== true) { o.position.y = 0.15 + Math.sin(time * 1.2 + o.userData.bob) * 0.12; o.rotation.z = Math.sin(time + o.userData.bob) * 0.05; } });
+        for (const c of this.siteMarkers || []) c.traverse((o) => { if (o.userData.bob === true) { o.position.y = 6 + Math.sin(time * 3) * 0.6; o.rotation.y = time * 1.5; } });
         for (const name of ['exhibits']) this.dyn[name]?.traverse((o) => { if (o.userData.spin) o.rotation.y += dt * 0.4; });
         this.dyn['entrance-props']?.traverse((o) => { if (o.userData.float !== undefined) o.position.y += Math.sin(time * 1.5 + o.userData.float) * 0.003; });
         this.stage.render(this.scene, cam, dt, time, { bloom: 0.5, threshold: 1.3, vignette: 0.28, warm: 0.6, exposure: 0.95 });
@@ -563,143 +678,13 @@ function dock(fixed) {
     return k.build();
 }
 
-// ------------------------------------------------------------------ terrain, sea and sky
-/** Island height at (x, z). The museum plateau is flat at FLOOR_Y - 0.05. Water is y = 0. */
-export function islandH(x, z) {
-    const r = Math.hypot(x, z);
-    const a = Math.atan2(z, x);
-    const edge = 30 + Math.sin(a * 3) * 2.5 + Math.sin(a * 7 + 1) * 1.2 + noise3(Math.cos(a) * 2, Math.sin(a) * 2, 0, 9) * 3;
-    let h = smooth(edge, edge - 9, r) * 1.6 - 0.7;
-    h += (noise3(x * 0.08, 0, z * 0.08, 3) - 0.5) * 0.6 * smooth(edge, edge - 12, r);
-    // the dig site hill and the lighthouse point
-    h += 2.6 * Math.exp(-((x - 20) ** 2 + (z + 11) ** 2) / 40);
-    h += 1.4 * Math.exp(-((x + 23) ** 2 + (z - 17) ** 2) / 20);
-    // a flat plateau round the museum, falling gently to the beach
-    const inMuseum = smooth(17, 14.5, Math.max(Math.abs(x) * 1.05, Math.abs(z + 2) * 1.1));
-    h = h * (1 - inMuseum) + (FLOOR_Y - 0.05) * inMuseum;
-    return h;
-}
-function smooth(e0, e1, x) { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); }
-const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const smooth = (e0, e1, x) => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
 
-function islandMesh() {
-    const geo = new THREE.PlaneGeometry(84, 84, 168, 168);
-    geo.rotateX(-PI / 2);
-    const p = geo.attributes.position;
-    const col = new Float32Array(p.count * 3);
-    const c = new THREE.Color();
-    for (let i = 0; i < p.count; i++) {
-        const x = p.getX(i), z = p.getZ(i);
-        const h = islandH(x, z);
-        p.setY(i, h);
-        const n = noise3(x * 0.3, 0, z * 0.3, 5);
-        if (h < 0.15) c.set('#d9c08a').lerp(new THREE.Color('#b89a6a'), clamp(-h * 1.6, 0, 1));
-        else if (h < 0.55) c.set('#ecd7a4').lerp(new THREE.Color('#e2c890'), n);
-        else c.set('#7fae4a').lerp(new THREE.Color('#5f9a3a'), n).lerp(new THREE.Color('#9abe5a'), clamp((h - 1.2) * 0.4, 0, 1) * 0.5);
-        col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
-    }
-    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    geo.computeVertexNormals();
-    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 }));
-    m.receiveShadow = true;
-    return m;
+/** The camp to dig at now: this chapter's, or the Night Digs once the story is done. */
+export function activeSite(G) {
+    if (G.finished) return 5;
+    return Math.min(4, G.tasks.filter((t) => t.startsWith('open-') || t === 'grand').length);
 }
 
-function waterPlane(U) {
-    const geo = new THREE.PlaneGeometry(700, 700, 200, 200);
-    geo.rotateX(-PI / 2);
-    const mat = new THREE.ShaderMaterial({
-        uniforms: { ...U, uSun: { value: new THREE.Vector3(-30, 45, 25).normalize() }, fogColor: { value: new THREE.Color(0xbfe0ec) }, fogNear: { value: 120 }, fogFar: { value: 330 } },
-        transparent: true,
-        fog: true,
-        vertexShader: /* glsl */`
-            uniform float uTime;
-            varying vec3 vW; varying vec3 vN; varying float vFogDepth;
-            float wave(vec2 p, vec2 d, float f, float s) { return sin(dot(p, d) * f + uTime * s); }
-            void main() {
-                vec3 p = position;
-                float r = length(p.xz);
-                float amp = smoothstep(26.0, 60.0, r) * 0.35 + 0.08;
-                float h = (wave(p.xz, vec2(0.8, 0.6), 0.18, 1.1) + wave(p.xz, vec2(-0.3, 0.95), 0.31, 1.7) * 0.5 + wave(p.xz, vec2(0.6, -0.8), 0.5, 2.3) * 0.25) * amp;
-                p.y += h;
-                float e = 0.5;
-                float hx = (wave(p.xz + vec2(e, 0.0), vec2(0.8, 0.6), 0.18, 1.1) + wave(p.xz + vec2(e, 0.0), vec2(-0.3, 0.95), 0.31, 1.7) * 0.5) * amp;
-                float hz = (wave(p.xz + vec2(0.0, e), vec2(0.8, 0.6), 0.18, 1.1) + wave(p.xz + vec2(0.0, e), vec2(-0.3, 0.95), 0.31, 1.7) * 0.5) * amp;
-                vN = normalize(vec3(h - hx, e, h - hz));
-                vec4 wp = modelMatrix * vec4(p, 1.0);
-                vW = wp.xyz;
-                vec4 mv = viewMatrix * wp;
-                vFogDepth = -mv.z;
-                gl_Position = projectionMatrix * mv;
-            }`,
-        fragmentShader: /* glsl */`
-            uniform float uTime; uniform vec3 uSun;
-            uniform vec3 fogColor; uniform float fogNear; uniform float fogFar;
-            varying vec3 vW; varying vec3 vN; varying float vFogDepth;
-            float hh(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-            float nn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
-                return mix(mix(hh(i), hh(i + vec2(1, 0)), f.x), mix(hh(i + vec2(0, 1)), hh(i + vec2(1, 1)), f.x), f.y); }
-            void main() {
-                float r = length(vW.xz);
-                float a = atan(vW.z, vW.x);
-                float shoreR = 30.0 + sin(a * 3.0) * 2.5 + sin(a * 7.0 + 1.0) * 1.2;
-                float shallow = smoothstep(shoreR + 14.0, shoreR - 2.0, r);
-                vec3 deep = vec3(0.04, 0.24, 0.42);
-                vec3 mid = vec3(0.05, 0.45, 0.62);
-                vec3 lagoon = vec3(0.22, 0.78, 0.76);
-                vec3 col = mix(mix(deep, mid, smoothstep(140.0, 50.0, r)), lagoon, shallow);
-                vec3 V = normalize(cameraPosition - vW);
-                vec3 N = normalize(vN + vec3(nn(vW.xz * 0.6 + uTime * 0.3) - 0.5, 0.0, nn(vW.zx * 0.6 - uTime * 0.25) - 0.5) * 0.12);
-                float fres = pow(clamp(1.0 - dot(N, V), 0.0, 1.0), 4.0);
-                col = mix(col, vec3(0.55, 0.78, 0.9), fres * 0.45);
-                vec3 H = normalize(uSun + V);
-                float spec = pow(clamp(dot(N, H), 0.0, 1.0), 260.0);
-                col += vec3(1.0, 0.95, 0.85) * spec * 1.4;
-                // foam where the waves meet the beach
-                float f = smoothstep(shoreR + 1.8, shoreR - 0.6, r + sin(uTime * 1.3 + a * 9.0) * 0.6 + nn(vW.xz * 0.8) * 1.4);
-                float foam = f * (1.0 - smoothstep(shoreR - 0.6, shoreR - 2.0, r)) ;
-                foam *= 0.6 + 0.4 * nn(vW.xz * 3.0 + uTime);
-                col = mix(col, vec3(1.0), clamp(foam, 0.0, 1.0) * 0.85);
-                float fogF = smoothstep(fogNear, fogFar, vFogDepth);
-                col = mix(col, fogColor, fogF);
-                gl_FragColor = vec4(col, 0.94);
-            }`,
-    });
-    const m = new THREE.Mesh(geo, mat);
-    m.renderOrder = -1;
-    return m;
-}
-
-function skyDome(U) {
-    const mat = new THREE.ShaderMaterial({
-        uniforms: { ...U, uSun: { value: new THREE.Vector3(-30, 45, 25).normalize() } },
-        side: THREE.BackSide,
-        depthWrite: false,
-        vertexShader: 'varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-        fragmentShader: /* glsl */`
-            uniform float uTime; uniform vec3 uSun; varying vec3 vD;
-            float hh(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-            float nn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
-                return mix(mix(hh(i), hh(i + vec2(1, 0)), f.x), mix(hh(i + vec2(0, 1)), hh(i + vec2(1, 1)), f.x), f.y); }
-            float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { s += nn(p) * a; p *= 2.03; a *= 0.5; } return s; }
-            void main() {
-                vec3 d = normalize(vD);
-                float y = max(d.y, 0.0);
-                vec3 zen = vec3(0.24, 0.52, 0.86), hor = vec3(0.75, 0.88, 0.95), warm = vec3(1.0, 0.85, 0.65);
-                vec3 col = mix(hor, zen, pow(y, 0.55));
-                float s = max(dot(d, normalize(uSun)), 0.0);
-                col = mix(col, warm, pow(s, 6.0) * 0.5);
-                col += vec3(1.0, 0.9, 0.7) * pow(s, 800.0) * 4.0;
-                vec2 uv = d.xz / max(0.12, d.y) * 0.9 + vec2(uTime * 0.008, 0.0);
-                float c = smoothstep(0.52, 0.8, fbm(uv * 0.8));
-                col = mix(col, vec3(1.0, 0.99, 0.97), c * smoothstep(0.02, 0.25, d.y) * 0.85);
-                if (d.y < 0.0) col = hor;
-                gl_FragColor = vec4(col, 1.0);
-            }`,
-    });
-    const m = new THREE.Mesh(new THREE.SphereGeometry(450, 32, 16), mat);
-    m.renderOrder = -2;
-    return m;
-}
-
+export { islandH };
 export { ROOMS, FLOOR_Y, glowTexture, sphere, cone, torus, cyl, STAFF };

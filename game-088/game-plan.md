@@ -2,7 +2,7 @@
 
 **Genre:** Casual match-3 with a cozy museum meta-game
 **Engine:** three.js r165, no asset files (every model, texture, tune and sound is made in code)
-**Status:** v1.0.1
+**Status:** v1.1.0
 
 ---
 
@@ -121,7 +121,7 @@ Told in short scenes after each task, in the voice of whoever was involved, with
 
 - **Stage** (js/view/stage.js): ACES tone mapping, PCF soft shadows, an environment map from RoomEnvironment for every metal and gem, then RenderPass → a NaN/Inf sanitiser → UnrealBloom at half size (threshold above 1, so only true glows bloom) → a grade pass (split toning, vignette, grain, a white flash and chromatic aberration the dig drives on big blasts) → OutputPass.
 - **Dig** (js/view/board3d.js): an excavation pit on rippled sand (a patched MeshStandardMaterial), rounded dirt slabs raised by their layers, a wooden rim and white survey strings, corner stakes, a parasol, bucket, sieve, brushes and clipboard. Finds stand tilted to face the camera and bob; coins turn. Each chapter has its own sand and light; Night Digs are moonlit with lanterns. The view plays each move's script: swaps with lift, pops with sparkles and tumbling shards, matches converging into specials, beams, rings, a point-light flash, lightning, scarab flights, dust from dirt, cracking boulders, fossils rising, relics lifting out, falls with gravity and a landing squash, camera shake, praise ("Fossiltastic!"), score popups, and goal icons that fly to their counters.
-- **Island** (js/view/museum3d.js): a sky dome with sun and drifting clouds, a wave shader with a turquoise lagoon, sun glints and shore foam, a terrain mesh with beach and grass, palms, rocks, a lighthouse, the dig site on a hill, Gus's ferry at the dock, gulls. The museum is five rooms with the roof cut away, rebuilt from G when a task changes them; finds stand on plinths, dinosaurs on stands (missing bones as faint blue ghosts). Staff wander their halls; visitors (puffins, rabbits, bears, cats, seals, sheep) come up from the dock and stroll the open galleries, more as appeal grows.
+- **Island** (js/view/island.js, museum3d.js): about 260 units across. The museum on its plateau above Curio Cove (village, pier, fishing boats, Gus's ferry); Driftwood Dunes; Lighthouse Point on a headland that rises to sea cliffs; the Old Ruins; Whispering Woods; Mirror Lake on a highland, its river falling over a waterfall to the west coast; Windmill Meadow; Jungle Hill; Sunset Quarry's terraces; Mount Ember with a churning lava crater (it blooms) and a plume of smoke. A sky dome with clouds; a sea that samples a baked height texture for shallows, depth colour and foam; instanced pines, oaks, palms, ferns, grass and rocks placed by region; dirt paths painted into the terrain colours. One dig camp per chapter in its region. The camera is a map camera, and the sun's shadow box follows the view. The museum is five rooms with the roof cut away, rebuilt from G when a task changes them; finds stand on plinths, dinosaurs on stands (missing bones as faint blue ghosts). Staff wander their halls; visitors (puffins, rabbits, bears, cats, seals, sheep) come up from the dock and stroll the open galleries, more as appeal grows.
 - **Models** (js/view/models.js, artifacts.js, skeleton.js, animals.js, props.js): lathes, extrusions, variable-radius tubes, ribbons, noise-displaced rock, merged per material with vertex colours. `dev/gallery.html` shows every one on a neutral background.
 - **UI**: warm paper sheets, Fredoka (system fallback), pills and badges, dialogue with portraits rendered from the 3D characters (js/view/thumbs.js), goal and journal icons rendered from the models.
 - **Sound** (js/audio.js): a look-ahead sequencer with three tunes (marimba in the museum, plucks and brushes in the dig, a music box at night) over a pad and bass with generated reverb; chimes that climb the pentatonic scale with each cascade, zaps, thumps, crunches, cracks, a fossil arpeggio, a relic fanfare; waves and gulls in the museum; a voice blip per letter of dialogue, pitched by speaker.
@@ -159,6 +159,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, every rule and 
 - A photo mode for the museum.
 
 ## Changelog
+
+### v1.1.0 (2026-10-20)
+- A whole island: Curio Cove and its village, Driftwood Dunes, Lighthouse Point, the Old Ruins, Whispering Woods, Mirror Lake with its river and waterfall, Windmill Meadow, Jungle Hill, Sunset Quarry and Mount Ember (smoking, with a lava crater). One dig camp per chapter in its region; Night Digs at Ember Rim. A map camera (pan, pinch, twist), a 🗺️ overview button, place names and a ⛏ chip that points to the current dig. The sea's shallows and foam follow the coast from a baked height texture; forests are instanced.
 
 ### v1.0.1 (2026-10-20)
 - Gold coins no longer flash: satin gold instead of mirror-polished, a ±0.08 rad sway instead of ±0.5 for every find. On a still board the screen share that swings by more than a quarter of full brightness fell from 4.8% to about 0.3%; the browser test now measures it.
