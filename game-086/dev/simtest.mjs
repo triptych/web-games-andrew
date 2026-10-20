@@ -131,6 +131,15 @@ if (want('rules')) {
     ok(s2.charges === 2, `two charges after ${CFG.STARBURST.pixelsPerCharge * 2} pixels (got ${s2.charges})`);
     P.undoStroke(s2, art2, ps2, st);
     ok(s2.charges === 0 && s2.chargeProgress === 0, 'undo takes the charges back');
+    st = P.beginStroke(s2, art2, ps2);
+    for (const i of all.slice(0, CFG.STARBURST.pixelsPerCharge * 6)) P.paintCells(s2, art2, ps2, [i], art2.cells[i], st);
+    ok(s2.charges === CFG.STARBURST.maxCharges, `charges stop at ${CFG.STARBURST.maxCharges}`);
+    P.undoStroke(s2, art2, ps2, st);
+    s2.skills.push('supernova');
+    st = P.beginStroke(s2, art2, ps2);
+    for (const i of all.slice(0, CFG.STARBURST.pixelsPerCharge * 7)) P.paintCells(s2, art2, ps2, [i], art2.cells[i], st);
+    ok(s2.charges === CFG.SUPERNOVA.maxCharges && SK.burstRadius(s2) === CFG.SUPERNOVA.radius, 'Supernova: more charges, a wider burst');
+    ok(SK.lanternAt(P.newGame()) === CFG.LANTERN_AT && SK.lanternAt({ skills: ['moonlit'] }) === CFG.MOONLIT_AT, 'Moonlit Lanterns glow sooner');
 
     // streak and catcher
     const s3 = P.newGame();
@@ -150,6 +159,12 @@ if (want('rules')) {
     ok(P.undoStroke(s4, w, p4, st).length === 0 && p4.done, 'a finished page cannot be undone');
     ok(Math.abs(s4.glimmer - (w.total + res.complete + res.flawless)) < 1e-9, 'glimmer totals add up');
     ok(p4.order.length === w.total && new Set(p4.order).size === w.total, 'the time-lapse order has every pixel once');
+    const s4g = P.newGame(); s4g.skills.push('gilded');
+    const p4g = P.pageOf(s4g, w);
+    st = P.beginStroke(s4g, w, p4g);
+    for (let i = 0; i < w.total; i++) P.paintCells(s4g, w, p4g, [i], w.cells[i], st);
+    const rg = P.finishIfComplete(s4g, w, p4g);
+    ok(rg.complete === Math.round(w.total * CFG.GLIMMER.completeBonus * CFG.GILDED) && rg.flawless === Math.round(w.total * CFG.GLIMMER.flawlessBonus * CFG.GILDED), 'Gilded Frame doubles the completion bonuses');
 
     // flourish threshold
     const s5 = P.newGame(); s5.skills.push('flourish');
@@ -209,7 +224,11 @@ if (want('story')) {
     ok(P.isPageUnlocked(s, 'wick') && !P.isPageUnlocked(s, 'comet'), 'only the first page is open');
     ok(!P.isPageUnlocked(s, 'snail'), 'bonus pages need Hidden Sketches');
     ok(P.nextPage(s) === 'wick', 'continue goes to Wick');
-    ok(ST.STORY_PAGES.length === 14 && new Set(ST.ALL_PAGES).size === ST.ALL_PAGES.length, 'fourteen story pages, no repeats');
+    ok(ST.STORY_PAGES.length === 29 && new Set(ST.ALL_PAGES).size === ST.ALL_PAGES.length, 'twenty-nine story pages, no repeats');
+    ok(ST.ALL_PAGES.length === 35, 'thirty-five pages in all');
+    ok(ST.FINAL_PAGE === 'farshore' && ST.STORY_PAGES.indexOf(ST.BOOK_ONE_END) === 13, 'Book One ends at the Colorverse, Book Two at the Far Shore');
+    ok(ST.CHAPTERS.every((c) => ST.BOOKS[c.book]), 'every chapter is in a book');
+    for (const e of ST.EXTRAS) ok(!!SK.SKILL_BY_ID[e.skill], `${e.id} opens with a real skill`);
     for (const id of ST.ALL_PAGES) {
         ok(!!ART_BY_ID[id], `page ${id} has art`);
         ok(!!ST.SCENES[`after:${id}`], `page ${id} has an after-scene`);
@@ -226,6 +245,14 @@ if (want('story')) {
     ok(P.storyDone(s) && P.nextPage(s) === undefined, 'story done, nothing next without the bonus');
     s.skills.push('catcher', 'streak', 'sketches');
     ok(P.nextPage(s) === 'snail' && P.isPageUnlocked(s, 'koi'), 'bonus pages open with the skill');
+    ok(!P.isPageUnlocked(s, 'rabbit'), 'postcards need their own skill');
+    for (const id of ST.BONUS.pages) s.pages[id] = { ...P.blankPage(ART_BY_ID[id]), done: true };
+    ok(P.nextPage(s) === undefined, 'nothing next once the sketches are done');
+    s.skills.push('postcards');
+    ok(P.nextPage(s) === 'rabbit' && P.isPageUnlocked(s, 'owl'), 'postcards open with their skill');
+    const mid = P.newGame();
+    for (const id of ST.STORY_PAGES.slice(0, 14)) mid.pages[id] = { ...P.blankPage(ART_BY_ID[id]), done: true };
+    ok(P.nextPage(mid) === 'jellies', 'Book Two starts once the Colorverse is restored');
 }
 
 if (want('bot')) {
@@ -269,7 +296,7 @@ if (want('bot')) {
         for (const id of ch.pages) { ok(P.isPageUnlocked(s, id), `${id} unlocked in time`); dabs += playPage(id); buyAll(); }
         console.log(`  after ${ch.title.padEnd(20)} glimmer ${Math.floor(s.glimmer).toString().padStart(5)}  earned ${Math.floor(s.earned).toString().padStart(6)}  skills ${s.skills.length}/${SK.SKILLS.length}  dabs ${dabs}`);
     }
-    for (const id of ST.BONUS.pages) { ok(P.isPageUnlocked(s, id), `${id} unlocked`); playPage(id); buyAll(); }
+    for (const id of ST.EXTRAS.flatMap((e) => e.pages)) { ok(P.isPageUnlocked(s, id), `${id} unlocked`); playPage(id); buyAll(); }
     ok(s.skills.length === SK.SKILLS.length, `every skill learnable by the end (${s.skills.length}/${SK.SKILLS.length}, total cost ${SK.totalSkillCost()}, earned ${Math.floor(s.earned)})`);
     if (process.env.VERBOSE) console.log('  bought in order:', log.join(', '));
 }

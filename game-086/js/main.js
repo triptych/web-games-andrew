@@ -8,8 +8,8 @@
  */
 import { VERSION } from './config.js';
 import { ARTWORKS, ART_BY_ID } from './artworks.js';
-import { CHAPTERS, BONUS, SCENES, ALL_PAGES, chapterOf } from './story.js';
-import { SKILLS, SKILL_BY_ID, BRANCHES, skillStatus, canBuy, buySkill, has } from './skills.js';
+import { CHAPTERS, EXTRAS, BOOKS, BOOK_ONE_END, FINAL_PAGE, SCENES, STORY_PAGES, chapterOf } from './story.js';
+import { SKILLS, SKILL_BY_ID, BRANCHES, SKY_TOP, skillStatus, canBuy, buySkill, has } from './skills.js';
 import { newGame, isPageUnlocked, chapterDone, nextPage, fraction, storyDone, studioPalette } from './progress.js';
 import { loadGame, saveGame, eraseGame } from './save.js';
 import { Sound } from './audio.js';
@@ -161,8 +161,9 @@ function renderChart() {
 
     const list = $('chart-list');
     list.replaceChildren();
-    const chapters = has(s, BONUS.skill) ? [...CHAPTERS, BONUS] : CHAPTERS;
+    const chapters = [...CHAPTERS, ...EXTRAS.filter((e) => has(s, e.skill))];
     chapters.forEach((ch, idx) => {
+        if (ch.book && ch.book !== chapters[idx - 1]?.book) list.append(el('h2', { class: 'book-head' }, BOOKS[ch.book]));
         const unlocked = isPageUnlocked(s, ch.pages[0]);
         const doneN = ch.pages.filter((id) => s.pages[id]?.done).length;
         const card = el('section', { class: `chapter${unlocked ? '' : ' locked'}`, style: { '--hue': ch.hue } },
@@ -236,9 +237,14 @@ function onPageComplete(art, r) {
 async function afterPage(id) {
     await scene(`after:${id}`);
     const ch = chapterOf(id);
-    if (id === 'colorverse') {
+    if (id === FINAL_PAGE) {
         openChart();
-        toast('The Colorverse is bright again ✦ Thank you for playing!', 4000);
+        toast('The Far Shore is bright again ✦ Thank you for playing!', 4000);
+        return;
+    }
+    if (id === BOOK_ONE_END) {
+        openChart();
+        toast('The Colorverse is bright again ✦ Book Two, The Far Shore, is on the chart', 4200);
         return;
     }
     const nxt = nextPage(app.state);
@@ -273,8 +279,9 @@ function openSkills() {
 function renderSkills() {
     const svg = $('sky-svg'), NS = 'http://www.w3.org/2000/svg';
     // stretch the chart to fill tall phone screens
-    const sky = $('sky'), ys = Math.max(1, Math.min(1.7, (sky.clientHeight - 16) / Math.max(1, sky.clientWidth - 16)));
-    svg.setAttribute('viewBox', `-4 -4 108 ${(100 * ys + 8).toFixed(1)}`);
+    const span = 100 - SKY_TOP;
+    const sky = $('sky'), ys = Math.max(1, Math.min(1.7, ((sky.clientHeight - 16) / Math.max(1, sky.clientWidth - 16)) * (100 / span)));
+    svg.setAttribute('viewBox', `-4 ${(SKY_TOP * ys - 4).toFixed(1)} 108 ${(span * ys + 8).toFixed(1)}`);
     const Y = (s) => s.y * ys;
     const mk = (tag, attrs = {}) => { const n = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); return n; };
     svg.replaceChildren();
@@ -343,8 +350,9 @@ function openGallery() {
     show('gallery');
     const grid = $('gallery-grid');
     grid.replaceChildren();
-    const done = ALL_PAGES.filter((id) => app.state.pages[id]?.done);
-    $('gallery-count').textContent = `${done.length} / ${has(app.state, BONUS.skill) ? ALL_PAGES.length : CHAPTERS.flatMap((c) => c.pages).length}`;
+    const open = [...STORY_PAGES, ...EXTRAS.filter((e) => has(app.state, e.skill)).flatMap((e) => e.pages)];
+    const done = open.filter((id) => app.state.pages[id]?.done);
+    $('gallery-count').textContent = `${done.length} / ${open.length}`;
     if (!done.length) {
         grid.append(el('div', { class: 'g-empty' }, 'Your gallery is waiting for its first mosaic.', el('br'), 'Restore every pixel of a page to hang it here.'));
         return;

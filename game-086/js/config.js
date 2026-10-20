@@ -1,5 +1,5 @@
 /** config.js — tunable numbers. Pure. */
-export const VERSION = '2.0.0';
+export const VERSION = '2.1.0';
 export const SAVE_KEY = 'colorverse.save.v2';
 export const SAVE_VERSION = 2;
 
@@ -22,5 +22,8 @@ export const GLIMMER = {
 };
 
 export const STARBURST = { pixelsPerCharge: 120, maxCharges: 3, radius: 5 };
+export const SUPERNOVA = { maxCharges: 5, radius: 7 };  // Supernova skill upgrades Starburst
 export const FLOURISH_AT = 0.9;   // Final Flourish appears at this much done
 export const LANTERN_AT = 12;     // Lantern Light marks a colour's pixels once this few remain
+export const MOONLIT_AT = 40;     // ...or this few with Moonlit Lanterns
+export const GILDED = 2;          // Gilded Frame multiplies the complete and flawless bonuses

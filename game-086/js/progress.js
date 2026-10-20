@@ -7,9 +7,9 @@
  *
  * Every change goes through a stroke (one drag, one pour, one burst) so it can be undone whole.
  */
-import { GLIMMER, STARBURST, FLOURISH_AT, SAVE_VERSION } from './config.js';
-import { has, brushLevel, SKILL_BY_ID } from './skills.js';
-import { CHAPTERS, BONUS, STORY_PAGES } from './story.js';
+import { GLIMMER, STARBURST, FLOURISH_AT, GILDED, SAVE_VERSION } from './config.js';
+import { has, brushLevel, maxCharges, SKILL_BY_ID } from './skills.js';
+import { CHAPTERS, EXTRAS, STORY_PAGES, extraOf } from './story.js';
 
 /** The extra colours offered in the Freestyle Studio, after the mosaic's own palette. */
 export const STUDIO_COLORS = [
@@ -51,7 +51,8 @@ export const fraction = (art, ps) => (ps ? ps.correct / art.total : 0);
 /* ───────────── unlocking ───────────── */
 
 export function isPageUnlocked(state, artId) {
-    if (BONUS.pages.includes(artId)) return has(state, BONUS.skill);
+    const extra = extraOf(artId);
+    if (extra) return has(state, extra.skill);
     const i = STORY_PAGES.indexOf(artId);
     if (i < 0) return false;
     return i === 0 || !!state.pages[STORY_PAGES[i - 1]]?.done;
@@ -64,7 +65,7 @@ export function chapterDone(state, ch) {
 /** The first unlocked page that isn't finished: where "Continue" should go. */
 export function nextPage(state) {
     return STORY_PAGES.find((id) => isPageUnlocked(state, id) && !state.pages[id]?.done)
-        ?? (has(state, BONUS.skill) ? BONUS.pages.find((id) => !state.pages[id]?.done) : undefined);
+        ?? EXTRAS.filter((e) => has(state, e.skill)).flatMap((e) => e.pages).find((id) => !state.pages[id]?.done);
 }
 
 export const storyDone = (state) => STORY_PAGES.every((id) => state.pages[id]?.done);
@@ -220,7 +221,7 @@ export function paintCells(state, art, ps, indices, color, stroke) {
             state.glimmer += g;
             state.earned += g;
             state.streak++;
-            if (has(state, 'burst') && state.charges < STARBURST.maxCharges) {
+            if (has(state, 'burst') && state.charges < maxCharges(state)) {
                 if (++state.chargeProgress >= STARBURST.pixelsPerCharge) { state.charges++; state.chargeProgress = 0; }
             }
             stroke.changes.push([i, cur]);
@@ -275,8 +276,9 @@ export function useCharge(state) {
 export function finishIfComplete(state, art, ps) {
     if (ps.done || ps.correct < art.total) return null;
     ps.done = true;
-    const complete = Math.round(art.total * GLIMMER.completeBonus);
-    const flawless = ps.mistakes === 0 ? Math.round(art.total * GLIMMER.flawlessBonus) : 0;
+    const gild = has(state, 'gilded') ? GILDED : 1;
+    const complete = Math.round(art.total * GLIMMER.completeBonus * gild);
+    const flawless = ps.mistakes === 0 ? Math.round(art.total * GLIMMER.flawlessBonus * gild) : 0;
     const ch = CHAPTERS.find((c) => c.pages.includes(art.id));
     const chapter = ch && chapterDone(state, ch) ? GLIMMER.chapterBonus * ch.n : 0;
     const bonus = complete + flawless + chapter;
@@ -386,7 +388,7 @@ export function deserialize(text, artById) {
         }
     }
     if (Array.isArray(raw.seen)) state.seen = raw.seen.filter((s) => typeof s === 'string').slice(0, 200);
-    state.charges = Math.round(num(raw.charges, 0, STARBURST.maxCharges, 0));
+    state.charges = Math.round(num(raw.charges, 0, maxCharges(state), 0));
     state.chargeProgress = Math.round(num(raw.chargeProgress, 0, STARBURST.pixelsPerCharge - 1, 0));
     if (raw.settings && typeof raw.settings === 'object') {
         state.settings.sound = raw.settings.sound !== false;

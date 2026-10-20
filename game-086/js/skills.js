@@ -1,7 +1,12 @@
 /**
  * skills.js — the Constellation: a skill tree bought with Glimmer. Pure.
- * x/y place each star on a 100 × 100 chart (the root sits in the middle at the bottom).
+ * x/y place each star on a 100 × 100 chart (the root sits in the middle at the bottom); the top
+ * row of stars sits above it, up to SKY_TOP.
  */
+import { STARBURST, SUPERNOVA, LANTERN_AT, MOONLIT_AT } from './config.js';
+
+export const SKY_TOP = -12;
+
 export const BRANCHES = {
     brush: { name: 'Brush', color: '#f5a8d4', blurb: 'Paint more with every touch.' },
     insight: { name: 'Insight', color: '#ffd27a', blurb: 'Find what is left, and never paint wrong.' },
@@ -46,6 +51,16 @@ export const SKILLS = [
       desc: 'Unlocks three secret bonus mosaics in the Star Chart.', wick: 'I found these tucked in the back of the logbook.' },
     { id: 'prismheart', branch: 'wonder', name: 'Prism Heart', icon: '❤', cost: 2600, req: ['sketches', 'timelapse'], x: 80, y: 10,
       desc: 'A rainbow shimmer follows your brush, and finished mosaics sparkle in the gallery.', wick: 'The ship\'s own heart, glowing for you.' },
+
+    // the top row, for the long voyage to the Far Shore
+    { id: 'supernova', branch: 'brush', name: 'Supernova', icon: '✹', cost: 9500, req: ['burst'], x: 12, y: -4,
+      desc: `Starburst grows: a wider circle and up to ${SUPERNOVA.maxCharges} charges.`, wick: 'Bigger. Brighter. Mind your eyebrows.' },
+    { id: 'moonlit', branch: 'insight', name: 'Moonlit Lanterns', icon: '☾', cost: 8000, req: ['flourish'], x: 36, y: -4,
+      desc: `Lantern Light glows sooner, once a colour has ${MOONLIT_AT} pixels or fewer left.`, wick: 'Pip taught me this one. Lanterns are better in pairs.' },
+    { id: 'gilded', branch: 'wonder', name: 'Gilded Frame', icon: '▣', cost: 7000, req: ['prismheart'], x: 64, y: -4,
+      desc: 'Doubles the Glimmer for finishing a mosaic, and for finishing it without mistakes.', wick: 'A finished picture deserves a proper frame.' },
+    { id: 'postcards', branch: 'wonder', name: 'Postcards', icon: '✉', cost: 6000, req: ['sketches'], x: 90, y: -4,
+      desc: 'Unlocks three more bonus mosaics: postcards from the Far Shore.', wick: 'They keep floating in through the porthole.' },
 ];
 
 export const SKILL_BY_ID = Object.fromEntries(SKILLS.map((s) => [s.id, s]));
@@ -77,5 +92,9 @@ export function brushLevel(state) {
     if (has(state, 'soft')) return 1;
     return 0;
 }
+
+export const burstRadius = (state) => (has(state, 'supernova') ? SUPERNOVA.radius : STARBURST.radius);
+export const maxCharges = (state) => (has(state, 'supernova') ? SUPERNOVA.maxCharges : STARBURST.maxCharges);
+export const lanternAt = (state) => (has(state, 'moonlit') ? MOONLIT_AT : LANTERN_AT);
 
 export const totalSkillCost = () => SKILLS.reduce((t, s) => t + s.cost, 0);

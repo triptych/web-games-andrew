@@ -1292,10 +1292,10 @@ const games = [
     {
         id: 'game-086',
         title: 'Colorverse',
-        description: "A pixel colour-by-number adventure for phones and desktops, in vanilla Canvas 2D with no asset files. The Grey Hush has washed five little worlds to grey: zoom in until you can see every pixel's number, pick a colour, and tap or drag to paint them back. Pinch, scroll or drag with two fingers to move around mosaics from 16×16 to 48×48. Sail the Prism, a lighthouse that learned to sail, through The Lighthouse Ship, Moonberry Grove, Starship Sprout and Cloudtop Castle, meeting Wick the lamplighter, Mira the very purple dragon, Captain Fern, Bolt the gardener and Lady Aurelle, until you finally meet the Hush itself. Every pixel leaves Glimmer to spend in the Constellation, a skill tree of 17 stars: wider smart brushes, Paint Pour, Starburst, a Seeker Wisp, Lantern Light for the last few pixels, a Star Map, True Hand, Final Flourish, streaks, a Freestyle Studio to repaint anything, time-lapse replays and three hidden bonus sketches. Saves as you go; share your mosaics as crisp PNGs.",
+        description: "A pixel colour-by-number adventure for phones and desktops, in vanilla Canvas 2D with no asset files. The Grey Hush has washed five little worlds to grey: zoom in until you can see every pixel's number, pick a colour, and tap or drag to paint them back. Pinch, scroll or drag with two fingers to move around mosaics from 16×16 to 56×56. Sail the Prism, a lighthouse that learned to sail, through The Lighthouse Ship, Moonberry Grove, Starship Sprout and Cloudtop Castle, meeting Wick the lamplighter, Mira the very purple dragon, Captain Fern, Bolt the gardener and Lady Aurelle, until you finally meet the Hush itself. Then Book Two, The Far Shore, sails off the edge of the chart: a reef of lantern jellies, a volcano that bakes bread, a tundra under the northern lights, a clockwork carnival, and the Blank Page where the Hush began, ending in a 56×56 finale. 35 mosaics in all. Every pixel leaves Glimmer to spend in the Constellation, a skill tree of 21 stars: wider smart brushes, Paint Pour, Starburst and Supernova, a Seeker Wisp, Lantern Light for the last few pixels, a Star Map, True Hand, Final Flourish, streaks, a Gilded Frame, a Freestyle Studio to repaint anything, time-lapse replays and six bonus pages. Saves as you go; share your mosaics as crisp PNGs.",
         icon: '🎨',
         folder: 'game-086',
-        version: '2.0.0',
+        version: '2.1.0',
         cssClass: 'colorverse',
         genre: 'cozy',
         tags: [

@@ -3,6 +3,7 @@
  * Pure data: no DOM. The dev gallery (dev/gallery.html) shows them all; judge art there.
  */
 import { defineArt } from './pixelart.js';
+import { BOOK_TWO, POSTCARDS, portraitSmudge } from './artworks2.js';
 
 const STAR = '#fff6dc';
 
@@ -739,8 +740,11 @@ const portraitAurelle = defineArt({
     },
 });
 
-export const ARTWORKS = [wick, comet, prism, moonberry, glowcaps, dragon, seedpod, bolt, sprout, sheep, griffin, castle, hush, colorverse, snail, teacup, koi];
-export const PORTRAIT_ART = [portraitFern, portraitAurelle];
+export const ARTWORKS = [
+    wick, comet, prism, moonberry, glowcaps, dragon, seedpod, bolt, sprout, sheep, griffin, castle, hush, colorverse,
+    ...BOOK_TWO, snail, teacup, koi, ...POSTCARDS,
+];
+export const PORTRAIT_ART = [portraitFern, portraitAurelle, portraitSmudge];
 export const ART_BY_ID = Object.fromEntries([...ARTWORKS, ...PORTRAIT_ART].map((a) => [a.id, a]));
 
 /**
@@ -756,4 +760,10 @@ export const PORTRAITS = {
     aurelle: { art: 'p-aurelle', x: 0, y: 0, size: 16, colorAfter: 'castle' },
     sunwing: { art: 'griffin', x: 1, y: 4, size: 14, colorAfter: 'griffin' },
     hush: { art: 'hush', x: 4, y: 0, size: 24, colorAfter: 'hush' },
+    pip: { art: 'pip', x: 5, y: 3, size: 20, colorAfter: 'pip' },
+    cinder: { art: 'cinder', x: 5, y: 0, size: 18, colorAfter: 'cinder' },
+    nook: { art: 'nook', x: 7, y: 3, size: 18, colorAfter: 'nook' },
+    tock: { art: 'tock', x: 8, y: 0, size: 16, colorAfter: 'tock' },
+    smudge: { art: 'p-smudge', x: 0, y: 0, size: 16, colorAfter: 'sketch' },
+    dusk: { art: 'dusk', x: 8, y: 0, size: 24, colorAfter: 'dusk' },
 };

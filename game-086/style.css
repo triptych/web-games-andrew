@@ -205,6 +205,16 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
 }
 .chapter::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--hue, var(--lilac)); }
 .chapter.locked { opacity: 0.55; }
+.book-head {
+    margin: 10px 0 -4px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--gold);
+    text-align: center;
+}
+.book-head:first-child { margin-top: 0; }
 .ch-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
 .ch-n { color: var(--hue); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; }
 .ch-title { font-size: 20px; font-weight: 600; margin: 0; }

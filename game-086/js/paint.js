@@ -5,10 +5,10 @@
  *   free    the Freestyle Studio: repaint a finished mosaic with any colours
  */
 import { Painter } from './painter.js';
-import { VIEW, LANTERN_AT, STARBURST, GLIMMER } from './config.js';
+import { VIEW, STARBURST, GLIMMER } from './config.js';
 import { hexToRgb, luma } from './pixelart.js';
 import { ART_BY_ID } from './artworks.js';
-import { has, brushLevel } from './skills.js';
+import { has, brushLevel, burstRadius, lanternAt } from './skills.js';
 import {
     pageOf, beginStroke, paintCells, undoStroke, brushCells, pourCells, burstCells, freePourCells, remainingOf,
     remainingCells, nearestRemaining, firstUnfinishedColor, finishIfComplete, canFlourish, useCharge, studioPalette,
@@ -320,7 +320,7 @@ export class PaintScreen {
             this.strokeEnd();
         } else if (this.tool === 'burst') {
             if (this.state.charges <= 0) { toast(`Starburst is recharging: ${STARBURST.pixelsPerCharge - this.state.chargeProgress} more pixels.`); return; }
-            const cells = burstCells(this.art, x, y, this.color).filter((j) => this.ps.cells[j] !== this.color + 1);
+            const cells = burstCells(this.art, x, y, this.color, burstRadius(this.state)).filter((j) => this.ps.cells[j] !== this.color + 1);
             if (!cells.length) { toast(`No ${this.color + 1}s left near there. Try somewhere else.`); return; }
             this.stroke = beginStroke(this.state, this.art, this.ps);
             useCharge(this.state);
@@ -469,7 +469,7 @@ export class PaintScreen {
     updateGlow() {
         if (this.mode !== 'number' || this.ps.done || !has(this.state, 'lantern')) { this.painter.glow = []; return; }
         const left = remainingOf(this.art, this.ps, this.color);
-        this.painter.glow = left > 0 && left <= LANTERN_AT ? remainingCells(this.art, this.ps, this.color) : [];
+        this.painter.glow = left > 0 && left <= lanternAt(this.state) ? remainingCells(this.art, this.ps, this.color) : [];
         this.painter.dirty = true;
     }
 
