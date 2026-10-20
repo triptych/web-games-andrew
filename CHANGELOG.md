@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Curio Cove** (game-088) v1.1.2: the Treasure Rush at the end of a won dig (every move left becomes a trowel, then everything goes off) can be skipped. A **Skip** button shows while it plays; a tap on the board, Space, Enter or Esc also skip. The sim settles the whole rush when the winning move is made, so skipping only drops the rest of the show: the view clears its timeline and tweens, removes what cut-short animations left behind, snaps to the final board and shows the result ([board3d.js](game-088/js/view/board3d.js) `skip()`, [main.js](game-088/js/main.js)). [browsertest.mjs](game-088/dev/browsertest.mjs) skips a rush by button, key and board click on desktop and by tap on both phones, and checks that the result shows at once, the board matches the sim with no stray pieces, and the button sits clear of the HUD.
+
 ### Fixed
+- **Curio Cove** (game-088) v1.1.2: the museum's sign read "JRIO COVE MUSEU": its words were drawn at a fixed size and ran off both ends of the board. Signs now shrink their words to fit inside the frame ([props.js](game-088/js/view/props.js)).
 - **Curio Cove** (game-088) v1.1.1: the outlined text on the dig board ("Great dig!", "COMBO!", the score pops) and the title logo drew stray lines inside some letters, through the t, d, k, B, ! and +. `-webkit-text-stroke` traces every contour of a glyph, and Fredoka builds those letters from overlapping shapes, so their inner edges were stroked too. The outlines are now rings of hard `text-shadow`s (8 or 16 directions), which only show around the outside of the letters ([style.css](game-088/style.css)).
 
 ### Added
