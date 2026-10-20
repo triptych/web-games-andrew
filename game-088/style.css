@@ -182,7 +182,9 @@ button { font-family: inherit; }
 #fxlayer { position: fixed; inset: 0; z-index: 30; pointer-events: none; overflow: hidden; }
 .popup {
     position: absolute; transform: translate(-50%, -50%); font-weight: 700; font-size: 20px; color: #fff;
-    -webkit-text-stroke: 1px rgba(60, 30, 10, 0.6); text-shadow: 0 2px 0 rgba(60, 30, 10, 0.5); white-space: nowrap;
+    /* outlines are rings of hard shadows: -webkit-text-stroke traces every contour of the glyph,
+       and Fredoka's letters are built from overlapping shapes, so it drew lines inside t, d, k, + (v1.1.1) */
+    text-shadow: 1.5px 0px 0 #5a2e10, -1.5px 0px 0 #5a2e10, 0px 1.5px 0 #5a2e10, 0px -1.5px 0 #5a2e10, 1.06px 1.06px 0 #5a2e10, -1.06px 1.06px 0 #5a2e10, 1.06px -1.06px 0 #5a2e10, -1.06px -1.06px 0 #5a2e10, 0 3px 0 rgba(60, 30, 10, 0.55); white-space: nowrap;
     animation: popup 0.9s ease-out forwards;
 }
 .popup.big { font-size: 28px; }
@@ -191,10 +193,10 @@ button { font-family: inherit; }
 #praise { position: fixed; left: 0; right: 0; top: 40%; z-index: 31; text-align: center; pointer-events: none; }
 .praise {
     display: inline-block; font-weight: 700; font-size: clamp(38px, 11vw, 72px); color: #fff3c0;
-    -webkit-text-stroke: 2px #8a4a10; text-shadow: 0 5px 0 #8a4a10, 0 10px 24px rgba(0, 0, 0, 0.35);
+    text-shadow: 3px 0px 0 #8a4a10, -3px 0px 0 #8a4a10, 0px 3px 0 #8a4a10, 0px -3px 0 #8a4a10, 2.13px 2.13px 0 #8a4a10, -2.13px 2.13px 0 #8a4a10, 2.13px -2.13px 0 #8a4a10, -2.13px -2.13px 0 #8a4a10, 2.76px 1.14px 0 #8a4a10, -2.76px 1.14px 0 #8a4a10, 2.76px -1.14px 0 #8a4a10, -2.76px -1.14px 0 #8a4a10, 1.14px 2.76px 0 #8a4a10, -1.14px 2.76px 0 #8a4a10, 1.14px -2.76px 0 #8a4a10, -1.14px -2.76px 0 #8a4a10, 0 6px 0 #8a4a10, 0 11px 24px rgba(0, 0, 0, 0.35);
     animation: praise 1.1s cubic-bezier(.2, 1.6, .4, 1) forwards;
 }
-.praise.combo { color: #c7f3ff; -webkit-text-stroke-color: #1d5f6b; text-shadow: 0 5px 0 #1d5f6b, 0 10px 24px rgba(0, 0, 0, 0.35); }
+.praise.combo { color: #c7f3ff; text-shadow: 3px 0px 0 #1d5f6b, -3px 0px 0 #1d5f6b, 0px 3px 0 #1d5f6b, 0px -3px 0 #1d5f6b, 2.13px 2.13px 0 #1d5f6b, -2.13px 2.13px 0 #1d5f6b, 2.13px -2.13px 0 #1d5f6b, -2.13px -2.13px 0 #1d5f6b, 2.76px 1.14px 0 #1d5f6b, -2.76px 1.14px 0 #1d5f6b, 2.76px -1.14px 0 #1d5f6b, -2.76px -1.14px 0 #1d5f6b, 1.14px 2.76px 0 #1d5f6b, -1.14px 2.76px 0 #1d5f6b, 1.14px -2.76px 0 #1d5f6b, -1.14px -2.76px 0 #1d5f6b, 0 6px 0 #1d5f6b, 0 11px 24px rgba(0, 0, 0, 0.35); }
 @keyframes praise { 0% { transform: scale(0.2) rotate(-8deg); opacity: 0; } 20% { transform: scale(1.1) rotate(2deg); opacity: 1; } 75% { transform: scale(1) rotate(0); opacity: 1; } 100% { transform: scale(1.2) translateY(-30px); opacity: 0; } }
 #banner { position: fixed; left: 0; right: 0; top: 30%; z-index: 32; pointer-events: none; display: flex; justify-content: center; }
 .banner {
@@ -249,7 +251,8 @@ td:first-child { color: var(--teal-dark); font-weight: 700; white-space: nowrap;
 .title-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(380px, 100%); margin-top: auto; margin-bottom: 2vh; }
 .logo { display: flex; flex-direction: column; align-items: center; line-height: 0.85; filter: drop-shadow(0 6px 0 rgba(90, 40, 10, 0.45)) drop-shadow(0 14px 22px rgba(0, 0, 0, 0.35)); animation: logo 4s ease-in-out infinite; }
 @keyframes logo { 50% { transform: translateY(-6px) rotate(-1deg); } }
-.logo span { font-weight: 700; font-size: clamp(64px, 19vw, 104px); color: #fff3c8; -webkit-text-stroke: 3px #8a4a10; letter-spacing: 0.01em; }
+.logo span { font-weight: 700; font-size: clamp(64px, 19vw, 104px); color: #fff3c8; letter-spacing: 0.01em;
+    text-shadow: 4px 0px 0 #8a4a10, -4px 0px 0 #8a4a10, 0px 4px 0 #8a4a10, 0px -4px 0 #8a4a10, 2.84px 2.84px 0 #8a4a10, -2.84px 2.84px 0 #8a4a10, 2.84px -2.84px 0 #8a4a10, -2.84px -2.84px 0 #8a4a10, 3.68px 1.52px 0 #8a4a10, -3.68px 1.52px 0 #8a4a10, 3.68px -1.52px 0 #8a4a10, -3.68px -1.52px 0 #8a4a10, 1.52px 3.68px 0 #8a4a10, -1.52px 3.68px 0 #8a4a10, 1.52px -3.68px 0 #8a4a10, -1.52px -3.68px 0 #8a4a10; }
 .logo .l2 { color: #ffd56a; margin-left: 0.6em; }
 .tagline { font-size: 18px; font-weight: 600; color: #fff; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); margin-bottom: 8px; }
 .title-wrap .menu { width: 100%; }

@@ -2,7 +2,7 @@
 
 **Genre:** Casual match-3 with a cozy museum meta-game
 **Engine:** three.js r165, no asset files (every model, texture, tune and sound is made in code)
-**Status:** v1.1.0
+**Status:** v1.1.1
 
 ---
 
@@ -159,6 +159,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, every rule and 
 - A photo mode for the museum.
 
 ## Changelog
+
+### v1.1.1 (2026-10-20)
+- Outlined text ("Great dig!", combo calls, score pops, the title) drew stray lines inside letters like t, d and k. The outline is now a ring of hard text shadows instead of `-webkit-text-stroke`.
 
 ### v1.1.0 (2026-10-20)
 - A whole island: Curio Cove and its village, Driftwood Dunes, Lighthouse Point, the Old Ruins, Whispering Woods, Mirror Lake with its river and waterfall, Windmill Meadow, Jungle Hill, Sunset Quarry and Mount Ember (smoking, with a lava crater). One dig camp per chapter in its region; Night Digs at Ember Rim. A map camera (pan, pinch, twist), a 🗺️ overview button, place names and a ⛏ chip that points to the current dig. The sea's shallows and foam follow the coast from a baked height texture; forests are instanced.
