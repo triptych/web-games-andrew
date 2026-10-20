@@ -16,8 +16,10 @@ export function material(kind = 'matte') {
     let m;
     const base = { vertexColors: true };
     switch (kind) {
-        case 'metal': m = new THREE.MeshStandardMaterial({ ...base, metalness: 1, roughness: 0.28 }); break;
-        case 'gold': m = new THREE.MeshPhysicalMaterial({ ...base, metalness: 1, roughness: 0.18, clearcoat: 0.6, clearcoatRoughness: 0.2 }); break;
+        case 'metal': m = new THREE.MeshStandardMaterial({ ...base, metalness: 1, roughness: 0.4 }); break;
+        // satin, not mirror: a polished gold coin turning in the light sweeps a reflection of the sky
+            // across its face, which crosses the bloom threshold and blinks (v1.0.1)
+            case 'gold': m = new THREE.MeshStandardMaterial({ ...base, metalness: 0.75, roughness: 0.55, envMapIntensity: 0.65 }); break;
         case 'gloss': m = new THREE.MeshPhysicalMaterial({ ...base, metalness: 0, roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.12 }); break;
         case 'gem': m = new THREE.MeshPhysicalMaterial({ ...base, metalness: 0.05, roughness: 0.06, clearcoat: 1, iridescence: 0.5, iridescenceIOR: 1.6, flatShading: true, emissive: 0x1a0830, emissiveIntensity: 1 }); break;
         case 'pearl': m = new THREE.MeshPhysicalMaterial({ ...base, metalness: 0.1, roughness: 0.25, clearcoat: 1, iridescence: 1, iridescenceIOR: 1.8, sheen: 1, sheenColor: new THREE.Color(0xbfe8ff) }); break;

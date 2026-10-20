@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Curio Cove** (game-088) v1.0.1: gold coins on the board flashed bright and dark, enough to be a photosensitivity risk. The coins were mirror-polished gold (roughness 0.18 with a clearcoat) swinging ±0.5 rad, so each swept a reflection of the sky across its face that crossed the bloom threshold and blinked. Gold is now satin (metalness 0.75, roughness 0.55), every find only sways ±0.08 rad, and on a still board the share of the screen whose brightness swings by more than a quarter fell from 4.8% to about 0.3% ([kit.js](game-088/js/view/kit.js), [board3d.js](game-088/js/view/board3d.js)). The full-screen white flash on blasts is capped and can't repeat within half a second, the point-light flash at most about twice a second ([stage.js](game-088/js/view/stage.js), [fx.js](game-088/js/view/fx.js)). A new **Calm effects** setting turns off screen flashes, colour split and shake and halves the glow; it starts on when the system asks for reduced motion. The Screen shake checkbox now works (it did nothing).
+- **Curio Cove** (game-088) v1.0.1: Settings and How to Play opened from the pause menu appeared underneath it, so nothing seemed to happen and taps went to the menu behind. Screens now stack in the order they open ([ui.js](game-088/js/ui.js)).
+- [browsertest.mjs](game-088/dev/browsertest.mjs) reads 40 frames of a still board back and fails if more than 1% of the screen swings by more than a quarter of full brightness, and toggles Calm effects from the pause menu by touch; [flicker.mjs](game-088/dev/flicker.mjs) prints the same measurement for any level and size.
+
 ### Added
 - **Curio Cove** (game-088) v1.0.0: a cozy match-3 museum game in three.js r165 with no asset files. Dig up artifacts, fossils and dinosaur bones on Puffin Isle to restore your great-aunt's seaside museum. Design in [game-plan.md](game-088/game-plan.md).
   - The match-3 engine ([board.js](game-088/js/sim/board.js)): pure and JSON-able, with Trowels, Pickaxes, Scarabs and Sunstones, eight combos, two-layer dirt, fossils, boulders, crust, relics, diagonal refill past blockers, pockets, free shuffles and a Treasure Rush. A move resolves at once into a script of events with delays, which [board3d.js](game-088/js/view/board3d.js) plays back.

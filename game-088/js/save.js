@@ -6,7 +6,9 @@ import { serialize, deserialize } from './sim/game.js';
 
 const SETTINGS_KEY = SAVE_KEY + '.settings';
 const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
-const DEFAULTS = { sfx: 0.8, music: 0.55, quality: coarse ? 'medium' : 'high', shake: true };
+// calm effects follow the system's reduced-motion setting until the player chooses
+const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DEFAULTS = { sfx: 0.8, music: 0.55, quality: coarse ? 'medium' : 'high', shake: !reduced, calm: reduced };
 
 function read(key) {
     try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : null; } catch { return null; }

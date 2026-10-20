@@ -299,10 +299,29 @@ async function phone(w, h) {
     await idle(page);
     await shot(page, `phone-dig-${w}x${h}`);
 
+    if (w < h) {
+        // photosensitivity: a still board must not flicker. Freeze the bob (motion, not light),
+        // keep everything else, and read ~40 frames back (v1.0.1: polished gold coins swinging in
+        // the sun lit 4.8% of the screen up and down by more than a quarter of full brightness)
+        await Q(page, () => { __cc.digView.idle = -1e9; __cc.digView.still = true; __cc.stage.armSampler(); });
+        await until(page, () => { __cc.digView.idle = -1e9; return __cc.stage.sampler.frames >= 40; }, 'forty still frames read back', 180000);
+        const sw = await Q(page, () => { const r = __cc.stage.swing(0.25); __cc.stage.sampler = null; __cc.digView.still = false; return r; });
+        check(sw.share < 0.01, `a still board doesn't flicker (${(sw.share * 100).toFixed(2)}% of the screen swings > 25%, max ${sw.max.toFixed(2)})`);
+    }
     await tapSel('#d-pause');
     await until(page, () => !document.getElementById('menu').hidden, 'tapping ❚❚ pauses');
     await page.waitForTimeout(300);
     check(await visible(page, 'menu'), 'the pause menu stays open after the finger lifts');
+    await tapSel('#menu-list [data-act="settings"]');
+    await until(page, () => !document.getElementById('settings').hidden, 'Settings opens from the pause menu');
+    await tapSel('#set-calm');
+    await until(page, () => __cc.stage.calm && __cc.digView.fx.calm && __cc.digView.shakeOn === false, 'Calm effects turns off flashes and shake');
+    await Q(page, () => { __cc.stage.kick(1, 3); });
+    check(await Q(page, () => __cc.stage.flash === 0), 'and a blast no longer flashes the screen');
+    await tapSel('#set-calm');
+    await until(page, () => !__cc.stage.calm && __cc.digView.shakeOn === true, 'and turns them back on');
+    await tapSel('#settings [data-close]');
+    await until(page, () => document.getElementById('settings').hidden, 'Done closes Settings');
     await tapSel('#menu-list [data-act="resume"]');
     await until(page, () => document.getElementById('menu').hidden, 'a tap on Resume closes it');
     reportErrors(`phone ${w}×${h}`);

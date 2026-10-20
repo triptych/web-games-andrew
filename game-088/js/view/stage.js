@@ -141,8 +141,12 @@ export class Stage {
 
     /** A white flash and a colour split, both fading out; the dig calls these on big blasts. */
     kick(flash = 0.25, aberr = 1) {
-        this.flash = Math.max(this.flash, flash);
-        this.aberr = Math.max(this.aberr, aberr);
+        // Photosensitivity: the white flash is capped, can't start again within half a second
+        // (well under three flashes a second), and is off with calm effects on.
+        if (this.calm) return;
+        const now = performance.now();
+        if (now - (this.lastKick || 0) >= 500) { this.flash = Math.max(this.flash, Math.min(0.3, flash)); this.lastKick = now; }
+        this.aberr = Math.max(this.aberr, Math.min(1.5, aberr));
     }
 
     render(scene, camera, dt, time, look = {}) {
@@ -153,12 +157,51 @@ export class Stage {
         this.aberr = Math.max(0, this.aberr - dt * 3);
         this.G.uTime.value = time;
         this.G.uFlash.value = this.flash * this.flash;
-        this.G.uAberr.value = this.aberr;
+        this.G.uAberr.value = this.calm ? 0 : this.aberr;
         this.G.uVignette.value = look.vignette ?? 0.32;
         this.G.uWarm.value = look.warm ?? 0.5;
-        this.bloom.strength = look.bloom ?? 0.45;
+        this.bloom.strength = (look.bloom ?? 0.45) * (this.calm ? 0.5 : 1);
         this.bloom.threshold = look.threshold ?? 0.82;
         this.renderer.toneMappingExposure = look.exposure ?? 1.0;
         this.composer.render(dt);
+        if (this.sampler) this.sampleLuma();
+    }
+
+    /**
+     * Test hook: read the frame just drawn and keep, per sample point (every 8 px), the lowest and
+     * highest luminance seen since the sampler was armed. A flashing highlight shows up as points
+     * whose luminance swings a long way while the board sits still.
+     */
+    sampleLuma() {
+        const gl = this.renderer.getContext();
+        const w = gl.drawingBufferWidth, h = gl.drawingBufferHeight;
+        const buf = this.sampler.buf ||= new Uint8Array(w * h * 4);
+        if (buf.length !== w * h * 4) return;
+        gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+        const S = this.sampler, step = 8;
+        let k = 0;
+        for (let y = 0; y < h; y += step) {
+            for (let x = 0; x < w; x += step, k++) {
+                const i = (y * w + x) * 4;
+                const l = (0.2126 * buf[i] + 0.7152 * buf[i + 1] + 0.0722 * buf[i + 2]) / 255;
+                if (S.frames === 0) { S.lo[k] = l; S.hi[k] = l; } else { if (l < S.lo[k]) S.lo[k] = l; if (l > S.hi[k]) S.hi[k] = l; }
+            }
+        }
+        S.frames++;
+    }
+    armSampler() { this.sampler = { frames: 0, lo: [], hi: [], buf: null }; }
+    /** Share of sample points whose luminance swung more than `by` (0..1) while armed. */
+    swing(by = 0.25) {
+        const S = this.sampler;
+        if (!S || !S.frames) return null;
+        let n = 0, big = 0, max = 0;
+        const where = [];
+        const cols = Math.ceil(this.renderer.getContext().drawingBufferWidth / 8);
+        for (let k = 0; k < S.lo.length; k++) {
+            const d = S.hi[k] - S.lo[k]; n++;
+            if (d > by) { big++; if (where.length < 400) where.push([(k % cols) * 8, (Math.floor(k / cols)) * 8, +d.toFixed(2)]); }
+            if (d > max) max = d;
+        }
+        return { frames: S.frames, share: big / n, max, where };
     }
 }

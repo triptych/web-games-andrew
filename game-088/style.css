@@ -227,6 +227,7 @@ button { font-family: inherit; }
 .row select, .row input[type=text] { font: 600 16px var(--font); padding: 8px 10px; border-radius: 10px; border: 2px solid var(--edge); background: #fff; color: var(--ink); min-height: 44px; }
 .row input[type=checkbox] { width: 26px; height: 26px; accent-color: var(--teal); }
 .namerow input { width: 60%; }
+.row-note { flex: 1; font-size: 12px; font-weight: 500; color: var(--ink-soft); }
 .howlist { padding-left: 20px; line-height: 1.45; margin: 6px 0; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 td { padding: 6px 4px; border-bottom: 1px dashed var(--edge); vertical-align: top; }

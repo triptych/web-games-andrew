@@ -57,7 +57,7 @@ const museum = new MuseumView(stage, {
 const ui = new UI({
     audio, settings,
     cb: {
-        onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music); stage.setQuality(s.quality); },
+        onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music); stage.setQuality(s.quality); applyEffects(); },
         onDeleteSave: () => { clearSave(); location.reload(); },
         onDig: () => startDig(Gm.nextLevel(G)),
         onReplay: (n) => startDig(n),
@@ -88,6 +88,14 @@ Object.assign(digView.hooks, {
     },
 });
 stage.onResize = () => { digView.fit(); setInsets(); };
+
+/** Calm effects and screen shake, from the settings. */
+function applyEffects() {
+    stage.calm = !!settings.calm;
+    digView.fx.calm = !!settings.calm;
+    digView.shakeOn = settings.shake && !settings.calm;
+}
+applyEffects();
 
 // ------------------------------------------------------------------ title
 function showcase() {
