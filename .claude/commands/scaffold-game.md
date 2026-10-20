@@ -4708,6 +4708,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] An off-screen drawer (`translateX(105%)`) doesn't make its scroller scrollable: `overflow: clip` and `contain: paint` on its container, or `scrollIntoView()` pans the room sideways on a phone (game-087).
 - [ ] A screen opened from another screen appears on top of it: same-z-index screens stack in page order, so give each a z-index from the open stack (game-088's Settings hid under the pause menu).
 - [ ] A browser test that taps a button in a sheet with a pop-in animation finishes the animation first (`el.getAnimations().forEach(a => a.finish())` up the tree): SwiftShader may not have drawn a frame of it, and the tap lands on the next button (game-088). And a visibility check can't use `offsetParent` on a `position: fixed` screen: it is always null.
+- [ ] Outlined text uses a ring of hard `text-shadow`s, not `-webkit-text-stroke`: the stroke traces every contour, and rounded fonts like Fredoka build letters from overlapping shapes, so it draws lines inside t, d and k (game-088's "Great dig!").
 - [ ] On-screen button labels match the keys (the cabinet said A B C; the keys were Z X C, game-075).
 - [ ] A drag that moves the camera never also places or builds; a press that wandered ~10 px isn't a tap (game-067).
 
