@@ -154,7 +154,7 @@ export class DigView {
         this.scene.background = new THREE.Color(t.fog);
         this.groundMat.color.set(t.sand);
         this.groundMat.userData.u.uSand2.value.set(t.sand2);
-        this.scene.environmentIntensity = t.night ? 0.25 : 0.55;
+        this.scene.environmentIntensity = t.night ? 0.25 : 0.4;
     }
 
     X(c) { return (c - (this.C - 1) / 2) * CELL; }
@@ -924,9 +924,9 @@ export class DigView {
             const b = o.obj.body;
             if (!b) continue;
             const ph = id * 1.7;
-            if (o.data.k === 'gem' && o.data.c === 1) b.rotation.y = Math.sin(time * 1.4 + ph) * 0.5;
-            else b.rotation.y = Math.sin(time * 1.1 + ph) * 0.12;
-            b.position.y = Math.sin(time * 2 + ph) * 0.025;
+            // a slow, small sway for every find; coins used to swing ±0.5 rad and flash
+            b.rotation.y = Math.sin(time * 0.9 + ph) * 0.08;
+            b.position.y = this.still ? 0 : Math.sin(time * 2 + ph) * 0.025;
             if (o.data.k === 'sun') { b.userData.spin.rotation.z = time * 1.5; b.userData.orb.rotation.y = time; }
             if (o.obj.overlay?.userData.pulse) for (const m of o.obj.overlay.userData.pulse) m.scale.y = 1 + Math.sin(time * 8) * 0.25;
             if (o.sq > 0) {
@@ -956,7 +956,7 @@ export class DigView {
         }
         // camera: settle in, breathe, shake
         this.shake = Math.max(0, this.shake - dt * 1.8);
-        const s = this.shake * this.shake * 0.35;
+        const s = this.shakeOn === false ? 0 : this.shake * this.shake * 0.35;
         this.root.position.set((Math.random() - 0.5) * s, (Math.random() - 0.5) * s * 0.5, (Math.random() - 0.5) * s);
         this.fx.update(dt);
         if (render) this.stage.render(this.scene, this.camera, dt, time, this.theme?.night ? { bloom: 0.75, threshold: 0.9, vignette: 0.45, warm: 0.3, exposure: 1.05 } : { bloom: 0.55, threshold: 1.3, vignette: 0.32, warm: 0.55, exposure: 0.95 });

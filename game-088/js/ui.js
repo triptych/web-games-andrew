@@ -35,10 +35,10 @@ export class UI {
         for (const b of document.querySelectorAll('[data-close]')) b.addEventListener('click', () => { audio.ui('close'); this.closeTop(); });
 
         // settings
-        const sfx = $('set-sfx'), music = $('set-music'), q = $('set-quality'), shake = $('set-shake');
-        sfx.value = settings.sfx; music.value = settings.music; q.value = settings.quality; shake.checked = settings.shake;
-        const changed = () => { Object.assign(settings, { sfx: +sfx.value, music: +music.value, quality: q.value, shake: shake.checked }); cb.onSettings(settings); };
-        for (const el of [sfx, music, q, shake]) el.addEventListener('change', changed);
+        const sfx = $('set-sfx'), music = $('set-music'), q = $('set-quality'), shake = $('set-shake'), calm = $('set-calm');
+        sfx.value = settings.sfx; music.value = settings.music; q.value = settings.quality; shake.checked = settings.shake; calm.checked = settings.calm;
+        const changed = () => { Object.assign(settings, { sfx: +sfx.value, music: +music.value, quality: q.value, shake: shake.checked, calm: calm.checked }); cb.onSettings(settings); };
+        for (const el of [sfx, music, q, shake, calm]) el.addEventListener('change', changed);
         $('set-delete').addEventListener('click', () => { if (confirm('Delete your museum and start over?')) cb.onDeleteSave(); });
 
         // museum HUD
@@ -71,6 +71,9 @@ export class UI {
         if (this.top() === id) return;
         $(id).hidden = false;
         this.stack = this.stack.filter((s) => s !== id).concat(id);
+        // the newest screen is on top, whatever its order in the page (Settings opened from the
+        // pause menu used to sit underneath it, v1.0.1)
+        this.stack.forEach((s, i) => { $(s).style.zIndex = 50 + i; });
         this.focusFirst(id);
     }
     closeScreen(id) {

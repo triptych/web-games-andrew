@@ -4706,6 +4706,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] No sheet scrolls a button under the fixed `← Games` link (game-073); centre panels stay on screen on a 390 px phone (game-062); HUD gauges sit next to what they describe in both orientations (game-066).
 - [ ] Right-click menus open on `contextmenu` and cancel it; opening on `pointerdown` lets the browser's own menu appear on top (game-076).
 - [ ] An off-screen drawer (`translateX(105%)`) doesn't make its scroller scrollable: `overflow: clip` and `contain: paint` on its container, or `scrollIntoView()` pans the room sideways on a phone (game-087).
+- [ ] A screen opened from another screen appears on top of it: same-z-index screens stack in page order, so give each a z-index from the open stack (game-088's Settings hid under the pause menu).
 - [ ] A browser test that taps a button in a sheet with a pop-in animation finishes the animation first (`el.getAnimations().forEach(a => a.finish())` up the tree): SwiftShader may not have drawn a frame of it, and the tap lands on the next button (game-088). And a visibility check can't use `offsetParent` on a `position: fixed` screen: it is always null.
 - [ ] On-screen button labels match the keys (the cabinet said A B C; the keys were Z X C, game-075).
 - [ ] A drag that moves the camera never also places or builds; a press that wandered ~10 px isn't a tap (game-067).
@@ -4714,6 +4715,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] Every `pow()` base in a shader is clamped to [0, 1]; with bloom, a single NaN pixel smears into a blinking box. SwiftShader doesn't produce the NaN, so headless tests never show it (game-065). A colour set with `.copy(0xff8800)` instead of `.set()` is NaN too (game-074).
 - [ ] Hand-built geometry is wound counter-clockwise from outside, or every barrel and pillar looks hollow (game-071's shared cylinder).
 - [ ] A part that is tilted and spun gets a holder group for the tilt; one mesh with both rotations spins about the wrong axis (game-073's drill).
+- [ ] Nothing on a still screen flashes: no mirror-polished metal turning in the light under bloom, no full-screen flash more than twice a second, and a calm setting that follows `prefers-reduced-motion`. Measure it: read frames back and count points whose brightness swings by more than a quarter (game-088's coins swung 4.8% of the screen; see `game-088/dev/flicker.mjs`).
 - [ ] Bloom's threshold is above 1 in a sunlit scene: the composer works in linear HDR before tone mapping, so bright sand under a 2.4 sun blooms into a milky haze over everything (game-088). Let only emissive, `toneMapped: false` glows cross it.
 - [ ] A leaf or banner drawn from both sides gets a second set of vertices for its back: one set with both windings averages its normals to zero, which is NaN in the shader (game-088's palm fronds).
 - [ ] Only the parts meant to move are registered as moving; auto-collecting everything with a `userData` reference spun whole buildings (game-066).

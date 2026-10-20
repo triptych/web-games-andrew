@@ -2,7 +2,7 @@
 
 **Genre:** Casual match-3 with a cozy museum meta-game
 **Engine:** three.js r165, no asset files (every model, texture, tune and sound is made in code)
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -159,6 +159,11 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, every rule and 
 - A photo mode for the museum.
 
 ## Changelog
+
+### v1.0.1 (2026-10-20)
+- Gold coins no longer flash: satin gold instead of mirror-polished, a ±0.08 rad sway instead of ±0.5 for every find. On a still board the screen share that swings by more than a quarter of full brightness fell from 4.8% to about 0.3%; the browser test now measures it.
+- The white screen flash is capped and throttled (at most twice a second), the light flash too. New **Calm effects** setting (no screen flash, colour split or shake, half the glow), on by default when the system asks for reduced motion. The Screen shake setting works.
+- Settings and How to Play opened from the pause menu now appear on top of it.
 
 ### v1.0.0 (2026-10-20)
 - First release: the match-3 engine (four specials, eight combos, dirt, fossils, boulders, crust, relics, pockets, shuffles, Treasure Rush), 60 story levels in five chapters plus endless Night Digs, the museum with 38 tasks, five staff, 60 finds and three dinosaurs, the till and time away, decorations and boosters, a story told in 40 scenes, the 3D dig and island, procedural music and sound, and the dev harnesses.

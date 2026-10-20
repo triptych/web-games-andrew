@@ -239,7 +239,14 @@ export class Fx {
     }
 
     /** A flash of warm light on the board. */
-    flashLight(x, z, k = 1) { this.light.position.set(x, 1.6, z); this.lightK = Math.max(this.lightK, k); }
+    flashLight(x, z, k = 1) {
+        // never more than about two light flashes a second, and none at all with calm effects on
+        const now = performance.now();
+        if (this.calm || now - (this.lastFlash || 0) < 450) return;
+        this.lastFlash = now;
+        this.light.position.set(x, 1.6, z);
+        this.lightK = Math.max(this.lightK, Math.min(1, k));
+    }
 
     update(dt) {
         this.glow.update(dt);
@@ -309,7 +316,7 @@ export class Fx {
             b.mesh.material.opacity = 1 - b.age / b.life;
         }
         this.lightK = Math.max(0, this.lightK - dt * 4);
-        this.light.intensity = this.lightK * 30;
+        this.light.intensity = this.lightK * 14;
     }
 
     clear() {
