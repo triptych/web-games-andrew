@@ -402,9 +402,9 @@ function fire(B, W, f) {
             B.ev.push({ type: 'fly', d: d + 0.2, r, c, tr, tc, color: t.c, carry });
             if (carry) {
                 const cells = pattern(B, carry, tgt);
-                B.ev.push({ type: 'fire', d: d + 1.4, r: tr, c: tc, s: carry, color: t.c, cells: cells.map((j) => rc(B, j)) });
-                for (const j of cells) hitCell(B, W, j, d + 1.4, 'blast');
-            } else hitCell(B, W, tgt, d + 1.4, 'blast');
+                B.ev.push({ type: 'fire', d: d + 4, r: tr, c: tc, s: carry, color: t.c, cells: cells.map((j) => rc(B, j)) });
+                for (const j of cells) hitCell(B, W, j, d + 4, 'blast');
+            } else hitCell(B, W, tgt, d + 4, 'blast');
         }
         return;
     }

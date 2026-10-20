@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curio Cove — dig view test</title>
+<style>html, body { margin: 0; overflow: hidden; background: #000; } canvas { position: fixed; left: 0; top: 0; }</style>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<canvas id="view"></canvas>
+<script type="module">
+// The dig view on its own: ?level=N&moves=K plays K bot moves, then sets window.__done.
+import { Stage } from '../js/view/stage.js';
+import { DigView } from '../js/view/board3d.js';
+import * as Bd from '../js/sim/board.js';
+import * as Bt from '../js/sim/bot.js';
+import { levelSpec, CHAPTER_OF } from '../js/sim/levels.js';
+
+const q = new URLSearchParams(location.search);
+const n = +(q.get('level') || 12), moves = +(q.get('moves') || 3);
+const stage = new Stage(document.getElementById('view'), 'high');
+const noop = () => {};
+const ui = new Proxy({}, { get: () => noop });
+const view = new DigView(stage, { ui, sfx: noop, onSwap: noop, onHammer: noop, hintMove: () => null });
+const spec = levelSpec(n);
+const B = Bd.makeBoard(spec, 7);
+view.load(B, spec, q.get('theme') ? +q.get('theme') : CHAPTER_OF(n));
+view.setInsets({ top: 110, bottom: 90, left: 0, right: 0 });
+stage.onResize = () => view.fit();
+const bot = Bt.makeBot({ skill: 1, seed: 1 });
+let done = 0, t = 0, last = performance.now();
+const step = 1 / 30;
+function frame() {
+    requestAnimationFrame(frame);
+    t += step;
+    view.frame(step, t);
+    if (!view.busy() && t > 2 && done < moves && B.state === 'play') {
+        const m = Bt.botMove(B, bot);
+        Bd.trySwap(B, ...m[0], ...m[1]);
+        view.play(B.ev.splice(0));
+        done++;
+    }
+    if (done >= moves && !view.busy() && t > 2.5) window.__done = true;
+}
+frame();
+window.__view = view; window.__B = B;
+</script>
+</body>
+</html>

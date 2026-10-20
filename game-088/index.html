@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2a6f86">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Curio Cove — a cozy match-3 museum game. Dig up artifacts, fossils and dinosaur bones on Puffin Isle, restore your great-aunt’s seaside museum, and hire a little team to run it.">
+    <title>Curio Cove</title>
+    <script src="../lib/page-audio.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="Curio Cove game view"></canvas>
+
+    <!-- ============================================================ museum HUD -->
+    <div id="mhud" class="hud" hidden>
+        <div class="bar top">
+            <div class="pill" id="m-stars" title="Stars: spend them on restoration tasks"><span class="ic">★</span><b>0</b></div>
+            <div class="pill" id="m-coins" title="Coins"><span class="ic coin"></span><b>0</b></div>
+            <div class="pill" id="m-appeal" title="Appeal: how much visitors like the museum"><span class="ic">♥</span><b>0</b></div>
+            <button id="m-menu" class="ibtn" aria-label="Menu">☰</button>
+        </div>
+        <div class="bar bottom">
+            <button id="m-tasks" class="cbtn"><span class="cic">📋</span><span>Tasks</span><i class="badge" hidden>0</i></button>
+            <button id="m-dig" class="digbtn"><span class="dig-sub">Dig site</span><span class="dig-lv">Level 1</span></button>
+            <button id="m-journal" class="cbtn"><span class="cic">📖</span><span>Journal</span><i class="badge" hidden>!</i></button>
+            <button id="m-shop" class="cbtn"><span class="cic">🛍️</span><span>Shop</span></button>
+        </div>
+        <button id="till" class="till" hidden><span class="ic coin"></span><b>0</b></button>
+        <div id="chapter-chip" class="chapter-chip"></div>
+    </div>
+
+    <!-- ============================================================ dig HUD -->
+    <div id="dhud" class="hud" hidden>
+        <div class="dtop">
+            <div class="dcard level"><small>Dig</small><b id="d-level">1</b></div>
+            <div class="dcard goals" id="d-goals"></div>
+            <div class="dcard moves" id="d-moves-card"><small>Moves</small><b id="d-moves">20</b></div>
+        </div>
+        <div class="scorebar"><div class="fill" id="d-fill"></div><i class="star s1">★</i><i class="star s2">★</i><i class="star s3">★</i><span id="d-score">0</span></div>
+        <div class="dbottom">
+            <button id="d-hammer" class="boost" aria-label="Hammer: break one square"><span class="bic">🔨</span><i>0</i><small>Hammer</small></button>
+            <button id="d-shuffle" class="boost" aria-label="Shuffle the finds"><span class="bic">🔀</span><i>0</i><small>Shuffle</small></button>
+            <button id="d-pause" class="ibtn" aria-label="Pause">❚❚</button>
+        </div>
+        <div id="hammer-hint" class="hammer-hint" hidden>Tap a square to smash it · <u>cancel</u></div>
+    </div>
+
+    <div id="fxlayer" aria-hidden="true"></div>
+    <div id="praise" aria-live="polite"></div>
+    <div id="banner"></div>
+
+    <!-- ============================================================ screens -->
+    <div id="title" class="screen title-screen">
+        <div class="title-wrap">
+            <div class="logo"><span class="l1">Curio</span><span class="l2">Cove</span></div>
+            <div class="tagline">A cozy museum on Puffin Isle</div>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Game</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="newgame" class="screen" hidden>
+        <div class="sheet paper">
+            <h2>Welcome, Doctor!</h2>
+            <p>Fresh from the university with a shiny new degree in archaeology. What should the islanders call you?</p>
+            <label class="row namerow">Your name <input id="name-input" type="text" maxlength="16" value="Rowan" autocomplete="off" spellcheck="false"></label>
+            <div class="sheet-foot"><button class="btn" data-close>Back</button><button id="name-go" class="btn primary">Set sail ⛵</button></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet paper">
+            <h2>How to Play</h2>
+            <p><b>Dig</b> at the site on the hill: swap two neighbouring finds to line up three or more of a kind. Each dig has goals and a number of moves.</p>
+            <ul class="howlist">
+                <li><b>4 in a row</b> makes a <b>Trowel</b> that sweeps its row or column.</li>
+                <li><b>An L or a T</b> makes a <b>Pickaxe</b> that breaks everything around it.</li>
+                <li><b>A 2×2 square</b> hatches a <b>Scarab</b> that flies off to dig where you need it.</li>
+                <li><b>5 in a row</b> makes a <b>Sunstone</b>: swap it with a find to clear all of that kind.</li>
+                <li>Swap two specials together for a <b>combo</b>!</li>
+                <li><b>Dirt</b> clears when you match on it; <b>fossils</b> hide underneath. <b>Boulders</b> crack beside matches. <b>Crusted</b> finds are stuck until matched. <b>Relics</b> lift out at the bottom.</li>
+            </ul>
+            <p>Every dig earns <b>★ stars</b>, <b>coins</b> and a find for the museum. Spend stars on <b>Tasks</b> to restore the halls, hire staff and build dinosaurs.</p>
+            <table>
+                <tr><td>Swap</td><td>Drag a find, or tap two. Keys: arrows + Space</td></tr>
+                <tr><td>Camera</td><td>Drag to turn, pinch or wheel to zoom</td></tr>
+                <tr><td>Pause</td><td>Esc / P / ☰ · Gamepad: d-pad, A, B, Start</td></tr>
+            </table>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet paper">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Graphics
+                <select id="set-quality"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+            </label>
+            <label class="row">Screen shake <input type="checkbox" id="set-shake"></label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="menu" class="screen" hidden>
+        <div class="sheet paper">
+            <h2 id="menu-title">Paused</h2>
+            <nav class="menu" id="menu-list">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quitdig" class="btn" id="menu-quitdig">Leave this dig</button>
+                <button data-act="title" class="btn">Save &amp; back to title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="tasks" class="screen panel-screen" hidden>
+        <div class="sheet paper wide">
+            <div class="sheet-head"><h2 id="tasks-title">Tasks</h2><button class="xbtn" data-close aria-label="Close">✕</button></div>
+            <div class="chapter-progress"><div class="cp-fill" id="cp-fill"></div><span id="cp-text"></span></div>
+            <div id="task-list" class="task-list"></div>
+            <p class="hint-line">Win digs to earn ★ stars. Replaying a dig always earns at least one.</p>
+        </div>
+    </div>
+
+    <div id="journal" class="screen panel-screen" hidden>
+        <div class="sheet paper wide">
+            <div class="sheet-head"><h2>Field Journal</h2><button class="xbtn" data-close aria-label="Close">✕</button></div>
+            <div class="tabs" role="tablist">
+                <button class="tab on" data-tab="finds">Finds</button>
+                <button class="tab" data-tab="dinos">Dinosaurs</button>
+                <button class="tab" data-tab="staff">Staff</button>
+                <button class="tab" data-tab="digs">Digs</button>
+            </div>
+            <div id="journal-body" class="journal-body"></div>
+        </div>
+    </div>
+
+    <div id="shop" class="screen panel-screen" hidden>
+        <div class="sheet paper wide">
+            <div class="sheet-head"><h2>Island Shop</h2><button class="xbtn" data-close aria-label="Close">✕</button></div>
+            <div id="shop-body" class="shop-body"></div>
+        </div>
+    </div>
+
+    <div id="win" class="screen result" hidden>
+        <div class="sheet paper result-sheet">
+            <div class="ribbon">Dig Complete!</div>
+            <div class="bigstars"><i>★</i><i>★</i><i>★</i></div>
+            <div class="res-score" id="win-score">0</div>
+            <div class="rewards" id="win-rewards"></div>
+            <div class="found" id="win-found" hidden>
+                <img id="win-img" alt="">
+                <div><small id="win-kind">New find!</small><b id="win-name"></b><p id="win-blurb"></p></div>
+            </div>
+            <div class="sheet-foot center"><button id="win-go" class="btn primary">Back to the museum</button></div>
+        </div>
+    </div>
+
+    <div id="lose" class="screen result" hidden>
+        <div class="sheet paper result-sheet">
+            <div class="ribbon sad">Out of moves!</div>
+            <p class="lose-text">So close! Still to dig:</p>
+            <div class="goals-left" id="lose-goals"></div>
+            <div class="sheet-foot center col">
+                <button id="lose-more" class="btn primary">+5 moves · <span class="ic coin"></span><b id="lose-cost">60</b></button>
+                <button id="lose-retry" class="btn">Try again</button>
+                <button id="lose-quit" class="btn">Back to the museum</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dialogue" class="dialogue" hidden>
+        <div class="dlg-card">
+            <div class="dlg-portrait"><img id="dlg-img" alt=""></div>
+            <div class="dlg-main">
+                <div class="dlg-name" id="dlg-name"></div>
+                <div class="dlg-text" id="dlg-text"></div>
+                <div class="dlg-next">▼</div>
+            </div>
+        </div>
+        <button id="dlg-skip" class="dlg-skip">Skip ⏭</button>
+    </div>
+
+    <div id="chapter-card" class="chapter-card" hidden><small id="cc-small">Chapter 1</small><b id="cc-title"></b></div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">Curio Cove needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

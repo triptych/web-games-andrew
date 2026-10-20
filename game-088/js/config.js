@@ -10,9 +10,9 @@ export const MAX_FRAME = 0.05;            // a long frame never runs more than t
 export const TILES = [
     { key: 'amphora', name: 'Amphora', color: '#e0653a' },
     { key: 'coin', name: 'Gold Coin', color: '#f2c230' },
-    { key: 'leaf', name: 'Leaf Fossil', color: '#5fbf4a' },
-    { key: 'shell', name: 'Ammonite', color: '#3a9be0' },
-    { key: 'crystal', name: 'Amethyst', color: '#a65ee0' },
+    { key: 'leaf', name: 'Leaf Fossil', color: '#3faa3a' },
+    { key: 'shell', name: 'Ammonite', color: '#2a82dc' },
+    { key: 'crystal', name: 'Amethyst', color: '#9a4ee0' },
     { key: 'bone', name: 'Bone', color: '#efe4cc' },
 ];
 

@@ -5964,3 +5964,26 @@ See also Common Bugs §5 (a drag on a `touch-action: none` canvas swallowing the
 - A writing app's toasts go where you aren't typing: bottom-left beside the dock on desktop, at the top on phones (the keyboard owns the bottom).
 - Save each novel under its own key (`quillsworn.v1.p.<id>`) and the apprentice under another, so a keystroke in a 100,000-word book rewrites one key, not every book; on load, raise `nextId` above any id found in a saved novel in case the core was saved earlier than the book.
 - A user-supplied pen name went into an SVG `aria-label` through `innerHTML`; an imported backup could have carried markup. Escape attribute values in every SVG string builder, not just text.
+
+## Game 088: Curio Cove — a match-3 whose moves are scripts (2026-10-20)
+
+### Resolve the whole move in the sim, then let the view play a script
+[board.js](../../game-088/js/sim/board.js) resolves a swap completely and at once: the swap, every wave of clears and specials, gravity, relics leaving, cascades, the free shuffle. It pushes one event per step to `B.ev`, and each clear, special, crack or dig carries a delay `d` in "special depths" (a special that goes off at depth `d` hits its cells at `d + 1`; a trowel adds a little per cell of distance, a scarab's flight takes 3.8 units). [board3d.js](../../game-088/js/view/board3d.js) `schedule()` turns that list into timed actions: a `wave` starts a group at the current time, `clear`/`fire`/`soil` land at `start + d × 0.11 s`, a `create` waits for the wave's last clear, a `fall` starts after it and lasts as long as its longest path under gravity. The sim never waits for the view, the bot plays thousands of moves a second, a save mid-dig is one JSON object, and after every script the view calls `sync(B)` to snap to the true board, which hides any drift between animation and rules.
+
+### Keep a board's random state inside the board
+The board's RNG state is a number, `B.rs`, advanced by a pure `rngNext(s)`. A board is then plain data: `JSON.parse(JSON.stringify(B))` copies it for the bot's look-ahead (which scrambles `rs` on the copy so it can't see what will fall in) and for saves, and a reloaded dig plays on identically.
+
+### Gravity past blockers, and pockets
+Straight falls run to a fixed point, then one diagonal slide (from above-left or above-right into a cell that can't be fed from its own column), then straight falls again. A random fuzz over every level still found cells that nothing can reach: under a boulder with a hole and another boulder beside it. Other match-3 games leave such a cell empty until its blocker breaks; the test's board check now allows an empty cell only when it is that kind of pocket.
+
+### Fit moves to a bot, not to a formula
+The first levels were won by a half-skill bot in 3–20 moves. [tune.mjs](../../game-088/dev/tune.mjs) plays each level 16–24 times with no move limit and sets its moves to a quantile of the moves needed that falls with difficulty (95% for the first levels, 60% on the hard ones), and its star scores to percentiles of the winning scores, then writes the table into the level file. Relics were the slow goal (84 moves on one level): cap them, keep boulders out of a column's lowest cell, and teach the bot that a relic lower down is progress.
+
+### A chapter's finale waits for its digs
+The whole-game bot reached the last task before the last level, so the story ended one find short. A chapter's last task now also needs its twelve digs cleared.
+
+### Bloom in a bright daytime scene
+The composer's buffers are linear HDR before `OutputPass` tone-maps them, so sunlit sand at a sun intensity of 2.4 is well above 1 and a threshold of 0.85 bloomed the whole beach into fog. A threshold of 1.3 keeps only emissive, `toneMapped: false` effects (beams, rings, the sunstone) and the brightest gold highlights glowing.
+
+### Tests that measure a button inside a pop-in sheet
+Under SwiftShader a sheet's 0.3 s CSS pop-in (`scale(0.85) translateY(20px)`) had not drawn a single frame 800 ms after it opened, so a test measured Resume where it would be at the start of the animation and the tap, which forced a frame, landed on How to Play. Finish the animations up the element's tree before measuring. Two more from the same test: `offsetParent` is always null for a `position: fixed` element, so it can't be a visibility check; and `scrollIntoView()` can scroll the document root even with `overflow: hidden`, so the game pins `scrollX/Y` at 0.

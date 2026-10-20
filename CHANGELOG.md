@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Curio Cove** (game-088) v1.0.0: a cozy match-3 museum game in three.js r165 with no asset files. Dig up artifacts, fossils and dinosaur bones on Puffin Isle to restore your great-aunt's seaside museum. Design in [game-plan.md](game-088/game-plan.md).
+  - The match-3 engine ([board.js](game-088/js/sim/board.js)): pure and JSON-able, with Trowels, Pickaxes, Scarabs and Sunstones, eight combos, two-layer dirt, fossils, boulders, crust, relics, diagonal refill past blockers, pockets, free shuffles and a Treasure Rush. A move resolves at once into a script of events with delays, which [board3d.js](game-088/js/view/board3d.js) plays back.
+  - 60 story levels from seeds and a difficulty curve ([levels.js](game-088/js/sim/levels.js)) with moves and star scores fitted to a bot by [tune.mjs](game-088/dev/tune.mjs); endless Night Digs after the story.
+  - The museum ([game.js](game-088/js/sim/game.js), [data.js](game-088/js/sim/data.js)): stars and coins, 38 restoration tasks with 40 scenes, Moss, Penny, Ledger, Kit and Rosa with their perks, 60 finds, three dinosaurs built bone by bone, appeal, a till that fills while you are away, decorations and boosters.
+  - The look: a bloom and grade post chain ([stage.js](game-088/js/view/stage.js)), an island with a wave shader, sky, terrain and five cutaway halls rebuilt from the save ([museum3d.js](game-088/js/view/museum3d.js)), procedural finds, 40 kinds of artifact, skeletons and animal characters ([models.js](game-088/js/view/models.js), [artifacts.js](game-088/js/view/artifacts.js), [skeleton.js](game-088/js/view/skeleton.js), [animals.js](game-088/js/view/animals.js)), and particles, shards, rings, beams and lightning ([fx.js](game-088/js/view/fx.js)).
+  - The sound ([audio.js](game-088/js/audio.js)): three sequenced tunes, cascade chimes on a pentatonic scale, and a voice blip per letter of dialogue.
+  - Tests: [simtest.mjs](game-088/dev/simtest.mjs) (394 checks, including a fuzz over 72 levels and bots playing the whole story), [browsertest.mjs](game-088/dev/browsertest.mjs) (desktop, touch-only phones both ways, blocked storage), [gallery.html](game-088/dev/gallery.html).
+- Launcher entry for Curio Cove (puzzle path), its card style, README, status and docs ([learnings.md](docs/generic/learnings.md#game-088-curio-cove--a-match-3-whose-moves-are-scripts-2026-10-20)).
+
+### Added
 - **WanderQuest** (game-085) v1.3.0: talk by the fire. Making camp with nobody hurt used to end at once; a camp made by hand now lasts at least 8 s, and whenever the caravan makes camp a traveller says something in a speech bubble (also kept in the journal), with lines for each class and for whether anyone needed the rest ([data.js](game-085/js/sim/data.js) `CAMP_TALK`, [game.js](game-085/js/sim/game.js) `campTalk`, [view.js](game-085/js/view/view.js) `drawBubble`). Chosen from a hash of the clock, so time away is unchanged.
 
 ### Fixed
