@@ -219,6 +219,7 @@ For `RENDERER = canvas`, delete the `<script type="importmap">` block; nothing e
     <meta name="description" content="GAME_TITLE — GAME_CONCEPT">
     <title>GAME_TITLE</title>
     <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
