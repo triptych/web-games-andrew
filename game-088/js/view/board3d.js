@@ -75,6 +75,7 @@ export class DigView {
         this.tweens = [];
         this.queue = [];
         this.tl = null;
+        this.rushing = false;
         this.time = 0;
         this.shake = 0;
         this.punch = 0;
@@ -137,6 +138,7 @@ export class DigView {
         this.tweens.length = 0;
         this.queue.length = 0;
         this.tl = null;
+        this.rushing = false;
         this.fx.clear();
         this.selected = null;
         this.sel.visible = this.cursor.visible = false;
@@ -352,6 +354,25 @@ export class DigView {
     play(list) { this.queue.push(list); }
     busy() { return !!this.tl || this.queue.length > 0 || this.tweens.some((t) => t.block); }
 
+    /**
+     * Jump to the end of the queued scripts: the final board and no more effects. The sim has
+     * already settled everything, so this only skips the show (the Treasure Rush).
+     */
+    skip() {
+        if (!this.busy()) return false;
+        this.tl = null;
+        this.queue.length = 0;
+        this.tweens.length = 0;
+        this.rushing = false;
+        // drop what cut-short animations left in the tile layer: cleared finds, a scarab, a bone
+        const live = new Set([...this.tiles.values()].map((o) => o.obj.group));
+        for (const g of [...this.tileG.children]) if (!live.has(g)) this.tileG.remove(g);
+        for (const o of this.tiles.values()) o.obj.group.rotation.z = 0;
+        this.sync();
+        this.hooks.onIdle?.();
+        return true;
+    }
+
     /** Turn one move's events into timed actions. */
     schedule(list) {
         const acts = [];
@@ -467,7 +488,7 @@ export class DigView {
                 }
                 case 'rushstart':
                     T = Math.max(T, waveEnd) + 0.2;
-                    at(T, () => { this.hooks.ui.banner('Treasure Rush!', 'rush'); this.hooks.sfx('rush'); this.confetti(); });
+                    at(T, () => { this.rushing = true; this.hooks.onRush?.(); this.hooks.ui.banner('Treasure Rush!', 'rush'); this.hooks.sfx('rush'); this.confetti(); });
                     T += 0.9;
                     break;
                 case 'rushend': T = Math.max(T, waveEnd) + 0.2; break;
@@ -794,6 +815,7 @@ export class DigView {
         const cv = this.stage.canvas;
         let down = null;
         cv.addEventListener('pointerdown', (e) => {
+            if (this.enabled && this.rushing) { this.hooks.onSkip?.(); return; }
             if (!this.enabled || this.busy() || !this.B || this.B.state !== 'play') return;
             const cell = this.pick(e.clientX, e.clientY);
             this.idle = 0;
@@ -903,7 +925,7 @@ export class DigView {
             while (tl.i < tl.acts.length && tl.acts[tl.i].t <= tl.t) tl.acts[tl.i++].fn();
             if (tl.t >= tl.end && tl.i >= tl.acts.length && !this.tweens.some((q) => q.t < q.dur)) {
                 this.tl = null;
-                if (!this.queue.length) { this.sync(); this.hooks.onIdle?.(); }
+                if (!this.queue.length) { this.rushing = false; this.sync(); this.hooks.onIdle?.(); }
             }
         }
         // tweens

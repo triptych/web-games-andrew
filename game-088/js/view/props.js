@@ -110,7 +110,13 @@ export function sign(text, w = 4, h = 0.9, color = '#2f5a6a', ink = '#f6e7c0') {
     x.fillStyle = color; x.fillRect(0, 0, c.width, c.height);
     x.strokeStyle = ink; x.lineWidth = 10; x.strokeRect(16, 16, c.width - 32, c.height - 32);
     x.fillStyle = ink;
-    x.font = `bold ${Math.round(c.height * 0.48)}px Georgia, 'Times New Roman', serif`;
+    // shrink long words to fit inside the frame (the museum's name ran off both ends)
+    let size = Math.round(c.height * 0.48);
+    const fits = () => {
+        x.font = `bold ${size}px Georgia, 'Times New Roman', serif`;
+        return x.measureText(text).width <= c.width - 96;
+    };
+    while (size > 12 && !fits()) size--;
     x.textAlign = 'center'; x.textBaseline = 'middle';
     x.fillText(text, c.width / 2, c.height / 2 + 4);
     const tex = new THREE.CanvasTexture(c);

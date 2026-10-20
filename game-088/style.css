@@ -176,6 +176,15 @@ button { font-family: inherit; }
 .boost i { position: absolute; top: -6px; right: -6px; min-width: 22px; height: 22px; border-radius: 11px; background: var(--teal); color: #fff; font: 700 13px/22px var(--font); font-style: normal; text-align: center; }
 .boost.empty i { background: var(--gold-dark); }
 .boost.on { background: linear-gradient(#fff2b0, #ffd56a); animation: pulse 1s infinite; }
+.skipbtn {
+    position: absolute; right: calc(14px + var(--safe-r)); bottom: calc(86px + var(--safe-b)); padding: 0 20px; border-radius: 22px;
+    font: 700 17px var(--font); color: #5a2e10; background: linear-gradient(#fff2b0, #ffc94a); box-shadow: var(--shadow); cursor: pointer;
+    min-height: 44px; border: 2px solid #fff6d8; animation: skipIn 0.3s ease-out;
+}
+.skipbtn[hidden] { display: none; }
+.skipbtn span { letter-spacing: -3px; margin-left: 2px; }
+.skipbtn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+@keyframes skipIn { from { opacity: 0; transform: translateY(10px); } }
 .hammer-hint { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(86px + var(--safe-b)); background: rgba(40, 25, 10, 0.8); color: #fff; padding: 8px 14px; border-radius: 14px; font-size: 14px; pointer-events: auto; cursor: pointer; white-space: nowrap; }
 
 /* ---------------------------------------------------------------- floating effects */

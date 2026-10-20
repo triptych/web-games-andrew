@@ -96,6 +96,30 @@ const layout = (page) => Q(page, () => {
 });
 const reportErrors = (label) => { check(errors.length === 0, `${label}: no console errors, page errors or failed requests`); for (const e of errors.slice(0, 8)) console.log('    ', e); };
 const idle = (page, msg = 'the board finishes its animation') => until(page, () => !__cc.busy, msg, 90000);
+
+/** Finish every goal so the next swap wins with moves to spare, then make it: a Treasure Rush starts. */
+async function startRush(page, label) {
+    await Q(page, () => { if (__cc.ui.inScene()) __cc.ui.endScene(); __cc.dig(); });
+    await until(page, () => { if (__cc.ui.inScene()) __cc.ui.endScene(); return __cc.mode === 'dig' && !__cc.busy; }, `${label}: a dig opens`, 90000);
+    await Q(page, () => { const B = __cc.G.dig.B; for (const g of B.goals) g.got = g.n; B.moves = 20; });
+    const mv = await Q(page, () => __cc.moves()[0]);
+    await Q(page, (m) => __cc.digView.hooks.onSwap(m[0][0], m[0][1], m[1][0], m[1][1]), mv);
+    await until(page, () => __cc.digView.rushing && !document.getElementById('d-skip').hidden, `${label}: a win with moves left starts a Treasure Rush and shows Skip`, 90000);
+}
+/** After a skip: the result shows at once and the board is the sim's final board, with nothing left over. */
+async function rushSkipped(page, label) {
+    await until(page, () => !document.getElementById('win').hidden, `${label} skips to the result`, 5000);
+    const r = await Q(page, () => {
+        const v = __cc.digView, B = __cc.G.dig.B;
+        const groups = new Set([...v.tiles.values()].map((o) => o.obj.group));
+        const stray = v.tileG.children.filter((g) => !groups.has(g)).length;
+        let off = 0, n = 0;
+        B.cells.forEach((cell, i) => { if (!cell.t) return; n++; const o = v.tiles.get(cell.t.id); if (!o || o.r * B.C + o.c !== i) off++; });
+        return { stray, off, n, tiles: v.tiles.size, moves: document.getElementById('d-moves').textContent, skip: document.getElementById('d-skip').hidden, busy: v.busy() };
+    });
+    check(r.stray === 0 && r.off === 0 && r.n === r.tiles && !r.busy, `  and the board matches the sim (${r.tiles} finds, ${r.stray} stray, ${r.off} out of place)`);
+    check(r.moves === '0' && r.skip, '  moves read 0 and Skip is gone');
+}
 /** A valid move as screen points [from, to]. */
 const moveAt = (page) => Q(page, () => { const m = __cc.moves()[0]; return m && { a: __cc.cell(...m[0]), b: __cc.cell(...m[1]), m }; });
 
@@ -272,6 +296,17 @@ async function desktop() {
         await until(page, () => !document.getElementById('lose').hidden || !document.getElementById('win').hidden, 'and ends again', 90000);
         if (await visible(page, 'lose')) { await click(page, '#lose-quit'); await until(page, () => __cc.mode === 'museum', 'Back to the museum after a loss'); }
     } else check(true, '(won on the last move)');
+
+    // a Treasure Rush can be skipped: the button, a key, a click on the board
+    await startRush(page, 'desktop');
+    await page.mouse.click(...(await Q(page, () => { const b = document.getElementById('d-skip').getBoundingClientRect(); return [b.left + b.width / 2, b.top + b.height / 2]; })));
+    await rushSkipped(page, 'clicking Skip');
+    await startRush(page, 'desktop');
+    await page.keyboard.press('Space');
+    await rushSkipped(page, 'Space');
+    await startRush(page, 'desktop');
+    await page.mouse.click(640, 400);
+    await rushSkipped(page, 'a click on the board');
     reportErrors('desktop (continue)');
 }
 
@@ -385,6 +420,16 @@ async function phone(w, h) {
     await until(page, () => document.getElementById('settings').hidden, 'Done closes Settings');
     await tapSel('#menu-list [data-act="resume"]');
     await until(page, () => document.getElementById('menu').hidden, 'a tap on Resume closes it');
+
+    await startRush(page, 'phone');
+    const sk = await Q(page, () => {
+        const b = document.getElementById('d-skip').getBoundingClientRect();
+        const clear = [...document.querySelectorAll('.dbottom button, .dtop, .scorebar')].every((e) => { const r = e.getBoundingClientRect(); return b.right <= r.left || b.left >= r.right || b.bottom <= r.top || b.top >= r.bottom; });
+        return { on: b.left >= 0 && b.right <= innerWidth && b.top >= 0 && b.bottom <= innerHeight, clear, h: b.height };
+    });
+    check(sk.on && sk.clear && sk.h >= 44, `Skip is on screen, clear of the HUD and big enough to tap (${JSON.stringify(sk)})`);
+    await tapSel('#d-skip');
+    await rushSkipped(page, 'a tap on Skip');
     reportErrors(`phone ${w}×${h}`);
 }
 

@@ -2,7 +2,7 @@
 
 **Genre:** Casual match-3 with a cozy museum meta-game
 **Engine:** three.js r165, no asset files (every model, texture, tune and sound is made in code)
-**Status:** v1.1.1
+**Status:** v1.1.2
 
 ---
 
@@ -69,7 +69,7 @@ Finds fall straight down and are refilled from above. A cell whose column is blo
 
 ### Ends
 
-- **Win**: every goal met. **Treasure Rush**: each move left turns a find into a trowel, then every special on the board goes off for score.
+- **Win**: every goal met. **Treasure Rush**: each move left turns a find into a trowel, then every special on the board goes off for score. A **Skip** button (or a tap on the board, Space, Enter or Esc) jumps to the result; the sim has already settled it.
 - **Out of moves**: buy five more (60 coins, then 120, 180…), retry or go back to the museum. No lives.
 - **Boosters**: the Rock Hammer smashes one cell (a boulder, crust, a find); the Sieve Shake shuffles. Bought with coins; staff give some when they join.
 
@@ -159,6 +159,10 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, every rule and 
 - A photo mode for the museum.
 
 ## Changelog
+
+### v1.1.2 (2026-10-20)
+- A Treasure Rush can be skipped: a Skip button, a tap on the board, Space, Enter or Esc jump to the final board and the result.
+- Signs shrink their words to fit: the museum's sign read "JRIO COVE MUSEU".
 
 ### v1.1.1 (2026-10-20)
 - Outlined text ("Great dig!", combo calls, score pops, the title) drew stray lines inside letters like t, d and k. The outline is now a ring of hard text shadows instead of `-webkit-text-stroke`.

@@ -54,6 +54,7 @@ export class UI {
         $('d-hammer').addEventListener('click', () => cb.onHammer());
         $('d-shuffle').addEventListener('click', () => cb.onShuffle());
         $('d-pause').addEventListener('click', () => cb.onMenu());
+        $('d-skip').addEventListener('click', () => cb.onSkip());
         $('hammer-hint').addEventListener('click', () => cb.onHammer(false));
         $('win-go').addEventListener('click', () => cb.onWinContinue());
         $('lose-more').addEventListener('click', () => cb.onMoreMoves());
@@ -318,7 +319,7 @@ export class UI {
     }
 
     // ------------------------------------------------------------------ dig HUD
-    showDig(on) { $('dhud').hidden = !on; if (!on) this.hammer(false); }
+    showDig(on) { $('dhud').hidden = !on; if (!on) this.hammer(false); this.skip(false); }
     setupDig(G) {
         const D = G.dig, B = D.B, spec = levelSpec(D.n);
         this.spec = spec;
@@ -350,6 +351,21 @@ export class UI {
         }
     }
     hammer(on) { $('d-hammer').classList.toggle('on', on); $('hammer-hint').hidden = !on; }
+    /** The Skip button, shown while a Treasure Rush plays. */
+    skip(on) { $('d-skip').hidden = !on; }
+    /** Moves, goals and score as the board ends, after a skipped Treasure Rush. */
+    digFinal(B) {
+        this.moves(B.moves);
+        B.goals.forEach((g, i) => {
+            const el = this.goalEls?.[i];
+            if (!el) return;
+            el.querySelector('b').textContent = Math.max(0, g.n - g.got);
+            el.classList.toggle('done', g.got >= g.n);
+        });
+        this.score(B.score);
+        $('praise').innerHTML = '';
+        $('banner').innerHTML = '';
+    }
     moves(left, added) {
         $('d-moves').textContent = left;
         $('d-moves-card').classList.toggle('low', left <= 5);

@@ -48,6 +48,8 @@ const digView = new DigView(stage, {
     onHammer: (r, c) => doHammer(r, c),
     hintMove: () => (G.dig && G.dig.B.state === 'play' ? Bd.findMoves(G.dig.B, 1)[0] : null),
     onIdle: () => afterScript(),
+    onRush: () => ui.skip(true),
+    onSkip: () => skipRush(),
 });
 const museum = new MuseumView(stage, {
     appeal: () => Gm.appeal(G),
@@ -68,6 +70,7 @@ const ui = new UI({
         onBuyBooster: (k) => { if (Gm.buyBooster(G, k)) afterAction(); },
         onHammer: (on) => toggleHammer(on),
         onShuffle: () => doShuffle(),
+        onSkip: () => skipRush(),
         onWinContinue: () => leaveDig(),
         onMoreMoves: () => { if (Gm.buyMoves(G)) { ui.closeScreen('lose'); flushEvents(); } },
         onRetry: () => { const n = G.dig.n; ui.closeScreen('lose'); Gm.leaveDig(G); flushEvents(true); startDig(n); },
@@ -305,8 +308,17 @@ function doShuffle() {
     flushEvents();
 }
 
+/** Skip the rest of a Treasure Rush: the board jumps to its end and the result shows. */
+function skipRush() {
+    if (mode !== 'dig' || !G.dig || !digView.rushing || ui.anyScreen()) return;
+    audio.ui('click');
+    digView.skip();
+    ui.digFinal(G.dig.B);
+}
+
 /** The board finished animating: show a result that was waiting for it. */
 function afterScript() {
+    ui.skip(false);
     if (G.dig) ui.score(G.dig.B.score);
     if (!pending) return;
     const p = pending;
@@ -421,6 +433,7 @@ function handlePresses() {
     }
     if (mode === 'dig' && G.dig) {
         const B = G.dig.B;
+        if (digView.rushing && (k === 'Space' || k === 'Enter' || k === 'Escape')) { skipRush(); return; }
         if (k === 'Escape' || k === 'KeyP') { if (hammerOn) toggleHammer(false); else openMenu(); return; }
         if (k === 'KeyH') { toggleHammer(); return; }
         if (k === 'KeyX') { doShuffle(); return; }
