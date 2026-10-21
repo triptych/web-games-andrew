@@ -19,7 +19,7 @@ It riffs on Monopoly and Fortune Street (laps, salaries, deeds and tolls, a free
 ## Core loop
 
 1. **Roll** (or use a Loaded Die, Swift Boots or a Warp Scroll).
-2. **Walk** that many spaces. Passing Hearthstone is a lap: salary, deed income, and new wandering monsters. Passing a town or an open dungeon offers a stop. Walking into a wandering monster stops you for a fight.
+2. **Walk** that many spaces. Every space walked earns road coins (3 a space on lap 1, one more each lap), paid as one sum where you stop, so the first lap isn't a famine; rivals earn them too. Passing Hearthstone is a lap: salary, deed income, and new wandering monsters. Passing a town or an open dungeon offers a stop. Walking into a wandering monster stops you for a fight.
 3. **Land**: a battle, a deed to buy or upgrade (or a rival's toll to pay), a town, a dungeon, a chest, a Fate card, or a corner (feast, shrine, fountain, portal).
 4. The **rivals** take their turns: they buy deeds, fight, pay tolls and drive off monsters, shown quickly on the board.
 5. Doubles roll again. Every turn the party rests a little on the road (10% HP, 12% MP).
@@ -170,6 +170,11 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, the board, ever
 - More Fate cards and events, a bestiary.
 
 ## Changelog
+
+### v1.0.1 (2026-10-21)
+- Corner tiles are square to the board: turned diagonally, their slab overlapped the neighbours' and the tops flickered on phones. The fountain's water and coins are lifted clear of its basin. Board camera near plane 0.5 → 2.
+- The camera follows a rival's token while it hops (aiming at the square ahead), instead of staying where they rolled while they walked off screen.
+- Road coins: every space walked pays 3 gold (+1 a lap), you and the rivals alike. In bot games it roughly doubles gold by turn 3 (35 → 68) and turn 6 (143 → 228) and adds about a tenth over a whole game. Floating words stay inside the screen.
 
 ### v1.0.0 (2026-10-21)
 - First release: the 40-space board on a 3D island, three heroes and four companions, 20 monsters, 4 dungeons and bosses, Pyrrhax in two phases, deeds and tolls with two AI rivals, wandering monsters, towns with shop, inn, tavern and forge, 13 recipes, 18 Fate cards, CTB battles with bursts, seven tunes, saves.

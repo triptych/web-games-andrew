@@ -26,7 +26,7 @@ function lerpAngle(a, b, k) {
 export class BoardView {
     constructor(overlay) {
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(42, 1, 0.5, 900);
+        this.camera = new THREE.PerspectiveCamera(42, 1, 2, 900);   // near 2: the camera never comes closer than ~11
         this.island = new Island(this.scene);
         this.fx = new FX(this.scene, overlay);
         this.dice = new DiceTray(this.scene);
@@ -37,6 +37,7 @@ export class BoardView {
         this.userZoom = 1;
         this.mode = 'follow';      // follow | overview | free
         this.focus = 'you';
+        this.track = null;         // a rival whose token the camera follows while they move
         this.t = 0;
         this.smokeT = 0;
         this.hover = -1;
@@ -130,6 +131,7 @@ export class BoardView {
     }
 
     focusOn(i, snap = false, dist = 27) {
+        this.track = null;
         const p = tileTop(i);
         const [ox, oz] = outward(i);
         // stand on the volcano side and look out over the tile, its landmark and the sea
@@ -142,7 +144,7 @@ export class BoardView {
 
     overview(on) {
         this.mode = on ? 'overview' : 'follow';
-        if (on) { this.cam.tTarget.set(0, 2, 0); this.cam.tDist = 82; this.cam.tPitch = 0.95; }
+        if (on) { this.track = null; this.cam.tTarget.set(0, 2, 0); this.cam.tDist = 82; this.cam.tPitch = 0.95; }
     }
 
     // ------------------------------------------------------------------ events
@@ -175,6 +177,8 @@ export class BoardView {
                 t.group.rotation.y = yawOf(ax, az);
                 setPose(t.rig, 'hop', { dur });
                 if (e.who === 'you' && this.mode === 'follow') this.focusOn(e.to);
+                // a glint of road coins on each of your hops (paid as one +Ng where the walk stops)
+                if (e.who === 'you') this.fx.sparks(to.clone().add(new THREE.Vector3(0, 0.5, 0)), '#ffd84a', 4, 1.6, { size: 0.18 });
                 this.dice.hide();
                 return dur;
             }
@@ -295,10 +299,18 @@ export class BoardView {
         return 0;
     }
 
+    /** Follow a rival's token until the camera is sent somewhere else (update() keeps aiming). */
     focusRival(id) {
-        const t = this.tokens[id];
-        if (!t || this.mode === 'overview') return;
-        const p = t.group.position;
+        if (!this.tokens[id] || this.mode === 'overview') return;
+        this.track = id;
+        this.aimAtTrack();
+    }
+
+    aimAtTrack() {
+        const t = this.tokens[this.track];
+        if (!t) { this.track = null; return; }
+        // aim where it's hopping to, so the chasing camera keeps it near the middle rather than trailing
+        const p = t.hop ? t.hop.to : t.group.position;
         const [ox, oz] = outward(t.pos);
         this.cam.tTarget.set(p.x + ox * 2, 1.4, p.z + oz * 2);
         this.cam.tYaw = yawOf(-ox, -oz) - 0.1;
@@ -367,9 +379,10 @@ export class BoardView {
             for (const s of this.island.steamSources) this.fx.puffs(s, '#ffffff', 1, { up: 0.8, size: 0.4, size1: 1.2, life: 1.8, spread: 0.3, out: 0.1, alpha: 0.6 });
             if (Math.random() < 0.3) this.fx.sparks(new THREE.Vector3((Math.random() - 0.5) * 3, this.island.volcanoTop + 0.3, (Math.random() - 0.5) * 3), '#ffb03a', 3, 2, { up: 4, life: 1.0, size: 0.25 });
         }
-        // camera
+        // camera: a moving rival is chased a little faster than a settled view
         const c = this.cam;
-        const k = 1 - Math.exp(-3.2 * dt);
+        if (this.track && this.mode === 'follow') this.aimAtTrack();
+        const k = 1 - Math.exp(-(this.track ? 6 : 3.2) * dt);
         c.target.lerp(c.tTarget, k);
         c.yaw = lerpAngle(c.yaw, c.tYaw, k);
         c.pitch += (c.tPitch - c.pitch) * k;

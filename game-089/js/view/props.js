@@ -558,11 +558,12 @@ export function fountain() {
         part(cyl(0.8, 0.3, 0.25, 14), '#ffd25a', [0, 1.5, 0]),
         part(cyl(0.12, 0.15, 0.6, 8), '#ffd25a', [0, 1.85, 0]),
         part(sph(0.22, 12, 10), '#ffe07a', [0, 2.25, 0]),
-        ...[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => part(cyl(0.1, 0.1, 0.03, 8), '#ffd84a', [Math.cos(i * 0.7) * (0.5 + (i % 3) * 0.25), 0.42, Math.sin(i * 0.7) * (0.5 + (i % 3) * 0.25)])),
+        // coins on the basin floor and water well clear of it (they were a hair apart and flickered)
+        ...[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => part(cyl(0.1, 0.1, 0.05, 8), '#ffd84a', [Math.cos(i * 0.7) * (0.5 + (i % 3) * 0.25), 0.43, Math.sin(i * 0.7) * (0.5 + (i % 3) * 0.25)])),
     ]));
-    const water = new THREE.Mesh(new THREE.CircleGeometry(1.4, 20), toonMat({ color: '#5ad0f0', emissive: '#1a6a8a', emissiveIntensity: 0.4, transparent: true, opacity: 0.85 }));
+    const water = new THREE.Mesh(new THREE.CircleGeometry(1.42, 24), toonMat({ color: '#5ad0f0', emissive: '#1a6a8a', emissiveIntensity: 0.4, transparent: true, opacity: 0.7 }));
     water.rotation.x = -PI / 2;
-    water.position.y = 0.38;
+    water.position.y = 0.5;
     grp.add(water);
     grp.userData.fountain = new THREE.Vector3(0, 2.3, 0);
     return grp;
