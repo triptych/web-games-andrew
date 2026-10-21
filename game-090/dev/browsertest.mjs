@@ -225,14 +225,18 @@ async function desktop() {
         await until(page, () => !document.getElementById('pause').hidden, 'Escape pauses');
         await page.keyboard.press('Space');
         await until(page, () => document.getElementById('pause').hidden, 'a real Space presses Resume');
-        await page.keyboard.press('Escape');
-        await until(page, () => !document.getElementById('pause').hidden, 'Escape pauses again');
-        await click(page, '#pause-menu [data-act="quit"]');
+        // a roaming foe may have caught the idle Agent while the sim ran at fast=6; pause only on the floor
+        await until(page, () => __vp.G.phase !== 'explore' || (!__vp.G.explore.menu && !__vp.ui.anyScreen()), 'the floor is clear after Resume');
+        if (await Q(page, () => __vp.G.phase === 'explore')) {
+            await page.keyboard.press('Escape');
+            await until(page, () => !document.getElementById('pause').hidden, 'Escape pauses again');
+            await click(page, '#pause-menu [data-act="quit"]');
         await until(page, () => __vp.mode === 'title' && !document.getElementById('btn-continue').hidden, 'Save & Quit returns to the title with Continue');
         await click(page, '#title-menu [data-act="continue"]');
         await until(page, () => __vp.mode === 'game' && __vp.G.name === 'Juniper', 'Continue restores the saved game');
-        await idle(page);
-        await shot(page, 'desktop-continued');
+            await idle(page);
+            await shot(page, 'desktop-continued');
+        }
     }
     const L2 = await layout(page);
     check(L2.noHScroll && L2.canvas, 'still no sideways scroll; the canvas still fills the window');
@@ -246,13 +250,13 @@ async function phone(w, h) {
     const cdp = await page.context().newCDPSession(page);
     const touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y, id: 1 }] });
     const tapSel = async (sel) => {
-        const r = await Q(page, (s) => { const e = document.querySelector(s); e?.scrollIntoView({ block: 'center' }); const b = e?.getBoundingClientRect(); return b && { x: b.left + b.width / 2, y: b.top + b.height / 2 }; }, sel);
+        const r = await Q(page, (s) => { const e = document.querySelector(s); const fits = (q) => q && q.top >= 0 && q.bottom <= innerHeight; if (e && !fits(e.getBoundingClientRect())) e.scrollIntoView({ block: 'center' }); const b = e?.getBoundingClientRect(); return b && { x: b.left + b.width / 2, y: b.top + b.height / 2 }; }, sel);
         if (!r) return false;
         await page.touchscreen.tap(r.x, r.y);
         return true;
     };
     const tapText = async (scope, txt) => {
-        const r = await Q(page, ([s, t]) => { const e = [...document.querySelectorAll(s)].find((b) => b.textContent.trim().toLowerCase().startsWith(t.toLowerCase())); e?.scrollIntoView({ block: 'center' }); const b = e?.getBoundingClientRect(); return b && { x: b.left + b.width / 2, y: b.top + b.height / 2 }; }, [scope, txt]);
+        const r = await Q(page, ([s, t]) => { const e = [...document.querySelectorAll(s)].find((b) => b.textContent.trim().toLowerCase().startsWith(t.toLowerCase())); const fits = (q) => q && q.top >= 0 && q.bottom <= innerHeight; if (e && !fits(e.getBoundingClientRect())) e.scrollIntoView({ block: 'center' }); const b = e?.getBoundingClientRect(); return b && { x: b.left + b.width / 2, y: b.top + b.height / 2 }; }, [scope, txt]);
         if (!r) return false;
         await page.touchscreen.tap(r.x, r.y);
         return true;
@@ -266,11 +270,11 @@ async function phone(w, h) {
     await idle(page);
     // tap through the prologue
     let guard = 0;
-    while ((await Q(page, () => __vp.G.phase)) === 'scene' && guard++ < 120) {
+    while ((await Q(page, () => __vp.G.phase)) === 'scene' && guard++ < 300) {
         const ch = await Q(page, () => !!(__vp.G.scene && __vp.G.scene.nodes[__vp.G.scene.i]?.ch));
         const i0 = await Q(page, () => __vp.G.scene?.i);
-        if (ch) await tapSel('#vn-choices button'); else await tapSel('#vn .vn-box');
-        await page.waitForFunction((i) => __vp.G.phase !== 'scene' || __vp.G.scene.i !== i, i0, { timeout: 10000, polling: 50 }).catch(() => {});
+        if (ch) await tapSel('#vn-choices button'); else { await tapSel('#vn .vn-box'); await page.waitForTimeout(120); if (await Q(page, (i) => __vp.G.phase === 'scene' && !__vp.G.scene.nodes[__vp.G.scene.i]?.ch && __vp.G.scene.i === i, i0)) await tapSel('#vn .vn-box'); }
+        await page.waitForFunction((i) => __vp.G.phase !== 'scene' || __vp.G.scene.i !== i, i0, { timeout: 1200, polling: 50 }).catch(() => {});
     }
     check(await Q(page, () => __vp.G.phase) === 'hub', 'tapping through the prologue reaches the station');
     await idle(page);

@@ -384,7 +384,7 @@ function frame(now) {
                 if (G.events.length) playEvents();
                 if (G.phase !== 'explore' || G.explore?.menu) { accStep = 0; break; }
             }
-        } else accStep = 0;
+        } else { accStep = 0; input.edges.a = false; }   // a press made over a screen must not fire on arrival
         playEvents();
     }
     view.update(dt, time, G);

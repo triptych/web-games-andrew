@@ -19,7 +19,7 @@ export class Dialogue {
 
     get open() { return !$('vn').hidden; }
 
-    hide() { $('vn').hidden = true; this.key = ''; this.typing = null; }
+    hide() { $('vn').hidden = true; this.key = ''; this.node = null; this.typing = null; }
 
     name(id, G) { const c = CHARS[id]; if (!c) return ''; return c.name.replace('{name}', G.name); }
     fill(t, G) { return t.replace(/\{name\}/g, G.name); }
@@ -33,9 +33,11 @@ export class Dialogue {
     show(G) {
         const sc = G.scene, node = sceneNode(G);
         if (!sc || !node) return;
+        // a choice answered by a one-line reply keeps the same index and length, so compare the node itself
         const key = `${sc.id}:${sc.i}:${sc.nodes.length}`;
-        if (key === this.key) return;
+        if (key === this.key && node === this.node) return;
         this.key = key;
+        this.node = node;
         $('vn').hidden = false;
         // the cast along the bottom
         const def = sceneDef(G);
