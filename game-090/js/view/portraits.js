@@ -74,7 +74,7 @@ export class Portraits {
         h.setMood(mood);
         h.pose({ talk: true }, 0);
         h.root.rotation.y = -0.25;
-        const c = this.shoot(h.root, [0.35, 2.0, 1.75], [0, 1.62, 0]);
+        const c = this.shoot(h.root, [0.38, 2.02, 2.25], [0, 1.6, 0]);
         this.cache.set(key, c);
         return c;
     }

@@ -106,13 +106,13 @@ export function buildHuman(look = {}) {
     const scl = basic('#f4f6f8'), irisM = basic(iris), pup = basic('#0c1018'), hl = basic('#ffffff'), lidM = basic(shade(L.hair === '#e8e8f0' ? '#6a6a7a' : L.hair, 0.45));
     const eyes = [-1, 1].map((sd) => {
         const g = new THREE.Group(); g.position.set(sd * 0.086, 0.125, 0.209); g.userData.s = 1.15; g.scale.setScalar(1.15);
-        const w = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.066, 0.016), scl);
-        const p = new THREE.Group(); p.position.z = 0.009;
-        const ir = new THREE.Mesh(new THREE.CircleGeometry(0.033, 14), irisM); ir.scale.y = 1.12;
-        const pu = new THREE.Mesh(new THREE.CircleGeometry(0.017, 12), pup); pu.position.z = 0.002; pu.scale.y = 1.15;
-        const sp = new THREE.Mesh(new THREE.CircleGeometry(0.009, 8), hl); sp.position.set(0.011, 0.014, 0.004);
+        const w = new THREE.Mesh(new THREE.CircleGeometry(0.046, 20), scl); w.scale.set(1.05, 0.82, 1);
+        const p = new THREE.Group(); p.position.z = 0.004;
+        const ir = new THREE.Mesh(new THREE.CircleGeometry(0.034, 18), irisM); ir.scale.y = 1.0;
+        const pu = new THREE.Mesh(new THREE.CircleGeometry(0.018, 14), pup); pu.position.z = 0.002;
+        const sp = new THREE.Mesh(new THREE.CircleGeometry(0.01, 10), hl); sp.position.set(0.012, 0.014, 0.004);
         p.add(ir, pu, sp);
-        const lid = new THREE.Mesh(new THREE.BoxGeometry(0.092, 0.016, 0.02), lidM); lid.position.set(sd * 0.004, 0.036, 0.004); lid.rotation.z = sd * -0.1;
+        const lid = new THREE.Mesh(new THREE.CircleGeometry(0.052, 20), lidM); lid.scale.set(1, 0.34, 1); lid.position.set(sd * 0.003, 0.03, 0.007); lid.rotation.z = sd * -0.12;
         g.add(w, p, lid); head.add(g); return { g, p };
     });
     const eyeL = eyes[0].g, eyeR = eyes[1].g;
