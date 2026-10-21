@@ -567,7 +567,7 @@ export class UI {
 
     row(icon, name, desc, btn, disabled = false, fn = null) {
         const r = h('div', { class: 'item-row' }, `<div class="ic">${icon}</div><div><div class="nm">${name}</div><div class="ds">${desc}</div></div>`);
-        if (btn) r.appendChild(h('button', { class: 'chip-btn btn', disabled, on: { click: () => { this.audio.ui('click'); fn?.(); } } }, btn));
+        if (btn) r.appendChild(h('button', { class: 'chip-btn btn', disabled, on: { click: (e) => { this.audio.ui('click'); fn?.(e.currentTarget); } } }, btn));
         else r.appendChild(h('span'));
         return r;
     }
@@ -608,8 +608,10 @@ export class UI {
         if (mine.length) {
             sheet.appendChild(h('h4', {}, '🏡 Your deeds'));
             const list = h('div', { class: 'list' });
-            for (const d of mine) list.appendChild(this.row(d.emoji, `${d.name} <small class="sub">level ${G.deeds[d.deed].level}</small>`, `Toll ${deedToll(G, d.deed)}g · income ${deedIncome(G, d.deed)}g a lap`, `Sell ${deedValue(G, d.deed)}g`, false, () => {
-                if (confirm(`Sell ${d.name} back to the bank for ${deedValue(G, d.deed)} gold?`)) { this.act({ type: 'sellDeed', deed: d.deed }); this.renderParty(G); }
+            for (const d of mine) list.appendChild(this.row(d.emoji, `${d.name} <small class="sub">level ${G.deeds[d.deed].level}</small>`, `Toll ${deedToll(G, d.deed)}g · income ${deedIncome(G, d.deed)}g a lap`, `Sell ${deedValue(G, d.deed)}g`, false, (b) => {
+                // two taps: the first asks, the second sells
+                if (!b.classList.contains('confirm')) { b.classList.add('confirm'); b.textContent = 'Sure?'; setTimeout(() => { b.classList.remove('confirm'); b.textContent = `Sell ${deedValue(G, d.deed)}g`; }, 2500); return; }
+                this.act({ type: 'sellDeed', deed: d.deed }); this.renderParty(G);
             }));
             sheet.appendChild(list);
         }

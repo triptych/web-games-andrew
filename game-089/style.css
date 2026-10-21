@@ -57,6 +57,7 @@ html, body {
 .btn { padding: 8px 18px; font-size: 17px; font-weight: 600; }
 .btn:active, .ibtn:active, .cbtn:active, .tbtn2:active, .chip-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
 .btn:hover:not(:disabled), .cbtn:hover, .ibtn:hover, .chip-btn:hover:not(:disabled) { filter: brightness(1.06); }
+.chip-btn.confirm { background: #e8574a; color: #fff; }
 .btn.primary { background: linear-gradient(#ffe07a, var(--gold2)); color: #3a1a05; font-weight: 700; }
 .btn.blue { background: linear-gradient(#7ab8ff, var(--blue2)); color: #fff; }
 .btn.green { background: linear-gradient(#8aee7a, #3aa84a); color: #0a2a0a; }
