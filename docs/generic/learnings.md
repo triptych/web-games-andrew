@@ -6046,3 +6046,16 @@ The sea shader samples a small height texture of the terrain to colour shallows,
 ### Small traps
 - **`getAnimations().forEach((a) => a.finish())` throws on an infinite animation** (a pulsing button). Finish only those whose `effect.getComputedTiming().endTime` is finite.
 - **A companion on the bench crashed level-up**: the bench held member objects and the code wrapped them as if they were ids. The fuzz test found it on its first run.
+
+## Game 090 Verdant Protocol: Press Turn, recoding, and a PS2 look in three.js (2026-10-21)
+
+- **Press Turn in a pure sim.** Icons are `{f, h}` (full, half); normal spends a half first, weak/crit converts a full to a half, null/miss spends two, repel/drain all. Keep guard and every other command routing through the same `finishAction` and call `runEnemies` after each one: guard forgot it and the foes never moved (the sim test caught it by passing a turn and looking for the foes' phase events).
+- **Per-boss extra icons must be counted from the living bosses each phase**, not summed once at spawn: a two-wave final fight kept the first boss's bonus and hit three times a phase.
+- **Weakness-seeking enemy AI is lethal to a random party.** Weight weak targets ~2.2 not 3, and let your downed members cost half an icon to stand.
+- **Test the dice out of the way.** Set plain attacks to 100% accuracy and the foes' Luck high in the harness so a 4% miss or 5% crit cannot flip an icon assertion; assert on events (`b_hit.res`, `b_icons.cost`) rather than HP after the enemy phase, because foes pay HP costs too.
+- **Hex colour strings in canvas textures are not colour-managed.** `new THREE.Color('#4c5c5a').r` is linear (0.07): using it for 2D canvas pixels made every texture a black mud. Parse the hex yourself for canvas work.
+- **Portraits: render once to a render target and cache.** The target is linear, so convert read-back pixels with an sRGB LUT; clear alpha 0 and skip the backdrop for cut-out busts; keep light intensities near 1 or toon-lit skin clips to white.
+- **Toon + dither + bloom.** An ordered 4×4 dither to 5 bits in the last pass gives the PS2 grain for free; bloom before it. A back-face shell pushed out along normals in the vertex shader is a better "corrupted" look than a scaled copy (scaling moves off-centre parts).
+- **Walls that hide the player:** sink wall instances near the camera-to-player line instead of making walls transparent; update only changed instance matrices.
+- **A BoxGeometry with a material array works on an InstancedMesh**: give the tops a lighter material so low walls read as ledges from above.
+- **Harnesses:** `pkill -f` with a pattern that appears in your own command line kills your shell; use `[b]rowsertest`. Under SwiftShader a typewriter line needs two Space presses (finish, then advance), so the test presses until the index moves.

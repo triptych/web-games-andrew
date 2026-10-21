@@ -1352,6 +1352,22 @@ const games = [
             { emoji: '🐉', label: 'Dragon slaying' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-090',
+        title: 'Verdant Protocol',
+        description: "A press-turn RPG of recoding corrupted daemons in a healing, post-apocalyptic world, in three.js with a PS2-style look and no asset files. Two hundred years after Meridian, the machine that ran the world's weather and magic, went wrong, the earth is quietly healing and you are a Warden with a Grafter that can talk a corrupted Hex back into a loyal daemon. Explore six generated zones in real time (strike a Hex first for an ambush), then fight Shin Megami Tensei-style Press Turn battles: hit a weakness and act again, knock every foe down for an All-Out Attack. Recode Hexes through eight personalities and four scripts, splice your daemons in the Greenhouse across eight races with skill inheritance, follow the moon's tide, deepen Bonds with Wren, Marshal Dov, Ilsa, Maple and Quill, and choose what Meridian becomes: Reboot, Purge or Graft. Fifty-six daemons, seven guardians, a hundred skills, a Hex Rift to farm, twelve original tunes, a custom dither-and-glitch post chain and a touch-friendly angular UI.",
+        icon: '🌿',
+        folder: 'game-090',
+        version: '1.0.0',
+        cssClass: 'verdant-protocol',
+        genre: 'rpg',
+        tags: [
+            { emoji: '⚔️', label: 'Press Turn RPG' },
+            { emoji: '🧬', label: 'Recode & splice' },
+            { emoji: '🌱', label: 'Post-apocalypse' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 

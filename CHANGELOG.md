@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Verdant Protocol** (game-090) v1.0.0: a press-turn RPG of recoding corrupted daemons in a healing post-apocalypse, in three.js with no asset files.
+  - Systems: Press Turn battles with knock-downs and All-Out Attacks ([battle.js](game-090/js/sim/battle.js)); recoding by personality and script ([recode.js](game-090/js/sim/recode.js)); splicing with a race table, recipes and skill inheritance ([splice.js](game-090/js/sim/splice.js)); real-time floors from a generator ([gen.js](game-090/js/sim/gen.js), [explore.js](game-090/js/sim/explore.js)); a moon of eight tides, five Bonds with perks, three Currents and three endings ([story.js](game-090/js/sim/data/story.js)).
+  - Content: 56 daemons in eight races, 100 skills, six zones plus a Rift, seven guardians, 66 items, 20 pieces of gear, 44 scenes.
+  - Look and sound: toon shading with ink outlines, painted NEAREST textures, 16 procedural rigs, a custom PS2 post chain ([stage.js](game-090/js/view/stage.js)), a station diorama, twelve Web Audio tunes ([audio.js](game-090/js/audio.js)), an angular touch-first UI.
+  - Tests: [simtest.mjs](game-090/dev/simtest.mjs), [browsertest.mjs](game-090/dev/browsertest.mjs), [balance.mjs](game-090/dev/balance.mjs), [gallery.html](game-090/dev/gallery.html).
+- Launcher entry, card style and README/status rows for game-090; learnings added to [docs/generic/learnings.md](docs/generic/learnings.md).
+
 ### Changed
 - **Dragonroll** (game-089) v1.0.2: the early game was too hard. A level-1 Mage could lose 75% of its HP to one critical boar charge in the starting meadow, an ambush always brought two monsters against a lone hero, and a Yeti's maul did 119–193% of a level-1 hero's HP, so a hero could fall without a turn. Monsters now deal 30% less damage on lap 1 and 15% less on lap 2 ([battle.js](game-089/js/sim/battle.js) `TUNE.early`); **Grit** lets a hero above half health survive one knockout blow a battle with 1 HP, shown as "GRIT!" ([battleview.js](game-089/js/view/battleview.js)); a lap-1 ambush no longer forces a second monster ([game.js](game-089/js/sim/game.js)). In 90 bot games at skill 0.5, lap-1 battles lost went from 13.1% to 5.0% and lap-1 knockouts from 66 to 24; lap 2 from 11.7% to 4.2%; the strong bot still wins 90/90. [simtest.mjs](game-089/dev/simtest.mjs) checks Grit and the early-lap damage.
 

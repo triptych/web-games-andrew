@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Verdant Protocol: gallery</title>
+<style>html,body{margin:0;background:#4a4f56;overflow:hidden}canvas{display:block}#t{position:fixed;left:8px;top:8px;color:#fff;font:12px monospace}</style>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.165.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.165.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="t"></div>
+<script type="module">
+// Every model on a neutral grey, with flat lighting, so a character is judged before bloom and coloured light hide it.
+//   gallery.html?only=daemons|people|props|env   &rig=quad  &sp=cinderwolf  &rot=0.9  &pose=atk  &hex=1  &gap=3
+import * as THREE from 'three';
+import { buildDaemon, hexify } from '../js/view/daemons3d.js';
+import { buildCast } from '../js/view/humans.js';
+import { PROPS, propGeometry } from '../js/view/props.js';
+import { toonMat, TOON } from '../js/view/toon.js';
+import { DAEMONS, daemonList } from '../js/sim/data/daemons.js';
+import { CHARS } from '../js/sim/data/story.js';
+
+const q = new URLSearchParams(location.search);
+const only = q.get('only') || 'daemons', gap = +(q.get('gap') || 3.4), rot = +(q.get('rot') || 0.6);
+const r = new THREE.WebGLRenderer({ antialias: true });
+r.setPixelRatio(1); r.setSize(innerWidth, innerHeight); r.outputColorSpace = THREE.SRGBColorSpace;
+document.body.append(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#4a4f56');
+scene.add(new THREE.HemisphereLight('#ffffff', '#555566', 1.6));
+const sun = new THREE.DirectionalLight('#ffffff', 2.4); sun.position.set(4, 8, 6); scene.add(sun);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshBasicMaterial({ color: '#3a3e44' })); floor.rotation.x = -Math.PI / 2; scene.add(floor);
+const items = [];
+let list = [];
+if (only === 'daemons') {
+    list = daemonList().filter((d) => (!q.get('rig') || d.model.rig === q.get('rig')) && (!q.get('sp') || d.id === q.get('sp')));
+    list.forEach((d) => { const m = buildDaemon(d.id); if (q.get('hex')) hexify(m); items.push({ obj: m.root, pose: m.pose, h: m.h, label: d.name }); });
+} else if (only === 'people') {
+    for (const id of ['agent', ...Object.keys(CHARS).filter((c) => CHARS[c].look)]) { const h = buildCast(id, { weapon: true }); h.setMood('smile'); items.push({ obj: h.root, pose: (s, t) => h.pose(s, t), h: 1.9, label: id }); }
+} else if (only === 'props') {
+    for (const tag of Object.keys(PROPS)) { const m = new THREE.Mesh(propGeometry(tag), toonMat({ vertexColors: true })); items.push({ obj: m, pose: () => {}, h: 3, label: tag }); }
+}
+const cols = Math.ceil(Math.sqrt(items.length * 1.6));
+items.forEach((it, i) => { it.obj.position.set((i % cols) * gap - ((cols - 1) * gap) / 2, 0, -Math.floor(i / cols) * gap); it.obj.rotation.y = rot; scene.add(it.obj); });
+const rows = Math.ceil(items.length / cols);
+const cam = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 400);
+const span = Math.max(cols * gap, 6);
+cam.position.set(0, 3 + rows * gap * 0.55, 3 + span * 0.55 + rows * 0.5);
+cam.lookAt(0, 1, -((rows - 1) * gap) / 2);
+document.getElementById('t').textContent = `${only}: ${items.length} models`;
+let t = 0;
+function frame() {
+    t += 0.016; TOON.uTime.value = t;
+    const pose = q.get('pose') === 'atk' ? { atk: (t * 0.8) % 1 } : q.get('pose') === 'down' ? { down: 0.9 } : q.get('pose') === 'cast' ? { cast: (t * 0.8) % 1 } : { move: q.get('pose') === 'walk' ? 1 : 0 };
+    for (const it of items) it.pose(pose, t);
+    r.render(scene, cam);
+    requestAnimationFrame(frame);
+}
+frame();
+window.__ready = true;
+</script>
+</body>
+</html>
