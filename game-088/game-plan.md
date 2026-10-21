@@ -2,7 +2,7 @@
 
 **Genre:** Casual match-3 with a cozy museum meta-game
 **Engine:** three.js r165, no asset files (every model, texture, tune and sound is made in code)
-**Status:** v1.1.2
+**Status:** v1.1.3
 
 ---
 
@@ -159,6 +159,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, every rule and 
 - A photo mode for the museum.
 
 ## Changelog
+
+### v1.1.3 (2026-10-20)
+- Sheet scrollbars stay inside their rounded panels: a thin rounded thumb on a clear track, kept off the corners.
 
 ### v1.1.2 (2026-10-20)
 - A Treasure Rush can be skipped: a Skip button, a tap on the board, Space, Enter or Esc jump to the final board and the result.

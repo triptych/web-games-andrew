@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Curio Cove** (game-088) v1.1.3: with classic desktop scrollbars, a long sheet (How to Play, the Journal, Settings) drew a square white scrollbar track and arrow buttons over its rounded corners and border, so the bar seemed to stick out of the panel. Sheet scrollbars are now a thin rounded thumb on a clear track with margins that keep it off the corners, and `scrollbar-width: thin` with a matching colour in Firefox ([style.css](game-088/style.css)). [play.mjs](game-088/dev/play.mjs) takes `SCROLLBARS=1` to draw classic scrollbars, which headless Chromium hides.
+
 ### Added
 - **Curio Cove** (game-088) v1.1.2: the Treasure Rush at the end of a won dig (every move left becomes a trowel, then everything goes off) can be skipped. A **Skip** button shows while it plays; a tap on the board, Space, Enter or Esc also skip. The sim settles the whole rush when the winning move is made, so skipping only drops the rest of the show: the view clears its timeline and tweens, removes what cut-short animations left behind, snaps to the final board and shows the result ([board3d.js](game-088/js/view/board3d.js) `skip()`, [main.js](game-088/js/main.js)). [browsertest.mjs](game-088/dev/browsertest.mjs) skips a rush by button, key and board click on desktop and by tap on both phones, and checks that the result shows at once, the board matches the sim with no stray pieces, and the button sits clear of the HUD.
 

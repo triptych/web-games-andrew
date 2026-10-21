@@ -4712,6 +4712,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] Outlined text uses a ring of hard `text-shadow`s, not `-webkit-text-stroke`: the stroke traces every contour, and rounded fonts like Fredoka build letters from overlapping shapes, so it draws lines inside t, d and k (game-088's "Great dig!").
 - [ ] A long end-of-level show (a bonus rush, a tally) can be skipped with a button, a tap and a key, and jumps straight to the final state (game-088's Treasure Rush).
 - [ ] Text drawn into a canvas texture is measured and shrunk to fit (`measureText`); a fixed size ran the museum's name off both ends of its sign (game-088).
+- [ ] A scrolling panel with rounded corners styles its scrollbar (clear track, rounded thumb, track margin as big as the radius): a classic desktop scrollbar is a square strip that covers the corners and border (game-088's How to Play). Headless Chromium hides scrollbars; launch without `--hide-scrollbars` to see them.
 - [ ] On-screen button labels match the keys (the cabinet said A B C; the keys were Z X C, game-075).
 - [ ] A drag that moves the camera never also places or builds; a press that wandered ~10 px isn't a tap (game-067).
 
