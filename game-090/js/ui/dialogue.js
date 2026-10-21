@@ -49,6 +49,7 @@ export class Dialogue {
         }
         const choices = $('vn-choices');
         clear(choices);
+        $('vn-cast').classList.toggle('all', !!node.ch);
         if (node.ch) {
             this.setLine(null, '', false);
             $('vn-name').textContent = '';

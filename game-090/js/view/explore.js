@@ -28,7 +28,7 @@ export class ExploreView {
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(48, 1, 0.3, 160);
         this.fx = new FX(this.scene);
-        this.yaw = 0.0; this.pitch = 0.92; this.zoomK = 1;
+        this.yaw = 0.0; this.pitch = 1.0; this.zoomK = 1;
         this.key = '';
         this.env = null;
         this.player = null;
@@ -139,7 +139,7 @@ export class ExploreView {
 
     placeCamera(k) {
         const asp = this.camera.aspect || 1.6;
-        const dist = (asp < 1 ? 15 : 11.5) * this.zoomK;
+        const dist = (asp < 1 ? 17 : 12.5) * this.zoomK;
         const target = new THREE.Vector3(this.look.x + Math.sin(this.yaw) * Math.cos(this.pitch) * dist, this.look.y + Math.sin(this.pitch) * dist, this.look.z + Math.cos(this.yaw) * Math.cos(this.pitch) * dist);
         this.camPos.lerp(target, k);
         this.camera.position.copy(this.camPos);

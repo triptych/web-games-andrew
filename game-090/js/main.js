@@ -399,7 +399,7 @@ function frame(now) {
             if (!ui.anyScreen() || ['reward', 'modal', 'credits'].includes(ui.top())) ui.present(G);
             if (G.phase === 'battle' && !ui.anyScreen()) {
                 if (bot) { botTick(G, bot); playEvents(); }
-                else if (settings.auto && G.battle && G.battle.phase === 'p' && !G.battle.neg) { doAct(battleDecisionCmd()); ui.battle.refresh(); }
+                else if (settings.auto && G.battle && G.battle.phase === 'p') { botTick(G, autoBot); playEvents(); ui.battle.refresh(); }
             } else if (bot && !ui.anyScreen() && G.phase !== 'explore') { botTick(G, bot); playEvents(); }
             saveT += rdt;
             if (saveT > 15) { saveT = 0; saveNow(); }
@@ -409,7 +409,6 @@ function frame(now) {
     }
 }
 const botMode = () => !!bot;
-function battleDecisionCmd() { const c = battleDecision(G, autoBot); return c; }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'game') { saveNow(); pause(); } });
 window.addEventListener('pagehide', () => { if (mode === 'game') saveNow(); });

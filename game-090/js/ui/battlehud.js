@@ -149,6 +149,8 @@ export class BattleHud {
         const sp = DAEMONS[u.sp];
         const dex = G.dex[u.sp];
         const out = [];
+        const any = !!dex && (dex.scanned || Object.keys(dex.aff).length);
+        if (!any) return [h('span.chip.unk', { text: 'AFFINITY ???' })];
         for (const el of ['strike', 'gun', 'pyre', 'rime', 'volt', 'gale', 'lumen', 'hex']) {
             const known = !!(dex && (dex.aff[el] || dex.scanned));
             const k = sp.aff[el];

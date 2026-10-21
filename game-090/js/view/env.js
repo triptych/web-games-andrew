@@ -16,12 +16,12 @@ export const CELL = 2;
 export const toWorld = (x, y) => new THREE.Vector3(x * CELL, 0, y * CELL);
 
 const THEME = {
-    tunnel: { floor: () => TEX.tiles('#4c5c5a', '#0a1414', 3), wall: () => TEX.bricks('#4a6058', '#0e1814'), top: '#2c3c38', wallH: 3.2, particle: '#7affd0', pk: 'motes', hemi: ['#7affd0', '#0a1a1a'], sunI: 1.1, ambient: 0.55, water: true },
-    hall: { floor: () => TEX.grass('#4a6a4a', '#8ae05a', 5), wall: () => TEX.noise('#a8a090', 4), top: '#6a6a60', wallH: 3.0, particle: '#fff2b0', pk: 'spores', hemi: ['#fff2d0', '#1a3a1a'], sunI: 1.9, ambient: 0.7 },
-    racks: { floor: () => TEX.metal('#2a3250', 4), wall: () => TEX.circuit('#161c30', '#3acaff', 10), top: '#101424', wallH: 3.2, particle: '#5af0ff', pk: 'motes', hemi: ['#5af0ff', '#080c1c'], sunI: 0.9, ambient: 0.5 },
-    nave: { floor: () => TEX.tiles('#4a4468', '#0e0a1c', 6), wall: () => TEX.bricks('#4a4268', '#12102a', 3), top: '#2a2644', wallH: 4.0, particle: '#c8b0ff', pk: 'motes', hemi: ['#b08aff', '#0a0818'], sunI: 1.0, ambient: 0.5, water: true },
-    rail: { floor: () => TEX.metal('#6a7a8c', 7), wall: () => TEX.metal('#8a9aac', 5), top: '#6a7a8c', wallH: 1.0, particle: '#ffffff', pk: 'wind', hemi: ['#bff0ff', '#4a6a8a'], sunI: 2.2, ambient: 0.8, void: true },
-    spire: { floor: () => TEX.hex('#e8e0f0', '#ff4ad8', 6), wall: () => TEX.glass('#2a1a3c', 9), top: '#1c1228', wallH: 3.6, particle: '#ff8af0', pk: 'motes', hemi: ['#ff8af0', '#12081c'], sunI: 1.1, ambient: 0.6 },
+    tunnel: { floor: () => TEX.tiles('#4c5c5a', '#0a1414', 3), wall: () => TEX.bricks('#4a6058', '#0e1814'), top: '#6a8a80', wallH: 2.5, particle: '#7affd0', pk: 'motes', hemi: ['#7affd0', '#0a1a1a'], sunI: 1.1, ambient: 0.55, water: true },
+    hall: { floor: () => TEX.grass('#4a6a4a', '#8ae05a', 5), wall: () => TEX.noise('#a8a090', 4), top: '#a8a894', wallH: 2.4, particle: '#fff2b0', pk: 'spores', hemi: ['#fff2d0', '#1a3a1a'], sunI: 1.9, ambient: 0.7 },
+    racks: { floor: () => TEX.metal('#2a3250', 4), wall: () => TEX.circuit('#161c30', '#3acaff', 10), top: '#3a4468', wallH: 2.6, particle: '#5af0ff', pk: 'motes', hemi: ['#5af0ff', '#080c1c'], sunI: 0.9, ambient: 0.5 },
+    nave: { floor: () => TEX.tiles('#4a4468', '#0e0a1c', 6), wall: () => TEX.bricks('#4a4268', '#12102a', 3), top: '#6a64a0', wallH: 3.0, particle: '#c8b0ff', pk: 'motes', hemi: ['#b08aff', '#0a0818'], sunI: 1.0, ambient: 0.5, water: true },
+    rail: { floor: () => TEX.metal('#6a7a8c', 7), wall: () => TEX.metal('#8a9aac', 5), top: '#a8b8cc', wallH: 1.0, particle: '#ffffff', pk: 'wind', hemi: ['#bff0ff', '#4a6a8a'], sunI: 2.2, ambient: 0.8, void: true },
+    spire: { floor: () => TEX.hex('#e8e0f0', '#ff4ad8', 6), wall: () => TEX.glass('#2a1a3c', 9), top: '#6a3a88', wallH: 2.8, particle: '#ff8af0', pk: 'motes', hemi: ['#ff8af0', '#12081c'], sunI: 1.1, ambient: 0.6 },
 };
 export const themeOf = (name) => THEME[name] || THEME.hall;
 
@@ -111,7 +111,8 @@ export function buildEnvironment(fl, zoneId, themeOverride, quality = 2) {
     const wallH = T.wallH;
     const wgeo = new THREE.BoxGeometry(CELL, wallH, CELL);
     const wallMat = toonMat({ map: T.wall(), color: 0xffffff });
-    const wallMesh = new THREE.InstancedMesh(wgeo, wallMat, Math.max(1, wallCells.length));
+    const topMat = toonMat({ color: T.top });
+    const wallMesh = new THREE.InstancedMesh(wgeo, [wallMat, wallMat, topMat, topMat, wallMat, wallMat], Math.max(1, wallCells.length));
     wallMesh.castShadow = quality > 0;
     wallMesh.receiveShadow = true;
     wallMesh.count = wallCells.length;

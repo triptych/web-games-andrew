@@ -77,11 +77,7 @@ export class HubView {
         const m4 = new THREE.Matrix4();
         for (let i = 0; i < 32; i++) { const a = (i / 32) * Math.PI * 2; m4.compose(V3(Math.cos(a) * 13.8, 0, Math.sin(a) * 13.8), new THREE.Quaternion().setFromAxisAngle(V3(0, 1, 0), -a - Math.PI / 2 + 0.098), V3(1, 1, 1)); rail.setMatrixAt(i, m4); }
         sc.add(rail);
-        // --- glass dome ribs: a cage that frames the view without hiding it
-        const ribGeo = merge([K.tor(14.2, 0.07, { c: '#cfe0d8', r: [Math.PI / 2, 0, 0] }, 5, 48)]);
-        const domeRibs = new THREE.Group();
-        for (let i = 0; i < 8; i++) { const r = part(K.tor(14.2, 0.07, { c: '#d8e8e0' }, 5, 40), { outline: 0.01 }); r.rotation.y = (i / 8) * Math.PI + 0.2; r.position.y = 0; r.scale.set(1, 0.78, 1); domeRibs.add(r); }
-        domeRibs.position.y = 0.6; sc.add(domeRibs); this.dome = domeRibs;
+        this.dome = new THREE.Group();
         // --- vegetation: bushes, tomato vines and flowers in the planter beds
         const bushGeo = merge([K.sph(0.9, { c: '#2f7a3a', g: '#6ac04a', p: [0, 0.5, 0] }), K.sph(0.6, { c: '#3a8a3a', p: [0.7, 0.35, 0.2] }), K.sph(0.15, { c: '#ff6a5a', p: [0.3, 0.9, 0.5] }), K.sph(0.13, { c: '#ffd84a', p: [-0.4, 0.8, 0.4] })]);
         const bushes = new THREE.InstancedMesh(bushGeo, toonMat({ vertexColors: true }), 64);

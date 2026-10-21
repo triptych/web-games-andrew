@@ -14,7 +14,7 @@ export const AGENT_LOOKS = [
 ];
 
 const HAIR = {
-    short: (c) => [K.sph(0.245, { c, p: [0, 0.04, -0.02], s: [1, 0.8, 1.02] }), K.box(0.5, 0.1, 0.1, { c, p: [0, 0.2, 0.15] })],
+    short: (c) => [K.sph(0.248, { c, p: [0, 0.05, -0.03], s: [1, 0.82, 1.05] }), K.sph(0.07, { c, p: [-0.21, -0.04, 0.02] }), K.sph(0.07, { c, p: [0.21, -0.04, 0.02] }), K.sph(0.1, { c, p: [0.08, 0.17, 0.14], s: [1.4, 0.6, 0.8] })],
     bun: (c) => [K.sph(0.245, { c, p: [0, 0.04, -0.03], s: [1, 0.75, 1] }), K.sph(0.11, { c, p: [0, 0.3, -0.12] })],
     spiky: (c) => [K.sph(0.24, { c, p: [0, 0.03, -0.02], s: [1, 0.7, 1] }), ...[-0.15, 0, 0.15].map((x, i) => K.cone(0.07, 0.24, { c, p: [x, 0.27, 0.0 - i % 2 * 0.06], r: [0, 0, -x * 2.2] }))],
     ponytail: (c) => [K.sph(0.245, { c, p: [0, 0.04, -0.03], s: [1, 0.8, 1.02] }), K.cap(0.07, 0.3, { c, p: [0, -0.1, -0.32], r: [0.3, 0, 0] })],
@@ -72,27 +72,34 @@ export function buildHuman(look = {}) {
     const head = new THREE.Group();
     head.position.set(0, 1.62, 0);
     body.add(head);
-    const faceParts = [K.sph(0.22, { c: L.skin, p: [0, 0.1, 0], s: [1, 1.1, 1] }), K.box(0.06, 0.1, 0.06, { c: L.skin, p: [0, 0.02, 0.2] })];
-    if (L.beard) faceParts.push(K.sph(0.17, { c: L.hair, p: [0, -0.05, 0.1], s: [1, 0.7, 0.8] }));
+    const faceParts = [K.sph(0.22, { c: L.skin, p: [0, 0.1, 0], s: [1, 1.12, 0.98] }), K.box(0.045, 0.07, 0.05, { c: L.skin, p: [0, 0.08, 0.215] }),
+        K.sph(0.05, { c: L.skin, p: [-0.215, 0.1, 0] }), K.sph(0.05, { c: L.skin, p: [0.215, 0.1, 0] }),
+        K.sph(0.05, { c: '#ff9a8a', p: [-0.12, 0.04, 0.19] }), K.sph(0.05, { c: '#ff9a8a', p: [0.12, 0.04, 0.19] })];
+    if (L.beard) faceParts.push(K.sph(0.17, { c: L.hair, p: [0, -0.04, 0.09], s: [1, 0.75, 0.85] }), K.box(0.16, 0.035, 0.05, { c: L.hair, p: [0, 0.05, 0.2] }));
     head.add(part(merge(faceParts), { outline: 0.02 }));
     head.add(part(merge((HAIR[L.hairStyle] || HAIR.short)(L.hair).map((g) => g.translate(0, 0.12, 0))), { outline: 0.02 }));
-    // eyes and brows
-    const eyeMat = new THREE.MeshBasicMaterial({ color: '#10141c', toneMapped: false });
-    const mkEye = (x) => { const e = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.075, 0.02), eyeMat); e.position.set(x, 0.13, 0.205); head.add(e); return e; };
-    const eyeL = mkEye(-0.085), eyeR = mkEye(0.085);
-    const browMat = new THREE.MeshBasicMaterial({ color: L.hair === '#e8e8f0' ? '#9090a0' : L.hair, toneMapped: false });
-    const mkBrow = (x) => { const b = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.022, 0.02), browMat); b.position.set(x, 0.22, 0.2); head.add(b); return b; };
+    // eyes (white and pupil), brows and mouth
+    const scl = new THREE.MeshBasicMaterial({ color: '#f4f6f8', toneMapped: false });
+    const pup = new THREE.MeshBasicMaterial({ color: '#10141c', toneMapped: false });
+    const eyes = [-1, 1].map((sd) => {
+        const g = new THREE.Group(); g.position.set(sd * 0.085, 0.135, 0.212);
+        const w = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.062, 0.02), scl);
+        const p = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.052, 0.02), pup); p.position.z = 0.01;
+        g.add(w, p); head.add(g); return { g, p };
+    });
+    const eyeL = eyes[0].g, eyeR = eyes[1].g;
+    const browMat = new THREE.MeshBasicMaterial({ color: L.hair === '#e8e8f0' || L.hair === '#c9c9c9' ? '#8a8a96' : L.hair, toneMapped: false });
+    const mkBrow = (x) => { const b = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.024, 0.02), browMat); b.position.set(x, 0.215, 0.208); head.add(b); return b; };
     const browL = mkBrow(-0.085), browR = mkBrow(0.085);
-    const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.022, 0.02), new THREE.MeshBasicMaterial({ color: '#5a2a2a', toneMapped: false }));
-    mouth.position.set(0, 0.02, 0.208);
+    const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.02, 0.02), new THREE.MeshBasicMaterial({ color: '#6a2a30', toneMapped: false }));
+    mouth.position.set(0, 0.025, 0.212);
     head.add(mouth);
     if (L.goggles) {
-        const gg = merge([K.tor(0.075, 0.025, { c: '#2a2a30', p: [-0.09, 0.2, 0.16] }), K.tor(0.075, 0.025, { c: '#2a2a30', p: [0.09, 0.2, 0.16] }), K.box(0.5, 0.03, 0.04, { c: '#2a2a30', p: [0, 0.2, 0.05] })]);
+        const gg = merge([K.tor(0.07, 0.022, { c: '#2a2a30', p: [-0.09, 0.2, 0.15] }), K.tor(0.07, 0.022, { c: '#2a2a30', p: [0.09, 0.2, 0.15] }), K.box(0.5, 0.03, 0.04, { c: '#2a2a30', p: [0, 0.2, 0.04] })]);
         const gm = part(gg, { outline: 0.01 });
         gm.position.y = 0.2;
         head.add(gm);
-        head.add(glow(new THREE.CircleGeometry(0.06, 8), L.accent, { p: [-0.09, 0.4, 0.2] }), glow(new THREE.CircleGeometry(0.06, 8), L.accent, { p: [0.09, 0.4, 0.2] }));
-        head.children.slice(-2).forEach((c) => c.position.y -= 0.2);
+        for (const sd of [-1, 1]) head.add(glow(new THREE.CircleGeometry(0.055, 8), L.accent, { p: [sd * 0.09, 0.4, 0.176] }));
     }
     // weapons: a blade at the right hand, a sidearm at the left hip
     let blade = null, gun = null;
@@ -111,17 +118,13 @@ export function buildHuman(look = {}) {
     const api = { root, joints: J, look: L };
 
     api.setMood = (m = 'neutral') => {
-        const brow = { neutral: [0, 0], smile: [0.1, 0.05], smirk: [-0.12, 0.15], angry: [-0.5, -0.5], sad: [0.4, 0.4], shock: [0, 0] }[m] || [0, 0];
-        browL.rotation.z = brow[0]; browR.rotation.z = -(brow[1] || brow[0]);
-        if (m === 'angry') { browL.rotation.z = -0.4; browR.rotation.z = 0.4; }
-        if (m === 'sad') { browL.rotation.z = 0.35; browR.rotation.z = -0.35; }
-        browL.position.y = browR.position.y = m === 'shock' ? 0.26 : 0.22;
-        mouth.scale.set(m === 'shock' ? 0.5 : 1, m === 'shock' ? 4 : 1, 1);
-        mouth.rotation.z = m === 'smile' ? 0.0 : 0;
-        mouth.scale.x = m === 'smile' ? 1.5 : m === 'shock' ? 0.5 : 1;
-        mouth.position.y = m === 'smile' ? 0.03 : m === 'sad' ? 0.0 : 0.02;
-        mouth.material.color.set(m === 'smile' ? '#7a2a30' : '#5a2a2a');
-        eyeL.scale.y = eyeR.scale.y = m === 'smile' ? 0.5 : m === 'shock' ? 1.4 : 1;
+        const rot = { neutral: [0, 0], smile: [0.1, -0.1], smirk: [-0.15, -0.35], angry: [-0.45, 0.45], sad: [0.4, -0.4], shock: [0, 0] }[m] || [0, 0];
+        browL.rotation.z = rot[0]; browR.rotation.z = rot[1];
+        browL.position.y = browR.position.y = m === 'shock' ? 0.255 : m === 'angry' ? 0.205 : 0.215;
+        mouth.scale.set(m === 'smile' ? 1.5 : m === 'shock' ? 0.45 : m === 'sad' ? 0.8 : 1, m === 'shock' ? 4 : 1, 1);
+        mouth.position.y = m === 'smile' ? 0.03 : m === 'sad' ? 0.02 : 0.025;
+        mouth.material.color.set(m === 'smile' || m === 'shock' ? '#8a2a38' : '#6a2a30');
+        for (const e of eyes) { e.g.scale.y = m === 'smile' ? 0.45 : m === 'shock' ? 1.35 : m === 'angry' ? 0.8 : 1; e.p.position.x = m === 'smirk' ? 0.012 : 0; }
     };
     api.setMood('neutral');
 

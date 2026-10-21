@@ -1148,6 +1148,17 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 140, 60, 0.55);
 }
 
+.game-preview.verdant-protocol,
+.carousel-slide-bg.verdant-protocol {
+    background: radial-gradient(circle at 70% 25%, rgba(255, 74, 216, 0.55), transparent 35%), linear-gradient(160deg, #06201f 0%, #0f4a3c 50%, #12091c 100%);
+}
+
+.game-card.verdant-protocol .play-button {
+    background: linear-gradient(135deg, #7affd0, #ff4ad8);
+    color: #04201a;
+    box-shadow: 0 0 14px rgba(122, 255, 208, 0.55);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

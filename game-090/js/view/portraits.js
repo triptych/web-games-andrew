@@ -14,9 +14,9 @@ export class Portraits {
         this.r = renderer;
         this.scene = new THREE.Scene();
         this.cam = new THREE.PerspectiveCamera(28, 1, 0.1, 40);
-        this.scene.add(new THREE.HemisphereLight('#cfe8ff', '#2a2440', 1.3));
-        const key = new THREE.DirectionalLight('#fff4e0', 2.2); key.position.set(2, 3, 4); this.scene.add(key);
-        const rim = new THREE.DirectionalLight('#7affd0', 1.4); rim.position.set(-3, 1.5, -2); this.scene.add(rim);
+        this.scene.add(new THREE.HemisphereLight('#cfe8ff', '#3a3450', 0.8));
+        const key = new THREE.DirectionalLight('#fff4e0', 1.5); key.position.set(2, 3, 4); this.scene.add(key);
+        const rim = new THREE.DirectionalLight('#7affd0', 1.1); rim.position.set(-3, 1.5, -2); this.scene.add(rim);
         this.cache = new Map();
         this.rt = new THREE.WebGLRenderTarget(256, 320, { samples: 4, type: THREE.UnsignedByteType });
         this.bg = null;
