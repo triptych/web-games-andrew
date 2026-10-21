@@ -171,5 +171,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, the board, ever
 
 ## Changelog
 
+### v1.0.1 (2026-10-21)
+- Corner tiles are square to the board: turned diagonally, their slab overlapped the neighbours' and the tops flickered on phones. The fountain's water and coins are lifted clear of its basin. Board camera near plane 0.5 → 2.
+- The camera follows a rival's token while it hops (aiming at the square ahead), instead of staying where they rolled while they walked off screen.
+
 ### v1.0.0 (2026-10-21)
 - First release: the 40-space board on a 3D island, three heroes and four companions, 20 monsters, 4 dungeons and bosses, Pyrrhax in two phases, deeds and tolls with two AI rivals, wandering monsters, towns with shop, inn, tavern and forge, 13 recipes, 18 Fate cards, CTB battles with bursts, seven tunes, saves.

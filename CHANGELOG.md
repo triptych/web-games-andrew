@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Dragonroll** (game-089) v1.0.1: the four corner tiles flickered on phones. They were turned to face diagonally out to sea, so their wider slab poked into the neighbouring tiles and the overlapping tops fought for the same pixels; they are now square to the board ([island.js](game-089/js/view/island.js)). The fountain's water sat just under the rim of its basin and its coins a hair above it, so they flickered too (and the water never showed); both are lifted clear ([props.js](game-089/js/view/props.js)). The board camera's near plane is 2 instead of 0.5, for four times the depth precision.
+- **Dragonroll** (game-089) v1.0.1: when a rival moved, the camera turned to where they rolled and stayed there, so they walked off screen. It now follows a rival's token as it hops, aiming at the square it is hopping to so it stays near the middle, then comes back to you on your turn ([boardview.js](game-089/js/view/boardview.js)).
+
 ### Added
 - **Dragonroll** (game-089) v1.0.0: a 3D board-game RPG, Monopoly meets Final Fantasy, in three.js r165 with no asset files. Roll round a cel-shaded island board, buy deeds, fight turn-based battles, raid dungeons, forge gear, and face Pyrrhax the Ember Wyrm when the laps run out.
   - A pure, seeded phase-machine simulation ([game.js](game-089/js/sim/game.js)): 40 spaces in four regions ([board.js](game-089/js/sim/board.js)), dice with a loaded die, boots and doubles, laps and salaries, deeds with tolls, upgrades, income and region sets, two AI rivals, wandering monsters, towns (shop, inn, tavern, forge), dungeons and the four Dragonbane Shards, 18 Fate cards, chests and mimics, the shrine, fountain and portal, and a two-phase dragon fight with a second chance. Every choice is `act(G, action)`; everything it causes is an ordered event list the view plays back.

@@ -334,7 +334,9 @@ export class Island {
             const grp = new THREE.Group();
             grp.position.set(x, GROUND - 0.05, z);
             const [ox, oz] = outward(s.i);
-            grp.rotation.y = Math.atan2(ox, oz);
+            // corners face out diagonally; turned square to the board, or their slab overlaps the
+            // neighbours' (it is wider than the gap) and the shared top faces flicker
+            grp.rotation.y = Math.atan2(ox, oz) - (corner ? PI / 4 : 0);
             const base = BASE[s.region] ?? BASE.null;
             const top = s.type === 'deed' ? shade(REGIONS.find((r) => r.id === s.region).color, 0.45) : TOP[s.type];
             const geos = [
