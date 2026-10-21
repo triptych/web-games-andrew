@@ -447,10 +447,13 @@ export function buildDragon(opts = {}) {
     // torso
     const torso = new THREE.Group(); torso.position.y = 1.9; inner.add(torso); parts.torso = torso;
     const tg = [
-        part(sph(1.3, 22, 16), red, [0, 0, 0], [0, 0, 0], [1, 0.9, 1.45]),
+        part(paintGrad(sph(1.3, 24, 18), shade(red, 0.08), shade(red, -0.32), 1), null, [0, 0, 0], [0, 0, 0], [1, 0.9, 1.45]),
         part(sph(1.0, 18, 12), belly, [0, -0.35, 0.55], [0, 0, 0], [0.95, 0.75, 1.05]),
     ];
-    for (let i = 0; i < 6; i++) tg.push(part(cone(0.18 - i * 0.012, 0.45, 5), '#ffd25a', [0, 1.05 - Math.abs(i - 2) * 0.05, -1.1 + i * 0.4], [-0.25, 0, 0]));
+    // belly plates and back spines
+    for (let i = 0; i < 5; i++) tg.push(part(tor(0.62 - Math.abs(i - 2) * 0.1, 0.05, 5, 16, PI), shade(belly, -0.2), [0, -0.55 + i * 0.12, 0.55 + 0.42 - Math.abs(i - 2) * 0.06], [-0.4, 0, PI], [1.1, 1, 0.6]));
+    for (let i = 0; i < 7; i++) tg.push(part(cone(0.2 - Math.abs(i - 3) * 0.02, 0.55 - Math.abs(i - 3) * 0.05, 5), '#ffd25a', [0, 1.1 - Math.abs(i - 3) * 0.06, -1.3 + i * 0.4], [-0.3, 0, 0]));
+    for (const s of [-1, 1]) for (let i = 0; i < 4; i++) tg.push(part(sph(0.16, 8, 6), shade(red, -0.18), [s * (1.0 + (i % 2) * 0.1), 0.25 + (i % 2) * 0.3, -0.7 + i * 0.45], [0, 0, 0], [0.5, 1, 1]));
     torso.add(mk(tg));
     // legs
     for (const [x, z] of [[-0.8, 0.8], [0.8, 0.8], [-0.85, -0.8], [0.85, -0.8]]) {
@@ -466,12 +469,13 @@ export function buildDragon(opts = {}) {
         inner.add(s); neck.push(s);
     }
     parts.neck = neck;
-    const head = new THREE.Group(); head.scale.setScalar(opts.whelp ? 1.15 : 1.35); inner.add(head); parts.head = head;
+    const head = new THREE.Group(); head.scale.setScalar(opts.whelp ? 1.15 : 1.42); inner.add(head); parts.head = head;
     head.add(mk([
         part(sph(0.58, 18, 14), red, [0, 0.02, -0.05], [0, 0, 0], [1, 0.85, 1.05]),
-        part(sph(0.42, 16, 12), red, [0, -0.04, 0.55], [0.12, 0, 0], [0.82, 0.62, 1.25]),
-        part(sph(0.22, 12, 10), shade(red, 0.08), [0, 0.04, 1.02], [0, 0, 0], [1.1, 0.7, 0.9]),
-        ...[-1, 1].map((s) => part(sph(0.055, 6, 5), '#3a0a0a', [s * 0.11, 0.12, 1.18])),
+        part(sph(0.42, 16, 12), red, [0, -0.06, 0.62], [0.1, 0, 0], [0.78, 0.5, 1.45]),
+        part(sph(0.16, 12, 10), shade(red, 0.06), [0, 0.0, 1.18], [0, 0, 0], [1.25, 0.6, 0.8]),
+        ...[-1, 1].map((s) => part(sph(0.035, 6, 5), '#3a0a0a', [s * 0.09, 0.06, 1.3])),
+        ...[-1, 1].map((s) => part(box(0.28, 0.07, 0.16), shade(red, -0.3), [s * 0.24, 0.3, 0.36], [0.15, s * 0.35, s * -0.35])),
         ...[-1, 1].map((s) => part(sph(0.2, 10, 8), shade(red, -0.15), [s * 0.3, 0.3, 0.12], [0, 0, 0], [1, 0.45, 1.4])),
         ...[-1, 1].map((s) => part(cone(0.13, 0.95, 8), '#f4ecd8', [s * 0.3, 0.55, -0.42], [-1.15, 0, s * 0.3])),
         ...[-1, 1].map((s) => part(cone(0.07, 0.42, 6), '#f4ecd8', [s * 0.5, 0.12, -0.25], [-1.5, 0, s * 0.95])),

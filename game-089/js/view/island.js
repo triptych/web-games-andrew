@@ -488,7 +488,10 @@ export class Island {
             let kind = pickFor(reg, r, sd, hash3(gx, gz, 6));
             if (!kind) continue;
             // inside the ring the camera looks over this ground: only low things grow here
-            if (inner && !['flowers', 'grass', 'shell', 'rock', 'darkrock', 'snowrock', 'crystal', 'hay', 'sheep'].includes(kind)) kind = hash3(gx, gz, 11) < 0.5 ? 'flowers' : 'grass';
+            if (inner && !['flowers', 'grass', 'shell', 'rock', 'darkrock', 'snowrock', 'crystal', 'hay', 'sheep'].includes(kind)) {
+                if (reg === 'frost') continue;
+                kind = hash3(gx, gz, 11) < 0.5 ? 'flowers' : 'grass';
+            }
             const K = kinds[kind];
             const variant = Math.floor(hash3(gx, gz, 7) * K.geo.length);
             const sc = (kind === 'grass' || kind === 'flowers' ? 1.2 : 0.8) + hash3(gx, gz, 8) * 0.5;
@@ -564,6 +567,9 @@ export class Island {
 
     /** As the laps go by the dragon stirs: 0 asleep … 1 awake. */
     setUnrest(k) {
+        // k < 0: Pyrrhax is beaten, gone, and his lava has cooled to stone
+        this.dragon.root.visible = k >= 0;
+        if (k < 0) { this.lava.material = new THREE.MeshToonMaterial({ color: '#5a4a48', gradientMap: gradientMap(3) }); for (const r of this.rivers) r.material = this.lava.material; this.smokeSources.length = 0; return; }
         this.dragonMode = k >= 1 ? 'roar' : k > 0.6 ? 'idle' : 'sleep';
         this.lava.material = glowMat(k > 0.6 ? '#ff4a1a' : '#ff6a1a', 1.7 + k * 0.6);
     }

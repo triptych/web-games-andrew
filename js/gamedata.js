@@ -1336,6 +1336,22 @@ const games = [
             { emoji: '🦕', label: 'Dinosaurs' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-089',
+        title: 'Dragonroll',
+        description: "A 3D board game RPG in three.js with no asset files: Monopoly meets Final Fantasy. Pyrrhax the Ember Wyrm sleeps in the crater of Mount Ember, and when the laps run out he wakes. Pick a Knight, a Ranger or a Mage, then roll the dice round Emberwyld Isle, a cel-shaded island board of forty tiles across sunny Meadowvale, mushroom-lit Whisperwood, the white sands of Glimmer Coast and snowy Frostfang Peaks. Encounters and wandering monsters swirl into turn-based battles in the Final Fantasy style, with a turn-order bar, skills, items, elemental weaknesses and a Valor gauge for big Bursts. Stop at towns to shop, rest, forge gear from monster materials and hire companions (Pip the halfling cleric, Sylva the elven archer, Captain Bram the pirate and Grumli the dwarf rune-smith); raid four dungeons whose bosses guard the Dragonbane Shards; buy and upgrade deeds so the rival adventurers Baron Goldbuckle and Mirabel Moonshade pay you tolls; draw Fate cards, open chests (mind the mimics), and use the Shrine, the Fountain of Fortune and the Wyrm Portal. Twenty monsters, four bosses, thirteen forge recipes, a two-phase dragon fight in his crater, toon outlines, bloom, a battle swirl, and seven original tunes. Three game lengths, Auto battle, saves as you go.",
+        icon: '🐉',
+        folder: 'game-089',
+        version: '1.0.0',
+        cssClass: 'dragonroll',
+        genre: 'rpg',
+        tags: [
+            { emoji: '🎲', label: 'Board game' },
+            { emoji: '⚔️', label: 'Turn-based RPG' },
+            { emoji: '🐉', label: 'Dragon slaying' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 

@@ -32,7 +32,7 @@ const StorybookShader = {
     name: 'StorybookShader',
     uniforms: {
         tDiffuse: { value: null }, uRes: { value: new THREE.Vector2(1, 1) }, uTime: { value: 0 },
-        uVignette: { value: 0.34 }, uGrain: { value: 0.025 }, uSat: { value: 1.12 }, uWarm: { value: 0.04 },
+        uVignette: { value: 0.34 }, uGrain: { value: 0.012 }, uSat: { value: 1.12 }, uWarm: { value: 0.04 },
         uFlash: { value: 0 }, uFlashCol: { value: new THREE.Color('#ffffff') },
         uSwirl: { value: 0 }, uTint: { value: new THREE.Color('#ffffff') }, uTintK: { value: 0 },
     },

@@ -21,7 +21,10 @@ const THEMES = {
     woods: { sky: ['#2a7aa8', '#9ad8c8'], ground: '#4aa45a', ground2: '#3a8a4a', fog: '#a8d8c8', props: ['darktree', 'mushroom', 'pine', 'bush'], hemi: '#c8f0e0', sun: '#fff0c8' },
     coast: { sky: ['#2a90f0', '#c8f4ff'], ground: '#f4dca0', ground2: '#e8cc8a', fog: '#d8f4ff', props: ['palm', 'rock', 'shell'], hemi: '#e0f4ff', sun: '#fff8e0' },
     frost: { sky: ['#5a8ad8', '#e0f0ff'], ground: '#f0f6ff', ground2: '#d0e2f4', fog: '#e8f4ff', props: ['snowpine', 'snowrock', 'crystal'], hemi: '#e8f2ff', sun: '#f4f8ff' },
-    dungeon: { sky: ['#1a1428', '#3a2a4a'], ground: '#5a5068', ground2: '#4a4058', fog: '#2a2038', props: ['cave', 'crystal'], hemi: '#8a7aa8', sun: '#ffc88a', dark: true },
+    dungeon_meadow: { sky: ['#1a120c', '#3a2a1a'], ground: '#6a5038', ground2: '#5a4430', fog: '#2a1a10', props: ['cave', 'cave', 'roots'], cave: '#5a4434', hemi: '#c8a07a', sun: '#ffc88a', dark: true, torch: '#ffa03a' },
+    dungeon_woods: { sky: ['#0a1a14', '#1a3a2a'], ground: '#3a5038', ground2: '#2a4030', fog: '#0a2018', props: ['cave', 'mushroom', 'roots'], cave: '#3a4a3a', hemi: '#8ac8a0', sun: '#c8ffd0', dark: true, torch: '#7aff9a' },
+    dungeon_coast: { sky: ['#06182a', '#103a4a'], ground: '#4a6a78', ground2: '#3a5a68', fog: '#0a2a3a', props: ['cave', 'crystal', 'shell'], cave: '#3a5060', hemi: '#8ad8e8', sun: '#bff4ff', dark: true, torch: '#3ae0f0', pools: '#3ae0f0' },
+    dungeon_frost: { sky: ['#0a1430', '#2a4a7a'], ground: '#a8c8e8', ground2: '#90b4d8', fog: '#1a2a4a', props: ['icecave', 'crystal'], cave: '#8ab4e0', hemi: '#bfe0ff', sun: '#e0f0ff', dark: true, torch: '#8ae0ff' },
     dragon: { sky: ['#3a0a10', '#ff7a3a'], ground: '#4a3434', ground2: '#3a2626', fog: '#7a2a1a', props: ['lavarock'], hemi: '#ffb08a', sun: '#ffb070', lava: true },
 };
 
@@ -92,7 +95,8 @@ export class BattleView {
             tree: () => P.treeGeo('#5cc04a', '#8a5a34', 1 + Math.floor(Math.random() * 3)), darktree: () => P.treeGeo('#2f8a4a', '#6a4a30', 6), flowers: () => P.flowersGeo(), bush: () => P.bushGeo('#4aa840', '#ff6a9a', 2), rock: () => P.rockGeo('#a0a0ac'),
             mushroom: () => P.mushroomGeo(['#ff5a6a', '#b07aff', '#ffa03a'][Math.floor(Math.random() * 3)]), pine: () => P.pineGeo('#2f7a5a'), palm: () => P.palmGeo(1 + Math.floor(Math.random() * 2)), shell: () => P.shellGeo(),
             snowpine: () => P.pineGeo('#2f6a5a', true, 3), snowrock: () => P.rockGeo('#9aa8b8', true), crystal: () => P.crystalGeo(Math.random() < 0.5 ? '#8ae0ff' : '#c8a0ff'),
-            cave: () => P.rockGeo('#4a4058', false, Math.floor(Math.random() * 9)), lavarock: () => P.rockGeo('#3a2a2a', false, Math.floor(Math.random() * 9)),
+            cave: () => P.rockGeo(T.cave ?? '#4a4058', false, Math.floor(Math.random() * 9)), lavarock: () => P.rockGeo('#3a2a2a', false, Math.floor(Math.random() * 9)),
+            icecave: () => P.rockGeo('#bfe0ff', true, Math.floor(Math.random() * 9)), roots: () => P.treeGeo('#2a4a2a', '#4a3424', 9),
         };
         const lists = {};
         for (let i = 0; i < 70; i++) {
@@ -102,7 +106,7 @@ export class BattleView {
             const r = 13 + hash3(i, 2) * 9 + (facing > 0.5 ? 6 : 0);
             const kind = T.props[Math.floor(hash3(i, 3) * T.props.length)];
             const x = Math.cos(a) * r, z = Math.sin(a) * r;
-            const sc = (kind === 'cave' || kind === 'lavarock' ? 3 + hash3(i, 4) * 3 : kind === 'flowers' ? 1.6 : 1.1 + hash3(i, 4) * 0.8);
+            const sc = (kind === 'cave' || kind === 'icecave' || kind === 'lavarock' ? 3 + hash3(i, 4) * 3 : kind === 'flowers' ? 1.6 : 1.1 + hash3(i, 4) * 0.8);
             (lists[kind] ||= []).push(mat4([x, Math.max(0, (r - 16) * 0.1), z], hash3(i, 5) * PI * 2, sc));
         }
         const floor = { grass: [], flowers: [], pebble: [] };
@@ -113,20 +117,25 @@ export class BattleView {
             const k = T.dark || T.lava ? 'pebble' : u < 0.55 ? 'grass' : u < 0.85 ? 'flowers' : 'pebble';
             floor[k].push(mat4([x, 0, z], hash3(i, 24) * PI * 2, 0.7 + hash3(i, 25) * 0.6));
         }
-        const fl = { grass: () => P.grassGeo(themeKey === 'frost' ? '#c8dcf0' : themeKey === 'coast' ? '#a8c870' : '#5ab84a'), flowers: () => P.flowersGeo(themeKey === 'frost' ? ['#bfe8ff', '#ffffff'] : undefined), pebble: () => P.rockGeo(T.lava ? '#3a2a2a' : T.dark ? '#5a5068' : '#b0aaa8', themeKey === 'frost') };
+        const fl = { grass: () => P.grassGeo(themeKey === 'frost' ? '#c8dcf0' : themeKey === 'coast' ? '#a8c870' : '#5ab84a'), flowers: () => P.flowersGeo(themeKey === 'frost' ? ['#bfe8ff', '#ffffff'] : undefined), pebble: () => P.rockGeo(T.lava ? '#3a2a2a' : T.dark ? shade(T.cave ?? '#5a5068', -0.15) : '#b0aaa8', themeKey === 'frost' || themeKey === 'dungeon_frost') };
         for (const [k, list] of Object.entries(floor)) if (list.length) A.add(toonInstanced(fl[k](), k === 'pebble' ? list.map((m) => m.clone().multiply(new THREE.Matrix4().makeScale(0.4, 0.4, 0.4))) : list, { outline: k === 'grass' ? false : 0.02 }));
         // a worn ring of earth where the fight happens
         const ring = new THREE.Mesh(new THREE.CircleGeometry(7.5, 48), new THREE.MeshToonMaterial({ color: shade(T.ground, -0.12), gradientMap: gradientMap(4), transparent: true, opacity: 0.55 }));
         ring.rotation.x = -PI / 2; ring.position.set(0, 0.02, -1); ring.scale.set(1.25, 0.75, 1); ring.receiveShadow = true;
         A.add(ring);
-        for (const [k, list] of Object.entries(lists)) A.add(toonInstanced(geos[k](), list, { outline: 0.04, emissive: k === 'crystal' ? '#1a4a6a' : undefined, emissiveIntensity: 0.6 }));
+        for (const [k, list] of Object.entries(lists)) A.add(toonInstanced(geos[k](), list, { outline: 0.04, emissive: k === 'crystal' ? '#1a4a6a' : k === 'mushroom' && T.dark ? '#5a1a3a' : undefined, emissiveIntensity: 0.6 }));
         if (T.dark) {
             // torches for a dungeon
             for (const [x, z] of [[-9, -6], [7, -7], [-12, 3], [11, 1]]) {
                 A.add(toonMesh([part(cyl(0.12, 0.16, 2.2, 6), '#6a4a30', [x, 1.1, z]), part(cyl(0.3, 0.18, 0.3, 8), '#3a3a40', [x, 2.3, z])], { outline: 0.03 }));
-                const f = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.7, 8), glowMat('#ffa03a', 2.2));
+                const f = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.7, 8), glowMat(T.torch, 2.2));
                 f.position.set(x, 2.75, z); A.add(f);
-                const l = new THREE.PointLight('#ffa03a', 30, 14, 2); l.position.set(x, 3, z); A.add(l);
+                const l = new THREE.PointLight(T.torch, 30, 14, 2); l.position.set(x, 3, z); A.add(l);
+            }
+            if (T.pools) for (let i = 0; i < 6; i++) {
+                const a = hash3(i, 31) * PI * 2, r = 8 + hash3(i, 32) * 8;
+                const pool = new THREE.Mesh(new THREE.CircleGeometry(1 + hash3(i, 33) * 1.5, 20), glowMat(T.pools, 0.9, { transparent: true, opacity: 0.75 }));
+                pool.rotation.x = -PI / 2; pool.position.set(Math.cos(a) * r, 0.03, Math.sin(a) * r - 4); A.add(pool);
             }
         }
         if (T.lava) {
@@ -150,7 +159,7 @@ export class BattleView {
         for (const u of this.units) this.scene.remove(u.rig.root);
         this.units = [];
         const region = G.battle?.region;
-        const theme = G.battle?.kind === 'dragon' ? 'dragon' : (G.battle?.dungeon ? 'dungeon' : region in THEMES ? region : 'meadow');
+        const theme = G.battle?.kind === 'dragon' ? 'dragon' : (G.battle?.dungeon ? 'dungeon_' + (('dungeon_' + region) in THEMES ? region : 'meadow') : region in THEMES ? region : 'meadow');
         this.buildArena(theme);
         this.kind = G.battle?.kind;
         this.dragonFight = this.kind === 'dragon';
@@ -546,7 +555,14 @@ export class BattleView {
         if (this.intro > 0) { this.intro -= dt * 1.4; pos.add(V(0, this.intro * 3, this.intro * 6)); }
         if (this.shake > 0) { this.shake -= dt; pos.add(V((Math.random() - 0.5) * this.shake * 0.5, (Math.random() - 0.5) * this.shake * 0.5, 0)); }
         const aspect = w / Math.max(1, h);
-        if (aspect < 1) pos.add(V(0.8, 2.5, 9).multiplyScalar(1 - aspect));
+        // a tall phone: swing round to a diagonal so the two sides stack up the screen, party at the
+        // bottom right and the monsters above, and lift the fight clear of the menu
+        if (aspect < 1) {
+            const k = Math.min(1, (1 - aspect) * 1.8);
+            const tall = this.dragonFight ? { pos: V(15, 14, 16), look: V(-2.6, 0.4, -1.8) } : { pos: V(12.5, 12, 14.5), look: V(-1.3, -1.3, -1.7) };
+            pos.lerp(tall.pos.clone().add(V(sway * 0.5, 0, -sway * 0.5)), k);
+            look.lerp(tall.look, k);
+        }
         this.camera.position.copy(pos);
         this.camera.lookAt(look);
         this.fx.setScale(h);

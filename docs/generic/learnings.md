@@ -6011,3 +6011,38 @@ The museum's sign drew "CURIO COVE MUSEUM" at a fixed size of 0.48 × the canvas
 
 ### Scrollbars on rounded panels (v1.1.3)
 A player on desktop saw How to Play's scrollbar poke out of the panel. A classic scrollbar is a square strip down the padding edge, so on a sheet with a 22 px radius its white track and arrow buttons painted over the rounded corners and the border. Phones and macOS use overlay scrollbars, and headless Chromium hides them altogether (`--hide-scrollbars` is a default argument), so no test or screenshot had shown it. The fix is a few rules: `::-webkit-scrollbar-track { background: transparent; margin: 22px 0 }` keeps the bar off the corners, a thumb with a transparent border and `background-clip: padding-box` gives a thin rounded pill, and the buttons are hidden. Firefox only has `scrollbar-width` and `scrollbar-color`, so put those behind `@supports (-moz-appearance: none)`: Chrome 121 and later ignore every `::-webkit-scrollbar` rule on an element once it has either standard property.
+
+## Game 089: Dragonroll — a board game whose squares are an RPG (2026-10-21)
+
+A Monopoly-style board (laps, salaries, deeds, tolls, two AI rivals) where encounters cut to Final Fantasy style turn-based battles, on the Section 2S layout with three.js. [game-089/](../../game-089/).
+
+### Dice luck and RPG pacing fight each other: tie XP and monster levels to the party
+With fixed XP per monster and monster levels set by the lap, one unlucky lap (few encounter squares, a lost fight) left the party behind the island for good: bots were knocked out seven times a game and reached the dragon at level 4. Two changes fixed it ([battle.js](../../game-089/js/sim/battle.js) `lootFrom`, [game.js](../../game-089/js/sim/game.js) `foeLevel`):
+- **XP is a share of the party's next level** per enemy (weighted by the monster, a little more for tougher ones), so a fight is worth the same progress at level 3 or 13.
+- **Monster levels follow the party** plus the region's danger, nudged up when the party falls behind the island's pace (`2 + 3 × lap`).
+That alone overshot: a lap spent stopping at every dungeon (which also scaled with the party) carried bots to level 20 by lap 2. So XP falls off sharply once the party is more than two levels past the pace, and a cleared dungeon stays closed until the next lap. Run the whole game with a bot at two skills and print levels by lap: both failure modes were obvious there and invisible in a single fight.
+
+### A board needs more fights than its encounter squares give
+Twelve encounter squares in forty is about 1.5 fights a lap, too few for the RPG half. Wandering monsters that stand on squares and stop you when you walk into them (Fortune Street, Mario Party) add fights you can see coming, and a choice for the loaded die. Two rules keep them fair: never spawn one within three squares ahead, and a monster that beats you wanders off, or it pins the player in a loss loop (the fuzz found a 43-defeat game before this).
+
+### One battle starter for everyone
+`startBattle` runs enemy turns until a party member is up, so a battle can be lost before the player acts. The game's own path handled that; the test helpers and the `?debug=1` hooks called `startBattle` directly and left a finished battle in the `battle` phase ("no battle" errors). Export one wrapper (`beginBattle`) that starts the battle and settles it if it's already over, and use it in tests and debug hooks too.
+
+### Two scenes, one event queue: don't cut away while the result card is up
+Board and battle share one director. After a win, the sim's next events (gold, a roaming monster leaving) are board events, and playing them switched the view back to the island, so the Victory card showed over the board instead of the battlefield. While the phase is `reward`, `defeat` or a dungeon camp, board events are applied off screen at once; the view only cuts back when movement starts ([view.js](../../game-089/js/view/view.js)).
+
+### A board camera: look out from the middle, and keep the middle low
+Following the token from outside the ring put every town and landmark between the camera and the tiles. Looking out from the volcano side over the tile, its landmark, the beach and the sea frames everything and adds a horizon; inside the ring only low things grow (flowers, grass, rocks), or trees fill the foreground ([boardview.js](../../game-089/js/view/boardview.js) `focusOn`, [island.js](../../game-089/js/view/island.js) `buildScenery`).
+
+### A Final Fantasy lineup on a portrait phone
+Party right, monsters left needs about twelve units across; a 390×844 screen at 40° vertical field of view sees nine at a sensible distance, so the fighters sat at the edges behind the menu. On a tall screen the battle camera swings round to a diagonal: the party stacks at the bottom right, the monsters above them, and both clear the command menu.
+
+### Dice that land on the sim's numbers
+The sim rolls; the view only throws. Each die's final orientation is "face n up" (a quaternion taking that face's normal to +y) times a random yaw; during the throw it is that orientation times a spin about a random axis whose angle decays to zero, while the position follows a fall and two shrinking bounces ([dice.js](../../game-089/js/view/dice.js)). It always lands right, needs no physics, and the faces are fixed by the opposite-sides-add-to-seven rule.
+
+### A toon sea that knows the shore
+The sea shader samples a small height texture of the terrain to colour shallows, draw breathing foam at the waterline and roll foam lines in. Deep water must be fully opaque: at 94% the edge of the terrain mesh showed through as a dark square on the sea floor ([island.js](../../game-089/js/view/island.js) `buildSea`).
+
+### Small traps
+- **`getAnimations().forEach((a) => a.finish())` throws on an infinite animation** (a pulsing button). Finish only those whose `effect.getComputedTiming().endTime` is finite.
+- **A companion on the bench crashed level-up**: the bench held member objects and the code wrapped them as if they were ids. The fuzz test found it on its first run.

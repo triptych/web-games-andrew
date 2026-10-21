@@ -7,6 +7,7 @@ import { Stage } from './stage.js';
 import { BoardView } from './boardview.js';
 import { BattleView } from './battleview.js';
 
+const HOLD = new Set(['reward', 'defeat', 'dungeonCamp', 'victory', 'gameover']);
 const BOARD_ONLY = new Set(['dice', 'step', 'land', 'warp', 'lap', 'gold', 'toll', 'buy', 'upgrade', 'roamer', 'roamerGone', 'roamerFight', 'rivalTurn', 'rivalFight', 'rivalGold', 'rivalLap', 'turn', 'fountain', 'blessing', 'dragonWakes', 'mimic', 'treasure']);
 
 export class View {
@@ -70,7 +71,13 @@ export class View {
             return;
         }
         if (BOARD_ONLY.has(e.type)) {
-            if (this.inBattle && !this.holdBattle) this.showBoard();
+            // the battle's result card is still up: keep the board in step, off screen and at once
+            if (this.inBattle && HOLD.has(G.phase) && !this.queue.some((x) => x.type === 'dice' || x.type === 'step')) {
+                this.board.play(e, G, 60);
+                this.wait = 0;
+                return;
+            }
+            if (this.inBattle) this.showBoard();
             this.wait = this.board.play(e, G, this.speed);
             return;
         }

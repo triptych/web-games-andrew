@@ -369,7 +369,11 @@ table.keys td:first-child { color: var(--gold2); font-weight: 700; white-space: 
     .bmember .por { width: 30px; height: 30px; }
     .valor { width: 150px; }
     .enemy { width: 120px; font-size: 12px; }
+    .turn-order { top: calc(52px + var(--safe-t)); }
     .turn-order .tchip { width: 28px; height: 28px; font-size: 13px; }
+    .turn-order .tchip:nth-child(n+8) { display: none; }
+    .enemy-list { top: calc(94px + var(--safe-t)); }
+    .boss-bar { top: calc(92px + var(--safe-t)); width: calc(100% - 24px); }
     .turn-order .tchip:first-child { width: 34px; height: 34px; }
     .over-grid { grid-template-columns: 1fr; }
     .ftext { font-size: 24px; }

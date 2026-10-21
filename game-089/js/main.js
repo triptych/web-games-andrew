@@ -10,7 +10,7 @@ import { Audio } from './audio.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
-import { newGame, act as simAct, addXp, beginBattle } from './sim/game.js';
+import { newGame, act as simAct, addXp, beginBattle, startDragon } from './sim/game.js';
 import { makeBot, botAction, battleCommand } from './sim/bot.js';
 import { stats, newMember } from './sim/party.js';
 
@@ -338,6 +338,17 @@ if (DEBUG) {
         fight(ids = ['slime', 'goblin'], lv = 1, kind = 'encounter', region = 'meadow', dungeon = null) {
             G.after = { k: 'endTurn' };
             beginBattle(G, { kind, region, dungeon, enemies: ids.map((id) => ({ id, lv })), canFlee: kind !== 'boss' && kind !== 'dragon', shards: G.shards.length });
+            view.push(G.events.splice(0));
+            ui.hideDecision();
+            return G.phase;
+        },
+        /** Jump to the final battle with a ready party. */
+        dragon(level = 24) {
+            for (const c of ['pip', 'grumli']) if (!G.party.some((m) => m.id === c) && G.party.length < 3) { G.hired[c] = true; G.party.push(newMember(G, c)); }
+            this.level(level);
+            for (const m of G.party) m.gear.weapon = 'dragonbane';
+            G.shards = ['shardEmber', 'shardVerdant', 'shardTide', 'shardRime'];
+            startDragon(G, true);
             view.push(G.events.splice(0));
             ui.hideDecision();
             return G.phase;

@@ -72,7 +72,7 @@ export class BoardView {
     }
 
     unrest(G) {
-        const k = G.dragon.tries > 0 ? 1 : Math.min(1, (G.lap - 1) / Math.max(1, G.laps));
+        const k = G.dragon.beaten ? -1 : G.dragon.tries > 0 ? 1 : Math.min(1, (G.lap - 1) / Math.max(1, G.laps));
         this.island.setUnrest(k);
     }
 
@@ -198,6 +198,7 @@ export class BoardView {
                 return 0.6 / speed;
             }
             case 'lap': {
+                this.unrest(G);
                 const p = tileTop(0).add(new THREE.Vector3(0, 1, 0));
                 this.fx.confetti(p, 70);
                 this.fx.text(p.clone().add(new THREE.Vector3(0, 1.5, 0)), e.lap > e.of ? 'The dragon wakes!' : `Lap ${e.lap} of ${e.of}`, 'lap', this.camera, { life: 1.8, rise: 1.6 });
