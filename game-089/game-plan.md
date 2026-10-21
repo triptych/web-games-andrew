@@ -63,6 +63,8 @@ Toll = price × (0.25, 0.45, 0.7, 1.0) by level, ×2 for a whole region. Income 
 
 **Valor** fills as the party deals and takes damage. Full, it lets whoever is up use their **Burst**: Lionheart, Starfall Barrage, Arcane Cataclysm, Sanctuary (heal and raise everyone), Wild Hunt, Broadside, Mountain's Wrath.
 
+**Grit**: once a battle, a hero above half health survives a blow that would knock them out, with 1 HP. **Early laps**: monsters deal 30% less damage on lap 1 and 15% less on lap 2, while you're alone in starting gear; an ambush only brings a pair from lap 2.
+
 **Win**: XP, gold, monster materials, sometimes a potion. KO'd members get up with 1 HP. **Run**: 70% (never from bosses or the dragon). **Lose**: a fifth of your gold goes in the Fountain, and you wake at the corner behind you with half HP.
 
 **XP** is a share of the party's next level per enemy, more for tougher foes: progress stays steady however the dice fall. Far ahead of the island's pace (level 2 + 3 per lap) it falls off sharply, so a lap of dungeon-crawling can't put you ten levels past the story. Monster levels follow your level plus the region's danger (Meadowvale a level gentler, Frostfang two harder), pushed up a little when you fall behind the pace.
@@ -170,6 +172,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, the board, ever
 - More Fate cards and events, a bestiary.
 
 ## Changelog
+
+### v1.0.2 (2026-10-21)
+- Early battles were too hard: a level-1 Mage could take 75% of its HP from one crit in the starting meadow, and a Yeti's maul was 119–193% of a level-1 hero's. Monsters now deal 30% less on lap 1 and 15% less on lap 2; **Grit** lets a hero above half health survive one knockout blow a battle with 1 HP; an ambush on lap 1 no longer forces a second monster. In 90 bot games at skill 0.5: lap-1 battles lost 13.1% → 5.0%, lap-1 knockouts 66 → 24, lap-2 battles lost 11.7% → 4.2%; the strong bot still wins 90/90.
 
 ### v1.0.1 (2026-10-21)
 - Corner tiles are square to the board: turned diagonally, their slab overlapped the neighbours' and the tops flickered on phones. The fountain's water and coins are lifted clear of its basin. Board camera near plane 0.5 → 2.

@@ -257,6 +257,7 @@ export class BattleView {
                 if (e.weak) this.fx.text(p.clone().add(V(0, 1.3, 0)), 'WEAK!', 'tag weak', this.camera, { life: 0.9 });
                 if (e.crit) this.fx.text(p.clone().add(V(0, 1.3, 0)), 'CRITICAL!', 'tag crit', this.camera, { life: 0.9 });
                 if (e.resist) this.fx.text(p.clone().add(V(0, 1.3, 0)), 'resist', 'tag', this.camera, { life: 0.8 });
+                if (e.grit) { this.fx.text(p.clone().add(V(0, 2.4, 0)), 'GRIT!', 'tag grit', this.camera, { life: 1.2 }); this.fx.sparks(p, '#ffd84a', 18, 3); }
                 this.impact(p, e.el, big);
                 if (big) { this.shake = Math.max(this.shake, 0.35); }
                 return S(e.hitNo != null ? 0.16 : 0.28);

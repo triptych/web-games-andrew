@@ -336,6 +336,7 @@ table.keys td:first-child { color: var(--gold2); font-weight: 700; white-space: 
 .ftext.tag.crit { background: #d8a01a; }
 .ftext.tag.bad { background: #8a3ad8; }
 .ftext.tag.good { background: #2a9a5a; }
+.ftext.tag.grit { background: linear-gradient(90deg, #2a9a5a, #d8a01a); font-size: 18px; }
 .ftext.tag.skill { background: #3a5ad8; font-size: 17px; }
 .ftext.tag.foe { background: #c8281a; font-size: 17px; }
 .ftext.tag.burst { background: linear-gradient(90deg, #ff8a3a, #ff3a8a); font-size: 22px; font-family: var(--title); font-weight: 400; }

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Dragonroll** (game-089) v1.0.2: the early game was too hard. A level-1 Mage could lose 75% of its HP to one critical boar charge in the starting meadow, an ambush always brought two monsters against a lone hero, and a Yeti's maul did 119–193% of a level-1 hero's HP, so a hero could fall without a turn. Monsters now deal 30% less damage on lap 1 and 15% less on lap 2 ([battle.js](game-089/js/sim/battle.js) `TUNE.early`); **Grit** lets a hero above half health survive one knockout blow a battle with 1 HP, shown as "GRIT!" ([battleview.js](game-089/js/view/battleview.js)); a lap-1 ambush no longer forces a second monster ([game.js](game-089/js/sim/game.js)). In 90 bot games at skill 0.5, lap-1 battles lost went from 13.1% to 5.0% and lap-1 knockouts from 66 to 24; lap 2 from 11.7% to 4.2%; the strong bot still wins 90/90. [simtest.mjs](game-089/dev/simtest.mjs) checks Grit and the early-lap damage.
+
 ### Added
 - **Dragonroll** (game-089) v1.0.1: road coins. Gold was scarce early on, with the first salary a whole lap away; now every space you walk pays 3 gold (one more each lap), added up and paid as one "+Ng" wherever the walk stops, with a glint of coins on each hop ([game.js](game-089/js/sim/game.js) `walk`, [config.js](game-089/js/config.js) `ROAD_GOLD`). Rivals earn them too. In bot games it roughly doubles gold by turn 3 (35 → 68) and turn 6 (143 → 228) and adds about a tenth over a whole game. [simtest.mjs](game-089/dev/simtest.mjs) checks the payout, that it comes once per walk, grows by lap and reaches the rivals.
 
