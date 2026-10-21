@@ -5,13 +5,14 @@
  *   free    the Freestyle Studio: repaint a finished mosaic with any colours
  */
 import { Painter } from './painter.js';
-import { VIEW, STARBURST, GLIMMER } from './config.js';
+import { VIEW, STARBURST, GLIMMER, SLIPS } from './config.js';
 import { hexToRgb, luma } from './pixelart.js';
 import { ART_BY_ID } from './artworks.js';
 import { has, brushLevel, burstRadius, lanternAt } from './skills.js';
 import {
     pageOf, beginStroke, paintCells, undoStroke, brushCells, pourCells, burstCells, freePourCells, remainingOf,
     remainingCells, nearestRemaining, firstUnfinishedColor, finishIfComplete, canFlourish, useCharge, studioPalette,
+    slipsOf, slipLimit, commitSlips, smudgeColor,
 } from './progress.js';
 import { $, el, toast, greyOf, mix, drawArt, exportPng, sharePng, openModal, closeModal, modalOpen, dialogueOpen } from './ui.js';
 
@@ -199,7 +200,7 @@ export class PaintScreen {
             b.style.setProperty('--c', hex);
             b.style.setProperty('--on', inkOn(hex));
             b.style.setProperty('--p', 100);
-            if (this.mode !== 'free') b.append(el('span', { class: 'left' }));
+            if (this.mode !== 'free') b.append(el('span', { class: 'left' }), el('span', { class: 'slips', hidden: true }));
             box.append(b);
             this.swatches.push(b);
         });
@@ -230,6 +231,11 @@ export class PaintScreen {
             b.querySelector('.dot').textContent = left === 0 ? '✓' : String(k + 1);
             b.querySelector('.left').textContent = left === 0 ? '' : String(left);
             b.querySelector('.left').hidden = left === 0;
+            const slips = slipsOf(this.art, this.ps)[k], spare = slipLimit(this.art, k) - slips, badge = b.querySelector('.slips');
+            badge.hidden = left === 0 || slips === 0 || this.ps.done;
+            badge.textContent = `✕${spare}`;
+            badge.classList.toggle('warn', spare <= SLIPS.warnAt);
+            b.title = badge.hidden ? `${k + 1} · ${this.art.palette[k].name}` : `${k + 1} · ${this.art.palette[k].name} · ${spare} more slip${spare === 1 ? '' : 's'} and it smudges`;
         });
     }
 
@@ -256,7 +262,27 @@ export class PaintScreen {
         if (!st || !st.changes.length) return;
         this.undo.push(st);
         if (this.undo.length > 200) this.undo.shift();
+        if (this.mode === 'number') this.checkSlips(st);
         this.afterAction();
+    }
+
+    /** Count the stroke's slips; warn when a colour is close, smudge it when it's over. */
+    checkSlips(st) {
+        const over = commitSlips(this.art, this.ps, st);
+        for (const c of over) {
+            const res = smudgeColor(this.state, this.art, this.ps, c);
+            this.painter.refresh(res.changed);
+            // the undo history points at pixels that just changed under it
+            this.undo = [];
+            this.app.sound.smudge();
+            const lost = Math.round(res.lost);
+            toast(`${this.art.palette[c].name} smudged! Too many slips, so it starts over${lost ? ` (−${lost} ✦)` : ''}.`);
+        }
+        if (over.length) return;
+        for (const c of Object.keys(st.slips).map(Number)) {
+            const spare = slipLimit(this.art, c) - slipsOf(this.art, this.ps)[c];
+            if (spare > 0 && spare <= SLIPS.warnAt) toast(`Careful: ${spare} more slip${spare === 1 ? '' : 's'} and ${this.art.palette[c].name} smudges.`);
+        }
     }
 
     strokeCancel() {

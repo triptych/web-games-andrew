@@ -57,6 +57,8 @@ export class Sound {
 
     oops() { this.tone(180, { dur: 0.16, type: 'sine', vol: 0.09, bend: 0.8 }); }
 
+    smudge() { [7, 4, 2, 0].forEach((s, k) => this.tone(this.note(s, 0), { at: k * 0.09, dur: 0.35, type: 'sine', vol: 0.09, bend: 0.9 })); }
+
     click() { this.tone(660, { dur: 0.06, type: 'sine', vol: 0.05 }); }
 
     pour() { [0, 2, 4].forEach((s, k) => this.tone(this.note(s, 1), { at: k * 0.05, dur: 0.3, type: 'triangle', vol: 0.09 })); }

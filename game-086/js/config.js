@@ -27,3 +27,8 @@ export const FLOURISH_AT = 0.9;   // Final Flourish appears at this much done
 export const LANTERN_AT = 12;     // Lantern Light marks a colour's pixels once this few remain
 export const MOONLIT_AT = 40;     // ...or this few with Moonlit Lanterns
 export const GILDED = 2;          // Gilded Frame multiplies the complete and flawless bonuses
+
+// Slips: painting a wrong pixel with a colour is a slip against that colour. Too many and the colour
+// smudges: all of its paint is wiped (and its Glimmer taken back) and it starts over.
+// The limit scales with how many pixels the colour has: one per `per`, between `min` and `max`.
+export const SLIPS = { min: 5, max: 15, per: 10, warnAt: 2 };

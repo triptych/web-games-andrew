@@ -92,6 +92,46 @@ if (want('rules')) {
     P.undoStroke(s, art, ps, st);
     ok(ps.cells[i0] === 0 && ps.correct === 0 && s.glimmer === 0 && ps.mistakes === 0 && ps.order.length === 0, 'undo restores cells, glimmer, mistakes, order');
 
+    // slips: wrong pixels count against the colour used; at the limit that colour smudges
+    {
+        const sv = P.newGame(), pv = P.pageOf(sv, art);
+        const lim = P.slipLimit(art, 1);
+        ok(lim >= CFG.SLIPS.min && lim <= CFG.SLIPS.max, 'slip limit inside its bounds');
+        const ones = [...art.cells.keys()].filter((i) => art.cells[i] === 1);
+        const notOnes = [...art.cells.keys()].filter((i) => art.cells[i] !== 1);
+        let sk = P.beginStroke(sv, art, pv);
+        P.paintCells(sv, art, pv, ones.slice(0, 10), 1, sk);
+        P.commitSlips(art, pv, sk);
+        const g10 = sv.glimmer;
+        sk = P.beginStroke(sv, art, pv);
+        P.paintCells(sv, art, pv, notOnes.slice(0, lim - 1), 1, sk);
+        ok(P.commitSlips(art, pv, sk).length === 0 && pv.slips[1] === lim - 1, 'slips counted, not over yet');
+        P.undoStroke(sv, art, pv, sk);
+        ok(pv.slips[1] === lim - 1, 'undo does not take back slips');
+        sk = P.beginStroke(sv, art, pv);
+        P.paintCells(sv, art, pv, notOnes.slice(0, 1), 1, sk);
+        P.undoStroke(sv, art, pv, sk);
+        ok(pv.slips[1] === lim - 1, 'an uncommitted (cancelled) stroke adds no slips');
+        sk = P.beginStroke(sv, art, pv);
+        P.paintCells(sv, art, pv, notOnes.slice(0, 2), 1, sk);
+        const over = P.commitSlips(art, pv, sk);
+        ok(over.length === 1 && over[0] === 1, 'the last slip puts the colour over');
+        const sm = P.smudgeColor(sv, art, pv, 1);
+        ok(sm.cleared === 10 && sm.changed.length === 12 && !pv.cells.some((v) => v === 2), 'smudge wipes every pixel of that colour, right and wrong');
+        ok(pv.correct === 0 && pv.order.length === 0 && Math.abs(sv.glimmer - (g10 - sm.lost)) < 1e-9 && sv.glimmer < 1e-9, 'smudge takes back its Glimmer');
+        ok(pv.slips[1] === 0 && sv.streak === 0, 'smudge resets slips and streak');
+        // a finished colour is safe
+        const k = art.palette.length - 1;
+        sk = P.beginStroke(sv, art, pv);
+        P.paintCells(sv, art, pv, [...art.cells.keys()].filter((i) => art.cells[i] === k), k, sk);
+        P.paintCells(sv, art, pv, notOnes.filter((i) => art.cells[i] !== k).slice(0, 40), k, sk);
+        ok(P.commitSlips(art, pv, sk).length === 0 && pv.slips[k] === 0, 'a finished colour never smudges');
+        // slips survive a save
+        pv.slips[1] = 3;
+        const back = P.deserialize(P.serialize(sv), ART_BY_ID);
+        ok(back.pages.prism.slips[1] === 3, 'slips are saved');
+    }
+
     // brushes
     ok(P.brushCells(art, x0, y0, 0, 0).length === 1, 'single brush');
     const plus = P.brushCells(art, 5, 5, 1, art.cells[5 * art.w + 5]);

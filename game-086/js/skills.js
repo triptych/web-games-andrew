@@ -33,7 +33,7 @@ export const SKILLS = [
     { id: 'seeker', branch: 'insight', name: 'Seeker Wisp', icon: '➶', cost: 450, req: ['lantern'], x: 42, y: 46,
       desc: 'A new button: fly straight to the nearest pixel still waiting for this colour.', wick: 'A little wisp who loves a game of hide and seek.' },
     { id: 'truehand', branch: 'insight', name: 'True Hand', icon: '✋', cost: 900, req: ['lantern'], x: 60, y: 60,
-      desc: 'Your brush skips any pixel that is not this colour\'s number. No more mistakes.', wick: 'Steady. Your hand knows the numbers now.' },
+      desc: 'Your brush skips any pixel that is not this colour\'s number. No more mistakes, so no more smudges.', wick: 'Steady. Your hand knows the numbers now.' },
     { id: 'starmap', branch: 'insight', name: 'Star Map', icon: '⌖', cost: 1200, req: ['seeker'], x: 40, y: 28,
       desc: 'A minimap shows the whole picture, where you are looking, and where this colour is still missing.', wick: 'Every chart room needs a map.' },
     { id: 'flourish', branch: 'insight', name: 'Final Flourish', icon: '❋', cost: 3000, req: ['starmap', 'truehand'], x: 50, y: 10,
