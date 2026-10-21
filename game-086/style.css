@@ -559,3 +559,5 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+.swatch .slips { position: absolute; top: -3px; left: -5px; min-width: 20px; padding: 1px 4px; border-radius: 9px; background: var(--ink); border: 1px solid #c9a24a; font-size: 10px; font-weight: 700; color: #ffd27a; pointer-events: none; z-index: 1; }
+.swatch .slips.warn { border-color: #ff5a6e; color: #fff; background: #b8344a; }

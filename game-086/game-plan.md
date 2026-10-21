@@ -13,7 +13,8 @@ each with a number. Zoom in until you can see the numbers, pick a colour and pai
 Restore a world's mosaics and the story sails on to the next world. Every pixel leaves a little Glimmer
 behind, and Glimmer buys new Colorkeeper skills in the Constellation.
 
-No timer, no fail state. Mistakes are shown and can be painted over.
+No timer. Mistakes are shown and can be painted over, but each one is a slip against the colour used;
+too many slips and that colour smudges and starts over (see Slips below).
 
 ## Core loop
 
@@ -79,7 +80,14 @@ Rocket and Sleepy Owl ("Postcards from the Far Shore") open with Postcards. Book
   its real number.
 - Finishing a colour plays a chime and moves to the next colour that still has pixels left.
 - Undo works per stroke (one drag, pour or burst) and puts back pixels, Glimmer, mistakes, streak and
-  charges.
+  charges. It does not take back slips.
+- Slips: every wrong pixel painted with a colour is a slip against that colour. Each colour can take
+  `round(pixels / 10)` slips, between 5 and 15 (`SLIPS` in `config.js`). Once a colour has slips, its
+  swatch shows a ✕ badge counting the slips left (red at 2 or fewer, with a warning toast). At the limit
+  the colour smudges: every pixel painted with it, right or wrong, goes back to unpainted, the Glimmer
+  those correct pixels earned is taken back, the streak resets and the undo history is cleared. A
+  finished colour's slips are cleared, so it can never be smudged. A pinch-cancelled dab doesn't count.
+  True Hand prevents slips entirely. Slips are saved per page.
 
 ### Controls
 

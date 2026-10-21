@@ -3,11 +3,12 @@
  *
  * A page's progress is `cells`: a Uint8Array where 0 is unpainted and k+1 means "painted with
  * palette colour k". A pixel painted with its own number is correct and locked; a pixel
- * painted with another colour is a mistake that can be painted over.
+ * painted with another colour is a mistake that can be painted over. Each mistake is also a slip
+ * against the colour that was used; too many slips and that colour smudges and starts over.
  *
  * Every change goes through a stroke (one drag, one pour, one burst) so it can be undone whole.
  */
-import { GLIMMER, STARBURST, FLOURISH_AT, GILDED, SAVE_VERSION } from './config.js';
+import { GLIMMER, STARBURST, FLOURISH_AT, GILDED, SLIPS, SAVE_VERSION } from './config.js';
 import { has, brushLevel, maxCharges, SKILL_BY_ID } from './skills.js';
 import { CHAPTERS, EXTRAS, STORY_PAGES, extraOf } from './story.js';
 
@@ -37,7 +38,7 @@ export function newGame() {
 }
 
 export function blankPage(art) {
-    return { cells: new Uint8Array(art.total), mistakes: 0, done: false, correct: 0, earned: 0, order: [] };
+    return { cells: new Uint8Array(art.total), mistakes: 0, done: false, correct: 0, earned: 0, order: [], slips: new Array(art.palette.length).fill(0) };
 }
 
 export function pageOf(state, art) {
@@ -196,7 +197,7 @@ export function glimmerPerPixel(state) {
 
 export function beginStroke(state, art, ps) {
     return {
-        art: art.id, changes: [], glimmer: 0, mistakes: 0, correct: 0, orderLen: ps.order.length,
+        art: art.id, changes: [], glimmer: 0, mistakes: 0, correct: 0, orderLen: ps.order.length, slips: {},
         before: { charges: state.charges, chargeProgress: state.chargeProgress, streak: state.streak },
     };
 }
@@ -236,6 +237,7 @@ export function paintCells(state, art, ps, indices, color, stroke) {
             state.streak = 0;
             stroke.changes.push([i, cur]);
             stroke.mistakes++;
+            stroke.slips[color] = (stroke.slips[color] ?? 0) + 1;
             out.wrong.push(i);
         }
     }
@@ -259,6 +261,59 @@ export function undoStroke(state, art, ps, stroke) {
     state.earned = Math.max(0, state.earned - stroke.glimmer);
     Object.assign(state, stroke.before);
     return changed;
+}
+
+/* ───────────── slips and smudges ───────────── */
+
+/** How many slips colour `color` can take before it smudges. */
+export const slipLimit = (art, color) => Math.max(SLIPS.min, Math.min(SLIPS.max, Math.round(art.counts[color] / SLIPS.per)));
+
+export function slipsOf(art, ps) {
+    if (!Array.isArray(ps.slips) || ps.slips.length !== art.palette.length) ps.slips = new Array(art.palette.length).fill(0);
+    return ps.slips;
+}
+
+/**
+ * Count a finished stroke's slips against their colours. Undo doesn't take them back, and a cancelled
+ * stroke (the start of a pinch) never gets here. A colour with nothing left to paint is safe: its
+ * slips are cleared. Returns the colours that reached their limit.
+ */
+export function commitSlips(art, ps, stroke) {
+    const slips = slipsOf(art, ps), over = [];
+    if (ps.done) return over;
+    for (let c = 0; c < slips.length; c++) {
+        if (remainingOf(art, ps, c) === 0) { slips[c] = 0; continue; }
+        slips[c] += stroke.slips?.[c] ?? 0;
+        if (slips[c] >= slipLimit(art, c)) over.push(c);
+    }
+    return over;
+}
+
+/**
+ * Wipe every pixel painted with `color`, right or wrong, and take back the Glimmer its correct pixels
+ * earned. Returns { changed: [i...], cleared, lost }.
+ */
+export function smudgeColor(state, art, ps, color) {
+    const out = { changed: [], cleared: 0, lost: 0 };
+    if (ps.done) return out;
+    const before = ps.correct;
+    for (let i = 0; i < art.total; i++) {
+        if (ps.cells[i] !== color + 1) continue;
+        if (art.cells[i] === color) out.cleared++;
+        ps.cells[i] = 0;
+        out.changed.push(i);
+    }
+    if (out.cleared) {
+        ps.order = ps.order.filter((i) => ps.cells[i]);
+        ps.correct -= out.cleared;
+        out.lost = Math.min(ps.earned, before ? (ps.earned * out.cleared) / before : 0);
+        ps.earned -= out.lost;
+        state.glimmer = Math.max(0, state.glimmer - out.lost);
+        state.earned = Math.max(0, state.earned - out.lost);
+    }
+    slipsOf(art, ps)[color] = 0;
+    state.streak = 0;
+    return out;
 }
 
 export const canFlourish = (state, art, ps) => has(state, 'flourish') && !ps.done && ps.correct / art.total >= FLOURISH_AT;
@@ -332,6 +387,7 @@ export function serialize(state) {
     const pages = {};
     for (const [id, ps] of Object.entries(state.pages)) {
         pages[id] = { c: encodeCells(ps.cells), m: ps.mistakes, d: ps.done ? 1 : 0, e: Math.round(ps.earned * 100) / 100, o: encodeOrder(ps.order) };
+        if (ps.slips?.some((n) => n > 0)) pages[id].s = ps.slips;
     }
     const free = {};
     for (const [id, cells] of Object.entries(state.free)) free[id] = encodeCells(cells);
@@ -376,6 +432,7 @@ export function deserialize(text, artById) {
             ps.done = ps.correct === art.total && p.d === 1;
             ps.earned = num(p.e, 0, 1e7, 0);
             ps.order = decodeOrder(p.o, art.total).filter((i) => cells[i] === art.cells[i] + 1);
+            if (Array.isArray(p.s) && p.s.length === art.palette.length) ps.slips = p.s.map((n, c) => Math.round(num(n, 0, slipLimit(art, c) - 1, 0)));
             state.pages[id] = ps;
         }
     }
