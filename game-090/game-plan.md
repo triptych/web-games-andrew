@@ -118,7 +118,7 @@ from Web Audio. No image or audio files.
 | `js/sim/splice.js`, `units.js`, `perks.js`, `world.js`, `recode.js` | Fusion, stats and gear, Bonds, small shared pieces |
 | `js/sim/data/*` | Skills, daemons, items, zones, the splice table, the whole story |
 | `js/sim/bot.js` | An auto-player for tests, balance and the debug autoplay |
-| `js/view/*` | Stage and post chain, toon materials, humans, 16 daemon rigs, environments, props, FX, hub, field, battle |
+| `js/view/*` | Stage and post chain, toon materials, the modelling kit (`sculpt.js`: loft, tube, ball, deform, bake) and painted skins (`skin.js`), sculpted humans, 16 daemon rigs in `rigs/` (nature, beasts, machines, spirits), environments, props, FX, hub, field, battle |
 | `js/ui.js`, `js/ui/*` | DOM: dialogue, field HUD, battle HUD with the recoding terminal, panels |
 | `js/audio.js`, `input.js`, `save.js` | Sound, keyboard/pad/touch, guarded storage |
 

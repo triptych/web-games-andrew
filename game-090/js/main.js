@@ -36,6 +36,7 @@ view.stage.calm = settings.calm;
 view.battle.fx.calm = view.explore.fx.calm = settings.calm;
 document.body.classList.toggle('calm', !!settings.calm);
 const input = new Input(canvas);
+input.canAct = () => !ui.anyScreen();
 
 let G = newGame(7, { name: 'Agent' });       // the title shows the station behind a game that is not played
 let mode = 'title';                          // title | game
@@ -364,7 +365,9 @@ function frame(now) {
     const dt = rdt * FAST;
     last = now;
     time += dt;
+    const hadScreen = ui.anyScreen();
     handleKeys();
+    if (hadScreen) input.edges.a = false;   // the press that closed a screen must not also act on the field
 
     if (mode === 'game') {
         const idle = !view.busy;

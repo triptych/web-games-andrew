@@ -69,6 +69,15 @@ export function loft(rings, o = {}) {
         const a = i * w + j, b = a + 1, c = a + w, d = c + 1;
         idx.push(a, b, d, a, d, c);
     }
+    if (o.caps) {
+        // flat end caps on their own vertices so the edge stays crisp
+        for (const [ri, up] of [[0, false], [n - 1, true]]) {
+            const R = rings[ri], base = pos.length / 3;
+            pos.push(R.x || 0, R.y, R.z || 0); uv.push(0.5, up ? 1 : 0);
+            for (let j = 0; j <= seg; j++) { const k = (ri * w + j) * 3; pos.push(pos[k], pos[k + 1], pos[k + 2]); uv.push(j / seg, up ? 1 : 0); }
+            for (let j = 0; j < seg; j++) idx.push(...(up ? [base, base + 1 + j, base + 2 + j] : [base, base + 2 + j, base + 1 + j]));
+        }
+    }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
@@ -90,7 +99,14 @@ export function tube(pts, radii, o = {}) {
     const fr = curve.computeFrenetFrames(steps, false);
     const pos = [], uv = [], idx = [];
     for (let i = 0; i <= steps; i++) {
-        const t = i / steps, P = curve.getPoint(t), N = fr.normals[i], B = fr.binormals[i];
+        const t = i / steps, P = curve.getPoint(t);
+        let N = fr.normals[i], B = fr.binormals[i];
+        if (o.thin) {
+            // a ribbon: keep the thin axis along o.thin so flat tubes face the right way on straight paths
+            const T = fr.tangents[i], tv = new V(...o.thin);
+            B = tv.clone().addScaledVector(T, -tv.dot(T)).normalize();
+            N = new V().crossVectors(B, T);
+        }
         const r = sample(radii, t);
         for (let j = 0; j <= seg; j++) {
             const a = (j / seg) * TAU, c = Math.cos(a) * r, s = Math.sin(a) * r * flat;

@@ -167,7 +167,7 @@ export class BattleView {
     // ------------------------------------------------------------ camera
     overview(snap = false) {
         const asp = this.camera.aspect;
-        const f = asp < 1 ? 1.6 : asp < 1.4 ? 1.3 : 1.0;
+        const f = (asp < 1 ? 1.6 : asp < 1.4 ? 1.3 : 1.0) * 0.84;
         this.cam.pos.set(-8.6 * f, 4.1 * f, 7.4 * f);
         this.cam.look.set(asp < 1 ? 0.5 : -1.0, asp < 1 ? 0.2 : 1.1, 0);
         this.orbit = false;
