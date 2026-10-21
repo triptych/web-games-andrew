@@ -32,7 +32,7 @@ const mats = new Map();
  *       flash: a {value} uniform object (per unit), steps, glitch: a {value} uniform for corruption
  */
 export function toonMat(opts = {}) {
-    const key = opts.flash || opts.glitch ? null : JSON.stringify({ ...opts, map: opts.map?.uuid ?? null });
+    const key = opts.flash || opts.glitch ? null : JSON.stringify({ ...opts, map: opts.map?.uuid ?? null, emissiveMap: opts.emissiveMap?.uuid ?? null });
     if (key && mats.has(key)) return mats.get(key);
     const m = new THREE.MeshToonMaterial({
         color: opts.color ?? 0xffffff,
@@ -41,6 +41,7 @@ export function toonMat(opts = {}) {
         emissive: opts.emissive ?? 0x000000,
         emissiveIntensity: opts.emissiveIntensity ?? 1,
         map: opts.map ?? null,
+        emissiveMap: opts.emissiveMap ?? null,
         transparent: !!opts.transparent,
         opacity: opts.opacity ?? 1,
         side: opts.side ?? THREE.FrontSide,
@@ -172,6 +173,6 @@ export function glow(geo, color = '#ffffff', o = {}) {
 export function disposeTree(obj) {
     obj.traverse((c) => {
         if (c.geometry && !c.geometry.userData.shared) c.geometry.dispose();
-        if (c.material && !c.material.userData?.shared) (Array.isArray(c.material) ? c.material : [c.material]).forEach((m) => m.dispose());
+        if (c.material && !c.material.userData?.shared) (Array.isArray(c.material) ? c.material : [c.material]).forEach((m) => { if (!m.userData?.keepMaps) { m.map?.dispose?.(); m.emissiveMap?.dispose?.(); } m.dispose(); });
     });
 }

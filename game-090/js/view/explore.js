@@ -139,7 +139,7 @@ export class ExploreView {
 
     placeCamera(k) {
         const asp = this.camera.aspect || 1.6;
-        const dist = (asp < 1 ? 17 : 12.5) * this.zoomK;
+        const dist = (asp < 1 ? 14 : 10) * this.zoomK;
         const target = new THREE.Vector3(this.look.x + Math.sin(this.yaw) * Math.cos(this.pitch) * dist, this.look.y + Math.sin(this.pitch) * dist, this.look.z + Math.cos(this.yaw) * Math.cos(this.pitch) * dist);
         this.camPos.lerp(target, k);
         this.camera.position.copy(this.camPos);

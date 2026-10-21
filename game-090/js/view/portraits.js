@@ -74,7 +74,7 @@ export class Portraits {
         h.setMood(mood);
         h.pose({ talk: true }, 0);
         h.root.rotation.y = -0.25;
-        const c = this.shoot(h.root, [0.38, 2.02, 2.25], [0, 1.6, 0]);
+        const c = this.shoot(h.root, [0.4, 1.83, 1.75], [0, 1.7, 0]);
         this.cache.set(key, c);
         return c;
     }
@@ -87,7 +87,7 @@ export class Portraits {
         m.pose({}, 0.5);
         m.root.rotation.y = -0.45;
         const hh = Math.max(0.8, m.h), cy = hh * 0.52;
-        const c = this.shoot(m.root, [0.4 * hh, cy + 0.15 * hh, hh * 2.15 + m.r * 0.8], [0, cy, 0], null, w * 2, h * 2);
+        const c = this.shoot(m.root, [0.4 * hh, cy + 0.15 * hh, hh * 2.25 + m.r * 1.5], [0, cy, 0], null, w * 2, h * 2);
         this.cache.set(key, c);
         return c;
     }

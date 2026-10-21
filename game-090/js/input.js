@@ -33,7 +33,8 @@ export class Input {
             this.lastDevice = 'keys';
             if (e.repeat) { return; }
             this.queue.push({ key: e.code, onButton: tag === 'BUTTON' && e.target.getClientRects().length > 0 });
-            if (ACTION_KEYS.includes(e.code)) this.edges.a = true;
+            // a press on a focused button, or while a screen is up, belongs to that screen, not the field
+            if (ACTION_KEYS.includes(e.code) && !(this.canAct && !this.canAct()) && tag !== 'BUTTON') this.edges.a = true;
             this.keys.add(e.code);
         });
         window.addEventListener('keyup', (e) => this.keys.delete(e.code));
