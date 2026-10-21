@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dragonroll — board view</title>
+<style>html, body { margin: 0; height: 100%; overflow: hidden; background: #000; } canvas { display: block; } #ov { position: fixed; inset: 0; pointer-events: none; }</style>
+</head>
+<body>
+<canvas id="c"></canvas><div id="ov"></div>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+<script type="module">
+import { Stage } from '../js/view/stage.js';
+import { BoardView } from '../js/view/boardview.js';
+import { newGame } from '../js/sim/game.js';
+const q = new URLSearchParams(location.search);
+const stage = new Stage(document.getElementById('c'));
+const bv = new BoardView(document.getElementById('ov'));
+const G = newGame(+(q.get('seed') || 3), { cls: q.get('cls') || 'knight' });
+G.deeds.orchard = { owner: 'you', level: 2 }; G.deeds.docks = { owner: 'baron', level: 1 }; G.deeds.grove = { owner: 'mira', level: 0 };
+G.rivals[0].pos = 3; G.rivals[1].pos = 5; G.pos = +(q.get('pos') || 4);
+bv.sync(G);
+if (q.get('view') === 'over') bv.overview(true);
+if (q.get('yaw')) bv.userYaw = +q.get('yaw');
+if (q.get('cam')) { const [x, y, z, d, p] = q.get('cam').split(',').map(Number); bv.cam.tTarget.set(x, y, z); bv.cam.tDist = d; bv.cam.tPitch = p; bv.mode = 'free'; }
+stage.use(bv.scene, bv.camera);
+let last = performance.now(), t = 0;
+function frame(now) {
+    requestAnimationFrame(frame);
+    const dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt;
+    bv.update(dt, t, stage.w, stage.h, G);
+    stage.render(dt, t);
+}
+requestAnimationFrame(frame);
+setTimeout(() => { for (let i = 0; i < 60; i++) bv.update(0.05, i * 0.05, stage.w, stage.h, G); window.__ready = true; }, 300);
+window.bv = bv; window.G = G;
+</script>
+</body>
+</html>

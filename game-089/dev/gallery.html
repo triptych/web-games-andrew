@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dragonroll — model gallery</title>
+<style>
+    html, body { margin: 0; height: 100%; background: #6a7480; overflow: hidden; font: 12px system-ui, sans-serif; }
+    canvas { display: block; }
+    .lab { position: absolute; color: #fff; text-shadow: 0 1px 2px #000; transform: translate(-50%, 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { buildHumanoid, lookFor } from '../js/view/chars.js';
+import { buildMonster, animateMonster } from '../js/view/monsters.js';
+import { animate, setPose } from '../js/view/anim.js';
+import * as P from '../js/view/props.js';
+import { toonMat } from '../js/view/toon.js';
+import { MONSTERS } from '../js/sim/data.js';
+
+const q = new URLSearchParams(location.search);
+const only = q.get('only') || 'chars';
+const pose = q.get('pose') || 'idle';
+const r = new THREE.WebGLRenderer({ antialias: true });
+r.setSize(innerWidth, innerHeight);
+r.setPixelRatio(1);
+r.shadowMap.enabled = true;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#6a7480');
+scene.add(new THREE.HemisphereLight('#dfefff', '#4a5a4a', 1.2));
+const sun = new THREE.DirectionalLight('#fff4e0', 2.2);
+sun.position.set(5, 10, 8);
+sun.castShadow = true;
+sun.shadow.camera.left = -20; sun.shadow.camera.right = 20; sun.shadow.camera.top = 20; sun.shadow.camera.bottom = -20;
+scene.add(sun);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: '#8a949e' }));
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+const cam = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 200);
+const items = [];
+const add = (obj, label, rig, kind) => items.push({ obj, label, rig, kind });
+
+if (only === 'dragon') {
+    const rig = buildMonster(MONSTERS.pyrrhax.model); add(rig.root, 'pyrrhax ' + (q.get('mode') || 'idle'), rig, 'm');
+} else if (only === 'chars') {
+    for (const id of ['hero:knight', 'hero:ranger', 'hero:mage', 'pip', 'sylva', 'bram', 'grumli', 'baron', 'mira']) {
+        const [who, cls] = id.split(':');
+        const rig = buildHumanoid(lookFor(who, cls));
+        setPose(rig, pose);
+        add(rig.root, id, rig, 'h');
+    }
+} else if (only === 'monsters' || only === 'bosses') {
+    const ids = Object.keys(MONSTERS).filter((k) => (only === 'bosses') === !!(MONSTERS[k].boss || k === 'whelp' || k === 'mimic'));
+    for (const id of ids) { const rig = buildMonster(MONSTERS[id].model); add(rig.root, id, rig, 'm'); }
+} else if (only === 'props') {
+    const mats = toonMat({ vertexColors: true });
+    const geos = { tree: P.treeGeo(), apple: P.appleTreeGeo(), pine: P.pineGeo(), snowpine: P.pineGeo('#2f7a5a', true), palm: P.palmGeo(), mushroom: P.mushroomGeo(), bush: P.bushGeo('#4aa840', '#ff6a9a'), rock: P.rockGeo(), snowrock: P.rockGeo('#9aa8b8', true), crystal: P.crystalGeo(), flowers: P.flowersGeo(), grass: P.grassGeo(), hay: P.hayGeo(), fence: P.fenceGeo(), sheep: P.sheepGeo(), shell: P.shellGeo(), cloud: P.cloudGeo() };
+    for (const [k, g] of Object.entries(geos)) add(new THREE.Mesh(g, mats), k);
+} else if (only === 'buildings') {
+    const b = { cottage: P.cottage(), windmill: P.windmill(), lighthouse: P.lighthouse(), docks: P.docks(), mine: P.mine(), lodge: P.lodge(), mushroomHouse: P.mushroomHouse(), treehouse: P.treehouse(), orchard: P.orchard(), banner: P.banner('#ff5a5a') };
+    for (const [k, g] of Object.entries(b)) add(g, k);
+} else if (only === 'places') {
+    for (const t of ['brookhollow', 'fernwick', 'saltbreeze', 'hammerhold']) add(P.town(t), t);
+    for (const d of ['warren', 'crypt', 'grotto', 'caverns']) add(P.dungeon(d), d);
+    add(P.hearthstone(), 'hearthstone'); add(P.shrine(), 'shrine'); add(P.fountain(), 'fountain'); add(P.portal(), 'portal');
+}
+const cols = Math.ceil(Math.sqrt(items.length * 1.6));
+const gap = +(q.get('gap') || (only === 'dragon' ? 8 : only === 'chars' ? 1.6 : only === 'places' ? 6.5 : only === 'bosses' ? 6 : only === 'buildings' ? 5 : 3.4));
+items.forEach((it, i) => {
+    const c = i % cols, row = Math.floor(i / cols);
+    it.obj.position.set((c - (cols - 1) / 2) * gap, 0, (row - 0.5) * gap * 1.1);
+    it.obj.rotation.y = +(q.get('rot') || 0);
+    scene.add(it.obj);
+    const l = document.createElement('div');
+    l.className = 'lab'; l.textContent = it.label;
+    document.body.appendChild(l);
+    it.el = l;
+});
+const rows = Math.ceil(items.length / cols);
+const span = Math.max(cols * gap, rows * gap * 1.4);
+const cz = (rows - 1) * gap * 1.1 * 0.5 - gap * 0.55;
+cam.position.set(0, span * 0.42, cz + span * 0.85);
+cam.lookAt(0, gap * 0.15, cz);
+let t = 0;
+function frame() {
+    requestAnimationFrame(frame);
+    t += 0.016;
+    for (const it of items) {
+        if (it.kind === 'h') animate(it.rig, 0.016, t);
+        if (it.kind === 'm') animateMonster(it.rig, t, 0.016, q.get('mode') || 'idle');
+        const p = it.obj.position.clone(); p.y -= 0.15;
+        p.project(cam);
+        it.el.style.left = ((p.x + 1) / 2 * innerWidth) + 'px';
+        it.el.style.top = ((1 - p.y) / 2 * innerHeight) + 'px';
+    }
+    r.render(scene, cam);
+}
+frame();
+window.__ready = true;
+</script>
+</body>
+</html>

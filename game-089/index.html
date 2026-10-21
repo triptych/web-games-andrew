@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2a6fd0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Dragonroll — a 3D board game RPG. Roll the dice round Emberwyld Isle, buy deeds, fight turn-based battles, raid dungeons, forge gear, and face Pyrrhax the Ember Wyrm.">
+    <title>Dragonroll</title>
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="Dragonroll game view"></canvas>
+    <div id="fxlayer" aria-hidden="true"></div>
+
+    <!-- ============================================================ board HUD -->
+    <div id="hud" class="hud" hidden>
+        <div class="hud-top">
+            <div class="pill lap-pill" id="hud-lap" title="Laps until Pyrrhax wakes">
+                <span class="lap-txt">Lap <b id="lap-n">1</b>/<span id="lap-of">5</span></span>
+                <span class="wyrm" id="wyrm-meter" aria-label="The dragon's unrest"></span>
+            </div>
+            <div class="pill gold-pill" id="hud-gold" title="Gold"><span class="coin"></span><b id="gold-n">0</b></div>
+            <button id="btn-menu" class="ibtn" aria-label="Menu">☰</button>
+        </div>
+        <div id="standings" class="standings" aria-label="Standings"></div>
+        <div id="party-strip" class="party-strip"></div>
+        <div class="hud-left">
+            <button id="btn-party" class="cbtn" aria-label="Party and equipment"><span class="cic">🛡️</span><span>Party</span><i class="badge" hidden></i></button>
+            <button id="btn-bag" class="cbtn" aria-label="Bag"><span class="cic">🎒</span><span>Bag</span></button>
+            <button id="btn-map" class="cbtn" aria-label="See the whole island"><span class="cic">🗺️</span><span>Map</span></button>
+        </div>
+        <div class="hud-right">
+            <div id="dice-items" class="dice-items"></div>
+            <button id="btn-roll" class="rollbtn" aria-label="Roll the dice"><span class="die-ic"><i></i><i></i></span><span class="roll-txt">ROLL</span></button>
+        </div>
+        <div id="tile-card" class="tile-card" hidden></div>
+    </div>
+
+    <!-- a decision card that rises from the bottom: buy a deed, stop at a town, a fate card... -->
+    <div id="panel" class="panel" hidden></div>
+
+    <!-- ============================================================ battle HUD -->
+    <div id="bhud" class="hud" hidden>
+        <div id="turn-order" class="turn-order" aria-label="Turn order"></div>
+        <div id="boss-bar" class="boss-bar" hidden><span class="bname"></span><div class="bar"><i></i></div></div>
+        <div id="enemy-list" class="enemy-list"></div>
+        <div class="b-tools">
+            <button id="b-auto" class="tbtn2" aria-pressed="false">Auto</button>
+            <button id="b-speed" class="tbtn2">1×</button>
+        </div>
+        <div id="battle-party" class="battle-party"></div>
+        <div id="cmd" class="cmd" hidden></div>
+        <div id="target-hint" class="target-hint" hidden><span>Choose a target</span><button class="tbtn2" id="target-cancel">Back</button></div>
+        <div id="markers"></div>
+    </div>
+
+    <div id="banner" class="banner" aria-live="polite"></div>
+    <div id="toasts"></div>
+
+    <!-- ============================================================ screens -->
+    <div id="title" class="screen title-screen">
+        <div class="title-wrap">
+            <div class="logo"><span class="l1">Dragon</span><span class="l2">roll</span></div>
+            <div class="tagline">Roll the dice. Raise your heroes. Slay the dragon.</div>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Game</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="newgame" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Choose your hero</h2>
+            <div class="classes" id="class-pick"></div>
+            <label class="row name-row">Name <input id="hero-name" maxlength="14" autocomplete="off" spellcheck="false" placeholder="Rowan"></label>
+            <div class="row len-row"><span>Game length</span><div class="seg" id="len-pick"></div></div>
+            <div class="sheet-foot"><button class="btn" data-close>Back</button><button class="btn primary" id="btn-start">Begin the adventure</button></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet scroll">
+            <h2>How to Play</h2>
+            <p><b>Pyrrhax the Ember Wyrm</b> sleeps in Mount Ember. When the laps run out he wakes, and your party must face him. Until then, roll round Emberwyld Isle and grow strong.</p>
+            <ul class="howlist">
+                <li><b>🎲 Roll</b> two dice and hop that many spaces. Doubles roll again. Passing <b>Hearthstone</b> pays you gold; landing there is a feast.</li>
+                <li><b>⚔️ Encounters</b> and roaming monsters start a turn-based battle. Pick <b>Attack</b>, <b>Skills</b> (cost MP), <b>Items</b>, <b>Defend</b> or <b>Run</b>. Hit weaknesses (🔥 ❄️ ⚡ ✨) for big damage. When the <b>Valor</b> gauge fills, unleash a <b>Burst</b>.</li>
+                <li><b>🏘️ Towns</b>: shop, rest at the inn, hire a companion at the tavern (up to two), and forge gear from monster materials. You may stop at a town or dungeon as you pass it.</li>
+                <li><b>🏰 Dungeons</b>: a battle, then a boss. Each boss guards a <b>Dragonbane Shard</b>; every shard weakens the dragon, and all four forge <b>Dragonbane</b>.</li>
+                <li><b>🏡 Deeds</b>: buy property. Rivals pay you a toll when they land there, you earn income every lap, and owning a whole region doubles tolls and gives a bonus.</li>
+                <li><b>🃏 Fate</b> cards, <b>🎁 chests</b> (watch for mimics), the <b>⛩️ Shrine</b> (rest and a blessing), the <b>⛲ Fountain</b> (every lost coin) and the <b>🌀 Portal</b> (go anywhere).</li>
+                <li>Lose a battle and you wake at the last corner, a little poorer. Lose to the dragon and you get one more lap to prepare.</li>
+            </ul>
+            <table class="keys">
+                <tr><td>Space / Enter</td><td>Roll, confirm</td></tr>
+                <tr><td>Arrows</td><td>Move between choices</td></tr>
+                <tr><td>Esc / P</td><td>Back, pause</td></tr>
+                <tr><td>M · Tab</td><td>Map · Party</td></tr>
+                <tr><td>Drag · Wheel</td><td>Turn · zoom the board</td></tr>
+            </table>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Battle speed
+                <select id="set-bspeed"><option value="1">Normal</option><option value="1.5">Fast</option><option value="2.2">Very fast</option></select>
+            </label>
+            <label class="row">Graphics
+                <select id="set-quality"><option value="2">High</option><option value="1">Medium</option><option value="0">Low</option></select>
+            </label>
+            <label class="row">Calm effects <input type="checkbox" id="set-calm"></label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="partyscreen" class="screen" hidden>
+        <div class="sheet wide scroll" id="party-sheet"></div>
+    </div>
+
+    <div id="bagscreen" class="screen" hidden>
+        <div class="sheet wide scroll" id="bag-sheet"></div>
+    </div>
+
+    <div id="town" class="screen town-screen" hidden>
+        <div class="sheet wide scroll" id="town-sheet"></div>
+    </div>
+
+    <div id="over" class="screen" hidden>
+        <div class="sheet wide scroll" id="over-sheet"></div>
+    </div>
+
+    <noscript><p class="noscript">Dragonroll needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
