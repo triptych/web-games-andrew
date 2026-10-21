@@ -486,7 +486,7 @@ function encounter(G, kind) {
     const lv = foeLevel(G, tier);
     const r = rand(G);
     let n = G.lap === 1 ? (r < 0.55 ? 1 : 2) : G.lap === 2 ? (r < 0.3 ? 1 : r < 0.85 ? 2 : 3) : (r < 0.15 ? 1 : r < 0.6 ? 2 : 3);
-    if (kind === 'ambush') n = Math.max(2, n);
+    if (kind === 'ambush' && G.lap > 1) n = Math.max(2, n);   // not two at once while you're still on your own
     G.after = { k: 'endTurn' };
     return battle(G, { kind, region, enemies: pickEnemies(G, region, n, lv), canFlee: true });
 }

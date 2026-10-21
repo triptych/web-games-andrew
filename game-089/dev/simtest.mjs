@@ -252,7 +252,7 @@ if (want('rules')) {
         for (const c of ['pip', 'sylva']) { G.party.push(Pt.newMember(G, c)); G.hired[c] = true; }
         strong(G, 20);
         G.after = { k: 'endTurn' };
-        Gm.beginBattle(G, { kind: 'boss', region: 'coast', enemies: [{ id: 'brinetooth', lv: 30 }, { id: 'crab', lv: 30 }] });
+        Gm.beginBattle(G, { kind: 'boss', region: 'coast', dungeon: { id: 'grotto', floor: 2 }, enemies: [{ id: 'brinetooth', lv: 30 }, { id: 'crab', lv: 30 }] });
         const used = new Set();
         let guard = 0;
         while (G.phase === 'battle' && guard++ < 300) {
@@ -295,6 +295,19 @@ if (want('rules')) {
     ok(G.phase === 'defeat' && G.ctx.lost === 20, 'a loss costs a fifth of your gold');
     act(G, { type: 'ok' });
     ok(G.pos === 10 && G.party[0].hp > 0, 'and you wake at the corner behind you');
+    // Grit: a hero above half health survives one knockout blow a battle, with 1 HP
+    G = fresh(15); G.after = { k: 'endTurn' };
+    G.events.length = 0;
+    Gm.beginBattle(G, { kind: 'encounter', region: 'frost', enemies: [{ id: 'yeti', lv: 25 }] });
+    guard = 0;
+    while (G.phase === 'battle' && guard++ < 200) act(G, { type: 'cmd', cmd: 'defend' });
+    const grits = G.events.filter((e) => e.type === 'b_hit' && e.grit);
+    ok(grits.length === 1 && grits[0].hp === 1 && G.phase === 'defeat', 'Grit saves a healthy hero from one knockout blow, once a battle');
+    // monsters hit softer on the first laps
+    const lap1 = fresh(16), lap3 = fresh(16); lap3.lap = 3;
+    const firstHit = (g) => { g.after = { k: 'endTurn' }; g.events.length = 0; Gm.beginBattle(g, { kind: 'encounter', region: 'meadow', enemies: [{ id: 'boar', lv: 3 }] }); let n = 0; while (g.phase === 'battle' && n++ < 50 && !g.events.some((e) => e.type === 'b_hit' && g.battle?.units[e.t]?.side === 'p')) act(g, { type: 'cmd', cmd: 'defend' }); return g.events.find((e) => e.type === 'b_hit' && e.t === 0)?.dmg; };
+    const d1 = firstHit(lap1), d3 = firstHit(lap3);
+    ok(d1 > 0 && d3 > 0 && d1 < d3 * 0.8, `monsters hit softer on lap 1 (${d1} vs ${d3} on lap 3)`);
 
     section('rules: dungeons and shards');
     G = fresh(15); G.roamers.length = 0;

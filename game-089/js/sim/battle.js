@@ -21,6 +21,7 @@ export const TUNE = {
     xpShare: 0.34, goldMul: 1.35,
     dragonLv: (laps) => 2 + laps * 3,
     flee: 0.7,
+    early: [0.7, 0.85],   // monsters hit softer on laps 1 and 2, while you're alone and in starting gear
 };
 
 const BAD = ['poison', 'burn', 'stun', 'slow', 'weak'];
@@ -228,6 +229,7 @@ function calcHit(G, a, t, power, kind, element) {
     let crit = false;
     if (phys && rand(G) < a.crit + (a.status.critUp ? 0.25 : 0)) { dmg *= 1.6; crit = true; }
     if (t.defending) dmg *= 0.5;
+    if (a.side === 'e') dmg *= TUNE.early[G.lap - 1] ?? 1;
     dmg *= 0.9 + rand(G) * 0.2;
     return { dmg: Math.max(1, Math.round(dmg)), crit, weak, resist, el };
 }
@@ -235,8 +237,11 @@ function calcHit(G, a, t, power, kind, element) {
 function strike(G, a, t, power, kind, element, extra = {}) {
     const B = G.battle;
     const h = calcHit(G, a, t, power, kind, element);
+    // Grit: once a battle, a hero above half health shrugs off a blow that would knock them out
+    let grit = false;
+    if (t.side === 'p' && !t.grit && h.dmg >= t.hp && t.hp > t.maxhp * 0.5) { h.dmg = t.hp - 1; t.grit = grit = true; }
     hurt(G, t, h.dmg);
-    G.events.push({ type: 'b_hit', u: idx(B, a), t: idx(B, t), dmg: h.dmg, crit: h.crit, weak: h.weak, resist: h.resist, el: h.el, hp: t.hp, ...extra });
+    G.events.push({ type: 'b_hit', u: idx(B, a), t: idx(B, t), dmg: h.dmg, crit: h.crit, weak: h.weak, resist: h.resist, el: h.el, hp: t.hp, ...(grit ? { grit } : {}), ...extra });
     if (a.side === 'p') addValor(G, 3 + (h.weak ? 2 : 0) + (h.crit ? 2 : 0), a);
     if (!t.alive) {
         G.events.push({ type: 'b_ko', t: idx(B, t) });
