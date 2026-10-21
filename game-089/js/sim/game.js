@@ -8,7 +8,7 @@
 
 import {
     BOARD_SIZE, LENGTHS, START_GOLD, SALARY, MAX_LEVEL, PARTY_MAX, DEFEAT_GOLD_LOSS, FOUNTAIN_START,
-    DEED, xpToNext, pace, ROAD_REST,
+    DEED, xpToNext, pace, ROAD_REST, roadGold,
 } from '../config.js';
 import {
     REGIONS, CLASSES, COMPANIONS, GEAR, ITEMS, RECIPES, TOWNS, DUNGEONS, ENCOUNTERS, FATE, TREASURE,
@@ -294,31 +294,39 @@ function roll(G, a) {
     return walk(G);
 }
 
-/** Step along G.move.left spaces, stopping for passing towns, Hearthstone and the end. */
+/** Step along G.move.left spaces, stopping for passing towns, Hearthstone and the end. Every
+ *  space walked earns road coins, paid in one go wherever the walk stops, before anything else. */
 function walk(G) {
+    let coins = 0;
+    const pay = () => { gainGold(G, coins, 'road'); coins = 0; };
     while (G.move && G.move.left > 0) {
         const from = G.pos;
         G.pos = (G.pos + 1) % BOARD_SIZE;
         G.move.left--;
+        coins += roadGold(G.lap);
         ev(G, { type: 'step', who: 'you', from, to: G.pos, left: G.move.left });
         if (G.pos === 0) {
+            pay();
             const r = crossStart(G);
             if (r === 'dragon') { G.move = null; return startDragon(G, false); }
             if (r === 'offer') { G.phase = 'dragonOffer'; G.ctx = { left: G.move.left }; if (!G.move.left) G.move = null; return ''; }
         }
         const foe = G.roamers.find((r) => r.i === G.pos);
         if (foe) {
+            pay();
             G.move = null;
             ev(G, { type: 'roamerFight', i: G.pos, id: foe.id });
             return roamerBattle(G, foe);
         }
         const here = SPACES[G.pos];
         if (G.move.left > 0 && (here.type === 'town' || (here.type === 'dungeon' && dungeonOpen(G, here.dungeon)))) {
+            pay();
             G.phase = 'passTown';
             G.ctx = { town: here.town || null, dungeon: here.dungeon || null, left: G.move.left };
             return '';
         }
     }
+    pay();
     G.move = null;
     return land(G);
 }
@@ -951,6 +959,7 @@ function rivalTurn(G, r) {
     for (let k = 0; k < total; k++) {
         const from = r.pos;
         r.pos = (r.pos + 1) % BOARD_SIZE;
+        r.gold += roadGold(r.lap);
         ev(G, { type: 'step', who: r.id, from, to: r.pos, left: total - k - 1 });
         if (r.pos === 0) {
             r.lap++;

@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Dragonroll** (game-089) v1.0.1: road coins. Gold was scarce early on, with the first salary a whole lap away; now every space you walk pays 3 gold (one more each lap), added up and paid as one "+Ng" wherever the walk stops, with a glint of coins on each hop ([game.js](game-089/js/sim/game.js) `walk`, [config.js](game-089/js/config.js) `ROAD_GOLD`). Rivals earn them too. In bot games it roughly doubles gold by turn 3 (35 → 68) and turn 6 (143 → 228) and adds about a tenth over a whole game. [simtest.mjs](game-089/dev/simtest.mjs) checks the payout, that it comes once per walk, grows by lap and reaches the rivals.
+
 ### Fixed
+- **Dragonroll** (game-089) v1.0.1: floating words such as "12 · Doubles!" ran off the edge of a phone screen; they are kept inside it ([fx.js](game-089/js/view/fx.js)).
 - **Dragonroll** (game-089) v1.0.1: the four corner tiles flickered on phones. They were turned to face diagonally out to sea, so their wider slab poked into the neighbouring tiles and the overlapping tops fought for the same pixels; they are now square to the board ([island.js](game-089/js/view/island.js)). The fountain's water sat just under the rim of its basin and its coins a hair above it, so they flickered too (and the water never showed); both are lifted clear ([props.js](game-089/js/view/props.js)). The board camera's near plane is 2 instead of 0.5, for four times the depth precision.
 - **Dragonroll** (game-089) v1.0.1: when a rival moved, the camera turned to where they rolled and stayed there, so they walked off screen. It now follows a rival's token as it hops, aiming at the square it is hopping to so it stays near the middle, then comes back to you on your turn ([boardview.js](game-089/js/view/boardview.js)).
 

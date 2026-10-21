@@ -260,7 +260,10 @@ export class FX {
             if (u >= 1) { T.el.remove(); this.texts.splice(i, 1); continue; }
             v.copy(T.p); v.y += T.rise * (1 - Math.pow(1 - Math.min(1, u * 1.6), 3));
             v.project(T.camera || camera);
-            T.el.style.transform = `translate(${((v.x + 1) / 2) * w + T.dx}px, ${((1 - v.y) / 2) * h}px) translate(-50%, -50%) scale(${u < 0.12 ? 0.6 + u * 4 : 1})`;
+            // keep wide words ("12 · Doubles!") inside the screen on a narrow phone
+            T.hw ??= T.el.offsetWidth / 2;
+            const x = Math.max(T.hw + 6, Math.min(w - T.hw - 6, ((v.x + 1) / 2) * w + T.dx));
+            T.el.style.transform = `translate(${x}px, ${((1 - v.y) / 2) * h}px) translate(-50%, -50%) scale(${u < 0.12 ? 0.6 + u * 4 : 1})`;
             T.el.style.opacity = u > 0.75 ? String((1 - u) * 4) : '1';
         }
     }

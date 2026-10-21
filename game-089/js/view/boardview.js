@@ -177,6 +177,8 @@ export class BoardView {
                 t.group.rotation.y = yawOf(ax, az);
                 setPose(t.rig, 'hop', { dur });
                 if (e.who === 'you' && this.mode === 'follow') this.focusOn(e.to);
+                // a glint of road coins on each of your hops (paid as one +Ng where the walk stops)
+                if (e.who === 'you') this.fx.sparks(to.clone().add(new THREE.Vector3(0, 0.5, 0)), '#ffd84a', 4, 1.6, { size: 0.18 });
                 this.dice.hide();
                 return dur;
             }

@@ -166,7 +166,17 @@ if (want('rules')) {
     const gm = G.gold, mg = G.rivals[1].gold;
     act(G, { type: 'roll', item: 'die', pick: 2 });
     const toll = Math.round(110 * C.DEED.toll[1]);
-    ok(G.gold === gm - toll && G.rivals[1].gold >= mg + toll, 'landing on a rival\'s deed pays them the toll');
+    ok(G.gold === gm + 2 * C.roadGold(1) - toll && G.rivals[1].gold >= mg + toll, 'landing on a rival\'s deed pays them the toll');
+    // road coins: every space walked pays, in one go where the walk stops, more each lap
+    G = fresh(7); G.roamers.length = 0; G.bag.items.die = 1;
+    const gw = G.gold, r0 = G.rivals.map((r) => r.gold);
+    G.events.length = 0;
+    act(G, { type: 'roll', item: 'die', pick: 2 });
+    const road = G.events.filter((e) => e.type === 'gold' && e.why === 'road');
+    ok(road.length === 1 && road[0].amt === 2 * C.roadGold(1) && G.gold === gw + 2 * C.roadGold(1), 'walking two spaces pays two spaces of road coins, once');
+    ok(C.roadGold(3) > C.roadGold(1), 'road coins grow with the laps');
+    act(G, { type: 'pass' });
+    ok(G.rivals.every((r, k) => r.gold >= r0[k] + 2 * C.roadGold(1)), 'rivals earn road coins too');
     // upgrading your own
     G = fresh(8); G.roamers.length = 0; G.deeds.orchard = { owner: 'you', level: 0 }; G.bag.items.die = 1; G.gold = 1000;
     act(G, { type: 'roll', item: 'die', pick: 2 });

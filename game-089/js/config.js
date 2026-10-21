@@ -31,6 +31,8 @@ export const xpToNext = (L) => Math.round(20 * Math.pow(L, 1.3) + 12);
 
 /** Between turns the party rests on the road: a share of HP and MP comes back. */
 export const ROAD_REST = { hp: 0.1, mp: 0.12 };
+export const ROAD_GOLD = { perTile: 3, perLap: 1 };   // coins for every space walked: 3 a space on lap 1, 4 on lap 2...
+export const roadGold = (lap) => ROAD_GOLD.perTile + ROAD_GOLD.perLap * (lap - 1);
 
 /** The island's pace: the level a party should be about at on each lap. */
 export const pace = (lap) => 2 + 3 * (lap - 1);
