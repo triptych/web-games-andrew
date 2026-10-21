@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#050a0b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Verdant Protocol — a press-turn RPG of recoding corrupted daemons in a healing, post-apocalyptic world. Find the Hex, recode it, splice your team, and decide what Meridian becomes.">
+    <title>Verdant Protocol</title>
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,500;0,600;0,700;1,600;1,700&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="Verdant Protocol game view"></canvas>
+    <div id="fx" aria-hidden="true"></div>
+
+    <!-- ================================================== field HUD -->
+    <div id="hud-field" class="hud" hidden>
+        <div id="field-party" class="field-party" aria-label="Party"></div>
+        <div class="field-right">
+            <div class="zone-tag"><b id="zone-name">—</b><span id="zone-floor">1F</span></div>
+            <canvas id="minimap" width="132" height="132" aria-label="Map"></canvas>
+            <div class="field-btns">
+                <button id="btn-fmenu" class="ibtn" aria-label="Menu">☰</button>
+                <button id="btn-fparty" class="ibtn" aria-label="Party and items">✦</button>
+            </div>
+        </div>
+        <div id="hint" class="hint" hidden></div>
+    </div>
+
+    <!-- touch deck -->
+    <div id="touch" hidden>
+        <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div></div>
+        <button id="btn-a" class="tbtn" aria-label="Action">A</button>
+        <button id="btn-dash" class="tbtn small" aria-label="Dash">RUN</button>
+    </div>
+
+    <!-- ================================================== battle HUD -->
+    <div id="hud-battle" class="hud" hidden>
+        <div class="bt-top">
+            <div id="turnbar" class="turnbar" aria-label="Press turn icons"><span class="side" id="turn-side">YOUR TURN</span><span id="icons" class="icons"></span></div>
+            <div class="bt-info"><span id="bt-round">R1</span><span id="bt-tide" class="tide"></span><button id="b-speed" class="ibtn mini" aria-label="Battle speed">1×</button><button id="b-auto" class="ibtn mini" aria-pressed="false" aria-label="Auto battle">AUTO</button></div>
+        </div>
+        <div id="markers" class="markers"></div>
+        <div id="bt-log" class="bt-log" aria-live="polite"></div>
+        <div id="bt-bottom" class="bt-bottom">
+            <div id="cmd" class="cmd" hidden></div>
+            <div id="party-cards" class="party-cards"></div>
+        </div>
+        <div id="target-bar" class="target-bar" hidden><span id="target-text">Choose a target</span><button id="target-cancel" class="btn mini">Back</button></div>
+    </div>
+
+    <!-- ================================================== dialogue -->
+    <div id="vn" class="vn" hidden>
+        <div class="vn-cast" id="vn-cast"></div>
+        <div class="vn-box">
+            <div class="vn-name" id="vn-name"></div>
+            <div class="vn-text" id="vn-text"></div>
+            <div class="vn-choices" id="vn-choices"></div>
+            <div class="vn-next" id="vn-next">▼</div>
+        </div>
+        <button id="vn-skip" class="btn mini vn-skip">Skip ▶▶</button>
+    </div>
+
+    <!-- ================================================== hub bar -->
+    <div id="hub-bar" class="hub-bar" hidden>
+        <div class="hub-stat"><span id="hub-day">Day 1</span><span id="hub-moon" class="moon"></span><span id="hub-tide">Dark Tide</span></div>
+        <div class="hub-stat right"><span class="scrap-ic"></span><b id="hub-scrap">0</b></div>
+        <nav id="hub-nav" class="hub-nav"></nav>
+    </div>
+
+    <div id="banner" class="banner" hidden></div>
+    <div id="splash" class="splash" hidden></div>
+    <div id="toasts"></div>
+
+    <!-- ================================================== screens -->
+    <div id="title" class="screen title">
+        <div class="title-wrap">
+            <div class="title-kicker">YEAR 212 AFTER THE HEXFALL</div>
+            <h1 class="logo" id="logo" data-text="VERDANT PROTOCOL"><span>VERDANT</span><span>PROTOCOL</span></h1>
+            <div class="title-sub">find the Hex · recode it · splice your team</div>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Game</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="newgame" class="screen" hidden>
+        <div class="sheet">
+            <h2>Warden Registry</h2>
+            <label class="field">Callsign <input id="hero-name" maxlength="14" placeholder="Agent" autocomplete="off"></label>
+            <div class="field">Look
+                <div id="looks" class="looks"></div>
+            </div>
+            <div class="field">Difficulty
+                <div class="seg" id="diff"><button data-d="0.8" class="btn">Gentle</button><button data-d="1" class="btn on">Standard</button><button data-d="1.25" class="btn">Hard</button></div>
+            </div>
+            <div class="sheet-foot"><button class="btn" data-close>Back</button><button id="btn-start" class="btn primary">Begin</button></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>How to Play</h2>
+            <div class="howto">
+                <section><h3>Explore</h3><p>Walk with <b>WASD</b>, arrows or the touch stick. <b>Space / A</b> uses what is in front of you (stairs, chests, Sprouts) or swings. <b>Strike a Hex first</b> and the whole group starts the fight knocked down. Let one catch you from behind and it ambushes you.</p></section>
+                <section><h3>Press Turn</h3><p>Each side gets one icon per member standing. Hit a <b>weakness</b> or land a <b>critical</b> and the foe is <b>knocked down</b> and the hit costs only half an icon, so you act again. Missing, being nulled, or being <b>repelled</b> costs you more. When every foe is down: <b>All-Out Attack</b>.</p></section>
+                <section><h3>Recode</h3><p>Choose <b>Recode</b> on a Hex and talk it round. Each personality answers one script best: <b>Soothe, Command, Barter, Mirror</b>. Reach full rapport before it loses patience and it joins you. Weakened and knocked-down Hexes listen more easily, and the tide of the moon helps or hurts.</p></section>
+                <section><h3>Splice</h3><p>In the Greenhouse, two daemons become one. The race of the result comes from the splice table, its level from the average, and it can inherit skills. Preview first.</p></section>
+                <section><h3>Controls</h3><table><tr><td>Move</td><td>WASD / Arrows / Stick</td></tr><tr><td>Action / Confirm</td><td>Space · Z · Enter · A</td></tr><tr><td>Run</td><td>Shift · RUN button</td></tr><tr><td>Menu</td><td>Esc · P · Tab</td></tr><tr><td>Camera</td><td>Q / E · drag · pinch</td></tr></table></section>
+            </div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Graphics
+                <select id="set-quality"><option value="2">High</option><option value="1">Medium</option><option value="0">Low</option></select>
+            </label>
+            <label class="row">Touch controls
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <label class="row">Battle speed
+                <select id="set-bspeed"><option value="1">1×</option><option value="1.5">1.5×</option><option value="2.2">2×</option></select>
+            </label>
+            <label class="row">Calm mode (less shake and flashing) <input type="checkbox" id="set-calm"></label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="panel" class="screen" hidden><div class="sheet wide" id="panel-sheet"></div></div>
+    <div id="modal" class="screen" hidden><div class="sheet" id="modal-sheet"></div></div>
+    <div id="reward" class="screen" hidden><div class="sheet wide" id="reward-sheet"></div></div>
+    <div id="credits" class="screen credits" hidden><div class="sheet wide" id="credits-sheet"></div></div>
+
+    <noscript><p class="noscript">Verdant Protocol needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
