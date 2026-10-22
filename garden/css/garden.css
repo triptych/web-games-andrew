@@ -283,7 +283,7 @@ kbd {
     max-width: calc(100vw - 32px);
     transition: opacity 0.8s;
 }
-.hint.fade { opacity: 0; }
+.hint.faded { opacity: 0; }
 
 /* ------------------------------------------------------------ tooltip */
 

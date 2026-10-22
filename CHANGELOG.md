@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **The Garden** ([index.html](index.html)): a few seconds after you landed on the dock, and whenever any other hint faded, a bright white-blue vertical pill flashed down the left side of the screen. The hint faded out by gaining the class `fade`, which is also the class of the full-screen link flash, so for that moment the hint took on its fixed full-height box, z-index and white-blue gradient, pinned to the left edge and rounded into a pill. The hint's fade-out class is now `faded` ([ui.js](garden/js/ui.js), [garden.css](garden/css/garden.css)).
+
 ### Added
 - **Dawnshard Saga** (game-093) v1.0.0: an HD-2D fantasy JRPG in vanilla JavaScript and three.js, with no asset files.
   - Systems: an authored overmap with gated passes, procedural towns, quests and villager storylines, procedural dungeons, a 25-beat story with a choice, eight recruitable heroes, and Octopath-style battles with shields, weaknesses, Break, Boost and charged boss moves ([game.js](game-093/js/sim/game.js), [battle.js](game-093/js/sim/battle.js), [quests.js](game-093/js/sim/quests.js)).

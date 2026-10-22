@@ -324,9 +324,9 @@ export class UI {
         const h = $('hint');
         h.textContent = text;
         h.hidden = false;
-        h.classList.remove('fade');
+        h.classList.remove('faded');
         clearTimeout(this.hintTimer);
-        this.hintTimer = setTimeout(() => h.classList.add('fade'), ms);
+        this.hintTimer = setTimeout(() => h.classList.add('faded'), ms);
     }
 
     clock(text, night) {
