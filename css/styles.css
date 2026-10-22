@@ -1172,6 +1172,20 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 79, 216, 0.6);
 }
 
+.game-preview.neonfall,
+.carousel-slide-bg.neonfall {
+    background:
+        radial-gradient(circle at 70% 52%, #ffe66d 0 14%, #ff2a9d 15% 24%, transparent 25%),
+        repeating-linear-gradient(180deg, transparent 0 5px, rgba(11, 4, 24, 0.85) 5px 7px) 70% 52% / 60% 24% no-repeat,
+        linear-gradient(180deg, #08021a 0%, #3a0b63 40%, #e83a8c 68%, #1a0838 68.5%, #1a0838 78%, #07020f 78.5%, #07020f 100%);
+}
+
+.game-card.neonfall .play-button {
+    background: linear-gradient(135deg, #ff2a9d, #8a4dff 55%, #25f4ee);
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(255, 42, 157, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

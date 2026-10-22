@@ -1384,6 +1384,22 @@ const games = [
             { emoji: '🌆', label: 'Retro-futurist' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-092',
+        title: 'NEONFALL',
+        description: "An 80s synthwave remake of Pitfall!, the Atari 2600 jungle run, in vanilla JavaScript on Canvas 2D with no asset files. You have 20 minutes, three lives and a ring of 96 jungle screens to find 24 treasures: money bags, silver and gold bars, diamond rings. Run, leap rolling logs, cobras and fire, swing across tar pits and quicksand on a vine (jump into the rope, jump again to let go), step across crocodiles only while their jaws are shut, and drop down ladders into the tunnels, where every screen you cross is three on the surface and brick walls say otherwise. Logs cost points and a stumble; everything else costs a life. Treasure in a row builds a streak bonus and every sixth gives an extra life. The juice: a striped outrun sun, wireframe mountains and a neon grid behind palm silhouettes, a hand-written WebGL CRT with phosphor trails, bloom and scanlines, afterimages on every swing, screen shake and hit-stop, sparks and rings on every pick-up, and a generated synthwave score that goes underground behind a wall and speeds up when time runs low. A bot that plans by running the real sim forward plays the title screen's demo and proves all 96 screens crossable in both directions.",
+        icon: '🌴',
+        folder: 'game-092',
+        version: '1.0.0',
+        cssClass: 'neonfall',
+        genre: 'arcade',
+        tags: [
+            { emoji: '🌴', label: 'Jungle platformer' },
+            { emoji: '🐊', label: 'Vines & crocodiles' },
+            { emoji: '🌆', label: 'Synthwave' },
+            { emoji: '🎨', label: 'Canvas 2D' }
+        ]
     }
 ];
 
