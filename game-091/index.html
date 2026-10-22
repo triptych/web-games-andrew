@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#07031a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="STARSPIN — a space fantasy slot machine roguelike RPG. Spin the Fortune Engine, nudge the reels, and climb a Slay the Spire style constellation of skills.">
+    <title>STARSPIN</title>
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Chakra+Petch:wght@400;600&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="STARSPIN game view: a slot machine facing its enemies"></canvas>
+
+    <!-- HUD: where you are in the run -->
+    <div id="hud" hidden>
+        <div class="hud-where">
+            <div id="hud-sector">The Rust Rings</div>
+            <div id="hud-pips" aria-label="Progress through the sector"></div>
+        </div>
+        <button id="btn-tree" class="ibtn" aria-label="Constellation" title="Constellation">✦</button>
+        <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
+    </div>
+
+    <!-- Enemy tags and reel touch zones, placed over the 3D view every frame -->
+    <div id="foes" hidden></div>
+    <div id="reels" hidden></div>
+    <div id="floats" aria-hidden="true"></div>
+    <div id="banner" aria-live="polite"></div>
+
+    <!-- Bottom bar: hull, energy, the payline preview and the controls -->
+    <div id="bar" hidden>
+        <div class="bar-stats">
+            <div id="hp" class="hp" role="meter" aria-label="Hull" aria-valuemin="0">
+                <div class="hp-fill"></div>
+                <span class="hp-text">64 / 64</span>
+                <span id="hp-block" class="chip block" hidden>0</span>
+            </div>
+            <div id="energy" class="energy" aria-label="Energy"></div>
+            <div id="preview" class="preview" aria-live="polite"></div>
+        </div>
+        <div class="bar-ctl">
+            <button id="btn-up" class="cbtn" aria-label="Nudge the selected reel up (1 energy)">▲</button>
+            <button id="btn-respin" class="cbtn" aria-label="Respin the selected reel (1 energy)">⟳</button>
+            <button id="btn-down" class="cbtn" aria-label="Nudge the selected reel down (1 energy)">▼</button>
+            <button id="btn-go" class="gobtn">SPIN</button>
+        </div>
+    </div>
+
+    <!-- Screens -->
+    <div id="title" class="screen">
+        <div class="sheet">
+            <h1 class="logo">STARSPIN</h1>
+            <p class="tagline">A space fantasy slot machine roguelike</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Run</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <p>The House stole the stars. Your ship's <b>Fortune Engine</b> is a slot machine, and every symbol on its <b>payline</b> fires.</p>
+            <ol class="steps">
+                <li><b>SPIN</b> lands every reel.</li>
+                <li>Spend <b>Energy</b> to <b>nudge</b> a reel one symbol up or down (▲ ▼), or <b>respin</b> it (⟳). You can see the symbols above and below the line.</li>
+                <li><b>FIRE</b>. Matching symbols multiply each other: a pair ×1.5 each, three ×2, four ×2.5, five ×3. Wild Stars join the biggest group.</li>
+                <li>Enemies then do what their tag showed. Tap an enemy to make it your target.</li>
+            </ol>
+            <div class="legend" id="legend"></div>
+            <p>After each win, add a symbol to <b>every</b> reel (the reels are your deck), then light a star on the <b>Constellation</b>. It is built like a Slay the Spire map: each star must join the last one you lit, so your path decides your build. Waystations let you repair or strip a symbol out.</p>
+            <table>
+                <tr><td>Space / Enter</td><td>Spin, then Fire</td></tr>
+                <tr><td>← → or 1–5</td><td>Select a reel</td></tr>
+                <tr><td>↑ ↓</td><td>Nudge the selected reel</td></tr>
+                <tr><td>R</td><td>Respin the selected reel</td></tr>
+                <tr><td>T / Q</td><td>Next / previous target</td></tr>
+                <tr><td>C</td><td>Open the Constellation</td></tr>
+                <tr><td>P / Esc</td><td>Pause</td></tr>
+            </table>
+            <p class="dim">Touch: tap a reel to select it, or swipe it up or down to nudge. Gamepad: A spin and fire, d-pad select and nudge, X respin, LB/RB target, Start pause.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Calm visuals (less glow, shake and flicker)
+                <input type="checkbox" id="set-calm">
+            </label>
+            <label class="row">Animation speed
+                <select id="set-speed"><option value="1">Normal</option><option value="1.6">Fast</option><option value="2.5">Very fast</option></select>
+            </label>
+            <label class="row">Touch controls
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete saved run</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="reward" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Salvage</h2>
+            <p class="dim">Pick a symbol to add to <b>every</b> reel, or skip.</p>
+            <div id="reward-cards" class="cards"></div>
+            <div id="reward-reels" class="reelsum"></div>
+            <div class="sheet-foot"><button id="reward-skip" class="btn">Skip</button></div>
+        </div>
+    </div>
+
+    <div id="tree" class="screen" hidden>
+        <div class="sheet wide tree-sheet">
+            <div class="tree-head">
+                <h2>The Constellation</h2>
+                <div id="tree-points" class="points"></div>
+            </div>
+            <div id="tree-scroll" class="tree-scroll">
+                <div id="tree-map" class="tree-map"></div>
+            </div>
+            <div id="tree-detail" class="tree-detail"></div>
+            <div class="sheet-foot">
+                <button id="tree-light" class="btn primary">Ignite</button>
+                <button id="tree-leave" class="btn">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="way" class="screen" hidden>
+        <div class="sheet">
+            <h2>Waystation</h2>
+            <p class="dim">A quiet dock between the stars. Choose one.</p>
+            <nav class="menu">
+                <button id="way-rest" class="btn primary">Repair</button>
+            </nav>
+            <h3>Or strip a symbol from every reel</h3>
+            <div id="way-purge" class="purge"></div>
+            <div id="way-reels" class="reelsum"></div>
+        </div>
+    </div>
+
+    <div id="over" class="screen" hidden>
+        <div class="sheet">
+            <h2 id="over-title">Ship Lost</h2>
+            <p id="over-text"></p>
+            <table id="over-stats"></table>
+            <div class="sheet-foot">
+                <button id="over-title-btn" class="btn">Title</button>
+                <button id="over-again" class="btn primary">New Run</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">STARSPIN needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

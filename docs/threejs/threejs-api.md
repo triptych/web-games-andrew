@@ -604,6 +604,22 @@ CUE VICE draws a whole tactical map under a perspective camera pitched ~57° dow
 - **Vision cones as ray fans.** One indexed fan per guard (30 segments), positions rewritten every frame from a DDA grid ray cast (`castRay` in the pure sim, shared with the AI so what you see is what they see), drawn with a tiny `ShaderMaterial` that brightens the rim and fades the middle.
 - **Undo is a `structuredClone`.** All mutable game state lives in one plain object (typed arrays included), so a VHS "Instant Replay" is a snapshot pushed before every shot. Keep three.js objects and functions out of that object, and let the view rebuild what it can't diff (actors) on a `rewind` event while board pieces (broken glass, open doors, pickups) are driven from the state every frame so they come back by themselves.
 
+## Shader-drawn slot reels and a two-pass shader sky (game-091)
+
+[machine.js](../../game-091/js/view/machine.js) draws each reel as one flat quad. The strip is a one-column `CanvasTexture` (`wrapT = RepeatWrapping`, no mipmaps, `LinearFilter`, so the wrap has no seam), and the fragment shader turns the quad into a drum:
+
+```glsl
+float y = (vUv.y - 0.5) * 2.0;                       // +1 at the top
+float c = uOff - asin(clamp(y * 0.96, -0.999, 0.999)) / asin(0.96) * 1.5;   // cell under this pixel
+for (int i = 0; i < 7; i++) col += cellAt(c + (float(i) / 6.0 - 0.5) * uBlur, vUv.x);  // motion blur
+col *= 0.25 + 0.75 * sqrt(clamp(1.0 - y * y * 0.92, 0.0, 1.0));                   // drum shading
+// cellAt(c, x) = texture2D(uTex, vec2(x, 1.0 - fract((c + 0.5) / uLen))).rgb
+```
+
+The view only moves `uOff` (in cells; the payline shows cell `uOff`): spin it at a fixed speed, then ease to the sim's stop at least two cells further on with a small overshoot (`1 + 2.2(k-1)³ + 1.2(k-1)²`). A strip that grows mid-fight (a jam inserted at or above the shown cell) bumps `uOff` by one so the payline keeps its symbol. Set the texture's `colorSpace = SRGBColorSpace` so the shader samples linear values, and multiply by a gain a little over 1 so the neon glyphs, and only they, cross the bloom threshold.
+
+The sky is a full-screen triangle in its own scene with an orthographic camera, rendered by the first `RenderPass`; the game scene's `RenderPass` follows with `clear = false` and `clearDepth = true`. [backdrop.js](../../game-091/js/view/backdrop.js) draws an outrun horizon: a striped sun (`step(gap, fract(sy * 11.0 + t))` with the gap growing toward the bottom), a perspective grid floor (`z = k / (horizon - y)`, lines from `fwidth` so they stay one pixel wide), fbm nebula and hashed stars, with the palette lerped per sector. The view puts the horizon at the foot of the machine and the sun in the gap beside it when there is room.
+
 ## Common gotchas
 
 - **A part that is tipped over and spun on the same mesh spins about the wrong axis** — a drill cone laid on its side with `rotation.z = -π/2` and spun with `rotation.y` swings round in a circle, because Euler angles apply in XYZ order: the spin turns about the parent's axis, not the tipped cone's. Put the tilt on a holder `Group` and spin only the child about its own axis (game-073 `js/view/rigmodel.js`). (Wheels rotated `x = π/2` and spun on `y` are fine for the same reason in reverse: Y is applied before X.)
