@@ -192,4 +192,4 @@ h2.t { font-family: var(--title); font-size: 18px; margin: 0 0 8px; letter-spaci
 @keyframes roll { to { top: -250%; } }
 
 @media (max-width: 600px) { #cmd { width: 44vw; } #sub { width: 60vw; } #party-hud { width: calc(56vw - 24px); padding: 6px 7px; } #party-hud .pr { grid-template-columns: 46px 1fr 1fr; gap: 4px; font-size: 11px; } }
-@media (max-width: 600px) { #order { top: calc(48px + var(--safe-t)); max-width: 94vw; } #battle > button.btn { top: calc(88px + var(--safe-t)) !important; } }
+@media (max-width: 600px) { #order { top: calc(48px + var(--safe-t)); max-width: 94vw; } #battle > button.btn { top: calc(88px + var(--safe-t)) !important; } #battle > button.autob { top: calc(128px + var(--safe-t)) !important; } }

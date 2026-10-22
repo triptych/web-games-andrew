@@ -78,9 +78,12 @@ export class BattleView {
     }
 
     homeFor(side, i, n, bossLike) {
-        if (side === 'party') return v3(2.4 + (i % 2) * 1.0, 0, (i - (n - 1) / 2) * 1.5);
-        if (n === 1) return v3(-3.4, 0, 0);
-        return v3(-2.6 - (i % 2) * 1.5, 0, (i - (n - 1) / 2) * (n > 3 ? 1.5 : 1.9));
+        // a tall phone screen sees less sideways: pull the two sides closer together
+        const xs = Math.max(0.75, Math.min(1, this.camera.aspect / 1.45));
+        const p = side === 'party' ? v3(2.4 + (i % 2) * 1.0, 0, (i - (n - 1) / 2) * 1.5)
+            : n === 1 ? v3(-3.4, 0, 0) : v3(-2.6 - (i % 2) * 1.5, 0, (i - (n - 1) / 2) * (n > 3 ? 1.5 : 1.9));
+        p.x *= xs;
+        return p;
     }
 
     addUnit(d, i, n) {
@@ -407,7 +410,7 @@ export class BattleView {
         cam.position.set(this.cam.pos.x + (Math.random() - 0.5) * s2, this.cam.pos.y + (Math.random() - 0.5) * s2, this.cam.pos.z);
         cam.lookAt(this.cam.look.x + (Math.random() - 0.5) * s2 * 0.4, this.cam.look.y, this.cam.look.z);
         // portrait screens: keep the horizontal field of view of a 16:9 screen so the whole row of units still fits
-        const asp = cam.aspect, wide = asp < 1.78 ? Math.min(78, 2 * Math.atan(Math.tan(this.cam.fov * Math.PI / 360) * 1.78 / asp) * 180 / Math.PI) : this.cam.fov;
+        const asp = cam.aspect, wide = asp < 1.78 ? Math.min(60, 2 * Math.atan(Math.tan(this.cam.fov * Math.PI / 360) * Math.pow(1.78 / asp, 0.8)) * 180 / Math.PI) : this.cam.fov;
         if (Math.abs(cam.fov - wide) > 0.01) { cam.fov = wide; cam.updateProjectionMatrix(); }
         // light and sky
         const f = this.fieldState;

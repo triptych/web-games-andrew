@@ -22,11 +22,14 @@ export class BattleUI {
         this.orderEl = h('div', { id: 'order', class: 'win' });
         this.labelsEl = h('div', { style: 'position:absolute;inset:0;pointer-events:none' });
         this.speedBtn = h('button', { class: 'btn center win', style: 'position:absolute;right:calc(8px + env(safe-area-inset-right,0px));top:calc(8px + env(safe-area-inset-top,0px));min-height:34px;font-size:12px', onclick: () => this.toggleSpeed() }, '▶ ×1');
-        this.root.append(this.labelsEl, this.partyEl, this.orderEl, this.speedBtn);
+        this.autoBtn = h('button', { class: 'btn center win', style: 'position:absolute;right:calc(8px + env(safe-area-inset-right,0px));top:calc(48px + env(safe-area-inset-top,0px));min-height:34px;font-size:12px', onclick: () => this.toggleAuto() }, 'Auto: off');
+        this.autoBtn.classList.add('autob');
+        this.root.append(this.labelsEl, this.partyEl, this.orderEl, this.speedBtn, this.autoBtn);
         this.mode = 'none'; this.shown = ''; this.boost = 0; this.labels.clear(); this.resultsOpen = false; this.order = [];
-        this.speed = 1;
+        this.speed = 1; this.auto = false;
     }
     end() { this.root?.remove(); this.root = null; this.mode = 'none'; this.closeWin(); }
+    toggleAuto() { this.auto = !this.auto; this.autoBtn.textContent = this.auto ? 'Auto: ON' : 'Auto: off'; this.autoBtn.classList.toggle('primary', this.auto); this.ui.env.audio.ui('click'); if (this.auto) this.closeWin(); else this.shown = ''; }
     toggleSpeed() { this.speed = this.speed === 1 ? 2.6 : 1; this.speedBtn.textContent = this.speed === 1 ? '▶ ×1' : '▶▶ ×2.6'; if (this.bv) this.bv.speed = this.speed * (this.ui.env.fast || 1); }
 
     // ------------------------------------------------------------------ pieces fed by the director
@@ -45,6 +48,8 @@ export class BattleUI {
         const B = G.battle; if (!B) return;
         this.updateLabels(); this.updateParty(); this.updateOrder();
         bv.speed = this.speed * (this.ui.env.fast || 1);
+        // Auto battle: the bot's battle logic gives the commands while the director plays them
+        if (this.auto && B.phase === 'cmd' && !bv.busy && !this.resultsOpen) { this.ui.env.autoStep(); return; }
         // open the command window once the director is idle and it is a hero's turn
         if (B.phase === 'cmd' && !bv.busy && this.mode === 'none' && !this.resultsOpen) {
             const key = `${B.actor}:${B.round}:${G.stats.battles}:${B.units.find((u) => u.id === B.actor)?.bp}`;
@@ -207,10 +212,12 @@ export class BattleUI {
     press(p) {
         if (this.mode === 'none' || !this.root) {
             if (this.root && p.key === 'KeyF') { this.toggleSpeed(); return true; }
+            if (this.root && p.key === 'KeyT') { this.toggleAuto(); return true; }
             return false;
         }
         const key = p.key, audio = this.ui.env.audio;
         if (key === 'KeyF') { this.toggleSpeed(); return true; }
+        if (key === 'KeyT') { this.toggleAuto(); return true; }
         if (key === 'KeyR' && this.mode === 'main') { this.setBoost(this.boost + 1); return true; }
         if (this.mode === 'target') {
             if (['ArrowLeft', 'ArrowUp'].includes(key)) { this.cycle(-1); return true; }
