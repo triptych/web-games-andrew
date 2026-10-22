@@ -1159,6 +1159,19 @@ h1 {
     box-shadow: 0 0 14px rgba(122, 255, 208, 0.55);
 }
 
+.game-preview.starspin,
+.carousel-slide-bg.starspin {
+    background: radial-gradient(circle at 50% 62%, #ffe46b 0 9%, #ff7ab0 13%, transparent 17%),
+        repeating-linear-gradient(180deg, transparent 0 5px, rgba(7, 3, 26, 0.9) 5px 7px) 50% 100% / 100% 30% no-repeat,
+        linear-gradient(180deg, #07031a 0%, #3a0f6a 45%, #ff3d8b 70%, #0b0418 70.5%, #0b0418 100%);
+}
+
+.game-card.starspin .play-button {
+    background: linear-gradient(135deg, #ff4fd8, #8a4dff 55%, #3cf0ff);
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(255, 79, 216, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

@@ -1368,6 +1368,22 @@ const games = [
             { emoji: '🌱', label: 'Post-apocalypse' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-091',
+        title: 'STARSPIN',
+        description: "A space fantasy slot machine roguelike in three.js with custom shaders and no asset files. The House, a casino station at the end of space, has stolen the stars, and your ship's weapon is the Fortune Engine: a chrome one-armed bandit whose every payline symbol fires. SPIN, then spend Energy to nudge a reel up or down or respin it, watching the symbols just off the line, then FIRE: Starblades strike your target, Comets hit everything, Hex Moons burn, Aegis blocks, Nova Mend repairs and Ion Charge powers your next turn, and matching symbols multiply each other up to five of a kind. Enemies show their intents Slay the Spire style and jam Static into your reels. After every win add a symbol to every reel (your reels are your deck) and light a star on the Constellation, a generated skill tree shaped like a Slay the Spire map where each star must join the last, with keystones such as Extra Reel, Jackpot Core and Twin Suns. Three sectors, Waystations and three bosses: Croupier Δ, the Nebula Wyrm and The House. An outrun sky shader with a striped sun and neon grid, shader-drawn reels that blur and land, hologram enemies, bloom and a CRT pass, and synthwave music for every sector.",
+        icon: '🎰',
+        folder: 'game-091',
+        version: '1.0.0',
+        cssClass: 'starspin',
+        genre: 'strategy',
+        tags: [
+            { emoji: '🎰', label: 'Slot machine RPG' },
+            { emoji: '✨', label: 'Skill constellation' },
+            { emoji: '🌆', label: 'Retro-futurist' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 
