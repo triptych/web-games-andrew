@@ -48,6 +48,7 @@ let saveT = 0;
 let bot = null;              // autoplay (debug)
 let wasRunning = false;
 let best = loadBest();
+let pending = null;          // the game the intro scroll is waiting to start
 const seen = {};             // a count of every sim event drained, for the tests
 
 const freshSeed = () => (seedParam ? +seedParam : (Date.now() % 1e9) | 0) || 1;
@@ -78,7 +79,7 @@ document.getElementById('title-menu').addEventListener('click', (e) => {
     if (!b) return;
     audio.sfx('select');
     const act = b.dataset.act;
-    if (act === 'new') startGame(newGame(freshSeed()));
+    if (act === 'new') { pending = newGame(freshSeed()); ui.openScreen('intro'); }
     else if (act === 'continue') {
         const g = loadGame();
         if (g) startGame(g); else ui.toast('That save could not be read.');
@@ -93,6 +94,7 @@ document.getElementById('pause-menu').addEventListener('click', (e) => {
     else if (act === 'quit') { saveGame(G); toTitle(); }
     else ui.openScreen(act);
 });
+document.getElementById('intro-go').addEventListener('click', () => { if (pending) { const g = pending; pending = null; startGame(g); } });
 document.getElementById('btn-pause').addEventListener('click', () => pause());
 document.getElementById('over-again').addEventListener('click', () => { audio.sfx('select'); startGame(newGame(freshSeed())); });
 document.getElementById('over-title-btn').addEventListener('click', () => { audio.sfx('back'); toTitle(); });

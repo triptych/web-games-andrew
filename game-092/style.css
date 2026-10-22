@@ -141,3 +141,22 @@ body::before {
     transform: perspective(260px) rotateX(58deg); transform-origin: 50% 100%;
     -webkit-mask-image: linear-gradient(transparent, #000 70%); mask-image: linear-gradient(transparent, #000 70%);
 }
+
+/* the intro scroll: unrolls from the middle, rollers top and bottom */
+.sheet.scroll {
+    position: relative; border-radius: 4px; padding: 28px 20px 18px;
+    background: linear-gradient(180deg, #280e46, #160830);
+    animation: unroll 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.sheet.scroll::before, .sheet.scroll::after {
+    content: ''; position: sticky; display: block; height: 10px; left: 0; right: 0; margin: 0 -26px;
+    background: linear-gradient(90deg, #5f1fa8, #ff6ec7 50%, #5f1fa8); border-radius: 6px; box-shadow: 0 0 12px var(--accent);
+}
+.sheet.scroll::before { top: -22px; margin-bottom: 10px; }
+.sheet.scroll::after { bottom: -12px; margin-top: 8px; }
+.sheet.scroll h2 { text-align: center; font-size: 17px; }
+.sheet.scroll h3 { color: var(--gold); font-size: 10px; margin: 14px 0 4px; font-weight: normal; letter-spacing: 0.1em; text-transform: uppercase; }
+.sheet.scroll .lead b { color: var(--gold); font-weight: normal; }
+.sheet.scroll .sheet-foot { justify-content: center; }
+@keyframes unroll { from { clip-path: inset(46% 0 46% 0); opacity: 0.4; } to { clip-path: inset(0); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sheet.scroll { animation: none; } }

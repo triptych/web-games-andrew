@@ -12,6 +12,10 @@
 
 Compared with game-075 CHROME CHALICE (the Atari *Adventure* remake): same sim/view layout, same WebGL CRT, same synth engine and song generator (copied, with this game's songs and sounds), and the same idea of a bot that plays the title screen's demo. Different: Adventure is a puzzle of locks, so 075 proves it solvable with a planner; Pitfall is a platformer of timing, so NEONFALL proves it passable by having the bot cross every screen both ways, and plays whole games to prove the loop closes.
 
+## Introduction
+
+Start Expedition does not start the game: it unrolls a scroll that gives the goal (24 treasures, 96 screens, 20 minutes, 3 lives), the controls (keys, and touch) and the four rules that matter (logs, vines, crocodiles, ladders). Begin has the focus, so Space or Enter starts it, and Esc goes back to the title. Continue and Play Again skip it.
+
 ## Core loop
 
 Run along the jungle floor, clear what is in the way on each screen, find a treasure (a screen has at most one), and head for the next. Underground is faster (3 screens per tunnel screen) and safer from logs but has scorpions and walls. All 24 treasures before the clock ends wins; the score is the treasure, the streak and the time left.

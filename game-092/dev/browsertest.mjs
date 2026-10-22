@@ -98,7 +98,12 @@ async function desktop() {
     await shot(page, 'desktop-title');
 
     await click(page, '#title-menu [data-act="new"]');
-    await until(page, () => __nf.mode === 'play' && document.getElementById('title').hidden, 'Start Expedition starts play');
+    await until(page, () => !document.getElementById('intro').hidden && __nf.mode === 'title', 'Start Expedition opens the intro scroll first, and the game has not started');
+    check(await Q(page, () => { const t = document.getElementById('intro').textContent; return /Run/.test(t) && /Jump/.test(t) && /Climb/.test(t) && /24 treasures/.test(t); }), 'the scroll tells the player the goal and the controls');
+    check(await Q(page, () => document.activeElement?.id === 'intro-go'), 'Begin has the focus');
+    await shot(page, 'desktop-intro');
+    await page.keyboard.press('Space');                      // a real key on the focused button
+    await until(page, () => __nf.mode === 'play' && document.getElementById('title').hidden && document.getElementById('intro').hidden, 'Space on Begin starts play');
     check(await Q(page, () => !document.getElementById('hud').hidden), 'the HUD is shown');
     await Q(page, () => { __nf.tp(0, 40); });
 
@@ -183,7 +188,13 @@ async function phone(w, h) {
     check(L0.noHScroll && L0.inside && L0.ratio, 'the picture is 16:9 and inside the viewport');
     await shot(page, `phone-${w}x${h}-title`);
     await tapSel('#title-menu [data-act="new"]');
-    await until(page, () => __nf.mode === 'play', 'a tap on Start Expedition starts play');
+    await until(page, () => !document.getElementById('intro').hidden, 'a tap on Start Expedition opens the intro scroll');
+    await Q(page, () => document.getAnimations().forEach((a) => { if (Number.isFinite(a.effect?.getComputedTiming().endTime)) a.finish(); }));
+    const sc = await Q(page, () => { const r = document.querySelector('#intro .sheet').getBoundingClientRect(); const b = document.getElementById('intro-go').getBoundingClientRect(); return { fits: r.left >= 0 && r.right <= innerWidth, btn: b.width >= 44 && b.height >= 44 && b.right <= innerWidth }; });
+    check(sc.fits && sc.btn, 'the scroll fits the screen and Begin is a finger-sized target');
+    await shot(page, `phone-${w}x${h}-intro`);
+    await tapSel('#intro-go');
+    await until(page, () => __nf.mode === 'play', 'a tap on Begin starts play');
     await until(page, () => !document.getElementById('touch').hidden, 'the touch deck is shown');
     await Q(page, () => { __nf.tp(0, 40); });
 
@@ -235,7 +246,8 @@ async function nostorage() {
     console.log('\n== blocked storage');
     const page = await open({ width: 1280, height: 760 }, { nostorage: true });
     await click(page, '#title-menu [data-act="new"]');
-    await until(page, () => __nf.mode === 'play', 'boots and starts a game with localStorage throwing');
+    await click(page, '#intro-go');
+    await until(page, () => __nf.mode === 'play', 'boots, shows the scroll and starts a game with localStorage throwing');
     await Q(page, () => __nf.ff(3));
     check(await Q(page, () => __nf.save() === false), 'saving fails quietly');
     await Q(page, () => __nf.ff(1300));
