@@ -10,7 +10,7 @@ const mixC = (out, a, b, t) => out.copy(a).lerp(b, t);
 
 const SKY_KEYS = [
     // sun elevation → [zenith, horizon]
-    { e: -0.4, top: C(0x050818), hor: C(0x141c40) }, { e: -0.1, top: C(0x0c1432), hor: C(0x3a2a52) }, { e: 0.0, top: C(0x3a4a8a), hor: C(0xff9a5a) },
+    { e: -0.4, top: C(0x142450), hor: C(0x2c3c78) }, { e: -0.1, top: C(0x1c2c64), hor: C(0x5a4a80) }, { e: 0.0, top: C(0x3a4a8a), hor: C(0xff9a5a) },
     { e: 0.18, top: C(0x5a8ad8), hor: C(0xffd0a0) }, { e: 0.6, top: C(0x3a78d8), hor: C(0xa8d4ff) }, { e: 1, top: C(0x2a68d0), hor: C(0xa0d0ff) },
 ];
 const DUSK = { top: C(0x4a3a6a), hor: C(0xc8785a) };   // the Long Dusk: the world's light, before the shards come back
@@ -94,18 +94,18 @@ void main(){
         u.uCloud.value = 0.4 + (1 - light) * 0.4; u.uCloudCol.value.set(1, 1, 1).lerp(new THREE.Color(1, 0.7, 0.6), (1 - light) * 0.5 + (1 - dayF) * 0.4).multiplyScalar(0.55 + dayF * 0.45);
         // key light: warm sun, orange at the edges of the day, blue moon at night
         const low = 1 - sstep(0.0, 0.4, elev);
-        const key = new THREE.Color(1, 0.96, 0.86).lerp(new THREE.Color(1, 0.55, 0.28), low * dayF).lerp(new THREE.Color(0.5, 0.6, 1), this.night);
+        const key = new THREE.Color(1, 0.96, 0.86).lerp(new THREE.Color(1, 0.55, 0.28), low * dayF).lerp(new THREE.Color(0.45, 0.6, 1), this.night);
         const lm = 0.4 + light * 0.6;
         this.sun.color.copy(key);
-        this.sun.intensity = lerp(0.55, 2.7, dayF) * lm;
+        this.sun.intensity = lerp(0.9, 2.7, dayF) * lm;
         const lightDir = this.night > 0.5 ? new THREE.Vector3(-az * 0.6, 0.8, -0.3).normalize() : sunDir;
         this.sun.position.set(px + lightDir.x * 40, py + lightDir.y * 40, pz + lightDir.z * 40);
         this.sun.target.position.set(px, py, pz);
         this.hemi.color.copy(this.hor).lerp(new THREE.Color(0xcfe0ff), 0.45).multiplyScalar(1);
-        this.hemi.groundColor.set(0x6a5a44).lerp(new THREE.Color(0x181228), this.night);
-        this.hemi.intensity = lerp(0.35, 1.05, dayF) * (0.55 + light * 0.45);
+        this.hemi.groundColor.set(0x6a5a44).lerp(new THREE.Color(0x3a3a68), this.night);
+        this.hemi.intensity = lerp(0.55, 1.05, dayF) * (0.7 + light * 0.3);
         this.scene.fog.color.copy(this.hor).lerp(this.top, 0.2);
-        this.sunMul = lerp(0.35, 1, dayF) * (0.6 + 0.4 * light);
+        this.sunMul = lerp(0.5, 1, dayF) * (0.7 + 0.3 * light);
         this.glow = lerp(0.5, 1.9, this.night);
         this.tint.copy(this.hor).lerp(new THREE.Color(1, 1, 1), 0.6);
         this.dome.position.set(px, py, pz);
