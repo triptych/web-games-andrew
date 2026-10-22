@@ -1,0 +1,143 @@
+/* NEONFALL. Phone first: everything fits 360 px wide. */
+:root {
+    --bg: #07020f;
+    --panel: rgba(14, 5, 34, 0.93);
+    --line: rgba(255, 42, 157, 0.55);
+    --text: #f4eaff;
+    --dim: #a893d6;
+    --accent: #ff2a9d;
+    --cyan: #25f4ee;
+    --gold: #ffe66d;
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-l: env(safe-area-inset-left, 0px);
+    --safe-r: env(safe-area-inset-right, 0px);
+    --font: 'Press Start 2P', ui-monospace, 'Courier New', monospace;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--bg); color: var(--text);
+    font-family: var(--font); font-size: 11px; line-height: 1.6;
+    overflow: hidden; overscroll-behavior: none;
+    user-select: none; -webkit-user-select: none;
+}
+[hidden] { display: none !important; }
+
+/* The view sizes and places the canvas in px from JS (the picture, letterboxed).
+   Never 100vw/100vh: on phones 100vh is taller than the visible area. */
+#view { position: fixed; left: 0; top: 0; display: block; touch-action: none; background: #000; }
+
+#back-link {
+    position: fixed; top: calc(8px + var(--safe-t)); left: calc(8px + var(--safe-l)); z-index: 99999;
+    font: 13px Arial, Helvetica, sans-serif; color: #fff; text-decoration: none;
+    background: rgba(0, 0, 0, 0.55); padding: 6px 12px; border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+#back-link:hover { background: rgba(0, 0, 0, 0.8); }
+
+/* ---------------------------------------------------------------- buttons */
+.btn, .ibtn, .tbtn {
+    font: inherit; color: var(--text); cursor: pointer;
+    min-height: 44px; min-width: 44px;           /* finger-sized */
+    border: 2px solid var(--line); border-radius: 4px;
+    background: rgba(255, 42, 157, 0.1);
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.btn { padding: 10px 16px; font-size: 12px; }
+.btn:hover { background: rgba(255, 42, 157, 0.25); }
+.btn.primary { background: linear-gradient(180deg, #ff5cb8, #ff2a9d); color: #1a0518; border-color: #ffd1ee; box-shadow: 0 0 14px rgba(255, 42, 157, 0.7); }
+.btn.danger { border-color: #ff6b6b; color: #ffb3b3; }
+.btn:focus-visible, .ibtn:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------- HUD */
+#hud {
+    position: fixed; z-index: 10; pointer-events: none;
+    top: calc(44px + var(--safe-t)); left: calc(8px + var(--safe-l)); right: calc(8px + var(--safe-r));
+    display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;
+    text-shadow: 0 0 6px rgba(255, 42, 157, 0.9), 0 2px 0 #000;
+}
+#hud .cell { display: flex; flex-direction: column; min-width: 0; }
+#hud .lbl { font-size: 7px; color: var(--cyan); letter-spacing: 0.1em; }
+#hud .cell > span:last-child { font-size: 13px; color: #fff; white-space: nowrap; }
+#hud-time.low { color: #ff5d6c; animation: pulse 0.5s steps(2) infinite; }
+#hud-lives { color: var(--accent); letter-spacing: 0.1em; }
+#hud .ibtn { pointer-events: auto; position: fixed; right: calc(8px + var(--safe-r)); top: calc(44px + var(--safe-t)); padding: 0; width: 44px; }
+#hud-map { width: 192px; height: 12px; image-rendering: pixelated; opacity: 0.9; }
+@keyframes pulse { 50% { opacity: 0.45; } }
+@media (min-width: 700px) {
+    #hud { top: calc(8px + var(--safe-t)); left: calc(112px + var(--safe-l)); gap: 4px 22px; }
+    #hud .ibtn { top: calc(8px + var(--safe-t)); }
+    #hud .cell > span:last-child { font-size: 15px; }
+    #hud-map { position: static; }
+}
+
+/* ---------------------------------------------------------------- touch deck */
+#touch { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+#stick-zone { position: absolute; left: 0; bottom: 0; width: 55%; height: 70%; pointer-events: auto; touch-action: none; }
+#stick { position: absolute; width: 0; height: 0; opacity: 0.35; left: 90px; bottom: 120px; }
+#stick.on { opacity: 0.9; }
+#stick .ring { position: absolute; width: 120px; height: 120px; left: -60px; top: -60px; border-radius: 50%; border: 2px solid var(--cyan); box-shadow: 0 0 12px var(--cyan) inset; }
+#stick .knob { position: absolute; width: 54px; height: 54px; left: -27px; top: -27px; border-radius: 50%; background: rgba(37, 244, 238, 0.55); }
+.tbtn {
+    position: absolute; pointer-events: auto; touch-action: none;
+    right: calc(20px + var(--safe-r)); bottom: calc(40px + var(--safe-b));
+    width: 88px; height: 88px; border-radius: 50%; font-size: 12px;
+    background: rgba(255, 42, 157, 0.35); border-color: var(--accent); box-shadow: 0 0 18px rgba(255, 42, 157, 0.7);
+}
+.tbtn:active { background: rgba(255, 42, 157, 0.7); }
+
+/* ---------------------------------------------------------------- screens */
+.screen {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    /* top padding clears the fixed back link, so a scrolled button never sits under it */
+    padding: calc(52px + var(--safe-t)) calc(12px + var(--safe-r)) calc(12px + var(--safe-b)) calc(12px + var(--safe-l));
+    background: rgba(5, 1, 14, 0.55); overflow-y: auto;
+}
+#title { background: linear-gradient(180deg, rgba(5, 1, 14, 0.15), rgba(5, 1, 14, 0.6)); }
+.sheet {
+    width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
+    background: var(--panel); border: 2px solid var(--line); border-radius: 6px; padding: 18px;
+    box-shadow: 0 0 28px rgba(255, 42, 157, 0.35), 0 0 0 1px rgba(37, 244, 238, 0.35) inset;
+    scrollbar-width: thin; scrollbar-color: var(--accent) transparent;
+}
+.sheet h1, .sheet h2 { margin: 0 0 12px; font-weight: normal; }
+.sheet h2 { color: var(--cyan); font-size: 15px; text-shadow: 0 0 8px var(--cyan); }
+.logo {
+    font-size: clamp(26px, 8vw, 44px); text-align: center; color: #fff; letter-spacing: 0.02em; line-height: 1.2;
+    text-shadow: 0 0 4px #fff, 0 0 12px var(--accent), 0 0 26px var(--accent), 3px 3px 0 #5f1fa8;
+}
+.logo span { color: var(--cyan); text-shadow: 0 0 4px #fff, 0 0 12px var(--cyan), 0 0 26px var(--cyan), 3px 3px 0 #5f1fa8; }
+.tag { text-align: center; color: var(--dim); font-size: 9px; margin: 0 0 16px; }
+.lead { color: var(--dim); font-size: 10px; }
+.small { color: var(--dim); font-size: 9px; }
+.menu { display: flex; flex-direction: column; gap: 10px; }
+.sheet-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; font-size: 11px; }
+.row input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--accent); }
+select { font: inherit; font-size: 10px; background: #1a0838; color: var(--text); border: 2px solid var(--line); min-height: 36px; }
+.version, .best { text-align: center; color: var(--dim); font-size: 8px; margin-top: 12px; }
+.best { color: var(--gold); font-size: 9px; }
+table { border-collapse: collapse; width: 100%; font-size: 10px; }
+td { padding: 6px 4px; border-bottom: 1px solid rgba(255, 42, 157, 0.3); }
+td:first-child { color: var(--gold); white-space: nowrap; }
+.tips { padding-left: 16px; font-size: 9px; color: var(--text); line-height: 1.9; }
+.tips b { color: var(--cyan); font-weight: normal; }
+dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: 10px 0 0; font-size: 10px; }
+dt { color: var(--dim); } dd { margin: 0; color: var(--gold); text-align: right; }
+#over-text { color: var(--text); font-size: 10px; }
+.noscript { position: fixed; inset: 0; display: grid; place-items: center; }
+@media (prefers-reduced-motion: reduce) { #hud-time.low { animation: none; } }
+.toast { position: fixed; left: 50%; bottom: calc(24px + var(--safe-b)); transform: translateX(-50%); z-index: 90; pointer-events: none; background: var(--panel); border: 2px solid var(--line); padding: 8px 14px; font-size: 10px; animation: toast 2.4s forwards; }
+@keyframes toast { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+
+/* the dead space round a letterboxed picture (portrait phones): an outrun grid, not a black void */
+body { background: linear-gradient(180deg, #07020f 0%, #12062c 45%, #2a0b55 100%); }
+body::before {
+    content: ''; position: fixed; left: -60%; right: -60%; bottom: 0; height: 48%; z-index: -1; pointer-events: none;
+    background: repeating-linear-gradient(90deg, rgba(255, 42, 157, 0.35) 0 2px, transparent 2px 56px),
+        repeating-linear-gradient(0deg, rgba(255, 42, 157, 0.35) 0 2px, transparent 2px 40px);
+    transform: perspective(260px) rotateX(58deg); transform-origin: 50% 100%;
+    -webkit-mask-image: linear-gradient(transparent, #000 70%); mask-image: linear-gradient(transparent, #000 70%);
+}
