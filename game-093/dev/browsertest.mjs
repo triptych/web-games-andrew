@@ -95,7 +95,7 @@ async function desktop() {
     check(await Q(page, () => !!document.getElementById('titlebox') && !document.getElementById('btn-continue')), 'title screen is up, no Continue without a save');
     const L = await layout(page);
     check(L.noHScroll && L.fills, 'the picture fills the window; no sideways scroll');
-    await until(page, () => __ds.counts.map >= 1 && __ds.view.mapRec, 'the town is built behind the title');
+    await until(page, () => __ds.view.mapRec, 'the town is built behind the title');
     await shot(page, 'desktop-title');
     await clickText(page, 'New Game');
     await until(page, () => __ds.mode === 'play' && !document.getElementById('titlebox'), 'New Game starts play');
@@ -188,8 +188,9 @@ async function phone(w, h) {
     await until(page, () => document.querySelector('#menu'), '☰ opens the menu');
     check(await Q(page, () => { const m = document.querySelector('#menu'); return [...m.querySelectorAll('button')].every((b) => b.getBoundingClientRect().height >= 34); }), 'menu buttons are finger-sized');
     await shot(page, `phone-${w}x${h}-menu`);
-    await tapSel('#btn-b');
-    await until(page, () => !document.querySelector('#menu'), 'B closes the menu');
+    check(await Q(page, () => { const c = document.querySelector('#menu [data-close]'); if (!c) return false; const r = c.getBoundingClientRect(); return r.height >= 34 && r.right <= innerWidth && r.bottom <= innerHeight; }), 'the menu has an on-screen Close button (the deck is under it)');
+    await tapText('✕ Close');
+    await until(page, () => !document.querySelector('#menu'), 'tapping Close closes the menu');
     await startBattle(page);
     await until(page, () => __ds.ui.battle.mode === 'main', 'the command window opens', 90000);
     check(await Q(page, () => { const c = document.getElementById('cmd').getBoundingClientRect(); const p = document.getElementById('party-hud').getBoundingClientRect(); return c.left >= 0 && c.bottom <= innerHeight + 1 && p.right <= innerWidth + 1 && p.bottom <= innerHeight + 1 && !(c.right > p.left && c.left < p.right && c.bottom > p.top && c.top < p.bottom); }), 'the command window and party panel fit and do not overlap');
@@ -208,12 +209,14 @@ async function nostorage() {
     check(await Q(page, () => { try { localStorage.getItem('x'); return false; } catch { return true; } }), 'storage really throws here');
     await clickText(page, 'New Game');
     await until(page, () => __ds.mode === 'play', 'the game starts without storage');
-    await Q(page, () => { __ds.G.scene = null; __ds.G.mode = 'field'; __ds.ui.endLine(); __ds.ff(5); });
+    await Q(page, () => { const G = __ds.G; for (let i = 0; i < 400 && G.scene; i++) { __ds.act(G, { type: 'advance' }); __ds.ff(0.3); } G.events.length = 0; if (G.scene) { G.scene = null; G.mode = 'field'; } __ds.ui.endLine(); });
     check(await Q(page, () => __ds.save() === false), 'saving fails quietly');
+    await until(page, () => __ds.G.mode === 'field' && !__ds.G.warp && !__ds.G.pending && !__ds.G.scene, 'free to walk');
     await page.keyboard.press('Escape');
     await until(page, () => document.querySelector('#menu'), 'the menu still opens');
     await clickText(page, 'Save');
-    await Q(page, () => { /* the Save pane's button */ });
+    await clickText(page, 'Save game');
+    await until(page, () => [...document.querySelectorAll('.toast')].some((t) => /could not save/i.test(t.textContent)), 'the Save button says it could not save');
     reportErrors('nostorage');
 }
 

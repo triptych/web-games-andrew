@@ -406,7 +406,9 @@ export class BattleView {
         const sh = this.env.stage.shake, s2 = sh * sh * 0.45;
         cam.position.set(this.cam.pos.x + (Math.random() - 0.5) * s2, this.cam.pos.y + (Math.random() - 0.5) * s2, this.cam.pos.z);
         cam.lookAt(this.cam.look.x + (Math.random() - 0.5) * s2 * 0.4, this.cam.look.y, this.cam.look.z);
-        if (Math.abs(cam.fov - this.cam.fov) > 0.01) { cam.fov = this.cam.fov; cam.updateProjectionMatrix(); }
+        // portrait screens: keep the horizontal field of view of a 16:9 screen so the whole row of units still fits
+        const asp = cam.aspect, wide = asp < 1.78 ? Math.min(78, 2 * Math.atan(Math.tan(this.cam.fov * Math.PI / 360) * 1.78 / asp) * 180 / Math.PI) : this.cam.fov;
+        if (Math.abs(cam.fov - wide) > 0.01) { cam.fov = wide; cam.updateProjectionMatrix(); }
         // light and sky
         const f = this.fieldState;
         if (this.mood) this.sky.update(dt, { fixed: this.mood, px: 0, py: 0, pz: 0, time });

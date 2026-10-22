@@ -104,7 +104,8 @@ h2.t { font-family: var(--title); font-size: 18px; margin: 0 0 8px; letter-spaci
 
 /* ---------------------------------------------------------------- pause menu */
 #menu { align-items: stretch; gap: 8px; justify-content: center; background: rgba(4, 6, 26, 0.55); }
-#menu .col { display: flex; flex-direction: column; gap: 2px; width: min(210px, 36%); flex: none; }
+#menu .col { display: flex; flex-direction: column; gap: 2px; width: min(210px, 36%); flex: none; overflow-y: auto; touch-action: pan-y; }
+@media (max-height: 520px) { #menu .col .btn { min-height: 36px; padding: 3px 10px; font-size: 13px; } }
 #menu .main { flex: 1; overflow-y: auto; min-width: 0; touch-action: pan-y; }
 #menu .party { display: flex; flex-direction: column; gap: 6px; width: min(230px, 40%); flex: none; overflow-y: auto; }
 @media (max-width: 760px) { #menu { flex-wrap: wrap; align-content: flex-start; } #menu .col { width: 100%; flex-direction: row; flex-wrap: wrap; } #menu .col .btn { flex: 1 1 30%; justify-content: center; padding: 6px; font-size: 13px; } #menu .party { width: 100%; flex-direction: row; flex-wrap: wrap; } #menu .main { width: 100%; flex: 1 1 100%; } }
@@ -189,3 +190,6 @@ h2.t { font-family: var(--title); font-size: 18px; margin: 0 0 8px; letter-spaci
 #credits p { font-size: clamp(14px, 3.4vw, 20px); line-height: 1.7; color: #dfe8ff; }
 #credits h3 { font-family: var(--title); letter-spacing: 0.2em; color: #bcd0ff; margin: 36px 0 6px; }
 @keyframes roll { to { top: -250%; } }
+
+@media (max-width: 600px) { #cmd { width: 44vw; } #sub { width: 60vw; } #party-hud { width: calc(56vw - 24px); padding: 6px 7px; } #party-hud .pr { grid-template-columns: 46px 1fr 1fr; gap: 4px; font-size: 11px; } }
+@media (max-width: 600px) { #order { top: calc(48px + var(--safe-t)); max-width: 94vw; } #battle > button.btn { top: calc(88px + var(--safe-t)) !important; } }

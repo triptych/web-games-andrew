@@ -30,7 +30,7 @@ export class PauseMenu {
         if (this.scr) return;
         const ui = this.ui;
         const tabs = [['items', 'Items'], ['abilities', 'Abilities'], ['equip', 'Equip'], ['status', 'Status'], ['party', 'Party'], ['quests', 'Quests'], ['bestiary', 'Bestiary'], ['save', 'Save'], ['settings', 'Settings'], ['title', 'Quit']];
-        this.col = h('div', { class: 'col win' }, tabs.map(([id, label]) => h('button', { class: 'btn', 'data-tab': id, onclick: () => { ui.env.audio.ui('click'); this.show(id); } }, label)));
+        this.col = h('div', { class: 'col win' }, h('button', { class: 'btn center', 'data-close': '1', onclick: () => this.close() }, '✕ Close'), tabs.map(([id, label]) => h('button', { class: 'btn', 'data-tab': id, onclick: () => { ui.env.audio.ui('click'); this.show(id); } }, label)));
         this.main = h('div', { class: 'main win' });
         this.party = h('div', { class: 'party' });
         this.scr = ui.open(h('div', { style: 'display:contents' }, this.col, this.main, this.party), { id: 'menu', back: () => this.close(), cls: '' });
