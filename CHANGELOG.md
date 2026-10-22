@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **The Garden** ([index.html](index.html)): a few seconds after you landed on the dock, and whenever any other hint faded, a bright white-blue vertical pill flashed down the left side of the screen. The hint faded out by gaining the class `fade`, which is also the class of the full-screen link flash, so for that moment the hint took on its fixed full-height box, z-index and white-blue gradient, pinned to the left edge and rounded into a pill. The hint's fade-out class is now `faded` ([ui.js](garden/js/ui.js), [garden.css](garden/css/garden.css)).
+
 ### Added
 - **NEONFALL** (game-092) v1.0.0: an 80s synthwave remake of Pitfall! in vanilla JavaScript on Canvas 2D, with no asset files.
   - Systems: a ring of 96 generated screens with 13 kinds of hazard layout, run on a clock-driven sim (rolling logs, crocodile jaws, swinging vines and scorpions are functions of time), ladders down to tunnels that hop 3 screens at a time, brick walls that only stand where a ladder does, 24 treasures with streak bonuses and an extra life for every sixth, 3 lives and a 20 minute clock ([game.js](game-092/js/sim/game.js), [world.js](game-092/js/sim/world.js)). Coyote time, jump buffering, narrower pits and hitboxes and a short grace on entering a screen keep it fair.
