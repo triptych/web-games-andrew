@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **NEONFALL** (game-092): a rolling log could hit Harry the moment he entered a screen. The 0.35 s grace only covered the first instant; a log heading at him from just ahead arrived as it ended. Entering a screen or respawning now picks a phase of the log clock (`G.logShift`) where no log can reach him for the first 1.5 s, running on or standing ([game.js](game-092/js/sim/game.js)); [simtest.mjs](game-092/dev/simtest.mjs) enters every log screen both ways at 13 clock phases (6,604 arrivals) and fails without the fix.
+
 ### Added
 - **NEONFALL** (game-092) v1.0.0: an 80s synthwave remake of Pitfall! in vanilla JavaScript on Canvas 2D, with no asset files.
   - Systems: a ring of 96 generated screens with 13 kinds of hazard layout, run on a clock-driven sim (rolling logs, crocodile jaws, swinging vines and scorpions are functions of time), ladders down to tunnels that hop 3 screens at a time, brick walls that only stand where a ladder does, 24 treasures with streak bonuses and an extra life for every sixth, 3 lives and a 20 minute clock ([game.js](game-092/js/sim/game.js), [world.js](game-092/js/sim/world.js)). Coyote time, jump buffering, narrower pits and hitboxes and a short grace on entering a screen keep it fair.

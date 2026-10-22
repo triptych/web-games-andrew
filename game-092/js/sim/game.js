@@ -24,6 +24,35 @@ export function logX(L, t) {
     const m = (((L.v * t + L.phase) % L.P) + L.P) % L.P;
     return W + 12 - m;
 }
+/**
+ * Logs are f(G.t + G.logShift). When Harry arrives on a screen (or respawns on it) the shift is
+ * chosen so that no log comes within CALM px of where he will be for the next CALM_T seconds,
+ * whether he runs on or stands still: nothing rolling may hurt him the moment he arrives.
+ * If no phase is that clear, the clearest one is used.
+ */
+const CALM = 46, CALM_T = 1.5, STILL_T = 1.1;
+function calmShift(G, scr, x, dir, delay = 0) {
+    if (!scr.logs.length) return 0;
+    let maxP = 0;
+    for (const L of scr.logs) maxP = Math.max(maxP, L.P / L.v);
+    let best = 0, bestGap = -1;
+    for (let k = 0; k * 0.1 <= maxP + 0.1; k++) {
+        const sh = k * 0.1;
+        let gap = Infinity;
+        for (let tau = 0; tau <= (delay || CALM_T) + (delay ? 1 : 0); tau += 0.1) {
+            for (const L of scr.logs) {
+                const lx = logX(L, G.t + sh + tau);
+                if (delay) gap = Math.min(gap, Math.abs(lx - (x + dir * RUN * Math.max(0, tau - delay))));   // stands, then runs on
+                else gap = Math.min(gap, Math.abs(lx - (x + dir * RUN * tau)), tau <= STILL_T ? Math.abs(lx - x) : Infinity);   // runs on, or stands
+            }
+        }
+        if (gap >= CALM) return sh;
+        if (gap > bestGap) { bestGap = gap; best = sh; }
+    }
+    return best;
+}
+export const logTime = (G) => G.t + (G.logShift || 0);
+
 export function scorpPos(sc, t) {
     const len = sc.x1 - sc.x0;
     const m = (((sc.v * t + sc.phase) % (2 * len)) + 2 * len) % (2 * len);
@@ -75,6 +104,7 @@ export function newGame(seed = 1) {
         left: TIME_LIMIT,
         sec: TIME_LIMIT,
         hurry: 0,
+        logShift: 0,
         score: START_SCORE,
         lives: LIVES,
         streak: 0,
@@ -144,6 +174,7 @@ function respawn(G) {
     G.p = newPlayer(layer, 24);
     G.p.anim = keep;
     G.p.inv = INV_SPAWN;
+    if (layer === 'surface') G.logShift = calmShift(G, getWorld(G.seed).screens[G.screen], 24, 1, INV_SPAWN);
     ev(G, 'respawn', { layer });
 }
 const p_layer = (p) => (p.layer === 'tunnel' ? 'tunnel' : 'surface');
@@ -177,6 +208,7 @@ function changeScreen(G, dir) {
     G.screen = (((G.screen + dir * stride) % N_SCREENS) + N_SCREENS) % N_SCREENS;
     p.x = dir > 0 ? 1 : W - 1;
     p.inv = Math.max(p.inv, ENTRY_GRACE);       // a log may be rolling across the edge Harry arrives at
+    if (p.layer === 'surface') G.logShift = calmShift(G, getWorld(G.seed).screens[G.screen], p.x, dir);
     G.visited[G.screen] = 1;
     G.stats.screens++;
     ev(G, 'screen', { from, to: G.screen, dir, layer: p.layer });
@@ -352,7 +384,7 @@ export function step(G, inp, dt) {
     if (p.inv <= 0 && p.st !== 'dead') {
         if (p.layer === 'surface') {
             for (const L of scr.logs) {
-                const lx = logX(L, G.t);
+                const lx = logX(L, G.t + (G.logShift || 0));
                 if (lx < -14 || lx > W + 14) continue;
                 if (Math.abs(p.x - lx) < LOG.r + HW - HIT_FORGIVE && p.y > SURF - LOG.h + 1) {
                     G.score = Math.max(0, G.score - HIT_PENALTY);

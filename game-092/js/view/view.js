@@ -420,7 +420,7 @@ export class View {
         if (scr.tunnel.scorp) { const sp = scorpPos(scr.tunnel.scorp, G.t); drawScorpion(g, sp.x, TF, sp.dir, time); }
         // ---- surface hazards
         for (const L of scr.logs) {
-            const lx = logX(L, G.t);
+            const lx = logX(L, G.t + (G.logShift || 0));
             if (lx > -10 && lx < W + 10) drawLog(g, lx, SURF, -lx / 6);
         }
         scr.cobras.forEach((c, k) => drawCobra(g, c.x, SURF, time, k));

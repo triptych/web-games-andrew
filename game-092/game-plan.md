@@ -23,7 +23,7 @@ Run along the jungle floor, clear what is in the way on each screen, find a trea
 ## Mechanics
 
 ### The world
-A ring of `N_SCREENS = 96`. Running off the right edge goes to screen i+1, the left edge to i−1, modulo 96. In a tunnel the same edges go to i±3 (96 = 3 × 32, so the tunnel lanes are rings of 32). The first and last 40 px of every surface screen (30 px of a tunnel) are free of hazards, and Harry is harmless for 0.35 s after a screen change, because a log may be rolling across the edge he arrives at.
+A ring of `N_SCREENS = 96`. Running off the right edge goes to screen i+1, the left edge to i−1, modulo 96. In a tunnel the same edges go to i±3 (96 = 3 × 32, so the tunnel lanes are rings of 32). The first and last 40 px of every surface screen (30 px of a tunnel) are free of hazards, and Harry is harmless for 0.35 s after a screen change. More than that, nothing rolling may meet him as he arrives: on every screen change (and respawn) the log clock is shifted (`G.logShift`) to a phase where no log comes within 46 px of him for the next 1.5 s whether he runs on or stands still (for 1.1 s if he stands), or of where he will be after the respawn's invulnerable time. If no phase is that clear on a crowded screen, the clearest is used.
 
 ### Harry
 `RUN` 78 px/s. A jump rises 24 px and takes 0.6 s (so a running jump covers about 50 px). Air control only speeds him up to a run: a faster flight (off a vine) keeps its momentum. Coyote time 0.07 s and a 0.12 s jump buffer. Ladders: **Down** within 14 px of a hole climbs on, **Up** under the ladder in a tunnel; walking into a hole just drops him to the tunnel unhurt.

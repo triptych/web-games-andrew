@@ -12,6 +12,8 @@
  * 3. world: every generator rule, over many seeds.
  * 4. determinism: the same seed and inputs give the same game; a save round trip plays on
  *    identically; an unknown save version is rejected.
+ * 4b. arrival: entering a screen (or respawning) never puts a log on Harry, running on or standing
+ *    still, at any phase of the clock.
  * 5. crossing: on 3 seeds the bot crosses EVERY screen, both ways, on the surface, without dying;
  *    tunnel screens cross too, and a wall really blocks.
  * 6. bot: whole 20-minute games on SEEDS seeds at three skills, with invariants after every step,
@@ -385,6 +387,57 @@ if (want('world')) {
     const a = Wd.buildWorld(7), b = Wd.buildWorld(7), c = Wd.buildWorld(8);
     ok(JSON.stringify(a) === JSON.stringify(b), 'the same seed builds the same world');
     ok(JSON.stringify(a) !== JSON.stringify(c), 'a different seed builds a different one');
+}
+
+if (want('arrival')) {
+    section('arrival: nothing rolling hurts Harry when he enters a screen');
+    let tries = 0, hurt = [];
+    for (const seed of [21, 22, 23, 24]) {
+        const w = Wd.getWorld(seed);
+        for (const dir of [1, -1]) {
+            for (const s of w.screens) {
+                if (!s.logs.length) continue;
+                const from = (s.i - dir + C.N_SCREENS) % C.N_SCREENS;
+                for (let off = 0; off < 12; off += 0.97) {
+                    for (const mode of ['run', 'stand']) {
+                        const G = Gm.newGame(seed);
+                        G.screen = from; G.t = off; G.lives = 9;
+                        G.p.x = dir > 0 ? C.W - 4 : 4; G.p.face = dir;
+                        // cross the edge by walking, then play 2 s either running on or standing still
+                        run(G, { x: dir, y: 0, a: false }, 2, (g) => g.screen !== from);
+                        G.events.length = 0;
+                        const hits0 = G.stats.hits + G.stats.deaths;
+                        // Harry has time to react: running on for 1.3 s or standing for 1.1 s must not meet a log
+                        run(G, mode === 'run' ? { x: dir, y: 0, a: false } : NONE, mode === 'run' ? 1.3 : 1.1, (g) => g.screen !== s.i);
+                        tries++;
+                        if (G.stats.hits + G.stats.deaths > hits0) hurt.push(`seed ${seed} ${s.kind} #${s.i} dir ${dir} t ${off.toFixed(2)} ${mode}`);
+                    }
+                }
+            }
+        }
+    }
+    ok(hurt.length === 0, `${tries} arrivals (both ways, 13 clock phases, running on 1.3 s or standing 1.1 s): none hurt`);
+    for (const h of hurt.slice(0, 8)) console.log('    ', h);
+    // a respawn is just as calm: stand through the invulnerable time, then run on for a second
+    let rh = 0, rt = 0;
+    for (const seed of [21, 22]) {
+        const w = Wd.getWorld(seed);
+        for (const s of w.screens) {
+            if (!s.logs.length) continue;
+            for (let off = 0; off < 12; off += 1.3) {
+                const G = Gm.newGame(seed);
+                G.screen = s.i; G.t = off; G.lives = 9;
+                G.p.st = 'dead'; G.p.dk = 'bite'; G.p.timer = 0.01; G.p.layer = 'surface'; G.p.x = 24;
+                run(G, NONE, 0.1, (g) => g.p.st !== 'dead');
+                run(G, NONE, C.INV_SPAWN + 0.05);
+                const h0 = G.stats.hits;
+                run(G, { x: 1, y: 0, a: false }, 1.0, (g) => g.screen !== s.i);
+                rt++;
+                if (G.stats.hits > h0) rh++;
+            }
+        }
+    }
+    ok(rh === 0, `${rt} respawns: standing through the invulnerable time then running on for 1 s meets no log`);
 }
 
 if (want('determinism')) {
