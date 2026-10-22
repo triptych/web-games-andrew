@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0d1c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Dawnshard Saga — an HD-2D fantasy JRPG: a pixel-art party in a living 3D diorama. Turn-based battles with Break and Boost, a world to cross, towns full of quests and eight heroes to recruit.">
+    <title>Dawnshard Saga</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+    <canvas id="view" aria-label="Dawnshard Saga game view"></canvas>
+    <div id="ui"></div>
+
+    <!-- Touch deck: shown on coarse pointers or after the first touch -->
+    <div id="touch" hidden>
+        <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div></div>
+        <button id="btn-a" class="tbtn" aria-label="Confirm">A</button>
+        <button id="btn-b" class="tbtn small" aria-label="Menu / cancel">B</button>
+        <button id="btn-cam-l" class="tbtn tiny" aria-label="Rotate camera left">⟲</button>
+        <button id="btn-cam-r" class="tbtn tiny" aria-label="Rotate camera right">⟳</button>
+        <button id="btn-menu" class="tbtn tiny" aria-label="Open menu">☰</button>
+    </div>
+    <div id="toasts"></div>
+    <noscript><p class="noscript">Dawnshard Saga needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Dawnshard monsters</title>
+<style>body{background:#5a6a7a;margin:0;padding:12px;font:12px monospace;color:#fff}canvas{image-rendering:pixelated;margin:4px;background:#7a8a9a}.row{display:flex;flex-wrap:wrap;align-items:flex-end}</style></head>
+<body><div id="out" class="row"></div>
+<script type="module">
+import { ENEMIES } from '../js/sim/data/enemies.js';
+import { drawMonster } from '../js/view/monsters.js';
+const out = document.getElementById('out');
+const q = new URLSearchParams(location.search); const scale = +(q.get('s') || 3);
+const seen = new Set();
+for (const e of Object.values(ENEMIES)) {
+  const key = e.sprite + ':' + e.pal; if (seen.has(key)) continue; seen.add(key);
+  const px = drawMonster(e.sprite, e.pal); const c = px.toCanvas();
+  const s = (e.boss ? 1.3 : 2.4) * scale / 3 * (e.sprite.length ? 1 : 1);
+  c.style.width = c.width * s + 'px'; c.style.height = c.height * s + 'px'; c.title = e.name; out.appendChild(c);
+}
+window.READY = true;
+</script></body></html>
