@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Dawnshard Saga** (game-093) v1.0.0: an HD-2D fantasy JRPG in vanilla JavaScript and three.js, with no asset files.
+  - Systems: an authored overmap with gated passes, procedural towns, quests and villager storylines, procedural dungeons, a 25-beat story with a choice, eight recruitable heroes, and Octopath-style battles with shields, weaknesses, Break, Boost and charged boss moves ([game.js](game-093/js/sim/game.js), [battle.js](game-093/js/sim/battle.js), [quests.js](game-093/js/sim/quests.js)).
+  - Look: procedural pixel-art sprites as billboards in a lit 3D diorama with tilt-shift, bloom, day and night, shaders for water and lava, and GPU particles ([view.js](game-093/js/view/view.js), [battle3d.js](game-093/js/view/battle3d.js)); a procedural score and effects ([audio.js](game-093/js/audio.js)); DOM windows and a touch deck ([ui.js](game-093/js/ui/ui.js)).
+  - Tests: [simtest.mjs](game-093/dev/simtest.mjs), [browsertest.mjs](game-093/dev/browsertest.mjs), [play.mjs](game-093/dev/play.mjs).
+- Launcher entry, card style and README/status rows for game-093.
 - **NEONFALL** (game-092) v1.0.0: an 80s synthwave remake of Pitfall! in vanilla JavaScript on Canvas 2D, with no asset files.
   - Systems: a ring of 96 generated screens with 13 kinds of hazard layout, run on a clock-driven sim (rolling logs, crocodile jaws, swinging vines and scorpions are functions of time), ladders down to tunnels that hop 3 screens at a time, brick walls that only stand where a ladder does, 24 treasures with streak bonuses and an extra life for every sixth, 3 lives and a 20 minute clock ([game.js](game-092/js/sim/game.js), [world.js](game-092/js/sim/world.js)). Coyote time, jump buffering, narrower pits and hitboxes and a short grace on entering a screen keep it fair.
   - A bot that scores candidate moves (run on, or run or stand then jump at step j) by playing the real sim forward on a clone, with vine release decided by a ballistic landing check; it plays the title screen's demo and the balance table ([bot.js](game-092/js/sim/bot.js)).

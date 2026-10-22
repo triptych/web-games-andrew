@@ -6083,3 +6083,12 @@ The sea shader samples a small height texture of the terrain to colour shallows,
 - **Reuse the synth.** game-075's `audio.js` engine (buses, sidechain pump, gated reverb, delay, look-ahead sequencer) and `music.js` (songs from key, tempo, chords, seed) moved over with only the effects switch rewritten. One extra low-pass node on the music bus, ramped to 650 Hz, puts the whole mix "underground".
 - **A fast-forward must not replay the show.** `ff(1300)` drained thousands of events into the view, which stacked popups and rings into mush. Drop everything but the `screen` events (the camera still has to follow) when the sim runs ahead of the view.
 - **Small traps.** A test that jumps from a standstill never reaches the far side of a 34 px pit: air control is slow and a standing jump is 36 px, so tests run up first. Down-beside-the-hole beats walking-in as the way onto a ladder, because the floor under the hole is gone the moment the centre crosses it. A HUD counter updated on the next frame needs `until`, not `check`.
+
+## Game 093 Dawnshard Saga: an HD-2D JRPG in three.js (2026-10-22)
+
+- **Pixel sprites in a 3D world.** Sprites are painted into canvases by code and drawn as nearest-filtered billboards that face the camera yaw; a depth-only alpha-tested copy lets them cast sun shadows. Terrain and props are merged into a few vertex-coloured meshes per map, with a nearest-filtered tile atlas, baked ambient occlusion and stepped heights, so a whole town is a handful of draw calls.
+- **Vertex colour times texture darkens twice.** Use near-white tints on textured geometry, or rocks and trees come out black.
+- **A battle director plays resolved events.** The sim resolves a whole action at once and each event carries a snapshot of unit state; the director plays them as timed scripts and the UI draws from the snapshot, so health bars never run ahead of the blow. The turn-order preview excludes the unit already acting, so put the actor first yourself.
+- **A bot that plays the whole game is the balance tool.** It found unreachable roads, doors inside footprints, a boss tuned too hard and every stall. Print a per-beat table of minutes, level and deaths, and tune to that.
+- **Small traps.** `h('svg')` makes an HTML element, not an SVG one, so set `innerHTML` on a span. A test that waits on game time under SwiftShader needs `&fast=8` or more, because a frame never runs more than 0.05 s.
+
