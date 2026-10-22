@@ -1400,6 +1400,22 @@ const games = [
             { emoji: '🌆', label: 'Synthwave' },
             { emoji: '🎨', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-093',
+        title: 'Dawnshard Saga',
+        description: "An HD-2D fantasy JRPG in the style of Octopath Traveler and Final Fantasy, built in three.js with no asset files: pixel-art heroes and monsters stand in a real 3D diorama with tilt-shift depth of field, bloom, a day and night cycle, lamps, water, lava and drifting fireflies. The Dawn Crystal has shattered and the sun has stopped rising. Walk a seamless overmap of grasslands, forests, mountain passes, desert and ice from Emberfield to the Obsidian Spire, with five generated towns (a notice board of procedural quests, an inn, shops, a smithy and villagers who carry three-part storylines that change with every new game) and seven dungeons with visible monsters, chests that need Mira's lockpicks, cracked walls that need Brom's hammer and save crystals. Eight heroes join the party, each with a class, a weapon and a skill list of their own. Battles are turn based with shields and hidden weaknesses: strike them to Break a foe, save Boost Points to hit harder or more often, cancel a boss's charged move with a Break, steal, analyze and cover for each other, all with hit-stop, camera shots, impact flashes, elemental effects and floating numbers. A procedural score, a typewriter dialogue box, an epic story with a real choice at the end, a bot that plays the whole game headlessly to balance it, and a touch deck for phones.",
+        icon: '⚔️',
+        folder: 'game-093',
+        version: '1.0.0',
+        cssClass: 'dawnshard-saga',
+        genre: 'rpg',
+        tags: [
+            { emoji: '⚔️', label: 'JRPG' },
+            { emoji: '✨', label: 'HD-2D' },
+            { emoji: '🗺️', label: 'Overmap & towns' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 

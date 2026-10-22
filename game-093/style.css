@@ -89,6 +89,7 @@ h2.t { font-family: var(--title); font-size: 18px; margin: 0 0 8px; letter-spaci
 /* dialogue */
 #dialogue { position: fixed; left: 50%; bottom: calc(10px + var(--safe-b)); transform: translateX(-50%); width: min(780px, calc(100vw - 16px)); min-height: 124px; z-index: 40; display: flex; gap: 12px; padding: 12px 16px 14px; cursor: pointer; }
 #dialogue canvas { width: 88px; height: 100px; image-rendering: pixelated; flex: none; align-self: flex-end; background: rgba(0, 0, 20, 0.35); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.35); object-fit: cover; object-position: top; }
+#dialogue .body { flex: 1; min-width: 0; }
 #dialogue .who { font-family: var(--title); color: var(--gold); letter-spacing: 0.1em; font-size: 15px; margin-bottom: 4px; text-shadow: 0 1px 0 #000; }
 #dialogue .txt { font-size: clamp(14px, 2.6vw, 18px); line-height: 1.5; min-height: 3em; white-space: pre-wrap; }
 #dialogue.narr .txt { font-style: italic; color: #dfe8ff; text-align: center; }

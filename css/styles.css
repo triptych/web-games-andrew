@@ -1186,6 +1186,19 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 42, 157, 0.6);
 }
 
+.game-preview.dawnshard-saga,
+.carousel-slide-bg.dawnshard-saga {
+    background:
+        radial-gradient(circle at 74% 30%, #fff2b0 0 6%, #ffb347 7% 12%, transparent 13%),
+        linear-gradient(180deg, #121a52 0%, #6a4fa8 38%, #f0a070 62%, #3f7a3a 62.5%, #2c5a2a 80%, #17341a 100%);
+}
+
+.game-card.dawnshard-saga .play-button {
+    background: linear-gradient(135deg, #ffd35c, #e88a20 55%, #8a3a1a);
+    color: #1a0f00;
+    box-shadow: 0 0 14px rgba(255, 190, 80, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

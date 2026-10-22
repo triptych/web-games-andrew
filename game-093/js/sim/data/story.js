@@ -160,14 +160,14 @@ export const BEATS = [
         ],
     },
     {
-        id: 'elara', trig: { t: 'talk', npc: 'elara' }, rec: 9,
+        id: 'elara', trig: { t: 'talk', npc: 'elara' }, rec: 8,
         obj: { map: 'silverbrook', anchor: 'chapel', text: 'Reach Sister Elara at the chapel' },
         scene: [
             'Sister Elara: Don\'t come closer — they feed on the dawnlight in me. I can\'t hold the ward much longer.',
             'Kael: I carry a shard of the Dawn Crystal. Maybe it can help.',
             'Sister Elara: ...The Spark. By the Mother, it is true. Behind me, quickly!',
             { music: 'boss' },
-            { battle: { enemies: [{ kind: 'shade', lvl: 9 }, { kind: 'shadeLord', lvl: 10 }, { kind: 'shade', lvl: 9 }], boss: true, bg: 'chapel', music: 'boss' } },
+            { battle: { enemies: [{ kind: 'shade', lvl: 7 }, { kind: 'shadeLord', lvl: 9 }, { kind: 'shade', lvl: 7 }], boss: true, bg: 'chapel', music: 'boss' } },
             { flash: 'white' }, { music: 'victory' },
             'Sister Elara: The cellar is quiet. Praise the dawn — and you, stranger, who carry it.',
             'Sister Elara: The Order foresaw this. Aldric\'s old letter said one would come. I\'m coming with you; you\'ll need someone who can mend more than metal.',
