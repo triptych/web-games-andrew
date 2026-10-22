@@ -1,7 +1,6 @@
 // The DOM layer: screens, the HUD, settings and the touch deck. Reads the sim; never changes it.
 
-import { VERSION, TREASURES, N_SCREENS, LIVES_MAX } from './config.js';
-import { getWorld } from './sim/world.js';
+import { VERSION, TREASURES, LIVES_MAX } from './config.js';
 
 const $ = (id) => document.getElementById(id);
 const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
@@ -13,7 +12,6 @@ export class UI {
         this.stack = [];                   // open screens, top last
         this.touchOn = false;
         this.shownScore = 0;
-        this.mapT = 0;
         $('version').textContent = 'v' + VERSION;
 
         // A press that began outside a screen (the finger that opened it) must not click inside it
@@ -103,25 +101,6 @@ export class UI {
         const lives = $('hud-lives');
         if (lives.dataset.n !== String(lv)) { lives.dataset.n = lv; lives.textContent = '♥'.repeat(lv) || '-'; }
         $('hud-loot').textContent = `${G.got.reduce((a, b) => a + b, 0)}/${TREASURES}`;
-        this.mapT -= dt;
-        if (this.mapT <= 0) { this.mapT = 0.2; this.drawMap(G); }
-    }
-
-    drawMap(G) {
-        const c = $('hud-map'), g = c.getContext('2d');
-        const world = getWorld(G.seed);
-        g.clearRect(0, 0, c.width, c.height);
-        const w = c.width / N_SCREENS;
-        for (let i = 0; i < N_SCREENS; i++) {
-            const s = world.screens[i];
-            g.fillStyle = G.visited[i] ? '#7a45ff' : '#2a1055';
-            g.fillRect(i * w, 6, w - 0.5, 4);
-            const t = s.treasure;
-            if (t && G.got[t.id]) { g.fillStyle = '#ffe66d'; g.fillRect(i * w, 2, w, 3); }
-            else if (t && G.visited[i]) { g.fillStyle = '#ff2a9d'; g.fillRect(i * w, 2, w, 3); }
-        }
-        g.fillStyle = '#25f4ee';
-        g.fillRect(G.screen * w - 1, 0, w + 2, 12);
     }
 
     setTouch(on, playing = !$('hud').hidden) {

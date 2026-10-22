@@ -292,6 +292,8 @@ export class View {
         g.globalAlpha = 0.2 * (1 - this.tunnelAmt); g.fillRect(0, CEIL, W, H - CEIL);
         g.globalAlpha = 1;
 
+        this.drawMap(g, G, time);
+
         // the clock: red edges pulse in the last minute
         if (G.left < 60 && !G.over) {
             g.globalAlpha = (0.18 + 0.22 * tri(time * (G.left < 20 ? 2.4 : 1.2))) * (this.calm ? 0.5 : 1);
@@ -306,6 +308,41 @@ export class View {
         g.globalAlpha = 1;
 
         this.present(time);
+    }
+
+    /**
+     * The overmap, in the picture at the upper right: the ring of 96 screens as a dial. Visited
+     * screens glow, treasures show as gold (found) or pink (seen, still there), and the player is
+     * the cyan block. Underground the dial lights the lane of screens the tunnel hops along.
+     */
+    drawMap(g, G, time) {
+        const K = 0.8;                              // the dial's scale
+        const cx = W - 38 * K - 2, cy = 38 * K + 5;
+        const world = getWorld(G.seed);
+        const under = G.p.layer === 'tunnel';
+        g.globalAlpha = 0.78; disc(g, cx, cy, Math.round(38 * K), '#07020f'); g.globalAlpha = 1;
+        g.strokeStyle = 'rgba(255,42,157,0.7)'; g.lineWidth = 1;
+        g.beginPath(); g.arc(cx, cy, 38.5 * K, 0, TAU); g.stroke();
+        for (let i = 0; i < N_SCREENS; i++) {
+            const a = -Math.PI / 2 + (i / N_SCREENS) * TAU, ca = Math.cos(a), sa = Math.sin(a);
+            const lane = under && i % 3 === G.screen % 3;
+            const col = G.visited[i] ? (lane ? C.orange : '#c9a8ff') : (lane ? '#8a4a22' : '#4a2a8a');
+            for (const r of [25 * K, 27.5 * K]) px(g, cx + ca * r - 1, cy + sa * r - 1, 2, 2, col);
+            const t = world.screens[i].treasure;
+            if (t && (G.got[t.id] || G.visited[i])) {
+                px(g, cx + ca * 32 * K - 1, cy + sa * 32 * K - 1, 2, 2, G.got[t.id] ? C.yellow : C.pink);
+            }
+        }
+        // the player: a spoke from the centre and a bright block on the ring
+        const a = -Math.PI / 2 + (G.screen / N_SCREENS) * TAU, ca = Math.cos(a), sa = Math.sin(a);
+        g.globalAlpha = 0.5; line(g, cx + ca * 10 * K, cy + sa * 10 * K, cx + ca * 23 * K, cy + sa * 23 * K, C.cyan, 1); g.globalAlpha = 1;
+        const pulse = tri(time * 2);
+        px(g, cx + ca * 26 * K - 2, cy + sa * 26 * K - 2, 4, 4, under ? C.orange : C.cyan);
+        px(g, cx + ca * 26 * K - 1, cy + sa * 26 * K - 1, 2, 2, C.white);
+        g.globalAlpha = 0.4 + 0.4 * pulse; px(g, cx + ca * 31 * K - 1, cy + sa * 31 * K - 1, 2, 2, under ? C.orange : C.cyan); g.globalAlpha = 1;
+        // the middle: where you are and how much you have found
+        drawText(g, String(G.screen).padStart(2, '0'), cx, cy - 11, C.white, { align: 'center', scale: 2, shadow: '#000' });
+        drawText(g, G.got.reduce((n, v) => n + v, 0) + '/24', cx, cy + 5, C.yellow, { align: 'center', shadow: '#000' });
     }
 
     present(time) {

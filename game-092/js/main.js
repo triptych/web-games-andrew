@@ -102,6 +102,7 @@ document.getElementById('over-title-btn').addEventListener('click', () => { audi
 function startGame(g) {
     G = g;
     demoBot = null;
+    for (const k of Object.keys(seen)) delete seen[k];     // the counts are for this game, not the title demo's
     for (const id of [...ui.stack]) ui.closeScreen(id);
     // a focused button would swallow Space and Enter for the whole game
     document.activeElement?.blur?.();

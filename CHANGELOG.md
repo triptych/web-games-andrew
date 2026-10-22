@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **NEONFALL** (game-092): the overmap is now drawn inside the game picture at the upper right (about 20% of the screen's width) instead of a tiny DOM strip above it: a dial of the 96 screens with visited screens lit, treasures gold (found) or pink (seen), the player as a pulsing block, the screen number and the loot count in the middle, and underground the lane the tunnel hops along lit orange ([view.js](game-092/js/view/view.js)). It gets the CRT look and the pause button moves into the HUD row.
+
+### Changed
+- **NEONFALL** (game-092): the overmap is now drawn inside the game picture at the upper right (a dial about 16% of the picture's width) instead of a tiny DOM strip above it: the 96 screens as a ring with visited screens lit, treasures gold (found) or pink (seen), the player as a pulsing block, the screen number and the loot count in the middle, and underground the lane the tunnel hops along lit orange ([view.js](game-092/js/view/view.js)). It gets the CRT look, and the pause button moves into the HUD row.
+
 ### Fixed
 - **NEONFALL** (game-092): a rolling log could hit Harry the moment he entered a screen. The 0.35 s grace only covered the first instant; a log heading at him from just ahead arrived as it ended. Entering a screen or respawning now picks a phase of the log clock (`G.logShift`) where no log can reach him for the first 1.5 s, running on or standing ([game.js](game-092/js/sim/game.js)); [simtest.mjs](game-092/dev/simtest.mjs) enters every log screen both ways at 13 clock phases (6,604 arrivals) and fails without the fix.
 

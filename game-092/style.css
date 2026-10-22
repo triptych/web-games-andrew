@@ -62,14 +62,11 @@ html, body {
 #hud .cell > span:last-child { font-size: 13px; color: #fff; white-space: nowrap; }
 #hud-time.low { color: #ff5d6c; animation: pulse 0.5s steps(2) infinite; }
 #hud-lives { color: var(--accent); letter-spacing: 0.1em; }
-#hud .ibtn { pointer-events: auto; position: fixed; right: calc(8px + var(--safe-r)); top: calc(44px + var(--safe-t)); padding: 0; width: 44px; }
-#hud-map { width: 192px; height: 12px; image-rendering: pixelated; opacity: 0.9; }
+#hud .ibtn { pointer-events: auto; padding: 0; width: 44px; }
 @keyframes pulse { 50% { opacity: 0.45; } }
 @media (min-width: 700px) {
     #hud { top: calc(8px + var(--safe-t)); left: calc(112px + var(--safe-l)); gap: 4px 22px; }
-    #hud .ibtn { top: calc(8px + var(--safe-t)); }
     #hud .cell > span:last-child { font-size: 15px; }
-    #hud-map { position: static; }
 }
 
 /* ---------------------------------------------------------------- touch deck */
