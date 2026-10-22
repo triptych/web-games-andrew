@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Dawnshard sprites</title>
+<style>body{background:#6a7a8a;margin:0;padding:12px;font:12px monospace;color:#fff}canvas{image-rendering:pixelated;margin:2px;background:#8a9aaa}.row{display:flex;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px}</style></head>
+<body><div id="out"></div>
+<script type="module">
+import { CHARS } from '../js/sim/data/classes.js';
+import { ACTORS } from '../js/sim/data/story.js';
+import { drawHero, BATTLE_POSES } from '../js/view/heroes.js';
+const out = document.getElementById('out');
+const q = new URLSearchParams(location.search);
+const scale = +(q.get('s') || 3);
+const only = q.get('c');
+const add = (row, px) => { const c = px.toCanvas(); c.style.width = c.width * scale + 'px'; c.style.height = c.height * scale + 'px'; row.appendChild(c); };
+for (const ch of Object.values(CHARS)) {
+  if (only && !only.split(',').includes(ch.id)) continue;
+  const h = document.createElement('div'); h.textContent = ch.name; out.appendChild(h);
+  const row = document.createElement('div'); row.className = 'row'; out.appendChild(row);
+  for (const v of ['down', 'up']) for (let f = 0; f < 3; f++) add(row, drawHero(ch.look, v, f));
+  for (let f = 0; f < 3; f++) add(row, drawHero(ch.look, 'side', f));
+  const row2 = document.createElement('div'); row2.className = 'row'; out.appendChild(row2);
+  for (const p of BATTLE_POSES) add(row2, drawHero(ch.look, 'side', 1, p));
+}
+window.READY = true;
+</script></body></html>
