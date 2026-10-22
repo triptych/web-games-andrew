@@ -21,26 +21,39 @@ const HEAD = { rx: 0.125, ry: 0.17, rz: 0.15, cy: 0.17 };
 const PI = Math.PI;
 const gauss = (d) => Math.exp(-d * d);
 
-/** The skull: an ellipsoid with a tapered jaw, a brow, a nose, lips, a chin and eye sockets. */
+// [y from the head's centre, half-width, half-depth, forward shift of the ring, squareness]
+const PROF = [
+    [-0.168, 0.036, 0.062, 0.058, 2.6], [-0.158, 0.05, 0.078, 0.05, 2.6], [-0.138, 0.068, 0.098, 0.034, 2.6], [-0.108, 0.088, 0.118, 0.018, 2.5], [-0.07, 0.106, 0.134, 0.008, 2.4],
+    [-0.02, 0.118, 0.147, 0.0, 2.2], [0.04, 0.125, 0.152, -0.004, 2.1], [0.1, 0.122, 0.15, -0.006, 2.0], [0.145, 0.106, 0.14, -0.008, 2.0], [0.17, 0.07, 0.115, -0.01, 2.0], [0.18, 0.03, 0.07, -0.01, 2.0], [0.184, 0.004, 0.01, -0.01, 2.0],
+];
+/** The skull profile as n smooth rings, grown by `s` (hair and beard shells are slightly larger). */
+function profRings(s = 1, n = 30, lift = 0) {
+    const out = [];
+    for (let i = 0; i < n; i++) {
+        const f = (i / (n - 1)) * (PROF.length - 1), k = Math.min(PROF.length - 2, Math.floor(f)), t = f - k;
+        const A = PROF[k], B = PROF[k + 1], m = (j) => A[j] + (B[j] - A[j]) * t;
+        out.push({ y: m(0) * s + lift, rx: Math.max(0.003, m(1) * s), rz: Math.max(0.006, m(2) * s), z: m(3) * s, sq: m(4) });
+    }
+    return out;
+}
+
+/**
+ * The skull, built ring by ring from the chin up so the jaw is a real shape: a flat, forward chin,
+ * a jaw that narrows toward it, cheekbones, a wide brow and a rounded crown. Then a nose, brow
+ * ridge, lips and eye sockets are pushed out of the front.
+ */
 function headGeo() {
-    const { rx, ry, rz } = HEAD;
-    const g = ball(rx, ry, rz, { seg: 32, rings: 24 }, (x, y, z, o) => {
-        const ny = y / ry;
-        const jt = smooth(0.1, -1, ny);
-        x *= 1 - 0.36 * Math.pow(jt, 1.15);
-        z *= 1 - 0.1 * jt;
-        if (z < 0) z *= 1.05;
-        x *= 1 + 0.05 * gauss((ny + 0.05) / 0.35);
+    const g = loft(profRings(1, 34), { seg: 40, caps: true });
+    deform(g, (x, y, z, o) => {
         if (z > 0) {
             z += 0.034 * gauss(Math.hypot(x / 0.02, (y + 0.012) / 0.034));               // nose
             z += 0.012 * gauss(Math.hypot(x / 0.026, (y + 0.03) / 0.012));               // tip
             z += 0.008 * gauss(((y - 0.062) / 0.02)) * gauss(x / 0.1);                   // brow
             for (const sd of [-1, 1]) z -= 0.007 * gauss(Math.hypot((x - sd * 0.054) / 0.03, (y - 0.014) / 0.02)); // sockets
             z += 0.007 * gauss(Math.hypot(x / 0.032, (y + 0.09) / 0.012));               // lips
-            z += 0.013 * gauss(Math.hypot(x / 0.03, (y + 0.15) / 0.028));                // chin
             z -= 0.006 * gauss(Math.hypot(x / 0.04, (y + 0.118) / 0.01));                // under-lip dent
         }
-        o[0] = x; o[1] = y * (1 + 0.025 * jt); o[2] = z;
+        o[0] = x; o[1] = y; o[2] = z;
     });
     planarUV(g, 0, 0, FACE.w, FACE.h);
     g.translate(0, HEAD.cy, 0);
@@ -57,7 +70,8 @@ function hairParts(style, color) {
     const { rx, ry, rz } = HEAD, c = HEAD.cy;
     const R = [rx * 1.07, ry * 1.06, rz * 1.09];
     // a skull cap whose lower edge is bent onto the hairline: high at the brow, low at the nape
-    const cap = ball(...R, { seg: 48, rings: 36 }, (x, y, z, o) => {
+    const cap = loft(profRings(1.07, 36, 0.004), { seg: 48 });
+    deform(cap, (x, y, z, o) => {
         const front = smooth(-0.01, 0.09, z);
         const hf = Math.max(-0.005, ry * (0.7 - 0.9 * Math.pow(Math.abs(x / rx), 3)));
         const hb = -0.085 + 0.085 * smooth(rx * 0.68, rx * 1.0, Math.abs(x));
@@ -262,8 +276,8 @@ export function buildHuman(look = {}) {
     head.add(part(bake(hp), { mat: hairM, outline: 0.007 }));
     if (L.beard) {
         const { rx, ry, rz } = HEAD;
-        const b = ball(rx * 1.07, ry * 1.04, rz * 1.1, { seg: 26, rings: 18 }, (x, y, z, o) => { o[0] = x; o[1] = y; o[2] = z + 0.02 * smooth(-0.04, -0.15, y) * (z > 0 ? 1 : 0); });
-        carve(b, (x, y, z) => (z > -0.02 && y < -0.045 && y > -0.2 && !(y > -0.085 && Math.abs(x) < 0.055 && z > 0.1)) || (z < -0.02 && y < -0.1 && Math.abs(x) > 0.06));
+        const b = loft(profRings(1.06, 30, 0), { seg: 36 });
+        carve(b, (x, y, z) => (z > -0.01 && y < -0.045 && y > -0.2 && !(y > -0.085 && Math.abs(x) < 0.055 && z > 0.1)) || (z < -0.01 && y < -0.1 && Math.abs(x) > 0.06));
         b.translate(0, HEAD.cy, 0);
         const must = [-1, 1].map((sd) => tube([[sd * 0.004, 0.103, 0.158], [sd * 0.03, 0.095, 0.158], [sd * 0.062, 0.076, 0.14]], [0.014, 0.017, 0.006], { seg: 6, n: 8, flat: 0.7 }));
         const bg = [b, ...must]; for (const g of bg) tint(g, '#ffffff', { ao: 0.25 });
