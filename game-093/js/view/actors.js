@@ -10,6 +10,24 @@ import { blobTexture, iconTexture } from './sprites.js';
 const PX = 1 / 32;                        // world units per sprite pixel on the field
 const geo = new THREE.PlaneGeometry(1, 1); geo.translate(0, 0.5, 0);
 let blobTex = null;
+/** Fraction of a sprite's height that is empty below its lowest opaque pixel (cached on the texture). */
+function footPad(tex) {
+    if (!tex) return 0;
+    const ud = tex.userData || (tex.userData = {});
+    if (ud.pad !== undefined) return ud.pad;
+    const c = tex.image;
+    let pad = 0;
+    try {
+        if (c && c.getContext) {
+            const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+            let last = -1;
+            for (let y = c.height - 1; y >= 0 && last < 0; y--) for (let x = 0; x < c.width; x++) if (d[(y * c.width + x) * 4 + 3] > 40) { last = y; break; }
+            pad = last < 0 ? 0 : (c.height - 1 - last) / c.height;
+        }
+    } catch { /* tainted or unreadable: leave as is */ }
+    return (ud.pad = pad);
+}
+const _dir = new THREE.Vector3();
 const icons = {};
 
 export class Billboard {
@@ -52,14 +70,26 @@ diffuseColor.rgb *= uTint;`)
             this.tex = tex; this.mat.map = tex; this.mat.emissiveMap = tex; this.depth.map = tex; this.mat.needsUpdate = true; this.depth.needsUpdate = true;
         }
         this.mesh.scale.set(this.w * this.flip, this.h, 1);
+        // sink the mesh by the transparent rows under the feet, so the sprite stands on the ground instead of hovering
+        this.mesh.position.y = -footPad(this.tex) * this.h;
         const b = Math.max(0.7, this.w * 0.8);
         this.blob.scale.set(b, b * 0.7, 1);
     }
     setFlip(f) { this.flip = f; this.mesh.scale.x = this.w * f; }
-    place(x, y, z, yaw) { this.group.position.set(x, y, z); this.mesh.rotation.y = yaw; }
+    /** Stand at (x, y, z) facing the camera. The plane leans back by the camera's pitch so it is parallel to the screen: upright
+     *  on the picture, not just upright in the world (a world-vertical plane splays outward at the top when seen from above). */
+    place(x, y, z, yaw) {
+        this.group.position.set(x, y, z);
+        const cam = Billboard.cam;
+        let pitch = 0;
+        if (cam) { cam.getWorldDirection(_dir); pitch = Math.asin(Math.max(-1, Math.min(1, -_dir.y))); }
+        this.mesh.rotation.set(-pitch * Billboard.lean, yaw, 0, 'YXZ');
+    }
     flash(a, r = 1, g = 1, b = 1) { this.uniforms.uFlash.value.set(r, g, b, a); }
     dispose() { this.mat.dispose(); this.depth.dispose(); this.blob.geometry.dispose(); this.blob.material.dispose(); }
 }
+
+Billboard.cam = null; Billboard.lean = 1;
 
 /** Ground height under a point, blended between tile centres so walking up a step is a ramp, not a pop. */
 export function groundY(map, x, z) {

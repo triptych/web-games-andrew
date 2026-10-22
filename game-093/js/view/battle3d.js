@@ -360,7 +360,7 @@ export class BattleView {
             if (c.t >= c.end) { while (c.i < c.steps.length) { c.steps[c.i][1](); c.i++; } this.cur = null; }
         }
         // units
-        const cam = this.camera;
+        const cam = this.camera; Billboard.cam = cam;
         for (const u of this.units.values()) {
             if (u.tw) {
                 u.tw.t += sdt;

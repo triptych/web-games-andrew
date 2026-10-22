@@ -291,7 +291,7 @@ void main(){ vec2 p = vUv * vec2(3.0, 4.0) + vec2(uTime * (0.6 + uK * 0.25), -uT
         const sh = stage.shake, sx = (Math.random() - 0.5) * sh * sh * 0.4, sz = (Math.random() - 0.5) * sh * sh * 0.4;
         cam.position.set(this.look.x + Math.sin(this.yaw) * Math.cos(pitch) * dist + sx, this.look.y + Math.sin(pitch) * dist, this.look.z + Math.cos(this.yaw) * Math.cos(pitch) * dist + sz);
         cam.fov = kind.fov * (this.lookAt ? 0.82 : 1); cam.updateProjectionMatrix();
-        cam.lookAt(this.look);
+        cam.lookAt(this.look); Billboard.cam = cam;
         // sky and lights
         const th = map.kind === 'dungeon' ? dungeonTheme(map.id) : null;
         const st = { clock: G.clock, light: G.story.light, px: this.look.x, py: this.look.y, pz: this.look.z, time };

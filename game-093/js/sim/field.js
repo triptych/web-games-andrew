@@ -34,13 +34,35 @@ function canStand(G, map, x, y, fromH, r = PLAYER_R) {
 }
 const hAt = (map, x, y) => map.hgt[Math.max(0, Math.min(map.h - 1, Math.floor(y))) * map.w + Math.max(0, Math.min(map.w - 1, Math.floor(x)))];
 
-function npcBlocks(map, x, y, self) {
+function npcBlocks(map, x, y, self, fx = null, fy = null) {
     for (const n of map.npcs) {
         if (n === self || n.kind === 'pet') continue;
         const r = n.kind === 'boss' ? 0.9 * Math.min(1.6, n.scale || 1) : 0.42;
-        if (Math.hypot(n.x - x, n.y - y) < r) return true;
+        const d = Math.hypot(n.x - x, n.y - y);
+        // already overlapping? stepping away is always allowed
+        if (d < r && !(fx !== null && d >= Math.hypot(n.x - fx, n.y - fy))) return true;
     }
     return false;
+}
+
+/** Walk into a villager and they shuffle aside (never a boss), so nobody can wall a street off. True if the way is now clear. */
+function shove(G, map, x, y, dx, dy) {
+    const fh = hAt(map, G.px, G.py);
+    for (const n of map.npcs) {
+        if (n.kind === 'pet' || n.kind === 'boss') continue;
+        if (Math.hypot(n.x - x, n.y - y) >= 0.42) continue;
+        const l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
+        let moved = false;
+        // shuffle ahead of the walker, or failing that to either side
+        for (const [ax, ay] of [[ux, uy], [-uy, ux], [uy, -ux]]) {
+            const nx = n.x + ax * 0.12, ny = n.y + ay * 0.12;
+            if (!walkableAt(G, map, Math.floor(nx), Math.floor(ny), fh) || npcBlocks(map, nx, ny, n)) continue;
+            n.x = nx; n.y = ny; moved = true; break;
+        }
+        if (!moved) return false;
+        n.hx = n.x; n.hy = n.y; n.state = 'idle'; n.timer = 1.2; n.moving = false;
+    }
+    return !npcBlocks(map, x, y);
 }
 
 export function movePlayer(G, inp, dt) {
@@ -53,9 +75,9 @@ export function movePlayer(G, inp, dt) {
     const fromH = hAt(map, G.px, G.py);
     let moved = 0;
     const nx = G.px + vx * speed * dt, ny = G.py + vy * speed * dt;
-    if (canStand(G, map, nx, G.py, fromH) && !npcBlocks(map, nx, G.py)) { moved += Math.abs(nx - G.px); G.px = nx; }
+    if (canStand(G, map, nx, G.py, fromH) && (!npcBlocks(map, nx, G.py, null, G.px, G.py) || shove(G, map, nx, G.py, nx - G.px, 0))) { moved += Math.abs(nx - G.px); G.px = nx; }
     else if (map.lockIdx) lockTouch(G, map, nx, G.py);
-    if (canStand(G, map, G.px, ny, fromH) && !npcBlocks(map, G.px, ny)) { moved += Math.abs(ny - G.py); G.py = ny; }
+    if (canStand(G, map, G.px, ny, fromH) && (!npcBlocks(map, G.px, ny, null, G.px, G.py) || shove(G, map, G.px, ny, 0, ny - G.py))) { moved += Math.abs(ny - G.py); G.py = ny; }
     else if (map.lockIdx) lockTouch(G, map, G.px, ny);
     G.dir = dirOf(vx, vy);
     G.moving = moved > 0;
