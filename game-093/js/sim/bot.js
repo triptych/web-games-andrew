@@ -392,3 +392,10 @@ function grindSpot(G, map, obj) {
     }
     return best || [cx, cy];
 }
+
+/** One command for the hero whose turn it is, chosen by the bot's battle logic: the player's Auto battle. True if a command was given. */
+export function autoBattleStep(G, bot) {
+    if (!G.battle || G.battle.result || !canAct(G)) return false;
+    battleInput(G, bot, { x: 0, y: 0, a: false });
+    return true;
+}

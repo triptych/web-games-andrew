@@ -5,7 +5,7 @@ import { newGame, step, act, enterMap, curMap, serialize, deserialize } from './
 import { nearestInteractable } from './sim/field.js';
 import * as Q from './sim/quests.js';
 import { objective } from './sim/game.js';
-import { makeBot, botInput } from './sim/bot.js';
+import { makeBot, botInput, autoBattleStep } from './sim/bot.js';
 import { LOCS } from './sim/world/locations.js';
 import { ITEMS } from './sim/data/items.js';
 import { CHARS } from './sim/data/classes.js';
@@ -30,12 +30,13 @@ let G = newGame(+params.get('seed') || 7);
 let mode = 'title';            // 'title' | 'play'
 let acc = 0, last = performance.now(), time = 0, aPress = false;
 let autoplay = null;
+const autoBot = makeBot({ skill: 1 });
 const counts = {};
 let autosaveT = 0, wantSave = false;
 
 // ------------------------------------------------------------------ the UI's window onto the game
 const env = {
-    G: () => G, act: (a) => act(G, a), audio, view, lib: view.lib, settings, fast: FAST,
+    G: () => G, act: (a) => act(G, a), autoStep: () => autoBattleStep(G, autoBot), audio, view, lib: view.lib, settings, fast: FAST,
     saveSettings: () => saveSettings(settings), applySettings, hasSave, saveInfo,
     deleteSave: () => { clearSave(); if (mode === 'title') ui.title(hasSave(), saveInfo()); },
     doSave: () => saveGame(G), doLoad, toTitle, titleAct,
@@ -68,8 +69,8 @@ Object.assign(view.hooks, {
     turn: (e) => bu.turn(e),
     ended: (e) => { if (!autoplay) bu.ended(e); },
     victory: () => { audio.playMusic('silence'); audio.jingle('victory'); },
-    battleStart: (ev) => { bu.begin(ev); ui.showHud(false); audio.play('encounter'); audio.playMusic(ev.music || (ev.boss ? 'boss' : 'battle')); },
-    battleEnd: () => { bu.end(); ui.showHud(mode === 'play'); audio.playMusic(mapMusic()); },
+    battleStart: (ev) => { bu.begin(ev); ui.showHud(false); $('touch').hidden = true; audio.play('encounter'); audio.playMusic(ev.music || (ev.boss ? 'boss' : 'battle')); },
+    battleEnd: () => { bu.end(); ui.showHud(mode === 'play'); applySettings(); audio.playMusic(mapMusic()); },
     area: (map, e) => { ui.area(map, e); },
     marks: (g, map) => {
         const out = {};
