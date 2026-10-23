@@ -26,7 +26,7 @@ void main(){
 
 const skyFrag = /* glsl */ `
 uniform vec3 uZenith, uHorizon, uSunColor, uSunDir, uMoonDir, uGround;
-uniform float uTime, uNight, uCloud, uStars;
+uniform float uTime, uNight, uCloud, uStars, uOvercast, uFlash;
 varying vec3 vDir;
 ${GLSL_NOISE}
 void main(){
@@ -40,25 +40,26 @@ void main(){
   float sd = dot(d, uSunDir);
   float sunUp = smoothstep(-0.12, 0.05, uSunDir.y);
   // mie glow around the sun, stronger near the horizon
-  col += uSunColor * (pow(max(sd, 0.0), 6.0) * 0.35 + pow(max(sd, 0.0), 64.0) * 0.6) * sunUp * (0.6 + 0.8 * exp(-uSunDir.y * 6.0));
-  col += uSunColor * smoothstep(0.99955, 0.99975, sd) * 18.0 * sunUp;
+  float clearSky = 1.0 - uOvercast;
+  col += uSunColor * (pow(max(sd, 0.0), 6.0) * 0.35 + pow(max(sd, 0.0), 64.0) * 0.6) * sunUp * (0.6 + 0.8 * exp(-uSunDir.y * 6.0)) * clearSky;
+  col += uSunColor * smoothstep(0.99955, 0.99975, sd) * 18.0 * sunUp * clearSky * clearSky;
 
   // stars
-  if (uStars > 0.001 && d.y > -0.02) {
+  if (uStars * clearSky > 0.001 && d.y > -0.02) {
     vec3 c = floor(d * 260.0);
     float h = hash13(c);
     float star = step(0.9965, h) * smoothstep(0.55, 0.0, length(fract(d * 260.0) - 0.5));
     float tw = 0.6 + 0.4 * sin(uTime * (2.0 + h * 5.0) + h * 40.0);
     vec3 sc = mix(vec3(0.75, 0.85, 1.0), vec3(1.0, 0.85, 0.7), hash13(c + 3.1));
-    col += sc * star * tw * uStars * 3.0 * smoothstep(-0.02, 0.2, d.y);
+    col += sc * star * tw * uStars * clearSky * 3.0 * smoothstep(-0.02, 0.2, d.y);
     // milky band
     float band = exp(-pow(dot(d, normalize(vec3(0.3, 0.2, 1.0))) * 3.2, 2.0));
-    col += vec3(0.25, 0.3, 0.45) * band * fbm(d.xz * 6.0 + d.y * 3.0) * uStars * 0.35;
+    col += vec3(0.25, 0.3, 0.45) * band * fbm(d.xz * 6.0 + d.y * 3.0) * uStars * clearSky * 0.35;
     // aurora curtains in the northern sky
     float ah = smoothstep(0.08, 0.35, d.y) * smoothstep(0.85, 0.35, d.y) * smoothstep(0.1, -0.6, d.z);
     float a = fbm(vec2(d.x * 3.0 + uTime * 0.02, d.y * 0.6)) ;
     float curtain = pow(smoothstep(0.35, 0.75, a), 2.0) * (0.6 + 0.4 * sin(d.x * 24.0 + uTime * 0.3 + a * 8.0));
-    col += mix(vec3(0.1, 0.9, 0.55), vec3(0.55, 0.3, 1.0), smoothstep(0.2, 0.7, d.y)) * curtain * ah * uStars * 0.55;
+    col += mix(vec3(0.1, 0.9, 0.55), vec3(0.55, 0.3, 1.0), smoothstep(0.2, 0.7, d.y)) * curtain * ah * uStars * clearSky * 0.55;
   }
 
   // moon
@@ -68,22 +69,27 @@ void main(){
     vec3 mp = normalize(cross(uMoonDir, vec3(0, 1, 0)));
     vec2 mu = vec2(dot(d - uMoonDir, mp), dot(d - uMoonDir, cross(mp, uMoonDir))) * 900.0;
     float crater = fbm(mu * 0.25 + 3.0);
-    col = mix(col, vec3(0.92, 0.94, 1.0) * (0.75 + crater * 0.4) * 2.2, moonDisc * smoothstep(-0.05, 0.05, uMoonDir.y));
+    col = mix(col, vec3(0.92, 0.94, 1.0) * (0.75 + crater * 0.4) * 2.2, moonDisc * smoothstep(-0.05, 0.05, uMoonDir.y) * clearSky);
   }
-  col += vec3(0.5, 0.6, 0.85) * pow(max(md, 0.0), 120.0) * 0.5 * uNight;
+  col += vec3(0.5, 0.6, 0.85) * pow(max(md, 0.0), 120.0) * 0.5 * uNight * clearSky;
 
   // clouds on a virtual plane
+  float dens = 0.0;
   if (d.y > 0.0) {
     vec2 uv = d.xz / (d.y + 0.12) * 1.3 + vec2(uTime * 0.006, uTime * 0.0025);
     float n = fbm(uv * 1.6);
     float n2 = fbm(uv * 4.0 + 9.0);
-    float dens = smoothstep(0.5 - uCloud * 0.25, 0.85, n + n2 * 0.25) * smoothstep(0.0, 0.18, d.y);
+    dens = smoothstep(0.5 - uCloud * 0.25, 0.85, n + n2 * 0.25) * smoothstep(0.0, 0.18, d.y);
+    // a weather front fills the sky with a heavy, darker deck
+    dens = max(dens, uOvercast * smoothstep(0.0, 0.1, d.y) * (0.8 + 0.3 * n));
     vec3 lit = mix(uHorizon * 1.1, uSunColor * 1.2 + uZenith * 0.25, 0.55 + 0.45 * pow(max(sd, 0.0), 3.0));
     lit = mix(lit, vec3(0.08, 0.1, 0.16), uNight * 0.85);
     vec3 shade = mix(lit * 0.55, uZenith * 0.6, 0.3);
     vec3 cc = mix(lit, shade, smoothstep(0.55, 0.95, n2));
-    col = mix(col, cc, dens * 0.85);
+    cc *= 1.0 - 0.45 * uOvercast;
+    col = mix(col, cc, dens * mix(0.85, 1.0, uOvercast));
   }
+  col += vec3(0.65, 0.72, 1.0) * uFlash * (0.25 + dens * 0.9);
   gl_FragColor = vec4(col, 1.0);
 }`;
 
@@ -109,6 +115,8 @@ function palette(e, out) {
     out.ground.copy(a.gnd).lerp(b.gnd, t);
 }
 
+const _g = new THREE.Color();
+
 export class Sky {
     constructor(scene, renderer, quality) {
         this.scene = scene;
@@ -123,12 +131,14 @@ export class Sky {
             zenith: new THREE.Color(), horizon: new THREE.Color(), sunColor: new THREE.Color(), ground: new THREE.Color(),
             night: 0, day: 1, sunElev: 0.5,
         };
+        // set by Weather: overcast and fog (0..1), extra fog density, lightning flash
+        this.wx = { overcast: 0, fog: 0, density: 0, flash: 0, snow: 0 };
 
         this.uniforms = {
             uZenith: { value: this.state.zenith }, uHorizon: { value: this.state.horizon },
             uSunColor: { value: this.state.sunColor }, uGround: { value: this.state.ground },
             uSunDir: { value: this.state.sunDir }, uMoonDir: { value: this.state.moonDir },
-            uTime: { value: 0 }, uNight: { value: 0 }, uCloud: { value: 0.3 }, uStars: { value: 0 },
+            uTime: { value: 0 }, uNight: { value: 0 }, uCloud: { value: 0.3 }, uStars: { value: 0 }, uOvercast: { value: 0 }, uFlash: { value: 0 },
         };
         const mat = new THREE.ShaderMaterial({ uniforms: this.uniforms, vertexShader: skyVert, fragmentShader: skyFrag, side: THREE.BackSide, depthWrite: false, fog: false });
         this.dome = new THREE.Mesh(new THREE.SphereGeometry(1500, 48, 24), mat);
@@ -184,13 +194,16 @@ export class Sky {
         s.moonDir.set(-Math.cos(a) * 0.9, -Math.sin(a) * 0.85, -0.3).normalize();
         s.sunElev = s.sunDir.y;
         palette(s.sunElev, s);
+        this.applyWeather(s);
         s.night = 1 - smoothstep(-0.14, 0.06, s.sunElev);
-        s.day = smoothstep(-0.05, 0.3, s.sunElev);
+        s.day = smoothstep(-0.05, 0.3, s.sunElev) * (1 - 0.3 * this.wx.overcast);
 
         const u = this.uniforms;
         u.uTime.value = this.clock;
         u.uNight.value = s.night;
         u.uStars.value = smoothstep(0.35, 1, s.night);
+        u.uOvercast.value = this.wx.overcast;
+        u.uFlash.value = this.wx.flash;
 
         // the key light is the sun by day and the moon by night
         const sunUp = smoothstep(-0.06, 0.08, s.sunElev);
@@ -198,11 +211,11 @@ export class Sky {
         if (sunUp > 0.001 || moonUp < 0.001) {
             s.lightDir.copy(s.sunDir);
             this.sun.color.copy(s.sunColor);
-            this.sun.intensity = sunUp * (1.2 + 2.2 * smoothstep(0.0, 0.4, s.sunElev));
+            this.sun.intensity = sunUp * (1.2 + 2.2 * smoothstep(0.0, 0.4, s.sunElev)) * (1 - 0.75 * this.wx.overcast);
         } else {
             s.lightDir.copy(s.moonDir);
             this.sun.color.setRGB(0.55, 0.65, 1.0);
-            this.sun.intensity = moonUp * 0.55;
+            this.sun.intensity = moonUp * 0.55 * (1 - 0.7 * this.wx.overcast);
         }
         if (s.lightDir.y < 0.06) s.lightDir.y = 0.06;
         s.lightDir.normalize();
@@ -219,12 +232,26 @@ export class Sky {
         this.hemi.groundColor.set(0x3d4a2e).multiplyScalar(0.4 + 0.6 * s.day);
         this.hemi.intensity = 0.35 + 1.1 * s.day + s.night * 0.9;
         if (s.night > 0.5) this.hemi.color.setRGB(0.25, 0.32, 0.55);
+        this.hemi.intensity += this.wx.flash * 5 + this.wx.snow * 0.25;
+        this.sun.intensity += this.wx.flash * 2.5;
 
         this.scene.fog.color.copy(s.horizon);
+        this.scene.fog.density = 0.0042 + this.wx.density;
         this.dome.position.copy(focus);
 
         this.envTimer += dt;
         if (this.envTimer > 1.5 && Math.abs(this.lastEnvElev - s.sunElev) > 0.02) this.refreshEnv();
+    }
+
+    /** Mutes the palette toward flat grey cloud, and into one colour in fog. */
+    applyWeather(s) {
+        const { overcast: o, fog: f } = this.wx;
+        if (o <= 0.001) return;
+        const grey = (c, k) => { const l = (c.r * 0.3 + c.g * 0.59 + c.b * 0.11) * k; return c.lerp(_g.setRGB(l, l, l * 1.03), Math.min(1, o * 0.8)); };
+        grey(s.horizon, 1 - 0.2 * o);
+        grey(s.zenith, 0.85);
+        grey(s.sunColor, 1);
+        s.zenith.lerp(s.horizon, f * 0.85);
     }
 
     refreshEnv() {

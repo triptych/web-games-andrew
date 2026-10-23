@@ -12,6 +12,7 @@ import { Island } from './terrain.js';
 import { setTextureQuality } from './textures.js';
 import { makeMaterials } from './materials.js';
 import { Sky } from './sky.js';
+import { Weather, WEATHER } from './weather.js';
 import { Water } from './water.js';
 import { buildArchitecture } from './architecture.js';
 import { buildPaths } from './paths.js';
@@ -237,6 +238,10 @@ async function boot() {
     await nextFrame();
     const vines = new Vines(world);
     const audio = new AudioEngine();
+    const weather = new Weather(scene, sky, audio, quality);
+    const wxName = params.get('w') || store.get('weather', 'clear');
+    weather.set(WEATHER[wxName] ? wxName : 'clear');
+    if (params.has('w')) { Object.assign(weather.v, weather.target); }
     const hologram = new Hologram(world, games);
     const particles = new Particles(world);
     particles.build();
@@ -531,6 +536,7 @@ async function boot() {
         document.getElementById('time-slider').value = Math.round(sky.time * 1440);
         document.getElementById('music-vol').value = audio.musicVol;
         document.getElementById('time-pause').textContent = sky.paused ? 'Resume' : 'Pause';
+        syncWeather();
         document.getElementById('quality-low').checked = quality.tier === 'low';
     });
     map.onPick = ({ statue, place }) => {
@@ -555,6 +561,12 @@ async function boot() {
 
     document.getElementById('time-slider').addEventListener('input', (e) => sky.setTime(e.target.value / 1440));
     document.querySelectorAll('[data-time]').forEach((b) => b.addEventListener('click', () => sky.setTime(Number(b.dataset.time))));
+    const syncWeather = () => document.querySelectorAll('[data-weather]').forEach((b) => b.classList.toggle('active', b.dataset.weather === weather.name));
+    document.querySelectorAll('[data-weather]').forEach((b) => b.addEventListener('click', () => {
+        weather.set(b.dataset.weather);
+        store.set('weather', b.dataset.weather);
+        syncWeather();
+    }));
     document.getElementById('time-pause').addEventListener('click', (e) => {
         sky.paused = !sky.paused;
         e.target.textContent = sky.paused ? 'Resume' : 'Pause';
@@ -745,6 +757,8 @@ async function boot() {
         camPos.copy(entered && !intro ? controls.pos : camera.position);
         if (!entered || intro) camPos.y = world.groundAt(camPos.x, camPos.z);
 
+        const wind = weather.update(dt, t, camPos, renderer.domElement.height, below);
+        windUniforms.uWind.value = 1 + wind * 2.2;
         sky.update(dt, camPos);
         const s = sky.state;
         const night = s.night;

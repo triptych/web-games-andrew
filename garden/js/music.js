@@ -220,6 +220,22 @@ export class AudioEngine {
     }
 
     /** Called every frame with the world state. */
+    /** Rain hush and wind swell for the current weather (both 0..1). */
+    setWeather(rain, wind, indoors = false) {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        this.rainGain.gain.setTargetAtTime(indoors || this.underground ? 0 : rain * 0.07, t, 0.8);
+        this.windGain.gain.setTargetAtTime((0.025 + this.night * 0.01 + wind * 0.05) * (this.underground ? 0 : 1), t, 0.8);
+    }
+
+    /** A rolling crack of thunder; `far` (0..1) softens and muffles it. */
+    thunder(far = 0.5) {
+        if (!this.ctx || this.muted || this.underground) return;
+        const t = this.ctx.currentTime;
+        this._noiseBurst(t, 0.5, 900 - far * 500, 0.7, 0.28 * (1 - far * 0.6), 'lowpass');
+        this._noiseBurst(t + 0.15, 3.2 + far * 2, 170 - far * 60, 0.6, 0.55 * (1 - far * 0.5), 'lowpass');
+    }
+
     update(night, shoreDist) {
         this.night = night;
         this.shore = shoreDist;
@@ -230,7 +246,6 @@ export class AudioEngine {
         const near = Math.max(0, Math.min(1, 1 - (-shoreDist) / 45));
         const up = this.underground ? 0 : 1;
         this.surfGain.gain.setTargetAtTime((0.05 + near * 0.32) * up, t, 0.5);
-        this.windGain.gain.setTargetAtTime((0.025 + night * 0.01) * up, t, 1);
         this.crickets.gain.setTargetAtTime(night * 0.045 * up, t, 2);
     }
 
@@ -307,6 +322,17 @@ export class AudioEngine {
         wind.connect(wf).connect(this.windGain).connect(this.master);
         wind.start();
         wl.start();
+        // rain: a hush of high noise, silent until the weather turns
+        const rain = ctx.createBufferSource();
+        rain.buffer = this.noise;
+        rain.loop = true;
+        const rf = ctx.createBiquadFilter();
+        rf.type = 'highpass';
+        rf.frequency.value = 1400;
+        this.rainGain = ctx.createGain();
+        this.rainGain.gain.value = 0;
+        rain.connect(rf).connect(this.rainGain).connect(this.master);
+        rain.start();
         // crickets: a high tone chopped into chirps
         const cr = ctx.createOscillator();
         cr.frequency.value = 4300;
