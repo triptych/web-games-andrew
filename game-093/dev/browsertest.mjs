@@ -128,6 +128,17 @@ async function desktop() {
     await until(page, () => !document.querySelector('#menu'), 'Esc closes the menu');
     await until(page, (t) => __ds.G.t > t, 'and the game runs again', 30000, t0);
 
+    // keys only: Z picks a dialogue choice and a menu button
+    await Q(page, () => { __ds.ui.line = { who: 'Test', text: 'x' }; __ds.ui.showChoices(['First', 'Second']); window.__picked = null; __ds.act = () => true; document.querySelectorAll('#choices button').forEach((b, i) => b.addEventListener('click', () => { window.__picked = i; })); });
+    await key(page, 'ArrowDown'); await page.waitForTimeout(150); await key(page, 'KeyZ');
+    await until(page, () => window.__picked === 1, 'Down then Z picks the second dialogue choice (no mouse)');
+    await Q(page, () => { __ds.ui.endLine(); });
+    await key(page, 'KeyP');
+    await until(page, () => document.querySelector('#menu'), 'P opens the menu');
+    await key(page, 'ArrowDown'); await page.waitForTimeout(150); await key(page, 'KeyZ');
+    await until(page, () => document.querySelector('#menu .main h2')?.textContent.length > 0, 'Z on a menu tab opens its pane');
+    await key(page, 'KeyX');
+    await until(page, () => !document.querySelector('#menu'), 'X backs out of the menu');
     // a battle, by real keys
     await startBattle(page);
     await until(page, () => __ds.ui.battle.mode === 'main', 'the hero\'s command window opens', 60000);

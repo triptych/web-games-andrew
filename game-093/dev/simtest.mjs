@@ -94,6 +94,29 @@ if (want('rules')) {
         ok(map.exits.length > 0, 'the town has exits');
         void x0;
     }
+    section('rules: standing off from cliffs');
+    {
+        // a sprite leans back, so in towns the party keeps further from the foot of a cliff than from a wall
+        const G = Gm.newGame(5); drain(G); G.scene = null; G.mode = 'field'; G.story.i = 99;
+        const { WALKABLE } = await import('../js/sim/world/tiles.js');
+        let tested = 0, worst = 9;
+        for (const t of ['emberfield', 'silverbrook', 'portazura']) {
+            G.map = t; const m = Gm.curMap(G);
+            for (let y = 2; y < m.h - 2 && tested < 40; y++) for (let x = 2; x < m.w - 2 && tested < 40; x++) {
+                const i = y * m.w + x, up = (y - 1) * m.w + x;
+                // a low standable tile with a cliff straight north of it
+                if (!WALKABLE[m.tile[i]] || m.blk[i] || !WALKABLE[m.tile[up]] || m.blk[up] || m.hgt[up] - m.hgt[i] <= 1) continue;
+                G.px = x + 0.5; G.py = y + 0.95; G.trail = [];
+                const ok0 = !m.npcs.some((n) => Math.hypot(n.x - G.px, n.y - G.py) < 1.5);
+                if (!ok0) continue;
+                for (let k = 0; k < 120; k++) Gm.step(G, { x: 0, y: -1, a: false }, DT);
+                worst = Math.min(worst, G.py - y);
+                tested++;
+            }
+        }
+        ok(tested > 0, `found cliffs to walk into (${tested})`);
+        ok(worst >= 0.45, `the party stops at least 0.45 tile from a cliff foot (closest ${worst.toFixed(2)})`);
+    }
     section('rules: shields, weaknesses and Break');
     {
         const { G, B } = lab(11, ['kael'], 8, [{ kind: 'slime', lvl: 3 }]);

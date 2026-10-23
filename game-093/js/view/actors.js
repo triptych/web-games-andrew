@@ -84,12 +84,15 @@ diffuseColor.rgb *= uTint;`)
         let pitch = 0;
         if (cam) { cam.getWorldDirection(_dir); pitch = Math.asin(Math.max(-1, Math.min(1, -_dir.y))); }
         this.mesh.rotation.set(-pitch * Billboard.lean, yaw, 0, 'YXZ');
+        // lean about a point a little up the body, not the feet: the head goes back less, so it clips into walls and cliffs behind less
+        const k = Math.sin(pitch * Billboard.lean) * this.h * Billboard.pivot;
+        this.group.position.x += Math.sin(yaw) * k; this.group.position.z += Math.cos(yaw) * k;
     }
     flash(a, r = 1, g = 1, b = 1) { this.uniforms.uFlash.value.set(r, g, b, a); }
     dispose() { this.mat.dispose(); this.depth.dispose(); this.blob.geometry.dispose(); this.blob.material.dispose(); }
 }
 
-Billboard.cam = null; Billboard.lean = 1;
+Billboard.cam = null; Billboard.lean = 1; Billboard.pivot = 0.3;
 
 /** Ground height under a point, blended between tile centres so walking up a step is a ramp, not a pop. */
 export function groundY(map, x, z) {

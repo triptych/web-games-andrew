@@ -28,8 +28,22 @@ export function walkableAt(G, map, tx, ty, fromH) {
     if (Math.abs(map.hgt[i] - fromH) > 1) return false;
     return true;
 }
+/** A standing sprite leans back and its head overlaps whatever is behind it, so keep a little further from the foot of a cliff
+ *  (walkable ground that is too high to step up to) than from a wall. */
+const CLIFF_MARGIN = 0.2;     // PLAYER_R + this stays under half a tile, so the middle of every tile is still standable
+function nearCliff(map, x, y, fromH) {
+    if (map.kind !== 'town') return false;
+    const m = PLAYER_R + CLIFF_MARGIN;
+    for (const [dx, dy] of [[-m, -m], [m, -m], [-m, m], [m, m]]) {
+        const tx = Math.floor(x + dx), ty = Math.floor(y + dy);
+        if (tx < 0 || ty < 0 || tx >= map.w || ty >= map.h) continue;
+        const i = ty * map.w + tx;
+        if (WALKABLE[map.tile[i]] && !map.blk[i] && map.hgt[i] - fromH > 1) return true;
+    }
+    return false;
+}
 function canStand(G, map, x, y, fromH, r = PLAYER_R) {
-    return walkableAt(G, map, Math.floor(x - r), Math.floor(y - r), fromH) && walkableAt(G, map, Math.floor(x + r), Math.floor(y - r), fromH)
+    return !nearCliff(map, x, y, fromH) && walkableAt(G, map, Math.floor(x - r), Math.floor(y - r), fromH) && walkableAt(G, map, Math.floor(x + r), Math.floor(y - r), fromH)
         && walkableAt(G, map, Math.floor(x - r), Math.floor(y + r), fromH) && walkableAt(G, map, Math.floor(x + r), Math.floor(y + r), fromH);
 }
 const hAt = (map, x, y) => map.hgt[Math.max(0, Math.min(map.h - 1, Math.floor(y))) * map.w + Math.max(0, Math.min(map.w - 1, Math.floor(x)))];
