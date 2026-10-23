@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { smoothstep, lerp, angleDiff, TAU } from './util.js';
 import { EYE } from './controls.js';
 
-const BOARD = 1.6, MORPH = 3.2, FLIGHT = 84, UNMORPH = 2.6, LEAVE = 1.6;
+const BOARD = 1.6, MORPH = 3.2, FLIGHT = 168, UNMORPH = 2.6, LEAVE = 1.6;
 const LIFT = 1.4;       // how far it rises on its own before it takes off
 const CRUISE = 26;      // height of the circuit above the sea
 const SEAT = new THREE.Vector3(0, 0.95, 0.5);
