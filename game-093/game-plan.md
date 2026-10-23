@@ -20,3 +20,4 @@ The sim never touches the DOM, the clock or `Math.random`; the view reads `G` an
 
 ## Changelog
 - 1.0.0 — first release.
+- 1.1.0 — pixel-art pass: volumetric hue-shifted shading, contact lines and selective outlines in the painter; heroes and villagers redrawn (faces, hair, tunics, robes, helms, weapons); every monster and boss redrawn with fur, scale, stone and bark textures.
