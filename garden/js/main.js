@@ -668,7 +668,7 @@ async function boot() {
     });
 
     boat.onPhase = (phase) => {
-        if (phase === 'morph') audio.sparkle();
+        if (phase === 'transform') audio.sparkle();
         else if (phase === 'flight') ui.hint('Press Esc or tap to land early', 6000);
         else if (phase === 'leave') audio.click();
     };
