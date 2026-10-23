@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="THE LONG HELIX — a text adventure for the Hercules monochrome adapter: a geneticist alone on a distant planet slowly learns what its life is for.">
+    <title>The Long Helix</title>
+    <link rel="icon" href="data:,">
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-phosphor="amber" data-crt="on">
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <div id="crt">
+        <!-- Power-on self-test and the floppy boot -->
+        <div id="boot" class="boot" hidden>
+            <pre id="boot-text" aria-live="off"></pre>
+            <p class="boot-hint">PRESS ANY KEY OR TAP TO SKIP</p>
+        </div>
+
+        <!-- The game -->
+        <main id="game" data-tab="story" hidden>
+            <header id="status">
+                <span id="st-place" class="st-place">HALCYON OUTPOST</span>
+                <span id="st-clock" class="st-clock">DAY 41 06:12</span>
+                <span id="st-eta" class="st-eta">ARDENT: DAY 60</span>
+                <button id="btn-journal" class="ibtn" type="button" aria-label="Open the journal">JOURNAL</button>
+                <button id="btn-menu" class="ibtn" type="button" aria-label="Open the menu">MENU</button>
+            </header>
+
+            <nav id="tabs" aria-label="Panels">
+                <button type="button" data-tab="story" class="on">STORY</button>
+                <button type="button" data-tab="sheet">SHEET</button>
+                <button type="button" data-tab="pack">PACK</button>
+            </nav>
+
+            <section id="story" class="panel-main" tabindex="-1" aria-label="Story">
+                <div id="transcript"></div>
+            </section>
+
+            <aside id="side">
+                <section id="sheet" class="box" aria-label="Character sheet">
+                    <h2>CHARACTER</h2>
+                    <div class="who">DR. ALIX NAVARRO</div>
+                    <div class="spec" id="sh-spec">—</div>
+                    <dl id="sh-stats"></dl>
+                    <dl id="sh-vitals"></dl>
+                </section>
+                <section id="pack" class="box" aria-label="Inventory">
+                    <h2>PACK <span id="pk-count">0/6</span></h2>
+                    <ol id="pk-list"></ol>
+                    <div id="pk-detail" class="detail" hidden>
+                        <p id="pk-desc"></p>
+                        <div class="row-btns">
+                            <button type="button" id="pk-use" class="btn small">USE</button>
+                            <button type="button" id="pk-drop" class="btn small">DROP</button>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+        </main>
+
+        <!-- Title -->
+        <div id="title" class="screen opaque" hidden>
+            <div class="sheet title-sheet">
+                <canvas id="title-art" class="art" width="240" height="116" aria-label="A double helix"></canvas>
+                <h1 class="logo">THE LONG HELIX</h1>
+                <p class="tag">A TEXT ADVENTURE FOR THE HERCULES MONOCHROME ADAPTER</p>
+                <nav class="menu" id="title-menu">
+                    <button data-act="continue" id="btn-continue" class="btn primary" hidden>CONTINUE</button>
+                    <button data-act="new" class="btn primary">NEW GAME</button>
+                    <button data-act="howto" class="btn">HOW TO PLAY</button>
+                    <button data-act="settings" class="btn">SETTINGS</button>
+                </nav>
+                <p class="endings" id="endings-line"></p>
+                <div class="version"><span id="version"></span> · VESPER SOFTWARE WORKS · 720×348</div>
+            </div>
+        </div>
+
+        <div id="howto" class="screen" hidden>
+            <div class="sheet">
+                <h2>HOW TO PLAY</h2>
+                <p>You are Dr. Alix Navarro, the only person left at Halcyon Outpost on the planet Vesper. Read each passage, then choose what to do.</p>
+                <table>
+                    <tr><td>1 – 9 / click / tap</td><td>Choose</td></tr>
+                    <tr><td>↑ ↓ and Enter</td><td>Move and choose</td></tr>
+                    <tr><td>Any key / tap</td><td>Finish the typing at once</td></tr>
+                    <tr><td>J</td><td>Journal</td></tr>
+                    <tr><td>C / I</td><td>Character sheet / pack</td></tr>
+                    <tr><td>Esc</td><td>Menu</td></tr>
+                </table>
+                <p><b>Checks.</b> Risky things roll two dice and add the attribute they rely on. Meet the target and it works. Some items add a point.</p>
+                <p><b>Health and clarity.</b> At zero health, the story ends. At zero clarity, so does something else. Rest at camp; stims and focus tablets help.</p>
+                <p><b>Genome decoded.</b> Every real discovery moves this bar, and the last choices of the game care how far it has gone.</p>
+                <p><b>The pack.</b> It holds six things. Click an item to use or drop it. Your progress is saved to the disk automatically.</p>
+                <div class="sheet-foot"><button class="btn primary" data-close>GOT IT</button></div>
+            </div>
+        </div>
+
+        <div id="settings" class="screen" hidden>
+            <div class="sheet">
+                <h2>SETTINGS</h2>
+                <label class="row">KEYBOARD AND DISK <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+                <label class="row">MONITOR HUM <input type="range" id="set-hum" min="0" max="1" step="0.05"></label>
+                <label class="row">TYPING SPEED
+                    <select id="set-speed"><option value="slow">SLOW</option><option value="normal">NORMAL</option><option value="fast">FAST</option><option value="instant">INSTANT</option></select>
+                </label>
+                <label class="row">PHOSPHOR
+                    <select id="set-phosphor"><option value="amber">AMBER</option><option value="green">GREEN</option><option value="white">PAPER-WHITE</option></select>
+                </label>
+                <label class="row">SCANLINES AND FLICKER
+                    <select id="set-crt"><option value="on">ON</option><option value="off">OFF</option></select>
+                </label>
+                <button id="set-delete" class="btn danger">DELETE SAVED GAME</button>
+                <div class="sheet-foot"><button class="btn primary" data-close>DONE</button></div>
+            </div>
+        </div>
+
+        <div id="menu" class="screen" hidden>
+            <div class="sheet">
+                <h2>PAUSED</h2>
+                <nav class="menu" id="menu-list">
+                    <button data-act="resume" class="btn primary">RESUME</button>
+                    <button data-act="journal" class="btn">JOURNAL</button>
+                    <button data-act="howto" class="btn">HOW TO PLAY</button>
+                    <button data-act="settings" class="btn">SETTINGS</button>
+                    <button data-act="quit" class="btn">SAVE TO DISK AND QUIT</button>
+                </nav>
+            </div>
+        </div>
+
+        <div id="journal" class="screen" hidden>
+            <div class="sheet wide">
+                <h2>FIELD JOURNAL <span id="jn-count"></span></h2>
+                <div id="jn-list"></div>
+                <div class="sheet-foot"><button class="btn primary" data-close>CLOSE</button></div>
+            </div>
+        </div>
+
+        <div id="toasts" aria-live="polite"></div>
+    </div>
+    <noscript><p class="noscript">THE LONG HELIX needs JavaScript.</p></noscript>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

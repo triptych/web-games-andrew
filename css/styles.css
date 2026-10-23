@@ -1199,6 +1199,17 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 190, 80, 0.6);
 }
 
+.game-preview.the-long-helix,
+.carousel-slide-bg.the-long-helix {
+    background: radial-gradient(ellipse at 50% 60%, #3a2400 0%, #140c00 55%, #000 100%);
+}
+
+.game-card.the-long-helix .play-button {
+    background: linear-gradient(135deg, #ffb000, #c47a00 60%, #4a2c00);
+    color: #1a0f00;
+    box-shadow: 0 0 14px rgba(255, 176, 0, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

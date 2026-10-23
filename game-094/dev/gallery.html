@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>The Long Helix: scene gallery</title>
+<style>
+    body { background: #000; color: #ffb000; font: 13px monospace; margin: 12px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 12px; }
+    canvas { width: 100%; image-rendering: pixelated; border: 1px solid #553800; display: block; }
+    h1 { font-size: 15px; }
+</style></head><body>
+<h1>THE LONG HELIX: every scene, 240×116, 1-bit (serve the repo root, open /game-094/dev/gallery.html)</h1>
+<div class="grid" id="g"></div>
+<script type="module">
+    import { renderArt, paintArt, SCENE_KEYS } from '../js/view/art.js';
+    for (const k of SCENE_KEYS) {
+        const d = document.createElement('div');
+        const c = document.createElement('canvas'); c.width = 240; c.height = 116;
+        paintArt(c, renderArt(k, 240, 116), 116, [255, 176, 0]);
+        d.append(c, k);
+        document.getElementById('g').append(d);
+    }
+    window.done = true;
+</script></body></html>
