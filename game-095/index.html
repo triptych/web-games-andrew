@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#120a20">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Hauntly Manor — a lighthearted point-and-click Halloween mystery. Four friends, one haunted house, one ghost who just wants friends. Drawn entirely in code with three.js.">
+    <title>Hauntly Manor</title>
+    <link rel="icon" href="data:,">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Henny+Penny&family=Nunito:wght@500;700;800&display=swap">
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="Hauntly Manor game view"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" hidden>
+        <div id="room-chip"><span id="room-icon" aria-hidden="true"></span><span id="room-name"></span></div>
+        <div id="goal"></div>
+        <div id="hud-btns">
+            <button id="btn-glint" class="ibtn" aria-label="Show what I can tap" aria-pressed="false" title="Show what I can tap (G)">✨</button>
+            <button id="btn-hint" class="ibtn" aria-label="Hint" title="Hint (H)">💡</button>
+            <button id="btn-journal" class="ibtn" aria-label="Journal" title="Journal (J)">📓</button>
+            <button id="btn-map" class="ibtn" aria-label="Map" title="Map (M)">🗺️</button>
+            <button id="btn-pause" class="ibtn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+        </div>
+    </div>
+    <div id="tip" hidden></div>
+    <div id="using" hidden><span id="using-text"></span><button id="using-cancel" class="btn small">Put away</button></div>
+
+    <!-- Pack -->
+    <div id="pack" hidden>
+        <div id="slots" role="list" aria-label="Your pack"></div>
+        <div id="pack-empty">Your pack is empty. Look around!</div>
+    </div>
+
+    <!-- Dialogue and talk choices -->
+    <div id="dialogue" hidden role="status" aria-live="polite">
+        <canvas id="face" width="64" height="64" aria-hidden="true"></canvas>
+        <div id="say">
+            <div id="say-who"></div>
+            <div id="say-text"></div>
+        </div>
+        <div id="say-more" aria-hidden="true">▼</div>
+    </div>
+    <div id="choices" hidden></div>
+
+    <!-- Puzzle overlays -->
+    <div id="lock" class="screen overlay" hidden>
+        <div class="sheet">
+            <h2>Pantry lock</h2>
+            <p class="dim">Three numbers: how old she was, which day her party was, and how many friends she invited.</p>
+            <div class="wheels">
+                <div class="wheel"><button class="ibtn" data-w="0" data-d="1" aria-label="First number up">▲</button><output id="w0">0</output><button class="ibtn" data-w="0" data-d="-1" aria-label="First number down">▼</button><small>Age</small></div>
+                <div class="wheel"><button class="ibtn" data-w="1" data-d="1" aria-label="Second number up">▲</button><output id="w1">0</output><button class="ibtn" data-w="1" data-d="-1" aria-label="Second number down">▼</button><small>Party day</small></div>
+                <div class="wheel"><button class="ibtn" data-w="2" data-d="1" aria-label="Third number up">▲</button><output id="w2">0</output><button class="ibtn" data-w="2" data-d="-1" aria-label="Third number down">▼</button><small>Guests</small></div>
+            </div>
+            <div class="sheet-foot"><button class="btn" data-close>Close</button><button id="lock-try" class="btn primary">Try it</button></div>
+        </div>
+    </div>
+
+    <div id="melody" class="screen overlay" hidden>
+        <div class="sheet">
+            <h2>The music box</h2>
+            <p class="dim">Play the four notes of Winnie's lullaby.</p>
+            <div id="melody-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <div id="melody-keys">
+                <button class="mkey" data-n="0" style="--c:#ff6b8b" aria-label="Rose note"></button>
+                <button class="mkey" data-n="1" style="--c:#ffb43a" aria-label="Amber note"></button>
+                <button class="mkey" data-n="2" style="--c:#4fd6a0" aria-label="Mint note"></button>
+                <button class="mkey" data-n="3" style="--c:#56b8ff" aria-label="Sky note"></button>
+                <button class="mkey" data-n="4" style="--c:#a57bff" aria-label="Violet note"></button>
+            </div>
+            <div class="sheet-foot"><button class="btn" data-close>Close</button><button id="melody-reset" class="btn">Start over</button></div>
+        </div>
+    </div>
+
+    <!-- Screens -->
+    <div id="title" class="screen">
+        <div class="sheet title-sheet">
+            <div class="kicker">A sleepover mystery</div>
+            <h1 class="logo">Hauntly<br>Manor</h1>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Game</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version"><span id="version"></span> · every picture and sound is made in code</div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <ul class="how">
+                <li><b>Tap</b> anything in the room to look at it or pick it up.</li>
+                <li>To <b>use an item</b>, tap it in your pack, then tap something in the room. Tap two pack items to <b>combine</b> them.</li>
+                <li>Tap <b>doors</b> to move between rooms. 🗺️ jumps straight to any room you have opened.</li>
+                <li>📓 holds your clues, the case board and the codes. 💡 gives a hint, a little clearer each time you ask. ✨ makes everything you can tap sparkle.</li>
+                <li>Nothing here can hurt you or get lost. Wrong tries just get a silly line.</li>
+                <li>Look out for a shy little ghost hiding in every room.</li>
+            </ul>
+            <table>
+                <tr><td>← → / A D</td><td>Pick a hotspot</td></tr>
+                <tr><td>Enter / Space</td><td>Tap it, or the next line</td></tr>
+                <tr><td>1 – 9</td><td>Pick an item from the pack</td></tr>
+                <tr><td>G</td><td>✨ sparkle on everything you can tap</td></tr>
+                <tr><td>J · M · H · Esc</td><td>Journal · map · hint · pause</td></tr>
+            </table>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Text speed
+                <select id="set-text"><option value="normal">Normal</option><option value="fast">Fast</option><option value="instant">Instant</option></select>
+            </label>
+            <label class="row">Picture quality
+                <select id="set-quality"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select>
+            </label>
+            <label class="row">Calm mode (no flickers, shakes or swoops) <input type="checkbox" id="set-calm"></label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="journal" class="screen" hidden>
+        <div class="sheet journal-sheet">
+            <div class="tabs" role="tablist">
+                <button class="tab" role="tab" data-tab="goal">Goal</button>
+                <button class="tab" role="tab" data-tab="clues">Clues</button>
+                <button class="tab" role="tab" data-tab="case">Case</button>
+                <button class="tab" role="tab" data-tab="map">Map</button>
+            </div>
+            <div id="journal-body"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="over" class="screen" hidden>
+        <div class="sheet over-sheet">
+            <div class="kicker">The end</div>
+            <h2 id="over-title">Happy Birthday, Winnie!</h2>
+            <p id="over-text"></p>
+            <p id="over-stats" class="dim"></p>
+            <div class="sheet-foot"><button id="over-title-btn" class="btn">Title</button><button id="over-again" class="btn primary">Play Again</button></div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">Hauntly Manor needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

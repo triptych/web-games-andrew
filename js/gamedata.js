@@ -1432,6 +1432,22 @@ const games = [
             { emoji: '🖥️', label: 'Hercules monochrome' },
             { emoji: '🎨', label: 'DOM & Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-095',
+        title: 'Hauntly Manor',
+        description: "A lighthearted point-and-click Halloween mystery, drawn entirely in code with three.js. Four friends stay the night in a haunted house on Hollow Hill: Maya with her notebook, nervous Theo with his thermometer, June the artist, and Dev the joker. Doors slam, a music box tinkles by itself, something giggles. Raccoon, drafty pipes, a prankster... or something else? Search six cut-away dioramas (the foyer, parlor, kitchen, library, attic and ballroom, each built and textured by procedural code), tap things to look and take, carry items in your pack, combine ink with a quill, crack a pantry lock from three clues, pull books in the order a rhyme gives, play a lullaby on a music box, bake a cake, and collect evidence in your journal until you can name the culprit on the case board. The culprit is Winnie, a shy eleven-year-old ghost whose birthday party nobody came to a hundred and thirty years ago, and the last act is throwing it: cake, streamers, music and an invitation, then a talk with her where every choice is kind. Spooky but never scary, with no way to lose an item or get stuck; a hint button that gets clearer each time you ask; a shy little ghost hiding in every room; a seeded house that changes the key's hiding place, the codes, the books and the melody each game; a procedural music-box waltz; touch, mouse, keyboard and gamepad. A bot plays every seed to the end and proves there is never a dead end.",
+        icon: '👻',
+        folder: 'game-095',
+        version: '1.0.0',
+        cssClass: 'hauntly-manor',
+        genre: 'story',
+        tags: [
+            { emoji: '🔍', label: 'Mystery' },
+            { emoji: '🎃', label: 'Halloween' },
+            { emoji: '👆', label: 'Point & click' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 
