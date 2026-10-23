@@ -231,9 +231,28 @@ export class AudioEngine {
     /** A rolling crack of thunder; `far` (0..1) softens and muffles it. */
     thunder(far = 0.5) {
         if (!this.ctx || this.muted || this.underground) return;
-        const t = this.ctx.currentTime;
-        this._noiseBurst(t, 0.5, 900 - far * 500, 0.7, 0.28 * (1 - far * 0.6), 'lowpass');
-        this._noiseBurst(t + 0.15, 3.2 + far * 2, 170 - far * 60, 0.6, 0.55 * (1 - far * 0.5), 'lowpass');
+        const ctx = this.ctx, t = ctx.currentTime, near = 1 - far * 0.6;
+        // brown noise carries the low energy that white noise through a lowpass lacks
+        this.thunderBuf ??= this._noiseBuffer(8, true);
+        const src = ctx.createBufferSource();
+        src.buffer = this.thunderBuf;
+        const lp = ctx.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.setValueAtTime(1800 * near + 300, t);
+        lp.frequency.exponentialRampToValueAtTime(140, t + 5);
+        const g = ctx.createGain();
+        const peak = 2.6 * near;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(peak, t + 0.04);          // the crack
+        g.gain.exponentialRampToValueAtTime(peak * 0.35, t + 0.5);
+        for (let i = 0; i < 4; i++) {                              // the roll: swells that die away
+            const tt = t + 0.7 + i * (0.6 + Math.random() * 0.5);
+            g.gain.linearRampToValueAtTime(peak * (0.45 - i * 0.09) * (0.7 + Math.random() * 0.5), tt);
+        }
+        g.gain.exponentialRampToValueAtTime(0.001, t + 5.5);
+        src.connect(lp).connect(g).connect(this.master);
+        src.start(t, Math.random() * 2);
+        src.stop(t + 5.6);
     }
 
     update(night, shoreDist) {
