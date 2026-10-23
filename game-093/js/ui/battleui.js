@@ -228,8 +228,7 @@ export class BattleUI {
         }
         const dir = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' }[key];
         if (dir && this.win) { moveFocus(this.win, dir); audio.ui('move'); return true; }
-        if ((key === 'Enter' && (p.pad || p.touch)) || key === 'KeyZ') { document.activeElement?.click?.(); return true; }
-        if (key === 'Enter' && p.target !== 'BUTTON') { document.activeElement?.click?.(); return true; }
+        if (this.ui.confirmPress(p)) { document.activeElement?.click?.(); return true; }
         if (key === 'Escape' || key === 'KeyX' || key === 'Backspace') { if (this.mode === 'skills' || this.mode === 'items') this.openMain(); return true; }
         return true;
     }

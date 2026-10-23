@@ -60,6 +60,13 @@ export class UI {
     }
     back() { const t = this.top; if (!t) return false; if (t._back) { t._back(); return true; } this.close(t); return true; }
 
+    /** Z always confirms the focused button; Enter and Space do too, unless the browser is about to click that button itself. */
+    confirmPress(p) {
+        if (p.key === 'KeyZ') return true;
+        if (p.key !== 'Enter' && p.key !== 'Space') return false;
+        return !!(p.pad || p.touch) || p.target !== 'BUTTON';
+    }
+
     /** One press from the input queue. Returns true if the UI used it. */
     press(p) {
         const key = p.key, audio = this.env.audio;
@@ -68,7 +75,7 @@ export class UI {
             if (['Enter', 'Space', 'KeyZ'].includes(key) && !this.choicesEl) { this.advance(); return true; }
             if (this.choicesEl) {
                 if (['ArrowUp', 'ArrowDown'].includes(key)) { moveFocus(this.choicesEl, key === 'ArrowUp' ? 'up' : 'down'); audio.ui('move'); return true; }
-                if ((p.pad || p.touch) && (key === 'Enter')) { document.activeElement?.click?.(); return true; }
+                if (this.confirmPress(p)) { document.activeElement?.click?.(); return true; }
                 return true;
             }
             return true;
@@ -77,7 +84,7 @@ export class UI {
             const t = this.top;
             const dir = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' }[key];
             if (dir) { if (document.activeElement?.type === 'range' && (dir === 'left' || dir === 'right')) return false; moveFocus(t, dir); audio.ui('move'); return true; }
-            if ((key === 'Enter' && (p.pad || p.touch)) || (key === 'Enter' && p.target !== 'BUTTON')) { const a = document.activeElement; if (a && t.contains(a)) a.click?.(); return true; }
+            if (this.confirmPress(p)) { const a = document.activeElement; if (a && t.contains(a)) a.click?.(); return true; }
             if (key === 'Escape' || key === 'KeyX' || key === 'Backspace') { this.back(); return true; }
             if (key === 'KeyP' && t.id === 'menu') { this.back(); return true; }
             return true;
