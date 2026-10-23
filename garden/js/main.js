@@ -240,9 +240,11 @@ async function boot() {
     const vines = new Vines(world);
     const audio = new AudioEngine();
     const weather = new Weather(scene, sky, audio, quality);
-    const wxName = params.get('w') || store.get('weather', 'clear');
-    weather.set(WEATHER[wxName] ? wxName : 'clear');
-    if (params.has('w')) { Object.assign(weather.v, weather.target); }
+    if (WEATHER[params.get('w')]) {
+        weather.set(params.get('w'));
+        Object.assign(weather.v, weather.target);
+        weather.auto = false;
+    } else weather.rollFirst();
     const hologram = new Hologram(world, games);
     const particles = new Particles(world);
     particles.build();
@@ -570,9 +572,10 @@ async function boot() {
     document.getElementById('time-slider').addEventListener('input', (e) => sky.setTime(e.target.value / 1440));
     document.querySelectorAll('[data-time]').forEach((b) => b.addEventListener('click', () => sky.setTime(Number(b.dataset.time))));
     const syncWeather = () => document.querySelectorAll('[data-weather]').forEach((b) => b.classList.toggle('active', b.dataset.weather === weather.name));
+    weather.onChange = syncWeather;
     document.querySelectorAll('[data-weather]').forEach((b) => b.addEventListener('click', () => {
+        weather.auto = false;
         weather.set(b.dataset.weather);
-        store.set('weather', b.dataset.weather);
         syncWeather();
     }));
     document.getElementById('time-pause').addEventListener('click', (e) => {
