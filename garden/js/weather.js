@@ -14,6 +14,13 @@ export const WEATHER = {
     storm: { label: 'Thunderstorm', rain: 1, snow: 0, fog: 0.15, storm: 1 },
 };
 
+// How likely each kind of weather is when it turns; clear isn't in the list
+// because most of the time it simply stays clear.
+const ODDS = { rain: 5, fog: 4, snow: 3, storm: 2 };
+const FIRST_CHANCE = 0.15;  // weather already in place when you arrive
+const TURN_CHANCE = 0.12;   // clear skies turning, checked every few minutes
+const CLEAR_CHANCE = 0.55;  // bad weather passing, checked every few minutes
+
 const BOX = new THREE.Vector3(34, 22, 34);
 
 const rainVert = /* glsl */ `
@@ -81,6 +88,8 @@ export class Weather {
         this.v = { rain: 0, snow: 0, fog: 0, storm: 0 };
         this.target = { ...WEATHER.clear };
         this.lightningTimer = 8;
+        this.auto = true;          // wanders on its own until a preset is picked by hand
+        this.nextRoll = this.rollDelay();
         this.flashAge = 99;
         this.audioTimer = 0;
         this.tint = new THREE.Color();
@@ -131,6 +140,23 @@ export class Weather {
         scene.add(this.snow);
     }
 
+    rollDelay() {
+        return 150 + Math.random() * 210; // seconds
+    }
+
+    /** A weighted pick of rain, fog, snow or a thunderstorm. */
+    pickBad() {
+        let r = Math.random() * Object.values(ODDS).reduce((a, b) => a + b, 0);
+        for (const [name, w] of Object.entries(ODDS)) if ((r -= w) < 0) return name;
+        return 'rain';
+    }
+
+    /** Arrival weather: usually clear, occasionally not, and already settled. */
+    rollFirst() {
+        this.set(Math.random() < FIRST_CHANCE ? this.pickBad() : 'clear');
+        Object.assign(this.v, this.target);
+    }
+
     set(name) {
         const w = WEATHER[name];
         if (!w) return;
@@ -142,6 +168,13 @@ export class Weather {
 
     update(dt, t, camPos, viewportH, below) {
         const v = this.v, tg = this.target, sky = this.sky;
+        if (this.auto && (this.nextRoll -= dt) <= 0) {
+            this.nextRoll = this.rollDelay();
+            if (this.name === 'clear') {
+                if (Math.random() < TURN_CHANCE) this.set(this.pickBad());
+            } else if (Math.random() < CLEAR_CHANCE) this.set('clear');
+            this.onChange?.(this.name);
+        }
         for (const k in v) v[k] = damp(v[k], tg[k], 0.7, dt);
         for (const k in v) if (Math.abs(v[k] - tg[k]) < 0.002) v[k] = tg[k];
 
