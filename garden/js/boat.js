@@ -56,16 +56,21 @@ function oar(mat) {
 /** One wing, spreading along +x: a fan of tapering feathers on a leading spar. */
 function wing(mat, sparMat) {
     const g = new THREE.Group();
-    g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, 3.6, 6).rotateZ(Math.PI / 2).translate(1.8, 0.02, 0.04), sparMat));
     const n = 8;
     for (let i = 0; i < n; i++) {
         const t = i / (n - 1);
         const len = lerp(4.4, 2.2, t) * (1 - 0.08 * Math.sin(t * 3));
-        const f = new THREE.Mesh(new THREE.BoxGeometry(len, 0.015, lerp(0.34, 0.26, t)).translate(len / 2, 0, 0), mat);
+        const w = lerp(0.34, 0.26, t);
+        const f = new THREE.Mesh(new THREE.BoxGeometry(len, 0.015, w).translate(len / 2, 0, 0), mat);
         f.rotation.y = 0.3 + t * 0.8; // swept back like a fan
         f.rotation.z = 0.07 - t * 0.05;
         f.position.set(0.05, 0.005 * i, 0.04 + t * 0.06);
         g.add(f);
+        // the spar is the leading feather's own edge, so it can't stick out at its own angle
+        if (i === 0) {
+            const spar = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.045, len * 0.96, 6).rotateZ(-Math.PI / 2).translate(len * 0.48, 0.02, -w / 2), sparMat);
+            f.add(spar);
+        }
     }
     return g;
 }
@@ -391,12 +396,12 @@ export class Boat {
         }
         let k = 1, from = null, toPos = seat, toYaw = yaw, toPitch = pitch;
         if (this.phase === 'show') {
-            // a slow orbit round the boat from the dock side, easing out of the player's own view
+            // a slow orbit round the boat from the sea side, easing out of the player's own view
             const e = smoothstep(0, 1, this.t / SHOW);
-            const a = Math.PI + 0.55 - 1.5 * e;
+            const a = 0.25 + 1.25 * e; // from the open-water side swinging round to the bow, so the dock isn't in the way
             const hover = LIFT * smoothstep(0.45, 1, this.k);
-            const look = new THREE.Vector3(this.home.x, 0.7 + hover, this.home.z);
-            const pos = new THREE.Vector3(look.x + Math.cos(a) * 8.5, 2.3 + 1.6 * e + hover * 0.5, look.z + Math.sin(a) * 8.5);
+            const look = new THREE.Vector3(this.home.x, 0.9 + hover, this.home.z);
+            const pos = new THREE.Vector3(look.x + Math.cos(a) * 7.5, 3.6 + 1.4 * e + hover * 0.5, look.z + Math.sin(a) * 7.5);
             const dx = look.x - pos.x, dy = look.y - pos.y, dz = look.z - pos.z;
             const sYaw = Math.atan2(-dx, -dz), sPitch = Math.atan2(dy, Math.hypot(dx, dz));
             const kIn = smoothstep(0, 1, this.t / SHOW_IN);
