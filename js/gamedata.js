@@ -1416,6 +1416,22 @@ const games = [
             { emoji: '🗺️', label: 'Overmap & towns' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-094',
+        title: 'The Long Helix',
+        description: "A text adventure for a Hercules monochrome card, in vanilla JavaScript with no asset files. You are Dr. Alix Navarro, the only geneticist left at Halcyon Outpost on the planet Vesper, sixty-one light-years from help, and the sequencer has just told you that every living thing on the planet shares one genome. Read each passage as it types out to the clack of a keyboard, look at the 1-bit dithered picture drawn line by line to the chatter of a floppy drive, and pick from numbered choices. Check your character sheet (four attributes, health, clarity, and a genome-decoded meter for the mystery), manage a six-slot pack that cannot hold everything the locker offers, roll 2d6 against your attributes, and keep a journal of what the valley is telling you across the Moss Flats, the Sump, the Chorus Ridge, the Spires and the Lattice under them. Seven endings, from signing the Seed with your own hand to burning it, via a clock that ends the story on day 60 whether you have decided or not. Choose amber, green or paper-white phosphor, scanlines and flicker on or off, and how fast the typewriter goes. A bot that plays the whole story on every seed proves there is never a dead end.",
+        icon: '🧬',
+        folder: 'game-094',
+        version: '1.0.0',
+        cssClass: 'the-long-helix',
+        genre: 'story',
+        tags: [
+            { emoji: '📟', label: 'Text adventure' },
+            { emoji: '🧬', label: 'Genetics & mystery' },
+            { emoji: '🖥️', label: 'Hercules monochrome' },
+            { emoji: '🎨', label: 'DOM & Canvas 2D' }
+        ]
     }
 ];
 

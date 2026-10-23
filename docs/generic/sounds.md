@@ -934,3 +934,14 @@ shorter than 110 ms. Menus run the same `beat()` from a fixed-interval clock in 
   d[i] = (Math.random() * 2 - 1) * 0.6 * (i < n * 0.92 ? 1 : 1 - (i - n * 0.92) / (n * 0.08));   // 0.26 s
   ```
 - **The arcade around the cabinet** is its own bus: looped noise through a 520 Hz band-pass with a slow LFO (crowd murmur), and every 1.4–5 s a quiet, low-passed, hard-panned event from "another machine" — an attract-mode bleep run, a distant explosion, a coin drop. It sells the room far more than its cost, and has its own on/off option.
+
+## A 1987 PC: keyboard clacks, a PC speaker and a floppy drive (game-094 THE LONG HELIX)
+
+[game-094/js/audio.js](../../game-094/js/audio.js) makes an old computer out of one second of noise and a few oscillators. Everything runs through one `burst()` (looped noise through a biquad with a decay envelope) and one `tone()` (an enveloped oscillator).
+
+- **A key**: a 16 ms bandpassed noise burst at a random 2.6 to 5.4 kHz (the click) plus a 30 ms sine falling from about 170 Hz to 60 Hz (the thud). A space or return is lower and heavier. Rate-limit it to one per 22 ms or the typewriter's 260 characters a second turns into a buzz.
+- **The PC speaker**: a square wave through a 3.5 kHz low-pass at low volume, 30 to 70 ms. Menus, pick-ups and dice are all just the same beep at different pitches; dice are five random beeps 45 ms apart, then up (success) or down (failure).
+- **A floppy drive** has three parts. The spindle: looped noise through a 220 Hz bandpass, gain ramping up over 80 ms and down at the end. The head stepping: a train of a 95 to 120 Hz square buzz (22 ms, low-passed at 900 Hz) with a 3.5 kHz noise tick on top, one every 44 ms and jittered by 12 ms, which is the "brrrt" a seek makes. The settle: a falling sine and a low noise thump at the end. A scene load is 5 to 8 steps, a save 11 slower ones, the boot 26.
+- **A monitor's hum** is a 60 Hz and a 120 Hz sine at gain 0.05, under everything.
+- **A gesture is needed before any of it plays**, so the game opens on a black "press any key to switch on the monitor" screen. The power-on press is the gesture, and the boot show can then be heard.
+
