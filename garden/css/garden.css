@@ -385,6 +385,7 @@ kbd {
 .time-panel label { display: grid; gap: 6px; }
 .time-panel label.check { display: flex; align-items: center; gap: 8px; font-size: 0.98rem; color: var(--ink-dim); }
 .time-panel output { font: 600 1rem var(--sans); color: var(--gold-hi); margin-left: 0.4em; }
+.weather-row { display: grid; gap: 6px; }
 .time-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
 input[type="range"] { width: 100%; accent-color: var(--gold); min-height: 30px; }
 input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
