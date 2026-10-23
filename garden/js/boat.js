@@ -69,6 +69,27 @@ function wing(mat, sparMat) {
     return g;
 }
 
+// The same Gerstner swells the water shader draws (see water.js), so the hull can ride them.
+const SWELLS = [[1.0, 0.35, 24.0, 0.17, 0.6], [0.55, 0.85, 13.0, 0.09, 0.6], [-0.45, 0.9, 7.5, 0.05, 0.5], [0.9, -0.45, 4.1, 0.025, 0.4]].map(([dx, dz, L, A, Q]) => {
+    const l = Math.hypot(dx, dz), k = TAU / L;
+    return { dx: dx / l, dz: dz / l, k, c: Math.sqrt(9.8 / k), A, Q };
+});
+
+/** Height of the sea surface at (x, z); amp is the shader's shallow-water damping. */
+function swellAt(x, z, t, amp) {
+    // the shader pushes points sideways as well as up: undo that once to find the surface above (x, z)
+    let ox = 0, oz = 0;
+    for (const w of SWELLS) {
+        const co = Math.cos(w.k * (w.dx * x + w.dz * z - w.c * t));
+        ox += w.Q * w.A * amp * w.dx * co;
+        oz += w.Q * w.A * amp * w.dz * co;
+    }
+    const px = x - ox, pz = z - oz;
+    let y = 0;
+    for (const w of SWELLS) y += w.A * amp * Math.sin(w.k * (w.dx * px + w.dz * pz - w.c * t));
+    return y;
+}
+
 export class Boat {
     constructor(world, scene, camera, controls) {
         this.world = world;
@@ -239,9 +260,8 @@ export class Boat {
     _place(x, y, z, yaw, roll, pitch = 0) {
         const g = this.group;
         const bob = this._bob;
-        const air = smoothstep(0.3, 1, this.k);
-        g.position.set(x, y + bob * (1 - air * 0.7), z);
-        g.rotation.set(pitch + this._bobP * (1 - air), yaw, roll + this._bobR * (1 - air * 0.6), 'YXZ');
+        g.position.set(x, y + bob, z);
+        g.rotation.set(pitch + this._bobP, yaw, roll + this._bobR, 'YXZ');
     }
 
     _rope() {
@@ -261,9 +281,7 @@ export class Boat {
 
     /** Idle bobbing, the wing flap and the transformation; drives the camera while aboard. */
     update(dt, t) {
-        this._bob = Math.sin(t * 1.3) * 0.04;
-        this._bobP = Math.sin(t * 1.1 + 1) * 0.02;
-        this._bobR = Math.sin(t * 0.9) * 0.03;
+        this._float(dt, t);
         const fly = this.phase === 'flight' ? 1 : 0;
         this.flap = lerp(this.flap, fly, 1 - Math.exp(-dt * 1.2));
         this._advance(dt);
@@ -271,6 +289,25 @@ export class Boat {
         this._pose(dt);
         this._rope();
         if (this.busy) this._camera(dt);
+    }
+
+    /** Ride the swell: sit on the water at the hull's four corners, and bob gently once airborne. */
+    _float(dt, t) {
+        const { x, z } = this.home;
+        const d = this.world.island.heightAt(x, z);
+        const s0 = smoothstep(0, 0.3, THREE.MathUtils.clamp(-d / 12, 0, 1));
+        const amp = lerp(0.25, 1, s0);
+        const at = (lx, lz) => swellAt(x + lx, z + lz, t, amp);
+        const bow = at(0, 1.7), stern = at(0, -1.7), port = at(-0.75, 0), star = at(0.75, 0);
+        const rest = 0.1; // the hull floats a little proud of the surface so the swell never washes over the gunwale
+        const air = smoothstep(0.3, 1, this.k);
+        const wantY = lerp((bow + stern + port + star) / 4 + rest, Math.sin(t * 1.3) * 0.05, air);
+        const wantP = lerp(-Math.atan2(bow - stern, 3.4), Math.sin(t * 1.1 + 1) * 0.02, air);
+        const wantR = lerp(Math.atan2(star - port, 1.5), Math.sin(t * 0.9) * 0.03, air);
+        const f = 1 - Math.exp(-dt * 8);
+        this._bob = lerp(this._bob, wantY, f);
+        this._bobP = lerp(this._bobP, wantP, f);
+        this._bobR = lerp(this._bobR, wantR, f);
     }
 
     _advance(dt) {
