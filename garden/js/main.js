@@ -28,6 +28,7 @@ import { IslandMap } from './map.js';
 import { nextFrame, store, smoothstep, lerp, damp } from './util.js';
 import { FoxVisitor } from './fox.js';
 import { Works } from './works.js';
+import { Boat } from './boat.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -271,6 +272,7 @@ async function boot() {
     world.controls = controls;
     // a fox spirit from Worldroot comes by on about one visit in five (?fox=1 always, ?fox=0 never)
     const fox = new FoxVisitor(scene, world, controls, camera, { force: params.get('fox') });
+    const boat = new Boat(world, scene, camera, controls);
     const map = new IslandMap(world, document.getElementById('map-canvas'));
 
     const resize = () => {
@@ -314,7 +316,8 @@ async function boot() {
     let below = false;
     let transit = false;   // fading through a door
     let doorArmed = false; // you must step away from a door before it takes you again
-    let worksHintShown = false, doorHintShown = false;
+    let worksHintShown = false, doorHintShown = false, boatHintShown = false;
+    let boardPending = false; // walking to the dock edge to climb into the boat
 
     const setHover = (h) => {
         const prevId = hovered?.statue?.id ?? -2;
@@ -346,6 +349,11 @@ async function boot() {
             const obj = hits[0].object;
             bt = hits[0].distance;
             best = obj.userData.kind === 'arrow' ? { type: 'arrow', dir: obj.userData.dir, key: obj.userData.dir > 0 ? 'next' : 'prev', t: bt } : { type: 'panel', t: bt };
+        }
+        const bt0 = ray.intersectObject(boat.group, true)[0];
+        if (bt0 && bt0.distance < bt && bt0.distance < 60) {
+            bt = bt0.distance;
+            best = { type: 'boat', t: bt };
         }
         const door = ray.intersectObject(world.clockDoor.mesh, false)[0];
         if (door && door.distance < bt && door.distance < 60) {
@@ -585,7 +593,7 @@ async function boot() {
         }
     };
     controls.onTap = (x, y, type) => {
-        if (!entered || intro || transit) return;
+        if (!entered || intro || transit || boat.busy) return;
         if (ui.blocking) return;
         if (below) {
             const h = pickBelow(x, y);
@@ -615,6 +623,11 @@ async function boot() {
         } else if (h.type === 'panel') {
             audio.click();
             ui.showCard(hologram.current, { fromHologram: true });
+        } else if (h.type === 'boat') {
+            audio.click();
+            boardPending = true;
+            ui.closeAll();
+            controls.walkTo(controls.plan(boat.stand.x, boat.stand.z));
         } else if (h.type === 'door') {
             const d = world.clockDoor;
             controls.walkTo([{ x: d.x, z: d.z }]);
@@ -650,6 +663,20 @@ async function boot() {
             audio.arrow();
         } else if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey && !e.altKey) ui.emit('sound');
     });
+
+    boat.onPhase = (phase) => {
+        if (phase === 'morph') audio.sparkle();
+        else if (phase === 'flight') ui.hint('Press Esc or tap to land early', 6000);
+        else if (phase === 'leave') audio.click();
+    };
+    boat.onDone = () => {
+        zoneKey = '';
+        ui.hint('Back at the dock · follow the path up to the hub', 5000);
+    };
+    addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && boat.flying) boat.skip();
+    });
+    canvas.addEventListener('pointerup', () => boat.skip());
 
     const enter = (thenLibrary) => {
         if (entered) return;
@@ -751,11 +778,20 @@ async function boot() {
                     zoneKey = 'dock';
                 }
             }
-        } else {
+        } else if (!boat.busy) {
             controls.update(dt);
         }
-        camPos.copy(entered && !intro ? controls.pos : camera.position);
-        if (!entered || intro) camPos.y = world.groundAt(camPos.x, camPos.z);
+        if (!below) boat.update(dt, t);
+        if (boardPending && entered && !intro && !boat.busy && !controls.route) {
+            boardPending = false;
+            if (Math.hypot(controls.pos.x - boat.stand.x, controls.pos.z - boat.stand.z) < 2.5) boat.board();
+        }
+        if (entered && !intro && !boatHintShown && !boat.busy && Math.hypot(controls.pos.x - boat.home.x, controls.pos.z - boat.home.z) < 9) {
+            boatHintShown = true;
+            ui.hint('Your rowboat is still moored here · click it to climb back in', 7000);
+        }
+        camPos.copy(entered && !intro && !boat.busy ? controls.pos : camera.position);
+        if (!entered || intro || boat.busy) camPos.y = world.groundAt(camPos.x, camPos.z);
 
         const wind = weather.update(dt, t, camPos, renderer.domElement.height, below);
         windUniforms.uWind.value = 1 + wind * 2.2;
@@ -823,7 +859,7 @@ async function boot() {
             particles.update(t, night, renderer.domElement.height);
             bursts.update(t, renderer.domElement.height);
             for (const u of world.updaters) u(t, sky);
-            fox.update(dt, t, entered && !intro && controls.enabled && !transit, ui.blocking || !!ui.cardGame);
+            fox.update(dt, t, entered && !intro && controls.enabled && !transit && !boat.busy, ui.blocking || !!ui.cardGame);
             updateGrass(world, camPos);
             audio.update(night, island.shoreAt(camPos.x, camPos.z));
         }
@@ -835,11 +871,11 @@ async function boot() {
             if (ui.open === 'map') map.draw(mapPos(), controls.yaw);
         }
         zoneTimer += dt;
-        if (entered && !intro && zoneTimer > 0.3) {
+        if (entered && !intro && !boat.busy && zoneTimer > 0.3) {
             zoneTimer = 0;
             if (!below) zoneCheck();
         }
-        if (entered && !intro) doorCheck();
+        if (entered && !intro && !boat.busy) doorCheck();
 
         composer.render(dt);
 
@@ -866,7 +902,7 @@ async function boot() {
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
+        window.__garden = { map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
     }
 }
 
