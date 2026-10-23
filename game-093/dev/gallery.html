@@ -20,5 +20,13 @@ for (const ch of Object.values(CHARS)) {
   const row2 = document.createElement('div'); row2.className = 'row'; out.appendChild(row2);
   for (const p of BATTLE_POSES) add(row2, drawHero(ch.look, 'side', 1, p));
 }
+if (q.get('npc')) {
+  // a sample of villagers: every hair style, both builds, caps and beards
+  const { SKINS, HAIRS, STYLES } = await import('../js/sim/data/npcdata.js');
+  const looks = [ACTORS.aldric.look, ACTORS.guard.look];
+  const cl = [['#a8503a', '#e8d8a8'], ['#3a7a6a', '#f0e0c0'], ['#6a5a9a', '#e8e0f0'], ['#8a6a3a', '#f4ecd8'], ['#2a5a8a', '#d8e8f0'], ['#9a3a5a', '#f8e0e8']];
+  for (let i = 0; i < 14; i++) looks.push({ skin: SKINS[i % SKINS.length], hair: i % 5 === 4 ? '#d8d8d8' : HAIRS[(i * 3) % HAIRS.length], style: STYLES[i % STYLES.length], cloth: cl[i % 6][0], cloth2: cl[i % 6][1], trim: ['#ffd35c', '#c8c8d0', '#e08040'][i % 3], build: i % 4 === 1 ? 'child' : i % 5 === 4 ? 'old' : 'norm', hat: i % 7 === 3 ? 'cap' : null, beard: i % 5 === 4 ? '#d8d8d8' : null });
+  for (const v of ['down', 'side', 'up']) { const row = document.createElement('div'); row.className = 'row'; out.appendChild(row); for (const l of looks) add(row, drawHero(l, v, 1)); }
+}
 window.READY = true;
 </script></body></html>
