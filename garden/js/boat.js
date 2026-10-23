@@ -6,7 +6,8 @@ import * as THREE from 'three';
 import { smoothstep, lerp, angleDiff, TAU } from './util.js';
 import { EYE } from './controls.js';
 
-const BOARD = 1.6, MORPH = 3.2, FLIGHT = 168, UNMORPH = 2.6, LEAVE = 1.6;
+// the cut scene: the camera steps out to watch the boat transform (SHOW seconds, the change itself taking MORPH), then drops back into the seat
+const SHOW = 8, SHOW_IN = 1.2, MORPH = 3.6, BOARD = 1.8, FLIGHT = 168, UNMORPH = 2.6, LEAVE = 1.6;
 const LIFT = 1.4;       // how far it rises on its own before it takes off
 const CRUISE = 26;      // height of the circuit above the sea
 const SEAT = new THREE.Vector3(0, 0.95, 0.5);
@@ -205,7 +206,8 @@ export class Boat {
         c.vel.set(0, 0);
         c.keys.clear();
         this.from = { pos: this.camera.position.clone(), yaw: c.yaw, pitch: c.pitch };
-        this._go('board');
+        this._sparked = false;
+        this._go('show');
     }
 
     /** Ask for an early landing: the circuit speeds up until the dock is reached. */
@@ -313,10 +315,21 @@ export class Boat {
     _advance(dt) {
         this.t += dt;
         const ph = this.phase;
-        if (ph === 'board' && this.t >= BOARD) this._go('morph');
-        else if (ph === 'morph') {
-            this.k = smoothstep(0, 1, this.t / MORPH);
-            if (this.t >= MORPH) {
+        if (ph === 'show') {
+            const m = (this.t - SHOW_IN) / MORPH;
+            this.k = smoothstep(0, 1, m);
+            if (m > 0 && !this._sparked) {
+                this._sparked = true;
+                this.onPhase?.('transform');
+            }
+            if (this.t >= SHOW) {
+                // the camera drops from where the cut scene left it into the seat
+                const r = this.camera.rotation;
+                this.from = { pos: this.camera.position.clone(), yaw: r.y, pitch: r.x };
+                this._go('board');
+            }
+        } else if (ph === 'board') {
+            if (this.t >= BOARD) {
                 this.u = 0;
                 this.rush = 1;
                 this.skipping = false;
@@ -366,11 +379,9 @@ export class Boat {
         const g = this.group;
         const bowYaw = g.rotation.y + Math.PI;
         let yaw = bowYaw, pitch = -0.1;
-        // while the wings unfold, glance across at one
-        if (this.phase === 'morph') yaw += Math.sin(Math.PI * this.k) * 0.85;
-        if (this.phase === 'flight' || this.phase === 'unmorph' || this.phase === 'morph') {
+        if (this.phase === 'flight' || this.phase === 'unmorph') {
             // turn to face the island across the water, then back to the bow for landing
-            const u = this.phase === 'flight' ? this.u : this.phase === 'morph' ? 0 : 1;
+            const u = this.phase === 'flight' ? this.u : 1;
             const c = smoothstep(0.05, 0.2, u) * (1 - smoothstep(0.85, 0.97, u));
             const dx = -seat.x, dz = -seat.z;
             const toCentre = Math.atan2(-dx, -dz);
@@ -379,6 +390,20 @@ export class Boat {
             pitch = lerp(-0.1, Math.atan2(5 - seat.y, dist), c);
         }
         let k = 1, from = null, toPos = seat, toYaw = yaw, toPitch = pitch;
+        if (this.phase === 'show') {
+            // a slow orbit round the boat from the dock side, easing out of the player's own view
+            const e = smoothstep(0, 1, this.t / SHOW);
+            const a = Math.PI + 0.55 - 1.5 * e;
+            const hover = LIFT * smoothstep(0.45, 1, this.k);
+            const look = new THREE.Vector3(this.home.x, 0.7 + hover, this.home.z);
+            const pos = new THREE.Vector3(look.x + Math.cos(a) * 8.5, 2.3 + 1.6 * e + hover * 0.5, look.z + Math.sin(a) * 8.5);
+            const dx = look.x - pos.x, dy = look.y - pos.y, dz = look.z - pos.z;
+            const sYaw = Math.atan2(-dx, -dz), sPitch = Math.atan2(dy, Math.hypot(dx, dz));
+            const kIn = smoothstep(0, 1, this.t / SHOW_IN);
+            cam.position.lerpVectors(this.from.pos, pos, kIn);
+            cam.rotation.set(lerp(this.from.pitch, sPitch, kIn), mixAngle(this.from.yaw, sYaw, kIn), 0, 'YXZ');
+            return;
+        }
         if (this.phase === 'board') {
             from = this.from;
             k = smoothstep(0, 1, this.t / BOARD);
