@@ -1,7 +1,7 @@
 // DOM overlay: loading/title screen, HUD, hover tooltip, game card, library,
 // starred games, map, help, time panel, area banners, hints, joystick and fades.
 
-import { esc, excerpt, store } from './util.js';
+import { esc, excerpt, store, GARDEN_VERSION } from './util.js';
 import { GENRES, genreOf } from './genres.js';
 
 const $ = (id) => document.getElementById(id);
@@ -20,6 +20,7 @@ export class UI {
         const ids = new Set(games.map((g) => g.id));
         this.starred = store.get('starred', []).filter((id) => ids.has(id));
         $('game-count').textContent = games.length;
+        $('garden-version').textContent = ` · v${GARDEN_VERSION}`;
 
         document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => this.closeAll()));
         for (const id of ['library', 'starred', 'map', 'help']) {

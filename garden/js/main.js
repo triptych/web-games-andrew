@@ -794,7 +794,8 @@ async function boot() {
             ui.hint('Your rowboat is still moored here · click it to climb back in', 7000);
         }
         camPos.copy(entered && !intro && !boat.busy ? controls.pos : camera.position);
-        if (!entered || intro || boat.busy) camPos.y = world.groundAt(camPos.x, camPos.z);
+        // the title orbit and the boat flight keep the camera aloft, so weather must follow it up there
+        if (!entered || intro) camPos.y = world.groundAt(camPos.x, camPos.z);
 
         const wind = weather.update(dt, t, camPos, renderer.domElement.height, below);
         windUniforms.uWind.value = 1 + wind * 2.2;

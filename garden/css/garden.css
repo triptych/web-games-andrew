@@ -540,3 +540,5 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     .banner, .title, .fade { transition: none; }
     .card { animation: none; }
 }
+
+.title-ver { letter-spacing: 0.12em; text-transform: none; }
