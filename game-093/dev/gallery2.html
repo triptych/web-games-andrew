@@ -7,9 +7,9 @@ import { ENEMIES } from '../js/sim/data/enemies.js';
 import { drawMonster } from '../js/view/monsters.js';
 const out = document.getElementById('out');
 const q = new URLSearchParams(location.search); const scale = +(q.get('s') || 3);
-const seen = new Set();
+const seen = new Set(); const only = q.get('only');
 for (const e of Object.values(ENEMIES)) {
-  const key = e.sprite + ':' + e.pal; if (seen.has(key)) continue; seen.add(key);
+  const key = e.sprite + ':' + e.pal; if (seen.has(key) || (only && !only.split(',').includes(e.sprite))) continue; seen.add(key);
   const px = drawMonster(e.sprite, e.pal); const c = px.toCanvas();
   const s = (e.boss ? 1.3 : 2.4) * scale / 3 * (e.sprite.length ? 1 : 1);
   c.style.width = c.width * s + 'px'; c.style.height = c.height * s + 'px'; c.title = e.name; out.appendChild(c);
