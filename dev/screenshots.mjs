@@ -13,7 +13,7 @@
  *
  * It serves the repo itself (no separate static server needed). Env: PORT
  * (default 8123), OUT, ONLY, FROM, TO, SHOT=play|title, WAIT (ms of settle
- * time, default 2500), PW_CHROMIUM_PATH. CDN copies of three.js are read from
+ * time, default 2500), SCALE=2 (render at half size; for games too heavy to capture), PW_CHROMIUM_PATH. CDN copies of three.js are read from
  * dev/package and dev/package-r128 when present (see dev/README.md).
  */
 import { chromium } from 'playwright';
@@ -29,6 +29,7 @@ const OUT = process.env.OUT ?? path.join(ROOT, 'garden', 'img', 'games');
 const THREE_PKG = path.join(HERE, 'package');
 const THREE128_PKG = path.join(HERE, 'package-r128');
 const WAIT = Number(process.env.WAIT ?? 2500);
+const SCALE = Number(process.env.SCALE ?? 1); // SCALE=2 renders at half size and upscales, for games too heavy for software WebGL
 const SHOT = process.env.SHOT ?? 'play';
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -94,7 +95,7 @@ const browser = await chromium.launch({
 
 let failed = 0;
 for (const game of games) {
-    const ctx = await browser.newContext({ viewport: { width: 1200, height: 630 } });
+    const ctx = await browser.newContext({ viewport: { width: 1200 / SCALE, height: 630 / SCALE }, deviceScaleFactor: SCALE });
     await routeCdns(ctx);
     await ctx.addInitScript(() => {
         try { localStorage.clear(); } catch { /* ignore */ }
