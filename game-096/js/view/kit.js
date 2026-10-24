@@ -111,6 +111,7 @@ export function canvasTex(w, h, draw, { repeat, srgb = true } = {}) {
     c.width = w; c.height = h;
     draw(c.getContext('2d'), w, h);
     const t = new THREE.CanvasTexture(c);
+    t.userData.own = true;
     if (srgb) t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = 4;
     if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
@@ -126,6 +127,7 @@ export function glowTexture() {
         g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.45)'); g.addColorStop(1, 'rgba(255,255,255,0)');
         c.fillStyle = g; c.fillRect(0, 0, w, h);
     });
+    glowTex.userData.keep = true;
     return glowTex;
 }
 export function glowSprite(color, size, opacity = 0.8) {

@@ -173,6 +173,7 @@ function crateTex(kind) {
             c.moveTo(64, 98); c.bezierCurveTo(20, 66, 28, 28, 64, 50); c.bezierCurveTo(100, 28, 108, 66, 64, 98); c.fill();
         }
     });
+    t.userData.keep = true;                    // shared by every crate of its kind, in every level
     crateTextures[kind] = t;
     return t;
 }
@@ -267,19 +268,24 @@ export class Vents {
         this.root = new THREE.Group();
         this.items = list.map((v) => {
             const g = new THREE.Group(); g.position.set(v.x, v.y, v.z);
-            g.add(part(G.cyl(v.r * 0.8, v.r, 0.18, 14), 0x6aa6c8, 0, 0.09, 0, 1, 1, 1, { ink: 0.03 }));
-            g.add(part(G.cyl(v.r * 0.55, v.r * 0.55, 0.06, 14), 0x1a3a55, 0, 0.19, 0, 1, 1, 1, { ink: false }));
-            const col = mesh(G.cyl(v.r * 0.9, v.r * 1.1, v.height, 14, 1), new THREE.MeshBasicMaterial({ color: 0xbfeeff, transparent: true, opacity: 0.14, depthWrite: false, side: THREE.DoubleSide }), { cast: false });
+            g.add(part(G.cyl(v.r * 0.85, v.r * 1.05, 0.2, 14), 0x6aa6c8, 0, 0.1, 0, 1, 1, 1, { ink: 0.03 }));
+            g.add(part(G.torus(v.r * 0.78, 0.09, 6, 16), 0xdff6ff, 0, 0.22, 0, 1, 1, 1, { rot: [Math.PI / 2, 0, 0], ink: false }));
+            g.add(part(G.cyl(v.r * 0.6, v.r * 0.6, 0.06, 14), 0x7ad8ff, 0, 0.21, 0, 1, 1, 1, { ink: false, mat: { emissive: 0x2a8ab0 } }));
+            const col = mesh(G.cyl(v.r * 0.95, v.r * 1.2, v.height, 16, 1, true), new THREE.MeshBasicMaterial({ color: 0xc8f2ff, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide }), { cast: false });
             col.position.y = v.height / 2;
             g.add(col);
+            const rings = [];
+            for (let i = 0; i < 3; i++) { const rg = mesh(G.torus(v.r, 0.04, 5, 20), new THREE.MeshBasicMaterial({ color: 0xe6fbff, transparent: true, opacity: 0.5, depthWrite: false }), { cast: false }); rg.rotation.x = Math.PI / 2; g.add(rg); rings.push(rg); }
+            g.userData.rings = rings;
             this.root.add(g);
             return { g, v, col };
         });
     }
     update(G0, t, fx, dt, px, pz) {
         for (const it of this.items) {
-            it.col.material.opacity = 0.12 + Math.sin(t * 3 + it.v.x) * 0.03;
-            if (Math.abs(px - it.v.x) < 60 && Math.abs(pz - it.v.z) < 60 && Math.random() < dt * 14) fx.bubbles(it.v.x, it.v.y + 0.3, it.v.z, 1, it.v.r * 0.6);
+            it.col.material.opacity = 0.14 + Math.sin(t * 3 + it.v.x) * 0.03;
+            it.g.userData.rings.forEach((rg, i) => { const k = (t * 0.5 + i / 3) % 1; rg.position.y = 0.3 + k * it.v.height * 0.9; rg.material.opacity = 0.55 * (1 - k); rg.scale.setScalar(0.9 + k * 0.25); });
+            if (Math.abs(px - it.v.x) < 60 && Math.abs(pz - it.v.z) < 60 && Math.random() < dt * 22) fx.bubbles(it.v.x, it.v.y + 0.3, it.v.z, 1, it.v.r * 0.7);
         }
     }
 }

@@ -1448,6 +1448,22 @@ const games = [
             { emoji: '👆', label: 'Point & click' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-096',
+        title: 'Homeward Hop',
+        description: "A whimsical 3D platformer in the spirit of Crash Bandicoot and Sly Cooper, drawn and scored entirely in code with three.js. Pinch is a budding-inventor hermit crab whose Shell Swap Day gadget went off with a bang and washed him away from Ma, Pa, little Dot and Granny Whelk. Hop home across five worlds and fourteen levels: Sunny Shallows, Coconut Cove, Rustwater Docks, Sandcastle Kingdom and Stormbreak Point, past fleas, starfish, coconut-throwing monkeys, cannons, armoured sand knights and a gull who loves anything shiny. Swap between five shells to change what Pinch can do: the Spiral Shell rolls and roll-jumps, the Coconut Shell blocks coconuts and cannonballs and sends them back, the Peach-Can Shell ground-pounds iron crates and big switches, the Sail Shell glides over wide gaps and rides bubble vents, and the Spring Shell squashes down for a towering boing. Smash crates, collect pearls, find three hidden found-things in every level, then build ten gadgets in Pinch's workshop (a Bottle-Cap Boater, Rubber-Band Boots, a Cork Lifebuoy, Sea-Glass Specs and more) and wear three at a time. Run from a grumpy wave toward the screen, fire yourself across a bay in barrels, cross crumbling sand, and beat three bosses, each only to be beaten by the shell its world just taught: Big Coco, Sir Sandy and Captain Squawk. Camera-relative controls with quarter-turn corners, coyote time and jump buffering, squash and stretch, toon shading with ink outlines, shadow blobs, a procedural sea, and a generative band in every world; touch, mouse, keyboard and gamepad. A bot follows the route the level builder proves is crossable and plays every level and every boss on every seed.",
+        icon: '🦀',
+        folder: 'game-096',
+        version: '1.0.0',
+        cssClass: 'homeward-hop',
+        genre: 'arcade',
+        tags: [
+            { emoji: '🦀', label: '3D platformer' },
+            { emoji: '🐚', label: 'Shell powers' },
+            { emoji: '🛠️', label: 'Inventions' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 

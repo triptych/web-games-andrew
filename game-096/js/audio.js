@@ -194,6 +194,16 @@ export class Audio {
         const k = p.glide ? 0.12 : (!p.grounded && p.vy < -12 ? Math.min(0.12, (-p.vy - 12) * 0.01) : 0);
         this.wind.g.gain.setTargetAtTime(k * (G.status === 'play' ? 1 : 0), this.ctx.currentTime, 0.08);
         this.wind.f.frequency.setTargetAtTime(p.glide ? 900 : 500 + Math.max(0, -p.vy) * 25, this.ctx.currentTime, 0.1);
+        // little scuttling steps, quicker the faster he runs
+        const sp = Math.hypot(p.vx, p.vz);
+        this.stepT = (this.stepT || 0) - dt;
+        if (G.status === 'play' && p.grounded && sp > 2.5 && p.rollT <= 0 && !p.launch) {
+            if (this.stepT <= 0) {
+                this.stepT = 0.42 / Math.max(0.6, sp / 7);
+                this.noise({ dur: 0.04, vol: 0.05, freq: 2600 + Math.random() * 1200, q: 2.5 });
+                this.tone({ freq: 880 + Math.random() * 240, to: 600, dur: 0.03, type: 'square', vol: 0.014 });
+            }
+        } else if (this.stepT < 0) this.stepT = 0;
         this.tick();
     }
 
@@ -236,7 +246,9 @@ export class Audio {
     _playStep(S, st, bar, t, dt16) {
         const chordDeg = S.prog[bar % S.prog.length];
         const rootNote = S.root + S.scale[chordDeg % S.scale.length] - 12;
-        const chord = [0, 4, 7].map((x) => rootNote + 12 + (S.scale.includes((x + S.scale[chordDeg % S.scale.length]) % 12) ? x : x - (x === 4 ? 1 : 0)));
+        const pc = new Set(S.scale.map((x) => x % 12)), rpc = (S.scale[chordDeg % S.scale.length]) % 12;
+        const third = [4, 3].find((x) => pc.has((rpc + x) % 12)) ?? 4;
+        const chord = [0, third, 7].map((x) => rootNote + 12 + x);
         const has = (b) => S.band.includes(b);
         const hi = this.intensity;
         const T = t - this.ctx.currentTime;

@@ -14,7 +14,7 @@
  *   python3 -m http.server 8096          # from the REPO ROOT
  *   node game-096/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8096), ONLY=desktop,phones,nostorage, THREE_PKG, PW_CHROMIUM_PATH.
+ * Env: BASE (default http://127.0.0.1:8096), ONLY=desktop,phones,nostorage,levels (levels is slow and only runs when asked), THREE_PKG, PW_CHROMIUM_PATH.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -26,7 +26,7 @@ const PKG = process.env.THREE_PKG ?? [path.join(HERE, 'package'), path.join(HERE
 const BASE = process.env.BASE ?? 'http://127.0.0.1:8096';
 const OUT = path.join(HERE, 'shots');
 const ONLY = (process.env.ONLY || '').split(',').filter(Boolean);
-const want = (name) => !ONLY.length || ONLY.includes(name);
+const want = (name) => !ONLY.length ? name !== 'levels' : ONLY.includes(name);
 fs.mkdirSync(OUT, { recursive: true });
 
 let fails = 0;
@@ -269,6 +269,24 @@ async function phone(w, h) {
 }
 
 // ======================================================================
+/** The bot plays every level in the real game, renderer and all: every enemy, shot, ring and effect gets drawn. */
+async function levels() {
+    console.log('\n== every level, played by the bot in the real game');
+    const page = await open({ width: 960, height: 540 });
+    await Q(page, () => __hh.clearAll());
+    for (const id of ['l1_1', 'l1_2', 'l2_1', 'l2_2', 'l2_3', 'l3_1', 'l3_2', 'l4_1', 'l4_2', 'l4_3', 'l5_1', 'l5_2', 'l5_3', 'l5_4']) {
+        await Q(page, (lv) => { __hh.ui.closeAll(); __hh.start(lv); if (__hh.ui.dlg) __hh.ui.dlgSkip(); __hh.autoplay(true); }, id);
+        // a boss's after-fight talk comes before the results: skip it as it appears
+        await until(page, () => { if (!document.getElementById('dialogue').hidden) __hh.ui.dlgSkip(); return !document.getElementById('complete').hidden; }, `${id}: the bot gets to the results screen`, 180000);
+        const info = await Q(page, () => ({ pearls: __hh.G.pearls, oopsies: __hh.G.oopsies, t: __hh.G.time }));
+        check(info.pearls > 0, `${id}: ${info.pearls} pearls in ${info.t.toFixed(0)} s, ${info.oopsies} oopsies`);
+        if (id === 'l2_3' || id === 'l5_1' || id === 'l5_3') await shot(page, `level-${id}-end`);
+        await Q(page, () => { __hh.autoplay(false); __hh.ui.closeScreen('complete'); });
+    }
+    reportErrors('levels');
+}
+
+// ======================================================================
 async function nostorage() {
     console.log('\n== blocked storage');
     const page = await open({ width: 1280, height: 760 }, { nostorage: true });
@@ -285,6 +303,7 @@ async function nostorage() {
 try {
     if (want('desktop')) await desktop();
     if (want('phones')) { await phone(390, 844); await phone(844, 390); }
+    if (ONLY.includes('levels')) await levels();
     if (want('nostorage')) await nostorage();
 } catch (err) {
     fails++;

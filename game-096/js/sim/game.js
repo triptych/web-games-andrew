@@ -48,7 +48,7 @@ export function newGame(levelId = 'l1_1', opts = {}) {
         maxHearts: HEARTS.base + perks.hearts,
         hearts: HEARTS.base + perks.hearts,
         pearls: 0, oopsies: 0, falls: 0, rescued: false,
-        cam: { yaw: level.start.yaw },
+        cam: { yaw: level.start.yaw + (level.chase ? Math.PI : 0) },
         cp: { x: level.start.x, y: level.start.y, z: level.start.z },
         events: [],
         shotId: 1,
@@ -516,6 +516,7 @@ function stepCamera(G, dt) {
             base = (found.h0 + found.dir * s) * Math.PI / 2;
         } else if (found.type === 'arena') { base = found.h * Math.PI / 2; cam.mode = 'arena'; cam.cx = found.cx; cam.cz = found.cz; cam.r = found.r; }
         else base = found.h * Math.PI / 2;
+        if (L.chase) base += Math.PI;            // a chase is filmed from the front: the wave looms behind you, you run toward the screen
         target = cam.yaw + angDiff(cam.yaw, base);
     }
     cam.yaw += (target - cam.yaw) * (1 - Math.exp(-5.5 * dt));

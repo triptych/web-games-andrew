@@ -286,7 +286,7 @@ export function buildDecor(level, theme) {
             const x = alongX ? b.x0 + 0.6 + t * (w - 1.2) : (side < 0 ? b.x0 + inset : b.x1 - inset);
             const z = alongX ? (side < 0 ? b.z0 + inset : b.z1 - inset) : b.z0 + 0.6 + t * (d - 1.2);
             // tall things only on broad slabs: a palm leaning over a narrow path blocks the camera
-            const wide = short >= 7.5;
+            const wide = short >= 7.5 && b.look !== 'arena';
             const set = (wide && rng() < 0.55 ? TALL : LOW)[kind];
             set[Math.floor(rng() * set.length)](M, x, y, z, rng, side, alongX);
         }

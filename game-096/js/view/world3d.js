@@ -6,7 +6,7 @@ import { buildDecor } from './decor.js';
 import * as P from './props.js';
 import * as M from './models.js';
 import { groundBelow } from '../sim/world.js';
-import { SLAB } from '../sim/levels.js';
+import { SLAB, FWD, RGT } from '../sim/levels.js';
 
 const TAU = Math.PI * 2;
 
@@ -213,8 +213,37 @@ export class WorldView {
             this.bossMark = mesh(new THREE.RingGeometry(0.9, 1.4, 32), new THREE.MeshBasicMaterial({ color: 0xff5050, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: false }), { cast: false });
             this.bossMark.rotation.x = -Math.PI / 2; this.root.add(this.bossMark);
         }
+        // at Home Reef the family waits by the arch
+        this.family = [];
+        if (level.meta.final && level.goal) {
+            const g = level.goal, sec = level.sections.find((s) => g.x >= s.x0 && g.x <= s.x1 && g.z >= s.z0 && g.z <= s.z1);
+            const h = (sec && sec.h) || 0, f = FWD[h], r = RGT[h];
+            const cast = [
+                { name: 'ma', a: -1.6, b: 3.6, o: { body: 0xff8a6b, belly: 0xffc9b0, dark: 0xd95a3a, goggles: false, scale: 1.15 }, shell: 0 },
+                { name: 'pa', a: 1.8, b: 4.0, o: { body: 0xd63a2a, belly: 0xff9a80, dark: 0xa02418, goggles: false, scale: 1.3 }, shell: 1 },
+                { name: 'dot', a: -0.3, b: 5.2, o: { body: 0xff9ec4, belly: 0xffd6e6, dark: 0xe06a9a, goggles: true, scale: 0.7 }, shell: 3 },
+                { name: 'granny', a: 3.8, b: 5.4, o: { body: 0xb49be0, belly: 0xe0d4f8, dark: 0x8a6ac0, goggles: false, scale: 1.05 }, shell: 0 },
+            ];
+            cast.forEach((c, i) => {
+                const pn = M.makePinch(c.o); pn.setShell(c.shell);
+                const x = g.x + r[0] * c.a + f[0] * c.b, z = g.z + r[1] * c.a + f[1] * c.b;
+                pn.root.position.set(x, g.y, z);
+                this.root.add(pn.root);
+                this.family.push({ pn, x, y: g.y, z, i, yaw: Math.atan2(f[0], f[1]) });
+            });
+        }
         this.ringMeshes = [];
         this.shotMeshes = new Map();
+
+        // company: gulls wheeling far away, and fish that leap near the path
+        this.birds = [];
+        const b0 = level.bounds, bcx = (b0.x0 + b0.x1) / 2, bcz = (b0.z0 + b0.z1) / 2, bspan = Math.max(b0.x1 - b0.x0, b0.z1 - b0.z0, 70);
+        for (let i = 0; i < 4; i++) {
+            const g = M.makeGull(0.55); this.root.add(g.root);
+            this.birds.push({ g, a: i * 1.7, r: bspan * (0.35 + 0.2 * i / 3), y: level.waterY + 20 + i * 5, cx: bcx, cz: bcz, sp: 0.12 + i * 0.02 });
+        }
+        this.fish = [];
+        this.fishT = 2;
 
         // shadow blobs
         this.blobN = 48;
@@ -335,6 +364,37 @@ export class WorldView {
         }
         for (const [id, m] of this.shotMeshes) if (!live.has(id)) { this.root.remove(m); this.shotMeshes.delete(id); }
 
+        // the family cheers when he gets close
+        for (const fm of this.family) {
+            const near = Math.hypot(p.x - fm.x, p.z - fm.z) < 16 || G0.status === 'won';
+            const hop = near ? Math.abs(Math.sin(t * 3.2 + fm.i * 1.3)) * 0.45 : 0;
+            fm.pn.update({ x: fm.x, y: fm.y + hop, z: fm.z, vx: 0, vy: hop > 0.05 ? 3 : 0, vz: 0, yaw: fm.yaw, grounded: hop < 0.05, spinT: near && Math.sin(t * 1.1 + fm.i) > 0.85 ? 0.3 : 0, rollT: 0, brace: false, glide: false, slam: 0, charge: 0, hurtT: 0, dead: 0, shell: fm.pn.state.shell, launch: null }, dt, t);
+        }
+
+        // gulls and fish
+        for (const b of this.birds) {
+            b.a += dt * b.sp;
+            const x = b.cx + Math.cos(b.a) * b.r, z = b.cz + Math.sin(b.a) * b.r;
+            b.g.update({ x, y: b.y + Math.sin(t * 0.7 + b.a * 3) * 1.5, z, face: Math.atan2(Math.sin(b.a), -Math.cos(b.a)) * -1 + Math.PI, id: b.a, state: 0 }, dt, t);
+        }
+        this.fishT -= dt;
+        if (this.fishT <= 0 && G0.status === 'play') {
+            this.fishT = 2.5 + Math.random() * 3;
+            const a = Math.random() * TAU, d = 5 + Math.random() * 9;
+            const m = shotModel('fish'); m.scale.setScalar(1.1); this.root.add(m);
+            this.fish.push({ m, x: p.x + Math.cos(a) * d, z: p.z + Math.sin(a) * d, t: 0, vx: Math.cos(a + 1.5) * 1.2, vz: Math.sin(a + 1.5) * 1.2, wy: this.level.waterY });
+        }
+        for (let i = this.fish.length - 1; i >= 0; i--) {
+            const f = this.fish[i];
+            f.t += dt;
+            const k = f.t / 1.1;
+            if (k >= 1) { fx.splash(f.x, f.wy, f.z, 8); this.root.remove(f.m); f.m.traverse((o) => { if (o.isSprite) o.material.dispose(); }); this.fish.splice(i, 1); continue; }
+            const y = f.wy + Math.sin(k * Math.PI) * 2.6 - 0.2;
+            f.m.position.set(f.x + f.vx * f.t, y, f.z + f.vz * f.t);
+            f.m.rotation.set(Math.cos(k * Math.PI) * 0.9, Math.atan2(-f.vx, -f.vz), 0);
+            if (f.t < 0.04) fx.splash(f.x, f.wy, f.z, 8);
+        }
+
         // wave
         if (this.wave) {
             this.wave.position.set(this.level.start.x, this.level.waterY - 1, G0.waveZ + 7);
@@ -365,6 +425,8 @@ export class WorldView {
     dispose() {
         this.root.traverse((o) => {
             if (o.geometry && !o.geometry.userData.shared) o.geometry.dispose?.();
+            if (o.isSprite) o.material.dispose?.();
+            for (const m of [].concat(o.material || [])) if (m.map && m.map.userData.own && !m.map.userData.keep) m.map.dispose();
         });
     }
 }

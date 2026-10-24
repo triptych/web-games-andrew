@@ -38,6 +38,7 @@ let mode = 'title';          // title | map | workshop | play | win | cutscene
 let acc = 0, time = 0, last = performance.now(), wasRunning = false;
 let bot = null;
 let finished = false;
+let hitstop = 0;            // a few frames of stillness on a big hit: it makes a smash feel heavier
 let currentId = 'l1_1';
 const seen = {};             // a count of every sim event drained, for the tests
 const NONE = { x: 0, y: 0, jump: false, jumpHeld: false, spin: false, power: false, powerHeld: false, swap: 0, sel: 0 };
@@ -101,6 +102,7 @@ function openWorkshop() {
 function doBuild(id) {
     if (!build(P, id)) { audio.ui('no'); return; }
     saveProgress(P);
+    view.pinch.setGear(P.equipped);
     audio.ui('craft');
     ui.toast(`Built: ${invById(id).name}!`);
     ui.buildWorkshop(P, { onBuild: doBuild, onEquip: doEquip });
@@ -111,6 +113,7 @@ function doEquip(id) {
     if (r === 'full') { audio.ui('no'); ui.toast('Three at a time: take one off first.'); return; }
     audio.ui('equip');
     saveProgress(P);
+    view.pinch.setGear(P.equipped);
     ui.buildWorkshop(P, { onBuild: doBuild, onEquip: doEquip });
 }
 
@@ -206,7 +209,7 @@ $('pause-menu').addEventListener('click', (e) => {
     else if (act === 'quit') { toMapFromLevel(); }
     else ui.openScreen(act);
 });
-function toMapFromLevel() { ui.closeAll(); ui.showHud(false); G.status = G.status; mode = 'map'; openMap(currentId); }
+function toMapFromLevel() { ui.closeAll(); ui.showHud(false); openMap(currentId); }
 $('btn-pause').addEventListener('click', () => pause());
 $('map-workshop').addEventListener('click', () => { audio.ui('click'); openWorkshop(); });
 $('cl-map').addEventListener('click', () => { audio.ui('click'); ui.closeScreen('complete'); openMap(nextLevelId(currentId) || currentId); });
@@ -238,7 +241,8 @@ function handlePresses() {
         else if (key === 'Enter' && press.pad) document.activeElement?.click?.();
         return;
     }
-    if (mode === 'play' && (key === 'Escape' || key === 'KeyP')) pause();
+    // on a pad the B button is the shell power in play, and Start is pause
+    if (mode === 'play' && (key === 'KeyP' || (key === 'Escape' && !press.pad))) pause();
 }
 
 // ------------------------------------------------------------------ events
@@ -249,6 +253,11 @@ function flushEvents() {
         seen[e.type] = (seen[e.type] || 0) + 1;
         if (e.type === 'bossStart') audio.setIntensity(1);
         if (e.type === 'bossDefeat') audio.setIntensity(0);
+        if (!document.documentElement.classList.contains('calm')) {
+            if (e.type === 'bossHit' || e.type === 'bossDefeat') hitstop = Math.max(hitstop, 0.16);
+            else if (e.type === 'slam' || e.type === 'bossSmash') hitstop = Math.max(hitstop, 0.07);
+            else if (e.type === 'kill' || e.type === 'crate' && e.kind === 'iron') hitstop = Math.max(hitstop, 0.035);
+        }
     }
     view.onEvents(G, ev);
     audio.onEvents(G, ev);
@@ -273,10 +282,12 @@ function frame(now) {
         else if (!ui.talking) { mode = 'title'; if (!s.includes('title')) { refreshTitle(); ui.openScreen('title'); } }
     } else if (mode === 'title' && ui.stack.includes('workshop')) mode = 'workshop';
 
-    const running = mode === 'play' && !ui.anyScreen() && !ui.talking;
+    const playing = mode === 'play' && !ui.anyScreen() && !ui.talking;
     // back from a menu or a dialogue: the key or tap that closed it must not also act in the game
-    if (running && !wasRunning) input.flush();
-    wasRunning = running;
+    if (playing && !wasRunning) input.flush();
+    wasRunning = playing;
+    let running = playing;
+    if (hitstop > 0) { hitstop -= dt; running = false; }
     if (running) {
         acc += dt * FAST;
         let n = 0;
@@ -309,7 +320,7 @@ loadBackdrop('l1_1');
 refreshTitle();
 ui.openScreen('title');
 audio.playSong('title');
-requestAnimationFrame((t) => { last = t; frame(t); });
+requestAnimationFrame((t) => { last = t; frame(t); const L = $('loading'); L.classList.add('gone'); setTimeout(() => L.remove(), 600); });
 
 // ------------------------------------------------------------------ debug hooks (?debug=1)
 if (DEBUG) {

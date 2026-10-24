@@ -96,9 +96,11 @@ export class UI {
 
     // ------------------------------------------------------------------ toasts
     toast(text) {
+        for (const old of $('toasts').children) if (old.textContent === text) old.remove();      // the same news twice is one toast
         const el = document.createElement('div');
         el.className = 'toast'; el.textContent = text;
         $('toasts').appendChild(el);
+        while ($('toasts').children.length > 3) $('toasts').firstChild.remove();
         setTimeout(() => el.remove(), 2900);
         window.A11Y?.announce?.(text);
     }
@@ -257,7 +259,8 @@ export class UI {
 
     onEvents(G, events) {
         for (const e of events) {
-            if (e.type === 'checkpoint') this.toast('Checkpoint!');
+            if (e.type === 'swap') this.toast(`${SHELLS[e.shell].icon} ${SHELLS[e.shell].name}: ${SHELLS[e.shell].power}`);
+            else if (e.type === 'checkpoint') this.toast('Checkpoint!');
             else if (e.type === 'oopsie') this.toast('Oopsie! Back to the last flag.');
             else if (e.type === 'rescue') this.toast('Cork Lifebuoy to the rescue!');
             else if (e.type === 'heart' && e.why === 'pearls') this.toast('50 pearls: a heart!');

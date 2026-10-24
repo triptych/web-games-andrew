@@ -33,6 +33,11 @@ button, select, input { font-family: inherit; }
 
 /* The view sizes the canvas in px from JS (never 100vw/100vh: on phones 100vh is taller than the visible area). */
 #view { position: fixed; left: 0; top: 0; display: block; touch-action: none; }
+#loading { position: fixed; inset: 0; z-index: 99990; display: grid; place-content: center; text-align: center; gap: 8px; background: linear-gradient(#4fc3f7, #9fe3ff 55%, #f2cf8a); color: #fff; font-weight: 700; font-size: 22px; text-shadow: 0 2px 0 #1f6a8a; transition: opacity 0.4s; }
+#loading.gone { opacity: 0; pointer-events: none; }
+#loading small { font-size: 12px; font-weight: 500; opacity: 0.85; max-width: 280px; margin: 0 auto; }
+#loading .spin { font-size: 64px; animation: spin 1.2s linear infinite; filter: drop-shadow(0 4px 0 rgba(0,0,0,0.15)); }
+@keyframes spin { to { transform: rotate(360deg); } }
 #vignette { position: fixed; inset: 0; pointer-events: none; z-index: 4; background: radial-gradient(ellipse at 50% 55%, rgba(0, 20, 50, 0) 55%, rgba(5, 25, 60, 0.32) 100%); }
 #flash { position: fixed; inset: 0; pointer-events: none; z-index: 6; background: #fff; opacity: 0; }
 #flash.on { animation: flash 0.5s ease-out; }
@@ -122,7 +127,7 @@ button, select, input { font-family: inherit; }
     animation: hint 6.5s ease-out forwards;
 }
 @keyframes hint { 0% { opacity: 0; transform: translateX(-50%) translateY(14px); } 8% { opacity: 1; transform: translateX(-50%); } 85% { opacity: 1; } 100% { opacity: 0; } }
-#hud-boss { position: absolute; left: 50%; top: calc(112px + var(--safe-t)); transform: translateX(-50%); text-align: center; width: min(360px, 70vw); }
+#hud-boss { position: absolute; left: 50%; top: calc(10px + var(--safe-t)); transform: translateX(-50%); text-align: center; width: min(360px, 70vw); }
 #hud-boss b { display: block; color: #fff7e0; font-size: 18px; text-shadow: 0 2px 0 #7a2a14, 0 0 8px rgba(0, 0, 0, 0.5); margin-bottom: 3px; }
 .bossbar { display: flex; gap: 5px; justify-content: center; }
 .bossbar i { flex: 1; height: 14px; border-radius: 8px; background: rgba(0, 0, 0, 0.35); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5); transition: background 0.2s, transform 0.2s; }

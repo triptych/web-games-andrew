@@ -124,7 +124,7 @@ function route(G, bot) {
 
     // where to run to: the edge of this slab nearest the next one
     let ex, ez;
-    if (cur && p.grounded) [ex, ez] = nearestPt(cur, tc[0], tc[1], via === 'walk' ? 0.4 : 0.5);
+    if (cur && p.grounded) [ex, ez] = nearestPt(cur, tc[0], tc[1], moving ? 0.2 : via === 'walk' ? 0.4 : 0.5);
     else [ex, ez] = nearestPt(target, p.x, p.z, 0.9);
     const aim = nearestPt(predicted(G, n, 0.25), p.x, p.z, 1.0);
     const jumpGo = (mode) => {
@@ -179,7 +179,7 @@ function route(G, bot) {
         }
     } else {
         // jump and roll: leave from the edge; a mover is waited for
-        const reachNow = Math.min(2.4, reach(via, Math.max(dy, 0)) * 0.5);
+        const reachNow = Math.min(3.4, reach(via, Math.max(dy, 0)) * 0.8);
         const ready = moving ? dPred <= reachNow : dEdge < 0.4;
         if (ready) { inp.jump = true; inp.jumpHeld = true; }
         else if (moving && dPred > reachNow) { go(ex, ez, dEdge < 0.4 ? 0 : 1); }

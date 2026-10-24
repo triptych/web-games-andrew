@@ -103,11 +103,12 @@ export function makeShell(id) {
 }
 
 // ================================================================ Pinch
-export function makePinch() {
+export function makePinch(o = {}) {
     const root = new THREE.Group();
+    root.scale.setScalar(o.scale ?? 1);
     const spin = new THREE.Group(); root.add(spin);        // the attack spin turns this
     const body = new THREE.Group(); spin.add(body);        // squash and stretch
-    const SHELLED = 0xff6b45, BELLY = 0xffb48a, DARK = 0xd44a2c;
+    const SHELLED = o.body ?? 0xff6b45, BELLY = o.belly ?? 0xffb48a, DARK = o.dark ?? 0xd44a2c;
 
     const torso = part(G.sphere(0.5, 20, 14), SHELLED, 0, 0.42, 0, 1.0, 0.62, 0.84, { ink: 0.035 });
     body.add(torso);
@@ -135,7 +136,7 @@ export function makePinch() {
         lens.rotation.x = Math.PI / 2; lens.position.set(s * 0.1, 0, 0); gog.add(lens);
     }
     gog.add(part(G.box(0.1, 0.03, 0.03), 0x7a4a22, 0, 0, 0, 1, 1, 1, { ink: false }));
-    body.add(gog);
+    if (o.goggles !== false) body.add(gog);
 
     // smile and cheeks
     const smile = mesh(new THREE.TorusGeometry(0.075, 0.016, 6, 12, Math.PI), toon(0x7a2a1a), { cast: false });
@@ -176,6 +177,77 @@ export function makePinch() {
     const shells = SHELL_LOOKS.map((s) => { const m = makeShell(s.id); m.visible = false; mount.add(m); return m; });
     shells[0].visible = true;
 
+    // inventions he has made show on him
+    const gear = new THREE.Group(); body.add(gear);
+    function setGear(ids = []) {
+        while (gear.children.length) gear.remove(gear.children[0]);
+        for (const s of stalks) { const old = s.st.getObjectByName('specs'); if (old) s.st.remove(old); }
+        for (const c of claws) { for (const n of ['spoon', 'watch', 'spark']) { const o = c.arm.getObjectByName(n) || c.hand.getObjectByName(n); if (o) o.parent.remove(o); } }
+        for (const l of legs) { const o = l.leg.getObjectByName('band'); if (o) l.leg.remove(...l.leg.children.filter((k) => k.name === 'band')); }
+        const has = (id) => ids.includes(id);
+        if (has('boater')) {
+            const h = new THREE.Group(); h.position.set(0, 0.9, -0.2); h.rotation.x = -0.25;
+            h.add(part(G.cyl(0.3, 0.3, 0.035, 18), 0xf0d48a, 0, 0, 0, 1, 1, 1, { ink: 0.02 }));
+            h.add(part(G.cyl(0.18, 0.2, 0.2, 14), 0xf6e0a0, 0, 0.11, 0, 1, 1, 1, { ink: 0.02 }));
+            h.add(part(G.cyl(0.205, 0.205, 0.05, 14), 0xe94b4b, 0, 0.05, 0, 1, 1, 1, { ink: false }));
+            h.add(part(G.cyl(0.07, 0.07, 0.03, 10), 0xc0c8d0, 0.1, 0.17, -0.12, 1, 1, 1, { ink: false, rot: [Math.PI / 2 - 0.3, 0, 0] }));   // a bottle cap on the band
+            gear.add(h);
+        }
+        if (has('magnet')) {
+            const g = new THREE.Group(); g.position.set(-0.4, 0.62, 0.18); g.rotation.set(0, 0.5, 0.5);
+            g.add(part(new THREE.TorusGeometry(0.13, 0.05, 6, 14, Math.PI), 0xe94b4b, 0, 0.1, 0, 1, 1, 1, { ink: 0.02 }));
+            for (const s of [-1, 1]) { g.add(part(G.cyl(0.05, 0.05, 0.14, 6), 0xe94b4b, s * 0.13, 0.03, 0, 1, 1, 1, { ink: false })); g.add(part(G.cyl(0.052, 0.052, 0.05, 6), 0xdde6ee, s * 0.13, -0.06, 0, 1, 1, 1, { ink: false })); }
+            gear.add(g);
+        }
+        if (has('boots')) for (const l of legs) for (const dy of [-0.16, -0.24]) { const b = part(G.torus(0.04, 0.02, 5, 10), 0x4d96ff, l.s * 0.27 + l.s * (-dy - 0.16) * 0.8, dy - 0.02, 0, 1, 1, 1, { ink: false, rot: [Math.PI / 2, 0, l.s * 0.35] }); b.name = 'band'; l.leg.add(b); }
+        if (has('buoy')) {
+            const r = new THREE.Group(); r.position.set(0, 0.38, -0.02); r.rotation.x = 0.1;
+            r.add(part(G.torus(0.56, 0.1, 8, 24), 0xffffff, 0, 0, 0, 1, 0.8, 1, { rot: [Math.PI / 2, 0, 0], ink: 0.025 }));
+            for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU + 0.4; r.add(part(G.box(0.2, 0.14, 0.2), 0xe94b4b, Math.cos(a) * 0.56, 0, Math.sin(a) * 0.56, 1, 1, 1, { ink: false, rot: [0, -a, 0] })); }
+            gear.add(r);
+        }
+        if (has('spinner')) {
+            const c = claws[1], sp = new THREE.Group(); sp.name = 'spoon'; sp.position.set(0.05, 0.12, -0.05); sp.rotation.set(0.3, 0, -0.5);
+            sp.add(part(G.cyl(0.018, 0.024, 0.44, 5), 0xdde6ee, 0, 0.22, 0, 1, 1, 1, { ink: false }));
+            sp.add(part(G.sphere(0.1, 8, 6), 0xdde6ee, 0, 0.5, 0, 1, 1.3, 0.35, { ink: 0.02 }));
+            c.hand.add(sp);
+        }
+        if (has('specs')) for (const s of stalks) {
+            const sg = new THREE.Group(); sg.name = 'specs'; sg.position.set(0, 0.34, -0.1);
+            sg.add(part(G.torus(0.16, 0.026, 6, 16), 0xc98a2a, 0, 0, 0, 1, 1, 1, { ink: false }));
+            const lens = mesh(G.cyl(0.15, 0.15, 0.01, 14), toon(0x9be8ff, { opacity: 0.55, emissive: 0x145060 }), { cast: false });
+            lens.rotation.x = Math.PI / 2; lens.position.z = -0.01; sg.add(lens);
+            s.st.add(sg);
+        }
+        if (has('watch')) {
+            const c = claws[0], w = new THREE.Group(); w.name = 'watch'; w.position.set(-0.2, 0.01, -0.07);
+            w.add(part(G.torus(0.065, 0.02, 5, 12), 0xc99a4a, 0, 0, 0, 1, 1, 1, { rot: [0, Math.PI / 2, 0.5], ink: false }));
+            w.add(part(G.cyl(0.04, 0.04, 0.02, 10), 0xfff6e0, 0, 0.055, 0, 1, 1, 1, { ink: false }));
+            c.arm.add(w);
+        }
+        if (has('parasol')) {
+            const u = new THREE.Group(); u.position.set(0.3, 1.0, 0.45);
+            u.add(part(G.cyl(0.014, 0.014, 0.4, 4), 0xf6f0e0, 0, 0.15, 0, 1, 1, 1, { ink: false }));
+            for (let i = 0; i < 6; i++) u.add(part(G.cone(0.26, 0.14, 4), i % 2 ? 0xff6b6b : 0xfff4d6, 0, 0.4, 0, 0.5, 1, 0.5, { ink: false, rot: [0, (i / 6) * TAU, 0] }));
+            u.add(part(G.cone(0.3, 0.16, 8), 0xff6b6b, 0, 0.38, 0, 1, 1, 1, { ink: false }));
+            gear.add(u);
+        }
+        if (has('boing')) for (const s of [-1, 1]) {
+            const c = new THREE.Group(); c.position.set(s * 0.22, 0.02, 0.08);
+            for (let i = 0; i < 4; i++) c.add(part(G.torus(0.07, 0.022, 5, 10), i % 2 ? 0xdde6ee : 0xb4c2d0, 0, i * 0.06, 0, 1, 1, 1, { rot: [Math.PI / 2, 0, 0], ink: false }));
+            gear.add(c);
+        }
+        if (has('sparkler')) {
+            const c = claws[0], sp = new THREE.Group(); sp.name = 'spark'; sp.position.set(-0.05, 0.1, -0.05); sp.rotation.set(0.2, 0, 0.3);
+            sp.add(part(G.cyl(0.012, 0.012, 0.5, 4), 0x9a8460, 0, 0.25, 0, 1, 1, 1, { ink: false }));
+            const gl = glowSprite(0xffe36b, 0.5, 0.9); gl.position.y = 0.52; sp.add(gl);
+            sp.userData.glow = gl;
+            c.hand.add(sp);
+            gear.userData.spark = sp;
+        } else gear.userData.spark = null;
+    }
+    setGear([]);
+
     const st = {
         phase: 0, squash: 0, stretch: 0, blink: 0, blinkT: 2, spinA: 0, curl: 0, shell: 0, glideK: 0, braceK: 0, swapPop: 0,
         roll: 0, hurtFlash: 0, lastGrounded: true, lastVy: 0, chargeK: 0, deadK: 0,
@@ -198,6 +270,9 @@ export function makePinch() {
         if (p.grounded && !st.lastGrounded) st.squash = clamp(-st.lastVy / 18, 0.25, 0.8);
         if (!p.grounded && st.lastGrounded && p.vy > 4) st.stretch = 0.6;
         st.lastGrounded = p.grounded; st.lastVy = p.vy;
+        // idle for a while: wave hello
+        st.idleT = (p.grounded && sp < 0.3 && !p.brace && !p.charge && !p.spinT) ? (st.idleT || 0) + dt : 0;
+        const waving = st.idleT > 5 && Math.sin(t * 0.8) > -0.2;
         st.squash = Math.max(0, st.squash - dt * 4.5); st.stretch = Math.max(0, st.stretch - dt * 3.2);
         const breathe = Math.sin(t * 2.6) * 0.015;
         let sy = 1 - st.squash * 0.38 + st.stretch * 0.22 + breathe + st.swapPop * 0.18;
@@ -222,6 +297,7 @@ export function makePinch() {
             let raise = air ? 0.7 : 0.1 + Math.sin(st.phase + (c.s > 0 ? 0 : Math.PI)) * 0.25 * moving;
             if (p.brace) raise = 0.55;
             if (p.glide) raise = 1.1;
+            if (waving && c.s > 0) raise = 1.3 + Math.sin(t * 9) * 0.3;
             c.arm.rotation.z = c.s * raise * 0.8; c.arm.rotation.x = -(p.brace ? 0.5 : 0.1);
             c.hand.rotation.y = c.s * (p.brace ? -0.5 : 0);
         }
@@ -280,11 +356,13 @@ export function makePinch() {
         if (p.launch && p.launch.t < p.launch.pre) root.visible = false;
         else if (p.launch) { spin.rotation.x = -t * 12; }
         mount.visible = true;
+        const sk = gear.userData.spark;
+        if (sk) sk.userData.glow.material.opacity = 0.6 + Math.sin(t * 40) * 0.3;
     }
 
     function setShell(i) { shells.forEach((s, k) => { s.visible = k === i; }); st.shell = i; }
 
-    return { root, update, setShell, state: st, body };
+    return { root, update, setShell, setGear, state: st, body };
 }
 
 // ================================================================ baddies
@@ -543,7 +621,7 @@ export function makeCoco() {
             root.rotation.y = B.face;
             const wind = B.state === 'wind' || B.state === 'stompwind';
             const dizzy = B.state === 'dizzy', dead = B.state === 'defeated';
-            const sc = dead ? Math.max(0.01, 1 - B.t * 0.18) : 1;
+            const sc = (dead ? Math.max(0.01, 1 - B.t * 0.18) : 1) * 1.2;
             body.scale.set(sc, sc * (dizzy ? 0.92 : 1), sc);
             body.rotation.z = dizzy ? Math.sin(t * 7) * 0.18 : dead ? Math.min(1.4, B.t * 1.5) : 0;
             body.position.y = Math.abs(Math.sin(t * 4)) * 0.06;
@@ -612,14 +690,15 @@ export function makeSandy() {
 
 export function makeSquawk() {
     const g = makeGull(2.4);
-    const hat = new THREE.Group(); hat.position.set(0, 1.0 * 2.4 + 0.25, -0.5 * 2.4);
+    const hat = new THREE.Group(); hat.position.set(0, 1.12, -0.48); hat.rotation.x = -0.15;
     hat.add(part(G.cyl(0.55, 0.65, 0.2, 14), 0x1f2a44, 0, 0, 0, 1, 1, 1, { ink: 0.03 }));
     hat.add(part(G.cone(0.45, 0.5, 14), 0x2a3a64, 0, 0.3, 0, 1, 1, 1, { ink: 0.03 }));
     hat.add(part(G.sphere(0.12, 8, 6), 0xffd34d, 0, 0.1, -0.5, 1, 1, 1, { ink: false }));
-    hat.scale.setScalar(1.4);
+    hat.scale.setScalar(0.5);
     g.body.add(hat);
-    const patch = part(G.sphere(0.2, 8, 6), 0x14161c, -0.36, 2.1, -1.5, 1, 1, 0.4, { ink: false });
+    const patch = part(G.sphere(0.1, 8, 6), 0x14161c, -0.15, 0.93, -0.74, 1, 1, 0.4, { ink: false });
     g.body.add(patch);
+    g.body.add(part(G.cyl(0.012, 0.012, 0.4, 4), 0x14161c, -0.02, 1.0, -0.7, 1, 1, 1, { ink: false, rot: [0, 0, 1.1] }));
     const glow = glowSprite(0xffe36b, 4, 0); glow.position.set(0, 1.4, 0); g.root.add(glow);
     const stars = new THREE.Group(); stars.position.y = 3.6; g.root.add(stars);
     for (let i = 0; i < 4; i++) stars.add(part(G.cone(0.16, 0.32, 4), 0xffe36b, Math.cos(i * 1.57) * 0.9, 0, Math.sin(i * 1.57) * 0.9, 1, 1, 1, { ink: false }));

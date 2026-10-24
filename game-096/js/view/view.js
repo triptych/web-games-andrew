@@ -46,7 +46,9 @@ export class View {
         this.world = new WorldView(G0.level, theme, G0);
         this.scene.add(this.world.root);
         this.pinch.setShell(G0.p.shell);
+        this.pinch.setGear(G0.equipped);
         this.camSnap = true;
+        this.introT = this.reduced ? 99 : 0;
         this.winT = 0;
         this.level = G0.level;
         this.world.addFlag(G0.level.start.x - 2.4, G0.level.start.y, G0.level.start.z + 1.6);
@@ -154,6 +156,7 @@ export class View {
         // vertical follow: eased, slower in the air so jumps stay on screen
         if (this.camSnap) rig.focusY = p.y;
         rig.focusY = damp(rig.focusY, p.y, p.grounded ? 5 : 1.8, dt);
+        rig.focusY = clamp(rig.focusY, p.y - 2.4, p.y + 1.5);          // eased, but never far enough to lose him off the screen
         const focus = rig.focusY;
 
         if (mode === 'title') {
@@ -169,9 +172,10 @@ export class View {
             tx = mx - fx * dist; tz = mz - fz * dist; ty = A.y + h;
             lx = mx + fx * 2; ly = A.y + 1.2; lz = mz + fz * 2; fov = 54 + portrait * 8;
         } else if (L.chase) {
-            const dist = 12.5 + portrait * 5, h = 9.5 + portrait * 3;
+            // from the front: the camera runs ahead of Pinch looking back, the wave rising behind him
+            const dist = 11 + portrait * 5, h = 8 + portrait * 3;
             tx = p.x - fx * dist; tz = p.z - fz * dist; ty = focus + h;
-            lx = p.x + fx * 5; ly = focus + 0.4; lz = p.z + fz * 5; fov = 58 + portrait * 8;
+            lx = p.x - fx * 3.5; ly = focus + 0.2; lz = p.z - fz * 3.5; fov = 56 + portrait * 8;
         } else if (mode === 'win') {
             const dist = 7;
             tx = p.x - fx * dist + Math.cos(this.winT * 0.6) * 1.5; tz = p.z - fz * dist - Math.sin(this.winT * 0.6) * 1.5; ty = focus + 3.2;
@@ -185,10 +189,17 @@ export class View {
         }
         if (G0.win_zoom) fov -= 4;
         if (this.camSnap) { rig.x = tx; rig.y = ty; rig.z = tz; rig.lx = lx; rig.ly = ly; rig.lz = lz; rig.fov = fov; this.camSnap = false; }
-        const k = mode === 'title' ? 3 : 6.5;
+        const k = mode === 'title' ? 3 : L.chase ? 11 : 6.5;
         rig.x = damp(rig.x, tx, k, dt); rig.y = damp(rig.y, ty, k * 0.8, dt); rig.z = damp(rig.z, tz, k, dt);
         rig.lx = damp(rig.lx, lx, k * 1.3, dt); rig.ly = damp(rig.ly, ly, k, dt); rig.lz = damp(rig.lz, lz, k * 1.3, dt);
         rig.fov = damp(rig.fov, fov, 3, dt);
+        // the first seconds of a level: sweep in from high above, looking back at where we are going
+        if (mode === 'play' && this.introT < 2.4 && !L.chase) {
+            this.introT += dt;
+            const b = smooth(clamp(this.introT / 2.4, 0, 1));
+            const hi = { x: p.x + fx * 7, y: focus + 16, z: p.z + fz * 7 };
+            rig.x = lerp(hi.x, rig.x, b); rig.y = lerp(hi.y, rig.y, b); rig.z = lerp(hi.z, rig.z, b);
+        }
         const sh = this.fx.shakeAmt;
         const sx = sh ? (Math.random() - 0.5) * sh * 0.8 : 0, sy = sh ? (Math.random() - 0.5) * sh * 0.8 : 0;
         cam.position.set(rig.x + sx, Math.max(rig.y + sy, L.waterY + 1.2), rig.z);

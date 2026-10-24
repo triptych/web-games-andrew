@@ -316,7 +316,7 @@ export class Builder {
         let top = -Infinity, bx0 = Infinity, bx1 = -Infinity, bz0 = Infinity, bz1 = -Infinity;
         for (const s of this.solids) { top = Math.max(top, s.y1); bx0 = Math.min(bx0, s.x0); bx1 = Math.max(bx1, s.x1); bz0 = Math.min(bz0, s.z0); bz1 = Math.max(bz1, s.z1); }
         level.bounds = { x0: bx0, x1: bx1, z0: bz0, z1: bz1, top };
-        level.pearlTotal = this.pearls.length + this.crates.reduce((n, c) => n + (c.kind === 'pearl' ? 8 : 0), 0);
+        level.pearlTotal = this.pearls.length + this.crates.reduce((n, c) => n + (c.kind === 'pearl' ? 8 : c.kind === 'wood' ? 2 : 0), 0);   // what a thorough player can collect
         level.grid = buildGrid(level);
         return level;
     }

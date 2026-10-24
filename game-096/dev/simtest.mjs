@@ -16,7 +16,8 @@
  * 5. determinism: the same seed and inputs give the same run; a save round trip plays on identically.
  * 6. bot: the route-following bot plays every level (immortal, then mortal) with per-step invariants,
  *    and the timing table is printed.
- * 7. progress: clears, unlocks, parts, building and equipping, the shells earned by finishing worlds.
+ * 7. fuzz: random buttons for 45 s on every level: nothing throws, goes non-finite or piles up.
+ * 8. progress: clears, unlocks, parts, building and equipping, the shells earned by finishing worlds.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -90,6 +91,8 @@ if (want('levels')) {
         if (L.chase) ok(L.sections.every((s) => s.type !== 'corner'), `${id}: a chase level has no corners (the wave is a plane)`);
         for (const g of L.gates) ok(L.switches.some((s) => s.gate === g.id), `${id}: gate ${g.id} has a switch`);
     }
+    // the pearl total is what is really there: the immortal bot's count never passes it
+    for (const id of ids) { const g = fresh(id, { god: true }), b = Bt.makeBot(); while (g.status === 'play' && g.time < 200) { Gm.step(g, Bt.botInput(g, b), DT); g.events.length = 0; } ok(g.pearls <= g.level.pearlTotal, `${id}: ${g.pearls} pearls collected, ${g.level.pearlTotal} on offer`); }
     // the reach table itself
     ok(Lv.reach('jump', 0) > 3.8 && Lv.reach('jump', 0) < 4.6, `a jump clears about four metres (${Lv.reach('jump', 0).toFixed(2)})`);
     ok(Lv.reach('glide', 0) > Lv.reach('roll', 0) && Lv.reach('roll', 0) > Lv.reach('jump', 0), 'glide > roll-jump > jump');
@@ -489,6 +492,40 @@ if (want('bot')) {
     const par = D.LEVELS.map((l) => l.par);
     ok(rows.filter((r) => r.god).every((r, i) => r.time < par[i]), 'the immortal bot beats every level\'s par time (par is reachable)');
     ok(rows.filter((r) => !r.god).every((r) => r.oopsies <= 3), 'the mortal bot loses a life at most a few times per level');
+}
+
+// ======================================================================
+if (want('fuzz')) {
+    section('fuzz');
+    // Random buttons for a minute on every level, boss fights included: nothing may throw, go non-finite or wedge the state.
+    const { makeRng } = await import('../js/rng.js');
+    let steps = 0;
+    for (const id of ids) {
+        for (let seed = 1; seed <= 2; seed++) {
+            const rng = makeRng(seed * 977 + id.length), G = fresh(id, { seed, shells: 5 });
+            let cur = NONE, until = 0, bad = null;
+            try {
+                for (let t = 0; t < 45 && !bad; t += DT) {
+                    if (t >= until) {
+                        until = t + 0.1 + rng() * 0.5;
+                        cur = inp({ x: rng() < 0.3 ? 0 : rng() * 2 - 1, y: rng() < 0.3 ? 0 : rng() * 2 - 1, jumpHeld: rng() < 0.3, powerHeld: rng() < 0.3 });
+                    }
+                    const i = { ...cur, jump: rng() < 0.01, spin: rng() < 0.008, power: rng() < 0.01, swap: rng() < 0.004 ? 1 : 0, sel: rng() < 0.002 ? 1 + Math.floor(rng() * 5) : 0 };
+                    Gm.step(G, i, DT); steps++;
+                    G.events.length = 0;
+                    const p = G.p;
+                    if (![p.x, p.y, p.z, p.vx, p.vy, p.vz].every(Number.isFinite)) bad = 'non-finite player';
+                    else if (G.hearts < 0 || G.hearts > G.maxHearts + 1) bad = 'hearts out of range';
+                    else if (G.boss && ![G.boss.x, G.boss.y, G.boss.z].every(Number.isFinite)) bad = 'non-finite boss';
+                    else if (G.enemies.some((e) => !Number.isFinite(e.x + e.y + e.z))) bad = 'non-finite enemy';
+                    else if (G.shots.length > 200) bad = 'shots piling up';
+                    if (G.status === 'won') break;
+                }
+            } catch (e) { bad = 'threw ' + e.message; }
+            ok(!bad, `${id} seed ${seed}: ${bad || 'survived random play'}`);
+        }
+    }
+    console.log(`  ${steps.toLocaleString()} random steps`);
 }
 
 // ======================================================================
