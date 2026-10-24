@@ -47,7 +47,8 @@ export function makeTeens() {
     const fl = group(cyl(0.05, 0.06, 0.34, M(0x333333, { metal: 0.5 }), 0, 0, 0, 8), cyl(0.09, 0.06, 0.1, M(0xcccccc, { metal: 0.6 }), 0, 0.2, 0, 8));
     fl.rotation.x = -Math.PI / 2; fl.position.set(0, -0.58, 0.18);
     const beam = new THREE.Mesh(new THREE.ConeGeometry(0.55, 3.2, 18, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff0b0, transparent: true, opacity: 0.07, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
-    beam.position.set(0, 0.0, 1.7); beam.rotation.x = Math.PI / 2; fl.add(beam);
+    // the cone's apex is at +y: flip it so the narrow end sits at the lamp and the wide end lights the room
+    beam.position.set(0, 1.8, 0); beam.rotation.x = Math.PI; fl.add(beam);
     add(theo.userData.arms[1], fl);
     theo.userData.beam = beam;
     // June: purple dress, magenta bob, a beret
