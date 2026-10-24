@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Homeward Hop: models</title>
+<style>html,body{margin:0;height:100%;background:#cfe9ee;overflow:hidden;font-family:system-ui,sans-serif}canvas{display:block}#lab{position:fixed;left:8px;top:8px;font:12px monospace;color:#234;background:#fffa;padding:4px 8px;border-radius:6px}</style>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.165.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.165.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="lab"></div>
+<script type="module">
+// A neutral stage for judging the cast and the props: flat light, plain floor, no bloom, no coloured rim lights.
+//   dev/models.html?set=pinch|shells|enemies|bosses|props|curios   &shell=0..4  &state=idle|run|air|spin|roll|brace|glide|slam|charge
+import { THREE, toon } from '../js/view/kit.js';
+import * as M from '../js/view/models.js';
+import * as P from '../js/view/props.js';
+
+const q = new URLSearchParams(location.search);
+const set = q.get('set') || 'pinch';
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xcfe9ee);
+scene.add(new THREE.HemisphereLight(0xffffff, 0xb0a080, 1.1));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(-4, 8, 6); scene.add(sun);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 40), new THREE.MeshToonMaterial({ color: 0xf0e0b8 })); floor.rotation.x = -Math.PI / 2; scene.add(floor);
+const cam = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 200);
+
+const items = [];
+const place = (obj, x, z = 0, label = '') => { obj.position.x = x; obj.position.z = z; scene.add(obj); return obj; };
+const fakeP = (o = {}) => ({ x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, grounded: true, spinT: 0, rollT: 0, brace: false, glide: false, slam: 0, charge: 0, hurtT: 0, dead: 0, shell: 0, launch: null, ...o });
+let span = 8;
+
+if (set === 'pinch' || set === 'shells') {
+    const states = { idle: {}, run: { vz: -7, vx: 0 }, air: { grounded: false, vy: 5 }, spin: { spinT: 0.3 }, roll: { rollT: 0.4, vz: -12 }, brace: { brace: true }, glide: { grounded: false, glide: true, vy: -2 }, slam: { grounded: false, slam: 2, vy: -30 }, charge: { charge: 0.7 } };
+    const names = set === 'pinch' ? [q.get('state') || 'idle'] : Object.keys(states);
+    const shells = set === 'shells' ? [0, 1, 2, 3, 4] : [+(q.get('shell') || 0)];
+    let x = 0;
+    for (const sh of shells) for (const st of (set === 'shells' ? [q.get('state') || 'idle'] : names)) {
+        const pin = M.makePinch(); pin.setShell(sh); if (q.get('gear')) pin.setGear(q.get('gear').split(','));
+        place(pin.root, x); const px = x;
+        items.push((t, dt) => pin.update(fakeP({ x: px, ...states[st], shell: sh, yaw: Math.PI * (q.get('back') ? 0 : 1) + 0.5 * Math.sin(t * 0.5) }), dt, t)); x += 2.6;
+    }
+    span = Math.max(3, x);
+} else if (set === 'enemies') {
+    const mk = [['flea', M.makeFlea], ['starfish', M.makeStarfish], ['jelly', M.makeJelly], ['monkey', M.makeMonkey], ['cannon', M.makeCannon], ['gull', () => M.makeGull(1)], ['knight', M.makeKnight]];
+    mk.forEach(([k, f], i) => {
+        const m = f(); place(m.root, i * 3 - 9);
+        items.push((t, dt) => { const e = { x: i * 3 - 9, y: k === 'gull' ? 1 : k === 'jelly' ? 1 : 0, z: 0, face: Math.PI + 0.6 * Math.sin(t), id: i, hop: Math.abs(Math.sin(t * 5)) * 0.5, spin: t * 3, state: Math.floor(t) % 3 === 0 ? 1 : 0, fx: 0, fz: 1, clink: 0 }; m.update(e, dt, t); });
+    });
+    span = 24;
+} else if (set === 'bosses') {
+    [['coco', M.makeCoco, 0], ['sandy', M.makeSandy, 10], ['squawk', M.makeSquawk, 20]].forEach(([k, f, x]) => {
+        const m = f(); place(m.root, x - 10);
+        items.push((t, dt) => m.update({ x: x - 10, y: k === 'squawk' ? 2.5 : 0, z: 0, face: Math.PI + 0.5 * Math.sin(t * 0.6), state: q.get('bstate') || (k === 'sandy' ? 'walk' : k === 'squawk' ? 'fly' : 'idle'), t, dx: 0, dz: 0 }, dt, t));
+    });
+    span = 34;
+} else if (set === 'props') {
+    const th = { slab: {} };
+    const crates = new P.Crates(['wood', 'pearl', 'iron', 'check', 'heart'].map((k, i) => ({ kind: k, x: i * 1.6 - 14, y: 0, z: 0 })));
+    scene.add(crates.root);
+    const fakeG = { crates: crates.items.map(() => ({ alive: 1 })) };
+    items.push((t) => crates.update(fakeG, t));
+    const sp = new P.Springs([{ x: -4, y: 0, z: 0 }]); scene.add(sp.root);
+    const br = new P.Barrels([{ x: -2, y: 0, z: 0 }]); scene.add(br.root);
+    const sw = new P.Switches([{ x: 0, y: 0, z: 0 }]); scene.add(sw.root);
+    const un = new P.makeUrchin(); un.position.set(2, 0, 0); scene.add(un);
+    const spin = P.makeSpinner({ len: 2.5, arms: 2 }); spin.position.set(5, 0, 0); scene.add(spin);
+    const goal = P.makeGoal(th); goal.root.position.set(10, 0, -2); scene.add(goal.root);
+    const sign = P.makeSign('gap'); sign.position.set(-7, 0, 2); sign.rotation.y = 0; scene.add(sign);
+    const fl = P.makeFlag(); fl.position.set(-8.5, 0, 1); scene.add(fl);
+    items.push((t) => { sp.update({ springs: [{ pop: 0 }] }, t); br.update({ barrels: [{ shake: 0, cool: 0 }] }, t); sw.update({ switchesDown: [0] }, t); spin.userData.arms.rotation.y = t; goal.spin.rotation.y = t; });
+    span = 30;
+} else if (set === 'curios') {
+    const kinds = ['cap', 'button', 'glass', 'spring', 'gear', 'string', 'cork', 'spoon', 'magnet', 'bulb'];
+    const cu = new P.Curios(kinds.map((k, i) => ({ x: i * 2 - 9, y: 1, z: 0, kind: k })));
+    scene.add(cu.root);
+    items.push((t) => cu.update({ curioL: kinds.map(() => ({ got: 0 })) }, t));
+    span = 24;
+}
+document.getElementById('lab').textContent = `set=${set} shell=${q.get('shell') || 0}`;
+const dist = Math.max(8, span * 0.9), cx = set === 'props' || set === 'bosses' || set === 'enemies' || set === 'curios' ? 0 : span / 2 - 1.3;
+const camH = +(q.get('h') || (set === 'bosses' ? 6 : 2.4)), camD = +(q.get('d') || dist * (set === 'shells' ? 0.7 : 0.8));
+cam.position.set(cx, camH, camD); cam.lookAt(cx, set === 'bosses' ? 2.2 : 0.7, 0);
+if (set === 'pinch') { cam.position.set(0.6, +(q.get('h') || 1.7), +(q.get('d') || 3.8)); cam.lookAt(0, 0.7, 0); }
+let last = 0;
+function frame(ms) {
+    requestAnimationFrame(frame);
+    const t = ms / 1000, dt = Math.min(0.05, t - last); last = t;
+    for (const f of items) f(t, dt);
+    renderer.render(scene, cam);
+}
+requestAnimationFrame(frame);
+window.__ready = true;
+</script>
+</body>
+</html>

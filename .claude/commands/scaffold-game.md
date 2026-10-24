@@ -4714,6 +4714,10 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] Text drawn into a canvas texture is measured and shrunk to fit (`measureText`); a fixed size ran the museum's name off both ends of its sign (game-088).
 - [ ] A scrolling panel with rounded corners styles its scrollbar (clear track, rounded thumb, track margin as big as the radius): a classic desktop scrollbar is a square strip that covers the corners and border (game-088's How to Play). Headless Chromium hides scrollbars; launch without `--hide-scrollbars` to see them.
 - [ ] On-screen button labels match the keys (the cabinet said A B C; the keys were Z X C, game-075).
+- [ ] A third-person camera never loses the player to a big bounce: clamp its eased focus height to a band around him (game-096). Tall scenery (palms, towers) stays off narrow slabs and out of boss arenas, or it fills the screen when the camera passes behind it.
+- [ ] A hazard that comes from behind the camera (a chase wave) is filmed from the front, or the player has no way to see it (game-096).
+- [ ] `deserialize` restores what the player is standing on (a reference into the world) and every table `initWorld` resets (opened gates, crumble states); the round-trip test steps both copies on and compares (game-096).
+- [ ] On a 390 px phone the HUD has a second row: the pause button is out of the flex row and a test taps it for real (game-096).
 - [ ] A drag that moves the camera never also places or builds; a press that wandered ~10 px isn't a tap (game-067).
 
 **Rendering (three.js)**
