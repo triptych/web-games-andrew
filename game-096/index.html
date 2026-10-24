@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2fb7c9">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Homeward Hop — a whimsical 3D platformer. Pinch the inventor hermit crab was washed away from his family. Swap shells to glide, block coconuts and ground-pound, build gadgets from found things, and hop home across five worlds.">
+    <title>Homeward Hop</title>
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="Homeward Hop game view"></canvas>
+    <div id="vignette" aria-hidden="true"></div>
+    <div id="flash" aria-hidden="true"></div>
+
+    <!-- ============================================================ HUD -->
+    <div id="hud" hidden>
+        <div class="hud-top">
+            <div id="hud-hearts" class="hearts" aria-label="Hearts"></div>
+            <div class="pill" id="hud-pearls" title="Pearls"><i class="pearl-ic"></i><b>0</b></div>
+            <div class="pill" id="hud-curios" title="Found things"><span></span><span></span><span></span></div>
+        </div>
+        <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
+        <div id="hud-shells" aria-label="Shells"></div>
+        <div id="hud-banner" class="banner" hidden></div>
+        <div id="hud-hint" class="hint" hidden></div>
+        <div id="hud-boss" hidden><b></b><div class="bossbar"></div></div>
+        <div id="hud-wave" hidden><small>The wave!</small><div class="wavebar"><i></i></div></div>
+        <div id="hud-arrow" hidden aria-hidden="true">➤</div>
+    </div>
+
+    <!-- Touch deck: shown on coarse pointers or after the first touch -->
+    <div id="touch" hidden>
+        <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div></div>
+        <button id="btn-jump" class="tbtn jump" aria-label="Jump">Jump</button>
+        <button id="btn-spin" class="tbtn spin" aria-label="Spin">Spin</button>
+        <button id="btn-power" class="tbtn power" aria-label="Shell power">Power</button>
+        <button id="btn-swap" class="tbtn swap" aria-label="Next shell">🐚</button>
+    </div>
+
+    <!-- ============================================================ title -->
+    <div id="title" class="screen title">
+        <div class="titlewrap">
+            <h1 class="logo" aria-label="Homeward Hop">
+                <span class="l1">Homeward</span><span class="l2">Hop</span>
+            </h1>
+            <p class="tag">Pinch the inventor crab's long way home</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary big" hidden>Continue</button>
+                <button data-act="new" id="btn-new" class="btn primary big">Start the Journey</button>
+                <button data-act="workshop" id="btn-workshop" class="btn" hidden>Pinch's Workshop</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <!-- ============================================================ world map -->
+    <div id="map" class="screen" hidden>
+        <div class="sheet wide">
+            <header class="sheet-head">
+                <button class="xbtn" data-close aria-label="Back">←</button>
+                <h2>The Long Way Home</h2>
+                <div class="totals" id="map-totals"></div>
+            </header>
+            <div class="mapbody" id="map-body"></div>
+            <footer class="sheet-foot">
+                <button class="btn" id="map-workshop">🛠️ Workshop</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- ============================================================ workshop -->
+    <div id="workshop" class="screen" hidden>
+        <div class="sheet wide">
+            <header class="sheet-head">
+                <button class="xbtn" data-close aria-label="Back">←</button>
+                <h2>Pinch's Workshop</h2>
+            </header>
+            <div class="wsbody">
+                <div class="slots" id="ws-slots"></div>
+                <div class="parts" id="ws-parts"></div>
+                <div class="inventions" id="ws-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ how to play, settings -->
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <table class="keys">
+                <tr><td>Arrows / WASD</td><td>Run</td></tr>
+                <tr><td>Space / Z</td><td>Jump (hold for higher)</td></tr>
+                <tr><td>X / J</td><td>Spin: smash crates and baddies</td></tr>
+                <tr><td>C / L / Shift</td><td>Shell power (hold if it says so)</td></tr>
+                <tr><td>Q / E, 1–5</td><td>Swap shells</td></tr>
+                <tr><td>P / Esc</td><td>Pause</td></tr>
+            </table>
+            <ul class="shelllist" id="howto-shells"></ul>
+            <p class="small">Touch: drag on the left to run. Jump, Spin and Power on the right; the little shell button swaps. Gamepad: stick, A jump, X spin, B power, bumpers swap.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Touch controls
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <label class="row">Shadows
+                <select id="set-shadows"><option value="auto">Automatic</option><option value="on">On</option><option value="off">Off (faster)</option></select>
+            </label>
+            <label class="row">Calm mode (no shake or flashes)
+                <select id="set-calm"><option value="auto">Follow my device</option><option value="on">On</option><option value="off">Off</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="restart" class="btn">Restart level</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Back to the map</button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- ============================================================ level complete -->
+    <div id="complete" class="screen" hidden>
+        <div class="sheet complete">
+            <h2 id="cl-title">Level clear!</h2>
+            <div class="cl-name" id="cl-name"></div>
+            <div class="tally" id="cl-tally"></div>
+            <div class="badges" id="cl-badges"></div>
+            <div class="newshell" id="cl-shell" hidden></div>
+            <div class="bottle" id="cl-bottle" hidden>
+                <button class="btn" id="cl-bottle-btn">💌 A bottle washed up!</button>
+                <p id="cl-note" hidden></p>
+            </div>
+            <div class="sheet-foot spread">
+                <button class="btn" id="cl-map">Map</button>
+                <button class="btn" id="cl-replay">Replay</button>
+                <button class="btn primary" id="cl-next">Next ▸</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="credits" class="screen" hidden>
+        <div class="sheet credits">
+            <h2>Homeward Hop</h2>
+            <p>Pinch made it home, and so did you.</p>
+            <p class="small">Everything you saw and heard was made in code: the crab, the shells, the sea and the sound. No image or audio files, just three.js and Web Audio.</p>
+            <p class="small" id="credits-stats"></p>
+            <div class="sheet-foot spread"><button class="btn" id="cr-map">Back to the map</button><button class="btn primary" id="cr-title">Title</button></div>
+        </div>
+    </div>
+
+    <!-- ============================================================ dialogue -->
+    <div id="dialogue" class="dialogue" hidden>
+        <div class="dbox">
+            <div class="dface" id="d-face"></div>
+            <div class="dtext">
+                <b id="d-name"></b>
+                <p id="d-text"></p>
+            </div>
+            <div class="dbtns">
+                <button id="d-skip" class="btn small">Skip</button>
+                <button id="d-next" class="btn primary small">Next ▸</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toasts" role="status"></div>
+    <noscript><p class="noscript">Homeward Hop needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
