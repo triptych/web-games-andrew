@@ -15,17 +15,95 @@ const HEIGHT = {
     cannon: 1.0, dancer: 1.15, hopper: 0.85, witch: 1.3, archbishop: 1.55, empress: 1.3, champion: 1.4, wraith: 1.15, gargoyle: 1.0,
 };
 
+// ---------------------------------------------------------------- surfaces
+// Each element has its own stone: cracked basalt with lava seams, wave-scaled slate, mossy bark,
+// swirled violet marble, ivory marble veined with gold. A colour map and a matching glow map (only the
+// seams light up), made once and shared by every piece of that element.
+const rnd = (i, j = 0) => { const x = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return x - Math.floor(x); };
+const TEX = {};
+function surface(el) {
+    if (TEX[el]) return TEX[el];
+    const N = 256;
+    const mk = () => { const c = document.createElement('canvas'); c.width = c.height = N; return c; };
+    const base = mk(), glow = mk();
+    const g = base.getContext('2d'), h = glow.getContext('2d');
+    h.fillStyle = '#000'; h.fillRect(0, 0, N, N);
+    const speckle = (n, lo, hi, a) => { for (let i = 0; i < n; i++) { const v = lo + Math.floor(rnd(i, 3) * (hi - lo)); g.fillStyle = `rgba(${v},${v},${v},${a})`; g.fillRect(rnd(i, 1) * N, rnd(i, 2) * N, 1 + rnd(i, 4) * 3, 1 + rnd(i, 5) * 3); } };
+    const vein = (ctx, n, col, w, wob, seed) => {
+        ctx.strokeStyle = col; ctx.lineCap = 'round';
+        for (let k = 0; k < n; k++) {
+            ctx.lineWidth = w * (0.5 + rnd(k, seed));
+            ctx.beginPath();
+            let x = rnd(k, seed + 1) * N, y = rnd(k, seed + 2) * N;
+            ctx.moveTo(x, y);
+            for (let s = 0; s < 9; s++) { x += (rnd(k, s + seed) - 0.5) * wob; y += (rnd(k, s + seed + 9) - 0.2) * wob; ctx.lineTo(x, y); }
+            ctx.stroke();
+        }
+    };
+    if (el === 'ember') {
+        g.fillStyle = '#7a3a2c'; g.fillRect(0, 0, N, N);
+        for (let i = 0; i < 40; i++) { g.fillStyle = `rgba(${40 + rnd(i) * 50},${14 + rnd(i, 2) * 20},${10},0.55)`; g.beginPath(); g.arc(rnd(i, 1) * N, rnd(i, 2) * N, 14 + rnd(i, 3) * 26, 0, 7); g.fill(); }
+        speckle(900, 120, 230, 0.12);
+        vein(g, 9, '#1a0806', 4, 90, 20); vein(h, 9, '#ff7a2a', 3, 90, 20); vein(h, 5, '#ffd070', 1.2, 90, 20);
+    } else if (el === 'tide') {
+        g.fillStyle = '#3f7f9a'; g.fillRect(0, 0, N, N);
+        for (let r = 0; r < 12; r++) for (let c = 0; c < 9; c++) {
+            const x = c * 32 + (r % 2) * 16, y = r * 22;
+            const gr = g.createRadialGradient(x, y + 6, 2, x, y + 6, 22);
+            gr.addColorStop(0, `rgba(160,235,250,${0.35 + rnd(r, c) * 0.3})`); gr.addColorStop(1, 'rgba(10,50,80,0.55)');
+            g.fillStyle = gr; g.beginPath(); g.arc(x, y + 6, 20, 0, Math.PI); g.fill();
+            h.strokeStyle = 'rgba(80,200,255,0.55)'; h.lineWidth = 1.5; h.beginPath(); h.arc(x, y + 6, 20, 0.1, Math.PI - 0.1); h.stroke();
+        }
+    } else if (el === 'thorn') {
+        g.fillStyle = '#56733c'; g.fillRect(0, 0, N, N);
+        for (let i = 0; i < 70; i++) { const x = rnd(i) * N; g.fillStyle = `rgba(${30 + rnd(i, 2) * 40},${40 + rnd(i, 3) * 50},20,0.45)`; g.fillRect(x, 0, 2 + rnd(i, 4) * 7, N); }
+        speckle(600, 90, 190, 0.12);
+        vein(g, 7, '#243314', 5, 70, 40); vein(h, 7, '#9aff60', 2.2, 70, 40);
+        for (let i = 0; i < 18; i++) { const x = rnd(i, 7) * N, y = rnd(i, 8) * N; h.fillStyle = '#c0ff80'; h.beginPath(); h.arc(x, y, 2.4, 0, 7); h.fill(); }
+    } else if (el === 'umbra') {
+        const gr = g.createLinearGradient(0, 0, N, N); gr.addColorStop(0, '#4a3a78'); gr.addColorStop(1, '#2a1f4a');
+        g.fillStyle = gr; g.fillRect(0, 0, N, N);
+        for (let i = 0; i < 26; i++) { g.strokeStyle = `rgba(150,110,230,${0.1 + rnd(i) * 0.15})`; g.lineWidth = 6 + rnd(i, 2) * 14; g.beginPath(); g.arc(rnd(i, 3) * N, rnd(i, 4) * N, 20 + rnd(i, 5) * 70, rnd(i, 6) * 6, rnd(i, 6) * 6 + 2.4); g.stroke(); }
+        speckle(500, 100, 220, 0.1);
+        vein(g, 8, '#c8a0ff', 2.2, 80, 60); vein(h, 8, '#b070ff', 2.4, 80, 60);
+    } else {
+        g.fillStyle = '#d6cdb8'; g.fillRect(0, 0, N, N);
+        for (let i = 0; i < 30; i++) { g.fillStyle = `rgba(${200 + rnd(i) * 40},${190 + rnd(i, 2) * 40},${160 + rnd(i, 3) * 30},0.4)`; g.beginPath(); g.arc(rnd(i, 1) * N, rnd(i, 2) * N, 10 + rnd(i, 3) * 30, 0, 7); g.fill(); }
+        speckle(700, 150, 255, 0.1);
+        vein(g, 6, '#b0966a', 2.4, 80, 80); vein(h, 6, '#ffd060', 2.2, 80, 80);
+    }
+    const tex = (cv) => { const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t; };
+    return (TEX[el] = { map: tex(base), glow: tex(glow) });
+}
+
 export function makeMaterials(def) {
     const [c1, c2] = def.colors;
+    const acc = new THREE.Color(c2), gold = new THREE.Color(0xd9b45e);
+    // the unit's own colour tints its element's stone, pulled towards white so the texture stays readable
+    const tint = new THREE.Color(0xffffff).lerp(new THREE.Color(c1).multiplyScalar(2.2), 0.42);
+    const tex = surface(def.el);
     return {
-        body: new THREE.MeshStandardMaterial({ color: new THREE.Color(c1).multiplyScalar(1.5), roughness: 0.55, metalness: 0.2 }),
-        dark: new THREE.MeshStandardMaterial({ color: new THREE.Color(c1).multiplyScalar(0.55), roughness: 0.8, metalness: 0.1 }),
-        trim: new THREE.MeshStandardMaterial({ color: new THREE.Color(c2).multiplyScalar(0.6), roughness: 0.35, metalness: 0.7 }),
-        glow: new THREE.MeshStandardMaterial({ color: c2, emissive: c2, emissiveIntensity: 1.1, roughness: 0.4 }),
+        body: new THREE.MeshStandardMaterial({ map: tex.map, color: tint, emissiveMap: tex.glow, emissive: acc.clone().lerp(new THREE.Color(0xffffff), 0.3), emissiveIntensity: 1.2, roughness: 0.5, metalness: 0.15, vertexColors: true }),
+        dark: new THREE.MeshStandardMaterial({ map: tex.map, color: tint.clone().multiplyScalar(0.6), emissiveMap: tex.glow, emissive: acc, emissiveIntensity: 0.5, roughness: 0.75, metalness: 0.1, vertexColors: true }),
+        trim: new THREE.MeshStandardMaterial({ color: acc.clone().lerp(gold, 0.55), emissive: acc, emissiveIntensity: 0.25, roughness: 0.28, metalness: 0.75, vertexColors: true }),
+        glow: new THREE.MeshStandardMaterial({ color: c2, emissive: c2, emissiveIntensity: 1.4, roughness: 0.4 }),
     };
 }
 
-const add = (g, geo, mat, x = 0, y = 0, z = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); g.add(m); return m; };
+/** Darker at the foot, lighter at the crown: a vertex colour gradient so a lathe has form even in flat light. */
+function shade(geo) {
+    if (geo.attributes.color) return;
+    geo.computeBoundingBox();
+    const { min, max } = geo.boundingBox, pos = geo.attributes.position;
+    const col = new Float32Array(pos.count * 3), span = Math.max(0.001, max.y - min.y);
+    for (let i = 0; i < pos.count; i++) {
+        const t = (pos.getY(i) - min.y) / span, v = 0.68 + 0.42 * t;
+        col[i * 3] = v; col[i * 3 + 1] = v; col[i * 3 + 2] = v;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+}
+
+const add = (g, geo, mat, x = 0, y = 0, z = 0) => { if (mat.vertexColors) shade(geo); const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); g.add(m); return m; };
 const box = (w, h, d) => new THREE.BoxGeometry(w, h, d);
 const cone = (r, h, seg = 8) => new THREE.ConeGeometry(r, h, seg);
 const sph = (r, ws = 14, hs = 10) => new THREE.SphereGeometry(r, ws, hs);
@@ -153,7 +231,7 @@ const BUILD = {
         add(g, box(0.04, 0.8, 0.07), m.glow, 0.34, 0.8, -0.1).rotation.z = 0.15;
     },
     wraith(g, m) {
-        const cloak = add(g, new THREE.ConeGeometry(0.4, 1.1, 14, 1, true), new THREE.MeshStandardMaterial({ color: m.body.color, transparent: true, opacity: 0.8, side: THREE.DoubleSide, roughness: 0.9 }), 0, 0.6, 0);
+        const cloak = add(g, new THREE.ConeGeometry(0.4, 1.1, 14, 1, true), new THREE.MeshStandardMaterial({ map: m.body.map, color: m.body.color, emissiveMap: m.body.emissiveMap, emissive: m.body.emissive, emissiveIntensity: 0.9, transparent: true, opacity: 0.85, side: THREE.DoubleSide, roughness: 0.9 }), 0, 0.6, 0);
         cloak.scale.set(1, 1, 0.9);
         add(g, sph(0.17, 12, 10), m.dark, 0, 1.05, 0);
         add(g, sph(0.04, 6, 6), m.glow, -0.07, 1.07, -0.14);
@@ -185,7 +263,7 @@ export function makePiece(key, team, { bar = true } = {}) {
 
     // base disc and the team ring
     const ring = team === 'e' ? 0xc2203a : 0xe8c46a;
-    add(rig, cyl(0.4, 0.44, 0.1, 24), new THREE.MeshStandardMaterial({ color: 0x1a1720, roughness: 0.7, metalness: 0.3 }), 0, 0.05, 0);
+    add(rig, cyl(0.4, 0.44, 0.1, 24), m.dark, 0, 0.05, 0);
     const rmat = new THREE.MeshStandardMaterial({ color: ring, emissive: ring, emissiveIntensity: 0.7, roughness: 0.4 });
     add(rig, new THREE.TorusGeometry(0.4, 0.025, 6, 32), rmat, 0, 0.1, 0).rotation.x = Math.PI / 2;
 
