@@ -486,7 +486,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 .lib-group h3 { margin: 14px 8px 6px; font: 600 1.05rem var(--display); letter-spacing: 0.06em; color: var(--accent, var(--gold)); }
 .lib-item {
     display: grid;
-    grid-template-columns: 48px 1fr auto;
+    grid-template-columns: 128px 1fr auto;
     gap: 12px;
     align-items: center;
     padding: 10px;
@@ -494,7 +494,11 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     border: 1px solid transparent;
 }
 .lib-item:hover { background: rgba(255, 255, 255, 0.04); border-color: rgba(217, 180, 106, 0.25); }
-.lib-icon { width: 48px; height: 48px; display: grid; place-items: center; font-size: 1.7rem; border-radius: 50%; background: rgba(255, 255, 255, 0.07); }
+.lib-thumb { position: relative; width: 128px; height: 67px; display: grid; place-items: center; border-radius: 8px; overflow: hidden; background: rgba(255, 255, 255, 0.07); }
+.lib-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.lib-icon { width: 48px; height: 48px; display: grid; place-items: center; font-size: 1.7rem; border-radius: 50%; }
+/* with a screenshot, the icon shrinks to a badge in its corner */
+.lib-thumb img + .lib-icon { position: absolute; left: 4px; bottom: 4px; width: 26px; height: 26px; font-size: 0.95rem; background: rgba(11, 16, 32, 0.78); }
 .lib-text { min-width: 0; }
 .lib-text strong { font: 600 1.08rem var(--display); }
 .lib-text .ver { font: 500 0.75rem var(--sans); color: var(--ink-dim); margin-left: 0.4em; }
@@ -505,8 +509,10 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 .starred-hint { flex: none; margin: 0; padding: 0 20px 8px; color: var(--ink-dim); font-style: italic; }
 .lib-foot { flex: none; margin: 0; padding: 10px 20px 14px; border-top: 1px solid rgba(217, 180, 106, 0.2); text-align: center; }
 @media (max-width: 560px) {
-    .lib-item { grid-template-columns: 40px 1fr; }
+    .lib-item { grid-template-columns: 96px 1fr; }
+    .lib-thumb { width: 96px; height: 50px; }
     .lib-icon { width: 40px; height: 40px; font-size: 1.4rem; }
+    .lib-thumb img + .lib-icon { width: 22px; height: 22px; font-size: 0.8rem; }
     .lib-actions { grid-column: 1 / -1; }
     .lib-actions .btn { flex: 1; }
     .lib-actions .btn-star { flex: 0 0 auto; }
