@@ -113,7 +113,7 @@ for (const game of games) {
         }
         // the "← Games" launcher link is page chrome, not part of the game's picture
         await page.addStyleTag({ content: 'a[href$="../index.html"]{visibility:hidden!important}' }).catch(() => {});
-        await page.screenshot({ path: path.join(OUT, `${game}.jpg`), type: 'jpeg', quality: 80 });
+        await page.screenshot({ path: path.join(OUT, `${game}.jpg`), type: 'jpeg', quality: 80, timeout: 120000 });
         console.log(`ok   ${game}`);
     } catch (e) {
         failed++;
