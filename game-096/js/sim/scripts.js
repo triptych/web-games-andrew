@@ -1,0 +1,620 @@
+// The fourteen levels, written against the builder in levels.js. Slabs are laid end to end;
+// L.gap(n) leaves n metres of water; a, b are metres to the right and ahead of a slab's start.
+// The builder throws if any jump is past what the body can do, or needs a shell the world
+// has not handed out yet, so a level that loads is a level that can be finished.
+
+import { registerScripts } from './levels.js';
+
+const S = {};
+
+// ================================================================ WORLD 1: SUNNY SHALLOWS
+S.l1_1 = (L) => {
+    const a = L.start(10, 8);
+    a.sign('run', -2.8, 7).pearls(5, 0, 4, 0, 8);
+    const b = L.ground(18, 6);
+    b.crate('wood', -1.6, 5).crate('wood', 1.6, 5).crate('pearl', 0, 9).sign('spin', 2.4, 2).pearls(5, 0, 11, 0, 17);
+    L.branch(b, 3, 6, (N) => { N.rot(-1).gap(2.2); const n = N.ground(4, 4); n.curio(0, 2).pearls(3, -1, 0.8, 1, 0.8); });
+    L.gap(2.4);
+    b.arc(4, 0, 18, 20.4, 1.0);
+    const c = L.ground(12, 6);
+    c.enemy('flea', 0, 4, { to: [0, 9] }).check(0, 2).pearls(4, -1.5, 5, 1.5, 9);
+    L.gap(3.1);
+    c.arc(4, 0, 12, 15.1, 1.3);
+    const d = L.ground(5, 5);
+    d.pearl(0, 2.5);
+    L.gap(3.3);
+    const e = L.ground(5, 5);
+    e.pearl(0, 2.5).crate('wood', 1.2, 3);
+    L.gap(3.2);
+    const f = L.ground(10, 6, { rise: 0.8 });
+    f.sign('check', 2.4, 1.5).sign('spring', -2.4, 6).spring(0, 7.5).pearls(4, 0, 1.5, 0, 5);
+    L.gap(0.2);
+    const g = L.ground(6, 6, { rise: 4.0, via: 'bounce' });
+    g.curio(0, 3, 1).pearls(5, -1.8, 1, 1.8, 5, 1.2);
+    L.gap(2.0);
+    const h = L.ground(14, 6, { rise: -3.6 });
+    h.check(0, 2).enemy('flea', 0, 6, { to: [0, 11] }).enemy('flea', -1.5, 8, { to: [1.5, 8], rate: 0.8 }).pearls(5, 0, 2, 0, 12);
+    L.corner(-1, 8);
+    const i = L.ground(16, 6);
+    i.enemy('starfish', 0, 5, { to: [0, 12] }).crate('wood', 2, 3).crate('pearl', -2, 14).pearls(6, 0, 1, 0, 15);
+    L.gap(2.6);
+    const j = L.ground(12, 2.4, { look: 'plank' });
+    j.pearls(6, 0, 1, 0, 11).crate('wood', 0, 6);
+    L.branch(j, 1.2, 6, (N) => { N.rot(-1).gap(3.0); const n = N.ground(4, 4); n.curio(0, 2, 1).pearls(3, -1, 1, 1, 1); });
+    // a shoal of little islets, with starfish dozing on two of them
+    L.gap(2.4);
+    const e1 = L.ground(5, 5); e1.pearl(0, 2.5).crate('wood', 1.2, 2.5);
+    L.gap(3.0).shift(2.0);
+    const e2 = L.ground(5, 5); e2.enemy('starfish', 0, 2.5, { to: [0, 2.6], rate: 0.0001 }).pearls(2, 0, 1, 0, 4);
+    L.gap(3.0).shift(-2.0);
+    const e3 = L.ground(5, 5); e3.pearl(0, 2.5);
+    L.gap(3.2).shift(-1.8);
+    const e4 = L.ground(5, 5); e4.enemy('starfish', 0, 2.5, { to: [0, 2.6], rate: 0.0001 }).crate('pearl', 1.5, 3.5);
+    L.gap(3.0).shift(1.8);
+    // and a ride on a raft
+    L.gap(3.8);
+    const e5 = L.mover(5, 5, { amp: [0, 0, 3.8], period: 8, look: 'raft' });
+    e5.pearls(2, 0, 1, 0, 4);
+    L.gap(3.8);
+    const e6 = L.ground(8, 6); e6.check(0, 2).pearls(4, 0, 1, 0, 7);
+    L.gap(2.2);
+    const k = L.ground(14, 8);
+    k.check(0, 3).enemy('flea', -2, 8, { to: [2, 8] }).pearls(8, 0, 2, 0, 13);
+    L.gap(2.2);
+    const m = L.ground(12, 8);
+    m.pearls(6, 0, 2, 0, 9).goal(0, 9);
+};
+
+S.l1_2 = (L) => {
+    const a = L.start(10, 8);
+    a.pearls(5, 0, 4, 0, 8);
+    const b = L.ground(14, 6);
+    b.crate('wood', -1.5, 4).crate('pearl', 1.5, 6).enemy('flea', 0, 9, { to: [0, 13] }).pearls(4, 0, 1, 0, 4);
+    L.gap(5.2);
+    b.sign('gap', 2.4, 10).arc(6, 0, 14, 19.2, 2.2);
+    const c = L.ground(8, 6);
+    c.check(0, 3).pearls(4, 0, 1.5, 0, 6.5);
+    L.gap(2.8);
+    const d = L.ground(5, 5);
+    d.enemy('starfish', 0, 2.5, { to: [0, 2.6], rate: 0.0001 }).pearl(0, 2.5, 1.8);
+    L.gap(5.4);
+    d.arc(6, 0, 5, 10.4, 2.4);
+    const e = L.ground(10, 6);
+    e.curio(2, 5).pearls(4, -1, 1, -1, 8).crate('wood', -2, 6);
+    L.gap(4.2);
+    const r = L.mover(5, 5, { amp: [0, 0, 4.2], period: 8, look: 'raft' });
+    r.pearls(2, 0, 1, 0, 4);
+    L.gap(4.2);
+    const f = L.ground(12, 7);
+    f.check(0, 2).enemy('flea', -2, 5, { to: [-2, 10] }).enemy('flea', 2, 10, { to: [2, 5] }).pearls(6, 0, 1, 0, 11);
+    L.corner(1, 8);
+    const g = L.ground(10, 6);
+    g.enemy('starfish', 0, 4, { to: [0, 8], rate: 1.2 }).crate('wood', 2, 2).spring(0, 8);
+    L.gap(0.1);
+    const h = L.ground(6, 5, { rise: 3.4, via: 'bounce' });
+    h.curio(0, 3, 1).pearls(4, 0, 1, 0, 5, 1.1);
+    L.gap(1.6);
+    const i = L.ground(12, 6, { rise: -3.4 });
+    i.pearls(6, 0, 1, 0, 11);
+    L.gap(4.1);
+    const j = L.ground(6, 4);
+    j.pearls(3, 0, 1, 0, 5);
+    L.gap(3.8);
+    const k = L.ground(6, 4);
+    k.crate('pearl', 0, 3);
+    L.gap(4.2);
+    const m = L.ground(10, 7);
+    m.check(0, 2).curio(0, 5).enemy('flea', 0, 7, { to: [0, 9] });
+    // a staircase of sponges
+    L.gap(2.4);
+    const e1 = L.ground(8, 6); e1.spring(0, 6.5).pearls(3, 0, 1, 0, 5).enemy('flea', -1.5, 3, { to: [-1.5, 5] });
+    L.gap(0.2);
+    const e2 = L.ground(5, 5, { rise: 3.4, via: 'bounce' }); e2.spring(0, 3.8).pearls(3, 0, 1, 0, 3, 1.1);
+    L.gap(0.2);
+    const e3 = L.ground(5, 5, { rise: 3.4, via: 'bounce' }); e3.pearls(5, 0, 1, 0, 4, 1.1).crate('heart', 0, 2.5);
+    L.gap(2.0);
+    const e4 = L.ground(12, 6, { rise: -6.8 }); e4.check(0, 2).enemy('starfish', 0, 6, { to: [0, 10] }).pearls(5, 0, 1, 0, 11);
+    L.gap(2.4);
+    const n = L.ground(14, 8);
+    n.pearls(8, 0, 2, 0, 12).goal(0, 11);
+};
+
+// ================================================================ WORLD 2: COCONUT COVE
+S.l2_1 = (L) => {
+    const a = L.start(10, 8);
+    a.pearls(5, 0, 4, 0, 8).sign('brace', 2.6, 6);
+    const b = L.ground(22, 6, { look: 'wood' });
+    b.enemy('monkey', 4.8, 10, { dy: 0.6 }).crate('wood', -1.8, 5).crate('wood', 1.8, 15).pearls(8, 0, 2, 0, 20);
+    L.branch(b, -3, 14, (N) => { N.rot(1).gap(2.6); const n = N.ground(4, 4); n.curio(0, 2, 1); });
+    L.gap(2.6);
+    const c = L.ground(8, 6);
+    c.check(0, 3).pearls(4, 0, 1.5, 0, 6.5);
+    L.gap(2.8);
+    const d = L.ground(26, 6);
+    d.enemy('monkey', -4.8, 8, { dy: 0.6 }).enemy('monkey', 4.8, 14, { dy: 0.6 }).enemy('monkey', -4.8, 20, { dy: 0.6 })
+        .crate('pearl', 0, 12).pearls(10, 0, 2, 0, 24);
+    L.gap(2.4);
+    const e = L.ground(10, 6);
+    e.check(0, 2).enemy('flea', 0, 6, { to: [0, 9] }).pearls(4, 0, 2, 0, 8);
+    L.corner(1, 8);
+    const f = L.ground(18, 3.2, { look: 'wood' });
+    f.pearls(8, 0, 1, 0, 17).crate('wood', 0, 9);
+    L.gap(3.2);
+    const g = L.ground(7, 5);
+    g.enemy('monkey', 0, 5, { dy: 0 }).pearl(0, 2, 1.2);
+    L.gap(0.1);
+    const h = L.ground(6, 6, { rise: 1.4 });
+    h.curio(0, 3, 0.9).spring(-2, 3);
+    L.gap(0.1);
+    const i = L.ground(18, 6, { rise: -1.4 });
+    i.enemy('monkey', 4.8, 6, { dy: 0.6 }).enemy('monkey', -4.8, 11, { dy: 0.6 }).crate('heart', 0, 14).pearls(8, 0, 2, 0, 16).curio(2, 10);
+    // a second gauntlet, this time with crates to hide behind
+    L.gap(2.6);
+    const e1 = L.ground(26, 7, { look: 'wood' });
+    e1.enemy('monkey', 5.2, 4, { dy: 0.6 }).enemy('monkey', -5.2, 12, { dy: 0.6 }).enemy('monkey', 5.2, 20, { dy: 0.6 })
+        .crate('wood', 1.6, 7).crate('wood', -1.6, 15).crate('pearl', 0, 23).pearls(10, 0, 1, 0, 24);
+    L.gap(2.4);
+    const e2 = L.ground(8, 6); e2.check(0, 2).crate('heart', 0, 5);
+    // stumps across a pool
+    for (let k = 0; k < 4; k++) { L.gap(3.4); const st = L.ground(3, 3); st.pearl(0, 1.5); }
+    L.gap(3.4);
+    const j = L.ground(16, 7);
+    j.check(0, 2).pearls(8, 0, 2, 0, 14).enemy('flea', -2, 8, { to: [2, 8] }).goal(0, 13);
+};
+
+S.l2_2 = (L) => {
+    const a = L.start(10, 8);
+    a.pearls(5, 0, 4, 0, 8);
+    const b = L.ground(12, 6);
+    b.crate('wood', 1.6, 6).pearls(5, 0, 3, 0, 10).sign('barrel', 2.6, 3);
+    L.gap(0);
+    const bar = b.barrel(0, 10.5);
+    L.gap(11);
+    const c = L.ground(8, 7, { via: 'launch' });
+    L.link(bar, c, 0, 3);
+    c.check(0, 2).pearls(5, 0, 1.5, 0, 6.5).enemy('flea', 0, 5, { to: [0, 7] });
+    L.gap(3.4);
+    const d = L.crumble(3.2, 3);
+    L.gap(1.3);
+    const e = L.crumble(3.2, 3);
+    L.gap(1.3);
+    const f = L.crumble(3.2, 3);
+    d.pearls(2, 0, 0.8, 0, 2.4); e.pearls(2, 0, 0.8, 0, 2.4); f.pearls(2, 0, 0.8, 0, 2.4);
+    L.gap(3.0);
+    const g = L.ground(10, 6);
+    g.check(0, 2).curio(-2, 6).enemy('monkey', 4.8, 7, { dy: 0.6 }).pearls(5, 0, 2, 0, 9);
+    L.gap(0);
+    const bar2 = g.barrel(0, 8.5);
+    L.gap(13);
+    L.rot(1);
+    const h = L.ground(8, 8, { via: 'launch' });
+    L.link(bar2, h, 0, 3);
+    h.pearls(6, -2, 1, 2, 6).crate('pearl', 0, 4).enemy('flea', 0, 6, { to: [2, 6] });
+    L.gap(3.1);
+    const i = L.ground(12, 5);
+    i.enemy('starfish', 0, 4, { to: [0, 9] }).pearls(5, 0, 1, 0, 10).crate('wood', 1.4, 2);
+    L.branch(i, 2.5, 6, (N) => { N.rot(-1).gap(2.8); const n = N.ground(4, 4); n.curio(0, 2, 1).pearls(2, -1, 1, 1, 1); });
+    L.gap(0);
+    const bar3 = i.barrel(0, 11);
+    L.gap(15);
+    const j = L.ground(14, 7, { via: 'launch', rise: 1.2 });
+    L.link(bar3, j, 0, 4);
+    j.check(0, 2).pearls(7, 0, 2, 0, 12);
+    L.gap(3.2);
+    const k = L.crumble(3, 3);
+    L.gap(1.2);
+    const m = L.crumble(3, 3);
+    L.gap(1.2);
+    const n = L.crumble(3, 3);
+    k.pearl(0, 1.5); m.pearl(0, 1.5); n.pearl(0, 1.5);
+    // a monkey on a log, and a longer run of crumbling planks
+    L.gap(2.8);
+    const e1 = L.ground(10, 6); e1.check(0, 2).enemy('monkey', 4.8, 6, { dy: 0.6 }).pearls(4, 0, 1, 0, 9);
+    L.gap(2.8);
+    for (let k = 0; k < 5; k++) { const c = L.crumble(2.8, 3); c.pearl(0, 1.4); if (k < 4) L.gap(1.3); }
+    L.gap(2.6);
+    const e2 = L.ground(8, 7); e2.crate('pearl', 0, 4).enemy('flea', 0, 5, { to: [0, 6] });
+    L.gap(2.6);
+    const o = L.ground(16, 8);
+    o.pearls(9, 0, 2, 0, 14).curio(-2, 6).goal(0, 12);
+};
+
+S.l2_3 = (L) => {
+    const a = L.start(10, 8);
+    a.pearls(5, 0, 4, 0, 8);
+    const b = L.ground(14, 6, { look: 'wood' });
+    b.crate('wood', -1.6, 5).crate('pearl', 1.6, 8).pearls(5, 0, 2, 0, 12).enemy('flea', 0, 9, { to: [0, 13] });
+    L.branch(b, 3, 7, (N) => { N.rot(-1).gap(2.4); const n = N.ground(4, 4); n.curio(0, 2, 1); });
+    L.gap(2.6);
+    const c = L.ground(10, 6);
+    c.check(0, 3).enemy('monkey', 4.8, 7, { dy: 0.6 }).crate('heart', -2, 6).pearls(4, 0, 1, 0, 8);
+    L.branch(c, -3, 6, (N) => { N.rot(1).gap(2.4); const n = N.ground(4, 4); n.curio(0, 2, 1).pearls(2, -1, 1, 1, 1); });
+    L.gap(2.6);
+    const e1 = L.ground(12, 6, { look: 'wood' });
+    e1.enemy('monkey', 4.8, 5, { dy: 0.6 }).crate('wood', -1.6, 4).crate('pearl', 1.6, 8).pearls(5, 0, 1, 0, 11);
+    L.gap(2.4);
+    const d = L.arenaSlab(26, { look: 'arena' });
+    d.check(0, 3).sign('brace', 3.5, 1.5);
+    L.branch(d, 13, 22, (N) => { N.rot(-1).gap(2.6); const n = N.ground(4, 4); n.curio(0, 2, 1).pearls(2, -1, 1, 1, 1); });
+    L.setBoss('coco');
+};
+
+// ================================================================ WORLD 3: RUSTWATER DOCKS
+S.l3_1 = (L) => {
+    const a = L.start(10, 8);
+    a.pearls(5, 0, 4, 0, 8);
+    const b = L.ground(24, 5, { look: 'plank' });
+    b.enemy('cannon', 3.7, 9, { face: 1, dy: 0 }).enemy('cannon', -3.7, 17, { face: 3, dy: 0, rate: 1.1 }).crate('wood', 0, 5).pearls(8, 0, 2, 0, 22);
+    L.gap(2.6);
+    const c = L.ground(10, 6, { look: 'plank' });
+    c.check(0, 2).sign('pound', 2.6, 4).switch('g1', 0, 6.5);
+    c.gate('g1', 0, 9.2, 6, 3.2);
+    c.pearls(3, 0, 1, 0, 4);
+    L.gap(0.1);
+    const d = L.ground(16, 6, { look: 'plank' });
+    d.hazard('spinner', 0, 8, { len: 3.4, speed: 1.5, arms: 2 });
+    d.pearls(4, -2, 1, -2, 14).pearls(4, 2, 1, 2, 14).crate('pearl', 0, 14);
+    L.branch(d, 3, 12, (N) => { N.rot(-1).gap(2.6); const n = N.ground(4, 4); n.curio(0, 2, 1); });
+    L.gap(2.4);
+    const e = L.corner(1, 8, { look: 'plank' });
+    e.check(0, 3);
+    const f = L.ground(20, 5, { look: 'plank' });
+    f.enemy('gull', 0, 6, { to: [0, 16] }).enemy('cannon', -3.7, 14, { face: 1, rate: 1.2 }).crate('wood', 1.5, 8).pearls(8, 0, 2, 0, 18);
+    L.gap(5.0);
+    const g = L.mover(6, 5, { amp: [0, 0, 5.0], period: 7, look: 'raft' });
+    g.pearls(2, 0, 1, 0, 5);
+    L.gap(5.0);
+    const h = L.ground(14, 6, { look: 'plank' });
+    h.check(0, 2).curio(0, 4).pearls(6, 0, 1, 0, 12).switch('g2', 0, 8);
+    h.gate('g2', 0, 11, 6, 3.2);
+    L.gap(0.1);
+    const i = L.ground(10, 6, { look: 'plank' });
+    i.curio(-1.5, 5).enemy('flea', 0, 6, { to: [0, 8] }).pearls(5, 0, 1, 0, 9);
+    // cannon alley: staggered guns and crates to duck behind
+    L.gap(2.4);
+    const e1 = L.ground(30, 5, { look: 'plank' });
+    e1.enemy('cannon', 3.7, 6, { face: 1 }).enemy('cannon', -3.7, 12, { face: 3, rate: 1.1 }).enemy('cannon', 3.7, 18, { face: 1, rate: 1.2 }).enemy('cannon', -3.7, 24, { face: 3 })
+        .crate('wood', 0, 9).crate('wood', 1.2, 15).crate('wood', -1.2, 21).crate('pearl', 0, 27).pearls(10, 0, 1, 0, 29);
+    L.gap(2.4);
+    const e2 = L.ground(8, 6, { look: 'plank' }); e2.check(0, 2).crate('heart', 0, 5);
+    L.gap(2.2);
+    const j = L.ground(16, 7, { look: 'plank' });
+    j.enemy('cannon', 4, 4, { face: 1 }).enemy('cannon', -4, 8, { face: 3 }).enemy('cannon', 4, 12, { face: 1, rate: 1.15 }).crate('pearl', 0, 14).pearls(8, 0, 1, 0, 14).goal(0, 14);
+};
+
+S.l3_2 = (L) => {
+    const a = L.start(10, 8);
+    a.pearls(5, 0, 4, 0, 8);
+    const b = L.ground(18, 6, { look: 'plank' });
+    b.crate('iron', 0, 9).crate('wood', -2, 5).crate('pearl', 2, 14).pearls(5, -2, 1, -2, 17).pearls(5, 2, 1, 2, 17);
+    b.sign('pound', 2.6, 3);
+    L.gap(2.8);
+    const c = L.ground(14, 6, { look: 'plank' });
+    c.check(0, 2).enemy('gull', 0, 5, { to: [0, 12] }).crate('wood', 1.5, 6).pearls(6, 0, 1, 0, 12);
+    L.gap(1.0);
+    const d = L.mover(6, 6, { rise: 1.5, amp: [0, 1.5, 0], period: 5.5, look: 'raft' });
+    L.gap(1.0);
+    const e = L.ground(12, 6, { look: 'plank', rise: 1.5 });
+    e.curio(0, 6, 0.9).crate('iron', -2, 4).crate('iron', 2, 4).crate('heart', 0, 10).pearls(4, 0, 2, 0, 9);
+    L.gap(2.6);
+    const f = L.ground(14, 6, { look: 'plank' });
+    f.check(0, 2).switch('g1', 0, 5).gate('g1', 0, 10, 6, 3.2);
+    f.enemy('cannon', -3.8, 4, { face: 1 }).pearls(5, 0, 1, 0, 9);
+    L.gap(0.1);
+    const g = L.ground(12, 6, { look: 'plank' });
+    g.enemy('flea', -1.5, 4, { to: [-1.5, 9] }).enemy('flea', 1.5, 9, { to: [1.5, 4] }).crate('wood', 0, 6).pearls(5, 0, 1, 0, 10);
+    L.corner(-1, 8, { look: 'plank' });
+    const h = L.ground(18, 5, { look: 'plank' });
+    h.hazard('spinner', 0, 6, { len: 3.0, speed: 1.9, arms: 2 }); h.hazard('spinner', 0, 14, { len: 3.0, speed: -1.9, arms: 2, phase: 1 });
+    h.curio(2.0, 10).pearls(8, 0, 1, 0, 17);
+    L.gap(3.0);
+    const i = L.ground(10, 6, { look: 'plank' });
+    i.check(0, 2).crate('iron', 0, 6).crate('pearl', -2, 8).enemy('gull', 0, 4, { to: [0, 8] });
+    L.branch(i, 3, 5, (N) => { N.rot(-1).gap(2.8); const n = N.ground(4, 4); n.curio(0, 2, 1).pearls(2, -1, 1, 1, 1); });
+    // two spinners in a row, and a gull overhead
+    L.gap(2.6);
+    const e1 = L.ground(22, 4, { look: 'plank' });
+    e1.hazard('spinner', 0, 6, { len: 3.0, speed: 1.6, arms: 2 }); e1.hazard('spinner', 0, 15, { len: 3.0, speed: -1.6, arms: 2, phase: 1.5 });
+    e1.enemy('gull', 0, 11, { to: [0, 20] }).pearls(10, 0, 1, 0, 21);
+    L.gap(2.4);
+    const e2 = L.ground(8, 6, { look: 'plank' }); e2.check(0, 2).crate('iron', -1.8, 4).crate('heart', 1.8, 4);
+    L.gap(2.4);
+    const j = L.ground(16, 8, { look: 'plank' });
+    j.pearls(8, 0, 2, 0, 13).enemy('cannon', 4.8, 6, { face: 1 }).enemy('cannon', -4.8, 10, { face: 3 }).goal(0, 13);
+};
+
+// ================================================================ WORLD 4: SANDCASTLE KINGDOM
+S.l4_1 = (L) => {
+    const a = L.start(10, 8);
+    a.pearls(5, 0, 4, 0, 8).sign('glide', 2.8, 7);
+    const b = L.ground(12, 6, { look: 'stone' });
+    b.crate('wood', -1.6, 5).pearls(5, 0, 1, 0, 11);
+    L.gap(8.6);
+    b.arc(8, 0, 12, 20.6, 3.0, 1.5);
+    const c = L.ground(8, 6, { look: 'stone' });
+    c.check(0, 3).pearls(4, 0, 1, 0, 7);
+    L.gap(3.0);
+    const d = L.ground(6, 5, { look: 'stone', rise: 1.0 });
+    d.vent(0, 5.4, 10).column(6, 0, 5.4, 1.5, 8.5);
+    L.gap(8.8);
+    const e = L.ground(10, 6, { look: 'stone', rise: 3.5, via: 'vent' });
+    e.curio(0, 4).pearls(4, 0, 1, 0, 8, 1.1);
+    L.gap(2.8);
+    const f = L.ground(18, 3.4, { look: 'stone', rise: -2.0 });
+    f.check(0, 2).enemy('flea', 0, 6, { to: [0, 12] }).crate('pearl', 0, 15).pearls(5, 0, 1, 0, 17);
+    L.gap(7.6);
+    f.arc(6, 0, 18, 25.6, 2.6, 1.3);
+    const g = L.ground(8, 8, { look: 'stone', rise: -1.5 });
+    g.enemy('jelly', 0, 4, { dy: 1.2 }).pearls(5, -2, 1, 2, 6);
+    L.corner(1, 8, { look: 'stone' });
+    const h = L.ground(14, 5, { look: 'stone' });
+    h.crate('wood', 1.6, 6).enemy('starfish', 0, 5, { to: [0, 12] }).pearls(6, 0, 1, 0, 13);
+    L.gap(9.2);
+    const i = L.ground(6, 5, { look: 'stone', rise: 0 });
+    i.vent(0, 5.2, 10).column(6, 0, 5.2, 1.5, 8.5);
+    L.gap(7.2);
+    const j = L.ground(8, 6, { look: 'stone', rise: 6, via: 'vent' });
+    j.curio(0, 4, 1).pearls(5, 0, 1, 0, 7);
+    L.gap(7.2);
+    const k = L.ground(14, 7, { look: 'stone', rise: -5 });
+    k.check(0, 2).pearls(8, 0, 2, 0, 12);
+    // a chain of three glides, dropping from tower to tower
+    L.gap(3.0);
+    const e1 = L.ground(7, 6, { look: 'stone' }); e1.pearls(3, 0, 1, 0, 6);
+    L.gap(8.4);
+    const e2 = L.ground(7, 6, { look: 'stone', rise: -1.5 }); e2.pearls(3, 0, 1, 0, 6).check(0, 3);
+    L.gap(8.6);
+    const e3 = L.ground(7, 6, { look: 'stone', rise: -1.5 }); e3.pearls(3, 0, 1, 0, 6);
+    L.gap(8.8);
+    const e4 = L.ground(10, 6, { look: 'stone', rise: -1.5 }); e4.crate('pearl', 0, 5).pearls(4, 0, 1, 0, 9);
+    L.gap(3.2);
+    const m = L.ground(14, 8, { look: 'stone' });
+    m.pearls(8, 0, 2, 0, 12).curio(-2.5, 7).goal(0, 11);
+};
+
+S.l4_2 = (L) => {
+    const a = L.start(10, 8);
+    a.pearls(5, 0, 4, 0, 8);
+    const b = L.ground(18, 6, { look: 'stone' });
+    b.enemy('knight', 0, 8, { to: [0, 15] }).crate('wood', 2.2, 4).sign('pound', -2.6, 3).pearls(5, -2, 1, -2, 16);
+    L.gap(2.6);
+    const c = L.ground(10, 6, { look: 'stone' });
+    c.check(0, 2).enemy('cannon', 3.8, 6, { face: 1 }).pearls(5, 0, 1, 0, 9).crate('heart', -1.5, 8);
+    L.gap(8.0);
+    c.arc(7, 0, 10, 18, 2.8, 1.4);
+    const d = L.ground(12, 6, { look: 'stone', rise: -1 });
+    d.crate('pearl', 0, 5).enemy('flea', 0, 8, { to: [0, 11] });
+    L.gap(2.2);
+    const e = L.crumble(3.4, 3.4);
+    L.gap(1.2);
+    const f = L.crumble(3.4, 3.4);
+    L.gap(1.2);
+    const g = L.crumble(3.4, 3.4);
+    e.pearls(2, 0, 0.8, 0, 2.6); f.pearls(2, 0, 0.8, 0, 2.6); g.pearl(0, 1.7);
+    L.gap(2.4);
+    const h = L.ground(12, 7, { look: 'stone' });
+    h.check(0, 2).curio(-2, 6).switch('g1', 2.4, 4).gate('g1', 0, 9, 7, 3.2);
+    h.enemy('knight', 0, 6, { to: [-2, 8], rate: 0.8 }).pearls(4, 0, 1, 0, 8);
+    L.gap(0.1);
+    const i = L.ground(14, 6, { look: 'stone' });
+    i.enemy('knight', 0, 5, { to: [0, 12] }).enemy('cannon', 3.8, 9, { face: 1 }).pearls(5, 0, 1, 0, 13);
+    L.corner(-1, 8, { look: 'stone' });
+    const j = L.ground(10, 5, { look: 'stone' });
+    j.pearls(5, 0, 1, 0, 9).crate('wood', -1.3, 5);
+    L.gap(8.4);
+    j.arc(7, 0, 10, 18.4, 2.8, 1.4);
+    const k = L.ground(8, 6, { look: 'stone', rise: -1.0 });
+    k.check(0, 2).curio(1.5, 4).pearls(3, 0, 1, 0, 7);
+    L.gap(0.1);
+    const m = L.ground(16, 7, { look: 'stone' });
+    m.enemy('knight', -2, 5, { to: [2, 5] }).enemy('knight', 2, 11, { to: [-2, 11] }).crate('iron', 0, 8).pearls(6, 0, 1, 0, 14);
+    // a corridor of knights
+    L.gap(2.6);
+    const e1 = L.ground(26, 6, { look: 'stone' });
+    e1.enemy('knight', -1.5, 6, { to: [-1.5, 10], rate: 0.8 }).enemy('knight', 1.5, 14, { to: [1.5, 18], rate: 0.8 }).enemy('knight', 0, 22, { to: [0, 24], rate: 0.6 })
+        .crate('check', 0, 2).crate('pearl', 2, 11).pearls(10, 0, 1, 0, 25);
+    L.gap(2.4);
+    const e2 = L.ground(10, 6, { look: 'stone' }); e2.check(0, 2).crate('heart', 0, 5);
+    L.gap(3.0);
+    const n = L.ground(12, 8, { look: 'stone' });
+    n.pearls(8, 0, 2, 0, 10).curio(3, 6).goal(0, 9);
+};
+
+S.l4_3 = (L) => {
+    const a = L.start(10, 8);
+    a.pearls(5, 0, 4, 0, 8);
+    const b = L.ground(14, 6, { look: 'stone' });
+    b.crate('wood', -1.6, 5).crate('pearl', 1.6, 8).enemy('flea', 0, 10, { to: [0, 13] }).pearls(4, 0, 1, 0, 5);
+    L.branch(b, 3, 7, (N) => { N.rot(-1).gap(2.4); const n = N.ground(4, 4); n.curio(0, 2, 1); });
+    L.gap(2.8);
+    const c = L.ground(10, 6, { look: 'stone' });
+    c.check(0, 3).enemy('knight', 0, 7, { to: [0, 9] }).sign('pound', 2.6, 2).crate('heart', -2, 5);
+    L.branch(c, -3, 5, (N) => { N.rot(1).gap(2.4); const n = N.ground(4, 4); n.curio(0, 2, 1); });
+    L.gap(2.6);
+    const e1 = L.ground(12, 6, { look: 'stone' });
+    e1.enemy('knight', 0, 6, { to: [0, 9], rate: 0.8 }).crate('wood', 2, 3).crate('pearl', -2, 9).pearls(5, 0, 1, 0, 11);
+    L.gap(2.4);
+    const d = L.arenaSlab(28, { look: 'arena' });
+    d.check(0, 3);
+    L.branch(d, 14, 20, (N) => { N.rot(-1).gap(2.8); const n = N.ground(4, 4); n.curio(0, 2, 1); });
+    L.setBoss('sandy');
+};
+
+// ================================================================ WORLD 5: STORMBREAK POINT
+S.l5_1 = (L) => {
+    // a straight run with a grumpy wave behind: no turns, so the wave is a plane
+    const a = L.start(10, 8);
+    a.pearls(5, 0, 4, 0, 8);
+    L.chase = { speed: 5.0, lead: 24 };
+    const b = L.ground(20, 6, { look: 'stone' });
+    b.crate('wood', -1.6, 6).crate('wood', 1.6, 10).pearls(8, 0, 1, 0, 19).sign('home', 2.6, 2);
+    L.gap(2.8);
+    const c = L.ground(14, 6, { look: 'stone' });
+    c.check(0, 2).enemy('flea', 0, 8, { to: [0, 11] }).pearls(6, 0, 1, 0, 13);
+    L.gap(3.4);
+    const d = L.ground(5, 5, { look: 'stone' });
+    L.gap(3.4);
+    const e = L.ground(5, 5, { look: 'stone' });
+    d.pearl(0, 2.5); e.pearl(0, 2.5);
+    L.gap(3.4);
+    const f = L.ground(16, 6, { look: 'stone' });
+    f.curio(2.0, 8).crate('pearl', 0, 10).pearls(6, 0, 1, 0, 15);
+    L.branch(f, 3, 5, (N) => { N.rot(-1).gap(2.4); const n = N.ground(4, 4); n.pearls(3, -1, 1, 1, 1); });
+    L.gap(5.6);
+    f.arc(6, 0, 16, 21.6, 2.2);
+    const g = L.ground(12, 6, { look: 'stone' });
+    g.check(0, 2).enemy('starfish', 0, 7, { to: [0, 10] }).pearls(5, 0, 1, 0, 11);
+    L.gap(2.6);
+    const h = L.ground(8, 6, { look: 'stone' });
+    h.spring(0, 6.5);
+    L.gap(0.1);
+    const i = L.ground(6, 5, { look: 'stone', rise: 3.6, via: 'bounce' });
+    i.curio(0, 3, 1).pearls(5, 0, 1, 0, 5, 1.1);
+    L.gap(2.4);
+    const j = L.ground(18, 6, { look: 'stone', rise: -3.6 });
+    j.check(0, 2).crate('wood', 1.6, 8).enemy('flea', -1.5, 6, { to: [-1.5, 12] }).pearls(8, 0, 1, 0, 17);
+    L.gap(3.8);
+    const k = L.ground(6, 4, { look: 'stone' });
+    L.gap(3.8);
+    const m = L.ground(6, 4, { look: 'stone' });
+    L.gap(3.8);
+    const n = L.ground(6, 4, { look: 'stone' });
+    k.pearl(0, 3); m.pearl(0, 3); n.pearl(0, 3);
+    L.gap(3.0);
+    const o = L.ground(14, 7, { look: 'stone' });
+    o.check(0, 2).crate('heart', 0, 5).pearls(6, 0, 1, 0, 12);
+    // a last stretch of crumbling stones
+    L.gap(3.0);
+    for (let k = 0; k < 4; k++) { const c = L.crumble(3.6, 4, { look: 'stone' }); c.pearl(0, 1.8); L.gap(k < 3 ? 1.4 : 3.0); }
+    const e2 = L.ground(10, 6, { look: 'stone' }); e2.check(0, 2).crate('pearl', 0, 6).pearls(4, 0, 1, 0, 9);
+    L.gap(3.0);
+    const q = L.ground(14, 8, { look: 'stone' });
+    q.curio(0, 6).pearls(6, 0, 1, 0, 12).goal(0, 12);
+};
+
+S.l5_2 = (L) => {
+    // a stair around the lighthouse: left turns, rising all the way
+    const a = L.start(10, 8);
+    a.pearls(5, 0, 4, 0, 8);
+    const b = L.ground(12, 5, { look: 'stone' });
+    b.crate('wood', -1.3, 5).pearls(5, 0, 1, 0, 11);
+    L.gap(2.6);
+    const c = L.ground(8, 5, { look: 'stone', rise: 1.2 });
+    c.check(0, 2);
+    L.corner(1, 7, { look: 'stone' });
+    const d = L.ground(14, 5, { look: 'stone', rise: 1.3 });
+    d.enemy('flea', 0, 6, { to: [0, 11] }).pearls(6, 0, 1, 0, 13).crate('pearl', 1.2, 8);
+    L.gap(1.0);
+    const e = L.mover(5, 5, { rise: 1.7, amp: [0, 1.7, 0], period: 6, look: 'raft' });
+    L.gap(1.0);
+    const f = L.ground(10, 5, { look: 'stone', rise: 1.7 });
+    f.check(0, 2).curio(-1.2, 6).pearls(4, 0, 1, 0, 9);
+    L.corner(1, 7, { look: 'stone' });
+    const g = L.ground(12, 4, { look: 'stone', rise: 1.2 });
+    g.hazard('spinner', 0, 6, { len: 2.6, speed: 2.0, arms: 2 }); g.pearls(6, 0, 1, 0, 11);
+    L.gap(4.0);
+    const h = L.ground(6, 5, { look: 'stone', rise: 3.9, via: 'hop' });
+    h.sign('hop', 2.2, 1).check(0, 3).pearls(4, 0, 1, 0, 5, 1.2);
+    g.sign('hop', 2.2, 10);
+    L.corner(1, 7, { look: 'stone' });
+    const i = L.ground(10, 5, { look: 'stone', rise: 1.2 });
+    i.enemy('gull', 0, 5, { to: [0, 8] }).pearls(4, 0, 1, 0, 9).curio(1.5, 5);
+    L.gap(6.0);
+    i.arc(5, 0, 10, 16, 2.4, 1.4);
+    const j = L.ground(10, 6, { look: 'stone', rise: 1.0 });
+    j.check(0, 2).vent(0, 7, 9).column(5, 0, 7, 1.5, 8);
+    L.gap(0.3);
+    const k = L.ground(8, 5, { look: 'stone', rise: 5.5, via: 'vent' });
+    k.pearls(5, 0, 1, 0, 7);
+    L.corner(1, 7, { look: 'stone' });
+    const m = L.ground(12, 5, { look: 'stone', rise: 1.0 });
+    m.enemy('starfish', 0, 5, { to: [0, 10] }).crate('pearl', 1.4, 6).pearls(5, 0, 1, 0, 11);
+    L.gap(3.8);
+    const n = L.ground(6, 4, { look: 'stone', rise: 1.0 });
+    L.gap(3.8);
+    const o = L.ground(6, 4, { look: 'stone', rise: 1.0 });
+    L.gap(3.8);
+    const q = L.ground(8, 4, { look: 'stone', rise: 1.0 });
+    n.pearl(0, 3); o.pearl(0, 3); q.pearl(0, 4);
+    // a sponge tower to the summit
+    L.gap(2.6);
+    const e1 = L.ground(8, 6, { look: 'stone', rise: 1.0 }); e1.spring(0, 6.5).crate('pearl', 1.5, 3).pearls(3, -1.5, 1, -1.5, 5);
+    L.gap(0.2);
+    const e2 = L.ground(5, 5, { look: 'stone', rise: 3.4, via: 'bounce' }); e2.spring(0, 3.8).pearls(3, 0, 1, 0, 3, 1.1);
+    L.gap(0.2);
+    const e3 = L.ground(8, 6, { look: 'stone', rise: 3.4, via: 'bounce' }); e3.check(0, 2).pearls(4, 0, 1, 0, 6);
+    L.gap(3.0);
+    const r = L.ground(14, 8, { look: 'stone', rise: 1.0 });
+    r.check(0, 2).crate('heart', 0, 6).curio(0, 10, 1).pearls(6, 0, 1, 0, 12).goal(0, 11);
+    r.pearls(6, -2, 1, -2, 12);
+};
+
+S.l5_3 = (L) => {
+    const a = L.start(10, 8);
+    a.pearls(5, 0, 4, 0, 8);
+    const b = L.ground(14, 6, { look: 'stone' });
+    b.crate('wood', -1.6, 5).crate('pearl', 1.6, 8).pearls(4, 0, 1, 0, 5).enemy('flea', 0, 10, { to: [0, 13] });
+    L.branch(b, 3, 7, (N) => { N.rot(-1).gap(2.4); const n = N.ground(4, 4); n.curio(0, 2, 1); });
+    L.gap(2.8);
+    const c = L.ground(10, 6, { look: 'stone' });
+    c.check(0, 3).crate('heart', -1.5, 6).sign('shell', 2.6, 2);
+    L.branch(c, -3, 5, (N) => { N.rot(1).gap(2.4); const n = N.ground(4, 4); n.curio(0, 2, 1); });
+    L.gap(2.6);
+    const e1 = L.ground(12, 6, { look: 'stone' });
+    e1.enemy('gull', 0, 6, { to: [0, 10] }).crate('pearl', 0, 5).pearls(5, 0, 1, 0, 11);
+    L.gap(2.4);
+    const d = L.arenaSlab(30, { look: 'arena' });
+    d.check(0, 3);
+    L.branch(d, 15, 22, (N) => { N.rot(-1).gap(2.8); const n = N.ground(4, 4); n.curio(0, 2, 1); });
+    L.setBoss('squawk');
+};
+
+S.l5_4 = (L) => {
+    const a = L.start(12, 10);
+    a.pearls(8, -3, 4, 3, 8).sign('home', 3.6, 6);
+    const b = L.ground(18, 7, { look: 'coral' });
+    b.crate('wood', -2, 5).crate('wood', 2, 5).crate('pearl', 0, 10).pearls(8, 0, 1, 0, 17);
+    L.branch(b, 3.5, 9, (N) => { N.rot(-1).gap(2.6); const n = N.ground(4, 4, { look: 'coral' }); n.curio(0, 2, 1).pearls(3, -1, 1, 1, 1); });
+    L.gap(3.0);
+    b.arc(5, 0, 18, 21, 1.4);
+    const c = L.ground(10, 7, { look: 'coral' });
+    c.check(0, 3).enemy('flea', 0, 5, { to: [0, 9] }).pearls(5, 0, 1, 0, 9);
+    L.gap(0.1);
+    L.corner(1, 8, { look: 'coral' });
+    const d = L.ground(14, 6, { look: 'coral' });
+    d.spring(0, 11.5).pearls(6, -2, 1, -2, 10).crate('heart', 2, 10);
+    L.gap(0.1);
+    const e = L.ground(5, 5, { look: 'coral', rise: 3.6, via: 'bounce' });
+    L.branch(d, 2, 12, () => {});
+    e.curio(0, 3, 1).pearls(4, 0, 1, 0, 4, 1.1);
+    L.gap(2.2);
+    const f = L.ground(16, 7, { look: 'coral', rise: -3.6 });
+    f.check(0, 2).enemy('starfish', 0, 6, { to: [0, 12] }).pearls(8, 0, 1, 0, 15);
+    L.gap(7.4);
+    f.arc(7, 0, 16, 23.4, 2.6, 1.3);
+    const g = L.ground(10, 7, { look: 'coral', rise: -0.5 });
+    g.pearls(5, 0, 1, 0, 9);
+    L.gap(3.0);
+    const h = L.crumble(3.6, 3.6, { look: 'coral' });
+    L.gap(1.2);
+    const i = L.crumble(3.6, 3.6, { look: 'coral' });
+    L.gap(1.2);
+    const j = L.crumble(3.6, 3.6, { look: 'coral' });
+    h.pearls(2, 0, 0.8, 0, 2.8); i.pearls(2, 0, 0.8, 0, 2.8); j.pearls(2, 0, 0.8, 0, 2.8);
+    L.gap(2.6);
+    const k = L.ground(14, 8, { look: 'coral' });
+    k.check(0, 3).curio(-2.5, 8).crate('pearl', 2, 6).pearls(6, 0, 1, 0, 12);
+    // a coral gallery: a sponge up to a high walk, then a drop
+    L.gap(2.6);
+    const e1 = L.ground(12, 7, { look: 'coral' }); e1.crate('wood', -2, 4).crate('wood', 2, 4).enemy('starfish', 0, 6, { to: [0, 9] }).pearls(6, 0, 1, 0, 11).spring(0, 10.2);
+    L.gap(0.2);
+    const e2 = L.ground(6, 6, { look: 'coral', rise: 3.4, via: 'bounce' }); e2.pearls(5, -2, 1, 2, 5, 1.2).crate('heart', 0, 3);
+    L.gap(2.0);
+    const e3 = L.ground(14, 7, { look: 'coral', rise: -3.4 }); e3.check(0, 2).pearls(7, 0, 1, 0, 13);
+    L.gap(2.6);
+    const m = L.ground(16, 12, { look: 'coral' });
+    m.pearls(10, -3, 2, 3, 12).goal(0, 11);
+};
+
+registerScripts(S);
+export default S;
