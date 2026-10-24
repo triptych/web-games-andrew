@@ -1804,6 +1804,14 @@ Fill in today's date where `YYYY-MM-DD` appears.
   neutral background, and `dev/shot.mjs` screenshots it. Judging a character
   under bloom and coloured rim lights hid broken anatomy in game-074.
 
+### A turn-based or tactics game in this layout
+
+The placeholder is real-time (`step(G, inp, dt)` with a stick). A turn-based game keeps the same split with two changes, as [game-097](../../game-097/) did:
+
+- **Input is a command.** `act(G, { t: 'move' | 'ability' | 'end' | ... })` validates, resolves the whole action at once and pushes events. `step(G, { cmd, hold }, dt)` only paces the AI (`hold` while the view is animating). The UI, the bot and the tests all go through `act()`, so the entire game is testable in Node.
+- **The view plays the events as a queue** and exposes `busy`. Treat undrained `G.events` as busy too: for one frame the sim is already in its new state while nothing has moved on screen, and a key pressed then is acted on and wiped by the arriving animation.
+- One AI brain for the enemy and the test bot means the balance bot tests the AI the player meets.
+
 ---
 
 # 2A — Kaplay scaffold (skip if ENGINE = phaser)
@@ -4718,6 +4726,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] A hazard that comes from behind the camera (a chase wave) is filmed from the front, or the player has no way to see it (game-096).
 - [ ] `deserialize` restores what the player is standing on (a reference into the world) and every table `initWorld` resets (opened gates, crumble states); the round-trip test steps both copies on and compares (game-096).
 - [ ] On a 390 px phone the HUD has a second row: the pause button is out of the flex row and a test taps it for real (game-096).
+- [ ] A turn-based game counts undrained `G.events` as busy: right after a command the sim has changed but the view has not heard yet, and a key pressed in that frame is wiped when the animation arrives (game-097). Tests wait for `events.length === 0 && !view.busy`.
 - [ ] A drag that moves the camera never also places or builds; a press that wandered ~10 px isn't a tap (game-067).
 
 **Rendering (three.js)**

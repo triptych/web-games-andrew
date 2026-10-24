@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hollow Gambit models</title>
+    <style>
+        html, body { margin: 0; background: #3a3a44; color: #eee; font: 12px system-ui, sans-serif; overflow: hidden; }
+        canvas { display: block; }
+        #labels div { position: absolute; transform: translate(-50%, 0); text-align: center; white-space: nowrap; text-shadow: 0 1px 2px #000; }
+    </style>
+</head>
+<body>
+    <canvas id="c"></canvas>
+    <div id="labels"></div>
+    <script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js" } }
+    </script>
+    <script type="module">
+        // Every piece on a flat grey floor under plain light: no board, no fog, no rim light. Judge shapes here
+        // before they go under the candles. ?team=e shows the dead's ring; ?only=a,b picks pieces.
+        import * as THREE from 'three';
+        import { UNITS } from '../js/sim/data.js';
+        import { makePiece } from '../js/view/models.js';
+
+        const q = new URLSearchParams(location.search);
+        const team = q.get('team') === 'e' ? 'e' : 'p';
+        const only = q.get('only')?.split(',');
+        const keys = Object.keys(UNITS).filter((k) => !only || only.includes(k));
+        const cols = +(q.get('cols') || 6);
+        const rows = Math.ceil(keys.length / cols);
+
+        const canvas = document.getElementById('c');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.setSize(innerWidth, innerHeight);
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x3a3a44);
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x555566, 1.6));
+        const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+        sun.position.set(-4, 8, 6);
+        scene.add(sun);
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(cols * 2.4 + 2, rows * 3 + 2), new THREE.MeshStandardMaterial({ color: 0x70707c, roughness: 1 }));
+        floor.rotation.x = -Math.PI / 2;
+        scene.add(floor);
+
+        const labels = document.getElementById('labels');
+        const items = [];
+        keys.forEach((k, i) => {
+            const m = makePiece(k, team);
+            const x = (i % cols - (cols - 1) / 2) * 2.4, z = (Math.floor(i / cols) - (rows - 1) / 2) * 3;
+            m.position.set(x, 0, z);
+            m.scale.setScalar(1.4);
+            m.userData.hp.visible = false;
+            m.userData.rig.rotation.y = (team === 'e' ? Math.PI : 0) + 0.5;     // a little turned, so the front reads
+            scene.add(m);
+            const d = document.createElement('div');
+            d.textContent = `${k} · ${UNITS[k].model}`;
+            labels.appendChild(d);
+            items.push({ m, d, x, z });
+        });
+
+        const cam = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.1, 100);
+        const need = Math.max((cols * 2.4 + 1) / 2 / Math.tan(THREE.MathUtils.degToRad(16)) / (innerWidth / innerHeight), (rows * 3 + 2) / 2 / Math.tan(THREE.MathUtils.degToRad(16))) * 0.95;
+        cam.position.set(0, need * 0.78, need * 0.62);
+        cam.lookAt(0, 0.4, 0);
+        function frame(t) {
+            requestAnimationFrame(frame);
+            for (const it of items) {
+                it.m.userData.gem.rotation.y = t / 700;
+                const p = new THREE.Vector3(it.x, 0, it.z + 1.1).project(cam);
+                it.d.style.left = (p.x * 0.5 + 0.5) * innerWidth + 'px';
+                it.d.style.top = (-p.y * 0.5 + 0.5) * innerHeight + 'px';
+            }
+            renderer.render(scene, cam);
+        }
+        requestAnimationFrame(frame);
+        window.__ready = true;
+    </script>
+</body>
+</html>
