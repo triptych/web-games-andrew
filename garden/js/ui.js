@@ -231,7 +231,10 @@ export class UI {
         const g = genreOf(game);
         return `
             <div class="lib-item" style="--accent:${g.accent}">
-                <div class="lib-icon" aria-hidden="true">${game.icon}</div>
+                <div class="lib-thumb" aria-hidden="true">
+                    <img src="garden/img/games/${esc(game.id)}.jpg" alt="" width="1200" height="630" loading="lazy" decoding="async" onerror="this.remove()">
+                    <span class="lib-icon">${game.icon}</span>
+                </div>
                 <div class="lib-text"><strong>${esc(game.title)}</strong>${game.version ? `<span class="ver">v${esc(game.version)}</span>` : ''}
                     <p>${esc(excerpt(game.description, 180))}</p></div>
                 <div class="lib-actions">
