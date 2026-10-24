@@ -80,7 +80,7 @@ export function signTexture(emoji, title, subtitle, accent, w = 1024, h = 256) {
     return toTexture(c);
 }
 
-function signMesh(tex, w, h, emissive = 0.25) {
+export function signMesh(tex, w, h, emissive = 0.25) {
     const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: emissive });
     const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
     m.userData.nightGlow = mat;

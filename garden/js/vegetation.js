@@ -194,6 +194,7 @@ function clearOf(world, x, z, extra = 0) {
     }
     if (Math.abs(x) < 6 && z > layout.dock.start - 4 && z < layout.dock.end + 4) return false;
     if (island.pathDistAt(x, z) < PATH_HALF + 5.2 + extra) return false;
+    if (world.hut && Math.hypot(x - world.hut.cx, z - world.hut.cz) < 7 + extra) return false;
     // the clock tower's plateau and the bridge out to it
     const is = layout.islet, b = layout.bridge;
     if (Math.hypot(x - is.x, z - is.z) < 6.2 + extra) return false;

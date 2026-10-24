@@ -28,6 +28,8 @@ import { IslandMap } from './map.js';
 import { nextFrame, store, smoothstep, lerp, damp } from './util.js';
 import { FoxVisitor } from './fox.js';
 import { Works } from './works.js';
+import { Hut, buildHutExterior } from './hut.js';
+import { Galaxy } from './galaxy.js';
 import { Boat } from './boat.js';
 
 const params = new URLSearchParams(location.search);
@@ -227,6 +229,7 @@ async function boot() {
     ui.progress(0.48, 'Raising pavilions…');
     await nextFrame();
     buildArchitecture(world);
+    world.hut = buildHutExterior(world);
     buildPaths(world);
     ui.progress(0.58, 'Carving statues…');
     await nextFrame();
@@ -315,10 +318,15 @@ async function boot() {
     let elapsed = 0;
     // the Works under the clock tower: built on the first visit
     let works = null;
+    // the Hut by the dock and the galaxy in its sphere: both built on the first visit
+    let hut = null, galaxy = null;
+    let trip = null;       // falling into / climbing out of the sphere
+    const look = { x: 0, y: 0 };
+    let roomKind = null;   // which room 'below' means: 'works' | 'hut'
     let below = false;
     let transit = false;   // fading through a door
     let doorArmed = false; // you must step away from a door before it takes you again
-    let worksHintShown = false, doorHintShown = false, boatHintShown = false;
+    let worksHintShown = false, doorHintShown = false, hutHintShown = false, hutDoorHintShown = false, orbHintShown = false, boatHintShown = false;
     let boardPending = false; // walking to the dock edge to climb into the boat
 
     const setHover = (h) => {
@@ -361,6 +369,11 @@ async function boot() {
         if (door && door.distance < bt && door.distance < 60) {
             bt = door.distance;
             best = { type: 'door', t: bt };
+        }
+        const hd = world.hut && ray.intersectObject(world.hut.mesh, false)[0];
+        if (hd && hd.distance < bt && hd.distance < 60) {
+            bt = hd.distance;
+            best = { type: 'hutDoor', t: bt };
         }
         const tg = marchGround(world, o, d, Math.min(bt, 120));
         if (tg < bt) {
@@ -435,14 +448,102 @@ async function boot() {
         ui.hint(`Walking to ${game.title}…`, 3500);
     }
 
+    // ------------------------------------------------------------ the sphere
+
+    const baseFov = () => (innerWidth < innerHeight ? 72 : 62);
+    const FALL = 2.1;
+
+    /** Click the sphere: fall into it, and out the other side into its galaxy. */
+    function startTrip() {
+        if (trip || transit || roomKind !== 'hut') return;
+        galaxy ??= new Galaxy();
+        controls.enabled = false;
+        controls.route = null;
+        controls.keys.clear();
+        controls.vel.set(0, 0);
+        setHover(null);
+        ui.tooltip(null);
+        look.x = look.y = 0;
+        trip = { phase: 'fall', t: 0, age: 0, from: camera.position.clone(), fromQ: camera.quaternion.clone(), flashed: false };
+        audio.sparkle();
+    }
+
+    /** Leave the galaxy: a flash, then back at the desk with the sphere in front of you. */
+    function leaveTrip() {
+        if (!trip || trip.phase !== 'in' || trip.age < 0.9) return;
+        trip.phase = 'out';
+        audio.link();
+        ui.flash(true);
+        setTimeout(() => {
+            if (!trip) return;
+            renderPass.scene = hut.scene;
+            const d = hut.deskStand;
+            controls.teleport(d.x, d.z, d.yaw);
+            controls.pitch = d.pitch;
+            endTrip();
+            setTimeout(() => ui.flash(false), 150);
+        }, 650);
+    }
+
+    function endTrip() {
+        trip = null;
+        camera.fov = baseFov();
+        camera.updateProjectionMatrix();
+        controls.enabled = true;
+    }
+
+    const tmpV = new THREE.Vector3(), tmpQ = new THREE.Quaternion(), tmpM = new THREE.Matrix4();
+    function tripUpdate(dt) {
+        if (trip.phase === 'fall') {
+            trip.t += dt;
+            const k = Math.min(1, trip.t / FALL);
+            const e = k * k * (1.4 - 0.4 * k);   // slow start, quick finish
+            tmpV.copy(trip.from).lerp(hut.orbPos, e);
+            camera.position.copy(tmpV);
+            // turn to face the sphere early, then keep it dead ahead
+            tmpQ.setFromRotationMatrix(tmpM.lookAt(trip.from, hut.orbPos, camera.up));
+            camera.quaternion.copy(trip.fromQ).slerp(tmpQ, smoothstep(0, 0.45, k));
+            camera.fov = baseFov() + smoothstep(0.5, 1, k) * 70;
+            camera.updateProjectionMatrix();
+            if (!trip.flashed && k > 0.8) {
+                trip.flashed = true;
+                ui.flash(true);
+            }
+            if (k >= 1) {
+                renderPass.scene = galaxy.scene;
+                camera.fov = 68;
+                camera.updateProjectionMatrix();
+                galaxy.update(0, camera, look, renderer.domElement.height, 0);
+                trip.phase = 'in';
+                trip.age = 0;
+                setTimeout(() => ui.flash(false), 120);
+                ui.hint('Click or press Esc to return to the hut', 7000);
+            }
+        } else {
+            trip.age += dt;
+            galaxy.update(dt, camera, look, renderer.domElement.height, trip.age);
+        }
+    }
+
+    addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && trip) leaveTrip();
+    });
+    canvas.addEventListener('pointerup', () => leaveTrip());
+    canvas.addEventListener('pointermove', (e) => {
+        look.x = (e.clientX / innerWidth) * 2 - 1;
+        look.y = (e.clientY / innerHeight) * 2 - 1;
+    });
+
     // ------------------------------------------------------------ the Works
 
-    function setBelow(on) {
+    function setBelow(on, kind = 'works') {
         below = on;
-        controls.world = on ? works.world : world;
-        renderPass.scene = on ? works.scene : scene;
-        bloom.strength = on ? 0.6 : 0.42;
-        audio.setUnderground(on);
+        roomKind = on ? kind : null;
+        const room = kind === 'hut' ? hut : works;
+        controls.world = on ? room.world : world;
+        renderPass.scene = on ? room.scene : scene;
+        bloom.strength = on ? (kind === 'hut' ? 0.55 : 0.6) : 0.42;
+        audio.setUnderground(on && kind === 'works');
         doorArmed = false;
         mouse = null;
         setHover(null);
@@ -451,18 +552,31 @@ async function boot() {
 
     /** Back to the garden at once (the caller covers it with a flash). */
     function surface() {
+        if (trip) endTrip();
         setBelow(false);
         zoneKey = '';
     }
 
-    function throughDoor(down) {
+    function throughDoor(down, kind = 'works') {
         if (transit) return;
+        const leaving = roomKind;
         transit = true;
         controls.route = null;
         audio.door();
         ui.flash(true);
         setTimeout(() => {
-            if (down) {
+            if (down && kind === 'hut') {
+                hut ??= new Hut({ renderer, ui, mats: world.mats });
+                setBelow(true, 'hut');
+                const s = hut.spawn;
+                controls.teleport(s.x, s.z, s.yaw);
+                ui.zone('The Hut', 'A sphere glows on the desk', '#c9a7ff');
+                zoneKey = 'hut';
+                if (!hutHintShown) {
+                    hutHintShown = true;
+                    setTimeout(() => ui.hint('Click the glowing sphere on the desk · walk back into the door to leave', 9000), 1200);
+                }
+            } else if (down) {
                 works ??= new Works({ renderer, games, sky, island, layout, statues, ui, mats: world.mats });
                 setBelow(true);
                 const s = works.spawn;
@@ -475,7 +589,7 @@ async function boot() {
                 }
             } else {
                 surface();
-                const o = world.clockDoor.out;
+                const o = leaving === 'hut' ? world.hut.out : world.clockDoor.out;
                 controls.teleport(o.x, o.z, o.yaw);
             }
             setTimeout(() => {
@@ -488,14 +602,28 @@ async function boot() {
     /** Walking into a door's spot goes through it. */
     function doorCheck() {
         if (transit || !controls.enabled) return;
+        if (trip) return;
         const p = controls.pos;
-        const d = below ? works.exit : world.clockDoor;
+        let d, kind = 'works';
+        if (below) {
+            d = roomKind === 'hut' ? hut.exit : works.exit;
+            kind = roomKind;
+        } else {
+            d = world.clockDoor;
+            if (world.hut && Math.hypot(p.x - world.hut.x, p.z - world.hut.z) < Math.hypot(p.x - d.x, p.z - d.z)) {
+                d = world.hut;
+                kind = 'hut';
+            }
+        }
         const dist = Math.hypot(p.x - d.x, p.z - d.z);
         if (dist > 1.6) doorArmed = true;
-        if (doorArmed && dist < 0.6) throughDoor(!below);
-        else if (!below && !doorHintShown && dist < 6) {
+        if (doorArmed && dist < 0.6) throughDoor(!below, kind);
+        else if (!below && kind === 'works' && !doorHintShown && dist < 6) {
             doorHintShown = true;
             ui.hint('A door at the foot of the clock tower: walk through it to go down into the Works', 6000);
+        } else if (!below && kind === 'hut' && !hutDoorHintShown && dist < 7) {
+            hutDoorHintShown = true;
+            ui.hint('A little hut: walk through its door', 6000);
         }
     }
 
@@ -503,6 +631,15 @@ async function boot() {
     function pickBelow(cx, cy) {
         ndc.set((cx / innerWidth) * 2 - 1, -(cy / innerHeight) * 2 + 1);
         ray.setFromCamera(ndc, camera);
+        if (roomKind === 'hut') {
+            const hit = ray.intersectObjects([hut.orbHit, hut.doorMesh], false)[0];
+            if (hit && hit.distance < 40) return { type: hit.object.userData.kind === 'orb' ? 'orb' : 'door', t: hit.distance };
+            const o = ray.ray.origin, d = ray.ray.direction;
+            if (d.y >= -1e-4) return null;
+            const t = -o.y / d.y;
+            const point = o.clone().addScaledVector(d, t);
+            return hut.walkable(point.x, point.z) ? { type: 'ground', point, t } : null;
+        }
         const hit = ray.intersectObjects([works.doorMesh, ...works.linkPanels], false)[0];
         if (hit && hit.distance < 40) {
             if (hit.object.userData.kind === 'source') return hit.distance < 14 ? { type: 'source', url: works.sourceUrl(hit.object.userData.screen), t: hit.distance } : null;
@@ -540,7 +677,7 @@ async function boot() {
     syncFocus();
 
     // below ground the map shows you at the tower
-    const mapPos = () => (below ? world.clockDoor : controls.pos);
+    const mapPos = () => (below ? (roomKind === 'hut' ? { x: world.hut.cx, z: world.hut.cz } : world.clockDoor) : controls.pos);
     ui.on('mapOpen', () => map.draw(mapPos(), controls.yaw));
     ui.on('timeOpen', () => {
         document.getElementById('time-slider').value = Math.round(sky.time * 1440);
@@ -604,7 +741,12 @@ async function boot() {
                 // a real new tab, opened inside the click so popup blockers allow it
                 window.open(h.url, '_blank', 'noopener');
                 audio.click();
-            } else if (h?.type === 'door') controls.walkTo([{ x: works.exit.x, z: works.exit.z }]);
+            } else if (h?.type === 'orb') {
+                startTrip();
+            } else if (h?.type === 'door') {
+                const e = roomKind === 'hut' ? hut.exit : works.exit;
+                controls.walkTo([{ x: e.x, z: e.z }]);
+            }
             else if (h && h.t < 60) {
                 ui.marker(x, y);
                 controls.walkTo([{ x: h.point.x, z: h.point.z }]);
@@ -631,6 +773,10 @@ async function boot() {
             boardPending = true;
             ui.closeAll();
             controls.walkTo(controls.plan(boat.stand.x, boat.stand.z));
+        } else if (h.type === 'hutDoor') {
+            audio.click();
+            ui.closeAll();
+            controls.walkTo(controls.plan(world.hut.x, world.hut.z));
         } else if (h.type === 'door') {
             const d = world.clockDoor;
             controls.walkTo([{ x: d.x, z: d.z }]);
@@ -781,6 +927,8 @@ async function boot() {
                     zoneKey = 'dock';
                 }
             }
+        } else if (trip) {
+            tripUpdate(dt);
         } else if (!boat.busy) {
             controls.update(dt);
         }
@@ -802,7 +950,20 @@ async function boot() {
         sky.update(dt, camPos);
         const s = sky.state;
         const night = s.night;
-        if (below) {
+        if (below && roomKind === 'hut') {
+            hut.update(dt, t);
+            audio.update(night, -100);
+            // the pointer shows a hand over the sphere and the door
+            if (entered && !intro && !trip && mouse && !ui.blocking && !controls.look?.moved) {
+                const h = pickBelow(mouse.x, mouse.y);
+                hut.setHover(h?.type === 'orb');
+                document.body.classList.toggle('can-hover-pick', h?.type === 'orb' || h?.type === 'door');
+            } else hut.setHover(false);
+            if (!orbHintShown && entered && !trip && Math.hypot(controls.pos.x - hut.orbPos.x, controls.pos.z - hut.orbPos.z) < 2.2) {
+                orbHintShown = true;
+                ui.hint('A sphere of glass on the desk, with something turning inside it · click it', 7000);
+            }
+        } else if (below) {
             const hisses = works.update(dt, t, controls.pos, renderer.domElement.height);
             for (const v of hisses) audio.hiss(v);
             audio.update(night, -100);
@@ -906,7 +1067,7 @@ async function boot() {
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
+        window.__garden = { startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
     }
 }
 
