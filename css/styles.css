@@ -1232,6 +1232,18 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 138, 77, 0.6);
 }
 
+.game-preview.hollow-gambit,
+.carousel-slide-bg.hollow-gambit {
+    background: radial-gradient(ellipse at 50% 18%, #6a3a9a 0%, rgba(106, 58, 154, 0) 38%),
+        linear-gradient(180deg, #0b0818 0%, #231034 52%, #6e1a30 100%);
+}
+
+.game-card.hollow-gambit .play-button {
+    background: linear-gradient(135deg, #f2d68f, #b98a35 55%, #7a1d34);
+    color: #1a1008;
+    box-shadow: 0 0 14px rgba(212, 176, 106, 0.55);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

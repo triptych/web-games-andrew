@@ -1464,6 +1464,22 @@ const games = [
             { emoji: '🛠️', label: 'Inventions' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-097',
+        title: 'Hollow Gambit',
+        description: "A gothic tactics RPG where chess meets Fire Emblem, drawn and scored entirely in code with three.js. Every piece in your party moves like a different chess piece, fairy chess included: a Rook slides, a Knight leaps, a Grasshopper vaults a piece and lands beyond it, a Cannon fires only over a screen, a Nightrider keeps riding a knight line, a Queen goes anywhere, and the Pawn of the roster can only creep forward and strike on the diagonal. Each of the sixteen pieces you can summon from the Hollow has its own movement, a special ability (heal, bolt, ward, rally, blink, hook, shove, swap, hex, hellfire, encore, drain, bulwark) and an elemental affinity (Ember, Thorn, Tide, with Umbra and Lumen locked in mutual enmity). Move onto an enemy and the board gives way to a Fire Emblem duel: a cut to a candlelit arena under a stained-glass rose window, with strike and counter, hit, crit and a follow-up for the faster piece, after a forecast that shows exactly what you are risking. The winner takes the square; a survivor drives the attacker back. Summon with soul shards (pity guarantees a 5-star every 40 pulls, duplicates raise a Bond), level your party, set the five who march, and fight six chapters from the Chapel Yard to the Vesper Throne across crypts of chasms, altars and walls, with bosses that hold their ground and two that join you when slain. Tap, click, keyboard or gamepad; a threat map and a movement diagram for every piece; and a bot that plays the whole campaign on every seed through the same brain the dead use.",
+        icon: '♟️',
+        folder: 'game-097',
+        version: '1.0.0',
+        cssClass: 'hollow-gambit',
+        genre: 'strategy',
+        tags: [
+            { emoji: '♟️', label: 'Chess tactics' },
+            { emoji: '⚔️', label: 'Duels' },
+            { emoji: '🎲', label: 'Summoning' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 
