@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hauntly Manor — gallery</title>
+    <style>html, body { margin: 0; height: 100%; background: #111; overflow: hidden; } canvas { display: block; position: fixed; left: 0; top: 0; }</style>
+    <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js" } }</script>
+</head>
+<body>
+<canvas id="view"></canvas>
+<script type="module">
+// Every room on its own, with no UI: ?room=foyer&seed=3&f=attic_open,lib_open&inv=...&frames=30
+import { Stage } from '../js/view/stage.js';
+import { newGame } from '../js/sim/game.js';
+const q = new URLSearchParams(location.search);
+const G = newGame(+(q.get('seed') || 1));
+for (const k of (q.get('f') || '').split(',').filter(Boolean)) G.f[k] = true;
+for (const k of (q.get('books') || '').split(',').filter(Boolean)) G.books.push(+k);
+const stage = new Stage(document.getElementById('view'));
+G.room = q.get('room') || 'foyer';
+stage.setRoom(G.room, G);
+let t = 0, last = performance.now();
+window.__stage = stage; window.__G = G; window.__frames = 0;
+function frame(now) {
+    requestAnimationFrame(frame);
+    const dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt;
+    stage.frame(G, dt, t, { pointerOn: false });
+    window.__frames++;
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
