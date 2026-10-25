@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Wyrmbond — model gallery</title>
+<style>body{margin:0;background:#b8c4d0;font:13px system-ui}canvas{display:block}#lab{position:fixed;inset:0;pointer-events:none}#lab div{position:absolute;transform:translate(-50%,0);color:#123;font-weight:700;text-shadow:0 1px 0 #fff}</style>
+</head>
+<body>
+<canvas id="c"></canvas><div id="lab"></div>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.165.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.165.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { makeUnitModel, makeEgg } from '../js/view/models.js';
+import { SPECIES } from '../js/sim/data.js';
+const q = new URLSearchParams(location.search);
+const set = q.get('set') || 'dragons';
+const c = document.getElementById('c');
+const r = new THREE.WebGLRenderer({ canvas: c, antialias: true });
+r.outputColorSpace = THREE.SRGBColorSpace;
+r.setSize(innerWidth, innerHeight);
+r.setClearColor(0xb8c4d0);
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a7a6a, 1.6));
+const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(3, 6, 5); scene.add(sun);
+const keys = set === 'dragons' ? Object.keys(SPECIES) : set === 'eggs' ? Object.keys(SPECIES) : ['tamer','brannoc','sera','varekally','chainknight','chainhound','lancer','ballista','hexer','grisk','varek','sablethorn','nyxara','vorthax','pylon'];
+const cols = Math.ceil(Math.sqrt(keys.length * 1.6));
+const models = [];
+keys.forEach((k, i) => {
+  const m = set === 'eggs' ? makeEgg(k) : makeUnitModel({ key: k, team: 'p', chained: q.get('chained') === '1' });
+  const x = (i % cols) * 1.3, z = Math.floor(i / cols) * 1.5;
+  m.position.set(x, 0, z);
+  if (m.userData.big) m.scale.setScalar(m.userData.big * 0.6);
+  m.rotation.y = 0.6;
+  scene.add(m); models.push({ m, k });
+});
+const rows = Math.ceil(keys.length / cols);
+const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 100);
+const cx = (cols - 1) * 0.65, cz = (rows - 1) * 0.75;
+cam.position.set(cx, 6 + rows * 1.4, cz + 6 + rows * 1.2); cam.lookAt(cx, 0.3, cz + 0.2);
+const lab = document.getElementById('lab');
+let t = 0;
+function frame() {
+  t += 0.016;
+  for (const { m } of models) m.userData.anim?.(t, {});
+  r.render(scene, cam);
+  lab.innerHTML = '';
+  for (const { m, k } of models) { const p = m.position.clone(); p.z += 0.45; p.project(cam); const d = document.createElement('div'); d.style.left = (p.x * 0.5 + 0.5) * innerWidth + 'px'; d.style.top = (-p.y * 0.5 + 0.5) * innerHeight + 'px'; d.textContent = SPECIES[k]?.name || k; lab.appendChild(d); }
+  requestAnimationFrame(frame);
+}
+frame();
+window.ready = true;
+</script>
+</body>
+</html>

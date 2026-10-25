@@ -1480,6 +1480,22 @@ const games = [
             { emoji: '🎲', label: 'Summoning' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-098',
+        title: 'Wyrmbond',
+        description: 'An Advance Wars-meets-dragon-raising tactics RPG, drawn and scored entirely in code with three.js in a bright painterly cartoon style. You are Kestrel, the last apprentice of the last free roost in the Skyreach Isles, where the Obsidian Empress has collared every dragon with the Chain. Choose your first egg, then fight across twelve chapters in four acts, from the hill-village of Emberfall over the Gale Coast, Mirewood and the Frostpeaks to the Obsidian Throne, with painted portraits and a full story told in scenes. Battles play like Advance Wars: a tiled map with terrain stars where fliers get no cover, villages and roosts you claim for income and healing, roosts you call reinforcements from with gold, an enemy that musters soldiers at its keeps, commander powers (your Wyrmsong grows with the story), and HP badges in tenths; every attack cuts to a close-up head-to-head fight on painted terrain islands, with element breath, crits and counters after a forecast. Wear a collared dragon down, stand Kestrel beside it and sing it free: it changes sides on the spot and joins your stable. Between battles, the roost: eggs hatch in incubators in real time, even while you are away, and warm faster when you tap them; feed and train your dragons, collect their hoard, shop the market, and breed adults to pass on genes and traits, with five hybrid species that only breeding can make. 22 procedural dragon species with skills, traits, genes and growth stages, endless generated Wild Hunts, generative music, touch, mouse, keyboard and gamepad, and a bot that plays the whole campaign on every seed.',
+        icon: '🐉',
+        folder: 'game-098',
+        version: '1.0.0',
+        cssClass: 'wyrmbond',
+        genre: 'strategy',
+        tags: [
+            { emoji: '🐉', label: 'Dragon tactics' },
+            { emoji: '🥚', label: 'Hatch & breed' },
+            { emoji: '📖', label: 'Story campaign' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2a1a3a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Wyrmbond — a dragon-taming tactics RPG: Advance Wars battles, close-up duels, and a roost where you hatch, raise and breed dragons.">
+    <title>Wyrmbond</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Cinzel+Decorative:wght@700&display=swap">
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="Wyrmbond game view"></canvas>
+    <div id="paper" aria-hidden="true"></div>
+    <div id="flash" aria-hidden="true"></div>
+    <div id="floats" aria-hidden="true"></div>
+    <div id="banner" aria-live="polite"></div>
+
+    <!-- ============================================================ battle HUD -->
+    <div id="bhud" hidden>
+        <div id="bh-top">
+            <div class="co" id="co-p">
+                <img class="co-face" id="co-p-face" alt="">
+                <div class="co-body">
+                    <div class="co-name">Kestrel <span class="funds" id="funds-p">0</span></div>
+                    <div class="meter"><div class="fill" id="meter-p"></div></div>
+                </div>
+                <button id="btn-power" class="pbtn" disabled aria-label="Wyrmsong">🎵</button>
+            </div>
+            <div id="bh-mid">
+                <div id="bh-turn">Turn 1</div>
+                <div id="bh-obj"></div>
+            </div>
+            <div class="co enemy" id="co-e">
+                <div class="co-body">
+                    <div class="co-name"><span id="co-e-name">The Chain</span> <span class="funds" id="funds-e">0</span></div>
+                    <div class="meter"><div class="fill" id="meter-e"></div></div>
+                </div>
+                <img class="co-face" id="co-e-face" alt="">
+            </div>
+        </div>
+        <div id="bh-bottom">
+            <div id="cards">
+                <div id="tilecard" class="card"></div>
+                <div id="unitcard" class="card" hidden></div>
+            </div>
+            <div id="bh-buttons">
+                <button id="btn-zoom" class="ibtn" aria-label="Zoom">🔍</button>
+                <button id="btn-next" class="ibtn" aria-label="Next dragon">⏭</button>
+                <button id="btn-end" class="btn primary">End Turn</button>
+                <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
+            </div>
+        </div>
+        <div id="actmenu" class="popup" hidden></div>
+        <div id="forecast" class="popup" hidden></div>
+    </div>
+
+    <!-- the close-up fight overlay -->
+    <div id="duel" hidden>
+        <div class="duel-side" id="duel-a"><div class="dn"></div><div class="hpbar"><div class="fill"></div></div><div class="hpn"></div></div>
+        <div class="duel-side right" id="duel-d"><div class="dn"></div><div class="hpbar"><div class="fill"></div></div><div class="hpn"></div></div>
+        <button id="btn-skipfight" class="btn small">Skip ▸▸</button>
+    </div>
+    <div id="power-cut" hidden><img alt=""><div class="pc-text"><div class="pc-name"></div><div class="pc-desc"></div></div></div>
+
+    <!-- story dialogue -->
+    <div id="dialogue" hidden>
+        <div class="dlg-box">
+            <img class="dlg-face" alt="">
+            <div class="dlg-body">
+                <div class="dlg-name"></div>
+                <div class="dlg-text"></div>
+            </div>
+            <div class="dlg-next">▼</div>
+        </div>
+        <button id="btn-dlg-skip" class="btn small">Skip scene ▸▸</button>
+    </div>
+
+    <!-- ============================================================ screens -->
+    <div id="title" class="screen">
+        <div class="sheet title-sheet">
+            <div class="logo">Wyrmbond</div>
+            <div class="tagline">Chronicles of the Dragon Tamer</div>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Game</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="credits" class="btn">Credits</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="starter" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Choose your first egg</h2>
+            <p class="dim">Put your hands on each one. Listen. One of them is listening back.</p>
+            <div id="starter-list" class="starter-list"></div>
+        </div>
+    </div>
+
+    <!-- the roost: a top bar, a tab bar, and one panel at a time -->
+    <div id="hub" class="screen hub" hidden>
+        <div id="hub-top">
+            <span class="chip" id="hub-gold">🪙 0</span>
+            <button class="chip btn-chip" id="btn-hoard">💰 Hoard 0</button>
+            <span class="chip" id="hub-food"></span>
+            <button class="ibtn" id="btn-hub-menu" aria-label="Menu">☰</button>
+        </div>
+        <div id="hub-panel" class="panel"></div>
+        <nav id="hub-tabs">
+            <button data-tab="map" class="tab"><span>🗺️</span>Journey</button>
+            <button data-tab="hatchery" class="tab"><span>🥚</span>Hatchery</button>
+            <button data-tab="stable" class="tab"><span>🐉</span>Stable</button>
+            <button data-tab="breed" class="tab"><span>💞</span>Breed</button>
+            <button data-tab="market" class="tab"><span>🛒</span>Market</button>
+        </nav>
+    </div>
+
+    <div id="party" class="screen" hidden>
+        <div class="sheet wide">
+            <h2 id="party-title">Choose your flock</h2>
+            <p class="dim" id="party-info"></p>
+            <div id="party-list" class="dragon-grid"></div>
+            <div class="sheet-foot">
+                <button class="btn" data-close>Back</button>
+                <button id="btn-deploy" class="btn primary">Fly!</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dragon" class="screen" hidden>
+        <div class="sheet wide" id="dragon-sheet"></div>
+    </div>
+
+    <div id="callmenu" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Call a dragon to the roost</h2>
+            <p class="dim" id="call-info"></p>
+            <div id="call-list" class="dragon-grid"></div>
+            <div class="sheet-foot"><button class="btn" data-close>Cancel</button></div>
+        </div>
+    </div>
+
+    <div id="result" class="screen" hidden>
+        <div class="sheet">
+            <h2 id="res-title">Victory!</h2>
+            <div id="res-rank" class="rank"></div>
+            <div id="res-body"></div>
+            <div class="sheet-foot">
+                <button id="btn-res-retry" class="btn" hidden>Try Again</button>
+                <button id="btn-res-ok" class="btn primary">To the Roost</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <p id="pause-obj" class="dim"></p>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="retreat" class="btn">Retreat to the Roost</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="hubmenu" class="screen" hidden>
+        <div class="sheet">
+            <h2>The Roost</h2>
+            <nav class="menu" id="hubmenu-menu">
+                <button data-act="resume" class="btn primary">Back to the Roost</button>
+                <button data-act="story" class="btn">Story So Far</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet wide scroll">
+            <h2>How to Play</h2>
+            <h3>Battles</h3>
+            <p>Tap one of your units to see where it can go (blue). Tap a blue tile to move there, then choose an action: <b>Attack</b> (red), a <b>Skill</b>, <b>Claim</b> a village or roost, <b>Unchain</b> a collared dragon, or <b>Wait</b>. Tap the unit again to stay put. Every attack cuts to a close-up fight.</p>
+            <p>Damage depends on Attack against Defence, the element wheel (🔥 Ember › 🌿 Verdant › 🪨 Stone › ⚡ Storm › 💧 Tide › 🔥 Ember; ☀️ Lumen and 🌑 Umbra bane each other), body types (Skyhook ballistas shred fliers, lancers gore drakes), and the attacker's health: a wounded unit hits softer. Ground units take less damage on forests, hills, villages and mountains; <b>fliers get no cover</b>. The number on a unit is its health in tenths.</p>
+            <p><b>Claim</b> villages and roosts: they pay 100 gold a turn and heal anyone of yours resting on them. On a roost you own, tap it to <b>call</b> another dragon from your stable. The Chain musters soldiers at its keeps the same way. Kestrel must survive: if the tamer falls, the battle is lost.</p>
+            <p><b>Unchain:</b> wear a collared dragon below half health, stand Kestrel beside it and sing it free. Below a quarter it never fails. It joins you on the spot, and stays in your stable.</p>
+            <p><b>Wyrmsong:</b> fighting fills the song meter. When it's full, tap 🎵 for a turn of power. Enemy commanders have powers too.</p>
+            <h3>The Roost</h3>
+            <p>Eggs hatch in incubators over real time, even while you fight or are away (up to 8 hours). Tap an egg to warm it faster. Feed dragons to level them, put them in a training ring to grow while you're idle, and collect the hoard your stable gathers. Adults (level 12) can <b>breed</b>: the egg inherits genes and traits from both parents, and some element pairs make rare hybrids.</p>
+            <table>
+                <tr><td>Arrows / WASD</td><td>Move the cursor</td></tr>
+                <tr><td>Space / Enter / Z</td><td>Select, confirm</td></tr>
+                <tr><td>Esc / X</td><td>Back, cancel</td></tr>
+                <tr><td>Tab</td><td>Next ready unit</td></tr>
+                <tr><td>Q</td><td>Wyrmsong</td></tr>
+                <tr><td>E</td><td>End turn</td></tr>
+                <tr><td>P</td><td>Pause</td></tr>
+                <tr><td>Drag · wheel · pinch</td><td>Pan and zoom the map</td></tr>
+            </table>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Battle scenes
+                <select id="set-fights"><option value="full">Close-up</option><option value="quick">Quick</option></select>
+            </label>
+            <label class="row">Game speed
+                <select id="set-speed"><option value="1">Normal</option><option value="2">Fast</option></select>
+            </label>
+            <label class="row">Calm visuals <input type="checkbox" id="set-calm"></label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="credits" class="screen" hidden>
+        <div class="sheet scroll">
+            <h2>Credits</h2>
+            <p><b>Wyrmbond</b> — a dragon-taming tactics RPG.</p>
+            <p>Every dragon, map, portrait, egg and note is made in code at runtime: three.js r165 for the 3D, Canvas 2D for the paint, and Web Audio for the music and sound. There are no image or audio files.</p>
+            <p>With a nod to Advance Wars, Fire Emblem, and every dragon-raising game that ever kept someone up past bedtime.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="story" class="screen" hidden>
+        <div class="sheet wide scroll">
+            <h2>The Story So Far</h2>
+            <div id="story-body"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="toasts" aria-live="polite"></div>
+    <noscript><p class="noscript">Wyrmbond needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
