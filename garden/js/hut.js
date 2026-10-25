@@ -1,6 +1,7 @@
 // The Hut: a small cabin by the dock path. Step through its door and you are
 // in a one-room study with a desk, and on the desk a glass sphere with a
-// galaxy turning inside it. Click the sphere to fall into it (see galaxy.js).
+// galaxy turning inside it. Click the sphere to fall into it (see galaxy.js), or
+// the train ticket beside it to board the Violet Line (see subway.js).
 // Like the Works, the room is built on the first visit, with its own scene and
 // a stand-in `world` for the walking controls.
 
@@ -237,6 +238,7 @@ export class Hut {
         this.scene.add(batch.build(this.mats, { castShadow: false, receiveShadow: false }));
         this._lights();
         this._orb();
+        this._ticket();
         this._grid();
 
         const self = this;
@@ -440,6 +442,60 @@ export class Hut {
         this.scene.add(core, shell, hit, halo, light);
     }
 
+    /** A train ticket on the desk beside the sphere: click it and the Violet Line is waiting. */
+    _ticket() {
+        const dk = DESK;
+        const c = document.createElement('canvas');
+        c.width = 512;
+        c.height = 256;
+        const x = c.getContext('2d');
+        const g = x.createLinearGradient(0, 0, 512, 256);
+        g.addColorStop(0, '#f3e6c4');
+        g.addColorStop(1, '#e0cf9f');
+        x.fillStyle = g;
+        x.fillRect(0, 0, 512, 256);
+        x.strokeStyle = '#6a3fbf';
+        x.lineWidth = 6;
+        x.strokeRect(10, 10, 492, 236);
+        x.fillStyle = '#6a3fbf';
+        x.fillRect(10, 10, 492, 54);
+        x.fillStyle = '#fff6df';
+        x.font = '700 34px Georgia, serif';
+        x.textAlign = 'center';
+        x.fillText('VIOLET LINE', 256, 49);
+        x.fillStyle = '#2a1d52';
+        x.font = '700 38px Georgia, serif';
+        x.fillText('HEARTHSIDE → PRISM HALT', 256, 118);
+        x.font = '600 24px system-ui, sans-serif';
+        x.fillText('ADMIT ONE · RETURN INCLUDED', 256, 160);
+        x.fillStyle = '#6a3fbf';
+        for (let i = 0; i < 38; i++) x.fillRect(40 + i * 11, 190, i % 3 === 0 ? 3 : 6, 36);
+        x.fillStyle = '#c0392b';
+        x.font = '700 22px "Courier New", monospace';
+        x.textAlign = 'right';
+        x.fillText('No. 0444', 490, 232);
+        const tex = new THREE.CanvasTexture(c);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        const edge = new THREE.MeshStandardMaterial({ color: 0xe9dfc6, roughness: 0.9 });
+        const face = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.18 });
+        const ticket = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.006, 0.1), [edge, edge, face, edge, edge, edge]);
+        this.ticketPos = new THREE.Vector3(dk.x + 0.46, dk.h + 0.045, dk.z + 0.14);
+        ticket.position.copy(this.ticketPos);
+        ticket.rotation.y = -0.35;
+        this.ticket = ticket;
+        // a soft violet glint that tells you it is not just paper
+        const glint = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowSprite(), color: 0xb79bff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.35 }));
+        glint.scale.set(0.34, 0.34, 1);
+        glint.position.copy(this.ticketPos).add(new THREE.Vector3(0, 0.03, 0));
+        this.ticketGlint = glint;
+        const hit = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 8), new THREE.MeshBasicMaterial({ visible: false }));
+        hit.position.copy(this.ticketPos);
+        hit.userData.kind = 'ticket';
+        this.ticketHit = hit;
+        this.ticketHover = 0;
+        this.scene.add(ticket, glint, hit);
+    }
+
     /** The stage-set for the exit door: a mesh the pointer can target. */
     get doorMesh() {
         if (!this._door) {
@@ -451,8 +507,9 @@ export class Hut {
         return this._door;
     }
 
-    setHover(on) {
+    setHover(on, ticket = false) {
         this.hoverTarget = on ? 1 : 0;
+        this.ticketTarget = ticket ? 1 : 0;
     }
 
     update(dt, t) {
@@ -460,6 +517,10 @@ export class Hut {
         this.hover += ((this.hoverTarget || 0) - this.hover) * Math.min(1, dt * 8);
         this.orbUniforms.uTime.value = t;
         this.orbUniforms.uHover.value = this.hover;
+        this.ticketHover += ((this.ticketTarget || 0) - this.ticketHover) * Math.min(1, dt * 8);
+        this.ticket.position.y = this.ticketPos.y + this.ticketHover * 0.02 + Math.sin(t * 1.6) * 0.0015;
+        this.ticketGlint.material.opacity = 0.25 + 0.12 * Math.sin(t * 2.3) + this.ticketHover * 0.4;
+        this.ticketGlint.scale.setScalar(0.3 + this.ticketHover * 0.14);
         const bob = Math.sin(t * 1.2) * 0.004;
         this.orbCore.position.y = this.orbPos.y + bob;
         this.halo.material.opacity = 0.26 + 0.08 * Math.sin(t * 1.7) + this.hover * 0.2;

@@ -30,6 +30,7 @@ import { FoxVisitor } from './fox.js';
 import { Works } from './works.js';
 import { Hut, buildHutExterior } from './hut.js';
 import { Galaxy } from './galaxy.js';
+import { Subway } from './subway.js';
 import { Boat } from './boat.js';
 
 const params = new URLSearchParams(location.search);
@@ -334,9 +335,11 @@ async function boot() {
     let works = null;
     // the Hut by the dock and the galaxy in its sphere: both built on the first visit
     let hut = null, galaxy = null;
+    // the Violet Line behind the ticket on the desk: built on the first ride
+    let subway = null;
     let trip = null;       // falling into / climbing out of the sphere
     const look = { x: 0, y: 0 };
-    let roomKind = null;   // which room 'below' means: 'works' | 'hut'
+    let roomKind = null;   // which room 'below' means: 'works' | 'hut' | 'subway'
     let below = false;
     let transit = false;   // fading through a door
     let doorArmed = false; // you must step away from a door before it takes you again
@@ -550,15 +553,67 @@ async function boot() {
         look.y = (e.clientY / innerHeight) * 2 - 1;
     });
 
+    // ------------------------------------------------------------ the Violet Line
+
+    /** Click the ticket: a flash, and you are on the platform at Hearthside station. */
+    function startSubway() {
+        if (transit || trip || roomKind !== 'hut') return;
+        transit = true;
+        controls.route = null;
+        controls.keys.clear();
+        controls.vel.set(0, 0);
+        setHover(null);
+        ui.tooltip(null);
+        audio.sparkle();
+        ui.flash(true);
+        setTimeout(() => {
+            try {
+                subway ??= new Subway({ renderer, ui, mats: world.mats, audio, quality });
+                setBelow(true, 'subway');
+                const s = subway.spawn;
+                controls.teleport(s.x, s.z, s.yaw);
+                subway.enter(camera);
+            } catch (e) {
+                console.error(e);
+                ui.hint('The ticket crumbles in your hand.', 4000);
+            }
+            setTimeout(() => {
+                ui.flash(false);
+                transit = false;
+            }, 250);
+        }, 700);
+    }
+
+    /** Up the stair and through the wooden door: back in the hut. */
+    function leaveSubway() {
+        if (transit || roomKind !== 'subway') return;
+        transit = true;
+        controls.route = null;
+        audio.door();
+        ui.flash(true);
+        setTimeout(() => {
+            setBelow(true, 'hut');
+            const s = hut.spawn;
+            controls.teleport(s.x, s.z, s.yaw);
+            ui.zone('The Hut', 'A sphere glows on the desk', '#c9a7ff');
+            zoneKey = 'hut';
+            setTimeout(() => {
+                ui.flash(false);
+                transit = false;
+            }, 150);
+        }, 650);
+    }
+
     // ------------------------------------------------------------ the Works
 
     function setBelow(on, kind = 'works') {
+        if (roomKind === 'subway' && (!on || kind !== 'subway')) subway.leave();
         below = on;
         roomKind = on ? kind : null;
-        const room = kind === 'hut' ? hut : works;
+        const room = kind === 'hut' ? hut : kind === 'subway' ? subway : works;
         controls.world = on ? room.world : world;
         renderPass.scene = on ? room.scene : scene;
-        bloom.strength = on ? (kind === 'hut' ? 0.55 : 0.6) : 0.42;
+        bloom.strength = on ? (kind === 'hut' ? 0.55 : kind === 'subway' ? 0.5 : 0.6) : 0.42;
         audio.setUnderground(on && kind === 'works');
         doorArmed = false;
         mouse = null;
@@ -621,6 +676,12 @@ async function boot() {
         if (transit || !controls.enabled) return;
         if (trip) return;
         const p = controls.pos;
+        if (below && roomKind === 'subway') {
+            const e = subway.exit, dist = Math.hypot(p.x - e.x, p.z - e.z);
+            if (dist > 2) doorArmed = true;
+            if (doorArmed && dist < 0.7 && subway.at === 'A') leaveSubway();
+            return;
+        }
         let d, kind = 'works';
         if (below) {
             d = roomKind === 'hut' ? hut.exit : works.exit;
@@ -648,9 +709,10 @@ async function boot() {
     function pickBelow(cx, cy) {
         ndc.set((cx / innerWidth) * 2 - 1, -(cy / innerHeight) * 2 + 1);
         ray.setFromCamera(ndc, camera);
+        if (roomKind === 'subway') return subway.pick(ray);
         if (roomKind === 'hut') {
-            const hit = ray.intersectObjects([hut.orbHit, hut.doorMesh], false)[0];
-            if (hit && hit.distance < 40) return { type: hit.object.userData.kind === 'orb' ? 'orb' : 'door', t: hit.distance };
+            const hit = ray.intersectObjects([hut.orbHit, hut.ticketHit, hut.doorMesh], false)[0];
+            if (hit && hit.distance < 40) return { type: { orb: 'orb', ticket: 'ticket' }[hit.object.userData.kind] ?? 'door', t: hit.distance };
             const o = ray.ray.origin, d = ray.ray.direction;
             if (d.y >= -1e-4) return null;
             const t = -o.y / d.y;
@@ -694,7 +756,7 @@ async function boot() {
     syncFocus();
 
     // below ground the map shows you at the tower
-    const mapPos = () => (below ? (roomKind === 'hut' ? { x: world.hut.cx, z: world.hut.cz } : world.clockDoor) : controls.pos);
+    const mapPos = () => (below ? (roomKind === 'works' ? world.clockDoor : { x: world.hut.cx, z: world.hut.cz }) : controls.pos);
     ui.on('mapOpen', () => map.draw(mapPos(), controls.yaw));
     ui.on('timeOpen', () => {
         document.getElementById('time-slider').value = Math.round(sky.time * 1440);
@@ -760,8 +822,13 @@ async function boot() {
                 audio.click();
             } else if (h?.type === 'orb') {
                 startTrip();
+            } else if (h?.type === 'ticket') {
+                audio.click();
+                startSubway();
+            } else if (h?.type === 'pool') {
+                subway.touchPool(h.point);
             } else if (h?.type === 'door') {
-                const e = roomKind === 'hut' ? hut.exit : works.exit;
+                const e = roomKind === 'hut' ? hut.exit : roomKind === 'subway' ? subway.exit : works.exit;
                 controls.walkTo([{ x: e.x, z: e.z }]);
             }
             else if (h && h.t < 60) {
@@ -809,7 +876,7 @@ async function boot() {
         }
     };
     controls.onStep = () => {
-        if (below) return audio.step('metal');
+        if (below) return audio.step(roomKind === 'subway' ? subway.stepSurface(controls.pos) : 'metal');
         const p = controls.pos;
         const surface = world.onDeck(p.x, p.z) ? 'wood' : island.pathDistAt(p.x, p.z) < PATH_HALF + 0.2 || Math.hypot(p.x, p.z) < PLAZA_R || world.inPlaza(p.x, p.z) ? 'stone' : 'grass';
         audio.step(surface);
@@ -973,12 +1040,19 @@ async function boot() {
             // the pointer shows a hand over the sphere and the door
             if (entered && !intro && !trip && mouse && !ui.blocking && !controls.look?.moved) {
                 const h = pickBelow(mouse.x, mouse.y);
-                hut.setHover(h?.type === 'orb');
-                document.body.classList.toggle('can-hover-pick', h?.type === 'orb' || h?.type === 'door');
+                hut.setHover(h?.type === 'orb', h?.type === 'ticket');
+                document.body.classList.toggle('can-hover-pick', h?.type === 'orb' || h?.type === 'door' || h?.type === 'ticket');
             } else hut.setHover(false);
             if (!orbHintShown && entered && !trip && Math.hypot(controls.pos.x - hut.orbPos.x, controls.pos.z - hut.orbPos.z) < 2.2) {
                 orbHintShown = true;
-                ui.hint('A sphere of glass on the desk, with something turning inside it · click it', 7000);
+                ui.hint('A sphere of glass on the desk, with something turning inside it · and a train ticket beside it · click either', 8000);
+            }
+        } else if (below && roomKind === 'subway') {
+            subway.update(Math.min(rawDt, 0.25), t, camera, controls);
+            audio.update(night, -100);
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved) {
+                const h = pickBelow(mouse.x, mouse.y);
+                document.body.classList.toggle('can-hover-pick', h?.type === 'pool' || h?.type === 'door');
             }
         } else if (below) {
             const hisses = works.update(dt, t, controls.pos, renderer.domElement.height);
@@ -1084,7 +1158,7 @@ async function boot() {
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
+        window.__garden = { startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
     }
 }
 
