@@ -411,18 +411,21 @@ export class Rotunda {
         const L = CORRIDOR.x1 - CORRIDOR.x0, mid = (CORRIDOR.x0 + CORRIDOR.x1) / 2, w = CORRIDOR.half * 2 + 0.9;
         const wallMat = new THREE.MeshStandardMaterial({ color: 0x241b4a, roughness: 0.5, metalness: 0.15, emissive: 0x120c30, emissiveIntensity: 1 });
         const floorM = new THREE.MeshStandardMaterial({ color: 0x1a1438, roughness: 0.3 });
-        const f = new THREE.Mesh(new THREE.BoxGeometry(L + 6, 0.3, w), floorM);
-        f.position.set(mid - ROT.cx, -0.15, 0);
-        const ceil = new THREE.Mesh(new THREE.BoxGeometry(L + 6, 0.4, w + 0.4), wallMat);
-        ceil.position.set(mid - ROT.cx, 4.4, 0);
+        // only as long as the passage itself, so nothing pokes into the hall or the rotunda, and the
+        // floor sits a hair under both neighbours' floors (y = 0) so the three never fight
+        const cx0 = -20.3, cx1 = -9.05, Lc = cx1 - cx0, midc = (cx0 + cx1) / 2;
+        const f = new THREE.Mesh(new THREE.BoxGeometry(Lc, 0.3, w), floorM);
+        f.position.set(midc - ROT.cx, -0.18, 0);
+        const ceil = new THREE.Mesh(new THREE.BoxGeometry(Lc, 0.4, w + 0.4), wallMat);
+        ceil.position.set(midc - ROT.cx, 4.4, 0);
         cor.add(f, ceil);
         for (const s of [-1, 1]) {
-            const wl = new THREE.Mesh(new THREE.BoxGeometry(L + 6, 4.6, 0.4), wallMat);
-            wl.position.set(mid - ROT.cx, 2.2, s * (w / 2 + 0.2));
+            const wl = new THREE.Mesh(new THREE.BoxGeometry(Lc, 4.6, 0.4), wallMat);
+            wl.position.set(midc - ROT.cx, 2.2, s * (w / 2 + 0.2));
             cor.add(wl);
         }
         this.corridorStrips = [];
-        for (let x = CORRIDOR.x0 + 1; x < CORRIDOR.x1 - 0.5; x += 1.6) {
+        for (let x = cx0 + 0.8; x < cx1 - 0.6; x += 1.6) {
             const m = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: new THREE.Color().setHSL(((x - CORRIDOR.x0) / L) * 0.9, 0.9, 0.6), emissiveIntensity: 2.2 });
             for (const s of [-1, 1]) {
                 const strip = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.4, 0.08), m);
@@ -433,7 +436,7 @@ export class Rotunda {
             top.position.set(x - ROT.cx, 4.15, 0);
             cor.add(top);
             const floorStrip = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.02, 0.1), m);
-            floorStrip.position.set(x - ROT.cx, 0.01, 0);
+            floorStrip.position.set(x - ROT.cx, 0.006, 0);
             cor.add(floorStrip);
             this.corridorStrips.push({ m, x });
         }

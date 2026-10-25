@@ -502,9 +502,21 @@ export function buildHall(kind, mats, name) {
         b.add('tile', ubox(0.3, HALL.wallY - top, g1 - g0), xf(LEFT_X - 0.15, (HALL.wallY + top) / 2, (g0 + g1) / 2));
     }
     // a violet band and a dado rail along both walls
-    for (const [x, ry] of [[LEFT_X + 0.03, 0], [RIGHT_X - 0.03, 0]]) {
-        b.add('violet', new THREE.BoxGeometry(0.05, 0.28, 2 * H), xf(x, 1.9, 0));
-        b.add('steel', new THREE.BoxGeometry(0.07, 0.05, 2 * H), xf(x, 1.72, 0));
+    // (the left wall's band stops short of the stair or the passage, so neither is barred)
+    {
+        const spans = [];
+        let z = -H;
+        for (const [g0, g1] of gaps) {
+            spans.push([z, g0 - 0.25]);
+            z = g1 + 0.25;
+        }
+        spans.push([z, H]);
+        for (const [z0, z1] of spans) {
+            b.add('violet', new THREE.BoxGeometry(0.05, 0.28, z1 - z0), xf(LEFT_X + 0.03, 1.9, (z0 + z1) / 2));
+            b.add('steel', new THREE.BoxGeometry(0.07, 0.05, z1 - z0), xf(LEFT_X + 0.03, 1.72, (z0 + z1) / 2));
+        }
+        b.add('violet', new THREE.BoxGeometry(0.05, 0.28, 2 * H), xf(RIGHT_X - 0.03, 1.9, 0));
+        b.add('steel', new THREE.BoxGeometry(0.07, 0.05, 2 * H), xf(RIGHT_X - 0.03, 1.72, 0));
     }
 
     // the platforms and the pit
@@ -803,7 +815,14 @@ export function buildTrain(mats) {
             }
             solid(cur, hl, 0, TRAIN.height, 'cream');
             // livery stripe
-            b.add('violet', new THREE.BoxGeometry(0.1, 0.16, carLen - 0.1), xf(x + side * 0.02, 0.62, z0));
+            {
+                let za = -hl + 0.05;
+                for (const dz of [...DOORS, hl + 1]) {
+                    const zb = Math.min(hl - 0.05, dz - 0.75);
+                    if (zb > za) b.add('violet', new THREE.BoxGeometry(0.1, 0.16, zb - za), xf(x + side * 0.02, 0.62, z0 + (za + zb) / 2));
+                    za = dz + 0.75;
+                }
+            }
             b.add('violet', new THREE.BoxGeometry(0.1, 0.12, carLen - 0.1), xf(x + side * 0.02, TRAIN.height - 0.3, z0));
             // window frames
             for (const [oz, ow] of WINDOWS) {
@@ -897,14 +916,14 @@ export function buildTrain(mats) {
             const p = person(mats, r, k + c, true);
             p.position.set(side * (halfW - 0.4), 0.46 - 0.46, z0 + pz);
             p.position.y = 0;
-            p.rotation.y = side < 0 ? -Math.PI / 2 : Math.PI / 2;
+            p.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2;
             interior.add(p);
             people.push(p);
         }
         if (c === 1) {
             const ct = cat();
             ct.position.set(halfW - 0.4, 0.48, z0 - 3.0);
-            ct.rotation.y = 0.4;
+            ct.rotation.y = Math.PI + 0.4;
             interior.add(ct);
             people.push(ct);
         }
