@@ -297,7 +297,7 @@ export class UI {
     // ------------------------------------------------------------------ the close-up fight
     duelOpen(ev) {
         $('duel').hidden = false;
-        $('bh-top').style.visibility = $('bh-bottom').style.visibility = 'hidden';
+        $('bh-top').style.display = $('bh-bottom').style.display = 'none';      // display, not visibility: the faces set their own
         this.hidePopups();
         const set = (side, s) => {
             const el = $('duel-' + side);
@@ -315,7 +315,7 @@ export class UI {
         el.querySelector('.hpn').textContent = `${Math.max(0, hp)} / ${max}`;
     }
     duelHp(side, hp) { const el = $('duel-' + side); this._duelHp(el, hp, +el.dataset.max); }
-    duelClose() { $('duel').hidden = true; $('bh-top').style.visibility = $('bh-bottom').style.visibility = ''; }
+    duelClose() { $('duel').hidden = true; $('bh-top').style.display = $('bh-bottom').style.display = ''; }
 
     powerCut(ev) {
         const el = $('power-cut');
