@@ -1496,6 +1496,22 @@ const games = [
             { emoji: '📖', label: 'Story campaign' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-099',
+        title: 'Fablecart',
+        description: 'A pocket fantasy console that is itself a retro game, and a fantasy RPG maker where you never write code. Power it on and you walk a little workshop as the Tinker: the Shelf holds your cartridges, the Stage is where you stick characters into scenes, the Press is where you make stickers, and the TV plays the cart. Stickers are alive: a Princess, a Knight, a Dragon, a Castle, a chest, a door, a goblin hut. Each carries a few rules, like when I touch a hero, hurt it, or every few seconds shoot a fireball if a hero is near, and nothing else tells them what to do, so a Princess, a Dragon and a Castle in one scene become a game by themselves. Rules are written as coloured blocks you drag or tap into a stack, with events, movement, fighting, effects, making and changing stickers, items, doors between up to four scenes, if/otherwise, loops and variables. Every built-in sticker is made of the same blocks, so you can open the Dragon and change its fireball, draw new stickers on a 12x12 grid in the console palette, watch them live on a test stage while you build, and share a whole cartridge as a text code. Comes with Dragon\'s Hoard, a two-scene adventure to play or remix. Pixel art, chiptune and everything else drawn in code on Canvas 2D; touch, mouse, keyboard and gamepad; and a bot that plays the starter cart at three skill levels.',
+        icon: '🕹️',
+        folder: 'game-099',
+        version: '1.0.0',
+        cssClass: 'fablecart',
+        genre: 'rpg',
+        tags: [
+            { emoji: '🧩', label: 'Block scripting' },
+            { emoji: '🎨', label: 'Game maker' },
+            { emoji: '🐉', label: 'Living stickers' },
+            { emoji: '🖼️', label: 'Canvas 2D' }
+        ]
     }
 ];
 
