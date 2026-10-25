@@ -20,7 +20,8 @@
  *   python3 -m http.server 8098          # from the REPO ROOT
  *   node game-098/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8098), ONLY=desktop,phones,nostorage, THREE_PKG.
+ * Env: BASE (default http://127.0.0.1:8098), ONLY=desktop,phones,nostorage, THREE_PKG, FONTS=1 (load the real
+ * Google Fonts instead of stubbing them: Cinzel Decorative is much wider than its fallback).
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -60,7 +61,8 @@ async function open(viewport, { touch = false, nostorage = false } = {}) {
             route.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(file) });
         });
     }
-    await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+    // FONTS=1 loads the real web fonts; the default stubs them (offline-safe), so text uses the narrower fallback
+    if (process.env.FONTS !== '1') await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
     errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
@@ -126,6 +128,8 @@ async function desktop() {
     const page = await open({ width: 1280, height: 760 });
     check(await backLinkOk(page), '← Games link is on top and points at ../index.html');
     check(await visible(page, 'title'), 'title screen is up');
+    await Q(page, () => document.fonts.ready);
+    check(await Q(page, () => { const l = document.querySelector('.logo'), b = l.parentElement; const cs = getComputedStyle(b); return l.scrollWidth <= b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + 1 && b.scrollWidth <= b.clientWidth; }), 'the whole title fits its sheet');
     check(await Q(page, () => document.getElementById('btn-continue').hidden), 'no Continue without a save');
     const L = await layout(page);
     check(L.noHScroll && L.canvas, 'no sideways scroll; the canvas fills the window');
@@ -253,6 +257,8 @@ async function phone(w, h) {
     };
 
     check(await backLinkOk(page), '← Games link is on top');
+    await Q(page, () => document.fonts.ready);
+    check(await Q(page, () => { const l = document.querySelector('.logo'), b = l.parentElement; const cs = getComputedStyle(b); return l.scrollWidth <= b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + 1 && b.scrollWidth <= b.clientWidth; }), 'the whole title fits its sheet');
     await Q(page, () => __wb.start(5, 'ripplefin'));
     await until(page, () => __wb.mode === 'hub' && !document.getElementById('hub').hidden, 'the roost is up');
     const hubSizes = await sizes(page, ['#hub-tabs [data-tab="map"]', '#hub-tabs [data-tab="market"]', '#btn-hub-menu', '#btn-hoard']);

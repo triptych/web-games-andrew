@@ -43,6 +43,31 @@ function badgeTex(n) {
     BADGES.set(n, t);
     return t;
 }
+const BREATHS = new Map();
+/** A flame-coloured gradient for a breath cone: white-hot at the jaws, coloured further out, ragged streaks. */
+function breathTexture(core, edge) {
+    const key = core + '|' + edge;
+    if (BREATHS.has(key)) return BREATHS.get(key);
+    const c = new THREE.Color(core), e = new THREE.Color(edge);
+    const t = canvasTex(64, 128, (g) => {
+        // along the cone (canvas top = the jaws): white-hot core turning to the element's colour
+        for (let y = 0; y < 128; y++) {
+            const col = c.clone().lerp(e, Math.min(1, (y / 127) * 2.6));
+            g.fillStyle = `rgb(${col.r * 255 | 0},${col.g * 255 | 0},${col.b * 255 | 0})`;
+            g.fillRect(0, y, 64, 1);
+        }
+        g.globalCompositeOperation = 'multiply';
+        for (let i = 0; i < 90; i++) { const v = 120 + Math.random() * 135 | 0; g.fillStyle = `rgb(${v},${v},${v})`; g.fillRect(Math.random() * 64, Math.random() * 128, 2 + Math.random() * 4, 10 + Math.random() * 30); }
+        // fade towards the far end so the stream thins out at the target
+        g.globalCompositeOperation = 'destination-in';
+        const gr = g.createLinearGradient(0, 0, 0, 128);
+        gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(0.4, 'rgba(0,0,0,0.9)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+        g.fillStyle = gr; g.fillRect(0, 0, 64, 128);
+    });
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    BREATHS.set(key, t);
+    return t;
+}
 const ICONS = {};
 function iconTex(kind) {
     if (ICONS[kind]) return ICONS[kind];
@@ -447,19 +472,39 @@ export class View {
         const [core, edge] = BREATH[el] || BREATH.ember;
         const head = new THREE.Vector3();
         (atk.userData.head || atk).getWorldPosition(head);
-        const tgt = new THREE.Vector3(def.position.x, 1.0, def.position.z + 0.2);
+        head.add(new THREE.Vector3(dir * 0.35, -0.05, 0));
+        const tgt = new THREE.Vector3(def.position.x - dir * 0.3, 1.1, def.position.z + 0.2);
         const d = tgt.clone().sub(head);
         const len = d.length();
         d.normalize();
         this.audio?.breath(el);
         if (el === 'storm') this._flash('#fffbe0', 0.18);      // one flash, never a strobe
-        await this.tw(0.45, (k) => {
-            atk.userData.pose = { roar: 1, lunge: 0.4, flap: 0.6 };
-            if (Math.random() < 0.9) {
-                this.fx.burst(head.clone().add(d.clone().multiplyScalar(0.3)), Math.random() < 0.5 ? core : edge, { n: 6, speed: len * 1.4, life: 0.5, gravity: el === 'tide' ? -3 : el === 'ember' ? 1.5 : 0, dir: d, spread: el === 'storm' ? 0.2 : 0.5, size: 0.4 });
-            }
-        }, ease.lin);
-        void dir;
+        // the stream itself: a cone of light from the jaws to the target, so it reads even at a few fps
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(1, 1, 16, 1, true), new THREE.MeshBasicMaterial({
+            map: breathTexture(core, edge), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
+        }));
+        cone.geometry.translate(0, -0.5, 0);           // apex at the origin, opening along −y
+        const holder = new THREE.Group();
+        holder.position.copy(head);
+        holder.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), d);
+        holder.add(cone);
+        this.scene.add(holder);
+        const width = el === 'storm' ? 0.28 : el === 'stone' ? 0.6 : 0.75;
+        try {
+            await this.tw(0.6, (k) => {
+                atk.userData.pose = { roar: 1, lunge: 0.4, flap: 0.6 };
+                const grow = Math.min(1, k / 0.35), fade = k > 0.8 ? 1 - (k - 0.8) / 0.2 : 1;
+                const flick = this.calm ? 1 : 0.85 + Math.random() * 0.3;
+                cone.scale.set(width * grow * flick, len * grow, width * grow * flick);
+                cone.material.opacity = 0.85 * fade;
+                cone.material.map.offset.y = -k * 3;
+                if (Math.random() < 0.95) {
+                    this.fx.burst(head.clone().add(d.clone().multiplyScalar(0.2)), Math.random() < 0.5 ? core : edge, { n: 14, speed: len * 1.5, life: 0.45, gravity: el === 'tide' ? -3 : el === 'ember' ? 1.5 : 0, dir: d, spread: el === 'storm' ? 0.25 : 0.6, size: 0.9 });
+                }
+            }, ease.lin);
+        } finally {
+            this.scene.remove(holder); cone.geometry.dispose(); cone.material.dispose();
+        }
     }
 
     async _bolt(atk, def, dir) {
