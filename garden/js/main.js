@@ -276,6 +276,17 @@ async function boot() {
     if (quality.bloom) composer.addPass(bloom);
     composer.addPass(new OutputPass());
 
+    // The galaxy is soft additive glow that gains nothing from MSAA, and multisampled half-float
+    // targets render it near-black on some Intel/D3D11 drivers, so it is drawn without.
+    const setMSAA = (on) => {
+        const n = on ? quality.samples : 0;
+        for (const t of [composer.renderTarget1, composer.renderTarget2]) {
+            if (t.samples === n) continue;
+            t.samples = n;
+            t.dispose();
+        }
+    };
+
     const controls = new Controls(world, camera, canvas);
     world.controls = controls;
     // a fox spirit from Worldroot comes by on about one visit in five (?fox=1 always, ?fox=0 never)
@@ -480,6 +491,7 @@ async function boot() {
         setTimeout(() => {
             if (!trip) return;
             renderPass.scene = hut.scene;
+            setMSAA(true);
             const d = hut.deskStand;
             controls.teleport(d.x, d.z, d.yaw);
             controls.pitch = d.pitch;
@@ -514,6 +526,7 @@ async function boot() {
             }
             if (k >= 1) {
                 renderPass.scene = galaxy.scene;
+                setMSAA(false);
                 camera.fov = 68;
                 camera.updateProjectionMatrix();
                 galaxy.update(0, camera, look, renderer.domElement.height, 0);
@@ -556,6 +569,7 @@ async function boot() {
     /** Back to the garden at once (the caller covers it with a flash). */
     function surface() {
         if (trip) endTrip();
+        setMSAA(true);
         setBelow(false);
         zoneKey = '';
     }
