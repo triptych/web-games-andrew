@@ -1256,6 +1256,17 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 150, 60, 0.6);
 }
 
+.game-preview.fablecart,
+.carousel-slide-bg.fablecart {
+    background: linear-gradient(135deg, #1a1c2c 0%, #29366f 45%, #38b764 100%);
+}
+
+.game-card.fablecart .play-button {
+    background: linear-gradient(135deg, #ffcd75, #ef7d57, #b13e53);
+    color: #1a1c2c;
+    box-shadow: 0 0 14px rgba(255, 205, 117, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
