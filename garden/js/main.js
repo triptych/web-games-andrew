@@ -50,6 +50,9 @@ function pickQuality() {
     const q = { tier, ...Q[tier] };
     // ?pr=0.5 pins the pixel ratio (handy for software-GL test runs)
     if (params.has('pr')) q.fixedPR = Number(params.get('pr'));
+    // ?bloom=0 and ?samples=0 switch a single post-processing feature off (to bisect render bugs)
+    if (params.has('bloom')) q.bloom = params.get('bloom') !== '0';
+    if (params.has('samples')) q.samples = Number(params.get('samples'));
     return q;
 }
 
