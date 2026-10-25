@@ -16,6 +16,18 @@ export { $, esc };
 export const elTag = (el) => { const E = ELEMENTS[el] || ELEMENTS.iron; return `<span class="el" style="background:${E.css}">${E.icon} ${E.name}</span>`; };
 export const starsTxt = (n) => '★'.repeat(n) + '☆'.repeat(Math.max(0, 5 - n));
 
+/** Shrink an element's font from its CSS size until its text fits its parent's content box. */
+export function fitText(el, min = 20) {
+    if (!el || !el.parentElement) return;
+    el.style.fontSize = '';
+    const box = el.parentElement;
+    const cs = getComputedStyle(box);
+    const room = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    if (room <= 0) return;                           // hidden: try again when shown
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    while (el.scrollWidth > room && size > min) { size -= 1; el.style.fontSize = size + 'px'; }
+}
+
 export class UI {
     constructor({ audio, settings, onSettings, onDeleteSave }) {
         this.audio = audio;
@@ -24,6 +36,13 @@ export class UI {
         this.talking = null;
         this.starterName = 'your dragon';
         $('version').textContent = 'v' + VERSION;
+        // the title is set in Cinzel Decorative, much wider than its fallback: once the real font has
+        // loaded (and on every resize), shrink it until it fits its sheet
+        const fitLogo = () => fitText(document.querySelector('.logo'));
+        document.fonts?.ready?.then(fitLogo);
+        document.fonts?.addEventListener?.('loadingdone', fitLogo);
+        window.addEventListener('resize', fitLogo);
+        fitLogo();
 
         // A press that began outside a screen (the finger that opened it) must not click inside it
         // when it lifts. Keyboard clicks have detail 0 and always count.
@@ -54,6 +73,7 @@ export class UI {
     openScreen(id) {
         if (this.top() === id) return;
         $(id).hidden = false;
+        if (id === 'title') fitText(document.querySelector('.logo'));
         this.stack = this.stack.filter((s) => s !== id).concat(id);
         this._restack();
         this.focusFirst(id);

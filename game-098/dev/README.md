@@ -20,6 +20,8 @@ ln -s ../../dev/node_modules game-098/dev/node_modules
 
 No network to unpkg.com? `npm pack three@0.165.0 && tar xzf three-0.165.0.tgz && mv package dev/package` (repo root); the scripts serve three.js from there, or set `THREE_PKG`. Chromium somewhere unusual? Set `PW_CHROMIUM_PATH`.
 
+By default the browser scripts answer Google Fonts with an empty stylesheet, so they work offline and text uses the system fallback. That hides layout bugs: the title's Cinzel Decorative is far wider than its fallback, and it overflowed its sheet in a real browser while every test passed. `FONTS=1` (for `browsertest.mjs` and `play.mjs`) loads the real fonts; run it before calling a layout change done.
+
 SwiftShader draws a few frames a second and the loop caps a frame at 0.05 s, so the tests open the game with `&fast=6` and wait on state, never on the clock. Passing tests don't mean the screen shows anything: look at the screenshots.
 
 ## Debug hooks (`?debug=1`)
