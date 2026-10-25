@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>FABLECART stickers</title>
+<style>body{background:#566c86;color:#fff;font:12px system-ui;margin:12px}div.g{display:flex;flex-wrap:wrap;gap:14px}figure{margin:0;text-align:center}canvas{image-rendering:pixelated;background:#38b764}</style></head>
+<body><div class="g" id="g"></div>
+<script type="module">
+import { BUILTIN } from '../js/sim/stickers.js';
+import { bake } from '../js/view/sprites.js';
+const g = document.getElementById('g');
+for (const d of BUILTIN) {
+  const s = bake(d);
+  const f = document.createElement('figure');
+  const c = document.createElement('canvas'); c.width = c.height = s.size; c.style.width = c.style.height = (s.size * 10) + 'px';
+  c.getContext('2d').drawImage(s.c, 0, 0);
+  f.append(c, Object.assign(document.createElement('div'), { textContent: d.id }));
+  g.append(f);
+}
+document.title = 'ready';
+</script></body></html>

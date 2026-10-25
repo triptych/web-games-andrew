@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0b0d14">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="FABLECART — a pocket fantasy console that is itself a retro game: stick living characters into scenes, watch them play, and build new ones from visual blocks.">
+    <title>FABLECART</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <div id="app">
+        <header id="bar">
+            <span id="bar-title">FABLECART</span>
+            <span id="bar-sub"></span>
+            <span class="grow"></span>
+            <button id="btn-home" class="ibtn" hidden aria-label="Back to the console room">⌂ Console</button>
+            <button id="btn-pause" class="ibtn" hidden aria-label="Pause">❚❚</button>
+        </header>
+
+        <div id="wrap">
+            <canvas id="view" aria-label="FABLECART screen"></canvas>
+
+            <!-- Touch deck: shown on coarse pointers or after the first touch, while a stage is running -->
+            <div id="touch" hidden>
+                <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div></div>
+                <button id="btn-b" class="tbtn tb" aria-label="Button B">B</button>
+                <button id="btn-a" class="tbtn ta" aria-label="Button A">A</button>
+            </div>
+            <button id="boot-start" class="btn primary" hidden>Power on</button>
+        </div>
+
+        <aside id="panel" hidden>
+            <!-- Stage editor -->
+            <section id="stage-panel" class="pane" hidden>
+                <div class="row tabs" id="scene-tabs" role="tablist" aria-label="Scenes"></div>
+                <div class="row wrap-row">
+                    <div class="seg" id="tool-seg" role="group" aria-label="Tool">
+                        <button data-tool="place" class="on">➕ Stick</button>
+                        <button data-tool="move">✋ Move</button>
+                        <button data-tool="erase">🧽 Erase</button>
+                    </div>
+                    <button id="st-play" class="btn primary">▶ Play</button>
+                </div>
+                <div id="st-sel" class="selbar" hidden>
+                    <span id="st-selname"></span>
+                    <button id="st-edit" class="btn">✎ Blocks</button>
+                    <button id="st-dup" class="btn" aria-label="Duplicate">⧉</button>
+                    <button id="st-del" class="btn danger" aria-label="Remove">🗑</button>
+                </div>
+                <div id="palette" aria-label="Stickers"></div>
+                <details class="more">
+                    <summary>Cart &amp; scene settings</summary>
+                    <label class="field">Cart name <input id="st-cartname" maxlength="14" autocomplete="off"></label>
+                    <label class="field">Goal <input id="st-goal" maxlength="60" autocomplete="off"></label>
+                    <label class="field">Scene name <input id="st-scname" maxlength="14" autocomplete="off"></label>
+                    <label class="field">Background <select id="st-bg"></select></label>
+                    <div class="row wrap-row">
+                        <button id="st-newstk" class="btn">✨ New sticker</button>
+                        <button id="st-clear" class="btn">Clear scene</button>
+                        <button id="st-delscene" class="btn danger">Delete scene</button>
+                    </div>
+                </details>
+            </section>
+
+            <!-- Sticker Press -->
+            <section id="press-panel" class="pane" hidden>
+                <div class="row wrap-row">
+                    <button id="pr-done" class="btn primary">✓ Done</button>
+                    <input id="pr-name" maxlength="14" autocomplete="off" aria-label="Sticker name">
+                    <button id="pr-reset" class="btn" hidden>↺ Original</button>
+                    <button id="pr-del" class="btn danger" hidden aria-label="Delete sticker">🗑</button>
+                </div>
+                <div id="pr-pad" class="padrow" aria-label="Test controls">
+                    <button class="pad" data-dx="0" data-dy="-1" aria-label="Up">▲</button>
+                    <button class="pad" data-dx="-1" data-dy="0" aria-label="Left">◀</button>
+                    <button class="pad" data-dx="0" data-dy="1" aria-label="Down">▼</button>
+                    <button class="pad" data-dx="1" data-dy="0" aria-label="Right">▶</button>
+                    <span class="grow"></span>
+                    <button class="pad pad-b" data-btn="b" aria-label="Button B">B</button>
+                    <button class="pad pad-a" data-btn="a" aria-label="Button A">A</button>
+                    <button id="pr-restart" class="pad" aria-label="Restart test">↻</button>
+                </div>
+                <details class="more" id="pr-looks" open>
+                    <summary>Looks &amp; stats</summary>
+                    <div class="looks">
+                        <div class="artcol">
+                            <canvas id="pr-art" width="12" height="12" aria-label="Sticker art, 12 by 12 pixels"></canvas>
+                            <div class="row wrap-row tools" id="pr-arttools">
+                                <button data-t="paint" class="on" aria-label="Paint">✏️</button>
+                                <button data-t="erase" aria-label="Eraser">🧽</button>
+                                <button data-t="mirror" aria-label="Mirror">↔</button>
+                                <button data-t="flip" aria-label="Flip">⇆</button>
+                                <button data-t="clear" aria-label="Clear">⌫</button>
+                            </div>
+                        </div>
+                        <div class="swatches" id="pr-swatches" role="group" aria-label="Colours"></div>
+                    </div>
+                    <div class="stats">
+                        <label class="field">Size <select id="pr-size"><option value="1">Small</option><option value="2">Big</option></select></label>
+                        <label class="field">Health <span class="stepper" id="pr-hp"></span></label>
+                        <label class="field">Speed <span class="stepper" id="pr-speed"></span></label>
+                        <label class="field chk"><input type="checkbox" id="pr-solid"> Solid (blocks others)</label>
+                    </div>
+                    <div class="tagrow"><span class="lbl">Tags</span><span id="pr-tags" class="chips"></span>
+                        <input id="pr-newtag" maxlength="12" placeholder="new tag" autocomplete="off" aria-label="New tag"><button id="pr-addtag" class="btn" aria-label="Add tag">＋</button>
+                    </div>
+                </details>
+                <div class="blocks">
+                    <div class="bk-bar">
+                        <div class="tabs" id="bk-tabs" role="tablist" aria-label="Block groups"></div>
+                        <div id="bk-palette" class="chips-strip"></div>
+                        <div id="bk-hint" class="hint"></div>
+                    </div>
+                    <div id="rules"></div>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <!-- Screens -->
+    <div id="shelf" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Cartridge Shelf</h2>
+            <ul id="cart-list" class="list"></ul>
+            <div class="sheet-foot split">
+                <button id="shelf-new" class="btn">＋ New cart</button>
+                <button id="shelf-import" class="btn">⇩ Import code</button>
+                <span class="grow"></span>
+                <button class="btn primary" data-close>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="book" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Sticker Book</h2>
+            <p class="dim">Tap a sticker to open it in the Press. Anything you change is saved on your cart.</p>
+            <div id="book-grid" class="grid"></div>
+            <div class="sheet-foot split">
+                <button id="book-new" class="btn">✨ New sticker</button>
+                <span class="grow"></span>
+                <button class="btn primary" data-close>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="share" class="screen" hidden>
+        <div class="sheet wide">
+            <h2 id="share-title">Share</h2>
+            <p class="dim" id="share-help"></p>
+            <textarea id="share-text" rows="7" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+            <div id="share-msg" class="dim" role="status"></div>
+            <div class="sheet-foot split">
+                <button id="share-copy" class="btn">⧉ Copy</button>
+                <button id="share-go" class="btn primary" hidden>Import</button>
+                <span class="grow"></span>
+                <button class="btn" data-close>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>How to Play</h2>
+            <table>
+                <tr><td>Arrows / WASD</td><td>Walk (Console and games)</td></tr>
+                <tr><td>Space / Z</td><td>Button A (hold to keep firing)</td></tr>
+                <tr><td>X / K</td><td>Button B</td></tr>
+                <tr><td>P / Esc</td><td>Pause</td></tr>
+            </table>
+            <p><b>Console:</b> walk into a machine. The <b>Shelf</b> holds your cartridges, the <b>Stage</b> is where you stick characters into scenes, the <b>Press</b> is where you make and change stickers from blocks, and the <b>TV</b> plays the cart.</p>
+            <p><b>Stage:</b> pick a sticker, tap the picture to stick it down. Hit ▶ and they come alive. <b>Press:</b> every sticker is a stack of rules like <i>when I touch a hero → hurt it</i>. Drag blocks into a rule, or tap one to add it.</p>
+            <p>Touch: drag on the left of the picture to walk, <b>A</b> and <b>B</b> are buttons, and you can tap stickers. Gamepad: stick or d-pad, A, X, Start.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Touch controls
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <label class="row">Calm (less shaking) <input type="checkbox" id="set-calm"></label>
+            <button id="set-delete" class="btn danger">Delete all my carts</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="restart" class="btn">Restart</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn" id="pause-quit">Quit</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="over" class="screen" hidden>
+        <div class="sheet">
+            <h2 id="over-title">The End</h2>
+            <p id="over-text"></p>
+            <nav class="menu">
+                <button id="over-again" class="btn primary">Play again</button>
+                <button id="over-back" class="btn">Back</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">FABLECART needs JavaScript.</p></noscript>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
