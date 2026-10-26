@@ -5,7 +5,7 @@
 
 import { Stage } from './view/stage.js';
 import { Audio } from './audio.js';
-import { Input, MOVE_KEYS } from './input.js';
+import { Input } from './input.js';
 import { UI } from './ui/ui.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
 import { newGame, act as simAct, tickIdle } from './sim/game.js';
@@ -198,7 +198,7 @@ function frame(now) {
         idleT += rawDt;
         if (idleT >= 1) {
             const n = idleT; idleT = 0;
-            if (tickIdle(G, n) > 0) { drain(); ui.addLog('A new day dawns in town.', 7); }
+            if (tickIdle(G, n) > 0) { drain(); ui.addLog(`A day passes. (Day ${G.day})`, 7); }
             else G.events.length = 0;
         }
     }

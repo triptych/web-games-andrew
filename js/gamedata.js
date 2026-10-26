@@ -1528,6 +1528,22 @@ const games = [
             { emoji: '\uD83D\uDCFA', label: 'CRT arcade' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-101',
+        title: 'PixelCrypt',
+        description: "A first-person dungeon crawler in sixteen EGA colours, in three.js with no asset files: lead up to six adventurers one square at a time through a dungeon with no bottom. The 3D view is drawn the way a 1987 PC would have drawn it, a 320\u00d7200 picture whose every pixel is snapped to the EGA palette with an ordered dither, so torchlight falls off in checkerboards of grey. Every floor is generated (a maze with rooms, doors, loops, secret doors you have to search for, traps, springs, shrines, gathering points and strangers), every fifth floor ends in a named guardian, and the monsters (20 families, 17 variants, levels that lean on yours) and loot (weapons, armour, charms, potions, scrolls, wands, tomes and collectibles in five rarities, some of them cursed) have no ceiling. Fight Etrian-style rounds with six classes, find your way on an automap that fills in as you see, and keep a journal that counts everything you meet, beat, find, buy and sell. Back in town, a night square of eight buildings: the Item Shop, Weaponsmith, Magic Emporium, an Inn that rests and recruits, a Church that raises the fallen and lifts curses, a Tavern, and the Guild, where you can buy a stake in every shop to earn gold each day (even while the tab is closed) and a discount where it counts. Quests, a procedural chiptune score, touch and gamepad support, and a bot that plays the whole game.",
+        icon: '\uD83D\uDDDD\uFE0F',
+        folder: 'game-101',
+        version: '1.0.0',
+        cssClass: 'pixelcrypt',
+        genre: 'dungeon',
+        tags: [
+            { emoji: '\uD83D\uDDE1\uFE0F', label: 'Dungeon crawler' },
+            { emoji: '\uD83D\uDFE6', label: 'EGA 16 colours' },
+            { emoji: '\uD83D\uDCB0', label: 'Idle town' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

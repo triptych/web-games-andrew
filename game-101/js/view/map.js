@@ -1,7 +1,7 @@
 // The automap. Cells appear as they are seen (a straight line of sight, or a lit room) and are
 // brighter once walked. Draws into a canvas with EGA colours only.
 
-import { getEdge, featAt, cellIdx } from '../sim/dungeon.js';
+import { getEdge, cellIdx } from '../sim/dungeon.js';
 
 /** o: { cell } fixed cell size and the view follows the party; otherwise the whole floor is fitted. */
 export function drawMap(canvas, G, o = {}) {
@@ -77,5 +77,4 @@ export function drawMap(canvas, G, o = {}) {
     ctx.strokeStyle = C[14];
     ctx.lineWidth = 1;
     ctx.stroke();
-    void featAt;
 }

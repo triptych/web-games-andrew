@@ -216,7 +216,6 @@ export class UI {
         this.refresh();
     }
     submit(cmds = null) {
-        const G = this.G;
         cmds = cmds || this.bs.cmds;
         this.lastCmds = cmds.map((c) => (c ? { ...c } : c));
         this.audio.sfxPlay('click');
@@ -233,12 +232,10 @@ export class UI {
         }
         const bs = this.bs, m = G.party[bs.who];
         if (!m) return;
-        const s = calc(m);
         el.append(h('div', { class: 'who' }, portrait(m, 28), h('span', null, h('b', { class: `c${CLASSES[m.cls].col}` }, m.name), ` — Round ${B.round + 1}`)));
         const btn = (label, fn, o = {}) => h('button', { class: `btn ${o.cls || ''}`, onclick: fn, disabled: o.off, title: o.title }, label);
         const back = () => btn('◂ Back', () => { bs.step = 'top'; bs.pend = null; this.refresh(); });
         if (bs.step === 'top') {
-            const liveE = battleLiveEnemies(B);
             el.append(h('div', { class: 'grid2' },
                 btn('1 Attack', () => this.chooseTarget({ k: 'atk' }, 'e')),
                 btn('2 Skill', () => { bs.step = 'skill'; this.refresh(); }, { off: !skillsFor(m).length }),
@@ -249,7 +246,6 @@ export class UI {
                 btn('Auto', () => { this.auto = true; this.autoStep(); }),
                 bs.who !== G.party.findIndex((x) => x.hp > 0) ? btn('◂ Prev', () => { bs.who = this.prevWho(bs.who); bs.step = 'top'; this.refresh(); }) : null,
                 btn('Flee', () => { this.audio.sfxPlay('click'); this.ctx.act({ t: 'flee' }); }, { cls: 'danger' })));
-            void liveE;
         } else if (bs.step === 'skill') {
             const list = skillsFor(m).map((k) => row({
                 label: k.name, sub: k.desc, right: `${k.mp} MP`, disabled: k.mp > m.mp,
@@ -270,7 +266,6 @@ export class UI {
             }
             el.append(back());
         }
-        void s;
     }
     chooseTarget(base, side, dead = false) {
         const G = this.G, bs = this.bs;
@@ -358,15 +353,10 @@ export class UI {
     // ------------------------------------------------------------------ events → playback queue
     events(evs) {
         const G = this.G;
-        let inRound = false;
         for (const e of evs) {
             const entry = this.playback(e, G);
-            if (entry) {
-                if (e.type === 'b_round') inRound = true;
-                this.q.push(entry);
-            }
+            if (entry) this.q.push(entry);
         }
-        void inRound;
         this.q.push({ fn: () => this.afterPlayback(), d: 0 });
     }
     msgDelay() { return this.G.battle && !this.G.battle.over ? 0.34 : this.G.battle ? 0.2 : 0; }
@@ -448,7 +438,6 @@ export class UI {
         }
     }
     afterPlayback() {
-        const G = this.G;
         this.over = {}; this.eover = {};
         this.syncWorld();
         this.sync();
@@ -503,6 +492,7 @@ export class UI {
                 setTimeout(() => this.autoStep(), 120);
             }
         } else {
+            if (this.has('results')) this.close('results', true);
             if (this.stage.enemies.length) { this.stage.setBattle(null); this.audio.setMusic(G.floor ? 'dungeon' : 'town', G.floor ? G.floor.theme * 7 + (G.depth % 7) : 3); }
             this.bs = null; this.auto = false;
         }
@@ -532,10 +522,8 @@ export class UI {
     }
     drawMini(G) {
         const c = this.el.mini;
-        const w = c.clientWidth || 160;
         if (c.width !== 160) { c.width = 160; c.height = 112; }
         drawMap(c, G, { cell: 12 });
-        void w;
     }
 }
 function require_k(it) {

@@ -118,11 +118,12 @@ export { tickIdle };
 
 // ------------------------------------------------------------------ save
 export function serialize(G) {
-    const { rng, events, floor, floors, ...rest } = G;
+    const rest = { ...G };
+    for (const k of ['rng', 'events', 'floor', 'floors']) delete rest[k];
     const out = JSON.parse(JSON.stringify(rest));
     out.floors = {};
-    for (const d of Object.keys(floors)) out.floors[d] = JSON.parse(JSON.stringify(packFloor(floors[d])));
-    out.rngState = rng.state();
+    for (const d of Object.keys(G.floors)) out.floors[d] = JSON.parse(JSON.stringify(packFloor(G.floors[d])));
+    out.rngState = G.rng.state();
     return out;
 }
 export function deserialize(d) {

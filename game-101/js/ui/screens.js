@@ -6,16 +6,14 @@
 import { h, row, portrait, icon, itemName, itemStats, bar, canvasEl, money, tabs, hr, rarityClass } from './dom.js';
 import { calc, CLASSES, CLASS_IDS, SKILLS, skillsFor, xpNeed, canEquip, slotFor, TRAITS } from '../sim/party.js';
 import { SLOTS, SLOT_NAMES, DIR_NAMES, VERSION } from '../config.js';
-import { describe, POTIONS, itemLabel, statLabel } from '../sim/items.js';
+import { describe } from '../sim/items.js';
 import { progress, isReady } from '../sim/quests.js';
-import { REG, completion, NPC_NAMES, TRAP_NAMES, GATHER_NAMES } from '../sim/journal.js';
-import { FAM_BY_ID } from '../sim/monsters.js';
+import { REG, completion } from '../sim/journal.js';
 import { personName } from '../sim/names.js';
 import { makeRng } from '../rng.js';
-import { monsterCanvas, featureCanvas } from '../view/sprites.js';
+import { monsterCanvas, featureCanvas, npcCanvas } from '../view/sprites.js';
 import { drawMap } from '../view/map.js';
 import { townScreens } from './screens-town.js';
-import { cursedGear } from '../sim/town.js';
 
 const roll = () => makeRng((Date.now() ^ (Math.random() * 1e9)) >>> 0);
 
@@ -71,7 +69,7 @@ function create(ui, G, p) {
     };
 }
 
-function howto() {
+function howto(ui) {
     const K = (a, b) => h('tr', null, h('td', null, a), h('td', null, b));
     return {
         title: 'How to Play', wide: true,
@@ -87,7 +85,7 @@ function howto() {
                 h('li', null, h('b', null, 'Invest'), ' at the Guild: every shop you own pays you each day and gives you a discount. Days pass when you rest, explore, and (slowly) just by leaving the game open.'),
                 h('li', null, h('b', null, 'The journal'), ' records everything you meet, beat, find, buy and sell.')),
             h('p', { class: 'dim' }, 'Touch: use the pad under the view. Gamepad: d-pad or stick, A to press, B to go back.')),
-        foot: [h('button', { class: 'btn primary', onclick: () => ui.close() }, 'Got it')].map((b) => b),
+        foot: [h('button', { class: 'btn primary', onclick: () => ui.close() }, 'Got it')],
     };
 }
 
@@ -306,13 +304,17 @@ function campJournal(ui, G, p) {
 function dialog(ui, G) {
     const D = G.dialog;
     if (!D) return { title: '', body: h('div') };
-    const f = D.kind === 'chest' ? featureCanvas('chest') : null;
-    return {
-        title: D.title, noClose: D.kind === 'result' && false,
-        onX: () => ui.do({ t: 'closeDlg' }),
-        body: h('div', { class: 'dlg' }, f ? canvasEl(f, 'px dlgpic', 64, 64) : null, D.lines.map((l) => h('p', null, l))),
-        foot: D.opts.map((o) => h('button', { class: `btn ${o.id === 'ok' || o.id === 'open' || o.id === 'go' || o.id === 'gather' ? 'primary' : ''}`, disabled: !!o.off, onclick: () => ui.do({ t: 'dlg', id: o.id }) }, o.label)),
-    };
+    const pic = D.kind === 'chest' ? featureCanvas('chest') : D.npc ? npcCanvas(D.npc, D.seed || 1) : null;
+    const ft = D.key && G.floor ? G.floor.feat[D.key] : null;
+    const primary = (id) => ['ok', 'open', 'go', 'gather', 'drink', 'accept', 'rescue'].includes(id);
+    let body = h('div', { class: 'dlg' }, pic ? canvasEl(pic, 'px dlgpic', 64, D.npc ? 80 : 64) : null, D.lines.map((l) => h('p', null, l)));
+    let foot = D.opts.map((o) => h('button', { class: `btn ${primary(o.id) ? 'primary' : ''}`, disabled: !!o.off, onclick: () => ui.do({ t: 'dlg', id: o.id }) }, o.label));
+    if (D.kind === 'merchant' && ft?.stock) {
+        body = h('div', { class: 'dlg' }, pic ? canvasEl(pic, 'px dlgpic', 64, 80) : null, D.lines.map((l) => h('p', null, l)),
+            h('div', { class: 'list' }, ft.stock.filter((it) => !it.bought).map((it) => row({ ic: icon(it), label: itemName(it), sub: itemStats(it) || describe(it).join(' '), right: money(it.price), disabled: G.gold < it.price, onClick: () => ui.do({ t: 'dlg', id: 'buy' + it.sid }) }))));
+        foot = [h('button', { class: 'btn primary', onclick: () => ui.do({ t: 'dlg', id: 'leave' }) }, 'Farewell')];
+    }
+    return { title: D.title, onX: () => ui.do({ t: 'closeDlg' }), wide: D.kind === 'merchant', body, foot };
 }
 
 function results(ui, G) {
@@ -333,4 +335,3 @@ function results(ui, G) {
 }
 
 export const SCREENS = { title, create, howto, settings, confirm, camp, pickmember, map, dialog, results, ...townScreens({ h, row, portrait, icon, itemName, itemStats, bar, money, tabs, hr, canvasEl, compareText, memberChips, rarityClass }) };
-export { CLASSES, itemLabel, POTIONS, statLabel, cursedGear, NPC_NAMES, TRAP_NAMES, GATHER_NAMES, FAM_BY_ID };

@@ -141,9 +141,8 @@ export function priceOf(it) {
 
 // ------------------------------------------------------------------ gear
 function addSt(st, k, v) { if (v) st[k] = (st[k] || 0) + v; }
-function affix(rng, it, n, ilvl, kindW) {
+function affix(rng, it, n, ilvl) {
     const used = new Set();
-    const mag = 1 + ilvl * 0.35;
     const names = { pre: [], suf: null };
     for (let i = 0; i < n; i++) {
         const wantSuffix = i === 1 || (i === 0 && rng() < 0.4);
@@ -181,7 +180,6 @@ function affix(rng, it, n, ilvl, kindW) {
             names.pre.push(p.n);
         }
     }
-    void mag; void kindW;
     return names;
 }
 

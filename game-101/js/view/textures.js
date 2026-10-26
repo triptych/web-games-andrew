@@ -6,7 +6,7 @@ import { hash3 } from '../rng.js';
 import { THEMES } from '../sim/dungeon.js';
 
 export const T = 32;
-export const COLS = 8, ROWS = 4;
+export const COLS = 8, ROWS = 2;
 export const TILE = { wallA: 0, wallB: 1, sconce: 2, banner: 3, bones: 4, door: 5, arch: 6, floor: 7, floorB: 8, ceil: 9, down: 10, up: 11, moss: 12, crack: 13, grate: 14, rubble: 15 };
 
 function bricks(p, ox, oy, a, m, h, seed, crack = false) {

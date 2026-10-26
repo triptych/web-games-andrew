@@ -8,7 +8,7 @@
     --font: 'VT323', 'Courier New', Courier, monospace;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; background: var(--c0); color: var(--c15); font: 20px/1.15 var(--font); min-height: 100%; }
+html, body { margin: 0; background: var(--c0); color: var(--c15); font: 21px/1.15 var(--font); min-height: 100%; }
 body { overflow-x: hidden; user-select: none; -webkit-user-select: none; overscroll-behavior: none; }
 [hidden] { display: none !important; }
 button, select, input { font: inherit; color: inherit; }
@@ -55,7 +55,7 @@ button, select, input { font: inherit; color: inherit; }
 .compass { position: absolute; top: 8px; right: 8px; background: var(--c0); border: 2px solid var(--c15); color: var(--c14); width: 28px; height: 28px; display: grid; place-items: center; font-size: 22px; }
 .where { position: absolute; top: 8px; left: 8px; background: rgba(0, 0, 0, 0.85); padding: 1px 6px; color: var(--c11); font-size: 16px; max-width: 70%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #toastlog { position: absolute; left: 6px; right: 6px; bottom: 6px; display: flex; flex-direction: column; gap: 1px; pointer-events: none; }
-.tl { background: rgba(0, 0, 0, 0.88); padding: 0 6px; font-size: 18px; line-height: 1.1; width: fit-content; max-width: 100%; }
+.tl { background: rgba(0, 0, 0, 0.88); padding: 0 6px; font-size: 19px; line-height: 1.1; width: fit-content; max-width: 100%; }
 #tags { position: absolute; inset: 0; pointer-events: none; }
 .tag { position: absolute; transform: translate(-50%, 0); background: rgba(0, 0, 0, 0.82); border: 1px solid var(--c8); padding: 0 4px 2px; font-size: 15px; text-align: center; min-width: 58px; pointer-events: none; white-space: nowrap; }
 .tag.pick { pointer-events: auto; cursor: pointer; border-color: var(--c14); animation: blink 0.7s steps(2) infinite; }
@@ -76,7 +76,7 @@ button, select, input { font: inherit; color: inherit; }
 @keyframes hit { 33% { transform: translateX(-3px); background: var(--c4); } 66% { transform: translateX(3px); } }
 .cportrait { flex: none; } .cportrait .px { width: 34px; height: 34px; background: var(--c1); }
 .cbody { flex: 1; min-width: 0; }
-.cname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 19px; }
+.cname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 20px; }
 .cmeta { font-size: 15px; color: var(--c7); display: flex; gap: 4px; line-height: 1; margin-bottom: 1px; }
 .st { font-weight: bold; } .cnum { font-size: 14px; line-height: 1; color: var(--c7); }
 .bar { height: 6px; background: var(--c0); border: 1px solid var(--c8); margin: 1px 0; } .bar.tiny { height: 5px; } .bar .fill { height: 100%; }
@@ -101,7 +101,7 @@ button, select, input { font: inherit; color: inherit; }
 .ln { margin: 0; }
 
 /* ---------------------------------------------------------------- buttons and rows */
-.btn { min-height: 44px; min-width: 44px; padding: 5px 10px; background: var(--c0); color: var(--c15); border: 2px solid var(--c7); cursor: pointer; font-size: 20px; line-height: 1; }
+.btn { min-height: 44px; min-width: 44px; padding: 5px 10px; background: var(--c0); color: var(--c15); border: 2px solid var(--c7); cursor: pointer; font-size: 21px; line-height: 1; }
 .btn:hover:not(:disabled), .btn:focus-visible { background: var(--c15); color: var(--c0); outline: none; }
 .btn.primary { background: var(--c14); color: var(--c0); border-color: var(--c15); }
 .btn.primary:hover:not(:disabled), .btn.primary:focus-visible { background: var(--c15); }
@@ -112,7 +112,7 @@ button, select, input { font: inherit; color: inherit; }
 .row:hover:not(:disabled), .row:focus-visible { background: var(--c9); outline: none; border-color: var(--c15); }
 .row.sel { border-color: var(--c14); background: #000055; }
 .rowtext { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.rl { font-size: 20px; line-height: 1.05; } .rs { font-size: 16px; color: var(--c7); line-height: 1.05; }
+.rl { font-size: 21px; line-height: 1.05; } .rs { font-size: 17px; color: var(--c7); line-height: 1.05; }
 .row:hover:not(:disabled) .rs { color: var(--c15); }
 .rr { color: var(--c14); white-space: nowrap; }
 .list { display: flex; flex-direction: column; gap: 3px; margin: 4px 0; }

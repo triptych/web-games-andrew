@@ -1,7 +1,7 @@
 // Turn-based battles. The party picks a command for each member, then `resolveRound` runs the whole
 // round (speed order) and emits events the view plays back. Pure: the rng is G.rng.
 
-import { say, ev, clamp, avgLvl } from './core.js';
+import { say, ev, clamp } from './core.js';
 import { calc, SKILLS, skillsFor, gainXp } from './party.js';
 import { SCROLLS, POTIONS, itemLabel } from './items.js';
 import { potionEffect } from './use.js';

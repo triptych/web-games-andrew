@@ -11,14 +11,14 @@ import { clamp } from './core.js';
 import { HINT_SIGNS } from './names.js';
 
 export const THEMES = [
-    { id: 'crypt', name: 'Forgotten Crypt', wall: [7, 8, 15], floor: [8, 0], ceil: [0, 8], music: 0 },
+    { id: 'crypt', name: 'Forgotten Crypt', wall: [8, 0, 7], floor: [8, 0], ceil: [0, 8], music: 0 },
     { id: 'dungeon', name: 'Old Dungeon', wall: [6, 0, 14], floor: [8, 6], ceil: [0, 8], music: 1 },
     { id: 'moss', name: 'Mossy Halls', wall: [2, 0, 10], floor: [8, 2], ceil: [0, 2], music: 2 },
     { id: 'ice', name: 'Frozen Vaults', wall: [3, 1, 11], floor: [9, 1], ceil: [1, 0], music: 3 },
     { id: 'ember', name: 'Ember Depths', wall: [4, 0, 12], floor: [6, 4], ceil: [0, 4], music: 4 },
     { id: 'sewer', name: 'Drowned Sewers', wall: [1, 0, 9], floor: [3, 1], ceil: [0, 1], music: 5 },
     { id: 'amethyst', name: 'Amethyst Caverns', wall: [5, 0, 13], floor: [8, 5], ceil: [0, 5], music: 6 },
-    { id: 'bone', name: 'Ossuary', wall: [15, 7, 8], floor: [7, 8], ceil: [8, 0], music: 7 },
+    { id: 'bone', name: 'Ossuary', wall: [7, 8, 15], floor: [7, 8], ceil: [8, 0], music: 7 },
     { id: 'fungal', name: 'Fungal Warren', wall: [5, 2, 10], floor: [2, 0], ceil: [0, 5], music: 8 },
     { id: 'obsidian', name: 'Obsidian Spire', wall: [8, 0, 12], floor: [0, 8], ceil: [0, 0], music: 9 },
 ];

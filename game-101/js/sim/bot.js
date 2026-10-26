@@ -180,7 +180,6 @@ function useHeals(G) {
     for (let i = 0; i < G.party.length; i++) {
         const m = G.party[i];
         if (!isAlive(m)) continue;
-        const s = calc(m);
         for (const sk of ['healall', 'heal', 'tonic', 'elixirdose']) {
             if (CLASSES[m.cls] && m.lvl >= 1) {
                 const hurt = G.party.map((p, j) => ({ j, f: p.hp / calc(p).maxhp, d: p.hp <= 0 })).filter((x) => !x.d && x.f < 0.7).sort((a, b) => a.f - b.f)[0];
@@ -190,7 +189,6 @@ function useHeals(G) {
                 if (before !== G.party.map((p) => p.hp).join()) return true;
             }
         }
-        void s;
     }
     const worst = G.party.map((p, j) => ({ j, f: p.hp / calc(p).maxhp, d: p.hp <= 0 })).filter((x) => !x.d).sort((a, b) => a.f - b.f)[0];
     if (worst && worst.f < 0.4) {

@@ -38,7 +38,6 @@ const Quests = await import('../js/sim/quests.js');
 const World = await import('../js/sim/world.js');
 const Battle = await import('../js/sim/battle.js');
 const Journal = await import('../js/sim/journal.js');
-const Camp = await import('../js/sim/camp.js');
 const Bot = await import('../js/sim/bot.js');
 const Inv = await import('../js/sim/inv.js');
 const Inv_give = (G, it) => Inv.give(G, it, 'found');

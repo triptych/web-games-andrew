@@ -5,7 +5,6 @@
 // stands in the middle of a cell, 0.5 up, and turns in quarter circles.
 
 import * as THREE from 'three';
-import { DIRS } from '../config.js';
 import { hash3 } from '../rng.js';
 import { getEdge, featAt } from '../sim/dungeon.js';
 import { RES_W, RES_H, makePost } from './post.js';
@@ -74,8 +73,6 @@ export class Stage {
         const tex = nearest(new THREE.CanvasTexture(atlas));
         this.mat = new THREE.MeshBasicMaterial({ map: tex, vertexColors: true, side: THREE.DoubleSide, alphaTest: 0.5, fog: true });
         this.floor = f;
-        const th = f.theme;
-        void th;
         // geometry per chunk
         for (let cy = 0; cy < f.h; cy += CHUNK) for (let cx = 0; cx < f.w; cx += CHUNK) {
             const pos = [], uv = [], col = [], idx = [];

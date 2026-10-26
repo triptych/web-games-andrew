@@ -9,7 +9,7 @@ import { genFloor, getEdge, setEdge, reveal, featAt, inb, cellIdx, passable, dis
 import { genEncounter, genMonster, genBoss } from './monsters.js';
 import { startBattle } from './battle.js';
 import { calc, healMember, makeMember, CLASS_IDS, CLASSES, xpNeed, gainXp, fullHeal } from './party.js';
-import { genChest, genCollectible, genGear, genPotion, genScroll, genWand, genTome, priceOf, itemLabel } from './items.js';
+import { genChest, genCollectible, genGear, genPotion, genScroll, genWand, priceOf, itemLabel } from './items.js';
 import { give, take } from './inv.js';
 import { rec, misc, miscMax } from './journal.js';
 import { questReach, questBoss, questRelic, activeRelicFor, genQuest } from './quests.js';
@@ -118,9 +118,7 @@ function poisonTick(G) {
 }
 export function randomEncounter(G, o = {}) {
     G.danger = 0;
-    const f = G.floor;
     const enc = genEncounter(G.rng, G.depth, avgLvl(G), G.party.length, o);
-    void f;
     startBattle(G, enc, { ambush: o.ambush ?? G.rng() < 0.08, ctx: o.ctx || { kind: 'random' } });
 }
 
@@ -320,7 +318,7 @@ function openNpc(G, ft) {
         case 'merchant': {
             if (!ft.stock) {
                 const rr = seeded(ft.seed, G.depth, 3), il = G.depth;
-                ft.stock = [genPotion(rr, il, 'heal'), genPotion(rr, il + 3, 'heal'), genPotion(rr, il, 'mana'), genGear(rr, il + 1, { luck: 1, noCurse: true }), genGear(rr, il + 1, { noCurse: true }), genScroll(rr, il), genWand(rr, il)];
+                ft.stock = [genPotion(rr, il, 'heal'), genPotion(rr, il + 6, 'heal'), genPotion(rr, il, 'mana'), genGear(rr, il + 1, { luck: 1, noCurse: true }), genGear(rr, il + 1, { noCurse: true }), genScroll(rr, il), genWand(rr, il)];
                 ft.stock.forEach((it, i) => { it.sid = i + 1; it.price = Math.round(priceOf(it) * 1.3); });
             }
             dlg(G, 'merchant', 'Wandering Merchant', lines, [...ft.stock.filter((it) => !it.bought).map((it) => ({ id: 'buy' + it.sid, label: `${it.name}  ${it.price}g`, off: G.gold < it.price })), { id: 'leave', label: 'Farewell' }], base);

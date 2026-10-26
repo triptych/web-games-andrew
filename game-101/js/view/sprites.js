@@ -276,7 +276,7 @@ export function itemIcon(it) {
                 p.rect(7, 2, 2, 3, 6); p.rect(6, 4, 4, 2, 7); p.ell(8, 10, 5, 5, 7); p.ell(8, 10, 4, 4, c); p.px(6, 8, 15); p.px(7, 8, 15);
                 break;
             }
-            case 's': p.rect(3, 3, 10, 11, 14); p.rect(3, 3, 10, 1, 6); p.rect(3, 13, 10, 1, 6); for (let i = 0; i < 4; i++) p.rect(5, 5 + i * 2, 6 - (i & 1) * 2, 1, 4); p.px(11, 11, 12); break;
+            case 's': p.rect(3, 3, 10, 11, { fire: 12, ice: 11, shock: 14, holy: 15, sleep: 9, escape: 10, map: 6, teleport: 13 }[it.eff] || 14); p.rect(3, 3, 10, 1, 6); p.rect(3, 13, 10, 1, 6); for (let i = 0; i < 4; i++) p.rect(5, 5 + i * 2, 6 - (i & 1) * 2, 1, 0); p.px(11, 11, 4); break;
             case 'm': p.line(3, 14, 11, 5, 6); p.ell(12, 4, 2.5, 2.5, 11); p.px(12, 4, 15); break;
             case 't': p.rect(3, 3, 10, 11, 5); p.rect(3, 3, 2, 11, 13); p.rect(6, 5, 5, 2, 14); p.rect(6, 9, 5, 1, 14); break;
             case 'x': {

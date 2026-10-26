@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { Pix } from './pix.js';
 import { hash3 } from '../rng.js';
-import { monsterCanvas, npcCanvas } from './sprites.js';
+import { npcCanvas } from './sprites.js';
 
 export const PLACES = [
     { id: 'dungeon', name: 'The Descent', sign: 'DUNGEON', wall: 8, roof: 0, accent: 12 },
@@ -19,13 +19,12 @@ export const PLACES = [
 const R = 8.2;
 const nearest = (tex) => { tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter; tex.generateMipmaps = false; return tex; };
 
-function wallTex(c, trim, windows = false) {
+function wallTex(c, trim) {
     const p = new Pix(32, 32);
     p.rect(0, 0, 32, 32, c);
     for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) if (hash3(x, y, c) < 0.1) p.px(x, y, c === 0 ? 8 : 8);
     for (let i = 0; i < 4; i++) p.rect(0, i * 8, 32, 1, 8);
     p.rect(0, 0, 2, 32, trim === 14 ? 6 : 0); p.rect(30, 0, 2, 32, trim === 14 ? 6 : 0);
-    void windows;
     return nearest(new THREE.CanvasTexture(p.canvas));
 }
 function roofTex(c) {
@@ -118,7 +117,6 @@ export class TownScene {
             this.scene.add(s);
             this.folk.push({ s, a: i * 1.6 + 0.4, r: 4.4 + i * 0.35, v: (i % 2 ? 1 : -1) * (0.05 + i * 0.012) });
         }
-        void monsterCanvas;
     }
 
     addBuilding(pl, i) {

@@ -76,8 +76,14 @@ const check = (cond, msg) => { if (!cond) { fails++; console.log('  FAIL', msg);
 const Q = (page, fn, arg) => page.evaluate(fn, arg);
 const shot = async (page, name) => { await page.screenshot({ path: path.join(OUT, `bt-${name}.png`) }); };
 // SwiftShader draws a few frames a second: wait on state, never on the clock.
+let failShots = 0;
 const until = (page, fn, msg, timeout = 40000, arg = null) =>
-    page.waitForFunction(fn, arg, { timeout, polling: 100 }).then(() => check(true, msg), () => check(false, msg));
+    page.waitForFunction(fn, arg, { timeout, polling: 100 }).then(() => check(true, msg), async () => {
+        check(false, msg);
+        const name = `fail-${++failShots}`;
+        await page.screenshot({ path: path.join(OUT, `bt-${name}.png`) }).catch(() => {});
+        console.log(`    (screenshot: dev/shots/bt-${name}.png)`);
+    });
 // Playwright's click() waits for animation frames to settle, which SwiftShader never does; click from inside.
 const click = (page, sel) => Q(page, (s) => { const e = document.querySelector(s); if (!e || e.disabled) return false; e.click(); return true; }, sel);
 const clickText = (page, scope, text) => Q(page, ([sc, t]) => { const e = [...document.querySelectorAll(`${sc} button`)].find((b) => b.textContent.trim().includes(t) && !b.disabled); if (!e) return false; e.click(); return true; }, [scope, text]);
@@ -153,7 +159,7 @@ async function desktop() {
     await until(page, () => !!document.querySelector('[data-screen=gate]'), 'key 1 opens the Descent');
     await Q(page, () => document.querySelector('[data-screen=gate] .row').click());
     await until(page, () => !!__pc.G.floor && __pc.ui.stage.mode === 'dungeon' && !document.querySelector('.screen'), 'entering loads the dungeon');
-    await Q(page, () => { __pc.G.danger = -1e9; });
+    await Q(page, () => { __pc.G.danger = -1e9; const f = __pc.G.floor.feat; for (const k of Object.keys(f)) delete f[k]; __pc.ui.stage.syncFeatures(); });
     await settle(page);
     await shot(page, 'desktop-dungeon');
     check(await Q(page, () => !document.getElementById('mini').hidden && getComputedStyle(document.getElementById('mini')).display !== 'none'), 'the minimap shows');
@@ -242,6 +248,51 @@ async function desktop() {
     await until(page, () => document.querySelectorAll('[data-screen=camp] .split.items .row').length >= 1, 'the items tab lists the bag');
     await page.keyboard.press('Escape');
 
+    // equipping from the bag through the real menus
+    await Q(page, async () => {
+        const I = await import('/game-101/js/sim/items.js'), R = await import('/game-101/js/rng.js'), V = await import('/game-101/js/sim/inv.js');
+        const w = I.genWeapon(R.makeRng(77), 14, { base: 'sword', rar: 2, noCurse: true });
+        w.name = 'Test Brand'; V.give(__pc.G, w, 'found');
+        __pc.ui.refresh();
+    });
+    await page.keyboard.press('KeyI');
+    await until(page, () => !!document.querySelector('[data-screen=camp]'), 'the camp opens again');
+    await clickText(page, '[data-screen=camp]', 'Items');
+    await until(page, () => [...document.querySelectorAll('[data-screen=camp] .split.items .row')].some((b) => b.textContent.includes('Test Brand')), 'the new sword is in the bag');
+    await Q(page, () => [...document.querySelectorAll('[data-screen=camp] .split.items .row')].find((b) => b.textContent.includes('Test Brand')).click());
+    await until(page, () => document.querySelectorAll('[data-screen=camp] .detail .list .row').length >= 4, 'selecting it lists who can use it');
+    await shot(page, 'desktop-equip');
+    await Q(page, () => { const rows = [...document.querySelectorAll('[data-screen=camp] .detail .list .row')]; rows.find((r) => !r.disabled).click(); });
+    await until(page, () => __pc.G.party.some((m) => m.eq.weapon?.name === 'Test Brand'), 'clicking a member equips it');
+    await page.keyboard.press('Escape');
+
+    // a doomed fight and the way home
+    const gold2 = await Q(page, () => __pc.G.gold);
+    await Q(page, async () => {
+        const M = await import('/game-101/js/sim/monsters.js'), R = await import('/game-101/js/rng.js');
+        __pc.act({ t: 'debugBattle', enemies: [M.genBoss(R.makeRng(5), 40, 40, 4)], opts: { boss: true } });
+    });
+    await until(page, () => !!__pc.G.battle && document.querySelectorAll('#cmd button').length >= 4, 'a hopeless battle starts');
+    await settle(page);
+    await Q(page, () => document.querySelector('#cmd .btn.danger')?.click());       // Flee is refused against a guardian
+    await settle(page);
+    check(await Q(page, () => !!__pc.G.battle && __pc.G.battle.over !== 'flee'), 'you cannot flee a guardian');
+    await Q(page, () => { __pc.ui.auto = false; });
+    for (let i = 0; i < 40 && await Q(page, () => __pc.G.battle && !__pc.G.battle.over); i++) {
+        await settle(page);
+        await Q(page, () => { const b = [...document.querySelectorAll('#cmd button')].find((x) => /Defend/.test(x.textContent)); if (b) { for (let k = 0; k < 4; k++) { const bb = [...document.querySelectorAll('#cmd button')].find((x) => /Defend/.test(x.textContent)); bb?.click(); } } });
+        await page.waitForTimeout(150);
+    }
+    await until(page, () => __pc.G.battle?.over === 'lose' && !!document.querySelector('[data-screen=results]'), 'the party falls and the defeat screen shows', 120000);
+    await shot(page, 'desktop-defeat');
+    await clickText(page, '[data-screen=results]', 'Return to town');
+    await until(page, () => !__pc.G.floor && !__pc.G.battle && __pc.ui.stage.mode === 'town', 'a wipe sends you back to town');
+    check(await Q(page, (g) => __pc.G.gold < g && __pc.G.party.every((m) => m.hp >= 1), gold2), 'poorer, but alive');
+    await Q(page, () => { const G = __pc.G; for (const m of G.party) m.hp = Math.max(1, m.hp); });
+
+    // sound is really running
+    check(await Q(page, () => !!__pc.audio.ctx && __pc.audio.ctx.state === 'running' && !!__pc.audio.timer), 'the audio context is running with the sequencer on');
+
     // save → reload → continue
     const pos = await Q(page, () => ({ ...__pc.G.pos, depth: __pc.G.depth, gold: __pc.G.gold, day: __pc.G.day }));
     await clickText(page, '#cmd', 'Save');
@@ -249,8 +300,19 @@ async function desktop() {
     await page.reload();
     await page.waitForFunction(() => window.__pc && __pc.mode === 'title', null, { timeout: 60000 });
     check(await clickText(page, '[data-screen=title]', 'Continue'), 'Continue is offered after a save');
-    await until(page, () => __pc.mode === 'play' && !!__pc.G.floor, 'Continue restores the dungeon');
-    check(await Q(page, (p) => __pc.G.depth === p.depth && __pc.G.pos.x === p.x && __pc.G.pos.y === p.y && __pc.G.gold >= p.gold, pos), 'at the same place with the same gold');
+    await until(page, () => __pc.mode === 'play', 'Continue restores the game');
+    check(await Q(page, (p) => __pc.G.depth === p.depth && __pc.G.gold >= p.gold && __pc.G.day >= p.day, pos), 'with the same gold and day');
+
+    // away for a while: the businesses keep paying
+    await Q(page, () => { __pc.G.biz.inn.lvl = 3; __pc.act({ t: 'collect' }); __pc.save(); });
+    const day0 = await Q(page, () => __pc.G.day);
+    await page.reload();
+    await page.waitForFunction(() => window.__pc && __pc.mode === 'title', null, { timeout: 60000 });
+    // (the page saves again as it unloads, so the clock is wound back after the reload)
+    await Q(page, () => { const o = JSON.parse(localStorage.getItem('pixelcrypt.v1')); o.savedAt -= 1000 * 60 * 30; localStorage.setItem('pixelcrypt.v1', JSON.stringify(o)); });
+    await clickText(page, '[data-screen=title]', 'Continue');
+    await until(page, (d) => __pc.mode === 'play' && __pc.G.day > d, 'half an hour away passes game days', 40000, day0);
+    check(await Q(page, () => __pc.G.biz.inn.pend > 0), 'and the inn has earned something');
     reportErrors('desktop');
 }
 
@@ -301,7 +363,7 @@ async function phone(w, h) {
     await until(page, () => !!document.querySelector('[data-screen=gate]'), 'tapping a place opens it');
     await tapSel('[data-screen=gate] .row');
     await until(page, () => !!__pc.G.floor && !document.querySelector('.screen'), 'tapping a floor enters the dungeon');
-    await Q(page, () => { __pc.G.danger = -1e9; });
+    await Q(page, () => { __pc.G.danger = -1e9; const f = __pc.G.floor.feat; for (const k of Object.keys(f)) delete f[k]; __pc.ui.stage.syncFeatures(); });
     await settle(page);
     check(await Q(page, () => getComputedStyle(document.getElementById('deck')).display !== 'none'), 'the touch pad is shown in the dungeon');
     L = await layout(page);
