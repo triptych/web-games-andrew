@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="PixelCrypt — a first-person dungeon crawler in sixteen EGA colours: six heroes, an endless procedural dungeon, a town you can invest in.">
+    <title>PixelCrypt</title>
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <main id="app" class="intro">
+        <section id="stage">
+            <div id="viewbox">
+                <canvas id="view" aria-label="First-person dungeon view"></canvas>
+                <div id="overlay"></div>
+                <div id="tags"></div>
+                <div id="toastlog" aria-live="polite"></div>
+            </div>
+            <div id="info" aria-label="Status"></div>
+        </section>
+
+        <section id="party" aria-label="Party"></section>
+
+        <div id="deck" aria-label="Touch controls">
+            <button data-key="KeyA" data-repeat aria-label="Turn left">↰</button>
+            <button data-key="KeyW" data-repeat aria-label="Step forward">▲</button>
+            <button data-key="KeyD" data-repeat aria-label="Turn right">↱</button>
+            <button data-key="KeyQ" data-repeat aria-label="Sidestep left">◄</button>
+            <button data-key="KeyS" data-repeat aria-label="Step back">▼</button>
+            <button data-key="KeyE" data-repeat aria-label="Sidestep right">►</button>
+            <button class="act" data-key="Space" aria-label="Search or interact">ACT</button>
+            <button class="act" data-key="KeyM" aria-label="Map">MAP</button>
+        </div>
+
+        <section id="side">
+            <canvas id="mini" aria-label="Minimap" width="160" height="112"></canvas>
+            <div id="cmd" class="cmd"></div>
+            <div id="log" aria-label="Message log"></div>
+        </section>
+    </main>
+
+    <div id="screens"></div>
+    <noscript><p class="noscript">PixelCrypt needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
