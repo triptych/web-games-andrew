@@ -229,6 +229,7 @@ async function desktop() {
     await shot(page, 'desktop-results');
     await clickText(page, '[data-screen=results]', 'Continue');
     await until(page, () => !__pc.G.battle && !document.querySelector('[data-screen=results]'), 'Continue ends the battle');
+    await until(page, () => (__pc.audio.key || '').startsWith('dungeon'), 'the dungeon music comes back after the battle');
 
     // camp
     await page.keyboard.press('KeyI');

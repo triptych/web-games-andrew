@@ -116,7 +116,19 @@ function poisonTick(G) {
         ev(G, 'hurt');
     }
 }
+/** Never start a fight staring at a wall: turn the party toward open space first. */
+function faceOpen(G) {
+    const f = G.floor, p = G.pos;
+    if (!f || Dun_clear(getEdge(f, p.x, p.y, p.d))) return;
+    for (const k of [1, 3, 2]) {
+        const d = (p.d + k) % 4;
+        if (Dun_clear(getEdge(f, p.x, p.y, d))) { p.d = d; reveal(f, p.x, p.y, d); ev(G, 'turn', { d, dir: 'r' }); return; }
+    }
+}
+const Dun_clear = (t) => t === 0 || t === 4;
+
 export function randomEncounter(G, o = {}) {
+    faceOpen(G);
     G.danger = 0;
     const enc = genEncounter(G.rng, G.depth, avgLvl(G), G.party.length, o);
     startBattle(G, enc, { ambush: o.ambush ?? G.rng() < 0.08, ctx: o.ctx || { kind: 'random' } });
@@ -133,6 +145,7 @@ function onEnterCell(G) {
         return true;
     }
     if (ft.type === 'down' && ft.guard) {
+        faceOpen(G);
         startBattle(G, [{ ...ft.guard, hp: ft.guard.mhp }], { boss: true, ctx: { kind: 'boss', x: p.x, y: p.y } });
         return true;
     }
@@ -443,6 +456,7 @@ function chestChoose(G, ft, id) {
             closeDlg(G);
             say(G, 'The chest has teeth!', 12);
             const mim = genMonster(G.rng, G.depth, avgLvl(G), 'mimic', { noVariant: true });
+            faceOpen(G);
             startBattle(G, [mim], { ctx: { kind: 'mimic' } });
             return;
         }

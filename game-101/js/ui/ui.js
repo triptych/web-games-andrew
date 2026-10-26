@@ -396,7 +396,7 @@ export class UI {
             case 'wipe': return { fn: () => { A.sfxPlay('lose'); }, d: 0.2 };
             case 'bossDown': return { fn: () => { A.sfxPlay('win'); }, d: 0 };
             case 'levelup': return { fn: () => { A.sfxPlay('levelup'); }, d: bat ? 0.3 : 0 };
-            case 'battleStart': return { fn: () => { A.sfxPlay(e.boss ? 'bossIn' : 'encounter'); S.setBattle(G.battle.enemies); S.flash([1, 1, 1], 0.3); A.setMusic(e.boss ? 'boss' : 'battle', G.depth); this.auto = this.auto && false; this.bs = null; this.resultsShown = false; }, d: 0.45 };
+            case 'battleStart': return { fn: () => { A.sfxPlay(e.boss ? 'bossIn' : 'encounter'); S.setBattle(G.battle.enemies); S.flash([1, 1, 1], 0.3); A.setMusic(e.boss ? 'boss' : 'battle', G.depth); this.battleMusic = true; this.auto = this.auto && false; this.bs = null; this.resultsShown = false; }, d: 0.45 };
             case 'b_round': return { fn: () => { this.addLog(`— Round ${e.round} —`, 8); }, d: 0.12 };
             case 'b_cast': return {
                 fn: () => {
@@ -493,7 +493,11 @@ export class UI {
             }
         } else {
             if (this.has('results')) this.close('results', true);
-            if (this.stage.enemies.length) { this.stage.setBattle(null); this.audio.setMusic(G.floor ? 'dungeon' : 'town', G.floor ? G.floor.theme * 7 + (G.depth % 7) : 3); }
+            if (this.stage.enemies.length) this.stage.setBattle(null);
+            if (this.battleMusic) {          // back to the floor's own tune once the fight is over
+                this.battleMusic = false;
+                this.audio.setMusic(G.floor ? 'dungeon' : 'town', G.floor ? G.floor.theme * 7 + (G.depth % 7) : 3);
+            }
             this.bs = null; this.auto = false;
         }
         const top = this.top();
