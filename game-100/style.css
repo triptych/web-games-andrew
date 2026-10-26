@@ -1,0 +1,27 @@
+/* GLITTERBALL GROOVE. The game draws everything itself, on one canvas: there is almost no page. */
+:root {
+    --bg: #05020c;
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-l: env(safe-area-inset-left, 0px);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--bg); color: #fff2d0;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    overflow: hidden; overscroll-behavior: none;
+    user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+/* The stage sizes the canvas in px from visualViewport, never 100vw/100vh: on phones 100vh is
+   taller than the visible area and taps land below the finger. */
+#view { position: fixed; left: 0; top: 0; display: block; touch-action: none; outline: none; }
+
+#back-link {
+    position: fixed; top: calc(8px + var(--safe-t)); left: calc(8px + var(--safe-l)); z-index: 99999;
+    display: inline-flex; align-items: center; min-height: 28px;
+    font: 13px Arial, Helvetica, sans-serif; color: #fff; text-decoration: none;
+    background: rgba(0, 0, 0, 0.55); padding: 6px 12px; border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+#back-link:hover { background: rgba(0, 0, 0, 0.8); }
+.noscript { position: fixed; inset: 0; display: grid; place-items: center; margin: 0; }
