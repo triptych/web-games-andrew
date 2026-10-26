@@ -27,6 +27,10 @@ const audio = new Audio();
 audio.setVolumes(settings.sfx, settings.music);
 const input = new Input(canvas);
 input.onGesture = () => audio.init();
+// phones unlock audio on a lift or a click, not on pointerdown: keep trying on every gesture until it runs
+for (const ev of ['pointerup', 'touchend', 'click', 'keydown']) {
+    window.addEventListener(ev, () => { if (!audio.running) audio.init(); }, { capture: true, passive: true });
+}
 
 const stage = new Stage(canvas, settings.quality);
 stage.calm = settings.calm;

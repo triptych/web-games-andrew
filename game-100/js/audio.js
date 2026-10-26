@@ -52,8 +52,16 @@ export class Audio {
         this.nextTime = 0;
     }
 
+    /**
+     * Make or wake the context. Call it from every gesture until `running`: phones only unlock audio
+     * on a touchend/click (not pointerdown) and a context made earlier stays suspended until resumed.
+     */
     init() {
-        if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+        this.unlockMedia();
+        if (this.ctx) {
+            if (this.ctx.state !== 'running') { this.ctx.resume?.(); this.wake(); }
+            return;
+        }
         const AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return;
         const ctx = this.ctx = new AC();
@@ -74,6 +82,30 @@ export class Audio {
         this.t0 = this.nextTime;
         this.step = 0;
         this.timer = setInterval(() => this.schedule(), 25);
+        ctx.addEventListener?.('statechange', () => { if (ctx.state === 'interrupted') ctx.resume?.(); });
+        this.wake();
+    }
+
+    /** Play one silent sample: some browsers only start the clock once something has been played in a gesture. */
+    wake() {
+        try {
+            const ctx = this.ctx, b = ctx.createBuffer(1, 1, 22050), src = ctx.createBufferSource();
+            src.buffer = b; src.connect(ctx.destination); src.start(0);
+        } catch { /* nothing to unlock yet */ }
+    }
+
+    /** iOS mutes Web Audio while the ringer switch is on silent unless a media element is playing: loop a silent one. */
+    unlockMedia() {
+        if (this.media) return;
+        try {
+            if (navigator.audioSession) navigator.audioSession.type = 'playback';
+            const a = document.createElement('audio');
+            a.loop = true; a.setAttribute('playsinline', ''); a.volume = 0.01;
+            a.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAABErAAABAAgAZGF0YQAAAAA=';
+            const p = a.play();
+            if (p && p.catch) p.catch(() => { this.media = null; });
+            this.media = a;
+        } catch { this.media = null; }
     }
 
     impulse(sec, decay) {
