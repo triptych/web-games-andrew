@@ -285,6 +285,24 @@ if (want('rules')) {
         G.battle = null;
     }
 
+    // ---- a fight never starts facing a wall
+    G = fresh(15); World.enterFloor(G, 1, 'up');
+    {
+        const f1 = G.floor;
+        let tested = 0;
+        for (let i = 0; i < 40; i++) {
+            const c = Rng.makeRng(i + 1);
+            G.pos.x = c.int(0, f1.w - 1); G.pos.y = c.int(0, f1.h - 1); G.pos.d = c.int(0, 3);
+            G.battle = null; G.dialog = null;
+            World.randomEncounter(G);
+            const t = Dun.getEdge(f1, G.pos.x, G.pos.y, G.pos.d);
+            ok(t === 0 || t === 4, `an encounter at (${G.pos.x},${G.pos.y}) leaves the party facing open space`);
+            tested++;
+        }
+        ok(tested === 40, 'forty encounters checked');
+        G.battle = null;
+    }
+
     // ---- equipment and curses
     G = fresh(8);
     {

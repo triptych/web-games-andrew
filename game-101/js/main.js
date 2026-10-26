@@ -73,6 +73,7 @@ const ui = new UI({ ctx, audio, stage, settings });
 function drain() {
     const evs = G.events.splice(0);
     for (const e of evs) seen[e.type] = (seen[e.type] || 0) + 1;
+    if (G.battle) { input.held.clear(); }          // a held arrow must not walk on into a fight
     ui.events(evs);
 }
 
