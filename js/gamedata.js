@@ -1512,6 +1512,22 @@ const games = [
             { emoji: '🐉', label: 'Living stickers' },
             { emoji: '🖼️', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-100',
+        title: 'Glitterball Groove',
+        description: "A 70s disco party match-3 on a glowing CRT, in three.js with no asset files. Swap neighbouring tokens on a dance floor of glass tiles (records, mirrorballs, stars, hearts, daisies and gems, all built in code) while a giant mirrorball turns, spotlights sweep a sunburst wall and a chasing floor of lit tiles runs off to the horizon. It is real time: tokens fall and slide on the sim's own clock and you can keep swapping while the rest of the board is still moving, so fast hands make big combos. Line up four for a Funk Beam that clears a whole row or column, an L or T for a Boom Box, five for a Glitterball that wipes out a colour, and swap specials together for crosses, 5\u00d75 blasts and a cleared floor. Fill the groove meter for Disco Fever: double points, a rainbow room, specials raining down and the band modulating up a tone. Play Dance-Off against a 60-second clock that every special, level and Fever adds to, or Slow Jam's 30 relaxed moves, through five rooms from Sunset Strip to Hot Tub Funk. The whole picture, board and HUD and menus, is one low-res canvas inside a CRT tube with curvature, scanlines, aperture grille, bloom and glitches; the game opens like a console with a power screen, a BIOS boot, an arcade attract loop with demo play and a Hall of Fame, and takes three-letter initials. Two dancers in bell-bottoms boogie beside the menus, and a procedural funk band (four-on-the-floor kick, octave bass, wah guitar, electric piano, strings and brass, side-chain pumped) drives the dance floor's pulse. Mouse, touch, keyboard or gamepad; a bot plays it in the attract mode.",
+        icon: '\uD83E\uDEA9',
+        folder: 'game-100',
+        version: '1.0.0',
+        cssClass: 'glitterball-groove',
+        genre: 'puzzle',
+        tags: [
+            { emoji: '\uD83E\uDEA9', label: 'Match-3' },
+            { emoji: '\uD83D\uDD7A', label: '70s disco' },
+            { emoji: '\uD83D\uDCFA', label: 'CRT arcade' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
