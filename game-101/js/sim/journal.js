@@ -5,6 +5,7 @@
 import { WEAPONS, ARMORS, CHARMS, POTIONS, SCROLLS, WANDS, TOMES, COLLECTIBLES, matList } from './items.js';
 import { FAMILIES, VARIANT_NAMES } from './monsters.js';
 import { NPC_KINDS, TRAP_KINDS, GATHER_KINDS } from './dungeon.js';
+import { UNIQUES } from './uniques.js';
 
 export const newJournal = () => ({ mon: {}, items: {}, npc: {}, trap: {}, gather: {}, misc: {}, best: {} });
 
@@ -43,7 +44,7 @@ export const GATHER_NAMES = { herb: 'Herb Patch', ore: 'Ore Seam', bug: 'Bug Nes
 
 /** Every slot on every shelf, in order: [{ key, name }] per category. */
 export function registry() {
-    const reg = { weapons: [], armor: [], charms: [], potions: [], scrolls: [], wands: [], tomes: [], collectibles: [], monsters: [], npcs: [], traps: [], gathers: [] };
+    const reg = { weapons: [], armor: [], charms: [], potions: [], scrolls: [], wands: [], tomes: [], collectibles: [], monsters: [], npcs: [], traps: [], gathers: [], uniques: [] };
     for (const b of WEAPONS) matList({ t: 'w' }).forEach((m, i) => reg.weapons.push({ key: `w:${b.id}:${i}`, name: `${m} ${b.name}`, grp: b.id }));
     for (const b of ARMORS) matList({ t: 'a', wt: b.wt }).forEach((m, i) => reg.armor.push({ key: `a:${b.id}:${i}`, name: `${m} ${b.name}`, grp: b.slot }));
     for (const c of CHARMS) reg.charms.push({ key: `c:${c.id}`, name: c.name });
@@ -52,6 +53,7 @@ export function registry() {
     for (const k in WANDS) reg.wands.push({ key: `m:${k}`, name: WANDS[k].name });
     for (const k in TOMES) reg.tomes.push({ key: `t:${k}`, name: `Tome of ${TOMES[k]}` });
     for (const c of COLLECTIBLES) reg.collectibles.push({ key: `x:${c.id}`, name: c.name, grp: c.kind });
+    for (const u of UNIQUES) reg.uniques.push({ key: `u:${u.id}`, name: u.name, u });
     for (const f of FAMILIES) reg.monsters.push({ key: f.id, name: f.name, fam: f });
     for (const k of NPC_KINDS) reg.npcs.push({ key: k, name: NPC_NAMES[k] });
     for (const k of TRAP_KINDS) reg.traps.push({ key: k, name: TRAP_NAMES[k] });
@@ -68,6 +70,7 @@ export function completion(G) {
     out.weapons = count(REG.weapons, j.items); out.armor = count(REG.armor, j.items); out.charms = count(REG.charms, j.items);
     out.potions = count(REG.potions, j.items); out.scrolls = count(REG.scrolls, j.items); out.wands = count(REG.wands, j.items);
     out.tomes = count(REG.tomes, j.items); out.collectibles = count(REG.collectibles, j.items);
+    out.uniques = count(REG.uniques, j.items);
     out.monsters = count(REG.monsters, j.mon, (e) => e.killed > 0);
     out.npcs = count(REG.npcs, j.npc); out.traps = count(REG.traps, j.trap); out.gathers = count(REG.gathers, j.gather);
     return out;

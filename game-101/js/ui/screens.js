@@ -9,6 +9,8 @@ import { SLOTS, SLOT_NAMES, DIR_NAMES, VERSION } from '../config.js';
 import { describe } from '../sim/items.js';
 import { progress, isReady } from '../sim/quests.js';
 import { REG, completion } from '../sim/journal.js';
+import { ACHIEVEMENTS } from '../sim/achievements.js';
+import { fxText } from '../sim/uniques.js';
 import { personName } from '../sim/names.js';
 import { makeRng } from '../rng.js';
 import { monsterCanvas, featureCanvas, npcCanvas } from '../view/sprites.js';
@@ -119,9 +121,9 @@ function confirm(ui, G, p) {
 // ------------------------------------------------------------------ camp
 function camp(ui, G, p) {
     const tab = p.tab || 'party';
-    const list = [['party', 'Party'], ['items', 'Items', G.inv.length], ['quests', 'Quests', G.quests.active.length || ''], ['journal', 'Journal'], ...(G.floor ? [['map', 'Map']] : []), ['system', 'System']];
+    const list = [['party', 'Party'], ['items', 'Items', G.inv.length], ['quests', 'Quests', G.quests.active.length || ''], ['journal', 'Journal'], ['awards', 'Awards', `${Object.keys(G.ach).length}/${ACHIEVEMENTS.length}`], ...(G.floor ? [['map', 'Map']] : []), ['system', 'System']];
     const go = (t) => { p.tab = t; ui.render(ui.top()); };
-    const body = { party: campParty, items: campItems, quests: campQuests, journal: campJournal, map: campMap, system: campSystem }[tab](ui, G, p);
+    const body = { party: campParty, items: campItems, quests: campQuests, journal: campJournal, awards: campAwards, map: campMap, system: campSystem }[tab](ui, G, p);
     return { title: 'Camp', wide: true, body: h('div', null, tabs(list, tab, go), body), cls: 'camp' };
 }
 
@@ -202,6 +204,7 @@ function itemDetail(ui, G, p, it) {
         h('div', { class: 'dhead' }, icon(it), h('div', null, h('div', { class: 'dname' }, itemName(it)), h('div', { class: 'small dim' }, `${['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'][it.rar] || ''} · item level ${it.ilvl || 1}`))),
         h('div', null, lines.map((l) => h('div', null, l))),
     ];
+    if (it.lore) body.push(h('div', { class: 'c11 small' }, `"${it.lore}"`));
     if (it.cursed && it.known) body.push(h('div', { class: 'c12' }, 'Cursed! It cannot be removed once worn (until the church lifts the curse).'));
     const needsMember = ['w', 'a', 'c', 'p', 't', 'm'].includes(it.t) && !(it.t === 'm' && it.skill !== 'heal');
     if (needsMember) {
@@ -238,6 +241,17 @@ function map(ui, G) {
     return { title: G.floor?.name || 'Map', wide: true, body: campMap(ui, G), foot: [h('button', { class: 'btn primary', onclick: () => ui.close() }, 'Close')] };
 }
 
+function campAwards(ui, G) {
+    const done = Object.keys(G.ach).length;
+    const rows = ACHIEVEMENTS.slice().sort((a, b) => (G.ach[b[0]] ? 1 : 0) - (G.ach[a[0]] ? 1 : 0)).map(([id, name, desc, tier, cur, goal]) => {
+        const got = !!G.ach[id], v = Math.min(goal, cur(G));
+        return h('div', { class: `award ${tier} ${got ? '' : 'locked'}` }, h('div', { class: 'medal' }, got ? '★' : '·'),
+            h('div', null, h('div', null, got ? name : h('span', { class: 'dim' }, name)), h('div', { class: 'small dim' }, desc), got ? null : bar(v / goal, tier === 'gold' ? 14 : 11, 'tiny')),
+            h('div', { class: 'small gold' }, got ? `Day ${G.ach[id]}` : goal > 1 ? `${Math.min(v, 999999).toLocaleString('en-US')}/${goal.toLocaleString('en-US')}` : ''));
+    });
+    return h('div', null, h('div', { class: 'jsum' }, h('span', null, `${done}/${ACHIEVEMENTS.length} earned`), bar(done / ACHIEVEMENTS.length, 14, 'tiny')), h('div', { class: 'list' }, rows));
+}
+
 function campSystem(ui, G) {
     return h('div', { class: 'menu' },
         h('button', { class: 'btn', onclick: () => { ui.ctx.save(true); } }, 'Save game'),
@@ -248,7 +262,7 @@ function campSystem(ui, G) {
 }
 
 // ------------------------------------------------------------------ journal
-const JTABS = [['monsters', 'Monsters'], ['weapons', 'Weapons'], ['armor', 'Armor'], ['charms', 'Charms'], ['potions', 'Potions'], ['magic', 'Magic'], ['finds', 'Finds'], ['world', 'World'], ['record', 'Record']];
+const JTABS = [['monsters', 'Monsters'], ['artifacts', 'Artifacts'], ['weapons', 'Weapons'], ['armor', 'Armor'], ['charms', 'Charms'], ['potions', 'Potions'], ['magic', 'Magic'], ['finds', 'Finds'], ['world', 'World'], ['record', 'Record']];
 function campJournal(ui, G, p) {
     const j = G.journal, jt = p.jt || 'monsters';
     const comp = completion(G);
@@ -272,6 +286,11 @@ function campJournal(ui, G, p) {
                 label: r ? e.name : h('span', { class: 'dim' }, '???'), sub: r ? [`Seen ${r.seen || 0} · Defeated ${r.killed || 0}${e.fam.weak.length ? ' · weak: ' + e.fam.weak.join(', ') : ''}`, vs ? h('div', { class: 'small dim' }, vs) : null] : `Appears from floor ${e.fam.minD}`, cls: 'jrow',
             });
         });
+    } else if (jt === 'artifacts') {
+        content = REG.uniques.map((e) => {
+            const have = !!j.items[e.key];
+            return row({ label: have ? h('span', { class: 'r3 uniq' }, '★ ' + e.name) : h('span', { class: 'dim' }, '???'), sub: have ? [e.u.lore, h('div', { class: 'small c11' }, fxText(e.u.fx).join(' · '))] : `Somewhere below floor ${e.u.minD}, or in a Chronicler's gift.`, right: have ? 'found' : '', cls: 'jrow' });
+        });
     } else if (jt === 'weapons') content = itemRows(REG.weapons);
     else if (jt === 'armor') content = itemRows(REG.armor);
     else if (jt === 'charms') content = itemRows(REG.charms);
@@ -292,7 +311,7 @@ function campJournal(ui, G, p) {
         content = [...kv.map(([k, v]) => row({ label: k, right: Number(v).toLocaleString('en-US'), cls: 'jrow' })),
             ...Object.entries(j.best).map(([k, v]) => row({ label: `Best ${{ w: 'weapon', a: 'armour', c: 'charm' }[k]}`, right: v.name, cls: 'jrow' }))];
     }
-    const summary = { monsters: comp.monsters, weapons: comp.weapons, armor: comp.armor, charms: comp.charms, potions: comp.potions, magic: [comp.scrolls[0] + comp.wands[0] + comp.tomes[0], comp.scrolls[1] + comp.wands[1] + comp.tomes[1]], finds: comp.collectibles }[jt];
+    const summary = { monsters: comp.monsters, artifacts: comp.uniques, weapons: comp.weapons, armor: comp.armor, charms: comp.charms, potions: comp.potions, magic: [comp.scrolls[0] + comp.wands[0] + comp.tomes[0], comp.scrolls[1] + comp.wands[1] + comp.tomes[1]], finds: comp.collectibles }[jt];
     return h('div', null,
         h('div', { class: 'chips' }, JTABS.map(([id, l]) => h('button', { class: `chip ${jt === id ? 'on' : ''}`, onclick: () => { p.jt = id; ui.render(ui.top()); } }, l))),
         summary ? h('div', { class: 'jsum' }, h('span', null, `Collected ${pct(summary)}`), bar(summary[0] / summary[1], 14, 'tiny'), ['weapons', 'armor', 'magic', 'finds', 'charms', 'potions'].includes(jt) ? h('button', { class: 'chip', onclick: () => { p.all = !p.all; ui.render(ui.top()); } }, p.all ? 'Hide unknown' : 'Show all') : null) : null,

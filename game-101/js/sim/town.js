@@ -155,6 +155,7 @@ export function sell(G, id, qty = 1) {
     const n = clamp(qty, 1, it.n || 1);
     const gold = sellPrice(G, it) * n;
     if (G.party.some((m) => Object.values(m.eq).includes(it))) return false;
+    if (it.unique) { say(G, `${it.name} is far too precious to sell.`, 13); return false; }
     const taken = take(G, id, n);
     recItem(G, taken, 'sold', n);
     G.gold += gold; G.stats.goldEarned += gold;

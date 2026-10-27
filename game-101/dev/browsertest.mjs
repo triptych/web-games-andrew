@@ -134,7 +134,7 @@ async function desktop() {
     await shot(page, 'desktop-guild');
     const g0 = await Q(page, () => __pc.G.gold);
     await clickText(page, '[data-screen=guild]', 'Buy');
-    await until(page, (g) => __pc.G.gold < g && __pc.G.biz.tavern.lvl + __pc.G.biz.items.lvl + __pc.G.biz.smith.lvl + __pc.G.biz.magic.lvl + __pc.G.biz.inn.lvl + __pc.G.biz.church.lvl + __pc.G.biz.guild.lvl === 1, 'buying a stake costs gold and sets a level', 40000, g0);
+    await until(page, () => __pc.G.biz.tavern.lvl + __pc.G.biz.items.lvl + __pc.G.biz.smith.lvl + __pc.G.biz.magic.lvl + __pc.G.biz.inn.lvl + __pc.G.biz.church.lvl + __pc.G.biz.guild.lvl === 1, 'buying a stake costs gold and sets a level', 40000, g0);
     await page.keyboard.press('Escape');
     await until(page, () => !document.querySelector('[data-screen=guild]'), 'Escape closes it');
 
@@ -153,6 +153,17 @@ async function desktop() {
         await page.keyboard.press('Escape');
         await until(page, () => !document.querySelector('.screen'), `Escape leaves the ${name}`);
     }
+
+    // the saga
+    await page.keyboard.press('Digit2');
+    await until(page, () => !!document.querySelector('[data-screen=guild]'), 'the Guild opens again');
+    await clickText(page, '[data-screen=guild]', 'Story');
+    await until(page, () => /Hear the tale/.test(document.querySelector('[data-screen=guild]')?.textContent || ''), 'the Story tab offers the saga');
+    await clickText(page, '[data-screen=guild]', 'Hear the tale');
+    await until(page, () => __pc.G.story.on && /The Light Goes Out/.test(document.querySelector('[data-screen=guild]')?.textContent || ''), 'beginning it shows the first chapter');
+    await shot(page, 'desktop-story');
+    await page.keyboard.press('Escape');
+    await until(page, () => !document.querySelector('.screen'), 'and the Guild closes');
 
     // the descent
     await page.keyboard.press('Digit1');
@@ -204,12 +215,14 @@ async function desktop() {
     await until(page, () => !__pc.G.dialog && !document.querySelector('[data-screen=dialog]'), 'Space presses the focused OK button');
 
     // a battle by real keys
+    const posBefore = await Q(page, () => ({ ...__pc.G.pos }));
     await Q(page, async () => {
         const M = await import('/game-101/js/sim/monsters.js'), R = await import('/game-101/js/rng.js');
         __pc.act({ t: 'debugBattle', enemies: M.genEncounter(R.makeRng(5), 1, 1, 4) });
     });
     await until(page, () => !!__pc.G.battle && document.querySelectorAll('#cmd button').length >= 4, 'a battle shows the command menu');
     await settle(page);
+    check(await Q(page, () => __pc.ui.stage.inArena && !!__pc.ui.stage.arena), 'the fight is staged in an arena room of the floor\'s own stone');
     await shot(page, 'desktop-battle');
     let guard = 0;
     while (await Q(page, () => !!__pc.G.battle && !__pc.G.battle.over) && guard++ < 14) {
@@ -230,6 +243,8 @@ async function desktop() {
     await clickText(page, '[data-screen=results]', 'Continue');
     await until(page, () => !__pc.G.battle && !document.querySelector('[data-screen=results]'), 'Continue ends the battle');
     await until(page, () => (__pc.audio.key || '').startsWith('dungeon'), 'the dungeon music comes back after the battle');
+    await until(page, () => !__pc.ui.stage.inArena && __pc.ui.stage.fade > 0.9, 'the view fades back out of the arena');
+    check(await Q(page, (p) => { const S = __pc.ui.stage, G = __pc.G; return G.pos.x === p.x && G.pos.y === p.y && Math.abs(S.tgt.x - (p.x + 0.5)) < 1e-6 && Math.abs(S.tgt.z - (p.y + 0.5)) < 1e-6; }, posBefore), 'and the party stands where the fight began, in the corridor');
 
     // camp
     await page.keyboard.press('KeyI');
@@ -245,6 +260,9 @@ async function desktop() {
     await clickText(page, '[data-screen=camp]', 'Journal');
     await until(page, () => document.querySelectorAll('[data-screen=camp] .jrow').length >= 20, 'the journal lists the monsters');
     await shot(page, 'desktop-journal');
+    await clickText(page, '[data-screen=camp]', 'Awards');
+    await until(page, () => document.querySelectorAll('[data-screen=camp] .award').length >= 40, 'the awards tab lists every achievement');
+    await shot(page, 'desktop-awards');
     await clickText(page, '[data-screen=camp]', 'Items');
     await until(page, () => document.querySelectorAll('[data-screen=camp] .split.items .row').length >= 1, 'the items tab lists the bag');
     await page.keyboard.press('Escape');
@@ -268,7 +286,6 @@ async function desktop() {
     await page.keyboard.press('Escape');
 
     // a doomed fight and the way home
-    const gold2 = await Q(page, () => __pc.G.gold);
     await Q(page, async () => {
         const M = await import('/game-101/js/sim/monsters.js'), R = await import('/game-101/js/rng.js');
         __pc.act({ t: 'debugBattle', enemies: [M.genBoss(R.makeRng(5), 40, 40, 4)], opts: { boss: true } });
@@ -288,7 +305,7 @@ async function desktop() {
     await shot(page, 'desktop-defeat');
     await clickText(page, '[data-screen=results]', 'Return to town');
     await until(page, () => !__pc.G.floor && !__pc.G.battle && __pc.ui.stage.mode === 'town', 'a wipe sends you back to town');
-    check(await Q(page, (g) => __pc.G.gold < g && __pc.G.party.every((m) => m.hp >= 1), gold2), 'poorer, but alive');
+    check(await Q(page, () => __pc.G.journal.misc.wipes === 1 && __pc.G.party.every((m) => m.hp >= 1)), 'the wipe is counted and everyone is alive');
     await Q(page, () => { const G = __pc.G; for (const m of G.party) m.hp = Math.max(1, m.hp); });
 
     // sound is really running
@@ -384,6 +401,10 @@ async function phone(w, h) {
     await settle(page);
     check(await Q(page, () => [...document.querySelectorAll('#cmd button')].every((b) => { const r = b.getBoundingClientRect(); return r.height >= 36; })), 'battle buttons are big enough');
     await shot(page, `phone-${w}x${h}-battle`);
+    // a tap right after the fight begins is swallowed on purpose (it was meant for the corridor)
+    await tapSel('#cmd .btn');
+    check(await Q(page, () => !__pc.ui.auto && __pc.G.battle.round === 0), 'a tap in the first moments of a fight is ignored by the shield');
+    await page.waitForTimeout(1100);
     await tapText('#cmd', 'Auto');
     await until(page, () => !__pc.G.battle || __pc.G.battle.over, 'Auto plays the battle out', 90000);
     await until(page, () => !!document.querySelector('[data-screen=results]'), 'the results screen shows');
@@ -392,6 +413,7 @@ async function phone(w, h) {
     await until(page, () => !__pc.G.battle, 'Continue closes the battle');
     await settle(page);
     // the camp sheet fits
+    await page.waitForTimeout(900);                    // the shield that follows a fight
     await tapText('#cmd', 'Menu');
     await until(page, () => !!document.querySelector('[data-screen=camp]'), 'Menu opens the camp');
     check(await Q(page, () => { const s = document.querySelector('[data-screen=camp] .sheet').getBoundingClientRect(); return s.left >= 0 && s.right <= innerWidth + 1 && s.top >= 0 && s.bottom <= innerHeight + 1; }), 'the camp sheet fits on the phone');

@@ -9,6 +9,7 @@ import { genDrop } from './items.js';
 import { give, take, findItem } from './inv.js';
 import { recMon, recItem, misc } from './journal.js';
 import { questKill } from './quests.js';
+import { rollUnique } from './uniques.js';
 
 const ELEM_WORD = { fire: 'burns', ice: 'freezes', shock: 'shocks', holy: 'smites', dark: 'corrodes', phys: 'hits' };
 
@@ -61,7 +62,7 @@ function elemMult(target, isEnemy, elem) {
         return 1;
     }
     if (isEnemy) return target.weak.includes(elem) ? 1.5 : target.res.includes(elem) ? 0.5 : 1;
-    const r = target._s?.res?.[elem] || 0;
+    const r = (target._s?.res?.[elem] || 0) + (target._s?.fx?.resist || 0);
     return 1 - clamp(r, 0, 0.75);
 }
 
@@ -106,7 +107,17 @@ function hurtParty(G, B, i, amt, o = {}) {
     m.hp = Math.max(0, m.hp - amt);
     if (m.st.sleep && G.rng() < 0.5) delete m.st.sleep;
     ev(G, 'b_hit', { side: 'p', i, dmg: amt, crit: !!o.crit, elem: o.elem || 'phys', hp: m.hp, mhp: calc(m).maxhp });
-    if (m.hp <= 0) {
+    const fx = calc(m).fx;
+    if (fx.thorns && amt > 0) {
+        const live = liveE(B);
+        if (live.length) hurtEnemy(G, B, live[Math.floor(G.rng() * live.length)], Math.max(1, Math.round(amt * fx.thorns)), { elem: 'phys' });
+    }
+    if (m.hp <= 0 && fx.revive && m.cb && !m.cb.revived) {
+        m.cb.revived = true;
+        m.hp = Math.max(1, Math.round(calc(m).maxhp * 0.3));
+        say(G, `${m.name}'s relic flares and drags them back!`, 13);
+        ev(G, 'b_heal', { side: 'p', i, amt: m.hp, hp: m.hp, mhp: calc(m).maxhp });
+    } else if (m.hp <= 0) {
         ev(G, 'b_die', { side: 'p', i });
         say(G, `${m.name} falls!`, 12);
         m.st = {};
@@ -170,6 +181,11 @@ function physHit(G, B, ai, ti, pow, o = {}) {
     hurtEnemy(G, B, ti, d, { crit: r.crit, elem, weak: r.weak });
     say(G, `${m.name} ${ELEM_WORD[elem] || 'hits'} ${e.name} for ${d}${r.crit ? '!' : ''}${r.weak ? ' (weak)' : ''}`, r.crit ? 14 : 15);
     if (e.hp > 0 && s.onhit && G.rng() < 0.3) inflictOnEnemy(G, B, ti, s.onhit, 1);
+    if (s.fx.lifesteal && m.hp > 0) healTarget(G, ai, Math.max(1, Math.round(d * s.fx.lifesteal)));
+    if (s.fx.vorpal && e.hp > 0 && !e.boss && G.rng() < s.fx.vorpal) {
+        say(G, `${m.name}'s blade finds the gap: ${e.name} is cut down!`, 13);
+        hurtEnemy(G, B, ti, e.hp, { crit: true, elem });
+    }
 }
 function magHit(G, B, ai, ti, pow, elem, o = {}) {
     const m = G.party[ai], s = pStats(m), e = B.enemies[ti], es = eStats(e);
@@ -374,7 +390,7 @@ export function resolveRound(G, cmds, o = {}) {
         m.cb.guard = false;
         let c = cmds[i] || { k: 'atk' };
         if (o.idleParty || (B.ambush && B.round === 1)) c = { k: 'none' };
-        acts.push({ side: 'p', i, c, spd: calc(m).agi * bufMul(m, 'agi') * G.rng.range(0.8, 1.2) + (c.k === 'def' ? 1000 : 0) });
+        acts.push({ side: 'p', i, c, spd: calc(m).agi * bufMul(m, 'agi') * G.rng.range(0.8, 1.2) + (c.k === 'def' ? 1000 : 0) + (calc(m).fx.first ? 500 : 0) });
     });
     B.enemies.forEach((e, i) => { if (e.hp > 0) acts.push({ side: 'e', i, spd: e.agi * bufMul(e, 'agi') * G.rng.range(0.8, 1.2) }); });
     acts.sort((a, b) => b.spd - a.spd);
@@ -420,6 +436,9 @@ export function resolveRound(G, cmds, o = {}) {
     }
     for (const m of G.party) {
         if (m.hp <= 0) continue;
+        const rfx = calc(m).fx;
+        if (rfx.regen) healTarget(G, G.party.indexOf(m), Math.max(1, Math.round(calc(m).maxhp * rfx.regen)));
+        if (rfx.mpregen) m.mp = Math.min(calc(m).maxmp, m.mp + Math.max(1, Math.round(calc(m).maxmp * rfx.mpregen)));
         if (m.st.poison) { const d = Math.max(1, Math.round(calc(m).maxhp * 0.04)); m.hp = Math.max(1, m.hp - d); ev(G, 'b_hit', { side: 'p', i: G.party.indexOf(m), dmg: d, elem: 'dark', hp: m.hp, mhp: calc(m).maxhp }); say(G, `${m.name} suffers ${d} from poison.`, 2); }
         if (typeof m.st.sleep === 'number') { m.st.sleep--; if (m.st.sleep <= 0) delete m.st.sleep; }
         delete m.st.stun;
@@ -461,13 +480,13 @@ function victory(G, B) {
         for (const it of drops) items.push(it);
     }
     if (G.bless?.left > 0) { gold = Math.round(gold * 1.2); }
-    gold = Math.round(gold * (1 + G.guildBonus));
+    gold = Math.round(gold * (1 + G.guildBonus + alive.reduce((a, i) => a + (calc(G.party[i]).fx.gold || 0), 0)));
     G.gold += gold; G.stats.goldEarned += gold;
     const levelups = [];
     for (const i of alive) {
         const m = G.party[i];
         const before = skillsFor(m).length;
-        const n = gainXp(m, each);
+        const n = gainXp(m, Math.round(each * (1 + (calc(m).fx.xp || 0))));
         m.kills++;
         if (n) {
             const learned = skillsFor(m).slice(before).map((s) => s.name);
@@ -476,6 +495,7 @@ function victory(G, B) {
             say(G, `${m.name} reached level ${m.lvl}!${learned.length ? ' Learned ' + learned.join(', ') + '.' : ''}`, 14);
         }
     }
+    if (B.boss) { const u = rollUnique(G, G.rng, depth, 0.7); if (u) { items.push(u); say(G, `An artifact: ${u.name}!`, 13); ev(G, 'artifact'); } }
     const names = [];
     for (const it of items) { if (give(G, it, 'found')) names.push(itemLabel(it)); else names.push(it.name + ' (sold)'); }
     B.result = { xp: each, gold, items: names, levelups, boss: B.boss };

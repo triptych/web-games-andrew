@@ -15,6 +15,8 @@ import { rec, misc, miscMax } from './journal.js';
 import { questReach, questBoss, questRelic, activeRelicFor, genQuest } from './quests.js';
 import { advanceDay, kitOut, churchPrice, restock } from './town.js';
 import { personName, RUMORS } from './names.js';
+import { rollUnique } from './uniques.js';
+import { STORY_BOSSES, injectTablet, readTablet, storyReady, chapter } from './story.js';
 
 const livingParty = (G) => G.party.filter((m) => m.hp > 0);
 const bestFind = (G) => Math.max(0, ...livingParty(G).map((m) => calc(m).find));
@@ -35,7 +37,7 @@ export function enterFloor(G, depth, from = 'up') {
         f = genFloor(G.seed, depth, activeRelicFor(G, depth));
         if (f.bossFloor) {
             const r = seeded(G.seed, depth, 5);
-            f.feat[`${f.down.x},${f.down.y}`].guard = genBoss(r, depth, avgLvl(G), G.party.length);
+            f.feat[`${f.down.x},${f.down.y}`].guard = genBoss(r, depth, avgLvl(G), G.party.length, STORY_BOSSES[depth] || {});
         }
         G.floors[depth] = f;
     } else {
@@ -50,6 +52,7 @@ export function enterFloor(G, depth, from = 'up') {
             }
         }
     }
+    injectTablet(G, f);
     G.floorOrder = (G.floorOrder || []).filter((d) => d !== depth);
     G.floorOrder.push(depth);
     while (G.floorOrder.length > FLOOR_CACHE) delete G.floors[G.floorOrder.shift()];
@@ -65,6 +68,7 @@ export function enterFloor(G, depth, from = 'up') {
     reveal(f, at.x, at.y, d);
     miscMax(G, 'deepest', depth);
     questReach(G, depth);
+    nudgeStory(G);
     ev(G, 'floor', { depth, name: f.name, theme: f.theme });
     say(G, `${f.name}${f.bossFloor ? ' - a guardian waits below' : ''}`, 11);
 }
@@ -104,11 +108,18 @@ export function move(G, m) {
     reveal(f, p.x, p.y, p.d);
     ev(G, 'step', { x: p.x, y: p.y, d: p.d });
     if (G.steps % 6 === 0) poisonTick(G);
+    if (G.steps % 5 === 0) regenTick(G);
     if (G.stepAcc >= STEPS_PER_DAY) { G.stepAcc = 0; advanceDay(G); say(G, `A day passes. (Day ${G.day})`, 7); }
     if (onEnterCell(G)) return;
     // random encounters
     G.danger += 1;
     if (G.danger > 0 && G.rng() < 0.02 + G.danger * 0.0038) randomEncounter(G);
+}
+function regenTick(G) {
+    for (const m of G.party) {
+        const fx = m.hp > 0 ? calc(m).fx : null;
+        if (fx && fx.regen) healMember(m, Math.max(1, Math.round(calc(m).maxhp * fx.regen)));
+    }
 }
 function poisonTick(G) {
     for (const m of G.party) if (m.hp > 1 && m.st.poison) {
@@ -127,6 +138,10 @@ function faceOpen(G) {
 }
 const Dun_clear = (t) => t === 0 || t === 4;
 
+/** Tell the player once when the next saga chapter can be handed in. */
+export function nudgeStory(G) {
+    if (storyReady(G) && G.story.nudged !== G.story.ch) { G.story.nudged = G.story.ch; say(G, 'The Chronicler will want to hear about this.', 13); }
+}
 export function randomEncounter(G, o = {}) {
     faceOpen(G);
     G.danger = 0;
@@ -281,6 +296,18 @@ function openFeature(G, ft) {
             return true;
         }
         case 'sign': dlg(G, 'result', 'Scratched Words', ft.text, OK); return true;
+        case 'tablet': {
+            if (ft.read) return false;
+            const before = G.story.tabs;
+            const text = readTablet(G, ft);
+            const c = G.story.on && !G.story.done ? chapter(G) : null;
+            const lines = ['A stone tablet, set into the wall. The letters are very old.', text];
+            if (c && G.story.tabs > before) lines.push(`(The Chronicler will want to hear this. ${Math.min(G.story.tabs, c.obj.n)}/${c.obj.n})`);
+            ev(G, 'found');
+            nudgeStory(G);
+            dlg(G, 'result', 'Lore Tablet', lines, OK);
+            return true;
+        }
         case 'relic': {
             if (ft.taken) return false;
             ft.taken = true;
@@ -469,6 +496,8 @@ function chestChoose(G, ft, id) {
     G.gold += loot.gold; G.stats.goldEarned += loot.gold;
     const lines = [`${loot.gold} gold`];
     for (const it of loot.items) { give(G, it, 'found'); lines.push(itemLabel(it)); }
+    const art = rollUnique(G, G.rng, G.depth, ft.secret ? 0.05 : ft.tier >= 2 ? 0.06 : 0);
+    if (art) { give(G, art, 'found'); lines.push(`★ ${art.name}`); ev(G, 'artifact'); }
     ft.opened = true;
     misc(G, 'chests');
     ev(G, 'chest');
@@ -595,6 +624,7 @@ export function endBattle(G) {
             G.cleared = Math.max(G.cleared, G.depth);
             questBoss(G, G.depth);
             say(G, 'The guardian is slain. The way down is open.', 14);
+            nudgeStory(G);
             ev(G, 'bossDown');
         } else if (ctx.kind === 'den' && f) {
             const ft = f.feat[ctx.key];

@@ -21,7 +21,27 @@ export const THEMES = [
     { id: 'bone', name: 'Ossuary', wall: [7, 8, 15], floor: [7, 8], ceil: [8, 0], music: 7 },
     { id: 'fungal', name: 'Fungal Warren', wall: [5, 2, 10], floor: [2, 0], ceil: [0, 5], music: 8 },
     { id: 'obsidian', name: 'Obsidian Spire', wall: [8, 0, 12], floor: [0, 8], ceil: [0, 0], music: 9 },
+    { id: 'library', name: 'Lost Library', wall: [6, 4, 14], floor: [6, 0], ceil: [0, 6], music: 10 },
+    { id: 'temple', name: 'Sunken Temple', wall: [3, 2, 10], floor: [2, 3], ceil: [0, 3], music: 11 },
+    { id: 'clockwork', name: 'Clockwork Works', wall: [8, 7, 14], floor: [7, 8], ceil: [8, 0], music: 12 },
+    { id: 'forge', name: 'Bloodforge', wall: [12, 4, 14], floor: [4, 0], ceil: [0, 4], music: 13 },
+    { id: 'crystal', name: 'Crystal Gardens', wall: [11, 9, 15], floor: [9, 1], ceil: [1, 9], music: 14 },
+    { id: 'void', name: 'Void Rift', wall: [1, 5, 13], floor: [5, 0], ceil: [0, 0], music: 15 },
 ];
+
+/** How a floor is laid out. Each style changes the generator's knobs and the look of its walls. */
+export const STYLES = {
+    maze: { name: '', rooms: 1, minR: 2, maxR: 4, doors: 0.75, loops: 0.05 },
+    caves: { name: 'Caverns', rooms: 1.6, minR: 2, maxR: 5, doors: 0, loops: 0.3 },
+    halls: { name: 'Great Halls', rooms: 0.55, minR: 3, maxR: 7, doors: 0.95, loops: 0.03 },
+    warren: { name: 'Warren', rooms: 0, minR: 2, maxR: 2, doors: 0.5, loops: 0.0 },
+};
+export function styleFor(worldSeed, depth) {
+    if (depth <= 2) return 'maze';
+    const r = seeded(worldSeed, depth, 21)();
+    return r < 0.4 ? 'maze' : r < 0.62 ? 'caves' : r < 0.84 ? 'halls' : 'warren';
+}
+export const isDark = (worldSeed, depth) => depth >= 4 && seeded(worldSeed, depth, 22)() < 0.15;
 
 export const TRAP_KINDS = ['dart', 'pit', 'alarm', 'tele', 'spin', 'rune', 'gas'];
 export const NPC_KINDS = ['merchant', 'hermit', 'adventurer', 'gambler', 'riddler', 'healer', 'questgiver'];
@@ -95,8 +115,10 @@ export function genFloor(worldSeed, depth, quest = null) {
     const f = {
         depth, w, h, theme: themeFor(worldSeed, depth), hw: new Uint8Array(w * (h + 1)).fill(1), vw: new Uint8Array((w + 1) * h).fill(1),
         seen: new Uint8Array(w * h), room: new Int16Array(w * h).fill(-1), feat: {}, start: { x: 0, y: 0 }, down: { x: 0, y: 0 }, rooms: [], secrets: 0, name: '',
+        style: styleFor(worldSeed, depth), dark: isDark(worldSeed, depth),
     };
-    f.name = `${THEMES[f.theme].name} B${depth}F`;
+    const ST = STYLES[f.style];
+    f.name = `${THEMES[f.theme].name} B${depth}F${ST.name ? ' (' + ST.name + ')' : ''}${f.dark ? ' - Pitch Black' : ''}`;
 
     // 1. perfect maze (iterative DFS)
     const vis = new Uint8Array(w * h);
@@ -119,10 +141,10 @@ export function genFloor(worldSeed, depth, quest = null) {
     }
 
     // 2. rooms: open rectangles, doors where corridors meet them
-    const maxR = depth > 12 ? 5 : 4;
-    const tries = Math.floor(w * h / 36) + 2;
+    const tries = ST.rooms ? Math.floor(w * h / 36 * ST.rooms) + 2 : 0;
     for (let i = 0; i < tries; i++) {
-        const rw = rng.int(2, maxR), rh = rng.int(2, maxR);
+        const rw = rng.int(ST.minR, ST.maxR), rh = rng.int(ST.minR, ST.maxR);
+        if (rw > w || rh > h) continue;
         const rx = rng.int(0, w - rw), ry = rng.int(0, h - rh);
         let ok = true;
         for (let y = Math.max(0, ry - 1); y <= Math.min(h - 1, ry + rh) && ok; y++) {
@@ -143,7 +165,7 @@ export function genFloor(worldSeed, depth, quest = null) {
         for (let d = 0; d < 4; d++) {
             const nx = x + DIRS[d].dx, ny = y + DIRS[d].dy;
             if (!inb(f, nx, ny) || f.room[cellIdx(f, nx, ny)] === rid) continue;
-            if (getEdge(f, x, y, d) === 0 && rng() < 0.75) setEdge(f, x, y, d, 2);
+            if (getEdge(f, x, y, d) === 0 && rng() < ST.doors) setEdge(f, x, y, d, 2);
         }
     }
     // 3. loops, so the maze isn't a tree
@@ -153,7 +175,7 @@ export function genFloor(worldSeed, depth, quest = null) {
             if (!inb(f, nx, ny) || getEdge(f, x, y, d) !== 1) continue;
             const a = f.room[cellIdx(f, x, y)], b = f.room[cellIdx(f, nx, ny)];
             if (a >= 0 && a === b) continue;
-            if (rng() < 0.05) setEdge(f, x, y, d, a >= 0 || b >= 0 ? 2 : 0);
+            if (rng() < ST.loops) setEdge(f, x, y, d, (a >= 0 || b >= 0) && ST.doors > 0 ? 2 : 0);
         }
     }
 

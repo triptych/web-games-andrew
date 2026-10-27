@@ -22,6 +22,8 @@ import { accept, abandon, turnIn } from './quests.js';
 import { startBattle, resolveRound, tryFlee } from './battle.js';
 import { packFloor, unpackFloor } from './dungeon.js';
 import { move, search, interact, dlgChoose, endBattle, enterDungeon, returnToTown } from './world.js';
+import { newStory, startStory, claimChapter } from './story.js';
+import { checkAchievements } from './achievements.js';
 import { equip, unequip, useItem, fieldSkill, setRow, moveMember, drop } from './camp.js';
 
 export const SAVE_V = 1;
@@ -32,7 +34,7 @@ export function newGame(seed = 1, classes = DEFAULT_PARTY, names = []) {
         v: SAVE_V, seed, rng: makeRng(seed ^ 0x9e3779b9), uid: 0, day: 1, steps: 0, stepAcc: 0, idleAcc: 0, gold: 300,
         party: [], inv: [], depth: 0, maxDepth: 1, cleared: 0, floor: null, floors: {}, floorOrder: [], pos: { x: 0, y: 0, d: 0 },
         town: { stock: null, recruits: [] }, quests: { active: [], board: [], done: 0, nextId: 1 }, biz: newBiz(), guildBonus: 0,
-        bless: null, feast: null, journal: newJournal(), danger: 0, arrived: false,
+        bless: null, feast: null, uniques: {}, ach: {}, story: newStory(), journal: newJournal(), danger: 0, arrived: false,
         stats: { kills: 0, goldEarned: 0, goldSpent: 0, days: 0, deaths: 0, steps: 0 },
         dialog: null, battle: null, events: [],
     };
@@ -56,6 +58,7 @@ export function act(G, c) {
     dispatch(G, c);
     // gear, curses and level-ups all move the maximums: keep every member's pools inside them
     for (const m of G.party) clampVitals(m);
+    checkAchievements(G);
 }
 
 function dispatch(G, c) {
@@ -95,6 +98,8 @@ function dispatch(G, c) {
         case 'swap': moveMember(G, c.who, c.dir); break;
         case 'autoequip': { const m = G.party[c.who]; if (m) autoEquip(G, m); break; }
         case 'drop': drop(G, c.item); break;
+        case 'storyStart': if (!G.floor) startStory(G); break;
+        case 'storyClaim': if (!G.floor) claimChapter(G); break;
         case 'debugBattle': startBattle(G, c.enemies, c.opts || {}); break;
     }
 }
@@ -131,6 +136,9 @@ export function deserialize(d) {
     const { rngState, floors, ...rest } = d;
     const G = { ...JSON.parse(JSON.stringify(rest)), rng: makeRng(0), events: [], floors: {}, floor: null };
     G.rng.setState(rngState);
+    G.uniques = G.uniques || {};
+    G.ach = G.ach || {};
+    G.story = G.story || newStory();
     for (const k of Object.keys(floors)) G.floors[k] = unpackFloor(floors[k]);
     G.floor = G.depth > 0 ? G.floors[G.depth] || null : null;
     if (G.depth > 0 && !G.floor) G.depth = 0;

@@ -12,6 +12,7 @@ import {
 import { checkpoints } from './world.js';
 import { isReady } from './quests.js';
 import { avgLvl } from './core.js';
+import { storyReady } from './story.js';
 
 export function makeBot(o = {}) {
     return { explore: o.explore ?? 0.55, push: o.push ?? 1.0, grind: 0, wait: 0, cmds: 0, townVisits: 0, lastTown: -1, stuck: 0, ...o };
@@ -58,6 +59,8 @@ const relMove = (facing, dir) => ['f', 'sr', 'b', 'sl'][(dir - facing + 4) % 4];
 function townRoutine(G, bot) {
     const A = (c) => act(G, c);
     A({ t: 'collect' });
+    if (!G.story.on) A({ t: 'storyStart' });
+    while (storyReady(G)) A({ t: 'storyClaim' });
     // quests
     for (const q of [...G.quests.active]) if (isReady(G, q)) A({ t: 'turnin', id: q.id });
     for (const q of [...G.quests.board]) if (G.quests.active.length < 2 && ['slay', 'reach', 'boss'].includes(q.type)) A({ t: 'accept', id: q.id });
@@ -223,6 +226,7 @@ function dungeonStep(G, bot) {
         if (ft.type === 'gather') return ft.left > 0 && G.inv.length < 60;
         if (ft.type === 'spring') return ft.left > 0 && hurt;
         if (ft.type === 'relic') return !ft.taken && relicQ;
+        if (ft.type === 'tablet') return !ft.read;
         if (ft.type === 'npc') return !ft.done && (['hermit', 'adventurer', 'questgiver'].includes(ft.kind) || (ft.kind === 'healer' && hpFrac(G) < 0.5 && G.gold > 300));
         if (ft.type === 'altar') return !ft.used && ft.kind === 'shrine' && G.gold > 600;
         return false;
