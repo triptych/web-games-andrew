@@ -1574,6 +1574,21 @@ const games = [
             { emoji: '\uD83C\uDF70', label: 'Cozy story' },
             { emoji: '\uD83D\uDDBC\uFE0F', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-104',
+        title: 'Hemlock Hollow',
+        description: 'An intense, suspenseful gothic mystery in black and white, in the manner of a Sierra On-Line text adventure. You are Elspeth, a hedge witch\'s apprentice, and your mentor Marga has been kidnapped. With a second apprentice, Bryony, you learn herbs, healing and a handful of spells, and uncover a plot by the town\'s Governor to seize every hedge witch and healer so that the farmers and townsfolk must pay ruinous fees to his hospital and his shop. Type commands to a real parser (or tap shortcuts on a phone), brew cures with the kettle, hide when you hear boots, and gather proof before midnight on the Hollow Moon. Twenty-six rooms in six chapters, one-bit dithered pictures, a typewriter transcript in blackletter and candlelight, sixteen characters, five spells, three endings and a great many absurd deaths. A bot plays the whole story in Node and proves it can be won. Every picture, tune and word is made in code.',
+        icon: '\uD83C\uDF3F',
+        folder: 'game-104',
+        version: '1.0.0',
+        cssClass: 'hemlock-hollow',
+        genre: 'story',
+        tags: [
+            { emoji: '\uD83D\uDD6F\uFE0F', label: 'Gothic mystery' },
+            { emoji: '\u2328\uFE0F', label: 'Text adventure' },
+            { emoji: '\uD83D\uDDBC\uFE0F', label: 'Canvas 2D' }
+        ]
     }
 ];
 

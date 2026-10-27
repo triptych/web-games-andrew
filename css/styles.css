@@ -1314,6 +1314,17 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 143, 177, 0.65);
 }
 
+.game-preview.hemlock-hollow,
+.carousel-slide-bg.hemlock-hollow {
+    background: radial-gradient(circle at 70% 30%, #f0f0f0 0 9%, #8a8a8a 10% 16%, transparent 17%), repeating-linear-gradient(45deg, #000 0 3px, #1a1a1a 3px 6px), #000;
+}
+
+.game-card.hemlock-hollow .play-button {
+    background: linear-gradient(135deg, #f0f0f0, #8a8a8a);
+    color: #000;
+    box-shadow: 0 0 14px rgba(240, 240, 240, 0.55);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

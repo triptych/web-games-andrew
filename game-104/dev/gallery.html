@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Hemlock Hollow: scene gallery</title>
+<style>
+body { background: #222; color: #ddd; font: 12px monospace; margin: 8px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, 648px); gap: 10px; }
+figure { margin: 0; } canvas { width: 640px; height: 272px; image-rendering: pixelated; border: 4px solid #555; display: block; }
+</style></head><body>
+<div class="grid" id="g"></div>
+<script type="module">
+import { drawScene, drawActors, finish, SCENE_IDS, SCENE_SIZE } from '../js/view/art.js';
+const q = new URLSearchParams(location.search);
+const only = q.get('scene');
+const t = +(q.get('t') || 2.2);
+const g = document.getElementById('g');
+for (const id of SCENE_IDS) {
+    if (only && only !== id) continue;
+    const fig = document.createElement('figure');
+    const c = document.createElement('canvas'); c.width = SCENE_SIZE.w; c.height = SCENE_SIZE.h;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    const npcs = id === 'works' ? [{ id: 'vesper', kind: 'doctor', x: 200 }] : id === 'gate' ? [{ id: 'dray', kind: 'bailiff', x: 246 }] : id === 'oak' ? [{ id: 'gammer', kind: 'ghost', x: 215 }] : id === 'square' ? [{ id: 'x', kind: 'bailiff', x: 280 }] : id === 'inn' ? [{ id: 'hob', kind: 'man', x: 215 }] : id === 'chapel' ? [{ id: 'moll', kind: 'sexton', x: 200 }] : id === 'row' ? [{ id: 'tanner', kind: 'crone', x: 180 }, { id: 'tobias', kind: 'child', x: 250 }] : id === 'infirmary' ? [{ id: 'sable', kind: 'matron', x: 220 }] : id === 'apothecary' ? [{ id: 'pell', kind: 'man', x: 215 }] : [];
+    const S = { art: id, npcs: [...npcs, { id: 'bryony', kind: 'witch', x: 0, party: true }], lantern: true, dark: false, dread: +(q.get('dread') || 0), hidden: false, veil: q.get('veil') === '1', gateOpen: false, millOpen: false };
+    drawScene(ctx, S, t); drawActors(ctx, S, t); finish(ctx, S, t);
+    fig.append(c, id); g.append(fig);
+}
+</script></body></html>

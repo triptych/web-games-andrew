@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-103 games, `game-001` through `game-103`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+104 games, `game-001` through `game-104`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -121,6 +121,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 101 | [PixelCrypt](game-101/) | A first-person dungeon crawler in 16 EGA colours: six classes, an endless procedural dungeon with secret doors, guardians, caverns and warrens, cursed loot and unique artifacts, achievements, an optional saga, an automap, a journal, a town with eight places and idle investments that pay daily | three.js |
 | 102 | [STARSLING](game-102/) | A physics slingshot in space: fling Rock, Iron, Ice and Nova asteroids at floating stations to scrap the robots, in a synthwave sunset with black holes, fuel chain reactions and six sectors | three.js |
 | 103 | [Crown & Crumpet](game-103/) | A cosy isometric tactics story: a clumsy princess at a school of magic and marching rescues a party of friends, and the Dread Lord turns out to be a chef | Canvas 2D |
+| 104 | [Hemlock Hollow](game-104/) | A gothic black-and-white Sierra-style text adventure: a witch's apprentice, herbs, hedge-magic and a Governor who kidnaps healers to sell cures | Canvas 2D |
 
 ### Highlights
 

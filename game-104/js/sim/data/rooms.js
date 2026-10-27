@@ -1,0 +1,428 @@
+// The map. Each room: name, art (scene id for the view), desc (string or fn), exits, things
+// (scenery you can look at; story rules give them verbs), plants (picks left of each herb),
+// optional hide spot, patrol, sight text, and flags safe / dark.
+// patrol: { period, at, len, warn, hit, pass, dread, disguise }. On move number M with
+// phase = M % period, the patrol arrives at phase `at` (it warns one move before) and stays `len`.
+
+import { has, disguised, points, clue } from '../core.js';
+
+const hasKit = (G) => has(G, 'satchel') && !!G.flags.read_note;
+
+export const ROOMS = {
+    cottage: {
+        name: 'Marga\'s Cottage', art: 'cottage', safe: true,
+        desc: () => `The cottage is wrong in the dark. The hearth still breathes a little warmth, and the copper kettle on its hook is warm, which means that whoever took Marga was here an hour ago, not a day. The door hangs from one hinge, splintered at the latch. Her stool lies on its side. Moonlight lays a bone-pale stripe across the floorboards, and in it the dust has been scuffed by boots far too heavy for a hedge witch's house. A trapdoor leads down to the stillroom beside the table. The garden is out the broken door.`,
+        exits: {
+            out: { to: 'garden', names: ['door', 'garden', 'outside', 'yard'] },
+            d: { to: 'stillroom', names: ['trapdoor', 'hatch', 'stillroom', 'cellar', 'stairs'] },
+        },
+        things: {
+            cottage_door: { names: ['door', 'latch', 'hinge', 'splinters'], look: `The door hangs from its top hinge, the latch burst inward, not picked. Whoever came did not mean to be quiet, and did not care who knew it.` },
+            hearth: { names: ['hearth', 'fire', 'embers', 'fireplace', 'chimney', 'hearthstone', 'stone', 'hearth stone'], look: (G) => G.flags.found_purse ? `The hearth is banked low. The loose hearthstone sits back in place now, a finger-width proud of the others.` : `The hearth is banked low, the embers breathing orange. One hearthstone sits a finger-width proud of the others, as if it had been lifted and put back many times by the same hand.` },
+            stool: { names: ['stool', 'chair', 'seat'], look: `Marga's three-legged stool lies on its side. She never in her life left it there. She would sooner have left a baby on the floor.` },
+            table: { names: ['table', 'cup', 'teacup', 'tea cup', 'mug'], look: (G) => `A scrubbed deal table. A teacup sits on it, half full and gone cold, with its saucer askew${G.loc.note === 'cottage' ? ', and a folded paper tucked under it' : ''}. Marga was drinking tea when they came, then.` },
+            floor: { names: ['floor', 'boards', 'floorboards', 'prints', 'boot prints', 'footprints', 'dust', 'boots'], look: (G) => G.flags.found_button ? `Heavy, iron-shod bootprints cross the dust: three sets, maybe four, all heading for the door.` : `Heavy, iron-shod bootprints cross the dust: three sets, maybe four. They head toward the door. One set is deeper, as if its owner carried something. Something small and bright is caught in a crack between two boards.` },
+            trapdoor: { names: ['trapdoor', 'hatch', 'stillroom'], look: `A square trapdoor in the floor beside the table, its iron ring worn smooth. The stillroom is down there: Marga's shelves and jars.` },
+            cot: { names: ['cot', 'bed', 'blanket'], look: `Your own narrow bed, still warm, the blanket thrown back. You woke to a crash and a cold draught from the door; by the time you reached it, there was only the lane and an iron-wheeled sound going away.` },
+            hooks: { names: ['hook', 'peg', 'hooks', 'pegs'], look: `Hooks and pegs by the hearth for the kettle, the lantern and Marga's satchel.` },
+        },
+        plants: { salt: 3 },
+        plantNames: { salt: 'the crock on the shelf' },
+        sight: `Faint as breath on glass, the room remembers: a hard, cold hum, like a struck iron bell, lingers near the door. Whatever came through it carried something that fought against a spell. Beneath the hum, you catch the afterimage of a small, bright thing hidden between the floorboards.`,
+    },
+    stillroom: {
+        name: 'Marga\'s Stillroom', art: 'stillroom', safe: true, dark: true,
+        desc: () => `Low beams hang with a hundred bundles of drying plants, and the whole narrow room smells of summer packed into a cupboard. Shelves of labelled jars line the walls. A stone mortar sits on the workbench and a lectern stands in the corner. Stairs lead up to the cottage.`,
+        exits: { u: { to: 'cottage', names: ['stairs', 'up', 'cottage', 'trapdoor'] } },
+        things: {
+            jars: { names: ['jars', 'jar', 'shelves', 'shelf', 'labels', 'bottles'], look: `Labels in Marga's looping hand: YARROW. PLANTAIN. RUE. FEVERFEW. VALERIAN. WORMWOOD. At the end of the top shelf stands an empty jar, its label turned face-down. You turn it over: WINTERGREEN. The jar has been wiped clean, not emptied by Marga.` },
+            bundles: { names: ['bundles', 'beams', 'plants', 'herbs'], look: `Bundles of drying herbs hang from the beams: yarrow, sage, thyme, lavender. They sway, though there is no draught. It is only you, and the lantern's heat.` },
+            mortar: { names: ['mortar', 'pestle', 'workbench', 'bench'], look: `A heavy stone mortar, stained green and brown by fifty years of leaves. Marga ground every salve you ever saw here.` },
+            lectern: { names: ['lectern', 'stand'], look: (G) => G.loc.herbal === 'stillroom' ? `A carved lectern with Marga's Herbal lying open on it.` : `The empty lectern. A pale rectangle in the dust shows where the Herbal lay.` },
+        },
+        plants: {},
+        sight: `The stillroom hums with a hundred small green lives. And near the empty jar a fainter, colder thing: the memory of a gloved hand that took something, quickly and calmly, as if it knew exactly where to look.`,
+    },
+    garden: {
+        name: 'Marga\'s Herb Garden', art: 'garden', safe: true,
+        desc: () => `Moon-silvered rows of herbs run down to a crooked fence. Some of the beds have been trampled flat by heavy boots, but most of it survived: yarrow in white plates, grey-green sage, silvery rosemary, blue-leaved rue, and a patch of plantain growing in the path where Marga always tells you it is not a weed. The old well stands at the end of the path. The cottage door is behind you. A gate leads north to the lane.`,
+        exits: {
+            in: { to: 'cottage', names: ['cottage', 'door', 'house', 'home', 'inside'] },
+            n: { to: 'lane', names: ['gate', 'lane', 'north', 'road'], block: (G) => hasKit(G) ? null : `You stop at the gate. You can't walk out into the night with empty hands and no idea why. Take Marga's satchel, and read whatever she left for you on the table.` },
+        },
+        things: {
+            well: { names: ['well', 'bucket', 'rope', 'curb', 'water'], look: `A stone well with a low curb and a bucket on a frayed rope. The water far down shows a small, wobbling moon. It is a very deep well.` },
+            fence: { names: ['fence', 'gate'], look: `A crooked wattle fence. The gate hangs open. The latch of it is torn off.` },
+            beds: { names: ['beds', 'bed', 'rows', 'boot prints', 'trampled'], look: `Boot-prints cross the herb beds in a straight line, from the lane to the cottage door and back. Four men, iron-shod, and a hand-cart waiting at the gate: its wheel has left a deep groove in the soft earth.` },
+        },
+        plants: { yarrow: 2, plantain: 2, rue: 6, sage: 2, rosemary: 3 },
+        sight: `The garden remembers boots, and one other thing: a long grey thread of binding-hum, a cold silk of a spell, lies across the beds from the cottage to the lane, as if something had been dragged on a leash of magic.`,
+    },
+    lane: {
+        name: 'Hollow Lane', art: 'lane', safe: true,
+        desc: () => `Hedges close over the lane like folded hands. The night is very quiet, in the way a room is quiet after an argument. A crow sits on the gatepost, watching you. The lane runs north toward the crossroads, a track leads west into the Whisperwood, and the garden gate is behind you. In the soft mud, cart tracks lead away north.`,
+        exits: {
+            s: { to: 'garden', names: ['garden', 'gate', 'south', 'home', 'cottage'] },
+            n: { to: 'crossroads', names: ['crossroads', 'north', 'road'] },
+            w: { to: 'wood', names: ['wood', 'whisperwood', 'woods', 'west', 'track', 'forest'] },
+        },
+        things: {
+            hedges: { names: ['hedges', 'hedge', 'brambles', 'thorns'], look: `Tall, thick, thorny hedges. A scrap of black wool with a thread of brass in it hangs from a thorn at about a tall man's shoulder.` },
+            tracks: { names: ['tracks', 'cart tracks', 'mud', 'ruts', 'wheel', 'cart'], look: `Two wheel ruts, deep, the left one with a notch in the rim that leaves a mark like a stitch. The cart was heavy and it went north, toward the crossroads.` },
+            gatepost: { names: ['gatepost', 'post'], look: `A mossy stone gatepost. Corvin the crow sits on it as if he owned it.` },
+        },
+        plants: {},
+        sight: `The hedge-wall hums with small, sleepy lives. Overhead, the crow's thoughts are a hard, bright flicker of worry, like a candle in a window.`,
+    },
+    wood: {
+        name: 'The Whisperwood', art: 'wood', safe: true,
+        desc: () => `The trees stand close and talk among themselves, in a language of creaking and dripping. The air smells of wet bark and rot, and moonlight comes down in thin silver bars. Plants crowd the ground: you can smell valerian before you see it, and a pale tree of elderflowers shines in the gloom. A green carpet of moss lies to the west, flat and untroubled as a lawn. Pale mushrooms stand in rings at the roots. The lane is east.`,
+        exits: { e: { to: 'lane', names: ['lane', 'east', 'out'] } },
+        things: {
+            bog: { names: ['bog', 'moss', 'carpet', 'green carpet', 'lawn', 'marsh', 'swamp'], look: `A level, brilliant-green carpet of moss, so smooth and inviting that it looks like a lawn. A heron stands a long way out in it, quite still. It is not standing on anything.` },
+            mushrooms: { names: ['mushrooms', 'mushroom', 'toadstools', 'toadstool', 'fungi', 'rings', 'fairy ring'], look: `Pale mushrooms in a ring at the foot of an oak: white caps, a skirt on the stem, a faint smell of almonds. You are fairly sure Marga has told you what these are called. You are quite sure she told you to leave them alone.` },
+            trees: { names: ['trees', 'tree', 'oak', 'bark', 'whisper', 'whispers'], look: `Old oaks, hung with grey lichen. Their whispering sounds almost like words when you stop walking.` },
+        },
+        plants: { valerian: 3, wormwood: 2, mugwort: 3, elderflower: 3, nightshade: 1, hemlock: 1 },
+        sight: `The wood hums with a thousand tiny awarenesses. The pale mushrooms flare white; the nightshade and hemlock glow with a thin, sick, greenish light that says plainly: don't.`,
+    },
+    crossroads: {
+        name: 'The Crossroads', art: 'crossroads', safe: true,
+        desc: () => `Five roads meet under a bruise-coloured sky. A leaning signpost points three ways. North, the road runs down to the lights of Ashwick. West, a path leads to a mill. East, a black oak stands alone on a rise. To the north-east, a road climbs toward Gallows Hill, but a chain is strung across it and a notice nailed to the post. The lane lies south.`,
+        exits: {
+            s: { to: 'lane', names: ['lane', 'south', 'home'] },
+            n: { to: 'gate', names: ['ashwick', 'gate', 'town', 'north'] },
+            w: { to: 'millyard', names: ['mill', 'foxglove mill', 'west', 'path'] },
+            e: { to: 'oak', names: ['oak', 'hanged oak', 'east', 'rise', 'tree'] },
+            ne: { to: 'hill', solid: true, names: ['hill', 'gallows hill', 'northeast', 'chain'], block: () => `The chain is padlocked, and the notice says GALLOWS HILL ROAD CLOSED BY ORDER OF THE GOVERNOR: SALT WORKS. Two lanterns bob far up the slope, where someone is guarding it, and a hard, sour wind from that direction smells of brine. You will not get through that way.` },
+        },
+        things: {
+            signpost: { names: ['signpost', 'sign', 'post', 'fingerpost', 'signs'], look: `The sign reads ASHWICK 2 MI (north), FOXGLOVE MILL (west), THE HANGED OAK (east). A fourth arm, once pointing north-east to Gallows Hill, has been neatly sawn off.` },
+            notice: { names: ['notice', 'chain', 'padlock', 'paper'], look: `A freshly-printed notice nailed to the post: "GALLOWS HILL ROAD CLOSED. BY ORDER OF THE GOVERNOR. SALT WORKS: NO ENTRY. TRESPASSERS WILL BE DETAINED." The chain is new. The padlock is bright.` },
+            tracks: { names: ['tracks', 'cart tracks', 'ruts', 'mud'], look: `The cart-ruts come up from the lane and turn north-east, toward the chain on the Gallows Hill road. The chain has been unlocked and relocked: the ruts go straight through it.` },
+        },
+        plants: {},
+        sight: `At the north-east road, a cold iron hum of the same kind you felt in the cottage hangs in the air, many times stronger. Something goes up that road at night, and does not come back down the same way.`,
+    },
+    millyard: {
+        name: 'Foxglove Mill: the Yard', art: 'millyard', safe: true,
+        desc: (G) => `A tall black mill stands over a dark millpond, its sails still, the water-wheel slimed and quiet. A willow trails its hair in the pond. Comfrey and eyebright grow thick around the foundations. The mill's heavy oak door ${G.flags.mill_open ? 'stands open on the dark' : 'is shut, and from the sound of it, barred from within'}. The path back to the crossroads is east.`,
+        exits: {
+            e: { to: 'crossroads', names: ['crossroads', 'east', 'path', 'road'] },
+            in: { to: 'mill', names: ['mill', 'door', 'inside', 'in'], block: (G) => G.flags.mill_open ? null : `The mill door is barred from within. Someone is in there. You can KNOCK.` },
+        },
+        things: {
+            mill_door: { names: ['door', 'mill door', 'oak door', 'slit', 'bar'], look: (G) => G.flags.mill_open ? `The mill door stands open on the dark.` : `A heavy oak door, iron-bound, with a lantern-slit at eye height. Behind it, something small and metallic shifts: very much like a crossbow being cocked.` },
+            willow: { names: ['willow', 'willow tree', 'tree', 'trunk'], look: `A great old willow dipping into the pond. The bark of the lower branches is grey-green and damp, and there is a good deal of it to spare.` },
+            millpond: { names: ['pond', 'millpond', 'water', 'wheel', 'water wheel'], look: `Black water with a thin skin of moonlight on it. The water-wheel has stopped. In the silence you can hear a long, slow drip.` },
+        },
+        plants: { comfrey: 2, eyebright: 2, willow_bark: 4 },
+        plantNames: { willow_bark: 'the willow' },
+        sight: `A wire of cold hum has been pulled taut around the mill: the same bound hum that clung to the hedge at Marga's. The bailiffs came here too, and failed. Inside, a small, hot, frightened light burns steadily, with a hard rim of anger.`,
+    },
+    mill: {
+        name: 'Foxglove Mill: Inside', art: 'mill', safe: true,
+        desc: () => `The mill's great stone floor is scattered with slashed sacks, and flour hangs in the air like fog. Somebody has overturned the bunks and smashed every jar. A cold hearth sits in the corner and a ladder goes up to a hay loft. The only light is a little pale moonlight through the slit in the door.`,
+        exits: { out: { to: 'millyard', names: ['door', 'out', 'outside', 'yard'] } },
+        things: {
+            sacks: { names: ['sacks', 'sack', 'flour', 'bags'], look: (G) => G.loc.manifest === 'limbo' ? `Flour sacks slit down the middle, their white guts spilled. Something paler than the flour glints in the drift: a torn scrap of paper.` : `Flour sacks slit down the middle, their white guts spilled.` },
+            bunks: { names: ['bunks', 'bunk', 'beds', 'bed'], look: `Two narrow bunks, flung over. A pair of old woman's spectacles lie under one, with a lens cracked. Granny Dunmore's, you suppose.` },
+            loft: { names: ['loft', 'ladder', 'hay'], look: `A rough ladder up to a hay loft. A rope hangs from the beam above: Bryony's way out.` },
+            hearth: { names: ['hearth', 'fire', 'fireplace'], look: `A cold hearth, scattered with the ashes of a fire put out in a hurry.` },
+            crossbow: { names: ['crossbow', 'bow', 'bolt', 'weapon'], look: `A little iron crossbow with a bolt on the string, held by a very steady hand.` },
+        },
+        plants: {},
+        sight: `The mill hums with something the bailiffs left, a cold, ironbound taste, and with a younger, hotter note: a girl's temper, bright as a struck match.`,
+    },
+    oak: {
+        name: 'The Hanged Oak', art: 'oak', safe: true,
+        desc: (G) => `A great black oak stands alone on a bare rise, as big as a cathedral and as old as the road. Rotted ropes still hang from its lowest boughs, swaying with no wind. Names have been carved in the bark by hands that knew they would not be there long. Blue-purple spikes of vervain grow thickly around the roots. ${G.npcLoc.gammer === 'oak' ? 'A pale figure stands under the boughs, waiting.' : 'The wind has dropped. Everything is holding its breath.'}`,
+        exits: { w: { to: 'crossroads', names: ['crossroads', 'west', 'road'] } },
+        things: {
+            oak_tree: { names: ['oak', 'tree', 'bough', 'boughs', 'branches', 'trunk'], look: `A vast, black, leafless oak. The lowest branches are scarred with old rope-grooves, and every groove is smooth and polished, as if by long, long use.` },
+            ropes: { names: ['ropes', 'rope', 'nooses', 'noose'], look: `Rotted ropes, ending in loops. There are eleven. They creak. The dead are never quite finished.` },
+            carvings: { names: ['carvings', 'carving', 'names', 'bark', 'writing', 'inscription'], look: (G) => {
+                G.flags.name_gammer = true;
+                points(G, 'name_gammer', 2);
+                clue(G, 'gammer', 'The Hanged Oak: a carving reads "M. GAMMER. HEALER. HANGED 3RD NOV." The dead may answer to her name, if offered manners (rue).');
+                return `Dozens of names, scratched into the bark in a dozen hands: Agnes. Little Bet. Mother Sloe. And a fresher, deeper carving, in a firm hand: "M. GAMMER. HEALER. HANGED 3RD NOV. SHE HEALED THE GOVERNOR'S GRANDFATHER." Someone has kept this one clean and cut it deeper, year by year.`;
+            } },
+            roots: { names: ['roots', 'root', 'foot', 'ground', 'hollow'], look: `Great knuckled roots, thick with vervain. In a hollow between two of them lie withered sprigs: old offerings, left by someone who still remembers. Rue, most of them.` },
+        },
+        plants: { vervain: 3 },
+        sight: () => `The oak is a wound the world has not stopped bleeding from. In its roots, under the vervain, a small steady light waits to be called: a spirit that would speak, if offered manners and called by her name.`,
+    },
+    gate: {
+        name: 'Ashwick: the Gate', art: 'gate', safe: false,
+        desc: (G) => `Ashwick's gate is a toothy black arch under the Governor's banner: a white crow on black. A brazier burns by the gatehouse door. Corporal Dray ${G.flags.gate_open ? 'is snoring on a barrel beside it, a flask dangling from a hook by his head' : 'sits on a barrel with his boot across the way, a flask hanging from a hook by his elbow, looking at you like a man who is paid to find something wrong'}. The road south leads back to the crossroads. The town lies north.`,
+        exits: {
+            s: { to: 'crossroads', names: ['crossroads', 'south', 'road'] },
+            n: { to: 'square', names: ['town', 'ashwick', 'north', 'gate', 'square'], block: (G) => G.flags.gate_open ? null : `Dray's boot is across the way, and he looks as though he would very much like to use it. "Licence," he says, without looking up. You have none. There is no way past him.` },
+        },
+        things: {
+            banner: { names: ['banner', 'flag', 'crow'], look: `A banner on a pole: a white crow on a black field. It reads, in tidy stitching, ORDER · HEALTH · PROSPERITY.` },
+            brazier: { names: ['brazier', 'fire', 'coals'], look: `A rusty iron brazier, full of glowing charcoal. The flames lean slightly toward the town, as if drawn.` },
+            dray_flask: { names: ['flask', 'hook', 'bottle', 'hip flask'], look: `A battered pewter hip-flask on a hook by Dray's elbow. He takes a pull from it every few minutes, and checks it when he thinks no one is looking. The stopper is loose.` },
+            barrels: { names: ['barrels', 'barrel', 'barrel seat'], look: `Salt-pork barrels, stencilled CRAY & SONS. Dray sits on one.` },
+        },
+        plants: {},
+        sight: `The banner hums with an old, thin spell of obedience: stitched into the crow, so that all who look at it will not look at what is under it.`,
+    },
+    square: {
+        name: 'Ashwick: the Market Square', art: 'square', safe: false,
+        desc: () => `Ashwick by night. Shuttered stalls stand in rows under dead lamps, and the cobbles are slick with the damp. In the centre, on a plinth, a bronze Governor Cray points proudly toward the Infirmary on the hill to the north, every window of it lit, the only house awake. A notice board is thick with fresh paper. The Drowned Rat inn lies east, Pell's Cure-All west, a small chapel to the north-west, and a crooked lane of poor houses to the south-east. The gate is south.`,
+        exits: {
+            s: { to: 'gate', names: ['gate', 'south', 'crossroads'] },
+            e: { to: 'inn', names: ['inn', 'drowned rat', 'tavern', 'pub', 'east'] },
+            w: { to: 'apothecary', names: ['pell', 'pell\'s', 'apothecary', 'shop', 'cure-all', 'cure all', 'west'] },
+            n: { to: 'infirmary', names: ['infirmary', 'hospital', 'hill', 'north'] },
+            nw: { to: 'chapel', names: ['chapel', 'church', 'st agnes', 'saint agnes', 'northwest'] },
+            se: { to: 'row', names: ['row', 'tanner\'s row', 'lane', 'houses', 'southeast'] },
+        },
+        things: {
+            statue: { names: ['statue', 'governor', 'plinth', 'cray', 'bronze'], look: `Bronze Governor Aldous Cray, with one finger pointing up the hill, and an expression of settled benevolence. The plinth reads: GOVERNOR ALDOUS CRAY: ORDER, HEALTH, PROSPERITY. Underneath, in chalk, someone has written: HEALTH AT 2 SILVER A BREATH.` },
+            board: { names: ['board', 'notice board', 'notices', 'notice', 'decree', 'edict', 'paper'], look: `The notice board is crammed with fresh printed edicts. READ it.` },
+            stalls: { names: ['stalls', 'stall', 'crates', 'market'], look: `Rows of shuttered market stalls. Stacked fish-crates and a tarpaulined handcart stand behind the nearest row: a good place for a woman to be a shadow in.` },
+            tower: { names: ['tower', 'bell', 'bell tower', 'clock'], look: `A squat tower stands above the chapel to the north-west. Its bell has not rung in years. The Governor banned it, as a disturbance.` },
+        },
+        hide: `You fold yourself into the narrow gap between a stack of fish-crates and a shuttered stall, and hold your breath.`,
+        patrol: { period: 9, at: 6, len: 2, dread: 30,
+            warn: `Hobnailed boots on the cobbles: somewhere beyond the stalls, a bailiff's lantern is swinging your way.`,
+            hit: `A bailiff in a long coat strolls through the square, and his lantern falls full on your face. "You. What are you doing out after the bell?" You mumble something. He watches you a moment too long, then moves on. Your heart is going like a rabbit's.`,
+            pass: `The bailiff's lantern sweeps the stalls, the crates, the very spot where you crouch... and moves on. The boots fade.` },
+        sight: `All of the town hums with the faint grey drone of a binding-spell: a thread laid over every roof, as if the whole of Ashwick were a house with a sleeping-draught in the well. The hum is strongest, by far, from the Infirmary on the hill.`,
+    },
+    inn: {
+        name: 'The Drowned Rat', art: 'inn', safe: true,
+        desc: () => `A low, smoky tavern of black beams and sour beer, with a good fire and bad company. Hob the innkeeper wipes a tankard behind the bar. Two bailiffs in long coats sit in the corner by the fire, heads together, talking in the thick, low voices of men who have been drinking all night and think no one can hear. A narrow staircase leads to rooms for hire. The door is west, to the square.`,
+        exits: { w: { to: 'square', names: ['square', 'door', 'out', 'west', 'outside'] } },
+        things: {
+            bar: { names: ['bar', 'counter', 'tankard', 'beer', 'ale'], look: `A stained oak bar, worn pale by elbows. A chalked price-list: ALE 1d. STEW 4d. ROOM 2 SILVER. A smaller line beneath: NO LICENCE, NO CREDIT.` },
+            fire: { names: ['fire', 'hearth', 'fireplace'], look: `A crackling fire, the best thing in the room. The corner by it holds two bailiffs, and the warmth makes them sleepy and talkative.` },
+            bailiffs: { names: ['bailiffs', 'bailiff', 'corner', 'men', 'crows'], look: `Two bailiffs in long coats sit by the fire, brass crows on their shoulders, red-eyed with ale. One is Corporal Wick, the other you do not know. They are leaning close, talking.` },
+            stairs: { names: ['stairs', 'staircase', 'room', 'rooms', 'bed', 'beds'], look: `A narrow staircase to the rooms above. A sign on the post: ROOM 2 SILVER. BUY ROOM to rest.` },
+        },
+        plants: {},
+        sight: `Warm, sour, ordinary: nothing here but ale and loneliness. Even the bailiffs, for a moment, look like men.`,
+    },
+    apothecary: {
+        name: 'Pell\'s Cure-All', art: 'apothecary', safe: false,
+        desc: () => `Bottled promises line the shelves from floor to ceiling: hundreds of identical squat brown bottles with gilt labels reading TONIC No. 9: THE GOVERNOR'S OWN. A brass till gleams on the counter. Master Pell stands behind it, smiling. The only other things on the shelves are a handful of herbs under glass, locked, and each marked RESERVED FOR LICENSED USE. The square is east.`,
+        exits: { e: { to: 'square', names: ['square', 'out', 'east', 'door', 'outside'] } },
+        things: {
+            shelves: { names: ['shelves', 'shelf', 'bottles', 'bottle'], look: `Every bottle on every shelf is the same: TONIC No. 9. The Governor's Own. It is the only thing Pell sells, apart from some locked herbs and a lot of reassurance.` },
+            till: { names: ['till', 'counter', 'brass till'], look: `A big brass till with a bell. Three silver for each bottle, with a notice: NO CREDIT. NO CURES ON ACCOUNT.` },
+            glass_case: { names: ['case', 'glass', 'herbs', 'locked herbs'], look: `A locked glass case, with a few dried herbs in it, each with a price tag that would feed a family for a month: RESERVED FOR LICENSED USE.` },
+        },
+        plants: {},
+        sight: `The bottles hum, all of them, in unison: a low, grey, bound note, like a thousand bees in a jar. Whatever is in Tonic No. 9, it is not only tonic.`,
+    },
+    row: {
+        name: 'Tanner\'s Row', art: 'row', safe: true,
+        desc: (G) => `A crooked lane of poor houses, leaning on each other for warmth. Washing hangs across the street between the upper windows. At the door of the nearest cottage a thin woman sits on the step with her head in her hands, and a small boy is lying on a pallet inside. Window-boxes of feverfew bob along the sill. At the lane's end a green back door belongs to Pell's shop. The square is north-west.${G.flags.scullery_open ? ' The scullery door stands ajar.' : ''}`,
+        exits: {
+            nw: { to: 'square', names: ['square', 'northwest', 'out', 'back'] },
+            in: { to: 'store', names: ['scullery', 'back door', 'door', 'storeroom', 'pell\'s', 'in', 'inside'], block: (G) => G.flags.scullery_open ? null : `The green back door of Pell's scullery is locked.` },
+        },
+        things: {
+            window_boxes: { names: ['window boxes', 'boxes', 'window box', 'window-boxes', 'sills', 'sill', 'pots', 'windowsill'], look: `Window-boxes full of feverfew, cheap, tough and ugly, and tended with great care.` },
+            scullery_door: { names: ['scullery door', 'back door', 'green door', 'door', 'lock', 'scullery'], look: (G) => G.flags.scullery_open ? `The scullery door, unlocked, ajar on the dark.` : `A narrow green back door with a sturdy lock: Pell's scullery. There is a smell of brine and cheap tonic from the other side.` },
+            washing: { names: ['washing', 'laundry', 'clothes', 'line', 'shirts'], look: `Washing hung out across the lane: shirts, stockings, a child's smock. Nothing white and starched.` },
+            house: { names: ['house', 'cottage', 'window', 'pallet', 'step'], look: `A tiny, damp cottage with a single room. A boy lies on a pallet inside, flushed and still.` },
+        },
+        plants: { feverfew: 3 },
+        sight: `A small, hot, thin spark of life burns in the cottage, guttering: the boy's. Around his bed the air has a faint, sour grey cast, as if something had been put into his drink and then withdrawn.`,
+    },
+    store: {
+        name: 'Pell\'s Storeroom', art: 'store', safe: false,
+        desc: () => `A long, cold storeroom stacked with wooden crates and brown barrels, and the whole place reeks of brine and sweetness. The crates are stencilled CRAY INFIRMARY: SALT WAGON No. 7. Upstairs, a floorboard creaks and falls silent. The scullery door is south.`,
+        exits: { out: { to: 'row', names: ['scullery', 'door', 'out', 'outside', 'row', 'south'] } },
+        things: {
+            crates: { names: ['crates', 'crate', 'boxes', 'box', 'stencil', 'wagon'], look: `Wooden crates stencilled CRAY INFIRMARY: SALT WAGON No. 7. The lids are nailed down, except one, which has a docket tucked under the corner. SEARCH the crates.` },
+            barrels: { names: ['barrels', 'barrel', 'tap', 'keg'], look: `Dozens of brown barrels, the same grey syrup in each: base tonic, to be watered, bottled and priced. It reeks.` },
+            stairs: { names: ['stairs', 'upstairs', 'ceiling', 'floorboard'], look: `A steep wooden stair to Pell's rooms above. As you look, a floorboard creaks again. He is awake. Don't linger.` },
+        },
+        plants: {},
+        sight: `The barrels hum with a low grey note, with a thread of something living wound through it: a knot a hedge witch ties when she is made to brew against her will. You know its twist. You have seen Marga tie it a hundred times, in thread.`,
+    },
+    chapel: {
+        name: 'St. Agnes\'s Chapel', art: 'chapel', safe: true,
+        desc: () => `A small stone chapel, cold as a well and smelling of candle-wax, damp and old hymns. Rows of black pews face a plain altar with one candle on it. A bell-rope hangs down from the dark of the tower, its end frayed. Sexton Moll sits in the front pew with a bunch of keys at her belt, mending a prayer-book, and looks up as you come in. A stair behind the altar leads down to the crypt. The door is south-east, back to the square.`,
+        exits: {
+            se: { to: 'square', names: ['square', 'door', 'out', 'southeast', 'outside'] },
+            d: { to: 'crypt', names: ['crypt', 'stair', 'stairs', 'down', 'altar'] },
+        },
+        things: {
+            altar: { names: ['altar', 'candle', 'cross'], look: `A plain stone altar with a single guttering candle. Someone has left a bunch of dried rue beside it, for the dead.` },
+            bell_rope: { names: ['rope', 'bell rope', 'bell', 'bell-rope', 'tower'], look: `A thick, tarred bell-rope hangs out of the dark tower, its end polished by someone's grip. The bell above has been silent for years.` },
+            pews: { names: ['pews', 'pew', 'seats', 'prayer book'], look: `Black pews, hard as boards. A battered prayer-book lies open on the nearest.` },
+        },
+        plants: {},
+        sight: `The chapel is quiet, clean, and the only place in Ashwick where the grey hum does not reach. Moll has laid salt along every sill.`,
+    },
+    crypt: {
+        name: 'The Crypt', art: 'crypt', safe: true, dark: true,
+        desc: (G) => `Low vaults of black stone, dripping, hung with spiderwebs, lined with the shelves where the dead of Ashwick have waited three hundred years. Cold as a tomb, because it is one. At the far end an iron-bound door has been set into the rock, its hinges thick with age and its lock newer than the rest: the salters' door. ${G.flags.crypt_open ? 'It stands unbolted.' : 'It is locked.'} The stair leads up to the chapel.`,
+        exits: {
+            u: { to: 'chapel', names: ['stairs', 'stair', 'up', 'chapel'] },
+            s: { to: 'tunnel', names: ['salters door', 'door', 'iron door', 'tunnel', 'south', 'salt road'], block: (G) => G.flags.crypt_open ? null : `The salters' door is locked from this side, and the lock is iron.` },
+        },
+        things: {
+            crypt_door: { names: ['door', 'salters door', 'salters\' door', 'iron door', 'iron-bound door', 'lock'], look: (G) => G.flags.crypt_open ? `The salters' door, unbolted, ajar on a black, cold draught that smells of brine.` : `A heavy iron-bound door in the rock, black with age, with a big new iron lock. Cold iron: no spell will turn it. A brass plate reads, in worn capitals: SALTERS' ROAD. The key was kept by the Infirmary.` },
+            tombs: { names: ['tombs', 'tomb', 'shelves', 'dead', 'bones', 'coffins', 'coffin'], look: `Shelves of old coffins and, on the lowest, a small heap of fresh pine boxes with brass plates. Last month's. The dates are all very close together.` },
+        },
+        plants: {},
+        sight: `The dead are quiet here, mostly. The salters' door breathes cold, the way a mouth breathes: there is a long, wet, salt-smelling tunnel behind it.`,
+    },
+    infirmary: {
+        name: 'The Cray Infirmary', art: 'infirmary', safe: false,
+        desc: (G) => `The Infirmary hall is all white tile and marble under a great chandelier, so clean it hurts. Banners hang between the pillars: HEALTH IS A PRIVILEGE OF THE LICENSED. Matron Sable sits at a desk with a ledger, writing without looking at her pen. A door marked WARD: STAFF AND PATIENTS ONLY leads north. The square is south.${disguised(G) ? ' In your apron and cap, you are nobody. Nobody at all.' : ''}`,
+        exits: {
+            s: { to: 'square', names: ['square', 'south', 'out', 'outside'] },
+            n: { to: 'ward', names: ['ward', 'north', 'door', 'long ward'], block: (G) => (disguised(G) || G.veil > 0) ? null : `Matron Sable looks up before you've gone three steps. "Patients and staff only. Name, ailment, and six silver deposit." You have a feeling the next step would be the last you took in this building.` },
+        },
+        things: {
+            desk: { names: ['desk', 'ledger', 'writing'], look: `A broad white desk with Matron Sable behind it, and a ledger so neatly kept it looks printed.` },
+            banners: { names: ['banners', 'banner', 'pillars', 'chandelier', 'tile'], look: `HEALTH IS A PRIVILEGE OF THE LICENSED. PAY AT THE DESK. Someone has scrubbed all trace of a smaller, older sign off the wall by the door: you can just read HEALTH IS FREE.` },
+            screen: { names: ['screen', 'palms', 'palm', 'plant'], look: `A folding screen and two potted palms stand in a corner, a fine place for a person to disappear.` },
+        },
+        hide: `You slip behind a folding screen and a potted palm, and keep very still.`,
+        patrol: { period: 8, at: 5, len: 2, dread: 25, disguise: true,
+            warn: `Rubber heels squeak on the tile, somewhere nearby. An orderly is coming.`,
+            hit: `An orderly in a white coat strides across the hall and stops dead. "You. What's your business?" He looks you slowly up and down. Matron Sable has gone very still. "Ah, nothing," you say, and he lets you go, but he watches your back the whole way.`,
+            pass: `An orderly crosses the hall with a clipboard, heels squeaking, and never looks your way.` },
+        sight: `The Infirmary is a nest of cold hum: it comes up through the floorboards in a slow, grey pulse, as if the whole building stood on a drum. Under the desk, something small and bright: a hedge witch's knot, hidden in the wood.`,
+    },
+    ward: {
+        name: 'The Long Ward', art: 'ward', safe: false,
+        desc: () => `A long white ward with two rows of iron beds, each with a sleeping patient, and a sweet, thick, sickroom stink that makes your head swim. A grey syrup bottle stands on every locker. At the far end, an orderly's chair sits empty. On the fourth bed on the right, a farmer lies awake, watching you. A door marked STAFF leads east to the dispensary. The hall is south.`,
+        exits: {
+            s: { to: 'infirmary', names: ['hall', 'south', 'infirmary', 'out'] },
+            e: { to: 'dispensary', names: ['dispensary', 'east', 'door', 'staff'], block: (G) => (disguised(G) || G.veil > 0) ? null : `A sign on the door: STAFF ONLY. You'd be noticed in a moment.` },
+        },
+        things: {
+            beds: { names: ['beds', 'bed', 'patients', 'patient', 'sleepers', 'lockers', 'locker'], look: `Twenty beds, twenty sleepers, every one with a bottle of the grey syrup on the locker beside them. They breathe slowly, almost in unison.` },
+            syrup: { names: ['syrup', 'bottle', 'bottles', 'grey syrup', 'medicine'], look: `A grey, lumpy syrup, in a dozen brown bottles. It is exactly the same as Tonic No. 9, only thicker. It smells sweet and wrong.` },
+            chair: { names: ['chair', 'orderly\'s chair', 'orderlys chair'], look: `An empty wooden chair. The orderly's cap is slung over its back.` },
+        },
+        hide: `You slip into the shadow between two beds and lie low, as still as the sleepers.`,
+        patrol: { period: 7, at: 4, len: 2, dread: 25, disguise: true,
+            warn: `The sound of a brisk, measured step comes down the ward's far end. An orderly is on his round.`,
+            hit: `The orderly pauses at the foot of the bed, taps his clipboard and looks at you, hard. "You're not on my rota." You wave a vague, nurselike hand and say something about the night shift. He lets you go, grudgingly.`,
+            pass: `The orderly makes his round, counts the beds, taps a chart, and passes within a yard of you without a glance.` },
+        sight: `The sleepers' breath hums with a thin grey thread that runs from each locker bottle down through the floor: a leash, pulling their strength downward. Mr. Alder alone burns clean and steady.`,
+    },
+    dispensary: {
+        name: 'The Dispensary', art: 'dispensary', safe: false,
+        desc: () => `A narrow white room of floor-to-ceiling shelves, every one crammed with jars: dried herbs by the hundred, each labelled in careful script with a healer's name and a village. A great ledger lies open on a slanting desk. A heavy door in the north wall bears a brass plate: DR. C. VESPER. A stair leads down to the cellar. The ward is west.`,
+        exits: {
+            w: { to: 'ward', names: ['ward', 'west', 'out'] },
+            n: { to: 'office', names: ['office', 'north', 'door', 'vesper\'s office'], block: (G) => G.flags.office_open ? null : `The door to Dr. Vesper's office is locked. It looks like an ordinary lock.` },
+            d: { to: 'cellar', names: ['cellar', 'stairs', 'down', 'stair'] },
+        },
+        things: {
+            shelves: { names: ['shelves', 'shelf', 'jars', 'jar', 'herbs'], look: `Hundreds of jars of herbs, each labelled with a healer's name and village: "A. Dunmore, Foxglove Mill." "H. Harrow, Hob Lane." "M. Thistle, Hollow Lane." These are not the Infirmary's herbs. They are hedge witches' herbs, taken wholesale. On the middle shelf, a jar reads MONKSHOOD, with a skull on the label.` },
+            monkshood: { names: ['monkshood', 'wolfsbane', 'wolfs-bane', 'skull jar'], look: `A jar of blue-hooded flowers, labelled MONKSHOOD, with a skull on the lid. Fatal in a pinch. A hedge witch knows it by its sting: rue, comfrey and salt, in that order.` },
+            ledger: { names: ['ledger', 'book', 'acquisitions', 'acquisitions ledger', 'desk', 'page'], look: (G) => G.evidence.includes('ledger') ? `The huge Acquisitions ledger, with a ragged gap where you tore out a page.` : `A huge, vellum-bound book on a slanting desk: ACQUISITIONS, in gold on the cover. Open at a page of names, each with a village and a note. You could TAKE the page.` },
+            office_door: { names: ['door', 'office door', 'lock', 'brass plate', 'plate', 'office'], look: (G) => G.flags.office_open ? `Dr. Vesper's office door, unlocked.` : `A heavy oak door with a brass plate: DR. C. VESPER. The lock is an ordinary lock, which is to say, a spell can talk to it.` },
+        },
+        hide: `You squeeze behind the end of the tall shelving, between the shelf and the wall.`,
+        patrol: { period: 7, at: 3, len: 2, dread: 35,
+            warn: `A key rattles in a lock somewhere, and a quick tread comes toward the dispensary. Someone is on the rounds.`,
+            hit: `A night dispenser in a white coat comes through with a lantern and freezes. "Who the devil are you?" You mutter something. He stares at you for a long time, then turns his lantern slowly round the room, and finally, uneasily, away.`,
+            pass: `The night dispenser comes through, counts his jars, grumbles at the draught, and leaves, never once glancing behind the shelving.` },
+        sight: `The jars hum, each with the faint signature of the witch who grew it. Marga's jars are here: the little tied loop of green cord is unmistakable. Behind the north door, a stronger, harder hum: a knot of cold.`,
+    },
+    office: {
+        name: 'Dr. Vesper\'s Office', art: 'office', safe: false,
+        desc: () => `A small, perfect, chilly room: a desk, a chair, a green-shaded lamp, a locked cabinet and a wall of anatomy plates, one of them a hand-drawn portrait, framed, of two women. A drawer in the desk hangs slightly open. The only living thing in the room is a very tidy dead fern. The dispensary is south.`,
+        exits: { s: { to: 'dispensary', names: ['dispensary', 'door', 'south', 'out'] } },
+        things: {
+            desk: { names: ['desk', 'papers', 'lamp'], look: (G) => `A neat desk with a green-shaded lamp. A small pile of papers lies squared at one corner${G.flags.found_letter ? '' : '. SEARCH it'}.` },
+            drawer: { names: ['drawer', 'desk drawer'], look: (G) => G.flags.drawer_open ? `The desk drawer, open and emptied.` : `A shallow drawer in the desk, not quite closed.` },
+            portrait: { names: ['portrait', 'picture', 'frame', 'women', 'drawing'], look: `A small framed pencil-drawing: an old woman with a long white plait, in a garden, laughing, and a young woman beside her holding a basket of herbs. The old woman is unmistakably Marga. The girl is unmistakably someone else: you cannot place her.` },
+            cabinet: { names: ['cabinet', 'locked cabinet'], look: `A locked glass cabinet full of surgical instruments. Not what you are looking for.` },
+        },
+        sight: `The room is bare of warmth, except for the portrait, which glows, faintly, with a living, regretful light.`,
+    },
+    cellar: {
+        name: 'The Infirmary Cellar', art: 'cellar', safe: false, dark: true,
+        desc: (G) => `A long vaulted cellar, cold as a river, stacked with barrels and crates stamped SALT: GALLOWS HILL. A narrow-gauge rail line runs along the floor and into a low archway in the east wall, closed off by a massive iron door. ${G.flags.iron_door_open ? 'The iron door stands open on a long black tunnel.' : 'The iron door has a keyhole the size of your thumb.'} The stairs lead up to the dispensary.`,
+        exits: {
+            u: { to: 'dispensary', names: ['stairs', 'up', 'dispensary'] },
+            e: { to: 'tunnel', names: ['iron door', 'door', 'tunnel', 'east', 'archway'], block: (G) => G.flags.iron_door_open ? null : `The iron door is locked.` },
+        },
+        things: {
+            iron_door: { names: ['door', 'iron door', 'keyhole', 'lock', 'archway'], look: (G) => G.flags.iron_door_open ? `A massive iron door, standing open on the tunnel.` : `A door of riveted iron, a hand thick, set in a low arch. The keyhole is the size of a thumb. Cold iron: no spell will turn it.` },
+            crates: { names: ['crates', 'crate', 'barrels', 'barrel', 'salt'], look: `Salt crates, stamped SALT: GALLOWS HILL. The rails along the floor run east into the wall. A salt cart, rusted, stands at the end of the line.` },
+            rails: { names: ['rails', 'rail', 'track', 'cart', 'line'], look: `A narrow railway for salt carts, polished bright by use. Very recent use.` },
+        },
+        hide: `You duck down behind the stacked crates, among the cold sacks.`,
+        patrol: { period: 9, at: 6, len: 2, dread: 35,
+            warn: `Heavy boots on the stairs. A lantern swings: a bailiff is coming down to the cellar.`,
+            hit: `A bailiff comes down the stairs, swings his lantern round, and stops. His eyes find you. "Now, then." He takes one slow step toward you, and thinks better of it, and goes back up for company. You do not have long.`,
+            pass: `The bailiff comes down, sweeps his lantern across the crates, sniffs the air, shrugs and goes back up. You breathe again.` },
+        sight: `The iron door breathes cold. Beyond it, in the dark, a thread of grey hum runs on and on, east, like the wire of a bell.`,
+    },
+    tunnel: {
+        name: 'The Salt Road', art: 'tunnel', safe: false, dark: true,
+        desc: (G) => `A long, low tunnel cut through the white rock, its walls rough with salt, glittering where the lantern touches them. Tally-marks have been scratched along the walls by generations of miners. A salt-cart rail runs down the middle. Water drips in the dark. West, an iron door leads back to the Infirmary cellar. To the north a second way is closed by the salters' door${G.flags.crypt_open ? ', now unbarred' : ''}. East, the tunnel ends in a massive black vault door, set in the rock and studded with iron.`,
+        exits: {
+            w: { to: 'cellar', names: ['cellar', 'west', 'iron door', 'infirmary'] },
+            n: { to: 'crypt', names: ['crypt', 'north', 'salters door', 'door', 'chapel'], block: (G) => G.flags.crypt_open ? null : `The salters' door is barred on this side. You could OPEN it.` },
+            e: { to: 'vaults', names: ['vault', 'vaults', 'east', 'vault door', 'door'], block: (G) => G.flags.vault_open ? null : `The vault door is shut tight.` },
+        },
+        things: {
+            vault_door: { names: ['vault door', 'door', 'vault', 'lock', 'keyhole', 'iron door', 'studs'], look: (G) => G.flags.vault_open ? `The vault door stands open on a glow of firelight.` : `A massive vault door of black iron, set into the rock, with a keyhole in a brass plate at hand height. The keyhole is a small brass-lined circle, newer than the door. Someone has taken care with it. Beyond the door, faint, you can hear a regular clanking, like a distant forge.` },
+            salters_door: { names: ['salters door', 'salters\' door', 'north door', 'bar', 'bolt', 'iron-bound door'], look: (G) => G.flags.crypt_open ? `The salters' door to the crypt, unbarred.` : `The back of the salters' door, with a heavy bar across it, which can be lifted from this side. Beyond, up the stair, is St. Agnes's chapel.` },
+            tallies: { names: ['tally marks', 'tallies', 'marks', 'tally', 'walls', 'wall', 'salt', 'crystals'], look: `Tally marks cut in the salt, in bundles of five: the miners' count of their days. Near the vault door, a fresher line has been scratched at hand height: a row of eleven strokes, and under it one word: HELP.` },
+        },
+        plants: {},
+        sight: `The tunnel's hum is a rope of grey wound round the iron door. At the vault door the hum breaks and knots: there, in the keyhole, something small and mean sits coiled, like a snake in a flowerpot: a spring, a needle, and the greenish shimmer of monkshood on its tip.`,
+    },
+    vaults: {
+        name: 'The Brine Vaults', art: 'vaults', safe: false,
+        desc: (G) => `A cathedral of salt. White pillars rise into a vaulted dark, streaming with brine and lit by iron cressets that throw long, moving shadows across the glistening floor. Along the north wall, a row of barred cells. East, through a wide arch, is the red glow and clatter of a great working-floor. A heavy ring of keys hangs on a hook by the nearest pillar. West is the tunnel.${G.flags.cells_open ? ' The gate of the cells stands open.' : ''}`,
+        exits: {
+            w: { to: 'tunnel', names: ['tunnel', 'west', 'salt road', 'out'] },
+            n: { to: 'cells', names: ['cells', 'north', 'gate', 'cell gate', 'bars'], block: (G) => G.flags.cells_open ? null : `The cell gate is locked with a big iron lock. Beyond it, faintly, you hear coughing and the low murmur of women's voices.` },
+            e: { to: 'works', names: ['works', 'east', 'arch', 'working floor', 'brine works'], block: (G) => (G.veil > 0 || G.flags.vesper_asleep) ? null : `You creep to the arch and look through, and every nerve in your body tightens. A tall woman in a white coat sits at the long table in the Works, drinking tea. If you walked in, she would see you at once. You would need something to turn her eye aside.` },
+        },
+        things: {
+            pillars: { names: ['pillars', 'pillar', 'columns', 'column', 'salt', 'cressets'], look: `White salt pillars thick as oaks, running with brine. There are shadows enough between them for a grown woman to stand unseen, if she were quick.` },
+            cell_hook: { names: ['hook', 'ring of keys', 'keys hook'], look: `An iron hook on the nearest pillar. A big ring of keys hangs from it.` },
+            cells_gate: { names: ['gate', 'cell gate', 'cells', 'bars', 'lock', 'cell lock'], look: (G) => G.flags.cells_open ? `The cell gate stands open on the dark.` : `A barred gate with a big iron lock. Women's voices murmur beyond it, and someone is coughing.` },
+            arch: { names: ['arch', 'works', 'archway', 'glow'], look: `A wide archway into the Works: a red glow, a steady clank of iron, and the smell of boiling brine and bitter herbs.` },
+        },
+        hide: `You flatten yourself behind a salt pillar, and the brine runs cold down your back.`,
+        patrol: { period: 8, at: 5, len: 2, dread: 35,
+            warn: `A bailiff's boots clang against the salt: a patrol is coming through the pillars.`,
+            hit: `A bailiff's lantern swings round the pillar and lands full on you. "Oi!" he says, and, "Who...?" You are saved only by the length of the vault, and the echo, and his slowness: he stands peering into the shadows while his comrade says something at the other end. They don't pursue. Not yet.`,
+            pass: `The bailiff's boots echo between the pillars. His lantern sweeps your pillar, and the next, and he strolls on, humming.` },
+        sight: `The salt pillars hum together, a vast deep chord of captive power, like the note of a great bell damped with a hand. It comes from the Works, from some stone at the centre of the glow.`,
+    },
+    cells: {
+        name: 'The Cells', art: 'cells', safe: false,
+        desc: () => `Four low cells in a row, cut out of the white rock, each with a barred door standing ajar and straw on the floor. In the first lies a white-haired woman, very still. In the second sits an old woman with a ladle on her knees and milky eyes. In the third, a stout, flushed woman breathes with a rattle. In the fourth, two identical old ladies sit side by side in iron collars. The vaults are south.`,
+        exits: { s: { to: 'vaults', names: ['vaults', 'south', 'out', 'gate'] } },
+        things: {
+            collars: { names: ['collars', 'collar', 'iron collars', 'runes', 'rune'], look: (G) => G.flags.ready_twins ? `Two broken iron collars lie on the floor, their runes gone dull.` : `Heavy iron collars on the two old ladies: each carved with a rune that pulses with a grey light. They hum with a hard, bound note. Cold iron: no spell will turn them, but a tincture of vervain, salt and rue might loosen what is bound in them.` },
+            straw: { names: ['straw', 'cells', 'cell', 'bars'], look: `Straw, a pail, a tin cup, a pile of grey syrup bottles by each cell. Whoever kept them here wished them neither to die nor to wake.` },
+        },
+        plants: {},
+        sight: `Four small lights in the dark: one fading, very low (Marga), one burning bright in a clouded lamp (Dunmore), one hot and gusty (Harrow), and two linked and furious, bound by a cold iron wire. All four are tied to the same cold root: the Works.`,
+    },
+    works: {
+        name: 'The Brine Works', art: 'works', safe: false,
+        desc: (G) => `A vast, red, roaring working-floor under the dome of the salt-cathedral. Iron pans the size of cart-beds boil over furnaces, and barrel after barrel stands filled with grey Tonic No. 9. In the middle of the floor, in a ring of iron, a single salt-crystal pillar as tall as two men stands humming, bound about with iron rings carved with sigils: the ward-stone. A long table stands before it with a teapot, a cup and a ledger. ${G.flags.vesper_asleep ? 'Dr. Vesper is slumped asleep over it.' : 'Dr. Cordelia Vesper sits at it in her white coat, with a teacup in her gloved hand.'} The vaults are west.`,
+        exits: { w: { to: 'vaults', names: ['vaults', 'west', 'out', 'arch'] } },
+        things: {
+            stone: { names: ['stone', 'ward stone', 'ward-stone', 'pillar', 'rings', 'sigils', 'crystal', 'ward'], look: (G) => G.flags.stone_broken ? `The ward-stone is cracked from top to bottom, its iron rings fallen and dull. The great grey hum has stopped, and the silence rings like a bell.` : `A great raw crystal of salt as tall as two men, wound with iron rings carved with sigils, standing in the middle of the floor. It hums, a deep grey note that makes your teeth ache. Every witch within the Vaults is tied to it. It holds their power in iron, and the Works draws on it. Salt, vervain and rue upon its foot, and the Unbind: that is what Gammer, and the pages, said.` },
+            teapot: { names: ['teapot', 'tea', 'pot', 'cup', 'teacup', 'tea cup'], look: (G) => G.flags.vesper_asleep ? `The teapot, now empty. Vesper's cup has spilled over the ledger.` : `A fine white china teapot, steaming, on a tray by Vesper's elbow. She sips from it every few breaths. Pour something in while she is not looking, and it will do the rest.` },
+            pans: { names: ['pans', 'pan', 'furnaces', 'furnace', 'barrels', 'tonic'], look: `Iron pans the size of beds, each tended by a bored stoker. They boil brine and herbs together. Every barrel is stamped TONIC No. 9, BASE.` },
+            stokers: { names: ['stokers', 'stoker', 'bailiffs', 'men', 'guards'], look: `Three sooty stokers shovel coal beneath the pans, and one bailiff leans on a pillar, dozing. None of them looks up. They have seen no one but Vesper for a week.` },
+        },
+        plants: {},
+        sight: `The stone is a knot of grey cord: a hundred small bindings drawn through one iron heart. Behind it, you can see the pattern: all of it comes from one woman's hand, and she has tied it very, very well.`,
+    },
+};
