@@ -130,6 +130,9 @@ The bot is the enemy's brain, so it plays the same game the player does. Tuned u
 
 ## Changelog
 
+### v1.0.2 (2026-10-27)
+- Hit flash no longer uses `ctx.filter` (it halved the frame rate while a unit was hit); the shake is a clear horizontal shake in screen pixels.
+
 ### v1.0.1 (2026-10-27)
 - Other characters turn see-through on a student's turn and clicks go to the floor under them, so bunched-up cells can be targeted.
 

@@ -180,7 +180,7 @@ export class View {
         const size = { pip: 1, bram: 1.1, fenn: 0.95, pudge: 1.15, bunny: 0.9, sprite: 0.85, scone: 1.1, basil: 1.35 }[u.key] || 1;
         return {
             id: u.id, key: u.key, team: u.team, x: u.x, y: u.y, z: this.B.tiles[u.y * this.B.w + u.x]?.h || 0, hp: u.hp, maxhp: u.maxhp, mp: u.mp, st: { ...u.st },
-            alive: u.alive, active: false, flash: 0, hop: 0, lean: 0, dir: 1, fade: 0, ox: 0, oy: 0, face: 'idle', size, fly: u.fly, phase: u.id * 1.7, squash: 0, spin: 0,
+            alive: u.alive, active: false, flash: 0, hop: 0, lean: 0, dir: 1, fade: 0, ox: 0, oy: 0, shake: 0, face: 'idle', size, fly: u.fly, phase: u.id * 1.7, squash: 0, spin: 0,
         };
     }
 
@@ -296,7 +296,7 @@ export class View {
                 v.squash = p < 0.3 ? p * 0.3 : Math.max(0, 0.1 - (p - 0.3) * 0.3);
                 break;
             case 'hit':
-                v.flash = 1 - p; v.ox = Math.sin(p * 30) * 0.05 * (1 - p); v.hp = lerp(c.hp0 ?? (c.hp0 = v.hp), c.ev.hp, clamp01(p * 1.6));
+                v.flash = 1 - p; v.shake = Math.sin(c.t * 60) * 7 * (1 - p) * (1 - p); v.hp = lerp(c.hp0 ?? (c.hp0 = v.hp), c.ev.hp, clamp01(p * 1.6));
                 break;
             case 'oops': v.lean = Math.sin(p * Math.PI) * 1.2; v.hop = Math.max(0, Math.sin(p * Math.PI * 3)) * 3; break;
             case 'lucky': v.hop = Math.sin(p * Math.PI) * 10; break;
@@ -311,7 +311,7 @@ export class View {
         switch (c.ev.type) {
             case 'move': { const [x, y] = c.ev.path[c.ev.path.length - 1]; v.x = x; v.y = y; v.z = this._h(x, y); v.hop = 0; break; }
             case 'skill': v.ox = v.oy = v.hop = v.squash = 0; break;
-            case 'hit': v.flash = 0; v.ox = 0; v.hp = c.ev.hp; v.face = 'idle'; break;
+            case 'hit': v.flash = 0; v.shake = 0; v.hp = c.ev.hp; v.face = 'idle'; break;
             case 'oops': v.lean = 0; v.hop = 0; break;
             case 'lucky': case 'rescue': v.hop = 0; break;
             case 'faint': v.alive = false; v.hp = 0; v.face = 'idle'; v.fade = 1; break;
@@ -564,7 +564,7 @@ export class View {
     _unit(v, time) {
         const ctx = this.ctx;
         const z = v.z + (v.fly ? 0.9 + Math.sin(time * 4 + v.phase) * 0.12 : 0);
-        const sx = (v.x + v.ox - v.y - v.oy) * TW / 2, sy = (v.x + v.ox + v.y + v.oy) * TH / 2 - v.z * HZ;
+        const sx = (v.x + v.ox - v.y - v.oy) * TW / 2 + (v.shake || 0), sy = (v.x + v.ox + v.y + v.oy) * TH / 2 - v.z * HZ;
         const s = v.size;
         const alpha = (v.fade > 0 ? 1 - v.fade : 1) * (this.ghost && !v.active ? 0.42 : 1);
         if (alpha <= 0) return;

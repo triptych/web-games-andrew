@@ -326,12 +326,15 @@ const CREATURE = {
     },
 };
 
+let flashCv = null;
+
+/** Draw one actor. A hit flash is a white tint on an offscreen copy: ctx.filter on the main canvas halved the frame rate. */
 export function drawActor(ctx, key, x, y, s, a = {}) {
+    if (a.flash > 0.02 && ctx.canvas && !a.inFlash) return drawFlashed(ctx, key, x, y, s, a);
     const t = a.t || 0;
     const bob = Math.sin(t * 3 + (a.phase || 0)) * 1.1 * (a.bob ?? 1);
     ctx.save();
     if (a.alpha !== undefined) ctx.globalAlpha *= a.alpha;
-    if (a.flash) ctx.filter = `brightness(${1 + a.flash * 1.4}) saturate(${1 - a.flash * 0.4})`;
     ctx.translate(x, y - (a.hop || 0));
     ctx.rotate(a.lean || 0);
     ctx.scale(s * (a.dir || 1) * (1 + (a.squash || 0)), s * (1 - (a.squash || 0)));
@@ -340,7 +343,25 @@ export function drawActor(ctx, key, x, y, s, a = {}) {
     if (look) humanoid(ctx, look, a, t, bob);
     else (CREATURE[key] || CREATURE.bunny)(ctx, a, t, bob);
     ctx.restore();
-    ctx.filter = 'none';
+}
+
+function drawFlashed(ctx, key, x, y, s, a) {
+    const m = ctx.getTransform();
+    const k = Math.hypot(m.a, m.b) || 1;
+    const pix = k * s;                                   // device pixels per actor unit
+    const W = Math.ceil(150 * pix), H = Math.ceil(190 * pix);
+    if (!flashCv) flashCv = document.createElement('canvas');
+    if (flashCv.width < W || flashCv.height < H) { flashCv.width = Math.max(flashCv.width, W); flashCv.height = Math.max(flashCv.height, H); }
+    const o = flashCv.getContext('2d');
+    o.setTransform(1, 0, 0, 1, 0, 0);
+    o.clearRect(0, 0, flashCv.width, flashCv.height);
+    const fx = W / 2, fy = H - 12 * pix;
+    drawActor(o, key, fx, fy, pix, { ...a, flash: 0, inFlash: true, hop: (a.hop || 0) * k });
+    o.globalCompositeOperation = 'source-atop';
+    o.fillStyle = `rgba(255,255,255,${Math.min(0.85, a.flash * 0.9)})`;
+    o.fillRect(0, 0, W, H);
+    o.globalCompositeOperation = 'source-over';
+    ctx.drawImage(flashCv, 0, 0, W, H, x - fx / k, y - fy / k, W / k, H / k);
 }
 
 // ---------------------------------------------------------------- portraits
