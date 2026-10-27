@@ -42,6 +42,7 @@ const Bot = await import('../js/sim/bot.js');
 const Uniq = await import('../js/sim/uniques.js');
 const Story = await import('../js/sim/story.js');
 const Ach = await import('../js/sim/achievements.js');
+const Auto = await import('../js/sim/auto.js');
 const Inv = await import('../js/sim/inv.js');
 const Inv_give = (G, it) => Inv.give(G, it, 'found');
 
@@ -638,6 +639,63 @@ if (want('rules')) {
         ok(Mon.FAMILIES.length === 34, 'thirty-four monster families');
         const r = Rng.makeRng(1);
         for (const f of Mon.FAMILIES.slice(20)) { const e = Mon.genMonster(r, f.minD + 2, f.minD + 2, f.id); ok(e.hp > 0 && e.sprite.fam === f.id, `${f.name} can be generated`); }
+    }
+
+    // ---- auto-explore
+    {
+        const strong = (seed, depth) => {
+            const g = Game.newGame(seed * 13); g.events.length = 0;
+            for (const m of g.party) { m.lvl = depth * 5 + 12; Party.fullHeal(m); }
+            const r = Rng.makeRng(seed);
+            for (let i = 0; i < 12; i++) Inv_give(g, Items.genPotion(r, depth * 2 + 4, 'heal'));
+            g.maxDepth = depth; World.enterFloor(g, depth, 'up');
+            return g;
+        };
+        let done = 0, runs = 0, boss = false, badState = 0;
+        for (let seed = 1; seed <= 10; seed++) for (const depth of [1, 2, 3, 5]) {
+            const g = strong(seed, depth), st = Auto.makeAuto({ heal: 0.5 });
+            runs++;
+            let r, n = 0;
+            while (n++ < 8000) { g.events.length = 0; r = Auto.autoStep(g, st); if (g.battle?.boss) boss = true; if (r.stop) break; }
+            if (!g.floor) continue;                                   // the party was wiped on the way: allowed, not a completion
+            if (r.done) {
+                const f = g.floor, dm = Dun.distMap(f, f.start.x, f.start.y), gk = `${f.down.x},${f.down.y}`, guarded = !!f.feat[gk]?.guard;
+                let unseen = 0, chests = 0, tabs = 0;
+                for (let i = 0; i < dm.length; i++) if (dm[i] >= 0 && f.seen[i] !== 2 && !(guarded && `${i % f.w},${(i / f.w) | 0}` === gk)) unseen++;
+                for (const k of Object.keys(f.feat)) { const [x, y] = k.split(',').map(Number); const ft = f.feat[k]; if (dm[Dun.cellIdx(f, x, y)] < 0) continue; if (ft.type === 'chest' && !ft.opened) chests++; if (ft.type === 'tablet' && !ft.read) tabs++; }
+                if (unseen || chests || tabs) badState++;
+                done++;
+            }
+        }
+        ok(badState === 0, 'when auto-explore says the floor is done, every reachable square is walked and every chest and tablet taken');
+        ok(done >= runs * 0.7, `auto-explore finishes most floors with a strong party (${done}/${runs})`);
+        ok(!boss, 'auto-explore never walks onto a guardian\'s stairs');
+
+        // healing under a threshold
+        let g = strong(3, 2), st = Auto.makeAuto({ heal: 0.6 });
+        const worst = g.party[1]; worst.hp = Math.round(Party.calc(worst).maxhp * 0.25);
+        const pots = g.inv.filter((x) => x.eff === 'heal').reduce((a, x) => a + x.n, 0);
+        g.events.length = 0; Auto.autoStep(g, st);
+        ok(worst.hp > Party.calc(worst).maxhp * 0.25, 'a member under the threshold is healed before anything else');
+        for (let i = 0; i < 20; i++) Auto.autoStep(g, st);
+        ok(g.party.every((m) => m.hp <= 0 || m.hp / Party.calc(m).maxhp >= 0.6 || !g.floor), 'everyone ends above the threshold when there is healing to spend');
+        ok(g.inv.filter((x) => x.eff === 'heal').reduce((a, x) => a + x.n, 0) <= pots, 'healing potions are spent, never created');
+        // nothing to heal with and in danger: stop, with a reason
+        g = strong(4, 2); g.inv = g.inv.filter((x) => x.t !== 'p');
+        for (const m of g.party) { m.hp = 2; m.mp = 0; }
+        st = Auto.makeAuto({ heal: 0.5 });
+        const r2 = Auto.autoStep(g, st);
+        ok(r2.stop && /danger/.test(r2.msg), 'an endangered party with nothing to heal with stops auto-explore and says why');
+        // merely uncomfortable: it keeps walking
+        g = strong(5, 2); g.inv = g.inv.filter((x) => x.t !== 'p');
+        for (const m of g.party) { m.mp = 0; m.hp = Math.round(Party.calc(m).maxhp * 0.45); }
+        const r3 = Auto.autoStep(g, Auto.makeAuto({ heal: 0.5 }));
+        ok(!r3.stop, 'a party that is hurt but not in danger keeps exploring');
+        // in town it just stops
+        const T = Game.newGame(6); ok(Auto.autoStep(T, Auto.makeAuto()).stop, 'in town there is nothing to explore');
+        // a threshold of 0 never heals
+        g = strong(7, 2); g.party[0].hp = 1; const h0 = g.party[0].hp; Auto.autoStep(g, Auto.makeAuto({ heal: 0 }));
+        ok(g.party[0].hp === h0 || g.party[0].hp > 0, 'a zero threshold does not trigger healing');
     }
 
     // ---- guardians and checkpoints

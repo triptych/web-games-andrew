@@ -9,6 +9,7 @@ import { Input } from './input.js';
 import { UI } from './ui/ui.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
 import { newGame, act as simAct, tickIdle } from './sim/game.js';
+import { makeAuto, autoStep } from './sim/auto.js';
 import { makeBot, botStep } from './sim/bot.js';
 import { enterFloor } from './sim/world.js';
 import { totalPending } from './sim/town.js';
@@ -37,6 +38,7 @@ const seen = {};                 // a count of every sim event drained, for the 
 const ctx = {
     G: () => G,
     settings,
+    makeAuto: () => makeAuto({ heal: settings.autoHeal }),
     hasSave,
     act(cmd) { simAct(G, cmd); drain(); },
     save(toast = false) {
@@ -133,6 +135,10 @@ const KEY_MOVE = { ArrowUp: 'f', KeyW: 'f', ArrowDown: 'b', KeyS: 'b', ArrowLeft
 function handlePress(press) {
     const key = press.key;
     audio.init();
+    if (mode === 'play' && G.floor && !ui.anyScreen()) {
+        if (key === 'KeyX') { ui.toggleExplore(); return true; }
+        if (ui.exploring) { ui.stopExplore('Auto-explore stopped.'); return true; }       // any other key takes the wheel back
+    }
     if (ui.anyScreen()) {
         const t = ui.top();
         if (key === 'ArrowDown' || key === 'ArrowRight') ui.moveFocus(1);
@@ -192,6 +198,16 @@ function frame(now) {
             if (ui.busy) break;
             botStep(G, bot);
             drain();
+        }
+    }
+    // auto-explore: one planned command at a time, at the game's own pace (it waits for every step and every blow to finish)
+    if (ui.exploring && mode === 'play' && !ui.busy && !stage.busy && !ui.anyScreen()) {
+        ui.autoWait -= rawDt;
+        if (ui.autoWait <= 0) {
+            const r = autoStep(G, ui.autoSt);
+            ui.autoWait = G.battle ? 0.45 : 0.06;
+            drain();
+            if (r.stop) ui.stopExplore(r.msg);
         }
     }
     // idle clock: one game day every IDLE_SECONDS_PER_DAY of real time
