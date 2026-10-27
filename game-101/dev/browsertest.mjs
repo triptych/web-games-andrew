@@ -264,7 +264,7 @@ async function desktop() {
     await until(page, () => document.querySelectorAll('[data-screen=camp] .award').length >= 40, 'the awards tab lists every achievement');
     await shot(page, 'desktop-awards');
     await clickText(page, '[data-screen=camp]', 'Items');
-    await until(page, () => document.querySelectorAll('[data-screen=camp] .split.items .row').length >= 1, 'the items tab lists the bag');
+    await until(page, () => document.querySelectorAll('[data-screen=camp] .list .row').length >= 1, 'the items tab lists the bag');
     await page.keyboard.press('Escape');
 
     // equipping from the bag through the real menus
@@ -277,13 +277,42 @@ async function desktop() {
     await page.keyboard.press('KeyI');
     await until(page, () => !!document.querySelector('[data-screen=camp]'), 'the camp opens again');
     await clickText(page, '[data-screen=camp]', 'Items');
-    await until(page, () => [...document.querySelectorAll('[data-screen=camp] .split.items .row')].some((b) => b.textContent.includes('Test Brand')), 'the new sword is in the bag');
-    await Q(page, () => [...document.querySelectorAll('[data-screen=camp] .split.items .row')].find((b) => b.textContent.includes('Test Brand')).click());
-    await until(page, () => document.querySelectorAll('[data-screen=camp] .detail .list .row').length >= 4, 'selecting it lists who can use it');
+    await until(page, () => [...document.querySelectorAll('[data-screen=camp] .list .row')].some((b) => b.textContent.includes('Test Brand')), 'the new sword is in the bag');
+    await Q(page, () => [...document.querySelectorAll('[data-screen=camp] .list .row')].find((b) => b.textContent.includes('Test Brand')).click());
+    await until(page, () => !!document.querySelector('[data-screen=item]') && document.querySelectorAll('[data-screen=item] .detail .list .row').length >= 4, 'tapping it opens a popup that lists who can use it');
     await shot(page, 'desktop-equip');
-    await Q(page, () => { const rows = [...document.querySelectorAll('[data-screen=camp] .detail .list .row')]; rows.find((r) => !r.disabled).click(); });
+    await Q(page, () => { const rows = [...document.querySelectorAll('[data-screen=item] .detail .list .row')]; rows.find((r) => !r.disabled).click(); });
     await until(page, () => __pc.G.party.some((m) => m.eq.weapon?.name === 'Test Brand'), 'clicking a member equips it');
-    await page.keyboard.press('Escape');
+    await until(page, () => !document.querySelector('[data-screen=item]'), 'the popup closes once the item is worn');
+    // a healing potion through the bag
+    await Q(page, async () => {
+        const I = await import('/game-101/js/sim/items.js'), R = await import('/game-101/js/rng.js'), V = await import('/game-101/js/sim/inv.js');
+        V.give(__pc.G, I.genPotion(R.makeRng(5), 6, 'heal'), 'found');
+        __pc.G.party[2].hp = 2;
+        __pc.ui.refresh();
+    });
+    await clickText(page, '[data-screen=camp]', 'Items');
+    await Q(page, () => [...document.querySelectorAll('[data-screen=camp] .list .row')].find((b) => /Healing/.test(b.textContent)).click());
+    await until(page, () => !!document.querySelector('[data-screen=item]'), 'tapping a healing potion opens its popup');
+    const potN = await Q(page, () => __pc.G.inv.filter((x) => x.eff === 'heal').reduce((a, x) => a + x.n, 0));
+    await Q(page, () => { const rows = [...document.querySelectorAll('[data-screen=item] .detail .list .row')]; rows[2].click(); });
+    await until(page, () => __pc.G.party[2].hp > 10, 'using it heals the chosen member');
+    check(await Q(page, (n) => __pc.G.inv.filter((x) => x.eff === 'heal').reduce((a, x) => a + x.n, 0) === n - 1, potN), 'and uses up one potion');
+    // a scroll of escape
+    await Q(page, async () => {
+        const I = await import('/game-101/js/sim/items.js'), R = await import('/game-101/js/rng.js'), V = await import('/game-101/js/sim/inv.js');
+        V.give(__pc.G, I.genScroll(R.makeRng(6), 3, 'escape'), 'found');
+        __pc.ui.refresh();
+    });
+    await Q(page, () => { const b = [...document.querySelectorAll('[data-screen=item] button')].find((x) => /Back/.test(x.textContent)); b?.click(); });
+    await clickText(page, '[data-screen=camp]', 'Items');
+    await Q(page, () => [...document.querySelectorAll('[data-screen=camp] .list .row')].find((b) => /Escape/.test(b.textContent)).click());
+    await until(page, () => !!document.querySelector('[data-screen=item]'), 'tapping a scroll of escape opens its popup');
+    await clickText(page, '[data-screen=item]', 'Read');
+    await until(page, () => !__pc.G.floor, 'reading it returns the party to town');
+    for (let i = 0; i < 3 && await Q(page, () => !!document.querySelector('.screen')); i++) { await page.keyboard.press('Escape'); await page.waitForTimeout(250); }
+    await until(page, () => !document.querySelector('.screen'), 'the menus close');
+    await Q(page, () => { const G = __pc.G; for (const m of G.party) m.hp = Math.max(m.hp, 1); });
 
     // a doomed fight and the way home
     await Q(page, async () => {
@@ -418,6 +447,15 @@ async function phone(w, h) {
     await until(page, () => !!document.querySelector('[data-screen=camp]'), 'Menu opens the camp');
     check(await Q(page, () => { const s = document.querySelector('[data-screen=camp] .sheet').getBoundingClientRect(); return s.left >= 0 && s.right <= innerWidth + 1 && s.top >= 0 && s.bottom <= innerHeight + 1; }), 'the camp sheet fits on the phone');
     await shot(page, `phone-${w}x${h}-camp`);
+    // tapping an item must visibly do something: a popup that fits on the phone
+    await tapText('[data-screen=camp]', 'Items');
+    await until(page, () => document.querySelectorAll('[data-screen=camp] .list .row').length >= 1, 'the bag is listed');
+    const row1 = await Q(page, () => { const r = [...document.querySelectorAll('[data-screen=camp] .list .row')].find((b) => /Healing/.test(b.textContent)); if (!r) return null; r.setAttribute('data-tap', '1'); return true; });
+    check(!!row1, 'there is a healing potion in the bag');
+    await tapSel('[data-screen=camp] .list .row[data-tap="1"]');
+    await until(page, () => !!document.querySelector('[data-screen=item]'), 'tapping a potion opens its popup');
+    check(await Q(page, () => { const s = document.querySelector('[data-screen=item] .sheet').getBoundingClientRect(); return s.left >= 0 && s.right <= innerWidth + 1 && s.top >= 0 && s.bottom <= innerHeight + 1; }), 'and the popup is on screen');
+    await shot(page, `phone-${w}x${h}-item`);
     reportErrors(`phone ${w}×${h}`);
 }
 

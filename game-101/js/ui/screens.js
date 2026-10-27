@@ -189,14 +189,13 @@ function campItems(ui, G, p) {
     const f = p.filter || 'all';
     const pass = (it) => f === 'all' || (f === 'gear' && ['w', 'a', 'c'].includes(it.t)) || (f === 'use' && it.t === 'p') || (f === 'magic' && ['s', 'm', 't'].includes(it.t)) || (f === 'coll' && it.t === 'x');
     const items = G.inv.filter(pass);
-    const sel = G.inv.find((x) => x.id === p.sel);
     const listEl = h('div', { class: 'list' }, items.length ? items.map((it) => row({
         ic: icon(it), label: itemName(it), sub: it.t === 'm' ? `${describe(it)[0]}` : itemStats(it) || describe(it).join(' '), right: it.price ? `${it.price}g` : '',
-        cls: sel && sel.id === it.id ? 'sel' : '', onClick: () => { p.sel = it.id; ui.render(ui.top()); },
+        cls: '', onClick: () => ui.open('item', { id: it.id }),
     })) : h('div', { class: 'dim pad' }, 'Nothing here.'));
     return h('div', null,
         h('div', { class: 'chips' }, FILTERS.map(([id, l]) => h('button', { class: `chip ${f === id ? 'on' : ''}`, onclick: () => { p.filter = id; ui.render(ui.top()); } }, l)), h('span', { class: 'dim small spacer' }, `${G.inv.length}/80`)),
-        h('div', { class: 'split items' }, listEl, sel ? itemDetail(ui, G, p, sel) : h('div', { class: 'detail dim pad' }, 'Select an item.')));
+        listEl);
 }
 function itemDetail(ui, G, p, it) {
     const lines = describe(it);
@@ -219,8 +218,15 @@ function itemDetail(ui, G, p, it) {
     } else if (it.t === 's') {
         body.push(h('button', { class: 'btn primary', onclick: () => ui.do({ t: 'use', item: it.id, who: 0 }) }, 'Read'));
     }
-    body.push(h('button', { class: 'btn danger small', onclick: () => ui.open('confirm', { text: `Throw away ${it.name}?`, yes: () => { ui.do({ t: 'drop', item: it.id }); p.sel = null; ui.render(ui.top()); } }) }, 'Drop'));
+    body.push(h('button', { class: 'btn danger small', onclick: () => ui.open('confirm', { text: `Throw away ${it.name}?`, yes: () => { ui.do({ t: 'drop', item: it.id }); ui.close('item', true); } }) }, 'Drop'));
     return h('div', { class: 'detail' }, body);
+}
+
+/** Tapping an item in the bag opens this: what it is, and who can use or wear it. */
+function item(ui, G, p) {
+    const it = G.inv.find((x) => x.id === p.id);
+    if (!it) { queueMicrotask(() => ui.close('item', true)); return { title: 'Item', body: h('div', { class: 'dim' }, 'Gone.'), foot: [h('button', { class: 'btn primary', onclick: () => ui.close() }, 'Back')] }; }
+    return { title: 'Item', body: itemDetail(ui, G, p, it), foot: [h('button', { class: 'btn primary', onclick: () => ui.close() }, 'Back')] };
 }
 
 function campQuests(ui, G) {
@@ -353,4 +359,4 @@ function results(ui, G) {
     };
 }
 
-export const SCREENS = { title, create, howto, settings, confirm, camp, pickmember, map, dialog, results, ...townScreens({ h, row, portrait, icon, itemName, itemStats, bar, money, tabs, hr, canvasEl, compareText, memberChips, rarityClass }) };
+export const SCREENS = { title, create, howto, settings, confirm, camp, item, pickmember, map, dialog, results, ...townScreens({ h, row, portrait, icon, itemName, itemStats, bar, money, tabs, hr, canvasEl, compareText, memberChips, rarityClass }) };
