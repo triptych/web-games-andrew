@@ -99,6 +99,41 @@ export class View {
         this.cam = { s: Math.max(0.25, Math.min(1.7, aw / (maxX - minX), ah / (maxY - minY))) };
         this.cam.ox = l + aw / 2 - ((minX + maxX) / 2) * this.cam.s;
         this.cam.oy = t + ah / 2 - ((minY + maxY) / 2) * this.cam.s;
+        // remember the fitted view: zoom and pan are measured from it, and a resize or new battle returns to it
+        this.base = { ...this.cam };
+        this.bounds = { minX, maxX, minY, maxY };
+        this.onZoom?.(false);
+    }
+
+    get zoomed() { return !!this.base && this.cam.s > this.base.s * 1.01; }
+
+    resetZoom() { if (this.base) { this.cam = { ...this.base }; this.onZoom?.(false); } }
+
+    /** Zoom by `factor` keeping the board point under client-space (px, py) where it is. */
+    zoomAt(px, py, factor) {
+        if (!this.base) return;
+        const c = this.cam;
+        const ns = Math.max(this.base.s, Math.min(this.base.s * 3.2, c.s * factor));
+        const k = ns / c.s;
+        c.ox = px - (px - c.ox) * k;
+        c.oy = py - (py - c.oy) * k;
+        c.s = ns;
+        this._clampPan();
+        this.onZoom?.(this.zoomed);
+    }
+
+    pan(dx, dy) { if (!this.zoomed) return; this.cam.ox += dx; this.cam.oy += dy; this._clampPan(); }
+
+    /** Keep a good part of the board on screen: you can look round the edges but never lose it. */
+    _clampPan() {
+        const c = this.cam, b = this.bounds, { t, b: bb, l, r } = this.inset;
+        const keep = 80;
+        const x0 = b.minX * c.s + c.ox, x1 = b.maxX * c.s + c.ox, y0 = b.minY * c.s + c.oy, y1 = b.maxY * c.s + c.oy;
+        if (x1 < l + keep) c.ox += l + keep - x1;
+        if (x0 > this.w - r - keep) c.ox -= x0 - (this.w - r - keep);
+        if (y1 < t + keep) c.oy += t + keep - y1;
+        if (y0 > this.h - bb - keep) c.oy -= y0 - (this.h - bb - keep);
+        if (!this.zoomed) this.cam = { ...this.base };
     }
 
     /** Screen position (canvas px) of the middle of a tile's top face. */
@@ -143,22 +178,64 @@ export class View {
 
     _bindPointer() {
         const cv = this.canvas;
-        let down = null;
-        cv.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId }; });
-        cv.addEventListener('pointerup', (e) => {
-            if (!down || e.pointerId !== down.id) return;
-            const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
-            down = null;
-            if (moved > 12) return;                                    // a drag is not a tap
-            const p = this.pick(e.clientX, e.clientY);
-            this.onTap?.(p ? p.x : null, p ? p.y : null);
+        const ptrs = new Map();                  // active pointers: id → { x, y }
+        let tap = null;                          // the press that may still become a tap
+        let pinch = null;                        // { dist } while two fingers are down
+        const local = (e) => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+        cv.addEventListener('pointerdown', (e) => {
+            ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            if (ptrs.size === 1) tap = { x: e.clientX, y: e.clientY, id: e.pointerId, dragged: false };
+            else { tap = null; const [a, b] = [...ptrs.values()]; pinch = { dist: Math.hypot(a.x - b.x, a.y - b.y) || 1 }; }
         });
-        cv.addEventListener('pointercancel', () => { down = null; });
         cv.addEventListener('pointermove', (e) => {
+            const p = ptrs.get(e.pointerId);
+            if (p) {
+                const dx = e.clientX - p.x, dy = e.clientY - p.y;
+                if (ptrs.size >= 2 && pinch) {
+                    // two fingers: zoom about their midpoint and follow it
+                    const o = [...ptrs.values()].find((q) => q !== p);
+                    const mx0 = (p.x + o.x) / 2, my0 = (p.y + o.y) / 2;
+                    p.x = e.clientX; p.y = e.clientY;
+                    const dist = Math.hypot(p.x - o.x, p.y - o.y) || 1;
+                    const mx = (p.x + o.x) / 2, my = (p.y + o.y) / 2;
+                    const r = cv.getBoundingClientRect();
+                    this.zoomAt(mx - r.left, my - r.top, dist / pinch.dist);
+                    this.pan(mx - mx0, my - my0);
+                    pinch.dist = dist;
+                    return;
+                }
+                p.x = e.clientX; p.y = e.clientY;
+                if (tap && tap.id === e.pointerId) {
+                    if (!tap.dragged && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 12) {
+                        tap.dragged = true;
+                        if (this.zoomed) this.pan(e.clientX - tap.x, e.clientY - tap.y);     // catch up with the slack before the drag began
+                    } else if (tap.dragged && this.zoomed) this.pan(dx, dy);                  // one finger (or the mouse) drags the zoomed board
+                }
+                return;
+            }
             if (e.pointerType === 'touch') return;
-            const p = this.pick(e.clientX, e.clientY);
-            this.onHover?.(p ? p.x : null, p ? p.y : null);
+            const h = this.pick(e.clientX, e.clientY);
+            this.onHover?.(h ? h.x : null, h ? h.y : null);
         });
+        const end = (e, cancelled) => {
+            ptrs.delete(e.pointerId);
+            if (ptrs.size < 2) pinch = null;
+            const t = tap;
+            if (!t || t.id !== e.pointerId) return;
+            tap = null;
+            if (cancelled || t.dragged || Math.hypot(e.clientX - t.x, e.clientY - t.y) > 12) return;     // a drag is not a tap
+            const h = this.pick(e.clientX, e.clientY);
+            this.onTap?.(h ? h.x : null, h ? h.y : null);
+        };
+        cv.addEventListener('pointerup', (e) => end(e, false));
+        cv.addEventListener('pointercancel', (e) => end(e, true));
+        // mouse wheel and trackpad pinch (which arrives as ctrl + wheel) zoom about the pointer
+        cv.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const [x, y] = local(e);
+            const d = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+            this.zoomAt(x, y, Math.exp(-d * (e.ctrlKey ? 0.01 : 0.0016)));
+        }, { passive: false });
         cv.addEventListener('contextmenu', (e) => e.preventDefault());
     }
 

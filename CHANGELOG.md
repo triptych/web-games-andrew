@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Crown & Crumpet** (game-103) v1.0.4: zoom. Scroll the mouse wheel (or pinch a trackpad) to zoom about the pointer, pinch with two fingers on a phone, drag to look around, `+` `-` `0` on the keyboard, and a reset button while zoomed. Taps, hover and picking all follow the zoom ([view.js](game-103/js/view/view.js)); a drag or pinch is never a tap.
 - **Crown & Crumpet** (game-103) v1.0.3: a monster standing behind a hedge or wall could not be targeted, because the wall hid its tile and took the click. On a student's turn any wall or table hiding a character or a lit tile is drawn see-through, and clicks pass through walls ([view.js](game-103/js/view/view.js)).
 - **Crown & Crumpet** (game-103) v1.0.2: damage made the game run at half speed (about 29 fps) and the shake was a barely visible diagonal wobble. The white hit flash used `ctx.filter` on the main canvas, which is slow; it is now a tint on a small offscreen copy ([sprites.js](game-103/js/view/sprites.js)). The shake is now a decaying horizontal shake in screen pixels ([view.js](game-103/js/view/view.js)).
 - **Crown & Crumpet** (game-103) v1.0.1: on a student's turn the other characters are drawn see-through and clicks go to the floor under them, so a cell in a bunched-up group can be targeted ([view.js](game-103/js/view/view.js), [play.js](game-103/js/play.js)).

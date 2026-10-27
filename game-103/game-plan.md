@@ -89,6 +89,7 @@ Prologue: Pip falls into a flowerbed on arrival, and Headmistress Hazel sends he
 | Attack / Skills / Wait / Undo | buttons | 1 / 2 / 3 / 4 | Y / X / B / R | buttons |
 | Cycle units | | Tab | | |
 | Pause | ❚❚ | P / Esc | Start | ❚❚ |
+| Zoom | wheel | + − 0 | | pinch, drag to look round, ⤢ resets |
 
 A mouse already hovers the tile, so one click confirms. Touch is select-then-confirm so a fat finger never walks the wrong way.
 
@@ -129,6 +130,9 @@ The bot is the enemy's brain, so it plays the same game the player does. Tuned u
 - A rotate-the-camera control for hidden units behind tall walls.
 
 ## Changelog
+
+### v1.0.4 (2026-10-27)
+- Zoom: wheel / trackpad pinch on desktop, two-finger pinch on phones, drag to pan, + - 0 keys, and a reset button while zoomed.
 
 ### v1.0.3 (2026-10-27)
 - Walls, hedges and tables that hide a character or a lit tile are drawn see-through on a student's turn, and clicks go through them.

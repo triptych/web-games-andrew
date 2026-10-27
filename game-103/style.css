@@ -76,6 +76,7 @@ button { font-family: inherit; }
     font-size: 12px; font-weight: 600; color: var(--ink); text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 170px);
 }
+#btn-zoom { position: absolute; pointer-events: auto; top: calc(58px + var(--safe-t)); right: calc(8px + var(--safe-r)); width: 46px; height: 46px; padding: 0; font-size: 20px; }
 body.dark #chapter-tag { color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
 #btn-pause { position: absolute; pointer-events: auto; top: calc(6px + var(--safe-t)); right: calc(8px + var(--safe-r)); width: 46px; height: 46px; padding: 0; font-size: 16px; }
 
@@ -211,7 +212,7 @@ body.calm *, body.calm *::before, body.calm *::after { animation-duration: 0.001
 @media (max-height: 460px) {
     /* landscape phone: the card and commands move to a column on the right so the board gets the height */
     #bottom {
-        left: auto; top: calc(58px + var(--safe-t)); width: 270px; flex-direction: column; flex-wrap: nowrap; justify-content: flex-end;
+        left: auto; top: calc(108px + var(--safe-t)); width: 270px; flex-direction: column; flex-wrap: nowrap; justify-content: flex-end;
         background: none; padding: 6px calc(8px + var(--safe-r)) calc(8px + var(--safe-b)) 6px;
     }
     #card { flex: 0 0 auto; padding: 5px 8px; }
