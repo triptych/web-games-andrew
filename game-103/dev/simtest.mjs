@@ -437,6 +437,19 @@ if (want('rules')) {
         ok(W.phase === 'outro' && W.roster.includes('mina'), 'the win recruits Mina even if nobody walked up to her');
         Gm.finishChapter(W);
         ok(W.chapter === 2 && W.phase === 'intro' && W.party.includes('mina') && W.party.length <= 4, 'the next chapter starts at the intro with Mina in the party');
+        // the last student faints while a stranded one is still waiting: she steps in, the battle goes on
+        const S = arena(2, { seed: 51 });
+        const waiting = S.B.units.find((u) => u.team === 'g');
+        ok(!!waiting && waiting.key === 'juniper', 'the garden has Juniper waiting in the gazebo');
+        const party = S.B.units.filter((u) => u.team === 'p');
+        for (const u of party.slice(1)) { u.alive = false; u.hp = 0; }
+        party[0].hp = 1; party[0].st = {};
+        const foe3 = S.B.units.find((u) => u.team === 'e');
+        place(foe3, party[0].x + 1, party[0].y); foe3.alive = true;
+        S.B.turn = { id: foe3.id, moved: false, acted: false, from: { x: foe3.x, y: foe3.y } };
+        Gm.act(S, { t: 'attack', x: party[0].x, y: party[0].y });
+        ok(!S.B.over && waiting.team === 'p', 'a waiting student joins when the party faints, so the battle is not lost');
+        ok(drain(S).some((e) => e.type === 'rescue') && Gm.turnOrder(S.B, 12).includes(waiting.id), 'and takes her place in the turn order');
         // the Dread Lord
         const F = arena(5, { seed: 31 });
         const basil = F.B.units.find((u) => u.key === 'basil');

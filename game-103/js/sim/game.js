@@ -171,13 +171,13 @@ function checkRescue(G) {
     }
 }
 
-function rescue(G, g, ch) {
+function rescue(G, g, ch, lines = ch.rescue) {
     const B = G.B;
     g.team = 'p';
     g.ct = 40;
     B.rescued.push(g.key);
     G.events.push({ type: 'rescue', id: g.id });
-    if (ch.rescue) G.events.push({ type: 'talk', lines: ch.rescue });
+    if (lines) G.events.push({ type: 'talk', lines });
 }
 
 function endBattle(G, result, why) {
@@ -198,7 +198,16 @@ function endBattle(G, result, why) {
 function checkEnd(G) {
     const B = G.B;
     if (B.over) return true;
-    if (!B.units.some((u) => u.alive && u.team === 'p')) { endBattle(G, 'lose', 'fainted'); return true; }
+    if (!B.units.some((u) => u.alive && u.team === 'p')) {
+        // a stranded student who is still waiting steps in rather than watching the party get tuckered out
+        const g = B.units.find((o) => o.team === 'g' && o.alive);
+        if (g) {
+            rescue(G, g, CHAPTERS[B.chapter], [[g.key, 'Nobody is left to come for me, so I am coming for you! Hold on!']]);
+            return false;
+        }
+        endBattle(G, 'lose', 'fainted');
+        return true;
+    }
     if (!B.units.some((u) => u.alive && u.team === 'e')) {
         const ch = CHAPTERS[B.chapter];
         for (const g of B.units.filter((o) => o.team === 'g')) rescue(G, g, ch);    // nobody gets left behind
