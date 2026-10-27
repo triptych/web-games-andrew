@@ -37,7 +37,7 @@ On her basic Wobbly Scepter, Pip fumbles `22% − 3% per level` (floor 4%) of th
 Cheered (+25% damage), guarded (−35% damage taken), cosy (heals 3 + level at the start of each turn), sleepy (skip the next turn; any damage wakes it; bosses resist). Durations count the unit's own turns. MP comes back at 1 per turn.
 
 ### Rescues
-A guest (neutral, immobile, never targeted) joins the party the moment any student ends a turn next to them. A rescue starts a short scene. All foes down also rescues anyone still waiting.
+A guest (neutral, immobile, never targeted) joins the party the moment any student ends a turn next to them, or steps in on her own if the last student faints. A rescue starts a short scene. All foes down also rescues anyone still waiting.
 
 ### Picnic basket
 One snack before each battle for the whole party: Honey Scone (cheered 4 turns), Berry Tart (guarded 4 turns), Mint Tea (cosy 5 turns, +3 MP).
@@ -130,6 +130,9 @@ The bot is the enemy's brain, so it plays the same game the player does. Tuned u
 - A rotate-the-camera control for hidden units behind tall walls.
 
 ## Changelog
+
+### v1.0.5 (2026-10-27)
+- If the whole party faints while a stranded student is still waiting, she steps in and the battle continues instead of being lost.
 
 ### v1.0.4 (2026-10-27)
 - Zoom: wheel / trackpad pinch on desktop, two-finger pinch on phones, drag to pan, + - 0 keys, and a reset button while zoomed.

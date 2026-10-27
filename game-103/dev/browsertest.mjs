@@ -135,6 +135,7 @@ async function desktop() {
 
     // real mouse: walk
     await myTurn(page);
+    await until(page, () => __cc.play.ov.move && __cc.play.ov.move.size > 3, 'the walkable tiles are lit');
     const mv = await Q(page, () => {
         const B = __cc.G.B, u = B.units.find((o) => o.id === B.turn.id);
         const k = [...__cc.play.ov.move][3];
@@ -370,6 +371,7 @@ async function phone(w, h) {
     await shot(page, `phone-${w}x${h}-battle`);
 
     // select, then confirm: the first tap previews, the second walks
+    await until(page, () => __cc.play.ov.move && __cc.play.ov.move.size > 2, 'the walkable tiles are lit');
     const mv = await Q(page, () => {
         const B = __cc.G.B, u = B.units.find((o) => o.id === B.turn.id);
         const k = [...__cc.play.ov.move][2];
