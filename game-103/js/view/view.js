@@ -3,7 +3,7 @@
 // arrives, so the view keeps its own picture of each unit (`vis`: where it is, how much hp the bar
 // shows) and only updates it as each event plays. `busy` is true until the last one finishes.
 
-import { CHAPTERS, SKILLS, STATUS } from '../sim/data.js';
+import { CHAPTERS, ITEMS, SKILLS, STATUS } from '../sim/data.js';
 import { drawActor } from './sprites.js';
 
 const TW = 64, TH = 32, HZ = 13, BASE = 16;            // tile width/height in px, a height level, the island's thickness
@@ -285,7 +285,7 @@ export class View {
         switch (ev.type) {
             case 'turn':
                 for (const o of this.vis.values()) o.active = false;
-                if (v) v.active = true;
+                if (v) { v.active = true; if (ev.mp !== undefined) v.mp = ev.mp; }
                 c.dur = 0.3;
                 break;
             case 'move': {
@@ -295,6 +295,7 @@ export class View {
             case 'warp': v.x = ev.x; v.y = ev.y; v.z = this._h(ev.x, ev.y); this._puff(ev.x, ev.y, v.z, '#fff'); c.dur = 0.2; break;
             case 'skill': {
                 const sk = SKILLS[ev.skill];
+                if (ev.mp !== undefined) v.mp = ev.mp;
                 const tgt = [ev.x, ev.y];
                 const [cx, cy] = [ev.x - v.x, ev.y - v.y];
                 v.dir = (cx - cy) < 0 ? -1 : (cx - cy) > 0 ? 1 : v.dir;
@@ -348,6 +349,19 @@ export class View {
                 this.banner = { text: ev.result === 'win' ? (ev.why === 'yield' ? 'The Dread Lord yields!' : 'Chapter clear!') : 'The party is tuckered out…', win: ev.result === 'win', t: 0 };
                 if (ev.result === 'win') for (let i = 0; i < 3; i++) this._confetti();
                 break;
+            case 'mp':
+                c.dur = 0.45; v.mp = ev.mp;
+                this._text(v.x, v.y, v.z + 2.4, `+${ev.amt} MP`, '#e0f0ff', '#3a78c8', 1.15);
+                this._burst(v.x, v.y, v.z + 0.8, 8, ['#7cc0ff', '#fff', '#c9e8ff'], 'spark');
+                break;
+            case 'item': {
+                const to = this.vis.get(ev.to);
+                c.dur = 0.5; c.to = to;
+                const col = { jam: '#ff6b8a', mint: '#8ce8c0', tonic: '#c9a8ff' }[ev.item] || '#fff';
+                if (to && to !== v) this.parts.push({ type: 'proj', x: v.x, y: v.y, z: v.z + 1.6, tx: to.x, ty: to.y, tz: to.z + 1.6, t: 0, life: 0.35, color: col, kind: 'item', vx: 0, vy: 0, vz: 0, size: 1 });
+                if (to) this._text(to.x, to.y, to.z + 2.8, ev.give ? `Got ${ITEMS[ev.item].name}!` : ITEMS[ev.item].name, '#fff6c8', '#7a4a6a', 1.05);
+                break;
+            }
             case 'battle': break;
             default: break;
         }
@@ -381,6 +395,7 @@ export class View {
             case 'lucky': v.hop = Math.sin(p * Math.PI) * 10; break;
             case 'faint': v.fade = p; v.hop = p * 14; break;
             case 'rescue': v.hop = Math.abs(Math.sin(p * Math.PI * 3)) * 8; break;
+            case 'item': v.hop = Math.sin(p * Math.PI) * 6; break;
             default: break;
         }
     }
@@ -392,7 +407,7 @@ export class View {
             case 'skill': v.ox = v.oy = v.hop = v.squash = 0; break;
             case 'hit': v.flash = 0; v.shake = 0; v.hp = c.ev.hp; v.face = 'idle'; break;
             case 'oops': v.lean = 0; v.hop = 0; break;
-            case 'lucky': case 'rescue': v.hop = 0; break;
+            case 'lucky': case 'rescue': case 'item': v.hop = 0; break;
             case 'faint': v.alive = false; v.hp = 0; v.face = 'idle'; v.fade = 1; break;
             case 'heal': v.hp = c.ev.hp; break;
             case 'end': this.banner = null; this.onEnd?.(c.ev); break;

@@ -2,7 +2,7 @@
 // aiCommand() is stateless: it looks at the board and the turn flags and returns the next command,
 // so a game saved halfway through a turn picks up exactly where it left off.
 
-import { CLASSES, SKILLS } from './data.js';
+import { CLASSES, SKILLS, itemAmount } from './data.js';
 import {
     DIRS, affectedFrom, calcDamage, healAmount, isFoe, isFriend, rangeTiles, skillsOf, standable, tileAt, validTarget,
 } from './core.js';
@@ -57,6 +57,26 @@ function actionScore(B, u, sk, pos, tx, ty) {
     return s > 0 ? s - sk.cost * 0.25 : 0;
 }
 
+/**
+ * Use a carried item on whoever needs it (self or a friend next to us) when it is worth the action:
+ * someone below half health, or a caster nearly out of MP.
+ */
+function itemCommand(B, u) {
+    let best = null;
+    const near = B.units.filter((o) => o.alive && o.team === u.team && Math.abs(o.x - u.x) + Math.abs(o.y - u.y) <= 1);
+    u.items.forEach((it, slot) => {
+        for (const to of near) {
+            const hp = Math.min(to.maxhp - to.hp, itemAmount(it, 'hp', to.lvl));
+            const mp = Math.min(Math.max(0, to.maxmp - to.mp), itemAmount(it, 'mp', to.lvl));
+            let v = 0;
+            if (to.hp / to.maxhp < 0.5 && hp >= to.maxhp * 0.25) v += (hp / to.maxhp) * 10 * (to.hp / to.maxhp < 0.3 ? 1.5 : 1);
+            if (to.maxmp >= 8 && to.mp <= 2 && mp >= 3) v += 3;
+            if (v > 2.5 && (!best || v > best.v)) best = { v, cmd: { t: 'item', slot, x: to.x, y: to.y } };
+        }
+    });
+    return best?.cmd || null;
+}
+
 export function aiCommand(G, u) {
     const B = G.B, T = B.turn;
     const foes = B.units.filter((o) => isFoe(u, o));
@@ -67,6 +87,8 @@ export function aiCommand(G, u) {
         if (foes.some((o) => Math.abs(o.x - u.x) + Math.abs(o.y - u.y) <= u.move + 4)) u.awake = true;
         else return { t: 'wait' };
     }
+
+    if (!T.acted && u.items?.length) { const c = itemCommand(B, u); if (c) return c; }
 
     // where to head when nothing can be hit: the hurt friend (healers) or the nearest foe
     const hurt = friends.filter((o) => o.hp / o.maxhp < 0.7);

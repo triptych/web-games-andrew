@@ -19,7 +19,7 @@ One chapter: story scene → choose a party and a snack → battle → victory b
 ## Mechanics
 
 ### Turns (charge time)
-Every unit has a charge `ct` that fills by its speed each tick; the first to reach 100 acts, then spends 100. The strip along the top is `turnOrder(B, 8)`, the sim's own forecast. Fast units (Fenn, crows, sprites) act more often than slow ones (Pudge, scone knights, the boss). A sleeping unit loses its next turn.
+Every unit has a charge `ct` that fills by its speed each tick; the party starts each chapter with 70-95 and the foes with 0-15, so the students always have the opening turns; the first to reach 100 acts, then spends 100. The strip along the top is `turnOrder(B, 8)`, the sim's own forecast. Fast units (Fenn, crows, sprites) act more often than slow ones (Pudge, scone knights, the boss). A sleeping unit loses its next turn.
 
 ### A turn
 Move once and act once, in either order. Moving then acting (or acting then moving) ends the turn by itself; Wait ends it early; Undo takes back a move made before acting.
@@ -38,6 +38,9 @@ Cheered (+25% damage), guarded (−35% damage taken), cosy (heals 3 + level at t
 
 ### Rescues
 A guest (neutral, immobile, never targeted) joins the party the moment any student ends a turn next to them, or steps in on her own if the last student faints. A rescue starts a short scene. All foes down also rescues anyone still waiting.
+
+### Items
+Each student packs Strawberry Jam (hp, `10 + 2 per level`), Mint Sprig (MP, `4 + 0.8 per level`) and, from chapter 4, a Sparkle Tonic (both), and can carry four. **Use** takes the action and works on yourself or a friend next to you (refused if it would do nothing); **Give** is free, once a turn, to a friend next to you with a free hand. Items are never lost between battles because everyone repacks at the start of each one.
 
 ### Picnic basket
 One snack before each battle for the whole party: Honey Scone (cheered 4 turns), Berry Tart (guarded 4 turns), Mint Tea (cosy 5 turns, +3 MP).
@@ -86,7 +89,7 @@ Prologue: Pip falls into a flowerbed on arrival, and Headmistress Hazel sends he
 | Select a tile | hover | arrows / WASD (move along the screen's own directions) | d-pad | tap |
 | Confirm | click | Enter / Space / Z | A | tap the same tile again, or Go! |
 | Back | | Esc / X | B | Back |
-| Attack / Skills / Wait / Undo | buttons | 1 / 2 / 3 / 4 | Y / X / B / R | buttons |
+| Attack / Skills / Wait / Undo / Items | buttons | 1 / 2 / 3 / 4 / 5 or I | Y / X / B / R | buttons |
 | Cycle units | | Tab | | |
 | Pause | ❚❚ | P / Esc | Start | ❚❚ |
 | Zoom | wheel | + − 0 | | pinch, drag to look round, ⤢ resets |
@@ -130,6 +133,9 @@ The bot is the enemy's brain, so it plays the same game the player does. Tuned u
 - A rotate-the-camera control for hidden units behind tall walls.
 
 ## Changelog
+
+### v1.1.0 (2026-10-27)
+- Items (jam, mint, tonic) that students carry, use on themselves or a friend, or hand over; the party takes the opening turns of every chapter; the card's MP bar follows spells.
 
 ### v1.0.5 (2026-10-27)
 - If the whole party faints while a stranded student is still waiting, she steps in and the battle continues instead of being lost.

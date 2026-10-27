@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Crown & Crumpet** (game-103) v1.1.0: items, and the party moves first.
+  - Fixed: on the rooftops the crows (the fastest things in the game) took their turns before the party and the princess started a fight almost dead. The party now starts every chapter with the opening turns ([game.js](game-103/js/sim/game.js)).
+  - Added: every student packs Strawberry Jam (hp), Mint Sprig (MP) and, from chapter 4, a Sparkle Tonic (both), and can carry four. Use one on yourself or a friend next to you (it takes your action), or give one to a friend next to you (free, once a turn). An Items button and sheet, a forecast of what it restores, items shown on the unit card, and `1 2 3 4 5` / `I` keys ([play.js](game-103/js/play.js), [ui.js](game-103/js/ui.js)). The bot drinks jam when someone is below half health.
+  - Fixed: the unit card's MP bar never moved after a spell; the view now tracks MP from the sim's events ([view.js](game-103/js/view/view.js)).
+  - Saves from before items still load (nobody carries anything in an old saved battle).
 - **Crown & Crumpet** (game-103) v1.0.5: the battle ended with "The party is tuckered out" while a stranded student (Juniper in the garden, say) was still waiting on the map, because only a living student can rescue her. When the last student faints, a waiting one now steps in and the battle goes on ([game.js](game-103/js/sim/game.js)). The lose sheet now lists each student's state, so a surprising defeat can be reported precisely.
 - **Crown & Crumpet** (game-103) v1.0.4: zoom. Scroll the mouse wheel (or pinch a trackpad) to zoom about the pointer, pinch with two fingers on a phone, drag to look around, `+` `-` `0` on the keyboard, and a reset button while zoomed. Taps, hover and picking all follow the zoom ([view.js](game-103/js/view/view.js)); a drag or pinch is never a tap.
 - **Crown & Crumpet** (game-103) v1.0.3: a monster standing behind a hedge or wall could not be targeted, because the wall hid its tile and took the click. On a student's turn any wall or table hiding a character or a lit tile is drawn see-through, and clicks pass through walls ([view.js](game-103/js/view/view.js)).

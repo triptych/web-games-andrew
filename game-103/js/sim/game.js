@@ -7,9 +7,9 @@
 
 import { CT_READY, MAX_TURNS, RULES } from '../config.js';
 import { makeRng } from '../rng.js';
-import { CHAPTERS, CLASSES, PARTY_ORDER, SKILLS, SNACKS } from './data.js';
+import { CHAPTERS, CLASSES, ITEMS, MAX_ITEMS, PARTY_ORDER, SKILLS, SNACKS, itemAmount, packFor } from './data.js';
 import {
-    affected, aoeTiles, basicOf, buildTiles, calcDamage, healAmount, isFoe, makeUnit, pathTo, reach,
+    isFriend, affected, aoeTiles, basicOf, buildTiles, calcDamage, healAmount, isFoe, makeUnit, pathTo, reach,
     skillsOf, standable, unitAt, unitById, validTarget,
 } from './core.js';
 import { aiCommand } from './ai.js';
@@ -70,7 +70,9 @@ export function beginBattle(G) {
     });
     for (const [key, x, y, ai] of ch.foes) B.units.push(makeUnit(id++, key, lvl, 'e', x, y, { ai }));
     if (ch.guest) B.units.push(makeUnit(id++, ch.guest.key, lvl, 'g', ch.guest.x, ch.guest.y));
-    for (const u of B.units) if (u.team !== 'g') u.ct = G.rng.int(0, 30);
+    // the party gets the opening turns: nobody starts a chapter already being bitten
+    for (const u of B.units) if (u.team !== 'g') u.ct = u.team === 'p' ? G.rng.int(70, 95) : G.rng.int(0, 15);
+    for (const u of B.units) if (u.team === 'p') u.items = packFor(G.chapter);
     const snack = SNACKS[G.snack];
     for (const u of B.units) {
         if (u.team !== 'p') continue;
@@ -122,8 +124,8 @@ function nextTurn(G) {
             best.ct -= CT_READY;
             continue;
         }
-        B.turn = { id: best.id, moved: false, acted: false, from: { x: best.x, y: best.y } };
-        G.events.push({ type: 'turn', id: best.id });
+        B.turn = { id: best.id, moved: false, acted: false, gave: false, from: { x: best.x, y: best.y } };
+        G.events.push({ type: 'turn', id: best.id, mp: best.mp });
         return;
     }
 }
@@ -175,6 +177,7 @@ function rescue(G, g, ch, lines = ch.rescue) {
     const B = G.B;
     g.team = 'p';
     g.ct = 40;
+    g.items = packFor(0);
     B.rescued.push(g.key);
     G.events.push({ type: 'rescue', id: g.id });
     if (lines) G.events.push({ type: 'talk', lines });
@@ -247,6 +250,35 @@ export function act(G, cmd) {
         return OK;
     }
 
+    if (cmd.t === 'item' || cmd.t === 'give') {
+        const it = u.items[cmd.slot];
+        if (!it) return no('nothing in that slot');
+        const to = unitAt(B, cmd.x, cmd.y);
+        if (!to || !isFriend(u, to)) return no('no friend there');
+        if (Math.abs(to.x - u.x) + Math.abs(to.y - u.y) > 1) return no('too far away');
+        if (cmd.t === 'give') {
+            if (T.gave) return no('already handed something over this turn');
+            if (to.id === u.id) return no('that is you');
+            if (to.items.length >= MAX_ITEMS) return no('their hands are full');
+            u.items.splice(cmd.slot, 1);
+            to.items.push(it);
+            T.gave = true;
+            G.events.push({ type: 'item', id: u.id, to: to.id, item: it, give: true });
+            return OK;
+        }
+        if (T.acted) return no('already acted');
+        const hp = itemAmount(it, 'hp', to.lvl), mp = itemAmount(it, 'mp', to.lvl);
+        const gainHp = Math.min(to.maxhp - to.hp, hp), gainMp = Math.min(Math.max(0, to.maxmp - to.mp), mp);
+        if (gainHp <= 0 && gainMp <= 0) return no('that would do nothing');
+        u.items.splice(cmd.slot, 1);
+        G.events.push({ type: 'item', id: u.id, to: to.id, item: it, give: false });
+        if (gainHp > 0) { to.hp += gainHp; G.events.push({ type: 'heal', id: to.id, amt: gainHp, hp: to.hp }); }
+        if (gainMp > 0) { to.mp += gainMp; G.events.push({ type: 'mp', id: to.id, amt: gainMp, mp: to.mp }); }
+        T.acted = true;
+        if (T.moved) endTurn(G);
+        return OK;
+    }
+
     if (cmd.t === 'attack' || cmd.t === 'skill') {
         const id = cmd.t === 'attack' ? basicOf(u) : cmd.id;
         if (!skillsOf(u).includes(id)) return no('does not know that skill');
@@ -266,7 +298,7 @@ function resolve(G, u, id, sk, tx, ty) {
     const B = G.B;
     u.mp -= sk.cost;
     const targets = affected(B, u, sk, tx, ty);
-    G.events.push({ type: 'skill', id: u.id, skill: id, x: tx, y: ty, tiles: aoeTiles(B, sk, tx, ty), targets: targets.map((t) => t.id) });
+    G.events.push({ type: 'skill', id: u.id, skill: id, mp: u.mp, x: tx, y: ty, tiles: aoeTiles(B, sk, tx, ty), targets: targets.map((t) => t.id) });
 
     if (sk.kind === 'phys' || sk.kind === 'mag') {
         const pipSwing = u.key === 'pip' && id === 'scepter';
@@ -366,6 +398,7 @@ export function deserialize(d) {
     const { rngState, ...rest } = d;
     const G = { ...JSON.parse(JSON.stringify(rest)), rng: makeRng(0), events: [] };
     G.rng.setState(rngState);
+    for (const u of G.B?.units || []) u.items ||= [];          // saves from before items existed
     return G;
 }
 

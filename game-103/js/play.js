@@ -4,7 +4,7 @@
 // Select-then-confirm: the first tap on a tile sets the cursor and previews it, a second tap on the
 // same tile does it. A mouse already hovers the tile, so there a single click confirms.
 
-import { CHAPTERS, CLASSES, SKILLS } from './sim/data.js';
+import { CHAPTERS, CLASSES, ITEMS, MAX_ITEMS, SKILLS, itemAmount } from './sim/data.js';
 import { act } from './sim/game.js';
 import {
     aoeTiles, basicOf, calcDamage, healAmount, isFoe, pathTo, rangeTiles, reach, skillsOf, standable, unitAt, validTarget, affected,
@@ -17,7 +17,8 @@ const ARROWS = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1
 export class Play {
     constructor({ view, ui, audio, getG, isAuto }) {
         Object.assign(this, { view, ui, audio, getG, isAuto });
-        this.mode = 'free';               // free | skill
+        this.mode = 'free';               // free | skill | item
+        this.item = null;                 // { slot, kind: 'use' | 'give' } while choosing who gets an item
         this.skillId = null;
         this.cursor = null;
         this.turnId = null;
@@ -39,7 +40,7 @@ export class Play {
 
     unit() { const B = this.G.B; return B.units.find((o) => o.id === B.turn.id); }
 
-    reset() { this.mode = 'free'; this.skillId = null; this.cursor = null; this.sig = ''; }
+    reset() { this.mode = 'free'; this.skillId = null; this.item = null; this.cursor = null; this.sig = ''; }
 
     // ------------------------------------------------------------------ per-frame state → view and HUD
     update() {
@@ -68,7 +69,7 @@ export class Play {
             if (u.team === 'p' && this.isAuto()) this.ui.prompt(`${CLASSES[u.key].name} (auto)`);
             return;
         }
-        const sig = [this.turnId, T.moved, T.acted, this.mode, this.skillId, this.cursor?.x, this.cursor?.y, u.x, u.y, u.mp, B.units.filter((o) => o.alive).map((o) => `${o.x}${o.y}`).join('')].join();
+        const sig = [this.turnId, T.moved, T.acted, this.mode, this.skillId, this.item?.slot, this.item?.kind, T.gave, u.items?.length, this.cursor?.x, this.cursor?.y, u.x, u.y, u.mp, B.units.filter((o) => o.alive).map((o) => `${o.x}${o.y}`).join('')].join();
         if (sig !== this.sig) { this.sig = sig; this._compute(u, T); }
         this.view.ov = this.ov;
         this.ui.prompt(this.info);
@@ -79,6 +80,7 @@ export class Play {
             mode: this.mode,
             attack: !T.acted && hasTarget(basic),
             skills: !T.acted && skillsOf(u).length > 1,
+            items: (u.items?.length || 0) > 0 && (!T.acted || !T.gave),
             wait: true,
             undo: T.moved && !T.acted,
             go: !free && this.skillOk,
@@ -117,6 +119,19 @@ export class Play {
                 else if (this.G.chapter === 0 && B.turnNo <= 6 && !T.moved && !T.acted) this.info = CHAPTERS[0].hint;
                 else this.info = `${CLASSES[u.key].name}'s turn: ${T.moved ? '' : 'move, '}${T.acted ? '' : 'act, '}then Wait.`;
             }
+        } else if (this.mode === 'item') {
+            const it = u.items[this.item.slot];
+            const who = this._itemTargets(u, this.item.kind);
+            ov.tgt = new Set(who.map((o) => KEY(B, o.x, o.y)));
+            const o = cur && who.find((w) => w.x === cur.x && w.y === cur.y);
+            if (it && o) {
+                ov.aoe = new Set([curKey]);
+                this.skillOk = true;
+                const me = ITEMS[it];
+                const hp = Math.min(o.maxhp - o.hp, itemAmount(it, 'hp', o.lvl)), mp = Math.min(Math.max(0, o.maxmp - o.mp), itemAmount(it, 'mp', o.lvl));
+                const fx = [hp > 0 ? `+${hp} hp` : '', mp > 0 ? `+${mp} MP` : ''].filter(Boolean).join(', ');
+                this.info = this.item.kind === 'give' ? `Give ${me.name} to ${CLASSES[o.key].name}. Tap again or Go!` : `${me.name} on ${CLASSES[o.key].name} (${fx}). Tap again or Go!`;
+            } else this.info = `${it ? ITEMS[it].name : 'Item'}: ${who.length ? 'choose a glowing friend.' : 'no one next to you can take it.'}`;
         } else {
             const sk = SKILLS[this.skillId];
             const ok = (t) => validTarget(B, u, sk, t.x, t.y);
@@ -160,6 +175,12 @@ export class Play {
         const G = this.G, B = G.B, u = this.unit(), T = B.turn;
         const cur = this.cursor;
         if (!cur) { this.cursor = { x: u.x, y: u.y }; return; }
+        if (this.mode === 'item') {
+            const kind = this.item.kind;
+            if (this._do({ t: kind === 'give' ? 'give' : 'item', slot: this.item.slot, x: cur.x, y: cur.y })) { this.mode = 'free'; this.item = null; }
+            else this.audio.ui('no');
+            return;
+        }
         if (this.mode === 'skill') {
             const sk = SKILLS[this.skillId];
             if (this._do({ t: 'skill', id: this.skillId, x: cur.x, y: cur.y })) { this.mode = 'free'; this.skillId = null; }
@@ -185,7 +206,8 @@ export class Play {
         this.audio.ui('click');
         if (name === 'wait') { this._do({ t: 'wait' }); return; }
         if (name === 'undo') { this._do({ t: 'undo' }); this.cursor = { x: u.x, y: u.y }; return; }
-        if (name === 'cancel') { this.mode = 'free'; this.skillId = null; return; }
+        if (name === 'cancel') { this.mode = 'free'; this.skillId = null; this.item = null; return; }
+        if (name === 'items') { this.openItems(); return; }
         if (name === 'go') { this.confirm(); return; }
         if (name === 'attack') { this.enterSkill(basicOf(u)); return; }
         if (name === 'skills') {
@@ -198,6 +220,37 @@ export class Play {
             });
             this.ui.openSkills(u, list, (id) => this.enterSkill(id));
         }
+    }
+
+    /** Friends an item could go to right now: for Use, yourself and anyone next to you it would help; for Give, anyone next to you with room. */
+    _itemTargets(u, kind) {
+        const B = this.G.B, it = u.items[this.item?.slot ?? 0];
+        const near = B.units.filter((o) => o.alive && o.team === u.team && Math.abs(o.x - u.x) + Math.abs(o.y - u.y) <= 1);
+        if (kind === 'give') return near.filter((o) => o.id !== u.id && o.items.length < MAX_ITEMS);
+        if (!it) return [];
+        return near.filter((o) => Math.min(o.maxhp - o.hp, itemAmount(it, 'hp', o.lvl)) > 0 || Math.min(Math.max(0, o.maxmp - o.mp), itemAmount(it, 'mp', o.lvl)) > 0);
+    }
+
+    openItems() {
+        const B = this.G.B, u = this.unit(), T = B.turn;
+        const rows = u.items.map((id, slot) => {
+            this.item = { slot, kind: 'use' };
+            const use = this._itemTargets(u, 'use').length > 0, give = this._itemTargets(u, 'give').length > 0;
+            const why = [];
+            if (T.acted) why.push('already acted'); else if (!use) why.push('nobody who needs it is next to you');
+            if (T.gave) why.push('already handed one over'); else if (!give && use === false) why.push('no free hands next to you');
+            return { slot, name: ITEMS[id].name, desc: ITEMS[id].desc, canUse: !T.acted && use, canGive: !T.gave && give, why: why.join('; ') };
+        });
+        this.item = null;
+        this.ui.openItems(u, rows, (slot, kind) => this.enterItem(slot, kind));
+    }
+
+    enterItem(slot, kind) {
+        const u = this.unit();
+        this.mode = 'item'; this.item = { slot, kind };
+        const first = this._itemTargets(u, kind)[0];
+        this.cursor = first ? { x: first.x, y: first.y } : { x: u.x, y: u.y };
+        this.sig = '';
     }
 
     enterSkill(id) {
@@ -250,12 +303,13 @@ export class Play {
         if (key in ARROWS) { this.moveCursor(key); return true; }
         if (key === 'Enter' || key === 'Space' || key === 'KeyZ') { this.confirm(); return true; }
         if (key === 'Escape' || key === 'KeyX') {
-            if (this.mode === 'skill') { this.mode = 'free'; this.skillId = null; this.audio.ui('close'); return true; }
+            if (this.mode !== 'free') { this.mode = 'free'; this.skillId = null; this.item = null; this.audio.ui('close'); return true; }
             return false;                                    // let main open the pause menu
         }
         if (key === 'Tab') { this.cycle(shift ? -1 : 1); return true; }
         if (key === 'Digit1') { this.command('attack'); return true; }
         if (key === 'Digit2') { this.command('skills'); return true; }
+        if (key === 'Digit5' || key === 'KeyI') { this.command('items'); return true; }
         if (key === 'Digit3') { this.command('wait'); return true; }
         if (key === 'Digit4') { this.command('undo'); return true; }
         return false;

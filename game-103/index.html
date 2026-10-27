@@ -61,6 +61,7 @@
         <div id="cmd">
             <button class="cbtn" data-cmd="attack" id="cmd-attack">Attack</button>
             <button class="cbtn" data-cmd="skills" id="cmd-skills">Skills</button>
+            <button class="cbtn" data-cmd="items" id="cmd-items">Items</button>
             <button class="cbtn" data-cmd="wait" id="cmd-wait">Wait</button>
             <button class="cbtn" data-cmd="undo" id="cmd-undo">Undo</button>
             <button class="cbtn go" data-cmd="go" id="cmd-go" hidden>Go!</button>
@@ -156,10 +157,11 @@
                 <tr><td>Blue tiles</td><td>Where you can walk</td></tr>
                 <tr><td>Red tiles</td><td>Enemies you can hit from here</td></tr>
                 <tr><td>Attack / Skills</td><td>Pick a target, then <b>Go!</b></td></tr>
+                <tr><td>Items</td><td>Use on yourself or a friend next to you, or give one to a friend next to you</td></tr>
                 <tr><td>Arrows / WASD</td><td>Move the cursor</td></tr>
                 <tr><td>Enter / Space</td><td>Confirm</td></tr>
                 <tr><td>Esc / X</td><td>Back, or pause</td></tr>
-                <tr><td>1 2 3 4</td><td>Attack, Skills, Wait, Undo</td></tr>
+                <tr><td>1 2 3 4 5</td><td>Attack, Skills, Wait, Undo, Items</td></tr>
                 <tr><td>Scroll / pinch</td><td>Zoom; drag to look around; + − 0 on the keyboard</td></tr>
             </table>
             <p class="small">Higher ground hits harder, bushes soften blows, and friends standing next to a target add a little extra. Pip trips now and then, and sometimes stumbles into a lucky double hit. Stand next to a stranded student to rescue them. Nobody is ever lost: a fainted friend is back for the next chapter.</p>
@@ -183,6 +185,15 @@
         <div class="sheet">
             <h2>Skills <small id="skills-mp"></small></h2>
             <div id="skills-list" class="skill-list"></div>
+            <div class="sheet-foot"><button class="btn" data-close>Back</button></div>
+        </div>
+    </div>
+
+    <div id="items" class="screen" hidden>
+        <div class="sheet">
+            <h2>Items <small id="items-who"></small></h2>
+            <p class="small">Use one on yourself or a friend next to you (it takes your action), or give one to a friend next to you (free, once a turn).</p>
+            <div id="items-list" class="skill-list"></div>
             <div class="sheet-foot"><button class="btn" data-close>Back</button></div>
         </div>
     </div>

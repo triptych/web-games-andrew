@@ -34,7 +34,7 @@ export function makeUnit(id, key, lvl, team, x, y, extra = {}) {
         hp, maxhp: hp, mp, maxmp: mp,
         atk: stat(c, 'atk', lvl), mag: stat(c, 'mag', lvl), def: stat(c, 'def', lvl), res: stat(c, 'res', lvl),
         spd: c.spd, move: c.move, jump: c.jump, fly: !!c.fly, boss: !!c.boss,
-        ct: 0, st: {}, ai: 'hunt', awake: false,
+        ct: 0, st: {}, items: [], ai: 'hunt', awake: false,
         ...extra,
     };
 }

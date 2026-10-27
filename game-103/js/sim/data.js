@@ -92,6 +92,18 @@ export const CLASSES = {
     basil: { name: 'Dread Lord Basil', team: 'e', size: 1.35, boss: true, hp: [84, 6], mp: [6, 0], atk: [9, 1.5], mag: [8, 1.4], def: [5, 1], res: [5, 1], spd: 7, move: 3, jump: 2, skills: ['smite', 'gust'], blurb: 'The Dread Lord of the Underkitchens. Looks very frightening. Keeps apologising.' },
 };
 
+// Things a student can carry. Amounts are [base, growth per level]; anyone can use one on themselves or on
+// a friend next to them, or hand it to a friend next to them.
+export const ITEMS = {
+    jam: { name: 'Strawberry Jam', hp: [10, 2], mp: [0, 0], desc: 'Restores a good bit of hp.' },
+    mint: { name: 'Mint Sprig', hp: [0, 0], mp: [4, 0.8], desc: 'Restores some MP.' },
+    tonic: { name: 'Sparkle Tonic', hp: [8, 1.5], mp: [3, 0.6], desc: 'Restores some hp and some MP.' },
+};
+export const MAX_ITEMS = 4;
+/** What each student packs for a battle. Rescued students pack the basics. */
+export const packFor = (chapter) => ['jam', 'mint', ...(chapter >= 3 ? ['tonic'] : [])];
+export const itemAmount = (id, kind, lvl) => Math.round(ITEMS[id][kind][0] + ITEMS[id][kind][1] * (lvl - 1));
+
 export const PARTY_ORDER = ['pip', 'bram', 'mina', 'juniper', 'fenn', 'pudge'];
 
 export const SNACKS = {
