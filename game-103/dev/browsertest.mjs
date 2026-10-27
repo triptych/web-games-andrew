@@ -191,6 +191,7 @@ async function desktop() {
     await Q(page, () => document.querySelectorAll('#skills-list .skill')[1].click());
     await until(page, () => __cc.play.mode === 'skill' && !document.getElementById('cmd-go').hidden, 'choosing Royal Decree shows Go!');
     const stBefore = await countSeen(page, 'status');
+    await until(page, () => !document.getElementById('cmd-go').disabled, 'Go! is ready');
     await click(page, '#cmd-go');
     await until(page, (n) => (__cc.seen.status || 0) > n, 'Go! casts it and the party is cheered', 30000, stBefore);
     await until(page, () => __cc.idle(), 'the cast finishes');
@@ -275,6 +276,7 @@ async function desktop() {
     await Q(page, () => document.querySelector('#items-list .item-row .btn').click());       // Use on the jam
     await until(page, () => __cc.play.mode === 'item' && !document.getElementById('cmd-go').hidden, 'Use asks who should have it, with Go!');
     check(await Q(page, () => /Strawberry Jam on Pip/.test(document.getElementById('prompt').textContent)), 'and forecasts the hp it restores');
+    await until(page, () => !document.getElementById('cmd-go').disabled, 'Go! is ready');
     await click(page, '#cmd-go');
     await until(page, () => __cc.G.B.units.find((u) => u.key === 'pip').hp > 5 && (__cc.seen.item || 0) >= 1, 'Go! drinks it: hp goes up');
     await until(page, () => __cc.idle(), 'the item animation finishes');
@@ -283,6 +285,7 @@ async function desktop() {
     await until(page, () => !document.getElementById('items').hidden, 'the sheet opens again');
     await Q(page, () => document.querySelector('#items-list .item-row .btn:nth-of-type(2)').click());      // Give the mint
     await until(page, () => __cc.play.mode === 'item' && __cc.play.item.kind === 'give', 'Give asks which friend');
+    await until(page, () => !document.getElementById('cmd-go').disabled, 'Go! is ready');
     await click(page, '#cmd-go');
     await until(page, () => __cc.G.B.units.find((u) => u.key === 'bram').items.length === 4, 'Go! hands it to Bram');
     check(await Q(page, () => __cc.G.B.turn.id === __cc.G.B.units.find((u) => u.key === 'pip').id), 'and giving does not end the turn');
