@@ -1301,6 +1301,19 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 43, 214, 0.6);
 }
 
+.game-preview.crown-and-crumpet,
+.carousel-slide-bg.crown-and-crumpet {
+    background: radial-gradient(circle at 50% 38%, #ffd94d 0 7%, transparent 8%),
+        linear-gradient(135deg, transparent 49%, #8fd47a 50% 100%),
+        linear-gradient(180deg, #bfe9ff 0%, #ffe3ee 55%, #ffc6da 100%);
+}
+
+.game-card.crown-and-crumpet .play-button {
+    background: linear-gradient(135deg, #ff8fb1, #ffd27a);
+    color: #4a1a3a;
+    box-shadow: 0 0 14px rgba(255, 143, 177, 0.65);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
