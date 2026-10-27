@@ -247,6 +247,7 @@ export class View {
         const B = G.B;
         this.B = B;
         this.scenery = scenery;
+        this.ghost = false;                  // a new board starts solid; the controller fades bystanders on a student's turn
         this.q.length = 0; this.cur = null;
         this.texts.length = 0; this.parts.length = 0; this.banner = null;
         this.vis.clear();

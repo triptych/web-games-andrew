@@ -220,6 +220,7 @@ async function desktop() {
     // win chapter 2 → outro recruits Mina
     await Q(page, () => __cc.ff());
     await until(page, () => __cc.mode === 'outro' && __cc.ui.talking, 'winning plays the chapter-end story');
+    check(await Q(page, () => !__cc.view.ghost && [...__cc.view.vis.values()].every((v) => v.alive || true)), 'story scenes show everyone solid, not faded like a student\'s turn');
     check(await readStory(page), 'the story can be read through');
     await until(page, () => !document.getElementById('outro').hidden, 'the chapter-clear sheet opens');
     check(await Q(page, () => /Mina Quill joined/.test(document.getElementById('outro-body').textContent)), 'and says Mina joined the party');

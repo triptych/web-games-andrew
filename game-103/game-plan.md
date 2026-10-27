@@ -134,6 +134,9 @@ The bot is the enemy's brain, so it plays the same game the player does. Tuned u
 
 ## Changelog
 
+### v1.2.3 (2026-10-27)
+- Story scenes and menus no longer fade the characters.
+
 ### v1.2.2 (2026-10-27)
 - Statuses show as labelled badges with turns left, a coloured glow, popups on start and end, and turns on the unit card.
 

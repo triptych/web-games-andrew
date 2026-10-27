@@ -252,6 +252,7 @@ function frame(now) {
     layout();
     if (scene === 'game' && G.phase === 'battle') play.update();
     else if (scene === 'game' || scene === 'title') { view.ov = {}; }
+    if (scene !== 'game' || G.phase !== 'battle' || ui.talking) view.ghost = false;      // story scenes and menus show everyone solid
     if (G.phase === 'battle' && scene === 'game' && G.B && !ui.anyScreen()) ui.order(G);
     view.frame(G, dt, view.time, view.ov);
     if (scene === 'game' && G.phase === 'battle') {
