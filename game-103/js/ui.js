@@ -1,7 +1,7 @@
 // The DOM layer: screens, the HUD (turn order, unit card, commands), dialogue, the chapter sheets and
 // settings. Reads the sim; never changes it. Choices go back out through callbacks.
 
-import { CHAPTERS, CLASSES, ENDING, SKILLS, SNACKS, STATUS } from './sim/data.js';
+import { CHAPTERS, CLASSES, ENDING, ITEMS, SKILLS, SNACKS, STATUS } from './sim/data.js';
 import { learnedAt, levelOf, turnOrder } from './sim/game.js';
 import { stat } from './sim/core.js';
 import { VERSION } from './config.js';
@@ -152,18 +152,22 @@ export class UI {
         document.querySelector('.bar.mp').style.visibility = u.maxmp ? '' : 'hidden';   // keep its space: the card must never change height
         $('card-mp').style.width = u.maxmp ? `${Math.min(1, mp / u.maxmp) * 100}%` : '0%';
         $('card-mptext').textContent = u.maxmp ? `MP ${mp}/${u.maxmp}` : '';
-        const st = Object.keys(vis?.st || u.st);
-        const key = st.join();
+        const stNow = vis?.st || u.st;
+        const st = Object.keys(stNow);
+        const items = u.items || [];
+        const key = st.map((k) => `${k}${stNow[k]}`).join() + '|' + items.join();
         if (this.stKey !== key) {
             this.stKey = key;
-            $('card-st').innerHTML = st.map((s) => `<span class="pill ${s}" title="${STATUS[s].desc}">${STATUS[s].name}</span>`).join('');
+            $('card-st').innerHTML = st.map((s) => `<span class="pill ${s}" title="${STATUS[s].desc}">${STATUS[s].name}${stNow[s] > 0 && stNow[s] < 90 ? ` (${stNow[s]})` : ''}</span>`).join('')
+                + items.map((i) => `<span class="pill item" title="${ITEMS[i].desc}">${ITEMS[i].name.split(' ')[0]}</span>`).join('');
         }
     }
 
     /** Which command buttons are on, and which set is showing. */
-    commands({ mode, attack, skills, wait, undo, go }) {
+    commands({ mode, attack, skills, items, wait, undo, go }) {
         const free = mode === 'free';
         for (const [id, on] of [['cmd-attack', free], ['cmd-skills', free], ['cmd-wait', free], ['cmd-undo', free], ['cmd-go', !free], ['cmd-cancel', !free]]) $(id).hidden = !on;
+        $('cmd-items').hidden = !free; $('cmd-items').disabled = !items;
         $('cmd-attack').disabled = !attack; $('cmd-skills').disabled = !skills; $('cmd-wait').disabled = !wait; $('cmd-undo').disabled = !undo;
         $('cmd-go').disabled = !go;
     }
@@ -183,6 +187,29 @@ export class UI {
             box.appendChild(b);
         }
         this.openScreen('skills');
+    }
+
+    /** The items a student carries, each with Use and Give; rows say why one is unavailable. */
+    openItems(u, rows, onPick) {
+        $('items-who').textContent = `${CLASSES[u.key].name} carries ${u.items.length}`;
+        const box = $('items-list');
+        box.textContent = '';
+        for (const r of rows) {
+            const d = document.createElement('div');
+            d.className = 'item-row';
+            d.innerHTML = `<div class="item-info"><b>${r.name}</b><small>${r.desc}${r.why ? ` (${r.why})` : ''}</small></div>`;
+            for (const [kind, label, ok] of [['use', 'Use', r.canUse], ['give', 'Give', r.canGive]]) {
+                const b = document.createElement('button');
+                b.className = 'btn small';
+                b.textContent = label;
+                b.disabled = !ok;
+                b.addEventListener('click', () => { this.audio.ui('click'); this.closeScreen('items'); onPick(r.slot, kind); });
+                d.appendChild(b);
+            }
+            box.appendChild(d);
+        }
+        if (!rows.length) box.innerHTML = '<p class="small">Nothing in your pockets.</p>';
+        this.openScreen('items');
     }
 
     // ------------------------------------------------------------------ dialogue

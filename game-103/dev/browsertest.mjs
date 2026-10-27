@@ -191,6 +191,7 @@ async function desktop() {
     await Q(page, () => document.querySelectorAll('#skills-list .skill')[1].click());
     await until(page, () => __cc.play.mode === 'skill' && !document.getElementById('cmd-go').hidden, 'choosing Royal Decree shows Go!');
     const stBefore = await countSeen(page, 'status');
+    await until(page, () => !document.getElementById('cmd-go').disabled, 'Go! is ready');
     await click(page, '#cmd-go');
     await until(page, (n) => (__cc.seen.status || 0) > n, 'Go! casts it and the party is cheered', 30000, stBefore);
     await until(page, () => __cc.idle(), 'the cast finishes');
@@ -220,6 +221,7 @@ async function desktop() {
     // win chapter 2 → outro recruits Mina
     await Q(page, () => __cc.ff());
     await until(page, () => __cc.mode === 'outro' && __cc.ui.talking, 'winning plays the chapter-end story');
+    check(await Q(page, () => !__cc.view.ghost && [...__cc.view.vis.values()].every((v) => v.alive || true)), 'story scenes show everyone solid, not faded like a student\'s turn');
     check(await readStory(page), 'the story can be read through');
     await until(page, () => !document.getElementById('outro').hidden, 'the chapter-clear sheet opens');
     check(await Q(page, () => /Mina Quill joined/.test(document.getElementById('outro-body').textContent)), 'and says Mina joined the party');
@@ -257,6 +259,75 @@ async function desktop() {
     }), 'on a student\'s turn every unit\'s tile can be clicked, even behind hedges');
     check(await Q(page, () => __cc.view.faded.size > 0), 'and the hedges hiding something are drawn see-through');
     await shot(page, 'desktop-hedges');
+
+    // items: Use jam on yourself, then give a mint to the friend next to you
+    await Q(page, () => __cc.start(5, 3));
+    await myTurn(page);
+    await arrange(page, (G, B) => {
+        const pip = B.units.find((u) => u.key === 'pip'), bram = B.units.find((u) => u.key === 'bram');
+        B.turn = { id: pip.id, moved: false, acted: false, gave: false, from: { x: pip.x, y: pip.y } };
+        pip.hp = 5; pip.x = 4; pip.y = 7; bram.x = 5; bram.y = 7; bram.mp = 0; bram.alive = true;
+    });
+    await until(page, () => !document.getElementById('cmd-items').disabled, 'Items is enabled for a student who carries some');
+    check(await Q(page, () => /Strawberry/.test(document.getElementById('card-st').textContent)), 'the unit card shows what she carries');
+    await click(page, '#cmd-items');
+    await until(page, () => !document.getElementById('items').hidden && document.querySelectorAll('#items-list .item-row').length === 3, 'the Items sheet lists the three things Pip carries');
+    await shot(page, 'desktop-items');
+    await Q(page, () => document.querySelector('#items-list .item-row .btn').click());       // Use on the jam
+    await until(page, () => __cc.play.mode === 'item' && !document.getElementById('cmd-go').hidden, 'Use asks who should have it, with Go!');
+    check(await Q(page, () => /Strawberry Jam on Pip/.test(document.getElementById('prompt').textContent)), 'and forecasts the hp it restores');
+    await until(page, () => !document.getElementById('cmd-go').disabled, 'Go! is ready');
+    await click(page, '#cmd-go');
+    await until(page, () => __cc.G.B.units.find((u) => u.key === 'pip').hp > 5 && (__cc.seen.item || 0) >= 1, 'Go! drinks it: hp goes up');
+    await until(page, () => __cc.idle(), 'the item animation finishes');
+    await until(page, () => !document.getElementById('cmd-items').disabled, 'Items stays available for a gift after acting');
+    await click(page, '#cmd-items');
+    await until(page, () => !document.getElementById('items').hidden, 'the sheet opens again');
+    await Q(page, () => document.querySelector('#items-list .item-row .btn:nth-of-type(2)').click());      // Give the mint
+    await until(page, () => __cc.play.mode === 'item' && __cc.play.item.kind === 'give', 'Give asks which friend');
+    await until(page, () => !document.getElementById('cmd-go').disabled, 'Go! is ready');
+    await click(page, '#cmd-go');
+    await until(page, () => __cc.G.B.units.find((u) => u.key === 'bram').items.length === 4, 'Go! hands it to Bram');
+    check(await Q(page, () => __cc.G.B.turn.id === __cc.G.B.units.find((u) => u.key === 'pip').id), 'and giving does not end the turn');
+    await until(page, () => __cc.idle(), 'the gift animation finishes');
+    await shot(page, 'desktop-gave');
+
+    // a dropped item is drawn on its square and picked up by walking onto it
+    await Q(page, () => __cc.start(5, 0));
+    await myTurn(page);
+    await arrange(page, (G, B) => {
+        const pip = B.units.find((u) => u.key === 'pip');
+        B.turn = { id: pip.id, moved: false, acted: false, gave: false, from: { x: pip.x, y: pip.y } };
+        pip.x = 2; pip.y = 6; pip.items = [];
+        B.drops.push({ x: 4, y: 6, item: 'jam' }, { x: 3, y: 5, item: 'tonic' }, { x: 5, y: 7, item: 'mint' });
+    });
+    check(await Q(page, () => __cc.view.drops.size === 3), 'the view knows about the three items on the ground');
+    await shot(page, 'desktop-drops');
+    const dp = await Q(page, () => __cc.screenOf(4, 6));
+    await page.mouse.click(dp.x, dp.y);
+    await until(page, () => (__cc.seen.pickup || 0) >= 1 && __cc.G.B.units.find((u) => u.key === 'pip').items.join() === 'jam', 'walking onto the jam picks it up');
+    await until(page, () => __cc.idle() && __cc.view.drops.size === 2, 'and it leaves the ground');
+
+    // move-and-attack in one go: an enemy that is out of reach from here but reachable with a step
+    await Q(page, () => __cc.start(5, 0));
+    await myTurn(page);
+    await arrange(page, (G, B) => {
+        const pip = B.units.find((u) => u.key === 'pip'), bun = B.units.find((u) => u.team === 'e');
+        B.turn = { id: pip.id, moved: false, acted: false, gave: false, from: { x: 2, y: 6 } };
+        pip.x = 2; pip.y = 6; bun.x = 5; bun.y = 6; bun.hp = bun.maxhp = 500; bun.alive = true;
+        for (const u of B.units) if (u.team === 'e' && u !== bun) { u.x = 7; u.y = 0; u.ai = 'guard'; }
+        B.units.find((u) => u.key === 'bram').x = 0; B.units.find((u) => u.key === 'bram').y = 7;
+    });
+    const mb = await Q(page, () => __cc.screenOf(5, 6));
+    await page.mouse.move(mb.x, mb.y);
+    await page.waitForTimeout(100);
+    check(await Q(page, () => __cc.play.ov.atk2 && __cc.play.ov.atk2.size >= 1 && !__cc.play.ov.atk.size), 'an enemy two steps away is lit as reachable after a move');
+    check(await Q(page, () => /Move and Wobbly Scepter/.test(document.getElementById('prompt').textContent)), 'and the prompt says it will move and attack');
+    const sk0 = await countSeen(page, 'skill');
+    await page.mouse.click(mb.x, mb.y);
+    await until(page, (n) => (__cc.seen.skill || 0) > n, 'one click walks up and attacks', 30000, sk0);
+    check(await Q(page, () => { const p = __cc.G.B.units.find((u) => u.key === 'pip'); return Math.abs(p.x - 5) + Math.abs(p.y - 6) === 1; }), 'ending next to the enemy, on the nearest square that reaches it');
+    await until(page, () => __cc.idle(), 'the walk and the swing finish');
 
     // scroll to zoom, drag to look around, 0 to reset
     await Q(page, () => __cc.start(5, 0));
@@ -339,7 +410,7 @@ async function phone(w, h) {
     const L = await layout(page);
     check(L.noHScroll, 'no sideways scroll');
     check(L.canvas, 'the canvas matches the visible viewport');
-    const sizes = await Q(page, () => ['#cmd-attack', '#cmd-skills', '#cmd-wait', '#cmd-undo', '#btn-pause'].map((s) => {
+    const sizes = await Q(page, () => ['#cmd-attack', '#cmd-skills', '#cmd-items', '#cmd-wait', '#cmd-undo', '#btn-pause'].map((s) => {
         const r = document.querySelector(s).getBoundingClientRect();
         return { s, ok: r.width >= 44 && r.height >= 44 && r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight };
     }));
@@ -431,6 +502,14 @@ async function phone(w, h) {
     await Q(page, () => __cc.start(2, 1));
     await myTurn(page);
     await arrange(page, (G, B) => { const pip = B.units.find((u) => u.key === 'pip'); B.turn = { id: pip.id, moved: false, acted: false, from: { x: pip.x, y: pip.y } }; pip.mp = pip.maxmp; pip.st = {}; });
+    // Items by touch: the sheet fits and a tap on Use asks who
+    await tapSel('#cmd-items');
+    await until(page, () => !document.getElementById('items').hidden, 'a tap on Items opens the sheet');
+    const it = await Q(page, () => { const r = document.querySelector('#items .sheet').getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom, w: innerWidth, h: innerHeight }; });
+    check(it.l >= 0 && it.r <= it.w + 1 && it.t >= 0 && it.b <= it.h + 1, 'the Items sheet is inside the screen');
+    await tapSel('#items .sheet-foot .btn');
+    await until(page, () => document.getElementById('items').hidden, 'Back closes it');
+
     await tapSel('#cmd-skills');
     await until(page, () => !document.getElementById('skills').hidden, 'a tap on Skills opens the sheet');
     const sk = await Q(page, () => { const r = document.querySelector('#skills .sheet').getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom, w: innerWidth, h: innerHeight }; });

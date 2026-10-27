@@ -7,9 +7,9 @@
 
 import { CT_READY, MAX_TURNS, RULES } from '../config.js';
 import { makeRng } from '../rng.js';
-import { CHAPTERS, CLASSES, PARTY_ORDER, SKILLS, SNACKS } from './data.js';
+import { CHAPTERS, CLASSES, DROPS, ITEMS, MAX_ITEMS, PARTY_ORDER, SKILLS, SNACKS, itemAmount, packFor } from './data.js';
 import {
-    affected, aoeTiles, basicOf, buildTiles, calcDamage, healAmount, isFoe, makeUnit, pathTo, reach,
+    isFriend, affected, aoeTiles, basicOf, buildTiles, calcDamage, healAmount, isFoe, makeUnit, pathTo, reach,
     skillsOf, standable, unitAt, unitById, validTarget,
 } from './core.js';
 import { aiCommand } from './ai.js';
@@ -62,7 +62,7 @@ export function beginBattle(G) {
     const lvl = levelOf(G);
     fitParty(G);
     const tiles = buildTiles(ch.map);
-    const B = { w: ch.map[0].length, h: ch.map.length, tiles, units: [], turn: null, turnNo: 0, over: null, talked: {}, rescued: [], chapter: G.chapter, yielded: false };
+    const B = { w: ch.map[0].length, h: ch.map.length, tiles, units: [], turn: null, turnNo: 0, over: null, talked: {}, rescued: [], chapter: G.chapter, yielded: false, drops: [] };
     let id = 1;
     G.party.forEach((key, i) => {
         const [x, y] = ch.starts[i];
@@ -70,7 +70,9 @@ export function beginBattle(G) {
     });
     for (const [key, x, y, ai] of ch.foes) B.units.push(makeUnit(id++, key, lvl, 'e', x, y, { ai }));
     if (ch.guest) B.units.push(makeUnit(id++, ch.guest.key, lvl, 'g', ch.guest.x, ch.guest.y));
-    for (const u of B.units) if (u.team !== 'g') u.ct = G.rng.int(0, 30);
+    // the party gets the opening turns: nobody starts a chapter already being bitten
+    for (const u of B.units) if (u.team !== 'g') u.ct = u.team === 'p' ? G.rng.int(70, 95) : G.rng.int(0, 15);
+    for (const u of B.units) if (u.team === 'p') u.items = packFor(G.chapter);
     const snack = SNACKS[G.snack];
     for (const u of B.units) {
         if (u.team !== 'p') continue;
@@ -86,7 +88,7 @@ export function beginBattle(G) {
 }
 
 // ---------------------------------------------------------------- turn order
-function pushStatus(G, u, s, on) { G.events.push({ type: 'status', id: u.id, s, on }); }
+function pushStatus(G, u, s, on, quiet = false) { G.events.push({ type: 'status', id: u.id, s, on, turns: on ? u.st[s] : 0, quiet }); }
 
 function applyStatus(G, u, s, dur) {
     const active = G.B.turn && G.B.turn.id === u.id ? 1 : 0;      // the caster's own turn ends straight after
@@ -122,8 +124,8 @@ function nextTurn(G) {
             best.ct -= CT_READY;
             continue;
         }
-        B.turn = { id: best.id, moved: false, acted: false, from: { x: best.x, y: best.y } };
-        G.events.push({ type: 'turn', id: best.id });
+        B.turn = { id: best.id, moved: false, acted: false, gave: false, from: { x: best.x, y: best.y } };
+        G.events.push({ type: 'turn', id: best.id, mp: best.mp });
         return;
     }
 }
@@ -155,6 +157,7 @@ function endTurn(G) {
         for (const s of Object.keys(u.st)) {
             u.st[s] -= 1;
             if (u.st[s] <= 0) clearStatus(G, u, s);
+            else pushStatus(G, u, s, true, true);              // the count on the badge goes down
         }
         u.ct -= CT_READY;
         B.turn = null;
@@ -175,6 +178,7 @@ function rescue(G, g, ch, lines = ch.rescue) {
     const B = G.B;
     g.team = 'p';
     g.ct = 40;
+    g.items = packFor(0);
     B.rescued.push(g.key);
     G.events.push({ type: 'rescue', id: g.id });
     if (lines) G.events.push({ type: 'talk', lines });
@@ -228,6 +232,13 @@ export function act(G, cmd) {
 
     if (cmd.t === 'undo') {
         if (!T.moved || T.acted) return no('nothing to undo');
+        if (T.pickup) {                                   // walking back puts what you picked up back on the ground
+            const at = T.pickup.item;
+            u.items.splice(u.items.lastIndexOf(at), 1);
+            B.drops.push({ ...T.pickup });
+            G.events.push({ type: 'drop', x: T.pickup.x, y: T.pickup.y, item: at });
+            T.pickup = null;
+        }
         u.x = T.from.x; u.y = T.from.y;
         T.moved = false;
         G.events.push({ type: 'warp', id: u.id, x: u.x, y: u.y });
@@ -243,7 +254,37 @@ export function act(G, cmd) {
         u.x = cmd.x; u.y = cmd.y;
         T.moved = true;
         G.events.push({ type: 'move', id: u.id, path });
+        T.pickup = collect(G, u);
         if (T.acted) endTurn(G);
+        return OK;
+    }
+
+    if (cmd.t === 'item' || cmd.t === 'give') {
+        const it = u.items[cmd.slot];
+        if (!it) return no('nothing in that slot');
+        const to = unitAt(B, cmd.x, cmd.y);
+        if (!to || !isFriend(u, to)) return no('no friend there');
+        if (Math.abs(to.x - u.x) + Math.abs(to.y - u.y) > 1) return no('too far away');
+        if (cmd.t === 'give') {
+            if (T.gave) return no('already handed something over this turn');
+            if (to.id === u.id) return no('that is you');
+            if (to.items.length >= MAX_ITEMS) return no('their hands are full');
+            u.items.splice(cmd.slot, 1);
+            to.items.push(it);
+            T.gave = true;
+            G.events.push({ type: 'item', id: u.id, to: to.id, item: it, give: true });
+            return OK;
+        }
+        if (T.acted) return no('already acted');
+        const hp = itemAmount(it, 'hp', to.lvl), mp = itemAmount(it, 'mp', to.lvl);
+        const gainHp = Math.min(to.maxhp - to.hp, hp), gainMp = Math.min(Math.max(0, to.maxmp - to.mp), mp);
+        if (gainHp <= 0 && gainMp <= 0) return no('that would do nothing');
+        u.items.splice(cmd.slot, 1);
+        G.events.push({ type: 'item', id: u.id, to: to.id, item: it, give: false });
+        if (gainHp > 0) { to.hp += gainHp; G.events.push({ type: 'heal', id: to.id, amt: gainHp, hp: to.hp }); }
+        if (gainMp > 0) { to.mp += gainMp; G.events.push({ type: 'mp', id: to.id, amt: gainMp, mp: to.mp }); }
+        T.acted = true;
+        if (T.moved) endTurn(G);
         return OK;
     }
 
@@ -266,7 +307,7 @@ function resolve(G, u, id, sk, tx, ty) {
     const B = G.B;
     u.mp -= sk.cost;
     const targets = affected(B, u, sk, tx, ty);
-    G.events.push({ type: 'skill', id: u.id, skill: id, x: tx, y: ty, tiles: aoeTiles(B, sk, tx, ty), targets: targets.map((t) => t.id) });
+    G.events.push({ type: 'skill', id: u.id, skill: id, mp: u.mp, x: tx, y: ty, tiles: aoeTiles(B, sk, tx, ty), targets: targets.map((t) => t.id) });
 
     if (sk.kind === 'phys' || sk.kind === 'mag') {
         const pipSwing = u.key === 'pip' && id === 'scepter';
@@ -291,7 +332,7 @@ function resolve(G, u, id, sk, tx, ty) {
                     clearStatus(G, d, 'sleepy');
                     d.awake = true;
                     G.events.push({ type: 'hit', id: d.id, from: u.id, dmg, hp: d.hp, skill: id });
-                    if (d.hp === 0) { d.alive = false; G.events.push({ type: 'faint', id: d.id }); }
+                    if (d.hp === 0) { d.alive = false; G.events.push({ type: 'faint', id: d.id }); maybeDrop(G, d); }
                 }
             }
         }
@@ -311,6 +352,30 @@ function resolve(G, u, id, sk, tx, ty) {
             else applyStatus(G, d, sk.status, sk.dur);
         }
     }
+}
+
+/** A defeated monster may leave an item on its square, for a student to walk onto. */
+function maybeDrop(G, d) {
+    const B = G.B;
+    if (d.team !== 'e' || d.boss) return;
+    if (G.rng() >= RULES.dropChance) return;
+    if (B.drops.some((o) => o.x === d.x && o.y === d.y)) return;
+    const total = DROPS.reduce((a, [, w]) => a + w, 0);
+    let r = G.rng() * total, item = DROPS[0][0];
+    for (const [id, w] of DROPS) { if (r < w) { item = id; break; } r -= w; }
+    B.drops.push({ x: d.x, y: d.y, item });
+    G.events.push({ type: 'drop', x: d.x, y: d.y, item });
+}
+
+/** A student who stops on a dropped item picks it up, if there is a free hand. */
+function collect(G, u) {
+    const B = G.B;
+    const i = B.drops.findIndex((o) => o.x === u.x && o.y === u.y);
+    if (i < 0 || u.team !== 'p' || u.items.length >= MAX_ITEMS) return null;
+    const [d] = B.drops.splice(i, 1);
+    u.items.push(d.item);
+    G.events.push({ type: 'pickup', id: u.id, x: d.x, y: d.y, item: d.item });
+    return { x: d.x, y: d.y, item: d.item };
 }
 
 // The Dread Lord talks mid-fight and, at 35% hp, gives up.
@@ -366,6 +431,8 @@ export function deserialize(d) {
     const { rngState, ...rest } = d;
     const G = { ...JSON.parse(JSON.stringify(rest)), rng: makeRng(0), events: [] };
     G.rng.setState(rngState);
+    for (const u of G.B?.units || []) u.items ||= [];          // saves from before items existed
+    if (G.B) G.B.drops ||= [];
     return G;
 }
 

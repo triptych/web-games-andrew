@@ -109,11 +109,12 @@ body.dark #chapter-tag { color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 .bar span { position: relative; font-size: 10px; line-height: 13px; font-weight: 700; margin-left: 6px; color: #2a2a3a; }
 #card-st { margin-top: 3px; display: flex; gap: 4px; flex-wrap: nowrap; overflow: hidden; height: 19px; }
 .pill { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1px solid rgba(90, 58, 90, 0.35); background: #fff; }
+.pill.item { background: #fff0d8; border-color: #e0a860; }
 .pill.cheer { background: #ffe9a0; } .pill.guard { background: #cfe8ff; } .pill.regen { background: #d4f5dc; } .pill.sleepy { background: #e4dcff; }
 
-#cmd { flex: 1 1 260px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.cbtn { font-size: 15px; padding: 6px 4px; min-height: 48px; }
-.cbtn.go { grid-column: span 3; background: var(--gold); border-color: #e0a83a; box-shadow: 0 3px 0 #e0a83a; font-size: 18px; }
+#cmd { flex: 1 1 260px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.cbtn { font-size: 14px; padding: 6px 2px; min-height: 48px; }
+.cbtn.go { grid-column: span 4; background: var(--gold); border-color: #e0a83a; box-shadow: 0 3px 0 #e0a83a; font-size: 18px; }
 #cmd-cancel { grid-column: span 1; }
 
 /* ---------------------------------------------------------------- screens */
@@ -177,6 +178,11 @@ td:first-child { color: #c0507a; font-weight: 600; white-space: nowrap; }
 .skill { width: 100%; flex-wrap: wrap; }
 .skill b { flex: 1; }
 .skill .cost { font-size: 12px; font-weight: 700; background: #dff0ff; border-radius: 999px; padding: 2px 10px; }
+.item-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #fff; border: 2px solid var(--line); border-radius: 14px; padding: 8px 10px; }
+.item-row .item-info { flex: 1 1 160px; min-width: 0; }
+.item-row b { display: block; font-size: 15px; }
+.item-row small { display: block; font-size: 12px; color: var(--dim); line-height: 1.3; }
+.item-row .btn { padding: 6px 14px; font-size: 14px; }
 .skill small { flex-basis: 100%; font-size: 12px; color: var(--dim); }
 
 /* ---------------------------------------------------------------- dialogue */

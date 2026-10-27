@@ -3,13 +3,15 @@
 // arrives, so the view keeps its own picture of each unit (`vis`: where it is, how much hp the bar
 // shows) and only updates it as each event plays. `busy` is true until the last one finishes.
 
-import { CHAPTERS, SKILLS, STATUS } from '../sim/data.js';
+import { CHAPTERS, ITEMS, SKILLS, STATUS } from '../sim/data.js';
 import { drawActor } from './sprites.js';
 
 const TW = 64, TH = 32, HZ = 13, BASE = 16;            // tile width/height in px, a height level, the island's thickness
 const TAU = Math.PI * 2;
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
+const STATUS_COLOR = { cheer: '#ffd94d', guard: '#6ab8ff', regen: '#7ee89a', sleepy: '#b9a0ff' };
+const STATUS_MARK = { cheer: '\u2605', guard: '\u25C6', regen: '\u2665', sleepy: 'z' };
 const FONT = '"Fredoka", "Trebuchet MS", "Segoe UI", system-ui, sans-serif';
 
 // grass-like, stone-like and wall colours for each scene, and the sky behind it
@@ -46,6 +48,7 @@ export class View {
         this.B = null;
         this.theme = THEMES.yard;
         this.ov = {};
+        this.drops = new Map();      // dropped items by tile, as the playback has reached them
         this.faded = new Set();      // wall and table tiles drawn see-through this frame
         this.ghost = false;          // set by the battle controller on a player's turn
         this.time = 0;
@@ -244,10 +247,13 @@ export class View {
         const B = G.B;
         this.B = B;
         this.scenery = scenery;
+        this.ghost = false;                  // a new board starts solid; the controller fades bystanders on a student's turn
         this.q.length = 0; this.cur = null;
         this.texts.length = 0; this.parts.length = 0; this.banner = null;
         this.vis.clear();
+        this.drops = new Map();
         if (!B) return;
+        for (const d of B.drops || []) this.drops.set(d.y * B.w + d.x, d.item);
         this.theme = THEMES[CHAPTERS[B.chapter].theme] || THEMES.yard;
         for (const u of B.units) this.vis.set(u.id, this._visOf(u));
         if (B.turn && !scenery) this.vis.get(B.turn.id).active = true;
@@ -272,6 +278,8 @@ export class View {
         this.q.length = 0; this.cur = null; this.banner = null;
         if (this.B) {
             this.vis.clear();
+            this.drops = new Map();
+            for (const d of this.B.drops || []) this.drops.set(d.y * this.B.w + d.x, d.item);
             for (const u of this.B.units) this.vis.set(u.id, this._visOf(u));
             if (this.B.turn) this.vis.get(this.B.turn.id).active = true;
         }
@@ -285,7 +293,7 @@ export class View {
         switch (ev.type) {
             case 'turn':
                 for (const o of this.vis.values()) o.active = false;
-                if (v) v.active = true;
+                if (v) { v.active = true; if (ev.mp !== undefined) v.mp = ev.mp; }
                 c.dur = 0.3;
                 break;
             case 'move': {
@@ -295,6 +303,7 @@ export class View {
             case 'warp': v.x = ev.x; v.y = ev.y; v.z = this._h(ev.x, ev.y); this._puff(ev.x, ev.y, v.z, '#fff'); c.dur = 0.2; break;
             case 'skill': {
                 const sk = SKILLS[ev.skill];
+                if (ev.mp !== undefined) v.mp = ev.mp;
                 const tgt = [ev.x, ev.y];
                 const [cx, cy] = [ev.x - v.x, ev.y - v.y];
                 v.dir = (cx - cy) < 0 ? -1 : (cx - cy) > 0 ? 1 : v.dir;
@@ -318,9 +327,13 @@ export class View {
                 this._burst(v.x, v.y, v.z + 0.6, 8, ['#8cf0a8', '#fff', '#ffe0f0'], 'heart');
                 break;
             case 'status':
-                c.dur = ev.on ? 0.3 : 0.05;
-                if (v) { if (ev.on) v.st[ev.s] = 1; else delete v.st[ev.s]; }
-                if (ev.on && v) this._text(v.x, v.y, v.z + 2.4, STATUS[ev.s].short, '#fff6c8');
+                if (v) { if (ev.on) v.st[ev.s] = ev.turns ?? 1; else delete v.st[ev.s]; }
+                if (ev.quiet) { c.dur = 0; break; }                      // just the badge's count going down
+                c.dur = ev.on ? 0.35 : 0.3;
+                if (v) {
+                    this._text(v.x, v.y, v.z + 2.4, ev.on ? `${STATUS[ev.s].name}!` : `${STATUS[ev.s].name} ended`, ev.on ? STATUS_COLOR[ev.s] : '#e8e0f0', '#5a3a6a', ev.on ? 1.15 : 0.95);
+                    if (ev.on) this._burst(v.x, v.y, v.z + 0.8, 6, [STATUS_COLOR[ev.s], '#fff'], 'star');
+                }
                 break;
             case 'faint': c.dur = 0.8; v.face = 'ko'; this._burst(v.x, v.y, v.z + 1, 10, ['#fff', '#ffd94d'], 'star'); break;
             case 'oops':
@@ -347,6 +360,32 @@ export class View {
                 c.dur = ev.result === 'win' ? 1.6 : 1.4;
                 this.banner = { text: ev.result === 'win' ? (ev.why === 'yield' ? 'The Dread Lord yields!' : 'Chapter clear!') : 'The party is tuckered out…', win: ev.result === 'win', t: 0 };
                 if (ev.result === 'win') for (let i = 0; i < 3; i++) this._confetti();
+                break;
+            case 'mp':
+                c.dur = 0.45; v.mp = ev.mp;
+                this._text(v.x, v.y, v.z + 2.4, `+${ev.amt} MP`, '#e0f0ff', '#3a78c8', 1.15);
+                this._burst(v.x, v.y, v.z + 0.8, 8, ['#7cc0ff', '#fff', '#c9e8ff'], 'spark');
+                break;
+            case 'item': {
+                const to = this.vis.get(ev.to);
+                c.dur = 0.5; c.to = to;
+                const col = { jam: '#ff6b8a', mint: '#8ce8c0', tonic: '#c9a8ff' }[ev.item] || '#fff';
+                if (to && to !== v) this.parts.push({ type: 'proj', x: v.x, y: v.y, z: v.z + 1.6, tx: to.x, ty: to.y, tz: to.z + 1.6, t: 0, life: 0.35, color: col, kind: 'item', vx: 0, vy: 0, vz: 0, size: 1 });
+                if (to) this._text(to.x, to.y, to.z + 2.8, ev.give ? `Got ${ITEMS[ev.item].name}!` : ITEMS[ev.item].name, '#fff6c8', '#7a4a6a', 1.05);
+                break;
+            }
+            case 'drop': {
+                c.dur = 0.35;
+                this.drops.set(ev.y * this.B.w + ev.x, ev.item);
+                this._burst(ev.x, ev.y, this._h(ev.x, ev.y) + 0.8, 6, ['#fff', '#ffe66d'], 'star');
+                this._text(ev.x, ev.y, this._h(ev.x, ev.y) + 2.2, `${ITEMS[ev.item].name.split(' ')[0]}!`, '#fff6c8');
+                break;
+            }
+            case 'pickup':
+                c.dur = 0.4;
+                this.drops.delete(ev.y * this.B.w + ev.x);
+                this._text(v.x, v.y, v.z + 2.6, `Got ${ITEMS[ev.item].name}!`, '#fff6c8', '#7a4a6a', 1.05);
+                this._burst(ev.x, ev.y, this._h(ev.x, ev.y) + 0.8, 6, ['#ffe66d', '#fff'], 'star');
                 break;
             case 'battle': break;
             default: break;
@@ -381,6 +420,7 @@ export class View {
             case 'lucky': v.hop = Math.sin(p * Math.PI) * 10; break;
             case 'faint': v.fade = p; v.hop = p * 14; break;
             case 'rescue': v.hop = Math.abs(Math.sin(p * Math.PI * 3)) * 8; break;
+            case 'item': v.hop = Math.sin(p * Math.PI) * 6; break;
             default: break;
         }
     }
@@ -392,7 +432,7 @@ export class View {
             case 'skill': v.ox = v.oy = v.hop = v.squash = 0; break;
             case 'hit': v.flash = 0; v.shake = 0; v.hp = c.ev.hp; v.face = 'idle'; break;
             case 'oops': v.lean = 0; v.hop = 0; break;
-            case 'lucky': case 'rescue': v.hop = 0; break;
+            case 'lucky': case 'rescue': case 'item': v.hop = 0; break;
             case 'faint': v.alive = false; v.hp = 0; v.face = 'idle'; v.fade = 1; break;
             case 'heal': v.hp = c.ev.hp; break;
             case 'end': this.banner = null; this.onEnd?.(c.ev); break;
@@ -612,6 +652,30 @@ export class View {
         ctx.globalAlpha = 1;
 
         this._overlay(x, y, sx, sy - (t.c === '#' ? 1.6 * HZ : t.c === 't' ? 0.8 * HZ : 0), time);
+        const dropped = this.drops.get(y * B.w + x);
+        if (dropped) this._dropIcon(sx, sy, dropped, time);        // above the highlights, so it is never washed out
+    }
+
+    /** A little bobbing jar, leaf or bottle on a tile, so a dropped item is easy to spot. */
+    _dropIcon(sx, sy, item, time) {
+        const ctx = this.ctx;
+        const bob = Math.sin(time * 3 + sx) * 2.5;
+        const y = sy - 12 + bob;
+        ctx.fillStyle = 'rgba(40,20,50,0.22)'; ctx.beginPath(); ctx.ellipse(sx, sy + 2, 9, 4, 0, 0, TAU); ctx.fill();
+        ctx.lineWidth = 1.4; ctx.strokeStyle = 'rgba(80,45,70,0.75)';
+        if (item === 'jam') {
+            ctx.fillStyle = '#ff6b8a'; ctx.beginPath(); ctx.roundRect(sx - 7, y - 7, 14, 15, 4); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#fff6dc'; ctx.beginPath(); ctx.roundRect(sx - 8, y - 11, 16, 5, 2); ctx.fill(); ctx.stroke();
+        } else if (item === 'mint') {
+            ctx.fillStyle = '#8ce8b0';
+            for (const r of [-0.6, 0.6]) { ctx.save(); ctx.translate(sx, y + 4); ctx.rotate(r); ctx.beginPath(); ctx.ellipse(0, -7, 4.5, 8, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore(); }
+        } else {
+            ctx.fillStyle = '#c9a8ff'; ctx.beginPath(); ctx.moveTo(sx - 3, y - 10); ctx.lineTo(sx + 3, y - 10); ctx.lineTo(sx + 3, y - 4); ctx.lineTo(sx + 8, y + 7); ctx.lineTo(sx - 8, y + 7); ctx.lineTo(sx - 3, y - 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+            this._star(sx, y + 1, 3.2, '#fff6a0', time * 2);
+        }
+        const k = (time * 1.1) % 1;
+        ctx.globalAlpha = 1 - k; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.ellipse(sx, sy + 2, 8 + k * 10, 3.5 + k * 4.5, 0, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1;
     }
 
     _block(sx, sy, lift, pair, th) {
@@ -654,6 +718,9 @@ export class View {
         };
         if (ov.move?.has(k)) paint('#5fb0ff', '#ffffff', 0.55 + pulse * 0.12);
         if (ov.atk?.has(k)) paint('#ff6b8a', '#ffe0e6', 0.38 + pulse * 0.1);
+        const dashed = (fill, stroke, a) => { ctx.setLineDash([5, 4]); paint(fill, stroke, a); ctx.setLineDash([]); };
+        if (ov.atk2?.has(k)) dashed('#ff9aae', '#ffe0e6', 0.3 + pulse * 0.08);        // enemies reachable after a step
+        if (ov.tgt2?.has(k)) dashed('#ffcf8a', '#fff1d0', 0.34 + pulse * 0.08);
         if (ov.tgt?.has(k)) paint('#ffb24d', '#fff1d0', 0.5 + pulse * 0.12);
         if (ov.aoe?.has(k)) paint('#ffd94d', '#fff', 0.55 + pulse * 0.15);
         if (ov.path?.has(k)) {
@@ -685,6 +752,11 @@ export class View {
             ctx.strokeStyle = '#fff'; ctx.globalAlpha = (1 - k) * alpha;
             ctx.beginPath(); ctx.ellipse(sx, sy + 2, (17 + k * 14) * s, (7.5 + k * 6) * s, 0, 0, TAU); ctx.stroke();
         }
+        const kinds = Object.keys(v.st);
+        if (kinds.length) {                                   // a soft glow in the status colour under the feet
+            const g = 0.22 + 0.1 * Math.sin(time * 4 + v.phase);
+            kinds.forEach((k, i) => { ctx.globalAlpha = alpha * g; ctx.fillStyle = STATUS_COLOR[k]; ctx.beginPath(); ctx.ellipse(sx, sy + 2, (21 - i * 4) * s, (9.5 - i * 1.8) * s, 0, 0, TAU); ctx.fill(); });
+        }
         ctx.globalAlpha = alpha;
         const floatY = (v.fly ? 0.9 + Math.sin(time * 4 + v.phase) * 0.12 : 0) * HZ;
         drawActor(ctx, v.key, sx, sy - floatY + 2, s * 1.0, {
@@ -698,16 +770,24 @@ export class View {
             const f = clamp01(v.hp / v.maxhp);
             ctx.fillStyle = f > 0.5 ? (v.team === 'p' ? '#7ee89a' : '#ff8a9a') : f > 0.25 ? '#ffd94d' : '#ff6b6b';
             ctx.beginPath(); ctx.roundRect(sx - bw / 2, top, Math.max(2, bw * f), 4, 2); ctx.fill();
-            let px = sx - bw / 2;
-            for (const s2 of Object.keys(v.st)) {
-                ctx.fillStyle = { cheer: '#ffd94d', guard: '#6ab8ff', regen: '#7ee89a', sleepy: '#b9a0ff' }[s2] || '#fff';
-                ctx.beginPath(); ctx.arc(px + 3, top - 7, 3, 0, TAU); ctx.fill();
-                ctx.strokeStyle = 'rgba(60,40,60,.6)'; ctx.lineWidth = 1; ctx.stroke();
-                px += 8;
+            // labelled badges with the turns left: ★ cheered, ◆ guarded, ♥ cosy, z sleepy
+            const marks = Object.entries(v.st);
+            if (marks.length) {
+                ctx.font = `700 10px ${FONT}`;
+                const labels = marks.map(([k, n]) => (k === 'sleepy' ? 'zZz' : `${STATUS_MARK[k]}${n > 0 && n < 90 ? n : ''}`));
+                const widths = labels.map((t) => ctx.measureText(t).width + 9);
+                let bx = sx - (widths.reduce((a, b) => a + b, 0) + (labels.length - 1) * 3) / 2;
+                marks.forEach(([k], i) => {
+                    ctx.fillStyle = STATUS_COLOR[k]; ctx.strokeStyle = 'rgba(70,40,80,.8)'; ctx.lineWidth = 1.4;
+                    ctx.beginPath(); ctx.roundRect(bx, top - 19, widths[i], 13, 6.5); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#3a2048'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(labels[i], bx + widths[i] / 2, top - 12.5);
+                    bx += widths[i] + 3;
+                });
             }
         }
         if (v.active && v.alive && !this.scenery) {
-            const bounce = Math.sin(time * 6) * 3;
+            const bounce = Math.sin(time * 6) * 3 - (Object.keys(v.st).length ? 15 : 0);
             ctx.fillStyle = '#ffd94d'; ctx.strokeStyle = '#8a5a1a'; ctx.lineWidth = 1.4;
             ctx.beginPath(); ctx.moveTo(sx, top - 12 + bounce + 8); ctx.lineTo(sx - 6, top - 12 + bounce); ctx.lineTo(sx + 6, top - 12 + bounce); ctx.closePath(); ctx.fill(); ctx.stroke();
         }

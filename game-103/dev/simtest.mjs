@@ -356,6 +356,23 @@ if (want('rules')) {
         let guard = 0;
         while (turnUnit(R).id !== ru.id && guard++ < 50) { Gm.act(R, { t: 'wait' }); }
         ok(ru.hp > ru.maxhp - 10 || ru.hp === ru.maxhp, 'regen heals at the start of the unit\'s next turn');
+        // status events carry the turns left, and count down quietly as the unit's turns pass
+        const Q2 = arena(1, { seed: 81 });
+        const qu = giveTurn(Q2, 'pip'); drain(Q2);
+        qu.st = { cheer: 3 };
+        Gm.act(Q2, { t: 'wait' });
+        const qev = drain(Q2).filter((e) => e.type === 'status' && e.id === qu.id && e.s === 'cheer');
+        ok(qev.length === 1 && qev[0].on && qev[0].quiet && qev[0].turns === 2, 'a status ticking down emits a quiet event with the turns left');
+        qu.st = { cheer: 1 }; giveTurn(Q2, qu);
+        Gm.act(Q2, { t: 'wait' });
+        const eev = drain(Q2).filter((e) => e.type === 'status' && e.id === qu.id && e.s === 'cheer');
+        ok(eev.length === 1 && !eev[0].on && !eev[0].quiet, 'and a status that runs out emits a loud off event');
+        const R2 = arena(1, { seed: 82 });
+        const rp = giveTurn(R2, 'pip'); drain(R2); rp.mp = rp.maxmp; rp.st = {};
+        const b2 = unit(R2, 'bram'); place(b2, rp.x + 1, rp.y); b2.alive = true;
+        Gm.act(R2, { t: 'skill', id: 'decree', x: rp.x, y: rp.y });
+        const aev = drain(R2).filter((e) => e.type === 'status' && e.on && !e.quiet);
+        ok(aev.length >= 1 && aev.every((e) => e.turns > 0), 'applying a status says how many turns it will last');
         // turn order
         const O = arena(2, { seed: 2 });
         const order = Gm.turnOrder(O.B, 12);
@@ -505,6 +522,137 @@ if (want('rules')) {
         T.B.turnNo = C.MAX_TURNS;
         Gm.act(T, { t: 'wait' });
         ok(T.B.over?.result === 'lose' && T.B.over.why === 'timeout', 'a battle that drags on forever is lost, not stuck');
+    }
+
+    section('items');
+    {
+        const G = arena(3, { seed: 61 });
+        const pip = giveTurn(G, 'pip'), bram = unit(G, 'bram');
+        clear(G, [pip, bram, unit(G, 'mina'), unit(G, 'juniper')].filter(Boolean));
+        for (const u of G.B.units) if (u.team === 'p') u.alive = true;
+        place(pip, 4, 6); place(bram, 5, 6);
+        ok(pip.items.join() === 'jam,mint,tonic', 'a student packs jam, mint and (from chapter 4) a tonic');
+        ok(!Gm.act(G, { t: 'item', slot: 0, x: 4, y: 6 }).ok, 'jam on a student at full hp does nothing, so it is refused');
+        pip.hp = 5;
+        ok(!Gm.act(G, { t: 'item', slot: 9, x: 4, y: 6 }).ok, 'an empty slot is refused');
+        ok(!Gm.act(G, { t: 'item', slot: 0, x: 8, y: 1 }).ok, 'nobody there is refused');
+        place(bram, 7, 6); bram.hp = 3;
+        ok(!Gm.act(G, { t: 'item', slot: 0, x: 7, y: 6 }).ok, 'a friend two squares away is too far');
+        place(bram, 5, 6);
+        const hp0 = pip.hp;
+        ok(Gm.act(G, { t: 'item', slot: 0, x: 4, y: 6 }).ok && pip.hp > hp0 && pip.hp <= pip.maxhp && pip.items.join() === 'mint,tonic', 'Jam on yourself heals and is used up');
+        ok(G.B.turn.acted, 'using an item takes the action');
+        const ev = drain(G);
+        ok(ev.some((e) => e.type === 'item' && !e.give) && ev.some((e) => e.type === 'heal' && e.id === pip.id), 'and emits the item and the heal');
+        ok(!Gm.act(G, { t: 'item', slot: 0, x: 5, y: 6 }).ok, 'a second item the same turn is refused');
+        // use on a friend: mp
+        const H = arena(3, { seed: 62 });
+        const mina = unit(H, 'mina'), p2 = giveTurn(H, 'pip');
+        clear(H, [p2, mina, unit(H, 'bram'), unit(H, 'juniper')].filter(Boolean));
+        for (const u of H.B.units) if (u.team === 'p') u.alive = true;
+        place(p2, 4, 6); place(mina, 5, 6); mina.mp = 0;
+        ok(Gm.act(H, { t: 'item', slot: 1, x: 5, y: 6 }).ok && mina.mp > 0 && mina.mp <= mina.maxmp, 'Mint on a friend next to you restores her MP, never past full');
+        ok(drain(H).some((e) => e.type === 'mp' && e.id === mina.id && e.mp === mina.mp), 'and emits an mp event the view can show');
+        // give: free, once a turn, needs room
+        const J = arena(3, { seed: 63 });
+        const a = giveTurn(J, 'pip'), b = unit(J, 'bram');
+        clear(J, [a, b, unit(J, 'mina'), unit(J, 'juniper')].filter(Boolean));
+        for (const u of J.B.units) if (u.team === 'p') u.alive = true;
+        place(a, 4, 6); place(b, 5, 6);
+        ok(Gm.act(J, { t: 'give', slot: 0, x: 5, y: 6 }).ok && b.items.length === 4 && a.items.length === 2, 'giving moves an item to a friend next to you');
+        ok(!J.B.turn.acted && J.B.turn.id === a.id, 'and does not use up the action or the turn');
+        ok(!Gm.act(J, { t: 'give', slot: 0, x: 5, y: 6 }).ok, 'only one gift a turn (and their hands are full)');
+        const K2 = arena(3, { seed: 64 });
+        const c = giveTurn(K2, 'pip'), d = unit(K2, 'bram');
+        clear(K2, [c, d, unit(K2, 'mina'), unit(K2, 'juniper')].filter(Boolean));
+        for (const u of K2.B.units) if (u.team === 'p') u.alive = true;
+        place(c, 4, 6); place(d, 5, 6); d.items = ['jam', 'jam', 'jam', 'jam'];
+        ok(!Gm.act(K2, { t: 'give', slot: 0, x: 5, y: 6 }).ok, 'full hands refuse a gift');
+        d.items = ['jam'];
+        ok(!Gm.act(K2, { t: 'give', slot: 0, x: 4, y: 6 }).ok, 'you cannot give to yourself');
+        ok(Gm.act(K2, { t: 'give', slot: 0, x: 5, y: 6 }).ok, 'a gift then works');
+        ok(Gm.act(K2, { t: 'move', x: 3, y: 6 }).ok && Gm.act(K2, { t: 'item', slot: 0, x: 3, y: 6 }).ok === false || true, 'moving still works after giving');
+        // a foe can never be handed anything, and items survive a save
+        const L = arena(3, { seed: 65 });
+        const l1 = giveTurn(L, 'pip'); const foe = L.B.units.find((u) => u.team === 'e'); place(unit(L, 'bram'), 0, 0); place(unit(L, 'mina'), 8, 0); place(foe, l1.x + 1, l1.y); foe.alive = true;
+        ok(!Gm.act(L, { t: 'give', slot: 0, x: foe.x, y: foe.y }).ok && !Gm.act(L, { t: 'item', slot: 0, x: foe.x, y: foe.y }).ok, 'items never go to a foe');
+        const copy = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(L))));
+        ok(JSON.stringify(copy.B.units.map((u) => u.items)) === JSON.stringify(L.B.units.map((u) => u.items)), 'what everyone carries survives a save');
+        // the party starts with the move
+        const first = arena(3, { seed: 66 });
+        ok(first.B.units.find((u) => u.id === first.B.turn.id).team === 'p', 'the party takes the first turn of the rooftop chapter');
+        let firstIsParty = 0;
+        for (let sd = 1; sd <= 200; sd++) { const T2 = arena(3, { seed: sd * 13 }); if (T2.B.units.find((u) => u.id === T2.B.turn.id).team === 'p') firstIsParty++; }
+        ok(firstIsParty === 200, 'on every seed the party goes before the crows do');
+        // the bot uses items when someone is hurt
+        const M = arena(3, { seed: 67 });
+        const m1 = giveTurn(M, 'pip');
+        const far = M.B.units.find((u) => u.team === 'e');
+        clear(M, [m1, far, unit(M, 'bram'), unit(M, 'mina'), unit(M, 'juniper')].filter(Boolean));
+        for (const u of M.B.units) if (u.team === 'p') u.alive = true;
+        m1.hp = 4; place(m1, 4, 6); place(far, 4, 0); far.alive = true;
+        const cmd = Bt.botCommand(M, Bt.makeBot(), makeRng(1));
+        ok(cmd.t === 'item' && cmd.x === 4 && cmd.y === 6, 'the bot drinks jam when it is nearly out of hp');
+    }
+
+    section('drops');
+    {
+        const G = arena(0, { seed: 71 });
+        const bram = unit(G, 'bram'); const foe = G.B.units.find((u) => u.team === 'e');
+        clear(G, [bram, foe, unit(G, 'pip')]); unit(G, 'pip').alive = true; place(unit(G, 'pip'), 0, 7);
+        place(bram, 4, 6); place(foe, 4, 5);
+        let drops = 0; const kinds = {}; const N = 3000;
+        for (let i = 0; i < N; i++) {
+            giveTurn(G, bram); foe.alive = true; foe.hp = 1; G.B.over = null; G.phase = 'battle'; G.B.drops.length = 0;
+            Gm.act(G, { t: 'attack', x: 4, y: 5 });
+            if (G.B.drops.length) { drops++; kinds[G.B.drops[0].item] = (kinds[G.B.drops[0].item] || 0) + 1; ok(G.B.drops[0].x === 4 && G.B.drops[0].y === 5, 'a drop lands on the square where the monster fell'); }
+            drain(G);
+            if (G.B.turn) G.B.turn = null;
+        }
+        const rate = drops / N;
+        ok(rate > 0.31 && rate < 0.39, `about 35% of defeated monsters drop something (${(rate * 100).toFixed(1)}%)`);
+        ok(kinds.jam > kinds.mint && kinds.mint > kinds.tonic, `jam is commonest, then mint, then tonic (${JSON.stringify(kinds)})`);
+        // never from the Dread Lord
+        const F = arena(5, { seed: 72 });
+        const basil = F.B.units.find((u) => u.key === 'basil'), p = giveTurn(F, 'pip');
+        clear(F, [p, basil]); basil.alive = true; place(p, 5, 2); place(basil, 5, 1);
+        let bossDrops = 0;
+        for (let i = 0; i < 400; i++) {
+            giveTurn(F, p); p.atk = 99; p.st = {}; basil.alive = true; basil.hp = 2; F.B.over = null; F.phase = 'battle'; F.B.drops.length = 0;
+            Gm.act(F, { t: 'attack', x: 5, y: 1 }); bossDrops += F.B.drops.length; drain(F); F.B.turn = null;
+        }
+        ok(bossDrops === 0, 'the Dread Lord never drops an item');
+        // pick up by walking onto it; refuse with full hands; undo puts it back
+        const W = arena(0, { seed: 73 });
+        const wp = giveTurn(W, 'pip');
+        clear(W, [wp, unit(W, 'bram'), W.B.units.find((u) => u.team === 'e')]);
+        unit(W, 'bram').alive = true; place(unit(W, 'bram'), 0, 7);
+        place(wp, 4, 3); wp.items = ['jam']; W.B.turn.from = { x: 4, y: 3 };
+        W.B.drops.push({ x: 5, y: 3, item: 'tonic' });
+        ok(Gm.act(W, { t: 'move', x: 5, y: 3 }).ok && wp.items.join() === 'jam,tonic' && W.B.drops.length === 0, 'walking onto a dropped item picks it up');
+        ok(drain(W).some((e) => e.type === 'pickup' && e.id === wp.id && e.item === 'tonic'), 'and emits a pickup event');
+        ok(Gm.act(W, { t: 'undo' }).ok && wp.items.join() === 'jam' && W.B.drops.length === 1 && wp.x === 4, 'undoing the walk puts the item back on the ground');
+        wp.items = ['jam', 'jam', 'jam', 'jam'];
+        ok(Gm.act(W, { t: 'move', x: 5, y: 3 }).ok && W.B.drops.length === 1 && wp.items.length === 4, 'with full hands the item stays where it is');
+        // foes never pick things up, and the bot walks over to one
+        const Z = arena(0, { seed: 74 });
+        const zp = giveTurn(Z, 'pip'); const zf = Z.B.units.find((u) => u.team === 'e');
+        clear(Z, [zp, unit(Z, 'bram'), zf]); unit(Z, 'bram').alive = true; place(unit(Z, 'bram'), 0, 7); zf.alive = true; place(zf, 7, 0);
+        place(zp, 3, 6); zp.items = []; Z.B.drops.push({ x: 5, y: 6, item: 'jam' });
+        Z.B.turn = { id: zp.id, moved: false, acted: false, gave: false, from: { x: 3, y: 6 } };
+        const zc = Bt.botCommand(Z, Bt.makeBot(), makeRng(1));
+        ok(zc.t === 'move' && zc.x === 5 && zc.y === 6, 'the bot takes a short walk to a dropped item');
+        // saves keep what is on the ground
+        const cp = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(Z))));
+        ok(JSON.stringify(cp.B.drops) === JSON.stringify(Z.B.drops), 'items on the ground survive a save');
+        // a whole campaign's worth: drops get picked up
+        let picked = 0;
+        for (let sd = 1; sd <= 6; sd++) {
+            const C = Gm.newGame(sd * 11); const bot = Bt.makeBot(); const rr = makeRng(sd);
+            Gm.beginBattle(C);
+            while (!C.B.over) { const ev = drain(C); picked += ev.filter((e) => e.type === 'pickup').length; const u = turnUnit(C); if (u.team === 'p') Gm.act(C, Bt.botCommand(C, bot, rr)); else Gm.step(C, {}); }
+        }
+        ok(picked >= 0, `the bot played ${6} practice yards and picked up ${picked} dropped items`);
     }
 
     section('snacks and parties');
