@@ -111,6 +111,8 @@ export class Audio {
                 break;
             case 'lucky': [523, 659, 784, 1047, 1319].forEach((f, i) => this.tone({ freq: f, dur: 0.12, type: 'triangle', vol: 0.12, delay: i * 0.05 })); break;
             case 'item': [784, 988].forEach((f, i) => this.tone({ freq: f, dur: 0.12, type: 'triangle', vol: ev.give ? 0.08 : 0.11, delay: i * 0.06 })); break;
+            case 'drop': [1319, 1760].forEach((f, i) => this.tone({ freq: f, dur: 0.1, type: 'sine', vol: 0.08, delay: i * 0.05 })); break;
+            case 'pickup': [784, 1047, 1319].forEach((f, i) => this.tone({ freq: f, dur: 0.12, type: 'triangle', vol: 0.1, delay: i * 0.05 })); break;
             case 'mp': [1047, 1319, 1568].forEach((f, i) => this.tone({ freq: f, dur: 0.12, type: 'sine', vol: 0.09, delay: i * 0.05 })); break;
             case 'sleepy': this.tone({ freq: 330, to: 220, dur: 0.3, type: 'sine', vol: 0.1 }); break;
             case 'resist': this.ui('no'); break;

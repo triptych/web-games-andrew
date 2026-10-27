@@ -7,7 +7,7 @@
 
 import { CT_READY, MAX_TURNS, RULES } from '../config.js';
 import { makeRng } from '../rng.js';
-import { CHAPTERS, CLASSES, ITEMS, MAX_ITEMS, PARTY_ORDER, SKILLS, SNACKS, itemAmount, packFor } from './data.js';
+import { CHAPTERS, CLASSES, DROPS, ITEMS, MAX_ITEMS, PARTY_ORDER, SKILLS, SNACKS, itemAmount, packFor } from './data.js';
 import {
     isFriend, affected, aoeTiles, basicOf, buildTiles, calcDamage, healAmount, isFoe, makeUnit, pathTo, reach,
     skillsOf, standable, unitAt, unitById, validTarget,
@@ -62,7 +62,7 @@ export function beginBattle(G) {
     const lvl = levelOf(G);
     fitParty(G);
     const tiles = buildTiles(ch.map);
-    const B = { w: ch.map[0].length, h: ch.map.length, tiles, units: [], turn: null, turnNo: 0, over: null, talked: {}, rescued: [], chapter: G.chapter, yielded: false };
+    const B = { w: ch.map[0].length, h: ch.map.length, tiles, units: [], turn: null, turnNo: 0, over: null, talked: {}, rescued: [], chapter: G.chapter, yielded: false, drops: [] };
     let id = 1;
     G.party.forEach((key, i) => {
         const [x, y] = ch.starts[i];
@@ -231,6 +231,13 @@ export function act(G, cmd) {
 
     if (cmd.t === 'undo') {
         if (!T.moved || T.acted) return no('nothing to undo');
+        if (T.pickup) {                                   // walking back puts what you picked up back on the ground
+            const at = T.pickup.item;
+            u.items.splice(u.items.lastIndexOf(at), 1);
+            B.drops.push({ ...T.pickup });
+            G.events.push({ type: 'drop', x: T.pickup.x, y: T.pickup.y, item: at });
+            T.pickup = null;
+        }
         u.x = T.from.x; u.y = T.from.y;
         T.moved = false;
         G.events.push({ type: 'warp', id: u.id, x: u.x, y: u.y });
@@ -246,6 +253,7 @@ export function act(G, cmd) {
         u.x = cmd.x; u.y = cmd.y;
         T.moved = true;
         G.events.push({ type: 'move', id: u.id, path });
+        T.pickup = collect(G, u);
         if (T.acted) endTurn(G);
         return OK;
     }
@@ -323,7 +331,7 @@ function resolve(G, u, id, sk, tx, ty) {
                     clearStatus(G, d, 'sleepy');
                     d.awake = true;
                     G.events.push({ type: 'hit', id: d.id, from: u.id, dmg, hp: d.hp, skill: id });
-                    if (d.hp === 0) { d.alive = false; G.events.push({ type: 'faint', id: d.id }); }
+                    if (d.hp === 0) { d.alive = false; G.events.push({ type: 'faint', id: d.id }); maybeDrop(G, d); }
                 }
             }
         }
@@ -343,6 +351,30 @@ function resolve(G, u, id, sk, tx, ty) {
             else applyStatus(G, d, sk.status, sk.dur);
         }
     }
+}
+
+/** A defeated monster may leave an item on its square, for a student to walk onto. */
+function maybeDrop(G, d) {
+    const B = G.B;
+    if (d.team !== 'e' || d.boss) return;
+    if (G.rng() >= RULES.dropChance) return;
+    if (B.drops.some((o) => o.x === d.x && o.y === d.y)) return;
+    const total = DROPS.reduce((a, [, w]) => a + w, 0);
+    let r = G.rng() * total, item = DROPS[0][0];
+    for (const [id, w] of DROPS) { if (r < w) { item = id; break; } r -= w; }
+    B.drops.push({ x: d.x, y: d.y, item });
+    G.events.push({ type: 'drop', x: d.x, y: d.y, item });
+}
+
+/** A student who stops on a dropped item picks it up, if there is a free hand. */
+function collect(G, u) {
+    const B = G.B;
+    const i = B.drops.findIndex((o) => o.x === u.x && o.y === u.y);
+    if (i < 0 || u.team !== 'p' || u.items.length >= MAX_ITEMS) return null;
+    const [d] = B.drops.splice(i, 1);
+    u.items.push(d.item);
+    G.events.push({ type: 'pickup', id: u.id, x: d.x, y: d.y, item: d.item });
+    return { x: d.x, y: d.y, item: d.item };
 }
 
 // The Dread Lord talks mid-fight and, at 35% hp, gives up.
@@ -399,6 +431,7 @@ export function deserialize(d) {
     const G = { ...JSON.parse(JSON.stringify(rest)), rng: makeRng(0), events: [] };
     G.rng.setState(rngState);
     for (const u of G.B?.units || []) u.items ||= [];          // saves from before items existed
+    if (G.B) G.B.drops ||= [];
     return G;
 }
 

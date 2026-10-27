@@ -100,6 +100,8 @@ export const ITEMS = {
     tonic: { name: 'Sparkle Tonic', hp: [8, 1.5], mp: [3, 0.6], desc: 'Restores some hp and some MP.' },
 };
 export const MAX_ITEMS = 4;
+/** What a defeated monster may leave behind: [item, weight]. */
+export const DROPS = [['jam', 5], ['mint', 3], ['tonic', 2]];
 /** What each student packs for a battle. Rescued students pack the basics. */
 export const packFor = (chapter) => ['jam', 'mint', ...(chapter >= 3 ? ['tonic'] : [])];
 export const itemAmount = (id, kind, lvl) => Math.round(ITEMS[id][kind][0] + ITEMS[id][kind][1] * (lvl - 1));

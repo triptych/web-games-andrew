@@ -288,6 +288,22 @@ async function desktop() {
     await until(page, () => __cc.idle(), 'the gift animation finishes');
     await shot(page, 'desktop-gave');
 
+    // a dropped item is drawn on its square and picked up by walking onto it
+    await Q(page, () => __cc.start(5, 0));
+    await myTurn(page);
+    await arrange(page, (G, B) => {
+        const pip = B.units.find((u) => u.key === 'pip');
+        B.turn = { id: pip.id, moved: false, acted: false, gave: false, from: { x: pip.x, y: pip.y } };
+        pip.x = 2; pip.y = 6; pip.items = [];
+        B.drops.push({ x: 4, y: 6, item: 'jam' }, { x: 3, y: 5, item: 'tonic' }, { x: 5, y: 7, item: 'mint' });
+    });
+    check(await Q(page, () => __cc.view.drops.size === 3), 'the view knows about the three items on the ground');
+    await shot(page, 'desktop-drops');
+    const dp = await Q(page, () => __cc.screenOf(4, 6));
+    await page.mouse.click(dp.x, dp.y);
+    await until(page, () => (__cc.seen.pickup || 0) >= 1 && __cc.G.B.units.find((u) => u.key === 'pip').items.join() === 'jam', 'walking onto the jam picks it up');
+    await until(page, () => __cc.idle() && __cc.view.drops.size === 2, 'and it leaves the ground');
+
     // scroll to zoom, drag to look around, 0 to reset
     await Q(page, () => __cc.start(5, 0));
     await myTurn(page);

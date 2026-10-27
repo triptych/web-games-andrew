@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Crown & Crumpet** (game-103) v1.2.0: defeated monsters have a 35% chance to leave an item (jam, mint or tonic, commonest first) on the square where they fell; never the Dread Lord. A student who walks onto it picks it up if a hand is free (Undo puts it back). Drops are drawn as a bobbing jar, leaf or flask, survive saves, and the bot makes a short detour for one ([game.js](game-103/js/sim/game.js), [view.js](game-103/js/view/view.js)).
 - **Crown & Crumpet** (game-103) v1.1.0: items, and the party moves first.
   - Fixed: on the rooftops the crows (the fastest things in the game) took their turns before the party and the princess started a fight almost dead. The party now starts every chapter with the opening turns ([game.js](game-103/js/sim/game.js)).
   - Added: every student packs Strawberry Jam (hp), Mint Sprig (MP) and, from chapter 4, a Sparkle Tonic (both), and can carry four. Use one on yourself or a friend next to you (it takes your action), or give one to a friend next to you (free, once a turn). An Items button and sheet, a forecast of what it restores, items shown on the unit card, and `1 2 3 4 5` / `I` keys ([play.js](game-103/js/play.js), [ui.js](game-103/js/ui.js)). The bot drinks jam when someone is below half health.

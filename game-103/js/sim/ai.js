@@ -102,6 +102,7 @@ export function aiCommand(G, u) {
     for (const pos of spots) {
         const t = tileAt(B, pos.x, pos.y);
         let posScore = (t.cover ? 0.5 : 0) + t.h * 0.25;
+        if (u.team === 'p' && u.items.length < 4 && B.drops?.some((o) => o.x === pos.x && o.y === pos.y)) posScore += 1.5;      // a dropped item is worth a short walk
         const adj = foes.filter((o) => Math.abs(o.x - pos.x) + Math.abs(o.y - pos.y) === 1).length;
         posScore -= adj * (squishy ? 1.2 : 0.15);
         let bestAct = null, actScore = 0;

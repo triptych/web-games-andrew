@@ -1,6 +1,6 @@
 // Crown & Crumpet — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.1.0';
+export const VERSION = '1.2.0';
 export const SAVE_KEY = 'crown-and-crumpet.v1';
 
 export const STEP = 1 / 120;              // fixed step for the view's animation clock (s)
@@ -17,5 +17,6 @@ export const RULES = {
     teamwork: 0.1,                        // per other ally standing next to the target, up to 2
     regen: 3,                             // hp per turn, plus level
     mpPerTurn: 1,
+    dropChance: 0.35,                     // a defeated monster may leave an item on its square
     yieldAt: 0.35,                        // the Dread Lord gives up at this fraction of his hp
 };

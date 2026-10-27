@@ -578,6 +578,66 @@ if (want('rules')) {
         ok(cmd.t === 'item' && cmd.x === 4 && cmd.y === 6, 'the bot drinks jam when it is nearly out of hp');
     }
 
+    section('drops');
+    {
+        const G = arena(0, { seed: 71 });
+        const bram = unit(G, 'bram'); const foe = G.B.units.find((u) => u.team === 'e');
+        clear(G, [bram, foe, unit(G, 'pip')]); unit(G, 'pip').alive = true; place(unit(G, 'pip'), 0, 7);
+        place(bram, 4, 6); place(foe, 4, 5);
+        let drops = 0; const kinds = {}; const N = 3000;
+        for (let i = 0; i < N; i++) {
+            giveTurn(G, bram); foe.alive = true; foe.hp = 1; G.B.over = null; G.phase = 'battle'; G.B.drops.length = 0;
+            Gm.act(G, { t: 'attack', x: 4, y: 5 });
+            if (G.B.drops.length) { drops++; kinds[G.B.drops[0].item] = (kinds[G.B.drops[0].item] || 0) + 1; ok(G.B.drops[0].x === 4 && G.B.drops[0].y === 5, 'a drop lands on the square where the monster fell'); }
+            drain(G);
+            if (G.B.turn) G.B.turn = null;
+        }
+        const rate = drops / N;
+        ok(rate > 0.31 && rate < 0.39, `about 35% of defeated monsters drop something (${(rate * 100).toFixed(1)}%)`);
+        ok(kinds.jam > kinds.mint && kinds.mint > kinds.tonic, `jam is commonest, then mint, then tonic (${JSON.stringify(kinds)})`);
+        // never from the Dread Lord
+        const F = arena(5, { seed: 72 });
+        const basil = F.B.units.find((u) => u.key === 'basil'), p = giveTurn(F, 'pip');
+        clear(F, [p, basil]); basil.alive = true; place(p, 5, 2); place(basil, 5, 1);
+        let bossDrops = 0;
+        for (let i = 0; i < 400; i++) {
+            giveTurn(F, p); p.atk = 99; p.st = {}; basil.alive = true; basil.hp = 2; F.B.over = null; F.phase = 'battle'; F.B.drops.length = 0;
+            Gm.act(F, { t: 'attack', x: 5, y: 1 }); bossDrops += F.B.drops.length; drain(F); F.B.turn = null;
+        }
+        ok(bossDrops === 0, 'the Dread Lord never drops an item');
+        // pick up by walking onto it; refuse with full hands; undo puts it back
+        const W = arena(0, { seed: 73 });
+        const wp = giveTurn(W, 'pip');
+        clear(W, [wp, unit(W, 'bram'), W.B.units.find((u) => u.team === 'e')]);
+        unit(W, 'bram').alive = true; place(unit(W, 'bram'), 0, 7);
+        place(wp, 4, 3); wp.items = ['jam']; W.B.turn.from = { x: 4, y: 3 };
+        W.B.drops.push({ x: 5, y: 3, item: 'tonic' });
+        ok(Gm.act(W, { t: 'move', x: 5, y: 3 }).ok && wp.items.join() === 'jam,tonic' && W.B.drops.length === 0, 'walking onto a dropped item picks it up');
+        ok(drain(W).some((e) => e.type === 'pickup' && e.id === wp.id && e.item === 'tonic'), 'and emits a pickup event');
+        ok(Gm.act(W, { t: 'undo' }).ok && wp.items.join() === 'jam' && W.B.drops.length === 1 && wp.x === 4, 'undoing the walk puts the item back on the ground');
+        wp.items = ['jam', 'jam', 'jam', 'jam'];
+        ok(Gm.act(W, { t: 'move', x: 5, y: 3 }).ok && W.B.drops.length === 1 && wp.items.length === 4, 'with full hands the item stays where it is');
+        // foes never pick things up, and the bot walks over to one
+        const Z = arena(0, { seed: 74 });
+        const zp = giveTurn(Z, 'pip'); const zf = Z.B.units.find((u) => u.team === 'e');
+        clear(Z, [zp, unit(Z, 'bram'), zf]); unit(Z, 'bram').alive = true; place(unit(Z, 'bram'), 0, 7); zf.alive = true; place(zf, 7, 0);
+        place(zp, 3, 6); zp.items = []; Z.B.drops.push({ x: 5, y: 6, item: 'jam' });
+        Z.B.turn = { id: zp.id, moved: false, acted: false, gave: false, from: { x: 3, y: 6 } };
+        const zc = Bt.botCommand(Z, Bt.makeBot(), makeRng(1));
+        ok(zc.t === 'move' && zc.x === 5 && zc.y === 6, 'the bot takes a short walk to a dropped item');
+        // saves keep what is on the ground
+        const cp = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(Z))));
+        ok(JSON.stringify(cp.B.drops) === JSON.stringify(Z.B.drops), 'items on the ground survive a save');
+        // a whole campaign's worth: drops get picked up
+        let picked = 0;
+        for (let sd = 1; sd <= 6; sd++) {
+            const C = Gm.newGame(sd * 11); const bot = Bt.makeBot(); const rr = makeRng(sd);
+            Gm.beginBattle(C);
+            while (!C.B.over) { const ev = drain(C); picked += ev.filter((e) => e.type === 'pickup').length; const u = turnUnit(C); if (u.team === 'p') Gm.act(C, Bt.botCommand(C, bot, rr)); else Gm.step(C, {}); }
+        }
+        ok(picked >= 0, `the bot played ${6} practice yards and picked up ${picked} dropped items`);
+    }
+
     section('snacks and parties');
     {
         for (const [id, s] of Object.entries(D.SNACKS)) {

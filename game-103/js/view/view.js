@@ -46,6 +46,7 @@ export class View {
         this.B = null;
         this.theme = THEMES.yard;
         this.ov = {};
+        this.drops = new Map();      // dropped items by tile, as the playback has reached them
         this.faded = new Set();      // wall and table tiles drawn see-through this frame
         this.ghost = false;          // set by the battle controller on a player's turn
         this.time = 0;
@@ -247,7 +248,9 @@ export class View {
         this.q.length = 0; this.cur = null;
         this.texts.length = 0; this.parts.length = 0; this.banner = null;
         this.vis.clear();
+        this.drops = new Map();
         if (!B) return;
+        for (const d of B.drops || []) this.drops.set(d.y * B.w + d.x, d.item);
         this.theme = THEMES[CHAPTERS[B.chapter].theme] || THEMES.yard;
         for (const u of B.units) this.vis.set(u.id, this._visOf(u));
         if (B.turn && !scenery) this.vis.get(B.turn.id).active = true;
@@ -272,6 +275,8 @@ export class View {
         this.q.length = 0; this.cur = null; this.banner = null;
         if (this.B) {
             this.vis.clear();
+            this.drops = new Map();
+            for (const d of this.B.drops || []) this.drops.set(d.y * this.B.w + d.x, d.item);
             for (const u of this.B.units) this.vis.set(u.id, this._visOf(u));
             if (this.B.turn) this.vis.get(this.B.turn.id).active = true;
         }
@@ -362,6 +367,19 @@ export class View {
                 if (to) this._text(to.x, to.y, to.z + 2.8, ev.give ? `Got ${ITEMS[ev.item].name}!` : ITEMS[ev.item].name, '#fff6c8', '#7a4a6a', 1.05);
                 break;
             }
+            case 'drop': {
+                c.dur = 0.35;
+                this.drops.set(ev.y * this.B.w + ev.x, ev.item);
+                this._burst(ev.x, ev.y, this._h(ev.x, ev.y) + 0.8, 6, ['#fff', '#ffe66d'], 'star');
+                this._text(ev.x, ev.y, this._h(ev.x, ev.y) + 2.2, `${ITEMS[ev.item].name.split(' ')[0]}!`, '#fff6c8');
+                break;
+            }
+            case 'pickup':
+                c.dur = 0.4;
+                this.drops.delete(ev.y * this.B.w + ev.x);
+                this._text(v.x, v.y, v.z + 2.6, `Got ${ITEMS[ev.item].name}!`, '#fff6c8', '#7a4a6a', 1.05);
+                this._burst(ev.x, ev.y, this._h(ev.x, ev.y) + 0.8, 6, ['#ffe66d', '#fff'], 'star');
+                break;
             case 'battle': break;
             default: break;
         }
@@ -627,6 +645,30 @@ export class View {
         ctx.globalAlpha = 1;
 
         this._overlay(x, y, sx, sy - (t.c === '#' ? 1.6 * HZ : t.c === 't' ? 0.8 * HZ : 0), time);
+        const dropped = this.drops.get(y * B.w + x);
+        if (dropped) this._dropIcon(sx, sy, dropped, time);        // above the highlights, so it is never washed out
+    }
+
+    /** A little bobbing jar, leaf or bottle on a tile, so a dropped item is easy to spot. */
+    _dropIcon(sx, sy, item, time) {
+        const ctx = this.ctx;
+        const bob = Math.sin(time * 3 + sx) * 2.5;
+        const y = sy - 12 + bob;
+        ctx.fillStyle = 'rgba(40,20,50,0.22)'; ctx.beginPath(); ctx.ellipse(sx, sy + 2, 9, 4, 0, 0, TAU); ctx.fill();
+        ctx.lineWidth = 1.4; ctx.strokeStyle = 'rgba(80,45,70,0.75)';
+        if (item === 'jam') {
+            ctx.fillStyle = '#ff6b8a'; ctx.beginPath(); ctx.roundRect(sx - 7, y - 7, 14, 15, 4); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#fff6dc'; ctx.beginPath(); ctx.roundRect(sx - 8, y - 11, 16, 5, 2); ctx.fill(); ctx.stroke();
+        } else if (item === 'mint') {
+            ctx.fillStyle = '#8ce8b0';
+            for (const r of [-0.6, 0.6]) { ctx.save(); ctx.translate(sx, y + 4); ctx.rotate(r); ctx.beginPath(); ctx.ellipse(0, -7, 4.5, 8, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore(); }
+        } else {
+            ctx.fillStyle = '#c9a8ff'; ctx.beginPath(); ctx.moveTo(sx - 3, y - 10); ctx.lineTo(sx + 3, y - 10); ctx.lineTo(sx + 3, y - 4); ctx.lineTo(sx + 8, y + 7); ctx.lineTo(sx - 8, y + 7); ctx.lineTo(sx - 3, y - 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+            this._star(sx, y + 1, 3.2, '#fff6a0', time * 2);
+        }
+        const k = (time * 1.1) % 1;
+        ctx.globalAlpha = 1 - k; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.ellipse(sx, sy + 2, 8 + k * 10, 3.5 + k * 4.5, 0, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1;
     }
 
     _block(sx, sy, lift, pair, th) {
