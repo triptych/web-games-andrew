@@ -257,6 +257,31 @@ async function desktop() {
     check(await Q(page, () => __cc.view.faded.size > 0), 'and the hedges hiding something are drawn see-through');
     await shot(page, 'desktop-hedges');
 
+    // scroll to zoom, drag to look around, 0 to reset
+    await Q(page, () => __cc.start(5, 0));
+    await myTurn(page);
+    const z0 = await Q(page, () => ({ s: __cc.view.cam.s, p: __cc.screenOf(4, 3), ox: __cc.view.cam.ox }));
+    await page.mouse.move(z0.p.x, z0.p.y);
+    await page.mouse.wheel(0, -500);
+    await until(page, (s) => __cc.view.cam.s > s * 1.4, 'scrolling up zooms in', 30000, z0.s);
+    const z1 = await Q(page, () => __cc.screenOf(4, 3));
+    check(Math.abs(z1.x - z0.p.x) < 3 && Math.abs(z1.y - z0.p.y) < 3, 'the tile under the pointer stays where it was');
+    check(await Q(page, () => !document.getElementById('btn-zoom').hidden), 'a reset-zoom button appears');
+    check(await Q(page, () => { const p = __cc.screenOf(4, 3); const h = __cc.view.pick(p.x, p.y); return h && h.x === 4 && h.y === 3; }), 'picking still finds the right tile when zoomed');
+    await page.mouse.move(640, 300);
+    await page.mouse.down();
+    await page.mouse.move(700, 340, { steps: 4 });
+    await page.mouse.up();
+    const z2 = await Q(page, () => __cc.screenOf(4, 3));
+    check(Math.abs(z2.x - z1.x - 60) < 4 && Math.abs(z2.y - z1.y - 40) < 4, 'dragging pans the zoomed board');
+    check(await Q(page, () => !__cc.G.B.turn.moved && __cc.G.B.turnNo <= 2), 'and a drag is not a tap');
+    await page.mouse.wheel(0, 2000);
+    await until(page, (s) => Math.abs(__cc.view.cam.s - s) < 0.001, 'scrolling back out stops at the fitted view', 30000, z0.s);
+    await page.keyboard.press('Equal');
+    await until(page, (s) => __cc.view.cam.s > s * 1.2, 'the + key zooms in', 30000, z0.s);
+    await page.keyboard.press('Digit0');
+    await until(page, (s) => Math.abs(__cc.view.cam.s - s) < 0.001 && document.getElementById('btn-zoom').hidden, 'the 0 key resets the view', 30000, z0.s);
+
     // lose and retry
     await Q(page, () => __cc.start(3, 0));
     await myTurn(page);
@@ -360,6 +385,33 @@ async function phone(w, h) {
     await tapSel('#cmd-undo');
     await until(page, ({ id, ux, uy }) => { const u = __cc.G.B.units.find((o) => o.id === id); return u.x === ux && u.y === uy; }, 'a tap on Undo walks back', 30000, mv);
     await until(page, () => __cc.idle(), 'the undo finishes');
+
+    // pinch to zoom, one finger to look around, and taps still land
+    {
+        const cdp = await page.context().newCDPSession(page);
+        const pts = (a, b) => [{ x: a[0], y: a[1], id: 1 }, { x: b[0], y: b[1], id: 2 }];
+        const s0 = await Q(page, () => __cc.view.cam.s);
+        const cx = w / 2, cy = h * 0.4;
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: pts([cx - 30, cy], [cx + 30, cy]) });
+        for (let i = 1; i <= 6; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: pts([cx - 30 - i * 12, cy], [cx + 30 + i * 12, cy]) });
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        await until(page, (s) => __cc.view.cam.s > s * 1.5, 'spreading two fingers zooms in', 30000, s0);
+        check(await Q(page, () => !document.getElementById('btn-zoom').hidden), 'the reset-zoom button shows on the phone');
+        check(await Q(page, () => { const r = document.getElementById('btn-zoom').getBoundingClientRect(); return r.width >= 44 && r.height >= 44 && r.right <= innerWidth && r.bottom <= innerHeight; }), 'and is at least 44 px and on screen');
+        check(await Q(page, () => !__cc.G.B.turn.moved), 'a pinch is not a tap');
+        const a = await Q(page, () => __cc.screenOf(3, 3));
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: cx, y: cy, id: 1 }] });
+        for (let i = 1; i <= 5; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: cx + i * 10, y: cy + i * 6, id: 1 }] });
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        const b = await Q(page, () => __cc.screenOf(3, 3));
+        check(Math.abs(b.x - a.x - 50) < 6 && Math.abs(b.y - a.y - 30) < 6, 'one finger drags the zoomed board');
+        check(await Q(page, () => !__cc.G.B.turn.moved), 'and a drag is not a tap');
+        await page.waitForTimeout(600);                 // synthetic touches: a tap right after a drag is not a click for a moment
+        const zb = await Q(page, () => { const b = document.getElementById('btn-zoom').getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; });
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: zb.x, y: zb.y, id: 1 }] });
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        await until(page, (s) => Math.abs(__cc.view.cam.s - s) < 0.001, 'a tap on the reset button restores the fitted view', 30000, s0);
+    }
 
     // Wait by touch, then pause by touch: the screen stays open after the finger lifts
     const turn0 = await Q(page, () => __cc.G.B.turnNo);

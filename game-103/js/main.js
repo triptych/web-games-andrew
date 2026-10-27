@@ -65,6 +65,8 @@ view.onEnd = (ev) => {
 };
 view.onTap = (x, y) => { audio.init(); play.tap(x, y); };
 view.onHover = (x, y) => play.hover(x, y);
+view.onZoom = (z) => { $('btn-zoom').hidden = !z; };
+$('btn-zoom').addEventListener('click', () => { view.resetZoom(); $('btn-zoom').blur(); });
 
 // ------------------------------------------------------------------ title and scenery
 function refreshTitle() { $('btn-continue').hidden = !hasSave(); }
@@ -203,6 +205,9 @@ function handlePress() {
         return;
     }
     if (scene === 'game' && G.phase === 'battle') {
+        const zf = { Equal: 1.25, NumpadAdd: 1.25, Minus: 0.8, NumpadSubtract: 0.8 }[key];
+        if (zf) { view.zoomAt(view.w / 2, view.h / 2, zf); return; }
+        if (key === 'Digit0' || key === 'Numpad0') { view.resetZoom(); return; }
         if (play.press(key, press.shift)) return;
         if (key === 'Escape' || key === 'KeyP') pause();
     }
