@@ -305,6 +305,27 @@ async function desktop() {
     await until(page, () => (__cc.seen.pickup || 0) >= 1 && __cc.G.B.units.find((u) => u.key === 'pip').items.join() === 'jam', 'walking onto the jam picks it up');
     await until(page, () => __cc.idle() && __cc.view.drops.size === 2, 'and it leaves the ground');
 
+    // move-and-attack in one go: an enemy that is out of reach from here but reachable with a step
+    await Q(page, () => __cc.start(5, 0));
+    await myTurn(page);
+    await arrange(page, (G, B) => {
+        const pip = B.units.find((u) => u.key === 'pip'), bun = B.units.find((u) => u.team === 'e');
+        B.turn = { id: pip.id, moved: false, acted: false, gave: false, from: { x: 2, y: 6 } };
+        pip.x = 2; pip.y = 6; bun.x = 5; bun.y = 6; bun.hp = bun.maxhp = 500; bun.alive = true;
+        for (const u of B.units) if (u.team === 'e' && u !== bun) { u.x = 7; u.y = 0; u.ai = 'guard'; }
+        B.units.find((u) => u.key === 'bram').x = 0; B.units.find((u) => u.key === 'bram').y = 7;
+    });
+    const mb = await Q(page, () => __cc.screenOf(5, 6));
+    await page.mouse.move(mb.x, mb.y);
+    await page.waitForTimeout(100);
+    check(await Q(page, () => __cc.play.ov.atk2 && __cc.play.ov.atk2.size >= 1 && !__cc.play.ov.atk.size), 'an enemy two steps away is lit as reachable after a move');
+    check(await Q(page, () => /Move and Wobbly Scepter/.test(document.getElementById('prompt').textContent)), 'and the prompt says it will move and attack');
+    const sk0 = await countSeen(page, 'skill');
+    await page.mouse.click(mb.x, mb.y);
+    await until(page, (n) => (__cc.seen.skill || 0) > n, 'one click walks up and attacks', 30000, sk0);
+    check(await Q(page, () => { const p = __cc.G.B.units.find((u) => u.key === 'pip'); return Math.abs(p.x - 5) + Math.abs(p.y - 6) === 1; }), 'ending next to the enemy, on the nearest square that reaches it');
+    await until(page, () => __cc.idle(), 'the walk and the swing finish');
+
     // scroll to zoom, drag to look around, 0 to reset
     await Q(page, () => __cc.start(5, 0));
     await myTurn(page);

@@ -112,7 +112,18 @@ export class Play {
                     this.info = `${basic.name} on ${CLASSES[d.key].name}: about ${calcDamage(B, u, d, basic)} damage${clumsy}. Tap again.`;
                 }
             }
-            if (!this.info || !((ov.move && ov.move.has(curKey)) || (ov.atk && ov.atk.has(curKey)))) {
+            // enemies we could hit after a step or two: a lighter red, and one tap walks there and swings
+            this.reach2 = null;
+            if (!T.moved && !T.acted) {
+                this.reach2 = this._reachTargets(u, basic);
+                ov.atk2 = new Set([...this.reach2.keys()].filter((k) => !ov.atk?.has(k)));
+                if (cur && ov.atk2.has(curKey)) {
+                    const d = unitAt(B, cur.x, cur.y), sp = this.reach2.get(curKey);
+                    const clumsy = u.key === 'pip' ? ' (Pip might trip!)' : '';
+                    this.info = `Move and ${basic.name} ${CLASSES[d.key].name}: about ${calcDamage(B, u, d, basic, sp.x, sp.y)} damage${clumsy}. Tap again.`;
+                }
+            }
+            if (!this.info || !((ov.move && ov.move.has(curKey)) || (ov.atk && ov.atk.has(curKey)) || (ov.atk2 && ov.atk2.has(curKey)))) {
                 const d = cur ? unitAt(B, cur.x, cur.y) : null;
                 if (d && d.id !== u.id && d.team === 'e') this.info = `${CLASSES[d.key].name}: ${isFoe(u, d) && !(ov.atk && ov.atk.has(curKey)) ? 'out of reach from here.' : ''}`;
                 else if (T.moved && T.acted) this.info = '';
@@ -137,7 +148,21 @@ export class Play {
             const ok = (t) => validTarget(B, u, sk, t.x, t.y);
             const tiles = sk.range[1] === 0 ? [{ x: u.x, y: u.y }] : rangeTiles(B, sk, u.x, u.y).filter(ok);
             ov.tgt = new Set(tiles.map((t) => KEY(B, t.x, t.y)));
-            if (cur && ov.tgt.has(curKey)) {
+            // targets that need a step first: lighter, and one confirm walks there and casts
+            this.reach2 = null;
+            if (!T.moved && sk.range[1] > 0) {
+                this.reach2 = this._reachTargets(u, sk);
+                ov.tgt2 = new Set([...this.reach2.keys()].filter((k) => !ov.tgt.has(k)));
+            }
+            if (cur && ov.tgt2?.has(curKey)) {
+                const sp = this.reach2.get(curKey);
+                const hit = affected(B, { ...u, x: sp.x, y: sp.y }, sk, cur.x, cur.y);
+                ov.aoe = new Set(aoeTiles(B, sk, cur.x, cur.y).map((t) => KEY(B, t.x, t.y)));
+                this.skillOk = true;
+                const names = hit.map((d) => CLASSES[d.key].name).join(', ');
+                const total = sk.kind === 'phys' || sk.kind === 'mag' ? ` (about ${hit.reduce((a, d) => a + calcDamage(B, u, d, sk, sp.x, sp.y) * (sk.hits || 1), 0)} damage)` : '';
+                this.info = `Move, then ${sk.name}: ${names}${total}. Tap again or Go!`;
+            } else if (cur && ov.tgt.has(curKey)) {
                 const hit = affected(B, u, sk, cur.x, cur.y);
                 ov.aoe = new Set(aoeTiles(B, sk, cur.x, cur.y).map((t) => KEY(B, t.x, t.y)));
                 this.skillOk = true;
@@ -183,6 +208,11 @@ export class Play {
         }
         if (this.mode === 'skill') {
             const sk = SKILLS[this.skillId];
+            const sp = !T.moved && this.ov.tgt2?.has(KEY(B, cur.x, cur.y)) ? this.reach2?.get(KEY(B, cur.x, cur.y)) : null;
+            if (sp) {                                                  // not in range from here: step there first
+                if (this._do({ t: 'move', x: sp.x, y: sp.y }) && this._do({ t: 'skill', id: this.skillId, x: cur.x, y: cur.y })) { this.mode = 'free'; this.skillId = null; }
+                return;
+            }
             if (this._do({ t: 'skill', id: this.skillId, x: cur.x, y: cur.y })) { this.mode = 'free'; this.skillId = null; }
             else if (sk) this.audio.ui('no');
             return;
@@ -190,6 +220,11 @@ export class Play {
         const k = KEY(B, cur.x, cur.y);
         if (!T.moved && this.ov.move?.has(k)) { this._do({ t: 'move', x: cur.x, y: cur.y }); return; }
         if (!T.acted && this.ov.atk?.has(k)) { this._do({ t: 'attack', x: cur.x, y: cur.y }); return; }
+        const sp = !T.moved && !T.acted && this.ov.atk2?.has(k) ? this.reach2?.get(k) : null;
+        if (sp) {                                                      // an enemy we can reach with a step: walk up, then swing
+            if (this._do({ t: 'move', x: sp.x, y: sp.y })) this._do({ t: 'attack', x: cur.x, y: cur.y });
+            return;
+        }
         this.audio.ui('no');
     }
 
@@ -220,6 +255,25 @@ export class Play {
             });
             this.ui.openSkills(u, list, (id) => this.enterSkill(id));
         }
+    }
+
+    /**
+     * Targets `sk` could hit after walking somewhere first: Map(tile key → the best square to walk to).
+     * "Best" is the fewest steps; among equals, the one farthest from the target, so archers stay at range.
+     */
+    _reachTargets(u, sk) {
+        const B = this.G.B;
+        const r = reach(B, u);
+        const out = new Map();
+        for (const sp of standable(B, u, r)) {
+            if (sp.x === u.x && sp.y === u.y) continue;
+            for (const t of rangeTiles(B, sk, sp.x, sp.y)) {
+                if (!validTarget(B, u, sk, t.x, t.y, sp.x, sp.y)) continue;
+                const k = KEY(B, t.x, t.y), d = Math.abs(t.x - sp.x) + Math.abs(t.y - sp.y), cur = out.get(k);
+                if (!cur || sp.cost < cur.cost || (sp.cost === cur.cost && d > cur.d)) out.set(k, { x: sp.x, y: sp.y, cost: sp.cost, d });
+            }
+        }
+        return out;
     }
 
     /** Friends an item could go to right now: for Use, yourself and anyone next to you it would help; for Give, anyone next to you with room. */

@@ -94,7 +94,7 @@ Prologue: Pip falls into a flowerbed on arrival, and Headmistress Hazel sends he
 | Pause | ❚❚ | P / Esc | Start | ❚❚ |
 | Zoom | wheel | + − 0 | | pinch, drag to look round, ⤢ resets |
 
-A mouse already hovers the tile, so one click confirms. Touch is select-then-confirm so a fat finger never walks the wrong way.
+Choosing an enemy that is out of reach but reachable by walking (lighter dashed highlight) moves you to the nearest square that reaches it and then attacks, for the plain attack and for skills. A mouse already hovers the tile, so one click confirms. Touch is select-then-confirm so a fat finger never walks the wrong way.
 
 ## Look and sound
 
@@ -133,6 +133,9 @@ The bot is the enemy's brain, so it plays the same game the player does. Tuned u
 - A rotate-the-camera control for hidden units behind tall walls.
 
 ## Changelog
+
+### v1.3.0 (2026-10-27)
+- Move-and-attack: choosing an enemy (or a skill target) that needs a step walks there first, then acts.
 
 ### v1.2.3 (2026-10-27)
 - Story scenes and menus no longer fade the characters.

@@ -1566,7 +1566,7 @@ const games = [
         description: 'A cosy Final Fantasy Tactics-style adventure in vanilla Canvas 2D. Princess Pip is training to become the next queen at Thistlewick Academy of Magic & Marching, and she is brave, determined and very clumsy: now and then she trips, and now and then she stumbles into a lucky double hit. Lead a party of friends you rescue along the way (a shy knight, a footnote-loving mage, a calm herbalist, a prickly rooftop archer and a hungry clay golem) through six isometric battles with height, cover, speed-based turns, skills and a picnic basket. The enemy is a reluctant Dread Lord who, in the end, just wants to be a chef; the last scene is the opening day of their cooking school. Every picture, tune and word is made in code.',
         icon: '\uD83D\uDC51',
         folder: 'game-103',
-        version: '1.2.3',
+        version: '1.3.0',
         cssClass: 'crown-and-crumpet',
         genre: 'cozy',
         tags: [

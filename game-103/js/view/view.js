@@ -718,6 +718,9 @@ export class View {
         };
         if (ov.move?.has(k)) paint('#5fb0ff', '#ffffff', 0.55 + pulse * 0.12);
         if (ov.atk?.has(k)) paint('#ff6b8a', '#ffe0e6', 0.38 + pulse * 0.1);
+        const dashed = (fill, stroke, a) => { ctx.setLineDash([5, 4]); paint(fill, stroke, a); ctx.setLineDash([]); };
+        if (ov.atk2?.has(k)) dashed('#ff9aae', '#ffe0e6', 0.3 + pulse * 0.08);        // enemies reachable after a step
+        if (ov.tgt2?.has(k)) dashed('#ffcf8a', '#fff1d0', 0.34 + pulse * 0.08);
         if (ov.tgt?.has(k)) paint('#ffb24d', '#fff1d0', 0.5 + pulse * 0.12);
         if (ov.aoe?.has(k)) paint('#ffd94d', '#fff', 0.55 + pulse * 0.15);
         if (ov.path?.has(k)) {
