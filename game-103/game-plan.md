@@ -130,5 +130,8 @@ The bot is the enemy's brain, so it plays the same game the player does. Tuned u
 
 ## Changelog
 
+### v1.0.1 (2026-10-27)
+- Other characters turn see-through on a student's turn and clicks go to the floor under them, so bunched-up cells can be targeted.
+
 ### v1.0.0 (2026-10-27)
 - First release: six chapters, six students, the Dread Lord's surrender, snacks, rescues, saves, a sim bot, and harnesses for desktop and phones.

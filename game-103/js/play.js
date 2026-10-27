@@ -44,6 +44,7 @@ export class Play {
     // ------------------------------------------------------------------ per-frame state → view and HUD
     update() {
         const G = this.G, B = G.B;
+        this.view.ghost = false;
         if (!B || G.phase !== 'battle') { this.view.ov = {}; return; }
         if (!B.turn || B.over) { this.ui.prompt(''); this.ui.commands({ mode: 'free' }); this.view.ov = {}; return; }
         const u = this.unit();
@@ -52,6 +53,8 @@ export class Play {
             this.reset();
             if (u.team === 'p') this.cursor = { x: u.x, y: u.y };
         }
+        // on a student's turn the others turn see-through, so a bunched-up cell can be clicked
+        this.view.ghost = u.team === 'p' && !this.isAuto();
         const can = this.canAct();
         const T = B.turn;
         // the card shows whoever the cursor is on, or the active unit

@@ -46,6 +46,7 @@ export class View {
         this.B = null;
         this.theme = THEMES.yard;
         this.ov = {};
+        this.ghost = false;          // set by the battle controller on a player's turn
         this.time = 0;
         this.onTalk = null;               // (lines, done) → shows a dialogue, calls done when it closes
         this.onEnd = null;                // (ev) → the battle is over and the banner has been shown
@@ -119,7 +120,8 @@ export class View {
         const r = this.canvas.getBoundingClientRect();
         const px = clientX - r.left, py = clientY - r.top;
         const s = this.cam.s;
-        const list = [...this.vis.values()].filter((v) => v.alive).sort((a, b) => (b.x + b.y) - (a.x + a.y));
+        // while a student is choosing, the others are see-through and the floor under them is clickable
+        const list = this.ghost ? [] : [...this.vis.values()].filter((v) => v.alive).sort((a, b) => (b.x + b.y) - (a.x + a.y));
         for (const v of list) {
             const [fx, fy] = this.screen(v.x, v.y, v.z);
             const hh = 56 * v.size * s, ww = 16 * v.size * s;
@@ -564,7 +566,7 @@ export class View {
         const z = v.z + (v.fly ? 0.9 + Math.sin(time * 4 + v.phase) * 0.12 : 0);
         const sx = (v.x + v.ox - v.y - v.oy) * TW / 2, sy = (v.x + v.ox + v.y + v.oy) * TH / 2 - v.z * HZ;
         const s = v.size;
-        const alpha = v.fade > 0 ? 1 - v.fade : 1;
+        const alpha = (v.fade > 0 ? 1 - v.fade : 1) * (this.ghost && !v.active ? 0.42 : 1);
         if (alpha <= 0) return;
         ctx.globalAlpha = alpha;
         // shadow and team ring
