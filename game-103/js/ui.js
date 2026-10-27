@@ -149,7 +149,7 @@ export class UI {
         const hp = Math.round(vis?.hp ?? u.hp), mp = vis?.mp ?? u.mp;
         $('card-hp').style.width = `${(hp / u.maxhp) * 100}%`;
         $('card-hptext').textContent = `HP ${hp}/${u.maxhp}`;
-        document.querySelector('.bar.mp').style.display = u.maxmp ? '' : 'none';
+        document.querySelector('.bar.mp').style.visibility = u.maxmp ? '' : 'hidden';   // keep its space: the card must never change height
         $('card-mp').style.width = u.maxmp ? `${Math.min(1, mp / u.maxmp) * 100}%` : '0%';
         $('card-mptext').textContent = u.maxmp ? `MP ${mp}/${u.maxmp}` : '';
         const st = Object.keys(vis?.st || u.st);

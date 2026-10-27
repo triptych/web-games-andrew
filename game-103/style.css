@@ -106,7 +106,7 @@ body.dark #chapter-tag { color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 .bar.hp i { background: #6fe08e; }
 .bar.mp i { background: #7cc0ff; }
 .bar span { position: relative; font-size: 10px; line-height: 13px; font-weight: 700; margin-left: 6px; color: #2a2a3a; }
-#card-st { margin-top: 3px; display: flex; gap: 4px; flex-wrap: wrap; min-height: 15px; }
+#card-st { margin-top: 3px; display: flex; gap: 4px; flex-wrap: nowrap; overflow: hidden; height: 19px; }
 .pill { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1px solid rgba(90, 58, 90, 0.35); background: #fff; }
 .pill.cheer { background: #ffe9a0; } .pill.guard { background: #cfe8ff; } .pill.regen { background: #d4f5dc; } .pill.sleepy { background: #e4dcff; }
 
