@@ -16,7 +16,8 @@ export function makeAuto(o = {}) {
 
 const frac = (m) => m.hp / calc(m).maxhp;
 const potions = (G, eff) => G.inv.filter((x) => x.t === 'p' && x.eff === eff);
-const relMove = (facing, dir) => ['f', 'sr', 'b', 'sl'][(dir - facing + 4) % 4];
+/** Always face the way it walks: turn toward the goal first, then step forward (never strafe or back up). */
+const relMove = (facing, dir) => ['f', 'r', 'r', 'l'][(dir - facing + 4) % 4];
 
 /** First direction of a shortest path to the nearest square satisfying goal, never entering `blocked` squares. */
 function pathDir(f, sx, sy, goal, blocked) {
