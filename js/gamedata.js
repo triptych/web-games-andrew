@@ -1544,6 +1544,21 @@ const games = [
             { emoji: '\uD83D\uDCB0', label: 'Idle town' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-102',
+        title: 'STARSLING',
+        description: 'Angry Birds in a retro-futurist space sunset. Pull the sling back and fling asteroids at floating space stations to scrap every robot aboard. Rock, Iron, Ice and Nova asteroids each have a tap-in-flight special; glass shatters, hull topples, fuel cells blow, and black holes bend your shots. Six sectors with stars, rigid-body physics with sleeping, a synthwave sun on a neon grid, and a bot that proves every sector can be cleared.',
+        icon: '\uD83E\uDE90',
+        folder: 'game-102',
+        version: '1.0.0',
+        cssClass: 'starsling',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83C\uDFAF', label: 'Physics' },
+            { emoji: '\uD83C\uDF06', label: 'Synthwave' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
