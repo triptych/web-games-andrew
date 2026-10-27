@@ -450,6 +450,17 @@ if (want('rules')) {
         Gm.act(S, { t: 'attack', x: party[0].x, y: party[0].y });
         ok(!S.B.over && waiting.team === 'p', 'a waiting student joins when the party faints, so the battle is not lost');
         ok(drain(S).some((e) => e.type === 'rescue') && Gm.turnOrder(S.B, 12).includes(waiting.id), 'and takes her place in the turn order');
+        // the same in the library, where Mina is the one waiting behind the desk and only Pip and Bram came
+        const M2 = arena(1, { seed: 52 });
+        const mina2 = M2.B.units.find((u) => u.team === 'g');
+        ok(!!mina2 && mina2.key === 'mina', 'the library has Mina waiting behind the desk');
+        const duo = M2.B.units.filter((u) => u.team === 'p');
+        duo[1].alive = false; duo[1].hp = 0; duo[0].hp = 1; duo[0].st = {};
+        const foe2 = M2.B.units.find((u) => u.key === 'bunny');
+        place(foe2, duo[0].x + 1, duo[0].y); foe2.alive = true;
+        M2.B.turn = { id: foe2.id, moved: false, acted: false, from: { x: foe2.x, y: foe2.y } };
+        Gm.act(M2, { t: 'attack', x: duo[0].x, y: duo[0].y });
+        ok(!M2.B.over && mina2.team === 'p', 'when Pip and Bram faint, Mina steps in instead of the chapter being lost');
         // the Dread Lord
         const F = arena(5, { seed: 31 });
         const basil = F.B.units.find((u) => u.key === 'basil');

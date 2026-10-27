@@ -61,12 +61,20 @@ view.onPlay = (ev) => {
 view.onTalk = (lines, done) => ui.talk(lines, done);
 view.onEnd = (ev) => {
     if (ev.result === 'win') showPhase();
-    else ui.openScreen('lose');
+    else openLose();
 };
 view.onTap = (x, y) => { audio.init(); play.tap(x, y); };
 view.onHover = (x, y) => play.hover(x, y);
 view.onZoom = (z) => { $('btn-zoom').hidden = !z; };
 $('btn-zoom').addEventListener('click', () => { view.resetZoom(); $('btn-zoom').blur(); });
+
+/** The lose sheet says exactly why, so a surprising defeat can be reported precisely. */
+function openLose() {
+    const B = G.B;
+    const names = B.units.filter((u) => u.team === 'p').map((u) => `${CLASSES[u.key].name} ${u.alive ? `(${u.hp}/${u.maxhp} hp)` : 'fainted'}`);
+    $('lose-why').textContent = B.over?.why === 'timeout' ? `The battle went on for ${B.turnNo} turns, so it was called off. ` + names.join(', ') + '.' : names.join(', ') + '.';
+    ui.openScreen('lose');
+}
 
 // ------------------------------------------------------------------ title and scenery
 function refreshTitle() { $('btn-continue').hidden = !hasSave(); }
@@ -142,7 +150,7 @@ function enterBattle() {
     ui.setChapterTag(`Chapter ${G.chapter + 1} · ${chapterOf(G).title}`);
     audio.music(chapterOf(G).final ? 'boss' : 'battle');
     flushEvents();
-    if (G.B.over?.result === 'lose') ui.openScreen('lose');
+    if (G.B.over?.result === 'lose') openLose();
     saveGame(G);
 }
 
@@ -292,7 +300,7 @@ if (DEBUG) {
                 G.events.length = 0;
             }
             view.skipAll(G);
-            if (G.B?.over) { if (G.B.over.result === 'win') showPhase(); else ui.openScreen('lose'); }
+            if (G.B?.over) { if (G.B.over.result === 'win') showPhase(); else openLose(); }
         },
         save: () => saveGame(G),
         hasSave,
