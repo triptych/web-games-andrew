@@ -4594,8 +4594,8 @@ export function startAmbience() {
 
 ## Step 3: Add it to the collection
 
-A new game touches six files outside its own folder. Every "Add game-NNN" commit from
-057 to 076 changed all six; missing one leaves a hole someone finds later (game-030 was
+A new game touches seven things outside its own folder. Every "Add game-NNN" commit from
+057 to 076 changed the first six; missing one leaves a hole someone finds later (game-030 was
 built but never listed; game-038 shipped without its card style).
 
 1. **`js/gamedata.js`**: append an entry to the `games` array before the closing `];`. Set `genre` to one of `arcade`, `puzzle`, `dungeon`, `rpg`, `story`, `strategy` or `cozy` — it decides which path of the 3D garden launcher the game's statue stands on (the garden grows to fit; see `garden/js/genres.js`). New games start at `version: '1.0.0'` (shown as a badge next to the title). The description can be long: the later games use a full paragraph, and the garden and the classic grid both show it. Make the last tag the renderer (`three.js`, `Canvas 2D`, `Kaplay`, …).
@@ -4633,6 +4633,12 @@ built but never listed; game-038 shipped without its card style).
 4. **`status.md`**: bump the count in the launcher note and add a row: `| [GAME_FOLDER](GAME_FOLDER/index.html) | GAME_TITLE | **Complete** / Solid / Prototype | what is in it; what the harnesses check; Open: what isn't done |`. Be honest in "Open" (the later games all say balance was tuned by a bot and the game has only run under SwiftShader).
 5. **`CHANGELOG.md`**: under `## [Unreleased]`, an `### Added` entry: `**GAME_TITLE** (GAME_FOLDER) v1.0.0: ...`, with sub-bullets for the systems, the look, the sound and the tests, linking the files. Then a line for the launcher entry and one for any docs.
 6. **`docs/`**: what you learned that the next game should know, in [docs/generic/learnings.md](../../docs/generic/learnings.md) (or the engine's doc, or [sounds.md](../../docs/generic/sounds.md)), attributed to the game; refresh its line in [docs/README.md](../../docs/README.md). See "Maintaining these docs" in that README. If a learning changes how games should be scaffolded, update this skill too.
+7. **`garden/img/games/GAME_FOLDER.jpg`**: the 1200×630 preview the Garden's Library shows and share links use. Games 099, 102 and 103 shipped without one and showed an empty thumbnail until a later PR added them. Run, with the static server up (it serves the repo itself; `playwright` linked per `dev/README.md`):
+   ```bash
+   ONLY=GAME_FOLDER node dev/screenshots.mjs        # writes garden/img/games/GAME_FOLDER.jpg
+   ONLY=GAME_FOLDER node dev/add-meta.mjs           # og:image / twitter:image tags into GAME_FOLDER/index.html
+   ```
+   **Open the picture and look at it.** The generic tool clicks past the title and photographs whatever follows; a game with a menu or story before its first scene just gets its title screen (fine as a floor, but a real scene is better). For those, write a `GAME_FOLDER/dev/preview.mjs` that sets a moment up through the debug hooks, as game-098, game-100 and game-101 do, and copy the best frame to `garden/img/games/`. Commit the jpg and the `index.html` meta block together with the game.
 
 ---
 
