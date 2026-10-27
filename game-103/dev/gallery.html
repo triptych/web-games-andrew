@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Crown &amp; Crumpet gallery</title>
+<style>
+    body { margin: 0; background: #b9d98f; font: 13px system-ui, sans-serif; color: #234; }
+    h2 { margin: 8px 12px 0; }
+    canvas { display: block; margin: 4px 12px; background: #cfe6a6; border-radius: 8px; }
+</style>
+</head>
+<body>
+<h2>Actors (idle, happy, hurt) and portraits</h2>
+<canvas id="a" width="1100" height="330"></canvas>
+<canvas id="b" width="1100" height="130"></canvas>
+<script type="module">
+import { drawActor, bust } from '../js/view/sprites.js';
+const keys = ['pip', 'bram', 'mina', 'juniper', 'fenn', 'pudge', 'hazel', 'bunny', 'blot', 'thorn', 'crow', 'sprite', 'scone', 'basil'];
+const a = document.getElementById('a').getContext('2d');
+keys.forEach((k, i) => {
+    const x = 50 + (i % 7) * 150, y0 = 110 + Math.floor(i / 7) * 150;
+    a.fillStyle = 'rgba(0,0,0,.15)'; a.beginPath(); a.ellipse(x, y0, 22, 8, 0, 0, 7); a.fill();
+    drawActor(a, k, x, y0, 1.4, { t: 0.4 + i, face: 'idle' });
+    a.fillStyle = '#234'; a.fillText(k, x - 20, y0 + 22);
+});
+const b = document.getElementById('b').getContext('2d');
+const pk = ['narrator', ...keys];
+pk.forEach((k, i) => { b.drawImage(bust(k, 96), 6 + i * 72, 10, 70, 70); b.fillStyle = '#234'; b.fillText(k, 8 + i * 72, 100); });
+['pip', 'bram', 'basil'].forEach((k, i) => { b.drawImage(bust(k, 64, 'happy'), 6 + i * 70, 100, 30, 30); });
+window.__ready = true;
+</script>
+</body>
+</html>
