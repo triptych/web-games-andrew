@@ -40,6 +40,15 @@ export class Stage {
         this.scene.add(this.featGroup);
         this.battleGroup = new THREE.Group();
         this.camera.add(this.battleGroup);
+        // the battle room: a hall in the floor's own walls, entered by a fade, left by a fade
+        this.arenaScene = new THREE.Scene();
+        this.arenaScene.background = new THREE.Color(0x000000);
+        this.arenaScene.fog = new THREE.Fog(0x000000, 0.6, 9);
+        this.arenaCam = new THREE.PerspectiveCamera(64, RES_W / RES_H, 0.04, 40);
+        this.arenaScene.add(this.arenaCam);
+        this.arena = null;
+        this.arenaZ = 2.4;
+        this.inArena = false;
 
         this.town = new TownScene();
         this.mode = 'town';
@@ -55,6 +64,7 @@ export class Stage {
         this.tgt = { x: 0.5, z: 0.5, yaw: 0 };
         this.from = { x: 0.5, z: 0.5, yaw: 0 };
         this.anim = 0; this.animDur = 0.18;
+        this.fadeSpeed = 4;
         this.bump = 0; this.shake = 0; this.tintT = 0; this.tintCol = [1, 0, 0]; this.fade = 1; this.fadeTo = 1;
         this.lastD = 0;
         this.reduced = false;
@@ -93,7 +103,11 @@ export class Stage {
                 const wallTile = (t, h) => {
                     if (t === 2) return TILE.door;
                     if (t === 4) return TILE.arch;
-                    const r = h;
+                    let r = h;
+                    // caverns are rough, great halls are dressed, warrens are cracked and bony
+                    if (f.style === 'caves') r = r < 0.5 ? 0.9 + r * 0.1 : r < 0.75 ? 0.93 + (r - 0.5) * 0.05 : r < 0.9 ? 0.6 : 0.95;
+                    else if (f.style === 'halls' && r > 0.62 && r < 0.78) r = 0.8 + (r - 0.62) * 0.4;
+                    else if (f.style === 'warren' && r > 0.78) r = 0.9 + (r - 0.78) * 0.4;
                     if (r < 0.62) return TILE.wallA;
                     if (r < 0.78) return TILE.wallB;
                     if (r < 0.84) return TILE.sconce;
@@ -154,6 +168,7 @@ export class Stage {
                 case 'sign': canvas = featureCanvas('sign'); break;
                 case 'relic': vis = !ft.taken; canvas = featureCanvas('relic'); break;
                 case 'den': vis = !ft.done; canvas = featureCanvas('den'); break;
+                case 'tablet': vis = !ft.read; canvas = featureCanvas('tablet'); break;
                 case 'trap': vis = !!ft.found && !ft.sprung || !!ft.sprung; canvas = featureCanvas('trap'); break;
                 case 'npc': vis = !ft.done; canvas = npcCanvas(ft.kind, ft.seed); break;
                 default: vis = false;
@@ -195,9 +210,69 @@ export class Stage {
     fadeOut() { this.fade = 0; this.fadeTo = 1; }
 
     // ------------------------------------------------------------------ battle
+    /** A closed hall built from the current floor's wall atlas: sconces, banners, and pillars for a guardian. */
+    buildArena(boss) {
+        if (this.arena) { this.arenaScene.remove(this.arena); this.arena.geometry.dispose(); this.arena = null; }
+        const W = boss ? 7 : 5, D = boss ? 8 : 6, H = boss ? 1.5 : 1.25;
+        const x0 = -W / 2, z0 = -D / 2;
+        const pos = [], uv = [], col = [], idx = [];
+        const quad = (a, b, c, d, tile, shade) => {
+            const n = pos.length / 3;
+            for (const v of [a, b, c, d]) { pos.push(...v); col.push(shade, shade, shade); }
+            const tx = tile % COLS, ty = (tile / COLS) | 0, e = 0.0008;
+            const u0 = tx / COLS, u1 = (tx + 1) / COLS, v1 = 1 - ty / ROWS, v0 = 1 - (ty + 1) / ROWS;
+            uv.push(u0 + e, v0 + e, u1 - e, v0 + e, u1 - e, v1 - e, u0 + e, v1 - e);
+            idx.push(n, n + 1, n + 2, n, n + 2, n + 3);
+        };
+        const th = (k) => { const r = hash3(k, this.floor ? this.floor.depth : 1, 77); return r < 0.5 ? TILE.wallA : r < 0.65 ? TILE.wallB : r < 0.78 ? TILE.sconce : r < 0.86 ? TILE.banner : r < 0.92 ? TILE.bones : r < 0.96 ? TILE.moss : TILE.crack; };
+        for (let i = 0; i < W; i++) for (let j = 0; j < D; j++) {
+            const x = x0 + i, z = z0 + j;
+            quad([x, 0, z + 1], [x + 1, 0, z + 1], [x + 1, 0, z], [x, 0, z], (i + j) % 3 === 0 ? TILE.floorB : TILE.floor, 1);
+            quad([x, H, z], [x + 1, H, z], [x + 1, H, z + 1], [x, H, z + 1], TILE.ceil, 0.9);
+        }
+        for (let i = 0; i < W; i++) {
+            const x = x0 + i;
+            quad([x, 0, z0], [x + 1, 0, z0], [x + 1, H, z0], [x, H, z0], i === (W >> 1) ? TILE.banner : th(i), 0.78);                         // far wall
+            quad([x + 1, 0, z0 + D], [x, 0, z0 + D], [x, H, z0 + D], [x + 1, H, z0 + D], th(i + 40), 0.78);                                 // behind the camera
+        }
+        for (let j = 0; j < D; j++) {
+            const z = z0 + j;
+            quad([x0, 0, z + 1], [x0, 0, z], [x0, H, z], [x0, H, z + 1], j % 2 ? TILE.sconce : th(j + 80), 1);
+            quad([x0 + W, 0, z], [x0 + W, 0, z + 1], [x0 + W, H, z + 1], [x0 + W, H, z], j % 2 ? TILE.sconce : th(j + 120), 1);
+        }
+        if (boss) for (const [px, pz] of [[-2.2, -1.6], [2.2, -1.6], [-2.2, 1.0], [2.2, 1.0]]) {        // pillars
+            const a = 0.3;
+            quad([px - a, 0, pz + a], [px + a, 0, pz + a], [px + a, H, pz + a], [px - a, H, pz + a], TILE.wallA, 0.85);
+            quad([px + a, 0, pz - a], [px - a, 0, pz - a], [px - a, H, pz - a], [px + a, H, pz - a], TILE.wallA, 0.7);
+            quad([px - a, 0, pz - a], [px - a, 0, pz + a], [px - a, H, pz + a], [px - a, H, pz - a], TILE.wallB, 0.75);
+            quad([px + a, 0, pz + a], [px + a, 0, pz - a], [px + a, H, pz - a], [px + a, H, pz + a], TILE.wallB, 1);
+        }
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+        g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+        g.setIndex(idx);
+        g.computeBoundingSphere();
+        this.arena = new THREE.Mesh(g, this.mat);
+        this.arena.frustumCulled = false;
+        this.arenaScene.add(this.arena);
+        this.arenaZ = D / 2 - 0.55;
+        this.arenaCam.position.set(0, 0.55, this.arenaZ);
+        this.arenaCam.rotation.set(-0.02, 0, 0);
+    }
+
     setBattle(enemies) {
         for (const e of this.enemies) { this.battleGroup.remove(e.sprite); e.sprite.material.map.dispose(); e.sprite.material.dispose(); }
         this.enemies = [];
+        const was = this.inArena;
+        this.inArena = !!(enemies && enemies.length) && !!this.mat;
+        if (this.inArena) {
+            this.buildArena(enemies[0].boss);
+            this.arenaCam.add(this.battleGroup);
+        } else {
+            this.camera.add(this.battleGroup);
+        }
+        if (was !== this.inArena) { this.fade = 0; this.fadeTo = 1; }          // fade into the room, and back out to the corridor
         if (!enemies || !enemies.length) return;
         const n = enemies.length;
         const boss = enemies[0].boss;
@@ -214,7 +289,7 @@ export class Stage {
                 else { const k = i - front, bn = n - front; sx = (k - (bn - 1) / 2) * 0.58; sy = 0.17; sc = 0.44; }
             }
             sprite.scale.set(sc, sc, 1);
-            sprite.position.set(sx, sy, -1.05 - (boss ? 0.25 : 0));
+            sprite.position.set(sx, sy, -1.05 - (boss ? 0.35 : 0));
             this.battleGroup.add(sprite);
             this.enemies.push({ sprite, base: { x: sx, y: sy, sc }, hit: 0, die: -1, i, phase: i * 1.7, hidden: false });
         });
@@ -227,9 +302,10 @@ export class Stage {
         const e = this.enemies[i];
         if (!e) return { x: 0.5, y: 0.5 };
         const v = new THREE.Vector3();
+        const cam = this.inArena ? this.arenaCam : this.camera;
         e.sprite.getWorldPosition(v);
-        this.camera.updateMatrixWorld();
-        v.project(this.camera);
+        cam.updateMatrixWorld();
+        v.project(cam);
         return { x: (v.x + 1) / 2, y: (1 - v.y) / 2 };
     }
 
@@ -254,9 +330,14 @@ export class Stage {
         if (this.shake > 0) { this.shake = Math.max(0, this.shake - dt); if (!this.reduced) { sx = (Math.random() - 0.5) * 0.06 * (this.shake / 0.35); sy = (Math.random() - 0.5) * 0.05 * (this.shake / 0.35); } }
         this.camera.position.set(this.cur.x + fwd.x * bumpOff + sx, 0.5 + bob + sy, this.cur.z + fwd.z * bumpOff);
         this.camera.rotation.set(0, this.cur.yaw, 0);
+        if (this.inArena) {
+            const sway = this.reduced ? 0 : Math.sin(time * 0.5) * 0.02;
+            this.arenaCam.position.set(sx + sway, 0.55 + sy, this.arenaZ);
+            this.arenaCam.rotation.set(-0.02, sway * 0.5, 0);
+        }
         // torch flicker
         const fl = this.reduced ? 0 : Math.sin(time * 9.3) * 0.18 + Math.sin(time * 15.7) * 0.1 + Math.sin(time * 4.1) * 0.1;
-        this.scene.fog.far = (this.floor?.theme === 3 ? 7.5 : 6.6) + fl;
+        this.scene.fog.far = (this.floor?.dark ? 3.4 : this.floor?.theme === 3 ? 7.5 : 6.6) + fl * (this.floor?.dark ? 0.5 : 1);
         // enemies
         for (const e of this.enemies) {
             const s = e.sprite;
@@ -272,13 +353,14 @@ export class Stage {
         // post uniforms
         const U = this.post.mat.uniforms;
         if (this.tintT > 0) { this.tintT = Math.max(0, this.tintT - dt); U.tintAmt.value = (this.tintT / this.tintMax) * 0.55; U.tint.value.set(...this.tintCol); } else U.tintAmt.value = 0;
-        this.fade += Math.sign(this.fadeTo - this.fade) * Math.min(Math.abs(this.fadeTo - this.fade), dt * 4);
+        this.fade += Math.sign(this.fadeTo - this.fade) * Math.min(Math.abs(this.fadeTo - this.fade), dt * (this.fadeSpeed || 4));
         U.fade.value = this.fade;
     }
 
     render() {
         const r = this.renderer;
         if (this.mode === 'town') { r.setRenderTarget(this.rt); r.render(this.town.scene, this.town.camera); }
+        else if (this.inArena) { r.setRenderTarget(this.rt); r.render(this.arenaScene, this.arenaCam); }
         else { r.setRenderTarget(this.rt); r.render(this.scene, this.camera); }
         r.setRenderTarget(null);
         r.render(this.post.scene, this.post.cam);

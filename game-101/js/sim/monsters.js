@@ -26,6 +26,20 @@ export const FAMILIES = [
     { id: 'drake', name: 'Drakeling', minD: 10, grp: [1, 2], hp: 1.6, atk: 1.35, def: 1.2, agi: 0.9, xp: 2.4, gold: 2.2, verbs: ['bites', 'rakes'], pal: [4, 12, 14], weak: ['ice'], res: ['fire'], kind: 'dragon', sp: ['breath'] },
     { id: 'knight', name: 'Hollow Knight', minD: 12, grp: [1, 3], hp: 1.4, atk: 1.4, def: 1.6, agi: 0.8, xp: 2.6, gold: 2.0, verbs: ['cleaves', 'thrusts at'], pal: [8, 0, 11], weak: ['holy', 'shock'], res: ['dark'], kind: 'undead', sp: ['guard'] },
     { id: 'demon', name: 'Pit Fiend', minD: 15, grp: [1, 2], hp: 1.8, atk: 1.5, def: 1.2, agi: 1.0, xp: 3.2, gold: 3.0, verbs: ['gores', 'burns'], pal: [4, 5, 12], weak: ['holy', 'ice'], res: ['fire', 'dark'], kind: 'demon', sp: ['firebolt', 'breath'] },
+    { id: 'centipede', name: 'Giant Centipede', minD: 4, grp: [1, 3], hp: 0.9, atk: 1.0, def: 0.8, agi: 1.2, xp: 1.2, gold: 0.6, verbs: ['bites', 'lashes'], pal: [6, 4, 14], weak: ['fire'], res: [], kind: 'beast', st: 'poison', stc: 0.45 },
+    { id: 'scarecrow', name: 'Scarecrow', minD: 5, grp: [1, 3], hp: 1.1, atk: 1.0, def: 0.7, agi: 0.8, xp: 1.3, gold: 0.8, verbs: ['flails at', 'rakes'], pal: [6, 14, 12], weak: ['fire'], res: ['dark'], kind: 'construct', sp: ['gaze'] },
+    { id: 'wisp', name: 'Will-o-Wisp', minD: 6, grp: [2, 4], hp: 0.6, atk: 1.0, def: 0.4, agi: 1.5, xp: 1.4, gold: 1.0, verbs: ['sears', 'zaps'], pal: [11, 3, 15], weak: ['ice'], res: ['shock', 'fire'], kind: 'elemental', sp: ['firebolt'] },
+    { id: 'harpy', name: 'Harpy', minD: 7, grp: [1, 3], hp: 0.9, atk: 1.1, def: 0.6, agi: 1.6, xp: 1.5, gold: 1.3, verbs: ['rakes', 'dives at'], pal: [5, 13, 14], weak: ['shock'], res: [], kind: 'beast', st: 'sleep', stc: 0.25, sp: ['wail'] },
+    { id: 'mummy', name: 'Mummy', minD: 8, grp: [1, 3], hp: 1.4, atk: 1.1, def: 1.0, agi: 0.5, xp: 1.7, gold: 1.6, verbs: ['strikes', 'chokes'], pal: [7, 6, 15], weak: ['fire', 'holy'], res: ['dark', 'ice'], kind: 'undead', st: 'curse', stc: 0.35 },
+    { id: 'treant', name: 'Treant', minD: 9, grp: [1, 2], hp: 2.0, atk: 1.1, def: 1.3, agi: 0.4, xp: 1.9, gold: 1.0, verbs: ['batters', 'whips'], pal: [2, 6, 10], weak: ['fire'], res: ['shock', 'ice'], kind: 'plant', sp: ['spore', 'quake'] },
+    { id: 'gargoyle', name: 'Gargoyle', minD: 9, grp: [1, 3], hp: 1.3, atk: 1.2, def: 1.6, agi: 0.8, xp: 2.0, gold: 1.5, verbs: ['claws', 'dives at'], pal: [8, 0, 7], weak: ['shock'], res: ['phys', 'fire'], kind: 'construct', sp: ['guard'] },
+    { id: 'minotaur', name: 'Minotaur', minD: 11, grp: [1, 2], hp: 1.9, atk: 1.6, def: 1.1, agi: 0.8, xp: 2.4, gold: 2.0, verbs: ['gores', 'hacks'], pal: [6, 4, 14], weak: ['ice'], res: [], kind: 'humanoid', sp: ['quake', 'howl'] },
+    { id: 'naga', name: 'Naga', minD: 13, grp: [1, 2], hp: 1.4, atk: 1.3, def: 1.0, agi: 1.1, xp: 2.5, gold: 2.2, verbs: ['strikes', 'constricts'], pal: [3, 2, 11], weak: ['shock'], res: ['ice'], kind: 'beast', st: 'poison', stc: 0.5, sp: ['gaze'] },
+    { id: 'vampire', name: 'Vampire', minD: 14, grp: [1, 2], hp: 1.5, atk: 1.4, def: 1.1, agi: 1.3, xp: 3.0, gold: 3.0, verbs: ['bites', 'rends'], pal: [4, 0, 15], weak: ['holy', 'fire'], res: ['dark'], kind: 'undead', st: 'curse', stc: 0.3, sp: ['drain', 'wail'] },
+    { id: 'hydra', name: 'Hydra', minD: 16, grp: [1, 1], hp: 3.0, atk: 1.5, def: 1.2, agi: 0.7, xp: 3.4, gold: 2.8, verbs: ['snaps at', 'bites'], pal: [2, 10, 14], weak: ['fire'], res: [], kind: 'dragon', st: 'poison', stc: 0.4, sp: ['breath', 'quake'] },
+    { id: 'elemental', name: 'Elemental', minD: 18, grp: [1, 2], hp: 1.8, atk: 1.6, def: 1.2, agi: 1.0, xp: 3.6, gold: 2.5, verbs: ['smashes', 'scorches'], pal: [12, 14, 15], weak: ['ice'], res: ['fire'], kind: 'elemental', sp: ['breath', 'firebolt'] },
+    { id: 'lich', name: 'Lich', minD: 20, grp: [1, 2], hp: 1.6, atk: 1.8, def: 1.1, agi: 1.0, xp: 4.2, gold: 4.0, verbs: ['blasts', 'withers'], pal: [5, 0, 11], weak: ['holy'], res: ['dark', 'ice', 'phys'], kind: 'undead', st: 'curse', stc: 0.4, sp: ['firebolt', 'drain', 'wail'] },
+    { id: 'behemoth', name: 'Behemoth', minD: 24, grp: [1, 1], hp: 3.5, atk: 2.0, def: 1.6, agi: 0.6, xp: 5.0, gold: 4.0, verbs: ['tramples', 'gores'], pal: [8, 6, 14], weak: ['ice'], res: [], kind: 'beast', sp: ['quake', 'howl'] },
 ];
 export const FAM_BY_ID = Object.fromEntries(FAMILIES.map((f) => [f.id, f]));
 
@@ -98,17 +112,18 @@ export function genEncounter(rng, depth, avg, partySize = 4, o = {}) {
 
 const BOSS_SP = {
     beast: ['howl', 'drain'], undead: ['wail', 'drain'], demon: ['firebolt', 'breath'], dragon: ['breath', 'howl'], construct: ['guard', 'quake'],
-    ooze: ['spore', 'quake'], humanoid: ['steal', 'howl'], fungus: ['spore', 'wail'], aberration: ['gaze', 'firebolt'],
+    ooze: ['spore', 'quake'], humanoid: ['steal', 'howl'], fungus: ['spore', 'wail'], aberration: ['gaze', 'firebolt'], plant: ['spore', 'quake'], elemental: ['breath', 'firebolt'],
 };
-export function genBoss(rng, depth, avg, partySize = 4) {
+/** o.fam / o.name pin a story guardian; otherwise the family and name are random. */
+export function genBoss(rng, depth, avg, partySize = 4, o = {}) {
     const fams = FAMILIES.filter((f) => f.minD <= depth && f.id !== 'mimic');
-    const fam = rng.pick(fams.slice(-Math.max(4, Math.ceil(fams.length * 0.5))));
+    const fam = o.fam ? FAM_BY_ID[o.fam] : rng.pick(fams.slice(-Math.max(4, Math.ceil(fams.length * 0.5))));
     const lv = Math.max(2, Math.round(depth + 2 + clamp(avg - depth, -3, 6) * 0.2));
     const base = genMonster(rng, depth, avg, fam.id, { lvl: lv, noVariant: true });
     const sc = 5.5 + partySize * 0.7;
     const sps = [...new Set([...(BOSS_SP[fam.kind] || ['howl']), ...base.sp, 'quake'])].slice(0, 3);
     return {
-        ...base, name: bossName(rng), famName: fam.name, boss: true, hp: Math.round(base.hp * sc), mhp: Math.round(base.hp * sc),
+        ...base, name: o.name || bossName(rng), famName: fam.name, boss: true, hp: Math.round(base.hp * sc), mhp: Math.round(base.hp * sc),
         atk: Math.round(base.atk * 1.3), mag: Math.round(base.atk * 1.3), def: Math.round(base.def * 1.15), mdef: Math.round(base.def * 1.0),
         xp: Math.round(base.xp * 9), gold: Math.round(base.gold * 12), sp: sps, st: base.st || (rng() < 0.4 ? 'poison' : null), stc: 0.35,
         sprite: { ...base.sprite, boss: true },

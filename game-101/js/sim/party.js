@@ -130,9 +130,11 @@ export function calc(m) {
     const g = { atk: 0, mag: 0, def: 0, mdef: 0, hp: 0, mp: 0, crit: 0, eva: 0 };
     const res = {};
     let elem = 'phys', onhit = null;
+    const fx = {};
     for (const slot of SLOTS) {
         const it = m.eq[slot];
         if (!it) continue;
+        if (it.fx) for (const k in it.fx) fx[k] = typeof it.fx[k] === 'number' ? (fx[k] || 0) + it.fx[k] : true;
         for (const k in it.st) { if (k in g) g[k] += it.st[k]; else s[k] = (s[k] || 0) + it.st[k]; }
         if (it.res) for (const e in it.res) res[e] = (res[e] || 0) + it.res[e];
         if (slot === 'weapon') { if (it.elem) elem = it.elem; if (it.onhit) onhit = it.onhit; }
@@ -148,7 +150,7 @@ export function calc(m) {
     s.mdef = Math.round(s.int * 0.25 + s.vit * 0.15 + g.mdef);
     s.crit = clamp(0.05 + s.luk * 0.002 + g.crit, 0, 0.6);
     s.eva = clamp(0.03 + s.agi * 0.0015 + g.eva, 0, 0.5);
-    s.res = res; s.elem = elem; s.onhit = onhit;
+    s.res = res; s.elem = elem; s.onhit = onhit; s.fx = fx;
     s.ranged = !!wpn && (wpn.grp === 'bow');
     s.find = 0.3 + s.luk * 0.004 + (m.cls === 'rogue' ? 0.25 : 0) + (tr?.find || 0);
     return s;
@@ -217,5 +219,6 @@ export function itemScore(it) {
     for (const k in it.st) s += (it.st[k] || 0) * ({ atk: 1, mag: 0.8, def: 1.1, mdef: 0.8, str: 1.2, int: 1.1, vit: 1.2, agi: 1.0, luk: 0.6, hp: 0.15, mp: 0.2, crit: 80, eva: 80 }[k] || 0.5);
     if (it.elem && it.elem !== 'phys') s *= 1.05;
     if (it.cursed && !it.known) s *= 0.9;
+    if (it.fx) s += 40 + (it.ilvl || 1) * 3;
     return s;
 }

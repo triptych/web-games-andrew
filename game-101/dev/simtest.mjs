@@ -39,6 +39,9 @@ const World = await import('../js/sim/world.js');
 const Battle = await import('../js/sim/battle.js');
 const Journal = await import('../js/sim/journal.js');
 const Bot = await import('../js/sim/bot.js');
+const Uniq = await import('../js/sim/uniques.js');
+const Story = await import('../js/sim/story.js');
+const Ach = await import('../js/sim/achievements.js');
 const Inv = await import('../js/sim/inv.js');
 const Inv_give = (G, it) => Inv.give(G, it, 'found');
 
@@ -331,7 +334,7 @@ if (want('rules')) {
         G.gold = 5000;
         const luk0 = Party.calc(m).luk;
         act(G, { t: 'church', svc: 'curse', who: 0 });
-        ok(!m.eq.weapon.cursed && Party.calc(m).luk > luk0 && G.gold < 5000, 'the church lifts the curse, and the penalty with it');
+        ok(!m.eq.weapon.cursed && Party.calc(m).luk > luk0 && G.journal.misc.dispelled === 1, 'the church lifts the curse, and the penalty with it');
         act(G, { t: 'unequip', who: 0, slot: 'weapon' });
         ok(!m.eq.weapon, 'and the weapon comes off');
         void mi;
@@ -414,7 +417,7 @@ if (want('rules')) {
         const inc0 = Town.income(G, 'inn'), c0 = Town.investCost(G, 'inn');
         ok(inc0 === 0 && Town.disc(G, 'inn') === 0, 'a business you do not own pays nothing and discounts nothing');
         act(G, { t: 'invest', biz: 'inn' });
-        ok(G.biz.inn.lvl === 1 && G.gold === 100000 - c0 && Town.income(G, 'inn') > 0, 'investing buys a stake that pays');
+        ok(G.biz.inn.lvl === 1 && G.gold === 100000 - c0 + (G.ach.iv1 ? 150 : 0) && Town.income(G, 'inn') > 0, 'investing buys a stake that pays');
         const c1 = Town.investCost(G, 'inn');
         ok(c1 > c0, 'and the next level costs more');
         act(G, { t: 'invest', biz: 'inn' }); act(G, { t: 'invest', biz: 'smith' }); for (let i = 0; i < 6; i++) act(G, { t: 'invest', biz: 'guild' });
@@ -476,6 +479,167 @@ if (want('rules')) {
         ok(!G.inv.some((x) => x.cid === 'moonleaf'), 'handing in takes the goods');
     }
 
+    // ---- artifacts: unique epic items with effects
+    G = fresh(16);
+    {
+        const r = Rng.makeRng(9);
+        ok(Uniq.UNIQUES.length >= 18 && new Set(Uniq.UNIQUES.map((u) => u.id)).size === Uniq.UNIQUES.length, 'there is a set of artifacts with distinct ids');
+        for (const u of Uniq.UNIQUES) for (const il of [1, 20, 90, 300]) {
+            const it = Uniq.genUnique(r, u.id, il);
+            if (!ok(it.unique === u.id && it.fx && Object.keys(it.fx).length && it.rar === 4 && !it.cursed && it.lore && it.name === u.name && Number.isFinite(it.price) && Object.values(it.st).every(Number.isFinite), `artifact ${u.name} at level ${il} is well-formed`)) break;
+        }
+        ok(Uniq.genUnique(r, 'emberfang', 40).st.atk > Uniq.genUnique(r, 'emberfang', 10).st.atk, 'artifacts grow with item level');
+        ok(Uniq.fxText({ lifesteal: 0.08, first: true }).length === 2, 'effects have readable text');
+        // each is rolled once per game
+        const got = new Set();
+        for (let i = 0; i < 200; i++) { const it = Uniq.rollUnique(G, r, 50, 1); if (!it) break; got.add(it.unique); }
+        ok(got.size === Uniq.UNIQUES.length && Object.keys(G.uniques).length === Uniq.UNIQUES.length, 'every artifact can be found, and each only once');
+        ok(Uniq.rollUnique(G, r, 50, 1) === null, 'then there are none left to find');
+        const G2 = fresh(17);
+        ok(!Uniq.pickUnique(G2, r, 1) || Uniq.pickUnique(G2, r, 1).minD <= 2, 'early floors only offer early artifacts');
+        // effects in play
+        G = fresh(18);
+        const m = G.party[0];
+        const art = Uniq.genUnique(r, 'emberfang', 8); art.id = 900; m.eq.weapon = art;
+        ok(Party.calc(m).fx.lifesteal === 0.08 && Party.calc(m).elem === 'fire', 'an artifact adds its effect and element');
+        m.hp = Math.round(Party.calc(m).maxhp * 0.3);
+        const hp0 = m.hp;
+        act(G, { t: 'enter', depth: 1 });
+        const rat = Mon.genMonster(Rng.makeRng(1), 1, 1, 'rat', { noVariant: true }); rat.hp = rat.mhp = 400; rat.def = 0;
+        act(G, { t: 'debugBattle', enemies: [rat] });
+        act(G, { t: 'round', cmds: [{ k: 'atk' }, { k: 'def' }, { k: 'def' }, { k: 'def' }] });
+        ok(m.hp > hp0 - 40 && G.events.some((e) => e.type === 'b_heal' && e.i === 0), 'lifesteal heals the wielder');
+        G.battle = null;
+        art.fx = { vorpal: 1 };
+        const big = Mon.genMonster(Rng.makeRng(2), 3, 3, 'wolf', { noVariant: true }); big.hp = big.mhp = 5000; big.def = 0;
+        act(G, { t: 'debugBattle', enemies: [big] });
+        act(G, { t: 'round', cmds: [{ k: 'atk' }, { k: 'def' }, { k: 'def' }, { k: 'def' }] });
+        ok(G.battle.enemies[0].hp === 0, 'a vorpal blow cuts down even a big monster');
+        G.battle = null;
+        const boss = Mon.genBoss(Rng.makeRng(3), 5, 5, 4);
+        act(G, { t: 'debugBattle', enemies: [boss], opts: { boss: true } });
+        act(G, { t: 'round', cmds: [{ k: 'atk' }, { k: 'def' }, { k: 'def' }, { k: 'def' }] });
+        ok(G.battle.enemies[0].hp > 0, 'but not a guardian');
+        G.battle = null;
+        // thorns and the once-a-battle revive
+        const w2 = G.party[1];
+        w2.eq.acc1 = Uniq.genUnique(r, 'secondchances', 6); w2.eq.acc1.id = 901;
+        w2.eq.body = Uniq.genUnique(r, 'oathplate', 6); w2.eq.body.id = 902;
+        ok(Party.calc(w2).fx.revive === true && Party.calc(w2).fx.thorns === 0.25, 'effects from several pieces stack');
+        w2.hp = 1; G.party[0].hp = 0; G.party[2].hp = 0; G.party[3].hp = 0;
+        const killer = Mon.genMonster(Rng.makeRng(4), 30, 30, 'wolf', { noVariant: true }); killer.hp = killer.mhp = 99999; killer.atk = 9999;
+        act(G, { t: 'debugBattle', enemies: [killer] });
+        const e0 = G.battle.enemies[0].hp;
+        for (let i = 0; i < 40 && !w2.cb?.revived && !G.battle.over; i++) { w2.hp = 1; act(G, { t: 'round', cmds: [null, { k: 'def' }, null, null] }); }
+        ok(w2.hp > 0 && w2.cb?.revived, 'a relic drags its wearer back from a killing blow, once');
+        ok(G.battle.enemies[0].hp < e0, 'thorns hurt whoever hit the wearer');
+        G.battle = null;
+        // unsellable, equippable stays
+        G = fresh(19); const un = Uniq.genUnique(r, 'greed', 5); Inv_give(G, un);
+        clearEv(G); act(G, { t: 'sell', id: un.id, qty: 1 });
+        ok(G.inv.includes(un) && !hasEv(G, 'sell'), 'an artifact is too precious to sell');
+        // regen on the march
+        const rg = G.party[0]; rg.eq.feet = Uniq.genUnique(r, 'lastmile', 5); rg.eq.feet.id = 903; rg.hp = 1;
+        act(G, { t: 'enter', depth: 1 }); G.danger = -1e9;
+        G.floor.feat = {};
+        for (let i = 0; i < 30; i++) { const d = [0, 1, 2, 3].find((k) => Dun.passable(Dun.getEdge(G.floor, G.pos.x, G.pos.y, k))); G.pos.d = d; act(G, { t: 'move', m: 'f' }); if (G.dialog) act(G, { t: 'dlg', id: 'ok' }); }
+        ok(rg.hp > 1, 'regeneration ticks as you walk');
+        // gold and xp bonuses
+        G = fresh(20); G.party[0].eq.hands = Uniq.genUnique(r, 'greed', 6); G.party[0].eq.hands.id = 904;
+        act(G, { t: 'enter', depth: 1 });
+        const bm = Mon.genMonster(Rng.makeRng(5), 1, 1, 'rat', { noVariant: true }); bm.hp = bm.mhp = 1; bm.gold = 100;
+        act(G, { t: 'debugBattle', enemies: [bm] });
+        act(G, { t: 'round', cmds: Battle.autoCmds(G) });
+        ok(G.battle.result && G.battle.result.gold >= 130, 'gauntlets of greed pay a bonus on victory');
+    }
+
+    // ---- achievements
+    G = fresh(21);
+    {
+        ok(Ach.ACHIEVEMENTS.length >= 45 && new Set(Ach.ACHIEVEMENTS.map((a) => a[0])).size === Ach.ACHIEVEMENTS.length, 'a large set of achievements with distinct ids');
+        ok(Ach.ACHIEVEMENTS.every((a) => Number.isFinite(a[4](G)) && a[5] > 0), 'every achievement can read a fresh game');
+        ok(Object.keys(G.ach).length === 0, 'a new game has none');
+        G.stats.kills = 1; const g0 = G.gold; clearEv(G);
+        act(G, { t: 'collect' });
+        ok(G.ach.k1 && G.gold === g0 + 150 && hasEv(G, 'achievement'), 'an achievement unlocks on the next command, pays and announces itself');
+        clearEv(G); act(G, { t: 'collect' });
+        ok(!hasEv(G, 'achievement') && G.gold === g0 + 150, 'and only once');
+        const L = Game.deserialize(JSON.parse(JSON.stringify(Game.serialize(G))));
+        ok(L.ach.k1 === G.ach.k1, 'unlocked achievements survive a save');
+        G.stats.kills = 100000; G.maxDepth = 120; act(G, { t: 'collect' });
+        ok(['k10000', 'd100', 'd50', 'k1000'].every((k) => G.ach[k]), 'big milestones unlock together');
+    }
+
+    // ---- the saga
+    G = fresh(22);
+    {
+        ok(Story.CHAPTERS.length === 9 && !G.story.on, 'the saga has nine chapters and starts off');
+        act(G, { t: 'storyClaim' });
+        ok(G.story.ch === 0, 'nothing to claim before it begins');
+        act(G, { t: 'storyStart' });
+        ok(G.story.on && !Story.storyReady(G), 'the saga can be begun, and is not done yet');
+        G.maxDepth = 3;
+        ok(Story.storyReady(G), 'chapter 1 is ready when you have reached the third floor');
+        const g0 = G.gold; act(G, { t: 'storyClaim' });
+        ok(G.story.ch === 1 && G.gold >= g0 + 300, 'claiming it pays and moves to chapter 2');
+        // tablets
+        G.maxDepth = 4; G.depth = 0;
+        let floorWithTablet = null;
+        for (const d of [3, 4, 5, 6, 7, 8]) { G.maxDepth = Math.max(G.maxDepth, d); World.enterFloor(G, d, 'up'); if (Object.values(G.floor.feat).some((x) => x.type === 'tablet')) { floorWithTablet = d; break; } G.depth = 0; }
+        ok(floorWithTablet !== null, 'floors hold lore tablets while a chapter wants them');
+        const read = () => {
+            const f = G.floor;
+            const k = Object.keys(f.feat).find((q) => f.feat[q].type === 'tablet' && !f.feat[q].read);
+            if (!k) return false;
+            const [x, y] = k.split(',').map(Number);
+            G.pos.x = x; G.pos.y = y; G.arrived = false; G.dialog = null;
+            act(G, { t: 'interact' });
+            const ok1 = G.dialog?.kind === 'result';
+            if (G.dialog) act(G, { t: 'dlg', id: 'ok' });
+            return ok1;
+        };
+        ok(read(), 'reading a tablet shows its words');
+        ok(G.story.tabs === 1 && G.journal.misc.tablets === 1, 'and counts toward the chapter and the journal');
+        for (let d = 3; G.story.tabs < 3 && d < 14; d++) { G.maxDepth = Math.max(G.maxDepth, d); World.enterFloor(G, d, 'up'); while (G.story.tabs < 3 && read()); }
+        ok(Story.storyReady(G), 'three tablets finish chapter 2');
+        act(G, { t: 'dlg', id: 'ok' }); G.dialog = null; World.returnToTown(G);
+        act(G, { t: 'storyClaim' });
+        ok(G.story.ch === 2 && G.uniques.lanterncharm && G.inv.some((x) => x.unique === 'lanterncharm'), 'the chapter reward is an artifact');
+        // guardians
+        ok(!Story.storyReady(G), 'a guardian chapter waits for the guardian');
+        G.cleared = 5; ok(Story.storyReady(G), 'until it falls');
+        act(G, { t: 'storyClaim' });
+        ok(Object.keys(Story.STORY_BOSSES).join() === '15,30,45', 'the saga names its guardians');
+        const fb = Dun.genFloor(G.seed, 15); void fb;
+        G.maxDepth = 15; G.depth = 0; World.enterFloor(G, 15, 'up');
+        const gd = G.floor.feat[`${G.floor.down.x},${G.floor.down.y}`].guard;
+        ok(gd && gd.name === 'The Hollow King' && gd.fam === 'lich', 'the fifteenth floor guardian is the Hollow King');
+        // run to the end
+        G.story.ch = 8; G.cleared = 45; World.returnToTown(G);
+        act(G, { t: 'storyClaim' });
+        ok(G.story.done && !Story.chapter(G), 'the afterword ends the saga');
+        act(G, { t: 'storyClaim' });
+        ok(G.story.done, 'which cannot be claimed twice');
+        const LG = Game.deserialize(JSON.parse(JSON.stringify(Game.serialize(G))));
+        ok(LG.story.done && LG.story.total === G.story.total, 'the saga survives a save');
+        ok(Story.loreLine(0) !== Story.loreLine(1), 'tablets have different words');
+    }
+
+    // ---- floor styles and the new monsters
+    {
+        const styles = new Set(), themes = new Set();
+        let dark = 0;
+        for (let s = 1; s <= 60; s++) for (const d of [3, 7, 12, 25]) { const f = Dun.genFloor(s * 31, d); styles.add(f.style); themes.add(f.theme); if (f.dark) dark++; }
+        ok(styles.size === 4 && themes.size >= 14 && dark > 0, `floors come in four styles (${[...styles].join(', ')}), many themes (${themes.size}) and some are pitch black (${dark})`);
+        ok(Dun.genFloor(5, 1).style === 'maze' && Dun.genFloor(5, 2).style === 'maze', 'the first floors are plain mazes');
+        const halls = []; const warren = [];
+        for (let s = 1; s < 120; s++) { const f = Dun.genFloor(s, 9); (f.style === 'halls' ? halls : f.style === 'warren' ? warren : []).push(f.rooms.length / (f.w * f.h)); }
+        ok(warren.every((x) => x === 0), 'a warren has no rooms');
+        ok(Mon.FAMILIES.length === 34, 'thirty-four monster families');
+        const r = Rng.makeRng(1);
+        for (const f of Mon.FAMILIES.slice(20)) { const e = Mon.genMonster(r, f.minD + 2, f.minD + 2, f.id); ok(e.hp > 0 && e.sprite.fam === f.id, `${f.name} can be generated`); }
+    }
+
     // ---- guardians and checkpoints
     G = fresh(13);
     {
@@ -507,7 +671,7 @@ if (want('rules')) {
     G = fresh(14);
     {
         const c0 = Journal.completion(G);
-        ok(c0.weapons[1] === 120 && c0.monsters[1] === 20 && c0.collectibles[1] === 30, 'the journal has a fixed number of shelves');
+        ok(c0.weapons[1] === 120 && c0.monsters[1] === 34 && c0.collectibles[1] === 30, 'the journal has a fixed number of shelves');
         ok(c0.weapons[0] === 0 || c0.weapons[0] >= 0, 'a new game has found few things');
     }
 }

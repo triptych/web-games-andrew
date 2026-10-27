@@ -11,6 +11,7 @@ import { RUMORS } from '../sim/names.js';
 import { IDLE_SECONDS_PER_DAY, MAX_PARTY } from '../config.js';
 import { describe } from '../sim/items.js';
 import { TRAITS } from '../sim/party.js';
+import { CHAPTERS, chapter, storyProgress, storyReady } from '../sim/story.js';
 
 export function townScreens(K) {
     const { h, row, portrait, icon, itemName, itemStats, bar, money, tabs } = K;
@@ -137,7 +138,18 @@ export function townScreens(K) {
         const tab = p.tab || 'quests';
         const pend = totalPending(G);
         let content;
-        if (tab === 'quests') {
+        if (tab === 'story') {
+            const S = G.story, c = chapter(G), [a, b] = storyProgress(G);
+            const done = CHAPTERS.slice(0, S.ch);
+            content = h('div', null,
+                h('p', { class: 'dim' }, 'Optional. The Chronicler tells the tale of the Lantern, one chapter at a time. Each one asks for something the dungeon already holds, and pays for it.'),
+                !S.on ? h('div', { class: 'chapter cur' }, h('h3', null, 'The Chronicler'), h('p', null, 'An old woman with ink to the elbows looks up from a ledger. "You are the ones who go down," she says. "Sit. I have a story, and no one left to tell it to."'), h('button', { class: 'btn primary', onclick: () => ui.do({ t: 'storyStart' }) }, 'Hear the tale')) : null,
+                S.on ? done.map((d, i) => h('div', { class: 'chapter' }, h('h3', null, `${i + 1}. ${d.title}`), h('p', { class: 'dim small' }, d.outro))) : null,
+                S.on && c ? h('div', { class: 'chapter cur' }, h('h3', null, `${S.ch + 1}. ${c.title}`), h('p', null, c.intro),
+                    h('p', { class: 'c14' }, c.obj.text), bar(a / b, a >= b ? 10 : 11, 'tiny'), h('div', { class: 'small dim' }, `${a}/${b}`),
+                    h('button', { class: 'btn primary', disabled: !storyReady(G), onclick: () => ui.do({ t: 'storyClaim' }) }, storyReady(G) ? 'Tell her what you found' : 'Not yet')) : null,
+                S.done ? h('div', { class: 'chapter cur' }, h('h3', null, 'The tale is told'), h('p', null, 'The Chronicler closes her book and, for the first time, smiles. The dungeon, naturally, goes on.')) : null);
+        } else if (tab === 'quests') {
             const active = G.quests.active, board = G.quests.board;
             content = h('div', null,
                 h('h3', null, `Your quests (${active.length}/5)`),
@@ -164,7 +176,7 @@ export function townScreens(K) {
         }
         return {
             title: "Adventurers' Guild", wide: true,
-            body: h('div', null, h('div', { class: 'gline' }, 'Gold ', money(G.gold)), tabs([['quests', 'Quests'], ['invest', 'Investments', pend > 0 ? `+${pend}g` : '']], tab, (t) => { p.tab = t; ui.render(ui.top()); }), content),
+            body: h('div', null, h('div', { class: 'gline' }, 'Gold ', money(G.gold)), tabs([['quests', 'Quests'], ['story', 'Story', storyReady(G) ? '!' : ''], ['invest', 'Investments', pend > 0 ? `+${pend}g` : '']], tab, (t) => { p.tab = t; ui.render(ui.top()); }), content),
             foot: [close(ui)],
         };
     }

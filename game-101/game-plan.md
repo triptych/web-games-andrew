@@ -2,7 +2,7 @@
 
 **Genre:** first-person dungeon crawler ("blobber") with a town, idle investments and endless procedural floors
 **Engine:** three.js r165 (CDN import map), vanilla JS modules and DOM, no asset files
-**Status:** v1.0.0
+**Status:** v1.1.0
 
 ---
 
@@ -47,6 +47,15 @@ Five kinds, regenerated daily at the Guild board and handed out by Guild runners
 
 ### The journal (`js/sim/journal.js`)
 Counts per template (so shelves have a fixed size however deep you go): monsters seen/defeated with variants, 120 weapon and 189 armour slots, charms, potions, scrolls, wands, tomes, collectibles (found / bought / sold / used / equipped), strangers met, traps found and sprung, gathering points, plus a record of totals and best finds.
+
+## v1.1: artifacts, achievements, the saga, more of everything
+
+- **Unique artifacts** (`js/sim/uniques.js`): 18 hand-made epic items (Emberfang, Widowmaker, Gravesong, the Quiet Knife, Oathplate, Aegis of Dawn, the Ring of Second Chances, ...) with a name, a line of lore and an effect: lifesteal, vorpal (instant kill, never on a guardian), thorns, regen, focus (MP regen), +XP, +gold, resist-all, strikes first, and a once-a-battle revive. Their numbers scale with the item level where they drop. Each is found once per game: guardians usually carry one, deep or secret chests rarely do, and saga chapters give some. They can't be sold and have their own journal shelf.
+- **Achievements** (`js/sim/achievements.js`): 52 milestones in bronze, silver and gold (depth, kills, guardians, levels, chests, secrets, curses, artifacts, businesses, passive income, quests, the bestiary, tablets, the saga), each paying gold once, with a banner, and listed with progress under Camp > Awards.
+- **The Lantern saga** (`js/sim/story.js`): optional, begun at the Guild's Story tab. Nine chapters whose objectives the dungeon already contains (reach a floor, fell a guardian, read lore tablets that appear in the walls while a chapter wants them), each with a scene, gold, and sometimes an artifact. The guardians of floors 15, 30 and 45 are named (the Hollow King, the Pale Queen, the Choir Beneath). A quarter of floors hold a lore tablet even if you ignore the saga.
+- **More monsters:** 14 new families (centipede, scarecrow, will-o-wisp, harpy, mummy, treant, gargoyle, minotaur, naga, vampire, hydra, elemental, lich, behemoth), 34 in all.
+- **More dungeons:** six new themes (Lost Library, Sunken Temple, Clockwork Works, Bloodforge, Crystal Gardens, Void Rift) and four layouts: mazes, **caverns** (rough, open, looped), **great halls** (a few big rooms), **warrens** (no rooms, pure corridors), plus **pitch-black** floors with a short torch radius.
+- **Battle rooms:** a fight fades out of the corridor into a hall built from the floor's own wall atlas (bigger, with pillars, for a guardian) and fades back to the exact square and facing. A short input shield after a fight starts or ends stops a tap meant for the corridor from landing on a menu.
 
 ## Controls
 
@@ -99,6 +108,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, generation, the
 - More strangers (a haggling blacksmith, a ghost with a bargain), more traps (an anti-magic zone), keys and locked doors.
 
 ## Changelog
+
+### v1.1.0 (2026-10-27)
+- Unique artifacts with effects, 52 achievements, the optional nine-chapter Lantern saga with lore tablets and named guardians, 14 new monster families, six new themes and four floor layouts with pitch-black floors, battles staged in a hall built from the floor's own walls, an input shield around fights.
 
 ### v1.0.0 (2026-10-26)
 - First release: procedural endless dungeon, six classes, Etrian-style battles, procedural items with curses, journal, automap, town with eight places, idle investments, quests, strangers, EGA-quantized three.js view, chiptune music and effects, touch and gamepad support, bot and test harnesses.

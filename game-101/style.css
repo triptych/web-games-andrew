@@ -216,3 +216,18 @@ body.touch #deck { display: grid; }
 .in-battle #toastlog .tl:nth-last-child(n+3) { display: none; }
 @media (prefers-reduced-motion: reduce) { .pop, .cardpop, .tag.pick, .card.hit { animation-duration: 0.01s; } }
 body.calm .pop, body.calm .cardpop, body.calm .tag.pick, body.calm .card.hit { animation: none; }
+
+/* swallows taps for a moment when a battle starts or ends */
+#shield { position: fixed; inset: 0; z-index: 99998; display: none; background: transparent; touch-action: none; }
+
+.uniq { text-shadow: 0 0 0 var(--c13); }
+.banner { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); background: var(--c0); border: 2px solid var(--c14); color: var(--c14); padding: 2px 14px; font-size: 22px; white-space: nowrap; animation: banner 3.2s steps(16) forwards; }
+.banner.silver { border-color: var(--c15); color: var(--c15); } .banner.bronze { border-color: var(--c6); color: var(--c6); }
+@keyframes banner { 0% { transform: translate(-50%, -30px); } 8%, 85% { transform: translate(-50%, 0); } 100% { transform: translate(-50%, -30px); opacity: 0; } }
+body.calm .banner { animation: none; }
+.award { display: grid; grid-template-columns: 34px 1fr auto; gap: 8px; align-items: center; background: var(--c0); border: 1px solid var(--c8); padding: 4px 8px; }
+.award.locked { opacity: 0.65; } .award .medal { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--c0); font-size: 20px; }
+.award.bronze .medal { background: var(--c6); } .award.silver .medal { background: var(--c7); } .award.gold .medal { background: var(--c14); }
+.award.locked .medal { background: var(--c8); }
+.chapter { background: var(--c0); border: 2px solid var(--c7); padding: 8px 10px; margin: 6px 0; } .chapter.cur { border-color: var(--c14); } .chapter h3 { margin-top: 0; }
+.chapter p { margin: 4px 0; white-space: pre-line; } .lore { color: var(--c11); }

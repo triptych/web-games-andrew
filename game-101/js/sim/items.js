@@ -25,6 +25,7 @@ export const ARMORS = [
     { id: 'tower', name: 'Tower Shield', slot: 'shield', wt: 2, def: 1.2, mdef: 0.2 },
     { id: 'cap', name: 'Cap', slot: 'head', wt: 0, def: 0.35, mdef: 0.4 },
     { id: 'hood', name: 'Hood', slot: 'head', wt: 0, def: 0.3, mdef: 0.5 },
+    { id: 'circlet', name: 'Circlet', slot: 'head', wt: 0, def: 0.25, mdef: 0.6 },
     { id: 'helm', name: 'Helm', slot: 'head', wt: 1, def: 0.6, mdef: 0.2 },
     { id: 'greathelm', name: 'Great Helm', slot: 'head', wt: 2, def: 0.9, mdef: 0.15 },
     { id: 'robe', name: 'Robe', slot: 'body', wt: 0, def: 0.5, mdef: 0.8 },
@@ -348,6 +349,11 @@ export function genDrop(rng, depth, boss = false, luck = 0) {
 
 // ------------------------------------------------------------------ description
 const STAT_LABEL = { atk: 'ATK', mag: 'MAG', def: 'DEF', mdef: 'MDF', str: 'STR', vit: 'VIT', agi: 'AGI', int: 'INT', luk: 'LUK', hp: 'HP', mp: 'MP', crit: 'CRT', eva: 'EVA' };
+const pc = (v) => `${Math.round(v * 100)}%`;
+const FX_LABEL = {
+    lifesteal: (v) => `Lifesteal ${pc(v)}`, vorpal: (v) => `Vorpal ${pc(v)}`, thorns: (v) => `Thorns ${pc(v)}`, regen: (v) => `Regen ${pc(v)}`, mpregen: (v) => `Focus ${pc(v)}`,
+    xp: (v) => `+${pc(v)} XP`, gold: (v) => `+${pc(v)} gold`, resist: (v) => `Resist all ${pc(v)}`, first: () => 'Strikes first', revive: () => 'Rises once a battle',
+};
 export const statLabel = (k) => STAT_LABEL[k] || k.toUpperCase();
 export function statText(it) {
     const out = [];
@@ -359,6 +365,7 @@ export function statText(it) {
     if (it.elem && it.elem !== 'phys') out.push(`Element: ${it.elem}`);
     if (it.onhit) out.push(`On hit: ${it.onhit}`);
     if (it.res) for (const e in it.res) out.push(`Resist ${e} ${Math.round(it.res[e] * 100)}%`);
+    for (const k of Object.keys(it.fx || {})) out.push(FX_LABEL[k](it.fx[k]));
     return out;
 }
 export function describe(it) {

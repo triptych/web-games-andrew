@@ -61,6 +61,7 @@ export function drawMap(canvas, G, o = {}) {
             case 'relic': if (!ft.taken) dot(x, y, C[15], true); break;
             case 'sign': dot(x, y, C[7]); break;
             case 'den': if (!ft.done) dot(x, y, C[4]); break;
+            case 'tablet': if (!ft.read) dot(x, y, C[11], true); break;
         }
     }
     // the party

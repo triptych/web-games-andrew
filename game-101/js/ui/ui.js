@@ -37,6 +37,17 @@ export class UI {
     get busy() { return this.q.length > 0 || this.wait > 0; }
     reduced() { return !!this.settings.calm; }
 
+    /** Swallow pointer input for a moment, so a tap meant for the corridor can't land on a menu that has just replaced it. */
+    shield(ms) {
+        if (!this.shieldEl) {
+            this.shieldEl = h('div', { id: 'shield' });
+            document.body.appendChild(this.shieldEl);
+        }
+        this.shieldEl.style.display = 'block';
+        clearTimeout(this.shieldT);
+        this.shieldT = setTimeout(() => { this.shieldEl.style.display = 'none'; }, ms);
+    }
+
     // ------------------------------------------------------------------ screens
     open(name, params = {}) {
         const top = this.top();
@@ -334,6 +345,12 @@ export class UI {
         while (this.el.toast.childNodes.length > 3) this.el.toast.firstChild.remove();
         setTimeout(() => t.remove(), 7000);
     }
+    /** A line across the top of the picture: achievements and artifacts. */
+    banner(text, tier = 'bronze') {
+        const b = h('div', { class: `banner ${tier}` }, text);
+        this.el.overlay.appendChild(b);
+        setTimeout(() => b.remove(), 3200);
+    }
     popup(text, fx, fy, cls = '') {
         const p = h('div', { class: `pop ${cls}`, style: `left:${fx * 100}%;top:${fy * 100}%` }, text);
         this.el.overlay.appendChild(p);
@@ -355,7 +372,7 @@ export class UI {
         const G = this.G;
         for (const e of evs) {
             const entry = this.playback(e, G);
-            if (entry) this.q.push(entry);
+            if (Array.isArray(entry)) this.q.push(...entry); else if (entry) this.q.push(entry);
         }
         this.q.push({ fn: () => this.afterPlayback(), d: 0 });
     }
@@ -395,8 +412,15 @@ export class UI {
             case 'town': return { fn: () => { this.ctx.onTown?.(G); }, d: 0 };
             case 'wipe': return { fn: () => { A.sfxPlay('lose'); }, d: 0.2 };
             case 'bossDown': return { fn: () => { A.sfxPlay('win'); }, d: 0 };
+            case 'achievement': return { fn: () => { A.sfxPlay('levelup'); this.banner(`★ ${e.name}`, e.tier); }, d: 0 };
+            case 'artifact': return { fn: () => { A.sfxPlay('holy'); S.flash([1, 0.3, 1], 0.4); this.banner('★ ARTIFACT FOUND', 'gold'); }, d: 0 };
+            case 'story': return { fn: () => A.sfxPlay('day'), d: 0 };
             case 'levelup': return { fn: () => { A.sfxPlay('levelup'); }, d: bat ? 0.3 : 0 };
-            case 'battleStart': return { fn: () => { A.sfxPlay(e.boss ? 'bossIn' : 'encounter'); S.setBattle(G.battle.enemies); S.flash([1, 1, 1], 0.3); A.setMusic(e.boss ? 'boss' : 'battle', G.depth); this.battleMusic = true; this.auto = this.auto && false; this.bs = null; this.resultsShown = false; }, d: 0.45 };
+            case 'battleStart': return [
+                // out of the corridor, into a hall of the same stone, then the fight
+                { fn: () => { this.shield(900); A.sfxPlay(e.boss ? 'bossIn' : 'encounter'); S.fadeTo = 0; S.fadeSpeed = 6; this.battleMusic = true; A.setMusic(e.boss ? 'boss' : 'battle', G.depth); this.auto = false; this.bs = null; this.resultsShown = false; }, d: 0.3 },
+                { fn: () => { S.setBattle(G.battle.enemies); S.fadeSpeed = 4; }, d: 0.4 },
+            ];
             case 'b_round': return { fn: () => { this.addLog(`— Round ${e.round} —`, 8); }, d: 0.12 };
             case 'b_cast': return {
                 fn: () => {
@@ -470,7 +494,7 @@ export class UI {
                 this.instant = false;
             }
             S.syncFeatures();
-            if (!G.battle && S.enemies.length) S.setBattle(null);
+            if (!G.battle && S.enemies.length) { this.shield(700); S.setBattle(null); }
         } else if (this.floorRef) {
             this.floorRef = null;
             S.setMode('town');
@@ -493,7 +517,7 @@ export class UI {
             }
         } else {
             if (this.has('results')) this.close('results', true);
-            if (this.stage.enemies.length) this.stage.setBattle(null);
+            if (this.stage.enemies.length) { this.shield(700); this.stage.setBattle(null); }
             if (this.battleMusic) {          // back to the floor's own tune once the fight is over
                 this.battleMusic = false;
                 this.audio.setMusic(G.floor ? 'dungeon' : 'town', G.floor ? G.floor.theme * 7 + (G.depth % 7) : 3);

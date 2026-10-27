@@ -42,7 +42,7 @@ export const portrait = (m, size = 36) => canvasEl(portraitCanvas(m), 'px portra
 
 export const rarityClass = (it) => `r${it.rar ?? 0}`;
 export function itemName(it) {
-    return h('span', { class: rarityClass(it) }, it.name, it.cursed && it.known ? h('span', { class: 'c12' }, ' (cursed)') : '', it.n > 1 ? h('span', { class: 'dim' }, ` ×${it.n}`) : '');
+    return h('span', { class: it.unique ? 'r3 uniq' : rarityClass(it) }, it.unique ? '★ ' : '', it.name, it.cursed && it.known ? h('span', { class: 'c12' }, ' (cursed)') : '', it.n > 1 ? h('span', { class: 'dim' }, ` ×${it.n}`) : '');
 }
 export const itemStats = (it) => statText(it).join('  ');
 
