@@ -16,7 +16,7 @@
  *   python3 -m http.server 8101          # from the REPO ROOT
  *   node game-101/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8101), ONLY=desktop,autoplay,phones,nostorage, THREE_PKG.
+ * Env: BASE (default http://127.0.0.1:8101), ONLY=desktop,autoplay,autoexplore,phones,nostorage, THREE_PKG.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -376,6 +376,32 @@ async function autoplay() {
 }
 
 // ======================================================================
+async function autoexplore() {
+    console.log('\n== auto-explore (the Auto button drives the real game, at its own pace)');
+    const page = await open({ width: 1280, height: 760 }, { fast: 12 });
+    await Q(page, () => { __pc.start(31); __pc.go(1); });
+    await until(page, () => !!document.querySelector('.cmd.dungeon') && !__pc.G.battle, 'in the dungeon with the command row');
+    check(await clickText(page, '.cmd.dungeon', 'Auto'), 'the Auto button is there');
+    await until(page, () => __pc.ui.exploring && /Stop/.test(document.querySelector('.cmd')?.textContent || '') || __pc.G.battle, 'auto-explore switches on and the button becomes Stop');
+    check(await Q(page, () => getComputedStyle(document.querySelector('.autoflag')).display !== 'none'), 'the AUTO-EXPLORE flag shows');
+    await until(page, () => __pc.G.stats.steps > 12, 'the party walks on its own');
+    await shot(page, 'autoexplore');
+    // toggle off mid-run with the X key
+    await page.keyboard.press('x');
+    await until(page, () => !__pc.ui.exploring, 'X turns it off');
+    await page.waitForTimeout(1500);
+    check(await Q(page, () => !__pc.ui.exploring), 'and it stays off');
+    await until(page, () => !__pc.G.battle && __pc.ui.q.length === 0 && __pc.ui.wait <= 0, 'any fight in progress plays out');
+    // turn it on again and let it finish the floor
+    await Q(page, () => { __pc.ui.exploring = false; __pc.ui.startExplore(); });
+    await until(page, () => !__pc.ui.exploring, 'it runs until it has a reason to stop', 240000);
+    check(await Q(page, () => !document.querySelector('.screen[data-screen=dialog], .screen[data-screen=results]') || !!__pc.G.dialog || !!__pc.G.battle), 'no stray dialogs left behind');
+    const rep = await Q(page, () => { const f = __pc.G.floor; let seen = 0, all = 0; for (let i = 0; i < f.w * f.h; i++) { all++; if (f.seen?.[i]) seen++; } return { seen, all, kills: __pc.G.stats.kills, log: __pc.ui.log?.slice?.(-1)?.[0] }; });
+    console.log('    ', JSON.stringify(rep));
+    check(rep.seen > 20, 'a good part of the floor is mapped');
+    reportErrors('autoexplore');
+}
+
 async function phone(w, h) {
     console.log(`\n== phone ${w}×${h} (touch only)`);
     const page = await open({ width: w, height: h }, { touch: true });
@@ -473,6 +499,7 @@ async function nostorage() {
 try {
     if (want('desktop')) await desktop();
     if (want('autoplay')) await autoplay();
+    if (want('autoexplore')) await autoexplore();
     if (want('phones')) { await phone(390, 844); await phone(844, 390); }
     if (want('nostorage')) await nostorage();
 } catch (err) {

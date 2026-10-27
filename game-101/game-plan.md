@@ -2,7 +2,7 @@
 
 **Genre:** first-person dungeon crawler ("blobber") with a town, idle investments and endless procedural floors
 **Engine:** three.js r165 (CDN import map), vanilla JS modules and DOM, no asset files
-**Status:** v1.1.0
+**Status:** v1.2.0
 
 ---
 
@@ -108,6 +108,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, generation, the
 - More strangers (a haggling blacksmith, a ghost with a bargain), more traps (an anti-magic zone), keys and locked doors.
 
 ## Changelog
+
+### v1.2.0 (2026-10-27)
+- Auto-explore: an Auto button (or X) in the dungeon opens every chest, gathers, reads tablets, takes relics, drinks springs when hurt, walks every reachable square, fights every battle with the auto-battler and heals the party below a threshold (Settings, 20-90%). It runs at the game's own pace, one step or blow at a time, waiting for each animation; any key or the Stop button takes the wheel back. It stops with a reason when the floor is done, a guardian holds the stairs, or the party is in danger with nothing left to heal with. The planner is pure (`js/sim/auto.js`) and tested.
 
 ### v1.1.0 (2026-10-27)
 - Unique artifacts with effects, 52 achievements, the optional nine-chapter Lantern saga with lore tablets and named guardians, 14 new monster families, six new themes and four floor layouts with pitch-black floors, battles staged in a hall built from the floor's own walls, an input shield around fights.

@@ -193,7 +193,6 @@ body.touch #deck { display: grid; }
     .stats { grid-template-columns: repeat(4, 1fr); } .split { grid-template-columns: 1fr; } .split.items { grid-template-columns: 1fr; }
     .side-list .chips { flex-direction: row; flex-wrap: wrap; }
     .places { grid-template-columns: 1fr 1fr; }
-    .cmd.dungeon .cmdrow { display: grid; grid-template-columns: 1fr 1fr; }
 }
 @media (orientation: landscape) and (max-height: 520px) {
     #app { grid-template-columns: minmax(0, 53%) minmax(0, 1fr); grid-template-areas: "stage party" "stage side" "stage deck"; gap: 5px; padding-top: calc(38px + var(--safe-t)); }
@@ -231,3 +230,7 @@ body.calm .banner { animation: none; }
 .award.locked .medal { background: var(--c8); }
 .chapter { background: var(--c0); border: 2px solid var(--c7); padding: 8px 10px; margin: 6px 0; } .chapter.cur { border-color: var(--c14); } .chapter h3 { margin-top: 0; }
 .chapter p { margin: 4px 0; white-space: pre-line; } .lore { color: var(--c11); }
+
+.autoflag { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: var(--c0); border: 2px solid var(--c13); color: var(--c13); padding: 0 10px; font-size: 19px; animation: autoblink 1.2s steps(2) infinite; white-space: nowrap; }
+@keyframes autoblink { 50% { border-color: var(--c0); } }
+body.calm .autoflag { animation: none; }

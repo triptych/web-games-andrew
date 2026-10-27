@@ -24,6 +24,7 @@ export class UI {
         this.over = {};                 // hp shown mid-playback: over[i] = { hp }
         this.eover = {};                // enemy hp shown mid-playback
         this.bs = null; this.auto = false; this.lastCmds = null;
+        this.exploring = false; this.autoSt = null; this.autoWait = 0;
         this.floorRef = null; this.instant = false;
         this.resultsShown = false;
         this.el = { app: $('app'), party: $('party'), cmd: $('cmd'), log: $('log'), toast: $('toastlog'), overlay: $('overlay'), mini: $('mini'), screens: $('screens'), info: $('info'), tags: $('tags') };
@@ -33,6 +34,27 @@ export class UI {
     }
 
     get G() { return this.ctx.G(); }
+
+    /** Auto-explore: the sim plans one command at a time and the loop in main.js runs it at the game's own pace. */
+    startExplore() {
+        if (!this.G.floor || this.exploring) return;
+        this.exploring = true;
+        this.autoSt = this.ctx.makeAuto();
+        this.autoWait = 0.3;
+        this.addLog('Auto-explore on. Press X (or any key) to stop.', 13);
+        this.audio.sfxPlay('open');
+        this.refresh();
+    }
+    stopExplore(msg = 'Auto-explore stopped.') {
+        if (!this.exploring) return;
+        this.exploring = false;
+        this.autoSt = null;
+        this.addLog(msg, 13);
+        this.audio.sfxPlay('close');
+        this.sync();            // open whatever was being answered for us
+        this.refresh();
+    }
+    toggleExplore() { if (this.exploring) this.stopExplore(); else this.startExplore(); }
     get mode() { return this.G.floor ? 'dungeon' : 'town'; }
     get busy() { return this.q.length > 0 || this.wait > 0; }
     reduced() { return !!this.settings.calm; }
@@ -163,7 +185,7 @@ export class UI {
     cmdSig() {
         const G = this.G, B = G.battle, bs = this.bs;
         return [this.mode, B ? `${B.round}/${B.over}/${B.enemies.map((e) => (e.hp > 0 ? 1 : 0)).join('')}` : '-', bs ? `${bs.step}/${bs.who}/${bs.pend ? bs.pend.side : ''}` : '-', this.busy, this.auto, !!this.lastCmds,
-            totalPending(G), G.inv.length, G.party.map((m) => `${m.hp > 0 ? 1 : 0}${m.mp}`).join(','), this.eover ? Object.keys(this.eover).length : 0].join('|');
+            totalPending(G), this.exploring, G.inv.length, G.party.map((m) => `${m.hp > 0 ? 1 : 0}${m.mp}`).join(','), this.eover ? Object.keys(this.eover).length : 0].join('|');
     }
     renderCmd() {
         const G = this.G, el = this.el.cmd;
@@ -191,6 +213,7 @@ export class UI {
             h('button', { class: 'btn', onclick: () => this.open('camp', { tab: 'items' }) }, 'Menu'),
             h('button', { class: 'btn', onclick: () => this.open('map') }, 'Map'),
             h('button', { class: 'btn', onclick: () => this.do({ t: 'interact' }) }, 'Search'),
+            h('button', { class: `btn ${this.exploring ? 'danger' : 'primary'}`, onclick: () => this.toggleExplore(), title: 'Explore the floor automatically (X)' }, this.exploring ? '■ Stop' : '▶ Auto'),
             h('button', { class: 'btn', onclick: () => this.ctx.save(true) }, 'Save')));
     }
 
@@ -236,6 +259,10 @@ export class UI {
         const G = this.G, B = G.battle, el = this.el.cmd;
         this.ensureBs();
         if (B.over) { el.append(h('div', { class: 'dim' }, B.over === 'win' ? 'Victory!' : B.over === 'lose' ? 'Defeat...' : 'Escaped.')); return; }
+        if (this.exploring) {
+            el.append(h('div', { class: 'dim' }, 'Auto-exploring'), h('button', { class: 'btn danger', onclick: () => this.stopExplore() }, '■ Stop auto-explore'));
+            return;
+        }
         if (this.busy) { el.append(h('div', { class: 'dim wait' }, '...')); return; }
         if (this.auto) {
             el.append(h('div', { class: 'dim' }, 'Auto-battle'), h('button', { class: 'btn danger', onclick: () => { this.auto = false; this.refresh(); } }, 'Stop auto'));
@@ -510,7 +537,8 @@ export class UI {
         if (G.battle) {
             this.ensureBs();
             if (G.battle.over) {
-                if (!this.resultsShown && G.battle.over !== 'flee') { this.resultsShown = true; this.open('results'); }
+                if (this.exploring) { /* auto-explore dismisses the results itself */ }
+                else if (!this.resultsShown && G.battle.over !== 'flee') { this.resultsShown = true; this.open('results'); }
                 else if (G.battle.over === 'flee') { this.resultsShown = true; this.ctx.act({ t: 'endBattle' }); }
             } else if (this.auto) {
                 setTimeout(() => this.autoStep(), 120);
@@ -525,7 +553,8 @@ export class UI {
             this.bs = null; this.auto = false;
         }
         const top = this.top();
-        if (G.dialog) {
+        if (G.dialog && this.exploring) { /* answered by the auto-explorer */ }
+        else if (G.dialog) {
             if (!top || top.name !== 'dialog') this.open('dialog');
             else this.render(top);
         } else if (top && top.name === 'dialog') this.close('dialog', true);
@@ -547,6 +576,8 @@ export class UI {
         if (this.where.textContent !== wh) this.where.textContent = wh;
         this.el.app.classList.toggle('in-battle', !!G.battle);
         this.el.app.classList.toggle('in-dungeon', !!f);
+        if (!this.flag) { this.flag = h('div', { class: 'autoflag' }, '▶ AUTO-EXPLORE'); o.append(this.flag); }
+        this.flag.style.display = this.exploring ? 'block' : 'none';
     }
     drawMini(G) {
         const c = this.el.mini;
