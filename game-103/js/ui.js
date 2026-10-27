@@ -152,12 +152,13 @@ export class UI {
         document.querySelector('.bar.mp').style.visibility = u.maxmp ? '' : 'hidden';   // keep its space: the card must never change height
         $('card-mp').style.width = u.maxmp ? `${Math.min(1, mp / u.maxmp) * 100}%` : '0%';
         $('card-mptext').textContent = u.maxmp ? `MP ${mp}/${u.maxmp}` : '';
-        const st = Object.keys(vis?.st || u.st);
+        const stNow = vis?.st || u.st;
+        const st = Object.keys(stNow);
         const items = u.items || [];
-        const key = st.join() + '|' + items.join();
+        const key = st.map((k) => `${k}${stNow[k]}`).join() + '|' + items.join();
         if (this.stKey !== key) {
             this.stKey = key;
-            $('card-st').innerHTML = st.map((s) => `<span class="pill ${s}" title="${STATUS[s].desc}">${STATUS[s].name}</span>`).join('')
+            $('card-st').innerHTML = st.map((s) => `<span class="pill ${s}" title="${STATUS[s].desc}">${STATUS[s].name}${stNow[s] > 0 && stNow[s] < 90 ? ` (${stNow[s]})` : ''}</span>`).join('')
                 + items.map((i) => `<span class="pill item" title="${ITEMS[i].desc}">${ITEMS[i].name.split(' ')[0]}</span>`).join('');
         }
     }

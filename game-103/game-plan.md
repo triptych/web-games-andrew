@@ -134,6 +134,9 @@ The bot is the enemy's brain, so it plays the same game the player does. Tuned u
 
 ## Changelog
 
+### v1.2.2 (2026-10-27)
+- Statuses show as labelled badges with turns left, a coloured glow, popups on start and end, and turns on the unit card.
+
 ### v1.2.1 (2026-10-27)
 - Rooftops rebalanced: the enemy was taking about 70% of turns. Crows speed 12 → 10, sprites 10 → 9, one crow fewer.
 

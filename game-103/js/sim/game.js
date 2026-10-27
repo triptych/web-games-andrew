@@ -88,7 +88,7 @@ export function beginBattle(G) {
 }
 
 // ---------------------------------------------------------------- turn order
-function pushStatus(G, u, s, on) { G.events.push({ type: 'status', id: u.id, s, on }); }
+function pushStatus(G, u, s, on, quiet = false) { G.events.push({ type: 'status', id: u.id, s, on, turns: on ? u.st[s] : 0, quiet }); }
 
 function applyStatus(G, u, s, dur) {
     const active = G.B.turn && G.B.turn.id === u.id ? 1 : 0;      // the caster's own turn ends straight after
@@ -157,6 +157,7 @@ function endTurn(G) {
         for (const s of Object.keys(u.st)) {
             u.st[s] -= 1;
             if (u.st[s] <= 0) clearStatus(G, u, s);
+            else pushStatus(G, u, s, true, true);              // the count on the badge goes down
         }
         u.ct -= CT_READY;
         B.turn = null;

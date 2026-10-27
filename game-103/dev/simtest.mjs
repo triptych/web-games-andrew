@@ -356,6 +356,23 @@ if (want('rules')) {
         let guard = 0;
         while (turnUnit(R).id !== ru.id && guard++ < 50) { Gm.act(R, { t: 'wait' }); }
         ok(ru.hp > ru.maxhp - 10 || ru.hp === ru.maxhp, 'regen heals at the start of the unit\'s next turn');
+        // status events carry the turns left, and count down quietly as the unit's turns pass
+        const Q2 = arena(1, { seed: 81 });
+        const qu = giveTurn(Q2, 'pip'); drain(Q2);
+        qu.st = { cheer: 3 };
+        Gm.act(Q2, { t: 'wait' });
+        const qev = drain(Q2).filter((e) => e.type === 'status' && e.id === qu.id && e.s === 'cheer');
+        ok(qev.length === 1 && qev[0].on && qev[0].quiet && qev[0].turns === 2, 'a status ticking down emits a quiet event with the turns left');
+        qu.st = { cheer: 1 }; giveTurn(Q2, qu);
+        Gm.act(Q2, { t: 'wait' });
+        const eev = drain(Q2).filter((e) => e.type === 'status' && e.id === qu.id && e.s === 'cheer');
+        ok(eev.length === 1 && !eev[0].on && !eev[0].quiet, 'and a status that runs out emits a loud off event');
+        const R2 = arena(1, { seed: 82 });
+        const rp = giveTurn(R2, 'pip'); drain(R2); rp.mp = rp.maxmp; rp.st = {};
+        const b2 = unit(R2, 'bram'); place(b2, rp.x + 1, rp.y); b2.alive = true;
+        Gm.act(R2, { t: 'skill', id: 'decree', x: rp.x, y: rp.y });
+        const aev = drain(R2).filter((e) => e.type === 'status' && e.on && !e.quiet);
+        ok(aev.length >= 1 && aev.every((e) => e.turns > 0), 'applying a status says how many turns it will last');
         // turn order
         const O = arena(2, { seed: 2 });
         const order = Gm.turnOrder(O.B, 12);

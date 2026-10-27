@@ -10,6 +10,8 @@ const TW = 64, TH = 32, HZ = 13, BASE = 16;            // tile width/height in p
 const TAU = Math.PI * 2;
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
+const STATUS_COLOR = { cheer: '#ffd94d', guard: '#6ab8ff', regen: '#7ee89a', sleepy: '#b9a0ff' };
+const STATUS_MARK = { cheer: '\u2605', guard: '\u25C6', regen: '\u2665', sleepy: 'z' };
 const FONT = '"Fredoka", "Trebuchet MS", "Segoe UI", system-ui, sans-serif';
 
 // grass-like, stone-like and wall colours for each scene, and the sky behind it
@@ -324,9 +326,13 @@ export class View {
                 this._burst(v.x, v.y, v.z + 0.6, 8, ['#8cf0a8', '#fff', '#ffe0f0'], 'heart');
                 break;
             case 'status':
-                c.dur = ev.on ? 0.3 : 0.05;
-                if (v) { if (ev.on) v.st[ev.s] = 1; else delete v.st[ev.s]; }
-                if (ev.on && v) this._text(v.x, v.y, v.z + 2.4, STATUS[ev.s].short, '#fff6c8');
+                if (v) { if (ev.on) v.st[ev.s] = ev.turns ?? 1; else delete v.st[ev.s]; }
+                if (ev.quiet) { c.dur = 0; break; }                      // just the badge's count going down
+                c.dur = ev.on ? 0.35 : 0.3;
+                if (v) {
+                    this._text(v.x, v.y, v.z + 2.4, ev.on ? `${STATUS[ev.s].name}!` : `${STATUS[ev.s].name} ended`, ev.on ? STATUS_COLOR[ev.s] : '#e8e0f0', '#5a3a6a', ev.on ? 1.15 : 0.95);
+                    if (ev.on) this._burst(v.x, v.y, v.z + 0.8, 6, [STATUS_COLOR[ev.s], '#fff'], 'star');
+                }
                 break;
             case 'faint': c.dur = 0.8; v.face = 'ko'; this._burst(v.x, v.y, v.z + 1, 10, ['#fff', '#ffd94d'], 'star'); break;
             case 'oops':
@@ -742,6 +748,11 @@ export class View {
             ctx.strokeStyle = '#fff'; ctx.globalAlpha = (1 - k) * alpha;
             ctx.beginPath(); ctx.ellipse(sx, sy + 2, (17 + k * 14) * s, (7.5 + k * 6) * s, 0, 0, TAU); ctx.stroke();
         }
+        const kinds = Object.keys(v.st);
+        if (kinds.length) {                                   // a soft glow in the status colour under the feet
+            const g = 0.22 + 0.1 * Math.sin(time * 4 + v.phase);
+            kinds.forEach((k, i) => { ctx.globalAlpha = alpha * g; ctx.fillStyle = STATUS_COLOR[k]; ctx.beginPath(); ctx.ellipse(sx, sy + 2, (21 - i * 4) * s, (9.5 - i * 1.8) * s, 0, 0, TAU); ctx.fill(); });
+        }
         ctx.globalAlpha = alpha;
         const floatY = (v.fly ? 0.9 + Math.sin(time * 4 + v.phase) * 0.12 : 0) * HZ;
         drawActor(ctx, v.key, sx, sy - floatY + 2, s * 1.0, {
@@ -755,16 +766,24 @@ export class View {
             const f = clamp01(v.hp / v.maxhp);
             ctx.fillStyle = f > 0.5 ? (v.team === 'p' ? '#7ee89a' : '#ff8a9a') : f > 0.25 ? '#ffd94d' : '#ff6b6b';
             ctx.beginPath(); ctx.roundRect(sx - bw / 2, top, Math.max(2, bw * f), 4, 2); ctx.fill();
-            let px = sx - bw / 2;
-            for (const s2 of Object.keys(v.st)) {
-                ctx.fillStyle = { cheer: '#ffd94d', guard: '#6ab8ff', regen: '#7ee89a', sleepy: '#b9a0ff' }[s2] || '#fff';
-                ctx.beginPath(); ctx.arc(px + 3, top - 7, 3, 0, TAU); ctx.fill();
-                ctx.strokeStyle = 'rgba(60,40,60,.6)'; ctx.lineWidth = 1; ctx.stroke();
-                px += 8;
+            // labelled badges with the turns left: ★ cheered, ◆ guarded, ♥ cosy, z sleepy
+            const marks = Object.entries(v.st);
+            if (marks.length) {
+                ctx.font = `700 10px ${FONT}`;
+                const labels = marks.map(([k, n]) => (k === 'sleepy' ? 'zZz' : `${STATUS_MARK[k]}${n > 0 && n < 90 ? n : ''}`));
+                const widths = labels.map((t) => ctx.measureText(t).width + 9);
+                let bx = sx - (widths.reduce((a, b) => a + b, 0) + (labels.length - 1) * 3) / 2;
+                marks.forEach(([k], i) => {
+                    ctx.fillStyle = STATUS_COLOR[k]; ctx.strokeStyle = 'rgba(70,40,80,.8)'; ctx.lineWidth = 1.4;
+                    ctx.beginPath(); ctx.roundRect(bx, top - 19, widths[i], 13, 6.5); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#3a2048'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(labels[i], bx + widths[i] / 2, top - 12.5);
+                    bx += widths[i] + 3;
+                });
             }
         }
         if (v.active && v.alive && !this.scenery) {
-            const bounce = Math.sin(time * 6) * 3;
+            const bounce = Math.sin(time * 6) * 3 - (Object.keys(v.st).length ? 15 : 0);
             ctx.fillStyle = '#ffd94d'; ctx.strokeStyle = '#8a5a1a'; ctx.lineWidth = 1.4;
             ctx.beginPath(); ctx.moveTo(sx, top - 12 + bounce + 8); ctx.lineTo(sx - 6, top - 12 + bounce); ctx.lineTo(sx + 6, top - 12 + bounce); ctx.closePath(); ctx.fill(); ctx.stroke();
         }
