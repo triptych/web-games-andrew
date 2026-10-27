@@ -134,6 +134,9 @@ The bot is the enemy's brain, so it plays the same game the player does. Tuned u
 
 ## Changelog
 
+### v1.2.1 (2026-10-27)
+- Rooftops rebalanced: the enemy was taking about 70% of turns. Crows speed 12 → 10, sprites 10 → 9, one crow fewer.
+
 ### v1.2.0 (2026-10-27)
 - Defeated monsters drop items 35% of the time; walk onto one to pick it up.
 

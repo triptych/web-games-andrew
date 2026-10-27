@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Crown & Crumpet** (game-103) v1.2.1: the rooftop chapter gave the enemy about 70% of all turns (four crows at speed 12 and three sprites at speed 10 against four slower students), so a student like Mina acted about once every eleven turns while seven enemy turns went by, and a whole party could be worn down before it did much. Crows are now speed 10, sprites 9, and the chapter has three crows and three sprites instead of four and three. With the bot, a sloppy player now clears it 18 times in 21 (it was 2 in 7).
 - **Crown & Crumpet** (game-103) v1.2.0: defeated monsters have a 35% chance to leave an item (jam, mint or tonic, commonest first) on the square where they fell; never the Dread Lord. A student who walks onto it picks it up if a hand is free (Undo puts it back). Drops are drawn as a bobbing jar, leaf or flask, survive saves, and the bot makes a short detour for one ([game.js](game-103/js/sim/game.js), [view.js](game-103/js/view/view.js)).
 - **Crown & Crumpet** (game-103) v1.1.0: items, and the party moves first.
   - Fixed: on the rooftops the crows (the fastest things in the game) took their turns before the party and the princess started a fight almost dead. The party now starts every chapter with the opening turns ([game.js](game-103/js/sim/game.js)).

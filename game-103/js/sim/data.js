@@ -86,8 +86,8 @@ export const CLASSES = {
     bunny: { name: 'Dust Bunny', team: 'e', size: 0.9, hp: [14, 3], mp: [0, 0], atk: [5, 0.9], mag: [1, 0], def: [1, 0.4], res: [1, 0.3], spd: 8, move: 4, jump: 1, skills: ['nibble'], blurb: 'Fluffy, furious and about the size of a loaf.' },
     blot: { name: 'Ink Blot', team: 'e', size: 0.95, hp: [12, 2.5], mp: [0, 0], atk: [1, 0], mag: [6, 1.1], def: [0, 0.2], res: [2, 0.5], spd: 7, move: 3, jump: 1, skills: ['splat'], blurb: 'Escaped from a very dull book. Throws itself at you.' },
     thorn: { name: 'Thornling', team: 'e', size: 1, hp: [22, 3.5], mp: [0, 0], atk: [6, 1.1], mag: [1, 0], def: [3, 0.7], res: [2, 0.5], spd: 6, move: 3, jump: 1, skills: ['lash'], blurb: 'A hedge with opinions.' },
-    crow: { name: 'Cheeky Crow', team: 'e', size: 0.9, fly: true, hp: [14, 2.8], mp: [0, 0], atk: [6, 1.1], mag: [1, 0], def: [2, 0.5], res: [2, 0.4], spd: 12, move: 5, jump: 9, skills: ['peck'], blurb: 'Took the bell. Wants to be asked nicely to give it back.' },
-    sprite: { name: 'Soot Sprite', team: 'e', size: 0.85, hp: [11, 2.5], mp: [0, 0], atk: [2, 0.3], mag: [6, 1.1], def: [1, 0.3], res: [2, 0.5], spd: 10, move: 4, jump: 2, skills: ['poof'], blurb: 'Smells of toast. The Dread Lord\'s favourite minion, not that he would say so.' },
+    crow: { name: 'Cheeky Crow', team: 'e', size: 0.9, fly: true, hp: [14, 2.8], mp: [0, 0], atk: [6, 1.1], mag: [1, 0], def: [2, 0.5], res: [2, 0.4], spd: 10, move: 5, jump: 9, skills: ['peck'], blurb: 'Took the bell. Wants to be asked nicely to give it back.' },
+    sprite: { name: 'Soot Sprite', team: 'e', size: 0.85, hp: [11, 2.5], mp: [0, 0], atk: [2, 0.3], mag: [6, 1.1], def: [1, 0.3], res: [2, 0.5], spd: 9, move: 4, jump: 2, skills: ['poof'], blurb: 'Smells of toast. The Dread Lord\'s favourite minion, not that he would say so.' },
     scone: { name: 'Scone Knight', team: 'e', size: 1.1, hp: [30, 5], mp: [0, 0], atk: [8, 1.3], mag: [1, 0], def: [6, 1.1], res: [3, 0.6], spd: 5, move: 3, jump: 1, skills: ['crumble'], blurb: 'Rather stale. Rather proud. Crumbles with dignity.' },
     basil: { name: 'Dread Lord Basil', team: 'e', size: 1.35, boss: true, hp: [84, 6], mp: [6, 0], atk: [9, 1.5], mag: [8, 1.4], def: [5, 1], res: [5, 1], spd: 7, move: 3, jump: 2, skills: ['smite', 'gust'], blurb: 'The Dread Lord of the Underkitchens. Looks very frightening. Keeps apologising.' },
 };
@@ -233,7 +233,7 @@ export const CHAPTERS = [
             'ss.sss.ss',
             '.........'],
         starts: [[2, 7], [3, 7], [5, 7], [6, 7], [4, 7]],
-        foes: [['crow', 2, 3, 'hunt'], ['crow', 6, 3, 'hunt'], ['crow', 1, 2, 'guard'], ['sprite', 4, 3, 'hunt'], ['sprite', 7, 2, 'guard'], ['crow', 7, 4, 'hunt'], ['sprite', 1, 4, 'guard']],
+        foes: [['crow', 2, 3, 'hunt'], ['crow', 6, 3, 'hunt'], ['crow', 1, 2, 'guard'], ['sprite', 4, 3, 'hunt'], ['sprite', 7, 2, 'guard'], ['sprite', 1, 4, 'guard']],
         guest: { key: 'fenn', x: 4, y: 0, ask: '...Don\'t look up.' },
         pre: [
             ['narrator', 'Someone has been ringing the bell tower at all hours. It is not a person.'],
