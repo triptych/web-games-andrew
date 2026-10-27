@@ -46,6 +46,7 @@ export class View {
         this.B = null;
         this.theme = THEMES.yard;
         this.ov = {};
+        this.faded = new Set();      // wall and table tiles drawn see-through this frame
         this.ghost = false;          // set by the battle controller on a player's turn
         this.time = 0;
         this.onTalk = null;               // (lines, done) → shows a dialogue, calls done when it closes
@@ -131,6 +132,7 @@ export class View {
             for (let x = Math.min(B.w - 1, sum); x >= 0 && sum - x < B.h; x--) {
                 const y = sum - x;
                 const t = B.tiles[y * B.w + x];
+                if (this.ghost && (t.c === '#' || t.c === 't')) continue;     // clicks go through walls to what is behind
                 const top = t.c === '#' ? t.h + 1.6 : t.c === 't' ? t.h + 0.8 : t.h;
                 const [sx, sy] = this.screen(x, y, top);
                 if (Math.abs(px - sx) / (TW / 2 * s) + Math.abs(py - sy) / (TH / 2 * s) <= 1) return { x, y };
@@ -419,6 +421,7 @@ export class View {
         const units = [...this.vis.values()].filter((v) => v.alive || v.fade < 1);
         const byDiag = new Map();
         for (const v of units) { const k = Math.round(v.x + v.y); (byDiag.get(k) || byDiag.set(k, []).get(k)).push(v); }
+        this._computeFaded();
         for (let sum = 0; sum <= B.w + B.h - 2; sum++) {
             for (let x = Math.max(0, sum - B.h + 1); x <= Math.min(B.w - 1, sum); x++) this._tile(x, sum - x, time);
             const list = byDiag.get(sum);
@@ -428,6 +431,29 @@ export class View {
         for (const t of this.texts) this._floatText(t);
         ctx.restore();
         if (this.banner) this._bannerDraw();
+    }
+
+    /** On a student's turn, walls and tables that hide a character or a lit tile behind them turn see-through. */
+    _computeFaded() {
+        const B = this.B, ov = this.ov || {};
+        this.faded.clear();
+        if (!this.ghost) return;
+        const lit = (k) => ov.move?.has(k) || ov.atk?.has(k) || ov.tgt?.has(k) || ov.aoe?.has(k);
+        const occupied = new Set();
+        for (const v of this.vis.values()) if (v.alive) occupied.add(Math.round(v.y) * B.w + Math.round(v.x));
+        for (let y = 0; y < B.h; y++) {
+            for (let x = 0; x < B.w; x++) {
+                const t = B.tiles[y * B.w + x];
+                if (t.c !== '#' && t.c !== 't') continue;
+                // the cells behind it on screen: up-left, up-right and straight up, one and two rows back
+                for (const [dx, dy] of [[-1, -1], [-1, 0], [0, -1], [-2, -2], [-2, -1], [-1, -2]]) {
+                    const nx = x + dx, ny = y + dy;
+                    if (nx < 0 || ny < 0 || nx >= B.w || ny >= B.h) continue;
+                    const k = ny * B.w + nx;
+                    if (occupied.has(k) || lit(k)) { this.faded.add(y * B.w + x); break; }
+                }
+            }
+        }
     }
 
     _background(time) {
@@ -502,8 +528,11 @@ export class View {
         } else if (th.dark && ((x * 5 + y * 3) % 7 === 0) && !stone) {
             ctx.strokeStyle = 'rgba(40,30,60,.25)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(sx - 8, sy); ctx.lineTo(sx, sy + 4); ctx.stroke();
         }
+        const fade = this.faded.has(y * B.w + x);
+        if (fade) ctx.globalAlpha = 0.32;
         if (t.c === '#') this._block(sx, sy, 1.6, th.w, th);
         else if (t.c === 't') this._table(sx, sy, th);
+        ctx.globalAlpha = 1;
 
         this._overlay(x, y, sx, sy - (t.c === '#' ? 1.6 * HZ : t.c === 't' ? 0.8 * HZ : 0), time);
     }
