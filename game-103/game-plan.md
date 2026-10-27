@@ -130,6 +130,12 @@ The bot is the enemy's brain, so it plays the same game the player does. Tuned u
 
 ## Changelog
 
+### v1.0.3 (2026-10-27)
+- Walls, hedges and tables that hide a character or a lit tile are drawn see-through on a student's turn, and clicks go through them.
+
+### v1.0.2 (2026-10-27)
+- Hit flash no longer uses `ctx.filter` (it halved the frame rate while a unit was hit); the shake is a clear horizontal shake in screen pixels.
+
 ### v1.0.1 (2026-10-27)
 - Other characters turn see-through on a student's turn and clicks go to the floor under them, so bunched-up cells can be targeted.
 

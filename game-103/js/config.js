@@ -1,6 +1,6 @@
 // Crown & Crumpet — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.3';
 export const SAVE_KEY = 'crown-and-crumpet.v1';
 
 export const STEP = 1 / 120;              // fixed step for the view's animation clock (s)

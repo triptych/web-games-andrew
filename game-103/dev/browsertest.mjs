@@ -247,6 +247,16 @@ async function desktop() {
     await click(page, '#ending-title');
     await until(page, () => __cc.mode === 'title', 'and returns to the title');
 
+    // hedges and walls must never hide a target: in the hedge garden every unit's tile can be picked
+    await Q(page, () => __cc.start(5, 2));
+    await myTurn(page);
+    check(await Q(page, () => {
+        const B = __cc.G.B;
+        return B.units.every((u) => { const p = __cc.screenOf(u.x, u.y); const h = __cc.view.pick(p.x, p.y); return h && h.x === u.x && h.y === u.y; });
+    }), 'on a student\'s turn every unit\'s tile can be clicked, even behind hedges');
+    check(await Q(page, () => __cc.view.faded.size > 0), 'and the hedges hiding something are drawn see-through');
+    await shot(page, 'desktop-hedges');
+
     // lose and retry
     await Q(page, () => __cc.start(3, 0));
     await myTurn(page);
