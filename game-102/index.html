@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#12062e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="STARSLING — a physics slingshot in space: fling asteroids at space stations and scrap the robots, in a retro-futuristic neon sunset.">
+    <title>STARSLING</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&display=swap" rel="stylesheet">
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="STARSLING game view"></canvas>
+    <div id="crt" aria-hidden="true"></div>
+    <div id="pops" aria-hidden="true"></div>
+
+    <!-- HUD -->
+    <div id="hud" hidden>
+        <div class="hud-row">
+            <div class="stat"><span class="lbl">SCORE</span><b id="hud-score">0</b></div>
+            <div class="stat"><span class="lbl">ROBOTS</span><b id="hud-robots">0</b></div>
+            <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
+        </div>
+        <div class="hud-row sub">
+            <span id="hud-level"></span>
+            <span id="hud-ammo" aria-label="Asteroids left"></span>
+        </div>
+    </div>
+    <div id="hint" hidden></div>
+
+    <!-- Touch deck: shown on coarse pointers or after the first touch -->
+    <div id="touch" hidden>
+        <button id="btn-a" class="tbtn" aria-label="Fire or use special">FIRE</button>
+    </div>
+
+    <!-- Screens -->
+    <div id="title" class="screen">
+        <div class="sheet">
+            <h1 class="logo">STARSLING</h1>
+            <p class="tag">Fling asteroids. Wreck stations. Scrap the robots.</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Game</button>
+                <button data-act="levels" class="btn">Sectors</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="levels" class="screen" hidden>
+        <div class="sheet">
+            <h2>Sectors</h2>
+            <div id="level-grid" class="level-grid"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Back</button></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <p>Every robot on the station has to go. Pull the sling back, let go, and let physics do the rest.</p>
+            <table>
+                <tr><td>Drag + release</td><td>Pull back from anywhere, let go to fire</td></tr>
+                <tr><td>↑ ↓</td><td>Raise or lower the aim</td></tr>
+                <tr><td>← →</td><td>Less or more power</td></tr>
+                <tr><td>Space / Z</td><td>Fire; in flight, the asteroid's special</td></tr>
+                <tr><td>Tap in flight</td><td>The special: Rock burns, Iron dives, Ice splits, Nova detonates</td></tr>
+                <tr><td>P / Esc</td><td>Pause</td></tr>
+            </table>
+            <p>Glass breaks easily, hull takes a pounding, fuel cells blow up. Black holes bend your shots. Asteroids left over when the last robot falls are worth bonus points.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Touch controls
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete saved game and stars</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="retry" class="btn">Restart Sector</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="over" class="screen" hidden>
+        <div class="sheet">
+            <h2 id="over-title">Sector cleared</h2>
+            <div id="over-stars" class="stars" aria-label="Stars"></div>
+            <p id="over-text"></p>
+            <div class="sheet-foot wrap">
+                <button id="over-levels" class="btn">Sectors</button>
+                <button id="over-retry" class="btn">Retry</button>
+                <button id="over-next" class="btn primary">Next Sector</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">STARSLING needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

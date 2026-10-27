@@ -1289,6 +1289,18 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 85, 85, 0.6);
 }
 
+.game-preview.starsling,
+.carousel-slide-bg.starsling {
+    background: radial-gradient(circle at 70% 62%, #ffb02e 0 14%, #ff2bd6 15% 24%, transparent 25%),
+        linear-gradient(180deg, #12062e 0%, #3a0a6e 45%, #ff3d9a 62%, #12062e 63%, #2a0b52 100%);
+}
+
+.game-card.starsling .play-button {
+    background: linear-gradient(135deg, #ff2bd6, #ffb02e);
+    color: #1c0630;
+    box-shadow: 0 0 14px rgba(255, 43, 214, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
