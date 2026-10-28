@@ -33,6 +33,7 @@ import { Galaxy } from './galaxy.js';
 import { Subway } from './subway.js';
 import { Boat } from './boat.js';
 import { Fishing } from './fishing.js';
+import { Fireworks } from './fireworks.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -257,6 +258,7 @@ async function boot() {
     const particles = new Particles(world);
     particles.build();
     const bursts = new Bursts(world);
+    const fireworks = new Fireworks(world, camera, audio, { high: 4096, medium: 3072, low: 2048 }[quality.tier]);
     const beams = lighthouseBeams(world, scene);
     world.finalize();
 
@@ -333,6 +335,7 @@ async function boot() {
     let zoneKey = '';
     const clock = new THREE.Clock();
     let elapsed = 0;
+    let fireworksPending = params.has('fireworks');
     // the Works under the clock tower: built on the first visit
     let works = null;
     // the Hut by the dock and the galaxy in its sphere: both built on the first visit
@@ -626,6 +629,7 @@ async function boot() {
         renderPass.scene = on ? room.scene : scene;
         bloom.strength = on ? (kind === 'hut' ? 0.55 : kind === 'subway' ? 0.5 : 0.6) : 0.42;
         audio.setUnderground(on && kind === 'works');
+        if (on) fireworks.stop();
         doorArmed = false;
         mouse = null;
         setHover(null);
@@ -1066,6 +1070,11 @@ async function boot() {
         sky.update(dt, camPos);
         const s = sky.state;
         const night = s.night;
+        // the garden sees in each new day with fireworks (?fireworks shows them at once)
+        if ((sky.midnight || fireworksPending) && !below) {
+            fireworksPending = false;
+            fireworks.start();
+        }
         if (below && roomKind === 'hut') {
             hut.update(dt, t);
             audio.update(night, -100);
@@ -1147,6 +1156,8 @@ async function boot() {
             vines.update(dt, camPos, camera);
             particles.update(t, night, renderer.domElement.height);
             bursts.update(t, renderer.domElement.height);
+            fireworks.update(dt, renderer.domElement.height);
+            fireworks.light(sky.hemi);
             for (const u of world.updaters) u(t, sky);
             fox.update(dt, t, entered && !intro && controls.enabled && !transit && !boat.busy, ui.blocking || !!ui.cardGame);
             updateGrass(world, camPos);
@@ -1191,7 +1202,7 @@ async function boot() {
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
+        window.__garden = { startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, fireworks, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
     }
 }
 

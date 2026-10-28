@@ -187,7 +187,10 @@ export class Sky {
 
     update(dt, focus) {
         this.clock += dt;
+        const was = this.time;
         if (!this.paused) this.time = (this.time + dt / this.dayLength) % 1;
+        // true for the one frame the clock runs past 00:00 by itself (not when set)
+        this.midnight = this.time < was;
         const s = this.state;
         const a = (this.time - 0.25) * TAU;
         s.sunDir.set(Math.cos(a), Math.sin(a) * 0.92, 0.38).normalize();

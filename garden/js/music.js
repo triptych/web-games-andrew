@@ -2,7 +2,8 @@
 // pentatonic melody through delay and reverb, FM bells and a soft bass) that
 // moves to a darker progression at night, plus the island itself: surf that
 // swells nearer the shore, wind, birds by day, crickets and owls by night,
-// footsteps that know stone from grass, and chimes for the interface. Down
+// footsteps that know stone from grass, chimes for the interface, and the
+// launches, booms and crackle of the midnight fireworks. Down
 // in the Works under the clock tower it all gives way to machinery.
 
 const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
@@ -555,7 +556,7 @@ export class AudioEngine {
 
     // ------------------------------------------------------------- effects
 
-    _noiseBurst(t, dur, freq, q, vol, type = 'bandpass') {
+    _noiseBurst(t, dur, freq, q, vol, type = 'bandpass', out = this.sfx) {
         const ctx = this.ctx;
         const s = ctx.createBufferSource();
         s.buffer = this.noise;
@@ -567,7 +568,7 @@ export class AudioEngine {
         g.gain.setValueAtTime(0, t);
         g.gain.linearRampToValueAtTime(vol, t + 0.005);
         g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-        s.connect(f).connect(g).connect(this.sfx);
+        s.connect(f).connect(g).connect(out);
         s.start(t, Math.random() * 2);
         s.stop(t + dur + 0.05);
     }
@@ -697,5 +698,122 @@ export class AudioEngine {
         const t = this.ctx.currentTime;
         const run = special ? [67, 71, 74, 79, 83, 86] : [69, 74, 78];
         run.forEach((n, i) => this._bell(midi(n), t + i * 0.08, 0.05));
+    }
+
+    // ------------------------------------------------------------- fireworks
+    // Each takes `delay` (the sound's flight time from the shell), `pan` and
+    // `near` (1 close, falling with distance; far sounds also lose their highs).
+
+    /** A bus for one firework sound: panned, scaled for distance, with a long echo off the hills. */
+    _fireworkBus(pan, vol) {
+        const ctx = this.ctx;
+        const g = ctx.createGain();
+        g.gain.value = vol;
+        const p = ctx.createStereoPanner();
+        p.pan.value = pan;
+        g.connect(p).connect(this.master);
+        const send = ctx.createGain();
+        send.gain.value = 0.8;
+        p.connect(send).connect(this.reverb);
+        return g;
+    }
+
+    /** The mortar's thump and the shell hissing up, sometimes with a whistle. */
+    fireworkLaunch({ delay = 0, pan = 0, near = 1, rise = 2, whistle = false } = {}) {
+        if (!this.ctx || this.muted || this.underground) return;
+        const ctx = this.ctx, t = ctx.currentTime + delay;
+        const out = this._fireworkBus(pan, near);
+        const o = ctx.createOscillator();
+        o.frequency.setValueAtTime(140, t);
+        o.frequency.exponentialRampToValueAtTime(45, t + 0.18);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.3, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+        o.connect(g).connect(out);
+        o.start(t);
+        o.stop(t + 0.3);
+        this._noiseBurst(t, 0.12, 380, 1, 0.12, 'lowpass', out);
+        // the climb
+        const s = ctx.createBufferSource();
+        s.buffer = this.noise;
+        const f = ctx.createBiquadFilter();
+        f.type = 'bandpass';
+        f.Q.value = 1.4;
+        f.frequency.setValueAtTime(900, t);
+        f.frequency.exponentialRampToValueAtTime(2600 * (0.6 + near * 0.4), t + rise);
+        const hg = ctx.createGain();
+        hg.gain.setValueAtTime(0, t);
+        hg.gain.linearRampToValueAtTime(0.05, t + 0.15);
+        hg.gain.exponentialRampToValueAtTime(0.001, t + rise);
+        s.connect(f).connect(hg).connect(out);
+        s.start(t, Math.random() * 2);
+        s.stop(t + rise + 0.05);
+        if (whistle) {
+            const w = ctx.createOscillator();
+            w.type = 'triangle';
+            w.frequency.setValueAtTime(1100, t + 0.1);
+            w.frequency.exponentialRampToValueAtTime(2700, t + rise * 0.95);
+            const vib = ctx.createOscillator();
+            vib.frequency.value = 28;
+            const va = ctx.createGain();
+            va.gain.value = 40;
+            vib.connect(va).connect(w.frequency);
+            const wg = ctx.createGain();
+            wg.gain.setValueAtTime(0, t + 0.1);
+            wg.gain.linearRampToValueAtTime(0.035, t + 0.3);
+            wg.gain.setValueAtTime(0.035, t + rise * 0.8);
+            wg.gain.exponentialRampToValueAtTime(0.001, t + rise);
+            w.connect(wg).connect(out);
+            w.start(t + 0.1);
+            vib.start(t + 0.1);
+            w.stop(t + rise + 0.05);
+            vib.stop(t + rise + 0.05);
+        }
+    }
+
+    /** The burst: a sharp crack, a deep boom rolling back off the hills and, for crackling shells, a fizz of pops. */
+    fireworkBoom({ delay = 0, pan = 0, near = 1, size = 1, crackle = null } = {}) {
+        if (!this.ctx || this.muted || this.underground) return;
+        const ctx = this.ctx, t = ctx.currentTime + delay;
+        const out = this._fireworkBus(pan, near * size);
+        this.boomBuf ??= this._noiseBuffer(4, true);
+        const boom = (at, vol, cutoff, len) => {
+            const s = ctx.createBufferSource();
+            s.buffer = this.boomBuf;
+            const lp = ctx.createBiquadFilter();
+            lp.type = 'lowpass';
+            lp.frequency.setValueAtTime(cutoff, at);
+            lp.frequency.exponentialRampToValueAtTime(110, at + len);
+            const g = ctx.createGain();
+            g.gain.setValueAtTime(0, at);
+            g.gain.linearRampToValueAtTime(vol, at + 0.006);
+            g.gain.exponentialRampToValueAtTime(vol * 0.3, at + 0.25);
+            g.gain.exponentialRampToValueAtTime(0.001, at + len);
+            s.connect(lp).connect(g).connect(out);
+            s.start(at, Math.random() * 2);
+            s.stop(at + len + 0.05);
+        };
+        boom(t, 1.8, 600 + near * 1600, 2.2);
+        boom(t + 0.45 + Math.random() * 0.3, 0.5, 450, 1.6);     // the echo
+        // the chest thump under it
+        const o = ctx.createOscillator();
+        o.frequency.setValueAtTime(75, t);
+        o.frequency.exponentialRampToValueAtTime(32, t + 0.5);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.35, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+        o.connect(g).connect(out);
+        o.start(t);
+        o.stop(t + 0.75);
+        // the crack carries less the farther it travels
+        this._noiseBurst(t, 0.08, 2600, 0.7, 0.35 * near * near, 'highpass', out);
+        if (crackle) {
+            const n = 40 + Math.floor(Math.random() * 20);
+            for (let i = 0; i < n; i++) {
+                const at = t + crackle.at + Math.random() * crackle.dur;
+                this._noiseBurst(at, 0.015 + Math.random() * 0.025, 2500 + Math.random() * 4000, 1.2, (0.05 + Math.random() * 0.1) * (0.4 + near * 0.6), 'bandpass', out);
+            }
+        }
     }
 }
