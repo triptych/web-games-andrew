@@ -388,8 +388,8 @@ function cliff(mine, ch, mat, r) {
     const lv = new THREE.Vector3(fr.l.x, 0, fr.l.z).normalize();
     ch.ledge = { o, t: tv, l: lv, hl: 7.4, hs: 9.4, y: o.y };
     // a tongue of rock: an ellipsoid with a flat top, thick below
-    const g = rockGeometry(11, { detail: 3, rough: 0.2, stretch: [9.6, 22, 11.5], flatTop: 0.94 });
-    g.translate(0, -22 * 0.94, 0);
+    const g = rockGeometry(11, { detail: 3, rough: 0.2, stretch: [10.6, 22, 12.6], flatTop: 0.55 });
+    g.translate(0, -22 * 0.55, 0);
     const mesh = new THREE.Mesh(withRockAttrs(g, 0.2), mat);
     mesh.position.copy(o);
     // rotate so local x runs along the left vector and z along the tangent

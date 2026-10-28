@@ -200,6 +200,7 @@ async function boot() {
         ui.noWebGL();
         return;
     }
+    canvas.addEventListener('webglcontextlost', (e) => e.preventDefault());
     const quality = pickQuality();
     let pixelRatio = quality.fixedPR || Math.min(devicePixelRatio || 1, quality.maxPR);
     renderer.setPixelRatio(pixelRatio);
@@ -651,6 +652,15 @@ async function boot() {
         controls.seated = false;
         cartPending = false;
         if (below) setBelow(false);
+        // the mine is big on the GPU; phones in particular can lose layers (the HUD) if it lingers, so it is rebuilt next visit
+        if (mine) {
+            const m = mine;
+            mine = null;
+            m.onEvent = null;
+            m.dispose();
+        }
+        document.getElementById('hud').hidden = false;
+        document.getElementById('fade').classList.remove('on', 'dark');
         place = 'garden';
         controls.world = world;
         camera.fov = baseFov();
@@ -716,7 +726,10 @@ async function boot() {
             const cp = volcano.cartPos;
             const dc = Math.hypot(p.x - cp.x, p.z - cp.z);
             if (dc > 4.5) cartArmed = true;
-            if (mine && cartArmed && dc < 1.95) boardCart(1);
+            if (cartArmed && dc < 1.95) {
+                if (!mine) prepareMine();
+                if (mine) boardCart(1);
+            }
         } else if (place === 'mine' && mine?.state === 'free') {
             const cp = mine.cart.group.position;
             const dc = Math.hypot(p.x - cp.x, p.z - cp.z);
@@ -1178,8 +1191,7 @@ async function boot() {
         if (!h) return;
         if (h.type === 'cart') {
             audio.click();
-            if (mine) controls.walkTo([{ x: volcano.cartPos.x, z: volcano.cartPos.z }]);
-            else ui.hint('The mine is closed today', 4000);
+            controls.walkTo([{ x: volcano.cartPos.x, z: volcano.cartPos.z }]);
         } else if (h.type === 'dais') {
             audio.click();
             controls.walkTo([{ x: volcano.dais.x, z: volcano.dais.z }]);
