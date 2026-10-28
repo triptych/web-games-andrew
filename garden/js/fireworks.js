@@ -1,5 +1,6 @@
 // Midnight fireworks: a short show in the sky ahead of the player when the
-// garden's clock rolls past 00:00. Stars are a ring buffer of points flown
+// garden's clock rolls past 00:00 (re-aimed shell by shell while the camera
+// circles the island, from the flying boat or the title screen). Stars are a ring buffer of points flown
 // entirely on the GPU (ballistic, with air drag); rockets are stepped on the
 // CPU so they can drop a trail of embers. Every launch, boom and crackle
 // reaches the ear late, by the distance over the speed of sound.
@@ -10,7 +11,7 @@ import { glowSprite } from './textures.js';
 
 const SOUND = 343;        // metres a second
 const GRAVITY = 9.8;
-const SHOW_DIST = 210;    // how far ahead of the player the show is set
+export const SHOW_DIST = 210;    // how far ahead of the player the show is set
 const COLORS = ['#ff4a5a', '#ffb02e', '#ffe46b', '#7dff8a', '#4ad8ff', '#5a7bff', '#c46bff', '#ff7ad9'];
 const GOLD = '#ffc46b', SILVER = '#e8f0ff';
 const TYPES = ['peony', 'peony', 'double', 'ring', 'willow', 'crackle', 'glitter'];
@@ -79,8 +80,11 @@ function fly(out, p, v, drag, age) {
 }
 
 export class Fireworks {
-    constructor(world, camera, audio, size = 4096) {
+    /** `aim()` may return a point the shells should go up around instead of the spot
+     *  ahead of the camera at midnight; it is asked again at every launch. */
+    constructor(world, camera, audio, size = 4096, aim = () => null) {
         this.camera = camera;
+        this.aim = aim;
         this.audio = audio;
         this.size = size;
         this.density = clamp(size / 4096, 0.4, 1);
@@ -171,6 +175,15 @@ export class Fireworks {
     }
 
     _launch(finale) {
+        const at = this.aim();
+        if (at) {
+            // spread across the line of sight from wherever the camera is now
+            this.fwd.set(at.x - this.camera.position.x, 0, at.z - this.camera.position.z);
+            if (this.fwd.lengthSq() < 1e-4) this.fwd.set(0, 0, -1);
+            this.fwd.normalize();
+            this.side.set(-this.fwd.z, 0, this.fwd.x);
+            this.center.set(at.x, 0, at.z);
+        }
         const lat = range(-1, 1) * (finale ? 70 : 55), dep = range(-25, 25);
         const from = new THREE.Vector3(
             this.center.x + this.side.x * lat + this.fwd.x * dep, 1,

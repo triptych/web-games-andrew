@@ -33,7 +33,7 @@ import { Galaxy } from './galaxy.js';
 import { Subway } from './subway.js';
 import { Boat } from './boat.js';
 import { Fishing } from './fishing.js';
-import { Fireworks } from './fireworks.js';
+import { Fireworks, SHOW_DIST } from './fireworks.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -258,7 +258,6 @@ async function boot() {
     const particles = new Particles(world);
     particles.build();
     const bursts = new Bursts(world);
-    const fireworks = new Fireworks(world, camera, audio, { high: 4096, medium: 3072, low: 2048 }[quality.tier]);
     const beams = lighthouseBeams(world, scene);
     world.finalize();
 
@@ -297,6 +296,16 @@ async function boot() {
     const fox = new FoxVisitor(scene, world, controls, camera, { force: params.get('fox') });
     const boat = new Boat(world, scene, camera, controls);
     const fishing = new Fishing({ world, scene, camera, controls, ui, audio, bursts, canvas });
+    // The title orbit circles the island looking in, so its show goes up over the island's heart. The flying
+    // boat circles it too, turning from the bow to the island and back, so each shell goes up ahead of the rider's view.
+    const islandHeart = new THREE.Vector3(), ahead = new THREE.Vector3();
+    const fireworksAim = () => {
+        if (!entered) return islandHeart;
+        if (!boat.busy) return null;
+        camera.getWorldDirection(ahead).setY(0).normalize();
+        return ahead.multiplyScalar(SHOW_DIST).add(camera.position);
+    };
+    const fireworks = new Fireworks(world, camera, audio, { high: 4096, medium: 3072, low: 2048 }[quality.tier], fireworksAim);
     const map = new IslandMap(world, document.getElementById('map-canvas'));
 
     const resize = () => {
