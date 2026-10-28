@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-104 games, `game-001` through `game-104`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+105 games, `game-001` through `game-105`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -122,6 +122,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 102 | [STARSLING](game-102/) | A physics slingshot in space: fling Rock, Iron, Ice and Nova asteroids at floating stations to scrap the robots, in a synthwave sunset with black holes, fuel chain reactions and six sectors | three.js |
 | 103 | [Crown & Crumpet](game-103/) | A cosy isometric tactics story: a clumsy princess at a school of magic and marching rescues a party of friends, and the Dread Lord turns out to be a chef | Canvas 2D |
 | 104 | [Hemlock Hollow](game-104/) | A gothic black-and-white Sierra-style text adventure: a witch's apprentice, herbs, hedge-magic and a Governor who kidnaps healers to sell cures | Canvas 2D |
+| 105 | [Solder & Rain](game-105/) | A repair-bench sim with a mystery: open blasters, cyborg arms and a shop-bot, fix them by hand and find your missing father in a rain-soaked neon station | three.js |
 
 ### Highlights
 

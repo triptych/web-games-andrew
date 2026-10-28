@@ -1325,6 +1325,17 @@ h1 {
     box-shadow: 0 0 14px rgba(240, 240, 240, 0.55);
 }
 
+.game-preview.solder-and-rain,
+.carousel-slide-bg.solder-and-rain {
+    background: radial-gradient(circle at 78% 24%, rgba(53, 224, 255, 0.55) 0 7%, transparent 18%), radial-gradient(circle at 24% 30%, rgba(255, 61, 139, 0.6) 0 8%, transparent 20%), linear-gradient(180deg, #0a0818 0%, #1c1438 55%, #3a2330 100%);
+}
+
+.game-card.solder-and-rain .play-button {
+    background: linear-gradient(135deg, #ff3d8b, #35e0ff);
+    color: #07070d;
+    box-shadow: 0 0 14px rgba(255, 61, 139, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

@@ -1589,6 +1589,21 @@ const games = [
             { emoji: '\u2328\uFE0F', label: 'Text adventure' },
             { emoji: '\uD83D\uDDBC\uFE0F', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-105',
+        title: 'Solder & Rain',
+        description: 'A repair shop in the rain, in the manner of Assemble With Care by way of Blade Runner. Your father Teodor has vanished and left you his neon-lit workshop on Perihelion Reach, a space station where the climate machines broke eleven years ago and it has rained ever since. Customers bring blasters, hover-coils, drones, cyborg arms, an ocular implant and, in the end, your own bench-bot. Open each one at the bench: hold a driver on a screw until it spins out into the dish, lift the covers (nothing comes out while it is screwed down, plugged in or covered), follow the colour-coded cables, read parts with the meter, scrub corrosion, oil stiff gears, solder with the heat in the green, swap a burnt capacitor for the right one from a drawer of near-misses, then close it all up and run the power test. Every device is generated from a seed: ten kinds, five difficulties, slots, layers, cables and faults, and a bot proves each one can be fixed. Six days, fourteen clues on a case board, a governor chip you may pull or leave, and three endings. Mouse, touch and keyboard. Every picture, tune and word is made in code.',
+        icon: '\uD83D\uDD27',
+        folder: 'game-105',
+        version: '1.0.0',
+        cssClass: 'solder-and-rain',
+        genre: 'story',
+        tags: [
+            { emoji: '\uD83D\uDD27', label: 'Repair sim' },
+            { emoji: '\uD83C\uDF27\uFE0F', label: 'Neon noir mystery' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
