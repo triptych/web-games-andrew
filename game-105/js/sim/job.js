@@ -264,6 +264,13 @@ function drop(G, part) {
         else part.pos[0] = (part.pos[0] >= 0 ? 1 : -1) * (hw + Math.max(part.w, part.d) / 2 + 0.05);
         [part.pos[0], part.pos[2]] = clampBench(part.pos[0], part.pos[2]);
     }
+    // not on the screw dish or in the bin's mouth: nudge it out to the nearest clear spot
+    const r = Math.max(part.w, part.d) / 2;
+    for (const z of [DISH, BIN]) {
+        const dx = part.pos[0] - z.x, dz = part.pos[2] - z.z, d = Math.hypot(dx, dz), need = z.r + r + 0.25;
+        if (d < need) { const k = d > 1e-3 ? 1 / d : 0; part.pos[0] = z.x + (k ? dx * k : 1) * need; part.pos[2] = z.z + (k ? dz * k : 0) * need; }
+    }
+    [part.pos[0], part.pos[2]] = clampBench(part.pos[0], part.pos[2]);
     part.pos[1] = 0;
     ev(G, { type: 'drop', ref: `part:${part.id}` });
 }

@@ -8,7 +8,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
-import { BENCH, BIN, DISH, FAST, FLOOR_Y, HOVER } from '../config.js';
+import { BENCH, BIN, DISH, FAST, FLOOR_Y, HOVER, PARTS } from '../config.js';
 import { KINDS } from '../sim/kinds.js';
 import { blockers, restY, canAct, holePos, liftCheck, parseRef, partPlace, placeCheck, portWorld, slotPlace, snapSlot, stashOpen, wireEndPos, rot } from '../sim/rules.js';
 import { refPos } from '../sim/plan.js';
@@ -108,6 +108,20 @@ export class View {
         this.mouse = new THREE.Vector2();
         this.t = 0; this.looks = 0;
         this.tipTouch = false;
+
+        // the guide: a bobbing arrow over the next thing to touch, and a glowing drop zone
+        this.guide = null; this.guideOn = false;
+        const gm = new THREE.MeshBasicMaterial({ color: 0x35e0ff, transparent: true, opacity: 0.95, toneMapped: false, depthTest: false });
+        this.arrow = new THREE.Group();
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.8, 12), gm); cone.rotation.x = Math.PI; cone.position.y = 0.4;
+        const rg = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.045, 8, 28), gm); rg.rotation.x = Math.PI / 2;
+        this.arrow.add(cone, rg); this.arrow.traverse((o) => { o.renderOrder = 17; o.userData.noPick = true; });
+        this.arrow.visible = false; this.scene.add(this.arrow);
+        const zm = new THREE.MeshBasicMaterial({ color: 0x35e0ff, transparent: true, opacity: 0.2, toneMapped: false, depthWrite: false, blending: THREE.AdditiveBlending });
+        this.partsZone = new THREE.Mesh(new THREE.PlaneGeometry(PARTS.hw * 2, PARTS.hd * 2).rotateX(-Math.PI / 2), zm);
+        this.partsZone.position.set(PARTS.x, 0.04, PARTS.z); this.partsZone.visible = false; this.partsZone.userData.noPick = true; this.scene.add(this.partsZone);
+        this.binZone = new THREE.Mesh(new THREE.TorusGeometry(BIN.r + 0.1, 0.09, 8, 36), new THREE.MeshBasicMaterial({ color: 0xffa63d, transparent: true, opacity: 0.9, toneMapped: false, depthTest: false }));
+        this.binZone.rotation.x = Math.PI / 2; this.binZone.position.set(BIN.x, 1.5, BIN.z); this.binZone.visible = false; this.binZone.userData.noPick = true; this.binZone.renderOrder = 16; this.scene.add(this.binZone);
 
         this.dishG = buildDish(); this.dishG.position.set(DISH.x, 0, DISH.z); this.scene.add(this.dishG);
         this.binG = buildBin(); this.binG.position.set(BIN.x, 0, BIN.z); this.scene.add(this.binG);
@@ -406,6 +420,29 @@ export class View {
         return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height, behind: v.z > 1 };
     }
 
+    // ------------------------------------------------------------------ the guide
+    setGuide(goal, on) { this.guide = goal; this.guideOn = !!on; }
+
+    updateGuide(G, t) {
+        const J = G.job, dev = this.dev;
+        const g = this.guide;
+        const show = this.guideOn && g && J && !J.test && G.phase === 'bench';
+        this.arrow.visible = this.partsZone.visible = this.binZone.visible = false;
+        if (!show) return;
+        const pulse = 0.5 + 0.5 * Math.sin(t * 5);
+        // where to point
+        let at = null;
+        if (g.at) at = g.at;
+        else if (g.ref) { try { at = refPos(dev, g.ref); } catch { at = null; } }
+        if (at && !g.zone && g.k !== 'spare') {
+            const top = g.ref && g.ref.startsWith('part:') ? at[1] + dev.parts[g.ref.slice(5)].h / 2 : at[1];
+            this.arrow.position.set(at[0], top + 0.9 + Math.sin(t * 4) * 0.18, at[2]);
+            this.arrow.visible = true;
+        }
+        if (g.zone === 'park') { this.partsZone.visible = true; this.partsZone.material.opacity = 0.12 + pulse * 0.2; }
+        if (g.zone === 'bin') { this.binZone.visible = true; this.binZone.scale.setScalar(1 + pulse * 0.06); }
+    }
+
     // ------------------------------------------------------------------ outlines, rings, ghosts
     makeRing() {
         const m = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.035, 8, 28), new THREE.MeshBasicMaterial({ color: 0x6ee7ff, transparent: true, opacity: 0.95, toneMapped: false, depthTest: false }));
@@ -539,6 +576,7 @@ export class View {
         const benchLike = (phase === 'bench' || phase === 'result' || phase === 'freeover') && G.job;
         if (benchLike && G.job.id !== this.jobId) this.loadJob(G);
         if (!benchLike && this.dev) this.clearJob();
+        if (!benchLike) { this.arrow.visible = this.partsZone.visible = this.binZone.visible = false; }
         this.setMode(benchLike ? 'bench' : phase === 'title' ? 'title' : 'shop');
         this.updateCamera(dt, time);
         this.aberr *= Math.exp(-dt * 5);
@@ -648,6 +686,7 @@ export class View {
             if (slot.occ) s.g.visible = false;
         }
         this.updateGhost(G, t);
+        this.updateGuide(G, t);
         // tool at the pointer
         this.updateTool(G, dt, t);
     }

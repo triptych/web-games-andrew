@@ -184,6 +184,48 @@ if (want('cables')) {
     }
 }
 
+if (want('guidance')) {
+    section('guidance: what to do with the thing in your hand');
+    const G = freeJob('noodlebot', 1, 3);
+    const dev = G.job.dev;
+    // take the cover plate off with real commands, stopping with it in the hand
+    const panel = Object.values(dev.slots).find((x) => x.kind === 'panel');
+    const g0 = Pl.nextGoal(G, {});
+    ok(g0.k === 'turn' && /slide across/.test(g0.text), 'the first step is to undo the cover screws, and says how');
+    for (let i = 0; i < 10 && panel.occ && panel.holes.some((h) => h.prog > 0); i++) { try { drive(G, Bt.repairJob(G, { maxGoals: 1 })); } catch { /* one goal */ } }
+    const g1 = Pl.nextGoal(G, {});
+    ok(g1.k === 'lift' && /PARTS area/.test(g1.text), 'then lift the plate, and the text says where to put it');
+    Gm.act(G, { t: 'tool', tool: 'hand' });
+    const pid = panel.occ, pr = `part:${pid}`, pp = Pl.refPos(dev, pr);
+    Gm.act(G, ptr(G, pr, pp)); tick(G, 0.5);
+    ok(G.job.held && G.job.held.id === pid, 'the plate is in hand');
+    const g2 = Pl.nextGoal(G, {});
+    ok(g2.k === 'putdown' && g2.zone === 'park' && /PARTS area/.test(g2.text), 'holding it, the guide says to set it down in the PARTS area');
+    // drop it right on the screw dish: it is nudged out, not left on top of it
+    Gm.act(G, { t: 'move', ref: null, bx: C.DISH.x, bz: C.DISH.z, ax: C.DISH.x, az: C.DISH.z }); tick(G, 0.4);
+    Gm.act(G, { t: 'up' }); if (G.job.held) { Gm.act(G, ptr(G, null, [C.DISH.x, 0, C.DISH.z])); Gm.act(G, { t: 'up' }); }
+    tick(G, 0.3);
+    const part = dev.parts[pid];
+    ok(part.loc === 'free', 'it was put down');
+    ok(Math.hypot(part.pos[0] - C.DISH.x, part.pos[2] - C.DISH.z) >= C.DISH.r + Math.max(part.w, part.d) / 2, 'and not on top of the screw dish');
+    // a burnt part in hand: the guide points at the bin
+    const G2 = freeJob('noodlebot', 1, 5);
+    const d2 = G2.job.dev;
+    const bad = Object.values(d2.parts).find((q) => Ru.isDefective(q));
+    bad.loc = 'held'; bad.slot = null; d2.slots[bad.home].occ = null; G2.job.held = { k: 'part', id: bad.id, sticky: true, t: 1, travel: 1 };
+    const g3 = Pl.nextGoal(G2, {});
+    ok(g3.zone === 'bin' && /SCRAP/.test(g3.text), 'a burnt part in hand: the guide says the scrap bin');
+    // a spare that fits an open slot: follow the ghost
+    const d3 = freeJob('noodlebot', 1, 5);
+    void d3;
+    // the guide names the spares drawer when one is needed
+    const G4 = freeJob('noodlebot', 1, 5);
+    let sawSpare = false;
+    const gen = (function* () { for (let i = 0; i < 60; i++) { const g = Pl.nextGoal(G4, {}); if (!g || g.k === 'test') return; if (g.k === 'spare') { sawSpare = /Open Spares/.test(g.text) && /label/.test(g.text); return; } yield* (function* () { const r = Bt.repairJob(G4, { maxGoals: 1 }); try { for (let q = r.next(); !q.done; q = r.next()) yield; } catch (e) { if (!/gave up/.test(e.message)) throw e; } })(); } })();
+    drive(G4, gen);
+    ok(sawSpare, 'when a replacement is needed the guide says to open Spares and match the label');
+}
+
 if (want('rules2')) {
     section('parts, cables, snapping');
     const G = freeJob('radio', 1, 2);

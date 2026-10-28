@@ -40,7 +40,7 @@ const ui = new UI({
 
 let G = freshGame(1);
 let acc = 0, time = 0, last = performance.now(), saveT = 0;
-let bot = null, wasRunning = false, drag = null, statusFlash = 0, lastFree = { kind: 'blaster', tier: 3, seed: 1 };
+let guideT = 0, guideJob = 0, bot = null, wasRunning = false, drag = null, statusFlash = 0, lastFree = { kind: 'blaster', tier: 3, seed: 1 };
 const seen = {};             // a count of every sim event drained, for the tests
 
 function freshGame(seed) {
@@ -277,8 +277,30 @@ function frameSafe() {
     }
     const t = document.getElementById('hud-top').getBoundingClientRect();
     top = Math.max(0, t.bottom + 4);
+    const gd = document.getElementById('guide');
+    if (!gd.hidden) top = Math.max(top, gd.getBoundingClientRect().bottom + 4);
     // landscape phones put the bars at the sides, not the bottom: the bench has the full height
     view.setSafe(Math.min(top, hh * 0.25), Math.min(bottom, hh * 0.5));
+}
+/** Is the live "Next:" guide showing? Always, never, or (the default) for the first two days. */
+function guideOn() {
+    const g = settings.guide;
+    if (g === 'on') return true;
+    if (g === 'off') return false;
+    const s = G.story;
+    return !!(s && (s.free ? G.job && G.job.tier <= 1 : s.day <= 2));
+}
+function guideFrame(dt) {
+    const J = G.job;
+    if (!J) return;
+    guideT -= dt;
+    if (guideT > 0) return;
+    guideT = 0.25;
+    const on = guideOn() && !J.test;
+    if (on && J.id !== guideJob) { guideJob = J.id; if (innerWidth > 560) document.getElementById('task').open = true; }
+    let goal = null;
+    if (on) { try { goal = nextGoal(G, {}); } catch { goal = null; } }
+    ui.setGuide(goal, on); view.setGuide(goal, on);
 }
 let prevPhase = G.phase;
 function frame(now) {
@@ -307,7 +329,7 @@ function frame(now) {
         acc = 0;
         if (bot && G.phase !== 'bench' && G.phase !== 'title') { const r = bot.next(); if (r.done) bot = null; }
     }
-    if (G.phase === 'bench') frameSafe();
+    if (G.phase === 'bench') { frameSafe(); guideFrame(dt); } else if (guideT !== -1) { guideT = -1; ui.setGuide(null, false); view.setGuide(null, false); }
     flushEvents();
     if (statusFlash > 0) { statusFlash -= dt; if (statusFlash <= 0) ui.setHover(''); }
     ui.sync(G, dt, time);

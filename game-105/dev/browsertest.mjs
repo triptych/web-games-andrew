@@ -156,6 +156,10 @@ async function desktop() {
     await page.waitForTimeout(1500);
     await shot(page, 'desktop-bench');
 
+    // the first job is guided: a NEXT line says what to do, with the how
+    await until(page, () => !document.getElementById('guide').hidden && /Undo the .*screws/.test(document.getElementById('guide-text').textContent), 'the NEXT line starts by saying to undo the cover screws');
+    check(await Q(page, () => __sr.view.arrow.visible), 'and an arrow points at the first screw');
+
     // a real mouse turns a real screw
     const h = await firstPanelHole(page);
     let p = await aim(page, h.ref);
@@ -188,9 +192,12 @@ async function desktop() {
     await page.mouse.move(p.x, p.y + 20);
     await page.mouse.down(); await page.mouse.up();
     await until(page, () => __sr.G.job.held && __sr.G.job.held.sticky, 'a tap lifts the panel and it sticks to the cursor');
+    await until(page, () => /PARTS area/.test(document.getElementById('guide-text').textContent), 'carrying it, the NEXT line says to set it down in the PARTS area');
+    check(await Q(page, () => __sr.view.partsZone.visible), 'and the PARTS area lights up on the mat');
     await page.mouse.move(380, 640, { steps: 6 });
     await page.mouse.down(); await page.mouse.up();
     await until(page, (id) => __sr.G.job.dev.parts[id].loc === 'free' && !__sr.G.job.held, 'the second tap puts it down on the bench', 40000, h.panel);
+    await until(page, () => !/PARTS area|Undo the/.test(document.getElementById('guide-text').textContent), 'the NEXT line moves on to the next step');
     await shot(page, 'desktop-lifted');
 
     // the camera: drag bare bench to orbit, wheel to zoom
