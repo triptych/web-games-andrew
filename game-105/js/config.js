@@ -10,9 +10,9 @@ export const MAX_FRAME = 0.05;            // a long frame never runs more than t
 export const BENCH = { x0: -9.6, x1: 9.6, z0: -6.2, z1: 6.9 };
 export const HOVER = 1.8;                 // height a carried part floats at
 export const FLOOR_Y = 0.42;              // top of a device's base plate above the mat
-export const DISH = { x: -8.1, z: 4.9, r: 1.45 };     // magnetic screw dish
-export const BIN = { x: 8.3, z: 3.6, r: 1.55 };       // scrap bin
-export const SPAWN = { x: 5.4, z: 5.2 };              // where a spare part lands
+export const DISH = { x: -7.4, z: 5.7, r: 1.45 };     // magnetic screw dish
+export const BIN = { x: 7.6, z: 5.5, r: 1.55 };       // scrap bin
+export const SPAWN = { x: 3.6, z: 5.8 };              // where a spare part lands
 
 export const TOOLS = [
     { id: 'hand',     key: '1', name: 'Hands',     blurb: 'Lift parts, pull plugs, pick up stray bits.' },

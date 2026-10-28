@@ -10,7 +10,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 import { BENCH, BIN, DISH, FAST, FLOOR_Y, HOVER } from '../config.js';
 import { KINDS } from '../sim/kinds.js';
-import { canAct, holePos, liftCheck, parseRef, partPlace, placeCheck, portWorld, slotPlace, snapSlot, stashOpen, wireEndPos, rot } from '../sim/rules.js';
+import { blockers, canAct, holePos, liftCheck, parseRef, partPlace, placeCheck, portWorld, slotPlace, snapSlot, stashOpen, wireEndPos, rot } from '../sim/rules.js';
 import { refPos } from '../sim/plan.js';
 import { buildBin, buildDish, buildShell, makeFastener, makeHoleRing, makePartView, syncPorts, updatePartView } from './models.js';
 import { mat, colorMat, Builder, accentMat } from './kit.js';
@@ -24,12 +24,12 @@ const PI = Math.PI;
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 
 const GRADE = {
-    uniforms: { tDiffuse: { value: null }, time: { value: 0 }, aberr: { value: 0 }, grain: { value: 0.035 }, vig: { value: 0.55 } },
+    uniforms: { tDiffuse: { value: null }, time: { value: 0 }, aberr: { value: 0 }, grain: { value: 0.02 }, vig: { value: 0.45 } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
     fragmentShader: `uniform sampler2D tDiffuse; uniform float time, aberr, grain, vig; varying vec2 vUv;
     void main(){
         vec2 c = vUv - 0.5; float d = dot(c, c);
-        vec2 off = c * (0.0025 + aberr) * (0.4 + d * 3.0);
+        vec2 off = c * (0.0012 + aberr) * (0.4 + d * 3.0);
         float r = texture2D(tDiffuse, vUv + off).r;
         float g = texture2D(tDiffuse, vUv).g;
         float b = texture2D(tDiffuse, vUv - off).b;
@@ -51,12 +51,13 @@ export class View {
     constructor(canvas, opts = {}) {
         this.canvas = canvas;
         this.q = opts.quality || 'med';
+        this.shift = 0; this.w = 0; this.h = 0;
         this.reduced = !!opts.reduced;
         this.renderer = new THREE.WebGLRenderer({ canvas, antialias: this.q !== 'low', powerPreference: 'high-performance' });
         const r = this.renderer;
         r.outputColorSpace = THREE.SRGBColorSpace;
         r.toneMapping = THREE.ACESFilmicToneMapping;
-        r.toneMappingExposure = 1.0;
+        r.toneMappingExposure = 1.35;
         r.shadowMap.enabled = true;
         r.shadowMap.type = THREE.PCFSoftShadowMap;
         r.setClearColor(0x07070d);
@@ -64,18 +65,18 @@ export class View {
         this.scene.fog = new THREE.FogExp2(0x0a0a14, 0.006);
         this.camera = new THREE.PerspectiveCamera(40, 1, 0.1, 220);
         this.scene.environment = makeEnvironment(r);
-        this.scene.environmentIntensity = 0.9;
+        this.scene.environmentIntensity = 1.2;
 
         // lights: a hemisphere for the room, the work lamp with real shadows
-        this.scene.add(new THREE.HemisphereLight(0x6a80c8, 0x2a1a30, 0.55));
-        this.lamp = new THREE.SpotLight(0xffe6c0, 520, 40, 0.78, 0.65, 1.6);
-        this.lamp.position.set(1.3, 8.2, 1.2);
+        this.scene.add(new THREE.HemisphereLight(0x7a90d8, 0x3a2a44, 1.1));
+        this.lamp = new THREE.SpotLight(0xffe6c0, 900, 60, 0.95, 0.7, 1.6);
+        this.lamp.position.set(1.3, 11, -3.5);
         this.lamp.target.position.set(0, 0, 0.4);
         this.lamp.castShadow = true;
         this.lamp.shadow.mapSize.set(this.q === 'high' ? 2048 : 1024, this.q === 'high' ? 2048 : 1024);
         this.lamp.shadow.bias = -0.0004; this.lamp.shadow.normalBias = 0.02; this.lamp.shadow.radius = 4;
         this.scene.add(this.lamp, this.lamp.target);
-        this.fill = new THREE.DirectionalLight(0x8aa8ff, 0.55); this.fill.position.set(-8, 10, 12); this.scene.add(this.fill);
+        this.fill = new THREE.DirectionalLight(0x9ab4ff, 1.1); this.fill.position.set(-8, 10, 12); this.scene.add(this.fill);
 
         this.room = new Room(this.scene);
         this.fx = new FX(this.scene);
@@ -91,6 +92,7 @@ export class View {
         this.rig = { az: 0, el: 0.3, dist: 22, tx: 0, ty: 2.6, tz: -2 };
         this.goal = { ...this.rig };
         this.fit = 18; this.zoom = 1; this.panX = 0; this.panZ = 0;
+        this.safe = { top: 52, bottom: 70 };      // screen px the HUD takes: the bench is framed in what is left
         this.shake = 0; this.aberr = 0;
 
         // job content
@@ -153,6 +155,7 @@ export class View {
             this.bloom.resolution.set(Math.round(w * pr / 2), Math.round(h * pr / 2));
         }
         this.camera.aspect = w / h;
+        if (this.shift) this.camera.setViewOffset(w, h, 0, this.shift, w, h);
         this.camera.updateProjectionMatrix();
         this.refit();
     }
@@ -163,8 +166,16 @@ export class View {
         const tv = Math.tan((this.camera.fov * PI) / 360), th = tv * this.camera.aspect;
         const needW = Math.max(dev ? dev.W / 2 + 3.4 : 8, 8.4);
         const needD = dev ? dev.D / 2 + 4.2 : 7;
-        this.fit = Math.max(needW / th, (needD * 0.85 + 2.2) / tv) * 1.04 + 2;
+        const frac = Math.max(0.45, (this.h - this.safe.top - this.safe.bottom) / this.h);
+        this.fit = Math.max(needW / th, (needD * 0.8 + 1.6) / (tv * frac)) * 1.0 + 1;
         this.poseCache = null;
+    }
+
+    /** Tell the camera how much of the screen the HUD covers, so nothing on the bench hides behind it. */
+    setSafe(top, bottom) {
+        if (Math.abs(top - this.safe.top) < 2 && Math.abs(bottom - this.safe.bottom) < 2) return;
+        this.safe = { top, bottom };
+        this.refit();
     }
 
     // ------------------------------------------------------------------ camera
@@ -183,12 +194,12 @@ export class View {
         this.panX = Math.max(-6, Math.min(6, this.panX - (dx * c + dy * s * 0.5) * k));
         this.panZ = Math.max(-5, Math.min(5, this.panZ - (dy * c - dx * s) * k));
     }
-    resetCamera() { this.goal.az = 0; this.goal.el = 0.95; this.zoom = 1; this.panX = 0; this.panZ = 0; }
+    resetCamera() { this.goal.az = 0; this.goal.el = 1.12; this.zoom = 1; this.panX = 0; this.panZ = 0; }
 
     setMode(mode) {
         if (mode === this.mode) return;
         this.mode = mode;
-        if (mode === 'bench') { this.goal.az = 0; this.goal.el = 0.98; this.zoom = 1; this.panX = 0; this.panZ = 0; }
+        if (mode === 'bench') { this.goal.az = 0; this.goal.el = 1.12; this.zoom = 1; this.panX = 0; this.panZ = 0; }
         else { const p = POSES[mode]; this.goal.az = p.az; this.goal.el = p.el; this.goal.dist = p.dist; this.goal.tx = p.t[0]; this.goal.ty = p.t[1]; this.goal.tz = p.t[2]; }
     }
 
@@ -209,6 +220,12 @@ export class View {
         this.shake *= Math.exp(-dt * 9);
         this.camera.position.set(x, Math.max(0.7, y), z);
         this.camera.lookAt(r.tx, r.ty, r.tz);
+        // slide the picture into the free band between the HUD's top and bottom edges
+        const shift = bench ? Math.round((this.safe.bottom - this.safe.top) / 2) : 0;
+        if (shift !== this.shift) {
+            this.shift = shift;
+            if (shift) this.camera.setViewOffset(this.w, this.h, 0, shift, this.w, this.h); else this.camera.clearViewOffset();
+        }
     }
 
     // ------------------------------------------------------------------ loading a job
@@ -340,6 +357,7 @@ export class View {
             if (cand) { ref = cand.ref; out.point = cand.point; }
         }
         out.ref = ref;
+        out.px = out.point ? out.point.x : out.bx; out.pz = out.point ? out.point.z : out.bz;
         this.lastPick = out;
         return out;
     }
@@ -535,11 +553,11 @@ export class View {
         if (this.mode !== 'title' && Math.sin(time * 4.7) > 0.5) this.fx.steam(-10.4, 1.6, -5.4);
         if (Math.sin(time * 7.1) > 0.8) this.fx.glow.emit({ x: 1.3 + (Math.random() - 0.5) * 6, y: 1 + Math.random() * 6, z: 1 + (Math.random() - 0.5) * 6, vx: 0.05, vy: 0.04, vz: 0.03, life: 4, s0: 0.12, s1: 0.12, a: 0.25, color: 0xffeccc });
 
-        this.lamp.intensity = 520 * (0.97 + Math.sin(time * 13) * 0.01);
+        this.lamp.intensity = 900 * (0.97 + Math.sin(time * 13) * 0.01);
         if (this.composer) {
             this.grade.uniforms.time.value = time % 100;
             this.grade.uniforms.aberr.value = this.reduced ? 0 : this.aberr;
-            this.grade.uniforms.grain.value = this.reduced ? 0 : 0.035;
+            this.grade.uniforms.grain.value = this.reduced ? 0 : 0.02;
             this.bloom.strength = this.power.on ? 0.85 : 0.5;
             this.composer.render(dt);
         } else this.renderer.render(this.scene, this.camera);
@@ -614,6 +632,9 @@ export class View {
             const a = wireEndPos(dev, w, 0), b = wireEndPos(dev, w, 1);
             const idx = dev.flow.findIndex((f) => f.t === 'wire' && f.id === id);
             wv.lit = powerOn && (this.power.lit > 5000 || idx < this.power.lit) && !w.ends.some((e) => !e.at) && !(w.cut && !w.cut.done) ? 1 : 0;
+            // a cable under a cover plate is out of sight: hide it unless an end is out in the open
+            const covered = w.ends.every((e) => e.at && blockers(dev, dev.slots[e.port.split('.')[0]]).length > 0);
+            wv.group.visible = !covered;
             wv.update(w, a, b, !w.ends[0].at, !w.ends[1].at, t, {});
         }
         // stash

@@ -88,6 +88,8 @@ function ptrMove(G, c) {
         p.bx = c.bx; p.bz = c.bz;
     }
     if (c.ax !== undefined) { p.ax = c.ax; p.az = c.az; }
+    // the point on whatever surface is under the pointer (the bench plane when nothing is)
+    if (c.px !== undefined) { p.px = c.px; p.pz = c.pz; } else if (c.bx !== undefined) { p.px = c.bx; p.pz = c.bz; }
     if (c.ref !== undefined) p.ref = c.ref;
 }
 
@@ -434,7 +436,11 @@ function useTurn(G, u, dt) {
     if (!part) { J.use = null; return; }
     // the tool lifts off if the pointer wanders away from the head
     const hp = holePos(dev, slot, hole);
-    if (Math.hypot(p.bx - hp[0], p.bz - hp[2]) > TUNE.reach + (hole.type === 'clip' ? 0.3 : 0)) { u.idle = true; return; }
+    if (Math.hypot(p.px - hp[0], p.pz - hp[2]) > TUNE.reach + (hole.type === 'clip' ? 0.3 : 0)) {
+        // the tool lifts off the head; with the button still down it can land on the next screw
+        J.use = null; p.chain = true; p.lastDone = null;
+        return;
+    }
     u.idle = false;
     const f = FAST[hole.type];
     if (u.dir < 0 && hole.rust > 0.02) {

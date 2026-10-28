@@ -223,7 +223,7 @@ function pointerFrame(dt) {
             if (!J || J.test) { drag = null; continue; }
             if (J.held || pk.ref) {
                 drag = { kind: 'sim' };
-                doAct({ t: 'down', ref: pk.ref, bx: pk.bx, bz: pk.bz, ax: pk.ax, az: pk.az });
+                doAct({ t: 'down', ref: pk.ref, bx: pk.bx, bz: pk.bz, ax: pk.ax, az: pk.az, px: pk.px, pz: pk.pz });
                 ui.setHover(pk.ref ? describe(J.dev, pk.ref) : '');
             } else drag = { kind: 'orbit', x: ev.x, y: ev.y };
         } else if (ev.t === 'move') {
@@ -235,7 +235,7 @@ function pointerFrame(dt) {
             }
             const pk = view.pick(ev.x, ev.y, G, ev.touch);
             if (J) {
-                doAct({ t: 'move', ref: pk.ref, bx: pk.bx, bz: pk.bz, ax: pk.ax, az: pk.az });
+                doAct({ t: 'move', ref: pk.ref, bx: pk.bx, bz: pk.bz, ax: pk.ax, az: pk.az, px: pk.px, pz: pk.pz });
                 if (!ev.touch || ev.held) { view.setHover(G, pk.ref); ui.setHover(pk.ref && !J.held ? describe(J.dev, pk.ref) : ''); }
             }
         } else if (ev.t === 'up') {
@@ -267,6 +267,19 @@ function flushEvents() {
 }
 
 // ------------------------------------------------------------------ frame loop
+/** How much of the screen the bench HUD covers at the top and bottom (the camera frames what is left). */
+function frameSafe() {
+    const hh = innerHeight;
+    let bottom = 0, top = 0;
+    for (const sel of ['#tools', '#actions']) {
+        const r = document.querySelector(sel).getBoundingClientRect();
+        if (r.height && r.top > hh * 0.4) bottom = Math.max(bottom, hh - r.top + 6);
+    }
+    const t = document.getElementById('hud-top').getBoundingClientRect();
+    top = Math.max(0, t.bottom + 4);
+    // landscape phones put the bars at the sides, not the bottom: the bench has the full height
+    view.setSafe(Math.min(top, hh * 0.25), Math.min(bottom, hh * 0.5));
+}
 let prevPhase = G.phase;
 function frame(now) {
     requestAnimationFrame(frame);
@@ -294,6 +307,7 @@ function frame(now) {
         acc = 0;
         if (bot && G.phase !== 'bench' && G.phase !== 'title') { const r = bot.next(); if (r.done) bot = null; }
     }
+    if (G.phase === 'bench') frameSafe();
     flushEvents();
     if (statusFlash > 0) { statusFlash -= dt; if (statusFlash <= 0) ui.setHover(''); }
     ui.sync(G, dt, time);
@@ -323,6 +337,8 @@ if (DEBUG) {
         campaign(seed = 1) { resetGame(freshGame(seed)); doAct({ t: 'campaign', seed }); startPlay(); return G; },
         /** Repair the current job with the bot, instantly. */
         solve(opt = { clean: true, stash: true }) { run(repairJob(G, opt)); },
+        /** Run n bot goals, then stop (for looking at a half-finished repair). */
+        goals(n = 5, opt = { clean: true, stash: true }) { try { run(repairJob(G, { ...opt, maxGoals: n })); } catch (e) { if (!/gave up/.test(e.message)) throw e; } },
         /** Play the whole campaign instantly. */
         playAll(opt = {}) { run(playCampaign(G, opt)); },
         autoplay(on = true, opt = { clean: true, stash: true }) { bot = on ? repairJob(G, opt) : null; },

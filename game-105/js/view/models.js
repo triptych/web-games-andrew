@@ -283,7 +283,7 @@ BUILD.panel = (p, c) => {
 // ------------------------------------------------------------------ assembling a part view
 const sprites = new Map();
 function spriteMaterial(tex) {
-    if (!sprites.has(tex)) sprites.set(tex, new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
+    if (!sprites.has(tex)) sprites.set(tex, new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: true, depthWrite: false }));
     return sprites.get(tex);
 }
 

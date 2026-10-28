@@ -75,7 +75,7 @@ export const DAYS = [
         { id: 'lila', who: 'lila', kind: 'cybereye', tier: 4, pre: 'lila_pre', post: 'lila_post', pay: 1.5, gov: true, stash: { role: 'board', label: 'Chip stamped "T.V."', clue: 'shunt' } },
         { id: 'barnacle', who: 'barnacle', kind: 'drone', tier: 3, pre: 'barnacle_pre', post: 'barnacle_post', pay: 1.3 },
     ] },
-    { n: 6, title: 'The Key', open: 'd6_open', close: 'd6_close', jobs: [
+    { n: 6, title: 'The Key', open: 'd6_open', close: null, jobs: [
         { id: 'spanner', who: 'spanner', kind: 'spanner', tier: 5, pre: 'spanner_pre', post: 'spanner_post', pay: 2, stash: { role: 'board', label: 'Memory crystal', clue: 'crystal' } },
     ] },
 ];

@@ -58,7 +58,7 @@ export class WireView {
         collar.position.y = 0.13;
         const pins = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.12, 0.22), mat('brass'));
         pins.position.y = 0.04;
-        const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: TX.tagTex(wire.tag, wire.hex), transparent: true, depthTest: false, depthWrite: false }));
+        const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: TX.tagTex(wire.tag, wire.hex), transparent: true, depthTest: true, depthWrite: false }));
         tag.scale.set(0.3, 0.3, 1); tag.position.y = 0.72; tag.renderOrder = 15; tag.userData.noPick = true;
         const ref = `plug:${wire.id}.${e}`;
         for (const m of [body, collar, pins]) { m.userData.ref = ref; m.castShadow = true; }

@@ -101,7 +101,7 @@ input[type=range] { width: 52%; min-height: 44px; accent-color: var(--pink); }
 #dish b { color: var(--cyan); }
 
 #status {
-    position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + var(--safe-b)); max-width: min(560px, 56vw);
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(80px + var(--safe-b)); max-width: min(560px, 56vw);
     padding: 7px 14px; border-radius: 8px; background: rgba(6, 8, 16, 0.78); border: 1px solid var(--line);
     font-family: var(--mono); font-size: 15px; color: #cfd8ff; text-align: center; pointer-events: none; min-height: 34px;
 }
@@ -131,7 +131,7 @@ input[type=range] { width: 52%; min-height: 44px; accent-color: var(--pink); }
 body.touch #cambar { display: flex; }
 
 #tip {
-    position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(66px + var(--safe-b)); width: min(520px, 62vw);
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(124px + var(--safe-b)); width: min(520px, 62vw);
     padding: 9px 14px; border-radius: 10px; background: rgba(40, 32, 6, 0.92); border: 1px solid rgba(255, 210, 61, 0.5); color: #ffe9a8;
     font-size: 16px; line-height: 1.3; pointer-events: none; animation: pop 0.25s ease-out;
 }
@@ -211,7 +211,7 @@ body.touch #cambar { display: flex; }
 .small { font-size: 14px; }
 .title-sheet { text-align: center; background: rgba(8, 9, 18, 0.82); }
 .logo-sub { color: var(--cyan); letter-spacing: 0.4em; text-transform: uppercase; font-size: 14px; }
-.logo { font-size: clamp(40px, 11vw, 72px); line-height: 1; margin: 6px 0 18px !important; color: #fff; letter-spacing: 0.06em; text-shadow: 0 0 10px var(--pink), 0 0 30px var(--pink), 0 0 60px #b0166a; }
+.logo { font-size: clamp(30px, 8.4vw, 54px); white-space: nowrap; line-height: 1; margin: 6px 0 18px !important; color: #fff; letter-spacing: 0.06em; text-shadow: 0 0 10px var(--pink), 0 0 30px var(--pink), 0 0 60px #b0166a; }
 .logo span { color: var(--cyan); text-shadow: 0 0 10px var(--cyan), 0 0 30px var(--cyan); margin: 0 0.06em; font-size: 0.7em; vertical-align: 0.1em; }
 .menu { display: flex; flex-direction: column; gap: 10px; }
 .sheet-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; flex-wrap: wrap; }

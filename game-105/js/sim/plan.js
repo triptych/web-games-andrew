@@ -31,8 +31,8 @@ export function refPos(dev, ref) {
 
 /** Where a removed part is parked on the mat. */
 export function parkSpot(dev, n) {
-    const row = Math.floor(n / 5), col = n % 5;
-    return [-4.8 + col * 2.6, dev.D / 2 + 1.7 + row * 1.9];
+    const row = Math.floor(n / 4), col = n % 4;
+    return [-3.9 + col * 2.6, dev.D / 2 + 1.5 + row * 1.7];
 }
 
 function freePartFor(dev, spec) {

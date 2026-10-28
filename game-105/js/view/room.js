@@ -63,7 +63,7 @@ function glassShader() {
             }
             a = clamp(a, 0.0, 1.0);
             vec3 tint = mix(vec3(0.55,0.75,1.0), vec3(1.0,0.5,0.8), vUv.x);
-            gl_FragColor = vec4(tint, a*0.55 + 0.05);
+            gl_FragColor = vec4(tint, a*0.3 + 0.02);
         }`,
     });
 }
@@ -158,9 +158,9 @@ export class Room {
 
         // neon sign in the window (mirrored: it faces the street)
         const sign = new THREE.Mesh(new THREE.PlaneGeometry(6.8, 2.1), new THREE.MeshBasicMaterial({ map: TX.neonTex('FIX ANYTHING', '#ff3d8b', { w: 512, h: 160, size: 84 }), transparent: true, toneMapped: false, depthWrite: false, side: THREE.DoubleSide }));
-        sign.position.set(-1.2, 6.2, Z + 0.6); sign.scale.x = -1; g.add(sign); this.sign = sign;
+        sign.position.set(-1.2, 6.2, Z + 0.6); g.add(sign); this.sign = sign;
         const sign2 = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 1.0), new THREE.MeshBasicMaterial({ map: TX.neonTex('OPEN', '#35e0ff', { w: 256, h: 100, size: 64 }), transparent: true, toneMapped: false, depthWrite: false, side: THREE.DoubleSide }));
-        sign2.position.set(4.6, 2.8, Z + 0.6); sign2.scale.x = -1; g.add(sign2); this.sign2 = sign2;
+        sign2.position.set(4.6, 2.8, Z + 0.6); g.add(sign2); this.sign2 = sign2;
         // neon wash into the room
         this.pink = new THREE.PointLight(0xff3d8b, 120, 40, 1.6); this.pink.position.set(-1.2, 6, Z + 3); g.add(this.pink);
         this.cyan = new THREE.PointLight(0x35e0ff, 70, 36, 1.6); this.cyan.position.set(9, 4, Z + 3); g.add(this.cyan);
@@ -244,18 +244,18 @@ export class Room {
     buildLamp(g) {
         const b = new Builder();
         b.cyl(mat('gunmetal'), 0.9, 1.1, 0.4, 16, -10.2, 0, -5.4);
-        b.cyl(mat('darkSteel'), 0.22, 0.22, 7.6, 8, -10.2, 0.4, -5.4);
-        b.sph(mat('brass'), 0.34, -10.2, 8.0, -5.4);
-        b.box(mat('darkSteel'), 11.6, 0.32, 0.32, -4.5, 8.1, -3.2, 0, 0.0, -0.01);
-        b.box(mat('darkSteel'), 0.3, 0.3, 4.0, 1.3, 8.1, -1.4);
+        b.cyl(mat('darkSteel'), 0.22, 0.22, 10.4, 8, -10.2, 0.4, -5.4);
+        b.sph(mat('brass'), 0.34, -10.2, 10.6, -5.4);
+        b.box(mat('darkSteel'), 11.6, 0.32, 0.32, -4.5, 10.6, -5.2, 0, 0.0, -0.01);
+        b.box(mat('darkSteel'), 0.3, 0.3, 2.4, 1.3, 10.6, -4.2);
         g.add(b.build());
         const shade = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 2.6, 1.8, 24, 1, true), new THREE.MeshStandardMaterial({ color: 0x2b3a3a, metalness: 0.7, roughness: 0.4, side: THREE.DoubleSide }));
-        shade.position.set(1.3, 8.4, 1.0); g.add(shade);
+        shade.position.set(1.3, 10.9, -3.4); g.add(shade);
         const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.55, 16, 12), ledMat(0xfff0d0));
-        bulb.position.set(1.3, 7.9, 1.0); g.add(bulb); this.bulb = bulb;
+        bulb.position.set(1.3, 10.4, -3.4); g.add(bulb); this.bulb = bulb;
         // a faint cone of light in the dust
-        const cone = new THREE.Mesh(new THREE.ConeGeometry(5.5, 8, 28, 1, true), new THREE.MeshBasicMaterial({ color: 0xffe2b0, transparent: true, opacity: 0.05, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false }));
-        cone.position.set(1.3, 4.0, 1.0); g.add(cone); this.cone = cone;
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(5.5, 8, 28, 1, true), new THREE.MeshBasicMaterial({ color: 0xffe2b0, transparent: true, opacity: 0.025, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false }));
+        cone.position.set(1.3, 5.5, -1.5); g.add(cone); this.cone = cone;
     }
 
     buildSpanner(g) {
