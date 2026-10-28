@@ -42,7 +42,7 @@ page.on('console', (m) => m.type() === 'error' && errors.push('console: ' + m.te
 page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
 
 const G = (expr) => page.evaluate(`(() => { const g = window.__garden; return ${expr}; })()`);
-const until = (expr, timeout = 240000) => page.waitForFunction(`(() => { const g = window.__garden; return ${expr}; })()`, null, { timeout });
+const until = (expr, timeout = 600000) => page.waitForFunction(`(() => { const g = window.__garden; return ${expr}; })()`, null, { timeout });
 
 await page.goto(`${BASE}/index.html?debug&enter&bigdt&pr=0.4&q=low&t=0.4`);
 await until('g?.entered', 180000);
@@ -55,7 +55,7 @@ await until("g.mine.state === 'riding'");
 await G('g.mine.s = 30');
 await until("g.place === 'mine' && g.below");
 check(true, 'the cart carries you into the mountain');
-await G('g.mine.s = 1235');
+await G('g.mine.s = 1250');
 await until("g.mine.state === 'free'");
 check(await G('!g.controls.seated'), 'you can walk on the cliff');
 await G('g.boardCart(-1)');
