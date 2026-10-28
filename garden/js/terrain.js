@@ -3,7 +3,7 @@
 // shore), the terrain mesh and fast height/shore queries for everything else.
 
 import * as THREE from 'three';
-import { fbm2, ridged2, smoothstep, clamp, lerp } from './util.js';
+import { fbm2, ridged2, smoothstep, clamp, lerp, angleDiff } from './util.js';
 import { PLAZA_R, PATH_HALF, PAVILION_PLAZA, GATE_S, FIRST_STATUE } from './layout.js';
 import { terrainDetail } from './textures.js';
 
@@ -22,6 +22,8 @@ function segDist(px, pz, ax, az, bx, bz) {
 /** Low-frequency ground level that paths follow. */
 export const lowGround = (x, z) => 3.6 + 1.5 * fbm2(x * 0.011 + 3.1, z * 0.011 - 7.3, 2);
 export const HUB_Y = lowGround(0, 0) + 0.3;
+const PIER_Y = 1.55;      // the fishing pier's deck, a little above the dock's
+const PIER_SLOPE = 0.22;  // how steeply its gangway comes down from the shore
 const ISLET_R = 11;
 
 /** Uniform-grid index of line segments for nearest-path queries. */
@@ -92,6 +94,7 @@ export class Island {
         while (this.coast(Math.sin(a) * r, Math.cos(a) * r) < ISLET_R + 13 && r < 400) r += 2;
         L.islet = { x: Math.sin(a) * r, z: Math.cos(a) * r, r: ISLET_R };
         this._isletCrossing();
+        this._fishingPier();
 
         // fine segments for flattening, carrying their heights
         this.paths = new SegmentGrid(12);
@@ -104,6 +107,7 @@ export class Island {
         for (const sp of L.spokes) addLine(sp.pts, 3);
         addLine(L.dock.pts, 3);
         addLine(L.trail.pts, 3);
+        addLine(L.pier.trail.pts, 2);
 
         this.plazas = [{ x: 0, z: 0, r: PLAZA_R + 0.5, y: HUB_Y, fall: 9 }];
         for (const sp of L.spokes) this.plazas.push({ x: sp.pavilion.x, z: sp.pavilion.z, r: PAVILION_PLAZA + 0.3, y: sp.pavilion.y, fall: 7 });
@@ -167,6 +171,41 @@ export class Island {
         is.dir = { x: dx, z: dz }; // from the islet toward the bridge
         const bx = is.x + dx * 4.6, bz = is.z + dz * 4.6;
         L.bridge = { ax, az, ay, bx, bz, by: is.y, half: 1.25, arch: 1.4, length: Math.hypot(bx - ax, bz - az) };
+    }
+
+    /**
+     * The fishing pier, on the far side of the island from the dock: a trail
+     * from the pavilion standing most nearly opposite the dock down to the
+     * shore, and from there a plank deck straight out over the sea.
+     */
+    _fishingPier() {
+        const L = this.layout;
+        // the dock points along +z, so "opposite" is the path nearest angle PI
+        const off = (sp) => Math.abs(angleDiff(sp.angle, Math.PI));
+        const sp = L.spokes.reduce((a, b) => (off(b) < off(a) ? b : a));
+        const pv = sp.pavilion;
+        const l = Math.hypot(pv.x, pv.z) || 1;
+        const dx = pv.x / l, dz = pv.z / l;
+        // out from the plaza to the waterline
+        let shore = PAVILION_PLAZA;
+        while (this.coast(pv.x + dx * shore, pv.z + dz * shore) < 0 && shore < 150) shore += 0.25;
+        const s0 = PAVILION_PLAZA - 0.5;
+        const s1 = Math.max(s0 + 2, shore - 6);
+        // the trail runs gently downhill and the deck's gangway takes the rest of the drop
+        const ay = Math.max(PIER_Y + 0.3, pv.y - (s1 - s0) * 0.2);
+        const pts = [];
+        const n = Math.ceil((s1 - s0) / 0.5);
+        for (let i = 0; i <= n; i++) {
+            const s = s0 + ((s1 - s0) * i) / n;
+            pts.push({ x: pv.x + dx * s, z: pv.z + dz * s, s: s - s0, y: lerp(pv.y, ay, smoothstep(0, 1, i / n)) });
+        }
+        const ramp = (ay - PIER_Y) / PIER_SLOPE;
+        const length = Math.max(shore - s1 + 12, ramp + 7);
+        L.pier = {
+            spoke: sp, dx, dz, trail: { pts, length: s1 - s0 },
+            ax: pv.x + dx * s1, az: pv.z + dz * s1, ay, y: PIER_Y, slope: PIER_SLOPE, length,
+            bx: pv.x + dx * (s1 + length), bz: pv.z + dz * (s1 + length),
+        };
     }
 
     /** Coastline distance without the islet (negative on land). */

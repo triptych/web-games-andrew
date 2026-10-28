@@ -116,6 +116,29 @@
         <label class="check"><input type="checkbox" id="quality-low"> Lighter graphics (for older devices)</label>
     </div>
 
+    <!-- fishing off the pier: the strike alert, the reel meter and the catch card -->
+    <div id="fishing-hud" class="fishing-hud" hidden>
+        <div id="fish-alert" class="fish-alert" hidden aria-live="assertive">!<span>Strike!</span></div>
+        <div id="fish-meter" class="fish-meter" hidden>
+            <div class="fm-track"><div class="fm-zone" id="fm-zone"></div><div class="fm-fish" id="fm-fish" aria-hidden="true">🐟</div></div>
+            <div class="fm-prog"><div class="fm-fill" id="fm-fill"></div></div>
+        </div>
+        <button id="fish-quit" class="btn fish-quit">Put the rod away <kbd>Esc</kbd></button>
+    </div>
+    <aside id="fish-card" class="panel fish-card" hidden role="dialog" aria-modal="false" aria-labelledby="fish-name">
+        <p class="fc-kicker" id="fish-kicker">You caught</p>
+        <h2 id="fish-name"></h2>
+        <p class="fc-latin" id="fish-latin"></p>
+        <div class="fc-stats" id="fish-stats"></div>
+        <p class="fc-fact" id="fish-fact"></p>
+        <p class="fc-habitat" id="fish-habitat"></p>
+        <div class="fc-foot">
+            <span class="fc-log" id="fish-log"></span>
+            <button id="fish-done" class="btn btn-primary">Let it go</button>
+        </div>
+        <div class="fc-timer"><span id="fish-timer"></span></div>
+    </aside>
+
     <!-- game card (touch and hologram) -->
     <aside id="card" class="panel card" hidden role="dialog" aria-modal="false" aria-labelledby="card-title">
         <div class="card-top">
@@ -196,6 +219,7 @@
                         <li>Hover a statue to read about its game, click it to play</li>
                         <li><kbd>[</kbd> <kbd>]</kbd> turn the hologram at the hub</li>
                         <li><kbd>M</kbd> map · <kbd>L</kbd> library · <kbd>F</kbd> starred · <kbd>T</kbd> time · <kbd>N</kbd> sound</li>
+                        <li>At the end of the fishing pier: <kbd>C</kbd> to cast, click or <kbd>Space</kbd> to strike, hold to reel, <kbd>Esc</kbd> to put the rod away</li>
                     </ul>
                 </div>
                 <div>
@@ -210,7 +234,7 @@
                     </ul>
                 </div>
             </div>
-            <p class="help-note">Each path from the hub leads to one kind of game and ends at a pavilion. Newest games stand nearest the hub. The vines wake up as you come near, and the garden keeps its own time: wait for dusk to see the lamps, fireflies and aurora. A stone bridge crosses to the clock tower on its islet, and the door at its foot leads down into the Works, the machine hall that keeps the island running.</p>
+            <p class="help-note">Each path from the hub leads to one kind of game and ends at a pavilion. Newest games stand nearest the hub. The vines wake up as you come near, and the garden keeps its own time: wait for dusk to see the lamps, fireflies and aurora. A stone bridge crosses to the clock tower on its islet, and the door at its foot leads down into the Works, the machine hall that keeps the island running. On the far side of the island from the dock, a trail drops from the pavilion to a fishing pier: click the rod on its rail (or press <kbd>C</kbd>) to cast, strike when the float dips, then hold to keep the fish in the green band as you reel it in.</p>
         </div>
     </section>
 

@@ -10,6 +10,7 @@ import { PLAZA_R, PATH_HALF, PAVILION_PLAZA } from './layout.js';
 import { HUB_Y } from './terrain.js';
 import { rng, TAU, lerp } from './util.js';
 import { flagstones, plazaMosaic, canvas, toTexture, glowSprite } from './textures.js';
+import { buildPier } from './pier.js';
 
 const V2 = (x, y) => new THREE.Vector2(x, y);
 
@@ -328,7 +329,7 @@ function buildLamps(world, mats) {
     const glass = new THREE.InstancedMesh(glassGeo, mats.glass, n);
     const m = new THREE.Matrix4();
     spots.forEach((s, i) => {
-        s.y = world.groundAt(s.x, s.z);
+        s.y ??= world.groundAt(s.x, s.z);
         m.makeTranslation(s.x, s.y, s.z);
         posts.setMatrixAt(i, m);
         glass.setMatrixAt(i, m);
@@ -712,6 +713,7 @@ export function buildArchitecture(world) {
         world.lampSpots.push(...sp.lamps);
     }
     buildDock(world, mats, batch);
+    world.pier = buildPier(world, batch);
     for (const f of layout.features) {
         if (f.type === 'gear') buildGear(world, batch, f);
         else if (f.type === 'tower') buildTower(world, batch, f);

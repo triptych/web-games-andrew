@@ -145,4 +145,4 @@ export const store = {
 };
 
 /** Shown on the title screen; bump it with any change to the Garden. */
-export const GARDEN_VERSION = '1.1.0';
+export const GARDEN_VERSION = '1.2.0';

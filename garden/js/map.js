@@ -80,7 +80,7 @@ export class IslandMap {
         // paths
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        const lines = [...layout.spokes.map((s) => s.pts), layout.dock.pts, layout.trail.pts];
+        const lines = [...layout.spokes.map((s) => s.pts), layout.dock.pts, layout.trail.pts, layout.pier.trail.pts];
         // the bridge out to the clock tower
         const br = layout.bridge;
         for (const [w, col] of [[3.6, 'rgba(40,30,20,0.7)'], [2.6, '#b9ad9c']]) {
@@ -104,6 +104,21 @@ export class IslandMap {
         ctx.fillStyle = '#9a7650';
         const [dx0, dz0] = toPx(-1.7, layout.dock.start), [dx1, dz1] = toPx(1.7, layout.dock.end);
         ctx.fillRect(dx0, dz0, dx1 - dx0, dz1 - dz0);
+        // the fishing pier
+        const pr = layout.pier;
+        ctx.strokeStyle = '#9a7650';
+        ctx.lineCap = 'butt';
+        ctx.lineWidth = 2.6 * px;
+        ctx.beginPath();
+        ctx.moveTo(...toPx(pr.ax, pr.az));
+        ctx.lineTo(...toPx(pr.bx, pr.bz));
+        ctx.stroke();
+        ctx.lineWidth = 5 * px;
+        ctx.beginPath();
+        ctx.moveTo(...toPx(pr.bx - pr.dx * 5, pr.bz - pr.dz * 5));
+        ctx.lineTo(...toPx(pr.bx, pr.bz));
+        ctx.stroke();
+        ctx.lineCap = 'round';
         // plazas
         const disc = (x, z, r, fill, stroke) => {
             ctx.beginPath();
