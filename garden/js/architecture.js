@@ -581,7 +581,7 @@ function buildBridge(world, batch) {
     }
     for (const t of piers) {
         const x = b.ax + ux * len * t, z = b.az + uz * len * t;
-        const top = deckY(t) - 3.0, bottom = -10;
+        const top = deckY(t) - 0.6, bottom = -10; // up into the deck, so the arch always sits on it
         batch.add('granite', new THREE.BoxGeometry(W + 0.5, top - bottom, 1.6), xf(x, (top + bottom) / 2, z, yaw));
         // cutwaters on both faces of the pier
         for (const sd of [-1, 1]) batch.add('granite', new THREE.BoxGeometry(1.15, top - bottom, 1.15), xf(x + nx * sd * (W / 2 + 0.25), (top + bottom) / 2, z + nz * sd * (W / 2 + 0.25), yaw + Math.PI / 4));
