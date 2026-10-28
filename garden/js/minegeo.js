@@ -198,12 +198,12 @@ export function rockGeometry(seed, { detail = 2, rough = 0.35, stretch = [1, 1, 
 
 /** A hanging spike (or standing one, flipped): a cone with a ragged surface. */
 export function spikeGeometry(seed, segs = 9, rows = 7) {
-    const g = new THREE.CylinderGeometry(0.0, 1, 1, segs, rows, true);
+    const g = new THREE.CylinderGeometry(1, 0.0, 1, segs, rows, true);
     g.translate(0, -0.5, 0);
     const p = g.attributes.position;
     for (let i = 0; i < p.count; i++) {
         const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-        const t = -y;                       // 0 at the tip, 1 at the root... (cylinder top radius 0 is the tip)
+        const t = -y;                       // 0 at the root (wide end, y = 0), 1 at the tip
         const k = 1 + 0.28 * noise3(x * 2.1 + seed, y * 3.3, z * 2.1) + 0.12 * noise3(x * 6, y * 8, z * 6 + seed);
         const bend = 0.12 * Math.sin(t * 5 + seed) * t;
         p.setXYZ(i, x * k + bend, y, z * k);
