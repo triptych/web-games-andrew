@@ -6,6 +6,7 @@ import { STEP, TOOLS } from '../config.js';
 import { makeRng } from '../rng.js';
 import { jobAct, jobStep } from './job.js';
 import { nextGoal } from './plan.js';
+import { restY } from './rules.js';
 import { jobPassed, shopAct, startCampaign, startFree } from './shop.js';
 import { CLUES, TIPS } from './story.js';
 
@@ -97,7 +98,7 @@ export function deserialize(d) {
         if (J.held) {
             const h = J.held; J.held = null;
             if (h.k === 'part') { const p = J.dev.parts[h.id]; p.loc = 'free'; p.pos[1] = 0; }
-            else { const e = J.dev.wires[h.w].ends[h.e]; e.pos[1] = 0.14; }
+            else { const e = J.dev.wires[h.w].ends[h.e]; e.pos[1] = restY(J.dev, e.pos[0], e.pos[2]); }
         }
     }
     return G;

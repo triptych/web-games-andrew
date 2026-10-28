@@ -151,6 +151,39 @@ if (want('rules')) {
     }
 }
 
+if (want('cables')) {
+    section('loose cable ends rest on what is under them');
+    // generated loose ends never start buried in the tray's base
+    let loose = 0;
+    for (const [kind, tier] of combos) for (let seed = 1; seed <= SEEDS; seed++) {
+        const dev = Dv.generateDevice(seed, kind, tier);
+        for (const w of Object.values(dev.wires)) w.ends.forEach((e) => { if (!e.at) { loose++; if (Math.abs(e.pos[0]) < dev.W / 2 + 0.3 && Math.abs(e.pos[2]) < dev.D / 2 + 0.3) ok(e.pos[1] >= C.FLOOR_Y, `${kind}/${tier}/${seed}: a loose plug over the tray is not under its floor`); } });
+    }
+    console.log(`  ${loose} loose ends checked`);
+    // a plug pulled out and dropped over the device lies on the tray floor where it can be picked up again
+    const G = freeJob('noodlebot', 1, 3);
+    const dev = G.job.dev;
+    Gm.act(G, { t: 'tool', tool: 'hand' });
+    const open = () => { for (let i = 0; i < 12 && Object.values(dev.slots).some((s) => s.kind === 'panel' && s.occ); i++) { try { drive(G, Bt.repairJob(G, { maxGoals: 1 })); } catch { /* one goal */ } } };
+    open();
+    const w = Object.values(dev.wires).find((x) => x.ends.every((e) => e.at && Ru.blockers(dev, dev.slots[e.port.split('.')[0]]).length === 0));
+    const pr = `plug:${w.id}.0`, pp = Pl.refPos(dev, pr);
+    Gm.act(G, ptr(G, pr, pp)); tick(G, 0.3);
+    ok(G.job.held && G.job.held.k === 'plug', 'a plug can be pulled out');
+    for (const [x, z] of [[0, 0], [dev.W / 2 + 2, 0]]) {
+        Gm.act(G, { t: 'move', ref: null, bx: x, bz: z, ax: x, az: z }); tick(G, 0.5);
+        Gm.act(G, { t: 'up' }); if (G.job.held) { Gm.act(G, ptr(G, null, [x, 0, z])); Gm.act(G, { t: 'up' }); }
+        tick(G, 0.6);
+        const e = w.ends[0];
+        ok(Math.abs(e.pos[1] - Ru.restY(dev, e.pos[0], e.pos[2])) < 0.02, `dropped at x=${x.toFixed(0)}: it lies at ${e.pos[1].toFixed(2)}, on the surface`);
+        if (x === 0) {
+            ok(e.pos[1] >= C.FLOOR_Y, 'over the tray it lies on the tray floor, not inside its base');
+            Gm.act(G, ptr(G, pr, e.pos)); tick(G, 0.3);
+            ok(G.job.held && G.job.held.k === 'plug', 'and it can be picked up again');
+        }
+    }
+}
+
 if (want('rules2')) {
     section('parts, cables, snapping');
     const G = freeJob('radio', 1, 2);

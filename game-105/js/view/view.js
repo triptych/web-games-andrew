@@ -10,7 +10,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 import { BENCH, BIN, DISH, FAST, FLOOR_Y, HOVER } from '../config.js';
 import { KINDS } from '../sim/kinds.js';
-import { blockers, canAct, holePos, liftCheck, parseRef, partPlace, placeCheck, portWorld, slotPlace, snapSlot, stashOpen, wireEndPos, rot } from '../sim/rules.js';
+import { blockers, restY, canAct, holePos, liftCheck, parseRef, partPlace, placeCheck, portWorld, slotPlace, snapSlot, stashOpen, wireEndPos, rot } from '../sim/rules.js';
 import { refPos } from '../sim/plan.js';
 import { buildBin, buildDish, buildShell, makeFastener, makeHoleRing, makePartView, syncPorts, updatePartView } from './models.js';
 import { mat, colorMat, Builder, accentMat } from './kit.js';
@@ -57,7 +57,7 @@ export class View {
         const r = this.renderer;
         r.outputColorSpace = THREE.SRGBColorSpace;
         r.toneMapping = THREE.ACESFilmicToneMapping;
-        r.toneMappingExposure = 1.35;
+        r.toneMappingExposure = 1.25;
         r.shadowMap.enabled = true;
         r.shadowMap.type = THREE.PCFSoftShadowMap;
         r.setClearColor(0x07070d);
@@ -69,7 +69,7 @@ export class View {
 
         // lights: a hemisphere for the room, the work lamp with real shadows
         this.scene.add(new THREE.HemisphereLight(0x7a90d8, 0x3a2a44, 1.1));
-        this.lamp = new THREE.SpotLight(0xffe6c0, 640, 60, 0.95, 0.7, 1.6);
+        this.lamp = new THREE.SpotLight(0xffe6c0, 330, 60, 0.95, 0.7, 1.6);
         this.lamp.position.set(1.3, 11, -3.5);
         this.lamp.target.position.set(0, 0, 0.4);
         this.lamp.castShadow = true;
@@ -553,7 +553,7 @@ export class View {
         if (this.mode !== 'title' && Math.sin(time * 4.7) > 0.5) this.fx.steam(-10.4, 1.6, -5.4);
         if (Math.sin(time * 7.1) > 0.8) this.fx.glow.emit({ x: 1.3 + (Math.random() - 0.5) * 6, y: 1 + Math.random() * 6, z: 1 + (Math.random() - 0.5) * 6, vx: 0.05, vy: 0.04, vz: 0.03, life: 4, s0: 0.12, s1: 0.12, a: 0.25, color: 0xffeccc });
 
-        this.lamp.intensity = 640 * (0.97 + Math.sin(time * 13) * 0.01);
+        this.lamp.intensity = 330 * (0.97 + Math.sin(time * 13) * 0.01);
         if (this.composer) {
             this.grade.uniforms.time.value = time % 100;
             this.grade.uniforms.aberr.value = this.reduced ? 0 : this.aberr;
@@ -635,7 +635,7 @@ export class View {
             // a cable under a cover plate is out of sight: hide it unless an end is out in the open
             const covered = w.ends.every((e) => e.at && blockers(dev, dev.slots[e.port.split('.')[0]]).length > 0);
             wv.group.visible = !covered;
-            wv.update(w, a, b, !w.ends[0].at, !w.ends[1].at, t, {});
+            wv.update(w, a, b, !w.ends[0].at, !w.ends[1].at, t, {}, (x, z) => restY(dev, x, z));
         }
         // stash
         for (const [id, s] of this.stash) {

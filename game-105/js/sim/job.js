@@ -8,7 +8,7 @@
 import { BENCH, BIN, DISH, FAST, HOVER, SPAWN, TUNE, FLOOR_Y } from '../config.js';
 import { MODS } from './modules.js';
 import {
-    blockers, bitFor, canAct, defaultTool, describe, evaluate, failMessage, holeOf, holePos, isDefective, jointOf, jointsLeft, liftCheck,
+    blockers, bitFor, restY, canAct, defaultTool, describe, evaluate, failMessage, holeOf, holePos, isDefective, jointOf, jointsLeft, liftCheck,
     parseRef, partPlace, placeCheck, portWorld, rot, slotPlace, snapSlot, stashOpen, wireEndPos, flowUntilFail,
 } from './rules.js';
 
@@ -223,7 +223,7 @@ function release(G) {
                 const pw = portWorld(dev, `${id}.${p.id}`);
                 return pw && Math.hypot(pw[0] - wp[0], pw[2] - wp[2]) < TUNE.plugSnap;
             }));
-            end.pos = [wp[0], 0.14, wp[2]];
+            end.pos = [wp[0], restY(dev, wp[0], wp[2]), wp[2]];
             if (nearWrong) { say(G, `The ${w.color} plug goes to the ${w.color}-ringed socket.`); ev(G, { type: 'bonk', ref: `plug:${w.id}.${h.e}`, why: 'wrong' }); J.stats.wrong++; }
             else ev(G, { type: 'drop', ref: `plug:${w.id}.${h.e}` });
         }
@@ -402,6 +402,14 @@ function relax(G, dt) {
         }
         const [cx, cz] = clampBench(a.pos[0], a.pos[2]);
         a.pos[0] = cx; a.pos[2] = cz;
+    }
+    // a cable end lying loose rests on whatever is under it, never inside the tray's base
+    for (const w of Object.values(dev.wires)) {
+        w.ends.forEach((e, i) => {
+            if (e.at || (J.held && J.held.k === 'plug' && J.held.w === w.id && J.held.e === i)) return;
+            const y = restY(dev, e.pos[0], e.pos[2]);
+            if (Math.abs(e.pos[1] - y) > 0.01) e.pos[1] += (y - e.pos[1]) * Math.min(1, dt * 14);
+        });
     }
 }
 

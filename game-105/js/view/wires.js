@@ -68,7 +68,8 @@ export class WireView {
     }
 
     /** a, b: end positions (plug base). loose: whether each end lies on the bench. */
-    update(wire, a, b, looseA, looseB, t, st) {
+    update(wire, a, b, looseA, looseB, t, st, floor = () => 0.1) {
+        this.floor = floor;
         const key = `${a[0].toFixed(2)},${a[1].toFixed(2)},${a[2].toFixed(2)}|${b[0].toFixed(2)},${b[1].toFixed(2)},${b[2].toFixed(2)}|${wire.cut ? wire.cut.done : 'x'}`;
         // plugs
         const ends = [[a, looseA], [b, looseB]];
@@ -81,7 +82,7 @@ export class WireView {
             } else {
                 const ang = Math.atan2(other[0] - p[0], other[2] - p[2]);
                 const carried = p[1] > 0.5;
-                pl.g.position.set(p[0], carried ? p[1] : 0.2, p[2]);
+                pl.g.position.set(p[0], carried ? p[1] : p[1] + 0.06, p[2]);
                 pl.g.rotation.set(carried ? -0.5 : -Math.PI / 2, ang, 0, 'YXZ');
                 pl.tag.visible = true;
             }
@@ -134,7 +135,7 @@ export class WireView {
             pts[2].y = Math.max(lowest, pts[2].y * (looseA && looseB ? 0.2 : 0.7));
         }
         this.curve.updateArcLengths();
-        for (let i = 0; i < N; i++) { this.curve.getPoint(i / (N - 1), this.samples[i]); if (this.samples[i].y < 0.1) this.samples[i].y = 0.1; }
+        for (let i = 0; i < N; i++) { this.curve.getPoint(i / (N - 1), this.samples[i]); const fl = this.floor(this.samples[i].x, this.samples[i].z) - 0.04; if (this.samples[i].y < fl) this.samples[i].y = fl; }
         const pos = this.geo.attributes.position.array, nor = this.geo.attributes.normal.array;
         const cut = wire.cut;
         const i0 = cut ? Math.round(cut.t * (N - 1)) : -9;
