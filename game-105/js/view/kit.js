@@ -43,7 +43,7 @@ export const accentMat = (hex) => memo('a:' + hex, () => std({ color: hex, metal
 export const colorMat = (hex, o = {}) => memo('c:' + hex + JSON.stringify(o), () => std(Object.assign({ color: hex, metalness: 0.1, roughness: 0.5 }, o)));
 export const glassMat = (hex, op = 0.5) => memo('g:' + hex + op, () => std({ color: hex, metalness: 0, roughness: 0.04, transparent: true, opacity: op, depthWrite: false, emissive: hex, emissiveIntensity: 0.25 }));
 export const pcbMat = (base, seed) => memo(`p:${base}${seed}`, () => std({ color: 0xffffff, map: TX.pcbTex(base, seed), metalness: 0.2, roughness: 0.55, bumpMap: TX.pcbTex(base, seed), bumpScale: 0.5 }));
-export const panelMat = (body, accent, seed, text) => memo(`pn:${body}${accent}${seed}${text}`, () => std({ color: 0xffffff, map: TX.panelTex(body, accent, seed, text), metalness: 0.7, roughness: 0.5, bumpMap: TX.noiseTex(11, 256, 'grain'), bumpScale: 0.35 }));
+export const panelMat = (body, accent, seed, text) => memo(`pn:${body}${accent}${seed}${text}`, () => std({ color: 0xffffff, map: TX.panelTex(body, accent, seed, text), metalness: 0.4, roughness: 0.68, bumpMap: TX.noiseTex(11, 256, 'grain'), bumpScale: 0.35 }));
 export const labelMat = (text, o) => memo('l:' + text + JSON.stringify(o || {}), () => std({ color: 0xffffff, map: TX.labelTex(text, o), metalness: 0, roughness: 0.6 }));
 export const ledMat = (hex) => memo('led:' + hex, () => new THREE.MeshBasicMaterial({ color: hex, toneMapped: false }));
 

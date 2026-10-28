@@ -277,7 +277,7 @@ td:first-child { color: var(--amber); white-space: nowrap; padding-right: 12px; 
     .d-box { gap: 8px; padding: 8px; }
     #d-text { min-height: 70px; font-size: 17px; }
     .drawer { top: 38%; border-radius: 12px 12px 0 0; border-left: 0; width: 100%; }
-    #hud-job small { display: none; }
+    #hud-job small, #hud-credits { display: none; }
 }
 @media (max-height: 520px) and (orientation: landscape) {
     #tools { left: calc(8px + var(--safe-l)); bottom: calc(8px + var(--safe-b)); transform: none; width: auto; grid-template-columns: repeat(2, 48px); gap: 4px; }

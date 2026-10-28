@@ -289,8 +289,7 @@ async function phone(w, h) {
         await page.waitForTimeout(40);
     }
     check((await Q(page, () => __sr.G.phase)) === 'shop', 'taps carry the story to the shop');
-    const dl = await Q(page, () => { const d = document.getElementById('dialogue'); return d.hidden; });
-    check(dl, 'the dialogue box is gone');
+    await until(page, () => document.getElementById('dialogue').hidden && !document.getElementById('shop').hidden, 'the dialogue box is gone and the shop bar is up');
     await shot(page, `phone-${w}x${h}-shop`);
     const shopRects = await Q(page, () => ['#btn-call', '#btn-board', '#btn-upgrades'].map((s) => { const r = document.querySelector(s).getBoundingClientRect(); return { s, ok: r.height >= 44 && r.left >= 0 && r.right <= innerWidth && r.bottom <= innerHeight }; }));
     for (const z of shopRects) check(z.ok, `${z.s} is at least 44 px and on screen`);
@@ -298,6 +297,7 @@ async function phone(w, h) {
     await until(page, () => __sr.G.phase === 'dialogue', 'a tap rings the bell');
     for (let i = 0; i < 300; i++) { if ((await Q(page, () => __sr.G.phase)) !== 'dialogue') break; await tapSel('#dialogue'); await page.waitForTimeout(40); }
     await until(page, () => __sr.G.phase === 'brief', 'the work order comes up');
+    await until(page, () => !document.getElementById('brief').hidden && document.getElementById('btn-accept').getBoundingClientRect().height > 0, 'the work order is on screen');
     const briefFits = await Q(page, () => { const r = document.querySelector('#brief .sheet').getBoundingClientRect(); const b = document.getElementById('btn-accept').getBoundingClientRect(); return b.bottom <= innerHeight + 1 && b.height >= 44 && r.left >= 0 && r.right <= innerWidth; });
     check(briefFits, 'the work order and its button fit the screen');
     await shot(page, `phone-${w}x${h}-brief`);
