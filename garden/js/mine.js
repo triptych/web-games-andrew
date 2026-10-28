@@ -848,6 +848,24 @@ export class Mine {
         this.inside = false;
     }
 
+    /** Give back everything the mine holds on the GPU (the cart belongs to the cove and stays). */
+    dispose() {
+        const cart = this.cart.group;
+        const seen = new Set();
+        this.scene.traverse((o) => {
+            if (o === cart || cart.getObjectById(o.id)) return;
+            o.geometry?.dispose();
+            for (const m of [].concat(o.material ?? [])) {
+                if (seen.has(m)) continue;
+                seen.add(m);
+                for (const v of Object.values(m)) if (v?.isTexture) v.dispose();
+                m.dispose();
+            }
+        });
+        this.envRT?.dispose();
+        this.pool.lights.forEach((L) => L.l.dispose?.());
+    }
+
     /** What the ears need to know: how fast, how hot, how glittery, how big. Each 0..1. */
     soundState() {
         const s = this.s;
