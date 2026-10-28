@@ -188,8 +188,9 @@ export function rockGeometry(seed, { detail = 2, rough = 0.35, stretch = [1, 1, 
         v.fromBufferAttribute(p, i);
         const n = fbm3(v.x * 1.7 + seed * 13, v.y * 1.7 + seed * 7, v.z * 1.7 + seed * 3, 3) + 0.25 * noise3(v.x * 5 + seed, v.y * 5, v.z * 5);
         v.multiplyScalar(1 + n * rough);
+        // the flat top is cut in unit space, before stretching
+        if (flatTop !== null && v.y > flatTop) v.y = flatTop + (v.y - flatTop) * 0.02;
         v.x *= stretch[0]; v.y *= stretch[1]; v.z *= stretch[2];
-        if (flatTop !== null && v.y > flatTop) v.y = flatTop + (v.y - flatTop) * 0.04;
         p.setXYZ(i, v.x, v.y, v.z);
     }
     g.computeVertexNormals();
