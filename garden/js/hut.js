@@ -8,6 +8,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Batch, xf } from './materials.js';
+import { buildFireplace } from './fireplace.js';
 import { signMesh, signTexture } from './architecture.js';
 import { glowSprite } from './textures.js';
 import { PLAZA_R, PATH_HALF } from './layout.js';
@@ -323,11 +324,10 @@ export class Hut {
             this._box(b, 'darkWood', 0.1, 0.05, 0.95, sx * (R_X - 0.1), 1.65, 0.3);
             this._box(b, 'darkWood', 0.1, 0.95, 0.05, sx * (R_X - 0.1), 1.65, 0.3);
         }
-        // stone hearth in the back corner, with a little fire
-        this._box(b, 'granite', 1.3, 1.5, 0.7, -R_X + 0.9, 0.75, -R_Z + 0.45);
-        this._box(b, 'dark', 0.7, 0.8, 0.1, -R_X + 0.9, 0.5, -R_Z + 0.82);
-        this._box(b, 'granite', 1.5, 0.12, 0.9, -R_X + 0.9, 1.56, -R_Z + 0.5);
-        this._collide(-R_X + 0.9, -R_Z + 0.5, 1.3, 0.7);
+        // a stone fireplace in the back corner, with a fire burning in it (see fireplace.js)
+        this.fireplace = buildFireplace({ batch: b, scene: this.scene, mats: this.mats, x: -R_X + 0.9, back: -R_Z + 0.06, left: -R_X + 0.06, ceil: CEIL });
+        const fc = this.fireplace.collider;
+        this._collide(fc.x, fc.z, fc.w, fc.d);
     }
 
     _furniture(batch) {
@@ -354,8 +354,8 @@ export class Hut {
         // a rug
         b.add('rugEdge', new THREE.CylinderGeometry(1.3, 1.3, 0.015, 40), xf(0, 0.008, -0.2, 0, 1, 1, 0.75));
         b.add('rug', new THREE.CylinderGeometry(1.15, 1.15, 0.02, 40), xf(0, 0.012, -0.2, 0, 1, 1, 0.75));
-        // bookshelf on the right-hand wall
-        const sx = R_X - 0.3, sz = -0.4;
+        // bookshelf on the right-hand wall, back toward the corner and clear of the window
+        const sx = R_X - 0.3, sz = -1.8;
         this._box(b, 'darkWood', 0.4, 2.1, 0.06, sx, 1.05, sz - 0.9);
         this._box(b, 'darkWood', 0.4, 2.1, 0.06, sx, 1.05, sz + 0.9);
         for (let k = 0; k < 5; k++) this._box(b, 'darkWood', 0.4, 0.04, 1.8, sx, 0.15 + k * 0.48, sz);
@@ -387,7 +387,7 @@ export class Hut {
     }
 
     _lights() {
-        // a warm lantern hanging from the beams, a fire in the hearth and moonlight at the windows
+        // a warm lantern hanging from the beams and moonlight at the windows (the fire brings its own light)
         const hang = new THREE.Group();
         hang.position.set(0, CEIL - 0.5, -0.4);
         hang.add(new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.5, 6).translate(0, 0.25, 0), this.mats.iron));
@@ -397,21 +397,12 @@ export class Hut {
         lamp.position.set(0, CEIL - 0.6, -0.4);
         this.scene.add(lamp);
         this.lamp = lamp;
-        const fire = new THREE.PointLight(0xff7a2a, 5, 6, 2);
-        fire.position.set(-R_X + 0.9, 0.6, -R_Z + 0.9);
-        this.scene.add(fire);
-        this.fire = fire;
         for (const sx of [-1, 1]) {
             const m = new THREE.PointLight(0x9bb8ff, 2.5, 5, 2);
             m.position.set(sx * (R_X - 0.7), 1.6, 0.3);
             this.scene.add(m);
         }
         this.scene.add(new THREE.AmbientLight(0x5a4a40, 0.5));
-        // embers in the hearth
-        const emb = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.12, 0.3), new THREE.MeshStandardMaterial({ color: 0x220800, emissive: 0xff5a10, emissiveIntensity: 2.4 }));
-        emb.position.set(-R_X + 0.9, 0.2, -R_Z + 0.55);
-        this.scene.add(emb);
-        this.embers = emb.material;
     }
 
     _orb() {
@@ -527,8 +518,7 @@ export class Hut {
         const s = 0.9 + this.hover * 0.25 + Math.sin(t * 1.7) * 0.04;
         this.halo.scale.set(s, s, 1);
         this.orbLight.intensity = 3 + Math.sin(t * 1.7) * 0.8 + this.hover * 2;
-        this.fire.intensity = 5 + Math.sin(t * 12) * 0.7 + Math.sin(t * 7.3) * 0.9;
-        this.embers.emissiveIntensity = 2.2 + Math.sin(t * 5) * 0.4;
+        this.fireplace.update(dt, t);
         this.lamp.intensity = 9 + Math.sin(t * 2.1) * 0.25;
     }
 }
