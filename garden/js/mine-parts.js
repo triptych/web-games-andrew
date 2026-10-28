@@ -157,7 +157,7 @@ export function buildCart(mats) {
     }
     // the lantern: a short pole at the front left corner with a cage and a glowing core
     const lanternGroup = new THREE.Group();
-    lanternGroup.position.set(0.46, floorY + H + 0.45, L / 2 - 0.12);
+    lanternGroup.position.set(0.46, floorY + H, L / 2 - 0.12);
     const lb = new Batch();
     lb.add('blackIron', new THREE.CylinderGeometry(0.018, 0.018, 0.9, 6), xf(0, -0.1, 0));
     lb.add('brass', new THREE.CylinderGeometry(0.1, 0.12, 0.05, 8), xf(0, 0.28, 0.1));
@@ -165,7 +165,10 @@ export function buildCart(mats) {
     lb.add('brass', new THREE.CylinderGeometry(0.12, 0.09, 0.04, 8), xf(0, 0.08, 0.1));
     for (let k = 0; k < 4; k++) lb.add('blackIron', new THREE.BoxGeometry(0.015, 0.2, 0.015), xf(Math.cos((k * TAU) / 4 + 0.78) * 0.095, 0.18, 0.1 + Math.sin((k * TAU) / 4 + 0.78) * 0.095));
     lb.add('lanternGlass', new THREE.CylinderGeometry(0.07, 0.07, 0.18, 8), xf(0, 0.18, 0.1));
-    lanternGroup.add(lb.build(mats, { castShadow: false }));
+    // the pole's foot is the pivot, so a sway swings it from the cart's rim, not from its middle
+    const lanternBody = lb.build(mats, { castShadow: false });
+    lanternBody.position.y = 0.45;
+    lanternGroup.add(lanternBody);
     group.add(lanternGroup);
     // a little ore in the corner
     const ore = new Batch();

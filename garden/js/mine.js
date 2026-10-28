@@ -768,7 +768,7 @@ export class Mine {
                 camera.position.addScaledVector(new THREE.Vector3(0, 1, 0), 0.012 * sp * k1);
                 camera.position.addScaledVector(pose.pos.clone().sub(camera.position).normalize().multiplyScalar(0), 0);
                 camera.quaternion.multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0.004 * sp * k2, 0.003 * sp * k1, 0.008 * sp * Math.sin(t * 5.3), 'YXZ')));
-                this.cart.lantern.rotation.z = 0.12 * Math.sin(t * 2.3) * sp + curvatureAt(this.s) * 14 * this.dir;
+                this.cart.lantern.rotation.z = clamp(0.03 * Math.sin(t * 2.3) * sp + curvatureAt(this.s) * 2.5 * this.dir, -0.1, 0.1);
                 // which stretch are we in
                 const sec = sectionAt(this.s);
                 if (sec.id !== this.zoneId) {
