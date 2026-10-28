@@ -241,7 +241,7 @@ async function desktop() {
     await until(page, () => __sr.G.phase === 'dialogue', 'handing it over starts the customer\'s reply');
     check((await skipDialogue(page)) === 'shop', 'and ends in the shop');
     check(await Q(page, () => __sr.G.story.credits > 0), 'the customer paid');
-    check(await Q(page, () => document.getElementById('btn-call').textContent === 'Next customer'), 'another customer waits');
+    await until(page, () => document.getElementById('btn-call').textContent === 'Next customer', 'another customer waits');
     reportErrors('desktop');
 }
 

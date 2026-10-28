@@ -170,6 +170,9 @@ export class Room {
         this.buildLamp(g);
         this.buildSpanner(g);
         this.buildCosmetics(g);
+        // only the bench's own things cast the lamp's shadows (the room's furniture would stripe the mat)
+        g.traverse((o) => { if (o.isMesh) o.castShadow = false; });
+        this.spanner.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     }
 
     buildBench(g) {
@@ -234,11 +237,13 @@ export class Room {
         const pb = new Builder();
         for (let i = 0; i < 3; i++) pb.cylc(mat('darkSteel'), 0.35, 0.35, 40, 14, 0, 13.6 - i * 0.2, -6 + i * 5, 0, 0, PI / 2);
         pb.tor(mat('copper'), 0.4, 0.06, -6, 13.6, -6, 0, PI / 2, 0, 6, 16);
-        g.add(pb.build());
+        // ceiling things live in one group so they can be hidden when the camera looks down from above them
+        this.ceilG = new THREE.Group(); g.add(this.ceilG);
+        this.ceilG.add(pb.build());
         // fluorescent tube over the counter
         this.tube = new THREE.Mesh(new THREE.BoxGeometry(6, 0.18, 0.4), ledMat(0xcfe8ff));
-        this.tube.position.set(0, 13.4, 5); g.add(this.tube);
-        this.tubeLight = new THREE.PointLight(0xbfd8ff, 30, 30, 1.8); this.tubeLight.position.set(0, 12.8, 5); g.add(this.tubeLight);
+        this.tube.position.set(0, 13.4, 5); this.ceilG.add(this.tube);
+        this.tubeLight = new THREE.PointLight(0xbfd8ff, 30, 30, 1.8); this.tubeLight.position.set(0, 12.8, 5); this.ceilG.add(this.tubeLight);
     }
 
     buildLamp(g) {
@@ -314,6 +319,7 @@ export class Room {
 
     update(dt, t, st) {
         this.t = t;
+        this.ceilG.visible = (st.camY ?? 0) < 12.5;
         this.rain.update(dt);
         this.glass.material.uniforms.time.value = t;
         this.ad.material.uniforms.time.value = t;

@@ -547,7 +547,7 @@ export class View {
         else { this.toolRig.root.visible = false; this.ring.visible = false; }
 
         this.room.setUpgrades(G.story ? G.story.upgrades || {} : {});
-        this.room.update(dt, time, { lookX: Math.sin(this.rig.az) });
+        this.room.update(dt, time, { lookX: Math.sin(this.rig.az), camY: this.camera.position.y });
         this.fx.update(dt, this.h);
         // ambient: steam from the mug, dust in the lamp
         if (this.mode !== 'title' && Math.sin(time * 4.7) > 0.5) this.fx.steam(-10.4, 1.6, -5.4);
