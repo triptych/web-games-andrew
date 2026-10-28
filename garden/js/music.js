@@ -142,12 +142,13 @@ export class AudioEngine {
     }
 
     /** Below ground the island's surf, wind and creatures fall away under the hum of the machines. */
-    setUnderground(on) {
+    setUnderground(on, hum = true) {
         this.underground = on;
+        this.clanks = on && hum;
         if (!this.ctx) return;
         if (!this.hum) this._machines();
         const t = this.ctx.currentTime;
-        this.hum.gain.setTargetAtTime(on ? 0.16 : 0, t, 0.5);
+        this.hum.gain.setTargetAtTime(on && hum ? 0.16 : 0, t, 0.5);
         this.music.gain.setTargetAtTime(this.musicVol * (on ? 0.45 : 1), t, 0.5);
         this.nextClankAt = t + 0.5;
     }
@@ -394,7 +395,7 @@ export class AudioEngine {
             if (!this.underground) this._creature(this.nextAmbientAt);
             this.nextAmbientAt += 1.5 + Math.random() * 4;
         }
-        while (this.underground && this.nextClankAt < ahead) {
+        while (this.clanks && this.nextClankAt < ahead) {
             if (!this.muted) this._clank(this.nextClankAt);
             this.nextClankAt += this.beat * (Math.random() < 0.7 ? 1 : 0.5);
         }
@@ -815,5 +816,45 @@ export class AudioEngine {
                 this._noiseBurst(at, 0.015 + Math.random() * 0.025, 2500 + Math.random() * 4000, 1.2, (0.05 + Math.random() * 0.1) * (0.4 + near * 0.6), 'bandpass', out);
             }
         }
+    }
+
+    /** Cinderpeak coughing: a long, deep roll that reaches you late, a hiss of gas, a few pops. `near` is 1 up close. */
+    volcanoRumble({ delay = 0, near = 0.3, size = 1 } = {}) {
+        if (!this.ctx || this.muted || this.underground) return;
+        const ctx = this.ctx, t = ctx.currentTime + delay;
+        const out = this._fireworkBus(0, Math.min(1.4, near * size * 1.6 + 0.12));
+        this.boomBuf ??= this._noiseBuffer(4, true);
+        const roll = (at, vol, cutoff, len) => {
+            const s = ctx.createBufferSource();
+            s.buffer = this.boomBuf;
+            s.loop = true;
+            const lp = ctx.createBiquadFilter();
+            lp.type = 'lowpass';
+            lp.frequency.setValueAtTime(cutoff, at);
+            lp.frequency.exponentialRampToValueAtTime(70, at + len);
+            const g = ctx.createGain();
+            g.gain.setValueAtTime(0, at);
+            g.gain.linearRampToValueAtTime(vol, at + 0.5);
+            g.gain.exponentialRampToValueAtTime(0.001, at + len);
+            s.connect(lp).connect(g).connect(out);
+            s.start(at, Math.random() * 2);
+            s.stop(at + len + 0.05);
+        };
+        roll(t, 2.6, 260, 7);
+        roll(t + 0.8, 1.2, 180, 8);
+        const o = ctx.createOscillator();
+        o.frequency.setValueAtTime(58, t);
+        o.frequency.exponentialRampToValueAtTime(26, t + 2.2);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.5, t + 0.15);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 2.6);
+        o.connect(g).connect(out);
+        o.start(t);
+        o.stop(t + 2.7);
+        // gas
+        this._noiseBurst(t + 0.2, 2.8, 2400, 0.6, 0.05 * near, 'highpass', out);
+        // stones falling
+        for (let i = 0; i < 14; i++) this._noiseBurst(t + 1.2 + Math.random() * 4, 0.05 + Math.random() * 0.1, 300 + Math.random() * 500, 1.2, 0.05 + Math.random() * 0.08, 'bandpass', out);
     }
 }

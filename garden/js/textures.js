@@ -2,7 +2,7 @@
 // copper patina, hedge leaves and terrain detail. No image files anywhere.
 
 import * as THREE from 'three';
-import { rng, tileNoise, clamp, lerp } from './util.js';
+import { rng, tileNoise, clamp, lerp, smoothstep } from './util.js';
 
 let SIZE = 512;
 let anisotropy = 4;
@@ -144,6 +144,29 @@ export function granite() {
             o[3] = 0.5 + a * 0.3 + b * 0.1;
         });
         return { map: toTexture(cnv), normalMap: toTexture(normalCanvas(height, n, 6), { srgb: false }) };
+    });
+}
+
+/** Cracked, bedded cave rock: blocks split by dark joints, with a deep normal map. */
+export function cavernRock() {
+    return cached('cavern', () => {
+        const n = SIZE;
+        const vor = voronoi(n, 6, 33);
+        const vor2 = voronoi(n, 14, 5);
+        const { cnv, height } = paint(n, (x, y, o) => {
+            const u = x / n, v = y / n;
+            const a = vor(u, v), b = vor2(u, v);
+            const crack = 1 - smoothstep(0.0, 0.03, a.f2 - a.f1);
+            const crack2 = (1 - smoothstep(0.0, 0.02, b.f2 - b.f1)) * 0.6;
+            const blocks = tileNoise(u * 5, v * 5, 5, 4) * 0.5 + 0.5;
+            const grain = tileNoise(u * 56, v * 56, 56, 2);
+            const pit = Math.max(0, tileNoise(u * 22, v * 22, 22, 2) - 0.25);
+            const base = 0.5 + a.id * 0.22 + blocks * 0.22 + grain * 0.1 - pit * 0.6;
+            const c = base * (1 - Math.max(crack, crack2) * 0.75);
+            o[0] = c * 255; o[1] = c * 252; o[2] = c * 246;
+            o[3] = 0.55 + a.id * 0.2 + blocks * 0.25 + grain * 0.05 - Math.max(crack, crack2) * 0.45 - pit * 0.5;
+        });
+        return { map: toTexture(cnv), normalMap: toTexture(normalCanvas(height, n, 9), { srgb: false }) };
     });
 }
 
@@ -343,6 +366,29 @@ export function glowSprite() {
         g.addColorStop(1, 'rgba(255,255,255,0)');
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, n, n);
+        const t = new THREE.CanvasTexture(cnv);
+        t.colorSpace = THREE.SRGBColorSpace;
+        return t;
+    });
+}
+
+/** A very soft glow with a long Gaussian tail, for halos around bright things. */
+export function softGlow() {
+    return cached('softglow', () => {
+        const n = 128;
+        const cnv = canvas(n);
+        const ctx = cnv.getContext('2d');
+        const img = ctx.createImageData(n, n);
+        for (let y = 0; y < n; y++) {
+            for (let x = 0; x < n; x++) {
+                const d = Math.hypot(x / n - 0.5, y / n - 0.5) * 2;
+                const a = Math.exp(-d * d * 4.2) * (1 - clamp((d - 0.7) / 0.3, 0, 1));
+                const k = (y * n + x) * 4;
+                img.data[k] = img.data[k + 1] = img.data[k + 2] = 255;
+                img.data[k + 3] = a * 255;
+            }
+        }
+        ctx.putImageData(img, 0, 0);
         const t = new THREE.CanvasTexture(cnv);
         t.colorSpace = THREE.SRGBColorSpace;
         return t;

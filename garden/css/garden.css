@@ -359,6 +359,7 @@ kbd {
     transition: opacity 0.6s ease;
 }
 .fade.on { opacity: 1; }
+.fade.dark { background: #000; transition-duration: 0.3s; }
 
 /* ------------------------------------------------------------ panels */
 

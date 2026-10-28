@@ -28,6 +28,7 @@ export class Controls {
         this.joy = null;      // { id, x0, y0, dx, dy }
         this.look = null;     // { id, x, y, moved }
         this.enabled = false;
+        this.seated = false;  // in a cart: the head turns, nothing else moves
         this.onTap = null;    // (clientX, clientY, pointerType) => void
         this.onHoverMove = null;
         this.stepDist = 0;
@@ -43,7 +44,7 @@ export class Controls {
     _bind() {
         const d = this.dom;
         addEventListener('keydown', (e) => {
-            if (!this.enabled || e.target.closest?.('input, textarea, [contenteditable]')) return;
+            if (!this.enabled || this.seated || e.target.closest?.('input, textarea, [contenteditable]')) return;
             const k = e.key.toLowerCase();
             if (['w', 'a', 's', 'd', 'q', 'e', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) {
                 this.keys.add(k);
@@ -61,7 +62,7 @@ export class Controls {
             const touch = e.pointerType === 'touch';
             const rect = d.getBoundingClientRect();
             const leftZone = e.clientX - rect.left < rect.width * 0.4 && e.clientY - rect.top > rect.height * 0.35;
-            if (touch && leftZone && !this.joy) {
+            if (touch && leftZone && !this.joy && !this.seated) {
                 this.joy = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0, t0: performance.now(), far: 0 };
                 this.route = null;
                 this.world.ui?.showJoystick(e.clientX, e.clientY, 0, 0);
@@ -194,7 +195,7 @@ export class Controls {
     }
 
     update(dt) {
-        if (!this.enabled) return;
+        if (!this.enabled || this.seated) return;
         const k = this.keys;
         let fx = 0, fz = 0, turn = 0;
         if (k.has('w') || k.has('arrowup')) fz += 1;

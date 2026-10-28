@@ -34,6 +34,10 @@ import { Subway } from './subway.js';
 import { Boat } from './boat.js';
 import { Fishing } from './fishing.js';
 import { Fireworks, SHOW_DIST } from './fireworks.js';
+import { Cinderpeak } from './cinderpeak.js';
+import { Mine } from './mine.js';
+import { MineAudio } from './mine-audio.js';
+import { END_S } from './minepath.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -236,6 +240,11 @@ async function boot() {
     await nextFrame();
     buildArchitecture(world);
     world.hut = buildHutExterior(world);
+    ui.progress(0.52, 'Smoking out a volcano…');
+    await nextFrame();
+    const volcano = new Cinderpeak({ world, scene, sky, quality, water });
+    // the mountain coughs after dark; the sound reaches you late, by its distance
+    volcano.mountain.onErupt = (delay, strength, dist) => window.setTimeout(() => audio.volcanoRumble({ near: Math.max(0.06, 1 - dist / 1800), size: strength }), Math.max(0, delay * 1000 - 200));
     buildPaths(world);
     ui.progress(0.58, 'Carving statues…');
     await nextFrame();
@@ -360,6 +369,28 @@ async function boot() {
     let worksHintShown = false, doorHintShown = false, hutHintShown = false, hutDoorHintShown = false, orbHintShown = false, boatHintShown = false;
     let boardPending = false; // walking to the dock edge to climb into the boat
     let fishPending = false;  // walking out along the pier to pick up the rod
+    // Cinderpeak: the Standing Stones lead to its cove, a cart there rides into the mine, and a dais leads home
+    let place = 'garden';     // 'garden' | 'cove' | 'mine'
+    let mine = null, mineAudio = null;
+    let portalArmed = false, portalPending = false, daisArmed = false, cartArmed = false, cartPending = false;
+    let stonesHintShown = false, coveHintShown = false;
+    const altar = world.altars[0] ?? null;
+    const stones = world.landmarks.find((l) => l.name === 'The Standing Stones') ?? null;
+    /** A way into the ring of stones: the gap nearest the hub, and the spot just inside it. */
+    const stonesStand = (() => {
+        if (!altar || !stones) return null;
+        const toHub = Math.atan2(-altar.x, -altar.z);
+        let best = null;
+        for (let k = 0; k < 9; k++) {
+            const a = ((k + 0.5) / 9) * Math.PI * 2;
+            const d = Math.abs(Math.atan2(Math.sin(a - toHub), Math.cos(a - toHub)));
+            if (!best || d < best.d) best = { a, d };
+        }
+        const out = { x: altar.x + Math.sin(best.a) * 6.8, z: altar.z + Math.cos(best.a) * 6.8 };
+        const inner = { x: altar.x + Math.sin(best.a) * 2.3, z: altar.z + Math.cos(best.a) * 2.3 };
+        return { ...out, inner, yaw: Math.atan2(-(altar.x - out.x), -(altar.z - out.z)) };
+    })();
+    const mineDrives = () => !!mine && (mine.state === 'boarding' || mine.state === 'riding' || mine.state === 'exiting');
 
     const setHover = (h) => {
         const prevId = hovered?.statue?.id ?? -2;
@@ -378,7 +409,16 @@ async function boot() {
         ndc.set((cx / innerWidth) * 2 - 1, -(cy / innerHeight) * 2 + 1);
         ray.setFromCamera(ndc, camera);
         const o = ray.ray.origin, d = ray.ray.direction;
+        if (place === 'cove') return volcano.pick(ray);
         let best = null, bt = Infinity;
+        // the swirling motes over the Standing Stones' altar
+        if (altar) {
+            const t = rayCylinder(o, d, altar.x, altar.z, 1.7, altar.y - 0.2, altar.y + 5);
+            if (t < 90) {
+                bt = t;
+                best = { type: 'portal', t };
+            }
+        }
         for (const st of statues) {
             const t = rayCylinder(o, d, st.x, st.z, 0.9, st.y, st.y + STATUE_TOP);
             if (t < bt && t < 70) {
@@ -461,11 +501,228 @@ async function boot() {
         ui.flash(true);
         controls.route = null;
         setTimeout(() => {
-            if (below) surface();
+            if (place !== 'garden') abortCinder();
+            else if (below) surface();
             controls.teleport(x, z, yaw);
             setTimeout(() => ui.flash(false), 120);
             after?.();
         }, 650);
+    }
+
+    // ------------------------------------------------------------ Cinderpeak
+
+    const duckMusic = (on) => {
+        if (!audio.ctx || !audio.music) return;
+        audio.music.gain.setTargetAtTime(audio.musicVol * (on ? 0.1 : 1), audio.ctx.currentTime, 0.6);
+    };
+
+    const ZONES = {
+        gallery: ['The Old Gallery', 'Timber, lantern-light and hot stone', '#ffb060'],
+        crossing: ['The Molten River', 'Hold on to your hat', '#ff6a2a'],
+        descent: ['The Spiral Drop', 'Down and round and down', '#ff7a3a'],
+        tube: ['The Lava Tube', 'Keep your hands in the cart', '#ff5a20'],
+        hairpin: ['The Switchback', '', '#ffa050'],
+        rift: ['The Rift', 'Don’t look down. Or do.', '#ff6a2a'],
+        quiet: ['The Quiet Seam', 'Something glitters ahead', '#b79bff'],
+        gems: ['The Glittering Deep', 'Every wall a jewel box', '#8ff6ff'],
+        passage: ['The Heat Passage', '', '#ff8a3a'],
+        approach: ['The Heat Passage', 'The glare ahead is the lava source', '#ff7a2a'],
+        source: ['The Heartfire', 'The lava source of Cinderpeak', '#ff6a2a'],
+    };
+
+    /** The mine is built once, under the white flash of the first arrival, and wired to the host here. */
+    function prepareMine() {
+        if (mine) return true;
+        try {
+            mine = new Mine({ renderer, ui, mats: world.mats, audio, quality, cart: volcano.cart });
+        } catch (e) {
+            console.error(e);
+            mine = null;
+            return false;
+        }
+        mine.onEvent = (name, data) => {
+            if (name === 'board') {
+                mineAudio ??= new MineAudio(audio);
+                mineAudio.start();
+                duckMusic(true);
+                mineAudio.clang(2);
+            } else if (name === 'roll') {
+                if (data.dir > 0) ui.hint('Hold on · drag to look around', 7000);
+            } else if (name === 'enter') {
+                ui.fadeBlack(true);
+                setTimeout(() => {
+                    mine.scene.add(mine.cart.group);
+                    setBelow(true, 'mine');
+                    place = 'mine';
+                    ui.fadeBlack(false);
+                }, 300);
+            } else if (name === 'leave') {
+                ui.fadeBlack(true);
+                setTimeout(() => {
+                    world.root.add(mine.cart.group);
+                    setBelow(false);
+                    place = 'cove';
+                    controls.world = volcano.world;
+                    ui.fadeBlack(false);
+                }, 300);
+            } else if (name === 'zone') {
+                const z = ZONES[data.id];
+                if (z && z[0]) ui.zone(z[0], z[1], z[2]);
+            } else if (name === 'ledge') {
+                mineAudio?.brake(1);
+                setTimeout(() => {
+                    const sp = mine.ledgeSpawn();
+                    mine.stepOut(camera, new THREE.Vector3(sp.x, mine.ledgeY() + 1.65, sp.z), sp.yaw, () => {
+                        controls.seated = false;
+                        controls.world = mine.walk;
+                        controls.teleport(sp.x, sp.z, sp.yaw);
+                        cartArmed = false;
+                        ui.hint('The Heartfire · walk to the rail and look down · step back into the cart to ride home', 12000);
+                    });
+                }, 900);
+            } else if (name === 'station') {
+                mineAudio?.brake(1);
+                setTimeout(() => {
+                    const ps = volcano.platformStand;
+                    mine.stepOut(camera, new THREE.Vector3(ps.x, volcano.world.walkHeight(ps.x, ps.z) + 1.65, ps.z), ps.yaw, () => {
+                        controls.seated = false;
+                        controls.world = volcano.world;
+                        controls.teleport(ps.x, ps.z, ps.yaw);
+                        mine.parkCart();
+                        mineAudio?.stop();
+                        duckMusic(false);
+                        cartArmed = false;
+                        daisArmed = false;
+                        ui.hint('Back at the station · the dais by the water takes you home', 9000);
+                    });
+                }, 900);
+            }
+        };
+        return true;
+    }
+
+    /** Step into the swirling motes: a flash, and the Cinderpeak cove with its dais under your feet. */
+    function travelToCove() {
+        if (transit || place !== 'garden' || trip || boat.busy) return;
+        transit = true;
+        portalPending = false;
+        fishing.stop();
+        fishPending = false;
+        boardPending = false;
+        controls.route = null;
+        controls.keys.clear();
+        controls.vel.set(0, 0);
+        setHover(null);
+        ui.tooltip(null);
+        ui.closeAll();
+        audio.link();
+        audio.sparkle();
+        ui.flash(true);
+        setTimeout(() => {
+            const ok = prepareMine();
+            place = 'cove';
+            controls.world = volcano.world;
+            const sp = volcano.spawn;
+            controls.teleport(sp.x, sp.z, sp.yaw);
+            camera.fov = baseFov();
+            daisArmed = false;
+            cartArmed = false;
+            zoneKey = 'cove';
+            ui.zone('Cinderpeak Cove', ok ? 'A cart waits at the mine' : 'The mine is closed today', '#ff9a4a');
+            if (!coveHintShown) {
+                coveHintShown = true;
+                setTimeout(() => ui.hint('Climb into the cart by the mine entrance · the dais you arrived on leads home · turn around to see the sea', 11000), 1800);
+            }
+            setTimeout(() => {
+                ui.flash(false);
+                transit = false;
+            }, 250);
+        }, 700);
+    }
+
+    /** Leave Cinderpeak at once, whatever is going on there (the caller covers the cut). */
+    function abortCinder() {
+        if (mine) {
+            world.root.add(mine.cart.group);
+            if (mine.state !== 'idle') mine.parkCart();
+        }
+        mineAudio?.stop();
+        duckMusic(false);
+        controls.seated = false;
+        cartPending = false;
+        if (below) setBelow(false);
+        place = 'garden';
+        controls.world = world;
+        camera.fov = baseFov();
+        camera.updateProjectionMatrix();
+        zoneKey = '';
+    }
+
+    /** The dais: a flash, and back among the Standing Stones. */
+    function travelToGarden(instant = false) {
+        if (place === 'garden') return;
+        if (transit && !instant) return;
+        transit = true;
+        controls.route = null;
+        controls.keys.clear();
+        controls.vel.set(0, 0);
+        audio.link();
+        ui.flash(true);
+        const land = () => {
+            abortCinder();
+            if (stonesStand) controls.teleport(stonesStand.x, stonesStand.z, stonesStand.yaw);
+            portalArmed = false;
+            ui.hint('Back among the Standing Stones', 5000);
+            setTimeout(() => {
+                ui.flash(false);
+                transit = false;
+            }, 200);
+        };
+        setTimeout(land, 650);
+    }
+
+    /** Climb into the cart: at the station it rolls in, on the cliff it rolls home. */
+    function boardCart(dir) {
+        if (!mine || mine.state === 'boarding' || mine.state === 'riding' || mine.state === 'exiting' || transit) return;
+        controls.route = null;
+        controls.keys.clear();
+        controls.vel.set(0, 0);
+        controls.seated = true;
+        cartPending = false;
+        setHover(null);
+        ui.tooltip(null);
+        ui.closeAll();
+        mine.begin(camera, controls, dir);
+    }
+
+    /** Frame by frame: walking into the motes, onto the dais, or up to the cart. */
+    function cinderCheck() {
+        if (transit || !controls.enabled || trip || controls.seated) return;
+        const p = controls.pos;
+        if (place === 'garden') {
+            if (!altar) return;
+            const d = Math.hypot(p.x - altar.x, p.z - altar.z);
+            if (d > 4.5) portalArmed = true;
+            if (portalArmed && d < 2.6) travelToCove();
+            else if (!stonesHintShown && d < 16 && !below && !boat.busy) {
+                stonesHintShown = true;
+                ui.hint('The motes over the stones are humming · click them, or walk into them', 9000);
+            }
+        } else if (place === 'cove') {
+            const dd = volcano.dais;
+            const d = Math.hypot(p.x - dd.x, p.z - dd.z);
+            if (d > 4.5) daisArmed = true;
+            if (daisArmed && d < dd.trigger) return travelToGarden();
+            const cp = volcano.cartPos;
+            const dc = Math.hypot(p.x - cp.x, p.z - cp.z);
+            if (dc > 4.5) cartArmed = true;
+            if (mine && cartArmed && dc < 1.95) boardCart(1);
+        } else if (place === 'mine' && mine?.state === 'free') {
+            const cp = mine.cart.group.position;
+            const dc = Math.hypot(p.x - cp.x, p.z - cp.z);
+            if (dc > 4.5) cartArmed = true;
+            if (cartArmed && dc < 1.95) boardCart(-1);
+        }
     }
 
     function linkToGame(game) {
@@ -476,7 +733,7 @@ async function boot() {
     }
 
     function walkToGame(game) {
-        if (below) return linkToGame(game);
+        if (below || place !== 'garden') return linkToGame(game);
         fishing.stop();
         const st = statueByGame.get(game);
         const s = standForStatue(st);
@@ -633,11 +890,11 @@ async function boot() {
         if (roomKind === 'subway' && (!on || kind !== 'subway')) subway.leave();
         below = on;
         roomKind = on ? kind : null;
-        const room = kind === 'hut' ? hut : kind === 'subway' ? subway : works;
-        controls.world = on ? room.world : world;
+        const room = kind === 'hut' ? hut : kind === 'subway' ? subway : kind === 'mine' ? mine : works;
+        controls.world = on ? (kind === 'mine' ? mine.walk : room.world) : place === 'cove' ? volcano.world : world;
         renderPass.scene = on ? room.scene : scene;
-        bloom.strength = on ? (kind === 'hut' ? 0.55 : kind === 'subway' ? 0.5 : 0.6) : 0.42;
-        audio.setUnderground(on && kind === 'works');
+        bloom.strength = on ? (kind === 'hut' ? 0.55 : kind === 'subway' ? 0.5 : kind === 'mine' ? 0.7 : 0.6) : 0.42;
+        audio.setUnderground(on && (kind === 'works' || kind === 'mine'), kind === 'works');
         if (on) fireworks.stop();
         doorArmed = false;
         mouse = null;
@@ -780,7 +1037,7 @@ async function boot() {
     syncFocus();
 
     // below ground the map shows you at the tower
-    const mapPos = () => (below ? (roomKind === 'works' ? world.clockDoor : { x: world.hut.cx, z: world.hut.cz }) : controls.pos);
+    const mapPos = () => (place !== 'garden' && stones ? stones : below ? (roomKind === 'works' ? world.clockDoor : { x: world.hut.cx, z: world.hut.cz }) : controls.pos);
     ui.on('mapOpen', () => map.draw(mapPos(), controls.yaw));
     ui.on('timeOpen', () => {
         document.getElementById('time-slider').value = Math.round(sky.time * 1440);
@@ -838,6 +1095,8 @@ async function boot() {
     controls.onTap = (x, y, type) => {
         if (!entered || intro || transit || boat.busy || fishing.active) return;
         if (ui.blocking) return;
+        if (place === 'cove') return tapCove(x, y);
+        if (place === 'mine') return tapMine(x, y);
         if (below) {
             const h = pickBelow(x, y);
             if (h?.type === 'source') {
@@ -889,6 +1148,12 @@ async function boot() {
                 fishPending = true;
                 controls.walkTo(fishing.route());
             }
+        } else if (h.type === 'portal' && stonesStand) {
+            audio.click();
+            ui.closeAll();
+            const route = controls.plan(stonesStand.x, stonesStand.z);
+            route.push(stonesStand.inner);
+            controls.walkTo(route);
         } else if (h.type === 'hutDoor') {
             audio.click();
             ui.closeAll();
@@ -907,7 +1172,42 @@ async function boot() {
             }
         }
     };
+    /** Taps at the foot of Cinderpeak: the cart, the dais, or the ground. */
+    function tapCove(x, y) {
+        const h = pick(x, y);
+        if (!h) return;
+        if (h.type === 'cart') {
+            audio.click();
+            if (mine) controls.walkTo([{ x: volcano.cartPos.x, z: volcano.cartPos.z }]);
+            else ui.hint('The mine is closed today', 4000);
+        } else if (h.type === 'dais') {
+            audio.click();
+            controls.walkTo([{ x: volcano.dais.x, z: volcano.dais.z }]);
+        } else if (h.type === 'ground' && h.t < 90) {
+            ui.marker(x, y);
+            controls.walkTo([{ x: h.point.x, z: h.point.z }]);
+        }
+    }
+
+    /** Taps on the cliff over the lava: the cart, or a place to stand. */
+    function tapMine(x, y) {
+        if (!mine || mine.state !== 'free') return;
+        ndc.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
+        ray.setFromCamera(ndc, camera);
+        const h = mine.pickLedge(ray);
+        if (!h) return;
+        if (h.type === 'cart') {
+            audio.click();
+            controls.walkTo([{ x: mine.cart.group.position.x, z: mine.cart.group.position.z }]);
+        } else {
+            ui.marker(x, y);
+            controls.walkTo([{ x: h.point.x, z: h.point.z }]);
+        }
+    }
+
     controls.onStep = () => {
+        if (place !== 'garden' && !below) return audio.step(controls.pos.x > volcano.platformStand.x - 3 && controls.pos.x < volcano.platformStand.x + 3 && controls.pos.z > volcano.cartPos.z - 8 && controls.pos.z < volcano.cartPos.z + 17 ? 'wood' : 'stone');
+        if (below && roomKind === 'mine') return audio.step('stone');
         if (below) return audio.step(roomKind === 'subway' ? subway.stepSurface(controls.pos) : 'metal');
         const p = controls.pos;
         const surface = world.onDeck(p.x, p.z) ? 'wood' : island.pathDistAt(p.x, p.z) < PATH_HALF + 0.2 || Math.hypot(p.x, p.z) < PLAZA_R || world.inPlaza(p.x, p.z) ? 'stone' : 'grass';
@@ -962,6 +1262,15 @@ async function boot() {
     document.getElementById('enter-library').addEventListener('click', () => enter(true));
     ui.ready();
     if (params.has('enter')) enter(false);
+    if (params.has('cove')) {
+        // ?cove: straight to the cove once the fly-in is over (for testing)
+        const iv = setInterval(() => {
+            if (entered && !intro) {
+                clearInterval(iv);
+                travelToCove();
+            }
+        }, 200);
+    }
 
     // ------------------------------------------------------------ loop
 
@@ -969,6 +1278,7 @@ async function boot() {
     const camPos = new THREE.Vector3();
 
     function zoneCheck() {
+        if (place !== 'garden') return;
         const p = controls.pos;
         let key = 'wilds', name = 'The Island', sub = '', accent;
         if (Math.hypot(p.x, p.z) < PLAZA_R + 1) {
@@ -1053,6 +1363,8 @@ async function boot() {
             }
         } else if (trip) {
             tripUpdate(dt);
+        } else if (mineDrives()) {
+            mine.update(dt, t, camera, controls);
         } else if (!boat.busy && !fishing.active) {
             controls.update(dt);
         }
@@ -1070,7 +1382,7 @@ async function boot() {
             boatHintShown = true;
             ui.hint('Your rowboat is still moored here · click it to climb back in', 7000);
         }
-        camPos.copy(entered && !intro && !boat.busy ? controls.pos : camera.position);
+        camPos.copy(entered && !intro && !boat.busy && !mineDrives() ? controls.pos : camera.position);
         // the title orbit and the boat flight keep the camera aloft, so weather must follow it up there
         if (!entered || intro) camPos.y = world.groundAt(camPos.x, camPos.z);
 
@@ -1103,6 +1415,15 @@ async function boot() {
             if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved) {
                 const h = pickBelow(mouse.x, mouse.y);
                 document.body.classList.toggle('can-hover-pick', h?.type === 'pool' || h?.type === 'door');
+            }
+        } else if (below && roomKind === 'mine') {
+            if (!mineDrives()) mine.update(dt, t, camera, controls);
+            mine.setSky(s, sky.wx);
+            audio.update(night, -100);
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && mine.state === 'free') {
+                ndc.set((mouse.x / innerWidth) * 2 - 1, -(mouse.y / innerHeight) * 2 + 1);
+                ray.setFromCamera(ndc, camera);
+                document.body.classList.toggle('can-hover-pick', mine.pickLedge(ray)?.type === 'cart');
             }
         } else if (below) {
             const hisses = works.update(dt, t, controls.pos, renderer.domElement.height);
@@ -1168,11 +1489,14 @@ async function boot() {
             fireworks.update(dt, renderer.domElement.height);
             fireworks.light(sky.hemi);
             for (const u of world.updaters) u(t, sky);
-            fox.update(dt, t, entered && !intro && controls.enabled && !transit && !boat.busy, ui.blocking || !!ui.cardGame);
+            volcano.update(dt, t, camPos);
+            fox.update(dt, t, entered && !intro && controls.enabled && !transit && !boat.busy && place === 'garden', ui.blocking || !!ui.cardGame);
             updateGrass(world, camPos);
-            audio.update(night, island.shoreAt(camPos.x, camPos.z));
+            audio.update(night, place === 'cove' ? volcano.world.island.shoreAt(camPos.x, camPos.z) : island.shoreAt(camPos.x, camPos.z));
         }
 
+        // the cart's sounds, in the open part of the ride too
+        if (mineAudio?.on && !(below && roomKind === 'mine')) mineAudio.update(dt, mine.soundState());
         clockTimer += dt;
         if (clockTimer > 0.5) {
             clockTimer = 0;
@@ -1184,7 +1508,10 @@ async function boot() {
             zoneTimer = 0;
             if (!below) zoneCheck();
         }
-        if (entered && !intro && !boat.busy) doorCheck();
+        if (entered && !intro && !boat.busy) {
+            if (place === 'garden') doorCheck();
+            cinderCheck();
+        }
 
         composer.render(dt);
 
@@ -1211,7 +1538,7 @@ async function boot() {
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, fireworks, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
+        window.__garden = { volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, fireworks, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
     }
 }
 
