@@ -32,6 +32,7 @@ import { Hut, buildHutExterior } from './hut.js';
 import { Galaxy } from './galaxy.js';
 import { Subway } from './subway.js';
 import { Boat } from './boat.js';
+import { Fishing } from './fishing.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -293,6 +294,7 @@ async function boot() {
     // a fox spirit from Worldroot comes by on about one visit in five (?fox=1 always, ?fox=0 never)
     const fox = new FoxVisitor(scene, world, controls, camera, { force: params.get('fox') });
     const boat = new Boat(world, scene, camera, controls);
+    const fishing = new Fishing({ world, scene, camera, controls, ui, audio, bursts, canvas });
     const map = new IslandMap(world, document.getElementById('map-canvas'));
 
     const resize = () => {
@@ -345,6 +347,7 @@ async function boot() {
     let doorArmed = false; // you must step away from a door before it takes you again
     let worksHintShown = false, doorHintShown = false, hutHintShown = false, hutDoorHintShown = false, orbHintShown = false, boatHintShown = false;
     let boardPending = false; // walking to the dock edge to climb into the boat
+    let fishPending = false;  // walking out along the pier to pick up the rod
 
     const setHover = (h) => {
         const prevId = hovered?.statue?.id ?? -2;
@@ -381,6 +384,11 @@ async function boot() {
         if (bt0 && bt0.distance < bt && bt0.distance < 60) {
             bt = bt0.distance;
             best = { type: 'boat', t: bt };
+        }
+        const rod = ray.intersectObjects(fishing.pickables, false)[0];
+        if (rod && rod.distance < bt && rod.distance < 60) {
+            bt = rod.distance;
+            best = { type: 'rod', t: bt };
         }
         const door = ray.intersectObject(world.clockDoor.mesh, false)[0];
         if (door && door.distance < bt && door.distance < 60) {
@@ -435,6 +443,8 @@ async function boot() {
     }
 
     function linkTo(x, z, yaw, after) {
+        fishing.stop();
+        fishPending = false;
         audio.link();
         ui.flash(true);
         controls.route = null;
@@ -455,6 +465,7 @@ async function boot() {
 
     function walkToGame(game) {
         if (below) return linkToGame(game);
+        fishing.stop();
         const st = statueByGame.get(game);
         const s = standForStatue(st);
         ui.closeAll();
@@ -812,7 +823,7 @@ async function boot() {
         }
     };
     controls.onTap = (x, y, type) => {
-        if (!entered || intro || transit || boat.busy) return;
+        if (!entered || intro || transit || boat.busy || fishing.active) return;
         if (ui.blocking) return;
         if (below) {
             const h = pickBelow(x, y);
@@ -857,6 +868,14 @@ async function boot() {
             boardPending = true;
             ui.closeAll();
             controls.walkTo(controls.plan(boat.stand.x, boat.stand.z));
+        } else if (h.type === 'rod') {
+            audio.click();
+            ui.closeAll();
+            if (fishing.near(controls.pos.x, controls.pos.z, 2.5)) fishing.start();
+            else {
+                fishPending = true;
+                controls.walkTo(fishing.route());
+            }
         } else if (h.type === 'hutDoor') {
             audio.click();
             ui.closeAll();
@@ -895,7 +914,10 @@ async function boot() {
             hologram.step(-1);
             audio.arrow();
         } else if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey && !e.altKey) ui.emit('sound');
+        else if (e.key.toLowerCase() === 'c' && !e.ctrlKey && !e.metaKey && !e.altKey && canFish() && fishing.near(controls.pos.x, controls.pos.z)) fishing.start();
     });
+
+    const canFish = () => entered && !intro && !below && !transit && !boat.busy && !trip && !ui.blocking && controls.enabled;
 
     boat.onPhase = (phase) => {
         if (phase === 'transform') audio.sparkle();
@@ -941,6 +963,11 @@ async function boot() {
             name = 'The Hub';
             sub = `${games.length} games · ${layout.spokes.length} paths`;
             accent = '#8ff6ff';
+        } else if (fishing.onPier(p.x, p.z)) {
+            key = 'pier';
+            name = 'The Fishing Pier';
+            sub = 'A rod waits on the rail at the end';
+            accent = '#7fd6e8';
         } else if (world.onDeck(p.x, p.z) || (Math.abs(p.x) < 6 && p.z > layout.dock.start - 6)) {
             key = 'dock';
             name = 'The Dock';
@@ -1013,10 +1040,15 @@ async function boot() {
             }
         } else if (trip) {
             tripUpdate(dt);
-        } else if (!boat.busy) {
+        } else if (!boat.busy && !fishing.active) {
             controls.update(dt);
         }
         if (!below) boat.update(dt, t);
+        if (!below) fishing.update(dt, t, entered && !intro && !boat.busy && !transit && !ui.blocking);
+        if (fishPending && entered && !intro && !controls.route) {
+            fishPending = false;
+            if (canFish() && fishing.near(controls.pos.x, controls.pos.z, 2.5)) fishing.start();
+        }
         if (boardPending && entered && !intro && !boat.busy && !controls.route) {
             boardPending = false;
             if (Math.hypot(controls.pos.x - boat.stand.x, controls.pos.z - boat.stand.z) < 2.5) boat.board();
@@ -1089,13 +1121,14 @@ async function boot() {
             beams(dt, night);
 
             // hover highlight
-            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved) {
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !fishing.active) {
                 const h = pick(mouse.x, mouse.y);
                 setHover(h);
                 if (h?.type === 'statue') ui.tooltip(h.statue.game, mouse.x, mouse.y);
                 else if (h?.type === 'panel') ui.tooltip(hologram.current, mouse.x, mouse.y, 'Click for details · [ ] to turn');
                 else ui.tooltip(null);
-            } else if (controls.look?.moved || ui.blocking) {
+            } else if (controls.look?.moved || ui.blocking || fishing.active) {
+                if (fishing.active && hovered) setHover(null);
                 ui.tooltip(null);
             }
             const hid = hovered?.statue?.id ?? -1;
@@ -1158,7 +1191,7 @@ async function boot() {
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
+        window.__garden = { startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
     }
 }
 

@@ -10,14 +10,16 @@
  * landscape, touch only): enter by tap, joystick walk, tap a statue for its
  * card, HUD buttons ≥ 44 px. Fox (?fox=1): the Worldroot fox comes in, stops to
  * look, runs off and is gone; ?fox=0 builds nothing; the visit odds are one in
- * five. Screenshots → garden/dev/shots/.
+ * five. Fishing pier: it stands opposite the dock; the arrival hint, click the
+ * rod, the float dips, strike with Space, reel a fish in with Space, its card,
+ * the rod goes back; C and Esc; the Moonfin only at night. Screenshots → garden/dev/shots/.
  *
  *   python3 -m http.server 8077            # from the REPO ROOT
  *   node garden/dev/browsertest.mjs
  *
  * No network to unpkg.com? Fetch three.js once and CDN requests are served
  * from disk:  cd garden/dev && npm pack three@0.165.0 && tar xzf three-0.165.0.tgz
- * Env: BASE (default http://127.0.0.1:8077), THREE_PKG, PW_CHROMIUM_PATH, ONLY=desktop|phones|fox.
+ * Env: BASE (default http://127.0.0.1:8077), THREE_PKG, PW_CHROMIUM_PATH, ONLY=desktop|phones|fox|fishing.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -377,6 +379,106 @@ async function fox() {
     await browser.close();
 }
 
+async function fishing() {
+    console.log('\nfishing pier');
+    const { page } = await newPage({ width: 1100, height: 700 });
+    await boot(page, '&t=0.4&w=clear&fox=0');
+    await page.click('#enter');
+    await page.waitForFunction(() => window.__garden.entered, null, { timeout: 120000 });
+    const layout = await page.evaluate(() => {
+        const g = window.__garden, p = g.world.pier;
+        return { dz: p.dz, onDeck: g.world.onDeck(p.stand.x, p.stand.z), y: g.world.walkHeight(p.stand.x, p.stand.z), landmark: g.world.landmarks.some((l) => l.name === 'The Fishing Pier') };
+    });
+    check(layout.dz < -0.7, `the pier points away from the dock, out of the far side of the island (dz ${layout.dz.toFixed(2)})`);
+    check(layout.onDeck && Math.abs(layout.y - 1.55) < 0.01 && layout.landmark, 'its end is a deck above the water, and the map lists it');
+
+    // walk out along the deck: the arrival hint
+    await page.evaluate(() => {
+        const g = window.__garden, p = g.world.pier;
+        g.controls.teleport(p.stand.x - p.dx * 4, p.stand.z - p.dz * 4, p.stand.yaw);
+    });
+    await page.waitForFunction(() => /rod/.test(document.getElementById('hint').textContent), null, { timeout: 60000 });
+    check(true, 'arriving at the end of the pier hints at the rod');
+    await frames(page, 2);
+    await shot(page, 'fish1-pier');
+
+    // click the rod: walk up to it and cast
+    const rodAt = await page.evaluate(() => {
+        const g = window.__garden;
+        const v = g.fishing.rodHit.getWorldPosition(new g.camera.position.constructor()).project(g.camera);
+        return { x: ((v.x + 1) / 2) * innerWidth, y: ((1 - v.y) / 2) * innerHeight };
+    });
+    // a fixed bite: an easy fish, and no waiting about in the test
+    await page.evaluate(() => {
+        const f = window.__garden.fishing, w = f._wait, b = f._bite;
+        f._wait = function (first) { w.call(this, first); this.waitFor = 1e9; this.nextNibble = 1e9; };
+        f._bite = function () { b.call(this); this.window = 1e9; this.species = this.constructor.SPECIES.find((s) => s.id === 'mullet'); };
+        f.showFor = 1e9;
+    });
+    await page.mouse.click(rodAt.x, rodAt.y);
+    await page.waitForFunction(() => window.__garden.fishing.state === 'wait', null, { timeout: 120000 });
+    check(await page.evaluate(() => !document.getElementById('fishing-hud').hidden && !window.__garden.controls.enabled), 'clicking the rod casts the float (walking is off, the Put away button shows)');
+    await shot(page, 'fish2-wait');
+    // reel it in by holding Space whenever the fish is above the middle of the band. Software GL
+    // runs at a frame or two a second, so the bot is slow to react; if a fish gets away it tries again.
+    let state = 'wait', shotReel = false;
+    for (let attempt = 0; attempt < 4 && state !== 'show'; attempt++) {
+        await page.evaluate(() => (window.__garden.fishing.waitFor = 0));
+        await page.waitForFunction(() => window.__garden.fishing.state === 'bite', null, { timeout: 60000 });
+        if (attempt === 0) check(await page.evaluate(() => !document.getElementById('fish-alert').hidden), 'the float dips with a Strike! alert');
+        await page.keyboard.press(' ');
+        await page.waitForFunction(() => window.__garden.fishing.state === 'reel', null, { timeout: 60000 });
+        if (attempt === 0) check(await page.evaluate(() => !document.getElementById('fish-meter').hidden), 'Space strikes and the reel meter appears');
+        let held = false;
+        state = 'reel';
+        for (let i = 0; i < 600 && state === 'reel'; i++) {
+            const m = await page.evaluate(() => { const f = window.__garden.fishing; return { s: f.state, fish: f.meter.fish, zone: f.meter.zone, size: f.meter.size }; });
+            state = m.s;
+            if (state !== 'reel') break;
+            const want = m.fish > m.zone + m.size / 2;
+            if (want !== held) {
+                held = want;
+                await (held ? page.keyboard.down(' ') : page.keyboard.up(' '));
+            }
+            if (i === 12 && !shotReel) { shotReel = true; await shot(page, 'fish3-reel'); }
+            await frames(page, 1);
+        }
+        if (held) await page.keyboard.up(' ');
+        if (state !== 'show') console.log(`   (it got away, attempt ${attempt + 1})`);
+    }
+    await page.waitForFunction(() => window.__garden.fishing.state === 'show', null, { timeout: 30000 });
+    const card = await page.evaluate(() => ({ open: !document.getElementById('fish-card').hidden, name: document.getElementById('fish-name').textContent, fact: document.getElementById('fish-fact').textContent, log: JSON.parse(localStorage.getItem('garden.fishLog') || '{}') }));
+    check(card.open && card.name === 'Striped Red Mullet' && card.fact.length > 40 && card.log.mullet?.n === 1, `holding Space against the fish lands it, and a card tells you about it (${card.name})`);
+    await frames(page, 3);
+    await shot(page, 'fish4-caught');
+    await page.click('#fish-done');
+    const after = await page.evaluate(() => {
+        const f = window.__garden.fishing;
+        return { s: f.state, walk: window.__garden.controls.enabled, card: document.getElementById('fish-card').hidden, rod: f.rod.position.distanceTo(f.restPos) };
+    });
+    check(after.s === 'idle' && after.walk && after.card && after.rod < 0.01, 'letting it go puts the rod back on the rail and hands the walking back');
+
+    // C casts from the end of the pier, Esc puts the rod away
+    await page.keyboard.press('c');
+    await page.waitForFunction(() => window.__garden.fishing.state !== 'idle', null, { timeout: 30000 });
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window.__garden.fishing.state === 'idle', null, { timeout: 30000 });
+    check(await page.evaluate(() => window.__garden.controls.enabled && document.getElementById('fishing-hud').hidden), 'C casts and Esc puts the rod away');
+
+    // what bites: the Moonfin only after dark
+    const odds = await page.evaluate(() => {
+        const S = window.__garden.fishing.constructor;
+        let day = 0, night = 0;
+        for (let i = 0; i < 3000; i++) {
+            if (S.pickSpecies(0).id === 'moonfin') day++;
+            if (S.pickSpecies(1).id === 'moonfin') night++;
+        }
+        return { day, night, all: S.SPECIES.every((s) => s.name && s.latin && s.fact && s.habitat && s.len[0] < s.len[1]) };
+    });
+    check(odds.day === 0 && odds.night > 0 && odds.all, `the Moonfin bites only at night (${odds.night} in 3000 night casts), and every fish has its facts`);
+    await browser.close();
+}
+
 async function phone(viewport, name) {
     console.log(`phone ${name} ${viewport.width}x${viewport.height}`);
     const { page } = await newPage(viewport, { hasTouch: true, isMobile: true });
@@ -438,6 +540,7 @@ async function phone(viewport, name) {
 try {
     if (!process.env.ONLY || process.env.ONLY === 'desktop') await desktop();
     if (!process.env.ONLY || process.env.ONLY === 'fox') await fox();
+    if (!process.env.ONLY || process.env.ONLY === 'fishing') await fishing();
     if (!process.env.ONLY || process.env.ONLY === 'phones') {
         await phone({ width: 390, height: 844 }, 'p');
         await phone({ width: 844, height: 390 }, 'l');

@@ -198,6 +198,11 @@ function clearOf(world, x, z, extra = 0) {
     // the clock tower's plateau and the bridge out to it
     const is = layout.islet, b = layout.bridge;
     if (Math.hypot(x - is.x, z - is.z) < 6.2 + extra) return false;
+    // the fishing pier and the shore it leaves from
+    const pr = layout.pier;
+    const pdx = pr.bx - pr.ax, pdz = pr.bz - pr.az;
+    const pt = clamp(((x - pr.ax) * pdx + (z - pr.az) * pdz) / (pdx * pdx + pdz * pdz), -0.1, 1);
+    if (Math.hypot(x - pr.ax - pdx * pt, z - pr.az - pdz * pt) < 4.5 + extra) return false;
     const bdx = b.bx - b.ax, bdz = b.bz - b.az;
     const t = clamp(((x - b.ax) * bdx + (z - b.az) * bdz) / (bdx * bdx + bdz * bdz), 0, 1);
     if (Math.hypot(x - b.ax - bdx * t, z - b.az - bdz * t) < b.half + 3 + extra) return false;

@@ -643,4 +643,59 @@ export class AudioEngine {
         const t = this.ctx.currentTime;
         [86, 90, 93].forEach((n, i) => this._bell(midi(n), t + i * 0.09, 0.015));
     }
+
+    // ------------------------------------------------------------- fishing
+
+    /** The rod swishing through a cast. */
+    cast() {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const s = this.ctx.createBufferSource();
+        s.buffer = this.noise;
+        const f = this.ctx.createBiquadFilter();
+        f.type = 'bandpass';
+        f.Q.value = 3;
+        f.frequency.setValueAtTime(600, t);
+        f.frequency.exponentialRampToValueAtTime(2600, t + 0.25);
+        f.frequency.exponentialRampToValueAtTime(900, t + 0.5);
+        const g = this.ctx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.16, t + 0.18);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+        s.connect(f).connect(g).connect(this.sfx);
+        s.start(t, Math.random());
+        s.stop(t + 0.6);
+    }
+
+    /** Something landing in the water: the float (small) or a fish (big). */
+    splash(size = 0.5) {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        this._noiseBurst(t, 0.12 + size * 0.35, 900 - size * 400, 0.8, 0.08 + size * 0.14, 'lowpass');
+        this._noiseBurst(t + 0.02, 0.08 + size * 0.2, 2400, 1.2, 0.03 + size * 0.05);
+        const o = this.ctx.createOscillator();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(700 - size * 300, t);
+        o.frequency.exponentialRampToValueAtTime(180, t + 0.12);
+        const g = this.ctx.createGain();
+        g.gain.setValueAtTime(0.06 + size * 0.04, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+        o.connect(g).connect(this.sfx);
+        o.start(t);
+        o.stop(t + 0.2);
+    }
+
+    /** One click of the reel's ratchet. */
+    reel() {
+        if (!this.ctx) return;
+        this._noiseBurst(this.ctx.currentTime, 0.025, 3200 + Math.random() * 400, 9, 0.05);
+    }
+
+    /** A fish landed: a rising run of bells, longer for a new or legendary one. */
+    caught(special) {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const run = special ? [67, 71, 74, 79, 83, 86] : [69, 74, 78];
+        run.forEach((n, i) => this._bell(midi(n), t + i * 0.08, 0.05));
+    }
 }

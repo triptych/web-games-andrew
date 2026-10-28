@@ -82,7 +82,7 @@ const SWELLS = [[1.0, 0.35, 24.0, 0.17, 0.6], [0.55, 0.85, 13.0, 0.09, 0.6], [-0
 });
 
 /** Height of the sea surface at (x, z); amp is the shader's shallow-water damping. */
-function swellAt(x, z, t, amp) {
+export function swellAt(x, z, t, amp) {
     // the shader pushes points sideways as well as up: undo that once to find the surface above (x, z)
     let ox = 0, oz = 0;
     for (const w of SWELLS) {
