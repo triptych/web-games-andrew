@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#07070d">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="SOLDER &amp; RAIN: run your missing father's neon-lit repair shop on a rain-soaked space station. Open up blasters, cyborg arms and shop-bots, fix them by hand, and find out where he went.">
+    <title>Solder &amp; Rain</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&amp;family=Share+Tech+Mono&amp;display=swap" rel="stylesheet">
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="Solder and Rain: the repair bench"></canvas>
+
+    <!-- Shop HUD: between customers -->
+    <div id="shop" hidden>
+        <div id="shop-top">
+            <div id="shop-day">DAY 1</div>
+            <div id="shop-credits" title="Credits">0 cr</div>
+            <button id="btn-pause2" class="ibtn" aria-label="Menu">☰</button>
+        </div>
+        <div id="shop-bar">
+            <button id="btn-call" class="btn primary">Ring the bell</button>
+            <button id="btn-board" class="btn">Case board</button>
+            <button id="btn-upgrades" class="btn">Upgrades</button>
+        </div>
+    </div>
+
+    <!-- Bench HUD -->
+    <div id="hud" hidden>
+        <div id="hud-top">
+            <div id="hud-job"></div>
+            <div id="hud-credits" title="Credits">0 cr</div>
+            <button id="btn-pause" class="ibtn" aria-label="Menu">☰</button>
+        </div>
+        <details id="task">
+            <summary>Work order</summary>
+            <div id="task-body"></div>
+        </details>
+        <div id="dish" title="Screws in the dish">⛭ <b id="dish-n">0</b></div>
+        <div id="test-banner" hidden></div>
+        <div id="tip" hidden><span class="tip-who">SPANNER</span><span id="tip-text"></span></div>
+        <div id="status" role="status" aria-live="polite"></div>
+        <div id="cambar">
+            <button class="ibtn" data-cam="left" aria-label="Rotate left">◀</button>
+            <button class="ibtn" data-cam="right" aria-label="Rotate right">▶</button>
+            <button class="ibtn" data-cam="in" aria-label="Zoom in">＋</button>
+            <button class="ibtn" data-cam="out" aria-label="Zoom out">－</button>
+            <button class="ibtn" data-cam="reset" aria-label="Reset camera">◎</button>
+        </div>
+        <div id="bottom">
+            <div id="tools" role="toolbar" aria-label="Tools"></div>
+            <div id="actions">
+                <button id="btn-test" class="btn act primary" aria-label="Run the power test">Test</button>
+                <button id="btn-hint" class="btn act" aria-label="Ask Spanner for a hint">Hint</button>
+                <button id="btn-spares" class="btn act" aria-label="Open the spares drawer">Spares</button>
+                <button id="btn-rev" class="btn act" aria-label="Reverse the tool">⟲</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spares drawer -->
+    <div id="spares" class="drawer" hidden>
+        <div class="drawer-head"><b>Spares drawer</b><span id="spares-note">Take what you need. Wrong parts cost money; put them back by dropping them here.</span><button class="ibtn" data-close-drawer aria-label="Close">✕</button></div>
+        <div id="spares-list"></div>
+    </div>
+
+    <!-- Dialogue -->
+    <div id="dialogue" hidden>
+        <div class="d-box">
+            <canvas id="portrait" width="200" height="250"></canvas>
+            <div class="d-body">
+                <div id="d-name"></div>
+                <div id="d-text"></div>
+                <div id="d-opts"></div>
+                <div id="d-next" aria-hidden="true">▶</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screens -->
+    <div id="title" class="screen">
+        <div class="sheet title-sheet">
+            <div class="logo-sub">a repair shop in the rain</div>
+            <h1 class="logo">SOLDER<span>&amp;</span>RAIN</h1>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Case</button>
+                <button data-act="free" class="btn">Free Bench</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="freebench" class="screen" hidden>
+        <div class="sheet">
+            <h2>Free Bench</h2>
+            <p class="dim">Any device, any difficulty, any seed. No story, no timer.</p>
+            <label class="row">Device <select id="fb-kind"></select></label>
+            <label class="row">Difficulty <select id="fb-tier"></select></label>
+            <label class="row">Seed <span class="seedrow"><input id="fb-seed" type="number" min="1" max="999999" value="1" inputmode="numeric"><button id="fb-dice" class="ibtn" aria-label="Random seed">⚄</button></span></label>
+            <div class="sheet-foot"><button class="btn" data-close>Back</button><button id="fb-go" class="btn primary">Start</button></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>How to Play</h2>
+            <p>Customers bring broken machines. Open them, find what is wrong, fix it, put every screw back and run the <b>power test</b>.</p>
+            <table>
+                <tr><td>Drag bare bench</td><td>Orbit the camera (wheel zooms; right-drag pans; two fingers pinch)</td></tr>
+                <tr><td>Hold on a screw</td><td>Turn it. Slide to the next one to keep going</td></tr>
+                <tr><td>Tap a part</td><td>Lift it out. It sticks to the cursor: tap again to put it down</td></tr>
+                <tr><td>Tap a plug</td><td>Pull a cable out; drop it on the socket with its colour and letter</td></tr>
+                <tr><td>1 – 9</td><td>Choose a tool. Smart tools pick the right one for you</td></tr>
+                <tr><td>Q / E &nbsp; Z / X</td><td>Rotate and zoom the camera</td></tr>
+                <tr><td>T / H / R</td><td>Power test / hint / reverse the tool</td></tr>
+                <tr><td>P / Esc</td><td>Pause</td></tr>
+            </table>
+            <p class="dim">Nothing comes out while it is screwed down, plugged in or <b>covered</b>. Burnt-out parts have to be replaced from the drawer; some failures are invisible until you check them with the meter. A tidy bench and a clean job earn more stars.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Touch buttons
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <label class="row">Graphics
+                <select id="set-quality"><option value="auto">Automatic</option><option value="low">Low</option><option value="med">Medium</option><option value="high">High</option></select>
+            </label>
+            <label class="row">Choose my own bits <input type="checkbox" id="set-manual"></label>
+            <label class="row">Calm (less motion and noise) <input type="checkbox" id="set-calm"></label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="board" class="btn">Case board</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="brief" class="screen" hidden>
+        <div class="sheet card">
+            <div class="stamp">WORK ORDER</div>
+            <h2 id="brief-title"></h2>
+            <div id="brief-body"></div>
+            <div class="sheet-foot"><button id="btn-accept" class="btn primary">Take the job</button></div>
+        </div>
+    </div>
+
+    <div id="result" class="screen" hidden>
+        <div class="sheet card">
+            <div class="stamp ok">PASSED</div>
+            <h2>Job done</h2>
+            <div id="result-stars" class="stars"></div>
+            <div id="result-body"></div>
+            <div class="sheet-foot"><button id="btn-collect" class="btn primary">Hand it over</button></div>
+        </div>
+    </div>
+
+    <div id="endday" class="screen" hidden>
+        <div class="sheet wide">
+            <h2 id="endday-title">Closing time</h2>
+            <p id="endday-body" class="dim"></p>
+            <div id="endday-upgrades"></div>
+            <div class="sheet-foot"><button id="btn-nextday" class="btn primary">Sleep. Open tomorrow</button></div>
+        </div>
+    </div>
+
+    <div id="upgrades" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Upgrades</h2>
+            <p id="upgrades-credits" class="dim"></p>
+            <div id="upgrades-list"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="board" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Case board</h2>
+            <p class="dim">Where did Teodor Vale go? <span id="board-count"></span></p>
+            <div id="board-list"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="credits" class="screen" hidden>
+        <div class="sheet wide">
+            <h2 id="credits-title">The End</h2>
+            <p id="credits-body"></p>
+            <div id="credits-stats" class="dim"></div>
+            <p class="dim small">Every picture, tune and word in this game is made in code. No image or sound files.</p>
+            <div class="sheet-foot"><button id="btn-credits-title" class="btn primary">Back to title</button></div>
+        </div>
+    </div>
+
+    <div id="freeover" class="screen" hidden>
+        <div class="sheet card">
+            <div class="stamp ok">PASSED</div>
+            <h2>Free bench: done</h2>
+            <div id="freeover-stars" class="stars"></div>
+            <div id="freeover-body"></div>
+            <div class="sheet-foot"><button id="btn-free-title" class="btn">Title</button><button id="btn-free-again" class="btn primary">Another job</button></div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">Solder &amp; Rain needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
