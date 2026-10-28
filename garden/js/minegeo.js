@@ -280,7 +280,7 @@ export function rockMaterial({ outside = null, cut = false } = {}) {
         if (outside) {
             sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `
                 float depthIn = max(0.0, (vWPos.z - uMouth.z) * uMouth.w);
-                outgoingLight *= mix(0.02, 1.0, exp(-depthIn));
+                outgoingLight *= mix(0.02, 1.0, exp(-depthIn)) * vec3(1.0, 0.86, 0.7);
                 #include <opaque_fragment>`);
         }
     };
