@@ -6,6 +6,7 @@
 
 import * as THREE from 'three';
 import { Batch, xf, under } from './materials.js';
+import { lightColumn } from './portal-fx.js';
 import { PLAZA_R, PATH_HALF, PAVILION_PLAZA } from './layout.js';
 import { HUB_Y } from './terrain.js';
 import { rng, TAU, lerp } from './util.js';
@@ -507,6 +508,9 @@ function buildStones(world, mats, batch, f) {
     batch.add('granite', new THREE.CylinderGeometry(1.3, 1.5, 0.9, 7), xf(f.x, y + 0.3, f.z, 0.3));
     world.colliders.push({ x: f.x, z: f.z, r: 1.5 });
     world.altars.push({ x: f.x, y: y + 0.75, z: f.z });
+    // the way to Cinderpeak: embers among the mint-green motes, and a faint column of warm light, brightest at night
+    world.sparkSources.push({ x: f.x, y: y + 0.75, z: f.z, color: '#ffa04a', n: 44, r: 0.9, h: 4.6 });
+    lightColumn(world, { x: f.x, y: y + 0.8, z: f.z, color: 0xffb070, radius: 1.15, height: 7.5, strength: 0.85 });
     world.landmarks.push({ name: 'The Standing Stones', x: f.x, z: f.z });
 }
 

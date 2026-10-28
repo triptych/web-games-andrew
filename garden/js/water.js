@@ -6,13 +6,22 @@ import * as THREE from 'three';
 import { GLSL_NOISE } from './sky.js';
 
 const vert = /* glsl */ `
-uniform float uTime, uHalf;
-uniform sampler2D uData;
+uniform float uTime, uHalf, uHalf2;
+uniform vec2 uCenter2;
+uniform sampler2D uData, uData2;
 varying vec3 vWPos;
 varying vec3 vNrm;
-varying vec2 vData;
 varying float vCrest;
 #include <fog_pars_vertex>
+
+// depth and shore proximity: the island's own bake, then the volcano's, else open sea
+vec2 dataAt(vec2 p){
+  vec2 uv = (p + uHalf) / (2.0 * uHalf);
+  if (uv.x > 0.0 && uv.x < 1.0 && uv.y > 0.0 && uv.y < 1.0) return texture2D(uData, uv).rg;
+  vec2 uv2 = (p - uCenter2 + uHalf2) / (2.0 * uHalf2);
+  if (uHalf2 > 0.0 && uv2.x > 0.0 && uv2.x < 1.0 && uv2.y > 0.0 && uv2.y < 1.0) return texture2D(uData2, uv2).rg;
+  return vec2(1.0, 0.0);
+}
 
 vec3 gerstner(vec2 dir, float L, float A, float Q, vec2 p, float t, inout vec3 tan, inout vec3 bin){
   float k = 6.28318 / L;
@@ -28,10 +37,7 @@ vec3 gerstner(vec2 dir, float L, float A, float Q, vec2 p, float t, inout vec3 t
 
 void main(){
   vec3 p = (modelMatrix * vec4(position, 1.0)).xyz;
-  vec2 uv = (p.xz + uHalf) / (2.0 * uHalf);
-  vec2 data = vec2(1.0, 0.0);
-  if (uv.x > 0.0 && uv.x < 1.0 && uv.y > 0.0 && uv.y < 1.0) data = texture2D(uData, uv).rg;
-  vData = data;
+  vec2 data = dataAt(p.xz);
   float amp = mix(0.25, 1.0, smoothstep(0.0, 0.3, data.r));
   vec3 tan = vec3(1, 0, 0), bin = vec3(0, 0, 1);
   vec3 o = vec3(0.0);
@@ -50,13 +56,22 @@ void main(){
 
 const frag = /* glsl */ `
 uniform vec3 uZenith, uHorizon, uSunColor, uSunDir, uMoonDir;
-uniform float uTime, uNight, uDay;
+uniform float uTime, uNight, uDay, uHalf, uHalf2;
+uniform vec2 uCenter2;
+uniform sampler2D uData, uData2;
 varying vec3 vWPos;
 varying vec3 vNrm;
-varying vec2 vData;
 varying float vCrest;
 #include <fog_pars_fragment>
 ${GLSL_NOISE}
+
+vec2 dataAt(vec2 p){
+  vec2 uv = (p + uHalf) / (2.0 * uHalf);
+  if (uv.x > 0.0 && uv.x < 1.0 && uv.y > 0.0 && uv.y < 1.0) return texture2D(uData, uv).rg;
+  vec2 uv2 = (p - uCenter2 + uHalf2) / (2.0 * uHalf2);
+  if (uHalf2 > 0.0 && uv2.x > 0.0 && uv2.x < 1.0 && uv2.y > 0.0 && uv2.y < 1.0) return texture2D(uData2, uv2).rg;
+  return vec2(1.0, 0.0);
+}
 
 float ripple(vec2 p){
   return vnoise(p * 0.55 + vec2(uTime * 0.21, uTime * 0.09)) * 0.55
@@ -85,6 +100,7 @@ void main(){
   float fres = 0.02 + 0.98 * pow(1.0 - max(dot(N, V), 0.0), 5.0);
   vec3 refl = skyColor(R);
 
+  vec2 vData = dataAt(vWPos.xz);
   float depth = vData.x * 12.0;
   vec3 deep = vec3(0.012, 0.09, 0.14), shallow = vec3(0.06, 0.42, 0.40);
   vec3 body = mix(shallow, deep, smoothstep(0.2, 6.0, depth));
@@ -158,17 +174,27 @@ export class Water {
         this.sky = sky;
         const uniforms = THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
             uTime: { value: 0 }, uHalf: { value: island.half }, uData: { value: null },
+            uHalf2: { value: 0 }, uCenter2: { value: new THREE.Vector2() }, uData2: { value: null },
             uZenith: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uSunColor: { value: new THREE.Color() },
             uSunDir: { value: new THREE.Vector3() }, uMoonDir: { value: new THREE.Vector3() },
             uNight: { value: 0 }, uDay: { value: 1 },
         }]);
         uniforms.uData.value = island.buildWaterData();
+        uniforms.uData2.value = uniforms.uData.value;
         this.mat = new THREE.ShaderMaterial({ uniforms, vertexShader: vert, fragmentShader: frag, transparent: true, fog: true, depthWrite: true });
         const geo = polarGrid(quality.waterStep, Math.min(island.half, 180), 2400, quality.waterSegs);
         this.mesh = new THREE.Mesh(geo, this.mat);
         this.mesh.renderOrder = 1;
         this.mesh.name = 'water';
         scene.add(this.mesh);
+    }
+
+    /** A second baked region of shallows and shores, for the volcano's waters. */
+    addRegion({ tex, cx, cz, half }) {
+        const u = this.mat.uniforms;
+        u.uData2.value = tex;
+        u.uCenter2.value.set(cx, cz);
+        u.uHalf2.value = half;
     }
 
     update(t) {

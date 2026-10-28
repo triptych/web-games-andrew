@@ -365,6 +365,15 @@ export class UI {
     }
 
     flash(on) {
-        $('fade').classList.toggle('on', on);
+        const f = $('fade');
+        f.classList.remove('dark');
+        f.classList.toggle('on', on);
+    }
+
+    /** A quick fade through black, for going into the dark. */
+    fadeBlack(on) {
+        const f = $('fade');
+        f.classList.add('dark');
+        f.classList.toggle('on', on);
     }
 }
