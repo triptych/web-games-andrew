@@ -80,7 +80,7 @@ export const ROOM_DEFS = {
     // ---------------------------------------------------------- the Star Dome
     constellations: {
         title: 'The Constellation Chamber', sub: 'Touch the sky and name what you find', emoji: '✨', accent: '#a8c8ff',
-        W: 10, D: 10, ceil: 7, wall: ['stars', 0x080a1c, '#2a3060', '#6a7ab0'], floor: ['flag', 0x0a0c18, 0x1a2040, 0.4], ceilColor: 0x02030a, lightColor: 0x6a7aff, noCeil: true,
+        W: 10, D: 10, ceil: 7, wall: ['stars', 0x080a1c, '#2a3060', '#6a7ab0'], floor: ['flag', 0x0a0c18, 0x1a2040, 0.4], ceilColor: 0x02030a, lightColor: 0x6a7aff, noCeil: true, wallH: 3.4,
         build: buildConstellations,
     },
     comet: {

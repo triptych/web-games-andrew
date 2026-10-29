@@ -49,7 +49,7 @@ void main() {
 }`;
 
 /** A sky of twinkling stars on a sphere about `c`, above `minY`. */
-function starSphere(n, R, c, minY, seed) {
+function starSphere(n, R, c, minY, seed, keep = () => true) {
     const r = rng(seed);
     const pos = [], size = [], ph = [], col = [];
     const pts = [];
@@ -57,7 +57,7 @@ function starSphere(n, R, c, minY, seed) {
         const u = r() * 2 - 1, a = r() * TAU;
         const s = Math.sqrt(1 - u * u);
         const v = new V3(Math.cos(a) * s, Math.abs(u), Math.sin(a) * s).multiplyScalar(R).add(c);
-        if (v.y < minY) continue;
+        if (v.y < minY || !keep(v)) continue;
         const bright = Math.pow(r(), 3);
         pts.push({ v, bright });
         pos.push(v.x, v.y, v.z);
@@ -81,7 +81,8 @@ function starSphere(n, R, c, minY, seed) {
 export function buildConstellations(ctx) {
     const { W, D, ceil, audio } = ctx;
     const r = ctx.rng;
-    const C = new V3(0, 0.2, 0), R = 7.05;
+    // the dome rests on the low walls and reaches into the corners
+    const C = new V3(0, 3.4, 0), R = 7.12;
     // the planetarium dome, deep blue, and a low ceiling-band where it meets the walls
     const domeTex = canvasTex(1024, 512, (x, w, h) => {
         const g = x.createLinearGradient(0, 0, 0, h);
@@ -103,7 +104,8 @@ export function buildConstellations(ctx) {
     const dome = new THREE.Mesh(new THREE.SphereGeometry(R, 48, 24, 0, TAU, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ map: domeTex, side: THREE.BackSide }));
     dome.position.copy(C);
     ctx.add(dome);
-    const sky = starSphere(ctx.low ? 500 : 900, R - 0.1, C, 1.6, 'planetarium');
+    // only the part of the dome inside the room's walls (it is wider than the room, to reach the corners)
+    const sky = starSphere(ctx.low ? 500 : 900, R - 0.1, C, 3.9, 'planetarium', (v) => Math.abs(v.x) < W / 2 - 0.05 && Math.abs(v.z) < D / 2 - 0.05);
     ctx.add(sky.mesh);
     const hit = new THREE.Mesh(new THREE.SphereGeometry(R - 0.2, 24, 12, 0, TAU, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ visible: false, side: THREE.BackSide }));
     hit.position.copy(C);

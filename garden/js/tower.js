@@ -606,7 +606,8 @@ export class Tower {
     }
 
     _shell(ctx, def) {
-        const { W, D, ceil } = def;
+        const { W, D } = def;
+        const ceil = def.wallH ?? def.ceil;   // a domed room has low walls
         const T = WALL_T, DW = 1.9, DH = 3.1;
         ctx.box('rf', W, 0.2, D + T, 0, -0.1, T / 2);
         if (!def.noCeil) ctx.box('rc', W + 2 * T, 0.2, D + 2 * T, 0, ceil + 0.1, 0);
