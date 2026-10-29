@@ -2,7 +2,7 @@
 
 **Genre:** arcade destruction: Katamari Damacy × Breakout × Rampage
 **Engine:** three.js r165, no asset files (every model, texture, effect, sound and tune is made in code)
-**Status:** v1.2.0 complete; balance tuned by a bot, not yet by hand
+**Status:** v1.3.0 complete; balance tuned by a bot, not yet by hand
 
 ---
 
@@ -99,6 +99,7 @@ None, only a joke: you are small, round and extremely sure of yourself.
 - **Cel shading:** every lit surface uses a four-step toon ramp (`MeshToonMaterial`), and a screen-space pass inks an outline (colour per city) wherever the depth buffer bends, which catches silhouettes and the creases between faces of a building without any extra geometry (`js/view/toon.js`). Solid things are drawn into a multisampled render target with a depth texture; the ink pass copies the depth to the screen; dust, shadows, rings and bubbles (layer 1) are then drawn on top, depth-tested. Settings has an Off switch (a single plain pass) for slow devices.
 - **Scene:** sky gradient, fog that follows the camera distance, hemisphere and sun light, soft shadows from one instanced mesh, animated sea and river, drifting clouds, boats, snow in Frostport. The camera hangs south of the ball at 62° and backs off as it grows; it widens on portrait phones. The ball shows through buildings as a gold silhouette and has a ring on the ground.
 - **Effects:** billboard dust and fire puffs (one instanced mesh with a tiny shader), chips, shockwave rings, floating score that is summed over a third of a second, a red edge flash on a hit, banners.
+- **Voiceover:** two voices speak through the browser's speech synthesis (no audio files). **Tina Torchlight** of Kaiju News Live narrates the rampage in a female English voice if the device has one (otherwise a raised pitch): the city's opening, the first floors falling, what each building was, landmarks (the ferris wheel, gas tanks, bridges), the monster growing, chains, power-ups, damage, dying and coming back, the army, milestones (a quarter, half, three quarters of the city), a few lines of idle colour, and a sign-off for each city. A gruff **military commander** (a male voice, or a low pitch) takes over on a **Field radio** strip, with a radio squelch before and after, whenever the army appears: orders to the tank platoon when the first tank arrives, "Fire!" when a tank shoots, "Contact!" when the monster rolls close, "Tank down!", orders to the helicopters and the bombers, and "It is still alive!" when you come back. Lines are rationed: a cooldown per kind of remark, a gap per voice, and priorities (a more important line interrupts a less important one; a stale one is dropped). Every line is also captioned (a TV lower-third for the reporter, a green monospace radio strip for the commander). Settings: Voices and captions, Captions only, or Off, plus a voice volume. The music ducks while someone talks. The scripts are in `js/voice/announcer.js` (pure, tested in Node) and the speech in `js/voice/speaker.js`.
 - **Sound:** everything in `audio.js`: bloops on a pentatonic ladder for swallowing, thumps by impact speed, crunches, collapse rumble, slam, explosions, a rolling rumble that follows speed, a helicopter chop that follows distance. `music.js` is a look-ahead sequencer: each city has its own tempo, key, mode, chord loop and a seeded melody; layers (bass and drums, offbeat chords, lead, arpeggio, brass) fade in with the share of the city destroyed and the army's presence.
 
 ## Module overview
@@ -114,6 +115,8 @@ None, only a joke: you are small, round and extremely sure of yourself.
 | `js/view/world.js` | Sea, island, streets, buildings with their floors, bridges, clouds, boats |
 | `js/view/models.js` | The model kit, the kaiju, props, army, roofs, landmarks, window textures |
 | `js/view/fx.js` | Puffs, chips, rings, floating text |
+| `js/voice/announcer.js` | The reporter's and the commander's scripts, rationed by cooldowns, gaps and priorities (pure) |
+| `js/voice/speaker.js` | Speech synthesis, voice picking, interruption, captions |
 | `js/view/toon.js` | The toon ramp and material, and the two-pass outline renderer |
 | `js/view/themes.js` | Colours per city |
 | `js/ui.js`, `js/input.js`, `js/audio.js`, `js/music.js`, `js/save.js`, `js/rng.js`, `js/config.js` | DOM screens and HUD, input merge, sound, music, guarded storage, seeded RNG, tuning |
@@ -134,6 +137,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, 40 generated ci
 - A boss (a giant mech) for city 5, enemy variety (infantry that shoot, a battleship in the bay), more power-ups, and something to keep between runs.
 
 ## Changelog
+
+### v1.3.0 (2026-10-29)
+- Voiceover: a news reporter narrates the rampage and a military commander barks orders when tanks, helicopters and bombers appear; captions; Settings for voices, captions only or off.
 
 ### v1.2.0 (2026-10-29)
 - Choose your monster: a reptile, a monkey or a robot, each with its own model and a few stats; a choose screen with portraits; the choice is saved and kept on Play Again.

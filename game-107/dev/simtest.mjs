@@ -486,6 +486,95 @@ if (want('bot')) {
     console.log(`  ${rows.length} games · average score: perfect ${Math.round(avg(of(1), (r) => r.score))}, decent ${Math.round(avg(of(0.6), (r) => r.score))}, sloppy ${Math.round(avg(of(0.3), (r) => r.score))} · sloppy wins ${of(0.3).filter((r) => r.won).length}/${SEEDS}`);
 }
 
+if (want('voice')) {
+    section('voice');
+    const { Announcer, LINES } = await import('../js/voice/announcer.js');
+    const { pickVoices } = await import('../js/voice/speaker.js');
+    let seed = 1;
+    const rng = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    // every scripted line is plain speakable text: no stray template holes, nothing empty, nothing huge
+    const known = new Set(['b', 'B', 'n', 'c']);
+    let badLine = null;
+    for (const [k, arr] of Object.entries(LINES)) {
+        for (const t of arr) {
+            const holes = [...t.matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
+            if (!t.trim() || t.length > 220 || holes.some((h) => !known.has(h)) || /[<>]/.test(t)) badLine = `${k}: ${t}`;
+        }
+    }
+    ok(!badLine, `every scripted line is clean speakable text ${badLine || ''}`);
+
+    const said = [];
+    const A = new Announcer((l) => said.push({ ...l, t: A.t }), rng);
+    const G = Gm.newGame(5, 0, 'monkey');
+    A.levelStart(G);
+    ok(said.length === 1 && said[0].ch === 'news' && said[0].pri === 3 && /Torchlight/.test(said[0].text) && /Pastel Bay/.test(said[0].text) && /monkey/.test(said[0].text), 'a city opens with the reporter naming the city and the monster');
+    ok(/robot/.test((() => { const o = []; new Announcer((l) => o.push(l), rng).levelStart(Gm.newGame(5, 0, 'robot')); return o[0].text; })()), 'and a different monster gets a different introduction');
+
+    // a tank appears: the commander gives orders, the reporter reacts, and the same order is not repeated at once
+    said.length = 0;
+    A.onEvents(G, [{ type: 'wave', k: 'tank', x: 5, y: 5 }]);
+    ok(said.some((l) => l.ch === 'army' && l.pri === 3) && said.some((l) => l.ch === 'news'), 'a tank arriving brings orders over the radio and a news flash');
+    said.length = 0;
+    A.t += 10;
+    A.onEvents(G, [{ type: 'shot', k: 'shell', x: 1, y: 1 }]);
+    const first = said.length;
+    A.onEvents(G, [{ type: 'shot', k: 'shell', x: 1, y: 1 }]);
+    ok(first === 1 && said.length === 1, 'a second shell straight after is not narrated');
+    A.t += 10;
+    A.onEvents(G, [{ type: 'shot', k: 'shell', x: 1, y: 1 }]);
+    ok(said.length === 2 && said[1].ch === 'army', 'a few seconds later the next order comes');
+    said.length = 0;
+    A.onEvents(G, [{ type: 'smash', k: 'tank', x: 1, y: 1 }]);
+    ok(said.some((l) => l.ch === 'army' && /down|lost|rolled|Medic/i.test(l.text)), 'when a tank is flattened the commander reports it');
+    // events with names: a collapse says what fell
+    A.t += 30;
+    said.length = 0;
+    A.onEvents(G, [{ type: 'collapse', t: 'sky', x: 1, y: 1 }]);
+    ok(said.length === 1 && /skyscraper/i.test(said[0].text), 'a collapse names the building');
+    A.t += 30;
+    said.length = 0;
+    A.onEvents(G, [{ type: 'collapse', t: 'ferris', x: 1, y: 1 }]);
+    ok(/ferris/i.test(said[0]?.text), 'and a landmark gets its own line');
+    // clearing a city and the end of the game
+    said.length = 0;
+    A.onEvents(G, [{ type: 'clear', level: 0 }]);
+    ok(said.some((l) => l.pri === 3 && /Pastel Bay/.test(l.text)), 'a cleared city is wrapped up by name');
+    said.length = 0;
+    A.onEvents(G, [{ type: 'over' }]);
+    ok(said.length === 1 && said[0].pri === 3, 'game over is announced');
+
+    // voices: a female English voice for the reporter and a male one for the commander when the device has them
+    const V = (name, lang = 'en-US', d = false) => ({ name, lang, default: d });
+    const list = [V('Microsoft David', 'en-US', true), V('Google UK English Female', 'en-GB'), V('Google UK English Male', 'en-GB'), V('Amelie', 'fr-CA')];
+    const pv = pickVoices(list);
+    ok(pv.news.voice.name === 'Google UK English Female' && /Male|David/.test(pv.army.voice.name) && pv.news.pitch > pv.army.pitch, 'the reporter gets a female voice and the commander a male one, higher and lower');
+    const only = pickVoices([V('Generic Voice', 'en-US', true)]);
+    ok(only.news.voice.name === 'Generic Voice' && only.news.pitch > 1.2 && only.army.pitch < 0.6, 'with one voice, pitch alone tells them apart');
+    ok(pickVoices([]).news.voice === null, 'and with none, nothing breaks');
+
+    // a whole city played by the bot, narrated: lively but not a wall of noise
+    const B = Gm.newGame(11, 1, 'reptile');
+    const log = [];
+    const N = new Announcer((l) => log.push({ ...l, t: N.t }), rng);
+    N.levelStart(B);
+    const bot = Bt.makeBot();
+    let steps = 0;
+    while (B.phase === 'play' && steps < 120 * 400) {
+        Gm.step(B, Bt.botInput(B, bot), DT); steps++;
+        const evs = B.events.splice(0);
+        N.onEvents(B, evs);
+        N.update(B, DT);
+    }
+    const dur = N.t, news = log.filter((l) => l.ch === 'news'), army = log.filter((l) => l.ch === 'army');
+    ok(news.length >= 6, `the reporter has plenty to say over a city (${news.length} lines in ${dur.toFixed(0)} s)`);
+    ok(army.length >= 3, `the commander speaks when the army is about (${army.length} lines)`);
+    ok(log.length / dur < 0.4, `but it is not constant chatter (${(log.length / dur).toFixed(2)} lines a second, ${log.length} in ${dur.toFixed(0)} s)`);
+    let dup = 0;
+    for (let i = 1; i < news.length; i++) if (news[i].text === news[i - 1].text) dup++;
+    ok(dup === 0, 'the reporter never says the same thing twice in a row');
+    ok(log.every((l) => l.text.length > 3 && !/\{|\}/.test(l.text)), 'and every line is finished text');
+}
+
 if (want('chaos')) {
     section('chaos');
     // random steering and random pounces in every city, with the army forced on, checking invariants and
