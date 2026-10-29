@@ -100,6 +100,24 @@ input[type=range] { width: 52%; min-height: 44px; accent-color: var(--pink); }
 }
 #dish b { color: var(--cyan); }
 
+#guide {
+    position: fixed; top: calc(100px + var(--safe-t)); left: calc(8px + var(--safe-l)); width: min(520px, calc(100vw - 16px - var(--safe-l) - var(--safe-r)));
+    display: flex; gap: 10px; align-items: baseline; padding: 8px 12px; border-radius: 8px; pointer-events: none;
+    background: rgba(5, 22, 30, 0.88); border: 1px solid rgba(53, 224, 255, 0.55); box-shadow: 0 0 18px rgba(53, 224, 255, 0.18);
+    font-size: 17px; line-height: 1.3; color: #d6f6ff;
+}
+.guide-tag { color: var(--cyan); font: 12px var(--mono); letter-spacing: 0.18em; flex: none; }
+#btn-spares.guide { border-color: var(--cyan); box-shadow: 0 0 0 2px var(--cyan), 0 0 16px rgba(53, 224, 255, 0.6); animation: glow 1s ease-in-out infinite alternate; }
+@keyframes glow { to { box-shadow: 0 0 0 2px var(--cyan), 0 0 4px rgba(53, 224, 255, 0.2); } }
+@media (prefers-reduced-motion: reduce) { #btn-spares.guide { animation: none; } }
+
+@media (min-width: 981px) {
+    #guide { top: calc(54px + var(--safe-t)); left: calc(350px + var(--safe-l)); width: min(560px, calc(100vw - 500px)); }
+    /* tips sit under the guide, out of the painted PARTS area at the front of the mat */
+    #tip { top: calc(118px + var(--safe-t)); bottom: auto; left: calc(350px + var(--safe-l)); transform: none; width: min(560px, calc(100vw - 500px)); animation-name: fade; }
+}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
 #status {
     position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(80px + var(--safe-b)); max-width: min(560px, 56vw);
     padding: 7px 14px; border-radius: 8px; background: rgba(6, 8, 16, 0.78); border: 1px solid var(--line);

@@ -7,12 +7,13 @@ export const STEP = 1 / 120;              // fixed simulation step (s)
 export const MAX_FRAME = 0.05;            // a long frame never runs more than this much game time
 
 // The bench. World units are roughly centimetres; the device sits at the origin.
-export const BENCH = { x0: -9.6, x1: 9.6, z0: -6.2, z1: 6.9 };
+export const BENCH = { x0: -9.6, x1: 9.6, z0: -6.2, z1: 7.8 };
 export const HOVER = 1.8;                 // height a carried part floats at
 export const FLOOR_Y = 0.42;              // top of a device's base plate above the mat
-export const DISH = { x: -7.4, z: 5.7, r: 1.45 };     // magnetic screw dish
-export const BIN = { x: 7.6, z: 5.5, r: 1.55 };       // scrap bin
-export const SPAWN = { x: 3.6, z: 5.8 };              // where a spare part lands
+export const DISH = { x: -7.4, z: 6.5, r: 1.45 };     // magnetic screw dish
+export const BIN = { x: 7.6, z: 6.3, r: 1.55 };       // scrap bin
+export const SPAWN = { x: 3.4, z: 6.6 };
+export const PARTS = { x: 0, z: 6.3, hw: 4.7, hd: 1.25 };   // the painted area where parts taken out are set down
 
 export const TOOLS = [
     { id: 'hand',     key: '1', name: 'Hands',     blurb: 'Lift parts, pull plugs, pick up stray bits.' },

@@ -38,6 +38,9 @@ Hands, driver (Phillips/slotted), ratchet (8/10/13 mm), pry tool (clips), tweeze
 ### The test and the marks
 **Test** evaluates the whole device: every part present, sound, clean, free, fastened; every cable plugged and whole. The power then lights the flow in order and stops at the first failure with a hint about the *stage* (power, motion, optics...), never the part. ★ it works · ★★ a tidy bench (nothing loose) with at most two failed tests · ★★★ the job's extra (a clean) done, no burns, few slips. Pay = fee × (0.8 / 1 / 1.18) − spare parts, plus a tip and 10 cr for anything hidden that you found.
 
+### Guidance
+Besides the one-off tips, a live **NEXT** line (the planner's next step, in words) and an in-world arrow follow the job on days 1–2 (Settings: first two days / always / off). Carrying something changes it to what to do with *that*: "set it down in the PARTS area", "fit it: follow the ghost", "that one is no good, drop it in the SCRAP bin"; the PARTS area, the scrap bin and the Spares button glow when they are the answer. The mat is painted with SCREWS, SCRAP and PARTS over where those things really are, and a part dropped on the dish or the bin is nudged clear.
+
 ### The governor
 From day 3 some machines carry a **Meridian governor chip** ("the leash"). You can pull it with tweezers (it goes in the bin) or leave it. It changes dialogue, Corwith's audit on day 5, and the ending text.
 

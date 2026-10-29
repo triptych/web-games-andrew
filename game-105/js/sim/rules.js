@@ -1,7 +1,7 @@
 // The rules of a device: where things are, what covers what, what may be lifted or dropped,
 // which tool does what, and whether the thing works. Pure functions over a `dev` (see device.js).
 
-import { FAST, TUNE } from '../config.js';
+import { FAST, FLOOR_Y, TUNE } from '../config.js';
 import { SYS_FAIL } from './kinds.js';
 
 // ------------------------------------------------------------------ geometry
@@ -48,6 +48,11 @@ export function wireEndPos(dev, wire, e) {
         if (p) return p;
     }
     return end.pos;
+}
+
+/** Height a loose cable end lies at: on the bench mat, or on the tray floor if it is over the device. */
+export function restY(dev, x, z) {
+    return Math.abs(x) < dev.W / 2 + 0.3 && Math.abs(z) < dev.D / 2 + 0.3 ? FLOOR_Y + 0.12 : 0.14;
 }
 
 const overlap = (a, b, m = 0.04) =>
