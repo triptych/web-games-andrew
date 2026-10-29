@@ -231,6 +231,23 @@ if (want('rules')) {
     run(G, NONE, 0.1);
     ok(G.ball.hp > 40, 'a pizza truck heals');
 
+    // the three monsters
+    const mk = (c) => { const g = Gm.newGame(3, 0, c); quiet(g); return g; };
+    ok(mk('reptile').ball.maxHp === 100 && mk('monkey').ball.maxHp === 80 && mk('robot').ball.maxHp === 130, 'the monsters differ in health');
+    ok(Gm.newGame(1, 0, 'dragon').char === 'reptile', 'an unknown monster falls back to the reptile');
+    const turn = (c) => { const g = mk(c); place(g, 20, 70, 0, 0); g.ball.hx = 0; g.ball.hy = -1; run(g, { x: 1, y: 0, a: false }, 0.4); return g.ball.vx; };
+    ok(turn('monkey') > turn('reptile') && turn('reptile') > turn('robot'), 'the monkey steers best and the robot worst');
+    const cdOf = (c) => { const g = mk(c); Gm.step(g, { x: 0, y: 0, a: true }, DT); return g.ball.cd; };
+    ok(cdOf('monkey') < cdOf('reptile') && cdOf('reptile') < cdOf('robot'), 'the monkey pounces most often, the robot least');
+    const hitFor = (c) => { const g = mk(c); const b = g.buildings.find((o) => o.t === 'block' || o.t === 'shop'); const h0 = b.hp; place(g, b.x - b.w / 2 - g.ball.r - 0.3, b.y, 12, 0); run(g, NONE, 0.3); return h0 - b.hp; };
+    ok(hitFor('robot') > hitFor('reptile') && hitFor('reptile') > hitFor('monkey'), 'the robot hits hardest and the monkey softest');
+    ok(Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(mk('robot'))))).char === 'robot', 'a save remembers the monster');
+    const old = JSON.parse(JSON.stringify(Gm.serialize(mk('robot')))); delete old.char;
+    ok(Gm.deserialize(old).char === 'reptile', 'and a save from before the choice loads as the reptile');
+    // a perk and the monster stack
+    const pg = Gm.newGame(2, 0, 'monkey'); quiet(pg); pg.hpLeft = 0; Gm.step(pg, NONE, DT); Gm.choosePerk(pg, 'hp'); Gm.nextLevel(pg);
+    ok(pg.ball.maxHp === 105, 'a gift adds to the monster\'s own health');
+
     // the pounce
     G = Gm.newGame(6); quiet(G);
     const tgt = G.buildings.find((b) => b.t === 'block' || b.t === 'shop');
@@ -440,6 +457,20 @@ if (want('bot')) {
     ok(avg(of(1), (r) => r.score) > avg(of(0.6), (r) => r.score) && avg(of(0.6), (r) => r.score) > avg(of(0.3), (r) => r.score), 'a better bot scores more');
     ok(of(0.3).some((r) => r.lives < C.LIVES || r.over), 'a sloppy bot does lose lives: the army is a real threat');
     ok(avg(of(1), (r) => r.t) > 150 && avg(of(1), (r) => r.t) < 900, `a whole game takes a sensible time (${avg(of(1), (r) => r.t).toFixed(0)} s for the perfect bot)`);
+    // every monster can win with a perfect bot
+    for (const c of D.CHAR_IDS) {
+        let wins = 0, n = Math.min(SEEDS, 4);
+        for (let sd = 1; sd <= n; sd++) {
+            const G = Gm.newGame(sd * 104729, 0, c), bot = Bt.makeBot({ skill: 1 });
+            let steps = 0, perks = 0;
+            while (!G.over && !G.won && steps < 120 * 60 * 14) {
+                Gm.step(G, Bt.botInput(G, bot), DT); steps++; G.events.length = 0;
+                if (G.phase === 'clear') { Gm.choosePerk(G, ['hp', 'cd', 'size', 'dmg', 'pow'][perks++ % 5]); Gm.nextLevel(G); bot.target = null; }
+            }
+            if (G.won) wins++;
+        }
+        ok(wins === n, `a perfect bot wins as the ${c} (${wins}/${n})`);
+    }
     // per-city numbers for the perfect bot
     const line = (k) => {
         const ps = of(k).map((r) => r.per).filter((p) => p.length);

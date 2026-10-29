@@ -2,6 +2,7 @@
 // All view-side and random; none of it touches the simulation.
 
 import * as THREE from 'three';
+import { toon, overlay } from './toon.js';
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const hexRGB = (h) => [((h >> 16) & 255) / 255, ((h >> 8) & 255) / 255, (h & 255) / 255];
@@ -42,6 +43,7 @@ export class Puffs {
         this.mesh.renderOrder = 5;
         this.mesh.count = 0;
         scene.add(this.mesh);
+        overlay(this.mesh);
         this._o = new THREE.Object3D();
     }
 
@@ -93,7 +95,7 @@ export class Chips {
     constructor(scene, cap = 320) {
         this.cap = cap;
         this.list = [];
-        this.mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial(), cap);
+        this.mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), toon(), cap);
         this.mesh.frustumCulled = false;
         this.mesh.count = 0;
         scene.add(this.mesh);
@@ -149,6 +151,7 @@ export class Rings {
             const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false }));
             m.visible = false; m.renderOrder = 4;
             scene.add(m);
+            overlay(m);
             this.items.push({ m, age: 0, life: 1, R: 1, on: false });
         }
     }

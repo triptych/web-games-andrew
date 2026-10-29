@@ -54,6 +54,20 @@ export const POWERS = {
 };
 export const POWER_KINDS = ['fire', 'magnet', 'shield', 'meal', 'heart'];
 
+/**
+ * The three monsters you can roll as. hp = max health added, accel = steering push, speed = top speed,
+ * cd = pounce cooldown, dmg = damage to buildings, pow = how long power-ups last.
+ */
+export const CHARS = {
+    reptile: { name: 'Rexy', kind: 'Reptile', icon: '🦖', hp: 0, accel: 1, speed: 1, cd: 1, dmg: 1, pow: 1.25,
+        blurb: 'The all-rounder: a tough green hide and power-ups that last longer.' },
+    monkey: { name: 'Bongo', kind: 'Monkey', icon: '🐒', hp: -20, accel: 1.25, speed: 1.08, cd: 0.75, dmg: 0.92, pow: 1,
+        blurb: 'Quick to steer and quick to pounce, but a little fragile.' },
+    robot: { name: 'Gigabot', kind: 'Robot', icon: '🤖', hp: 30, accel: 0.8, speed: 0.93, cd: 1.15, dmg: 1.25, pow: 1,
+        blurb: 'Heavy plating and hard hits, but slow to turn and to pounce.' },
+};
+export const CHAR_IDS = Object.keys(CHARS);
+
 /** Chosen after each city is flattened. */
 export const PERKS = [
     { id: 'hp',   name: 'Thick Hide',   desc: '+25 max health, and heal fully.', icon: '🛡️' },

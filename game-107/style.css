@@ -183,6 +183,31 @@ td:first-child { color: var(--warm); white-space: nowrap; }
 .perk.picked { border-color: var(--accent); background: rgba(115, 217, 138, 0.22); }
 .perks.done .perk:not(.picked) { opacity: 0.5; }
 
+/* ---------------------------------------------------------------- character choice */
+.sheet.wide { width: min(760px, 100%); }
+.chars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.char { font: inherit; color: var(--text); text-align: center; cursor: pointer; display: grid; justify-items: center; align-content: start; gap: 2px; padding: 10px 10px 12px; min-height: 44px; border: 2px solid var(--line); border-radius: 16px; background: rgba(255, 255, 255, 0.07); transition: transform 0.1s, border-color 0.1s; }
+.char:hover { transform: translateY(-3px); border-color: var(--accent); background: rgba(115, 217, 138, 0.14); }
+.char:focus-visible { outline: 3px solid var(--warm); outline-offset: 2px; }
+.char.last { border-color: rgba(255, 179, 71, 0.7); }
+.char img { width: 150px; height: 150px; max-width: 100%; object-fit: contain; pointer-events: none; }
+.char b { font-size: 22px; }
+.char i { font-style: normal; color: var(--warm); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; }
+.char em { font-style: normal; color: var(--dim); font-size: 13px; line-height: 1.3; margin: 4px 0 6px; min-height: 3.9em; }
+.char .stats { width: 100%; display: grid; gap: 2px; }
+.char .stat { display: grid; grid-template-columns: 70px 1fr; align-items: center; gap: 6px; width: 100%; font-size: 12px; text-align: left; }
+.char .dots { letter-spacing: 3px; color: var(--accent); font-size: 14px; }
+.char .dots s { text-decoration: none; color: rgba(255, 255, 255, 0.2); }
+@media (max-width: 640px) {
+    .chars { grid-template-columns: 1fr; gap: 8px; }
+    .char { grid-template-columns: 96px 1fr; text-align: left; justify-items: stretch; column-gap: 12px; padding: 8px 12px; }
+    .char img { width: 96px; height: 96px; grid-row: 1 / span 4; align-self: center; }
+    .char em { min-height: 0; margin: 2px 0; }
+    .char .stats { grid-template-columns: 1fr 1fr; gap: 2px 8px; }
+    .char .stat { grid-template-columns: 44px 1fr; font-size: 11px; gap: 2px; }
+    .char .dots { letter-spacing: 1px; font-size: 11px; }
+}
+
 #toasts { position: fixed; left: 50%; bottom: calc(16px + var(--safe-b)); transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: center; }
 .toast { background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 8px 14px; animation: toast 2.4s forwards; }
 @keyframes toast { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }

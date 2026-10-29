@@ -1,6 +1,6 @@
 // Kaiju Roll — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.2.0';
 export const SAVE_KEY = 'kaiju-roll.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)

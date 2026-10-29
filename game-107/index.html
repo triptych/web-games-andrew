@@ -83,6 +83,14 @@
         </div>
     </div>
 
+    <div id="choose" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Choose your monster</h2>
+            <div id="chars" class="chars"></div>
+            <div class="sheet-foot"><button class="btn" data-close>Back</button></div>
+        </div>
+    </div>
+
     <div id="howto" class="screen" hidden>
         <div class="sheet">
             <h2>How to Play</h2>
@@ -111,6 +119,9 @@
             <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
             <label class="row">Touch controls
                 <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <label class="row">Cartoon outlines
+                <select id="set-outline"><option value="1">On</option><option value="0">Off (faster)</option></select>
             </label>
             <label class="row">Screen shake
                 <select id="set-shake"><option value="1">Full</option><option value="0.4">Gentle</option><option value="0">Off</option></select>

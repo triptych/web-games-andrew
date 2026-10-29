@@ -4,6 +4,7 @@
 
 import * as THREE from 'three';
 import { FLOOR_H, DECK_H } from '../config.js';
+import { toon } from './toon.js';
 
 // ---------------------------------------------------------------- the kit
 
@@ -52,7 +53,7 @@ const SPH = new THREE.SphereGeometry(1, 12, 8);
 
 /** Lambert material for kit geometry; instance colours tint only the vertices flagged aPaint. */
 export function kitMaterial(instanced = true) {
-    const m = new THREE.MeshLambertMaterial({ vertexColors: true });
+    const m = toon({ vertexColors: true });
     m.onBeforeCompile = (sh) => {
         sh.vertexShader = 'attribute float aPaint;\n' + sh.vertexShader;
         if (instanced) {
@@ -286,6 +287,111 @@ export function buildKaiju() {
     k.cone(0.2, 0.6, 0.98, -0.25, 0.42, 0xffb347, 0, 6, Math.PI / 2, 0.35);
     return k.build();
 }
+
+/** A cheeky brown monkey rolled into a ball: cream face, big ears, a banana, a curled tail. Face on +z. */
+export function buildMonkey() {
+    const k = new Kit();
+    const FUR = new THREE.Color(0x8a5a3c), DARKF = new THREE.Color(0x6e4529), BELLY = new THREE.Color(0xe9c99c), SKIN = 0xf1d6b0, SKIN2 = 0xe3b88a;
+    k.add(new THREE.SphereGeometry(0.98, 28, 20), {
+        cf: (x, y, z) => {
+            if (-y * 0.9 + z * 0.2 > 0.55) return BELLY.getHex();
+            return (Math.sin(x * 9 + y * 5 + z * 3) > 0.72 ? DARKF : FUR).getHex();
+        },
+    });
+    // face: a cream mask with two eye patches, a muzzle and a wide grin
+    k.sph(0.56, 0, 0.12, 0.6, SKIN, 0, 1.12, 1.0, 0.7);
+    k.sph(0.3, 0.28, 0.34, 0.74, SKIN, 0, 1, 1, 0.7);
+    k.sph(0.3, -0.28, 0.34, 0.74, SKIN, 0, 1, 1, 0.7);
+    k.sph(0.2, 0.9 * 0.28, 0.34, 0.9, 0xffffff, 0, 1, 1.2, 0.5);
+    k.sph(0.2, -0.9 * 0.28, 0.34, 0.9, 0xffffff, 0, 1, 1.2, 0.5);
+    k.sph(0.095, 0.27, 0.33, 1.02, 0x1c1210, 0, 1, 1.2, 0.5);
+    k.sph(0.095, -0.27, 0.33, 1.02, 0x1c1210, 0, 1, 1.2, 0.5);
+    k.sph(0.028, 0.3, 0.37, 1.07, 0xffffff);
+    k.sph(0.028, -0.24, 0.37, 1.07, 0xffffff);
+    k.sph(0.22, 0.26, 0.58, 0.8, DARKF.getHex(), 0, 1.3, 0.35, 0.5);       // brows, pulled down: a mischievous look
+    k.sph(0.22, -0.26, 0.58, 0.8, DARKF.getHex(), 0, 1.3, 0.35, 0.5);
+    k.sph(0.34, 0, -0.1, 0.84, SKIN2, 0, 1.25, 0.85, 0.72);
+    k.sph(0.045, 0.1, 0.0, 1.0, 0x3a2216);
+    k.sph(0.045, -0.1, 0.0, 1.0, 0x3a2216);
+    k.tor(0.22, 0.03, 0, -0.07, 0.99, 0x3a2216, 0, 0, 0, Math.PI, Math.PI);
+    // big round ears
+    for (const s of [-1, 1]) {
+        k.sph(0.3, s * 0.9, 0.35, 0.05, FUR.getHex(), 0, 0.55, 1, 1);
+        k.sph(0.19, s * 0.96, 0.35, 0.08, 0xf2a7a0, 0, 0.4, 1, 1);
+    }
+    // a tuft on top and fur along the back
+    for (let i = 0; i < 3; i++) k.cone(0.07, 0.34, (i - 1) * 0.09, 1.02, 0.1 - Math.abs(i - 1) * 0.04, DARKF.getHex(), 0, 5, -0.4);
+    for (let i = 0; i < 13; i++) {
+        const a = 0.2 + (i / 12) * 3.0;
+        const y = Math.cos(a) * 0.96, z = -Math.sin(a) * 0.96, big = 0.1 + 0.08 * Math.sin((i / 12) * Math.PI);
+        k.add(new THREE.ConeGeometry(big, big * 3.2, 5), { p: [0, y * 1.08, z * 1.08], r: [Math.atan2(-z, y) * -1, 0, 0], c: DARKF.getHex() });
+    }
+    // long arms hugging the ball round a banana, and big feet
+    for (const s of [-1, 1]) {
+        k.sph(0.16, s * 0.8, -0.18, 0.5, FUR.getHex(), 0, 1, 1, 1.5);
+        k.sph(0.15, s * 0.55, -0.42, 0.78, FUR.getHex(), 0, 1, 1, 1.3);
+        k.sph(0.14, s * 0.3, -0.52, 0.92, SKIN2);
+        k.sph(0.2, s * 0.42, -0.86, 0.38, SKIN2, 0, 1.2, 0.7, 1.5);
+    }
+    k.tor(0.3, 0.075, 0, -0.5, 0.97, 0xffd93d, 0, 0, 0, Math.PI * 0.1, Math.PI * 0.8, 14);
+    k.sph(0.05, -0.22, -0.31, 0.97, 0x6e4529);
+    // a tail round the back with a curl at the end
+    k.tor(0.99, 0.085, 0, -0.15, 0, FUR.getHex(), 0, Math.PI / 2, 0, Math.PI, Math.PI + 0.5, 28);
+    k.tor(0.17, 0.065, 1.04, -0.15, 0.55, FUR.getHex(), 0, Math.PI / 2, 0, 0, Math.PI * 1.5, 12);
+    return k.build();
+}
+
+/** A friendly steel robot rolled into a ball: visor eyes, rivets, an antenna, vent fins. Face on +z. */
+export function buildRobot() {
+    const k = new Kit();
+    const STEEL = new THREE.Color(0xbac7d9), SEAM = new THREE.Color(0x7d8ca6);
+    k.add(new THREE.SphereGeometry(0.98, 32, 22), {
+        cf: (x, y, z) => {
+            const seam = Math.abs(y) < 0.03 || Math.abs(Math.abs(y) - 0.58) < 0.025 || Math.abs(Math.sin(Math.atan2(z, x) * 4)) < 0.045;
+            return (seam ? SEAM : STEEL).getHex();
+        },
+    });
+    for (const yy of [0.58, -0.58]) {                                                // rivets round the seams
+        const r = Math.sqrt(1 - yy * yy) * 0.995;
+        for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2 + 0.2; k.sph(0.035, Math.cos(a) * r, yy, Math.sin(a) * r, 0xeef2f8); }
+    }
+    // visor with two glowing eyes and a grille
+    k.sph(0.7, 0, 0.3, 0.52, 0x1f2a44, 0, 1.18, 0.4, 0.78);
+    for (const s of [-1, 1]) {
+        k.sph(0.17, s * 0.3, 0.3, 0.93, 0x66f6ff, 0, 1, 1.15, 0.45);
+        k.sph(0.07, s * 0.3, 0.32, 1.0, 0xffffff, 0, 1, 1, 0.5);
+    }
+    for (let i = -2; i <= 2; i++) k.box(0.06, 0.16, 0.05, i * 0.1, -0.2, 0.96, 0x2a3144);
+    k.sph(0.1, 0, -0.5, 0.86, 0xffd23f);                                              // a chest light
+    // antenna, ear bolts
+    k.cyl(0.13, 0.15, 0.1, 0, 0.96, 0, 0x8892a6, 0, 0, 0, 10);
+    k.cyl(0.03, 0.03, 0.5, 0, 1.2, 0, 0x8892a6, 0, 0, 0, 6);
+    k.sph(0.11, 0, 1.5, 0, 0xff4d4d);
+    for (const s of [-1, 1]) {
+        k.cyl(0.14, 0.14, 0.24, s * 0.98, 0.15, 0, SEAM.getHex(), 0, 0, Math.PI / 2, 12);
+        k.cyl(0.09, 0.09, 0.1, s * 1.1, 0.15, 0, 0xff8c42, 0, 0, Math.PI / 2, 10);
+    }
+    // vent fins along the back instead of spikes
+    for (let i = 0; i < 9; i++) {
+        const a = 0.1 + (i / 8) * 3.1, y = Math.cos(a) * 0.98, z = -Math.sin(a) * 0.98;
+        k.add(BOX, { p: [0, y * 1.06, z * 1.06], r: [Math.atan2(-z, y) * -1, 0, 0], s: [0.08, 0.3, 0.3], c: i % 2 ? 0xff8c42 : 0xffb067 });
+    }
+    // arms and treads
+    for (const s of [-1, 1]) {
+        k.add(new THREE.CylinderGeometry(0.1, 0.1, 0.62, 8), { p: [s * 0.78, -0.2, 0.42], r: [0.9, 0, s * 0.3], c: 0x8892a6 });
+        k.sph(0.15, s * 0.6, -0.42, 0.7, 0xff8c42);
+        k.sph(0.12, s * 0.3, -0.52, 0.9, 0xff8c42);
+        k.box(0.42, 0.22, 0.62, s * 0.42, -0.9, 0.3, 0x4a5568);
+        k.box(0.44, 0.06, 0.64, s * 0.42, -0.82, 0.3, 0xff8c42);
+    }
+    // a cable tail with a plug
+    k.tor(0.99, 0.05, 0, -0.2, 0, 0x4a5568, 0, Math.PI / 2, 0, Math.PI, Math.PI + 0.5, 28);
+    k.box(0.16, 0.12, 0.2, 1.0, -0.2, 0.5, 0xff8c42);
+    return k.build();
+}
+
+/** The model for a character id. */
+export function buildChar(id) { return id === 'monkey' ? buildMonkey() : id === 'robot' ? buildRobot() : buildKaiju(); }
 
 /** A plain unit sphere used for the silhouette seen through buildings. */
 export function silhouetteGeometry() { return new THREE.SphereGeometry(1, 20, 14); }

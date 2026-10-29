@@ -109,7 +109,13 @@ async function desktop() {
     await shot(page, 'desktop-title');
 
     await click(page, '#title-menu [data-act="new"]');
-    await until(page, () => __kr.mode === 'play' && !document.getElementById('intro').hidden, 'New Game opens the city card');
+    await until(page, () => !document.getElementById('choose').hidden && document.querySelectorAll('#chars .char').length === 3, 'New Game offers three monsters to choose from');
+    check(await Q(page, () => [...document.querySelectorAll('#chars .char img')].every((i) => i.src.startsWith('data:image/png'))), 'each with a picture drawn from its own model');
+    await settle(page);
+    await shot(page, 'desktop-choose');
+    await click(page, '#chars .char[data-id="monkey"]');
+    await until(page, () => __kr.mode === 'play' && !document.getElementById('intro').hidden, 'choosing the monkey opens the city card');
+    check(await Q(page, () => __kr.G.char === 'monkey' && __kr.G.ball.maxHp === 80), 'the monkey is a little more fragile');
     check(await Q(page, () => document.getElementById('intro-name').textContent === 'Pastel Bay'), 'the first city is Pastel Bay');
     const t1 = await Q(page, () => __kr.G.t);
     await page.waitForTimeout(400);
@@ -145,6 +151,12 @@ async function desktop() {
     await until(page, () => !document.getElementById('pause').hidden, 'the ❚❚ button pauses');
     await click(page, '#pause-menu [data-act="settings"]');
     await until(page, () => !document.getElementById('settings').hidden && Number(document.getElementById('settings').style.zIndex) > Number(document.getElementById('pause').style.zIndex), 'Settings opens on top of the pause menu');
+    check(await Q(page, () => __kr.view.cel.on === true), 'the cartoon outline pass is on by default');
+    await Q(page, () => { const e = document.getElementById('set-outline'); e.value = '0'; e.dispatchEvent(new Event('change')); });
+    check(await Q(page, () => __kr.view.cel.on === false), 'the Settings switch turns it off (a single plain pass)');
+    await page.waitForTimeout(400);
+    await Q(page, () => { const e = document.getElementById('set-outline'); e.value = '1'; e.dispatchEvent(new Event('change')); });
+    check(await Q(page, () => __kr.view.cel.on === true), 'and on again');
     await click(page, '#settings [data-close]');
     const score = await Q(page, () => __kr.G.score);
     await click(page, '#pause-menu [data-act="quit"]');
@@ -177,7 +189,7 @@ async function desktop() {
     check(await Q(page, () => /Harbor Town/.test(document.getElementById('over-text').textContent)), 'which names the city you reached');
     await shot(page, 'desktop-over');
     await click(page, '#over-again');
-    await until(page, () => __kr.mode === 'play' && __kr.G.level === 0 && __kr.G.score === 0, 'Play Again starts a fresh game');
+    await until(page, () => __kr.mode === 'play' && __kr.G.level === 0 && __kr.G.score === 0 && __kr.G.char === 'monkey', 'Play Again starts a fresh game with the same monster');
     reportErrors('desktop');
 }
 
@@ -198,7 +210,10 @@ async function phone(w, h) {
     check(await backLinkOk(page), '← Games link is on top');
     check(await onScreen(page, '#title .sheet') || (await Q(page, () => document.querySelector('#title .sheet').scrollHeight > 0)), 'the title sheet is on screen');
     await tapSel('#title-menu [data-act="new"]');
-    await until(page, () => __kr.mode === 'play' && !document.getElementById('intro').hidden, 'a tap on New Game opens the city card');
+    await until(page, () => !document.getElementById('choose').hidden, 'a tap on New Game offers the monsters');
+    await shot(page, `phone-choose-${w}x${h}`);
+    await tapSel('#chars .char[data-id="robot"]');
+    await until(page, () => __kr.mode === 'play' && !document.getElementById('intro').hidden && __kr.G.char === 'robot', 'a tap on the robot opens the city card');
     await until(page, () => !document.getElementById('touch').hidden, 'the touch deck is already on before the first city');
     await tapSel('#intro-go');
     await until(page, () => document.getElementById('intro').hidden, 'a tap on Roll! starts the city');
@@ -253,6 +268,7 @@ async function nostorage() {
     console.log('\n== blocked storage');
     const page = await open({ width: 1280, height: 760 }, { nostorage: true });
     await click(page, '#title-menu [data-act="new"]');
+    await click(page, '#chars .char');
     await until(page, () => __kr.mode === 'play', 'boots and starts a game with localStorage throwing');
     await click(page, '#intro-go');
     await Q(page, () => __kr.ff(3));
