@@ -149,9 +149,9 @@ ${NOISE}
 void main() {
     vec3 p = normalize(vP);
     float c = fbm(p * 3.0 + uSeed + vec3(uTime * 0.01, 0.0, 0.0)) + 0.25 * fbm(p * 12.0 + uSeed);
-    float a = smoothstep(0.95 - uAmt, 1.15 - uAmt, c);
+    float a = smoothstep(0.8 - uAmt * 0.22, 0.9 - uAmt * 0.22, c);
     float lit = smoothstep(-0.15, 0.5, dot(normalize(vN), normalize(uLight)));
-    gl_FragColor = vec4(uCol * (0.04 + lit), a * 0.95);
+    gl_FragColor = vec4(uCol * (0.03 + lit * 0.85), a * 0.9);
 }`;
 
 const ATMO_FRAG = /* glsl */ `
@@ -316,7 +316,7 @@ export class Scope {
         this.log = store.get('starLog', {});
         this.count = 0;
         this.seed = Math.floor(Math.random() * 1e9);
-        this.lightDir = new V3(-0.8, 0.35, 0.5).normalize();
+        this.lightDir = new V3(-0.9, 0.3, 0.32).normalize();
         this._stars();
         this._dom();
         this._pointer();
