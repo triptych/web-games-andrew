@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Oathstones — model gallery</title>
+<style>
+  body { margin: 0; background: #6a6a72; font: 12px system-ui, sans-serif; color: #111; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+<script type="module">
+// Every hero, every monster and the four gem cuts on a neutral grey, lit plainly: judge the
+// models here, not under bloom and coloured rim lights. ?what=heroes|monsters|gems
+import * as THREE from 'three';
+import { HEROES, ENEMIES } from '../js/sim/data.js';
+import { heroFigure, monster, gemGeometries } from '../js/view/models.js';
+
+const what = new URLSearchParams(location.search).get('what') || 'heroes';
+const W = 1400, H = what === 'monsters' ? 900 : 760;
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
+r.setSize(W, H);
+r.outputColorSpace = THREE.SRGBColorSpace;
+r.setClearColor(0x6a6a72);
+r.setScissorTest(true);
+const items = what === 'heroes' ? HEROES.map((h) => ({ name: h.name, obj: heroFigure(h), h: 1.1 }))
+    : what === 'monsters' ? Object.values(ENEMIES).map((e) => ({ name: e.name, obj: monster(e), h: 3.2 }))
+    : gemGeometries().map((g, k) => ({ name: k, obj: new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: [0xff5a36, 0x3aa6ff, 0x48d468, 0xffcc33][k], flatShading: true, roughness: 0.3 })), h: 0.6 }));
+const cols = what === 'monsters' ? 6 : what === 'gems' ? 4 : 7;
+const rows = Math.ceil(items.length / cols);
+const cw = W / cols, ch = H / rows;
+const labels = document.createElement('div');
+document.body.appendChild(labels);
+items.forEach((it, k) => {
+    const sc = new THREE.Scene();
+    sc.add(new THREE.HemisphereLight(0xffffff, 0x555560, 1.3));
+    const d = new THREE.DirectionalLight(0xffffff, 1.8); d.position.set(2, 4, 5); sc.add(d);
+    sc.add(it.obj);
+    const cam = new THREE.PerspectiveCamera(30, cw / ch, 0.1, 50);
+    const dist = it.h * 2.6;
+    cam.position.set(0, it.h * 0.75, dist);
+    cam.lookAt(0, it.h * 0.45, 0);
+    const x = (k % cols) * cw, y = H - (Math.floor(k / cols) + 1) * ch;
+    r.setViewport(x, y, cw, ch); r.setScissor(x, y, cw, ch);
+    r.render(sc, cam);
+    const l = document.createElement('div');
+    l.textContent = it.name;
+    Object.assign(l.style, { position: 'absolute', left: `${x + 6}px`, top: `${H - y - ch + 4}px` });
+    labels.appendChild(l);
+});
+window.galleryReady = true;
+</script>
+</body>
+</html>

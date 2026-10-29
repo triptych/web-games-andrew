@@ -1358,6 +1358,17 @@ h1 {
     box-shadow: 0 0 14px rgba(115, 217, 138, 0.6);
 }
 
+.game-preview.oathstones,
+.carousel-slide-bg.oathstones {
+    background: radial-gradient(circle at 76% 28%, rgba(255, 244, 214, 0.9) 0 6%, transparent 7%), linear-gradient(170deg, #142458 0%, #4a2a78 45%, #ff9a52 82%, #2a1a34 100%);
+}
+
+.game-card.oathstones .play-button {
+    background: linear-gradient(135deg, #f8dc8a, #c9922f 55%, #b56bff);
+    color: #241404;
+    box-shadow: 0 0 14px rgba(242, 201, 106, 0.65);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

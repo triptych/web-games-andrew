@@ -6313,3 +6313,48 @@ The sea shader samples a small height texture of the terrain to colour shallows,
 - **Browser speech is a queue you manage yourself.** `speechSynthesis` plays utterances in order, so urgent lines need `cancel()` first (and a short delay before the next `speak()` or Chrome drops it), `onend` does not always fire (a timer from the line's length moves the queue on), voices arrive late (`voiceschanged`), and device voices have no gender field, so pick by name and fall back to pitch (about 1.4 for the reporter, 0.5 for the commander). Keep one pending slot and drop it if it is stale. Captions are the fallback for no voices, no sound or a quiet room, and should show whatever the speech setting.
 - **A name that is also a method breaks quietly.** Adding a `level()` method to the music object collided with its `level` property (the city number) and threw only when a menu opened and the music ducked; the desktop browser test's pause step failed and pointed at it.
 
+## Game 108 Oathstones: per-token match rules, a gacha that calls heroes to the board (2026-10-29)
+
+A match-3 RPG where every token keeps its own rule for being matched. What cost time, or is worth
+reusing:
+
+- **Check every window, not maximal runs.** "Every token in the line accepts it" is evaluated per
+  token (`fits(t, line)` in [board.js](../../game-108/js/sim/board.js)). Most rules are hereditary
+  (a valid line's sub-lines are valid), but Host (four or more) is not, and a run that is invalid as a
+  whole can hold a valid stretch. So for each row and column every window of 3+ contiguous lineable
+  tokens is tested, and a token in any valid window is matched. At 7×7 that is a few hundred checks
+  and the bot can still score every swap.
+- **Matched is not cleared.** Cascade and Crossroads tokens join a line (so their partners clear) but
+  only leave under a condition (a combo ≥ 2; a valid row and a valid column through them).
+  `findClears` returns both sets; the vigil wake and rubble/ice adjacency use what actually cleared.
+- **Mutation-check a rules test that passes first time.** All 134 rule checks passed on the first
+  run; breaking `cross` and `host` on purpose and seeing the right two checks fail is what made the
+  suite trustworthy.
+- **A random-move bot is strong at match-3.** Cascades do much of the work, so a greedy one-step bot
+  was no better than random. Scoring the swap through the clears and falls of the stones already on
+  the board (gaps stay empty; it never peeks at the refills) separated the skills. Then the good bot
+  lost *more* late in the campaign: it won fast, so fewer heroes arrived and it bound fewer. A
+  swift-victory crystal bonus pays a quick player in summons instead.
+- **`lib/a11y.js` moves focus into every screen it sees open.** Opening two at once (the camp and a
+  stage brief) landed focus on the lower one, because its MutationObserver ran after the game had
+  focused the top one. Re-focus the top screen in a `queueMicrotask` after opening; it runs after the
+  observer's callbacks.
+- **Portraits from the real figures, without a render target.** A render target skips tone mapping
+  and the sRGB conversion, so a read-back portrait comes out dark and clipped. Instead render the
+  figure into a scissored corner of the main canvas and `drawImage` it into a 2D canvas in the same
+  task (no `preserveDrawingBuffer` needed); the frame's normal render overwrites the corner.
+- **Extruded shapes look like plastic tiles from above.** A cut gem lofted through rings of one
+  outline (a pointed pavilion, a girdle, crown facets with the ring turned half a step, a small
+  table) and flat shaded reads as a jewel; a winding check per facet against the axis keeps every
+  face outward. Keep the shapes' silhouettes distinct at 40 px: a chamfered square drifted toward the
+  round brilliant until the chamfer was cut to 0.11.
+- **A steep camera hides a screen-space sky behind the ground.** Put the board on a floating island
+  with nothing around it, so the sky pass shows on every side.
+- **On a landscape phone move the party bar to a column on the right**, and size the swipe threshold
+  from a cell's on-screen width: at 844×390 with the bar at the bottom a cell was 18 px, shorter than
+  the 18 px swipe threshold, and swipes did nothing.
+- **Animation time under SwiftShader is slower than real time.** At ~4 fps with frames capped at
+  0.05 s, a second of waiting is a fifth of a second of animation: a screenshot after an arrival still
+  showed its light beam over the hero, which looked like a washed-out material. Wait on state, or
+  open the game with a large `&fast=`.
+
