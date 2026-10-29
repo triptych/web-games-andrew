@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-106 games, `game-001` through `game-106`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+107 games, `game-001` through `game-107`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -124,6 +124,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 104 | [Hemlock Hollow](game-104/) | A gothic black-and-white Sierra-style text adventure: a witch's apprentice, herbs, hedge-magic and a Governor who kidnaps healers to sell cures | Canvas 2D |
 | 105 | [Solder & Rain](game-105/) | A repair-bench sim with a mystery: open blasters, cyborg arms and a shop-bot, fix them by hand and find your missing father in a rain-soaked neon station | three.js |
 | 106 | [INTRUDER ALERT '84](game-106/) | Berzerk as a bullet heaven: an auto-firing laser, robot hordes pouring into an electrified neon maze, data chips, upgrades, sector purges and an unkillable bouncing Grinner, in 16-bit pixels with bloom and synthwave | Canvas 2D |
+| 107 | [Kaiju Roll](game-107/) | Katamari meets Breakout meets Rampage: a kaiju curled into a never-stopping ball bounces through five procedural toy cities, shedding skyscraper floors, swallowing cars and people to grow, and pouncing on tanks, helicopters and bombers, with procedural models and per-city music | three.js |
 
 ### Highlights
 

@@ -1619,6 +1619,21 @@ const games = [
             { emoji: '\uD83C\uDF06', label: '80s neon' },
             { emoji: '\uD83D\uDDBC\uFE0F', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-107',
+        title: 'Kaiju Roll',
+        description: 'Katamari Damacy meets Breakout meets Rampage, in a toy city. You are a kaiju curled into a ball that never stops rolling: steer to curve your path and bounce off buildings like the ball in a brick-breaker, and every skyscraper is a stack of floors that fall off one at a time. Swallow people, cars, trees and rubble and they stick to you, so you grow, hit harder and finally roll straight over houses; pounce to hop and slam, swat helicopters out of the sky and jump over shells. Five procedurally built cities (Pastel Bay, Harbor Town, Neon Heights, Frostport, Fort Fortissimo) with bridges, a river, a ferris wheel, whimsical rooftops (teapots, donuts, balloons) and tanks, helicopters and bombers that fight back. Power-ups drop from fallen towers (atomic breath, snack magnet, jelly shield, mega meal), chains multiply your score, and each flattened city lets you pick a gift. Keyboard, gamepad or touch. Every model, texture, sound effect and the per-city music is made in code.',
+        icon: '\uD83E\uDD96',
+        folder: 'game-107',
+        version: '1.0.0',
+        cssClass: 'kaiju-roll',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83E\uDD96', label: 'Kaiju rampage' },
+            { emoji: '\uD83E\uDDF1', label: 'Brick-breaker physics' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
