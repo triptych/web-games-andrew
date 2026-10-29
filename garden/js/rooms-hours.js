@@ -454,8 +454,12 @@ export function buildCabinet(ctx) {
     for (const s of [-1, 1]) {
         const x = s * (W / 2 - 0.35);
         for (const z of [-2.4, 0.3, 2.6]) {
-            ctx.box('darkWood', 0.6, 3.2, 2.2, x, 1.6, z);
-            ctx.box('shelfGlow', 0.03, 2.9, 2.0, x + s * 0.24, 1.62, z);
+            // an open-fronted case: back, sides, top and plinth, lit from behind the shelves
+            ctx.box('darkWood', 0.05, 3.2, 2.2, x + s * 0.275, 1.6, z);
+            for (const e of [-1, 1]) ctx.box('darkWood', 0.6, 3.2, 0.08, x, 1.6, z + e * 1.06);
+            ctx.box('darkWood', 0.6, 0.1, 2.04, x, 3.15, z);
+            ctx.box('darkWood', 0.6, 0.12, 2.04, x, 0.06, z);
+            ctx.box('shelfGlow', 0.02, 2.9, 2.0, x + s * 0.24, 1.62, z);
             for (let k = 0; k < 4; k++) {
                 const y = 0.45 + k * 0.72;
                 ctx.box('darkWood', 0.5, 0.04, 2.0, x - s * 0.04, y, z);

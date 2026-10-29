@@ -98,7 +98,7 @@ export function buildLibrary(ctx) {
     const roomBooks = [];
     for (const s of [-1, 1]) {
         const x = s * (W / 2 - 0.25);
-        ctx.box('darkWood', 0.06, ceil - 0.2, D - 1.0, s * (W / 2 - 0.03), (ceil - 0.2) / 2, -0.4);
+        ctx.box('darkWood', 0.06, ceil - 0.2, D - 1.0, s * (W / 2 - 0.045), (ceil - 0.2) / 2, -0.4);   // clear of the skirting
         for (let k = 0; k < 8; k++) ctx.box('darkWood', 0.5, 0.05, D - 1.0, x, 0.15 + k * 0.68, -0.4);
         for (let z = -D / 2 + 0.1; z <= D / 2 - 0.9; z += 1.4) ctx.box('darkWood', 0.5, ceil - 0.2, 0.06, x, (ceil - 0.2) / 2, z);
         ctx.collideBox(x, -0.4, 0.5, D - 1.0);
