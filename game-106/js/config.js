@@ -36,7 +36,7 @@ export const ROBOTS = {
 };
 export const SPAWN = {
     every: 0.75,                          // seconds between bursts at the start…
-    min: 0.2,                             // …shrinking to this
+    min: 0.55,                            // …shrinking to this
     burst: 3,                             // robots per burst, +1 each sector
     cap: 160,                             // most robots alive at once
     hpGrow: 0.35,                         // robot HP ×(1 + hpGrow) per sector

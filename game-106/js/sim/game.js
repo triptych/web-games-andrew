@@ -9,6 +9,7 @@
 import { FIELD, PLAYER, ROUND, SECTOR, WALL, LASER, ORBIT, PULSE, ROBOTS, SPAWN, BOLT, GRINNER, XP, CHIP, UPGRADES } from '../config.js';
 import { makeRng } from '../rng.js';
 import { makeMaze, doors, pushOut, circleRect, pointInRect, lineOfSight } from './maze.js';
+import { flowField, flowDir, clearPath } from './nav.js';
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const TAU = Math.PI * 2;
@@ -185,13 +186,16 @@ function moveRobots(G, dt) {
         b.push(i);
     }
     const decay = Math.exp(-dt * 6);
+    // robots steer round the walls: straight at you when the way is clear, else down the flood from you
+    const field = list.length ? flowField(G.walls, p.x, p.y) : null;
     for (let i = 0; i < list.length; i++) {
         const r = list[i], R = ROBOTS[r.kind];
         const dx = p.x - r.x, dy = p.y - r.y, d = Math.hypot(dx, dy) || 1;
         let mx = dx / d, my = dy / d;
+        let closing = true;
         if (r.kind === 'gunner') {
-            if (d < R.keep - 1) { mx = -mx; my = -my; }
-            else if (d < R.keep + 1.5) { const s = (r.id & 1) ? 1 : -1; [mx, my] = [-my * s, mx * s]; }
+            if (d < R.keep - 1) { mx = -mx; my = -my; closing = false; }
+            else if (d < R.keep + 1.5) { const s = (r.id & 1) ? 1 : -1; [mx, my] = [-my * s, mx * s]; closing = false; }
             r.fT -= dt;
             if (r.fT <= 0 && d < 13) {
                 r.fT = R.fire;
@@ -201,6 +205,18 @@ function moveRobots(G, dt) {
                 }
             }
         }
+        if (closing && !clearPath(G.walls, r.x, r.y, p.x, p.y, R.r)) {
+            const f = flowDir(field, r.x, r.y);
+            if (f) { mx = f.x; my = f.y; }
+        }
+        // and a shove off any wall they're about to graze
+        for (const w of G.walls) {
+            const nx = clamp(r.x, w.x, w.x + w.w), ny = clamp(r.y, w.y, w.y + w.h);
+            const ex = r.x - nx, ey = r.y - ny, e = Math.hypot(ex, ey), room = R.r + 0.35;
+            if (e < room && e > 1e-6) { const k = (1 - e / room) * 1.5; mx += (ex / e) * k; my += (ey / e) * k; }
+        }
+        const ml = Math.hypot(mx, my);
+        if (ml > 1) { mx /= ml; my /= ml; }
         // separation from neighbours
         let sx = 0, sy = 0;
         const gx = (r.x / cell) | 0, gy = (r.y / cell) | 0;

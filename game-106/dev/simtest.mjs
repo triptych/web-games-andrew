@@ -165,10 +165,20 @@ if (want('rules')) {
     ok(G.walls.every((w) => !Mz.circleRect(G.player.x, G.player.y, C.PLAYER.radius - 0.01, w)), 'and you never end up inside it');
     G = quiet(7);
     G.walls.push({ x: G.player.x + 3, y: G.player.y - 2, w: 0.45, h: 4 });
-    robot(G, 'drone', G.player.x + 4.2, G.player.y);
+    const shoved = robot(G, 'drone', G.player.x + 4.2, G.player.y);
+    shoved.kx = -14;
     G.player.fireT = 99;
     run(G, NONE, 1);
-    ok(G.kills === 1 && G.events.some((e) => e.type === 'kill' && e.by === 'wall'), 'a drone that walks into a wall fries');
+    ok(G.kills === 1 && G.events.some((e) => e.type === 'kill' && e.by === 'wall'), 'a drone knocked into a wall fries');
+
+    // robots walk round walls instead of into them
+    G = quiet(7);
+    G.walls.push({ x: G.player.x + 3, y: G.player.y - 4, w: 0.45, h: 8 });
+    const walker = robot(G, 'hunter', G.player.x + 5, G.player.y);
+    G.player.fireT = 99;
+    let crossed = false;
+    for (let i = 0; i < 12 / DT && !crossed; i++) { Gm.step(G, NONE, DT); crossed = walker.x < G.player.x + 3; }
+    ok(crossed && G.kills === 0 && G.events.every((e) => e.type !== 'hurt' || e.cause !== 'zap') && walker.hp === walker.maxHp, 'a robot walks round a wall to reach you, not into it');
 
     // ---- gunner bolts
     G = quiet(8);
