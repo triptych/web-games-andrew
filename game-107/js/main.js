@@ -12,6 +12,8 @@ import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave, sav
 import { newGame, step, choosePerk, nextLevel, destroyedFrac } from './sim/game.js';
 import { makeBot, botInput } from './sim/bot.js';
 import { LEVELS, CHAR_IDS } from './sim/data.js';
+import { Announcer } from './voice/announcer.js';
+import { Speaker } from './voice/speaker.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.get('debug') === '1';
@@ -28,11 +30,19 @@ view.shakeScale = view.reduced ? Math.min(0.3, settings.shake) : settings.shake;
 view.setOutline(settings.outline !== false);
 const ui = new UI({
     audio, settings,
-    onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music); view.shakeScale = view.reduced ? Math.min(0.3, s.shake) : s.shake; view.setOutline(s.outline !== false); updateTouch(); },
+    onSettings: (s) => { saveSettings(s); if (s.voice === 'off') { speaker.stop(); ui.hideCaption(); } audio.setVolumes(s.sfx, s.music); view.shakeScale = view.reduced ? Math.min(0.3, s.shake) : s.shake; view.setOutline(s.outline !== false); updateTouch(); },
     onDeleteSave: () => { clearSave(); refreshTitle(); },
 });
 
 const pickAny = () => CHAR_IDS[Math.floor(Math.random() * CHAR_IDS.length)];
+// the reporter and the commander: scripts in announcer.js, speech and captions in speaker.js
+const speaker = new Speaker({
+    settings,
+    caption: (line, sec) => ui.caption(line, sec),
+    radio: (kind) => audio.radio(kind),
+    talking: (on) => audio.music.talk(on),
+});
+const announcer = new Announcer((line) => speaker.say(line));
 const freshSeed = () => ((Date.now() * 2654435761) >>> 0) % 1e9;
 let G = newGame(freshSeed() | 1, 0, pickAny());     // the title screen shows a bot rolling through a city
 let attract = makeBot({ skill: 0.85 });
@@ -80,7 +90,7 @@ document.getElementById('pause-menu').addEventListener('click', (e) => {
     else ui.openScreen(act);
 });
 document.getElementById('btn-pause').addEventListener('click', () => pause());
-document.getElementById('intro-go').addEventListener('click', () => { audio.ui('click'); ui.closeScreen('intro'); input.flush(); });
+document.getElementById('intro-go').addEventListener('click', () => { audio.ui('click'); ui.closeScreen('intro'); input.flush(); announcer.levelStart(G); });
 document.getElementById('clear-next').addEventListener('click', () => {
     audio.ui('click');
     ui.closeScreen('clear');
@@ -117,10 +127,14 @@ function startGame(g, skipIntro) {
     updateTouch();
     startMusic(G.level, 'play');
     saveGame(G);
-    if (!skipIntro) ui.showIntro(G);
+    speaker.stop();
+    announcer.reset();
+    if (!skipIntro) ui.showIntro(G); else announcer.levelStart(G, true);
 }
 
 function toTitle() {
+    speaker.stop();
+    ui.hideCaption();
     for (const id of [...ui.stack]) ui.closeScreen(id);
     mode = 'title';
     ui.showHud(false);
@@ -134,6 +148,7 @@ function toTitle() {
 function pause() {
     if (mode !== 'play' || ui.anyScreen()) return;
     audio.ui('open');
+    speaker.stop();
     saveGame(G);
     ui.openScreen('pause');
 }
@@ -172,6 +187,7 @@ function flushEvents() {
     if (isAttract) return;                    // the title's bot is silent
     audio.onEvents(G, ev);
     ui.onEvents(G, ev);
+    announcer.onEvents(G, ev);
     for (const e of ev) {
         if (e.type === 'clear') {
             saveGame(G);
@@ -221,6 +237,7 @@ function frame(now) {
     flushEvents();
     view.frame(G, dt, time);
     if (mode === 'play') {
+        if (running && G.phase === 'play') announcer.update(G, dt);
         ui.hud(G, view);
         if (audio.ctx) {
             const frac = destroyedFrac(G) / LEVELS[G.level].goal;
@@ -241,7 +258,7 @@ if (DEBUG) {
     window.__kr = {
         get G() { return G; },
         get mode() { return mode; },
-        seen, view, ui, audio, input,
+        seen, view, ui, audio, input, speaker, announcer,
         /** Skip the title and the intro card: straight into city `level` (0-4). */
         start(seed = 1, level = 0, char = 'reptile') { startGame(newGame(seed, level, char), true); return G; },
         autoplay(on = true) { bot = on ? makeBot() : null; },

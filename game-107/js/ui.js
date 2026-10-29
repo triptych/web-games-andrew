@@ -35,13 +35,13 @@ export class UI {
             b.addEventListener('click', () => { audio.ui('close'); this.closeTop(); });
         }
 
-        const sfx = $('set-sfx'), music = $('set-music'), touch = $('set-touch'), shake = $('set-shake'), outline = $('set-outline');
-        sfx.value = settings.sfx; music.value = settings.music; touch.value = settings.touch; shake.value = String(settings.shake); outline.value = settings.outline === false ? '0' : '1';
+        const sfx = $('set-sfx'), music = $('set-music'), touch = $('set-touch'), shake = $('set-shake'), outline = $('set-outline'), voice = $('set-voice'), voiceVol = $('set-voicevol');
+        sfx.value = settings.sfx; music.value = settings.music; touch.value = settings.touch; shake.value = String(settings.shake); outline.value = settings.outline === false ? '0' : '1'; voice.value = settings.voice || 'on'; voiceVol.value = settings.voiceVol ?? 0.9;
         const changed = () => {
-            Object.assign(settings, { sfx: +sfx.value, music: +music.value, touch: touch.value, shake: +shake.value, outline: outline.value === '1' });
+            Object.assign(settings, { sfx: +sfx.value, music: +music.value, touch: touch.value, shake: +shake.value, outline: outline.value === '1', voice: voice.value, voiceVol: +voiceVol.value });
             onSettings(settings);
         };
-        for (const el of [sfx, music, touch, shake, outline]) el.addEventListener('change', changed);
+        for (const el of [sfx, music, touch, shake, outline, voice, voiceVol]) el.addEventListener('change', changed);
         $('set-delete').addEventListener('click', () => { onDeleteSave(); this.toast('Saved game deleted.'); });
     }
 
@@ -84,7 +84,7 @@ export class UI {
     showHud(on) {
         $('hud').hidden = !on;
         this.setTouch(this.touchOn, on);
-        if (!on) { $('arrow').hidden = true; $('banner').textContent = ''; }
+        if (!on) { $('arrow').hidden = true; $('banner').textContent = ''; this.hideCaption(); }
     }
 
     hud(G, view) {
@@ -158,7 +158,21 @@ export class UI {
     setTouch(on, playing = !$('hud').hidden) {
         this.touchOn = on;
         $('touch').hidden = !(on && playing);
+        document.body.classList.toggle('touching', on);
     }
+    /** A caption for a spoken line, shown for `sec` seconds. */
+    caption(line, sec) {
+        const el = $('caption');
+        $('cap-who').textContent = line.ch === 'army' ? 'Field radio' : 'Kaiju News Live';
+        $('cap-text').textContent = line.text;
+        el.className = line.ch;
+        el.hidden = false;
+        el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+        clearTimeout(this.capTimer);
+        this.capTimer = setTimeout(() => { el.hidden = true; }, sec * 1000);
+    }
+    hideCaption() { clearTimeout(this.capTimer); $('caption').hidden = true; }
+
     toast(text) {
         const el = document.createElement('div');
         el.className = 'toast';
