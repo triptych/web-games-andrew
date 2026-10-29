@@ -2,12 +2,14 @@
 // Sim (x, y) maps to world (x, 0, y); the camera hangs south of the monster and looks north.
 
 import * as THREE from 'three';
+import { toon, overlay } from './toon.js';
 import { THINGS, FOES, POWERS } from '../sim/data.js';
 import { ABSORB } from '../config.js';
 import { THEMES } from './themes.js';
 import * as M from './models.js';
 import { World } from './world.js';
 import { Puffs, Chips, Rings, Popups } from './fx.js';
+import { Cel } from './toon.js';
 
 const THING_KINDS = Object.keys(THINGS);
 const POWER_COL = { fire: 0xff7a1a, magnet: 0xd04bff, shield: 0x4de1ff, meal: 0xffd23f, heart: 0xff4d8d };
@@ -76,6 +78,7 @@ export class View {
         this.renderer.outputColorSpace = THREE.SRGBColorSpace;
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(42, 1, 3, 500);   // a far near-plane keeps the thin ground layers from z-fighting
+        this.cel = new Cel(this.renderer, this.camera);
         this.hemi = new THREE.HemisphereLight(0xffffff, 0x888888, 1);
         this.sun = new THREE.DirectionalLight(0xffffff, 2);
         this.sun.position.set(-14, 26, 12);
@@ -105,12 +108,15 @@ export class View {
         this.blobs = new THREE.InstancedMesh(bg, new THREE.MeshBasicMaterial({ map: this.disc, color: 0x000000, transparent: true, opacity: 0.4, depthWrite: false, fog: false }), 140);
         this.blobs.frustumCulled = false; this.blobs.renderOrder = 2;
         this.scene.add(this.blobs);
+        overlay(this.blobs);
         this.marks = new THREE.InstancedMesh(bg, new THREE.MeshBasicMaterial({ map: this.disc, transparent: true, opacity: 0.55, depthWrite: false, fog: false }), 40);
         this.marks.frustumCulled = false; this.marks.renderOrder = 3;
         this.scene.add(this.marks);
+        overlay(this.marks);
         this.warn = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0xff2d2d, transparent: true, opacity: 0.3, depthWrite: false, fog: false }));
         this.warn.rotation.x = -Math.PI / 2; this.warn.visible = false; this.warn.renderOrder = 3;
         this.scene.add(this.warn);
+        overlay(this.warn);
 
         this.resize();
         const onResize = () => this.resize();
@@ -144,7 +150,7 @@ export class View {
         this.ball = new THREE.Group();                         // follows the monster
         this.kaiju = new THREE.Group();                        // rolls
         const kg = M.buildKaiju();
-        this.kaijuMesh = new THREE.Mesh(kg, new THREE.MeshLambertMaterial({ vertexColors: true }));
+        this.kaijuMesh = new THREE.Mesh(kg, toon({ vertexColors: true }));
         this.kaiju.add(this.kaijuMesh);
         this.stuckGroup = new THREE.Group();
         this.kaiju.add(this.stuckGroup);
@@ -153,20 +159,23 @@ export class View {
         this.sil = new THREE.Mesh(M.silhouetteGeometry(), new THREE.MeshBasicMaterial({ color: 0xfff27a, transparent: true, opacity: 0.38, depthFunc: THREE.GreaterDepth, depthWrite: false, fog: false }));
         this.sil.renderOrder = 10;
         this.scene.add(this.sil);
+        overlay(this.sil);
         // a ring on the ground under the monster: easy to find in the dust, and it turns gold when the pounce is ready
         const rg = new THREE.RingGeometry(0.9, 1, 48);
         rg.rotateX(-Math.PI / 2);
         this.ring = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, fog: false, side: THREE.DoubleSide }));
         this.ring.renderOrder = 6;
         this.scene.add(this.ring);
+        overlay(this.ring);
         this.fire = new THREE.Mesh(new THREE.SphereGeometry(1, 18, 12), new THREE.MeshBasicMaterial({ color: 0xff7a1a, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
         this.shield = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), new THREE.MeshBasicMaterial({ color: 0x6fe9ff, transparent: true, opacity: 0.28, depthWrite: false, fog: false }));
         this.ball.add(this.fire, this.shield);
         this.fire.visible = this.shield.visible = false;
+        overlay(this.fire, this.shield);
         this.stuckMeshes = [];
         this.stuckSN = 0;
         this.stuckGeo = new Map();
-        this.stuckMat = new THREE.MeshLambertMaterial({ vertexColors: true });
+        this.stuckMat = toon({ vertexColors: true });
         this.stuckSrc = {};
         THING_KINDS.forEach((k, i) => { this.stuckSrc[i] = { person: M.personModel, car: M.carModel, bus: M.busModel, cart: M.cartModel, pizza: M.pizzaModel, tree: () => M.treeModel(0xffffff), pine: M.pineModel, oak: M.oakModel, lamp: M.lampModel }[k]; });
         this.stuckSrc[100] = M.rubbleModel;
@@ -177,7 +186,8 @@ export class View {
         this.th = th;
         this.scene.background = skyTexture(th.sky[0], th.sky[1]);
         this.scene.fog.color.set(th.fog);
-        this.hemi.color.set(th.hemiSky); this.hemi.groundColor.set(th.hemiGround); this.hemi.intensity = th.hemiI;
+        this.cel.ink.set(th.ink);
+        this.hemi.color.set(th.hemiSky); this.hemi.groundColor.set(th.hemiGround); this.hemi.intensity = th.hemiI * 0.82;
         this.sun.color.set(th.sun); this.sun.intensity = th.sunI;
     }
 
@@ -204,7 +214,11 @@ export class View {
         this.renderer.setSize(w, h);          // also sets the canvas CSS size in px (no 100vh trap)
         this.camera.aspect = w / h;
         this.camera.updateProjectionMatrix();
+        this.cel.resize();
     }
+
+    /** Cartoon outlines on or off (off draws the scene in one plain pass). */
+    setOutline(on) { this.cel.on = !!on; }
 
     /** World point → CSS pixels on the canvas. */
     worldToScreen(x, y, z = 0) {
@@ -536,7 +550,7 @@ export class View {
         this.fx.puffs.update(dt, camQ);
         this.fx.chips.update(dt);
         this.fx.rings.update(dt);
-        this.renderer.render(this.scene, this.camera);
+        this.cel.render(this.scene);
     }
 }
 

@@ -25,9 +25,10 @@ const view = new View(document.getElementById('view'));
 // reduced motion: gentler shake, no blinking power-ups
 view.reduced = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 view.shakeScale = view.reduced ? Math.min(0.3, settings.shake) : settings.shake;
+view.setOutline(settings.outline !== false);
 const ui = new UI({
     audio, settings,
-    onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music); view.shakeScale = view.reduced ? Math.min(0.3, s.shake) : s.shake; updateTouch(); },
+    onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music); view.shakeScale = view.reduced ? Math.min(0.3, s.shake) : s.shake; view.setOutline(s.outline !== false); updateTouch(); },
     onDeleteSave: () => { clearSave(); refreshTitle(); },
 });
 

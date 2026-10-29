@@ -4,6 +4,7 @@
 
 import * as THREE from 'three';
 import { FLOOR_H, DECK_H } from '../config.js';
+import { toon } from './toon.js';
 
 // ---------------------------------------------------------------- the kit
 
@@ -52,7 +53,7 @@ const SPH = new THREE.SphereGeometry(1, 12, 8);
 
 /** Lambert material for kit geometry; instance colours tint only the vertices flagged aPaint. */
 export function kitMaterial(instanced = true) {
-    const m = new THREE.MeshLambertMaterial({ vertexColors: true });
+    const m = toon({ vertexColors: true });
     m.onBeforeCompile = (sh) => {
         sh.vertexShader = 'attribute float aPaint;\n' + sh.vertexShader;
         if (instanced) {

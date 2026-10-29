@@ -14,6 +14,7 @@ import * as THREE from 'three';
 import * as M from '../js/view/models.js';
 import { THEMES } from '../js/view/themes.js';
 import { BTYPES } from '../js/sim/data.js';
+import { toon } from '../js/view/toon.js';
 
 const q = new URLSearchParams(location.search);
 const row = q.get('row') || 'props', th = THEMES[+(q.get('theme') || 0)];
@@ -27,7 +28,7 @@ const sun = new THREE.DirectionalLight(0xffffff, 2); sun.position.set(-6, 12, 8)
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshLambertMaterial({ color: 0xe8ecf4 }));
 ground.rotation.x = -Math.PI / 2; scene.add(ground);
 
-const solid = new THREE.MeshLambertMaterial({ vertexColors: true });
+const solid = toon({ vertexColors: true });
 function bakePaint(geo, hex) {
     const g = geo.clone(), t = new THREE.Color(hex), c = g.attributes.color, p = g.attributes.aPaint;
     for (let i = 0; i < c.count; i++) if (p.getX(i) > 0.5) c.setXYZ(i, c.getX(i) * t.r, c.getY(i) * t.g, c.getZ(i) * t.b);
@@ -67,7 +68,7 @@ if (row === 'roofs' || row === 'land') {
         let x = -n * 2.2;
         for (const t of ['house', 'shop', 'block', 'tower', 'sky', 'spire']) {
             const T = BTYPES[t], b = { t, id: 7, shape: 'box', w: (T.w[0] + T.w[1]) / 2, d: (T.d[0] + T.d[1]) / 2, fl0: T.fl[1], fl: T.fl[1], lean: t === 'tower' ? 0.8 : 0, roof: T.roofs[0], col: 2, st: 0 };
-            const body = new THREE.Mesh(M.windowBody(b), new THREE.MeshLambertMaterial({ map: texs[b.st][t === 'sky' ? 1 : 0], color: th.walls[b.col] }));
+            const body = new THREE.Mesh(M.windowBody(b), toon({ map: texs[b.st][t === 'sky' ? 1 : 0], color: th.walls[b.col] }));
             const roof = new THREE.Mesh(M.buildRoof(b, th), solid);
             const p = M.roofPose(b, b.fl); roof.position.set(p.ox, p.y, p.oz);
             const g = new THREE.Group(); g.add(body, roof); g.position.set(x, 0, -9); x += b.w + 2.2; scene.add(g);

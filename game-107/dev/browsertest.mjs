@@ -145,6 +145,12 @@ async function desktop() {
     await until(page, () => !document.getElementById('pause').hidden, 'the ❚❚ button pauses');
     await click(page, '#pause-menu [data-act="settings"]');
     await until(page, () => !document.getElementById('settings').hidden && Number(document.getElementById('settings').style.zIndex) > Number(document.getElementById('pause').style.zIndex), 'Settings opens on top of the pause menu');
+    check(await Q(page, () => __kr.view.cel.on === true), 'the cartoon outline pass is on by default');
+    await Q(page, () => { const e = document.getElementById('set-outline'); e.value = '0'; e.dispatchEvent(new Event('change')); });
+    check(await Q(page, () => __kr.view.cel.on === false), 'the Settings switch turns it off (a single plain pass)');
+    await page.waitForTimeout(400);
+    await Q(page, () => { const e = document.getElementById('set-outline'); e.value = '1'; e.dispatchEvent(new Event('change')); });
+    check(await Q(page, () => __kr.view.cel.on === true), 'and on again');
     await click(page, '#settings [data-close]');
     const score = await Q(page, () => __kr.G.score);
     await click(page, '#pause-menu [data-act="quit"]');

@@ -2,7 +2,7 @@
 
 export const THEMES = [
     {   // 1. Pastel Bay: a sweet, sunny toy town
-        name: 'candy', night: false,
+        name: 'candy', ink: 0x2b2a4c, night: false,
         sky: [0x7cc8ff, 0xffe9f3], fog: 0xe9f3ff, sun: 0xfff3dc, sunI: 2.1, hemiSky: 0xcfe9ff, hemiGround: 0xf3c9d9, hemiI: 1.15,
         ground: 0x9fe3a4, lot: 0xbff0bd, road: 0x7a7f92, line: 0xfff4c2, walk: 0xf2eadf, bank: 0xf0e2b8, water: 0x58c4f0, plate: 0xc9a77c,
         walls: [0xffb3c7, 0xffd9a0, 0xb8f0c8, 0xb3d9ff, 0xe0c3ff, 0xfff1a8, 0xffc8a8, 0xc4f1f4],
@@ -12,7 +12,7 @@ export const THEMES = [
         snow: false, cloud: 0xffffff,
     },
     {   // 2. Harbor Town: bright blue day
-        name: 'harbor', night: false,
+        name: 'harbor', ink: 0x1d2f4a, night: false,
         sky: [0x4aa8f0, 0xd8f0ff], fog: 0xd6ecfb, sun: 0xfff6e0, sunI: 2.3, hemiSky: 0xbfe0ff, hemiGround: 0xe9d8b4, hemiI: 1.1,
         ground: 0xcfd9a5, lot: 0xe6e2c4, road: 0x6c7384, line: 0xffffff, walk: 0xe8e2d2, bank: 0xe9d9a7, water: 0x2f95d9, plate: 0xb69a74,
         walls: [0xf2e3c6, 0xbfe3f0, 0x9ad1c6, 0xf4b393, 0xe8d8a8, 0xa8c4e8, 0xf0c2c2, 0xd8e8c0],
@@ -22,7 +22,7 @@ export const THEMES = [
         snow: false, cloud: 0xffffff,
     },
     {   // 3. Neon Heights: dusk, lit windows
-        name: 'neon', night: true,
+        name: 'neon', ink: 0x140a2e, night: true,
         sky: [0x2a1b5e, 0xff8fb8], fog: 0x6b4a9e, sun: 0xffc8a0, sunI: 1.5, hemiSky: 0x9a86e0, hemiGround: 0x4a2f6e, hemiI: 1.25,
         ground: 0x4b5a8e, lot: 0x5d6aa0, road: 0x2a2d45, line: 0xffe066, walk: 0x7e86b8, bank: 0x8a7fb8, water: 0x6a4fd0, plate: 0x3a3358,
         walls: [0x8f7cf0, 0xff7eb6, 0x2fd6cf, 0x4a97f0, 0xff9068, 0xb8a8ff, 0x62efc0, 0xffd96a],
@@ -32,7 +32,7 @@ export const THEMES = [
         snow: false, cloud: 0xffc7e6,
     },
     {   // 4. Frostport: snow
-        name: 'frost', night: false,
+        name: 'frost', ink: 0x2c3f63, night: false,
         sky: [0x9fb8d8, 0xf1f6fc], fog: 0xe6eef7, sun: 0xfff8f0, sunI: 1.9, hemiSky: 0xdfeeff, hemiGround: 0xcfd9ea, hemiI: 1.3,
         ground: 0xf3f8fd, lot: 0xe3edf7, road: 0x8d96a8, line: 0xffffff, walk: 0xffffff, bank: 0xdfe8f2, water: 0x6fb4e0, plate: 0xb7c3d6,
         walls: [0xf4f9ff, 0xcfe4f6, 0xaed0ea, 0xe5d9f5, 0xfbe3e3, 0xd8f0e6, 0xfff0cf, 0xc3d3ee],
@@ -42,7 +42,7 @@ export const THEMES = [
         snow: true, cloud: 0xffffff,
     },
     {   // 5. Fort Fortissimo: red sunset
-        name: 'fort', night: false,
+        name: 'fort', ink: 0x2a1a24, night: false,
         sky: [0x7a3b6e, 0xffb26b], fog: 0xe0a07a, sun: 0xffb77a, sunI: 2.0, hemiSky: 0xffc9a0, hemiGround: 0x7a5a6a, hemiI: 1.15,
         ground: 0x9a9d6a, lot: 0xb3b27c, road: 0x4d4f5a, line: 0xf5d76e, walk: 0xcfc6b0, bank: 0xb8a98a, water: 0x4c88b8, plate: 0x6f6650,
         walls: [0xb7b99a, 0x9fa6b0, 0xd8c8a0, 0xa9b58a, 0xc9a98c, 0x8f9aa8, 0xd6b8a0, 0xb0b0b0],

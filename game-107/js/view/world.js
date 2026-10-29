@@ -2,6 +2,7 @@
 // Built once per city from G; update() animates floors dropping and walls wobbling.
 
 import * as THREE from 'three';
+import { toon, overlay } from './toon.js';
 import { FLOOR_H, DECK_H } from '../config.js';
 import { THEMES } from './themes.js';
 import * as M from './models.js';
@@ -66,10 +67,10 @@ export class World {
         // ---- the sea and the island
         this.seaTex = waveTexture('#ffffff', '#ffffff');
         this.seaTex.repeat.set(160, 160);
-        const sea = new THREE.Mesh(new THREE.PlaneGeometry(2400, 2400), new THREE.MeshLambertMaterial({ map: this.seaTex, color: th.water }));
+        const sea = new THREE.Mesh(new THREE.PlaneGeometry(2400, 2400), toon({ map: this.seaTex, color: th.water }));
         sea.rotation.x = -Math.PI / 2; sea.position.set(W / 2, -0.9, H / 2);
         root.add(sea);
-        const plate = new THREE.Mesh(new THREE.BoxGeometry(W + 1, 2.2, H + 1), new THREE.MeshLambertMaterial({ color: th.plate }));
+        const plate = new THREE.Mesh(new THREE.BoxGeometry(W + 1, 2.2, H + 1), toon({ color: th.plate }));
         plate.position.set(W / 2, -1.25, H / 2);
         root.add(plate);
 
@@ -118,34 +119,35 @@ export class World {
         k.box(0.6, 1.0, H, -0.3, 0.5, H / 2, wc); k.box(0.6, 1.0, H, W + 0.3, 0.5, H / 2, wc);
         for (let x = 0; x <= W; x += 4) { k.cyl(0.22, 0.22, 1.5, x, 0.75, -0.3, th.accents[(x / 4 | 0) % 4], 0, 0, 0, 6); k.cyl(0.22, 0.22, 1.5, x, 0.75, H + 0.3, th.accents[(x / 4 | 0) % 4], 0, 0, 0, 6); }
         for (let y = 0; y <= H; y += 4) { k.cyl(0.22, 0.22, 1.5, -0.3, 0.75, y, th.accents[(y / 4 | 0) % 4], 0, 0, 0, 6); k.cyl(0.22, 0.22, 1.5, W + 0.3, 0.75, y, th.accents[(y / 4 | 0) % 4], 0, 0, 0, 6); }
-        this.flat = new THREE.Mesh(k.build(), new THREE.MeshLambertMaterial({ vertexColors: true }));
+        this.flat = new THREE.Mesh(k.build(), toon({ vertexColors: true }));
         root.add(this.flat);
 
         // ---- the river
         if (rv) {
             this.riverTex = waveTexture('#ffffff', '#ffffff');
             this.riverTex.repeat.set(W / 5, rv.h / 5);
-            const river = new THREE.Mesh(new THREE.PlaneGeometry(W, rv.h), new THREE.MeshLambertMaterial({ map: this.riverTex, color: th.water }));
+            const river = new THREE.Mesh(new THREE.PlaneGeometry(W, rv.h), toon({ map: this.riverTex, color: th.water }));
             river.rotation.x = -Math.PI / 2; river.position.set(W / 2, 0.08, rv.y + rv.h / 2);
             root.add(river);
             const kb = new M.Kit();
             kb.box(W, 0.2, 0.5, W / 2, 0.1, rv.y - 0.05, th.bank);
             kb.box(W, 0.2, 0.5, W / 2, 0.1, rv.y + rv.h + 0.05, th.bank);
-            root.add(new THREE.Mesh(kb.build(), new THREE.MeshLambertMaterial({ vertexColors: true })));
+            root.add(new THREE.Mesh(kb.build(), toon({ vertexColors: true })));
         }
 
         // ---- buildings
         this.texs = M.makeWindowTextures(th.night);
         this.wallMats = new Map();
-        this.solidMat = new THREE.MeshLambertMaterial({ vertexColors: true });
+        this.solidMat = toon({ vertexColors: true });
         this.shadowTex = softSquare();
         const sg = new THREE.PlaneGeometry(1, 1); sg.rotateX(-Math.PI / 2);
         this.shadows = new THREE.InstancedMesh(sg, new THREE.MeshBasicMaterial({ map: this.shadowTex, transparent: true, opacity: 0.55, depthWrite: false, fog: false }), G.buildings.length);
         this.shadows.frustumCulled = false; this.shadows.renderOrder = 1;
         root.add(this.shadows);
+        overlay(this.shadows);
         this.tmp = new THREE.Object3D();
-        this.ruinMat = new THREE.MeshLambertMaterial({ vertexColors: true });
-        this.cableMat = new THREE.MeshLambertMaterial({ color: 0xf1e3d0 });
+        this.ruinMat = toon({ vertexColors: true });
+        this.cableMat = toon({ color: 0xf1e3d0 });
 
         const bridges = new Map();
         G.buildings.forEach((b, i) => {
@@ -156,7 +158,7 @@ export class World {
                 const lit = th.night ? (b.id % 10 < 7 ? 1 : 0) : (b.id % 10 < 2 ? 1 : 0);
                 const key = `${b.st}-${lit}-${b.col}`;
                 let mat = this.wallMats.get(key);
-                if (!mat) { mat = new THREE.MeshLambertMaterial({ map: this.texs[b.st][lit], color: th.walls[b.col % th.walls.length] }); this.wallMats.set(key, mat); }
+                if (!mat) { mat = toon({ map: this.texs[b.st][lit], color: th.walls[b.col % th.walls.length] }); this.wallMats.set(key, mat); }
                 node.body = new THREE.Mesh(M.windowBody(b), mat);
                 node.group.add(node.body);
                 node.roof = new THREE.Mesh(M.buildRoof(b, th), this.solidMat);
@@ -190,7 +192,7 @@ export class World {
         }
 
         // ---- sky furniture
-        this.clouds = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshLambertMaterial({ color: th.cloud, flatShading: true }), 60);
+        this.clouds = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), toon({ color: th.cloud }), 60);
         this.clouds.frustumCulled = false;
         this.cloudData = [];
         for (let i = 0; i < 12; i++) {
@@ -221,6 +223,7 @@ export class World {
         this.snow = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 0.28, transparent: true, opacity: 0.85, depthWrite: false }));
         this.snow.frustumCulled = false;
         this.root.add(this.snow);
+        overlay(this.snow);
     }
 
     placeRoof(node, floors) {

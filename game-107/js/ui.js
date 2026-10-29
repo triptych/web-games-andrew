@@ -35,13 +35,13 @@ export class UI {
             b.addEventListener('click', () => { audio.ui('close'); this.closeTop(); });
         }
 
-        const sfx = $('set-sfx'), music = $('set-music'), touch = $('set-touch'), shake = $('set-shake');
-        sfx.value = settings.sfx; music.value = settings.music; touch.value = settings.touch; shake.value = String(settings.shake);
+        const sfx = $('set-sfx'), music = $('set-music'), touch = $('set-touch'), shake = $('set-shake'), outline = $('set-outline');
+        sfx.value = settings.sfx; music.value = settings.music; touch.value = settings.touch; shake.value = String(settings.shake); outline.value = settings.outline === false ? '0' : '1';
         const changed = () => {
-            Object.assign(settings, { sfx: +sfx.value, music: +music.value, touch: touch.value, shake: +shake.value });
+            Object.assign(settings, { sfx: +sfx.value, music: +music.value, touch: touch.value, shake: +shake.value, outline: outline.value === '1' });
             onSettings(settings);
         };
-        for (const el of [sfx, music, touch, shake]) el.addEventListener('change', changed);
+        for (const el of [sfx, music, touch, shake, outline]) el.addEventListener('change', changed);
         $('set-delete').addEventListener('click', () => { onDeleteSave(); this.toast('Saved game deleted.'); });
     }
 
