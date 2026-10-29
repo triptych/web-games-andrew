@@ -1336,6 +1336,17 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 61, 139, 0.6);
 }
 
+.game-preview.intruder-alert,
+.carousel-slide-bg.intruder-alert {
+    background: repeating-linear-gradient(0deg, transparent 0 15px, rgba(255, 43, 214, 0.28) 15px 16px), repeating-linear-gradient(90deg, transparent 0 15px, rgba(255, 43, 214, 0.28) 15px 16px), radial-gradient(circle at 50% 38%, rgba(255, 225, 77, 0.45) 0 9%, transparent 22%), linear-gradient(180deg, #05010f 0%, #1a0640 55%, #3a0a5a 100%);
+}
+
+.game-card.intruder-alert .play-button {
+    background: linear-gradient(135deg, #ff2bd6, #2de2ff);
+    color: #05010f;
+    box-shadow: 0 0 14px rgba(255, 43, 214, 0.65);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

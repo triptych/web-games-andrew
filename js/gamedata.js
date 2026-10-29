@@ -1604,6 +1604,21 @@ const games = [
             { emoji: '\uD83C\uDF27\uFE0F', label: 'Neon noir mystery' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-106',
+        title: "INTRUDER ALERT '84",
+        description: 'A neon, 16-bit reimagining of Atari\'s Berzerk as a bullet-heaven survivor, in the manner of Vampire Survivors. You only move: your laser fires on its own at the nearest robot while killer robots pour into an electrified maze through its four doors. Drones, hunters, gunners that keep their distance and fire bolts, and hulking brutes; the dumbest of them walk into the walls and fry. Wrecks drop gold data chips; collect them to level up and pick one of three upgrades: Rapid Fire, Split Beam, Piercer, Overcharge, orbiting Neon Discs, a Shock Pulse and more. Every minute the sector is purged, every robot blows and the maze is rebuilt, and late in each sector the Grinner bounces in, a smiling face that cannot be destroyed, only knocked back. Survive five sectors to escape. Pixel sprites in a 512×288 buffer with bloom and scanlines, a synthwave soundtrack that builds with each sector, and robots that still shout "Intruder alert!". Keyboard, gamepad and touch, with a camera that follows you on a portrait phone. Every picture and sound is made in code.',
+        icon: '\uD83E\uDD16',
+        folder: 'game-106',
+        version: '1.0.0',
+        cssClass: 'intruder-alert',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83D\uDD2B', label: 'Bullet heaven' },
+            { emoji: '\uD83C\uDF06', label: '80s neon' },
+            { emoji: '\uD83D\uDDBC\uFE0F', label: 'Canvas 2D' }
+        ]
     }
 ];
 
