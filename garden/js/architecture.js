@@ -441,9 +441,41 @@ function buildTower(world, batch, f) {
         const wy = 3 + k * 2.6;
         world.windows.push({ x: f.x + Math.sin(a) * 2.88, y: y + wy, z: f.z + Math.cos(a) * 2.88, rot: a, w: 0.55, h: 1.1 });
     }
-    batch.add('darkWood', new THREE.BoxGeometry(1.3, 2.3, 0.2), xf(f.x + Math.sin(toHub) * 3.25, y + 1.95, f.z + Math.cos(toHub) * 3.25, toHub));
+    // an arched door facing the hub, with steps up to it: it leads into the tower (see tower.js)
+    const dx = Math.sin(toHub), dz = Math.cos(toHub);
+    const base = xf(f.x + dx * 2.92, y + 0.8, f.z + dz * 2.92, toHub);
+    const frame = archShape(0.98, 2.75);
+    frame.holes.push(new THREE.Path(archShape(0.66, 2.4).getPoints(12)));
+    batch.add('granite', new THREE.ExtrudeGeometry(frame, { depth: 0.3, bevelEnabled: false, curveSegments: 12 }), base);
+    for (let k = 0; k < 2; k++) batch.add('granite', new THREE.BoxGeometry(2.2 - k * 0.3, 0.22, 0.55), xf(f.x + dx * (3.75 - k * 0.42), y + 0.5 + k * 0.22, f.z + dz * (3.75 - k * 0.42), toHub));
+    for (const sd of [-1, 1]) {
+        const lx = Math.cos(toHub) * sd * 1.25, lz = -Math.sin(toHub) * sd * 1.25;
+        batch.add('iron', new THREE.BoxGeometry(0.06, 0.06, 0.4), xf(f.x + dx * 3.1 + lx, y + 3.4, f.z + dz * 3.1 + lz, toHub));
+        batch.add('glass', new THREE.BoxGeometry(0.2, 0.3, 0.2), xf(f.x + dx * 3.3 + lx, y + 3.25, f.z + dz * 3.3 + lz, toHub));
+    }
+    const leaf = new THREE.Mesh(new THREE.ExtrudeGeometry(archShape(0.66, 2.4), { depth: 0.08, bevelEnabled: false, curveSegments: 12 }), world.mats.darkWood);
+    leaf.position.set(f.x + dx * 2.98, y + 0.8, f.z + dz * 2.98);
+    leaf.rotation.y = toHub;
+    leaf.userData.kind = 'observatoryDoor';
+    leaf.castShadow = true;
+    world.root.add(leaf);
+    const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.16, 0), world.mats.rune);
+    star.position.set(f.x + dx * 3.1, y + 2.75, f.z + dz * 3.1);
+    world.root.add(star);
+    const plaque = signMesh(signTexture('\u{1F52D}', 'The Observatory', 'Rather larger on the inside', '#9db8ff', 1024, 256), 2.0, 0.5, 0.3);
+    plaque.position.set(f.x + dx * 3.02, y + 4.05, f.z + dz * 3.02);
+    plaque.rotation.y = toHub;
+    world.root.add(plaque);
+    world.nightSigns.push(plaque.userData.nightGlow);
     world.colliders.push({ x: f.x, z: f.z, r: 3.6 });
-    world.landmarks.push({ name: 'The Observatory', x: f.x, z: f.z });
+    world.observatory = {
+        mesh: leaf, cx: f.x, cz: f.z,
+        // walking into this spot goes through the door
+        x: f.x + dx * 4.2, z: f.z + dz * 4.2,
+        // where you come back out, facing the hub
+        out: { x: f.x + dx * 6.4, z: f.z + dz * 6.4, yaw: toHub + Math.PI },
+    };
+    world.landmarks.push({ name: 'The Observatory', x: f.x, z: f.z, stand: { x: f.x + dx * 6.4, z: f.z + dz * 6.4, yaw: toHub } });
 }
 
 function buildLighthouse(world, batch, f) {
