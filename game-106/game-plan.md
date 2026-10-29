@@ -10,7 +10,7 @@
 
 A neon, 16-bit reimagining of Atari's Berzerk as a bullet-heaven survivor: your laser fires on its own while killer robot hordes pour into an electrified maze, you scoop up data chips, stack upgrades, and outrun the grinning bouncer.
 
-Minute to minute you only *move*: thread between robots, stay off the walls, sweep up the chips your laser leaves behind, and dash through trouble. The aiming is done for you (Vampire Survivors), the room is a Berzerk room (posts, one wall each, four doors, robots that blunder into the electrified walls and fry), and the look is what Berzerk might have been on a 1990 16-bit cabinet: pixel sprites, a synthwave grid floor, neon bloom, scanlines. The tone is arcade-loud and a little silly — the robots still shout at you.
+Minute to minute you only *move*: thread between robots, stay off the walls, sweep up the chips your laser leaves behind, and dash through trouble. The aiming is done for you (Vampire Survivors), the room is a Berzerk room (posts, one wall each, four doors, robots that steer round the electrified walls, and fry if you knock them into one), and the look is what Berzerk might have been on a 1990 16-bit cabinet: pixel sprites, a synthwave grid floor, neon bloom, scanlines. The tone is arcade-loud and a little silly — the robots still shout at you.
 
 Riffs on: *Berzerk* (1980) and its *Frenzy* sequel, *Vampire Survivors*, *Robotron: 2084*, *Smash TV*.
 
@@ -38,7 +38,7 @@ All numbers live in [js/config.js](js/config.js); the rules in [js/sim/game.js](
 - 32 × 18 room. Outer wall with a 3.2-unit door in the middle of each side; the player can't leave.
 - Berzerk's algorithm: a 5 × 3 cell grid has 8 interior posts; each gets one wall segment a cell long in a seeded random direction. A direction that would touch a keep-clear circle (the player) is skipped.
 - A room in which the player can't reach all four doors (flood fill with a player-sized body) is thrown away and rolled again ([maze.js](js/sim/maze.js)); simtest proves it on 200 seeds.
-- Inner walls are **electrified**: touching one costs `WALL.touch` HP (12) and knocks you away. Robots touching one take `WALL.robotTouch` (15) every 0.5 s — drones (10 HP) fry outright. Outer walls are solid but harmless to robots.
+- Inner walls are **electrified**: touching one costs `WALL.touch` HP (12) and knocks you away. Robots steer round them (straight at you when the way is clear, otherwise down a flood-fill of walking distance from you, `js/sim/nav.js`), so they only touch one when knocked into it (laser hits, pulse, the crowd) — then they take `WALL.robotTouch` (15) every 0.5 s and drones (10 HP) fry outright. Outer walls are solid but harmless to robots.
 
 ### The laser and other weapons
 - Auto-fire every `laserCool` s at the nearest robot in line of sight within 14 units (falling back to the nearest in range). With the Grinner within 7 units it takes priority. No target, no shot.
@@ -68,7 +68,7 @@ HP 0 → "Game Over". Five sectors survived → "You Escaped!" with the bonus.
 
 | Robot | Colour | HP | Speed | Contact | Chips | Score | From | Notes |
 |---|---|---|---|---|---|---|---|---|
-| Drone | amber | 10 | 2.4 | 8 | 1 | 50 | 1 | fries on any inner wall |
+| Drone | amber | 10 | 2.4 | 8 | 1 | 50 | 1 | fries if knocked into an inner wall |
 | Hunter | red | 20 | 3.6 | 10 | 2 | 100 | 2 | fast chaser |
 | Gunner | violet | 26 | 1.9 | 8 | 3 | 150 | 2 | holds ~6 units off, strafes, fires a 6-dmg bolt every 2.4 s with line of sight |
 | Brute | pink | 110 | 1.5 | 20 | 8 | 400 | 3 | drawn at 2× |
@@ -134,6 +134,7 @@ The bot steers by a potential field (robots, bolts, walls, edges and the Grinner
 
 - First pass: no robot ever touched the bot, then the Grinner killed every run at 1:40 (it was faster than the bot could escape in a walled room). Fix: a slower Grinner (3.4 → 6.2 u/s) that recoils after a bite, and lasers that knock it back — so firepower holds it off. Robot waves made far denser and tougher per sector.
 - Second pass: bolts did most of the damage (gunners multiply in later sectors); bolt damage 9 → 6.
+- Third pass: robots now path round the walls instead of frying on them, which took away a lot of free kills and the bot died around 3:00; the spawn interval floor `SPAWN.min` 0.2 → 0.55 brings it back.
 - Now (8 seeds): the perfect bot survives about 4:00 on average and escapes roughly one run in four; a bot at 0.6 speed that ignores bolts lasts about 2:00. Nobody dies in sector 1.
 
 ## Open questions / next steps
