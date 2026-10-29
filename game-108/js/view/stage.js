@@ -221,7 +221,7 @@ export class Stage {
         // lights
         this.hemi = new THREE.HemisphereLight(0xcfd8ff, 0x2a1830, 0.55);
         this.scene.add(this.hemi);
-        const sun = this.sun = new THREE.DirectionalLight(0xfff0dc, 2.1);
+        const sun = this.sun = new THREE.DirectionalLight(0xfff0dc, 1.75);
         sun.position.set(-5, 12, 7);
         sun.castShadow = true;
         sun.shadow.mapSize.set(1024, 1024);

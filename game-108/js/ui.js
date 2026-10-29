@@ -386,7 +386,10 @@ export class UI {
         if (!next) { el.hidden = true; if (!was) this.on?.('pads'); return; }
         el.hidden = false;
         if (was) this.on?.('pads');
-        el.textContent = B.pending.length ? `${HERO[next].name} is arriving…` : `Called: ${HERO[next].name} in ${Math.max(1, B.callIn)} turn${B.callIn > 1 ? 's' : ''}`;
+        const full = B.g.filter((t) => t?.h).length >= CALLS.maxOnBoard;
+        el.textContent = full ? `Called: ${HERO[next].name} waits for room on the board`
+            : B.pending.length ? `${HERO[next].name} is arriving…`
+            : `Called: ${HERO[next].name} in ${Math.max(1, B.callIn)} turn${B.callIn > 1 ? 's' : ''}`;
     }
 
     banner(text, kind = '', sub = '') {

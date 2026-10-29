@@ -77,14 +77,18 @@ function gemMaterial(envMap) {
                 vec3 rb = clamp(abs(mod(hh * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
                 diffuseColor.rgb = mix(vec3(0.95), rb, 0.45);
               }
-              diffuseColor.rgb *= 1.0 - vFx.w * 0.6;`)
+              diffuseColor.rgb *= (1.0 - vFx.w * 0.6) * 0.8;`)
             .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
               {
                 vec3 vd = normalize(vViewPosition);
                 float fr = pow(clamp(1.0 - abs(dot(normal, vd)), 0.0, 1.0), 2.5);
                 float core = clamp(1.0 - length(vLocal.xz) * 2.2, 0.0, 1.0);
                 vec3 base = diffuseColor.rgb;
-                totalEmissiveRadiance += base * base * (0.18 + core * 0.35 + fr * 0.5) * (1.0 - vFx.w * 0.7);
+                totalEmissiveRadiance += base * base * (0.22 + core * 0.4 + fr * 0.55) * (1.0 - vFx.w * 0.7);
+                // fire: a little rainbow dispersion on the facets as they turn from the eye
+                float ft = clamp(dot(normal, vd), 0.0, 1.0);
+                vec3 fire = 0.5 + 0.5 * cos(6.2832 * (ft * 1.7 + vLocal.y * 3.0 + vec3(0.0, 0.33, 0.67)));
+                totalEmissiveRadiance += fire * fr * 0.22 * (1.0 - vFx.w);
                 totalEmissiveRadiance += base * vFx.x * 1.6 + vec3(vFx.y * 2.2);
               }`);
     };

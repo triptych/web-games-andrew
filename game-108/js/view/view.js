@@ -141,7 +141,7 @@ export class View {
         if (P.tail) P.tail.rotation.z = Math.sin(t * 2.5) * 0.3;
         if (P.seals) P.seals.rotation.y = t * 0.6;
         if (P.mouthGlow) P.mouthGlow.scale.setScalar(0.8 + e.cast * 1.5 + Math.sin(t * 6) * 0.1);
-        const flash = e.hit * 1.4 + e.cast * 0.8;
+        const flash = Math.min(0.7, e.hit * 0.6 + e.cast * 0.5);
         for (const m of P.mats) {
             if (m.userData.e0 === undefined) { m.userData.e0 = m.emissive.clone(); m.userData.ei0 = m.emissiveIntensity; }
             if (flash > 0.01) { m.emissive.setRGB(1, e.cast > e.hit ? 0.6 : 0.95, e.cast > e.hit ? 0.9 : 0.9); m.emissiveIntensity = m.userData.ei0 * (1 - flash) + flash * 0.9; }

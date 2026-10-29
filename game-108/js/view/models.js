@@ -14,7 +14,7 @@ export function mat(color, { rough = 0.55, metal = 0, emissive = 0, ei = 1, flat
     const key = [color, rough, metal, emissive, ei, flat, side, transparent, opacity].join('|');
     let m = matCache.get(key);
     if (!m) {
-        m = new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal, emissive, emissiveIntensity: ei, flatShading: flat, transparent, opacity });
+        m = new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal, emissive, emissiveIntensity: ei, flatShading: flat, transparent, opacity, envMapIntensity: metal > 0.5 ? 0.8 : 0.35 });
         if (side) m.side = side;
         matCache.set(key, m);
     }
@@ -41,38 +41,63 @@ const G = {
 };
 
 // ------------------------------------------------------------------ gems
-function extrudeGem(shape, depth, bevel) {
-    const g = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel * 0.9, bevelSegments: 2, curveSegments: 6 });
-    g.rotateX(-Math.PI / 2);         // lie flat: the shape faces up
-    g.computeBoundingBox();
-    const bb = g.boundingBox;
-    g.translate(-(bb.min.x + bb.max.x) / 2, -bb.min.y, -(bb.min.z + bb.max.z) / 2);
-    return g.index ? g.toNonIndexed() : g;
+/**
+ * A cut gem lofted through rings of one outline: a pavilion narrowing to a point below the girdle,
+ * crown facets above it and a small table on top. Flat shaded, so every facet catches the light.
+ * outline: [x, z] points around the axis; rings: [scale, y, half] from the bottom up, where half
+ * turns the ring half a step (its points sit on the outline's edge midpoints) for triangular facets.
+ */
+function cutGem(outline, rings) {
+    const n = outline.length, pos = [];
+    const R = rings.map(([k, y, half]) => outline.map(([x, z], i) => {
+        if (!half) return [x * k, y, z * k];
+        const [x2, z2] = outline[(i + 1) % n];
+        return [((x + x2) / 2) * k, y, ((z + z2) / 2) * k];
+    }));
+    const tri = (a, b, c) => {
+        // every facet counter-clockwise seen from outside: flip any whose normal points inward
+        const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+        const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+        const cx = (a[0] + b[0] + c[0]) / 3, cy = (a[1] + b[1] + c[1]) / 3, cz = (a[2] + b[2] + c[2]) / 3;
+        const out = nx * cx + nz * cz + ny * (cy - 0.16) * 0.6;
+        if (out >= 0) pos.push(...a, ...b, ...c); else pos.push(...a, ...c, ...b);
+    };
+    for (let r = 0; r < R.length - 1; r++) {
+        const A = R[r], B = R[r + 1];
+        for (let i = 0; i < n; i++) {
+            const j = (i + 1) % n;
+            if (rings[r + 1][2]) { tri(A[i], A[j], B[i]); tri(B[i], A[j], B[j]); }
+            else if (rings[r][2]) { tri(A[i], B[j], B[i]); tri(A[i], A[j], B[j]); }
+            else { tri(A[i], A[j], B[j]); tri(A[i], B[j], B[i]); }
+        }
+    }
+    // the culet (a point below) and the table (flat on top)
+    const bot = [0, 0, 0], top = R[R.length - 1], ty = rings[rings.length - 1][1];
+    for (let i = 0; i < n; i++) { const j = (i + 1) % n; tri(R[0][i], R[0][j], bot); tri(top[i], top[j], [0, ty, 0]); }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.computeVertexNormals();
+    return g;
 }
-function polyShape(pts) {
-    const s = new THREE.Shape();
-    pts.forEach(([x, y], i) => (i ? s.lineTo(x, y) : s.moveTo(x, y)));
-    s.closePath();
-    return s;
-}
+/** n points around the axis, the first at angle rot (π/2 points north, away from the camera). */
+const poly = (n, r, rot = 0, radii = null) => Array.from({ length: n }, (_, k) => {
+    const a = rot + (k * TAU) / n, q = radii ? radii[k % radii.length] : 1;
+    return [Math.cos(a) * r * q, -Math.sin(a) * r * q];
+});
+/** Cut off each corner of a polygon: a trillion from a triangle, an emerald cut from a square. */
+const chamfer = (pts, f) => pts.flatMap((p, i) => {
+    const a = pts[(i + pts.length - 1) % pts.length], b = pts[(i + 1) % pts.length];
+    return [[p[0] + (a[0] - p[0]) * f, p[1] + (a[1] - p[1]) * f], [p[0] + (b[0] - p[0]) * f, p[1] + (b[1] - p[1]) * f]];
+});
 
-/** The four cuts, each about 0.72 across, sitting on y = 0. */
+/** The four cuts, each about 0.74 across, sitting on y = 0. */
 export function gemGeometries() {
-    // Orb: a faceted round brilliant
-    const orb = new THREE.IcosahedronGeometry(0.34, 1);
-    orb.scale(1, 0.78, 1);
-    orb.translate(0, 0.27, 0);
-    // Spire: a triangle pointing away from the player (north)
-    const tri = [];
-    for (let k = 0; k < 3; k++) { const a = Math.PI / 2 + (k * TAU) / 3; tri.push([Math.cos(a) * 0.4, Math.sin(a) * 0.4 - 0.06]); }
-    const spire = extrudeGem(polyShape(tri), 0.2, 0.09);
-    // Keep: a square table cut
-    const keep = extrudeGem(polyShape([[-0.25, -0.25], [0.25, -0.25], [0.25, 0.25], [-0.25, 0.25]]), 0.2, 0.08);
-    // Star: five points
-    const st = [];
-    for (let k = 0; k < 10; k++) { const a = Math.PI / 2 + (k * TAU) / 10, r = k % 2 ? 0.17 : 0.4; st.push([Math.cos(a) * r, Math.sin(a) * r]); }
-    const star = extrudeGem(polyShape(st), 0.18, 0.07);
-    return [orb.toNonIndexed(), spire, keep, star].map((g) => { g.computeVertexNormals(); return g; });
+    const rings = [[0.35, 0.05], [1, 0.14], [1, 0.18], [0.78, 0.28, 1], [0.52, 0.33]];
+    const orb = cutGem(poly(16, 0.36), [[0.3, 0.05], [1, 0.15], [1, 0.19], [0.8, 0.3, 1], [0.55, 0.36]]);
+    const spire = cutGem(chamfer(poly(3, 0.46, Math.PI / 2), 0.14), rings);
+    const keep = cutGem(chamfer(poly(4, 0.42, Math.PI / 4), 0.11), rings);
+    const star = cutGem(poly(10, 0.43, Math.PI / 2, [1, 0.46]), [[0.3, 0.05], [1, 0.13], [1, 0.16], [0.72, 0.26], [0.45, 0.31]]);
+    return [orb, spire, keep, star];
 }
 
 /** A rough rock for rubble. */
@@ -105,8 +130,8 @@ export function heroFigure(hero) {
     const hseed = [...hero.id].reduce((a, c) => a * 31 + c.charCodeAt(0), 7);
     const pick = (arr, k) => arr[Math.floor(hash3(hseed, k) * arr.length)];
     const col = COLORS[hero.c].hex;
-    const cloth = mat(shade(col, 0.82), { rough: 0.7 });
-    const clothDark = mat(shade(col, 0.45), { rough: 0.75 });
+    const cloth = mat(shade(col, 0.5), { rough: 0.8 });
+    const clothDark = mat(shade(col, 0.3), { rough: 0.8 });
     const skin = mat(pick(SKINS, 1), { rough: 0.6 });
     const hair = mat(pick(HAIRS, 2), { rough: 0.5 });
     const gold = mat(0xffcf5a, { rough: 0.3, metal: 0.85 });
@@ -228,10 +253,10 @@ export function heroFigure(hero) {
         case 'rogue': {
             hairCap(1.08, 1.5);
             put(head, G.torus(0.2, 0.035, 6, 24), clothDark, [0, 0.06, 0], [Math.PI / 2 - 0.2, 0, 0]);
-            put(head, G.box(0.42, 0.06, 0.12), clothDark, [0, -0.13, 0.12], [0.3, 0, 0], [1, 1, 1]);
             put(handR, G.cone(0.025, 0.2, 6), steel, [0, 0.1, 0.02]);
             put(handL, G.cone(0.025, 0.2, 6), steel, [0, 0.1, 0.02]);
-            put(body, G.box(0.36, 0.04, 0.2), mat(shade(col, 0.5), { rough: 0.8 }), [0, 0.46, 0.03], [0.2, 0, 0.1]);
+            put(body, G.torus(0.13, 0.045, 8, 20), mat(shade(col, 0.5), { rough: 0.8 }), [0, 0.47, 0.01], [Math.PI / 2 - 0.2, 0, 0]);
+            put(body, G.box(0.08, 0.16, 0.03), mat(shade(col, 0.5), { rough: 0.8 }), [0.06, 0.4, 0.13], [0.2, 0, 0.3]);
             break;
         }
         case 'druid': {
@@ -273,6 +298,104 @@ export function heroFigure(hero) {
             break;
         }
     }
+
+    // one hero, one look: details that tell two heroes of a class apart
+    const beard = (len, m) => {
+        const b = put(head, G.cone(0.13, len, 14), m, [0, -0.16 - len * 0.35, 0.1], [Math.PI + 0.25, 0, 0]);
+        put(head, G.sphere(0.13, 14, 10), m, [0, -0.1, 0.09], [0, 0, 0], [1.05, 0.7, 0.7]);
+        return b;
+    };
+    const longHair = (m, len = 0.32) => put(head, G.cap(0.13, len, 10), m, [0, -0.12, -0.12], [0.18, 0, 0], [1.15, 1, 0.7]);
+    const wings = (m) => {
+        for (const sx of [-1, 1]) {
+            const w = new THREE.Group(); w.position.set(sx * 0.08, 0.42, -0.14); body.add(w);
+            const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.bezierCurveTo(sx * 0.2, 0.25, sx * 0.45, 0.35, sx * 0.55, 0.2);
+            sh.lineTo(sx * 0.42, 0.08); sh.lineTo(sx * 0.48, -0.04); sh.lineTo(sx * 0.32, -0.06); sh.lineTo(sx * 0.34, -0.18); sh.closePath();
+            put(w, new THREE.ShapeGeometry(sh), m, [0, 0, 0], [0, sx * 0.35, 0]);
+        }
+    };
+    switch (hero.id) {
+        case 'vesper': {
+            for (const sx of [-1, 1]) put(head, G.cone(0.035, 0.22, 8), mat(0x2a1a14, { rough: 0.4 }), [sx * 0.15, 0.2, -0.05], [-0.5, 0, sx * -0.7]);
+            put(body, new THREE.PlaneGeometry(0.34, 0.42, 1, 3), mat(0x8a1a12, { rough: 0.8, side: THREE.DoubleSide }), [0, 0.27, -0.16], [0.15, 0, 0]);
+            break;
+        }
+        case 'gorm': {
+            beard(0.22, mat(0xc0662a, { rough: 0.7 }));
+            body.scale.set(1.15, 0.9, 1.1);
+            break;
+        }
+        case 'lyra': longHair(hair, 0.36); break;
+        case 'ilse': {
+            handR.clear();
+            put(handR, G.cyl(0.012, 0.012, 0.18, 6), gold, [0, 0.12, 0]);
+            put(handR, G.box(0.1, 0.12, 0.1), mat(0xffe9a0, { emissive: 0xffc040, ei: 2.4 }), [0, -0.0, 0.02]);
+            put(handR, G.cone(0.08, 0.06, 4), gold, [0, 0.09, 0.02], [0, Math.PI / 4, 0]);
+            longHair(hair, 0.2);
+            break;
+        }
+        case 'seraphine': longHair(mat(0xf0d070, { rough: 0.5 }), 0.3); break;
+        case 'aurelia': {
+            wings(mat(0xfff6dc, { rough: 0.6, emissive: 0xffd27a, ei: 0.35, side: THREE.DoubleSide }));
+            put(head, G.torus(0.3, 0.02, 6, 40), mat(0xffe39a, { emissive: 0xffc040, ei: 2.4 }), [0, 0.06, -0.16]);
+            longHair(mat(0xf6e08a, { rough: 0.5 }), 0.34);
+            break;
+        }
+        case 'nyx': longHair(mat(0x6b3aa0, { rough: 0.5 }), 0.26); break;
+        case 'morrigan': {
+            for (let k = 0; k < 7; k++) put(head, G.cone(0.025, 0.2, 5), mat(0x15101c, { rough: 0.4 }), [(k - 3) * 0.05, 0.22, -0.02 - Math.abs(k - 3) * 0.02], [0, 0, -(k - 3) * 0.22]);
+            const crow = new THREE.Group(); crow.position.set(-0.19, 0.5, -0.02); body.add(crow);
+            put(crow, G.sphere(0.06, 12, 8), mat(0x15101c, { rough: 0.5 }), [0, 0, 0], [0, 0, 0], [1, 0.9, 1.3]);
+            put(crow, G.sphere(0.04, 10, 8), mat(0x15101c, { rough: 0.5 }), [0, 0.06, 0.04]);
+            put(crow, G.cone(0.015, 0.05, 6), mat(0xffc040), [0, 0.06, 0.09], [Math.PI / 2, 0, 0]);
+            put(crow, G.sphere(0.008, 6, 4), mat(0xffe080, { emissive: 0xffe080, ei: 2 }), [0.02, 0.075, 0.07]);
+            longHair(mat(0x1a1420, { rough: 0.5 }), 0.34);
+            break;
+        }
+        case 'ysolde': {
+            const rim = mat(0xd8d8e8, { rough: 0.3, metal: 0.8 });
+            put(head, G.torus(0.045, 0.008, 6, 16), rim, [-0.07, 0.0, 0.2]);
+            put(head, G.torus(0.045, 0.008, 6, 16), rim, [0.07, 0.0, 0.2]);
+            put(head, G.box(0.05, 0.008, 0.008), rim, [0, 0.0, 0.205]);
+            put(head, G.cap(0.04, 0.22, 8), hair, [0.13, -0.18, -0.04], [0.2, 0, 0.15]);
+            break;
+        }
+        case 'thalos': {
+            beard(0.3, mat(0xf2f2f2, { rough: 0.7 }));
+            put(head, G.box(0.08, 0.02, 0.02), mat(0xf2f2f2), [-0.07, 0.07, 0.19], [0, 0, 0.2]);
+            put(head, G.box(0.08, 0.02, 0.02), mat(0xf2f2f2), [0.07, 0.07, 0.19], [0, 0, -0.2]);
+            break;
+        }
+        case 'tess': put(body, G.sphere(0.06, 10, 8), mat(0xd8a838, { rough: 0.4, metal: 0.6 }), [0.12, 0.25, 0.12]); break;
+        case 'wren': {
+            hood(mat(0x4a4448, { rough: 0.8 }));
+            handR.clear();
+            put(handR, G.box(0.035, 0.4, 0.012), mat(0x2a2428, { rough: 0.3, metal: 0.8 }), [0, 0.2, 0], [0, 0, -0.2]);
+            put(handR, G.box(0.11, 0.025, 0.035), mat(0xff6a46, { emissive: 0xff4a20, ei: 1.5 }), [0, 0.01, 0]);
+            break;
+        }
+        case 'corin': {
+            head.children.filter((c) => Math.abs((c.geometry?.parameters?.thetaLength ?? 0) - 1.75) < 0.01).forEach((c) => head.remove(c));
+            hairCap(1.06, 1.4);
+            put(head, G.cone(0.2, 0.16, 16), cloth, [0, 0.2, -0.02], [-0.2, 0, 0], [1, 1, 0.9]);
+            put(head, G.cone(0.025, 0.3, 6), mat(0xffffff, { rough: 0.6 }), [0.14, 0.3, -0.06], [-0.4, 0, -0.6]);
+            break;
+        }
+        case 'fennick': {
+            head.children.filter((c) => c.geometry?.type === 'ConeGeometry').forEach((c) => head.remove(c));
+            for (const sx of [-1, 1]) put(head, G.cone(0.07, 0.16, 4), mat(0xc87a3a, { rough: 0.6 }), [sx * 0.13, 0.2, -0.02], [0, 0, sx * -0.35]);
+            put(head, G.cyl(0.28, 0.28, 0.02, 24), clothDark, [0, 0.13, 0], [-0.1, 0, 0]);
+            put(head, G.cone(0.03, 0.32, 6), mat(0xff6a46), [-0.16, 0.24, -0.08], [-0.3, 0, 0.7]);
+            break;
+        }
+        case 'mara': for (let k = 0; k < 6; k++) put(head, G.sphere(0.03, 8, 6), mat(0xff9ad8, { rough: 0.6 }), [Math.sin((k / 6) * TAU) * 0.2, 0.13, Math.cos((k / 6) * TAU) * 0.2]); break;
+        case 'elowen': {
+            for (let k = 0; k < 5; k++) put(head, G.sphere(0.03, 8, 6), mat(0xfff0a0, { emissive: 0xffe060, ei: 2 }), [Math.sin((k / 5) * TAU + 0.3) * 0.21, 0.16, Math.cos((k / 5) * TAU + 0.3) * 0.21]);
+            longHair(mat(0xe8e0c8, { rough: 0.5 }), 0.36);
+            break;
+        }
+        case 'kel': put(handL, G.sphere(0.045, 10, 8), glow, [0, 0.12, 0.05]); break;
+    }
     if (hero.r === 5) {
         const aura = put(root, G.torus(0.34, 0.012, 6, 40), mat(0xffe08a, { emissive: 0xffd060, ei: 2.5 }), [0, 0.02, 0], [Math.PI / 2, 0, 0]);
         root.userData.aura = aura;
@@ -283,6 +406,26 @@ export function heroFigure(hero) {
 }
 
 // ------------------------------------------------------------------ monsters
+/** A wing of overlapping feather blades fanned out sideways, flat toward the camera. */
+function featherWing(parent, sx, pos, size, m1, m2) {
+    const w = new THREE.Group();
+    w.position.set(pos[0], pos[1], pos[2]);
+    parent.add(w);
+    const blade = new THREE.Shape();
+    blade.moveTo(0, -0.07); blade.quadraticCurveTo(0.5, -0.09, 1, 0); blade.quadraticCurveTo(0.5, 0.11, 0, 0.07); blade.closePath();
+    const g = new THREE.ShapeGeometry(blade, 6);
+    for (let k = 0; k < 7; k++) {
+        const len = size * (1 - k * 0.09), a = 0.95 - k * 0.24;
+        const f = new THREE.Mesh(g, k % 2 ? m2 : m1);
+        f.scale.set(len * sx, size * 1.4, 1);
+        f.rotation.z = sx * a;
+        f.position.set(sx * k * 0.03, 0, k * 0.004);
+        f.castShadow = true;
+        w.add(f);
+    }
+    return w;
+}
+
 /** A monster about 2.4 tall (before its table scale) facing +z. Returns { root, parts }. */
 export function monster(def) {
     const root = new THREE.Group();
@@ -338,16 +481,14 @@ export function monster(def) {
                 for (let k = 0; k < 5; k++) put(body, G.sphere(0.12, 10, 8), M(0xdfe8ef, { roughness: 0.3 }), [Math.cos(k * 1.3) * 0.6, 1.1, Math.sin(k * 1.3) * 0.4 - 0.1], [0, 0, 0], [1, 0.6, 1]);
                 break;
             }
-            put(body, G.cap(0.45, 0.9, 12), hide, [0, 1.0, -0.15], [Math.PI / 2, 0, 0]);
-            const head = new THREE.Group(); head.position.set(0, 1.45, 0.65); body.add(head); P.head = head;
+            put(body, G.cap(0.5, 0.9, 12), hide, [0, 0.95, -0.15], [Math.PI / 2, 0, 0]);
+            put(body, G.sphere(0.5, 16, 12), hide2, [0, 1.12, 0.25], [0, 0, 0], [1, 0.8, 0.8]);
+            const head = new THREE.Group(); head.position.set(0, 1.3, 0.75); body.add(head); P.head = head;
             put(head, G.sphere(0.42, 20, 14), hide, [0, 0, 0], [0, 0, 0], [1, 0.9, 1]);
             if (bird) {
                 put(head, G.cone(0.16, 0.45, 10), M(0xffc040, { roughness: 0.4 }), [0, -0.05, 0.45], [Math.PI / 2 + 0.3, 0, 0]);
                 for (let k = 0; k < 5; k++) put(head, G.cone(0.06, 0.4, 6), M(0xf6f0e0), [(k - 2) * 0.1, 0.35, -0.2], [-0.7, 0, (k - 2) * 0.2]);
-                for (const sx of [-1, 1]) {
-                    const w = new THREE.Group(); w.position.set(sx * 0.4, 1.35, -0.2); body.add(w); P.wings.push(w);
-                    for (let k = 0; k < 5; k++) put(w, G.box(0.18, 0.05, 0.9 - k * 0.1), M(k % 2 ? 0xf6f0e0 : shade(col, 0.7), { roughness: 0.7 }), [sx * (0.2 + k * 0.22), 0.35 + k * 0.1, -0.1 - k * 0.05], [0, 0, sx * 0.5]);
-                }
+                for (const sx of [-1, 1]) P.wings.push(featherWing(body, sx, [sx * 0.35, 1.45, -0.35], 1.1, M(0xf6f0e0, { roughness: 0.7, side: THREE.DoubleSide }), M(shade(col, 0.75), { roughness: 0.7, side: THREE.DoubleSide })));
             } else {
                 put(head, G.cone(0.22, 0.5, 12), hide, [0, -0.08, 0.42], [Math.PI / 2, 0, 0]);
                 put(head, G.sphere(0.07, 8, 6), M(0x111111), [0, -0.05, 0.68]);
@@ -358,7 +499,7 @@ export function monster(def) {
             }
             eye(head, -0.17, 0.08, 0.34); eye(head, 0.17, 0.08, 0.34);
             for (const [sx, z] of [[-1, 0.35], [1, 0.35], [-1, -0.6], [1, -0.6]]) {
-                const l = put(body, G.cap(0.12, 0.6), hide, [sx * 0.3, 0.42, z]);
+                const l = put(body, G.cap(0.15, 0.42), hide, [sx * 0.32, 0.38, z]);
                 put(l, G.sphere(0.14, 10, 8), hide2, [0, -0.38, 0.06], [0, 0, 0], [1, 0.6, 1.3]);
                 P.arms.push(l);
             }
@@ -385,6 +526,12 @@ export function monster(def) {
             if (gilded) {
                 for (let k = 0; k < 5; k++) put(body, G.cone(0.06, 0.3, 6), M(0xffe9a0, { emissive: new THREE.Color(0xffc040), emissiveIntensity: 1.6 }), [(k - 2) * 0.13, 2.4, 0.1], [0, 0, -(k - 2) * 0.2]);
             }
+            if (def.id === 'colossus') {
+                const sunM = M(0xffe9a0, { emissive: new THREE.Color(0xffb030), emissiveIntensity: 2.2 });
+                put(body, G.torus(0.62, 0.05, 8, 40), sunM, [0, 2.1, -0.35]);
+                for (let k = 0; k < 12; k++) { const a = (k / 12) * TAU; put(body, G.cone(0.06, 0.4, 5), sunM, [Math.cos(a) * 0.85, 2.1 + Math.sin(a) * 0.85, -0.38], [0, 0, a - Math.PI / 2]); }
+                for (const sx of [-1, 1]) put(body, G.box(0.5, 0.18, 0.5), stone2, [sx * 0.62, 1.95, 0], [0, 0, sx * 0.3]);
+            }
             if (mossy) for (let k = 0; k < 9; k++) put(body, G.sphere(0.16, 8, 6), M(0x3e8a3a, { roughness: 0.9, flatShading: true }), [Math.cos(k * 2.1) * 0.6, 1.5 + Math.sin(k * 1.7) * 0.5, Math.sin(k * 2.1) * 0.5], [0, 0, 0], [1, 0.6, 1]);
             for (let k = 0; k < 6; k++) put(body, G.box(0.04, 0.3, 0.02), glowM, [Math.cos(k) * 0.55, 1.2 + (k % 3) * 0.25, 0.55 + Math.sin(k) * 0.05], [0, 0, k]);
             break;
@@ -398,7 +545,7 @@ export function monster(def) {
                 if (y < -0.9) p.setY(i, y + Math.sin(a * 7) * 0.12);
             }
             robe.computeVertexNormals();
-            const robeM = def.id === 'seraph' ? M(0xf1e8d0, { roughness: 0.7, side: THREE.DoubleSide }) : M(shade(col, 0.32), { roughness: 0.8, side: THREE.DoubleSide });
+            const robeM = def.id === 'seraph' ? M(0xc9bc9c, { roughness: 0.8, side: THREE.DoubleSide }) : M(shade(col, 0.32), { roughness: 0.8, side: THREE.DoubleSide });
             put(body, robe, robeM, [0, 1.2, 0]);
             const head = new THREE.Group(); head.position.set(0, 2.25, 0.05); body.add(head); P.head = head;
             put(head, new THREE.SphereGeometry(0.42, 22, 14, 0, TAU, 0, 1.9), robeM, [0, 0, -0.05], [-0.4, 0, 0]);
@@ -423,10 +570,7 @@ export function monster(def) {
                 put(head, G.cyl(0.6, 0.6, 0.04, 24), M(0x1f2a18), [0, 0.18, 0]);
             }
             if (def.id === 'seraph') {
-                for (const sx of [-1, 1]) {
-                    const w = new THREE.Group(); w.position.set(sx * 0.3, 1.95, -0.3); body.add(w); P.wings.push(w);
-                    for (let k = 0; k < 6; k++) put(w, G.box(0.14, 0.04, 0.95 - k * 0.1), M(0xfff6dc, { roughness: 0.6, emissive: new THREE.Color(0xffd27a), emissiveIntensity: 0.25 }), [sx * (0.18 + k * 0.2), 0.25 + k * 0.12, -0.1], [0.2, 0, sx * 0.55]);
-                }
+                for (const sx of [-1, 1]) P.wings.push(featherWing(body, sx, [sx * 0.3, 1.95, -0.3], 1.3, M(0xfff6dc, { roughness: 0.6, side: THREE.DoubleSide, emissive: new THREE.Color(0xffd27a), emissiveIntensity: 0.3 }), M(0xe8d6a8, { roughness: 0.6, side: THREE.DoubleSide })));
                 put(head, G.torus(0.34, 0.03, 6, 30, Math.PI * 1.6), M(0xffe39a, { emissive: new THREE.Color(0xffc040), emissiveIntensity: 2 }), [0, 0.55, -0.1], [Math.PI / 2 - 0.3, 0, 0.6]);
             }
             if (def.id === 'oathbreaker') {
