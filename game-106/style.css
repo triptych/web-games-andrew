@@ -1,0 +1,185 @@
+/* INTRUDER ALERT '84. Phone first: everything fits 360 px wide. Neon on midnight, Press Start 2P. */
+:root {
+    --bg: #05010f;
+    --panel: rgba(14, 4, 34, 0.94);
+    --line: rgba(255, 43, 214, 0.45);
+    --text: #f4ecff;
+    --dim: #a99bd0;
+    --pink: #ff2bd6;
+    --cyan: #2de2ff;
+    --gold: #ffe14d;
+    --green: #39ff88;
+    --accent: var(--pink);
+    --pixel: 'Press Start 2P', ui-monospace, 'Courier New', monospace;
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-l: env(safe-area-inset-left, 0px);
+    --safe-r: env(safe-area-inset-right, 0px);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--bg); color: var(--text);
+    font-family: var(--pixel); font-size: 12px; line-height: 1.7;
+    overflow: hidden; overscroll-behavior: none;
+    user-select: none; -webkit-user-select: none;
+}
+[hidden] { display: none !important; }
+b { color: var(--text); }
+.c-gold { color: var(--gold); } .c-cyan { color: var(--cyan); } .c-pink { color: var(--pink); }
+.dim { color: var(--dim); } .center { text-align: center; }
+
+/* The view sizes the canvas in px from JS. Never 100vw/100vh: on phones 100vh is taller than
+   the visible area, and taps land below the finger. */
+#view { position: fixed; left: 0; top: 0; display: block; touch-action: none; }
+
+#back-link {
+    position: fixed; top: calc(8px + var(--safe-t)); left: calc(8px + var(--safe-l)); z-index: 99999;
+    font: 13px Arial, Helvetica, sans-serif; color: #fff; text-decoration: none;
+    background: rgba(0, 0, 0, 0.55); padding: 6px 12px; border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+#back-link:hover { background: rgba(0, 0, 0, 0.8); }
+
+/* ---------------------------------------------------------------- buttons */
+.btn, .ibtn, .tbtn {
+    font: inherit; color: var(--text); cursor: pointer;
+    min-height: 44px; min-width: 44px;           /* finger-sized */
+    border: 2px solid var(--line); border-radius: 4px;
+    background: rgba(255, 43, 214, 0.08);
+}
+.btn { padding: 10px 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+.btn:hover { background: rgba(255, 43, 214, 0.18); }
+.btn.primary {
+    background: linear-gradient(180deg, #ff5ee3, #c4129f); color: #fff; border-color: #ffb3f1;
+    box-shadow: 0 0 12px rgba(255, 43, 214, 0.6), inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+    text-shadow: 0 2px 0 #6a0058;
+}
+.btn.danger { border-color: #ff4d6d; color: #ffb3c1; }
+.btn:focus-visible, .ibtn:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------- HUD */
+#hud {
+    position: fixed; z-index: 10; pointer-events: none;
+    top: calc(8px + var(--safe-t)); right: calc(62px + var(--safe-r)); left: calc(96px + var(--safe-l));
+    display: flex; flex-direction: column; gap: 6px;
+    font-size: 11px; text-shadow: 0 2px 0 #000;
+}
+.hud-row { display: flex; justify-content: flex-end; align-items: center; gap: 10px; flex-wrap: wrap; }
+.chip-label { white-space: nowrap; }
+.chip-label.score { color: var(--gold); min-width: 7ch; text-align: right; }
+#hud-lv { color: var(--cyan); }
+.bar { position: relative; height: 12px; border: 2px solid rgba(255, 255, 255, 0.6); background: rgba(0, 0, 0, 0.6); }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; transform-origin: left; display: block; }
+.bar.hp { width: 92px; }
+.bar.hp i { background: linear-gradient(90deg, #ff2d55, #39ff88); }
+.bar.hp span { position: absolute; left: 4px; top: -1px; font-size: 8px; line-height: 12px; }
+.bar.xp { height: 8px; border-width: 1px; border-color: rgba(255, 225, 77, 0.6); }
+.bar.xp i { background: linear-gradient(90deg, #ff9f1c, var(--gold)); }
+#btn-pause {
+    position: fixed; z-index: 11; top: calc(6px + var(--safe-t)); right: calc(8px + var(--safe-r));
+    font-size: 12px; background: rgba(0, 0, 0, 0.6);
+}
+
+#banner {
+    position: fixed; z-index: 12; left: 50%; top: 42%; transform: translate(-50%, -50%);
+    pointer-events: none; text-align: center; white-space: nowrap;
+    font-size: clamp(16px, 5vw, 34px); color: #fff;
+    text-shadow: 0 0 10px var(--pink), 0 0 22px var(--pink), 3px 3px 0 #4a0040;
+    animation: banner 2.2s steps(22) forwards;
+}
+#banner.cyan { text-shadow: 0 0 10px var(--cyan), 0 0 22px var(--cyan), 3px 3px 0 #003a4a; }
+@keyframes banner { 0% { opacity: 0; transform: translate(-50%, -50%) scale(1.4); } 12%, 75% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; } }
+
+/* ---------------------------------------------------------------- touch deck */
+#touch { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+#stick-zone { position: absolute; left: 0; bottom: 0; width: 50%; height: 60%; pointer-events: auto; touch-action: none; }
+#stick { position: absolute; width: 0; height: 0; opacity: 0.35; left: 90px; bottom: 120px; }
+#stick.on { opacity: 0.9; }
+#stick .ring { position: absolute; width: 120px; height: 120px; left: -60px; top: -60px; border-radius: 50%; border: 2px solid var(--cyan); box-shadow: 0 0 12px rgba(45, 226, 255, 0.5); }
+#stick .knob { position: absolute; width: 54px; height: 54px; left: -27px; top: -27px; border-radius: 50%; background: rgba(45, 226, 255, 0.55); }
+.tbtn {
+    position: absolute; pointer-events: auto; touch-action: none;
+    right: calc(24px + var(--safe-r)); bottom: calc(40px + var(--safe-b));
+    width: 80px; height: 80px; border-radius: 50%; font-size: 10px;
+    background: rgba(255, 43, 214, 0.3); border-color: var(--pink);
+    box-shadow: 0 0 14px rgba(255, 43, 214, 0.5);
+}
+
+/* ---------------------------------------------------------------- screens */
+.screen {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    /* top padding clears the fixed back link, so a scrolled button never sits under it */
+    padding: calc(52px + var(--safe-t)) calc(12px + var(--safe-r)) calc(12px + var(--safe-b)) calc(12px + var(--safe-l));
+    background: rgba(5, 1, 15, 0.6); overflow-y: auto;
+}
+#title { background: linear-gradient(180deg, rgba(5, 1, 15, 0.25), rgba(5, 1, 15, 0.7)); }
+.sheet {
+    width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
+    background: var(--panel); border: 2px solid var(--line); border-radius: 6px; padding: 18px;
+    box-shadow: 0 0 24px rgba(255, 43, 214, 0.25), inset 0 0 30px rgba(45, 226, 255, 0.06);
+    scrollbar-width: thin; scrollbar-color: var(--pink) transparent;
+}
+.sheet::-webkit-scrollbar { width: 8px; }
+.sheet::-webkit-scrollbar-track { background: transparent; margin: 6px; }
+.sheet::-webkit-scrollbar-thumb { background: var(--pink); border-radius: 4px; }
+.sheet h1, .sheet h2 { margin: 0 0 14px; font-weight: normal; }
+.sheet h2 { font-size: 16px; color: var(--cyan); text-shadow: 0 0 8px rgba(45, 226, 255, 0.7); }
+.sheet p { margin: 0 0 12px; }
+.menu { display: flex; flex-direction: column; gap: 10px; }
+.sheet-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; }
+.row select, .row input { font: inherit; font-size: 11px; min-height: 36px; }
+.version { text-align: center; color: var(--dim); font-size: 9px; margin-top: 10px; }
+table { border-collapse: collapse; width: 100%; margin: 6px 0 12px; font-size: 10px; }
+td { padding: 6px 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); vertical-align: top; }
+td:first-child { color: var(--gold); white-space: nowrap; }
+.rules { padding-left: 18px; margin: 0 0 10px; font-size: 10px; }
+.rules li { margin-bottom: 8px; }
+
+/* the title: chrome-and-sunset 80s logo */
+.title-sheet { text-align: center; background: rgba(10, 2, 28, 0.82); }
+.logo-wrap { position: relative; margin: 4px 0 14px; }
+.logo {
+    display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 0;
+    font-size: clamp(22px, 7.4vw, 40px); line-height: 1.15; letter-spacing: 0.02em;
+    background: linear-gradient(180deg, #fff 0%, #ffe14d 30%, #ff9f1c 50%, #ff2bd6 72%, #7a1cff 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(3px 3px 0 #2a0050) drop-shadow(0 0 10px rgba(255, 43, 214, 0.6));
+}
+.year {
+    position: absolute; right: 6%; bottom: -12px; transform: rotate(-8deg);
+    font-size: clamp(18px, 5vw, 26px); color: var(--cyan);
+    text-shadow: 0 0 6px var(--cyan), 0 0 16px var(--cyan), 2px 2px 0 #00303a;
+}
+.tagline { color: var(--dim); font-size: 10px; margin: 18px 0 16px !important; }
+.hiscore { margin-top: 14px; color: var(--gold); font-size: 11px; text-shadow: 0 0 8px rgba(255, 225, 77, 0.6); }
+
+/* level-up cards */
+.lvl-title { text-align: center; color: var(--gold) !important; text-shadow: 0 0 10px rgba(255, 225, 77, 0.8) !important; }
+.cards .btn { text-align: left; text-transform: none; display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; }
+.cards .btn .k { color: var(--gold); font-size: 9px; }
+.cards .btn .n { color: var(--cyan); font-size: 12px; }
+.cards .btn .d { color: var(--text); font-size: 10px; line-height: 1.5; }
+.cards .btn .lv { color: var(--pink); font-size: 9px; }
+
+#over-text { line-height: 2; }
+
+#toasts { position: fixed; left: 50%; bottom: calc(16px + var(--safe-b)); transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.toast { background: var(--panel); border: 2px solid var(--line); border-radius: 4px; padding: 8px 14px; font-size: 10px; animation: toast 2.4s forwards; }
+@keyframes toast { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+.noscript { position: fixed; inset: 0; display: grid; place-items: center; }
+
+@media (prefers-reduced-motion: reduce) { #banner { animation-duration: 3s; animation-timing-function: linear; } }
+
+/* short landscape phones: the three cards sit side by side so none scrolls off */
+@media (orientation: landscape) and (max-height: 520px) {
+    .cards { flex-direction: row; }
+    .cards .btn { flex: 1 1 0; min-width: 0; }
+    .lvl-title { margin-bottom: 4px !important; }
+    #levelup .sheet { width: min(720px, 100%); }
+}
+
+/* Play Again comes first in focus order (Enter retries) but sits on the right */
+.over-foot { flex-direction: row-reverse; justify-content: flex-start; }

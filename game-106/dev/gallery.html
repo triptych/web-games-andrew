@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INTRUDER ALERT '84 — sprite gallery</title>
+    <style>
+        body { margin: 0; padding: 16px; background: #6b6b6b; color: #fff; font: 13px system-ui, sans-serif; }
+        body.dark { background: #05010f; }
+        h1 { font-size: 16px; margin: 0 0 12px; }
+        .grid { display: flex; flex-wrap: wrap; gap: 18px; }
+        figure { margin: 0; text-align: center; }
+        canvas { image-rendering: pixelated; display: block; background: rgba(0, 0, 0, 0.15); }
+        figcaption { margin-top: 6px; opacity: 0.85; }
+    </style>
+</head>
+<body>
+    <h1>Sprites at 8× on a neutral grey (add <code>?dark</code> for the game's background). Normal, mirrored, hit-flash.</h1>
+    <div class="grid" id="grid"></div>
+    <script type="module">
+        import { makeSprites } from '../js/view/sprites.js';
+        if (location.search.includes('dark')) document.body.classList.add('dark');
+        const S = makeSprites();
+        const grid = document.getElementById('grid');
+        const show = (label, img, k = 8) => {
+            const c = document.createElement('canvas');
+            c.width = img.width * k; c.height = img.height * k;
+            const g = c.getContext('2d');
+            g.imageSmoothingEnabled = false;
+            g.drawImage(img, 0, 0, c.width, c.height);
+            const f = document.createElement('figure');
+            const cap = document.createElement('figcaption');
+            cap.textContent = label;
+            f.append(c, cap);
+            grid.appendChild(f);
+        };
+        for (const name of ['hero', 'drone', 'hunter', 'gunner', 'brute', 'chip']) {
+            S[name].frames.forEach((img, i) => show(`${name} ${i}`, img));
+            show(`${name} mirrored`, S[name].flipped[0]);
+            show(`${name} hit`, S[name].white[0]);
+        }
+        S.grinner.frames.forEach((img, i) => show(`grinner ${i ? 'cackle' : 'grin'}`, img));
+        window.galleryReady = true;
+    </script>
+</body>
+</html>
