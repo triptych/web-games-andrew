@@ -105,7 +105,7 @@ export function buildLibrary(ctx) {
         for (let k = 0; k < 7; k++) roomBooks.push({ x: x + s * 0.02, y: 0.18 + k * 0.68, z0: -D / 2 + 0.15, z1: D / 2 - 0.95, s });
     }
     const roomShelf = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), bookMat, 1700);
-    roomShelf.count = fillShelves(roomShelf, roomBooks, rng('reading-room'), 1700, ['#7a2a2a', '#2a4a6a', '#2f5a46', '#8a6a2a', '#4a2a5a', '#6a4a3a', '#1a3a3a']);
+    roomShelf.count = fillShelves(roomShelf, roomBooks, rng('reading-room'), 1700, ['#7a2a2a', '#2a4a6a', '#2f5a46', '#8a6a2a', '#4a2a5a', '#6a4a3a', '#1a3a3a'].map((c) => new THREE.Color(c)));
     ctx.add(roomShelf);
     ctx.hit(roomShelf, { label: 'A book · click to take it down', range: 5.5, onClick: (h) => readBook(roomShelf, h.instanceId, 0, 'the reading room') });
     // ladder
