@@ -8,9 +8,9 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
-import { BENCH, BIN, DISH, FAST, FLOOR_Y, HOVER } from '../config.js';
+import { BENCH, BIN, DISH, FAST, FLOOR_Y, HOVER, PARTS } from '../config.js';
 import { KINDS } from '../sim/kinds.js';
-import { blockers, canAct, holePos, liftCheck, parseRef, partPlace, placeCheck, portWorld, slotPlace, snapSlot, stashOpen, wireEndPos, rot } from '../sim/rules.js';
+import { blockers, restY, canAct, holePos, liftCheck, parseRef, partPlace, placeCheck, portWorld, slotPlace, snapSlot, stashOpen, wireEndPos, rot } from '../sim/rules.js';
 import { refPos } from '../sim/plan.js';
 import { buildBin, buildDish, buildShell, makeFastener, makeHoleRing, makePartView, syncPorts, updatePartView } from './models.js';
 import { mat, colorMat, Builder, accentMat } from './kit.js';
@@ -57,7 +57,7 @@ export class View {
         const r = this.renderer;
         r.outputColorSpace = THREE.SRGBColorSpace;
         r.toneMapping = THREE.ACESFilmicToneMapping;
-        r.toneMappingExposure = 1.35;
+        r.toneMappingExposure = 1.25;
         r.shadowMap.enabled = true;
         r.shadowMap.type = THREE.PCFSoftShadowMap;
         r.setClearColor(0x07070d);
@@ -69,7 +69,7 @@ export class View {
 
         // lights: a hemisphere for the room, the work lamp with real shadows
         this.scene.add(new THREE.HemisphereLight(0x7a90d8, 0x3a2a44, 1.1));
-        this.lamp = new THREE.SpotLight(0xffe6c0, 640, 60, 0.95, 0.7, 1.6);
+        this.lamp = new THREE.SpotLight(0xffe6c0, 330, 60, 0.95, 0.7, 1.6);
         this.lamp.position.set(1.3, 11, -3.5);
         this.lamp.target.position.set(0, 0, 0.4);
         this.lamp.castShadow = true;
@@ -108,6 +108,20 @@ export class View {
         this.mouse = new THREE.Vector2();
         this.t = 0; this.looks = 0;
         this.tipTouch = false;
+
+        // the guide: a bobbing arrow over the next thing to touch, and a glowing drop zone
+        this.guide = null; this.guideOn = false;
+        const gm = new THREE.MeshBasicMaterial({ color: 0x35e0ff, transparent: true, opacity: 0.95, toneMapped: false, depthTest: false });
+        this.arrow = new THREE.Group();
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.8, 12), gm); cone.rotation.x = Math.PI; cone.position.y = 0.4;
+        const rg = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.045, 8, 28), gm); rg.rotation.x = Math.PI / 2;
+        this.arrow.add(cone, rg); this.arrow.traverse((o) => { o.renderOrder = 17; o.userData.noPick = true; });
+        this.arrow.visible = false; this.scene.add(this.arrow);
+        const zm = new THREE.MeshBasicMaterial({ color: 0x35e0ff, transparent: true, opacity: 0.2, toneMapped: false, depthWrite: false, blending: THREE.AdditiveBlending });
+        this.partsZone = new THREE.Mesh(new THREE.PlaneGeometry(PARTS.hw * 2, PARTS.hd * 2).rotateX(-Math.PI / 2), zm);
+        this.partsZone.position.set(PARTS.x, 0.04, PARTS.z); this.partsZone.visible = false; this.partsZone.userData.noPick = true; this.scene.add(this.partsZone);
+        this.binZone = new THREE.Mesh(new THREE.TorusGeometry(BIN.r + 0.1, 0.09, 8, 36), new THREE.MeshBasicMaterial({ color: 0xffa63d, transparent: true, opacity: 0.9, toneMapped: false, depthTest: false }));
+        this.binZone.rotation.x = Math.PI / 2; this.binZone.position.set(BIN.x, 1.5, BIN.z); this.binZone.visible = false; this.binZone.userData.noPick = true; this.binZone.renderOrder = 16; this.scene.add(this.binZone);
 
         this.dishG = buildDish(); this.dishG.position.set(DISH.x, 0, DISH.z); this.scene.add(this.dishG);
         this.binG = buildBin(); this.binG.position.set(BIN.x, 0, BIN.z); this.scene.add(this.binG);
@@ -406,6 +420,29 @@ export class View {
         return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height, behind: v.z > 1 };
     }
 
+    // ------------------------------------------------------------------ the guide
+    setGuide(goal, on) { this.guide = goal; this.guideOn = !!on; }
+
+    updateGuide(G, t) {
+        const J = G.job, dev = this.dev;
+        const g = this.guide;
+        const show = this.guideOn && g && J && !J.test && G.phase === 'bench';
+        this.arrow.visible = this.partsZone.visible = this.binZone.visible = false;
+        if (!show) return;
+        const pulse = 0.5 + 0.5 * Math.sin(t * 5);
+        // where to point
+        let at = null;
+        if (g.at) at = g.at;
+        else if (g.ref) { try { at = refPos(dev, g.ref); } catch { at = null; } }
+        if (at && !g.zone && g.k !== 'spare') {
+            const top = g.ref && g.ref.startsWith('part:') ? at[1] + dev.parts[g.ref.slice(5)].h / 2 : at[1];
+            this.arrow.position.set(at[0], top + 0.9 + Math.sin(t * 4) * 0.18, at[2]);
+            this.arrow.visible = true;
+        }
+        if (g.zone === 'park') { this.partsZone.visible = true; this.partsZone.material.opacity = 0.12 + pulse * 0.2; }
+        if (g.zone === 'bin') { this.binZone.visible = true; this.binZone.scale.setScalar(1 + pulse * 0.06); }
+    }
+
     // ------------------------------------------------------------------ outlines, rings, ghosts
     makeRing() {
         const m = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.035, 8, 28), new THREE.MeshBasicMaterial({ color: 0x6ee7ff, transparent: true, opacity: 0.95, toneMapped: false, depthTest: false }));
@@ -539,6 +576,7 @@ export class View {
         const benchLike = (phase === 'bench' || phase === 'result' || phase === 'freeover') && G.job;
         if (benchLike && G.job.id !== this.jobId) this.loadJob(G);
         if (!benchLike && this.dev) this.clearJob();
+        if (!benchLike) { this.arrow.visible = this.partsZone.visible = this.binZone.visible = false; }
         this.setMode(benchLike ? 'bench' : phase === 'title' ? 'title' : 'shop');
         this.updateCamera(dt, time);
         this.aberr *= Math.exp(-dt * 5);
@@ -553,7 +591,7 @@ export class View {
         if (this.mode !== 'title' && Math.sin(time * 4.7) > 0.5) this.fx.steam(-10.4, 1.6, -5.4);
         if (Math.sin(time * 7.1) > 0.8) this.fx.glow.emit({ x: 1.3 + (Math.random() - 0.5) * 6, y: 1 + Math.random() * 6, z: 1 + (Math.random() - 0.5) * 6, vx: 0.05, vy: 0.04, vz: 0.03, life: 4, s0: 0.12, s1: 0.12, a: 0.25, color: 0xffeccc });
 
-        this.lamp.intensity = 640 * (0.97 + Math.sin(time * 13) * 0.01);
+        this.lamp.intensity = 330 * (0.97 + Math.sin(time * 13) * 0.01);
         if (this.composer) {
             this.grade.uniforms.time.value = time % 100;
             this.grade.uniforms.aberr.value = this.reduced ? 0 : this.aberr;
@@ -635,7 +673,7 @@ export class View {
             // a cable under a cover plate is out of sight: hide it unless an end is out in the open
             const covered = w.ends.every((e) => e.at && blockers(dev, dev.slots[e.port.split('.')[0]]).length > 0);
             wv.group.visible = !covered;
-            wv.update(w, a, b, !w.ends[0].at, !w.ends[1].at, t, {});
+            wv.update(w, a, b, !w.ends[0].at, !w.ends[1].at, t, {}, (x, z) => restY(dev, x, z));
         }
         // stash
         for (const [id, s] of this.stash) {
@@ -648,6 +686,7 @@ export class View {
             if (slot.occ) s.g.visible = false;
         }
         this.updateGhost(G, t);
+        this.updateGuide(G, t);
         // tool at the pointer
         this.updateTool(G, dt, t);
     }

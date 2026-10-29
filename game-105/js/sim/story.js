@@ -38,10 +38,10 @@ export const CLUES = {
 };
 
 export const TIPS = {
-    bench:   'Orbit by dragging bare bench, zoom with the wheel. Pick a tool below, then hold it on a screw.',
+    bench:   'The blue NEXT line at the top says what to do, and an arrow shows where. Drag bare bench to look around; the wheel zooms.',
     screws:  'Hold on a screw to turn it. Drag along the panel to chain screws. Screws go into the dish by themselves.',
-    lift:    'Parts only come out when nothing holds or covers them. Drop one near its slot to snap it back in.',
-    carry:   'Quick tap picks a part up and sticks it to the cursor. Tap again to put it down.',
+    lift:    'A tap lifts a part and it sticks to the cursor: tap again to put it down. Set things you take out in the PARTS area at the front of the mat, so you can find them again.',
+    carry:   'It snapped in. Everything goes back in the reverse order it came out; a blue ghost shows each place.',
     wires:   'Pull a plug with your hands. Its colour and letter match its socket.',
     probe:   'Hold the meter on a part to read it. Some failures are invisible until you do.',
     solder:  'Hold the iron on a joint and keep the heat in the green. Too hot and it burns.',

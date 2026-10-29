@@ -84,8 +84,15 @@ export class Music {
     duck(on) {
         if (!this.out || this._duck === on) return;
         this._duck = on;
-        this.out.gain.setTargetAtTime(on ? 0.35 : 1, this.ctx.currentTime, 0.2);
+        this.applyGain();
     }
+    /** Pull the music back a little while a voice is speaking. */
+    talk(on) {
+        if (!this.out || this._talk === on) return;
+        this._talk = on;
+        this.applyGain();
+    }
+    applyGain() { this.out.gain.setTargetAtTime((this._duck ? 0.35 : 1) * (this._talk ? 0.5 : 1), this.ctx.currentTime, 0.2); }
 
     // ---------------------------------------------------------------- composition
 

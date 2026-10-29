@@ -53,13 +53,14 @@ export class UI {
         for (const b of document.querySelectorAll('[data-close-drawer]')) b.addEventListener('click', () => this.closeSpares());
 
         // settings
-        const sfx = $('set-sfx'), music = $('set-music'), touch = $('set-touch'), quality = $('set-quality'), manual = $('set-manual'), calm = $('set-calm');
+        const sfx = $('set-sfx'), music = $('set-music'), touch = $('set-touch'), quality = $('set-quality'), manual = $('set-manual'), calm = $('set-calm'), guide = $('set-guide');
+        guide.value = settings.guide;
         sfx.value = settings.sfx; music.value = settings.music; touch.value = settings.touch; quality.value = settings.quality; manual.checked = !!settings.manual; calm.checked = !!settings.calm;
         const changed = () => {
-            Object.assign(settings, { sfx: +sfx.value, music: +music.value, touch: touch.value, quality: quality.value, manual: manual.checked, calm: calm.checked });
+            Object.assign(settings, { sfx: +sfx.value, music: +music.value, touch: touch.value, quality: quality.value, guide: guide.value, manual: manual.checked, calm: calm.checked });
             onSettings(settings);
         };
-        for (const el of [sfx, music, touch, quality, manual, calm]) el.addEventListener('change', changed);
+        for (const el of [sfx, music, touch, quality, manual, calm, guide]) el.addEventListener('change', changed);
         $('set-delete').addEventListener('click', () => { onDeleteSave(); this.toast('Saved game deleted.'); });
 
         this.buildTools();
@@ -388,6 +389,15 @@ export class UI {
         this.spares = true;
     }
     closeSpares() { $('spares').hidden = true; this.spares = false; }
+
+    // ------------------------------------------------------------------ the guide line
+    /** Show the next step (or hide the line). `spare` makes the Spares button glow. */
+    setGuide(goal, on) {
+        const el = $('guide');
+        el.hidden = !(on && goal);
+        if (on && goal) { const t = $('guide-text'); if (t.textContent !== goal.text) t.textContent = goal.text; }
+        $('btn-spares').classList.toggle('guide', !!(on && goal && goal.k === 'spare'));
+    }
 
     // ------------------------------------------------------------------ the bench HUD
     syncHud(G, force = false) {

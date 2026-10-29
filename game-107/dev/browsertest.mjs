@@ -124,6 +124,12 @@ async function desktop() {
     await shot(page, 'desktop-intro');
     await page.keyboard.press('Space');                       // the focused Roll! button
     await until(page, () => document.getElementById('intro').hidden, 'Space presses the focused Roll! button');
+    await until(page, () => !document.getElementById('caption').hidden && /Pastel Bay/.test(document.getElementById('cap-text').textContent), 'the news reporter opens the city, captioned');
+    check(await Q(page, () => document.getElementById('caption').classList.contains('news') && /News/i.test(document.getElementById('cap-who').textContent)), 'in a news lower-third');
+    // the army: force a tank on screen and run the city on
+    await Q(page, () => { __kr.G.mil.tankT = 0.01; __kr.G.ball.inv = 1e9; __kr.ff(12); });
+    await until(page, () => __kr.speaker.log.some((l) => l.startsWith('army:')), 'a tank arriving brings orders from the military commander');
+    await until(page, () => document.getElementById('caption').classList.contains('army') || __kr.speaker.log.some((l) => l.startsWith('army:')), 'shown as a radio caption');
 
     // keys steer
     const x0 = await Q(page, () => __kr.G.ball.x);
@@ -151,6 +157,14 @@ async function desktop() {
     await until(page, () => !document.getElementById('pause').hidden, 'the ❚❚ button pauses');
     await click(page, '#pause-menu [data-act="settings"]');
     await until(page, () => !document.getElementById('settings').hidden && Number(document.getElementById('settings').style.zIndex) > Number(document.getElementById('pause').style.zIndex), 'Settings opens on top of the pause menu');
+    // voiceover settings: captions only keeps the text but stops the speech; off stops both
+    await Q(page, () => { const e = document.getElementById('set-voice'); e.value = 'captions'; e.dispatchEvent(new Event('change')); });
+    const spoke = await Q(page, () => { __kr.speaker.stop(); const n = __kr.speaker.spoken, l = __kr.speaker.log.length; __kr.speaker.say({ ch: 'news', text: 'Testing, one two.', pri: 3, key: 't1' }); return [n, l]; });
+    await page.waitForTimeout(300);
+    check(await Q(page, ([n, l]) => __kr.speaker.spoken === n && __kr.speaker.log.length === l + 1 && !document.getElementById('caption').hidden, spoke), 'captions only: the line is captioned but not spoken');
+    await Q(page, () => { const e = document.getElementById('set-voice'); e.value = 'off'; e.dispatchEvent(new Event('change')); });
+    check(await Q(page, () => { const l = __kr.speaker.log.length; __kr.speaker.say({ ch: 'news', text: 'Silent.', pri: 3, key: 't2' }); return __kr.speaker.log.length === l && document.getElementById('caption').hidden; }), 'off: neither');
+    await Q(page, () => { const e = document.getElementById('set-voice'); e.value = 'on'; e.dispatchEvent(new Event('change')); });
     check(await Q(page, () => __kr.view.cel.on === true), 'the cartoon outline pass is on by default');
     await Q(page, () => { const e = document.getElementById('set-outline'); e.value = '0'; e.dispatchEvent(new Event('change')); });
     check(await Q(page, () => __kr.view.cel.on === false), 'the Settings switch turns it off (a single plain pass)');

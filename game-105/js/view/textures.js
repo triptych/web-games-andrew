@@ -107,9 +107,15 @@ export function matTex() {
             grd.addColorStop(0, rng() < 0.5 ? 'rgba(10,10,6,0.55)' : 'rgba(60,40,24,0.35)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
             g.fillStyle = grd; g.fillRect(x - r, y - r, r * 2, r * 2);
         }
-        g.fillStyle = 'rgba(255,200,70,0.5)';               // painted work zones
-        g.font = 'bold 22px monospace'; g.fillText('SCREWS', 20, 40);
-        g.fillText('SCRAP', w - 120, 40);
+        // painted work zones along the front edge (canvas bottom is the near side of the bench)
+        g.strokeStyle = 'rgba(255,200,70,0.55)'; g.fillStyle = 'rgba(255,200,70,0.7)'; g.lineWidth = 3;
+        g.setLineDash([14, 9]); g.strokeRect(w * 0.255, h * 0.805, w * 0.49, h * 0.15); g.setLineDash([]);
+        g.font = 'bold 26px monospace'; g.textAlign = 'center';
+        g.fillText('PARTS', w * 0.5, h * 0.865);
+        g.font = 'bold 15px monospace'; g.fillText('set things you take out here', w * 0.5, h * 0.915);
+        g.font = 'bold 22px monospace';
+        g.fillText('SCREWS', w * 0.115, h * 0.745); g.fillText('SCRAP', w * 0.885, h * 0.745);
+        g.textAlign = 'left';
     }, { repeat: [1, 1] }));
 }
 

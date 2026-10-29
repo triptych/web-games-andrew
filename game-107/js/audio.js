@@ -97,6 +97,15 @@ export class Audio {
 
     note(m) { return 440 * Math.pow(2, (m - 69) / 12); }
 
+    /** The click and hiss of a radio opening and closing around the commander's voice. */
+    radio(kind) {
+        if (!this.ready) return;
+        if (kind === 'open') {
+            this.noise({ dur: 0.1, vol: 0.12, from: 2600, to: 1800, type: 'bandpass', q: 1.2 });
+            this.tone({ freq: 1500, dur: 0.05, type: 'square', vol: 0.05, lp: 3000 });
+        } else this.noise({ dur: 0.07, vol: 0.1, from: 2200, to: 1200, type: 'bandpass' });
+    }
+
     ui(kind) {
         if (kind === 'click') this.tone({ freq: 660, to: 880, dur: 0.07, type: 'triangle', vol: 0.14 });
         else if (kind === 'open') { this.tone({ freq: 440, to: 660, dur: 0.1, type: 'triangle', vol: 0.14 }); this.tone({ freq: 660, to: 990, dur: 0.1, type: 'triangle', vol: 0.1, delay: 0.06 }); }

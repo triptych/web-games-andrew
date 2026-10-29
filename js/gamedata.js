@@ -1623,15 +1623,30 @@ const games = [
     {
         id: 'game-107',
         title: 'Kaiju Roll',
-        description: 'Katamari Damacy meets Breakout meets Rampage, in a toy city. You are a kaiju curled into a ball (a reptile, a monkey or a robot, your pick) that never stops rolling: steer to curve your path and bounce off buildings like the ball in a brick-breaker, and every skyscraper is a stack of floors that fall off one at a time. Swallow people, cars, trees and rubble and they stick to you, so you grow, hit harder and finally roll straight over houses; pounce to hop and slam, swat helicopters out of the sky and jump over shells. Five procedurally built cities (Pastel Bay, Harbor Town, Neon Heights, Frostport, Fort Fortissimo) with bridges, a river, a ferris wheel, whimsical rooftops (teapots, donuts, balloons) and tanks, helicopters and bombers that fight back. Power-ups drop from fallen towers (atomic breath, snack magnet, jelly shield, mega meal), chains multiply your score, and each flattened city lets you pick a gift. Keyboard, gamepad or touch. Drawn as a cartoon with cel shading and ink outlines. Every model, texture, sound effect and the per-city music is made in code.',
+        description: 'Katamari Damacy meets Breakout meets Rampage, in a toy city. You are a kaiju curled into a ball (a reptile, a monkey or a robot, your pick) that never stops rolling: steer to curve your path and bounce off buildings like the ball in a brick-breaker, and every skyscraper is a stack of floors that fall off one at a time. Swallow people, cars, trees and rubble and they stick to you, so you grow, hit harder and finally roll straight over houses; pounce to hop and slam, swat helicopters out of the sky and jump over shells. Five procedurally built cities (Pastel Bay, Harbor Town, Neon Heights, Frostport, Fort Fortissimo) with bridges, a river, a ferris wheel, whimsical rooftops (teapots, donuts, balloons) and tanks, helicopters and bombers that fight back. Power-ups drop from fallen towers (atomic breath, snack magnet, jelly shield, mega meal), chains multiply your score, and each flattened city lets you pick a gift. Keyboard, gamepad or touch. Drawn as a cartoon with cel shading and ink outlines, with a TV news reporter narrating the rampage and a gruff military commander shouting orders whenever tanks roll in (spoken with the built-in browser voices, and captioned). Every model, texture, sound effect and the per-city music is made in code.',
         icon: '\uD83E\uDD96',
         folder: 'game-107',
-        version: '1.2.0',
+        version: '1.3.0',
         cssClass: 'kaiju-roll',
         genre: 'arcade',
         tags: [
             { emoji: '\uD83E\uDD96', label: 'Kaiju rampage' },
             { emoji: '\uD83E\uDDF1', label: 'Brick-breaker physics' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
+    },
+    {
+        id: 'game-108',
+        title: 'Oathstones',
+        description: "A fantasy match-3 RPG in three.js where every token on the board keeps its own oath, its own rule for being matched. Most stones swear Kinship and match their colour, but Form stones match by shape in any colours, Prism stones only in a line of one shape where every colour differs, Motley ones in one colour with every shape different, Twinned ones need both, Host ones a line of four; a Cascade hero only leaves in a cascade, a Crossroads hero where a row and a column cross, a Ring hero when every neighbour shares a colour, a Vigil hero sleeps until matches wake it, and Fool stones fit anything. A line clears only when every token in it is content. Heroes are the gacha: summon at the Calling Stone (with pity) and they don't simply join you, they appear on your next battle board, and when they land they bind the stones around them to their oath, so the board changes under you. Fulfil a hero's oath and they are bound to your roster for good; a duplicate raises their rank. Twenty-one heroes in ten classes, each with an arrival and a party skill charged by their colour; eighteen stages across five regions to the Oathbreaker on the Hollow Throne, with monsters that petrify, freeze, hex and scramble the board. Real cut-gem geometry with a jewel shader, a shader sky over a floating island, bloom, procedural chibi heroes and monsters, and generated music. Mouse, touch, keyboard or gamepad.",
+        icon: '\uD83D\uDC8E',
+        folder: 'game-108',
+        version: '1.0.0',
+        cssClass: 'oathstones',
+        genre: 'rpg',
+        tags: [
+            { emoji: '\uD83D\uDC8E', label: 'Match-3 RPG' },
+            { emoji: '\uD83C\uDFB2', label: 'Gacha recruiting' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
     }

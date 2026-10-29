@@ -12,7 +12,7 @@ import { makeRng } from '../rng.js';
 import { FLOOR_Y, TIERS, WIRE_COLORS, FAST } from '../config.js';
 import { MODS, DECOY_MODS, holeOffsets } from './modules.js';
 import { KINDS } from './kinds.js';
-import { evaluate, portWorld, rot, slotPlace } from './rules.js';
+import { evaluate, portWorld, restY, rot, slotPlace } from './rules.js';
 
 const GND_COLORS = [{ id: 'black', hex: 0x2a2d35 }, { id: 'brown', hex: 0x9a6a3c }, { id: 'slate', hex: 0x6b7a90 }];
 const TAGS = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -361,7 +361,8 @@ function tryBuild(rng, kindId, tier, opts, attempt) {
                 const o = portWorld(dev, e.port) || [0, 0, 0];
                 const other = portWorld(dev, w.ends[1 - i].port) || o;
                 const ang = rng() * Math.PI * 2;
-                e.pos = [o[0] + Math.cos(ang) * 1.6, 0.14, o[2] + Math.sin(ang) * 1.6];
+                const lx = o[0] + Math.cos(ang) * 1.6, lz = o[2] + Math.sin(ang) * 1.6;
+                e.pos = [lx, restY(dev, lx, lz), lz];
                 void other;
             }
         });
