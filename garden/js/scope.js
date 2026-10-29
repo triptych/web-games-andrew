@@ -199,7 +199,7 @@ void main() {
     float limb = pow(mu, 0.5);
     vec3 col = uCol * (0.6 + 0.7 * g + 0.25 * cells) * (1.0 - spots * 0.75);
     col = mix(col, vec3(1.0, 0.98, 0.92), smoothstep(0.6, 1.0, mu) * 0.35);
-    gl_FragColor = vec4(col * limb * 2.4, 1.0);
+    gl_FragColor = vec4(col * limb * 1.45, 1.0);
 }`;
 const FLARE_FRAG = /* glsl */ `
 uniform vec3 uCol; uniform float uTime; uniform vec3 uSeed;
@@ -210,8 +210,8 @@ void main() {
     float mu = abs(dot(normalize(vN), normalize(vV)));
     float rim = pow(1.0 - mu, 2.0);
     float n = fbm(p * 4.0 + uSeed + vec3(uTime * 0.12, 0.0, uTime * 0.07));
-    float a = rim * smoothstep(0.35, 0.75, n) * (1.0 - smoothstep(0.85, 1.0, 1.0 - mu));
-    gl_FragColor = vec4(uCol * a * 2.0, 1.0);
+    float a = rim * smoothstep(0.5, 0.8, n) * (1.0 - smoothstep(0.85, 1.0, 1.0 - mu));
+    gl_FragColor = vec4(uCol * a * 1.3, 1.0);
 }`;
 
 const PLANE_VERT = /* glsl */ `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
@@ -566,17 +566,17 @@ export class Scope {
         const FU = { uCol: { value: col.clone().lerp(C('#ffffff'), 0.2) }, uTime: { value: 0 }, uSeed: { value: new V3(r() * 50, r() * 50, r() * 50) } };
         const flare = this._sphere(R * 1.35, FLARE_FRAG, FU, { transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
         g.add(flare);
-        const corona = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlow(), color: col, transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending }));
+        const corona = new THREE.Sprite(new THREE.SpriteMaterial({ map: softGlow(), color: col, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }));
         corona.scale.setScalar(R * 6);
         g.add(corona);
-        const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowSprite(), color: col.clone().lerp(C('#ffffff'), 0.5), transparent: true, opacity: 0.6, depthWrite: false, blending: THREE.AdditiveBlending }));
+        const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowSprite(), color: col.clone().lerp(C('#ffffff'), 0.3), transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending }));
         core.scale.setScalar(R * 3);
         g.add(core);
         this.updaters.push((dt, t) => {
             U.uTime.value = t;
             FU.uTime.value = t;
             body.rotation.y += dt * 0.04;
-            corona.material.opacity = 0.75 + Math.sin(t * 1.3) * 0.08;
+            corona.material.opacity = 0.45 + Math.sin(t * 1.3) * 0.06;
         });
         return { g, col };
     }
