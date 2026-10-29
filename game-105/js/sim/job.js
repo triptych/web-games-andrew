@@ -8,7 +8,7 @@
 import { BENCH, BIN, DISH, FAST, HOVER, SPAWN, TUNE, FLOOR_Y } from '../config.js';
 import { MODS } from './modules.js';
 import {
-    blockers, bitFor, canAct, defaultTool, describe, evaluate, failMessage, holeOf, holePos, isDefective, jointOf, jointsLeft, liftCheck,
+    blockers, bitFor, restY, canAct, defaultTool, describe, evaluate, failMessage, holeOf, holePos, isDefective, jointOf, jointsLeft, liftCheck,
     parseRef, partPlace, placeCheck, portWorld, rot, slotPlace, snapSlot, stashOpen, wireEndPos, flowUntilFail,
 } from './rules.js';
 
@@ -223,7 +223,7 @@ function release(G) {
                 const pw = portWorld(dev, `${id}.${p.id}`);
                 return pw && Math.hypot(pw[0] - wp[0], pw[2] - wp[2]) < TUNE.plugSnap;
             }));
-            end.pos = [wp[0], 0.14, wp[2]];
+            end.pos = [wp[0], restY(dev, wp[0], wp[2]), wp[2]];
             if (nearWrong) { say(G, `The ${w.color} plug goes to the ${w.color}-ringed socket.`); ev(G, { type: 'bonk', ref: `plug:${w.id}.${h.e}`, why: 'wrong' }); J.stats.wrong++; }
             else ev(G, { type: 'drop', ref: `plug:${w.id}.${h.e}` });
         }
@@ -264,6 +264,13 @@ function drop(G, part) {
         else part.pos[0] = (part.pos[0] >= 0 ? 1 : -1) * (hw + Math.max(part.w, part.d) / 2 + 0.05);
         [part.pos[0], part.pos[2]] = clampBench(part.pos[0], part.pos[2]);
     }
+    // not on the screw dish or in the bin's mouth: nudge it out to the nearest clear spot
+    const r = Math.max(part.w, part.d) / 2;
+    for (const z of [DISH, BIN]) {
+        const dx = part.pos[0] - z.x, dz = part.pos[2] - z.z, d = Math.hypot(dx, dz), need = z.r + r + 0.25;
+        if (d < need) { const k = d > 1e-3 ? 1 / d : 0; part.pos[0] = z.x + (k ? dx * k : 1) * need; part.pos[2] = z.z + (k ? dz * k : 0) * need; }
+    }
+    [part.pos[0], part.pos[2]] = clampBench(part.pos[0], part.pos[2]);
     part.pos[1] = 0;
     ev(G, { type: 'drop', ref: `part:${part.id}` });
 }
@@ -402,6 +409,14 @@ function relax(G, dt) {
         }
         const [cx, cz] = clampBench(a.pos[0], a.pos[2]);
         a.pos[0] = cx; a.pos[2] = cz;
+    }
+    // a cable end lying loose rests on whatever is under it, never inside the tray's base
+    for (const w of Object.values(dev.wires)) {
+        w.ends.forEach((e, i) => {
+            if (e.at || (J.held && J.held.k === 'plug' && J.held.w === w.id && J.held.e === i)) return;
+            const y = restY(dev, e.pos[0], e.pos[2]);
+            if (Math.abs(e.pos[1] - y) > 0.01) e.pos[1] += (y - e.pos[1]) * Math.min(1, dt * 14);
+        });
     }
 }
 

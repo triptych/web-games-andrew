@@ -67,6 +67,7 @@
         <div id="dish" title="Screws in the dish">⛭ <b id="dish-n">0</b></div>
         <div id="test-banner" hidden></div>
         <div id="tip" hidden><span class="tip-who">SPANNER</span><span id="tip-text"></span></div>
+        <div id="guide" role="status" aria-live="polite" hidden><span class="guide-tag">NEXT</span><span id="guide-text"></span></div>
         <div id="status" role="status" aria-live="polite"></div>
         <div id="cambar">
             <button class="ibtn" data-cam="left" aria-label="Rotate left">◀</button>
@@ -135,11 +136,11 @@
     <div id="howto" class="screen" hidden>
         <div class="sheet wide">
             <h2>How to Play</h2>
-            <p>Customers bring broken machines. Open them, find what is wrong, fix it, put every screw back and run the <b>power test</b>.</p>
+            <p>Customers bring broken machines. Open them, find what is wrong, fix it, put every screw back and run the <b>power test</b>. On the first two days a blue <b>NEXT</b> line and an arrow tell you the next step; <b>Hint</b> explains more, and Settings can keep the guide on or turn it off.</p>
             <table>
                 <tr><td>Drag bare bench</td><td>Orbit the camera (wheel zooms; right-drag pans; two fingers pinch)</td></tr>
                 <tr><td>Hold on a screw</td><td>Turn it. Slide to the next one to keep going</td></tr>
-                <tr><td>Tap a part</td><td>Lift it out. It sticks to the cursor: tap again to put it down</td></tr>
+                <tr><td>Tap a part</td><td>Lift it out. It sticks to the cursor: tap again to put it down. Set things you take out in the painted <b>PARTS</b> area at the front of the mat; they go back in the reverse order</td></tr>
                 <tr><td>Tap a plug</td><td>Pull a cable out; drop it on the socket with its colour and letter</td></tr>
                 <tr><td>1 – 9</td><td>Choose a tool. Smart tools pick the right one for you</td></tr>
                 <tr><td>Q / E &nbsp; Z / X</td><td>Rotate and zoom the camera</td></tr>
@@ -161,6 +162,9 @@
             </label>
             <label class="row">Graphics
                 <select id="set-quality"><option value="auto">Automatic</option><option value="low">Low</option><option value="med">Medium</option><option value="high">High</option></select>
+            </label>
+            <label class="row">Guidance
+                <select id="set-guide"><option value="auto">First two days</option><option value="on">Always</option><option value="off">Off</option></select>
             </label>
             <label class="row">Choose my own bits <input type="checkbox" id="set-manual"></label>
             <label class="row">Calm (less motion and noise) <input type="checkbox" id="set-calm"></label>
