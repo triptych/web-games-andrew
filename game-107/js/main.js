@@ -11,7 +11,7 @@ import { UI } from './ui.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave, saveBest } from './save.js';
 import { newGame, step, choosePerk, nextLevel, destroyedFrac } from './sim/game.js';
 import { makeBot, botInput } from './sim/bot.js';
-import { LEVELS } from './sim/data.js';
+import { LEVELS, CHAR_IDS } from './sim/data.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.get('debug') === '1';
@@ -32,8 +32,9 @@ const ui = new UI({
     onDeleteSave: () => { clearSave(); refreshTitle(); },
 });
 
+const pickAny = () => CHAR_IDS[Math.floor(Math.random() * CHAR_IDS.length)];
 const freshSeed = () => ((Date.now() * 2654435761) >>> 0) % 1e9;
-let G = newGame(freshSeed() | 1, 0);     // the title screen shows a bot rolling through a city
+let G = newGame(freshSeed() | 1, 0, pickAny());     // the title screen shows a bot rolling through a city
 let attract = makeBot({ skill: 0.85 });
 let mode = 'title';                      // title | play | over
 let acc = 0;
@@ -63,7 +64,7 @@ document.getElementById('title-menu').addEventListener('click', (e) => {
     if (!b) return;
     audio.ui('click');
     const act = b.dataset.act;
-    if (act === 'new') startGame(newGame(freshSeed()), false);
+    if (act === 'new') openChoose();
     else if (act === 'continue') {
         const g = loadGame();
         if (g) startGame(g, true); else ui.toast('That save could not be read.');
@@ -90,8 +91,18 @@ document.getElementById('clear-next').addEventListener('click', () => {
     saveGame(G);
     ui.showIntro(G);
 });
-document.getElementById('over-again').addEventListener('click', () => { audio.ui('click'); startGame(newGame(freshSeed()), false); });
+document.getElementById('over-again').addEventListener('click', () => { audio.ui('click'); startGame(newGame(freshSeed(), 0, G.char), false); });
 document.getElementById('over-title-btn').addEventListener('click', () => { audio.ui('click'); toTitle(); });
+
+let thumbs = null;
+function openChoose() {
+    if (!thumbs) { try { thumbs = view.portraits(CHAR_IDS); } catch (err) { console.warn('[view] no portraits', err); thumbs = {}; } }
+    ui.showChoose(thumbs, (id) => {
+        settings.char = id;
+        saveSettings(settings);
+        startGame(newGame(freshSeed(), 0, id), false);
+    }, CHAR_IDS.includes(settings.char) ? settings.char : 'reptile');
+}
 
 function startGame(g, skipIntro) {
     G = g;
@@ -113,7 +124,7 @@ function toTitle() {
     for (const id of [...ui.stack]) ui.closeScreen(id);
     mode = 'title';
     ui.showHud(false);
-    G = newGame(freshSeed() | 1, 0);
+    G = newGame(freshSeed() | 1, 0, pickAny());
     attract = makeBot({ skill: 0.85 });
     startMusic(0, 'title');
     refreshTitle();
@@ -202,7 +213,7 @@ function frame(now) {
         if (saveT > 20) { saveT = 0; if (G.phase === 'play') saveGame(G); }
     } else if (mode === 'title') {
         // attract mode: a bot plays the real game behind the menu
-        if (G.over || G.phase !== 'play') { G = newGame(freshSeed() | 1, Math.floor(Math.random() * 3)); attract = makeBot({ skill: 0.85 }); }
+        if (G.over || G.phase !== 'play') { G = newGame(freshSeed() | 1, Math.floor(Math.random() * 3), pickAny()); attract = makeBot({ skill: 0.85 }); }
         acc += dt;
         let n = 0;
         while (acc >= STEP && n < 12) { step(G, botInput(G, attract), STEP); acc -= STEP; n++; }
@@ -232,7 +243,7 @@ if (DEBUG) {
         get mode() { return mode; },
         seen, view, ui, audio, input,
         /** Skip the title and the intro card: straight into city `level` (0-4). */
-        start(seed = 1, level = 0) { startGame(newGame(seed, level), true); return G; },
+        start(seed = 1, level = 0, char = 'reptile') { startGame(newGame(seed, level, char), true); return G; },
         autoplay(on = true) { bot = on ? makeBot() : null; },
         /** Run the sim ahead synchronously with the bot playing; stops when the city is flattened. */
         ff(sec) {

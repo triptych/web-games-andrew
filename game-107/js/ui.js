@@ -1,7 +1,7 @@
 // The DOM layer: screens, the HUD, banners, settings and the touch deck. Reads the sim; never changes it.
 
 import { VERSION, LIVES } from './config.js';
-import { LEVELS, PERKS } from './sim/data.js';
+import { LEVELS, PERKS, CHARS, CHAR_IDS } from './sim/data.js';
 import { destroyedFrac } from './sim/game.js';
 import { loadBest } from './save.js';
 
@@ -194,6 +194,30 @@ export class UI {
                 default: break;
             }
         }
+    }
+
+    // ------------------------------------------------------------------ choose a monster
+    /** thumbs: { id: dataURL }. onPick(id) is called when a card is chosen. last: the one chosen last time. */
+    showChoose(thumbs, onPick, last = 'reptile') {
+        const rate = (v) => Math.max(1, Math.min(5, Math.round(3 + (v - 1) * 8)));
+        const dots = (n) => '●'.repeat(n) + '<s>' + '●'.repeat(5 - n) + '</s>';
+        const host = $('chars');
+        host.innerHTML = '';
+        for (const id of CHAR_IDS) {
+            const C = CHARS[id];
+            const btn = document.createElement('button');
+            btn.className = 'char' + (id === last ? ' last' : '');
+            btn.dataset.id = id;
+            btn.innerHTML = `<img alt="" src="${thumbs?.[id] || ''}"><b>${C.name}</b><i>${C.kind}</i><em>${C.blurb}</em>`
+                + `<div class="stats"><div class="stat"><span>Tough</span><span class="dots">${dots(rate(1 + C.hp / 100 * 2))}</span></div>`
+                + `<div class="stat"><span>Agile</span><span class="dots">${dots(rate(C.accel))}</span></div>`
+                + `<div class="stat"><span>Power</span><span class="dots">${dots(rate(C.dmg))}</span></div>`
+                + `<div class="stat"><span>Pounce</span><span class="dots">${dots(rate(1 / C.cd))}</span></div></div>`;
+            btn.addEventListener('click', () => { this.audio.ui('click'); onPick(id); });
+            host.appendChild(btn);
+        }
+        this.openScreen('choose');
+        host.querySelector(`[data-id="${last}"]`)?.focus({ preventScroll: true });
     }
 
     // ------------------------------------------------------------------ level screens

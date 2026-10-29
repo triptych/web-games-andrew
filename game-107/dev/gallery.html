@@ -37,7 +37,7 @@ function bakePaint(geo, hex) {
 const items = [];
 const add = (geo, hex, scale = 1, label = '') => items.push({ geo: hex === null ? geo : bakePaint(geo, hex), scale, label });
 if (row === 'kaiju') {
-    add(M.buildKaiju(), null, 3);
+    for (const id of ['reptile', 'monkey', 'robot']) add(M.buildChar(id), null, 3);
 } else if (row === 'props') {
     add(M.personModel(), M.PAINT[0], 4); add(M.personModel(), M.PAINT[1], 4);
     add(M.carModel(), M.PAINT[2], 1.6); add(M.busModel(), M.PAINT[3], 1.4); add(M.cartModel(), 0xffffff, 2); add(M.pizzaModel(), M.PAINT[0], 1.7);
@@ -76,7 +76,7 @@ if (row === 'roofs' || row === 'land') {
     }
 }
 const cam = new THREE.PerspectiveCamera(36, innerWidth / innerHeight, 0.1, 200);
-const span = row === 'kaiju' ? 11 : Math.max(14, n * 3.2);
+const span = row === 'kaiju' ? 17 : Math.max(14, n * 3.2);
 cam.position.set(0, span * 0.55, span * 0.95);
 cam.lookAt(0, row === 'roofs' ? 3 : row === 'kaiju' ? 2.6 : 1, row === 'roofs' ? -4 : 0);
 function frame() { renderer.render(scene, cam); }

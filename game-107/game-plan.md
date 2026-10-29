@@ -2,7 +2,7 @@
 
 **Genre:** arcade destruction: Katamari Damacy × Breakout × Rampage
 **Engine:** three.js r165, no asset files (every model, texture, effect, sound and tune is made in code)
-**Status:** v1.1.0 complete; balance tuned by a bot, not yet by hand
+**Status:** v1.2.0 complete; balance tuned by a bot, not yet by hand
 
 ---
 
@@ -56,6 +56,15 @@ Atomic Breath 🔥 (12 s: damage ×2.2 and nearby buildings burn), Snack Magnet 
 ### Score
 Floors, collapses, swallowed things, army kills. A **chain** counts every smash within 2.2 s of the last; the multiplier is `1 + chain/10`, up to ×6; taking a hit breaks it. Stars: 1 for flattening the city, +1 under par, +1 for no lost life.
 
+### The three monsters
+Chosen on a screen of cards after New Game (pictures drawn from their own models); Play Again keeps the choice and saves remember it. All three can win; the table in `CHARS` (`js/sim/data.js`) is the whole difference.
+
+| Monster | Health | Steering | Top speed | Pounce | Damage | Power-ups |
+|---|---|---|---|---|---|---|
+| Rexy the Reptile (green, toothy) | 100 | ×1 | ×1 | 1.05 s | ×1 | last ×1.25 |
+| Bongo the Monkey (brown, banana, big ears) | 80 | ×1.25 | ×1.08 | 0.79 s | ×0.92 | ×1 |
+| Gigabot the Robot (steel, visor eyes, antenna) | 130 | ×0.8 | ×0.93 | 1.21 s | ×1.25 | ×1 |
+
 ### Gifts (perks)
 Thick Hide (+25 max health), Springy Legs (pounce 25% faster), Big Bones (start +0.12 bigger), Spiky Scales (+20% damage), Long Burps (+35% power-up time). Three are offered after each city, rotating.
 
@@ -85,7 +94,7 @@ None, only a joke: you are small, round and extremely sure of yourself.
 
 ## Look and sound
 
-- **Models:** a `Kit` merges boxes, spheres and cones into one vertex-coloured geometry with a per-vertex paint mask, so an instance tint colours only the body of a car or the shirt of a person. The kaiju is a green ball with a belly, scales in bands, a spiky back, horns, big eyes, teeth, a tail round the back and feet. See `dev/gallery.html`.
+- **Models:** a `Kit` merges boxes, spheres and cones into one vertex-coloured geometry with a per-vertex paint mask, so an instance tint colours only the body of a car or the shirt of a person. The reptile kaiju is a green ball with a belly, scales in bands, a spiky back, horns, big eyes, teeth, a tail round the back and feet. See `dev/gallery.html`.
 - **Buildings:** a floor-by-floor wall geometry with a window texture in four styles (lit or dark), cut by a draw range as floors fall, plus a roof mesh that drops with it; roofs: flat with air conditioners, pitched, cone, dome, spire, balloons, donut, teapot, awning.
 - **Cel shading:** every lit surface uses a four-step toon ramp (`MeshToonMaterial`), and a screen-space pass inks an outline (colour per city) wherever the depth buffer bends, which catches silhouettes and the creases between faces of a building without any extra geometry (`js/view/toon.js`). Solid things are drawn into a multisampled render target with a depth texture; the ink pass copies the depth to the screen; dust, shadows, rings and bubbles (layer 1) are then drawn on top, depth-tested. Settings has an Off switch (a single plain pass) for slow devices.
 - **Scene:** sky gradient, fog that follows the camera distance, hemisphere and sun light, soft shadows from one instanced mesh, animated sea and river, drifting clouds, boats, snow in Frostport. The camera hangs south of the ball at 62° and backs off as it grows; it widens on portrait phones. The ball shows through buildings as a gold silhouette and has a ring on the ground.
@@ -125,6 +134,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, 40 generated ci
 - A boss (a giant mech) for city 5, enemy variety (infantry that shoot, a battleship in the bay), more power-ups, and something to keep between runs.
 
 ## Changelog
+
+### v1.2.0 (2026-10-29)
+- Choose your monster: a reptile, a monkey or a robot, each with its own model and a few stats; a choose screen with portraits; the choice is saved and kept on Play Again.
 
 ### v1.1.0 (2026-10-29)
 - Cel shading: toon-ramp materials and depth-based ink outlines (colour per city), with a Settings switch; the model gallery and the Garden picture use it too.

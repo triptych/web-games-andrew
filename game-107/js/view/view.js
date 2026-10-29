@@ -149,8 +149,8 @@ export class View {
     makeBall() {
         this.ball = new THREE.Group();                         // follows the monster
         this.kaiju = new THREE.Group();                        // rolls
-        const kg = M.buildKaiju();
-        this.kaijuMesh = new THREE.Mesh(kg, toon({ vertexColors: true }));
+        this.charId = 'reptile';
+        this.kaijuMesh = new THREE.Mesh(M.buildChar('reptile'), toon({ vertexColors: true }));
         this.kaiju.add(this.kaijuMesh);
         this.stuckGroup = new THREE.Group();
         this.kaiju.add(this.stuckGroup);
@@ -195,6 +195,11 @@ export class View {
         if (this.G === G && this.level === G.level) return;
         if (this.world) this.world.dispose();
         this.G = G; this.level = G.level;
+        if (G.char !== this.charId) {                          // a different monster: swap the model
+            this.kaijuMesh.geometry.dispose();
+            this.kaijuMesh.geometry = M.buildChar(G.char);
+            this.charId = G.char;
+        }
         this.applyTheme(G);
         this.world = new World(this.scene, G);
         this.cam.ready = false;
@@ -219,6 +224,38 @@ export class View {
 
     /** Cartoon outlines on or off (off draws the scene in one plain pass). */
     setOutline(on) { this.cel.on = !!on; }
+
+    /** One picture of each monster for the choose screen: drawn off screen, returned as data URLs. */
+    portraits(ids, px = 220) {
+        const r = this.renderer, out = {};
+        const sc = new THREE.Scene();
+        sc.add(new THREE.HemisphereLight(0xffffff, 0x9aa4c0, 1.0));
+        const sun = new THREE.DirectionalLight(0xffffff, 2.0); sun.position.set(-3, 5, 6); sc.add(sun);
+        const cam = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
+        cam.position.set(0, 0.5, 5.6); cam.lookAt(0, 0.05, 0);
+        const rt = new THREE.WebGLRenderTarget(px, px, { type: THREE.UnsignedByteType });
+        rt.texture.colorSpace = THREE.SRGBColorSpace;
+        const buf = new Uint8Array(px * px * 4);
+        const cv = document.createElement('canvas'); cv.width = cv.height = px;
+        const g = cv.getContext('2d');
+        const prevClear = new THREE.Color(); r.getClearColor(prevClear); const prevAlpha = r.getClearAlpha();
+        r.setClearColor(0x000000, 0);
+        for (const id of ids) {
+            const mesh = new THREE.Mesh(M.buildChar(id), toon({ vertexColors: true }));
+            mesh.rotation.set(0.25, -0.35, 0);
+            sc.add(mesh);
+            r.setRenderTarget(rt); r.clear(); r.render(sc, cam); r.setRenderTarget(null);
+            r.readRenderTargetPixels(rt, 0, 0, px, px, buf);
+            const img = g.createImageData(px, px);
+            for (let y = 0; y < px; y++) img.data.set(buf.subarray((px - 1 - y) * px * 4, (px - y) * px * 4), y * px * 4);   // flip: GL rows start at the bottom
+            g.clearRect(0, 0, px, px); g.putImageData(img, 0, 0);
+            out[id] = cv.toDataURL('image/png');
+            sc.remove(mesh); mesh.geometry.dispose(); mesh.material.dispose();
+        }
+        r.setClearColor(prevClear, prevAlpha);
+        rt.dispose();
+        return out;
+    }
 
     /** World point → CSS pixels on the canvas. */
     worldToScreen(x, y, z = 0) {

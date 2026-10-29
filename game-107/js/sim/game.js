@@ -6,7 +6,7 @@
 
 import { BALL, LIVES, ABSORB, COMBO_TIME, FLOOR_H } from '../config.js';
 import { makeRng } from '../rng.js';
-import { LEVELS, THINGS, FOES, POWERS, POWER_KINDS, PERKS, bHeight, floorH } from './data.js';
+import { LEVELS, THINGS, FOES, POWERS, POWER_KINDS, PERKS, CHARS, bHeight, floorH } from './data.js';
 import { genLevel, levelSeed } from './city.js';
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -17,9 +17,9 @@ const RANGE = 27;                       // how far a tank can shoot
 
 // ---------------------------------------------------------------- set-up
 
-export function newGame(seed = 1, li = 0) {
+export function newGame(seed = 1, li = 0, char = 'reptile') {
     const G = {
-        v: 1, seed, level: 0, phase: 'play', t: 0, levelT: 0, score: 0, lives: LIVES, over: false, won: false,
+        v: 1, seed, char: char in CHARS ? char : 'reptile', level: 0, phase: 'play', t: 0, levelT: 0, score: 0, lives: LIVES, over: false, won: false,
         rng: makeRng(seed ^ 0x9E3779B9),
         perks: { hp: 0, cd: 0, size: 0, dmg: 0, pow: 0 },
         events: [],                 // { type, ... } since the last drain; never saved
@@ -44,7 +44,7 @@ function loadLevel(G, li) {
     G.totalHp = 0;
     for (const b of G.buildings) G.totalHp += b.hpMax;
     G.hpLeft = G.totalHp;
-    const maxHp = BALL.hp + 25 * G.perks.hp;
+    const maxHp = BALL.hp + 25 * G.perks.hp + CHARS[G.char].hp;
     const r0 = LEVELS[li].r0 + 0.12 * G.perks.size;
     const prev = G.ball;
     G.ball = {
@@ -239,18 +239,20 @@ function inWater(G, b) {
     return true;
 }
 
-function dmgMul(G) { return (1 + 0.2 * G.perks.dmg) * (G.power.fire > 0 ? 2.2 : 1); }
+function dmgMul(G) { return (1 + 0.2 * G.perks.dmg) * CHARS[G.char].dmg * (G.power.fire > 0 ? 2.2 : 1); }
 
 function stepBall(G, inp, dt) {
     const b = G.ball;
     let ix = inp.x || 0, iy = inp.y || 0;
     const il = Math.hypot(ix, iy);
     if (il > 1) { ix /= il; iy /= il; }
-    b.vx += ix * BALL.accel * dt;
-    b.vy += iy * BALL.accel * dt;
+    const ch = CHARS[G.char];
+    b.vx += ix * BALL.accel * ch.accel * dt;
+    b.vy += iy * BALL.accel * ch.accel * dt;
 
     // pounce
-    const cdMax = BALL.pounceCd * Math.pow(0.75, G.perks.cd);
+    const C = CHARS[G.char];
+    const cdMax = BALL.pounceCd * Math.pow(0.75, G.perks.cd) * C.cd;
     if (inp.a && b.cd <= 0 && !b.air) {
         b.air = true;
         b.vz = BALL.jump + b.r * 0.9;
@@ -261,7 +263,7 @@ function stepBall(G, inp, dt) {
 
     const wading = inWater(G, b);
     let sp = Math.hypot(b.vx, b.vy);
-    const cap = (BALL.maxSpeed + 0.55 * (b.r - 1.2)) * (wading ? 0.78 : 1);
+    const cap = (BALL.maxSpeed + 0.55 * (b.r - 1.2)) * ch.speed * (wading ? 0.78 : 1);
     if (sp > 0.01) {
         sp *= Math.exp(-(il > 0.05 ? 0.25 : 0.9) * dt) * (wading ? Math.exp(-1.4 * dt) : 1);
         if (sp > cap) sp = Math.max(cap, sp - 40 * dt);
@@ -653,7 +655,7 @@ function stepPower(G, dt) {
         if (Math.hypot(b.x - p.x, b.y - p.y) < b.r + 0.8 && b.z < 2) {
             G.pickups.splice(i, 1);
             const P = POWERS[p.k];
-            if (P.time) G.power[p.k] = P.time * (1 + 0.35 * G.perks.pow);
+            if (P.time) G.power[p.k] = P.time * (1 + 0.35 * G.perks.pow) * CHARS[G.char].pow;
             else if (p.k === 'meal') setV(G, b.V * 1.22 + 0.4);
             else if (p.k === 'heart') { b.hp = Math.min(b.maxHp, b.hp + 40); ev(G, { type: 'heal', n: 40, x: b.x, y: b.y }); }
             award(G, 50, p.x, p.y);
@@ -731,6 +733,7 @@ export function deserialize(d) {
     if (!d || d.v !== 1 || !(d.level >= 0 && d.level < LEVELS.length)) throw new Error('unknown save version');
     const { rngState, ...rest } = d;
     const G = { ...JSON.parse(JSON.stringify(rest)), rng: makeRng(0), events: [] };
+    if (!(G.char in CHARS)) G.char = 'reptile';          // a save from before there was a choice
     G.rng.setState(rngState);
     G.layout = genLevel(G.seed, G.level).layout;
     return G;
