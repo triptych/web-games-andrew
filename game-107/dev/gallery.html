@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Kaiju Roll — model gallery</title>
+<style>html,body{margin:0;background:#cfd6e4;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.165.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.165.0/examples/jsm/"}}</script>
+</head>
+<body>
+<script type="module">
+// Every procedural model on a neutral background, in rows: the monster, props, military, roofs, landmarks.
+// ?row=kaiju|props|army|roofs|land  &theme=0..4
+import * as THREE from 'three';
+import * as M from '../js/view/models.js';
+import { THEMES } from '../js/view/themes.js';
+import { BTYPES } from '../js/sim/data.js';
+
+const q = new URLSearchParams(location.search);
+const row = q.get('row') || 'props', th = THEMES[+(q.get('theme') || 0)];
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xcfd6e4);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8890a0, 1.2));
+const sun = new THREE.DirectionalLight(0xffffff, 2); sun.position.set(-6, 12, 8); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshLambertMaterial({ color: 0xe8ecf4 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+
+const solid = new THREE.MeshLambertMaterial({ vertexColors: true });
+function bakePaint(geo, hex) {
+    const g = geo.clone(), t = new THREE.Color(hex), c = g.attributes.color, p = g.attributes.aPaint;
+    for (let i = 0; i < c.count; i++) if (p.getX(i) > 0.5) c.setXYZ(i, c.getX(i) * t.r, c.getY(i) * t.g, c.getZ(i) * t.b);
+    return g;
+}
+const items = [];
+const add = (geo, hex, scale = 1, label = '') => items.push({ geo: hex === null ? geo : bakePaint(geo, hex), scale, label });
+if (row === 'kaiju') {
+    add(M.buildKaiju(), null, 3);
+} else if (row === 'props') {
+    add(M.personModel(), M.PAINT[0], 4); add(M.personModel(), M.PAINT[1], 4);
+    add(M.carModel(), M.PAINT[2], 1.6); add(M.busModel(), M.PAINT[3], 1.4); add(M.cartModel(), 0xffffff, 2); add(M.pizzaModel(), M.PAINT[0], 1.7);
+    add(M.treeModel(0xffffff), th.leaf[0], 1.8); add(M.pineModel(), th.pine[0], 1.8); add(M.oakModel(), th.leaf[1], 1.4); add(M.lampModel(), null, 2.5);
+    add(M.rubbleModel(), th.walls[0], 2.5); add(M.gemModel(), 0xffd23f, 2.5); add(M.sailboatModel(), 0xffffff, 1.5);
+} else if (row === 'army') {
+    add(M.tankHullModel(), 0x6b7a4a, 1.6); add(M.tankTurretModel(), 0x6b7a4a, 1.6); add(M.heliModel(), 0x58704a, 1.5); add(M.rotorModel(), null, 1.5);
+    add(M.jetModel(), 0xd7dde8, 1.2); add(M.shellModel(), null, 4); add(M.missileModel(), null, 3); add(M.bombModel(), null, 3);
+} else {
+    const roofs = ['flat', 'pitched', 'cone', 'dome', 'spire', 'balloon', 'donut', 'teapot', 'awning', 'cap'];
+    if (row === 'roofs') roofs.forEach((r, i) => add(M.buildRoof({ roof: r, w: 4.4, d: 4, fl0: 4, t: 'block', id: i + 3, col: i }, th), null, 1.4));
+    else for (const [t, T] of Object.entries(BTYPES)) {
+        if (T.circle || t === 'deck' || t === 'pylon') add(M.buildSolid({ t, w: 2.6, d: 2.6, r: T.r || 1, fl0: T.fl[0], id: 4 }, th), null, 0.8);
+    }
+}
+const gap = 6.5, n = items.length;
+items.forEach((it, i) => {
+    const m = new THREE.Mesh(it.geo, solid);
+    m.scale.setScalar(it.scale * 0.55);
+    m.position.set((i - (n - 1) / 2) * gap * 0.7, row === 'kaiju' ? 2.6 : 0.2, 0);
+    if (row === 'kaiju') m.position.y = 3;
+    scene.add(m);
+});
+if (row === 'roofs' || row === 'land') {
+    // also show the windowed building types as a skyline
+    const texs = M.makeWindowTextures(th.night);
+    if (row === 'roofs') {
+        let x = -n * 2.2;
+        for (const t of ['house', 'shop', 'block', 'tower', 'sky', 'spire']) {
+            const T = BTYPES[t], b = { t, id: 7, shape: 'box', w: (T.w[0] + T.w[1]) / 2, d: (T.d[0] + T.d[1]) / 2, fl0: T.fl[1], fl: T.fl[1], lean: t === 'tower' ? 0.8 : 0, roof: T.roofs[0], col: 2, st: 0 };
+            const body = new THREE.Mesh(M.windowBody(b), new THREE.MeshLambertMaterial({ map: texs[b.st][t === 'sky' ? 1 : 0], color: th.walls[b.col] }));
+            const roof = new THREE.Mesh(M.buildRoof(b, th), solid);
+            const p = M.roofPose(b, b.fl); roof.position.set(p.ox, p.y, p.oz);
+            const g = new THREE.Group(); g.add(body, roof); g.position.set(x, 0, -9); x += b.w + 2.2; scene.add(g);
+        }
+    }
+}
+const cam = new THREE.PerspectiveCamera(36, innerWidth / innerHeight, 0.1, 200);
+const span = row === 'kaiju' ? 11 : Math.max(14, n * 3.2);
+cam.position.set(0, span * 0.55, span * 0.95);
+cam.lookAt(0, row === 'roofs' ? 3 : row === 'kaiju' ? 2.6 : 1, row === 'roofs' ? -4 : 0);
+function frame() { renderer.render(scene, cam); }
+frame();
+window.__ready = true;
+</script>
+</body>
+</html>
