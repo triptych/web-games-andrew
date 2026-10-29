@@ -347,7 +347,7 @@ export function buildTeaParty(ctx) {
     const TH = 0.78;
     // the table, with a lace cloth
     ctx.geo('darkWood', lathe([[0, 0], [0.5, 0], [0.5, 0.06], [0.12, 0.12], [0.1, TH - 0.06], [0, TH - 0.06]], 20), C.x, 0, C.z);
-    ctx.geo('cloth', new THREE.CylinderGeometry(1.25, 1.32, 0.3, 48, 1, true), C.x, TH - 0.14, C.z);
+    ctx.geo('cloth', new THREE.CylinderGeometry(1.27, 1.32, 0.3, 48, 1, true), C.x, TH - 0.14, C.z);
     ctx.geo('cloth', new THREE.CylinderGeometry(1.25, 1.25, 0.03, 48), C.x, TH, C.z);
     for (let k = 0; k < 40; k++) {
         const a = (k / 40) * TAU;

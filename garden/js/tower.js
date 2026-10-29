@@ -371,7 +371,9 @@ export class Tower {
             const nearOpen = openings.has((k + 1) % SIDES) || openings.has((k + SIDES - 1) % SIDES);
             if (open && !(k === 0 && !def.door)) {
                 // an archway: lintel above, and brass columns either side
-                ctx.box('stone', side, H - 3.3, WALL_T, ...at(HR + WALL_T / 2, 3.3 + (H - 3.3) / 2));
+                // a thin face of stone over the arch: the room's own front wall stands just behind it (see _shell)
+                ctx.box('stone', side, H - 3.3, 0.12, ...at(HR + 0.04, 3.3 + (H - 3.3) / 2));
+                if (k === 0) ctx.box('stone', side, 3.4, 0.1, ...at(HR + WALL_T + 0.05, 1.7));   // behind the front door, so no gap shows round it
                 const arch = new THREE.TorusGeometry(1.0, 0.07, 8, 28, Math.PI);
                 ctx.geo('gold', arch, ...at(HR - 0.03, 3.05));
                 for (const sd of [-1, 1]) {
@@ -383,8 +385,10 @@ export class Tower {
                 continue;
             }
             ctx.box('stone', side, H, WALL_T, ...at(HR + WALL_T / 2, H / 2));
-            ctx.box('trim', side, 0.36, 0.1, ...at(HR - 0.04, 0.18));
-            ctx.box('trim', side, 0.22, 0.14, ...at(HR - 0.05, H - 0.11));
+            // neighbouring panels overlap at the joints, so alternate heights keep their flat faces apart
+            const lip = (k % 2) * 0.012;
+            ctx.box('trim', side, 0.36 - lip, 0.1, ...at(HR - 0.04, (0.36 - lip) / 2));
+            ctx.box('trim', side, 0.22 - lip, 0.14, ...at(HR - 0.05, H - (0.22 - lip) / 2));
             if (open) {
                 // floors above the ground have a great rose window where the door would be
                 const rose = new THREE.Mesh(new THREE.CircleGeometry(1.5, 40), fl.mats.glass[0]);
@@ -609,23 +613,25 @@ export class Tower {
         const { W, D } = def;
         const ceil = def.wallH ?? def.ceil;   // a domed room has low walls
         const T = WALL_T, DW = 1.9, DH = 3.1;
-        ctx.box('rf', W, 0.2, D + T, 0, -0.1, T / 2);
+        ctx.box('rf', W, 0.2, D + T, 0, -0.103, T / 2);   // a hair under the rotunda's mosaic where they meet
         if (!def.noCeil) ctx.box('rc', W + 2 * T, 0.2, D + 2 * T, 0, ceil + 0.1, 0);
         if (!def.backOpen) ctx.box('rw', W + 2 * T, ceil, T, 0, ceil / 2, -D / 2 - T / 2);
         for (const s of [-1, 1]) ctx.box('rw', T, ceil, D + 2 * T, s * (W / 2 + T / 2), ceil / 2, 0);
         const fw = (W - DW) / 2;
-        for (const s of [-1, 1]) ctx.box('rw', fw, ceil, T, s * (DW / 2 + fw / 2), ceil / 2, D / 2 + T / 2);
-        ctx.box('rw', DW, ceil - DH, T, 0, DH + (ceil - DH) / 2, D / 2 + T / 2);
+        // the front wall stops short of the rotunda's stone, which faces the hall
+        const FT = T - 0.14;
+        for (const s of [-1, 1]) ctx.box('rw', fw, ceil, FT, s * (DW / 2 + fw / 2), ceil / 2, D / 2 + FT / 2);
+        ctx.box('rw', DW, ceil - DH, FT, 0, DH + (ceil - DH) / 2, D / 2 + FT / 2);
         // skirting and cornice
         if (!def.noTrim) {
             for (const s of [-1, 1]) {
                 ctx.box('trim', 0.06, 0.22, D, s * (W / 2 - 0.03), 0.11, 0);
                 ctx.box('trim', 0.12, 0.16, D, s * (W / 2 - 0.06), ceil - 0.08, 0);
-                ctx.box('trim', fw, 0.22, 0.06, s * (DW / 2 + fw / 2), 0.11, D / 2 - 0.03);
+                ctx.box('trim', fw, 0.21, 0.06, s * (DW / 2 + fw / 2), 0.105, D / 2 - 0.03);
             }
             if (!def.backOpen) {
-                ctx.box('trim', W, 0.22, 0.06, 0, 0.11, -D / 2 + 0.03);
-                ctx.box('trim', W, 0.16, 0.12, 0, ceil - 0.08, -D / 2 + 0.06);
+                ctx.box('trim', W, 0.21, 0.06, 0, 0.105, -D / 2 + 0.03);
+                ctx.box('trim', W, 0.15, 0.12, 0, ceil - 0.075, -D / 2 + 0.06);
             }
         }
         // the inside of the doorway
