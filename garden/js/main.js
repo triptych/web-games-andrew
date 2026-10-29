@@ -306,6 +306,7 @@ async function boot() {
     const fox = new FoxVisitor(scene, world, controls, camera, { force: params.get('fox') });
     const boat = new Boat(world, scene, camera, controls);
     const fishing = new Fishing({ world, scene, camera, controls, ui, audio, bursts, canvas });
+    controls.canJump = () => !fishing.active && !ui.blocking && !boat.busy;
     // The title orbit circles the island looking in, so its show goes up over the island's heart. The flying
     // boat circles it too, turning from the bow to the island and back, so each shell goes up ahead of the rider's view.
     const islandHeart = new THREE.Vector3(), ahead = new THREE.Vector3();

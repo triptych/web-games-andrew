@@ -9,6 +9,7 @@ import { PLAZA_R, projectOnPath, samplePath } from './layout.js';
 const EYE = 1.65;
 const WALK = 4.2, RUN = 8.5;
 const RADIUS = 0.32;
+const JUMP_V = 5.4, GRAVITY = 16;   // a hop of about 0.9 m, ~0.67 s in the air
 
 export class Controls {
     constructor(world, camera, dom) {
@@ -33,6 +34,9 @@ export class Controls {
         this.onHoverMove = null;
         this.stepDist = 0;
         this.onStep = null;
+        this.air = 0;         // height above the ground while jumping
+        this.airV = 0;
+        this.canJump = null;  // () => bool, lets modes that use Space say no
         this.sensitivity = 0.0032;
         this._bind();
     }
@@ -46,6 +50,13 @@ export class Controls {
         addEventListener('keydown', (e) => {
             if (!this.enabled || this.seated || e.target.closest?.('input, textarea, [contenteditable]')) return;
             const k = e.key.toLowerCase();
+            if (k === ' ') {
+                // leave Space to a focused button, and to anything else that wants it
+                if (e.target.closest?.('button, a, select, summary') || this.canJump?.() === false) return;
+                e.preventDefault();
+                if (!e.repeat && this.air === 0) this.airV = JUMP_V, this.air = 1e-3;
+                return;
+            }
             if (['w', 'a', 's', 'd', 'q', 'e', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) {
                 this.keys.add(k);
                 this.route = null;
@@ -133,6 +144,7 @@ export class Controls {
         this.pitch = -0.05;
         this.eyeY = this.world.walkHeight(x, z) + EYE;
         this.route = null;
+        this.air = this.airV = 0;
     }
 
     /** Route from the player to (x,z) along the path network. */
@@ -271,16 +283,28 @@ export class Controls {
         const ground = this.world.walkHeight(this.pos.x, this.pos.z);
         this.pos.y = ground;
         const sp = this.speed;
-        this.moving = damp(this.moving, sp > 0.3 ? 1 : 0, 6, dt);
-        this.bob += sp * dt * 1.9;
-        this.stepDist += sp * dt;
-        if (this.stepDist > (sp > 6 ? 1.6 : 1.25)) {
-            this.stepDist = 0;
-            this.onStep?.(ground, sp);
+        const airborne = this.air > 0;
+        if (airborne) {
+            this.airV -= GRAVITY * dt;
+            this.air += this.airV * dt;
+            if (this.air <= 0) {
+                this.air = this.airV = 0;
+                this.onStep?.(ground, sp);   // the landing
+                this.stepDist = 0;
+            }
+        }
+        this.moving = damp(this.moving, sp > 0.3 && !airborne ? 1 : 0, 6, dt);
+        if (!airborne) {
+            this.bob += sp * dt * 1.9;
+            this.stepDist += sp * dt;
+            if (this.stepDist > (sp > 6 ? 1.6 : 1.25)) {
+                this.stepDist = 0;
+                this.onStep?.(ground, sp);
+            }
         }
         this.eyeY = damp(this.eyeY, ground + EYE, ground + EYE > this.eyeY ? 14 : 9, dt);
         const bobY = Math.sin(this.bob * 2) * 0.035 * this.moving;
-        this.camera.position.set(this.pos.x, this.eyeY + bobY, this.pos.z);
+        this.camera.position.set(this.pos.x, this.eyeY + this.air + bobY, this.pos.z);
         this.camera.rotation.set(this.pitch, this.yaw, Math.sin(this.bob) * 0.004 * this.moving, 'YXZ');
     }
 
