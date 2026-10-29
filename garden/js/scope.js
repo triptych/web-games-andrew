@@ -812,11 +812,12 @@ export class Scope {
         const fov = THREE.MathUtils.degToRad(camera.fov);
         const half = Math.atan((lensR / (innerHeight / 2)) * Math.tan(fov / 2));
         const dist = (d?.R ?? 1.6) / Math.tan(half * 0.66);
-        const cy = (lens.top + lens.height / 2) / innerHeight;
+        const cy = (lens.top + lens.height / 2) / innerHeight, cx = (lens.left + lens.width / 2) / innerWidth;
         const offY = (0.5 - cy) * 2 * dist * Math.tan(fov / 2);
+        const offX = (cx - 0.5) * 2 * dist * Math.tan(fov / 2) * camera.aspect;
         camera.position.set(0, 0, 0);
         camera.quaternion.identity();
-        this.group.position.set(0, offY, -dist);
+        this.group.position.set(offX, offY, -dist);
         if (this.billboard) {
             this.billboard.rotation.y = Math.sin(this.yaw) * 0.25;
             this.billboard.rotation.x = this.pitch * 0.3;

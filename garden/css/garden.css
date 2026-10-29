@@ -780,3 +780,9 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     .scope-iris, .tower-say { transition: none; }
     .lift-panel { animation: none; }
 }
+/* on wide screens the eyepiece sits left of centre and its card beside it */
+@media (min-width: 980px) and (min-aspect-ratio: 5/4) {
+    .scope-iris { left: calc(50% - 210px); top: 52%; width: min(84vmin, 760px); height: min(84vmin, 760px); }
+    .scope .sky-card { left: auto; right: calc(24px + var(--safe-r)); bottom: auto; top: 50%; transform: translateY(-50%); width: min(400px, 34vw); max-height: 80vh; animation: none; }
+    .scope-hint { left: calc(50% - 210px); }
+}
