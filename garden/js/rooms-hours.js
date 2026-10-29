@@ -143,7 +143,7 @@ export function buildPrism(ctx) {
             prism.rotation.y = turn + Math.sin(t * 0.3) * 0.04;
             white.visible = lampOn;
             core.material.opacity = lampOn ? 0.5 + 0.1 * Math.sin(t * 3) : 0.05;
-            const base = turn * 2 - Math.PI / 2;
+            const base = turn * 2 + Math.PI * 0.78;
             let lit = 0;
             for (let i = 0; i < beams.length; i++) {
                 const b = beams[i];
@@ -455,7 +455,7 @@ export function buildCabinet(ctx) {
         const x = s * (W / 2 - 0.35);
         for (const z of [-2.4, 0.3, 2.6]) {
             ctx.box('darkWood', 0.6, 3.2, 2.2, x, 1.6, z);
-            ctx.box('shelfGlow', 0.5, 2.9, 2.0, x - s * 0.06, 1.62, z);
+            ctx.box('shelfGlow', 0.03, 2.9, 2.0, x + s * 0.24, 1.62, z);
             for (let k = 0; k < 4; k++) {
                 const y = 0.45 + k * 0.72;
                 ctx.box('darkWood', 0.5, 0.04, 2.0, x - s * 0.04, y, z);

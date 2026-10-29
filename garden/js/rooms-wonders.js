@@ -520,6 +520,8 @@ export function buildAviary(ctx) {
             swirl = Math.max(0, swirl - dt);
             scatter = Math.max(0, scatter - dt);
             ctx.camLocal(cam);
+            // they only circle you while you are in the aviary
+            if (Math.abs(cam.x) > W / 2 - 0.3 || Math.abs(cam.z) > D / 2 - 0.3) swirl = 0;
             cen.set(0, 0, 0);
             avg.set(0, 0, 0);
             for (const b of birds) {
@@ -571,7 +573,7 @@ export function buildAviary(ctx) {
                     o.rotateX(-(1.6 - b.loop) / 1.6 * TAU);
                 }
                 o.rotateZ(Math.sin(t + b.ph) * 0.15);
-                o.scale.setScalar(1.8);
+                o.scale.setScalar(0.95);
                 o.updateMatrix();
                 body.setMatrixAt(i, o.matrix);
                 const flap = Math.sin(t * (swirl > 0 ? 14 : 9) + b.ph) * 0.7;

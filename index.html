@@ -139,6 +139,29 @@
         <div class="fc-timer"><span id="fish-timer"></span></div>
     </aside>
 
+    <!-- the Observatory: labels for things you can touch, things said, the lift, and the telescope's eyepiece -->
+    <div id="tower-tip" class="tower-tip" hidden></div>
+    <div id="tower-say" class="tower-say" hidden aria-live="polite"></div>
+    <nav id="lift-panel" class="panel lift-panel" hidden aria-label="The lift">
+        <p class="lift-title">&#10024; The Lift <span>&middot; choose a floor</span></p>
+        <div id="lift-floors" class="lift-floors"></div>
+    </nav>
+    <section id="scope" class="scope" hidden aria-label="Through the telescope">
+        <div class="scope-iris" id="scope-iris"><div class="scope-reticle"></div></div>
+        <p class="scope-hint">Drag to turn it &middot; <kbd>Space</kbd> turn the dial &middot; <kbd>Esc</kbd> step back</p>
+        <aside id="sky-card" class="panel fish-card sky-card" hidden role="dialog" aria-modal="false" aria-labelledby="sky-name">
+            <p class="fc-kicker" id="sky-kicker"></p>
+            <h2 id="sky-name"></h2>
+            <p class="fc-latin" id="sky-cat"></p>
+            <div class="fc-stats" id="sky-stats"></div>
+            <p class="fc-fact" id="sky-desc"></p>
+            <div class="fc-foot">
+                <span class="fc-log" id="sky-log"></span>
+                <span class="sky-btns"><button id="sky-next" class="btn btn-primary">Turn the dial</button><button id="sky-leave" class="btn">Step back</button></span>
+            </div>
+        </aside>
+    </section>
+
     <!-- game card (touch and hologram) -->
     <aside id="card" class="panel card" hidden role="dialog" aria-modal="false" aria-labelledby="card-title">
         <div class="card-top">
@@ -234,7 +257,7 @@
                     </ul>
                 </div>
             </div>
-            <p class="help-note">Each path from the hub leads to one kind of game and ends at a pavilion. Newest games stand nearest the hub. The vines wake up as you come near, and the garden keeps its own time: wait for dusk to see the lamps, fireflies and aurora, and stay up until midnight for fireworks. A stone bridge crosses to the clock tower on its islet, and the door at its foot leads down into the Works, the machine hall that keeps the island running. On the far side of the island from the dock, a trail drops from the pavilion to a fishing pier: click the rod on its rail (or press <kbd>C</kbd>) to cast, strike when the float dips, then hold to keep the fish in the green band as you reel it in.</p>
+            <p class="help-note">Each path from the hub leads to one kind of game and ends at a pavilion. Newest games stand nearest the hub. The vines wake up as you come near, and the garden keeps its own time: wait for dusk to see the lamps, fireflies and aurora, and stay up until midnight for fireworks. The door of the Observatory opens on a tower rather larger on the inside, five floors of strange rooms joined by a lift of light, with a great telescope under the dome at the top. A stone bridge crosses to the clock tower on its islet, and the door at its foot leads down into the Works, the machine hall that keeps the island running. On the far side of the island from the dock, a trail drops from the pavilion to a fishing pier: click the rod on its rail (or press <kbd>C</kbd>) to cast, strike when the float dips, then hold to keep the fish in the green band as you reel it in.</p>
         </div>
     </section>
 

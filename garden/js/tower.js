@@ -19,6 +19,7 @@ import { EYE } from './controls.js';
 import { TowerAudio } from './tower-audio.js';
 import { canvasTex, wallpaper, floorTex, mosaicTex, stainedGlassTex, glow, motes, emissiveMat } from './tower-kit.js';
 import { ROOM_DEFS, CENTERPIECES } from './tower-rooms.js';
+import { SCOPE_AZ } from './telescope.js';
 
 export const FH = 14;              // floor to floor
 const WALL_T = 0.3;
@@ -207,7 +208,7 @@ export class Tower {
             if (api?.update) fl.updaters.push(api.update);
             if (api) fl.center = api;
         }
-        group.add(hub.batch.build({ ...this.mats, ...fl.mats, ...hub.roomMats }, { castShadow: false, receiveShadow: false }));
+        hub.group.add(hub.batch.build({ ...this.mats, ...fl.mats, ...hub.roomMats }, { castShadow: false, receiveShadow: false }));
         fl.grid = this._grid(fl.colliders);
         return fl;
     }
@@ -504,7 +505,7 @@ export class Tower {
     /** The top floor's roof: a dome painted with gold stars, its slit open to the real sky. */
     _dome(fl, ctx) {
         const { HR, def } = fl;
-        const slitA = -45 * D2R;   // the telescope points this way (see telescope.js)
+        const slitA = SCOPE_AZ;   // the telescope points this way
         const u0 = (((slitA + Math.PI / 2) / TAU) % 1 + 1) % 1;
         const tex = canvasTex(2048, 512, (x, w, h) => {
             const g = x.createLinearGradient(0, 0, 0, h);
@@ -593,7 +594,7 @@ export class Tower {
         const api = ROOM_DEFS[slot.kind].build(ctx) || {};
         if (api.update) fl.updaters.push(api.update);
         if (fl.nextLight <= fl.lights.length && !api.ownLights && !ctx.lit) ctx.light(def.lightColor ?? 0xffd8a0, 12, 16, 0, def.ceil - 0.6, 0);
-        fl.group.add(ctx.batch.build({ ...this.mats, ...fl.mats, ...ctx.roomMats }, { castShadow: false, receiveShadow: false }));
+        ctx.group.add(ctx.batch.build({ ...this.mats, ...fl.mats, ...ctx.roomMats }, { castShadow: false, receiveShadow: false }));
         // the sign over the arch, on the rotunda side
         const sign = signMesh(signTexture(def.emoji, def.title, def.sub, def.accent, 1024, 256), 2.3, 0.575, 0.32);
         sign.position.set(Math.sin(a) * (fl.HR - 0.08), 4.75, Math.cos(a) * (fl.HR - 0.08));
