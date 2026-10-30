@@ -77,9 +77,12 @@ export function pathPos(p, t) {
 }
 
 // ------------------------------------------------------------------ spawning
+const HP_RAMP = 0.05;
 const hpFor = (type, G) => {
     const T = TYPES[type];
-    return T.hp + (T.grow ? Math.floor(G.diff / T.grow[0]) * T.grow[1] : 0);
+    const base = T.hp + (T.grow ? Math.floor(G.diff / T.grow[0]) * T.grow[1] : 0);
+    // from wave 9 on, everything gets tougher still, to keep pace with the hangar's upgrades
+    return Math.ceil(base * (1 + Math.max(0, G.diff - 8) * HP_RAMP));
 };
 
 /** Add an enemy. props: path, ai, carry (a power-up it drops), peace (never shoots), cnt (counts toward Perfect). */

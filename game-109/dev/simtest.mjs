@@ -15,9 +15,13 @@
  *    cannot be hurt clears every one of waves 1-40 in a sane time (nothing is unwinnable or stuck).
  * 4. bosses: each boss enters untouchable, fights in phases, can be killed, blows up in a chain,
  *    pays out and hands over to the next wave.
- * 5. determinism: the same seed and inputs give the same game; a save round trip, mid-game, mid-boss
+ * 5. story: every cutscene and comm line fits its box, wave lines exist for every wave, the callsign climbs,
+ *    the cutscenes are attached to the right waves.
+ * 5b. hangar: credits earned, the flight to the mothership after a boss, buying every upgrade and supply
+ *    (price, limits, effect), upgrades surviving death, launching, saves in the hangar, the bot spending.
+ * 6. determinism: the same seed and inputs give the same game; a save round trip, mid-game, mid-boss
  *    and mid-formation, plays on identically.
- * 6. bots: whole games at three skills with per-step invariants, and the balance table.
+ * 7. bots: whole games at three skills with per-step invariants, and the balance table.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -35,6 +39,8 @@ const Bt = await import('../js/sim/bot.js');
 const En = await import('../js/sim/enemies.js');
 const Wv = await import('../js/sim/waves.js');
 const Bs = await import('../js/sim/bosses.js');
+const Up = await import('../js/sim/upgrades.js');
+const St = await import('../js/story.js');
 
 let fails = 0, checks = 0;
 const ok = (cond, msg) => {
@@ -61,7 +67,7 @@ const clearField = (G) => { G.enemies.length = 0; G.ebullets.length = 0; G.pbull
 // ======================================================================
 if (want('purity')) {
     section('purity');
-    const files = ['js/rng.js', 'js/config.js', ...fs.readdirSync(path.join(ROOT, 'js/sim')).map((f) => 'js/sim/' + f)];
+    const files = ['js/rng.js', 'js/config.js', 'js/story.js', ...fs.readdirSync(path.join(ROOT, 'js/sim')).map((f) => 'js/sim/' + f)];
     for (const f of files) {
         const src = fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
         ok(!/\bdocument\.|\bwindow\.|from 'three'|Math\.random|localStorage|performance\.now|Date\.now|requestAnimationFrame|AudioContext/.test(src), `${f} is pure`);
@@ -403,10 +409,214 @@ if (want('bosses')) {
         run(G, NONE, 3.2, (g) => { for (const e of g.events) { evs.push(e.type); if (e.type === 'boom') booms++; if (e.type === 'bossdown') down = true; } g.events.length = 0; });
         ok(booms >= 15 && down, `${name}: it comes apart in a chain of explosions (${booms} booms) and a final bang`);
         ok(G.powerups.length >= 5 && G.score >= 5000, `${name}: it pays out points and a shower of power-ups`);
-        ok(G.phase === 'clear' || G.wave === n + 1, `${name}: the wave is cleared`);
+        ok(G.phase === 'clear', `${name}: the wave is cleared`);
         run(G, NONE, C.WAVE.clear + 0.5);
-        ok(G.wave === n + 1, `${name}: the next wave begins`);
+        ok(G.phase === 'dock' && G.wave === n, `${name}: the ship is called back to the mothership`);
+        run(G, NONE, 5);
+        ok(G.dock?.st === 'shop', `${name}: and parks in the hangar`);
+        Gm.launch(G);
+        run(G, NONE, 1.6);
+        ok(G.wave === n + 1 && G.phase === 'intro' && !G.dock, `${name}: after launch the next wave begins`);
     }
+}
+
+
+// ======================================================================
+if (want('story')) {
+    section('story');
+    const bad = (t) => /[{}]/.test(t) || t.length === 0;
+    for (const [id, sc] of Object.entries(St.CUTSCENES)) {
+        ok(sc.lines.length >= 2 && sc.where && ['bridge', 'window0', 'window1', 'window2', 'hangar'].includes(sc.scene), `cutscene ${id}: has lines, a place and a known scene`);
+        ok(sc.lines.every((l) => St.MOODS.includes(l.mood) && l.text.length > 20 && l.text.length <= 175), `cutscene ${id}: every line has a known mood and fits the box (<= 175 chars)`);
+        ok(St.sceneLines(id, 12).every((l) => !bad(l.text)), `cutscene ${id}: no unfilled placeholders`);
+    }
+    ok(St.callsign(1) === 'Rookie' && St.callsign(5) === 'Rookie' && St.callsign(6) === 'Pilot' && St.callsign(11) === 'Ace' && St.callsign(16) === 'Starblazer' && St.callsign(99) === 'Starblazer', 'the callsign climbs as bosses fall: Rookie, Pilot, Ace, Starblazer');
+    ok(St.preBossScene(5) === 'boss0' && St.preBossScene(10) === 'boss1' && St.preBossScene(15) === 'boss2' && St.preBossScene(20) === null && St.preBossScene(4) === null, 'the first three bosses have an arrival cutscene, later ones none');
+    ok(St.dockScene(5) === 'dock0' && St.dockScene(15) === 'finale' && St.dockScene(10) === null && St.dockScene(20) === null, 'docking after boss 1 and boss 3 has a cutscene (the hangar tutorial and the finale)');
+    let longest = 0, count = 0;
+    for (let n = 1; n <= 80; n++) {
+        const kind = Wv.isBossWave(n) ? 'boss' : Wv.isBonusWave(n) ? 'bonus' : 'normal';
+        for (let seed = 0; seed < 6; seed++) {
+            const l = St.waveLine(n, kind, seed);
+            const rows = St.wrap(l.text, 30);
+            longest = Math.max(longest, l.text.length); count++;
+            if (bad(l.text) || rows.length > 3 || rows.some((r) => r.length > 30) || !St.MOODS.includes(l.mood)) ok(false, `wave ${n} seed ${seed}: "${l.text}" does not fit the comm strip (3 lines of 30)`);
+        }
+    }
+    ok(longest <= 90, `all ${count} comm lines for waves 1-80 fit three lines of 30 characters (longest ${longest})`);
+    for (let n = 1; n <= 15; n++) ok(St.waveLine(n, 'normal', 0).text === St.waveLine(n, 'normal', 5).text, `wave ${n} has its own line, the same every game`);
+    ok(St.waveLine(3, 'normal').text.toLowerCase().includes('formation') && St.waveLine(4, 'bonus').text.toLowerCase().includes('bonus') && /boss|mothership/i.test(St.waveLine(5, 'boss').text), 'the first waves introduce what is in them');
+    ok(new Set(Array.from({ length: 30 }, (_, i) => St.waveLine(20 + i, 'normal', 0).text)).size >= 6, 'later waves draw on a pool of varied lines');
+    for (const kind of ['pdie', 'perfect', 'lowlives', 'oneup']) for (let n = 1; n <= 20; n++) {
+        const r = St.reaction(kind, n, n);
+        if (bad(r.text) || St.wrap(r.text, 30).length > 3 || !St.MOODS.includes(r.mood)) ok(false, `reaction ${kind} wave ${n}: "${r.text}" does not fit`);
+    }
+    ok(true, 'every reaction fits the comm strip');
+    ok([1, 5, 9, 14, 30].every((n) => St.overLine(n, 3).length > 20 && !bad(St.overLine(n, 3))) && St.dockLine(20, 1).length > 10 && !bad(St.dockLine(20, 1)), 'there are game-over and hangar quips for every stage');
+    const w = St.wrap('one two three four five six seven', 10);
+    ok(w.every((r) => r.length <= 10) && w.join(' ') === 'one two three four five six seven', 'wrap breaks on words and loses nothing');
+}
+
+// ======================================================================
+if (want('hangar')) {
+    section('hangar');
+    /** A game docked and waiting in the shop with `credits` to spend. */
+    const docked = (credits = 1000, seed = 61) => {
+        const G = fightAt(seed, 5); clearField(G);
+        G.credits = credits;
+        Gm.enterDock(G);
+        run(G, NONE, 6);
+        return G;
+    };
+
+    // credits come from kills, medals, perfect clears and bosses
+    let G = fightAt(60, 3); clearField(G); G.plan.total = 99; G.credits = 0;
+    const killOf = (type, props = {}) => { En.addEnemy(G, type, { path: En.linePath(112, 100, 0, 0), peace: true, ...props }); G.pbullets.push({ x: 112, y: 100, vx: 0, vy: 0, dmg: 999, pierce: 0, k: 0 }); Gm.step(G, NONE, DT); };
+    killOf('drone');
+    ok(G.credits === 1, 'a drone is worth 1 credit');
+    killOf('saucer');
+    ok(G.credits === 5, 'a saucer is worth 4');
+    killOf('cruiser');
+    ok(G.credits === 15, 'a cruiser is worth 10');
+    G.powerups.push({ x: G.player.x, y: G.player.y, vx: 0, vy: 0, kind: 'M', t: 0 }); Gm.step(G, NONE, DT);
+    ok(G.credits === 18, 'a medal is worth 3');
+
+    // a normal wave does not go to the hangar; a boss does
+    G = fightAt(62, 4); G.player.inv = 1e9;
+    run(G, (g) => { g.player.inv = 1e9; return Bt.botInput(g, Bt.makeBot()); }, 60, (g) => { g.events.length = 0; });
+    ok(G.wave >= 5 && !G.dock, 'waves 1-4 flow straight on, with no hangar');
+
+    // the flight in
+    G = fightAt(63, 5); clearField(G);
+    G.powerups.push({ x: 30, y: 200, vx: 0, vy: 0, kind: 'P', t: 0 }, { x: 190, y: 100, vx: 0, vy: 0, kind: 'M', t: 0 });
+    const w0 = G.player.weapon;
+    Gm.enterDock(G);
+    ok(G.phase === 'dock' && G.dock.st === 'approach' && has(G, 'dock'), 'entering the dock starts the approach');
+    ok(G.player.weapon === w0 + 1 && G.powerups.length === 0, 'the capsules the boss dropped are scooped up on the way');
+    ok(Gm.buy(G, 'engine') === false, 'nothing can be bought until the ship has docked');
+    G.player.x = 20;
+    run(G, { x: 1, y: 0, fire: true, bomb: true }, 0.3);
+    ok(G.pbullets.length === 0 && G.bombFx === null, 'the ship flies itself: no shooting or bombing on the way in');
+    run(G, NONE, 4);
+    ok(G.dock.st === 'shop' && has(G, 'dockopen'), 'it docks and the shop opens');
+    ok(Math.abs(G.player.x - C.FIELD.w / 2) < 0.01 && Math.abs(G.player.y - Gm.DOCK.y) < 0.01, 'parked under the mothership');
+    const tdock = G.t; run(G, { x: 1, y: 1, fire: true }, 2);
+    ok(G.player.x === C.FIELD.w / 2 && G.dock.st === 'shop', 'a docked ship does not move');
+
+    // buying
+    G = docked(1000);
+    const upgrades = {
+        engine: (g) => g.upg.engine, cannon: (g) => g.upg.cannon, rapid: (g) => g.upg.rapid,
+        bay: (g) => g.upg.bay, magnet: (g) => g.upg.magnet, shield: (g) => g.upg.shield,
+    };
+    for (const u of Up.UPGRADES) {
+        const g = docked(5000);
+        let spent = 0;
+        for (let lvl = 0; lvl < u.max; lvl++) {
+            const before = g.credits;
+            ok(Gm.buy(g, u.id), `${u.name} level ${lvl + 1} can be bought`);
+            spent += before - g.credits;
+            if (before - g.credits !== u.cost[lvl]) ok(false, `${u.name} level ${lvl + 1} costs ${u.cost[lvl]} (cost ${before - g.credits})`);
+        }
+        ok(upgrades[u.id](g) === u.max && spent === u.cost.reduce((a, b) => a + b, 0), `${u.name} maxes at ${u.max} for ${spent} credits`);
+        ok(Gm.buy(g, u.id) === false && Up.offer(g, u.id) === null, `${u.name} cannot be bought past its maximum`);
+    }
+    G = docked(30);
+    ok(Gm.buy(G, 'cannon') === false && G.credits === 30 && G.upg.cannon === 0, 'a purchase the player cannot afford does nothing');
+    ok(Gm.buy(G, 'magnet') === true && G.credits === 0, 'one it can afford goes through, to the last credit');
+    ok(Gm.buy(G, 'nonsense') === false, 'an unknown item is refused');
+
+    // what each upgrade does
+    {
+        const g0 = fightAt(64, 3); clearField(g0);
+        const dmgOf = (g) => { g.player.weapon = 1; g.pbullets.length = 0; g.player.fireT = 0; Gm.step(g, { ...NONE, fire: true }, DT); return g.pbullets[0].dmg; };
+        const gap = (g) => { g.player.weapon = 1; g.player.fireT = 0; g.stats.shots = 0; run(g, { ...NONE, fire: true }, 3); return g.stats.shots; };
+        const speedOf = (g) => { run(g, { x: -1, y: 0 }, 0.05); return Math.abs(g.player.vx); };
+        const base = { dmg: dmgOf(g0), shots: gap(fightAt(64, 3)), speed: speedOf(fightAt(64, 3)) };
+        const up = (id, n) => { const g = fightAt(64, 3); clearField(g); g.upg[id] = n; return g; };
+        ok(dmgOf(up('cannon', 5)) === base.dmg * 2, 'cannons: five levels double the shot damage');
+        ok(gap(up('rapid', 4)) > base.shots * 1.3, `rapid fire: four levels shoot over 30% more often (${base.shots} -> ${gap(up('rapid', 4))} shots in 3 s)`);
+        ok(speedOf(up('engine', 5)) === base.speed + 40, 'engines: five levels add 40 speed');
+        let g = up('bay', 2);
+        g.bombs = C.PLAYER.maxBombs;
+        g.powerups.push({ x: g.player.x, y: g.player.y, vx: 0, vy: 0, kind: 'B', t: 0 }); Gm.step(g, NONE, DT);
+        ok(g.bombs === C.PLAYER.maxBombs + 1, 'bomb bay: a B capsule now takes you past the old limit');
+        g = up('bay', 0); g.bombs = 0; g.phase = 'dock'; g.dock = { st: 'shop', t: 0, next: 9 }; g.credits = 999;
+        Gm.buy(g, 'bay');
+        ok(g.bombs === 1 && Up.maxBombs(g) === C.PLAYER.maxBombs + 1, 'buying a bomb bay also stocks a bomb');
+        // the magnet: a capsule 20 px away is collected only with it
+        const near = (n) => { const g2 = up('magnet', n); g2.powerups.push({ x: g2.player.x + 20, y: g2.player.y, vx: 0, vy: 0, kind: 'S', t: 0 }); run(g2, NONE, 0.6); return g2.player.speed; };
+        ok(near(0) === 0 && near(3) === 1, 'magnet: it reaches a capsule 20 px away that an unupgraded ship would miss');
+    }
+    // the shield core
+    {
+        const g = fightAt(65, 3); g.upg.shield = 1; g.player.shield = 0;
+        Gm.jumpToWave(g, 4);
+        ok(g.player.shield === 1, 'shield core 1: a fresh shield at the start of each wave');
+        g.player.inv = 0; g.upg.shield = 1; clearField(g);
+        g.ebullets.push({ x: g.player.x, y: g.player.y, vx: 0, vy: 0, k: 0 }); Gm.step(g, NONE, DT);
+        g.player.shield = 0; g.player.inv = 0; g.ebullets.push({ x: g.player.x, y: g.player.y, vx: 0, vy: 0, k: 0 }); Gm.step(g, NONE, DT);
+        run(g, NONE, C.PLAYER.respawn + 0.1);
+        ok(g.player.alive && g.player.shield === 0, 'shield core 1: a respawned ship has none');
+        const h = fightAt(65, 3); h.upg.shield = 2; clearField(h); h.player.shield = 0; h.player.inv = 0;
+        h.ebullets.push({ x: h.player.x, y: h.player.y, vx: 0, vy: 0, k: 0 }); Gm.step(h, NONE, DT);
+        run(h, NONE, C.PLAYER.respawn + 0.1);
+        ok(h.player.alive && h.player.shield === 1, 'shield core 2: it comes back with a shield on respawn');
+    }
+
+    // supplies
+    G = docked(1000);
+    G.lives = 3; Gm.buy(G, 'life');
+    ok(G.lives === 4 && G.credits === 850, 'an extra ship costs 150');
+    G.lives = C.PLAYER.maxLives;
+    ok(Up.offer(G, 'life') === null, 'no extra ships past the limit');
+    G.bombs = 0; Gm.buy(G, 'bomb');
+    ok(G.bombs === 1 && G.credits === 800, 'a bomb costs 50');
+    G.bombs = Up.maxBombs(G);
+    ok(Up.offer(G, 'bomb') === null, 'no bombs past the limit');
+    G.player.weapon = 2; Gm.buy(G, 'refit');
+    ok(G.player.weapon === 5 && G.credits === 700, 'a weapon refit puts the gun back to full for 100');
+    ok(Up.offer(G, 'refit') === null, 'and is not for sale when the gun is full');
+
+    // upgrades survive death
+    G = fightAt(66, 3); clearField(G); G.upg.cannon = 3; G.upg.engine = 2; G.player.inv = 0;
+    G.ebullets.push({ x: G.player.x, y: G.player.y, vx: 0, vy: 0, k: 0 }); Gm.step(G, NONE, DT);
+    run(G, NONE, 3);
+    ok(G.upg.cannon === 3 && G.upg.engine === 2, 'upgrades are kept when a ship is lost');
+
+    // launching
+    G = docked(100);
+    ok(Gm.launch(G) && G.dock.st === 'launch' && has(G, 'undock'), 'launching starts the flight out');
+    ok(Gm.launch(G) === false || G.dock.st === 'launch', 'a second launch does nothing new');
+    const wBefore = G.wave;
+    run(G, NONE, 0.9);
+    ok(G.wave === wBefore + 1 && !G.dock && G.phase === 'intro', 'the ship flies back out and the next wave begins');
+    ok(Math.abs(G.player.y - C.PLAYER.startY) < 0.01 && G.player.inv > 0.5, 'it comes out at its start position, protected for a moment');
+    ok(Gm.launch(G) === false, 'launch does nothing when not docked');
+
+    // saves in the hangar
+    for (const [label, runFor] of [['on the way in', 0.4], ['in the shop', 5], ['on the way out', 5.2]]) {
+        let g = fightAt(67, 5); clearField(g); g.credits = 500; Gm.enterDock(g);
+        run(g, NONE, runFor);
+        if (label === 'on the way out') { Gm.buy(g, 'cannon'); Gm.launch(g); run(g, NONE, 0.2); }
+        const copy = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(g))));
+        run(g, NONE, 6, (x) => { x.events.length = 0; }); run(copy, NONE, 6, (x) => { x.events.length = 0; });
+        ok(JSON.stringify(Gm.serialize(g)) === JSON.stringify(Gm.serialize(copy)), `a save ${label} plays on identically`);
+    }
+    {
+        const old = Gm.serialize(Gm.newGame(3)); delete old.upg; delete old.credits; delete old.dock;
+        const g = Gm.deserialize(old);
+        ok(g.upg.cannon === 0 && g.credits === 0 && g.dock === null, 'a save from before the hangar loads with no upgrades');
+    }
+
+    // the bot spends sensibly
+    G = docked(400);
+    const w5 = G.player.weapon; G.player.weapon = 2; G.lives = 1;
+    Bt.botDock(G);
+    ok(G.credits < 400 && G.player.weapon === 5 && G.lives >= 2, `the bot spends its credits (400 -> ${G.credits}), refits the gun and buys a ship when low`);
+    ok(Object.values(G.upg).filter((v) => v > 0).length >= 3, 'and spreads them over several upgrades');
+    G = docked(0); Bt.botDock(G);
+    ok(G.credits === 0, 'with nothing to spend it buys nothing');
 }
 
 // ======================================================================
@@ -456,7 +666,7 @@ if (want('bots')) {
                 else if (G.ebullets.length > C.ENEMY.maxBullets) bad = 'too many enemy bullets';
                 else if (G.enemies.length > 90) bad = 'too many enemies';
                 else if (G.enemies.some((e) => !Number.isFinite(e.x) || !Number.isFinite(e.y))) bad = 'a non-finite enemy';
-                else if (G.lives < 0 || G.bombs < 0 || G.bombs > C.PLAYER.maxBombs || G.player.weapon < 1 || G.player.weapon > 5) bad = 'a counter out of range';
+                else if (G.lives < 0 || G.bombs < 0 || G.bombs > Up.maxBombs(G) || G.player.weapon < 1 || G.player.weapon > 5) bad = 'a counter out of range';
                 if (bad) break;
                 peak = Math.max(peak, G.ebullets.length);
             }

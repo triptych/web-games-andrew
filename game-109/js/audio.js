@@ -49,6 +49,7 @@ export class Audio {
         this.musicVol = 0.6;
         this.mode = 'off';            // off | play | boss | bonus
         this.hushed = false;          // paused, or on a menu
+        this.voiceOn = true;          // the announcer (speech synthesis)
         this.sector = 0;
         this.intensity = 1;
         this.last = {};
@@ -94,6 +95,40 @@ export class Audio {
         this.music.gain.setTargetAtTime(this.hushed ? 0 : music * 0.45, this.ctx.currentTime, 0.05);
     }
 
+    // ------------------------------------------------------------------ the announcer
+    setVoice(on) { this.voiceOn = on; if (!on) this.shush(); }
+
+    /** A robot voice from the browser's own speech synthesis: no files, optional everywhere, so any failure is just silence. */
+    say(text) {
+        if (!this.voiceOn || this.sfxVol <= 0 || this.hushed) return;
+        try {
+            const sy = window.speechSynthesis;
+            if (!sy || typeof SpeechSynthesisUtterance === 'undefined') return;
+            sy.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.pitch = 0.2; u.rate = 0.85; u.volume = Math.min(1, this.sfxVol);
+            sy.speak(u);
+        } catch { /* no voice here */ }
+    }
+    shush() { try { window.speechSynthesis?.cancel(); } catch { /* */ } }
+
+    /** Mira: the same speech synthesis, but a warm, bright voice (a female English voice if the device has one). */
+    sayMira(text) {
+        if (!this.voiceOn || this.sfxVol <= 0) return;
+        try {
+            const sy = window.speechSynthesis;
+            if (!sy || typeof SpeechSynthesisUtterance === 'undefined') return;
+            sy.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            const voices = sy.getVoices?.() || [];
+            const en = voices.filter((v) => /^en/i.test(v.lang));
+            const v = en.find((x) => /female|zira|samantha|susan|hazel|karen|moira|tessa|fiona|victoria|aria|jenny|libby|sonia/i.test(x.name)) || en[0];
+            if (v) u.voice = v;
+            u.pitch = 1.3; u.rate = 1.05; u.volume = Math.min(1, this.sfxVol);
+            sy.speak(u);
+        } catch { /* no voice here */ }
+    }
+
     // ------------------------------------------------------------------ music control
     /** mode: 'off' | 'play' | 'boss' | 'bonus'. */
     setMusic(mode, sector = this.sector, intensity = this.intensity) {
@@ -106,7 +141,9 @@ export class Audio {
 
     /** Duck the music (pause, menus) without forgetting what was playing. */
     hush(on) {
+        const was = this.hushed;
         this.hushed = on;
+        if (on && !was) this.shush();
         if (this.ctx) this.music.gain.setTargetAtTime(on ? 0 : this.musicVol * 0.45, this.ctx.currentTime, 0.06);
         if (!on) this.restart();
     }
@@ -275,6 +312,12 @@ export class Audio {
     }
 
     onEvents(G, events) {
+        // the announcer needs no audio context, so it goes first
+        for (const e of events) {
+            if (e.type === 'wave' && e.kind === 'boss') this.say(['Warning! Mothership approaching.', 'Warning! Crab Warden approaching.', 'Warning! The Overlord approaches.'][e.boss] || 'Warning! Boss approaching.');
+            else if (e.type === 'bossdown') this.say('Boss destroyed. Well done, pilot.');
+            else if (e.type === 'dock') this.say('Returning to the mothership.');
+        }
         if (!this.ctx) return;
         for (const e of events) {
             switch (e.type) {
@@ -316,9 +359,13 @@ export class Audio {
                 case 'bossdown': this.arp([1047, 1319, 1568, 2093, 1568, 2093, 2637], { dur: 0.14, gap: 0.1, pulse: 0.5, vol: 0.12 }); break;
                 case 'beamwarn': for (let k = 0; k < 4; k++) this.tone({ freq: 1760, dur: 0.07, pulse: 0.5, vol: 0.06, delay: k * 0.22 }); break;
                 case 'beam': this.noiseFx(1.0, 800, 0.4, 'bandpass', 0, 200); this.tone({ freq: 110, to: 90, dur: 1.0, type: 'sawtooth', vol: 0.14 }); break;
+                case 'dock': this.setMusic('off'); this.tone({ freq: 160, to: 640, dur: 0.9, type: 'sawtooth', vol: 0.1 }); this.noiseFx(0.9, 400, 0.2, 'bandpass', 0, 2500); break;
+                case 'dockopen': this.arp([523, 659, 784, 1047], { dur: 0.12, gap: 0.08, type: 'triangle', vol: 0.14 }); this.tone({ freq: 80, to: 60, dur: 0.4, type: 'sine', vol: 0.3 }); break;
+                case 'buy': this.arp([988, 1319, 1976], { dur: 0.07, gap: 0.045, pulse: 0.5, vol: 0.11 }); this.noiseFx(0.04, 7000, 0.05, 'highpass'); break;
+                case 'undock': this.tone({ freq: 200, to: 1400, dur: 0.6, type: 'sawtooth', vol: 0.1 }); this.noiseFx(0.6, 500, 0.25, 'bandpass', 0, 4000); break;
                 case 'launch': this.tone({ freq: 300, to: 900, dur: 0.15, pulse: 0.25, vol: 0.05 }); break;
                 case '1up': this.arp([659, 784, 1319, 1047, 1175, 1568], { dur: 0.1, gap: 0.085, pulse: 0.5, vol: 0.13 }); break;
-                case 'over': [392, 349, 330, 262, 196].forEach((f, i) => this.tone({ freq: f, dur: 0.4, pulse: 0.25, vol: 0.12, delay: i * 0.24 })); this.setMusic('off'); break;
+                case 'over': this.shush(); [392, 349, 330, 262, 196].forEach((f, i) => this.tone({ freq: f, dur: 0.4, pulse: 0.25, vol: 0.12, delay: i * 0.24 })); this.setMusic('off'); break;
             }
         }
     }

@@ -2,7 +2,7 @@
 
 **Genre:** Vertical arcade shooter (a shmup in the manner of Galaga, 1942 and Raiden)
 **Engine:** Vanilla JS: Canvas 2D, no asset files
-**Status:** v1.0.0 complete (balance is bot-derived; see Open questions)
+**Status:** v1.3.0 complete (balance is bot-derived; see Open questions)
 
 ---
 
@@ -28,6 +28,22 @@ Tone: loud, bright, a little silly, and fair. Nothing is a surprise: bonus stage
 - **Bomb:** a ring that grows from the ship at 420 px/s for 0.85 s. It wipes every enemy bullet it crosses and hurts every enemy it crosses once (30 damage, 45 to a boss) and makes the ship invulnerable for 1.7 s. Two at the start, five at most.
 - **Lives:** three, up to seven; an extra life at 20,000 points and every 60,000 after. A ship that dies takes the bullets within 70 px with it and comes back after 1.4 s, invulnerable for 2.6 s.
 - **Shield capsule (H):** absorbs one hit.
+
+### The hangar
+After every boss the ship flies itself to the mothership (any capsules still falling are scooped up on the way), parks in its hangar and the shop opens. Nothing happens while you shop; **Launch** flies back out into the next wave. A game saved in the hangar comes back to it.
+
+**Credits** are earned from kills (drone 1, weaver 1, striker 2, saucer 4, dart 1, cruiser 10, carrier 20, mine 2; 2 each in a bonus stage), medals (3), a perfect wave (10) or perfect bonus stage (50), and bosses (60 × (round + 1) + 20 × its number).
+
+| Upgrade | Levels | What a level does | Prices |
+|---|---|---|---|
+| Engines | 5 | +8 ship speed | 40 60 90 130 180 |
+| Cannons | 5 | +20% shot damage | 50 75 110 160 220 |
+| Rapid Fire | 4 | shoots 7% faster | 45 70 105 150 |
+| Bomb Bay | 3 | carry one more bomb (and stocks one) | 60 100 160 |
+| Magnet | 3 | bigger pick-up reach, and capsules and medals drift in | 30 55 90 |
+| Shield Core | 2 | 1: a shield at the start of each wave. 2: and on respawn | 80 160 |
+
+Upgrades are kept when a ship is lost. **Supplies:** an extra ship (150, not past 7 lives), a bomb (50), a weapon refit (100, the gun back to level 5).
 
 ### Power-ups
 Capsules fall slowly and are lost off the bottom. **P** power (a gun level), **S** speed, **B** bomb, **H** shield, **1** a life (from the second round of bosses on), **M** a medal. Past a maximum a capsule is worth points instead (P 1000, the others 500). Enemies that blink with a coloured halo carry a capsule of that colour; any kill has a small chance to drop one and a bigger one to drop a medal. Medals are worth 100, 200 ... 1000 in turn as you collect them and start again from 100 when you die.
@@ -62,6 +78,17 @@ Each enters untouchable over 3 s, then fights in three phases keyed on its healt
 
 A dying boss shakes for 2.4 s while explosions go off across its hull, every bullet on screen turns to sparks, and it pays out points, a P, an S, a B and five medals (and a 1UP from the second round on).
 
+## Story
+
+You are a rookie pilot on the carrier **Aurora**, defending the Sol Gate against the **Brood**. **Mira** is the flight controller on the mothership: warm, quick and a little sarcastic, she talks you through your first days. Her voice in the game is a 24×24 pixel bust (a mirrored map for the hair, head and headset, with eyes, brows and mouth drawn on top so she can blink, talk and react).
+
+- **Comms (every wave):** a strip at the top of the screen types out a line as the wave begins, while play goes on. Waves 1-15 have their own lines, which double as a tutorial (blinking halos carry power-ups; formations dive, so keep moving; bonus stages are safe; bombs for emergencies; watch for the beam's warning line); later waves draw on pools of lines for normal waves, bonus stages and returning bosses. She also reacts to losing a ship, a perfect clear, an extra ship and a last life (rationed to one every nine seconds).
+- **Cutscenes (blocking, skippable):** `intro` (bridge) at the start of a new game; `boss0`, `boss1`, `boss2` (the observation window, the boss looming) as the first three bosses arrive; `dock0` (hangar bay) after the first boss, which explains the hangar; `finale` (hangar bay) after the Overlord, which promotes you and says the Brood will be back. Play Again skips the intro; Continue skips everything it has seen.
+- **Callsign:** Rookie until the first boss falls, then Pilot, Ace, and Starblazer.
+- **Quips:** a line from Mira on the game-over sheet (by how far you got) and at the top of the Hangar on ordinary visits.
+- **Voice:** with the Announcer voice on, her cutscene lines are spoken in a bright female speech-synthesis voice if the device has one. **Story & comms** in Settings turns the cutscenes, the comm strip and the quips off.
+- The script is data ([js/story.js](js/story.js)); the sim does not know about it. The comm and cutscene boxes are sized for the longest line, and simtest fails if a line does not fit.
+
 ## Controls
 
 | Action | Keyboard | Gamepad | Touch |
@@ -76,7 +103,7 @@ A dying boss shakes for 2.4 s while explosions go off across its hull, every bul
 - **Screen:** a 224×288 buffer, drawn with smoothing off, with bloom (the buffer shrunk twice and added back with `lighter`), then an integer upscale and a bilinear step down to the window, scanlines, a vignette and a neon frame (Settings turns the CRT effects off).
 - **Sprites:** left halves drawn as character maps, mirrored, auto-outlined, with a white flash twin; four sector colourways re-colour every enemy (sector = five waves: Deep Space, Violet Reach, Emerald Belt, Ember Front). The sky is a dithered gradient with scrolling dithered nebulae and a baked pixel planet.
 - **Explosions:** see [fx.js](js/view/fx.js). Fireballs walk down a colour ramp, rings race out, debris cools as it flies; ramps by enemy colour (ice, toxic, gold, plasma, fire) and a rainbow ramp for bombs and bosses.
-- **Sound:** pulse waves (12.5/25/50% duty), a triangle bass and noise drums; four sector keys, a boss tune, a bonus tune. See [docs/generic/sounds.md](../docs/generic/sounds.md).
+- **Sound:** pulse waves (12.5/25/50% duty), a triangle bass and noise drums; four sector keys, a boss tune, a bonus tune; a robot announcer (browser speech synthesis, optional) for the bosses. See [docs/generic/sounds.md](../docs/generic/sounds.md).
 
 ## Module overview
 
@@ -87,7 +114,10 @@ A dying boss shakes for 2.4 s while explosions go off across its hull, every bul
 | `js/sim/enemies.js` | Enemy types, analytic paths, the formation and dive logic, firing patterns |
 | `js/sim/waves.js` | The wave planner and its pieces, the bonus stage |
 | `js/sim/bosses.js` | The three bosses, their phases and their deaths |
-| `js/sim/bot.js` | The auto-player (dodging, aiming, power-ups, bombs; skill = reaction time) |
+| `js/sim/bot.js` | The auto-player (dodging, aiming, power-ups, bombs; skill = reaction time; spends credits in the hangar) |
+| `js/story.js` | Mira's script: cutscenes, per-wave comms, reactions, quips (plain data) |
+| `js/view/portrait.js` | Mira's pixel portrait |
+| `js/sim/upgrades.js` | The hangar's upgrade and supply tables, prices and `offer()` |
 | `js/sim/util.js`, `js/rng.js`, `js/config.js` | Shared helpers, seeded RNG, tuning |
 | `js/view/view.js` | The layers, banners, HUD, bloom and present step |
 | `js/view/sprites.js`, `font.js`, `fx.js` | Pixel art, the bitmap font, explosions and the starfield |
@@ -100,7 +130,7 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, every rule, 60 
 
 ## Balance notes
 
-The first bot dodged with perfect information and no reaction time and reached wave 68 without dying at any "skill", so skill became a reaction time (it holds each move for 0.08 s at skill 1 up to 0.5 s at 0.2). The printed table then showed that enemies fired only 0-6 shots a wave: the weapon killed them before their first shot. Health now grows with the wave for every type, the first shot comes within half a gap, and fire rate and bullet speed ramp harder. Current table (4 seeds, up to 25 minutes): skill 1 reaches wave ~47 and is still alive at 25 minutes; skill 0.6 dies around wave 16; skill 0.3 around wave 9. A boss that killed the perfect bot three times on wave 15 turned out to be the bot ignoring the beam's warning line.
+The first bot dodged with perfect information and no reaction time and reached wave 68 without dying at any "skill", so skill became a reaction time (it holds each move for 0.08 s at skill 1 up to 0.5 s at 0.2). The printed table then showed that enemies fired only 0-6 shots a wave: the weapon killed them before their first shot. Health now grows with the wave for every type, the first shot comes within half a gap, and fire rate and bullet speed ramp harder. Current table with the hangar (4 seeds, up to 25 minutes): skill 1 reaches wave ~55 and is still alive at 25 minutes; skill 0.6 dies around wave 27 (it was 16 before the hangar, and 36 before the extra health and fire-rate ramp); skill 0.3 around wave 9. A boss that killed the perfect bot three times on wave 15 turned out to be the bot ignoring the beam's warning line.
 
 ## Open questions / next steps
 
@@ -108,8 +138,21 @@ The first bot dodged with perfect information and no reaction time and reached w
 - The wave generator is endless; there is no ending and no continue-credits screen.
 - A second weapon family (a laser, homing missiles) and ground targets would give the early waves more variety.
 - Two-player alternating turns, as on the cabinets.
+- A story that goes on after the finale (new Brood factions per sector).
 
 ## Changelog
+
+### v1.3.0 (2026-10-30)
+- A story: Mira, the flight controller, introduces every wave in a comm strip, with six cutscenes (the intro, the first three bosses, the hangar tutorial and the finale), reactions, quips, a climbing callsign and a Story setting.
+
+### v1.2.0 (2026-10-30)
+- The hangar: after each boss the ship docks with the mothership and spends credits on permanent upgrades (engines, cannons, rapid fire, bomb bay, magnet, shield core) and supplies. Enemies get tougher a little faster from wave 9 to keep pace.
+
+### v1.1.0 (2026-10-30)
+- A speech-synthesis announcer for the bosses (a warning as each arrives, a line when it dies), with a Settings switch.
+
+### v1.0.3 (2026-10-30)
+- The ring on the ringed planet is no longer clipped at its ends.
 
 ### v1.0.2 (2026-10-30)
 - The stick is constant speed with a short leash: no rubber band, and a few px of pull-back stops the ship.

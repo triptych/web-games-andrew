@@ -2,6 +2,8 @@
 // (The HUD itself is drawn into the pixel buffer by the view.) Reads the sim; never changes it.
 
 import { VERSION } from './config.js';
+import { UPGRADES, SUPPLIES, offer } from './sim/upgrades.js';
+import { CUTSCENES, sceneLines } from './story.js';
 
 const $ = (id) => document.getElementById(id);
 const pad6 = (n) => String(Math.max(0, Math.floor(n))).padStart(6, '0');
@@ -27,7 +29,7 @@ export class UI {
             b.addEventListener('click', () => { audio.ui('close'); this.closeTop(); });
         }
 
-        const els = { sfx: $('set-sfx'), music: $('set-music'), touch: $('set-touch'), autofire: $('set-autofire'), effects: $('set-effects'), crt: $('set-crt') };
+        const els = { sfx: $('set-sfx'), music: $('set-music'), touch: $('set-touch'), autofire: $('set-autofire'), effects: $('set-effects'), crt: $('set-crt'), voice: $('set-voice'), story: $('set-story') };
         for (const [k, el] of Object.entries(els)) el.value = settings[k];
         const changed = () => {
             for (const [k, el] of Object.entries(els)) settings[k] = el.type === 'range' ? +el.value : el.value;
@@ -46,17 +48,19 @@ export class UI {
         // a screen opened from another sits on top of it, whatever the page order
         el.style.zIndex = String(50 + this.stack.length);
         this.focusFirst(id);
+        document.body.classList.add('screen-open');
     }
     closeScreen(id) {
         $(id).hidden = true;
         this.stack = this.stack.filter((s) => s !== id);
+        document.body.classList.toggle('screen-open', this.stack.length > 0);
         if (this.top()) this.focusFirst(this.top());
     }
     closeTop() { if (this.top()) this.closeScreen(this.top()); }
     top() { return this.stack[this.stack.length - 1] || null; }
     anyScreen() { return this.stack.length > 0; }
 
-    buttons(id) { return [...$(id).querySelectorAll('button, select, input')].filter((b) => !b.hidden && !b.closest('[hidden]') && b.offsetParent !== null); }
+    buttons(id) { return [...$(id).querySelectorAll('button, select, input')].filter((b) => !b.hidden && !b.disabled && !b.closest('[hidden]') && b.offsetParent !== null); }
     focusFirst(id) { this.buttons(id)[0]?.focus({ preventScroll: true }); }
     /** Arrow keys move focus through the top screen's controls; Enter is the browser's own click. */
     moveFocus(dir) {
@@ -82,6 +86,92 @@ export class UI {
         $('toasts').appendChild(el);
         setTimeout(() => el.remove(), 2500);
     }
+
+    // ------------------------------------------------------------------ the hangar
+    /** Fill the Hangar from the game's state: upgrades with their levels and prices, supplies, credits. */
+    renderDock(G) {
+        const keep = document.activeElement?.dataset?.buy;
+        $('dock-cr').textContent = G.credits;
+        const row = (id, name, desc, pips, offered) => {
+            const b = document.createElement('button');
+            b.className = 'dock-row' + (offered && offered.cost <= G.credits ? ' afford' : '') + (offered ? '' : ' maxed');
+            b.dataset.buy = id;
+            b.disabled = !offered || offered.cost > G.credits;
+            const parts = [['nm', name], ['pips', ''], ['ds', desc], ['cost', offered ? offered.cost + ' CR' : 'MAX']];
+            for (const [cls, text] of parts) { const sp = document.createElement('span'); sp.className = cls; sp.textContent = text; b.appendChild(sp); }
+            // pips: one box a level, filled for the levels owned
+            const [have, max] = pips;
+            for (let i = 0; i < max; i++) { const pip = document.createElement('i'); if (i < have) pip.className = 'on'; b.querySelector('.pips').appendChild(pip); }
+            return b;
+        };
+        const list = $('dock-list'), sup = $('dock-supplies');
+        list.textContent = ''; sup.textContent = '';
+        for (const u of UPGRADES) list.appendChild(row(u.id, u.name, u.desc, [G.upg[u.id], u.max], offer(G, u.id)));
+        for (const s of SUPPLIES) sup.appendChild(row(s.id, s.name, s.desc, [0, 0], offer(G, s.id)));
+        const again = keep && document.querySelector(`#dock [data-buy="${keep}"]:not(:disabled)`);
+        (again || document.querySelector('#dock .dock-row:not(:disabled)') || $('dock-go')).focus({ preventScroll: true });
+    }
+    openDock(G) { this.openScreen('dock'); this.renderDock(G); }
+
+    // ------------------------------------------------------------------ cutscenes
+    /**
+     * Play a cutscene: Mira's portrait over a painted scene, each line typed out; Next finishes a line and
+     * then moves on, Skip (or Escape) ends it. `draw(canvas, sceneId, time, state)` paints the scene and
+     * `speak(text)` voices a line. onDone runs once, when it ends.
+     */
+    openStory(id, wave, { draw, speak, onDone }) {
+        const sc = CUTSCENES[id];
+        if (!sc) { onDone?.(); return; }
+        const lines = sceneLines(id, wave);
+        const st = this.story = { lines, i: 0, shown: 0, t: 0, done: false, onDone, draw, speak, scene: sc.scene, wave };
+        $('story-where').textContent = sc.where;
+        $('story-text').textContent = '';
+        this.openScreen('story');
+        this.storyLine(0);
+        clearInterval(this.storyTimer);
+        this.storyTimer = setInterval(() => this.storyTick(0.05), 50);
+        $('story-next').focus({ preventScroll: true });
+        this.storyPaint(st);
+    }
+    storyLine(i) {
+        const st = this.story;
+        st.i = i; st.shown = 0;
+        st.speak?.(st.lines[i].text);
+        $('story-next').textContent = i === st.lines.length - 1 ? 'Done' : 'Next';
+    }
+    storyTick(dt) {
+        const st = this.story;
+        if (!st || st.done) return;
+        st.t += dt;
+        const text = st.lines[st.i].text;
+        if (st.shown < text.length) st.shown = Math.min(text.length, st.shown + 2);
+        $('story-text').textContent = text.slice(0, st.shown);
+        this.storyPaint(st);
+    }
+    storyPaint(st) {
+        const line = st.lines[st.i], talking = st.shown < line.text.length;
+        st.draw?.($('story-scene'), st.scene, st.t, { talking, blink: (st.t % 3.4) < 0.14, mood: line.mood, wave: st.wave });
+    }
+    /** Next: finish the typing, or go to the next line, or end. */
+    storyNext() {
+        const st = this.story;
+        if (!st || st.done) return;
+        const text = st.lines[st.i].text;
+        if (st.shown < text.length) { st.shown = text.length; this.storyTick(0); return; }
+        if (st.i < st.lines.length - 1) { this.storyLine(st.i + 1); return; }
+        this.storyEnd();
+    }
+    storyEnd() {
+        const st = this.story;
+        if (!st || st.done) return;
+        st.done = true;
+        clearInterval(this.storyTimer);
+        this.closeScreen('story');
+        st.onDone?.();
+    }
+    /** Drop a cutscene without running its onDone (the game was left). */
+    storyAbort() { clearInterval(this.storyTimer); this.story = null; }
+    storyOpen() { return !!this.story && !this.story.done && this.stack.includes('story'); }
 
     // ------------------------------------------------------------------ scores
     setHi(score) { $('hiscore').textContent = pad6(score); }

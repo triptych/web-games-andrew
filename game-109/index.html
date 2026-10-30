@@ -86,7 +86,7 @@
                 <tr><td><i class="cap h">H</i></td><td>Shield: absorbs one hit</td></tr>
                 <tr><td><i class="cap m">★</i></td><td>Medal: worth more with each one you grab</td></tr>
             </table>
-            <p class="small">Blinking enemies carry a power-up. Chain kills for a score multiplier. Every fourth wave is a <b>bonus stage</b>: nothing shoots, so hit them all. Every fifth wave is a <b>boss</b>. Lose a ship and your gun drops two levels.</p>
+            <p class="small">Blinking enemies carry a power-up. Chain kills for a score multiplier. Every fourth wave is a <b>bonus stage</b>: nothing shoots, so hit them all. Every fifth wave is a <b>boss</b>; after it you dock with the mothership and spend the <b>credits</b> you earned on upgrades. Lose a ship and your gun drops two levels.</p>
             <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
         </div>
     </div>
@@ -104,6 +104,12 @@
             <h2>Settings</h2>
             <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
             <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Announcer voice
+                <select id="set-voice"><option value="on">On</option><option value="off">Off</option></select>
+            </label>
+            <label class="row">Story &amp; comms
+                <select id="set-story"><option value="on">On</option><option value="off">Off</option></select>
+            </label>
             <label class="row">Touch controls
                 <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
             </label>
@@ -118,6 +124,30 @@
             </label>
             <button id="set-delete" class="btn danger">Delete saved game</button>
             <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="story" class="screen" hidden>
+        <div class="sheet story-sheet" role="dialog" aria-label="Story">
+            <canvas id="story-scene" width="224" height="96"></canvas>
+            <div class="story-name"><b>MIRA</b> <small id="story-where">FLIGHT CONTROL</small></div>
+            <p id="story-text" class="story-text" aria-live="polite"></p>
+            <div class="sheet-foot"><button id="story-skip" class="btn">Skip</button><button id="story-next" class="btn primary">Next</button></div>
+        </div>
+    </div>
+
+    <div id="dock" class="screen" hidden>
+        <div class="sheet dock-sheet">
+            <div class="dock-head">
+                <div><h2>Hangar</h2><div class="dock-cr">CREDITS <b id="dock-cr">0</b></div></div>
+                <button id="dock-go" class="btn primary">Launch</button>
+            </div>
+            <p id="dock-quip" class="quip" hidden></p>
+            <div class="dock-scroll">
+                <div id="dock-list" class="dock-list"></div>
+                <h3>Supplies</h3>
+                <div id="dock-supplies" class="dock-list"></div>
+            </div>
         </div>
     </div>
 
@@ -137,6 +167,7 @@
         <div class="sheet">
             <h2 class="over-head">Game Over</h2>
             <p id="over-text" class="lead"></p>
+            <p id="over-quip" class="quip" hidden></p>
             <form id="over-entry" class="entry" hidden>
                 <p class="gold">NEW HIGH SCORE!</p>
                 <label class="row">Your initials

@@ -7,7 +7,9 @@
 
 import { FIELD, SCORE, WAVE, PLAYER } from '../config.js';
 import { makeSprites, CAPSULES } from './sprites.js';
-import { Fx, Starfield, SECTORS, RAMPS, disc, ring } from './fx.js';
+import { Fx, Starfield, SECTORS, RAMPS, disc, ring, bakeSky, bakeNebula, bakePlanet } from './fx.js';
+import { portrait } from './portrait.js';
+import { NAME, wrap } from '../story.js';
 import { drawText, textWidth } from './font.js';
 import { BOSS_NAMES } from '../sim/bosses.js';
 
@@ -37,6 +39,9 @@ export class View {
         this.time = 0;
         this.clearInfo = null;
         this.toast = null;
+        this.comms = [];                       // Mira's lines waiting to be shown
+        this.commNow = null;                   // the one showing: { text, lines, mood, t, dur }
+        this.sceneArt = [];                    // baked backdrops for the cutscenes, per sector
         this.overlay = null;
         this.w = this.h = 0;
         this.resize();
@@ -116,13 +121,16 @@ export class View {
         this.time += dt;
         const t = this.time, g = this.b;
 
-        const warp = G.phase === 'clear' ? 4.5 : (G.plan?.kind === 'boss' && G.phase === 'intro') ? 2.4 : 1;
+        const warp = G.phase === 'dock' ? (G.dock?.st === 'shop' ? 1.5 : 3.4) : G.phase === 'clear' ? 4.5 : (G.plan?.kind === 'boss' && G.phase === 'intro') ? 2.4 : 1;
         if (this.stars.sector < 0) this.stars.setSector(sectorOf(G.wave));
         this.stars.update(dt, warp);
         this.fx.update(dt);
         if (this.toast) { this.toast.t += dt; if (this.toast.t > 1.6) this.toast = null; }
+        if (!this.commNow && this.comms.length) this.commNow = this.comms.shift();
+        if (this.commNow) { this.commNow.t += dt; if (this.commNow.t > this.commNow.dur) this.commNow = null; }
 
         this.stars.draw(g, t);
+        this.drawMother(G, g, t);
         this.drawPowerups(G, g, t);
         this.drawEnemies(G, g, t);
         this.drawBeams(G, g, t);
@@ -135,6 +143,7 @@ export class View {
         if (this.fx.flash > 0.01) { g.fillStyle = this.fx.flashColor; g.globalAlpha = this.fx.flash; g.fillRect(0, 0, BW, BH); g.globalAlpha = 1; }
         this.fx.drawPopups(g);
         this.drawBanner(G, g, t);
+        if (!st.paused) this.drawComm(g, t);          // not behind a cutscene or a menu
         this.drawHud(G, g, t, st);
         this.present();
     }
@@ -145,6 +154,31 @@ export class View {
         const px = Math.round(x - spr.w / 2), py = Math.round(y - spr.h / 2);
         g.drawImage(spr.img, px, py);
         if (flash > 0 && spr.white) { g.globalAlpha = flash; g.drawImage(spr.white, px, py); g.globalAlpha = 1; }
+    }
+
+    /** After a boss: the mothership slides in from the top, a tractor beam draws the ship up to it, and it slides away on launch. */
+    drawMother(G, g, t) {
+        const d = G.dock;
+        if (G.phase !== 'dock' || !d) return;
+        const spr = this.sprites.mother;
+        const u = d.st === 'approach' ? Math.min(1, d.t / 0.9) : d.st === 'launch' ? 1 - Math.min(1, d.t / 0.6) : 1;
+        const e = 1 - (1 - u) * (1 - u), cy = -26 + 62 * e, x = Math.round(BW / 2 - spr.w / 2), y = Math.round(cy - spr.h / 2);
+        g.drawImage(spr.img, x, y);
+        const mouthY = y + 30, mouthX = BW / 2;
+        // guide lights along the mouth
+        for (let i = -2; i <= 2; i++) { g.fillStyle = ((t * 6 + i) | 0) % 2 ? '#ffec27' : '#ff004d'; g.fillRect(Math.round(mouthX + i * 6), mouthY + 11, 2, 1); }
+        if (d.st !== 'launch' && u >= 1) {
+            // the tractor beam: dotted lines from the mouth to the ship, scrolling upward
+            const p = G.player, top = mouthY + 12;
+            for (const side of [-1, 1]) {
+                const x0 = mouthX + side * 12, x1 = p.x + side * 8;
+                for (let k = 0; k < 9; k++) {
+                    const f = (k + ((t * 5) % 1)) / 9, px = x0 + (x1 - x0) * f, py = top + (p.y - 8 - top) * f;
+                    if (py > p.y - 6) continue;
+                    g.fillStyle = k % 2 ? '#29e5ff' : '#b4f0ff'; g.fillRect(Math.round(px), Math.round(py), 1, 2);
+                }
+            }
+        }
     }
 
     drawPowerups(G, g, t) {
@@ -236,7 +270,7 @@ export class View {
     drawPlayer(G, g, t) {
         const p = G.player, S = this.sprites;
         if (!p.alive) return;
-        if (p.inv > 0 && !G.bombFx && ((t * 16) | 0) % 2) return;                // blinks while invulnerable
+        if (p.inv > 0 && !G.bombFx && G.phase !== 'dock' && ((t * 16) | 0) % 2) return;                // blinks while invulnerable
         const spr = p.bank > 0.35 ? S.ship.r : p.bank < -0.35 ? S.ship.l : S.ship.c;
         const fl = S.flame[(t * 20) & 1];
         g.drawImage(fl.img, Math.round(p.x - fl.w / 2), Math.round(p.y + 6));
@@ -313,6 +347,9 @@ export class View {
                 const sub = G.wave === 1 ? 'GET READY!' : first ? 'SECTOR ' + (sectorOf(G.wave) + 1) + ' - ' + SECTORS[sectorOf(G.wave)].name : '';
                 if (sub) drawText(g, sub, cx, 126, '#ffec27', { align: 'c', shadow: '#05051a' });
             }
+        } else if (G.phase === 'dock' && G.dock) {
+            if (G.dock.st === 'approach') drawText(g, 'RETURNING TO MOTHERSHIP', cx, 150, '#29e5ff', { align: 'c', shadow: '#05051a' });
+            else if (G.dock.st === 'launch') drawText(g, 'LAUNCH!', cx, 140, '#ffec27', { scale: 3, align: 'c', shadow: '#c4122e' });
         } else if (G.phase === 'clear' && G.phaseT < WAVE.clear - 0.3) {
             const info = this.clearInfo, perfect = info?.perfect, kind = plan?.kind;
             const title = kind === 'boss' ? 'BOSS DESTROYED!' : kind === 'bonus' ? 'BONUS STAGE CLEAR' : 'WAVE ' + G.wave + ' CLEAR';
@@ -325,6 +362,72 @@ export class View {
             }
         }
         if (this.toast) drawText(g, this.toast.text, 40, BH - 24, ((this.toast.t * 8) | 0) % 2 ? '#ffec27' : '#ffffff', { scale: 2, shadow: '#05051a' });
+    }
+
+    // ------------------------------------------------------------------ Mira's comm strip
+    /** Queue a line from the flight controller; it types itself out in a strip at the top of the screen. */
+    comm(text, mood = 'neutral') {
+        if (this.comms.length >= 2) this.comms.shift();
+        this.comms.push({ text, mood, lines: wrap(text, 30), t: 0, dur: Math.min(5.2, 2.4 + text.length * 0.045) });
+    }
+    clearComms() { this.comms.length = 0; this.commNow = null; }
+
+    drawComm(g, t) {
+        const c = this.commNow;
+        if (!c) return;
+        const slide = Math.min(1, c.t / 0.18), fade = Math.min(1, (c.dur - c.t) / 0.3), y0 = Math.round(34 - (1 - slide) * 40);
+        g.globalAlpha = 0.9 * fade;
+        g.fillStyle = '#05051a'; g.fillRect(4, y0, 216, 37);
+        g.globalAlpha = fade;
+        g.fillStyle = '#29e5ff'; g.fillRect(4, y0, 216, 1); g.fillRect(4, y0 + 36, 216, 1); g.fillRect(4, y0, 1, 37); g.fillRect(219, y0, 1, 37);
+        const shown = Math.floor(c.t * 42), total = c.text.length, talking = shown < total;
+        const mouth = talking && ((c.t * 9) | 0) % 2 ? 'open' : 'closed', blink = (c.t % 3.1) < 0.12;
+        g.drawImage(portrait(c.mood, mouth, blink), 7, y0 + 5);
+        drawText(g, NAME, 37, y0 + 3, '#29e5ff');
+        let left = shown;
+        c.lines.forEach((ln, i) => {
+            const part = ln.slice(0, Math.max(0, left));
+            left -= ln.length + 1;
+            if (part) drawText(g, part, 37, y0 + 12 + i * 8, '#ffffff');
+        });
+        g.globalAlpha = 1;
+    }
+
+    // ------------------------------------------------------------------ the cutscene backdrop
+    /** Paint a cutscene's scene into a 224×96 canvas: the sky outside, a window frame, a console, and Mira. */
+    drawStoryScene(c, sceneId, time, { talking = false, blink = false, mood = 'neutral', wave = 1 } = {}) {
+        const g = c.getContext('2d'), si = sectorOf(wave) % SECTORS.length, sec = SECTORS[si];
+        g.imageSmoothingEnabled = false;
+        const art = this.sceneArt[si] || (this.sceneArt[si] = { sky: bakeSky(sec), neb: bakeNebula(sec), planet: bakePlanet(26, sec.planet) });
+        g.drawImage(art.sky, 0, 80, 224, 96, 0, 0, 224, 96);
+        g.globalAlpha = 0.7;
+        const nx = Math.floor((time * 4) % 224);
+        g.drawImage(art.neb, 0, 100, 224, 96, -nx, 0, 224, 96); g.drawImage(art.neb, 0, 100, 224, 96, 224 - nx, 0, 224, 96);
+        g.globalAlpha = 1;
+        // stars drifting past the window: the carrier is moving
+        for (let i = 0; i < 46; i++) {
+            const x = ((i * 97) % 224 - time * (8 + (i % 4) * 7) + 448) % 224, y = (i * 53) % 78;
+            g.fillStyle = sec.stars[i % 3]; g.fillRect(Math.floor(x), y + 4, 1 + (i % 7 === 0 ? 1 : 0), 1);
+        }
+        g.drawImage(art.planet, 150, 6 + Math.sin(time * 0.3) * 1.5);
+        if (/^window\d$/.test(sceneId)) {
+            const spr = this.sprites.boss[+sceneId[6]][Math.floor(time * 3) & 1], k = 1.35, w = spr.w * k, h = spr.h * k;
+            const bx = 138 + Math.sin(time * 0.7) * 5, by = 38 + Math.sin(time * 1.1) * 3;
+            g.drawImage(spr.img, bx - w / 2, by - h / 2, w, h);
+            if (((time * 2) | 0) % 2) { g.fillStyle = '#ff004d'; g.fillRect(96, 6, 4, 4); g.fillRect(212, 6, 4, 4); }       // warning lamps
+        } else if (sceneId === 'hangar') {
+            const sh = this.sprites.ship.c, k = 2, bob = Math.sin(time * 1.6) * 2;
+            g.drawImage(sh.img, 150 - sh.w, 44 + bob - sh.h, sh.w * k, sh.h * k);
+            for (let i = 0; i < 8; i++) { g.fillStyle = ((time * 4 + i) | 0) % 3 ? '#1d3a9f' : '#ffc400'; g.fillRect(100 + i * 14, 70, 8, 2); }
+        }
+        // window frame and console
+        g.fillStyle = '#0a0a22'; g.fillRect(0, 0, 224, 4); g.fillRect(0, 0, 5, 96); g.fillRect(219, 0, 5, 96);
+        g.fillStyle = '#1d3a9f'; g.fillRect(4, 3, 216, 1); g.fillRect(4, 3, 1, 93); g.fillRect(219, 3, 1, 93);
+        g.fillStyle = '#10163f'; g.fillRect(0, 78, 224, 18);
+        g.fillStyle = '#29e5ff'; g.fillRect(0, 78, 224, 1);
+        for (let i = 0; i < 12; i++) { g.fillStyle = ((time * 2 + i * 0.7) | 0) % 3 === i % 3 ? '#ffec27' : ['#ff004d', '#4cdc4c', '#29e5ff'][i % 3]; g.fillRect(96 + i * 10, 84, 5, 2); g.fillStyle = '#05051a'; g.fillRect(96 + i * 10, 88, 5, 4); }
+        // Mira, in front
+        g.drawImage(portrait(mood, talking && ((time * 8) | 0) % 2 ? 'open' : 'closed', blink), 6, 18, 78, 78);
     }
 
     drawHud(G, g, t, st) {
@@ -361,7 +464,8 @@ export class View {
         const px = BW / 2 - 21;
         drawText(g, 'PWR', px, y, '#ff8a00');
         for (let i = 0; i < PLAYER.maxWeapon; i++) { g.fillStyle = i < G.player.weapon ? '#ff4d4d' : '#3a1a3a'; g.fillRect(px + 20 + i * 4, y + 1, 3, 5); }
-        for (let i = 0; i < Math.min(G.bombs, 5); i++) g.drawImage(S.bombIcon, BW - 12 - i * 11, y - 2);
+        for (let i = 0; i < Math.min(G.bombs, 8); i++) g.drawImage(S.bombIcon, BW - 12 - i * 11, y - 2);
+        drawText(g, 'CR ' + G.credits, BW - 4, y - 11, '#29e5ff', { align: 'r' });
         if (st.mode === 'title' && ((t * 1.6) | 0) % 2 === 0) drawText(g, 'DEMO PLAY', BW / 2, BH - 24, yellow, { align: 'c', shadow: '#05051a' });
     }
 
