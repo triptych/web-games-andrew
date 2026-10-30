@@ -1380,6 +1380,17 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 138, 0, 0.65);
 }
 
+.game-preview.doom-doilies,
+.carousel-slide-bg.doom-doilies {
+    background: radial-gradient(circle at 72% 26%, rgba(255, 244, 214, 0.85) 0 4%, transparent 5%), repeating-conic-gradient(from 0deg at 50% 118%, rgba(255, 190, 222, 0.16) 0 6deg, transparent 6deg 12deg), linear-gradient(170deg, #1a1036 0%, #4a2a78 48%, #c45a9a 80%, #ffc3de 100%);
+}
+
+.game-card.doom-doilies .play-button {
+    background: linear-gradient(135deg, #ffc3de, #ff5f98 55%, #8a3ad8);
+    color: #2a0a1e;
+    box-shadow: 0 0 14px rgba(255, 120, 180, 0.65);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
