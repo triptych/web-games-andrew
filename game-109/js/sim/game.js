@@ -10,8 +10,15 @@ import { clamp, emit } from './util.js';
 import { TYPES, addEnemy, updateEnemies, touches } from './enemies.js';
 import { bossProps, startBossDeath } from './bosses.js';
 import { planWave, CARRY } from './waves.js';
+import { UPGRADE_EFFECT, maxBombs, freshUpgrades, offer } from './upgrades.js';
 
 const W = FIELD.w, H = FIELD.h;
+
+/** The mothership's hangar: where the ship parks, and how fast it flies in and out. */
+export const DOCK = { y: 80, inSpeed: 170, outSpeed: 260 };
+
+/** Credits for a kill, by enemy kind (bonus-stage drones are worth 2). */
+const CREDITS = { drone: 1, weaver: 1, striker: 2, saucer: 4, dart: 1, cruiser: 10, carrier: 20, mine: 2 };
 
 export function newGame(seed = 1) {
     const G = {
@@ -41,6 +48,9 @@ export function newGame(seed = 1) {
         chain: 0,
         chainT: 0,
         medal: 0,
+        credits: 0,                 // spent at the mothership after each boss
+        upg: freshUpgrades(),       // permanent upgrades bought there
+        dock: null,                 // { st: approach | shop | launch, t, next } while at the mothership
         nextLife: SCORE.firstLife,
         dropIdx: 0,
         nid: 1,
@@ -59,6 +69,7 @@ function startWave(G, n) {
     G.phase = 'intro';
     G.phaseT = 0;
     G.form.diveT = 2.4;
+    if (G.upg.shield >= 1 && G.player.alive && !G.player.shield) G.player.shield = 1;   // the shield core
     emit(G, { type: 'wave', n, kind: G.plan.kind, boss: G.plan.boss ? G.plan.boss.idx : -1 });
 }
 
@@ -78,6 +89,7 @@ function spawnOrder(G, o) {
 function updateWave(G, dt) {
     G.phaseT += dt;
     const plan = G.plan;
+    if (G.phase === 'dock') return;          // the ship flies itself in updatePlayer; the shop waits for the player
     if (G.phase === 'intro') {
         if (G.phaseT >= (plan.kind === 'boss' ? WAVE.bossIntro : WAVE.intro)) { G.phase = 'fight'; G.phaseT = 0; }
         return;
@@ -87,7 +99,9 @@ function updateWave(G, dt) {
         if (plan.idx >= plan.orders.length && G.enemies.every((e) => e.dead)) endWave(G);
         return;
     }
-    if (G.phase === 'clear' && G.phaseT >= WAVE.clear) startWave(G, G.wave + 1);
+    if (G.phase === 'clear' && G.phaseT >= WAVE.clear) {
+        if (plan.kind === 'boss') enterDock(G); else startWave(G, G.wave + 1);
+    }
 }
 
 function endWave(G) {
@@ -96,8 +110,9 @@ function endWave(G) {
     let bonus = 0;
     if (perfect) {
         G.stats.perfects++;
-        if (plan.kind === 'bonus') { bonus = SCORE.bonusPerfect; G.bombs = Math.min(PLAYER.maxBombs, G.bombs + 1); }
+        if (plan.kind === 'bonus') { bonus = SCORE.bonusPerfect; G.bombs = Math.min(maxBombs(G), G.bombs + 1); }
         else bonus = SCORE.perfectPerWave * G.wave;
+        G.credits += plan.kind === 'bonus' ? 50 : 10;
         addScore(G, bonus);
     }
     G.phase = 'clear';
@@ -129,13 +144,14 @@ function collect(G, u) {
     switch (u.kind) {
         case 'P': if (p.weapon < PLAYER.maxWeapon) p.weapon++; else pts = 1000; break;
         case 'S': if (p.speed < PLAYER.maxSpeedLevel) p.speed++; else pts = 500; break;
-        case 'B': if (G.bombs < PLAYER.maxBombs) G.bombs++; else pts = 500; break;
+        case 'B': if (G.bombs < maxBombs(G)) G.bombs++; else pts = 500; break;
         case 'H': if (!p.shield) p.shield = 1; else pts = 500; break;
         case '1': if (G.lives < PLAYER.maxLives) G.lives++; else pts = 2000; break;
         case 'M': {
             pts = SCORE.medals[Math.min(G.medal, SCORE.medals.length - 1)];
             G.medal++;
             G.stats.medals++;
+            G.credits += 3;
             emit(G, { type: 'medal', x: u.x, y: u.y, value: pts, step: Math.min(G.medal, SCORE.medals.length) });
             break;
         }
@@ -147,7 +163,8 @@ function collect(G, u) {
 // ------------------------------------------------------------------ the player
 function fire(G) {
     const p = G.player, s = PLAYER.bulletSpeed, y = p.y - 8, w = p.weapon;
-    const b = (dx, ang, dmg = 1, pierce = 0, k = 0) => G.pbullets.push({ x: p.x + dx, y, vx: Math.sin(ang) * s, vy: -Math.cos(ang) * s, dmg, pierce, k });
+    const dm = 1 + UPGRADE_EFFECT.cannonStep * G.upg.cannon;             // cannon upgrades
+    const b = (dx, ang, dmg = 1, pierce = 0, k = 0) => G.pbullets.push({ x: p.x + dx, y, vx: Math.sin(ang) * s, vy: -Math.cos(ang) * s, dmg: dmg * dm, pierce, k });
     if (w === 1) b(0, 0);
     else if (w === 2) { b(-4, 0); b(4, 0); }
     else if (w === 3) { b(0, 0, 1, 0, 1); b(-5, -0.13); b(5, 0.13); }
@@ -173,12 +190,14 @@ function updatePlayer(G, inp, dt) {
         p.respawn -= dt;
         if (p.respawn <= 0 && G.lives > 0) {
             Object.assign(p, { x: W / 2, y: PLAYER.startY, alive: true, inv: PLAYER.invuln, fireT: 0, bank: 0 });
+            if (G.upg.shield >= 2) p.shield = 1;
             emit(G, { type: 'respawn' });
         }
         return;
     }
+    if (G.phase === 'dock') return dockFly(G, dt);
     const len = Math.hypot(inp.x, inp.y), k = len > 1 ? 1 / len : 1;
-    const sp = PLAYER.speed + PLAYER.speedStep * p.speed;
+    const sp = PLAYER.speed + PLAYER.speedStep * p.speed + UPGRADE_EFFECT.engineStep * G.upg.engine;
     p.vx = inp.x * k * sp;
     p.vy = inp.y * k * sp;
     p.x = clamp(p.x + p.vx * dt, PLAYER.margin, W - PLAYER.margin);
@@ -186,7 +205,7 @@ function updatePlayer(G, inp, dt) {
     p.bank += clamp(inp.x - p.bank, -dt * 9, dt * 9);          // the sprite leans into a turn
     p.inv = Math.max(0, p.inv - dt);
     p.fireT = Math.max(p.fireT - dt, -dt);
-    if (inp.fire && p.fireT <= 0) { fire(G); p.fireT += PLAYER.fireGap[p.weapon]; }
+    if (inp.fire && p.fireT <= 0) { fire(G); p.fireT += PLAYER.fireGap[p.weapon] * (1 - UPGRADE_EFFECT.rapidStep * G.upg.rapid); }
     if (inp.bomb && G.bombs > 0 && !G.bombFx) setOff(G);
 }
 
@@ -250,6 +269,7 @@ function killEnemy(G, e) {
     }
     const pts = bonus ? 200 : T.pts * multiplier(G);
     addScore(G, pts);
+    G.credits += bonus ? 2 : (CREDITS[e.type] ?? 1);
     emit(G, { type: 'boom', x: e.x, y: e.y, size: T.size, c: T.c });
     emit(G, { type: 'kill', kind: e.type, x: e.x, y: e.y, pts });
     emit(G, { type: 'popup', x: e.x, y: e.y - 6, text: String(pts) });
@@ -271,12 +291,65 @@ function bossRewards(G, e) {
     G.plan.killed++;
     G.stats.kills++;
     addScore(G, pts);
+    G.credits += 60 * (b.cycle + 1) + 20 * b.idx;
     emit(G, { type: 'popup', x: e.x, y: e.y - 10, text: String(pts) });
     // a shower of treasure
     for (const [i, kind] of ['P', 'S', 'B', 'M', 'M', 'M', 'M', 'M'].entries()) {
         G.powerups.push({ x: e.x + (i - 3.5) * 10, y: e.y, vx: (i - 3.5) * 10, vy: 12 + (i % 3) * 8, kind, t: 0 });
     }
     if (b.cycle >= 1 && G.lives < PLAYER.maxLives) G.powerups.push({ x: e.x, y: e.y, vx: 0, vy: 22, kind: '1', t: 0 });
+}
+
+// ------------------------------------------------------------------ the mothership
+/** Fly to the mothership (also used by the debug hooks and the tests). */
+export function enterDock(G) {
+    for (const u of G.powerups) collect(G, u);               // whatever the boss dropped is scooped up on the way
+    G.powerups.length = G.ebullets.length = G.pbullets.length = 0;
+    G.phase = 'dock';
+    G.phaseT = 0;
+    G.dock = { st: 'approach', t: 0, next: G.wave + 1 };
+    emit(G, { type: 'dock' });
+}
+
+/** The ship flies itself into the hangar, waits there, and flies back out when told to. */
+function dockFly(G, dt) {
+    const p = G.player, d = G.dock;
+    d.t += dt;
+    p.inv = Math.max(p.inv, 1);
+    p.vx = p.vy = 0;
+    if (d.st === 'shop') { p.bank = 0; return; }
+    const out = d.st === 'launch';
+    const tx = W / 2, ty = out ? PLAYER.startY : DOCK.y, dx = tx - p.x, dy = ty - p.y, dist = Math.hypot(dx, dy), sp = out ? DOCK.outSpeed : DOCK.inSpeed;
+    p.bank = clamp(dx / 30, -1, 1);
+    if (dist <= sp * dt) {
+        p.x = tx; p.y = ty; p.bank = 0;
+        if (out) {
+            const next = d.next;
+            G.dock = null;
+            p.inv = PLAYER.startInv;
+            startWave(G, next);
+        } else { d.st = 'shop'; emit(G, { type: 'dockopen' }); }
+    } else { p.x += (dx / dist) * sp * dt; p.y += (dy / dist) * sp * dt; p.vx = (dx / dist) * sp; p.vy = (dy / dist) * sp; }
+}
+
+/** Buy something from the hangar. Only while docked, and only what you can afford and is for sale. */
+export function buy(G, id) {
+    if (G.phase !== 'dock' || G.dock?.st !== 'shop') return false;
+    const o = offer(G, id);
+    if (!o || o.cost > G.credits) return false;
+    G.credits -= o.cost;
+    o.apply(G);
+    emit(G, { type: 'buy', id });
+    return true;
+}
+
+/** Leave the hangar. */
+export function launch(G) {
+    if (G.phase !== 'dock' || G.dock?.st !== 'shop') return false;
+    G.dock.st = 'launch';
+    G.dock.t = 0;
+    emit(G, { type: 'undock' });
+    return true;
 }
 
 // ------------------------------------------------------------------ one step
@@ -342,10 +415,14 @@ export function step(G, inp, dt) {
         }
         // power-ups
         for (const u of G.powerups) {
-            if (Math.hypot(u.x - p.x, u.y - p.y) < PLAYER.pickR + 5) { u.dead = true; collect(G, u); }
+            if (Math.hypot(u.x - p.x, u.y - p.y) < PLAYER.pickR + 5 + UPGRADE_EFFECT.magnetPick * G.upg.magnet) { u.dead = true; collect(G, u); }
         }
     }
     for (const u of G.powerups) {
+        if (G.upg.magnet && p.alive) {               // the magnet draws capsules and medals in
+            const dx = p.x - u.x, dy = p.y - u.y, d = Math.hypot(dx, dy);
+            if (d < 30 + UPGRADE_EFFECT.magnetPull * G.upg.magnet && d > 1) { u.x += (dx / d) * 90 * dt; u.y += (dy / d) * 90 * dt; }
+        }
         u.t += dt;
         u.x = clamp(u.x + u.vx * dt, 8, W - 8);
         if (u.x <= 8 || u.x >= W - 8) u.vx = -u.vx;
@@ -383,5 +460,8 @@ export function deserialize(d) {
     const G = { ...JSON.parse(JSON.stringify(rest)), rng: makeRng(0), events: [] };
     G.rng.setState(rngState);
     if (!G.plan || !Array.isArray(G.enemies)) throw new Error('damaged save');
+    G.upg = { ...freshUpgrades(), ...(G.upg || {}) };           // saves from before the hangar
+    G.credits ??= 0;
+    G.dock ??= null;
     return G;
 }

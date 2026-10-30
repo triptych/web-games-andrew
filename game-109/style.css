@@ -117,6 +117,34 @@ table { border-collapse: collapse; width: 100%; font-size: 10px; }
 td { padding: 6px 4px; border-bottom: 1px solid rgba(41, 229, 255, 0.2); vertical-align: middle; }
 td:first-child { color: var(--gold); white-space: nowrap; width: 1%; padding-right: 12px; }
 
+/* the hangar: it sits low, so the docked ship stays in view above it */
+#dock { background: transparent; align-items: flex-end; padding-top: calc(300px + var(--safe-t)); }
+@media (max-height: 640px) { #dock { padding-top: calc(52px + var(--safe-t)); align-items: center; background: rgba(3, 2, 14, 0.5); } }
+.dock-sheet { display: flex; flex-direction: column; overflow: hidden; padding: 12px 14px 8px; background: rgba(8, 6, 28, 0.92); }
+.dock-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+.dock-scroll { overflow-y: auto; min-height: 0; flex: 1; padding-right: 2px; scrollbar-width: thin; scrollbar-color: #29e5ff44 transparent; }
+.dock-sheet h2 { margin-bottom: 4px; }
+.dock-sheet h3 { margin: 10px 0 4px; }
+.dock-cr { color: var(--cyan); font-size: 12px; margin-bottom: 6px; }
+.dock-cr b { color: var(--gold); font-size: 16px; }
+.dock-list { display: flex; flex-direction: column; gap: 6px; }
+.dock-row {
+    display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 8px; text-align: left;
+    font: inherit; font-size: 10px; line-height: 1.5; color: var(--text); cursor: pointer; min-height: 44px; padding: 6px 10px;
+    background: rgba(41, 229, 255, 0.08); border: 2px solid var(--line); border-radius: 3px;
+}
+.dock-row:hover:not(:disabled) { background: rgba(41, 229, 255, 0.2); }
+.dock-row:disabled { opacity: 0.45; cursor: default; }
+.dock-row .nm { color: var(--gold); }
+.dock-row .pips { display: flex; gap: 3px; justify-content: flex-end; align-items: center; }
+.dock-row .pips i { width: 8px; height: 10px; border: 1px solid var(--cyan); background: transparent; }
+.dock-row .pips i.on { background: var(--cyan); }
+.screen-open #touch { visibility: hidden; }
+.dock-row .ds { color: var(--dim); font-size: 8px; }
+.dock-row .cost { color: var(--cyan); text-align: right; }
+.dock-row.afford .cost { color: var(--green); }
+.dock-row.maxed .cost { color: var(--gold); }
+
 /* the logo: chunky pixel type with a scrolling colour ramp */
 .title-sheet { text-align: center; width: min(320px, 100%); background: rgba(8, 6, 28, 0.62); padding: 14px; }
 #title { background: transparent; align-items: flex-end; padding-bottom: calc(40px + var(--safe-b)); }

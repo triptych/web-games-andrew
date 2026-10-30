@@ -484,6 +484,36 @@ export const CAPSULES = {
     '1': ['#ff5ec8', '#c41e8e', '#ffc8ec', '#6a0e4e'],
 };
 
+/** The mothership: a wide hull with rows of windows, panel seams, engine pods and a hangar mouth in the belly. */
+function makeMother() {
+    const w = 132, h = 42, c = canvas(w, h), g = c.getContext('2d'), P = PALETTES.hull;
+    const hw = (y) => (y < 5 ? 26 + y * 7 : y < 26 ? 61 + (y - 5) * 0.25 : 66 - (y - 26) * 3.4);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const dx = Math.abs(x + 0.5 - w / 2);
+        if (dx > hw(y)) continue;
+        let k = y < 3 ? 'a' : y < 9 ? 'b' : y < 24 ? 'c' : 'd';
+        if (dx > hw(y) - 2) k = y < 24 ? 'b' : 'c';                      // a lit rim
+        if (x % 22 === 0 && y > 4 && y < 26) k = 'd';                    // panel seams
+        if (y === 24) k = 'd';
+        g.fillStyle = P[k]; g.fillRect(x, y, 1, 1);
+    }
+    for (const wy of [12, 17]) for (let x = -52; x <= 52; x += 8) {       // windows
+        if (Math.abs(x) < 4) continue;
+        g.fillStyle = (x + wy) % 16 === 0 ? P.f : P.e; g.fillRect(w / 2 + x - 1, wy, 3, 2);
+    }
+    g.fillStyle = P.d; g.fillRect(w / 2 - 15, 30, 30, 12);                // the hangar mouth
+    g.fillStyle = '#05051a'; g.fillRect(w / 2 - 13, 31, 26, 11);
+    g.fillStyle = P.a; g.fillRect(w / 2 - 15, 29, 30, 1);
+    g.fillStyle = P.f; g.fillRect(w / 2 - 14, 30, 2, 1); g.fillRect(w / 2 + 12, 30, 2, 1);
+    for (const sx of [-1, 1]) {                                           // engine pods
+        g.fillStyle = P.c; g.fillRect(w / 2 + sx * 50 - 6, 30, 12, 8);
+        g.fillStyle = P.d; g.fillRect(w / 2 + sx * 50 - 6, 36, 12, 2);
+        g.fillStyle = '#29e5ff'; g.fillRect(w / 2 + sx * 50 - 3, 38, 6, 2);
+    }
+    const img = outline(c);
+    return { img, w: img.width, h: img.height };
+}
+
 export function makeSprites() {
     const S = { skins: SECTOR_SKINS.length };
 
@@ -543,6 +573,8 @@ export function makeSprites() {
         if (w >= 9) { g.fillStyle = '#ff8a00'; g.fillRect((w >> 1), 4, 3, 5); g.fillStyle = '#fff6a0'; g.fillRect((w >> 1) + 1, 5, 1, 3); }
         return c;
     });
+
+    S.mother = makeMother();
 
     // HUD icons
     S.lifeIcon = outline(draw(expand(['...a', '...a', '..ab', '.fab', 'fbbc', 'fcbd'], true), PALETTES.ship));

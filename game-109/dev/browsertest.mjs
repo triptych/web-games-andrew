@@ -6,7 +6,9 @@
  *   move the ship, hold fire shoots, X sets off a bomb → Escape pauses and the sim stops → Space on the
  *   focused Resume button resumes → the pause button → Save & Quit → Continue restores the game → the
  *   last ship goes, the game-over sheet asks for initials, the score lands in the table and survives a
- *   reload → Play Again. The title's High Scores, How to Play and Settings (calm mode) open and close.
+ *   reload → Play Again → after a boss the ship flies to the mothership and the Hangar opens (Escape does
+ *   not close it, Space buys on a focused row, Launch flies back out), and a game saved in the hangar
+ *   comes back to it. The title's High Scores, How to Play and Settings (calm mode) open and close.
  * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the menus, the touch deck
  *   appears, auto-fire is on and the FIRE button hidden, the stick moves the ship, BOMB bombs, with
  *   auto-fire off the FIRE button fires while held and stops when let go, controls ≥ 44 px and on
@@ -163,13 +165,14 @@ async function desktop() {
 
     // the pause button, then Save & Quit, then Continue
     await Q(page, () => { __sb.ff(10); });
-    const score = await Q(page, () => __sb.G.score), wave = await Q(page, () => __sb.G.wave);
     await Q(page, () => document.querySelector('#btn-pause').click());
     await until(page, () => !document.getElementById('pause').hidden, 'the ❚❚ button pauses');
+    const [score, wave, clock] = await Q(page, () => [__sb.G.score, __sb.G.wave, __sb.G.t]);      // read once it is paused
     await click(page, '#pause-menu [data-act="quit"]');
     await until(page, () => __sb.mode === 'title' && !document.getElementById('btn-continue').hidden, 'Save & Quit returns to the title with Continue');
     await click(page, '#title-menu [data-act="continue"]');
-    await until(page, ([s, w]) => __sb.mode === 'play' && __sb.G.score === s && __sb.G.wave === w, 'Continue restores the saved game', 30000, [score, wave]);
+    // the game runs on after Continue, so compare with "no less than": a restore that failed would be back at time 0
+    await until(page, ([s, w, t]) => __sb.mode === 'play' && __sb.G.score >= s && __sb.G.wave >= w && __sb.G.t >= t, 'Continue restores the saved game', 30000, [score, wave, clock]);
 
     // game over → initials → table → persists
     await Q(page, () => { __sb.G.score = 70000; __sb.die(true); });
@@ -213,6 +216,38 @@ async function desktop() {
     await shot(page, 'desktop-boss');
     const pic2 = await lit(page);
     check(pic2.bright > 40 && pic2.colours > 12, `the boss fight is drawn (${pic2.bright} bright samples, ${pic2.colours} colours)`);
+
+    // the hangar: after a boss the ship flies to the mothership and the shop opens
+    await Q(page, () => { const G = __sb.G; G.enemies.length = 0; G.ebullets.length = 0; G.plan.idx = G.plan.orders.length; G.credits = 300; __sb.dock(); });
+    await page.waitForTimeout(300);
+    await shot(page, 'desktop-docking');
+    await until(page, () => !document.getElementById('dock').hidden && __sb.G.dock?.st === 'shop', 'the ship flies to the mothership and the Hangar opens');
+    check(await Q(page, () => document.getElementById('dock-cr').textContent === '300'), 'the Hangar shows the credits');
+    check(await Q(page, () => document.activeElement?.classList.contains('dock-row')), 'focus starts on an item, not on Launch (a stray Space cannot launch)');
+    check(await Q(page, () => document.querySelectorAll('#dock .dock-row').length === 9), 'six upgrades and three supplies are listed');
+    await shot(page, 'desktop-hangar');
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+    check(await Q(page, () => !document.getElementById('dock').hidden), 'Escape does not close the Hangar (you launch from it)');
+    await page.keyboard.press('Space');
+    await until(page, () => __sb.G.upg.engine === 1 && __sb.G.credits === 260, 'Space on the focused ENGINES row buys it (40 credits)');
+    check(await Q(page, () => document.querySelectorAll('[data-buy="engine"] .pips i.on').length === 1), 'its level box fills in');
+    await click(page, '[data-buy="cannon"]');
+    await until(page, () => __sb.G.upg.cannon === 1 && __sb.G.credits === 210, 'clicking CANNONS buys it (50 credits)');
+    await Q(page, () => { __sb.G.credits = 5; __sb.ui.renderDock(__sb.G); });
+    check(await Q(page, () => document.querySelector('[data-buy="rapid"]').disabled), 'what you cannot afford is disabled');
+    await Q(page, () => { __sb.G.credits = 300; __sb.ui.renderDock(__sb.G); });
+    // a game saved in the hangar comes back to it
+    await Q(page, () => { __sb.save(); });
+    await page.reload();
+    await page.waitForFunction(() => window.__sb && __sb.mode === 'title', null, { timeout: 60000 });
+    await click(page, '#title-menu [data-act="continue"]');
+    await until(page, () => __sb.mode === 'play' && !document.getElementById('dock').hidden && __sb.G.upg.engine === 1, 'Continue brings back a game saved in the hangar, upgrades and all');
+    const w = await Q(page, () => __sb.G.wave);
+    await click(page, '#dock-go');
+    await until(page, () => document.getElementById('dock').hidden, 'Launch closes the Hangar');
+    await until(page, (n) => __sb.G.wave === n + 1 && !__sb.G.dock, 'the ship flies back out and the next wave begins', 30000, w);
+    await Q(page, () => { __sb.G.player.inv = 1e9; });
     reportErrors('desktop');
 }
 
@@ -269,9 +304,12 @@ async function phone(w, h) {
     for (let i = 1; i <= 8; i++) await touch('touchMove', zone.x + 12 + i * 20, zone.y);
     const long = await stickState();
     check(Math.abs(short - 1) < 0.01 && Math.abs(long - 1) < 0.01, `the stick is constant speed (a 12 px drag gives ${short.toFixed(2)}, a 170 px drag ${long.toFixed(2)})`);
-    const back = await Q(page, () => __sb.input.stick.ox);
-    await touch('touchMove', back + 20 - 0, zone.y);          // 20 px of the thumb: near the leash, still going
-    for (let i = 0; i < 4; i++) await touch('touchMove', back + 3, zone.y);   // ... then back to within 3 px of the base
+    await page.waitForTimeout(80);
+    await touch('touchMove', (await Q(page, () => __sb.input.stick.ox)) + 20, zone.y);   // 20 px out: past the leash, still going
+    await page.waitForTimeout(80);
+    const back = await Q(page, () => __sb.input.stick.ox);                                // the base has been dragged along
+    await touch('touchMove', back + 2, zone.y);                                           // ... then back to within 2 px of it
+    await page.waitForTimeout(80);
     check(await stickState() === 0, 'pulling the thumb back a few px stops the ship (no rubber band)');
     await touch('touchEnd', 0, 0);
 
@@ -323,6 +361,19 @@ async function phone(w, h) {
     const after = await Q(page, () => __sb.seen.shoot || 0);
     await page.waitForTimeout(500);
     check(await Q(page, (n) => (__sb.seen.shoot || 0) <= n + 1, after), 'letting go of FIRE stops the shooting');
+
+    // the hangar by touch
+    await Q(page, () => { __sb.G.credits = 120; __sb.dock(); });
+    await until(page, () => !document.getElementById('dock').hidden && __sb.G.dock?.st === 'shop', 'the Hangar opens after the flight');
+    check(await Q(page, () => getComputedStyle(document.getElementById('touch')).visibility === 'hidden'), 'the touch deck steps out of the way of the Hangar');
+    const goBox = await Q(page, () => { const r = document.getElementById('dock-go').getBoundingClientRect(); return r.width >= 44 && r.height >= 44 && r.top >= 0 && r.bottom <= innerHeight; });
+    check(goBox, 'Launch is at least 44 px and on screen without scrolling');
+    await tapSel('[data-buy="engine"]');
+    await until(page, () => __sb.G.upg.engine === 1 && __sb.G.credits === 80, 'a tap on ENGINES buys it');
+    const w5 = await Q(page, () => __sb.G.wave);
+    await tapSel('#dock-go');
+    await until(page, (n) => __sb.G.wave === n + 1 && !__sb.G.dock, 'a tap on Launch flies back out into the next wave', 30000, w5);
+    await until(page, () => getComputedStyle(document.getElementById('touch')).visibility === 'visible', 'the touch deck is back');
     reportErrors(`phone ${w}×${h}`);
 }
 

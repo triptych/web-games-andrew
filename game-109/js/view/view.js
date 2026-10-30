@@ -116,13 +116,14 @@ export class View {
         this.time += dt;
         const t = this.time, g = this.b;
 
-        const warp = G.phase === 'clear' ? 4.5 : (G.plan?.kind === 'boss' && G.phase === 'intro') ? 2.4 : 1;
+        const warp = G.phase === 'dock' ? (G.dock?.st === 'shop' ? 1.5 : 3.4) : G.phase === 'clear' ? 4.5 : (G.plan?.kind === 'boss' && G.phase === 'intro') ? 2.4 : 1;
         if (this.stars.sector < 0) this.stars.setSector(sectorOf(G.wave));
         this.stars.update(dt, warp);
         this.fx.update(dt);
         if (this.toast) { this.toast.t += dt; if (this.toast.t > 1.6) this.toast = null; }
 
         this.stars.draw(g, t);
+        this.drawMother(G, g, t);
         this.drawPowerups(G, g, t);
         this.drawEnemies(G, g, t);
         this.drawBeams(G, g, t);
@@ -145,6 +146,31 @@ export class View {
         const px = Math.round(x - spr.w / 2), py = Math.round(y - spr.h / 2);
         g.drawImage(spr.img, px, py);
         if (flash > 0 && spr.white) { g.globalAlpha = flash; g.drawImage(spr.white, px, py); g.globalAlpha = 1; }
+    }
+
+    /** After a boss: the mothership slides in from the top, a tractor beam draws the ship up to it, and it slides away on launch. */
+    drawMother(G, g, t) {
+        const d = G.dock;
+        if (G.phase !== 'dock' || !d) return;
+        const spr = this.sprites.mother;
+        const u = d.st === 'approach' ? Math.min(1, d.t / 0.9) : d.st === 'launch' ? 1 - Math.min(1, d.t / 0.6) : 1;
+        const e = 1 - (1 - u) * (1 - u), cy = -26 + 62 * e, x = Math.round(BW / 2 - spr.w / 2), y = Math.round(cy - spr.h / 2);
+        g.drawImage(spr.img, x, y);
+        const mouthY = y + 30, mouthX = BW / 2;
+        // guide lights along the mouth
+        for (let i = -2; i <= 2; i++) { g.fillStyle = ((t * 6 + i) | 0) % 2 ? '#ffec27' : '#ff004d'; g.fillRect(Math.round(mouthX + i * 6), mouthY + 11, 2, 1); }
+        if (d.st !== 'launch' && u >= 1) {
+            // the tractor beam: dotted lines from the mouth to the ship, scrolling upward
+            const p = G.player, top = mouthY + 12;
+            for (const side of [-1, 1]) {
+                const x0 = mouthX + side * 12, x1 = p.x + side * 8;
+                for (let k = 0; k < 9; k++) {
+                    const f = (k + ((t * 5) % 1)) / 9, px = x0 + (x1 - x0) * f, py = top + (p.y - 8 - top) * f;
+                    if (py > p.y - 6) continue;
+                    g.fillStyle = k % 2 ? '#29e5ff' : '#b4f0ff'; g.fillRect(Math.round(px), Math.round(py), 1, 2);
+                }
+            }
+        }
     }
 
     drawPowerups(G, g, t) {
@@ -236,7 +262,7 @@ export class View {
     drawPlayer(G, g, t) {
         const p = G.player, S = this.sprites;
         if (!p.alive) return;
-        if (p.inv > 0 && !G.bombFx && ((t * 16) | 0) % 2) return;                // blinks while invulnerable
+        if (p.inv > 0 && !G.bombFx && G.phase !== 'dock' && ((t * 16) | 0) % 2) return;                // blinks while invulnerable
         const spr = p.bank > 0.35 ? S.ship.r : p.bank < -0.35 ? S.ship.l : S.ship.c;
         const fl = S.flame[(t * 20) & 1];
         g.drawImage(fl.img, Math.round(p.x - fl.w / 2), Math.round(p.y + 6));
@@ -313,6 +339,9 @@ export class View {
                 const sub = G.wave === 1 ? 'GET READY!' : first ? 'SECTOR ' + (sectorOf(G.wave) + 1) + ' - ' + SECTORS[sectorOf(G.wave)].name : '';
                 if (sub) drawText(g, sub, cx, 126, '#ffec27', { align: 'c', shadow: '#05051a' });
             }
+        } else if (G.phase === 'dock' && G.dock) {
+            if (G.dock.st === 'approach') drawText(g, 'RETURNING TO MOTHERSHIP', cx, 150, '#29e5ff', { align: 'c', shadow: '#05051a' });
+            else if (G.dock.st === 'launch') drawText(g, 'LAUNCH!', cx, 140, '#ffec27', { scale: 3, align: 'c', shadow: '#c4122e' });
         } else if (G.phase === 'clear' && G.phaseT < WAVE.clear - 0.3) {
             const info = this.clearInfo, perfect = info?.perfect, kind = plan?.kind;
             const title = kind === 'boss' ? 'BOSS DESTROYED!' : kind === 'bonus' ? 'BONUS STAGE CLEAR' : 'WAVE ' + G.wave + ' CLEAR';
@@ -361,7 +390,8 @@ export class View {
         const px = BW / 2 - 21;
         drawText(g, 'PWR', px, y, '#ff8a00');
         for (let i = 0; i < PLAYER.maxWeapon; i++) { g.fillStyle = i < G.player.weapon ? '#ff4d4d' : '#3a1a3a'; g.fillRect(px + 20 + i * 4, y + 1, 3, 5); }
-        for (let i = 0; i < Math.min(G.bombs, 5); i++) g.drawImage(S.bombIcon, BW - 12 - i * 11, y - 2);
+        for (let i = 0; i < Math.min(G.bombs, 8); i++) g.drawImage(S.bombIcon, BW - 12 - i * 11, y - 2);
+        drawText(g, 'CR ' + G.credits, BW - 4, y - 11, '#29e5ff', { align: 'r' });
         if (st.mode === 'title' && ((t * 1.6) | 0) % 2 === 0) drawText(g, 'DEMO PLAY', BW / 2, BH - 24, yellow, { align: 'c', shadow: '#05051a' });
     }
 

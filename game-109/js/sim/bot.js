@@ -8,6 +8,8 @@
 // (a move is held between decisions, up to half a second at skill 0.2), so they get hit more.
 
 import { FIELD, PLAYER } from '../config.js';
+import { UPGRADES, offer } from './upgrades.js';
+import { buy, launch } from './game.js';
 
 const W = FIELD.w, H = FIELD.h;
 const DIRS = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [0.71, 0.71], [-0.71, 0.71], [0.71, -0.71], [-0.71, -0.71]];
@@ -44,6 +46,11 @@ function danger(G, x, y, tt, bot) {
 
 export function botInput(G, bot) {
     const p = G.player;
+    // docked: spend the credits and go (the bot sends the same commands the hangar screen does)
+    if (G.phase === 'dock') {
+        if (G.dock?.st === 'shop') { botDock(G); launch(G); }
+        return { x: 0, y: 0, fire: false, bomb: false };
+    }
     if (!p.alive) return { x: 0, y: 0, fire: false, bomb: false };
     bot.n++;
     // reaction time: decide every so often and hold that move in between (0.08 s at skill 1, 0.5 s at 0.2)
@@ -100,4 +107,18 @@ function decide(G, bot) {
     const bomb = bot.bombs && G.bombs > 0 && !G.bombFx && bestDanger > 700 + 500 * (1 - bot.skill) && p.inv <= 0;
 
     return { x: dir[0], y: dir[1], fire: true, bomb };
+}
+
+// ------------------------------------------------------------------ the hangar
+/** What the bot buys at the mothership: the gun first, then a spread of upgrades, ships when it is low. */
+export function botDock(G) {
+    for (let guard = 0; guard < 40; guard++) {
+        const picks = [];
+        if (G.player.weapon < PLAYER.maxWeapon) picks.push({ id: 'refit', score: -1 });
+        if (G.lives <= 1) picks.push({ id: 'life', score: -0.5 });
+        for (const u of UPGRADES) if (offer(G, u.id)) picks.push({ id: u.id, score: G.upg[u.id] / u.max });
+        if (G.bombs < 2) picks.push({ id: 'bomb', score: -0.2 });
+        const afford = picks.filter((c) => offer(G, c.id) && offer(G, c.id).cost <= G.credits).sort((a, b) => a.score - b.score);
+        if (!afford.length || !buy(G, afford[0].id)) break;
+    }
 }

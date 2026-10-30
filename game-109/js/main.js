@@ -9,7 +9,7 @@ import { Audio } from './audio.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave, loadScores, qualifies, addHighScore } from './save.js';
-import { newGame, step, jumpToWave } from './sim/game.js';
+import { newGame, step, jumpToWave, enterDock, buy, launch } from './sim/game.js';
 import { makeBot, botInput } from './sim/bot.js';
 
 const params = new URLSearchParams(location.search);
@@ -97,6 +97,17 @@ document.getElementById('pause-menu').addEventListener('click', (e) => {
     else ui.openScreen(act);
 });
 document.getElementById('btn-pause').addEventListener('click', () => pause());
+for (const id of ['dock-list', 'dock-supplies']) {
+    document.getElementById(id).addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-buy]');
+        if (!b || b.disabled) return;
+        if (buy(G, b.dataset.buy)) ui.renderDock(G); else audio.ui('close');
+    });
+}
+document.getElementById('dock-go').addEventListener('click', () => {
+    ui.closeScreen('dock');
+    if (launch(G)) saveGame(G);
+});
 document.getElementById('over-again').addEventListener('click', () => { audio.ui('click'); startGame(freshGame()); });
 document.getElementById('over-quit').addEventListener('click', () => { audio.ui('click'); toTitle(); });
 document.getElementById('over-entry').addEventListener('submit', (e) => {
@@ -128,7 +139,10 @@ function startGame(g, resumed = false) {
     ui.showHud(true);
     applySettings();
     audio.ui('start');
-    if (resumed) { G.events.length = 0; announceWave(); }
+    if (resumed) {
+        G.events.length = 0;
+        if (G.phase === 'dock' && G.dock?.st === 'shop') ui.openDock(G); else announceWave();     // a game saved in the hangar comes back to it
+    }
     saveGame(G);
 }
 
@@ -162,7 +176,7 @@ function handlePresses() {
     if (ui.anyScreen()) {
         if (key === 'ArrowDown') ui.moveFocus(1);
         else if (key === 'ArrowUp') ui.moveFocus(-1);
-        else if ((key === 'Escape' || key === 'KeyP') && ui.top() !== 'title' && ui.top() !== 'over') { audio.ui('close'); ui.closeTop(); }
+        else if ((key === 'Escape' || key === 'KeyP') && ui.top() !== 'title' && ui.top() !== 'over' && ui.top() !== 'dock') { audio.ui('close'); ui.closeTop(); }
         else if (key === 'Enter' && press.pad) document.activeElement?.click?.();
         return;
     }
@@ -180,6 +194,7 @@ function flushEvents() {
     for (const e of ev) seen[e.type] = (seen[e.type] || 0) + 1;
     view.onEvents(G, ev);
     audio.onEvents(G, ev);
+    if (ev.some((e) => e.type === 'dockopen')) { ui.openDock(G); saveGame(G); }
     if (ev.some((e) => e.type === 'over')) {
         mode = 'over';
         clearSave();
@@ -246,6 +261,8 @@ if (DEBUG) {
         autoplay(on = true, skill = 1) { autoBot = on ? makeBot({ skill }) : null; },
         /** Run the sim ahead synchronously with the bot playing; events reach the view as usual. */
         ff(sec, skill = 1) { const b = makeBot({ skill }); for (let t = 0; t < sec && !G.over; t += STEP) step(G, botInput(G, b), STEP); flushEvents(); },
+        /** Fly to the mothership now (as after a boss). */
+        dock() { enterDock(G); flushEvents(); },
         /** Cut to wave n. */
         wave(n) { jumpToWave(G, n); flushEvents(); },
         /** Put a bullet on the ship so it dies (down to its last life if `last`). */

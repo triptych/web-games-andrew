@@ -86,7 +86,7 @@
                 <tr><td><i class="cap h">H</i></td><td>Shield: absorbs one hit</td></tr>
                 <tr><td><i class="cap m">★</i></td><td>Medal: worth more with each one you grab</td></tr>
             </table>
-            <p class="small">Blinking enemies carry a power-up. Chain kills for a score multiplier. Every fourth wave is a <b>bonus stage</b>: nothing shoots, so hit them all. Every fifth wave is a <b>boss</b>. Lose a ship and your gun drops two levels.</p>
+            <p class="small">Blinking enemies carry a power-up. Chain kills for a score multiplier. Every fourth wave is a <b>bonus stage</b>: nothing shoots, so hit them all. Every fifth wave is a <b>boss</b>; after it you dock with the mothership and spend the <b>credits</b> you earned on upgrades. Lose a ship and your gun drops two levels.</p>
             <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
         </div>
     </div>
@@ -121,6 +121,20 @@
             </label>
             <button id="set-delete" class="btn danger">Delete saved game</button>
             <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="dock" class="screen" hidden>
+        <div class="sheet dock-sheet">
+            <div class="dock-head">
+                <div><h2>Hangar</h2><div class="dock-cr">CREDITS <b id="dock-cr">0</b></div></div>
+                <button id="dock-go" class="btn primary">Launch</button>
+            </div>
+            <div class="dock-scroll">
+                <div id="dock-list" class="dock-list"></div>
+                <h3>Supplies</h3>
+                <div id="dock-supplies" class="dock-list"></div>
+            </div>
         </div>
     </div>
 

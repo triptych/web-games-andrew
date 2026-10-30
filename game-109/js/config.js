@@ -1,7 +1,7 @@
 // STARBLAZER '86 — tuning and constants. Shared by the sim, the view and the tests.
 // Distances are in buffer pixels (the screen is a 224×288 pixel buffer), speeds in px/s.
 
-export const VERSION = '1.1.0';
+export const VERSION = '1.2.0';
 export const SAVE_KEY = 'starblazer-86.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)
@@ -35,6 +35,6 @@ export const WAVE = { intro: 2.2, bossIntro: 3.4, clear: 2.8, bossEvery: 5, bonu
 
 export const ENEMY = {
     bulletSpeed: 68, maxBullets: 90,
-    fireScale: 0.075,                      // more fire per wave of difficulty
-    speedScale: 0.02, speedCap: 0.85,
+    fireScale: 0.095,                      // more fire per wave of difficulty
+    speedScale: 0.023, speedCap: 1.0,
 };
