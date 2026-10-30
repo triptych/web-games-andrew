@@ -22,7 +22,7 @@ Tone: loud, bright, a little silly, and fair. Nothing is a surprise: bonus stage
 ## Mechanics
 
 ### The ship
-- Moves at 98 px/s (+14 per Speed capsule, up to three) in eight directions on the whole sky below y = 34; diagonals are no faster. The hit box for bullets is a 2.6 px circle, for enemy bodies 4.5 px.
+- Moves at 118 px/s (+16 per Speed capsule, up to three) in eight directions on the whole sky below y = 34; diagonals are no faster. The hit box for bullets is a 2.6 px circle, for enemy bodies 4.5 px.
 - **Fire** is held (a tap always fires at least once, even if the key goes up before a simulation step). Gap between volleys 0.15 s at level 1 down to 0.12 s at level 5.
 - **Weapon levels:** 1 single, 2 twin, 3 triple (centre and two angled), 4 five-way, 5 seven-way with a piercing core (2 damage, goes through up to three enemies). A lost ship costs two levels.
 - **Bomb:** a ring that grows from the ship at 420 px/s for 0.85 s. It wipes every enemy bullet it crosses and hurts every enemy it crosses once (30 damage, 45 to a boss) and makes the ship invulnerable for 1.7 s. Two at the start, five at most.
@@ -66,7 +66,7 @@ A dying boss shakes for 2.4 s while explosions go off across its hull, every bul
 
 | Action | Keyboard | Gamepad | Touch |
 |---|---|---|---|
-| Move | Arrows / WASD | Stick / d-pad | Floating stick, anywhere on the left |
+| Move | Arrows / WASD | Stick / d-pad | Floating stick: a touch anywhere that is not a button |
 | Fire | Space / Z / J (hold) | A / bumpers (hold) | FIRE (hold), or automatic |
 | Bomb | X / B / K / Shift | B / X | BOMB |
 | Pause | P / Esc | Start | ❚❚ |
@@ -110,6 +110,9 @@ The first bot dodged with perfect information and no reaction time and reached w
 - Two-player alternating turns, as on the cabinets.
 
 ## Changelog
+
+### v1.0.1 (2026-10-30)
+- A faster ship (118 px/s), a stick that reaches full speed after ~30 px with a small dead zone, and the whole screen as the stick area (the BOMB and FIRE buttons keep their own touches).
 
 ### v1.0.0 (2026-10-30)
 - First release: the ship, five weapon levels, bombs, shields, medals and chains, nine kinds of enemy, a wave planner with a Galaga grid and a Space-Invaders march, bonus stages, three bosses, explosions, a chiptune soundtrack, an attract demo, high scores with initials, saves, keyboard, gamepad and touch, a calm mode.

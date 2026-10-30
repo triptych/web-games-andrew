@@ -66,7 +66,8 @@ b { color: var(--gold); font-weight: normal; }
 
 /* ---------------------------------------------------------------- touch deck */
 #touch { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
-#stick-zone { position: absolute; left: 0; bottom: 0; width: 55%; height: 65%; pointer-events: auto; touch-action: none; }
+/* the whole screen is the stick: a touch anywhere starts it, and the buttons (later in the page) sit above it */
+#stick-zone { position: absolute; inset: 0; pointer-events: auto; touch-action: none; }
 #stick { position: absolute; width: 0; height: 0; opacity: 0.3; left: 90px; bottom: 110px; }
 #stick.on { opacity: 0.9; }
 #stick .ring { position: absolute; width: 112px; height: 112px; left: -56px; top: -56px; border-radius: 50%; border: 3px solid rgba(41, 229, 255, 0.7); }
