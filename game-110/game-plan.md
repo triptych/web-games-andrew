@@ -2,7 +2,7 @@
 
 **Genre:** Idle clicker / incremental, with RPG trimmings
 **Engine:** three.js r165, no asset files
-**Status:** v1.1.0
+**Status:** v1.2.0
 
 ---
 
@@ -83,6 +83,14 @@ A board of three cards; starting one sends its henchmen and puts a new card in i
 - **Secret commissions** (six): charm (worth 300–5,000 s of production), sometimes a little gold, a small dread cost, and a 3–20% chance of an **heirloom**. *An Anonymous Bake Sale*, *Win the Village Pie Contest (in a Fake Moustache)*, *Knit Sweaters for the Orphanage*, *the Princess's Wedding Dress*, *Redecorate the Heroes' Guild (Incognito)*, *Cater the Royal Ball (Disguised as a Duchess)*.
 - **Heirlooms** (twelve), kept forever: +10% to a hobby, slower dread decay, stronger cackles, more visitors, more tribute, stronger crafting, +5% charm, better offline rate. *Portrait of Mother*: "She'd be so proud. Of the evil. Not the doilies."
 
+### The cemetery and Skull Swap
+- **The cemetery** lies out past the Ballroom's far door: a raised, moonlit graveyard with an iron fence, a gate, a dead tree, lanterns, pumpkins and mist. It is always open to visit (the 🪦 Graves button, G, Q/E after the last open room, or a tap on it in the whole castle); the Overlord waits by the gate. Its five **gravestones** are mini-games, and their progress is kept forever, through every relocation.
+- **Skull Swap** (the middle grave) opens when you **employ 25 minions** in a lair: about five to ten minutes in for an attentive player, early enough to be a reward for getting going and late enough that the castle comes first. The closed grave says so, with your progress. The other four graves are *Not Yet Dug*: reserved for future mini-games.
+- **The board** ([js/sim/match3.js](js/sim/match3.js)): 7×7 tokens drawn in the game's style (a cute skull, a cupcake, yarn, a candle, a black rose, a teacup; five kinds until level 4, then six). Swap neighbours to line up three or more; a swap that makes no match swaps back for free. Four in a line make a **line-clearer** (it clears its row or column when it goes); five, or an L or T, make a **jack-o'-lantern** (it clears the 3×3 around it); specials caught in a blast go off too. Cascades score more. If no move is left, the board shuffles.
+- **Levels** rotate between a score goal, collecting two kinds of token, and clearing **cobwebs** (a match on a webbed cell clears it). Each goal is a share of what a sensible player reaches in the moves given (about 175 points a move with five kinds, 100 with six, measured with the bot), rising from 45% at level 1 to 90% from level 31, with fewer moves every six levels. Levels are endless; a loss just retries the level. Stars: three with 30% of the moves left, two with 12%.
+- **Rewards** are paid into the castle on a win: charm worth 90, 150 or 240 seconds of production (one, two or three stars) and gold of `(3 + 0.6 × level) × the tribute scale × (0.6 + 0.2 × stars)`. Five trophies: clear levels 1, 10, 25 and 50, and ten three-star levels.
+- **Controls:** drag a token onto a neighbour, or tap one and then a neighbour; arrow keys move a cursor, Space or Enter picks a token up and an arrow swaps it. After seven idle seconds a possible move wiggles. Esc goes back to the graves.
+
 ### Mastery
 Charm made in a room (by minions and by hand) raises its mastery level at 100, 500, 2,500 … (×5). Each level is +3% to that hobby. Every four levels the room's centrepiece grows (more cake tiers, a longer gown, a bigger bouquet, a taller teacup tower).
 
@@ -129,6 +137,8 @@ There is no ending; it is an idle game. The story is told in flavour: minion and
 | `js/main.js` | Boot, title and play, the command queue, the fixed-step loop, keys and canvas taps, events, saving, time away, debug hooks |
 | `js/sim/game.js` | The rules: `newGame`, `step`, `act`, `rates`, prices, offline `away`, `serialize`/`deserialize` |
 | `js/sim/data.js` | Every table: hobbies, minions, upgrades, décor, abilities, visitors, schemes, heirlooms, perks, lairs, trophies |
+| `js/sim/match3.js` | Skull Swap: boards, swaps, cascades, specials, cobwebs, goals, stars, levels, a bot (pure; the board keeps its own random state) |
+| `js/m3view.js` | The Skull Swap board on a canvas: plays back a swap's steps, drag, tap and key input |
 | `js/sim/bot.js` | An auto-player that sends the same commands: tests, balance, the title-screen demo |
 | `js/view/view.js` | Camera framing, minions and décor following the sim, the Overlord, visitors, event effects, picking |
 | `js/view/layout.js` | Where minions stand: slots clear of every measured piece of furniture, décor and window (pure, tested in Node) |
@@ -161,6 +171,9 @@ From the bot table (seed 9001, eight hours each):
 - A sixth hobby (gardening?), seasonal events, and a portrait of Noxia for the welcome-back sheet.
 
 ## Changelog
+
+### v1.2.0 (2026-10-30)
+- Added: **the cemetery**, a 3D graveyard past the Ballroom with five gravestones, each a mini-game. **Skull Swap**, a match-three of the game's own art (skulls, cupcakes, yarn, candles, roses, teacups, jack-o'-lanterns, cobwebs), opens when you employ 25 minions and pays charm and gold into the castle for every level cleared; four more graves are waiting for future games. A 🪦 Graves button, G and Q/E reach it, and the whole-castle view includes it. Five new trophies. The match-three is pure and seeded like the rest of the sim, balanced by a bot over 30 levels, and its board plays back each swap's steps as animations with sounds that climb with each cascade.
 
 ### v1.1.0 (2026-10-30)
 - Changed: rooms are locked until their first minion is hired. Before, a room with no minions only looked locked: you could go there with its button, Q/E or the whole-castle view and craft there, raising its mastery (and growing its centrepiece) before owning a single minion of that hobby. Now the sim refuses to switch to a locked room (`roomOpen()`), a locked room's button shows a 🔒 and a tap says which minion opens it, Q/E skip locked rooms, a tap on one in the whole castle gives the same hint, and a save made in a locked room loads in the Kitchen. Opening a room blows its cobwebs away in a burst of dust and sparkles while its lights fade up.

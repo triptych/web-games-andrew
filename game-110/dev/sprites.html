@@ -15,7 +15,7 @@
     <div id="out"></div>
     <script type="module">
         // A neutral page for judging every sprite at 4× before it goes under coloured lights and bloom.
-        import { drawOverlord, drawMinion, drawVisitor, drawStation, drawHenchman, drawEmblem } from '../js/view/art.js';
+        import { drawOverlord, drawMinion, drawVisitor, drawStation, drawHenchman, drawEmblem, drawToken, drawPumpkin, TOKEN_KINDS } from '../js/view/art.js';
         import { MINIONS, VISITORS, HOBBIES } from '../js/sim/data.js';
         const out = document.getElementById('out');
         const section = (title, items) => {
@@ -34,6 +34,7 @@
         section('Minions', MINIONS.map((m) => [m.name, drawMinion(m.id)]));
         section('Visitors and henchmen', [...VISITORS.map((v) => [v.name, drawVisitor(v.id)]), ['Henchman', drawHenchman()], ['Emblem', drawEmblem()]]);
         section('Centrepieces', HOBBIES.flatMap((h) => [0, 1, 2, 3].map((t) => [`${h.id} ${t}`, drawStation(h.id, t)])));
+        section('Skull Swap tokens', [...TOKEN_KINDS.map((k) => [k, drawToken(k)]), ['jack-o’-lantern', drawPumpkin()]]);
         window.ready = true;
     </script>
 </body>

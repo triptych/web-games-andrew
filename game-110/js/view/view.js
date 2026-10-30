@@ -6,7 +6,8 @@
 
 import * as THREE from 'three';
 import { Stage } from './stage.js';
-import { buildCastle, RW, RH, RD, GAP, T, roomX, SLOTS_PER_KIND, LANE, VISIT } from './castle.js';
+import { buildCastle, RW, RH, RD, GAP, T, roomX, SLOTS_PER_KIND, LANE, VISIT, YARD } from './castle.js';
+import { drawToken } from './art.js';
 import { SpriteLib } from './sprites.js';
 import { Particles, Rings, Billboard, SHAPE } from './fx.js';
 import { SPRITE_SCALE } from './art.js';
@@ -37,6 +38,7 @@ export class View {
         this.raycaster = new THREE.Raycaster();
         this.insets = { top: 0, right: 0, bottom: 0, left: 0 };
         this.overview = false;
+        this.place = 'castle';      // or 'yard': the cemetery
         this.focus = 'cook';
         this.camPos = new THREE.Vector3(0, 6, 22);
         this.camTarget = new THREE.Vector3(0, 2.6, 0);
@@ -288,9 +290,23 @@ export class View {
                 const i = Math.round(hit.x / GAP);
                 if (i >= 0 && i < HOBBIES.length && Math.abs(hit.x - roomX(i)) < RW / 2 + 0.6) return { type: 'room', id: HOBBIES[i].id };
             }
+            if (hit.x > YARD.x - YARD.w / 2 && hit.x < YARD.x + YARD.w / 2) return { type: 'yard' };
+            return null;
+        }
+        if (this.place === 'yard') {
+            for (const gr of this.castle.yard.graves) {
+                const s = this.graveScreen(gr.id), top = this.toScreen(gr.group.position.clone().add(new THREE.Vector3(this.castle.yard.x, gr.h, 0)));
+                const rad = Math.max(40, Math.abs(s.y - top.y) * 1.1);
+                if (Math.hypot(clientX - s.x, clientY - s.y) < rad) return { type: 'grave', id: gr.id };
+            }
             return null;
         }
         return { type: 'craft' };
+    }
+    /** Screen position of the middle of a gravestone. */
+    graveScreen(id) {
+        const gr = this.castle.yard.graves.find((g) => g.id === id);
+        return this.toScreen(gr.group.position.clone().add(new THREE.Vector3(this.castle.yard.x, gr.h * 0.45, 0.2)));
     }
     /** Screen position of a visitor (for tests and the visitor button). */
     visitorScreen(vid) {
@@ -389,7 +405,11 @@ export class View {
         const cam = this.camera;
         // ----- camera
         let tx, ty, width;
-        if (this.overview) { tx = roomX(1.5); ty = 2.6; width = GAP * 4 + 1; } else { tx = this.roomOf(this.focus).x; ty = 2.1; width = RW + 3; }   // wide enough to show both side doorways
+        if (this.overview) {
+            const lo = roomX(0) - RW / 2 - 1, hi = YARD.x + YARD.w / 2 + 0.5;
+            tx = (lo + hi) / 2; ty = 2.6; width = hi - lo;
+        } else if (this.place === 'yard') { tx = YARD.x; ty = 1.5; width = YARD.w + 1; }
+        else { tx = this.roomOf(this.focus).x; ty = 2.1; width = RW + 3; }   // wide enough to show both side doorways
         const tanV = Math.tan((cam.fov * Math.PI) / 360);
         const distW = (width / 2) / (tanV * (this.freeW / this.h));
         const distH = ((this.overview ? RH + 3 : RH + 0.6) / 2) / (tanV * (this.freeH / this.h));
@@ -399,6 +419,7 @@ export class View {
         const sy = Math.sin(time * 0.23) * 0.12 - this.pointer.y * 0.4 + (Math.random() - 0.5) * shake * 0.35;
         const want = new THREE.Vector3(tx + sx, ty + dist * 0.45 + sy, -0.4 + dist * 0.893);
         const k = 1 - Math.exp(-dt * 4);
+        this.camWant = want;
         this.camPos.lerp(want, k);
         this.camTarget.lerp(new THREE.Vector3(tx + sx * 0.3, ty, -0.4), k);
         cam.position.copy(this.camPos);
@@ -407,10 +428,12 @@ export class View {
 
         // ----- the Overlord
         const room = this.roomOf(G.room);
-        if (this.overRoom !== G.room) {
-            this.over.group.position.copy(room.overlord);
-            this.overRoom = G.room;
-            this.particles.burst(room.overlord.x, 1.2, room.overlord.z, 18, { color: [0x5a2a8a, 0xb48cff], shape: SHAPE.circle, size: 16, speed: 2, up: 1.5, grav: 1, life: 0.9, glow: 1 });
+        // she stands in her room, or by the cemetery gate when you visit it
+        const where = this.place === 'yard' ? 'yard' : G.room, spot = where === 'yard' ? this.castle.yard.spot : room.overlord;
+        if (this.overRoom !== where) {
+            this.over.group.position.copy(spot);
+            this.overRoom = where;
+            this.particles.burst(spot.x, 1.2, spot.z, 18, { color: [0x5a2a8a, 0xb48cff], shape: SHAPE.circle, size: 16, speed: 2, up: 1.5, grav: 1, life: 0.9, glow: 1 });
         }
         this.poseT -= dt;
         if (this.poseT <= 0) this.pose = 'idle';
@@ -420,7 +443,7 @@ export class View {
         this.over.inner.scale.set(1 + this.squash * 0.08, 1 - this.squash * 0.07 + breathe, 1);
         this.over.inner.rotation.y = yaw;
         this.over.inner.position.y = this.pose === 'cackle' ? Math.abs(Math.sin(time * 18)) * 0.08 : 0;
-        this.fxLight.position.set(room.overlord.x, 2.2, room.overlord.z + 1);
+        this.fxLight.position.set(spot.x, 2.2, spot.z + 1);
         this.fxLight.intensity = Math.max(0, this.fxLight.intensity - dt * 90);
 
         // ----- centrepieces grow with mastery
@@ -552,6 +575,22 @@ export class View {
         wu.uFlash.value = Math.max(this.flashWin * 0.8, this.lightning);
         this.moon.intensity = 0.6 + (1 - D) * 1.1 + this.lightning * 3;
         this.moon.color.setRGB(ease(1, 0.75, D), ease(0.95, 0.7, D), 1);
+
+        // ----- the cemetery: open graves glow and a skull bobs over them; mist drifts
+        const Y = this.castle.yard;
+        for (const gr of Y.graves) {
+            const open = !gr.grave.soon && !!G.yard?.open[gr.id];
+            gr.halo.material.opacity = open ? 0.14 + Math.sin(time * 2.4) * 0.05 : 0;
+            gr.candles.visible = open;
+            if (open && !gr.icon) {
+                gr.icon = new Billboard(this.sprites.get('t|skull', () => drawToken('skull')), { emissive: 0.9, shadow: false, scale: 2.2 });
+                gr.group.add(gr.icon.group);
+                if (this.place === 'yard') this.particles.burst(Y.x + gr.x, 1.5, gr.z + 0.4, 40, { color: [0x9a7aff, 0xffffff, 0x9aff7a], shape: SHAPE.star, size: 11, glow: 2.6, speed: 3.5, up: 3.5, life: 1.5 });
+            }
+            if (gr.icon) { gr.icon.group.position.set(0, gr.h + 0.35 + Math.sin(time * 2) * 0.15, 0.2); gr.icon.inner.rotation.y = yaw - gr.group.rotation.y; }
+            if (open && this.place === 'yard' && Math.random() < dt * 3) this.particles.add({ x: Y.x + gr.x + (Math.random() - 0.5) * 1.4, y: 0.3, z: gr.z + 0.5, vy: 0.5, life: 1.8, size: 8, color: 0x9aff7a, glow: 2, shape: SHAPE.circle, grav: 0, wob: 0.6 });
+        }
+        for (const m of Y.mist) { m.position.x += Math.sin(time * 0.2 + m.userData.ph) * dt * 0.3; m.material.opacity = 0.7 + Math.sin(time * 0.5 + m.userData.ph) * 0.3; }
 
         // ----- frenzy sparkle
         const frenzy = G.buffs.some((b) => b.kind === 'prod');

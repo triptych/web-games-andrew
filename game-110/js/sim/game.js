@@ -9,8 +9,9 @@ import { COST_GROWTH, CLICK, FLOW, DREAD, TRIBUTE, VISITOR, OFFLINE, LEGEND, ACH
 import { makeRng } from '../rng.js';
 import {
     HOBBIES, MINIONS, MINION, UPGRADES, UPGRADE, DECOR, DECOR_BY, ABILITY, VISITORS, SCHEMES, SCHEME_BY,
-    HEIRLOOMS, HEIRLOOM, PERKS, PERK, LAIRS, ACHIEVEMENTS,
+    HEIRLOOMS, HEIRLOOM, PERKS, PERK, LAIRS, ACHIEVEMENTS, GRAVES, GRAVE, M3_REWARD,
 } from './data.js';
+import * as M3 from './match3.js';
 
 export const SAVE_VERSION = 1;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -30,10 +31,15 @@ export function newGame(seed = 1) {
         heirlooms: {},
         ach: {},
         stats: { clicks: 0, cackles: 0, visitors: 0, heroes: 0, heroMiss: 0, schemes: 0, bestCps: 0, lowDread: false, played: 0, charmClicked: 0, goldAll: 0, bought: 0 },
+        yard: newYard(),            // the cemetery: kept through every relocation
         events: [],                 // { type, ... } since the last drain; never saved
     };
     newRun(G);
     return G;
+}
+
+function newYard() {
+    return { open: {}, m3: { level: 1, best: 0, three: 0, tries: 0, played: 0, won: 0, board: null } };
 }
 
 /** A fresh lair: everything bought is left behind; legend, perks, heirlooms, trophies and stats come along. */
@@ -223,7 +229,7 @@ export const abilityCd = (G, id) => ABILITY[id].cd * (mods(G).cd[id] || 1) * (mo
 export const schemeDur = (G, id) => SCHEME_BY[id].dur * mods(G).schemeDur;
 
 // ------------------------------------------------------------------------------------------------ events
-const LOUD_WHEN_QUIET = new Set(['ach', 'heirloom']);
+const LOUD_WHEN_QUIET = new Set(['ach', 'heirloom', 'graveOpen']);
 function emit(G, e) {
     if (G.quiet && !LOUD_WHEN_QUIET.has(e.type)) return;
     G.events.push(e);
@@ -346,7 +352,16 @@ function finishScheme(G, a, R) {
     emit(G, out);
 }
 
+function checkGraves(G, R) {
+    for (const g of GRAVES) {
+        if (g.soon || G.yard.open[g.id]) continue;
+        const [have, want] = g.need(G, R);
+        if (have >= want) { G.yard.open[g.id] = 1; emit(G, { type: 'graveOpen', id: g.id }); }
+    }
+}
+
 function checkAchievements(G, R) {
+    checkGraves(G, R);
     for (const a of ACHIEVEMENTS) {
         if (G.ach[a.id]) continue;
         if (a.test(G, R)) { G.ach[a.id] = 1; emit(G, { type: 'ach', id: a.id }); }
@@ -404,6 +419,8 @@ export function act(G, cmd) {
         }
         case 'idle': return away(G, cmd.sec);
         case 'clock': G.wall = cmd.wall; return true;
+        case 'm3start': return m3start(G);
+        case 'm3swap': return m3swap(G, cmd.a, cmd.b);
         default: return false;
     }
 }
@@ -515,6 +532,43 @@ function greet(G, vid, byCackle = false) {
     return true;
 }
 
+// ------------------------------------------------------------------------------------------------ Skull Swap
+/** Open the board for the current level: the one in progress, or a fresh one after a win or a loss. */
+function m3start(G) {
+    if (!G.yard.open.skull) return false;
+    const m = G.yard.m3;
+    if (!m.board || m.board.over) {
+        m.tries++;
+        m.board = M3.newBoard(m.level, (Math.imul(G.seed, 31) + m.level * 977 + m.tries * 13) | 0);
+        m.played++;
+    }
+    emit(G, { type: 'm3board', level: m.level });
+    return true;
+}
+
+function m3swap(G, a, b) {
+    const m = G.yard.m3, B = m.board;
+    if (!G.yard.open.skull || !B || B.over) return false;
+    const res = M3.trySwap(B, a, b);
+    emit(G, { type: 'm3', ok: res.ok, steps: res.steps, level: B.level });
+    if (!res.ok || !B.over) return res.ok;
+    const out = { type: 'm3end', level: B.level, won: B.won, stars: B.stars, score: B.score, charm: 0, gold: 0 };
+    if (B.won) {
+        const cps = rates(G).cps;
+        out.charm = Math.max(100, cps * M3_REWARD.charmSec[B.stars]);
+        out.gold = Math.round((M3_REWARD.gold + B.level * M3_REWARD.goldPerLevel) * goldScale(cps) * (0.6 + 0.2 * B.stars));
+        addCharm(G, out.charm);
+        addGold(G, out.gold);
+        m.won++;
+        if (B.stars === 3) m.three++;
+        m.best = Math.max(m.best, B.level);
+        m.level = B.level + 1;
+        m.tries = 0;
+    }
+    emit(G, out);
+    return true;
+}
+
 function relocate(G) {
     const gain = legendGain(G);
     if (gain < 1) return false;
@@ -567,6 +621,7 @@ export function deserialize(d) {
     const G = { ...base, ...rest, rng: makeRng(0), events: [] };
     // anything added since the save was written takes its default
     G.stats = { ...base.stats, ...rest.stats };
+    G.yard = { ...base.yard, ...rest.yard, m3: { ...base.yard.m3, ...(rest.yard?.m3 || {}) } };
     G.owned = { ...base.owned, ...rest.owned };
     G.mastery = { ...base.mastery, ...rest.mastery };
     G.cd = { ...base.cd, ...rest.cd };

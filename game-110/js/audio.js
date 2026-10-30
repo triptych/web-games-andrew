@@ -96,6 +96,18 @@ export class Audio {
         o.start(t); lfo.start(t); o.stop(t + d + 0.05); lfo.stop(t + d + 0.05);
     }
 
+    /** Skull Swap, played by the board as each beat happens. */
+    m3(kind, chain = 1, fired = 0) {
+        if (kind === 'swap') this.tone({ freq: 520, to: 700, dur: 0.07, type: 'triangle', vol: 0.1 });
+        else if (kind === 'bad') { this.tone({ freq: 300, to: 220, dur: 0.1, type: 'square', vol: 0.06 }); this.tone({ freq: 220, to: 300, dur: 0.1, type: 'square', vol: 0.06, delay: 0.12 }); }
+        else if (kind === 'clear') {
+            const n = PENTA[Math.min(PENTA.length - 1, chain + 1)];
+            this.tone({ freq: mtof(72 + n), dur: 0.16, type: 'triangle', vol: 0.16, verb: 0.3 });
+            this.tone({ freq: mtof(79 + n), dur: 0.12, type: 'sine', vol: 0.08, delay: 0.04 });
+            if (fired) this.noise({ dur: 0.35, vol: 0.16, freq: 600, to: 3000, type: 'bandpass', q: 2 });
+        }
+    }
+
     ui(kind) {
         if (kind === 'click') this.tone({ freq: 880, dur: 0.04, type: 'triangle', vol: 0.1 });
         else if (kind === 'open') this.tone({ freq: 523, to: 784, dur: 0.08, type: 'triangle', vol: 0.12 });
@@ -152,6 +164,12 @@ export class Audio {
                 case 'tier':
                     if (e.to === 'suspected') { this.tone({ freq: mtof(64), dur: 0.25, type: 'triangle', vol: 0.12 }); this.tone({ freq: mtof(61), dur: 0.5, type: 'triangle', vol: 0.12, delay: 0.25 }); }
                     else if (e.to === 'dreaded') [0, 3, 7].forEach((s) => this.tone({ freq: mtof(45 + s), dur: 1.2, type: 'sawtooth', vol: 0.05, verb: 0.8 }));
+                    break;
+                case 'graveOpen': [0, 3, 7, 10, 15].forEach((s, i) => this.tone({ freq: mtof(57 + s), dur: 0.9, type: 'triangle', vol: 0.08, delay: i * 0.12, verb: 0.9 })); break;
+                case 'm3end':
+                    if (e.won) [0, 4, 7, 12, 16, 19].forEach((s, i) => this.tone({ freq: mtof(72 + s), dur: 0.22, type: 'square', vol: 0.06, delay: i * 0.08, verb: 0.4 }));
+                    else [0, -2, -5].forEach((s, i) => this.tone({ freq: mtof(64 + s), dur: 0.3, type: 'triangle', vol: 0.1, delay: i * 0.22 }));
+                    if (e.won && e.gold) this.coin(0.5);
                     break;
                 case 'perk': [0, 7, 12].forEach((s, i) => this.tone({ freq: mtof(67 + s), dur: 0.3, type: 'sine', vol: 0.12, delay: i * 0.08, verb: 0.6 })); break;
                 case 'room': this.noise({ dur: 0.35, vol: 0.12, freq: 400, to: 2400, type: 'bandpass', q: 2 }); break;

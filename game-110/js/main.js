@@ -8,10 +8,11 @@ import { View } from './view/view.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
+import { M3View } from './m3view.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
 import { newGame, step, act, rates, roomOpen } from './sim/game.js';
 import { makeBot, botCommands, botShop } from './sim/bot.js';
-import { HOBBIES, ABILITIES, MINIONS, DECOR } from './sim/data.js';
+import { HOBBIES, ABILITIES, MINIONS, DECOR, GRAVE } from './sim/data.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.get('debug') === '1';
@@ -27,11 +28,18 @@ const queue = [];                         // commands from buttons, keys and tap
 const send = (cmd, cb) => { queue.push({ cmd, cb }); };
 let overview = false;
 const setOverview = (on) => { overview = on === 'toggle' ? !overview : !!on; view.overview = overview; ui.overview = overview; };
+// where the camera is: the castle (the Overlord's room) or the cemetery
+let place = 'castle';
+const setPlace = (p) => { place = p; view.place = p; ui.place = p; };
+const m3view = new M3View(document.getElementById('m3-canvas'), { audio, onSwap: (a, b) => send({ t: 'm3swap', a, b }) });
+m3view.speed = FAST;
 const ui = new UI({
     audio, settings, sprites: view.sprites, send,
     onSettings: (s) => { saveSettings(s); applySettings(); },
     onDeleteSave: () => { clearSave(); refreshTitle(); },
     onOverview: setOverview,
+    onPlace: setPlace,
+    m3view,
 });
 
 function applySettings() {
@@ -105,6 +113,7 @@ function startGame(g, loaded = false) {
     input.flush();
     queue.length = 0;
     setOverview(false);
+    setPlace('castle');
     ui.showPlay(true);
     view.setInsets(ui.layout());
     // time away since the last save
@@ -122,6 +131,7 @@ function toTitle() {
     ui.showPlay(false);
     G = demoGame();
     setOverview(false);
+    setPlace('castle');
     view.setInsets({});
     refreshTitle();
     ui.openScreen('title');
@@ -144,22 +154,40 @@ canvas.addEventListener('pointerdown', (e) => {
     if (hit.type === 'visitor') send({ t: 'visitor', vid: hit.vid });
     else if (hit.type === 'room') {
         if (!roomOpen(G, hit.id)) ui.roomHint(hit.id);
-        else { send({ t: 'room', id: hit.id }); setOverview(false); }
+        else { send({ t: 'room', id: hit.id }); setOverview(false); setPlace('castle'); }
     }
+    else if (hit.type === 'yard') { setOverview(false); setPlace('yard'); }
+    else if (hit.type === 'grave') openGrave(hit.id);
     else send({ t: 'craft' });
 });
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 // a mouse click on a panel button must not leave it focused, or the next Space would press it instead of crafting
 document.addEventListener('click', (e) => { if (e.detail && mode === 'play' && !ui.anyScreen()) e.target.closest?.('#panel button, #dock button, #abilities button, #btn-visitor')?.blur(); });
 
+/** A gravestone: play its game if it's open, or say what opens it. */
+function openGrave(id) {
+    const g = GRAVE[id];
+    if (g.soon || !G.yard.open[id]) { ui.graveHint(G, rates(G), id); return; }
+    audio.ui('open');
+    send({ t: 'm3start' }, (ok) => {
+        if (!ok) return;
+        m3view.setBoard(G.yard.m3.board);
+        ui.openScreen('m3');
+        document.getElementById('m3-canvas').focus({ preventScroll: true });
+    });
+}
+
 // ------------------------------------------------------------------ keys
 const ROOM_IDS = HOBBIES.map((h) => h.id);
+const M3_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS', 'Space', 'Enter']);
 function handleKeys() {
     input.poll();
     if (ui.anyScreen()) {
         const press = input.next();             // menus take one press per frame
         if (!press) return;
         const k = press.key;
+        // the Skull Swap board takes the arrows and Space/Enter, unless a button has the focus
+        if (ui.top() === 'm3' && M3_KEYS.has(k) && !press.onButton && document.getElementById('m3-end').hidden) { m3view.keyboard = true; m3view.key(k); return; }
         if (k === 'ArrowDown') ui.moveFocus(1);
         else if (k === 'ArrowUp') ui.moveFocus(-1);
         else if ((k === 'Escape' || k === 'KeyP') && ui.top() !== 'title') { audio.ui('close'); ui.closeTop(); }
@@ -169,19 +197,22 @@ function handleKeys() {
     if (mode !== 'play') { input.flush(); return; }
     for (let press = input.next(); press; press = input.next()) {
         const k = press.key;
-        if ((k === 'Space' || k === 'Enter') && !press.onButton) { view.lastPointer = null; send({ t: 'craft' }); }
+        if ((k === 'Space' || k === 'Enter') && !press.onButton) { if (place === 'yard') openGrave('skull'); else { view.lastPointer = null; send({ t: 'craft' }); } }
         else if (k === 'KeyC' || k === 'Digit1') send({ t: 'ability', id: 'cackle' });
         else if (/^Digit[2-4]$/.test(k)) send({ t: 'ability', id: ABILITIES[+k.slice(5) - 1].id });
         else if (k === 'KeyQ' || k === 'ArrowLeft' || k === 'KeyE' || k === 'ArrowRight') {
-            // the next open room that way; locked rooms are skipped
-            const d = k === 'KeyQ' || k === 'ArrowLeft' ? -1 : 1, n = ROOM_IDS.length;
+            // the next open room that way, the cemetery last; locked rooms are skipped
+            const stops = [...ROOM_IDS, 'yard'], n = stops.length, d = k === 'KeyQ' || k === 'ArrowLeft' ? -1 : 1;
+            const here = stops.indexOf(place === 'yard' ? 'yard' : G.room);
             for (let i = 1; i < n; i++) {
-                const id = ROOM_IDS[(ROOM_IDS.indexOf(G.room) + d * i + n * 2) % n];
-                if (roomOpen(G, id)) { send({ t: 'room', id }); break; }
+                const id = stops[(here + d * i + n * 2) % n];
+                if (id === 'yard') { setPlace('yard'); break; }
+                if (roomOpen(G, id)) { send({ t: 'room', id }); setPlace('castle'); break; }
             }
             setOverview(false);
         } else if (k === 'KeyV') { if (G.visitors[0]) send({ t: 'visitor', vid: G.visitors[0].vid }); }
         else if (k === 'Tab') setOverview('toggle');
+        else if (k === 'KeyG') { setOverview(false); setPlace(place === 'yard' ? 'castle' : 'yard'); }
         else if (k === 'Escape' || k === 'KeyP') { openMenu(); break; }
     }
 }
@@ -192,6 +223,10 @@ function flushEvents() {
     const ev = G.events.splice(0);
     for (const e of ev) seen[e.type] = (seen[e.type] || 0) + 1;
     view.onEvents(G, ev);
+    for (const e of ev) {
+        if (e.type === 'm3') m3view.play(e.steps);
+        else if (e.type === 'm3board') m3view.setBoard(G.yard.m3.board);
+    }
     if (mode !== 'play') return;
     audio.onEvents(G, ev);
     ui.onEvents(G, ev);
@@ -234,6 +269,7 @@ function frame(now) {
     }
     flushEvents();
     view.frame(G, dt, time);
+    if (ui.top() === 'm3') m3view.frame(dt, time);
     const R = rates(G);
     if (mode === 'play') ui.update(G, R, dt);
     layoutT -= dt;
@@ -267,6 +303,9 @@ if (DEBUG) {
         save: () => saveGame(G),
         hasSave,
         rates: () => rates(G),
+        m3view, openGrave,
+        get place() { return place; },
+        setPlace,
         MINIONS,
     };
 }

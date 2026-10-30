@@ -7,7 +7,7 @@
 import { VERSION, DREAD, HENCH } from './config.js';
 import {
     HOBBIES, HOBBY, MINIONS, MINION, UPGRADES, UPGRADE, DECOR, DECOR_BY, ABILITIES, ABILITY, VISITOR_BY, SCHEMES, SCHEME_BY,
-    HEIRLOOMS, HEIRLOOM, PERKS, PERK, LAIRS, ACHIEVEMENTS,
+    HEIRLOOMS, HEIRLOOM, PERKS, PERK, LAIRS, ACHIEVEMENTS, GRAVE,
 } from './sim/data.js';
 import {
     minionCost, maxAffordable, minionVisible, upgradesOnOffer, henchCost, henchFree, legendGain, legendNext, abilityCd,
@@ -15,6 +15,8 @@ import {
 } from './sim/game.js';
 import { fmt, fmtTime } from './fmt.js';
 import { headline } from './news.js';
+import { goalProgress, KINDS } from './sim/match3.js';
+import { drawToken } from './view/art.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -22,12 +24,17 @@ const ACH = Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, a]));
 const BUFF_NAME = { cuddle: '🐈 Cuddle Frenzy ×7', encore: '🪕 Encore: crafting ×13', taste: '🥄 Taste Test: crafting ×10', storm: '⛈️ Thunderstorm', soiree: '💃 Grand Soirée ×3' };
 
 export class UI {
-    constructor({ audio, settings, sprites, send, onSettings, onDeleteSave, onOverview }) {
+    constructor({ audio, settings, sprites, send, onSettings, onDeleteSave, onOverview, onPlace, m3view }) {
         this.audio = audio;
         this.settings = settings;
         this.sprites = sprites;
         this.send = send;
         this.onOverview = onOverview;
+        this.onPlace = onPlace;
+        this.place = 'castle';
+        this.m3view = m3view;
+        this.m3last = null;
+        this.tokenIcons = KINDS.map((k) => drawToken(k).toCanvas().toDataURL());
         this.stack = [];
         this.tab = 'minions';
         this.amount = 1;
@@ -80,9 +87,14 @@ export class UI {
                 audio.ui('click');
                 this.send({ t: 'room', id });
                 this.onOverview(false);
+                this.onPlace('castle');
             });
         }
         $('btn-overview').addEventListener('click', () => { audio.ui('click'); this.onOverview('toggle'); });
+        $('btn-yard').addEventListener('click', () => { audio.ui('click'); this.onOverview(false); this.onPlace('yard'); });
+        // Skull Swap's buttons
+        $('m3-again').addEventListener('click', () => { audio.ui('click'); $('m3-end').hidden = true; this.m3last = null; this.send({ t: 'm3start' }); });
+        $('m3-back').addEventListener('click', () => { audio.ui('close'); this.closeScreen('m3'); });
 
         // abilities
         const ab = $('abilities');
@@ -210,7 +222,7 @@ export class UI {
         // rooms
         for (const b of document.querySelectorAll('#rooms .room[data-room]')) {
             const id = b.dataset.room, open = roomOpen(G, id);
-            b.classList.toggle('on', G.room === id && !this.overview);
+            b.classList.toggle('on', G.room === id && !this.overview && this.place !== 'yard');
             if (b.classList.contains('locked') === !open) continue;
             b.classList.toggle('locked', !open);
             const h = HOBBY[id], m = MINIONS.find((x) => x.hobby === id);
@@ -218,6 +230,8 @@ export class UI {
             b.setAttribute('aria-label', open ? h.room : `${h.room} (locked)`);
         }
         $('btn-overview').classList.toggle('on', !!this.overview);
+        $('btn-yard').classList.toggle('on', this.place === 'yard' && !this.overview);
+        if (this.top() === 'm3') this.m3Update(G);
 
         // visitors: a button for anyone who misses the sprite
         const v = G.visitors[0];
@@ -514,6 +528,43 @@ export class UI {
         this.audio.ui('no');
         this.toast(`🔒 The <b>${esc(h.room)}</b> opens when you hire a <b>${esc(seen ? m.name : '???')}</b>${seen ? '' : ' (make more charm to discover one)'}.`);
     }
+    /** What a gravestone says when it can't be played yet. */
+    graveHint(G, R, id) {
+        const g = GRAVE[id];
+        this.audio.ui('no');
+        if (g.soon) { this.toast(`🪦 <i>“${esc(g.epitaph)}”</i> This grave is still being dug: a new mini-game will rest here one day.`); return; }
+        const [have, want] = g.need(G, R);
+        this.toast(`${g.icon} <b>${esc(g.name)}</b> opens when you ${esc(g.needText.toLowerCase())} (${fmt(Math.min(have, want), 0)} / ${fmt(want, 0)}).`);
+    }
+
+    /** The Skull Swap sheet: level, goal, moves, score, and the result once the last move has played out. */
+    m3Update(G) {
+        const B = G.yard.m3.board;
+        if (!B) return;
+        const s = B.spec;
+        this.text('m3-level', `Level ${B.level}`);
+        this.text('m3-moves', String(B.movesLeft));
+        this.text('m3-score', fmt(B.score, 0));
+        let goal;
+        if (s.type === 'score') goal = `<span class="${B.score >= s.target ? 'done' : ''}">Score ${fmt(Math.min(B.score, s.target), 0)} / ${fmt(s.target, 0)}</span>`;
+        else if (s.type === 'collect') goal = 'Collect ' + Object.entries(s.need).map(([k, n]) => `<span class="${(B.collected[k] || 0) >= n ? 'done' : ''}"><img alt="${KINDS[k]}" src="${this.tokenIcons[k]}"> ${Math.min(B.collected[k] || 0, n)} / ${n}</span>`).join(' ');
+        else goal = `<span class="${B.websLeft <= 0 ? 'done' : ''}">🕸️ Clear the cobwebs: ${s.webs - Math.max(0, B.websLeft)} / ${s.webs}</span>`;
+        goal += ` <span class="dim">${Math.round(goalProgress(B) * 100)}%</span>`;
+        const el = $('m3-goal');
+        if (el.innerHTML !== goal) el.innerHTML = goal;
+        const end = $('m3-end');
+        const show = B.over && !this.m3view.busy;
+        if (show && end.hidden) {
+            const e = this.m3last;
+            const stars = [1, 2, 3].map((n) => `<span class="${n <= B.stars ? '' : 'off'}">⭐</span>`).join('');
+            $('m3-end-text').innerHTML = B.won
+                ? `<h3>Level ${B.level} cleared!</h3><div class="stars">${stars}</div><p>💗 +${fmt(e?.charm || 0)} · 🪙 +${fmt(e?.gold || 0, 0)}</p>`
+                : `<h3>Out of moves</h3><p>So close. The skulls are giggling.</p>`;
+            $('m3-again').textContent = B.won ? `Next level` : 'Try again';
+            end.hidden = false;
+            $('m3-again').focus({ preventScroll: true });
+        } else if (!show && !end.hidden) end.hidden = true;
+    }
     ping(room) {
         const b = document.querySelector(`#rooms .room[data-room="${room}"]`);
         if (!b || this.G?.room === room) return;
@@ -548,6 +599,13 @@ export class UI {
                     else if (e.kind === 'critic') this.toast(`🧐 A rave review! 💗 +${fmt(e.amount)}`, 'gold');
                     break;
                 }
+                case 'graveOpen': {
+                    this.toast(`${GRAVE[e.id].icon} Something stirs in the cemetery… <b>${esc(GRAVE[e.id].name)}</b> is open! Visit the 🪦 Graves.`, 'gold');
+                    const b = $('btn-yard'); b.classList.add('ping'); clearTimeout(b._ping); b._ping = setTimeout(() => b.classList.remove('ping'), 8000);
+                    break;
+                }
+                case 'm3end': this.m3last = e; break;
+                case 'm3board': this.m3last = null; $('m3-end').hidden = true; break;
                 case 'perk': this.toast(`📖 Learned: <b>${esc(PERK[e.id].name)}</b>`); break;
                 case 'relocate': this.toast(`🧳 Welcome to <b>${esc(LAIRS[e.to].name)}</b>! ★ +${fmt(e.gain, 0)} legend.`, 'gold'); this.setTab('minions'); break;
                 case 'ability': if (e.id === 'soiree') this.toast('💃 <b>A Grand Soirée!</b> All charm ×3 — the guests are charmed (−20 dread).'); break;
