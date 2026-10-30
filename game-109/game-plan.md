@@ -66,7 +66,7 @@ A dying boss shakes for 2.4 s while explosions go off across its hull, every bul
 
 | Action | Keyboard | Gamepad | Touch |
 |---|---|---|---|
-| Move | Arrows / WASD | Stick / d-pad | Floating stick: a touch anywhere that is not a button |
+| Move | Arrows / WASD | Stick / d-pad | Floating stick, constant speed (direction only): a touch anywhere that is not a button |
 | Fire | Space / Z / J (hold) | A / bumpers (hold) | FIRE (hold), or automatic |
 | Bomb | X / B / K / Shift | B / X | BOMB |
 | Pause | P / Esc | Start | ❚❚ |
@@ -110,6 +110,9 @@ The first bot dodged with perfect information and no reaction time and reached w
 - Two-player alternating turns, as on the cabinets.
 
 ## Changelog
+
+### v1.0.2 (2026-10-30)
+- The stick is constant speed with a short leash: no rubber band, and a few px of pull-back stops the ship.
 
 ### v1.0.1 (2026-10-30)
 - A faster ship (118 px/s), a stick that reaches full speed after ~30 px with a small dead zone, and the whole screen as the stick area (the BOMB and FIRE buttons keep their own touches).
