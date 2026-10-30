@@ -1649,6 +1649,21 @@ const games = [
             { emoji: '\uD83C\uDFB2', label: 'Gacha recruiting' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-109',
+        title: "STARBLAZER '86",
+        description: "An 8-bit arcade space shooter in the manner of Galaga, 1942 and Raiden, built like a cabinet from 1986. Hold fire and sweep the sky clear as the waves keep evolving: swooping lines of drones, Galaga-style formations that fly in, sway and dive at you, Space-Invaders marches, saucers, homing darts, cruisers, carriers that launch drones and mines that burst into rings of bullets. Every wave unlocks something new; every fourth wave is a bonus stage where nothing shoots (hit them all for 10,000 points and a bomb) and every fifth is a boss: a Mothership, a Crab Warden whose spirals and curtains of bullets fill the screen, and the Overlord with its telegraphed death-ray, each tougher the second time round. Grab capsules for a five-level gun, speed, bombs and shields, chain kills for a score multiplier, collect medals that are worth more with each one, and set off a rainbow bomb when it all goes wrong. Pixel sprites in a 224×288 buffer with bloom, scanlines and four sector colour schemes, and explosions as the main event: palette-cycling fireballs, shockwave rings and debris, and boss deaths that come apart in rainbow chains. A chiptune soundtrack of pulse waves, triangle bass and noise drums, with a new key for each sector and its own tunes for bosses and bonus stages. An attract-mode demo behind the title, a high-score table with initials, saves. Keyboard, gamepad and touch (auto-fire on phones), and a calm mode for flashes and shake. Every picture and sound is made in code.",
+        icon: '\uD83D\uDE80',
+        folder: 'game-109',
+        version: '1.0.0',
+        cssClass: 'starblazer',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83D\uDE80', label: 'Arcade shooter' },
+            { emoji: '\uD83D\uDCA5', label: '8-bit explosions' },
+            { emoji: '\uD83D\uDDBC\uFE0F', label: 'Canvas 2D' }
+        ]
     }
 ];
 

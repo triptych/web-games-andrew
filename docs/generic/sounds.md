@@ -945,3 +945,16 @@ shorter than 110 ms. Menus run the same `beat()` from a fixed-interval clock in 
 - **A monitor's hum** is a 60 Hz and a 120 Hz sine at gain 0.05, under everything.
 - **A gesture is needed before any of it plays**, so the game opens on a black "press any key to switch on the monitor" screen. The power-on press is the gesture, and the boot show can then be heard.
 
+---
+
+# game-109: STARBLAZER '86 (a chiptune engine)
+
+A console-shooter sound set in about 400 lines, no files. See [audio.js](../../game-109/js/audio.js).
+
+- **Pulse waves with real duty cycles.** `createPeriodicWave(real, imag)` with, for harmonic k, `a = 2/(kπ) · sin(kπd)`, `real = a·cos(kπd)`, `imag = a·sin(kπd)` gives the NES's 12.5%, 25% and 50% pulses (a hollow, thin or full square). Use 12.5% for arpeggios (it cuts through), 25% for leads and effects, 50% for pads and bonus-stage melodies, a triangle for the bass, and a low-passed sawtooth for a boss riff.
+- **One 16th-note look-ahead sequencer, several tunes.** `playStep(step, time)` per mode (`play`, `boss`, `bonus`), a 25 ms timer scheduling 120 ms ahead; changing mode or sector restarts the step counter. Intensity is the layer count: bass and arpeggio at 1, drums at 2, a lead at 3, chord pads and hats at 4, and the level follows the wave within a sector (1 to 4), so each sector builds and then breaks into the boss tune.
+- **A key per sector, a boss tune per boss.** Sectors are four minor keys with a four-chord loop (i VI III VII and cousins); the lead is a seeded walk on the minor pentatonic (stepwise, with a chord tone on the strong beats and bar ends), which sounds right over any chord of the key and is the same every run. Boss tunes are faster (172 BPM against 148), a chromatic sawtooth riff on the root and a 16th-note arpeggio; the bonus stage is a 162 BPM major pentatonic bounce.
+- **Rate-limit by name.** A boss death fires dozens of booms in two seconds: `ready(name, gap)` drops any sound of that name inside its gap (35 ms for small booms, 50 ms for medium, 70 ms for large; shots 55 ms, enemy shots 90 ms), and the biggest boom is never limited.
+- **Explosion size is the dial.** Small: a 2.2 kHz noise tick and a 320-to-70 Hz square drop. Medium: 0.3 s of 1.5 kHz noise and a sawtooth sweep. Large: 0.55 s of noise, a sawtooth sweep and a 70 Hz sine thud. Boss: 1.6 s of noise with a sweeping low-pass, a second band-passed layer, a sawtooth sweep from 220 Hz to 25 Hz, a sub sine and a descending arpeggio on top.
+- **Warnings are tones.** A boss warning is five alternating 440/660 Hz sawtooth sweeps; a beam telegraph is four 1.76 kHz beeps; a bomb is a band-passed noise sweep from 300 Hz to 4 kHz, a rising sawtooth and a seven-note arpeggio; medals rise in pitch with the chain you have built.
+

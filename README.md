@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-108 games, `game-001` through `game-108`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+109 games, `game-001` through `game-109`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -126,6 +126,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 106 | [INTRUDER ALERT '84](game-106/) | Berzerk as a bullet heaven: an auto-firing laser, robot hordes pouring into an electrified neon maze, data chips, upgrades, sector purges and an unkillable bouncing Grinner, in 16-bit pixels with bloom and synthwave | Canvas 2D |
 | 107 | [Kaiju Roll](game-107/) | Katamari meets Breakout meets Rampage: a kaiju curled into a never-stopping ball bounces through five procedural toy cities, shedding skyscraper floors, swallowing cars and people to grow, and pouncing on tanks, helicopters and bombers, with procedural models and per-city music | three.js |
 | 108 | [Oathstones](game-108/) | A fantasy match-3 RPG where every token keeps its own oath (match by colour, by shape, every colour at once, only in a cascade, only where lines cross…), and summoned heroes appear on the board, bind the stones around them to their rule, and join you when you fulfil it | three.js |
+| 109 | [STARBLAZER '86](game-109/) | An 8-bit arcade space shooter: Galaga-style diving formations, Space-Invaders marches, bonus stages and three bosses, waves that keep evolving, medals and kill chains, and explosions that cycle through the whole palette, with a chiptune sequencer | Canvas 2D |
 
 ### Highlights
 

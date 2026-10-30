@@ -4755,6 +4755,9 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] Hints and quests never point at something still locked (game-076); the simtest checks every one.
 - [ ] Nothing empty silently overrides something real (a blank later event page replaced a chest, game-076).
 
+**Ids and screens**
+- [ ] No element has an id of the form `<screen id>-title`: `lib/a11y.js` gives a screen's heading exactly that id, and a button with the same id (`over-title`) silently lost every `getElementById` to the heading (game-109). Check `document.querySelectorAll('#over-title').length` in the browser test if you name a button like that.
+
 **Collection**
 - [ ] All six files of Step 3 are updated, and `dev/smoketest.mjs` passes with and without storage.
 
