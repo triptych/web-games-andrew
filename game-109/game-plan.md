@@ -97,6 +97,7 @@ You are a rookie pilot on the carrier **Aurora**, defending the Sol Gate against
 | Fire | Space / Z / J (hold) | A / bumpers (hold) | FIRE (hold), or automatic |
 | Bomb | X / B / K / Shift | B / X | BOMB |
 | Pause | P / Esc | Start | ❚❚ |
+| Menus and dialogs | Arrows or W/S move, Z / J / Enter press the highlighted button, X / Esc / P go back, L launches from the hangar. In cutscenes: Z / J / Space / Enter / → advance, X / Esc / P skip | d-pad, A, B | tap |
 
 ## Look and sound
 
@@ -141,6 +142,9 @@ The first bot dodged with perfect information and no reaction time and reached w
 - A story that goes on after the finale (new Brood factions per sector).
 
 ## Changelog
+
+### v1.3.1 (2026-10-30)
+- The game's own keys work in every menu and cutscene (Z, J, Space, Enter and → advance a cutscene; Z presses the highlighted button; X goes back; L launches), so no mouse click is needed.
 
 ### v1.3.0 (2026-10-30)
 - A story: Mira, the flight controller, introduces every wave in a comm strip, with six cutscenes (the intro, the first three bosses, the hangar tutorial and the finale), reactions, quips, a climbing callsign and a Story setting.
