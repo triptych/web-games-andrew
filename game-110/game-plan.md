@@ -2,7 +2,7 @@
 
 **Genre:** Idle clicker / incremental, with RPG trimmings
 **Engine:** three.js r165, no asset files
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -131,6 +131,7 @@ There is no ending; it is an idle game. The story is told in flavour: minion and
 | `js/sim/data.js` | Every table: hobbies, minions, upgrades, décor, abilities, visitors, schemes, heirlooms, perks, lairs, trophies |
 | `js/sim/bot.js` | An auto-player that sends the same commands: tests, balance, the title-screen demo |
 | `js/view/view.js` | Camera framing, minions and décor following the sim, the Overlord, visitors, event effects, picking |
+| `js/view/layout.js` | Where minions stand: slots clear of every measured piece of furniture, décor and window (pure, tested in Node) |
 | `js/view/castle.js`, `tex.js`, `art.js`, `sprites.js`, `fx.js`, `stage.js`, `pixel.js` | The castle, its textures, every sprite, the texture cache and icons, particles and billboards, post-processing, the pixel painter |
 | `js/ui.js`, `js/news.js`, `js/fmt.js` | DOM HUD, tabs, sheets, toasts; the gossip ticker; number formatting |
 | `js/input.js`, `js/audio.js`, `js/save.js`, `js/rng.js`, `js/config.js` | Key and pad presses, sound, guarded storage, seeded RNG, tuning |
@@ -160,6 +161,10 @@ From the bot table (seed 9001, eight hours each):
 - A sixth hobby (gardening?), seasonal events, and a portrait of Noxia for the welcome-back sheet.
 
 ## Changelog
+
+### v1.0.1 (2026-10-30)
+- Fixed: a gingerbread golem could stand inside the kitchen counter (and, in other rooms, minions inside the hearth, the sewing table, the stage or the organ, and portraits over a window). Minion spots were scattered without knowing where the furniture was. The castle now measures every piece of furniture, décor and window in each room and keeps every spot clear of them, with room for each minion's bob, hop or flutter ([layout.js](js/view/layout.js), [castle.js](js/view/castle.js)).
+- Fixed: décor popped in by scaling about the middle of the room, so a piece briefly slid outwards as it appeared; each piece now grows in place.
 
 ### v1.0.0 (2026-10-30)
 - First release: crafting with flow, twelve minions in four rooms, 147 upgrades, dread and its tiers, cackling, four visitors, three abilities, twelve décor pieces, henchmen and schemes, twelve heirlooms, room mastery, 89 trophies, five lairs and a thirteen-perk Grimoire, time away; the HD-2D castle with procedural sprites, a dread-driven sky and grade, and a generative waltz; sim and browser harnesses.

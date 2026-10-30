@@ -9,7 +9,8 @@
  *    Math.random or the clock, and never import the view, the UI or the audio.
  * 2. rules: crafting and flow, minion prices, upgrades, dread and its tiers, cackling, visitors (all four), abilities,
  *    décor, henchmen and schemes, heirlooms, mastery, trophies, relocation and perks.
- * 3. away: time away is the same rules at the offline rate, capped; a day simulates quickly.
+ * 3. layout: minion slots never stand inside furniture (the real castle is checked in browsertest.mjs).
+ * 3b. away: time away is the same rules at the offline rate, capped; a day simulates quickly.
  * 4. determinism: the same seed and commands give the same game; a save round trip mid-game plays on identically;
  *    an unknown save version is rejected; an old save missing new fields still loads.
  * 5. bot: three players (attentive, casual, idle) play HOURS hours each with per-step invariants, and the balance
@@ -240,6 +241,29 @@ if (want('rules')) {
     G.dread = 5; ok([0, 0.2, 0.4, 0.6, 0.8, 0.99].some((r) => /nice|apron|cupcake/i.test(N.headline(G, r))), 'a Suspected overlord makes the news');
     ok(F.fmt(1234) === '1,234' && F.fmt(12345) === '12.3K' && F.fmt(1.5e9) === '1.50B' && F.fmt(2.5) === '2.5', 'numbers read nicely');
     ok(F.fmtTime(59) === '59s' && F.fmtTime(3700) === '1h 1m', 'times read nicely');
+}
+
+if (want('layout')) {
+    section('layout (where minions stand)');
+    const Ly = await import('../js/view/layout.js');
+    const dims = { RW: 12, RD: 8, RH: 7, T: 0.5 };
+    // the kitchen counter that a gingerbread golem used to stand inside (v1.0.1)
+    const counter = { x0: 2.0, x1: 5.8, y0: 0, y1: 3.3, z0: -3.75, z1: -2.55 };
+    const hearth = { x0: -6.0, x1: -2.4, y0: 0, y1: 3.5, z0: -4.1, z1: -2.7 };
+    const slots = Ly.makeSlots(0, [counter, hearth], dims);
+    for (const m of D.MINIONS.filter((x) => x.hobby === 'cook')) {
+        const list = slots[m.id];
+        ok(list.length === Ly.SLOTS_PER_KIND, `${m.name}: ${list.length} slots in a furnished kitchen`);
+        ok(list.every((sl) => ![counter, hearth].some((o) => Ly.hit(Ly.spriteBox(m.id, sl.x, sl.y, sl.z), o))), `${m.name}s never stand inside the counter or the hearth`);
+        ok(list.every((sl) => { const b = Ly.spriteBox(m.id, sl.x, sl.y, sl.z); return b.x0 > -dims.RW / 2 - 0.2 && b.x1 < dims.RW / 2 + 0.2 && sl.z > -dims.RD / 2 && sl.z < dims.RD / 2; }), `${m.name}s stay inside the room`);
+    }
+    for (let i = 0; i < D.HOBBIES.length; i++) {
+        const sl = Ly.makeSlots(i, [], dims);
+        ok(D.MINIONS.filter((m) => m.hobby === D.HOBBIES[i].id).every((m) => sl[m.id].length >= Ly.SLOTS_PER_KIND - 1), `an empty ${D.HOBBIES[i].room} has room for every kind`);
+    }
+    const a = Ly.makeSlots(2, [counter], dims), b = Ly.makeSlots(2, [counter], dims);
+    ok(JSON.stringify(a) === JSON.stringify(b), 'the same room gives the same slots every time');
+    console.log('  (the browser test checks the real castle: every minion against every piece of furniture, décor and window)');
 }
 
 if (want('away')) {

@@ -289,6 +289,37 @@ export class View {
         return a ? this.toScreen(a.bb.group.position.clone().setY(a.bb.h * 0.5)) : null;
     }
 
+    /** True once every minion and piece of décor has finished popping in. */
+    settled() {
+        for (const id in this.minions) for (const bb of this.minions[id]) if (bb.pop < 1) return false;
+        for (const id in this.castle.decor) for (const o of this.castle.decor[id]) if (o.visible && (o.userData.pop ?? 1) < 1) return false;
+        return true;
+    }
+
+    /** Every minion sprite that intersects a piece of furniture, décor or a window it isn't meant to touch (for the tests). */
+    clipReport() {
+        const out = [], a = new THREE.Box3(), b = new THREE.Box3();
+        this.scene.updateMatrixWorld(true);
+        for (const m of MINIONS) {
+            const r = this.roomOf(m.hobby);
+            for (const bb of this.minions[m.id] || []) {
+                a.setFromObject(bb.mesh);
+                a.expandByVector(new THREE.Vector3(-0.03, -0.03, 0.04));
+                for (const o of r.blockers) {
+                    if (!o.visible) continue;
+                    o.traverse((x) => {
+                        if (!x.isMesh || !x.visible) return;
+                        b.setFromObject(x);
+                        if (b.max.y < 0.1 || !a.intersectsBox(b)) return;
+                        const c = b.getCenter(new THREE.Vector3());
+                        out.push(`${m.id} at (${(bb.group.position.x - r.x).toFixed(1)}, ${bb.group.position.z.toFixed(1)}) inside a box at (${(c.x - r.x).toFixed(1)}, ${c.y.toFixed(1)}, ${c.z.toFixed(1)}) in the ${r.id} room`);
+                    });
+                }
+            }
+        }
+        return out;
+    }
+
     floater(text, x, y, cls = '') {
         if (!this.floatEl || this.floatN > 26 || this.floatersOn === false) return;
         const el = document.createElement('div');

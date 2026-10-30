@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Doom & Doilies** (game-110) v1.0.1: a gingerbread golem stood half inside the kitchen counter. Minion spots were scattered over the floor without knowing where the furniture was, so the back row could land inside the counter or the hearth (and in other rooms inside the sewing table, the stage or the organ, with living portraits hung over a window). The castle now measures every piece of furniture, décor and window in a room as a box and keeps each minion's sprite, with room for its bob, hop or flutter, clear of all of them ([layout.js](game-110/js/view/layout.js), [castle.js](game-110/js/view/castle.js)). Décor also popped in by scaling about the middle of the room, so a piece briefly slid outwards; it now grows in place. [simtest.mjs](game-110/dev/simtest.mjs) checks the slot layout against a counter and a hearth, and [browsertest.mjs](game-110/dev/browsertest.mjs) buys seven of every minion and every piece of décor and checks no sprite intersects anything (it fails without the fix). Reported from a screenshot.
+
 ### Added
 - **Doom & Doilies** (game-110) v1.0.0: an HD-2D idle clicker in three.js about the Dread Lady Noxia, a cute evil overlord who loves cooking, sewing, decorating and entertaining but has to keep up appearances as the villain of the realm.
   - A pure seeded simulation ([js/sim/game.js](game-110/js/sim/game.js), [data.js](game-110/js/sim/data.js)) driven by commands: crafting by hand with flow, twelve minions across four hobby rooms with geometric prices and Max buying, 147 upgrades (doublings at 1/5/25/50/100+ owned, room mastery, six cross-room synergies, crafting, dread, visitors, abilities, offline), and room mastery levels from charm made there.

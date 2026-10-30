@@ -8,6 +8,8 @@
  *   Q/E and the room buttons change rooms, Tab opens the whole castle and a click on a room goes there → Escape opens
  *   the menu and the castle keeps working → Save & Quit → Continue restores → relocating (via the Lair tab and its
  *   confirm sheet) moves to the Cinder Caldera. No sideways scroll; the canvas fills the window.
+ * furniture: with seven of every minion and every piece of décor, no minion sprite intersects furniture, décor or a
+ *   window (the gingerbread golems used to stand inside the kitchen counter).
  * away: a fresh page whose save was written two hours ago → Continue → the welcome-back sheet says so.
  * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the menus, a tap on the castle crafts,
  *   a tap on a row buys, the cackle button, every control ≥ 44 px and on screen, the menu stays open after the finger
@@ -18,7 +20,7 @@
  *   python3 -m http.server 8110          # from the REPO ROOT
  *   node game-110/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8110), ONLY=desktop,away,phones,nostorage, THREE_PKG.
+ * Env: BASE (default http://127.0.0.1:8110), ONLY=desktop,furniture,away,phones,nostorage, THREE_PKG.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -236,6 +238,25 @@ async function desktop() {
 }
 
 // ======================================================================
+async function furniture() {
+    console.log('\n== furniture (every minion and every piece of décor at once)');
+    const page = await open({ width: 1280, height: 760 });
+    await Q(page, () => {
+        __dd.start(5);
+        __dd.give(1e20, 1e6);
+        for (const m of __dd.MINIONS) __dd.send({ t: 'buy', id: m.id, n: 7 });
+        for (const id of ['banners', 'roses', 'chandelier', 'organ', 'oven', 'wheel', 'spire', 'throne', 'punch', 'mirrorball', 'cakestand', 'mannequins']) __dd.send({ t: 'decor', id });
+    });
+    await until(page, () => __dd.MINIONS.every((m) => __dd.view.minions[m.id]?.length >= 6) && Object.keys(__dd.G.decor).length === 12 && __dd.view.settled(), 'a full castle, settled', 60000);
+    const clips = await Q(page, () => __dd.view.clipReport());
+    check(clips.length === 0, `no minion stands inside furniture, décor or a window${clips.length ? ': ' + clips.slice(0, 4).join('; ') : ''}`);
+    await Q(page, () => __dd.send({ t: 'room', id: 'cook' }));
+    await page.waitForTimeout(1500);
+    await shot(page, 'furniture-kitchen');
+    reportErrors('furniture');
+}
+
+// ======================================================================
 async function away() {
     console.log('\n== away (a save from two hours ago)');
     // make a save in one page, then open a fresh one with its clock rewound
@@ -330,6 +351,7 @@ async function nostorage() {
 
 try {
     if (want('desktop')) await desktop();
+    if (want('furniture')) await furniture();
     if (want('away')) await away();
     if (want('phones')) { await phone(390, 844); await phone(844, 390); }
     if (want('nostorage')) await nostorage();
