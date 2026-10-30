@@ -111,6 +111,9 @@ The first bot dodged with perfect information and no reaction time and reached w
 
 ## Changelog
 
+### v1.0.3 (2026-10-30)
+- The ring on the ringed planet is no longer clipped at its ends.
+
 ### v1.0.2 (2026-10-30)
 - The stick is constant speed with a short leash: no rubber band, and a few px of pull-back stops the ship.
 

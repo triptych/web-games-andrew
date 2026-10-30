@@ -236,12 +236,13 @@ function bake(w, h, fn) { const c = document.createElement('canvas'); c.width = 
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 
 export function bakePlanet(r, p) {
-    const size = Math.ceil(r * 2 + (p.ring ? r * 1.2 : 0)) + 2;
-    return bake(size, size, (g) => {
-        const cx = size / 2, cy = size / 2;
+    // a ringed planet is much wider than it is tall: the ring reaches 1.75 radii each side of the centre
+    const sw = Math.ceil(p.ring ? r * 3.5 : r * 2) + 4, sh = Math.ceil(r * 2) + 2;
+    return bake(sw, sh, (g) => {
+        const cx = sw / 2, cy = sh / 2;
         const ringAt = (back) => {
             if (!p.ring) return;
-            for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+            for (let y = 0; y < sh; y++) for (let x = 0; x < sw; x++) {
                 const dx = (x + 0.5 - cx) / (r * 1.75), dy = (y + 0.5 - cy) / (r * 0.5);
                 const d = Math.hypot(dx, dy);
                 // the ring is tilted: its lower half is in front of the planet, the upper half behind
@@ -249,7 +250,7 @@ export function bakePlanet(r, p) {
             }
         };
         ringAt(true);
-        for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+        for (let y = 0; y < sh; y++) for (let x = 0; x < sw; x++) {
             const dx = x + 0.5 - cx, dy = y + 0.5 - cy, d = Math.hypot(dx, dy);
             if (d > r) continue;
             // light from the upper left: shade by the surface's tilt away from it, dithered between tones
