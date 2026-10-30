@@ -49,8 +49,10 @@ export class Input {
 
     /** A floating stick: zone (the whole screen; buttons sit above it) captures the thumb, el is the visual ring, knob follows the thumb. */
     bindStick(zone, el, knob) {
-        // a short throw: full speed after ~30 px of drag, so the ship answers a small movement at once
-        const R = () => Math.min(40, Math.max(26, window.innerWidth * 0.07));
+        // A short leash: the base trails the thumb by at most R px, so stopping takes a few px of
+        // pull-back, not a trip back across the screen. The drawn ring is bigger; the knob is scaled to it.
+        const R = () => Math.min(18, Math.max(12, window.innerWidth * 0.035));
+        const RING = 40;
         const end = (e) => {
             if (e.pointerId !== this.stick.id) return;
             this.stick.active = false;
@@ -85,7 +87,8 @@ export class Input {
                 dx = e.clientX - this.stick.ox; dy = e.clientY - this.stick.oy;
             }
             this.stick.x = dx / rad; this.stick.y = dy / rad;
-            knob.style.transform = `translate(${dx}px, ${dy}px)`;
+            const vk = RING / rad;
+            knob.style.transform = `translate(${dx * vk}px, ${dy * vk}px)`;
         });
         for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) zone.addEventListener(ev, end);
     }
@@ -131,12 +134,14 @@ export class Input {
         const k = this.keys;
         let x = (k.has('ArrowRight') || k.has('KeyD') ? 1 : 0) - (k.has('ArrowLeft') || k.has('KeyA') ? 1 : 0);
         let y = (k.has('ArrowDown') || k.has('KeyS') ? 1 : 0) - (k.has('ArrowUp') || k.has('KeyW') ? 1 : 0);
-        if (this.pad.x || this.pad.y) { x = this.pad.x; y = this.pad.y; }
+        if (this.pad.x || this.pad.y) { const m = Math.hypot(this.pad.x, this.pad.y); x = this.pad.x / m; y = this.pad.y / m; }   // constant speed here too
         if (this.stick.active) {
             const sx = this.stick.x, sy = this.stick.y;
-            // a small dead zone, then a response curve that gets to full speed early
+            // constant speed: only the direction matters, never how far the thumb is. A small dead zone
+            // so a resting thumb does not creep, then full speed at once.
             const m = Math.hypot(sx, sy);
-            if (m > 0.08) { const f = Math.min(1, m * 1.3) / m; x = sx * f; y = sy * f; }
+            if (m > 0.3) { x = sx / m; y = sy / m; }
+            else { x = 0; y = 0; }
         }
         const held = FIRE_KEYS.some((c) => k.has(c)) || this.pad.fire || this.touchFire || this.autofire;
         return { x, y, fire: held || this.edges.fire, bomb: this.edges.bomb };

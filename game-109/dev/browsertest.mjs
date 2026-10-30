@@ -243,6 +243,20 @@ async function phone(w, h) {
     await until(page, (x) => __sb.G.player.x > x + 8, 'dragging the stick moves the ship', 30000, x0);
     await touch('touchEnd', 0, 0);
 
+    // constant speed: a short drag and a long drag steer at the same speed, and a small pull-back stops
+    const stickState = () => Q(page, () => { const s = __sb.input.state(); return Math.hypot(s.x, s.y); });
+    await touch('touchStart', zone.x, zone.y);
+    await touch('touchMove', zone.x + 12, zone.y);
+    const short = await stickState();
+    for (let i = 1; i <= 8; i++) await touch('touchMove', zone.x + 12 + i * 20, zone.y);
+    const long = await stickState();
+    check(Math.abs(short - 1) < 0.01 && Math.abs(long - 1) < 0.01, `the stick is constant speed (a 12 px drag gives ${short.toFixed(2)}, a 170 px drag ${long.toFixed(2)})`);
+    const back = await Q(page, () => __sb.input.stick.ox);
+    await touch('touchMove', back + 20 - 0, zone.y);          // 20 px of the thumb: near the leash, still going
+    for (let i = 0; i < 4; i++) await touch('touchMove', back + 3, zone.y);   // ... then back to within 3 px of the base
+    check(await stickState() === 0, 'pulling the thumb back a few px stops the ship (no rubber band)');
+    await touch('touchEnd', 0, 0);
+
     // a touch anywhere is the stick: far on the right and near the top, and moving left
     await Q(page, () => { __sb.G.player.x = 150; });
     const far = await Q(page, () => ({ x: innerWidth * 0.8, y: __sb.view.oy + __sb.view.dh * 0.3 }));
