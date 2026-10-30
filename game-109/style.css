@@ -117,6 +117,17 @@ table { border-collapse: collapse; width: 100%; font-size: 10px; }
 td { padding: 6px 4px; border-bottom: 1px solid rgba(41, 229, 255, 0.2); vertical-align: middle; }
 td:first-child { color: var(--gold); white-space: nowrap; width: 1%; padding-right: 12px; }
 
+/* the cutscenes: a painted scene, the speaker's name and a typed-out box */
+.story-sheet { width: min(520px, 100%); padding: 10px; }
+#story { background: rgba(3, 2, 14, 0.7); }
+#story-scene { display: block; width: 100%; height: auto; aspect-ratio: 224 / 96; image-rendering: pixelated; border: 2px solid var(--line); border-radius: 3px; background: #05051a; }
+.story-name { margin: 10px 2px 2px; color: var(--cyan); font-size: 11px; }
+.story-name b { font-weight: normal; margin-right: 8px; }
+.story-name small { color: var(--dim); font-size: 8px; }
+.story-text { min-height: 6.5em; margin: 4px 2px 0; font-size: 11px; line-height: 1.9; color: var(--text); }
+.quip { margin: 4px 0 8px; padding: 6px 8px; border-left: 3px solid var(--pink); background: rgba(255, 94, 200, 0.08); font-size: 9px; line-height: 1.8; color: var(--text); }
+.quip::before { content: 'MIRA: '; color: var(--pink); }
+
 /* the hangar: it sits low, so the docked ship stays in view above it */
 #dock { background: transparent; align-items: flex-end; padding-top: calc(300px + var(--safe-t)); }
 @media (max-height: 640px) { #dock { padding-top: calc(52px + var(--safe-t)); align-items: center; background: rgba(3, 2, 14, 0.5); } }

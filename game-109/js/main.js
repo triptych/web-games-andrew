@@ -10,6 +10,7 @@ import { Input } from './input.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave, loadScores, qualifies, addHighScore } from './save.js';
 import { newGame, step, jumpToWave, enterDock, buy, launch } from './sim/game.js';
+import { waveLine, reaction, overLine, dockLine, preBossScene, dockScene } from './story.js';
 import { makeBot, botInput } from './sim/bot.js';
 
 const params = new URLSearchParams(location.search);
@@ -38,6 +39,55 @@ let autoBot = null;                     // the debug hook's autoplay
 let wasRunning = false;
 let hushed = false;
 const seen = {};             // a count of every sim event drained, for the tests
+let lastComm = -99;          // when Mira last spoke (view time), so her reactions are rationed
+
+// ------------------------------------------------------------------ the story
+const storyOn = () => settings.story !== 'off';
+
+/** Play a cutscene (Mira over a painted scene); with the story off, go straight to what follows. */
+function playStory(id, onDone) {
+    if (!storyOn()) { onDone?.(); return; }
+    audio.hush(true);                      // the game is paused behind it; this also stops the announcer
+    ui.openStory(id, G.wave, {
+        draw: (c, scene, t, o) => view.drawStoryScene(c, scene, t, o),
+        speak: (text) => audio.sayMira(text),
+        onDone: () => { audio.shush(); onDone?.(); },
+    });
+}
+
+/** Mira in the comm strip. Reactions are rationed; a wave's own line always goes out. */
+function comm({ text, mood }, always = true) {
+    if (!storyOn() || (!always && view.time - lastComm < 9)) return;
+    lastComm = view.time;
+    view.comm(text, mood);
+}
+
+/** What the story does with this batch of sim events. */
+function storyEvents(ev) {
+    if (!storyOn()) return;
+    for (const e of ev) {
+        if (e.type === 'wave') {
+            const scene = e.kind === 'boss' ? preBossScene(e.n) : null;
+            if (scene) playStory(scene);
+            else {
+                comm(waveLine(e.n, e.kind, G.seed));
+                if (G.lives === 1 && e.n > 1) view.comm(reaction('lowlives', e.n, G.seed).text, 'worry');
+            }
+        } else if (e.type === 'pdie') comm(reaction('pdie', G.wave, G.seed + seen.pdie), false);
+        else if (e.type === 'waveclear' && e.perfect && e.kind !== 'bonus') comm(reaction('perfect', G.wave, G.seed + (seen.waveclear || 0)), false);
+        else if (e.type === '1up') comm(reaction('oneup', G.wave, G.seed), false);
+    }
+}
+
+/** The shop opens: first a cutscene on the big occasions, otherwise a quip from Mira on the screen. */
+function openHangar() {
+    const open = () => { ui.openDock(G); saveGame(G); };
+    const scene = dockScene(G.wave);
+    const quip = document.getElementById('dock-quip');
+    quip.hidden = !storyOn() || !!scene;
+    if (!quip.hidden) quip.textContent = dockLine(G.wave, G.seed);
+    if (scene && storyOn()) playStory(scene, open); else open();
+}
 
 function demoGame() { return newGame((Date.now() % 1e9) | 0); }
 const freshGame = () => newGame((Date.now() % 1e9) | 0);
@@ -80,7 +130,7 @@ document.getElementById('title-menu').addEventListener('click', (e) => {
     if (!b) return;
     audio.ui('click');
     const act = b.dataset.act;
-    if (act === 'new') startGame(freshGame());
+    if (act === 'new') startGame(freshGame(), false, true);
     else if (act === 'continue') {
         const g = loadGame();
         if (g) startGame(g, true); else ui.toast('That save could not be read.');
@@ -104,11 +154,15 @@ for (const id of ['dock-list', 'dock-supplies']) {
         if (buy(G, b.dataset.buy)) ui.renderDock(G); else audio.ui('close');
     });
 }
+document.getElementById('story-next').addEventListener('click', () => ui.storyNext());
+document.getElementById('story-skip').addEventListener('click', () => ui.storyEnd());
+document.getElementById('story-scene').addEventListener('click', () => ui.storyNext());
+document.getElementById('story-text').addEventListener('click', () => ui.storyNext());
 document.getElementById('dock-go').addEventListener('click', () => {
     ui.closeScreen('dock');
     if (launch(G)) saveGame(G);
 });
-document.getElementById('over-again').addEventListener('click', () => { audio.ui('click'); startGame(freshGame()); });
+document.getElementById('over-again').addEventListener('click', () => { audio.ui('click'); startGame(freshGame()); });      // (no intro again)
 document.getElementById('over-quit').addEventListener('click', () => { audio.ui('click'); toTitle(); });
 document.getElementById('over-entry').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -126,8 +180,11 @@ function announceWave() {
     audio.onEvents(G, [{ type: 'wave', n: G.wave, kind: G.plan.kind, boss: G.plan.boss ? G.plan.boss.idx : -1 }]);
 }
 
-function startGame(g, resumed = false) {
+function startGame(g, resumed = false, intro = false) {
     G = g;
+    ui.storyAbort();
+    view.clearComms();
+    lastComm = -99;
     for (const id of [...ui.stack]) ui.closeScreen(id);
     // a focused button would swallow Space and Enter for the whole game
     document.activeElement?.blur?.();
@@ -139,6 +196,7 @@ function startGame(g, resumed = false) {
     ui.showHud(true);
     applySettings();
     audio.ui('start');
+    if (intro) playStory('intro');
     if (resumed) {
         G.events.length = 0;
         if (G.phase === 'dock' && G.dock?.st === 'shop') ui.openDock(G); else announceWave();     // a game saved in the hangar comes back to it
@@ -147,6 +205,8 @@ function startGame(g, resumed = false) {
 }
 
 function toTitle() {
+    ui.storyAbort();
+    view.clearComms();
     for (const id of [...ui.stack]) ui.closeScreen(id);
     mode = 'title';
     ui.showHud(false);
@@ -174,9 +234,10 @@ function handlePresses() {
     if (!press) return;
     const key = press.key;
     if (ui.anyScreen()) {
+        if (ui.top() === 'story' && (key === 'Escape' || key === 'KeyP')) { ui.storyEnd(); return; }
         if (key === 'ArrowDown') ui.moveFocus(1);
         else if (key === 'ArrowUp') ui.moveFocus(-1);
-        else if ((key === 'Escape' || key === 'KeyP') && ui.top() !== 'title' && ui.top() !== 'over' && ui.top() !== 'dock') { audio.ui('close'); ui.closeTop(); }
+        else if ((key === 'Escape' || key === 'KeyP') && ui.top() !== 'title' && ui.top() !== 'over' && ui.top() !== 'dock' && ui.top() !== 'story') { audio.ui('close'); ui.closeTop(); }
         else if (key === 'Enter' && press.pad) document.activeElement?.click?.();
         return;
     }
@@ -194,12 +255,16 @@ function flushEvents() {
     for (const e of ev) seen[e.type] = (seen[e.type] || 0) + 1;
     view.onEvents(G, ev);
     audio.onEvents(G, ev);
-    if (ev.some((e) => e.type === 'dockopen')) { ui.openDock(G); saveGame(G); }
+    storyEvents(ev);
+    if (ev.some((e) => e.type === 'dockopen')) openHangar();
     if (ev.some((e) => e.type === 'over')) {
         mode = 'over';
         clearSave();
         ui.showHud(false);
         input.autofire = false;
+        const q = document.getElementById('over-quip');
+        q.hidden = !storyOn();
+        q.textContent = overLine(G.wave, G.seed);
         const entry = qualifies(G.score);
         const table = entry ? null : loadScores();
         ui.showOver(G, entry, settings.name, table);
@@ -257,7 +322,9 @@ if (DEBUG) {
         get G() { return G; },
         get mode() { return mode; },
         seen, view, ui, audio, input, settings,
-        start(seed = 1) { startGame(newGame(seed)); return G; },
+        start(seed = 1, intro = false) { startGame(newGame(seed), false, intro); return G; },
+        /** Play a cutscene now (intro, boss0, dock0, boss1, boss2, finale). */
+        story(id, onDone) { playStory(id, onDone); },
         autoplay(on = true, skill = 1) { autoBot = on ? makeBot({ skill }) : null; },
         /** Run the sim ahead synchronously with the bot playing; events reach the view as usual. */
         ff(sec, skill = 1) { const b = makeBot({ skill }); for (let t = 0; t < sec && !G.over; t += STEP) step(G, botInput(G, b), STEP); flushEvents(); },

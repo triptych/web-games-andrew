@@ -14,6 +14,10 @@
  *   auto-fire off the FIRE button fires while held and stops when let go, controls ≥ 44 px and on
  *   screen, no sideways scroll, the canvas matches the visible viewport, the field sits clear of the
  *   ← Games link and the pause button.
+ * story (desktop and a phone): the intro cutscene opens on a new game and pauses it, Next types out and moves on,
+ *   Skip and Escape end it, Mira's comm strip follows, a boss arrival and the dock after the first boss have
+ *   cutscenes (the hangar waits behind the second), the Story setting turns it all off, Mira has a word on the
+ *   game-over sheet, and it all fits a phone.
  * nostorage: localStorage throws; the game still boots and plays.
  * Fails on any console error, page error or failed request.
  *
@@ -38,17 +42,23 @@ let fails = 0;
 let errors = [];
 let browser = null;
 
-async function open(viewport, { touch = false, nostorage = false, keepStorage = false } = {}) {
+async function open(viewport, { touch = false, nostorage = false, keepStorage = false, story = false } = {}) {
     if (browser) await browser.close();
     browser = await chromium.launch({
         executablePath: process.env.PW_CHROMIUM_PATH || undefined,
         args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required'],
     });
     const ctx = await browser.newContext({ viewport, deviceScaleFactor: touch ? 2 : 1, hasTouch: touch, isMobile: touch });
-    await ctx.addInitScript(({ ns, keep }) => {
+    await ctx.addInitScript(({ ns, keep, story }) => {
         if (ns) Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('blocked', 'SecurityError'); } });
-        else if (!keep && !sessionStorage.getItem('__cleared')) { try { localStorage.clear(); sessionStorage.setItem('__cleared', '1'); } catch { /* */ } }
-    }, { ns: nostorage, keep: keepStorage });
+        else if (!keep && !sessionStorage.getItem('__cleared')) {
+            try {
+                localStorage.clear(); sessionStorage.setItem('__cleared', '1');
+                // the story has its own test group; everything else plays without the cutscenes
+                if (!story) localStorage.setItem('starblazer-86.v1.settings', JSON.stringify({ story: 'off' }));
+            } catch { /* */ }
+        }
+    }, { ns: nostorage, keep: keepStorage, story });
     const page = await ctx.newPage();
     await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
     errors = [];
@@ -378,12 +388,107 @@ async function phone(w, h) {
 }
 
 // ======================================================================
+async function story(phoneSize = null) {
+    console.log(`\n== story ${phoneSize ? `phone ${phoneSize[0]}×${phoneSize[1]}` : 'desktop'}`);
+    const page = await open({ width: phoneSize?.[0] ?? 1280, height: phoneSize?.[1] ?? 760 }, { story: true, touch: !!phoneSize });
+    const tap = (sel) => phoneSize
+        ? Q(page, (s) => { const e = document.querySelector(s); const b = e.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; }, sel).then((r) => page.touchscreen.tap(r.x, r.y))
+        : click(page, sel);
+    await tap('#title-menu [data-act="new"]');
+    await until(page, () => __sb.mode === 'play' && __sb.ui.top() === 'story', 'a new game opens with the intro cutscene');
+    check(await Q(page, () => document.getElementById('story-where').textContent.includes('BRIDGE')), 'it is set on the bridge');
+    const t0 = await Q(page, () => __sb.G.t);
+    await page.waitForTimeout(500);
+    check(await Q(page, (t) => __sb.G.t === t, t0), 'the game waits behind the cutscene');
+    await until(page, () => document.getElementById('story-text').textContent.length > 10, 'her line types itself out');
+    const L = await Q(page, () => { const r = document.querySelector('#story .sheet').getBoundingClientRect(), n = document.getElementById('story-next').getBoundingClientRect(); return { fits: r.top >= 0 && r.bottom <= innerHeight + 1 && r.left >= 0 && r.right <= innerWidth + 1, nextOk: n.width >= 44 && n.height >= 44 }; });
+    check(L.fits && L.nextOk, 'the cutscene fits the screen and Next is at least 44 px');
+    const pic = await Q(page, () => { const c = document.getElementById('story-scene'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; const cols = new Set(); for (let i = 0; i < d.length; i += 16) { if (d[i] + d[i + 1] + d[i + 2] > 200) n++; cols.add((d[i] >> 5) * 64 + (d[i + 1] >> 5) * 8 + (d[i + 2] >> 5)); } return { n, cols: cols.size }; });
+    check(pic.n > 80 && pic.cols > 15, `the scene (with Mira) is really painted (${pic.n} bright samples, ${pic.cols} colours)`);
+    await shot(page, `story-${phoneSize ? 'phone' : 'desktop'}-intro`);
+    await tap('#story-next');                                           // finishes the typing
+    check(await Q(page, () => __sb.ui.story.shown === __sb.ui.story.lines[__sb.ui.story.i].text.length && document.getElementById('story-text').textContent.length === __sb.ui.story.shown), 'Next finishes a line that is still typing');
+    const i0 = await Q(page, () => __sb.ui.story.i);
+    await tap('#story-next');
+    await until(page, (i) => __sb.ui.story?.i === i + 1, 'Next again moves to the next line', 30000, i0);
+    for (let k = 0; k < 14 && await Q(page, () => !document.getElementById('story').hidden); k++) await tap('#story-next');
+    await until(page, () => document.getElementById('story').hidden, 'going through every line ends the cutscene');
+    await until(page, () => __sb.G.t > 0.5, 'and the game begins');
+    check(await Q(page, () => (__sb.view.commNow?.text || __sb.view.comms[0]?.text || '').includes('Drones ahead')), 'Mira then opens wave 1 over the comm: "Drones ahead..."');
+    await page.waitForTimeout(900);
+    await shot(page, `story-${phoneSize ? 'phone' : 'desktop'}-comm`);
+    const pic2 = await lit(page);
+    check(pic2.bright > 40, 'the comm strip is drawn over the game');
+
+    if (phoneSize) { reportErrors('story phone'); return; }
+
+    // Skip and Escape
+    await Q(page, () => __sb.story('boss1'));
+    await until(page, () => __sb.ui.top() === 'story', 'a cutscene can be started');
+    await click(page, '#story-skip');
+    await until(page, () => document.getElementById('story').hidden, 'Skip ends it at once');
+    await Q(page, () => __sb.story('boss2'));
+    await until(page, () => __sb.ui.top() === 'story', 'another cutscene');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('story').hidden, 'Escape skips it too');
+    await Q(page, () => __sb.story('finale'));
+    await until(page, () => __sb.ui.top() === 'story', 'a third');
+    await page.keyboard.press('Space');                                 // Space on the focused Next button
+    await until(page, () => __sb.ui.story.shown === __sb.ui.story.lines[__sb.ui.story.i].text.length, 'Space on the focused Next button works');
+    await click(page, '#story-skip');
+
+    // a boss arrives with a cutscene; docking after the first boss has one, and the hangar waits behind it
+    await Q(page, () => { __sb.G.player.inv = 1e9; __sb.wave(5); });
+    await until(page, () => __sb.ui.top() === 'story' && document.getElementById('story-where').textContent.includes('OBSERVATION'), 'the first boss arrives with a cutscene at the observation window');
+    await shot(page, 'story-boss-window');
+    await click(page, '#story-skip');
+    await Q(page, () => { const G = __sb.G; G.enemies.length = 0; G.ebullets.length = 0; G.plan.idx = G.plan.orders.length; G.credits = 120; __sb.dock(); });
+    await until(page, () => __sb.ui.top() === 'story' && document.getElementById('story-where').textContent.includes('HANGAR'), 'docking after the first boss opens a cutscene in the hangar bay');
+    check(await Q(page, () => document.getElementById('dock').hidden), 'the shop waits behind it');
+    check(await Q(page, () => document.getElementById('dock-quip').hidden), 'and the quip is left for the ordinary visits');
+    await click(page, '#story-skip');
+    await until(page, () => !document.getElementById('dock').hidden && __sb.ui.top() === 'dock', 'when it ends the Hangar opens');
+    await click(page, '#dock-go');
+    await until(page, () => document.getElementById('dock').hidden, 'launch');
+    // a later dock: no cutscene, a quip on the screen
+    await Q(page, () => { const G = __sb.G; G.enemies.length = 0; G.ebullets.length = 0; G.wave = 20; G.plan.idx = G.plan.orders.length; __sb.dock(); });
+    await until(page, () => !document.getElementById('dock').hidden, 'a later dock goes straight to the Hangar');
+    check(await Q(page, () => !document.getElementById('dock-quip').hidden && document.getElementById('dock-quip').textContent.length > 10), 'with a quip from Mira at the top');
+    await shot(page, 'story-hangar-quip');
+    await click(page, '#dock-go');
+    await until(page, () => document.getElementById('dock').hidden, 'launch again');
+
+    // game over: Mira has a word
+    await Q(page, () => { __sb.die(true); });
+    await until(page, () => __sb.mode === 'over', 'the game ends');
+    check(await Q(page, () => !document.getElementById('over-quip').hidden && document.getElementById('over-quip').textContent.length > 15), 'Mira has a word on the game-over sheet');
+    await shot(page, 'story-over');
+    await Q(page, () => { document.getElementById('over-save').click(); });
+    await click(page, '#over-quit');
+    await until(page, () => __sb.mode === 'title', 'back to the title');
+
+    // the Story setting
+    await click(page, '#title-menu [data-act="settings"]');
+    await Q(page, () => { const s = document.getElementById('set-story'); s.value = 'off'; s.dispatchEvent(new Event('change')); });
+    await click(page, '#settings [data-close]');
+    await click(page, '#title-menu [data-act="new"]');
+    await until(page, () => __sb.mode === 'play' && __sb.ui.top() === null, 'with Story off a new game has no cutscene');
+    await page.waitForTimeout(400);
+    check(await Q(page, () => !__sb.view.commNow && __sb.view.comms.length === 0), 'and no comms');
+    await Q(page, () => { __sb.G.player.inv = 1e9; __sb.wave(5); });
+    await page.waitForTimeout(400);
+    check(await Q(page, () => __sb.ui.top() === null && __sb.G.t > 0), 'nor does a boss arrive with a cutscene');
+    reportErrors('story desktop');
+}
+
+// ======================================================================
 async function nostorage() {
     console.log('\n== blocked storage');
     const page = await open({ width: 1280, height: 760 }, { nostorage: true });
     check(await Q(page, () => document.getElementById('hiscore').textContent === '060000'), 'the default high-score table still shows');
     await click(page, '#title-menu [data-act="new"]');
     await until(page, () => __sb.mode === 'play', 'boots and starts a game with localStorage throwing');
+    await click(page, '#story-skip');
     await Q(page, () => __sb.ff(3));
     check(await Q(page, () => __sb.save() === false), 'saving fails quietly');
     await Q(page, () => { __sb.G.score = 99999; __sb.die(true); });
@@ -396,6 +501,7 @@ async function nostorage() {
 try {
     if (want('desktop')) await desktop();
     if (want('phones')) { await phone(390, 844); await phone(844, 390); }
+    if (want('story')) { await story(); await story([390, 844]); }
     if (want('nostorage')) await nostorage();
 } catch (err) {
     fails++;

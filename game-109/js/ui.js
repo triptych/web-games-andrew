@@ -3,6 +3,7 @@
 
 import { VERSION } from './config.js';
 import { UPGRADES, SUPPLIES, offer } from './sim/upgrades.js';
+import { CUTSCENES, sceneLines } from './story.js';
 
 const $ = (id) => document.getElementById(id);
 const pad6 = (n) => String(Math.max(0, Math.floor(n))).padStart(6, '0');
@@ -28,7 +29,7 @@ export class UI {
             b.addEventListener('click', () => { audio.ui('close'); this.closeTop(); });
         }
 
-        const els = { sfx: $('set-sfx'), music: $('set-music'), touch: $('set-touch'), autofire: $('set-autofire'), effects: $('set-effects'), crt: $('set-crt'), voice: $('set-voice') };
+        const els = { sfx: $('set-sfx'), music: $('set-music'), touch: $('set-touch'), autofire: $('set-autofire'), effects: $('set-effects'), crt: $('set-crt'), voice: $('set-voice'), story: $('set-story') };
         for (const [k, el] of Object.entries(els)) el.value = settings[k];
         const changed = () => {
             for (const [k, el] of Object.entries(els)) settings[k] = el.type === 'range' ? +el.value : el.value;
@@ -111,6 +112,66 @@ export class UI {
         (again || document.querySelector('#dock .dock-row:not(:disabled)') || $('dock-go')).focus({ preventScroll: true });
     }
     openDock(G) { this.openScreen('dock'); this.renderDock(G); }
+
+    // ------------------------------------------------------------------ cutscenes
+    /**
+     * Play a cutscene: Mira's portrait over a painted scene, each line typed out; Next finishes a line and
+     * then moves on, Skip (or Escape) ends it. `draw(canvas, sceneId, time, state)` paints the scene and
+     * `speak(text)` voices a line. onDone runs once, when it ends.
+     */
+    openStory(id, wave, { draw, speak, onDone }) {
+        const sc = CUTSCENES[id];
+        if (!sc) { onDone?.(); return; }
+        const lines = sceneLines(id, wave);
+        const st = this.story = { lines, i: 0, shown: 0, t: 0, done: false, onDone, draw, speak, scene: sc.scene, wave };
+        $('story-where').textContent = sc.where;
+        $('story-text').textContent = '';
+        this.openScreen('story');
+        this.storyLine(0);
+        clearInterval(this.storyTimer);
+        this.storyTimer = setInterval(() => this.storyTick(0.05), 50);
+        $('story-next').focus({ preventScroll: true });
+        this.storyPaint(st);
+    }
+    storyLine(i) {
+        const st = this.story;
+        st.i = i; st.shown = 0;
+        st.speak?.(st.lines[i].text);
+        $('story-next').textContent = i === st.lines.length - 1 ? 'Done' : 'Next';
+    }
+    storyTick(dt) {
+        const st = this.story;
+        if (!st || st.done) return;
+        st.t += dt;
+        const text = st.lines[st.i].text;
+        if (st.shown < text.length) st.shown = Math.min(text.length, st.shown + 2);
+        $('story-text').textContent = text.slice(0, st.shown);
+        this.storyPaint(st);
+    }
+    storyPaint(st) {
+        const line = st.lines[st.i], talking = st.shown < line.text.length;
+        st.draw?.($('story-scene'), st.scene, st.t, { talking, blink: (st.t % 3.4) < 0.14, mood: line.mood, wave: st.wave });
+    }
+    /** Next: finish the typing, or go to the next line, or end. */
+    storyNext() {
+        const st = this.story;
+        if (!st || st.done) return;
+        const text = st.lines[st.i].text;
+        if (st.shown < text.length) { st.shown = text.length; this.storyTick(0); return; }
+        if (st.i < st.lines.length - 1) { this.storyLine(st.i + 1); return; }
+        this.storyEnd();
+    }
+    storyEnd() {
+        const st = this.story;
+        if (!st || st.done) return;
+        st.done = true;
+        clearInterval(this.storyTimer);
+        this.closeScreen('story');
+        st.onDone?.();
+    }
+    /** Drop a cutscene without running its onDone (the game was left). */
+    storyAbort() { clearInterval(this.storyTimer); this.story = null; }
+    storyOpen() { return !!this.story && !this.story.done && this.stack.includes('story'); }
 
     // ------------------------------------------------------------------ scores
     setHi(score) { $('hiscore').textContent = pad6(score); }

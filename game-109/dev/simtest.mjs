@@ -15,7 +15,9 @@
  *    cannot be hurt clears every one of waves 1-40 in a sane time (nothing is unwinnable or stuck).
  * 4. bosses: each boss enters untouchable, fights in phases, can be killed, blows up in a chain,
  *    pays out and hands over to the next wave.
- * 5. hangar: credits earned, the flight to the mothership after a boss, buying every upgrade and supply
+ * 5. story: every cutscene and comm line fits its box, wave lines exist for every wave, the callsign climbs,
+ *    the cutscenes are attached to the right waves.
+ * 5b. hangar: credits earned, the flight to the mothership after a boss, buying every upgrade and supply
  *    (price, limits, effect), upgrades surviving death, launching, saves in the hangar, the bot spending.
  * 6. determinism: the same seed and inputs give the same game; a save round trip, mid-game, mid-boss
  *    and mid-formation, plays on identically.
@@ -38,6 +40,7 @@ const En = await import('../js/sim/enemies.js');
 const Wv = await import('../js/sim/waves.js');
 const Bs = await import('../js/sim/bosses.js');
 const Up = await import('../js/sim/upgrades.js');
+const St = await import('../js/story.js');
 
 let fails = 0, checks = 0;
 const ok = (cond, msg) => {
@@ -64,7 +67,7 @@ const clearField = (G) => { G.enemies.length = 0; G.ebullets.length = 0; G.pbull
 // ======================================================================
 if (want('purity')) {
     section('purity');
-    const files = ['js/rng.js', 'js/config.js', ...fs.readdirSync(path.join(ROOT, 'js/sim')).map((f) => 'js/sim/' + f)];
+    const files = ['js/rng.js', 'js/config.js', 'js/story.js', ...fs.readdirSync(path.join(ROOT, 'js/sim')).map((f) => 'js/sim/' + f)];
     for (const f of files) {
         const src = fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
         ok(!/\bdocument\.|\bwindow\.|from 'three'|Math\.random|localStorage|performance\.now|Date\.now|requestAnimationFrame|AudioContext/.test(src), `${f} is pure`);
@@ -417,6 +420,42 @@ if (want('bosses')) {
     }
 }
 
+
+// ======================================================================
+if (want('story')) {
+    section('story');
+    const bad = (t) => /[{}]/.test(t) || t.length === 0;
+    for (const [id, sc] of Object.entries(St.CUTSCENES)) {
+        ok(sc.lines.length >= 2 && sc.where && ['bridge', 'window0', 'window1', 'window2', 'hangar'].includes(sc.scene), `cutscene ${id}: has lines, a place and a known scene`);
+        ok(sc.lines.every((l) => St.MOODS.includes(l.mood) && l.text.length > 20 && l.text.length <= 175), `cutscene ${id}: every line has a known mood and fits the box (<= 175 chars)`);
+        ok(St.sceneLines(id, 12).every((l) => !bad(l.text)), `cutscene ${id}: no unfilled placeholders`);
+    }
+    ok(St.callsign(1) === 'Rookie' && St.callsign(5) === 'Rookie' && St.callsign(6) === 'Pilot' && St.callsign(11) === 'Ace' && St.callsign(16) === 'Starblazer' && St.callsign(99) === 'Starblazer', 'the callsign climbs as bosses fall: Rookie, Pilot, Ace, Starblazer');
+    ok(St.preBossScene(5) === 'boss0' && St.preBossScene(10) === 'boss1' && St.preBossScene(15) === 'boss2' && St.preBossScene(20) === null && St.preBossScene(4) === null, 'the first three bosses have an arrival cutscene, later ones none');
+    ok(St.dockScene(5) === 'dock0' && St.dockScene(15) === 'finale' && St.dockScene(10) === null && St.dockScene(20) === null, 'docking after boss 1 and boss 3 has a cutscene (the hangar tutorial and the finale)');
+    let longest = 0, count = 0;
+    for (let n = 1; n <= 80; n++) {
+        const kind = Wv.isBossWave(n) ? 'boss' : Wv.isBonusWave(n) ? 'bonus' : 'normal';
+        for (let seed = 0; seed < 6; seed++) {
+            const l = St.waveLine(n, kind, seed);
+            const rows = St.wrap(l.text, 30);
+            longest = Math.max(longest, l.text.length); count++;
+            if (bad(l.text) || rows.length > 3 || rows.some((r) => r.length > 30) || !St.MOODS.includes(l.mood)) ok(false, `wave ${n} seed ${seed}: "${l.text}" does not fit the comm strip (3 lines of 30)`);
+        }
+    }
+    ok(longest <= 90, `all ${count} comm lines for waves 1-80 fit three lines of 30 characters (longest ${longest})`);
+    for (let n = 1; n <= 15; n++) ok(St.waveLine(n, 'normal', 0).text === St.waveLine(n, 'normal', 5).text, `wave ${n} has its own line, the same every game`);
+    ok(St.waveLine(3, 'normal').text.toLowerCase().includes('formation') && St.waveLine(4, 'bonus').text.toLowerCase().includes('bonus') && /boss|mothership/i.test(St.waveLine(5, 'boss').text), 'the first waves introduce what is in them');
+    ok(new Set(Array.from({ length: 30 }, (_, i) => St.waveLine(20 + i, 'normal', 0).text)).size >= 6, 'later waves draw on a pool of varied lines');
+    for (const kind of ['pdie', 'perfect', 'lowlives', 'oneup']) for (let n = 1; n <= 20; n++) {
+        const r = St.reaction(kind, n, n);
+        if (bad(r.text) || St.wrap(r.text, 30).length > 3 || !St.MOODS.includes(r.mood)) ok(false, `reaction ${kind} wave ${n}: "${r.text}" does not fit`);
+    }
+    ok(true, 'every reaction fits the comm strip');
+    ok([1, 5, 9, 14, 30].every((n) => St.overLine(n, 3).length > 20 && !bad(St.overLine(n, 3))) && St.dockLine(20, 1).length > 10 && !bad(St.dockLine(20, 1)), 'there are game-over and hangar quips for every stage');
+    const w = St.wrap('one two three four five six seven', 10);
+    ok(w.every((r) => r.length <= 10) && w.join(' ') === 'one two three four five six seven', 'wrap breaks on words and loses nothing');
+}
 
 // ======================================================================
 if (want('hangar')) {

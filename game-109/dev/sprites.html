@@ -64,3 +64,18 @@ window.__ready = true;
 </script>
 </body>
 </html>
+<script type="module">
+import { portrait } from '../js/view/portrait.js';
+const out = document.getElementById('out');
+const h = document.createElement('h2'); h.textContent = 'Mira: moods, mouths, blink'; out.appendChild(h);
+const r = document.createElement('div'); r.className = 'row'; out.appendChild(r);
+for (const [m, mo, b] of [['neutral', 'closed', false], ['smile', 'closed', false], ['smile', 'open', false], ['neutral', 'open', false], ['worry', 'closed', false], ['worry', 'open', false], ['wink', 'closed', false], ['smile', 'closed', true]]) {
+    const f = document.createElement('figure'), c = document.createElement('canvas'), img = portrait(m, mo, b);
+    c.width = img.width * 8; c.height = img.height * 8;
+    const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(img, 0, 0, c.width, c.height);
+    f.append(c, `${m} ${mo}${b ? ' blink' : ''}`); r.appendChild(f);
+}
+// at the 1x size the comm strip uses
+const f = document.createElement('figure'), c = document.createElement('canvas'); c.width = 26 * 2; c.height = 26 * 2;
+const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(portrait('smile', 'open', false), 0, 0, 52, 52); f.append(c, '2x'); r.appendChild(f);
+</script>

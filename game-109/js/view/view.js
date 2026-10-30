@@ -7,7 +7,9 @@
 
 import { FIELD, SCORE, WAVE, PLAYER } from '../config.js';
 import { makeSprites, CAPSULES } from './sprites.js';
-import { Fx, Starfield, SECTORS, RAMPS, disc, ring } from './fx.js';
+import { Fx, Starfield, SECTORS, RAMPS, disc, ring, bakeSky, bakeNebula, bakePlanet } from './fx.js';
+import { portrait } from './portrait.js';
+import { NAME, wrap } from '../story.js';
 import { drawText, textWidth } from './font.js';
 import { BOSS_NAMES } from '../sim/bosses.js';
 
@@ -37,6 +39,9 @@ export class View {
         this.time = 0;
         this.clearInfo = null;
         this.toast = null;
+        this.comms = [];                       // Mira's lines waiting to be shown
+        this.commNow = null;                   // the one showing: { text, lines, mood, t, dur }
+        this.sceneArt = [];                    // baked backdrops for the cutscenes, per sector
         this.overlay = null;
         this.w = this.h = 0;
         this.resize();
@@ -121,6 +126,8 @@ export class View {
         this.stars.update(dt, warp);
         this.fx.update(dt);
         if (this.toast) { this.toast.t += dt; if (this.toast.t > 1.6) this.toast = null; }
+        if (!this.commNow && this.comms.length) this.commNow = this.comms.shift();
+        if (this.commNow) { this.commNow.t += dt; if (this.commNow.t > this.commNow.dur) this.commNow = null; }
 
         this.stars.draw(g, t);
         this.drawMother(G, g, t);
@@ -136,6 +143,7 @@ export class View {
         if (this.fx.flash > 0.01) { g.fillStyle = this.fx.flashColor; g.globalAlpha = this.fx.flash; g.fillRect(0, 0, BW, BH); g.globalAlpha = 1; }
         this.fx.drawPopups(g);
         this.drawBanner(G, g, t);
+        if (!st.paused) this.drawComm(g, t);          // not behind a cutscene or a menu
         this.drawHud(G, g, t, st);
         this.present();
     }
@@ -354,6 +362,72 @@ export class View {
             }
         }
         if (this.toast) drawText(g, this.toast.text, 40, BH - 24, ((this.toast.t * 8) | 0) % 2 ? '#ffec27' : '#ffffff', { scale: 2, shadow: '#05051a' });
+    }
+
+    // ------------------------------------------------------------------ Mira's comm strip
+    /** Queue a line from the flight controller; it types itself out in a strip at the top of the screen. */
+    comm(text, mood = 'neutral') {
+        if (this.comms.length >= 2) this.comms.shift();
+        this.comms.push({ text, mood, lines: wrap(text, 30), t: 0, dur: Math.min(5.2, 2.4 + text.length * 0.045) });
+    }
+    clearComms() { this.comms.length = 0; this.commNow = null; }
+
+    drawComm(g, t) {
+        const c = this.commNow;
+        if (!c) return;
+        const slide = Math.min(1, c.t / 0.18), fade = Math.min(1, (c.dur - c.t) / 0.3), y0 = Math.round(34 - (1 - slide) * 40);
+        g.globalAlpha = 0.9 * fade;
+        g.fillStyle = '#05051a'; g.fillRect(4, y0, 216, 37);
+        g.globalAlpha = fade;
+        g.fillStyle = '#29e5ff'; g.fillRect(4, y0, 216, 1); g.fillRect(4, y0 + 36, 216, 1); g.fillRect(4, y0, 1, 37); g.fillRect(219, y0, 1, 37);
+        const shown = Math.floor(c.t * 42), total = c.text.length, talking = shown < total;
+        const mouth = talking && ((c.t * 9) | 0) % 2 ? 'open' : 'closed', blink = (c.t % 3.1) < 0.12;
+        g.drawImage(portrait(c.mood, mouth, blink), 7, y0 + 5);
+        drawText(g, NAME, 37, y0 + 3, '#29e5ff');
+        let left = shown;
+        c.lines.forEach((ln, i) => {
+            const part = ln.slice(0, Math.max(0, left));
+            left -= ln.length + 1;
+            if (part) drawText(g, part, 37, y0 + 12 + i * 8, '#ffffff');
+        });
+        g.globalAlpha = 1;
+    }
+
+    // ------------------------------------------------------------------ the cutscene backdrop
+    /** Paint a cutscene's scene into a 224×96 canvas: the sky outside, a window frame, a console, and Mira. */
+    drawStoryScene(c, sceneId, time, { talking = false, blink = false, mood = 'neutral', wave = 1 } = {}) {
+        const g = c.getContext('2d'), si = sectorOf(wave) % SECTORS.length, sec = SECTORS[si];
+        g.imageSmoothingEnabled = false;
+        const art = this.sceneArt[si] || (this.sceneArt[si] = { sky: bakeSky(sec), neb: bakeNebula(sec), planet: bakePlanet(26, sec.planet) });
+        g.drawImage(art.sky, 0, 80, 224, 96, 0, 0, 224, 96);
+        g.globalAlpha = 0.7;
+        const nx = Math.floor((time * 4) % 224);
+        g.drawImage(art.neb, 0, 100, 224, 96, -nx, 0, 224, 96); g.drawImage(art.neb, 0, 100, 224, 96, 224 - nx, 0, 224, 96);
+        g.globalAlpha = 1;
+        // stars drifting past the window: the carrier is moving
+        for (let i = 0; i < 46; i++) {
+            const x = ((i * 97) % 224 - time * (8 + (i % 4) * 7) + 448) % 224, y = (i * 53) % 78;
+            g.fillStyle = sec.stars[i % 3]; g.fillRect(Math.floor(x), y + 4, 1 + (i % 7 === 0 ? 1 : 0), 1);
+        }
+        g.drawImage(art.planet, 150, 6 + Math.sin(time * 0.3) * 1.5);
+        if (/^window\d$/.test(sceneId)) {
+            const spr = this.sprites.boss[+sceneId[6]][Math.floor(time * 3) & 1], k = 1.35, w = spr.w * k, h = spr.h * k;
+            const bx = 138 + Math.sin(time * 0.7) * 5, by = 38 + Math.sin(time * 1.1) * 3;
+            g.drawImage(spr.img, bx - w / 2, by - h / 2, w, h);
+            if (((time * 2) | 0) % 2) { g.fillStyle = '#ff004d'; g.fillRect(96, 6, 4, 4); g.fillRect(212, 6, 4, 4); }       // warning lamps
+        } else if (sceneId === 'hangar') {
+            const sh = this.sprites.ship.c, k = 2, bob = Math.sin(time * 1.6) * 2;
+            g.drawImage(sh.img, 150 - sh.w, 44 + bob - sh.h, sh.w * k, sh.h * k);
+            for (let i = 0; i < 8; i++) { g.fillStyle = ((time * 4 + i) | 0) % 3 ? '#1d3a9f' : '#ffc400'; g.fillRect(100 + i * 14, 70, 8, 2); }
+        }
+        // window frame and console
+        g.fillStyle = '#0a0a22'; g.fillRect(0, 0, 224, 4); g.fillRect(0, 0, 5, 96); g.fillRect(219, 0, 5, 96);
+        g.fillStyle = '#1d3a9f'; g.fillRect(4, 3, 216, 1); g.fillRect(4, 3, 1, 93); g.fillRect(219, 3, 1, 93);
+        g.fillStyle = '#10163f'; g.fillRect(0, 78, 224, 18);
+        g.fillStyle = '#29e5ff'; g.fillRect(0, 78, 224, 1);
+        for (let i = 0; i < 12; i++) { g.fillStyle = ((time * 2 + i * 0.7) | 0) % 3 === i % 3 ? '#ffec27' : ['#ff004d', '#4cdc4c', '#29e5ff'][i % 3]; g.fillRect(96 + i * 10, 84, 5, 2); g.fillStyle = '#05051a'; g.fillRect(96 + i * 10, 88, 5, 4); }
+        // Mira, in front
+        g.drawImage(portrait(mood, talking && ((time * 8) | 0) % 2 ? 'open' : 'closed', blink), 6, 18, 78, 78);
     }
 
     drawHud(G, g, t, st) {

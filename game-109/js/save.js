@@ -6,7 +6,7 @@ import { serialize, deserialize } from './sim/game.js';
 
 const SETTINGS_KEY = SAVE_KEY + '.settings';
 const SCORES_KEY = SAVE_KEY + '.scores';
-const DEFAULTS = { sfx: 0.8, music: 0.6, touch: 'auto', autofire: 'auto', effects: 'full', crt: 'on', voice: 'on', name: 'AAA' };
+const DEFAULTS = { sfx: 0.8, music: 0.6, touch: 'auto', autofire: 'auto', effects: 'full', crt: 'on', voice: 'on', story: 'on', name: 'AAA' };
 
 /** The cabinet ships with scores to beat, as every cabinet does. */
 const DEFAULT_SCORES = [

@@ -112,6 +112,23 @@ export class Audio {
     }
     shush() { try { window.speechSynthesis?.cancel(); } catch { /* */ } }
 
+    /** Mira: the same speech synthesis, but a warm, bright voice (a female English voice if the device has one). */
+    sayMira(text) {
+        if (!this.voiceOn || this.sfxVol <= 0) return;
+        try {
+            const sy = window.speechSynthesis;
+            if (!sy || typeof SpeechSynthesisUtterance === 'undefined') return;
+            sy.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            const voices = sy.getVoices?.() || [];
+            const en = voices.filter((v) => /^en/i.test(v.lang));
+            const v = en.find((x) => /female|zira|samantha|susan|hazel|karen|moira|tessa|fiona|victoria|aria|jenny|libby|sonia/i.test(x.name)) || en[0];
+            if (v) u.voice = v;
+            u.pitch = 1.3; u.rate = 1.05; u.volume = Math.min(1, this.sfxVol);
+            sy.speak(u);
+        } catch { /* no voice here */ }
+    }
+
     // ------------------------------------------------------------------ music control
     /** mode: 'off' | 'play' | 'boss' | 'bonus'. */
     setMusic(mode, sector = this.sector, intensity = this.intensity) {
@@ -124,8 +141,9 @@ export class Audio {
 
     /** Duck the music (pause, menus) without forgetting what was playing. */
     hush(on) {
+        const was = this.hushed;
         this.hushed = on;
-        if (on) this.shush();
+        if (on && !was) this.shush();
         if (this.ctx) this.music.gain.setTargetAtTime(on ? 0 : this.musicVol * 0.45, this.ctx.currentTime, 0.06);
         if (!on) this.restart();
     }

@@ -107,6 +107,9 @@
             <label class="row">Announcer voice
                 <select id="set-voice"><option value="on">On</option><option value="off">Off</option></select>
             </label>
+            <label class="row">Story &amp; comms
+                <select id="set-story"><option value="on">On</option><option value="off">Off</option></select>
+            </label>
             <label class="row">Touch controls
                 <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
             </label>
@@ -124,12 +127,22 @@
         </div>
     </div>
 
+    <div id="story" class="screen" hidden>
+        <div class="sheet story-sheet" role="dialog" aria-label="Story">
+            <canvas id="story-scene" width="224" height="96"></canvas>
+            <div class="story-name"><b>MIRA</b> <small id="story-where">FLIGHT CONTROL</small></div>
+            <p id="story-text" class="story-text" aria-live="polite"></p>
+            <div class="sheet-foot"><button id="story-skip" class="btn">Skip</button><button id="story-next" class="btn primary">Next</button></div>
+        </div>
+    </div>
+
     <div id="dock" class="screen" hidden>
         <div class="sheet dock-sheet">
             <div class="dock-head">
                 <div><h2>Hangar</h2><div class="dock-cr">CREDITS <b id="dock-cr">0</b></div></div>
                 <button id="dock-go" class="btn primary">Launch</button>
             </div>
+            <p id="dock-quip" class="quip" hidden></p>
             <div class="dock-scroll">
                 <div id="dock-list" class="dock-list"></div>
                 <h3>Supplies</h3>
@@ -154,6 +167,7 @@
         <div class="sheet">
             <h2 class="over-head">Game Over</h2>
             <p id="over-text" class="lead"></p>
+            <p id="over-quip" class="quip" hidden></p>
             <form id="over-entry" class="entry" hidden>
                 <p class="gold">NEW HIGH SCORE!</p>
                 <label class="row">Your initials

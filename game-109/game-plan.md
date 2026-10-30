@@ -2,7 +2,7 @@
 
 **Genre:** Vertical arcade shooter (a shmup in the manner of Galaga, 1942 and Raiden)
 **Engine:** Vanilla JS: Canvas 2D, no asset files
-**Status:** v1.2.0 complete (balance is bot-derived; see Open questions)
+**Status:** v1.3.0 complete (balance is bot-derived; see Open questions)
 
 ---
 
@@ -78,6 +78,17 @@ Each enters untouchable over 3 s, then fights in three phases keyed on its healt
 
 A dying boss shakes for 2.4 s while explosions go off across its hull, every bullet on screen turns to sparks, and it pays out points, a P, an S, a B and five medals (and a 1UP from the second round on).
 
+## Story
+
+You are a rookie pilot on the carrier **Aurora**, defending the Sol Gate against the **Brood**. **Mira** is the flight controller on the mothership: warm, quick and a little sarcastic, she talks you through your first days. Her voice in the game is a 24×24 pixel bust (a mirrored map for the hair, head and headset, with eyes, brows and mouth drawn on top so she can blink, talk and react).
+
+- **Comms (every wave):** a strip at the top of the screen types out a line as the wave begins, while play goes on. Waves 1-15 have their own lines, which double as a tutorial (blinking halos carry power-ups; formations dive, so keep moving; bonus stages are safe; bombs for emergencies; watch for the beam's warning line); later waves draw on pools of lines for normal waves, bonus stages and returning bosses. She also reacts to losing a ship, a perfect clear, an extra ship and a last life (rationed to one every nine seconds).
+- **Cutscenes (blocking, skippable):** `intro` (bridge) at the start of a new game; `boss0`, `boss1`, `boss2` (the observation window, the boss looming) as the first three bosses arrive; `dock0` (hangar bay) after the first boss, which explains the hangar; `finale` (hangar bay) after the Overlord, which promotes you and says the Brood will be back. Play Again skips the intro; Continue skips everything it has seen.
+- **Callsign:** Rookie until the first boss falls, then Pilot, Ace, and Starblazer.
+- **Quips:** a line from Mira on the game-over sheet (by how far you got) and at the top of the Hangar on ordinary visits.
+- **Voice:** with the Announcer voice on, her cutscene lines are spoken in a bright female speech-synthesis voice if the device has one. **Story & comms** in Settings turns the cutscenes, the comm strip and the quips off.
+- The script is data ([js/story.js](js/story.js)); the sim does not know about it. The comm and cutscene boxes are sized for the longest line, and simtest fails if a line does not fit.
+
 ## Controls
 
 | Action | Keyboard | Gamepad | Touch |
@@ -104,6 +115,8 @@ A dying boss shakes for 2.4 s while explosions go off across its hull, every bul
 | `js/sim/waves.js` | The wave planner and its pieces, the bonus stage |
 | `js/sim/bosses.js` | The three bosses, their phases and their deaths |
 | `js/sim/bot.js` | The auto-player (dodging, aiming, power-ups, bombs; skill = reaction time; spends credits in the hangar) |
+| `js/story.js` | Mira's script: cutscenes, per-wave comms, reactions, quips (plain data) |
+| `js/view/portrait.js` | Mira's pixel portrait |
 | `js/sim/upgrades.js` | The hangar's upgrade and supply tables, prices and `offer()` |
 | `js/sim/util.js`, `js/rng.js`, `js/config.js` | Shared helpers, seeded RNG, tuning |
 | `js/view/view.js` | The layers, banners, HUD, bloom and present step |
@@ -125,8 +138,12 @@ The first bot dodged with perfect information and no reaction time and reached w
 - The wave generator is endless; there is no ending and no continue-credits screen.
 - A second weapon family (a laser, homing missiles) and ground targets would give the early waves more variety.
 - Two-player alternating turns, as on the cabinets.
+- A story that goes on after the finale (new Brood factions per sector).
 
 ## Changelog
+
+### v1.3.0 (2026-10-30)
+- A story: Mira, the flight controller, introduces every wave in a comm strip, with six cutscenes (the intro, the first three bosses, the hangar tutorial and the finale), reactions, quips, a climbing callsign and a Story setting.
 
 ### v1.2.0 (2026-10-30)
 - The hangar: after each boss the ship docks with the mothership and spends credits on permanent upgrades (engines, cannons, rapid fire, bomb bay, magnet, shield core) and supplies. Enemies get tougher a little faster from wave 9 to keep pace.
