@@ -1369,6 +1369,17 @@ h1 {
     box-shadow: 0 0 14px rgba(242, 201, 106, 0.65);
 }
 
+.game-preview.starblazer,
+.carousel-slide-bg.starblazer {
+    background: radial-gradient(circle at 24% 30%, rgba(255, 236, 39, 0.9) 0 3%, rgba(255, 94, 200, 0.55) 4% 9%, transparent 10%), radial-gradient(circle at 74% 62%, rgba(41, 229, 255, 0.5) 0 5%, transparent 6%), linear-gradient(170deg, #05051a 0%, #1d1a6e 50%, #7a1e8a 85%, #ff5ec8 100%);
+}
+
+.game-card.starblazer .play-button {
+    background: linear-gradient(135deg, #ffec27, #ff8a00 55%, #ff004d);
+    color: #2a0a00;
+    box-shadow: 0 0 14px rgba(255, 138, 0, 0.65);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

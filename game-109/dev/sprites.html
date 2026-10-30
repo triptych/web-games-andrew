@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>STARBLAZER '86 — sprite gallery</title>
+<style>
+    body { margin: 0; padding: 16px; background: #0a0a1e; color: #cfd6ff; font: 12px ui-monospace, monospace; }
+    h2 { margin: 18px 0 6px; font-size: 13px; color: #ffec27; }
+    .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+    figure { margin: 0; text-align: center; }
+    canvas { image-rendering: pixelated; background: #101030; display: block; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<h1 style="font-size:15px">STARBLAZER '86 — sprite gallery <small>(dev only)</small></h1>
+<div id="out"></div>
+<script type="module">
+import { makeSprites, SECTOR_SKINS } from '../js/view/sprites.js';
+import { CURVES } from '../js/sim/waves.js';
+import { FIELD } from '../js/config.js';
+const S = makeSprites();
+const out = document.getElementById('out');
+const SCALE = 5;
+function section(title) { const h = document.createElement('h2'); h.textContent = title; out.appendChild(h); const r = document.createElement('div'); r.className = 'row'; out.appendChild(r); return r; }
+function show(row, label, img, scale = SCALE) {
+    const f = document.createElement('figure'), c = document.createElement('canvas');
+    c.width = img.width * scale; c.height = img.height * scale;
+    const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+    g.drawImage(img, 0, 0, c.width, c.height);
+    f.append(c, label); row.appendChild(f);
+}
+let r = section('player ship: left, centre, right, flame frames, life icon, bomb icon');
+show(r, 'L', S.ship.l.img); show(r, 'C', S.ship.c.img); show(r, 'R', S.ship.r.img);
+show(r, 'flame0', S.flame[0].img); show(r, 'flame1', S.flame[1].img); show(r, 'life', S.lifeIcon); show(r, 'bomb', S.bombIcon);
+SECTOR_SKINS.forEach((_, si) => {
+    r = section('enemies, sector skin ' + si);
+    for (const [kind, frames] of Object.entries(S.enemy[si])) frames.forEach((f, i) => show(r, kind + i, f.img, kind === 'cruiser' || kind === 'carrier' ? 4 : SCALE));
+});
+r = section('bosses (2 frames each)');
+S.boss.forEach((fr, i) => fr.forEach((f, j) => show(r, `boss${i}.${j}`, f.img, 3)));
+r = section('bullets, capsules, medal frames');
+S.pbullet.forEach((b, i) => show(r, 'p' + i, b.img, 6));
+S.ebullet.forEach((b, i) => show(r, 'e' + i, b.img, 6));
+for (const [k, c] of Object.entries(S.capsule)) show(r, 'cap ' + k, c, 5);
+S.medal.forEach((c, i) => show(r, 'medal' + i, c, 5));
+r = section('entry curves (unmirrored)');
+{
+    const c = document.createElement('canvas'); c.width = FIELD.w * 2; c.height = FIELD.h * 2;
+    const g = c.getContext('2d'); g.fillStyle = '#101030'; g.fillRect(0, 0, c.width, c.height);
+    g.strokeStyle = '#335'; g.strokeRect(0, 0, c.width, c.height);
+    const cols = ['#29e5ff', '#ffec27', '#ff5ec8', '#4cdc4c', '#ff8a00'];
+    Object.entries(CURVES).forEach(([name, cv], i) => {
+        const p = cv.p; g.strokeStyle = cols[i]; g.lineWidth = 2; g.beginPath();
+        for (let u = 0; u <= 1.001; u += 0.02) {
+            const v = 1 - u, a = v*v*v, b = 3*v*v*u, cc = 3*v*u*u, d = u*u*u;
+            const x = a*p[0]+b*p[2]+cc*p[4]+d*p[6], y = a*p[1]+b*p[3]+cc*p[5]+d*p[7];
+            u === 0 ? g.moveTo(x*2, y*2) : g.lineTo(x*2, y*2);
+        }
+        g.stroke(); g.fillStyle = cols[i]; g.fillText(name, p[0]*2 + 4, Math.max(12, p[1]*2 + 12));
+    });
+    const f = document.createElement('figure'); f.append(c, 'S arc hook wide dip'); r.appendChild(f);
+}
+window.__ready = true;
+</script>
+</body>
+</html>
