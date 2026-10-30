@@ -4,12 +4,20 @@
 // stand. Built once per lair; the view moves things around inside it.
 
 import * as THREE from 'three';
-import { HOBBIES, MINIONS, DECOR } from '../sim/data.js';
+import { HOBBIES, DECOR } from '../sim/data.js';
 import { PALETTES, buildRoomTextures, mkTex } from './tex.js';
 import { drawEmblem } from './art.js';
-import { hash3 } from '../rng.js';
+import { makeSlots, SLOTS_PER_KIND } from './layout.js';
+
+export { SLOTS_PER_KIND };
 
 export const RW = 12, RD = 8, RH = 7, GAP = 13.5, T = 0.5;
+// Visitors walk along a lane near the front of the room, through a doorway in each side wall. The doorways of
+// neighbouring rooms line up, so the castle is one long passage; each has a portcullis that rises to let them by.
+export const LANE = 3.0;
+export const DOOR = { z0: LANE - 0.75, z1: LANE + 0.75, h: 2.7 };
+/** Where a visitor appears (outside the room, behind the next wall) and where it vanishes, in room-local x. */
+export const VISIT = { stand: 3.6, start: RW / 2 + T + 1.5, gone: RW / 2 + T + 1.8 };
 export const roomX = (i) => i * GAP;
 
 const WINDOW_VS = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
@@ -54,38 +62,6 @@ function candle(parent, x, y, z, flames, h = 0.35) {
     return f;
 }
 
-// minion placement: floor, back row, wall, hanging from a thread, or floating
-const PLACE = { imp: 'floor', cauldron: 'floor', golem: 'back', spider: 'hang', loom: 'back', bat: 'air', gargoyle: 'floor', wraith: 'air', portrait: 'wall', skeleton: 'floor', mimic: 'floor', lich: 'back' };
-export const SLOTS_PER_KIND = 7;
-
-function makeSlots(hobbyIndex) {
-    const kinds = MINIONS.filter((m) => m.hobby === HOBBIES[hobbyIndex].id);
-    const slots = {};
-    const used = [];
-    const free = (x, z, r) => used.every((u) => Math.hypot(u[0] - x, u[1] - z) > r) && !(Math.abs(x - 0.4) < 2.4 && z < 1.4) && !(x < -0.6 && x > -3.2 && z > -1.6 && z < 1.4);
-    kinds.forEach((m, j) => {
-        const mode = PLACE[m.id];
-        const list = [];
-        for (let k = 0, tries = 0; list.length < SLOTS_PER_KIND && tries < 400; tries++, k++) {
-            const r1 = hash3(hobbyIndex * 7 + j, k, 3), r2 = hash3(k, hobbyIndex * 13 + j, 5);
-            if (mode === 'wall') {
-                const x = -4.8 + (list.length % 4) * 3.1 + (list.length >= 4 ? 1.5 : 0), y = list.length >= 4 ? 5.2 : 3.4;
-                list.push({ x, y, z: -RD / 2 + T / 2 + 0.06, mode });
-                continue;
-            }
-            const x = -5.2 + r1 * 10.4;
-            const z = mode === 'back' ? -2.9 + r2 * 1.4 : mode === 'hang' ? -2.6 + r2 * 2.6 : -2.4 + r2 * 5.2;
-            const y = mode === 'air' ? 2.6 + hash3(k, j, 9) * 1.8 : mode === 'hang' ? 3.6 + hash3(j, k, 11) * 1.4 : 0;
-            if (mode !== 'air' && mode !== 'hang' && !free(x, z, tries > 200 ? 0.7 : 1.15)) continue;
-            if ((mode === 'air' || mode === 'hang') && used.some((u) => Math.hypot(u[0] - x, u[1] - z) < 0.9 && u[2] === mode)) continue;
-            used.push([x, z, mode]);
-            list.push({ x, y, z, mode });
-        }
-        slots[m.id] = list;
-    });
-    return slots;
-}
-
 /** Everything static in one lair. */
 export function buildCastle(lairId) {
     const pal = PALETTES[lairId] || PALETTES.gloom;
@@ -109,7 +85,7 @@ export function buildCastle(lairId) {
     backdrop.material.map.wrapS = backdrop.material.map.wrapT = THREE.ClampToEdgeWrapping;
     const ground = plane(320, 120, lam({ color: pal.ground }), roomX(1.5), -2.6, -10, root);
     ground.rotation.x = -Math.PI / 2;
-    box(GAP * 4 + 1, 2.3, RD + 1, lam({ map: tex(px.stone, [10, 1]) }), roomX(1.5), -1.47, 0, root);   // its top sits under the floors, never level with them
+    box(GAP * 4 + 5, 2.3, RD + 1, lam({ map: tex(px.stone, [10, 1]) }), roomX(1.5), -1.47, 0, root);   // its top sits under the floors, never level with them
     const towerMat = lam({ map: tex(px.brick, [2, 6]), color: 0xb8b0c8 });
     const roofMat = lam({ color: pal.wall2 });
     for (const [x, w, h] of [[-9, 4, 15], [roomX(1.5), 5, 19], [roomX(3) + 9, 4, 14], [roomX(0.5), 3, 11], [roomX(2.5), 3, 12]]) {
@@ -132,13 +108,38 @@ export function buildCastle(lairId) {
         const wallMat = lam({ map: tex(wallTex, h.id === 'sew' ? [RW / 1.2, RH / 1.2] : [RW / 3, RH / 3]) });
         // the back wall, built around two arched windows
         const wy = 3.6, ww = 1.7, wh = 2.6;
+        const windows = [];
         for (const s of [-1, 1]) {
-            plane(ww, wh, windowMat, s * 3.2, wy, -RD / 2 + T / 2 + 0.01, g);
+            windows.push(plane(ww, wh, windowMat, s * 3.2, wy, -RD / 2 + T / 2 + 0.01, g));
             box(ww + 0.3, 0.18, 0.35, trimMat, s * 3.2, wy - wh / 2 - 0.05, -RD / 2 + T / 2 + 0.1, g);
             box(0.12, wh * 0.7, 0.06, darkWood, s * 3.2, wy - 0.2, -RD / 2 + T / 2 + 0.04, g);
         }
         box(RW, RH, T, wallMat, 0, RH / 2, -RD / 2, g);
-        for (const s of [-1, 1]) box(T, RH, RD, wallMat, s * (RW / 2 + T / 2), RH / 2, 0, g);
+        // the side walls, each with a doorway near the front and a portcullis in it
+        const walls = [], doors = [], frames = new THREE.Group();
+        const sideMat = (len, ht) => lam({ map: tex(wallTex, h.id === 'sew' ? [len / 1.2, ht / 1.2] : [len / 3, ht / 3]) });
+        const iron = lam({ color: 0x2a2632 });
+        for (const s of [-1, 1]) {
+            const wx = s * (RW / 2 + T / 2);
+            const back = DOOR.z0 + RD / 2, front = RD / 2 - DOOR.z1, wide = DOOR.z1 - DOOR.z0;
+            walls.push(box(T, RH, back, sideMat(back, RH), wx, RH / 2, -RD / 2 + back / 2, g));
+            walls.push(box(T, RH, front, sideMat(front, RH), wx, RH / 2, DOOR.z1 + front / 2, g));
+            walls.push(box(T, RH - DOOR.h, wide, sideMat(wide, RH - DOOR.h), wx, DOOR.h + (RH - DOOR.h) / 2, LANE, g));
+            // a threshold out to the middle of the gap between this room and the next (the next room lays the other half)
+            box(T + 0.25, 0.3, wide, lam({ map: tex(floorTex, [1, 1]) }), s * (RW / 2 + (T + 0.25) / 2), -0.15, LANE, g);
+            // a stone frame on the room side
+            const fx = s * (RW / 2 - 0.08);
+            for (const z of [DOOR.z0 - 0.09, DOOR.z1 + 0.09]) box(0.16, DOOR.h + 0.1, 0.18, trimMat, fx, (DOOR.h + 0.1) / 2, z, frames);
+            box(0.16, 0.22, wide + 0.36, trimMat, fx, DOOR.h + 0.1, LANE, frames);
+            // the portcullis: iron bars that rise into the wall above the doorway
+            const grate = new THREE.Group();
+            for (let z = DOOR.z0 + 0.12; z < DOOR.z1; z += 0.26) box(0.05, DOOR.h, 0.05, iron, 0, DOOR.h / 2, z, grate);
+            for (const y of [0.7, 1.5, 2.3]) box(0.05, 0.06, wide, iron, 0, y, LANE, grate);
+            grate.position.x = wx;
+            g.add(grate);
+            doors.push({ side: s, grate, open: 0, x: wx });
+        }
+        g.add(frames);
         box(RW, 0.35, 0.12, trimMat, 0, 0.17, -RD / 2 + T / 2 + 0.06, g);
         box(RW + T * 2, 0.3, 0.7, trimMat, 0, RH + 0.15, -RD / 2, g);   // a gilt cornice along the top of the back wall
         // battlements on top of the walls
@@ -162,12 +163,33 @@ export function buildCastle(lairId) {
             id: h.id, index: i, x: roomX(i), group: g, light, baseLight: 26, webs,
             station: new THREE.Vector3(roomX(i) + 0.4, 0, -0.9),
             overlord: new THREE.Vector3(roomX(i) - 1.9, 0, -0.1),
-            slots: makeSlots(i),
+            props, windows, walls, doors, frames, slots: null,
         };
     });
 
     const decor = buildDecor(rooms, { pal, px, tex, flames, trimMat, darkWood, woodMat, windowMat });
+    // minions stand where nothing else is: measure every piece of furniture, décor (bought or not) and window
+    root.updateMatrixWorld(true);
+    for (const r of rooms) {
+        r.blockers = [r.props, r.frames, ...r.windows, ...Object.values(decor).flat().filter((o) => o.parent === r.group)];
+        r.obstacles = obstaclesOf(r);
+        r.slots = makeSlots(r.index, r.obstacles, { RW, RD, RH, T });
+    }
     return { root, rooms, flames, windowUniforms, decor, pal };
+}
+
+/** Room-local boxes around every mesh that blocks a room (flat rugs and carpets don't). */
+export function obstaclesOf(r) {
+    const out = [], b = new THREE.Box3();
+    for (const o of r.blockers) {
+        o.traverse((m) => {
+            if (!m.isMesh) return;
+            b.setFromObject(m);
+            if (b.isEmpty() || b.max.y < 0.1) return;
+            out.push({ x0: b.min.x - r.x, x1: b.max.x - r.x, y0: b.min.y, y1: b.max.y, z0: b.min.z, z1: b.max.z, mesh: m });
+        });
+    }
+    return out;
 }
 
 let webTex = null;
@@ -215,7 +237,7 @@ const FURNISH = {
         const cols = [0xff7ab0, 0xb48cff, 0x7fe0d0, 0xffd36b, 0x2a2236, 0xc02a52];
         cols.forEach((c, k) => { const b = cyl(0.26, 0.26, 0.85, lam({ color: c }), -5.1 + (k % 3) * 0.95 + 0.4, k < 3 ? 2.75 : 4.35, -3.3, g, 8); b.rotation.x = Math.PI / 2; });
         // yarn balls
-        [[-1.2, 2.6, 0xff6fa5], [4.6, 2.3, 0x9aff7a], [-4.8, 1.6, 0x7fb8ff], [2.8, -0.2, 0xffd36b]].forEach(([x, z, c]) => sphere(0.3, lam({ color: c }), x, 0.3, z, g, 8));
+        [[-1.2, 2.1, 0xff6fa5], [4.6, 1.9, 0x9aff7a], [-4.8, 1.4, 0x7fb8ff], [2.8, -0.2, 0xffd36b]].forEach(([x, z, c]) => sphere(0.3, lam({ color: c }), x, 0.3, z, g, 8));
         const rug = new THREE.Mesh(new THREE.CircleGeometry(1.8, 16), lam({ color: 0x8a5ab8 })); rug.rotation.x = -Math.PI / 2; rug.position.set(0.3, 0.02, 1.6); g.add(rug);
         candle(g, 4.6, 1.0, -2.4, flames);
     },
@@ -235,8 +257,8 @@ const FURNISH = {
         }
         // tall candelabras
         for (const x of [-4.9, -1.6]) {
-            cyl(0.08, 0.2, 2.2, darkWood, x, 1.1, 2.6, g, 6);
-            for (const dx of [-0.3, 0, 0.3]) candle(g, x + dx, 2.2, 2.6, flames, 0.3);
+            cyl(0.08, 0.2, 2.2, darkWood, x, 1.1, 2.1, g, 6);
+            for (const dx of [-0.3, 0, 0.3]) candle(g, x + dx, 2.2, 2.1, flames, 0.3);
         }
     },
     party(g, { px, tex, flames, trimMat, woodMat }) {
@@ -261,7 +283,18 @@ const FURNISH = {
 function buildDecor(rooms, { pal, px, tex, flames, trimMat, darkWood, woodMat }) {
     const byRoom = Object.fromEntries(rooms.map((r) => [r.id, r]));
     const out = {};
-    const put = (id, roomId, obj) => { obj.visible = false; byRoom[roomId].group.add(obj); (out[id] ||= []).push(obj); };
+    const put = (id, roomId, obj) => {
+        // recentre the group over its own footprint, so its pop-in grows in place instead of sliding away from the room's middle
+        obj.updateMatrixWorld(true);
+        const c = new THREE.Box3().setFromObject(obj).getCenter(new THREE.Vector3());
+        c.y = obj.position.y;
+        const d = c.clone().sub(obj.position);
+        for (const ch of obj.children) ch.position.sub(d);
+        obj.position.copy(c);
+        obj.visible = false;
+        byRoom[roomId].group.add(obj);
+        (out[id] ||= []).push(obj);
+    };
     const bannerMat = lam({ map: tex(px.banner, 1), transparent: true, alphaTest: 0.5, side: THREE.DoubleSide });
     for (const r of rooms) {
         const g = new THREE.Group();
@@ -329,11 +362,11 @@ function buildDecor(rooms, { pal, px, tex, flames, trimMat, darkWood, woodMat })
     }
     {   // a fountain of bubbling punch
         const g = new THREE.Group();
-        cyl(1.0, 1.1, 0.5, lam({ color: 0xe8e0f0 }), -2.4, 0.25, 2.4, g, 14);
-        cyl(0.9, 0.9, 0.05, glow(0xff6fa5, 1.4), -2.4, 0.5, 2.4, g, 14);
-        cyl(0.12, 0.16, 1.2, lam({ color: 0xe8e0f0 }), -2.4, 1.0, 2.4, g, 8);
-        cyl(0.45, 0.3, 0.2, lam({ color: 0xe8e0f0 }), -2.4, 1.65, 2.4, g, 10);
-        const jet = sphere(0.22, glow(0xff8fc2, 1.8), -2.4, 1.95, 2.4, g, 8); jet.userData.bob = 1;
+        cyl(1.0, 1.1, 0.5, lam({ color: 0xe8e0f0 }), -2.6, 0.25, 1.6, g, 14);
+        cyl(0.9, 0.9, 0.05, glow(0xff6fa5, 1.4), -2.6, 0.5, 1.6, g, 14);
+        cyl(0.12, 0.16, 1.2, lam({ color: 0xe8e0f0 }), -2.6, 1.0, 1.6, g, 8);
+        cyl(0.45, 0.3, 0.2, lam({ color: 0xe8e0f0 }), -2.6, 1.65, 1.6, g, 10);
+        const jet = sphere(0.22, glow(0xff8fc2, 1.8), -2.6, 1.95, 1.6, g, 8); jet.userData.bob = 1;
         put('punch', 'party', g);
     }
     {   // the mirrorball of doom
@@ -348,14 +381,14 @@ function buildDecor(rooms, { pal, px, tex, flames, trimMat, darkWood, woodMat })
     {   // the grand cake display
         const g = new THREE.Group();
         const cols = [0xffd6e8, 0xc9a0ff, 0xff9ec7, 0xfff0f6];
-        for (let k = 0; k < 4; k++) cyl(0.62 - k * 0.12, 0.62 - k * 0.12, 0.36, lam({ color: cols[k] }), 5.2, 1.05 + k * 0.36, 2.9, g, 14);
-        cyl(0.15, 0.4, 0.9, lam({ color: 0xe8e0f0 }), 5.2, 0.45, 2.9, g, 10);
-        candle(g, 5.2, 2.5, 2.9, flames, 0.25);
+        for (let k = 0; k < 4; k++) cyl(0.62 - k * 0.12, 0.62 - k * 0.12, 0.36, lam({ color: cols[k] }), 4.9, 1.05 + k * 0.36, 1.8, g, 14);
+        cyl(0.15, 0.4, 0.9, lam({ color: 0xe8e0f0 }), 4.9, 0.45, 1.8, g, 10);
+        candle(g, 4.9, 2.5, 1.8, flames, 0.25);
         put('cakestand', 'cook', g);
     }
     {   // a parade of mannequins
         const g = new THREE.Group();
-        [[-4.6, 2.4, 0x2a1630], [-3.4, 2.9, 0xc02a52], [4.8, 2.6, 0x3a5aa8]].forEach(([x, z, c]) => {
+        [[-4.6, 1.6, 0x2a1630], [-3.4, 2.0, 0xc02a52], [4.8, 1.7, 0x3a5aa8]].forEach(([x, z, c]) => {
             cyl(0.05, 0.05, 0.8, darkWood, x, 0.4, z, g, 5);
             const dress = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.6, 8), lam({ color: c })); dress.position.set(x, 1.5, z); g.add(dress);
             cyl(0.25, 0.3, 0.6, lam({ color: c }), x, 2.5, z, g, 8);

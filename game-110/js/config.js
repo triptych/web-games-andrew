@@ -1,6 +1,6 @@
 // Doom & Doilies — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.2';
 export const SAVE_KEY = 'doom-and-doilies.v1';
 
 // An idle game needs no physics: a 30 Hz step is plenty, and a long frame may run up to a tenth of a second
