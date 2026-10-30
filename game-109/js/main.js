@@ -45,6 +45,7 @@ const freshGame = () => newGame((Date.now() % 1e9) | 0);
 // ------------------------------------------------------------------ settings
 function applySettings() {
     audio.setVolumes(settings.sfx, settings.music);
+    audio.setVoice(settings.voice !== 'off');
     view.setOptions({ crt: settings.crt === 'on', calm: settings.effects === 'calm' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches });
     updateTouch();
 }

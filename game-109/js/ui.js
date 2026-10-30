@@ -27,7 +27,7 @@ export class UI {
             b.addEventListener('click', () => { audio.ui('close'); this.closeTop(); });
         }
 
-        const els = { sfx: $('set-sfx'), music: $('set-music'), touch: $('set-touch'), autofire: $('set-autofire'), effects: $('set-effects'), crt: $('set-crt') };
+        const els = { sfx: $('set-sfx'), music: $('set-music'), touch: $('set-touch'), autofire: $('set-autofire'), effects: $('set-effects'), crt: $('set-crt'), voice: $('set-voice') };
         for (const [k, el] of Object.entries(els)) el.value = settings[k];
         const changed = () => {
             for (const [k, el] of Object.entries(els)) settings[k] = el.type === 'range' ? +el.value : el.value;

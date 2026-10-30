@@ -76,7 +76,7 @@ A dying boss shakes for 2.4 s while explosions go off across its hull, every bul
 - **Screen:** a 224×288 buffer, drawn with smoothing off, with bloom (the buffer shrunk twice and added back with `lighter`), then an integer upscale and a bilinear step down to the window, scanlines, a vignette and a neon frame (Settings turns the CRT effects off).
 - **Sprites:** left halves drawn as character maps, mirrored, auto-outlined, with a white flash twin; four sector colourways re-colour every enemy (sector = five waves: Deep Space, Violet Reach, Emerald Belt, Ember Front). The sky is a dithered gradient with scrolling dithered nebulae and a baked pixel planet.
 - **Explosions:** see [fx.js](js/view/fx.js). Fireballs walk down a colour ramp, rings race out, debris cools as it flies; ramps by enemy colour (ice, toxic, gold, plasma, fire) and a rainbow ramp for bombs and bosses.
-- **Sound:** pulse waves (12.5/25/50% duty), a triangle bass and noise drums; four sector keys, a boss tune, a bonus tune. See [docs/generic/sounds.md](../docs/generic/sounds.md).
+- **Sound:** pulse waves (12.5/25/50% duty), a triangle bass and noise drums; four sector keys, a boss tune, a bonus tune; a robot announcer (browser speech synthesis, optional) for the bosses. See [docs/generic/sounds.md](../docs/generic/sounds.md).
 
 ## Module overview
 
@@ -110,6 +110,9 @@ The first bot dodged with perfect information and no reaction time and reached w
 - Two-player alternating turns, as on the cabinets.
 
 ## Changelog
+
+### v1.1.0 (2026-10-30)
+- A speech-synthesis announcer for the bosses (a warning as each arrives, a line when it dies), with a Settings switch.
 
 ### v1.0.3 (2026-10-30)
 - The ring on the ringed planet is no longer clipped at its ends.

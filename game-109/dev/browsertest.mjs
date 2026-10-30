@@ -189,6 +189,24 @@ async function desktop() {
     await click(page, '#title-menu [data-act="new"]');
     await until(page, () => __sb.mode === 'play' && __sb.G.wave === 1, 'a new game starts at wave 1');
 
+    // the announcer: a boss wave speaks its warning; the Voice setting silences it; a pause cancels it
+    await Q(page, () => {
+        window.__spoken = []; window.__cancels = 0;
+        Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: { speak(u) { __spoken.push(u.text); }, cancel() { __cancels++; } } });
+        __sb.wave(5);
+    });
+    await until(page, () => __spoken.length === 1 && /Mothership/.test(__spoken[0]), 'a boss wave announces itself by voice ("Warning! Mothership approaching.")');
+    await Q(page, () => { __sb.wave(10); });
+    await until(page, () => /Crab Warden/.test(__spoken[__spoken.length - 1]), 'each boss is announced by name');
+    await Q(page, () => { const s = document.getElementById('set-voice'); s.value = 'off'; s.dispatchEvent(new Event('change')); __sb.wave(15); });
+    await page.waitForTimeout(300);
+    check(await Q(page, () => __spoken.length === 2), 'with the announcer voice off, nothing is spoken');
+    await Q(page, () => { const s = document.getElementById('set-voice'); s.value = 'on'; s.dispatchEvent(new Event('change')); __cancels = 0; });
+    await Q(page, () => document.querySelector('#btn-pause').click());
+    await until(page, () => __cancels > 0, 'pausing cancels any speech in progress');
+    await click(page, '#pause-menu [data-act="resume"]');
+    await until(page, () => document.getElementById('pause').hidden, 'resume after the voice test');
+
     // a boss, looked at
     await Q(page, () => { __sb.wave(5); __sb.G.player.weapon = 4; __sb.G.player.inv = 1e9; __sb.ff(10); });
     await page.waitForTimeout(250);
