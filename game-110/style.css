@@ -112,7 +112,9 @@ button { font: inherit; }
 .room span { font-size: 18px; }
 .room b { font-size: 11px; font-weight: 800; }
 .room.on { border-color: var(--pink); background: rgba(90, 30, 70, 0.92); box-shadow: 0 0 12px rgba(255, 120, 180, 0.45); }
-.room.locked { opacity: 0.55; }
+.room.locked { opacity: 0.6; }
+.room.locked::before { content: '🔒'; position: absolute; top: -6px; left: -4px; font-size: 13px; filter: drop-shadow(0 1px 1px #000); }
+.room.locked span { filter: grayscale(1); }
 .room.ping::after { content: ''; position: absolute; top: -4px; right: -4px; width: 12px; height: 12px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
 #ticker { pointer-events: none; overflow: hidden; white-space: nowrap; font-size: 13px; color: #f4e6ff; background: rgba(20, 10, 30, 0.6); border-radius: 8px; padding: 4px 10px; text-shadow: 0 1px 2px #000; }
 #ticker-text { display: inline-block; animation: tick-in 0.5s ease-out; }

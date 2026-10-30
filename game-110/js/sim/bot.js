@@ -5,7 +5,7 @@
 // player looks every second; an idle one every ten minutes). react: how long a visitor waits before it's greeted.
 
 import { MINIONS, PERKS, DECOR, HOBBIES, SCHEME_BY } from './data.js';
-import { rates, upgradesOnOffer, minionVisible, minionCost, henchCost, henchFree, legendGain } from './game.js';
+import { rates, roomOpen, upgradesOnOffer, minionVisible, minionCost, henchCost, henchFree, legendGain } from './game.js';
 import { HENCH } from '../config.js';
 
 export function makeBot({ cps = 5, every = 1, react = 2, visitors = true, relocate = 1, cackleBelow = 70 } = {}) {
@@ -41,7 +41,7 @@ export function botCommands(G, bot, dt) {
     if (bot.visitors) for (const v of G.visitors) if (v.life - v.t >= bot.react) out.push({ t: 'visitor', vid: v.vid });
     // craft in the room that pays best
     let best = G.room, bv = -1;
-    for (const h of HOBBIES) if (R.hobbyMul[h.id] > bv) { bv = R.hobbyMul[h.id]; best = h.id; }
+    for (const h of HOBBIES) if (roomOpen(G, h.id) && R.hobbyMul[h.id] > bv) { bv = R.hobbyMul[h.id]; best = h.id; }
     if (best !== G.room) out.push({ t: 'room', id: best });
     return out;
 }

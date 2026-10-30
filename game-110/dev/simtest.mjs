@@ -109,6 +109,19 @@ if (want('rules')) {
     for (let guard = 0; guard < 400 && Gm.act(G, { t: 'upgradeAll' }); guard++) bought++;
     ok(Object.keys(G.upg).length === D.UPGRADES.length, `every upgrade can be reached and bought (${Object.keys(G.upg).length}/${D.UPGRADES.length})`);
 
+    section('rules: rooms');
+    G = rich(30, 1e9);
+    ok(Gm.roomOpen(G, 'cook') && !Gm.roomOpen(G, 'sew') && !Gm.roomOpen(G, 'deco') && !Gm.roomOpen(G, 'party'), 'only the Kitchen is open at first');
+    ok(!Gm.act(G, { t: 'room', id: 'sew' }) && G.room === 'cook', 'a locked room can’t be entered');
+    Gm.act(G, { t: 'buy', id: 'spider', n: 1 });
+    ok(Gm.roomOpen(G, 'sew') && Gm.act(G, { t: 'room', id: 'sew' }) && G.room === 'sew', 'hiring a Spider Seamstress opens the Sewing Loft');
+    const m0 = G.mastery.party; Gm.act(G, { t: 'room', id: 'party' }); Gm.act(G, { t: 'craft' });
+    ok(G.mastery.party === m0, 'no mastery in a room you can’t enter');
+    const oldSave = Gm.serialize(Gm.newGame(31)); oldSave.room = 'party';
+    ok(Gm.deserialize(oldSave).room === 'cook', 'a save made in a room that is now locked comes back to the Kitchen');
+    G = rich(32, 1e13); Gm.act(G, { t: 'buy', id: 'spider', n: 1 }); Gm.act(G, { t: 'room', id: 'sew' }); G.charmAll = 9e12; Gm.act(G, { t: 'relocate' });
+    ok(G.room === 'cook' && !Gm.roomOpen(G, 'sew'), 'a new lair starts in the Kitchen with the other rooms locked again');
+
     section('rules: dread');
     G = Gm.newGame(6);
     ok(G.dread === C.DREAD.start, 'dread starts at 50');

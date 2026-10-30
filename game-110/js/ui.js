@@ -11,7 +11,7 @@ import {
 } from './sim/data.js';
 import {
     minionCost, maxAffordable, minionVisible, upgradesOnOffer, henchCost, henchFree, legendGain, legendNext, abilityCd,
-    schemeDur, masteryLevel, masteryNext, tierOf, goldScale,
+    schemeDur, masteryLevel, masteryNext, tierOf, goldScale, roomOpen,
 } from './sim/game.js';
 import { fmt, fmtTime } from './fmt.js';
 import { headline } from './news.js';
@@ -73,7 +73,15 @@ export class UI {
         });
 
         // rooms
-        for (const b of document.querySelectorAll('#rooms .room[data-room]')) b.addEventListener('click', () => { audio.ui('click'); this.send({ t: 'room', id: b.dataset.room }); this.onOverview(false); });
+        for (const b of document.querySelectorAll('#rooms .room[data-room]')) {
+            b.addEventListener('click', () => {
+                const id = b.dataset.room;
+                if (this.G && !roomOpen(this.G, id)) { this.roomHint(id); return; }
+                audio.ui('click');
+                this.send({ t: 'room', id });
+                this.onOverview(false);
+            });
+        }
         $('btn-overview').addEventListener('click', () => { audio.ui('click'); this.onOverview('toggle'); });
 
         // abilities
@@ -201,9 +209,13 @@ export class UI {
         }
         // rooms
         for (const b of document.querySelectorAll('#rooms .room[data-room]')) {
-            const id = b.dataset.room;
+            const id = b.dataset.room, open = roomOpen(G, id);
             b.classList.toggle('on', G.room === id && !this.overview);
-            b.classList.toggle('locked', !MINIONS.some((m) => m.hobby === id && G.owned[m.id] > 0) && id !== 'cook');
+            if (b.classList.contains('locked') === !open) continue;
+            b.classList.toggle('locked', !open);
+            const h = HOBBY[id], m = MINIONS.find((x) => x.hobby === id);
+            b.title = open ? h.room : `${h.room}: locked. Hire a ${minionVisible(G, m) ? m.name : 'new minion'} to open it.`;
+            b.setAttribute('aria-label', open ? h.room : `${h.room} (locked)`);
         }
         $('btn-overview').classList.toggle('on', !!this.overview);
 
@@ -494,6 +506,13 @@ export class UI {
         $('toasts').appendChild(el);
         while ($('toasts').children.length > 4) $('toasts').firstChild.remove();
         setTimeout(() => el.remove(), 3300);
+    }
+    /** Why a locked room can't be entered, and what opens it. */
+    roomHint(id) {
+        const h = HOBBY[id], m = MINIONS.find((x) => x.hobby === id);
+        const seen = this.G && minionVisible(this.G, m);
+        this.audio.ui('no');
+        this.toast(`🔒 The <b>${esc(h.room)}</b> opens when you hire a <b>${esc(seen ? m.name : '???')}</b>${seen ? '' : ' (make more charm to discover one)'}.`);
     }
     ping(room) {
         const b = document.querySelector(`#rooms .room[data-room="${room}"]`);

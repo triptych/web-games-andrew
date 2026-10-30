@@ -2,7 +2,7 @@
 
 **Genre:** Idle clicker / incremental, with RPG trimmings
 **Engine:** three.js r165, no asset files
-**Status:** v1.0.2
+**Status:** v1.1.0
 
 ---
 
@@ -39,7 +39,7 @@ Minutes: crafting, buying, cackling, visitors. Hours: rooms opening, abilities u
 | Decorating 🕯️ | Great Hall | Gargoyle Florist 48M / 8K · Candle Wraith 650M / 46K · Living Portrait 9B / 260K |
 | Entertaining 🎻 | Ballroom | Skeleton Quartet 130B / 1.5M · Mimic Buffet 1.9T / 8.6M · Lich Party Planner 28T / 50M |
 
-Each costs 15% more than the last (`cost × 1.15^owned`); ×10, ×100 and Max buy the geometric sum. A minion is listed once you own the one before it or have made 40% of its price. A room with no minions is dim and cobwebbed.
+Each costs 15% more than the last (`cost × 1.15^owned`); ×10, ×100 and Max buy the geometric sum. A minion is listed once you own the one before it or have made 40% of its price. **Rooms are locked until their first minion is hired** (the Kitchen is always open): a locked room is dim and cobwebbed, its button shows a 🔒 and says which minion opens it, Q/E skip it, and the sim refuses to switch to it, so crafting can't raise a locked room's mastery. Hiring the first minion blows the cobwebs away and brings the lights up. Every new lair starts with only the Kitchen open.
 
 ### Upgrades (147)
 - **Minion tiers** (96): each minion ×2 at 1, 5, 25, 50, 100, 150, 200, 250 owned, priced at ×10, ×50, ×500, ×5e4 … of its base cost.
@@ -161,6 +161,9 @@ From the bot table (seed 9001, eight hours each):
 - A sixth hobby (gardening?), seasonal events, and a portrait of Noxia for the welcome-back sheet.
 
 ## Changelog
+
+### v1.1.0 (2026-10-30)
+- Changed: rooms are locked until their first minion is hired. Before, a room with no minions only looked locked: you could go there with its button, Q/E or the whole-castle view and craft there, raising its mastery (and growing its centrepiece) before owning a single minion of that hobby. Now the sim refuses to switch to a locked room (`roomOpen()`), a locked room's button shows a 🔒 and a tap says which minion opens it, Q/E skip locked rooms, a tap on one in the whole castle gives the same hint, and a save made in a locked room loads in the Kitchen. Opening a room blows its cobwebs away in a burst of dust and sparkles while its lights fade up.
 
 ### v1.0.2 (2026-10-30)
 - Fixed: visitors walked through walls. The rooms had no doors, and a visitor's starting point was worked out in the Kitchen's coordinates, so in any other room they slid in from the far side of the castle, through every wall on the way. Every side wall now has a doorway near the front with a stone frame and a portcullis, the doorways of neighbouring rooms line up into one passage, and visitors wait behind the next wall while the portcullis rises, walk in along a lane at the front of the room, and leave the way they came, the gate dropping behind them. Furniture and décor at the front were moved back to keep the lane clear, and the camera shows a little more of each room so both doorways are in shot ([castle.js](js/view/castle.js), [view.js](js/view/view.js)).

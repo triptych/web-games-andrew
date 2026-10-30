@@ -5,7 +5,8 @@
  *   the castle craft → Space crafts → a panel row buys an imp, and Space afterwards still crafts (the row isn't left
  *   focused) → C cackles → a visitor walks in and a real click on the sprite greets it, another through the callout →
  *   every tab renders; an upgrade is bought by tapping its tile twice; a henchman is hired and sent on a scheme →
- *   Q/E and the room buttons change rooms, Tab opens the whole castle and a click on a room goes there → Escape opens
+ *   locked rooms can't be entered (button, E, the whole castle) and say what opens them; hiring opens them; Q/E skip
+ *   locked rooms, the room buttons change rooms, Tab opens the whole castle and a click on an open room goes there → Escape opens
  *   the menu and the castle keeps working → Save & Quit → Continue restores → relocating (via the Lair tab and its
  *   confirm sheet) moves to the Cinder Caldera. No sideways scroll; the canvas fills the window.
  * furniture: with seven of every minion and every piece of décor, no minion sprite intersects furniture, décor or a
@@ -193,19 +194,35 @@ async function desktop() {
     await mouseAt(page, '[data-scheme]:not([disabled])');
     await until(page, () => __dd.G.active.length === 1, 'sending them starts the scheme');
 
-    // rooms
+    // rooms: only the Kitchen is open until a room's first minion is hired
+    check(await Q(page, () => document.querySelector('#rooms [data-room="sew"]').classList.contains('locked')), 'the Sewing Loft button shows it is locked');
+    await mouseAt(page, '#rooms [data-room="sew"]');
+    await until(page, () => /opens when you hire/.test(document.getElementById('toasts').textContent), 'clicking it says what opens it');
+    check(await Q(page, () => __dd.G.room === 'cook'), 'and stays in the Kitchen');
     await page.keyboard.press('KeyE');
-    await until(page, () => __dd.G.room === 'sew', 'E moves to the next room');
+    await page.waitForTimeout(400);
+    check(await Q(page, () => __dd.G.room === 'cook'), 'E skips locked rooms (all of them, for now)');
+    await Q(page, () => __dd.give(1e12));
+    await Q(page, () => { __dd.send({ t: 'buy', id: 'spider', n: 1 }); __dd.send({ t: 'buy', id: 'skeleton', n: 1 }); });
+    await until(page, () => __dd.G.owned.spider === 1 && __dd.G.owned.skeleton === 1 && !document.querySelector('#rooms [data-room="sew"]').classList.contains('locked'), 'hiring a Spider Seamstress and a Skeleton Quartet opens their rooms');
+    await page.keyboard.press('KeyE');
+    await until(page, () => __dd.G.room === 'sew', 'E moves to the next open room');
+    await page.keyboard.press('KeyE');
+    await until(page, () => __dd.G.room === 'party', 'and E again skips the locked Great Hall');
     await page.keyboard.press('KeyQ');
-    await until(page, () => __dd.G.room === 'cook', 'Q moves back');
+    await until(page, () => __dd.G.room === 'sew', 'Q moves back');
     await mouseAt(page, '#rooms [data-room="party"]');
     await until(page, () => __dd.G.room === 'party', 'the Ballroom button goes to the ballroom');
     await page.keyboard.press('Tab');
     await until(page, () => __dd.view.overview === true, 'Tab shows the whole castle');
     await page.waitForTimeout(1200);
+    const hallPt = await Q(page, () => { const r = __dd.view.roomOf('deco'); return __dd.view.toScreen(r.station.clone().setY(1)); });
+    await page.mouse.click(hallPt.x, hallPt.y);
+    await page.waitForTimeout(400);
+    check(await Q(page, () => __dd.G.room === 'party' && __dd.view.overview), 'a click on the locked Great Hall in the whole castle does not go there');
     const roomPt = await Q(page, () => { const r = __dd.view.roomOf('sew'); return __dd.view.toScreen(r.station.clone().setY(1)); });
     await page.mouse.click(roomPt.x, roomPt.y);
-    await until(page, () => __dd.G.room === 'sew' && !__dd.view.overview, 'a click on a room in the overview goes there');
+    await until(page, () => __dd.G.room === 'sew' && !__dd.view.overview, 'a click on an open room in the overview goes there');
 
     // the menu: the castle keeps working
     await page.keyboard.press('Escape');
@@ -216,7 +233,7 @@ async function desktop() {
     await until(page, () => document.getElementById('pause').hidden, 'Back to the Castle closes it');
 
     // save and continue
-    const charm = await Q(page, () => { __dd.ff(20); return Math.floor(__dd.G.charmAll); });
+    const charm = await Q(page, () => { __dd.ff(20, { relocate: 0 }); return Math.floor(__dd.G.charmAll); });
     await click(page, '#btn-menu');
     await until(page, () => !document.getElementById('pause').hidden, 'the ☰ button opens the menu');
     await click(page, '#pause-menu [data-act="quit"]');
