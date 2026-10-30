@@ -9,7 +9,9 @@
  *   the menu and the castle keeps working → Save & Quit → Continue restores → relocating (via the Lair tab and its
  *   confirm sheet) moves to the Cinder Caldera. No sideways scroll; the canvas fills the window.
  * furniture: with seven of every minion and every piece of décor, no minion sprite intersects furniture, décor or a
- *   window (the gingerbread golems used to stand inside the kitchen counter).
+ *   window (the gingerbread golems used to stand inside the kitchen counter); the visitors' lane passes through the
+ *   side doorways, never a wall or furniture; a Ballroom visitor walks in through the Ballroom's own door under a
+ *   raised portcullis (visitors used to slide in from the Kitchen, through every wall).
  * away: a fresh page whose save was written two hours ago → Continue → the welcome-back sheet says so.
  * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the menus, a tap on the castle crafts,
  *   a tap on a row buys, the cackle button, every control ≥ 44 px and on screen, the menu stays open after the finger
@@ -250,6 +252,22 @@ async function furniture() {
     await until(page, () => __dd.MINIONS.every((m) => __dd.view.minions[m.id]?.length >= 6) && Object.keys(__dd.G.decor).length === 12 && __dd.view.settled(), 'a full castle, settled', 60000);
     const clips = await Q(page, () => __dd.view.clipReport());
     check(clips.length === 0, `no minion stands inside furniture, décor or a window${clips.length ? ': ' + clips.slice(0, 4).join('; ') : ''}`);
+    const lane = await Q(page, () => __dd.view.laneReport());
+    check(lane.length === 0, `the visitors' lane goes through doorways, not walls or furniture, in every room${lane.length ? ': ' + lane.slice(0, 4).join('; ') : ''}`);
+    // a visitor in the Ballroom walks in from the Ballroom's own door (they used to slide in from the Kitchen, through every wall)
+    await Q(page, () => { __dd.send({ t: 'room', id: 'party' }); });
+    await until(page, () => __dd.G.room === 'party', 'in the Ballroom');
+    await Q(page, () => {
+        window.__path = [];
+        __dd.G.nextVisit = 0;
+        const roomX = __dd.view.roomOf('party').x;
+        window.__pathT = setInterval(() => { for (const a of __dd.view.visitors.values()) window.__path.push({ dx: a.bb.group.position.x - roomX, z: a.bb.group.position.z, open: __dd.view.roomOf('party').doors.map((d) => d.open), state: a.state, side: a.side }); }, 50);
+    });
+    await until(page, () => [...__dd.view.visitors.values()].some((a) => a.state === 'stay'), 'a visitor walks in and stops', 40000);
+    const path = await Q(page, () => { clearInterval(window.__pathT); return window.__path; });
+    check(path.length > 3 && path.every((p) => Math.abs(p.dx) <= 8.4), `they stay in the Ballroom and its doorway the whole way (furthest ${Math.max(...path.map((p) => Math.abs(p.dx))).toFixed(1)} from its middle)`);
+    const inWall = path.filter((p) => Math.abs(p.dx) > 5.4 && Math.abs(p.dx) < 7.1);
+    check(inWall.length === 0 || inWall.every((p) => p.open[p.side < 0 ? 0 : 1] > 0.95), 'the portcullis is up whenever they are in the doorway');
     await Q(page, () => __dd.send({ t: 'room', id: 'cook' }));
     await page.waitForTimeout(1500);
     await shot(page, 'furniture-kitchen');

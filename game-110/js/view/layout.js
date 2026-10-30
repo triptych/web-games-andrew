@@ -52,7 +52,7 @@ export function makeSlots(hobbyIndex, obstacles, { RW, RD, RH, T }) {
             } else {
                 const sway = (MOTION[m.id] || [0])[0];
                 x = -RW / 2 + 0.3 + S.w / 2 + sway + r1 * (RW - 0.6 - S.w - sway * 2);
-                z = mode === 'back' ? -2.9 + r2 * 2.2 : mode === 'hang' ? -2.6 + r2 * 2.6 : -2.4 + r2 * 5.2;
+                z = mode === 'back' ? -2.9 + r2 * 2.2 : mode === 'hang' ? -2.6 + r2 * 2.6 : -2.4 + r2 * 4.8;   // clear of the visitors' lane at the front
                 y = mode === 'air' ? 2.6 + r3 * 1.8 : mode === 'hang' ? 3.6 + r3 * 1.4 : 0;
             }
             const box = spriteBox(m.id, x, y, z);

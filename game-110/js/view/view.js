@@ -6,9 +6,10 @@
 
 import * as THREE from 'three';
 import { Stage } from './stage.js';
-import { buildCastle, RW, RH, RD, GAP, roomX, SLOTS_PER_KIND } from './castle.js';
+import { buildCastle, RW, RH, RD, GAP, T, roomX, SLOTS_PER_KIND, LANE, VISIT } from './castle.js';
 import { SpriteLib } from './sprites.js';
 import { Particles, Rings, Billboard, SHAPE } from './fx.js';
+import { SPRITE_SCALE } from './art.js';
 import { HOBBIES, HOBBY, MINIONS, LAIRS, DECOR_BY } from '../sim/data.js';
 import { masteryLevel } from '../sim/game.js';
 import { fmt } from '../fmt.js';
@@ -233,7 +234,8 @@ export class View {
         const side = v?.side || 1;
         const bb = new Billboard(this.sprites.visitor(e.kind), { emissive: 0.6, scale: e.kind === 'kitten' ? 1.3 : 1.1 });
         this.scene.add(bb.group);
-        this.visitors.set(e.vid, { vid: e.vid, kind: e.kind, bb, side, x: side * (RW / 2 + 1), state: 'in', t: 0, react: 0 });
+        // x is room-local: the visitor waits behind the next wall while the portcullis rises, then walks in
+        this.visitors.set(e.vid, { vid: e.vid, kind: e.kind, bb, side, x: side * VISIT.start, state: 'in', t: 0, react: 0, wait: 0.7 });
     }
     onGreet(G, e) {
         const a = this.visitors.get(e.vid);
@@ -249,7 +251,7 @@ export class View {
     dismiss(vid, gossip) {
         const a = this.visitors.get(vid);
         if (!a) return;
-        a.state = 'out'; a.react = 0.8; a.t = 0;
+        a.state = 'out'; a.react = 0.9; a.t = 0;
         if (gossip) { const p = a.bb.group.position; const s = this.toScreen(p.clone().setY(2.8)); this.floater('“Doilies?!”', s.x, s.y, 'gossip'); }
     }
 
@@ -294,6 +296,34 @@ export class View {
         for (const id in this.minions) for (const bb of this.minions[id]) if (bb.pop < 1) return false;
         for (const id in this.castle.decor) for (const o of this.castle.decor[id]) if (o.visible && (o.userData.pop ?? 1) < 1) return false;
         return true;
+    }
+
+    /** Every place along the visitors' lane where the biggest visitor would pass through a wall or touch furniture (for the tests). */
+    laneReport() {
+        const out = [], a = new THREE.Box3(), b = new THREE.Box3();
+        this.scene.updateMatrixWorld(true);
+        const e = this.sprites.visitor('hero'), w = e.w * SPRITE_SCALE * 1.1, h = e.h * SPRITE_SCALE * 1.1;
+        const walls = this.castle.rooms.flatMap((r) => r.walls);
+        for (const r of this.castle.rooms) {
+            const things = [...walls, ...r.blockers.filter((o) => o.visible)];
+            for (const side of [-1, 1]) {
+                for (let x = VISIT.stand; x <= VISIT.gone; x += 0.1) {
+                    const wx = r.x + side * x;
+                    a.min.set(wx - w / 2, 0.05, LANE - 0.05);
+                    a.max.set(wx + w / 2, h + 0.15, LANE + 0.05);
+                    for (const o of things) {
+                        o.traverse((m) => {
+                            if (!m.isMesh || !m.visible) return;
+                            b.setFromObject(m);
+                            if (b.max.y < 0.1 || !a.intersectsBox(b)) return;
+                            const c = b.getCenter(new THREE.Vector3());
+                            out.push(`the ${r.id} room's ${side < 0 ? 'left' : 'right'} lane at x ${(side * x).toFixed(1)} hits a box at (${(c.x - r.x).toFixed(1)}, ${c.y.toFixed(1)}, ${c.z.toFixed(1)})`);
+                        });
+                    }
+                }
+            }
+        }
+        return [...new Set(out)];
     }
 
     /** Every minion sprite that intersects a piece of furniture, décor or a window it isn't meant to touch (for the tests). */
@@ -352,7 +382,7 @@ export class View {
         const cam = this.camera;
         // ----- camera
         let tx, ty, width;
-        if (this.overview) { tx = roomX(1.5); ty = 2.6; width = GAP * 4 + 1; } else { tx = this.roomOf(this.focus).x; ty = 2.1; width = RW + 1.2; }
+        if (this.overview) { tx = roomX(1.5); ty = 2.6; width = GAP * 4 + 1; } else { tx = this.roomOf(this.focus).x; ty = 2.1; width = RW + 3; }   // wide enough to show both side doorways
         const tanV = Math.tan((cam.fov * Math.PI) / 360);
         const distW = (width / 2) / (tanV * (this.freeW / this.h));
         const distH = ((this.overview ? RH + 3 : RH + 0.6) / 2) / (tanV * (this.freeH / this.h));
@@ -451,20 +481,24 @@ export class View {
             if (!o.userData.spin) o.scale.setScalar(s);
         }
 
-        // ----- visitors walk in, wait with a ‘!’, and leave
+        // ----- visitors come through a side door, wait with a ‘!’, and leave the way they came
         for (const [vid, a] of this.visitors) {
             a.t += dt;
-            const baseX = room.x, sideX = a.side * 3.6;
-            let x = a.x;
-            if (a.state === 'in') { x = ease(a.x, baseX + sideX, Math.min(1, dt * 2.5)); if (Math.abs(x - (baseX + sideX)) < 0.05) a.state = 'stay'; }
-            else if (a.state === 'out') {
+            let walking = false;
+            if (a.state === 'in') {
+                a.wait -= dt;
+                if (a.wait <= 0) {
+                    const to = a.side * VISIT.stand, d = to - a.x;
+                    a.x += Math.sign(d) * Math.min(Math.abs(d), dt * 3.2);
+                    walking = true;
+                    if (Math.abs(to - a.x) < 1e-3) a.state = 'stay';
+                }
+            } else if (a.state === 'out') {
                 a.react -= dt;
-                if (a.react <= 0) x = a.x + a.side * dt * (a.kind === 'hero' ? 9 : 4);
-                if (Math.abs(x - baseX) > RW / 2 + 1.5) { a.bb.group.parent?.remove(a.bb.group); a.bb.dispose(); this.visitors.delete(vid); continue; }
-            } else if (a.x === undefined) x = baseX + sideX;
-            a.x = x;
-            const walking = a.state !== 'stay' && !(a.state === 'out' && a.react > 0);
-            a.bb.group.position.set(x, 0, 1.9);
+                if (a.react <= 0) { a.x += a.side * dt * (a.kind === 'hero' ? 7 : 3.2); walking = true; }
+                if (Math.abs(a.x) > VISIT.gone) { a.bb.group.parent?.remove(a.bb.group); a.bb.dispose(); this.visitors.delete(vid); continue; }
+            }
+            a.bb.group.position.set(room.x + a.x, 0, LANE);
             a.bb.inner.position.y = walking ? Math.abs(Math.sin(a.t * 10)) * 0.12 : (a.state === 'stay' ? Math.abs(Math.sin(a.t * 3)) * 0.05 : 0);
             a.bb.inner.rotation.y = yaw;
             a.bb.inner.scale.x = (a.state === 'out' && a.react <= 0 ? a.side : -a.side) * Math.abs(a.bb.inner.scale.x || 1);
@@ -472,6 +506,18 @@ export class View {
                 const p = a.bb.group.position;
                 this.particles.add({ x: p.x, y: a.bb.h + 0.3, z: p.z, vy: 0.6, life: 0.8, size: 12, color: a.kind === 'hero' ? 0xff3b5c : 0xffe36a, glow: 2.2, shape: SHAPE.star, grav: 0 });
             }
+        }
+        // portcullises rise for anyone coming in or going out through them, and drop behind them
+        for (const r of this.castle.rooms) for (const d of r.doors) {
+            const dx = r.x + d.x;
+            let want = 0;
+            for (const a of this.visitors.values()) {
+                if (a.state === 'stay') continue;
+                const doorX = room.x + a.side * (RW / 2 + T / 2);
+                if (Math.abs(dx - doorX) < 1.2) want = 1;
+            }
+            d.open += Math.sign(want - d.open) * Math.min(Math.abs(want - d.open), dt * 2.4);
+            d.grate.position.y = d.open * (2.75);
         }
 
         // ----- lights, flames, windows, sky

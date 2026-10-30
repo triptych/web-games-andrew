@@ -2,7 +2,7 @@
 
 **Genre:** Idle clicker / incremental, with RPG trimmings
 **Engine:** three.js r165, no asset files
-**Status:** v1.0.1
+**Status:** v1.0.2
 
 ---
 
@@ -117,7 +117,7 @@ There is no ending; it is an idle game. The story is told in flavour: minion and
 ## Look and sound
 
 - **Sprites** ([art.js](js/view/art.js)): painted in code with game-093's volumetric pixel painter (hue-shifted ramps, contact lines, selective outlines). The Overlord in three poses (idle, craft with happy closed eyes, cackle with arms high and cape flared) with a tool for each room (whisk, needle and thread, feather duster, teacup); twelve minions; four visitors; a goblin henchman; sixteen centrepieces.
-- **The castle** ([castle.js](js/view/castle.js), [tex.js](js/view/tex.js)): four rooms 12 × 8 × 7 with pixel textures per room (bricks and pink-cream checks; striped wallpaper and planks; stone and flagstones with a carpet runner; panelling and black-and-white marble), re-coloured per lair; arched windows with a shader sky; a hearth, counters, jars and copper pots; a sewing table and bolts of fabric; a fireplace, portraits and candelabras; a stage with curtains, a buffet and string lights; battlements, towers and mountains outside.
+- **The castle** ([castle.js](js/view/castle.js), [tex.js](js/view/tex.js)): four rooms 12 × 8 × 7, joined by doorways with portcullises in their side walls, with pixel textures per room (bricks and pink-cream checks; striped wallpaper and planks; stone and flagstones with a carpet runner; panelling and black-and-white marble), re-coloured per lair; arched windows with a shader sky; a hearth, counters, jars and copper pots; a sewing table and bolts of fabric; a fireplace, portraits and candelabras; a stage with curtains, a buffet and string lights; battlements, towers and mountains outside.
 - **Effects** ([fx.js](js/view/fx.js)): one point-sprite system drawing pixelated hearts, notes, stars, coins and smoke; shockwave rings; floaters in the DOM.
 - **Post** ([stage.js](js/view/stage.js)): tilt-shift focused on the free area, bloom on flames and glows, a grade that follows dread, a little grain. Three quality levels and a calm mode.
 - **Sound** ([audio.js](js/audio.js)): a music-box waltz with pizzicato bass and a pad, C major when cosy and A minor when feared; crafting pops on a pentatonic scale that climbs with flow, a timbre per room; a formant cackle; doorbell, meow, fanfare, sad trombone, thunder, coins, chimes.
@@ -161,6 +161,9 @@ From the bot table (seed 9001, eight hours each):
 - A sixth hobby (gardening?), seasonal events, and a portrait of Noxia for the welcome-back sheet.
 
 ## Changelog
+
+### v1.0.2 (2026-10-30)
+- Fixed: visitors walked through walls. The rooms had no doors, and a visitor's starting point was worked out in the Kitchen's coordinates, so in any other room they slid in from the far side of the castle, through every wall on the way. Every side wall now has a doorway near the front with a stone frame and a portcullis, the doorways of neighbouring rooms line up into one passage, and visitors wait behind the next wall while the portcullis rises, walk in along a lane at the front of the room, and leave the way they came, the gate dropping behind them. Furniture and décor at the front were moved back to keep the lane clear, and the camera shows a little more of each room so both doorways are in shot ([castle.js](js/view/castle.js), [view.js](js/view/view.js)).
 
 ### v1.0.1 (2026-10-30)
 - Fixed: a gingerbread golem could stand inside the kitchen counter (and, in other rooms, minions inside the hearth, the sewing table, the stage or the organ, and portraits over a window). Minion spots were scattered without knowing where the furniture was. The castle now measures every piece of furniture, décor and window in each room and keeps every spot clear of them, with room for each minion's bob, hop or flutter ([layout.js](js/view/layout.js), [castle.js](js/view/castle.js)).
