@@ -243,6 +243,22 @@ async function phone(w, h) {
     await until(page, (x) => __sb.G.player.x > x + 8, 'dragging the stick moves the ship', 30000, x0);
     await touch('touchEnd', 0, 0);
 
+    // a touch anywhere is the stick: far on the right and near the top, and moving left
+    await Q(page, () => { __sb.G.player.x = 150; });
+    const far = await Q(page, () => ({ x: innerWidth * 0.8, y: __sb.view.oy + __sb.view.dh * 0.3 }));
+    const x1 = await Q(page, () => __sb.G.player.x);
+    await touch('touchStart', far.x, far.y);
+    for (let i = 1; i <= 6; i++) await touch('touchMove', far.x - i * 12, far.y);
+    await until(page, (x) => __sb.G.player.x < x - 8, 'a drag started anywhere on the screen steers the ship (far right, high up)', 30000, x1);
+    await touch('touchEnd', 0, 0);
+    // ... but a touch that lands on the BOMB button is the button's, not the stick's
+    const bb = await Q(page, () => { const r = document.getElementById('btn-b').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    await touch('touchStart', bb.x, bb.y, 3);
+    await page.waitForTimeout(150);
+    check(await Q(page, () => __sb.input.stick.active === false), 'a touch on BOMB does not start the stick');
+    await touch('touchEnd', 0, 0, 3);
+    await Q(page, () => { __sb.G.bombs = Math.max(__sb.G.bombs, 2); __sb.G.bombFx = null; });
+
     // BOMB
     const bombs = await Q(page, () => __sb.G.bombs);
     await tapSel('#btn-b');

@@ -47,9 +47,10 @@ export class Input {
         }, { capture: true });
     }
 
-    /** A floating stick: zone captures the thumb, el is the visual ring, knob follows the thumb. */
+    /** A floating stick: zone (the whole screen; buttons sit above it) captures the thumb, el is the visual ring, knob follows the thumb. */
     bindStick(zone, el, knob) {
-        const R = () => Math.min(60, Math.max(40, window.innerWidth * 0.1));
+        // a short throw: full speed after ~30 px of drag, so the ship answers a small movement at once
+        const R = () => Math.min(40, Math.max(26, window.innerWidth * 0.07));
         const end = (e) => {
             if (e.pointerId !== this.stick.id) return;
             this.stick.active = false;
@@ -133,7 +134,9 @@ export class Input {
         if (this.pad.x || this.pad.y) { x = this.pad.x; y = this.pad.y; }
         if (this.stick.active) {
             const sx = this.stick.x, sy = this.stick.y;
-            if (Math.hypot(sx, sy) > 0.18) { x = sx; y = sy; }
+            // a small dead zone, then a response curve that gets to full speed early
+            const m = Math.hypot(sx, sy);
+            if (m > 0.08) { const f = Math.min(1, m * 1.3) / m; x = sx * f; y = sy * f; }
         }
         const held = FIRE_KEYS.some((c) => k.has(c)) || this.pad.fire || this.touchFire || this.autofire;
         return { x, y, fire: held || this.edges.fire, bomb: this.edges.bomb };

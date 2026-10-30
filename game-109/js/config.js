@@ -1,7 +1,7 @@
 // STARBLAZER '86 — tuning and constants. Shared by the sim, the view and the tests.
 // Distances are in buffer pixels (the screen is a 224×288 pixel buffer), speeds in px/s.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.1';
 export const SAVE_KEY = 'starblazer-86.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)
@@ -10,7 +10,7 @@ export const MAX_FRAME = 0.05;            // a long frame never runs more than t
 export const FIELD = { w: 224, h: 288 };
 
 export const PLAYER = {
-    speed: 98, speedStep: 14, maxSpeedLevel: 3,
+    speed: 118, speedStep: 16, maxSpeedLevel: 3,
     r: 2.6,                                // what enemy bullets must touch
     bodyR: 4.5,                            // what enemy bodies must touch
     pickR: 8,
