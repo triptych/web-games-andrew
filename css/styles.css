@@ -1391,6 +1391,17 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 120, 180, 0.65);
 }
 
+.game-preview.neon-arcana,
+.carousel-slide-bg.neon-arcana {
+    background: radial-gradient(circle at 50% 46%, rgba(56, 232, 255, 0.35) 0 9%, transparent 26%), repeating-conic-gradient(from 0deg at 50% 46%, rgba(255, 79, 216, 0.18) 0 4deg, transparent 4deg 16.36deg), radial-gradient(ellipse at 50% 120%, #ff4fd8 0%, transparent 55%), linear-gradient(170deg, #05030c 0%, #1a0b36 50%, #3a0f4e 100%);
+}
+
+.game-card.neon-arcana .play-button {
+    background: linear-gradient(135deg, #ff4fd8, #9b6bff 55%, #38e8ff);
+    color: #12021f;
+    box-shadow: 0 0 14px rgba(56, 232, 255, 0.65);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

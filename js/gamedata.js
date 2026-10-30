@@ -1679,6 +1679,21 @@ const games = [
             { emoji: '\uD83E\uDDF5', label: 'HD-2D diorama' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-111',
+        title: 'NEON ARCANA',
+        description: "A high-tech, dark-magic block-placement puzzle in three.js. The magic has gone out of the world, and the twenty-two Major Arcana hang dark in the sky. Drag glyphs from your hand of three onto a glowing 8×8 lattice; fill a whole row or column and it bursts into light, with beams, shattering glass, shock rings, a lens ripple and bloom. Light fills the arcanum you are working on, and enough of it rekindles the card: it flips out of the board in a burst of god rays, flies home to its place in the wheel of cards around the lattice, and the nebula behind regains a little more of its colour. Each card brings a harder omen: golden sigils to clear through for bonus light (the Magician), bigger glyphs (the Empress), blight stones that crack instead of clearing (the Emperor), harmony for rows and columns together (the Lovers), heavy slabs and blocks (the Chariot), slanted glyphs (Justice) and, from Death on, a Void that creeps across the lattice when you go too long without a clear. Clear in a row to build Resonance and multiply your light. Five arcana grant powers paid for with sparks: Transmute your hand, light a single Lantern anywhere, Turn a glyph with the Wheel of Fortune, call the Tower to shatter a 3×3, or let Starfall wash the blight away. A reading ends when nothing in your hand fits, but the light you gathered is never lost: its embers carry into the next reading, and every card you rekindle stays lit. Rekindle The World to restore magic to everything, then play on in the afterglow or try a Free Reading for score. Every card is painted in code, the music is a synth score that brightens as the world comes back, and it plays by mouse, touch, keyboard or gamepad.",
+        icon: '\uD83D\uDD2E',
+        folder: 'game-111',
+        version: '1.0.0',
+        cssClass: 'neon-arcana',
+        genre: 'puzzle',
+        tags: [
+            { emoji: '\uD83E\uDDE9', label: 'Block puzzle' },
+            { emoji: '\uD83C\uDCCF', label: 'Tarot' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
