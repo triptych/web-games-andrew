@@ -126,8 +126,26 @@ async function desktop() {
     await shot(page, 'desktop-title');
 
     // the title's other screens
+    // menus by keyboard alone: arrows move, Z (the fire key) presses the highlighted button, X goes back
+    check(await Q(page, () => document.activeElement?.textContent.trim() === 'Start Game'), 'the title starts with Start Game highlighted');
+    await page.keyboard.press('ArrowDown');
+    check(await Q(page, () => document.activeElement?.textContent.trim() === 'High Scores'), 'the down arrow moves the highlight');
+    await page.keyboard.press('KeyZ');
+    await until(page, () => !document.getElementById('scores').hidden && document.querySelectorAll('#score-table li').length === 5, 'Z presses the highlighted button (High Scores shows a table of five)');
+    await page.keyboard.press('KeyX');
+    await until(page, () => document.getElementById('scores').hidden, 'X goes back');
+    await page.keyboard.press('KeyS'); await page.waitForTimeout(80); await page.keyboard.press('KeyS');
+    await until(page, () => document.activeElement?.textContent.trim() === 'How to Play', 'S moves the highlight down too');
+    await page.keyboard.press('KeyW');
+    await until(page, () => document.activeElement?.textContent.trim() === 'High Scores', 'and W moves it up');
+    await page.keyboard.press('KeyS');
+    await until(page, () => document.activeElement?.textContent.trim() === 'How to Play', 'back on How to Play');
+    await page.keyboard.press('KeyJ');
+    await until(page, () => !document.getElementById('howto').hidden, 'J presses it as well');
+    await page.keyboard.press('KeyZ');                                      // the highlighted Got it
+    await until(page, () => document.getElementById('howto').hidden, 'Z presses Got it');
     await click(page, '#title-menu [data-act="scores"]');
-    await until(page, () => !document.getElementById('scores').hidden && document.querySelectorAll('#score-table li').length === 5, 'High Scores shows a table of five');
+    await until(page, () => !document.getElementById('scores').hidden, 'High Scores opens by click as well');
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('scores').hidden, 'Escape closes it');
     await click(page, '#title-menu [data-act="howto"]');
@@ -411,6 +429,27 @@ async function story(phoneSize = null) {
     const i0 = await Q(page, () => __sb.ui.story.i);
     await tap('#story-next');
     await until(page, (i) => __sb.ui.story?.i === i + 1, 'Next again moves to the next line', 30000, i0);
+    if (!phoneSize) {
+        // keyboard only, with focus nowhere in particular: each key moves exactly one step, never two
+        await Q(page, () => document.activeElement?.blur());
+        const step = async (key, want, msg) => {
+            const before = await Q(page, () => [__sb.ui.story.i, __sb.ui.story.shown, __sb.G.stats.shots]);
+            await page.keyboard.press(key);
+            await page.waitForTimeout(120);
+            const after = await Q(page, () => [__sb.ui.story?.i, __sb.ui.story?.shown, __sb.G.stats.shots, __sb.input.edges.fire]);
+            check(want === 'finish' ? after[0] === before[0] && after[1] > before[1] : after[0] === before[0] + 1, msg);
+            check(after[2] === before[2] && after[3] === false, `${key} did not also fire the guns`);
+        };
+        await step('KeyZ', 'finish', 'Z finishes a line that is still typing');
+        await step('KeyZ', 'next', 'Z moves on to the next line (exactly one)');
+        await step('Space', 'finish', 'Space works with no button focused');
+        const held = await Q(page, () => __sb.ui.story.i);                  // a line is typed out in full: one press moves on
+        await page.keyboard.down('KeyZ'); await page.keyboard.down('KeyZ'); await page.keyboard.down('KeyZ');   // the 2nd and 3rd are auto-repeat
+        await page.keyboard.up('KeyZ');
+        await page.waitForTimeout(200);
+        check(await Q(page, (i) => __sb.ui.story.i === i + 1, held), 'a held key moves on once and does not race through the lines');
+        await step('Enter', 'finish', 'Enter finishes a line (exactly one step)');
+    }
     for (let k = 0; k < 14 && await Q(page, () => !document.getElementById('story').hidden); k++) await tap('#story-next');
     await until(page, () => document.getElementById('story').hidden, 'going through every line ends the cutscene');
     await until(page, () => __sb.G.t > 0.5, 'and the game begins');
@@ -425,12 +464,18 @@ async function story(phoneSize = null) {
     // Skip and Escape
     await Q(page, () => __sb.story('boss1'));
     await until(page, () => __sb.ui.top() === 'story', 'a cutscene can be started');
+    await page.keyboard.press('ArrowRight');
+    await until(page, () => __sb.ui.story.shown === __sb.ui.story.lines[__sb.ui.story.i].text.length, 'the right arrow is a next key too');
     await click(page, '#story-skip');
     await until(page, () => document.getElementById('story').hidden, 'Skip ends it at once');
     await Q(page, () => __sb.story('boss2'));
     await until(page, () => __sb.ui.top() === 'story', 'another cutscene');
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('story').hidden, 'Escape skips it too');
+    await Q(page, () => __sb.story('boss0'));
+    await until(page, () => __sb.ui.top() === 'story', 'and another');
+    await page.keyboard.press('KeyX');
+    await until(page, () => document.getElementById('story').hidden, 'X skips it as well');
     await Q(page, () => __sb.story('finale'));
     await until(page, () => __sb.ui.top() === 'story', 'a third');
     await page.keyboard.press('Space');                                 // Space on the focused Next button
@@ -446,10 +491,12 @@ async function story(phoneSize = null) {
     await until(page, () => __sb.ui.top() === 'story' && document.getElementById('story-where').textContent.includes('HANGAR'), 'docking after the first boss opens a cutscene in the hangar bay');
     check(await Q(page, () => document.getElementById('dock').hidden), 'the shop waits behind it');
     check(await Q(page, () => document.getElementById('dock-quip').hidden), 'and the quip is left for the ordinary visits');
-    await click(page, '#story-skip');
-    await until(page, () => !document.getElementById('dock').hidden && __sb.ui.top() === 'dock', 'when it ends the Hangar opens');
-    await click(page, '#dock-go');
-    await until(page, () => document.getElementById('dock').hidden, 'launch');
+    await page.keyboard.press('KeyX');
+    await until(page, () => !document.getElementById('dock').hidden && __sb.ui.top() === 'dock', 'when it ends (here with X) the Hangar opens');
+    await page.keyboard.press('KeyZ');
+    await until(page, () => __sb.G.upg.engine + __sb.G.upg.cannon + __sb.G.upg.rapid + __sb.G.upg.magnet >= 1, 'Z buys the highlighted item');
+    await page.keyboard.press('KeyL');
+    await until(page, () => document.getElementById('dock').hidden, 'L launches from the Hangar');
     // a later dock: no cutscene, a quip on the screen
     await Q(page, () => { const G = __sb.G; G.enemies.length = 0; G.ebullets.length = 0; G.wave = 20; G.plan.idx = G.plan.orders.length; __sb.dock(); });
     await until(page, () => !document.getElementById('dock').hidden, 'a later dock goes straight to the Hangar');

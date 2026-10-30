@@ -1,7 +1,7 @@
 // STARBLAZER '86 — tuning and constants. Shared by the sim, the view and the tests.
 // Distances are in buffer pixels (the screen is a 224×288 pixel buffer), speeds in px/s.
 
-export const VERSION = '1.3.0';
+export const VERSION = '1.3.1';
 export const SAVE_KEY = 'starblazer-86.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)

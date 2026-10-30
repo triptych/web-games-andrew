@@ -229,16 +229,42 @@ function pause() {
 }
 
 // ------------------------------------------------------------------ input routing
+// Keyboard in cutscenes. The game's own keys are the way through: Z, J, Space, Enter or → advance a line
+// (the first press finishes the typing), X, Esc or P skip the scene. This runs first and swallows the key,
+// so a press cannot also click a focused button (a double step) or count as a shot, and a held key does not
+// race through the lines.
+window.addEventListener('keydown', (e) => {
+    if (!ui.storyOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
+    const next = ['KeyZ', 'KeyJ', 'Space', 'Enter', 'NumpadEnter', 'ArrowRight'].includes(e.code);
+    const skip = ['Escape', 'KeyX', 'KeyP'].includes(e.code);
+    if (!next && !skip) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (e.repeat) return;
+    if (next) ui.storyNext(); else ui.storyEnd();
+}, { capture: true });
+
+/** Can Esc / X close this screen? (The title, the game-over sheet, the hangar and cutscenes have their own ways out.) */
+const closable = () => !['title', 'over', 'dock', 'story'].includes(ui.top());
+
+/** Press the focused button (what Enter and Space do natively, on the game's own keys too). */
+function pressFocused() {
+    const el = document.activeElement;
+    if (el && el.tagName === 'BUTTON' && !el.disabled) el.click();
+}
+
 function handlePresses() {
     const press = input.next();               // one per frame: presses never merge
     if (!press) return;
     const key = press.key;
     if (ui.anyScreen()) {
-        if (ui.top() === 'story' && (key === 'Escape' || key === 'KeyP')) { ui.storyEnd(); return; }
-        if (key === 'ArrowDown') ui.moveFocus(1);
-        else if (key === 'ArrowUp') ui.moveFocus(-1);
-        else if ((key === 'Escape' || key === 'KeyP') && ui.top() !== 'title' && ui.top() !== 'over' && ui.top() !== 'dock' && ui.top() !== 'story') { audio.ui('close'); ui.closeTop(); }
-        else if (key === 'Enter' && press.pad) document.activeElement?.click?.();
+        // menus and dialogs, all by keyboard: arrows or W/S move, Z / J / Enter press the focused button,
+        // X / Esc / P go back, and L launches from the hangar
+        if (key === 'ArrowDown' || key === 'KeyS') ui.moveFocus(1);
+        else if (key === 'ArrowUp' || key === 'KeyW') ui.moveFocus(-1);
+        else if ((key === 'Escape' || key === 'KeyP' || key === 'KeyX') && closable()) { audio.ui('close'); ui.closeTop(); }
+        else if (key === 'KeyZ' || key === 'KeyJ' || (key === 'Enter' && press.pad)) pressFocused();
+        else if (key === 'KeyL' && ui.top() === 'dock') document.getElementById('dock-go').click();
         return;
     }
     if (mode === 'play' && (key === 'Escape' || key === 'KeyP')) pause();
