@@ -211,6 +211,10 @@ export function minionVisible(G, m) {
     const i = MINION[m.id].index;
     return G.owned[m.id] > 0 || G.charmRun >= m.cost * 0.4 || i === 0 || G.owned[MINIONS[i - 1].id] > 0;
 }
+/** A room opens when its first minion is hired; the Kitchen is always open. */
+export function roomOpen(G, id) {
+    return id === 'cook' || MINIONS.some((m) => m.hobby === id && G.owned[m.id] > 0);
+}
 export const legendFor = (charmAll) => Math.floor(Math.cbrt(charmAll / LEGEND.base));
 export const legendGain = (G) => Math.max(0, legendFor(G.charmAll) - G.legend.total);
 /** Charm in all needed for the next point of legend. */
@@ -357,7 +361,7 @@ export function act(G, cmd) {
         case 'cackle': return cackle(G);
         case 'ability': return ability(G, cmd.id);
         case 'room': {
-            if (!HOBBIES.some((h) => h.id === cmd.id) || G.room === cmd.id) return false;
+            if (!HOBBIES.some((h) => h.id === cmd.id) || G.room === cmd.id || !roomOpen(G, cmd.id)) return false;
             G.room = cmd.id;
             emit(G, { type: 'room', id: cmd.id });
             return true;
@@ -570,6 +574,7 @@ export function deserialize(d) {
     while (G.board.length < BOARD_SLOTS) G.board.push(newCard(G));
     G.active = (G.active || []).filter((a) => a && a.card && SCHEME_BY[a.card.id]);
     G.rng.setState(rngState);
+    if (!roomOpen(G, G.room)) G.room = 'cook';     // a save made in a room that is now locked
     G._mods = null;
     return G;
 }

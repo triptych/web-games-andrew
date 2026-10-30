@@ -9,7 +9,7 @@ import { Audio } from './audio.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
-import { newGame, step, act, rates } from './sim/game.js';
+import { newGame, step, act, rates, roomOpen } from './sim/game.js';
 import { makeBot, botCommands, botShop } from './sim/bot.js';
 import { HOBBIES, ABILITIES, MINIONS, DECOR } from './sim/data.js';
 
@@ -142,7 +142,10 @@ canvas.addEventListener('pointerdown', (e) => {
     const hit = view.pick(e.clientX, e.clientY);
     if (!hit) return;
     if (hit.type === 'visitor') send({ t: 'visitor', vid: hit.vid });
-    else if (hit.type === 'room') { send({ t: 'room', id: hit.id }); setOverview(false); }
+    else if (hit.type === 'room') {
+        if (!roomOpen(G, hit.id)) ui.roomHint(hit.id);
+        else { send({ t: 'room', id: hit.id }); setOverview(false); }
+    }
     else send({ t: 'craft' });
 });
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -170,8 +173,12 @@ function handleKeys() {
         else if (k === 'KeyC' || k === 'Digit1') send({ t: 'ability', id: 'cackle' });
         else if (/^Digit[2-4]$/.test(k)) send({ t: 'ability', id: ABILITIES[+k.slice(5) - 1].id });
         else if (k === 'KeyQ' || k === 'ArrowLeft' || k === 'KeyE' || k === 'ArrowRight') {
-            const d = k === 'KeyQ' || k === 'ArrowLeft' ? -1 : 1;
-            send({ t: 'room', id: ROOM_IDS[(ROOM_IDS.indexOf(G.room) + d + ROOM_IDS.length) % ROOM_IDS.length] });
+            // the next open room that way; locked rooms are skipped
+            const d = k === 'KeyQ' || k === 'ArrowLeft' ? -1 : 1, n = ROOM_IDS.length;
+            for (let i = 1; i < n; i++) {
+                const id = ROOM_IDS[(ROOM_IDS.indexOf(G.room) + d * i + n * 2) % n];
+                if (roomOpen(G, id)) { send({ t: 'room', id }); break; }
+            }
             setOverview(false);
         } else if (k === 'KeyV') { if (G.visitors[0]) send({ t: 'visitor', vid: G.visitors[0].vid }); }
         else if (k === 'Tab') setOverview('toggle');

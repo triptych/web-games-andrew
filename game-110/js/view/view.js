@@ -136,8 +136,15 @@ export class View {
         // rooms with no minions are dim and cobwebbed
         for (const r of this.castle.rooms) {
             const n = MINIONS.reduce((s, m) => s + (m.hobby === r.id ? G.owned[m.id] : 0), 0);
-            r.open = n > 0 || r.id === 'cook';
-            r.webs.visible = !r.open;
+            const open = n > 0 || r.id === 'cook';
+            if (open && r.open === false && !initial) {
+                // the room opens: the cobwebs blow away and the lights come up
+                for (const w of r.webs.children) { const p = w.getWorldPosition(new THREE.Vector3()); this.particles.burst(p.x, p.y, p.z + 0.2, 14, { color: [0xe8e0ff, 0xffffff], shape: SHAPE.square, size: 7, speed: 3, up: 1, grav: -3, life: 1.2, glow: 1.2 }); }
+                this.particles.burst(r.x, 3, 0, 40, { color: [0xffd36b, 0xffffff, 0xff9ec7], shape: SHAPE.star, size: 10, speed: 5, up: 3, life: 1.4, glow: 2.4 });
+            }
+            if (initial || r.lightK === undefined) r.lightK = open ? 1 : 0;
+            r.open = open;
+            r.webs.visible = !open;
         }
     }
 
@@ -523,7 +530,8 @@ export class View {
         // ----- lights, flames, windows, sky
         for (const r of this.castle.rooms) {
             const flick = 0.85 + Math.sin(time * 9 + r.index) * 0.06 + Math.sin(time * 23 + r.index * 3) * 0.05;
-            const base = r.open ? r.baseLight : r.baseLight * 0.18;
+            r.lightK += ((r.open ? 1 : 0) - r.lightK) * Math.min(1, dt * 1.5);
+            const base = r.baseLight * (0.18 + 0.82 * r.lightK);
             r.light.intensity = base * flick * (1 - D * 0.25);
             if (r.id === 'party' && G.decor.mirrorball) r.light.color.setHSL((time * 0.1) % 1, 0.5, 0.65);
             else r.light.color.set(this.castle.pal.lamp);
