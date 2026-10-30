@@ -227,6 +227,21 @@ export const LAIRS = [
     { id: 'eclipse', name: 'The Eclipse Citadel', desc: 'A floating fortress. The parties are legendary.', fx: [{ k: 'hobby', h: 'party', x: 1.5 }], bonus: 'Entertaining +50%.' },
 ];
 
+// ---------------------------------------------------------------------------------------------------- the cemetery
+// Gravestones in the castle grounds, each a mini-game. Their progress is kept forever, through every relocation.
+// need(G, R) → [have, want] for the unlock; a grave with no game yet is still being dug.
+export const GRAVES = [
+    { id: 'skull', name: 'Skull Swap', icon: '💀', epitaph: 'Here lies a match made in heaven. Well. Nearby.', desc: 'A match-three of skulls, cupcakes, candles and teacups. Clear levels for charm and gold.',
+        needText: 'Employ 25 minions', need: (G, R) => [R.minions, 25] },
+    { id: 'soon1', name: 'Not Yet Dug', icon: '🪦', epitaph: 'Reserved for a future amusement.', soon: true },
+    { id: 'soon2', name: 'Not Yet Dug', icon: '🪦', epitaph: 'Do not disturb. Not yet.', soon: true },
+    { id: 'soon3', name: 'Not Yet Dug', icon: '🪦', epitaph: 'Something is being planned here.', soon: true },
+    { id: 'soon4', name: 'Not Yet Dug', icon: '🪦', epitaph: 'The groundskeeper is still digging.', soon: true },
+];
+export const GRAVE = Object.fromEntries(GRAVES.map((g) => [g.id, g]));
+/** Skull Swap pays out a share of charm per second and gold scaled like tribute. */
+export const M3_REWARD = { charmSec: [0, 90, 150, 240], gold: 3, goldPerLevel: 0.6 };
+
 // ---------------------------------------------------------------------------------------------------- trophies
 // Each one is +1% charm. test(G, R) reads the game state and its derived rates only.
 function buildAchievements() {
@@ -252,6 +267,8 @@ function buildAchievements() {
     [[1, 'A Change of Scenery'], [3, 'Serial Relocator'], [5, 'Every Lair in the Brochure'], [10, 'Professional Mover']].forEach(([n, name], i) => add(`move${i}`, '🧳', name, `Relocate ${n} time${n > 1 ? 's' : ''}.`, (G) => G.runs >= n));
     add('decorall', '🏰', 'House Proud', 'Own every piece of décor in one lair.', (G) => DECOR.every((d) => G.decor[d.id]));
     add('hench', '🦹', 'A Full Payroll', `Employ every henchman.`, (G) => G.hench >= 10);
+    [[1, 'Grave Matters'], [10, 'Skull Collector'], [25, 'Bone Idol'], [50, 'Rest in Pieces']].forEach(([n, name], i) => add(`m3_${i}`, '💀', name, `Clear level ${n} of Skull Swap.`, (G) => G.yard.m3.best >= n));
+    add('m3stars', '⭐', 'Three Little Skulls', 'Clear ten Skull Swap levels with three stars.', (G) => G.yard.m3.three >= 10);
     for (const h of HOBBIES) add(`mast_${h.id}`, h.icon, `${h.name} Virtuoso`, `Reach mastery 10 in ${h.name.toLowerCase()}.`, (G, R) => R.mastery[h.id] >= 10);
     return A;
 }

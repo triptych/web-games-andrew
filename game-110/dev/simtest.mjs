@@ -9,6 +9,8 @@
  *    Math.random or the clock, and never import the view, the UI or the audio.
  * 2. rules: crafting and flow, minion prices, upgrades, dread and its tiers, cackling, visitors (all four), abilities,
  *    décor, henchmen and schemes, heirlooms, mastery, trophies, relocation and perks.
+ * 2b. match3: Skull Swap boards, swaps, specials, cobwebs, goals, stars, a balance table by level, and the grave's
+ *    unlock, rewards, saves and relocation.
  * 3. layout: minion slots never stand inside furniture (the real castle is checked in browsertest.mjs).
  * 3b. away: time away is the same rules at the offline rate, capped; a day simulates quickly.
  * 4. determinism: the same seed and commands give the same game; a save round trip mid-game plays on identically;
@@ -277,6 +279,106 @@ if (want('layout')) {
     const a = Ly.makeSlots(2, [counter], dims), b = Ly.makeSlots(2, [counter], dims);
     ok(JSON.stringify(a) === JSON.stringify(b), 'the same room gives the same slots every time');
     console.log('  (the browser test checks the real castle: every minion against every piece of furniture, décor and window)');
+}
+
+if (want('match3')) {
+    section('Skull Swap (the cemetery match-three)');
+    const M = await import('../js/sim/match3.js');
+    const { makeRng } = await import('../js/rng.js');
+    const at = (x, y) => y * M.W + x;
+    // a fresh board: full, no matches, at least one move, deterministic
+    for (let s = 0; s < 30; s++) {
+        const B = M.newBoard(1 + (s % 12), s * 101);
+        if (!ok(B.cells.every((k) => k >= 0 && k < B.kinds) && !M.findGroups(B).length && M.hasMove(B), `board ${s}: full, no matches, a move exists`)) break;
+    }
+    ok(JSON.stringify(M.newBoard(5, 42)) === JSON.stringify(M.newBoard(5, 42)), 'the same level and seed deal the same board');
+    const web = M.newBoard(3, 9);
+    ok(M.levelSpec(3).type === 'webs' && web.webs.filter(Boolean).length === web.spec.webs && web.websLeft === web.spec.webs, 'a cobweb level spreads its cobwebs');
+    // a hand-made board: no runs anywhere ((x + 2y) mod 5), with a four and a five set up on row 3
+    const crafted = (five) => {
+        const B = M.newBoard(1, 1);
+        for (let y = 0; y < M.H; y++) for (let x = 0; x < M.W; x++) { B.cells[at(x, y)] = (x + 2 * y) % 5; B.sp[at(x, y)] = 0; }
+        for (const x of [0, 1, 3]) B.cells[at(x, 3)] = 0;
+        if (!five) B.cells[at(4, 3)] = 2;
+        return B;
+    };
+    let B = crafted(false);
+    ok(!M.findGroups(B).length, 'the hand-made board starts with no match');
+    const before = JSON.stringify(B);
+    let r = M.trySwap(B, at(0, 0), at(2, 0));
+    ok(!r.ok && JSON.stringify(B) === before, 'a swap between cells that aren’t neighbours is refused');
+    r = M.trySwap(B, at(5, 0), at(6, 0));
+    ok(!r.ok && r.steps[0].t === 'bad' && JSON.stringify(B) === before && B.movesLeft === B.moves, 'a swap that makes no match swaps back and costs no move');
+    r = M.trySwap(B, at(2, 3), at(2, 4));
+    ok(r.ok && B.movesLeft === B.moves - 1, 'a swap that makes a match costs a move');
+    ok(r.steps[1].t === 'clear' && r.steps[1].makes.length === 1 && r.steps[1].makes[0].sp === M.SP.row && r.steps[1].makes[0].i === at(2, 3), 'four in a row make a line-clearer where the swap was');
+    ok(B.cells.every((k) => k >= 0) && !M.findGroups(B).length, 'after the cascade the board is full and still');
+    B = crafted(true);
+    r = M.trySwap(B, at(2, 3), at(2, 4));
+    ok(r.steps[1].makes[0]?.sp === M.SP.bomb, 'five in a row make a jack-o’-lantern');
+    // set the special off: a row-clearer in a match clears its whole row
+    B = crafted(false); B.sp[at(0, 3)] = M.SP.row;
+    r = M.trySwap(B, at(2, 3), at(2, 4));
+    const first = r.steps[1];
+    ok(first.fired.some((f) => f.i === at(0, 3)) && [0, 1, 2, 3, 4, 5, 6].every((x) => first.cells.includes(at(x, 3)) || first.makes.some((m) => m.i === at(x, 3))), 'a line-clearer caught in a match clears its row');
+    B = crafted(false); B.sp[at(1, 3)] = M.SP.bomb;
+    r = M.trySwap(B, at(2, 3), at(2, 4));
+    ok([[0, 2], [1, 2], [2, 2], [0, 4], [1, 4]].every(([x, y]) => r.steps[1].cells.includes(at(x, y))), 'a jack-o’-lantern clears the 3×3 around it');
+    B = crafted(false); B.spec = { type: 'webs', kinds: 5, moves: 20, webs: 1 }; B.webs[at(1, 3)] = 1; B.websLeft = 1;
+    r = M.trySwap(B, at(2, 3), at(2, 4));
+    ok(B.websLeft === 0 && B.won && B.over && r.steps[1].webs.includes(at(1, 3)), 'a match on a cobweb clears it, and clearing the last one wins');
+    ok(B.stars === 3, 'winning with most moves left is three stars');
+    B = crafted(false); B.spec = { type: 'score', kinds: 5, moves: 1, target: 1e9 }; B.moves = B.movesLeft = 1;
+    M.trySwap(B, at(2, 3), at(2, 4));
+    ok(B.over && !B.won, 'running out of moves short of the goal loses');
+    ok(!M.trySwap(B, at(0, 0), at(1, 0)).ok, 'a finished board takes no more swaps');
+    for (let L = 1; L <= 80; L++) { const s = M.levelSpec(L); if (!ok(s.moves >= 12 && (s.target > 0 || s.webs > 0 || Object.values(s.need || {}).every((n) => n > 0)), `level ${L} asks for something possible`)) break; }
+    // the balance table: the bot that doesn't plan ahead, 16 boards a level
+    const row = [];
+    let early = 0;
+    for (let L = 1; L <= 30; L++) {
+        let wins = 0;
+        for (let s = 0; s < 16; s++) {
+            const b = M.newBoard(L, 500 + s * 31), rr = makeRng(s + 1);
+            for (let g = 0; g < 100 && !b.over; g++) { const m = M.botMove(b, 1, rr); if (!m || !M.trySwap(b, m[0], m[1]).ok) break; }
+            if (b.won) wins++;
+        }
+        row.push(wins / 16);
+        if (L <= 10) early += wins / 16 / 10;
+    }
+    console.log('  win rate by level (bot, no look-ahead): ' + row.map((w, i) => `${i + 1}:${Math.round(w * 100)}`).join(' '));
+    ok(early >= 0.8, `levels 1–10 are winnable (${Math.round(early * 100)}% for the bot)`);
+    ok(row.every((w) => w >= 0.1), 'no level up to 30 is a wall (every one won at least 10% of the time)');
+
+    section('Skull Swap in the castle');
+    let G = rich(40, 1e9, 0);
+    ok(!Gm.act(G, { t: 'm3start' }), 'the grave is closed at first');
+    Gm.act(G, { t: 'buy', id: 'imp', n: 24 }); Gm.step(G, 1);
+    ok(!G.yard.open.skull, '24 minions are not enough');
+    Gm.act(G, { t: 'buy', id: 'imp', n: 1 }); G.events.length = 0; Gm.step(G, 1);
+    ok(G.yard.open.skull && G.events.some((e) => e.type === 'graveOpen' && e.id === 'skull'), 'the 25th minion opens Skull Swap, and says so');
+    ok(Gm.act(G, { t: 'm3start' }) && G.yard.m3.board && G.yard.m3.board.level === 1, 'the first level is dealt');
+    const b1 = JSON.stringify(G.yard.m3.board); Gm.act(G, { t: 'm3start' });
+    ok(JSON.stringify(G.yard.m3.board) === b1, 'coming back carries on with the same board');
+    const c0 = G.charm, g0 = G.gold, rr = makeRng(3);
+    for (let i = 0; i < 100 && !G.yard.m3.board.over; i++) { const m = M.botMove(G.yard.m3.board, 1, rr); Gm.act(G, { t: 'm3swap', a: m[0], b: m[1] }); }
+    const end = G.events.find((e) => e.type === 'm3end');
+    ok(end && end.won && G.yard.m3.level === 2 && G.yard.m3.best === 1, 'winning level 1 moves on to level 2');
+    ok(G.charm > c0 && G.gold > g0 && end.charm > 0 && end.gold > 0, `and pays charm and gold (${F.fmt(end.charm)} charm, ${end.gold} gold)`);
+    Gm.step(G, 1);
+    ok(G.ach.m3_0 === 1, 'with a trophy');
+    ok(Gm.act(G, { t: 'm3start' }) && G.yard.m3.board.level === 2 && !G.yard.m3.board.over, 'the next start deals level 2');
+    // a save in the middle of a level plays on the same
+    const mv = M.botMove(G.yard.m3.board, 1, makeRng(1)); Gm.act(G, { t: 'm3swap', a: mv[0], b: mv[1] });
+    const copy = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(G))));
+    const m2 = M.botMove(G.yard.m3.board, 1, makeRng(2));
+    Gm.act(G, { t: 'm3swap', a: m2[0], b: m2[1] }); Gm.act(copy, { t: 'm3swap', a: m2[0], b: m2[1] });
+    ok(JSON.stringify(G.yard) === JSON.stringify(copy.yard), 'a save mid-level plays on identically');
+    G.charmAll = 9e12; Gm.act(G, { t: 'relocate' });
+    ok(G.yard.open.skull && G.yard.m3.level === 2, 'relocating keeps the cemetery and your Skull Swap level');
+    const oldSave = Gm.serialize(Gm.newGame(41)); delete oldSave.yard;
+    ok(Gm.deserialize(oldSave).yard.m3.level === 1, 'a save from before the cemetery loads');
+    ok(D.GRAVES.filter((g) => !g.soon).length === 1 && D.GRAVES.length === 5, 'five graves, one with a game so far');
 }
 
 if (want('away')) {

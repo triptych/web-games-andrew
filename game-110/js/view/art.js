@@ -417,3 +417,72 @@ export function drawEmblem(col = '#e8dcf8') {
 
 export const SPRITE_SCALE = 1 / 22;   // world units per sprite pixel
 export { mix };
+
+// ---------------------------------------------------------------------------------------------------- Skull Swap tokens
+// 16×16 tokens for the cemetery's match-three, drawn at whole-pixel scale on the board canvas.
+const TOKEN = {
+    skull(P) {
+        P.mell(8, 7, 6.2, 5.8).mrect(4, 9, 8, 4).paint('#f4eefa', { hi: 0.6 });
+        P.mell(5.5, 7.5, 1.9, 2.1).mell(10.5, 7.5, 1.9, 2.1).fill('#2a1838');
+        P.mp(5, 7).mp(10, 7).fill('#ffffff');
+        P.mp(8, 10).mp(7, 10).fill('#6a4a7a');
+        for (const x of [5, 7, 9, 11]) P.mrect(x, 12, 1, 2);
+        P.fill('#d8cce4');
+        P.mp(3, 10).mp(13, 10).fill('#ff9cc0');
+    },
+    cupcake(P) {
+        P.mpoly([[3, 9], [13, 9], [11, 15], [5, 15]]).paint('#c9a0ff');
+        for (const x of [5, 7, 9, 11]) P.mrect(x, 10, 1, 5);
+        P.fill('#a77ae0');
+        P.mell(8, 7, 5.5, 3.5).mell(8, 5, 3.5, 2.5).paint('#ff9ec7', { hi: 0.8 });
+        P.mell(8, 2.5, 1.6, 1.6).paint('#ff3b5c');
+        P.mp(5, 6).mp(10, 7).mp(7, 4).fill('#fff3a0');
+    },
+    yarn(P) {
+        P.mell(8, 8, 6, 6).paint('#9a6ad8');
+        P.mline(3, 6, 12, 3).mline(3, 10, 13, 6).mline(4, 13, 13, 10).mline(7, 2, 10, 14).fill('#c8a8ff');
+        P.mline(12, 12, 15, 15).paint('#e6e9f2');
+    },
+    candle(P) {
+        P.mrect(5, 6, 6, 9).paint('#fff1d8');
+        P.mrect(4, 14, 8, 2).paint('#d4a03a');
+        P.mp(5, 7).mp(5, 8).mp(10, 6).fill('#ffffff');
+        P.mrect(7, 4, 1, 2).fill('#3a2a1a');
+        P.mell(7.5, 2.5, 1.8, 2.6).paint('#ffcf4a', { soft: true });
+        P.mp(7, 2).fill('#fff8d0');
+    },
+    rose(P) {
+        P.mline(8, 9, 8, 15).paint('#3a7a3a');
+        P.mpoly([[8, 12], [13, 10], [10, 13]]).paint('#4a9a4a');
+        P.mell(8, 6, 5.2, 4.8).paint('#5a0a2a', { hi: 1.4 });
+        P.mell(8, 5.5, 2.6, 2.2).paint('#8a1a44');
+        P.mp(7, 5).mp(9, 6).fill('#c03a6a');
+    },
+    teacup(P) {
+        P.mrect(2, 13, 12, 2).paint('#e8f4f2');
+        P.mpoly([[3, 6], [12, 6], [11, 12], [4, 12]]).paint('#5fd0c0');
+        P.mell(13, 8.5, 2, 2).paint('#5fd0c0'); P.mp(13, 8).mp(13, 9).fill('#2a6a60');
+        P.mrect(4, 6, 8, 1).fill('#3a2a1a');
+        P.mrect(6, 9, 3, 1).fill('#ffffff');
+        P.mline(6, 1, 7, 4).mline(9, 0, 10, 4).fill('#e8f0ff');
+    },
+};
+export function drawToken(kind) {
+    const P = new Px(16, 16);
+    TOKEN[kind](P);
+    P.outline('#1a1024', 0.8);
+    return P;
+}
+/** The jack-o'-lantern a five or an L makes. */
+export function drawPumpkin() {
+    const P = new Px(16, 16);
+    P.mell(8, 9, 7, 6).paint('#ff8a1a');
+    P.mell(5, 9, 2, 5.5).mell(11, 9, 2, 5.5).paint('#ff9f3a', { noline: true });
+    P.mrect(7, 1, 2, 3).paint('#3a7a3a');
+    P.mpoly([[4, 8], [6, 6], [7, 9]]).mpoly([[12, 8], [10, 6], [9, 9]]).fill('#ffe36a');
+    P.mpoly([[4, 11], [12, 11], [10, 14], [6, 14]]).fill('#ffe36a');
+    P.mp(6, 11).mp(10, 11).mp(8, 14).fill('#ff8a1a');
+    P.outline('#2a1006', 0.8);
+    return P;
+}
+export const TOKEN_KINDS = Object.keys(TOKEN);

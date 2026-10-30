@@ -13,6 +13,9 @@
  *   window (the gingerbread golems used to stand inside the kitchen counter); the visitors' lane passes through the
  *   side doorways, never a wall or furniture; a Ballroom visitor walks in through the Ballroom's own door under a
  *   raised portcullis (visitors used to slide in from the Kitchen, through every wall).
+ * cemetery: the Graves button; closed and undug graves say why; the 25th minion opens Skull Swap; a click on the grave
+ *   opens it; a real drag and a keyboard swap; a level played out pays charm and gold; Next level; Escape; E and Q;
+ *   the whole castle includes the cemetery. On the phones: Graves, the grave, and a tap-tap swap that fits the screen.
  * away: a fresh page whose save was written two hours ago → Continue → the welcome-back sheet says so.
  * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the menus, a tap on the castle crafts,
  *   a tap on a row buys, the cackle button, every control ≥ 44 px and on screen, the menu stays open after the finger
@@ -23,7 +26,7 @@
  *   python3 -m http.server 8110          # from the REPO ROOT
  *   node game-110/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8110), ONLY=desktop,furniture,away,phones,nostorage, THREE_PKG.
+ * Env: BASE (default http://127.0.0.1:8110), ONLY=desktop,cemetery,furniture,away,phones,nostorage, THREE_PKG.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -155,7 +158,9 @@ async function desktop() {
 
     // visitors: a real click on the sprite, then the callout button
     await Q(page, () => { __dd.G.nextVisit = 0; });
-    await until(page, () => __dd.G.visitors.length === 1 && [...__dd.view.visitors.values()].some((a) => a.state === 'stay'), 'a visitor walks in and waits', 40000);
+    await until(page, () => __dd.G.visitors.length === 1, 'a visitor arrives');
+    await Q(page, () => { for (const v of __dd.G.visitors) v.t = v.life = 120; });   // so a slow software renderer can't time them out mid-walk
+    await until(page, () => [...__dd.view.visitors.values()].some((a) => a.state === 'stay'), 'a visitor walks in and waits', 40000);
     check(await visible(page, 'btn-visitor'), 'with a callout button for anyone who misses it');
     const vs = await Q(page, () => __dd.view.visitorScreen(__dd.G.visitors[0].vid));
     await page.mouse.click(vs.x, vs.y);
@@ -200,8 +205,9 @@ async function desktop() {
     await until(page, () => /opens when you hire/.test(document.getElementById('toasts').textContent), 'clicking it says what opens it');
     check(await Q(page, () => __dd.G.room === 'cook'), 'and stays in the Kitchen');
     await page.keyboard.press('KeyE');
-    await page.waitForTimeout(400);
-    check(await Q(page, () => __dd.G.room === 'cook'), 'E skips locked rooms (all of them, for now)');
+    await until(page, () => __dd.G.room === 'cook' && __dd.place === 'yard', 'E skips the locked rooms (all of them, for now) and goes on to the cemetery');
+    await page.keyboard.press('KeyQ');
+    await until(page, () => __dd.place === 'castle' && __dd.G.room === 'cook', 'and Q comes back to the Kitchen');
     await Q(page, () => __dd.give(1e12));
     await Q(page, () => { __dd.send({ t: 'buy', id: 'spider', n: 1 }); __dd.send({ t: 'buy', id: 'skeleton', n: 1 }); });
     await until(page, () => __dd.G.owned.spider === 1 && __dd.G.owned.skeleton === 1 && !document.querySelector('#rooms [data-room="sew"]').classList.contains('locked'), 'hiring a Spider Seamstress and a Skeleton Quartet opens their rooms');
@@ -257,6 +263,94 @@ async function desktop() {
 }
 
 // ======================================================================
+/** Wait until a Skull Swap command has been applied and its animation has played out. */
+const m3settle = (page, moves) => until(page, (m) => (__dd.G.yard.m3.board.movesLeft !== m || __dd.G.yard.m3.board.over) && !__dd.m3view.busy && __dd.G.events.length === 0, 'the swap plays out', 30000, moves);
+/** Wait for the camera to stop moving before clicking something in the world. */
+const settleCamera = async (page) => {
+    // two frames first, so the camera has been told where to go, then until it gets there
+    await Q(page, () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    await page.waitForFunction(() => { const w = __dd.view.camWant; return w && __dd.view.camPos.distanceTo(w) < 0.3; }, null, { timeout: 30000, polling: 100 }).catch(() => {});
+};
+const cellCentre = (page, c) => Q(page, (i) => { const r = document.getElementById('m3-canvas').getBoundingClientRect(); const w = r.width / 7; return { x: r.left + ((i % 7) + 0.5) * w, y: r.top + (((i / 7) | 0) + 0.5) * w }; }, c);
+
+async function cemetery() {
+    console.log('\n== the cemetery and Skull Swap (desktop)');
+    const page = await open({ width: 1280, height: 760 });
+    await Q(page, () => { __dd.start(8); __dd.give(1e4); });
+    await mouseAt(page, '#btn-yard');
+    await until(page, () => __dd.place === 'yard' && document.getElementById('btn-yard').classList.contains('on'), 'the Graves button goes to the cemetery');
+    await settleCamera(page);
+    let pt = await Q(page, () => __dd.view.graveScreen('skull'));
+    await page.mouse.click(pt.x, pt.y);
+    await until(page, () => /opens when you employ 25 minions \(0 \/ 25\)/.test(document.getElementById('toasts').textContent), 'a click on the closed Skull Swap grave says what opens it, with progress');
+    check(await Q(page, () => document.getElementById('m3').hidden), 'and opens nothing');
+    pt = await Q(page, () => __dd.view.graveScreen('soon1'));
+    await page.mouse.click(pt.x, pt.y);
+    await until(page, () => /still being dug/.test(document.getElementById('toasts').textContent), 'the other graves are still being dug');
+    await Q(page, () => __dd.send({ t: 'buy', id: 'imp', n: 25 }));
+    await until(page, () => __dd.G.yard.open.skull && /Skull Swap<\/b> is open/.test(document.getElementById('toasts').innerHTML), 'hiring the 25th minion opens Skull Swap, with a toast');
+    await until(page, () => __dd.view.castle.yard.graves[0].halo.material.opacity > 0.05 && !!__dd.view.castle.yard.graves[0].icon, 'and the grave lights up with a skull over it');
+    await shot(page, 'cemetery');
+    pt = await Q(page, () => __dd.view.graveScreen('skull'));
+    await page.mouse.click(pt.x, pt.y);
+    await until(page, () => !document.getElementById('m3').hidden && __dd.G.yard.m3.board?.level === 1, 'a click on the grave opens Skull Swap at level 1');
+    await page.waitForTimeout(400);
+    check(await Q(page, () => { document.getElementById('m3').getAnimations({ subtree: true }).forEach((a) => a.finish()); const r = document.getElementById('m3-canvas').getBoundingClientRect(); return r.width / 7 >= 44 && r.top >= 0 && r.bottom <= innerHeight; }), 'the board is a good size (cells at least 44 px) and on screen');
+    // a real drag from one token onto its neighbour
+    const mv = await Q(page, async () => { const M = await import('/game-110/js/sim/match3.js'); return M.validMoves(__dd.G.yard.m3.board)[0]; });
+    let moves = await Q(page, () => __dd.G.yard.m3.board.movesLeft);
+    await Q(page, () => document.getElementById('m3').getAnimations({ subtree: true }).forEach((a) => a.finish()));
+    const a = await cellCentre(page, mv[0]), b = await cellCentre(page, mv[1]);
+    await page.mouse.move(a.x, a.y); await page.mouse.down();
+    await page.mouse.move((a.x + b.x) / 2, (a.y + b.y) / 2, { steps: 3 }); await page.mouse.move(b.x, b.y, { steps: 3 }); await page.mouse.up();
+    await m3settle(page, moves);
+    check(await Q(page, (m) => __dd.G.yard.m3.board.movesLeft === m - 1, moves), 'dragging a token onto its neighbour swaps them (one move used)');
+    check(await Q(page, () => { const B = __dd.G.yard.m3.board, T = __dd.m3view.toks; return B.cells.every((k, i) => T[i].kind === k && T[i].sp === B.sp[i]); }), 'and the board on screen matches the game once it settles');
+    // and one by keyboard: put the cursor on a token, Space to pick it up, an arrow to swap
+    const kv = await Q(page, async () => { const M = await import('/game-110/js/sim/match3.js'); const [a, b] = M.validMoves(__dd.G.yard.m3.board)[0]; __dd.m3view.cursor = a; return { a, b }; });
+    moves = await Q(page, () => __dd.G.yard.m3.board.movesLeft);
+    await page.keyboard.press('Space');
+    await page.keyboard.press(kv.b === kv.a + 1 ? 'ArrowRight' : 'ArrowDown');
+    await m3settle(page, moves);
+    check(await Q(page, (m) => __dd.G.yard.m3.board.movesLeft === m - 1, moves), 'Space and an arrow key swap too');
+    // play the level out and collect the prize
+    const gold0 = await Q(page, () => __dd.G.gold);
+    await Q(page, async () => {
+        const M = await import('/game-110/js/sim/match3.js');
+        for (let n = 0; n < 80 && !__dd.G.yard.m3.board.over; n++) {
+            const before = __dd.G.yard.m3.board.movesLeft, m = M.botMove(__dd.G.yard.m3.board, 1);
+            __dd.send({ t: 'm3swap', a: m[0], b: m[1] });
+            while (__dd.G.yard.m3.board.movesLeft === before && !__dd.G.yard.m3.board.over) await new Promise((r) => setTimeout(r, 30));
+        }
+    });
+    await until(page, () => !document.getElementById('m3-end').hidden, 'when the level ends, the result shows once the last move has played', 60000);
+    const won = await Q(page, () => __dd.G.yard.m3.board.won);
+    if (won) {
+        check(await Q(page, (g) => /cleared/.test(document.getElementById('m3-end-text').textContent) && __dd.G.gold > g && __dd.G.yard.m3.level === 2, gold0), 'level 1 cleared: stars, charm and gold paid into the castle');
+        await shot(page, 'skullswap-cleared');
+        await mouseAt(page, '#m3-again');
+        await until(page, () => __dd.G.yard.m3.board.level === 2 && !__dd.G.yard.m3.board.over && document.getElementById('m3-end').hidden, 'Next level deals level 2');
+    } else check(true, '(the bot lost level 1 this time; Try again is offered)');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('m3').hidden && __dd.place === 'yard', 'Escape goes back to the graves');
+    // getting there other ways
+    await Q(page, () => __dd.setPlace('castle'));
+    await page.keyboard.press('KeyE');
+    await until(page, () => __dd.place === 'yard', 'E from the last open room goes on to the cemetery');
+    await page.keyboard.press('KeyQ');
+    await until(page, () => __dd.place === 'castle' && __dd.G.room === 'cook', 'Q comes back to the castle');
+    await page.keyboard.press('Tab');
+    await until(page, () => __dd.view.overview, 'the whole castle');
+    await settleCamera(page);
+    pt = await Q(page, () => __dd.view.toScreen(__dd.view.castle.yard.graves[0].group.position.clone().setX(__dd.view.castle.yard.x).setY(0.5)));
+    await page.mouse.click(pt.x, pt.y);
+    await until(page, () => __dd.place === 'yard' && !__dd.view.overview, 'includes the cemetery, and a click on it goes there');
+    const L = await layout(page);
+    check(L.noHScroll && L.canvas, 'no sideways scroll; the canvas fills the window');
+    reportErrors('cemetery');
+}
+
+// ======================================================================
 async function furniture() {
     console.log('\n== furniture (every minion and every piece of décor at once)');
     const page = await open({ width: 1280, height: 760 });
@@ -277,6 +371,8 @@ async function furniture() {
     await Q(page, () => {
         window.__path = [];
         __dd.G.nextVisit = 0;
+        // a long stay, so a slow software renderer can't time the visitor out before they reach their spot
+        setTimeout(() => { for (const v of __dd.G.visitors) v.t = v.life = 120; }, 100);
         const roomX = __dd.view.roomOf('party').x;
         window.__pathT = setInterval(() => { for (const a of __dd.view.visitors.values()) window.__path.push({ dx: a.bb.group.position.x - roomX, z: a.bb.group.position.z, open: __dd.view.roomOf('party').doors.map((d) => d.open), state: a.state, side: a.side }); }, 50);
     });
@@ -364,6 +460,30 @@ async function phone(w, h) {
     await until(page, () => __dd.G.stats.visitors >= 1, 'a tap on the callout greets them');
     await shot(page, `phone-${w}x${h}`);
 
+    // the cemetery: tap the Graves button, the grave, then two neighbouring tokens
+    await Q(page, () => { __dd.give(1e5); __dd.send({ t: 'buy', id: 'imp', n: 30 }); });
+    await until(page, () => __dd.G.yard.open.skull, 'Skull Swap opens');
+    await tapSel('#btn-yard');
+    await until(page, () => __dd.place === 'yard', 'tapping Graves goes to the cemetery');
+    await settleCamera(page);
+    const gp = await Q(page, () => { const p = __dd.view.graveScreen('skull'), t = document.elementFromPoint(p.x, p.y); return { ...p, top: t?.id || t?.className }; });
+    await page.touchscreen.tap(gp.x, gp.y);
+    await until(page, () => !document.getElementById('m3').hidden, `tapping the grave opens Skull Swap (tapped ${Math.round(gp.x)},${Math.round(gp.y)} on ${gp.top})`);
+    await page.waitForTimeout(400);
+    // finish the sheet's pop-in first: SwiftShader may not have drawn a frame of it, and a 92%-scale sheet measures small
+    const fit = await Q(page, () => { document.getElementById('m3').getAnimations({ subtree: true }).forEach((a) => a.finish()); const r = document.getElementById('m3-canvas').getBoundingClientRect(), f = document.getElementById('m3-leave').getBoundingClientRect(); return { ok: r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight && r.width / 7 >= 44 && f.bottom <= innerHeight && f.height >= 44, board: [r.left, r.top, r.width, r.bottom].map(Math.round), back: [f.top, f.bottom].map(Math.round), vh: innerHeight }; });
+    check(fit.ok, `the board (cells at least 44 px) and its Back button fit the screen${fit.ok ? '' : ' ' + JSON.stringify(fit)}`);
+    const tv = await Q(page, async () => { const M = await import('/game-110/js/sim/match3.js'); return M.validMoves(__dd.G.yard.m3.board)[0]; });
+    const before = await Q(page, () => __dd.G.yard.m3.board.movesLeft);
+    await Q(page, () => document.getElementById('m3').getAnimations({ subtree: true }).forEach((a) => a.finish()));
+    for (const c of tv) { const p = await cellCentre(page, c); await page.touchscreen.tap(p.x, p.y); }
+    await m3settle(page, before);
+    check(await Q(page, (m) => __dd.G.yard.m3.board.movesLeft === m - 1, before), 'tapping a token and then its neighbour swaps them');
+    await shot(page, `skullswap-${w}x${h}`);
+    await tapSel('#m3-leave');
+    await until(page, () => document.getElementById('m3').hidden, 'Back to the graves closes it');
+    await Q(page, () => __dd.setPlace('castle'));
+
     await tapSel('#btn-menu');
     await until(page, () => !document.getElementById('pause').hidden, 'tapping ☰ opens the menu');
     await page.waitForTimeout(300);
@@ -386,6 +506,7 @@ async function nostorage() {
 
 try {
     if (want('desktop')) await desktop();
+    if (want('cemetery')) await cemetery();
     if (want('furniture')) await furniture();
     if (want('away')) await away();
     if (want('phones')) { await phone(390, 844); await phone(844, 390); }

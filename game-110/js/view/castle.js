@@ -4,9 +4,11 @@
 // stand. Built once per lair; the view moves things around inside it.
 
 import * as THREE from 'three';
-import { HOBBIES, DECOR } from '../sim/data.js';
+import { HOBBIES, DECOR, GRAVES } from '../sim/data.js';
 import { PALETTES, buildRoomTextures, mkTex } from './tex.js';
-import { drawEmblem } from './art.js';
+import { drawEmblem, drawToken } from './art.js';
+import { Px, mix, hex } from './pixel.js';
+import { hash3 } from '../rng.js';
 import { makeSlots, SLOTS_PER_KIND } from './layout.js';
 
 export { SLOTS_PER_KIND };
@@ -88,7 +90,7 @@ export function buildCastle(lairId) {
     box(GAP * 4 + 5, 2.3, RD + 1, lam({ map: tex(px.stone, [10, 1]) }), roomX(1.5), -1.47, 0, root);   // its top sits under the floors, never level with them
     const towerMat = lam({ map: tex(px.brick, [2, 6]), color: 0xb8b0c8 });
     const roofMat = lam({ color: pal.wall2 });
-    for (const [x, w, h] of [[-9, 4, 15], [roomX(1.5), 5, 19], [roomX(3) + 9, 4, 14], [roomX(0.5), 3, 11], [roomX(2.5), 3, 12]]) {
+    for (const [x, w, h] of [[-9, 4, 15], [roomX(1.5), 5, 19], [roomX(3) + 2, 4, 14], [roomX(0.5), 3, 11], [roomX(2.5), 3, 12]]) {
         box(w, h, w, towerMat, x, h / 2 - 2.6, -RD / 2 - 3.5, root);
         const roof = new THREE.Mesh(new THREE.ConeGeometry(w * 0.82, w * 1.3, 4), roofMat);
         roof.position.set(x, h - 2.6 + w * 0.65, -RD / 2 - 3.5);
@@ -175,7 +177,8 @@ export function buildCastle(lairId) {
         r.obstacles = obstaclesOf(r);
         r.slots = makeSlots(r.index, r.obstacles, { RW, RD, RH, T });
     }
-    return { root, rooms, flames, windowUniforms, decor, pal };
+    const yard = buildCemetery(root, { pal, tex, px, flames, darkWood });
+    return { root, rooms, flames, windowUniforms, decor, pal, yard };
 }
 
 /** Room-local boxes around every mesh that blocks a room (flat rugs and carpets don't). */
@@ -190,6 +193,123 @@ export function obstaclesOf(r) {
         });
     }
     return out;
+}
+
+// ---------------------------------------------------------------------------------------------------- the cemetery
+/** Where the cemetery sits: out past the Ballroom's far door. */
+export const YARD = { x: roomX(3) + 16.5, w: 18, d: 11 };
+
+/** A gravestone's face: weathered stone, an engraved border, an icon and a name. */
+function graveFace(grave, pal) {
+    const P = new Px(40, 48);
+    const stone = grave.soon ? '#6e6a78' : '#9a94a8';
+    P.mrect(0, 10, 40, 38).mell(20, 11, 20, 11).paint(stone, { hi: 0.6, lo: 0.8 });
+    for (let i = 0; i < 70; i++) { const x = (hash3(i, 3, grave.id.length) * 40) | 0, y = 4 + ((hash3(i, 7, 1) * 44) | 0); if (P.get(x, y)) P.mp(x, y); }
+    P.tint((c) => mix(c, '#000000', 0.12));
+    P.mrect(4, 14, 32, 30).msub((q) => q.mrect(5, 15, 30, 28)).tint((c) => mix(c, '#000000', 0.3));
+    if (!grave.soon) {
+        P.blit(drawToken('skull'), 12, 16);
+    } else {
+        // a question mark carved in the stone
+        P.mrect(17, 18, 6, 2).mrect(22, 20, 2, 4).mrect(19, 24, 3, 2).mrect(19, 26, 2, 3).mrect(19, 31, 2, 2).tint((c) => mix(c, '#000000', 0.45));
+    }
+    for (let i = 0; i < 14; i++) { const x = (hash3(i, 9, 2) * 40) | 0, y = 38 + ((hash3(i, 5, 3) * 10) | 0); if (P.get(x, y)) P.mp(x, y); }
+    P.tint((c) => mix(c, '#5a8a4a', 0.7));                // moss at the foot
+    const c = P.toCanvas(), x = c.getContext('2d');
+    x.fillStyle = 'rgba(30,20,40,0.85)';
+    x.font = 'bold 6px monospace';
+    x.textAlign = 'center';
+    x.fillText(grave.soon ? 'NOT YET' : 'SKULL', 20, 40);
+    x.fillText(grave.soon ? 'DUG' : 'SWAP', 20, 46);
+    void pal;
+    return c;
+}
+
+function buildCemetery(root, { pal, tex, px, flames, darkWood }) {
+    const g = new THREE.Group();
+    g.position.x = YARD.x;
+    root.add(g);
+    const { w, d } = YARD;
+    // a raised plateau of grass and earth, level with the castle floors
+    const grassC = mix(pal.ground, '#3a5a34', 0.6);
+    const G2 = new Px(32, 32);
+    for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) { const n = hash3(x, y, 77); G2.set(x, y, mix(grassC, n > 0.85 ? '#6a8a4a' : n < 0.12 ? '#2a3a24' : grassC, 0.6)); }
+    box(w, 2.6, d, lam({ map: mkTex(G2.toCanvas(), [w / 3, d / 3]) }), 0, -1.3, 0, g);
+    // a flagstone path from the gate to the open grave
+    const path = plane(w / 2 - 0.4, 1.4, lam({ map: tex(px.flag, [w / 4, 0.7]) }), -w / 4 + 0.2, 0.02, 1.4, g); path.rotation.x = -Math.PI / 2;
+    // an iron fence along the back and the far side, with a gate by the castle
+    const iron = lam({ color: 0x2a2632 });
+    // the bars and their spikes are two instanced meshes, not a hundred separate ones
+    const bars = [];
+    const rail = (x0, z0, x1, z1) => {
+        const len = Math.hypot(x1 - x0, z1 - z0), n = Math.round(len / 0.45);
+        for (let i = 0; i <= n; i++) { const t = i / n; bars.push([x0 + (x1 - x0) * t, z0 + (z1 - z0) * t]); }
+        for (const y of [0.4, 1.25]) { const b = box(len, 0.06, 0.06, iron, (x0 + x1) / 2, y, (z0 + z1) / 2, g); b.rotation.y = -Math.atan2(z1 - z0, x1 - x0); }
+    };
+    rail(-w / 2 + 0.6, -d / 2 + 0.6, w / 2 - 0.6, -d / 2 + 0.6);
+    rail(w / 2 - 0.6, -d / 2 + 0.6, w / 2 - 0.6, d / 2 - 0.6);
+    const posts = new THREE.InstancedMesh(new THREE.BoxGeometry(0.07, 1.5, 0.07), iron, bars.length);
+    const tips = new THREE.InstancedMesh(new THREE.ConeGeometry(0.08, 0.22, 4), iron, bars.length);
+    const m4 = new THREE.Matrix4();
+    bars.forEach(([x, z], i) => { posts.setMatrixAt(i, m4.makeTranslation(x, 0.75, z)); tips.setMatrixAt(i, m4.makeTranslation(x, 1.6, z)); });
+    g.add(posts, tips);
+    const stone = lam({ color: 0x8a8498 });
+    for (const z of [-d / 2 + 0.6, d / 2 - 0.6]) { box(0.6, 2.4, 0.6, stone, -w / 2 + 0.7, 1.2, z, g); sphere(0.36, stone, -w / 2 + 0.7, 2.6, z, g, 8); }
+    // a dead tree
+    const bark = lam({ color: 0x3a2a30 });
+    const trunk = cyl(0.22, 0.42, 4.6, bark, w / 2 - 3.2, 2.3, -3.2, g, 7);
+    for (const [len, ry, rz, y] of [[2.4, 0.3, 0.9, 3.6], [2, 2.6, 0.8, 4.2], [1.6, 4.4, 1.0, 3.0], [1.4, 1.4, 0.5, 4.5]]) {
+        const br = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.14, len, 5), bark);
+        br.geometry.translate(0, len / 2, 0);
+        br.position.set(w / 2 - 3.2, y, -3.2); br.rotation.set(0, ry, rz); g.add(br);
+    }
+    void trunk;
+    // lanterns
+    for (const [x, z] of [[-w / 2 + 2, d / 2 - 1.4], [w / 2 - 1.6, 1.6]]) {
+        cyl(0.06, 0.08, 2.4, iron, x, 1.2, z, g, 6);
+        box(0.36, 0.44, 0.36, iron, x, 2.5, z, g);
+        flames.push(sphere(0.14, glow(0x9aff7a, 3), x, 2.5, z, g, 6));
+    }
+    // pumpkins and a few bones
+    for (const [x, z, s] of [[-2.6, 3.1, 0.42], [-1.9, 3.4, 0.3], [5.4, 2.8, 0.5], [6.2, 3.3, 0.32]]) {
+        const p = sphere(s, lam({ color: 0xff8a1a }), x, s * 0.8, z, g, 10); p.scale.y = 0.8;
+        cyl(0.05, 0.05, 0.16, lam({ color: 0x3a7a3a }), x, s * 1.5, z, g, 5);
+        flames.push(sphere(s * 0.35, glow(0xffb84a, 1.4), x, s * 0.85, z + s * 0.8, g, 6));
+    }
+    // the graves, the playable one in the middle
+    const spots = [[0, -0.6], [-3.6, -1.1], [3.6, -1.1], [-6.8, -1.9], [6.6, -1.7]];
+    const graves = GRAVES.map((gr, i) => {
+        const [x, z] = spots[i];
+        const grp = new THREE.Group();
+        grp.position.set(x, 0, z);
+        grp.rotation.y = -x * 0.03;
+        g.add(grp);
+        const faceTex = mkTex(graveFace(gr, pal));
+        const tall = gr.soon ? 1.3 : 1.6;
+        const stoneMat = lam({ color: gr.soon ? 0x6e6a78 : 0x9a94a8 });
+        const body = box(1.5 * tall, 1.5 * tall, 0.34, stoneMat, 0, 0.75 * tall, 0, grp);
+        const top = new THREE.Mesh(new THREE.CylinderGeometry(0.75 * tall, 0.75 * tall, 0.34, 16, 1, false, 0, Math.PI), stoneMat);
+        top.rotation.set(Math.PI / 2, Math.PI / 2, 0); top.position.set(0, 1.5 * tall, 0); grp.add(top);
+        const face = plane(1.5 * tall, 1.8 * tall, new THREE.MeshLambertMaterial({ map: faceTex, transparent: true, alphaTest: 0.5 }), 0, 1.5 * tall * 0.6 + 0.02, 0.18, grp);
+        box(1.9 * tall, 0.18, 0.7, stone, 0, 0.09, 0.15, grp);
+        // the open grave glows; the waiting ones don't
+        const halo = sphere(0.9, new THREE.MeshBasicMaterial({ color: 0x9a7aff, transparent: true, opacity: 0, depthWrite: false, toneMapped: false, blending: THREE.AdditiveBlending }), 0, 1.1 * tall, -0.35, grp, 12);
+        halo.scale.set(1.5 * tall, 1.5 * tall, 0.2);
+        const candles = new THREE.Group();
+        for (const cx of [-0.7, 0.7]) { cyl(0.06, 0.07, 0.3, lam({ color: 0xfff1d8 }), cx * tall, 0.33, 0.45, candles, 6); flames.push(sphere(0.06, glow(0xffb84a, 3.2), cx * tall, 0.55, 0.45, candles, 6)); }
+        grp.add(candles);
+        return { id: gr.id, grave: gr, group: grp, x, z, face, body, halo, candles, h: 1.5 * tall + 0.75 * tall };
+    });
+    // mist drifting over the grass
+    const mistTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), r = x.createRadialGradient(32, 32, 2, 32, 32, 31); r.addColorStop(0, 'rgba(220,210,255,0.35)'); r.addColorStop(1, 'rgba(220,210,255,0)'); x.fillStyle = r; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+    const mist = [];
+    for (let i = 0; i < 7; i++) {
+        const m = plane(5, 2.2, new THREE.MeshBasicMaterial({ map: mistTex, transparent: true, depthWrite: false }), -w / 2 + 2 + i * 2.4, 0.4 + (i % 3) * 0.15, -1 + (i % 2) * 2.5, g);
+        m.userData.ph = i * 1.7; mist.push(m);
+    }
+    // no light of its own: it's outdoors under the moon, and every extra light costs every lit surface in the scene
+    void darkWood;
+    return { group: g, x: YARD.x, graves, mist, spot: new THREE.Vector3(YARD.x - YARD.w / 2 + 3.2, 0, 2.2) };
 }
 
 let webTex = null;

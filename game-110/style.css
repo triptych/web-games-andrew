@@ -317,3 +317,34 @@ body.short .item .pic { width: 44px; height: 44px; }
 
 /* calm mode */
 body.calm .ab.ready, body.calm .visitor-call, body.calm #dread.low .dread-bar { animation: none; }
+
+/* ---------------------------------------------------------------- Skull Swap */
+#btn-yard { border-color: rgba(154, 255, 122, 0.35); }
+#btn-yard.on { border-color: #9aff7a; background: rgba(40, 70, 40, 0.92); box-shadow: 0 0 12px rgba(154, 255, 122, 0.45); }
+.m3-sheet { width: min(470px, 100%); padding: 14px; }
+.m3-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.m3-head h2 { margin: 0 0 4px; }
+.m3-level { font-weight: 900; color: var(--gold); }
+.m3-goal { font-size: 14px; font-weight: 800; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; min-height: 28px; }
+.m3-goal img { width: 24px; height: 24px; image-rendering: pixelated; vertical-align: middle; }
+.m3-goal .done { color: var(--good); }
+.m3-stats { display: flex; justify-content: space-between; font-size: 14px; color: var(--dim); margin: 4px 0 8px; }
+.m3-stats b { color: #fff; font-size: 18px; }
+.m3-board { position: relative; width: min(100%, calc(var(--vvh) - 300px)); min-width: 240px; margin: 0 auto; aspect-ratio: 1; border-radius: 12px; overflow: hidden; border: 3px solid #2a1238; box-shadow: 0 0 0 2px rgba(180, 140, 255, 0.35) inset; background: #241836; }
+#m3-canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: pointer; }
+#m3-canvas:focus-visible { outline: none; }
+.m3-end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 16px; text-align: center; background: rgba(20, 10, 34, 0.93); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: pop 0.25s ease-out; }
+.m3-end h3 { font-family: var(--head); font-weight: 400; font-size: 34px; margin: 0; color: var(--pink); }
+.m3-end .stars { font-size: 34px; letter-spacing: 6px; }
+.m3-end .stars .off { filter: grayscale(1) brightness(0.5); }
+.m3-end p { margin: 0; font-weight: 800; }
+.m3-end-btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.m3-help { font-size: 12px; color: var(--dim); margin: 8px 2px 0; }
+body.portrait .m3-sheet .sheet-foot { margin-top: 8px; }
+/* short landscape phones: the board on the right at nearly full height, everything else beside it, clear of ← Games */
+body.short #m3 { padding-top: calc(6px + var(--safe-t)); padding-bottom: calc(6px + var(--safe-b)); }
+body.short .m3-sheet { width: min(860px, 100%); max-height: 100%; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto auto 1fr auto; column-gap: 14px; align-items: start; padding: 10px; }
+body.short .m3-board { grid-column: 2; grid-row: 1 / 6; width: calc(var(--vvh) - 48px - var(--safe-t) - var(--safe-b)); min-width: 200px; }
+body.short .m3-head, body.short .m3-goal, body.short .m3-stats, body.short .m3-help, body.short .m3-sheet .sheet-foot { grid-column: 1; }
+body.short .m3-head { padding-top: 34px; }
+body.short .m3-sheet .sheet-foot { justify-content: flex-start; align-self: end; }

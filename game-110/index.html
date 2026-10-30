@@ -73,6 +73,7 @@
             <button class="room" data-room="sew"><span>🧵</span><b>Sewing</b></button>
             <button class="room" data-room="deco"><span>🕯️</span><b>Hall</b></button>
             <button class="room" data-room="party"><span>🎻</span><b>Ballroom</b></button>
+            <button class="room" id="btn-yard" aria-label="The cemetery"><span>🪦</span><b>Graves</b></button>
             <button class="room" id="btn-overview" aria-label="Whole castle"><span>🏰</span><b>All</b></button>
         </nav>
         <div id="abilities" aria-label="Abilities"></div>
@@ -122,6 +123,7 @@
                 <li><b>Gold</b> buys <b>décor</b> (it appears in the castle) and <b>henchmen</b>, who run <b>schemes</b>: evil ones for dread and gold, secret commissions for charm and family <b>heirlooms</b>.</li>
                 <li><b>Relocate</b> when the heroes get too close: start again in a new lair with <b>★ legend</b> (+2% charm each) to spend in the Grimoire.</li>
                 <li>Your minions keep working while you're away, at half speed (upgrades help).</li>
+                <li><b>The cemetery</b> 🪦 lies past the Ballroom. Its gravestones are mini-games: <b>Skull Swap</b>, a match-three, opens when you employ 25 minions, and every level you clear pays charm and gold. More graves are still being dug.</li>
             </ul>
             <table>
                 <tr><td>Space / click</td><td>Craft</td></tr>
@@ -130,6 +132,7 @@
                 <tr><td>Q / E</td><td>Previous / next room</td></tr>
                 <tr><td>V</td><td>Greet a visitor</td></tr>
                 <tr><td>Tab</td><td>The whole castle</td></tr>
+                <tr><td>G</td><td>The cemetery</td></tr>
                 <tr><td>Esc</td><td>Menu</td></tr>
             </table>
             <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
@@ -173,6 +176,23 @@
             <h2>Welcome back, my Lady</h2>
             <div id="away-text"></div>
             <div class="sheet-foot"><button class="btn primary" data-close>Lovely</button></div>
+        </div>
+    </div>
+
+    <div id="m3" class="screen" hidden>
+        <div class="sheet m3-sheet">
+            <div class="m3-head"><h2>Skull Swap</h2><span id="m3-level" class="m3-level"></span></div>
+            <div id="m3-goal" class="m3-goal"></div>
+            <div class="m3-stats"><span>Moves <b id="m3-moves">0</b></span><span>Score <b id="m3-score">0</b></span></div>
+            <div class="m3-board">
+                <canvas id="m3-canvas" tabindex="0" aria-label="The Skull Swap board. Drag a token onto a neighbour to swap them, or use the arrow keys and Space."></canvas>
+                <div id="m3-end" class="m3-end" hidden>
+                    <div id="m3-end-text"></div>
+                    <div class="m3-end-btns"><button class="btn primary" id="m3-again">Next level</button><button class="btn" id="m3-back">Back to the graves</button></div>
+                </div>
+            </div>
+            <p class="m3-help">Swap neighbours to line up three or more. Four make a line-clearer, five or an L make a jack-o'-lantern.</p>
+            <div class="sheet-foot"><button class="btn" data-close id="m3-leave">Back to the graves</button></div>
         </div>
     </div>
 
