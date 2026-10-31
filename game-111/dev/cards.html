@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON ARCANA — the cards</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&display=swap">
+    <style>
+        body { margin: 0; padding: 16px; background: #222; color: #ddd; font: 14px system-ui, sans-serif; }
+        h1 { font-size: 18px; margin: 0 0 12px; }
+        .row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+        figure { margin: 0; text-align: center; }
+        canvas { width: 150px; height: 250px; display: block; }
+        figcaption { font-size: 11px; color: #aaa; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <h1>The 22 Major Arcana, lit and dormant, and the card back (neutral background, no bloom)</h1>
+    <div class="row" id="lit"></div>
+    <div class="row" id="dark"></div>
+    <script type="module">
+        import { paintCard, paintBack, CARD_W, CARD_H } from '../js/view/cardart.js';
+        import { ARCANA } from '../js/sim/arcana.js';
+        const add = (row, label, paint) => {
+            const f = document.createElement('figure');
+            const cv = document.createElement('canvas');
+            cv.width = CARD_W; cv.height = CARD_H;
+            paint(cv.getContext('2d'));
+            const c = document.createElement('figcaption');
+            c.textContent = label;
+            f.append(cv, c);
+            document.getElementById(row).appendChild(f);
+        };
+        const draw = () => {
+            for (const id of ['lit', 'dark']) document.getElementById(id).innerHTML = '';
+            ARCANA.forEach((a, i) => add('lit', `${a.numeral} ${a.name}`, (g) => paintCard(g, i, CARD_W, CARD_H, { lit: true })));
+            add('lit', 'back', (g) => paintBack(g, CARD_W, CARD_H));
+            ARCANA.forEach((a, i) => add('dark', `${a.numeral} dormant`, (g) => paintCard(g, i, CARD_W, CARD_H, { lit: false })));
+            document.body.dataset.ready = '1';
+        };
+        draw();
+        document.fonts?.ready?.then(draw);
+    </script>
+</body>
+</html>
