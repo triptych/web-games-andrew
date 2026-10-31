@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quill &amp; Legion — model gallery</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #f0e4c4; overflow: hidden; font-family: Georgia, serif; }
+  #labels { position: fixed; inset: 0; pointer-events: none; }
+  #labels div { position: absolute; transform: translate(-50%, 0); font-size: 12px; color: #231b14; background: rgba(240,228,196,.85); padding: 1px 4px; white-space: nowrap; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="labels"></div>
+<script type="module">
+import * as THREE from 'three';
+import { Stage } from '../js/view/stage.js';
+import { figure, FIGURE } from '../js/view/models.js';
+const q = new URLSearchParams(location.search);
+const team = q.get('team') || 'p';
+const only = q.get('only') ? q.get('only').split(',') : null;
+const P = ['pikemen','bowmen','wolves','dwarves','mages','griffins','knights','ogres','oaks','moonhorns','drakes','wyrm'];
+const E = ['goblins','slingers','skeletons','worgs','bandits','orcs','shamans','brutes','grubnak','zombies','ghouls','cultists','lizards','spiders','wraiths','trolls','basilisks','murkwater','hellhounds','gargoyles','minotaurs','salamanders','giants','gloomeye','ashmaw'];
+const keys = only || (team === 'p' ? P : E);
+const stage = new Stage(document.getElementById('c'));
+stage.ground.visible = q.get('ground') === '1';
+const cols = Math.ceil(Math.sqrt(keys.length * 1.6));
+const grp = new THREE.Group();
+keys.forEach((k, i) => {
+  const f = figure(k, team);
+  const s = (FIGURE[k]?.[0] || 0.45) * 2.2;
+  f.scale.setScalar(s);
+  f.position.set((i % cols) * 2.6, 0, Math.floor(i / cols) * 2.8);
+  f.rotation.y = 0.6;
+  f.userData.key = k;
+  grp.add(f);
+});
+stage.scene.add(grp);
+const box = new THREE.Box3().setFromObject(grp);
+const ctr = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3());
+const cam = stage.camera;
+stage.fit = () => {};
+function place() {
+  const d = Math.max(size.x / cam.aspect, size.z) * 1.25 + 4;
+  cam.position.set(ctr.x, ctr.y + d * 0.75, ctr.z + d * 0.75);
+  cam.lookAt(ctr); cam.near = 0.5; cam.far = d * 4; cam.updateProjectionMatrix();
+  stage.post.uniforms.uNear.value = cam.near; stage.post.uniforms.uFar.value = cam.far;
+  stage.baseCam = null;
+}
+stage.resize(); place();
+const L = document.getElementById('labels');
+for (const f of grp.children) { const d = document.createElement('div'); d.textContent = f.userData.key; L.appendChild(d); f.userData.el = d; }
+function frame(t) {
+  requestAnimationFrame(frame);
+  if (stage.resize()) place();
+  stage.render(t / 1000, 0.016);
+  cam.position.set(cam.position.x, cam.position.y, cam.position.z);
+  for (const f of grp.children) { const p = stage.toScreen(f.position.clone().add(new THREE.Vector3(0, -0.2, 0.9))); f.userData.el.style.left = p.x + 'px'; f.userData.el.style.top = p.y + 'px'; }
+  window.__ready = true;
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

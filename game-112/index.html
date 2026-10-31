@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#f0e4c4">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Quill &amp; Legion — recruit creature stacks, deploy them on a hex field, and fight with a deck of orders. A hand-inked fantasy tactics roguelike in three.js.">
+    <title>Quill &amp; Legion</title>
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400..800,100,1;1,9..144,400..700,100,1&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="Quill &amp; Legion battlefield"></canvas>
+    <div id="labels" aria-hidden="true"></div>
+    <div id="floats" aria-hidden="true"></div>
+    <div id="banner" aria-live="polite"></div>
+
+    <!-- SVG filters: the hand-drawn wobble on every inked UI line -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <filter id="wobble"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"/></filter>
+        <filter id="wobble2"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="8" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="4"/></filter>
+    </svg>
+
+    <!-- Battle HUD -->
+    <div id="bhud" hidden>
+        <div id="bh-left">
+            <div id="bh-book"></div>
+            <div id="bh-turn"></div>
+        </div>
+        <div id="bh-ink" title="Ink: what your orders cost this turn"><span id="ink-n">3</span><small>ink</small></div>
+        <div id="bh-right">
+            <button id="btn-draw" class="pile" aria-label="Draw pile">Draw <b id="n-draw">0</b></button>
+            <button id="btn-disc" class="pile" aria-label="Discard pile">Discard <b id="n-disc">0</b></button>
+            <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
+        </div>
+    </div>
+    <div id="info" hidden></div>
+    <div id="forecast" hidden></div>
+    <div id="deploybar" hidden>
+        <p><b>Deploy your legion.</b> <span id="deploy-hint">Tap one of your stacks, then a hex in your two columns.</span></p>
+        <button id="btn-begin" class="btn primary">Begin the Battle</button>
+    </div>
+    <div id="handwrap" hidden>
+        <div id="hint"></div>
+        <div id="hand" role="list" aria-label="Your hand"></div>
+        <button id="btn-end" class="btn end">End Turn</button>
+    </div>
+
+    <!-- The map -->
+    <div id="map" class="screen full" hidden>
+        <div class="mapsheet">
+            <header id="map-head">
+                <div class="mh-title"><span id="map-book"></span><b id="map-name"></b></div>
+                <div class="mh-stats">
+                    <span class="gold" title="Gold"><i class="gl g-coin"></i><b id="map-gold">0</b></span>
+                    <span title="General's level"><i class="gl g-crown"></i>Lv <b id="map-lvl">1</b></span>
+                    <button id="btn-army" class="btn small">Legion</button>
+                    <button id="btn-deck" class="btn small">Deck <b id="map-deckn"></b></button>
+                    <button id="btn-mappause" class="ibtn" aria-label="Menu">☰</button>
+                </div>
+                <div id="map-relics" class="relics"></div>
+            </header>
+            <div id="map-scroll"><svg id="map-svg" role="group" aria-label="The road"></svg></div>
+            <div id="map-hint">Choose where the legion marches next.</div>
+        </div>
+    </div>
+
+    <!-- Screens -->
+    <div id="title" class="screen">
+        <div class="sheet titlesheet">
+            <div class="module">Adventure Module Q1 · for the General of one Legion</div>
+            <h1 class="logo">Quill <span>&amp;</span> Legion</h1>
+            <p class="tagline">Recruit the host. Draw the order. Ink the battle.</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue the Campaign</button>
+                <button data-act="new" class="btn primary">New Campaign</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet tall">
+            <h2>How to Play</h2>
+            <div class="rules">
+                <p class="drop">You are a General with a legion of creature <b>stacks</b>: twenty-two pikemen are one stack, five dire wolves another. A stack's number is its strength: it hits harder the more of them there are, and loses them as it is hurt. Losses stay lost between battles. Win gold and recruit more at <b>dwellings</b>.</p>
+                <h3>The march</h3>
+                <p>Three books, each a map of roads ending in a boss. Choose your path: <b>skirmishes</b> and <b>lairs</b> (harder, with a relic), <b>dwellings</b> to recruit, the <b>scriptorium</b> to buy and erase orders, <b>campfires</b> to rest or inscribe a card, <b>hoards</b> and strange <b>encounters</b>.</p>
+                <h3>The battle</h3>
+                <p><b>Deploy</b> your stacks in your two columns, then fight in turns. Each turn you draw 5 orders and have 3 <b>ink</b>. Every stack may <b>move once for free</b> (tap it, then a gold hex) and <b>attack once</b>, but attacks, spells and tactics are cards: pick a card, then who carries it out, then the target.</p>
+                <p>Foes show their <b>intent</b> above them: what they will do and for how much. Walkers march up to strike; archers shoot from anywhere (at half with a foe beside them). A stack struck in melee <b>strikes back</b> once a round. Every other stack of yours touching a foe adds 20% to blows against it. <b>Ward</b> soaks damage until your next turn.</p>
+                <p>Each creature brings its own <b>signature card</b> to your deck. If the stack is wiped out, the card goes with it.</p>
+                <h3>Controls</h3>
+                <table>
+                    <tr><td>Mouse / touch</td><td>Tap a card, then the board. Tap a stack to move or inspect it.</td></tr>
+                    <tr><td>1 – 9</td><td>Pick a card</td></tr>
+                    <tr><td>Arrows + Enter</td><td>Move the cursor on the field and choose</td></tr>
+                    <tr><td>Tab</td><td>Next stack</td></tr>
+                    <tr><td>E</td><td>End turn</td></tr>
+                    <tr><td>Esc / right-click</td><td>Cancel; pause</td></tr>
+                    <tr><td>Gamepad</td><td>D-pad cursor, A choose, B cancel, LB/RB cards, Y end turn, Start pause</td></tr>
+                </table>
+            </div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Animation speed
+                <select id="set-speed"><option value="1">Normal</option><option value="1.6">Quick</option><option value="2.6">Hasty</option></select>
+            </label>
+            <label class="row">Calm mode (no line boil, no shake)<input type="checkbox" id="set-calm"></label>
+            <button id="set-delete" class="btn danger">Delete saved campaign</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+                <button data-act="abandon" class="btn danger">Abandon the Campaign</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="reward" class="screen" hidden><div class="sheet tall"><h2>Spoils</h2><div id="reward-body"></div><div class="sheet-foot"><button id="btn-reward-go" class="btn primary">Onward</button></div></div></div>
+    <div id="boon" class="screen" hidden><div class="sheet"><h2>The General Grows</h2><p id="boon-lvl" class="dim"></p><div id="boon-list" class="choices"></div></div></div>
+    <div id="bossrelic" class="screen" hidden><div class="sheet"><h2>The Boss's Hoard</h2><p class="dim">Take one prize into the next book. Each has a price.</p><div id="bossrelic-list" class="choices"></div><div class="sheet-foot"><button id="btn-bossrelic-skip" class="btn">Take nothing</button></div></div></div>
+    <div id="dwelling" class="screen" hidden><div class="sheet tall"><h2 id="dw-title">Dwelling</h2><p class="dim" id="dw-sub"></p><div id="dw-list"></div><div class="sheet-foot"><span class="gold"><i class="gl g-coin"></i><b id="dw-gold"></b></span><button id="btn-dw-army" class="btn">Legion</button><button id="btn-dw-leave" class="btn primary">Leave</button></div></div></div>
+    <div id="shop" class="screen" hidden><div class="sheet tall"><h2>The Scriptorium</h2><p class="dim">Monks sell orders and oddments. For a fee they will scrape a card clean out of your deck.</p><div id="shop-body"></div><div class="sheet-foot"><span class="gold"><i class="gl g-coin"></i><b id="shop-gold"></b></span><button id="btn-shop-leave" class="btn primary">Leave</button></div></div></div>
+    <div id="camp" class="screen" hidden><div class="sheet"><h2>Campfire</h2><p class="dim">The legion makes camp. There is time for one thing before dawn.</p><div id="camp-body" class="choices"></div><div class="sheet-foot"><button id="btn-camp-leave" class="btn primary" hidden>Break Camp</button></div></div></div>
+    <div id="event" class="screen" hidden><div class="sheet tall page"><h2 id="ev-title"></h2><p id="ev-text" class="drop"></p><div id="ev-opts" class="opts"></div><p id="ev-result" class="result" hidden></p><div class="sheet-foot"><button id="btn-ev-go" class="btn primary" hidden>Continue</button></div></div></div>
+    <div id="treasure" class="screen" hidden><div class="sheet"><h2>A Hoard</h2><div id="treasure-body"></div><div class="sheet-foot"><button id="btn-treasure-go" class="btn primary">Take It</button></div></div></div>
+    <div id="victory" class="screen" hidden><div class="sheet tall"><h2 class="big">The Cinder Throne Falls</h2><div id="victory-body"></div><div class="sheet-foot"><button id="btn-victory-go" class="btn primary">A New Campaign</button></div></div></div>
+    <div id="defeat" class="screen" hidden><div class="sheet"><h2 class="big">The Legion Is Lost</h2><div id="defeat-body"></div><div class="sheet-foot"><button id="btn-defeat-go" class="btn primary">Try Again</button></div></div></div>
+    <div id="army" class="screen" hidden><div class="sheet tall"><h2>The Legion</h2><div id="army-hero"></div><div id="army-list"></div><div class="sheet-foot"><button class="btn primary" data-close>Close</button></div></div></div>
+    <div id="deck" class="screen" hidden><div class="sheet wide tall"><h2 id="dk-title">Your Deck</h2><p id="deck-sub" class="dim"></p><div id="deck-grid" class="cardgrid"></div><div class="sheet-foot"><button id="btn-deck-close" class="btn primary">Close</button></div></div></div>
+    <div id="relicinfo" class="screen" hidden><div class="sheet"><h2 id="ri-name"></h2><div id="ri-glyph"></div><p id="ri-text"></p><div class="sheet-foot"><button class="btn primary" data-close>Close</button></div></div></div>
+
+    <div id="toasts" aria-live="polite"></div>
+    <noscript><p class="noscript">Quill &amp; Legion needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
