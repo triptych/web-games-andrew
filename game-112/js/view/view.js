@@ -607,10 +607,10 @@ export class View {
             f.tag.style.transform = `translate(${p.x | 0}px, ${p.y | 0}px)`;
             f.tag.style.setProperty('--up', `${Math.min(140, Math.max(40, p.y - top.y)) | 0}px`);
             const s = B ? stackById(B, id) : null;
-            const sig = s ? `${f.disp.count}|${f.disp.ward}|${JSON.stringify(s.st)}|${s.intent ? s.intent.k + s.intent.est + (s.intent.reach ? 1 : 0) : ''}|${this.selected === id}|${s.moved}${s.attacked}` : 'x';
+            const sig = s ? `${f.disp.count}|${unitDef(s).boss ? totalHp(s) : ''}|${f.disp.ward}|${JSON.stringify(s.st)}|${s.intent ? s.intent.k + s.intent.est + (s.intent.reach ? 1 : 0) : ''}|${this.selected === id}|${s.moved}${s.attacked}` : 'x';
             if (sig === f.sig) continue;
             f.sig = sig;
-            f.tag.querySelector('.n').textContent = f.disp.count;
+            f.tag.querySelector('.n').textContent = s && unitDef(s).boss && s.count === 1 ? `♥ ${totalHp(s)}` : f.disp.count;
             const w = f.tag.querySelector('.w');
             w.textContent = f.disp.ward > 0 ? `◈${f.disp.ward}` : '';
             w.hidden = !(f.disp.ward > 0);

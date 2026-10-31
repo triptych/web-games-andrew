@@ -1402,6 +1402,17 @@ h1 {
     box-shadow: 0 0 14px rgba(56, 232, 255, 0.65);
 }
 
+.game-preview.quill-legion,
+.carousel-slide-bg.quill-legion {
+    background: repeating-linear-gradient(-35deg, rgba(35, 27, 20, 0.07) 0 2px, transparent 2px 7px), radial-gradient(ellipse at 30% 60%, rgba(63, 127, 150, 0.35), transparent 45%), radial-gradient(ellipse at 72% 40%, rgba(181, 83, 45, 0.35), transparent 45%), radial-gradient(ellipse at 50% 50%, #f0e4c4 30%, #d9c596 100%);
+}
+
+.game-card.quill-legion .play-button {
+    background: linear-gradient(135deg, #b5532d, #c8901e 60%, #f0e4c4);
+    color: #231b14;
+    box-shadow: 0 0 14px rgba(200, 144, 30, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

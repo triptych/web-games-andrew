@@ -276,7 +276,8 @@ export class UI {
         const svg = $('map-svg');
         svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
         svg.innerHTML = deco + edges + nodes + flag;
-        $('map-hint').textContent = G.map.cur ? 'Choose where the legion marches next.' : 'The road begins. Choose your first step.';
+        const legend = ['battle', 'elite', 'dwelling', 'shop', 'camp', 'event', 'treasure'].map((k) => `<span class="lg"><i class="gl">${glyph(NODE_GLYPH[k])}</i>${NODES[k].name}</span>`).join('');
+        $('map-hint').innerHTML = `<div>${G.map.cur ? 'Choose where the legion marches next.' : 'The road begins. Choose your first step.'}</div><div class="legend">${legend}</div>`;
         // keep the current floor in view
         requestAnimationFrame(() => {
             const sc = $('map-scroll');

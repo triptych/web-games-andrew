@@ -385,6 +385,8 @@ td:first-child { font-weight: 700; white-space: nowrap; }
 #map-svg .flag { pointer-events: none; }
 #map-hint { text-align: center; font-style: italic; padding: 6px 10px calc(8px + var(--safe-b)); border-top: 1px solid var(--ink2); background: var(--paper2); font-size: 14px; }
 
+#map-hint .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 12px; font-style: normal; font-size: 12.5px; color: var(--ink2); margin-top: 2px; }
+#map-hint .lg { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
 #toasts { position: fixed; left: 50%; top: calc(70px + var(--safe-t)); transform: translateX(-50%); z-index: 80; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: center; }
 .toast { background: var(--paper); border: 2px solid var(--ink); padding: 6px 14px; animation: toast 2.6s forwards; box-shadow: 2px 3px 0 rgba(35,27,20,.6); font-size: 15px; max-width: 90vw; text-align: center; }
 @keyframes toast { 0% { opacity: 0; transform: translateY(-6px); } 8%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }

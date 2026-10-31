@@ -1694,6 +1694,21 @@ const games = [
             { emoji: '\uD83C\uDCCF', label: 'Tarot' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-112',
+        title: 'Quill & Legion',
+        description: "A hand-inked fantasy tactics roguelike in three.js, drawn like a 1970s adventure module: pen hatching, a boiling ink outline and thin watercolour washes on cream paper. You are the General of one legion of creature stacks, Heroes-style: twenty-two pikemen are one stack and five dire wolves another, a stack hits harder the more of them there are, and the dead stay dead. Deploy them on a hex field, and then every order is a card, Spire-style: draw five, spend three ink. Every stack moves once a turn for free, but attacks, spells, wards and tactics come from your deck, and the foe shows its intent above each of its stacks before you commit. Walkers march up to strike, archers shoot from anywhere (at half with a foe beside them), a stack struck in melee strikes back once a round, every other stack touching a foe adds 20% to the blows, and Ward soaks damage until your next turn. Twelve creatures to recruit at dwellings (pikemen, longbowmen, dire wolves, dwarves, hedge mages, griffins that answer every blow, knights whose lance grows with the gallop, ogres, elder oaks, moonhorns, copper drakes and a golden wyrm), each bringing its own signature card; 52 cards in all, 21 relics, General levels with boons, and three books of branching roads through skirmishes, lairs, dwellings, a scriptorium that sells and erases orders, campfires to rest or inscribe, hoards and twelve strange encounters, against 25 foes and three bosses: Grubnak the Goblin King, Mother Murkwater the Fen Hag and Ashmaw the Red. Thirty-seven miniatures built in code on painted pewter bases, with portraits drawn by the same ink pipeline; a lute-and-drone score in a different mode for map, battle and boss. Mouse, touch, keyboard or gamepad.",
+        icon: '\uD83D\uDCDC',
+        folder: 'game-112',
+        version: '1.0.0',
+        cssClass: 'quill-legion',
+        genre: 'strategy',
+        tags: [
+            { emoji: '\uD83C\uDCCF', label: 'Deckbuilding tactics' },
+            { emoji: '\u2712\uFE0F', label: 'Ink & paper' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
