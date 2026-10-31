@@ -1,6 +1,6 @@
 # Keepfire — game plan
 
-**Genre:** lane defense (Plants vs. Zombies) × castle defense × incremental
+**Genre:** lane defense (lane-based tower defence) × castle defense × incremental
 **Engine:** three.js r165 (importmap from unpkg), vanilla JS modules, DOM UI, Web Audio. No asset files: every model, texture, icon, sound and song is generated in code.
 **Targets:** desktop (mouse/keyboard) and phones (touch only, portrait and landscape).
 

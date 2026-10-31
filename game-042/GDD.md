@@ -1,6 +1,6 @@
 # POPGUN PIP — Game Design Document
 
-**Genre:** 8-bit side-scrolling platformer (Mario-shaped worlds) with Metroid-style unlocks and shooting
+**Genre:** 8-bit side-scrolling platformer (side-scrolling platforming worlds) with ability-gated exploration and shooting
 **Tech:** vanilla HTML / CSS / ES modules, Canvas 2D, Web Audio. No libraries, no build step, **no asset files**
 **Status:** implemented (v1, 2026-09-24). Verification: see [dev/README.md](dev/README.md).
 **Target:** phones first (portrait and landscape), desktop keyboard and gamepad equally supported
@@ -24,7 +24,7 @@ The hook is the fusion:
 | Borrowed from | What it gives POPGUN PIP |
 |---|---|
 | **Mario** | worlds of short, readable left-to-right levels on an overworld map; stomping; `?` blocks, bricks, coins, pipes, flagpoles, checkpoints; temporary power-ups; lives and 1-ups |
-| **Metroid** | a gun and a growing arsenal; **permanent abilities that open paths you've already seen**; sealed vaults with heart containers and weapons; a reason to go back |
+| **ability-gated exploration** | a gun and a growing arsenal; **permanent abilities that open paths you've already seen**; sealed vaults with heart containers and weapons; a reason to go back |
 | **Arcade** | score, combo-stomps, a tight 8-bit look, chiptune music, instant restarts |
 
 The linking idea: **every level is generated with pockets you can see but can't reach yet**. A ledge
@@ -88,7 +88,7 @@ shape of progression; the generator decides *where* in the level.
 
 ### Health and failure
 
-* Hearts, Metroid style. Start with 3.
+* Hearts, ability-gated exploration style. Start with 3.
 * **Falling in a pit or lava costs one heart**, not a life: Pip pops back up on the last safe ground
   with a moment of invulnerability. Light-hearted, and it keeps phone players (whose thumbs slip)
   in the game.
@@ -236,7 +236,7 @@ over.
 3. **Level card** — "WORLD 2-3 · FIZZY DUNES", Pip × lives.
 4. **Play** — HUD: hearts, coins, lives, weapon, shard slots, score.
 5. **Pause** — RESUME / EXIT TO MAP / MUSIC / SOUND, plus a controls reminder on keyboard.
-6. **Gadget get** — Metroid-style item fanfare panel explaining the new move.
+6. **Gadget get** — ability-gated exploration-style item fanfare panel explaining the new move.
 7. **Game over**, **Ending** (the sun relit, credits, stats).
 
 ---

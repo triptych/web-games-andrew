@@ -13,7 +13,7 @@ You are Kestrel, the last apprentice of the last free roost in the Skyreach Isle
 It borrows from three places:
 
 - **Advance Wars** for the battles: a tiled map, terrain stars, fliers with no cover, ground units that dig in, villages and roosts you claim with a two-turn capture for income and healing, roosts you call reinforcements from (the factory), an enemy that musters soldiers at its keeps, commander powers that charge as you fight, the HP-in-tenths badge, and the cut to a close-up head-to-head battle on every attack.
-- **Fire Emblem** for the story and the people: a lord who must not fall, guests who fight beside you for a chapter or three, a forecast before every fight, and scenes before and after each chapter.
+- **turn-based tactics** for the story and the people: a lord who must not fall, guests who fight beside you for a chapter or three, a forecast before every fight, and scenes before and after each chapter.
 - **Dragon-raising games** (the idle and breeding kind) for the roost: eggs that hatch in real time while you're away, tap-to-warm, feeding and training rings, a gold hoard, genes you can see, traits that pass from parent to egg, and hybrids that only breeding can make.
 
 The look is a bright, painterly Flash-era cartoon: toon shading in three bands, ink outlines on everything, a brush-painted texture on every board, big friendly eyes on the dragons, parchment UI with chunky pressed-down buttons and a paper-grain overlay.

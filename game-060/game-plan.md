@@ -1,6 +1,6 @@
 # BRICKVADERS
 
-**Genre:** Arcade: Breakout × Space Invaders (with nods to Arkanoid and Galaga)
+**Genre:** Arcade: brick-breaker and formation-shooter hybrid (with nods to Arkanoid and diving formation shooter)
 **Engine:** three.js r165 (ES modules, import map), Web Audio
 **Render:** a 3D scene drawn into a 240 × 320 render target (a vertical arcade monitor), nearest-neighbour upscale, bloom, CRT shader
 **Status:** v1.0.1, complete: five sectors, 24 stages per loop, endless loops
@@ -9,7 +9,7 @@
 
 ## Concept
 
-It is 1983 and the **Brick Armada** is coming: an invasion fleet of aliens built out of living bricks, marching down on Earth in formation. Earth's last defence is the **STRIKER**, a paddle-ship that is half Breakout bat and half laser base. Bounce the **plasma ball** into the formation to smash invaders and their brick armour, shoot lasers between bounces, catch the capsules that fall out, and stop the Armada before it lands.
+It is 1983 and the **Brick Armada** is coming: an invasion fleet of aliens built out of living bricks, marching down on Earth in formation. Earth's last defence is the **STRIKER**, a paddle-ship that is half brick-breaker bat and half laser base. Bounce the **plasma ball** into the formation to smash invaders and their brick armour, shoot lasers between bounces, catch the capsules that fall out, and stop the Armada before it lands.
 
 It should feel like a cabinet in a 1983 arcade: a vertical monitor glowing in the dark, a pulsing march you can feel in your chest that speeds up as the formation thins, chunky pixels that shatter into tumbling 3D debris, an attract mode that cycles title → score table → high scores → demo, and three-letter initials on the high-score table.
 
@@ -47,8 +47,8 @@ The touch deck: on a portrait phone the screen sits on top and an arcade control
 ## Core mechanics
 
 ### The STRIKER
-- A paddle at the bottom (26 px wide, 40 expanded). The ball bounces off it Arkanoid-style: the angle depends on where it lands (up to 60° from vertical), and every paddle hit speeds the ball up a little, to a cap.
-- **Lasers:** one shot on screen at a time (as in Space Invaders). The LASER capsule gives twin rapid-fire cannons.
+- A paddle at the bottom (26 px wide, 40 expanded). The ball bounces off it angle-based brick-breaker: the angle depends on where it lands (up to 60° from vertical), and every paddle hit speeds the ball up a little, to a cap.
+- **Lasers:** one shot on screen at a time (as in formation shooter). The LASER capsule gives twin rapid-fire cannons.
 - **Nova bomb:** wipes every enemy bullet off the screen and blasts everything. You start with one and hold up to three.
 - You lose a ship if the last ball falls past the ground line, or if an enemy bullet, bomb or diver hits you. Extra ships at 20 000, 60 000 and every 60 000 after.
 
@@ -73,7 +73,7 @@ The touch deck: on a portrait phone the screen sits on top and an arcade control
 | SPLITTER | 2 | 40 | splits into two MINIs (15 pts) that zigzag down and shoot |
 | MIRROR | 2 | 50 | crystal: lasers bounce off it and come back at you, so only the ball hurts it |
 | BUILDER | 2 | 50 | lays new bricks in empty slots around it and repairs damaged ones |
-| DIVER | 2 | 50 (100 diving) | breaks formation Galaga-style, loops and swoops at you, shoots, and rejoins from the top. It kills on contact |
+| DIVER | 2 | 50 (100 diving) | breaks formation diving formation-shooter, loops and swoops at you, shoots, and rejoins from the top. It kills on contact |
 | CAPTOR | 3 | 150 (400 holding a ball) | dives to mid-screen and shines a tractor beam that captures balls. Shoot it to free the ball, which comes back as a bonus extra ball. If it takes your last ball, you get a new one free |
 
 Multi-HP invaders shed pixels with every hit, so you can see how hurt they are.
@@ -81,7 +81,7 @@ Multi-HP invaders shed pixels with every hit, so you can see how hurt they are.
 ### Bricks
 | Brick | Behaviour |
 |---|---|
-| `#` brick | 1 hit, rainbow-coloured by row (Breakout!) |
+| `#` brick | 1 hit, rainbow-coloured by row (brick-breaker!) |
 | `=` silver | 3 hits, cracks as it weakens |
 | `G` gold | only a fireball or a Nova bomb breaks it |
 | `X` TNT | explodes and damages its eight neighbours. Chains! |
@@ -90,7 +90,7 @@ Multi-HP invaders shed pixels with every hit, so you can see how hurt they are.
 ### Shields, asteroids, bosses: cell grids
 Shields are little brick forts (battlements on top, a gateway underneath) in 22 × 16 grids of 1 px cells with mortar lines, eroded pixel by pixel by bullets, bombs and the ball. Asteroids (sector 3) are round grids of 2 px cells that drift across the middle of the screen, and they block shots in both directions. Bosses are big grids of 3 px cells: armour to dig through, steel that won't break, gun ports that shoot (break them to silence them) and a pulsing **core** that is the only thing that kills the boss. Bosses rebuild armour around the core over time, so you have to keep digging. A ball that breaks a boss cell cracks a neighbour a third of the time, so tunnels open up. Gun ports, every 22nd cell and each phase change drop capsules. At a quarter core health the boss hits **CORE EXPOSED!**: every hard and steel cell crumbles to 1-hit armour for the finish.
 
-### Capsules (Arkanoid-style)
+### Capsules (angle-based brick-breaker)
 | Capsule | Effect |
 |---|---|
 | **L** LASER | 12 s of twin rapid-fire lasers |
@@ -119,10 +119,10 @@ A delta-winged raider with a bubble cockpit. It crosses the top every 18–28 se
 | 1 LUNAR OUTPOST | grey moonscape, Earth rising, craters | the basics: shields, prize bricks, TNT, tanks | **KING KRABBO**: a giant crab of bricks with claw cannons, spread shots and summoned minis; faster in phase 2 |
 | 2 NEON NEBULA | pink/purple nebula clouds | brick fortresses (silver, gold, TNT walls), splitters, builders | **THE SAUCERATOR**: a huge saucer with a spinning light ring; ring bursts, a telegraphed death beam, dashes, drops invaders |
 | 3 ASTEROID ALLEY | tumbling 3D rocks | drifting asteroids as cover, mirrors, tank bombs | **ROCKJAW**: an asteroid skull whose steel jaw opens and shuts over its core; rockfall and bombs |
-| 4 SYNTH CITY | synthwave sun and grid over Earth | divers and captors (Galaga) | **PHANTOM QUEEN**: a flagship with wings, a giant tractor beam, escorts of divers, aimed fans |
+| 4 SYNTH CITY | synthwave sun and grid over Earth | divers and captors (diving formation shooter) | **PHANTOM QUEEN**: a flagship with wings, a giant tractor beam, escorts of divers, aimed fans |
 | 5 THE HIVE | inside the mothership: a tunnel of rings | everything at once, regenerating brick walls | **THE OVERMIND**: a brain in a brick skull. Phase 1: eye beams and builders repairing the skull. Phase 2: the skull cracks open, ring and spiral fire. Phase 3: desperation spirals |
 
-**Challenge stages** (Galaga homage): five squadrons of eight invaders fly scripted loops across the screen without shooting. You have rapid twin lasers and a ball that respawns for free. Each hit scores 100, and all 40 is PERFECT!! for 10 000.
+**Challenge stages** (diving formation shooter homage): five squadrons of eight invaders fly scripted loops across the screen without shooting. You have rapid twin lasers and a ball that respawns for free. Each hit scores 100, and all 40 is PERFECT!! for 10 000.
 
 After the Overmind: an ending with brick fireworks and credits, then **LOOP 2**. Invaders are tougher and faster and shoot more, and the loop number shows on the HUD.
 
@@ -185,7 +185,7 @@ See [dev/README.md](dev/README.md). `simtest.mjs` has the bot clear every stage 
 
 ## Art direction note
 
-The game is an homage to the genre, not a copy of any one game: every alien, the mystery ship and the shields are original designs. The three basic grunts (GLOOP, BUZZ, PEEPER) replaced earlier sprites that were too close to the classic Space Invaders octopus, crab and squid.
+The game is an homage to the genre, not a copy of any one game: every alien, the mystery ship and the shields are original designs. The three basic grunts (GLOOP, BUZZ, PEEPER) replaced earlier sprites that were too close to the classic formation shooter octopus, crab and squid.
 
 ## Changelog
 

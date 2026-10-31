@@ -99,13 +99,13 @@ The town is where most of the jokes live. You'll meet:
 - **Olivia**, the oracle, who sells magic goods and pies. *"The olives told me you would come."*
 - **Kiwirt**, a shady kiwi on a toothpick leg who sells mystery smoothies (that's the gambling). *"Don't look at the leg. Everyone looks at the leg."*
 
-Each of them talks in Animal Crossing-style gibberish pitched to their character. There are six quests, including finding Granny's lost recipe book, bringing Grapeswold the fuzzy **Anvil of Furry**, and getting Kiwirt's spare leg back from the Toothpick Thief. When you return it, Kiwirt decides it's too sticky now and lets you keep it, which is how you end up hitting things with a baguette.
+Each of them talks in cozy character gibberish gibberish pitched to their character. There are six quests, including finding Granny's lost recipe book, bringing Grapeswold the fuzzy **Anvil of Furry**, and getting Kiwirt's spare leg back from the Toothpick Thief. When you return it, Kiwirt decides it's too sticky now and lets you keep it, which is how you end up hitting things with a baguette.
 
 There's also a Wishing Well that works as a waypoint, so you don't have to walk all the way down every time.
 
 ## Making fruit look good
 
-Every character is built from **lathe profiles**, the same trick you'd use to turn a vase on a lathe. Each fruit gets a procedural skin: dimpled citrus, seeded strawberries, striped melons, diamond-patterned pineapples, fuzzy kiwis with a sheen, and mouldy versions for the rotten monsters. They have eyes with highlights that blink, mouths, blush, eyebrows, hats, and Rayman-style floating gloves and shoes.
+Every character is built from **lathe profiles**, the same trick you'd use to turn a vase on a lathe. Each fruit gets a procedural skin: dimpled citrus, seeded strawberries, striped melons, diamond-patterned pineapples, fuzzy kiwis with a sheen, and mouldy versions for the rotten monsters. They have eyes with highlights that blink, mouths, blush, eyebrows, hats, and floating floating gloves and shoes.
 
 There are no animation files. Everything is procedural: fruit squash when they're hit, bounce when they walk, wind up before they swing, wobble when they're stunned, and pop when they die.
 

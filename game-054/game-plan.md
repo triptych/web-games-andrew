@@ -1,6 +1,6 @@
 # Pale Engine
 
-**Genre:** First-person shooter (DOOM-style), with a story campaign and an endless mode
+**Genre:** First-person shooter (first-person shooter), with a story campaign and an endless mode
 **Engine:** three.js r165 (ES modules via import map); everything else vanilla JS + DOM, no build step
 **Target:** any screen size, desktop (mouse + keyboard) and phones/tablets (touch)
 **Status:** Playable — v1.0.0

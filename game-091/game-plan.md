@@ -8,11 +8,11 @@
 
 ## Concept
 
-A space fantasy slot machine RPG with a Slay the Spire style skill tree, three.js shaders and a retro-futuristic look.
+A space fantasy slot machine RPG with a branching-path roguelike deckbuilder style skill tree, three.js shaders and a retro-futuristic look.
 
-The House, a casino station at the end of space, has stolen the stars. You fly the *Lucky Comet*, whose weapon is a **Fortune Engine**: a chrome one-armed bandit. Every symbol that lands on its payline fires. You spin, then spend a little Energy to nudge or respin reels toward a better line, then FIRE, and the enemies answer with the intents they showed. Between fights you add symbols to your reels (the reels are your deck) and climb **the Constellation**, a skill tree laid out like a Slay the Spire map: each star you light must join the last one, so the path you take is your build.
+The House, a casino station at the end of space, has stolen the stars. You fly the *Lucky Comet*, whose weapon is a **Fortune Engine**: a chrome one-armed bandit. Every symbol that lands on its payline fires. You spin, then spend a little Energy to nudge or respin reels toward a better line, then FIRE, and the enemies answer with the intents they showed. Between fights you add symbols to your reels (the reels are your deck) and climb **the Constellation**, a skill tree laid out like a branching-path roguelike deckbuilder map: each star you light must join the last one, so the path you take is your build.
 
-It riffs on Slay the Spire (intents, the branching map, a run of fights and bosses), Luck be a Landlord (symbols as the deck) and classic three-reel slots (nudges, holds, the lever), wrapped in an 80s outrun look: a striped retro sun, a neon grid floor, chrome and magenta.
+It riffs on branching-path roguelike deckbuilder (intents, the branching map, a run of fights and bosses), Luck be a Landlord (symbols as the deck) and classic three-reel slots (nudges, holds, the lever), wrapped in an 80s outrun look: a striped retro sun, a neon grid floor, chrome and magenta.
 
 SPINFRAME (game-048) is the repo's other slot-machine RPG. STARSPIN differs on purpose: one payline instead of many, explicit nudge and respin choices against visible neighbours, a deck you build by adding symbols to every reel, and a path-shaped skill tree rather than three skill trees.
 
@@ -59,7 +59,7 @@ Each won fight: pick one of three symbols to add to **every** reel (or skip), th
 The starting reels are three shuffled copies of: Starblade ×3, Aegis ×2, Comet, Nova Mend, Ion Charge.
 
 ### Enemies
-Enemies show their next move (Slay the Spire intents) and cycle through a fixed list, normal enemies from a random point, bosses from the first. Moves: attack (optionally several hits, optionally with Block), Block, power up (+strength to every hit), heal the most hurt ally, and **jam**: insert Static into your reels for the rest of the fight. HP grows 8% per stop within a sector. `FOE.hp` and `FOE.dmg` in `config.js` scale every enemy and were fitted with the bot.
+Enemies show their next move (branching-path roguelike deckbuilder intents) and cycle through a fixed list, normal enemies from a random point, bosses from the first. Moves: attack (optionally several hits, optionally with Block), Block, power up (+strength to every hit), heal the most hurt ally, and **jam**: insert Static into your reels for the rest of the fight. HP grows 8% per stop within a sector. `FOE.hp` and `FOE.dmg` in `config.js` scale every enemy and were fitted with the bot.
 
 | Sector | Early | Mid | Boss |
 |---|---|---|---|
@@ -146,11 +146,11 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, every rule, 300
 ## Open questions / next steps
 
 - A human pass on real hardware: the bot is not a person, and SwiftShader is not a GPU.
-- More events between fights (Slay the Spire's ? rooms), elites, and relics that bend the payline (diagonals, a second line).
+- More events between fights (branching-path roguelike deckbuilder's ? rooms), elites, and relics that bend the payline (diagonals, a second line).
 - Upgraded copies of single symbols rather than only global Etches.
 - A meta layer: unlockable starting machines or reels.
 
 ## Changelog
 
 ### v1.0.0 (2026-10-22)
-- First release: three sectors of fights, Waystations and bosses; eight symbols with matches, Wild Stars and Static; nudges and respins for Energy; Slay the Spire style intents; Salvage that adds symbols to every reel; the Constellation, a generated path-shaped skill tree of 19 kinds of star with keystone rows; a shader sky, shader reels, hologram enemies, bloom and a CRT pass; synthwave music per sector; saves; keyboard, gamepad and touch; a bot, a sim test and a browser test.
+- First release: three sectors of fights, Waystations and bosses; eight symbols with matches, Wild Stars and Static; nudges and respins for Energy; branching-path roguelike deckbuilder style intents; Salvage that adds symbols to every reel; the Constellation, a generated path-shaped skill tree of 19 kinds of star with keystone rows; a shader sky, shader reels, hologram enemies, bloom and a CRT pass; synthwave music per sector; saves; keyboard, gamepad and touch; a bot, a sim test and a browser test.

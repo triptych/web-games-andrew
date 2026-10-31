@@ -130,4 +130,4 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, the story graph
 ## Changelog
 
 ### v1.0.0 (2026-10-23)
-- First release: a Hercules-style text adventure with five acts, seven endings, a character sheet, a six-slot pack and a journal; 1-bit dithered pictures; typewriter text with keyboard clacks; floppy-drive and PC-speaker sound; a boot show; autosave and Continue; a bot that plays the whole game; sim, browser and phone tests.
+- First release: a monochrome text adventure text adventure with five acts, seven endings, a character sheet, a six-slot pack and a journal; 1-bit dithered pictures; typewriter text with keyboard clacks; floppy-drive and PC-speaker sound; a boot show; autosave and Continue; a bot that plays the whole game; sim, browser and phone tests.

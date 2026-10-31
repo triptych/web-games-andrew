@@ -15,8 +15,8 @@ on the board as tokens with the strangest oaths of all, and when one arrives it 
 the stones around it, so the board changes under you. Fulfil a hero's oath and they are **bound**:
 they join your roster for good and fight in your party.
 
-It riffs on Puzzle Quest (match-3 as the RPG battle), the gacha recruiting loop of Summoners War and
-Fire Emblem Heroes (summon, pity, duplicates raise a rank), and the "every piece is its own rule"
+It riffs on match-three RPGs (match-3 as the RPG battle), the gacha recruiting loop of Summoners War and
+turn-based tactics Heroes (summon, pity, duplicates raise a rank), and the "every piece is its own rule"
 feel of a deck-builder. The summon twist is the core idea: a pull does not hand you the hero. It
 calls them to your next board, and you have to earn them there.
 

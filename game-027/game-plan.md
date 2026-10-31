@@ -238,7 +238,7 @@ and whether the shop's stock expands with cauldron tier are open questions.
 ### 9. The run map (Slay-the-Spire-style branching path)
 A chapter is not a fixed list of levels — it's a **procedurally generated map** the player traverses
 left-to-right via **binary (and occasionally trinary) decision points**, exactly in the spirit of
-*Slay the Spire*. Structure:
+*branching-path roguelike deckbuilder*. Structure:
 
 - The map is a layered DAG. The player starts at a single **entry node on the far left** and must
   reach the **boss node on the far right**. Each step, the current node connects forward to **2–3

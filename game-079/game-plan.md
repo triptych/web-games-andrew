@@ -1,6 +1,6 @@
 # VENDETTA OVERDRIVE
 
-**Genre:** First-person shooter: an 80s action-movie revenge rampage in the spirit of Duke Nukem 3D, with Borderlands-style procedural guns
+**Genre:** First-person shooter: an 80s action-movie revenge rampage in the spirit of classic action-movie shooters, with procedurally generated procedural guns
 **Engine:** three.js r165 (import map, ES modules), no asset files: every model, texture, sound and song is generated in code
 **Status:** v1.0.2
 
@@ -14,7 +14,7 @@ She's going to find whoever is on that tape. She's going to go through every ali
 
 The game is about **speed and noise**: you're fast (9 m/s, a jump, a jetpack), the enemies are loud and they come in crowds, guns fall out of everything, and every kill gives you **Fury** for **OVERDRIVE**, eight seconds of slow-motion in which you hit harder and every kill heals you. Kill quickly enough and the combo announcer starts shouting. Kill messily enough and there's nothing left to bury.
 
-Riffs on: **Duke Nukem 3D** (a wisecracking hero, a city level to start, a jetpack, a kick on its own button, pipe bombs, keycards), **DOOM** (keycards and coloured doors, infighting-free crowds, monsters that teleport in when you take the key), **Borderlands** (guns rolled from parts with a maker, a rarity and an element, loot beams, a stat card to compare), **Max Payne** (the slow-motion meter), and every action film on a rental shelf in 1987.
+Riffs on: **classic action-movie shooters** (a wisecracking hero, a city level to start, a jetpack, a kick on its own button, pipe bombs, keycards), **DOOM** (keycards and coloured doors, infighting-free crowds, monsters that teleport in when you take the key), **Borderlands** (guns rolled from parts with a maker, a rarity and an element, loot beams, a stat card to compare), **Max Payne** (the slow-motion meter), and every action film on a rental shelf in 1987.
 
 ## Core loop
 

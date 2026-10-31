@@ -917,7 +917,7 @@ for (const e of world.events) {
 There the formation steps on every beat and the beat interval shrinks as invaders die, so **the
 march is the bassline**: four descending notes (`[0, -2, -3, -5]` under the bar's chord) on every
 step, plus kick/snare/hats, a pad per bar and a pulse lead from a 32-step table. The whole song
-speeds up with the Space Invaders heartbeat, and the lead plays on every other step once a beat is
+speeds up with the formation shooter heartbeat, and the lead plays on every other step once a beat is
 shorter than 110 ms. Menus run the same `beat()` from a fixed-interval clock in `main.js`.
 
 ---

@@ -1,6 +1,6 @@
 # Tomebound — Gems of the Lost Library
 
-**Genre:** Match-3 fantasy RPG (Puzzle Quest-style duels) + idle town builder
+**Genre:** Match-3 fantasy RPG (match-three RPG duels) + idle town builder
 **Engine:** three.js r165 (import map, ES modules, no build step, no asset files)
 **Target:** desktop (mouse / keyboard) and phones (touch, portrait and landscape)
 **Status:** Playable — v1.0

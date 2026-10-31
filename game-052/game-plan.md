@@ -9,7 +9,7 @@
 
 ## Concept
 
-A lo-fi synthwave night drive through an endless, rain-soaked, Blade Runner-style city. There is nothing to win and nothing to hit: you pick a speed and a lane, the radio plays, the city slides past, and every kilometre or so there is somewhere to pull over — a noodle bar, an all-night diner, a skyway overlook — where you can sit in the rain for a while before driving on.
+A lo-fi synthwave night drive through an endless, rain-soaked, rain-soaked neon city. There is nothing to win and nothing to hit: you pick a speed and a lane, the radio plays, the city slides past, and every kilometre or so there is somewhere to pull over — a noodle bar, an all-night diner, a skyway overlook — where you can sit in the rain for a while before driving on.
 
 What it borrows from earlier games in this repo:
 

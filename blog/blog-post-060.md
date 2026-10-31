@@ -1,10 +1,10 @@
-# BRICKVADERS: Breakout Meets Space Invaders in a 1983 Cabinet
+# BRICKVADERS: Brick-Breaker Meets Formation Shooter in a 1983 Cabinet
 
 *By Andrew Wooldridge*
 
-Game 060 in the collection is [BRICKVADERS](https://triptych.github.io/web-games-andrew/game-060/). The idea is simple: what if the aliens in Space Invaders were made of bricks, and your laser base was also a Breakout paddle?
+Game 060 in the collection is [BRICKVADERS](https://triptych.github.io/web-games-andrew/game-060/). The idea is simple: what if the aliens in formation shooter were made of bricks, and your laser base was also a brick-breaker paddle?
 
-It's 1983 and the **Brick Armada** is coming, an invasion fleet of aliens built out of living bricks, marching down on Earth in formation. Earth's last defence is the **STRIKER**, a ship that is half Breakout bat and half laser base. You bounce a plasma ball up into the formation to smash invaders and their brick armour, fire lasers between bounces, catch the capsules that fall out, and try to stop the Armada before it lands.
+It's 1983 and the **Brick Armada** is coming, an invasion fleet of aliens built out of living bricks, marching down on Earth in formation. Earth's last defence is the **STRIKER**, a ship that is half brick-breaker bat and half laser base. You bounce a plasma ball up into the formation to smash invaders and their brick armour, fire lasers between bounces, catch the capsules that fall out, and try to stop the Armada before it lands.
 
 Like every game here, it uses no asset files. Every sprite, letter, explosion, backdrop and note of music is made in code. It's built with three.js and plays on a phone as well as on a desktop.
 
@@ -27,7 +27,7 @@ Behind the playfield, each of the five sectors has its own dim 3D backdrop: a lu
 
 ## The march is the music
 
-My favourite detail is the sound. In Space Invaders the march speeds up as the aliens thin out. BRICKVADERS takes that literally: **one beat of the music is one step of the formation**. The simulation owns a beat clock and sends out timestamped `beat` events, and the Web Audio code schedules notes against the audio clock so they land sample-accurately.
+My favourite detail is the sound. In formation shooter the march speeds up as the aliens thin out. BRICKVADERS takes that literally: **one beat of the music is one step of the formation**. The simulation owns a beat clock and sends out timestamped `beat` events, and the Web Audio code schedules notes against the audio clock so they land sample-accurately.
 
 Each beat plays the four-note march bassline, shifted into the current sector's chord, along with drums and a pulse-wave lead through a delay. Clear out the formation and the whole song speeds up with it. Brick hits play a rising pentatonic run, so a long chain of ball hits sounds like one melody.
 
@@ -35,18 +35,18 @@ Bosses, challenge stages, the title screen and the ending have their own songs o
 
 ## How it plays
 
-The ball bounces Arkanoid-style: the angle depends on where it hits the paddle, and it speeds up a little with each hit. Your laser works like the original Space Invaders cannon, with one shot on screen at a time. Every hit the ball makes before it comes back to the paddle adds to your **chain**, and every five links add ×1 to your score multiplier, up to ×5.
+The ball bounces angle-based brick-breaker: the angle depends on where it hits the paddle, and it speeds up a little with each hit. Your laser works like the original formation shooter cannon, with one shot on screen at a time. Every hit the ball makes before it comes back to the paddle adds to your **chain**, and every five links add ×1 to your score multiplier, up to ×5.
 
-The formation marches left and right and drops at each edge, the way you'd expect. If it reaches the ground, you lose a ship and it gets pushed back up. Mixed in with the invaders are bricks: rainbow bricks (it's Breakout, after all), silver bricks that crack, gold bricks only a fireball can break, TNT bricks that chain-react, and prize bricks that always drop a capsule.
+The formation marches left and right and drops at each edge, the way you'd expect. If it reaches the ground, you lose a ship and it gets pushed back up. Mixed in with the invaders are bricks: rainbow bricks (it's brick-breaker, after all), silver bricks that crack, gold bricks only a fireball can break, TNT bricks that chain-react, and prize bricks that always drop a capsule.
 
 There are **nine kinds of invader**, and the later ones change how you play:
 
 - **MIRROR** is made of crystal, so your lasers bounce off it and come back at you. Only the ball hurts it.
 - **BUILDER** lays new bricks in empty slots around it and repairs damaged ones.
-- **DIVER** breaks formation Galaga-style, loops down at you, and rejoins from the top.
+- **DIVER** breaks formation diving formation-shooter, loops down at you, and rejoins from the top.
 - **CAPTOR** dives to mid-screen and shines a tractor beam that steals your ball. Shoot it to free the ball, which comes back as a bonus extra ball.
 
-Capsules work the way Arkanoid fans will expect: Laser, Expand, Catch, Multi-ball, Fireball, Slow, Barrier, Nova bomb and the rare 1UP. The Nova bomb wipes every enemy bullet off the screen and blasts everything. There's also a mystery ship that crosses the top of the screen, and yes, the old trick still works: your 23rd laser shot always scores the full 300.
+Capsules work the way brick-breaker players will expect: Laser, Expand, Catch, Multi-ball, Fireball, Slow, Barrier, Nova bomb and the rare 1UP. The Nova bomb wipes every enemy bullet off the screen and blasts everything. There's also a mystery ship that crosses the top of the screen, and yes, the old trick still works: your 23rd laser shot always scores the full 300.
 
 ## Five sectors, five brick bosses
 
@@ -62,7 +62,7 @@ A loop is 24 stages: five sectors of three waves and a boss, with a challenge st
 
 The bosses are big grids of cells, and you have to **dig through them**. There's armour to break, steel that won't break, gun ports that shoot until you knock them out, and a pulsing core that is the only thing that can kill the boss. Bosses rebuild armour around the core over time, so you have to keep at it. Breaking a cell sometimes cracks its neighbour, so tunnels open up. At a quarter of the core's health the boss hits **CORE EXPOSED!** and its hard armour crumbles for the finish.
 
-The **challenge stages** are a nod to Galaga: five squadrons of eight invaders fly scripted loops without shooting back. You get rapid twin lasers and a ball that respawns for free. Hit all 40 for a PERFECT!! and 10,000 points.
+The **challenge stages** are a nod to diving formation shooter: five squadrons of eight invaders fly scripted loops without shooting back. You get rapid twin lasers and a ball that respawns for free. Hit all 40 for a PERFECT!! and 10,000 points.
 
 Beat the Overmind and you get brick fireworks and credits, then Loop 2, where everything is tougher and faster, and it keeps going from there.
 

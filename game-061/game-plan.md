@@ -46,7 +46,7 @@ A clean, glassy sci-fi HUD in DOM and CSS:
   - top left: hull, shield, energy, fuel and cargo bars
   - top centre: system name, the current alert and the speed readout
   - top right: credits and data
-  - bottom left: an **Elite-style 3D scanner** (an ellipse with stalked blips)
+  - bottom left: an **wireframe 3D 3D scanner** (an ellipse with stalked blips)
   - bottom centre: throttle and cruise gauge, and mining heat
   - bottom right: target card (name, type, distance, composition, hostility)
   - right: quest tracker

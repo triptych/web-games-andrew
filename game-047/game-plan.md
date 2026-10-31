@@ -1,6 +1,6 @@
 # Ashes & Aces
 
-**Genre:** Deck-building roguelite (Slay the Spire) × Poker Solitaire, dark high fantasy
+**Genre:** Deck-building roguelite (branching-path roguelike deckbuilder) × Poker Solitaire, dark high fantasy
 **Engine:** three.js r165 (ES modules via import map) + a pure, seeded JS simulation
 **Target:** any screen — landscape monitors and portrait phones, mouse, touch or keyboard
 **Status:** v1.0 — design below, implementation in `js/`
@@ -125,7 +125,7 @@ kills nothing. Aces play high or low in straights. **Jokers** are wild (best ran
 | **Regen** | heal N a turn, N−1 | same |
 | **Thorns** | — | deal N back when struck by Blades |
 
-### Monster intents (shown above every enemy, like Slay the Spire)
+### Monster intents (shown above every enemy, like branching-path roguelike deckbuilder)
 Attack · Multi-attack · Ward · Buff · Debuff (Weak / Exposed / Burn) · Heal ally · Summon, and the
 **table curses** that make this poker solitaire rather than a reskin:
 - **Seal** — a cell is sealed with thorns/ice/chains for N turns (can't place there).

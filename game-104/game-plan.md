@@ -1,6 +1,6 @@
 # Hemlock Hollow
 
-**Genre:** Gothic mystery text adventure (Sierra On-Line style: typed parser, one picture per room)
+**Genre:** Gothic mystery text adventure (typed-parser adventure: typed parser, one picture per room)
 **Engine:** Vanilla JS: Canvas 2D (a 320×136 one-bit picture), DOM text, Web Audio, no asset files
 **Status:** v1.0.0
 

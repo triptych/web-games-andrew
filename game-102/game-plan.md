@@ -1,6 +1,6 @@
 # STARSLING
 
-**Genre:** physics slingshot puzzle-arcade (Angry Birds in space)
+**Genre:** physics slingshot puzzle-arcade (space-themed slingshot puzzle)
 **Engine:** three.js r165, no asset files
 **Status:** v1.0.0, six sectors
 
@@ -10,7 +10,7 @@
 
 Fling asteroids at floating space stations and scrap every robot aboard. A retro-futurist
 sunset: a striped sun on a neon grid, dark metal station parts with glowing edges, wireframe rock,
-synthwave bass. It riffs on Angry Birds (a sling, a few shots per level, fragile structures with
+synthwave bass. It riffs on slingshot puzzle games (a sling, a few shots per level, fragile structures with
 fragile occupants, specials you trigger mid-flight) and on 80s sci-fi poster art.
 
 You pull the sling back and let go; physics does the rest. Hull is tough, glass is fragile, fuel cells

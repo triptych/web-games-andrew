@@ -1,6 +1,6 @@
 # Crown & Crumpet
 
-**Genre:** Cosy isometric tactics RPG (Final Fantasy Tactics, pared down and softened)
+**Genre:** Cosy isometric tactics RPG (isometric party tactics, pared down and softened)
 **Engine:** Vanilla JS: Canvas 2D, no library, no asset files (the sim/view layout)
 **Status:** v1.0.0 complete: six chapters, six playable students, one reluctant Dread Lord
 
@@ -10,7 +10,7 @@
 
 Princess Pippa ("Pip") of Brightmeadow is three weeks into her first term at Thistlewick Academy of Magic & Marching, where every future queen must prove herself. She is brave, determined and extremely clumsy. Across six chapters she makes friends who are stranded around the school (a shy knight, a footnote-obsessed mage, a calm herbalist, a prickly rooftop archer, a hungry clay golem) and leads them in turn-based tactical battles against dust bunnies, ink blots, hedges, crows and stale scones. Behind all of it is the Dread Lord Basil of the Underkitchens, who at the end turns out to be a very tired chef who never wanted the job. Pip talks him down, and the last scene is the opening day of the Thistlewick Cooking School.
 
-The tone is gentle. Nobody dies (fainted students are back next chapter), the enemies are fluffy or ridiculous, there is no miss chance, and a lost battle is "tuckered out, try again". It riffs on Final Fantasy Tactics (isometric height, move-then-act, speed-based turns), Fire Emblem (a small party you come to love), and the cosy-game idea that the hardest enemy might just need a hug and an oven.
+The tone is gentle. Nobody dies (fainted students are back next chapter), the enemies are fluffy or ridiculous, there is no miss chance, and a lost battle is "tuckered out, try again". It riffs on isometric party tactics (isometric height, move-then-act, speed-based turns), turn-based tactics (a small party you come to love), and the cosy-game idea that the hardest enemy might just need a hug and an oven.
 
 ## Core loop
 

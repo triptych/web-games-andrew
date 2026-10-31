@@ -1,6 +1,6 @@
 # Quill & Legion
 
-**Genre:** Fantasy tactics roguelike: Heroes-style creature stacks on a hex field, every battle order a card from a Spire-style deck, a branching three-book campaign
+**Genre:** Fantasy tactics roguelike: creature stacks on a hex field, every battle order a card from a tactical card deck, a branching three-book campaign
 **Engine:** three.js r165 with custom ink shaders, no asset files
 **Status:** v1.0.0. Three books, 12 creatures to recruit, 25 foes and 3 bosses, 52 cards, 21 relics, 12 encounters; a bot that plays the whole campaign
 
@@ -12,7 +12,7 @@ You are the General of one legion, marching through an old adventure module. You
 
 In battle you deploy the stacks on your side of a hex field, and then every *order* is a card. Each turn you draw five and have three ink. Every stack may move once for free (positioning is the Heroes half), but attacks, spells, wards and tactics are cards (the Spire half), and the foe shows its intent above each of its stacks before you commit. Retaliation, flanking, archers at someone's elbow and walkers that can't reach turn the hex grid into the puzzle the deck is played on.
 
-It riffs on two games in genre only, with original content throughout. From **Heroes of Might and Magic** come the stack counts, dwellings, attack-against-defence maths, one strike back per round, flyers and shooters. From **Slay the Spire** come the deck, ink, intents, the branching map, card rewards, relics and boss relics, campfire upgrades and erasing cards.
+It riffs on two games in genre only, with original content throughout. From **Heroes of Might and Magic** come the stack counts, dwellings, attack-against-defence maths, one strike back per round, flyers and shooters. From **branching-path roguelike deckbuilder** come the deck, ink, intents, the branching map, card rewards, relics and boss relics, campfire upgrades and erasing cards.
 
 The look is a 1970s fantasy rulebook: everything is pen-and-ink line art on cream paper. Models are hatched with pen strokes that thicken into cross-hatching in shadow, outlined by a boiling hand-drawn line, with a thin watercolour wash in a few spot colours (cerulean for you, burnt orange for the foe, mustard, olive). The text is set like an old module, with drop caps and Uncial headings.
 
@@ -34,7 +34,7 @@ A 9×6 odd-r hex grid ([js/sim/hex.js](js/sim/hex.js)). You deploy in columns 0�
 - **Cards:** pick a card, then (if it needs one) which stack carries it out, then the target. An attack or spell shows a forecast first; a second tap gives the order.
 - **End turn:** the hand is discarded (Doubts and orphaned signature cards fade), then each foe carries out its intent in turn, fastest first.
 
-### Damage (Heroes-style)
+### Damage (creature-stack tactics)
 `damage = count × dmg × multiplier × attack/defence × modifiers`
 
 - **Attack vs defence:** +5% per point the attacker's Attack beats the defender's Defence (to ×3), −2.5% per point below (to ×0.3). The General's Attack and Defence add to every creature of yours; foes get +1 per book.

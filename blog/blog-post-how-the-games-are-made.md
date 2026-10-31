@@ -13,8 +13,8 @@ Almost every line was written by Claude, working in [Claude Code](https://claude
 Each game is **one Claude Code session**. It starts from a short pitch, and the session titles are a fair record of how short those pitches were:
 
 - "Archero clone game in Three.js" → [Quiverspire](https://triptych.github.io/web-games-andrew/game-046/)
-- "Slay the Spire poker solitaire game" → [Ashes & Aces](https://triptych.github.io/web-games-andrew/game-047/)
-- "Doom-style FPS with Three.js" → [Pale Engine](https://triptych.github.io/web-games-andrew/game-054/)
+- "branching-path roguelike deckbuilder poker solitaire game" → [Ashes & Aces](https://triptych.github.io/web-games-andrew/game-047/)
+- "First-person shooter with Three.js" → [Pale Engine](https://triptych.github.io/web-games-andrew/game-054/)
 - "Fruit-based Diablo clone game" → [Rotten to the Core](https://triptych.github.io/web-games-andrew/game-062/)
 - "Fantasy RPG golf game design" → [Tee & Sorcery](https://triptych.github.io/web-games-andrew/game-063/)
 - "Magical forest idle clicker game" → [Worldroot](https://triptych.github.io/web-games-andrew/game-065/)
@@ -164,7 +164,7 @@ The bots and the headless browser catch a lot, but not everything. A few things 
 
 Each of these took one sentence from me and one follow-up turn in the same session, and each one also got a new browser test so it can't come back.
 
-**Taste.** BRICKVADERS' first aliens were too close to the classic Space Invaders octopus, crab and squid. They were replaced with original designs: GLOOP, BUZZ and PEEPER. Its enemy shots were near-white like the ball, so they were recoloured to danger reds and magentas.
+**Taste.** BRICKVADERS' first aliens were too close to the classic formation shooter octopus, crab and squid. They were replaced with original designs: GLOOP, BUZZ and PEEPER. Its enemy shots were near-white like the ball, so they were recoloured to danger reds and magentas.
 
 **Small hands-on fixes.** A few commits came from my own machine: loot that teleported in Quiverspire, button presses that were dropped on high-refresh screens in Sister Circuit, and a hotkey clash in the Garden.
 
@@ -186,21 +186,21 @@ It also works backwards. On October 4, a session audited **games 001–036** aga
 
 | # | Game | What it is | Engine | Game JS lines | Test/bot lines |
 |---|------|-----------|--------|--------------:|---------------:|
-| 046 | Quiverspire | Archero-style arena archer | three.js | 6,862 | 380 |
+| 046 | Quiverspire | arena-based roguelite archer | three.js | 6,862 | 380 |
 | 047 | Ashes & Aces | Deck-builder × poker solitaire | three.js | 10,306 | 681 |
 | 048 | SPINFRAME | Slot machine as RPG combat | Vanilla JS | 7,809 | 684 |
 | 049 | Lanterndeep | 100-floor roguelike | three.js | 8,104 | 454 |
 | 050 | Tomebound | Match-3 RPG + idle village | three.js | 7,411 | 766 |
 | 051 | Sigilborn | Gacha auto-battler | three.js | 13,046 | 846 |
 | 052 | Nightline | Synthwave night drive | three.js | 4,979 | 353 |
-| 053 | Legend of the Jade Wyrm | LoGD-style RPG | three.js | 6,264 | 706 |
-| 054 | Pale Engine | DOOM-style FPS | three.js | 10,505 | 781 |
+| 053 | Legend of the Jade Wyrm | classic browser RPG RPG | three.js | 6,264 | 706 |
+| 054 | Pale Engine | first-person shooter | three.js | 10,505 | 781 |
 | 055 | Rotorstorm | Helicopter bullet-hell | Vanilla JS + WebGL2 | 8,502 | 520 |
 | 056 | Keepfire | Castle defence × lanes | three.js | 7,199 | 582 |
 | 057 | Hivebreaker | Twin-stick swarm shooter | three.js | 9,309 | 668 |
 | 058 | Bumble Basket | Cosy fruit puzzle | three.js | 4,808 | 792 |
 | 059 | Sister Circuit | Neon beat-'em-up | three.js | 8,020 | 582 |
-| 060 | BRICKVADERS | Breakout × Space Invaders | three.js | 5,480 | 409 |
+| 060 | BRICKVADERS | brick-breaker and formation-shooter hybrid | three.js | 5,480 | 409 |
 | 061 | STARWRIGHT | Procedural space sim | three.js | 7,998 | 1,051 |
 | 062 | Rotten to the Core | Fruity Diablo | three.js | 9,037 | 792 |
 | 063 | Tee & Sorcery | Fantasy golf RPG | three.js | 8,038 | 857 |

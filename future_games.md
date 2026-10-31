@@ -6,9 +6,9 @@ A thematic look at the 33 games in this collection (`game-001` through `game-033
 
 Looking across all 33 games, several strong clusters have emerged:
 
-- **Dungeon crawlers** (huge cluster): game-003 (NetHack roguelike), game-006 (raycasting FPS), game-008 (centipede hybrid), game-021 (blobber), game-025/026 (three.js Gauntlet-style + blobber), game-030 (RPG-Maker style), game-031 (DOS-shareware software renderer), game-032 (8-bit top-down)
+- **Dungeon crawlers** (huge cluster): game-003 (procedural roguelike dungeon crawler), game-006 (raycasting FPS), game-008 (centipede hybrid), game-021 (blobber), game-025/026 (three.js arcade dungeon-crawler + blobber), game-030 (event-driven RPG), game-031 (DOS-shareware software renderer), game-032 (8-bit top-down)
 - **Cozy / low-stakes sims**: game-010 (Tiny Town), game-013 (Petal & Purse), game-015 (Tamagoji), game-020 (The River), game-033 (Hearthbound)
-- **Synthwave/neon retro arcade**: game-019 (Synthwave Breakout), game-023 (Synthwave Invaders), game-024 (Neon Vanguard)
+- **Synthwave/neon retro arcade**: game-019 (Synthwave brick-breaker), game-023 (Synthwave Invaders), game-024 (Neon Vanguard)
 - **Turn-based / party RPGs**: game-009 (Ember Crown), game-028 (Echoes of Aethermoor), game-030 (Coppergate Lane)
 - **Procedural/roguelite RPG journeys**: game-020 (The River), game-029 (Wayfarer's Path)
 - **Puzzle**: game-002, game-011, game-016, game-017, game-027 — nonograms, match-3, sokoban, block-placement
@@ -19,7 +19,7 @@ Looking across all 33 games, several strong clusters have emerged:
 ## Gaps and remix opportunities
 
 ### 1. ~~Cozy sim: seasonal farm/orchard~~ — Done
-Completed as **game-043** (Glimmerglen): farming, animals, a village builder and a Zelda-style adventure in one.
+Completed as **game-043** (Glimmerglen): farming, animals, a village builder and a item-gated top-down adventure in one.
 
 A **farming sim** (Stardew-lite) is the obvious hole in the cozy cluster — game-010 (town), game-013 (flower shop), game-015 (pet), game-020 (river journey), and game-033 (apothecary) all touch adjacent cozy subjects, but nothing does crop-planting/seasons/harvest. Kaplay, top-down grid, day/night or season cycle, simple relationship/gifting mechanic to echo game-033's affinity system.
 
@@ -27,13 +27,13 @@ A **farming sim** (Stardew-lite) is the obvious hole in the cozy cluster — gam
 The dungeon cluster has raycasting FPS, blobber, top-down, and software-rendered first-person — but no **isometric** view (Diablo-lite). Would pair well with game-022's loot/upgrade economy and game-029's gear-comparison panel pattern. Kaplay or three.js orthographic camera.
 
 ### 3. Synthwave: racer
-The synthwave trio (019/023/024) covers breakout, invaders, and shmup — a **synthwave outrun-style racer** (endless neon highway, lane-dodging, checkpoint boosts) would complete the retrowave aesthetic set and could reuse game-014's endless-runner three-lane skeleton with a neon reskin plus the perspective-grid backdrop already built for game-019/023.
+The synthwave trio (019/023/024) covers breakout, invaders, and shmup — a **synthwave neon lane-dodging racer** (endless neon highway, lane-dodging, checkpoint boosts) would complete the retrowave aesthetic set and could reuse game-014's endless-runner three-lane skeleton with a neon reskin plus the perspective-grid backdrop already built for game-019/023.
 
 ### 4. Turn-based RPG: monster-taming / collection battler
-game-009, game-028, and game-030 are all "control a fixed party" turn-based RPGs. A **creature-collection battler** (catch/tame/train monsters, turn-based 1v1 or team battles) would be a fresh structural take reusing game-012's gacha/collection meta-loop and game-009's turn-based combat engine, aimed at a Pokémon-adjacent subject not yet touched.
+game-009, game-028, and game-030 are all "control a fixed party" turn-based RPGs. A **creature-collection battler** (catch/tame/train monsters, turn-based 1v1 or team battles) would be a fresh structural take reusing game-012's gacha/collection meta-loop and game-009's turn-based combat engine, in a creature-collection subject not yet explored.
 
 ### 5. Procedural roguelite: dungeon deckbuilder
-game-012 (gacha auto-battler) and game-020/029 (procedural journeys) suggest an opening for a **roguelike deckbuilder** (Slay the Spire-lite): climb a procedurally generated node map, build a combat deck, turn-based card battles against escalating enemies. Bridges the card-game gap noted in `docs/generic/suggestions.md` (#10 Blackjack/Card Battler) with the roguelite journey structure already proven in game-020/029.
+game-012 (gacha auto-battler) and game-020/029 (procedural journeys) suggest an opening for a **roguelike deckbuilder** (branching-path roguelike deckbuilder-lite): climb a procedurally generated node map, build a combat deck, turn-based card battles against escalating enemies. Bridges the card-game gap noted in `docs/generic/suggestions.md` (#10 Blackjack/Card Battler) with the roguelite journey structure already proven in game-020/029.
 
 ### 6. Visual novel: sci-fi/space setting
 Both VN-style games (game-028, game-033) are fantasy. A **sci-fi visual novel** (space station, crew management, branching dialogue with an AI or alien cast) would extend the branching-narrative + light-combat template from game-033 into an unexplored setting, and could reuse game-024/029's three.js/sci-fi visual language for cutscenes or an overworld map.
@@ -48,7 +48,7 @@ game-010 (Tiny Town) is an intentionally small sandbox. A **deeper city builder*
 Every three.js game so far (014/018/024/025/026/029) is action- or combat-focused. A **low-stakes three.js exploration/walking sim** (wander a small 3D valley, collect seasonal items, talk to a few NPCs — no combat) would extend the cozy cluster into 3D and prove three.js isn't just for shooters/crawlers in this repo.
 
 ### 10. Puzzle: physics-based
-The puzzle cluster (002/011/016/017/027) is entirely grid-logic. A **physics puzzle** (Angry-Birds-style trajectory, or a marble/pipe-flow puzzle per `docs/generic/suggestions.md` #1) using Kaplay's built-in physics/body components (not yet exercised by any current game) would diversify the puzzle mechanic beyond grid logic.
+The puzzle cluster (002/011/016/017/027) is entirely grid-logic. A **physics puzzle** (slingshot trajectory, or a marble/pipe-flow puzzle per `docs/generic/suggestions.md` #1) using Kaplay's built-in physics/body components (not yet exercised by any current game) would diversify the puzzle mechanic beyond grid logic.
 
 ## Suggested priority
 

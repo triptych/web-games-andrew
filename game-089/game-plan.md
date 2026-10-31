@@ -1,6 +1,6 @@
 # Dragonroll
 
-**Genre:** 3D board game × turn-based RPG (Monopoly meets Final Fantasy)
+**Genre:** 3D board game × turn-based RPG (property-trading board game meets Final Fantasy)
 **Engine:** three.js r165, no asset files (every model, face, tune and sound is made in code)
 **Status:** v1.0.0
 
@@ -10,11 +10,11 @@
 
 Pyrrhax the Ember Wyrm sleeps in the crater of Mount Ember, in the middle of Emberwyld Isle. When he wakes, he'll burn the island. You have a few laps of the island to get ready.
 
-The island *is* the board: forty chunky tiles in a ring round the volcano, across four regions (sunny Meadowvale, mushroom-lit Whisperwood, the white sands of Glimmer Coast, snowy Frostfang Peaks). Roll two dice and hop your hero round it. Encounters and wandering monsters cut to a Final Fantasy style battle: your party on the right, the monsters on the left, a turn-order bar, Attack / Skills / Items / Defend / Run, elemental weaknesses and a Valor gauge for big Burst moves. Towns have a shop, an inn, a tavern where companions join you, and a forge that turns monster materials into gear no shop sells. Dungeons hold bosses that guard the four Dragonbane Shards. Deeds are property, Monopoly style: buy them, upgrade them, and two rival adventurers (Baron Goldbuckle and Mirabel Moonshade) pay you a toll when they land there, as you pay them on theirs.
+The island *is* the board: forty chunky tiles in a ring round the volcano, across four regions (sunny Meadowvale, mushroom-lit Whisperwood, the white sands of Glimmer Coast, snowy Frostfang Peaks). Roll two dice and hop your hero round it. Encounters and wandering monsters cut to a Final Fantasy style battle: your party on the right, the monsters on the left, a turn-order bar, Attack / Skills / Items / Defend / Run, elemental weaknesses and a Valor gauge for big Burst moves. Towns have a shop, an inn, a tavern where companions join you, and a forge that turns monster materials into gear no shop sells. Dungeons hold bosses that guard the four Dragonbane Shards. Deeds are property, property-trading board game style: buy them, upgrade them, and two rival adventurers (Baron Goldbuckle and Mirabel Moonshade) pay you a toll when they land there, as you pay them on theirs.
 
 After the last lap, passing Hearthstone wakes the dragon. Win, and you get a rank. Lose, and you get one more lap to prepare.
 
-It riffs on Monopoly and Fortune Street (laps, salaries, deeds and tolls, a free-parking fountain, a portal corner), Mario Party (stopping at shops as you pass, items that change your roll), and Final Fantasy (the battle layout, the swirl into battle, a turn-order bar from FFX, Limit-like Bursts). The tone is a bright storybook: chibi heroes on board-game pedestals, cel shading with ink outlines, nothing grim.
+It riffs on property-trading board game and property-trading board games (laps, salaries, deeds and tolls, a free-parking fountain, a portal corner), party board games (stopping at shops as you pass, items that change your roll), and Final Fantasy (the battle layout, the swirl into battle, a turn-order bar from FFX, Limit-like Bursts). The tone is a bright storybook: chibi heroes on board-game pedestals, cel shading with ink outlines, nothing grim.
 
 ## Core loop
 

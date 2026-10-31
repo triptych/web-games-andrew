@@ -34,7 +34,7 @@ whose surface velocity at the contact point (ω × r) goes into the bounce, so
 where the ball meets the flipper decides the shot. Pop bumpers and slingshots
 kick to a minimum outgoing speed.
 
-### 2. Breakout wall
+### 2. brick-breaker wall
 Five layouts (Sunset Strip, Grid Runner, Space Invader, Neon Pyramid,
 Heartbreaker), 40–59 bricks each, with 1–3 hit points (colour shows the
 remaining HP; cracks spread as they weaken). After wave 5 the layouts repeat

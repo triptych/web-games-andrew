@@ -1,6 +1,6 @@
 # Hollow Gambit
 
-**Genre:** Gothic tactics RPG: fairy-chess movement, Fire Emblem duels, gacha party
+**Genre:** Gothic tactics RPG: fairy-chess movement, turn-based tactics duels, gacha party
 **Engine:** three.js r165, no asset files
 **Status:** v1.0.0 shipped. Six chapters, sixteen summonable pieces, a bot that plays the lot.
 
@@ -8,9 +8,9 @@
 
 ## Concept
 
-A tactics game on an 8×8 board where every piece in your party moves like a different chess piece, and every capture is settled in a Fire Emblem-style duel instead of a coin flip. Your party is a handful of strange pieces you summon from the Hollow, each with its own movement, its own special ability and an elemental affinity. A Rook slides, a Knight leaps, a Grasshopper vaults a piece and lands beyond it, a Cannon fires only over a screen, a Nightrider keeps riding a knight line, a Queen goes anywhere. The dead who hold the crypts move the same way against you.
+A tactics game on an 8×8 board where every piece in your party moves like a different chess piece, and every capture is settled in a turn-based tactical combat duel instead of a coin flip. Your party is a handful of strange pieces you summon from the Hollow, each with its own movement, its own special ability and an elemental affinity. A Rook slides, a Knight leaps, a Grasshopper vaults a piece and lands beyond it, a Cannon fires only over a screen, a Nightrider keeps riding a knight line, a Queen goes anywhere. The dead who hold the crypts move the same way against you.
 
-It borrows from three places. **Chess** (and the fairy-chess pieces: grasshopper, nightrider, camel, zebra, xiangqi cannon) for the board and the moves. **Fire Emblem** for the duel: the board gives way to a side-on cut-in, the two pieces trade strikes with hit, crit and follow-up speed, and an element triangle decides who has the edge. **Gacha RPGs** for the party: summon pieces with soul shards, duplicates raise a Bond, a pity counter guarantees the rare ones, and levels carry from battle to battle.
+It borrows from three places. **Chess** (and the fairy-chess pieces: grasshopper, nightrider, camel, zebra, xiangqi cannon) for the board and the moves. **turn-based tactics** for the duel: the board gives way to a side-on cut-in, the two pieces trade strikes with hit, crit and follow-up speed, and an element triangle decides who has the edge. **Gacha RPGs** for the party: summon pieces with soul shards, duplicates raise a Bond, a pity counter guarantees the rare ones, and levels carry from battle to battle.
 
 The tone is gothic dark fantasy: candlelit crypts, a rose window behind every fight, bone-on-black and antique gold, tolling bells and a cold organ pad. Nothing is gory; the dead are chess pieces who forgot they were people.
 
@@ -134,7 +134,7 @@ You wake in the Sanctum, the one room of the old abbey that the dead cannot ente
 
 - **Board.** Instanced flagstone tiles on a gilt plinth, spiked finials around the rim, pillar-and-spire walls, chasms with a glowing void, altars with a rune circle and candles. Corner candelabra light the room and flicker; embers drift upward. Behind everything: a rose window in the chapter's glass colours and pointed-arch windows. Six lighting themes (moon, candle, flood, wind, bell, crimson).
 - **Pieces.** A gothic chess set made of lathes and boxes: eighteen silhouettes (pawn, rook, bishop, knight, king, queen, wazir, alfil, nightrider, cannon, dancer, grasshopper, witch, archbishop, empress, champion, wraith, gargoyle). A gold ring marks yours and a crimson ring the dead; an element gem floats above each head; a health bar and a greyed look mark who has acted.
-- **The duel.** A cut to a separate arena: the rose window glows in the attacker's element, braziers light the floor, both pieces stand twice their board size. Strikes lunge, sparks fly, numbers float, a crit flashes and shakes, a death drops the loser. Fire Emblem panels at the top show HP, damage, hit and crit for both sides. The view shifts the camera down to clear them on a phone.
+- **The duel.** A cut to a separate arena: the rose window glows in the attacker's element, braziers light the floor, both pieces stand twice their board size. Strikes lunge, sparks fly, numbers float, a crit flashes and shakes, a death drops the loser. turn-based tactics panels at the top show HP, damage, hit and crit for both sides. The view shifts the camera down to clear them on a phone.
 - **Sound.** All Web Audio: a cold detuned-saw pad over a bell-picked i–VI–iv–V loop in A harmonic minor (heavier, with a drum, in battle), a stone-hall reverb, bells for the phase tolls, summons and level-ups (richer for rarer pulls), steel and stone for strikes. Calm mode stops flicker, embers and flashes.
 
 ## Module overview
@@ -183,4 +183,4 @@ The bot plays the real game through `act()` (summon, party, chapter, every piece
 ## Changelog
 
 ### v1.0.0 (2026-10-24)
-- First release: six chapters, sixteen summonable pieces with unique movement, abilities and elements, Fire Emblem duels with a cut-in arena, a summoning altar with pity and Bond, XP and levels, a gothic three.js board, a bot that plays the campaign, and the sim and browser harnesses.
+- First release: six chapters, sixteen summonable pieces with unique movement, abilities and elements, turn-based tactics duels with a cut-in arena, a summoning altar with pity and Bond, XP and levels, a gothic three.js board, a bot that plays the campaign, and the sim and browser harnesses.

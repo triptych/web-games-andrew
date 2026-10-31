@@ -1,6 +1,6 @@
 # Kaiju Roll
 
-**Genre:** arcade destruction: Katamari Damacy × Breakout × Rampage
+**Genre:** arcade destruction: rolling-growth arcade destruction
 **Engine:** three.js r165, no asset files (every model, texture, effect, sound and tune is made in code)
 **Status:** v1.3.0 complete; balance tuned by a bot, not yet by hand
 
@@ -8,7 +8,7 @@
 
 ## Concept
 
-You are a kaiju who has curled into a ball. The ball never stops rolling, so a building is a brick and you are the ball: steer to curve your path, bounce off a tower, and watch its floors fall away one at a time. Everything small that you roll over, people, cars, trees, rubble, sticks to you and makes you bigger (Katamari), a bigger ball hits harder and finally rolls straight over houses, and the army (tanks, helicopters, bombers) wants you stopped (Rampage). The cities are toy towns: pastel walls, teapots and donuts on the roofs, balloons on the chimneys, a ferris wheel, a river with red suspension bridges.
+You are a kaiju who has curled into a ball. The ball never stops rolling, so a building is a brick and you are the ball: steer to curve your path, bounce off a tower, and watch its floors fall away one at a time. Everything small that you roll over, people, cars, trees, rubble, sticks to you and makes you bigger (rolling growth), a bigger ball hits harder and finally rolls straight over houses, and the army (tanks, helicopters, bombers) wants you stopped (city destruction). The cities are toy towns: pastel walls, teapots and donuts on the roofs, balloons on the chimneys, a ferris wheel, a river with red suspension bridges.
 
 The tone is cheerful destruction: a round green monster with a toothy grin, dust puffs, a marimba tune with an oompah bass, and a fanfare for every city. Nobody gets hurt on screen; the people run away squeaking.
 
@@ -20,7 +20,7 @@ Pick a gift, read the city card, roll. Flatten 80–88% of a city's strength (th
 
 ### The roll
 - Steering is acceleration (30 u/s²) on the held direction; speed is capped (13 u/s plus 0.55 per unit of radius above 1.2) and decays slowly while coasting.
-- A **minimum speed** (3.8 u/s) is always kept along the last heading: the ball never stops, like a breakout ball.
+- A **minimum speed** (3.8 u/s) is always kept along the last heading: the ball never stops, with a constant minimum speed.
 - Shallow water (the river, unless there is bridge deck under you) slows the ball to 78% of its top speed.
 - The sea wall bounces the ball back (92% of the speed).
 

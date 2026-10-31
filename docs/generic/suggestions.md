@@ -10,7 +10,7 @@
 
 ## Arcade / Action
 
-4. **Breakout / Arkanoid** — Brick-breaker with power-ups, multiple levels, and special brick types. Classic arcade genre not yet in the collection.
+4. **brick-breaker / Arkanoid** — Brick-breaker with power-ups, multiple levels, and special brick types. Classic arcade genre not yet in the collection.
 
 5. **Snake Evolution** — Classic snake but with power-ups, obstacles, enemy snakes, and a level progression system.
 
@@ -39,4 +39,4 @@
 - ~~**Nonogram / Picross**~~ — Grid-fill logic puzzles revealing pixel art. Completed as **game-017** (Pixel Picross) on 2026-04-01.
 - ~~**Sokoban-style Crate Pusher**~~ — Grid-based box-pushing puzzles. Completed as **game-016** (Crate Pusher) on 2026-03-31.
 - ~~**Idle Clicker / Cookie Clicker Clone**~~ — Click to produce a resource, buy upgrades to automate and multiply production. Completed (dungeon-themed remix) as **game-034** (Idle Delve) on 2026-09-03 — auto-battling heroes delve while away, gold spent on Town upgrades between runs.
-- ~~**2D Platformer**~~ — Side-scrolling platformer with levels, enemies and collectibles. Completed as **game-042** (Popgun Pip) on 2026-09-24 — 25 procedural levels with Metroid-style gadget gates.
+- ~~**2D Platformer**~~ — Side-scrolling platformer with levels, enemies and collectibles. Completed as **game-042** (Popgun Pip) on 2026-09-24 — 25 procedural levels with gadget-gated exploration.

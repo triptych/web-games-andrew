@@ -1,6 +1,6 @@
 # GLIMMERGLEN — Game Design Document
 
-**Genre:** cozy village builder / farming sim crossed with a top-down Zelda-style adventure and turn-based battles
+**Genre:** cozy village builder / farming sim crossed with a top-down item-gated top-down adventure and turn-based battles
 **Tech:** vanilla HTML / CSS / ES modules, Canvas 2D for the world, DOM for menus, Web Audio. No libraries, no build step, **no asset files**
 **Status:** implemented (v1, 2026-09-25). Verification: see [dev/README.md](dev/README.md).
 **Target:** phones first (portrait and landscape, one or two thumbs), keyboard equally supported
@@ -29,7 +29,7 @@ Heart Shard opens. Bring all five home and the Heartwood blooms.
 
 | Borrowed from | What it gives GLIMMERGLEN |
 |---|---|
-| **Stardew Valley** | days and seasons, crops that need watering, animals, foraging, mining, a shipping bin, cooking, villagers with hearts, gifts and stories |
+| **cozy farming sims** | days and seasons, crops that need watering, animals, foraging, mining, a shipping bin, cooking, villagers with hearts, gifts and stories |
 | **Zelda** | a hand-made-feeling overworld cut into regions, each region's dungeon holding a relic that opens the **next** region's gate, hidden secrets, heart containers |
 | **Village builders** | lots to clear and build on, applicants who need a specific building, a mayor, a village level, a job board of quests you can do yourself **or** delegate |
 | **JRPGs** | turn-based battles with telegraphed enemy intents, elements, skills, a companion |

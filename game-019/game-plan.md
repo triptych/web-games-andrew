@@ -1,4 +1,4 @@
-# Synthwave Breakout
+# Synthwave brick-breaker
 
 **Genre:** Arcade / Brick Breaker
 **Engine:** Phaser 4.0.0

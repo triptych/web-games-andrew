@@ -1,6 +1,6 @@
 # INTRUDER ALERT '84
 
-**Genre:** Arcade bullet heaven (survivors-like) in a Berzerk maze
+**Genre:** Arcade bullet heaven (bullet-heaven survivor) in a electrified maze
 **Engine:** Vanilla JS: Canvas 2D, no asset files
 **Status:** v1.0.0
 
@@ -10,9 +10,9 @@
 
 A neon, 16-bit reimagining of Atari's Berzerk as a bullet-heaven survivor: your laser fires on its own while killer robot hordes pour into an electrified maze, you scoop up data chips, stack upgrades, and outrun the grinning bouncer.
 
-Minute to minute you only *move*: thread between robots, stay off the walls, sweep up the chips your laser leaves behind, and dash through trouble. The aiming is done for you (Vampire Survivors), the room is a Berzerk room (posts, one wall each, four doors, robots that steer round the electrified walls, and fry if you knock them into one), and the look is what Berzerk might have been on a 1990 16-bit cabinet: pixel sprites, a synthwave grid floor, neon bloom, scanlines. The tone is arcade-loud and a little silly — the robots still shout at you.
+Minute to minute you only *move*: thread between robots, stay off the walls, sweep up the chips your laser leaves behind, and dash through trouble. The aiming is done for you (auto-aiming bullet-heaven games), the room is a electrified maze room (posts, one wall each, four doors, robots that steer round the electrified walls, and fry if you knock them into one), and the look is what Berzerk might have been on a 1990 16-bit cabinet: pixel sprites, a synthwave grid floor, neon bloom, scanlines. The tone is arcade-loud and a little silly — the robots still shout at you.
 
-Riffs on: *Berzerk* (1980) and its *Frenzy* sequel, *Vampire Survivors*, *Robotron: 2084*, *Smash TV*.
+Riffs on: *Berzerk* (1980) and its *Frenzy* sequel, *auto-aiming bullet-heaven games*, *Robotron: 2084*, *Smash TV*.
 
 ## Core loop
 
@@ -36,7 +36,7 @@ All numbers live in [js/config.js](js/config.js); the rules in [js/sim/game.js](
 
 ### The maze
 - 32 × 18 room. Outer wall with a 3.2-unit door in the middle of each side; the player can't leave.
-- Berzerk's algorithm: a 5 × 3 cell grid has 8 interior posts; each gets one wall segment a cell long in a seeded random direction. A direction that would touch a keep-clear circle (the player) is skipped.
+- The maze algorithm: a 5 × 3 cell grid has 8 interior posts; each gets one wall segment a cell long in a seeded random direction. A direction that would touch a keep-clear circle (the player) is skipped.
 - A room in which the player can't reach all four doors (flood fill with a player-sized body) is thrown away and rolled again ([maze.js](js/sim/maze.js)); simtest proves it on 200 seeds.
 - Inner walls are **electrified**: touching one costs `WALL.touch` HP (12) and knocks you away. Robots steer round them (straight at you when the way is clear, otherwise down a flood-fill of walking distance from you, `js/sim/nav.js`), so they only touch one when knocked into it (laser hits, pulse, the crowd) — then they take `WALL.robotTouch` (15) every 0.5 s and drones (10 HP) fry outright. Outer walls are solid but harmless to robots.
 
@@ -89,7 +89,7 @@ HP 0 → "Game Over". Five sectors survived → "You Escaped!" with the bonus.
 
 ## Story
 
-Endless in spirit, finite in v1: the humanoid has broken into the robot complex and has to survive five sector purges to reach the exit. The robots' voice lines are Berzerk's own spirit — "Intruder alert!", "Chicken! Fight like a robot!" — spoken by the browser's speech synthesis at the lowest pitch it allows.
+Endless in spirit, finite in v1: the humanoid has broken into the robot complex and has to survive five sector purges to reach the exit. The robots' voice lines are classic arcade taunts — "Intruder alert!", "Chicken! Fight like a robot!" — spoken by the browser's speech synthesis at the lowest pitch it allows.
 
 ## Controls
 
@@ -104,7 +104,7 @@ Endless in spirit, finite in v1: the humanoid has broken into the robot complex 
 
 - **Screen:** a 512 × 288 buffer (16 px per unit), smoothing off, scaled to fit with nearest-neighbour. Landscape shows the whole room; **portrait phones** show the room's full height but 14 units of its width, panned after the player, with arrows on the edges for robots off camera, and leave the lower screen to the thumbs.
 - **Palette:** midnight floor in checkered 16 px tiles with a dither and a synthwave grid (violet, brighter every 4 tiles); electric-blue walls with cyan edges and a white-hot core; magenta door frames; a magenta-to-cyan neon frame round the room. Hero green, drones amber, hunters red, gunners violet, brutes pink, chips gold, lasers hot pink with a white core, bolts orange.
-- **Sprites:** string maps + palettes baked once ([js/view/sprites.js](js/view/sprites.js)): the Berzerk humanoid (2-frame walk), the Berzerk robot with a scanning eye (2 frames), a gunner with antenna and arm cannon, the Grinner face (grin / cackle). White silhouettes for hit flashes. See `dev/gallery.html`.
+- **Sprites:** string maps + palettes baked once ([js/view/sprites.js](js/view/sprites.js)): the player sprite (2-frame walk), the robot sprite with a scanning eye (2 frames), a gunner with antenna and arm cannon, the Grinner face (grin / cackle). White silhouettes for hit flashes. See `dev/gallery.html`.
 - **Effects:** pixel-particle bursts, rings (capped at 64), dash afterimages, wall crackle, screen shake (off under `prefers-reduced-motion`), one white flash per purge, a red flash on hits.
 - **CRT:** bloom computed *inside* the buffer (half- and quarter-size copies added back with `lighter`), scanlines every 3 screen px, a vignette.
 - **UI:** Press Start 2P (monospace fallback), a chrome-and-sunset gradient logo with a cyan '84, magenta neon buttons, three level-up cards (side by side on short landscape phones).
@@ -140,7 +140,7 @@ The bot steers by a potential field (robots, bolts, walls, edges and the Grinner
 ## Open questions / next steps
 
 - A human pass on real hardware: the bot is not a person, and SwiftShader is not a GPU. The win rate may want loosening for people.
-- More of a survivors-like's long tail: weapon evolutions (e.g. Split Beam + Piercer → a sweeping beam), more robot types (Berzerk's later colour waves), elites and a boss for the final purge, an endless mode after the escape.
+- More of a bullet-heaven survivor's long tail: weapon evolutions (e.g. Split Beam + Piercer → a sweeping beam), more robot types (later robot colour waves), elites and a boss for the final purge, an endless mode after the escape.
 - Persistent unlocks between runs (a "credits" meta-currency), a run seed to share.
 - A low-effects setting (`view.fx`) for weak phones, exposed in Settings.
 - The portrait camera hides half the room; an option to see it all (tiny) might suit some players.
@@ -148,4 +148,4 @@ The bot steers by a potential field (robots, bolts, walls, edges and the Grinner
 ## Changelog
 
 ### v1.0.0 (2026-10-28)
-- First release: an auto-firing laser in a Berzerk maze with electrified walls; four robot types and the Grinner; chips, levels and ten upgrades; five one-minute sectors with purges; a 16-bit neon look with bloom and scanlines, a portrait camera for phones; a synthwave sequencer and a robot voice; keyboard, gamepad and touch; save, continue and best score; sim and browser harnesses.
+- First release: an auto-firing laser in a electrified maze with electrified walls; four robot types and the Grinner; chips, levels and ten upgrades; five one-minute sectors with purges; a 16-bit neon look with bloom and scanlines, a portrait camera for phones; a synthwave sequencer and a robot voice; keyboard, gamepad and touch; save, continue and best score; sim and browser harnesses.

@@ -1,7 +1,7 @@
-# NetHack-Style Roguelike Game Plan
+# Procedural Roguelike Dungeon Crawler Game Plan
 
 ## Game Overview
-A browser-based roguelike dungeon crawler inspired by NetHack, featuring procedurally generated dungeons, turn-based combat, permanent death, and ASCII/tile-based graphics.
+A browser-based roguelike dungeon crawler with procedural dungeons, turn-based combat, featuring procedurally generated dungeons, turn-based combat, permanent death, and ASCII/tile-based graphics.
 
 ## Core Features
 
@@ -185,7 +185,7 @@ class MessageLog { }    // Message history
 - **No Grinding**: XP balanced to discourage excessive farming
 
 ## Inspirations & References
-- NetHack (classic roguelike depth)
+- classic roguelike depth
 - Brogue (elegant simplicity)
 - Dungeon Crawl Stone Soup (modern roguelike design)
 - Pixel Dungeon (mobile-friendly interface)

@@ -9,7 +9,7 @@
 
 ## Concept
 
-A top-down Gauntlet-style dungeon crawler. Pick one of four classes, navigate
+A top-down arcade dungeon-crawler dungeon crawler. Pick one of four classes, navigate
 retro 3D mazes, and blast endless monsters streaming out of nests. Grab food to
 stay alive, snatch treasure for score, and hunt down keys to open doors that
 gate the path to the level exit. Descend through progressively nastier levels
@@ -200,7 +200,7 @@ noise for an 8-bit arcade feel.
       provably gated behind its doors).
 - [x] How many levels total before victory? **3** (`maze.LEVELS.length`, exported
       as `FINAL_LEVEL`). Each adds a nest, a key/door, and grid size.
-- [ ] Should treasure/keys also be destructible by stray shots (Gauntlet-style)?
+- [ ] Should treasure/keys also be destructible by stray shots (arcade dungeon-crawler)?
 - [ ] Multiplayer / co-op, or single-player only?
 - [x] Movement: **continuous 8-direction** (Phase 2).
 

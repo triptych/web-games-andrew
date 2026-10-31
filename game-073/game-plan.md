@@ -1,6 +1,6 @@
 # RUNEBORE — The Delve of Old Thimble
 
-**Genre:** Mining / exploration with a full story (Motherload-style digging, high fantasy)
+**Genre:** Mining / exploration with a full story (deep-earth mining digging, high fantasy)
 **Engine:** three.js r165 (ES modules via import map); everything else vanilla JS, DOM and Web Audio
 **Target:** any screen from a 360 px phone (portrait or landscape) to a desktop monitor
 **Status:** Complete — v1.0.3

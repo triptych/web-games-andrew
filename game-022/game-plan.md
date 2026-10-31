@@ -1,6 +1,6 @@
 # Depths Unknown
 
-**Genre:** 2D Mining / Progression RPG (Motherload-style)
+**Genre:** 2D Mining / Progression RPG (deep-earth mining)
 **Engine:** Phaser 4.0.0 (ES6 modules)
 **Target Resolution:** 480 × 720 (portrait, mobile-first)
 **Status:** Playable, v1.4 — Phase 1 done, plus the ending from Phase 3; Phase 2 polish and the rest of Phase 3 open

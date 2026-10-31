@@ -4,7 +4,7 @@
 
 The collection just reached 58 games. Each new one gets a statue in the [Garden of Games](https://triptych.github.io/web-games-andrew/), the walkable three.js island that serves as the launcher. The newest games stand closest to the hub, so these ten are the first ones you'll pass.
 
-This batch covers a lot of ground: a 100-floor roguelike, a match-3 RPG, a gacha battler, a night drive with no goal, a recreation of a classic browser RPG, a DOOM-like, a helicopter bullet-hell, a castle-defence game, a twin-stick bug shooter and a cosy fruit puzzle.
+This batch covers a lot of ground: a 100-floor roguelike, a match-3 RPG, a gacha battler, a night drive with no goal, a recreation of a classic browser RPG, a first-person shooter, a helicopter bullet-hell, a castle-defence game, a twin-stick bug shooter and a cosy fruit puzzle.
 
 They all follow the same rules: no asset files, and every model, texture, icon and piece of music is made in code. Every game plays on a phone as well as on a desktop. Each one also has a `dev/` folder where a bot plays the game headlessly to tune its difficulty, and a Playwright harness that runs it in real Chromium on desktop and on touch-only phones.
 
@@ -26,7 +26,7 @@ The bot in `dev/` plays all 100 floors with each hero to balance the difficulty.
 
 **Match-3 fantasy RPG with an idle village · three.js**
 
-A smudge of living ink has scattered the thirteen greatest books of the Great Library of Lumenhall. You fight monsters Puzzle Quest-style on a shared 8×8 board of 3D gems. Matching gems gives you mana, damage, gold and XP, and every gem you take is one the monster can't have. Matches of four or five make Line gems, Bombs and Prisms. There are 19 spells, potions you brew yourself, and procedural gear.
+A smudge of living ink has scattered the thirteen greatest books of the Great Library of Lumenhall. You fight monsters match-three RPG on a shared 8×8 board of 3D gems. Matching gems gives you mana, damage, gold and XP, and every gem you take is one the monster can't have. Matches of four or five make Line gems, Bombs and Prisms. There are 19 spells, potions you brew yourself, and procedural gear.
 
 Back home, a floating-island village rebuilds itself in real time, even while the game is closed, across 13 buildings. Each book you return grants a permanent bonus, and the Library heals as the books come home. Professor Hootsworth the owl keeps the story cheerful.
 
@@ -34,7 +34,7 @@ Back home, a floating-island village rebuilds itself in real time, even while th
 
 **Gacha auto-battler with an idle citadel · three.js**
 
-Every hero in Sigilborn is **procedurally generated**: race, class, element, rarity, stat rolls with a grade, traits, a skill kit with generated names, a painted anime face and a chibi 3D body. One in fifty is a Radiant. Battles use Summoners War-style attack-bar turns, so speed is a stat you build up, and you can let them play out on auto or pick skills and targets yourself.
+Every hero in Sigilborn is **procedurally generated**: race, class, element, rarity, stat rolls with a grade, traits, a skill kit with generated names, a painted anime face and a chibi 3D body. One in fifty is a Radiant. Battles use attack-bar turn order attack-bar turns, so speed is a stat you build up, and you can let them play out on auto or pick skills and targets yourself.
 
 You play the Overlord, made in a deep character creator, and you have a lot to do: eight campaign regions with bosses, elemental Rifts, the roguelite Endless Spire and an Arena of rival Overlords. Between fights your floating citadel keeps working, with a Treasury, a mine you can dig in 3D, a real-time farm and kitchen, a forge, and expeditions. A progression bot plays three weeks of the game to tune the curve.
 
@@ -48,7 +48,7 @@ Every sign and tail light reflects in the wet road, and the frame is rendered at
 
 ## 053 · [Legend of the Jade Wyrm](https://triptych.github.io/web-games-andrew/game-053/)
 
-**Legend of the Green Dragon-style RPG · three.js**
+**classic browser RPG RPG · three.js**
 
 A tribute to the old LoGD browser games that recreates the whole online experience with no server. You get daily forest fights, beat your master to level up, and face the Jade Wyrm at level 15. Kill it and you start over at level 1 with a permanent gift. The village has everything the original had, from the inn and the bard to marriage, guilds and raven mail.
 
@@ -56,11 +56,11 @@ The clever part: **the other players are simulated**. Sixty of them, each with a
 
 ## 054 · [Pale Engine](https://triptych.github.io/web-games-andrew/game-054/)
 
-**DOOM-style FPS with procedural levels and monsters · three.js**
+**first-person shooter with procedural levels and monsters · three.js**
 
 It's Io, in 2291. The station's Pale Engine has drilled through the bottom of everything, and you are the last Warden, with an AI called VESPER in your ear that has its own reasons for wanting you at the bottom. Ten levels in three episodes are generated from a seed, and a bot walks every level through the real collision code before you play it.
 
-Each run rolls its own monster species from ten archetypes. They follow you, fight each other, stagger, and can be finished off with the blade for health. There are nine weapons up to a Singularity Cannon, DOOM's inverted-colour invulnerability, baked lightmaps lit by every muzzle flash, an industrial-metal score, an automap, par times and an Endless Descent mode.
+Each run rolls its own monster species from ten archetypes. They follow you, fight each other, stagger, and can be finished off with the blade for health. There are nine weapons up to a Singularity Cannon, inverted-colour invulnerability power-up, baked lightmaps lit by every muzzle flash, an industrial-metal score, an automap, par times and an Endless Descent mode.
 
 ## 055 · [Rotorstorm](https://triptych.github.io/web-games-andrew/game-055/)
 
@@ -72,7 +72,7 @@ Six multi-phase bosses fight with named spell cards. You graze bullets to charge
 
 ## 056 · [Keepfire](https://triptych.github.io/web-games-andrew/game-056/)
 
-**Castle defence × Plants vs. Zombies × incremental · three.js**
+**castle-defence incremental strategy · three.js**
 
 Aldmere's last keep starts as one tower with one archer. Procedurally generated monsters march down five lanes, and every kill pays gold that you spend mid-wave on your party: alchemists, knights, pyromancers, a frost witch, dwarf bombardiers, a ballista, a druid, a storm caller and more.
 
@@ -82,7 +82,7 @@ The best part is watching the **castle model rebuild itself from your upgrades**
 
 **Twin-stick bug-swarm shooter · three.js**
 
-Think Enter the Gungeon meets Alien Breed. A black-site base under the ice of Erebus has gone silent with the President's daughter inside, and one Colonial Marine goes down through five procedurally generated sectors to get her out. Rooms seal behind you as **swarms of hundreds** of bugs pour out of the vents. Each bug type is one instanced draw call, with legs and wings animated in the vertex shader.
+Think a top-down twin-stick shooter with bug swarms. A black-site base under the ice of Erebus has gone silent with the President's daughter inside, and one Colonial Marine goes down through five procedurally generated sectors to get her out. Rooms seal behind you as **swarms of hundreds** of bugs pour out of the vents. Each bug type is one instanced draw call, with legs and wings animated in the vertex shader.
 
 You can dodge-roll, throw grenades, erase bullets with the Shock Pulse, and carry four of nine guns, upgraded up to Mk III. Five bosses lead to a timed escape. It plays with keyboard and mouse, a gamepad, or touch twin-sticks.
 
@@ -104,8 +104,8 @@ Full jars earn power-ups like the Honey Dipper and Rainbow Wings, and trails of 
 | 050 | Tomebound | Match-3 RPG + idle village | three.js |
 | 051 | Sigilborn | Gacha auto-battler + idle citadel | three.js |
 | 052 | Nightline | Synthwave night drive | three.js |
-| 053 | Legend of the Jade Wyrm | LoGD-style RPG | three.js |
-| 054 | Pale Engine | DOOM-style FPS | three.js |
+| 053 | Legend of the Jade Wyrm | classic browser RPG RPG | three.js |
+| 054 | Pale Engine | first-person shooter | three.js |
 | 055 | Rotorstorm | Helicopter bullet-hell | Vanilla JS + WebGL2 |
 | 056 | Keepfire | Castle defence / lanes / incremental | three.js |
 | 057 | Hivebreaker | Twin-stick swarm shooter | three.js |

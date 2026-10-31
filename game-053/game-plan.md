@@ -21,7 +21,7 @@ The presentation keeps the text-first design (every interaction is a page of pro
 
 1. **Authentic loop.** Ten forest fights a day, one master challenge, three PvP attacks, healers that cost more each level, death that takes your gold, level 15 then the Wyrm, Wyrm kills that reset you with permanent bonuses and a new title.
 2. **A crowd that feels real.** People log in and out, greet you by name, ask newbie questions, give tips, brag, react to *your* news, attack you if you sleep in the fields, and answer your mail. Tuned so the square is lively but not noisy.
-3. **Text you want to read.** LoGD-style backtick colour codes (`` `@ `` green, `` `$ `` red, `` `^ `` yellow…) in narration *and* chat, original prose for every location, about 100 creatures each with a weapon and a death line, 24 forest events.
+3. **Text you want to read.** classic browser RPG backtick colour codes (`` `@ `` green, `` `$ `` red, `` `^ `` yellow…) in narration *and* chat, original prose for every location, about 100 creatures each with a weapon and a death line, 24 forest events.
 4. **Modern sensibilities.** Auto-fight, animated combat with damage numbers, a stat panel that always shows what matters, toasts, deeds (achievements), a choice of day pacing, he/she/they, flirting with anyone, three save slots, file export/import, keyboard and touch parity, reduced motion, low-power mode.
 
 ---

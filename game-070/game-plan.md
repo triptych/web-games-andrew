@@ -1,6 +1,6 @@
 # PHOSPHOR PATROL
 
-**Genre:** Arcade: side-scrolling planet-defence shooter (Defender), with Asteroids meteor storms and Galaga dart squadrons
+**Genre:** Arcade: side-scrolling planet-defence shooter (Defender), with Asteroids meteor storms and diving formation shooter dart squadrons
 **Engine:** three.js r165 (ES modules, import map), Web Audio
 **Render:** a vector monitor. Every object is a list of glowing beam segments drawn by one instanced shader, with phosphor persistence, bloom and a curved-glass pass
 **Target:** a 4:3 monitor (400 × 300 logical units) fitted into any window; keyboard, gamepad or a touch control deck
@@ -81,7 +81,7 @@ On a portrait phone the monitor sits at the top and the control deck fills the s
 | HIVE | 1 000 | a slow tumbling wireframe pod. Shoot it and it bursts into a swarm of stingers |
 | STINGER | 150 | small, fast, flock at you, overshoot and swing back, shoot forward |
 | HUNTER | 200 | appears when a wave drags on: matches your speed, closes in and fires constantly |
-| DART | 100 (200 diving) | Galaga-style squadrons that loop in from the top of the sky, hold formation above you and peel off to dive. Destroy the whole squadron for 1 000 |
+| DART | 100 (200 diving) | diving formation-shooter squadrons that loop in from the top of the sky, hold formation above you and peel off to dive. Destroy the whole squadron for 1 000 |
 | METEOR | 20 / 50 / 100 | Asteroids-style: big tumbling rocks split into two medium, then two small. A meteor that hits the ground kills any colonists nearby |
 
 Enemies warp in over a short shimmer (harmless until solid), in batches through the wave. A wave is cleared when every enemy in it has been destroyed (hunters leave when the wave ends).

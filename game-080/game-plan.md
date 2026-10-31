@@ -1,6 +1,6 @@
 # EMBERLEAF — The Lantern Library
 
-**Genre:** Cozy top-down adventure with Metroid-style progression and gentle turn-based battles
+**Genre:** Cozy top-down adventure with ability-gated exploration and gentle turn-based battles
 **Engine:** Vanilla JS: Canvas 2D for the world and battles, DOM and CSS for every menu, Web Audio for every sound and note. No libraries, no asset files.
 **Target:** any screen from a 360 px phone (portrait or landscape) to a desktop monitor; keyboard, gamepad or touch.
 **Status:** v1.2.1
@@ -11,9 +11,9 @@
 
 You are Vellumvale's new magical librarian. On your first day the Mayor hands you the key to the Lantern Library and you find it empty: on the night it fell, all twelve of its grimoires flew out of the windows like starlings and scattered over the kingdom, and some of them went a little wild. In the cold hearth of the study lives **Wick**, a fussy, kind fire sprite who can't remember anything from before.
 
-A true librarian can use the magic of any book in their library. So each grimoire you bring home lends you a power that opens more of the world: Metroid-style, most places can't be reached until you hold the right book. You calm the runaway books you meet in gentle squabbles, where nobody is hurt and every foe settles back into a book for your shelves. As the grimoires return to their lecterns the library wakes up lamp by lamp, and Wick starts to remember: she was Marigold Ashby, the librarian before you, and her body lies under a curse in the Undercroft, beneath the Rotunda floor.
+A true librarian can use the magic of any book in their library. So each grimoire you bring home lends you a power that opens more of the world: ability-gated exploration-style, most places can't be reached until you hold the right book. You calm the runaway books you meet in gentle squabbles, where nobody is hurt and every foe settles back into a book for your shelves. As the grimoires return to their lecterns the library wakes up lamp by lamp, and Wick starts to remember: she was Marigold Ashby, the librarian before you, and her body lies under a curse in the Undercroft, beneath the Rotunda floor.
 
-Riffs on: *Zelda: Link's Awakening* (a world opened by items), *Metroid* (gating), *Stardew Valley* and *A Short Hike* (tone), *Earthbound* and *Undertale* (battles you win by understanding, not hurting).
+Riffs on: *Zelda: Link's Awakening* (a world opened by items), *ability-gated exploration* (gating), *cozy farming sims* and *A Short Hike* (tone), *Earthbound* and *Undertale* (battles you win by understanding, not hurting).
 
 ## Core loop
 
@@ -47,7 +47,7 @@ A 9 × 7 grid of zones, each 24 × 16 tiles, one big continuous map of 216 × 11
 
 **Connections** join neighbouring zones: a four-tile gap in the shared border, a whole open edge, or a gap filled with a lock. The river between the meadows and Mousehold is drawn as rapids (never passable), with calm-water gaps that the Frost Psalter freezes, so swimming can't skip it.
 
-**Pockets** are 5 × 5 enclosures with a chest, closed by one lock: the Metroid backtracking that hides most Quilt Patches and Silver Inkwells.
+**Pockets** are 5 × 5 enclosures with a chest, closed by one lock: the ability-gated exploration backtracking that hides most Quilt Patches and Silver Inkwells.
 
 **Interiors and dungeons** are drawn as text ([js/sim/data/maps.js](js/sim/data/maps.js)): the library and 29 other rooms (shops, houses, inns, the throne room, a mill, a lodge, huts); and thirteen dungeons, each with a key chest, a locked door, locks of the powers you already have, foes, chests and a guardian.
 

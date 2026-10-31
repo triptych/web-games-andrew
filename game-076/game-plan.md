@@ -1,6 +1,6 @@
 # TALEWRIGHT — The Atelier of Unwritten Worlds
 
-**Genre:** A game about making games. An RPG Maker-style editor that is itself a story game with chapters, quests, achievements, a currency and unlockable assets.
+**Genre:** A game about making games. An event-driven RPG editor editor that is itself a story game with chapters, quests, achievements, a currency and unlockable assets.
 **Engine:** none. Vanilla HTML, CSS and JavaScript. Canvas 2D for maps, sprites and the RPG runtime, DOM and CSS for the editor, Web Audio for every sound and note.
 **Target:** desktop first (it is an editor), fully usable on a tablet and workable on a phone; keyboard, mouse, touch and gamepad (in the runtime).
 **Status:** v1.0.0. Every system below is built. Open questions are at the end.
@@ -11,7 +11,7 @@ No image or audio files. Every tile, character, monster, icon, window, song and 
 
 ## 1. Concept
 
-RPG Maker taught a generation to make games by giving them a tile palette, an event editor and a database. It is also a blank page, and a blank page is the hardest thing in the world to face.
+Tile palettes, event editors and databases made game creation accessible to make games by giving them a tile palette, an event editor and a database. It is also a blank page, and a blank page is the hardest thing in the world to face.
 
 **TALEWRIGHT** turns learning the tool into the game. You are the new apprentice at the **Atelier of Unwritten Worlds**, the workshop at the edge of the world where every story was once made. Something called **the Blot**, a grey nothing, has soaked into the Atelier and scattered its tools. Your mentor **Quillon**, an old enchanted quill, teaches you to use each tool as it comes back, and every tool you master pushes the Blot back. By the end you have built a complete RPG of your own, and you can export it as one HTML file that runs anywhere.
 
@@ -503,6 +503,6 @@ Available from Open at any time (it is the Atelier's own example; opening it is 
 | 9 | Harnesses, repo integration (launcher, README, status, changelog, learnings) | done |
 
 ## 15. Open questions
-- **Autotiles.** Edge groups give shorelines and wall tops cheaply, but not RPG Maker's 47-piece autotile corners. Worth it later for water and cliffs.
+- **Autotiles.** Edge groups give shorelines and wall tops cheaply, but not 47-piece autotile corners. Worth it later for water and cliffs.
 - **Common events and plugins.** Deliberately out of v1. A "Common Events" tab (reusable command lists called from events) is the most-wanted next feature.
 - **Image import.** Everything is procedural so exports stay tiny and self-contained; importing PNG tilesets as data URLs would be easy but would bloat saves past `localStorage` limits.

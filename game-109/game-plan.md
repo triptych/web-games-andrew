@@ -1,6 +1,6 @@
 # STARBLAZER '86
 
-**Genre:** Vertical arcade shooter (a shmup in the manner of Galaga, 1942 and Raiden)
+**Genre:** Vertical arcade shooter (a shmup in the manner of diving formation shooter, 1942 and Raiden)
 **Engine:** Vanilla JS: Canvas 2D, no asset files
 **Status:** v1.3.0 complete (balance is bot-derived; see Open questions)
 
@@ -8,7 +8,7 @@
 
 ## Concept
 
-An 8-bit space shooter as a 1986 console cabinet would have shipped it: a 224×288 pixel screen, a fighter you steer with a thumb and a stream of shots, and waves of enemies that get stranger and meaner the longer you last. The point of the game is *feel*: a Galaga grid that sways and dives at you, a boss that fills the screen with bullets and then comes apart in a rainbow chain of explosions, medals that ring up in pitch, and a chiptune that picks up speed when the boss arrives.
+An 8-bit space shooter as a 1986 console cabinet would have shipped it: a 224×288 pixel screen, a fighter you steer with a thumb and a stream of shots, and waves of enemies that get stranger and meaner the longer you last. The point of the game is *feel*: a diving formation shooter grid that sways and dives at you, a boss that fills the screen with bullets and then comes apart in a rainbow chain of explosions, medals that ring up in pitch, and a chiptune that picks up speed when the boss arrives.
 
 Tone: loud, bright, a little silly, and fair. Nothing is a surprise: bonus stages announce that nothing shoots, bosses announce themselves with a warning, the death-ray draws a line before it fires.
 
@@ -57,7 +57,7 @@ Each kill within 1.5 s of the last raises the chain; every six kills in a row ad
 |---|---|---|---|---|
 | Drone | 1, +1 per 10 waves | 100 | Bézier swoops, V waves, bonus stages | an aimed shot (2) |
 | Weaver | 1, +1 per 10 | 120 | pincers from both edges | straight down (2) |
-| Striker | 1, +1 per 6 | 150 | the Galaga grid: flies in, sways, dives at you, wraps round and returns | aimed shots (3) |
+| Striker | 1, +1 per 6 | 150 | the diving formation shooter grid: flies in, sways, dives at you, wraps round and returns | aimed shots (3) |
 | Saucer | 10, +2 per 3 | 300 | strafes the full width | two aimed shots (6) |
 | Dart | 1 | 150 | steers a little toward you, then runs straight | none |
 | Cruiser | 90, +15 per 3 | 800 | hangs and drifts for 17 s; carries a capsule | a three-way fan (8) |
@@ -68,7 +68,7 @@ Each kill within 1.5 s of the last raises the chain; every six kills in a row ad
 Fire rate scales with the wave (gaps divide by 1 + 0.075 × wave) and so does bullet speed (up to +85%). At most 90 enemy bullets exist at once.
 
 ### Waves
-A wave is a few **pieces**, each a list of timed spawn orders, drawn by weight from those unlocked: lines (1), V and pincer (2), the Galaga grid (3), saucers and the march (6), darts (7), cruisers (8), carriers (11), mines (12). The first wave to use a piece is built around it. Two pieces up to wave 7, three to 15, four to 25, five after. At most one *heavy* piece (grid, march, cruiser, carrier) a wave until wave 20. Wave 1 has nothing that shoots. Every fourth wave (4, 9, 14 ...) is a **bonus stage**: five groups of eight drones on five different curves, nothing fires. Every fifth (5, 10, 15 ...) is a **boss**.
+A wave is a few **pieces**, each a list of timed spawn orders, drawn by weight from those unlocked: lines (1), V and pincer (2), the diving formation shooter grid (3), saucers and the march (6), darts (7), cruisers (8), carriers (11), mines (12). The first wave to use a piece is built around it. Two pieces up to wave 7, three to 15, four to 25, five after. At most one *heavy* piece (grid, march, cruiser, carrier) a wave until wave 20. Wave 1 has nothing that shoots. Every fourth wave (4, 9, 14 ...) is a **bonus stage**: five groups of eight drones on five different curves, nothing fires. Every fifth (5, 10, 15 ...) is a **boss**.
 
 ### Bosses
 Each enters untouchable over 3 s, then fights in three phases keyed on its health. A round is all three; each round after the first has 50% more health and fires 20% faster.
@@ -165,4 +165,4 @@ The first bot dodged with perfect information and no reaction time and reached w
 - A faster ship (118 px/s), a stick that reaches full speed after ~30 px with a small dead zone, and the whole screen as the stick area (the BOMB and FIRE buttons keep their own touches).
 
 ### v1.0.0 (2026-10-30)
-- First release: the ship, five weapon levels, bombs, shields, medals and chains, nine kinds of enemy, a wave planner with a Galaga grid and a Space-Invaders march, bonus stages, three bosses, explosions, a chiptune soundtrack, an attract demo, high scores with initials, saves, keyboard, gamepad and touch, a calm mode.
+- First release: the ship, five weapon levels, bombs, shields, medals and chains, nine kinds of enemy, a wave planner with a diving formation shooter grid and a Space-Invaders march, bonus stages, three bosses, explosions, a chiptune soundtrack, an attract demo, high scores with initials, saves, keyboard, gamepad and touch, a calm mode.

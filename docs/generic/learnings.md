@@ -34,7 +34,7 @@ This document captures the key learnings, patterns, and insights gained from dev
 - Discovered scoring bug (continuous increase after first match)
 - **Key Learning**: Frameworks save time but require understanding their lifecycle
 
-**Game 003: NetHack Roguelike**
+**Game 003: Procedural Roguelike**
 - Complex single-file game (~2000+ lines)
 - Implemented save/load system with localStorage
 - Advanced algorithms (BSP dungeon generation, shadowcasting FOV, A* pathfinding)
@@ -931,7 +931,7 @@ function gameLoop() {
 - Scoring in update loop caused runaway scores
 - **Fix**: Use state flags to gate scoring
 
-### Game 003: NetHack Roguelike (Complex Single-File)
+### Game 003: Procedural Roguelike (Complex Single-File)
 
 **What Worked:**
 - BSP dungeon generation created interesting layouts
@@ -3796,7 +3796,7 @@ BootScene → PreloadScene → SplashScene → GameScene (+UIScene overlay) → 
 
 ### Phaser CRT post-processing via DOM canvas overlay (game-019)
 
-Game-019 (Synthwave Breakout) wanted scanlines + chromatic aberration + vignette. Rather than write a Phaser shader, it layers a second `<canvas id="crt-overlay">` on top of the Phaser canvas at `z-index: 9999` with `pointer-events: none`, and runs its own `requestAnimationFrame` loop drawing 2D effects over everything.
+Game-019 (Synthwave brick-breaker) wanted scanlines + chromatic aberration + vignette. Rather than write a Phaser shader, it layers a second `<canvas id="crt-overlay">` on top of the Phaser canvas at `z-index: 9999` with `pointer-events: none`, and runs its own `requestAnimationFrame` loop drawing 2D effects over everything.
 
 Why this is a good trade-off:
 - No need to touch Phaser's render pipeline.
@@ -4681,7 +4681,7 @@ Three details that mattered:
 - **Model breakables as what they become.** A cracked floor is "one-way": solid from above until
   you pound it, and a hole you can jump back up through afterwards. Hidden blocks likewise.
 
-The test harness then asserts the Metroid contract per gate: *unreachable* with every gadget except
+The test harness then asserts the ability-gated exploration contract per gate: *unreachable* with every gadget except
 the one it needs, *reachable* with all of them. That caught a shaft room whose ceiling loop skipped
 the same columns as its floor mouth — a hole in the roof that let Spring Boots in.
 
@@ -5015,12 +5015,12 @@ taps landed on the hint. The phone test now checks `document.elementFromPoint()`
 point before every tap; that turned a vague "nothing happened" into "covered by #town-hint".
 
 
-## Game 054: Pale Engine — a DOOM-style FPS with procedural levels in three.js (2026-10-03)
+## Game 054: Pale Engine — a first-person shooter with procedural levels in three.js (2026-10-03)
 
 ### Per-cell floor and ceiling heights are the whole level format
 DOOM's sectors map neatly onto a grid where every open cell has its own floor and ceiling.
 Stairs, daises, lava pits, crates you can shoot over, balconies and open-air courtyards all
-fall out of it, and so do collision (a DOOM body is an axis-aligned square that can step up at
+fall out of it, and so do collision (a player body is an axis-aligned square that can step up at
 most `STEP`), ray casts (DDA through the grid, checking the ray's height against each cell's
 floor and ceiling) and the mesh build (floors, ceilings, walls where open meets solid, step
 faces and lintels where neighbouring heights differ).
@@ -5732,12 +5732,12 @@ A rotated `▲` is not an arrow: most fonts draw it nearly equilateral, so once 
 The touch deck's right-half look pad sits above the HUD's stacking context (`#hud` is `position: fixed; z-index: 10`), so the ❚❚ button inside the HUD could not be tapped on a phone. A child's z-index can't escape its parent's context: move the button out of the HUD, above the deck.
 
 
-## Game 080: EMBERLEAF — a Metroidvania proved by a planner (2026-10-15)
+## Game 080: EMBERLEAF — a ability-gated explorationvania proved by a planner (2026-10-15)
 
 A cozy top-down adventure in vanilla Canvas 2D on the Section 2S layout: twelve grimoires, each a power that opens one kind of lock, across a 63-zone overworld, 30 interiors and 13 dungeons, with turn-based battles that nobody loses badly. [game-080/](../../game-080/).
 
 ### Prove the gating both ways: sufficient *and* necessary
-Game-075's planner proved a realm *could* be finished. A Metroidvania also needs each lock to actually keep you out, or the progression silently collapses (a lake you can swim round, a gap in a hedge). [plan.js](../../game-080/js/sim/plan.js) floods every map at once holding a set of grimoires (dungeon keys picked up by fixpoint), and [simtest.mjs](../../game-080/dev/simtest.mjs) checks a requirements table in [story.js](../../game-080/js/sim/story.js) from both sides:
+Game-075's planner proved a realm *could* be finished. A ability-gated explorationvania also needs each lock to actually keep you out, or the progression silently collapses (a lake you can swim round, a gap in a hedge). [plan.js](../../game-080/js/sim/plan.js) floods every map at once holding a set of grimoires (dungeon keys picked up by fixpoint), and [simtest.mjs](../../game-080/dev/simtest.mjs) checks a requirements table in [story.js](../../game-080/js/sim/story.js) from both sides:
 ```js
 // sufficient: reachable holding only its requirements (and theirs)
 ok(bookReachable(reach(closure(REQ[b])), b));
@@ -6014,7 +6014,7 @@ A player on desktop saw How to Play's scrollbar poke out of the panel. A classic
 
 ## Game 089: Dragonroll — a board game whose squares are an RPG (2026-10-21)
 
-A Monopoly-style board (laps, salaries, deeds, tolls, two AI rivals) where encounters cut to Final Fantasy style turn-based battles, on the Section 2S layout with three.js. [game-089/](../../game-089/).
+A property-trading board (laps, salaries, deeds, tolls, two AI rivals) where encounters cut to Final Fantasy style turn-based battles, on the Section 2S layout with three.js. [game-089/](../../game-089/).
 
 ### Dice luck and RPG pacing fight each other: tie XP and monster levels to the party
 With fixed XP per monster and monster levels set by the lap, one unlucky lap (few encounter squares, a lost fight) left the party behind the island for good: bots were knocked out seven times a game and reached the dragon at level 4. Two changes fixed it ([battle.js](../../game-089/js/sim/battle.js) `lootFrom`, [game.js](../../game-089/js/sim/game.js) `foeLevel`):
@@ -6023,7 +6023,7 @@ With fixed XP per monster and monster levels set by the lap, one unlucky lap (fe
 That alone overshot: a lap spent stopping at every dungeon (which also scaled with the party) carried bots to level 20 by lap 2. So XP falls off sharply once the party is more than two levels past the pace, and a cleared dungeon stays closed until the next lap. Run the whole game with a bot at two skills and print levels by lap: both failure modes were obvious there and invisible in a single fight.
 
 ### A board needs more fights than its encounter squares give
-Twelve encounter squares in forty is about 1.5 fights a lap, too few for the RPG half. Wandering monsters that stand on squares and stop you when you walk into them (Fortune Street, Mario Party) add fights you can see coming, and a choice for the loaded die. Two rules keep them fair: never spawn one within three squares ahead, and a monster that beats you wanders off, or it pins the player in a loss loop (the fuzz found a 43-defeat game before this).
+Twelve encounter squares in forty is about 1.5 fights a lap, too few for the RPG half. Wandering monsters that stand on squares and stop you when you walk into them (property-trading board games, party board games) add fights you can see coming, and a choice for the loaded die. Two rules keep them fair: never spawn one within three squares ahead, and a monster that beats you wanders off, or it pins the player in a loss loop (the fuzz found a 43-defeat game before this).
 
 ### One battle starter for everyone
 `startBattle` runs enemy turns until a party member is up, so a battle can be lost before the player acts. The game's own path handled that; the test helpers and the `?debug=1` hooks called `startBattle` directly and left a finished battle in the `battle` phase ("no battle" errors). Export one wrapper (`beginBattle`) that starts the battle and settles it if it's already over, and use it in tests and debug hooks too.
@@ -6064,7 +6064,7 @@ The sea shader samples a small height texture of the terrain to colour shallows,
 
 - **Put a HUD snapshot on every event.** The sim resolves a whole FIRE at once (your hits, the enemy turn, jams, the next turn), so by the time the show starts G already holds the end of the turn and a HUD reading G shows the damage before the blow lands. `emit(G, e)` in [battle.js](../../game-091/js/sim/battle.js) attaches `e.s`, a dozen numbers (hull, Block, Energy, each enemy's HP, Block, Burn, strength and next move); [main.js](../../game-091/js/main.js) releases events one at a time and draws the HUD from the last released snapshot, then from G once the show is over. Cheaper to write than incremental HUD updates per event type, and it can't drift.
 - **Hold actions while the show plays, don't refuse them.** Taps and keys go into a queue of at most three, taken one per frame only when no event is playing and no reel is turning, and checked with the sim's own `can(G, a)` when taken (a stale second FIRE is simply illegal by then). The bar's buttons read G, which is already ahead of the view, so FIRE is enabled while the reels are still landing and a tap on it plays out right after.
-- **A Slay the Spire map from non-crossing walks.** Six random walks climb the rows, each step moving at most one column; edges (r, a→b) and (r, c→d) cross when `(a - c) * (b - d) < 0`, and a walk always has a legal step (the column straight ahead or the one an existing edge already reaches). The nodes are every visited cell, so rows hold two to four stars with no dead ends, and the simtest proves it over 300 seeds ([tree.js](../../game-091/js/sim/tree.js)). The path rule (light a star joined to the last one) makes a plain skill tree feel like the map.
+- **A branching-path roguelike deckbuilder map from non-crossing walks.** Six random walks climb the rows, each step moving at most one column; edges (r, a→b) and (r, c→d) cross when `(a - c) * (b - d) < 0`, and a walk always has a legal step (the column straight ahead or the one an existing edge already reaches). The nodes are every visited cell, so rows hold two to four stars with no dead ends, and the simtest proves it over 300 seeds ([tree.js](../../game-091/js/sim/tree.js)). The path rule (light a star joined to the last one) makes a plain skill tree feel like the map.
 - **Reels as a deck.** Adding a symbol to every reel at once keeps the strips' composition identical across reels, so a reward is a change in the odds of a match, which is what the player can reason about. Enemy jams go into a per-fight copy of the strips, so the real reels never collect Static.
 - **Bosses are where runs end.** With enemy HP ×1.2 and damage ×1.3 the careful bot wins 63% and the careless one 27%, but nearly every lost run ends at a boss (most at the second). The table in the simtest prints where runs end; fit to that, not just to the win rate.
 - **Small traps.**
@@ -6094,7 +6094,7 @@ The sea shader samples a small height texture of the terrain to colour shallows,
 
 - **Procedural pixel art that looks hand-made (art pass, 2026-10-22).** Most of the gain came from the painter in `game-093/js/view/pixel.js`, not from the individual sprites. (1) *Volumetric shading*: for each mask pixel, count the run to the edge up/down/left/right and light it by where it sits between its top-left and bottom-right edges, then band into a 5-step ramp; the brightest band only on the rim. (2) *Hue-shifted ramps*: darken by multiplying the colour by itself (shadows stay saturated; skin goes warm instead of grey) plus a little violet, and lighten toward cream. Mixing toward a dark violet turns pale colours grey. (3) *Contact lines*: when a shape is painted over a different earlier one, darken the earlier pixels around it. Track a per-pixel "group" colour so parts of the same colour merge without a seam. (4) *Selective outline*: outline pixels are a deep shade of the sprite pixel they touch, lighter on the lit side. (5) *Textures as ramp offsets* (fur strokes, fish-scale crescents, stone, bark, bandages) rather than noise on top; random dots read as dirt. Fish scales are U-shaped arcs on offset 6×4 cells: 4×3 bricks and dot grids look like walls and polka dots. Build each sprite back to front (far limbs darker, then body, near limbs, face) and give every part its own colour. Faces need a lash row, iris, glint and blush to read at 32 px. Keep the original canvas sizes, because the world scale depends on them. Check at the battle camera's zoom, where every pixel shows.
 
-## Game 094 THE LONG HELIX: a text adventure as a pure story machine with a Hercules face (2026-10-23)
+## Game 094 THE LONG HELIX: a text adventure as a pure story machine with a monochrome display (2026-10-23)
 
 - **A turn-based game keeps the sim/view split and drops the fixed step.** `choose(G, i)` is the only thing that moves the story, and everything the player sees is an event it appends to `G.events` (`choice`, `roll`, `result`, `notice`, `item`, `stat`, `codex`, `scene`, `end`). The view turns those into a transcript, the audio into sound, and the tests read them directly. The story is data (`js/sim/story.js`): nodes with text (an array, or a function of the state) and choices with `req`, `fx`, `check` and `to`. A choice with no `to` stays on its node and only prints its result, so a hub needs no sub-nodes for its small outcomes.
 - **A whole-game bot is also a dead-end proof.** It plays every seed toward each ending, with the dice forced to pass, forced to fail and rolled, and the test fails if any state has nothing unlocked to choose, if the pack ever overflows, if an ending or a node is never visited. Two endings come by rule (health zero, the day-60 ship) and no path reaches them, so the test drives those by hand. A bot that always fails the dice dies of clarity at about step 60, which is how the scarcest resource showed itself.
@@ -6278,9 +6278,9 @@ The sea shader samples a small height texture of the terrain to colour shallows,
 - **A neon env map from a tiny scene** (`PMREMGenerator.fromScene` of a gradient sphere and four emissive strips) makes every bit of metal on the bench read as lit by the street.
 - **Don't `pkill -f` a name your own shell command contains.** It killed the command that ran it.
 
-## Game 106 INTRUDER ALERT '84: a survivors-like in the sim/view layout, tuned by a bot (2026-10-28)
+## Game 106 INTRUDER ALERT '84: a bullet-heaven survivor in the sim/view layout, tuned by a bot (2026-10-28)
 
-- **A survivors-like fits the sim/view layout as-is.** Auto-aim, spawning, chips and levels are all sim rules; the only new shape is the level-up: `step()` returns early while `G.choice` is set, and a pure `choose(G, i)` applies the card. `main.js` opens the card screen when it sees a pending choice, the bot answers it with `botChoose(G)`, and a save made mid-choice reloads onto the same three cards (simtest checks it). Several levels at once queue as `G.pending` and come one set of cards at a time.
+- **A bullet-heaven survivor fits the sim/view layout as-is.** Auto-aim, spawning, chips and levels are all sim rules; the only new shape is the level-up: `step()` returns early while `G.choice` is set, and a pure `choose(G, i)` applies the card. `main.js` opens the card screen when it sees a pending choice, the bot answers it with `botChoose(G)`, and a save made mid-choice reloads onto the same three cards (simtest checks it). Several levels at once queue as `G.pending` and come one set of cards at a time.
 - **Let the bot find which threat is broken.** The first table said no robot ever touched the bot and the Grinner killed every run at 1:40 — an unkillable chaser faster than a player can escape in a walled room is a wall, not a threat. Giving it a recoil after each bite and letting lasers knock it back turned it into a fight that firepower wins. The next table said bolts did most of the damage. Count damage by cause in the probe (`hurt` events carry `cause`), not just survival time.
 - **Berzerk's maze is one wall per post, and still needs proving.** 3 rooms in 200 sealed a door off. The generator now flood-fills a half-unit grid with a player-sized body and rerolls a room that can't reach all four doors; simtest checks 200 seeds with a finer grid.
 - **Bloom inside the pixel buffer.** Shrinking the 512×288 buffer to half and quarter size with smoothing and adding them back with `lighter` *inside the buffer* costs almost nothing and the glow is upscaled with the pixels, which suits a 16-bit look.
@@ -6292,10 +6292,10 @@ The sea shader samples a small height texture of the terrain to colour shallows,
 - **Sprites with a weapon on one side flip the other way.** The gunner's arm cannon is drawn pointing left, so the "face the player" flip had to be inverted for it; the sprite gallery (`dev/gallery.html`, neutral grey, mirrored and hit-flash versions) is where that showed.
 - **Speech synthesis as a sound effect.** `speechSynthesis` with `pitch: 0.1` makes a passable 1980 robot voice with no files; guard every call, cancel before speaking, follow the effects volume and give it its own off switch.
 
-## Game 107 Kaiju Roll: Katamari growth, floor-stack buildings and a camera that hides a ball (2026-10-29)
+## Game 107 Kaiju Roll: rolling growth growth, floor-stack buildings and a camera that hides a ball (2026-10-29)
 
 - **Grow by volume, not radius.** Every swallowed thing adds a volume and the radius is its cube root, so the first people barely register and a bus or a slab of rubble is a visible step, and later growth slows by itself. One number then drives damage (`r²`), the camera distance, the swallow threshold (`size <= 0.9 r`) and the crush rule: a building whose height is under `0.9 r` is rolled over and ground down instead of bounced off, which is what turns a pest into a steamroller. The streets widen a little every city so the start-size ball still fits.
-- **A ball that never stops is a breakout ball.** A minimum speed (it eases back up to 3.8 u/s along its last heading) plus steering as acceleration gives curved paths and ricochets with no paddle. The bot still plays it: aim at the near face of the nearest building, pounce when two are in the shockwave.
+- **A ball that never stops is a constant-speed ball.** A minimum speed (it eases back up to 3.8 u/s along its last heading) plus steering as acceleration gives curved paths and ricochets with no paddle. The bot still plays it: aim at the near face of the nearest building, pounce when two are in the shockwave.
 - **A building is a stack of floors.** The wall geometry is built floor by floor (24 indices each) and a floor falling is `setDrawRange(0, floors * 24)`; the roof is a separate mesh whose height eases down to the new top, so nothing is ever rebuilt and a hundred buildings cost two draw calls each. Lean is a small sine offset per ring, applied to the roof too so it still sits on the wall.
 - **A paint mask keeps instance colours off the windows.** Instanced cars, trees and people tint through `instanceColor`, which also multiplies the wheels and windows. A per-vertex `aPaint` attribute and a one-line `onBeforeCompile` replacement of the colour (`mix(color, color * instanceColor, aPaint)`) in the `color_vertex` chunk tints only the body. The same geometry baked with its tint serves the things stuck on the ball.
 - **Stuff that sticks to a ball is part of the sim.** `ball.stuck` holds `[kind, dir, size, colour]` rows drawn from the sim's RNG and a counter `sn` of everything ever pushed, so the view can add the new rows and drop the oldest without rebuilding 70 meshes per swallow, and a save restores the same coat.
@@ -6365,7 +6365,7 @@ reusing:
 - **A bot that dies to a telegraph is a bot bug.** The Overlord's death-ray killed the perfect bot on wave 15 three times in six: its danger map treated the thin warning line as mild and only fled the lit beam. A player gets a full second of warning, so the warning line now counts as nearly as dangerous as the beam. Check what *killed* the bot (print the boss state at each death) before touching the boss.
 - **A test that spans a wave boundary lies.** "Nothing shoots on wave 1" and "a bonus stage is all drones" both failed because the 20 s run went on into the next wave. Tests about one wave stop counting when `G.wave` changes.
 - **Enemies as functions of their age.** A Bézier swoop, a sine drop, a Space-Invaders march (a ping-pong of the group centre that drops a row at each edge), a hover and a saucer's strafe are all `pathPos(path, t)`, so a formation of 24 costs a few numbers a head, a save is small, and the planner can check every order (finite positions, starts off screen) without simulating. Only the enemies that react to the player (a dive aimed at where you are, a dart that steers) integrate; a dive swaps in a fresh Bézier aimed at the player and carries its own path clock.
-- **A planner of pieces, not a table of waves.** Wave n is a few "pieces" (a line, a V, a pincer, a Galaga grid, a march, saucers, darts ...) drawn by weight from those unlocked, and the first wave to use a piece is built around it ("featured"), so the game keeps showing something new without hand-authoring 60 waves. simtest plans 60 waves over five seeds and checks every order; and plays waves 1-40 with a bot that cannot be hurt, to prove none is unwinnable or stuck. Give that bot a weapon level a player would have by then, or the boss waves take eight minutes with the starting gun.
+- **A planner of pieces, not a table of waves.** Wave n is a few "pieces" (a line, a V, a pincer, a diving formation shooter grid, a march, saucers, darts ...) drawn by weight from those unlocked, and the first wave to use a piece is built around it ("featured"), so the game keeps showing something new without hand-authoring 60 waves. simtest plans 60 waves over five seeds and checks every order; and plays waves 1-40 with a bot that cannot be hurt, to prove none is unwinnable or stuck. Give that bot a weapon level a player would have by then, or the boss waves take eight minutes with the starting gun.
 - **Hit flashes on things that are always being hit.** Swapping the sprite for its white silhouette made the boss solid white for the whole fight, because a spread gun hits it every frame. Draw the normal sprite and lay the white one over it at partial alpha instead (0.4 for a boss, 0.85 for a small enemy).
 - **Explosions that read as colourful.** Layer them: a fireball (an outer disc one step down a colour ramp and a hot core on top, walking down white-yellow-orange-red-dark as it ages), a ring that races out, debris whose colour follows the same ramp, and a few delayed secondary pops. Pick the ramp from the enemy's colour family with a one-in-three chance of a second ramp (that is where the colour variety comes from), and give bosses a rainbow ramp. Size is the dial: 0 is a fireball and nine bits of debris, 3 is seven fireballs, 110 pieces of debris and three rings. Cap particles, fireballs and rings by count, limit full-screen flashes to two a second, and make a Calm setting (also `prefers-reduced-motion`) cut shake, flashes and particles.
 - **Pixel-buffer scaling.** Draw into a small buffer, scale up by an integer with smoothing off into a second canvas, and then draw that to the screen with a bilinear step down to the exact size: pixels stay sharp and uneven pixel widths at a fractional scale (2.49x) disappear. Bake the scanlines, vignette and neon frame once per size. Put the field at the top of a tall phone screen with the touch controls in the empty space below, and keep a 44 px band at the top for the back link and the pause button.

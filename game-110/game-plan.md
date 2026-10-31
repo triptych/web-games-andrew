@@ -12,7 +12,7 @@ The Dread Lady Noxia is the Overlord of the Realm: horns, cape, red eyes, a cast
 
 It is an idle game in the line of Cookie Clicker and the RPG idlers: click to make **charm**, spend it on **minions** who make charm for you, and on **upgrades** that make everything better. On top of the number going up sits one tension that gives the game its character: **dread**, the Overlord's reputation, which fades — faster the cosier the castle gets — and has to be kept up by cackling, scaring off heroes, and running the occasional evil scheme. A feared overlord makes more and collects tribute; a suspected one gets heroes at the gate.
 
-It looks like an HD-2D game (Octopath Traveler's pixel sprites in a lit 3D diorama): the castle is a dollhouse cut open at the front, four rooms side by side, seen through a tilt-shift lens. Everything you buy appears in it.
+It looks like an HD-2D game (hand-drawn pixel sprites in a lit 3D diorama): the castle is a dollhouse cut open at the front, four rooms side by side, seen through a tilt-shift lens. Everything you buy appears in it.
 
 ## Core loop
 

@@ -48,7 +48,7 @@
 ---
 
 ## Genre Definition
-A web-based "bullet heaven" or "reverse bullet hell" shoot 'em up combining the best elements of traditional shmups with modern auto-shooter mechanics inspired by Vampire Survivors.
+A web-based "bullet heaven" or "reverse bullet hell" shoot 'em up combining the best elements of traditional shmups with modern auto-shooter mechanics inspired by auto-aiming bullet-heaven games.
 
 ## Core Concept
 Players control a character that automatically shoots while maneuvering through waves of enemies. Survival requires pattern recognition, positioning, and smart upgrade choices. Each run is a roguelike experience with unlockable progression.
@@ -1321,9 +1321,9 @@ This architecture provides:
 ## Research Sources
 
 ### Bullet Heaven Game Design
-- [Vampire Survivors–like - Wikipedia](https://en.wikipedia.org/wiki/Vampire_Survivors%E2%80%93like)
-- [Bullet Heavens: games like Vampire Survivors - Rogueliker](https://rogueliker.com/bullet-heaven-games-like-vampire-survivors/)
-- [Vampire Survivors, bullet heaven? - Medium](https://rajaarh.medium.com/vampire-survivors-bullet-heaven-c70ed722fc32)
+- [auto-aiming bullet-heaven games–like - Wikipedia](https://en.wikipedia.org/wiki/Vampire_Survivors%E2%80%93like)
+- [Bullet Heavens: games like auto-aiming bullet-heaven games - Rogueliker](https://rogueliker.com/bullet-heaven-games-like-vampire-survivors/)
+- [auto-aiming bullet-heaven games, bullet heaven? - Medium](https://rajaarh.medium.com/vampire-survivors-bullet-heaven-c70ed722fc32)
 - [Bullet Heaven Tag Discussion - Steam Community](https://steamcommunity.com/discussions/forum/10/3543798390544389532/)
 
 ### Shmup Game Design

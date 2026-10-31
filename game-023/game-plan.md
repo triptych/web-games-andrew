@@ -9,7 +9,7 @@
 
 ## Concept
 
-2D pixel-art Space Invaders played on a flat 3D plane with a full synthwave retro aesthetic. The invader formation advances toward you in 3D space — classic pixel sprites rendered as textured planes flying across a neon grid, retrowave sunset, and star field.
+2D pixel-art formation shooter played on a flat 3D plane with a full synthwave retro aesthetic. The invader formation advances toward you in 3D space — classic pixel sprites rendered as textured planes flying across a neon grid, retrowave sunset, and star field.
 
 The camera looks slightly downward at a perspective grid that recedes to a hot-pink horizon sun. Invaders march side-to-side AND advance toward the player, creating mounting tension as they close the gap. Each cleared wave sends a faster, more aggressive formation.
 
@@ -129,7 +129,7 @@ Three.js scene with: convergent neon grid, layered star field, retro retrowave s
 ## Changelog
 
 ### Phase 1 — Full Implementation (2026-05-06)
-- Complete working Space Invaders with synthwave Three.js scene
+- Complete working formation shooter with synthwave Three.js scene
 
 ### Phase 2 — Polish (2026-05-08)
 - Shields, UFO, boss waves, high score, touch controls
