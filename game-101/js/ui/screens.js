@@ -105,7 +105,8 @@ function settings(ui, G, p) {
             check('Scanlines', 'scan', '(CRT look)'),
             check('Calm mode', 'calm', '(no shake, flashes or bob)'),
             check('Fast battles', 'fast', '(shorter pauses)'),
-            h('button', { class: 'btn danger', onclick: () => ui.open('confirm', { text: 'Delete the saved game for good?', yes: () => { ui.ctx.deleteSave(); ui.close(); } }) }, 'Delete saved game')),
+            h('button', { class: 'btn danger', onclick: () => ui.open('confirm', { text: 'Delete the saved game for good?', yes: () => { ui.ctx.deleteSave(); ui.close(); } }) }, 'Delete saved game'),
+            h('a', { class: 'btn', href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer' }, 'About author')),
         foot: [h('button', { class: 'btn primary', onclick: () => ui.close() }, 'Done')],
     };
 }

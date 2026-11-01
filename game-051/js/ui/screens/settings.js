@@ -44,6 +44,7 @@ export const settingsScreen = {
             h('div.card', h('div.btn-row',
                 btn('Title Screen', () => { saveGame(true); go('title', {}, { noHistory: true, fade: true }); }, 'ghost'),
                 btn('Delete Save', async () => { if (await confirmBox('Delete everything and start over? This cannot be undone.', 'Delete', 'Cancel', 'red')) { wipeSave(); location.reload(); } }, 'red'))),
+            h('div.card', h('a', { href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer', style: { color: 'var(--gold-2)' } }, 'About author')),
             h('div.card', h('a', { href: '../index.html', style: { color: 'var(--gold-2)' } }, '← Back to the games collection')),
             h('p.muted.small.center', 'Sigilborn · every model, face, icon and sound is generated in code.'));
         root.append(h('div.sheet', h('div.sheet-head', btn(icon('back'), () => back(), 'ghost small', { aria: 'Back' }), h('h1', 'Settings')), h('div.sheet-body', wrap)));

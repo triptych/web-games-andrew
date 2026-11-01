@@ -29,7 +29,8 @@ export function openSettings(app) {
             h('div', { class: 'row-wrap' },
                 h('button', { class: 'btn', id: 'set-backup', onclick: () => app.downloadBackup() }, 'Download a backup'),
                 h('button', { class: 'btn', id: 'set-import', onclick: async () => { if (await app.importBackup()) close(); } }, 'Import a backup'),
-                h('button', { class: 'btn danger', id: 'set-erase', onclick: () => app.eraseAll() }, 'Erase everything')),
+                h('button', { class: 'btn danger', id: 'set-erase', onclick: () => app.eraseAll() }, 'Erase everything'),
+                h('a', { class: 'btn', href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer' }, 'About author')),
             h('p', { class: 'version' }, `Quillsworn v${VERSION}`),
             h('div', { class: 'row-end' }, h('button', { class: 'btn primary', onclick: close }, 'Done')));
     }, { label: 'Settings' }));
