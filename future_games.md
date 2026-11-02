@@ -50,6 +50,8 @@ Every three.js game so far (014/018/024/025/026/029) is action- or combat-focuse
 ### 10. Puzzle: physics-based
 The puzzle cluster (002/011/016/017/027) is entirely grid-logic. A **physics puzzle** (slingshot trajectory, or a marble/pipe-flow puzzle per `docs/generic/suggestions.md` #1) using Kaplay's built-in physics/body components (not yet exercised by any current game) would diversify the puzzle mechanic beyond grid logic.
 
+### 11. Cozy exploration: endless undersea garden
+Expand the garden with a tiny submarine floating in the fountain. Clicking it takes you inside an undersea garden, where you look out through a huge glass portal at colorful coral, fish, jellyfish, and other marine life. You steer the submarine through this endless-feeling world; scenery and sea life are generated on the fly as you explore, so the view keeps unfolding without needing a fixed map. The cozy garden becomes a doorway to a living aquarium you can wander at your own pace.
 ## Suggested priority
 
 If picking the next 2-3 games to build, the strongest picks for filling actual thematic holes (rather than just adding another entry to an already-full cluster) are:
