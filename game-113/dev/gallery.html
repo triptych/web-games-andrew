@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Crystal Crescendo — sprite gallery</title>
+<style>
+  body { margin: 0; background: #6c7383; color: #fff; font: 12px system-ui, sans-serif; padding: 12px; }
+  h2 { margin: 14px 0 6px; font-size: 14px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+  figure { margin: 0; text-align: center; }
+  canvas { image-rendering: pixelated; display: block; background: #8a91a2; }
+</style>
+</head>
+<body>
+<h2>People (down 0–3, up, side, battle idle / play / hurt / ko)</h2><div class="row" id="people"></div>
+<h2>Otto and the Archivist</h2><div class="row" id="mechs"></div>
+<h2>Monsters</h2><div class="row" id="monsters"></div>
+<script type="module">
+import { drawPerson, drawOtto, drawRobot, CHOIR } from '../js/view/people.js';
+import { drawMonster, PAL } from '../js/view/monsters.js';
+import { CHARS, NPCS } from '../js/sim/data/chars.js';
+import { ENEMIES } from '../js/sim/data/enemies.js';
+const S = 3;
+const put = (el, px, label) => {
+  const c = px.toCanvas(); const big = document.createElement('canvas'); big.width = c.width * S; big.height = c.height * S;
+  const x = big.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(c, 0, 0, big.width, big.height);
+  const f = document.createElement('figure'); f.appendChild(big); const cap = document.createElement('figcaption'); cap.textContent = label; f.appendChild(cap); el.appendChild(f);
+};
+const INST = { lyra: 'drum', sera: 'harp', mari: 'voice', ingrid: 'horn' };
+const looks = { ...Object.fromEntries(Object.entries(CHARS).map(([k, c]) => [k, { ...c.look, inst: INST[k] }])), ...Object.fromEntries(Object.entries(NPCS).filter(([, n]) => n.look).map(([k, n]) => [k, n.look])), ...CHOIR };
+const P = document.getElementById('people');
+for (const [k, l] of Object.entries(looks)) {
+  const row = document.createElement('div'); row.className = 'row'; P.appendChild(row);
+  for (const f of [0, 1, 2, 3]) put(row, drawPerson(l, 'down', f), k + ' d' + f);
+  put(row, drawPerson(l, 'up', 0), 'up'); put(row, drawPerson(l, 'side', 0), 'side'); put(row, drawPerson(l, 'side', 1), 'side1');
+  for (const pose of ['idle', 'play', 'hurt', 'ko', 'cheer']) put(row, drawPerson(l, pose === 'cheer' ? 'down' : 'side', 0, pose), pose);
+}
+const M = document.getElementById('mechs');
+for (const v of ['down', 'side', 'up']) for (const f of [0, 1]) put(M, drawOtto(v, f), 'otto ' + v + f);
+put(M, drawOtto('down', 0, { lit: false }), 'otto asleep');
+put(M, drawRobot('down', 0), 'archivist'); put(M, drawRobot('side', 1), 'archivist side');
+const MO = document.getElementById('monsters');
+for (const [k, e] of Object.entries(ENEMIES)) put(MO, drawMonster(e.sprite, e.pal), k);
+put(MO, drawMonster('colossus'), 'colossus');
+window.galleryReady = true;
+</script>
+</body>
+</html>

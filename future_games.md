@@ -1,6 +1,6 @@
 # Future Games — Rounding Out the Collection
 
-A thematic look at the 33 games in this collection (`game-001` through `game-033`) and ideas for what to build next to fill the gaps. Unlike [docs/generic/suggestions.md](docs/generic/suggestions.md), which tracks missing **mechanics/genres** (Solitaire, Wordle, idle clicker, etc.), this doc looks at the **themes, settings, and subject matter** already established across the collection and proposes new games that either round out an underused theme cluster or remix a proven mechanic into a fresh setting.
+A thematic look at the 33 games in this collection (`game-001` through `game-033`) and ideas for what to build next to fill the gaps. Unlike [docs/generic/suggestions.md](docs/generic/suggestions.md), which tracks missing **mechanics/genres** (solitaire, daily word puzzle, idle clicker, etc.), this doc looks at the **themes, settings, and subject matter** already established across the collection and proposes new games that either round out an underused theme cluster or remix a proven mechanic into a fresh setting.
 
 ## Theme clusters already well-covered
 
@@ -11,7 +11,7 @@ Looking across all 33 games, several strong clusters have emerged:
 - **Synthwave/neon retro arcade**: game-019 (Synthwave brick-breaker), game-023 (Synthwave Invaders), game-024 (Neon Vanguard)
 - **Turn-based / party RPGs**: game-009 (Ember Crown), game-028 (Echoes of Aethermoor), game-030 (Coppergate Lane)
 - **Procedural/roguelite RPG journeys**: game-020 (The River), game-029 (Wayfarer's Path)
-- **Puzzle**: game-002, game-011, game-016, game-017, game-027 — nonograms, match-3, sokoban, block-placement
+- **Puzzle**: game-002, game-011, game-016, game-017, game-027 — nonograms, match-3, box-pushing, block-placement
 - **Three.js action/adventure**: game-014, game-018, game-024, game-025, game-026, game-029
 - **Visual novel / branching narrative**: game-007 (text-only), game-028 (Phaser VN), game-033 (DOM/canvas VN)
 - **Gacha / collection meta-games**: game-012 (Arcana Pull) is the only one
@@ -21,10 +21,10 @@ Looking across all 33 games, several strong clusters have emerged:
 ### 1. ~~Cozy sim: seasonal farm/orchard~~ — Done
 Completed as **game-043** (Glimmerglen): farming, animals, a village builder and a item-gated top-down adventure in one.
 
-A **farming sim** (Stardew-lite) is the obvious hole in the cozy cluster — game-010 (town), game-013 (flower shop), game-015 (pet), game-020 (river journey), and game-033 (apothecary) all touch adjacent cozy subjects, but nothing does crop-planting/seasons/harvest. Kaplay, top-down grid, day/night or season cycle, simple relationship/gifting mechanic to echo game-033's affinity system.
+A **farming sim** (a light crop-and-seasons life sim) is the obvious hole in the cozy cluster — game-010 (town), game-013 (flower shop), game-015 (pet), game-020 (river journey), and game-033 (apothecary) all touch adjacent cozy subjects, but nothing does crop-planting/seasons/harvest. Kaplay, top-down grid, day/night or season cycle, simple relationship/gifting mechanic to echo game-033's affinity system.
 
 ### 2. Dungeon crawler: isometric loot-focused hack-and-slash
-The dungeon cluster has raycasting FPS, blobber, top-down, and software-rendered first-person — but no **isometric** view (Diablo-lite). Would pair well with game-022's loot/upgrade economy and game-029's gear-comparison panel pattern. Kaplay or three.js orthographic camera.
+The dungeon cluster has raycasting FPS, blobber, top-down, and software-rendered first-person — but no **isometric** view (an isometric action RPG). Would pair well with game-022's loot/upgrade economy and game-029's gear-comparison panel pattern. Kaplay or three.js orthographic camera.
 
 ### 3. Synthwave: racer
 The synthwave trio (019/023/024) covers breakout, invaders, and shmup — a **synthwave neon lane-dodging racer** (endless neon highway, lane-dodging, checkpoint boosts) would complete the retrowave aesthetic set and could reuse game-014's endless-runner three-lane skeleton with a neon reskin plus the perspective-grid backdrop already built for game-019/023.
