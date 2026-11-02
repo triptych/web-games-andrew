@@ -1413,6 +1413,21 @@ h1 {
     box-shadow: 0 0 14px rgba(200, 144, 30, 0.6);
 }
 
+.game-preview.crystal-crescendo,
+.carousel-slide-bg.crystal-crescendo {
+    background:
+        radial-gradient(ellipse at 50% 25%, rgba(255, 170, 230, 0.55), transparent 45%),
+        radial-gradient(ellipse at 20% 80%, rgba(70, 224, 207, 0.35), transparent 40%),
+        radial-gradient(ellipse at 85% 75%, rgba(155, 140, 255, 0.4), transparent 40%),
+        linear-gradient(160deg, #1a1030 0%, #2a1a4a 45%, #0d0a18 100%);
+}
+
+.game-card.crystal-crescendo .play-button {
+    background: linear-gradient(135deg, #ff6fa6, #ffc23d 50%, #9b8cff);
+    color: #1a0e28;
+    box-shadow: 0 0 14px rgba(255, 140, 210, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

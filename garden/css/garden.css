@@ -786,3 +786,188 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     .scope .sky-card { left: auto; right: calc(24px + var(--safe-r)); bottom: auto; top: 50%; transform: translateY(-50%); width: min(400px, 34vw); max-height: 80vh; animation: none; }
     .scope-hint { left: calc(50% - 210px); }
 }
+
+/* ------------------------------------------------------------ the fountain's submarine */
+
+.sea {
+    --d: min(88vh, 60vw);        /* the porthole's glass */
+    --ring: calc(var(--d) * 0.045);
+    --cy: 53%;
+    --brass: #b8893c;
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    color: var(--ink);
+}
+/* the cabin round the porthole: riveted panels of dark wood and brass */
+.sea-cabin {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 14px 14px, #d8aa58 0 2.5px, #5a3e18 3px, transparent 3.5px) 0 0 / 120px 90px,
+        repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.35) 0 2px, rgba(255, 220, 160, 0.04) 2px 4px, transparent 4px 120px),
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.3) 0 2px, transparent 2px 90px),
+        radial-gradient(ellipse at 50% var(--cy), #4a321c 0, #2a1b0e 55%, #140c06 100%);
+    -webkit-mask: radial-gradient(circle calc(var(--d) / 2) at 50% var(--cy), transparent 99%, #000 100%);
+    mask: radial-gradient(circle calc(var(--d) / 2) at 50% var(--cy), transparent 99%, #000 100%);
+}
+.sea-port {
+    position: absolute;
+    left: 50%;
+    top: var(--cy);
+    width: calc(var(--d) + 2 * var(--ring));
+    height: calc(var(--d) + 2 * var(--ring));
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: var(--ring) solid var(--brass);
+    outline: 3px solid #f0d080;
+    outline-offset: -3px;
+    box-shadow: 0 0 0 4px #4a3214, 0 12px 40px 8px rgba(0, 0, 0, 0.7), inset 0 0 0 3px #5a3e18, inset 0 0 60px 16px rgba(0, 18, 30, 0.55);
+}
+/* rivets round the brass ring */
+.sea-port::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--ring));
+    border-radius: 50%;
+    background: repeating-conic-gradient(#f6dc96 0 1.4deg, transparent 1.4deg 12deg);
+    -webkit-mask: radial-gradient(circle closest-side, transparent calc(100% - var(--ring) * 0.62), #000 calc(100% - var(--ring) * 0.6) calc(100% - var(--ring) * 0.4), transparent calc(100% - var(--ring) * 0.38));
+    mask: radial-gradient(circle closest-side, transparent calc(100% - var(--ring) * 0.62), #000 calc(100% - var(--ring) * 0.6) calc(100% - var(--ring) * 0.4), transparent calc(100% - var(--ring) * 0.38));
+}
+.sea-glass {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+        radial-gradient(ellipse 40% 26% at 30% 20%, rgba(255, 255, 255, 0.1), transparent 70%),
+        radial-gradient(circle, transparent 64%, rgba(0, 24, 36, 0.38) 100%);
+}
+.sea-hint {
+    position: absolute;
+    top: calc(70px + var(--safe-t));
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    font: 500 0.88rem var(--sans);
+    color: rgba(240, 225, 190, 0.8);
+    white-space: nowrap;
+    text-shadow: 0 1px 3px #000;
+}
+
+.sea-gauges {
+    position: absolute;
+    left: calc(16px + var(--safe-l));
+    top: var(--cy);
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: clamp(118px, 12vw, 160px);
+}
+.sea-gauge, .sea-helm {
+    border-radius: 14px;
+    border: 2px solid #8a6a32;
+    background: linear-gradient(180deg, #33230f, #1b1209);
+    box-shadow: inset 0 1px 0 rgba(255, 220, 150, 0.2), 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+.sea-gauge { padding: 7px 10px 8px; text-align: center; }
+.sg-label { display: block; font: 600 0.66rem var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-hi); }
+.sea-gauge strong { display: block; font: 600 1.2rem var(--display); font-variant-numeric: tabular-nums; color: #ffeac0; text-shadow: 0 0 10px rgba(255, 200, 100, 0.35); }
+.sg-dial {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    margin: 6px auto 2px;
+    border-radius: 50%;
+    border: 3px solid var(--brass);
+    background: radial-gradient(circle, #10202a, #061016);
+    overflow: hidden;
+}
+.sg-rose { position: absolute; inset: 0; transition: transform 0.2s linear; }
+.sg-rose span { position: absolute; font: 700 0.7rem var(--sans); color: #bfe8f0; transform: translate(-50%, -50%); }
+.sg-rose .sg-n { left: 50%; top: 18%; color: #ff8a6a; }
+.sg-rose .sg-e { left: 82%; top: 50%; }
+.sg-rose .sg-s { left: 50%; top: 82%; }
+.sg-rose .sg-w { left: 18%; top: 50%; }
+.sg-needle { position: absolute; left: 50%; top: 2px; width: 0; height: 0; margin-left: -5px; border: 5px solid transparent; border-top: 9px solid #ffd27a; }
+
+.sea-helm {
+    position: absolute;
+    right: calc(16px + var(--safe-r));
+    top: var(--cy);
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    pointer-events: auto;
+}
+.sea-tele, .sea-pad, .sea-row { display: flex; align-items: center; gap: 8px; }
+.sea-updown { display: flex; flex-direction: column; gap: 8px; }
+.sea-throttle {
+    min-width: 7.2em;
+    padding: 9px 6px;
+    border-radius: 8px;
+    border: 1px solid #6a4a1e;
+    background: #0f0a05;
+    text-align: center;
+    font: 600 0.88rem var(--display);
+    color: var(--gold-hi);
+}
+.sea-throttle[data-level="0"] { color: #ffb08a; }
+.sea-throttle[data-level="1"] { color: var(--ink-dim); }
+.sea-throttle[data-level="4"] { color: #fff2b0; text-shadow: 0 0 8px rgba(255, 220, 120, 0.6); }
+.sea-btn {
+    min-width: 48px;
+    height: 48px;
+    padding: 0 10px;
+    border-radius: 12px;
+    border: 2px solid var(--brass);
+    background: linear-gradient(180deg, #5c4320, #36260f);
+    color: #ffe8b0;
+    font: 600 1.1rem var(--sans);
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.sea-btn:hover { background: linear-gradient(180deg, #6e5228, #443015); }
+.sea-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.sea-btn.held, .sea-btn:active { background: linear-gradient(180deg, #8a6a30, #5a4220); border-color: #f0d080; }
+.sea-lamp { font-size: 0.92rem; }
+.sea-lamp.on { background: linear-gradient(180deg, #e8c060, #a87c30); color: #22160a; box-shadow: 0 0 16px rgba(255, 220, 140, 0.6); }
+.sea-row .btn { min-height: 48px; }
+
+.sea .sea-card { pointer-events: auto; }
+
+/* tall screens: the porthole up top, the dials in a row above it and the helm below */
+@media (max-aspect-ratio: 1/1) {
+    .sea { --d: min(94vw, 58vh); --cy: 46%; }
+    .sea-hint { display: none; }
+    .sea-gauges { left: 50%; top: calc(64px + var(--safe-t)); transform: translateX(-50%); flex-direction: row; width: min(560px, calc(100vw - 20px)); gap: 6px; }
+    .sea-gauge { flex: 1 1 0; padding: 5px 4px 6px; min-width: 0; }
+    .sea-gauge strong { font-size: 0.95rem; white-space: nowrap; }
+    .sg-label { font-size: 0.58rem; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sg-dial { display: none; }
+    .sea-helm { top: auto; right: auto; left: 50%; bottom: calc(10px + var(--safe-b)); transform: translateX(-50%); flex-direction: row; flex-wrap: wrap; justify-content: center; width: min(560px, calc(100vw - 20px)); padding: 8px; }
+    .sea .sea-card { bottom: auto; top: calc(64px + var(--safe-t)); }
+    body.in-sea .hint { bottom: auto; top: calc(128px + var(--safe-t)); }
+}
+/* short, wide screens (phones on their side): everything a little smaller */
+@media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+    .sea { --d: min(84vh, 52vw); --cy: 56%; }
+    .sea-hint { display: none; }
+    .sea-gauges { gap: 6px; width: 112px; }
+    .sea-gauge { padding: 4px 6px 5px; }
+    .sea-gauge strong { font-size: 0.95rem; }
+    .sg-dial { display: none; }
+    .sea-helm { gap: 6px; padding: 8px; }
+    .sea-btn { min-width: 42px; height: 42px; }
+    .sea-row .btn { min-height: 42px; }
+    .sea-throttle { min-width: 6.4em; font-size: 0.8rem; padding: 7px 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .sg-rose { transition: none; }
+}

@@ -40,6 +40,8 @@ import { MineAudio } from './mine-audio.js';
 import { END_S } from './minepath.js';
 import { Tower } from './tower.js';
 import { Scope } from './scope.js';
+import { FountainSub } from './submarine.js';
+import { Undersea } from './undersea.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -243,6 +245,8 @@ async function boot() {
     await nextFrame();
     buildArchitecture(world);
     world.hut = buildHutExterior(world);
+    // the toy submarine in the Moon Fountain's pool
+    const fountainSub = new FountainSub(world);
     ui.progress(0.52, 'Smoking out a volcano…');
     await nextFrame();
     const volcano = new Cinderpeak({ world, scene, sky, quality, water });
@@ -308,7 +312,7 @@ async function boot() {
     const fox = new FoxVisitor(scene, world, controls, camera, { force: params.get('fox') });
     const boat = new Boat(world, scene, camera, controls);
     const fishing = new Fishing({ world, scene, camera, controls, ui, audio, bursts, canvas });
-    controls.canJump = () => !fishing.active && !ui.blocking && !boat.busy;
+    controls.canJump = () => !fishing.active && !ui.blocking && !boat.busy && !diving;
     // The title orbit circles the island looking in, so its show goes up over the island's heart. The flying
     // boat circles it too, turning from the bow to the island and back, so each shell goes up ahead of the rider's view.
     const islandHeart = new THREE.Vector3(), ahead = new THREE.Vector3();
@@ -366,6 +370,8 @@ async function boot() {
     let subway = null;
     // the Observatory's tower and the view through its telescope: built on the first visit
     let tower = null, scope = null, scoping = null;
+    // the sea inside the fountain's submarine: built on the first dive
+    let undersea = null, diving = null, subPending = false, subHintShown = false;
     let trip = null;       // falling into / climbing out of the sphere
     const look = { x: 0, y: 0 };
     let roomKind = null;   // which room 'below' means: 'works' | 'hut' | 'subway' | 'mine' | 'tower'
@@ -444,6 +450,11 @@ async function boot() {
             bt = bt0.distance;
             best = { type: 'boat', t: bt };
         }
+        const sh = fountainSub.ok && ray.intersectObject(fountainSub.hit, false)[0];
+        if (sh && sh.distance < bt && sh.distance < 60 && fountainSub.state === 'circle') {
+            bt = sh.distance;
+            best = { type: 'sub', t: bt };
+        }
         const rod = ray.intersectObjects(fishing.pickables, false)[0];
         if (rod && rod.distance < bt && rod.distance < 60) {
             bt = rod.distance;
@@ -513,6 +524,7 @@ async function boot() {
         ui.flash(true);
         controls.route = null;
         setTimeout(() => {
+            if (diving) endDive();
             if (place !== 'garden') abortCinder();
             else if (below) surface();
             controls.teleport(x, z, yaw);
@@ -615,7 +627,7 @@ async function boot() {
 
     /** Step into the swirling motes: a flash, and the Cinderpeak cove with its dais under your feet. */
     function travelToCove() {
-        if (transit || place !== 'garden' || trip || boat.busy) return;
+        if (transit || place !== 'garden' || trip || boat.busy || diving) return;
         transit = true;
         portalPending = false;
         fishing.stop();
@@ -757,7 +769,7 @@ async function boot() {
     }
 
     function walkToGame(game) {
-        if (below || place !== 'garden') return linkToGame(game);
+        if (below || diving || place !== 'garden') return linkToGame(game);
         fishing.stop();
         const st = statueByGame.get(game);
         const s = standForStatue(st);
@@ -985,6 +997,105 @@ async function boot() {
         controls.teleport(st.x, st.z, st.yaw);
         controls.pitch = st.pitch;
         controls.enabled = true;
+    }
+
+    // ------------------------------------------------------------ the fountain's submarine
+
+    /** Click the submarine: the camera stoops to its hatch, a flash, and you are looking out of its porthole. */
+    function startDive() {
+        if (diving || transit || trip || boat.busy || below || place !== 'garden' || !fountainSub.ok) return;
+        fishing.stop();
+        fishPending = false;
+        boardPending = false;
+        subPending = false;
+        controls.enabled = false;
+        controls.route = null;
+        controls.keys.clear();
+        controls.vel.set(0, 0);
+        setHover(null);
+        ui.tooltip(null);
+        ui.closeAll();
+        fountainSub.board();
+        audio.sparkle();
+        diving = { phase: 'in', t: 0, from: camera.position.clone(), fromQ: camera.quaternion.clone(), flashed: false };
+    }
+
+    const hatchV = new THREE.Vector3(), diveTo = new THREE.Vector3();
+    function diveUpdate(dt, t) {
+        const d = diving;
+        if (d.phase !== 'in') return;
+        d.t += dt;
+        const k = Math.min(1, d.t / 1.9);
+        const e = k * k * (3 - 2 * k);
+        fountainSub.hatch(hatchV);
+        // just above the hatch, a touch back towards where you stood, looking down into it
+        diveTo.set(d.from.x - hatchV.x, 0, d.from.z - hatchV.z).setLength(0.12).add(hatchV);
+        diveTo.y += 0.35;
+        camera.position.lerpVectors(d.from, diveTo, e);
+        tmpQ.setFromRotationMatrix(tmpM.lookAt(camera.position, hatchV, camera.up));
+        camera.quaternion.copy(d.fromQ).slerp(tmpQ, smoothstep(0, 0.55, k));
+        camera.fov = baseFov() - smoothstep(0.5, 1, k) * 24;
+        camera.updateProjectionMatrix();
+        if (!d.flashed && k > 0.82) {
+            d.flashed = true;
+            ui.flash(true);
+        }
+        if (k >= 1) {
+            try {
+                undersea ??= new Undersea({ renderer, audio, ui, canvas, quality });
+            } catch (err) {
+                console.error(err);
+                undersea = null;
+                diving.phase = 'view';
+                ui.hint('The hatch is stuck today.', 4000);
+                endDive();
+                setTimeout(() => ui.flash(false), 150);
+                return;
+            }
+            undersea.onLeave = leaveDive;
+            fountainSub.submerge();
+            fireworks.stop();
+            audio.setUnderground(true, false);
+            renderPass.scene = undersea.scene;
+            bloom.strength = 0.6;
+            camera.fov = 70;
+            camera.updateProjectionMatrix();
+            undersea.open(camera, sky.state.night);
+            d.phase = 'view';
+            ui.zone('Beneath the Moon Fountain', 'A whole sea, inside a fountain', '#7fe0ff');
+            const touch = matchMedia('(pointer: coarse)').matches;
+            ui.hint(touch ? 'Hold the helm buttons to steer and dive · + and − on the telegraph for speed · drag to look · tap any creature' : 'W/S speed · A/D steer · Space/C rise and dive · B lamp · drag to look · click any creature · Esc to surface', 10000);
+            setTimeout(() => ui.flash(false), 150);
+        }
+    }
+
+    /** Blow the tanks: a flash, and you are back on the fountain's rim. */
+    function leaveDive() {
+        if (!diving || diving.phase !== 'view') return;
+        diving.phase = 'out';
+        audio.click();
+        ui.flash(true);
+        setTimeout(() => {
+            if (diving) endDive();
+            setTimeout(() => ui.flash(false), 150);
+        }, 600);
+    }
+
+    /** Back beside the fountain at once (the caller covers it). */
+    function endDive() {
+        diving = null;
+        undersea?.close();
+        renderPass.scene = scene;
+        bloom.strength = 0.42;
+        audio.setUnderground(false);
+        camera.fov = baseFov();
+        camera.updateProjectionMatrix();
+        fountainSub.surface();
+        const s = fountainSub.stand;
+        controls.teleport(s.x, s.z, s.yaw);
+        controls.pitch = -0.3;
+        controls.enabled = true;
+        zoneKey = '';
     }
 
     // ------------------------------------------------------------ the Works
@@ -1284,6 +1395,15 @@ async function boot() {
             boardPending = true;
             ui.closeAll();
             controls.walkTo(controls.plan(boat.stand.x, boat.stand.z));
+        } else if (h.type === 'sub') {
+            audio.click();
+            ui.closeAll();
+            const st = fountainSub.stand;
+            if (Math.hypot(controls.pos.x - st.x, controls.pos.z - st.z) < 2.5) startDive();
+            else {
+                subPending = true;
+                controls.walkTo(controls.plan(st.x, st.z), st.yaw);
+            }
         } else if (h.type === 'rod') {
             audio.click();
             ui.closeAll();
@@ -1514,6 +1634,8 @@ async function boot() {
             }
         } else if (trip) {
             tripUpdate(dt);
+        } else if (diving) {
+            diveUpdate(dt, t);
         } else if (mineDrives()) {
             mine.update(dt, t, camera, controls);
         } else if (!boat.busy && !fishing.active) {
@@ -1524,6 +1646,15 @@ async function boot() {
         if (fishPending && entered && !intro && !controls.route) {
             fishPending = false;
             if (canFish() && fishing.near(controls.pos.x, controls.pos.z, 2.5)) fishing.start();
+        }
+        if (subPending && entered && !intro && !controls.route) {
+            subPending = false;
+            const st = fountainSub.stand;
+            if (Math.hypot(controls.pos.x - st.x, controls.pos.z - st.z) < 2.5) startDive();
+        }
+        if (entered && !intro && !subHintShown && !diving && !below && place === 'garden' && fountainSub.ok && Math.hypot(controls.pos.x - fountainSub.f.x, controls.pos.z - fountainSub.f.z) < 10) {
+            subHintShown = true;
+            ui.hint('A tiny submarine is circling the fountain · click it to climb aboard', 8000);
         }
         if (boardPending && entered && !intro && !boat.busy && !controls.route) {
             boardPending = false;
@@ -1537,13 +1668,13 @@ async function boot() {
         // the title orbit and the boat flight keep the camera aloft, so weather must follow it up there
         if (!entered || intro) camPos.y = world.groundAt(camPos.x, camPos.z);
 
-        const wind = weather.update(dt, t, camPos, renderer.domElement.height, below);
+        const wind = weather.update(dt, t, camPos, renderer.domElement.height, below || !!diving);
         windUniforms.uWind.value = 1 + wind * 2.2;
         sky.update(dt, camPos);
         const s = sky.state;
         const night = s.night;
         // the garden sees in each new day with fireworks (?fireworks shows them at once)
-        if ((sky.midnight || fireworksPending) && !below) {
+        if ((sky.midnight || fireworksPending) && !below && !diving) {
             fireworksPending = false;
             fireworks.start();
         }
@@ -1587,6 +1718,9 @@ async function boot() {
                 ray.setFromCamera(ndc, camera);
                 document.body.classList.toggle('can-hover-pick', mine.pickLedge(ray)?.type === 'cart');
             }
+        } else if (diving && diving.phase !== 'in') {
+            undersea.update(dt, t, camera, night);
+            audio.update(night, -100);
         } else if (below) {
             const hisses = works.update(dt, t, controls.pos, renderer.domElement.height);
             for (const v of hisses) audio.hiss(v);
@@ -1599,6 +1733,7 @@ async function boot() {
         } else {
             water.update(t);
             windUniforms.uWindTime.value = t;
+            fountainSub.update(dt, t, night);
 
             // night lighting
             world.mats.glass.emissiveIntensity = 0.15 + night * 3.2;
@@ -1622,7 +1757,7 @@ async function boot() {
             beams(dt, night);
 
             // hover highlight
-            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !fishing.active) {
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !fishing.active && !diving) {
                 const h = pick(mouse.x, mouse.y);
                 setHover(h);
                 if (h?.type === 'statue') ui.tooltip(h.statue.game, mouse.x, mouse.y);
@@ -1668,7 +1803,7 @@ async function boot() {
         zoneTimer += dt;
         if (entered && !intro && !boat.busy && zoneTimer > 0.3) {
             zoneTimer = 0;
-            if (!below) zoneCheck();
+            if (!below && !diving) zoneCheck();
         }
         if (entered && !intro && !boat.busy) {
             if (place === 'garden') doorCheck();
@@ -1700,7 +1835,7 @@ async function boot() {
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, fireworks, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
+        window.__garden = { get undersea() { return undersea; }, get diving() { return diving; }, startDive, leaveDive, fountainSub, get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, fireworks, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
     }
 }
 
