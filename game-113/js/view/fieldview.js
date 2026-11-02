@@ -169,7 +169,7 @@ export class FieldView {
                 const pk = kind === 'coral' ? 'coral' : T.tree;
                 const P = this.propCache(pk, this.themeId);
                 const s = 0.95 + hash3(x, y, 9) * 0.25;
-                const mesh = billboard(P.tex, P.w * PX * 1.35 * s, P.h * PX * 1.35 * s, { emissive: pk === 'shroom' ? 0.7 : 0.12 });
+                const mesh = billboard(P.tex, P.w * PX * 1.1 * s, P.h * PX * 1.1 * s, { emissive: pk === 'shroom' ? 0.7 : 0.12 });
                 mesh.position.set(cx + (hash3(x, y, 2) - 0.5) * 0.2, 0, cz);
                 add(mesh); shadow(1.4);
                 if (pk === 'shroom') this.lightSpots.push({ x: cx, y: 1.4, z: cz + 0.3, color: T.lightCol, i: 1.4, d: 4.5, pri: 1 });
@@ -349,15 +349,15 @@ export class FieldView {
     }
     setSprite(a, e, scale = 1) {
         if (a.tex !== e.tex) { a.mat.map = e.tex; a.mat.emissiveMap = e.tex; a.mat.needsUpdate = a.tex === null; a.tex = e.tex; }
-        a.mesh.scale.set(e.w * PX * scale * 1.35, e.h * PX * scale * 1.35, 1);
-        a.sh.scale.set(e.w * PX * scale * 0.9, e.w * PX * scale * 0.45, 1);
+        a.mesh.scale.set(e.w * PX * scale * 0.8, e.h * PX * scale * 0.8, 1);
+        a.sh.scale.set(e.w * PX * scale * 0.6, e.w * PX * scale * 0.3, 1);
     }
     crystalOn(a, on, color) {
         if (on && !a.crystal) {
             const mat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.6, transparent: true, opacity: 0.38, roughness: 0.05, metalness: 0.2, flatShading: true, depthWrite: false, side: THREE.DoubleSide });
-            const c = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.7, 2.6, 6), mat);
-            c.position.y = 1.3;
-            const tip = new THREE.Mesh(new THREE.ConeGeometry(0.62, 0.7, 6), mat); tip.position.y = 2.95;
+            const c = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.52, 1.75, 6), mat);
+            c.position.y = 0.88;
+            const tip = new THREE.Mesh(new THREE.ConeGeometry(0.46, 0.5, 6), mat); tip.position.y = 2.0;
             a.group.add(c, tip);
             a.crystal = [c, tip];
         } else if (!on && a.crystal) { for (const c of a.crystal) a.group.remove(c); a.crystal = null; }

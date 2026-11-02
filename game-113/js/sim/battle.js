@@ -452,3 +452,14 @@ export function afterDefeat(G, choice, warp) {
     G.scene = null;
     warp(G);
 }
+
+/** Back out of a duel with a roaming monster (never a boss): it stays on the map, and the band gets a moment's head start. */
+export function retreat(G) {
+    const B = G.battle;
+    if (!B || B.from !== 'field' || B.boss || G.mode !== 'battle') return false;
+    G.battle = null;
+    G.mode = 'field';
+    G.safeT = 2.5;
+    G.events.push({ type: 'battleEnd', from: 'field', retreat: true });
+    return true;
+}
