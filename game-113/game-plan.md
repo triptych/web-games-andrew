@@ -1,0 +1,220 @@
+# Crystal Crescendo
+
+**Genre:** HD-2D story RPG with rhythm battles
+**Engine:** three.js r165 (import map, CDN), no asset files: every sprite, tile and sound is made in code
+**Layout:** sim/view (pure seeded simulation in `js/sim/`, a view that only reads it, `dev/` harnesses)
+**Status:** v1.0.0 in progress (see *Build status* at the end, which is the hand-off note for whoever continues)
+
+---
+
+## Concept
+
+A helpless princess, freed from a crystal by a knight who doesn't make it, falls into an underground river and wakes
+on the beach of a drowned city. There she befriends O.T.T.O., a mechanical transport AI who has waited 1,142 years
+for a passenger. Together they travel the realm recruiting three more princesses whose princes the dragon has taken.
+
+Every battle is a **music duel**. Each princess plays one layer of the song: Lyra the **beat**, Seraphine the
+**melody**, Marigold the **lyrics** and Ingrid the **harmony**. The band grows from one drum to a four-part
+arrangement over the course of the story, and the music gets fuller with it, in battle and in the field.
+
+The look is HD-2D, in the spirit of party RPGs like Octopath Traveler: pixel-art characters as upright billboards in
+a lit 3D diorama, with tilt-shift blur, bloom, warm point lights and a vignette. The rhythm side is a 4-lane
+falling-note game with call-and-response turns.
+
+## Story
+
+### Characters
+| Id | Who | Role |
+|---|---|---|
+| `lyra` | Lyra, Princess of Vellmoor. Thinks she is helpless. | **Beat**, lane 1 (the Heartdrum). Plain damage, the strongest taps. |
+| `sera` | Seraphine, Princess of the Coral Spires (Marisonde). Elegant, melancholy, secretly mischievous. Prince: Aldric. | **Melody**, lane 2 (the Shell Harp). Damage + heals the most-hurt princess. |
+| `mari` | Marigold, Princess of Sunreach. A loud farmer with a crown. Prince: Fenwick, a terrible poet. | **Lyrics**, lane 3 (her voice). Damage + a ward that soaks enemy hits. Her notes show sung syllables. |
+| `ingrid` | Ingrid, Princess of Frosthold. Proud, wants to fight alone. Prince: Hakon. | **Harmony**, lane 4 (the Rime Horn). Long held notes: big damage + resonance (a damage multiplier). |
+| `otto` | O.T.T.O., Omni-Terrain Transport Operator of Aurelune. A brass walking carriage with one glass eye. Speaks in capitals. | Drives the band between places (the route map). Secretly the heart of the Colossus. |
+| `bram` | Sir Bram of Vellmoor, the knight from the prologue. | Captured; freed in the ending. |
+| `vorthrax` | Vorthrax, the Hush Eternal. A dragon who silences song because every song ends. | Final boss. |
+| `colossus` | AUREL-ONE, the Singing Colossus of Aurelune, asleep for a thousand years without its heart. | Arrives in the final battle when Otto merges with it. |
+
+The lieutenants are Maelstra the Tidewyrm, Baron Hollowhay (a scarecrow) and Rimefang (a frozen wolf-knight). Each
+holds one of the three seals on the Hush Spire. The Obsidian Warden guards the Crystal Hollow and the Spire.
+
+### Chapters
+0. **Prologue: the Crystal Hollow.** Lyra and six other princesses are sealed in crystal. Bram fights the Warden,
+   Vorthrax arrives and flattens him, and Bram uses his last strength to crack Lyra's crystal. She falls through a
+   fissure into the underground river.
+1. **The Drowned Beach and Aurelune.** Lyra wakes on glowing sand, meets Otto, receives the Heartdrum and fights a
+   Shardcrab (the tutorial, which can't be lost). Otto explains the Four Royal Songs. In the drowned city the
+   statue of the Colossus has a chest-hollow "the shape of a small carriage" (foreshadowing). The Great Lift leads
+   to the surface and unlocks Otto's route map.
+2. **Marisonde, the Coral Spires.** Seraphine is crying on the pier and joins. Boss: Maelstra in the Drowned Grotto.
+3. **Sunreach.** The windmills have stopped. Marigold joins. Boss: Baron Hollowhay. The windmills turn again.
+4. **Frosthold.** Ingrid refuses help, until Lyra's speech about harmony ("it's just what happens when nobody has to
+   play alone"). Boss: Rimefang at the frozen gate. All three seals are broken.
+5. **The Hush Spire.** The Obsidian Warden (a rematch "for Bram"), then Vorthrax with the princes and Bram in
+   crystal cages. **The final battle is scripted:**
+   - At 45% HP the Hush knocks out Ingrid, Marigold and Seraphine one by one, and their layers drop out of the music.
+   - Lyra keeps the beat alone ("My heartbeat."), in a solo phrase she can't fail.
+   - Otto: "PLEASE KEEP THE BEAT. I HAVE AN ERRAND." / "HOME." He drives off.
+   - The Colossus AUREL-ONE bursts up from Aurelune with Otto as its heart ("I WAS NEVER ONLY A CARRIAGE. I WAS ITS
+     HEART."), revives the band, and the last verse adds golden Colossus notes on the Crescendo key. The Colossus's
+     cannon finishes the dragon.
+6. **Ending.** The crystals shatter, and the princes, Bram and the choir princesses are freed. Each couple gets a
+   line, and Vorthrax, diminished, asks to hear the song again. Lyra: "Songs end. That's why we sing them again.
+   Everyone — from the top!" Credits.
+
+All dialogue is in [js/sim/data/script.js](js/sim/data/script.js): `SCENES` for the field and `BATTLE_TALK` for the
+in-battle interludes (the tutorial, `hush`, `otto` and `colossus`).
+
+## Core loop
+
+Walk a small diorama map, talk to people, open chests, touch Song Crystals (which save and heal), duel the roaming
+monsters you walk into (symbol encounters, no random battles), reach the story trigger, fight the boss, and have
+Otto drive you to the next place on the route map. A HUD line always says what to do next (`objective()` in
+`js/sim/story.js`), and the bot follows the same pointer.
+
+## Battle rules (precise; `js/sim/battle.js`)
+
+- A battle is one song: key, mode, tempo (the enemy's `bpm`) and a four-chord loop, composed from a seed
+  ([js/sim/song.js](js/sim/song.js)). It is played in **phrases of 2 bars** after a **1-bar count-in**.
+- Phrases alternate **PLAY** (the party's notes; hits deal damage) and **GUARD** (the enemy's riff falls in the same
+  lanes; hits block). PLAY comes first.
+- **Lanes:** 4, one per recruited princess, by lane order. Keys D F J K or ← ↓ ↑ →; touch pads under the lanes;
+  gamepad d-pad left/down plus X/B (see Controls).
+- **Judgment** windows (seconds; Normal 0.045 / 0.085 / 0.130, Easy and Hard in `config.js`): PERFECT, GREAT, GOOD,
+  otherwise a miss when the note passes. A press with no note in range is ignored (no penalty).
+- Presses arrive with the **song time they were made at** (`inp.lanes: [{lane, t}]`), clamped to the last 0.25 s,
+  so frame timing never costs accuracy.
+- **Hold notes** (Ingrid's lane always, the last melody or lyric note sometimes, enemy roars): press in time, hold to
+  the end. Releasing within 0.14 s of the end counts as complete; releasing earlier gives partial credit.
+- **Party hit damage** = power × role × judgment (1 / 0.75 / 0.45) × combo (1 + min(combo, 60)/60) × resonance ×
+  (Crescendo ×2). Role effects: melody heals the most-hurt princess (6% of her max HP at PERFECT); lyrics add a ward
+  (capped at about 60% of Marigold's HP) that soaks enemy damage; a completed harmony hold adds resonance (cap 1.6,
+  decays 0.12 at each guard).
+- **Enemy notes:** PERFECT is a parry (a small counter-hit), GREAT blocks, GOOD lets half through, a miss hits that
+  lane's princess for `atk` (×1.5 for a missed roar). At 0 HP a princess is knocked out: her lane goes silent, her
+  pending notes vanish, and no new notes are written for her.
+- **Crescendo** meter: +2.2 / +1.2 / +0.4 per judgment (charms change it). At 100, Space / ★ revives knocked-out
+  princesses at 35%, heals everyone 15% and doubles damage until the end of the next PLAY phrase.
+- **Win:** the enemy reaches 0 HP. Results show XP (`enemy.xp × (0.7 + 0.5 × accuracy)`), drops, level-ups, a
+  rank S–D, and combo. **Lose:** every princess is down. Then *Try again* (full health) or *Return to the Song
+  Crystal*. An Encore Bell, if carried, revives the band once automatically. Knocked-out princesses get back up at
+  25% HP for the next fight.
+- **Note density** scales with difficulty (0/1/2) and thins per lane when 3–4 princesses play, so a full band stays
+  playable (about 9 notes per bar at Normal).
+- **Final battle** (`B.final`): HP is clamped at 44% until the Colossus wakes. The phrase queue after the Hush is
+  `talk:hush, count, solo, talk:otto, count, solo, guard, talk:colossus, count`, then normal alternation with
+  `colossus` notes (lane −1, played with the Crescendo key, 6.5% of max HP each). During the Hush, Lyra can't drop
+  below 1 HP. Time freezes during talk phrases; each talk is followed by a 1-bar count-in.
+
+## Field rules (`js/sim/field.js`, to write)
+
+- Maps are 24×16 ASCII grids ([js/sim/data/maps.js](js/sim/data/maps.js), `TILES` legend). The player is a circle
+  of radius 0.3 at speed 3.6 tiles/s, sliding along solid tiles; NPCs block too.
+- **Interact** (A) picks the nearest NPC, sign, chest or Song Crystal within 1.25 tiles. Chests give items or charms
+  (`G.opened` is kept for the whole game). Crystals heal fully, save, and set `G.lastCrystal`.
+- **Otto** stands at `map.travel` once `metOtto` is set: talking to him opens the route map (`WORLD`). Aurelune's lift
+  is a sign: the first use plays `lift` (sets `surface` and the chapter 2 card), later uses open the map directly.
+- **Triggers** (`{x, y, w, h, scene, need, not, once, push}`) start a scene on entry. `push` moves the player back
+  after a "blocked" scene. Exits need flags (`need` and `blocked` scene).
+- **Roaming enemies** wander around home; inside 3.6 tiles they chase. Touching one starts a battle
+  (`from: 'field'`); a win removes it until the map is re-entered. After a battle there are 1.5 s of grace.
+- Followers (the recruited princesses walking behind Lyra) are view-only, drawn from a breadcrumb trail of the
+  player's positions.
+
+## Modes (`G.mode`)
+
+`scene` → `field` ↔ `battle` → `results` | `defeat`; `worldmap` → `travel` → `field`; `ending` (credits, then the
+title). Scenes can start battles (`from: 'scene'`), and the scene resumes after the results.
+
+## Controls
+
+| Action | Keyboard | Gamepad | Touch |
+|---|---|---|---|
+| Move | Arrows / WASD | Stick / d-pad | Drag on the left half |
+| Talk / confirm | Space / Enter / Z | A | A button |
+| Band menu | M / Tab | Y | ☰ |
+| Pause | P / Esc | Start | ❚❚ |
+| Lanes 1–4 (battle) | D F J K or ← ↓ ↑ → | d-left, d-down, X, B (or LB/LT/RT/RB) | tap the lane pads |
+| Crescendo / Colossus | Space | A | ★ |
+
+## Look and sound (plan)
+
+- **View** (`js/view/`): `stage.js` handles the renderer and post-processing (tilt-shift, then bloom with the
+  threshold above 1, then a grade/vignette/grain/flash pass, then ACES), modelled on game-093's stage. `pixel.js` is
+  a pixel painter with auto-shading and outlines; `people.js` draws princesses, NPCs, Otto and the princes from a
+  `look` (directions down/up/side, 3 walk frames, battle poses idle/play/hurt/ko); `monsters.js` draws one body plan
+  per `sprite` id plus the huge dragon, warden and Colossus; `tiles.js` makes procedural tile textures per theme;
+  `fieldview.js` builds the instanced tile diorama, props, point lights (lanterns, crystals), water and actors;
+  `battleview.js` has the battle stage per area theme (party on the left in a diagonal, the enemy on the right),
+  lights pulsing on the beat, note sparks flying from princess to enemy, hit/hurt/KO/crescendo effects, the Colossus
+  rise and the cannon. Characters are upright billboards with blob shadows.
+- **Highway** (`js/ui/highway.js`): Canvas 2D over the scene, 4 lanes bottom-centre (the full width on portrait
+  phones), with notes falling to a hit line above the touch pads. Enemy notes are spiky and dark red-violet; party
+  notes are in the lane colour. Lyric notes show their syllable, holds have tails, and gold Colossus notes span all
+  lanes. Note lead is in beats (speed setting 1–5 → 4, 3.2, 2.6, 2.1, 1.7 beats), never longer than the 1-bar
+  count-in.
+- **Audio** (`js/audio.js`, Web Audio, no files):
+  - Party notes sound **only when hit**, scheduled at the note's exact time on the AudioContext clock (an early hit
+    waits for the beat; a late hit plays at once).
+  - Instruments: Lyra's drum kit (kick, snare, tom), Seraphine's plucked harp, Marigold's formant "voice" (vowel
+    from the syllable), Ingrid's organ/horn chords with a sub.
+  - Enemy riffs are pre-scheduled in the enemy's `timbre` (pluck, hush, buzz, bell, growl). A quiet backing (pad +
+    shaker) always plays so the tempo is audible.
+  - Field music uses `fieldPhrase()` with only the recruited lanes, so the world's music gets fuller as the band
+    grows.
+- **Sync:** in battle, `main.js` advances the sim from the audio clock (`ctx.currentTime` deltas) when audio runs at
+  `fast=1`, so `B.t` and the AudioContext stay locked (`audioT = anchor + songT`). There is a user offset (ms) in
+  Settings for calibration. Resuming from pause shows a 3-2-1 countdown before the sim steps again.
+
+## Module overview
+
+| Path | Responsibility | State |
+|---|---|---|
+| `js/config.js` | VERSION, SAVE_KEY, STEP, windows, roles, tuning | done |
+| `js/rng.js` | mulberry32, `hash3`, `strSeed` | done |
+| `js/sim/data/chars.js` | princesses (stats, colours, looks), NPCs | done |
+| `js/sim/data/enemies.js` | 16 enemies, `AREA_ENEMIES` | done |
+| `js/sim/data/items.js` | items, charms | done |
+| `js/sim/data/maps.js` | 7 maps (`hollow`, `beach`, `aurelune`, `marisonde`, `sunreach`, `frosthold`, `spire`), `WORLD` route map, `chestsOf`, `crystalOf` | done |
+| `js/sim/data/script.js` | `SCENES`, `BATTLE_TALK` | done |
+| `js/sim/song.js` | `composeSong`, `phraseNotes` (play/guard/solo/colossus), `fieldPhrase`, lyric bank | done |
+| `js/sim/party.js` | levels, HP, power, charms, items, `join` (sets `<id>Joined`) | done |
+| `js/sim/battle.js` | the duel (above), `startBattle`, `stepBattle`, `endBattle`, `afterDefeat` | done |
+| `js/sim/story.js` | scene runner, route map, `objective()`, `warpToCrystal` | done |
+| `js/sim/field.js` | `loadMap`, `stepField`, collision, interaction, triggers, roaming enemies | **next** |
+| `js/sim/game.js` | `newGame(seed, difficulty)` (starts the `prologue` scene on `hollow`), `step`, `act` (menu commands), serialize | to do |
+| `js/sim/bot.js` | auto-player: BFS path to `objective()`, talks, battles at a skill level, heals at crystals | to do |
+| `js/view/*`, `js/ui/*`, `js/audio.js`, `js/input.js`, `js/save.js`, `js/main.js` | see *Look and sound* | to do |
+| `dev/simtest.mjs`, `dev/browsertest.mjs`, `dev/play.mjs`, `dev/gallery.html`, `dev/preview.mjs` | harnesses | to do |
+
+## Testing (plan)
+
+- `simtest.mjs`: purity grep, map validity (rows 24 wide, chest counts, every NPC/trigger/exit/crystal reachable
+  from the spawn by BFS), song invariants (no overlapping notes in a lane, holds inside the phrase, lyrics on lane 2
+  only), battle rules (perfect hit damages, a missed guard hurts, KO silences a lane, crescendo revives, hold release
+  rules, the tutorial can't be lost, the final script reaches the Colossus and the win), determinism and a save round
+  trip mid-battle, and **the bot plays the whole story** from the prologue to the credits at two skill levels, with a
+  balance table (battles fought, deaths, levels per chapter).
+- `browsertest.mjs`: desktop (title → prologue lines → field movement with real keys → a battle with real D/F/J/K
+  presses → pause and countdown → save & quit → continue), touch phones 390×844 and 844×390 (lane pads, stick,
+  A, ≥ 44 px, no sideways scroll), and blocked storage.
+
+## Balance notes
+
+To be filled from the bot's table.
+
+## Build status (hand-off note)
+
+- **Done and pushed:** everything marked *done* in the module table.
+- **Next:** `field.js`, `game.js`, `bot.js`, `dev/simtest.mjs`; run the bot through the whole story and tune the
+  enemy HP/atk in `data/enemies.js`; then the view, UI, audio, input, main, `index.html`, `style.css`, the browser
+  harnesses, and the collection entries (`js/gamedata.js` with cssClass `crystal-crescendo` and genre `rpg`, the
+  card style in `css/styles.css`, README, status, CHANGELOG, docs, and `garden/img/games/game-113.jpg`).
+- Debug namespace `window.__ccr`, harness port 8113, save key `crystal-crescendo.v1`.
+- three.js is served offline in harnesses from `dev/package` (repo root; `npm pack three@0.165.0`); unpkg returns
+  403 in the sandbox.
+
+## Changelog
+
+### v1.0.0 (2026-11-02, in progress)
+- Design, data, the song composer, and the battle, party and story simulations.
