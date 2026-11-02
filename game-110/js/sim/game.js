@@ -9,9 +9,10 @@ import { COST_GROWTH, CLICK, FLOW, DREAD, TRIBUTE, VISITOR, OFFLINE, LEGEND, ACH
 import { makeRng } from '../rng.js';
 import {
     HOBBIES, MINIONS, MINION, UPGRADES, UPGRADE, DECOR, DECOR_BY, ABILITY, VISITORS, SCHEMES, SCHEME_BY,
-    HEIRLOOMS, HEIRLOOM, PERKS, PERK, LAIRS, ACHIEVEMENTS, GRAVES, GRAVE, M3_REWARD,
+    HEIRLOOMS, HEIRLOOM, PERKS, PERK, LAIRS, ACHIEVEMENTS, GRAVES, GRAVE, M3_REWARD, SALON_REWARD,
 } from './data.js';
 import * as M3 from './match3.js';
+import * as SALON from './salon.js';
 
 export const SAVE_VERSION = 1;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -39,7 +40,12 @@ export function newGame(seed = 1) {
 }
 
 function newYard() {
-    return { open: {}, m3: { level: 1, best: 0, three: 0, tries: 0, played: 0, won: 0, board: null } };
+    return {
+        open: {},
+        m3: { level: 1, best: 0, three: 0, tries: 0, played: 0, won: 0, board: null },
+        // Curl Up & Dye: wait is the time until the next paying client; best[client] the most stars they've given
+        salon: { wait: 0, n: 0, appt: null, styled: 0, three: 0, practice: 0, best: {} },
+    };
 }
 
 /** A fresh lair: everything bought is left behind; legend, perks, heirlooms, trophies and stats come along. */
@@ -281,6 +287,7 @@ export function step(G, dt) {
     if (G.t - G.lastCraft > FLOW.window) G.flow = Math.max(0, G.flow - FLOW.decay * M.flowDecay * dt);
 
     for (const id in G.cd) G.cd[id] = Math.max(0, G.cd[id] - dt);
+    if (G.yard.salon.wait > 0) G.yard.salon.wait = Math.max(0, G.yard.salon.wait - dt);
     for (let i = G.buffs.length - 1; i >= 0; i--) {
         const b = G.buffs[i];
         b.t -= dt;
@@ -421,6 +428,9 @@ export function act(G, cmd) {
         case 'clock': G.wall = cmd.wall; return true;
         case 'm3start': return m3start(G);
         case 'm3swap': return m3swap(G, cmd.a, cmd.b);
+        case 'salonSeat': return salonSeat(G, cmd.client);
+        case 'salonDone': return salonDone(G, cmd.look);
+        case 'salonLeave': { if (!G.yard.salon.appt) return false; G.yard.salon.appt = null; return true; }
         default: return false;
     }
 }
@@ -569,6 +579,43 @@ function m3swap(G, a, b) {
     return true;
 }
 
+// ------------------------------------------------------------------------------------------------ Curl Up & Dye
+/** Seat a client. A paying client comes once the wait is over; before then it's a practice cut, for fun and no fee. */
+function salonSeat(G, client) {
+    const S = G.yard.salon;
+    if (!G.yard.open.salon || !SALON.CLIENT[client]) return false;
+    const paid = S.wait <= 0;
+    const { hair, wish } = SALON.makeWish(client, G.rng);
+    S.n++;
+    S.appt = { n: S.n, client, paid, hair, wish };
+    if (paid) S.wait = SALON_REWARD.wait;
+    emit(G, { type: 'salonSeat', client, paid, n: S.n });
+    return true;
+}
+
+/** The mirror: judge the look, pay a paying client, and send them on their way. */
+function salonDone(G, look) {
+    const S = G.yard.salon, A = S.appt;
+    if (!G.yard.open.salon || !A) return false;
+    const res = SALON.score(A.wish, look);
+    const out = { type: 'salonEnd', client: A.client, n: A.n, paid: A.paid, stars: res.stars, met: res.met, clean: res.clean, charm: 0, gold: 0 };
+    if (A.paid) {
+        if (res.stars > 0) {
+            const cps = rates(G).cps;
+            out.charm = Math.max(100, cps * SALON_REWARD.charmSec[res.stars]);
+            out.gold = Math.round(SALON_REWARD.gold * goldScale(cps) * (0.6 + 0.2 * res.stars));
+            addCharm(G, out.charm);
+            addGold(G, out.gold);
+        }
+        S.styled++;
+        if (res.stars === 3) S.three++;
+        S.best[A.client] = Math.max(S.best[A.client] || 0, res.stars);
+    } else S.practice++;
+    S.appt = null;
+    emit(G, out);
+    return true;
+}
+
 function relocate(G) {
     const gain = legendGain(G);
     if (gain < 1) return false;
@@ -621,7 +668,7 @@ export function deserialize(d) {
     const G = { ...base, ...rest, rng: makeRng(0), events: [] };
     // anything added since the save was written takes its default
     G.stats = { ...base.stats, ...rest.stats };
-    G.yard = { ...base.yard, ...rest.yard, m3: { ...base.yard.m3, ...(rest.yard?.m3 || {}) } };
+    G.yard = { ...base.yard, ...rest.yard, m3: { ...base.yard.m3, ...(rest.yard?.m3 || {}) }, salon: { ...base.yard.salon, ...(rest.yard?.salon || {}) } };
     G.owned = { ...base.owned, ...rest.owned };
     G.mastery = { ...base.mastery, ...rest.mastery };
     G.cd = { ...base.cd, ...rest.cd };

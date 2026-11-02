@@ -91,6 +91,12 @@ A board of three cards; starting one sends its henchmen and puts a new card in i
 - **Rewards** are paid into the castle on a win: charm worth 90, 150 or 240 seconds of production (one, two or three stars) and gold of `(3 + 0.6 × level) × the tribute scale × (0.6 + 0.2 × stars)`. Five trophies: clear levels 1, 10, 25 and 50, and ten three-star levels.
 - **Controls:** drag a token onto a neighbour, or tap one and then a neighbour; arrow keys move a cursor, Space or Enter picks a token up and an arrow swaps it. After seven idle seconds a possible move wiggles. Esc goes back to the graves.
 
+### Curl Up & Dye
+- **A spooky beauty salon** in the grave left of Skull Swap, after the old girls' dress-up and makeover games: opens when you **employ 40 minions**. Pick anyone from a gallery of eighteen clients (Lady Noxia, all twelve minions, the kitten, the critic, the bard, the hero and a goblin henchman); they take the chair in front of a gilded mirror, hats off, drawn at 2–4× from their own sprites ([js/salonview.js](js/salonview.js)), with a few cobwebs, leaves, bones and beetles in their hair from the crypt.
+- **Hair** is sixteen strands framing the face, a crown and a fringe, all painted with the pixel painter. **Wash:** shampoo makes suds and loosens the grime, rinse washes both away (and the hair stays dark and wet for a while). **Cut:** drag the scissors across the strands (the snipped ends fall); a grow tonic adds length. **Dye:** a brush colours single strands (streaks) or the crown, from ten colours. **Style:** drag a straightener, waver, curler or crimper over strands; hold the hairspray for big hair; five fringes. **Make-up:** lipstick and eyeshadow in any colour, blush, lashes, glitter, and stamped face stickers (heart, star, bat, stitches, tear). **Extras:** a tiara, a witch's hat, a crown of roses, cat ears or a bridal veil, and a bow (any colour), bat, spider, skull or rose clip. Every brush also has a whole-head button, so all of it works by keyboard too.
+- **Wishes** ([js/sim/salon.js](js/sim/salon.js)): each client asks for three things from three of five categories (hair colour, streaks or a rainbow; length; texture, big hair or a fringe; a make-up ask, or none at all; a top or a clip), never one their own hair already meets, coloured by their tastes. The chips tick as each comes true. Stars are wishes granted, but the third only for clean hair. The sim judges the look the screen sends (`salonDone`), after sanitizing it.
+- **Rewards**: a paying client arrives every 90 seconds (seating one starts the wait); between them any client can sit for a free **practice cut**. A paying client pays charm worth 40, 75 or 120 seconds of production by stars and gold of `4 × the tribute scale × (0.6 + 0.2 × stars)`; no stars, no fee. Five trophies: style 1, 10 and 50 paying clients, ten three-star makeovers, and three stars from every client.
+
 ### Mastery
 Charm made in a room (by minions and by hand) raises its mastery level at 100, 500, 2,500 … (×5). Each level is +3% to that hobby. Every four levels the room's centrepiece grows (more cake tiers, a longer gown, a bigger bouquet, a taller teacup tower).
 
@@ -139,6 +145,8 @@ There is no ending; it is an idle game. The story is told in flavour: minion and
 | `js/sim/data.js` | Every table: hobbies, minions, upgrades, décor, abilities, visitors, schemes, heirlooms, perks, lairs, trophies |
 | `js/sim/match3.js` | Skull Swap: boards, swaps, cascades, specials, cobwebs, goals, stars, levels, a bot (pure; the board keeps its own random state) |
 | `js/m3view.js` | The Skull Swap board on a canvas: plays back a swap's steps, drag, tap and key input |
+| `js/sim/salon.js` | Curl Up & Dye: the eighteen clients, their wishes, and judging a finished look (pure) |
+| `js/salonview.js` | The salon: the client gallery, the chair (hair strands, make-up, accessories painted with the pixel painter), the tools and brushes, the result |
 | `js/sim/bot.js` | An auto-player that sends the same commands: tests, balance, the title-screen demo |
 | `js/view/view.js` | Camera framing, minions and décor following the sim, the Overlord, visitors, event effects, picking |
 | `js/view/layout.js` | Where minions stand: slots clear of every measured piece of furniture, décor and window (pure, tested in Node) |
@@ -171,6 +179,9 @@ From the bot table (seed 9001, eight hours each):
 - A sixth hobby (gardening?), seasonal events, and a portrait of Noxia for the welcome-back sheet.
 
 ## Changelog
+
+### v1.3.0 (2026-11-02)
+- Added: **Curl Up & Dye**, the cemetery's second mini-game: a spooky hairdresser and makeover salon in the style of the old dress-up flash games. It opens at 40 minions. Pick any of eighteen clients (Lady Noxia, every minion, the four visitors and a henchman), then wash out the cobwebs, cut strand by strand, dye streaks, curl, crimp and spray, add a fringe, make-up and stickers, and top it off with a tiara, a witch's hat or a bow. Grant their three wishes for stars; a paying client every 90 seconds pays charm and gold, and practice cuts in between are free. Five new trophies. Salon variants of the sprites take their hats off for the chair.
 
 ### v1.2.0 (2026-10-30)
 - Added: **the cemetery**, a 3D graveyard past the Ballroom with five gravestones, each a mini-game. **Skull Swap**, a match-three of the game's own art (skulls, cupcakes, yarn, candles, roses, teacups, jack-o'-lanterns, cobwebs), opens when you employ 25 minions and pays charm and gold into the castle for every level cleared; four more graves are waiting for future games. A 🪦 Graves button, G and Q/E reach it, and the whole-castle view includes it. Five new trophies. The match-three is pure and seeded like the rest of the sim, balanced by a bot over 30 levels, and its board plays back each swap's steps as animations with sounds that climb with each cascade.

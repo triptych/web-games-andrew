@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { Stage } from './stage.js';
 import { buildCastle, RW, RH, RD, GAP, T, roomX, SLOTS_PER_KIND, LANE, VISIT, YARD } from './castle.js';
-import { drawToken } from './art.js';
+import { drawGraveIcon } from './art.js';
 import { SpriteLib } from './sprites.js';
 import { Particles, Rings, Billboard, SHAPE } from './fx.js';
 import { SPRITE_SCALE } from './art.js';
@@ -583,7 +583,7 @@ export class View {
             gr.halo.material.opacity = open ? 0.14 + Math.sin(time * 2.4) * 0.05 : 0;
             gr.candles.visible = open;
             if (open && !gr.icon) {
-                gr.icon = new Billboard(this.sprites.get('t|skull', () => drawToken('skull')), { emissive: 0.9, shadow: false, scale: 2.2 });
+                gr.icon = new Billboard(this.sprites.get(`g|${gr.id}`, () => drawGraveIcon(gr.id)), { emissive: 0.9, shadow: false, scale: 2.2 });
                 gr.group.add(gr.icon.group);
                 if (this.place === 'yard') this.particles.burst(Y.x + gr.x, 1.5, gr.z + 0.4, 40, { color: [0x9a7aff, 0xffffff, 0x9aff7a], shape: SHAPE.star, size: 11, glow: 2.6, speed: 3.5, up: 3.5, life: 1.5 });
             }
