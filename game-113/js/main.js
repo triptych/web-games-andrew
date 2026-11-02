@@ -20,7 +20,7 @@ import { makeBot, botInput } from './sim/bot.js';
 import { MAPS } from './sim/data/maps.js';
 import { CHARS } from './sim/data/chars.js';
 import { join } from './sim/party.js';
-import { loadMap } from './sim/field.js';
+import { loadMap, npcsOf } from './sim/field.js';
 import { endScene, startScene } from './sim/story.js';
 import { startBattle } from './sim/battle.js';
 
@@ -367,6 +367,10 @@ if (DEBUG) {
         autoplay(on = true, skill = 1) { bot = on ? makeBot({ skill }) : null; },
         /** Run the sim ahead synchronously with the bot playing; events reach the view as usual. */
         ff(sec, skill = 1) { const b = makeBot({ skill }); for (let t = 0; t < sec; t += STEP) { step(G, botInput(G, b), STEP); if (G.events.length > 200) flushEvents(); } flushEvents(); syncScreens(); },
+        /** Play the current scene through (every line confirmed) until it hands over to the field, a battle or a menu. */
+        skipScene(max = 120) { for (let t = 0; t < max && G.mode === 'scene'; t += STEP) { step(G, { ...NONE_IN, a: true }, STEP); if (G.events.length > 200) flushEvents(); } flushEvents(); syncScreens(); ui.hideDialogue(); return G.mode; },
+        /** Stand next to a person on this map, facing them. */
+        near(id) { const n = npcsOf(G).find((x) => x.id === id); if (!n) return false; G.p.x = n.x + 1.0; G.p.y = n.y; G.p.dir = 'left'; G.safeT = 3; return true; },
         save: () => saveGame(G),
         hasSave,
         pause, resume,
