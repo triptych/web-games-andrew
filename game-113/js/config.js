@@ -1,6 +1,6 @@
 // Crystal Crescendo — tuning and constants. Shared by the sim, the view, the audio and the tests.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.1.0';
 export const SAVE_KEY = 'crystal-crescendo.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)

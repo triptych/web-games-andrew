@@ -167,14 +167,24 @@ async function desktop() {
     check(judged >= 1, `real D presses land on falling notes (${judged} judged)`);
     await until(page, () => __ccr.seen.tap >= 1, 'every lane press reaches the sim');
     await shot(page, 'desktop-duel');
-    await Q(page, () => __ccr.autoplay(true));
-    await until(page, () => __ccr.G.mode === 'results' && !document.getElementById('results').hidden, 'the bot finishes the duel: the results screen', 180000);
-    await Q(page, () => __ccr.autoplay(false));
+    // ---- auto battle: the AUTO button hands the band to the auto player for the rest of the duel
+    await click(page, '#btn-auto');
+    await until(page, () => document.getElementById('btn-auto').classList.contains('on') && !document.getElementById('auto-badge').hidden, 'AUTO switches auto battle on, with a badge on the stage');
+    const j0 = await Q(page, () => __ccr.seen.judge || 0);
+    await until(page, (n) => (__ccr.seen.judge || 0) > n + 4, 'with no key pressed, notes are played and blocked', 120000, j0);
+    await shot(page, 'desktop-auto');
+    await until(page, () => __ccr.G.mode === 'results' && !document.getElementById('results').hidden, 'auto battle finishes the duel: the results screen', 240000);
+    check(await Q(page, () => /auto battle/.test(document.getElementById('res-gains').textContent)), 'the results say the duel was played on auto');
     await shot(page, 'desktop-results');
     await click(page, '#res-ok');
     await until(page, () => __ccr.G.mode === 'scene' || __ccr.G.mode === 'field', 'Continue closes the results and the story resumes');
     await Q(page, () => __ccr.skipScene(600));
     await until(page, () => __ccr.G.mode === 'field' && __ccr.G.flags.metOtto, 'Otto joins the journey');
+
+    check(await Q(page, () => JSON.parse(localStorage.getItem('crystal-crescendo.v1.settings')).autoBattle === true), 'the choice is remembered in the settings');
+    // ---- auto battle off again, from Settings this time
+    await Q(page, () => { const s = document.getElementById('set-auto'); s.value = 'off'; s.dispatchEvent(new Event('change')); });
+    check(await Q(page, () => JSON.parse(localStorage.getItem('crystal-crescendo.v1.settings')).autoBattle === false), 'Settings turns auto battle off');
 
     // ---- pause stops the world; resume counts in
     await settle(page);
@@ -306,7 +316,7 @@ async function phone(w, h) {
     for (let i = 0; i < 20 && await Q(page, () => __ccr.G.battle.state === 'talk'); i++) { await tapSel('#dialogue'); await page.waitForTimeout(700); }
     await until(page, () => __ccr.G.battle.state === 'run', 'taps get through Otto\'s lines');
     await until(page, () => document.querySelectorAll('.lane-pad').length === 1 && !document.getElementById('lane-pads').hidden, 'one lane pad for the one princess');
-    const sizes = await Q(page, () => ['.lane-pad', '#btn-cres', '#btn-bpause'].map((s) => {
+    const sizes = await Q(page, () => ['.lane-pad', '#btn-cres', '#btn-bpause', '#btn-auto'].map((s) => {
         const r = document.querySelector(s).getBoundingClientRect();
         return { s, ok: r.width >= 44 && r.height >= 44 && r.left >= 0 && r.top >= 0 && r.right <= innerWidth + 0.5 && r.bottom <= innerHeight + 0.5 };
     }));

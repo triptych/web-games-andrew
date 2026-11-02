@@ -6,7 +6,7 @@ import { serialize, deserialize } from './sim/game.js';
 
 const SETTINGS_KEY = SAVE_KEY + '.settings';
 const CLEARED_KEY = SAVE_KEY + '.cleared';
-const DEFAULTS = { sfx: 0.8, music: 0.7, touch: 'auto', speed: 3, offset: 0, difficulty: 'normal', quality: 2, assist: false };
+const DEFAULTS = { sfx: 0.8, music: 0.7, touch: 'auto', speed: 3, offset: 0, difficulty: 'normal', quality: 2, autoBattle: false };
 
 function read(key) { try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : null; } catch { return null; } }
 function write(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch { return false; } }
