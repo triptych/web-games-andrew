@@ -83,7 +83,8 @@ export class FieldView {
                 let edge = false;
                 for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const c2 = tileAt(m, x + dx, y + dy); if (c2 !== 'H' && c2 !== ' ') edge = true; }
                 if (!edge) continue;
-                const h = 2.6 + hash3(x, y, 3) * 0.8;
+                // the row nearest the camera stays low, or it walls off the view
+                const h = y >= this.H - 1 ? 0.35 : 2.6 + hash3(x, y, 3) * 0.8;
                 push('cliff', cx, h / 2 - 0.5, cz, 1, h + 1, 1);
                 continue;
             }
@@ -115,7 +116,7 @@ export class FieldView {
                 const k = key.slice(6);
                 const base = k.replace(/\d$/, ''), vv = +(k.match(/\d$/)?.[0] || 0);
                 mat = new THREE.MeshStandardMaterial({ map: this.tex(m.theme, base, vv), roughness: 0.95 });
-                if (T.glowSand && base === 'ground2') { mat.emissive = new THREE.Color(0x2a8a80); mat.emissiveMap = mat.map; mat.emissiveIntensity = 0.6; }
+                if (T.glowSand && base === 'ground2') { mat.emissive = new THREE.Color(0x46d8c8); mat.emissiveMap = mat.map; mat.emissiveIntensity = 0.9; }
             }
             const im = new THREE.InstancedMesh(geo, mat, list.length);
             list.forEach((mtx, i) => im.setMatrixAt(i, mtx));

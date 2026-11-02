@@ -12,7 +12,7 @@ export const THEMES = {
     },
     beach: {
         ground: '#3e4a5e', ground2: '#2fa8a0', path: '#6a7a8a', wall: '#24304a', cliff: '#182238', house: '#3a4a5a', roof: '#2a6a7a', water: '#0f5a6a', dock: '#7a5a3a',
-        sky: 0x07121c, fog: 0x0a1a28, fogNear: 14, fogFar: 38, hemi: [0x6ad8e8, 0x0a1420, 0.6], sun: [0x9ae8ff, 0.55], lightCol: 0x5ae8ff, tree: 'shroom', grade: { warm: 0, dusk: 0.15, bloom: 0.7 },
+        sky: 0x07121c, fog: 0x0a1a28, fogNear: 14, fogFar: 38, hemi: [0x7ae8f0, 0x14283a, 0.95], sun: [0x9ae8ff, 0.75], lightCol: 0x5ae8ff, tree: 'shroom', grade: { warm: 0, dusk: 0.15, bloom: 0.7 },
         motes: 0x7ff6ff, glowSand: true,
     },
     aurelune: {

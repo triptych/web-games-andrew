@@ -16,6 +16,7 @@ const PX = 1 / 16;
 const LANE_POS = [[-3.1, 0.9], [-4.3, 0.1], [-3.3, -0.7], [-4.5, -1.5]];
 const LANE_COL = ['#ff6fa6', '#46e0cf', '#ffc23d', '#9b8cff'];
 const ENEMY_POS = new THREE.Vector3(3.6, 0, -0.1);
+const COL_POS = new THREE.Vector3(-1.6, 0, -5.4);     // the Colossus rises at the back, behind the band
 
 export class BattleView {
     constructor(lib) {
@@ -97,7 +98,10 @@ export class BattleView {
         this.ottoGone = false;
         this.enemy = this.sprite(true); this.enemy.group.position.copy(ENEMY_POS); root.add(this.enemy.group);
         this.enemy.home = ENEMY_POS.clone();
-        this.enemyScale = (ENEMIES[B.enemy].size || 1.3) * 0.55;
+        const ed = ENEMIES[B.enemy], ep = this.lib.monster(B.enemy, false);
+        // size from the data, but never taller than the stage can frame
+        this.enemyScale = Math.min((ed.size || 1.3) * 0.55, (ed.final ? 4.6 : ed.boss ? 3.5 : 2.6) / (ep.h * PX));
+        this.enemy.home.set(ed.final ? 4.1 : ENEMY_POS.x, 0, ed.final ? -1.2 : ENEMY_POS.z);
         this.colossus = null;
         this.flashT = {}; this.desat = 0; this.cresT = 0; this.downT = 0; this.punch = 0; this.shake = 0; this.colRise = 0;
         this.enemyId = B.enemy;
@@ -212,10 +216,10 @@ export class BattleView {
             this.colRise = Math.min(1, this.colRise + dt * 0.35);
             const e = this.colossus;
             const y = -9 + 9 * easeOut(this.colRise);
-            e.group.position.set(-7.4, y + pulse * 0.08, -4.2);
+            e.group.position.set(COL_POS.x, y + pulse * 0.08, COL_POS.z);
             e.mat.emissiveIntensity = 0.35 + pulse * 0.25 + e.flash;
             e.flash = Math.max(0, e.flash - dt * 3);
-            if (this.colRise < 1 && Math.random() < 0.6) this.particles.emit(-7.4 + (Math.random() - 0.5) * 6, 0.2, -3.6, { n: 2, color: 0xc8a070, speed: 2, life: 1, size: 0.35, gravity: 3, lift: 3 });
+            if (this.colRise < 1 && Math.random() < 0.6) this.particles.emit(COL_POS.x + (Math.random() - 0.5) * 6, 0.2, COL_POS.z + 0.6, { n: 2, color: 0xc8a070, speed: 2, life: 1, size: 0.35, gravity: 3, lift: 3 });
         }
         if (this.beam) {
             this.beam.t -= dt;
@@ -330,7 +334,8 @@ export class BattleView {
     colossusBlast(j, stage) {
         if (!this.colossus) return;
         this.colossus.flash = 1;
-        const from = new THREE.Vector3(-7.4, 6.6, -4.0), to = this.enemyPos();
+        // from the Colossus's chest, where Otto's eye now is
+        const from = new THREE.Vector3(COL_POS.x, this.colossus.h * 0.5, COL_POS.z + 0.5), to = this.enemyPos();
         const len = from.distanceTo(to);
         const mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.32, len, 10, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(0x9affff).multiplyScalar(2.2), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
         mesh.position.copy(from).lerp(to, 0.5);
@@ -350,12 +355,12 @@ export class BattleView {
         else if (name === 'quake') { this.shake = 2; stage.kick(0.6); }
         else if (name === 'colossus') {
             const c = this.colossus = this.sprite();
-            this.setTex(c, this.lib.raw('m|colossus', () => { return import_colossus(); }), 1.35);
+            this.setTex(c, this.lib.raw('m|colossus', () => { return import_colossus(); }), 1.25);
             c.mat.emissiveIntensity = 0.35;
-            c.group.position.set(-7.4, -9, -4.2);
+            c.group.position.set(COL_POS.x, -9, COL_POS.z);
             this.root.add(c.group);
             this.colRise = 0;
-            const L = new THREE.PointLight(0x9affff, 3, 16, 1.2); L.position.set(-6, 6, -1); this.root.add(L);
+            const L = new THREE.PointLight(0x9affff, 3, 16, 1.2); L.position.set(COL_POS.x, 6, COL_POS.z + 3); this.root.add(L);
             stage.flash(1, 0.95, 0.7, 0.9); this.shake = 2;
         } else if (name === 'revive') {
             for (let i = 0; i < 4; i++) { const v = this.lanePos(i); this.particles.emit(v.x, v.y, v.z, { n: 60, color: 0xffd35c, speed: 3, life: 1.4, size: 0.2, gravity: -1 }); }

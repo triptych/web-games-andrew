@@ -215,7 +215,8 @@ async function desktop() {
     await shot(page, 'desktop-worldmap');
     await click(page, '.node[data-node="sunreach"]');
     await until(page, () => __ccr.G.mode === 'travel', 'a click on Sunreach sets off');
-    await until(page, () => __ccr.G.mode === 'field' && __ccr.G.map === 'sunreach' && document.getElementById('worldmap').hidden, 'the band arrives in Sunreach', 120000);
+    // (a first visit plays the arrival scene straight away)
+    await until(page, () => (__ccr.G.mode === 'field' || __ccr.G.mode === 'scene') && __ccr.G.map === 'sunreach' && document.getElementById('worldmap').hidden, 'the band arrives in Sunreach', 120000);
     await Q(page, () => __ccr.skipScene(60));
     await settle(page);
     await shot(page, 'desktop-sunreach');
@@ -247,6 +248,7 @@ async function finalBattle() {
     await until(page, () => __ccr.G.mode === 'results', 'Vorthrax falls', 300000);
     await Q(page, () => __ccr.autoplay(false));
     await click(page, '#res-ok');
+    await until(page, () => __ccr.G.mode === 'scene', 'Continue returns to the throne scene');
     await Q(page, () => __ccr.skipScene(600));
     await until(page, () => __ccr.mode === 'ending' && !document.getElementById('ending').hidden, 'the ending rolls the credits', 120000);
     await page.waitForTimeout(2500);

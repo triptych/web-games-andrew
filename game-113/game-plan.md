@@ -3,7 +3,7 @@
 **Genre:** HD-2D story RPG with rhythm battles
 **Engine:** three.js r165 (import map, CDN), no asset files: every sprite, tile and sound is made in code
 **Layout:** sim/view (pure seeded simulation in `js/sim/`, a view that only reads it, `dev/` harnesses)
-**Status:** v1.0.0 in progress (see *Build status* at the end, which is the hand-off note for whoever continues)
+**Status:** v1.0.0 (see *Build status* at the end for what is verified and what is open)
 
 ---
 
@@ -106,7 +106,7 @@ Otto drive you to the next place on the route map. A HUD line always says what t
   `colossus` notes (lane −1, played with the Crescendo key, 6.5% of max HP each). During the Hush, Lyra can't drop
   below 1 HP. Time freezes during talk phrases; each talk is followed by a 1-bar count-in.
 
-## Field rules (`js/sim/field.js`, to write)
+## Field rules (`js/sim/field.js`)
 
 - Maps are 24×16 ASCII grids ([js/sim/data/maps.js](js/sim/data/maps.js), `TILES` legend). The player is a circle
   of radius 0.3 at speed 3.6 tiles/s, sliding along solid tiles; NPCs block too.
@@ -137,7 +137,7 @@ title). Scenes can start battles (`from: 'scene'`), and the scene resumes after 
 | Lanes 1–4 (battle) | D F J K or ← ↓ ↑ → | d-left, d-down, X, B (or LB/LT/RT/RB) | tap the lane pads |
 | Crescendo / Colossus | Space | A | ★ |
 
-## Look and sound (plan)
+## Look and sound
 
 - **View** (`js/view/`): `stage.js` handles the renderer and post-processing (tilt-shift, then bloom with the
   threshold above 1, then a grade/vignette/grain/flash pass, then ACES), modelled on game-093's stage. `pixel.js` is
@@ -184,11 +184,16 @@ title). Scenes can start battles (`from: 'scene'`), and the scene resumes after 
 | `js/sim/field.js` | `loadMap`, `stepField`, collision, interaction, triggers, roaming enemies | done |
 | `js/sim/game.js` | `newGame(seed, difficulty)` (starts the `prologue` scene on `hollow`), `step` (`inp.cmd` runs a menu command), `act`, serialize | done |
 | `js/sim/bot.js` | auto-player: BFS path to `objective()`, saves at each crystal, opens chests, heals, battles at a skill level | done |
-| `js/view/*`, `js/ui/*`, `js/audio.js`, `js/input.js`, `js/save.js`, `js/main.js` | see *Look and sound* | to do |
+| `js/view/stage.js` | renderer, post chain (tilt-shift → bloom → grade → ACES), adapted from game-093 | done |
+| `js/view/pixel.js`, `people.js`, `monsters.js`, `portraits.js` | the pixel painter, every person (4 views/poses, Otto, the Archivist), 17 monster body plans, dialogue portraits | done |
+| `js/view/tiles.js`, `fieldview.js` | themes and tile textures; the field diorama (instanced blocks, props, lights, water, actors, followers, scene effects) | done |
+| `js/view/battleview.js`, `fx.js`, `view.js` | the battle theatre, particles and flying notes, the swirl between stages and the grade | done |
+| `js/ui/ui.js`, `js/ui/highway.js` | screens, HUDs, dialogue, band menu, route map, results, credits; the Canvas 2D note highway | done |
+| `js/audio.js`, `js/input.js`, `js/save.js`, `js/main.js` | instruments, scheduling and field music; keyboard/pad/touch with stamped lane presses; guarded storage; the loop driven by the audio clock in duels | done |
 | `dev/simtest.mjs` | purity, maps, song, battle rules, save, the bot plays the whole story | done |
-| `dev/browsertest.mjs`, `dev/play.mjs`, `dev/gallery.html`, `dev/preview.mjs` | harnesses | to do |
+| `dev/browsertest.mjs`, `dev/play.mjs`, `dev/gallery.html`, `dev/shot.mjs`, `dev/preview.mjs` | see [dev/README.md](dev/README.md) | done |
 
-## Testing (plan)
+## Testing
 
 - `simtest.mjs`: purity grep, map validity (rows 24 wide, chest counts, every NPC/trigger/exit/crystal reachable
   from the spawn by BFS), song invariants (no overlapping notes in a lane, holds inside the phrase, lyrics on lane 2
@@ -214,17 +219,30 @@ bosses) and attack ×1.7, and Frosthold and the Spire got another ×1.2 attack. 
 | 0.75 | ~16 min | 25–35 s, down to ~70% HP | 95–115 s, down to 37–90% | 0–1 |
 | 0.55 | ~19 min | 30–40 s, down to ~20–60% | 120–170 s, often near 0 | lost Maelstra once at level 2 |
 
-## Build status (hand-off note)
+## Build status
 
-- **Done and pushed:** everything marked *done* in the module table.
-- **Next:** the view, UI, audio, input, main, `index.html`, `style.css`, the browser
-  harnesses, and the collection entries (`js/gamedata.js` with cssClass `crystal-crescendo` and genre `rpg`, the
-  card style in `css/styles.css`, README, status, CHANGELOG, docs, and `garden/img/games/game-113.jpg`).
-- Debug namespace `window.__ccr`, harness port 8113, save key `crystal-crescendo.v1`.
-- three.js is served offline in harnesses from `dev/package` (repo root; `npm pack three@0.165.0`); unpkg returns
-  403 in the sandbox.
+- Everything in the module table is written and pushed. `simtest.mjs` passes (2,900+ checks; the bot finishes the
+  story at two skills). `browsertest.mjs` drives desktop, the final battle, two phone orientations and blocked storage.
+- Debug namespace `window.__ccr`, harness port 8113, save key `crystal-crescendo.v1`. three.js is served offline in
+  the harnesses from `dev/package` (repo root; `npm pack three@0.165.0`), since unpkg returns 403 in the sandbox.
+- Lessons from the browser work (also in docs/generic/learnings.md):
+  - Press times are converted with the frame's real song-time ratio, not the `fast` factor: a capped slow frame
+    covers less song time than real time, and scaling by `fast` put every real key press half a second early.
+  - A waiting line is re-shown by the frame loop if the box was hidden (a debug skip once hid the tutorial's
+    first line).
+  - SwiftShader takes ~15 s to compile a duel's shaders; tests wait on state.
+
+## Open questions / next steps
+
+- A human pass with headphones on a real GPU: timing feel, the default audio offset, note speed, and whether Normal
+  is too dense with four princesses.
+- Mid-scene saves are not made (only in the field and on the route map), so quitting during a long scene replays it.
+- The ending could show the band playing a final concert on the battle stage (currently a scene and the credits).
 
 ## Changelog
 
-### v1.0.0 (2026-11-02, in progress)
-- Design, data, the song composer, and the battle, party and story simulations.
+### v1.0.0 (2026-11-02)
+- First release: the story from the Crystal Hollow to the credits across seven maps; four-lane call-and-response
+  duels composed from seeds, a layer per princess; levels, items, charms; Otto's route map; the scripted final battle
+  with the Hush and the Colossus; HD-2D dioramas and a battle theatre in three.js; synthesised instruments with the
+  band's notes sounding only when hit; touch, keyboard and gamepad; the sim test and the browser harness.

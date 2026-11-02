@@ -21,11 +21,10 @@ if (PKG) await page.route('https://unpkg.com/**', (r) => { const f = path.join(P
 await page.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
 await page.goto(`${BASE}/game-113/index.html?debug=1&fast=2&q=2`);
 await page.waitForFunction(() => window.__ccr && __ccr.mode === 'title', null, { timeout: 90000 });
-await page.evaluate(() => { __ccr.chapter('frosthold', 9); __ccr.battle('rimefang'); __ccr.autoplay(true, 0.92); document.getElementById('back-link').style.display = 'none'; });
+await page.evaluate(() => { __ccr.chapter('frosthold', 9); __ccr.battle('rimefang'); __ccr.autoplay(true, 1); document.getElementById('back-link').style.display = 'none'; });
 // past the swirl and the shader compile, into a PLAY phrase with notes on every lane
-await page.waitForFunction(() => { const B = __ccr.G.battle; return B && !__ccr.view.busy && B.t > 8 && B.ph.kind === 'play' && B.t - B.ph.start > 1.2 && B.combo > 6; }, null, { timeout: 600000, polling: 100 });
-await page.evaluate(() => __ccr.autoplay(false));
-await page.waitForTimeout(400);
+// the bot keeps playing perfectly through the shot
+await page.waitForFunction(() => { const B = __ccr.G.battle; return B && !__ccr.view.busy && B.t > 8 && B.ph.kind === 'play' && B.t - B.ph.start > 0.8 && B.t - B.ph.start < 2.2 && B.combo > 6; }, null, { timeout: 600000, polling: 50 });
 const png = path.join(HERE, 'shots', 'preview.png');
 await page.screenshot({ path: png, timeout: 120000 });
 const jpg = path.join(ROOT, 'garden/img/games/game-113.jpg');
