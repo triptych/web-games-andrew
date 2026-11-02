@@ -65,6 +65,7 @@
             <button id="btn-cres" class="cres" aria-label="Crescendo">★<span id="cres-fill"></span></button>
             <div id="cres-label">CRESCENDO</div>
         </div>
+        <button id="btn-auto" class="ibtn auto" aria-label="Auto battle" aria-pressed="false" title="Auto battle (Tab)">AUTO</button>
         <button id="btn-bpause" class="ibtn" aria-label="Pause">❚❚</button>
         <div id="lane-pads"></div>
     </div>
@@ -85,6 +86,7 @@
         <div id="dlg-next">▼</div>
     </div>
 
+    <div id="auto-badge" hidden>AUTO BATTLE</div>
     <div id="card" hidden><div id="card-big"></div><div id="card-small"></div></div>
     <div id="countdown" hidden></div>
 
@@ -138,6 +140,7 @@
                 <tr><td>D F J K &nbsp;or&nbsp; ← ↓ ↑ →</td><td>Lanes 1–4</td></tr>
                 <tr><td>Space</td><td>Crescendo when the ★ is full</td></tr>
                 <tr><td>Hold</td><td>Long notes: keep the key down to the end</td></tr>
+                <tr><td>Tab / AUTO</td><td>Auto battle on or off, any time in a duel</td></tr>
             </table>
             <ul class="roles">
                 <li><b class="c0">Lyra · Beat</b> — the strongest taps.</li>
@@ -162,6 +165,9 @@
             </label>
             <label class="row">Graphics
                 <select id="set-quality"><option value="0">Fast</option><option value="1">Balanced</option><option value="2">Pretty</option></select>
+            </label>
+            <label class="row">Auto battle
+                <select id="set-auto"><option value="off">Off: you play</option><option value="on">On: the band plays itself</option></select>
             </label>
             <label class="row">Touch controls
                 <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>

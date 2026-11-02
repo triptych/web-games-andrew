@@ -53,6 +53,9 @@ let G = titleGame();
 let mode = 'title';              // title | play | ending
 let acc = 0, time = 0, last = performance.now(), saveT = 0;
 let bot = null;
+// Auto battle: the test bot, playing well but not perfectly, through the same inputs a player uses
+const autoBot = makeBot({ skill: 0.9, seed: 113 });
+let autoSteps = 0, handSteps = 0;
 let wasRunning = false;
 let countdown = 0;               // the 3-2-1 after unpausing a duel
 let pend = { a: false, pick: null, b: false };
@@ -109,6 +112,18 @@ document.getElementById('pause-menu').addEventListener('click', (e) => {
 });
 document.getElementById('btn-pause').addEventListener('click', () => pause());
 document.getElementById('btn-bpause').addEventListener('click', () => pause());
+input.bindButton(document.getElementById('btn-auto'), () => toggleAuto());
+// Enter or Space on the focused button (and element.click()) arrive as a click with no pointer behind it
+document.getElementById('btn-auto').addEventListener('click', (e) => { if (e.detail === 0) toggleAuto(); });
+
+function toggleAuto() {
+    settings.autoBattle = !settings.autoBattle;
+    saveSettings(settings);
+    document.getElementById('set-auto').value = settings.autoBattle ? 'on' : 'off';
+    audio.ui(settings.autoBattle ? 'open' : 'close');
+    ui.toast(settings.autoBattle ? 'Auto battle on: the band plays itself.' : 'Auto battle off: you play.');
+    window.A11Y?.announce?.(settings.autoBattle ? 'Auto battle on' : 'Auto battle off');
+}
 document.getElementById('btn-menu').addEventListener('click', () => openBand());
 document.getElementById('res-ok').addEventListener('click', () => { audio.ui('click'); pend.a = true; });
 document.getElementById('def-retry').addEventListener('click', () => { audio.ui('click'); pend.pick = 'retry'; });
@@ -188,6 +203,7 @@ function handlePresses() {
     }
     if (mode !== 'play') return;
     if (key === 'Escape' || key === 'KeyP') pause();
+    else if (key === 'Tab' && G.mode === 'battle') toggleAuto();
     else if ((key === 'KeyM' || key === 'Tab') && G.mode === 'field') openBand();
 }
 
@@ -202,6 +218,8 @@ function flushEvents() {
     ui.onEvents(G, ev);
     for (const e of ev) {
         if (e.type === 'battleStart' || e.type === 'talkEnd' || e.type === 'talkStart') anchorDirty = true;
+        if (e.type === 'battleStart') { autoSteps = 0; handSteps = 0; }
+        if (e.type === 'victory') ui.autoUsed = autoSteps && !handSteps ? 'all' : autoSteps ? 'part' : null;
         if (e.type === 'crystal' || e.type === 'battleEnd' || e.type === 'arrive') saveGame(G);
         if (e.type === 'sceneEnd') saveGame(G);
     }
@@ -324,7 +342,14 @@ function stepFrame(dt, now, realDt) {
             if (pend.a) inp.a = true;
             // a press while the dialogue is still typing finishes the line instead of skipping it
             if (inp.a && ui.dialogueTyping() && (G.mode === 'scene' || G.battle?.state === 'talk')) { ui.completeDialogue(); inp.a = false; input.consumeEdges(); }
-            if (G.mode === 'battle') {
+            if (G.mode === 'battle' && settings.autoBattle && G.battle?.state === 'run') {
+                // auto battle: the band's lanes, holds and Crescendo come from the auto player; the dialogue stays yours
+                const ai = botInput(G, autoBot);
+                inp.lanes = ai.lanes; inp.held = ai.held; inp.cres = ai.cres;
+                presses = []; cres = null;
+                autoSteps++;
+            } else if (G.mode === 'battle') {
+                if (G.battle?.state === 'run') handSteps++;
                 const bt = G.battle ? G.battle.t + STEP : 0;
                 inp.lanes = presses.filter((p) => p.t <= bt || n === steps - 1);
                 presses = presses.filter((p) => !inp.lanes.includes(p));

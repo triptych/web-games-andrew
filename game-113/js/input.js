@@ -141,6 +141,7 @@ export class Input {
             this.padLanes = held;
             if ((b(0) && !this.pad.prev[0]) || (b(3) && !this.pad.prev[3])) { this.cres = { at: now }; this.edges.a = true; }
             if (b(9) && !this.pad.prev[9]) this.queue.push({ key: 'KeyP', pad: true });
+            if (b(8) && !this.pad.prev[8]) this.queue.push({ key: 'Tab', pad: true });      // Back/Select: auto battle
             this.refreshHeld();
         } else {
             for (const i in PAD_KEYS) if (b(+i) && !this.pad.prev[i]) { this.queue.push({ key: PAD_KEYS[i], pad: true }); this.lastDevice = 'pad'; }

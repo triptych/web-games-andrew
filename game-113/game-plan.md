@@ -93,6 +93,8 @@ Otto drive you to the next place on the route map. A HUD line always says what t
 - **Enemy notes:** PERFECT is a parry (a small counter-hit), GREAT blocks, GOOD lets half through, a miss hits that
   lane's princess for `atk` (×1.5 for a missed roar). At 0 HP a princess is knocked out: her lane goes silent, her
   pending notes vanish, and no new notes are written for her.
+- **Auto battle** (a setting and the AUTO button, `main.js`): while on, each sim step's lane presses, held lanes and
+  Crescendo come from `botInput` at skill 0.9 instead of the player; talk phrases still wait for the player's confirm.
 - **Crescendo** meter: +2.2 / +1.2 / +0.4 per judgment (charms change it). At 100, Space / ★ revives knocked-out
   princesses at 35%, heals everyone 15% and doubles damage until the end of the next PLAY phrase.
 - **Win:** the enemy reaches 0 HP. Results show XP (`enemy.xp × (0.7 + 0.5 × accuracy)`), drops, level-ups, a
@@ -136,6 +138,7 @@ title). Scenes can start battles (`from: 'scene'`), and the scene resumes after 
 | Pause | P / Esc | Start | ❚❚ |
 | Lanes 1–4 (battle) | D F J K or ← ↓ ↑ → | d-left, d-down, X, B (or LB/LT/RT/RB) | tap the lane pads |
 | Crescendo / Colossus | Space | A | ★ |
+| Auto battle on/off (in a duel) | Tab | Back / Select | AUTO |
 
 ## Look and sound
 
@@ -240,6 +243,12 @@ bosses) and attack ×1.7, and Frosthold and the Spire got another ×1.2 attack. 
 - The ending could show the band playing a final concert on the battle stage (currently a scene and the credits).
 
 ## Changelog
+
+### v1.1.0 (2026-11-02)
+- **Auto battle.** An AUTO button in the battle HUD (Tab, or Back on a gamepad) and an *Auto battle* setting hand the
+  band's lanes, holds and Crescendo to the same bot the tests use, at skill 0.9: it plays well, not perfectly, and it
+  can be switched on or off at any moment of a duel. Story lines inside a battle still wait for the player, and the
+  results say when a duel was played on auto (all of it or part). The setting is remembered.
 
 ### v1.0.0 (2026-11-02)
 - First release: the story from the Crystal Hollow to the credits across seven maps; four-lane call-and-response

@@ -72,7 +72,7 @@ html, body {
 
 /* ---------------------------------------------------------------- battle HUD */
 #bhud { position: fixed; inset: 0; z-index: 8; pointer-events: none; }
-#enemy-panel { position: absolute; top: calc(10px + var(--safe-t)); right: calc(64px + var(--safe-r)); width: min(46vw, 340px); text-align: right; }
+#enemy-panel { position: absolute; top: calc(10px + var(--safe-t)); right: calc(124px + var(--safe-r)); width: min(46vw, 340px); text-align: right; }
 #enemy-name { font-family: var(--display); font-size: 15px; text-shadow: 0 2px 5px #000; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar { height: 8px; background: rgba(0, 0, 0, 0.55); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.2); }
 .bar.big { height: 12px; }
@@ -101,6 +101,9 @@ html, body {
 .cres.gold { background: radial-gradient(#fff1a0, #d89a2a); color: #3a2408; }
 #cres-label { font-size: 10px; font-weight: 900; letter-spacing: 0.12em; text-shadow: 0 1px 3px #000; }
 #btn-bpause { position: absolute; top: calc(8px + var(--safe-t)); right: calc(8px + var(--safe-r)); pointer-events: auto; }
+#btn-auto { position: absolute; top: calc(8px + var(--safe-t)); right: calc(60px + var(--safe-r)); pointer-events: auto; width: auto; padding: 0 10px; font-size: 12px; font-weight: 900; letter-spacing: 0.06em; }
+#btn-auto.on { background: linear-gradient(135deg, #46e0cf, #9b8cff); color: #10081e; border-color: #fff; box-shadow: 0 0 14px rgba(120, 220, 255, 0.7); }
+#auto-badge { position: fixed; z-index: 7; left: 50%; transform: translateX(-50%); top: calc(10px + var(--safe-t)); pointer-events: none; font: 900 12px 'Nunito', sans-serif; letter-spacing: 0.14em; color: #9affff; text-shadow: 0 0 8px #46e0cf, 0 1px 2px #000; }
 #lane-pads { position: absolute; left: 0; right: 0; bottom: 0; pointer-events: none; }
 .lane-pad {
     position: absolute; pointer-events: auto; touch-action: none; cursor: pointer;
@@ -278,7 +281,8 @@ td:first-child { color: var(--accent); white-space: nowrap; }
     #party-panel { flex-direction: row; flex-wrap: wrap; width: calc(100% - 16px - var(--safe-l) - var(--safe-r)); top: calc(46px + var(--safe-t)); gap: 4px; }
     .pm { width: calc(50% - 2px); grid-template-columns: 26px 1fr; padding: 2px 6px 2px 2px; }
     .pm canvas { width: 26px; height: 26px; }
-    #enemy-panel { right: calc(60px + var(--safe-r)); width: calc(100% - 180px); }
+    #enemy-panel { right: calc(116px + var(--safe-r)); width: calc(100% - 236px); }
+    #auto-badge { display: none; }      /* no room beside the enemy's name: the lit AUTO button says it */
     #cres-panel { bottom: auto; top: calc(var(--party-h, 110px) + 50px + var(--safe-t)); right: calc(8px + var(--safe-r)); flex-direction: row-reverse; align-items: center; }
     #chips { flex-direction: row; }
     .cres { width: 54px; height: 54px; font-size: 24px; }

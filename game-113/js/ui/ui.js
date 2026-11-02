@@ -35,16 +35,16 @@ export class UI {
 
         // ---- settings
         const S = settings;
-        const sfx = $('set-sfx'), music = $('set-music'), touch = $('set-touch'), speed = $('set-speed'), off = $('set-offset'), diff = $('set-diff'), q = $('set-quality');
-        sfx.value = S.sfx; music.value = S.music; touch.value = S.touch; speed.value = S.speed; off.value = S.offset; diff.value = S.difficulty; q.value = S.quality;
+        const sfx = $('set-sfx'), music = $('set-music'), touch = $('set-touch'), speed = $('set-speed'), off = $('set-offset'), diff = $('set-diff'), q = $('set-quality'), auto = $('set-auto');
+        sfx.value = S.sfx; music.value = S.music; touch.value = S.touch; speed.value = S.speed; off.value = S.offset; diff.value = S.difficulty; q.value = S.quality; auto.value = S.autoBattle ? 'on' : 'off';
         const outOff = () => { $('set-offset-out').textContent = `${off.value > 0 ? '+' : ''}${off.value} ms`; };
         outOff();
         const changed = () => {
-            Object.assign(S, { sfx: +sfx.value, music: +music.value, touch: touch.value, speed: +speed.value, offset: +off.value, difficulty: diff.value, quality: +q.value });
+            Object.assign(S, { sfx: +sfx.value, music: +music.value, touch: touch.value, speed: +speed.value, offset: +off.value, difficulty: diff.value, quality: +q.value, autoBattle: auto.value === 'on' });
             outOff();
             onSettings(S);
         };
-        for (const el of [sfx, music, touch, speed, off, diff, q]) { el.addEventListener('change', changed); el.addEventListener('input', changed); }
+        for (const el of [sfx, music, touch, speed, off, diff, q, auto]) { el.addEventListener('change', changed); el.addEventListener('input', changed); }
         $('set-delete').addEventListener('click', () => { onDeleteSave(); this.toast('Saved game deleted.'); });
 
         // ---- dialogue
@@ -107,6 +107,7 @@ export class UI {
     // ------------------------------------------------------------------ battle HUD
     battleHud(G, show, layout) {
         $('bhud').hidden = !show;
+        if (!show) $('auto-badge').hidden = true;
         if (!show || !G.battle) return;
         const B = G.battle;
         $('enemy-name').textContent = B.name;
@@ -149,6 +150,9 @@ export class UI {
         cb.classList.toggle('ready', B.cres >= 100 || gold);
         cb.classList.toggle('gold', gold);
         $('cres-label').textContent = gold ? 'COLOSSUS' : B.t < B.cresUntil ? 'CRESCENDO!' : 'CRESCENDO';
+        const ab = $('btn-auto'), on = !!this.settings.autoBattle;
+        if (ab.classList.contains('on') !== on) { ab.classList.toggle('on', on); ab.setAttribute('aria-pressed', String(on)); }
+        $('auto-badge').hidden = !on;
         if (layout && this.padsFor !== layout) this.buildPads(B, layout);
     }
     /** Touch pads under each lane of the highway; on a keyboard they show the keys and are still clickable. */
@@ -299,6 +303,7 @@ export class UI {
         const c = R.counts;
         $('res-stats').innerHTML = `<div><b>${c.perfect}</b>Perfect</div><div><b>${c.great}</b>Great</div><div><b>${c.good}</b>Good</div><div><b>${c.miss}</b>Miss</div><div><b>${R.maxCombo}</b>Best combo</div><div><b>${Math.round(R.acc * 100)}%</b>Accuracy</div>`;
         let g = `<div>+${R.xp} XP for the band</div>`;
+        if (this.autoUsed) g += `<div class="hint">Played on auto battle${this.autoUsed === 'all' ? '' : ' for part of the song'}.</div>`;
         for (const u of R.ups) g += `<div class="lv">${CHARS[u.who].name} reached level ${u.lv}!</div>`;
         for (const d of R.drops) { const it = ITEMS[d] || CHARMS[d]; g += `<div>Found ${it.icon} ${it.name}${CHARMS[d] ? ' (a charm — wear it from the band menu)' : ''}</div>`; }
         $('res-gains').innerHTML = g;
