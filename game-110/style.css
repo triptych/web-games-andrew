@@ -348,3 +348,60 @@ body.short .m3-board { grid-column: 2; grid-row: 1 / 6; width: calc(var(--vvh) -
 body.short .m3-head, body.short .m3-goal, body.short .m3-stats, body.short .m3-help, body.short .m3-sheet .sheet-foot { grid-column: 1; }
 body.short .m3-head { padding-top: 34px; }
 body.short .m3-sheet .sheet-foot { justify-content: flex-start; align-self: end; }
+
+/* ---------------------------------------------------------------- Curl Up & Dye */
+.salon-sheet { width: min(520px, 100%); padding: 14px; }
+.salon-status { font-size: 13px; font-weight: 800; color: var(--gold); text-align: right; }
+.salon-intro { font-size: 14px; margin: 0 0 10px; line-height: 1.4; }
+.salon-clients { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.salon-client {
+    position: relative; min-height: 112px; padding: 8px 4px 6px; cursor: pointer; border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px;
+    background: radial-gradient(circle at 50% 38%, rgba(255, 143, 194, 0.22), rgba(255, 255, 255, 0.05) 70%); color: var(--text); border: 2px solid rgba(255, 220, 245, 0.16);
+}
+.salon-client:hover, .salon-client:focus-visible { border-color: var(--pink); outline: none; }
+.salon-client img { max-width: 78px; max-height: 70px; image-rendering: pixelated; }
+.salon-client b { font-size: 11px; font-weight: 800; line-height: 1.1; text-align: center; }
+.salon-best { position: absolute; top: 4px; right: 6px; font-size: 11px; color: var(--gold); letter-spacing: -1px; }
+.salon-chair { display: flex; flex-direction: column; gap: 8px; }
+.salon-wish { display: flex; gap: 10px; align-items: flex-start; background: #fff3fa; color: #3a1830; border-radius: 14px; padding: 8px 10px; position: relative; font-size: 13px; line-height: 1.3; }
+.salon-wish::after { content: ''; position: absolute; left: 50%; bottom: -8px; border: 8px solid transparent; border-bottom: 0; border-top-color: #fff3fa; }
+.salon-wish img { width: 40px; height: auto; image-rendering: pixelated; flex: none; }
+.salon-wish .dim { color: #7a4a6a; font-style: italic; }
+.salon-asks { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.ask { font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: #f4dcea; color: #5a2a4a; border: 1px solid #e4b4cc; }
+.ask small { font-weight: 600; opacity: 0.8; }
+.ask.met { background: #c8f4d6; border-color: #5ac080; color: #1a5a30; }
+.ask.met::before { content: '✔ '; }
+.salon-stage { position: relative; width: min(100%, calc(var(--vvh) - 430px)); min-width: 230px; margin: 4px auto 0; aspect-ratio: 1; border-radius: 12px; overflow: hidden; border: 3px solid #2a1238; box-shadow: 0 0 0 2px rgba(255, 140, 200, 0.35) inset; background: #33194a; }
+#salon-canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; touch-action: none; }
+#salon-canvas:focus-visible { outline: none; }
+.salon-tabs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.salon-tabs button, .salon-tools .tool {
+    min-height: 44px; padding: 3px 2px; cursor: pointer; border-radius: 10px; color: var(--text);
+    background: rgba(255, 255, 255, 0.07); border: 2px solid rgba(255, 220, 245, 0.14);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05;
+}
+.salon-tabs button span, .salon-tools .tool span { font-size: 17px; }
+.salon-tabs button b, .salon-tools .tool b { font-size: 10px; font-weight: 800; text-transform: capitalize; }
+.salon-tabs button.on { border-color: var(--pink); background: rgba(90, 30, 70, 0.92); }
+.salon-tools { display: flex; flex-direction: column; gap: 4px; }
+.tool-row { display: flex; gap: 4px; }
+.tool-row .tool { flex: 1; min-width: 0; }
+.salon-tools .tool.on { border-color: var(--gold); background: rgba(110, 80, 20, 0.6); }
+.salon-tools .tool.wide { flex-direction: row; gap: 6px; }
+.salon-tools .tool.wide b { font-size: 13px; }
+.salon-tabs button:focus-visible, .salon-tools .tool:focus-visible, .swatch:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.salon-pal { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.swatch { aspect-ratio: 1; min-height: 28px; border-radius: 50%; cursor: pointer; background: var(--c); border: 2px solid #2a1238; box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.25), inset 2px 2px 0 rgba(255, 255, 255, 0.35); }
+.swatch.on { outline: 3px solid #fff; outline-offset: 1px; }
+.salon-sheet .sheet-foot { flex-wrap: wrap; }
+body.short #salon { padding-top: calc(6px + var(--safe-t)); padding-bottom: calc(6px + var(--safe-b)); }
+body.short .salon-sheet { width: min(900px, 100%); max-height: 100%; padding: 10px; }
+body.short .salon-chair { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto auto 1fr; column-gap: 12px; row-gap: 6px; }
+body.short .salon-stage { grid-column: 2; grid-row: 1 / 5; width: calc(var(--vvh) - 150px - var(--safe-t) - var(--safe-b)); min-width: 200px; margin: 0; }
+body.short .salon-sheet .m3-head h2 { font-size: 24px; margin: 0; }
+body.short .salon-sheet .sheet-foot { margin-top: 6px; }
+body.short .salon-wish { padding: 6px 8px; }
+body.short .salon-wish, body.short .salon-tabs, body.short .salon-tools, body.short .salon-pal { grid-column: 1; }
+body.short .salon-wish::after { display: none; }

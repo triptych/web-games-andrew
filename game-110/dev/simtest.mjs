@@ -10,7 +10,8 @@
  * 2. rules: crafting and flow, minion prices, upgrades, dread and its tiers, cackling, visitors (all four), abilities,
  *    décor, henchmen and schemes, heirlooms, mastery, trophies, relocation and perks.
  * 2b. match3: Skull Swap boards, swaps, specials, cobwebs, goals, stars, a balance table by level, and the grave's
- *    unlock, rewards, saves and relocation.
+ *    unlock, rewards, saves and relocation. Curl Up & Dye: the eighteen clients, wishes that can always be granted and
+ *    never already are, stars, the paying-client wait, practice cuts, pay, trophies, saves and relocation.
  * 3. layout: minion slots never stand inside furniture (the real castle is checked in browsertest.mjs).
  * 3b. away: time away is the same rules at the offline rate, capped; a day simulates quickly.
  * 4. determinism: the same seed and commands give the same game; a save round trip mid-game plays on identically;
@@ -378,7 +379,89 @@ if (want('match3')) {
     ok(G.yard.open.skull && G.yard.m3.level === 2, 'relocating keeps the cemetery and your Skull Swap level');
     const oldSave = Gm.serialize(Gm.newGame(41)); delete oldSave.yard;
     ok(Gm.deserialize(oldSave).yard.m3.level === 1, 'a save from before the cemetery loads');
-    ok(D.GRAVES.filter((g) => !g.soon).length === 1 && D.GRAVES.length === 5, 'five graves, one with a game so far');
+    ok(D.GRAVES.filter((g) => !g.soon).length === 2 && D.GRAVES.length === 5, 'five graves, two with a game so far');
+
+    section('Curl Up & Dye (the cemetery salon)');
+    const S = await import('../js/sim/salon.js');
+    ok(S.CLIENTS.length === 18 && ['noxia', ...D.MINIONS.map((m) => m.id), 'kitten', 'critic', 'bard', 'hero', 'henchman'].every((id) => S.CLIENT[id]), 'eighteen clients: the Overlord, every minion, the four visitors and a henchman');
+    // every wish is three different asks that the client's own hair doesn't already meet, and all of them can be met
+    const wr = makeRng(5);
+    let wishesOk = true, grantable = true;
+    for (let k = 0; k < 400; k++) {
+        const c = S.CLIENTS[k % S.CLIENTS.length].id, { hair, wish } = S.makeWish(c, wr), start = S.startLook({ hair });
+        if (wish.length !== 3 || wish.some((a) => S.askMet(a, start))) wishesOk = false;
+        // a stylist who does exactly what was asked
+        const L = { ...start, strands: start.strands.map((x) => ({ ...x })), clean: 1 };
+        for (const a of wish) {
+            if (a.k === 'colour') { L.cap = a.v; L.strands.forEach((x) => { x.c = a.v; }); }
+            else if (a.k === 'streaks') L.strands.slice(0, 4).forEach((x) => { x.c = a.v; });
+            else if (a.k === 'rainbow') L.strands.forEach((x, i) => { x.c = S.COLOUR_IDS[i % 6]; });
+            else if (a.k === 'short') L.strands.forEach((x) => { x.len = 0.1; });
+            else if (a.k === 'long') L.strands.forEach((x) => { x.len = 1; });
+            else if (a.k === 'tex') L.strands.forEach((x) => { x.tex = a.v; });
+            else if (a.k === 'big') L.vol = 1;
+            else if (a.k === 'bangs') L.bangs = 'blunt';
+            else if (a.k === 'lips') L.lips = a.v;
+            else if (a.k === 'shadow') L.shadow = 'purple';
+            else if (a.k === 'blush') L.blush = true;
+            else if (a.k === 'lashes') L.lashes = true;
+            else if (a.k === 'glam') Object.assign(L, { lips: 'red', shadow: 'pink', blush: true, lashes: true });
+            else if (a.k === 'sticker') L.stickers = 1;
+            else if (a.k === 'top') L.top = a.v;
+            else if (a.k === 'clip') L.clip = a.v;
+        }
+        if (S.score(wish, L).stars !== 3) { grantable = false; if (process.env.VERBOSE) console.log(c, JSON.stringify(wish)); }
+    }
+    ok(wishesOk, 'every wish is three asks the client’s own hair doesn’t already meet');
+    ok(grantable, 'and every wish can be granted in full');
+    G = rich(40, 1e9, 0);
+    ok(!Gm.act(G, { t: 'salonSeat', client: 'imp' }), 'the salon is closed at first');
+    Gm.act(G, { t: 'buy', id: 'imp', n: 39 }); Gm.step(G, 1);
+    ok(G.yard.open.skull && !G.yard.open.salon, '39 minions open Skull Swap but not the salon');
+    Gm.act(G, { t: 'buy', id: 'imp', n: 1 }); G.events.length = 0; Gm.step(G, 1);
+    ok(G.yard.open.salon && G.events.some((e) => e.type === 'graveOpen' && e.id === 'salon'), 'the 40th minion opens Curl Up & Dye, and says so');
+    ok(!Gm.act(G, { t: 'salonSeat', client: 'nobody' }), 'only real clients sit in the chair');
+    ok(Gm.act(G, { t: 'salonSeat', client: 'noxia' }) && G.yard.salon.appt.paid && G.yard.salon.wait === D.SALON_REWARD.wait, 'the first client pays, and the next paying one is a while off');
+    const A1 = G.yard.salon.appt;
+    let c1 = G.charm, g1 = G.gold;
+    ok(Gm.act(G, { t: 'salonDone', look: S.startLook(A1) }), 'a client can be sent off untouched');
+    let se = G.events.find((e) => e.type === 'salonEnd');
+    ok(se.stars === 0 && G.charm === c1 && G.gold === g1 && !G.yard.salon.appt, 'for no stars and no fee');
+    ok(!Gm.act(G, { t: 'salonDone', look: {} }), 'and the chair is empty afterwards');
+    Gm.act(G, { t: 'salonSeat', client: 'imp' });
+    ok(!G.yard.salon.appt.paid, 'a client before the wait is up is a practice cut');
+    G.events.length = 0;
+    Gm.act(G, { t: 'salonDone', look: { strands: 'nonsense', lips: 'tartan', top: 'crown of knives' } });
+    se = G.events.find((e) => e.type === 'salonEnd');
+    ok(se && !se.paid && se.charm === 0 && G.yard.salon.practice === 1, 'practice is free, and a garbled look is judged without breaking anything');
+    Gm.step(G, D.SALON_REWARD.wait);
+    ok(G.yard.salon.wait === 0, `a paying client arrives ${D.SALON_REWARD.wait} seconds later`);
+    Gm.act(G, { t: 'salonSeat', client: 'lich' });
+    const A2 = G.yard.salon.appt, L2 = S.startLook(A2);
+    L2.clean = 1;
+    // grant two of the three wishes by hand, then all three
+    const grant = (L, a) => { const T = { colour: () => { L.cap = a.v; L.strands.forEach((x) => { x.c = a.v; }); }, streaks: () => L.strands.slice(0, 4).forEach((x) => { x.c = a.v; }), rainbow: () => L.strands.forEach((x, i) => { x.c = S.COLOUR_IDS[i % 6]; }), short: () => L.strands.forEach((x) => { x.len = 0; }), long: () => L.strands.forEach((x) => { x.len = 1; }), tex: () => L.strands.forEach((x) => { x.tex = a.v; }), big: () => { L.vol = 1; }, bangs: () => { L.bangs = 'side'; }, lips: () => { L.lips = a.v; }, shadow: () => { L.shadow = 'blue'; }, blush: () => { L.blush = true; }, lashes: () => { L.lashes = true; }, glam: () => Object.assign(L, { lips: 'red', shadow: 'pink', blush: true, lashes: true }), sticker: () => { L.stickers = 2; }, bare: () => {}, top: () => { L.top = a.v; }, clip: () => { L.clip = a.v; } }; T[a.k](); };
+    grant(L2, A2.wish[0]); grant(L2, A2.wish[1]);
+    ok(S.score(A2.wish, L2).stars === 2, 'two wishes granted: two stars');
+    grant(L2, A2.wish[2]);
+    ok(S.score(A2.wish, L2).stars === 3, 'all three: three stars');
+    ok(S.score(A2.wish, { ...L2, clean: 0.5 }).stars === 2, 'but only clean hair earns the third');
+    c1 = G.charm; g1 = G.gold; G.events.length = 0;
+    const copyS = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(G))));
+    Gm.act(G, { t: 'salonDone', look: L2 });
+    se = G.events.find((e) => e.type === 'salonEnd');
+    ok(se.paid && se.stars === 3 && G.charm > c1 && G.gold > g1, `a three-star makeover pays (${F.fmt(se.charm)} charm, ${se.gold} gold)`);
+    ok(G.yard.salon.styled === 2 && G.yard.salon.three === 1 && G.yard.salon.best.lich === 3, 'and is remembered');
+    Gm.act(copyS, { t: 'salonDone', look: L2 });
+    ok(JSON.stringify(copyS.yard.salon) === JSON.stringify(G.yard.salon), 'a save with a client in the chair finishes identically');
+    Gm.step(G, 1);
+    ok(G.ach.salon0 === 1, 'with a trophy');
+    G.charmAll = 9e13; Gm.act(G, { t: 'relocate' });
+    ok(G.yard.open.salon && G.yard.salon.styled === 2, 'relocating keeps the salon and its clients');
+    const oldS = Gm.serialize(Gm.newGame(42)); delete oldS.yard.salon;
+    ok(Gm.deserialize(oldS).yard.salon.wait === 0, 'a save from before the salon loads');
+    Gm.act(G, { t: 'salonSeat', client: 'kitten' });
+    ok(Gm.act(G, { t: 'salonLeave' }) && !G.yard.salon.appt, 'a client can be sent home unfinished');
 }
 
 if (want('away')) {

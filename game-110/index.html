@@ -123,7 +123,7 @@
                 <li><b>Gold</b> buys <b>décor</b> (it appears in the castle) and <b>henchmen</b>, who run <b>schemes</b>: evil ones for dread and gold, secret commissions for charm and family <b>heirlooms</b>.</li>
                 <li><b>Relocate</b> when the heroes get too close: start again in a new lair with <b>★ legend</b> (+2% charm each) to spend in the Grimoire.</li>
                 <li>Your minions keep working while you're away, at half speed (upgrades help).</li>
-                <li><b>The cemetery</b> 🪦 lies past the Ballroom. Its gravestones are mini-games: <b>Skull Swap</b>, a match-three, opens when you employ 25 minions, and every level you clear pays charm and gold. More graves are still being dug.</li>
+                <li><b>The cemetery</b> 🪦 lies past the Ballroom. Its gravestones are mini-games: <b>Skull Swap</b>, a match-three, opens when you employ 25 minions, and every level you clear pays charm and gold. <b>Curl Up &amp; Dye</b>, a spooky beauty salon, opens at 40 minions: wash, cut, dye, curl and make over Lady Noxia, her minions and her visitors. Grant their three wishes (and wash out the cobwebs) for three stars; a paying client arrives every minute and a half, and you can practise for free in between. More graves are still being dug.</li>
             </ul>
             <table>
                 <tr><td>Space / click</td><td>Craft</td></tr>
@@ -194,6 +194,30 @@
             </div>
             <p class="m3-help">Swap neighbours to line up three or more. Four make a line-clearer, five or an L make a jack-o'-lantern.</p>
             <div class="sheet-foot"><button class="btn" data-close id="m3-leave">Back to the graves</button></div>
+        </div>
+    </div>
+
+    <div id="salon" class="screen" hidden>
+        <div class="sheet salon-sheet">
+            <div class="m3-head"><h2>Curl Up &amp; Dye</h2><span id="salon-status" class="salon-status"></span></div>
+            <div id="salon-pick">
+                <p class="dim salon-intro">Who’s in the chair today? Wash, cut, dye, style and make them over — the closer you come to their wishes, the better they pay.</p>
+                <div id="salon-clients" class="salon-clients"></div>
+            </div>
+            <div id="salon-chair" class="salon-chair" hidden>
+                <div class="salon-wish"><img id="salon-face" alt=""><div><b id="salon-who"></b> <span id="salon-line" class="dim"></span><div id="salon-asks" class="salon-asks"></div></div></div>
+                <div class="salon-stage">
+                    <canvas id="salon-canvas" tabindex="-1" aria-label="The salon chair. Drag over the hair with the chosen tool."></canvas>
+                    <div id="salon-end" class="m3-end" hidden>
+                        <div id="salon-end-text"></div>
+                        <div class="m3-end-btns"><button class="btn primary" id="salon-next">Next client</button><button class="btn" id="salon-back">Back to the graves</button></div>
+                    </div>
+                </div>
+                <div class="salon-tabs" role="tablist" id="salon-tabs"></div>
+                <div class="salon-tools" id="salon-tools"></div>
+                <div class="salon-pal" id="salon-pal" hidden></div>
+            </div>
+            <div class="sheet-foot"><button class="btn" id="salon-change" hidden>Another client</button><button class="btn" data-close>Back to the graves</button><button class="btn primary" id="salon-done" hidden>Done ✨</button></div>
         </div>
     </div>
 

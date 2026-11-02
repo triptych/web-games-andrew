@@ -96,6 +96,19 @@ export class Audio {
         o.start(t); lfo.start(t); o.stop(t + d + 0.05); lfo.stop(t + d + 0.05);
     }
 
+    /** Curl Up & Dye: snips, suds, water, hairspray and the little sounds of a makeover. */
+    salon(kind) {
+        if (kind === 'snip') { this.noise({ dur: 0.04, vol: 0.18, freq: 5000, type: 'highpass' }); this.tone({ freq: 2400, to: 1800, dur: 0.03, type: 'square', vol: 0.03 }); }
+        else if (kind === 'bubble') this.tone({ freq: 700 + Math.random() * 500, to: 1400 + Math.random() * 400, dur: 0.06, type: 'sine', vol: 0.06 });
+        else if (kind === 'water') this.noise({ dur: 0.14, vol: 0.07, freq: 2500, to: 1800, type: 'bandpass', q: 0.8 });
+        else if (kind === 'spray') this.noise({ dur: 0.1, vol: 0.06, freq: 6000, type: 'highpass' });
+        else if (kind === 'dye') this.tone({ freq: 260, to: 180, dur: 0.07, type: 'sine', vol: 0.08 });
+        else if (kind === 'comb') this.noise({ dur: 0.06, vol: 0.05, freq: 3500, type: 'bandpass', q: 3 });
+        else if (kind === 'iron') { this.noise({ dur: 0.12, vol: 0.06, freq: 1200, to: 400, type: 'bandpass', q: 1 }); this.tone({ freq: 880, dur: 0.05, type: 'triangle', vol: 0.03, delay: 0.05 }); }
+        else if (kind === 'grow') [0, 4, 7, 12].forEach((s, i) => this.tone({ freq: mtof(79 + s), dur: 0.15, type: 'sine', vol: 0.07, delay: i * 0.04, verb: 0.5 }));
+        else this.tone({ freq: 1046, to: 1318, dur: 0.08, type: 'triangle', vol: 0.08 });
+    }
+
     /** Skull Swap, played by the board as each beat happens. */
     m3(kind, chain = 1, fired = 0) {
         if (kind === 'swap') this.tone({ freq: 520, to: 700, dur: 0.07, type: 'triangle', vol: 0.1 });
@@ -166,6 +179,12 @@ export class Audio {
                     else if (e.to === 'dreaded') [0, 3, 7].forEach((s) => this.tone({ freq: mtof(45 + s), dur: 1.2, type: 'sawtooth', vol: 0.05, verb: 0.8 }));
                     break;
                 case 'graveOpen': [0, 3, 7, 10, 15].forEach((s, i) => this.tone({ freq: mtof(57 + s), dur: 0.9, type: 'triangle', vol: 0.08, delay: i * 0.12, verb: 0.9 })); break;
+                case 'salonEnd':
+                    if (e.stars >= 2) [0, 4, 7, 12, 16, 19].forEach((s, i) => this.tone({ freq: mtof(72 + s), dur: 0.22, type: 'triangle', vol: 0.09, delay: i * 0.08, verb: 0.5 }));
+                    else [0, -3, -7].forEach((s, i) => this.tone({ freq: mtof(67 + s), dur: 0.3, type: 'triangle', vol: 0.1, delay: i * 0.2 }));
+                    this.noise({ dur: 0.2, vol: 0.12, freq: 3000, type: 'highpass' });
+                    if (e.gold) this.coin(0.5);
+                    break;
                 case 'm3end':
                     if (e.won) [0, 4, 7, 12, 16, 19].forEach((s, i) => this.tone({ freq: mtof(72 + s), dur: 0.22, type: 'square', vol: 0.06, delay: i * 0.08, verb: 0.4 }));
                     else [0, -2, -5].forEach((s, i) => this.tone({ freq: mtof(64 + s), dur: 0.3, type: 'triangle', vol: 0.1, delay: i * 0.22 }));

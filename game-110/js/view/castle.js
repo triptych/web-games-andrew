@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { HOBBIES, DECOR, GRAVES } from '../sim/data.js';
 import { PALETTES, buildRoomTextures, mkTex } from './tex.js';
-import { drawEmblem, drawToken } from './art.js';
+import { drawEmblem, drawGraveIcon } from './art.js';
 import { Px, mix, hex } from './pixel.js';
 import { hash3 } from '../rng.js';
 import { makeSlots, SLOTS_PER_KIND } from './layout.js';
@@ -208,7 +208,7 @@ function graveFace(grave, pal) {
     P.tint((c) => mix(c, '#000000', 0.12));
     P.mrect(4, 14, 32, 30).msub((q) => q.mrect(5, 15, 30, 28)).tint((c) => mix(c, '#000000', 0.3));
     if (!grave.soon) {
-        P.blit(drawToken('skull'), 12, 16);
+        P.blit(drawGraveIcon(grave.id), 12, 16);
     } else {
         // a question mark carved in the stone
         P.mrect(17, 18, 6, 2).mrect(22, 20, 2, 4).mrect(19, 24, 3, 2).mrect(19, 26, 2, 3).mrect(19, 31, 2, 2).tint((c) => mix(c, '#000000', 0.45));
@@ -219,8 +219,9 @@ function graveFace(grave, pal) {
     x.fillStyle = 'rgba(30,20,40,0.85)';
     x.font = 'bold 6px monospace';
     x.textAlign = 'center';
-    x.fillText(grave.soon ? 'NOT YET' : 'SKULL', 20, 40);
-    x.fillText(grave.soon ? 'DUG' : 'SWAP', 20, 46);
+    const [l1, l2] = grave.soon ? ['NOT YET', 'DUG'] : grave.label;
+    x.fillText(l1, 20, 40);
+    x.fillText(l2, 20, 46);
     void pal;
     return c;
 }

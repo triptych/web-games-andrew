@@ -15,7 +15,11 @@
  *   raised portcullis (visitors used to slide in from the Kitchen, through every wall).
  * cemetery: the Graves button; closed and undug graves say why; the 25th minion opens Skull Swap; a click on the grave
  *   opens it; a real drag and a keyboard swap; a level played out pays charm and gold; Next level; Escape; E and Q;
- *   the whole castle includes the cemetery. On the phones: Graves, the grave, and a tap-tap swap that fits the screen.
+ *   the whole castle includes the cemetery. Curl Up & Dye: its closed grave says why, the 40th minion opens it, the gallery
+ *   of eighteen clients, a real scissor drag that cuts, Dye all, lather and rinse lighting the clean-hair wish, a tiara,
+ *   Done paying out on the mirror, the wait for the next paying client and a free practice cut, Escape.
+ *   On the phones: Graves, the grave, and a tap-tap swap that fits the screen; the salon chair fits too, every salon
+ *   button is at least 44 px, and a tap with the shampoo makes suds.
  * away: a fresh page whose save was written two hours ago → Continue → the welcome-back sheet says so.
  * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the menus, a tap on the castle crafts,
  *   a tap on a row buys, the cackle button, every control ≥ 44 px and on screen, the menu stays open after the finger
@@ -284,7 +288,7 @@ async function cemetery() {
     await page.mouse.click(pt.x, pt.y);
     await until(page, () => /opens when you employ 25 minions \(0 \/ 25\)/.test(document.getElementById('toasts').textContent), 'a click on the closed Skull Swap grave says what opens it, with progress');
     check(await Q(page, () => document.getElementById('m3').hidden), 'and opens nothing');
-    pt = await Q(page, () => __dd.view.graveScreen('soon1'));
+    pt = await Q(page, () => __dd.view.graveScreen('soon2'));
     await page.mouse.click(pt.x, pt.y);
     await until(page, () => /still being dug/.test(document.getElementById('toasts').textContent), 'the other graves are still being dug');
     await Q(page, () => __dd.send({ t: 'buy', id: 'imp', n: 25 }));
@@ -333,6 +337,62 @@ async function cemetery() {
     } else check(true, '(the bot lost level 1 this time; Try again is offered)');
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('m3').hidden && __dd.place === 'yard', 'Escape goes back to the graves');
+
+    // ----- Curl Up & Dye
+    console.log('\n== Curl Up & Dye (desktop)');
+    await settleCamera(page);
+    pt = await Q(page, () => __dd.view.graveScreen('salon'));
+    await page.mouse.click(pt.x, pt.y);
+    await until(page, () => /opens when you employ 40 minions \(\d+ \/ 40\)/.test(document.getElementById('toasts').textContent), 'a click on the closed salon grave says what opens it, with progress');
+    await Q(page, () => { __dd.give(1e6); __dd.send({ t: 'buy', id: 'imp', n: 20 }); });
+    await until(page, () => __dd.G.yard.open.salon && /Curl Up &amp; Dye<\/b> is open/.test(document.getElementById('toasts').innerHTML), 'the 40th minion opens Curl Up & Dye, with a toast');
+    await until(page, () => !!__dd.view.castle.yard.graves[1].icon, 'and scissors bob over its grave');
+    pt = await Q(page, () => __dd.view.graveScreen('salon'));
+    await page.mouse.click(pt.x, pt.y);
+    await until(page, () => !document.getElementById('salon').hidden && !document.getElementById('salon-pick').hidden, 'a click on the grave opens the salon on its gallery of clients');
+    const finish = () => Q(page, () => document.getElementById('salon').getAnimations({ subtree: true }).forEach((a) => a.finish()));
+    await finish();
+    check(await Q(page, () => document.querySelectorAll('.salon-client').length === 18 && document.querySelectorAll('.salon-client img').length === 18), 'eighteen clients to choose from, each with their sprite');
+    await mouseAt(page, '.salon-client[data-id="noxia"]');
+    await until(page, () => __dd.G.yard.salon.appt?.client === 'noxia' && !document.getElementById('salon-chair').hidden, 'Lady Noxia takes the chair');
+    check(await Q(page, () => __dd.G.yard.salon.appt.paid && document.querySelectorAll('#salon-asks .ask').length === 4), 'a paying client, with three wishes and clean hair asked for');
+    await finish();
+    check(await Q(page, () => { const r = document.getElementById('salon-canvas').getBoundingClientRect(); return r.width >= 230 && r.top >= 0 && r.bottom <= innerHeight; }), 'the chair is a good size and on screen');
+    // a real drag with the scissors across the hair, below the ears
+    await mouseAt(page, '#salon-tabs [data-tab="cut"]');
+    await until(page, () => __dd.salonview.tool === 'scissors', 'the Cut tab picks up the scissors');
+    const len0 = await Q(page, () => __dd.salonview.st.strands.reduce((a, x) => a + x.len, 0));
+    const box = await Q(page, () => { const r = document.getElementById('salon-canvas').getBoundingClientRect(); return { x: r.left, y: r.top, s: r.width / 128 }; });
+    await page.mouse.move(box.x + 6 * box.s, box.y + 72 * box.s);
+    await page.mouse.down();
+    for (let x = 6; x <= 122; x += 3) await page.mouse.move(box.x + x * box.s, box.y + 72 * box.s);
+    await page.mouse.up();
+    check(await Q(page, (l) => __dd.salonview.st.strands.reduce((a, x) => a + x.len, 0) < l - 1, len0), 'dragging the scissors across the hair cuts it');
+    await mouseAt(page, '#salon-tabs [data-tab="dye"]');
+    await mouseAt(page, '#salon-pal [data-c="blue"]');
+    await mouseAt(page, '#salon-tools [data-all]');
+    check(await Q(page, () => __dd.salonview.st.cap === 'blue' && __dd.salonview.st.strands.every((x) => x.c === 'blue')), 'a colour and Dye all turn the hair blue');
+    await mouseAt(page, '#salon-tabs [data-tab="wash"]');
+    await mouseAt(page, '#salon-tools [data-all]');
+    await mouseAt(page, '#salon-tools [data-tool="rinse"]');
+    await mouseAt(page, '#salon-tools [data-all]');
+    await until(page, () => document.querySelector('#salon-asks [data-ask="clean"]').classList.contains('met'), 'lathered and rinsed: the clean-hair wish lights up');
+    await mouseAt(page, '#salon-tabs [data-tab="extra"]');
+    await mouseAt(page, '#salon-tools [data-top="tiara"]');
+    check(await Q(page, () => __dd.salonview.st.top === 'tiara'), 'a tiara goes on');
+    await shot(page, 'salon-chair');
+    const gold1 = await Q(page, () => __dd.G.gold);
+    await mouseAt(page, '#salon-done');
+    await until(page, () => !document.getElementById('salon-end').hidden && __dd.G.yard.salon.styled === 1 && !__dd.G.yard.salon.appt, 'Done: the mirror shows the result and the client is styled');
+    const end = await Q(page, (g) => ({ stars: document.querySelectorAll('#salon-end .stars span:not(.off)').length, paid: __dd.G.gold > g }), gold1);
+    check(end.stars === 0 || end.paid, `stars on the mirror (${end.stars}), and a fee when there are any`);
+    await shot(page, 'salon-end');
+    await mouseAt(page, '#salon-next');
+    await until(page, () => !document.getElementById('salon-pick').hidden && /Next paying client in/.test(document.getElementById('salon-status').textContent), 'Next client goes back to the gallery, where the wait for the next paying client shows');
+    await mouseAt(page, '.salon-client[data-id="lich"]');
+    await until(page, () => __dd.G.yard.salon.appt?.client === 'lich' && !__dd.G.yard.salon.appt.paid && /Practice/.test(document.getElementById('salon-status').textContent), 'a client before then is a free practice cut');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('salon').hidden && __dd.place === 'yard', 'Escape goes back to the graves');
     // getting there other ways
     await Q(page, () => __dd.setPlace('castle'));
     await page.keyboard.press('KeyE');
@@ -482,6 +542,28 @@ async function phone(w, h) {
     await shot(page, `skullswap-${w}x${h}`);
     await tapSel('#m3-leave');
     await until(page, () => document.getElementById('m3').hidden, 'Back to the graves closes it');
+    // the salon: open it, seat a client, and everything fits
+    await Q(page, () => { __dd.give(1e7); __dd.send({ t: 'buy', id: 'imp', n: 15 }); });
+    await until(page, () => __dd.G.yard.open.salon, 'Curl Up & Dye opens');
+    await Q(page, () => __dd.openGrave('salon'));
+    await until(page, () => !document.getElementById('salon').hidden, 'the salon opens');
+    await tapSel('.salon-client[data-id="imp"]');
+    await until(page, () => __dd.G.yard.salon.appt?.client === 'imp', 'tapping a client seats them');
+    await page.waitForTimeout(300);
+    const sfit = await Q(page, () => {
+        document.getElementById('salon').getAnimations({ subtree: true }).forEach((a) => a.finish());
+        const sh = document.querySelector('.salon-sheet'); sh.scrollTop = 0;
+        const c = document.getElementById('salon-canvas').getBoundingClientRect(), t = document.getElementById('salon-tabs').getBoundingClientRect();
+        const small = [...document.querySelectorAll('#salon-tabs button, #salon-tools button, #salon .sheet-foot button')].filter((b) => b.getBoundingClientRect().height < 44).length;
+        return { ok: c.left >= 0 && c.right <= innerWidth && c.top >= 0 && c.bottom <= innerHeight && c.width >= 200 && t.right <= innerWidth && !small && document.documentElement.scrollWidth <= innerWidth, c: [c.left, c.top, c.width, c.bottom].map(Math.round), small };
+    });
+    check(sfit.ok, `the chair fits the screen and every salon button is at least 44 px${sfit.ok ? '' : ' ' + JSON.stringify(sfit)}`);
+    const cb = await Q(page, () => { const r = document.getElementById('salon-canvas').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height * (34 / 128) }; });
+    await page.touchscreen.tap(cb.x, cb.y);
+    await until(page, () => __dd.salonview.st.foam.length > 0, 'a tap on the hair with the shampoo makes suds');
+    await shot(page, `salon-${w}x${h}`);
+    await tapSel('#salon [data-close]');
+    await until(page, () => document.getElementById('salon').hidden, 'Back to the graves closes the salon');
     await Q(page, () => __dd.setPlace('castle'));
 
     await tapSel('#btn-menu');

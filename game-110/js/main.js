@@ -9,6 +9,7 @@ import { Audio } from './audio.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
 import { M3View } from './m3view.js';
+import { SalonView } from './salonview.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
 import { newGame, step, act, rates, roomOpen } from './sim/game.js';
 import { makeBot, botCommands, botShop } from './sim/bot.js';
@@ -41,6 +42,8 @@ const ui = new UI({
     onPlace: setPlace,
     m3view,
 });
+
+const salonview = new SalonView({ audio, send, sprites: view.sprites, onClose: () => ui.closeScreen('salon') });
 
 function applySettings() {
     audio.setVolumes(settings.sfx, settings.music);
@@ -169,6 +172,7 @@ function openGrave(id) {
     const g = GRAVE[id];
     if (g.soon || !G.yard.open[id]) { ui.graveHint(G, rates(G), id); return; }
     audio.ui('open');
+    if (id === 'salon') { ui.openScreen('salon'); salonview.open(G); return; }
     send({ t: 'm3start' }, (ok) => {
         if (!ok) return;
         m3view.setBoard(G.yard.m3.board);
@@ -226,6 +230,7 @@ function flushEvents() {
     for (const e of ev) {
         if (e.type === 'm3') m3view.play(e.steps);
         else if (e.type === 'm3board') m3view.setBoard(G.yard.m3.board);
+        else if (e.type === 'salonEnd') salonview.onEnd(e);
     }
     if (mode !== 'play') return;
     audio.onEvents(G, ev);
@@ -270,6 +275,7 @@ function frame(now) {
     flushEvents();
     view.frame(G, dt, time);
     if (ui.top() === 'm3') m3view.frame(dt, time);
+    if (ui.top() === 'salon') salonview.frame(dt, G);
     const R = rates(G);
     if (mode === 'play') ui.update(G, R, dt);
     layoutT -= dt;
@@ -303,7 +309,7 @@ if (DEBUG) {
         save: () => saveGame(G),
         hasSave,
         rates: () => rates(G),
-        m3view, openGrave,
+        m3view, salonview, openGrave,
         get place() { return place; },
         setPlace,
         MINIONS,

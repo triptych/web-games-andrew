@@ -15,8 +15,8 @@ const TOOLS = {
     party(P, x, y) { P.mrect(x - 2, y - 3, 5, 3).paint('#fff6fb'); P.mrect(x + 3, y - 3, 1, 2).paint('#fff6fb'); P.mrect(x - 1, y - 2, 3, 1).fill('#d86ca0'); P.mrect(x - 3, y, 7, 1).paint('#f5e6ff'); }, // a teacup
 };
 
-/** The Overlord: 34×46. pose: idle | craft | cackle. tool: cook | sew | deco | party. */
-export function drawOverlord(pose = 'idle', tool = 'cook') {
+/** The Overlord: 34×46. pose: idle | craft | cackle. tool: cook | sew | deco | party. opts.bald: no hair (the salon adds its own). */
+export function drawOverlord(pose = 'idle', tool = 'cook', opts = {}) {
     const P = new Px(34, 46);
     const cx = 17;
     const wide = pose === 'cackle' ? 4 : 0;
@@ -24,7 +24,7 @@ export function drawOverlord(pose = 'idle', tool = 'cook') {
     P.mpoly([[cx - 6, 21], [cx + 6, 21], [cx + 12 + wide, 44], [cx - 12 - wide, 44]]).paint(CAPE, { lo: 1.2 });
     P.mpoly([[cx - 9 - wide, 38], [cx + 9 + wide, 38], [cx + 11 + wide, 44], [cx - 11 - wide, 44]]).paint(LINING, { soft: true });
     // hair down the back
-    P.mell(cx, 17, 9.5, 9).mrect(cx - 9, 17, 19, 12).paint(HAIR);
+    if (!opts.bald) P.mell(cx, 17, 9.5, 9).mrect(cx - 9, 17, 19, 12).paint(HAIR);
     // dress, apron and frill
     P.mpoly([[cx - 4, 24], [cx + 4, 24], [cx + 7, 41], [cx - 7, 41]]).paint(DRESS);
     P.mpoly([[cx - 4, 27], [cx + 4, 27], [cx + 6, 40], [cx - 6, 40]]).paint(APRON, { hi: 0.8 });
@@ -54,7 +54,7 @@ export function drawOverlord(pose = 'idle', tool = 'cook') {
     // head
     P.mell(cx, 15, 8.5, 7.8).paint(SKIN, { hi: 0.7 });
     // bangs
-    P.mpoly([[cx - 9, 15], [cx - 8, 8], [cx - 3, 5], [cx + 3, 5], [cx + 8, 8], [cx + 9, 15], [cx + 6, 11], [cx + 3, 13], [cx + 1, 10], [cx - 2, 13], [cx - 5, 10]]).paint(HAIR);
+    if (!opts.bald) P.mpoly([[cx - 9, 15], [cx - 8, 8], [cx - 3, 5], [cx + 3, 5], [cx + 8, 8], [cx + 9, 15], [cx + 6, 11], [cx + 3, 13], [cx + 1, 10], [cx - 2, 13], [cx - 5, 10]]).paint(HAIR);
     // horns: small, curled, lilac-tipped
     for (const s of [-1, 1]) {
         P.mpoly([[cx + s * 3, 8], [cx + s * 6, 4], [cx + s * 9, 3], [cx + s * 12, 0], [cx + s * 11.5, 3], [cx + s * 9, 6], [cx + s * 7, 9]]).paint(HORN);
@@ -86,17 +86,20 @@ export function drawOverlord(pose = 'idle', tool = 'cook') {
 }
 
 // ---------------------------------------------------------------------------------------------------- minions
+// o.salon: hats off, for the chair at Curl Up & Dye.
 const M = {};
 
-M.imp = () => {
+M.imp = (o = {}) => {
     const P = new Px(22, 26);
     P.mpoly([[4, 18], [1, 22], [3, 23], [6, 20]]).paint('#c2264a');                         // tail
     P.mell(11, 18, 5.5, 5).paint('#e8384f');                                                  // body
     P.mrect(6, 18, 10, 4).paint('#fff7ef');                                                   // apron
     P.mrect(8, 23, 2, 3).mrect(13, 23, 2, 3).paint('#b81e3e');                                // legs
     P.mell(11, 11, 6, 5.5).paint('#ff4a5c');                                                  // head
-    P.mrect(6, 1, 10, 5).mell(8, 2, 3, 2.5).mell(11, 1.5, 3, 2.5).mell(14, 2, 3, 2.5).paint('#ffffff', { hi: 0.4 }); // toque
-    P.mrect(6, 6, 10, 2).paint('#f0eef6');
+    if (!o.salon) {
+        P.mrect(6, 1, 10, 5).mell(8, 2, 3, 2.5).mell(11, 1.5, 3, 2.5).mell(14, 2, 3, 2.5).paint('#ffffff', { hi: 0.4 }); // toque
+        P.mrect(6, 6, 10, 2).paint('#f0eef6');
+    }
     P.mpoly([[5, 9], [3, 6], [6, 8]]).mpoly([[17, 9], [19, 6], [16, 8]]).paint('#ffd0a0');  // little horns
     P.mrect(8, 11, 2, 2).mrect(13, 11, 2, 2).fill('#ffe94a'); P.mp(8, 11).mp(13, 11).fill('#ffffff');
     P.mrect(9, 14, 5, 1).fill('#7a1028'); P.mp(10, 15).fill('#ffffff');
@@ -214,7 +217,7 @@ M.portrait = () => {
     P.outline('#2a1a06');
     return P;
 };
-M.skeleton = () => {
+M.skeleton = (o = {}) => {
     const P = new Px(24, 34);
     const B = '#f2ecdc';
     P.mrect(8, 26, 2, 7).mrect(14, 26, 2, 7).paint(B);                                        // legs
@@ -225,7 +228,7 @@ M.skeleton = () => {
     P.mell(12, 8, 5.5, 5.5).paint(B, { hi: 0.5 });
     P.mrect(9, 7, 2, 3).mrect(13, 7, 2, 3).fill('#2a2030'); P.mp(12, 11).fill('#2a2030');
     P.mrect(10, 12, 4, 1).fill('#8a8070');
-    P.mrect(8, 1, 8, 2).mrect(10, 0, 4, 1).paint('#1d1726');                                    // a tiny top hat
+    if (!o.salon) P.mrect(8, 1, 8, 2).mrect(10, 0, 4, 1).paint('#1d1726');                     // a tiny top hat
     // the violin
     P.mell(17, 19, 3.5, 4.5).paint('#b0602a', { hi: 1.2 });
     P.mrect(16, 10, 1, 6).paint('#5a2a10');
@@ -251,15 +254,17 @@ M.mimic = () => {
     P.outline('#2a1006');
     return P;
 };
-M.lich = () => {
+M.lich = (o = {}) => {
     const P = new Px(26, 38);
     P.mpoly([[8, 14], [18, 14], [23, 37], [3, 37]]).paint('#4a2a7a', { lo: 1.2 });             // robe
     P.mpoly([[11, 14], [15, 14], [16, 37], [10, 37]]).paint('#ffd36b', { soft: true });       // gold trim
     P.mell(13, 10, 5, 5).paint('#e8e0d0');
     P.mrect(10, 9, 2, 2).mrect(14, 9, 2, 2).fill('#7fffd0');                                   // eyes aglow
     P.mrect(11, 13, 4, 1).fill('#5a5048');
-    P.mpoly([[13, 0], [17, 7], [9, 7]]).paint('#ff6fa5');                                       // party hat
-    P.mp(13, 0).mp(11, 5).mp(15, 4).fill('#fff3a0');
+    if (!o.salon) {
+        P.mpoly([[13, 0], [17, 7], [9, 7]]).paint('#ff6fa5');                                   // party hat
+        P.mp(13, 0).mp(11, 5).mp(15, 4).fill('#fff3a0');
+    }
     P.mrect(17, 18, 7, 9).paint('#f4ead0');                                                     // clipboard
     P.mrect(18, 20, 5, 1).mrect(18, 22, 5, 1).mrect(18, 24, 3, 1).fill('#6a5a4a');
     P.mrect(19, 17, 3, 1).fill('#c0c0c0');
@@ -268,7 +273,7 @@ M.lich = () => {
     return P;
 };
 
-export function drawMinion(id) { return M[id](); }
+export function drawMinion(id, opts = {}) { return M[id](opts); }
 
 // ---------------------------------------------------------------------------------------------------- visitors
 const V = {};
@@ -293,21 +298,23 @@ const person = (P, { skin = '#f2d0b0', body = '#3a5aa8', legs = '#4a3a2a', hair 
     P.mrect(6, 4, 10, 3).paint(hair);
     P.mrect(8, 9, 2, 2).mrect(12, 9, 2, 2).fill('#1a1420');
 };
-V.critic = () => {
+V.critic = (o = {}) => {
     const P = new Px(22, 32);
     person(P, { body: '#6a4a3a', legs: '#2a2a3a', hair: '#cfcfcf' });
-    P.mell(11, 4, 6, 2.2).paint('#b02a3a');                                                     // beret
+    if (!o.salon) P.mell(11, 4, 6, 2.2).paint('#b02a3a');                                       // beret
     P.mell(13, 10, 1.8, 1.8).paint('#ffffff', { soft: true }); P.mp(13, 10).fill('#ffe28a');  // monocle
     P.mrect(9, 13, 4, 1).fill('#7a5a4a');                                                       // stern mouth
     P.mrect(15, 17, 5, 7).paint('#fff8e8'); P.mrect(16, 19, 3, 1).mrect(16, 21, 3, 1).fill('#7a7a8a');  // notebook
     P.outline('#1a1210');
     return P;
 };
-V.bard = () => {
+V.bard = (o = {}) => {
     const P = new Px(24, 34);
     person(P, { body: '#2a8a6a', legs: '#6a3a2a', hair: '#e8a84a' });
-    P.mpoly([[5, 6], [17, 6], [15, 2], [7, 3]]).paint('#3a2a6a');                              // hat
-    P.mline(15, 3, 22, 0, 1).paint('#ff4f86');                                                  // feather
+    if (!o.salon) {
+        P.mpoly([[5, 6], [17, 6], [15, 2], [7, 3]]).paint('#3a2a6a');                          // hat
+        P.mline(15, 3, 22, 0, 1).paint('#ff4f86');                                              // feather
+    }
     P.mrect(9, 13, 4, 1).fill('#7a2a2a');
     P.mell(9, 21, 4, 4).paint('#c8843a', { hi: 1.2 }); P.mrect(12, 13, 2, 8).paint('#7a4a1a');  // lute
     P.mell(9, 21, 1.2, 1.2).paint('#3a1a0a');
@@ -326,14 +333,14 @@ V.hero = () => {
     P.outline('#101420');
     return P;
 };
-export function drawVisitor(kind) { return V[kind](); }
+export function drawVisitor(kind, opts = {}) { return V[kind](opts); }
 
-/** A goblin henchman in a black hood, for the scheme board. */
-export function drawHenchman() {
+/** A goblin henchman in a black hood, for the scheme board. opts.salon: hood down. */
+export function drawHenchman(opts = {}) {
     const P = new Px(18, 20);
     P.mpoly([[4, 9], [14, 9], [16, 19], [2, 19]]).paint('#2a2238');
     P.mell(9, 8, 5, 5).paint('#7acf5a');
-    P.mpoly([[3, 9], [9, 0], [15, 9], [13, 6], [5, 6]]).paint('#1d1726');
+    if (!opts.salon) P.mpoly([[3, 9], [9, 0], [15, 9], [13, 6], [5, 6]]).paint('#1d1726');
     P.mpoly([[3, 8], [0, 6], [4, 10]]).mpoly([[15, 8], [18, 6], [14, 10]]).paint('#6abf4a');
     P.mp(7, 8).mp(11, 8).fill('#ffe94a');
     P.mrect(7, 11, 4, 1).fill('#2a4a1a'); P.mp(8, 12).fill('#ffffff');
@@ -486,3 +493,20 @@ export function drawPumpkin() {
     return P;
 }
 export const TOKEN_KINDS = Object.keys(TOKEN);
+
+// ---------------------------------------------------------------------------------------------------- Curl Up & Dye
+/** Pink scissors over a comb: the salon's gravestone and the icon that bobs over it. 16×16. */
+export function drawScissors() {
+    const P = new Px(16, 16);
+    P.mrect(1, 12, 14, 3).paint('#b48cff');                                                    // a comb
+    for (let x = 2; x < 15; x += 2) P.mp(x, 14);
+    P.fill('#7a52c0');
+    P.mline(4, 2, 11, 9, 2).mline(11, 2, 4, 9, 2).paint('#e6e9f2', { hi: 1.4 });               // blades
+    P.mp(7, 5).mp(8, 5).fill('#ffffff');
+    P.mell(3.5, 10, 2.4, 2.2).mell(12.5, 10, 2.4, 2.2).paint('#ff6fa5');                       // handles
+    P.mp(3, 10).mp(12, 10).fill('#3a1830');
+    P.outline('#1a1024', 0.8);
+    return P;
+}
+/** The icon for a gravestone's game. */
+export function drawGraveIcon(id) { return id === 'salon' ? drawScissors() : drawToken('skull'); }

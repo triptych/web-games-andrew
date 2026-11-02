@@ -4,6 +4,8 @@
 // Effects are small records ({ k: kind, ... }) folded together by game.js `mods()`; requirements are records too
 // ({ own: [id, n] }, { run: charm }, ...), so the whole store can be listed, tested and saved by id.
 
+import { CLIENTS } from './salon.js';
+
 export const HOBBIES = [
     { id: 'cook', name: 'Cooking', room: 'Kitchen', icon: '🧁', color: '#ff9ec7', craft: 'Bake', verb: 'baking' },
     { id: 'sew', name: 'Sewing', room: 'Sewing Loft', icon: '🧵', color: '#b48cff', craft: 'Stitch', verb: 'sewing' },
@@ -232,8 +234,9 @@ export const LAIRS = [
 // need(G, R) → [have, want] for the unlock; a grave with no game yet is still being dug.
 export const GRAVES = [
     { id: 'skull', name: 'Skull Swap', icon: '💀', epitaph: 'Here lies a match made in heaven. Well. Nearby.', desc: 'A match-three of skulls, cupcakes, candles and teacups. Clear levels for charm and gold.',
-        needText: 'Employ 25 minions', need: (G, R) => [R.minions, 25] },
-    { id: 'soon1', name: 'Not Yet Dug', icon: '🪦', epitaph: 'Reserved for a future amusement.', soon: true },
+        needText: 'Employ 25 minions', need: (G, R) => [R.minions, 25], label: ['SKULL', 'SWAP'] },
+    { id: 'salon', name: 'Curl Up & Dye', icon: '✂️', epitaph: 'Here lies a bad hair day. It will not be missed.', desc: 'A spooky beauty salon: wash, cut, dye, curl and make over the Overlord, her minions and her visitors.',
+        needText: 'Employ 40 minions', need: (G, R) => [R.minions, 40], label: ['CURL UP', '& DYE'] },
     { id: 'soon2', name: 'Not Yet Dug', icon: '🪦', epitaph: 'Do not disturb. Not yet.', soon: true },
     { id: 'soon3', name: 'Not Yet Dug', icon: '🪦', epitaph: 'Something is being planned here.', soon: true },
     { id: 'soon4', name: 'Not Yet Dug', icon: '🪦', epitaph: 'The groundskeeper is still digging.', soon: true },
@@ -241,6 +244,7 @@ export const GRAVES = [
 export const GRAVE = Object.fromEntries(GRAVES.map((g) => [g.id, g]));
 /** Skull Swap pays out a share of charm per second and gold scaled like tribute. */
 export const M3_REWARD = { charmSec: [0, 90, 150, 240], gold: 3, goldPerLevel: 0.6 };
+export { SALON_REWARD } from './salon.js';
 
 // ---------------------------------------------------------------------------------------------------- trophies
 // Each one is +1% charm. test(G, R) reads the game state and its derived rates only.
@@ -269,6 +273,9 @@ function buildAchievements() {
     add('hench', '🦹', 'A Full Payroll', `Employ every henchman.`, (G) => G.hench >= 10);
     [[1, 'Grave Matters'], [10, 'Skull Collector'], [25, 'Bone Idol'], [50, 'Rest in Pieces']].forEach(([n, name], i) => add(`m3_${i}`, '💀', name, `Clear level ${n} of Skull Swap.`, (G) => G.yard.m3.best >= n));
     add('m3stars', '⭐', 'Three Little Skulls', 'Clear ten Skull Swap levels with three stars.', (G) => G.yard.m3.three >= 10);
+    [[1, 'Curl Up & Dye'], [10, 'A Loyal Clientele'], [50, 'Stylist to the Damned']].forEach(([n, name], i) => add(`salon${i}`, '✂️', name, `Style ${n} paying client${n > 1 ? 's' : ''} at Curl Up & Dye.`, (G) => G.yard.salon.styled >= n));
+    add('salonstars', '💄', 'Drop-Dead Gorgeous', 'Give ten paying clients a three-star makeover.', (G) => G.yard.salon.three >= 10);
+    add('salonall', '🪞', 'Every Head in the House', 'Give every client a three-star makeover.', (G) => CLIENTS.every((c) => G.yard.salon.best[c.id] === 3));
     for (const h of HOBBIES) add(`mast_${h.id}`, h.icon, `${h.name} Virtuoso`, `Reach mastery 10 in ${h.name.toLowerCase()}.`, (G, R) => R.mastery[h.id] >= 10);
     return A;
 }
