@@ -514,7 +514,8 @@ export function buildChunk(ci, cj, material, density = 1) {
         arch(acc, r, ax, seabedY(ax, az), az, solids);
     }
 
-    const tries = Math.round(70 * density);
+    const home = Math.exp(-((x0 + CHUNK / 2) ** 2 + (z0 + CHUNK / 2) ** 2) / 6400);
+    const tries = Math.round((80 + home * 50) * density);
     for (let k = 0; k < tries; k++) {
         const x = x0 + r() * CHUNK, z = z0 + r() * CHUNK;
         const w = biomeAt(x, z);
@@ -526,7 +527,7 @@ export function buildChunk(ci, cj, material, density = 1) {
         const y = seabedY(x, z, w);
         const s = 0.7 + r() * 0.7;
         switch (weighted(r, PICK[b])) {
-            case 'branching': branching(acc, r, x, y, z, s * 1.3); break;
+            case 'branching': branching(acc, r, x, y, z, s * 1.5); break;
             case 'brain': brain(acc, r, x, y, z, 0.5 + r() * 0.9); break;
             case 'fan': fan(acc, r, x, y, z, s); break;
             case 'tubes': tubes(acc, r, x, y, z, s); break;
