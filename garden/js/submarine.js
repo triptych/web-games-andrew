@@ -75,10 +75,6 @@ export class FountainSub {
         this.group = new THREE.Group();
         this.model = makeSubmarine();
         this.group.add(this.model);
-        // a bigger, invisible target for clicks, since the sub itself is small
-        this.hit = new THREE.Mesh(new THREE.SphereGeometry(0.7, 10, 8), new THREE.MeshBasicMaterial({ visible: false }));
-        this.hit.position.y = 0.1;
-        this.group.add(this.hit);
         world.root.add(this.group);
 
         // where you stand to climb in: on the rim, between two benches, on the side nearest the hub

@@ -450,10 +450,14 @@ async function boot() {
             bt = bt0.distance;
             best = { type: 'boat', t: bt };
         }
-        const sh = fountainSub.ok && ray.intersectObject(fountainSub.hit, false)[0];
-        if (sh && sh.distance < bt && sh.distance < 60 && fountainSub.state === 'circle') {
-            bt = sh.distance;
-            best = { type: 'sub', t: bt };
+        // the submarine is small and moving, so it gets a generous upright target round it
+        if (fountainSub.ok && fountainSub.state !== 'under' && !diving) {
+            const sp = fountainSub.group.position;
+            const t = rayCylinder(o, d, sp.x, sp.z, 1.15, sp.y - 0.6, sp.y + 1.1);
+            if (t < bt && t < 90) {
+                bt = t;
+                best = { type: 'sub', t };
+            }
         }
         const rod = ray.intersectObjects(fishing.pickables, false)[0];
         if (rod && rod.distance < bt && rod.distance < 60) {
@@ -476,7 +480,8 @@ async function boot() {
             best = { type: 'obsDoor', t: bt };
         }
         const tg = marchGround(world, o, d, Math.min(bt, 120));
-        if (tg < bt) {
+        // it floats right at the plaza's level, so the ground under it must not steal the click
+        if (tg < bt && !(best?.type === 'sub' && bt - tg < 3)) {
             const p = o.clone().addScaledVector(d, tg);
             return { type: 'ground', point: p, t: tg };
         }
