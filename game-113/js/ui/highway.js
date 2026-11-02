@@ -4,7 +4,6 @@
 // It also draws the judgments, the combo, the phrase banners and the count-in. Reads G only.
 
 import { CHARS } from '../sim/data/chars.js';
-import { WINDOWS } from '../config.js';
 
 const LANE_COL = ['#ff6fa6', '#46e0cf', '#ffc23d', '#9b8cff'];
 const ROLE_GLYPH = ['●', '♪', '', '◆'];
@@ -79,6 +78,8 @@ export class Highway {
         }
     }
     pop(lane, text, col, scale = 1) {
+        // one judgment per lane at a time: the newest replaces the last
+        this.pops = this.pops.filter((p) => p.lane !== lane);
         this.pops.push({ lane, text, col, t: 0, scale });
         if (this.pops.length > 14) this.pops.shift();
     }
@@ -290,4 +291,3 @@ function roundRect(x, X, Y, W, H, r) {
 function hexA(hex, a) { const v = parseInt(hex.slice(1), 16); return `rgba(${(v >> 16) & 255},${(v >> 8) & 255},${v & 255},${Math.max(0, Math.min(1, a))})`; }
 function shade(hex, t) { const v = parseInt(hex.slice(1), 16); const f = (c) => Math.round(t < 0 ? c * (1 + t) : c + (255 - c) * t); return `rgb(${f((v >> 16) & 255)},${f((v >> 8) & 255)},${f(v & 255)})`; }
 export { LANE_COL };
-void WINDOWS;

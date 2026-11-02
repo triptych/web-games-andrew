@@ -271,3 +271,15 @@ td:first-child { color: var(--accent); white-space: nowrap; }
 .toast { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; animation: toast 2.6s forwards; font-weight: 800; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5); }
 @keyframes toast { 0% { opacity: 0; transform: translateY(-6px); } 10%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; }
+#hud-goal:empty { display: none; }
+
+/* portrait phones: the stage is the top band of the screen, the highway the rest */
+@media (orientation: portrait) {
+    #party-panel { flex-direction: row; flex-wrap: wrap; width: calc(100% - 16px - var(--safe-l) - var(--safe-r)); top: calc(46px + var(--safe-t)); gap: 4px; }
+    .pm { width: calc(50% - 2px); grid-template-columns: 26px 1fr; padding: 2px 6px 2px 2px; }
+    .pm canvas { width: 26px; height: 26px; }
+    #enemy-panel { right: calc(60px + var(--safe-r)); width: calc(100% - 180px); }
+    #cres-panel { bottom: auto; top: calc(var(--party-h, 110px) + 50px + var(--safe-t)); right: calc(8px + var(--safe-r)); flex-direction: row-reverse; align-items: center; }
+    #chips { flex-direction: row; }
+    .cres { width: 54px; height: 54px; font-size: 24px; }
+}

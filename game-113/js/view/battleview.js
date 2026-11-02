@@ -13,7 +13,7 @@ import { Particles, Notes } from './fx.js';
 import { billboard } from './fieldview.js';
 
 const PX = 1 / 16;
-const LANE_POS = [[-2.7, 1.25], [-4.0, 0.35], [-2.9, -0.55], [-4.2, -1.45]];
+const LANE_POS = [[-3.1, 0.9], [-4.3, 0.1], [-3.3, -0.7], [-4.5, -1.5]];
 const LANE_COL = ['#ff6fa6', '#46e0cf', '#ffc23d', '#9b8cff'];
 const ENEMY_POS = new THREE.Vector3(3.6, 0, -0.1);
 
@@ -97,7 +97,7 @@ export class BattleView {
         this.ottoGone = false;
         this.enemy = this.sprite(true); this.enemy.group.position.copy(ENEMY_POS); root.add(this.enemy.group);
         this.enemy.home = ENEMY_POS.clone();
-        this.enemyScale = (ENEMIES[B.enemy].size || 1.3) * 0.7;
+        this.enemyScale = (ENEMIES[B.enemy].size || 1.3) * 0.55;
         this.colossus = null;
         this.flashT = {}; this.desat = 0; this.cresT = 0; this.downT = 0; this.punch = 0; this.shake = 0; this.colRise = 0;
         this.enemyId = B.enemy;
@@ -167,7 +167,7 @@ export class BattleView {
             let pose = down ? 'ko' : s.hurt > 0 ? 'hurt' : s.flash > 0.2 && !guard ? 'play' : 'idle';
             if (B.state === 'win' || G.mode === 'results') pose = 'cheer';
             const view = pose === 'cheer' ? 'down' : 'side';
-            this.setTex(s, lib.person(id, view, 0, pose, false), 1.55);
+            this.setTex(s, lib.person(id, view, 0, pose, false), 1.0);
             const bob = down ? 0 : pulse * 0.08 + Math.sin(time * 3 + lane) * 0.02;
             s.hurt = Math.max(0, s.hurt - dt * 2.5); s.flash = Math.max(0, s.flash - dt * 3);
             s.group.position.set(s.home.x - s.hurt * 0.4, bob, s.home.z);
@@ -178,7 +178,7 @@ export class BattleView {
 
         // ---- Otto keeps time at the back (until he leaves on his errand)
         if (!this.ottoGone || this.otto.group.position.x > -14) {
-            this.setTex(this.otto, lib.person('otto', this.ottoGone ? 'side' : 'side', B.state === 'run' ? Math.floor(beatF) % 2 : 0, null, this.ottoGone), 1.25);
+            this.setTex(this.otto, lib.person('otto', 'side', B.state === 'run' ? Math.floor(beatF) % 2 : 0, null, this.ottoGone), 0.85);
             if (this.ottoGone) this.otto.group.position.x -= dt * 7;
             else this.otto.group.position.y = pulse * 0.1;
         }
@@ -228,18 +228,25 @@ export class BattleView {
         const hushing = B.final && B.stage === 'hush';
         this.desat += ((hushing ? 0.8 : 0) - this.desat) * Math.min(1, dt * 1.5);
 
-        // ---- camera
+        // ---- camera: a narrow lens in landscape; a wide one in portrait, with the stage lifted above the highway
         const asp = this.camera.aspect;
         const portrait = asp < 1;
-        const dist = portrait ? 13.5 + (1 - asp) * 9 : 10.6 + Math.max(0, 1.6 - asp) * 3;
-        const sway = Math.sin(time * 0.35) * 0.6;
-        const orbit = this.cresT * Math.sin(time * 0.8) * 1.6;
+        const fov = portrait ? 52 : 30;
+        if (this.camera.fov !== fov) { this.camera.fov = fov; this.camera.updateProjectionMatrix(); }
+        // fit the stage (about 11.5 units wide) to the screen
+        const halfW = portrait ? 5.3 : 6.2;
+        const dist = Math.max(portrait ? 9 : 11.5, halfW / (Math.tan((fov * Math.PI) / 360) * asp) * 0.98);
+        const sway = Math.sin(time * 0.35) * 0.5;
+        const orbit = this.cresT * Math.sin(time * 0.8) * 1.4;
         this.shake = Math.max(0, this.shake - dt * 3);
         const sh = this.shake * 0.25;
         const z = dist * (1 - this.punch * 0.012) - this.cresT * 0.8;
-        this.camera.position.set(sway + orbit + (Math.random() - 0.5) * sh, 3.4 + (portrait ? 2 : 0) + (Math.random() - 0.5) * sh, z);
-        const lookY = portrait ? -1.8 - (1 - asp) * 3 : 0.05;
-        this.camera.lookAt(-0.2 + sway * 0.3, lookY + 1.2, -0.4);
+        this.camera.position.set(sway + orbit + (Math.random() - 0.5) * sh, 2.6 + dist * 0.12 + (Math.random() - 0.5) * sh, z);
+        this.camera.lookAt(-0.2 + sway * 0.3, 1.25, -0.4);
+        const W = this.vw || 1, H = this.vh || 1;
+        if (portrait) this.camera.setViewOffset(W, H, 0, H * 0.2, W, H); else this.camera.clearViewOffset();
+        this.portrait = portrait;
+        this.scene.fog.near = dist + 3; this.scene.fog.far = dist + 26;
 
         this.particles.update(dt);
         this.notes.update(dt);
@@ -247,7 +254,7 @@ export class BattleView {
 
     gradeOpts(G) {
         const T = this.T || THEMES.beach;
-        return { bloom: (T.grade.bloom || 0.5) + this.cresT * 0.5 + this.punch * 0.08, warm: T.grade.warm, dusk: T.grade.dusk, desat: this.desat, vig: 0.85, focus: 0.55, range: 0.3, blur: 1.6, exposure: T.day ? 1.0 : 1.08 };
+        return { bloom: (T.grade.bloom || 0.5) + this.cresT * 0.5 + this.punch * 0.08, warm: T.grade.warm, dusk: T.grade.dusk, desat: this.desat, vig: 0.85, focus: this.portrait ? 0.72 : 0.55, range: this.portrait ? 0.12 : 0.3, blur: 1.6, exposure: T.day ? 1.0 : 1.08 };
     }
 
     // ------------------------------------------------------------------ events
@@ -371,7 +378,7 @@ export class BattleView {
         while (this.fxLayer.childElementCount > 40) this.fxLayer.firstChild.remove();
     }
 
-    resize(w, h) { this.camera.aspect = w / h; this.camera.updateProjectionMatrix(); this.particles.setScale(h); }
+    resize(w, h) { this.vw = w; this.vh = h; this.camera.aspect = w / h; this.camera.updateProjectionMatrix(); this.particles.setScale(h); }
 }
 
 import { drawMonster } from './monsters.js';

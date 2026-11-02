@@ -481,7 +481,7 @@ export class FieldView {
         this.camT.z += (tz - this.camT.z) * k;
         this.zoom = (this.zoom || 1) + (zoom - (this.zoom || 1)) * Math.min(1, dt * 2.5);
         const asp = this.camera.aspect;
-        const far = Math.max(1, Math.min(2.2, 1.35 / asp)) / this.zoom;
+        const far = Math.max(1.12, Math.min(2.3, 1.45 / asp)) / this.zoom;
         // keep the diorama's edges in frame without showing the void beyond
         const hw = Math.min(this.W / 2, 6.5 * far * Math.max(1, asp / 1.6));
         const cx = Math.max(hw - 0.5, Math.min(this.W - hw + 0.5, this.camT.x));
