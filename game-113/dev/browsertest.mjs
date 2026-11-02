@@ -204,8 +204,10 @@ async function desktop() {
     // ---- Otto's route map
     await Q(page, () => { __ccr.chapter('marisonde'); __ccr.G.flags.maelstraBeaten = true; });
     await settle(page);
-    await Q(page, () => { __ccr.near('otto'); });
-    await page.keyboard.press('Space');
+    // (at 4× speed a roaming monster can reach Lyra first: clear them for this step)
+    await Q(page, () => { for (const e of __ccr.G.field.enemies) e.alive = false; __ccr.near('otto'); });
+    await until(page, () => /Otto/.test(document.getElementById('hud-prompt').textContent) && !document.getElementById('hud-prompt').hidden, 'the prompt offers a ride with Otto');
+    for (let k = 0; k < 4 && await Q(page, () => __ccr.G.mode === 'field'); k++) { await page.keyboard.press('Space'); await page.waitForTimeout(900); }
     await until(page, () => __ccr.G.mode === 'scene' && __ccr.G.scene.id === 'otto', 'talking to the parked Otto offers a ride');
     await Q(page, () => __ccr.skipScene(60));
     await until(page, () => __ccr.G.mode === 'worldmap' && !document.getElementById('worldmap').hidden, 'the route map opens');

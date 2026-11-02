@@ -18,6 +18,7 @@ import { newGame, step, act } from './sim/game.js';
 import { retreat } from './sim/battle.js';
 import { makeBot, botInput } from './sim/bot.js';
 import { MAPS } from './sim/data/maps.js';
+import { BATTLE_TALK } from './sim/data/script.js';
 import { CHARS } from './sim/data/chars.js';
 import { join } from './sim/party.js';
 import { loadMap, npcsOf } from './sim/field.js';
@@ -226,7 +227,8 @@ const NONE_IN = { x: 0, y: 0, a: false, b: false, lanes: [], held: [false, false
 
 function frame(now) {
     requestAnimationFrame(frame);
-    const dt = Math.min(MAX_FRAME, (now - last) / 1000);
+    const realDt = (now - last) / 1000;
+    const dt = Math.min(MAX_FRAME, realDt);
     last = now;
     time += dt;
     handlePresses();
@@ -243,7 +245,7 @@ function frame(now) {
         el.hidden = countdown <= 0; el.textContent = countdown > 1 ? '3' : countdown > 0.5 ? '2' : '1';
         anchorDirty = true;
     } else if (running) {
-        stepFrame(dt, now);
+        stepFrame(dt, now, realDt);
     } else acc = 0;
     if (countdown <= 0) document.getElementById('countdown').hidden = true;
 
@@ -254,6 +256,11 @@ function frame(now) {
     // dialogue: shown while a line is waiting
     const lineUp = (G.mode === 'scene' && G.scene?.line) || (G.mode === 'battle' && G.battle?.state === 'talk');
     if (!lineUp && ui.dlg.active) ui.hideDialogue();
+    // a line the sim is waiting on is always on screen (after a skipped frame, a restore, a closed menu)
+    if (lineUp && !ui.dlg.active) {
+        if (G.mode === 'scene') ui.say(G.scene.line.who, G.scene.line.text, false);
+        else { const ln = BATTLE_TALK[G.battle.talk.key]?.[G.battle.talk.i]; if (ln) ui.say(ln.who, ln.text, true); }
+    }
     ui.tickDialogue(dt);
 
     view.frame(G, dt, time);
@@ -277,7 +284,7 @@ function frame(now) {
     if (mode === 'play' && G.mode === 'field' && saveT > 30) { saveT = 0; saveGame(G); }
 }
 
-function stepFrame(dt, now) {
+function stepFrame(dt, now, realDt) {
     const B = G.battle;
     // a duel follows the audio clock; everything else the frame clock
     let steps;
@@ -299,9 +306,12 @@ function stepFrame(dt, now) {
     if (B && G.mode === 'battle') {
         const songNow = B.t + steps * STEP;
         const off = (settings.offset || 0) / 1000;
-        presses = input.takeLanePresses().map((p) => ({ lane: p.lane, t: songNow - Math.max(0, (now - p.at) / 1000) * FAST - off }));
+        // how much song time this frame covers per real second: 1 normally, less on a capped slow frame, FAST when testing
+        const ratio = realDt > 1e-4 ? Math.min(FAST, (steps * STEP) / realDt) : 1;
+        const songAt = (at) => songNow - Math.max(0, (now - at) / 1000) * ratio - off;
+        presses = input.takeLanePresses().map((p) => ({ lane: p.lane, t: songAt(p.at) }));
         const c = input.takeCres();
-        if (c) cres = { t: songNow - Math.max(0, (now - c.at) / 1000) * FAST - off };
+        if (c) cres = { t: songAt(c.at) };
         for (const p of presses) highway.flash[p.lane] = 1;
     } else { input.takeLanePresses(); input.takeCres(); }
 
@@ -368,7 +378,7 @@ if (DEBUG) {
         /** Run the sim ahead synchronously with the bot playing; events reach the view as usual. */
         ff(sec, skill = 1) { const b = makeBot({ skill }); for (let t = 0; t < sec; t += STEP) { step(G, botInput(G, b), STEP); if (G.events.length > 200) flushEvents(); } flushEvents(); syncScreens(); },
         /** Play the current scene through (every line confirmed) until it hands over to the field, a battle or a menu. */
-        skipScene(max = 120) { for (let t = 0; t < max && G.mode === 'scene'; t += STEP) { step(G, { ...NONE_IN, a: true }, STEP); if (G.events.length > 200) flushEvents(); } flushEvents(); syncScreens(); ui.hideDialogue(); return G.mode; },
+        skipScene(max = 120) { for (let t = 0; t < max && G.mode === 'scene'; t += STEP) { step(G, { ...NONE_IN, a: true }, STEP); if (G.events.length > 200) flushEvents(); } flushEvents(); syncScreens(); return G.mode; },
         /** Stand next to a person on this map, facing them. */
         near(id) { const n = npcsOf(G).find((x) => x.id === id); if (!n) return false; G.p.x = n.x + 1.0; G.p.y = n.y; G.p.dir = 'left'; G.safeT = 3; return true; },
         save: () => saveGame(G),
