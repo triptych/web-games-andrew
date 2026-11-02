@@ -1709,6 +1709,22 @@ const games = [
             { emoji: '\u2712\uFE0F', label: 'Ink & paper' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-113',
+        title: 'Crystal Crescendo',
+        description: "An HD-2D rhythm RPG in three.js where every battle is a song. Princess Lyra, who always believed she was helpless, is freed from a crystal by a knight who doesn't make it, falls into an underground river and wakes on the beach of a drowned city, where a brass walking carriage called O.T.T.O. has waited 1,142 years for a passenger. Together they cross the realm recruiting three princesses whose princes the dragon Vorthrax has taken, and each one adds a layer to the music: Lyra keeps the beat, Seraphine plays the melody (and heals), Marigold sings the lyrics (and weaves a ward) and Ingrid holds the harmony (long notes that hit hard). Duels are call and response: play your notes in up to four lanes to strike, then block the foe's spiky riff. Pixel-art characters stand in lit 3D dioramas with tilt-shift and bloom, the field music grows fuller as the band does, and when the Hush silences the band in the final battle, Otto goes home to wake a colossus. No asset files: every sprite, tile and note is made in code.",
+        icon: '\uD83D\uDC8E',
+        folder: 'game-113',
+        version: '1.0.0',
+        cssClass: 'crystal-crescendo',
+        genre: 'rpg',
+        tags: [
+            { emoji: '\uD83C\uDFB5', label: 'Rhythm battles' },
+            { emoji: '\u2728', label: 'HD-2D' },
+            { emoji: '\uD83D\uDC51', label: 'Four princesses' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
