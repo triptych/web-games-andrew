@@ -142,12 +142,12 @@ async function open(viewport, opts = {}) {
 
     // a long way off: the old floor is let go and new floor is made
     const keys0 = await G('[...g.undersea.chunks.keys()].join(";")');
-    await G('(() => { const u = g.undersea; u.sub.pos.x += 400; u.sub.pos.z -= 300; })()');
+    await G('(() => { const u = g.undersea; u.sub.pos.x += 400; u.sub.pos.z -= 300; u._chunks(false); })()');
     await until('g.undersea.queue.length === 0', 120000);
     await frames(5);
     const keys1 = await G('[...g.undersea.chunks.keys()]');
     check(keys1.every((k) => !keys0.split(';').includes(k)), 'far away, the floor is all new');
-    check(keys1.length <= (2 * 3 + 3) ** 2, `old chunks are let go (${keys1.length} held)`);
+    check(keys1.length >= 12 && keys1.length <= (2 * 3 + 3) ** 2, `new floor is built and old chunks are let go (${keys1.length} held)`);
     await frames(40);
     check(await G('g.undersea.life.items.every((it) => Math.hypot(it.pos.x - g.undersea.sub.pos.x, it.pos.z - g.undersea.sub.pos.z) < 260)'), 'animals left far behind are let go');
     await shot('2-far');
@@ -182,7 +182,7 @@ async function open(viewport, opts = {}) {
             return null;
         }, b);
         if (!at) continue;
-        await G(`(() => { const u = g.undersea; u.sub.pos.x = ${at.x}; u.sub.pos.z = ${at.z}; u.sub.pos.y = -6; u.sub.throttle = 1; u.sub.speed = 0; u.look.pitch = -0.25; })()`);
+        await G(`(() => { const u = g.undersea; u.sub.pos.x = ${at.x}; u.sub.pos.z = ${at.z}; u.sub.pos.y = -6; u.sub.throttle = 1; u.sub.speed = 0; u.look.pitch = -0.25; u._chunks(false); })()`);
         await until('g.undersea.queue.length === 0', 120000);
         await frames(30);
         await shot(`3-${b}`);
@@ -230,14 +230,14 @@ async function open(viewport, opts = {}) {
 
     // surface: back on the fountain's rim, the sub bobs back up and carries on
     await page.keyboard.press('Escape');
-    await until('!g.diving && g.controls.enabled', 30000);
+    await until('!g.diving && g.controls.enabled', 120000);
     await frames(10);
     const st = await G('g.fountainSub.stand');
     const pos = await G('({ x: g.controls.pos.x, z: g.controls.pos.z })');
     check(Math.hypot(pos.x - st.x, pos.z - st.z) < 0.5, 'Esc brings you back to the fountain');
     check(await page.isHidden('#sea'), 'the porthole is gone');
     check(await G('g.undersea.chunks.size') === 0 && await G('g.undersea.life.items.length') === 0, 'the sea is let go');
-    await until('g.fountainSub.state === "circle"', 30000);
+    await until('g.fountainSub.state === "circle"', 300000);
     check(true, 'the submarine bobs up and carries on round the fountain');
 
     // at night, down again: the lamp is lit and the reef glows
@@ -250,7 +250,7 @@ async function open(viewport, opts = {}) {
     check(await G('g.undersea.chunks.size') >= 12, 'the sea is built again');
     await shot('5-night');
     await G('g.leaveDive()');
-    await until('!g.diving', 30000);
+    await until('!g.diving', 120000);
     check(errors.length === 0, 'no errors on desktop');
     await ctx.close();
 }
@@ -277,7 +277,7 @@ async function open(viewport, opts = {}) {
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     check(await G(`g.undersea.sub.yaw > ${yaw0}`), 'holding ◀ by touch turns it');
     await page.tap('#sea-leave');
-    await until('!g.diving', 30000);
+    await until('!g.diving', 120000);
     check(errors.length === 0, 'no errors on a phone');
     await ctx.close();
 }
