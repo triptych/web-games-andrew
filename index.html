@@ -162,6 +162,55 @@
         </aside>
     </section>
 
+    <!-- inside the Moon Fountain's submarine: the porthole, its dials, the helm and a card for each animal -->
+    <section id="sea" class="sea" hidden aria-label="Inside the submarine">
+        <div class="sea-cabin" aria-hidden="true"></div>
+        <div class="sea-port" aria-hidden="true"><div class="sea-glass"></div></div>
+        <p class="sea-hint" id="sea-hint"><kbd>W</kbd>/<kbd>S</kbd> speed &middot; <kbd>A</kbd>/<kbd>D</kbd> steer &middot; <kbd>Space</kbd>/<kbd>C</kbd> rise and dive &middot; drag to look &middot; click a creature &middot; <kbd>Esc</kbd> surface</p>
+        <div class="sea-gauges">
+            <div class="sea-gauge"><span class="sg-label">Depth</span><strong id="sea-depth">0 m</strong></div>
+            <div class="sea-gauge sea-compass">
+                <span class="sg-label">Heading</span>
+                <div class="sg-dial" aria-hidden="true"><div class="sg-rose" id="sea-rose"><span class="sg-n">N</span><span class="sg-e">E</span><span class="sg-s">S</span><span class="sg-w">W</span></div><span class="sg-needle"></span></div>
+                <strong id="sea-heading">0° N</strong>
+            </div>
+            <div class="sea-gauge"><span class="sg-label" title="Distance from the fountain">Distance</span><strong id="sea-dist">0 m</strong></div>
+            <div class="sea-gauge"><span class="sg-label">Sea log</span><strong id="sea-logcount">0 / 0</strong></div>
+            <div class="sea-gauge"><span class="sg-label">Finds</span><strong id="sea-finds">0 / 0</strong></div>
+        </div>
+        <div class="sea-helm" role="group" aria-label="The helm">
+            <div class="sea-tele">
+                <button class="sea-btn" id="sea-slower" aria-label="Slower" title="Slower (S)">&minus;</button>
+                <span class="sea-throttle" id="sea-throttle" aria-live="polite">Slow ahead</span>
+                <button class="sea-btn" id="sea-faster" aria-label="Faster" title="Faster (W)">+</button>
+            </div>
+            <div class="sea-pad">
+                <button class="sea-btn" data-hold="left" aria-label="Turn left" title="Turn left (A)">&#9664;</button>
+                <div class="sea-updown">
+                    <button class="sea-btn" data-hold="up" aria-label="Rise" title="Rise (Space)">&#9650;</button>
+                    <button class="sea-btn" data-hold="down" aria-label="Dive" title="Dive (C)">&#9660;</button>
+                </div>
+                <button class="sea-btn" data-hold="right" aria-label="Turn right" title="Turn right (D)">&#9654;</button>
+            </div>
+            <div class="sea-row">
+                <button class="sea-btn sea-lamp" id="sea-lamp" aria-pressed="false" title="Lamp (B)">&#128294; Lamp</button>
+                <button class="btn btn-primary" id="sea-leave" title="Surface (Esc)">Surface</button>
+            </div>
+        </div>
+        <aside id="sea-card" class="panel fish-card sea-card" hidden role="dialog" aria-modal="false" aria-labelledby="sea-name">
+            <p class="fc-kicker" id="sea-kicker"></p>
+            <h2 id="sea-name"></h2>
+            <p class="fc-latin" id="sea-latin"></p>
+            <div class="fc-stats" id="sea-stats"></div>
+            <p class="fc-fact" id="sea-fact"></p>
+            <p class="fc-habitat" id="sea-habitat"></p>
+            <div class="fc-foot">
+                <span class="fc-log" id="sea-log"></span>
+                <button id="sea-card-close" class="btn">Carry on</button>
+            </div>
+        </aside>
+    </section>
+
     <!-- game card (touch and hologram) -->
     <aside id="card" class="panel card" hidden role="dialog" aria-modal="false" aria-labelledby="card-title">
         <div class="card-top">
@@ -243,6 +292,7 @@
                         <li><kbd>[</kbd> <kbd>]</kbd> turn the hologram at the hub</li>
                         <li><kbd>M</kbd> map · <kbd>L</kbd> library · <kbd>F</kbd> starred · <kbd>T</kbd> time · <kbd>N</kbd> sound</li>
                         <li>At the end of the fishing pier: <kbd>C</kbd> to cast, click or <kbd>Space</kbd> to strike, hold to reel, <kbd>Esc</kbd> to put the rod away</li>
+                        <li>In the fountain's submarine: <kbd>W</kbd>/<kbd>S</kbd> speed, <kbd>A</kbd>/<kbd>D</kbd> steer, <kbd>Space</kbd>/<kbd>C</kbd> rise and dive, <kbd>B</kbd> lamp, <kbd>Esc</kbd> to surface</li>
                     </ul>
                 </div>
                 <div>
@@ -257,7 +307,7 @@
                     </ul>
                 </div>
             </div>
-            <p class="help-note">Each path from the hub leads to one kind of game and ends at a pavilion. Newest games stand nearest the hub. The vines wake up as you come near, and the garden keeps its own time: wait for dusk to see the lamps, fireflies and aurora, and stay up until midnight for fireworks. The door of the Observatory opens on a tower rather larger on the inside, five floors of strange rooms joined by a lift of light, with a great telescope under the dome at the top. A stone bridge crosses to the clock tower on its islet, and the door at its foot leads down into the Works, the machine hall that keeps the island running. On the far side of the island from the dock, a trail drops from the pavilion to a fishing pier: click the rod on its rail (or press <kbd>C</kbd>) to cast, strike when the float dips, then hold to keep the fish in the green band as you reel it in.</p>
+            <p class="help-note">Each path from the hub leads to one kind of game and ends at a pavilion. Newest games stand nearest the hub. The vines wake up as you come near, and the garden keeps its own time: wait for dusk to see the lamps, fireflies and aurora, and stay up until midnight for fireworks. The door of the Observatory opens on a tower rather larger on the inside, five floors of strange rooms joined by a lift of light, with a great telescope under the dome at the top. A stone bridge crosses to the clock tower on its islet, and the door at its foot leads down into the Works, the machine hall that keeps the island running. A tiny submarine circles in the pool of the Moon Fountain: click it to climb aboard and steer through an endless sea of coral, kelp and stone arches, with fish, jellyfish, turtles and manta rays to find for your sea log (and, if you are lucky, a whale), and rare finds on the sea floor: a sunken galleon, treasure, a goddess, a broken robot, a magic sword and more. On the far side of the island from the dock, a trail drops from the pavilion to a fishing pier: click the rod on its rail (or press <kbd>C</kbd>) to cast, strike when the float dips, then hold to keep the fish in the green band as you reel it in.</p>
         </div>
     </section>
 

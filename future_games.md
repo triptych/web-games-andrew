@@ -1,6 +1,6 @@
 # Future Games — Rounding Out the Collection
 
-A thematic look at the 33 games in this collection (`game-001` through `game-033`) and ideas for what to build next to fill the gaps. Unlike [docs/generic/suggestions.md](docs/generic/suggestions.md), which tracks missing **mechanics/genres** (Solitaire, Wordle, idle clicker, etc.), this doc looks at the **themes, settings, and subject matter** already established across the collection and proposes new games that either round out an underused theme cluster or remix a proven mechanic into a fresh setting.
+A thematic look at the 33 games in this collection (`game-001` through `game-033`) and ideas for what to build next to fill the gaps. Unlike [docs/generic/suggestions.md](docs/generic/suggestions.md), which tracks missing **mechanics/genres** (solitaire, daily word puzzle, idle clicker, etc.), this doc looks at the **themes, settings, and subject matter** already established across the collection and proposes new games that either round out an underused theme cluster or remix a proven mechanic into a fresh setting.
 
 ## Theme clusters already well-covered
 
@@ -11,7 +11,7 @@ Looking across all 33 games, several strong clusters have emerged:
 - **Synthwave/neon retro arcade**: game-019 (Synthwave brick-breaker), game-023 (Synthwave Invaders), game-024 (Neon Vanguard)
 - **Turn-based / party RPGs**: game-009 (Ember Crown), game-028 (Echoes of Aethermoor), game-030 (Coppergate Lane)
 - **Procedural/roguelite RPG journeys**: game-020 (The River), game-029 (Wayfarer's Path)
-- **Puzzle**: game-002, game-011, game-016, game-017, game-027 — nonograms, match-3, sokoban, block-placement
+- **Puzzle**: game-002, game-011, game-016, game-017, game-027 — nonograms, match-3, box-pushing, block-placement
 - **Three.js action/adventure**: game-014, game-018, game-024, game-025, game-026, game-029
 - **Visual novel / branching narrative**: game-007 (text-only), game-028 (Phaser VN), game-033 (DOM/canvas VN)
 - **Gacha / collection meta-games**: game-012 (Arcana Pull) is the only one
@@ -21,10 +21,10 @@ Looking across all 33 games, several strong clusters have emerged:
 ### 1. ~~Cozy sim: seasonal farm/orchard~~ — Done
 Completed as **game-043** (Glimmerglen): farming, animals, a village builder and a item-gated top-down adventure in one.
 
-A **farming sim** (Stardew-lite) is the obvious hole in the cozy cluster — game-010 (town), game-013 (flower shop), game-015 (pet), game-020 (river journey), and game-033 (apothecary) all touch adjacent cozy subjects, but nothing does crop-planting/seasons/harvest. Kaplay, top-down grid, day/night or season cycle, simple relationship/gifting mechanic to echo game-033's affinity system.
+A **farming sim** (a light crop-and-seasons life sim) is the obvious hole in the cozy cluster — game-010 (town), game-013 (flower shop), game-015 (pet), game-020 (river journey), and game-033 (apothecary) all touch adjacent cozy subjects, but nothing does crop-planting/seasons/harvest. Kaplay, top-down grid, day/night or season cycle, simple relationship/gifting mechanic to echo game-033's affinity system.
 
 ### 2. Dungeon crawler: isometric loot-focused hack-and-slash
-The dungeon cluster has raycasting FPS, blobber, top-down, and software-rendered first-person — but no **isometric** view (Diablo-lite). Would pair well with game-022's loot/upgrade economy and game-029's gear-comparison panel pattern. Kaplay or three.js orthographic camera.
+The dungeon cluster has raycasting FPS, blobber, top-down, and software-rendered first-person — but no **isometric** view (an isometric action RPG). Would pair well with game-022's loot/upgrade economy and game-029's gear-comparison panel pattern. Kaplay or three.js orthographic camera.
 
 ### 3. Synthwave: racer
 The synthwave trio (019/023/024) covers breakout, invaders, and shmup — a **synthwave neon lane-dodging racer** (endless neon highway, lane-dodging, checkpoint boosts) would complete the retrowave aesthetic set and could reuse game-014's endless-runner three-lane skeleton with a neon reskin plus the perspective-grid backdrop already built for game-019/023.
@@ -50,7 +50,9 @@ Every three.js game so far (014/018/024/025/026/029) is action- or combat-focuse
 ### 10. Puzzle: physics-based
 The puzzle cluster (002/011/016/017/027) is entirely grid-logic. A **physics puzzle** (slingshot trajectory, or a marble/pipe-flow puzzle per `docs/generic/suggestions.md` #1) using Kaplay's built-in physics/body components (not yet exercised by any current game) would diversify the puzzle mechanic beyond grid logic.
 
-### 11. Cozy exploration: endless undersea garden
+### 11. ~~Cozy exploration: endless undersea garden~~ — Done
+Completed in **the Garden** v1.7.0: the toy submarine in the Moon Fountain ([garden/js/submarine.js](garden/js/submarine.js), [garden/js/undersea.js](garden/js/undersea.js)). The floor is built in seeded chunks as you steer (coral gardens, kelp forest, sand flats, stone arches), and schools of fish, jellyfish, turtles, manta rays and the odd humpback are spawned ahead of you in the murk; click any of them for a card, and each kind goes into your sea log. Rare finds lie on the floor here and there: a sunken galleon, a treasure chest, a sea goddess, a broken robot, a magic sword, a drowned temple, a giant anchor, a diving helmet and a message in a bottle ([garden/js/sea-wonders.js](garden/js/sea-wonders.js)).
+
 Expand the garden with a tiny submarine floating in the fountain. Clicking it takes you inside an undersea garden, where you look out through a huge glass portal at colorful coral, fish, jellyfish, and other marine life. You steer the submarine through this endless-feeling world; scenery and sea life are generated on the fly as you explore, so the view keeps unfolding without needing a fixed map. The cozy garden becomes a doorway to a living aquarium you can wander at your own pace.
 ## Suggested priority
 
