@@ -11,7 +11,7 @@ Looking across all 33 games, several strong clusters have emerged:
 - **Synthwave/neon retro arcade**: game-019 (Synthwave brick-breaker), game-023 (Synthwave Invaders), game-024 (Neon Vanguard)
 - **Turn-based / party RPGs**: game-009 (Ember Crown), game-028 (Echoes of Aethermoor), game-030 (Coppergate Lane)
 - **Procedural/roguelite RPG journeys**: game-020 (The River), game-029 (Wayfarer's Path)
-- **Puzzle**: game-002, game-011, game-016, game-017, game-027 — nonograms, match-3, sokoban, block-placement
+- **Puzzle**: game-002, game-011, game-016, game-017, game-027 — nonograms, match-3, box-pushing, block-placement
 - **Three.js action/adventure**: game-014, game-018, game-024, game-025, game-026, game-029
 - **Visual novel / branching narrative**: game-007 (text-only), game-028 (Phaser VN), game-033 (DOM/canvas VN)
 - **Gacha / collection meta-games**: game-012 (Arcana Pull) is the only one
