@@ -462,6 +462,25 @@ if (want('match3')) {
     ok(Gm.deserialize(oldS).yard.salon.wait === 0, 'a save from before the salon loads');
     Gm.act(G, { t: 'salonSeat', client: 'kitten' });
     ok(Gm.act(G, { t: 'salonLeave' }) && !G.yard.salon.appt, 'a client can be sent home unfinished');
+
+    section('the castle keeps quiet during a mini-game');
+    G = rich(40, 1e9, 0);
+    Gm.act(G, { t: 'buy', id: 'imp', n: 30 });
+    G.visitors.length = 0; G.nextVisit = 0.5; G.events.length = 0;
+    Gm.act(G, { t: 'hush', on: true });
+    const ch = G.charm;
+    for (let i = 0; i < 600; i++) Gm.step(G, 0.1);
+    ok(!G.visitors.length && !G.events.some((e) => e.type === 'visitor'), 'a minute in a mini-game: no visitors arrive');
+    ok(G.charm > ch, 'but the minions keep working');
+    Gm.act(G, { t: 'hush', on: false }); Gm.step(G, 1);
+    ok(G.visitors.length === 1, 'the next one comes once you are back');
+    const hero = G.visitors[0]; hero.kind = 'hero';
+    const dr = G.dread;
+    Gm.act(G, { t: 'hush', on: true });
+    for (let i = 0; i < 1200; i++) Gm.step(G, 0.1);
+    ok(G.visitors.includes(hero) && !G.events.some((e) => e.type === 'heroGossip') && G.stats.heroMiss === 0, 'a hero already at the gate waits instead of gossiping while you play');
+    ok(G.dread >= dr - 40, 'so no −15 dread behind your back');
+    ok(!('hush' in Gm.serialize(G)), 'and the hush is never saved');
 }
 
 if (want('away')) {
