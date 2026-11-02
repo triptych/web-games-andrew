@@ -10,7 +10,8 @@
  *   python3 -m http.server 8077            # from the REPO ROOT
  *   node garden/dev/seatest.mjs
  *
- * Env: BASE, THREE_PKG (see browsertest.mjs), SHOTS=0 to skip screenshots.
+ * Env: BASE, THREE_PKG (see browsertest.mjs), SHOTS=0 to skip screenshots,
+ * ONLY=desktop|finds|phone to run one part.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -22,6 +23,7 @@ const PKG = process.env.THREE_PKG ?? path.join(HERE, 'package');
 const BASE = process.env.BASE ?? 'http://127.0.0.1:8077';
 const OUT = path.join(HERE, 'shots');
 const SHOTS = process.env.SHOTS !== '0';
+const ONLY = process.env.ONLY;
 fs.mkdirSync(OUT, { recursive: true });
 const errors = [];
 const check = (cond, msg) => {
@@ -60,7 +62,7 @@ async function open(viewport, opts = {}) {
 }
 
 // ---------------------------------------------------------------- desktop
-{
+if (!ONLY || ONLY === 'desktop') {
     const { ctx, page, G, until, frames, shot } = await open({ width: 1280, height: 720 });
     await page.goto(`${BASE}/index.html?debug&enter&pr=0.6&t=0.4${process.env.Q ? '&q=' + process.env.Q : ''}`);
     await until('g?.entered', 240000);
@@ -255,8 +257,61 @@ async function open(viewport, opts = {}) {
     await ctx.close();
 }
 
+// ---------------------------------------------------------------- the rare finds
+if (!ONLY || ONLY === 'finds') {
+    const { ctx, page, G, until, frames, shot } = await open({ width: 1280, height: 720 });
+    await page.goto(`${BASE}/index.html?debug&enter&pr=0.6&t=0.4`);
+    await until('g?.entered', 240000);
+    await G('g.startDive()');
+    await until('g.diving?.phase === "view"', 120000);
+    const rate = await page.evaluate(async () => {
+        const { wonderAt } = await import('./garden/js/sea-wonders.js');
+        let n = 0;
+        for (let i = -50; i < 50; i++) for (let j = -50; j < 50; j++) if (wonderAt(i, j)) n++;
+        return n / 10000;
+    });
+    check(rate > 0.02 && rate < 0.07, `about one chunk in twenty-odd holds a find (${(rate * 100).toFixed(1)}%)`);
+    const ids = await page.evaluate(async () => (await import('./garden/js/sea-wonders.js')).WONDERS.map((w) => w.id));
+    for (const id of ids) {
+        const spec = await page.evaluate(async (id) => {
+            const { wonderAt } = await import('./garden/js/sea-wonders.js');
+            for (let d = 2; d < 200; d++) for (let i = -d; i <= d; i++) for (const j of [-d, d]) {
+                const s = wonderAt(i, j) || wonderAt(j, i);
+                if (s && s.def.id === id) return { x: s.x, z: s.z, r: s.def.radius, cy: s.def.cy };
+            }
+            return null;
+        }, id);
+        check(!!spec, `there is a ${id} somewhere in the sea`);
+        await G(`(() => { const u = g.undersea, s = ${JSON.stringify(spec)};
+            const back = s.r + 7, x = s.x + back * 0.8, z = s.z + back * 0.6;
+            u.sub.pos.set(x, 0, z); u._chunks(false);
+            while (u.queue.length) u._buildNext();
+            u.sub.pos.y = -6; u.sub.throttle = 1; u.sub.speed = 0; u.sub.vy = 0; u.look.yaw = 0;
+            u.sub.yaw = Math.atan2(-(s.x - x), -(s.z - z)); })()`);
+        await frames(6);
+        const w = await G(`(() => { const w = [...g.undersea.wonders()].find((w) => w.def.id === '${id}'); if (!w) return null; const u = g.undersea; u.sub.pos.y = Math.min(-2, w.pos.y + 2.5); u.look.pitch = Math.atan2(w.pos.y - u.sub.pos.y, Math.hypot(w.pos.x - u.sub.pos.x, w.pos.z - u.sub.pos.z)); return true; })()`);
+        check(w, `the ${id} is built on its patch of floor`);
+        await frames(4);
+        await shot(`7-${id}`);
+        const at = await page.evaluate((id) => {
+            const g = window.__garden, w = [...g.undersea.wonders()].find((w) => w.def.id === id);
+            const p = w.pos.clone().project(g.camera);
+            return { x: (p.x + 1) / 2 * innerWidth, y: (1 - p.y) / 2 * innerHeight };
+        }, id);
+        await page.mouse.click(at.x, at.y);
+        await frames(2);
+        const name = await page.textContent('#sea-name');
+        const want = await page.evaluate(async (id) => (await import('./garden/js/sea-wonders.js')).WONDERS.find((w) => w.id === id).name, id);
+        check(!(await page.isHidden('#sea-card')) && name === want, `clicking the ${id} opens its card (${name})`);
+        await page.click('#sea-card-close');
+    }
+    check((await page.textContent('#sea-finds')).startsWith(String(ids.length)), 'every find is counted on the dial');
+    check(errors.length === 0, 'no errors among the finds');
+    await ctx.close();
+}
+
 // ---------------------------------------------------------------- a phone, portrait, touch only
-{
+if (!ONLY || ONLY === 'phone') {
     const { ctx, page, G, until, frames, shot } = await open({ width: 390, height: 844 }, { hasTouch: true, isMobile: true });
     await page.goto(`${BASE}/index.html?debug&enter&t=0.45&q=low`);
     await until('g?.entered', 240000);

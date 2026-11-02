@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import { CHUNK, seabedY, biomeAt, dominant, buildChunk, reefMaterial } from './sea-reef.js';
 import { SeaLife, SEA_LIFE } from './sea-life.js';
 import { SeaAudio } from './sea-audio.js';
+import { WONDERS, wonderAt, buildWonder } from './sea-wonders.js';
 import { clamp, damp, store, TAU } from './util.js';
 
 const V3 = THREE.Vector3;
@@ -33,9 +34,9 @@ const SHALLOW = C('#2b93b8'), DEEP = C('#0a3552'), NIGHT = C('#03101e');
 const TOP_DAY = C('#62c8ea'), TOP_NIGHT = C('#14283e');
 
 const TIER = {
-    high: { R: 3, density: 1, snow: 1800, fog: 0.019 },
-    medium: { R: 3, density: 0.8, snow: 1200, fog: 0.021 },
-    low: { R: 2, density: 0.55, snow: 700, fog: 0.027 },
+    high: { R: 3, density: 1, snow: 1800 },
+    medium: { R: 3, density: 0.8, snow: 1200 },
+    low: { R: 2, density: 0.55, snow: 700 },
 };
 
 function bubbleTexture() {
@@ -69,7 +70,9 @@ export class Undersea {
         this.scene = new THREE.Scene();
         this.fogColor = SHALLOW.clone();
         this.scene.background = this.fogColor;
-        this.scene.fog = new THREE.FogExp2(this.fogColor, this.cfg.fog);
+        // linear murk that is complete just inside the edge of the floor that is built
+        this.scene.fog = new THREE.Fog(this.fogColor, 6, this.cfg.R * CHUNK - 10);
+        this.scene.fog.color = this.fogColor;   // Fog copies the colour it is given; share ours so it follows depth and night
         this.uni = { uTime: { value: 0 }, uCaustic: { value: 1 }, uGlow: { value: 0.2 } };
         this.reefMat = reefMaterial(this.uni);
         this.chunks = new Map();
@@ -116,7 +119,7 @@ export class Undersea {
             vertexShader: 'varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); gl_Position.z = gl_Position.w; }',
             fragmentShader: `uniform vec3 uTop; uniform vec3 uFog; uniform vec3 uDeep; varying vec3 vDir;
 void main(){ float y = normalize(vDir).y;
-vec3 c = y > 0.0 ? mix(uFog, uTop, smoothstep(0.05, 0.95, y)) : mix(uFog, uDeep, 1.0 - smoothstep(-0.55, 0.0, y));
+vec3 c = y > 0.0 ? mix(uFog, uTop, smoothstep(0.05, 0.95, y)) : mix(uFog, uDeep, 1.0 - smoothstep(-0.6, -0.12, y));
 gl_FragColor = vec4(c, 1.0); }`,
             side: THREE.BackSide, depthWrite: false, fog: false,
         }));
@@ -125,11 +128,11 @@ gl_FragColor = vec4(c, 1.0); }`,
         this.scene.add(this.dome);
 
         // the underside of the waves, rippling, brightest straight up (Snell's window)
-        this.surfU = { uTime: this.uni.uTime, uTop: this.domeU.uTop, uFog: this.domeU.uFog, uDensity: { value: this.cfg.fog }, uBright: { value: 1 } };
+        this.surfU = { uTime: this.uni.uTime, uTop: this.domeU.uTop, uFog: this.domeU.uFog, uFar: { value: this.cfg.R * CHUNK - 10 }, uBright: { value: 1 } };
         this.surface = new THREE.Mesh(new THREE.PlaneGeometry(900, 900).rotateX(Math.PI / 2), new THREE.ShaderMaterial({
             uniforms: this.surfU,
             vertexShader: 'varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
-            fragmentShader: `uniform float uTime; uniform vec3 uTop; uniform vec3 uFog; uniform float uDensity; uniform float uBright; varying vec3 vW;
+            fragmentShader: `uniform float uTime; uniform vec3 uTop; uniform vec3 uFog; uniform float uFar; uniform float uBright; varying vec3 vW;
 void main(){
     vec2 p = vW.xz * 0.09;
     float w = sin(p.x * 3.1 + uTime * 0.9 + sin(p.y * 2.3 + uTime * 0.6)) * sin(p.y * 2.7 - uTime * 0.7 + sin(p.x * 1.9 - uTime * 0.4));
@@ -137,7 +140,7 @@ void main(){
     float win = smoothstep(0.55, 0.9, dir.y);
     vec3 c = uTop * (0.72 + 0.3 * w) * (0.55 + 1.0 * win) * uBright;
     float d = distance(vW, cameraPosition);
-    float f = 1.0 - exp(-uDensity * uDensity * d * d * 0.45);
+    float f = smoothstep(0.0, uFar * 2.2, d);
     gl_FragColor = vec4(mix(c, uFog, f), 1.0);
 }`,
             side: THREE.DoubleSide, fog: false,
@@ -242,7 +245,7 @@ void main(){ float a = (1.0 - smoothstep(0.1, 0.5, length(gl_PointCoord - 0.5)))
 
     _dom() {
         const d = (this.dom = {
-            root: $('sea'), depth: $('sea-depth'), heading: $('sea-heading'), rose: $('sea-rose'), dist: $('sea-dist'), logc: $('sea-logcount'),
+            root: $('sea'), finds: $('sea-finds'), depth: $('sea-depth'), heading: $('sea-heading'), rose: $('sea-rose'), dist: $('sea-dist'), logc: $('sea-logcount'),
             throttle: $('sea-throttle'), lamp: $('sea-lamp'), card: $('sea-card'), hint: $('sea-hint'),
         });
         $('sea-faster').addEventListener('click', () => this.setThrottle(1));
@@ -400,10 +403,7 @@ void main(){ float a = (1.0 - smoothstep(0.1, 0.5, length(gl_PointCoord - 0.5)))
         this.drag = null;
         this.sound?.stop();
         this.life.clear();
-        for (const ch of this.chunks.values()) {
-            this.scene.remove(ch.mesh);
-            ch.mesh.geometry.dispose();
-        }
+        for (const ch of this.chunks.values()) this._drop(ch);
         this.chunks.clear();
         this.queue = [];
         this.ci = this.cj = null;
@@ -419,8 +419,7 @@ void main(){ float a = (1.0 - smoothstep(0.1, 0.5, length(gl_PointCoord - 0.5)))
         this.cj = cj;
         for (const [key, ch] of this.chunks) {
             if (Math.max(Math.abs(ch.i - ci), Math.abs(ch.j - cj)) > R + 1) {
-                this.scene.remove(ch.mesh);
-                ch.mesh.geometry.dispose();
+                this._drop(ch);
                 this.chunks.delete(key);
             }
         }
@@ -445,7 +444,28 @@ void main(){ float a = (1.0 - smoothstep(0.1, 0.5, length(gl_PointCoord - 0.5)))
         ch.i = q.i;
         ch.j = q.j;
         this.scene.add(ch.mesh);
+        // now and then, something rare lies on this patch of floor
+        const spec = wonderAt(q.i, q.j);
+        if (spec) {
+            ch.wonder = buildWonder(spec, this.reefMat);
+            this.scene.add(ch.wonder.root);
+            ch.solids.push(...ch.wonder.solids);
+        }
         this.chunks.set(q.key, ch);
+    }
+
+    _drop(ch) {
+        this.scene.remove(ch.mesh);
+        ch.mesh.geometry.dispose();
+        if (ch.wonder) {
+            this.scene.remove(ch.wonder.root);
+            ch.wonder.dispose();
+        }
+    }
+
+    /** The rare finds on the floor that is built. */
+    *wonders() {
+        for (const ch of this.chunks.values()) if (ch.wonder) yield ch.wonder;
     }
 
     *_near(x, z, r) {
@@ -515,6 +535,7 @@ void main(){ float a = (1.0 - smoothstep(0.1, 0.5, length(gl_PointCoord - 0.5)))
         this._chunks(false);
         if (this.queue.length) this._buildNext();
         this.life.update(dt, t, s.pos, this.fwd, night);
+        for (const w of this.wonders()) w.update(t, night);
         this._env(dt, t, camera, night);
 
         // bubbles: a trickle, and plenty when the tanks blow or flood
@@ -616,6 +637,33 @@ void main(){ float a = (1.0 - smoothstep(0.1, 0.5, length(gl_PointCoord - 0.5)))
             it.logged = true;
             this._logIt(it.sp);
         }
+        for (const w of this.wonders()) {
+            _w.subVectors(w.pos, s);
+            const d = _w.length();
+            // the sonar hears it before you can see it
+            if (!w.pinged && d < 62) {
+                w.pinged = true;
+                if (!w.logged) {
+                    if (this.env.audio?.ctx) this.sound?.ping(this.env.audio.ctx.currentTime + 0.05, 20);
+                    this.env.ui?.hint('The sonar pings: something unusual on the floor nearby…', 5000);
+                }
+            }
+            if (w.logged || d > w.def.see + w.radius || (d > w.radius + 4 && _w.dot(_v) / d < 0.3)) continue;
+            w.logged = true;
+            this._logFind(w.def);
+        }
+    }
+
+    _logFind(def, quiet = false) {
+        const first = !this.log[def.id];
+        this.log[def.id] = (this.log[def.id] || 0) + 1;
+        store.set('seaLog', this.log);
+        if (first && !quiet) {
+            this.env.ui?.hint(`A rare find: ${def.name}! · click it for its story`, 7000);
+            this.env.audio?.sparkle();
+            if (def.rarity === 'Legendary') this.env.audio?.caught?.(true);
+        }
+        this._dash(true);
     }
 
     _logIt(sp, quiet = false) {
@@ -637,7 +685,10 @@ void main(){ float a = (1.0 - smoothstep(0.1, 0.5, length(gl_PointCoord - 0.5)))
         d.rose.style.transform = `rotate(${-deg}deg)`;
         const far = Math.hypot(s.pos.x, s.pos.z);
         d.dist.textContent = far < 1000 ? `${Math.round(far)} m` : `${(far / 1000).toFixed(1)} km`;
-        if (all) d.logc.textContent = `${SEA_LIFE.filter((x) => this.log[x.id]).length} / ${SEA_LIFE.length}`;
+        if (all) {
+            d.logc.textContent = `${SEA_LIFE.filter((x) => this.log[x.id]).length} / ${SEA_LIFE.length}`;
+            d.finds.textContent = `${WONDERS.filter((x) => this.log[x.id]).length} / ${WONDERS.length}`;
+        }
     }
 
     // ------------------------------------------------------------ touching things
@@ -646,13 +697,42 @@ void main(){ float a = (1.0 - smoothstep(0.1, 0.5, length(gl_PointCoord - 0.5)))
         if (!this.camera) return null;
         _ndc.set((cx / innerWidth) * 2 - 1, -(cy / innerHeight) * 2 + 1);
         this.ray.setFromCamera(_ndc, this.camera);
-        return this.life.pick(this.ray.ray);
+        const ray = this.ray.ray;
+        let best = this.life.pick(ray);
+        for (const w of this.wonders()) {
+            _w.subVectors(w.pos, ray.origin);
+            const t = _w.dot(ray.direction);
+            if (t < 0 || t > 70 || (best && t > best.t)) continue;
+            if (_w.lengthSq() - t * t < w.radius * w.radius) best = { wonder: w, t };
+        }
+        return best;
     }
 
     _tap(cx, cy) {
         const h = this._pick(cx, cy);
-        if (h) this.showCard(h.item.sp, h.item);
+        if (h?.wonder) this.showFind(h.wonder);
+        else if (h) this.showCard(h.item.sp, h.item);
         else if (!this.dom.card.hidden) this.closeCard();
+    }
+
+    /** The card for a rare find. */
+    showFind(w) {
+        const def = w.def;
+        if (!w.logged) {
+            w.logged = true;
+            this._logFind(def, true);
+        }
+        const n = this.log[def.id] || 0;
+        $('sea-kicker').textContent = n <= 1 ? 'A rare find!' : 'From your sea log';
+        $('sea-name').textContent = def.name;
+        $('sea-latin').textContent = def.sub;
+        $('sea-stats').innerHTML = `<span class="fc-rarity r-${def.rarity.toLowerCase()}">${def.rarity} find</span><span>Found ${n}×</span>`;
+        $('sea-fact').textContent = w.note || def.fact;
+        $('sea-habitat').textContent = def.where;
+        $('sea-log').textContent = `${WONDERS.filter((x) => this.log[x.id]).length} of ${WONDERS.length} rare finds`;
+        this.dom.card.style.setProperty('--accent', def.rarity === 'Legendary' ? '#fff0a0' : '#e2a8ff');
+        this.dom.card.hidden = false;
+        this.env.audio?.click();
     }
 
     showCard(sp, item) {

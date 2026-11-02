@@ -545,3 +545,6 @@ export function buildChunk(ci, cj, material, density = 1) {
     return { mesh, solids, anemones };
 }
 const _c = new THREE.Color();
+
+// pieces the rare finds (sea-wonders.js) are built from
+export { Acc, mat, ribbon, rockGeo, rockColor, UNIT_CYL, UNIT_SPH, UNIT_BOX, UNIT_CONE };
