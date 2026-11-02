@@ -258,7 +258,7 @@ export const MAPS = {
             { x: 11, y: 1, w: 2, h: 2, scene: 'throne', need: 'wardenBeaten' },
             { x: 9, y: 12, w: 6, h: 3, scene: 'arriveSpire', once: 'seenSpire' },
         ],
-        enemies: [{ kind: 'hushknight', x: 5.5, y: 11.5, not: 'wardenBeaten' }, { kind: 'silencer', x: 18.5, y: 12.5, not: 'wardenBeaten' }, { kind: 'silencer', x: 4.5, y: 4.5 }, { kind: 'hushknight', x: 18.5, y: 4.5 }],
+        enemies: [{ kind: 'hushknight', x: 5.5, y: 11.5, not: 'wardenBeaten' }, { kind: 'silencer', x: 18.5, y: 12.5, not: 'wardenBeaten' }, { kind: 'silencer', x: 6.5, y: 4.5 }, { kind: 'hushknight', x: 18.5, y: 4.5 }],
     },
 };
 

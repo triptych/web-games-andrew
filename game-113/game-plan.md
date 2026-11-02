@@ -181,11 +181,12 @@ title). Scenes can start battles (`from: 'scene'`), and the scene resumes after 
 | `js/sim/party.js` | levels, HP, power, charms, items, `join` (sets `<id>Joined`) | done |
 | `js/sim/battle.js` | the duel (above), `startBattle`, `stepBattle`, `endBattle`, `afterDefeat` | done |
 | `js/sim/story.js` | scene runner, route map, `objective()`, `warpToCrystal` | done |
-| `js/sim/field.js` | `loadMap`, `stepField`, collision, interaction, triggers, roaming enemies | **next** |
-| `js/sim/game.js` | `newGame(seed, difficulty)` (starts the `prologue` scene on `hollow`), `step`, `act` (menu commands), serialize | to do |
-| `js/sim/bot.js` | auto-player: BFS path to `objective()`, talks, battles at a skill level, heals at crystals | to do |
+| `js/sim/field.js` | `loadMap`, `stepField`, collision, interaction, triggers, roaming enemies | done |
+| `js/sim/game.js` | `newGame(seed, difficulty)` (starts the `prologue` scene on `hollow`), `step` (`inp.cmd` runs a menu command), `act`, serialize | done |
+| `js/sim/bot.js` | auto-player: BFS path to `objective()`, saves at each crystal, opens chests, heals, battles at a skill level | done |
 | `js/view/*`, `js/ui/*`, `js/audio.js`, `js/input.js`, `js/save.js`, `js/main.js` | see *Look and sound* | to do |
-| `dev/simtest.mjs`, `dev/browsertest.mjs`, `dev/play.mjs`, `dev/gallery.html`, `dev/preview.mjs` | harnesses | to do |
+| `dev/simtest.mjs` | purity, maps, song, battle rules, save, the bot plays the whole story | done |
+| `dev/browsertest.mjs`, `dev/play.mjs`, `dev/gallery.html`, `dev/preview.mjs` | harnesses | to do |
 
 ## Testing (plan)
 
@@ -201,13 +202,22 @@ title). Scenes can start battles (`from: 'scene'`), and the scene resumes after 
 
 ## Balance notes
 
-To be filled from the bot's table.
+The bot plays the story walking straight to each objective, so it fights only the monsters in its way (about 14
+duels, ending around level 9). A human who fights more will be stronger. With the first pass of numbers a perfect
+bot finished bosses in about 30 s and even skill 0.55 was rarely hurt, so every enemy's HP went up ×2.3 (×2.8 for
+bosses) and attack ×1.7, and Frosthold and the Spire got another ×1.2 attack. The bot's miss rate is
+`(1 − skill) × 0.5`.
+
+| Skill | Whole story | Trash duel | Boss duel | Defeats |
+|---|---|---|---|---|
+| 1.0 | ~11 min | ~20 s, never hurt | 50–75 s | 0 |
+| 0.75 | ~16 min | 25–35 s, down to ~70% HP | 95–115 s, down to 37–90% | 0–1 |
+| 0.55 | ~19 min | 30–40 s, down to ~20–60% | 120–170 s, often near 0 | lost Maelstra once at level 2 |
 
 ## Build status (hand-off note)
 
 - **Done and pushed:** everything marked *done* in the module table.
-- **Next:** `field.js`, `game.js`, `bot.js`, `dev/simtest.mjs`; run the bot through the whole story and tune the
-  enemy HP/atk in `data/enemies.js`; then the view, UI, audio, input, main, `index.html`, `style.css`, the browser
+- **Next:** the view, UI, audio, input, main, `index.html`, `style.css`, the browser
   harnesses, and the collection entries (`js/gamedata.js` with cssClass `crystal-crescendo` and genre `rpg`, the
   card style in `css/styles.css`, README, status, CHANGELOG, docs, and `garden/img/games/game-113.jpg`).
 - Debug namespace `window.__ccr`, harness port 8113, save key `crystal-crescendo.v1`.
