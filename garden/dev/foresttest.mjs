@@ -193,7 +193,7 @@ if (!ONLY || ONLY === 'fox') {
     await shot('8-fox-greet');
 
     // it follows: walk off somewhere open and see it keep up
-    const open = await page.evaluate(async () => {
+    const way = await page.evaluate(async () => {
         const land = await import('./garden/js/forest-land.js');
         for (let a = 0; a < 6.28; a += 0.4) {
             let ok = true;
@@ -206,8 +206,8 @@ if (!ONLY || ONLY === 'fox') {
         }
         return null;
     });
-    check(open, 'there is an open way out of the clearing');
-    await G(`g.controls.walkTo([{ x: ${open.x}, z: ${open.z} }])`);
+    check(way, 'there is an open way out of the clearing');
+    await G(`g.controls.walkTo([{ x: ${way.x}, z: ${way.z} }])`);
     await until('!g.controls.route', 120000);
     await frames(60);
     const fd = await G(`Math.hypot(${ff}.fox.position.x - g.controls.pos.x, ${ff}.fox.position.z - g.controls.pos.z)`);
