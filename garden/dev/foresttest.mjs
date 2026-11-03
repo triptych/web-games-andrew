@@ -219,16 +219,18 @@ if (!ONLY || ONLY === 'fox') {
         return null;
     });
     check(way, 'there is an open way out of the clearing');
+    // just following for now: no scents
+    await G(`${ff}.nextLook = 1e9`);
     await G(`g.controls.walkTo([{ x: ${way.x}, z: ${way.z} }])`);
     await until('!g.controls.route', 120000);
     await frames(60);
     const fd = await G(`Math.hypot(${ff}.fox.position.x - g.controls.pos.x, ${ff}.fox.position.z - g.controls.pos.z)`);
-    check(fd < 6, `the fox follows you (${fd.toFixed(1)} m away)`);
+    check(fd < 6, `the fox follows you (${fd.toFixed(1)} m away, ${await G(`${ff}.state`)})`);
     check(await G(`${ff}.state === 'follow' || ${ff}.state === 'lead'`), 'and it settles to watch when you stop');
     await shot('9-fox-follow');
 
     // click it for a fuss
-    await G(`${ff}.state = 'follow'`);
+    await G(`(${ff}.state = 'follow', ${ff}.nextLook = 3)`);
     const fxy = await page.evaluate(() => {
         const g = window.__garden, f = g.forest.fox.fox;
         const p = f.position.clone();
