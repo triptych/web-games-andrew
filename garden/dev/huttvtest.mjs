@@ -49,7 +49,9 @@ page.on('console', (m) => m.type() === 'error' && errors.push('console: ' + m.te
 page.on('pageerror', (e) => errors.push('pageerror: ' + e.message + '\n' + e.stack));
 
 const G = (expr) => page.evaluate(`(() => { const g = window.__garden; return ${expr}; })()`);
-const until = (expr, timeout = 600000) => page.waitForFunction(`(() => { const g = window.__garden; return ${expr}; })()`, null, { timeout, polling: 100 });
+const until = (expr, timeout = 600000) => page.waitForFunction(`(() => { const g = window.__garden; return ${expr}; })()`, null, { timeout, polling: 100 }).catch((e) => {
+    throw new Error(`timed out waiting for ${expr}` + (errors.length ? '\n  ' + errors.slice(0, 5).join('\n  ') : ''), { cause: e });
+});
 const frames = (n) => page.evaluate((n) => new Promise((res) => { let k = 0; const f = () => (++k >= n ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); }), n);
 const shot = async (name) => {
     if (!SHOTS) return;
