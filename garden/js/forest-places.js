@@ -197,7 +197,7 @@ function picnic(acc, f, colliders, env) {
     for (let k = 0; k < 10; k++) {
         const a = r() * TAU, d = r.range(2.4, 5.5);
         const q = L.at(Math.sin(a) * d, Math.cos(a) * d);
-        acc.addProto(proto(r() < 0.6 ? env.P.daisy : env.P.buttercup, r), mat(q.x, env.groundY(q.x, q.z) - 0.02, q.z, r() * TAU));
+        acc.addProto(proto(r() < 0.6 ? env.P.daisy : env.P.buttercup, r), mat(q.x, env.groundY(q.x, q.z) - 0.02, q.z, r() * TAU, 1));
     }
 }
 

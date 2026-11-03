@@ -56,33 +56,36 @@ export function blob(r, detail, seed, amount = 0.22) {
     return g;
 }
 
-/** A strip through `pts` whose width at t (0..1) is width(t), with `side` across it; both faces. */
+/** A strip through `pts` whose width at t (0..1) is width(t), with `side` across it (one face: the material is two-sided). */
 export function strip(pts, width, side) {
     const pos = [], nor = [], idx = [];
     const n = pts.length;
     const nrm = new V3(), tan = new V3();
-    for (let face = 0; face < 2; face++) {
-        const off = face * n * 2;
-        for (let i = 0; i < n; i++) {
-            const t = i / (n - 1), w = width(t) / 2;
-            const p = pts[i];
-            tan.copy(pts[Math.min(n - 1, i + 1)]).sub(pts[Math.max(0, i - 1)]).normalize();
-            nrm.crossVectors(side, tan).normalize();
-            if (nrm.y < 0) nrm.negate();
-            if (face) nrm.negate();
-            pos.push(p.x - side.x * w, p.y - side.y * w, p.z - side.z * w, p.x + side.x * w, p.y + side.y * w, p.z + side.z * w);
-            nor.push(nrm.x, nrm.y, nrm.z, nrm.x, nrm.y, nrm.z);
-            if (i < n - 1) {
-                const a = off + i * 2;
-                if (face) idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
-                else idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
-            }
+    for (let i = 0; i < n; i++) {
+        const t = i / (n - 1), w = width(t) / 2;
+        const p = pts[i];
+        tan.copy(pts[Math.min(n - 1, i + 1)]).sub(pts[Math.max(0, i - 1)]).normalize();
+        nrm.crossVectors(side, tan).normalize();
+        if (nrm.y < 0) nrm.negate();
+        pos.push(p.x - side.x * w, p.y - side.y * w, p.z - side.z * w, p.x + side.x * w, p.y + side.y * w, p.z + side.z * w);
+        nor.push(nrm.x, nrm.y, nrm.z, nrm.x, nrm.y, nrm.z);
+        if (i < n - 1) {
+            const a = i * 2;
+            idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
         }
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
     g.setIndex(idx);
+    return g;
+}
+
+/** A thin upright stalk at (x, z), h tall: one triangle (the material is two-sided). */
+export function stalk(x, z, h, w = 0.012, lean = 0) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute([x - w, 0, z, x + w, 0, z, x + lean, h, z], 3));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0.3, 1, 0, 0.3, 1, 0, 0.3, 1], 3));
     return g;
 }
 

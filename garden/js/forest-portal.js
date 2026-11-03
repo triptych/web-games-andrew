@@ -268,7 +268,7 @@ export function buildTreePortal(world, f) {
     const nx = Math.sin(toHub), nz = Math.cos(toHub);
     const D = 4.3;
     const x = f.x + nx * D, z = f.z + nz * D;
-    const y = world.walkHeight(x, z);
+    const y = world.groundAt(x, z);
     const portal = makePortal({
         seed: 'tree-portal',
         colors: ['#8fdc6a', '#ffb3d6', '#fff2a8', '#ffd6ec'],

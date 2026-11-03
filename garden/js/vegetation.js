@@ -4,6 +4,7 @@
 // flower beds. Everything is instanced and sways in a shared wind.
 
 import * as THREE from 'three';
+import { buildTreePortal } from './forest-portal.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Batch, xf } from './materials.js';
 import { lathe } from './architecture.js';
@@ -413,6 +414,8 @@ function buildGreatTree(world, f) {
     world.colliders.push({ x: f.x, z: f.z, r: 1.3 });
     world.petalSources.push({ x: f.x, y: y0 + 9, z: f.z, r: 6 });
     world.landmarks.push({ name: 'The Great Tree', x: f.x, z: f.z });
+    // a shimmering door in its roots, to the Springwood
+    buildTreePortal(world, f);
 }
 
 // ---------------------------------------------------------------- grass

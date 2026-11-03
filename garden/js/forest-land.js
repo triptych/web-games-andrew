@@ -10,7 +10,7 @@
 
 import * as THREE from 'three';
 import { rng, fbm2, noise2, clamp, lerp, smoothstep, TAU } from './util.js';
-import { Acc, C, mat, paint, blob, strip, arc, rockGeo, mossyStone, placed, limbGeometry, flat, fadeY } from './forest-kit.js';
+import { Acc, C, mat, paint, blob, strip, arc, stalk, rockGeo, mossyStone, placed, limbGeometry, flat, fadeY } from './forest-kit.js';
 import { PLACE_KINDS, buildPlace } from './forest-places.js';
 
 export const CHUNK = 32;          // metres along a side
@@ -115,7 +115,8 @@ float dapple(vec2 p, float t) {
 
 /** One material for every chunk. `u` holds the shared uniforms { uTime, uWind, uDapple, uGlow }. */
 export function forestMaterial(u) {
-    const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0 });
+    // two-sided, so leaves, petals and grass blades need only one face
+    const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
     m.onBeforeCompile = (sh) => {
         Object.assign(sh.uniforms, { uTime: u.uTime, uWind: u.uWind, uDapple: u.uDapple, uGlow: u.uGlow });
         sh.vertexShader = sh.vertexShader
@@ -181,9 +182,9 @@ function broadTree(seed) {
     ends.push(new V3(0, H * 0.86, 0));
     const greens = ['#7fbf4a', '#93cc55', '#6db244', '#a6d462'];
     for (const e of ends) {
-        const nbl = r.int(1, 2);
+        const nbl = e.y > H * 0.84 ? 2 : 1;
         for (let k = 0; k < nbl; k++) {
-            const R = r.range(1.5, 2.2);
+            const R = r.range(1.7, 2.4);
             const g = blob(R, 1, r() * 50, 0.24);
             paint(g, leafFn(r.pick(greens), r() * 9));
             parts.push({ geo: placed(g, mat(e.x + r.range(-0.7, 0.7), e.y + r.range(-0.2, 0.7), e.z + r.range(-0.7, 0.7), r() * TAU, 1, r.range(0.75, 0.95), 1)), sway: 0.16 });
@@ -209,7 +210,7 @@ function birchTree(seed) {
     parts.push({ geo: trunk });
     const curve = new THREE.CatmullRomCurve3(pts);
     const greens = ['#b5dc6e', '#cde98a', '#a4d05e'];
-    for (let k = 0; k < 7; k++) {
+    for (let k = 0; k < 5; k++) {
         const s = r.range(0.45, 0.9);
         const a = curve.getPointAt(s);
         const ang = r() * TAU, len = r.range(0.9, 1.7);
@@ -234,7 +235,7 @@ export const BLOSSOM_PALETTES = [
     ['#ffc4dc', '#ffd8e8', '#f7a8c8', '#ffb6d2'],   // cherry
     ['#fff4f6', '#ffe6ee', '#f8dce6', '#ffffff'],   // apple and pear
     ['#f490b8', '#ff9ec4', '#e878a8', '#ffb0cc'],   // deep pink
-    ['#e8c8ff', '#f0d8ff', '#d8b0f4', '#f6e6ff'],   // a lilac-ish plum
+    ['#ffd0e4', '#fff0f4', '#ffb8d4', '#ffe4ee'],   // pink and white mixed
 ];
 
 function blossomTree(seed, palette, big = 1) {
@@ -254,15 +255,15 @@ function blossomTree(seed, palette, big = 1) {
     ends.push(new V3(top.x, H * 0.95, top.z));
     const t = new THREE.Color();
     for (const e of ends) {
-        const n = Math.round(r.int(6, 8) * (big > 1 ? 1.6 : 1));
+        const n = Math.round(r.int(4, 6) * (big > 1 ? 1.6 : 1));
         for (let k = 0; k < n; k++) {
-            const R = r.range(0.55, 0.95) * Math.sqrt(big);
+            const R = r.range(0.65, 1.05) * Math.sqrt(big);
             const g = blob(R, 0, r() * 50, 0.18);
             const leafy = r() < 0.12;
             const base = leafy ? C('#9ccc5a') : C(r.pick(palette));
-            paint(g, (v, nn) => t.copy(base).multiplyScalar(0.84 + nn.y * 0.14));
+            paint(g, (v, nn) => t.copy(base).multiplyScalar(0.9 + nn.y * 0.1));
             const sp = 1.3 * Math.sqrt(big);
-            parts.push({ geo: placed(g, mat(e.x + r.range(-sp, sp), e.y + r.range(-0.7, 0.7), e.z + r.range(-sp, sp), r() * TAU, 1)), sway: 0.12, glow: leafy ? 0 : 0.14 });
+            parts.push({ geo: placed(g, mat(e.x + r.range(-sp, sp), e.y + r.range(-0.7, 0.7), e.z + r.range(-sp, sp), r() * TAU, 1)), sway: 0.12, glow: leafy ? 0 : 0.35 });
         }
     }
     return { parts, H, R: 0.32 * big };
@@ -305,7 +306,7 @@ function bush(seed, flower) {
         spots.push({ x, y, z, R });
     }
     const bud = new THREE.TetrahedronGeometry(0.075, 0);
-    for (let k = 0; k < 26; k++) {
+    for (let k = 0; k < 12; k++) {
         const s = r.pick(spots);
         const d = new V3(r() - 0.5, r() * 0.9, r() - 0.5).normalize().multiplyScalar(s.R * 0.95);
         parts.push({ geo: placed(paint(bud.clone(), () => t.copy(fc).multiplyScalar(0.9 + r() * 0.15)), mat(s.x + d.x, s.y + d.y * 0.85, s.z + d.z, r() * TAU, 1)), sway: 0.05, glow: 0.1 });
@@ -344,7 +345,7 @@ function fern(seed) {
         const a = (k / n) * TAU + r() * 0.4;
         const dir = new V3(Math.sin(a), 0, Math.cos(a));
         const len = r.range(0.55, 0.9);
-        const pts = arc(dir, len, r.range(0.35, 0.55), 0.85, 7);
+        const pts = arc(dir, len, r.range(0.35, 0.55), 0.85, 5);
         const g = strip(pts, (t) => Math.sin(Math.min(1, t * 1.15) * Math.PI) * 0.22 + 0.01, new V3(Math.cos(a), 0, -Math.sin(a)));
         paint(g, fadeY('#3f7a32', '#8cc25a', 0, 0.5));
         parts.push({ geo: g, sway: 0.08 });
@@ -355,10 +356,10 @@ function fern(seed) {
 function bluebells(seed) {
     const r = rng('fbell' + seed);
     const parts = [];
-    const bell = new THREE.ConeGeometry(0.028, 0.055, 5, 1, true).rotateX(Math.PI);
+    const bell = new THREE.ConeGeometry(0.03, 0.055, 4, 1, true).rotateX(Math.PI);
     const t = new THREE.Color();
     const blue = C(r.pick(['#5a62d8', '#6a5ae0', '#4f6ae0'])), pale = C('#a8b0ff');
-    const n = r.int(3, 5);
+    const n = r.int(3, 4);
     for (let k = 0; k < n; k++) {
         const a = r() * TAU;
         const dir = new V3(Math.sin(a), 0, Math.cos(a));
@@ -371,15 +372,15 @@ function bluebells(seed) {
         const g = strip(pts, () => 0.012, new V3(Math.cos(a), 0, -Math.sin(a)));
         paint(g, flat(C('#4f7a36')));
         parts.push({ geo: g, sway: 0.05 });
-        for (let j = 0; j < 4; j++) {
-            const p = pts[2 + j] || pts[5];
+        for (let j = 0; j < 3; j++) {
+            const p = pts[3 + j];
             const bg = paint(bell.clone(), (v) => t.copy(blue).lerp(pale, clamp(-v.y * 9, 0, 0.5)));
             parts.push({ geo: placed(bg, mat(p.x + dir.x * 0.02, p.y - 0.035, p.z + dir.z * 0.02, r() * TAU, 1, 1, 1, dir.z * 0.4, -dir.x * 0.4)), sway: 0.05, glow: 0.05 });
         }
     }
-    for (let k = 0; k < 3; k++) {
+    for (let k = 0; k < 2; k++) {
         const a = r() * TAU;
-        const g = strip(arc(new V3(Math.sin(a), 0, Math.cos(a)), r.range(0.22, 0.32), 0.12, 0.7, 5), (s) => 0.035 * (1 - s * 0.7), new V3(Math.cos(a), 0, -Math.sin(a)));
+        const g = strip(arc(new V3(Math.sin(a), 0, Math.cos(a)), r.range(0.22, 0.32), 0.12, 0.7, 4), (s) => 0.035 * (1 - s * 0.7), new V3(Math.cos(a), 0, -Math.sin(a)));
         paint(g, flat(C('#3f7030')));
         parts.push({ geo: g, sway: 0.03 });
     }
@@ -402,18 +403,17 @@ function daffodils(seed) {
     const petal = C('#fff1a0'), cup = C('#ffb81a'), stem = C('#5a8a3a');
     for (let k = 0; k < r.int(2, 4); k++) {
         const ox = r.range(-0.12, 0.12), oz = r.range(-0.12, 0.12), h = r.range(0.34, 0.46), yaw = r() * TAU;
-        const st = new THREE.CylinderGeometry(0.008, 0.01, h, 4).translate(ox, h / 2, oz);
-        parts.push({ geo: paint(st, flat(stem)), sway: 0.06 });
+        parts.push({ geo: paint(stalk(ox, oz, h, 0.01), flat(stem)), sway: 0.06 });
         // the flower nods forward, facing out
         const head = mat(ox, h, oz, yaw, 1, 1, 1, -1.1);
         const star = placed(paint(STAR6.clone().scale(0.07, 0.07, 1), flat(petal)), head);
         parts.push({ geo: star, sway: 0.06, glow: 0.05 });
-        const tr = new THREE.CylinderGeometry(0.03, 0.022, 0.05, 6, 1, true).rotateX(Math.PI / 2).translate(0, 0, 0.025);
+        const tr = new THREE.CylinderGeometry(0.03, 0.022, 0.05, 5, 1, true).rotateX(Math.PI / 2).translate(0, 0, 0.025);
         parts.push({ geo: placed(paint(tr, flat(cup)), head), sway: 0.06, glow: 0.05 });
     }
-    for (let k = 0; k < 4; k++) {
+    for (let k = 0; k < 3; k++) {
         const a = r() * TAU;
-        const g = strip(arc(new V3(Math.sin(a), 0, Math.cos(a)), 0.18, r.range(0.25, 0.38), 0.55, 5), (s) => 0.03 * (1 - s * 0.6), new V3(Math.cos(a), 0, -Math.sin(a)));
+        const g = strip(arc(new V3(Math.sin(a), 0, Math.cos(a)), 0.18, r.range(0.25, 0.38), 0.55, 4), (s) => 0.03 * (1 - s * 0.6), new V3(Math.cos(a), 0, -Math.sin(a)));
         parts.push({ geo: paint(g, flat(C('#4f8a3c'))), sway: 0.04 });
     }
     return { parts, H: 0.46 };
@@ -424,19 +424,19 @@ function tulips(seed, color) {
     const r = rng('ftulip' + seed);
     const parts = [];
     const c = C(color), t = new THREE.Color();
-    for (let k = 0; k < r.int(3, 5); k++) {
+    for (let k = 0; k < r.int(2, 4); k++) {
         const ox = r.range(-0.15, 0.15), oz = r.range(-0.15, 0.15), h = r.range(0.3, 0.42);
-        parts.push({ geo: paint(new THREE.CylinderGeometry(0.008, 0.011, h, 4).translate(ox, h / 2, oz), flat(C('#5a8f3e'))), sway: 0.05 });
-        const cupG = new THREE.CylinderGeometry(0.05, 0.028, 0.085, 6, 2, false);
+        parts.push({ geo: paint(stalk(ox, oz, h, 0.011), flat(C('#5a8f3e'))), sway: 0.05 });
+        const cupG = new THREE.CylinderGeometry(0.05, 0.028, 0.085, 6, 2, true);
         const p = cupG.attributes.position;
         for (let i = 0; i < p.count; i++) if (p.getY(i) > 0.04) p.setY(i, 0.0425 + (i % 2) * 0.014);
         cupG.computeVertexNormals();
         paint(cupG, (v) => t.copy(c).multiplyScalar(0.78 + (v.y + 0.04) * 3));
         parts.push({ geo: placed(cupG, mat(ox, h + 0.035, oz, r() * TAU, 1)), sway: 0.05, glow: 0.04 });
     }
-    for (let k = 0; k < 3; k++) {
+    for (let k = 0; k < 2; k++) {
         const a = r() * TAU;
-        const g = strip(arc(new V3(Math.sin(a), 0, Math.cos(a)), 0.14, r.range(0.18, 0.26), 0.6, 5), (s) => 0.06 * Math.sin(Math.max(0.15, s) * Math.PI), new V3(Math.cos(a), 0, -Math.sin(a)));
+        const g = strip(arc(new V3(Math.sin(a), 0, Math.cos(a)), 0.14, r.range(0.18, 0.26), 0.6, 4), (s) => 0.06 * Math.sin(Math.max(0.15, s) * Math.PI), new V3(Math.cos(a), 0, -Math.sin(a)));
         parts.push({ geo: paint(g, flat(C('#5f9a48'))), sway: 0.04 });
     }
     return { parts, H: 0.45 };
@@ -446,7 +446,7 @@ function tulips(seed, color) {
 function smallFlowers(seed, kind) {
     const r = rng('fsmall' + seed);
     const parts = [];
-    const disc = new THREE.CircleGeometry(1, 7).rotateX(-Math.PI / 2);
+    const disc = new THREE.CircleGeometry(1, 6).rotateX(-Math.PI / 2);
     const [petal, eye, size] = {
         daisy: ['#ffffff', '#ffd23a', 0.035],
         buttercup: ['#ffd820', '#ffb000', 0.028],
@@ -454,10 +454,10 @@ function smallFlowers(seed, kind) {
         clover: ['#f0b8e0', '#e890c8', 0.03],
     }[kind];
     const pc = C(petal), ec = C(eye);
-    const n = r.int(5, 10);
+    const n = r.int(4, 7);
     for (let k = 0; k < n; k++) {
         const x = r.range(-0.4, 0.4), z = r.range(-0.4, 0.4), h = r.range(0.06, 0.18);
-        parts.push({ geo: paint(new THREE.CylinderGeometry(0.004, 0.005, h, 3).translate(x, h / 2, z), flat(C('#5a8f3e'))), sway: 0.03 });
+        parts.push({ geo: paint(stalk(x, z, h, 0.006), flat(C('#5a8f3e'))), sway: 0.03 });
         const s = size * r.range(0.8, 1.2);
         parts.push({ geo: placed(paint(disc.clone(), (v) => (Math.hypot(v.x, v.z) < 0.35 ? ec : pc)), mat(x, h, z, r() * TAU, s, s, s, r.range(-0.3, 0.3), r.range(-0.3, 0.3))), sway: 0.03, glow: kind === 'daisy' ? 0.08 : 0.03 });
     }
@@ -474,11 +474,11 @@ function mushrooms(seed, kind) {
         fairy: ['#bfe8ff', '#f0d8ff', false, 1],
     }[kind];
     const ca = C(capA), cb = C(capB), white = C('#fff8ec');
-    for (let k = 0; k < r.int(2, 5); k++) {
+    for (let k = 0; k < r.int(2, 4); k++) {
         const x = r.range(-0.18, 0.18), z = r.range(-0.18, 0.18), s = r.range(0.7, 1.4);
         const h = 0.1 * s;
-        parts.push({ geo: paint(new THREE.CylinderGeometry(0.018 * s, 0.026 * s, h, 6).translate(x, h / 2, z), flat(white)), glow: glow * 0.4 });
-        const cap = new THREE.SphereGeometry(0.07 * s, 8, 4, 0, TAU, 0, Math.PI / 2).scale(1, 0.62, 1);
+        parts.push({ geo: paint(new THREE.CylinderGeometry(0.018 * s, 0.026 * s, h, 5, 1, true).translate(x, h / 2, z), flat(white)), glow: glow * 0.4 });
+        const cap = new THREE.SphereGeometry(0.07 * s, 7, 3, 0, TAU, 0, Math.PI / 2).scale(1, 0.62, 1);
         paint(cap, (v) => {
             t.copy(ca).lerp(cb, clamp(v.y / (0.04 * s), 0, 1));
             if (spots && noise2(v.x * 90 + seed, v.z * 90) > 0.45) t.copy(white);
@@ -496,11 +496,11 @@ function reeds(seed) {
         const a = r() * TAU, h = r.range(0.8, 1.5);
         const x = r.range(-0.3, 0.3), z = r.range(-0.3, 0.3);
         const lean = new V3(r() - 0.5, 0, r() - 0.5).multiplyScalar(0.3);
-        const pts = [0, 1, 2, 3].map((i) => new V3(x + lean.x * (i / 3) ** 2, (i / 3) * h, z + lean.z * (i / 3) ** 2));
+        const pts = [0, 1, 2].map((i) => new V3(x + lean.x * (i / 2) ** 2, (i / 2) * h, z + lean.z * (i / 2) ** 2));
         parts.push({ geo: paint(strip(pts, (s) => 0.035 * (1 - s * 0.8), new V3(Math.cos(a), 0, Math.sin(a))), fadeY('#4a7a30', '#a8c868', 0, 1.4)), sway: 0.12 });
         if (r() < 0.4) {
-            const top = pts[3];
-            parts.push({ geo: placed(paint(new THREE.CylinderGeometry(0.035, 0.035, 0.22, 6), flat(C('#6a4a2a'))), mat(top.x, top.y - 0.15, top.z, 0, 1)), sway: 0.12 });
+            const top = pts[2];
+            parts.push({ geo: placed(paint(new THREE.CylinderGeometry(0.035, 0.035, 0.22, 5, 1, true), flat(C('#6a4a2a'))), mat(top.x, top.y - 0.15, top.z, 0, 1)), sway: 0.12 });
         }
     }
     return { parts, H: 1.5 };
@@ -695,7 +695,7 @@ export function buildChunk(ci, cj, material, density = 1) {
     }
 
     // the things underfoot
-    const tries = Math.round(520 * density);
+    const tries = Math.round(330 * density);
     for (let k = 0; k < tries; k++) {
         const x = x0 + r() * CHUNK, z = z0 + r() * CHUNK;
         const roll = r(), pick = r(), yaw = r() * TAU, sc = r.range(0.75, 1.3), v = r();
