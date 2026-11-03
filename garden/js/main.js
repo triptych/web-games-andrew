@@ -43,6 +43,8 @@ import { Tower } from './tower.js';
 import { Scope } from './scope.js';
 import { FountainSub } from './submarine.js';
 import { Undersea } from './undersea.js';
+import { Forest } from './forest.js';
+import { inDoorway, rayPortal } from './forest-portal.js';
 import { Arcade } from './arcade.js';
 import { Carousel } from './carousel.js';
 
@@ -327,6 +329,9 @@ async function boot() {
     world.controls = controls;
     // a fox spirit from Worldroot comes by on about one visit in five (?fox=1 always, ?fox=0 never)
     const fox = new FoxVisitor(scene, world, controls, camera, { force: params.get('fox') });
+    fox.onHome = (dist) => {
+        if (dist < 40) ui.hint('The fox dashed through the shimmering door in the Great Tree · it must live on the other side', 7000);
+    };
     const boat = new Boat(world, scene, camera, controls);
     const fishing = new Fishing({ world, scene, camera, controls, ui, audio, bursts, canvas });
     controls.canJump = () => !fishing.active && !ui.blocking && !boat.busy && !diving && !arcade?.busy;
@@ -391,6 +396,8 @@ async function boot() {
     let arcade = null, arcadeHintShown = false, lhDoorHintShown = false;
     // the sea inside the fountain's submarine: built on the first dive
     let undersea = null, diving = null, subPending = false, subHintShown = false;
+    // the Springwood through the door in the Great Tree: built on the first visit
+    let forest = null, treeArmed = false, treeHintShown = false, forestHintShown = false;
     let trip = null;       // falling into / climbing out of the sphere
 
     /**
@@ -466,7 +473,7 @@ async function boot() {
         return list;
     }
     const look = { x: 0, y: 0 };
-    let roomKind = null;   // which room 'below' means: 'works' | 'hut' | 'subway' | 'mine' | 'tower' | 'arcade'
+    let roomKind = null;   // which room 'below' means: 'works' | 'hut' | 'subway' | 'mine' | 'tower' | 'arcade' | 'forest'
     let below = false;
     let transit = false;   // fading through a door
     let doorArmed = false; // you must step away from a door before it takes you again
@@ -524,6 +531,14 @@ async function boot() {
             if (t < 90) {
                 bt = t;
                 best = { type: 'portal', t };
+            }
+        }
+        // the shimmering door in the Great Tree
+        if (world.treePortal) {
+            const t = rayPortal(world.treePortal, ray);
+            if (t < bt && t < 90) {
+                bt = t;
+                best = { type: 'treePortal', t };
             }
         }
         for (const st of statues) {
@@ -1218,12 +1233,13 @@ async function boot() {
             tower.leave();
         }
         if (roomKind === 'arcade' && (!on || kind !== 'arcade')) arcade.leave();
+        if (roomKind === 'forest' && (!on || kind !== 'forest')) forest.leave();
         below = on;
         roomKind = on ? kind : null;
-        const room = kind === 'hut' ? hut : kind === 'subway' ? subway : kind === 'mine' ? mine : kind === 'tower' ? tower : kind === 'arcade' ? arcade : works;
+        const room = kind === 'hut' ? hut : kind === 'subway' ? subway : kind === 'mine' ? mine : kind === 'tower' ? tower : kind === 'arcade' ? arcade : kind === 'forest' ? forest : works;
         controls.world = on ? (kind === 'mine' ? mine.walk : room.world) : place === 'cove' ? volcano.world : world;
         renderPass.scene = on ? room.scene : scene;
-        bloom.strength = on ? (kind === 'hut' ? 0.55 : kind === 'subway' ? 0.5 : kind === 'mine' ? 0.7 : kind === 'tower' ? 0.55 : kind === 'arcade' ? 0.75 : 0.6) : 0.42;
+        bloom.strength = on ? (kind === 'hut' ? 0.55 : kind === 'subway' ? 0.5 : kind === 'mine' ? 0.7 : kind === 'tower' ? 0.55 : kind === 'arcade' ? 0.75 : kind === 'forest' ? 0.5 : 0.6) : 0.42;
         audio.setUnderground(on && (kind === 'works' || kind === 'mine'), kind === 'works');
         if (on) fireworks.stop();
         doorArmed = false;
@@ -1284,6 +1300,26 @@ async function boot() {
                     setBelow(false);
                     ui.hint('The arcade is closed for repairs today.', 4000);
                 }
+            } else if (down && kind === 'forest') {
+                try {
+                    forest ??= new Forest({ renderer, audio, ui, quality });
+                    forest.onExit = () => throughDoor(false);
+                    setBelow(true, 'forest');
+                    forest.enter(controls);
+                    ui.zone('The Springwood', 'Through the Great Tree, where it is always April', '#ffb7d5');
+                    zoneKey = 'forest';
+                    if (!forestHintShown) {
+                        forestHintShown = true;
+                        const touch = matchMedia('(pointer: coarse)').matches;
+                        const met = fox.wentHome ? 'There is the fox: so this is where it lives! ' : 'A fox spirit lives here, and it has come to meet you. ';
+                        setTimeout(() => ui.hint(`${met}It will keep you company, and show you hidden places when they are near · ${touch ? 'tap anywhere to walk there' : 'walk anywhere'} · the door behind you, or Step home, leads back`, 12000), 1600);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    forest = null;
+                    setBelow(false);
+                    ui.hint('The door in the Great Tree is only shimmering today.', 4000);
+                }
             } else if (down && kind === 'hut') {
                 hut ??= new Hut({ renderer, ui, mats: world.mats, camera, quality, tv: tvChannels(), onChannel: () => audio.click() });
                 setBelow(true, 'hut');
@@ -1308,7 +1344,11 @@ async function boot() {
                 }
             } else {
                 surface();
-                const o = leaving === 'hut' ? world.hut.out : leaving === 'tower' ? world.observatory.out : leaving === 'arcade' ? world.lighthouse.out : world.clockDoor.out;
+                const o = leaving === 'hut' ? world.hut.out : leaving === 'tower' ? world.observatory.out : leaving === 'arcade' ? world.lighthouse.out : leaving === 'forest' ? world.treePortal.out : world.clockDoor.out;
+                if (leaving === 'forest') {
+                    treeArmed = false;
+                    ui.hint('Back beside the Great Tree', 4000);
+                }
                 controls.teleport(o.x, o.z, o.yaw);
             }
             setTimeout(() => {
@@ -1318,12 +1358,33 @@ async function boot() {
         }, 650);
     }
 
+    /** Walking through the shimmering door in the Great Tree takes you to the Springwood. */
+    function treeCheck() {
+        const tp = world.treePortal;
+        if (!tp || transit || trip || !controls.enabled || boat.busy || diving || carousel.busy) return;
+        const p = controls.pos;
+        const d = Math.hypot(p.x - tp.x, p.z - tp.z);
+        tp.near = Math.max(0, Math.min(1, 1 - (d - 1.5) / 8));
+        // armed whenever you are out of the doorway, so you can turn round and walk straight back in
+        if (!inDoorway(tp, p.x, p.z)) treeArmed = true;
+        else if (treeArmed) {
+            treeArmed = false;
+            throughDoor(true, 'forest');
+            return;
+        }
+        if (!treeHintShown && d < 14 && entered && !intro) {
+            treeHintShown = true;
+            ui.hint('A door of light has opened in the Great Tree’s roots · walk through it, or click it', 9000);
+        }
+    }
+
     /** Walking into a door's spot goes through it. */
     function doorCheck() {
         if (transit || !controls.enabled) return;
         if (trip) return;
         const p = controls.pos;
         if (below && roomKind === 'tower') return;   // the tower minds its own door
+        if (below && roomKind === 'forest') return;  // so does the Springwood
         if (below && roomKind === 'arcade') {
             if (arcade.busy) return;
             const e = arcade.exit, dist = Math.hypot(p.x - e.x, p.z - e.z);
@@ -1427,7 +1488,7 @@ async function boot() {
     syncFocus();
 
     // below ground the map shows you at the tower
-    const mapPos = () => (place !== 'garden' && stones ? stones : below ? (roomKind === 'works' ? world.clockDoor : roomKind === 'tower' ? { x: world.observatory.cx, z: world.observatory.cz } : roomKind === 'arcade' ? { x: world.lighthouse.cx, z: world.lighthouse.cz } : { x: world.hut.cx, z: world.hut.cz }) : controls.pos);
+    const mapPos = () => (place !== 'garden' && stones ? stones : below ? (roomKind === 'works' ? world.clockDoor : roomKind === 'tower' ? { x: world.observatory.cx, z: world.observatory.cz } : roomKind === 'arcade' ? { x: world.lighthouse.cx, z: world.lighthouse.cz } : roomKind === 'forest' ? world.treePortal : { x: world.hut.cx, z: world.hut.cz }) : controls.pos);
     ui.on('mapOpen', () => map.draw(mapPos(), controls.yaw));
     ui.on('timeOpen', () => {
         document.getElementById('time-slider').value = Math.round(sky.time * 1440);
@@ -1498,6 +1559,14 @@ async function boot() {
             const h = arcade.tap(ray);
             if (h?.type === 'ground') ui.marker(x, y);
             else if (h && h.type !== 'cabinet' && h.type !== 'bowl') audio.click();
+            return;
+        }
+        if (below && roomKind === 'forest') {
+            ndc.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
+            ray.setFromCamera(ndc, camera);
+            const h = forest.tap(ray);
+            if (h?.type === 'ground') ui.marker(x, y);
+            else if (h?.type === 'portal') audio.click();
             return;
         }
         if (below && roomKind === 'tower') {
@@ -1589,6 +1658,14 @@ async function boot() {
             const route = controls.plan(stonesStand.x, stonesStand.z);
             route.push(stonesStand.inner);
             controls.walkTo(route);
+        } else if (h.type === 'treePortal') {
+            audio.click();
+            ui.closeAll();
+            const tp = world.treePortal;
+            const route = Math.hypot(controls.pos.x - tp.front.x, controls.pos.z - tp.front.z) < 6 ? [tp.front] : controls.plan(tp.front.x, tp.front.z);
+            route.push(tp.back);
+            treeArmed = true;
+            controls.walkTo(route);
         } else if (h.type === 'hutDoor') {
             audio.click();
             ui.closeAll();
@@ -1658,6 +1735,7 @@ async function boot() {
         if (below && roomKind === 'mine') return audio.step('stone');
         if (below && roomKind === 'tower') return audio.step(tower.stepSurface());
         if (below && roomKind === 'arcade') return audio.step(arcade.stepSurface(controls.pos));
+        if (below && roomKind === 'forest') return audio.step(forest.stepSurface());
         if (below) return audio.step(roomKind === 'subway' ? subway.stepSurface(controls.pos) : 'metal');
         const p = controls.pos;
         const surface = world.onDeck(p.x, p.z) ? 'wood' : island.pathDistAt(p.x, p.z) < PATH_HALF + 0.2 || Math.hypot(p.x, p.z) < PLAZA_R || world.inPlaza(p.x, p.z) ? 'stone' : 'grass';
@@ -1918,6 +1996,14 @@ async function boot() {
                 ray.setFromCamera(ndc, camera);
                 document.body.classList.toggle('can-hover-pick', arcade.hover(ray, mouse.x, mouse.y));
             } else arcade.clearHover();
+        } else if (below && roomKind === 'forest') {
+            forest.update(dt, t, camera, s);
+            audio.update(night, -100);
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !transit) {
+                ndc.set((mouse.x / innerWidth) * 2 - 1, -(mouse.y / innerHeight) * 2 + 1);
+                ray.setFromCamera(ndc, camera);
+                document.body.classList.toggle('can-hover-pick', forest.hover(ray));
+            }
         } else if (below && roomKind === 'subway') {
             subway.update(Math.min(rawDt, 0.25), t, camera, controls);
             audio.update(night, -100);
@@ -1982,6 +2068,8 @@ async function boot() {
                 else if (h?.type === 'carousel') {
                     const c = carousel.info(h.idx);
                     ui.note({ icon: c.icon, kicker: 'The Starlight Carousel', title: `${c.name}, ${c.kind}`, desc: c.desc, cta: 'Click to climb on and ride →', accent: c.accent }, mouse.x, mouse.y);
+                } else if (h?.type === 'treePortal') {
+                    ui.note({ icon: '🌸', kicker: 'The Great Tree', title: 'A door to the Springwood', desc: 'Through the roots of the Great Tree lies a spring forest that goes on for ever: blossom, bluebells, lily ponds and hidden places.', cta: 'Click or walk through →', accent: '#ffb7d5' }, mouse.x, mouse.y);
                 } else ui.tooltip(null);
             } else if (controls.look?.moved || ui.blocking || fishing.active || carousel.busy) {
                 if ((fishing.active || carousel.busy) && hovered) setHover(null);
@@ -2029,6 +2117,7 @@ async function boot() {
         }
         if (entered && !intro && !boat.busy) {
             if (place === 'garden') doorCheck();
+            if (place === 'garden' && !below) treeCheck();
             cinderCheck();
         }
 
@@ -2061,12 +2150,13 @@ async function boot() {
             fpsAcc = fpsN = fpsTimer = 0;
         }
         world.frameMs = damp(world.frameMs || 16, rawDt * 1000, 2, 0.1);
+        world.canvasH = renderer.domElement.height;
         requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { get arcade() { return arcade; }, get undersea() { return undersea; }, get diving() { return diving; }, startDive, leaveDive, fountainSub, get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, fireworks, linkToGame, walkToGame, scene, fox, carousel, get entered() { return entered && !intro; } };
+        window.__garden = { get arcade() { return arcade; }, get undersea() { return undersea; }, get diving() { return diving; }, startDive, leaveDive, fountainSub, get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, get forest() { return forest; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, fireworks, linkToGame, walkToGame, scene, fox, carousel, get entered() { return entered && !intro; } };
     }
 }
 
