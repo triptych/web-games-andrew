@@ -972,6 +972,50 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     .sg-rose { transition: none; }
 }
 
+/* ------------------------------------------------------------ the Springwood */
+
+.forest-hud {
+    position: fixed;
+    top: calc(66px + var(--safe-t));
+    right: calc(12px + var(--safe-r));
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 168px;
+    padding: 10px 12px 12px;
+    border-radius: 14px;
+    background: rgba(18, 30, 20, 0.55);
+    border: 1px solid rgba(255, 183, 213, 0.35);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: var(--ink);
+}
+.fh-row { display: flex; align-items: center; gap: 10px; }
+.fh-label { display: block; font: 600 0.66rem var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: #ffc8de; }
+.forest-hud strong { display: block; font: 600 1.1rem var(--display); font-variant-numeric: tabular-nums; color: #fff4e8; }
+.fh-arrow {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 183, 213, 0.6);
+    background: radial-gradient(circle, rgba(255, 220, 235, 0.18), rgba(0, 0, 0, 0.2));
+}
+.fh-arrow span { display: block; color: #ffd6e8; font-size: 1.1rem; line-height: 1; transition: transform 0.2s linear; }
+/* the glyph points right; turned a quarter so 0deg is straight ahead */
+#forest-arrow { rotate: -90deg; }
+.forest-hud .btn { min-height: 40px; pointer-events: auto; }
+@media (max-width: 560px) {
+    .forest-hud { width: auto; flex-direction: row; flex-wrap: wrap; align-items: center; left: calc(12px + var(--safe-l)); right: calc(12px + var(--safe-r)); padding: 8px 10px; }
+    .forest-hud .btn { margin-left: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .fh-arrow span { transition: none; }
+}
+
 /* ------------------------------------------------------------ the Lighthouse Arcade */
 
 .bowl-hud { position: fixed; inset: 0; z-index: 7; pointer-events: none; font-family: "Press Start 2P", ui-monospace, monospace; }
