@@ -426,7 +426,7 @@ async function boot() {
             aim: (cam, t, dt, h) => galaxy.update(dt, cam, { x: 0, y: 0 }, h, 10),
         });
         list.push({
-            name: 'The Violet Line', sub: 'Hearthside station · platform camera', ready: () => true,
+            name: 'The Violet Line', sub: 'Hearthside station · platform camera', ready: () => true, gain: 1.8,
             scene: () => (subway ??= new Subway({ renderer, ui, mats: world.mats, audio, quality })).scene,
             aim: (cam, t) => {
                 cam.position.set(-8.2, 3.3, -26);

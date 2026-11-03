@@ -28,6 +28,7 @@ uniform float uStatic;
 uniform float uSignal;
 uniform float uOsdA;
 uniform float uHover;
+uniform float uGain;
 varying vec2 vUv;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 void main() {
@@ -41,12 +42,13 @@ void main() {
     col.r = texture2D(uMap, st + vec2(0.0018 + wob, 0.0)).r;
     col.g = texture2D(uMap, st + vec2(wob, 0.0)).g;
     col.b = texture2D(uMap, st + vec2(-0.0018 + wob, 0.0)).b;
+    col *= uGain;
     col = col / (1.0 + col * 0.45);
     col *= uSignal;
     // snow: between channels, and on a channel with no signal
     float n = hash(floor(st * vec2(240.0, 180.0)) + floor(uTime * 30.0) * 7.13);
     float snow = max(uStatic, 1.0 - uSignal);
-    col = mix(col, vec3(n * 0.85), snow * (1.0 - uSignal * 0.25));
+    col = mix(col, vec3(n * mix(0.6, 0.85, uSignal)), snow * (1.0 - uSignal * 0.25));
     // a slow bright band that rolls up the screen
     col *= 1.0 + 0.08 * smoothstep(0.0, 0.08, 0.08 - abs(fract(st.y - uTime * 0.07) - 0.5));
     // scan lines and the dark corners of the glass
@@ -61,7 +63,7 @@ void main() {
 export class HutTV {
     /**
      * @param {object} env  { renderer, scene, camera, mats, quality, channels, x, z, ry, onChannel }
-     *   channels: [{ name, sub, ready() -> bool, scene() -> THREE.Scene, aim(cam, t, dt, h), prep?(dt, t), hint }]
+     *   channels: [{ name, sub, ready() -> bool, scene() -> THREE.Scene, aim(cam, t, dt, h), prep?(dt, t), hint, gain }]
      */
     constructor(env) {
         this.env = env;
@@ -131,7 +133,7 @@ export class HutTV {
         geo.computeVertexNormals();
         this.uniforms = {
             uMap: { value: this.rt.texture }, uOsd: { value: this.osd }, uTime: { value: 0 }, uStatic: { value: 1 },
-            uSignal: { value: 0 }, uOsdA: { value: 1 }, uHover: { value: 0 },
+            uSignal: { value: 0 }, uOsdA: { value: 1 }, uHover: { value: 0 }, uGain: { value: 1 },
         };
         const screen = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms: this.uniforms, vertexShader: SCREEN_VERT, fragmentShader: SCREEN_FRAG }));
         screen.position.set(-0.07, H / 2, 0.247);
@@ -218,6 +220,8 @@ export class HutTV {
         text(ch.name.toUpperCase(), 20, 28, 316, '#ffffff');
         if (ch.sub) text(ch.sub.toUpperCase(), 13, 28, 346, '#bfe8ff');
         if (!live) {
+            x.fillStyle = 'rgba(8, 6, 20, 0.82)';
+            x.fillRect(0, 134, 512, ch.hint ? 132 : 70);
             text('NO SIGNAL', 36, 256, 150, '#ffffff', 'center');
             if (ch.hint) {
                 const words = ch.hint.toUpperCase().split(' ');
@@ -263,6 +267,7 @@ export class HutTV {
         u.uSignal.value = this.signal;
         u.uOsdA.value = live ? (this.osdT < 4 ? 1 : Math.max(0.45, 1 - (this.osdT - 4) * 0.5)) : 1;
         u.uHover.value = this.hover;
+        u.uGain.value = ch.gain ?? 1;
         this.glow.intensity = (0.6 + this.signal * 0.6) * (0.85 + 0.15 * Math.sin(t * 13) * Math.sin(t * 7.7)) * 1.6;
         if (paused || !live || !this._inView(camera)) return;
         // a dozen pictures a second is plenty for an old set (half that on a lighter setting)
