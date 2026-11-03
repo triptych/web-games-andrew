@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **The Garden** ([index.html](index.html)) v1.8.1: the Hut stood on top of a statue. The cabin picks its spot before the statues, lamps and benches are built, so its check for open ground couldn't see them: the STARBLAZER '86 statue stood 1.8 m from the hut's centre, half inside the wall and through the eaves. The hut now keeps clear of every statue, lamp and bench spot in the layout ([hut.js](garden/js/hut.js)) and has moved to open lawn nearby. [subwaytest.mjs](garden/dev/subwaytest.mjs) checks nothing stands under the hut's roof; it fails without the fix. Reported from a screenshot.
+
 ### Added
 - **The Garden** ([index.html](index.html)) v1.8.0: **the Lighthouse Arcade.** The lighthouse now has an arched door at its foot, ringed in pink neon, and through it is an 80s arcade far bigger than the lighthouse ([arcade.js](garden/js/arcade.js), [architecture.js](garden/js/architecture.js), [main.js](garden/js/main.js)).
   - The hall is planned from the game list ([arcade-layout.js](garden/js/arcade-layout.js)): every game gets a cabinet, cabinets stand back to back in islands of up to fourteen, one genre to an island under a hanging neon sign, and the islands are packed into a grid that grows as games are added (the bowling alley gains lanes as it does). Cosmic carpet, neon tubes across the ceiling, pillars with glowing rings, a synthwave mural with the arcade's name on the north wall, a prize counter full of plush, café tables, and EXIT over the door. Click anywhere on the carpet and you walk there round the islands (A* through the aisles).
