@@ -173,9 +173,12 @@ if (!ONLY || ONLY === 'fox') {
     await page.goto(`${BASE}/index.html?debug&enter&pr=0.6&t=0.4&fox=1`);
     await until('g?.entered', 240000);
     // the garden's fox, bolting near the Great Tree, runs home through the door
-    await until('g.fox.state === "coming" || g.fox.state === "looking"', 60000);
+    check(await G('!!g.fox.fox'), 'the garden fox is coming today (?fox=1)');
+    // put it out on the grass in front of the door, as if it had stopped to look, and startle it
     await G(`(() => {
         const f = g.fox, tp = g.world.treePortal;
+        f.fox.visible = true;
+        f.state = 'looking';
         const x = tp.front.x + tp.nx * 8, z = tp.front.z + tp.nz * 8;
         f.fox.position.set(x, g.world.walkHeight(x, z), z);
         g.controls.teleport(x + tp.nx * 6, z + tp.nz * 6, tp.out.yaw + Math.PI);
