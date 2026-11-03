@@ -1019,6 +1019,12 @@ export class Arcade {
         }
     }
 
+    /** Just the screens and the bulbs, for when the hall is watched from elsewhere (the hut's television). */
+    tick(t) {
+        this.screenMat.uniforms.uTime.value = t;
+        this.marqueeMat.uniforms.uTime.value = t;
+    }
+
     dispose() {
         this.disposed = true;
         this.atl?.dispose();

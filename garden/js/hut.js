@@ -1,7 +1,8 @@
 // The Hut: a small cabin by the dock path. Step through its door and you are
 // in a one-room study with a desk, and on the desk a glass sphere with a
 // galaxy turning inside it. Click the sphere to fall into it (see galaxy.js), or
-// the train ticket beside it to board the Violet Line (see subway.js).
+// the train ticket beside it to board the Violet Line (see subway.js). Beside the
+// desk an old television shows the island's secret places, live (see hut-tv.js).
 // Like the Works, the room is built on the first visit, with its own scene and
 // a stand-in `world` for the walking controls.
 
@@ -11,6 +12,7 @@ import { Batch, xf } from './materials.js';
 import { buildFireplace } from './fireplace.js';
 import { signMesh, signTexture } from './architecture.js';
 import { glowSprite } from './textures.js';
+import { HutTV } from './hut-tv.js';
 import { PLAZA_R, PATH_HALF } from './layout.js';
 import { rng, TAU } from './util.js';
 
@@ -219,7 +221,7 @@ void main() {
 }`;
 
 export class Hut {
-    /** @param {object} env { renderer, ui, mats } */
+    /** @param {object} env { renderer, ui, mats, camera, quality, tv (channels), onChannel } */
     constructor(env) {
         this.env = env;
         this.scene = new THREE.Scene();
@@ -248,6 +250,11 @@ export class Hut {
         this._lights();
         this._orb();
         this._ticket();
+        if (env.tv?.length) {
+            // the television on its cabinet, between the desk and the bookshelf, facing the room
+            this.tv = new HutTV({ renderer: env.renderer, scene: this.scene, camera: env.camera, mats: this.mats, quality: env.quality, channels: env.tv, onChannel: env.onChannel, x: 1.85, z: -R_Z + 0.38, ry: -0.12 });
+            this._collide(1.85, -R_Z + 0.38, 0.95, 0.5);
+        }
         this._grid();
 
         const self = this;
@@ -506,12 +513,15 @@ export class Hut {
         return this._door;
     }
 
-    setHover(on, ticket = false) {
+    setHover(on, ticket = false, tv = false) {
         this.hoverTarget = on ? 1 : 0;
         this.ticketTarget = ticket ? 1 : 0;
+        this.tv?.setHover(tv);
     }
 
-    update(dt, t) {
+    /** `away` is true while the room isn't on screen (falling through the sphere). */
+    update(dt, t, away = false) {
+        this.tv?.update(dt, t, this.env.camera, away);
         this.time = t;
         this.hover += ((this.hoverTarget || 0) - this.hover) * Math.min(1, dt * 8);
         this.orbUniforms.uTime.value = t;

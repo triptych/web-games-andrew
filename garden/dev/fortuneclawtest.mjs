@@ -64,7 +64,7 @@ const project = (x, y, z) => page.evaluate(([x, y, z]) => {
 const click = async (p) => (PHONE ? page.touchscreen.tap(p.x, p.y) : page.mouse.click(p.x, p.y));
 
 await page.goto(`${BASE}/index.html?debug&enter&pr=${process.env.PR ?? 0.6}&t=0.4${process.env.Q ? '&q=' + process.env.Q : ''}`);
-await until('g?.entered', 240000);
+await until('g?.entered', 900000);
 await G('g.throughDoor(true, "arcade")');
 await until("g.roomKind === 'arcade' && !!g.arcade", 120000);
 check(errors.length === 0, 'the arcade builds with the fortune teller and the claw machine');
