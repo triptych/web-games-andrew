@@ -1149,3 +1149,4 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     .claw-pad { gap: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .fortune-card, .claw-say.win { animation: none; } }
+.claw-pad .btn:not(.btn-primary) { background: rgba(6, 3, 18, 0.85); border-color: #ff6ac0; }

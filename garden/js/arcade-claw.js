@@ -21,6 +21,7 @@ const RAIL_Y = 1.93;
 const HUB_UP = 1.8;
 const SPEED = 0.34;
 const TURN = 25;                                 // seconds to line up a drop
+const CLAW_S = 1.45;                             // the claw is drawn a size up, to read well from the glass
 
 const PRAISE = [
     (t) => `Stuffed with stardust and stitched with care, this one came all the way from ${t}.`,
@@ -223,10 +224,13 @@ export class ClawMachine {
         g.add(this.cable);
         // the claw: a hub and three hooked prongs on pivots
         const hub = new THREE.Group();
+        hub.scale.setScalar(CLAW_S);
         g.add(hub);
         this.hub = hub;
-        hub.add(new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.03, 0.05, 16), chrome));
-        const dome = new THREE.Mesh(new THREE.SphereGeometry(0.038, 16, 8, 0, TAU, 0, Math.PI / 2), chrome);
+        // gold, so it stands out against the pastel plush
+        const gold = new THREE.MeshStandardMaterial({ color: 0xffd36a, roughness: 0.25, metalness: 1, emissive: 0x402a00, emissiveIntensity: 0.6 });
+        hub.add(new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.03, 0.05, 16), gold));
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(0.038, 16, 8, 0, TAU, 0, Math.PI / 2), gold);
         dome.position.y = 0.025;
         hub.add(dome);
         this.prongs = [];
@@ -237,14 +241,14 @@ export class ClawMachine {
             const pivot = new THREE.Group();
             pivot.position.set(0, -0.02, 0.028);
             arm.add(pivot);
-            const a = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.075, 0.008), chrome);
+            const a = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.075, 0.008), gold);
             a.position.set(0, -0.037, 0.0);
             pivot.add(a);
             const tipG = new THREE.Group();
             tipG.position.set(0, -0.074, 0);
             tipG.rotation.x = 0.75;
             pivot.add(tipG);
-            const tip = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.045, 0.008), chrome);
+            const tip = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.045, 0.008), gold);
             tip.position.set(0, -0.02, 0);
             tipG.add(tip);
             this.prongs.push(pivot);
@@ -417,7 +421,7 @@ export class ClawMachine {
         this.slipped = false;
         this.claw.open = 1;
         // the claw stops on the first plush in its way, or the floor
-        this.dropTo = Math.max(this._topAt(this.claw.x, this.claw.z) + 0.085, FLOOR + 0.1);
+        this.dropTo = Math.max(this._topAt(this.claw.x, this.claw.z) + 0.085 * CLAW_S, FLOOR + 0.1 * CLAW_S);
         this.env.audio?.claw('drop');
         this.env.audio?.gantry(0);
         this._say('');
@@ -430,7 +434,7 @@ export class ClawMachine {
             if (this.falling.includes(t)) continue;
             const d = Math.hypot(t.position.x - c.x, t.position.z - c.z);
             const top = t.position.y + t.userData.h * t.scale.y;
-            if (d < 0.14 && top > c.y - 0.15 && d < bd) (bd = d), (best = t);
+            if (d < 0.14 && top > c.y - 0.15 * CLAW_S && d < bd) (bd = d), (best = t);
         }
         if (!best) return null;
         let p = bd < 0.04 ? 0.85 : bd < 0.075 ? 0.6 : bd < 0.11 ? 0.3 : 0.12;
@@ -530,7 +534,7 @@ export class ClawMachine {
         this.carriage.position.set(c.x, RAIL_Y - 0.05, c.z);
         this.hub.position.set(c.x, c.y, c.z);
         this.cable.position.set(c.x, RAIL_Y - 0.07, c.z);
-        this.cable.scale.y = Math.max(0.01, RAIL_Y - 0.07 - c.y - 0.03);
+        this.cable.scale.y = Math.max(0.01, RAIL_Y - 0.07 - c.y - 0.03 * CLAW_S);
         const open = lerp(0.12, -0.55, c.open);
         for (const p of this.prongs) p.rotation.x = open;
         const top = this._topAt(c.x, c.z, 0.03);
@@ -699,8 +703,8 @@ export class ClawMachine {
         // the view: in front of the glass, looking down into the case
         if (this.active) {
             const narrow = innerWidth / innerHeight < 1;
-            const camTo = this.toWorld(0, narrow ? 2.15 : 1.98, narrow ? 2.25 : 1.5);
-            const lookTo = this.toWorld(0, narrow ? 1.12 : 1.15, -0.04);
+            const camTo = this.toWorld(0, narrow ? 2.1 : 1.86, narrow ? 2.2 : 1.32);
+            const lookTo = this.toWorld(0, narrow ? 1.12 : 1.1, -0.06);
             this.camPos.lerp(camTo, 1 - Math.exp(-dt * 4));
             this.camLook.lerp(lookTo, 1 - Math.exp(-dt * 5));
             this.camera.position.copy(this.camPos);
