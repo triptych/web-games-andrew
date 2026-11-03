@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-113 games, `game-001` through `game-113`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+114 games, `game-001` through `game-114`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -131,6 +131,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 111 | [NEON ARCANA](game-111/) | A neon tarot block-placement puzzle: fill rows and columns of a glowing lattice to rekindle the 22 Major Arcana, with sigils, blight, a creeping Void, resonance, five tarot powers and embers that carry between readings | three.js |
 | 112 | [Quill & Legion](game-112/) | A hand-inked tactics roguelike: creature stacks on a hex field, every order a card with telegraphed enemy intents, three books of branching roads, recruited at dwellings and drawn in pen hatching on paper | three.js |
 | 113 | [Crystal Crescendo](game-113/) | An HD-2D rhythm RPG: a once-helpless princess gathers a band of four princesses, each playing one layer of the song, in call-and-response music duels against the dragon who silences the world | three.js |
+| 114 | [LAST COLONIST](game-114/) | A run-and-gun shooter with code-painted pixel sprites lit by point lights through generated normal maps: the last colonist awake on a derelict ark fights through eight sectors to the alien homeworld to free the others before they become food | three.js |
 
 ### Highlights
 

@@ -1428,6 +1428,21 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 140, 210, 0.7);
 }
 
+.game-preview.last-colonist,
+.carousel-slide-bg.last-colonist {
+    background:
+        radial-gradient(ellipse at 70% 30%, rgba(255, 90, 160, 0.45), transparent 42%),
+        radial-gradient(ellipse at 25% 75%, rgba(98, 244, 255, 0.35), transparent 40%),
+        radial-gradient(ellipse at 50% 100%, rgba(166, 255, 58, 0.25), transparent 45%),
+        linear-gradient(170deg, #05060c 0%, #14102a 50%, #2a0a1a 100%);
+}
+
+.game-card.last-colonist .play-button {
+    background: linear-gradient(135deg, #ffa24a, #e86a14 50%, #62f4ff);
+    color: #120804;
+    box-shadow: 0 0 14px rgba(255, 138, 42, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

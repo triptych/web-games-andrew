@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LAST COLONIST — sprite gallery</title>
+<style>
+    body { margin: 0; padding: 16px; background: #6a6f78; color: #fff; font: 12px system-ui, sans-serif; }
+    h1 { font-size: 16px; margin: 0 0 12px; }
+    #grid { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+    figure { margin: 0; text-align: center; }
+    canvas { image-rendering: pixelated; background: #50555e; display: block; margin: 0 auto 4px; }
+    .maps { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .maps canvas { width: 384px; height: 384px; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js" } }
+</script>
+</head>
+<body>
+<h1>Every sprite at 3×, then the colour, emissive and normal atlases (dev/gallery.html)</h1>
+<div id="grid"></div>
+<div class="maps" id="maps"></div>
+<script type="module">
+import { buildSprites } from '../js/view/sprites.js';
+const S = buildSprites();
+const grid = document.getElementById('grid');
+for (const [name, f] of Object.entries(S.frames)) {
+    const fig = document.createElement('figure');
+    const c = document.createElement('canvas');
+    c.width = f.w; c.height = f.h;
+    c.style.width = f.w * 3 + 'px'; c.style.height = f.h * 3 + 'px';
+    c.getContext('2d').drawImage(S.canvases.color, f.x, f.y, f.w, f.h, 0, 0, f.w, f.h);
+    fig.append(c, name);
+    grid.append(fig);
+}
+for (const k of ['color', 'emissive', 'normal']) document.getElementById('maps').append(S.canvases[k]);
+window.ready = true;
+</script>
+</body>
+</html>

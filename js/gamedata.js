@@ -1725,6 +1725,22 @@ const games = [
             { emoji: '\uD83D\uDC51', label: 'Four princesses' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-114',
+        title: 'LAST COLONIST',
+        description: "A run-and-gun shooter in three.js with 2D pixel-art sprites lit like a 3D scene. The colony ark HALCYON has drifted for three hundred years, and your cryo pod opens early: the Hive came aboard while you slept and has been carrying the other colonists home in cocoons to feed its young. You are the last colonist awake. Run, jump, aim eight ways and hold fire through four decks of the derelict ark (the Cryo Deck, Hydroponics, the Reactor Ring and the Command Spine), steal a shuttle after the Hive ship, and fight across four sectors of its homeworld to the Queen's Larder. Shoot open cocoon pods to free colonists (each one patches you up), grab Spread, Lance and Rocket capsules, and throw flares that light up the room, then explode and wipe out enemy fire. Skitters, wisps, acid-spitting plants, hijacked turrets, charging brutes and hatching nests stand in the way, steam vents and acid troughs line the floors, and every second sector ends in a locked-room boss: the Brood Mother, the security mech WARDEN-9, the burrowing Gravemaw and the Hive Queen herself. Every sprite is painted in code with a normal map made from its own shape, so muzzle flashes, rockets, flares, wall lamps and glowing acid shade the flat characters from the side the light comes from, under bloom, chromatic aberration and a pool of point lights. Eight seeded sectors, three endings depending on how many colonists you saved, a synthwave score, Normal and Hard, and keyboard, gamepad or touch.",
+        icon: '\uD83D\uDE80',
+        folder: 'game-114',
+        version: '1.0.0',
+        cssClass: 'last-colonist',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83D\uDD2B', label: 'Run and gun' },
+            { emoji: '\uD83D\uDCA1', label: 'Lit pixel art' },
+            { emoji: '\uD83D\uDC7E', label: 'Alien hive' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
