@@ -157,7 +157,8 @@ export class ClawMachine {
         g.add(this.dropBtn);
         // the glass case: chrome posts, glass on four sides, a mirror at the back
         for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(0.04, CASE_TOP - BASE_H, 0.04, sx * (W / 2 - 0.02), (BASE_H + CASE_TOP) / 2, sz * (D / 2 - 0.02), chrome);
-        const glass = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.09, roughness: 0.04, clearcoat: 1, depthWrite: false });
+        // soft glass: a sharp clearcoat caught the case light as a glare
+        const glass = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.08, roughness: 0.25, clearcoat: 0.15, clearcoatRoughness: 0.5, depthWrite: false });
         const h = CASE_TOP - BASE_H;
         for (const [w, x, z, ry] of [[W - 0.04, 0, D / 2 - 0.02, 0], [D - 0.04, -W / 2 + 0.02, 0, Math.PI / 2], [D - 0.04, W / 2 - 0.02, 0, -Math.PI / 2]]) {
             const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h - 0.02), glass);
@@ -166,7 +167,7 @@ export class ClawMachine {
             m.renderOrder = 2;
             g.add(m);
         }
-        const back = new THREE.Mesh(new THREE.PlaneGeometry(W - 0.04, h), new THREE.MeshStandardMaterial({ color: 0x3a1a5a, roughness: 0.2, metalness: 0.6, emissive: 0x2a0a40, emissiveIntensity: 0.6 }));
+        const back = new THREE.Mesh(new THREE.PlaneGeometry(W - 0.04, h), new THREE.MeshStandardMaterial({ color: 0x3a1a5a, roughness: 0.85, metalness: 0.05, emissive: 0x2a0a40, emissiveIntensity: 0.35 }));
         back.position.set(0, (BASE_H + CASE_TOP) / 2, -D / 2 + 0.02);
         g.add(back);
         // the floor of the case, and the chute's clear walls
@@ -198,8 +199,8 @@ export class ClawMachine {
         });
         g.add(this.bulbs);
         // light inside the case
-        const l = new THREE.PointLight(0xfff0ff, 3, 2.4, 1.4);
-        l.position.set(0, CASE_TOP - 0.12, 0.1);
+        const l = new THREE.PointLight(0xfff0ff, 1.1, 1.8, 1.6);
+        l.position.set(0, CASE_TOP - 0.35, -0.2);
         g.add(l);
         // a box over the whole machine, for the pointer
         const hit = new THREE.Mesh(new THREE.BoxGeometry(W + 0.1, CASE_TOP + 0.5, D + 0.2), new THREE.MeshBasicMaterial({ visible: false }));
@@ -692,7 +693,7 @@ export class ClawMachine {
             if (this.state === 'won') on = Math.floor(t * 8) % 2 === 0;
             else on = Math.floor(t * (busy ? 12 : 4) + i) % 4 === 0;
             col.set(on ? [0xffe94a, 0x5fe8ff, 0xff6ad5][i % 3] : 0x30203a);
-            if (on) col.multiplyScalar(1.5);
+            if (on) col.multiplyScalar(1.05);
             this.bulbs.setColorAt(i, col);
         }
         this.bulbs.instanceColor.needsUpdate = true;
