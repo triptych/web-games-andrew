@@ -39,6 +39,14 @@ function findSite(world) {
         for (const sp of layout.spokes) if (Math.hypot(x - sp.pavilion.x, z - sp.pavilion.z) < 16) return false;
         for (const f of layout.features) if (f.type !== 'grove' && Math.hypot(x - f.x, z - f.z) < 14) return false;
         if (layout.islet?.x !== undefined && Math.hypot(x - layout.islet.x, z - layout.islet.z) < 14) return false;
+        // the statues, lamps and benches are built after the hut, so they aren't in the
+        // colliders yet: keep the cabin (4 m from its centre to a corner of the copper
+        // eaves) clear of their spots in the layout, with room to walk round a pedestal
+        for (const sp of layout.spokes) {
+            if (sp.statues.some((st) => Math.hypot(x - st.x, z - st.z) < 6.5)) return false;
+            if (sp.lamps.some((l) => Math.hypot(x - l.x, z - l.z) < 5)) return false;
+            if (sp.benches.some((b) => Math.hypot(x - b.x, z - b.z) < 5.5)) return false;
+        }
         return !world.colliders.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + 4);
     };
     const dock = layout.dock;
