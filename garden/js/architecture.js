@@ -773,7 +773,7 @@ function buildGlows(world, mats) {
 
 export function buildArchitecture(world) {
     const { layout, mats } = world;
-    const batch = new Batch();
+    const batch = new Batch({ cell: 40 });
     buildHub(world, mats, batch);
     for (const sp of layout.spokes) {
         buildGate(world, mats, batch, sp);
