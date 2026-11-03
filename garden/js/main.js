@@ -22,6 +22,7 @@ import { Vines, sparkleVine } from './vines.js';
 import { Particles, Bursts } from './particles.js';
 import { Hologram } from './hologram.js';
 import { Controls } from './controls.js';
+import { NavGrid } from './nav.js';
 import { AudioEngine } from './music.js';
 import { UI } from './ui.js';
 import { IslandMap } from './map.js';
@@ -142,13 +143,14 @@ function lighthouseBeams(world, scene) {
         scene.add(g);
         return { g, lamp };
     });
+    const lampTint = new THREE.Color(0xffd890);
     return (dt, night) => {
         mat.uniforms.uOpacity.value = night;
         for (const b of beams) {
             b.g.rotation.y += dt * 0.5;
             b.g.children.forEach((c) => (c.visible = night > 0.05));
             b.lamp.visible = true;
-            b.lamp.material.color.setScalar(0.4 + night * 2.5).multiply(new THREE.Color(0xffd890));
+            b.lamp.material.color.copy(lampTint).multiplyScalar(0.4 + night * 2.5);
         }
     };
 }
@@ -283,6 +285,14 @@ async function boot() {
     const bursts = new Bursts(world);
     const beams = lighthouseBeams(world, scene);
     world.finalize();
+    // auto-walks detour round anything in their way (cells are worked out on demand)
+    {
+        const L = world.layout;
+        let reach = L.islandR + 20;
+        for (const sp of world.spans) reach = Math.max(reach, Math.hypot(sp.ax, sp.az) + 10, Math.hypot(sp.bx, sp.bz) + 10);
+        if (L.islet.x !== undefined) reach = Math.max(reach, Math.hypot(L.islet.x, L.islet.z) + 20);
+        world.nav = new NavGrid(world, reach);
+    }
 
     // lamp light pool
     const lampLights = [];
@@ -1947,6 +1957,15 @@ async function boot() {
             cinderCheck();
         }
 
+        // Out in the open the near plane sits at 0.2 m: twice the depth precision all the way to the
+        // horizon, which keeps distant shorelines (the sea against the volcano and the far coast)
+        // from flickering. Rooms, rides (the boat, the carousel, the cart) and the rod in your hands keep
+        // 0.1 m so nothing close clips.
+        const near = below || diving || trip || scoping || boat.busy || fishing.active || carousel.busy || mineDrives() ? 0.1 : 0.2;
+        if (camera.near !== near) {
+            camera.near = near;
+            camera.updateProjectionMatrix();
+        }
         composer.render(dt);
 
         // adaptive resolution

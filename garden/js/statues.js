@@ -425,7 +425,7 @@ export function buildStatues(world) {
         world.nightSigns.push(hover['plaque' + p]);
     });
 
-    const batch = new Batch();
+    const batch = new Batch({ cell: 40 });
     const glows = [], floaters = [];
     for (const st of statues) {
         const g = st.genre;

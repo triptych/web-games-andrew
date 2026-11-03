@@ -335,7 +335,7 @@ function hedgeArc(h) {
 }
 
 function buildHedges(world) {
-    const batch = new Batch();
+    const batch = new Batch({ cell: 40 });
     for (const h of world.hedges) {
         const g = hedgeArc(h);
         // follow the ground under every vertex
