@@ -231,6 +231,9 @@ if (!ONLY || ONLY === 'fox') {
 
     // click it for a fuss
     await G(`(${ff}.state = 'follow', ${ff}.nextLook = 3)`);
+    // turn round to face it (it trots behind you)
+    await G(`(() => { const f = ${ff}.fox.position, c = g.controls; c.yaw = Math.atan2(-(f.x - c.pos.x), -(f.z - c.pos.z)); c.pitch = -0.25; })()`);
+    await frames(3);
     const fxy = await page.evaluate(() => {
         const g = window.__garden, f = g.forest.fox.fox;
         const p = f.position.clone();
