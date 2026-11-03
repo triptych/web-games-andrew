@@ -189,7 +189,7 @@ function clearOf(world, x, z, extra = 0) {
     if (Math.hypot(x, z) < PLAZA_R + 5 + extra) return false;
     for (const sp of layout.spokes) if (Math.hypot(x - sp.pavilion.x, z - sp.pavilion.z) < PAVILION_PLAZA + 3.5 + extra) return false;
     for (const f of layout.features) {
-        const r = f.type === 'grove' ? 0 : f.type === 'fountain' ? 8.5 : 7.5;
+        const r = f.type === 'grove' ? 0 : f.type === 'fountain' ? 8.5 : f.type === 'carousel' ? 12 : 7.5;
         if (r && Math.hypot(x - f.x, z - f.z) < r + extra) return false;
     }
     if (Math.abs(x) < 6 && z > layout.dock.start - 4 && z < layout.dock.end + 4) return false;

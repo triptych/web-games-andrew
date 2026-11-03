@@ -8,8 +8,8 @@
  * must end, and every one must arrive: a walk that stops against a statue, a
  * hedge niche, a railing or the shore fails. Spots are only drawn where the
  * ground can be reached from the dock, so a walk that can't arrive is a bug.
- * Also: walks behind statue niches, and that a walk pressed into a door still
- * ends at the door.
+ * Also: walks behind statue niches, a walk from the dock to the carousel, and
+ * that a walk pressed into a door still ends at the door.
  *
  * Rendering: the sky's reflection refresh (every couple of seconds) must not
  * compile shaders or swap the environment texture, and the big merged meshes
@@ -149,7 +149,14 @@ try {
         c.teleport(out.x, out.z, out.yaw);
         c.walkTo([{ x: door.x, z: door.z }]);
         const doorPts = c.route.points.length;
-        return { click, path, niche, doorPts };
+        // the dock to the carousel, near enough to climb on (the click on a creature walks there this way)
+        let carousel = null;
+        if (g.carousel?.ok) {
+            const ap = g.carousel.approach(sp.x, sp.z);
+            const o = walk(sp, ap, 'path');
+            carousel = { ok: o.ok, mountable: g.carousel.near(c.pos.x, c.pos.z, 8.3) };
+        }
+        return { click, path, niche, doorPts, carousel };
     }, N);
     for (const [k, v] of Object.entries({ 'click-to-walk': res.click, 'path walk': res.path, 'walk behind a statue': res.niche })) {
         for (const f of v.fails.slice(0, 6)) console.log('      ' + f);
@@ -157,6 +164,7 @@ try {
         check(v.ok === v.n, `${k}: every walk arrives (${v.ok}/${v.n})`);
     }
     check(res.doorPts === 1, 'a walk straight into a door is left alone');
+    if (res.carousel) check(res.carousel.ok && res.carousel.mountable, 'a walk from the dock reaches the carousel, near enough to climb on');
     check(errors.length === 0, 'no console or page errors');
 } finally {
     await browser.close();

@@ -116,6 +116,8 @@ export class Island {
             .map((f) => ({ x: f.x, z: f.z, h: f.type === 'lighthouse' ? 2.5 : f.type === 'tree' ? 1.2 : 3, r: 9 }));
         for (const f of L.features) {
             if (f.type === 'fountain') this.plazas.push({ x: f.x, z: f.z, r: 6.5, y: lowGround(f.x, f.z) + 0.3, fall: 6 });
+            // the carousel's paved ring: wide enough to walk all the way round the machine
+            if (f.type === 'carousel') this.plazas.push({ x: f.x, z: f.z, r: 9.6, y: lowGround(f.x, f.z) + 0.3, fall: 7 });
         }
         this.plazas.push({ x: L.islet.x, z: L.islet.z, r: 6.2, y: L.islet.y, fall: 2.5 });
 
