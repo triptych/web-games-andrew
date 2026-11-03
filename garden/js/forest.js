@@ -472,8 +472,8 @@ export class Forest {
         const hd = Math.hypot(p.x - this.home.x, p.z - this.home.z);
         this.home.portal.update(t, night, clamp(1 - (hd - 1.5) / 8, 0, 1), this.env.renderer.domElement.height * 0.5);
         for (const g of this.glowMats) g.mat.emissiveIntensity = g.day + (g.night - g.day) * night;
-        if (hd > 3) this.armed = true;
-        if (this.armed && inDoorway(this.home, p.x, p.z)) {
+        if (!inDoorway(this.home, p.x, p.z)) this.armed = true;
+        else if (this.armed) {
             this.armed = false;
             this.onExit?.();
         }

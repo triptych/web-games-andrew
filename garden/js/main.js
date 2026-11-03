@@ -1288,11 +1288,14 @@ async function boot() {
         const p = controls.pos;
         const d = Math.hypot(p.x - tp.x, p.z - tp.z);
         tp.near = Math.max(0, Math.min(1, 1 - (d - 1.5) / 8));
-        if (d > 3.2) treeArmed = true;
-        if (treeArmed && inDoorway(tp, p.x, p.z)) {
+        // armed whenever you are out of the doorway, so you can turn round and walk straight back in
+        if (!inDoorway(tp, p.x, p.z)) treeArmed = true;
+        else if (treeArmed) {
             treeArmed = false;
             throughDoor(true, 'forest');
-        } else if (!treeHintShown && d < 14 && entered && !intro) {
+            return;
+        }
+        if (!treeHintShown && d < 14 && entered && !intro) {
             treeHintShown = true;
             ui.hint('A door of light has opened in the Great Tree’s roots · walk through it, or click it', 9000);
         }
