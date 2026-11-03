@@ -1,7 +1,9 @@
 // A fox spirit from Worldroot (game-065) who, on about one visit in five,
 // trots out of the undergrowth some way ahead of you, stops to look, then
 // thinks better of it and bolts. One fox, once per visit; on the other visits
-// nothing is built at all.
+// nothing is built at all. Its home is the Springwood, through the door in the
+// Great Tree: if that door is near when it bolts, it runs home through it
+// (forest-fox.js is the same fox, at home).
 //
 // ?fox=1 always sends it (and soon); ?fox=0 never does.
 
@@ -138,6 +140,20 @@ export class FoxVisitor {
             rel = Math.atan2(Math.sin(rel), Math.cos(rel));
             animateFox(this.fox, t, dt, false, THREE.MathUtils.clamp(rel, -1.2, 1.2));
             if (near < STARTLE || this.clock > this.look) this._flee();
+        } else if (this.state === 'fleeing' && this.path.home) {
+            // home through the Great Tree's door
+            const tgt = this.path.home[0];
+            const left = this._step(tgt.x, tgt.z, RUN, dt);
+            animateFox(this.fox, t * 1.9, dt, true, 0);
+            if (left < 0.25) {
+                this.path.home.shift();
+                if (!this.path.home.length) {
+                    this.fox.visible = false;
+                    this.state = 'gone';
+                    this.wentHome = true;
+                    this.onHome?.(Math.hypot(p.x - fp.x, p.z - fp.z));
+                }
+            }
         } else if (this.state === 'fleeing') {
             this._step(this.path.to.x, this.path.to.z, RUN, dt);
             animateFox(this.fox, t * 1.9, dt, true, 0);      // a quicker stride: a gallop, not a trot
@@ -151,8 +167,14 @@ export class FoxVisitor {
     _flee() {
         this.state = 'fleeing';
         this.clock = 0;
-        // run straight away from wherever the visitor is now
         const p = this.controls.pos, fp = this.fox.position;
+        // the door home is near: run for it
+        const tp = this.world.treePortal;
+        if (tp && Math.hypot(fp.x - tp.front.x, fp.z - tp.front.z) < 45 && this._clearLine(fp, tp.front)) {
+            this.path.home = [tp.front, { x: tp.x - tp.nx * 0.9, z: tp.z - tp.nz * 0.9 }];
+            return;
+        }
+        // otherwise run straight away from wherever the visitor is now
         const away = new THREE.Vector3(fp.x - p.x, 0, fp.z - p.z);
         if (away.lengthSq() > 1e-4) {
             away.normalize();

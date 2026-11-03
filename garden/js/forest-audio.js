@@ -186,6 +186,19 @@ export class ForestAudio {
         }
     }
 
+    /** The fox: a short, bright yip (twice, sometimes). */
+    yip() {
+        if (!this.on || !this.audio.ctx || this.audio.muted) return;
+        const t = this.audio.ctx.currentTime + 0.02;
+        const g = this._voice(Math.random() * 0.6 - 0.3, 0.06);
+        const n = Math.random() < 0.5 ? 1 : 2;
+        for (let i = 0; i < n; i++) {
+            const tt = t + i * 0.2;
+            this._note(g, tt, 1100, 1900, 0.05, 'triangle');
+            this._note(g, tt + 0.05, 1900, 900, 0.09, 'triangle', 0.8);
+        }
+    }
+
     _frog(t, water) {
         const ctx = this.audio.ctx;
         const g = this._voice(Math.random() * 1.4 - 0.7, 0.05 * water * this.night);

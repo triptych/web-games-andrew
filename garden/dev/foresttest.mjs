@@ -4,14 +4,16 @@
  * is built round you, walks a long way (the wood is rebuilt as you go, the old
  * chunks let go), comes upon a pond or special place, visits at night, steps
  * home with the button, and goes through again by walking (the wood is made
- * again). Then a touch-only phone in portrait taps the ground to walk. Fails on
+ * again). The fox: the garden's fox runs home through the door; in the wood it
+ * greets you, follows, can be petted, and leads you to a place you haven't
+ * found. Then a touch-only phone in portrait taps the ground to walk. Fails on
  * any console or page error. Needs ?debug (the harness handle).
  *
  *   python3 -m http.server 8077            # from the REPO ROOT
  *   node garden/dev/foresttest.mjs
  *
  * Env: BASE, THREE_PKG (see browsertest.mjs), SHOTS=0 to skip screenshots,
- * ONLY=desktop|phone to run one part.
+ * ONLY=desktop|fox|phone to run one part.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -161,6 +163,102 @@ if (!ONLY || ONLY === 'desktop') {
     await G('(() => { const f = g.forest; g.controls.teleport(0, 5, Math.PI); g.controls.walkTo([{ x: 0, z: 2 }, { x: 0, z: -1.2 }]); })()');
     await until('!g.below', 60000);
     check(true, 'walking back through the clearing door takes you home');
+    check(errors.length === 0, 'no errors: ' + errors.join(' | '));
+    await ctx.close();
+}
+
+// ---------------------------------------------------------------- the fox
+if (!ONLY || ONLY === 'fox') {
+    const { ctx, page, G, until, frames, shot } = await open({ width: 1280, height: 720 });
+    await page.goto(`${BASE}/index.html?debug&enter&pr=0.6&t=0.4&fox=1`);
+    await until('g?.entered', 240000);
+    // the garden's fox, bolting near the Great Tree, runs home through the door
+    await until('g.fox.state === "coming" || g.fox.state === "looking"', 60000);
+    await G(`(() => {
+        const f = g.fox, tp = g.world.treePortal;
+        const x = tp.front.x + tp.nx * 8, z = tp.front.z + tp.nz * 8;
+        f.fox.position.set(x, g.world.walkHeight(x, z), z);
+        g.controls.teleport(x + tp.nx * 6, z + tp.nz * 6, tp.out.yaw + Math.PI);
+        f.path = { from: { x, z }, stop: { x, z }, to: { x: x + 30, z } };
+        f._flee();
+    })()`);
+    await until('g.fox.state === "gone"', 60000);
+    check(await G('g.fox.wentHome === true'), 'the garden fox runs home through the door in the Great Tree');
+
+    await G('g.throughDoor(true, "forest")');
+    await until(inForest, 60000);
+    await frames(10);
+    const ff = 'g.forest.fox';
+    check(await G(`${ff}.fox.visible && Math.hypot(${ff}.fox.position.x - g.controls.pos.x, ${ff}.fox.position.z - g.controls.pos.z) < 5`), 'in the Springwood the fox is waiting by the door');
+    await shot('8-fox-greet');
+
+    // it follows: walk off somewhere open and see it keep up
+    const open = await page.evaluate(async () => {
+        const land = await import('./garden/js/forest-land.js');
+        for (let a = 0; a < 6.28; a += 0.4) {
+            let ok = true;
+            for (let r = 3; r <= 26; r += 1) {
+                const x = Math.sin(a) * r, z = Math.cos(a) * r;
+                if (land.groundY(x, z) < 0.6) ok = false;
+                if (window.__garden.forest.world.collidersNear(x, z).some((c) => (x - c.x) ** 2 + (z - c.z) ** 2 < (c.r + 0.5) ** 2)) ok = false;
+            }
+            if (ok) return { x: Math.sin(a) * 24, z: Math.cos(a) * 24 };
+        }
+        return null;
+    });
+    check(open, 'there is an open way out of the clearing');
+    await G(`g.controls.walkTo([{ x: ${open.x}, z: ${open.z} }])`);
+    await until('!g.controls.route', 120000);
+    await frames(60);
+    const fd = await G(`Math.hypot(${ff}.fox.position.x - g.controls.pos.x, ${ff}.fox.position.z - g.controls.pos.z)`);
+    check(fd < 6, `the fox follows you (${fd.toFixed(1)} m away)`);
+    check(await G(`${ff}.state === 'follow' || ${ff}.state === 'lead'`), 'and it settles to watch when you stop');
+    await shot('9-fox-follow');
+
+    // click it for a fuss
+    await G(`${ff}.state = 'follow'`);
+    const fxy = await page.evaluate(() => {
+        const g = window.__garden, f = g.forest.fox.fox;
+        const p = f.position.clone();
+        p.y += 0.35;
+        p.project(g.camera);
+        return { x: (p.x * 0.5 + 0.5) * innerWidth, y: (-p.y * 0.5 + 0.5) * innerHeight, front: p.z < 1 };
+    });
+    if (fxy.front && fxy.x > 0 && fxy.x < 1280 && fxy.y > 0 && fxy.y < 720) {
+        await page.mouse.click(fxy.x, fxy.y);
+        await frames(3);
+        check(await G(`${ff}.state === 'fuss'`), 'clicking the fox gives it a fuss');
+    } else console.log('  --  the fox was out of view; skipped the click');
+
+    // it leads you to a special place you haven't found
+    const spot = await page.evaluate(async () => {
+        const land = await import('./garden/js/forest-land.js');
+        for (let r = 1; r < 30; r++) for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) {
+            const f = land.featureIn(i, j);
+            if (f && f.kind !== 'pond' && Math.hypot(f.x, f.z) > 120) return { x: f.x, z: f.z, r: f.r, kind: f.kind, key: `${i},${j}` };
+        }
+        return null;
+    });
+    check(spot, `there is a place to be led to (${spot?.kind})`);
+    // stand 40 m off it; the fox finds you again and catches the scent
+    await G(`(() => { const a = 0.7; g.controls.teleport(${spot.x} + Math.sin(a) * 40, ${spot.z} + Math.cos(a) * 40, 0); })()`);
+    await until(`${ff}.state === 'lead'`, 120000);
+    check(await G(`${ff}.lead.key === ${JSON.stringify(spot.key)}`), 'when a special place is near, the fox sets off to show you');
+    await shot('10-fox-lead');
+    // stay put: it stops to wait for you
+    await until(`${ff}.waiting === true`, 120000);
+    check(true, 'it stops and looks back when you fall behind');
+    // follow it until you are there
+    let found = false;
+    for (let k = 0; k < 120 && !found; k++) {
+        await G(`(() => { const f = ${ff}.fox.position; g.controls.walkTo([{ x: f.x, z: f.z }]); })()`);
+        await frames(15);
+        found = await G(`g.forest.log[${JSON.stringify(spot.kind)}] >= 1`);
+    }
+    check(found, 'following the fox brings you to the place');
+    await frames(20);
+    check(await G(`${ff}.state !== 'lead'`), 'and it stops leading once you have found it');
+    await shot('11-fox-arrived');
     check(errors.length === 0, 'no errors: ' + errors.join(' | '));
     await ctx.close();
 }

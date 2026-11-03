@@ -329,6 +329,9 @@ async function boot() {
     world.controls = controls;
     // a fox spirit from Worldroot comes by on about one visit in five (?fox=1 always, ?fox=0 never)
     const fox = new FoxVisitor(scene, world, controls, camera, { force: params.get('fox') });
+    fox.onHome = (dist) => {
+        if (dist < 40) ui.hint('The fox dashed through the shimmering door in the Great Tree · it must live on the other side', 7000);
+    };
     const boat = new Boat(world, scene, camera, controls);
     const fishing = new Fishing({ world, scene, camera, controls, ui, audio, bursts, canvas });
     controls.canJump = () => !fishing.active && !ui.blocking && !boat.busy && !diving && !arcade?.bowling.active;
@@ -1235,7 +1238,8 @@ async function boot() {
                     if (!forestHintShown) {
                         forestHintShown = true;
                         const touch = matchMedia('(pointer: coarse)').matches;
-                        setTimeout(() => ui.hint(`A wood that goes on for ever · ${touch ? 'tap anywhere to walk there' : 'walk anywhere'} · look out for ponds and hidden places · the door behind you, or Step home, leads back`, 11000), 1600);
+                        const met = fox.wentHome ? 'There is the fox: so this is where it lives! ' : 'A fox spirit lives here, and it has come to meet you. ';
+                        setTimeout(() => ui.hint(`${met}It will keep you company, and show you hidden places when they are near · ${touch ? 'tap anywhere to walk there' : 'walk anywhere'} · the door behind you, or Step home, leads back`, 12000), 1600);
                     }
                 } catch (e) {
                     console.error(e);

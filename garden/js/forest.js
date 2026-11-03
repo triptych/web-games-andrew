@@ -14,6 +14,7 @@ import { CHUNK, CELL, HOME_R, biomeAt, dominant, groundY, featureIn, buildChunk,
 import { ALL_PLACES, POND } from './forest-places.js';
 import { makePortal, inDoorway, rayPortal, PORTAL_W } from './forest-portal.js';
 import { ForestAudio } from './forest-audio.js';
+import { ForestFox } from './forest-fox.js';
 import { clamp, damp, store, smoothstep, TAU } from './util.js';
 
 const V3 = THREE.Vector3;
@@ -193,6 +194,9 @@ export class Forest {
         this._butterflies();
         this._home();
         this._dom();
+        // the fox spirit lives here
+        this.fox = new ForestFox({ forest: this, audio: env.audio, ui: env.ui });
+        this.fox.onLead = (f) => this.env.ui?.hint(`The fox pricks up its ears and trots off · it wants to show you something`, 5000);
 
         const self = this;
         this.world = {
@@ -375,6 +379,7 @@ export class Forest {
         document.body.classList.add('in-forest');
         this._dash(true);
         this.sound?.start();
+        this.fox.enter(this.spawn);
     }
 
     /** Back to the garden: the wood is let go, to be made again next time. */
@@ -384,6 +389,7 @@ export class Forest {
         if (this.dom.root) this.dom.root.hidden = true;
         document.body.classList.remove('in-forest');
         this.sound?.stop();
+        this.fox.leave();
         for (const ch of this.chunks.values()) this._drop(ch);
         this.chunks.clear();
         this.queue = [];
@@ -439,8 +445,13 @@ export class Forest {
 
     /** Everything solid in the chunks round (x, z), cached until you cross into another chunk. */
     _collidersNear(x, z) {
+        return this.collidersNearInto(x, z, this.coll);
+    }
+
+    /** The same, cached in `c` ({ key, ver, list }), so the fox and the walker each keep their own. */
+    collidersNearInto(x, z, c) {
         const ci = Math.floor(x / CHUNK), cj = Math.floor(z / CHUNK);
-        const key = `${ci},${cj}`, c = this.coll;
+        const key = `${ci},${cj}`;
         if (c.key === key && c.ver === this.ver) return c.list;
         c.key = key;
         c.ver = this.ver;
@@ -467,6 +478,7 @@ export class Forest {
         const night = sky?.night ?? 0;
         this._env(dt, camera, sky, night);
         this._flutter(dt, t, p, night);
+        this.fox.update(dt, t, p, this.fwd, this.controls.speed > 0.5);
 
         // the door home
         const hd = Math.hypot(p.x - this.home.x, p.z - this.home.z);
@@ -648,11 +660,13 @@ export class Forest {
         return Infinity;
     }
 
-    /** What a ray points at: { type: 'portal' | 'ground' | 'water', point, t } or null. */
+    /** What a ray points at: { type: 'fox' | 'portal' | 'ground' | 'water', point, t } or null. */
     pick(ray) {
         const o = ray.ray.origin, d = ray.ray.direction;
         const tp = rayPortal(this.home, ray);
-        const tg = this._march(o, d, Math.min(tp, 90));
+        const tf = this.fox.pick(ray.ray);
+        const tg = this._march(o, d, Math.min(tp, tf, 90));
+        if (tf < tp && tf < tg && tf < 30) return { type: 'fox', t: tf };
         if (tp < tg && tp < 60) return { type: 'portal', t: tp };
         if (tg === Infinity) return null;
         const point = o.clone().addScaledVector(d, tg);
@@ -663,7 +677,12 @@ export class Forest {
     tap(ray) {
         const h = this.pick(ray);
         if (!h) return null;
-        if (h.type === 'portal') {
+        if (h.type === 'fox') {
+            if (this.fox.pet()) {
+                this.env.ui?.hint(FUSS[Math.floor(Math.random() * FUSS.length)], 4000);
+                this.env.audio?.sparkle();
+            } else this.env.ui?.hint('The fox is busy showing you something · follow it!', 3000);
+        } else if (h.type === 'portal') {
             const side = Math.sign(this.controls.pos.z - this.home.z) || 1;
             this.controls.walkTo([{ x: this.home.x, z: this.home.z + side * 2.2 }, { x: this.home.x, z: this.home.z - side * 1.2 }]);
         } else if (h.type === 'ground') this.controls.walkTo([{ x: h.point.x, z: h.point.z }]);
@@ -671,12 +690,20 @@ export class Forest {
     }
 
     hover(ray) {
-        return this.pick(ray)?.type === 'portal';
+        const h = this.pick(ray)?.type;
+        return h === 'portal' || h === 'fox';
     }
 
     stepSurface() {
         return 'grass';
     }
 }
+
+const FUSS = [
+    'The fox sits and lets you scratch behind its ears',
+    'The fox leans into your hand, its tail flames flickering',
+    'The fox gives a happy little yip',
+    'The fox rolls over in the clover, then springs up again',
+];
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new V3(), _e = new THREE.Euler();
