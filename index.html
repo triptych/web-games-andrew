@@ -221,6 +221,57 @@
         <button class="btn" id="forest-home" title="Back through the door to the garden">Step home</button>
     </section>
 
+    <!-- Gearfall, under the Great Gear: the way home and the places found -->
+    <section id="city-hud" class="forest-hud city-hud" hidden aria-label="Gearfall">
+        <div class="fh-row">
+            <span class="fh-arrow" aria-hidden="true"><span id="city-arrow">&#10148;</span></span>
+            <div><span class="fh-label">The ladder home</span><strong id="city-dist">0 m</strong></div>
+        </div>
+        <div class="fh-row"><div><span class="fh-label">Places found</span><strong id="city-found">0 / 8</strong></div></div>
+        <button class="btn" id="city-home" title="Back up the ladder to the garden">Climb home</button>
+    </section>
+
+    <!-- the vault door's keypad -->
+    <section id="keypad" class="kp-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="kp-label">
+        <div class="kp-box">
+            <p class="kp-label" id="kp-label">Sublevel 7 &middot; Vault access</p>
+            <div class="kp-screen" id="kp-screen" aria-live="assertive">· · · ·</div>
+            <div class="kp-keys" role="group" aria-label="Keys">
+                <button class="kp-key" data-key="1">1</button><button class="kp-key" data-key="2">2</button><button class="kp-key" data-key="3">3</button>
+                <button class="kp-key" data-key="4">4</button><button class="kp-key" data-key="5">5</button><button class="kp-key" data-key="6">6</button>
+                <button class="kp-key" data-key="7">7</button><button class="kp-key" data-key="8">8</button><button class="kp-key" data-key="9">9</button>
+                <button class="kp-key kp-fn" data-key="clr" aria-label="Clear">CLR</button><button class="kp-key" data-key="0">0</button><button class="kp-key kp-fn kp-ent" data-key="ok" aria-label="Enter">ENT</button>
+            </div>
+            <p class="kp-hint">Type the digits, or click them</p>
+            <button class="btn" id="kp-close">Step back <kbd>Esc</kbd></button>
+        </div>
+    </section>
+
+    <!-- the papers on the hut's desk -->
+    <section id="hut-note" class="note-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="hut-note-title">
+        <article class="note-page">
+            <button class="close" id="hut-note-close" aria-label="Put the papers down">×</button>
+            <p class="np-head">Maintenance log &middot; Sublevel 7</p>
+            <h2 id="hut-note-title">Day 211</h2>
+            <p>The long hall still has power, mostly. The lamps are going one by one and the steam leaks get worse every week. Nobody else comes down any more.</p>
+            <p>The great door at the far end still answers to the old code. I keep forgetting it, so here it is, where I'll see it:</p>
+            <p class="np-code" aria-label="The code is 1 3 3 7">1 3 3 7</p>
+            <p>Past the door it's the road, and the city, and what fell on it. Don't go to the crater. I mean it.</p>
+            <div class="np-ps">
+                <svg class="np-sketch" viewBox="0 0 120 80" aria-hidden="true">
+                    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="42" cy="40" r="22"/><circle cx="42" cy="40" r="6"/>
+                        <path d="M42 12v-5M42 73v-5M14 40H9M75 40h-5M22 20l-4-4M66 64l-4-4M22 60l-4 4M66 16l-4 4"/>
+                        <rect x="92" y="32" width="16" height="16"/><path d="M95 40h10M100 35v10"/>
+                        <path d="M30 70 Q60 88 96 52" stroke-dasharray="3 4"/><path d="M90 54l7-3-1 7"/>
+                    </g>
+                </svg>
+                <p><strong>P.S.</strong> The way down is behind the Great Gear in the garden. Don't stand and count its teeth, it's not <em>in</em> the gear: go round to the back of it, where the hub can't see, and look at the ground.</p>
+            </div>
+            <p class="np-sig">&mdash; H.</p>
+        </article>
+    </section>
+
     <!-- the Lighthouse Arcade: the bowling lane's score sheet and controls, and the jukebox -->
     <section id="bowl-hud" class="bowl-hud" hidden aria-label="Bowling">
         <div class="bowl-sheet" id="bowl-sheet" aria-live="polite"></div>
@@ -381,7 +432,7 @@
                     </ul>
                 </div>
             </div>
-            <p class="help-note">Each path from the hub leads to one kind of game and ends at a pavilion. Newest games stand nearest the hub. The vines wake up as you come near, and the garden keeps its own time: wait for dusk to see the lamps, fireflies and aurora, and stay up until midnight for fireworks. The door of the Observatory opens on a tower rather larger on the inside, five floors of strange rooms joined by a lift of light, with a great telescope under the dome at the top. A stone bridge crosses to the clock tower on its islet, and the door at its foot leads down into the Works, the machine hall that keeps the island running. The lighthouse has a door too: it opens on the Lighthouse Arcade, a neon hall with a cabinet for every game in the garden running its attract mode, a bowling alley whose every lane works, and a disco floor that dances to the jukebox. By the way in, Madame Meridian reads your fortune and prints it on a ticket, and Plush Pier is a claw machine with a plush toy for every game in the garden. In the Hut by the dock, the old television picks up the island’s secret places live: click it to turn the dial. A tiny submarine circles in the pool of the Moon Fountain: click it to climb aboard and steer through an endless sea of coral, kelp and stone arches, with fish, jellyfish, turtles and manta rays to find for your sea log (and, if you are lucky, a whale), and rare finds on the sea floor: a sunken galleon, treasure, a goddess, a broken robot, a magic sword and more. Between two of the paths turns the Starlight Carousel: click any of its eight creatures (a dragon, a pegasus, a unicorn with the night sky for a hide and more) to climb on and ride to the band organ, and click again or press <kbd>Esc</kbd> to get off. After dark its bulbs run in colours, and at midnight it plays along with the fireworks. On the far side of the island from the dock, a trail drops from the pavilion to a fishing pier: click the rod on its rail (or press <kbd>C</kbd>) to cast, strike when the float dips, then hold to keep the fish in the green band as you reel it in.</p>
+            <p class="help-note">Each path from the hub leads to one kind of game and ends at a pavilion. Newest games stand nearest the hub. The vines wake up as you come near, and the garden keeps its own time: wait for dusk to see the lamps, fireflies and aurora, and stay up until midnight for fireworks. The door of the Observatory opens on a tower rather larger on the inside, five floors of strange rooms joined by a lift of light, with a great telescope under the dome at the top. A stone bridge crosses to the clock tower on its islet, and the door at its foot leads down into the Works, the machine hall that keeps the island running. The lighthouse has a door too: it opens on the Lighthouse Arcade, a neon hall with a cabinet for every game in the garden running its attract mode, a bowling alley whose every lane works, and a disco floor that dances to the jukebox. By the way in, Madame Meridian reads your fortune and prints it on a ticket, and Plush Pier is a claw machine with a plush toy for every game in the garden. In the Hut by the dock, the old television picks up the island’s secret places live: click it to turn the dial. The papers on the Hut’s desk are an old maintenance log, and worth reading: they tell of a trap door behind the Great Gear, a long hall under the ground, and a vault door that opens on Gearfall, a dead city that goes on for ever around a glowing crater. Every building there can be walked into, and there is something very large at the bottom of the crater. A tiny submarine circles in the pool of the Moon Fountain: click it to climb aboard and steer through an endless sea of coral, kelp and stone arches, with fish, jellyfish, turtles and manta rays to find for your sea log (and, if you are lucky, a whale), and rare finds on the sea floor: a sunken galleon, treasure, a goddess, a broken robot, a magic sword and more. Between two of the paths turns the Starlight Carousel: click any of its eight creatures (a dragon, a pegasus, a unicorn with the night sky for a hide and more) to climb on and ride to the band organ, and click again or press <kbd>Esc</kbd> to get off. After dark its bulbs run in colours, and at midnight it plays along with the fireworks. On the far side of the island from the dock, a trail drops from the pavilion to a fishing pier: click the rod on its rail (or press <kbd>C</kbd>) to cast, strike when the float dips, then hold to keep the fish in the green band as you reel it in.</p>
         </div>
     </section>
 

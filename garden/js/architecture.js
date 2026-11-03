@@ -12,6 +12,7 @@ import { HUB_Y } from './terrain.js';
 import { rng, TAU, lerp } from './util.js';
 import { flagstones, plazaMosaic, canvas, toTexture, glowSprite } from './textures.js';
 import { buildPier } from './pier.js';
+import { buildGearHatch } from './gear-hatch.js';
 
 const V2 = (x, y) => new THREE.Vector2(x, y);
 
@@ -424,6 +425,8 @@ function buildGear(world, batch, f) {
     batch.add('brass', new THREE.CylinderGeometry(0.55, 0.55, 1.8, 16), xf(f.x, y + 3.1, f.z, face, 1, 1, 1, Math.PI / 2));
     for (let i = -2; i <= 2; i++) world.colliders.push({ x: f.x + Math.cos(face) * i * 1.8, z: f.z - Math.sin(face) * i * 1.8, r: 1.3 });
     world.landmarks.push({ name: 'The Great Gear', x: f.x, z: f.z });
+    // round the back of it, a trap door (see gear-hatch.js)
+    buildGearHatch(world, f);
 }
 
 function buildTower(world, batch, f) {
