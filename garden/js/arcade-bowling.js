@@ -266,7 +266,8 @@ export class Bowling {
             lane.userData = { kind: 'lane', lane: L.i };
             group.add(lane);
             this.pickables.push(lane);
-            const deck = box(deckMat, LANE_W, 0.02, DECK_END - LANE_LEN + 0.3, L.x, LY - 0.01, P.foulZ - (LANE_LEN - 0.3 + DECK_END) / 2);
+            // (it starts where the boards end: overlapping them put two surfaces at the same height and they z-fought)
+            const deck = box(deckMat, LANE_W, 0.02, DECK_END - LANE_LEN, L.x, LY - 0.01, P.foulZ - (LANE_LEN + DECK_END) / 2);
             deck.userData = { kind: 'lane', lane: L.i };
             this.pickables.push(deck);
             // the approach
