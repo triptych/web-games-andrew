@@ -43,6 +43,7 @@ import { Scope } from './scope.js';
 import { FountainSub } from './submarine.js';
 import { Undersea } from './undersea.js';
 import { Arcade } from './arcade.js';
+import { Carousel } from './carousel.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -97,7 +98,10 @@ function makeWorld(layout, island, quality) {
     };
     w.inPlaza = (x, z) => {
         for (const sp of layout.spokes) if (Math.hypot(x - sp.pavilion.x, z - sp.pavilion.z) < PAVILION_PLAZA + 0.4) return true;
-        for (const f of layout.features) if (f.type === 'fountain' && Math.hypot(x - f.x, z - f.z) < 6.6) return true;
+        for (const f of layout.features) {
+            if (f.type === 'fountain' && Math.hypot(x - f.x, z - f.z) < 6.6) return true;
+            if (f.type === 'carousel' && Math.hypot(x - f.x, z - f.z) < 9.7) return true;
+        }
         return w.spanAt(x, z) > -Infinity;
     };
     const CELL = 4;
@@ -248,6 +252,8 @@ async function boot() {
     world.hut = buildHutExterior(world);
     // the toy submarine in the Moon Fountain's pool
     const fountainSub = new FountainSub(world);
+    // the Starlight Carousel on its plaza between the paths
+    const carousel = new Carousel(world);
     ui.progress(0.52, 'Smoking out a volcano…');
     await nextFrame();
     const volcano = new Cinderpeak({ world, scene, sky, quality, water });
@@ -385,6 +391,8 @@ async function boot() {
     let worksHintShown = false, doorHintShown = false, hutHintShown = false, hutDoorHintShown = false, orbHintShown = false, boatHintShown = false;
     let boardPending = false; // walking to the dock edge to climb into the boat
     let fishPending = false;  // walking out along the pier to pick up the rod
+    let carouselPending = -1; // walking over to the carousel to climb onto that creature
+    let carouselHintShown = false;
     // Cinderpeak: the Standing Stones lead to its cove, a cart there rides into the mine, and a dais leads home
     let place = 'garden';     // 'garden' | 'cove' | 'mine'
     let mine = null, mineAudio = null;
@@ -462,6 +470,11 @@ async function boot() {
                 best = { type: 'sub', t };
             }
         }
+        const cr = carousel.pick(ray, Math.min(bt, 70));
+        if (cr && cr.t < bt) {
+            bt = cr.t;
+            best = { type: 'carousel', idx: cr.idx, t: bt };
+        }
         const rod = ray.intersectObjects(fishing.pickables, false)[0];
         if (rod && rod.distance < bt && rod.distance < 60) {
             bt = rod.distance;
@@ -537,6 +550,8 @@ async function boot() {
         ui.flash(true);
         controls.route = null;
         setTimeout(() => {
+            carousel.abort(controls);
+            carouselPending = -1;
             if (diving) endDive();
             if (place !== 'garden') abortCinder();
             else if (below) surface();
@@ -782,7 +797,7 @@ async function boot() {
     }
 
     function walkToGame(game) {
-        if (below || diving || place !== 'garden') return linkToGame(game);
+        if (below || diving || place !== 'garden' || carousel.busy) return linkToGame(game);
         fishing.stop();
         const st = statueByGame.get(game);
         const s = standForStatue(st);
@@ -1387,6 +1402,11 @@ async function boot() {
     controls.onTap = (x, y, type) => {
         if (!entered || intro || transit || boat.busy || fishing.active) return;
         if (ui.blocking) return;
+        // on the carousel, a click asks to get off
+        if (carousel.busy) {
+            if (carousel.leave()) audio.click();
+            return;
+        }
         if (place === 'cove') return tapCove(x, y);
         if (place === 'mine') return tapMine(x, y);
         if (below && roomKind === 'arcade') {
@@ -1457,6 +1477,18 @@ async function boot() {
             else {
                 subPending = true;
                 controls.walkTo(controls.plan(st.x, st.z), st.yaw);
+            }
+        } else if (h.type === 'carousel') {
+            audio.click();
+            ui.closeAll();
+            ui.tooltip(null);
+            if (carousel.near(controls.pos.x, controls.pos.z)) carousel.mount(h.idx, camera, controls);
+            else {
+                carouselPending = h.idx;
+                const ap = carousel.approach(controls.pos.x, controls.pos.z);
+                // close by it is a straight walk over the grass; from further off, by the paths
+                controls.walkTo(carousel.near(controls.pos.x, controls.pos.z, 35) ? [ap] : controls.plan(ap.x, ap.z));
+                ui.hint(`Walking over to ${carousel.info(h.idx).name}…`, 3000);
             }
         } else if (h.type === 'rod') {
             audio.click();
@@ -1576,7 +1608,23 @@ async function boot() {
     };
     addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && boat.flying) boat.skip();
+        // Esc, or trying to walk, asks to get off the carousel
+        if (carousel.busy && !e.repeat && ['escape', 'w', 'a', 's', 'd', 'arrowup', 'arrowdown', ' '].includes(e.key.toLowerCase())) {
+            if (e.key === ' ') e.preventDefault();
+            if (carousel.leave()) audio.click();
+        }
     });
+    carousel.onEvent = (name, c) => {
+        if (name === 'mount') ui.hint(`Climbing onto ${c.name}, ${c.kind}…`, 2500);
+        else if (name === 'ride') {
+            // the carousel's own zone, so the banner for the creature isn't replaced by the place's
+            zoneKey = 'The Starlight Carousel';
+            ui.zone(`${c.name}, ${c.kind}`, 'Hold on! Drag to look around · click or press Esc to get off', c.accent);
+        } else if (name === 'leave') ui.hint('The carousel is slowing down to let you off…', 4000);
+        else if (name === 'off') {
+            ui.hint('Back on solid ground · click any creature to ride again', 5000);
+        }
+    };
     canvas.addEventListener('pointerup', () => boat.skip());
 
     const enter = (thenLibrary) => {
@@ -1670,6 +1718,7 @@ async function boot() {
             resize();
         }
 
+        carousel.spin(dt);
         // camera: title orbit, fly-in, or walking
         if (!entered) {
             orbitA += dt * 0.035;
@@ -1700,6 +1749,8 @@ async function boot() {
             diveUpdate(dt, t);
         } else if (mineDrives()) {
             mine.update(dt, t, camera, controls);
+        } else if (carousel.busy) {
+            carousel.drive(dt, camera, controls);
         } else if (!boat.busy && !fishing.active) {
             controls.update(dt);
         }
@@ -1708,6 +1759,16 @@ async function boot() {
         if (fishPending && entered && !intro && !controls.route) {
             fishPending = false;
             if (canFish() && fishing.near(controls.pos.x, controls.pos.z, 2.5)) fishing.start();
+        }
+        if (carouselPending >= 0 && entered && !intro && !controls.route) {
+            const idx = carouselPending;
+            carouselPending = -1;
+            // only if the walk got you to the plinth's edge (a key press that stopped it short doesn't count)
+            if (!below && !diving && place === 'garden' && carousel.near(controls.pos.x, controls.pos.z, 8.3)) carousel.mount(idx, camera, controls);
+        }
+        if (entered && !intro && !carouselHintShown && !below && !diving && place === 'garden' && !carousel.busy && carousel.near(controls.pos.x, controls.pos.z, 18)) {
+            carouselHintShown = true;
+            ui.hint('The Starlight Carousel · click any creature to climb on and ride', 8000);
         }
         if (subPending && entered && !intro && !controls.route) {
             subPending = false;
@@ -1804,6 +1865,7 @@ async function boot() {
             water.update(t);
             windUniforms.uWindTime.value = t;
             fountainSub.update(dt, t, night);
+            carousel.update(dt, t, night, camera, fireworks.active, audio, place === 'garden');
 
             // night lighting
             world.mats.glass.emissiveIntensity = 0.15 + night * 3.2;
@@ -1827,14 +1889,17 @@ async function boot() {
             beams(dt, night);
 
             // hover highlight
-            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !fishing.active && !diving) {
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !fishing.active && !diving && !carousel.busy) {
                 const h = pick(mouse.x, mouse.y);
                 setHover(h);
                 if (h?.type === 'statue') ui.tooltip(h.statue.game, mouse.x, mouse.y);
                 else if (h?.type === 'panel') ui.tooltip(hologram.current, mouse.x, mouse.y, 'Click for details · [ ] to turn');
-                else ui.tooltip(null);
-            } else if (controls.look?.moved || ui.blocking || fishing.active) {
-                if (fishing.active && hovered) setHover(null);
+                else if (h?.type === 'carousel') {
+                    const c = carousel.info(h.idx);
+                    ui.note({ icon: c.icon, kicker: 'The Starlight Carousel', title: `${c.name}, ${c.kind}`, desc: c.desc, cta: 'Click to climb on and ride →', accent: c.accent }, mouse.x, mouse.y);
+                } else ui.tooltip(null);
+            } else if (controls.look?.moved || ui.blocking || fishing.active || carousel.busy) {
+                if ((fishing.active || carousel.busy) && hovered) setHover(null);
                 ui.tooltip(null);
             }
             const hid = hovered?.statue?.id ?? -1;
@@ -1862,6 +1927,8 @@ async function boot() {
             audio.update(night, place === 'cove' ? volcano.world.island.shoreAt(camPos.x, camPos.z) : island.shoreAt(camPos.x, camPos.z));
         }
 
+        // indoors, under the sea or in the mine the organ can't be heard
+        if (below || (diving && diving.phase !== 'in')) carousel.hush(audio);
         // the cart's sounds, in the open part of the ride too
         if (mineAudio?.on && !(below && roomKind === 'mine')) mineAudio.update(dt, mine.soundState());
         clockTimer += dt;
@@ -1905,7 +1972,7 @@ async function boot() {
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { get arcade() { return arcade; }, get undersea() { return undersea; }, get diving() { return diving; }, startDive, leaveDive, fountainSub, get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, fireworks, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
+        window.__garden = { get arcade() { return arcade; }, get undersea() { return undersea; }, get diving() { return diving; }, startDive, leaveDive, fountainSub, get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, fireworks, linkToGame, walkToGame, scene, fox, carousel, get entered() { return entered && !intro; } };
     }
 }
 
