@@ -334,7 +334,7 @@ async function boot() {
     };
     const boat = new Boat(world, scene, camera, controls);
     const fishing = new Fishing({ world, scene, camera, controls, ui, audio, bursts, canvas });
-    controls.canJump = () => !fishing.active && !ui.blocking && !boat.busy && !diving && !arcade?.bowling.active;
+    controls.canJump = () => !fishing.active && !ui.blocking && !boat.busy && !diving && !arcade?.busy;
     // The title orbit circles the island looking in, so its show goes up over the island's heart. The flying
     // boat circles it too, turning from the bow to the island and back, so each shell goes up ahead of the rider's view.
     const islandHeart = new THREE.Vector3(), ahead = new THREE.Vector3();
@@ -399,6 +399,79 @@ async function boot() {
     // the Springwood through the door in the Great Tree: built on the first visit
     let forest = null, treeArmed = false, treeHintShown = false, forestHintShown = false;
     let trip = null;       // falling into / climbing out of the sphere
+
+    /**
+     * The hut television's channels: live pictures of the island's secret places. Each draws a
+     * scene the garden already has from a camera of its own (see hut-tv.js). The galaxy and the
+     * Violet Line are built the first time they're tuned in (and shared with the real trips); the
+     * arcade and the Works only come in once you have found them.
+     */
+    function tvChannels() {
+        const garden = (name, sub, aim, prep) => ({
+            name, sub, ready: () => true, scene: () => scene, aim,
+            prep: (dt, t) => {
+                water.update(t);
+                windUniforms.uWindTime.value = t;
+                prep?.(dt, t);
+            },
+        });
+        const list = [];
+        if (world.pier) {
+            const s = world.pier.stand, y = world.walkHeight(s.x, s.z);
+            const fx = -Math.sin(s.yaw), fz = -Math.cos(s.yaw);
+            list.push(garden('The Fishing Hole', 'Pier camera · the far side of the island', (cam, t) => {
+                // from a pole beside the end of the pier, panning slowly across the water
+                cam.position.set(s.x - fx * 3 + fz * 2.2, y + 3.4, s.z - fz * 3 - fx * 2.2);
+                const a = Math.sin(t * 0.1) * 0.5;
+                const lx = fx * Math.cos(a) - fz * Math.sin(a), lz = fz * Math.cos(a) + fx * Math.sin(a);
+                cam.lookAt(s.x + lx * 18, 0.2, s.z + lz * 18);
+            }));
+        }
+        list.push({
+            name: 'The Galaxy in the Glass', sub: 'Inside the sphere on the desk', ready: () => true,
+            scene: () => (galaxy ??= new Galaxy()).scene,
+            aim: (cam, t, dt, h) => galaxy.update(dt, cam, { x: 0, y: 0 }, h, 10),
+        });
+        list.push({
+            name: 'The Violet Line', sub: 'Hearthside station · platform camera', ready: () => true, gain: 1.8,
+            scene: () => (subway ??= new Subway({ renderer, ui, mats: world.mats, audio, quality })).scene,
+            aim: (cam, t) => {
+                cam.position.set(-8.2, 3.3, -26);
+                cam.lookAt(-1.5 + Math.sin(t * 0.13) * 3.5, 1.2, 8);
+            },
+        });
+        const moon = world.landmarks.find((l) => l.name === 'The Moon Fountain');
+        const mf = moon && world.fountains.reduce((a, f) => (Math.hypot(f.x - moon.x, f.z - moon.z) < Math.hypot(a.x - moon.x, a.z - moon.z) ? f : a), world.fountains[0]);
+        if (mf) {
+            list.push(garden('The Moon Fountain', 'Somebody is down there in a submarine', (cam, t) => {
+                const a = t * 0.05;
+                cam.position.set(mf.x + Math.sin(a) * 7.5, mf.poolY + 3.2, mf.z + Math.cos(a) * 7.5);
+                cam.lookAt(mf.x, mf.poolY + 0.4, mf.z);
+            }, (dt, t) => fountainSub.update(dt, t, sky.state.night)));
+        }
+        list.push({
+            name: 'The Lighthouse Arcade', sub: 'Free play · open all night', hint: 'There is a door at the foot of the lighthouse',
+            ready: () => !!arcade,
+            scene: () => arcade.scene,
+            prep: (dt, t) => arcade.tick(t),
+            aim: (cam, t) => {
+                const sp = arcade.plan.spawn;
+                cam.position.set(sp.x + 5.5, 4.4, sp.z + 1.6);
+                cam.lookAt(sp.x - 2 + Math.sin(t * 0.09) * 8, 1.2, sp.z - 14);
+            },
+        });
+        list.push({
+            name: 'The Works', sub: 'Under the clock tower · the machines never stop', hint: 'Cross the bridge to the clock tower and go through the door at its foot',
+            ready: () => !!works,
+            scene: () => works.scene,
+            aim: (cam, t) => {
+                const sp = works.spawn;
+                cam.position.set(sp.x + 3, 5.5, sp.z + 2);
+                cam.lookAt(sp.x + Math.sin(t * 0.08) * 6, 2, sp.z - 12);
+            },
+        });
+        return list;
+    }
     const look = { x: 0, y: 0 };
     let roomKind = null;   // which room 'below' means: 'works' | 'hut' | 'subway' | 'mine' | 'tower' | 'arcade' | 'forest'
     let below = false;
@@ -1215,11 +1288,11 @@ async function boot() {
                     arcade ??= new Arcade({ renderer, ui, mats: world.mats, audio, quality, camera, canvas, games, showCard: (g) => ui.showCard(g) });
                     setBelow(true, 'arcade');
                     arcade.enter(controls);
-                    ui.zone('The Lighthouse Arcade', `${games.length} cabinets · bowling · disco`, '#ff5fd2');
+                    ui.zone('The Lighthouse Arcade', `${games.length} cabinets · bowling · disco · fortunes · plush`, '#ff5fd2');
                     zoneKey = 'arcade';
                     if (!arcadeHintShown) {
                         arcadeHintShown = true;
-                        setTimeout(() => ui.hint('Every cabinet is a game from the garden · click one for its card · click a bowling lane to bowl · the jukebox by the dance floor takes requests · the door behind you leads out', 11000), 1400);
+                        setTimeout(() => ui.hint('Every cabinet is a game from the garden · click one for its card · Madame Meridian tells fortunes and Plush Pier has a toy from every game · click a bowling lane to bowl · the jukebox takes requests · the door behind you leads out', 12000), 1400);
                     }
                 } catch (e) {
                     console.error(e);
@@ -1248,7 +1321,7 @@ async function boot() {
                     ui.hint('The door in the Great Tree is only shimmering today.', 4000);
                 }
             } else if (down && kind === 'hut') {
-                hut ??= new Hut({ renderer, ui, mats: world.mats });
+                hut ??= new Hut({ renderer, ui, mats: world.mats, camera, quality, tv: tvChannels(), onChannel: () => audio.click() });
                 setBelow(true, 'hut');
                 const s = hut.spawn;
                 controls.teleport(s.x, s.z, s.yaw);
@@ -1313,7 +1386,7 @@ async function boot() {
         if (below && roomKind === 'tower') return;   // the tower minds its own door
         if (below && roomKind === 'forest') return;  // so does the Springwood
         if (below && roomKind === 'arcade') {
-            if (arcade.bowling.active) return;
+            if (arcade.busy) return;
             const e = arcade.exit, dist = Math.hypot(p.x - e.x, p.z - e.z);
             if (dist > 2) doorArmed = true;
             if (doorArmed && dist < 0.7) throughDoor(false);
@@ -1370,8 +1443,8 @@ async function boot() {
         ray.setFromCamera(ndc, camera);
         if (roomKind === 'subway') return subway.pick(ray);
         if (roomKind === 'hut') {
-            const hit = ray.intersectObjects([hut.orbHit, hut.ticketHit, hut.doorMesh], false)[0];
-            if (hit && hit.distance < 40) return { type: { orb: 'orb', ticket: 'ticket' }[hit.object.userData.kind] ?? 'door', t: hit.distance };
+            const hit = ray.intersectObjects([hut.orbHit, hut.ticketHit, hut.doorMesh, ...(hut.tv?.pickables ?? [])], false)[0];
+            if (hit && hit.distance < 40) return { type: { orb: 'orb', ticket: 'ticket', tv: 'tv' }[hit.object.userData.kind] ?? 'door', t: hit.distance };
             const o = ray.ray.origin, d = ray.ray.direction;
             if (d.y >= -1e-4) return null;
             const t = -o.y / d.y;
@@ -1513,6 +1586,8 @@ async function boot() {
                 audio.click();
             } else if (h?.type === 'orb') {
                 startTrip();
+            } else if (h?.type === 'tv') {
+                hut.tv.next();
             } else if (h?.type === 'ticket') {
                 audio.click();
                 startSubway();
@@ -1890,17 +1965,17 @@ async function boot() {
             fireworks.start();
         }
         if (below && roomKind === 'hut') {
-            hut.update(dt, t);
+            hut.update(dt, t, !!trip);
             audio.update(night, -100);
             // the pointer shows a hand over the sphere and the door
             if (entered && !intro && !trip && mouse && !ui.blocking && !controls.look?.moved) {
                 const h = pickBelow(mouse.x, mouse.y);
-                hut.setHover(h?.type === 'orb', h?.type === 'ticket');
-                document.body.classList.toggle('can-hover-pick', h?.type === 'orb' || h?.type === 'door' || h?.type === 'ticket');
+                hut.setHover(h?.type === 'orb', h?.type === 'ticket', h?.type === 'tv');
+                document.body.classList.toggle('can-hover-pick', h?.type === 'orb' || h?.type === 'door' || h?.type === 'ticket' || h?.type === 'tv');
             } else hut.setHover(false);
             if (!orbHintShown && entered && !trip && Math.hypot(controls.pos.x - hut.orbPos.x, controls.pos.z - hut.orbPos.z) < 2.2) {
                 orbHintShown = true;
-                ui.hint('A sphere of glass on the desk, with something turning inside it · and a train ticket beside it · click either', 8000);
+                ui.hint('A sphere of glass on the desk, with something turning inside it · a train ticket beside it · and an old television that picks up the island’s secret places: click it to change the channel', 8000);
             }
         } else if (below && roomKind === 'tower') {
             if (scoping) scopeUpdate(dt, t);

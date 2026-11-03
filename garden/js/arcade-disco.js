@@ -12,7 +12,9 @@ import { TAU, rng } from './util.js';
 export const FLOOR_Y = 0.07;
 
 const BEAM_VS = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }';
-const BEAM_FS = 'uniform vec3 uColor; uniform float uOpacity; varying vec2 vUv; void main(){ float a = pow(1.0 - vUv.y, 1.6) * uOpacity; gl_FragColor = vec4(uColor * a, 1.0); }';
+// vUv.y can land a hair past 1.0 at the cone's open end, and pow() of a negative base is NaN on
+// Direct3D (Chrome on Windows); the bloom pass then smears that NaN into a black block across the view
+const BEAM_FS = 'uniform vec3 uColor; uniform float uOpacity; varying vec2 vUv; void main(){ float a = pow(clamp(1.0 - vUv.y, 0.0, 1.0), 1.6) * uOpacity; gl_FragColor = vec4(uColor * a, 1.0); }';
 
 export class Disco {
     /** @param {object} env { plan, scene, quality } */
