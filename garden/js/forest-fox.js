@@ -41,9 +41,10 @@ export class ForestFox {
 
     // ------------------------------------------------------------ in and out
 
-    /** Waiting at the door: just off to the side of where you come out, looking at you. */
+    /** Waiting at the door: a few steps in front of where you come out, a little to one side, looking at you. */
     enter(spawn) {
-        const x = spawn.x + 1.8, z = spawn.z + 1.6;
+        const fx = -Math.sin(spawn.yaw), fz = -Math.cos(spawn.yaw);
+        const x = spawn.x + fx * 3.2 - fz * 0.7, z = spawn.z + fz * 3.2 + fx * 0.7;
         this._place(x, z);
         this.heading = Math.atan2(-(spawn.z - z), spawn.x - x);
         this.fox.rotation.y = this.heading;
