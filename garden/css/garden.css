@@ -1070,3 +1070,83 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     .bowl-sheet { font-size: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { .bowl-say, .juke-panel { animation: none; } }
+
+/* ------------------------------------------------------------ the fortune teller's ticket */
+
+.fortune-card {
+    left: 50%;
+    bottom: calc(14px + var(--safe-b));
+    transform: translateX(-50%);
+    width: min(460px, calc(100vw - 24px));
+    max-height: min(62vh, 520px);
+    overflow: auto;
+    padding: 16px 22px 4px;
+    border: 0;
+    border-radius: 6px;
+    color: #3a1420;
+    background:
+        radial-gradient(circle at 0 50%, transparent 9px, #f3e6c4 10px) left / 51% 100% no-repeat,
+        radial-gradient(circle at 100% 50%, transparent 9px, #f3e6c4 10px) right / 51% 100% no-repeat;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 30px rgba(232, 192, 112, 0.25);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    text-align: center;
+    animation: ticket-out 0.5s ease-out;
+}
+.fortune-card::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 2px solid #8a1030;
+    border-radius: 3px;
+    pointer-events: none;
+    outline: 1px dashed rgba(138, 16, 48, 0.4);
+    outline-offset: 3px;
+}
+@keyframes ticket-out { from { transform: translate(-50%, 30px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+.ft-head { margin: 4px 0 0; font: 700 0.95rem var(--display); letter-spacing: 0.14em; color: #8a1030; }
+.ft-kicker { margin: 2px 0 0; font: 600 0.72rem var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: #9a6a3a; }
+.ft-text { margin: 10px 4px 12px; font: italic 500 1.32rem/1.32 var(--serif); color: #2a0a18; }
+.ft-lucky { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; padding: 8px 0; border-top: 1px dashed rgba(138, 16, 48, 0.4); border-bottom: 1px dashed rgba(138, 16, 48, 0.4); font: 500 0.88rem var(--sans); }
+.ft-lucky b { display: block; font: 600 0.66rem var(--sans); letter-spacing: 0.1em; text-transform: uppercase; color: #9a6a3a; }
+.ft-swatch { display: inline-block; width: 0.8em; height: 0.8em; margin-right: 5px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.3); vertical-align: -0.05em; }
+.ft-game { display: block; width: 100%; margin: 10px 0 0; padding: 8px 10px; min-height: 44px; border: 1px solid rgba(138, 16, 48, 0.45); border-radius: 8px; background: rgba(138, 16, 48, 0.07); color: #3a1420; font: 500 0.98rem var(--serif); cursor: pointer; }
+.ft-game:hover, .ft-game:focus-visible { background: rgba(138, 16, 48, 0.16); outline: none; }
+.ft-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 12px 0 14px; }
+.ft-log { font: 500 0.82rem var(--sans); color: #7a4a3a; }
+.ft-btns { display: inline-flex; gap: 8px; flex-wrap: wrap; }
+.fortune-card .btn:not(.btn-primary) { color: #3a1420; border-color: rgba(138, 16, 48, 0.5); background: transparent; }
+
+/* ------------------------------------------------------------ the claw machine */
+
+.claw-hud { position: fixed; inset: 0; z-index: 7; pointer-events: none; font-family: "Press Start 2P", ui-monospace, monospace; }
+.claw-top { position: absolute; top: calc(64px + var(--safe-t)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; margin: 0; }
+.claw-time { display: grid; place-items: center; min-width: 64px; height: 44px; padding: 0 10px; border: 2px solid #ff6ac0; border-radius: 8px; background: rgba(6, 3, 18, 0.85); color: #ffe94a; font-size: 18px; box-shadow: 0 0 14px rgba(255, 106, 192, 0.4); }
+.claw-say { font-size: clamp(16px, 3.6vw, 30px); color: #ffe94a; text-shadow: 0 0 12px #ff6ac0, 3px 3px 0 #2a0a4a; }
+.claw-say.miss { color: #c8c8e0; text-shadow: 0 0 8px #6a6aa0, 3px 3px 0 #1a0a2a; }
+.claw-say.win { animation: bowl-pop 0.4s ease-out; }
+.claw-hint { position: absolute; left: 50%; bottom: calc(150px + var(--safe-b)); transform: translateX(-50%); margin: 0; width: max-content; max-width: calc(100vw - 24px); padding: 6px 12px; border-radius: 8px; background: rgba(6, 3, 18, 0.7); color: #e8e4ff; font: 500 0.92rem var(--sans); text-align: center; }
+.claw-hint kbd { font-size: 0.75em; }
+.claw-touch { display: none; }
+.claw-pad { position: absolute; left: 50%; bottom: calc(14px + var(--safe-b)); transform: translateX(-50%); display: flex; gap: 14px; align-items: center; pointer-events: auto; }
+.claw-dpad { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 40px); gap: 2px; }
+.claw-btn { border-radius: 10px; border: 2px solid #ff6ac0; background: rgba(6, 3, 18, 0.82); color: #ff6ac0; font-size: 16px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+.claw-btn:active { background: rgba(255, 106, 192, 0.28); }
+.cb-up { grid-area: 1 / 2; }
+.cb-left { grid-area: 2 / 1; }
+.cb-right { grid-area: 2 / 3; }
+.cb-down { grid-area: 3 / 2; }
+.claw-go { min-width: 96px; min-height: 52px; font-size: 1.05rem; }
+.claw-pad kbd { font-size: 0.7em; opacity: 0.7; }
+.claw-card { z-index: 15; }
+.claw-card .ft-btns .btn { min-height: 40px; }
+@media (pointer: coarse) {
+    .claw-keys, .claw-pad kbd { display: none; }
+    .claw-touch { display: inline; }
+}
+@media (max-width: 560px) {
+    .claw-hint { bottom: calc(146px + var(--safe-b)); font-size: 0.82rem; }
+    .claw-pad { gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .fortune-card, .claw-say.win { animation: none; } }
+.claw-pad .btn:not(.btn-primary) { background: rgba(6, 3, 18, 0.85); border-color: #ff6ac0; }

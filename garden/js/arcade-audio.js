@@ -520,6 +520,119 @@ export class ArcadeAudio {
         });
     }
 
+    // ------------------------------------------------------------ the fortune teller and the claw
+
+    /** A short tone into the effects bus. */
+    _tone(type, f0, f1, t, a, peak, d, out = this.fx) {
+        const o = this.ctx.createOscillator();
+        o.type = type;
+        o.frequency.setValueAtTime(f0, t);
+        if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + a + d);
+        const g = this.ctx.createGain();
+        this._env(g, t, a, peak, d);
+        o.connect(g).connect(out);
+        o.start(t);
+        o.stop(t + a + d + 0.05);
+    }
+
+    /** The oracle wakes: a shimmer of glass and a slow, rising arpeggio from the organ in her booth. */
+    oracle() {
+        if (!this.ok) return;
+        const t = this.ctx.currentTime + 0.05;
+        [62, 65, 69, 72, 74, 77, 81].forEach((n, i) => {
+            this._tone('sine', midi(n), 0, t + i * 0.16, 0.02, 0.07, 1.2);
+            this._tone('triangle', midi(n + 12), 0, t + i * 0.16 + 0.02, 0.01, 0.025, 0.6);
+        });
+        this._tone('sawtooth', midi(38), midi(38), t, 0.6, 0.03, 2.4);
+        for (let k = 0; k < 8; k++) this._noise(t + 0.3 + k * 0.17, 0.25, 'bandpass', 5000 + Math.random() * 3000, 8, 0.04, this.fx);
+    }
+
+    /** Her voice: a murmur of formant-ish buzzes while the jaw goes. */
+    murmur(dur = 1.6) {
+        if (!this.ok) return;
+        const t0 = this.ctx.currentTime;
+        for (let s = 0; s < dur; s += 0.13 + Math.random() * 0.08) {
+            const f = 140 + Math.random() * 70;
+            const t = t0 + s;
+            const o = this.ctx.createOscillator();
+            o.type = 'sawtooth';
+            o.frequency.setValueAtTime(f, t);
+            o.frequency.linearRampToValueAtTime(f * (0.85 + Math.random() * 0.3), t + 0.12);
+            const bp = this.ctx.createBiquadFilter();
+            bp.type = 'bandpass';
+            bp.frequency.value = 500 + Math.random() * 900;
+            bp.Q.value = 4;
+            const g = this.ctx.createGain();
+            this._env(g, t, 0.02, 0.05, 0.1);
+            o.connect(bp).connect(g).connect(this.fx);
+            o.start(t);
+            o.stop(t + 0.2);
+        }
+    }
+
+    /** The ticket printer: a little motor and the card being pushed out. */
+    printer(dur = 1.2) {
+        if (!this.ok) return;
+        const t = this.ctx.currentTime;
+        const o = this.ctx.createOscillator();
+        o.type = 'square';
+        o.frequency.setValueAtTime(38, t);
+        const lp = this.ctx.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.value = 900;
+        const g = this.ctx.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(0.05, t + 0.05);
+        g.gain.setValueAtTime(0.05, t + dur - 0.05);
+        g.gain.linearRampToValueAtTime(0.0001, t + dur);
+        o.connect(lp).connect(g).connect(this.fx);
+        o.start(t);
+        o.stop(t + dur + 0.05);
+        for (let s = 0; s < dur; s += 0.06) this._noise(t + s, 0.03, 'highpass', 2500, 1, 0.025, this.fx);
+        this._tone('triangle', 1800, 0, t + dur, 0.002, 0.06, 0.3);
+    }
+
+    /** The claw's gantry motor, 0..1 while it is moving. */
+    gantry(on) {
+        if (!this.ctx) return;
+        if (!this.motor) {
+            const ctx = this.ctx;
+            const o = ctx.createOscillator();
+            o.type = 'sawtooth';
+            o.frequency.value = 95;
+            const lp = ctx.createBiquadFilter();
+            lp.type = 'lowpass';
+            lp.frequency.value = 420;
+            this.motor = ctx.createGain();
+            this.motor.gain.value = 0;
+            o.connect(lp).connect(this.motor).connect(this.fx);
+            o.start();
+            this._srcs.push(o);
+            this.motorOsc = o;
+        }
+        const t = this.ctx.currentTime;
+        this.motor.gain.setTargetAtTime(this.e.muted ? 0 : on * 0.035, t, 0.04);
+        this.motorOsc.frequency.setTargetAtTime(80 + on * 30, t, 0.1);
+    }
+
+    /** The claw: 'drop' going down, 'grab' closing, 'clunk' letting go, 'win' a prize down the chute. */
+    claw(kind) {
+        if (!this.ok) return;
+        const t = this.ctx.currentTime;
+        if (kind === 'drop') this._tone('square', 420, 160, t, 0.01, 0.04, 0.9);
+        else if (kind === 'grab') {
+            this._noise(t, 0.1, 'bandpass', 1400, 3, 0.15, this.fx);
+            this._tone('square', 200, 120, t, 0.005, 0.04, 0.15);
+        } else if (kind === 'up') this._tone('square', 160, 420, t, 0.01, 0.035, 0.9);
+        else if (kind === 'clunk') this._noise(t, 0.12, 'lowpass', 600, 1, 0.25, this.fx);
+        else if (kind === 'miss') [67, 63, 60].forEach((n, i) => this._tone('square', midi(n), 0, t + i * 0.12, 0.003, 0.05, 0.12));
+        else if (kind === 'thump') this._noise(t, 0.08, 'lowpass', 400, 1, 0.2, this.fx);
+        else if (kind === 'win') {
+            [72, 76, 79, 84, 88, 84, 88, 91].forEach((n, i) => this._tone('square', midi(n), 0, t + 0.1 + i * 0.09, 0.003, 0.05, i === 7 ? 0.5 : 0.1));
+            for (let k = 0; k < 10; k++) this._tone('sine', 2000 + Math.random() * 2500, 0, t + 0.1 + k * 0.07, 0.002, 0.02, 0.15);
+        }
+    }
+
     dispose() {
         if (!this.ctx) return;
         this.stop();

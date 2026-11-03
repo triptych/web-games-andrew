@@ -157,7 +157,15 @@ export function planArcade(games) {
     const exit = { x: 0, z: z1 - 0.75 };
     const spawn = { x: 0, z: z1 - 2.4, yaw: 0 };
 
-    return { games, islands, cols, rows, cabinets, signs, pillars, blocks, hall, bowling, disco, jukebox, counter, tables, door, exit, spawn, AW, seed: r() };
+    // ---- the fortune teller and the claw machine stand either side of the way in, facing the
+    // door, halfway between it and the last row of islands (a front faces +z when rot = 0)
+    const lastRow = zTop + (rows - 1) * slotD + ISLAND_D;
+    const mz = clamp((lastRow + 1.6 + spawn.z - 1.6) / 2, lastRow + 2.4, spawn.z - 2.2);
+    const fortune = { x: -3.1, z: mz, rot: 0, w: 1.1, d: 0.78, stand: { x: -3.1, z: mz + 1.25, yaw: 0 } };
+    const claw = { x: 3.1, z: mz, rot: 0, w: 1.22, d: 1.0, stand: { x: 3.1, z: mz + 1.35, yaw: 0 } };
+    for (const m of [fortune, claw]) blocks.push({ x0: m.x - m.w / 2 - 0.04, x1: m.x + m.w / 2 + 0.04, z0: m.z - m.d / 2 - 0.04, z1: m.z + m.d / 2 + 0.04 });
+
+    return { games, islands, cols, rows, cabinets, signs, pillars, blocks, hall, bowling, disco, jukebox, counter, tables, fortune, claw, door, exit, spawn, AW, seed: r() };
 }
 
 /** Is (x, z) somewhere you can stand? `pad` keeps the eye out of the furniture. */
