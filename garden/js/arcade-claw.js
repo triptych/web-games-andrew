@@ -145,8 +145,11 @@ export class ClawMachine {
         const stick = new THREE.Group();
         stick.position.set(0.08, BASE_H, D / 2 + 0.07);
         g.add(stick);
-        stick.add(Object.assign(new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.09, 8), chrome), { position: new THREE.Vector3(0, 0.045, 0) }));
-        stick.add(Object.assign(new THREE.Mesh(new THREE.SphereGeometry(0.026, 14, 10), new THREE.MeshStandardMaterial({ color: 0xffe94a, roughness: 0.3 })), { position: new THREE.Vector3(0, 0.095, 0) }));
+        const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.09, 8), chrome);
+        shaft.position.y = 0.045;
+        const knob = new THREE.Mesh(new THREE.SphereGeometry(0.026, 14, 10), new THREE.MeshStandardMaterial({ color: 0xffe94a, roughness: 0.3 }));
+        knob.position.y = 0.095;
+        stick.add(shaft, knob);
         this.stick = stick;
         this.dropBtn = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.03, 18), new THREE.MeshStandardMaterial({ color: 0x30d0ff, emissive: 0x30d0ff, emissiveIntensity: 0.5, roughness: 0.3 }));
         this.dropBtn.position.set(0.32, BASE_H + 0.015, D / 2 + 0.07);
