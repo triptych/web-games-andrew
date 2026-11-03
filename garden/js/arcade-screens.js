@@ -360,7 +360,7 @@ void main() {
     // scanlines, a little phosphor shimmer and the vignette of the tube
     float scan = 0.72 + 0.28 * sin(uv.y * 120.0 * 3.14159 * 2.0);
     float flick = 0.97 + 0.03 * sin(uTime * 53.0 + vSeed * 40.0);
-    float vig = smoothstep(1.45, 0.4, length(q));
+    float vig = 1.0 - smoothstep(0.4, 1.45, length(q));   // edge0 < edge1: reversed edges are undefined in GLSL
     float hover = abs(uHover - vId) < 0.5 ? 1.45 : 1.0;
     col *= scan * flick * vig * hover * uPower * 1.55;
     gl_FragColor = vec4(col, 1.0);
