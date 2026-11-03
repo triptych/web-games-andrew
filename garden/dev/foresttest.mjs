@@ -174,18 +174,27 @@ if (!ONLY || ONLY === 'fox') {
     await until('g?.entered', 240000);
     // the garden's fox, bolting near the Great Tree, runs home through the door
     check(await G('!!g.fox.fox'), 'the garden fox is coming today (?fox=1)');
-    // put it out on the grass in front of the door, as if it had stopped to look, and startle it
-    await G(`(() => {
+    // put it on the grass in front of the door with a clear run to it, as if it had stopped to look, and
+    // startle it; the garden is slow under software GL, so its frames are stepped here rather than rendered
+    const ran = await G(`(() => {
         const f = g.fox, tp = g.world.treePortal;
+        let at = null;
+        for (let r = 6; r <= 14 && !at; r += 2) for (let a = -1.2; a <= 1.2 && !at; a += 0.3) {
+            const dx = tp.nx * Math.cos(a) - tp.nz * Math.sin(a), dz = tp.nz * Math.cos(a) + tp.nx * Math.sin(a);
+            const p = { x: tp.front.x + dx * r, z: tp.front.z + dz * r };
+            if (f._open(p.x, p.z) && f._clearLine(p, tp.front)) at = p;
+        }
+        if (!at) return 'no clear spot';
         f.fox.visible = true;
         f.state = 'looking';
-        const x = tp.front.x + tp.nx * 8, z = tp.front.z + tp.nz * 8;
-        f.fox.position.set(x, g.world.walkHeight(x, z), z);
-        g.controls.teleport(x + tp.nx * 6, z + tp.nz * 6, tp.out.yaw + Math.PI);
-        f.path = { from: { x, z }, stop: { x, z }, to: { x: x + 30, z } };
+        f.fox.position.set(at.x, g.world.walkHeight(at.x, at.z), at.z);
+        g.controls.teleport(at.x + tp.nx * 3, at.z + tp.nz * 3, 0);
+        f.path = { from: at, stop: at, to: { x: at.x + 30, z: at.z } };
         f._flee();
+        for (let i = 0; i < 600 && f.state !== 'gone'; i++) f.update(0.05, i * 0.05, true, false);
+        return f.state;
     })()`);
-    await until('g.fox.state === "gone"', 60000);
+    check(ran === 'gone', `the startled fox runs off (${ran})`);
     check(await G('g.fox.wentHome === true'), 'the garden fox runs home through the door in the Great Tree');
 
     await G('g.throughDoor(true, "forest")');
