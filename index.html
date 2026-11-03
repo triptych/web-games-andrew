@@ -30,7 +30,7 @@
     <meta name="twitter:image:alt" content="The Garden of Games title card floating over a 3D island of pine trees, statues and a domed gazebo in a blue sea.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="garden/css/garden.css">
     <script type="importmap">
     {
@@ -211,6 +211,33 @@
         </aside>
     </section>
 
+    <!-- the Lighthouse Arcade: the bowling lane's score sheet and controls, and the jukebox -->
+    <section id="bowl-hud" class="bowl-hud" hidden aria-label="Bowling">
+        <div class="bowl-sheet" id="bowl-sheet" aria-live="polite"></div>
+        <p class="bowl-say" id="bowl-say" hidden aria-live="assertive"></p>
+        <div class="bowl-meter" id="bowl-meter" hidden><span class="bm-label">Power</span><div class="bm-track"><div class="bm-fill" id="bowl-meter-fill"></div></div></div>
+        <p class="bowl-hint" id="bowl-hint"></p>
+        <div class="bowl-pad" role="group" aria-label="Bowling controls">
+            <button class="bowl-btn" id="bowl-left" aria-label="Slide left" title="Slide left (A)">&#9664;</button>
+            <button class="btn btn-primary bowl-go" id="bowl-go" title="Lock (Space)">Bowl</button>
+            <button class="bowl-btn" id="bowl-right" aria-label="Slide right" title="Slide right (D)">&#9654;</button>
+            <button class="btn" id="bowl-again" hidden>New game</button>
+            <button class="btn" id="bowl-quit" title="Step off the lane (Esc)">Step off <kbd>Esc</kbd></button>
+        </div>
+    </section>
+    <aside id="juke-panel" class="panel juke-panel" hidden role="dialog" aria-modal="false" aria-labelledby="juke-title">
+        <header class="juke-head">
+            <h2 id="juke-title">&#9835; Jukebox</h2>
+            <button class="close" id="juke-close" aria-label="Close">×</button>
+        </header>
+        <p class="juke-now" id="juke-now"></p>
+        <div class="juke-list" id="juke-list"></div>
+        <div class="juke-foot">
+            <button class="btn" id="juke-next">Next record</button>
+            <button class="btn" id="juke-stop">Stop</button>
+        </div>
+    </aside>
+
     <!-- game card (touch and hologram) -->
     <aside id="card" class="panel card" hidden role="dialog" aria-modal="false" aria-labelledby="card-title">
         <div class="card-top">
@@ -292,6 +319,7 @@
                         <li><kbd>[</kbd> <kbd>]</kbd> turn the hologram at the hub</li>
                         <li><kbd>M</kbd> map · <kbd>L</kbd> library · <kbd>F</kbd> starred · <kbd>T</kbd> time · <kbd>N</kbd> sound</li>
                         <li>At the end of the fishing pier: <kbd>C</kbd> to cast, click or <kbd>Space</kbd> to strike, hold to reel, <kbd>Esc</kbd> to put the rod away</li>
+                        <li>In the Lighthouse Arcade: click a cabinet for its game card, click a lane to bowl (<kbd>A</kbd>/<kbd>D</kbd> slide, <kbd>Space</kbd> to lock the aim and then the power, <kbd>Esc</kbd> to step off), click the jukebox to put a record on</li>
                         <li>In the fountain's submarine: <kbd>W</kbd>/<kbd>S</kbd> speed, <kbd>A</kbd>/<kbd>D</kbd> steer, <kbd>Space</kbd>/<kbd>C</kbd> rise and dive, <kbd>B</kbd> lamp, <kbd>Esc</kbd> to surface</li>
                     </ul>
                 </div>
@@ -307,7 +335,7 @@
                     </ul>
                 </div>
             </div>
-            <p class="help-note">Each path from the hub leads to one kind of game and ends at a pavilion. Newest games stand nearest the hub. The vines wake up as you come near, and the garden keeps its own time: wait for dusk to see the lamps, fireflies and aurora, and stay up until midnight for fireworks. The door of the Observatory opens on a tower rather larger on the inside, five floors of strange rooms joined by a lift of light, with a great telescope under the dome at the top. A stone bridge crosses to the clock tower on its islet, and the door at its foot leads down into the Works, the machine hall that keeps the island running. A tiny submarine circles in the pool of the Moon Fountain: click it to climb aboard and steer through an endless sea of coral, kelp and stone arches, with fish, jellyfish, turtles and manta rays to find for your sea log (and, if you are lucky, a whale), and rare finds on the sea floor: a sunken galleon, treasure, a goddess, a broken robot, a magic sword and more. On the far side of the island from the dock, a trail drops from the pavilion to a fishing pier: click the rod on its rail (or press <kbd>C</kbd>) to cast, strike when the float dips, then hold to keep the fish in the green band as you reel it in.</p>
+            <p class="help-note">Each path from the hub leads to one kind of game and ends at a pavilion. Newest games stand nearest the hub. The vines wake up as you come near, and the garden keeps its own time: wait for dusk to see the lamps, fireflies and aurora, and stay up until midnight for fireworks. The door of the Observatory opens on a tower rather larger on the inside, five floors of strange rooms joined by a lift of light, with a great telescope under the dome at the top. A stone bridge crosses to the clock tower on its islet, and the door at its foot leads down into the Works, the machine hall that keeps the island running. The lighthouse has a door too: it opens on the Lighthouse Arcade, a neon hall with a cabinet for every game in the garden running its attract mode, a bowling alley whose every lane works, and a disco floor that dances to the jukebox. A tiny submarine circles in the pool of the Moon Fountain: click it to climb aboard and steer through an endless sea of coral, kelp and stone arches, with fish, jellyfish, turtles and manta rays to find for your sea log (and, if you are lucky, a whale), and rare finds on the sea floor: a sunken galleon, treasure, a goddess, a broken robot, a magic sword and more. On the far side of the island from the dock, a trail drops from the pavilion to a fishing pier: click the rod on its rail (or press <kbd>C</kbd>) to cast, strike when the float dips, then hold to keep the fish in the green band as you reel it in.</p>
         </div>
     </section>
 

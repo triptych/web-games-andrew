@@ -971,3 +971,102 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 @media (prefers-reduced-motion: reduce) {
     .sg-rose { transition: none; }
 }
+
+/* ------------------------------------------------------------ the Lighthouse Arcade */
+
+.bowl-hud { position: fixed; inset: 0; z-index: 7; pointer-events: none; font-family: "Press Start 2P", ui-monospace, monospace; }
+.bowl-sheet {
+    position: absolute;
+    top: calc(64px + var(--safe-t));
+    left: 50%;
+    transform: translateX(-50%);
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr)) minmax(0, 1.3fr);
+    width: min(720px, calc(100vw - 24px));
+    border: 2px solid #30e8ff;
+    border-radius: 6px;
+    background: rgba(6, 3, 18, 0.86);
+    box-shadow: 0 0 18px rgba(48, 232, 255, 0.35), var(--shadow);
+    color: #fff;
+    font-size: 10px;
+}
+.bf { display: flex; flex-direction: column; align-items: stretch; border-left: 1px solid rgba(48, 232, 255, 0.35); min-width: 0; }
+.bf:first-child { border-left: 0; }
+.bf-n { padding: 3px 0; text-align: center; font-size: 8px; color: #8a8fd0; background: rgba(48, 232, 255, 0.08); }
+.bf-m { display: flex; justify-content: flex-end; min-height: 18px; }
+.bf-m i { font-style: normal; width: 15px; padding: 3px 0; text-align: center; border-left: 1px solid rgba(255, 255, 255, 0.15); border-bottom: 1px solid rgba(255, 255, 255, 0.15); }
+.bf b { padding: 5px 0 6px; text-align: center; color: #5fff8f; font-weight: normal; min-height: 22px; }
+.bf.now { background: rgba(255, 233, 74, 0.12); box-shadow: inset 0 0 0 1px #ffe94a; }
+.bf-total b { color: #ff3fd0; font-size: 13px; padding-top: 10px; }
+.bowl-say {
+    position: absolute;
+    top: 34%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    font-size: clamp(22px, 5vw, 46px);
+    color: #fff;
+    text-shadow: 0 0 12px #ff3fd0, 0 0 30px #ff3fd0, 3px 3px 0 #2a0a4a;
+    white-space: nowrap;
+    animation: bowl-pop 0.5s ease-out;
+}
+.bowl-say.strike, .bowl-say.done { color: #ffe94a; text-shadow: 0 0 12px #ffb43a, 0 0 34px #ff3fd0, 3px 3px 0 #2a0a4a; }
+.bowl-say.spare { color: #30e8ff; text-shadow: 0 0 12px #30e8ff, 0 0 30px #30e8ff, 3px 3px 0 #2a0a4a; }
+.bowl-say.miss { color: #c8c8e0; text-shadow: 0 0 8px #6a6aa0, 3px 3px 0 #1a0a2a; font-size: clamp(16px, 3.4vw, 30px); }
+@keyframes bowl-pop { from { transform: translate(-50%, -50%) scale(0.4); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+.bowl-meter { position: absolute; left: 50%; bottom: calc(120px + var(--safe-b)); transform: translateX(-50%); display: flex; align-items: center; gap: 10px; color: #ffe94a; font-size: 10px; }
+.bm-track { width: min(320px, 60vw); height: 18px; border: 2px solid #ffe94a; border-radius: 4px; background: rgba(6, 3, 18, 0.8); overflow: hidden; }
+.bm-fill { height: 100%; width: 100%; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, #5fff8f, #ffe94a 60%, #ff3f6e); }
+.bowl-hint { position: absolute; left: 50%; bottom: calc(76px + var(--safe-b)); transform: translateX(-50%); margin: 0; width: max-content; max-width: calc(100vw - 24px); padding: 6px 12px; border-radius: 8px; background: rgba(6, 3, 18, 0.7); color: #e8e4ff; font: 500 0.95rem var(--sans); text-align: center; }
+.bowl-hint:empty { display: none; }
+.bowl-pad { position: absolute; left: 50%; bottom: calc(16px + var(--safe-b)); transform: translateX(-50%); display: flex; gap: 10px; align-items: center; pointer-events: auto; }
+.bowl-btn { min-width: 52px; min-height: 48px; border-radius: 12px; border: 2px solid #30e8ff; background: rgba(6, 3, 18, 0.8); color: #30e8ff; font-size: 20px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+.bowl-btn:active { background: rgba(48, 232, 255, 0.25); }
+.bowl-go { min-width: 92px; }
+.bowl-pad kbd { font-size: 0.7em; opacity: 0.7; }
+@media (pointer: coarse) { .bowl-pad kbd { display: none; } }
+
+.juke-panel {
+    right: calc(16px + var(--safe-r));
+    top: calc(64px + var(--safe-t));
+    width: min(360px, calc(100vw - 32px));
+    max-height: calc(100vh - 90px - var(--safe-t) - var(--safe-b));
+    overflow: auto;
+    padding: 12px 14px 14px;
+    border-color: rgba(255, 63, 208, 0.7);
+    background: rgba(14, 6, 28, 0.88);
+    box-shadow: var(--shadow), 0 0 30px rgba(255, 63, 208, 0.3);
+    animation: juke-in 0.3s ease-out;
+}
+@keyframes juke-in { from { opacity: 0; } to { opacity: 1; } }
+.juke-head { display: flex; align-items: center; justify-content: space-between; }
+.juke-head h2 { margin: 0; font: 400 15px "Press Start 2P", ui-monospace, monospace; color: #ffe94a; text-shadow: 0 0 10px #ff3fd0; }
+.juke-now { margin: 8px 0 10px; font: italic 0.98rem/1.35 var(--serif); color: #f2dcff; }
+.juke-list { display: grid; gap: 6px; }
+.juke-song {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    align-items: center;
+    min-height: 44px;
+    padding: 6px 10px 6px 6px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 63, 208, 0.35);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+}
+.juke-song:hover, .juke-song:focus-visible { border-color: #ff3fd0; background: rgba(255, 63, 208, 0.14); outline: none; }
+.juke-song.on { border-color: #ffe94a; background: rgba(255, 233, 74, 0.14); box-shadow: 0 0 12px rgba(255, 233, 74, 0.25); }
+.js-code { grid-row: span 2; display: grid; place-items: center; height: 32px; border-radius: 6px; background: #f4ecd8; color: #c0203a; font: 400 9px "Press Start 2P", ui-monospace, monospace; }
+.js-t { font: 600 1rem var(--serif); }
+.js-a { font: italic 0.88rem var(--serif); color: var(--ink-dim); }
+.juke-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+@media (max-width: 560px) {
+    .juke-panel { top: auto; bottom: calc(12px + var(--safe-b)); right: 50%; transform: translateX(50%); max-height: 55vh; }
+    .bf-m i { width: 11px; font-size: 8px; }
+    .bowl-sheet { font-size: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .bowl-say, .juke-panel { animation: none; } }

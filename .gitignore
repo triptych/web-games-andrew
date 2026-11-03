@@ -14,3 +14,8 @@ game-*/dev/node_modules
 game-*/dev/package/
 game-*/dev/*.tgz
 game-*/dev/itch/
+
+# Garden harness output and its local copy of three.js
+garden/dev/shots/
+garden/dev/package/
+garden/dev/node_modules/

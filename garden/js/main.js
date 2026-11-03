@@ -42,6 +42,7 @@ import { Tower } from './tower.js';
 import { Scope } from './scope.js';
 import { FountainSub } from './submarine.js';
 import { Undersea } from './undersea.js';
+import { Arcade } from './arcade.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -312,7 +313,7 @@ async function boot() {
     const fox = new FoxVisitor(scene, world, controls, camera, { force: params.get('fox') });
     const boat = new Boat(world, scene, camera, controls);
     const fishing = new Fishing({ world, scene, camera, controls, ui, audio, bursts, canvas });
-    controls.canJump = () => !fishing.active && !ui.blocking && !boat.busy && !diving;
+    controls.canJump = () => !fishing.active && !ui.blocking && !boat.busy && !diving && !arcade?.bowling.active;
     // The title orbit circles the island looking in, so its show goes up over the island's heart. The flying
     // boat circles it too, turning from the bow to the island and back, so each shell goes up ahead of the rider's view.
     const islandHeart = new THREE.Vector3(), ahead = new THREE.Vector3();
@@ -370,11 +371,13 @@ async function boot() {
     let subway = null;
     // the Observatory's tower and the view through its telescope: built on the first visit
     let tower = null, scope = null, scoping = null;
+    // the Lighthouse Arcade behind the lighthouse door: built on the first visit
+    let arcade = null, arcadeHintShown = false, lhDoorHintShown = false;
     // the sea inside the fountain's submarine: built on the first dive
     let undersea = null, diving = null, subPending = false, subHintShown = false;
     let trip = null;       // falling into / climbing out of the sphere
     const look = { x: 0, y: 0 };
-    let roomKind = null;   // which room 'below' means: 'works' | 'hut' | 'subway' | 'mine' | 'tower'
+    let roomKind = null;   // which room 'below' means: 'works' | 'hut' | 'subway' | 'mine' | 'tower' | 'arcade'
     let below = false;
     let transit = false;   // fading through a door
     let doorArmed = false; // you must step away from a door before it takes you again
@@ -478,6 +481,11 @@ async function boot() {
         if (od && od.distance < bt && od.distance < 60) {
             bt = od.distance;
             best = { type: 'obsDoor', t: bt };
+        }
+        const ld = world.lighthouse && ray.intersectObject(world.lighthouse.mesh, false)[0];
+        if (ld && ld.distance < bt && ld.distance < 60) {
+            bt = ld.distance;
+            best = { type: 'lhDoor', t: bt };
         }
         const tg = marchGround(world, o, d, Math.min(bt, 120));
         // it floats right at the plaza's level, so the ground under it must not steal the click
@@ -1111,12 +1119,13 @@ async function boot() {
             if (scoping) endScope();
             tower.leave();
         }
+        if (roomKind === 'arcade' && (!on || kind !== 'arcade')) arcade.leave();
         below = on;
         roomKind = on ? kind : null;
-        const room = kind === 'hut' ? hut : kind === 'subway' ? subway : kind === 'mine' ? mine : kind === 'tower' ? tower : works;
+        const room = kind === 'hut' ? hut : kind === 'subway' ? subway : kind === 'mine' ? mine : kind === 'tower' ? tower : kind === 'arcade' ? arcade : works;
         controls.world = on ? (kind === 'mine' ? mine.walk : room.world) : place === 'cove' ? volcano.world : world;
         renderPass.scene = on ? room.scene : scene;
-        bloom.strength = on ? (kind === 'hut' ? 0.55 : kind === 'subway' ? 0.5 : kind === 'mine' ? 0.7 : kind === 'tower' ? 0.55 : 0.6) : 0.42;
+        bloom.strength = on ? (kind === 'hut' ? 0.55 : kind === 'subway' ? 0.5 : kind === 'mine' ? 0.7 : kind === 'tower' ? 0.55 : kind === 'arcade' ? 0.75 : 0.6) : 0.42;
         audio.setUnderground(on && (kind === 'works' || kind === 'mine'), kind === 'works');
         if (on) fireworks.stop();
         doorArmed = false;
@@ -1160,6 +1169,23 @@ async function boot() {
                     setBelow(false);
                     ui.hint('The Observatory door is stuck today.', 4000);
                 }
+            } else if (down && kind === 'arcade') {
+                try {
+                    arcade ??= new Arcade({ renderer, ui, mats: world.mats, audio, quality, camera, canvas, games, showCard: (g) => ui.showCard(g) });
+                    setBelow(true, 'arcade');
+                    arcade.enter(controls);
+                    ui.zone('The Lighthouse Arcade', `${games.length} cabinets · bowling · disco`, '#ff5fd2');
+                    zoneKey = 'arcade';
+                    if (!arcadeHintShown) {
+                        arcadeHintShown = true;
+                        setTimeout(() => ui.hint('Every cabinet is a game from the garden · click one for its card · click a bowling lane to bowl · the jukebox by the dance floor takes requests · the door behind you leads out', 11000), 1400);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    arcade = null;
+                    setBelow(false);
+                    ui.hint('The arcade is closed for repairs today.', 4000);
+                }
             } else if (down && kind === 'hut') {
                 hut ??= new Hut({ renderer, ui, mats: world.mats });
                 setBelow(true, 'hut');
@@ -1184,7 +1210,7 @@ async function boot() {
                 }
             } else {
                 surface();
-                const o = leaving === 'hut' ? world.hut.out : leaving === 'tower' ? world.observatory.out : world.clockDoor.out;
+                const o = leaving === 'hut' ? world.hut.out : leaving === 'tower' ? world.observatory.out : leaving === 'arcade' ? world.lighthouse.out : world.clockDoor.out;
                 controls.teleport(o.x, o.z, o.yaw);
             }
             setTimeout(() => {
@@ -1200,6 +1226,13 @@ async function boot() {
         if (trip) return;
         const p = controls.pos;
         if (below && roomKind === 'tower') return;   // the tower minds its own door
+        if (below && roomKind === 'arcade') {
+            if (arcade.bowling.active) return;
+            const e = arcade.exit, dist = Math.hypot(p.x - e.x, p.z - e.z);
+            if (dist > 2) doorArmed = true;
+            if (doorArmed && dist < 0.7) throughDoor(false);
+            return;
+        }
         if (below && roomKind === 'subway') {
             const e = subway.exit, dist = Math.hypot(p.x - e.x, p.z - e.z);
             if (dist > 2) doorArmed = true;
@@ -1221,6 +1254,11 @@ async function boot() {
                 d = ob;
                 kind = 'tower';
             }
+            const lh = world.lighthouse;
+            if (lh && Math.hypot(p.x - lh.x, p.z - lh.z) < Math.hypot(p.x - d.x, p.z - d.z)) {
+                d = lh;
+                kind = 'arcade';
+            }
         }
         const dist = Math.hypot(p.x - d.x, p.z - d.z);
         if (dist > 1.6) doorArmed = true;
@@ -1231,6 +1269,9 @@ async function boot() {
         } else if (!below && kind === 'tower' && !obsDoorHintShown && dist < 8) {
             obsDoorHintShown = true;
             ui.hint('The Observatory: walk through its door', 6000);
+        } else if (!below && kind === 'arcade' && !lhDoorHintShown && dist < 8) {
+            lhDoorHintShown = true;
+            ui.hint('A door at the foot of the lighthouse, with music behind it: walk through it', 6000);
         } else if (!below && kind === 'hut' && !hutDoorHintShown && dist < 7) {
             hutDoorHintShown = true;
             ui.hint('A little hut: walk through its door', 6000);
@@ -1288,7 +1329,7 @@ async function boot() {
     syncFocus();
 
     // below ground the map shows you at the tower
-    const mapPos = () => (place !== 'garden' && stones ? stones : below ? (roomKind === 'works' ? world.clockDoor : roomKind === 'tower' ? { x: world.observatory.cx, z: world.observatory.cz } : { x: world.hut.cx, z: world.hut.cz }) : controls.pos);
+    const mapPos = () => (place !== 'garden' && stones ? stones : below ? (roomKind === 'works' ? world.clockDoor : roomKind === 'tower' ? { x: world.observatory.cx, z: world.observatory.cz } : roomKind === 'arcade' ? { x: world.lighthouse.cx, z: world.lighthouse.cz } : { x: world.hut.cx, z: world.hut.cz }) : controls.pos);
     ui.on('mapOpen', () => map.draw(mapPos(), controls.yaw));
     ui.on('timeOpen', () => {
         document.getElementById('time-slider').value = Math.round(sky.time * 1440);
@@ -1348,6 +1389,14 @@ async function boot() {
         if (ui.blocking) return;
         if (place === 'cove') return tapCove(x, y);
         if (place === 'mine') return tapMine(x, y);
+        if (below && roomKind === 'arcade') {
+            ndc.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
+            ray.setFromCamera(ndc, camera);
+            const h = arcade.tap(ray);
+            if (h?.type === 'ground') ui.marker(x, y);
+            else if (h && h.type !== 'cabinet' && h.type !== 'bowl') audio.click();
+            return;
+        }
         if (below && roomKind === 'tower') {
             if (scoping) return;
             ndc.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
@@ -1434,6 +1483,13 @@ async function boot() {
             const route = controls.plan(ob.out.x, ob.out.z);
             route.push({ x: ob.x, z: ob.z });
             controls.walkTo(route);
+        } else if (h.type === 'lhDoor') {
+            audio.click();
+            ui.closeAll();
+            const lh = world.lighthouse;
+            const route = controls.plan(lh.out.x, lh.out.z);
+            route.push({ x: lh.x, z: lh.z });
+            controls.walkTo(route);
         } else if (h.type === 'door') {
             const d = world.clockDoor;
             controls.walkTo([{ x: d.x, z: d.z }]);
@@ -1484,6 +1540,7 @@ async function boot() {
         if (place !== 'garden' && !below) return audio.step(controls.pos.x > volcano.platformStand.x - 3 && controls.pos.x < volcano.platformStand.x + 3 && controls.pos.z > volcano.cartPos.z - 8 && controls.pos.z < volcano.cartPos.z + 17 ? 'wood' : 'stone');
         if (below && roomKind === 'mine') return audio.step('stone');
         if (below && roomKind === 'tower') return audio.step(tower.stepSurface());
+        if (below && roomKind === 'arcade') return audio.step(arcade.stepSurface(controls.pos));
         if (below) return audio.step(roomKind === 'subway' ? subway.stepSurface(controls.pos) : 'metal');
         const p = controls.pos;
         const surface = world.onDeck(p.x, p.z) ? 'wood' : island.pathDistAt(p.x, p.z) < PATH_HALF + 0.2 || Math.hypot(p.x, p.z) < PLAZA_R || world.inPlaza(p.x, p.z) ? 'stone' : 'grass';
@@ -1707,6 +1764,14 @@ async function boot() {
                 } else tower.clearHover();
             }
             audio.update(night, -100);
+        } else if (below && roomKind === 'arcade') {
+            arcade.update(dt, t);
+            audio.update(night, -100);
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !transit) {
+                ndc.set((mouse.x / innerWidth) * 2 - 1, -(mouse.y / innerHeight) * 2 + 1);
+                ray.setFromCamera(ndc, camera);
+                document.body.classList.toggle('can-hover-pick', arcade.hover(ray, mouse.x, mouse.y));
+            } else arcade.clearHover();
         } else if (below && roomKind === 'subway') {
             subway.update(Math.min(rawDt, 0.25), t, camera, controls);
             audio.update(night, -100);
@@ -1840,7 +1905,7 @@ async function boot() {
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { get undersea() { return undersea; }, get diving() { return diving; }, startDive, leaveDive, fountainSub, get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, fireworks, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
+        window.__garden = { get arcade() { return arcade; }, get undersea() { return undersea; }, get diving() { return diving; }, startDive, leaveDive, fountainSub, get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, fireworks, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
     }
 }
 

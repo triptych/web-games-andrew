@@ -490,7 +490,44 @@ function buildLighthouse(world, batch, f) {
     batch.add('iron', new THREE.TorusGeometry(1.8, 0.05, 4, 24), xf(f.x, y + H + 1.1, f.z, 0, 1, 1, 1, Math.PI / 2));
     world.colliders.push({ x: f.x, z: f.z, r: 2.8 });
     world.beacons.push({ x: f.x, y: y + H + 1.3, z: f.z });
-    world.landmarks.push({ name: 'The Lighthouse', x: f.x, z: f.z });
+    // an arched door facing the hub, with steps up to it: it opens on the Lighthouse Arcade (see arcade.js)
+    const toHub = Math.atan2(-f.x, -f.z);
+    const dx = Math.sin(toHub), dz = Math.cos(toHub);
+    const frame = archShape(0.9, 2.5);
+    frame.holes.push(new THREE.Path(archShape(0.6, 2.2).getPoints(12)));
+    batch.add('granite', new THREE.ExtrudeGeometry(frame, { depth: 0.32, bevelEnabled: false, curveSegments: 12 }), xf(f.x + dx * 2.12, y + 0.8, f.z + dz * 2.12, toHub));
+    for (let k = 0; k < 2; k++) batch.add('granite', new THREE.BoxGeometry(2.0 - k * 0.3, 0.22, 0.5), xf(f.x + dx * (3.0 - k * 0.36), y + 0.41 + k * 0.22, f.z + dz * (3.0 - k * 0.36), toHub));
+    const leaf = new THREE.Mesh(new THREE.ExtrudeGeometry(archShape(0.6, 2.2), { depth: 0.08, bevelEnabled: false, curveSegments: 12 }), world.mats.darkWood);
+    leaf.position.set(f.x + dx * 2.2, y + 0.8, f.z + dz * 2.2);
+    leaf.rotation.y = toHub;
+    leaf.userData.kind = 'arcadeDoor';
+    world.root.add(leaf);
+    // a strip of neon round the arch and a coin slot of light: something louder than a lamp room lives inside
+    const neon = new THREE.MeshStandardMaterial({ color: 0x220018, emissive: 0xff4fd0, emissiveIntensity: 1.6, roughness: 0.4 });
+    world.glowMats.push({ mat: neon, day: 1.2, night: 3.2 });
+    const tube = new THREE.Mesh(new THREE.TorusGeometry(0.76, 0.035, 6, 24, Math.PI), neon);
+    tube.position.set(f.x + dx * 2.46, y + 0.8 + 2.2 - 0.6 + 0.02, f.z + dz * 2.46);
+    tube.rotation.y = toHub;
+    world.root.add(tube);
+    for (const sd of [-1, 1]) {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1.6, 0.07), neon);
+        post.position.set(f.x + dx * 2.46 + Math.cos(toHub) * sd * 0.76, y + 0.8 + 0.82, f.z + dz * 2.46 - Math.sin(toHub) * sd * 0.76);
+        post.rotation.y = toHub;
+        world.root.add(post);
+    }
+    const plaque = signMesh(signTexture('\u{1F579}\u{FE0F}', 'The Lighthouse Arcade', 'Insert coin · every game, plus bowling and a disco', '#ff5fd2', 1024, 256), 2.2, 0.55, 0.3);
+    plaque.position.set(f.x + dx * 2.2, y + 3.95, f.z + dz * 2.2);
+    plaque.rotation.y = toHub;
+    world.root.add(plaque);
+    world.nightSigns.push(plaque.userData.nightGlow);
+    world.lighthouse = {
+        mesh: leaf, cx: f.x, cz: f.z,
+        // walking into this spot goes through the door
+        x: f.x + dx * 3.3, z: f.z + dz * 3.3,
+        // where you come back out, facing the hub
+        out: { x: f.x + dx * 5.6, z: f.z + dz * 5.6, yaw: toHub + Math.PI },
+    };
+    world.landmarks.push({ name: 'The Lighthouse', x: f.x, z: f.z, stand: { x: f.x + dx * 5.6, z: f.z + dz * 5.6, yaw: toHub } });
 }
 
 function buildFountain(world, mats, batch, f) {
