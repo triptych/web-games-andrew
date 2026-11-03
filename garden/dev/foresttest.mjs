@@ -103,7 +103,9 @@ if (!ONLY || ONLY === 'desktop') {
     await until('g.forest.queue.length === 0', 120000);
     const keys1 = await G('[...g.forest.chunks.keys()]');
     check(keys1.every((k) => !keys0.split(';').includes(k)), 'far from the door the wood is all new chunks');
-    check(keys1.length <= n0 + 12, `old chunks are let go (${keys1.length} kept)`);
+    const R = await G('g.forest.cfg.R');
+    const farthest = await G('(() => { const f = g.forest, c = g.controls.pos, ci = Math.floor(c.x / 32), cj = Math.floor(c.z / 32); return Math.max(...[...f.chunks.values()].map((ch) => Math.hypot(ch.i - ci, ch.j - cj))); })()');
+    check(farthest <= R + 1, `old chunks are let go (${keys1.length} kept, none more than ${R + 1} chunks away)`);
     check(await G('g.forest.world.collidersNear(g.controls.pos.x, g.controls.pos.z).length > 0'), 'trees and stones are solid');
     await shot('3-far');
 

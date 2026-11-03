@@ -399,8 +399,9 @@ export class Forest {
         if (!sync && ci === this.ci && cj === this.cj) return;
         this.ci = ci;
         this.cj = cj;
+        // a little slack past the ring that is built, so stepping back and forth over an edge doesn't rebuild it
         for (const [key, ch] of this.chunks) {
-            if (Math.max(Math.abs(ch.i - ci), Math.abs(ch.j - cj)) > R + 1) {
+            if ((ch.i - ci) ** 2 + (ch.j - cj) ** 2 > (R + 1) ** 2) {
                 this._drop(ch);
                 this.chunks.delete(key);
                 this.ver++;
