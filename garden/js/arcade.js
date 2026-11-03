@@ -3,7 +3,9 @@
 // the garden, each running its game's attract mode. Click a cabinet for its game
 // card. Down the west side is a working bowling alley (arcade-bowling.js), and on
 // the east a disco floor with a mirror ball and a jukebox (arcade-disco.js,
-// arcade-audio.js). The hall is planned from the game list (arcade-layout.js) and
+// arcade-audio.js). By the way in stand Madame Meridian, a fortune teller who
+// prints you a ticket (arcade-fortune.js), and Plush Pier, a claw machine full of
+// plush from the garden's games (arcade-claw.js, arcade-toys.js). The hall is planned from the game list (arcade-layout.js) and
 // grows with it. Like the Observatory it is built on the first visit, with its
 // own scene and a stand-in `world` for the walking controls.
 
@@ -14,6 +16,8 @@ import { buildAtlases, screenMaterial, marqueeMaterial, neonTexture, pixelFontRe
 import { Bowling } from './arcade-bowling.js';
 import { Disco, FLOOR_Y } from './arcade-disco.js';
 import { ArcadeAudio, SONGS } from './arcade-audio.js';
+import { FortuneTeller } from './arcade-fortune.js';
+import { ClawMachine } from './arcade-claw.js';
 import { rng, store, esc, TAU } from './util.js';
 
 const NEON = ['#ff3fd0', '#30e8ff', '#ffe94a', '#5fff8f', '#b06bff', '#ff8a3a'];
@@ -294,6 +298,9 @@ export class Arcade {
         this.bowling.monitors.forEach((m) => this.bowling._drawMonitor(m, null));
         this.disco = new Disco({ plan, scene: this.scene, quality: env.quality });
         this.disco.setSongs(SONGS);
+        this.fortune = new FortuneTeller({ plan, scene: this.scene, audio: this.sound, games: env.games, showCard: env.showCard });
+        this.claw = new ClawMachine({ plan, scene: this.scene, audio: this.sound, camera: env.camera, games: env.games, showCard: env.showCard });
+        this.claw.onQuit = () => this.stopClaw();
         this._grid();
         this._jukeDom();
         // while bowling the walking controls are off, so a click on the view is caught here
@@ -720,6 +727,13 @@ export class Arcade {
     _arrive(r) {
         if (r.lane !== undefined) this.startBowling(r.lane);
         else if (r.jukebox) this.openJukebox();
+        else if (r.fortune) this.fortune.ask();
+        else if (r.claw) this.startClaw();
+    }
+
+    /** Bowling or at the claw: the walking controls are off and the view is the game's. */
+    get busy() {
+        return this.bowling.active || this.claw.active;
     }
 
     // ------------------------------------------------------------ in and out
@@ -739,6 +753,8 @@ export class Arcade {
             this.controls.enabled = true;
             this.onBowling?.(false);
         }
+        if (this.claw.active) this.stopClaw(true);
+        this.fortune.leave();
         this.closeJukebox();
         this.sound.leave();
         this.env.ui.tooltip(null);
@@ -749,12 +765,13 @@ export class Arcade {
     // ------------------------------------------------------------ touching things
 
     _hit(ray) {
-        const objs = [this.bodies, this.screens, this.marquees, ...this.disco.pickables, ...this.bowling.pickables, this.doorMesh, ...this.bowling.rackBalls];
+        const objs = [this.bodies, this.screens, this.marquees, ...this.disco.pickables, ...this.bowling.pickables, this.doorMesh, ...this.bowling.rackBalls, ...this.fortune.pickables, ...this.claw.pickables];
         const hit = ray.intersectObjects(objs, false)[0];
         if (!hit) return null;
         const o = hit.object;
         if (o === this.bodies || o === this.screens || o === this.marquees) return hit.distance < 30 ? { type: 'cabinet', cab: this.plan.cabinets[hit.instanceId], t: hit.distance } : null;
         if (o.userData.kind === 'jukebox') return { type: 'jukebox', t: hit.distance };
+        if (o.userData.kind === 'fortune' || o.userData.kind === 'claw') return hit.distance < 40 ? { type: o.userData.kind, t: hit.distance } : null;
         if (o.userData.kind === 'lane') return { type: 'lane', lane: o.userData.lane, t: hit.distance };
         if (this.bowling.rackBalls.includes(o)) {
             // the nearest lane to the rack
@@ -780,6 +797,7 @@ export class Arcade {
             this.bowling.tap();
             return { type: 'bowl' };
         }
+        if (this.claw.active) return { type: 'claw' };
         const h = this._hit(ray);
         const env = this.env;
         if (h?.type === 'cabinet') {
@@ -793,6 +811,15 @@ export class Arcade {
             const p = this.controls.pos;
             if (Math.hypot(p.x - j.x, p.z - j.z) > 4) this.walkTo(j.x - 1.4, j.z, { face: -Math.PI / 2, jukebox: true });
             this.openJukebox();
+            return h;
+        }
+        if (h?.type === 'fortune' || h?.type === 'claw') {
+            const m = this.plan[h.type], s = m.stand;
+            const p = this.controls.pos;
+            const go = h.type === 'fortune' ? () => this.fortune.ask() : () => this.startClaw();
+            env.ui.closeAll();
+            if (Math.hypot(p.x - s.x, p.z - s.z) < 2.2) go();
+            else if (!this.walkTo(s.x, s.z, { face: s.yaw, [h.type]: true })) go();
             return h;
         }
         if (h?.type === 'lane') {
@@ -817,7 +844,7 @@ export class Arcade {
 
     /** The pointer is over something: highlight a cabinet and show its tooltip. Returns whether to show a hand. */
     hover(ray, mx, my) {
-        if (this.bowling.active) {
+        if (this.bowling.active || this.claw.active) {
             this.hoverId = -1;
             this.env.ui.tooltip(null);
             return false;
@@ -826,6 +853,11 @@ export class Arcade {
         if (h?.type === 'cabinet') {
             this.hoverId = h.cab.id;
             this.env.ui.tooltip(h.cab.game, mx, my, 'Click the cabinet for its game card');
+            return true;
+        }
+        if (h?.type === 'fortune' || h?.type === 'claw') {
+            this.hoverId = -1;
+            this.env.ui.note((h.type === 'fortune' ? this.fortune : this.claw).info(), mx, my);
             return true;
         }
         this.hoverId = -1;
@@ -869,6 +901,31 @@ export class Arcade {
         this.controls.pitch = -0.1;
         this.controls.enabled = true;
         this.onBowling?.(false);
+    }
+
+    // ------------------------------------------------------------ the claw machine
+
+    startClaw() {
+        if (this.claw.active || this.bowling.active) return;
+        this.closeJukebox();
+        this.env.ui.closeAll();
+        this.env.ui.tooltip(null);
+        this.controls.route = null;
+        this.controls.enabled = false;
+        this.controls.keys.clear();
+        this.claw.start(this.controls);
+        this.onBusy?.(true);
+    }
+
+    stopClaw(silent = false) {
+        if (!this.claw.active) return;
+        this.claw.stop();
+        if (silent) return;
+        const s = this.plan.claw.stand;
+        this.controls.teleport(s.x, s.z + 0.3, s.yaw);
+        this.controls.pitch = -0.12;
+        this.controls.enabled = true;
+        this.onBusy?.(false);
     }
 
     // ------------------------------------------------------------ the jukebox
@@ -940,6 +997,8 @@ export class Arcade {
         this.lastBeat = beat;
         this.disco.update(dt, t, beat, this.bowling.active ? null : p);
         this.bowling.update(dt, t);
+        this.fortune.update(dt, t, this.busy ? null : p);
+        this.claw.update(dt, t);
         this.screenMat.uniforms.uTime.value = t;
         this.marqueeMat.uniforms.uTime.value = t;
         const lit = this.hoverId >= 0 ? this.hoverId : this.env.ui.cardGame && this.cardId >= 0 && this.plan.cabinets[this.cardId]?.game === this.env.ui.cardGame ? this.cardId : -1;
@@ -950,7 +1009,7 @@ export class Arcade {
         this.neonMats[0].color.set(NEON[0]).multiplyScalar(k);
         this.neonMats[1].color.set(NEON[1]).multiplyScalar(beat.playing ? 1.6 + (1 - beat.pulse) * 1.2 : 2.2);
         // dancing: on the floor with a song on, the view bobs to the beat
-        if (beat.playing && p && !this.bowling.active && this.disco.onFloor(p.x, p.z) && this.controls.enabled) {
+        if (beat.playing && p && !this.busy && this.disco.onFloor(p.x, p.z) && this.controls.enabled) {
             this.env.camera.position.y += Math.sin(beat.beat * Math.PI * 2) * 0.03 * (0.6 + beat.pulse);
             this.dancing = (this.dancing || 0) + dt;
             if (this.dancing > 6 && !this.danceHint) {

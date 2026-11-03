@@ -225,6 +225,42 @@
             <button class="btn" id="bowl-quit" title="Step off the lane (Esc)">Step off <kbd>Esc</kbd></button>
         </div>
     </section>
+    <aside id="fortune-card" class="panel fortune-card" hidden role="dialog" aria-modal="false" aria-labelledby="fortune-text">
+        <p class="ft-head" aria-hidden="true">&#10022; Madame Meridian &#10022;</p>
+        <p class="ft-kicker" id="fortune-kicker">Your fortune</p>
+        <h2 class="ft-text" id="fortune-text"></h2>
+        <div class="ft-lucky" id="fortune-lucky"></div>
+        <button class="ft-game" id="fortune-game"></button>
+        <div class="ft-foot">
+            <span class="ft-log" id="fortune-log"></span>
+            <span class="ft-btns"><button id="fortune-again" class="btn">Ask again</button><button id="fortune-done" class="btn btn-primary">Keep the ticket</button></span>
+        </div>
+    </aside>
+    <section id="claw-hud" class="claw-hud" hidden aria-label="Claw machine">
+        <p class="claw-top"><span class="claw-time" aria-label="Seconds left"><span id="claw-time">25</span></span><span class="claw-say" id="claw-say" aria-live="assertive"></span></p>
+        <p class="claw-hint"><span class="claw-keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrows move the claw &middot; <kbd>Space</kbd> drops it &middot; <kbd>Esc</kbd> steps back</span><span class="claw-touch">Hold the arrows to move the claw, then drop it</span></p>
+        <div class="claw-pad" role="group" aria-label="Claw controls">
+            <div class="claw-dpad">
+                <button class="claw-btn cb-up" data-claw="up" aria-label="Move the claw back" title="Back (W)">&#9650;</button>
+                <button class="claw-btn cb-left" data-claw="left" aria-label="Move the claw left" title="Left (A)">&#9664;</button>
+                <button class="claw-btn cb-right" data-claw="right" aria-label="Move the claw right" title="Right (D)">&#9654;</button>
+                <button class="claw-btn cb-down" data-claw="down" aria-label="Move the claw forward" title="Forward (S)">&#9660;</button>
+            </div>
+            <button class="btn btn-primary claw-go" id="claw-go" title="Drop the claw (Space)">Drop</button>
+            <button class="btn" id="claw-quit" title="Step back (Esc)">Step back <kbd>Esc</kbd></button>
+        </div>
+    </section>
+    <aside id="claw-card" class="panel fish-card claw-card" hidden role="dialog" aria-modal="false" aria-labelledby="claw-name">
+        <p class="fc-kicker" id="claw-kicker">You won</p>
+        <h2 id="claw-name"></h2>
+        <p class="fc-latin" id="claw-from"></p>
+        <div class="fc-stats" id="claw-stats"></div>
+        <p class="fc-fact" id="claw-fact"></p>
+        <div class="fc-foot">
+            <span class="fc-log" id="claw-log"></span>
+            <span class="ft-btns"><button id="claw-see" class="btn">See its game</button><button id="claw-again" class="btn btn-primary">Play again</button></span>
+        </div>
+    </aside>
     <aside id="juke-panel" class="panel juke-panel" hidden role="dialog" aria-modal="false" aria-labelledby="juke-title">
         <header class="juke-head">
             <h2 id="juke-title">&#9835; Jukebox</h2>

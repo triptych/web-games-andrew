@@ -329,7 +329,7 @@ async function boot() {
     const fox = new FoxVisitor(scene, world, controls, camera, { force: params.get('fox') });
     const boat = new Boat(world, scene, camera, controls);
     const fishing = new Fishing({ world, scene, camera, controls, ui, audio, bursts, canvas });
-    controls.canJump = () => !fishing.active && !ui.blocking && !boat.busy && !diving && !arcade?.bowling.active;
+    controls.canJump = () => !fishing.active && !ui.blocking && !boat.busy && !diving && !arcade?.busy;
     // The title orbit circles the island looking in, so its show goes up over the island's heart. The flying
     // boat circles it too, turning from the bow to the island and back, so each shell goes up ahead of the rider's view.
     const islandHeart = new THREE.Vector3(), ahead = new THREE.Vector3();
@@ -1199,11 +1199,11 @@ async function boot() {
                     arcade ??= new Arcade({ renderer, ui, mats: world.mats, audio, quality, camera, canvas, games, showCard: (g) => ui.showCard(g) });
                     setBelow(true, 'arcade');
                     arcade.enter(controls);
-                    ui.zone('The Lighthouse Arcade', `${games.length} cabinets · bowling · disco`, '#ff5fd2');
+                    ui.zone('The Lighthouse Arcade', `${games.length} cabinets · bowling · disco · fortunes · plush`, '#ff5fd2');
                     zoneKey = 'arcade';
                     if (!arcadeHintShown) {
                         arcadeHintShown = true;
-                        setTimeout(() => ui.hint('Every cabinet is a game from the garden · click one for its card · click a bowling lane to bowl · the jukebox by the dance floor takes requests · the door behind you leads out', 11000), 1400);
+                        setTimeout(() => ui.hint('Every cabinet is a game from the garden · click one for its card · Madame Meridian tells fortunes and Plush Pier has a toy from every game · click a bowling lane to bowl · the jukebox takes requests · the door behind you leads out', 12000), 1400);
                     }
                 } catch (e) {
                     console.error(e);
@@ -1252,7 +1252,7 @@ async function boot() {
         const p = controls.pos;
         if (below && roomKind === 'tower') return;   // the tower minds its own door
         if (below && roomKind === 'arcade') {
-            if (arcade.bowling.active) return;
+            if (arcade.busy) return;
             const e = arcade.exit, dist = Math.hypot(p.x - e.x, p.z - e.z);
             if (dist > 2) doorArmed = true;
             if (doorArmed && dist < 0.7) throughDoor(false);
