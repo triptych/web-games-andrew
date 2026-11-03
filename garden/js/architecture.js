@@ -2,7 +2,7 @@
 // (dome, onion, cone, pagoda and crystal roofs), the dock and a sunken wreck,
 // lamp posts, benches and the set pieces between the paths — a great gear,
 // an observatory, a lighthouse, a fountain, standing stones and a clock tower
-// on its own islet. Adds colliders, floors and vine anchors to `world`.
+// on its own islet, and the grounds of the Starlight Carousel. Adds colliders, floors and vine anchors to `world`.
 
 import * as THREE from 'three';
 import { Batch, xf, under } from './materials.js';
@@ -583,6 +583,54 @@ function buildStones(world, mats, batch, f) {
     world.landmarks.push({ name: 'The Standing Stones', x: f.x, z: f.z });
 }
 
+/**
+ * The carousel's grounds: a ring of paving to walk round the machine, a kerb,
+ * lamps, flower beds and a sign at the gap that faces the hub. The machine
+ * itself, which turns and has to be ridden, is carousel.js.
+ */
+function buildCarouselGrounds(world, mats, batch, f) {
+    const y = world.groundAt(f.x, f.z);
+    const R = 9.4;
+    const fl = flagstones();
+    const tex = fl.map.clone();
+    tex.repeat.set(6, 6);
+    tex.needsUpdate = true;
+    const paving = new THREE.Mesh(new THREE.CircleGeometry(R, 72).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: tex, normalMap: fl.normalMap, roughness: 0.85, color: 0xe6dccb }));
+    paving.position.set(f.x, y + 0.045, f.z);
+    paving.receiveShadow = true;
+    world.root.add(paving);
+    batch.add('granite', lathe([[R - 0.05, -0.5], [R + 0.35, -0.5], [R + 0.35, 0.12], [R - 0.05, 0.14]], 72), xf(f.x, y, f.z));
+    const face = Math.atan2(-f.x, -f.z);
+    // lamps round the rim, leaving the side toward the hub open
+    for (let k = 0; k < 6; k++) {
+        const a = face + Math.PI / 6 + (k * TAU) / 6;
+        world.lampSpots.push({ x: f.x + Math.sin(a) * (R - 0.55), z: f.z + Math.cos(a) * (R - 0.55) });
+        world.flowerBeds.push({ x: f.x + Math.sin(a + Math.PI / 6) * (R + 1.8), z: f.z + Math.cos(a + Math.PI / 6) * (R + 1.8), r0: 0, r1: 1.6, colors: ['#ff8ad8', '#ffd76a', '#8fd8ff', '#c9a2ff'], n: 60 });
+    }
+    // a painted sign on two posts at the gap facing the hub
+    const sx = f.x + Math.sin(face) * (R + 1.1), sz = f.z + Math.cos(face) * (R + 1.1);
+    const ox = Math.cos(face), oz = -Math.sin(face);
+    for (const sd of [-1, 1]) {
+        const py = world.groundAt(sx + ox * sd * 1.5, sz + oz * sd * 1.5);
+        batch.add('darkWood', new THREE.CylinderGeometry(0.07, 0.09, 2.3, 8), xf(sx + ox * sd * 1.5, py + 1.0, sz + oz * sd * 1.5));
+        batch.add('brass', new THREE.SphereGeometry(0.11, 10, 8), xf(sx + ox * sd * 1.5, py + 2.2, sz + oz * sd * 1.5));
+        world.colliders.push({ x: sx + ox * sd * 1.5, z: sz + oz * sd * 1.5, r: 0.2 });
+    }
+    const signTex = signTexture('\u{1F3A0}', 'The Starlight Carousel', 'Pick a creature and climb on', '#ff8ad8', 1024, 256);
+    for (const side of [0, Math.PI]) {
+        const s = signMesh(signTex, 2.8, 0.7, 0.3);
+        s.position.set(sx + Math.sin(face + side) * 0.04, world.groundAt(sx, sz) + 1.75, sz + Math.cos(face + side) * 0.04);
+        s.rotation.y = face + side;
+        world.root.add(s);
+        world.nightSigns.push(s.userData.nightGlow);
+    }
+    world.carouselSite = { x: f.x, y, z: f.z, face, R };
+    world.landmarks.push({
+        name: 'The Starlight Carousel', x: f.x, z: f.z,
+        stand: { x: f.x + Math.sin(face) * (R + 2), z: f.z + Math.cos(face) * (R + 2), yaw: face },
+    });
+}
+
 function clockFaceTexture() {
     const n = 256;
     const c = canvas(n);
@@ -793,6 +841,7 @@ export function buildArchitecture(world) {
         else if (f.type === 'lighthouse') buildLighthouse(world, batch, f);
         else if (f.type === 'fountain') buildFountain(world, mats, batch, f);
         else if (f.type === 'stones') buildStones(world, mats, batch, f);
+        else if (f.type === 'carousel') buildCarouselGrounds(world, mats, batch, f);
     }
     buildBridge(world, batch);
     buildIslet(world, mats, batch);

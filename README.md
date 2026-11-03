@@ -22,11 +22,12 @@ Set pieces between the paths open onto places of their own:
 - **The Hut**: a cabin by the dock path with a fireplace and a desk. Click the glass sphere on the desk to fall into the galaxy turning inside it, or the train ticket beside it to ride the **Violet Line**: from Hearthside station a train runs down a long tunnel past ghost stations and a cavern viaduct to Prism Halt and the **Spectrum Rotunda**, a pool of swirling light that answers your touch, then brings you home.
 - **The Clock Tower** on its own islet, with **the Works** beneath it: a machine hall of gears, boilers, pistons and steam, its screens showing the garden's own source code.
 - **The Standing Stones**: their motes carry you to **Cinderpeak**, the volcano out beyond the dock. In its cove a mine cart rides about three minutes through lava tunnels and a gem cavern to a cliff over the lava source.
+- **The Starlight Carousel**, on a paved plaza between two paths: a band-organ merry-go-round with a striped roof, a mirrored drum, barley-twist brass poles and some 370 bulbs, carrying eight creatures of legend: an ember dragon, a pegasus, a unicorn whose hide is the night sky (its stars twinkle and drift), a griffin, a hippocampus, a phoenix, a nine-tailed fox and a moon moth. Click one to climb on: the bell rings, the organ strikes up an original waltz and round you go, rising and falling on your pole. After dark its lights run in colours, and when the midnight fireworks go up it starts by itself and plays along.
 - **The fishing pier**, opposite the dock: cast, strike and reel in nine kinds of fish, the Moonfin only at night.
 - **The rowboat** moored at the dock, the one you arrived in: climb in and it sprouts wings and flies a slow circuit around the island.
 - And a great gear, and **fireworks at midnight** when the garden's clock runs past 00:00.
 
-The garden grows with the collection. A game's `genre` field picks its path (a game without one is placed by its tags), newer games stand nearer the hub, and paths lengthen and the island widens as games are added. The original card grid is still at [classic.html](classic.html). Code lives in [garden/](garden/), and [garden/dev/](garden/dev/) drives it in real Chromium: [browsertest.mjs](garden/dev/browsertest.mjs) on desktop and on touch-only phones (plus the fox and the pier), and one test each for the Observatory ([towertest.mjs](garden/dev/towertest.mjs)), the Lighthouse Arcade ([arcadetest.mjs](garden/dev/arcadetest.mjs)), the undersea ([seatest.mjs](garden/dev/seatest.mjs)), the Hut and the Violet Line ([subwaytest.mjs](garden/dev/subwaytest.mjs)) and Cinderpeak ([cindertest.mjs](garden/dev/cindertest.mjs)).
+The garden grows with the collection. A game's `genre` field picks its path (a game without one is placed by its tags), newer games stand nearer the hub, and paths lengthen and the island widens as games are added. The original card grid is still at [classic.html](classic.html). Code lives in [garden/](garden/), and [garden/dev/](garden/dev/) drives it in real Chromium: [browsertest.mjs](garden/dev/browsertest.mjs) on desktop and on touch-only phones (plus the fox and the pier), and one test each for the Observatory ([towertest.mjs](garden/dev/towertest.mjs)), the Starlight Carousel ([carouseltest.mjs](garden/dev/carouseltest.mjs)), the Lighthouse Arcade ([arcadetest.mjs](garden/dev/arcadetest.mjs)), the undersea ([seatest.mjs](garden/dev/seatest.mjs)), the Hut and the Violet Line ([subwaytest.mjs](garden/dev/subwaytest.mjs)) and Cinderpeak ([cindertest.mjs](garden/dev/cindertest.mjs)).
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -426,7 +427,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 114 games are included as of the latest entries (game-110 Doom & Doilies, game-111 NEON ARCANA, game-112 Quill & Legion, game-113 Crystal Crescendo, game-114 LAST COLONIST), and the Garden launcher is at v1.8.1.
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 114 games are included as of the latest entries (game-110 Doom & Doilies, game-111 NEON ARCANA, game-112 Quill & Legion, game-113 Crystal Crescendo, game-114 LAST COLONIST), and the Garden launcher is at v1.9.0.
 
 ---
 
