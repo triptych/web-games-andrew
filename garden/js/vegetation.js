@@ -61,7 +61,9 @@ function jitter(geo, amt, seed, scaleXZ = 1) {
     // keep coincident vertices together so the mesh doesn't crack
     const map = new Map();
     for (let i = 0; i < p.count; i++) {
-        const k = `${p.getX(i).toFixed(3)},${p.getY(i).toFixed(3)},${p.getZ(i).toFixed(3)}`;
+        // round to integers, not toFixed(): a cylinder's seam vertex is -2e-16 at one end and 0 at the
+        // other, and toFixed(3) turns those into "-0.000" and "0.000", which cracked the trunks open
+        const k = `${Math.round(p.getX(i) * 1000)},${Math.round(p.getY(i) * 1000)},${Math.round(p.getZ(i) * 1000)}`;
         if (!map.has(k)) map.set(k, [(r() - 0.5) * amt * scaleXZ, (r() - 0.5) * amt, (r() - 0.5) * amt * scaleXZ]);
         const d = map.get(k);
         p.setXYZ(i, p.getX(i) + d[0], p.getY(i) + d[1], p.getZ(i) + d[2]);
