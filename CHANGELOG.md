@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- **The Garden** ([index.html](index.html)) v1.13.1: **steering the galleon is easier to see.** From the wheel you look straight at the masts and sails, so sailing now starts in a **chase view**: behind and above her, level, looking over the bow at the sea ahead, following her heading a little late. Drag to swing the camera round her (and up and down to raise or lower it); **C**, or the View button, switches to the wheel's own view, and the choice is remembered. The camera glides in to the wheel when she moors ([ship.js](garden/js/ship.js)).
+- **The Garden** ([index.html](index.html)) v1.13.1: **steering the galleon is easier to see.** From the wheel you look straight at the masts and sails, you start at the wheel, and there is a **chase view** one key away: behind and above her, level, looking over the bow at the sea ahead, following her heading a little late. **C**, or the View button, switches to it and back, and the choice is remembered. In the chase view, drag to swing the camera round her (and up and down to raise or lower it). The camera glides in to the wheel when she moors ([ship.js](garden/js/ship.js)).
 - **The Garden** v1.13.1: the wheel stood inside its own pedestal; the pedestal now stands just ahead of the wheel, which turns on an axle from its aft face, so the rim swings clear ([ship-deck.js](garden/js/ship-deck.js)).
 
 ### Fixed

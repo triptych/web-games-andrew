@@ -60,7 +60,7 @@ export class Ship {
         this.lookYaw = 0;
         this._lastYaw = 0;
         this.camYaw = this.yaw;
-        this.view = store.get('shipView', 'chase') === 'helm' ? 'helm' : 'chase';
+        this.view = store.get('shipView', 'helm') === 'chase' ? 'chase' : 'helm'; // starts at the wheel; C switches (and is remembered)
         this.dwell = 0;
         this.armed = true;
         this.plankK = 1;            // 1 = the gangplank is out
