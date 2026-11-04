@@ -6,6 +6,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { roundBloom } from './bloom.js';
 import games from '../../js/gamedata.js';
 import { buildLayout, projectOnPath, samplePath, PLAZA_R, PATH_HALF, GATE_S, PAVILION_PLAZA } from './layout.js';
 import { Island } from './terrain.js';
@@ -314,6 +315,8 @@ async function boot() {
     const renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
     const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.42, 0.5, 1.15);
+    // its blurs are nearly box blurs, which give small lights square halos: make them Gaussian (see bloom.js)
+    roundBloom(bloom);
     if (quality.bloom) composer.addPass(bloom);
     composer.addPass(new OutputPass());
 
