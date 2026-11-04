@@ -391,8 +391,16 @@ async function cemetery() {
     await until(page, () => !document.getElementById('salon-pick').hidden && /Next paying client in/.test(document.getElementById('salon-status').textContent), 'Next client goes back to the gallery, where the wait for the next paying client shows');
     await mouseAt(page, '.salon-client[data-id="lich"]');
     await until(page, () => __dd.G.yard.salon.appt?.client === 'lich' && !__dd.G.yard.salon.appt.paid && /Practice/.test(document.getElementById('salon-status').textContent), 'a client before then is a free practice cut');
+    // the castle keeps quiet behind the salon: no visitors, no castle toasts; a trophy waits until you're back
+    await until(page, () => __dd.G.hush, 'the sim is hushed while the salon is open');
+    const seenV = await Q(page, () => __dd.seen.visitor || 0);
+    await Q(page, () => { document.getElementById('toasts').innerHTML = ''; __dd.G.nextVisit = 0; __dd.G.ach.hench = 0; __dd.G.hench = 10; __dd.send({ t: 'buy', id: 'cauldron', n: 1 }); });
+    await page.waitForTimeout(1500);
+    check(await Q(page, (n) => (__dd.seen.visitor || 0) === n, seenV), 'no visitor arrives while you style');
+    check(await Q(page, () => !document.getElementById('toasts').textContent.trim() && __dd.held.some((e) => e.type === 'ach')), 'no castle toast pops up over the salon; a trophy is held back');
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('salon').hidden && __dd.place === 'yard', 'Escape goes back to the graves');
+    await until(page, () => /Trophy/.test(document.getElementById('toasts').textContent) && !__dd.held.length && !__dd.G.hush, 'and the held trophy shows once you are back');
     // getting there other ways
     await Q(page, () => __dd.setPlace('castle'));
     await page.keyboard.press('KeyE');

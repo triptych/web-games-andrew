@@ -1,7 +1,7 @@
 // The simulation. Pure: no DOM, no rendering library, no Math.random, no clock.
 //
 // newGame(seed) → G. step(G, dt) runs the castle forward; act(G, cmd) applies one player command (craft, cackle,
-// buy, upgrade, décor, scheme, visitor, ability, relocate, perk, room, idle, clock) and returns whether it did
+// buy, upgrade, décor, scheme, visitor, ability, relocate, perk, room, idle, clock, hush) and returns whether it did
 // anything. The view, the UI, the audio, the bot and the tests all go through these two, and G.events tells
 // everyone what happened.
 
@@ -295,9 +295,11 @@ export function step(G, dt) {
     }
 
     // visitors leave when their time is up; a hero who leaves unfrightened tells everyone about the doilies
+    // while a mini-game is open (G.hush) nobody new arrives and those already here wait, so nothing happens behind your back
+    const hush = G.hush && !G.quiet;
     for (let i = G.visitors.length - 1; i >= 0; i--) {
         const v = G.visitors[i];
-        v.t -= dt;
+        if (!hush) v.t -= dt;
         if (v.t > 0) continue;
         G.visitors.splice(i, 1);
         if (v.kind === 'hero') {
@@ -306,7 +308,7 @@ export function step(G, dt) {
             emit(G, { type: 'heroGossip', vid: v.vid });
         } else emit(G, { type: 'visitorLeft', vid: v.vid, kind: v.kind });
     }
-    if (!G.quiet) {
+    if (!G.quiet && !hush) {
         G.nextVisit -= dt * M.vFreq;
         if (G.nextVisit <= 0) {
             spawnVisitor(G, R);
@@ -426,6 +428,7 @@ export function act(G, cmd) {
         }
         case 'idle': return away(G, cmd.sec);
         case 'clock': G.wall = cmd.wall; return true;
+        case 'hush': G.hush = !!cmd.on; return true;
         case 'm3start': return m3start(G);
         case 'm3swap': return m3swap(G, cmd.a, cmd.b);
         case 'salonSeat': return salonSeat(G, cmd.client);
@@ -654,7 +657,7 @@ export function away(G, sec) {
 export function serialize(G) {
     const out = {};
     for (const k in G) {
-        if (k === 'rng' || k === 'events' || k === 'quiet' || k === 'offMul' || k.startsWith('_')) continue;
+        if (k === 'rng' || k === 'events' || k === 'quiet' || k === 'offMul' || k === 'hush' || k.startsWith('_')) continue;
         out[k] = G[k];
     }
     out.rngState = G.rng.state();

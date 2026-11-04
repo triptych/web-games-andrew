@@ -130,6 +130,7 @@ function startGame(g, loaded = false) {
 
 function toTitle() {
     for (const id of [...ui.stack]) ui.closeScreen(id);
+    held.length = 0;
     mode = 'title';
     ui.showPlay(false);
     G = demoGame();
@@ -222,7 +223,16 @@ function handleKeys() {
 }
 
 // ------------------------------------------------------------------ events
+// While a mini-game is open the castle keeps quiet: the sim holds its visitors (G.hush), and only the mini-game's own
+// events reach the sounds and the toasts. Trophies, heirlooms and newly opened graves wait until you come back.
+const MINIGAME = new Set(['m3', 'salon']);
+const MINIGAME_EVENTS = new Set(['m3', 'm3end', 'm3board', 'salonSeat', 'salonEnd']);
+const LATER = new Set(['ach', 'heirloom', 'graveOpen']);
+const held = [];
+const inMinigame = () => MINIGAME.has(ui.top());
+
 function flushEvents() {
+    if (held.length && mode === 'play' && !inMinigame()) ui.onEvents(G, held.splice(0));
     if (!G.events.length) return;
     const ev = G.events.splice(0);
     for (const e of ev) seen[e.type] = (seen[e.type] || 0) + 1;
@@ -233,8 +243,15 @@ function flushEvents() {
         else if (e.type === 'salonEnd') salonview.onEnd(e);
     }
     if (mode !== 'play') return;
-    audio.onEvents(G, ev);
-    ui.onEvents(G, ev);
+    if (inMinigame()) {
+        held.push(...ev.filter((e) => LATER.has(e.type)));
+        const own = ev.filter((e) => MINIGAME_EVENTS.has(e.type));
+        audio.onEvents(G, own);
+        ui.onEvents(G, own);
+    } else {
+        audio.onEvents(G, ev);
+        ui.onEvents(G, ev);
+    }
     if (ev.some((e) => e.type === 'relocate' || e.type === 'decor' || e.type === 'perk')) saveGame(G);
 }
 
@@ -248,6 +265,8 @@ function frame(now) {
     // a long stall (a hidden tab, a sleeping laptop) counts as time away
     if (mode === 'play' && gap > 2) send({ t: 'idle', sec: gap - dt });
     handleKeys();
+    const hush = mode === 'play' && inMinigame();
+    if (hush !== !!G.hush) act(G, { t: 'hush', on: hush });
     while (queue.length) {
         const { cmd, cb } = queue.shift();
         const ok = act(G, cmd);
@@ -309,7 +328,7 @@ if (DEBUG) {
         save: () => saveGame(G),
         hasSave,
         rates: () => rates(G),
-        m3view, salonview, openGrave,
+        m3view, salonview, openGrave, held,
         get place() { return place; },
         setPlace,
         MINIONS,
