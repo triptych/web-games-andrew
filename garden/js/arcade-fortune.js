@@ -98,7 +98,7 @@ void main() {
     float m = fbm(q + fbm(q * 1.7 - t * 0.6) * 1.6);
     vec3 col = mix(vec3(0.18, 0.05, 0.35), vec3(0.35, 0.85, 1.0), smoothstep(0.35, 0.8, m));
     col = mix(col, vec3(1.0, 0.55, 0.95), smoothstep(0.62, 0.9, fbm(q * 2.4 + t)) * 0.6);
-    float fres = pow(1.0 - abs(dot(normalize(vN), normalize(vView))), 2.2);
+    float fres = pow(clamp(1.0 - abs(dot(normalize(vN), normalize(vView))), 0.0, 1.0), 2.2);
     col += vec3(0.6, 0.5, 1.0) * fres * 0.8;
     col *= 0.45 + uGlow * 1.6;
     gl_FragColor = vec4(col, 1.0);

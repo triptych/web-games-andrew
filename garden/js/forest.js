@@ -60,7 +60,7 @@ uniform vec3 uDeep; uniform vec3 uSky; uniform vec3 uFog; uniform float uTime; u
 varying vec3 vW;
 void main() {
     vec3 v = normalize(cameraPosition - vW);
-    float fres = pow(1.0 - max(v.y, 0.0), 3.0);
+    float fres = pow(clamp(1.0 - v.y, 0.0, 1.0), 3.0);
     vec2 p = vW.xz;
     float w = sin(p.x * 1.3 + uTime * 0.8 + sin(p.y * 0.9 + uTime * 0.5)) * sin(p.y * 1.1 - uTime * 0.6 + sin(p.x * 0.7));
     vec3 c = mix(uDeep, uSky, 0.3 + fres * 0.6 + w * 0.05);

@@ -395,7 +395,7 @@ class Smoke {
                 uniform vec3 uBase, uWind;
                 void main(){
                     float age = fract(uTime / uLife + aSeed.x);
-                    float h = pow(age, 0.8) * uHeight * (1.0 + uErupt * 0.3 * smoothstep(0.0, 0.5, age));
+                    float h = pow(max(age, 0.0), 0.8) * uHeight * (1.0 + uErupt * 0.3 * smoothstep(0.0, 0.5, age));
                     vec3 c = uBase + vec3(0.0, h, 0.0);
                     float ang = aSeed.y * 6.2832;
                     c.xz += vec2(cos(ang), sin(ang)) * (6.0 + 85.0 * age * age) * aSeed.w + uWind.xz * age * age;
@@ -417,7 +417,7 @@ class Smoke {
                     vec2 uv = vUv;
                     if (vS.y > 0.5) uv.x = 1.0 - uv.x;
                     vec4 t = texture2D(uMap, uv);
-                    float a = t.a * smoothstep(0.0, 0.07, vAge) * pow(1.0 - vAge, 1.25) * uOpacity;
+                    float a = t.a * smoothstep(0.0, 0.07, vAge) * pow(clamp(1.0 - vAge, 0.0, 1.0), 1.25) * uOpacity;
                     if (a < 0.004) discard;
                     // grey ash, lit from the sun side and from the lava underneath
                     float top = vUv.y;

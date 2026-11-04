@@ -194,7 +194,7 @@ export class CrystalField {
                 .replace('#include <begin_vertex>', '#include <begin_vertex>\n#ifdef USE_INSTANCING\nvPhase = instanceMatrix[3].x * 0.7 + instanceMatrix[3].z * 1.3 + instanceMatrix[3].y * 0.4;\n#else\nvPhase = 0.0;\n#endif');
             sh.fragmentShader = sh.fragmentShader
                 .replace('#include <common>', '#include <common>\nvarying float vPhase; uniform float uTime, uGlow;')
-                .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\nfloat rimG = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.2);\ntotalEmissiveRadiance += diffuseColor.rgb * uGlow * (0.62 + 0.38 * sin(uTime * 1.3 + vPhase * 6.0)) * (0.55 + 1.5 * rimG);');
+                .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\nfloat rimG = pow(clamp(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 0.0, 1.0), 2.2);\ntotalEmissiveRadiance += diffuseColor.rgb * uGlow * (0.62 + 0.38 * sin(uTime * 1.3 + vPhase * 6.0)) * (0.55 + 1.5 * rimG);');
         };
         this.uniforms = uniforms;
         this.meshes = [];

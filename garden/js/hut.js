@@ -215,7 +215,7 @@ void main() {
     col = mix(col * (0.45 + 0.8 * smoothstep(-0.6, 0.6, arm)), vec3(1.0, 0.85, 0.6), glow * 0.55);
     float stars = step(0.992, hash(floor(p.xy * 90.0 + 3.0))) * (0.5 + 0.5 * sin(uTime * 3.0 + hash(floor(p.xy * 90.0)) * 20.0));
     col += stars;
-    float fres = pow(1.0 - abs(dot(normalize(vN), normalize(vView))), 2.5);
+    float fres = pow(clamp(1.0 - abs(dot(normalize(vN), normalize(vView))), 0.0, 1.0), 2.5);
     col += vec3(0.45, 0.35, 1.0) * fres * 0.7;
     col *= 0.62 + 0.45 * uHover;
     gl_FragColor = vec4(col, 1.0);

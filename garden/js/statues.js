@@ -34,7 +34,7 @@ export function hoverMaterial(base, { rimOnly = false } = {}) {
                 '#include <emissivemap_fragment>',
                 `#include <emissivemap_fragment>
                 float hov = 1.0 - step(0.5, abs(vId - uHover));
-                float rim = pow(1.0 - abs(dot(normalize(vViewPosition), normal)), 2.2);
+                float rim = pow(clamp(1.0 - abs(dot(normalize(vViewPosition), normal)), 0.0, 1.0), 2.2);
                 float pulse = 0.75 + 0.25 * sin(uHoverTime * 5.0);
                 totalEmissiveRadiance += uHoverColor * hov * (rim * 1.6 + ${rimOnly ? '0.0' : '0.12'}) * pulse;
                 // moonlit marble keeps a faint glow at night

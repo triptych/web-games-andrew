@@ -159,7 +159,7 @@ uniform vec3 uCol; uniform vec3 uLight; uniform float uAmt;
 varying vec3 vP; varying vec3 vN; varying vec3 vV;
 void main() {
     vec3 n = normalize(vN);
-    float f = pow(1.0 - abs(dot(n, normalize(vV))), 3.0);
+    float f = pow(clamp(1.0 - abs(dot(n, normalize(vV))), 0.0, 1.0), 3.0);
     float lit = smoothstep(-0.4, 0.6, dot(n, normalize(uLight)));
     gl_FragColor = vec4(uCol * f * lit * uAmt * 2.2, 1.0);
 }`;
@@ -208,7 +208,7 @@ ${NOISE}
 void main() {
     vec3 p = normalize(vP);
     float mu = abs(dot(normalize(vN), normalize(vV)));
-    float rim = pow(1.0 - mu, 2.0);
+    float rim = pow(clamp(1.0 - mu, 0.0, 1.0), 2.0);
     float n = fbm(p * 4.0 + uSeed + vec3(uTime * 0.12, 0.0, uTime * 0.07));
     float a = rim * smoothstep(0.5, 0.8, n) * (1.0 - smoothstep(0.85, 1.0, 1.0 - mu));
     gl_FragColor = vec4(uCol * a * 1.3, 1.0);
@@ -231,7 +231,7 @@ void main() {
     vec3 col;
     if (uRing > 0.5) {
         float rr = r + (n - 0.5) * 0.18;
-        shape = exp(-pow((rr - 0.42) / 0.11, 2.0)) * 1.25 + exp(-pow((rr - 0.6) / 0.2, 2.0)) * 0.25 + smoothstep(0.4, 0.0, rr) * 0.22;
+        shape = exp(-pow(abs((rr - 0.42) / 0.11), 2.0)) * 1.25 + exp(-pow(abs((rr - 0.6) / 0.2), 2.0)) * 0.25 + smoothstep(0.4, 0.0, rr) * 0.22;
         col = mix(uC, uA, smoothstep(0.3, 0.55, rr));
         col = mix(col, uB, smoothstep(0.55, 0.8, rr));
     } else {
@@ -264,8 +264,8 @@ void main() {
     float front = smoothstep(0.02, -0.02, p.y) + smoothstep(0.35, 0.3, r) * 0.0;
     // the far half of the disc, lensed up and over the top (and a little under)
     float arcR = length(p * vec2(1.0, 1.0));
-    float arc = exp(-pow((arcR - 0.46 - streak * 0.05) / 0.07, 2.0)) * (0.35 + streak) * (p.y > 0.0 ? 1.0 : 0.35);
-    float ring = exp(-pow((r - 0.335) / 0.012, 2.0)) * 1.6;
+    float arc = exp(-pow(abs((arcR - 0.46 - streak * 0.05) / 0.07), 2.0)) * (0.35 + streak) * (p.y > 0.0 ? 1.0 : 0.35);
+    float ring = exp(-pow(abs((r - 0.335) / 0.012), 2.0)) * 1.6;
     vec3 col = hot * (arc * shadow * 1.4 + disk * dopp * (front + (1.0 - front) * shadow));
     col += vec3(1.0, 0.85, 0.6) * ring;
     col *= smoothstep(1.25, 0.7, r) * 0.9 + 0.1;
@@ -274,7 +274,7 @@ void main() {
 
 const BEAM_FRAG = /* glsl */ `
 uniform vec3 uCol; varying vec2 vUv;
-void main() { float a = pow(vUv.y, 1.5) * (0.4 + 0.6 * sin(vUv.x * 6.2831 * 3.0) * sin(vUv.x * 6.2831 * 3.0)); gl_FragColor = vec4(uCol * a * 1.4, 1.0); }`;
+void main() { float a = pow(max(vUv.y, 0.0), 1.5) * (0.4 + 0.6 * sin(vUv.x * 6.2831 * 3.0) * sin(vUv.x * 6.2831 * 3.0)); gl_FragColor = vec4(uCol * a * 1.4, 1.0); }`;
 
 // ------------------------------------------------------------------ helpers
 

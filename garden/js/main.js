@@ -6,7 +6,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { roundBloom } from './bloom.js';
+import { roundBloom, scrubBloom } from './bloom.js';
 import games from '../../js/gamedata.js';
 import { buildLayout, projectOnPath, samplePath, PLAZA_R, PATH_HALF, GATE_S, PAVILION_PLAZA } from './layout.js';
 import { Island } from './terrain.js';
@@ -143,7 +143,7 @@ function lighthouseBeams(world, scene) {
     const mat = new THREE.ShaderMaterial({
         uniforms: { uOpacity: { value: 0 } },
         vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-        fragmentShader: 'uniform float uOpacity; varying vec2 vUv; void main(){ float a = pow(vUv.y, 2.0) * uOpacity * 0.35; gl_FragColor = vec4(vec3(1.0, 0.85, 0.55) * a, 1.0); }',
+        fragmentShader: 'uniform float uOpacity; varying vec2 vUv; void main(){ float a = pow(max(vUv.y, 0.0), 2.0) * uOpacity * 0.35; gl_FragColor = vec4(vec3(1.0, 0.85, 0.55) * a, 1.0); }',
         transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
     });
     const beams = world.beacons.map((b) => {
@@ -330,6 +330,8 @@ async function boot() {
     const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.42, 0.5, 1.15);
     // its blurs are nearly box blurs, which give small lights square halos: make them Gaussian (see bloom.js)
     roundBloom(bloom);
+    // and drop any NaN pixel a shader produces before the blur can smear it into a flashing block (see bloom.js)
+    scrubBloom(bloom);
     if (quality.bloom) composer.addPass(bloom);
     composer.addPass(new OutputPass());
 

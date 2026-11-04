@@ -55,7 +55,7 @@ void main(){
   c.rgb = vec3(r, c.g, b);
   // scanlines, rolling band and flicker
   float scan = 0.82 + 0.18 * sin(uv.y * 640.0 + uTime * 8.0);
-  float band = 1.0 + 0.35 * exp(-pow((fract(uv.y - uTime * 0.12) - 0.5) * 9.0, 2.0));
+  float band = 1.0 + 0.35 * exp(-pow(abs((fract(uv.y - uTime * 0.12) - 0.5) * 9.0), 2.0));
   float flick = 0.92 + 0.08 * sin(uTime * 37.0) * sin(uTime * 13.0);
   vec3 col = c.rgb * mix(vec3(1.0), uTint, 0.22) * scan * band * flick;
   float edge = smoothstep(0.0, 0.03, uv.x) * smoothstep(1.0, 0.97, uv.x) * smoothstep(0.0, 0.04, uv.y) * smoothstep(1.0, 0.96, uv.y);
@@ -63,7 +63,7 @@ void main(){
   // faint fill so the panel reads as a sheet of light
   col += uTint * 0.04 * edge;
   a = max(a, 0.15 * edge * uPower);
-  float fres = pow(1.0 - abs(dot(normalize(vNrm), normalize(vView))), 2.0);
+  float fres = pow(clamp(1.0 - abs(dot(normalize(vNrm), normalize(vView))), 0.0, 1.0), 2.0);
   col += uTint * fres * 0.4;
   col *= 1.0 + uHover * 0.35;
   // bright strokes glow (and bloom); the dark backing stays translucent
@@ -79,7 +79,7 @@ varying vec2 vUv;
 ${GLSL_NOISE}
 void main(){
   float n = vnoise(vec2(vUv.x * 30.0, vUv.y * 4.0 - uTime * 2.0));
-  float a = (1.0 - vUv.y) * 0.18 * (0.6 + 0.4 * n) + pow(1.0 - vUv.y, 6.0) * 0.3;
+  float a = (1.0 - vUv.y) * 0.18 * (0.6 + 0.4 * n) + pow(clamp(1.0 - vUv.y, 0.0, 1.0), 6.0) * 0.3;
   gl_FragColor = vec4(uTint * a * 2.0, 1.0);
   #include <colorspace_fragment>
 }`;
