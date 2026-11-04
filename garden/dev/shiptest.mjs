@@ -143,7 +143,8 @@ try {
     await until(() => window.__garden.ship.mode === 'sail', 'she backs out and swings round', 300000);
     const out = await page.evaluate(() => {
         const g = window.__garden, s = g.ship, w = g.world.wharf;
-        const turn = Math.abs(((s.yaw - w.berth.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+        const d = s.yaw - w.berth.yaw - Math.PI; // facing the sea is a half turn from her berth heading
+        const turn = Math.abs(Math.atan2(Math.sin(d), Math.cos(d)));
         return { dist: Math.hypot(s.pos.x - w.berth.x, s.pos.z - w.berth.z), turn, plank: s.plankK, blocked: s._blocked(s.pos.x, s.pos.z, s.yaw, true) };
     });
     check(out.dist > 12 && out.turn < 0.2 && out.plank < 0.1, `she has backed out and turned her bow to the sea (${out.dist.toFixed(0)} m off, gangplank in)`);
