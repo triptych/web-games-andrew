@@ -8,7 +8,7 @@
 // brings her home to the berth. The model is in ship-hull/rig/deck.js.
 
 import * as THREE from 'three';
-import { TAU, clamp, lerp, damp, smoothstep, angleDiff } from './util.js';
+import { TAU, clamp, lerp, damp, smoothstep, angleDiff, store } from './util.js';
 import { swellAt } from './boat.js';
 import { EYE } from './controls.js';
 import { S, Parts, shipMats, V, deckAt } from './ship-kit.js';
@@ -25,6 +25,8 @@ const REVERSE = 3.2;       // casting off: m/s astern
 const BACK_OUT = 17;       // metres straight astern before the swing
 const SWING = 0.5;         // rad/s while swinging round
 const EYE_Y = S.QUARTER + EYE + 0.1;
+// the chase view: behind and above her, looking over the bow at the sea ahead (the wheel's own view is full of masts and sails)
+const CHASE_D = 34, CHASE_H = 18;
 // points round the hull that must stay in deep water
 const HULL_PTS = [[0, -12.5], [0, -18.5], [-2.2, -9], [2.2, -9], [-3.7, -3], [3.7, -3], [-3.7, 3], [3.7, 3], [-2.8, 9], [2.8, 9], [0, 13.2]];
 
@@ -57,6 +59,8 @@ export class Ship {
         this.heel = 0;
         this.lookYaw = 0;
         this._lastYaw = 0;
+        this.camYaw = this.yaw;
+        this.view = store.get('shipView', 'chase') === 'helm' ? 'helm' : 'chase';
         this.dwell = 0;
         this.armed = true;
         this.plankK = 1;            // 1 = the gangplank is out
@@ -305,8 +309,10 @@ export class Ship {
         const wind = clamp(0.25 + this.speed / MAX_SPEED * 0.75 + (mode === 'sail' ? this.sail * 0.2 : 0), 0, 1);
         for (const f of this.anim) f(t, wind);
         this._glow(dt, t, night);
-        if (mode === 'docked') this._helmWatch(dt, t);
-        else this._camera(dt);
+        if (mode === 'docked') {
+            this._helmWatch(dt, t);
+            if (this._land) this._landGlide(dt);
+        } else this._camera(dt);
         this._effects(dt, t);
         this._batsUpdate(dt, t, night);
         this._hud(dt);
@@ -391,6 +397,7 @@ export class Ship {
         c.seated = true;
         c.enabled = true;
         this.lookYaw = 0;
+        this.camYaw = this.yaw;
         this._lastYaw = c.yaw;
         this.speed = 0;
         this.sail = 0;
@@ -602,6 +609,8 @@ export class Ship {
         this.group.position.set(this.pos.x, this.heave, this.pos.z);
         this.group.rotation.set(this.pitch, this.yaw, this.roll, 'YXZ');
         this.group.updateMatrixWorld(true);
+        // the camera glides in from wherever it was (the chase view sits 35 m back) to the player's eyes
+        this._land = { pos: this.camera.position.clone(), yaw: this.camera.rotation.y, pitch: this.camera.rotation.x, t: 0 };
         // set the player down at the wheel
         c.seated = false;
         const hm = this.helm;
@@ -616,15 +625,60 @@ export class Ship {
 
     // ---------------------------------------------------------- the camera
 
+    /** After mooring: ease the camera from where the ride left it to the walking view the controls just set. */
+    _landGlide(dt) {
+        const l = this._land, cam = this.camera;
+        l.t += dt;
+        if (l.t >= 1.3 || this.controls.seated || !this.controls.enabled) {
+            this._land = null;
+            return;
+        }
+        const k = smoothstep(0, 1, l.t / 1.3);
+        cam.position.lerpVectors(l.pos, cam.position, k);
+        cam.rotation.set(lerp(l.pitch, cam.rotation.x, k), l.yaw + angleDiff(l.yaw, cam.rotation.y) * k, cam.rotation.z * k, 'YXZ');
+    }
+
+    /** Switch between the chase view and the wheel's own view (C). */
+    toggleView() {
+        if (this.mode === 'docked') return;
+        this.view = this.view === 'chase' ? 'helm' : 'chase';
+        store.set('shipView', this.view);
+        this.lookYaw = 0;
+        this.camYaw = this.yaw;
+        const c = this.controls;
+        this._lastYaw = this.yaw;
+        c.yaw = this.yaw;
+        this._blend = { pos: this.camera.position.clone(), yaw: this.camera.rotation.y, pitch: this.camera.rotation.x, t: 0 };
+        this.onEvent?.('view');
+    }
+
     _camera(dt) {
         const c = this.controls, cam = this.camera;
-        // dragging turns the head, not the ship
-        this.lookYaw = clamp(this.lookYaw + angleDiff(this._lastYaw, c.yaw), -2.6, 2.6);
-        const yaw = this.yaw + this.lookYaw;
-        c.yaw = yaw;
-        this._lastYaw = yaw;
-        const pitch = clamp(c.pitch, -0.9, 0.9);
-        const eye = this.toWorld(0, EYE_Y, S.HELM_Z, this._eye ??= new THREE.Vector3());
+        const chase = this.view === 'chase';
+        // dragging turns the head at the wheel, or swings the camera round the ship
+        const lim = chase ? Math.PI : 2.6;
+        this.lookYaw = clamp(angleDiff(0, this.lookYaw + angleDiff(this._lastYaw, c.yaw)), -lim, lim);
+        c.yaw = this.yaw + this.lookYaw;
+        this._lastYaw = c.yaw;
+        this.camYaw += angleDiff(this.camYaw, this.yaw) * (1 - Math.exp(-dt * 2.2));
+        const helmEye = this.toWorld(0, EYE_Y, S.HELM_Z, this._eye ??= new THREE.Vector3());
+        let eye = helmEye, yaw, pitch, roll;
+        if (chase) {
+            // the camera follows her heading a little late, keeps level, and rides only a little of her motion
+            const ang = this.camYaw + this.lookYaw;
+            const H = clamp(CHASE_H - c.pitch * 26, 7, 46);
+            eye = this._chase ??= new THREE.Vector3();
+            eye.set(this.pos.x + Math.sin(ang) * CHASE_D, H + this.heave * 0.3, this.pos.z + Math.cos(ang) * CHASE_D);
+            const tx = this.pos.x - Math.sin(this.yaw) * 10, tz = this.pos.z - Math.cos(this.yaw) * 10;
+            const dx = tx - eye.x, dy = 4 - eye.y, dz = tz - eye.z;
+            yaw = Math.atan2(-dx, -dz);
+            pitch = Math.atan2(dy, Math.hypot(dx, dz));
+            roll = this.roll * 0.15;
+        } else {
+            yaw = this.yaw + this.lookYaw;
+            pitch = clamp(c.pitch, -0.9, 0.9) + this.pitch * 0.5;
+            roll = this.roll * 0.55;
+        }
         let k = 1, from = null;
         if (this._blend) {
             const b = this._blend;
@@ -633,17 +687,16 @@ export class Ship {
             from = b;
             if (b.t >= 0.9) this._blend = null;
         }
-        const roll = this.roll * 0.55, p2 = pitch + this.pitch * 0.5;
         if (from) {
             cam.position.lerpVectors(from.pos, eye, k);
-            cam.rotation.set(lerp(from.pitch, p2, k), from.yaw + angleDiff(from.yaw, yaw) * k, roll * k, 'YXZ');
+            cam.rotation.set(lerp(from.pitch, pitch, k), from.yaw + angleDiff(from.yaw, yaw) * k, roll * k, 'YXZ');
         } else {
             cam.position.copy(eye);
-            cam.rotation.set(p2, yaw, roll, 'YXZ');
+            cam.rotation.set(pitch, yaw, roll, 'YXZ');
         }
         // the rest of the garden thinks of the player as standing at the wheel
         const hm = this.helm;
-        c.pos.set(hm.x, eye.y - EYE, hm.z);
+        c.pos.set(hm.x, helmEye.y - EYE, hm.z);
     }
 
     // ------------------------------------------------------------- effects
@@ -757,9 +810,14 @@ export class Ship {
 
     _keys() {
         const set = (e, down) => {
-            if (!this.sailing && this.mode !== 'return') return;
+            if (this.mode === 'docked') return;
             const k = e.key.toLowerCase();
             const inp = this.input;
+            if ((k === 'c' || k === 'v') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                if (down && !e.repeat) this.toggleView();
+                return;
+            }
+            if (this.mode === 'castoff') return;
             if (k === 'a' || k === 'arrowleft' || k === 'q') inp.left = down;
             else if (k === 'd' || k === 'arrowright' || k === 'e') inp.right = down;
             else if (k === 'w' || k === 'arrowup') inp.up = down;
@@ -797,6 +855,7 @@ export class Ship {
         hold('helm-up', 'up');
         hold('helm-down', 'down');
         $('helm-return')?.addEventListener('click', () => this.requestReturn());
+        $('helm-view')?.addEventListener('click', () => this.toggleView());
     }
 
     _hud(dt) {

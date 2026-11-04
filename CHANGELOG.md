@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **The Garden** ([index.html](index.html)) v1.13.1: **steering the galleon is easier to see.** From the wheel you look straight at the masts and sails, so sailing now starts in a **chase view**: behind and above her, level, looking over the bow at the sea ahead, following her heading a little late. Drag to swing the camera round her (and up and down to raise or lower it); **C**, or the View button, switches to the wheel's own view, and the choice is remembered. The camera glides in to the wheel when she moors ([ship.js](garden/js/ship.js)).
+- **The Garden** v1.13.1: the wheel stood inside its own pedestal; the pedestal now stands just ahead of the wheel, which turns on an axle from its aft face, so the rim swings clear ([ship-deck.js](garden/js/ship-deck.js)).
+
 ### Fixed
 - **The Garden** ([index.html](index.html)): cracks along the Standing Stones and down the broadleaf tree trunks. The stones are boxes that repeat every corner once per face, and each copy got its own random nudge, so the edges split open ([architecture.js](garden/js/architecture.js)). The trunks' shared `jitter()` already kept coincident vertices together, but keyed them with `toFixed(3)`, so a cylinder's seam vertex (`-0.000` at one end, `0.000` at the other) was treated as two points and the seam opened ([vegetation.js](garden/js/vegetation.js)).
 - **The Garden** ([index.html](index.html)) v1.12.1: clicking a door you were standing in front of (the lighthouse, the Observatory and the rest) sent you on a round trip first. A route along the paths always joined the nearest path, so from the lighthouse's step you walked 16 m to the dock path, 16 m back, and only then through the door. A route to somewhere within 30 m that is in plain sight (the walkability grid says the straight line is clear) now goes straight there ([controls.js](garden/js/controls.js)). [walktest.mjs](garden/dev/walktest.mjs) checks the lighthouse case; found when [arcadetest.mjs](garden/dev/arcadetest.mjs) ran out of time on the round trip.

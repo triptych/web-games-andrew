@@ -125,16 +125,16 @@ export function buildDeck(P, ctx, mats) {
     // ---- the helm
     {
         const wz = S.WHEEL_Z, y = S.QUARTER;
-        P.box('hull', 0.6, 0.8, 0.7, 0, y + 0.4, wz);
-        P.box('trim', 0.7, 0.07, 0.8, 0, y + 0.82, wz);
-        P.box('trim', 0.8, 0.07, 0.9, 0, y + 0.04, wz);
-        for (const s of [-1, 1]) {
-            P.cone('trim', 0.07, 0.38, s * 0.32, y + 1.12, wz - 0.3, { seg: 4 });
-            P.rod('hull', V(s * 0.28, y + 0.9, wz), V(s * 0.28, y + 1.3, wz), 0.06);
-        }
-        col.push({ x: 0, z: wz, r: 0.55 });
-        // the binnacle ahead of the wheel: a compass under a glowing dome
-        const bz = wz - 1.05;
+        // the pedestal stands just ahead of the wheel, which turns on an axle from its aft face (so the rim swings clear of it)
+        const pz = wz - 0.5;
+        P.box('hull', 0.6, 1.1, 0.6, 0, y + 0.55, pz);
+        P.box('trim', 0.72, 0.07, 0.72, 0, y + 1.13, pz);
+        P.box('trim', 0.78, 0.07, 0.78, 0, y + 0.04, pz);
+        for (const [ox, oz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) P.cone('trim', 0.06, 0.32, ox * 0.3, y + 1.32, pz + oz * 0.3, { seg: 4 });
+        P.rod('trim', V(0, y + 1.02, pz + 0.3), V(0, y + 1.02, wz), 0.05);
+        col.push({ x: 0, z: pz, r: 0.5 }, { x: 0, z: wz, r: 0.42 });
+        // the binnacle ahead of the pedestal: a compass under a glowing dome
+        const bz = wz - 1.4;
         P.box('hull', 0.5, 0.95, 0.5, 0, y + 0.48, bz);
         P.cyl('trim', 0.27, 0.27, 0.07, 0, y + 0.97, bz, { seg: 8 });
         P.sph('lamp', 0.19, 0, y + 1.1, bz, 1, 0.85, 1);
