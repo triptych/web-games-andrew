@@ -106,8 +106,8 @@ try {
         const span = (a) => Math.max(...a) - Math.min(...a);
         return { roll: span(roll), pitch: span(pitch), heave: span(heave), maxRoll: Math.max(...roll.map(Math.abs)) };
     });
-    check(rock.roll > 0.01 && rock.pitch > 0.005 && rock.heave > 0.05, `she rocks on the swell (roll ${(rock.roll * 57.3).toFixed(1)}°, pitch ${(rock.pitch * 57.3).toFixed(1)}°, heave ${rock.heave.toFixed(2)} m)`);
-    check(rock.maxRoll < 0.12, 'but only a bit (never more than 7° of roll)');
+    check(rock.roll > 0.01 && rock.pitch > 0.004 && rock.heave > 0.05, `she rocks on the swell (roll ${(rock.roll * 57.3).toFixed(1)}°, pitch ${(rock.pitch * 57.3).toFixed(1)}°, heave ${rock.heave.toFixed(2)} m)`);
+    check(rock.maxRoll < 0.06, 'but she is heavy: never more than 3.5° of roll');
 
     console.log('walking aboard');
     await page.evaluate(() => {
