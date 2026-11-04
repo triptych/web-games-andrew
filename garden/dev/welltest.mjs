@@ -321,9 +321,11 @@ if (!ONLY || ONLY === 'phone') {
     // tap the ground to walk
     await G('g.controls.teleport(0, 5, 0); g.controls.pitch = -0.25');
     await frames(20);
-    const gp = await screen(2.5, 0, 2.0);
+    // (a phone in portrait sees only about 34 degrees across: pick a spot nearly straight ahead)
+    const gp = await screen(0.6, 0, 2.2);
+    check(gp.front && gp.x > 20 && gp.x < 370 && gp.y > 0 && gp.y < 780, 'the spot is on screen');
     await page.touchscreen.tap(gp.x, gp.y);
-    await until('Math.hypot(g.controls.pos.x - 2.5, g.controls.pos.z - 2.0) < 1.0', 60000);
+    await until('Math.hypot(g.controls.pos.x - 0.6, g.controls.pos.z - 2.2) < 1.0', 60000);
     check(true, 'tapping the floor walks there');
     await shot('phone-1-walked');
     await page.touchscreen.tap(...(await page.evaluate(() => { const b = document.getElementById('well-home').getBoundingClientRect(); return [b.left + b.width / 2, b.top + b.height / 2]; })));
