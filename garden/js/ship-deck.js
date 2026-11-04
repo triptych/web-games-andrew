@@ -115,10 +115,9 @@ export function buildDeck(P, ctx, mats) {
     const { col } = ctx;
     // ---- cannons on the main deck, muzzles through the arches in the bulwark
     for (const z of ctx.bays) for (const s of [-1, 1]) cannon(P, ctx, 0, S.DECK + 0.62, z, s);
-    // quarterdeck swivel guns and bow chasers
+    // a swivel gun on each side of the quarterdeck (the forecastle is too narrow for guns)
     for (const s of [-1, 1]) {
         for (const z of ctx.qbays) cannon(P, ctx, 0, S.QUARTER + 0.55, z, s, { len: 1.6 });
-        cannon(P, ctx, 0, S.FORE + 0.6, -S.HL + 1.8, s, { len: 1.5 });
     }
     // the gun deck below: a tier of ports in the hull
     for (const s of [-1, 1]) for (let z = -7.2; z <= 9.2; z += 2.3) lowerPort(P, z, 1.05, s);
@@ -168,20 +167,20 @@ export function buildDeck(P, ctx, mats) {
     for (let i = -3; i <= 3; i++) P.box('iron', 0.05, 0.05, 1.2, i * 0.22, S.DECK + 0.22, -3.0);
     for (let i = -2; i <= 2; i++) P.box('iron', 1.6, 0.05, 0.05, 0, S.DECK + 0.22, -3.0 + i * 0.26);
     // powder barrels, balls and ropes (clear of the stairs, the guns and the aisle down the middle)
-    const barrels = [[3.05, S.DECK, 1.2], [3.05, S.DECK, 2.3], [2.4, S.QUARTER, 4.7], [2.0, S.QUARTER, 5.4], [-2.3, S.QUARTER, 8.4]];
+    const barrels = [[3.05, S.DECK, 1.2], [3.05, S.DECK, 2.3], [2.4, S.QUARTER, 4.7], [2.0, S.QUARTER, 5.4], [-2.0, S.QUARTER, 8.4]];
     for (const [x, y, z] of barrels) {
         barrel(P, x, y, z);
         col.push({ x, z, r: 0.5 });
     }
     barrel(P, 2.25, S.QUARTER + 0.8, 5.0, 'trim');
     // cannonball pyramids
-    for (const [x, y, z] of [[-1.4, S.FORE, -9.4], [-2.0, S.FORE, -11.1], [1.9, S.QUARTER, 7.2]]) {
+    for (const [x, y, z] of [[-0.85, S.FORE, -8.95], [1.9, S.QUARTER, 7.2]]) {
         for (let i = 0; i < 3; i++) for (let j = 0; j <= 2 - i; j++) P.sph('iron', 0.1, x + (j - (2 - i) / 2) * 0.21, y + 0.1 + i * 0.17, z + (i % 2) * 0.05, 1, 1, 1, 8);
         P.box('hull', 0.8, 0.07, 0.4, x, y + 0.02, z);
         col.push({ x, z, r: 0.35 });
     }
     // coils of rope
-    for (const [x, y, z] of [[-3.0, S.DECK, -6.5], [1.2, S.FORE, -10.2], [-1.2, S.QUARTER, 5.0]]) {
+    for (const [x, y, z] of [[0.85, S.FORE, -8.95], [-1.2, S.QUARTER, 5.0], [1.2, S.QUARTER, 5.6]]) {
         for (let k = 0; k < 3; k++) P.tor('rope', 0.34 - k * 0.04, 0.06, x, y + 0.08 + k * 0.09, z, { rx: Math.PI / 2, seg: 12 });
     }
     // ---- the forecastle: bell on a pointed gantry, the anchor on its cathead
