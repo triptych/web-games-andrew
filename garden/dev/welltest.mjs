@@ -243,7 +243,7 @@ if (!ONLY || ONLY === 'desktop') {
 
     // ---- the rope: click it, climb out
     await G('(() => { g.grotto.plots[3].g = 0.2; g.grotto.plots[3].water = 1; g.grotto._store(); })()');
-    await G('g.controls.teleport(0, 3.0, 0); g.controls.pitch = 0.1');
+    await G('g.controls.teleport(0, 3.0, Math.PI); g.controls.pitch = 0.1');
     await frames(20);
     const rp2 = await screen(0, 1.6, 7.4);
     await shot('10-rope');
