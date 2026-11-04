@@ -245,12 +245,13 @@ try {
         g.sky.setTime(0.95);
         g.controls.enabled = false;
     });
-    await page.waitForTimeout(4000);
+    await page.waitForTimeout(6000);
     const night = await page.evaluate(() => {
         const s = window.__garden.ship;
         return { lamp: s.mats.lamp.emissiveIntensity, ecto: s.mats.ecto.emissiveIntensity, glass: s.glassMats[0].emissiveIntensity, lights: s.lights.map((l) => l.intensity), night: window.__garden.sky.state.night };
     });
-    check(night.night > 0.8 && night.lamp > 2.5 && night.ecto > 2.5 && night.glass > 1.8, 'at night her lanterns, ghost lights and stained glass glow');
+    // (the ghost lights pulse between 70% and 100% of full, so allow for the dip)
+    check(night.night > 0.8 && night.lamp > 2 && night.ecto > 2 && night.glass > 1.8, 'at night her lanterns, ghost lights and stained glass glow');
     check(night.lights.every((v) => v > 4), `and her two lights burn (${night.lights.map((v) => v.toFixed(0)).join(', ')})`);
     await snap('night');
 

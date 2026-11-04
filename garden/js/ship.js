@@ -473,12 +473,12 @@ export class Ship {
         if (!this._blocked(nx, nz, yaw)) {
             this.pos.x = nx; this.pos.z = nz; this.yaw = yaw;
         } else if (!this._blocked(this.pos.x, this.pos.z, yaw)) {
-            // turning in place is allowed, going on is not: she grinds to a halt
+            // turning in place is allowed, going on is not: she grinds to a halt (the sails can't push her through the shoal)
             this.yaw = yaw;
-            this.speed *= Math.exp(-dt * 2.5);
+            this.speed = 0;
             this._shoal(t);
         } else {
-            this.speed *= Math.exp(-dt * 2.5);
+            this.speed = 0;
             this._shoal(t);
         }
         // the edge of the sailing water: a bank of mist turns her back
