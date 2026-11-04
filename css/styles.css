@@ -1443,6 +1443,20 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 138, 42, 0.7);
 }
 
+.game-preview.hearthwick,
+.carousel-slide-bg.hearthwick {
+    background:
+        radial-gradient(ellipse at 75% 20%, rgba(255, 232, 160, 0.55), transparent 40%),
+        radial-gradient(ellipse at 20% 85%, rgba(123, 182, 97, 0.55), transparent 45%),
+        radial-gradient(ellipse at 90% 70%, rgba(106, 165, 200, 0.4), transparent 35%),
+        linear-gradient(170deg, #cfe8a8 0%, #8cc66c 45%, #5b9a4f 100%);
+}
+.game-card.hearthwick .play-button {
+    background: linear-gradient(135deg, #9bd06c, #4f9a45 55%, #f2a83b);
+    color: #1f3410;
+    box-shadow: 0 0 14px rgba(111, 174, 79, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

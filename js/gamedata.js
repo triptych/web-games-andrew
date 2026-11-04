@@ -1741,6 +1741,22 @@ const games = [
             { emoji: '\uD83D\uDC7E', label: 'Alien hive' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-115',
+        title: 'Hearthwick',
+        description: "A cozy, idle-friendly town builder in three.js. You start with one small hut, one neighbour and a lot of trees: tap them for wood and stone, build a Woodshed, give villagers jobs, and follow the Town Journal chapter by chapter, because every finished entry pays out and, with enough Renown, lets you upgrade the Hall (Hearth Hut → Cottage → Lodge → Manor → Town Hall → Grand Hearthhall), which opens more of the 32 buildings and more land: farms, an orchard, a river dock, a Carpenter, Mill, Weaver, Smithy and Alchemist, a Tavern, an Inn, an Item Shop, a Market, a Chapel, a Library and fountains. Villagers arrive at the gate with skills (woodcraft, mining, farming, fishing, foraging, smithing, cooking and more) and traits, and six special folk move in with town-wide perks. Build the Adventurers' Lodge and hire heroes (warriors, archers, mages, rogues, clerics) who go on quests for you in seven regions, come home hungry, tired and a little hurt, eat at your Tavern, sleep at your Inn and spend their gold at your Item Shop, which you stock with gear you crafted, from wooden swords to dragon mail. Cook 13 dishes, brew potions, set stock targets and prices, research 34 upgrades, and hold off raiders at dusk. There is no combat on screen. Everything keeps working while you are away: reopen the game and a welcome-back sheet tells you what the town got up to. Painted sprites and pixel-art people stand in a lit 3D diorama with seasons, weather, a day and night cycle, tilt-shift and bloom; the whole campaign ends with the Dragon's Roost, then the town is yours to keep cozy. No asset files: every sprite, tile, sound and tune is made in code.",
+        icon: '\uD83D\uDED6',
+        folder: 'game-115',
+        version: '1.0.0',
+        cssClass: 'hearthwick',
+        genre: 'cozy',
+        tags: [
+            { emoji: '\uD83C\uDFE1', label: 'Town builder' },
+            { emoji: '\u23F3', label: 'Idle & offline' },
+            { emoji: '\u2694\uFE0F', label: 'Hero economy' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

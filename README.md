@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-114 games, `game-001` through `game-114`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+115 games, `game-001` through `game-115`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -149,6 +149,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 112 | [Quill & Legion](game-112/) | A hand-inked tactics roguelike: creature stacks on a hex field, every order a card with telegraphed enemy intents, three books of branching roads, recruited at dwellings and drawn in pen hatching on paper | three.js |
 | 113 | [Crystal Crescendo](game-113/) | An HD-2D rhythm RPG: a once-helpless princess gathers a band of four princesses, each playing one layer of the song, in call-and-response music duels against the dragon who silences the world | three.js |
 | 114 | [LAST COLONIST](game-114/) | A run-and-gun shooter with code-painted pixel sprites lit by point lights through generated normal maps: the last colonist awake on a derelict ark fights through eight sectors to the alien homeworld to free the others before they become food | three.js |
+| 115 | [Hearthwick](game-115/) | A cozy, idle-friendly town builder: grow one hut into a town, give townsfolk skilled jobs, craft and cook, and hire heroes who quest for you, eat at your tavern, sleep at your inn and buy from your item shop, even while you are away; painted sprites and pixel people in a lit 3D diorama | three.js |
 
 ### Highlights
 
@@ -374,7 +375,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-114/   # One self-contained folder per game
+├── game-001/ … game-115/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -431,7 +432,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 114 games are included as of the latest entries (game-110 Doom & Doilies, game-111 NEON ARCANA, game-112 Quill & Legion, game-113 Crystal Crescendo, game-114 LAST COLONIST), and the Garden launcher is at v1.9.0.
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 115 games are included as of the latest entries (game-111 NEON ARCANA, game-112 Quill & Legion, game-113 Crystal Crescendo, game-114 LAST COLONIST, game-115 Hearthwick), and the Garden launcher is at v1.9.0.
 
 ---
 
