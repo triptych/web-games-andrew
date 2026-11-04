@@ -2,7 +2,7 @@
 // shows the same minion that appears in the castle.
 
 import * as THREE from 'three';
-import { drawOverlord, drawMinion, drawVisitor, drawStation, drawHenchman } from './art.js';
+import { drawOverlord, drawMinion, drawVisitor, drawStation, drawHenchman, drawPet } from './art.js';
 
 function entryOf(px) {
     const c = px.toCanvas();
@@ -26,12 +26,13 @@ export class SpriteLib {
     visitor(kind) { return this.get(`v|${kind}`, () => drawVisitor(kind)); }
     station(h, tier) { return this.get(`s|${h}|${tier}`, () => drawStation(h, tier)); }
     henchman() { return this.get('h', () => drawHenchman()); }
+    pet(id, o = {}) { return this.get(`p|${id}|${o.mood || 'idle'}|${o.acc || ''}|${o.frame || 0}`, () => drawPet(id, o)); }
 
-    /** A crisp data-URL icon for the DOM, scaled up by whole pixels. kind: minion | visitor | overlord | henchman | station */
+    /** A crisp data-URL icon for the DOM, scaled up by whole pixels. kind: minion | visitor | overlord | henchman | station | pet */
     icon(kind, id, scale = 2) {
         const key = `${kind}|${id}|${scale}`;
         if (this.icons.has(key)) return this.icons.get(key);
-        const e = kind === 'minion' ? this.minion(id) : kind === 'visitor' ? this.visitor(id) : kind === 'henchman' ? this.henchman()
+        const e = kind === 'minion' ? this.minion(id) : kind === 'visitor' ? this.visitor(id) : kind === 'henchman' ? this.henchman() : kind === 'pet' ? this.pet(id)
             : kind === 'station' ? this.station(id, 1) : this.overlord('idle', id || 'cook');
         const c = document.createElement('canvas');
         c.width = e.w * scale; c.height = e.h * scale;
