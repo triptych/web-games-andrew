@@ -102,6 +102,8 @@ void main() {
 #include <tonemapping_fragment>
 #include <colorspace_fragment>
 #include <fog_fragment>
+// a NaN or Inf here would be smeared by the bloom pass into a black block over the view
+if (any(isnan(gl_FragColor)) || any(isinf(gl_FragColor))) gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }`;
 
 /** Collects sign quads for a chunk. */
