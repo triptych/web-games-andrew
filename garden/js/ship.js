@@ -321,11 +321,11 @@ export class Ship {
         const c = this._c, s = this._s;
         const at = (lx, lz) => swellAt(x + lx * c + lz * s, z - lx * s + lz * c, t, amp);
         const bow = at(0, -9), stern = at(0, 9), port = at(-3.4, 0), star = at(3.4, 0), mid = at(0, 0);
-        const k = 1 - Math.exp(-dt * 5);
-        // the long swell is gentle, so her motion is exaggerated a little and a slow roll added
-        const wantH = (bow + stern + port + star + mid * 2) / 6 + 0.12 + Math.sin(t * 0.7) * 0.05;
-        const wantP = Math.atan2(bow - stern, 18) * 1.7 + Math.sin(t * 0.55 + 1) * 0.012;
-        const wantR = Math.atan2(star - port, 6.8) * 2.0 + Math.sin(t * 0.43) * 0.022 - this.heel;
+        // she is heavy: she follows the swell but slowly, and only just exaggerates it
+        const k = 1 - Math.exp(-dt * 1.5);
+        const wantH = (bow + stern + port + star + mid * 2) / 6 + 0.12 + Math.sin(t * 0.7) * 0.03;
+        const wantP = Math.atan2(bow - stern, 18) * 1.1 + Math.sin(t * 0.4 + 1) * 0.005;
+        const wantR = Math.atan2(star - port, 6.8) * 1.15 + Math.sin(t * 0.33) * 0.008 - this.heel;
         if (dt === 0) {
             this.heave = wantH; this.pitch = wantP; this.roll = wantR;
         } else {
@@ -434,7 +434,7 @@ export class Ship {
             this.pos.x += Math.sin(this.yaw) * v * dt;
             this.pos.z += Math.cos(this.yaw) * v * dt;
             this.speed = -v;
-            this.heel = lerp(this.heel, -0.07, 1 - Math.exp(-dt * 2));
+            this.heel = lerp(this.heel, -0.03, 1 - Math.exp(-dt * 2));
             this.rudder = damp(this.rudder, 1, 2, dt);
             if (a.t >= total) {
                 this.yaw = this._castYaw0 + Math.PI;
@@ -467,7 +467,7 @@ export class Ship {
         this.speed = damp(this.speed, want, 0.55, dt);
         // she answers the helm slowly, and barely at all when stopped
         const rate = -this.rudder * 0.44 * clamp(0.28 + this.speed / 5, 0.28, 1);
-        this.heel = damp(this.heel, this.rudder * clamp(this.speed / MAX_SPEED, 0, 1) * 0.1, 1.5, dt);
+        this.heel = damp(this.heel, this.rudder * clamp(this.speed / MAX_SPEED, 0, 1) * 0.04, 1.2, dt);
         const yaw = this.yaw + rate * dt;
         const nx = this.pos.x - Math.sin(yaw) * this.speed * dt, nz = this.pos.z - Math.cos(yaw) * this.speed * dt;
         if (!this._blocked(nx, nz, yaw)) {
@@ -576,7 +576,7 @@ export class Ship {
         const err = angleDiff(this.yaw, want);
         const rate = clamp(err * 1.4, -0.5, 0.5);
         this.rudder = damp(this.rudder, -clamp(rate / 0.44, -1, 1), 3, dt);
-        this.heel = damp(this.heel, this.rudder * clamp(this.speed / MAX_SPEED, 0, 1) * 0.1, 1.5, dt);
+        this.heel = damp(this.heel, this.rudder * clamp(this.speed / MAX_SPEED, 0, 1) * 0.04, 1.2, dt);
         this.yaw += rate * dt;
         this.pos.x -= Math.sin(this.yaw) * this.speed * dt;
         this.pos.z -= Math.cos(this.yaw) * this.speed * dt;
