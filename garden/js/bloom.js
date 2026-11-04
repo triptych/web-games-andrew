@@ -24,3 +24,31 @@ export function roundBloom(bloom) {
     }
     return bloom;
 }
+
+/**
+ * Keep a stray NaN or Infinity pixel from becoming a flashing block.
+ *
+ * On Direct3D (Chrome on Windows) pow() of a base that rounding has pushed a hair below zero is
+ * NaN, and a rim light does exactly that whenever a face lines up with the camera. One NaN pixel
+ * is invisible, but the bloom's blur smears it across its whole kernel and every mip after it,
+ * so for a moment a rectangle of the view goes black or white. The bloom reads the scene only in
+ * its bright-pass, so that is where the pixel is dropped. The test looks at the float's exponent
+ * bits, which a driver's fast-math can't optimise away the way it can x != x. Call once, after
+ * creating the pass.
+ */
+export function scrubBloom(bloom) {
+    const m = bloom.materialHighPassFilter;
+    const read = 'vec4 texel = texture2D( tDiffuse, vUv );';
+    if (!m.fragmentShader.includes(read)) {
+        console.warn('scrubBloom: the bloom bright-pass has changed, so stray NaN pixels are not filtered');
+        return bloom;
+    }
+    m.fragmentShader = m.fragmentShader
+        .replace(read, `${read}
+            // a NaN or Inf here would be smeared by the blur into a block over the view
+            if ((floatBitsToUint(texel.r) & 0x7f800000u) == 0x7f800000u || (floatBitsToUint(texel.g) & 0x7f800000u) == 0x7f800000u ||
+                (floatBitsToUint(texel.b) & 0x7f800000u) == 0x7f800000u || (floatBitsToUint(texel.a) & 0x7f800000u) == 0x7f800000u) texel = vec4( 0.0 );
+            texel = min( texel, vec4( 60000.0 ) );`);
+    m.needsUpdate = true;
+    return bloom;
+}
