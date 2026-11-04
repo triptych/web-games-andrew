@@ -15,7 +15,8 @@
     <div id="out"></div>
     <script type="module">
         // A neutral page for judging every sprite at 4× before it goes under coloured lights and bloom.
-        import { drawOverlord, drawMinion, drawVisitor, drawStation, drawHenchman, drawEmblem, drawToken, drawPumpkin, TOKEN_KINDS } from '../js/view/art.js';
+        import { drawOverlord, drawMinion, drawVisitor, drawStation, drawHenchman, drawEmblem, drawToken, drawPumpkin, TOKEN_KINDS, drawPet, drawPaw } from '../js/view/art.js';
+        import { PETS, ACC_IDS } from '../js/sim/pets.js';
         import { MINIONS, VISITORS, HOBBIES } from '../js/sim/data.js';
         const out = document.getElementById('out');
         const section = (title, items) => {
@@ -35,6 +36,8 @@
         section('Visitors and henchmen', [...VISITORS.map((v) => [v.name, drawVisitor(v.id)]), ['Henchman', drawHenchman()], ['Emblem', drawEmblem()]]);
         section('Centrepieces', HOBBIES.flatMap((h) => [0, 1, 2, 3].map((t) => [`${h.id} ${t}`, drawStation(h.id, t)])));
         section('Skull Swap tokens', [...TOKEN_KINDS.map((k) => [k, drawToken(k)]), ['jack-o’-lantern', drawPumpkin()]]);
+        section('Rest in Paws: pets by mood', PETS.flatMap((p) => ['idle', 'happy', 'sad', 'blink'].map((m) => [`${p.id} ${m}`, drawPet(p.id, { mood: m })])));
+        section('Rest in Paws: second frames and accessories', [...PETS.map((p) => [`${p.id} frame 1`, drawPet(p.id, { frame: 1 })]), ...PETS.flatMap((p, i) => [[`${p.id} ${ACC_IDS[i % ACC_IDS.length]}`, drawPet(p.id, { acc: ACC_IDS[i % ACC_IDS.length] })], [`${p.id} ${ACC_IDS[(i + 2) % ACC_IDS.length]}`, drawPet(p.id, { acc: ACC_IDS[(i + 2) % ACC_IDS.length], mood: 'happy' })]]), ['paw', drawPaw()]]);
         window.ready = true;
     </script>
 </body>

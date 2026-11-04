@@ -5,6 +5,7 @@
 // ({ own: [id, n] }, { run: charm }, ...), so the whole store can be listed, tested and saved by id.
 
 import { CLIENTS } from './salon.js';
+import { PETS, PET_TUNE } from './pets.js';
 
 export const HOBBIES = [
     { id: 'cook', name: 'Cooking', room: 'Kitchen', icon: '🧁', color: '#ff9ec7', craft: 'Bake', verb: 'baking' },
@@ -237,7 +238,8 @@ export const GRAVES = [
         needText: 'Employ 25 minions', need: (G, R) => [R.minions, 25], label: ['SKULL', 'SWAP'] },
     { id: 'salon', name: 'Curl Up & Dye', icon: '✂️', epitaph: 'Here lies a bad hair day. It will not be missed.', desc: 'A spooky beauty salon: wash, cut, dye, curl and make over the Overlord, her minions and her visitors.',
         needText: 'Employ 40 minions', need: (G, R) => [R.minions, 40], label: ['CURL UP', '& DYE'] },
-    { id: 'soon2', name: 'Not Yet Dug', icon: '🪦', epitaph: 'Do not disturb. Not yet.', soon: true },
+    { id: 'pets', name: 'Rest in Paws', icon: '🐾', epitaph: 'Here lies a very good boy. He is only napping.', desc: 'A spooky pet shelter: adopt a cat, a pup, a bat and more, then feed, groom and play with them. Your pet lives in the castle with you and helps out.',
+        needText: 'Employ 30 minions', need: (G, R) => [R.minions, 30], label: ['REST IN', 'PAWS'] },
     { id: 'soon3', name: 'Not Yet Dug', icon: '🪦', epitaph: 'Something is being planned here.', soon: true },
     { id: 'soon4', name: 'Not Yet Dug', icon: '🪦', epitaph: 'The groundskeeper is still digging.', soon: true },
 ];
@@ -276,6 +278,10 @@ function buildAchievements() {
     [[1, 'Curl Up & Dye'], [10, 'A Loyal Clientele'], [50, 'Stylist to the Damned']].forEach(([n, name], i) => add(`salon${i}`, '✂️', name, `Style ${n} paying client${n > 1 ? 's' : ''} at Curl Up & Dye.`, (G) => G.yard.salon.styled >= n));
     add('salonstars', '💄', 'Drop-Dead Gorgeous', 'Give ten paying clients a three-star makeover.', (G) => G.yard.salon.three >= 10);
     add('salonall', '🪞', 'Every Head in the House', 'Give every client a three-star makeover.', (G) => CLIENTS.every((c) => G.yard.salon.best[c.id] === 3));
+    add('pet0', '🐾', 'Rest in Paws', 'Adopt a pet from the cemetery shelter.', (G) => G.yard.pets.adopted >= 1);
+    add('pet1', '💞', 'Best of Friends', 'Reach the highest bond with a pet.', (G) => Object.values(G.yard.pets.xp).some((x) => x >= PET_TUNE.levels[PET_TUNE.levels.length - 1]));
+    add('pet2', '🏚️', 'A Full Menagerie', 'Reach bond level 3 with every pet in the shelter.', (G) => PETS.every((p) => (G.yard.pets.xp[p.id] || 0) >= PET_TUNE.levels[1]));
+    add('pet3', '🛁', 'Spoiled Rotten', 'Feed, groom or play with your pets 200 times.', (G) => G.yard.pets.care >= 200);
     for (const h of HOBBIES) add(`mast_${h.id}`, h.icon, `${h.name} Virtuoso`, `Reach mastery 10 in ${h.name.toLowerCase()}.`, (G, R) => R.mastery[h.id] >= 10);
     return A;
 }
