@@ -435,11 +435,13 @@ export class Bowling {
             if (!el) return;
             const on = (e) => {
                 e.preventDefault();
+                el.setPointerCapture?.(e.pointerId);
                 this.holds[key] = true;
             };
             const off = () => (this.holds[key] = false);
             el.addEventListener('pointerdown', on);
-            for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) el.addEventListener(ev, off);
+            for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(ev, off);
+            el.addEventListener('contextmenu', (e) => e.preventDefault());
         };
         hold($('bowl-left'), 'left');
         hold($('bowl-right'), 'right');
