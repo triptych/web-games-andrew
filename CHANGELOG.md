@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **The Garden** ([index.html](index.html)) v1.12.1: clicking a door you were standing in front of (the lighthouse, the Observatory and the rest) sent you on a round trip first. A route along the paths always joined the nearest path, so from the lighthouse's step you walked 16 m to the dock path, 16 m back, and only then through the door. A route to somewhere within 30 m that is in plain sight (the walkability grid says the straight line is clear) now goes straight there ([controls.js](garden/js/controls.js)). [walktest.mjs](garden/dev/walktest.mjs) checks the lighthouse case; found when [arcadetest.mjs](garden/dev/arcadetest.mjs) ran out of time on the round trip.
+
 ### Added
 - **The Garden** ([index.html](index.html)) v1.12.0: **Gearfall.** Behind the Great Gear, on the side away from the hub, there is an iron trap door. It leads down to a long industrial corridor, a vault door with a keypad, and past it a derelict city that goes on for ever ([gearfall.js](garden/js/gearfall.js), [gearfall-land.js](garden/js/gearfall-land.js), [gearfall-street.js](garden/js/gearfall-street.js), [gearfall-rooms.js](garden/js/gearfall-rooms.js), [gearfall-bunker.js](garden/js/gearfall-bunker.js), [gearfall-robot.js](garden/js/gearfall-robot.js), [gearfall-fx.js](garden/js/gearfall-fx.js), [gearfall-audio.js](garden/js/gearfall-audio.js), [gearfall-kit.js](garden/js/gearfall-kit.js), [gearfall-ui.js](garden/js/gearfall-ui.js), [gear-hatch.js](garden/js/gear-hatch.js), [hut.js](garden/js/hut.js), [main.js](garden/js/main.js)).
   - **The clue.** The papers on the Hut's desk can be clicked now. They open as a page from a maintenance log: the vault door's code (1337), and a P.S. with a sketch saying the way down is behind the Great Gear, not in it.
