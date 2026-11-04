@@ -396,6 +396,46 @@ body.short .m3-sheet .sheet-foot { justify-content: flex-start; align-self: end;
 .swatch { aspect-ratio: 1; min-height: 28px; border-radius: 50%; cursor: pointer; background: var(--c); border: 2px solid #2a1238; box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.25), inset 2px 2px 0 rgba(255, 255, 255, 0.35); }
 .swatch.on { outline: 3px solid #fff; outline-offset: 1px; }
 .salon-sheet .sheet-foot { flex-wrap: wrap; }
+/* ---------------------------------------------------------------- Rest in Paws */
+.pets-list { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
+.pet-card small { font-size: 10px; color: var(--dim); line-height: 1.1; text-align: center; }
+.pet-card.sel { border-color: var(--gold); background: rgba(110, 80, 20, 0.45); }
+.pet-home { position: absolute; top: 4px; left: 6px; font-size: 10px; font-weight: 900; color: var(--good); }
+.pets-detail { margin-top: 10px; font-size: 14px; line-height: 1.4; }
+.pets-detail p { margin: 0 0 6px; }
+.pet-adopt { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pet-adopt label { display: flex; align-items: center; gap: 6px; font-weight: 800; flex: 1 1 180px; }
+.pet-adopt input { flex: 1; min-width: 0; min-height: 44px; font: inherit; font-weight: 800; color: #2a0a1e; background: #fff3fa; border: 2px solid var(--pink); border-radius: 10px; padding: 6px 10px; user-select: text; -webkit-user-select: text; }
+.pet-note { font-size: 12px; margin-top: 6px; }
+.pets-panel { background: #fff3fa; color: #3a1830; border-radius: 14px; padding: 8px 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; align-items: center; }
+.pets-top { display: flex; gap: 8px; align-items: center; grid-column: 1 / -1; }
+.pets-top img { width: 40px; height: auto; image-rendering: pixelated; }
+.pets-top b { font-size: 14px; }
+.pets-bond { font-size: 12px; font-weight: 800; color: #c02a6a; }
+.pets-bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px 10px; grid-column: 1 / -1; }
+.need { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; align-items: center; column-gap: 4px; font-size: 12px; font-weight: 800; }
+.need .bar { grid-column: 1 / -1; }
+.need .bar { display: block; height: 9px; border-radius: 99px; background: #ead0e0; overflow: hidden; }
+.need .bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #ff8fc2, #ff4f86); transition: width 0.3s; }
+.need.low .bar i { background: linear-gradient(90deg, #ffb070, #ff6a3a); }
+.need.low b { color: #c0402a; }
+.pets-perk { grid-column: 1 / -1; margin: 2px 0 0; font-size: 12px; font-weight: 700; line-height: 1.3; }
+.pets-perk .dim { color: #7a4a6a; }
+.pets-stage { width: min(100%, calc(var(--vvh) - 460px)); }
+#pets-canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; touch-action: none; }
+#pets-canvas:focus-visible { outline: none; }
+.pets-say { position: absolute; left: 50%; top: 8%; transform: translateX(-50%); background: #fff3fa; color: #3a1830; font-weight: 900; font-size: 14px; padding: 4px 12px; border-radius: 12px; border: 2px solid #2a1238; white-space: nowrap; pointer-events: none; animation: say 0.25s ease-out; }
+@keyframes say { from { transform: translateX(-50%) scale(0.8); opacity: 0; } }
+.pets-tabs { grid-template-columns: repeat(4, 1fr); }
+.pet-help { font-size: 12px; color: var(--dim); margin: 2px 2px 0; }
+.pets-sheet .tool-row .tool b { text-transform: none; }
+body.short #pets { padding-top: calc(6px + var(--safe-t)); padding-bottom: calc(6px + var(--safe-b)); }
+body.short .pets-sheet { width: min(900px, 100%); max-height: 100%; padding: 10px; }
+body.short #pets-care { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto auto 1fr; column-gap: 12px; row-gap: 6px; }
+body.short .pets-stage { grid-column: 2; grid-row: 1 / 5; width: calc(var(--vvh) - 120px - var(--safe-t) - var(--safe-b)); min-width: 200px; margin: 0; }
+body.short .pets-panel, body.short .pets-tabs, body.short #pets-tools { grid-column: 1; }
+body.short .pets-sheet .m3-head h2 { font-size: 24px; margin: 0; }
+body.short .pets-sheet .sheet-foot { margin-top: 6px; }
 body.short #salon { padding-top: calc(6px + var(--safe-t)); padding-bottom: calc(6px + var(--safe-b)); }
 body.short .salon-sheet { width: min(900px, 100%); max-height: 100%; padding: 10px; }
 body.short .salon-chair { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto auto 1fr; column-gap: 12px; row-gap: 6px; }

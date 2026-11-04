@@ -17,9 +17,11 @@
  *   opens it; a real drag and a keyboard swap; a level played out pays charm and gold; Next level; Escape; E and Q;
  *   the whole castle includes the cemetery. Curl Up & Dye: its closed grave says why, the 40th minion opens it, the gallery
  *   of eighteen clients, a real scissor drag that cuts, Dye all, lather and rinse lighting the clean-hair wish, a tiara,
- *   Done paying out on the mirror, the wait for the next paying client and a free practice cut, Escape.
+ *   Done paying out on the mirror, the wait for the next paying client and a free practice cut, Escape. Rest in Paws:
+ *   the shelter of six, naming and adopting a pet, its favourite food, a real brush stroke and a full bath, a toy tossed
+ *   and caught, a bow, the pet beside the Overlord in the cemetery and in her room, and a pat that doesn't craft.
  *   On the phones: Graves, the grave, and a tap-tap swap that fits the screen; the salon chair fits too, every salon
- *   button is at least 44 px, and a tap with the shampoo makes suds.
+ *   button is at least 44 px, and a tap with the shampoo makes suds; the pet nursery fits, with 44 px buttons.
  * away: a fresh page whose save was written two hours ago → Continue → the welcome-back sheet says so.
  * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the menus, a tap on the castle crafts,
  *   a tap on a row buys, the cackle button, every control ≥ 44 px and on screen, the menu stays open after the finger
@@ -288,7 +290,7 @@ async function cemetery() {
     await page.mouse.click(pt.x, pt.y);
     await until(page, () => /opens when you employ 25 minions \(0 \/ 25\)/.test(document.getElementById('toasts').textContent), 'a click on the closed Skull Swap grave says what opens it, with progress');
     check(await Q(page, () => document.getElementById('m3').hidden), 'and opens nothing');
-    pt = await Q(page, () => __dd.view.graveScreen('soon2'));
+    pt = await Q(page, () => __dd.view.graveScreen('soon3'));
     await page.mouse.click(pt.x, pt.y);
     await until(page, () => /still being dug/.test(document.getElementById('toasts').textContent), 'the other graves are still being dug');
     await Q(page, () => __dd.send({ t: 'buy', id: 'imp', n: 25 }));
@@ -401,6 +403,58 @@ async function cemetery() {
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('salon').hidden && __dd.place === 'yard', 'Escape goes back to the graves');
     await until(page, () => /Trophy/.test(document.getElementById('toasts').textContent) && !__dd.held.length && !__dd.G.hush, 'and the held trophy shows once you are back');
+
+    // ----- Rest in Paws
+    console.log('\n== Rest in Paws (desktop)');
+    check(await Q(page, () => !!__dd.G.yard.open.pets), 'the pet shelter opened along the way, at 30 minions');
+    await settleCamera(page);
+    pt = await Q(page, () => __dd.view.graveScreen('pets'));
+    await page.mouse.click(pt.x, pt.y);
+    await until(page, () => !document.getElementById('pets').hidden && !document.getElementById('pets-pick').hidden, 'a click on the grave opens the shelter');
+    check(await Q(page, () => document.querySelectorAll('#pets-list [data-pet]').length === 6 && document.querySelectorAll('#pets-list img').length === 6), 'six pets to choose from, each with their sprite');
+    await mouseAt(page, '#pets-list [data-pet="bat"]');
+    await until(page, () => /Fruit Bat/.test(document.getElementById('pets-detail').textContent) && /Tribute/.test(document.getElementById('pets-detail').textContent), 'choosing one says who they are and how they help');
+    await page.fill('#pets-name', 'Count Nibbles');
+    await mouseAt(page, '#pets-adopt');
+    await until(page, () => __dd.G.yard.pets.active === 'bat' && __dd.G.yard.pets.name === 'Count Nibbles' && !document.getElementById('pets-care').hidden, 'naming and adopting him brings him home, and opens the nursery');
+    check(await Q(page, () => { const r = document.getElementById('pets-canvas').getBoundingClientRect(); return r.width >= 230 && r.top >= 0 && r.bottom <= innerHeight; }), 'the nursery is a good size and on screen');
+    const fed0 = await Q(page, () => __dd.G.yard.pets.need.food);
+    await mouseAt(page, '#pets-tools [data-food="fig"]');
+    await until(page, (f) => __dd.G.yard.pets.need.food >= f + 0.4 && __dd.petview.pet.food === 'fig', 'figs, his favourite, go in the bowl and fill him up', 30000, fed0);
+    await mouseAt(page, '#pets-tabs [data-tab="groom"]');
+    await until(page, () => __dd.petview.mess.length > 0 && __dd.petview.pet.state === 'idle', 'a grubby bat from the shelter has burrs and mud to groom out');
+    const mess0 = await Q(page, () => __dd.petview.mess.filter((m) => m.kind !== 'mud').length);
+    const dabs = await Q(page, () => __dd.petview.mess.filter((m) => m.kind !== 'mud').map((m) => { const [x, y] = __dd.petview.onPet(m.u, m.v); const r = document.getElementById('pets-canvas').getBoundingClientRect(); return { x: r.left + x * r.width / 128, y: r.top + y * r.height / 128 }; }));
+    if (dabs.length) { await page.mouse.move(dabs[0].x - 6, dabs[0].y); await page.mouse.down(); await page.mouse.move(dabs[0].x + 6, dabs[0].y, { steps: 3 }); await page.mouse.up(); }
+    check(!dabs.length || await Q(page, (n) => __dd.petview.mess.filter((m) => m.kind !== 'mud').length < n, mess0), 'a real brush stroke over a burr brushes it out');
+    await mouseAt(page, '#pets-tools [data-all]');
+    await mouseAt(page, '#pets-tools [data-tool="sponge"]');
+    await mouseAt(page, '#pets-tools [data-all]');
+    await mouseAt(page, '#pets-tools [data-tool="rinse"]');
+    await mouseAt(page, '#pets-tools [data-all]');
+    await until(page, () => !__dd.petview.mess.length && __dd.G.yard.pets.need.clean > 0.99, 'brushed, scrubbed and rinsed: squeaky clean');
+    await mouseAt(page, '#pets-tabs [data-tab="play"]');
+    const played = await Q(page, () => __dd.G.yard.pets.played);
+    const floor = await Q(page, () => { const r = document.getElementById('pets-canvas').getBoundingClientRect(); return { x: r.left + r.width * 0.2, y: r.top + r.height * 0.8 }; });
+    await page.mouse.click(floor.x, floor.y);
+    await until(page, (n) => __dd.G.yard.pets.played === n + 1, 'a tap on the floor tosses the ball, and he catches it', 30000, played);
+    await mouseAt(page, '#pets-tabs [data-tab="dress"]');
+    await mouseAt(page, '#pets-tools [data-acc="bow"]');
+    await until(page, () => __dd.G.yard.pets.acc === 'bow', 'a bow goes on');
+    check(await Q(page, () => /Tribute \+/.test(document.getElementById('pets-perk').textContent) && document.querySelectorAll('#pets-bars .need').length === 3), 'the nursery shows his needs and how he helps');
+    await shot(page, 'pets-nursery');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('pets').hidden && __dd.place === 'yard', 'Escape goes back to the graves');
+    await until(page, () => __dd.view.pet?.id === 'bat' && __dd.view.pet.key.includes('bow'), 'and he is there beside the Overlord, in his bow');
+    await Q(page, () => { __dd.setPlace('castle'); __dd.send({ t: 'room', id: 'cook' }); });
+    await settleCamera(page);
+    await shot(page, 'pets-castle');
+    const crafts = await Q(page, () => __dd.G.stats.clicks), pat0 = await Q(page, () => __dd.G.yard.pets.lastPat);
+    pt = await Q(page, () => __dd.view.petScreen());
+    await page.mouse.click(pt.x, pt.y);
+    await until(page, (p) => __dd.G.yard.pets.lastPat !== p, 'he follows her to the Kitchen, and a click on him is a pat', 30000, pat0);
+    check(await Q(page, (c) => __dd.G.stats.clicks === c, crafts), 'which doesn’t craft');
+    await Q(page, () => __dd.setPlace('yard'));
     // getting there other ways
     await Q(page, () => __dd.setPlace('castle'));
     await page.keyboard.press('KeyE');
@@ -572,6 +626,26 @@ async function phone(w, h) {
     await shot(page, `salon-${w}x${h}`);
     await tapSel('#salon [data-close]');
     await until(page, () => document.getElementById('salon').hidden, 'Back to the graves closes the salon');
+    // the pet shelter: adopt by taps, and the nursery fits
+    await Q(page, () => __dd.openGrave('pets'));
+    await until(page, () => !document.getElementById('pets').hidden, 'the pet shelter opens');
+    await tapSel('#pets-list [data-pet="toad"]');
+    await tapSel('#pets-adopt');
+    await until(page, () => __dd.G.yard.pets.active === 'toad' && !document.getElementById('pets-care').hidden, 'tapping a pet and Adopt brings them home');
+    await page.waitForTimeout(300);
+    const pfit = await Q(page, () => {
+        document.getElementById('pets').getAnimations({ subtree: true }).forEach((a) => a.finish());
+        const sh = document.querySelector('.pets-sheet'); sh.scrollTop = 0;
+        const c = document.getElementById('pets-canvas').getBoundingClientRect(), t = document.getElementById('pets-tabs').getBoundingClientRect();
+        const small = [...document.querySelectorAll('#pets-tabs button, #pets-tools button, #pets .sheet-foot button')].filter((b) => b.getBoundingClientRect().height < 44).length;
+        return { ok: c.left >= 0 && c.right <= innerWidth && c.top >= 0 && c.bottom <= innerHeight && c.width >= 200 && t.right <= innerWidth && !small && document.documentElement.scrollWidth <= innerWidth, c: [c.left, c.top, c.width, c.bottom].map(Math.round), small };
+    });
+    check(pfit.ok, `the nursery fits the screen and every button in it is at least 44 px${pfit.ok ? '' : ' ' + JSON.stringify(pfit)}`);
+    await tapSel('#pets-tools [data-food="beetle"]');
+    await until(page, () => __dd.petview.pet.food === 'beetle', 'a tap on a treat feeds him');
+    await shot(page, `pets-${w}x${h}`);
+    await tapSel('#pets [data-close]');
+    await until(page, () => document.getElementById('pets').hidden, 'Back to the graves closes the shelter');
     await Q(page, () => __dd.setPlace('castle'));
 
     await tapSel('#btn-menu');

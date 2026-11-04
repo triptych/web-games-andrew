@@ -13,6 +13,7 @@ import { Particles, Rings, Billboard, SHAPE } from './fx.js';
 import { SPRITE_SCALE } from './art.js';
 import { HOBBIES, HOBBY, MINIONS, LAIRS, DECOR_BY } from '../sim/data.js';
 import { masteryLevel } from '../sim/game.js';
+import { content } from '../sim/pets.js';
 import { fmt } from '../fmt.js';
 
 const HOBBY_COL = { cook: [0xff9ec7, 0xffd6e8, 0xfff0a0], sew: [0xb48cff, 0xff8fc2, 0xe8d8ff], deco: [0xffcf6b, 0xb02a5a, 0xfff3d6], party: [0x7fe0d0, 0xff6fa5, 0xffd36b] };
@@ -171,8 +172,10 @@ export class View {
     onEvents(G, events) {
         for (const e of events) {
             switch (e.type) {
-                case 'craft': this.onCraft(G, e); break;
-                case 'cackle': this.onCackle(G); break;
+                case 'craft': this.onCraft(G, e); if (this.pet && this.pet.hop <= 0 && Math.random() < 0.3) this.pet.hop = 1; break;
+                case 'cackle': this.onCackle(G); if (this.pet) { this.pet.hop = 1; this.pet.happyT = 1.1; } break;
+                case 'petCare': if (e.act === 'pat') this.petPat(); else if (this.pet) this.pet.happyT = 1; break;
+                case 'petDress': if (this.pet) this.petSparkle(); break;
                 case 'visitor': this.addVisitor(G, e); break;
                 case 'greet': this.onGreet(G, e); break;
                 case 'visitorLeft': case 'heroGossip': this.dismiss(e.vid, e.type === 'heroGossip'); break;
@@ -236,6 +239,83 @@ export class View {
         this.overRoom = null;          // placed afresh in the new room next frame
     }
 
+    // ------------------------------------------------------------------ the pet
+    /** The pet from Rest in Paws trots along beside the Overlord, wanders a little, hops when she works and cheers when she cackles. */
+    updatePet(G, dt, time, spot, yaw, where) {
+        const P = G.yard?.pets;
+        if (!P?.active) {
+            if (this.pet) { this.pet.bb.group.parent?.remove(this.pet.bb.group); this.pet.bb.dispose(); this.pet = null; }
+            return;
+        }
+        let a = this.pet;
+        if (!a || a.id !== P.active) {
+            if (a) { a.bb.group.parent?.remove(a.bb.group); a.bb.dispose(); }
+            const bb = new Billboard(this.sprites.pet(P.active, { acc: P.acc }), { emissive: 0.6, scale: 1.1 });
+            this.scene.add(bb.group);
+            a = this.pet = { id: P.active, bb, key: '', where: null, wx: 0, tx: 0, wanderT: 2, blinkT: 2, frameT: 0, frame: 0, hop: 0, happyT: 1.5, emitT: 1, face: 1, fresh: true };
+        }
+        const fly = a.id === 'bat';
+        if (a.where !== where) {
+            a.where = where;
+            a.wx = a.tx = 0;
+            const p = new THREE.Vector3(spot.x - 1.15, 0.6, spot.z + 0.9);
+            this.particles.burst(p.x, p.y, p.z, a.fresh ? 30 : 10, { color: a.fresh ? [0xff6fa5, 0xffd36b, 0xffffff] : [0x5a2a8a, 0xb48cff], shape: a.fresh ? SHAPE.heart : SHAPE.circle, size: a.fresh ? 12 : 10, speed: 2, up: 2, life: 0.9, glow: 1.4 });
+            a.fresh = false;
+        }
+        // a little wander about the Overlord's feet
+        a.wanderT -= dt;
+        if (a.wanderT <= 0) { a.wanderT = 3 + Math.random() * 4; a.tx = (Math.random() - 0.5) * 0.9; }
+        const d = a.tx - a.wx, step = Math.min(Math.abs(d), dt * 0.9);
+        if (Math.abs(d) > 0.02) a.face = d < 0 ? -1 : 1;
+        a.wx += Math.sign(d) * step;
+        const walking = Math.abs(d) > 0.02;
+        // which picture: happy just after something nice, sad when neglected, blinking now and then
+        a.happyT = Math.max(0, a.happyT - dt);
+        a.blinkT -= dt;
+        if (a.blinkT < -0.14) a.blinkT = 2 + Math.random() * 3;
+        a.frameT += dt;
+        if (a.frameT > (fly ? 0.13 : 0.25)) { a.frameT = 0; a.frame ^= 1; }
+        const happy = content(P);
+        const mood = a.happyT > 0 ? 'happy' : a.blinkT < 0 ? 'blink' : happy ? 'idle' : 'sad';
+        const frame = fly || (a.id === 'dog' && (walking || a.happyT > 0)) ? a.frame : 0;
+        const key = `${mood}|${P.acc}|${frame}`;
+        if (key !== a.key) { a.key = key; a.bb.setEntry(this.sprites.pet(a.id, { mood, acc: P.acc, frame })); }
+        a.hop = Math.max(0, a.hop - dt * 3);
+        const hop = Math.sin(a.hop * Math.PI) * 0.28;
+        const g = a.bb.group;
+        g.position.set(spot.x - 1.15 + a.wx, 0, spot.z + 0.9);
+        a.bb.inner.position.y = (fly ? 0.75 + Math.sin(time * 3) * 0.12 : walking ? Math.abs(Math.sin(time * 12)) * 0.05 : 0) + hop;
+        a.bb.inner.rotation.y = yaw;
+        a.bb.inner.scale.set(a.face, 1 + Math.sin(time * 2.6) * 0.02, 1);
+        // a heart now and then from a happy pet, a sigh from a neglected one
+        a.emitT -= dt;
+        if (a.emitT <= 0) {
+            a.emitT = happy ? 2.5 + Math.random() * 3 : 4 + Math.random() * 3;
+            const y = a.bb.inner.position.y + a.bb.h * 0.9;
+            if (happy) this.particles.add({ x: g.position.x, y, z: g.position.z + 0.1, vx: (Math.random() - 0.5) * 0.3, vy: 0.9, life: 1.4, size: 10, color: 0xff6fa5, glow: 1.6, shape: SHAPE.heart, grav: 0, drag: 0.4, wob: 0.5 });
+            else this.particles.add({ x: g.position.x + 0.2, y, z: g.position.z + 0.1, vy: 0.5, life: 1.6, size: 9, color: 0x9a92b0, glow: 0.6, shape: SHAPE.circle, grav: 0, drag: 0.3, wob: 0.6 });
+        }
+    }
+    /** A pat from the Overlord (a tap on the pet in the castle). */
+    petPat() {
+        if (!this.pet) return;
+        const p = this.pet.bb.group.position, y = this.pet.bb.inner.position.y + this.pet.bb.h * 0.8;
+        this.particles.burst(p.x, y, p.z + 0.1, 10, { color: [0xff4f86, 0xff8fc2, 0xffb3d1], shape: SHAPE.heart, size: 12, glow: 1.8, speed: 1.6, up: 2.4, life: 1.1 });
+        this.pet.hop = 1;
+        this.pet.happyT = 1.2;
+    }
+    petSparkle() {
+        const p = this.pet.bb.group.position;
+        this.particles.burst(p.x, 0.8, p.z + 0.1, 16, { color: [0xffd36b, 0xffffff, 0xff9ec7], shape: SHAPE.star, size: 10, glow: 2.4, speed: 2.2, up: 2.4, life: 1 });
+        this.pet.happyT = 1;
+    }
+    /** Screen position of the middle of the pet, or null when there's none (for picking and the tests). */
+    petScreen() {
+        if (!this.pet) return null;
+        const bb = this.pet.bb;
+        return this.toScreen(bb.group.position.clone().setY(bb.inner.position.y + bb.h * 0.45));
+    }
+
     // ------------------------------------------------------------------ visitors
     addVisitor(G, e) {
         if (this.visitors.has(e.vid)) return;
@@ -283,6 +363,11 @@ export class View {
             const top = this.toScreen(p.clone().setY(a.bb.h));
             const rad = Math.max(34, Math.abs(s.y - top.y) * 1.5);
             if (Math.hypot(clientX - s.x, clientY - s.y) < rad) return { type: 'visitor', vid: a.vid };
+        }
+        if (this.pet && !this.overview) {
+            const s = this.petScreen(), bb = this.pet.bb;
+            const top = this.toScreen(bb.group.position.clone().setY(bb.inner.position.y + bb.h));
+            if (Math.hypot(clientX - s.x, clientY - s.y) < Math.max(26, Math.abs(s.y - top.y) * 1.1)) return { type: 'pet' };
         }
         if (this.overview) {
             const hit = new THREE.Vector3();
@@ -443,6 +528,7 @@ export class View {
         this.over.inner.scale.set(1 + this.squash * 0.08, 1 - this.squash * 0.07 + breathe, 1);
         this.over.inner.rotation.y = yaw;
         this.over.inner.position.y = this.pose === 'cackle' ? Math.abs(Math.sin(time * 18)) * 0.08 : 0;
+        this.updatePet(G, dt, time, spot, yaw, where);
         this.fxLight.position.set(spot.x, 2.2, spot.z + 1);
         this.fxLight.intensity = Math.max(0, this.fxLight.intensity - dt * 90);
 

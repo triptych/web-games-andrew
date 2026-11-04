@@ -17,6 +17,7 @@ import { fmt, fmtTime } from './fmt.js';
 import { headline } from './news.js';
 import { goalProgress, KINDS } from './sim/match3.js';
 import { drawToken } from './view/art.js';
+import { PET, bondLevel, petPerkText, content, MAX_LEVEL } from './sim/pets.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -463,6 +464,8 @@ export class UI {
             ['Gold earned', fmt(S.goldAll, 0)], ['Relocations', fmt(G.runs, 0)], ['Time in this lair', fmtTime(G.runT)], ['Time in all', fmtTime(S.played)],
             ['Dread drift', `${(R.emit - R.decay).toFixed(2)}/s`], ['Production multiplier', `×${R.global.toFixed(2)}`],
         ];
+        const pet = G.yard.pets;
+        if (pet.active) rows.push(['Pet', `${PET[pet.active].icon} ${esc(pet.name)} · bond ${'♥'.repeat(bondLevel(pet.xp[pet.active]))}${'♡'.repeat(MAX_LEVEL - bondLevel(pet.xp[pet.active]))}`], ['Pet’s help', `${esc(petPerkText(pet))}${content(pet) ? '' : ' (halved: they need some care)'}`]);
         const html = rows.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('');
         const t = $('stats-table');
         if (t && t.innerHTML !== html) t.innerHTML = html;
@@ -605,6 +608,9 @@ export class UI {
                     break;
                 }
                 case 'm3end': this.m3last = e; break;
+                case 'petAdopt': this.toast(`${PET[e.id].icon} <b>${esc(e.name)}</b> ${e.first ? 'comes home with you! They’ll follow you around the castle.' : 'moves into the castle.'}`, 'gold'); break;
+                case 'petCare': if (e.up) this.toast(`💞 You and <b>${esc(G.yard.pets.name)}</b> are closer than ever: bond ${'♥'.repeat(e.level)}. ${esc(petPerkText(G.yard.pets))}`, 'gold'); break;
+                case 'petNeed': this.toast(`${PET[e.id].icon} <b>${esc(G.yard.pets.name)}</b> ${{ food: 'is hungry', clean: 'is getting grubby', fun: 'is bored' }[e.need]}. Visit them at 🐾 Rest in Paws${content(G.yard.pets) ? '' : ': their help is halved until they’re happier'}.`); break;
                 case 'm3board': this.m3last = null; $('m3-end').hidden = true; break;
                 case 'perk': this.toast(`📖 Learned: <b>${esc(PERK[e.id].name)}</b>`); break;
                 case 'relocate': this.toast(`🧳 Welcome to <b>${esc(LAIRS[e.to].name)}</b>! ★ +${fmt(e.gain, 0)} legend.`, 'gold'); this.setTab('minions'); break;

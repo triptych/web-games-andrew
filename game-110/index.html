@@ -123,7 +123,7 @@
                 <li><b>Gold</b> buys <b>décor</b> (it appears in the castle) and <b>henchmen</b>, who run <b>schemes</b>: evil ones for dread and gold, secret commissions for charm and family <b>heirlooms</b>.</li>
                 <li><b>Relocate</b> when the heroes get too close: start again in a new lair with <b>★ legend</b> (+2% charm each) to spend in the Grimoire.</li>
                 <li>Your minions keep working while you're away, at half speed (upgrades help).</li>
-                <li><b>The cemetery</b> 🪦 lies past the Ballroom. Its gravestones are mini-games: <b>Skull Swap</b>, a match-three, opens when you employ 25 minions, and every level you clear pays charm and gold. <b>Curl Up &amp; Dye</b>, a spooky beauty salon, opens at 40 minions: wash, cut, dye, curl and make over Lady Noxia, her minions and her visitors. Grant their three wishes (and wash out the cobwebs) for three stars; a paying client arrives every minute and a half, and you can practise for free in between. While a mini-game is open the castle keeps quiet: no visitors arrive (the ones already there wait), and its news waits until you're back. More graves are still being dug.</li>
+                <li><b>The cemetery</b> 🪦 lies past the Ballroom. Its gravestones are mini-games: <b>Skull Swap</b>, a match-three, opens when you employ 25 minions, and every level you clear pays charm and gold. <b>Curl Up &amp; Dye</b>, a spooky beauty salon, opens at 40 minions: wash, cut, dye, curl and make over Lady Noxia, her minions and her visitors. Grant their three wishes (and wash out the cobwebs) for three stars; a paying client arrives every minute and a half, and you can practise for free in between. <b>Rest in Paws</b>, a pet shelter, opens at 30 minions: adopt a moon cat, a hellhound pup, a fruit bat, a patchwork bunny, a royal toad or an owl. Your pet follows you around the castle and helps (each one differently, more as your bond grows), as long as you keep them fed, groomed and played with. Tap your pet in the castle for a pat. While a mini-game is open the castle keeps quiet: no visitors arrive (the ones already there wait), and its news waits until you're back. More graves are still being dug.</li>
             </ul>
             <table>
                 <tr><td>Space / click</td><td>Craft</td></tr>
@@ -218,6 +218,31 @@
                 <div class="salon-pal" id="salon-pal" hidden></div>
             </div>
             <div class="sheet-foot"><button class="btn" id="salon-change" hidden>Another client</button><button class="btn" data-close>Back to the graves</button><button class="btn primary" id="salon-done" hidden>Done ✨</button></div>
+        </div>
+    </div>
+
+    <div id="pets" class="screen" hidden>
+        <div class="sheet salon-sheet pets-sheet">
+            <div class="m3-head"><h2>Rest in Paws</h2><span id="pets-status" class="salon-status"></span></div>
+            <div id="pets-pick">
+                <p class="dim salon-intro">The cemetery shelter. Every one of them would love to live in a castle. Your pet follows you from room to room, helps out, and needs feeding, grooming and playing with now and then.</p>
+                <div id="pets-list" class="salon-clients pets-list"></div>
+                <div id="pets-detail" class="pets-detail"></div>
+            </div>
+            <div id="pets-care" class="salon-chair" hidden>
+                <div class="pets-panel">
+                    <div class="pets-top"><img id="pets-who-img" alt=""><div><b id="pets-who"></b><div id="pets-bond" class="pets-bond"></div></div></div>
+                    <div id="pets-bars" class="pets-bars"></div>
+                    <p id="pets-perk" class="pets-perk"></p>
+                </div>
+                <div class="salon-stage pets-stage">
+                    <canvas id="pets-canvas" tabindex="-1" aria-label="The pet nursery. Drag over your pet to groom or cuddle them; tap the floor to toss a toy."></canvas>
+                    <div id="pets-say" class="pets-say" hidden></div>
+                </div>
+                <div class="salon-tabs pets-tabs" role="tablist" id="pets-tabs"></div>
+                <div class="salon-tools" id="pets-tools"></div>
+            </div>
+            <div class="sheet-foot"><button class="btn" id="pets-shelter" hidden>The shelter</button><button class="btn" data-close>Back to the graves</button></div>
         </div>
     </div>
 
