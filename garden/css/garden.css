@@ -230,6 +230,9 @@ kbd {
     -webkit-backdrop-filter: blur(4px);
 }
 .hud-btn span[aria-hidden] { font-size: 1.15rem; }
+/* Fixed-width clock: the HUD row is right-aligned, so a proportional-width digit
+   change ("11:11" -> "10:00") would otherwise nudge every button to its left. */
+.hud-clock #clock { display: inline-block; width: 5.2ch; text-align: center; white-space: nowrap; }
 .hud-btn:hover { border-color: var(--gold); background: rgba(30, 34, 56, 0.7); }
 .hud-btn .hud-count {
     min-width: 1.4em;
