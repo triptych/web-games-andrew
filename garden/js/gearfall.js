@@ -120,7 +120,9 @@ export class Gearfall {
         this.hemi = new THREE.HemisphereLight(0xbcc0c4, 0x4a4034, 0.9);
         this.sun = new THREE.DirectionalLight(0xffe8c8, 1.6);
         this.sun.position.set(0.4, 1, 0.3);
-        this.scene.add(this.hemi, this.sun, this.sun.target);
+        // at night, a cool fill from every side, so walls read as well as the street does
+        this.moonFill = new THREE.AmbientLight(0x8a94b0, 0);
+        this.scene.add(this.hemi, this.sun, this.sun.target, this.moonFill);
         // a pool of point lights, moved to the nearest working lamps
         this.pool = [];
         for (let i = 0; i < this.cfg.lights; i++) {
@@ -424,6 +426,7 @@ export class Gearfall {
         this.hemi.color.copy(this.domeU.uTop.value).lerp(C('#c8c0b0'), 0.4).lerp(MOON_FILL, night);
         this.hemi.groundColor.copy(DAY_GROUND).lerp(MOON_GROUND, night);
         this.hemi.intensity = lerp(0.78, 1.07, day);
+        this.moonFill.intensity = 1.1 * night;
         this.sun.intensity = sky?.sunElev > -0.05 ? 1.7 * sunUp * day : 0.75 * night;
         this.dome.position.copy(cam);
         this.plane.position.set(Math.round(cam.x / 20) * 20, 0, Math.round(cam.z / 20) * 20);
