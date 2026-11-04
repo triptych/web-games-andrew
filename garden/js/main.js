@@ -1880,8 +1880,9 @@ async function boot() {
             zoneKey = 'ship';
             ui.zone('The Black Nocturne', 'Casting off from the Delvers\u2019 Wharf', '#c0405a');
             ui.hint('Casting off · hold fast · drag to look around', 6000);
-        } else if (name === 'helm') ui.hint(touch ? 'The helm is yours · hold the arrows to steer and set the sails · Return takes her home' : 'The helm is yours · A/D steer · W/S set the sails · Esc, or back away (S), to return to the wharf', 14000);
+        } else if (name === 'helm') ui.hint(touch ? 'The helm is yours · hold the arrows to steer and set the sails · Return takes her home' : 'The helm is yours · A/D steer · W/S set the sails · C changes the view · Esc, or back away (S), to return to the wharf', 14000);
         else if (name === 'return') ui.hint('Bringing her home to the wharf…', 5000);
+        else if (name === 'view') ui.hint(ship.view === 'chase' ? 'The view from behind her · drag to swing round, C for the wheel' : 'The wheel\u2019s own view · C for the view from behind', 3500);
         else if (name === 'moored') {
             audio.shipBell();
             zoneKey = '';
