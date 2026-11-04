@@ -156,7 +156,11 @@ try {
             const o = walk(sp, ap, 'path');
             carousel = { ok: o.ok, mountable: g.carousel.near(c.pos.x, c.pos.z, 8.3) };
         }
-        return { click, path, niche, doorPts, carousel };
+        // standing at the lighthouse's step, its door is a step away: no trip out to the paths and back
+        const lh = w.lighthouse;
+        c.teleport(lh.out.x, lh.out.z, 0);
+        const lhPlan = c.plan(lh.out.x, lh.out.z).length;
+        return { click, path, niche, doorPts, carousel, lhPlan };
     }, N);
     for (const [k, v] of Object.entries({ 'click-to-walk': res.click, 'path walk': res.path, 'walk behind a statue': res.niche })) {
         for (const f of v.fails.slice(0, 6)) console.log('      ' + f);
@@ -164,6 +168,7 @@ try {
         check(v.ok === v.n, `${k}: every walk arrives (${v.ok}/${v.n})`);
     }
     check(res.doorPts === 1, 'a walk straight into a door is left alone');
+    check(res.lhPlan === 1, `a path walk to a spot in plain sight goes straight there (${res.lhPlan} legs)`);
     if (res.carousel) check(res.carousel.ok && res.carousel.mountable, 'a walk from the dock reaches the carousel, near enough to climb on');
     check(errors.length === 0, 'no console or page errors');
 } finally {
