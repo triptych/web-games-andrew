@@ -9,6 +9,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Batch, xf } from './materials.js';
 import { lathe } from './architecture.js';
 import { PLAZA_R, PATH_HALF, PAVILION_PLAZA } from './layout.js';
+import { WELL_APRON } from './terrain.js';
 import { rng, fbm2, noise2, TAU, clamp, smoothstep, lerp } from './util.js';
 import { leaves as leafTex } from './textures.js';
 
@@ -198,6 +199,8 @@ function clearOf(world, x, z, extra = 0) {
     if (Math.abs(x) < 6 && z > layout.dock.start - 4 && z < layout.dock.end + 4) return false;
     if (island.pathDistAt(x, z) < PATH_HALF + 5.2 + extra) return false;
     if (world.hut && Math.hypot(x - world.hut.cx, z - world.hut.cz) < 7 + extra) return false;
+    // the glowing well beside the Hearthgarden, and its paved apron
+    if (world.well && Math.hypot(x - world.well.x, z - world.well.z) < WELL_APRON + 3.2 + extra) return false;
     // the clock tower's plateau and the bridge out to it
     const is = layout.islet, b = layout.bridge;
     if (Math.hypot(x - is.x, z - is.z) < 6.2 + extra) return false;
