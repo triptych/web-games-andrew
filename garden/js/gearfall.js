@@ -66,7 +66,7 @@ void main() {
 }`;
 
 // at night the sky still gives a cold, moonlit fill, so the streets read as shapes, not black
-const MOON_FILL = C('#8e9ab8'), MOON_GROUND = C('#3a3630'), DAY_GROUND = C('#4a4034');
+const MOON_FILL = C('#8e9ab8'), MOON_GROUND = C('#5c5e6a'), DAY_GROUND = C('#4a4034');
 const HAZE_DAY = C('#a89a80'), HAZE_NIGHT = C('#252633'), TOP_DAY = C('#8a9098'), TOP_NIGHT = C('#0b0d17'), HALL_FOG = C('#1a1814');
 
 export class Gearfall {
@@ -120,7 +120,9 @@ export class Gearfall {
         this.hemi = new THREE.HemisphereLight(0xbcc0c4, 0x4a4034, 0.9);
         this.sun = new THREE.DirectionalLight(0xffe8c8, 1.6);
         this.sun.position.set(0.4, 1, 0.3);
-        this.scene.add(this.hemi, this.sun, this.sun.target);
+        // at night, a cool fill from every side, so walls read as well as the street does
+        this.moonFill = new THREE.AmbientLight(0x8a94b0, 0);
+        this.scene.add(this.hemi, this.sun, this.sun.target, this.moonFill);
         // a pool of point lights, moved to the nearest working lamps
         this.pool = [];
         for (let i = 0; i < this.cfg.lights; i++) {
@@ -423,7 +425,8 @@ export class Gearfall {
         this.uni.uSky.value.copy(this.domeU.uTop.value).lerp(this.fogColor, 0.5);
         this.hemi.color.copy(this.domeU.uTop.value).lerp(C('#c8c0b0'), 0.4).lerp(MOON_FILL, night);
         this.hemi.groundColor.copy(DAY_GROUND).lerp(MOON_GROUND, night);
-        this.hemi.intensity = lerp(0.62, 1.07, day);
+        this.hemi.intensity = lerp(0.78, 1.07, day);
+        this.moonFill.intensity = 1.1 * night;
         this.sun.intensity = sky?.sunElev > -0.05 ? 1.7 * sunUp * day : 0.75 * night;
         this.dome.position.copy(cam);
         this.plane.position.set(Math.round(cam.x / 20) * 20, 0, Math.round(cam.z / 20) * 20);
