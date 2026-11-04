@@ -1305,3 +1305,53 @@ body:has(#claw-hud:not([hidden]), #bowl-hud:not([hidden])) .hint { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
     .kp-ok .kp-screen, .kp-bad .kp-screen { animation: none; }
 }
+
+/* ---- sailing the Black Nocturne ---- */
+.helm-hud {
+    position: fixed;
+    left: 50%;
+    bottom: calc(14px + var(--safe-b));
+    transform: translateX(-50%);
+    z-index: 7;
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    pointer-events: none;
+    width: min(94vw, 560px);
+}
+.helm-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 7px 16px;
+    border-radius: 999px;
+    background: rgba(18, 8, 14, 0.7);
+    border: 1px solid rgba(192, 64, 90, 0.55);
+    font: 600 0.98rem var(--display);
+    color: #f6dede;
+}
+.helm-speed { font-variant-numeric: tabular-nums; min-width: 3.4em; text-align: right; color: var(--gold-hi); }
+.helm-sails { width: 64px; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.15); overflow: hidden; }
+.helm-sails i { display: block; height: 100%; width: var(--sail, 0%); background: linear-gradient(90deg, #a3162a, #f3d999); transition: width 0.2s; }
+.helm-keys {
+    margin: 0;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(10, 13, 26, 0.6);
+    font-size: 0.95rem;
+    color: var(--ink-dim);
+    text-align: center;
+}
+.helm-keys kbd { margin: 0 2px; }
+.helm-pad { display: none; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; pointer-events: auto; }
+.helm-btn { min-width: 58px; min-height: 58px; font-size: 1.3rem; display: grid; place-items: center; line-height: 1; background: rgba(18, 8, 14, 0.8); border-color: #c0405a; touch-action: none; user-select: none; }
+.helm-btn small { font-size: 0.6rem; letter-spacing: 0.04em; }
+.helm-return { min-height: 44px; pointer-events: auto; }
+.helm-hud.auto .helm-btn { opacity: 0.35; }
+@media (pointer: coarse) {
+    .helm-pad { display: flex; }
+    .helm-keys { display: none; }
+}
+@media (pointer: fine) { .helm-pad { display: flex; } .helm-btn { display: none; } }
+body:has(#helm-hud:not([hidden])) .hint { bottom: auto; top: calc(64px + var(--safe-t)); }
+@media (max-height: 520px) { .helm-keys { display: none; } .helm-btn { min-width: 48px; min-height: 48px; } }

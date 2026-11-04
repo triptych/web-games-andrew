@@ -206,6 +206,10 @@ function clearOf(world, x, z, extra = 0) {
     const pdx = pr.bx - pr.ax, pdz = pr.bz - pr.az;
     const pt = clamp(((x - pr.ax) * pdx + (z - pr.az) * pdz) / (pdx * pdx + pdz * pdz), -0.1, 1);
     if (Math.hypot(x - pr.ax - pdx * pt, z - pr.az - pdz * pt) < 4.5 + extra) return false;
+    const wh = layout.wharf;
+    const wdx = wh.bx - wh.ax, wdz = wh.bz - wh.az;
+    const wt = clamp(((x - wh.ax) * wdx + (z - wh.az) * wdz) / (wdx * wdx + wdz * wdz), -0.1, 1);
+    if (Math.hypot(x - wh.ax - wdx * wt, z - wh.az - wdz * wt) < 7 + extra) return false;
     const bdx = b.bx - b.ax, bdz = b.bz - b.az;
     const t = clamp(((x - b.ax) * bdx + (z - b.az) * bdz) / (bdx * bdx + bdz * bdz), 0, 1);
     if (Math.hypot(x - b.ax - bdx * t, z - b.az - bdz * t) < b.half + 3 + extra) return false;
