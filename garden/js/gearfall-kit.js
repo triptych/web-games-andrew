@@ -370,7 +370,7 @@ if (vA.x > 0.5 && vA.x < 4.5 && abs(vWN.y) < 0.4 && vIn < 0.5) {
         winRough = 0.25;
         if (h < 0.34) {
             // smashed: a hole with jagged teeth of glass left round the frame
-            float ang = atan(q.y - 0.5, q.x - 0.5);
+            float ang = atan(q.y - 0.5, q.x - 0.5 + 1e-4);   // atan(0, 0) is undefined
             float teeth = 0.07 + 0.16 * abs(sin(ang * (5.0 + floor(h * 30.0)) + h * 40.0)) * (0.5 + vn(vec2(ang * 3.0, h * 9.0)));
             c = edge < teeth ? glass * 1.1 : dark;
             winRough = edge < teeth ? 0.3 : 1.0;
@@ -394,7 +394,7 @@ if (vA.x > 0.5 && vA.x < 4.5 && abs(vWN.y) < 0.4 && vIn < 0.5) {
             winRough = 1.0;
         }
         // cracks across what glass is left
-        float cr = smoothstep(0.03, 0.0, abs(vn(q * 5.0 + cid * 3.1) - 0.5)) * step(0.5, h21(cid * 2.3));
+        float cr = (1.0 - smoothstep(0.0, 0.03, abs(vn(q * 5.0 + cid * 3.1) - 0.5))) * step(0.5, h21(cid * 2.3));
         c = mix(c, vec3(0.5), cr * 0.25 * step(winRough, 0.5));
         c = mix(c, diffuseColor.rgb * 0.45, frame);
         diffuseColor.rgb = c;
@@ -421,7 +421,7 @@ if (vA.x > 0.5 && vA.x < 4.5 && abs(vWN.y) < 0.4 && vIn < 0.5) {
         base *= 0.75 + 0.3 * vn(p * 3.0) + 0.1 * vn(p * 17.0);
     } else {
         base *= 0.8 + 0.25 * vn(p * 0.8) + 0.08 * vn(p * 9.0);
-        base *= 1.0 - smoothstep(0.015, 0.0, abs(fbm(p * 0.6) - 0.5)) * 0.5;
+        base *= 1.0 - (1.0 - smoothstep(0.0, 0.015, abs(fbm(p * 0.6) - 0.5))) * 0.5;
     }
     float stain = smoothstep(0.55, 0.75, fbm(p * 0.35 + vA.y * 10.0));
     base = mix(base, base * vec3(0.55, 0.5, 0.42), stain * 0.7);
@@ -437,9 +437,9 @@ if (vA.x > 0.5 && vA.x < 4.5 && abs(vWN.y) < 0.4 && vIn < 0.5) {
     float peel = smoothstep(0.58, 0.62, fbm(vec2(u * 0.9, v * 0.9) + vWP.xz * 0.05 + vA.y * 30.0));
     vec3 plaster = mix(vec3(0.5, 0.47, 0.42), vec3(0.42, 0.24, 0.17), step(0.72, fbm(vec2(u * 3.0, v * 6.0))));
     base = mix(base, plaster * 0.75, peel * 0.65);
-    float wet = smoothstep(0.3, 0.0, (vFac.w - v) / max(vFac.w, 1.0) - fbm(vec2(u * 0.7, 3.0)) * 0.6);
+    float wet = (1.0 - smoothstep(0.0, 0.3, (vFac.w - v) / max(vFac.w, 1.0) - fbm(vec2(u * 0.7, 3.0)) * 0.6));
     base *= 1.0 - wet * 0.45;
-    base *= 1.0 - smoothstep(0.6, 0.0, v) * 0.35;
+    base *= 1.0 - (1.0 - smoothstep(0.0, 0.6, v)) * 0.35;
     diffuseColor.rgb = base;
 }`)
             .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
@@ -452,7 +452,8 @@ float dimF = mix(1.0, uInDim, vIn);
 reflectedLight.directDiffuse *= dimF;
 reflectedLight.indirectDiffuse *= dimF;
 reflectedLight.directSpecular *= dimF;
-reflectedLight.indirectSpecular *= dimF;`);
+reflectedLight.indirectSpecular *= dimF;`)
+            .replace('#include <dithering_fragment>', `#include <dithering_fragment>\n// a NaN or Inf here would be smeared by the bloom pass into a black block over the view\nif (any(isnan(gl_FragColor)) || any(isinf(gl_FragColor))) gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);`);
     };
     m.customProgramCacheKey = () => 'gearfall-city' + (opts.side ?? 0);
     return m;

@@ -48,7 +48,7 @@ void main() {
     // lines of type, a stain, a torn corner
     float line = step(0.5, fract(vUv.y * 22.0)) * step(0.12, vUv.x) * step(vUv.x, 0.88 - 0.3 * step(0.8, fract(vUv.y * 3.7 + vSeed))) * step(0.1, vUv.y) * step(vUv.y, 0.86);
     c *= 1.0 - line * 0.25;
-    c *= 1.0 - smoothstep(0.3, 0.0, length(vUv - vec2(0.7, 0.3)) - fract(vSeed * 3.0) * 0.2) * 0.3;
+    c *= 1.0 - (1.0 - smoothstep(0.0, 0.3, length(vUv - vec2(0.7, 0.3)) - fract(vSeed * 3.0) * 0.2)) * 0.3;
     if (vUv.x + vUv.y > 1.75 + fract(vSeed * 11.0) * 0.2) discard;
     float a = vA * uAmount;
     if (a < 0.02) discard;
@@ -178,8 +178,9 @@ void main() { vA = aAlpha; vK = aKind; vec4 mv = modelViewMatrix * vec4(position
 uniform sampler2D uMap; uniform float uLight; varying float vA; varying float vK;
 void main() {
     vec4 t = texture2D(uMap, gl_PointCoord);
-    if (vK > 0.5) gl_FragColor = vec4(vec3(1.0, 0.55, 0.2) * t.a * vA * 2.0, t.a * vA);
-    else gl_FragColor = vec4(vec3(0.75, 0.74, 0.72) * uLight, t.a * vA * 0.35);
+    float al = clamp(vA, 0.0, 1.0);
+    if (vK > 0.5) gl_FragColor = vec4(vec3(1.0, 0.55, 0.2) * t.a * al * 2.0, t.a * al);
+    else gl_FragColor = vec4(vec3(0.75, 0.74, 0.72) * uLight, t.a * al * 0.35);
 }`,
             transparent: true, depthWrite: false,
         }));
@@ -250,7 +251,7 @@ void main() {
                 pos[i * 3 + 1] = p.p.y;
                 pos[i * 3 + 2] = p.p.z;
                 size[i] = p.kind ? p.s : p.s * (1 + k * 3);
-                alpha[i] = p.kind ? (1 - k) : Math.sin(k * Math.PI) * 0.9;
+                alpha[i] = Math.max(0, Math.min(1, p.kind ? 1 - k : Math.sin(Math.min(k, 1) * Math.PI) * 0.9));
                 kind[i] = p.kind;
             } else alpha[i] = 0;
         });

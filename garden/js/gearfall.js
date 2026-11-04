@@ -49,10 +49,12 @@ varying vec3 vDir;
 void main() {
     vec3 d = normalize(vDir);
     vec3 c = d.y > 0.0 ? mix(uFog, uTop, smoothstep(0.0, 0.55, d.y)) : uFog;
-    float s = max(dot(d, uSunDir), 0.0);
+    float s = clamp(dot(d, uSunDir), 0.0, 1.0);
     c += uSunCol * (pow(s, 700.0) * 1.6 + pow(s, 8.0) * 0.18) * (1.0 - uNight);
     // the crater's glow on the haze, low in its direction
-    float k = max(dot(normalize(vec3(d.x, 0.0, d.z)), uCrater), 0.0);
+    // (straight up, the horizontal part is zero: normalize() of it would be NaN)
+    vec2 hz = d.xz / max(length(d.xz), 1e-4);
+    float k = clamp(dot(vec3(hz.x, 0.0, hz.y), uCrater), 0.0, 1.0);
     c += vec3(0.25, 0.85, 0.7) * pow(k, 6.0) * pow(1.0 - clamp(d.y, 0.0, 1.0), 6.0) * uGlow;
     if (uNight > 0.01 && d.y > 0.0) {
         vec3 p = floor(d * 240.0);
@@ -60,6 +62,7 @@ void main() {
         c += step(0.9978, h) * uNight * smoothstep(0.1, 0.4, d.y) * vec3(0.8, 0.8, 0.75) * (0.4 + fract(h * 91.0) * 0.5);
     }
     gl_FragColor = vec4(c, 1.0);
+    if (any(isnan(gl_FragColor)) || any(isinf(gl_FragColor))) gl_FragColor = vec4(uFog, 1.0);
 }`;
 
 const HAZE_DAY = C('#a89a80'), HAZE_NIGHT = C('#14121a'), TOP_DAY = C('#8a9098'), TOP_NIGHT = C('#07080e'), HALL_FOG = C('#1a1814');
@@ -412,7 +415,7 @@ export class Gearfall {
         const d = Math.hypot(cam.x, cam.z);
         this.scene.fog.density = lerp(lerp(0.0042, 0.0016, smoothstep(500, 1250, d)), 0.012, this.hallK);
         this.domeU.uNight.value = night;
-        this.domeU.uCrater.value.set(-cam.x, 0, -cam.z).normalize();
+        if (Math.hypot(cam.x, cam.z) > 1e-3) this.domeU.uCrater.value.set(-cam.x, 0, -cam.z).normalize();
         this.domeU.uGlow.value = (0.25 + night * 0.9) * (1 - smoothstep(900, 2200, d));
         this.uni.uNight.value = night;
         this.uni.uSky.value.copy(this.domeU.uTop.value).lerp(this.fogColor, 0.5);
