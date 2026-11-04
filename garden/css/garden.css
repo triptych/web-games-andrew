@@ -1016,6 +1016,56 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     .fh-arrow span { transition: none; }
 }
 
+/* ------------------------------------------------------------ the Glowing Well */
+
+.well-hud { border-color: rgba(138, 255, 200, 0.38); background: rgba(8, 24, 24, 0.6); }
+.well-hud .fh-label { color: #a8ffe0; }
+.wh-can { display: flex; align-items: center; gap: 10px; }
+.wh-icon { flex: none; font-size: 1.4rem; line-height: 1; filter: drop-shadow(0 0 6px rgba(120, 255, 220, 0.6)); }
+.wh-pips { display: flex; gap: 5px; margin-top: 4px; }
+.wh-pips i {
+    display: block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(138, 255, 200, 0.5);
+    background: transparent;
+    transition: background 0.25s, box-shadow 0.25s;
+}
+.wh-pips i.on { background: #7dffe0; box-shadow: 0 0 8px rgba(125, 255, 224, 0.9); }
+.wh-bag { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+.wh-bag li { display: flex; align-items: center; gap: 8px; }
+.wh-bag strong { font-size: 1rem; }
+.wh-ic { font-size: 1.15rem; line-height: 1; }
+.well-pop {
+    position: fixed;
+    z-index: 7;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(6, 22, 20, 0.78);
+    border: 1px solid var(--accent, #8affc8);
+    color: #f2fff8;
+    font: 600 0.95rem var(--display);
+    text-shadow: 0 0 10px var(--accent, #8affc8);
+    white-space: nowrap;
+    animation: well-pop 1.45s ease-out forwards;
+}
+@keyframes well-pop {
+    from { opacity: 0; transform: translate(-50%, -20%) scale(0.7); }
+    15% { opacity: 1; transform: translate(-50%, -60%) scale(1.05); }
+    to { opacity: 0; transform: translate(-50%, -220%) scale(1); }
+}
+@media (max-width: 560px) {
+    .well-hud { gap: 8px 14px; }
+    .wh-bag { grid-template-columns: repeat(4, auto); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .wh-pips i { transition: none; }
+    .well-pop { animation-duration: 0.01s; animation-delay: 1.2s; }
+}
+
 /* ------------------------------------------------------------ the Lighthouse Arcade */
 
 .bowl-hud { position: fixed; inset: 0; z-index: 7; pointer-events: none; font-family: "Press Start 2P", ui-monospace, monospace; }
