@@ -264,7 +264,8 @@ if (!ONLY || ONLY === 'desktop') {
     // ---- the beds went on growing while you were away (an hour of "away", but the cap is half an hour)
     await G('(() => { const s = JSON.parse(localStorage.getItem("garden.wellGarden")); s.t -= 3600 * 1000; localStorage.setItem("garden.wellGarden", JSON.stringify(s)); })()');
     // ---- down again, on foot
-    await G('(() => { const w = g.world.well; g.controls.teleport(w.front.x, w.front.z, w.face); g.controls.walkTo([w.stand]); })()');
+    // (start well back from the curb: it only arms itself once you are more than 3.4 m away)
+    await G('(() => { const w = g.world.well; g.controls.teleport(w.x + (w.front.x - w.x) * 1.8, w.z + (w.front.z - w.z) * 1.8, w.face); g.controls.walkTo([w.front, w.stand]); })()');
     await until(inWell, 120000);
     await until('g.grotto.state === "free"', 600000);
     check(true, 'walking up to the curb takes you down the rope again');
