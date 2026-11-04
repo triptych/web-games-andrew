@@ -80,7 +80,7 @@ export class IslandMap {
         // paths
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        const lines = [...layout.spokes.map((s) => s.pts), layout.dock.pts, layout.trail.pts, layout.pier.trail.pts];
+        const lines = [...layout.spokes.map((s) => s.pts), layout.dock.pts, layout.trail.pts, layout.pier.trail.pts, layout.wharf.trail.pts];
         // the bridge out to the clock tower
         const br = layout.bridge;
         for (const [w, col] of [[3.6, 'rgba(40,30,20,0.7)'], [2.6, '#b9ad9c']]) {
@@ -118,6 +118,26 @@ export class IslandMap {
         ctx.moveTo(...toPx(pr.bx - pr.dx * 5, pr.bz - pr.dz * 5));
         ctx.lineTo(...toPx(pr.bx, pr.bz));
         ctx.stroke();
+        // the pirate wharf, with its ship lying along it
+        const wf = layout.wharf;
+        ctx.lineWidth = 6.4 * px;
+        ctx.beginPath();
+        ctx.moveTo(...toPx(wf.ax + wf.dx * wf.rampEnd, wf.az + wf.dz * wf.rampEnd));
+        ctx.lineTo(...toPx(wf.bx, wf.bz));
+        ctx.stroke();
+        ctx.lineWidth = 2.6 * px;
+        ctx.beginPath();
+        ctx.moveTo(...toPx(wf.ax, wf.az));
+        ctx.lineTo(...toPx(wf.ax + wf.dx * wf.rampEnd, wf.az + wf.dz * wf.rampEnd));
+        ctx.stroke();
+        ctx.fillStyle = '#3a2a32';
+        ctx.save();
+        ctx.translate(...toPx(wf.berth.x, wf.berth.z));
+        ctx.rotate(Math.atan2(wf.dz, wf.dx));
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 12.5 * px, 3.7 * px, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
         ctx.lineCap = 'round';
         // plazas
         const disc = (x, z, r, fill, stroke) => {
