@@ -131,6 +131,32 @@ export class UI {
 
     // ----------------------------------------------------------- tooltip
 
+    /** The tooltip for something that isn't a game: { icon, kicker, title, desc, cta, accent }. */
+    note(n, x, y) {
+        const el = $('tooltip');
+        if (this.ttGame !== n.title) {
+            el.style.setProperty('--accent', n.accent || '#d9b46a');
+            el.innerHTML = `
+                <div class="tt-head"><div class="tt-icon">${esc(n.icon || '')}</div>
+                <div><p class="tt-genre">${esc(n.kicker || '')}</p><h3>${esc(n.title)}</h3></div></div>
+                ${n.desc ? `<p class="tt-desc">${esc(n.desc)}</p>` : ''}
+                ${n.cta ? `<p class="tt-cta">${esc(n.cta)}</p>` : ''}`;
+            this.ttGame = n.title;
+            this.ttCta = null;
+        }
+        this._placeTooltip(el, x, y);
+    }
+
+    _placeTooltip(el, x, y) {
+        el.hidden = false;
+        const w = el.offsetWidth, h = el.offsetHeight;
+        let tx = x + 22, ty = y + 18;
+        if (tx + w > innerWidth - 10) tx = x - w - 22;
+        if (ty + h > innerHeight - 10) ty = innerHeight - h - 10;
+        el.style.left = `${Math.max(10, tx)}px`;
+        el.style.top = `${Math.max(10, ty)}px`;
+    }
+
     tooltip(game, x, y, cta) {
         const el = $('tooltip');
         if (!game) {
@@ -151,13 +177,7 @@ export class UI {
             this.ttGame = game;
             this.ttCta = cta;
         }
-        el.hidden = false;
-        const w = el.offsetWidth, h = el.offsetHeight;
-        let tx = x + 22, ty = y + 18;
-        if (tx + w > innerWidth - 10) tx = x - w - 22;
-        if (ty + h > innerHeight - 10) ty = innerHeight - h - 10;
-        el.style.left = `${Math.max(10, tx)}px`;
-        el.style.top = `${Math.max(10, ty)}px`;
+        this._placeTooltip(el, x, y);
     }
 
     // ----------------------------------------------------------- card

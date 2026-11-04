@@ -2,7 +2,7 @@
 // (dome, onion, cone, pagoda and crystal roofs), the dock and a sunken wreck,
 // lamp posts, benches and the set pieces between the paths — a great gear,
 // an observatory, a lighthouse, a fountain, standing stones and a clock tower
-// on its own islet. Adds colliders, floors and vine anchors to `world`.
+// on its own islet, and the grounds of the Starlight Carousel. Adds colliders, floors and vine anchors to `world`.
 
 import * as THREE from 'three';
 import { Batch, xf, under } from './materials.js';
@@ -12,6 +12,7 @@ import { HUB_Y } from './terrain.js';
 import { rng, TAU, lerp } from './util.js';
 import { flagstones, plazaMosaic, canvas, toTexture, glowSprite } from './textures.js';
 import { buildPier } from './pier.js';
+import { buildGearHatch } from './gear-hatch.js';
 
 const V2 = (x, y) => new THREE.Vector2(x, y);
 
@@ -424,6 +425,8 @@ function buildGear(world, batch, f) {
     batch.add('brass', new THREE.CylinderGeometry(0.55, 0.55, 1.8, 16), xf(f.x, y + 3.1, f.z, face, 1, 1, 1, Math.PI / 2));
     for (let i = -2; i <= 2; i++) world.colliders.push({ x: f.x + Math.cos(face) * i * 1.8, z: f.z - Math.sin(face) * i * 1.8, r: 1.3 });
     world.landmarks.push({ name: 'The Great Gear', x: f.x, z: f.z });
+    // round the back of it, a trap door (see gear-hatch.js)
+    buildGearHatch(world, f);
 }
 
 function buildTower(world, batch, f) {
@@ -490,7 +493,44 @@ function buildLighthouse(world, batch, f) {
     batch.add('iron', new THREE.TorusGeometry(1.8, 0.05, 4, 24), xf(f.x, y + H + 1.1, f.z, 0, 1, 1, 1, Math.PI / 2));
     world.colliders.push({ x: f.x, z: f.z, r: 2.8 });
     world.beacons.push({ x: f.x, y: y + H + 1.3, z: f.z });
-    world.landmarks.push({ name: 'The Lighthouse', x: f.x, z: f.z });
+    // an arched door facing the hub, with steps up to it: it opens on the Lighthouse Arcade (see arcade.js)
+    const toHub = Math.atan2(-f.x, -f.z);
+    const dx = Math.sin(toHub), dz = Math.cos(toHub);
+    const frame = archShape(0.9, 2.5);
+    frame.holes.push(new THREE.Path(archShape(0.6, 2.2).getPoints(12)));
+    batch.add('granite', new THREE.ExtrudeGeometry(frame, { depth: 0.32, bevelEnabled: false, curveSegments: 12 }), xf(f.x + dx * 2.12, y + 0.8, f.z + dz * 2.12, toHub));
+    for (let k = 0; k < 2; k++) batch.add('granite', new THREE.BoxGeometry(2.0 - k * 0.3, 0.22, 0.5), xf(f.x + dx * (3.0 - k * 0.36), y + 0.41 + k * 0.22, f.z + dz * (3.0 - k * 0.36), toHub));
+    const leaf = new THREE.Mesh(new THREE.ExtrudeGeometry(archShape(0.6, 2.2), { depth: 0.08, bevelEnabled: false, curveSegments: 12 }), world.mats.darkWood);
+    leaf.position.set(f.x + dx * 2.2, y + 0.8, f.z + dz * 2.2);
+    leaf.rotation.y = toHub;
+    leaf.userData.kind = 'arcadeDoor';
+    world.root.add(leaf);
+    // a strip of neon round the arch and a coin slot of light: something louder than a lamp room lives inside
+    const neon = new THREE.MeshStandardMaterial({ color: 0x220018, emissive: 0xff4fd0, emissiveIntensity: 1.6, roughness: 0.4 });
+    world.glowMats.push({ mat: neon, day: 1.2, night: 3.2 });
+    const tube = new THREE.Mesh(new THREE.TorusGeometry(0.76, 0.035, 6, 24, Math.PI), neon);
+    tube.position.set(f.x + dx * 2.46, y + 0.8 + 2.2 - 0.6 + 0.02, f.z + dz * 2.46);
+    tube.rotation.y = toHub;
+    world.root.add(tube);
+    for (const sd of [-1, 1]) {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1.6, 0.07), neon);
+        post.position.set(f.x + dx * 2.46 + Math.cos(toHub) * sd * 0.76, y + 0.8 + 0.82, f.z + dz * 2.46 - Math.sin(toHub) * sd * 0.76);
+        post.rotation.y = toHub;
+        world.root.add(post);
+    }
+    const plaque = signMesh(signTexture('\u{1F579}\u{FE0F}', 'The Lighthouse Arcade', 'Insert coin · every game, plus bowling and a disco', '#ff5fd2', 1024, 256), 2.2, 0.55, 0.3);
+    plaque.position.set(f.x + dx * 2.2, y + 3.95, f.z + dz * 2.2);
+    plaque.rotation.y = toHub;
+    world.root.add(plaque);
+    world.nightSigns.push(plaque.userData.nightGlow);
+    world.lighthouse = {
+        mesh: leaf, cx: f.x, cz: f.z,
+        // walking into this spot goes through the door
+        x: f.x + dx * 3.3, z: f.z + dz * 3.3,
+        // where you come back out, facing the hub
+        out: { x: f.x + dx * 5.6, z: f.z + dz * 5.6, yaw: toHub + Math.PI },
+    };
+    world.landmarks.push({ name: 'The Lighthouse', x: f.x, z: f.z, stand: { x: f.x + dx * 5.6, z: f.z + dz * 5.6, yaw: toHub } });
 }
 
 function buildFountain(world, mats, batch, f) {
@@ -544,6 +584,54 @@ function buildStones(world, mats, batch, f) {
     world.sparkSources.push({ x: f.x, y: y + 0.75, z: f.z, color: '#ffa04a', n: 44, r: 0.9, h: 4.6 });
     lightColumn(world, { x: f.x, y: y + 0.8, z: f.z, color: 0xffb070, radius: 1.15, height: 7.5, strength: 0.85 });
     world.landmarks.push({ name: 'The Standing Stones', x: f.x, z: f.z });
+}
+
+/**
+ * The carousel's grounds: a ring of paving to walk round the machine, a kerb,
+ * lamps, flower beds and a sign at the gap that faces the hub. The machine
+ * itself, which turns and has to be ridden, is carousel.js.
+ */
+function buildCarouselGrounds(world, mats, batch, f) {
+    const y = world.groundAt(f.x, f.z);
+    const R = 9.4;
+    const fl = flagstones();
+    const tex = fl.map.clone();
+    tex.repeat.set(6, 6);
+    tex.needsUpdate = true;
+    const paving = new THREE.Mesh(new THREE.CircleGeometry(R, 72).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: tex, normalMap: fl.normalMap, roughness: 0.85, color: 0xe6dccb }));
+    paving.position.set(f.x, y + 0.045, f.z);
+    paving.receiveShadow = true;
+    world.root.add(paving);
+    batch.add('granite', lathe([[R - 0.05, -0.5], [R + 0.35, -0.5], [R + 0.35, 0.12], [R - 0.05, 0.14]], 72), xf(f.x, y, f.z));
+    const face = Math.atan2(-f.x, -f.z);
+    // lamps round the rim, leaving the side toward the hub open
+    for (let k = 0; k < 6; k++) {
+        const a = face + Math.PI / 6 + (k * TAU) / 6;
+        world.lampSpots.push({ x: f.x + Math.sin(a) * (R - 0.55), z: f.z + Math.cos(a) * (R - 0.55) });
+        world.flowerBeds.push({ x: f.x + Math.sin(a + Math.PI / 6) * (R + 1.8), z: f.z + Math.cos(a + Math.PI / 6) * (R + 1.8), r0: 0, r1: 1.6, colors: ['#ff8ad8', '#ffd76a', '#8fd8ff', '#c9a2ff'], n: 60 });
+    }
+    // a painted sign on two posts at the gap facing the hub
+    const sx = f.x + Math.sin(face) * (R + 1.1), sz = f.z + Math.cos(face) * (R + 1.1);
+    const ox = Math.cos(face), oz = -Math.sin(face);
+    for (const sd of [-1, 1]) {
+        const py = world.groundAt(sx + ox * sd * 1.5, sz + oz * sd * 1.5);
+        batch.add('darkWood', new THREE.CylinderGeometry(0.07, 0.09, 2.3, 8), xf(sx + ox * sd * 1.5, py + 1.0, sz + oz * sd * 1.5));
+        batch.add('brass', new THREE.SphereGeometry(0.11, 10, 8), xf(sx + ox * sd * 1.5, py + 2.2, sz + oz * sd * 1.5));
+        world.colliders.push({ x: sx + ox * sd * 1.5, z: sz + oz * sd * 1.5, r: 0.2 });
+    }
+    const signTex = signTexture('\u{1F3A0}', 'The Starlight Carousel', 'Pick a creature and climb on', '#ff8ad8', 1024, 256);
+    for (const side of [0, Math.PI]) {
+        const s = signMesh(signTex, 2.8, 0.7, 0.3);
+        s.position.set(sx + Math.sin(face + side) * 0.04, world.groundAt(sx, sz) + 1.75, sz + Math.cos(face + side) * 0.04);
+        s.rotation.y = face + side;
+        world.root.add(s);
+        world.nightSigns.push(s.userData.nightGlow);
+    }
+    world.carouselSite = { x: f.x, y, z: f.z, face, R };
+    world.landmarks.push({
+        name: 'The Starlight Carousel', x: f.x, z: f.z,
+        stand: { x: f.x + Math.sin(face) * (R + 2), z: f.z + Math.cos(face) * (R + 2), yaw: face },
+    });
 }
 
 function clockFaceTexture() {
@@ -736,7 +824,7 @@ function buildGlows(world, mats) {
 
 export function buildArchitecture(world) {
     const { layout, mats } = world;
-    const batch = new Batch();
+    const batch = new Batch({ cell: 40 });
     buildHub(world, mats, batch);
     for (const sp of layout.spokes) {
         buildGate(world, mats, batch, sp);
@@ -756,6 +844,7 @@ export function buildArchitecture(world) {
         else if (f.type === 'lighthouse') buildLighthouse(world, batch, f);
         else if (f.type === 'fountain') buildFountain(world, mats, batch, f);
         else if (f.type === 'stones') buildStones(world, mats, batch, f);
+        else if (f.type === 'carousel') buildCarouselGrounds(world, mats, batch, f);
     }
     buildBridge(world, batch);
     buildIslet(world, mats, batch);

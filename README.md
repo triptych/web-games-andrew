@@ -8,13 +8,28 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-113 games, `game-001` through `game-113`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+114 games, `game-001` through `game-114`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
-[index.html](index.html) is a walkable three.js island made for quiet exploring, in the spirit of *Myst*. You arrive on a wooden dock and climb to a hub where a **holographic carousel** cycles through every game, newest first, with brass arrow buttons that press in. One flagstone path per genre leads out from the hub, through a named gate, past a **statue for every game** and on to a pavilion. Each statue's bronze plaque shows the game's icon and title. Hover a statue for its description and click it to play (on a phone, tap for a card with a Play button). Everything is generated in code: the island and its granite cliffs, paths, gazebos (dome, onion, cone, pagoda and crystal roofs), statues sculpted per genre, pines, cypresses, hedges, grass, flowers, vines that grow as you approach, a day/night cycle with stars and an aurora, an ocean shader, and a generative ambient score with surf, birds and crickets. Set pieces sit between the paths: a great gear, an observatory (walk through its door into a five-floor tower of whimsical, interactive rooms, an infinite library and a great telescope that shows you a procedurally generated planet, star, nebula or black hole), a lighthouse, a moon fountain (a tiny submarine circles its pool: climb in and steer through an endless, procedurally generated sea of coral, kelp and stone arches, logging the fish, jellyfish, turtles, manta rays and whales you meet), standing stones and a clock tower on its own islet. There's a map, a searchable Library list, a time-of-day panel, and touch controls with a joystick. On about one visit in five, a fox spirit from [Worldroot](game-065/) trots out of the undergrowth ahead of you, stops to look, and bolts.
+[index.html](index.html) is a walkable three.js island made for quiet exploring, in the spirit of *Myst*. You arrive on a wooden dock and climb to a hub where a **holographic carousel** cycles through every game, newest first, with brass arrow buttons that press in. One flagstone path per genre leads out from the hub, through a named gate, past a **statue for every game** and on to a pavilion. Each statue's bronze plaque shows the game's icon and title. Hover a statue for its description and click it to play (on a phone, tap for a card with a Play button). Everything is generated in code: the island and its granite cliffs, paths, gazebos (dome, onion, cone, pagoda and crystal roofs), statues sculpted per genre, pines, cypresses, hedges, grass, flowers, vines that grow as you approach, a day/night cycle with stars and an aurora, weather (clear, rain, fog, snow and thunderstorms, wandering on its own or picked by hand), an ocean shader, and a generative ambient score with surf, wind, birds, crickets and owls. Walk with WASD or click the ground to go there, jump with Space, and use touch controls with a joystick on a phone. The HUD has a map, a searchable Library list, ⭐ **Starred Games** (star any game from its card or the Library; kept in this browser), a time-of-day and weather panel, sound and help. On about one visit in five, a fox spirit from [Worldroot](game-065/) trots out of the undergrowth ahead of you, stops to look, and bolts.
 
-The garden grows with the collection. A game's `genre` field picks its path (a game without one is placed by its tags), newer games stand nearer the hub, and paths lengthen and the island widens as games are added. The original card grid is still at [classic.html](classic.html). Out beyond the dock stands a volcano, Cinderpeak: the Standing Stones lead to its cove, where a mine cart rides through lava tunnels and a gem cavern to a cliff over the lava source. Code lives in [garden/](garden/), and [garden/dev/browsertest.mjs](garden/dev/browsertest.mjs) drives it in real Chromium on desktop and on touch-only phones.
+Set pieces between the paths open onto places of their own:
+
+- **The Observatory**: through its arched door is a tower far larger on the inside, five floors of round halls with whimsical, interactive rooms (a prism conservatory, disagreeing clocks, an alchemist's kitchen, an infinite library, a grand orrery, a harp of light and more), joined by a lift of light. Under the top floor's dome, the **Great Telescope** shows a procedurally generated planet, star, nebula, galaxy or, rarely, a black hole, each named and written into your star log.
+- **The Lighthouse Arcade**: a door at the lighthouse's foot opens on an 80s arcade with a cabinet for every game, each screen running its game's attract mode. There's a working **bowling alley** (ten frames scored properly, physics pins) and a **disco** with light-up tiles, a mirror ball and a jukebox of eight generated records. The hall grows as games are added.
+- **The Moon Fountain**: a toy submarine circles its pool. Climb in and steer through an endless, procedurally generated sea of coral, kelp and stone arches, logging the fish, jellyfish, turtles, manta rays and whales you meet, with rare finds such as a sunken galleon on the floor.
+- **The Hut**: a cabin by the dock path with a fireplace and a desk. Click the glass sphere on the desk to fall into the galaxy turning inside it, or the train ticket beside it to ride the **Violet Line**: from Hearthside station a train runs down a long tunnel past ghost stations and a cavern viaduct to Prism Halt and the **Spectrum Rotunda**, a pool of swirling light that answers your touch, then brings you home.
+- **The Clock Tower** on its own islet, with **the Works** beneath it: a machine hall of gears, boilers, pistons and steam, its screens showing the garden's own source code.
+- **The Standing Stones**: their motes carry you to **Cinderpeak**, the volcano out beyond the dock. In its cove a mine cart rides about three minutes through lava tunnels and a gem cavern to a cliff over the lava source.
+- **The Starlight Carousel**, on a paved plaza between two paths: a band-organ merry-go-round with a striped roof, a mirrored drum, barley-twist brass poles and some 370 bulbs, carrying eight creatures of legend: an ember dragon, a pegasus, a unicorn whose hide is the night sky (its stars twinkle and drift), a griffin, a hippocampus, a phoenix, a nine-tailed fox and a moon moth. Click one to climb on: the bell rings, the organ strikes up an original waltz and round you go, rising and falling on your pole. After dark its lights run in colours, and when the midnight fireworks go up it starts by itself and plays along.
+- **The Springwood**, through a shimmering door in the roots of the Great Tree: a spring forest that goes on for ever, made around you as you walk. Blossom glades, bluebell woods, birch hollows and clover meadows, with winding footpaths, lily ponds, and hidden places to find (a thatched cottage, a fairy ring, a forgotten picnic, mossy standing stones, a wishing well and the Great Tree's sister). Birdsong and butterflies by day; fireflies and frogs at night. It is the fox spirit's home: the fox keeps you company as you wander, and leads you to hidden places when they are near.
+- **Gearfall**, down a trap door behind the Great Gear (the papers on the Hut's desk tell you where, and the code): a long industrial corridor under the ground ends at a vault door, and past it a dirt road runs across the wasteland to a derelict city that goes on for ever. Little houses on the edge, then shops, flats and warehouses, then towers, broken off short near the middle, where a glowing crater holds a giant rusted robot with its gears spilled out. Every building can be walked into: decaying rooms full of overturned furniture, rubble and paper. Papers blow along the broken roads, lights flicker, windows are smashed.
+- **The fishing pier**, opposite the dock: cast, strike and reel in nine kinds of fish, the Moonfin only at night.
+- **The rowboat** moored at the dock, the one you arrived in: climb in and it sprouts wings and flies a slow circuit around the island.
+- And a great gear, and **fireworks at midnight** when the garden's clock runs past 00:00.
+
+The garden grows with the collection. A game's `genre` field picks its path (a game without one is placed by its tags), newer games stand nearer the hub, and paths lengthen and the island widens as games are added. The original card grid is still at [classic.html](classic.html). Code lives in [garden/](garden/), and [garden/dev/](garden/dev/) drives it in real Chromium: [browsertest.mjs](garden/dev/browsertest.mjs) on desktop and on touch-only phones (plus the fox and the pier), and one test each for the Observatory ([towertest.mjs](garden/dev/towertest.mjs)), the Starlight Carousel ([carouseltest.mjs](garden/dev/carouseltest.mjs)), the Lighthouse Arcade ([arcadetest.mjs](garden/dev/arcadetest.mjs)), the undersea ([seatest.mjs](garden/dev/seatest.mjs)), the Springwood ([foresttest.mjs](garden/dev/foresttest.mjs)), Gearfall ([gearfalltest.mjs](garden/dev/gearfalltest.mjs)), the Hut and the Violet Line ([subwaytest.mjs](garden/dev/subwaytest.mjs)) and Cinderpeak ([cindertest.mjs](garden/dev/cindertest.mjs)). [walktest.mjs](garden/dev/walktest.mjs) checks that auto-walks between random spots on the island all arrive, and that the sky's reflection refresh compiles no shaders.
 
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
@@ -131,6 +146,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 111 | [NEON ARCANA](game-111/) | A neon tarot block-placement puzzle: fill rows and columns of a glowing lattice to rekindle the 22 Major Arcana, with sigils, blight, a creeping Void, resonance, five tarot powers and embers that carry between readings | three.js |
 | 112 | [Quill & Legion](game-112/) | A hand-inked tactics roguelike: creature stacks on a hex field, every order a card with telegraphed enemy intents, three books of branching roads, recruited at dwellings and drawn in pen hatching on paper | three.js |
 | 113 | [Crystal Crescendo](game-113/) | An HD-2D rhythm RPG: a once-helpless princess gathers a band of four princesses, each playing one layer of the song, in call-and-response music duels against the dragon who silences the world | three.js |
+| 114 | [LAST COLONIST](game-114/) | A run-and-gun shooter with code-painted pixel sprites lit by point lights through generated normal maps: the last colonist awake on a derelict ark fights through eight sectors to the alien homeworld to free the others before they become food | three.js |
 
 ### Highlights
 
@@ -342,7 +358,7 @@ When building or modifying games, consult these docs for framework APIs, confirm
 web-games-andrew/
 ├── index.html              # 3D garden launcher (three.js)
 ├── classic.html            # The original card-grid launcher
-├── garden/                 # Garden launcher code (js/, css/, dev/browsertest.mjs)
+├── garden/                 # Garden launcher code (js/, css/, img/, dev/ browser tests)
 ├── css/                    # Shared stylesheets
 ├── js/                     # Shared JavaScript modules
 │   ├── main.js
@@ -356,7 +372,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-070/   # One self-contained folder per game
+├── game-001/ … game-114/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -413,7 +429,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 70 games are included as of the latest entries (game-065 Worldroot, game-066 Scrapwright, game-067 Tootle Isles, game-068 Haven Road, game-069 Dirt Crown, game-070 PHOSPHOR PATROL).
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 114 games are included as of the latest entries (game-110 Doom & Doilies, game-111 NEON ARCANA, game-112 Quill & Legion, game-113 Crystal Crescendo, game-114 LAST COLONIST), and the Garden launcher is at v1.9.0.
 
 ---
 

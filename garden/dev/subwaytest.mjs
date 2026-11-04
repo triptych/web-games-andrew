@@ -73,6 +73,24 @@ try {
     await page.waitForFunction(() => window.__garden?.entered, null, { timeout: 180000 });
     await frames(2);
 
+    // the hut is sited before the statues, lamps and benches are built; none may stand
+    // under its roof (the eaves reach 2.95 m by 2.75 m from its centre) or crowd its walls
+    const crowd = await page.evaluate(() => {
+        const g = window.__garden, h = g.world.hut;
+        const face = Math.atan2(h.out.x - h.cx, h.out.z - h.cz), c = Math.cos(face), s = Math.sin(face);
+        const things = g.layout.spokes.flatMap((sp) => [
+            ...sp.statues.map((st) => ({ name: `the ${st.game.title} statue`, x: st.x, z: st.z, r: 1 })),
+            ...sp.lamps.map((l) => ({ name: 'a lamp', x: l.x, z: l.z, r: 0.3 })),
+            ...sp.benches.map((b) => ({ name: 'a bench', x: b.x, z: b.z, r: 1 })),
+        ]);
+        return things.filter((t) => {
+            const dx = t.x - h.cx, dz = t.z - h.cz;
+            const lx = dx * c - dz * s, lz = dx * s + dz * c;
+            return Math.abs(lx) < 2.95 + t.r + 0.5 && Math.abs(lz) < 2.75 + t.r + 0.5;
+        }).map((t) => t.name);
+    });
+    check(crowd.length === 0, `nothing stands in the hut (${crowd.join(', ') || 'clear'})`);
+
     // into the hut, and the ticket on the desk
     await page.evaluate(() => window.__garden.throughDoor(true, 'hut'));
     await page.waitForFunction(() => window.__garden.below && window.__garden.hut, null, { timeout: 60000 });

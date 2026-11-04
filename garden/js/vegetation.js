@@ -4,6 +4,7 @@
 // flower beds. Everything is instanced and sways in a shared wind.
 
 import * as THREE from 'three';
+import { buildTreePortal } from './forest-portal.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Batch, xf } from './materials.js';
 import { lathe } from './architecture.js';
@@ -189,7 +190,7 @@ function clearOf(world, x, z, extra = 0) {
     if (Math.hypot(x, z) < PLAZA_R + 5 + extra) return false;
     for (const sp of layout.spokes) if (Math.hypot(x - sp.pavilion.x, z - sp.pavilion.z) < PAVILION_PLAZA + 3.5 + extra) return false;
     for (const f of layout.features) {
-        const r = f.type === 'grove' ? 0 : f.type === 'fountain' ? 8.5 : 7.5;
+        const r = f.type === 'grove' ? 0 : f.type === 'fountain' ? 8.5 : f.type === 'carousel' ? 12 : 7.5;
         if (r && Math.hypot(x - f.x, z - f.z) < r + extra) return false;
     }
     if (Math.abs(x) < 6 && z > layout.dock.start - 4 && z < layout.dock.end + 4) return false;
@@ -335,7 +336,7 @@ function hedgeArc(h) {
 }
 
 function buildHedges(world) {
-    const batch = new Batch();
+    const batch = new Batch({ cell: 40 });
     for (const h of world.hedges) {
         const g = hedgeArc(h);
         // follow the ground under every vertex
@@ -413,6 +414,8 @@ function buildGreatTree(world, f) {
     world.colliders.push({ x: f.x, z: f.z, r: 1.3 });
     world.petalSources.push({ x: f.x, y: y0 + 9, z: f.z, r: 6 });
     world.landmarks.push({ name: 'The Great Tree', x: f.x, z: f.z });
+    // a shimmering door in its roots, to the Springwood
+    buildTreePortal(world, f);
 }
 
 // ---------------------------------------------------------------- grass

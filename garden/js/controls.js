@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { clamp, damp, angleDiff, TAU } from './util.js';
 import { PLAZA_R, projectOnPath, samplePath } from './layout.js';
+import { NavGrid } from './nav.js';
 
 const EYE = 1.65;
 const WALK = 4.2, RUN = 8.5;
@@ -133,9 +134,33 @@ export class Controls {
         });
     }
 
-    /** Walk somewhere. Targets: {x,z} (straight), or a planned route of points. */
+    /**
+     * Walk somewhere. Targets: {x,z} (straight), or a planned route of points. Where the
+     * world has a nav grid, any leg that would run into something is detoured around it.
+     */
     walkTo(points, face) {
-        this.route = { points, i: 0, face, stuck: 0, lastD: Infinity };
+        const nav = this.world.nav;
+        if (nav && points.length) points = nav.repair(this.pos.x, this.pos.z, points);
+        this.route = { points, i: 0, face, stuck: 0, best: Infinity, bestI: -1 };
+    }
+
+    /** Stuck against something mid-walk: find a way round to the end of the walk, once. */
+    _replan(r) {
+        const nav = this.world.nav;
+        const end = r.points[r.points.length - 1];
+        if (!nav || r.replanned) return false;
+        const detour = nav.find(this.pos.x, this.pos.z, end.x, end.z);
+        if (!detour?.length) return false;
+        const last = detour[detour.length - 1];
+        const gain = Math.hypot(this.pos.x - end.x, this.pos.z - end.z) - Math.hypot(last.x - end.x, last.z - end.z);
+        // no nearer reachable spot, or only by a long way round (the far side of a building): give up
+        const straight = Math.hypot(end.x - this.pos.x, end.z - this.pos.z);
+        if (gain < 0.6 || NavGrid.length(this.pos.x, this.pos.z, detour) > straight * 3 + 12) return false;
+        r.points = [...detour, end];
+        r.i = 0;
+        r.stuck = 0;
+        r.replanned = true;
+        return true;
     }
 
     teleport(x, z, yaw) {
@@ -243,7 +268,10 @@ export class Controls {
             let d = Math.hypot(tgt.x - this.pos.x, tgt.z - this.pos.z);
             // pass a waypoint once within reach of this frame's step
             const reach = Math.max(1.2, (r.run ? RUN : WALK) * dt * 1.5);
-            while (d < reach && r.i < r.points.length - 1) {
+            // ...but only cut the corner when the shortcut to the next one is clear
+            const nav = this.world.nav;
+            const cut = (next) => d < 0.35 || !nav || nav.clear(this.pos.x, this.pos.z, next.x, next.z);
+            while (d < reach && r.i < r.points.length - 1 && cut(r.points[r.i + 1])) {
                 r.i++;
                 tgt = r.points[r.i];
                 d = Math.hypot(tgt.x - this.pos.x, tgt.z - this.pos.z);
@@ -263,8 +291,21 @@ export class Controls {
                     this.yaw += angleDiff(this.yaw, want) * (1 - Math.exp(-dt * 4));
                     this.pitch = damp(this.pitch, -0.04, 3, dt);
                 }
-                r.stuck = this.speed < 0.4 ? r.stuck + dt : 0;
-                if (r.stuck > 1.2) this.route = null;
+                // Stuck means no nearer the waypoint for a while: pressed against something or
+                // circling it. (The velocity is what we ask for, so it stays high against a wall.)
+                if (r.i !== r.bestI || d < r.best - 0.3) {
+                    r.bestI = r.i;
+                    r.best = d;
+                    r.stuck = 0;
+                } else r.stuck += dt;
+                if (r.stuck > 1.5 && !this._replan(r)) {
+                    this.route = null;
+                    // pressed up against the very spot we were heading for: that's arriving
+                    if (last && d < 0.7) {
+                        if (r.face !== undefined) this.faceYaw = r.face;
+                        this.world.onArrive?.(r);
+                    }
+                }
             }
         }
         if (this.faceYaw !== undefined) {

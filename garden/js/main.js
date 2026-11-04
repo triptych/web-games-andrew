@@ -6,6 +6,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { roundBloom } from './bloom.js';
 import games from '../../js/gamedata.js';
 import { buildLayout, projectOnPath, samplePath, PLAZA_R, PATH_HALF, GATE_S, PAVILION_PLAZA } from './layout.js';
 import { Island } from './terrain.js';
@@ -22,6 +23,7 @@ import { Vines, sparkleVine } from './vines.js';
 import { Particles, Bursts } from './particles.js';
 import { Hologram } from './hologram.js';
 import { Controls } from './controls.js';
+import { NavGrid } from './nav.js';
 import { AudioEngine } from './music.js';
 import { UI } from './ui.js';
 import { IslandMap } from './map.js';
@@ -42,6 +44,13 @@ import { Tower } from './tower.js';
 import { Scope } from './scope.js';
 import { FountainSub } from './submarine.js';
 import { Undersea } from './undersea.js';
+import { Forest } from './forest.js';
+import { inDoorway, rayPortal } from './forest-portal.js';
+import { Gearfall } from './gearfall.js';
+import { PaperNote } from './gearfall-ui.js';
+import { onHatch } from './gear-hatch.js';
+import { Arcade } from './arcade.js';
+import { Carousel } from './carousel.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -96,7 +105,10 @@ function makeWorld(layout, island, quality) {
     };
     w.inPlaza = (x, z) => {
         for (const sp of layout.spokes) if (Math.hypot(x - sp.pavilion.x, z - sp.pavilion.z) < PAVILION_PLAZA + 0.4) return true;
-        for (const f of layout.features) if (f.type === 'fountain' && Math.hypot(x - f.x, z - f.z) < 6.6) return true;
+        for (const f of layout.features) {
+            if (f.type === 'fountain' && Math.hypot(x - f.x, z - f.z) < 6.6) return true;
+            if (f.type === 'carousel' && Math.hypot(x - f.x, z - f.z) < 9.7) return true;
+        }
         return w.spanAt(x, z) > -Infinity;
     };
     const CELL = 4;
@@ -137,13 +149,14 @@ function lighthouseBeams(world, scene) {
         scene.add(g);
         return { g, lamp };
     });
+    const lampTint = new THREE.Color(0xffd890);
     return (dt, night) => {
         mat.uniforms.uOpacity.value = night;
         for (const b of beams) {
             b.g.rotation.y += dt * 0.5;
             b.g.children.forEach((c) => (c.visible = night > 0.05));
             b.lamp.visible = true;
-            b.lamp.material.color.setScalar(0.4 + night * 2.5).multiply(new THREE.Color(0xffd890));
+            b.lamp.material.color.copy(lampTint).multiplyScalar(0.4 + night * 2.5);
         }
     };
 }
@@ -247,6 +260,8 @@ async function boot() {
     world.hut = buildHutExterior(world);
     // the toy submarine in the Moon Fountain's pool
     const fountainSub = new FountainSub(world);
+    // the Starlight Carousel on its plaza between the paths
+    const carousel = new Carousel(world);
     ui.progress(0.52, 'Smoking out a volcano…');
     await nextFrame();
     const volcano = new Cinderpeak({ world, scene, sky, quality, water });
@@ -276,6 +291,14 @@ async function boot() {
     const bursts = new Bursts(world);
     const beams = lighthouseBeams(world, scene);
     world.finalize();
+    // auto-walks detour round anything in their way (cells are worked out on demand)
+    {
+        const L = world.layout;
+        let reach = L.islandR + 20;
+        for (const sp of world.spans) reach = Math.max(reach, Math.hypot(sp.ax, sp.az) + 10, Math.hypot(sp.bx, sp.bz) + 10);
+        if (L.islet.x !== undefined) reach = Math.max(reach, Math.hypot(L.islet.x, L.islet.z) + 20);
+        world.nav = new NavGrid(world, reach);
+    }
 
     // lamp light pool
     const lampLights = [];
@@ -292,6 +315,8 @@ async function boot() {
     const renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
     const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.42, 0.5, 1.15);
+    // its blurs are nearly box blurs, which give small lights square halos: make them Gaussian (see bloom.js)
+    roundBloom(bloom);
     if (quality.bloom) composer.addPass(bloom);
     composer.addPass(new OutputPass());
 
@@ -310,9 +335,12 @@ async function boot() {
     world.controls = controls;
     // a fox spirit from Worldroot comes by on about one visit in five (?fox=1 always, ?fox=0 never)
     const fox = new FoxVisitor(scene, world, controls, camera, { force: params.get('fox') });
+    fox.onHome = (dist) => {
+        if (dist < 40) ui.hint('The fox dashed through the shimmering door in the Great Tree · it must live on the other side', 7000);
+    };
     const boat = new Boat(world, scene, camera, controls);
     const fishing = new Fishing({ world, scene, camera, controls, ui, audio, bursts, canvas });
-    controls.canJump = () => !fishing.active && !ui.blocking && !boat.busy && !diving;
+    controls.canJump = () => !fishing.active && !ui.blocking && !boat.busy && !diving && !arcade?.busy;
     // The title orbit circles the island looking in, so its show goes up over the island's heart. The flying
     // boat circles it too, turning from the bow to the island and back, so each shell goes up ahead of the rider's view.
     const islandHeart = new THREE.Vector3(), ahead = new THREE.Vector3();
@@ -370,11 +398,92 @@ async function boot() {
     let subway = null;
     // the Observatory's tower and the view through its telescope: built on the first visit
     let tower = null, scope = null, scoping = null;
+    // the Lighthouse Arcade behind the lighthouse door: built on the first visit
+    let arcade = null, arcadeHintShown = false, lhDoorHintShown = false;
     // the sea inside the fountain's submarine: built on the first dive
     let undersea = null, diving = null, subPending = false, subHintShown = false;
+    // the Springwood through the door in the Great Tree: built on the first visit
+    let forest = null, treeArmed = false, treeHintShown = false, forestHintShown = false;
+    // Gearfall, down the trap door behind the Great Gear: built on the first visit
+    let city = null, hatchArmed = false, hatchHintShown = false, cityHintShown = false;
+    // the maintenance log on the hut's desk
+    const paperNote = new PaperNote();
     let trip = null;       // falling into / climbing out of the sphere
+
+    /**
+     * The hut television's channels: live pictures of the island's secret places. Each draws a
+     * scene the garden already has from a camera of its own (see hut-tv.js). The galaxy and the
+     * Violet Line are built the first time they're tuned in (and shared with the real trips); the
+     * arcade and the Works only come in once you have found them.
+     */
+    function tvChannels() {
+        const garden = (name, sub, aim, prep) => ({
+            name, sub, ready: () => true, scene: () => scene, aim,
+            prep: (dt, t) => {
+                water.update(t);
+                windUniforms.uWindTime.value = t;
+                prep?.(dt, t);
+            },
+        });
+        const list = [];
+        if (world.pier) {
+            const s = world.pier.stand, y = world.walkHeight(s.x, s.z);
+            const fx = -Math.sin(s.yaw), fz = -Math.cos(s.yaw);
+            list.push(garden('The Fishing Hole', 'Pier camera · the far side of the island', (cam, t) => {
+                // from a pole beside the end of the pier, panning slowly across the water
+                cam.position.set(s.x - fx * 3 + fz * 2.2, y + 3.4, s.z - fz * 3 - fx * 2.2);
+                const a = Math.sin(t * 0.1) * 0.5;
+                const lx = fx * Math.cos(a) - fz * Math.sin(a), lz = fz * Math.cos(a) + fx * Math.sin(a);
+                cam.lookAt(s.x + lx * 18, 0.2, s.z + lz * 18);
+            }));
+        }
+        list.push({
+            name: 'The Galaxy in the Glass', sub: 'Inside the sphere on the desk', ready: () => true,
+            scene: () => (galaxy ??= new Galaxy()).scene,
+            aim: (cam, t, dt, h) => galaxy.update(dt, cam, { x: 0, y: 0 }, h, 10),
+        });
+        list.push({
+            name: 'The Violet Line', sub: 'Hearthside station · platform camera', ready: () => true, gain: 1.8,
+            scene: () => (subway ??= new Subway({ renderer, ui, mats: world.mats, audio, quality })).scene,
+            aim: (cam, t) => {
+                cam.position.set(-8.2, 3.3, -26);
+                cam.lookAt(-1.5 + Math.sin(t * 0.13) * 3.5, 1.2, 8);
+            },
+        });
+        const moon = world.landmarks.find((l) => l.name === 'The Moon Fountain');
+        const mf = moon && world.fountains.reduce((a, f) => (Math.hypot(f.x - moon.x, f.z - moon.z) < Math.hypot(a.x - moon.x, a.z - moon.z) ? f : a), world.fountains[0]);
+        if (mf) {
+            list.push(garden('The Moon Fountain', 'Somebody is down there in a submarine', (cam, t) => {
+                const a = t * 0.05;
+                cam.position.set(mf.x + Math.sin(a) * 7.5, mf.poolY + 3.2, mf.z + Math.cos(a) * 7.5);
+                cam.lookAt(mf.x, mf.poolY + 0.4, mf.z);
+            }, (dt, t) => fountainSub.update(dt, t, sky.state.night)));
+        }
+        list.push({
+            name: 'The Lighthouse Arcade', sub: 'Free play · open all night', hint: 'There is a door at the foot of the lighthouse',
+            ready: () => !!arcade,
+            scene: () => arcade.scene,
+            prep: (dt, t) => arcade.tick(t),
+            aim: (cam, t) => {
+                const sp = arcade.plan.spawn;
+                cam.position.set(sp.x + 5.5, 4.4, sp.z + 1.6);
+                cam.lookAt(sp.x - 2 + Math.sin(t * 0.09) * 8, 1.2, sp.z - 14);
+            },
+        });
+        list.push({
+            name: 'The Works', sub: 'Under the clock tower · the machines never stop', hint: 'Cross the bridge to the clock tower and go through the door at its foot',
+            ready: () => !!works,
+            scene: () => works.scene,
+            aim: (cam, t) => {
+                const sp = works.spawn;
+                cam.position.set(sp.x + 3, 5.5, sp.z + 2);
+                cam.lookAt(sp.x + Math.sin(t * 0.08) * 6, 2, sp.z - 12);
+            },
+        });
+        return list;
+    }
     const look = { x: 0, y: 0 };
-    let roomKind = null;   // which room 'below' means: 'works' | 'hut' | 'subway' | 'mine' | 'tower'
+    let roomKind = null;   // which room 'below' means: 'works' | 'hut' | 'subway' | 'mine' | 'tower' | 'arcade' | 'forest' | 'city'
     let below = false;
     let transit = false;   // fading through a door
     let doorArmed = false; // you must step away from a door before it takes you again
@@ -382,6 +491,8 @@ async function boot() {
     let worksHintShown = false, doorHintShown = false, hutHintShown = false, hutDoorHintShown = false, orbHintShown = false, boatHintShown = false;
     let boardPending = false; // walking to the dock edge to climb into the boat
     let fishPending = false;  // walking out along the pier to pick up the rod
+    let carouselPending = -1; // walking over to the carousel to climb onto that creature
+    let carouselHintShown = false;
     // Cinderpeak: the Standing Stones lead to its cove, a cart there rides into the mine, and a dais leads home
     let place = 'garden';     // 'garden' | 'cove' | 'mine'
     let mine = null, mineAudio = null;
@@ -432,6 +543,22 @@ async function boot() {
                 best = { type: 'portal', t };
             }
         }
+        // the shimmering door in the Great Tree
+        if (world.treePortal) {
+            const t = rayPortal(world.treePortal, ray);
+            if (t < bt && t < 90) {
+                bt = t;
+                best = { type: 'treePortal', t };
+            }
+        }
+        // the trap door behind the Great Gear
+        if (world.gearHatch) {
+            const hh = ray.intersectObject(world.gearHatch.hit, false)[0];
+            if (hh && hh.distance < bt && hh.distance < 40) {
+                bt = hh.distance;
+                best = { type: 'gearHatch', t: bt };
+            }
+        }
         for (const st of statues) {
             const t = rayCylinder(o, d, st.x, st.z, 0.9, st.y, st.y + STATUE_TOP);
             if (t < bt && t < 70) {
@@ -450,10 +577,19 @@ async function boot() {
             bt = bt0.distance;
             best = { type: 'boat', t: bt };
         }
-        const sh = fountainSub.ok && ray.intersectObject(fountainSub.hit, false)[0];
-        if (sh && sh.distance < bt && sh.distance < 60 && fountainSub.state === 'circle') {
-            bt = sh.distance;
-            best = { type: 'sub', t: bt };
+        // the submarine is small and moving, so it gets a generous upright target round it
+        if (fountainSub.ok && fountainSub.state !== 'under' && !diving) {
+            const sp = fountainSub.group.position;
+            const t = rayCylinder(o, d, sp.x, sp.z, 1.15, sp.y - 0.6, sp.y + 1.1);
+            if (t < bt && t < 90) {
+                bt = t;
+                best = { type: 'sub', t };
+            }
+        }
+        const cr = carousel.pick(ray, Math.min(bt, 70));
+        if (cr && cr.t < bt) {
+            bt = cr.t;
+            best = { type: 'carousel', idx: cr.idx, t: bt };
         }
         const rod = ray.intersectObjects(fishing.pickables, false)[0];
         if (rod && rod.distance < bt && rod.distance < 60) {
@@ -475,8 +611,14 @@ async function boot() {
             bt = od.distance;
             best = { type: 'obsDoor', t: bt };
         }
+        const ld = world.lighthouse && ray.intersectObject(world.lighthouse.mesh, false)[0];
+        if (ld && ld.distance < bt && ld.distance < 60) {
+            bt = ld.distance;
+            best = { type: 'lhDoor', t: bt };
+        }
         const tg = marchGround(world, o, d, Math.min(bt, 120));
-        if (tg < bt) {
+        // it floats right at the plaza's level, so the ground under it must not steal the click
+        if (tg < bt && !(best?.type === 'sub' && bt - tg < 3)) {
             const p = o.clone().addScaledVector(d, tg);
             return { type: 'ground', point: p, t: tg };
         }
@@ -524,6 +666,8 @@ async function boot() {
         ui.flash(true);
         controls.route = null;
         setTimeout(() => {
+            carousel.abort(controls);
+            carouselPending = -1;
             if (diving) endDive();
             if (place !== 'garden') abortCinder();
             else if (below) surface();
@@ -769,7 +913,7 @@ async function boot() {
     }
 
     function walkToGame(game) {
-        if (below || diving || place !== 'garden') return linkToGame(game);
+        if (below || diving || place !== 'garden' || carousel.busy) return linkToGame(game);
         fishing.stop();
         const st = statueByGame.get(game);
         const s = standForStatue(st);
@@ -1106,13 +1250,16 @@ async function boot() {
             if (scoping) endScope();
             tower.leave();
         }
+        if (roomKind === 'arcade' && (!on || kind !== 'arcade')) arcade.leave();
+        if (roomKind === 'forest' && (!on || kind !== 'forest')) forest.leave();
+        if (roomKind === 'city' && (!on || kind !== 'city')) city.leave();
         below = on;
         roomKind = on ? kind : null;
-        const room = kind === 'hut' ? hut : kind === 'subway' ? subway : kind === 'mine' ? mine : kind === 'tower' ? tower : works;
+        const room = kind === 'hut' ? hut : kind === 'subway' ? subway : kind === 'mine' ? mine : kind === 'tower' ? tower : kind === 'arcade' ? arcade : kind === 'forest' ? forest : kind === 'city' ? city : works;
         controls.world = on ? (kind === 'mine' ? mine.walk : room.world) : place === 'cove' ? volcano.world : world;
         renderPass.scene = on ? room.scene : scene;
-        bloom.strength = on ? (kind === 'hut' ? 0.55 : kind === 'subway' ? 0.5 : kind === 'mine' ? 0.7 : kind === 'tower' ? 0.55 : 0.6) : 0.42;
-        audio.setUnderground(on && (kind === 'works' || kind === 'mine'), kind === 'works');
+        bloom.strength = on ? (kind === 'hut' ? 0.55 : kind === 'subway' ? 0.5 : kind === 'mine' ? 0.7 : kind === 'tower' ? 0.55 : kind === 'arcade' ? 0.75 : kind === 'forest' ? 0.5 : kind === 'city' ? 0.62 : 0.6) : 0.42;
+        audio.setUnderground(on && (kind === 'works' || kind === 'mine' || kind === 'city'), kind === 'works');
         if (on) fireworks.stop();
         doorArmed = false;
         mouse = null;
@@ -1155,8 +1302,63 @@ async function boot() {
                     setBelow(false);
                     ui.hint('The Observatory door is stuck today.', 4000);
                 }
+            } else if (down && kind === 'arcade') {
+                try {
+                    arcade ??= new Arcade({ renderer, ui, mats: world.mats, audio, quality, camera, canvas, games, showCard: (g) => ui.showCard(g) });
+                    setBelow(true, 'arcade');
+                    arcade.enter(controls);
+                    ui.zone('The Lighthouse Arcade', `${games.length} cabinets · bowling · disco · fortunes · plush`, '#ff5fd2');
+                    zoneKey = 'arcade';
+                    if (!arcadeHintShown) {
+                        arcadeHintShown = true;
+                        setTimeout(() => ui.hint('Every cabinet is a game from the garden · click one for its card · Madame Meridian tells fortunes and Plush Pier has a toy from every game · click a bowling lane to bowl · the jukebox takes requests · the door behind you leads out', 12000), 1400);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    arcade = null;
+                    setBelow(false);
+                    ui.hint('The arcade is closed for repairs today.', 4000);
+                }
+            } else if (down && kind === 'forest') {
+                try {
+                    forest ??= new Forest({ renderer, audio, ui, quality });
+                    forest.onExit = () => throughDoor(false);
+                    setBelow(true, 'forest');
+                    forest.enter(controls);
+                    ui.zone('The Springwood', 'Through the Great Tree, where it is always April', '#ffb7d5');
+                    zoneKey = 'forest';
+                    if (!forestHintShown) {
+                        forestHintShown = true;
+                        const touch = matchMedia('(pointer: coarse)').matches;
+                        const met = fox.wentHome ? 'There is the fox: so this is where it lives! ' : 'A fox spirit lives here, and it has come to meet you. ';
+                        setTimeout(() => ui.hint(`${met}It will keep you company, and show you hidden places when they are near · ${touch ? 'tap anywhere to walk there' : 'walk anywhere'} · the door behind you, or Step home, leads back`, 12000), 1600);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    forest = null;
+                    setBelow(false);
+                    ui.hint('The door in the Great Tree is only shimmering today.', 4000);
+                }
+            } else if (down && kind === 'city') {
+                try {
+                    city ??= new Gearfall({ renderer, audio, ui, quality });
+                    city.onExit = () => throughDoor(false);
+                    setBelow(true, 'city');
+                    city.enter(controls);
+                    zoneKey = 'city';
+                    if (!cityHintShown) {
+                        cityHintShown = true;
+                        const touch = matchMedia('(pointer: coarse)').matches;
+                        setTimeout(() => ui.hint(`Down the ladder, a long hall runs on under the ground · ${touch ? 'tap anywhere to walk there' : 'walk anywhere'} · there is a door at the far end · the ladder behind you, or Climb home, leads back`, 11000), 1600);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    city = null;
+                    setBelow(false);
+                    ui.hint('The trap door is rusted shut today.', 4000);
+                }
             } else if (down && kind === 'hut') {
-                hut ??= new Hut({ renderer, ui, mats: world.mats });
+                hut ??= new Hut({ renderer, ui, mats: world.mats, camera, quality, tv: tvChannels(), onChannel: () => audio.click() });
                 setBelow(true, 'hut');
                 const s = hut.spawn;
                 controls.teleport(s.x, s.z, s.yaw);
@@ -1179,7 +1381,15 @@ async function boot() {
                 }
             } else {
                 surface();
-                const o = leaving === 'hut' ? world.hut.out : leaving === 'tower' ? world.observatory.out : world.clockDoor.out;
+                const o = leaving === 'hut' ? world.hut.out : leaving === 'tower' ? world.observatory.out : leaving === 'arcade' ? world.lighthouse.out : leaving === 'forest' ? world.treePortal.out : leaving === 'city' ? world.gearHatch.out : world.clockDoor.out;
+                if (leaving === 'city') {
+                    hatchArmed = false;
+                    ui.hint('Back up the ladder, beside the Great Gear', 4000);
+                }
+                if (leaving === 'forest') {
+                    treeArmed = false;
+                    ui.hint('Back beside the Great Tree', 4000);
+                }
                 controls.teleport(o.x, o.z, o.yaw);
             }
             setTimeout(() => {
@@ -1189,12 +1399,60 @@ async function boot() {
         }, 650);
     }
 
+    /** Walking through the shimmering door in the Great Tree takes you to the Springwood. */
+    function treeCheck() {
+        const tp = world.treePortal;
+        if (!tp || transit || trip || !controls.enabled || boat.busy || diving || carousel.busy) return;
+        const p = controls.pos;
+        const d = Math.hypot(p.x - tp.x, p.z - tp.z);
+        tp.near = Math.max(0, Math.min(1, 1 - (d - 1.5) / 8));
+        // armed whenever you are out of the doorway, so you can turn round and walk straight back in
+        if (!inDoorway(tp, p.x, p.z)) treeArmed = true;
+        else if (treeArmed) {
+            treeArmed = false;
+            throughDoor(true, 'forest');
+            return;
+        }
+        if (!treeHintShown && d < 14 && entered && !intro) {
+            treeHintShown = true;
+            ui.hint('A door of light has opened in the Great Tree’s roots · walk through it, or click it', 9000);
+        }
+    }
+
+    /** Stepping onto the trap door behind the Great Gear takes you down to Gearfall. */
+    function hatchCheck() {
+        const h = world.gearHatch;
+        if (!h || transit || trip || !controls.enabled || boat.busy || diving || carousel.busy) return;
+        const p = controls.pos;
+        const d = Math.hypot(p.x - h.x, p.z - h.z);
+        h.near = Math.max(0, Math.min(1, 1 - (d - 1) / 5));
+        if (d > 1.4) hatchArmed = true;
+        else if (hatchArmed && onHatch(h, p.x, p.z)) {
+            hatchArmed = false;
+            throughDoor(true, 'city');
+            return;
+        }
+        if (!hatchHintShown && d < 7 && entered && !intro) {
+            hatchHintShown = true;
+            ui.hint('Behind the Great Gear, an iron trap door lifts on its hinge · a ladder goes down · step onto it, or click it', 8000);
+        }
+    }
+
     /** Walking into a door's spot goes through it. */
     function doorCheck() {
         if (transit || !controls.enabled) return;
         if (trip) return;
         const p = controls.pos;
         if (below && roomKind === 'tower') return;   // the tower minds its own door
+        if (below && roomKind === 'forest') return;  // so does the Springwood
+        if (below && roomKind === 'city') return;    // and Gearfall
+        if (below && roomKind === 'arcade') {
+            if (arcade.busy) return;
+            const e = arcade.exit, dist = Math.hypot(p.x - e.x, p.z - e.z);
+            if (dist > 2) doorArmed = true;
+            if (doorArmed && dist < 0.7) throughDoor(false);
+            return;
+        }
         if (below && roomKind === 'subway') {
             const e = subway.exit, dist = Math.hypot(p.x - e.x, p.z - e.z);
             if (dist > 2) doorArmed = true;
@@ -1216,6 +1474,11 @@ async function boot() {
                 d = ob;
                 kind = 'tower';
             }
+            const lh = world.lighthouse;
+            if (lh && Math.hypot(p.x - lh.x, p.z - lh.z) < Math.hypot(p.x - d.x, p.z - d.z)) {
+                d = lh;
+                kind = 'arcade';
+            }
         }
         const dist = Math.hypot(p.x - d.x, p.z - d.z);
         if (dist > 1.6) doorArmed = true;
@@ -1226,6 +1489,9 @@ async function boot() {
         } else if (!below && kind === 'tower' && !obsDoorHintShown && dist < 8) {
             obsDoorHintShown = true;
             ui.hint('The Observatory: walk through its door', 6000);
+        } else if (!below && kind === 'arcade' && !lhDoorHintShown && dist < 8) {
+            lhDoorHintShown = true;
+            ui.hint('A door at the foot of the lighthouse, with music behind it: walk through it', 6000);
         } else if (!below && kind === 'hut' && !hutDoorHintShown && dist < 7) {
             hutDoorHintShown = true;
             ui.hint('A little hut: walk through its door', 6000);
@@ -1238,8 +1504,8 @@ async function boot() {
         ray.setFromCamera(ndc, camera);
         if (roomKind === 'subway') return subway.pick(ray);
         if (roomKind === 'hut') {
-            const hit = ray.intersectObjects([hut.orbHit, hut.ticketHit, hut.doorMesh], false)[0];
-            if (hit && hit.distance < 40) return { type: { orb: 'orb', ticket: 'ticket' }[hit.object.userData.kind] ?? 'door', t: hit.distance };
+            const hit = ray.intersectObjects([hut.orbHit, hut.ticketHit, hut.papersHit, hut.doorMesh, ...(hut.tv?.pickables ?? [])], false)[0];
+            if (hit && hit.distance < 40) return { type: { orb: 'orb', ticket: 'ticket', tv: 'tv', papers: 'papers' }[hit.object.userData.kind] ?? 'door', t: hit.distance };
             const o = ray.ray.origin, d = ray.ray.direction;
             if (d.y >= -1e-4) return null;
             const t = -o.y / d.y;
@@ -1283,7 +1549,7 @@ async function boot() {
     syncFocus();
 
     // below ground the map shows you at the tower
-    const mapPos = () => (place !== 'garden' && stones ? stones : below ? (roomKind === 'works' ? world.clockDoor : roomKind === 'tower' ? { x: world.observatory.cx, z: world.observatory.cz } : { x: world.hut.cx, z: world.hut.cz }) : controls.pos);
+    const mapPos = () => (place !== 'garden' && stones ? stones : below ? (roomKind === 'works' ? world.clockDoor : roomKind === 'tower' ? { x: world.observatory.cx, z: world.observatory.cz } : roomKind === 'arcade' ? { x: world.lighthouse.cx, z: world.lighthouse.cz } : roomKind === 'forest' ? world.treePortal : roomKind === 'city' ? world.gearHatch : { x: world.hut.cx, z: world.hut.cz }) : controls.pos);
     ui.on('mapOpen', () => map.draw(mapPos(), controls.yaw));
     ui.on('timeOpen', () => {
         document.getElementById('time-slider').value = Math.round(sky.time * 1440);
@@ -1341,8 +1607,37 @@ async function boot() {
     controls.onTap = (x, y, type) => {
         if (!entered || intro || transit || boat.busy || fishing.active) return;
         if (ui.blocking) return;
+        // on the carousel, a click asks to get off
+        if (carousel.busy) {
+            if (carousel.leave()) audio.click();
+            return;
+        }
         if (place === 'cove') return tapCove(x, y);
         if (place === 'mine') return tapMine(x, y);
+        if (below && roomKind === 'arcade') {
+            ndc.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
+            ray.setFromCamera(ndc, camera);
+            const h = arcade.tap(ray);
+            if (h?.type === 'ground') ui.marker(x, y);
+            else if (h && h.type !== 'cabinet' && h.type !== 'bowl') audio.click();
+            return;
+        }
+        if (below && roomKind === 'forest') {
+            ndc.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
+            ray.setFromCamera(ndc, camera);
+            const h = forest.tap(ray);
+            if (h?.type === 'ground') ui.marker(x, y);
+            else if (h?.type === 'portal') audio.click();
+            return;
+        }
+        if (below && roomKind === 'city') {
+            ndc.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
+            ray.setFromCamera(ndc, camera);
+            const h = city.tap(ray);
+            if (h?.type === 'ground' || h?.type === 'wall') ui.marker(x, y);
+            else if (h) audio.click();
+            return;
+        }
         if (below && roomKind === 'tower') {
             if (scoping) return;
             ndc.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
@@ -1360,6 +1655,11 @@ async function boot() {
                 audio.click();
             } else if (h?.type === 'orb') {
                 startTrip();
+            } else if (h?.type === 'tv') {
+                hut.tv.next();
+            } else if (h?.type === 'papers') {
+                audio.click();
+                paperNote.show();
             } else if (h?.type === 'ticket') {
                 audio.click();
                 startSubway();
@@ -1404,6 +1704,18 @@ async function boot() {
                 subPending = true;
                 controls.walkTo(controls.plan(st.x, st.z), st.yaw);
             }
+        } else if (h.type === 'carousel') {
+            audio.click();
+            ui.closeAll();
+            ui.tooltip(null);
+            if (carousel.near(controls.pos.x, controls.pos.z)) carousel.mount(h.idx, camera, controls);
+            else {
+                carouselPending = h.idx;
+                const ap = carousel.approach(controls.pos.x, controls.pos.z);
+                // close by it is a straight walk over the grass; from further off, by the paths
+                controls.walkTo(carousel.near(controls.pos.x, controls.pos.z, 35) ? [ap] : controls.plan(ap.x, ap.z));
+                ui.hint(`Walking over to ${carousel.info(h.idx).name}…`, 3000);
+            }
         } else if (h.type === 'rod') {
             audio.click();
             ui.closeAll();
@@ -1418,6 +1730,22 @@ async function boot() {
             const route = controls.plan(stonesStand.x, stonesStand.z);
             route.push(stonesStand.inner);
             controls.walkTo(route);
+        } else if (h.type === 'treePortal') {
+            audio.click();
+            ui.closeAll();
+            const tp = world.treePortal;
+            const route = Math.hypot(controls.pos.x - tp.front.x, controls.pos.z - tp.front.z) < 6 ? [tp.front] : controls.plan(tp.front.x, tp.front.z);
+            route.push(tp.back);
+            treeArmed = true;
+            controls.walkTo(route);
+        } else if (h.type === 'gearHatch') {
+            audio.click();
+            ui.closeAll();
+            const gh = world.gearHatch;
+            const route = Math.hypot(controls.pos.x - gh.front.x, controls.pos.z - gh.front.z) < 6 ? [gh.front] : controls.plan(gh.front.x, gh.front.z);
+            route.push({ x: gh.x, z: gh.z });
+            hatchArmed = true;
+            controls.walkTo(route);
         } else if (h.type === 'hutDoor') {
             audio.click();
             ui.closeAll();
@@ -1428,6 +1756,13 @@ async function boot() {
             const ob = world.observatory;
             const route = controls.plan(ob.out.x, ob.out.z);
             route.push({ x: ob.x, z: ob.z });
+            controls.walkTo(route);
+        } else if (h.type === 'lhDoor') {
+            audio.click();
+            ui.closeAll();
+            const lh = world.lighthouse;
+            const route = controls.plan(lh.out.x, lh.out.z);
+            route.push({ x: lh.x, z: lh.z });
             controls.walkTo(route);
         } else if (h.type === 'door') {
             const d = world.clockDoor;
@@ -1479,6 +1814,9 @@ async function boot() {
         if (place !== 'garden' && !below) return audio.step(controls.pos.x > volcano.platformStand.x - 3 && controls.pos.x < volcano.platformStand.x + 3 && controls.pos.z > volcano.cartPos.z - 8 && controls.pos.z < volcano.cartPos.z + 17 ? 'wood' : 'stone');
         if (below && roomKind === 'mine') return audio.step('stone');
         if (below && roomKind === 'tower') return audio.step(tower.stepSurface());
+        if (below && roomKind === 'arcade') return audio.step(arcade.stepSurface(controls.pos));
+        if (below && roomKind === 'forest') return audio.step(forest.stepSurface());
+        if (below && roomKind === 'city') return audio.step(city.stepSurface());
         if (below) return audio.step(roomKind === 'subway' ? subway.stepSurface(controls.pos) : 'metal');
         const p = controls.pos;
         const surface = world.onDeck(p.x, p.z) ? 'wood' : island.pathDistAt(p.x, p.z) < PATH_HALF + 0.2 || Math.hypot(p.x, p.z) < PLAZA_R || world.inPlaza(p.x, p.z) ? 'stone' : 'grass';
@@ -1514,7 +1852,23 @@ async function boot() {
     };
     addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && boat.flying) boat.skip();
+        // Esc, or trying to walk, asks to get off the carousel
+        if (carousel.busy && !e.repeat && ['escape', 'w', 'a', 's', 'd', 'arrowup', 'arrowdown', ' '].includes(e.key.toLowerCase())) {
+            if (e.key === ' ') e.preventDefault();
+            if (carousel.leave()) audio.click();
+        }
     });
+    carousel.onEvent = (name, c) => {
+        if (name === 'mount') ui.hint(`Climbing onto ${c.name}, ${c.kind}…`, 2500);
+        else if (name === 'ride') {
+            // the carousel's own zone, so the banner for the creature isn't replaced by the place's
+            zoneKey = 'The Starlight Carousel';
+            ui.zone(`${c.name}, ${c.kind}`, 'Hold on! Drag to look around · click or press Esc to get off', c.accent);
+        } else if (name === 'leave') ui.hint('The carousel is slowing down to let you off…', 4000);
+        else if (name === 'off') {
+            ui.hint('Back on solid ground · click any creature to ride again', 5000);
+        }
+    };
     canvas.addEventListener('pointerup', () => boat.skip());
 
     const enter = (thenLibrary) => {
@@ -1608,6 +1962,7 @@ async function boot() {
             resize();
         }
 
+        carousel.spin(dt);
         // camera: title orbit, fly-in, or walking
         if (!entered) {
             orbitA += dt * 0.035;
@@ -1638,6 +1993,8 @@ async function boot() {
             diveUpdate(dt, t);
         } else if (mineDrives()) {
             mine.update(dt, t, camera, controls);
+        } else if (carousel.busy) {
+            carousel.drive(dt, camera, controls);
         } else if (!boat.busy && !fishing.active) {
             controls.update(dt);
         }
@@ -1646,6 +2003,16 @@ async function boot() {
         if (fishPending && entered && !intro && !controls.route) {
             fishPending = false;
             if (canFish() && fishing.near(controls.pos.x, controls.pos.z, 2.5)) fishing.start();
+        }
+        if (carouselPending >= 0 && entered && !intro && !controls.route) {
+            const idx = carouselPending;
+            carouselPending = -1;
+            // only if the walk got you to the plinth's edge (a key press that stopped it short doesn't count)
+            if (!below && !diving && place === 'garden' && carousel.near(controls.pos.x, controls.pos.z, 8.3)) carousel.mount(idx, camera, controls);
+        }
+        if (entered && !intro && !carouselHintShown && !below && !diving && place === 'garden' && !carousel.busy && carousel.near(controls.pos.x, controls.pos.z, 18)) {
+            carouselHintShown = true;
+            ui.hint('The Starlight Carousel · click any creature to climb on and ride', 8000);
         }
         if (subPending && entered && !intro && !controls.route) {
             subPending = false;
@@ -1679,17 +2046,17 @@ async function boot() {
             fireworks.start();
         }
         if (below && roomKind === 'hut') {
-            hut.update(dt, t);
+            hut.update(dt, t, !!trip);
             audio.update(night, -100);
             // the pointer shows a hand over the sphere and the door
             if (entered && !intro && !trip && mouse && !ui.blocking && !controls.look?.moved) {
                 const h = pickBelow(mouse.x, mouse.y);
-                hut.setHover(h?.type === 'orb', h?.type === 'ticket');
-                document.body.classList.toggle('can-hover-pick', h?.type === 'orb' || h?.type === 'door' || h?.type === 'ticket');
+                hut.setHover(h?.type === 'orb', h?.type === 'ticket', h?.type === 'tv', h?.type === 'papers');
+                document.body.classList.toggle('can-hover-pick', h?.type === 'orb' || h?.type === 'door' || h?.type === 'ticket' || h?.type === 'tv' || h?.type === 'papers');
             } else hut.setHover(false);
             if (!orbHintShown && entered && !trip && Math.hypot(controls.pos.x - hut.orbPos.x, controls.pos.z - hut.orbPos.z) < 2.2) {
                 orbHintShown = true;
-                ui.hint('A sphere of glass on the desk, with something turning inside it · and a train ticket beside it · click either', 8000);
+                ui.hint('A sphere of glass on the desk, with something turning inside it · a train ticket beside it, some old papers · and an old television that picks up the island’s secret places: click it to change the channel', 8000);
             }
         } else if (below && roomKind === 'tower') {
             if (scoping) scopeUpdate(dt, t);
@@ -1702,6 +2069,33 @@ async function boot() {
                 } else tower.clearHover();
             }
             audio.update(night, -100);
+        } else if (below && roomKind === 'arcade') {
+            arcade.update(dt, t);
+            audio.update(night, -100);
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !transit) {
+                ndc.set((mouse.x / innerWidth) * 2 - 1, -(mouse.y / innerHeight) * 2 + 1);
+                ray.setFromCamera(ndc, camera);
+                document.body.classList.toggle('can-hover-pick', arcade.hover(ray, mouse.x, mouse.y));
+            } else arcade.clearHover();
+        } else if (below && roomKind === 'forest') {
+            forest.update(dt, t, camera, s);
+            audio.update(night, -100);
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !transit) {
+                ndc.set((mouse.x / innerWidth) * 2 - 1, -(mouse.y / innerHeight) * 2 + 1);
+                ray.setFromCamera(ndc, camera);
+                document.body.classList.toggle('can-hover-pick', forest.hover(ray));
+            }
+        } else if (below && roomKind === 'city') {
+            city.update(dt, t, camera, s);
+            audio.update(night, -100);
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !transit && !city.keypad.open) {
+                ndc.set((mouse.x / innerWidth) * 2 - 1, -(mouse.y / innerHeight) * 2 + 1);
+                ray.setFromCamera(ndc, camera);
+                const n = city.hover(ray);
+                document.body.classList.toggle('can-hover-pick', !!n);
+                if (n) ui.note(n, mouse.x, mouse.y);
+                else ui.tooltip(null);
+            } else ui.tooltip(null);
         } else if (below && roomKind === 'subway') {
             subway.update(Math.min(rawDt, 0.25), t, camera, controls);
             audio.update(night, -100);
@@ -1734,6 +2128,7 @@ async function boot() {
             water.update(t);
             windUniforms.uWindTime.value = t;
             fountainSub.update(dt, t, night);
+            carousel.update(dt, t, night, camera, fireworks.active, audio, place === 'garden');
 
             // night lighting
             world.mats.glass.emissiveIntensity = 0.15 + night * 3.2;
@@ -1757,14 +2152,21 @@ async function boot() {
             beams(dt, night);
 
             // hover highlight
-            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !fishing.active && !diving) {
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !fishing.active && !diving && !carousel.busy) {
                 const h = pick(mouse.x, mouse.y);
                 setHover(h);
                 if (h?.type === 'statue') ui.tooltip(h.statue.game, mouse.x, mouse.y);
                 else if (h?.type === 'panel') ui.tooltip(hologram.current, mouse.x, mouse.y, 'Click for details · [ ] to turn');
-                else ui.tooltip(null);
-            } else if (controls.look?.moved || ui.blocking || fishing.active) {
-                if (fishing.active && hovered) setHover(null);
+                else if (h?.type === 'carousel') {
+                    const c = carousel.info(h.idx);
+                    ui.note({ icon: c.icon, kicker: 'The Starlight Carousel', title: `${c.name}, ${c.kind}`, desc: c.desc, cta: 'Click to climb on and ride →', accent: c.accent }, mouse.x, mouse.y);
+                } else if (h?.type === 'gearHatch') {
+                    ui.note({ icon: '⚙️', kicker: 'Behind the Great Gear', title: 'A trap door', desc: 'Iron, riveted, with a gear cast in its lid. It isn’t locked, and a cold draught comes up from below.', cta: 'Click or step onto it →', accent: '#d8b070' }, mouse.x, mouse.y);
+                } else if (h?.type === 'treePortal') {
+                    ui.note({ icon: '🌸', kicker: 'The Great Tree', title: 'A door to the Springwood', desc: 'Through the roots of the Great Tree lies a spring forest that goes on for ever: blossom, bluebells, lily ponds and hidden places.', cta: 'Click or walk through →', accent: '#ffb7d5' }, mouse.x, mouse.y);
+                } else ui.tooltip(null);
+            } else if (controls.look?.moved || ui.blocking || fishing.active || carousel.busy) {
+                if ((fishing.active || carousel.busy) && hovered) setHover(null);
                 ui.tooltip(null);
             }
             const hid = hovered?.statue?.id ?? -1;
@@ -1792,6 +2194,8 @@ async function boot() {
             audio.update(night, place === 'cove' ? volcano.world.island.shoreAt(camPos.x, camPos.z) : island.shoreAt(camPos.x, camPos.z));
         }
 
+        // indoors, under the sea or in the mine the organ can't be heard
+        if (below || (diving && diving.phase !== 'in')) carousel.hush(audio);
         // the cart's sounds, in the open part of the ride too
         if (mineAudio?.on && !(below && roomKind === 'mine')) mineAudio.update(dt, mine.soundState());
         clockTimer += dt;
@@ -1807,9 +2211,20 @@ async function boot() {
         }
         if (entered && !intro && !boat.busy) {
             if (place === 'garden') doorCheck();
+            if (place === 'garden' && !below) treeCheck();
+            if (place === 'garden' && !below) hatchCheck();
             cinderCheck();
         }
 
+        // Out in the open the near plane sits at 0.2 m: twice the depth precision all the way to the
+        // horizon, which keeps distant shorelines (the sea against the volcano and the far coast)
+        // from flickering. Rooms, rides (the boat, the carousel, the cart) and the rod in your hands keep
+        // 0.1 m so nothing close clips.
+        const near = below || diving || trip || scoping || boat.busy || fishing.active || carousel.busy || mineDrives() ? 0.1 : 0.2;
+        if (camera.near !== near) {
+            camera.near = near;
+            camera.updateProjectionMatrix();
+        }
         composer.render(dt);
 
         // adaptive resolution
@@ -1830,12 +2245,13 @@ async function boot() {
             fpsAcc = fpsN = fpsTimer = 0;
         }
         world.frameMs = damp(world.frameMs || 16, rawDt * 1000, 2, 0.1);
+        world.canvasH = renderer.domElement.height;
         requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { get undersea() { return undersea; }, get diving() { return diving; }, startDive, leaveDive, fountainSub, get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, fireworks, linkToGame, walkToGame, scene, fox, get entered() { return entered && !intro; } };
+        window.__garden = { get arcade() { return arcade; }, get undersea() { return undersea; }, get diving() { return diving; }, startDive, leaveDive, fountainSub, get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, get forest() { return forest; }, get city() { return city; }, paperNote, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, fishing, fireworks, linkToGame, walkToGame, scene, fox, carousel, get entered() { return entered && !intro; } };
     }
 }
 

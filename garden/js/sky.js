@@ -149,6 +149,11 @@ export class Sky {
         // environment capture uses a copy of the dome
         this.envScene = new THREE.Scene();
         this.envScene.add(new THREE.Mesh(new THREE.SphereGeometry(100, 32, 16), mat));
+        // One cube target and one PMREM target, reused for every refresh. pmrem.fromScene() would
+        // build (and dispose) a material per call, recompiling its shader each time, and return a
+        // new texture that makes every lit material in the scene re-resolve its program.
+        this.envCube = new THREE.WebGLCubeRenderTarget(256, { type: THREE.HalfFloatType });
+        this.envCam = new THREE.CubeCamera(0.1, 200, this.envCube);
         this.pmrem = new THREE.PMREMGenerator(renderer);
         this.envRT = null;
         this.envTimer = 0;
@@ -260,11 +265,10 @@ export class Sky {
     refreshEnv() {
         this.envTimer = 0;
         this.lastEnvElev = this.state.sunElev;
-        const rt = this.pmrem.fromScene(this.envScene, 0, 0.1, 200);
-        this.scene.environment = rt.texture;
+        this.envCam.update(this.renderer, this.envScene);
+        this.envRT = this.pmrem.fromCubemap(this.envCube.texture, this.envRT);
+        this.scene.environment = this.envRT.texture;
         // dim the reflections at night so marble doesn't glow
         this.scene.environmentIntensity = 0.35 + 0.65 * this.state.day;
-        if (this.envRT) this.envRT.dispose();
-        this.envRT = rt;
     }
 }

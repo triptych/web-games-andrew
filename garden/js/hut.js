@@ -1,7 +1,9 @@
 // The Hut: a small cabin by the dock path. Step through its door and you are
 // in a one-room study with a desk, and on the desk a glass sphere with a
 // galaxy turning inside it. Click the sphere to fall into it (see galaxy.js), or
-// the train ticket beside it to board the Violet Line (see subway.js).
+// the train ticket beside it to board the Violet Line (see subway.js), or the
+// papers on the other side to read an old maintenance log. Beside the
+// desk an old television shows the island's secret places, live (see hut-tv.js).
 // Like the Works, the room is built on the first visit, with its own scene and
 // a stand-in `world` for the walking controls.
 
@@ -11,6 +13,7 @@ import { Batch, xf } from './materials.js';
 import { buildFireplace } from './fireplace.js';
 import { signMesh, signTexture } from './architecture.js';
 import { glowSprite } from './textures.js';
+import { HutTV } from './hut-tv.js';
 import { PLAZA_R, PATH_HALF } from './layout.js';
 import { rng, TAU } from './util.js';
 
@@ -39,6 +42,14 @@ function findSite(world) {
         for (const sp of layout.spokes) if (Math.hypot(x - sp.pavilion.x, z - sp.pavilion.z) < 16) return false;
         for (const f of layout.features) if (f.type !== 'grove' && Math.hypot(x - f.x, z - f.z) < 14) return false;
         if (layout.islet?.x !== undefined && Math.hypot(x - layout.islet.x, z - layout.islet.z) < 14) return false;
+        // the statues, lamps and benches are built after the hut, so they aren't in the
+        // colliders yet: keep the cabin (4 m from its centre to a corner of the copper
+        // eaves) clear of their spots in the layout, with room to walk round a pedestal
+        for (const sp of layout.spokes) {
+            if (sp.statues.some((st) => Math.hypot(x - st.x, z - st.z) < 6.5)) return false;
+            if (sp.lamps.some((l) => Math.hypot(x - l.x, z - l.z) < 5)) return false;
+            if (sp.benches.some((b) => Math.hypot(x - b.x, z - b.z) < 5.5)) return false;
+        }
         return !world.colliders.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + 4);
     };
     const dock = layout.dock;
@@ -211,7 +222,7 @@ void main() {
 }`;
 
 export class Hut {
-    /** @param {object} env { renderer, ui, mats } */
+    /** @param {object} env { renderer, ui, mats, camera, quality, tv (channels), onChannel } */
     constructor(env) {
         this.env = env;
         this.scene = new THREE.Scene();
@@ -240,6 +251,12 @@ export class Hut {
         this._lights();
         this._orb();
         this._ticket();
+        this._papers();
+        if (env.tv?.length) {
+            // the television on its cabinet, between the desk and the bookshelf, facing the room
+            this.tv = new HutTV({ renderer: env.renderer, scene: this.scene, camera: env.camera, mats: this.mats, quality: env.quality, channels: env.tv, onChannel: env.onChannel, x: 1.85, z: -R_Z + 0.38, ry: -0.12 });
+            this._collide(1.85, -R_Z + 0.38, 0.95, 0.5);
+        }
         this._grid();
 
         const self = this;
@@ -341,8 +358,7 @@ export class Hut {
         // brass stand for the sphere, a few papers, a candle
         b.add('brass', new THREE.CylinderGeometry(0.1, 0.12, 0.05, 20), xf(dk.x, dk.h + 0.06, dk.z));
         b.add('brass', new THREE.TorusGeometry(0.115, 0.014, 8, 24), xf(dk.x, dk.h + 0.095, dk.z, 0, 1, 1, 1, Math.PI / 2, 0));
-        this._box(b, 'paper', 0.3, 0.012, 0.22, dk.x - 0.62, dk.h + 0.045, dk.z + 0.05, 0.3);
-        this._box(b, 'paper', 0.28, 0.012, 0.2, dk.x - 0.55, dk.h + 0.058, dk.z + 0.08, -0.15);
+        // (the papers are their own mesh: see _papers)
         b.add('brass', new THREE.CylinderGeometry(0.05, 0.06, 0.03, 12), xf(dk.x + 0.65, dk.h + 0.055, dk.z - 0.05));
         b.add('paper', new THREE.CylinderGeometry(0.025, 0.025, 0.14, 10), xf(dk.x + 0.65, dk.h + 0.14, dk.z - 0.05));
         // a stool at the desk
@@ -487,6 +503,65 @@ export class Hut {
         this.scene.add(ticket, glint, hit);
     }
 
+    /** Papers on the desk: an old maintenance log. Click them to read it (see gearfall-ui.js). */
+    _papers() {
+        const dk = DESK;
+        const c = document.createElement('canvas');
+        c.width = 256;
+        c.height = 352;
+        const x = c.getContext('2d');
+        x.fillStyle = '#ece0c0';
+        x.fillRect(0, 0, 256, 352);
+        x.fillStyle = 'rgba(120, 90, 50, 0.18)';
+        for (let i = 0; i < 6; i++) {
+            x.beginPath();
+            x.arc(40 + i * 37, 60 + ((i * 97) % 240), 16 + (i % 3) * 9, 0, Math.PI * 2);
+            x.fill();
+        }
+        x.strokeStyle = '#3a3048';
+        x.lineWidth = 2;
+        for (let l = 0; l < 13; l++) {
+            const y = 40 + l * 22;
+            x.beginPath();
+            x.moveTo(24, y);
+            for (let k = 24; k < 232 - (l % 4) * 18; k += 6) x.lineTo(k, y + Math.sin(k * 0.6 + l) * 2.2);
+            x.stroke();
+        }
+        // a gear drawn in the margin, with an arrow round behind it
+        x.strokeStyle = '#7a2a1a';
+        x.lineWidth = 3;
+        x.beginPath();
+        for (let i = 0; i <= 48; i++) {
+            const a = (i / 48) * Math.PI * 2, rr = i % 4 < 2 ? 30 : 24;
+            const px = 190 + Math.cos(a) * rr, py = 300 + Math.sin(a) * rr;
+            if (i) x.lineTo(px, py);
+            else x.moveTo(px, py);
+        }
+        x.stroke();
+        x.strokeRect(222, 268, 16, 16);
+        const tex = new THREE.CanvasTexture(c);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        const edge = this.mats.paper;
+        const face = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.12 });
+        this.papers = new THREE.Group();
+        this.papersPos = new THREE.Vector3(dk.x - 0.6, dk.h + 0.04, dk.z + 0.06);
+        this.papers.position.copy(this.papersPos);
+        const under = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.012, 0.22), edge);
+        under.rotation.y = 0.3;
+        under.position.set(-0.02, 0.006, -0.01);
+        const top = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.006, 0.29), [edge, edge, face, edge, edge, edge]);
+        top.rotation.y = -0.15 + Math.PI / 2;
+        top.position.y = 0.016;
+        this.papers.add(under, top);
+        this.papersTop = top;
+        const hit = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 8), new THREE.MeshBasicMaterial({ visible: false }));
+        hit.position.copy(this.papersPos);
+        hit.userData.kind = 'papers';
+        this.papersHit = hit;
+        this.papersHover = 0;
+        this.scene.add(this.papers, hit);
+    }
+
     /** The stage-set for the exit door: a mesh the pointer can target. */
     get doorMesh() {
         if (!this._door) {
@@ -498,12 +573,16 @@ export class Hut {
         return this._door;
     }
 
-    setHover(on, ticket = false) {
+    setHover(on, ticket = false, tv = false, papers = false) {
         this.hoverTarget = on ? 1 : 0;
         this.ticketTarget = ticket ? 1 : 0;
+        this.papersTarget = papers ? 1 : 0;
+        this.tv?.setHover(tv);
     }
 
-    update(dt, t) {
+    /** `away` is true while the room isn't on screen (falling through the sphere). */
+    update(dt, t, away = false) {
+        this.tv?.update(dt, t, this.env.camera, away);
         this.time = t;
         this.hover += ((this.hoverTarget || 0) - this.hover) * Math.min(1, dt * 8);
         this.orbUniforms.uTime.value = t;
@@ -512,6 +591,9 @@ export class Hut {
         this.ticket.position.y = this.ticketPos.y + this.ticketHover * 0.02 + Math.sin(t * 1.6) * 0.0015;
         this.ticketGlint.material.opacity = 0.25 + 0.12 * Math.sin(t * 2.3) + this.ticketHover * 0.4;
         this.ticketGlint.scale.setScalar(0.3 + this.ticketHover * 0.14);
+        this.papersHover += ((this.papersTarget || 0) - this.papersHover) * Math.min(1, dt * 8);
+        this.papersTop.position.y = 0.016 + this.papersHover * 0.025;
+        this.papersTop.rotation.z = this.papersHover * 0.05;
         const bob = Math.sin(t * 1.2) * 0.004;
         this.orbCore.position.y = this.orbPos.y + bob;
         this.halo.material.opacity = 0.26 + 0.08 * Math.sin(t * 1.7) + this.hover * 0.2;

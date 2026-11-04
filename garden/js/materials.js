@@ -30,11 +30,19 @@ export function makeMaterials() {
 }
 
 const KEEP = ['position', 'normal', 'uv'];
+const SPLIT_TRIS = 12000; // a batched material this heavy is split into cells
 
 /** Collects transformed geometry per material key and merges it. */
 export class Batch {
-    constructor() {
+    /**
+     * @param {object} [opts]
+     * @param {number} [opts.cell] split the merged meshes into square cells this many metres
+     *   across (by each part's centre), so the camera and the shadow map can cull the cells out
+     *   of view instead of drawing one island-wide mesh per material.
+     */
+    constructor({ cell = 0 } = {}) {
         this.parts = new Map();
+        this.cell = cell;
     }
 
     /**
@@ -72,15 +80,38 @@ export class Batch {
                 g.setAttribute(name, new THREE.BufferAttribute(arr, size));
             }
         }
-        if (!this.parts.has(key)) this.parts.set(key, []);
-        this.parts.get(key).push(g);
+        let slot = key;
+        if (this.cell) {
+            g.computeBoundingBox();
+            const b = g.boundingBox;
+            slot = `${key}|${Math.floor((b.min.x + b.max.x) / 2 / this.cell)},${Math.floor((b.min.z + b.max.z) / 2 / this.cell)}`;
+        }
+        if (!this.parts.has(slot)) this.parts.set(slot, []);
+        this.parts.get(slot).push(g);
         return this;
     }
 
     /** Returns a group with one mesh per key. */
     build(materials, { castShadow = true, receiveShadow = true } = {}) {
         const group = new THREE.Group();
-        for (const [key, list] of this.parts) {
+        if (this.cell) {
+            // only heavy materials are worth a draw call per cell; light ones stay one mesh
+            const tris = new Map();
+            for (const [slot, list] of this.parts) {
+                const key = slot.split('|')[0];
+                tris.set(key, (tris.get(key) || 0) + list.reduce((n, g) => n + g.index.count / 3, 0));
+            }
+            const regrouped = new Map();
+            for (const [slot, list] of this.parts) {
+                const key = slot.split('|')[0];
+                const to = tris.get(key) >= SPLIT_TRIS ? slot : key;
+                if (!regrouped.has(to)) regrouped.set(to, []);
+                regrouped.get(to).push(...list);
+            }
+            this.parts = regrouped;
+        }
+        for (const [slot, list] of this.parts) {
+            const key = slot.split('|')[0];
             // make index widths agree before merging
             const big = list.some((g) => g.index.array instanceof Uint32Array) || list.reduce((s, g) => s + g.attributes.position.count, 0) > 65535;
             if (big) for (const g of list) if (!(g.index.array instanceof Uint32Array)) g.setIndex(new THREE.BufferAttribute(Uint32Array.from(g.index.array), 1));

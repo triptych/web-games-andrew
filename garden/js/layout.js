@@ -15,7 +15,7 @@ export const PAVILION_GAP = 12;     // last pair to pavilion centre
 export const PAVILION_PLAZA = 9;    // pavilion plaza radius
 export const DOCK_LEN = 16;
 
-const FEATURE_ORDER = ['tree', 'gear', 'tower', 'fountain', 'grove', 'grove', 'grove', 'grove'];
+const FEATURE_ORDER = ['tree', 'gear', 'tower', 'fountain', 'carousel', 'grove', 'grove', 'grove'];
 
 /** A path as a dense polyline with arc length, built from a polar centreline. */
 function buildSpokeLine(angle, bend, length) {
