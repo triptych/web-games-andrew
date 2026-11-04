@@ -1064,7 +1064,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 .bowl-hint { position: absolute; left: 50%; bottom: calc(76px + var(--safe-b)); transform: translateX(-50%); margin: 0; width: max-content; max-width: calc(100vw - 24px); padding: 6px 12px; border-radius: 8px; background: rgba(6, 3, 18, 0.7); color: #e8e4ff; font: 500 0.95rem var(--sans); text-align: center; }
 .bowl-hint:empty { display: none; }
 .bowl-pad { position: absolute; left: 50%; bottom: calc(16px + var(--safe-b)); transform: translateX(-50%); display: flex; gap: 10px; align-items: center; pointer-events: auto; }
-.bowl-btn { min-width: 52px; min-height: 48px; border-radius: 12px; border: 2px solid #30e8ff; background: rgba(6, 3, 18, 0.8); color: #30e8ff; font-size: 20px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+.bowl-btn { min-width: 52px; min-height: 48px; border-radius: 12px; border: 2px solid #30e8ff; background: rgba(6, 3, 18, 0.8); color: #30e8ff; font-size: 20px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .bowl-btn:active { background: rgba(48, 232, 255, 0.25); }
 .bowl-go { min-width: 92px; }
 .bowl-pad kbd { font-size: 0.7em; opacity: 0.7; }
@@ -1174,7 +1174,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 .claw-touch { display: none; }
 .claw-pad { position: absolute; left: 50%; bottom: calc(14px + var(--safe-b)); transform: translateX(-50%); display: flex; gap: 14px; align-items: center; pointer-events: auto; }
 .claw-dpad { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 40px); gap: 2px; }
-.claw-btn { border-radius: 10px; border: 2px solid #ff6ac0; background: rgba(6, 3, 18, 0.82); color: #ff6ac0; font-size: 16px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+.claw-btn { border-radius: 10px; border: 2px solid #ff6ac0; background: rgba(6, 3, 18, 0.82); color: #ff6ac0; font-size: 16px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .claw-btn:active { background: rgba(255, 106, 192, 0.28); }
 .cb-up { grid-area: 1 / 2; }
 .cb-left { grid-area: 2 / 1; }
@@ -1182,6 +1182,9 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 .cb-down { grid-area: 3 / 2; }
 .claw-go { min-width: 96px; min-height: 52px; font-size: 1.05rem; }
 .claw-pad kbd { font-size: 0.7em; opacity: 0.7; }
+.claw-pad .btn { touch-action: manipulation; }
+/* the garden's hints sit where the claw and bowling controls are, so they wait while you play */
+body:has(#claw-hud:not([hidden]), #bowl-hud:not([hidden])) .hint { opacity: 0; }
 .claw-card { z-index: 15; }
 .claw-card .ft-btns .btn { min-height: 40px; }
 @media (pointer: coarse) {

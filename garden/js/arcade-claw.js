@@ -341,13 +341,17 @@ export class ClawMachine {
         if (!this.hud) return;
         this.hud.querySelectorAll('[data-claw]').forEach((el) => {
             const key = el.dataset.claw;
+            // keep the finger on the button for as long as it is down, and don't let a long
+            // press open the phone's context menu (which cancels the pointer and lets go)
             const on = (e) => {
                 e.preventDefault();
+                el.setPointerCapture?.(e.pointerId);
                 this.holds[key] = true;
             };
             const off = () => (this.holds[key] = false);
             el.addEventListener('pointerdown', on);
-            for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) el.addEventListener(ev, off);
+            for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(ev, off);
+            el.addEventListener('contextmenu', (e) => e.preventDefault());
         });
         $('claw-go')?.addEventListener('click', () => this.drop());
         $('claw-quit')?.addEventListener('click', () => this.onQuit?.());
