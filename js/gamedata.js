@@ -1757,6 +1757,22 @@ const games = [
             { emoji: '\u2694\uFE0F', label: 'Hero economy' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-116',
+        title: 'SOLITAIRE FROM OUTER SPACE',
+        description: "A TriPeaks solitaire roguelike deckbuilder told as a 1950s B-movie in three reels, in vanilla JavaScript and Canvas 2D with no asset files. Something fell out of the sky over Gila Flats, Nevada, and the visitors have one law: a planet is won or lost at the card table. Every creature deals its own table of cards in a TriPeaks layout (twin peaks, a saucer, a rocket, three towers, a diamond, a great pyramid for the bosses), and your deck is the stock. Play face-up cards one rank above or below the card on the beam (K and A wrap round) to chain them, and every card does what its suit does: Rays blast, Rockets punch through shields, Shields block and Atoms charge your gadgets, all of it bigger the longer this turn's chain. Clear the whole table for a Clean Sweep. Each turn starts with a free card from your stock on the beam, then two draws; your own cards fire when they land (a Death Ray zaps, a Force Field shields, a Wild Card takes anything, Jet Boots and Rocket Fuel are Quick and give the draw back), and the creature telegraphs its next move: attacks, shields, growing, jamming Martian Static and Space Slime into your stock, or freezing your cards. Spend charge on gadgets (a Ray Pistol, a Wild Beam, a Disintegrator, a Jetpack, a Freeze Ray, an Atomic Bomb and more). Pick your road up a branching map through Gila Flats in 1957, a Moon base in 1959 and the Mothership in 1961: fights, elites, a roadside diner to rest or tinker, the Army Surplus store, strange broadcasts (a mad scientist, a drive-in double feature, a crashed saucer, the Fortune Machine) and treasure, against 21 creatures from giant ants, tin troopers and a little blob to the Colossal Gila, the Brain from Planet X and the Overlord. Seventeen souvenirs, upgrades at the diner, every creature, card and backdrop drawn in code with googly eyes and a fat ink outline under film grain, and a theremin score with an organ, a walking bass and bongos. Mouse, touch, keyboard or gamepad; a bot plays whole runs in the tests to balance it.",
+        icon: '\uD83D\uDEF8',
+        folder: 'game-116',
+        version: '1.0.0',
+        cssClass: 'solitaire-from-outer-space',
+        genre: 'strategy',
+        tags: [
+            { emoji: '\uD83C\uDCCF', label: 'Solitaire roguelike' },
+            { emoji: '\uD83D\uDC7D', label: 'B-movie sci-fi' },
+            { emoji: '\uD83C\uDFBB', label: 'Theremin score' },
+            { emoji: '\uD83D\uDD8C\uFE0F', label: 'Canvas 2D' }
+        ]
     }
 ];
 
