@@ -5,7 +5,7 @@ export const MAX_TIER = 5;
 
 export const TRACK_INFO = {
     guns:     { name: 'Main Guns',   icon: '🔫', blurb: 'Bigger guns, faster, harder.' },
-    missiles: { name: 'Missile Rack', icon: '🚀', blurb: 'Splash damage and more rockets, then seekers.' },
+    missiles: { name: 'Missile Rack', icon: '🚀', blurb: 'Homing rockets: more of them, faster refills, bigger salvos, then cluster warheads.' },
     armor:    { name: 'Hull Armor',  icon: '🛡️', blurb: 'More armor plates, more hit points, less damage taken.' },
     fuel:     { name: 'Fuel Tanks',  icon: '⛽', blurb: 'Longer boost and jump-jet burns, faster refuel.' },
     legs:     { name: 'Leg Actuators', icon: '🦿', blurb: 'Faster, climb steeper slopes, step over bigger rubble, harder landings.' },
@@ -28,8 +28,8 @@ export const WEAPONS = [
     { name: 'Hellfire Battery', dmg: 30,   rate: 8.0, speed: 75,  spread: 0.04,  barrels: 4, pierce: 0, splash: 3.3, col: 0xff7733, life: 1.2, r: 0.5 },
 ];
 export const MISSILES = [
-    { name: 'Rocket Pod',       ammo: 3,  reload: 5.0, dmg: 55, splash: 4.2, salvo: 1, homing: 0, cluster: 0 },
-    { name: 'Twin Rockets',     ammo: 4,  reload: 4.5, dmg: 60, splash: 4.4, salvo: 2, homing: 0, cluster: 0 },
+    { name: 'Homing Pod',       ammo: 3,  reload: 5.0, dmg: 55, splash: 4.2, salvo: 1, homing: 1, cluster: 0 },
+    { name: 'Twin Homing Pods', ammo: 4,  reload: 4.5, dmg: 60, splash: 4.4, salvo: 2, homing: 1, cluster: 0 },
     { name: 'Seeker Rockets',   ammo: 6,  reload: 4.0, dmg: 65, splash: 4.6, salvo: 2, homing: 1, cluster: 0 },
     { name: 'Cluster Seekers',  ammo: 6,  reload: 3.5, dmg: 70, splash: 4.8, salvo: 2, homing: 1, cluster: 4 },
     { name: 'Hornet Rack',      ammo: 8,  reload: 3.0, dmg: 80, splash: 5.0, salvo: 4, homing: 1, cluster: 0 },

@@ -316,9 +316,12 @@ export class LevelView {
                 p.position.set(Math.cos(a) * 1.1, 0.5, Math.sin(a) * 1.1); p.userData.ph = i; folks.add(p);
             }
             g.add(folks);
+            // the way out: a column of light that takes the colonists away once they have finished celebrating
+            const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 2.3, 30, 20, 1, true), new THREE.MeshBasicMaterial({ color: 0x9fe8ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }));
+            beam.position.y = 15; beam.visible = false; g.add(beam);
             g.position.set(pod.x, this.world.h(pod.x, pod.z), pod.z);
             this.group.add(g);
-            this.podViews.set(pod.id, { g, barsG, lk, folks, bars, lock, open: 0 });
+            this.podViews.set(pod.id, { g, barsG, lk, folks, bars, lock, beam, open: 0, tf: pod.freed ? 99 : 0, gone: !!pod.freed });
         }
     }
 
@@ -339,7 +342,26 @@ export class LevelView {
             v.barsG.visible = t < 0.95;
             v.lk.visible = !pod.freed;
             v.lock.emissiveIntensity = 1.6 + Math.sin(time * 5 + pod.id) * 0.8 + (1 - pod.hp / pod.maxhp) * 2;
-            v.folks.children.forEach((p) => { p.position.y = 0.5 + Math.abs(Math.sin(time * (pod.freed ? 9 : 2.5) + p.userData.ph)) * (pod.freed ? 0.5 : 0.08); });
+            // freed colonists dance for a while, then teleport out so the battle is not full of cheering civilians
+            if (pod.freed) v.tf += dt;
+            const DANCE = 2.6, BEAM = 0.9;
+            if (v.gone) { v.folks.visible = false; v.beam.visible = false; continue; }
+            if (pod.freed && v.tf > DANCE && !v.zapped) {
+                v.zapped = true;
+                if (this.fx) { const y = this.world.h(pod.x, pod.z); this.fx.ring(pod.x, pod.z, 8, 0.9, 0x9fe8ff); this.fx.light(pod.x, y + 5, pod.z, 0x9fe8ff, 90, 0.8);
+                    for (let i = 0; i < 40; i++) this.fx.glow.emit(pod.x + this.fx.r(-2, 2), y + 0.5, pod.z + this.fx.r(-2, 2), this.fx.r(-0.6, 0.6), this.fx.r(8, 22), this.fx.r(-0.6, 0.6), this.fx.r(0.6, 1.2), 0.5, 0.1, 0xbfefff, 0x4a9aff, 1.2, 0, 0.4, 0); }
+                if (this.onTeleport) this.onTeleport();
+            }
+            const k = pod.freed ? Math.min(1, Math.max(0, (v.tf - DANCE) / BEAM)) : 0;
+            v.folks.children.forEach((p) => {
+                const dance = pod.freed && k === 0;
+                p.position.y = 0.5 + Math.abs(Math.sin(time * (pod.freed ? 9 : 2.5) + p.userData.ph)) * (pod.freed ? 0.5 : 0.08) + k * k * 14;
+                p.rotation.y += dt * (dance ? 6 : 0);
+                p.scale.set(1 - k * 0.85, 1 + k * 2.2, 1 - k * 0.85);
+            });
+            v.beam.visible = k > 0 && k < 1.2 || (pod.freed && v.tf > DANCE && v.tf < DANCE + BEAM + 0.5);
+            v.beam.material.opacity = pod.freed && v.tf > DANCE ? Math.max(0, Math.sin(Math.min(1, (v.tf - DANCE) / (BEAM + 0.5)) * Math.PI)) * 0.7 : 0;
+            if (pod.freed && v.tf > DANCE + BEAM + 0.5) { v.gone = true; v.folks.visible = false; v.beam.visible = false; }
         }
     }
 

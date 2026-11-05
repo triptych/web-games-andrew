@@ -102,6 +102,8 @@ async function desktop() {
     check(await Q(page, () => document.getElementById('btn-continue').hidden), 'no Continue without a save');
     const L = await layout(page);
     check(L.noHScroll && L.canvas, 'no sideways scroll; the canvas fills the window');
+    const logo = await Q(page, () => { const h = document.querySelector('#title .logo'), r = document.createRange(); r.selectNodeContents(h); const b = r.getBoundingClientRect(), s = h.closest('.sheet').getBoundingClientRect(); return { right: b.right, sheetRight: s.right, vw: innerWidth, clipped: h.scrollWidth > h.clientWidth + 1 }; });
+    check(logo.right <= logo.sheetRight + 1 && logo.right <= logo.vw && !logo.clipped, `the title logo fits (text ends at ${Math.round(logo.right)} px, sheet at ${Math.round(logo.sheetRight)}, window ${logo.vw})`);
     await until(page, () => __hr.G && __hr.G.phase === 'play' && __hr.G.t > 0.5, 'the attract-mode walker is playing behind the title');
     await shot(page, 'desktop-title');
 
@@ -117,6 +119,12 @@ async function desktop() {
     await click(page, '#brief-go');
     await until(page, () => __hr.mode === 'play' && __hr.G.phase === 'play', 'Deploy starts the mission');
     await Q(page, () => __hr.god());
+    await until(page, () => __hr.audio.ctx && __hr.audio.ctx.state === 'running' && __hr.audio.musicSteps > 8, 'the score is playing (the sequencer is running)');
+    await until(page, () => __hr.audio.level() > 0.01, 'and it is audible (the master bus carries signal)');
+    // colonists dance, then beam out
+    const podId = await Q(page, () => __hr.freePod(0));
+    await until(page, (id) => { const v = __hr.view.lv.podViews.get(id); return v && v.zapped; }, 'freed colonists dance, then the teleport fires', 90000, podId);
+    await until(page, (id) => __hr.view.lv.podViews.get(id).gone && !__hr.view.lv.podViews.get(id).folks.visible, 'and they are gone from the battlefield afterwards', 90000, podId);
 
     const z0 = await Q(page, () => __hr.G.player.z);
     await page.keyboard.down('KeyW');
@@ -228,6 +236,8 @@ async function phone(w, h) {
     };
 
     check(await backLinkOk(page), '← Games link is on top');
+    const lg = await Q(page, () => { const h = document.querySelector('#title .logo'), r = document.createRange(); r.selectNodeContents(h); return r.getBoundingClientRect().right <= innerWidth; });
+    check(lg, 'the title logo fits the phone screen');
     await tapSel('#title-menu [data-act="new"]');
     await until(page, () => __hr.mode === 'story', 'a tap on New Game opens the story');
     await tapSel('#story-skip');

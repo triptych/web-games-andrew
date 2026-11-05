@@ -104,6 +104,13 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, terrain, the ru
 
 ## Changelog
 
+### v1.0.2 (2026-11-05)
+- Sound: the sawtooth engine hum (a motorboat) is gone. Each leg planting now makes a weighty thud, a metal clank and a hiss of hydraulics (lower and heavier as the walker grows); bosses boom with distance; boost and jump jets are a thruster roar; a very soft noise murmur stands in for a reactor.
+- Music: it was playing but sat in a 55 to 140 Hz band small speakers cannot reproduce. Rewritten in D minor in the audible range: a pad, a mid-range bass, a plucked arpeggio, a melody once a fight starts, a snare and hats with a click on the kick, a sour stab when a boss is up, and a tempo that follows the fight. A test now checks the master bus carries signal.
+- Rockets: every tier homes (the Homing Pod from the start), a lock-on bracket marks the enemy they will pick, the HUD rack is labelled "RMB", rocket crates drop more often (and from every freed pod), and the rack still recharges by itself.
+- Colonists dance for 2.6 s, then a column of light beams them out and they are gone from the battlefield.
+- Title: the last D of the logo was clipped by the 480 px sheet; the hero sheet now fits its content, and a test checks the logo fits on desktop and phone.
+
 ### v1.0.1 (2026-11-05)
 - Legs step independently like a spider: each leg decides when it is overstretched, neighbouring legs never lift together, at most three are airborne, starts are staggered into a ripple, and an idle walker fidgets one leg at a time (it used to lift two tripods in lockstep, which looked like a jumping jack when strafing).
 - Strafing and backing up no longer turn the hull: with no aim input and no target the walker faces down-range, and the auto-target cone follows the guns, not the direction of travel.

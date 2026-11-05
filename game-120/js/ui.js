@@ -10,7 +10,7 @@ const $ = (id) => document.getElementById(id);
 export const describe = (track, t) => {
     switch (track) {
         case 'guns': { const w = WEAPONS[t]; return `${w.name} · ${w.dmg} dmg × ${w.rate}/s${w.barrels > 1 ? ` · ${w.barrels} barrels` : ''}${w.pierce ? ' · pierces' : ''}${w.splash ? ' · blast' : ''}`; }
-        case 'missiles': { const m = MISSILES[t]; return `${m.name} · ${m.ammo} rockets · salvo of ${m.salvo}${m.homing ? ' · seeking' : ''}${m.cluster ? ' · cluster' : ''}`; }
+        case 'missiles': { const m = MISSILES[t]; return `${m.name} · ${m.ammo} rockets · salvo of ${m.salvo}${m.homing ? ' · homing' : ''}${m.cluster ? ' · cluster' : ''}`; }
         case 'armor': { const a = ARMOR[t]; return `${a.hp} armour · ${Math.round(a.dr * 100)}% less damage`; }
         case 'fuel': { const f = FUEL[t]; return `${f.cap} fuel · refuels ${f.regen}/s`; }
         default: { const l = LEGS[t]; return `speed ${l.speed} · climbs slope ${l.climb} · steps over ${l.clear} m · landing ${l.stomp} dmg`; }
@@ -234,6 +234,7 @@ export class UI {
             else if (e.type === 'ambush') this.toast('Drop pods incoming!');
             else if (e.type === 'gateOpen') this.toast('The gate is open.');
             else if (e.type === 'pickup' && e.kind === 'hp') this.toast('Armour repaired');
+            else if (e.type === 'pickup' && e.kind === 'ammo') this.toast('Rockets reloaded');
         }
     }
 }

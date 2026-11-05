@@ -11,7 +11,7 @@ import { Input } from './input.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave, loadBest, saveBest } from './save.js';
 import * as Gm from './sim/game.js';
-import { refreshStats } from './sim/core.js';
+import { refreshStats, freePod } from './sim/core.js';
 import { makeBot, botInput, botBuy } from './sim/bot.js';
 
 const params = new URLSearchParams(location.search);
@@ -35,6 +35,7 @@ try {
     console.error('[view]', err);
     document.body.insertAdjacentHTML('beforeend', '<p class="noscript">HEXAPOD RISING needs WebGL. Please try another browser.</p>');
 }
+if (view) { view.onStep = (x, z, sc) => audio.footstep(sc); view.onBossStep = (d) => audio.bossStep(d); view.onTeleport = () => audio.teleport(); }
 const ui = new UI({
     audio, settings,
     onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music); updateTouch(); },
@@ -282,5 +283,6 @@ if (DEBUG) {
         save: () => saveGame(G), hasSave,
         botBuy: () => botBuy(G),
         skip() { later && (later.t = 0); },
+        freePod(i = 0) { const p = G.pods[i]; if (p) freePod(G, p); return p ? p.id : 0; },
     };
 }
