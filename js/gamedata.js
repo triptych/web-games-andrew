@@ -1789,6 +1789,22 @@ const games = [
             { emoji: '\uD83C\uDF9E\uFE0F', label: '1968 space film' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-118',
+        title: 'The Kids Table',
+        description: "A Thanksgiving merge game in three.js with no asset files, drawn in a warm autumn dining room seen from above. You are at the kids' table and Grandma says the big table is full this year, so you merge your way to a seat at it. Tap the Pumpkin Patch, the Craft Box and, as your table grows, the Turkey Coop and the Wheat Barrel to put items on a small 6 x 7 board, and drag two of the same together to make the next tier: a seed becomes a sprout, a mini pumpkin, a pumpkin, a pie and a blue-ribbon pie; an egg a chick, a poult, a gobbler with a full tail fan, a roast turkey and a feast platter; wheat a flour sack, dough, rolls, a bread basket and a cornucopia; a crayon a paper leaf, a place card, a handprint turkey, a pilgrim hat and a thankful tree. Guests with drawn faces sit down with orders (Grandma Rose, Pilgrim Pete, Tess the Turkey and five more), and you serve them by tapping their card or dragging a dish onto it for coins and stars. Stars buy a bigger table (the Card Table, the Dining Table, the Head of the Table) that uncovers more of the board and brings a new generator, and five courses of the Dinner Plan give you longer goals and an ending: finish them all and the kids are invited to the big table. It follows the merge-game rules the way a primer lays them out: generators are pieces you can move (generator zoning), a full board with nothing to merge is a board lock with a compost bin as the way out, top-tier items are orphans if you push past what anyone wants, and generators earn their charges back while you are away. Mouse, touch (the dish rides above your finger), keyboard or gamepad, a calm-motion setting, a warm procedural score, and a bot that plays whole dinners in the tests to balance it.",
+        icon: '\uD83E\uDD83',
+        folder: 'game-118',
+        version: '1.0.0',
+        cssClass: 'the-kids-table',
+        genre: 'puzzle',
+        tags: [
+            { emoji: '\uD83E\uDDE9', label: 'Merge puzzle' },
+            { emoji: '\uD83C\uDF83', label: 'Thanksgiving' },
+            { emoji: '\uD83D\uDCCB', label: 'Quests & goals' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
