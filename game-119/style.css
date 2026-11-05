@@ -144,3 +144,17 @@ input[type=search] { font: 600 15px var(--font); padding: 8px 10px; border: 3px 
 .rank { font: 700 84px/1 var(--head); text-align: center; color: #7a3a1a; text-shadow: 0 4px 0 #fff4cc, 0 7px 0 var(--ink); }
 .encounter-art { text-align: center; font-size: 15px; }
 @media (max-width: 520px) { .sheet { padding: 12px; } .panel-head h2 { font-size: 20px; } .hud-place { font-size: 18px; } .chip { font-size: 13px; } }
+
+/* a panel owns the screen: the dock and (on phones) the HUD get out of its way */
+body.panel-open #dock { display: none; }
+@media (max-width: 760px) {
+    body.panel-open #hud { visibility: hidden; }
+    #toasts { top: auto; bottom: calc(86px + var(--safe-b)); }
+    .layer { padding-top: calc(44px + var(--safe-t)); }
+}
+
+@media (pointer: coarse) {
+    .btn.small, .tab, .place { min-height: 44px; }
+    input[type=search], .kit-slot select { min-height: 44px; }
+    input[type=range] { height: 44px; }
+}

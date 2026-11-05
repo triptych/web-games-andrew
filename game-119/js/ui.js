@@ -80,9 +80,10 @@ export class UI {
         this.panelId = id;
         if (id !== 'market' && id !== 'wagon' && id !== 'workshop') this.ps.sel = 0;
         $('panel-layer').hidden = false;
+        document.body.classList.add('panel-open');
         this.renderPanel({ first: true });
     }
-    closePanel() { if (this.panelId) { this.audio.ui('close'); } this.panelId = null; $('panel-layer').hidden = true; this.dock(true); }
+    closePanel() { if (this.panelId) { this.audio.ui('close'); } this.panelId = null; $('panel-layer').hidden = true; document.body.classList.remove('panel-open'); this.dock(true); }
     renderPanel(o = {}) {
         if (!this.panelId) return;
         const G = this.getG();

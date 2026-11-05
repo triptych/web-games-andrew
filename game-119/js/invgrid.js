@@ -13,6 +13,7 @@ export function invGrid(G, o) {
     const preview = h('div.drop-preview', { hidden: true });
     root.appendChild(preview);
     const els = new Map();
+    let suppress = false;
     for (const it of inv.items) {
         const d = itemDef(it.t, it.lv);
         const f = fp(it);
@@ -30,6 +31,8 @@ export function invGrid(G, o) {
         it.fav && h('span.tag.f', { html: GLYPH.fav }),
         it.junk && h('span.tag.j', { html: GLYPH.junk }));
         el.addEventListener('pointerdown', (e) => startDrag(e, it, el));
+        // selection is the click (so the keyboard's Enter works too); a drag swallows the click that follows it
+        el.addEventListener('click', () => { if (suppress) { suppress = false; return; } o.onSelect?.(it.id); });
         els.set(it.id, el);
         root.appendChild(el);
     }
@@ -68,7 +71,8 @@ export function invGrid(G, o) {
             window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end); window.removeEventListener('keydown', onKey);
             if (st.ghost) st.ghost.remove();
             el.classList.remove('lifted'); preview.hidden = true;
-            if (!st.on) { o.onSelect?.(it.id); return; }
+            if (!st.on) return;
+            suppress = true; setTimeout(() => { suppress = false; }, 60);
             if (ev.type === 'pointercancel') return;
             if (st.merge) o.onMerge?.(it.id, st.merge);
             else if (st.tx !== it.x || st.ty !== it.y || st.r !== it.r) o.onMove?.(it.id, st.tx, st.ty, st.r);

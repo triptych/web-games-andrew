@@ -40,7 +40,8 @@ function wagonColumn(G, ctx, { sellHere = false, stash = false } = {}) {
     const q = (ps.search || '').toLowerCase();
     const testItem = (it) => filter.test(it.t) && (!q || itemName(it.t, it.lv).toLowerCase().includes(q));
     const width = Math.min(ctx.panelWidth() - 40, 520);
-    const cell = Math.max(32, Math.min(52, Math.floor((width - 8) / G.inv.w)));
+    const coarse = window.matchMedia?.('(pointer: coarse)').matches;
+    const cell = Math.max(coarse ? 44 : 32, Math.min(52, Math.floor((width - 8) / G.inv.w)));
     const sel = itemById(G, ps.sel);
     if (!sel) ps.sel = 0;
     const grid = invGrid(G, {

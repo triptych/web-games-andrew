@@ -54,6 +54,13 @@ export class World {
         st.litMats.add(mat);
         this.terrain = new THREE.Mesh(geo, mat);
         scene.add(this.terrain);
+        // ---- open sea all around, so the horizon never shows the clear colour
+        const sc0 = canvas(4, 4); ctx2(sc0).fillStyle = '#2e70a8'; ctx2(sc0).fillRect(0, 0, 4, 4);
+        const seaMat = new THREE.MeshBasicMaterial({ map: st.texture(sc0) });
+        st.litMats.add(seaMat);
+        const sea = new THREE.Mesh(new THREE.PlaneGeometry(900, 900), seaMat);
+        sea.rotation.x = -Math.PI / 2; sea.position.set(50, -1.3, 36);
+        scene.add(sea);
         // ---- sea shimmer: scrolling sparkle texture, additive, just above the sea floor
         const sh = canvas(256, 256), sc = ctx2(sh);
         for (let i = 0; i < 90; i++) { const x = hash3(i, 1, 3) * 256, y = hash3(i, 2, 3) * 256, w = 6 + hash3(i, 3, 3) * 18; sc.strokeStyle = `rgba(255,255,255,${0.25 + hash3(i, 4, 3) * 0.4})`; sc.lineWidth = 2; sc.lineCap = 'round'; sc.beginPath(); sc.moveTo(x - w, y); sc.quadraticCurveTo(x, y - 3, x + w, y); sc.stroke(); }

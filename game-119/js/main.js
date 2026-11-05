@@ -14,6 +14,7 @@ import { newGame, step, act } from './sim/game.js';
 import { makeBot, botTurn, botPending, runBot } from './sim/bot.js';
 import { TOWN } from './sim/data/towns.js';
 import { itemName } from './sim/data/items.js';
+import { addItems } from './sim/inv.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.get('debug') === '1';
@@ -282,6 +283,7 @@ if (DEBUG) {
         act: (cmd) => doAct(cmd),
         skip() { ui.dlgQueue.length = 0; ui.dlgCur = null; $('dialog').hidden = true; },
         open: (id) => ui.openPanel(id),
+        give(t, lv = 0, n = 1) { const k = addItems(G, t, lv, n); ui.renderPanel(); ui.hud(G, true); return k; },
         save: () => saveGame(G),
         hasSave,
     };
