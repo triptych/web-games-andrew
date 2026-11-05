@@ -158,3 +158,10 @@ body.panel-open #dock { display: none; }
     input[type=search], .kit-slot select { min-height: 44px; }
     input[type=range] { height: 44px; }
 }
+
+/* quest hints on shop shelves */
+.item-row.hinted { border-color: #b8801a; background: linear-gradient(#fff4c8, #fbe4a0); }
+.hint { display: flex; align-items: center; gap: 4px; margin-top: 2px; font: 600 12px var(--head); color: #7a4a00; }
+.hint svg { width: 14px; height: 14px; flex: none; }
+.hint.must { color: #a03a00; font-weight: 700; } .hint.offer { color: #3a6a8a; } .hint.ingredient { color: #6a4a8a; }
+.pill.qp { background: #ffd84a; margin-left: 2px; }
