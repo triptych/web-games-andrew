@@ -1,0 +1,27 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>scene</title>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.165.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.165.0/examples/jsm/"}}</script>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden} canvas{position:fixed;left:0;top:0}</style></head>
+<body><canvas id="c"></canvas>
+<script type="module">
+import { View } from '../js/view/view.js';
+import { newGame, act } from '../js/sim/game.js';
+const q = new URLSearchParams(location.search);
+const G = newGame(3);
+const v = new View(document.getElementById('c'));
+const t0 = performance.now();
+v.init();
+console.log('init ms', Math.round(performance.now() - t0));
+G.loc = q.get('town') || 'hearthmere';
+G.lv = +(q.get('lv') || 1);
+G.hour = +(q.get('hour') || 11);
+v.setMode(q.get('mode') || 'map');
+if (q.get('dist')) v.mapCam.dist = +q.get('dist');
+const T = await import('../js/sim/data/towns.js');
+if (q.get('mode') === 'map') { const t = T.TOWN[G.loc]; v.mapCam.x = t.x; v.mapCam.z = t.z + 1; }
+window.DBG = { v, G };
+let time = 0;
+function f() { const a=performance.now(); time += 0.016; v.frame(G, 0.016, time); console.log("frame ms", Math.round(performance.now()-a)); }
+for (let i = 0; i < 12; i++) f();
+window.__ready = true;
+</script></body></html>

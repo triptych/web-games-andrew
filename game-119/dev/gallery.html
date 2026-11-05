@@ -1,0 +1,15 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Gallery</title>
+<style>body{margin:0;background:#b8c8a8;font:12px sans-serif} .row{display:flex;flex-wrap:wrap;gap:6px;padding:6px} canvas{width:200px;height:300px;background:linear-gradient(#cfe3f2,#a8c890)}</style></head>
+<body><div class="row" id="row"></div>
+<script type="module">
+import * as C from '../js/view/chars.js';
+import { TOWNS } from '../js/sim/data/towns.js';
+const row = document.getElementById('row');
+const add = (cv) => { cv.style.width='200px'; cv.style.height='300px'; row.appendChild(cv); };
+add(C.chibi(C.MERCHANT)); add(C.chibi(C.KAELEN));
+for (const k of Object.keys(C.HEROES)) add(C.chibi(C.heroLook(k, 3)));
+const roles=[['Pim','baker'],['Old Garrick','smith'],['Tilly','farmhand'],['Wren','herbalist'],['Orla','guildmistress'],['Dame Vesper','noble'],['Rhea','dragon hunter'],['Astra','star-seer'],['Pip','page'],['Thorgrim Ironbeard','master smith']];
+for (const [n,r] of roles) add(C.chibi(C.npcLook(r,n)));
+window.__ready = true;
+</script></body></html>

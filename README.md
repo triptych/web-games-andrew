@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-118 games, `game-001` through `game-118`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+119 games, `game-001` through `game-119`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -153,6 +153,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 116 | [SOLITAIRE FROM OUTER SPACE](game-116/) | A TriPeaks solitaire roguelike deckbuilder as a 1950s B-movie: chain cards on the beam to blast giant ants, robots, a brain in a jar and the Overlord across three reels of branching maps, with gadgets, souvenirs and a theremin score | Canvas 2D |
 | 117 | [PERIHELION](game-117/) | A twin-stick shooter on tiny turning asteroids in the style of the late-sixties space films: you stay centred while the rock rolls beneath you, through mazes wrapped round eight spheres, silencing red-eyed beacons until a black monolith gate opens to the next | three.js |
 | 118 | [The Kids Table](game-118/) | A Thanksgiving merge game: merge pumpkins, turkeys, bread and kid crafts on a small covered board, serve guests with orders, earn bigger tables and finish a five-course Dinner Plan to win the kids a seat at the big table, with a bot that plays whole dinners to balance it | three.js |
+| 119 | [THE HERO'S MERCHANT](game-119/) | A travelling-merchant trading game in a painterly chibi HD-2D realm: buy low and sell high across thirteen towns with moving markets, pack a grid wagon you drag and rotate, craft ten kinds of gear to level 10, sell to visiting heroes, and finish by offering the Hero his Ultimate Kit, rated on the levels of its ten pieces | three.js |
 
 ### Highlights
 
@@ -378,7 +379,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-118/   # One self-contained folder per game
+├── game-001/ … game-119/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -435,7 +436,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 118 games are included as of the latest entries (game-114 LAST COLONIST, game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION, game-118 The Kids Table), and the Garden launcher is at v1.9.0.
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 119 games are included as of the latest entries (game-114 LAST COLONIST, game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION, game-118 The Kids Table, game-119 THE HERO'S MERCHANT), and the Garden launcher is at v1.9.0.
 
 ---
 

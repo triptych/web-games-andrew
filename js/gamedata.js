@@ -1805,6 +1805,22 @@ const games = [
             { emoji: '\uD83D\uDCCB', label: 'Quests & goals' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-119',
+        title: "THE HERO'S MERCHANT",
+        description: "A travelling-merchant trading game in a painterly chibi HD-2D realm, in three.js with no asset files. You inherit your grandmother's handcart in the farming village of Hearthmere and set out across thirteen towns in five regions, buying where a thing is made and selling where it is wanted: every town has its own shops (a general store, a smithy, an apothecary, an outfitter, a jeweler, a trade exchange), each with its own prices that drift, react to festivals, blights, wars and fevers, and move when you trade. Your wagon is a grid inventory in the spirit of Resident Evil's attach\u00e9 case: items take rectangles you drag and turn, small goods stack, weight slows the road, you can favourite and junk-mark things, sort with one tap, and keep a vault at Guild Houses. Craft ten kinds of gear at ten levels in forges, tanneries, alchemists, jewelers and kitchens, sell to visiting heroes who pay a premium, and work through fifty-eight quests from notice boards, townsfolk and couriers. Merchant level opens new regions, better wagons and better recipes; the Hero, Kaelen Dawnward, turns up chapter by chapter, and at the end asks for the Ultimate Kit: a weapon, armor, helm, shield, boots, amulet, healing draught, elixir, rations and a camp kit. Offer him what you can make and be rated on the levels of the ten pieces, from Peddler to the Hero's Merchant. Painted chibi people with smooth ink outlines and dry-brush colour stand in lit 3D dioramas under a tilt-shift camera, with bloom, a day-and-night cycle and a world map you pan and pinch. Mouse, touch, keyboard or gamepad; a planning bot plays whole campaigns in the tests to balance the economy.",
+        icon: '\uD83D\uDED2',
+        folder: 'game-119',
+        version: '1.0.0',
+        cssClass: 'heros-merchant',
+        genre: 'strategy',
+        tags: [
+            { emoji: '\uD83C\uDF92', label: 'Inventory trading' },
+            { emoji: '\uD83D\uDDE1\uFE0F', label: 'Fantasy merchant' },
+            { emoji: '\uD83C\uDFA8', label: 'Painterly chibi HD-2D' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
