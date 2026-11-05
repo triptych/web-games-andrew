@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The Kids Table — model gallery</title>
+    <style>
+        html, body { margin: 0; background: #d9d2c5; font: 13px system-ui, sans-serif; color: #3b2312; }
+        canvas { display: block; }
+        #labels { position: absolute; left: 0; top: 0; pointer-events: none; }
+        #labels span { position: absolute; transform: translateX(-50%); white-space: nowrap; font-weight: 600; }
+    </style>
+    <script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+    </script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="labels"></div>
+<script type="module">
+// Every model on a neutral background, one chain per row, generators in the last. Judge them here
+// before they go under the game's lights: ?w=1500 sets the width, ?only=turkey shows one row.
+import * as THREE from 'three';
+import { getModel } from '../js/view/models.js';
+import { CHAINS, CHAIN_KEYS } from '../js/sim/data/items.js';
+
+const q = new URLSearchParams(location.search);
+const only = q.get('only');
+const W = +(q.get('w') || 1300), CELL = Math.floor(W / 7);
+const rows = (only ? [only] : CHAIN_KEYS).map((c) => ({ c, items: [1, 2, 3, 4, 5, 6].map((t) => [c, t]) }));
+if (!only) rows.push({ c: 'gens', items: CHAIN_KEYS.map((c) => [c, 'gen']) });
+const H = rows.length * CELL + 8;
+const canvas = document.getElementById('c');
+const r = new THREE.WebGLRenderer({ canvas, antialias: true });
+r.setPixelRatio(1);
+r.setSize(W, H);
+r.outputColorSpace = THREE.SRGBColorSpace;
+r.setScissorTest(true);
+r.setClearColor(0xd9d2c5);
+r.shadowMap.enabled = true;
+r.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xfff0d9, 0x6b4a30, 1.1));
+const sun = new THREE.DirectionalLight(0xffe3b3, 2.4);
+sun.position.set(-3, 6, 4);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left: -1, right: 1, top: 1, bottom: -1, near: 1, far: 14 });
+scene.add(sun, sun.target);
+const floor = new THREE.Mesh(new THREE.CircleGeometry(0.6, 40), new THREE.MeshStandardMaterial({ color: 0xfff1d6, roughness: 0.9 }));
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -0.0;
+floor.receiveShadow = true;
+scene.add(floor);
+const cam = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
+cam.position.set(0, 2.5, 2.3);
+cam.lookAt(0, 0.33, 0);
+
+const labels = document.getElementById('labels');
+rows.forEach((row, ri) => {
+    row.items.forEach(([c, t], ci) => {
+        const m = getModel(c, t);
+        scene.add(m);
+        const x = ci * CELL + CELL * (row.items.length === 6 ? 0.5 : 1.5), y = H - (ri + 1) * CELL;
+        r.setViewport(x - CELL / 2, y, CELL, CELL);
+        r.setScissor(x - CELL / 2, y, CELL, CELL);
+        r.render(scene, cam);
+        scene.remove(m);
+        const s = document.createElement('span');
+        s.style.left = x + 'px';
+        s.style.top = (ri * CELL + CELL - 22) + 'px';
+        s.textContent = t === 'gen' ? CHAINS[c].name : `${t}. ${CHAINS[c].tiers[t - 1]}`;
+        labels.appendChild(s);
+    });
+});
+window.__ready = true;
+</script>
+</body>
+</html>

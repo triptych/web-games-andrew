@@ -1484,6 +1484,16 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 59, 42, 0.7);
 }
 
+.game-preview.the-kids-table,
+.carousel-slide-bg.the-kids-table {
+    background: linear-gradient(160deg, #2b170b 0%, #8a4a1c 48%, #f08a24 100%);
+}
+.game-card.the-kids-table .play-button {
+    background: linear-gradient(135deg, #ffd24a, #f08a24 55%, #c92f3c);
+    color: #2b1204;
+    box-shadow: 0 0 14px rgba(240, 138, 36, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
