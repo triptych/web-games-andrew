@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-116 games, `game-001` through `game-116`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+117 games, `game-001` through `game-117`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -151,6 +151,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 114 | [LAST COLONIST](game-114/) | A run-and-gun shooter with code-painted pixel sprites lit by point lights through generated normal maps: the last colonist awake on a derelict ark fights through eight sectors to the alien homeworld to free the others before they become food | three.js |
 | 115 | [Hearthwick](game-115/) | A cozy, idle-friendly town builder: grow one hut into a town, give townsfolk skilled jobs, craft and cook, and hire heroes who quest for you, eat at your tavern, sleep at your inn and buy from your item shop, even while you are away; painted sprites and pixel people in a lit 3D diorama | three.js |
 | 116 | [SOLITAIRE FROM OUTER SPACE](game-116/) | A TriPeaks solitaire roguelike deckbuilder as a 1950s B-movie: chain cards on the beam to blast giant ants, robots, a brain in a jar and the Overlord across three reels of branching maps, with gadgets, souvenirs and a theremin score | Canvas 2D |
+| 117 | [PERIHELION](game-117/) | A twin-stick shooter on tiny turning asteroids in the style of the late-sixties space films: you stay centred while the rock rolls beneath you, through mazes wrapped round eight spheres, silencing red-eyed beacons until a black monolith gate opens to the next | three.js |
 
 ### Highlights
 
@@ -376,7 +377,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-116/   # One self-contained folder per game
+├── game-001/ … game-117/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -433,7 +434,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 116 games are included as of the latest entries (game-112 Quill & Legion, game-113 Crystal Crescendo, game-114 LAST COLONIST, game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE), and the Garden launcher is at v1.9.0.
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 117 games are included as of the latest entries (game-113 Crystal Crescendo, game-114 LAST COLONIST, game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION), and the Garden launcher is at v1.9.0.
 
 ---
 

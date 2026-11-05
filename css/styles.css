@@ -1470,6 +1470,20 @@ h1 {
     box-shadow: 0 0 14px rgba(159, 232, 224, 0.75);
 }
 
+.game-preview.perihelion,
+.carousel-slide-bg.perihelion {
+    background:
+        radial-gradient(circle at 74% 30%, #e9c38f 0 13%, #9a6a42 17%, transparent 18%),
+        radial-gradient(circle at 34% 72%, #8d8a84 0 22%, #3a3936 30%, transparent 31%),
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.9) 0 0.4%, transparent 0.6%),
+        linear-gradient(180deg, #000 0%, #05060a 60%, #0c0d12 100%);
+}
+.game-card.perihelion .play-button {
+    background: linear-gradient(135deg, #f4f2ee, #c9c6bf 60%, #e0301e);
+    color: #050505;
+    box-shadow: 0 0 14px rgba(255, 59, 42, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

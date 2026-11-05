@@ -1773,6 +1773,22 @@ const games = [
             { emoji: '\uD83C\uDFBB', label: 'Theremin score' },
             { emoji: '\uD83D\uDD8C\uFE0F', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-117',
+        title: 'PERIHELION',
+        description: "A twin-stick shooter on tiny turning asteroids, in three.js with no asset files, styled after the grand space films of the late sixties. You stand in the middle of the screen and the rock rolls beneath your feet as you walk: each asteroid is a sphere wrapped in a maze of white station walls, carved on a cube-sphere grid, and its surface curves away to a horizon so close you can walk round it in half a minute. Silence every beacon (red-eyed turrets that track you, fire bursts and rings of bolts, and launch pods, darts and black slab-shards from their hangars when they see you) and a black monolith gate rises from the rock on a column of light; step into it and a slit-scan star gate carries you to the next asteroid. Eight of them, among the moons of a ringed gas giant, toward the sun, ending at the Monolith itself behind its pylons' shield. Bolts fly great circles, so a shot can come round the rock behind you; dash through fire, grab repairs and weapon crystals, follow the edge arrows the shortest way round. A calm mission computer talks you through it. Hard sunlight and black shadows, a regolith of craters baked on the GPU per asteroid, a shader sky with three layers of stars, a galactic band and the gas giant traced as a lit sphere with its storm and ring, bloom and a 70 mm film grade; a drifting cluster score, a waltz on the title, and your own breathing in the helmet. Mouse and WASD, arrows, gamepad twin sticks or two touch sticks; Cadet and Commander difficulty; a bot plays whole campaigns in the tests to balance it.",
+        icon: '\uD83C\uDF11',
+        folder: 'game-117',
+        version: '1.0.0',
+        cssClass: 'perihelion',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83D\uDD79\uFE0F', label: 'Twin-stick shooter' },
+            { emoji: '\uD83E\uDE90', label: 'Spherical mazes' },
+            { emoji: '\uD83C\uDF9E\uFE0F', label: '1968 space film' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
