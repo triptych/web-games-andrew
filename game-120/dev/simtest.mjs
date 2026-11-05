@@ -148,6 +148,16 @@ if (want('rules')) {
     run(G, inp({ fire: true }), 3);
     ok(tr.hp < tr.maxhp || tr.hp <= 0 || tr.dead, 'the gun hurts what is in front of you');
     ok(G.stat.dealt > 0 || G.stat.kills > 0, 'damage is counted');
+    // strafing must not turn the guns (a spider walks sideways without swinging its barrels)
+    G = fresh(3); G.enemies.length = 0; G.player.yaw = 0;
+    run(G, inp({ x: 1 }), 1.5); const yR = G.player.yaw;
+    run(G, inp({ x: -1 }), 1.5); const yL = G.player.yaw;
+    run(G, inp({ y: 1 }), 1.5);
+    ok(Math.abs(yR) < 0.01 && Math.abs(yL) < 0.01 && Math.abs(G.player.yaw) < 0.01, `strafing and backing up keep the guns down-range (yaw ${yR.toFixed(3)}, ${yL.toFixed(3)}, ${G.player.yaw.toFixed(3)})`);
+    G = fresh(3); G.enemies.length = 0; G.player.yaw = 1.0; run(G, NONE, 1.5);
+    ok(Math.abs(G.player.yaw) < 0.1, 'with nothing to aim at the walker squares up to face down-range');
+    G = fresh(3); G.enemies.length = 0; run(G, inp({ x: 1, aim: true, ax: 0, az: -1 }), 1.5);
+    ok(Math.abs(G.player.yaw) < 0.01, 'strafing with an explicit aim keeps that aim');
     // missiles
     G = fresh(3); G.enemies.length = 0;
     const m0 = G.player.missiles;
