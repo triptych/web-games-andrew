@@ -131,6 +131,7 @@ async function desktop() {
     check(await clickText(page, '#panel .item-row:nth-child(5) .btn, #panel .item-row .btn', 'Buy 5'), 'Buy 5 is on the shelf');
     await until(page, (g) => __thm.G.gold < g && __thm.G.inv.items.length > 0, 'buying takes gold and fills the wagon', 30000, g0);
     await until(page, () => document.querySelectorAll('#panel .invgrid .invitem').length > 0, 'the bought goods appear in the wagon grid');
+    check(await Q(page, () => [...document.querySelectorAll('#panel .item-row.hinted')].some((r) => r.querySelector('.nm').textContent === 'Grain' && /Gran's Handcart/.test(r.textContent))), "the shelf flags Grain as needed for the active quest 'Gran's Handcart'");
     await shot(page, 'desktop-market');
     // select and sell one unit
     const have0 = await Q(page, () => __thm.G.inv.items.reduce((a, i) => a + i.n, 0));

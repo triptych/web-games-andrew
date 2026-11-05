@@ -32,6 +32,33 @@ export function bestKnown(G, t, lv = 0, exclude = null) {
     return best;
 }
 
+
+/** Quest hints for an item: what active or open quests it would help finish. Returns [{ text, kind }]. */
+export function questHints(G, t, lv = 0) {
+    const out = [];
+    const seen = new Set();
+    const add = (kind, text) => { if (!seen.has(text)) { seen.add(text); out.push({ kind, text }); } };
+    const reqOk = (r) => r.t === t && (!r.lv || (FAMS[t] && lv >= r.lv));
+    for (const id of Object.keys(G.q.active)) {
+        const q = questDef(G, id);
+        if (!q || q.kind === 'courier') continue;
+        for (const r of reqProgress(G, q)) {
+            if (r.have >= r.n) continue;
+            if (reqOk(r)) add('must', `Needed for "${q.title}" (${r.have}/${r.n})`);
+            else if (r.lv && FAMS[r.t]) {
+                const rec = gearRecipe(r.t, r.lv);
+                if (rec?.inputs.some((i) => i.t === t)) add('ingredient', `Ingredient for ${itemName(r.t, r.lv)}, wanted by "${q.title}"`);
+            }
+        }
+    }
+    for (const { q, state } of questsAt(G, G.loc)) {
+        if (state !== 'available' || q.kind === 'courier') continue;
+        if ((q.req || []).some(reqOk)) add('offer', `Would help with the open request "${q.title}" here`);
+    }
+    const order = { must: 0, ingredient: 1, offer: 2 };
+    return out.sort((a, b) => order[a.kind] - order[b.kind]);
+}
+
 // ---------------------------------------------------------------- the wagon column (shared)
 function wagonColumn(G, ctx, { sellHere = false, stash = false } = {}) {
     const ps = ctx.ps;
@@ -106,7 +133,15 @@ function marketPanel(G, ctx) {
     const T = TOWN[G.loc], ps = ctx.ps;
     if (!T.shops.includes(ps.shop)) ps.shop = T.shops[0];
     const shop = SHOP_DEFS[ps.shop];
-    const tabs = h('div.tabs', { role: 'tablist' }, T.shops.map((s) => h('button.tab', { type: 'button', role: 'tab', 'aria-selected': (ps.shop === s) + '', onclick: () => { ps.shop = s; ctx.rerender(); } }, [shopIcon(s), SHOP_DEFS[s].name])));
+    const hintCount = (sid) => {
+        const sh = SHOP_DEFS[sid];
+        let n = 0;
+        const gmx = M.gearMax(G.loc);
+        for (const id of Object.keys(MATS)) if (id !== 'parcel' && sh.cats.includes(MATS[id].cat) && M.stockCap(G.loc, id, 0) > 0 && M.stockOf(G, G.loc, id, 0) > 0 && questHints(G, id, 0).length) n++;
+        for (const f of FAM_IDS) if (sh.cats.includes(f)) for (let l = Math.max(1, gmx - 3); l <= gmx; l++) if (M.stockCap(G.loc, f, l) > 0 && M.stockOf(G, G.loc, f, l) > 0 && questHints(G, f, l).length) n++;
+        return n;
+    };
+    const tabs = h('div.tabs', { role: 'tablist' }, T.shops.map((s) => { const n = hintCount(s); return h('button.tab', { type: 'button', role: 'tab', 'aria-selected': (ps.shop === s) + '', onclick: () => { ps.shop = s; ctx.rerender(); }, title: n ? `${n} item${n > 1 ? 's' : ''} here could help with a quest` : '' }, [shopIcon(s), SHOP_DEFS[s].name, n ? h('span.pill.qp', `${n} quest`) : null]); }));
     // stock list
     const q = (ps.mq || '').toLowerCase();
     const gm = M.gearMax(G.loc);
@@ -122,9 +157,10 @@ function marketPanel(G, ctx) {
         const bk = bestKnown(G, r.t, r.lv, G.loc);
         const q1 = M.quote(G, G.loc, r.t, r.lv, 'buy', 1).total;
         const canBuy = (n) => stock >= 1 && G.gold >= q1;
-        return h('div.item-row', [
+        const hints = questHints(G, r.t, r.lv);
+        return h('div.item-row' + (hints.length ? '.hinted' : ''), [
             h('span.ico', ico(r.t, r.lv)),
-            h('div', [h('div.nm', nm(r.t, r.lv)), h('div.sub', [`In stock ${stock}. `, dir === 'down' ? h('span.good', 'Cheap here. ') : dir === 'up' ? h('span.bad', 'Dear here. ') : '', bk ? `Sells for ${fmt(bk.price)}g in ${TOWN[bk.town].name}.` : ''])]),
+            h('div', [h('div.nm', nm(r.t, r.lv)), h('div.sub', [`In stock ${stock}. `, dir === 'down' ? h('span.good', 'Cheap here. ') : dir === 'up' ? h('span.bad', 'Dear here. ') : '', bk ? `Sells for ${fmt(bk.price)}g in ${TOWN[bk.town].name}.` : '']), ...hints.map((x) => h('div.hint.' + x.kind, [h('span', { html: GLYPH.scroll }), x.text]))]),
             h('div', { style: { textAlign: 'right' } }, [h('div.price' + (dir ? '.' + dir : ''), fmt(unit) + ' g'), h('div.btns', [btn('Buy 1', () => ctx.act({ t: 'buy', shop: ps.shop, item: r.t, lv: r.lv, n: 1 }), 'primary', !canBuy()), stock > 1 && btn('Buy 5', () => ctx.act({ t: 'buy', shop: ps.shop, item: r.t, lv: r.lv, n: 5 }), '', !canBuy()), stock > 5 && btn('Max', () => ctx.act({ t: 'buy', shop: ps.shop, item: r.t, lv: r.lv, n: 999 }), '', !canBuy())])]),
         ]);
     }));
