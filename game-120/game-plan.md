@@ -104,5 +104,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, terrain, the ru
 
 ## Changelog
 
+### v1.0.1 (2026-11-05)
+- Legs step independently like a spider: each leg decides when it is overstretched, neighbouring legs never lift together, at most three are airborne, starts are staggered into a ripple, and an idle walker fidgets one leg at a time (it used to lift two tripods in lockstep, which looked like a jumping jack when strafing).
+- Strafing and backing up no longer turn the hull: with no aim input and no target the walker faces down-range, and the auto-target cone follows the guns, not the direction of travel.
+
 ### v1.0.0 (2026-11-05)
 - First release: six missions, five multi-phase bosses, IK hexapod that grows with 25 upgrades, procedural terrain proved crossable, destructible colonist pods, hazards, drop-pod ambushes, story, hangar, attract-mode title, touch/gamepad/keyboard+mouse.

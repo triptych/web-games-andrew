@@ -51,6 +51,15 @@ export class LegRig {
         this.placed = false;
         this.onStep = null;
         this.air = 0;
+        // Independent legs: a leg's neighbours are the legs whose hips are close (same side, adjacent; and across the body).
+        // Neighbours never lift together, at most `maxStep` legs are in the air, and starts are staggered: a ripple, not a jig.
+        const L = this.legs, n = L.length;
+        let near = Infinity;
+        for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) near = Math.min(near, L[i].hip.distanceTo(L[j].hip));
+        this.nb = L.map((a, i) => L.map((b, j) => j).filter((j) => j !== i && a.hip.distanceTo(L[j].hip) <= near * 2.1));
+        this.maxStep = n >= 6 ? 3 : n >= 4 ? 2 : 1;
+        L.forEach((l, i) => { l.jit = 0.9 + 0.2 * ((i * 0.618 + 0.13) % 1); l.durJit = 0.9 + 0.25 * ((i * 0.37 + 0.2) % 1); l.liftJit = 0.8 + 0.45 * ((i * 0.83 + 0.4) % 1); });
+        this.sinceStart = 0; this.idleT = 1.5;
     }
 
     /** Put every foot on the ground under its rest position (first frame, teleports, landing). */
@@ -99,31 +108,43 @@ export class LegRig {
         const speed = Math.hypot(vel.x, vel.z);
         const thr = cfg.step * s;
         this.air += ((air ? 1 : 0) - this.air) * Math.min(1, dt * 10);
-        const anyStep = [false, false];
-        cfg.groups.forEach((grp, gi) => { for (const id of grp) if (this.legs[id].stepping) anyStep[gi] = true; });
-        cfg.groups.forEach((grp, gi) => {
-            if (air || anyStep[1 - gi] || anyStep[gi]) return;
-            let need = false;
-            for (const id of grp) { const l = this.legs[id]; _b.copy(l.rest); body.localToWorld(_b); if (Math.hypot(l.planted.x - _b.x, l.planted.z - _b.z) > thr * (speed > 0.5 ? 1 : 0.7)) need = true; }
-            if (!need) return;
-            for (const id of grp) {
-                const l = this.legs[id];
-                l.stepping = true; l.t = 0; l.from.copy(l.planted);
-                l.dur = Math.max(0.13, Math.min(0.3, 0.3 - speed * 0.014));
-            }
-        });
+        this.sinceStart += dt; this.idleT -= dt;
+        const legs = this.legs, v = speed / s;
         const lead = Math.min(0.5, 0.12 + speed * 0.03);
+        let stepping = 0;
+        for (const l of legs) if (l.stepping) stepping++;
+        const start = (l, dur, fidget) => { l.stepping = true; l.t = 0; l.from.copy(l.planted); l.dur = dur; l.fidget = !!fidget; this.sinceStart = 0; };
+        if (!air && stepping < this.maxStep && this.sinceStart > Math.min(0.09, Math.max(0.035, 0.1 - v * 0.007))) {
+            // the most overstretched leg whose neighbours are all planted goes first
+            let best = -1, be = 0;
+            for (let i = 0; i < legs.length; i++) {
+                const l = legs[i]; if (l.stepping) continue;
+                _b.copy(l.rest); body.localToWorld(_b);
+                // stretch is measured from where the foot will next land (rest point plus lead), so a foot that landed ahead is not 'overstretched'
+                const err = Math.hypot(l.planted.x - (_b.x + vel.x * lead), l.planted.z - (_b.z + vel.z * lead)) / (thr * l.jit);
+                if (err < (speed > 0.5 ? 1 : 0.8) || err <= be) continue;
+                if (err < 2.4 && this.nb[i].some((j) => legs[j].stepping)) continue;
+                best = i; be = err;
+            }
+            if (best >= 0) start(legs[best], Math.max(0.12, Math.min(0.28, 0.26 - v * 0.014)) * legs[best].durJit);
+            else if (speed < 0.3 && stepping === 0 && this.idleT <= 0) {
+                // a spider fidgets: now and then one leg re-places itself
+                const i = Math.floor(Math.random() * legs.length);
+                if (!this.nb[i].some((j) => legs[j].stepping)) { start(legs[i], 0.32, true); this.idleT = 1.2 + Math.random() * 2.2; }
+            }
+        }
         for (const l of this.legs) {
             _b.copy(l.rest); body.localToWorld(_b);
             if (l.stepping) {
                 l.t += dt / l.dur;
                 l.to.set(_b.x + vel.x * lead, 0, _b.z + vel.z * lead); l.to.y = h(l.to.x, l.to.z);
+                if (l.fidget) { l.to.x += Math.sin(l.from.x * 3.1) * 0.4 * s; l.to.z += Math.cos(l.from.z * 2.3) * 0.4 * s; l.to.y = h(l.to.x, l.to.z); }
                 const t = Math.min(1, l.t), e = t * t * (3 - 2 * t);
                 l.planted.lerpVectors(l.from, l.to, e);
-                l.planted.y = Math.max(h(l.planted.x, l.planted.z), l.from.y + (l.to.y - l.from.y) * e) + Math.sin(t * Math.PI) * cfg.lift * s;
+                l.planted.y = Math.max(h(l.planted.x, l.planted.z), l.from.y + (l.to.y - l.from.y) * e) + Math.sin(t * Math.PI) * cfg.lift * s * l.liftJit;
                 if (l.t >= 1) {
                     l.stepping = false; l.planted.copy(l.to); l.planted.y = h(l.planted.x, l.planted.z);
-                    if (this.onStep) this.onStep(l);
+                    if (this.onStep && !l.fidget) this.onStep(l);
                 }
             } else if (air) {
                 // dangle under the hull while jumping
@@ -279,7 +300,7 @@ export function buildMech(upg, quality = 'high') {
     const H = 1.9;
     const rig = new LegRig(root, {
         legs: [[-1, -1], [-1, 0], [-1, 1], [1, -1], [1, 0], [1, 1]].map(([sx, z]) => ({ hip: [sx * 1.2, -0.15, z * 1.2], foot: [sx * (3.5 + L * 0.12), z * 2.0], L1: 2.2, L2: 2.9 })),
-        groups: [[0, 2, 4], [1, 3, 5]], H, thick: 0.3 + L * 0.045, step: 1.1, lift: 0.9, mats, claw: 0.8 + L * 0.07, pistons: L >= 2, kneeGlow: L >= 4 ? cyan : null,
+        groups: [[0, 2, 4], [1, 3, 5]], H, thick: 0.3 + L * 0.045, step: 1.7, lift: 0.9, mats, claw: 0.8 + L * 0.07, pistons: L >= 2, kneeGlow: L >= 4 ? cyan : null,
     });
     info.rig = rig; info.H = H;
     root.userData.info = info;

@@ -125,8 +125,8 @@ export function step(G, inp, dt) {
 // ------------------------------------------------------------------ the walker
 function pickTarget(G, inp) {
     const p = G.player;
-    const mv = Math.hypot(inp.x, inp.y);
-    const base = inp.aim ? yawOf(inp.ax, inp.az) : (mv > 0.2 ? yawOf(inp.x, inp.y) : p.yaw);
+    // the target cone is centred on where the guns point; walking sideways or backwards must not swing it
+    const base = inp.aim ? yawOf(inp.ax, inp.az) : p.yaw;
     let best = null, bs = 1e9;
     for (const e of G.enemies) {
         if (e.hp <= 0 || (e.b && (e.b.under || e.b.dying > 0))) continue;
@@ -138,7 +138,7 @@ function pickTarget(G, inp) {
         const s = a * 30 + d * 0.15 - (e.b ? 6 : 0);
         if (s < bs) { bs = s; best = e; }
     }
-    return { e: best, base, mv };
+    return { e: best, base };
 }
 
 function updatePlayer(G, inp, dt) {
@@ -151,10 +151,13 @@ function updatePlayer(G, inp, dt) {
     p.grounded = !air;
 
     // aim: turn the whole walker; the guns follow its facing
-    const { e: tgt, base, mv } = pickTarget(G, inp);
+    const { e: tgt, base } = pickTarget(G, inp);
     p.target = tgt ? tgt.id : 0;
-    let want = tgt ? yawOf(tgt.x - p.x, tgt.z - p.z) : (inp.aim ? base : (mv > 0.2 ? base : p.yaw));
-    p.yaw += clamp(angDiff(p.yaw, want), -9 * dt, 9 * dt);
+    // No aim and nothing to shoot: face down-range (-z). The walker is a spider, so strafing and backing up
+    // keep the barrels where they were instead of turning the hull toward the direction of travel.
+    const want = tgt ? yawOf(tgt.x - p.x, tgt.z - p.z) : (inp.aim ? base : 0);
+    const turn = (tgt || inp.aim) ? 9 : 3;
+    p.yaw += clamp(angDiff(p.yaw, want), -turn * dt, turn * dt);
 
     // hazards
     let slow = 1, ice = p.iceT > 0 || G.storm > 0;
