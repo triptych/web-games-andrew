@@ -90,14 +90,17 @@ const reportErrors = (label) => { check(errors.length === 0, `${label}: no conso
 /** Answer any road encounter, so a journey always finishes. */
 const arrive = async (page, to) => {
     const t0 = Date.now();
-    while (Date.now() - t0 < 120000) {
+    while (Date.now() - t0 < 60000) {
         const st = await Q(page, (dest) => ({ loc: __thm.G.loc, travel: !!__thm.G.travel, pending: !!__thm.G.pending, modal: !document.getElementById('modal-layer').hidden }), to);
         if (st.loc === to && !st.travel) return true;
         if (st.modal) await Q(page, () => { const b = [...document.querySelectorAll('#modal button')]; (b.find((x) => /^(Fight|No thanks)/.test(x.textContent)) || b[b.length - 1]).click(); });
         await page.waitForTimeout(200);
     }
+    console.log('    arrive timed out:', JSON.stringify(await Q(page, () => ({ G: { loc: __thm.G.loc, travel: __thm.G.travel, pending: __thm.G.pending, day: __thm.G.day }, mode: __thm.mode, dlg: !!__thm.ui.dlgCur, panel: __thm.ui.panelId, screens: __thm.ui.stack, modal: !document.getElementById('modal-layer').hidden, mapOpen: __thm.mapOpen }))));
     return false;
 };
+/** Close the open panel with Escape and wait for it to go: presses are queued one per frame, and frames are slow in software GL. */
+const esc = async (page) => { await page.keyboard.press('Escape'); await page.waitForFunction(() => document.getElementById('panel-layer').hidden, null, { timeout: 60000 }); };
 const skipDialogs = (page) => Q(page, () => __thm.skip());
 
 // ======================================================================
@@ -156,7 +159,7 @@ async function desktop() {
     await shot(page, 'desktop-workshop');
     await Q(page, () => { const row = [...document.querySelectorAll('#panel .item-row')].find((r) => r.querySelector('.nm').textContent.startsWith('Bronze Shortsword')); [...row.querySelectorAll('.btn')].find((b) => b.textContent.trim() === 'Craft').click(); });
     await until(page, (n) => __thm.G.inv.items.filter((i) => i.t === 'sword').reduce((a, i) => a + i.n, 0) === n + 1, 'Craft makes a Bronze Shortsword from 2 copper ingots and a pine plank', 30000, swords0);
-    await page.keyboard.press('Escape');
+    await esc(page);
 
     // the notice board
     await click(page, '#places .place[data-id="board"]');
@@ -164,12 +167,12 @@ async function desktop() {
     check(await clickText(page, '#panel .quest .btn', 'Accept'), 'a quest can be accepted');
     await until(page, () => Object.keys(__thm.G.q.active).length >= 2, 'the quest is now active', 30000);
     await shot(page, 'desktop-board');
-    await page.keyboard.press('Escape');
+    await esc(page);
 
     // the inn shows visiting heroes
     await click(page, '#places .place[data-id="inn"]');
     await until(page, () => document.querySelector('#panel h2')?.textContent.startsWith('Inn'), 'the Inn opens');
-    await page.keyboard.press('Escape');
+    await esc(page);
 
     // the road: Leave Town → map → Willowbrook
     await Q(page, () => { __thm.give('grain', 0, 6); });
@@ -188,14 +191,16 @@ async function desktop() {
     await until(page, () => document.querySelector('#panel h2')?.textContent === 'Journal', 'Q opens the journal');
     await clickText(page, '#panel .quest .btn', 'Hand in');
     await until(page, () => !!__thm.G.q.done.s0, "handing in 'Gran's Handcart' completes the first quest", 30000);
-    await page.keyboard.press('Escape');
+    await until(page, () => !document.getElementById('dialog').hidden, "the quest's closing dialogue plays", 30000);
+    await skipDialogs(page);
+    await esc(page);
     // hotkeys
     await page.keyboard.press('KeyI');
     await until(page, () => document.querySelector('#panel h2')?.textContent === 'Your Wagon', 'I opens the wagon');
     await page.keyboard.press('KeyL');
     await until(page, () => document.querySelector('#panel h2')?.textContent === "Merchant's Ledger", 'L opens the ledger');
     await shot(page, 'desktop-ledger');
-    await page.keyboard.press('Escape');
+    await esc(page);
     await page.keyboard.press('KeyM');
     await until(page, () => __thm.mapOpen === true, 'M opens the map');
     await page.keyboard.press('KeyM');
@@ -213,7 +218,7 @@ async function desktop() {
 
     // the Offer at Aurelion
     await Q(page, () => {
-        const G = __thm.G; G.loc = 'aurelion'; G.heroCall = G.day; G.lv = 20; G.gold = 99999;
+        const G = __thm.G; G.loc = 'aurelion'; G.heroCall = G.day; G.lv = 20; G.gold = 99999; G.inv.w = 10; G.inv.h = 8;
         for (const [t, lv] of [['sword', 10], ['armor', 10], ['helm', 9], ['shield', 10], ['boots', 10], ['amulet', 10], ['potion', 10], ['elixir', 10], ['rations', 10], ['kit', 10]]) __thm.give(t, lv, 1);
         __thm.G.towns.aurelion.heroes.length = 0;
     });

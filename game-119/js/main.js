@@ -48,6 +48,7 @@ ui.onHurry = () => { hurry = !hurry; };
 
 // ------------------------------------------------------------------ commands from the UI
 function doAct(cmd, o = {}) {
+    if (cmd.t === 'offer') o = { ...o, quiet: true };
     const r = act(G, cmd);
     if (!r.ok) { if (!o.silent) { ui.toast(r.msg, 'bad'); audio.ui('bad'); } }
     else if (!o.quiet && r.msg) ui.toast(r.msg, 'good');

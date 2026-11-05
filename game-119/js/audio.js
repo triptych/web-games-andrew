@@ -105,8 +105,8 @@ export class Audio {
         if (beat === 0) at(root + ch[0] - 12, spb * 6, 'sine', 0.2);
         // flute melody on a pentatonic walk, seeded by the step so it repeats every 4 bars with variation
         const h = (i * 2654435761) >>> 0;
-        if (beat === 0 || (beat === 3 && (h & 3) > 0) || (beat === 6 && (h & 4))) {
-            const deg = SCALE[(h >> 4) % 5] + 12 * ((h >> 8) & 1);
+        if (beat === 0 || (beat === 3 && (h & 3) > 0) || (beat === 6 && (h & 4) !== 0)) {
+            const deg = SCALE[(h >>> 4) % 5] + 12 * ((h >>> 8) & 1);
             at(root + 12 + deg, spb * (beat === 0 ? 3 : 1.6), 'sine', 0.16);
         }
         if (this.mood === 'road' && beat % 4 === 2) this.toneAt(t, 180, 0.06, 'square', 0.03, this.music);
