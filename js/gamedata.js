@@ -1821,6 +1821,22 @@ const games = [
             { emoji: '\uD83C\uDFA8', label: 'Painterly chibi HD-2D' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-120',
+        title: 'HEXAPOD RISING',
+        description: "A third-person mech shooter in three.js with no asset files. You pilot MITE, a puny six-legged survey walker, across six battle-scarred alien landscapes toward the Skarn main camp, to rescue the colonists they captured from the colony of Haven's Rest. The legs are a real inverse-kinematics rig: every foot plants on the terrain, steps in a tripod gait, and the hull tilts to the ground under it. The fields are generated, proved crossable for the weakest walker and shaped by craters, wrecks, spires, boulders and hazard pools of fire, acid, quicksand, black ice, lava and hive goo; rubble shorter than your legs' clearance is simply stepped over. Fight Skarn troopers, rocketeers, wasp drones, stalker walkers, bulwark tanks and turrets in camps and drop-pod ambushes, shoot open the orange pods to free their colonists, and jump the shockwaves. Five bosses with two to four phases each close five of the missions: the Gatekeeper tank, the artillery Siege Strider whose shell opens to expose its core, the burrowing Glacier Leviathan that erupts under you, the Cinder Titan fed by shield pylons while the arena floor turns to lava, and the four-phase Warlord with orbital strikes. After every mission the field hangar sells five upgrade tracks of six tiers (guns, missiles, armour, fuel, legs) and every upgrade makes the walker physically bigger, from a puny survey spider to a giant war machine. Explosions throw bouncing debris, fireballs, shockwave rings and scorch marks under bloom; the story runs by radio. Keyboard and mouse, touch twin-stick or gamepad, and a bot that plays the whole campaign in the tests to balance it.",
+        icon: '\uD83D\uDD77\uFE0F',
+        folder: 'game-120',
+        version: '1.0.0',
+        cssClass: 'hexapod-rising',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83E\uDD16', label: 'Mech shooter' },
+            { emoji: '\uD83D\uDC7E', label: 'Multi-phase bosses' },
+            { emoji: '\uD83D\uDCA5', label: 'Explosions & physics' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
