@@ -1,0 +1,14 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Gallery 2</title>
+<style>body{margin:0;background:#b8c8a8} .row{display:flex;flex-wrap:wrap;gap:4px;padding:4px} canvas{width:240px;height:220px;background:linear-gradient(#cfe3f2,#a8c890)}</style></head>
+<body><div class="row" id="row"></div>
+<script type="module">
+import * as Pr from '../js/view/props.js';
+const row = document.getElementById('row');
+const add = (cv) => { row.appendChild(cv); };
+for (const k of ['house','shop','smithy','inn','guild','alchemist','tent','board','tower','dome','elf','long','stall','stable']) add(Pr.building(k, k==='dome'?'desert':k==='long'?'snow':k==='elf'?'elven':'meadow', 3, 'basket').cv);
+for (const t of ['oak','pine','snowpine','palm','dead','crystal','elf']) add(Pr.tree(t, 2));
+add(Pr.bush(1,'#5aa048','#f06a8a')); add(Pr.rock(2)); add(Pr.mountain(1)); add(Pr.tuft(1)); add(Pr.barrel()); add(Pr.crate()); add(Pr.lamp()); add(Pr.well()); add(Pr.fountain()); add(Pr.signpost());
+for (let t=0;t<5;t++) add(Pr.wagon(t));
+window.__ready = true;
+</script></body></html>

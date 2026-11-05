@@ -1,9 +1,9 @@
 /**
  * simtest.mjs — headless checks of THE HERO'S MERCHANT's simulation. No browser.
  *
- *   node game-118/dev/simtest.mjs                 # everything
- *   ONLY=purity,inventory node game-118/dev/simtest.mjs
- *   SEEDS=10 VERBOSE=1 node game-118/dev/simtest.mjs
+ *   node game-119/dev/simtest.mjs                 # everything
+ *   ONLY=purity,inventory node game-119/dev/simtest.mjs
+ *   SEEDS=10 VERBOSE=1 node game-119/dev/simtest.mjs
  *
  * 1. purity: js/sim, js/rng.js and js/config.js never touch the DOM, a renderer, storage, Math.random or
  *    the clock, and never import the view, the UI or the audio.
