@@ -23,7 +23,7 @@ export function buildHut(W, L) {
     const H = SITES.hut, f = W.hutFloor;
     const g = new THREE.Group();
     g.position.set(H.x, f, H.z);
-    const wood = M({ map: planks('#6f4e30') }), dark = M({ map: planks('#4e3520') }), floorM = M({ map: planks('#8a6440') });
+    const wood = M({ map: planks('#a07a52') }), dark = M({ map: planks('#7a5838') }), floorM = M({ map: planks('#b08a5e') });
     const stoneM = M({ map: stone('#8a8478', '#4f4b44', 'h') });
     const hw = H.w / 2, hd = H.d / 2, wh = 2.7;
     // floor and stone footing
@@ -70,6 +70,10 @@ export function buildHut(W, L) {
     const logs = new THREE.Group();
     for (let i = 0; i < 3; i++) { const l = mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.7, 6), M({ map: bark() }), hx + 0.05, 0.6 + (i === 2 ? 0.1 : 0), hz - 0.18 + i * 0.18); l.rotation.z = Math.PI / 2; l.rotation.y = i * 0.5; logs.add(l); }
     g.add(logs);
+    // a warm fill so the room reads even with the hearth cold (light through the door and windows)
+    const fill = new THREE.PointLight(0xffe2b8, 2.2, 12, 1.0);
+    fill.position.set(0.5, 2.3, 0.3);
+    g.add(fill);
     const fireLight = new THREE.PointLight(0xff9a4a, 0, 9, 1.6);
     fireLight.position.set(hx + 0.4, 1.0, hz);
     g.add(fireLight);
@@ -177,7 +181,7 @@ export function buildHut(W, L) {
     // a rug, a stool, a basket of driftwood
     const rug = mesh(new THREE.CircleGeometry(1.0, 24), M({ color: 0x6a3b4a, roughness: 1 }), 2.0, 0.02, -1.6, false); rug.rotation.x = -Math.PI / 2; g.add(rug);
     g.add(mesh(new THREE.CylinderGeometry(0.22, 0.2, 0.45, 8), wood, 2.9, 0.22, -0.4));
-    return { group: g, fireLight, logs, winMat, alembic: { vapor, flask }, bells: { L: bellL, R: bellR }, orrery: { arm, rings }, objs, circle, jarMats, chimneyTop, candleTop: new THREE.Vector3(H.x + dx + 0.2, f + 1.08, H.z + dz - 0.5) };
+    return { group: g, fill, fireLight, logs, winMat, alembic: { vapor, flask }, bells: { L: bellL, R: bellR }, orrery: { arm, rings }, objs, circle, jarMats, chimneyTop, candleTop: new THREE.Vector3(H.x + dx + 0.2, f + 1.08, H.z + dz - 0.5) };
 }
 
 // ------------------------------------------------------------------ the castle

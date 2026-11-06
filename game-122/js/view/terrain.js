@@ -33,7 +33,7 @@ export function buildTerrain(W) {
         const r = Math.hypot(x, z);
         if (h < -0.3) c.copy(C.seabed).lerp(C.wetsand, ss(-3, -0.3, h));
         else if (h < 1.0) c.copy(C.wetsand).lerp(C.sand, ss(-0.3, 1.0, h));
-        else if (h < 2.6 && reg !== 'fen') c.copy(C.sand).lerp(C.grass2, ss(1.6, 2.6, h));
+        else if (h < (reg === 'shore' ? 4.2 : 2.6) && reg !== 'fen') c.copy(C.sand).lerp(C.grass2, reg === 'shore' ? ss(3.0, 4.2, h) : ss(1.6, 2.6, h));
         else if (reg === 'wood') c.copy(C.wood).lerp(C.woodfloor, n);
         else if (reg === 'fen') c.copy(C.fen).lerp(C.fenmud, n);
         else if (reg === 'moor') c.copy(C.moor).lerp(C.moor2, n * 0.8);

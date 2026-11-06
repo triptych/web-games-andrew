@@ -96,7 +96,7 @@ export class View {
             m.rotation.y = (k.x * 7.1) % 6.28;
             if (REAGENTS[k.item]) {
                 const sp = new THREE.Sprite(glowMat(L.color[L.reagents[k.item].essence]));
-                sp.scale.setScalar(0.7); sp.position.y = 0.2; m.add(sp); m.userData.glow = sp;
+                sp.scale.setScalar(0.42); sp.position.y = 0.15; m.add(sp); m.userData.glow = sp;
             }
             root.add(m);
             this.pickups.set(k.id, m);
@@ -263,6 +263,7 @@ export class View {
 
         // the hut: hearth, windows, the instruments
         const H = this.hut;
+        H.fill.intensity = (night ? 0.7 : 2.2) * (p.inside || Math.hypot(p.x - SITES.hut.x, p.z - SITES.hut.z) < 14 ? 1 : 0.2);
         H.fireLight.intensity = F.hearth ? 2.4 + Math.sin(time * 13) * 0.3 + Math.sin(time * 5.1) * 0.25 : 0;
         H.winMat.emissiveIntensity = F.hearth ? (night ? 1.6 : 0.2) : 0;
         if (F.hearth) {
@@ -361,7 +362,7 @@ export class View {
             if (!m) continue;
             if (k.kind === 'bush') { m.visible = true; m.userData.berries.visible = k.alive; continue; }
             m.visible = k.alive;
-            if (m.userData.glow) m.userData.glow.material.opacity = 0.35 + Math.sin(time * 2 + k.x) * 0.15;
+            if (m.userData.glow) m.userData.glow.material.opacity = 0.28 + Math.sin(time * 2 + k.x) * 0.12;
         }
         for (const [id, pg] of this.pages) {
             const show = !G.pages.includes(id) && (id !== 'p10' || F.door);

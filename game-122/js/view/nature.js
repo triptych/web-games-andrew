@@ -122,7 +122,7 @@ export function buildNature(W, quality) {
         if (g < 1.8 || W.water(x, z, g) || W.slopeAt(x, z) > 0.6 || W.nearRoad(x, z, 1.6)) continue;
         const reg = W.regionAt(x, z);
         if (reg === 'castle' && Math.hypot(x, z) < 62) continue;
-        if (reg === 'hut') continue;
+        if (reg === 'hut' || (reg === 'shore' && g < 3.6)) continue;
         const k = reg === 'wood' ? (r() < 0.6 ? 'fern' : 'grass') : reg === 'moor' ? (r() < 0.7 ? 'heather' : 'grass') : reg === 'fen' ? 'grass' : (r() < 0.14 ? 'flowers' : 'grass');
         if (reg === 'heath' && r() < 0.45) continue;
         kinds[k].push({ x, z, y: g, s: 0.6 + r() * 0.7, rot: r() * 3.14 });
