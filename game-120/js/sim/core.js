@@ -66,7 +66,7 @@ export function dropLoot(G, x, z, scrap, o = {}) {
     }
     const big = o.big ? 2 : 1;
     const r = G.rng();
-    const pHp = (o.heavy ? 0.4 : 0.13) * big, pFuel = 0.07 * big, pAmmo = 0.08 * big;
+    const pHp = (o.heavy ? 0.4 : 0.13) * big, pFuel = 0.06 * big, pAmmo = 0.16 * big;
     const a = G.rng() * 6.28;
     if (r < pHp) spawnPickup(G, 'hp', x, z, 0, { vx: Math.cos(a) * 4, vz: Math.sin(a) * 4 });
     else if (r < pHp + pFuel) spawnPickup(G, 'fuel', x, z, 0, { vx: Math.cos(a) * 4, vz: Math.sin(a) * 4 });
@@ -211,6 +211,7 @@ export function freePod(G, pod) {
     dropLoot(G, pod.x, pod.z, 30 + pod.n * 10, { big: true });
     spawnPickup(G, 'hp', pod.x + 2, pod.z, 0, {});
     spawnPickup(G, 'fuel', pod.x - 2, pod.z, 0, {});
+    spawnPickup(G, 'ammo', pod.x, pod.z + 2, 0, {});        // the colonists leave a rocket crate behind
 }
 
 // ------------------------------------------------------------------ movement

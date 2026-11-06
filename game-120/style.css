@@ -52,7 +52,8 @@ html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: 
 .bar.boss i { background: linear-gradient(180deg, #ff6a4a, #b01818); }
 .bar.boss u { position: absolute; inset: 0; background: repeating-linear-gradient(45deg, rgba(122, 232, 255, 0.55) 0 6px, rgba(122, 232, 255, 0.25) 6px 12px); display: none; text-decoration: none; }
 .bar span { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; letter-spacing: 0.06em; }
-#msl-pips { display: flex; gap: 3px; flex-wrap: wrap; } #msl-pips b { width: 12px; height: 18px; border-radius: 3px 3px 6px 6px; background: rgba(255, 255, 255, 0.15); border: 1px solid var(--line); } #msl-pips b.on { background: linear-gradient(180deg, #ffe08a, #ff7a1a); border-color: #ffb060; box-shadow: 0 0 6px rgba(255, 140, 40, 0.8); }
+#msl-pips::before { content: '🚀 RMB'; font-size: 12px; letter-spacing: 0.06em; align-self: center; margin-right: 4px; color: var(--dim); }
+#msl-pips { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; } #msl-pips b { width: 12px; height: 18px; border-radius: 3px 3px 6px 6px; background: rgba(255, 255, 255, 0.15); border: 1px solid var(--line); } #msl-pips b.on { background: linear-gradient(180deg, #ffe08a, #ff7a1a); border-color: #ffb060; box-shadow: 0 0 6px rgba(255, 140, 40, 0.8); }
 #hud-mid { position: absolute; left: 50%; top: calc(8px + var(--safe-t)); transform: translateX(-50%); width: min(380px, 40vw); text-align: center; }
 #hud-level { font-family: var(--disp); font-size: 12px; letter-spacing: 0.12em; color: var(--accent); }
 #prog { position: relative; height: 8px; margin-top: 4px; background: rgba(0, 0, 0, 0.55); border: 1px solid var(--line); border-radius: 4px; } #prog i { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(90deg, #38e4ff, #6dff9a); border-radius: 3px; } #prog b { position: absolute; right: -3px; top: -5px; width: 14px; height: 16px; background: var(--bad); border-radius: 3px; box-shadow: 0 0 8px var(--bad); }
@@ -83,10 +84,10 @@ html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: 
 #title { background: linear-gradient(90deg, rgba(4, 6, 10, 0.78), rgba(4, 6, 10, 0.1) 70%); justify-content: flex-start; }
 .sheet { width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) transparent; }
 .sheet.wide { width: min(560px, 100%); }
-#hangar { justify-content: flex-end; background: linear-gradient(270deg, rgba(4, 6, 10, 0.6), transparent 70%); } #hangar .sheet { background: rgba(10, 14, 22, 0.88); } .sheet.hero { background: transparent; border: 0; padding: 0 0 0 max(8px, 3vw); }
+#hangar { justify-content: flex-end; background: linear-gradient(270deg, rgba(4, 6, 10, 0.6), transparent 70%); } #hangar .sheet { background: rgba(10, 14, 22, 0.88); } .sheet.hero { width: min(780px, 100%); overflow: visible; max-height: none; background: transparent; border: 0; padding: 0 0 0 max(8px, 3vw); }   /* the wide display face overflowed the 480 px sheet and clipped the last D */
 .sheet h1, .sheet h2 { margin: 0 0 8px; font-family: var(--disp); letter-spacing: 0.06em; }
 .kicker { font-family: var(--disp); font-size: 12px; letter-spacing: 0.18em; color: var(--cyan); margin-bottom: 6px; } .kicker.bad { color: var(--bad); } .kicker.good { color: var(--good); }
-.logo { font-size: clamp(38px, 10vw, 84px); line-height: 0.95; color: var(--accent); text-shadow: 0 0 24px rgba(255, 150, 30, 0.5), 0 3px 0 #6a3a00; }
+.logo { white-space: nowrap; font-size: clamp(32px, min(9vw, 14vh), 80px); line-height: 0.95; color: var(--accent); text-shadow: 0 0 24px rgba(255, 150, 30, 0.5), 0 3px 0 #6a3a00; }
 .tag { max-width: 420px; color: var(--dim); font-size: 19px; margin: 8px 0 18px; }
 .menu { display: flex; flex-direction: column; gap: 10px; width: min(300px, 100%); }
 .sheet-foot { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 14px; }

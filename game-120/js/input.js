@@ -80,15 +80,21 @@ export class Input {
         window.addEventListener('pointerdown', (e) => {
             if (e.pointerType === 'touch' && this.lastDevice !== 'touch') { this.lastDevice = 'touch'; this.onTouch?.(); }
         }, { capture: true });
+        // A second mouse button pressed while the first is held does NOT raise a new pointerdown: the browser only
+        // reports it as a pointermove whose `buttons` mask changed. So follow the mask, not the events.
         window.addEventListener('pointermove', (e) => {
-            if (e.pointerType === 'mouse') { this.mouse.x = e.clientX; this.mouse.y = e.clientY; this.mouse.seen = true; this.lastDevice = 'mouse'; }
+            if (e.pointerType !== 'mouse') return;
+            this.mouse.x = e.clientX; this.mouse.y = e.clientY; this.mouse.seen = true; this.lastDevice = 'mouse';
+            this._mouseButtons(e);
         });
         canvas.addEventListener('pointerdown', (e) => {
             if (e.pointerType !== 'mouse') return;
             this.mouse.x = e.clientX; this.mouse.y = e.clientY; this.mouse.seen = true; this.lastDevice = 'mouse';
-            if (e.button === 0) { this.mouse.down = true; this.edges.fire = true; } else if (e.button === 2) this.edges.msl = true;
+            this.mouse.onCanvas = true;               // only a press that began on the game counts, not a click on a menu
+            this._mouseButtons(e);
         });
-        window.addEventListener('pointerup', (e) => { if (e.pointerType === 'mouse' && e.button === 0) this.mouse.down = false; });
+        window.addEventListener('pointerup', (e) => { if (e.pointerType === 'mouse') this._mouseButtons(e); });
+        window.addEventListener('pointercancel', (e) => { if (e.pointerType === 'mouse') { this.mouse.buttons = 0; this.mouse.down = false; this.mouse.onCanvas = false; } });
         canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     }
 
@@ -104,6 +110,18 @@ export class Input {
         hold(els.fire, 'fire', 'fire'); hold(els.boost, 'boost'); hold(els.jump, 'jump', 'jump');
         els.msl.addEventListener('pointerdown', (e) => { e.preventDefault(); this.edges.msl = true; els.msl.classList.add('held'); });
         for (const ev of ['pointerup', 'pointercancel']) els.msl.addEventListener(ev, () => els.msl.classList.remove('held'));
+    }
+
+    /** Left button fires (held), right button launches a rocket, in any order, with the other still down. */
+    _mouseButtons(e) {
+        const b = e.buttons, prev = this.mouse.buttons || 0;
+        if (this.mouse.onCanvas) {
+            if ((b & 1) && !(prev & 1)) this.edges.fire = true;
+            if ((b & 2) && !(prev & 2)) this.edges.msl = true;
+            this.mouse.down = !!(b & 1);
+        }
+        this.mouse.buttons = b;
+        if (!b) { this.mouse.onCanvas = false; this.mouse.down = false; }
     }
 
     pressJump() { this.edges.jump = true; }
@@ -151,5 +169,5 @@ export class Input {
     consumeEdges() { this.edges.fire = false; this.edges.msl = false; this.edges.jump = false; }
     next() { return this.queue.shift() || null; }
     flush() { this.queue.length = 0; this.consumeEdges(); }
-    clear() { this.keys.clear(); this.flush(); this.mouse.down = false; this.btn.fire = this.btn.boost = this.btn.jump = false; }
+    clear() { this.keys.clear(); this.flush(); this.mouse.down = false; this.mouse.buttons = 0; this.mouse.onCanvas = false; this.btn.fire = this.btn.boost = this.btn.jump = false; }
 }

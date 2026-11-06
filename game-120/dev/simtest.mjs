@@ -167,6 +167,21 @@ if (want('rules')) {
     run(G, NONE, 2.5);
     ok(G.player.missiles < m0, 'a missile uses ammo');
     ok(cl.every((e) => e.hp < e.maxhp || e.dead), 'missile splash hits a cluster');
+    // homing rockets from the very first tier; crates refill the rack
+    G = fresh(3); G.enemies.length = 0;
+    const hb = Core.addEnemy(G, 'bulwark', G.player.x + 14, G.player.z - 24, { awake: true }); hb.cd = 999;
+    G.player.yaw = 0; Gm.step(G, inp({ msl: true }), DT);
+    run(G, NONE, 0.2);
+    const rk = G.bullets.find((b) => b.kind === 'missile');
+    ok(D.MISSILES.every((m) => m.homing), 'every missile tier homes');
+    ok(rk && rk.tgt === hb.id && rk.turn > 0, 'the tier-0 rocket locks on to the enemy in front of you');
+    run(G, NONE, 4);
+    ok(hb.hp < hb.maxhp, 'and hits it');
+    G = fresh(3); G.enemies.length = 0; G.player.missiles = 0;
+    Core.spawnPickup(G, 'ammo', G.player.x, G.player.z, 0, { vy: 0 }); run(G, NONE, 1);
+    ok(G.player.missiles >= 2, `a rocket crate refills the rack (${G.player.missiles.toFixed(1)})`);
+    G.player.missiles = 0; run(G, NONE, 6);
+    ok(G.player.missiles >= 1, 'the rack also recharges by itself');
     // pickups and pods
     G = fresh(4); G.enemies.length = 0;
     Core.spawnPickup(G, 'scrap', G.player.x, G.player.z, 25, { vy: 0 });
@@ -178,6 +193,7 @@ if (want('rules')) {
     G.player.y = G.world.h(G.player.x, G.player.z);
     run(G, inp({ fire: true, aim: true, ax: 0, az: -1, ad: 12 }), 6);
     ok(pod.freed && G.rescued === pod.n && G.podsFreed === 1, 'shooting a pod frees its colonists');
+    ok(G.pickups.some((k) => k.type === 'ammo'), 'a freed pod leaves a rocket crate');
     // hazards
     G = fresh(5); G.enemies.length = 0;
     const hz = { x: G.player.x, z: G.player.z, r: 6, type: 'lava', y: 0 };

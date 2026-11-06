@@ -84,6 +84,7 @@ export class View {
         this.buildTelegraphs();
         this.buildPickups();
         this.buildHangar();
+        this.buildLock();
         this.fwd = new V(); this.tmpV = new V(); this.shakeV = new V();
         this.resize();
         const onResize = () => this.resize();
@@ -168,6 +169,16 @@ export class View {
         };
     }
 
+    /** The lock-on bracket drawn over the enemy the homing rockets will pick. */
+    buildLock() {
+        const c = document.createElement('canvas'); c.width = c.height = 128;
+        const g = c.getContext('2d'); g.strokeStyle = '#fff'; g.lineWidth = 8; g.lineCap = 'round';
+        for (let i = 0; i < 4; i++) { g.save(); g.translate(64, 64); g.rotate(i * Math.PI / 2); g.beginPath(); g.moveTo(-50, -26); g.lineTo(-50, -50); g.lineTo(-26, -50); g.stroke(); g.restore(); }
+        const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+        this.lock = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, color: 0xff7a3a, depthTest: false, transparent: true, toneMapped: false }));
+        this.lock.renderOrder = 60; this.lock.visible = false; this.scene.add(this.lock);
+    }
+
     buildHangar() {
         const g = new THREE.Group(); g.visible = false;
         const floor = new THREE.Mesh(new THREE.CircleGeometry(60, 48), metal(0x181c24, 0.5, 0.7)); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; g.add(floor);
@@ -196,6 +207,7 @@ export class View {
         const B = BIOMES[BIOME_OF[G.level]];
         this.B = B;
         this.lv = new LevelView(G.world, G.level, this.q, G);
+        this.lv.fx = this.fx; this.lv.onTeleport = () => this.onTeleport?.();
         this.scene.add(this.lv.group);
         this.hemi.color.set(B.hemi[0]); this.hemi.groundColor.set(B.hemi[1]); this.hemi.intensity = B.hemi[2];
         this.sun.color.set(B.sun); this.sun.intensity = B.sunI;
@@ -445,7 +457,7 @@ export class View {
             if (!m) {
                 if (far) continue;
                 m = buildEnemyModel(e.type); this.models.set(e.id, m); this.scene.add(m.group);
-                if (m.rig) m.rig.onStep = (leg) => { if (this.fx) this.fx.dust(leg.planted.x, leg.planted.z, this.B.dust, e.b ? 3 : 1); if (e.b) this.fx.shake = Math.max(this.fx.shake, 0.08); };
+                if (m.rig) m.rig.onStep = (leg) => { if (this.fx) this.fx.dust(leg.planted.x, leg.planted.z, this.B.dust, e.b ? 3 : 1); if (e.b) { this.fx.shake = Math.max(this.fx.shake, 0.08); this.onBossStep?.(Math.hypot(e.x - this.G.player.x, e.z - this.G.player.z)); } };
             }
             seen.add(e.id);
             m.group.visible = !far && !(m.hidden && e.b);
@@ -458,6 +470,12 @@ export class View {
         }
         for (const [id, m] of this.models) if (!seen.has(id)) { this.scene.remove(m.group); m.dispose(); this.models.delete(id); const b = this.hbars.get(id); if (b) { this.scene.remove(b.bg, b.fg); this.hbars.delete(id); } }
         for (const [id, b] of this.hbars) if (b.stale-- <= 0) { b.bg.visible = b.fg.visible = false; }
+        // lock-on bracket on the enemy the rockets would home in on
+        const tg = p.target && p.missiles >= 1 ? G.enemies.find((q) => q.id === p.target && q.hp > 0 && !(q.b && q.b.under)) : null;
+        if (tg) {
+            const sz = Math.max(2.4, tg.r * 2.8) * (1 + Math.sin(this.time * 8) * 0.05);
+            this.lock.visible = true; this.lock.position.set(tg.x, tg.y + (tg.fly ? 0 : tg.h * 0.5), tg.z); this.lock.scale.set(sz, sz, 1); this.lock.material.rotation += dt * 1.2;
+        } else this.lock.visible = false;
         // shield links from pylons to the shielded boss
         let li = 0;
         const boss = G.enemies.find((q) => q.b && q.hp > 0);
