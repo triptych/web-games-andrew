@@ -1548,6 +1548,22 @@ h1 {
     box-shadow: 0 0 14px rgba(200, 160, 220, 0.7);
 }
 
+.game-preview.atlas-of-ink,
+.carousel-slide-bg.atlas-of-ink {
+    background:
+        radial-gradient(ellipse at 30% 62%, rgba(86, 128, 70, 0.75) 0 11%, transparent 12%),
+        radial-gradient(ellipse at 42% 52%, rgba(120, 150, 90, 0.7) 0 9%, transparent 10%),
+        radial-gradient(ellipse at 74% 38%, rgba(60, 110, 160, 0.6) 0 10%, transparent 11%),
+        repeating-linear-gradient(0deg, rgba(120, 84, 40, 0.07) 0 1px, transparent 1px 28px),
+        repeating-linear-gradient(90deg, rgba(120, 84, 40, 0.07) 0 1px, transparent 1px 28px),
+        radial-gradient(ellipse at 50% 45%, #f0e2b6 0%, #dcc58f 60%, #b9965c 100%);
+}
+.game-card.atlas-of-ink .play-button {
+    background: linear-gradient(135deg, #e8c46a, #b9792e 55%, #7a4a22);
+    color: #20140a;
+    box-shadow: 0 0 14px rgba(224, 176, 80, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
