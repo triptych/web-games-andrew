@@ -283,6 +283,39 @@ if (want('rules')) {
         ok(G.elowen?.where === 'hut', 'the epilogue moves everyone home to the hut');
     }
 
+    section('rules: echoes and the romance');
+    {
+        const G = lab(40), W = Wd.getWorld(40);
+        const c = W.hutAt('circle');
+        G.p.x = c.x; G.p.z = c.z - 1.5; G.p.y = W.hutFloor;
+        G.tod = 0.3;
+        castAt(G, 'ward', ['lumen']);
+        Gm.step(G, IDLE, DT);
+        ok(!G.echoes.e1, 'by day, light shows no echo');
+        G.p.wards = {}; G.tod = 0.75;
+        castAt(G, 'ward', ['lumen']);
+        Gm.step(G, IDLE, DT);
+        ok(G.echoes.e1 === 'shown', 'after dark, a light ward in the hut shows Elowen\'s echo');
+        const r = Gm.act(G, { t: 'use', id: 'echo_e1' });
+        ok(r.ok && G.dialog?.id === 'echo:e1', 'you can listen to the echo');
+        while (G.dialog) Gm.act(G, { t: 'say' });
+        ok(G.echoes.e1 === 'heard' && G.affection === 1, 'hearing it adds affection');
+        const end = (aff, pick) => {
+            const H = lab(41); H.affection = aff;
+            St.openDialog(H, 'epilogue');
+            let n = 0;
+            while (H.dialog && n++ < 40) {
+                const nd = St.dialogNode(H);
+                if (nd.choices) { const i = nd.choices.findIndex((ch) => ch.end === pick); Gm.act(H, { t: 'say', choice: i >= 0 ? i : nd.choices.reduce((b, ch, k) => ((ch.aff || 0) > (nd.choices[b].aff || 0) ? k : b), 0) }); }
+                else Gm.act(H, { t: 'say' });
+            }
+            return H.ending;
+        };
+        ok(end(3, 'heart').title === 'Two Voices', 'with echoes heard and warm answers, asking to stay is a romance');
+        ok(end(0, 'heart').title === "We'll See", 'without them, she is shy but hopeful');
+        ok(end(0, 'study').kind === 'study', 'or you stay to study together');
+    }
+
     section('rules: research');
     {
         const G = Gm.newGame(12);
