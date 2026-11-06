@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-121 games, `game-001` through `game-121`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+122 games, `game-001` through `game-122`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -156,6 +156,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 119 | [THE HERO'S MERCHANT](game-119/) | A travelling-merchant trading game in a painterly chibi HD-2D realm: buy low and sell high across thirteen towns with moving markets, pack a grid wagon you drag and rotate, craft ten kinds of gear to level 10, sell to visiting heroes, and finish by offering the Hero his Ultimate Kit, rated on the levels of its ten pieces | three.js |
 | 120 | [HEXAPOD RISING](game-120/) | A third-person mech shooter: walk a six-legged IK walker across six battle-scarred alien landscapes to the Skarn main camp, free colonist pods, beat five multi-phase bosses and upgrade the walker, which grows with every purchase from a puny survey spider into a war machine, with explosions, debris physics and a bot that plays the whole campaign | three.js |
 | 121 | [ARCANA WAGON](game-121/) | A first-person fortune-teller adventure: read the crystal ball's symbols and colours and the omens in the room, lay tarot cards drawn in code, learn the language of the universe in a Codex, unmask a plot against the King across seven days and spend your evenings with one of three villagers | three.js |
+| 122 | [Wrack & Wonder](game-122/) | A first-person survival and research adventure: shipwrecked on a humming island, learn a magic system generated from the seed (glyphs, word order, reagents, opposed words, waxing hours) with an alembic, bells and an orrery, then use it to break a curse and free the girl who built the hut | three.js |
 
 ### Highlights
 
@@ -381,7 +382,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-121/   # One self-contained folder per game
+├── game-001/ … game-122/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -438,7 +439,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 121 games are included as of the latest entries (game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION, game-118 The Kids Table, game-119 THE HERO'S MERCHANT, game-120 HEXAPOD RISING, game-121 ARCANA WAGON), and the Garden launcher is at v1.9.0.
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 122 games are included as of the latest entries (game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION, game-118 The Kids Table, game-119 THE HERO'S MERCHANT, game-120 HEXAPOD RISING, game-121 ARCANA WAGON, game-122 Wrack & Wonder), and the Garden launcher is at v1.9.0.
 
 ---
 
