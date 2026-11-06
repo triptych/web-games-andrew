@@ -284,6 +284,13 @@ if (want('rules')) {
     ok(r.ok && G.ending.score === 17 && G.ending.rank === 'D', 'the Offer is scored by item level (17/100 is a D)');
     ok(!Gm.act(G, { t: 'offer', picks: {} }).ok, 'and can only be made once');
     ok(S.rankFor(100).id === 'S' && S.rankFor(80).id === 'A' && S.rankFor(60).id === 'B' && S.rankFor(35).id === 'C' && S.rankFor(10).id === 'D', 'the rank thresholds');
+    // the tutorial flag
+    G = Gm.newGame(12);
+    ok(G.tut === true, 'a new game starts with the tutorial on');
+    ok(Gm.act(G, { t: 'tutorial', on: false }).ok && G.tut === false, 'the tutorial can be turned off');
+    G.travel = { from: 'hearthmere', to: 'willowbrook', total: 1, prog: 0, ticks: 0 };
+    ok(Gm.act(G, { t: 'tutorial', on: true }).ok && G.tut === true, 'and back on, even on the road');
+    ok(Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(G)))).tut === true, 'the flag survives a save');
     // the Eclipse ends the game
     G = Gm.newGame(11);
     G.day = C.ECLIPSE_DAY;
