@@ -1492,6 +1492,31 @@ h1 {
     background: linear-gradient(135deg, #ffd24a, #f08a24 55%, #c92f3c);
     color: #2b1204;
     box-shadow: 0 0 14px rgba(240, 138, 36, 0.7);
+.game-preview.heros-merchant,
+.carousel-slide-bg.heros-merchant {
+    background:
+        radial-gradient(circle at 22% 78%, #f4d58a 0 7%, #c8602e 9%, transparent 10%),
+        radial-gradient(circle at 70% 72%, #4f9a6a 0 9%, #2f6a4a 11%, transparent 12%),
+        radial-gradient(circle at 82% 26%, #fff0b8 0 6%, rgba(255, 224, 140, 0.5) 12%, transparent 13%),
+        linear-gradient(180deg, #9ecbe8 0%, #e8dca8 48%, #6fa850 49%, #4f8a40 100%);
+}
+.game-card.heros-merchant .play-button {
+    background: linear-gradient(135deg, #f4d58a, #e8a838 55%, #4f9a6a);
+    color: #3b2417;
+    box-shadow: 0 0 14px rgba(240, 176, 48, 0.7);
+}
+
+.game-preview.hexapod-rising,
+.carousel-slide-bg.hexapod-rising {
+    background:
+        radial-gradient(circle at 50% 62%, #ffd24a 0 4%, #ff7a1a 6%, rgba(255, 80, 20, 0.5) 12%, transparent 22%),
+        radial-gradient(circle at 78% 30%, #ff5ad8 0 6%, rgba(255, 90, 216, 0.4) 12%, transparent 13%),
+        linear-gradient(180deg, #1a0a1c 0%, #7a2a2a 38%, #d8803a 54%, #3a2a24 55%, #1c1412 100%);
+}
+.game-card.hexapod-rising .play-button {
+    background: linear-gradient(135deg, #ffd24a, #ff7a1a 55%, #c03a8a);
+    color: #1a0a00;
+    box-shadow: 0 0 14px rgba(255, 122, 26, 0.75);
 }
 
 footer {
