@@ -116,7 +116,7 @@ export function raycast(G, list = targets(G)) {
         const x = o.x + d.x * t, y = o.y + d.y * t, z = o.z + d.z * t;
         if (y < supportAt(G, x, z, y + 0.3) - 0.05) { tMax = t; break; }
     }
-    let best = null, bt = tMax;
+    const hits = [];
     for (const tg of list) {
         const vx = tg.x - o.x, vy = tg.y - o.y, vz = tg.z - o.z;
         const tca = vx * d.x + vy * d.y + vz * d.z;
@@ -124,9 +124,12 @@ export function raycast(G, list = targets(G)) {
         const d2 = vx * vx + vy * vy + vz * vz - tca * tca;
         if (d2 > tg.r * tg.r) continue;
         const t = Math.max(0, tca - Math.sqrt(tg.r * tg.r - d2));
-        if (t < bt) { bt = t; best = tg; }
+        if (t < tMax) hits.push({ tg, t });
     }
-    return { target: best, t: bt, from: o, to: { x: o.x + d.x * bt, y: o.y + d.y * bt, z: o.z + d.z * bt } };
+    hits.sort((a, b) => a.t - b.t);
+    const best = hits[0]?.tg || null, bt = hits[0]?.t ?? tMax;
+    const at = (t) => ({ x: o.x + d.x * t, y: o.y + d.y * t, z: o.z + d.z * t });
+    return { target: best, t: bt, from: o, to: at(bt), hits: hits.map((h) => ({ ...h, to: at(h.t) })), end: at(tMax) };
 }
 
 // ------------------------------------------------------------------ casting
@@ -158,10 +161,12 @@ export function castSlot(G) {
     const list = targets(G);
     let reacted = false;
     if (res.form === 'bolt') {
+        // a bolt flies through whatever it doesn't touch, and stops at the first thing it does
         const hit = raycast(G, list);
-        emit(G, { type: 'cast', form: 'bolt', essence: res.essence, color, power: res.power, from: hit.from, to: hit.to, hit: hit.target?.id || null });
-        if (hit.target) reacted = affect(G, hit.target, res);
-        if (res.essence === 'lumen') showEchoes(G, hit.to.x, hit.to.z, 9);
+        let to = hit.end, id = null;
+        for (const h of hit.hits) if (affect(G, h.tg, res)) { reacted = true; to = h.to; id = h.tg.id; break; }
+        emit(G, { type: 'cast', form: 'bolt', essence: res.essence, color, power: res.power, from: hit.from, to, hit: id });
+        if (res.essence === 'lumen') showEchoes(G, to.x, to.z, 9);
     } else if (res.form === 'ward') {
         const dur = MAGIC.wardBase + MAGIC.wardPer * res.power;
         G.p.wards[res.essence] = Math.max(G.p.wards[res.essence] || 0, dur);

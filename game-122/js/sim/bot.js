@@ -562,7 +562,7 @@ function plan(G, bot) {
         if (isNight(G) || phaseOf(G.tod) === 'dusk') { if (nightCheck(G, bot)) return; }
         const sp = spell(G, K, 'ward', ['rime']);
         if (!sp) { bot.giveUp++; return; }
-        bot.q.push(T.go(0, 63, 0.7, 'moat edge'), T.face(Math.PI, 0));
+        bot.q.push(T.go(0, 63, 0.7, 'moat edge'), T.face(0, 0));
         castAt(bot, sp, null);
         bot.q.push(T.walk(0, 47.5, { near: 1.0, timeout: 20 }));
         return;
