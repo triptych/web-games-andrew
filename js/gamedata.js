@@ -1869,6 +1869,22 @@ const games = [
             { emoji: '\uD83E\uDDD8', label: 'Flow & focus' },
             { emoji: '\uD83D\uDD8C\uFE0F', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-123',
+        title: 'Atlas of Ink',
+        description: "A cartographer's commission game in Canvas 2D with no asset files. You are a mapmaker in a fantasy kingdom with a scrying quill, and the island is hidden: you chart it a disc at a time. Hold the scry key to focus and release to cast: standing still builds focus, moving bleeds it, and a steady cast is wide and true while a rushed one is small, smudged and blind to anything small (a town, an ore vein, a reef). Six clients hire you in a season, and each uses your map for real. Farmer Hobb ploughs where you say there are plains; the dwarf Brunna Deepdelve wants every ore vein found; Sir Kael follows the road your chart shows, swamps, fords and mountain passes included; Captain Mara steers by your sea lane and a reef you missed breaks her keel; Sister Ione wants every shrine; King Aldric wants his whole borderlands drawn true. Their journeys play out on your parchment (a walker or a ship tracing your route, a red X where the map lied) and you earn up to three stars and points for each, with ranks from Apprentice Scribe to Royal Cartographer. Every world is built from a seed (rivers, lakes, biomes, harbours, ruins, lane reefs) and every commission is proved solvable. Watercolour washes with hand-drawn mountains, trees, waves and inked coastlines; faded ink where you were unsure; a feather quill with a shaking spell edge; a title screen that charts a map by itself; a hum that rises with your focus and a quiet music box; keyboard, gamepad or touch.",
+        icon: '\uD83D\uDDFA\uFE0F',
+        folder: 'game-123',
+        version: '1.0.0',
+        cssClass: 'atlas-of-ink',
+        genre: 'rpg',
+        tags: [
+            { emoji: '\uD83E\uDDED', label: 'Cartography' },
+            { emoji: '\uD83E\uDEB6', label: 'Hold to focus' },
+            { emoji: '\uD83D\uDCDC', label: 'Commissions' },
+            { emoji: '\uD83D\uDD8C\uFE0F', label: 'Canvas 2D' }
+        ]
     }
 ];
 
