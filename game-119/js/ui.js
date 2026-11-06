@@ -77,6 +77,7 @@ export class UI {
     openPanel(id) {
         if (!PANELS[id]) return;
         if (this.panelId !== id) { this.audio.ui('open'); }
+        if (id === 'market') this.seenMarket = true;
         this.panelId = id;
         if (id !== 'market' && id !== 'wagon' && id !== 'workshop') this.ps.sel = 0;
         $('panel-layer').hidden = false;
@@ -200,6 +201,63 @@ export class UI {
         if (id === 'workshop') return { sub: `${Object.keys(T.stations).length} workshops` };
         if (id === 'guild') return { sub: 'Vault & wagons' };
         return {};
+    }
+
+    // ------------------------------------------------------------------ the tutorial coach
+    /** Which tutorial step the game is at, from the game's own state (so Continue resumes in the right place). */
+    tutStep(G, mapOpen) {
+        const grain = G.inv.items.filter((i) => i.t === 'grain').reduce((a, i) => a + i.n, 0);
+        if (G.q.done.s0) return 6;
+        if (G.travel) return 4;
+        if (G.loc === 'willowbrook') return 5;
+        if (grain >= 6) return mapOpen ? 3 : 2;
+        return this.seenMarket ? 1 : 0;
+    }
+    tutor(G, { mapOpen, play }) {
+        const box = $('tutor');
+        const on = !!G.tut && play && !this.anyScreen() && !this.dlgCur && !G.ending;
+        document.body.classList.toggle('tutoring', on);
+        if (!on) { box.hidden = true; this.tutHl(null); this.tutSig = ''; return; }
+        const i = this.tutStep(G, mapOpen);
+        const grain = G.inv.items.filter((x) => x.t === 'grain').reduce((a, x) => a + x.n, 0);
+        const modalOpen = !$('modal-layer').hidden && !G.pending;
+        const panelOpen = !!this.panelId;
+        let text, target = null, finish = false;
+        if (i === 0) { text = h('span', ['Welcome, merchant! Every journey starts at a market. ', h('b', 'Tap the Market.')]); target = '#places .place[data-id="market"]'; }
+        else if (i === 1) {
+            const away = G.loc !== 'hearthmere';
+            text = h('span', [`Pim's bakery in Willowbrook needs `, h('b', '6 Grain'), away ? ". General stores sell it cheaply (Hearthmere's is cheapest)." : `, and it is cheap here. Tap `, !away && h('b', grain >= 5 ? 'Buy 1' : 'Buy 5'), !away && ` ${grain >= 5 ? 'once more' : 'first'}. Grain in the wagon: ${grain}/6.`]);
+            if (this.panelId === 'market') target = () => { const row = [...document.querySelectorAll('#panel .item-row')].find((r) => r.querySelector('.nm')?.textContent === 'Grain'); return row && [...row.querySelectorAll('.btn')].find((b) => b.textContent.trim() === (grain >= 5 ? 'Buy 1' : 'Buy 5')); };
+        } else if (i === 2) {
+            if (panelOpen) { text = h('span', ['Six grain in the wagon. ', h('b', 'Close the market'), ', then head out.']); target = '#panel-layer .panel-head .btn'; }
+            else { text = h('span', ['Now tap ', h('b', 'Leave Town'), ' to open the map.']); target = '#places .place[data-id="travel"]'; }
+        } else if (i === 3) {
+            if (modalOpen) { text = h('span', ['Press ', h('b', 'Travel'), ' to set out.']); target = '#modal .btn.primary'; }
+            else { text = h('span', ['Tap ', h('b', 'Willowbrook'), ' on the map. Locked towns need a higher merchant level.']); target = '#places .place[data-id="willowbrook"]'; }
+        } else if (i === 4) { text = h('span', ['On the road, bandits and peddlers can turn up. ', h('b', 'Hurry'), ' speeds the journey along.']); target = '#dock .btn'; }
+        else if (i === 5) {
+            if (this.panelId === 'quests') { text = h('span', ['Press ', h('b', 'Hand in'), ' to deliver the grain to Pim.']); target = () => [...document.querySelectorAll('#panel .quest .btn')].find((b) => b.textContent.trim() === 'Hand in' && !b.disabled); }
+            else { text = h('span', ['Welcome to Willowbrook! Open ', h('b', 'Quests'), " and hand in Gran's Handcart."]); target = '#dock .btn[aria-label="Quests"]'; }
+        } else {
+            finish = true;
+            text = h('div', [h('b', "That's the trade loop! "), 'A few things to try next:', h('ul.tut-tips', [h('li', [h('b', 'Workshops'), ' craft gear: Kaelen wants a sword in Hearthmere.']), h('li', [h('b', 'Notice boards & the inn'), ' have jobs and heroes who pay extra.']), h('li', [h('b', 'Wagon:'), ' drag items to pack tight; R turns one.']), h('li', [h('b', 'Ledger'), ' (L) finds trade routes as you explore.'])])]);
+        }
+        const sig = i + '|' + panelOpen + '|' + modalOpen + '|' + grain + '|' + (this.panelId || '');
+        if (sig !== this.tutSig) {
+            this.tutSig = sig;
+            const c = clear(box);
+            c.append(h('span.tut-step', finish ? 'Done' : `Tip ${i + 1}/6`), h('div.tut-text', text));
+            c.append(finish ? h('button.btn.small.primary', { type: 'button', onclick: () => this.doAct({ t: 'tutorial', on: false }, { quiet: true }) }, 'Got it') : h('button.btn.small', { type: 'button', onclick: () => this.doAct({ t: 'tutorial', on: false }, { quiet: true }) }, 'Skip tutorial'));
+        }
+        box.hidden = false;
+        this.tutHl(finish ? null : target);
+    }
+    tutHl(target) {
+        const el = typeof target === 'function' ? target() : target ? document.querySelector(target) : null;
+        if (this.hlEl === el) return;
+        this.hlEl?.classList.remove('tut-hl');
+        this.hlEl = el || null;
+        this.hlEl?.classList.add('tut-hl');
     }
 
     // ------------------------------------------------------------------ toasts

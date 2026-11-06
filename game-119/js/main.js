@@ -73,6 +73,7 @@ function refreshTitle() { $('btn-continue').hidden = !hasSave(); }
 const unlock = () => { audio.init(); audio.start(); };
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, unlock, { capture: true });
 
+$('set-tut').addEventListener('click', () => { if (mode !== 'play') { ui.toast('Start a game first.'); return; } act(G, { t: 'tutorial', on: true }); ui.seenMarket = false; ui.toast('The tutorial will follow you again.', 'good'); });
 $('title-menu').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-act]');
     if (!b) return;
@@ -97,6 +98,7 @@ function startGame(g) {
     for (const id of [...ui.stack]) ui.closeScreen(id);
     ui.closePanel(); ui.closeModal();
     document.activeElement?.blur?.();
+    ui.seenMarket = false;
     mode = 'play'; mapOpen = false; acc = 0; endingShown = !!g.ending; hurry = false;
     input.flush();
     ui.ps.sel = 0; ui.ps.offer = null;
@@ -246,6 +248,7 @@ function frame(now) {
     if (mode === 'play' || mode === 'over') {
         ui.hud(G);
         ui.dock(false, vmode === 'map' ? 'map' : 'town');
+        ui.tutor(G, { mapOpen, play: mode === 'play' });
         const showPlaces = mode === 'play' && !G.travel && !ui.panelId && !overlayBlocks && !(G.pending);
         $('places').style.visibility = showPlaces ? '' : 'hidden';
         ui.places(G, vmode === 'map' ? 'map' : 'town', view.points(G), { town: (id) => ui.travelModal(G, id, go), venue: (id) => { if (id === 'travel') { mapOpen = true; ui.dock(true, 'map'); } else ui.openPanel(OPEN[id]); }, hover: (id) => view.setHover(id) });

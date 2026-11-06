@@ -122,6 +122,7 @@ async function desktop() {
     await until(page, () => document.querySelectorAll('#places .place').length >= 6, 'the town shows its venue buttons');
     const venues = await Q(page, () => [...document.querySelectorAll('#places .place')].map((e) => e.dataset.id));
     for (const v of ['market', 'workshop', 'board', 'inn', 'guild', 'travel']) check(venues.includes(v), `venue: ${v}`);
+    await until(page, () => !document.getElementById('tutor').hidden && document.querySelector('.tut-hl')?.dataset.id === 'market', 'the tutorial points at the Market');
     await shot(page, 'desktop-town');
 
     // the market
@@ -131,6 +132,8 @@ async function desktop() {
     check(await clickText(page, '#panel .item-row:nth-child(5) .btn, #panel .item-row .btn', 'Buy 5'), 'Buy 5 is on the shelf');
     await until(page, (g) => __thm.G.gold < g && __thm.G.inv.items.length > 0, 'buying takes gold and fills the wagon', 30000, g0);
     await until(page, () => document.querySelectorAll('#panel .invgrid .invitem').length > 0, 'the bought goods appear in the wagon grid');
+    check(await Q(page, () => [...document.querySelectorAll('#panel .item-row.hinted')].some((r) => r.querySelector('.nm').textContent === 'Grain' && /Gran's Handcart/.test(r.textContent))), "the shelf flags Grain as needed for the active quest 'Gran's Handcart'");
+    await until(page, () => /Grain/.test(document.getElementById('tutor').textContent), 'inside the market the tutorial talks about Grain');
     await shot(page, 'desktop-market');
     // select and sell one unit
     const have0 = await Q(page, () => __thm.G.inv.items.reduce((a, i) => a + i.n, 0));
@@ -193,6 +196,9 @@ async function desktop() {
     await until(page, () => !!__thm.G.q.done.s0, "handing in 'Gran's Handcart' completes the first quest", 30000);
     await until(page, () => !document.getElementById('dialog').hidden, "the quest's closing dialogue plays", 30000);
     await skipDialogs(page);
+    await until(page, () => /trade loop/.test(document.getElementById('tutor').textContent) && !document.getElementById('tutor').hidden, 'after the first quest the tutorial wraps up with a few tips', 30000);
+    await clickText(page, '#tutor .btn', 'Got it');
+    await until(page, () => __thm.G.tut === false && document.getElementById('tutor').hidden, 'Got it ends the tutorial', 30000);
     await esc(page);
     // hotkeys
     await page.keyboard.press('KeyI');
@@ -253,6 +259,8 @@ async function phone(w, h) {
     for (let i = 0; i < 6; i++) { if (await Q(page, () => document.getElementById('dialog').hidden)) break; await tapSel('#dialog'); await page.waitForTimeout(300); }
     await until(page, () => document.getElementById('dialog').hidden, 'tapping the dialogue steps through it');
     await until(page, () => document.querySelectorAll('#places .place').length >= 6, 'the venue buttons are shown');
+    check(await Q(page, () => { const t = document.getElementById('tutor').getBoundingClientRect(), d = document.getElementById('dock').getBoundingClientRect(); return !document.getElementById('tutor').hidden && t.left >= 0 && t.right <= innerWidth && t.bottom <= d.top + 1; }), 'the tutorial bar fits on screen above the dock');
+    await Q(page, () => __thm.act({ t: 'tutorial', on: false }));
     const L = await layout(page);
     check(L.noHScroll, 'no sideways scroll'); check(L.canvas, 'the canvas matches the visible viewport');
     const small = await Q(page, () => [...document.querySelectorAll('#places .place, #dock .btn')].filter((e) => { const r = e.getBoundingClientRect(); return r.width < 44 || r.height < 44; }).map((e) => e.textContent.trim().slice(0, 20)));
