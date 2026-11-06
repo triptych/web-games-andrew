@@ -1519,6 +1519,20 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 122, 26, 0.75);
 }
 
+.game-preview.arcana-wagon,
+.carousel-slide-bg.arcana-wagon {
+    background:
+        radial-gradient(circle at 50% 56%, #fff0ff 0 3%, #c58aff 7%, rgba(138, 90, 255, 0.55) 14%, transparent 24%),
+        radial-gradient(circle at 80% 24%, #ffd25a 0 3%, rgba(255, 210, 90, 0.45) 9%, transparent 12%),
+        radial-gradient(circle at 18% 30%, #ff4f9a 0 2.5%, rgba(255, 79, 154, 0.45) 8%, transparent 11%),
+        linear-gradient(180deg, #1a0a3a 0%, #5a1a6a 40%, #a02a6a 62%, #2a0a2a 63%, #14061e 100%);
+}
+.game-card.arcana-wagon .play-button {
+    background: linear-gradient(135deg, #ffd25a, #ff4f9a 55%, #8a5aff);
+    color: #1a0630;
+    box-shadow: 0 0 14px rgba(255, 79, 154, 0.75);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
