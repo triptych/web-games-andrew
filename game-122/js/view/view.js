@@ -263,6 +263,12 @@ export class View {
         const sx = p.x + (x + jiggle * 0.03) * p.s, sy = p.y + y * p.s, rs = Math.max(1.5, r * p.s * grow);
         const sp = Math.hypot(vx, vy);
         const st = Math.min(0.45, sp * 0.12);
+        if (main) {
+            const h = ctx.createRadialGradient(sx, sy, rs * 0.8, sx, sy, rs * 2.4);
+            h.addColorStop(0, 'rgba(255,240,215,0.28)'); h.addColorStop(1, 'rgba(255,240,215,0)');
+            ctx.fillStyle = h;
+            ctx.fillRect(sx - rs * 2.4, sy - rs * 2.4, rs * 4.8, rs * 4.8);
+        }
         ctx.save();
         ctx.translate(sx, sy);
         if (st > 0.02) { ctx.rotate(Math.atan2(vy, vx)); ctx.scale(1 + st, 1 - st * 0.45); }
@@ -285,8 +291,10 @@ export class View {
         ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = Math.max(0.8, rs * 0.08);
         ctx.beginPath(); ctx.arc(0, 0, rs * 0.78, Math.PI * 0.2, Math.PI * 0.8); ctx.stroke();
         if (main) {
-            ctx.strokeStyle = 'rgba(255,245,220,0.35)'; ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.arc(0, 0, rs + 1.5, 0, Math.PI * 2); ctx.stroke();
+            ctx.strokeStyle = 'rgba(255,248,230,0.75)'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(0, 0, rs + 1, 0, Math.PI * 2); ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,0.95)';
+            ctx.beginPath(); ctx.arc(rs * 0.3, rs * 0.45, rs * 0.09, 0, Math.PI * 2); ctx.fill();
         }
         ctx.restore();
     }

@@ -83,7 +83,7 @@ export const STATIONS = [
             { id: 'dawn.balloon', name: 'a hot-air balloon', x: 2.6, y: 2.4, r: 0.55 },
             { id: 'dawn.birds', name: 'birds heading out to sea', x: 8.9, y: 2.1, r: 0.6 },
         ],
-        rare: { id: 'dawn.rainbow', name: 'a rainbow', x: 3.6, y: 3.0, r: 0.7 },
+        rare: { id: 'dawn.moonbow', name: 'a moonbow', x: 3.6, y: 3.0, r: 0.7 },
     },
 ];
 

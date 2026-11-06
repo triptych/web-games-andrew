@@ -1,8 +1,9 @@
 // Keyboard, gamepad, mouse and touch merged into one state, plus an ordered queue of presses.
 //
-// - Steering: arrows/WASD, a gamepad stick, or a finger (or held mouse button) on the window:
-//   the drop is drawn toward the point under it. main.js turns that point into a direction,
-//   since it knows where the drop is.
+// - Steering: arrows/WASD, a gamepad stick, a held mouse button (the drop is drawn toward the
+//   cursor) or a finger dragged anywhere on the screen (like a trackpad: the drop follows the
+//   drag, so the finger never hides it). main.js turns the point into a direction, since it knows
+//   where the drop is.
 // - The tap is an *edge* that stays set until a simulation step consumes it: a frame shorter than
 //   the fixed step runs no step, and a press made in it must not be lost.
 // - Menu presses go into a FIFO, one consumed per frame: at 2 fps "Down, Down, Enter" must not
@@ -49,7 +50,7 @@ export class Input {
         el.addEventListener('pointerdown', (e) => {
             if (e.button > 0) return;
             e.preventDefault();
-            this.point = { id: e.pointerId, x: e.clientX, y: e.clientY };
+            this.point = { id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, touch: e.pointerType !== 'mouse', anchor: null };
             if (e.pointerType === 'mouse') this.lastDevice = 'mouse';
             try { el.setPointerCapture(e.pointerId); } catch { /* synthetic pointer */ }
         });

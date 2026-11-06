@@ -266,7 +266,7 @@ function stepReveal(G, dt) {
     // the drop lets go and runs down
     const d = G.drop;
     if (d.alive) {
-        d.vx *= 0.9; d.vy = Math.min(3, d.vy + dt * 4); d.y += d.vy * dt;
+        d.vx *= 0.9; d.vy = Math.min(3, Math.max(0, d.vy) + dt * 4); d.y += d.vy * dt;
         if (d.y > FIELD.h + 1) d.alive = false;
     }
     if (before < PANE.melt * 0.5 && G.melt >= PANE.melt * 0.5) checkSpots(G, false);

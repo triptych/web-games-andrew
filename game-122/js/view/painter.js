@@ -818,6 +818,10 @@ const CURIO_ART = {
         ctx.fillStyle = '#4a7a4a'; disc(ctx, x + 4, y + 5, 2, '#4a7a4a');
     },
     'city.cat'(ctx, x, y) {
+        // sat against the glow of a skylight, so it reads as a silhouette
+        glow(ctx, x - 2, y - 2, 30, 'rgba(255,190,120,0.55)');
+        ctx.fillStyle = '#ffc070'; ctx.fillRect(x - 13, y - 14, 22, 18);
+        ctx.fillStyle = '#3a2a2a'; ctx.fillRect(x - 14, y - 15, 24, 1.5); ctx.fillRect(x - 2.5, y - 14, 1, 18);
         ctx.fillStyle = '#08060c';
         ctx.beginPath(); ctx.ellipse(x - 2, y + 1, 5, 6.5, 0, 0, Math.PI * 2); ctx.fill();
         disc(ctx, x - 2, y - 7, 3.8, '#08060c');
@@ -872,14 +876,15 @@ const CURIO_ART = {
         ctx.fillStyle = '#6a4a2a'; ctx.fillRect(x - 3.5, y + 22, 7, 5);
     },
     'dawn.birds'(ctx, x, y, late) {
-        ctx.strokeStyle = late ? '#2a2440' : '#4a3a5a'; ctx.lineWidth = 1.3;
+        ctx.strokeStyle = late ? '#d8c8e8' : '#4a3a5a'; ctx.lineWidth = 1.3;
         for (const [dx, dy, s] of [[-14, 4, 1], [-6, -2, 1.1], [3, 6, 0.9], [10, -4, 1], [17, 2, 0.8], [-1, 12, 0.8]]) {
             const bx = x + dx, by = y + dy;
             ctx.beginPath(); ctx.moveTo(bx - 4 * s, by - 2 * s); ctx.quadraticCurveTo(bx - 2 * s, by - 3 * s, bx, by); ctx.quadraticCurveTo(bx + 2 * s, by - 3 * s, bx + 4 * s, by - 2 * s); ctx.stroke();
         }
     },
-    'dawn.rainbow'(ctx, x, y) {
-        const cols = ['255,90,90', '255,170,80', '255,230,110', '120,220,120', '100,170,255', '170,120,230'];
+    'dawn.moonbow'(ctx, x, y) {
+        // a rainbow by moonlight: the same arc, nearly white
+        const cols = ['255,210,220', '255,230,200', '255,250,220', '210,250,230', '210,225,255', '230,215,255'];
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
         cols.forEach((c, i) => {
