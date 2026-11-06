@@ -51,7 +51,7 @@ export function makeElowen() {
     const skin = M({ color: 0xf2c9a8 }), hair = M({ color: 0x8a3e22, roughness: 0.6 });
     const dress = M({ color: 0x3e6a52, roughness: 0.85 }), apron = M({ color: 0xe6dcc4 }), boot = M({ color: 0x3a2a20 });
     const skirtGeo = new THREE.CylinderGeometry(0.17, 0.36, 0.86, 16, 1, true);
-    g.add(part(skirtGeo, dress, 0, 0.6, 0)).material.side = THREE.DoubleSide;
+    const skirt = part(skirtGeo, dress, 0, 0.6, 0); skirt.material = dress.clone(); skirt.material.side = THREE.DoubleSide; g.add(skirt);
     const ap = part(new THREE.CylinderGeometry(0.175, 0.3, 0.6, 12, 1, true, -0.8, 1.6), apron, 0, 0.7, 0); ap.rotation.y = Math.PI; ap.material.side = THREE.DoubleSide; g.add(ap);
     const torso = part(new THREE.CylinderGeometry(0.15, 0.18, 0.5, 14), dress, 0, 1.25, 0); torso.scale.set(1, 1, 0.8); g.add(torso);
     const strap = part(new THREE.TorusGeometry(0.2, 0.018, 4, 20), M({ color: 0x6a4a2a }), 0, 1.25, 0); strap.rotation.set(0.2, 0, 0.75); g.add(strap);
