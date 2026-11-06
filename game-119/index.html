@@ -51,6 +51,7 @@
 
     <!-- Panels, dialogue, road events -->
     <div id="panel-layer" class="layer" hidden><div id="panel" class="sheet panel" role="dialog" aria-modal="true"></div></div>
+    <div id="tutor" hidden aria-live="polite"></div>
     <div id="dialog" hidden role="dialog" aria-live="polite"></div>
     <div id="modal-layer" class="layer" hidden><div id="modal" class="sheet small" role="dialog" aria-modal="true"></div></div>
 
@@ -94,6 +95,7 @@
             <label class="row">Sound effects <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
             <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
             <label class="row">Calm mode (no screen shake, softer effects) <input type="checkbox" id="set-calm"></label>
+            <button id="set-tut" class="btn">Replay the tutorial</button>
             <button id="set-delete" class="btn danger">Delete saved game</button>
             <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
         </div>

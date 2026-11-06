@@ -28,7 +28,7 @@ export function newGame(seed = 1) {
         wagon: 0, inv: { w: WAGONS[0].w, h: WAGONS[0].h, items: [] }, nextId: 1, nextQ: 1, nextHid: 1,
         stash: { cap: STASH.start, items: [] },
         towns: {}, mkt: {}, known: {}, gen: {}, q: { active: {}, done: {} },
-        heroCall: null, ending: null, over: false,
+        heroCall: null, ending: null, over: false, tut: true,
         log: [], events: [],
         stats: { earned: 0, spent: 0, questGold: 0, heroGold: 0, heroes: 0, quests: 0, crafted: 0, sold: 0, bought: 0, travelDays: 0, roadEvents: 0, xp: 0, maxGold: START.gold, visited: 1 },
     };
@@ -182,6 +182,7 @@ export function offerOptions(G) {
 // ---------------------------------------------------------------- commands
 export function act(G, c) {
     if (G.over) return fail('The game is over.');
+    if (c.t === 'tutorial') { G.tut = !!c.on; return ok(G.tut ? 'Tutorial on.' : 'Tutorial off.'); }
     if (G.pending && c.t !== 'resolve') return fail('Decide what to do about the road first.');
     if (G.travel && c.t !== 'resolve') return fail('You are on the road.');
     const here = TOWN[G.loc];
