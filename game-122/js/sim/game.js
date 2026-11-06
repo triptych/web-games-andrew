@@ -226,7 +226,10 @@ export function step(G, inp, dt) {
     if (lift != null && p.inside) lift = Math.min(lift, worldOf(G).hutFloor + 2.0);   // the roof
     const frost = wardOn(G, 'rime');
     const wasGround = p.ground;
-    const r = moveBody(G, p, want, dt, { frost, glide: wardOn(G, 'gale'), push, lift,
+    // the top of an updraft spills you forward on the wind for a moment
+    if (lift != null) p.floatT = 1.6; else if (p.floatT > 0) p.floatT -= dt;
+    const glide = wardOn(G, 'gale') || (p.floatT > 0 && !p.ground);
+    const r = moveBody(G, p, want, dt, { frost, glide, push, lift,
         jump: inp.jump ? PLAYER.jump * (wardOn(G, 'gale') ? 1.5 : 1) : 0 });
     if (r.landed) emit(G, { type: 'land', v: r.landed });
     if (inp.jump && wasGround && p.vy > 0) emit(G, { type: 'jump' });
@@ -247,7 +250,7 @@ export function step(G, inp, dt) {
     const F = G.flags;
     if (p.inside && !F.hutFound) { F.hutFound = true; msg(G, 'A hut, dry and empty, full of strange brass instruments. Somebody lived here, and left in a hurry.', 'story'); emit(G, { type: 'hutFound' }); }
     const rr = Math.hypot(p.x, p.z);
-    if (!F.crossedMoat && rr < S.moat.inner - 1 && p.y > 8) { F.crossedMoat = true; emit(G, { type: 'flag', name: 'crossedMoat' }); }
+    if (!F.crossedMoat && rr < S.moat.inner - 1 && p.ground && !r.wading) { F.crossedMoat = true; emit(G, { type: 'flag', name: 'crossedMoat' }); }
     if (!F.inCastle && rr < S.walls.r - 1 && p.y > HILLTOP - 1) { F.inCastle = true; emit(G, { type: 'flag', name: 'inCastle' }); msg(G, 'You stand in the courtyard of the stilled castle. Nothing moves. Not even the dust.', 'story'); }
     if (!F.gallery && p.y > HILLTOP + S.gallery.up - 0.3 && p.ground && Math.abs(p.x) < 7 && p.z < -2) { F.gallery = true; emit(G, { type: 'flag', name: 'gallery' }); }
     if (!F.gate && F.stoneWood && F.stoneFen && F.stoneMoor) {
@@ -455,7 +458,19 @@ export function act(G, cmd) {
         case 'eat': return eat(G, cmd.item);
         case 'cook': return cook(G);
         case 'rest': return rest(G, cmd.until);
-        case 'say': advance(G, cmd.choice); return { ok: true };
+        case 'say': {
+            advance(G, cmd.choice);
+            // "Later, in the hut...": the epilogue moves everyone home to the fire
+            if (G.dialog?.id === 'epilogue' && G.dialog.i >= 6 && G.elowen?.where !== 'hut') {
+                const W = worldOf(G), h = W.hutAt('hearth');
+                G.elowen = { x: h.x + 1.4, y: W.hutFloor, z: h.z + 1.0, where: 'hut' };
+                Object.assign(G.p, { x: h.x + 2.9, z: h.z - 0.2, y: W.hutFloor, vx: 0, vz: 0, vy: 0, yaw: -Math.PI / 2 - 0.35, pitch: -0.05 });
+                Object.assign(G.nib, { x: h.x + 1.8, z: h.z - 1.4, y: W.hutFloor, mode: 'follow' });
+                G.tod = 0.03;
+                emit(G, { type: 'home' });
+            }
+            return { ok: true };
+        }
         case 'closeDialog': closeDialog(G); return { ok: true };
         case 'pencil': {
             const m = (G.notes.pencil[cmd.g] ||= {});

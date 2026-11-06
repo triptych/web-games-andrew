@@ -33,6 +33,7 @@ export function newNotes() {
 const pairKey = (a, b) => (a < b ? a + '|' + b : b + '|' + a);
 const hasPair = (list, a, b) => list.some(([x, y]) => pairKey(x, y) === pairKey(a, b));
 const addPair = (list, a, b) => { if (!hasPair(list, a, b)) list.push(a < b ? [a, b] : [b, a]); };
+const addLink = (list, r, g) => { if (!list.some(([a, b]) => a === r && b === g)) list.push([r, g]); };
 const addNot = (arr, v) => { if (!arr.includes(v)) arr.push(v); };
 
 export function noteLog(G, text) {
@@ -159,16 +160,16 @@ export function recordCast(G, spell, res) {
         // res.starved: index into words that starved; earlier words were fed correctly
         words.forEach((w, i) => {
             if (!w.r) return;
-            if (i === res.starved) addPair(N.nofeed, w.r, w.g);
-            else if (i < res.starved) addPair(N.links, w.r, w.g);
+            if (i === res.starved) addLink(N.nofeed, w.r, w.g);
+            else if (i < res.starved) addLink(N.links, w.r, w.g);
         });
     }
     if (res.fail === 'discord') {
-        for (const w of words) addPair(N.links, w.r, w.g);
+        for (const w of words) addLink(N.links, w.r, w.g);
         if (words.length === 2) addPair(N.apartG, words[0].g, words[1].g);
     }
     if (!res.fail) {
-        for (const w of words) addPair(N.links, w.r, w.g);
+        for (const w of words) addLink(N.links, w.r, w.g);
         // the form is plain to see; so is the essence, unless the words unwove
         if (shapes.length === 1) { const sn = gnote(G, shapes[0]); sn.form = res.form; }
         if (res.essence !== 'unweave') for (const w of words) gnote(G, w.g).essence = res.essence;

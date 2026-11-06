@@ -7,6 +7,7 @@ import { worldOf, emit, msg, bark, phaseNow, isNight, itemName } from './util.js
 import { supportAt } from './body.js';
 import { recordCast } from './research.js';
 import { NIB } from './data/text.js';
+import { openDialog } from './story.js';
 
 const glyph = (L, id) => L.glyphs.find((g) => g.id === id);
 
@@ -95,10 +96,6 @@ export function targets(G) {
     const floor = W.hutFloor;
     for (const o of circleObjects(W)) out.push({ id: 'circle', o, x: o.x, y: floor + 0.75, z: o.z, r: 0.35 });
     if (!F.hearth) { const h = W.hutAt('hearth'); out.push({ id: 'hearth', x: h.x, y: floor + 0.6, z: h.z, r: 0.8 }); }
-    for (const id in ECHO_POS) if (!G.echoes[id]) {
-        const p = ECHO_POS[id]();
-        out.push({ id: 'echo', echo: id, x: p.x, y: (p.inHut ? floor : W.height(p.x, p.z)) + 1.4, z: p.z, r: 2.5 });
-    }
     return out;
 }
 
@@ -164,12 +161,14 @@ export function castSlot(G) {
         const hit = raycast(G, list);
         emit(G, { type: 'cast', form: 'bolt', essence: res.essence, color, power: res.power, from: hit.from, to: hit.to, hit: hit.target?.id || null });
         if (hit.target) reacted = affect(G, hit.target, res);
+        if (res.essence === 'lumen') showEchoes(G, hit.to.x, hit.to.z, 9);
     } else if (res.form === 'ward') {
         const dur = MAGIC.wardBase + MAGIC.wardPer * res.power;
         G.p.wards[res.essence] = Math.max(G.p.wards[res.essence] || 0, dur);
         emit(G, { type: 'cast', form: 'ward', essence: res.essence, color, power: res.power, x: p.x, y: p.y, z: p.z, dur });
         const c = { x: p.x, y: p.y + 1, z: p.z };
         for (const t of list) if (near(t, c, 3.4)) reacted = affect(G, t, res) || reacted;
+        if (res.essence === 'lumen') showEchoes(G, p.x, p.z, 9);
     } else {
         const f = { x: Math.sin(p.yaw), z: -Math.cos(p.yaw) };
         const x = p.x + f.x * 1.8, z = p.z + f.z * 1.8;
@@ -294,7 +293,9 @@ function affect(G, t, res, seal = null) {
             if (res.form !== 'seal') { say('The bubble shivers where the spell strikes it. It must be set down at her feet, not thrown.'); return true; }
             if (P < 3) { say('The seam in the air loosens... and closes again. It needs to be stronger.'); return true; }
             G.won = true;
+            G.elowen = { x: SITES.heart.x, y: HILLTOP + SITES.gallery.up, z: SITES.heart.z - 0.6, where: 'keep' };
             emit(G, { type: 'win', x: t.x, y: t.y, z: t.z });
+            openDialog(G, 'epilogue');
             return true;
         }
         case 'shade':
@@ -314,16 +315,21 @@ function affect(G, t, res, seal = null) {
         case 'hearth':
             if (e === 'kindle') { F.hearth = true; msg(G, 'The hearth catches with a whump, and the hut fills with warm light.', 'good'); emit(G, { type: 'flag', name: 'hearth' }); return true; }
             return false;
-        case 'echo':
-            if ((e === 'lumen') && isNight(G)) {
-                G.echoes[t.echo] = 'shown';
-                msg(G, 'In the light, a faint figure of a girl stands where no one was. Her lips are moving.', 'good');
-                emit(G, { type: 'echoShown', id: t.echo, x: t.x, y: t.y, z: t.z });
-                return true;
-            }
-            return false;
     }
     return false;
+}
+
+/** Lumen light at (x, z) shows any of Elowen's echoes within r, but only after dark. */
+function showEchoes(G, x, z, r) {
+    if (!isNight(G)) return;
+    for (const id in ECHO_POS) {
+        if (G.echoes[id]) continue;
+        const e = ECHO_POS[id]();
+        if (Math.hypot(e.x - x, e.z - z) > r) continue;
+        G.echoes[id] = 'shown';
+        msg(G, 'In the light, a faint figure of a girl stands where no one was. Her lips are moving.', 'good');
+        emit(G, { type: 'echoShown', id, x: e.x, z: e.z });
+    }
 }
 
 // ------------------------------------------------------------------ fields: wards and seals over time
@@ -358,17 +364,8 @@ export function tickFields(G, dt) {
         msg(G, 'Your light finds the seams in the blank wall, and a door that was hiding there swings open.', 'good');
         emit(G, { type: 'flag', name: 'door', x: 0, y: HILLTOP + 1.6, z: SITES.keep.z1 });
     }
-    if (isNight(G)) {
-        for (const id in ECHO_POS) {
-            if (G.echoes[id]) continue;
-            const e = ECHO_POS[id]();
-            if (lit(e.x, e.z, 9)) {
-                G.echoes[id] = 'shown';
-                msg(G, 'In the light, a faint figure of a girl stands where no one was. Her lips are moving.', 'good');
-                emit(G, { type: 'echoShown', id, x: e.x, y: p.y + 1.4, z: e.z });
-            }
-        }
-    }
+    if (wardOn(G, 'lumen')) showEchoes(G, p.x, p.z, 9);
+    for (const s of G.seals) if (s.kind === 'beacon') showEchoes(G, s.x, s.z, s.r);
     // a growth seal set by a bush or the seedbed works like a bloom spell on them
     for (const s of G.seals) {
         if (s.kind !== 'growth' || s.done) continue;
