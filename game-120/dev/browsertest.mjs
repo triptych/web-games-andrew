@@ -137,6 +137,15 @@ async function desktop() {
     await page.mouse.down();
     await until(page, () => (__hr.seen.shot || 0) > 3, 'holding the left button fires the guns');
     await page.mouse.up();
+    // chorded buttons: the right button pressed while the left is held raises no pointerdown, only a pointermove with a new `buttons` mask
+    await Q(page, () => { __hr.G.player.missiles = __hr.G.st.msl.ammo; });
+    await page.mouse.down();
+    await until(page, () => __hr.input.mouse.down, 'the left button is held');
+    const used0 = await Q(page, () => __hr.G.st.msl.ammo - __hr.G.player.missiles);
+    await page.mouse.down({ button: 'right' });
+    await until(page, (u) => __hr.G.st.msl.ammo - __hr.G.player.missiles > u + 0.5 && __hr.input.mouse.down, 'the right button launches rockets while the left is still held (and the guns keep firing)', 60000, used0);
+    await page.mouse.up({ button: 'right' });
+    await page.mouse.up();
     await page.mouse.click(1150, 300, { button: 'right' });
     await until(page, () => __hr.G.bullets.some((b) => b.kind === 'missile') || __hr.G.player.missiles < __hr.G.st.msl.ammo, 'right-click launches a missile');
     await page.keyboard.press('Space');
