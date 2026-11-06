@@ -110,7 +110,7 @@ export class View {
             this.pages.set(id, pg);
         }
         this.pagePos = {
-            p2: () => { const a = W.hutAt('alembic'); return V3(a.x + 0.9, W.hutFloor + 1.4, a.z - 0.05); },
+            p2: () => { const a = W.hutAt('shelf'); return V3(a.x, W.hutFloor + 1.1, a.z + 0.3); },
             p3: () => V3(SITES.boat.x + 0.6, W.height(SITES.boat.x, SITES.boat.z) + 0.75, SITES.boat.z),
             p4: () => V3(SITES.cage.x + 4, W.height(SITES.cage.x + 4, SITES.cage.z - 3) + 0.25, SITES.cage.z - 3),
             p5: () => V3(SITES.seedbed.x + 1.6, W.height(SITES.seedbed.x, SITES.seedbed.z) + 0.95, SITES.seedbed.z - 1.16),
@@ -169,7 +169,7 @@ export class View {
                     const tipW = this.hand.userData.tip.getWorldPosition(new THREE.Vector3());
                     fx.burst(tipW, c, { n: 18, speed: 1.5, size: 0.12, life: 0.5 });
                     if (e.form === 'bolt') fx.bolt(tipW, V3(e.to.x, e.to.y, e.to.z), c, e.power);
-                    if (e.form === 'ward') { this.wardFlash = { c, t: 1 }; fx.burst(V3(e.x, e.y + 1, e.z), c, { n: 60, speed: 3, size: 0.25, life: 1.2 }); }
+                    if (e.form === 'ward') { this.wardFlash = { c, t: 1 }; fx.burst(V3(e.x, e.y + 0.3, e.z), c, { n: 50, speed: 3.5, size: 0.14, life: 1.0, up: -0.2 }); }
                     if (e.essence === 'unweave') this.shake = 0.5;
                     break;
                 }
@@ -242,7 +242,8 @@ export class View {
         this.castAnim = Math.max(0, this.castAnim - dt * 3);
         const ca = Math.sin(this.castAnim * Math.PI);
         this.hand.visible = G.hasWand && !opts.hideHand;
-        this.hand.position.set(0.24 + Math.sin(this.bob) * 0.012, -0.24 + Math.abs(Math.cos(this.bob)) * 0.01 - ca * 0.04, -0.42 - ca * 0.12);
+        this.hand.position.set(0.25 + Math.sin(this.bob) * 0.012, -0.25 + Math.abs(Math.cos(this.bob)) * 0.01 - ca * 0.04, -0.46 - ca * 0.12);
+        this.hand.scale.setScalar(0.78);
         this.hand.rotation.set(0.25 - ca * 0.6, 0.12, -0.15);
         const slot = G.wand[G.sel];
         let tc = new THREE.Color(0x9fd8c8), lit = 0.3;
@@ -370,7 +371,7 @@ export class View {
             if (!show) continue;
             const pp = this.pagePos[id]();
             pg.position.set(pp.x, pp.y + Math.sin(time * 2 + pp.x) * 0.04, pp.z);
-            pg.rotation.set(id === 'p10' || id === 'p9' || id === 'p7' || id === 'p4' ? -Math.PI / 2 + 0.2 : 0, time * 0.3 + pp.x, 0);
+            pg.rotation.set(id === 'p10' || id === 'p9' || id === 'p7' || id === 'p4' || id === 'p2' ? -Math.PI / 2 + 0.2 : 0, id === 'p2' ? 0 : time * 0.3 + pp.x, 0);
             if (Math.random() < 0.03) fx.add.spawn(pp.x, pp.y + 0.2, pp.z, 0, 0.3, 0, new THREE.Color(0xffe8b0), 0.12, 1.2, {});
         }
 
@@ -430,7 +431,7 @@ export class View {
         // wards worn: motes orbiting you
         for (const e in p.wards) {
             const c = new THREE.Color(this.colorOf(e));
-            if (Math.random() < 0.5) { const a = time * 2 + Math.random() * 6.28; fx.add.spawn(p.x + Math.cos(a) * 0.9, p.y + 0.3 + Math.random() * 1.6, p.z + Math.sin(a) * 0.9, -Math.sin(a) * 0.8, 0.2, Math.cos(a) * 0.8, c, 0.1, 1.0, {}); }
+            if (Math.random() < 0.4) { const a = time * 2 + Math.random() * 6.28; fx.add.spawn(p.x + Math.cos(a) * 1.7, p.y + 0.2 + Math.random() * 1.2, p.z + Math.sin(a) * 1.7, -Math.sin(a) * 0.8, 0.2, Math.cos(a) * 0.8, c, 0.06, 1.0, {}); }
             if (e === 'rime' && Math.random() < 0.4) fx.add.spawn(p.x + rnd(), p.y + 0.05, p.z + rnd(), 0, 0.1, 0, new THREE.Color(0xe8f6ff), 0.25, 1.5, {});
         }
         this.fx.syncSeals(G, (e) => this.colorOf(e), time, dt);

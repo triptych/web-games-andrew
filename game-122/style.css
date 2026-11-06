@@ -63,7 +63,7 @@ input[type=text] { user-select: text; -webkit-user-select: text; }
 .ibtn svg { width: 24px; height: 24px; fill: none; stroke: var(--text); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ---------------------------------------------------------------- HUD */
-#hud { position: fixed; inset: 0; z-index: 10; pointer-events: none; font-family: var(--serif); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
+#hud { position: fixed; inset: 0; z-index: 25; pointer-events: none; font-family: var(--serif); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
 .hpanel { background: rgba(18, 14, 10, 0.55); border: 1px solid var(--line); border-radius: 10px; backdrop-filter: blur(3px); }
 #goal { position: absolute; top: calc(52px + var(--safe-t)); left: calc(8px + var(--safe-l)); max-width: min(330px, 62vw); padding: 8px 12px; font-size: 14px; line-height: 1.35; }
 .goal-head { font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); }
@@ -308,3 +308,7 @@ td:first-child { color: var(--accent); white-space: nowrap; padding-right: 12px;
     .book-body { padding: 12px 12px 70px; }
     .tabs button { font-size: 15px; padding: 8px 9px; }
 }
+/* on touch screens the deck owns the bottom: messages go up top */
+body.touch #toasts { bottom: auto; top: calc(100px + var(--safe-t)); width: min(420px, 70vw); }
+body.touch #bark { bottom: auto; top: calc(130px + var(--safe-t)); }
+body.touch #wards { bottom: calc(76px + var(--safe-b)); }

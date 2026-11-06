@@ -109,7 +109,7 @@ function staticUses(G) {
         { id: 'storm', kind: 'look', text: INSPECT.storm, x: S.storm.x, z: S.storm.z + S.storm.wind, y: h(S.storm.x, S.storm.z + S.storm.wind, 1.2), label: 'The storm ring', reach: 2 },
     ];
     const pagePos = {
-        p1: hut('desk', 1.0), p2: { ...W.hutAt('alembic'), x: W.hutAt('alembic').x + 0.9, y: f + 1.4 },
+        p1: hut('desk', 1.0), p2: { ...W.hutAt('shelf'), z: W.hutAt('shelf').z + 0.35, y: f + 1.05 },
         p3: { x: S.boat.x + 0.6, z: S.boat.z, y: h(S.boat.x, S.boat.z, 0.8) },
         p4: { x: S.cage.x + 4, z: S.cage.z - 3, y: h(S.cage.x + 4, S.cage.z - 3, 0.3) },
         p5: { x: S.seedbed.x + 2.2, z: S.seedbed.z + 1.4, y: h(S.seedbed.x + 2.2, S.seedbed.z + 1.4, 1.0) },
@@ -464,7 +464,8 @@ export function act(G, cmd) {
             if (G.dialog?.id === 'epilogue' && G.dialog.i >= 6 && G.elowen?.where !== 'hut') {
                 const W = worldOf(G), h = W.hutAt('hearth');
                 G.elowen = { x: h.x + 1.4, y: W.hutFloor, z: h.z + 1.0, where: 'hut' };
-                Object.assign(G.p, { x: h.x + 2.9, z: h.z - 0.2, y: W.hutFloor, vx: 0, vz: 0, vy: 0, yaw: -Math.PI / 2 - 0.35, pitch: -0.05 });
+                const px = h.x + 3.6, pz = h.z - 0.7;
+                Object.assign(G.p, { x: px, z: pz, y: W.hutFloor, vx: 0, vz: 0, vy: 0, yaw: Math.atan2(G.elowen.x - px, -(G.elowen.z - pz)), pitch: 0.02 });
                 Object.assign(G.nib, { x: h.x + 1.8, z: h.z - 1.4, y: W.hutFloor, mode: 'follow' });
                 G.tod = 0.03;
                 emit(G, { type: 'home' });

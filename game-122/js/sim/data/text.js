@@ -27,7 +27,7 @@ If you are reading this I suppose I'm not here, and I suppose you've found my **
     },
     p2: {
         title: 'On Method',
-        where: 'Pinned beside the alembic',
+        where: 'Tucked on the shelf by the door',
         text: () => `Notes on method, for when I forget.
 
 The **ALEMBIC** boils a thing down to what it really is. Watch what the vapour does to the glass: it burns, freezes, glows, grows, gusts, or simply *stops*. A thick plume means a strong thing.

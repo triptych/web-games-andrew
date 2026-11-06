@@ -34,7 +34,7 @@ input.dragLook = true;
 // the title screen shows the island at dusk from the beach
 function titleGame() {
     const g = newGame(7, 'Rowan');
-    g.tod = 0.53; g.p.x = 30; g.p.z = 172; g.p.yaw = -0.35; g.p.pitch = 0.06;
+    g.tod = 0.53; g.p.x = -4; g.p.z = 96; g.p.y = 7; g.p.yaw = 0.05; g.p.pitch = 0.13;
     g.events.length = 0;
     return g;
 }
@@ -281,7 +281,7 @@ function frame(now) {
     } else acc = 0;
     if (mode === 'title') {
         // a slow look around the island
-        G.p.yaw = -0.35 + Math.sin(time * 0.05) * 0.5;
+        G.p.yaw = 0.05 + Math.sin(time * 0.05) * 0.35;
         G.tod = 0.52 + Math.sin(time * 0.02) * 0.03;
     }
     flushEvents();

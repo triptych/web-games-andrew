@@ -185,6 +185,10 @@ async function desktop() {
     await Q(page, () => document.querySelector('#book-body .gcell:not([disabled])').click());
     check(await Q(page, () => Object.keys(__ww.G.notes.pencil).length > 0), 'tapping a square pencils a guess');
     await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('book').hidden, 'Escape closes the Marks page');
+    // the key that closes a menu is dropped with the rest of that frame's presses, so a second
+    // Escape in the same instant is meant to do nothing; a person's next press arrives later
+    await page.waitForTimeout(500);
 
     // save and continue
     const day = await Q(page, () => __ww.G.day);

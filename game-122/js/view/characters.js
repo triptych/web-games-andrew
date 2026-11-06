@@ -52,7 +52,7 @@ export function makeElowen() {
     const dress = M({ color: 0x3e6a52, roughness: 0.85 }), apron = M({ color: 0xe6dcc4 }), boot = M({ color: 0x3a2a20 });
     const skirtGeo = new THREE.CylinderGeometry(0.17, 0.36, 0.86, 16, 1, true);
     const skirt = part(skirtGeo, dress, 0, 0.6, 0); skirt.material = dress.clone(); skirt.material.side = THREE.DoubleSide; g.add(skirt);
-    const ap = part(new THREE.CylinderGeometry(0.175, 0.3, 0.6, 12, 1, true, -0.8, 1.6), apron, 0, 0.7, 0); ap.rotation.y = Math.PI; ap.material.side = THREE.DoubleSide; g.add(ap);
+    const ap = part(new THREE.CylinderGeometry(0.205, 0.345, 0.6, 12, 1, true, -0.75, 1.5), apron, 0, 0.66, 0); ap.rotation.y = Math.PI; ap.material.side = THREE.DoubleSide; g.add(ap);
     const torso = part(new THREE.CylinderGeometry(0.15, 0.18, 0.5, 14), dress, 0, 1.25, 0); torso.scale.set(1, 1, 0.8); g.add(torso);
     const strap = part(new THREE.TorusGeometry(0.2, 0.018, 4, 20), M({ color: 0x6a4a2a }), 0, 1.25, 0); strap.rotation.set(0.2, 0, 0.75); g.add(strap);
     g.add(part(new THREE.CylinderGeometry(0.05, 0.06, 0.12, 8), skin, 0, 1.55, 0));
@@ -60,7 +60,9 @@ export function makeElowen() {
     const skull = part(new THREE.SphereGeometry(0.15, 20, 16), skin); skull.scale.set(0.92, 1.05, 0.95); head.add(skull);
     const face = new THREE.Mesh(new THREE.SphereGeometry(0.151, 24, 16, Math.PI * 1.12, Math.PI * 0.76, Math.PI * 0.25, Math.PI * 0.55), M({ map: faceTex('elowen') }));
     face.scale.set(0.92, 1.05, 0.95); head.add(face);
-    const cap = part(new THREE.SphereGeometry(0.162, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), hair, 0, 0.012, 0.012); cap.scale.set(0.98, 1.06, 1.02); head.add(cap);
+    const cap = part(new THREE.SphereGeometry(0.163, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.36), hair, 0, 0.018, 0.02); cap.scale.set(0.98, 1.06, 1.04); head.add(cap);
+    const back = part(new THREE.SphereGeometry(0.16, 16, 12, 0, Math.PI, 0, Math.PI * 0.8), hair, 0, 0.0, 0.022); back.scale.set(0.98, 1.05, 1.0); head.add(back);
+    const bangs = part(new THREE.SphereGeometry(0.07, 10, 6), hair, 0.04, 0.115, -0.11); bangs.scale.set(1.6, 0.5, 0.6); bangs.rotation.z = 0.25; head.add(bangs);
     for (const s of [-1, 1]) { const side = part(new THREE.SphereGeometry(0.09, 10, 8), hair, s * 0.11, -0.05, 0.03); side.scale.set(0.6, 1.4, 0.9); head.add(side); }
     const braid = new THREE.Group(); braid.position.set(0, -0.02, 0.13); head.add(braid);
     for (let i = 0; i < 6; i++) braid.add(part(new THREE.SphereGeometry(0.05 - i * 0.004, 8, 6), hair, 0, -i * 0.075, 0.03 + i * 0.012));
