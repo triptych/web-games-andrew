@@ -206,8 +206,13 @@ async function desktop() {
             if (a === b || b === c || a === c) continue;
             if ([a, b, c].every((k, i) => cardPoints(R.beats[i], R.hand[k].c, R.hand[k].r) === 2)) best = [a, b, c];
         }
-        best.forEach((h) => document.querySelectorAll('#hand .hcard')[h].click());
+        window.__best = best;
     });
+    await until(page, () => __aw.G.reading.placed.every((p) => p === null) && ![...document.querySelectorAll('#hand .hcard')].some((b) => b.disabled), 'the hand has redrawn with every card free again');
+    for (let k = 0; k < 3; k++) {
+        await Q(page, (k) => document.querySelectorAll('#hand .hcard')[window.__best[k]].click(), k);
+        await until(page, (k) => __aw.G.reading.placed.filter((p) => p !== null).length === k + 1 && document.querySelectorAll('#slots .slot.filled').length === k + 1, `card ${k + 1} laid`, 30000, k);
+    }
     await until(page, () => !__aw.G.reading.placed.includes(null) && !document.getElementById('btn-lay').disabled, 'three cards laid, and Lay is enabled');
     await shot(page, 'desktop-placed');
     const pxc = await pixels(page);
