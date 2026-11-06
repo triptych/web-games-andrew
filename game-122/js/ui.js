@@ -62,7 +62,8 @@ export class UI {
     isOpen(id) { return this.stack.includes(id); }
 
     buttons(id) { return [...$(id).querySelectorAll('button, select, input')].filter((b) => !b.hidden && b.getClientRects().length > 0); }
-    focusFirst(id) { this.buttons(id)[0]?.focus({ preventScroll: true }); }
+    /** The screen's main button if it has one, else its first control. */
+    focusFirst(id) { const b = this.buttons(id); (b.find((x) => x.classList.contains('primary')) || b[0])?.focus({ preventScroll: true }); }
     /** Arrow keys move focus through the top screen's controls; Enter and Space are the browser's own click. */
     moveFocus(dir) {
         const list = this.buttons(this.top());
@@ -108,7 +109,9 @@ export class UI {
         const el = document.createElement('div');
         el.className = 'toast';
         el.textContent = text;
-        $('toasts').appendChild(el);
+        const box = $('toasts');
+        while (box.children.length >= 2) box.firstChild.remove();
+        box.appendChild(el);
         setTimeout(() => el.remove(), 3100);
         window.A11Y?.announce?.(text);
     }

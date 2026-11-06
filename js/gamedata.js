@@ -1853,6 +1853,22 @@ const games = [
             { emoji: '\uD83D\uDC41\uFE0F', label: 'First person' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-122',
+        title: 'Rainglass',
+        description: "A cozy lo-fi game on a rainy night train, made for flow, focus and the small joy of finishing things. At every station the window is misted over: guide a single drop of rain across the glass to wipe it clear and see what is out there. Wiping fresh mist spends the drop's water, so roll over the rain beads that land on the glass to drink them up, or tap the glass to roll the near ones in; take on too much and the drop grows heavy, slides, and runs off the sill in a clean streak, and a fresh one beads at the top. Keep wiping and the music fills in around you: every patch of glass you clear plays a note on the beat, in key, over a swung lo-fi loop of soft electric piano, brushed drums, bass, tape wobble, vinyl crackle and rain. Each view hides three curios (a heron in the pond, a cat in a lit window, an owl in the pines, a whale's tail) written on the glass in handwriting as you uncover them. Clear most of the pane and the rest melts away, and the view becomes a postcard on the sill, with a gold seal if you spotted everything yourself. Eight stations from Willow Halt at dusk to Dawn Terminus at sunrise, then the train runs back round through the small hours with a rarer curio at each, until the album holds all thirty-two. No timer, nothing to lose. Every scene, drop and note is made in code.",
+        icon: '\uD83C\uDF27\uFE0F',
+        folder: 'game-122',
+        version: '1.0.0',
+        cssClass: 'rainglass',
+        genre: 'cozy',
+        tags: [
+            { emoji: '\uD83C\uDF75', label: 'Cozy lo-fi' },
+            { emoji: '\uD83D\uDCEE', label: 'Collection' },
+            { emoji: '\uD83E\uDDD8', label: 'Flow & focus' },
+            { emoji: '\uD83D\uDD8C\uFE0F', label: 'Canvas 2D' }
+        ]
     }
 ];
 
