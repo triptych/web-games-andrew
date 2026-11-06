@@ -110,9 +110,10 @@ export class View {
     onEvents(G, events) {
         for (const e of events) {
             if (e.type === 'spot') {
+                if (this.labels.length > 4) this.labels.shift();
                 this.labels.push({ text: e.name, x: e.x, y: e.y, t: 0, self: e.self, fresh: e.fresh, rare: e.rare });
                 this.ripples.push({ x: e.x, y: e.y, t: 0, r: 1.2, col: e.rare ? '255,220,140' : '255,255,255' });
-            } else if (e.type === 'merge') this.ripples.push({ x: e.x, y: e.y, t: 0, r: 0.35, col: '255,255,255' });
+            } else if (e.type === 'merge' && this.ripples.length < 12) this.ripples.push({ x: e.x, y: e.y, t: 0, r: 0.35, col: '255,255,255' });
             else if (e.type === 'tap') this.ripples.push({ x: e.x, y: e.y, t: 0, r: 2.4, col: '220,235,255' });
             else if (e.type === 'drop') this.lastDrop = null;
             else if (e.type === 'pane') this.sceneKey = '';

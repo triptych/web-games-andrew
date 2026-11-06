@@ -114,11 +114,11 @@ export class UI {
     }
     onEvents(G, events) {
         for (const e of events) {
-            if (e.type === 'pane') this.newIds = [];
+            if (e.type === 'pane') { this.newIds = []; this.flowSaid = false; }
             if (e.type === 'spot' && e.fresh) (this.newIds ||= []).push(e.id);
             // the view writes spotted curios on the glass; this only reads them out
             if (e.type === 'spot') window.A11Y?.announce?.(`Spotted ${e.name}`);
-            else if (e.type === 'flow' && e.level === 3) this.toast('in the flow');
+            else if (e.type === 'flow' && e.level === 3 && !this.flowSaid) { this.flowSaid = true; this.toast('in the flow'); }
             else if (e.type === 'albumComplete') this.toast('The album is complete. Every curio, every station.');
         }
     }

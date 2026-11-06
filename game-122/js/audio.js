@@ -50,6 +50,9 @@ export class Audio {
         const comp = ctx.createDynamicsCompressor();
         comp.threshold.value = -16; comp.ratio.value = 3;
         comp.connect(ctx.destination);
+        // a meter for the tests: proof that sound comes out, not just that code ran
+        this.meter = ctx.createAnalyser(); this.meter.fftSize = 2048;
+        comp.connect(this.meter);
         this.sfx = ctx.createGain(); this.sfx.connect(comp);
         this.rainBus = ctx.createGain(); this.rainBus.connect(comp);
         this.music = ctx.createGain(); this.music.connect(comp);
@@ -73,6 +76,16 @@ export class Audio {
         this.setVolumes(this.sfxVol, this.musicVol, this.rainVol);
         this.nextT = ctx.currentTime + 0.1;
         this.timer = setInterval(() => this.schedule(), 25);
+    }
+
+    /** Peak level of the last ~40 ms of output (0..1). */
+    level() {
+        if (!this.meter) return 0;
+        const d = new Float32Array(this.meter.fftSize);
+        this.meter.getFloatTimeDomainData(d);
+        let m = 0;
+        for (const v of d) m = Math.max(m, Math.abs(v));
+        return m;
     }
 
     setVolumes(sfx, music, rain = this.rainVol) {
