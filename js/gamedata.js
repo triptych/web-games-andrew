@@ -1837,6 +1837,22 @@ const games = [
             { emoji: '\uD83D\uDCA5', label: 'Explosions & physics' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-121',
+        title: 'ARCANA WAGON',
+        description: "A first-person fortune-teller adventure in three.js with no asset files. You have inherited Madame Orla's plum-coloured wagon: sit at the round table under a velvet canopy as the people of Hollowmere come to your door, and read their fortunes. The crystal ball shows three visions (what was, what is, what comes) as a symbol in a colour; the symbol names the matter and the colour its tone. Some visions are clouded, so you must read the omens in the room (petals, a raven at the window, thunder, a gust through the journal), trust the client's own worry, or spend a Focus. Then lay three of twenty-two hand-drawn tarot cards, upright for a boon and reversed for a bane, and tell it plainly, gently or as a grand show to suit the guest. Every reading teaches you the language of the universe, written into a Codex, and raises you from Fledgling Seer to Arcanist Royal. Over seven days, the Second Prince comes to your wagon in secret: his father the King is wasting, and his brother Prince Aldric smiles too kindly. Gather five clues from a nervous cupbearer, a courier, a captain, an apothecary and a veiled lady, and give the Prince the grand reading on the eve of the Harvest Moon Fair. Four endings. Between readings you can study, or spend your evenings with one of three villagers: Elias the blacksmith-poet, Mirabel the sceptical apothecary or Wren the wandering minstrel, each with four evening scenes and a festival night. Keyboard, mouse, touch or gamepad, and a bot that plays the whole story in the tests.",
+        icon: '\uD83D\uDD2E',
+        folder: 'game-121',
+        version: '1.0.0',
+        cssClass: 'arcana-wagon',
+        genre: 'story',
+        tags: [
+            { emoji: '\uD83C\uDCCF', label: 'Tarot narrative' },
+            { emoji: '\uD83D\uDC98', label: 'Romance' },
+            { emoji: '\uD83D\uDC41\uFE0F', label: 'First person' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

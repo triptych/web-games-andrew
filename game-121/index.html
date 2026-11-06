@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0b0618">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="ARCANA WAGON — a first-person fortune-teller adventure: read the crystal ball, lay the tarot, learn the language of the universe, unmask a plot against the King, and maybe fall in love.">
+    <title>ARCANA WAGON</title>
+    <link rel="icon" href="data:,">
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="ARCANA WAGON game view"></canvas>
+    <div id="vignette"></div>
+
+    <!-- HUD -->
+    <div id="hud" hidden>
+        <div id="hud-left">
+            <div id="hud-day"></div>
+            <div id="hud-rank"><span id="rank-name"></span><div class="xpbar"><i id="xp-fill"></i></div></div>
+        </div>
+        <div id="hud-right">
+            <div id="focus-pips" title="Focus charges left today"></div>
+            <button id="btn-codex" class="ibtn" aria-label="Open the Codex (C)" title="Codex (C)">&#128214;</button>
+            <button id="btn-pause" class="ibtn" aria-label="Pause" title="Pause (Esc)">&#10074;&#10074;</button>
+        </div>
+    </div>
+
+    <!-- what the ball shows -->
+    <div id="visions" hidden>
+        <div id="vis-row"></div>
+        <div id="omen-line" hidden></div>
+    </div>
+
+    <div id="daycard" hidden><div class="dc-day"></div><div class="dc-name"></div></div>
+    <!-- the result of a reading -->
+    <div id="result" hidden></div>
+
+    <!-- everything you do at the table lives in the dock -->
+    <div id="dock">
+        <div id="tip" hidden><b>Orla&rsquo;s journal</b><span id="tip-text"></span><button id="tip-close" class="ibtn" aria-label="Dismiss the tip">&times;</button></div>
+        <div id="actions" hidden></div>
+        <div id="styles" hidden></div>
+        <div id="deal" hidden>
+            <div id="slots"></div>
+            <div id="hand"></div>
+            <div id="deal-bar"><span id="deal-hint"></span><button id="btn-lay" class="btn primary kb" disabled>Lay the cards</button></div>
+        </div>
+        <div id="dlg" hidden>
+            <div id="dlg-name"></div>
+            <p id="dlg-text"></p>
+            <div id="dlg-choices"></div>
+            <button id="dlg-next" class="btn primary" aria-label="Continue">Continue &#9656;</button>
+        </div>
+    </div>
+
+    <!-- Screens -->
+    <div id="title" class="screen">
+        <div class="sheet hero">
+            <div class="kicker">a fortune-teller&rsquo;s tale</div>
+            <h1 class="logo">ARCANA<br>WAGON</h1>
+            <p class="tag">Read the ball. Lay the cards. Learn what the universe is whispering, and save a king.</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary kb" hidden>Continue</button>
+                <button data-act="new" class="btn primary kb">New Game</button>
+                <button data-act="howto" class="btn kb">How to Play</button>
+                <button data-act="settings" class="btn kb">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <p>You have inherited Madame Orla&rsquo;s fortune-teller&rsquo;s wagon. People of Hollowmere come to your table with worries. For each one:</p>
+            <ol class="steps">
+                <li><b>Listen.</b> What they say is a clue: their worry is the matter <i>now</i>.</li>
+                <li><b>Gaze.</b> The crystal ball shows three visions: what was, what is, what comes. A <b>symbol</b> names the matter; its <b>colour</b> gives the tone: some colours bring a boon, some a bane. A clouded vision hides its symbol. Read the <b>omen</b> in the room, trust the client&rsquo;s worry, or spend a <b>Focus</b>.</li>
+                <li><b>Lay three cards</b>, one for each vision. A card answers a matter if it carries it. <b>Upright</b> brings a boon; <b>reversed</b> brings a bane. Right matter but wrong way up is half right.</li>
+                <li><b>Speak.</b> Plain truth, gentle words or a grand show: clients have a favourite way to hear it.</li>
+            </ol>
+            <p>Everything you learn goes into the <b>Codex</b> (C). Spend an evening studying, or with someone in the village. The King is ill, and the Second Prince will come looking for a seer.</p>
+            <table class="keys">
+                <tr><td>Click / tap</td><td>Choose, lay a card, continue</td></tr>
+                <tr><td>Space / Enter</td><td>Continue (or press the focused button)</td></tr>
+                <tr><td>1&ndash;9</td><td>Pick the numbered choice or card</td></tr>
+                <tr><td>F &middot; Backspace</td><td>Focus a clouded vision &middot; take back a card</td></tr>
+                <tr><td>C &middot; Esc</td><td>Codex &middot; Pause</td></tr>
+            </table>
+            <p class="dim">Gamepad: d-pad moves, A presses, Start pauses.</p>
+            <div class="sheet-foot"><button class="btn primary kb" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Text speed
+                <select id="set-text"><option value="normal">Normal</option><option value="fast">Fast</option><option value="instant">Instant</option></select>
+            </label>
+            <label class="row">Graphics
+                <select id="set-gfx"><option value="auto">Automatic</option><option value="high">High (glow)</option><option value="low">Low</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary kb" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary kb">Resume</button>
+                <button data-act="codex" class="btn kb">Codex</button>
+                <button data-act="howto" class="btn kb">How to Play</button>
+                <button data-act="settings" class="btn kb">Settings</button>
+                <button data-act="quit" class="btn kb">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="codex" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>The Codex</h2>
+            <div id="codex-tabs" role="tablist"></div>
+            <div id="codex-body"></div>
+            <div class="sheet-foot"><button class="btn primary kb" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="evening" class="screen" hidden>
+        <div class="sheet wide">
+            <div class="kicker" id="ev-kicker"></div>
+            <h2 class="ev-head" id="ev-head"></h2>
+            <p class="dim" id="ev-sub"></p>
+            <div id="ev-options"></div>
+            <div class="sheet-foot"><button id="ev-codex" class="btn small">&#128214; Codex (C)</button></div>
+        </div>
+    </div>
+
+    <div id="ending" class="screen" hidden>
+        <div class="sheet wide">
+            <div class="kicker">the end</div>
+            <h2 class="ev-head" id="end-head"></h2>
+            <div id="end-text"></div>
+            <div id="end-romance"></div>
+            <div id="end-stats"></div>
+            <div class="sheet-foot"><button id="end-again" class="btn primary kb">Begin Again</button><button id="end-menu" class="btn kb">Title</button></div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">ARCANA WAGON needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

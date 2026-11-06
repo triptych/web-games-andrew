@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>ARCANA WAGON gallery</title>
+<style>body{margin:0;background:#150a24;color:#fff;font:12px system-ui}h2{margin:8px 12px}.row{display:flex;flex-wrap:wrap;gap:8px;padding:8px 12px}canvas{width:150px;height:auto;border-radius:6px}.g{width:90px;height:90px;background:#0b0618}</style></head>
+<body><h2>Cards</h2><div class="row" id="cards"></div><h2>Glyphs</h2><div class="row" id="glyphs"></div>
+<script type="module">
+import { cardFace, cardBack, glyphCanvas } from '../js/view/art.js';
+import { CARDS, SYMBOLS, COLOURS } from '../js/sim/data/lexicon.js';
+const cols = Object.values(COLOURS).map((c) => c.hex);
+const add = (id, c, cls) => { const e = document.createElement('canvas'); e.width = c.width; e.height = c.height; e.getContext('2d').drawImage(c, 0, 0); if (cls) e.className = cls; document.getElementById(id).appendChild(e); };
+CARDS.forEach((c) => add('cards', cardFace(c.id)));
+add('cards', cardBack());
+Object.keys(SYMBOLS).forEach((s, i) => add('glyphs', glyphCanvas(s, cols[i % 8], 192), 'g'));
+window.__ready = true;
+</script></body></html>
