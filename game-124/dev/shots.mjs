@@ -1,8 +1,8 @@
 /**
  * shots.mjs — a tour of the island in screenshots, one browser, many scenes.
- *   node game-122/dev/shots.mjs              # all scenes
- *   ONLY=hut,castle node game-122/dev/shots.mjs
- * Writes game-122/dev/shots/tour-<name>.png. Needs the static server on port 8122.
+ *   node game-124/dev/shots.mjs              # all scenes
+ *   ONLY=hut,castle node game-124/dev/shots.mjs
+ * Writes game-124/dev/shots/tour-<name>.png. Needs the static server on port 8122.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -45,7 +45,7 @@ if (PKG) await page.route('https://unpkg.com/**', (route) => {
 await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
 page.on('console', (m) => { if (m.type() === 'error') console.log('[error]', m.text()); });
-await page.goto(`${BASE}/game-122/index.html?debug=1${process.env.Q || ''}`);
+await page.goto(`${BASE}/game-124/index.html?debug=1${process.env.Q || ''}`);
 await page.waitForFunction(() => window.__ww, null, { timeout: 90000 });
 await page.evaluate(() => { __ww.start(+(new URLSearchParams(location.search).get('seed') || 5)); document.getElementById('hud').hidden = !!window.NOHUD; });
 for (const [name, tod, x, z, yaw, pitch, js] of SCENES) {

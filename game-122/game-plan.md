@@ -1,140 +1,130 @@
-# Wrack & Wonder
+# Rainglass
 
-**Genre:** First-person survival and research adventure: learn a magic system no one has ever learned, by experiment, then use it to break a curse. A romance, if you earn it.
-**Engine:** three.js r165, no asset files: every model, texture, glyph, sound and note of music is made in code
+**Genre:** Cozy lo-fi relaxation / collection
+**Engine:** Vanilla JS: Canvas 2D, no asset files
 **Status:** v1.0.0
 
 ---
 
 ## Concept
 
-You wash up on a small island that hums. You are the first person in the world to learn magic, and nobody can teach you: the only clues are a hut on the bluff, full of a stranger's home-made instruments, and the notes she left. You survive the first night, and then you start running experiments.
+A cozy lo-fi game on a rainy night train. At every station the window is misted over: you guide a single drop of rain across the glass to wipe it clear, uncover what is out there (a heron in a pond, a cat in a lit window, a campfire in the pines), and keep the view as a postcard. Eight stations make the journey to Dawn Terminus; after that the train runs back round through the small hours, past every station again, each with something rarer to find.
 
-The hut belonged to **Elowen Vale**, nineteen, who rowed here alone to prove the hum was real. She found the words, half-understood them, and on the night she tried something big at the old castle she spoke two words that hate each other. Everything stopped. She has hung inside one stopped moment for a year, aware and alone, while a curse grew around the castle: a wall of black thorns, a moat of black water, shades that come out at night. As you learn her words you find her pages, then her echoes, and realise she can feel you learning.
+It is built for **flow, focus, peace and completion**:
 
-**Nib**, a goblin who used to steal her biscuits, is caught in the curse's thorns in Whisperwood. Free him and he becomes your assistant: he follows you, carries what you can't, picks up reagents he passes, drags you home when you collapse, and gives advice that teaches method, never answers.
+- **Flow**: one continuous, tactile verb (steering a drop that wipes as it goes) and a soundtrack that grows around you while you keep wiping fresh glass. Every bit of glass you clear plays a note on the beat, in key.
+- **Focus**: one window, one drop, no timer, no enemies, no fail state. Just a light rhythm of water in and water out.
+- **Peace**: rain on the glass, a steaming mug on the sill, vinyl crackle, a soft electric piano.
+- **Completion and collection**: a progress bar that always fills, a pane that melts clear at the end, a postcard stamped and added to a stack on the sill, an album of 8 postcards and 32 curios, gold seals for spotting everything yourself.
 
-The magic is **procedurally generated from the seed**. The shapes and names of the glyphs, what each one means, the word order, which reagent carries which essence and how strongly, which essences are opposed, the hour each one waxes, even the colours of the magic: all of it is new each life. What you learned last time is the *method*. It riffs on *Outer Wilds* (knowledge is the progression), *Return of the Obra Dinn* and *Papers, Please* (a notebook that holds you to evidence), *Noita* (spells as written combinations) and *Myst* (a lonely island full of someone else's machines).
+It borrows the "wipe to reveal" pleasure of scratch cards and fogged windows, the gentle resource rhythm of a watering can, and the album completionism of cozy collectors, but it is none of them: there is no game quite like it.
 
 ## Core loop
 
-1. **Gather.** Reagents glow faintly where they grow: sea glass and shells on the shore, mushrooms and feathers in the wood, pearls in the fen, crystals on the moor. Food too.
-2. **Experiment** in the hut: the **alembic** shows what a reagent carries and how strongly; the **bells** show whether two reagents clash; the **orrery** shows the hour a reagent's essence waxes.
-3. **Write** a spell in the book (one ringed **shape** and one or two bare **words**, each word fed a reagent) into one of the Focus's three slots.
-4. **Cast** it, at the circle of test objects in the hut or out in the world. Failure is information: a *tangle* means the shape is at the wrong end, a *starve* means that reagent doesn't carry that word, *discord* means two words that don't belong together.
-5. **Use** what you know on the island's obstacles, and go further.
+1. A pane: the station's view, misted. A fresh drop beads at the top.
+2. Steer the drop. It wipes a soft-edged path and spends water on fresh mist (clear glass is free).
+3. Roll over rain beads to drink them up. Tap the glass to roll the near ones in.
+4. Water is the only thing to watch: too little and the drop dries and is replaced at the top; too much and it gets heavy and slides, eventually running off the sill (and wiping a clean streak as it goes). Neither is a failure; both are a breath between strokes.
+5. Uncover the three curios. Each is written on the glass in handwriting as it is seen.
+6. At 90% clear, the rest of the mist melts, every curio is revealed, and the pane becomes a postcard. A gold seal if you uncovered all three yourself before the melt.
+7. Next station.
 
-## The magic (all seeded: `js/sim/laws.js`)
+A pane takes one to five minutes (the bots: ~110 s for a perfect player, ~135 s for a wandering one), so the journey is about half an hour.
 
-- **Nine glyphs**: six words (**Kindle** heat, **Rime** cold, **Lumen** light, **Bloom** growth, **Gale** wind, **Still** stillness) and three shapes (**Bolt** thrown where you aim, **Ward** worn, **Seal** set on the ground). Shapes are drawn inside a ring; words are bare. Each glyph's strokes and name are generated, so they can't be recognised from another life.
-- **Word order**: the shape goes first, or last.
-- **Feeding**: each word needs a reagent that carries its essence. Ten reagents; the shore always offers the three words carved over the hut's circle (Kindle, Lumen, Rime); each region offers its own new word; two inland reagents are **strong**.
-- **Power** = Σ (reagent potency + 1 if the word is at its **waxing** hour). The same word twice doubles up.
-- **Opposition**: the six essences fall into three hating pairs. Two opposed words spoken together **unweave**: they unmake curses.
-- **Elowen's pair**: one opposed pair is the one she spoke on the night of her accident.
+## Mechanics
 
-What each form does with each essence (`js/sim/magic.js`): Kindle bolts burn, wards keep you warm, seals make a fire to rest and cook by; Rime freezes, its ward lets you walk on water, its seal makes an ice floe; Lumen reveals and banishes shades, its seal is a beacon; Bloom grows (the seedbed's vine bridge, bramble bushes), its ward heals; Gale tears and blows, its ward lets you glide, its seal is an updraft that lifts you fifteen metres; Still stops vents, wind and shades.
+### The pane and the mist
+- The pane is 12 × 9 world units (4:3), y down. The mist is a 96 × 72 byte grid (`G.fog`, 255 = misted, 0 = clear). Each pane starts misted, with two or three old rain runs already streaked down it (seeded).
+- `wipe(G, x, y, R)` clears a disc: fully inside `0.62 R`, a linear soft edge out to `R`. It returns the area cleared (square units, partial cells counted by how much mist left them) and keeps `G.fogSum` exact. `G.fogVer` increments on every change so the view re-uploads the mask only when needed.
+- `clearedFrac(G) = 1 - fogSum / (255 · cells)`. At `PANE.complete` (0.9) the pane completes.
 
-### The notebook
+### The drop
+- Water `m`, starting at `DROP.m0` (1.0). Wipe radius `R = 0.26 + 0.22 √m`.
+- Steering speed `2.5 / (1 + 0.18 · (m − 1))`. Velocity eases toward the target (`9 /s`).
+- Slide: `1.5 · max(0, m − 1.7)` units/s downward. A light drop clings anywhere; a heavy one creeps or runs.
+- Spending: `m −= area wiped × 0.15`. Below `DROP.mMin` (0.42) it is spent (`dry`). Past the bottom edge it runs off (`runoff`). Either way a fresh drop beads at the top after 0.9 s, at the same x.
 
-`G.notes` only ever holds what an experiment or a cast has shown. Successful casts record the order, the glyph's meaning and the shape's form; starved words are crossed off; the bells and the orrery fill in clashes and hours; and links carry essences between reagents and glyphs. The book's **Marks** page is a logic grid: ✓ and ✗ from evidence, and the player's own ? and × pencil marks. The bot that proves the game can be finished plays from the notebook alone.
+### Rain beads
+- New beads land at 1.15 a second, up to 26, each 0.18 to 0.48 water, anywhere on the pane (seeded).
+- A drop that touches a bead (`dist < 0.85 R + beadRadius`) absorbs it (`merge`).
+- **Tap the glass** (Space / tap button / pad A): beads within 2.4 units roll to the drop at 3.2 units/s. Cooldown 2.5 s.
 
-## The island
+### Curios
+- Each station lists three curios (and a rare fourth for the small hours) with a position and a radius ([scenes.js](js/sim/scenes.js)). The painter draws each at exactly that place.
+- Every 0.2 s, a curio is **spotted** when at least 62% of its disc is clearer than 92/255. A peephole is not enough; you have to uncover the thing.
+- Spotted by hand → `selfFound`. Revealed by the melt → `found` only. The seal needs every curio of the pane in `selfFound`.
 
-```
-                    the Highmoor (cliff; storm ring)
-                              |
-     Whisperwood  ----   the Stilled Castle  ----  Ember Fen (ringed by rock; one gorge)
-     (the mere)              (thorns, moat)
-                              |
-                         the Heath (crossroads)
-                              |
-                Elowen's hut  ---  Wrack Beach (you wake here)
-```
+### Flow and chimes
+- In flow while wiping at least 0.55 square units of fresh mist a second. Flow rises 0.22/s in flow and falls 0.1/s otherwise, from 0 to 3. A level is reached as soon as the value gets there, and dropped only 0.35 below it (no flicker).
+- Music layers follow the level: chords only at 0, drums at 1, bass at 2, a pad at 3. The lamp glows a little warmer too.
+- A `chime` event for every 0.7 square units wiped; audio plays them one per free eighth note from the key's pentatonic.
 
-A 400 m island with one height function shared by the sim, the bot's route finder and the terrain mesh. Water deeper than your knees can't be waded; slopes steeper than about 51° can't be climbed. A flood fill in the simtest proves that with no magic you can't reach the islet, the fen, the moor plateau or the castle.
+### The journey
+- Stations 1 to 8 in order. Finishing the 8th shows the Morning ending; staying aboard starts the small hours: the stations again in a shuffled order (no immediate repeat across rounds), each with its rare curio. It is endless.
+- The album records, per station: visits, curios found (union), seal, the best time, and whether a late pass was made. `albumComplete` fires once when all 32 curios are in it.
 
-## Story and goals (`js/sim/story.js`, `js/sim/data/text.js`)
+## Content
 
-| Goal | What it takes |
-|---|---|
-| Shelter, fire, sleep | Find the hut; three driftwood light the hearth; the bed passes the night |
-| The journal, the marks | The Focus is on the desk; six marks are carved over the circle |
-| The first spell | One of the three lintel words, fed a shore reagent, in the right order |
-| Nib | A Kindle, Rime or Gale bolt at his thorn cage (Lumen only makes the thorns flinch) |
-| Whisperwood's stone | Learn the green word (carved on the seedbed post), find what feeds it, cast it strongly at the stone on the islet |
-| Ember Fen's stone | Melt the frozen falls with Kindle at strength 2; learn the wind word; cast it strongly at the stone in the boiling pool (the steam vents on the causeway block a straight walk) |
-| The Highmoor's stone | A Gale seal's updraft climbs the cliff; learn the quiet word; cast it strongly into the storm ring |
-| The thornwall | Unweave it with two opposed words, thrown where the old road meets it |
-| The moat | Wear Rime and walk across (or float on Rime seals, or glide on Gale) |
-| The gate | Opens on three woken stones |
-| The keep | Its door hides from everything but light |
-| The gallery | An updraft inside the keep |
-| Elowen | Her two words, as a Seal at her feet, at strength 3 |
-
-Ten pages carry the story and some seeded clues (a reagent that feeds the green word, the cold word's hour, a clashing pair that isn't hers, her two words in plain language). Four **echoes**, shown only by Lumen after dark, are Elowen speaking from inside the stop; each heard adds affection.
-
-**The ending**: the bubble cracks, you catch her, and at dawn in the hut you talk. Choices add affection; the last one decides: *stay with her* (a romance, "Two Voices", if affection is 4 or more; a shy, hopeful "We'll See" if not) or *stay and study* (warm either way).
-
-## Survival
-
-Health, warmth and food. Nights outdoors are cold; wading is cold; the moor is windy; fires, the hut, hot springs and a Kindle ward warm you. Berries, clams and chanterelles feed you (cook the last two). At zero warmth or food you lose health; at zero health you collapse and wake in the hut at dawn with half your reagents. Shades roam at night and haunt the courtyard; Lumen drives them off. Resting by a bed or a fire skips to any phase of the day, which is how you reach a word's waxing hour.
+| # | Station | Time | Curios | Small hours |
+|---|---|---|---|---|
+| 1 | Willow Halt | Dusk | a heron fishing, a fox in the long grass, a kite caught in the willow | a shooting star |
+| 2 | Lantern Quay | Evening | a boat with a lantern, a cat on the windowsill, someone with a red umbrella | a sky lantern drifting up |
+| 3 | Pinecrest | Night | an owl on a branch, a deer at the clearing, a campfire | the northern lights |
+| 4 | Old Mill | Blue hour | the waterwheel, ducks asleep on the water, an angler on the bank | fireflies over the reeds |
+| 5 | Harbor Lights | Night | the lighthouse, a sailboat coming home, a gull on a post | a whale's tail |
+| 6 | Snowfield | Night | a snowman, a sled left out, a white hare | a reindeer on the ridge |
+| 7 | Rooftops | Late night | someone reading by lamplight, a cat on the rooftop, an all-night café | a runaway balloon |
+| 8 | Dawn Terminus | Dawn | the sun coming up, a hot-air balloon, birds heading out to sea | a moonbow |
 
 ## Controls
 
-| Action | Keyboard / mouse | Gamepad | Touch |
-|---|---|---|---|
-| Walk / run / jump | WASD (arrows turn) / Shift / Space | Left stick / LS / A | Left-side stick / double-tap-hold / Jump |
-| Look | Mouse (pointer lock; drag without it) | Right stick | Drag the right side |
-| Use | E or right click | X | Use |
-| Cast | Left click or F | RT | Cast |
-| Slots | 1 2 3, wheel | LB / RB | Tap a slot |
-| Book (Marks, Map) | Tab or B (J, M) | Y | Book button |
-| Eat | Q | | Satchel tab |
-| Pause | Esc / P | Start | ❚❚ |
+| Action | Keyboard | Mouse | Gamepad | Touch |
+|---|---|---|---|---|
+| Steer | Arrows / WASD | Hold the button: the drop follows the cursor | Stick / d-pad | Drag anywhere (relative, like a trackpad) |
+| Tap the glass | Space / Z / T | | A / X | *tap* button |
+| Album | M | ✉ | | ✉ |
+| Pause | P / Esc | ❚❚ | Start | ❚❚ |
+
+Touch steering is relative so the finger never covers the drop, and works from the empty space under the window on a portrait phone.
 
 ## Look and sound
 
-Low-poly, painterly: flat-shaded trees that sway, card undergrowth, a terrain with grain, water that knows its own depth (foam at the shore, a violet sheen on the cursed moat, bubbles in the boiling pool), a sky shader with sun, moon, stars and clouds through the whole day, fog that follows the hour, soft shadows and bloom kept for magic (threshold above 1). The hut is warm timber and thatch with a working hearth, chimney smoke, jars that glow in the essences you've seen, an alembic, bells and an orrery that move when used, and a chalk circle of test objects that react to their essence. The castle wears a violet veil; three beams of light join it as the stones wake. Glyphs are drawn from their strokes everywhere: the book, the HUD, the carvings, the seal circles.
-
-All audio is Web Audio: a sea that grows near the shore, wind that grows with height and in the storm ring, birdsong by day and crickets by night, the island's hum (a seeded note) louder near the castle, a generative harp in a scale that turns minor at night and strange near the castle, and a sound for each essence, each instrument and each event.
+- **Scenes** ([painter.js](js/view/painter.js)): painted once per pane at 480 × 360 (40 px a unit) from gradients, ridges, silhouettes, lit windows with glows and broken water reflections, then scaled up soft. The blacks are lifted and warmed a little for the lo-fi wash.
+- **Mist**: the scene shrunk to 40 × 30 and back up (a blur that works everywhere, unlike `ctx.filter`), frosted with a pale tint and 2,600 baked condensation dots, then masked by the mist grid (96 × 72, upscaled with smoothing, so the wiped edge is soft).
+- **Drops**: each bead and the drop is a little upside-down lens of the scene behind it (as real drops are), with a dark rim, a catchlight and a caustic. The drop stretches along its velocity and has a soft halo so it reads on any background. A wiping drop leaves a scatter of tiny beads behind it on the clear glass (baked into a trail layer).
+- **The room**: a dark carriage wall with panelling, a reading lamp that warms with flow, a wooden frame and sill, a steaming mug, a plant, and the postcards so far in a stack. Rain (or snow at Snowfield) falls past outside. Film grain (optional) and a vignette.
+- **Sound** ([audio.js](js/audio.js)): 74 BPM swung lo-fi from a look-ahead sequencer; a soft electric piano (sine + octave triangle + a touch of 3rd harmonic) on four progressions, one per station group, a step down for the small hours; a brushed kit; a round sine bass; a detuned saw pad; tape wobble on every oscillator's detune; a 3.4 kHz low-pass over the music; vinyl crackle; rain as looped filtered noise with the odd drip; bells with a dotted-eighth echo for chimes and spots.
 
 ## Module overview
 
 | Path | Responsibility |
 |---|---|
-| `js/main.js` | Boot, modes, the fixed-step loop, input routing, pointer lock, debug hooks |
-| `js/sim/laws.js` | The seeded laws of magic |
-| `js/sim/world.js` | Height, water, regions, colliders, trees and rocks, spawn points, the road graph |
-| `js/sim/body.js` | Support height, collision, one physics step |
-| `js/sim/game.js` | State, step, act, usables and focus, survival, shades, Nib, saving |
-| `js/sim/magic.js` | Judging a spell, aiming, casting, what spells do, wards and seals over time |
-| `js/sim/research.js` | Instruments, the notebook, what each cast teaches |
-| `js/sim/story.js`, `data/text.js` | Goals, dialogue, hints, pages, echoes, the ending |
-| `js/sim/nav.js`, `bot.js` | Route finding; the researching bot |
-| `js/view/` | `stage` (renderer, sky, light, bloom), `terrain` (ground, water), `nature`, `buildings`, `characters`, `fx`, `tex`, `view` |
-| `js/ui/ui.js`, `book.js` | HUD, screens, sheets, dialogue; the book |
-| `js/glyphart.js` | Drawing glyphs and icons |
-| `js/input.js`, `audio.js`, `save.js`, `rng.js`, `config.js` | Input merge, sound, guarded storage, seeded RNG, tuning |
+| `js/main.js` | Boot, modes (title demo, play, postcard, ending), the fixed-step loop, pointer steering, input routing, debug hooks |
+| `js/sim/game.js` | Pure simulation: the mist, the drop, beads, taps, spotting, flow, chimes, completion and melt, the album, the journey, saves |
+| `js/sim/scenes.js` | Stations and curios (pure data) |
+| `js/sim/bot.js` | Auto-player for tests, pacing and the title demo |
+| `js/view/view.js` | Composites the room, the scene, the mist, the drops, labels, the sill and grain |
+| `js/view/painter.js` | Paints the 16 scenes and 32 curios |
+| `js/ui.js` | DOM screens, HUD, portrait journal, postcards, the album |
+| `js/input.js`, `js/audio.js`, `js/save.js`, `js/rng.js`, `js/config.js` | Input merge, sound, guarded storage, seeded RNG, tuning |
 
 ## Testing
 
-See [dev/README.md](dev/README.md). The simtest proves the sim pure, the laws sound on 60 seeds, the gates shut without magic, every rule and puzzle, determinism, and that a bot researching only from its notebook frees Elowen on six seeds. The browser test plays the real game on desktop, two touch-only phones and with storage blocked.
+See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, the data, every rule, the whole journey into the small hours and the full album, determinism and save round trips (mid-pane, mid-melt, on a postcard), and bots playing nine panes on several seeds. `browsertest.mjs` drives the real game on desktop through the whole journey, on touch-only phones in both orientations, and with storage blocked. `gallery.html` / `shot.mjs` show every scene with its curio circles.
 
 ## Balance notes
 
-- The bot finishes in 24–30 game minutes (4–5 in-game days), with 17–22 experiments and 21–24 casts, 1–4 of them fizzles, and never collapses. A first-time player who doesn't know the method should take one to two hours.
-- The bot shoots the fen stone from beside the pool, not down the causeway: the vents catch a bolt. People will likely clear the vents first; both work.
-- Stocking reagents for the castle has to add up every use of a word (Gale lifts you to the gallery *and* may be one of Elowen's words).
-- Survival is meant to colour the days, not to fail runs: a full belly lasts most of two days, and a night outdoors costs about 35 warmth.
+- The first skilled bot sat on a curio forever: its wipe disc never cleared 62% of a curio larger than itself. It now steers to the most misted cell inside the curio. A person does this naturally.
+- The bot then dithered between two targets with a heavy drop that could not climb back up. It now commits to a patch of mist for 1.5 s, and lets a heavy drop run off when what is left is above it, which is the decision the slide is there to create.
+- With those, a pane takes ~110 s (skilled) and ~135 s (wandering); a person, slower and less efficient, should take two to four minutes. Water rarely runs out with beads at 1.15/s; drying out happens mainly when a player ignores beads entirely.
 
 ## Open questions / next steps
 
-- A human pass on real hardware: the bot is not a person, and SwiftShader is not a GPU.
-- More uses for doubled and opposed words in the open world (a second unweave puzzle).
-- Elowen as a companion after the ending, for free play.
+- A human pass on real hardware: the bot is not a person, and the game has only run in headless Chromium.
+- More stations for the small-hours loop (it reuses the eight).
+- A "free window" sandbox to sit at a finished postcard with the music.
 
 ## Changelog
 
 ### v1.0.0 (2026-11-06)
-- First release: a seeded magic system (glyphs, order, feeding, power, waxing, opposition), three instruments, a notebook that keeps evidence, a book with a spell writer, logic grid and map, survival through day and night, Nib, ten pages and four echoes, three regions and the castle, two endings each with a high and low affection version, procedural art and audio throughout, sim and browser tests.
+- First release: eight stations and their small-hours versions, 32 curios, the drop and its water, beads and taps, flow-driven lo-fi music with chimes on the beat, postcards with seals, the album, the Morning ending and the endless loop, keyboard, mouse, gamepad and relative touch steering, a portrait journal, tests.

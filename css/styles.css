@@ -1533,6 +1533,16 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 79, 154, 0.75);
 }
 
+.game-preview.rainglass,
+.carousel-slide-bg.rainglass {
+    background:
+        radial-gradient(circle at 30% 34%, rgba(255, 255, 255, 0.55) 0 1.4%, rgba(160, 190, 230, 0.4) 2.6%, transparent 3.2%),
+        radial-gradient(circle at 64% 22%, rgba(255, 255, 255, 0.5) 0 1%, rgba(160, 190, 230, 0.35) 2%, transparent 2.6%),
+        radial-gradient(circle at 72% 62%, rgba(255, 210, 140, 0.55) 0 2%, transparent 9%),
+        radial-gradient(ellipse at 45% 55%, rgba(205, 214, 235, 0.0) 18%, rgba(205, 214, 235, 0.42) 46%),
+        linear-gradient(180deg, #2c2a5e 0%, #7a5a8a 38%, #d27a7a 54%, #f2b07c 60%, #3e4e46 61%, #1c2420 100%);
+}
+
 .game-preview.wrack-and-wonder,
 .carousel-slide-bg.wrack-and-wonder {
     background:
@@ -1544,6 +1554,27 @@ h1 {
     background: linear-gradient(135deg, #9fd8c8, #e8b65a 60%, #c48bff);
     color: #1f1408;
     box-shadow: 0 0 14px rgba(159, 216, 200, 0.6);
+}
+.game-card.rainglass .play-button {
+    background: linear-gradient(135deg, #f2b880, #c88aa8 55%, #7a8ac8);
+    color: #1c1420;
+    box-shadow: 0 0 14px rgba(200, 160, 220, 0.7);
+}
+
+.game-preview.atlas-of-ink,
+.carousel-slide-bg.atlas-of-ink {
+    background:
+        radial-gradient(ellipse at 30% 62%, rgba(86, 128, 70, 0.75) 0 11%, transparent 12%),
+        radial-gradient(ellipse at 42% 52%, rgba(120, 150, 90, 0.7) 0 9%, transparent 10%),
+        radial-gradient(ellipse at 74% 38%, rgba(60, 110, 160, 0.6) 0 10%, transparent 11%),
+        repeating-linear-gradient(0deg, rgba(120, 84, 40, 0.07) 0 1px, transparent 1px 28px),
+        repeating-linear-gradient(90deg, rgba(120, 84, 40, 0.07) 0 1px, transparent 1px 28px),
+        radial-gradient(ellipse at 50% 45%, #f0e2b6 0%, #dcc58f 60%, #b9965c 100%);
+}
+.game-card.atlas-of-ink .play-button {
+    background: linear-gradient(135deg, #e8c46a, #b9792e 55%, #7a4a22);
+    color: #20140a;
+    box-shadow: 0 0 14px rgba(224, 176, 80, 0.7);
 }
 
 footer {

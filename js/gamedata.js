@@ -1856,10 +1856,42 @@ const games = [
     },
     {
         id: 'game-122',
+        title: 'Rainglass',
+        description: "A cozy lo-fi game on a rainy night train, made for flow, focus and the small joy of finishing things. At every station the window is misted over: guide a single drop of rain across the glass to wipe it clear and see what is out there. Wiping fresh mist spends the drop's water, so roll over the rain beads that land on the glass to drink them up, or tap the glass to roll the near ones in; take on too much and the drop grows heavy, slides, and runs off the sill in a clean streak, and a fresh one beads at the top. Keep wiping and the music fills in around you: every patch of glass you clear plays a note on the beat, in key, over a swung lo-fi loop of soft electric piano, brushed drums, bass, tape wobble, vinyl crackle and rain. Each view hides three curios (a heron in the pond, a cat in a lit window, an owl in the pines, a whale's tail) written on the glass in handwriting as you uncover them. Clear most of the pane and the rest melts away, and the view becomes a postcard on the sill, with a gold seal if you spotted everything yourself. Eight stations from Willow Halt at dusk to Dawn Terminus at sunrise, then the train runs back round through the small hours with a rarer curio at each, until the album holds all thirty-two. No timer, nothing to lose. Every scene, drop and note is made in code.",
+        icon: '\uD83C\uDF27\uFE0F',
+        folder: 'game-122',
+        version: '1.0.0',
+        cssClass: 'rainglass',
+        genre: 'cozy',
+        tags: [
+            { emoji: '\uD83C\uDF75', label: 'Cozy lo-fi' },
+            { emoji: '\uD83D\uDCEE', label: 'Collection' },
+            { emoji: '\uD83E\uDDD8', label: 'Flow & focus' },
+            { emoji: '\uD83D\uDD8C\uFE0F', label: 'Canvas 2D' }
+        ]
+    },
+    {
+        id: 'game-123',
+        title: 'Atlas of Ink',
+        description: "A cartographer's commission game in Canvas 2D with no asset files. You are a mapmaker in a fantasy kingdom with a scrying quill, and the island is hidden: you chart it a disc at a time. Hold the scry key to focus and release to cast: standing still builds focus, moving bleeds it, and a steady cast is wide and true while a rushed one is small, smudged and blind to anything small (a town, an ore vein, a reef). Six clients hire you in a season, and each uses your map for real. Farmer Hobb ploughs where you say there are plains; the dwarf Brunna Deepdelve wants every ore vein found; Sir Kael follows the road your chart shows, swamps, fords and mountain passes included; Captain Mara steers by your sea lane and a reef you missed breaks her keel; Sister Ione wants every shrine; King Aldric wants his whole borderlands drawn true. Their journeys play out on your parchment (a walker or a ship tracing your route, a red X where the map lied) and you earn up to three stars and points for each, with ranks from Apprentice Scribe to Royal Cartographer. Every world is built from a seed (rivers, lakes, biomes, harbours, ruins, lane reefs) and every commission is proved solvable. Watercolour washes with hand-drawn mountains, trees, waves and inked coastlines; faded ink where you were unsure; a feather quill with a shaking spell edge; a title screen that charts a map by itself; a hum that rises with your focus and a quiet music box; keyboard, gamepad or touch.",
+        icon: '\uD83D\uDDFA\uFE0F',
+        folder: 'game-123',
+        version: '1.0.0',
+        cssClass: 'atlas-of-ink',
+        genre: 'rpg',
+        tags: [
+            { emoji: '\uD83E\uDDED', label: 'Cartography' },
+            { emoji: '\uD83E\uDEB6', label: 'Hold to focus' },
+            { emoji: '\uD83D\uDCDC', label: 'Commissions' },
+            { emoji: '\uD83D\uDD8C\uFE0F', label: 'Canvas 2D' }
+        ]
+    },
+    {
+        id: 'game-124',
         title: 'Wrack & Wonder',
         description: "A first-person survival and research adventure in three.js with no asset files. You wash up on a small island that hums, and you are about to become the first person in the world to learn magic, with nobody to teach you. In a hut on the bluff you find a stranger's home-made instruments: an alembic that boils a reagent down to what it carries, bells that ring sour between things that hate each other, and an orrery that knows the hour each power waxes. A spell is a line of glyphs (a ringed shape and one or two bare words, each fed a reagent), but which glyph means what, which end the shape goes on, what every reagent carries, which words are opposed and when each is strongest are all generated from the seed, so what you learned last life is only the method. Your notebook keeps nothing but evidence, with a logic grid for your own guesses. Survive cold nights and hunger, rescue Nib the goblin from cursed thorns, wake three standing stones in Whisperwood, Ember Fen and the Highmoor, then unweave the thornwall, walk across the black moat on frost and climb the keep on an updraft to free Elowen, the girl who built the hut and has hung inside one stopped moment for a year. She can feel you learning. Find her echoes by lantern-light at night, and the ending may be more than gratitude. Keyboard, mouse, touch or gamepad, and a bot that researches from its own notebook to finish the game in the tests.",
         icon: '\uD83E\uDE84',
-        folder: 'game-122',
+        folder: 'game-124',
         version: '1.0.0',
         cssClass: 'wrack-and-wonder',
         genre: 'rpg',

@@ -5,7 +5,7 @@ import { SAVE_KEY } from './config.js';
 import { serialize, deserialize } from './sim/game.js';
 
 const SETTINGS_KEY = SAVE_KEY + '.settings';
-const DEFAULTS = { sfx: 0.8, music: 0.55, touch: 'auto', sens: 1, invert: false, quality: 'auto', name: 'Rowan' };
+const DEFAULTS = { sfx: 0.8, music: 0.6, rain: 0.6, touch: 'auto', grain: true };
 
 function read(key) {
     try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -20,12 +20,9 @@ export function loadSettings() {
 }
 export function saveSettings(s) { write(SETTINGS_KEY, s); }
 
-export function saveInfo() {
-    const s = read(SAVE_KEY);
-    return s?.data ? { day: s.data.day, name: s.data.name, seed: s.data.seed, savedAt: s.savedAt } : null;
-}
 export function hasSave() { return !!read(SAVE_KEY)?.data; }
-export function saveGame(G) { return !G.over && write(SAVE_KEY, { savedAt: Date.now(), data: serialize(G) }); }
+/** The journey is never over (the train runs on), so every state can be saved. */
+export function saveGame(G) { return write(SAVE_KEY, { savedAt: Date.now(), data: serialize(G) }); }
 export function loadGame() {
     const s = read(SAVE_KEY);
     if (!s?.data) return null;
