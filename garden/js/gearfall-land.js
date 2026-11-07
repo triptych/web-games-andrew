@@ -249,7 +249,7 @@ vec3 groundCol(vec2 p) {
                 if (other < 8.6 && other > 5.6) asph = mix(asph, vec3(0.52), step(fract((alongX > 0.5 ? p.x : p.y) * 0.9), 0.5) * fade * 0.7);
             }
             // cracks, with weeds in them
-            float cr = smoothstep(0.03, 0.0, abs(fbm(p * 0.11) - 0.5)) + smoothstep(0.02, 0.0, abs(fbm(p * 0.37 + 4.0) - 0.5)) * 0.8;
+            float cr = (1.0 - smoothstep(0.0, 0.03, abs(fbm(p * 0.11) - 0.5))) + (1.0 - smoothstep(0.0, 0.02, abs(fbm(p * 0.37 + 4.0) - 0.5))) * 0.8;
             asph = mix(asph, mix(vec3(0.03), vec3(0.2, 0.22, 0.1), step(0.6, n3)), clamp(cr, 0.0, 1.0));
             // potholes full of rainwater
             float ph = smoothstep(0.66, 0.7, fbm(p * 0.16 + 11.0));
@@ -272,7 +272,7 @@ vec3 groundCol(vec2 p) {
     if (dr < 4.4 && p.y > 0.0 && p.y < ${(DOOR_Z + 2).toFixed(1)}) {
         float on = smoothstep(1060.0, 1200.0, d) * (1.0 - smoothstep(3.6, 4.4, dr + n3 * 0.6));
         vec3 track = mix(vec3(0.33, 0.27, 0.19), vec3(0.4, 0.33, 0.23), n2);
-        track *= 1.0 - 0.28 * smoothstep(0.55, 0.0, abs(dr - 1.25)) * (0.6 + 0.4 * n3);
+        track *= 1.0 - 0.28 * (1.0 - smoothstep(0.0, 0.55, abs(dr - 1.25))) * (0.6 + 0.4 * n3);
         track = mix(track, grass, smoothstep(0.6, 0.8, n1) * step(dr, 0.6) * 0.8);
         c = mix(c, track, on);
     }
@@ -284,7 +284,7 @@ vec3 groundCol(vec2 p) {
         c = mix(c, scorch, burn);
         float glassy = (1.0 - smoothstep(50.0, 100.0, d)) * smoothstep(0.55, 0.75, n2);
         gRough = mix(gRough, 0.25, glassy);
-        float vein = smoothstep(0.035, 0.0, abs(fbm(p * 0.07 + 1.3) - 0.5)) + smoothstep(0.025, 0.0, abs(fbm(p * 0.19 - 4.0) - 0.5)) * 0.6;
+        float vein = (1.0 - smoothstep(0.0, 0.035, abs(fbm(p * 0.07 + 1.3) - 0.5))) + (1.0 - smoothstep(0.0, 0.025, abs(fbm(p * 0.19 - 4.0) - 0.5))) * 0.6;
         float pulse = 0.6 + 0.4 * sin(uTime * 1.2 - d * 0.12);
         float reach = 1.0 - smoothstep(25.0, 130.0, d);
         vec3 cy = vec3(0.35, 1.0, 0.82);
@@ -311,7 +311,8 @@ export function groundMaterial(u, discardR = 0) {
 ${discardR > 0 ? `if (length(vGP.xz) < ${discardR.toFixed(1)}) discard;` : ''}
 diffuseColor.rgb = groundCol(vGP.xz);`)
             .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = gRough;')
-            .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += gGlow;');
+            .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += gGlow;')
+            .replace('#include <dithering_fragment>', '#include <dithering_fragment>\n// a NaN or Inf here would be smeared by the bloom pass into a black block over the view\nif (any(isnan(gl_FragColor)) || any(isinf(gl_FragColor))) gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);');
     };
     m.customProgramCacheKey = () => 'gearfall-ground' + discardR;
     return m;

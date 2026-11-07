@@ -53,7 +53,7 @@ void main(){
     vec3 sc = mix(vec3(0.75, 0.85, 1.0), vec3(1.0, 0.85, 0.7), hash13(c + 3.1));
     col += sc * star * tw * uStars * clearSky * 3.0 * smoothstep(-0.02, 0.2, d.y);
     // milky band
-    float band = exp(-pow(dot(d, normalize(vec3(0.3, 0.2, 1.0))) * 3.2, 2.0));
+    float band = exp(-pow(abs(dot(d, normalize(vec3(0.3, 0.2, 1.0))) * 3.2), 2.0));
     col += vec3(0.25, 0.3, 0.45) * band * fbm(d.xz * 6.0 + d.y * 3.0) * uStars * clearSky * 0.35;
     // aurora curtains in the northern sky
     float ah = smoothstep(0.08, 0.35, d.y) * smoothstep(0.85, 0.35, d.y) * smoothstep(0.1, -0.6, d.z);

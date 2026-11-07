@@ -9,6 +9,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Batch, xf } from './materials.js';
 import { lathe } from './architecture.js';
 import { PLAZA_R, PATH_HALF, PAVILION_PLAZA } from './layout.js';
+import { WELL_APRON } from './terrain.js';
 import { rng, fbm2, noise2, TAU, clamp, smoothstep, lerp } from './util.js';
 import { leaves as leafTex } from './textures.js';
 
@@ -61,7 +62,9 @@ function jitter(geo, amt, seed, scaleXZ = 1) {
     // keep coincident vertices together so the mesh doesn't crack
     const map = new Map();
     for (let i = 0; i < p.count; i++) {
-        const k = `${p.getX(i).toFixed(3)},${p.getY(i).toFixed(3)},${p.getZ(i).toFixed(3)}`;
+        // round to integers, not toFixed(): a cylinder's seam vertex is -2e-16 at one end and 0 at the
+        // other, and toFixed(3) turns those into "-0.000" and "0.000", which cracked the trunks open
+        const k = `${Math.round(p.getX(i) * 1000)},${Math.round(p.getY(i) * 1000)},${Math.round(p.getZ(i) * 1000)}`;
         if (!map.has(k)) map.set(k, [(r() - 0.5) * amt * scaleXZ, (r() - 0.5) * amt, (r() - 0.5) * amt * scaleXZ]);
         const d = map.get(k);
         p.setXYZ(i, p.getX(i) + d[0], p.getY(i) + d[1], p.getZ(i) + d[2]);
@@ -196,6 +199,8 @@ function clearOf(world, x, z, extra = 0) {
     if (Math.abs(x) < 6 && z > layout.dock.start - 4 && z < layout.dock.end + 4) return false;
     if (island.pathDistAt(x, z) < PATH_HALF + 5.2 + extra) return false;
     if (world.hut && Math.hypot(x - world.hut.cx, z - world.hut.cz) < 7 + extra) return false;
+    // the glowing well beside the Hearthgarden, and its paved apron
+    if (world.well && Math.hypot(x - world.well.x, z - world.well.z) < WELL_APRON + 3.2 + extra) return false;
     // the clock tower's plateau and the bridge out to it
     const is = layout.islet, b = layout.bridge;
     if (Math.hypot(x - is.x, z - is.z) < 6.2 + extra) return false;
@@ -204,6 +209,10 @@ function clearOf(world, x, z, extra = 0) {
     const pdx = pr.bx - pr.ax, pdz = pr.bz - pr.az;
     const pt = clamp(((x - pr.ax) * pdx + (z - pr.az) * pdz) / (pdx * pdx + pdz * pdz), -0.1, 1);
     if (Math.hypot(x - pr.ax - pdx * pt, z - pr.az - pdz * pt) < 4.5 + extra) return false;
+    const wh = layout.wharf;
+    const wdx = wh.bx - wh.ax, wdz = wh.bz - wh.az;
+    const wt = clamp(((x - wh.ax) * wdx + (z - wh.az) * wdz) / (wdx * wdx + wdz * wdz), -0.1, 1);
+    if (Math.hypot(x - wh.ax - wdx * wt, z - wh.az - wdz * wt) < 7 + extra) return false;
     const bdx = b.bx - b.ax, bdz = b.bz - b.az;
     const t = clamp(((x - b.ax) * bdx + (z - b.az) * bdz) / (bdx * bdx + bdz * bdz), 0, 1);
     if (Math.hypot(x - b.ax - bdx * t, z - b.az - bdz * t) < b.half + 3 + extra) return false;

@@ -1,7 +1,8 @@
 // The simulation. Pure: no DOM, no rendering library, no Math.random, no clock.
 //
 // newGame(seed) → G. step(G, dt) runs the castle forward; act(G, cmd) applies one player command (craft, cackle,
-// buy, upgrade, décor, scheme, visitor, ability, relocate, perk, room, idle, clock) and returns whether it did
+// buy, upgrade, décor, scheme, visitor, ability, relocate, perk, room, idle, clock, hush, and the cemetery's mini-games)
+// and returns whether it did
 // anything. The view, the UI, the audio, the bot and the tests all go through these two, and G.events tells
 // everyone what happened.
 
@@ -13,6 +14,7 @@ import {
 } from './data.js';
 import * as M3 from './match3.js';
 import * as SALON from './salon.js';
+import * as PETS from './pets.js';
 
 export const SAVE_VERSION = 1;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -45,6 +47,8 @@ function newYard() {
         m3: { level: 1, best: 0, three: 0, tries: 0, played: 0, won: 0, board: null },
         // Curl Up & Dye: wait is the time until the next paying client; best[client] the most stars they've given
         salon: { wait: 0, n: 0, appt: null, styled: 0, three: 0, practice: 0, best: {} },
+        // Rest in Paws: the pet at home, its needs, and the bond built with every pet in the shelter
+        pets: PETS.newPets(),
     };
 }
 
@@ -131,6 +135,7 @@ export function mods(G) {
     for (const id in G.heirlooms) if (HEIRLOOM[id]) apply(HEIRLOOM[id].fx);
     for (const id in G.perks) if (PERK[id]) apply(PERK[id].fx);
     apply(LAIRS[G.lair].fx);
+    apply(PETS.petFx(G.yard.pets));
     M.offRate = Math.min(1, M.offRate);
     return (G._mods = M);
 }
@@ -288,6 +293,13 @@ export function step(G, dt) {
 
     for (const id in G.cd) G.cd[id] = Math.max(0, G.cd[id] - dt);
     if (G.yard.salon.wait > 0) G.yard.salon.wait = Math.max(0, G.yard.salon.wait - dt);
+    // the pet at home gets hungry, grubby and bored, slowly; a pet that isn't content gives only half its bonus
+    const pet = G.yard.pets;
+    if (pet.active) {
+        const was = [pet.need.food, pet.need.clean, pet.need.fun];
+        if (PETS.fade(pet, dt)) dirty(G);
+        PETS.NEEDS.forEach((k, i) => { if (was[i] >= 0.25 && pet.need[k] < 0.25) emit(G, { type: 'petNeed', id: pet.active, need: k }); });
+    }
     for (let i = G.buffs.length - 1; i >= 0; i--) {
         const b = G.buffs[i];
         b.t -= dt;
@@ -295,9 +307,11 @@ export function step(G, dt) {
     }
 
     // visitors leave when their time is up; a hero who leaves unfrightened tells everyone about the doilies
+    // while a mini-game is open (G.hush) nobody new arrives and those already here wait, so nothing happens behind your back
+    const hush = G.hush && !G.quiet;
     for (let i = G.visitors.length - 1; i >= 0; i--) {
         const v = G.visitors[i];
-        v.t -= dt;
+        if (!hush) v.t -= dt;
         if (v.t > 0) continue;
         G.visitors.splice(i, 1);
         if (v.kind === 'hero') {
@@ -306,7 +320,7 @@ export function step(G, dt) {
             emit(G, { type: 'heroGossip', vid: v.vid });
         } else emit(G, { type: 'visitorLeft', vid: v.vid, kind: v.kind });
     }
-    if (!G.quiet) {
+    if (!G.quiet && !hush) {
         G.nextVisit -= dt * M.vFreq;
         if (G.nextVisit <= 0) {
             spawnVisitor(G, R);
@@ -426,11 +440,27 @@ export function act(G, cmd) {
         }
         case 'idle': return away(G, cmd.sec);
         case 'clock': G.wall = cmd.wall; return true;
+        case 'hush': G.hush = !!cmd.on; return true;
         case 'm3start': return m3start(G);
         case 'm3swap': return m3swap(G, cmd.a, cmd.b);
         case 'salonSeat': return salonSeat(G, cmd.client);
         case 'salonDone': return salonDone(G, cmd.look);
         case 'salonLeave': { if (!G.yard.salon.appt) return false; G.yard.salon.appt = null; return true; }
+        case 'petAdopt': return petAdopt(G, cmd.id, cmd.name);
+        case 'petName': {
+            const P = G.yard.pets;
+            if (!P.active) return false;
+            P.name = PETS.cleanName(cmd.name, P.active);
+            return true;
+        }
+        case 'petCare': return petCare(G, cmd);
+        case 'petDress': {
+            const P = G.yard.pets;
+            if (!P.active || (cmd.acc !== null && !PETS.ACC_IDS.includes(cmd.acc))) return false;
+            P.acc = cmd.acc;
+            emit(G, { type: 'petDress', id: P.active, acc: P.acc });
+            return true;
+        }
         default: return false;
     }
 }
@@ -616,6 +646,33 @@ function salonDone(G, look) {
     return true;
 }
 
+// ------------------------------------------------------------------------------------------------ Rest in Paws
+/** Bring a pet home from the shelter. Any pet already at home goes back, keeping the bond you built. */
+function petAdopt(G, id, name) {
+    const P = G.yard.pets;
+    if (!G.yard.open.pets || !PETS.PET[id] || P.active === id) return false;
+    const from = P.active;
+    P.active = id;
+    P.name = PETS.cleanName(name, id);
+    P.need = { ...PETS.PET_TUNE.start };
+    P.acc = null;
+    P.xp[id] = P.xp[id] || 0;
+    P.adopted++;
+    dirty(G);
+    emit(G, { type: 'petAdopt', id, from, name: P.name, first: P.adopted === 1 });
+    return true;
+}
+
+/** A bit of care from the care screen (feed, groom, play) or a pat in the castle. */
+function petCare(G, cmd) {
+    const P = G.yard.pets;
+    const r = PETS.care(P, cmd.act, cmd, G.t);
+    if (!r) return false;
+    dirty(G);
+    emit(G, { type: 'petCare', id: P.active, act: cmd.act, ...r });
+    return true;
+}
+
 function relocate(G) {
     const gain = legendGain(G);
     if (gain < 1) return false;
@@ -654,7 +711,7 @@ export function away(G, sec) {
 export function serialize(G) {
     const out = {};
     for (const k in G) {
-        if (k === 'rng' || k === 'events' || k === 'quiet' || k === 'offMul' || k.startsWith('_')) continue;
+        if (k === 'rng' || k === 'events' || k === 'quiet' || k === 'offMul' || k === 'hush' || k.startsWith('_')) continue;
         out[k] = G[k];
     }
     out.rngState = G.rng.state();
@@ -669,6 +726,9 @@ export function deserialize(d) {
     // anything added since the save was written takes its default
     G.stats = { ...base.stats, ...rest.stats };
     G.yard = { ...base.yard, ...rest.yard, m3: { ...base.yard.m3, ...(rest.yard?.m3 || {}) }, salon: { ...base.yard.salon, ...(rest.yard?.salon || {}) } };
+    const rp = rest.yard?.pets || {};
+    G.yard.pets = { ...base.yard.pets, ...rp, need: { ...base.yard.pets.need, ...(rp.need || {}) }, xp: { ...(rp.xp || {}) } };
+    if (G.yard.pets.active && !PETS.PET[G.yard.pets.active]) G.yard.pets.active = null;
     G.owned = { ...base.owned, ...rest.owned };
     G.mastery = { ...base.mastery, ...rest.mastery };
     G.cd = { ...base.cd, ...rest.cd };

@@ -59,7 +59,7 @@ void main() {
     vec2 f = fract(vUv * 14.0) - 0.5;
     float life = fract(uTime * (0.4 + uBoil) + h(g) * 7.0);
     bub = smoothstep(0.32 * life, 0.28 * life, length(f)) * step(0.55, h(g + 3.0)) * (1.0 - life);
-    vec3 col = uColor * (0.55 + 0.45 * swirl) + bub * 0.6 + uColor * pow(1.0 - r * 2.0, 2.0) * 0.6;
+    vec3 col = uColor * (0.55 + 0.45 * swirl) + bub * 0.6 + uColor * pow(clamp(1.0 - r * 2.0, 0.0, 1.0), 2.0) * 0.6;
     gl_FragColor = vec4(col, 1.0);
 }`;
 

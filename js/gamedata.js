@@ -1741,6 +1741,167 @@ const games = [
             { emoji: '\uD83D\uDC7E', label: 'Alien hive' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-115',
+        title: 'Hearthwick',
+        description: "A cozy, idle-friendly town builder in three.js. You start with one small hut, one neighbour and a lot of trees: tap them for wood and stone, build a Woodshed, give villagers jobs, and follow the Town Journal chapter by chapter, because every finished entry pays out and, with enough Renown, lets you upgrade the Hall (Hearth Hut → Cottage → Lodge → Manor → Town Hall → Grand Hearthhall), which opens more of the 32 buildings and more land: farms, an orchard, a river dock, a Carpenter, Mill, Weaver, Smithy and Alchemist, a Tavern, an Inn, an Item Shop, a Market, a Chapel, a Library and fountains. Villagers arrive at the gate with skills (woodcraft, mining, farming, fishing, foraging, smithing, cooking and more) and traits, and six special folk move in with town-wide perks. Build the Adventurers' Lodge and hire heroes (warriors, archers, mages, rogues, clerics) who go on quests for you in seven regions, come home hungry, tired and a little hurt, eat at your Tavern, sleep at your Inn and spend their gold at your Item Shop, which you stock with gear you crafted, from wooden swords to dragon mail. Cook 13 dishes, brew potions, set stock targets and prices, research 34 upgrades, and hold off raiders at dusk. There is no combat on screen. Everything keeps working while you are away: reopen the game and a welcome-back sheet tells you what the town got up to. Painted sprites and pixel-art people stand in a lit 3D diorama with seasons, weather, a day and night cycle, tilt-shift and bloom; the whole campaign ends with the Dragon's Roost, then the town is yours to keep cozy. No asset files: every sprite, tile, sound and tune is made in code.",
+        icon: '\uD83D\uDED6',
+        folder: 'game-115',
+        version: '1.0.0',
+        cssClass: 'hearthwick',
+        genre: 'cozy',
+        tags: [
+            { emoji: '\uD83C\uDFE1', label: 'Town builder' },
+            { emoji: '\u23F3', label: 'Idle & offline' },
+            { emoji: '\u2694\uFE0F', label: 'Hero economy' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
+    },
+    {
+        id: 'game-116',
+        title: 'SOLITAIRE FROM OUTER SPACE',
+        description: "A TriPeaks solitaire roguelike deckbuilder told as a 1950s B-movie in three reels, in vanilla JavaScript and Canvas 2D with no asset files. Something fell out of the sky over Gila Flats, Nevada, and the visitors have one law: a planet is won or lost at the card table. Every creature deals its own table of cards in a TriPeaks layout (twin peaks, a saucer, a rocket, three towers, a diamond, a great pyramid for the bosses), and your deck is the stock. Play face-up cards one rank above or below the card on the beam (K and A wrap round) to chain them, and every card does what its suit does: Rays blast, Rockets punch through shields, Shields block and Atoms charge your gadgets, all of it bigger the longer this turn's chain. Clear the whole table for a Clean Sweep. Each turn starts with a free card from your stock on the beam, then two draws; your own cards fire when they land (a Death Ray zaps, a Force Field shields, a Wild Card takes anything, Jet Boots and Rocket Fuel are Quick and give the draw back), and the creature telegraphs its next move: attacks, shields, growing, jamming Martian Static and Space Slime into your stock, or freezing your cards. Spend charge on gadgets (a Ray Pistol, a Wild Beam, a Disintegrator, a Jetpack, a Freeze Ray, an Atomic Bomb and more). Pick your road up a branching map through Gila Flats in 1957, a Moon base in 1959 and the Mothership in 1961: fights, elites, a roadside diner to rest or tinker, the Army Surplus store, strange broadcasts (a mad scientist, a drive-in double feature, a crashed saucer, the Fortune Machine) and treasure, against 21 creatures from giant ants, tin troopers and a little blob to the Colossal Gila, the Brain from Planet X and the Overlord. Seventeen souvenirs, upgrades at the diner, every creature, card and backdrop drawn in code with googly eyes and a fat ink outline under film grain, and a theremin score with an organ, a walking bass and bongos. Mouse, touch, keyboard or gamepad; a bot plays whole runs in the tests to balance it.",
+        icon: '\uD83D\uDEF8',
+        folder: 'game-116',
+        version: '1.0.0',
+        cssClass: 'solitaire-from-outer-space',
+        genre: 'strategy',
+        tags: [
+            { emoji: '\uD83C\uDCCF', label: 'Solitaire roguelike' },
+            { emoji: '\uD83D\uDC7D', label: 'B-movie sci-fi' },
+            { emoji: '\uD83C\uDFBB', label: 'Theremin score' },
+            { emoji: '\uD83D\uDD8C\uFE0F', label: 'Canvas 2D' }
+        ]
+    },
+    {
+        id: 'game-117',
+        title: 'PERIHELION',
+        description: "A twin-stick shooter on tiny turning asteroids, in three.js with no asset files, styled after the grand space films of the late sixties. You stand in the middle of the screen and the rock rolls beneath your feet as you walk: each asteroid is a sphere wrapped in a maze of white station walls, carved on a cube-sphere grid, and its surface curves away to a horizon so close you can walk round it in half a minute. Silence every beacon (red-eyed turrets that track you, fire bursts and rings of bolts, and launch pods, darts and black slab-shards from their hangars when they see you) and a black monolith gate rises from the rock on a column of light; step into it and a slit-scan star gate carries you to the next asteroid. Eight of them, among the moons of a ringed gas giant, toward the sun, ending at the Monolith itself behind its pylons' shield. Bolts fly great circles, so a shot can come round the rock behind you; dash through fire, grab repairs and weapon crystals, follow the edge arrows the shortest way round. A calm mission computer talks you through it. Hard sunlight and black shadows, a regolith of craters baked on the GPU per asteroid, a shader sky with three layers of stars, a galactic band and the gas giant traced as a lit sphere with its storm and ring, bloom and a 70 mm film grade; a drifting cluster score, a waltz on the title, and your own breathing in the helmet. Mouse and WASD, arrows, gamepad twin sticks or two touch sticks; Cadet and Commander difficulty; a bot plays whole campaigns in the tests to balance it.",
+        icon: '\uD83C\uDF11',
+        folder: 'game-117',
+        version: '1.0.0',
+        cssClass: 'perihelion',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83D\uDD79\uFE0F', label: 'Twin-stick shooter' },
+            { emoji: '\uD83E\uDE90', label: 'Spherical mazes' },
+            { emoji: '\uD83C\uDF9E\uFE0F', label: '1968 space film' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
+    },
+    {
+        id: 'game-118',
+        title: 'The Kids Table',
+        description: "A Thanksgiving merge game in three.js with no asset files, drawn in a warm autumn dining room seen from above. You are at the kids' table and Grandma says the big table is full this year, so you merge your way to a seat at it. Tap the Pumpkin Patch, the Craft Box and, as your table grows, the Turkey Coop and the Wheat Barrel to put items on a small 6 x 7 board, and drag two of the same together to make the next tier: a seed becomes a sprout, a mini pumpkin, a pumpkin, a pie and a blue-ribbon pie; an egg a chick, a poult, a gobbler with a full tail fan, a roast turkey and a feast platter; wheat a flour sack, dough, rolls, a bread basket and a cornucopia; a crayon a paper leaf, a place card, a handprint turkey, a pilgrim hat and a thankful tree. Guests with drawn faces sit down with orders (Grandma Rose, Pilgrim Pete, Tess the Turkey and five more), and you serve them by tapping their card or dragging a dish onto it for coins and stars. Stars buy a bigger table (the Card Table, the Dining Table, the Head of the Table) that uncovers more of the board and brings a new generator, and five courses of the Dinner Plan give you longer goals and an ending: finish them all and the kids are invited to the big table. It follows the merge-game rules the way a primer lays them out: generators are pieces you can move (generator zoning), a full board with nothing to merge is a board lock with a compost bin as the way out, top-tier items are orphans if you push past what anyone wants, and generators earn their charges back while you are away. Mouse, touch (the dish rides above your finger), keyboard or gamepad, a calm-motion setting, a warm procedural score, and a bot that plays whole dinners in the tests to balance it.",
+        icon: '\uD83E\uDD83',
+        folder: 'game-118',
+        version: '1.0.0',
+        cssClass: 'the-kids-table',
+        genre: 'puzzle',
+        tags: [
+            { emoji: '\uD83E\uDDE9', label: 'Merge puzzle' },
+            { emoji: '\uD83C\uDF83', label: 'Thanksgiving' },
+            { emoji: '\uD83D\uDCCB', label: 'Quests & goals' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
+    },
+    {
+        id: 'game-119',
+        title: "THE HERO'S MERCHANT",
+        description: "A travelling-merchant trading game in a painterly chibi HD-2D realm, in three.js with no asset files. You inherit your grandmother's handcart in the farming village of Hearthmere and set out across thirteen towns in five regions, buying where a thing is made and selling where it is wanted: every town has its own shops (a general store, a smithy, an apothecary, an outfitter, a jeweler, a trade exchange), each with its own prices that drift, react to festivals, blights, wars and fevers, and move when you trade. Your wagon is a grid inventory in the spirit of Resident Evil's attach\u00e9 case: items take rectangles you drag and turn, small goods stack, weight slows the road, you can favourite and junk-mark things, sort with one tap, and keep a vault at Guild Houses. Craft ten kinds of gear at ten levels in forges, tanneries, alchemists, jewelers and kitchens, sell to visiting heroes who pay a premium, and work through fifty-eight quests from notice boards, townsfolk and couriers. Merchant level opens new regions, better wagons and better recipes; the Hero, Kaelen Dawnward, turns up chapter by chapter, and at the end asks for the Ultimate Kit: a weapon, armor, helm, shield, boots, amulet, healing draught, elixir, rations and a camp kit. Offer him what you can make and be rated on the levels of the ten pieces, from Peddler to the Hero's Merchant. Painted chibi people with smooth ink outlines and dry-brush colour stand in lit 3D dioramas under a tilt-shift camera, with bloom, a day-and-night cycle and a world map you pan and pinch. Mouse, touch, keyboard or gamepad; a planning bot plays whole campaigns in the tests to balance the economy.",
+        icon: '\uD83D\uDED2',
+        folder: 'game-119',
+        version: '1.0.0',
+        cssClass: 'heros-merchant',
+        genre: 'strategy',
+        tags: [
+            { emoji: '\uD83C\uDF92', label: 'Inventory trading' },
+            { emoji: '\uD83D\uDDE1\uFE0F', label: 'Fantasy merchant' },
+            { emoji: '\uD83C\uDFA8', label: 'Painterly chibi HD-2D' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
+    },
+    {
+        id: 'game-120',
+        title: 'HEXAPOD RISING',
+        description: "A third-person mech shooter in three.js with no asset files. You pilot MITE, a puny six-legged survey walker, across six battle-scarred alien landscapes toward the Skarn main camp, to rescue the colonists they captured from the colony of Haven's Rest. The legs are a real inverse-kinematics rig: every foot plants on the terrain, steps in a tripod gait, and the hull tilts to the ground under it. The fields are generated, proved crossable for the weakest walker and shaped by craters, wrecks, spires, boulders and hazard pools of fire, acid, quicksand, black ice, lava and hive goo; rubble shorter than your legs' clearance is simply stepped over. Fight Skarn troopers, rocketeers, wasp drones, stalker walkers, bulwark tanks and turrets in camps and drop-pod ambushes, shoot open the orange pods to free their colonists, and jump the shockwaves. Five bosses with two to four phases each close five of the missions: the Gatekeeper tank, the artillery Siege Strider whose shell opens to expose its core, the burrowing Glacier Leviathan that erupts under you, the Cinder Titan fed by shield pylons while the arena floor turns to lava, and the four-phase Warlord with orbital strikes. After every mission the field hangar sells five upgrade tracks of six tiers (guns, missiles, armour, fuel, legs) and every upgrade makes the walker physically bigger, from a puny survey spider to a giant war machine. Explosions throw bouncing debris, fireballs, shockwave rings and scorch marks under bloom; the story runs by radio. Keyboard and mouse, touch twin-stick or gamepad, and a bot that plays the whole campaign in the tests to balance it.",
+        icon: '\uD83D\uDD77\uFE0F',
+        folder: 'game-120',
+        version: '1.0.3',
+        cssClass: 'hexapod-rising',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83E\uDD16', label: 'Mech shooter' },
+            { emoji: '\uD83D\uDC7E', label: 'Multi-phase bosses' },
+            { emoji: '\uD83D\uDCA5', label: 'Explosions & physics' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
+    },
+    {
+        id: 'game-121',
+        title: 'ARCANA WAGON',
+        description: "A first-person fortune-teller adventure in three.js with no asset files. You have inherited Madame Orla's plum-coloured wagon: sit at the round table under a velvet canopy as the people of Hollowmere come to your door, and read their fortunes. The crystal ball shows three visions (what was, what is, what comes) as a symbol in a colour; the symbol names the matter and the colour its tone. Some visions are clouded, so you must read the omens in the room (petals, a raven at the window, thunder, a gust through the journal), trust the client's own worry, or spend a Focus. Then lay three of twenty-two hand-drawn tarot cards, upright for a boon and reversed for a bane, and tell it plainly, gently or as a grand show to suit the guest. Every reading teaches you the language of the universe, written into a Codex, and raises you from Fledgling Seer to Arcanist Royal. Over seven days, the Second Prince comes to your wagon in secret: his father the King is wasting, and his brother Prince Aldric smiles too kindly. Gather five clues from a nervous cupbearer, a courier, a captain, an apothecary and a veiled lady, and give the Prince the grand reading on the eve of the Harvest Moon Fair. Four endings. Between readings you can study, or spend your evenings with one of three villagers: Elias the blacksmith-poet, Mirabel the sceptical apothecary or Wren the wandering minstrel, each with four evening scenes and a festival night. Keyboard, mouse, touch or gamepad, and a bot that plays the whole story in the tests.",
+        icon: '\uD83D\uDD2E',
+        folder: 'game-121',
+        version: '1.0.0',
+        cssClass: 'arcana-wagon',
+        genre: 'story',
+        tags: [
+            { emoji: '\uD83C\uDCCF', label: 'Tarot narrative' },
+            { emoji: '\uD83D\uDC98', label: 'Romance' },
+            { emoji: '\uD83D\uDC41\uFE0F', label: 'First person' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
+    },
+    {
+        id: 'game-122',
+        title: 'Rainglass',
+        description: "A cozy lo-fi game on a rainy night train, made for flow, focus and the small joy of finishing things. At every station the window is misted over: guide a single drop of rain across the glass to wipe it clear and see what is out there. Wiping fresh mist spends the drop's water, so roll over the rain beads that land on the glass to drink them up, or tap the glass to roll the near ones in; take on too much and the drop grows heavy, slides, and runs off the sill in a clean streak, and a fresh one beads at the top. Keep wiping and the music fills in around you: every patch of glass you clear plays a note on the beat, in key, over a swung lo-fi loop of soft electric piano, brushed drums, bass, tape wobble, vinyl crackle and rain. Each view hides three curios (a heron in the pond, a cat in a lit window, an owl in the pines, a whale's tail) written on the glass in handwriting as you uncover them. Clear most of the pane and the rest melts away, and the view becomes a postcard on the sill, with a gold seal if you spotted everything yourself. Eight stations from Willow Halt at dusk to Dawn Terminus at sunrise, then the train runs back round through the small hours with a rarer curio at each, until the album holds all thirty-two. No timer, nothing to lose. Every scene, drop and note is made in code.",
+        icon: '\uD83C\uDF27\uFE0F',
+        folder: 'game-122',
+        version: '1.0.0',
+        cssClass: 'rainglass',
+        genre: 'cozy',
+        tags: [
+            { emoji: '\uD83C\uDF75', label: 'Cozy lo-fi' },
+            { emoji: '\uD83D\uDCEE', label: 'Collection' },
+            { emoji: '\uD83E\uDDD8', label: 'Flow & focus' },
+            { emoji: '\uD83D\uDD8C\uFE0F', label: 'Canvas 2D' }
+        ]
+    },
+    {
+        id: 'game-123',
+        title: 'Atlas of Ink',
+        description: "A cartographer's commission game in Canvas 2D with no asset files. You are a mapmaker in a fantasy kingdom with a scrying quill, and the island is hidden: you chart it a disc at a time. Hold the scry key to focus and release to cast: standing still builds focus, moving bleeds it, and a steady cast is wide and true while a rushed one is small, smudged and blind to anything small (a town, an ore vein, a reef). Six clients hire you in a season, and each uses your map for real. Farmer Hobb ploughs where you say there are plains; the dwarf Brunna Deepdelve wants every ore vein found; Sir Kael follows the road your chart shows, swamps, fords and mountain passes included; Captain Mara steers by your sea lane and a reef you missed breaks her keel; Sister Ione wants every shrine; King Aldric wants his whole borderlands drawn true. Their journeys play out on your parchment (a walker or a ship tracing your route, a red X where the map lied) and you earn up to three stars and points for each, with ranks from Apprentice Scribe to Royal Cartographer. Every world is built from a seed (rivers, lakes, biomes, harbours, ruins, lane reefs) and every commission is proved solvable. Watercolour washes with hand-drawn mountains, trees, waves and inked coastlines; faded ink where you were unsure; a feather quill with a shaking spell edge; a title screen that charts a map by itself; a hum that rises with your focus and a quiet music box; keyboard, gamepad or touch.",
+        icon: '\uD83D\uDDFA\uFE0F',
+        folder: 'game-123',
+        version: '1.0.0',
+        cssClass: 'atlas-of-ink',
+        genre: 'rpg',
+        tags: [
+            { emoji: '\uD83E\uDDED', label: 'Cartography' },
+            { emoji: '\uD83E\uDEB6', label: 'Hold to focus' },
+            { emoji: '\uD83D\uDCDC', label: 'Commissions' },
+            { emoji: '\uD83D\uDD8C\uFE0F', label: 'Canvas 2D' }
+        ]
+    },
+    {
+        id: 'game-124',
+        title: 'Wrack & Wonder',
+        description: "A first-person survival and research adventure in three.js with no asset files. You wash up on a small island that hums, and you are about to become the first person in the world to learn magic, with nobody to teach you. In a hut on the bluff you find a stranger's home-made instruments: an alembic that boils a reagent down to what it carries, bells that ring sour between things that hate each other, and an orrery that knows the hour each power waxes. A spell is a line of glyphs (a ringed shape and one or two bare words, each fed a reagent), but which glyph means what, which end the shape goes on, what every reagent carries, which words are opposed and when each is strongest are all generated from the seed, so what you learned last life is only the method. Your notebook keeps nothing but evidence, with a logic grid for your own guesses. Survive cold nights and hunger, rescue Nib the goblin from cursed thorns, wake three standing stones in Whisperwood, Ember Fen and the Highmoor, then unweave the thornwall, walk across the black moat on frost and climb the keep on an updraft to free Elowen, the girl who built the hut and has hung inside one stopped moment for a year. She can feel you learning. Find her echoes by lantern-light at night, and the ending may be more than gratitude. Keyboard, mouse, touch or gamepad, and a bot that researches from its own notebook to finish the game in the tests.",
+        icon: '\uD83E\uDE84',
+        folder: 'game-124',
+        version: '1.0.0',
+        cssClass: 'wrack-and-wonder',
+        genre: 'rpg',
+        tags: [
+            { emoji: '\u2728', label: 'Seeded magic' },
+            { emoji: '\uD83D\uDD2C', label: 'Research' },
+            { emoji: '\uD83C\uDFDD\uFE0F', label: 'Survival' },
+            { emoji: '\uD83D\uDC98', label: 'Romance' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

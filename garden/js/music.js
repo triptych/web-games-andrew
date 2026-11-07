@@ -640,6 +640,61 @@ export class AudioEngine {
         [62, 69, 74, 78].forEach((n, i) => this._bell(midi(n + 12), t + 0.5 + i * 0.07, 0.04));
     }
 
+    // ------------------------------------------------------------- the galleon
+
+    /** Wind and water along the hull: 0 (moored) .. 1 (full sail). */
+    shipLevel(level) {
+        if (!this.ctx) return;
+        const ctx = this.ctx;
+        if (!this.shipBus) {
+            this.shipBus = ctx.createGain();
+            this.shipBus.gain.value = 0;
+            const src = ctx.createBufferSource();
+            src.buffer = this.noise;
+            src.loop = true;
+            this.shipFilter = ctx.createBiquadFilter();
+            this.shipFilter.type = 'bandpass';
+            this.shipFilter.frequency.value = 400;
+            this.shipFilter.Q.value = 0.7;
+            src.connect(this.shipFilter).connect(this.shipBus).connect(this.master);
+            src.start();
+        }
+        const t = ctx.currentTime;
+        this.shipBus.gain.setTargetAtTime(this.muted ? 0 : level * 0.2, t, 0.35);
+        this.shipFilter.frequency.setTargetAtTime(280 + level * 1000, t, 0.35);
+    }
+
+    /** Timber working in the swell: a slow groan that rises and falls. */
+    shipCreak(vol = 0.6) {
+        if (!this.ctx || this.muted) return;
+        const ctx = this.ctx, t = ctx.currentTime;
+        const o = ctx.createOscillator();
+        o.type = 'sawtooth';
+        const f0 = 52 + Math.random() * 46;
+        o.frequency.setValueAtTime(f0, t);
+        o.frequency.linearRampToValueAtTime(f0 * (1.25 + Math.random() * 0.4), t + 0.55);
+        o.frequency.linearRampToValueAtTime(f0 * 0.9, t + 1.1);
+        const bp = ctx.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.value = 260 + Math.random() * 200;
+        bp.Q.value = 7;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.07 * vol, t + 0.4);
+        g.gain.linearRampToValueAtTime(0, t + 1.2);
+        o.connect(bp).connect(g).connect(this.sfx);
+        o.start(t);
+        o.stop(t + 1.3);
+    }
+
+    /** The ship's bell: two slow strokes. */
+    shipBell() {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        this._bell(midi(57), t, 0.07);
+        this._bell(midi(64), t + 0.9, 0.06);
+    }
+
     sparkle() {
         if (!this.ctx) return;
         const t = this.ctx.currentTime;

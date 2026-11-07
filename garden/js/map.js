@@ -80,7 +80,7 @@ export class IslandMap {
         // paths
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        const lines = [...layout.spokes.map((s) => s.pts), layout.dock.pts, layout.trail.pts, layout.pier.trail.pts];
+        const lines = [...layout.spokes.map((s) => s.pts), layout.dock.pts, layout.trail.pts, layout.pier.trail.pts, layout.wharf.trail.pts];
         // the bridge out to the clock tower
         const br = layout.bridge;
         for (const [w, col] of [[3.6, 'rgba(40,30,20,0.7)'], [2.6, '#b9ad9c']]) {
@@ -118,6 +118,26 @@ export class IslandMap {
         ctx.moveTo(...toPx(pr.bx - pr.dx * 5, pr.bz - pr.dz * 5));
         ctx.lineTo(...toPx(pr.bx, pr.bz));
         ctx.stroke();
+        // the pirate wharf, with its ship lying along it
+        const wf = layout.wharf;
+        ctx.lineWidth = 6.4 * px;
+        ctx.beginPath();
+        ctx.moveTo(...toPx(wf.ax + wf.dx * wf.rampEnd, wf.az + wf.dz * wf.rampEnd));
+        ctx.lineTo(...toPx(wf.bx, wf.bz));
+        ctx.stroke();
+        ctx.lineWidth = 2.6 * px;
+        ctx.beginPath();
+        ctx.moveTo(...toPx(wf.ax, wf.az));
+        ctx.lineTo(...toPx(wf.ax + wf.dx * wf.rampEnd, wf.az + wf.dz * wf.rampEnd));
+        ctx.stroke();
+        ctx.fillStyle = '#3a2a32';
+        ctx.save();
+        ctx.translate(...toPx(wf.berth.x, wf.berth.z));
+        ctx.rotate(Math.atan2(wf.dz, wf.dx));
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 12.5 * px, 3.7 * px, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
         ctx.lineCap = 'round';
         // plazas
         const disc = (x, z, r, fill, stroke) => {
@@ -143,31 +163,57 @@ export class IslandMap {
         for (const st of this.world.statues) {
             disc(st.x, st.z, 1.3, genreOf(st.game).accent, 'rgba(30,20,10,0.9)');
         }
-        // labels
-        const label = (text, x, z, { size: fs = 15, color = '#2a1c0e', italic = false } = {}) => {
-            ctx.font = `${italic ? 'italic ' : ''}600 ${fs * (size / 720)}px "Cinzel", Georgia, serif`;
-            const [lx, ly] = toPx(x, z);
-            ctx.lineWidth = 4 * (size / 720);
+        // labels. Each one tries its anchor first, then spots around it (nearest
+        // first), and takes the first that clears every label already placed and
+        // every plaza, so names never print on top of each other.
+        const k = size / 720;
+        const placed = [];
+        const blockers = [{ x: 0, z: 0, r: 14.5 }, ...layout.spokes.map((sp) => ({ x: sp.pavilion.x, z: sp.pavilion.z, r: 9.3 }))]
+            .map((b) => { const [bx, by] = toPx(b.x, b.z); return { x: bx, y: by, r: b.r * px }; });
+        const hitsCircle = (r, b) => {
+            const nx = clamp(b.x, r.x0, r.x1), ny = clamp(b.y, r.y0, r.y1);
+            return Math.hypot(nx - b.x, ny - b.y) < b.r + 2 * k;
+        };
+        const overlaps = (a, b) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
+        const place = (text, x, z, { size: fs = 15, color = '#2a1c0e', italic = false } = {}) => {
+            ctx.font = `${italic ? 'italic ' : ''}600 ${fs * k}px "Cinzel", Georgia, serif`;
+            const w = ctx.measureText(text).width + 6 * k, h = fs * k * 1.45;
+            const [ax, ay] = toPx(x, z);
+            const rect = (cx, cy) => ({ x0: cx - w / 2, x1: cx + w / 2, y0: cy - h / 2, y1: cy + h / 2 });
+            const ok = (r) => r.x0 >= 2 && r.y0 >= 2 && r.x1 <= size - 2 && r.y1 <= size - 2
+                && !placed.some((q) => overlaps(r, q)) && !blockers.some((b) => hitsCircle(r, b));
+            let cx = ax, cy = ay, found = ok(rect(ax, ay));
+            for (let ring = 1; !found && ring <= 12; ring++) {
+                const d = ring * 5 * k;
+                for (let a = 0; a < 16 && !found; a++) {
+                    const ang = (a / 16) * Math.PI * 2;
+                    // prefer sliding sideways/below before jumping above
+                    const tx = ax + Math.cos(ang) * d * 1.6, ty = ay + Math.sin(ang) * d;
+                    if (ok(rect(tx, ty))) { cx = tx; cy = ty; found = true; }
+                }
+            }
+            placed.push(rect(cx, cy));
+            ctx.lineWidth = 4 * k;
             ctx.strokeStyle = 'rgba(250, 240, 215, 0.85)';
-            ctx.strokeText(text, lx, ly);
+            ctx.strokeText(text, cx, cy);
             ctx.fillStyle = color;
-            ctx.fillText(text, lx, ly);
+            ctx.fillText(text, cx, cy);
+            // the picker uses wherever the label really ended up
+            return { x: -R + (cx / size) * 2 * R, z: -R + (cy / size) * 2 * R };
         };
         this.places = [];
-        label('The Hub', 0, -17.5, { size: 15 });
-        this.places.push({ name: 'The Hub', x: 0, z: 0, stand: { x: 0, z: 8, yaw: 0 } });
+        // big names first so the small ones are the ones that give way
         for (const sp of layout.spokes) {
             const out = Math.hypot(sp.pavilion.x, sp.pavilion.z);
             const lx = sp.pavilion.x + (sp.pavilion.x / out) * 13, lz = sp.pavilion.z + (sp.pavilion.z / out) * 13;
-            label(`${sp.genre.emoji} ${sp.genre.short}`, lx, lz, { size: 14 });
-            this.places.push({ name: sp.genre.name, x: lx, z: lz, spoke: sp });
+            this.places.push({ name: sp.genre.name, ...place(`${sp.genre.emoji} ${sp.genre.short}`, lx, lz, { size: 14 }), spoke: sp });
         }
+        place('The Hub', 0, -17.5, { size: 15 });
+        this.places.push({ name: 'The Hub', x: 0, z: 0, stand: { x: 0, z: 8, yaw: 0 } });
         for (const lm of this.world.landmarks) {
-            label(lm.name, lm.x, lm.z + 6, { size: 11, italic: true, color: '#4a3418' });
-            this.places.push({ name: lm.name, x: lm.x, z: lm.z + 6, landmark: lm });
+            this.places.push({ name: lm.name, ...place(lm.name, lm.x, lm.z + 6, { size: 11, italic: true, color: '#4a3418' }), landmark: lm });
         }
-        label('The Dock', 7, layout.dock.end - 3, { size: 12, italic: true, color: '#4a3418' });
-        this.places.push({ name: 'The Dock', x: 7, z: layout.dock.end - 3, stand: { ...layout.spawn } });
+        this.places.push({ name: 'The Dock', ...place('The Dock', 7, layout.dock.end - 3, { size: 12, italic: true, color: '#4a3418' }), stand: { ...layout.spawn } });
         // compass rose
         const cs = size * 0.06, cx = size - cs * 1.6, cy = cs * 1.6;
         ctx.save();

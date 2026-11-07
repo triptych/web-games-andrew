@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hearthwick sprite gallery</title>
+<style>
+    body { margin: 0; background: #6b9a55; font: 12px system-ui, sans-serif; color: #2a1a10; }
+    h2 { margin: 10px 8px 2px; }
+    .row { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 8px; align-items: flex-end; }
+    .cell { text-align: center; }
+    .cell canvas { display: block; background: repeating-conic-gradient(#8bbf70 0 25%, #7fb565 0 50%) 0 0/16px 16px; }
+    .px canvas { image-rendering: pixelated; }
+</style>
+</head>
+<body>
+<div id="out"></div>
+<script type="module">
+import { BUILDINGS, BUILDING_IDS } from '../js/sim/data/buildings.js';
+import { paintBuilding, paintScaffold } from '../js/view/buildings.js';
+import { charStrip, heroLook, villagerLook, heroKey, villagerKey, FW, FH, FRAMES } from '../js/view/chars.js';
+import { tree, rock, plant, stump } from '../js/view/nature.js';
+const out = document.getElementById('out');
+const params = new URLSearchParams(location.search);
+const only = params.get('only');
+function section(t) { const h = document.createElement('h2'); h.textContent = t; out.appendChild(h); const r = document.createElement('div'); r.className = 'row'; out.appendChild(r); return r; }
+function cell(row, c, label, scale = 1, px = false) {
+    const d = document.createElement('div'); d.className = 'cell' + (px ? ' px' : '');
+    const k = document.createElement('canvas'); k.width = c.width * scale; k.height = c.height * scale;
+    const g = k.getContext('2d'); g.imageSmoothingEnabled = !px; g.drawImage(c, 0, 0, k.width, k.height);
+    d.appendChild(k); d.appendChild(document.createTextNode(label)); row.appendChild(d);
+}
+const types = BUILDING_IDS.filter((t) => !only || only.split(',').includes(t));
+for (const t of types) {
+    const row = section(BUILDINGS[t].title);
+    for (let lv = 1; lv <= BUILDINGS[t].maxLv; lv++) { const s = paintBuilding(t, lv); cell(row, s.c, `${t} L${lv}`); }
+}
+if (!only) {
+    const row = section('Under construction');
+    cell(row, paintScaffold(3, 2.4).c, 'scaffold 3x2'); cell(row, paintScaffold(2, 2).c, 'scaffold 2x2');
+    const hs = section('Heroes');
+    const mk = (cls, w, a, skin, hair, style) => ({ cls, look: { skin, hair, style }, w, a });
+    ['warrior', 'archer', 'mage', 'rogue', 'cleric'].forEach((cls, i) => {
+        for (const t of [0, 2, 4]) {
+            const h = { cls, look: { skin: i % 4, hair: (i * 2 + t) % 8, style: (i + t) % 4 } };
+            cell(hs, charStrip(heroKey(h, t, t, 0), heroLook(h, t, t, 0)), `${cls} T${t}`, 3, true);
+        }
+    });
+    const vs = section('Villagers');
+    for (let i = 0; i < 8; i++) {
+        const v = { look: { skin: i % 4, hair: i, style: i % 4, outfit: i % 6, hat: i % 4 }, job: i % 2 ? 1 : null, special: i === 6 ? 'brenna' : i === 7 ? 'thorne' : null };
+        cell(vs, charStrip(villagerKey(v), villagerLook(v, v.special)), `villager ${i}`, 3, true);
+    }
+    const ns = section('Nature');
+    for (let s = 0; s < 4; s++) for (let v = 0; v < 4; v++) cell(ns, tree(v, s).c, `tree ${v} s${s}`, 0.8);
+    for (let v = 0; v < 4; v++) cell(ns, rock(v, 0).c, `rock ${v}`);
+    cell(ns, rock(0, 3).c, 'rock snow'); cell(ns, stump().c, 'stump');
+    for (const k of ['bush', 'flax', 'herbp', 'mush']) { cell(ns, plant(k, true, 1).c, k); cell(ns, plant(k, false, 1).c, k + ' (picked)'); }
+}
+window.__done = true;
+</script>
+</body>
+</html>

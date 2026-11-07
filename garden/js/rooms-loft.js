@@ -65,7 +65,7 @@ float n(vec3 x) { vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
 void main() {
     vec3 p = normalize(vP) * 4.0;
     float g = n(p + uTime * 0.3) * 0.6 + n(p * 2.3 - uTime * 0.5) * 0.4;
-    float rim = pow(1.0 - abs(dot(normalize(vN), normalize(vV))), 2.0);
+    float rim = pow(clamp(1.0 - abs(dot(normalize(vN), normalize(vV))), 0.0, 1.0), 2.0);
     vec3 col = mix(vec3(1.0, 0.45, 0.08), vec3(1.0, 0.9, 0.5), g) * (1.6 + uHeat);
     col += vec3(1.0, 0.6, 0.2) * rim * 1.5;
     gl_FragColor = vec4(col, 1.0);

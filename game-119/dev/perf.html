@@ -1,0 +1,28 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>perf</title>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.165.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.165.0/examples/jsm/"}}</script>
+<style>html,body{margin:0;height:100%;background:#000} canvas{position:fixed;left:0;top:0}</style></head>
+<body><canvas id="c"></canvas>
+<script type="module">
+import { View } from '../js/view/view.js';
+import { newGame } from '../js/sim/game.js';
+const G = newGame(3);
+const v = new View(document.getElementById('c'));
+v.init(); G.hour = 11; v.setMode('map');
+v.mapCam.x = 14; v.mapCam.z = 55; v.mapCam.dist = 60;
+let time = 0;
+const gl = v.stage.renderer.getContext();
+const cost = (label) => { const a = performance.now(); for (let i = 0; i < 2; i++) { time += 0.016; v.frame(G, 0.016, time); { const px = new Uint8Array(4); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); } } console.log(label, Math.round((performance.now() - a) / 2), 'ms/frame'); };
+cost('warm'); cost('all');
+const w = v.world;
+console.log('low', v.stage.low);
+w.terrain.visible = false; cost('no terrain'); w.terrain.visible = true;
+w.shimmer.visible = false; cost('no shimmer'); w.shimmer.visible = true;
+for (const t of Object.values(w.towns)) t.mist.visible = false; cost('no mist');
+const sprites = []; w.scene.traverse((o) => { if (o.isMesh && o !== w.terrain && o !== w.shimmer) sprites.push(o); });
+console.log('sprites', sprites.length);
+sprites.forEach((o) => (o.visible = false)); cost('nothing but terrain'); sprites.forEach((o) => (o.visible = true));
+v.stage.composer.passes.forEach((p, i) => console.log('pass', i, p.constructor.name));
+v.stage.grade.enabled = false; cost('no grade'); v.stage.grade.enabled = true;
+window.__ready = true;
+</script></body></html>

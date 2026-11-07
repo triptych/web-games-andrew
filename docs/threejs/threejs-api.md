@@ -620,6 +620,18 @@ The view only moves `uOff` (in cells; the payline shows cell `uOff`): spin it at
 
 The sky is a full-screen triangle in its own scene with an orthographic camera, rendered by the first `RenderPass`; the game scene's `RenderPass` follows with `clear = false` and `clearDepth = true`. [backdrop.js](../../game-091/js/view/backdrop.js) draws an outrun horizon: a striped sun (`step(gap, fract(sy * 11.0 + t))` with the gap growing toward the bottom), a perspective grid floor (`z = k / (horizon - y)`, lines from `fwidth` so they stay one pixel wide), fbm nebula and hashed stars, with the palette lerped per sector. The view puts the horizon at the foot of the machine and the sun in the gap beside it when there is room.
 
+## A glowing cave seen from the inside (the garden's Glowing Well)
+
+The garden's well opens on a cave drawn from inside a deformed sphere (`garden/js/grotto-*.js`). What went wrong first, in the order it went wrong:
+
+- **Front faces must point out of the cave.** A cave is a closed surface seen from inside, so draw it with `side: THREE.BackSide`, and wind the triangles so their *front* faces point outward (outward normals, as on any sphere). If the winding is inverted the whole shell is culled from inside and you see only the clear colour; the raycaster is a quick check (`new Raycaster(centre, dir).intersectObject(mesh)` hits nothing).
+- **Ambient and hemisphere light are divided by π.** With physically correct lights (the default since r155) a surface of albedo 0.3 under `HemisphereLight(…, 1)` comes out near black. Rock that read as invisible needed an intensity several times higher, plus a small self-lit term (`totalEmissiveRadiance += diffuseColor.rgb * 0.08` in `onBeforeCompile`).
+- **`gl_PointSize` is in pixels, so scale it by the screen.** A point shader that does `size * uScale / distance` with `uScale` = half the canvas height wants `size` in *metres* (0.04 for a spore). Written as "pixels at one metre" (8 to 20) each spore covered the whole view and the cave was a white-out.
+- **Triplanar mapping, not UVs, for a dome.** A lat-long sphere's UVs pinch at the poles and seam at the back. Sample the texture three times from the world position, blended by `pow(abs(normal), 3)`.
+- **Cut holes in a shell in the fragment shader.** The shaft up through the ceiling and the sunken pool are `discard`s in the rock's shader (a circle in xz above a height / below a height), with the real shaft tube and basin mesh behind them; no boolean geometry.
+- **Glow that stays coloured.** If one vertex colour is both the lit albedo and the emissive colour, a bright pastel turns white under ACES and bloom. Darken the lit part (`diffuseColor.rgb *= 0.55`) and emit the original (`glowCol`), so a blue lamp stays blue; and keep emissive well under the bloom threshold's headroom (a ripe glowcap at 1.15 bloomed pleasantly, at 1.35 and 2.8 on its spots it turned white).
+- **Per-object uniforms with `onBeforeCompile`.** Give each plant its own material built from a shared factory with its own `uVital` uniform object (the same `customProgramCacheKey`); the compiled program is shared and each material keeps its own uniform values.
+
 ## Common gotchas
 
 - **A part that is tipped over and spun on the same mesh spins about the wrong axis** — a drill cone laid on its side with `rotation.z = -π/2` and spun with `rotation.y` swings round in a circle, because Euler angles apply in XYZ order: the spin turns about the parent's axis, not the tipped cone's. Put the tilt on a holder `Group` and spin only the child about its own axis (game-073 `js/view/rigmodel.js`). (Wheels rotated `x = π/2` and spun on `y` are fine for the same reason in reverse: Y is applied before X.)

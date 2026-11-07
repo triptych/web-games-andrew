@@ -230,6 +230,9 @@ kbd {
     -webkit-backdrop-filter: blur(4px);
 }
 .hud-btn span[aria-hidden] { font-size: 1.15rem; }
+/* Fixed-width clock: the HUD row is right-aligned, so a proportional-width digit
+   change ("11:11" -> "10:00") would otherwise nudge every button to its left. */
+.hud-clock #clock { display: inline-block; width: 5.2ch; text-align: center; white-space: nowrap; }
 .hud-btn:hover { border-color: var(--gold); background: rgba(30, 34, 56, 0.7); }
 .hud-btn .hud-count {
     min-width: 1.4em;
@@ -1016,6 +1019,56 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     .fh-arrow span { transition: none; }
 }
 
+/* ------------------------------------------------------------ the Glowing Well */
+
+.well-hud { border-color: rgba(138, 255, 200, 0.38); background: rgba(8, 24, 24, 0.6); }
+.well-hud .fh-label { color: #a8ffe0; }
+.wh-can { display: flex; align-items: center; gap: 10px; }
+.wh-icon { flex: none; font-size: 1.4rem; line-height: 1; filter: drop-shadow(0 0 6px rgba(120, 255, 220, 0.6)); }
+.wh-pips { display: flex; gap: 5px; margin-top: 4px; }
+.wh-pips i {
+    display: block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(138, 255, 200, 0.5);
+    background: transparent;
+    transition: background 0.25s, box-shadow 0.25s;
+}
+.wh-pips i.on { background: #7dffe0; box-shadow: 0 0 8px rgba(125, 255, 224, 0.9); }
+.wh-bag { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+.wh-bag li { display: flex; align-items: center; gap: 8px; }
+.wh-bag strong { font-size: 1rem; }
+.wh-ic { font-size: 1.15rem; line-height: 1; }
+.well-pop {
+    position: fixed;
+    z-index: 7;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(6, 22, 20, 0.78);
+    border: 1px solid var(--accent, #8affc8);
+    color: #f2fff8;
+    font: 600 0.95rem var(--display);
+    text-shadow: 0 0 10px var(--accent, #8affc8);
+    white-space: nowrap;
+    animation: well-pop 1.45s ease-out forwards;
+}
+@keyframes well-pop {
+    from { opacity: 0; transform: translate(-50%, -20%) scale(0.7); }
+    15% { opacity: 1; transform: translate(-50%, -60%) scale(1.05); }
+    to { opacity: 0; transform: translate(-50%, -220%) scale(1); }
+}
+@media (max-width: 560px) {
+    .well-hud { gap: 8px 14px; }
+    .wh-bag { grid-template-columns: repeat(4, auto); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .wh-pips i { transition: none; }
+    .well-pop { animation-duration: 0.01s; animation-delay: 1.2s; }
+}
+
 /* ------------------------------------------------------------ the Lighthouse Arcade */
 
 .bowl-hud { position: fixed; inset: 0; z-index: 7; pointer-events: none; font-family: "Press Start 2P", ui-monospace, monospace; }
@@ -1064,7 +1117,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 .bowl-hint { position: absolute; left: 50%; bottom: calc(76px + var(--safe-b)); transform: translateX(-50%); margin: 0; width: max-content; max-width: calc(100vw - 24px); padding: 6px 12px; border-radius: 8px; background: rgba(6, 3, 18, 0.7); color: #e8e4ff; font: 500 0.95rem var(--sans); text-align: center; }
 .bowl-hint:empty { display: none; }
 .bowl-pad { position: absolute; left: 50%; bottom: calc(16px + var(--safe-b)); transform: translateX(-50%); display: flex; gap: 10px; align-items: center; pointer-events: auto; }
-.bowl-btn { min-width: 52px; min-height: 48px; border-radius: 12px; border: 2px solid #30e8ff; background: rgba(6, 3, 18, 0.8); color: #30e8ff; font-size: 20px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+.bowl-btn { min-width: 52px; min-height: 48px; border-radius: 12px; border: 2px solid #30e8ff; background: rgba(6, 3, 18, 0.8); color: #30e8ff; font-size: 20px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .bowl-btn:active { background: rgba(48, 232, 255, 0.25); }
 .bowl-go { min-width: 92px; }
 .bowl-pad kbd { font-size: 0.7em; opacity: 0.7; }
@@ -1174,7 +1227,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 .claw-touch { display: none; }
 .claw-pad { position: absolute; left: 50%; bottom: calc(14px + var(--safe-b)); transform: translateX(-50%); display: flex; gap: 14px; align-items: center; pointer-events: auto; }
 .claw-dpad { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 40px); gap: 2px; }
-.claw-btn { border-radius: 10px; border: 2px solid #ff6ac0; background: rgba(6, 3, 18, 0.82); color: #ff6ac0; font-size: 16px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+.claw-btn { border-radius: 10px; border: 2px solid #ff6ac0; background: rgba(6, 3, 18, 0.82); color: #ff6ac0; font-size: 16px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .claw-btn:active { background: rgba(255, 106, 192, 0.28); }
 .cb-up { grid-area: 1 / 2; }
 .cb-left { grid-area: 2 / 1; }
@@ -1182,6 +1235,9 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 .cb-down { grid-area: 3 / 2; }
 .claw-go { min-width: 96px; min-height: 52px; font-size: 1.05rem; }
 .claw-pad kbd { font-size: 0.7em; opacity: 0.7; }
+.claw-pad .btn { touch-action: manipulation; }
+/* the garden's hints sit where the claw and bowling controls are, so they wait while you play */
+body:has(#claw-hud:not([hidden]), #bowl-hud:not([hidden])) .hint { opacity: 0; }
 .claw-card { z-index: 15; }
 .claw-card .ft-btns .btn { min-height: 40px; }
 @media (pointer: coarse) {
@@ -1302,3 +1358,53 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 @media (prefers-reduced-motion: reduce) {
     .kp-ok .kp-screen, .kp-bad .kp-screen { animation: none; }
 }
+
+/* ---- sailing the Black Nocturne ---- */
+.helm-hud {
+    position: fixed;
+    left: 50%;
+    bottom: calc(14px + var(--safe-b));
+    transform: translateX(-50%);
+    z-index: 7;
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    pointer-events: none;
+    width: min(94vw, 560px);
+}
+.helm-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 7px 16px;
+    border-radius: 999px;
+    background: rgba(18, 8, 14, 0.7);
+    border: 1px solid rgba(192, 64, 90, 0.55);
+    font: 600 0.98rem var(--display);
+    color: #f6dede;
+}
+.helm-speed { font-variant-numeric: tabular-nums; min-width: 3.4em; text-align: right; color: var(--gold-hi); }
+.helm-sails { width: 64px; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.15); overflow: hidden; }
+.helm-sails i { display: block; height: 100%; width: var(--sail, 0%); background: linear-gradient(90deg, #a3162a, #f3d999); transition: width 0.2s; }
+.helm-keys {
+    margin: 0;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(10, 13, 26, 0.6);
+    font-size: 0.95rem;
+    color: var(--ink-dim);
+    text-align: center;
+}
+.helm-keys kbd { margin: 0 2px; }
+.helm-pad { display: none; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; pointer-events: auto; }
+.helm-btn { min-width: 58px; min-height: 58px; font-size: 1.3rem; display: grid; place-items: center; line-height: 1; background: rgba(18, 8, 14, 0.8); border-color: #c0405a; touch-action: none; user-select: none; }
+.helm-btn small { font-size: 0.6rem; letter-spacing: 0.04em; }
+.helm-return { min-height: 44px; pointer-events: auto; }
+.helm-hud.auto .helm-btn { opacity: 0.35; }
+@media (pointer: coarse) {
+    .helm-pad { display: flex; }
+    .helm-keys { display: none; }
+}
+@media (pointer: fine) { .helm-pad { display: flex; } .helm-btn { display: none; } }
+body:has(#helm-hud:not([hidden])) .hint { bottom: auto; top: calc(64px + var(--safe-t)); }
+@media (max-height: 520px) { .helm-keys { display: none; } .helm-btn { min-width: 48px; min-height: 48px; } }

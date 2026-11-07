@@ -11,7 +11,9 @@
  *    décor, henchmen and schemes, heirlooms, mastery, trophies, relocation and perks.
  * 2b. match3: Skull Swap boards, swaps, specials, cobwebs, goals, stars, a balance table by level, and the grave's
  *    unlock, rewards, saves and relocation. Curl Up & Dye: the eighteen clients, wishes that can always be granted and
- *    never already are, stars, the paying-client wait, practice cuts, pay, trophies, saves and relocation.
+ *    never already are, stars, the paying-client wait, practice cuts, pay, trophies, saves and relocation. Rest in Paws:
+ *    adopting and swapping pets, feeding (favourites, a full pet), grooming, play and pats with their cooldowns, needs
+ *    that fade and halve the bonus, bond levels and what each pet does for the castle, trophies, saves and old saves.
  * 3. layout: minion slots never stand inside furniture (the real castle is checked in browsertest.mjs).
  * 3b. away: time away is the same rules at the offline rate, capped; a day simulates quickly.
  * 4. determinism: the same seed and commands give the same game; a save round trip mid-game plays on identically;
@@ -379,7 +381,7 @@ if (want('match3')) {
     ok(G.yard.open.skull && G.yard.m3.level === 2, 'relocating keeps the cemetery and your Skull Swap level');
     const oldSave = Gm.serialize(Gm.newGame(41)); delete oldSave.yard;
     ok(Gm.deserialize(oldSave).yard.m3.level === 1, 'a save from before the cemetery loads');
-    ok(D.GRAVES.filter((g) => !g.soon).length === 2 && D.GRAVES.length === 5, 'five graves, two with a game so far');
+    ok(D.GRAVES.filter((g) => !g.soon).length === 3 && D.GRAVES.length === 5, 'five graves, three with a game so far');
 
     section('Curl Up & Dye (the cemetery salon)');
     const S = await import('../js/sim/salon.js');
@@ -462,6 +464,113 @@ if (want('match3')) {
     ok(Gm.deserialize(oldS).yard.salon.wait === 0, 'a save from before the salon loads');
     Gm.act(G, { t: 'salonSeat', client: 'kitten' });
     ok(Gm.act(G, { t: 'salonLeave' }) && !G.yard.salon.appt, 'a client can be sent home unfinished');
+
+    section('Rest in Paws (the cemetery pet shelter)');
+    const PT = await import('../js/sim/pets.js');
+    ok(PT.PETS.length === 6 && PT.PETS.every((p) => PT.FOOD[p.fav]), 'six pets, each with a favourite food from the pantry');
+    ok(new Set(PT.PETS.map((p) => p.fx.k)).size === 6, 'and each helps the castle in a different way');
+    G = rich(50, 1e12, 1e5);
+    ok(!Gm.act(G, { t: 'petAdopt', id: 'cat' }), 'the shelter is closed at first');
+    Gm.act(G, { t: 'buy', id: 'imp', n: 29 }); Gm.step(G, 1);
+    ok(!G.yard.open.pets, '29 minions are not enough');
+    Gm.act(G, { t: 'buy', id: 'imp', n: 1 }); G.events.length = 0; Gm.step(G, 1);
+    ok(G.yard.open.pets && G.events.some((e) => e.type === 'graveOpen' && e.id === 'pets'), 'the 30th minion opens Rest in Paws, and says so');
+    ok(!Gm.act(G, { t: 'petAdopt', id: 'dragon' }), 'only pets from the shelter can be adopted');
+    ok(!Gm.act(G, { t: 'petCare', act: 'feed', food: 'fish' }), 'with no pet at home there is nobody to feed');
+    ok(Gm.mods(G).click === 1, 'no help with crafting before');
+    G.events.length = 0;
+    ok(Gm.act(G, { t: 'petAdopt', id: 'bunny', name: '  Buttons<script>  ' }) && G.yard.pets.active === 'bunny', 'adopting a bunny brings her home');
+    ok(G.yard.pets.name === 'Buttonsscript', `and names her, safely ("${G.yard.pets.name}")`);
+    ok(G.events.some((e) => e.type === 'petAdopt' && e.first), 'the first adoption is announced');
+    ok(PT.content(G.yard.pets) && PT.bondLevel(G.yard.pets.xp.bunny) === 1, 'a new pet is content, at bond level 1');
+    ok(near(Gm.mods(G).click, 1.15, 1e-3), `the bunny helps with crafting: ×${(Gm.mods(G).click).toFixed(3)}`);
+    const pt = G.yard.pets;
+    // feeding: the favourite fills more, a full pet won't eat
+    const f0 = pt.need.food;
+    ok(Gm.act(G, { t: 'petCare', act: 'feed', food: 'fish' }) && near(pt.need.food, f0 + PT.PET_TUNE.feed), 'any food fills her up a bit');
+    ok(Gm.act(G, { t: 'petCare', act: 'feed', food: 'carrot' }) && pt.need.food === 1, 'her favourite fills her more');
+    ok(!Gm.act(G, { t: 'petCare', act: 'feed', food: 'carrot' }), 'a full pet won’t eat');
+    ok(!Gm.act(G, { t: 'petCare', act: 'feed', food: 'gravel' }), 'and only real food goes in the bowl');
+    // grooming: only an improvement counts
+    const cl0 = pt.need.clean;
+    ok(!Gm.act(G, { t: 'petCare', act: 'groom', v: cl0 - 0.1 }), 'grooming that makes her no cleaner does nothing');
+    ok(Gm.act(G, { t: 'petCare', act: 'groom', v: 0.6 }) && near(pt.need.clean, 0.6), 'half-groomed counts for half');
+    ok(Gm.act(G, { t: 'petCare', act: 'groom', v: 7 }) && pt.need.clean === 1, 'and a nonsense report is clamped to spotless');
+    // play and pats have cooldowns
+    ok(Gm.act(G, { t: 'petCare', act: 'play' }), 'a toy caught');
+    ok(!Gm.act(G, { t: 'petCare', act: 'play' }), 'but not two in the same instant');
+    Gm.step(G, 1);
+    ok(Gm.act(G, { t: 'petCare', act: 'play' }), 'and another a moment later');
+    ok(Gm.act(G, { t: 'petCare', act: 'pat' }) && !Gm.act(G, { t: 'petCare', act: 'pat' }), 'a pat in the castle, now and then');
+    ok(!Gm.act(G, { t: 'petCare', act: 'juggle' }), 'unknown care does nothing');
+    // bond levels
+    pt.xp.bunny = PT.PET_TUNE.levels[0] - 0.5; G.events.length = 0;
+    Gm.step(G, 1); Gm.act(G, { t: 'petCare', act: 'play' });
+    ok(G.events.some((e) => e.type === 'petCare' && e.up && e.level === 2), 'care raises the bond a level, and says so');
+    ok(near(Gm.mods(G).click, 1.3, 1e-3), `and the bonus grows with it: ×${(Gm.mods(G).click).toFixed(3)}`);
+    // needs fade; a neglected pet gives half
+    G.events.length = 0;
+    for (let i = 0; i < 200; i++) Gm.step(G, 60);
+    ok(pt.need.food < 0.25 && G.events.some((e) => e.type === 'petNeed' && e.need === 'food'), 'hours later she is hungry, and says so once');
+    ok(G.events.filter((e) => e.type === 'petNeed' && e.need === 'food').length === 1, 'only once');
+    ok(!PT.content(pt), 'a pet whose needs run low isn’t content');
+    ok(near(Gm.mods(G).click, 1.15, 1e-3), `and helps only half as much: ×${(Gm.mods(G).click).toFixed(3)}`);
+    for (let i = 0; i < 2000; i++) Gm.step(G, 60);
+    ok(PT.NEEDS.every((k) => pt.need[k] === 0), 'needs bottom out at empty; nobody is lost');
+    // each pet's effect lands in the right place
+    const eff1 = { cat: (M) => M.vFreq, dog: (M) => M.cackle, bat: (M) => M.tribute, bunny: (M) => M.click, toad: (M) => M.decay, owl: (M) => M.all };
+    let allRight = true;
+    for (const p of PT.PETS) {
+        const g = Gm.newGame(3); g.yard.open.pets = 1; const b = eff1[p.id](Gm.mods(g));
+        Gm.act(g, { t: 'petAdopt', id: p.id });
+        g.yard.pets.xp[p.id] = 1e4; g.yard.pets.need = { food: 1, clean: 1, fun: 1 }; g._mods = null;
+        const want = 1 + p.fx.per * PT.MAX_LEVEL, got = eff1[p.id](Gm.mods(g)) / b;
+        if (!near(got, want, 1e-6)) { allRight = false; console.log(`    ${p.id}: ×${got} not ×${want}`); }
+    }
+    ok(allRight, 'at the top bond each pet gives its full bonus: visitors, cackles, tribute, crafting, slower decay, all charm');
+    // swapping keeps the bond
+    const bx = pt.xp.bunny;
+    ok(Gm.act(G, { t: 'petAdopt', id: 'owl' }) && pt.active === 'owl' && pt.xp.bunny === bx && pt.name === 'Professor Hoot', 'swapping pets keeps the bond with the one who goes back');
+    ok(!Gm.act(G, { t: 'petAdopt', id: 'owl' }), 'the pet at home can’t be adopted twice');
+    ok(Gm.act(G, { t: 'petName', name: 'Hootington' }) && pt.name === 'Hootington' && Gm.act(G, { t: 'petName', name: '   ' }) && pt.name === 'Professor Hoot', 'a pet can be renamed, and an empty name is their own');
+    ok(Gm.act(G, { t: 'petDress', acc: 'hat' }) && pt.acc === 'hat' && !Gm.act(G, { t: 'petDress', acc: 'saddle' }) && Gm.act(G, { t: 'petDress', acc: null }) && pt.acc === null, 'dressing up: a witch hat on, nothing silly, and off again');
+    Gm.step(G, 1);
+    ok(G.ach.pet0 === 1, 'adopting earns a trophy');
+    // saves
+    Gm.act(G, { t: 'petDress', acc: 'bow' });
+    const copyP = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(G))));
+    for (const g of [G, copyP]) { Gm.act(g, { t: 'petCare', act: 'feed', food: 'cookie' }); Gm.step(g, 30); Gm.act(g, { t: 'petCare', act: 'play' }); }
+    ok(JSON.stringify(copyP.yard.pets) === JSON.stringify(G.yard.pets) && near(Gm.rates(copyP).cps, Gm.rates(G).cps), 'a save with a pet at home plays on identically');
+    G.charmAll = 9e15; Gm.act(G, { t: 'relocate' });
+    ok(G.yard.pets.active === 'owl' && G.yard.pets.acc === 'bow' && G.yard.pets.xp.bunny === bx, 'relocating takes your pet along, and the shelter remembers everyone');
+    const oldP = Gm.serialize(Gm.newGame(43)); delete oldP.yard.pets;
+    ok(Gm.deserialize(oldP).yard.pets.active === null, 'a save from before the shelter loads');
+    const oddP = Gm.serialize(Gm.newGame(44)); oddP.yard.pets = { active: 'unicorn', xp: { cat: 5 } };
+    const gOdd = Gm.deserialize(oddP);
+    ok(gOdd.yard.pets.active === null && gOdd.yard.pets.xp.cat === 5 && gOdd.yard.pets.need.food === PT.PET_TUNE.start.food, 'a save with a pet that no longer exists loads without one, keeping the rest');
+    // while away, needs fade too
+    G.yard.pets.need = { food: 1, clean: 1, fun: 1 };
+    Gm.act(G, { t: 'idle', sec: 3600 });
+    ok(near(G.yard.pets.need.fun, 1 - 3600 / PT.PET_TUNE.fade.fun, 1e-3), 'time away makes a pet bored at the same pace');
+
+    section('the castle keeps quiet during a mini-game');
+    G = rich(40, 1e9, 0);
+    Gm.act(G, { t: 'buy', id: 'imp', n: 30 });
+    G.visitors.length = 0; G.nextVisit = 0.5; G.events.length = 0;
+    Gm.act(G, { t: 'hush', on: true });
+    const ch = G.charm;
+    for (let i = 0; i < 600; i++) Gm.step(G, 0.1);
+    ok(!G.visitors.length && !G.events.some((e) => e.type === 'visitor'), 'a minute in a mini-game: no visitors arrive');
+    ok(G.charm > ch, 'but the minions keep working');
+    Gm.act(G, { t: 'hush', on: false }); Gm.step(G, 1);
+    ok(G.visitors.length === 1, 'the next one comes once you are back');
+    const hero = G.visitors[0]; hero.kind = 'hero';
+    const dr = G.dread;
+    Gm.act(G, { t: 'hush', on: true });
+    for (let i = 0; i < 1200; i++) Gm.step(G, 0.1);
+    ok(G.visitors.includes(hero) && !G.events.some((e) => e.type === 'heroGossip') && G.stats.heroMiss === 0, 'a hero already at the gate waits instead of gossiping while you play');
+    ok(G.dread >= dr - 40, 'so no −15 dread behind your back');
+    ok(!('hush' in Gm.serialize(G)), 'and the hush is never saved');
 }
 
 if (want('away')) {

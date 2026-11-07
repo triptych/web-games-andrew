@@ -10,6 +10,7 @@ import { Input } from './input.js';
 import { UI } from './ui.js';
 import { M3View } from './m3view.js';
 import { SalonView } from './salonview.js';
+import { PetView } from './petview.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
 import { newGame, step, act, rates, roomOpen } from './sim/game.js';
 import { makeBot, botCommands, botShop } from './sim/bot.js';
@@ -44,6 +45,7 @@ const ui = new UI({
 });
 
 const salonview = new SalonView({ audio, send, sprites: view.sprites, onClose: () => ui.closeScreen('salon') });
+const petview = new PetView({ audio, send, sprites: view.sprites, onClose: () => ui.closeScreen('pets') });
 
 function applySettings() {
     audio.setVolumes(settings.sfx, settings.music);
@@ -130,6 +132,7 @@ function startGame(g, loaded = false) {
 
 function toTitle() {
     for (const id of [...ui.stack]) ui.closeScreen(id);
+    held.length = 0;
     mode = 'title';
     ui.showPlay(false);
     G = demoGame();
@@ -161,6 +164,7 @@ canvas.addEventListener('pointerdown', (e) => {
     }
     else if (hit.type === 'yard') { setOverview(false); setPlace('yard'); }
     else if (hit.type === 'grave') openGrave(hit.id);
+    else if (hit.type === 'pet') { view.petPat(); audio.pet?.('voice', G.yard.pets.active); send({ t: 'petCare', act: 'pat' }); }
     else send({ t: 'craft' });
 });
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -173,6 +177,7 @@ function openGrave(id) {
     if (g.soon || !G.yard.open[id]) { ui.graveHint(G, rates(G), id); return; }
     audio.ui('open');
     if (id === 'salon') { ui.openScreen('salon'); salonview.open(G); return; }
+    if (id === 'pets') { ui.openScreen('pets'); petview.open(G); return; }
     send({ t: 'm3start' }, (ok) => {
         if (!ok) return;
         m3view.setBoard(G.yard.m3.board);
@@ -222,7 +227,16 @@ function handleKeys() {
 }
 
 // ------------------------------------------------------------------ events
+// While a mini-game is open the castle keeps quiet: the sim holds its visitors (G.hush), and only the mini-game's own
+// events reach the sounds and the toasts. Trophies, heirlooms and newly opened graves wait until you come back.
+const MINIGAME = new Set(['m3', 'salon', 'pets']);
+const MINIGAME_EVENTS = new Set(['m3', 'm3end', 'm3board', 'salonSeat', 'salonEnd', 'petAdopt', 'petCare', 'petDress']);
+const LATER = new Set(['ach', 'heirloom', 'graveOpen']);
+const held = [];
+const inMinigame = () => MINIGAME.has(ui.top());
+
 function flushEvents() {
+    if (held.length && mode === 'play' && !inMinigame()) ui.onEvents(G, held.splice(0));
     if (!G.events.length) return;
     const ev = G.events.splice(0);
     for (const e of ev) seen[e.type] = (seen[e.type] || 0) + 1;
@@ -233,9 +247,16 @@ function flushEvents() {
         else if (e.type === 'salonEnd') salonview.onEnd(e);
     }
     if (mode !== 'play') return;
-    audio.onEvents(G, ev);
-    ui.onEvents(G, ev);
-    if (ev.some((e) => e.type === 'relocate' || e.type === 'decor' || e.type === 'perk')) saveGame(G);
+    if (inMinigame()) {
+        held.push(...ev.filter((e) => LATER.has(e.type)));
+        const own = ev.filter((e) => MINIGAME_EVENTS.has(e.type));
+        audio.onEvents(G, own);
+        ui.onEvents(G, own);
+    } else {
+        audio.onEvents(G, ev);
+        ui.onEvents(G, ev);
+    }
+    if (ev.some((e) => e.type === 'relocate' || e.type === 'decor' || e.type === 'perk' || e.type === 'petAdopt')) saveGame(G);
 }
 
 // ------------------------------------------------------------------ frame loop
@@ -248,6 +269,8 @@ function frame(now) {
     // a long stall (a hidden tab, a sleeping laptop) counts as time away
     if (mode === 'play' && gap > 2) send({ t: 'idle', sec: gap - dt });
     handleKeys();
+    const hush = mode === 'play' && inMinigame();
+    if (hush !== !!G.hush) act(G, { t: 'hush', on: hush });
     while (queue.length) {
         const { cmd, cb } = queue.shift();
         const ok = act(G, cmd);
@@ -276,6 +299,7 @@ function frame(now) {
     view.frame(G, dt, time);
     if (ui.top() === 'm3') m3view.frame(dt, time);
     if (ui.top() === 'salon') salonview.frame(dt, G);
+    if (ui.top() === 'pets') petview.frame(dt, G);
     const R = rates(G);
     if (mode === 'play') ui.update(G, R, dt);
     layoutT -= dt;
@@ -309,7 +333,7 @@ if (DEBUG) {
         save: () => saveGame(G),
         hasSave,
         rates: () => rates(G),
-        m3view, salonview, openGrave,
+        m3view, salonview, petview, openGrave, held,
         get place() { return place; },
         setPlace,
         MINIONS,

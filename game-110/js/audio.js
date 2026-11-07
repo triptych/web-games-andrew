@@ -109,6 +109,29 @@ export class Audio {
         else this.tone({ freq: 1046, to: 1318, dur: 0.08, type: 'triangle', vol: 0.08 });
     }
 
+    /** Rest in Paws: each pet's voice, and the little sounds of looking after one. */
+    pet(kind, id) {
+        if (kind === 'voice' || kind === 'adopt') {
+            if (id === 'cat') { this.tone({ freq: 700, to: 1100, dur: 0.16, type: 'sine', vol: 0.12 }); this.tone({ freq: 1100, to: 650, dur: 0.26, type: 'sine', vol: 0.1, delay: 0.16 }); }
+            else if (id === 'dog') { this.tone({ freq: 520, to: 340, dur: 0.08, type: 'square', vol: 0.07 }); this.tone({ freq: 560, to: 360, dur: 0.09, type: 'square', vol: 0.07, delay: 0.13 }); }
+            else if (id === 'bat') { this.tone({ freq: 2400, to: 3000, dur: 0.05, type: 'sine', vol: 0.06 }); this.tone({ freq: 2600, to: 3300, dur: 0.05, type: 'sine', vol: 0.06, delay: 0.08 }); }
+            else if (id === 'bunny') this.tone({ freq: 880, to: 1320, dur: 0.1, type: 'sine', vol: 0.1 });
+            else if (id === 'toad') { this.tone({ freq: 130, to: 95, dur: 0.22, type: 'sawtooth', vol: 0.08 }); this.noise({ dur: 0.18, vol: 0.05, freq: 400, type: 'bandpass', q: 4 }); }
+            else { this.tone({ freq: 440, to: 400, dur: 0.22, type: 'sine', vol: 0.12, verb: 0.4 }); this.tone({ freq: 400, to: 370, dur: 0.3, type: 'sine', vol: 0.12, delay: 0.28, verb: 0.4 }); }
+            if (kind === 'adopt') [0, 4, 7, 12].forEach((s, i) => this.tone({ freq: mtof(76 + s), dur: 0.2, type: 'triangle', vol: 0.08, delay: 0.5 + i * 0.07, verb: 0.5 }));
+        } else if (kind === 'munch') this.noise({ dur: 0.05, vol: 0.1, freq: 1400 + Math.random() * 800, type: 'bandpass', q: 2 });
+        else if (kind === 'drop') { this.tone({ freq: 1200, to: 900, dur: 0.06, type: 'triangle', vol: 0.08 }); this.noise({ dur: 0.08, vol: 0.06, freq: 3000, type: 'highpass', delay: 0.05 }); }
+        else if (kind === 'brush') this.noise({ dur: 0.06, vol: 0.06, freq: 4000, type: 'bandpass', q: 2 });
+        else if (kind === 'squeak') this.tone({ freq: 1500 + Math.random() * 400, to: 2100, dur: 0.05, type: 'sine', vol: 0.05 });
+        else if (kind === 'water') this.noise({ dur: 0.14, vol: 0.07, freq: 2500, to: 1800, type: 'bandpass', q: 0.8 });
+        else if (kind === 'purr') this.noise({ dur: 0.4, vol: 0.06, freq: 160, type: 'lowpass', q: 3 });
+        else if (kind === 'toss') this.tone({ freq: 400, to: 900, dur: 0.12, type: 'triangle', vol: 0.07 });
+        else if (kind === 'bounce') this.tone({ freq: 300, to: 200, dur: 0.05, type: 'sine', vol: 0.08 });
+        else if (kind === 'catch') { [0, 4, 7].forEach((s, i) => this.tone({ freq: mtof(81 + s), dur: 0.08, type: 'square', vol: 0.05, delay: i * 0.05 })); this.pet('voice', id); }
+        else if (kind === 'yay') [0, 4, 7, 12, 16].forEach((s, i) => this.tone({ freq: mtof(76 + s), dur: 0.16, type: 'triangle', vol: 0.08, delay: i * 0.06, verb: 0.4 }));
+        else this.tone({ freq: 1046, to: 1318, dur: 0.08, type: 'triangle', vol: 0.08 });
+    }
+
     /** Skull Swap, played by the board as each beat happens. */
     m3(kind, chain = 1, fired = 0) {
         if (kind === 'swap') this.tone({ freq: 520, to: 700, dur: 0.07, type: 'triangle', vol: 0.1 });
@@ -190,6 +213,8 @@ export class Audio {
                     else [0, -2, -5].forEach((s, i) => this.tone({ freq: mtof(64 + s), dur: 0.3, type: 'triangle', vol: 0.1, delay: i * 0.22 }));
                     if (e.won && e.gold) this.coin(0.5);
                     break;
+                case 'petCare': if (e.up) [0, 4, 7, 12, 16, 19, 24].forEach((s, i) => this.tone({ freq: mtof(72 + s), dur: 0.25, type: 'sine', vol: 0.08, delay: i * 0.07, verb: 0.6 })); break;
+                case 'petNeed': this.pet('voice', e.id); break;
                 case 'perk': [0, 7, 12].forEach((s, i) => this.tone({ freq: mtof(67 + s), dur: 0.3, type: 'sine', vol: 0.12, delay: i * 0.08, verb: 0.6 })); break;
                 case 'room': this.noise({ dur: 0.35, vol: 0.12, freq: 400, to: 2400, type: 'bandpass', q: 2 }); break;
                 default: break;

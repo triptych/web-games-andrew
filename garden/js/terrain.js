@@ -25,6 +25,10 @@ export const HUB_Y = lowGround(0, 0) + 0.3;
 const PIER_Y = 1.55;      // the fishing pier's deck, a little above the dock's
 const PIER_SLOPE = 0.22;  // how steeply its gangway comes down from the shore
 const ISLET_R = 11;
+// the pirate wharf below the Delvers' Descent: a wide deck on pilings with a galleon moored along it
+// the paved apron round the glowing well beside the Hearthgarden pavilion
+export const WELL_APRON = 3.4;
+export const WHARF = { y: 2.0, slope: 0.2, half: 3.2, ramp: 2.1, head: 5.2, berthLx: 7.5, shipLen: 25, bowRoom: 3, tail: 1.6, headLen: 7 };
 
 /** Uniform-grid index of line segments for nearest-path queries. */
 class SegmentGrid {
@@ -95,6 +99,8 @@ export class Island {
         L.islet = { x: Math.sin(a) * r, z: Math.cos(a) * r, r: ISLET_R };
         this._isletCrossing();
         this._fishingPier();
+        this._pirateWharf();
+        this._gardenWell();
 
         // fine segments for flattening, carrying their heights
         this.paths = new SegmentGrid(12);
@@ -108,6 +114,7 @@ export class Island {
         addLine(L.dock.pts, 3);
         addLine(L.trail.pts, 3);
         addLine(L.pier.trail.pts, 2);
+        addLine(L.wharf.trail.pts, 2);
 
         this.plazas = [{ x: 0, z: 0, r: PLAZA_R + 0.5, y: HUB_Y, fall: 9 }];
         for (const sp of L.spokes) this.plazas.push({ x: sp.pavilion.x, z: sp.pavilion.z, r: PAVILION_PLAZA + 0.3, y: sp.pavilion.y, fall: 7 });
@@ -120,6 +127,8 @@ export class Island {
             if (f.type === 'carousel') this.plazas.push({ x: f.x, z: f.z, r: 9.6, y: lowGround(f.x, f.z) + 0.3, fall: 7 });
         }
         this.plazas.push({ x: L.islet.x, z: L.islet.z, r: 6.2, y: L.islet.y, fall: 2.5 });
+        // the well beside the Hearthgarden: its paved apron is level with the pavilion's plaza
+        if (L.well) this.plazas.push({ x: L.well.x, z: L.well.z, r: WELL_APRON + 0.3, y: L.well.y, fall: 5 });
 
     }
 
@@ -208,6 +217,95 @@ export class Island {
             ax: pv.x + dx * s1, az: pv.z + dz * s1, ay, y: PIER_Y, slope: PIER_SLOPE, length,
             bx: pv.x + dx * (s1 + length), bz: pv.z + dz * (s1 + length),
         };
+    }
+
+
+    /**
+     * The pirate wharf, off the end of the Delvers' Descent: a trail from the
+     * pavilion to the cliff and a wide deck on pilings out over deep water, long
+     * enough for a galleon to lie along it, bow to the shore.
+     */
+    _pirateWharf() {
+        const L = this.layout;
+        const sp = L.spokes.find((s) => s.genre.id === 'dungeon') || L.spokes.filter((s) => s !== L.pier.spoke).reduce((a, b) => (b.length > a.length ? b : a));
+        const pv = sp.pavilion;
+        const l = Math.hypot(pv.x, pv.z) || 1;
+        const dx = pv.x / l, dz = pv.z / l;
+        let shore = PAVILION_PLAZA;
+        while (this.coast(pv.x + dx * shore, pv.z + dz * shore) < 0 && shore < 150) shore += 0.25;
+        const s0 = PAVILION_PLAZA - 0.5;
+        const s1 = Math.max(s0 + 2, shore - 6);
+        const W = WHARF;
+        const ay = Math.max(W.y + 0.3, pv.y - (s1 - s0) * 0.2);
+        const pts = [];
+        const n = Math.ceil((s1 - s0) / 0.5);
+        for (let i = 0; i <= n; i++) {
+            const s = s0 + ((s1 - s0) * i) / n;
+            pts.push({ x: pv.x + dx * s, z: pv.z + dz * s, s: s - s0, y: lerp(pv.y, ay, smoothstep(0, 1, i / n)) });
+        }
+        const ramp = (ay - W.y) / W.slope;
+        // the ship lies along the flat part: bow room, its length, a tail, then the head of the wharf
+        const shipC = ramp + W.ramp + W.bowRoom + W.shipLen / 2;
+        const headStart = ramp + W.ramp + W.bowRoom + W.shipLen + W.tail;
+        const length = headStart + W.headLen;
+        const ax = pv.x + dx * s1, az = pv.z + dz * s1;
+        // wharf coordinates: lz runs out to sea, lx across (+x on the left looking out, the ship's side)
+        const toW = (lx, lz) => ({ x: ax + dx * lz + dz * lx, z: az + dz * lz - dx * lx });
+        const c = toW(W.berthLx, shipC);
+        L.wharf = {
+            spoke: sp, dx, dz, trail: { pts, length: s1 - s0 }, ax, az, ay, y: W.y, slope: W.slope, length, ramp, rampEnd: ramp + W.ramp,
+            headStart, shipC, toW,
+            bx: pv.x + dx * (s1 + length), bz: pv.z + dz * (s1 + length),
+            // the ship lies bow to the shore: heading against the wharf's outward direction
+            berth: { x: c.x, z: c.z, yaw: Math.atan2(dx, dz) },
+        };
+    }
+
+    /**
+     * The glowing well, a few metres past the edge of the Hearthgarden's plaza
+     * (the cozy & sims pavilion): a stone well on a paved apron level with the
+     * plaza. It takes the first spot, beside the pavilion and a little way out,
+     * that is clear of the paths, the set pieces, the trails and the shore, and
+     * holds a patch of land for itself so a ragged coast can't take it.
+     */
+    _gardenWell() {
+        const L = this.layout;
+        const sp = L.spokes.find((s) => s.genre.id === 'cozy') || L.spokes[L.spokes.length - 1];
+        if (!sp) return;
+        const pv = sp.pavilion;
+        const out = Math.atan2(pv.x, pv.z);          // away from the hub
+        const D = PAVILION_PLAZA + WELL_APRON + 1.6;
+        const clear = (x, z) => {
+            if (this.coast(x, z) > -9) return false;
+            // every path: keep the apron, the well and room to walk round it off them
+            for (const s of L.spokes) for (const p of s.pts) if (Math.hypot(x - p.x, z - p.z) < PATH_HALF + WELL_APRON + 1.5) return false;
+            for (const p of L.dock.pts) if (Math.hypot(x - p.x, z - p.z) < PATH_HALF + WELL_APRON + 1.5) return false;
+            for (const s of L.spokes) {
+                if (s !== sp && Math.hypot(x - s.pavilion.x, z - s.pavilion.z) < PAVILION_PLAZA + WELL_APRON + 3) return false;
+                if (s.statues.some((st) => Math.hypot(x - st.x, z - st.z) < WELL_APRON + 4)) return false;
+                if (s.lamps.some((l) => Math.hypot(x - l.x, z - l.z) < WELL_APRON + 2)) return false;
+            }
+            for (const f of L.features) if (f.type !== 'grove' && Math.hypot(x - f.x, z - f.z) < 22) return false;
+            for (const t of [L.trail, L.pier.trail, L.wharf.trail]) for (const p of t.pts) if (Math.hypot(x - p.x, z - p.z) < WELL_APRON + 3) return false;
+            return !(L.islet && Math.hypot(x - L.islet.x, z - L.islet.z) < 20);
+        };
+        // beside the pavilion first (either hand), then round the back, then further out
+        let best = null;
+        for (const dist of [D, D + 2, D + 4, D + 7]) {
+            for (const off of [75, -75, 105, -105, 50, -50, 135, -135, 25, -25, 0, 160, -160]) {
+                const a = out + (off * Math.PI) / 180;
+                const x = pv.x + Math.sin(a) * dist, z = pv.z + Math.cos(a) * dist;
+                if (clear(x, z)) {
+                    best = { x, z, a };
+                    break;
+                }
+            }
+            if (best) break;
+        }
+        if (!best) return;
+        // the doorway side faces the pavilion's plaza, where people come from
+        L.well = { x: best.x, z: best.z, y: pv.y, r: WELL_APRON, face: Math.atan2(pv.x - best.x, pv.z - best.z), spoke: sp };
+        this.capsules.push({ ax: best.x, az: best.z, bx: best.x, bz: best.z, ra: WELL_APRON + 8, rb: 0 });
     }
 
     /** Coastline distance without the islet (negative on land). */

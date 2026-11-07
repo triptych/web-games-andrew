@@ -273,12 +273,16 @@ export class Robot {
 uniform float uTime; uniform float uAmount; varying vec3 vW; varying vec3 vN; varying float vH;
 void main() {
     vec3 v = normalize(cameraPosition - vW);
-    float rim = pow(1.0 - abs(dot(v, vN)), 1.6);
-    float a = (1.0 - vH) * (1.0 - vH) * (0.35 + 0.65 * rim);
+    // clamped: rounding can push |dot| a hair past 1, and pow() of a negative base is NaN on Direct3D,
+    // which the bloom pass then smears into a black block over the whole view
+    float rim = pow(clamp(1.0 - abs(dot(v, normalize(vN))), 0.0, 1.0), 1.6);
+    float a = clamp(1.0 - vH, 0.0, 1.0);
+    a *= a * (0.35 + 0.65 * rim);
     float wav = 0.75 + 0.25 * sin(vH * 30.0 - uTime * 1.6 + atan(vW.z, vW.x) * 5.0);
     float d = distance(cameraPosition.xz, vW.xz);
     a *= wav * smoothstep(8.0, 60.0, d) * uAmount;
     gl_FragColor = vec4(vec3(0.3, 1.0, 0.82) * a * 0.22, 1.0);
+    if (any(isnan(gl_FragColor)) || any(isinf(gl_FragColor))) gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }`,
             transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
         }));

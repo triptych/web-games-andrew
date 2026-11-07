@@ -205,6 +205,10 @@ export class Controls {
             }
         };
         const angleOf = (li) => Math.atan2(lines[li][3].x, lines[li][3].z);
+        // close by and in plain sight: walk straight there, not out to the paths and back
+        // (clicking a door you stand in front of used to send you 16 m to the path and back)
+        const nav = this.world.nav, direct = Math.hypot(tx - this.pos.x, tz - this.pos.z);
+        if (nav && direct < 30 && nav.clear(this.pos.x, this.pos.z, tx, tz)) return [{ x: tx, z: tz }];
         if (!from.hub && from.d > 2.5) pts.push({ x: from.x, z: from.z });
         if (!from.hub && !to.hub && from.li === to.li) {
             along(from.li, from.s, to.s);

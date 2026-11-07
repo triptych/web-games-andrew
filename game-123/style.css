@@ -1,0 +1,139 @@
+/* Atlas of Ink. Phone first: everything fits 360 px wide. */
+:root {
+    --bg: #1b1410;
+    --panel: rgba(36, 26, 18, 0.95);
+    --line: rgba(232, 200, 140, 0.28);
+    --text: #f4e8d0;
+    --dim: #b9a583;
+    --accent: #e0b050;
+    --ink: #3a2412;
+    --bad: #e0715a;
+    --serif: 'IM Fell English', Georgia, 'Times New Roman', serif;
+    --hand: 'Caveat', 'Segoe Script', 'Bradley Hand', cursive;
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-l: env(safe-area-inset-left, 0px);
+    --safe-r: env(safe-area-inset-right, 0px);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--bg); color: var(--text);
+    font-family: var(--serif);
+    overflow: hidden; overscroll-behavior: none;
+    user-select: none; -webkit-user-select: none;
+}
+[hidden] { display: none !important; }
+
+/* The view sizes the canvas in px from JS. Never 100vw/100vh: on phones 100vh is taller than
+   the visible area, and the picture sits lower than the fingers that steer it. */
+#view { position: fixed; left: 0; top: 0; display: block; touch-action: none; }
+
+#back-link {
+    position: fixed; top: calc(8px + var(--safe-t)); left: calc(8px + var(--safe-l)); z-index: 99999;
+    font: 13px Arial, Helvetica, sans-serif; color: #fff; text-decoration: none;
+    background: rgba(0, 0, 0, 0.55); padding: 6px 12px; border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+#back-link:hover { background: rgba(0, 0, 0, 0.8); }
+
+/* ---------------------------------------------------------------- buttons */
+.btn, .ibtn, .tbtn {
+    font: inherit; color: var(--text); cursor: pointer;
+    min-height: 44px; min-width: 44px;           /* finger-sized */
+    border: 1px solid var(--line); border-radius: 10px;
+    background: rgba(255, 240, 210, 0.08);
+}
+.btn { padding: 10px 18px; font-size: 18px; }
+.btn.primary { background: var(--accent); color: #231606; border-color: transparent; font-weight: 700; }
+.btn.danger { border-color: var(--bad); color: #f2b8aa; }
+.btn:hover, .ibtn:hover { filter: brightness(1.12); }
+.btn:focus-visible, .ibtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ibtn.txt { padding: 0 10px; font-size: 14px; }
+
+/* ---------------------------------------------------------------- HUD */
+#hud {
+    position: fixed; z-index: 10; pointer-events: none;
+    top: calc(8px + var(--safe-t)); right: calc(8px + var(--safe-r)); left: calc(104px + var(--safe-l));
+    display: flex; justify-content: flex-end; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 18px; text-shadow: 0 1px 3px #000, 0 0 6px #000;
+}
+#hud .ibtn { pointer-events: auto; background: rgba(20, 14, 10, 0.7); }
+#hud-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--hand); font-size: 22px; text-align: right; }
+#hud-found { flex: none; color: var(--accent); font-size: 15px; }
+#hud-time { flex: none; min-width: 2.2em; text-align: center; font-variant-numeric: tabular-nums; background: rgba(20, 14, 10, 0.7); border: 1px solid var(--line); border-radius: 10px; padding: 8px 6px; }
+#hud-time.low { color: var(--bad); animation: pulse 0.8s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.12); } }
+
+/* ---------------------------------------------------------------- touch deck */
+#touch { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+#stick-zone { position: absolute; left: 0; bottom: 0; width: 50%; height: 60%; pointer-events: auto; touch-action: none; }
+#stick { position: absolute; width: 0; height: 0; opacity: 0.35; left: 90px; bottom: 120px; }
+#stick.on { opacity: 0.9; }
+#stick .ring { position: absolute; width: 120px; height: 120px; left: -60px; top: -60px; border-radius: 50%; border: 2px solid rgba(255, 240, 210, 0.5); }
+#stick .knob { position: absolute; width: 54px; height: 54px; left: -27px; top: -27px; border-radius: 50%; background: rgba(255, 240, 210, 0.55); }
+.tbtn {
+    position: absolute; pointer-events: auto; touch-action: none;
+    right: calc(24px + var(--safe-r)); bottom: calc(40px + var(--safe-b));
+    width: 84px; height: 84px; border-radius: 50%; font-size: 17px; font-weight: 700; letter-spacing: 0.06em;
+    background: rgba(224, 176, 80, 0.38); border-color: rgba(224, 176, 80, 0.8);
+}
+.tbtn:active, .tbtn.down { background: rgba(224, 176, 80, 0.75); }
+.tbtn.small { width: 56px; height: 56px; font-size: 24px; right: calc(124px + var(--safe-r)); bottom: calc(40px + var(--safe-b)); background: rgba(255, 240, 210, 0.16); border-color: var(--line); }
+
+/* ---------------------------------------------------------------- screens */
+.screen {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    /* top padding clears the fixed back link, so a scrolled button never sits under it */
+    padding: calc(52px + var(--safe-t)) calc(12px + var(--safe-r)) calc(12px + var(--safe-b)) calc(12px + var(--safe-l));
+    background: rgba(12, 8, 5, 0.5); overflow-y: auto;
+}
+.sheet {
+    width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+    scrollbar-width: thin; scrollbar-color: rgba(224, 176, 80, 0.5) transparent;
+}
+.sheet::-webkit-scrollbar { width: 10px; }
+.sheet::-webkit-scrollbar-track { background: transparent; margin: 14px 0; }
+.sheet::-webkit-scrollbar-thumb { background: rgba(224, 176, 80, 0.45); border-radius: 6px; border: 2px solid transparent; background-clip: padding-box; }
+.sheet h1, .sheet h2 { margin: 0 0 10px; font-weight: 400; }
+.sheet p { line-height: 1.45; margin: 0 0 10px; }
+.logo { font-size: clamp(36px, 10vw, 60px); text-align: center; color: var(--accent); letter-spacing: 0.03em; font-style: italic; }
+.tag { text-align: center; color: var(--dim); font-family: var(--hand); font-size: 24px; margin-bottom: 14px !important; }
+.menu { display: flex; flex-direction: column; gap: 10px; }
+.sheet-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; }
+.version, .best { text-align: center; color: var(--dim); font-size: 13px; margin-top: 12px; }
+.dim { color: var(--dim); }
+table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+td { padding: 6px 4px; border-bottom: 1px solid var(--line); }
+td:first-child { color: var(--accent); white-space: nowrap; }
+
+.client { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.client .emoji { font-size: 38px; line-height: 1; }
+.client .cname { font-size: 20px; }
+.client .count { margin-left: auto; color: var(--dim); font-size: 14px; }
+blockquote { margin: 0 0 10px; padding: 4px 0 4px 12px; border-left: 3px solid var(--accent); font-family: var(--hand); font-size: 23px; line-height: 1.2; }
+.facts { color: var(--accent); font-size: 15px; }
+.stars { font-size: 44px; text-align: center; letter-spacing: 0.1em; color: var(--accent); }
+.stars .off { color: rgba(255, 240, 210, 0.2); }
+#result-heading { text-align: center; font-size: 22px; }
+#result-lines { margin: 0 0 8px; padding-left: 20px; line-height: 1.5; }
+.pts { text-align: center; color: var(--accent); font-size: 20px; }
+.rank { font-family: var(--hand); font-size: 36px; text-align: center; color: var(--accent); line-height: 1.1; margin-bottom: 8px; }
+#over-list { margin: 0; padding-left: 22px; line-height: 1.6; }
+
+#toasts { position: fixed; left: 50%; bottom: calc(16px + var(--safe-b)); transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.toast { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; animation: toast 2.4s forwards; }
+@keyframes toast { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+.noscript { position: fixed; inset: 0; display: grid; place-items: center; }
+
+@media (max-height: 460px) {
+    .sheet { padding: 12px 16px; }
+    blockquote { font-size: 20px; }
+}
+
+/* the result sits low, so the client's journey stays visible on the map above it */
+#result { align-items: flex-end; background: rgba(12, 8, 5, 0.12); }

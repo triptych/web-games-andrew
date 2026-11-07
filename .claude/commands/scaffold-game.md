@@ -630,7 +630,8 @@ export class Input {
 
         window.addEventListener('keydown', (e) => {
             const tag = e.target?.tagName;
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+            // a slider or a select keeps its own keys, but Escape must still close the sheet it sits in (game-117, game-118)
+            if ((tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') && e.code !== 'Escape') return;
             // Space and the arrows must not scroll the page, but Space must still press a focused
             // button: preventDefault() on it cancels the click (game-078)
             if (NO_SCROLL.includes(e.code) && !(e.code === 'Space' && tag === 'BUTTON')) e.preventDefault();
@@ -4715,6 +4716,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] A fast tap is never dropped: presses carried to the next sim step (game-059, game-071).
 - [ ] A *held* button (fire, jump) is latched too: a keydown and keyup in the same frame, before any step runs, still fire or jump once (game-079).
 - [ ] A queued key or a double-tap that closes a dialogue doesn't also act in the world: swallow the rest of the frame and ~250 ms of real time (game-073).
+- [ ] Escape closes a sheet even when a slider or select has focus: a keydown handler that returns early for `INPUT`/`SELECT` never sees it, so Settings could not be closed with the keyboard and the pause overlay stayed on top of everything (game-117, game-118). Test it with a real key press right after opening Settings, and when a browser-test run fails in a cluster, fix the first failure and rerun before reading the rest.
 - [ ] Space presses a focused menu button: a keydown handler that calls `preventDefault()` on Space to stop scrolling also cancels the button's click, so Resume and Play Again did nothing from the keyboard (game-078). Test it with a real key press, not `element.click()`.
 - [ ] A menu opened by a finger-down button doesn't close when the finger lifts (game-071).
 - [ ] The touch deck is on before the first stage, not after the first touch on it (game-074).

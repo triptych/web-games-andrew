@@ -138,7 +138,7 @@ void main(){
   float n = fbm(uv * 1.3 + w * 1.8 + f);
   float n2 = fbm(uv * 3.1 - f * 1.4 + w);
   float crust = smoothstep(0.42, 0.68, n + n2 * 0.25);          // dark plates
-  float cracks = pow(1.0 - abs(n2 * 2.0 - 1.0), 3.0);
+  float cracks = pow(clamp(1.0 - abs(n2 * 2.0 - 1.0), 0.0, 1.0), 3.0);
   float h = mix(0.95 - n * 0.35, 0.12 + cracks * 0.55, crust);
   h += 0.15 * sin(uTime * 0.8 + n * 9.0);
   vec3 col = ramp(clamp(h, 0.0, 1.0));

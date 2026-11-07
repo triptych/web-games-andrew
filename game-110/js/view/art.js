@@ -509,4 +509,174 @@ export function drawScissors() {
     return P;
 }
 /** The icon for a gravestone's game. */
-export function drawGraveIcon(id) { return id === 'salon' ? drawScissors() : drawToken('skull'); }
+export function drawGraveIcon(id) { return id === 'salon' ? drawScissors() : id === 'pets' ? drawPaw() : drawToken('skull'); }
+
+// ---------------------------------------------------------------------------------------------------- Rest in Paws
+/** A pink paw print with a little heart: the shelter's gravestone and its bobbing icon. 16×16. */
+export function drawPaw() {
+    const P = new Px(16, 16);
+    P.mell(8, 10.5, 4.6, 3.8).mell(6, 12.5, 2.6, 2).mell(10, 12.5, 2.6, 2).paint('#ff8fc2', { hi: 0.9 });
+    for (const [x, y] of [[3, 6.5], [6.2, 3.8], [9.8, 3.8], [13, 6.5]]) P.mell(x, y, 1.9, 2.1);
+    P.paint('#ff8fc2', { hi: 0.9 });
+    P.mp(7, 9).mp(9, 9).mrect(7, 10, 3, 1).mp(8, 11).fill('#ff3b6a');
+    P.outline('#1a1024', 0.8);
+    return P;
+}
+
+/**
+ * Where each pet's head and neck are on its own sprite, for hats and collars, and its body, for the care screen's
+ * burrs and mud. head: [x, top]; neck: [x, y, width]; body: [cx, cy, rx, ry].
+ */
+export const PET_GEOM = {
+    cat: { w: 26, h: 28, head: [11, 9], neck: [11, 19.5, 8], body: [13, 19, 9, 8] },
+    dog: { w: 28, h: 28, head: [11, 8], neck: [11, 19.5, 8], body: [14, 18, 10, 8] },
+    bat: { w: 30, h: 26, head: [15, 7], neck: [15, 15, 6], body: [15, 15, 7, 7] },
+    bunny: { w: 24, h: 30, head: [12, 10], neck: [12, 20.5, 8], body: [12, 20, 7, 9] },
+    toad: { w: 26, h: 26, head: [13, 11], neck: [13, 20, 12], body: [13, 18, 10, 6] },
+    owl: { w: 22, h: 30, head: [11, 8], neck: [11, 19, 9], body: [11, 18, 8, 10] },
+};
+
+/** Eyes by mood: idle (open, with a glint), happy (^ ^), sad (heavy lids) or blink. */
+function petEyes(P, eyes, iris, o, lid) {
+    for (const [x, y, w, h] of eyes) {
+        if (o.mood === 'happy') { P.mrect(x, y, w, 1).mp(x - 1, y + 1).mp(x + w, y + 1).fill('#1a1020'); continue; }
+        if (o.mood === 'blink') { P.mrect(x, y + h - 1, w, 1).fill('#1a1020'); continue; }
+        P.mrect(x, y, w, h).fill(iris);
+        if (iris !== '#1a1020') P.mrect(x + w - 1, y, 1, h).fill('#1a1020');
+        P.mp(x, y).fill('#ffffff');
+        if (o.mood === 'sad') P.mrect(x, y, w, 1).fill(lid);
+    }
+}
+
+const PETART = {};
+PETART.cat = (P, o) => {
+    const F = '#4a4060', SOCK = '#f4eefa';
+    P.mline(19, 24, 23, 19, 2).mline(23, 19, 22, 13, 2).mline(22, 13, 24, 11, 2).paint(F);               // tail
+    P.mell(14, 21, 7.5, 5).paint(F, { lo: 1.2 });                                                        // body
+    P.mrect(8, 23, 3, 4).mrect(15, 23, 3, 4).paint(SOCK);                                                // white socks
+    P.mell(11, 15, 6.5, 5.5).paint(F, { hi: 0.8 });                                                      // head
+    P.mpoly([[5, 13], [6, 6], [10, 10]]).mpoly([[17, 13], [16, 6], [12, 10]]).paint(F);                  // ears
+    P.mpoly([[6.5, 11.5], [7, 8.5], [9, 10.5]]).mpoly([[15.5, 11.5], [15, 8.5], [13, 10.5]]).paint('#ff9cc0', { noline: true });
+    P.mell(11, 20, 2.6, 2).paint(SOCK, { soft: true });                                                  // chest tuft
+    P.mp(10, 11).mp(11, 10).mp(12, 11).fill('#ffd36b');                                                  // a crescent moon
+    petEyes(P, [[8, 14, 2, 2], [13, 14, 2, 2]], '#b8f05a', o, F);
+    P.mp(11, 17).fill('#ff7aa8'); P.mp(10, 18).mp(12, 18).fill('#2a1830');
+    P.mline(3, 16, 6, 17, 1).mline(19, 16, 16, 17, 1).fill('#9a90b0');                                   // whiskers
+};
+PETART.dog = (P, o) => {
+    const F = '#5e4a5c', EMBER = '#ff8a3a';
+    const wag = o.frame ? -2 : 0;
+    P.mline(22, 19, 26 + wag, 12, 2).paint(F);                                                           // tail, wagging
+    P.mell(16, 20, 8.5, 5).paint(F, { lo: 1.2 });
+    P.mrect(10, 22, 3, 5).mrect(19, 22, 3, 5).paint('#4a3a4c');                                          // legs
+    P.mrect(10, 26, 3, 1).mrect(19, 26, 3, 1).fill('#7a6a80');
+    P.mell(11, 14, 6.5, 6).paint(F, { hi: 0.8 });                                                        // head
+    P.mpoly([[8, 9], [7, 5], [10, 8]]).mpoly([[14, 9], [15, 5], [12, 8]]).paint(EMBER, { hi: 1.3 });      // tiny ember horns
+    P.mell(4.5, 15, 2.2, 4.2).mell(17.5, 15, 2.2, 4.2).paint('#3a2c3c');                                 // floppy ears
+    P.mell(11, 17, 3.6, 2.6).paint('#a08aa0', { soft: true });                                           // snout
+    P.mrect(10, 15, 3, 2).fill('#140a18'); P.mp(10, 15).fill('#5a4a6a');
+    P.mrect(11, 19, 2, 2).paint('#ff7aa0', { noline: true });                                            // tongue out
+    petEyes(P, [[7, 12, 2, 2], [14, 12, 2, 2]], '#ffb030', o, F);
+    for (const [x, y] of [[18, 18], [21, 20], [15, 21]]) P.mp(x, y);
+    P.fill(EMBER);
+};
+PETART.bat = (P, o) => {
+    const W = '#4a2a3a';
+    for (const s of [-1, 1]) {
+        if (o.frame) P.mpoly([[15, 14], [15 + s * 13, 2], [15 + s * 12, 8], [15 + s * 9, 7], [15 + s * 7, 11], [15 + s * 4, 10], [15, 17]]);
+        else P.mpoly([[15, 13], [15 + s * 14, 10], [15 + s * 13, 16], [15 + s * 10, 15], [15 + s * 8, 19], [15 + s * 5, 17], [15, 19]]);
+    }
+    P.paint(W, { lo: 1.2 });
+    P.mell(15, 17, 5, 5.5).paint('#c8783a', { hi: 0.9 });                                               // fluffy body
+    P.mell(15, 11, 5, 4.5).paint('#d88a48', { hi: 0.8 });                                               // fox face
+    P.mpoly([[11, 9], [10, 3], [14, 7]]).mpoly([[19, 9], [20, 3], [16, 7]]).paint('#a85a2a');            // ears
+    P.mpoly([[11.5, 8], [11, 5], [13, 7]]).mpoly([[18.5, 8], [19, 5], [17, 7]]).paint('#ff9cc0', { noline: true });
+    P.mell(15, 13, 2.2, 1.5).paint('#f0b88a', { soft: true });
+    P.mp(15, 12).fill('#2a1020');
+    petEyes(P, [[12, 10, 2, 2], [17, 10, 2, 2]], '#1a1020', o, '#d88a48');
+    P.mp(13, 23).mp(17, 23).fill('#2a1820');                                                             // little feet
+};
+PETART.bunny = (P, o) => {
+    const F = '#c8b4e8', PATCH = '#ffd0e0';
+    P.mell(8.5, 6, 2.2, 6).mell(15.5, 6, 2.2, 6).paint(F);                                               // ears
+    P.mell(8.5, 6.5, 1, 4.5).mell(15.5, 6.5, 1, 4.5).paint('#ffb0cc', { noline: true });
+    for (let y = 3; y < 9; y += 2) P.mp(14, y).mp(17, y);
+    P.fill('#5a4a7a');                                                                                   // stitches on an ear
+    P.mell(12, 22, 7, 6).paint(F, { lo: 1.1 });                                                          // body
+    P.mell(19, 24, 2.2, 2.2).paint('#ffffff', { soft: true });                                           // tail
+    P.mrect(13, 20, 4, 4).paint(PATCH, { soft: true });                                                  // a patch
+    P.mp(13, 20).mp(16, 20).mp(13, 23).mp(16, 23).fill('#7a5a9a');
+    P.mell(8, 28, 2.6, 1.4).mell(16, 28, 2.6, 1.4).paint('#b8a0dc');                                     // feet
+    P.mell(12, 15, 6, 5.5).paint(F, { hi: 0.7 });                                                        // head
+    P.mell(12, 18.5, 1.4, 1).paint('#ffffff', { soft: true, noline: true });
+    if (!o.mood || o.mood === 'idle' || o.mood === 'sad') {
+        petEyes(P, [[8, 14, 2, 2]], '#1a1020', o, F);
+        P.mrect(14, 14, 2, 2).fill('#3a2a5a'); P.mp(14, 14).mp(15, 15).fill('#8a7ab0');                  // a button eye
+    } else petEyes(P, [[8, 14, 2, 2], [14, 14, 2, 2]], '#1a1020', o, F);
+    P.mp(12, 17).fill('#ff7aa8'); P.mp(11, 18).mp(13, 18).fill('#5a3a5a');
+    P.mrect(6, 17, 2, 1).mrect(16, 17, 2, 1).fill('#ff9cc0');
+};
+PETART.toad = (P, o) => {
+    const F = '#6aa84a';
+    P.mell(5, 24, 3.2, 1.6).mell(21, 24, 3.2, 1.6).paint('#5a9a3a');                                     // feet
+    P.mell(13, 19, 10.5, 6).paint(F, { lo: 1.2 });                                                       // body
+    P.mell(13, 21, 6.5, 3.5).paint('#e8e0a0', { soft: true });                                           // belly
+    P.mell(7, 13, 3.6, 3.4).mell(19, 13, 3.6, 3.4).paint(F, { hi: 0.9 });                                // eye bumps
+    petEyes(P, [[6, 12, 2, 2], [18, 12, 2, 2]], '#ffd84a', o, F);
+    P.mline(7, 18, 19, 18, 1).mp(6, 17).mp(20, 17).fill('#2a4a1a');                                     // a wide smile
+    P.mrect(5, 18, 2, 1).mrect(19, 18, 2, 1).fill('#ff9cc0');
+    for (const [x, y] of [[10, 15], [16, 15], [4, 20], [22, 19], [13, 14]]) P.mp(x, y);
+    P.fill('#4a8a32');                                                                                   // warts, distinguished
+};
+PETART.owl = (P, o) => {
+    const F = '#a8784a';
+    P.mell(11, 18, 8, 9).paint(F, { lo: 1.1 });                                                          // body
+    P.mell(3.8, 19, 2.5, 6).mell(18.2, 19, 2.5, 6).paint('#7a5232');                                     // wings
+    P.mell(11, 21, 5, 5.5).paint('#f4e4c8', { soft: true });                                             // belly
+    for (const [x, y] of [[9, 19], [13, 19], [11, 22], [8, 23], [14, 23]]) P.mp(x, y).mp(x + 1, y + 1);
+    P.fill('#c8a070');
+    P.mpoly([[4, 10], [3, 5], [7, 8]]).mpoly([[18, 10], [19, 5], [15, 8]]).paint('#7a5232');            // ear tufts
+    P.mell(8.5, 12.5, 3.6, 4.2).mell(13.5, 12.5, 3.6, 4.2).paint('#f8ecdc', { soft: true });            // a heart-shaped face
+    petEyes(P, [[7, 11, 3, 3], [12, 11, 3, 3]], '#1a1020', o, '#f8ecdc');
+    if (o.mood !== 'happy' && o.mood !== 'blink') for (const [x, y] of [[6, 10], [11, 10]]) P.mrect(x, y, 5, 1).mrect(x, y + 4, 5, 1).mrect(x, y, 1, 5).mrect(x + 4, y, 1, 5);
+    P.fill('#c9a24a');                                                                                   // the Professor's spectacles
+    P.mpoly([[10, 15], [12, 15], [11, 17]]).paint('#e8a83a', { noline: true });                          // beak
+    P.mrect(8, 26, 2, 2).mrect(12, 26, 2, 2).fill('#e8a83a');                                            // feet
+};
+
+/** A pet's accessory, on its own head or neck. */
+function petAcc(P, id, acc) {
+    const g = PET_GEOM[id], [hx, hy] = g.head, [nx, ny, nw] = g.neck;
+    if (acc === 'bow') {
+        const x = hx + 4, y = hy + 1;
+        P.mpoly([[x, y], [x - 4, y - 3], [x - 4, y + 3]]).mpoly([[x, y], [x + 4, y - 3], [x + 4, y + 3]]).paint('#ff4f86');
+        P.mell(x, y, 1.3, 1.3).paint('#ff8fc2');
+    } else if (acc === 'bell') {
+        P.mrect(nx - nw / 2, ny, nw, 2).paint('#c02a52');
+        P.mell(nx, ny + 3, 1.6, 1.6).paint('#ffd36b', { hi: 1.4 }); P.mp(nx, ny + 4).fill('#7a5a1a');
+    } else if (acc === 'hat') {
+        P.mpoly([[hx - 4, hy + 1], [hx + 4, hy + 1], [hx + 1, hy - 6], [hx + 4, hy - 8], [hx - 1, hy - 5]]).paint('#3a2a5a', { lo: 1.2 });
+        P.mrect(hx - 6, hy, 12, 2).paint('#2a2238');
+        P.mrect(hx - 3, hy - 2, 7, 1).fill('#ff6fa5');
+    } else if (acc === 'scarf') {
+        P.mrect(nx - nw / 2, ny - 1, nw, 3).paint('#5fd0c0');
+        P.mrect(nx + 1, ny + 1, 3, 5).paint('#5fd0c0');
+        for (let x = Math.ceil(nx - nw / 2); x < nx + nw / 2; x += 3) P.mp(x, ny);
+        P.mp(nx + 2, ny + 3).fill('#ff6fa5');
+    } else if (acc === 'crown') {
+        P.mrect(hx - 3, hy - 1, 7, 2);
+        for (const dx of [-3, 0, 3]) P.mpoly([[hx + dx - 1, hy - 1], [hx + dx + 2, hy - 1], [hx + dx + 0.5, hy - 4]]);
+        P.paint('#ffd36b', { hi: 1.4 });
+        P.mp(hx, hy - 1).fill('#ff4f86');
+    }
+}
+
+/** A pet. o.mood: idle | happy | sad | blink; o.acc: an accessory; o.frame: 0 or 1 (wings, wagging). */
+export function drawPet(id, o = {}) {
+    const g = PET_GEOM[id];
+    const P = new Px(g.w, g.h);
+    PETART[id](P, o);
+    if (o.acc) petAcc(P, id, o.acc);
+    P.outline('#160d22', 0.85);
+    return P;
+}

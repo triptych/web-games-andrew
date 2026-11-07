@@ -565,10 +565,16 @@ function buildStones(world, mats, batch, f) {
         const sx = f.x + Math.sin(a) * 5.2, sz = f.z + Math.cos(a) * 5.2;
         const g = new THREE.BoxGeometry(1, 1, 1, 2, 4, 2);
         const p = g.attributes.position;
+        // a BoxGeometry repeats each corner once per face, so every copy of a corner must get the
+        // same nudge or the edges split open
+        const nudge = new Map();
         for (let i = 0; i < p.count; i++) {
             const yy = p.getY(i);
+            const key = `${Math.round(p.getX(i) * 1000)},${Math.round(yy * 1000)},${Math.round(p.getZ(i) * 1000)}`;
+            if (!nudge.has(key)) nudge.set(key, [(r() - 0.5) * 0.08, (r() - 0.5) * 0.05, (r() - 0.5) * 0.08]);
+            const d = nudge.get(key);
             const taper = 1 - (yy + 0.5) * 0.35;
-            p.setXYZ(i, p.getX(i) * taper + (r() - 0.5) * 0.08, yy + (r() - 0.5) * 0.05, p.getZ(i) * taper + (r() - 0.5) * 0.08);
+            p.setXYZ(i, p.getX(i) * taper + d[0], yy + d[1], p.getZ(i) * taper + d[2]);
         }
         g.computeVertexNormals();
         const h = r.range(2.6, 4.2);
