@@ -370,6 +370,7 @@ export const atelier = {
                 h('button', { text: 'Switch to Free Mode', on: { click: async () => { if (await confirmDialog('Free Mode', 'Unlock every tool now? The story stays readable in the Journal.', 'Unlock everything')) { this.goFree(); } } } })),
             h('hr'),
             h('button.danger', { text: 'Reset Atelier progress…', on: { click: async () => { if (await confirmDialog('Reset progress', 'Reset chapters, quests, trophies, Ink and purchases? Your projects are kept.', 'Reset', true)) { meta.reset(); if (onReset) onReset(); } } } }));
+        body.append(h('a', { href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer', text: 'About author' }));
         modal({ title: 'Settings', body, buttons: [{ label: 'Close' }] });
     },
     goFree() {

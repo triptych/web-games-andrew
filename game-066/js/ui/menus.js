@@ -364,6 +364,7 @@ export class Menus {
             <div class="setrow"><span>Battle text</span>${opt('battleText', [['auto', 'Auto'], ['manual', 'Press A']])}</div>
             <div class="setrow"><span>Graphics</span>${opt('quality', [['auto', 'Auto'], [0, 'High'], [1, 'Medium'], [2, 'Low'], [3, 'Potato']])}</div>
             <div class="setrow"><span>Film grain</span>${opt('grain', [[0, 'Off'], [1, 'On']])}</div>
+            <a class="btn" href="https://linktr.ee/triptych" target="_blank" rel="noopener noreferrer">About author</a>
             <div class="tnote">Keys: arrows / WASD move · Z, Space or Enter = A · X or Backspace = B · Esc or M = menu · hold Shift to run.</div>`;
     }
 }

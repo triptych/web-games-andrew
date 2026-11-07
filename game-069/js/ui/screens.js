@@ -116,7 +116,7 @@ export function settings(onClose) {
         <div class="field"><label>Camera shake</label>${seg('shake', [[true, 'On'], [false, 'Off']])}</div>
         <h3>Controls</h3>
         <p>Drive: W A S D or the arrows · Drift: Space (hold it through bends to fill nitro) · Nitro: Shift or N · Reset to the track: R · Camera: C · Pause: Esc or P · Mute: M. A gamepad works too: triggers to drive, A to drift, X for nitro.</p>
-        <div class="actions">${app.profile ? '<button class="btn dark" id="m-reset">Erase career</button>' : ''}<button class="btn" id="m-ok">Done</button></div>`, (p) => {
+        <div class="actions">${app.profile ? '<button class="btn dark" id="m-reset">Erase career</button>' : ''}<a class="btn" href="https://linktr.ee/triptych" target="_blank" rel="noopener noreferrer">About author</a><button class="btn" id="m-ok">Done</button></div>`, (p) => {
         p.querySelectorAll('input[type=range]').forEach((r) => r.addEventListener('input', () => { s[r.dataset.key] = Number(r.value); app.applySettings(); }));
         p.querySelectorAll('.seg').forEach((g) => g.querySelectorAll('button').forEach((b) => click(b, () => {
             let v = b.dataset.v;

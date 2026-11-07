@@ -266,6 +266,7 @@ export class UI {
             h('label', { class: 'row' }, 'Reduced flashing', chk('reduced')),
             h('label', { class: 'row' }, 'Graphics (next launch)', sel('quality', [['auto', 'Automatic'], ['high', 'High'], ['low', 'Low']])),
             h('button', { class: 'btn', onclick: () => { this.env.deleteSave(); this.toast('Saved game deleted.'); } }, 'Delete saved game'),
+            h('a', { class: 'btn', href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer' }, 'About author'),
             h('div', { class: 'foot' }, h('button', { class: 'btn primary center', onclick: (e) => { save(); this.close(e.target.closest('.screen')); onClose?.(); } }, 'Done')));
         const scr = this.open(el, { id: 'settings', back: () => { save(); this.close(scr); onClose?.(); } });
         return scr;

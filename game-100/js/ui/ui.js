@@ -168,6 +168,7 @@ export class UI {
                     { id: 'quality', label: 'QUALITY', kind: 'choice', text: { high: 'HIGH', medium: 'MEDIUM', low: 'LOW' }[st.quality] || 'HIGH' },
                     { id: 'hints', label: 'HINTS', kind: 'choice', text: st.hints ? 'ON' : 'OFF' },
                     { id: 'clear', label: 'CLEAR SCORES' },
+                    { id: 'author', label: 'ABOUT AUTHOR' },
                     { id: 'back', label: 'BACK' },
                 ];
             case 'confirm':

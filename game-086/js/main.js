@@ -433,6 +433,7 @@ function openSettings() {
             el('li', {}, 'Keys: 1–9 colours, [ ] next colour, + − zoom, F fit, Z undo, arrows pan.'),
             el('li', {}, 'Spend Glimmer in the Constellation to learn new skills.')),
         el('div', { class: 'modal-actions' },
+            el('a', { href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer' }, 'About author'),
             el('button', { class: 'btn small', type: 'button', onclick: () => { closeModal(); show('title'); refreshTitle(); } }, 'Title screen'),
             el('button', { class: 'btn primary small', type: 'button', onclick: closeModal }, 'Done')),
         el('p', { style: { fontSize: '12px', marginTop: '14px' } }, `Colorverse v${VERSION} · ${st.stats.pixels.toLocaleString()} pixels restored`),

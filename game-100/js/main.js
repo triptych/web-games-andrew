@@ -111,6 +111,7 @@ function act(a) {
         case 'scores': audio.ui('select'); ui.scoreMode = 'dance'; ui.go('scores'); break;
         case 'howto': audio.ui('select'); ui.go('howto'); break;
         case 'settings': audio.ui('select'); ui.go('settings'); break;
+        case 'author': audio.ui('select'); window.location.href = 'https://linktr.ee/triptych'; break;
         case 'confirm': audio.ui('select'); ui.go('confirm'); break;
         case 'clear:yes': clearScores(); audio.ui('back'); ui.go('settings'); break;
         case 'clear:no': audio.ui('back'); ui.go('settings'); break;

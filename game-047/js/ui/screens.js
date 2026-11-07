@@ -419,6 +419,7 @@ export function settingsModal({ settings, onChange, onAbandon, inRun, onResume, 
         foot.push(btn('Abandon Run', () => { if (confirm('Abandon this journey? Your save will be deleted.')) onAbandon(); }));
     }
     foot.push(btn(inRun ? 'Resume' : 'Close', () => { closeModal(); onResume?.(); }, 'menu-btn primary'));
+    foot.push(el('a', { href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer', text: 'About author' }));
     modal(inRun ? 'Paused' : 'Settings', '', body, foot);
 }
 

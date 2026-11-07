@@ -282,7 +282,7 @@ export class Panels {
             <div class="row"><div class="tt">Loot labels<small>Hold Alt to show them when set to "Alt"</small></div><select data-set="labels"><option value="always" ${s.labels === 'always' ? 'selected' : ''}>Always</option><option value="alt" ${s.labels === 'alt' ? 'selected' : ''}>Alt only</option></select></div>
             <div class="row"><div class="tt">Screen shake</div><input type="checkbox" ${s.shake ? 'checked' : ''} data-set="shake"></div>
             <div class="row"><div class="tt">Damage numbers</div><input type="checkbox" ${s.numbers ? 'checked' : ''} data-set="numbers"></div>`;
-        return { body, foot: '<span></span><button class="btn small" data-act="open" data-k="menu">Back</button>' };
+        return { body: body + `<p><a class="btn" href="https://linktr.ee/triptych" target="_blank" rel="noopener noreferrer">About author</a></p>`, foot: '<span></span><button class="btn small" data-act="open" data-k="menu">Back</button>' };
     }
     r_help() {
         const t = this.app.input.isTouch;

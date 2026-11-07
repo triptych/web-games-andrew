@@ -207,6 +207,7 @@ export function showSettings(settings, apply, extra = []) {
         seg('Battle speed', 'speed', [[1, '1×'], [1.6, '1.6×'], [2.4, '2.4×']]),
         seg('Screen shake & flashes', 'calm', [[false, 'Full'], [true, 'Reduced']]));
     for (const x of extra) body.append(x);
+    body.append(el('a', { href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer', text: 'About author' }));
     return body;
 }
 

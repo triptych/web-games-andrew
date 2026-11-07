@@ -138,6 +138,7 @@ export class Menus {
             `<div class="set-row">Screen shake <button class="btn small" data-act="set-shake">${s.shake ? 'On' : 'Off'}</button></div>` +
             `<div class="set-row">Wedgewick's tips <button class="btn small" data-act="set-tips">${s.tips ? 'On' : 'Off'}</button></div>` +
             (onTitle ? '<button class="btn ghost" data-act="erase">Erase saved quest</button>' : '') +
+            '<a class="btn" href="https://linktr.ee/triptych" target="_blank" rel="noopener noreferrer">About author</a>' +
             '<button class="btn gold" data-act="close-settings">Done</button>';
         $('settings').classList.remove('hidden');
     }

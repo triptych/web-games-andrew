@@ -588,6 +588,7 @@ export function menuPanel(G) {
                 btn(`Sound: ${S.sound ? 'On' : 'Off'}`, () => G.toggleSetting('sound'), 'ghost'),
                 btn(`Music: ${S.music ? 'On' : 'Off'}`, () => G.toggleSetting('music'), 'ghost'),
                 btn(`Graphics: ${['High', 'Medium', 'Low'][G.quality()]}`, () => G.cycleQuality(), 'ghost'),
+                h('a.btn', { href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer' }, 'About author'),
                 btn('How to play', () => helpPanel(), 'ghost'),
                 inBattle ? btn('🏳️ Retreat to town', () => confirmPanel('Retreat?', 'Leave this battle? It counts as a loss (you keep half the loot you picked up).', 'Retreat', () => G.retreat()), 'pink') : null,
                 !inBattle ? btn('Back to title', () => G.toTitle(), 'ghost') : null,

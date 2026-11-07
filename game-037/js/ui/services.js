@@ -221,5 +221,8 @@ export function settingsPanel(body) {
   seed.className = 'muted';
   seed.textContent = `Seed: "${state.master.string}" · difficulty ${state.difficulty}`;
   body.appendChild(seed);
+  const author = document.createElement('a');
+  author.className = 'btn'; author.href = 'https://linktr.ee/triptych'; author.target = '_blank'; author.rel = 'noopener noreferrer'; author.textContent = 'About author';
+  body.appendChild(author);
 }
 

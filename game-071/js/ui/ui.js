@@ -278,7 +278,7 @@ export class SettingsPanel extends Panel {
         chips('Difficulty', 'difficulty', Object.entries(DIFFICULTY).map(([k, v]) => [k, v.name]));
         chips('Subtitles', 'subtitles', [[true, 'On'], [false, 'Off']]);
         chips('Camera', 'thirdPerson', [[null, 'Auto'], [false, 'First person'], [true, 'Third person']]);
-        this.box.append(form, h('div.foot', {}, h('span.hint2', { text: 'Settings are saved on this device.' }), h('span.sp'), h('button.mbtn.gold', { text: 'Done', on: { click: () => ui.pop() } })));
+        this.box.append(form, h('div.foot', {}, h('span.hint2', { text: 'Settings are saved on this device.' }), h('a', { href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer', text: 'About author' }), h('span.sp'), h('button.mbtn.gold', { text: 'Done', on: { click: () => ui.pop() } })));
     }
     onClose() { this.app.saveSettings(); }
 }

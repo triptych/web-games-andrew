@@ -296,6 +296,7 @@ function optionRows() {
         { label: 'SCREEN SHAKE', value: on(s.shake), act: 'shake' },
         { label: 'GRAPHICS', value: s.quality.toUpperCase(), act: 'quality' },
         { label: 'SOUND TEST', act: 'jukebox' },
+        { label: 'ABOUT AUTHOR', act: 'author' },
         { label: 'BACK', act: 'back' },
     ];
 }
@@ -518,6 +519,7 @@ function update(dt, inp) {
             G.rows = optionRows();
             const act = driveMenu(inp, G.rows);
             if (act === 'back') { const f = G.from; setMode(f === 'pause' ? 'pause' : 'select'); if (f === 'pause') { G.from = 'play'; G.sel = 1; } else G.sel = 3; }
+            else if (act === 'author') window.location.href = 'https://linktr.ee/triptych';
             else if (act === 'jukebox') { setMode('jukebox'); G.jukeSel = 0; G.jukeBack = G.from; }
             else if (act) changeOption(act, 1);
             break;
@@ -528,7 +530,7 @@ function update(dt, inp) {
             G.sel = G.jukeSel;
             const act = driveMenu(inp, rows);
             G.jukeSel = G.sel;
-            if (act === 'back') { audio.play(G.jukeBack === 'pause' && G.world ? REALMS[G.world.realmIndex].song : 'title'); G.from = G.jukeBack; setMode('options'); G.sel = 8; }
+            if (act === 'back') { audio.play(G.jukeBack === 'pause' && G.world ? REALMS[G.world.realmIndex].song : 'title'); G.from = G.jukeBack; setMode('options'); G.sel = 9; }
             else if (act) audio.play(act, true);
             break;
         }

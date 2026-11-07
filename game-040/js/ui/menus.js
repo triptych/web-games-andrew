@@ -220,6 +220,7 @@ export function showOptions(save, { fromPause = false } = {}) {
             <button class="btn tiny subtle" data-action="resetBinds">RESET TO DEFAULTS</button>
           </div>
         </div>
+        <a class="btn" href="https://linktr.ee/triptych" target="_blank" rel="noopener noreferrer">About author</a>
         <button class="btn primary" data-action="${fromPause ? 'backToPause' : 'back'}">DONE</button>
       </div>`, { primary: () => (fromPause ? hooks.onBackToPause?.() : hooks.onBack?.()), cls: 'dimmed' });
 }

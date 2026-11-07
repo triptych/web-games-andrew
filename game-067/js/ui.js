@@ -414,6 +414,7 @@ export function openSettings() {
         h('h4', {}, 'Everything'),
         h('div.field', {}, h('button.opt', { onclick: () => { act.ui(); openHelp(); } }, '❓ How to play'),
             h('button.opt', { onclick: () => confirmBox('Delete every island, train set and sticker? This cannot be undone.', 'Delete everything', () => act.wipe()) }, '🧹 Start fresh')),
+        h('a.btn', { href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer' }, 'About author'),
     ]);
 }
 

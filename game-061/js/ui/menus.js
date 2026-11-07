@@ -536,6 +536,7 @@ export class Menus {
                 h('div.setting', h('span', 'Mouse steering'), seg('mouseSteer', [[true, 'ON'], [false, 'OFF']])),
                 h('div.setting', h('span', 'Invert pitch'), seg('invertY', [[false, 'OFF'], [true, 'ON']])),
                 h('div.setting', h('span', 'Tutorial tips'), seg('tips', [[true, 'ON'], [false, 'OFF']])),
+                h('a', { href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer' }, 'About author'),
             ],
         });
     }

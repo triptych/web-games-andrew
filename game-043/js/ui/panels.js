@@ -268,6 +268,7 @@ export class Panels {
         b.append(range('Music', 'music'), range('Sound effects', 'sfx'));
         const tog = (label, key) => { const c = h('input', { type: 'checkbox' }); c.checked = !!o[key]; c.onchange = () => { o[key] = c.checked; ui.applyOpts(); }; return h('div', { class: 'opt' }, label, c); };
         b.append(tog('Screen shake', 'shake'), tog('Always run', 'run'));
+        b.append(h('a', { href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer' }, 'About author'));
         b.append(h('h3', {}, 'Controls'));
         b.append(h('p', { class: 'muted' }, 'Move: WASD / arrows or the left thumb. Action: Space / E or A. Run: Shift or hold B. Hotbar: 1–8, Q / R to cycle. Menu: Esc / I. Map: M. Journal: J.'));
         b.append(h('div', { style: 'display:flex;gap:6px;flex-wrap:wrap;margin-top:8px' }, this.btn('Games list', () => { location.href = '../index.html'; }), this.btn('Title screen', () => { if (confirm('Return to the title? Unsaved progress since your last sleep will be lost.')) ui.toTitle(); })));

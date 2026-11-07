@@ -186,11 +186,12 @@ function menuItems() {
     const starts = unlockedStarts();
     if (starts.length > 1) items.push({ id: 'wave', label: `START AT WAVE ${starts[Math.min(G.startIdx, starts.length - 1)] + 1}` });
     items.push({ id: 'sound', label: `SOUND: ${onOff(s.sound)}` }, { id: 'music', label: `MUSIC: ${onOff(s.music)}` }, { id: 'crt', label: `CRT FX: ${onOff(s.crt)}` });
+    items.push({ id: 'author', label: 'ABOUT AUTHOR' });
     return items;
 }
 function pauseItems() {
     const s = data.settings;
-    return [{ id: 'resume', label: 'RESUME' }, { id: 'sound', label: `SOUND: ${onOff(s.sound)}` }, { id: 'music', label: `MUSIC: ${onOff(s.music)}` }, { id: 'crt', label: `CRT FX: ${onOff(s.crt)}` }, { id: 'quit', label: 'QUIT GAME' }];
+    return [{ id: 'resume', label: 'RESUME' }, { id: 'sound', label: `SOUND: ${onOff(s.sound)}` }, { id: 'music', label: `MUSIC: ${onOff(s.music)}` }, { id: 'crt', label: `CRT FX: ${onOff(s.crt)}` }, { id: 'author', label: 'ABOUT AUTHOR' }, { id: 'quit', label: 'QUIT GAME' }];
 }
 
 function toggle(id, dir = 1) {
@@ -244,6 +245,7 @@ function update(dt, inp) {
             G.sel = Math.min(G.sel, items.length - 1);
             const id = navigate(items, inp);
             if (id === 'start') startGame();
+            else if (id === 'author') window.location.href = 'https://linktr.ee/triptych';
             else if (id) toggle(id);
             break;
         }
@@ -263,6 +265,7 @@ function update(dt, inp) {
             const id = navigate(pauseItems(), inp);
             if (id === 'resume') setMode('play');
             else if (id === 'quit') finishGame();
+            else if (id === 'author') window.location.href = 'https://linktr.ee/triptych';
             else if (id) toggle(id);
             break;
         }

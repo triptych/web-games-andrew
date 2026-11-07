@@ -497,6 +497,7 @@ export function settingsPanel(settings, { change, reset, back }) {
         body.append(h('div', { class: 'section-title' }, 'Keys'));
         body.append(h('p', {}, '1–9 pick a station · click a tile to build · Space opens the gate · F speed · P pause · M sound · Esc cancel / menu · drag to look around, wheel to zoom · H recentre'));
         body.append(h('div', { class: 'row', style: { marginTop: '16px', display: 'flex', justifyContent: 'center' } }, h('button', { class: 'btn danger small', onclick: reset }, 'Forget all progress')));
+        body.append(h('a', { href: 'https://linktr.ee/triptych', target: '_blank', rel: 'noopener noreferrer' }, 'About author'));
         p.append(body);
         p.append(h('footer', { class: 'panel-foot' }, h('button', { class: 'btn warm', onclick: back }, 'Done')));
     }, { narrow: true, onClose: back });
