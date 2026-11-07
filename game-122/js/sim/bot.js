@@ -15,7 +15,6 @@ const BW = FOG.gw / B, BH = FOG.gh / B;
 export function makeBot({ skill = 1, seed = 1 } = {}) {
     return { skill, target: null, think: 0, s: seed >>> 0 || 1, wobble: 0 };
 }
-
 // a tiny private generator, so the bot's dithering never touches the game's own rng
 function rnd(bot) {
     bot.s ^= bot.s << 13; bot.s >>>= 0;
@@ -116,4 +115,3 @@ export function botInput(G, bot) {
     const mag = Math.min(1, l / 0.3) * (0.55 + 0.45 * bot.skill);
     return { x: x * mag, y: Math.max(-1, Math.min(1, y * mag)), a };
 }
-

@@ -1885,6 +1885,23 @@ const games = [
             { emoji: '\uD83D\uDCDC', label: 'Commissions' },
             { emoji: '\uD83D\uDD8C\uFE0F', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-124',
+        title: 'Wrack & Wonder',
+        description: "A first-person survival and research adventure in three.js with no asset files. You wash up on a small island that hums, and you are about to become the first person in the world to learn magic, with nobody to teach you. In a hut on the bluff you find a stranger's home-made instruments: an alembic that boils a reagent down to what it carries, bells that ring sour between things that hate each other, and an orrery that knows the hour each power waxes. A spell is a line of glyphs (a ringed shape and one or two bare words, each fed a reagent), but which glyph means what, which end the shape goes on, what every reagent carries, which words are opposed and when each is strongest are all generated from the seed, so what you learned last life is only the method. Your notebook keeps nothing but evidence, with a logic grid for your own guesses. Survive cold nights and hunger, rescue Nib the goblin from cursed thorns, wake three standing stones in Whisperwood, Ember Fen and the Highmoor, then unweave the thornwall, walk across the black moat on frost and climb the keep on an updraft to free Elowen, the girl who built the hut and has hung inside one stopped moment for a year. She can feel you learning. Find her echoes by lantern-light at night, and the ending may be more than gratitude. Keyboard, mouse, touch or gamepad, and a bot that researches from its own notebook to finish the game in the tests.",
+        icon: '\uD83E\uDE84',
+        folder: 'game-124',
+        version: '1.0.0',
+        cssClass: 'wrack-and-wonder',
+        genre: 'rpg',
+        tags: [
+            { emoji: '\u2728', label: 'Seeded magic' },
+            { emoji: '\uD83D\uDD2C', label: 'Research' },
+            { emoji: '\uD83C\uDFDD\uFE0F', label: 'Survival' },
+            { emoji: '\uD83D\uDC98', label: 'Romance' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wrack &amp; Wonder — model gallery</title>
+<style>html,body{margin:0;height:100%;background:#8a8a8a;overflow:hidden;font:14px sans-serif}#c{display:block;width:100vw;height:100vh}#l{position:fixed;left:10px;top:10px;color:#fff;text-shadow:0 1px 2px #000}</style>
+</head>
+<body>
+<canvas id="c"></canvas><div id="l">Nib · Elowen (frozen) · Elowen (standing) · a shade — on a neutral ground, no bloom, no night</div>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }</script>
+<script type="module">
+import * as THREE from 'three';
+import { makeNib, poseNib, makeElowen, poseElowen, makeShade } from '../js/view/characters.js';
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
+r.outputColorSpace = THREE.SRGBColorSpace;
+r.setSize(innerWidth, innerHeight); r.setPixelRatio(Math.min(2, devicePixelRatio));
+const s = new THREE.Scene(); s.background = new THREE.Color(0x8a8a8a);
+const cam = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 100);
+cam.position.set(0, 1.25, 5.2); cam.lookAt(0, 0.95, 0);
+s.add(new THREE.HemisphereLight(0xffffff, 0x666666, 1.5));
+const d = new THREE.DirectionalLight(0xffffff, 2); d.position.set(3, 5, 4); s.add(d);
+const nib = makeNib(); nib.position.x = -1.9; nib.scale.setScalar(1.6);
+const e1 = makeElowen(); e1.position.x = -0.5; poseElowen(e1, 'frozen', 0);
+const e2 = makeElowen(); e2.position.x = 0.8;
+const sh = makeShade(); sh.position.x = 2.1; sh.scale.setScalar(0.8);
+for (const o of [nib, e1, e2, sh]) { o.rotation.y = Math.PI; s.add(o); }
+const turn = new URLSearchParams(location.search).get('turn');
+let t = 0;
+function f() { requestAnimationFrame(f); t += 0.016; poseNib(nib, 0.016, true); poseElowen(e2, 'stand', 0.016); if (turn) for (const o of [nib, e1, e2, sh]) o.rotation.y = Math.PI + Math.sin(t * 0.5) * 0.9; else for (const o of [nib, e1, e2, sh]) o.rotation.y = +(new URLSearchParams(location.search).get('ry') || 0) + Math.PI; r.render(s, cam); }
+f();
+window.ready = true;
+</script>
+</body>
+</html>

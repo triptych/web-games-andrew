@@ -1542,6 +1542,19 @@ h1 {
         radial-gradient(ellipse at 45% 55%, rgba(205, 214, 235, 0.0) 18%, rgba(205, 214, 235, 0.42) 46%),
         linear-gradient(180deg, #2c2a5e 0%, #7a5a8a 38%, #d27a7a 54%, #f2b07c 60%, #3e4e46 61%, #1c2420 100%);
 }
+
+.game-preview.wrack-and-wonder,
+.carousel-slide-bg.wrack-and-wonder {
+    background:
+        radial-gradient(ellipse at 50% 38%, rgba(196, 139, 255, 0.45), transparent 32%),
+        linear-gradient(180deg, #3c3f7c 0%, #b9617a 45%, #f2895a 62%, #3e5a3a 63%, #1d2a1c 100%);
+}
+
+.game-card.wrack-and-wonder .play-button {
+    background: linear-gradient(135deg, #9fd8c8, #e8b65a 60%, #c48bff);
+    color: #1f1408;
+    box-shadow: 0 0 14px rgba(159, 216, 200, 0.6);
+}
 .game-card.rainglass .play-button {
     background: linear-gradient(135deg, #f2b880, #c88aa8 55%, #7a8ac8);
     color: #1c1420;

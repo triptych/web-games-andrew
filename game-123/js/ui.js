@@ -27,7 +27,6 @@ export class UI {
         for (const b of document.querySelectorAll('[data-close]')) {
             b.addEventListener('click', () => { audio.ui('close'); this.closeTop(); });
         }
-
         const sfx = $('set-sfx'), music = $('set-music'), touch = $('set-touch');
         sfx.value = settings.sfx; music.value = settings.music; touch.value = settings.touch;
         const changed = () => {
@@ -149,4 +148,3 @@ export class UI {
         setTimeout(() => el.remove(), 2500);
     }
 }
-

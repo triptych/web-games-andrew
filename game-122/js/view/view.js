@@ -45,7 +45,6 @@ export class View {
         window.addEventListener('resize', onResize);
         window.visualViewport?.addEventListener('resize', onResize);
     }
-
     resize() {
         const vv = window.visualViewport;
         const w = Math.max(1, Math.round(vv ? vv.width : innerWidth));
@@ -464,4 +463,3 @@ function makeGrain() {
     t.putImageData(img, 0, 0);
     return c;
 }
-

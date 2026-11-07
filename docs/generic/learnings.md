@@ -6586,3 +6586,12 @@ A cartographer's commission game in Canvas 2D: scry a hidden island onto parchme
 - **A debug fast-forward must finish what the bot started.** `ff(6)` left the bot's spell half-held; the real input then said "not held" and released it half-focused, so a snapshot taken for a save round-trip test no longer matched. Let the helper run the held spell out before it returns.
 - **Cheap parchment.** A baked radial gradient, ~400 soft radial blotches and a dashed graticule at device resolution look like paper; per-cell random rects look like a grid. A watercolour wash is a hash-jittered fill per cell with a 1 px overlap, hand-drawn symbols from three hash values per cell, and coastlines as short jittered segments wherever sea meets land.
 - **Camera for a sheet bigger than the screen.** Scale is `max(fit, clamp(width / 28, 12, 16))`; when the sheet fits, centre it, otherwise follow the target with an exponential ease clamped so no wood shows. Snap on a new commission or screen size, and on a result follow the head of the client's journey instead of the quill.
+
+## Game 124 Wrack & Wonder: seeded laws learned by experiment, a bot that only knows its notebook, and gates proved shut by a flood fill (2026-11-06)
+
+A first-person survival and research adventure in three.js: learn a generated magic system by experiment, then use its effects to break a curse. See [game-124/game-plan.md](../../game-124/game-plan.md).
+
+- **Generate the rules, not just the world.** Meanings, word order, reagent essences, opposed words, timing and colours all come from the seed. Puzzles target effects rather than particular glyphs, so every generated vocabulary remains solvable.
+- **Keep research honest.** Instruments and casts are the only source of notebook facts; the bot plans from those facts and public observations rather than the hidden laws.
+- **Prove gates with the real movement rules.** A flood fill over the same standability, slope and water constraints used by the route finder verifies inaccessible regions remain shut without magic and open when their flags change.
+- **Use the tests to find view/sim edge cases.** Bolts pass through objects that cannot react to them; updrafts leave enough glide time to reach nearby ledges; neutral gallery lighting exposes character hair that hides faces in the game's darker scenes.

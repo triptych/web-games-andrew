@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-123 games, `game-001` through `game-123`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+124 games, `game-001` through `game-124`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -158,6 +158,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 121 | [ARCANA WAGON](game-121/) | A first-person fortune-teller adventure: read the crystal ball's symbols and colours and the omens in the room, lay tarot cards drawn in code, learn the language of the universe in a Codex, unmask a plot against the King across seven days and spend your evenings with one of three villagers | three.js |
 | 122 | [Rainglass](game-122/) | A cozy lo-fi night-train game: guide one raindrop across a misted window to wipe it clear, drink up rain beads, play a melody on the beat as you wipe, spot curios and keep a postcard from every station | Canvas 2D |
 | 123 | [Atlas of Ink](game-123/) | A cartographer's commission game: scry a hidden fantasy island onto parchment with a hold-to-focus spell for a farmer, a prospector, an adventurer, a ship captain, a pilgrim and the king, and watch them walk or sail the map you drew | Canvas 2D |
+| 124 | [Wrack & Wonder](game-124/) | A first-person survival and research adventure: learn a magic system generated from the seed by experiment, then use it to break a curse and free the girl who built the hut | three.js |
 
 ### Highlights
 
@@ -383,7 +384,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-123/   # One self-contained folder per game
+├── game-001/ … game-124/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -440,7 +441,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 123 games are included as of the latest entries (game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION, game-118 The Kids Table, game-119 THE HERO'S MERCHANT, game-120 HEXAPOD RISING, game-121 ARCANA WAGON, game-122 Rainglass, game-123 Atlas of Ink), and the Garden launcher is at v1.9.0.
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 124 games are included as of the latest entries (game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION, game-118 The Kids Table, game-119 THE HERO'S MERCHANT, game-120 HEXAPOD RISING, game-121 ARCANA WAGON, game-122 Rainglass, game-123 Atlas of Ink, game-124 Wrack & Wonder), and the Garden launcher is at v1.9.0.
 
 ---
 
