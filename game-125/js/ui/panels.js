@@ -45,7 +45,7 @@ function command(G, st) {
         ZONES.forEach((Z, i) => {
             const z = G.zones[i];
             const lock = G.bot.gen < Z.req;
-            h += `<div class="zone ${z.visited ? '' : 'unseen'}"><div class="zh"><b>${esc(Z.name)}</b><span>${lock ? `needs ${GENS[Z.req].mk}` : z.visited ? `${Math.round(terraOf(z))}% restored` : 'not yet visited'}</span></div>
+            h += `<div class="zone art ${z.visited ? '' : 'unseen'}" style="--art:url(art/zone-${Z.id}.webp)"><div class="zh"><b>${esc(Z.name)}</b><span>${lock ? `needs ${GENS[Z.req].mk}` : z.visited ? `${Math.round(terraOf(z))}% restored` : 'not yet visited'}</span></div>
                 <div class="metrics"><span>Toxic</span>${bar(z.toxic, 100, 'bad')}<span>Hostile</span>${bar(z.hostile, 100, 'bad')}<span>Barren</span>${bar(z.barren, 100, 'bad')}</div>
                 <div class="zf">${Z.boss ? (z.boss ? (G.final === 'concord' ? '🌸 The Chorus is listening' : '🔥 Purged') : '⚠️ The Rootmother') : ''}${z.colony ? ` 🏠 ${COLONY[z.colony - 1].name}` : ''}${ZONES[i].echo >= 0 && G.echoes.includes(ZONES[i].echo) ? ' 📼 black box found' : ''}</div></div>`;
         });
@@ -95,7 +95,7 @@ function hangar(G, st) {
         ZONES.forEach((Z, i) => {
             const why = deployCheck(G, i), z = G.zones[i];
             const fauna = Object.keys(Z.counts.enemies).map((t) => ENEMIES[t].name).join(', ');
-            h += `<button class="drop" ${cmd({ t: 'deploy', zone: i })} ${why ? 'disabled' : ''} title="${esc(why || '')}"><b>${esc(Z.name)}</b><span>${esc(Z.intro)}</span>
+            h += `<button class="drop" ${cmd({ t: 'deploy', zone: i })} ${why ? 'disabled' : ''} title="${esc(why || '')}"><img class="zthumb" src="art/zone-${Z.id}.webp" alt="" loading="lazy"><b>${esc(Z.name)}</b><span>${esc(Z.intro)}</span>
                 <span class="dim">${GENS[Z.req].mk}+ · ${Z.hazard === 'none' ? 'no hazards' : esc(Z.hazardName)} · ${esc(fauna)}${Z.boss && !z.boss ? ' · THE ROOTMOTHER' : ''}</span>${why && Z.req > gen ? `<em>${esc(why)}</em>` : ''}</button>`;
         });
         h += '</div><p class="dim">A drop costs half a day; time on the surface costs a day every 30 seconds.</p>';
@@ -215,7 +215,7 @@ export function reportHtml(G) {
     const r = G.report, Z = ZONES[r.zone];
     const got = RES.filter((k) => r.brought[k]).map((k) => `${RES_INFO[k].icon} ${r.brought[k]} ${RES_INFO[k].name}`).join(' · ') || 'nothing';
     const samples = Object.entries(r.samples).map(([id, n]) => `${esc(SPECIES_BY_ID[id].name)} ×${n}${isSequenced(G, id) ? ' ✅' : ''}`).join(', ');
-    return `<h2>${r.lost ? 'Signal lost' : r.how === 'recalled' ? 'Recalled' : 'Back aboard'}</h2><p class="dim">${esc(Z.name)} · ${r.days} days on the surface</p>
+    return `<img class="card-art" src="art/zone-${Z.id}.webp" alt=""><h2>${r.lost ? 'Signal lost' : r.how === 'recalled' ? 'Recalled' : 'Back aboard'}</h2><p class="dim">${esc(Z.name)} · ${r.days} days on the surface</p>
         <p>${r.lost ? 'The bot was destroyed. Part of its hold was recovered.' : 'Cargo unloaded.'}</p><p><b>Brought home:</b> ${got}</p>
         <p><b>Genome samples:</b> ${samples || 'none'}</p><p><b>Creatures defeated:</b> ${r.kills}</p>${r.echo ? '<p class="good">📼 One of VESPER\'s black boxes. It\'s in the Archive.</p>' : ''}`;
 }
@@ -223,6 +223,6 @@ export function endingHtml(G) {
     const E = ENDINGS[G.ending.kind];
     const lines = E.lines.slice();
     if (G.ending.dog && (G.ending.kind === 'concord' || G.ending.kind === 'purge' || G.ending.kind === 'hard')) lines.push(IRIS_DOG);
-    return `<h2 class="endt">${esc(E.title)}</h2>${lines.map((l) => `<p>${esc(l)}</p>`).join('')}
+    return `<img class="card-art end-art" src="art/end-${G.ending.kind}.webp" alt=""><h2 class="endt">${esc(E.title)}</h2>${lines.map((l) => `<p>${esc(l)}</p>`).join('')}
         <p class="dim">Day ${Math.floor(G.ending.day)} · Eden Index ${G.ending.eden} · ${G.stats.missions} drops · ${G.stats.releases} strains released${G.ending.early ? ' · woken early' : ''}</p>`;
 }

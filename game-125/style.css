@@ -261,3 +261,32 @@ canvas.sprite { image-rendering: pixelated; width: 64px; height: auto; flex: non
     .tbtns { bottom: calc(14px + var(--safe-b)); }
 }
 body.touch .use-prompt kbd { display: none; }
+
+/* ---------------------------------------------------------------- painted art (art/, generated with fal) */
+#title { background: linear-gradient(180deg, rgba(3, 5, 12, 0.05) 0%, rgba(3, 5, 12, 0.25) 55%, rgba(3, 5, 12, 0.75) 100%), url(art/title.webp) center / cover no-repeat, #05070f; align-items: flex-end; }
+#title .title-sheet { margin-bottom: 4vh; background: rgba(8, 12, 26, 0.72); }
+#talk .face { width: 88px; height: 88px; background-size: cover; background-position: center; image-rendering: auto; border: 1px solid rgba(255, 255, 255, 0.12); }
+#talk .face.tilly { background-color: #141c3a; }
+#talk .face.m-happy { background-image: url(art/tilly-happy.webp); }
+#talk .face.m-excited { background-image: url(art/tilly-excited.webp); }
+#talk .face.m-think { background-image: url(art/tilly-think.webp); }
+#talk .face.m-worried { background-image: url(art/tilly-worried.webp); }
+#talk .face.m-sad { background-image: url(art/tilly-sad.webp); }
+#talk .face.vesper { background: url(art/vesper.webp) center / cover, #2a1030; }
+.zone.art { background: linear-gradient(90deg, rgba(10, 16, 30, 0.94) 35%, rgba(10, 16, 30, 0.55)), var(--art) center / cover; }
+.drop { position: relative; padding-left: 132px; min-height: 84px; overflow: hidden; }
+.drop .zthumb { position: absolute; left: 0; top: 0; width: 120px; height: 100%; object-fit: cover; border-radius: 10px 0 0 10px; }
+.drop:disabled .zthumb { filter: grayscale(0.8) brightness(0.6); }
+.card-art { display: block; width: calc(100% + 32px); margin: -16px -16px 12px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px 14px 0 0; }
+.ending-sheet .end-art { aspect-ratio: 16 / 8; }
+#landing { position: fixed; inset: 0; z-index: 30; pointer-events: none; background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.75)), var(--art) center / cover no-repeat, #000; display: flex; align-items: flex-start; justify-content: center; padding-top: calc(18vh + var(--safe-t)); }
+#landing .land-name { font: clamp(24px, 6vw, 46px) var(--pix); color: #fff; text-shadow: 0 2px 0 #000, 0 0 18px rgba(0, 0, 0, 0.8); letter-spacing: 0.06em; text-align: center; padding: 0 16px; }
+@media (max-width: 560px) {
+    #talk .face { width: 60px; height: 60px; }
+    .drop { padding-left: 96px; }
+    .drop .zthumb { width: 86px; }
+}
+@media (min-width: 900px) and (min-aspect-ratio: 4/3) {
+    #title { justify-content: flex-end; align-items: center; padding-right: 5vw; }
+    #title .title-sheet { margin-bottom: 0; width: min(400px, 34vw); }
+}

@@ -97,7 +97,7 @@
 
     <!-- Dialogue -->
     <div id="talk" hidden>
-        <canvas id="talk-face" class="face" width="40" height="40" data-sprite=""></canvas>
+        <div id="talk-face" class="face" aria-hidden="true"></div>
         <div class="talk-main">
             <div id="talk-name"></div>
             <p id="talk-text" aria-live="polite"></p>
@@ -195,6 +195,7 @@
         </div>
     </div>
 
+    <div id="landing" hidden aria-hidden="true"><div class="land-name"></div></div>
     <div id="fade"></div>
     <div id="toasts" aria-hidden="true"></div>
     <noscript><p class="noscript">SEEDFALL needs JavaScript.</p></noscript>

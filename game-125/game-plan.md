@@ -1,7 +1,7 @@
 # SEEDFALL
 
 **Genre:** Narrative first-person sci-fi adventure with idle terraforming: HD-2D, a bot you drive, a lab you run, a year you can't get back
-**Engine:** three.js r165, no asset files (every sprite, texture, planet and sound is made in code)
+**Engine:** three.js r165. The 3D world (every in-world sprite, texture and planet) and all sound are made in code; the 2D illustrations in [art/](art/README.md) were generated with fal
 **Status:** v1.0.0
 
 ---
@@ -121,6 +121,7 @@ At the Heartroot the Rootmother is the planet's immune system made flesh, and VE
 - **HD-2D:** every character, creature, plant, bot and prop is pixel art painted in code with the volumetric painter from game-093 (`js/view/pixel.js`), drawn as nearest-filtered, lit, upright billboards with blob shadows in a 3D world. The post chain is round-kernel bloom, a tilt-shift blur that softens the top and bottom of the frame, a saturation grade and a vignette (`js/view/stage.js`). `dev/sprites.html` shows every sprite on a neutral ground.
 - **The station:** walls, lintels and glow strips generated from `js/sim/layout.js`, a lamp per room in the room's colour, a holo-table with a spinning hologram of Cradle, the planet itself through the Command Deck window (a shader that paints its land between sick browns and healthy greens by the Eden Index), a splicer column with bubbles, pod rows with sleeping faces under glass, the bot on its drop cradle.
 - **The planet:** a vertex-coloured terrain diorama whose ground blends from dead to living colours as the zone heals, hills rising beyond the map edge, a zone-tinted sky dome, fog and sun, instanced grass, dead stalks and flowers (more flowers as fertility returns), glowing hazards, the bot's own arms swinging in the corner of the view, hit flashes, particle bursts, a red damage vignette.
+- **Painted art** ([art/](art/README.md)), generated with fal's Nano Banana 2.1 under one shared HD-2D style instruction: the title key art (the Command Deck window, TILLY and the holo-table), dialogue portraits of TILLY in five moods (one base image and four edits, so she stays the same robot) and of VESPER, a card for each of the six zones (the Hangar's drop list, the Holo-table, a landing card while the bot drops, the mission report) and an illustration for each of the four endings. 18 WebP files, 876 KB in all; the full-size originals are not in the repo.
 - **Sound:** a look-ahead sequencer with five themes (station pads, planet arpeggio, Hollow, the boss's drums, the ending), a reverb made from noise, a station hum, TILLY speaking in soft blips (VESPER lower, systems in square waves), and effects for every sim event.
 
 ## Module overview
@@ -163,4 +164,5 @@ Tuned by the bot (`dev/year.mjs` prints a month-by-month log; `simtest` prints t
 ## Changelog
 
 ### v1.0.0 (2026-11-08)
+- Painted art generated with fal: title key art, TILLY's five mood portraits and VESPER's, six zone cards (drop list, Holo-table, landing card, report) and four ending illustrations ([art/README.md](art/README.md)); the title stops drawing the 3D deck it now covers.
 - First release: a first-person station to walk, six planet zones driven through six generations of bot, 23 genomes and a splicer, 25 research projects, harvesters and colonies, VESPER's five black boxes, the Rootmother and the Purge/Concord choice, four endings, procedural HD-2D art and Web Audio music, and sim, balance and browser harnesses.

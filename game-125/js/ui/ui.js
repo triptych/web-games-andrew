@@ -10,6 +10,7 @@ import { renderPanel, reportHtml, endingHtml, PANEL_TITLES } from './panels.js';
 import * as SP from '../view/sprites.js';
 
 const $ = (id) => document.getElementById(id);
+const MOODS = ['happy', 'excited', 'think', 'worried', 'sad'];
 const ROOM_NAME = Object.fromEntries(ROOMS.map((r) => [r.id, r.name]));
 const spriteCache = new Map();
 function spriteCanvas(key) {
@@ -175,11 +176,8 @@ export class UI {
             this.typeKey = key; this.typed = 0;
             const sp = SPEAKERS[L.w];
             $('talk-name').textContent = sp.name; $('talk-name').style.color = sp.color;
-            const pk = L.w === 'tilly' ? 'tilly-' + (L.m || 'happy') : null;
-            const pc = $('talk-face');
-            pc.dataset.sprite = pk || ''; pc.dataset.done = '';
-            pc.className = 'face ' + L.w;
-            if (pk) paintSprites(box); else { const g = pc.getContext('2d'); g.clearRect(0, 0, pc.width, pc.height); }
+            // painted portraits (art/): TILLY by mood, VESPER; systems and records keep their CSS faces
+            $('talk-face').className = 'face ' + L.w + (L.w === 'tilly' ? ' m-' + (MOODS.includes(L.m) ? L.m : 'happy') : '');
             $('talk-choices').innerHTML = '';
             box.dataset.who = L.w;
         }

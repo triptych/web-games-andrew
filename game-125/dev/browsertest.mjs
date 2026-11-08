@@ -111,6 +111,7 @@ async function desktop() {
 
     await click(page, '#title-menu [data-act="new"]');
     await until(page, () => __sf.mode === 'play' && __sf.G.talk?.id === 'wake' && !document.getElementById('talk').hidden, 'New Year starts on TILLY waking you');
+    await until(page, () => __sf.G.talk.i < 2 || getComputedStyle(document.getElementById('talk-face')).backgroundImage.includes('tilly-'), 'TILLY speaks with her painted portrait', 45000);
     const i0 = await Q(page, () => __sf.G.talk.i);
     await page.keyboard.press('Enter');
     await page.waitForTimeout(150);
@@ -151,8 +152,10 @@ async function desktop() {
     await until(page, () => __sf.G.talk?.id === 'hangar', 'TILLY introduces Sprout');
     await talkThrough(page);
     await until(page, () => !document.getElementById('term').hidden, 'the Hangar panel opens');
+    await until(page, () => { const im = [...document.querySelectorAll('#term-body .zthumb')]; return im.length === 6 && im.every((i) => i.complete && i.naturalWidth > 0); }, 'every zone card in the drop list has loaded');
     await click(page, '#term-body .drop');
     await until(page, () => __sf.G.mode === 'mission' && document.getElementById('term').hidden, 'the Meadow button drops Sprout on the planet');
+    await until(page, () => !document.getElementById('landing').hidden && getComputedStyle(document.getElementById('landing')).backgroundImage.includes('zone-meadow'), 'the Meadow landing card shows while TILLY says hello');
     await talkThrough(page);
     await until(page, () => !document.getElementById('hud-mission').hidden, 'the mission HUD is up');
     const px2 = await Q(page, () => __sf.probe());
@@ -229,6 +232,7 @@ async function desktop() {
     await until(page, () => __sf.mode === 'over', 'the year ends', 240000);
     await talkThrough(page);
     await until(page, () => !document.getElementById('ending').hidden && document.querySelector('#ending-body h2').textContent.length > 3, 'an ending is shown');
+    await until(page, () => { const i = document.querySelector('#ending-body .end-art'); return i && i.complete && i.naturalWidth > 0 && i.src.includes('end-' + __sf.G.ending.kind); }, 'with its painted illustration');
     console.log('    ending:', await Q(page, () => `${__sf.G.ending.kind} day ${__sf.G.ending.day} eden ${__sf.G.ending.eden}`));
     await shot(page, 'desktop-ending');
     await click(page, '#ending-again');

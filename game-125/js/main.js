@@ -38,7 +38,13 @@ function titleGame() {
 }
 let G = titleGame();
 let mode = 'title';                 // title | play | over
-let fadeUntil = 0;
+let fadeUntil = 0, landingUntil = 0;
+/** The zone's painted card while the bot drops and TILLY says hello (art/zone-*.webp). */
+function showLanding(zone) {
+    const el = $('landing');
+    el.style.setProperty('--art', `url(art/zone-${ZONES[zone].id}.webp)`);
+    el.querySelector('.land-name').textContent = ZONES[zone].name;
+}
 let acc = 0, time = 0, last = performance.now(), saveT = 0, bot = null, wasRunning = false, swallowUntil = 0;
 const seen = {};
 const cmds = [];                    // commands from buttons, drained in order at the start of a frame
@@ -183,7 +189,7 @@ function flushEvents() {
     audio.onEvents(G, ev);
     if (mode === 'play') ui.onEvents(G, ev);
     for (const e of ev) {
-        if (e.type === 'deploy') { fadeUntil = performance.now() + 600; ui.showHud('mission'); }
+        if (e.type === 'deploy') { fadeUntil = performance.now() + 600; landingUntil = performance.now() + 2600; showLanding(e.zone); ui.showHud('mission'); }
         if (e.type === 'missionEnd') { ui.showHud('station'); input.flush(); swallowUntil = performance.now() + 300; saveGame(G); }
         if (e.type === 'talk') { swallowUntil = performance.now() + 250; }
         if (e.type === 'ending') { mode = 'over'; clearSave(); }
@@ -240,8 +246,12 @@ function frame(now) {
 
     if (mode === 'title') { G.me.yaw = 0.1 + Math.sin(time * 0.07) * 0.12; G.me.pitch = -0.08 + Math.sin(time * 0.05) * 0.03; G.day = 120 + Math.sin(time * 0.1) * 80; }
     $('fade').style.opacity = Math.max(0, (fadeUntil - performance.now()) / 600).toFixed(3);
+    const landing = mode === 'play' && G.mode === 'mission' && (performance.now() < landingUntil || G.talk?.id.startsWith('land_'));
+    $('landing').hidden = !landing;
+    if (landing) $('landing').style.opacity = G.talk?.id.startsWith('land_') ? 1 : Math.min(1, (landingUntil - performance.now()) / 500).toFixed(3);
     view.goalTerm = mode === 'play' ? (G.talk ? null : currentGoalTerm()) : null;
-    view.frame(G, dt * (DEBUG ? Math.min(FAST, 4) : 1), time);
+    // the title's painted key art covers the screen: the 3D deck behind it need not be drawn
+    if (!(mode === 'title' && !$('title').hidden)) view.frame(G, dt * (DEBUG ? Math.min(FAST, 4) : 1), time);
     if (mode === 'play' || mode === 'over') { ui.talk(G, dt); ui.hud(G); ui.refreshPanel(); }
 }
 function currentGoalTerm() { try { return currentGoal(G).term || null; } catch { return null; } }
