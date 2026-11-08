@@ -1577,6 +1577,21 @@ h1 {
     box-shadow: 0 0 14px rgba(224, 176, 80, 0.7);
 }
 
+.game-preview.seedfall,
+.carousel-slide-bg.seedfall {
+    background:
+        radial-gradient(circle at 70% 120%, #5aa86a 0 34%, #3a7a8a 35% 40%, transparent 41%),
+        radial-gradient(circle at 22% 28%, rgba(255, 215, 106, 0.55), transparent 9%),
+        radial-gradient(ellipse at 50% 30%, rgba(122, 255, 200, 0.18), transparent 50%),
+        linear-gradient(180deg, #05070f 0%, #101a3a 55%, #1d2a5a 100%);
+}
+
+.game-card.seedfall .play-button {
+    background: linear-gradient(135deg, #ffd76a, #7affc8 55%, #6ab0ff);
+    color: #10180f;
+    box-shadow: 0 0 14px rgba(122, 255, 200, 0.55);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
