@@ -1,6 +1,6 @@
 # Web Games Development Learnings
 
-This document captures the key learnings, patterns, and insights gained from developing the first 5 web games in this project.
+This document captures reusable, repo-tested learnings from the full collection. Early-game notes remain as historical context; later sections record patterns and corrections from subsequent games, including the current 057–124 sim/view era.
 
 ## Table of Contents
 - [Evolution Overview](#evolution-overview)

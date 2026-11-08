@@ -333,7 +333,7 @@ python -m SimpleHTTPServer 8000
 
 ### Playing Individual Games
 
-You can also play any game directly by opening its own `index.html` file, e.g. `game-001/index.html` for Space Shooter. See the [table above](#games-included) for the full list of 58 games and their folders.
+You can also play any game directly by opening its own `index.html` file, e.g. `game-001/index.html` for Space Shooter. See the [table above](#games-included) for the full list of 124 games and their folders.
 
 ## Building Desktop Versions
 
@@ -401,11 +401,11 @@ Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018
 - **HTML5 Canvas** - For game graphics and rendering
 - **JavaScript** - Game logic and interactivity
 - **CSS3** - Styling and responsive design
-- **Kaplay Framework (v4000 alpha)** - Game development framework (most games from game-002 onward, including game-032)
-- **Phaser 4.0.0 (ESM)** - Game framework (game-019, game-020, game-027, game-028, game-035)
-- **three.js (r165)** - 3D/WebGL framework, loaded via CDN import map (game-014, game-018, game-024, game-025, game-026, game-029, game-040, game-045, game-046, game-047, game-049, game-050, game-051)
-- **Vanilla JS (no library)** - Hand-crafted DOM + Canvas engine (game-007, game-033, game-034, game-037, game-038, game-039, game-048)
-- **Custom software 3D** - Hand-written 3D renderers with no engine: a palette-indexed framebuffer (game-031) and a triangle rasterizer on Canvas2D (game-036)
+- **Kaplay (v4000)** - Used by the early arcade, puzzle, RPG and strategy games.
+- **Phaser 4.0.0 (ESM)** - Used by selected games, including game-019, game-020, game-027, game-028 and game-035.
+- **three.js (r165)** - Used by 3D games; loaded from a CDN with an import map rather than vendored in the repo.
+- **Vanilla JavaScript** - DOM, Canvas 2D, WebGL and custom simulation/view implementations; most later games use a deterministic simulation with a separate renderer and a `dev/` harness.
+- **Custom software 3D** - Hand-written renderers including a palette-indexed framebuffer and a Canvas 2D triangle rasterizer.
 - **GemCore/GemShell** - Desktop application packaging
 
 ## Attributions
@@ -441,7 +441,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 124 games are included as of the latest entries (game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION, game-118 The Kids Table, game-119 THE HERO'S MERCHANT, game-120 HEXAPOD RISING, game-121 ARCANA WAGON, game-122 Rainglass, game-123 Atlas of Ink, game-124 Wrack & Wonder), and the Garden launcher is at v1.9.0.
+See [CHANGELOG.md](CHANGELOG.md) for the current version. The collection contains 124 games (`game-001`–`game-124`); the newest are Hearthwick, SOLITAIRE FROM OUTER SPACE, PERIHELION, The Kids Table, THE HERO'S MERCHANT, HEXAPOD RISING, ARCANA WAGON, Rainglass, Atlas of Ink and Wrack & Wonder.
 
 ---
 
