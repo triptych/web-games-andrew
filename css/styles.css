@@ -1633,3 +1633,146 @@ footer a:hover {
         max-width: 100%;
     }
 }
+
+/* The classic list is a separate, text-first view. Keep its mobile layout
+   comfortable without changing the shared 3D landing page. */
+@media (max-width: 600px) {
+    .classic-page {
+        padding: 14px;
+    }
+
+    .classic-page header {
+        margin-bottom: 24px;
+        padding: 18px 0 8px;
+    }
+
+    .classic-page h1 {
+        font-size: clamp(1.65rem, 8vw, 2rem);
+        line-height: 1.2;
+    }
+
+    .classic-page .subtitle {
+        font-size: 1.05rem;
+        line-height: 1.5;
+    }
+
+    .classic-page .carousel {
+        margin-bottom: 28px;
+    }
+
+    .classic-page .carousel-slide {
+        min-height: 320px;
+    }
+
+    .classic-page .carousel-slide-content {
+        gap: 8px;
+        padding: 24px 54px 22px 20px;
+    }
+
+    .classic-page .carousel-icon {
+        font-size: 3rem;
+    }
+
+    .classic-page .carousel-text h2 {
+        font-size: 1.4rem;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+
+    .classic-page .carousel-text p {
+        font-size: 0.98rem;
+        line-height: 1.55;
+        -webkit-line-clamp: 4;
+    }
+
+    .classic-page .carousel-arrow {
+        width: 44px;
+        height: 44px;
+        top: 22px;
+        transform: none;
+        background: rgba(0, 0, 0, 0.58);
+    }
+
+    .classic-page .carousel-arrow:hover {
+        transform: scale(1.05);
+    }
+
+    .classic-page .carousel-arrow-prev {
+        left: auto;
+        right: 66px;
+    }
+
+    .classic-page .carousel-arrow-next {
+        right: 14px;
+    }
+
+    .classic-page .carousel-nav {
+        gap: 10px;
+    }
+
+    .classic-page .carousel-dot {
+        width: 32px;
+        height: 32px;
+        padding: 11px;
+        background-clip: content-box;
+    }
+
+    .classic-page .tag-filters {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        padding: 2px 2px 10px;
+    }
+
+    .classic-page .tag-chip {
+        flex: 0 0 auto;
+        min-height: 40px;
+        padding: 8px 14px;
+        font-size: 0.92rem;
+    }
+
+    .classic-page #game-search {
+        min-height: 48px;
+        font-size: 16px;
+    }
+
+    .classic-page .games-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .classic-page .game-card {
+        padding: 18px;
+    }
+
+    .classic-page .game-title {
+        font-size: 1.25rem;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+    }
+
+    .classic-page .game-description {
+        font-size: 1rem;
+        line-height: 1.6;
+        -webkit-line-clamp: 4;
+    }
+
+    .classic-page .game-info {
+        gap: 8px;
+        margin: 12px 0;
+    }
+
+    .classic-page .tag {
+        padding: 5px 10px;
+        font-size: 0.78rem;
+        line-height: 1.35;
+    }
+
+    .classic-page .play-button {
+        min-height: 44px;
+        padding: 10px 20px;
+    }
+}
