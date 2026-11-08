@@ -54,10 +54,20 @@ export function billboard(key, make, opts = {}) {
     }
     return root;
 }
-/** Turn a billboard to face the camera about Y. */
+const _p = new THREE.Vector3(), _c = new THREE.Vector3(), _q = new THREE.Quaternion(), _e = new THREE.Euler();
+/**
+ * Turn a billboard to face the camera about Y. Works in WORLD space: a billboard inside a positioned group (TILLY
+ * floats in one with her light) has a local position of (0, 0, 0), and aiming from that pointed her at the world
+ * origin instead of at you.
+ */
 export function face(b, cam) {
     const s = b.userData.sprite;
-    s.rotation.y = Math.atan2(cam.position.x - b.position.x, cam.position.z - b.position.z) - (b.rotation.y || 0);
+    b.updateWorldMatrix(true, false);
+    b.getWorldPosition(_p);
+    cam.getWorldPosition(_c);
+    b.getWorldQuaternion(_q);
+    const parentYaw = _e.setFromQuaternion(_q, 'YXZ').y;
+    s.rotation.y = Math.atan2(_c.x - _p.x, _c.z - _p.z) - parentYaw;
 }
 export function disposeTree(o) {
     o.traverse((c) => {

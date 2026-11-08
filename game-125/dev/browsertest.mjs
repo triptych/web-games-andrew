@@ -124,6 +124,22 @@ async function desktop() {
     await until(page, (z) => __sf.G.me.z < z - 1.5, 'holding W walks north up the spine', 45000, z0);
     await page.keyboard.up('KeyW');
     check(await Q(page, () => __sf.G.day > 0), 'time ran while walking');
+    // TILLY is a billboard inside a positioned group: she must face the camera from anywhere on the deck
+    const facing = await Q(page, async () => {
+        const out = [];
+        for (const [x, z, yaw] of [[0, -10, 0], [12, -24, 1.4], [-10, -18, -2.2], [0, -42, 3.0]]) {
+            Object.assign(__sf.G.me, { x, z, yaw });
+            __sf.view.station.tillyPos.set(x + Math.sin(yaw) * 1.3 - Math.cos(yaw) * 0.85, 1.3, z - Math.cos(yaw) * 1.3 - Math.sin(yaw) * 0.85);
+            __sf.probe();
+            const s = __sf.view.station.tillyBoard.userData.sprite, cam = __sf.view.cam;
+            s.updateWorldMatrix(true, false);
+            const n = s.getWorldDirection(s.position.clone()), p = s.getWorldPosition(s.position.clone()), c = cam.getWorldPosition(s.position.clone());
+            const to = c.sub(p); to.y = 0; to.normalize(); n.y = 0; n.normalize();
+            out.push(n.dot(to));
+        }
+        return out;
+    });
+    check(facing.every((d) => d > 0.98), `TILLY faces the camera from four places on the deck (${facing.map((d) => d.toFixed(2)).join(', ')})`);
 
     await Q(page, new Function(near('command')));
     await until(page, () => __sf.G.near === 'command' && !document.getElementById('hud-use').hidden, 'the Use prompt names the Holo-table');
