@@ -19,6 +19,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { REGIONS } from '../config.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export let renderer, scene, camera;
 let composer = null, bloom = null;
 export let hemi, sun, sky;
@@ -116,6 +118,7 @@ export function initScene(canvas, quality) {
         composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
         bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.4, 0.9);
+        roundBloom(bloom);
         composer.addPass(bloom);
         composer.addPass(new OutputPass());
     }

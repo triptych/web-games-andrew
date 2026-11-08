@@ -15,6 +15,8 @@ import { RenderPass }     from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { CAM_FOV, CAM_NEAR, CAM_FAR, CAM_POS, CAM_LOOK, COLORS } from './config.js';
 
+import { roundBloom } from '../../lib/round-bloom.js';
+
 export let renderer, scene, camera, composer;
 export const clock = new THREE.Clock();
 
@@ -55,6 +57,7 @@ export function initScene() {
         new THREE.Vector2(window.innerWidth, window.innerHeight),
         BLOOM_STRENGTH, BLOOM_RADIUS, BLOOM_THRESHOLD,
     );
+    roundBloom(bloom);
     composer.addPass(bloom);
 
     // Lights — emissive neon materials carry most of the look, but a little

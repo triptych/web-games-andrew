@@ -15,6 +15,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export let renderer, composer, envMap;
 export const town = { scene: null, camera: null };
 export const battle = { scene: null, camera: null };
@@ -78,6 +80,7 @@ export function initScene() {
     composer.addPass(renderPass);
     composer.addPass(new ShaderPass(SanitizeShader));
     bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.5, 0.82);
+    roundBloom(bloom);
     composer.addPass(bloom);
     grade = new ShaderPass(GradeShader);
     composer.addPass(grade);

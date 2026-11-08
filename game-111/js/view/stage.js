@@ -9,6 +9,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const LENS = {
     uniforms: {
         tDiffuse: { value: null },
@@ -71,6 +73,7 @@ export class Stage {
         this.composer.addPass(new RenderPass(this.scene, this.camera));
         // only glyph edges, sigils, beams and sparks cross the threshold, never the plate or the sky
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.95, 0.6, 0.62);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.lens = new ShaderPass(LENS);
         this.composer.addPass(this.lens);

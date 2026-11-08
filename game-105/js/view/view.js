@@ -20,6 +20,8 @@ import { ToolRig } from './tools3d.js';
 import { WireView } from './wires.js';
 import * as TX from './textures.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const PI = Math.PI;
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 
@@ -137,6 +139,7 @@ export class View {
         this.composer = new EffectComposer(r);
         this.composer.addPass(new RenderPass(this.scene, this.camera));
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.4, 0.5, 1.2);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.grade = new ShaderPass(GRADE);
         this.composer.addPass(this.grade);

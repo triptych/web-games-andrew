@@ -14,6 +14,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export let renderer, scene, camera, composer, bloom, grade;
 export const Q = { tier: 'high', pixel: 1, bloom: true, shadows: true, particles: 1, lights: 6, decalRes: 12, cap: 260 };
 
@@ -53,6 +55,7 @@ export function initScene(canvas, tier) {
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.75, 0.5, 0.86);
+    roundBloom(bloom);
     composer.addPass(bloom);
     grade = new ShaderPass(GradeShader);
     composer.addPass(grade);

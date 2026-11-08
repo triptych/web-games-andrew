@@ -9,6 +9,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const VHS = {
     uniforms: {
         tDiffuse: { value: null }, uTime: { value: 0 }, uAberr: { value: 0 }, uDamage: { value: 0 }, uOver: { value: 0 },
@@ -82,6 +84,7 @@ export class Stage {
         this.composer.addPass(this.worldPass);
         this.vmPass = null;
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.8, 0.45, 0.86);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.vhs = new ShaderPass(VHS);
         this.composer.addPass(this.vhs);

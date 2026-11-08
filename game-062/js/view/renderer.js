@@ -8,6 +8,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 // Colour grade: vignette, a warm/cool split tone per act, the low-health pulse, death desaturation and flashes.
 const GradeShader = {
     uniforms: {
@@ -62,6 +64,7 @@ export class Renderer {
         this.composer = new EffectComposer(this.gl);
         this.composer.addPass(new RenderPass(scene, camera));
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.5, 0.82);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.grade = new ShaderPass(GradeShader);
         this.composer.addPass(this.grade);

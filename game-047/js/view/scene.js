@@ -19,6 +19,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export let renderer, composer, worldScene, worldCam, cardScene, cardCam, bloomPass, gradePass;
 export const view = { w: 1, h: 1, dpr: 1, quality: 0, portrait: false, cardDist: 1000 };
 
@@ -91,6 +93,7 @@ export function initScene(canvasParent) {
     cardPass.clearDepth = true;
     composer.addPass(cardPass);
     bloomPass = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.5, 0.82);
+    roundBloom(bloomPass);
     composer.addPass(bloomPass);
     gradePass = new ShaderPass(GradeShader);
     composer.addPass(gradePass);

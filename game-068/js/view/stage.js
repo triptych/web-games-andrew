@@ -22,6 +22,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { W, H, THEMES, DUSK } from '../config.js';
 import { night } from './materials.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export let renderer, scene, camera, composer;
 let bloom, grade, quality = 1;
 let sun, hemi, sky, stars, beaconLight;
@@ -120,6 +122,7 @@ export function initStage(canvas, q) {
     composer.addPass(new RenderPass(scene, camera));
     composer.addPass(new ShaderPass(SANITIZE));
     bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.5, 0.82);
+    roundBloom(bloom);
     composer.addPass(bloom);
     grade = new ShaderPass(GRADE);
     composer.addPass(grade);

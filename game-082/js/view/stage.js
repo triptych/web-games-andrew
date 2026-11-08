@@ -9,6 +9,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { W, H } from '../config.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export class Stage {
     constructor(canvas, quality = 1) {
         this.canvas = canvas;
@@ -23,6 +25,7 @@ export class Stage {
         this.composer = new EffectComposer(this.renderer);
         this.composer.addPass(new RenderPass(this.scene, this.camera));
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.7, 0.5, 0.82);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.composer.addPass(new OutputPass());
         this.insets = { top: 0, bottom: 0, left: 0, right: 0 };

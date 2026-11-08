@@ -26,6 +26,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { G } from './materials.js';
 import { FOV, QUALITY, MAX_DYN_LIGHTS } from '../config.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const FinalShader = {
     uniforms: {
         tDiffuse: { value: null },
@@ -147,6 +149,7 @@ export class Renderer {
         this.vmPass.clear = false;
         this.vmPass.clearDepth = true;
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.7, 0.45, 0.82);
+        roundBloom(this.bloom);
         this.final = new ShaderPass(FinalShader);
         this.output = new OutputPass();
         this.composer.addPass(this.worldPass);

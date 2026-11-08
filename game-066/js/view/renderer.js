@@ -10,6 +10,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const GradeShader = {
     uniforms: {
         tDiffuse: { value: null }, uTime: { value: 0 }, uRes: { value: new THREE.Vector2(1, 1) },
@@ -99,6 +101,7 @@ export class Renderer {
         this.renderPass = new RenderPass(new THREE.Scene(), new THREE.PerspectiveCamera());
         this.composer.addPass(this.renderPass);
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.55, 0.85);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.grade = new ShaderPass(GradeShader);
         this.composer.addPass(this.grade);

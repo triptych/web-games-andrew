@@ -17,6 +17,8 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ARENA, CAM, COLORS, VIEW } from '../core/config.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export let renderer = null;
 export let scene = null;
 export let camera = null;
@@ -71,6 +73,7 @@ export function initScene(canvas) {
         new THREE.Vector2(vw(), vh()),
         QUALITY[quality.tier].bloom, VIEW.bloomRadius, VIEW.bloomThreshold,
     );
+    roundBloom(bloom);
     composer.addPass(bloom);
     composer.bloom = bloom;
 

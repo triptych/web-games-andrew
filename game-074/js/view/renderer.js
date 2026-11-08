@@ -13,6 +13,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { W, H } from '../config.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export const FOV = 40;
 export const CAM_D = (H / 2) / Math.tan((FOV / 2) * Math.PI / 180);
 
@@ -68,6 +70,7 @@ export class Renderer {
         this.composer = new EffectComposer(gl);
         this.renderPass = new RenderPass(this.scene, this.camera);
         this.bloom = new UnrealBloomPass(new THREE.Vector2(640, 360), 0.85, 0.55, 0.78);
+        roundBloom(this.bloom);
         this.final = new ShaderPass(FinalShader);
         this.output = new OutputPass();
         this.composer.addPass(this.renderPass);

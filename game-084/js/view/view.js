@@ -13,6 +13,8 @@ import { V } from '../runtime/index.js';
 import { makeCRTMaterial } from './crt.js';
 import { windowTexture, woodTexture, gridTexture, badgeTexture, labelTexture } from './textures.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const DESK_Y = 0.74;
 const SCREEN = { w: 0.40, h: 0.30, center: new THREE.Vector3(-0.08, DESK_Y + 0.33, -0.27) };
 
@@ -36,6 +38,7 @@ export class View {
         this.composer = new EffectComposer(this.renderer);
         this.composer.addPass(new RenderPass(this.scene, this.camera));
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.75, 0.55, 0.78);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.composer.addPass(new OutputPass());
         this.insets = { top: 0, bottom: 0, left: 0, right: 0 };

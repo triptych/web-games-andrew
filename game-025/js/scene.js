@@ -11,6 +11,8 @@ import { RenderPass }      from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { CAM_FOV, CAM_NEAR, CAM_FAR, COLORS } from './config.js';
 
+import { roundBloom } from '../../lib/round-bloom.js';
+
 export let renderer, scene, camera, composer;
 export const clock = new THREE.Clock();
 
@@ -51,12 +53,14 @@ export function initScene() {
     // maze/fog crisp — only genuinely bright pixels bloom (see threejs-api.md).
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    composer.addPass(new UnrealBloomPass(
+    const bloom = new UnrealBloomPass(
         new THREE.Vector2(window.innerWidth, window.innerHeight),
         0.7,    // strength
         0.5,    // radius
         0.82,   // threshold
-    ));
+    );
+    roundBloom(bloom);
+    composer.addPass(bloom);
 
     window.addEventListener('resize', _onResize);
 }

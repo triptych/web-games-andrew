@@ -6,6 +6,8 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 // Key colours through the day. tod 0 is dawn (6 am), 0.5 is dusk, 0.62 is nightfall.
 const KEYS = [
     { t: 0.00, zen: 0x34436f, hor: 0xf0a679, fog: 0xc79a86, sun: 0xffb47a, si: 1.1, hemi: 0.55, gnd: 0x4a3d3a },
@@ -125,6 +127,7 @@ export class Stage {
             this.composer.addPass(new RenderPass(this.scene, this.camera));
             // linear HDR before tone mapping: only emissive magic crosses 1.0, sunlit sand must not bloom
             this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.5, 1.05);
+            roundBloom(this.bloom);
             this.composer.addPass(this.bloom);
             this.composer.addPass(new OutputPass());
         }

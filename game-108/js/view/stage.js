@@ -14,6 +14,8 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { BOARD } from '../config.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export const HALF = (BOARD.w - 1) / 2;
 export const cellPos = (x, y, out = new THREE.Vector3()) => out.set(x - HALF, 0, y - HALF);
 export const ENEMY_POS = new THREE.Vector3(0, 0.35, -HALF - 3.3);
@@ -247,6 +249,7 @@ export class Stage {
         main.clearDepth = true;
         composer.addPass(main);
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.42, 0.3, 1.5);
+        roundBloom(this.bloom);
         composer.addPass(this.bloom);
         this.grade = new ShaderPass(GRADE);
         composer.addPass(this.grade);

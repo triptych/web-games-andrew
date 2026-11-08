@@ -19,6 +19,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { cloudTexture } from './textures.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export let renderer, scene, camera, composer;
 let renderPass, bloom, grade, sanitize;
 let quality = 0;
@@ -128,6 +130,7 @@ export function initStage(canvas, q) {
     renderPass = new RenderPass(scene, camera);
     sanitize = new ShaderPass(SANITIZE);
     bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.35, 0.5, 0.92);
+    roundBloom(bloom);
     grade = new ShaderPass(GRADE);
     composer.addPass(renderPass);
     composer.addPass(sanitize);

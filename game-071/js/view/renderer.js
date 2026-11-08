@@ -14,6 +14,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { QUALITY } from '../config.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const SanitizeShader = {
     uniforms: { tDiffuse: { value: null } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -182,6 +184,7 @@ export class Renderer {
         this.bloom = null;
         if (q.bloom > 0) {
             this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.32 * q.bloom, 0.55, 0.92);
+            roundBloom(this.bloom);
             c.addPass(this.bloom);
         }
         this.fxPass = new ShaderPass(FxShader);

@@ -20,6 +20,8 @@ import { ShaderPass }      from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass }      from 'three/addons/postprocessing/OutputPass.js';
 import { CAM, COLORS, TABLE } from '../config.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export let renderer, scene, camera, composer, tableRoot, table;
 export const clock = new THREE.Clock();
 
@@ -113,6 +115,7 @@ export function initScene() {
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.7, 0.45, 0.78);
+    roundBloom(bloom);
     composer.addPass(bloom);
     crt = new ShaderPass(CRTShader);
     composer.addPass(crt);

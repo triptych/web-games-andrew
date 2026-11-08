@@ -15,6 +15,8 @@ import { COLOURS, OMENS } from '../sim/data/lexicon.js';
 import { CAND } from '../sim/data/romance.js';
 import { PRINCE } from '../sim/data/story.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const TAU = Math.PI * 2;
 const ease = (t) => t * t * (3 - 2 * t);
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
@@ -94,6 +96,7 @@ export class View {
         this.composer = new EffectComposer(this.renderer, rt);
         this.composer.addPass(new RenderPass(this.scene, this.camera));
         this.bloom = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 0.5, 0.6, 0.88);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.composer.addPass(new OutputPass());
     }

@@ -17,6 +17,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass }      from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass }      from 'three/addons/postprocessing/OutputPass.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export let renderer, scene, camera, composer;
 export let hemi, sun;
 
@@ -118,6 +120,7 @@ export function initScene() {
     sanitize = new ShaderPass(SanitizeShader);
     composer.addPass(sanitize);
     bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.5, 0.82);
+    roundBloom(bloom);
     composer.addPass(bloom);
     grade = new ShaderPass(GradeShader);
     composer.addPass(grade);

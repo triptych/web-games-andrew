@@ -11,6 +11,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { MAP } from '../config.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export const PITCH = 50 * Math.PI / 180;           // camera elevation
 export const LEAN = 30 * Math.PI / 180;            // how far sprites lean back, so they face the camera
 export const FOV = 26;
@@ -85,6 +87,7 @@ export class Stage {
         this.composer = new EffectComposer(r, rt);
         this.composer.addPass(new RenderPass(this.scene, this.camera));
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.4, 0.55, 0.85);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.grade = new ShaderPass(GradeShader);
         this.composer.addPass(this.grade);

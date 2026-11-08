@@ -15,6 +15,8 @@ import { Town } from './town.js';
 import { FX } from './fx.js';
 import { Actors } from './actors.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const FOV = 40;
 const hex = (h) => { const n = parseInt(h.slice(1), 16); return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; };
 
@@ -81,6 +83,7 @@ export class View {
                 this.composer = new EffectComposer(this.renderer);
                 this.composer.addPass(new RenderPass(this.scene, this.camera));
                 this.bloom = new UnrealBloomPass(new THREE.Vector2(w / 2, h / 2), 0.55, 0.5, 0.82);
+                roundBloom(this.bloom);
                 this.composer.addPass(this.bloom);
                 this.composer.addPass(new OutputPass());
             }

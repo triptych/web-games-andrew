@@ -9,6 +9,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const LensShader = {
     uniforms: {
         tDiffuse: { value: null },
@@ -70,6 +72,7 @@ export class Renderer {
         this.renderPass = new RenderPass(scene, camera);
         this.composer.addPass(this.renderPass);
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.85, 0.55, 0.72);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.lens = new ShaderPass(LensShader);
         this.composer.addPass(this.lens);

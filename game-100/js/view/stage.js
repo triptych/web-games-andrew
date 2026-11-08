@@ -19,6 +19,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 export const CRT_LOOKS = {
     off: { curv: 0, scan: 0, mask: 0, aberr: 0.0002, vig: 0.12, noise: 0, bloom: 0.3 },
     lite: { curv: 0.7, scan: 0.22, mask: 0, aberr: 0.0005, vig: 0.28, noise: 0.012, bloom: 0.36 },
@@ -167,6 +169,7 @@ export class Stage {
         this.composer.addPass(this.uiPass);
         this.composer.addPass(new ShaderPass(SanitizeShader));
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.4, 0.45, 0.95);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.crtPass = new ShaderPass(CrtShader);
         this.composer.addPass(this.crtPass);

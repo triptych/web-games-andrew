@@ -12,6 +12,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { TOON } from './toon.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const StorybookShader = {
     uniforms: {
         tDiffuse: { value: null }, uRes: { value: new THREE.Vector2(1, 1) }, uTime: { value: 0 },
@@ -78,6 +80,7 @@ export class Renderer {
         this.renderPass = new RenderPass(this.scene, this.camera);
         this.composer.addPass(this.renderPass);
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.35, 0.5, 0.86);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.story = new ShaderPass(StorybookShader);
         this.composer.addPass(this.story);

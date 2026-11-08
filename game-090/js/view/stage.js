@@ -15,6 +15,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const VERT = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
 
 const SanitizeShader = {
@@ -124,6 +126,7 @@ export class Stage {
         this.composer.addPass(this.renderPass);
         this.composer.addPass(new ShaderPass(SanitizeShader));
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.6, 0.95);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.ps2 = new ShaderPass(PS2Shader);
         this.composer.addPass(this.ps2);

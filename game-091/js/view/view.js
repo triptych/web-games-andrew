@@ -17,6 +17,8 @@ import { Machine, RH } from './machine.js';
 import { Foe } from './foes.js';
 import { Fx } from './fx.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const CRT = {
     uniforms: {
         tDiffuse: { value: null }, uChroma: { value: 0.012 }, uScan: { value: 0.06 }, uVig: { value: 0.55 }, uHurt: { value: 0 },
@@ -81,6 +83,7 @@ export class View {
         main.clearDepth = true;
         this.composer.addPass(main);
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.6, 0.45, 1.1);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.crt = new ShaderPass(CRT);
         this.composer.addPass(this.crt);

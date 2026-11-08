@@ -17,6 +17,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 /**
  * Bloom blurs the frame through a chain of ever-smaller buffers, so a single
  * NaN or infinite pixel (a shader's pow() of a rounding-error negative, say)
@@ -82,6 +84,7 @@ export function initStage(container, q) {
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.85, 0.55, 0.62);
+    roundBloom(bloom);
     sanitize = new ShaderPass(SanitizeShader);
     composer.addPass(sanitize);
     composer.addPass(bloom);

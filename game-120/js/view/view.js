@@ -13,6 +13,8 @@ import { buildEnemyModel, poseRigged } from './models.js';
 import { FX } from './fx.js';
 import { WEAPONS } from '../sim/data.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const V = THREE.Vector3;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const FOV = 52;
@@ -100,6 +102,7 @@ export class View {
         this.composer = new EffectComposer(this.renderer, rt);
         this.composer.addPass(new RenderPass(this.scene, this.camera));
         this.bloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.55, 0.55, 1.05);
+        roundBloom(this.bloom);
         this.composer.addPass(this.bloom);
         this.composer.addPass(new OutputPass());
     }

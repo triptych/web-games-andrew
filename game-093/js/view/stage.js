@@ -8,6 +8,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
+import { roundBloom } from '../../../lib/round-bloom.js';
+
 const TiltShift = {
     uniforms: { tDiffuse: { value: null }, uRes: { value: new THREE.Vector2(1280, 720) }, uFocus: { value: 0.5 }, uRange: { value: 0.16 }, uBlur: { value: 3.2 } },
     vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
@@ -91,6 +93,7 @@ export class Stage {
         this.renderPass = new RenderPass(scene, camera);
         this.tilt = new ShaderPass(TiltShift);
         this.bloom = new UnrealBloomPass(new THREE.Vector2(640, 360), 0.42, 0.7, 1.05);
+        roundBloom(this.bloom);
         this.final = new ShaderPass(Final);
         this.output = new OutputPass();
         for (const p of [this.renderPass, this.tilt, this.bloom, this.final, this.output]) this.composer.addPass(p);
