@@ -252,6 +252,7 @@ export class Hut {
         this._orb();
         this._ticket();
         this._papers();
+        this._portrait();
         if (env.tv?.length) {
             // the television on its cabinet, between the desk and the bookshelf, facing the room
             this.tv = new HutTV({ renderer: env.renderer, scene: this.scene, camera: env.camera, mats: this.mats, quality: env.quality, channels: env.tv, onChannel: env.onChannel, x: 1.85, z: -R_Z + 0.38, ry: -0.12 });
@@ -501,6 +502,50 @@ export class Hut {
         this.ticketHit = hit;
         this.ticketHover = 0;
         this.scene.add(ticket, glint, hit);
+    }
+
+    /**
+     * A framed portrait of a rogue-geared wizard, hung on the back wall above the desk.
+     * The picture loads after the room is built (the page is the root, so the path is
+     * relative to index.html); until then the canvas is a dark, parchment-coloured blank.
+     */
+    _portrait() {
+        const pw = 0.72, ph = 0.96, fw = 0.07;           // picture size and frame width
+        const cx = DESK.x, cy = 1.85, wallZ = -R_Z + 0.06;  // centre, and the wall's inner face
+        const g = new THREE.Group();
+        g.position.set(cx, cy, wallZ + 0.03);
+        const wood = this.mats.darkWood, brass = this.mats.brass;
+        const bar = (w, h, d, x, y, z, m) => {
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
+            mesh.position.set(x, y, z);
+            g.add(mesh);
+        };
+        // a dark timber frame with a thin brass lip and a brass plate beneath it
+        bar(pw + fw * 2, fw, 0.06, 0, ph / 2 + fw / 2, 0, wood);
+        bar(pw + fw * 2, fw, 0.06, 0, -ph / 2 - fw / 2, 0, wood);
+        bar(fw, ph, 0.06, -pw / 2 - fw / 2, 0, 0, wood);
+        bar(fw, ph, 0.06, pw / 2 + fw / 2, 0, 0, wood);
+        bar(pw + 0.02, 0.012, 0.065, 0, ph / 2, 0.002, brass);
+        bar(pw + 0.02, 0.012, 0.065, 0, -ph / 2, 0.002, brass);
+        bar(0.012, ph, 0.065, -pw / 2, 0, 0.002, brass);
+        bar(0.012, ph, 0.065, pw / 2, 0, 0.002, brass);
+        bar(0.22, 0.05, 0.02, 0, -ph / 2 - fw - 0.04, 0.02, brass);
+        // the picture, with enough glow of its own to read by lantern-light
+        const mat = new THREE.MeshStandardMaterial({ color: 0x2a2018, roughness: 0.75, emissive: 0xffffff, emissiveIntensity: 0, emissiveMap: null });
+        const canvas = new THREE.Mesh(new THREE.PlaneGeometry(pw, ph), mat);
+        canvas.position.z = 0.032;
+        g.add(canvas);
+        new THREE.TextureLoader().load('garden/img/hut-wizard.jpg', (tex) => {
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.anisotropy = this.env.renderer.capabilities.getMaxAnisotropy();
+            mat.map = tex;
+            mat.emissiveMap = tex;
+            mat.emissiveIntensity = 0.22;
+            mat.color.set(0xffffff);
+            mat.needsUpdate = true;
+        });
+        this.scene.add(g);
+        this.portrait = g;
     }
 
     /** Papers on the desk: an old maintenance log. Click them to read it (see gearfall-ui.js). */
