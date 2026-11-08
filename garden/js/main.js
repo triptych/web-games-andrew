@@ -242,17 +242,17 @@ async function boot() {
     const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.1, 3000);
     camera.position.set(0, 40, 120);
 
-    ui.progress(0.05, 'Laying out the paths…');
+    ui.progress(0.03, 'Laying out the paths…');
     await nextFrame();
     const layout = buildLayout(games);
-    ui.progress(0.1, 'Raising the island…');
+    ui.progress(0.06, 'Raising the island…');
     await nextFrame();
     const island = new Island(layout, quality.terrainRes);
     const world = makeWorld(layout, island, quality);
     world.ui = ui;
     scene.add(world.root);
 
-    ui.progress(0.3, 'Quarrying marble…');
+    ui.progress(0.16, 'Quarrying marble…');
     await nextFrame();
     world.mats = makeMaterials();
     const sky = new Sky(scene, renderer, quality);
@@ -260,11 +260,11 @@ async function boot() {
     sky.setTime(params.has('t') ? Number(params.get('t')) : 0.33);
     const terrain = island.buildMesh();
     scene.add(terrain);
-    ui.progress(0.4, 'Filling the sea…');
+    ui.progress(0.22, 'Filling the sea…');
     await nextFrame();
     const water = new Water(scene, island, sky, quality);
 
-    ui.progress(0.48, 'Raising pavilions…');
+    ui.progress(0.26, 'Raising pavilions…');
     await nextFrame();
     buildArchitecture(world);
     world.wharf = buildWharf(world);
@@ -275,20 +275,20 @@ async function boot() {
     const fountainSub = new FountainSub(world);
     // the Starlight Carousel on its plaza between the paths
     const carousel = new Carousel(world);
-    ui.progress(0.52, 'Smoking out a volcano…');
+    ui.progress(0.29, 'Smoking out a volcano…');
     await nextFrame();
     const volcano = new Cinderpeak({ world, scene, sky, quality, water });
     // the mountain coughs after dark; the sound reaches you late, by its distance
     volcano.mountain.onErupt = (delay, strength, dist) => window.setTimeout(() => audio.volcanoRumble({ near: Math.max(0.06, 1 - dist / 1800), size: strength }), Math.max(0, delay * 1000 - 200));
     buildPaths(world);
-    ui.progress(0.58, 'Carving statues…');
+    ui.progress(0.33, 'Carving statues…');
     await nextFrame();
     const statues = buildStatues(world);
     const statueByGame = new Map(statues.map((s) => [s.game, s]));
-    ui.progress(0.7, 'Planting the gardens…');
+    ui.progress(0.38, 'Planting the gardens…');
     await nextFrame();
     buildVegetation(world);
-    ui.progress(0.86, 'Coaxing the vines…');
+    ui.progress(0.45, 'Coaxing the vines…');
     await nextFrame();
     const vines = new Vines(world);
     const audio = new AudioEngine();
@@ -355,7 +355,7 @@ async function boot() {
     };
     const boat = new Boat(world, scene, camera, controls);
     const fishing = new Fishing({ world, scene, camera, controls, ui, audio, bursts, canvas });
-    ui.progress(0.96, 'Rigging the galleon…');
+    ui.progress(0.52, 'Rigging the galleon…');
     await nextFrame();
     const ship = new Ship({ world, scene, camera, controls, ui, audio, quality });
     const riding = () => boat.busy || ship.busy;
@@ -389,10 +389,26 @@ async function boot() {
     addEventListener('resize', () => (resizePending = true));
     resize();
 
-    ui.progress(0.94, 'Lighting the lamps…');
+    // The bar must not reach 100% until the first frame can really be drawn. Compiling every shader
+    // program, building the post-processing targets and uploading the textures all happen on the first
+    // render, and that is the longest stall of the whole load, so it is done here, behind its own steps
+    // (each awaits a frame first, so its caption is on screen before the browser blocks on the work).
+    ui.progress(0.58, 'Lighting the lamps…');
     await nextFrame();
-    renderer.compile(scene, camera);
+    if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
+    else renderer.compile(scene, camera);
+    ui.progress(0.66, 'Warming the sky…');
+    await nextFrame();
+    {
+        // draw one frame through the real composer, from where the title orbit begins
+        const R = layout.islandR * 0.85;
+        camera.position.set(Math.sin(-0.6) * R, 30, Math.cos(-0.6) * R);
+        camera.lookAt(0, 4, 0);
+        composer.render();
+        renderer.getContext().finish(); // wait for the GPU, so the stall lands here and not after "Ready"
+    }
     ui.progress(1, 'Ready.');
+    await nextFrame(); // let the full bar paint before the title buttons replace it
 
     // ------------------------------------------------------------ state
 
