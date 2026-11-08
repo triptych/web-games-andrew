@@ -16,7 +16,7 @@ Everything here is plain HTML, CSS and JavaScript ES modules with no build step 
 no npm dependencies at runtime. three.js comes from a CDN through an import map;
 Kaplay and Phaser come from the shared copies in `/lib`.
 
-**Read first:** the "Before you call it done" list in Step 5. It is the bugs that
+**Read first:** [docs/generic/learnings.md § "Start here: how a game is built"](../../docs/generic/learnings.md#start-here-how-a-game-is-built-in-this-repo-the-sim-first-method-for-any-llm) (the order to build things in, and why), then the "Before you call it done" list in Step 5. It is the bugs that
 shipped in games 057–076 and were fixed in patch releases afterwards; most of them
 are one line to avoid up front and a version bump to fix later.
 
