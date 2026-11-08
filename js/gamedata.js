@@ -1909,7 +1909,7 @@ const games = [
         description: "A narrative first-person sci-fi adventure with idle terraforming, in HD-2D three.js. You wake alone on the colony ship Ark Meridian: a coolant failure is spreading through the cryo-lattice, and in 365 days forty thousand sleepers wake whether the planet below is ready or not. TILLY, the ship's anxious, funny mind, teaches you the ropes. You can't go down yourself, so you drive bots through their own eyes: gather metal, crystal, plants and animals, fight what fights back, find the black boxes of VESPER, the terraform mind that went quiet before you arrived, and walk home to the beacon before the battery dies. Sequence the genomes you bring back and blend two in the Gene Lab: each strain scrubs toxins, calms the fauna or greens the soil of one zone, and the ground itself changes the next time you land. Research three skill trees on game days while you're away, build six generations of bot from the bucket-armed Sprout to the Gardener, drop harvesters, found bot colonies, unlock six zones from Landfall Meadow to the Heartroot, and face the Rootmother, where you decide what happens to VESPER. Four endings, from the Chorus Garden to Reveille. Walk the station in first person; pixel sprites lit in 3D under bloom and tilt-shift; painted key art, portraits of TILLY in five moods and VESPER, zone cards and ending illustrations generated with fal; a planet in the window that turns green as you work; generative music; keyboard and mouse, touch or gamepad.",
         icon: '\uD83C\uDF31',
         folder: 'game-125',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'seedfall',
         genre: 'story',
         tags: [

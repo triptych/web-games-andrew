@@ -2,7 +2,7 @@
 
 **Genre:** Narrative first-person sci-fi adventure with idle terraforming: HD-2D, a bot you drive, a lab you run, a year you can't get back
 **Engine:** three.js r165. The 3D world (every in-world sprite, texture and planet) and all sound are made in code; the 2D illustrations in [art/](art/README.md) were generated with fal
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -163,7 +163,9 @@ Tuned by the bot (`dev/year.mjs` prints a month-by-month log; `simtest` prints t
 
 ## Changelog
 
+### v1.0.1 (2026-11-08)
+- TILLY sometimes turned her back on you. Billboards turned toward the camera from their *local* position, and hers sits inside a group that carries her position, so she aimed from the world origin. `face()` now works in world space; the browser test checks her from four places on the deck.
+
 ### v1.0.0 (2026-11-08)
-- Fixed: TILLY sometimes turned her back on you. Billboards turned toward the camera from their *local* position, and hers sits inside a group that carries her position, so she aimed from the world origin. `face()` now works in world space; the browser test checks her from four places on the deck.
 - Painted art generated with fal: title key art, TILLY's five mood portraits and VESPER's, six zone cards (drop list, Holo-table, landing card, report) and four ending illustrations ([art/README.md](art/README.md)); the title stops drawing the 3D deck it now covers.
 - First release: a first-person station to walk, six planet zones driven through six generations of bot, 23 genomes and a splicer, 25 research projects, harvesters and colonies, VESPER's five black boxes, the Rootmother and the Purge/Concord choice, four endings, procedural HD-2D art and Web Audio music, and sim, balance and browser harnesses.
