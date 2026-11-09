@@ -287,3 +287,6 @@ td:first-child { color: var(--accent); white-space: nowrap; }
     #chips { flex-direction: row; }
     .cres { width: 54px; height: 54px; font-size: 24px; }
 }
+
+/* generated portraits are painted at several times their size: smooth them, don't pixelate them */
+canvas[data-art] { image-rendering: auto !important; }

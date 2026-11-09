@@ -9,6 +9,7 @@
 
 import { STEP, MAX_FRAME } from './config.js';
 import { View } from './view/view.js';
+import { loadAssets } from './view/assets.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
 import { UI } from './ui/ui.js';
@@ -35,6 +36,7 @@ const audio = new Audio();
 audio.setVolumes(settings.sfx, settings.music);
 const input = new Input();
 const Q = params.has('q') ? Math.max(0, Math.min(2, +params.get('q'))) : settings.quality;
+await loadAssets();              // generated art (assets/); anything missing falls back to the sprite painted in code
 const view = new View(document.getElementById('view'), Q);
 const highway = new Highway(document.getElementById('highway'));
 highway.speed = settings.speed;

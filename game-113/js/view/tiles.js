@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { Px, mix, hex } from './pixel.js';
 import { hash3 } from '../rng.js';
+import { assetCanvas, assetPx } from './assets.js';
 
 export const THEMES = {
     hollow: {
@@ -48,12 +49,38 @@ const mkTex = (canvas, repeat = false) => {
     if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; }
     return t;
 };
-export { mkTex };
+/** Like mkTex but filtered smoothly: for generated art, which is painted at several times its on-screen size. */
+const mkTexSmooth = (canvas, repeat = false) => {
+    const t = new THREE.CanvasTexture(canvas);
+    t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 4;
+    if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; }
+    return t;
+};
+export { mkTex, mkTexSmooth };
 
 const shadeC = (c, k) => mix(hex(c), k > 0 ? '#ffffff' : '#000000', Math.abs(k));
 
-/** One 16×16 texture for a tile kind in a theme. */
+const KIND_CELL = { ground: 0, ground2: 1, path: 2, dock: 3, wall: 4, cliff: 5, house: 6, roof: 7, top: 8 };
+const SHROOM_ART = (lightCol) => { const r = (lightCol >> 16) & 255, b = lightCol & 255; return b < 0x80 ? 'amber' : r < 0x80 ? 'cyan' : 'violet'; };
+
+/** A generated tile: one cell of assets/tiles/<theme>.png, mirrored by variant so a field doesn't repeat visibly. */
+function generatedTile(theme, kind, variant) {
+    const sheet = assetCanvas('tiles/' + theme), i = KIND_CELL[kind];
+    if (!sheet || i === undefined) return null;
+    const cw = sheet.width / 3, ch = sheet.height / 3;
+    const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+    const x = c.getContext('2d');
+    const fx = variant & 1, fy = (variant & 2) && (kind === 'ground' || kind === 'ground2');
+    x.translate(fx ? cw : 0, fy ? ch : 0); x.scale(fx ? -1 : 1, fy ? -1 : 1);
+    x.drawImage(sheet, (i % 3) * cw, Math.floor(i / 3) * ch, cw, ch, 0, 0, cw, ch);
+    return mkTexSmooth(c);
+}
+
+/** One 16×16 texture for a tile kind in a theme (generated art when assets/ has it). */
 export function tileTexture(theme, kind, variant = 0) {
+    const G = generatedTile(theme, kind, variant);
+    if (G) return G;
     const T = THEMES[theme];
     const P = new Px(16, 16);
     const n = (x, y, s = 0) => hash3(x + variant * 31, y + s * 17, kind.length * 13 + variant);
@@ -124,6 +151,8 @@ export function tileTexture(theme, kind, variant = 0) {
 /** Billboard props: trees, coral, flowers, wheat, as pixel textures. */
 export function propPx(kind, theme) {
     const T = THEMES[theme];
+    const art = assetPx('prop/' + (kind === 'shroom' ? 'shroom-' + SHROOM_ART(T.lightCol || 0x7ff6ff) : kind));
+    if (art) return art;
     let P;
     if (kind === 'palm') {
         P = new Px(32, 48);

@@ -1,0 +1,518 @@
+{
+ "monster/colossus": {
+  "h": 104,
+  "src": "monsters/colossus.png",
+  "w": 112
+ },
+ "monster/crowl": {
+  "h": 40,
+  "src": "monsters/crowl.png",
+  "w": 40
+ },
+ "monster/frostmite": {
+  "h": 32,
+  "src": "monsters/frostmite.png",
+  "w": 32
+ },
+ "monster/gloomwisp": {
+  "h": 32,
+  "src": "monsters/gloomwisp.png",
+  "w": 32
+ },
+ "monster/hollowhay": {
+  "h": 64,
+  "src": "monsters/hollowhay.png",
+  "w": 64
+ },
+ "monster/hushknight": {
+  "h": 40,
+  "src": "monsters/hushknight.png",
+  "w": 40
+ },
+ "monster/jellyhush": {
+  "h": 32,
+  "src": "monsters/jellyhush.png",
+  "w": 32
+ },
+ "monster/maelstra": {
+  "h": 64,
+  "src": "monsters/maelstra.png",
+  "w": 64
+ },
+ "monster/reefgob": {
+  "h": 32,
+  "src": "monsters/reefgob.png",
+  "w": 32
+ },
+ "monster/rimefang": {
+  "h": 64,
+  "src": "monsters/rimefang.png",
+  "w": 64
+ },
+ "monster/rustling": {
+  "h": 32,
+  "src": "monsters/rustling.png",
+  "w": 32
+ },
+ "monster/shardcrab": {
+  "h": 32,
+  "src": "monsters/shardcrab.png",
+  "w": 32
+ },
+ "monster/silencer": {
+  "h": 40,
+  "src": "monsters/silencer.png",
+  "w": 40
+ },
+ "monster/snowwolf": {
+  "h": 40,
+  "src": "monsters/snowwolf.png",
+  "w": 40
+ },
+ "monster/thornling": {
+  "h": 32,
+  "src": "monsters/thornling.png",
+  "w": 32
+ },
+ "monster/vorthrax": {
+  "h": 104,
+  "src": "monsters/vorthrax.png",
+  "w": 112
+ },
+ "monster/warden": {
+  "h": 64,
+  "src": "monsters/warden.png",
+  "w": 64
+ },
+ "person/aldric": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/aldric.png",
+  "w": 24
+ },
+ "person/archivist": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/archivist.png",
+  "w": 24
+ },
+ "person/bram": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/bram.png",
+  "w": 24
+ },
+ "person/choir1": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/choir1.png",
+  "w": 24
+ },
+ "person/choir2": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/choir2.png",
+  "w": 24
+ },
+ "person/choir3": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/choir3.png",
+  "w": 24
+ },
+ "person/choir4": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/choir4.png",
+  "w": 24
+ },
+ "person/choir5": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/choir5.png",
+  "w": 24
+ },
+ "person/choir6": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/choir6.png",
+  "w": 24
+ },
+ "person/elder": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/elder.png",
+  "w": 24
+ },
+ "person/farmer": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/farmer.png",
+  "w": 24
+ },
+ "person/fenwick": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/fenwick.png",
+  "w": 24
+ },
+ "person/fisher": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/fisher.png",
+  "w": 24
+ },
+ "person/guard": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/guard.png",
+  "w": 24
+ },
+ "person/hakon": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/hakon.png",
+  "w": 24
+ },
+ "person/ingrid": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/ingrid.png",
+  "w": 24
+ },
+ "person/kid": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/kid.png",
+  "w": 24
+ },
+ "person/lyra": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/lyra.png",
+  "w": 24
+ },
+ "person/mari": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/mari.png",
+  "w": 24
+ },
+ "person/miller": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/miller.png",
+  "w": 24
+ },
+ "person/otto": {
+  "cols": 3,
+  "h": 36,
+  "rows": 3,
+  "src": "people/otto.png",
+  "w": 40
+ },
+ "person/sera": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/sera.png",
+  "w": 24
+ },
+ "person/smith": {
+  "cols": 3,
+  "h": 32,
+  "rows": 3,
+  "src": "people/smith.png",
+  "w": 24
+ },
+ "portrait/aldric": {
+  "h": 20,
+  "src": "portraits/aldric.png",
+  "w": 16
+ },
+ "portrait/archivist": {
+  "h": 20,
+  "src": "portraits/archivist.png",
+  "w": 16
+ },
+ "portrait/bram": {
+  "h": 20,
+  "src": "portraits/bram.png",
+  "w": 16
+ },
+ "portrait/choir1": {
+  "h": 20,
+  "src": "portraits/choir1.png",
+  "w": 16
+ },
+ "portrait/choir2": {
+  "h": 20,
+  "src": "portraits/choir2.png",
+  "w": 16
+ },
+ "portrait/choir3": {
+  "h": 20,
+  "src": "portraits/choir3.png",
+  "w": 16
+ },
+ "portrait/choir4": {
+  "h": 20,
+  "src": "portraits/choir4.png",
+  "w": 16
+ },
+ "portrait/choir5": {
+  "h": 20,
+  "src": "portraits/choir5.png",
+  "w": 16
+ },
+ "portrait/choir6": {
+  "h": 20,
+  "src": "portraits/choir6.png",
+  "w": 16
+ },
+ "portrait/elder": {
+  "h": 20,
+  "src": "portraits/elder.png",
+  "w": 16
+ },
+ "portrait/farmer": {
+  "h": 20,
+  "src": "portraits/farmer.png",
+  "w": 16
+ },
+ "portrait/fenwick": {
+  "h": 20,
+  "src": "portraits/fenwick.png",
+  "w": 16
+ },
+ "portrait/fisher": {
+  "h": 20,
+  "src": "portraits/fisher.png",
+  "w": 16
+ },
+ "portrait/guard": {
+  "h": 20,
+  "src": "portraits/guard.png",
+  "w": 16
+ },
+ "portrait/hakon": {
+  "h": 20,
+  "src": "portraits/hakon.png",
+  "w": 16
+ },
+ "portrait/ingrid": {
+  "h": 20,
+  "src": "portraits/ingrid.png",
+  "w": 16
+ },
+ "portrait/kid": {
+  "h": 20,
+  "src": "portraits/kid.png",
+  "w": 16
+ },
+ "portrait/lyra": {
+  "h": 20,
+  "src": "portraits/lyra.png",
+  "w": 16
+ },
+ "portrait/mari": {
+  "h": 20,
+  "src": "portraits/mari.png",
+  "w": 16
+ },
+ "portrait/miller": {
+  "h": 20,
+  "src": "portraits/miller.png",
+  "w": 16
+ },
+ "portrait/otto": {
+  "h": 20,
+  "src": "portraits/otto.png",
+  "w": 16
+ },
+ "portrait/sera": {
+  "h": 20,
+  "src": "portraits/sera.png",
+  "w": 16
+ },
+ "portrait/smith": {
+  "h": 20,
+  "src": "portraits/smith.png",
+  "w": 16
+ },
+ "pose/bram": {
+  "cols": 3,
+  "h": 32,
+  "rows": 2,
+  "src": "poses/bram.png",
+  "w": 24
+ },
+ "pose/choir1": {
+  "cols": 3,
+  "h": 32,
+  "rows": 2,
+  "src": "poses/choir1.png",
+  "w": 24
+ },
+ "pose/choir4": {
+  "cols": 3,
+  "h": 32,
+  "rows": 2,
+  "src": "poses/choir4.png",
+  "w": 24
+ },
+ "pose/choir5": {
+  "cols": 3,
+  "h": 32,
+  "rows": 2,
+  "src": "poses/choir5.png",
+  "w": 24
+ },
+ "pose/choir6": {
+  "cols": 3,
+  "h": 32,
+  "rows": 2,
+  "src": "poses/choir6.png",
+  "w": 24
+ },
+ "pose/lyra": {
+  "cols": 3,
+  "h": 32,
+  "rows": 2,
+  "src": "poses/lyra.png",
+  "w": 24
+ },
+ "pose/mari": {
+  "cols": 3,
+  "h": 32,
+  "rows": 2,
+  "src": "poses/mari.png",
+  "w": 24
+ },
+ "pose/sera": {
+  "cols": 3,
+  "h": 32,
+  "rows": 2,
+  "src": "poses/sera.png",
+  "w": 24
+ },
+ "prop/coral": {
+  "h": 30,
+  "src": "props/coral.png",
+  "w": 24
+ },
+ "prop/flowers": {
+  "h": 10,
+  "src": "props/flowers.png",
+  "w": 16
+ },
+ "prop/grass": {
+  "h": 8,
+  "src": "props/grass.png",
+  "w": 12
+ },
+ "prop/oak": {
+  "h": 44,
+  "src": "props/oak.png",
+  "w": 32
+ },
+ "prop/palm": {
+  "h": 48,
+  "src": "props/palm.png",
+  "w": 32
+ },
+ "prop/pine": {
+  "h": 48,
+  "src": "props/pine.png",
+  "w": 28
+ },
+ "prop/shroom-amber": {
+  "h": 36,
+  "src": "props/shroom-amber.png",
+  "w": 28
+ },
+ "prop/shroom-cyan": {
+  "h": 36,
+  "src": "props/shroom-cyan.png",
+  "w": 28
+ },
+ "prop/shroom-violet": {
+  "h": 36,
+  "src": "props/shroom-violet.png",
+  "w": 28
+ },
+ "prop/wheat": {
+  "h": 22,
+  "src": "props/wheat.png",
+  "w": 16
+ },
+ "tiles/aurelune": {
+  "cols": 3,
+  "h": 96,
+  "rows": 3,
+  "src": "tiles/aurelune.png",
+  "w": 96
+ },
+ "tiles/beach": {
+  "cols": 3,
+  "h": 96,
+  "rows": 3,
+  "src": "tiles/beach.png",
+  "w": 96
+ },
+ "tiles/frosthold": {
+  "cols": 3,
+  "h": 96,
+  "rows": 3,
+  "src": "tiles/frosthold.png",
+  "w": 96
+ },
+ "tiles/hollow": {
+  "cols": 3,
+  "h": 96,
+  "rows": 3,
+  "src": "tiles/hollow.png",
+  "w": 96
+ },
+ "tiles/marisonde": {
+  "cols": 3,
+  "h": 96,
+  "rows": 3,
+  "src": "tiles/marisonde.png",
+  "w": 96
+ },
+ "tiles/spire": {
+  "cols": 3,
+  "h": 96,
+  "rows": 3,
+  "src": "tiles/spire.png",
+  "w": 96
+ },
+ "tiles/sunreach": {
+  "cols": 3,
+  "h": 96,
+  "rows": 3,
+  "src": "tiles/sunreach.png",
+  "w": 96
+ }
+}
