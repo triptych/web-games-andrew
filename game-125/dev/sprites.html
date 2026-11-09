@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEEDFALL — sprite gallery</title>
+<style>
+body { margin: 0; background: #8a8a8a; font: 12px sans-serif; color: #fff; }
+.grid { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px; }
+figure { margin: 0; text-align: center; background: #7a7a7a; padding: 6px; border-radius: 6px; }
+canvas { image-rendering: pixelated; display: block; margin: 0 auto 4px; }
+h2 { margin: 10px 10px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<div id="out"></div>
+<script type="module">
+import * as S from '../js/view/sprites.js';
+import { SPECIES } from '../js/sim/data.js';
+const out = document.getElementById('out');
+const scale = +(new URLSearchParams(location.search).get('s') || 3);
+function group(name, list) {
+    const h = document.createElement('h2'); h.textContent = name; out.appendChild(h);
+    const g = document.createElement('div'); g.className = 'grid'; out.appendChild(g);
+    for (const [label, spr] of list) {
+        const f = document.createElement('figure');
+        const c = spr.px.toCanvas();
+        c.style.width = c.width * scale + 'px'; c.style.height = c.height * scale + 'px';
+        f.appendChild(c);
+        const cap = document.createElement('figcaption'); cap.textContent = `${label} · ${spr.h}m`; f.appendChild(cap);
+        g.appendChild(f);
+    }
+}
+group('TILLY', ['happy', 'excited', 'think', 'worried', 'sad'].map((m) => [m, S.tilly(m)]));
+group('Bots', [0, 1, 2, 3, 4, 5].map((g) => ['Mk ' + (g + 1), S.bot(g)]));
+group('Genomes', SPECIES.map((s) => [s.name, S.species(s.id)]));
+group('Boss', [['Rootmother', S.rootmother()]]);
+group('Nodes', [0, 2, 4].flatMap((z) => [['metal z' + z, S.node('metal', z)], ['mineral z' + z, S.node('mineral', z)]]));
+group('Scenery', ['rock', 'wreck', 'rusttree', 'deadtree', 'glass', 'spire', 'crystal', 'shroomtree', 'root', 'stump', 'bones', 'tuft'].map((k) => [k, S.prop(k, 1)]));
+group('Things', [['beacon', S.beacon()], ['echo', S.echoBox()], ['rig', S.harvester('metal')], ['colony 1', S.colony(1)], ['colony 3', S.colony(3)], ['sleeper', S.sleeper(3)], ['Iris', S.sleeper(31207, true)], ['flower', S.tuft('flower', '#ff8ab0')], ['grass', S.tuft('grass', '#7ab84a')]]);
+document.title += ' (ready)';
+</script>
+</body>
+</html>

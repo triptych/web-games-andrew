@@ -3,6 +3,7 @@
 This document captures reusable, repo-tested learnings from the full collection. Early-game notes remain as historical context; later sections record patterns and corrections from subsequent games, including the current 057–124 sim/view era.
 
 ## Table of Contents
+- [Start here: how a game is built (the sim-first method, for any LLM)](#start-here-how-a-game-is-built-in-this-repo-the-sim-first-method-for-any-llm)
 - [Evolution Overview](#evolution-overview)
 - [Technical Architecture](#technical-architecture)
 - [Framework & Libraries](#framework--libraries)
@@ -14,6 +15,254 @@ This document captures reusable, repo-tested learnings from the full collection.
 - [Testing & Debugging](#testing--debugging)
 - [Game-Specific Insights](#game-specific-insights)
 - [Games 057–076: the shared template, and what broke after release](#games-057076-the-shared-template-and-what-broke-after-release)
+
+---
+
+## Start here: how a game is built in this repo (the sim-first method, for any LLM)
+
+*Written 2026-11-08 from games 040–124. Every technique below is already in use in a game here; the links point at a working copy. Nothing in this section needs a particular model: it needs a shell, `node`, Chromium with Playwright, and the discipline to run the checks.*
+
+Most games in this repo were built by a single large model working through the whole job. The method they converged on is not about being clever; it is about **making every claim about the game checkable by a command**, so that a smaller model, or a model with a short context, can always answer "is this right yet?" by running something instead of judging. If you are an LLM about to build or change a game, read this section, then the Step 5 checklist in [scaffold-game.md](../../.claude/commands/scaffold-game.md), then copy the closest game.
+
+### The idea in seven sentences
+
+1. The game's **rules are a pure function**: `step(G, input, dt)` (real time) or `act(G, command)` (turn-based) changes plain data `G` and pushes `G.events`. No DOM, no renderer, no `Math.random`, no clock.
+2. Because it is pure, **Node can play it**: a **bot** feeds it the same input a player would, and a whole game runs in seconds.
+3. The bot is used three ways: it **proves the game can be finished**, it **balances the numbers** (by printing a table), and it **finds the bugs** nobody would think to look for.
+4. Anything **generated** (levels, worlds, puzzles, laws) is **proved** by code over many seeds, using the same rules the game uses, and a bad seed is rejected at generation time.
+5. The **view only reads** `G` and answers events; it can be rebuilt, restyled or swapped (three.js ↔ Canvas 2D) without touching a rule.
+6. A **browser test** drives the real page with real keys and real touches, waits on state (never on the clock), and fails on any console error. Then someone **looks at the screenshots**.
+7. Each thing that goes wrong after release becomes **a symptom, a cause and a test that fails without the fix**, written down here.
+
+### The loop you repeat (it is the whole job)
+
+```
+change one thing → run the narrowest check → read the FIRST failure → fix the cause → rerun → commit
+```
+
+- **Run a check after every change**, not at the end of a file. `ONLY=rules node game-NNN/dev/simtest.mjs` takes a second.
+- **Fix the first failure and rerun** before reading the rest. Failures cluster: one bad `Escape` handler broke several browser-test lines at once (game-117, game-118).
+- **See a new test fail before you trust it.** Write the check, run it against the unfixed code (or break the rule on purpose for one run), watch it go red, then make it green. A test that has never been red may test nothing.
+- **Never make a failing test pass by weakening it.** If the rule or the test is wrong, say which and why in your message. If a check is skipped or flaky, say so in the status you report; do not report "all passed" for a run you did not see pass.
+- **Commit at the end of each phase below**, with the harness output green. The `game-plan.md` changelog is your memory across context windows: write what is done, what is next and what the bot found.
+- **Read the real error.** `node --check file.js` for syntax, the stack trace for the rest. Don't guess a fix for an error you haven't read.
+
+### The phases
+
+Each phase says what to do, the command that shows it is done, and the usual trap. Do them in order; a later phase assumes the earlier one is green.
+
+**Phase 0: choose, read, claim a number.**
+Read this file's [Games 057–076](#games-057076-the-shared-template-and-what-broke-after-release) section, the Step 5 list, and the *closest existing game's* `game-plan.md` and `dev/README.md`. Check the next free number against `origin/main` **and every open branch** (five of twenty games had to be renumbered). Pick one genre and one core verb. Done when you can say the core loop in two sentences. *Trap:* starting from a blank file instead of the scaffold; the scaffold's harnesses already pass and give you a baseline.
+
+**Phase 1: scaffold and get a green baseline.**
+Run `/scaffold-game game-NNN "Title" "concept"` (sim/view, `three` or `canvas`). Write `index.html` with the Write tool only. Serve with `python3 -m http.server`, never `npx serve`. Done when, **before you change anything**, `node game-NNN/dev/simtest.mjs` and `node game-NNN/dev/browsertest.mjs` pass on the untouched scaffold. *Trap:* editing first and discovering later that a failure was there from the start.
+
+**Phase 2: design the state, the commands and the events on paper (in `game-plan.md`).**
+Before code, write three lists:
+- **State** `G`: what exists, as plain objects, arrays and numbers. Refer to things by **id**, not by object reference (a reference doesn't survive `JSON.stringify`; the first save round trip will fail). Keep the random generator's state inside `G` (`rngState`).
+- **Input**: for real time, `{ x, y, a }` plus held buttons; for turn-based, a list of commands (`{ t: 'move', ... }`). **Everything the player can do is one of these**, so the bot and the tests can do it too.
+- **Events**: every moment the view, the sound or the HUD should react to (`pickup`, `hit`, `levelup`, `over`). Name payload fields for what they are (`enemy`, not `type`, or the payload shadows the event name, game-040).
+
+Done when the plan lists every rule you will test. *Trap:* putting a rule in the view ("the flash decides if you are hurt"). If it affects the outcome, it belongs in `js/sim/`.
+
+**Phase 3: the rules, one at a time, test first.**
+For each rule in the plan: add a line to `simtest.mjs` under `rules`, see it fail, write the rule, see it pass.
+
+```js
+// the test (dev/simtest.mjs, section 'rules'): small, explicit, no randomness you didn't set
+G = Gm.newGame(2);
+G.player.x = bomb.x; G.player.y = bomb.y;       // set up the exact situation
+Gm.step(G, NONE, DT);
+ok(G.score === before - C.BOMB.penalty, 'touching a bomb costs the penalty');
+ok(G.events.some((e) => e.type === 'boom'), 'and emits a boom event');
+```
+
+Keep every tunable number in `config.js` (tests read the same constants as the game). Done when `ONLY=purity,rules` is green and the purity grep still passes. *Traps:* mutating an array while iterating it (loop backwards, or collect then remove); a handler that resets the world (a warp, a game over) and then lets the caller keep iterating the old list, so **return out of the loop** (game-082); dividing by zero or `NaN` in a normalised vector (game-040's invariants test checks `Number.isFinite` every step).
+
+**Phase 4: determinism and saving, early.**
+Add the two tests that catch most structural mistakes: same seed + same inputs → identical `serialize(G)`; and play 10 s, `deserialize(JSON.parse(JSON.stringify(serialize(G))))`, play both copies 10 s more and compare. If they differ, something the sim needs is not in `G` (a cache, a closure, a reference into the world, a float that was rounded on save, game-096, game-122). Done when the `determinism` section is green. *Trap:* leaving this to the end, when every system has already hidden state in a module variable.
+
+**Phase 5: the bot (build it as a ladder).**
+Write the bot in `js/sim/bot.js` through **the same input** the player uses. Climb one rung at a time and run the balance table at each.
+
+| Rung | What it is | What it tells you |
+|---|---|---|
+| 0. Idle | sends `NONE` | nothing breaks; the game ends or waits sanely |
+| 1. Greedy | nearest goal, committed until it is gone | the core loop can be played at all |
+| 2. Perfect | sees everything, aims true, plans | **the game can be won** (a design check: if the perfect bot can't, players can't) |
+| 3. Skill dial | `skill ∈ [0,1]`: notices each hazard with probability, aim jitter that grows as skill falls (game-057) | difficulty curve; "fair" means a 0.4 bot dies a few times in the right places |
+| 4. Reaction time / blind spots | acts on a delayed copy of the world, sees only what the player sees (game-109, game-116) | whether a human-speed player can survive |
+| 5. Planner / look-ahead | clones `G` with `serialize/deserialize`, tries moves, scores the result (game-092, game-105) | solvers for puzzles and for the "Hint" button, same code |
+
+Rules for the bot: **commit to a target** until it is gone or the bot dithers between two across a boundary; **never read information the player can't have** if you want it to test fairness (game-124's simtest greps the bot file to make sure the hidden-laws name never appears in it); **hash the seed** before using it (an LCG seeded 1, 2, 3 returns about 0.236 for all of them, game-095); and when the bot misbehaves, ask whether the *bot* or the *game* is wrong, because both happen (game-080: "two bot bugs that look like design bugs"). Done when the bot finishes the game on `SEEDS` seeds with per-step invariants holding.
+
+**Phase 6: prove anything generated.**
+If a seed produces a level, a map, a puzzle or a rule set, write the proof next to the generator and run it over many seeds. Recipes that exist in the repo:
+
+| Content | Proof | Reference |
+|---|---|---|
+| Tile maps / floors | flood-fill from the spawn reaches every floor tile and the exit; reject and retry (60 tries, then a plain room) | game-032 |
+| Platform levels | a jump graph built with the **real body mover**, not geometry; or a bot that plans each jump by simulating it | game-082 `nav.js`, game-096, game-114 |
+| Key-and-door / puzzles | a planner over lock states finds a solution; clue text is parsed back and checked against the lock it describes | game-075, game-095 (Hauntly Manor) |
+| Gated progression | **sufficient and necessary**: with the ability the gate opens, *and* without it the region is unreachable (same movement rules, flood fill) | game-080, game-124 `gates` |
+| Counting | make the number the story promises the budget (211 cadets, not 211 pods) | game-040 |
+| Rules engines (chess) | perft on known positions before anything is built on top | game-064 |
+| Economy | a macro bot plays the whole progression through the real actions and reports where it stalls | game-061 |
+
+The shape of a reachability proof, which is the same in every game (use the *mover's* rules for `canStep`):
+
+```js
+function reach(from, canStep, neighbours) {
+    const seen = new Set([key(from)]), q = [from];
+    while (q.length) {
+        const c = q.pop();
+        for (const n of neighbours(c)) if (!seen.has(key(n)) && canStep(c, n)) { seen.add(key(n)); q.push(n); }
+    }
+    return seen;
+}
+for (let s = 1; s <= 60; s++) {
+    const L = makeLevel(s);
+    ok(reach(L.start, canStep, nbrs).has(key(L.exit)), `seed ${s}: the exit is reachable`);
+}
+```
+
+Done when the proof runs over ≥ 50 seeds in `simtest.mjs`. *Trap:* a proof that uses its own movement rules, so it passes while the real player is stuck.
+
+**Phase 7: balance with a table, then lock the table in as tests.**
+Print numbers, don't feel them. For each level/difficulty/skill, play N seeds and print wins, deaths, time and what is left:
+
+```js
+const rows = [];
+for (const lvl of LEVELS) for (const skill of [1, 0.6, 0.3]) for (let s = 1; s <= SEEDS; s++) {
+    const G = Gm.newGame(s, lvl), bot = Bt.makeBot({ skill });
+    while (!G.over && G.t < 600) { Gm.step(G, Bt.botInput(G, bot), DT); G.events.length = 0; }
+    rows.push({ lvl, skill, won: G.won, t: G.t | 0, hp: G.hp });
+}
+console.table(summarise(rows));          // by level × skill: win%, median time, median hp
+ok(winRate(rows, 'L3', 1) === 1, 'a perfect bot wins level 3');
+ok(winRate(rows, 'L3', 0.3) < 0.6, 'a weak bot often loses level 3');
+```
+
+What to read in the table: a perfect bot that loses → impossible level; a 0.3 bot that never loses → no challenge; a number that jumps between neighbouring levels → a cliff; **a mechanic the perfect bot never uses → a mechanic that isn't doing anything** (game-106: the damage-by-cause table found the broken threat). Compare **medians over many seeds**, not one run (each new `rand()` call shifts the seeded stream, game-065). Found-by-bot numbers worth remembering: a dodging player lands about **40% of paper DPS** on a moving boss; an XP reward should be a share of the next level, not a constant (game-089); a refinery that eats the ore the builds need stalls the whole economy (game-061); an economy bot finds loops (game-115). When the numbers are right, **assert the bands** in `simtest.mjs` so a later change can't silently break them. Done when the table is in `game-plan.md` and the bands are tests.
+
+**Phase 8: the view, smallest first.**
+Only now draw. Read `G`, build or move sprites/meshes, answer events. Start with flat colours and boxes; add models, textures and particles after the screenshot shows the layout works. Make art in code (no asset files): shapes, `fillRect`s, generated textures, a tiny pixel-art DSL (game-086). Put models or sprites on a neutral `dev/gallery.html` page and look at them there before putting them under bloom and coloured lights (game-074). Done when `play.mjs` screenshots show the game, on a 390×844 phone as well as desktop.
+
+**Phase 9: the browser test and the screenshots.**
+
+```bash
+python3 -m http.server 8NNN &                       # the game's own port
+node game-NNN/dev/browsertest.mjs                  # desktop, two phones, blocked storage
+```
+
+The test opens `?debug=1&fast=4&q=low`, uses `window.__xx` (`G`, `start(seed)`, `autoplay(on)`, `ff(seconds)`, `advance`), presses **real keys and real CDP touches**, waits for a *state* ("score > 0", "mode === 'over'"), and fails on any console error, page error or failed request. Under software GL a frame can take a second, so never `waitForTimeout` for a game event. **Then open every PNG in `dev/shots/`.** A browser test that checks state passes on a blank screen (the scaffold's portrait run did, while fog hid the whole field). If you cannot view images, use the machine checks in the next section.
+
+**Phase 10: collect it, write it down.**
+Step 3 of the scaffold skill lists the seven places a game must be registered (`gamedata.js`, `css/styles.css`, `README.md`, `status.md`, `CHANGELOG.md`, `docs/`, the preview jpg). `node dev/smoketest.mjs` must pass with and without `NOSTORAGE=1`. Be honest in `status.md` under "Open" (balance tuned by a bot; only run under SwiftShader; not played by a person). Lift each reusable lesson into this file, attributed, symptom first.
+
+**Phase 11: after release.**
+A bug report becomes: the **symptom** a player saw, the **cause**, a **test that fails without the fix** (in `simtest` if the sim is wrong, `browsertest` if only a real browser shows it), a version bump, and a line here if the next game could fall into it too.
+
+### Techniques at a glance
+
+| Technique | One line | Where it is used |
+|---|---|---|
+| Purity grep | `simtest` greps `js/sim` for `document.`, `three`, `Math.random`, `Date.now`; the rule cannot rot | every sim/view game, game-040 |
+| Seeded RNG with saved state | `makeRng(seed)` with `state()/setState()`; hash the seed first | scaffold `rng.js` |
+| Fixed step + latched edges | `STEP = 1/120`; presses/releases stay set until a step consumes them | scaffold `main.js`, game-059, game-071, game-079 |
+| Bounded event queue | the sim pushes events, the loop drains once; cap it (a headless run never drains) | game-040, game-061 |
+| Debug hooks | `?debug=1` → `window.__xx`; `&fast=N` multiplies sim steps per frame | scaffold, game-057 `advance` |
+| Skill-dial bot | skill, reaction time, blind spots → "fair", not just "possible" | game-057, game-109 |
+| Whole-game / macro bot | plays the economy through the real actions; reports where it stalls | game-061, game-115, game-118, game-119 |
+| Look-ahead on cloned runs | copy the game (or `deserialize(serialize(G))`), try each move, score, pick | game-084, game-092, game-116 |
+| Planner = Hint button = bot | one `nextGoal(G)` / story plan serves the player's hint and the test bot | game-095, game-105 |
+| Reachability proofs | flood fill / jump graph with the mover's own rules, over many seeds | game-032, game-082, game-124 |
+| Sufficient *and* necessary gates | opens with the key; **stays shut** without it | game-080, game-124 |
+| Perft | count the legal-move tree against published numbers | game-064 |
+| Property tests over seeds | 50–60 seeds per generator; reject-and-retry at generation | game-075, game-123 |
+| Balance table | win%, time, hp by level × skill; assert bands | game-057, game-065, game-106 |
+| Count the nouns | the fiction's headline number is the budget | game-040 |
+| Per-step invariants | `Number.isFinite`, inside the field, HP ≤ max, every step of a bot run | scaffold `bot` section |
+| ASCII dump of art | `0→' '`, outline→`#`; judge silhouettes and maps as text (and render sprites to PNG in Node) | game-038, game-059 |
+| Neutral gallery page | characters/models on grey, no bloom | game-074, game-124 |
+| Pixel and luminance probes | read the canvas back: not black, not washed out, no flicker | game-088 `flicker.mjs`, game-066 |
+| Sound meter | an `AnalyserNode` peak proves sound came out | game-122 |
+| Real input in browser tests | `keyboard.press`, CDP touches, never `element.click()` for key paths | game-078, game-118 |
+| Fail on console errors | any page error, console error or failed request fails the run | scaffold `browsertest.mjs` |
+| Symptom-first write-ups | each bug: symptom → cause → regression test → doc line | this file, Step 6 |
+
+### Checking the screen without eyes
+
+Not every model can look at an image, and none can feel a game. Where you cannot look, assert what you can, and **say in your report which visual judgements nobody made**.
+
+- **Not blank:** read the canvas (`gl.readPixels` right after `composer.render()` in the same task, or `getImageData` for Canvas 2D) and fail if more than ~99% of sampled pixels are within a few levels of one colour, or if the mean luminance is near 0 or 1.
+- **Not washed out:** compare luminance with particles/bloom on and off (game-066's phone test).
+- **Fits the phone:** `canvas.getBoundingClientRect()` equals `innerWidth × innerHeight`; every control is ≥ 44 px and inside the viewport; no horizontal scroll.
+- **Things are on screen:** project the player and each important object through the camera and assert the point is inside the viewport (game-095: hit boxes checked on screen in every room).
+- **Not flickering:** sample points over ~40 frames of a still board and count those that swing more than 25% in brightness (game-088).
+- **Sound:** the master-bus meter's peak is above zero after a hit.
+- **What only a person can tell you:** whether it is fun, whether the art is pleasant, whether text is readable at arm's length. Put these in `status.md` → "Open" instead of claiming them.
+
+### Guardrails that keep a smaller model out of trouble
+
+- **Copy, then change.** Open the closest game and copy its layout, harness and patterns. Inventing a new structure is where weaker plans fall apart; every game here that did well reused game-075's synth, game-070's beam primitive, game-097's command loop, etc.
+- **One file, one job, under ~600 lines.** Split by layer (`sim/`, `view/`, `ui/`), not by feature. Writing a 2,000-line file in one go is how the single-file games of 001–003 got stuck. Write a module, `node --check` it, import it from a test, then move on.
+- **Don't build the whole game then test it.** The order is rules → bot → proofs → view → browser test, and each is green before the next begins.
+- **Put numbers in `config.js`, text in data files, rules in functions.** Tables (`js/sim/data/*.js`) are easy to test and easy for a model to extend without breaking logic.
+- **Use `ids`, not references, in saved state.** And restore anything `initWorld` resets (opened gates, crumble states) in `deserialize`; the round-trip test steps both copies on and compares.
+- **Don't invent engine APIs.** Check [threejs-api.md](../threejs/threejs-api.md), [kaplay-api.md](../kaplay/kaplay-api.md) or [phaser4-api.md](../phaser/phaser4-api.md) and the copy in `lib/` before writing a call from memory. `Color.copy(0xff8800)` is NaN; `.set()` is right (game-074).
+- **No `Math.random`, no `Date.now`, no `100vh`, no bare `localStorage`** in anything but the places the scaffold allows. The purity grep and the browser test catch these; don't make them catch you twice.
+- **Interrupt a stuck loop.** If the same check fails three times with three different fixes, stop and print the state: dump `G`, an ASCII map, the bot's chosen action each step. Look for a wrong assumption instead of a fourth patch.
+- **Say what you did not verify.** "Passes under SwiftShader; not played on a real phone" is a useful sentence. "All tests pass" with a skipped suite is not.
+
+### A worked mini-example: add one rule the whole way
+
+Starting from the scaffold's pickup game, add **bombs** that cost points when touched. This is the loop at its smallest, and every bigger game is this repeated.
+
+1. **Plan** (`game-plan.md`): state `G.bombs = [{x, y}]`; event `boom`; config `BOMB = { count: 3, radius: 0.6, penalty: 50 }`; the bot must route around them.
+2. **Test first** (the snippet in Phase 3). Run `ONLY=rules` → red.
+3. **Rule** (`js/sim/game.js`), using only `G.rng` for placement:
+
+```js
+for (let i = G.bombs.length - 1; i >= 0; i--) {
+    const b = G.bombs[i];
+    if (Math.hypot(b.x - p.x, b.y - p.y) < PLAYER.radius + BOMB.radius) {
+        G.bombs.splice(i, 1);
+        G.score -= BOMB.penalty;
+        G.events.push({ type: 'boom', x: b.x, y: b.y });
+    }
+}
+```
+   `ONLY=rules` → green. Add `bombs` to `serialize` (they are inside `G`, so they already are) and run `determinism` → green.
+4. **Bot**: skip any pickup whose straight line passes within `BOMB.radius + PLAYER.radius` of a bomb.
+
+```js
+const segDist = (ax, ay, bx, by, px, py) => {
+    const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1;
+    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / l2));
+    return Math.hypot(ax + t * dx - px, ay + t * dy - py);
+};
+const safe = (G, c) => G.bombs.every((b) => segDist(G.player.x, G.player.y, c.x, c.y, b.x, b.y) > BOMB.radius + PLAYER.radius);
+// choose the nearest pickup for which safe(G, c) is true; if none is safe, take the nearest
+```
+5. **Table.** Run the bot over 8 seeds at skill 1 and skill 0.6 and count `boom` events. Measured on the real scaffold with exactly the code above (3 bombs, radius 0.6): *skill 1: average score 609, bombs hit 0; skill 0.6: average score 491, bombs hit 0.* The perfect bot hitting 0 is right (the avoidance works). But **the 0.6 bot also hits 0, so the bombs change nothing**: they are decoration. That is the table doing its job: it found a design bug before anyone drew a bomb. The fix is a design change, not a tweak to the test: more bombs, a bigger radius, bombs that drift, or a bot with a reaction time that sometimes misjudges the line. Change one, rerun, and **assert the band you want** (`perfect bot hits 0; skill-0.6 bot hits at least one bomb in 8 seeds`).
+6. **View**: draw them (a red circle, then a model), play a `boom` sound and flash on the event. **Browser test**: one step that walks onto a bomb with real keys and asserts the score fell. Screenshot; open it.
+7. **Commit**: "game-NNN: bombs (rule, bot avoidance, table bands, view, browser step)".
+
+### A prompt you can give another model
+
+Paste this, with the numbers filled in, to start an LLM on a new game or a change. It points at the files that hold the method rather than restating it.
+
+> You are working in the web-games-andrew repo (vanilla HTML/CSS/JS, ES modules, no build step). Build **game-NNN "Title"**: *two sentences of concept*. Method: read `docs/generic/learnings.md` § "Start here: how a game is built", the Step 5 list in `.claude/commands/scaffold-game.md`, and `game-NNN-closest/game-plan.md` plus its `dev/README.md`. Run `/scaffold-game` (sim/view, `three`|`canvas`), and confirm `node game-NNN/dev/simtest.mjs` and `browsertest.mjs` pass on the untouched scaffold before editing. Then, in order, each with its harness green and a commit: (1) `game-plan.md` listing state, input/commands, events and every rule to test; (2) rules in `js/sim/` with a `simtest` line each, tests seen failing first; (3) determinism and a save round trip; (4) a bot at skill 1 and a skill dial; (5) proofs for anything generated, over ≥ 50 seeds; (6) a balance table in `game-plan.md` with asserted bands; (7) the view, with phone and desktop screenshots that you open and describe; (8) `browsertest.mjs` on desktop, two phones and blocked storage; (9) the seven registration steps and the docs. Never weaken a failing test to pass it, never use `Math.random` in `js/sim/`, and finish with a report that lists what you ran, what passed, and what a human still has to judge.
+
+### Definition of done
+
+- [ ] `node game-NNN/dev/simtest.mjs` passes: purity, rules, determinism and save round trip, generation proofs, bot on `SEEDS` seeds with invariants, balance bands.
+- [ ] `node game-NNN/dev/browsertest.mjs` passes: desktop, 390×844 and 844×390 with real touches, blocked storage, no console errors.
+- [ ] Every PNG in `dev/shots/` has been opened and looks like the game (or the report says nobody could look).
+- [ ] `node dev/smoketest.mjs` passes with and without `NOSTORAGE=1`.
+- [ ] The seven collection steps are done, including the preview jpg, and `status.md` says honestly what is open.
+- [ ] Reusable lessons are in this file, attributed, symptom first; `docs/README.md`'s index line is refreshed.
 
 ---
 
@@ -6595,3 +6844,18 @@ A first-person survival and research adventure in three.js: learn a generated ma
 - **Keep research honest.** Instruments and casts are the only source of notebook facts; the bot plans from those facts and public observations rather than the hidden laws.
 - **Prove gates with the real movement rules.** A flood fill over the same standability, slope and water constraints used by the route finder verifies inaccessible regions remain shut without magic and open when their flags change.
 - **Use the tests to find view/sim edge cases.** Bolts pass through objects that cannot react to them; updrafts leave enough glide time to reach nearby ledges; neutral gallery lighting exposes character hair that hides faces in the game's darker scenes.
+
+## Game 125 SEEDFALL: a year as the only clock, a station walked in the sim, and a bot that gathers by need (2026-11-08)
+
+A narrative first-person HD-2D sci-fi adventure with idle terraforming, in three.js: walk a colony ship, drive bots on the planet below, splice genomes into strains, and research on game days, all within 365 days. See [game-125/game-plan.md](../../game-125/game-plan.md).
+
+- **When the deadline is the game, idle means game days, not wall time.** Games 098, 110 and 115 run real time away through `step()`. Here that would let the year pass while the tab is closed, so nothing reads wall time at all: research, vats, harvesters and colonies run on `G.day`, which moves only while you walk the deck (1×, 4×, 16×), while a bot is down (a day per 30 s), or when you ask the Holo-table to wait until the next thing finishes. Terminals and dialogue pause it. One `advanceDays()` in quarter-day chunks serves all of them, the bot's `wait`, and the tests.
+- **Put the first-person walker in the sim when the rooms are data.** The crew deck is a list of rectangles and door rectangles (`layout.js`); `fits(x, z, r)` is the walker's collision. The view builds walls from the same list, and `simtest` flood-fills over the walker's own rule to prove every room and terminal can be reached, then walks the real walker from the bay to the Holo-table. Terminals are just positions: `act({ t: 'use' })` opens whatever is in reach and in front of you.
+- **A gathering bot must gather what the plan needs.** The first balance run took 240 days to build a Mk II: the bot always went to the nearest node (plants), so minerals never arrived. It now weights nodes by `needs(G)`, the shortfall against the next blueprint, the next generation and two research projects, and hunts creatures when animals are short. Only then did the balance table mean anything; tune the bot's judgement before you tune the numbers.
+- **Terraforming that shows on the ground feeds back into play.** Each drop generates the zone from its seed *and* its current state: hostility sets the creature count, damage and whether they start fights; toxicity the hazards; barrenness the plants. The view colours the ground between dead and living palettes and plants flowers by fertility. The same number the Eden Index reads makes the next drop easier and prettier, so progress needs no explanation.
+- **Generated walls were inside out.** Wall quads built per cell edge with hand-written vertex order faced outward, so from inside a room you saw straight through them to the stars and the *outside* of the next room's walls. `side: THREE.DoubleSide` on one merged mesh is cheaper than getting four winding orders right; write the normals yourself so the lit side is still the inside. Doorways also need lintels: a 2.8 m door between a 3.0 m corridor and a 6 m hangar leaves a hole above it otherwise.
+- **Timer-driven fades stall under slow frames.** A black fade-in set on and removed with `setTimeout` plus a CSS transition left every SwiftShader screenshot black: the timer and the transition both wait behind second-long frames. Drive overlays from the wall clock inside the frame loop (`opacity = (until - now) / ms`).
+- **A test that presses keys must wait for them to be consumed.** The press queue takes one key per frame, by design (game-074). At two frames a second, eighty Enter presses queued in five seconds were still being eaten long after the test had moved on, and closed the next terminal. `talkThrough()` now waits for `input.queue.length === 0` after each press.
+- **Light the arms, not the scene.** A first-person bot's arms are sprites on the camera; in the dark zone the camera's own lamp sat 0.8 m from them and bloomed them white. Arms are unlit `MeshBasicMaterial`, `depthTest: false`, transparent so they sort after the hazard decals, and slightly dimmed in the dark.
+- **Generated 2D art beside a code-drawn 3D world (fal).** The title, portraits, zone cards and endings were made with fal's Nano Banana 2.1 under one shared style instruction (HD-2D pixel art, no text), with each subject written from the game's own data, so 18 images read as one set. A character's moods are one base portrait plus *edits* of it (`nano-banana-2.1/edit`, "change only the face on the screen"), not five separate generations: the edits kept the shell, fins and background identical. fal's results live on `v3b.fal.media`, which a restricted cloud environment blocks; allow the media hosts, or the images can be generated but not downloaded. Ship resized WebP (portraits 320 px, cards 960 px, endings 1280 px, key art 1920 px; 876 KB for all 18) and keep the originals out of the repo. Once painted art covers a whole screen, stop rendering the 3D scene behind it.
+- **Billboard toward the camera from the world position, not the local one.** TILLY's sprite sits inside a group that carries her position (and her light), so the sprite's own position is (0, 0, 0); `atan2(cam - b.position)` aimed her from the world origin, and anywhere but the far end of the deck she showed her back or her side. Every other billboard sat straight in the scene, so nothing else showed it. `face()` now uses `getWorldPosition` and subtracts the parent's world yaw; the browser test measures her facing (dot product of her world normal with the direction to the camera, 0.61 to −0.92 before, 1.0 after) from four places.
