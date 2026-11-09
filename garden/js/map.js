@@ -218,7 +218,10 @@ export class IslandMap {
         // every plaza, so names never print on top of each other.
         const k = size / 720;
         const placed = [];
-        const blockers = [{ x: 0, z: 0, r: 14.5 }, ...layout.spokes.map((sp) => ({ x: sp.pavilion.x, z: sp.pavilion.z, r: 9.3 }))]
+        // (the well and the crashed rocket are drawn above, so labels step round them too)
+        const blockers = [{ x: 0, z: 0, r: 14.5 }, ...layout.spokes.map((sp) => ({ x: sp.pavilion.x, z: sp.pavilion.z, r: 9.3 })),
+            ...(layout.well ? [{ x: layout.well.x, z: layout.well.z, r: 3.6 }] : []),
+            ...(layout.crash ? [{ x: layout.crash.x, z: layout.crash.z, r: 10 }] : [])]
             .map((b) => { const [bx, by] = toPx(b.x, b.z); return { x: bx, y: by, r: b.r * px }; });
         const hitsCircle = (r, b) => {
             const nx = clamp(b.x, r.x0, r.x1), ny = clamp(b.y, r.y0, r.y1);
