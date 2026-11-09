@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ARCANA WAGON (game-121) had no Garden thumbnail: added `garden/img/games/game-121.jpg` (1200x630) with its own `dev/preview.mjs`. Every one of the 125 games has one.
 
 ### Changed
+- **Crystal Crescendo** (game-113): the Garden thumbnail ([garden/img/games/game-113.jpg](garden/img/games/game-113.jpg)) still showed the old block-pixel look from before the fal art. Re-rendered with [preview.mjs](game-113/dev/preview.mjs): the four princesses, Otto and Rimefang the Frozen Knight in their generated art, mid-song in Frosthold.
 - **Doom & Doilies** (game-110) v1.5.0: new art for every graphic, made with fal. The Overlord (four tools, three poses), twelve minions, four visitors, the goblin henchman, sixteen centrepieces, the Skull Swap tokens, six pets with four moods and five accessories, the grave icons and nine room textures (coloured per lair by a gradient map) are generated PNGs in [game-110/assets/](game-110/assets/), each made from the sprite the game used to paint in code, so every character is still recognisably itself. [js/view/assets.js](game-110/js/view/assets.js) loads them before the first frame and every caller falls back to the painted sprite, so a missing file breaks nothing; sprites keep their logical sizes and the simulation is untouched. The export scripts and how the art was made are in [dev/assets/](game-110/dev/assets/README.md). The salon chair still paints hair over the painted client sprite.
 
 ### Fixed
