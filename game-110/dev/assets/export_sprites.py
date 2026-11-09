@@ -16,7 +16,7 @@ figure is placed bottom-centre in a box of that aspect ratio at S times the size
 import json, os, sys
 from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from cutout import key_background, main_figure, crop_to_alpha, split_columns, fit
+from cutout import key_background, main_figure, crop_to_alpha, split_columns, split_even, fit
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.normpath(os.path.join(HERE, '..', '..', 'assets'))
@@ -33,12 +33,13 @@ STATION = (48, 48)
 TOKENS = ['skull', 'cupcake', 'yarn', 'candle', 'rose', 'teacup', 'pumpkin']
 PETS = {'cat': (26, 28, 4), 'dog': (28, 28, 5), 'bat': (30, 26, 5), 'bunny': (24, 30, 4), 'toad': (26, 26, 4), 'owl': (22, 30, 4)}
 # accessories: file name -> logical width on a pet (the game places them by the pet's head and neck)
-# Frames the model drew badly (ghosting, stray hearts, a floating ear) are not used: the game shows another cell instead.
-PET_MAP = {'bat': {'happy': 3}, 'bunny': {'happy': 3}, 'toad': {'happy': 3}, 'owl': {'happy': 3}, 'dog': {'alt': 0}}
+# A frame the model drew badly can be swapped for another cell, e.g. {'bat': {'happy': 3}}; none needs it now.
+PET_MAP = {}
+PET_WIDE = {'bat': 1.5}
 # where accessories sit on the generated pets, in each pet's sprite pixels (head: [x, top of the head]; neck: [x, y, width]);
 # a pet not listed here uses the head and neck of the painted pet (PET_GEOM in js/view/art.js)
-PET_GEOM = {'toad': {'head': [13, 7.5], 'neck': [13, 15, 12]}, 'owl': {'head': [11, 5], 'neck': [11, 15.5, 9]},
-            'bunny': {'head': [12, 10], 'neck': [12, 17.5, 8]}}
+PET_GEOM = {'cat': {'head': [10.5, 4.5], 'neck': [11, 17, 8]}, 'toad': {'head': [13, 5.5], 'neck': [13, 14, 12]},
+            'owl': {'head': [11, 6.5], 'neck': [11, 17.5, 9]}}
 ACC = [('bow', 9), ('bell', 9), ('hat', 13), ('scarf', 12), ('crown', 8)]
 
 
@@ -151,14 +152,25 @@ def main(raw):
         if im is not None:
             save(man, 'icon/' + k, f'tokens/icon-{k}.png', fit(fig(im), 16 * 8, 16 * 8, fill=0.94, align='centre'), w=16, h=16)
 
-    # pets: one scale per sheet; each frame is centred on its own figure
+    # pets: each frame is its own render (a sheet let neighbouring figures bleed into each other and clipped them), keyed and
+    # placed on one common scale; the bat's cells are wider so its raised wings fit
     for pid, (w, h, n) in PETS.items():
-        im = load(raw, 'pet-' + pid)
-        if im is None:
+        frames = ['idle', 'happy', 'sad', 'blink'] + (['alt'] if n == 5 else [])
+        imgs = [load(raw, f'pet-{pid}-{f}') for f in frames]
+        if any(i is None for i in imgs):
             continue
-        cells = [fig(c, 0.25) for c in split_columns(im, n, 24)]     # only the pet itself: no floating ears, notes or smears
-        bw, bh = w * S, h * S
-        save(man, 'pet/' + pid, f'pets/{pid}.png', sheet(cells, bw, bh, common_scale([cells], bw, bh)), w=w, h=h, cols=n, **({'map': PET_MAP[pid]} if pid in PET_MAP else {}), **({'geom': PET_GEOM[pid]} if pid in PET_GEOM else {}))
+        wide = PET_WIDE.get(pid, 1.0)
+        cells = [fig(i, 0.25) for i in imgs]
+        bw, bh = round(w * wide * 2) // 2 * S, h * S
+        sc = min(min(bh * FILL / c.height, bw * FILL / c.width) for c in cells)
+        extra = {}
+        if pid in PET_MAP:
+            extra['map'] = PET_MAP[pid]
+        if pid in PET_GEOM:
+            extra['geom'] = PET_GEOM[pid]
+        if wide != 1.0:
+            extra['xpad'] = (bw // S - w) / 2
+        save(man, 'pet/' + pid, f'pets/{pid}.png', sheet(cells, bw, bh, sc), w=bw // S, h=h, cols=n, **extra)
 
     # accessories: trimmed, with a logical width the game scales them to
     im = load(raw, 'accessories')

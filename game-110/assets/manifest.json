@@ -126,34 +126,29 @@
  "pet/bat": {
   "cols": 5,
   "h": 26,
-  "map": {
-   "happy": 3
-  },
   "src": "pets/bat.png",
-  "w": 30
+  "w": 45,
+  "xpad": 7.5
  },
  "pet/bunny": {
   "cols": 4,
-  "geom": {
-   "head": [
-    12,
-    10
-   ],
-   "neck": [
-    12,
-    17.5,
-    8
-   ]
-  },
   "h": 30,
-  "map": {
-   "happy": 3
-  },
   "src": "pets/bunny.png",
   "w": 24
  },
  "pet/cat": {
   "cols": 4,
+  "geom": {
+   "head": [
+    10.5,
+    4.5
+   ],
+   "neck": [
+    11,
+    17,
+    8
+   ]
+  },
   "h": 28,
   "src": "pets/cat.png",
   "w": 26
@@ -161,9 +156,6 @@
  "pet/dog": {
   "cols": 5,
   "h": 28,
-  "map": {
-   "alt": 0
-  },
   "src": "pets/dog.png",
   "w": 28
  },
@@ -172,18 +164,15 @@
   "geom": {
    "head": [
     11,
-    5
+    6.5
    ],
    "neck": [
     11,
-    15.5,
+    17.5,
     9
    ]
   },
   "h": 30,
-  "map": {
-   "happy": 3
-  },
   "src": "pets/owl.png",
   "w": 22
  },
@@ -192,18 +181,15 @@
   "geom": {
    "head": [
     13,
-    7.5
+    5.5
    ],
    "neck": [
     13,
-    15,
+    14,
     12
    ]
   },
   "h": 26,
-  "map": {
-   "happy": 3
-  },
   "src": "pets/toad.png",
   "w": 26
  },

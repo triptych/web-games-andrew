@@ -148,10 +148,13 @@ export function buildWell(world) {
             batch.add(key, new THREE.BoxGeometry(blockW * 0.97, 0.38, CURB_OUT - CURB_IN), here(Math.sin(a) * r, 0.17 + 0.19 + course * 0.39, Math.cos(a) * r, a + R.range(-0.03, 0.03)));
         }
     }
+    // (neighbouring slabs overlap a little at the inner edge, so every other one stands a hair
+    // taller: two coplanar tops would shimmer where their textures disagree)
     for (let k = 0; k < blocks; k++) {
         const a = ((k + 0.25) / blocks) * TAU;
         const r = (CURB_IN + CURB_OUT) / 2 + 0.02;
-        batch.add('marble', new THREE.BoxGeometry(blockW * 1.04, 0.1, CURB_OUT - CURB_IN + 0.14), here(Math.sin(a) * r, CURB_H + 0.05, Math.cos(a) * r, a));
+        const lift = k % 2 ? 0.012 : 0;
+        batch.add('marble', new THREE.BoxGeometry(blockW * 1.04, 0.1 + lift, CURB_OUT - CURB_IN + 0.14), here(Math.sin(a) * r, CURB_H + 0.05 + lift / 2, Math.cos(a) * r, a));
     }
 
     // ---- the frame: two posts out beyond the curb, a ridge beam and a little pitched roof
@@ -202,8 +205,10 @@ export function buildWell(world) {
 
     // ---- the inside of the curb, and the shaft seen from above (the terrain runs under it, so it is painted on a disc)
     const wellMat = new THREE.MeshStandardMaterial({ color: 0x20302a, roughness: 1, side: THREE.BackSide });
-    const inner = new THREE.Mesh(new THREE.CylinderGeometry(CURB_IN, CURB_IN, CURB_H + 0.02, 28, 1, true), wellMat);
-    inner.position.y = CURB_H / 2 + 0.17 - 0.07;
+    // (a little inside the blocks' inner faces, not on them, and no taller than the slabs that cap them)
+    const innerH = CURB_H + 0.05 - 0.09;
+    const inner = new THREE.Mesh(new THREE.CylinderGeometry(CURB_IN - 0.03, CURB_IN - 0.03, innerH, 28, 1, true), wellMat);
+    inner.position.y = 0.09 + innerH / 2;
     root.add(inner);
     const shaft = new THREE.Mesh(new THREE.CircleGeometry(CURB_IN + 0.01, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: shaftTexture(), polygonOffset: true, polygonOffsetFactor: -4 }));
     shaft.position.y = 0.19;
@@ -241,8 +246,9 @@ export function buildWell(world) {
     root.add(lanternHalo);
 
     const sign = signMesh(signTexture('\u{1F331}', 'The Glowing Well', 'a rope goes down', WELL_ACCENT, 1024, 256), 1.5, 0.375, 0.3);
-    sign.position.set(0, ROOF_Y + 0.49, 0.64);
-    sign.rotation.set(-slope, 0, 0);
+    // lying in the roof's own plane (its normal is the slab's), a centimetre and a bit above the copper
+    sign.position.set(0, ROOF_Y + 0.45 + 0.047 * Math.cos(slope), 0.6 + 0.047 * Math.sin(slope));
+    sign.rotation.set(slope - Math.PI / 2, 0, 0);
     root.add(sign);
     world.nightSigns.push(sign.userData.nightGlow);
 

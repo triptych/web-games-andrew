@@ -1,6 +1,6 @@
 // ARCANA WAGON — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.1.0';
 export const SAVE_KEY = 'arcana-wagon.v1';
 
 export const STEP = 1 / 60;               // the sim only paces timers; every story move is a command

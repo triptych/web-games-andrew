@@ -10,6 +10,7 @@ import { roundBloom, scrubBloom } from './bloom.js';
 import games from '../../js/gamedata.js';
 import { buildLayout, projectOnPath, samplePath, PLAZA_R, PATH_HALF, GATE_S, PAVILION_PLAZA } from './layout.js';
 import { Island } from './terrain.js';
+import { VC, SUMMIT } from './volcano-data.js';
 import { setTextureQuality } from './textures.js';
 import { makeMaterials } from './materials.js';
 import { Sky } from './sky.js';
@@ -162,11 +163,17 @@ function lighthouseBeams(world, scene) {
         return { g, lamp };
     });
     const lampTint = new THREE.Color(0xffd890);
-    return (dt, night) => {
+    const smokeAt = new THREE.Vector3(VC.x, SUMMIT, VC.z);
+    return (dt, night, camPos) => {
         mat.uniforms.uOpacity.value = night;
+        const smokeD = camPos.distanceToSquared(smokeAt);
         for (const b of beams) {
             b.g.rotation.y += dt * 0.5;
-            b.g.children.forEach((c) => (c.visible = night > 0.05));
+            // transparents are drawn in renderOrder, not by depth, and the volcano's smoke, glow and
+            // lava sit at 4-6 -- so a beam nearer than the volcano has to be drawn after them (or the
+            // smoke paints over it), and one beyond the volcano before them
+            const order = camPos.distanceToSquared(b.g.position) < smokeD ? 6.5 : 0;
+            b.g.children.forEach((c) => { c.visible = night > 0.05; c.renderOrder = order; });
             b.lamp.visible = true;
             b.lamp.material.color.copy(lampTint).multiplyScalar(0.4 + night * 2.5);
         }
@@ -2392,7 +2399,7 @@ async function boot() {
                 });
             }
             for (const L of lampLights) L.intensity = damp(L.intensity, L.userData.on ? night * 9 : 0, 4, dt);
-            beams(dt, night);
+            beams(dt, night, camera.position);
 
             // hover highlight
             if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !fishing.active && !diving && !carousel.busy) {

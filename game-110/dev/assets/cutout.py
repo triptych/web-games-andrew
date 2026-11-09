@@ -181,6 +181,23 @@ def split_columns(img, n, min_gap=10):
     return [img.crop((a, 0, b, img.height)) for a, b in merged]
 
 
+def split_even(img, n, window=0.2):
+    """Cut a keyed sheet of n equally spaced figures. The model keeps the reference's layout, so the cell boundaries are
+    near i/n of the width; each cut goes at the emptiest column within +-window of a cell, so a smear or a wide wing that
+    reaches toward a neighbour is never what decides where the cut falls (and a figure is never chopped)."""
+    prof = (np.asarray(img)[..., 3] > 40).sum(axis=0)
+    cw = img.width / n
+    cuts = [0]
+    for i in range(1, n):
+        c = int(i * cw)
+        lo, hi = int(c - cw * window), int(c + cw * window)
+        seg = prof[lo:hi]
+        best = np.flatnonzero(seg == seg.min())
+        cuts.append(lo + int(best[len(best) // 2]))
+    cuts.append(img.width)
+    return [img.crop((a, 0, b, img.height)) for a, b in zip(cuts, cuts[1:])]
+
+
 def fit(img, bw, bh, scale=None, fill=0.96, align='bottom'):
     """Place a cropped RGBA figure in a bw x bh box, scaled to fit (or by `scale`), centred, feet on the bottom (or centred)."""
     if scale is None:

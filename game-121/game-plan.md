@@ -1,8 +1,8 @@
 # ARCANA WAGON
 
 **Genre:** First-person narrative adventure: a fortune-teller sim with a mystery plot and a romance subplot
-**Engine:** three.js r165, no asset files (every picture, model and sound is made in code)
-**Status:** v1.0.0 complete: seven days, 21 readings, four endings, three romances
+**Engine:** three.js r165. Sound, cards, symbols and the wagon are made in code; the eleven named characters are rigged Meshy models and the title, ending and portrait art is fal-generated (v1.1.0, see dev/assets/README.md and art/README.md)
+**Status:** v1.1.0 complete: seven days, 21 readings, four endings, three romances
 
 ---
 

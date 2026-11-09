@@ -9,6 +9,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { buildStage, POS, slotWorld } from './stage.js';
 import { buildPerson } from './people.js';
+import { buildModelPerson, preloadModels, modelReady } from './models.js';
 import { drawSky, TOD_LIGHT } from './textures.js';
 import { TIMING } from '../config.js';
 import { COLOURS, OMENS } from '../sim/data/lexicon.js';
@@ -46,6 +47,9 @@ export class View {
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(58, 1, 0.05, 40);
         this.S = buildStage(this.scene, this.renderer, { high: this.q === 'high' });
+        // The named characters are Meshy models (assets/models). ?models=0 keeps the built-in people for everyone.
+        this.useModels = !/[?&]models=0\b/.test(location.search);
+        if (this.useModels) preloadModels();
         this.camState = { p: new THREE.Vector3(...CAMS.title.p), l: new THREE.Vector3(...CAMS.title.l) };
 
         this.t = 0;
@@ -156,12 +160,21 @@ export class View {
             if (P.u <= 0.002) { this.scene.remove(P.p.group); P.p.dispose(); this.person = P = null; }
         }
         if (w && !this.person) {
-            const p = buildPerson(w.look);
+            const p = (this.useModels && w.look.model && buildModelPerson(w.look)) || buildPerson(w.look);
             p.group.visible = false;
             this.scene.add(p.group);
-            P = this.person = { key: w.key, p, u: 0, target: w.go, look: new THREE.Vector3(), yaw: 0, fast: false };
+            P = this.person = { key: w.key, p, def: w.look, u: 0, target: w.go, look: new THREE.Vector3(), yaw: 0, fast: false };
         }
         if (!P) return;
+        // the model was still loading when this guest arrived: swap it in as soon as it is ready
+        if (!P.p.model && this.useModels && P.def.model && modelReady(P.def.model)) {
+            const next = buildModelPerson(P.def);
+            if (next) {
+                next.group.visible = P.p.group.visible;
+                this.scene.add(next.group); this.scene.remove(P.p.group); P.p.dispose();
+                P.p = next;
+            }
+        }
         if (w && w.key === P.key) P.target = w.go;
         const walking = G.phase === 'arrive' || G.phase === 'leave';
         const speed = P.fast ? 1 / 0.35 : G.phase === 'leave' ? 1 / 1.4 : walking ? 1 / 2.4 : 1 / 0.9;

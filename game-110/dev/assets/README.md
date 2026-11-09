@@ -17,7 +17,8 @@ invention. Two pictures came from plain text-to-image (`fal-ai/nano-banana-2`): 
 | 12 minions, 4 visitors, the henchman | `.../edit` | the painted sprite, 1:1 | `resolution: 1K` |
 | 4 centrepieces | `.../edit` | the four painted tiers side by side, 4:1 | `2K`; "each a bigger, fancier version" |
 | 7 Skull Swap tokens, scissors and paw icons | `.../edit` | the painted 16x16 token, 1:1 | |
-| 6 pets | `.../edit` | the painted pet in idle, happy, sad and blink (plus a second frame for the dog and the bat), 4:1 | `2K` |
+| 6 pets, idle frame | `.../edit` | the painted pet (a sheet, asking for "only the first figure") | `1K`, 1:1 |
+| 6 pets, other frames | `.../edit` | **the generated idle frame**, "change only the expression" (happy, sad, blink; the bat's wings raised, the dog's tail raised) | `1K`, 1:1, one picture per frame |
 | texture sheet | text to image | none | "3 by 3 grid of nine seamless tileable swatches ... strictly greyscale", 2K |
 | pet accessories | text to image | none | "five small game accessories in a row", 4:1 |
 
@@ -35,8 +36,7 @@ All prompts end with `Plain flat solid magenta (#ff00ff) background, no shadow, 
 - **`export_sprites.py`** sizes each picture to the logical size of the sprite it replaces (6x for sprites, 8x for tokens), so
   the game sizes it exactly as before. The Overlord's cells are 1.7x wider than her painted sprite so her raised arms and her tools
   never set her scale; she, and each centrepiece sheet, share one scale across all their frames. Fully transparent pixels are
-  given the outline's violet so a filtered texture has no magenta halo. A few frames the model drew badly (a ghosted happy face, a floating
-  ear) are not used: `PET_MAP` points the game at another cell, and `PET_GEOM` says where accessories sit on a pet.
+  given the outline's violet so a filtered texture has no magenta halo. `PET_GEOM` says where accessories sit on a pet whose head and neck are not where the painted pet's were, `PET_MAP` can point a mood at another cell, and the bat's cells are wider (`PET_WIDE`) so raised wings fit.
   The Overlord's hair drifted brown in two of the duster frames; `recolour_hair` pulls it back to black-violet.
 - **`export_tiles.py`** trims each swatch, stretches its levels so the median is mid-grey (the palette's base colour), and
   cross-fades the edges so it repeats without a hard seam (not the strictly regular check, marble and carpet, which would only blur).
@@ -47,9 +47,13 @@ All prompts end with `Plain flat solid magenta (#ff00ff) background, no shadow, 
 ## What the model declined or got wrong
 
 The gingerbread golem was declined once under the content policy (gingerbread *golem*, reworded as a gingerbread *cookie
-character* it was fine). The "happy" pet frames were the weak spot: in about half the sheets the model smeared or ghosted the second cell,
-and re-rolling did not reliably fix it, so the bat, bunny, toad and owl show their calm blink frame when happy and the dog never wags (its second
-frame had a ragged tail). The spider seamstress came back with glasses and the loom as a bookshelf with a ghost; both are charming and stayed.
+character* it was fine). **Sheets of several frames in one picture were the weak spot.** Asked for a pet in four expressions side
+by side, the model smeared and ghosted the neighbouring cells into each other: a cat missing a foot and its tail, a bat with a chopped wing, a
+bunny with a floating ear, a toad with a clipped side. Re-rolling did not fix it reliably, and cutting the sheet in different places did not help
+because the damage was in the picture. The fix was to generate every pet frame as its own picture: first a clean idle frame
+from the painted pet, then each other frame from that idle frame with "change only the expression". Frames stay consistent, nothing can bleed, and
+`export_sprites.py` reads `pet-<id>-<frame>.png`. (The Overlord, minions, visitors and centrepieces were not affected: their sheets
+came back clean.) The spider seamstress came back with glasses and the loom as a bookshelf with a ghost; both are charming and stayed.
 
 ## What is still painted in code
 

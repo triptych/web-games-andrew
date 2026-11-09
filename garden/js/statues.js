@@ -446,7 +446,9 @@ export function buildStatues(world) {
         const uv = face.attributes.uv;
         const a = st.atlas;
         for (let k = 0; k < uv.count; k++) uv.setXY(k, a.u0 + uv.getX(k) * a.du, a.v0 + uv.getY(k) * a.dv);
-        pedS.add('plaque' + a.page, face, xf(0, 0.72, 0.527));
+        // (a centimetre proud of the frame's front face at 0.525: 2 mm was too close for the depth buffer
+        // to tell apart beyond sixty metres or so, and the bronze speckled through the lettering)
+        pedS.add('plaque' + a.page, face, xf(0, 0.72, 0.536));
 
         // the sculpture, chosen from the genre's family and varied per game
         const kinds = g.statues;
