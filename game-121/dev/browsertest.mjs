@@ -396,13 +396,30 @@ async function phone(w, h) {
     for (let i = 0; i < 4 && (await Q(page, () => __aw.G.dlg.i < __aw.G.dlg.lines.length - 1)); i++) { await tap('#dlg-next'); await page.waitForTimeout(120); }   // finish the line, go on to the last
     await until(page, () => __aw.G.dlg.i === __aw.G.dlg.lines.length - 1, 'the last line before the answers');
     await page.waitForTimeout(150);
+    // The quick second taps are made inside the page, hit-testing where the first answer is the instant the answers
+    // appear and again 400 ms later (a real touch takes 450 to 720 ms to arrive under software GL, which is longer
+    // than the guard, so it could not test it). A guarded answer has pointer-events: none, so the tap lands on
+    // whatever is under it; timers fire in the order they fall due, so on any machine the guard's own timer
+    // (700 ms) is still pending when this one (400 ms) runs, and a guard that was only 160 ms would be gone.
+    await Q(page, () => {
+        window.__quick = [];
+        const choices = document.getElementById('dlg-choices');
+        const tap = () => {
+            const b = choices.querySelector('.btn'); if (!b) return;
+            const r = b.getBoundingClientRect();
+            const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+            window.__quick.push(hit === b || b.contains(hit) ? 'reached the answer' : 'guarded');
+            hit?.click();
+        };
+        const mo = new MutationObserver(() => { if (!choices.querySelector('.btn')) return; mo.disconnect(); tap(); setTimeout(tap, 400); });
+        mo.observe(choices, { childList: true });
+    });
     const box = await Q(page, () => { const r = document.getElementById('dlg-text').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
     await tapAt(box.x, box.y);                               // finishes the typing; the answers appear
     await until(page, () => document.querySelectorAll('#dlg-choices .btn').length === 3, 'the first tap finishes the typing and the answers appear');
-    const c0 = await Q(page, () => { const r = document.querySelector('#dlg-choices .btn').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
-    await tapAt(c0.x, c0.y);                                 // a quick second tap, right where an answer is
-    await page.waitForTimeout(250);
-    check(await Q(page, () => !!__aw.G.dlg?.choices), 'a second tap straight away does not pick an answer');
+    await until(page, () => window.__quick.length === 2, 'quick taps are made at once and 400 ms after');
+    check((await Q(page, () => window.__quick)).every((q) => q === 'guarded'), 'a second tap straight away, and one 400 ms later, land on the guard, not an answer');
+    check(await Q(page, () => !!__aw.G.dlg?.choices), 'and neither picks an answer');
     await page.waitForTimeout(700);
     await shot(page, `phone-${w}x${h}-choices`);
     await onScreen('choices', ['#dlg-choices .btn']);
