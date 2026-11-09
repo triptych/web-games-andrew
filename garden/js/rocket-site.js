@@ -386,7 +386,7 @@ export function buildRocketSite(world) {
     root.add(ramp.build(M));
 
     // ---- the ground: a scorched crater, a long gouge behind her, earth heaped round the nose
-    const groundMesh = (geo, mat) => {
+    const groundMesh = (geo, mat, order = 1) => {
         // drape a flat (x, z) mesh in root coordinates over the real ground
         const p = geo.attributes.position;
         for (let i = 0; i < p.count; i++) {
@@ -396,14 +396,14 @@ export function buildRocketSite(world) {
         geo.computeVertexNormals();
         const m = new THREE.Mesh(geo, mat);
         m.receiveShadow = true;
-        m.renderOrder = 1;
+        m.renderOrder = order;   // the decals overlap where the gouge meets the crater: a fixed order, not a distance sort
         root.add(m);
         return m;
     };
     const decal = (map) => new THREE.MeshStandardMaterial({ map, transparent: true, depthWrite: false, roughness: 1, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
     groundMesh(new THREE.PlaneGeometry(CRASH.crater * 2.3, CRASH.crater * 2.3, 46, 46).rotateX(-Math.PI / 2), decal(scorchTexture()));
     const furrow = new THREE.PlaneGeometry(5.2, 15, 8, 30).rotateX(-Math.PI / 2).rotateY(Math.PI / 2).translate(-L / 2 - 6.5, 0, 0.3);
-    groundMesh(furrow, decal(furrowTexture()));
+    groundMesh(furrow, decal(furrowTexture()), 2);
     // turned earth piled against the nose, and clods thrown out along the gouge
     const soil = new THREE.MeshStandardMaterial({ color: 0x4a3626, roughness: 1, flatShading: true });
     const turf = new THREE.MeshStandardMaterial({ color: 0x4b6a2c, roughness: 1, flatShading: true });
