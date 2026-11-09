@@ -74,7 +74,7 @@ const BH_NAME = ['The Quiet Keyhole', 'The Patient Throat', 'The Velvet Drain', 
 
 // ------------------------------------------------------------------ shaders
 
-const NOISE = /* glsl */ `
+export const NOISE = /* glsl */ `
 float hash(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
 float noise(vec3 x) { vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
     return mix(mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x), mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
@@ -164,10 +164,10 @@ void main() {
     gl_FragColor = vec4(uCol * f * lit * uAmt * 2.2, 1.0);
 }`;
 
-const RING_VERT = /* glsl */ `
+export const RING_VERT = /* glsl */ `
 uniform float uIn; uniform float uOut; varying float vR; varying vec3 vW;
 void main() { vR = (length(position.xy) - uIn) / (uOut - uIn); vec4 wp = modelMatrix * vec4(position, 1.0); vW = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }`;
-const RING_FRAG = /* glsl */ `
+export const RING_FRAG = /* glsl */ `
 uniform vec3 uC0; uniform vec3 uC1; uniform float uSeed; uniform vec3 uLight; uniform vec3 uCenter; uniform float uPR;
 varying float vR; varying vec3 vW;
 float h(float x) { return fract(sin(x * 91.7 + uSeed) * 43758.5); }
