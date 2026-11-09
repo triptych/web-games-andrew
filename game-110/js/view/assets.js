@@ -38,7 +38,7 @@ export async function loadAssets(base = 'assets/', limitMs = 12000) {
             if (!im || !im.naturalWidth) return;
             const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
             c.getContext('2d').drawImage(im, 0, 0);
-            found.set(key, { canvas: c, w: e.w ?? im.naturalWidth, h: e.h ?? im.naturalHeight, cols: e.cols || 1, rows: e.rows || 1, map: e.map || null, geom: e.geom || null, rep: e.rep || 1 });
+            found.set(key, { canvas: c, w: e.w ?? im.naturalWidth, h: e.h ?? im.naturalHeight, cols: e.cols || 1, rows: e.rows || 1, map: e.map || null, geom: e.geom || null, xpad: e.xpad || 0, rep: e.rep || 1 });
         }));
     })();
     await Promise.race([work, timeout(limitMs)]);
@@ -120,7 +120,7 @@ export function petAssetPx(id, { mood = 'idle', acc = null, frame = 0 } = {}, fa
     const ac = acc && found.get('acc/' + acc);
     if (ac) {
         const g = a.geom || fallback, k = c.width / a.w;
-        const [cx, cy] = ACC_AT[acc](g);
+        const [cx0, cy] = ACC_AT[acc](g), cx = cx0 + a.xpad;      // xpad: the extra width of a cell wider than the painted pet's
         const w = ac.w * k, h = ac.canvas.height * (w / ac.canvas.width);
         const x = c.getContext('2d');
         x.imageSmoothingQuality = 'high';

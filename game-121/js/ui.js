@@ -164,7 +164,7 @@ export class UI {
     advance() {
         const G = this.getG();
         if (!G.dlg) return;
-        if (this.typing && this.typing.n < this.typing.text.length) { this.typing.n = this.typing.text.length; this.paintTyping(); this.lastSkip = performance.now(); return; }
+        if (this.typing && this.typing.n < this.typing.text.length) { this.lastSkip = performance.now(); this.typing.n = this.typing.text.length; this.paintTyping(); return; }
         if (G.dlg.choices && G.dlg.i >= G.dlg.lines.length - 1) return;
         this.audio.ui('click');
         this.act({ t: 'next' });
@@ -194,7 +194,7 @@ export class UI {
         });
         $('dlg-next').hidden = true;
         // a tap that finished the typing must not also choose the answer that appears under the finger
-        const delay = performance.now() - this.lastSkip < 600 ? 480 : 160;
+        const delay = performance.now() - this.lastSkip < 600 ? 700 : 160;
         setTimeout(() => { box.querySelectorAll('.settling').forEach((b) => b.classList.remove('settling')); this.focusPrimary(); }, delay);
     }
 

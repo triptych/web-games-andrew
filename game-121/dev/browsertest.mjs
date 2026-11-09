@@ -349,6 +349,7 @@ async function phone(w, h) {
     check(true, `the hand ${hand.sw > hand.cw ? 'scrolls sideways inside its row' : 'fits the width'} (${hand.sw}/${hand.cw})`);
     await tap('#hand .hcard:nth-child(1)');
     await until(page, () => __aw.G.reading.placed[0] === 0, 'a tap lays a card');
+    await until(page, () => document.querySelectorAll('#slots .slot.filled').length === 1, 'the place shows the card');
     await tap('#slots .slot.filled');
     await until(page, () => __aw.G.reading.placed[0] === null, 'a tap on its place takes it back');
     await shot(page, `phone-${w}x${h}-deal`);

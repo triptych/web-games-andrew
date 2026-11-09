@@ -168,7 +168,7 @@ size of the painted sprite it replaces, so nothing on screen moved.
 | `assets/minions/`, `visitors/`, `henchman.png` | the twelve minions, four visitors, the goblin | castle billboards, the shop icons, the salon's gallery and wishes |
 | `assets/stations/` | the four centrepieces, one cell per mastery tier | `SpriteLib.station` |
 | `assets/tokens/` | the six Skull Swap tokens, the jack-o'-lantern, the scissors and paw | the Skull Swap board and goals (smoothed, not hard pixels); the icons over the graves |
-| `assets/pets/` | six pets: idle, happy, sad, blink (and a flap or wag frame); five accessories | the nursery, the castle pet, the shop; accessories are drawn over the pet at its head and neck |
+| `assets/pets/` | six pets: idle, happy, sad, blink (and a wing flap or tail wag), each frame its own render; five accessories | the nursery, the castle pet, the shop; accessories are drawn over the pet at its head and neck |
 | `assets/tiles/` | nine greyscale swatches: brick, stone, wallpaper, planks, panelling, check, marble, flagstones, carpet | coloured per lair by a gradient map, repeated by their own `rep` scale, filtered and mipmapped |
 
 How it was made, and what the exporters cope with, is in [dev/assets/README.md](dev/assets/README.md). Still painted in code: the
