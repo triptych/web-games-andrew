@@ -38,6 +38,7 @@ export class Controls {
         this.air = 0;         // height above the ground while jumping
         this.airV = 0;
         this.canJump = null;  // () => bool, lets modes that use Space say no
+        this.gravity = 1;     // a planet's pull, as a share of the garden's: the moon's floaty hops
         this.sensitivity = 0.0032;
         this._bind();
     }
@@ -330,7 +331,7 @@ export class Controls {
         const sp = this.speed;
         const airborne = this.air > 0;
         if (airborne) {
-            this.airV -= GRAVITY * dt;
+            this.airV -= GRAVITY * this.gravity * dt;
             this.air += this.airV * dt;
             if (this.air <= 0) {
                 this.air = this.airV = 0;

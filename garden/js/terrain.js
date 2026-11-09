@@ -22,12 +22,16 @@ function segDist(px, pz, ax, az, bx, bz) {
 /** Low-frequency ground level that paths follow. */
 export const lowGround = (x, z) => 3.6 + 1.5 * fbm2(x * 0.011 + 3.1, z * 0.011 - 7.3, 2);
 export const HUB_Y = lowGround(0, 0) + 0.3;
+/** The ground before paths, plazas and the shore have their way with it. */
+const landAt = (x, z) => lowGround(x, z) + Math.pow(fbm2(x * 0.03 + 11, z * 0.03 - 4, 4) * 0.5 + 0.5, 1.6) * 6.5 + ridged2(x * 0.05, z * 0.05, 3) * 1.4;
 const PIER_Y = 1.55;      // the fishing pier's deck, a little above the dock's
 const PIER_SLOPE = 0.22;  // how steeply its gangway comes down from the shore
 const ISLET_R = 11;
 // the pirate wharf below the Delvers' Descent: a wide deck on pilings with a galleon moored along it
 // the paved apron round the glowing well beside the Hearthgarden pavilion
 export const WELL_APRON = 3.4;
+// the crashed rocket in a grove: its hull's length and radius, and the scorched crater it dug
+export const CRASH = { len: 21, r: 2.6, crater: 10 };
 export const WHARF = { y: 2.0, slope: 0.2, half: 3.2, ramp: 2.1, head: 5.2, berthLx: 7.5, shipLen: 25, bowRoom: 3, tail: 1.6, headLen: 7 };
 
 /** Uniform-grid index of line segments for nearest-path queries. */
@@ -101,6 +105,7 @@ export class Island {
         this._fishingPier();
         this._pirateWharf();
         this._gardenWell();
+        this._crashSite();
 
         // fine segments for flattening, carrying their heights
         this.paths = new SegmentGrid(12);
@@ -129,6 +134,11 @@ export class Island {
         this.plazas.push({ x: L.islet.x, z: L.islet.z, r: 6.2, y: L.islet.y, fall: 2.5 });
         // the well beside the Hearthgarden: its paved apron is level with the pavilion's plaza
         if (L.well) this.plazas.push({ x: L.well.x, z: L.well.z, r: WELL_APRON + 0.3, y: L.well.y, fall: 5 });
+        // the crashed rocket's crater: a shallow dish a little below the ground round it
+        if (L.crash) {
+            this.plazas.push({ x: L.crash.x, z: L.crash.z, r: CRASH.crater, y: L.crash.y, fall: 9 });
+            for (const g of L.crash.gouge) this.plazas.push({ x: g.x, z: g.z, r: g.r, y: g.y, fall: 8 });
+        }
 
     }
 
@@ -308,6 +318,84 @@ export class Island {
         this.capsules.push({ ax: best.x, az: best.z, bx: best.x, bz: best.z, ra: WELL_APRON + 8, rb: 0 });
     }
 
+    /**
+     * The crashed rocket: it came down past one of the groves between the paths,
+     * nose first, and lies on its belly in a crater it dug for itself, on a
+     * headland of its own (the island has no open ground left that is big enough,
+     * so the site holds a patch of land the way the well and the wharf do). The
+     * site is the spot nearest the hub, out along the middle of a gap between two
+     * paths (a grove's first), where the hull, the crater and room to walk round
+     * it keep clear of the paths, statues, set pieces, trails, pier, wharf and
+     * islet; the hull is turned to fit.
+     */
+    _crashSite() {
+        const L = this.layout;
+        const pathPts = [...L.spokes.flatMap((s) => s.pts), ...L.dock.pts];
+        const trailPts = [L.trail, L.pier.trail, L.wharf.trail].flatMap((t) => t.pts);
+        const seg = (x, z, ax, az, bx, bz) => segDist(x, z, ax, az, bx, bz).d;
+        const ok = (x, z) => {
+            if (Math.hypot(x, z) < PLAZA_R + 10) return false;
+            for (const p of pathPts) if (Math.hypot(x - p.x, z - p.z) < PATH_HALF + 4) return false;
+            for (const p of trailPts) if (Math.hypot(x - p.x, z - p.z) < 6) return false;
+            for (const s of L.spokes) {
+                if (Math.hypot(x - s.pavilion.x, z - s.pavilion.z) < PAVILION_PLAZA + 4) return false;
+                if (s.statues.some((st) => Math.hypot(x - st.x, z - st.z) < 4.5)) return false;
+                if (s.lamps.some((l) => Math.hypot(x - l.x, z - l.z) < 3.5)) return false;
+            }
+            for (const f of L.features) if (f.type !== 'grove' && Math.hypot(x - f.x, z - f.z) < 16) return false;
+            if (L.well && Math.hypot(x - L.well.x, z - L.well.z) < 12) return false;
+            if (seg(x, z, L.pier.ax, L.pier.az, L.pier.bx, L.pier.bz) < 24) return false;
+            if (seg(x, z, L.wharf.ax, L.wharf.az, L.wharf.bx, L.wharf.bz) < 30) return false;
+            if (seg(x, z, L.bridge.ax, L.bridge.az, L.bridge.bx, L.bridge.bz) < 16) return false;
+            return !(L.islet && Math.hypot(x - L.islet.x, z - L.islet.z) < 32);
+        };
+        // the hull's footprint, the hatch's ramp on its +z side and the crater's rim
+        const fits = (x, z, yaw) => {
+            const c = Math.cos(yaw), s = Math.sin(yaw);
+            for (let lx = -CRASH.len / 2 - 3; lx <= CRASH.len / 2 + 3; lx += 2.5) {
+                for (const lz of [-4, 0, 4.5, 7.5]) if (!ok(x + lx * c + lz * s, z - lx * s + lz * c)) return false;
+            }
+            return true;
+        };
+        const gaps = L.features.filter((f) => !f.nearDock).sort((a, b) => (b.type === 'grove') - (a.type === 'grove'));
+        let best = null;
+        for (const g of gaps) {
+            for (let r = g.r; r < L.hubR + 60 && !best; r += 2) {
+                for (const da of [0, 0.03, -0.03, 0.06, -0.06]) {
+                    const a = g.angle + da;
+                    const x = Math.sin(a) * r, z = Math.cos(a) * r;
+                    // lie across the gap first (along the ring round the hub), then any way
+                    for (const off of [0, 0.25, -0.25, 0.5, -0.5, 0.8, -0.8, 1.2, -1.2, Math.PI / 2]) {
+                        const yaw = a + Math.PI / 2 + off;
+                        if (fits(x, z, yaw)) {
+                            best = { x, z, yaw };
+                            break;
+                        }
+                    }
+                    if (best) break;
+                }
+            }
+            if (best) break;
+        }
+        if (!best) return;
+        // turn her round if that leaves the gouge behind her on land rather than heading out to sea
+        const tail = (yaw) => this.coast(best.x - (CRASH.len / 2 + 18) * Math.cos(yaw), best.z + (CRASH.len / 2 + 18) * Math.sin(yaw));
+        if (fits(best.x, best.z, best.yaw + Math.PI) && tail(best.yaw + Math.PI) < tail(best.yaw)) best.yaw += Math.PI;
+        // the crater floor sits a little below the lie of the land round it, and the gouge
+        // behind the ship climbs gently out of it
+        const c = Math.cos(best.yaw), sn = Math.sin(best.yaw);
+        let sum = 0, n = 0;
+        for (let lx = -CRASH.len / 2 - 4; lx <= CRASH.len / 2 + 4; lx += 3) for (const lz of [-6, 0, 6]) {
+            sum += landAt(best.x + lx * c + lz * sn, best.z - lx * sn + lz * c);
+            n++;
+        }
+        const y = sum / n - 0.5;
+        L.crash = { x: best.x, z: best.z, yaw: best.yaw, y };
+        L.crash.gouge = [[-CRASH.len / 2 - 6, 6.5, 0.35]].map(([lx, r, dy]) => ({ x: best.x + lx * c, z: best.z - lx * sn, r, y: y + dy }));
+        // land under it all, out to a little past the crater's rim
+        this.capsules.push({ ax: best.x, az: best.z, bx: best.x, bz: best.z, ra: CRASH.len / 2 + 13, rb: 0 });
+    }
+
     /** Coastline distance without the islet (negative on land). */
     coast(x, z) {
         const L = this.layout;
@@ -352,9 +440,7 @@ export class Island {
     }
 
     _height(x, z, sdf) {
-        const low = lowGround(x, z);
-        const hills = Math.pow(fbm2(x * 0.03 + 11, z * 0.03 - 4, 4) * 0.5 + 0.5, 1.6) * 6.5 + ridged2(x * 0.05, z * 0.05, 3) * 1.4;
-        let land = low + hills;
+        let land = landAt(x, z);
         for (const m of this.mounds) land += m.h * Math.exp(-((x - m.x) ** 2 + (z - m.z) ** 2) / (m.r * m.r));
         const f = this.flatten(x, z);
         land = lerp(land, f.y, f.w);

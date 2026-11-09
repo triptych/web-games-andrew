@@ -55,6 +55,8 @@ import { Ship } from './ship.js';
 import { buildWharf } from './wharf.js';
 import { buildWell, atWell } from './well.js';
 import { Grotto } from './grotto.js';
+import { buildRocketSite, atHatch, SHIP_NAME, ROCKET_ACCENT } from './rocket-site.js';
+import { Rocket } from './rocket.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -271,6 +273,8 @@ async function boot() {
     world.hut = buildHutExterior(world);
     // the glowing well beside the Hearthgarden
     buildWell(world);
+    // the crashed rocket on its headland past the grove
+    buildRocketSite(world);
     // the toy submarine in the Moon Fountain's pool
     const fountainSub = new FountainSub(world);
     // the Starlight Carousel on its plaza between the paths
@@ -444,6 +448,8 @@ async function boot() {
     let city = null, hatchArmed = false, hatchHintShown = false, cityHintShown = false;
     // the Glowing Well beside the Hearthgarden and the garden under it: built on the first visit
     let grotto = null, wellArmed = false, wellHintShown = false;
+    // the Silver Comet, crashed past the grove, and the worlds beyond its transporter: built on the first visit
+    let rocket = null, rocketArmed = false, rocketHintShown = false;
     // the maintenance log on the hut's desk
     const paperNote = new PaperNote();
     let trip = null;       // falling into / climbing out of the sphere
@@ -521,7 +527,7 @@ async function boot() {
         return list;
     }
     const look = { x: 0, y: 0 };
-    let roomKind = null;   // which room 'below' means: 'works' | 'hut' | 'subway' | 'mine' | 'tower' | 'arcade' | 'forest' | 'city' | 'well'
+    let roomKind = null;   // which room 'below' means: 'works' | 'hut' | 'subway' | 'mine' | 'tower' | 'arcade' | 'forest' | 'city' | 'well' | 'rocket'
     let below = false;
     let transit = false;   // fading through a door
     let doorArmed = false; // you must step away from a door before it takes you again
@@ -603,6 +609,14 @@ async function boot() {
             if (wh && wh.distance < bt && wh.distance < 45) {
                 bt = wh.distance;
                 best = { type: 'well', t: bt };
+            }
+        }
+        // the crashed rocket
+        if (world.rocket) {
+            const rh = ray.intersectObject(world.rocket.hit, false)[0];
+            if (rh && rh.distance < bt && rh.distance < 60) {
+                bt = rh.distance;
+                best = { type: 'rocket', t: bt };
             }
         }
         for (const st of statues) {
@@ -1308,13 +1322,14 @@ async function boot() {
         if (roomKind === 'forest' && (!on || kind !== 'forest')) forest.leave();
         if (roomKind === 'city' && (!on || kind !== 'city')) city.leave();
         if (roomKind === 'well' && (!on || kind !== 'well')) grotto.leave();
+        if (roomKind === 'rocket' && (!on || kind !== 'rocket')) rocket.leave();
         below = on;
         roomKind = on ? kind : null;
-        const room = kind === 'hut' ? hut : kind === 'subway' ? subway : kind === 'mine' ? mine : kind === 'tower' ? tower : kind === 'arcade' ? arcade : kind === 'forest' ? forest : kind === 'city' ? city : kind === 'well' ? grotto : works;
+        const room = kind === 'hut' ? hut : kind === 'subway' ? subway : kind === 'mine' ? mine : kind === 'tower' ? tower : kind === 'arcade' ? arcade : kind === 'forest' ? forest : kind === 'city' ? city : kind === 'well' ? grotto : kind === 'rocket' ? rocket : works;
         controls.world = on ? (kind === 'mine' ? mine.walk : room.world) : place === 'cove' ? volcano.world : world;
         renderPass.scene = on ? room.scene : scene;
-        bloom.strength = on ? (kind === 'hut' ? 0.55 : kind === 'subway' ? 0.5 : kind === 'mine' ? 0.7 : kind === 'tower' ? 0.55 : kind === 'arcade' ? 0.75 : kind === 'forest' ? 0.5 : kind === 'city' ? 0.62 : kind === 'well' ? 0.6 : 0.6) : 0.42;
-        audio.setUnderground(on && (kind === 'works' || kind === 'mine' || kind === 'city' || kind === 'well'), kind === 'works');
+        bloom.strength = on ? (kind === 'hut' ? 0.55 : kind === 'subway' ? 0.5 : kind === 'mine' ? 0.7 : kind === 'tower' ? 0.55 : kind === 'arcade' ? 0.75 : kind === 'forest' ? 0.5 : kind === 'city' ? 0.62 : kind === 'well' ? 0.6 : kind === 'rocket' ? 0.55 : 0.6) : 0.42;
+        audio.setUnderground(on && (kind === 'works' || kind === 'mine' || kind === 'city' || kind === 'well' || kind === 'rocket'), kind === 'works');
         if (on) fireworks.stop();
         doorArmed = false;
         mouse = null;
@@ -1425,6 +1440,19 @@ async function boot() {
                     setBelow(false);
                     ui.hint('The rope is too frayed to trust today.', 4000);
                 }
+            } else if (down && kind === 'rocket') {
+                try {
+                    rocket ??= new Rocket({ renderer, audio, ui, quality });
+                    rocket.onExit = () => throughDoor(false);
+                    setBelow(true, 'rocket');
+                    rocket.enter(controls, camera);
+                    zoneKey = 'rocket';
+                } catch (e) {
+                    console.error(e);
+                    rocket = null;
+                    setBelow(false);
+                    ui.hint('The hatch has jammed shut today.', 4000);
+                }
             } else if (down && kind === 'hut') {
                 hut ??= new Hut({ renderer, ui, mats: world.mats, camera, quality, tv: tvChannels(), onChannel: () => audio.click() });
                 setBelow(true, 'hut');
@@ -1449,7 +1477,11 @@ async function boot() {
                 }
             } else {
                 surface();
-                const o = leaving === 'hut' ? world.hut.out : leaving === 'tower' ? world.observatory.out : leaving === 'arcade' ? world.lighthouse.out : leaving === 'forest' ? world.treePortal.out : leaving === 'city' ? world.gearHatch.out : leaving === 'well' ? world.well.out : world.clockDoor.out;
+                const o = leaving === 'hut' ? world.hut.out : leaving === 'tower' ? world.observatory.out : leaving === 'arcade' ? world.lighthouse.out : leaving === 'forest' ? world.treePortal.out : leaving === 'city' ? world.gearHatch.out : leaving === 'well' ? world.well.out : leaving === 'rocket' ? world.rocket.out : world.clockDoor.out;
+                if (leaving === 'rocket') {
+                    rocketArmed = false;
+                    ui.hint(`Back down the ramp of the ${SHIP_NAME}`, 4000);
+                }
                 if (leaving === 'well') {
                     wellArmed = false;
                     ui.hint('Back at the well, beside the Hearthgarden', 4000);
@@ -1530,6 +1562,25 @@ async function boot() {
         }
     }
 
+    /** Walking up the ramp of the crashed rocket takes you aboard. */
+    function rocketCheck() {
+        const rk = world.rocket;
+        if (!rk || transit || trip || !controls.enabled || riding() || diving || carousel.busy) return;
+        const p = controls.pos;
+        const d = Math.hypot(p.x - rk.hatch.x, p.z - rk.hatch.z);
+        // armed once you are a few steps back from the ramp, so walking down it doesn't send you straight up again
+        if (d > 3.2) rocketArmed = true;
+        else if (rocketArmed && atHatch(rk, p.x, p.z)) {
+            rocketArmed = false;
+            throughDoor(true, 'rocket');
+            return;
+        }
+        if (!rocketHintShown && Math.hypot(p.x - rk.x, p.z - rk.z) < 26 && entered && !intro) {
+            rocketHintShown = true;
+            ui.hint(`A rocket ship has come down in the trees, and it is still smoking · its hatch is open: walk up the ramp, or click the ship, to go aboard`, 10000);
+        }
+    }
+
     /** Walking into a door's spot goes through it. */
     function doorCheck() {
         if (transit || !controls.enabled) return;
@@ -1539,6 +1590,7 @@ async function boot() {
         if (below && roomKind === 'forest') return;  // so does the Springwood
         if (below && roomKind === 'city') return;    // and Gearfall
         if (below && roomKind === 'well') return;    // and the garden under the well
+        if (below && roomKind === 'rocket') return;  // and the rocket
         if (below && roomKind === 'arcade') {
             if (arcade.busy) return;
             const e = arcade.exit, dist = Math.hypot(p.x - e.x, p.z - e.z);
@@ -1642,7 +1694,7 @@ async function boot() {
     syncFocus();
 
     // below ground the map shows you at the tower
-    const mapPos = () => (place !== 'garden' && stones ? stones : below ? (roomKind === 'works' ? world.clockDoor : roomKind === 'tower' ? { x: world.observatory.cx, z: world.observatory.cz } : roomKind === 'arcade' ? { x: world.lighthouse.cx, z: world.lighthouse.cz } : roomKind === 'forest' ? world.treePortal : roomKind === 'city' ? world.gearHatch : roomKind === 'well' ? world.well : { x: world.hut.cx, z: world.hut.cz }) : controls.pos);
+    const mapPos = () => (place !== 'garden' && stones ? stones : below ? (roomKind === 'works' ? world.clockDoor : roomKind === 'tower' ? { x: world.observatory.cx, z: world.observatory.cz } : roomKind === 'arcade' ? { x: world.lighthouse.cx, z: world.lighthouse.cz } : roomKind === 'forest' ? world.treePortal : roomKind === 'city' ? world.gearHatch : roomKind === 'well' ? world.well : roomKind === 'rocket' ? world.rocket : { x: world.hut.cx, z: world.hut.cz }) : controls.pos);
     ui.on('mapOpen', () => map.draw(mapPos(), controls.yaw));
     ui.on('timeOpen', () => {
         document.getElementById('time-slider').value = Math.round(sky.time * 1440);
@@ -1727,6 +1779,14 @@ async function boot() {
             ndc.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
             ray.setFromCamera(ndc, camera);
             const h = grotto.tap(ray);
+            if (h?.type === 'ground') ui.marker(x, y);
+            else if (h) audio.click();
+            return;
+        }
+        if (below && roomKind === 'rocket') {
+            ndc.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
+            ray.setFromCamera(ndc, camera);
+            const h = rocket.tap(ray);
             if (h?.type === 'ground') ui.marker(x, y);
             else if (h) audio.click();
             return;
@@ -1852,6 +1912,14 @@ async function boot() {
             route.push(w.stand);
             wellArmed = true;
             controls.walkTo(route);
+        } else if (h.type === 'rocket') {
+            audio.click();
+            ui.closeAll();
+            const rk = world.rocket;
+            const route = Math.hypot(controls.pos.x - rk.front.x, controls.pos.z - rk.front.z) < 8 ? [rk.front] : controls.plan(rk.front.x, rk.front.z);
+            route.push(rk.stand);
+            rocketArmed = true;
+            controls.walkTo(route);
         } else if (h.type === 'gearHatch') {
             audio.click();
             ui.closeAll();
@@ -1932,6 +2000,7 @@ async function boot() {
         if (below && roomKind === 'forest') return audio.step(forest.stepSurface());
         if (below && roomKind === 'city') return audio.step(city.stepSurface());
         if (below && roomKind === 'well') return audio.step(grotto.stepSurface());
+        if (below && roomKind === 'rocket') return audio.step(rocket.stepSurface());
         if (below) return audio.step(roomKind === 'subway' ? subway.stepSurface(controls.pos) : 'metal');
         const p = controls.pos;
         const surface = world.onDeck(p.x, p.z) ? 'wood' : island.pathDistAt(p.x, p.z) < PATH_HALF + 0.2 || Math.hypot(p.x, p.z) < PLAZA_R || world.inPlaza(p.x, p.z) ? 'stone' : 'grass';
@@ -2233,6 +2302,18 @@ async function boot() {
                 ray.setFromCamera(ndc, camera);
                 document.body.classList.toggle('can-hover-pick', forest.hover(ray));
             }
+        } else if (below && roomKind === 'rocket') {
+            rocket.update(dt, t, camera, s);
+            renderPass.scene = rocket.scene;
+            audio.update(night, -100);
+            if (entered && !intro && mouse && !ui.blocking && !controls.look?.moved && !transit && !rocket.busy) {
+                ndc.set((mouse.x / innerWidth) * 2 - 1, -(mouse.y / innerHeight) * 2 + 1);
+                ray.setFromCamera(ndc, camera);
+                const n = rocket.hoverNote(ray);
+                document.body.classList.toggle('can-hover-pick', !!n);
+                if (n) ui.note(n, mouse.x, mouse.y);
+                else ui.tooltip(null);
+            } else ui.tooltip(null);
         } else if (below && roomKind === 'well') {
             grotto.update(dt, t, camera, s);
             audio.update(night, -100);
@@ -2326,6 +2407,8 @@ async function boot() {
                     ui.note({ icon: '⚙️', kicker: 'Behind the Great Gear', title: 'A trap door', desc: 'Iron, riveted, with a gear cast in its lid. It isn’t locked, and a cold draught comes up from below.', cta: 'Click or step onto it →', accent: '#d8b070' }, mouse.x, mouse.y);
                 } else if (h?.type === 'well') {
                     ui.note({ icon: '\u{1FAA3}', kicker: 'The Hearthgarden', title: 'The Glowing Well', desc: 'A stone well with a rope that goes a long way down. Something green shines at the bottom, and a cool draught smells of rain and mushrooms.', cta: 'Click, or walk up to the curb →', accent: '#8affc8' }, mouse.x, mouse.y);
+                } else if (h?.type === 'rocket') {
+                    ui.note({ icon: '\u{1F680}', kicker: 'Past the grove', title: `The ${SHIP_NAME}`, desc: 'A chrome rocket ship with a red nose and red fins, down on its belly in a crater it dug, smoke still rolling out of the engine. Its hatch has fallen open into a ramp.', cta: 'Click, or walk up the ramp →', accent: ROCKET_ACCENT }, mouse.x, mouse.y);
                 } else if (h?.type === 'treePortal') {
                     ui.note({ icon: '🌸', kicker: 'The Great Tree', title: 'A door to the Springwood', desc: 'Through the roots of the Great Tree lies a spring forest that goes on for ever: blossom, bluebells, lily ponds and hidden places.', cta: 'Click or walk through →', accent: '#ffb7d5' }, mouse.x, mouse.y);
                 } else if (h?.type === 'ship') {
@@ -2380,6 +2463,7 @@ async function boot() {
             if (place === 'garden' && !below) treeCheck();
             if (place === 'garden' && !below) hatchCheck();
             if (place === 'garden' && !below) wellCheck();
+            if (place === 'garden' && !below) rocketCheck();
             cinderCheck();
         }
 
@@ -2418,7 +2502,7 @@ async function boot() {
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { get arcade() { return arcade; }, get undersea() { return undersea; }, get diving() { return diving; }, startDive, leaveDive, fountainSub, get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, get forest() { return forest; }, get city() { return city; }, get grotto() { return grotto; }, paperNote, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, ship, fishing, fireworks, linkToGame, walkToGame, scene, fox, carousel, get entered() { return entered && !intro; } };
+        window.__garden = { get arcade() { return arcade; }, get undersea() { return undersea; }, get diving() { return diving; }, startDive, leaveDive, fountainSub, get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, get forest() { return forest; }, get city() { return city; }, get grotto() { return grotto; }, get rocket() { return rocket; }, paperNote, map, world, controls, throughDoor, get works() { return works; }, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, ship, fishing, fireworks, linkToGame, walkToGame, scene, fox, carousel, get entered() { return entered && !intro; } };
     }
 }
 

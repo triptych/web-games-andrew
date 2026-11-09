@@ -1408,3 +1408,44 @@ body:has(#claw-hud:not([hidden]), #bowl-hud:not([hidden])) .hint { opacity: 0; }
 @media (pointer: fine) { .helm-pad { display: flex; } .helm-btn { display: none; } }
 body:has(#helm-hud:not([hidden])) .hint { bottom: auto; top: calc(64px + var(--safe-t)); }
 @media (max-height: 520px) { .helm-keys { display: none; } .helm-btn { min-width: 48px; min-height: 48px; } }
+
+/* ------------------------------------------------------------ the Silver Comet */
+
+.rocket-hud { border-color: rgba(255, 122, 74, 0.4); background: rgba(16, 20, 28, 0.62); width: 196px; }
+.rocket-hud .fh-label { color: #ffb89a; }
+.rk-air { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 10px; }
+.rk-air .fh-label { grid-column: 1 / -1; }
+.rk-bar { height: 10px; border-radius: 5px; background: rgba(255, 255, 255, 0.12); overflow: hidden; border: 1px solid rgba(122, 232, 255, 0.4); }
+.rk-bar i { display: block; height: 100%; background: linear-gradient(90deg, #3ad8c8, #7ae8ff); transform-origin: left; transition: transform 0.25s linear; }
+.rk-low .rk-bar i { background: linear-gradient(90deg, #ff8a3a, #ffd25a); }
+.rk-low .rk-bar { border-color: rgba(255, 180, 80, 0.6); }
+.rk-critical .rk-bar i { background: #ff3a2a; }
+.rk-critical .rk-air strong { color: #ff8a7a; animation: rk-pulse 0.7s ease-in-out infinite alternate; }
+@keyframes rk-pulse { from { opacity: 1; } to { opacity: 0.35; } }
+.rk-counts { display: flex; gap: 18px; }
+.rk-signal { gap: 8px; }
+.rk-sig { font-size: 1.1rem; line-height: 1; }
+.rk-signal.rk-ping .rk-sig { animation: rk-ping 0.6s ease-out; }
+@keyframes rk-ping { from { filter: drop-shadow(0 0 8px #7ae8ff); transform: scale(1.25); } to { filter: none; transform: none; } }
+.rocket-hud .btn[disabled] { opacity: 0.45; pointer-events: none; }
+#beam-fx {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px 5px),
+        radial-gradient(circle at 50% 55%, #ffffff 0%, #d8f8ff 35%, #7ae8ff 75%, #3a8aa8 100%);
+}
+.pilot-page .np-shaky { transform: rotate(0.8deg); letter-spacing: 0.01em; color: #3a2a2a; }
+.pilot-page .np-sign { text-align: right; font-size: 0.95rem; color: #5a3a2a; }
+@media (max-width: 560px) {
+    .rocket-hud { width: auto; }
+    .rk-air { flex: 1 1 100%; }
+    .rk-counts { gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .rk-bar i { transition: none; }
+    .rk-critical .rk-air strong, .rk-signal.rk-ping .rk-sig { animation: none; }
+}

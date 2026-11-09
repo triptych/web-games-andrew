@@ -9,7 +9,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Batch, xf } from './materials.js';
 import { lathe } from './architecture.js';
 import { PLAZA_R, PATH_HALF, PAVILION_PLAZA } from './layout.js';
-import { WELL_APRON } from './terrain.js';
+import { WELL_APRON, CRASH } from './terrain.js';
 import { rng, fbm2, noise2, TAU, clamp, smoothstep, lerp } from './util.js';
 import { leaves as leafTex } from './textures.js';
 
@@ -188,6 +188,15 @@ function rockGeo(seed) {
 
 // ---------------------------------------------------------------- placement
 
+/** Burnt ground round the crashed rocket and along the gouge it dug: no grass, no flowers. */
+function scorched(world, x, z) {
+    const rk = world.rocket;
+    if (!rk) return false;
+    if (Math.hypot(x - rk.x, z - rk.z) < CRASH.crater + 1.5) return true;
+    const l = rk.toLocal(x, z);
+    return l.x < -CRASH.len / 2 + 2 && l.x > -CRASH.len / 2 - 15 && Math.abs(l.z - 0.3) < 2.8;
+}
+
 function clearOf(world, x, z, extra = 0) {
     const { layout, island } = world;
     if (Math.hypot(x, z) < PLAZA_R + 5 + extra) return false;
@@ -201,6 +210,12 @@ function clearOf(world, x, z, extra = 0) {
     if (world.hut && Math.hypot(x - world.hut.cx, z - world.hut.cz) < 7 + extra) return false;
     // the glowing well beside the Hearthgarden, and its paved apron
     if (world.well && Math.hypot(x - world.well.x, z - world.well.z) < WELL_APRON + 3.2 + extra) return false;
+    // the crashed rocket, its crater, the gouge behind it and the ground round its ramp
+    if (world.rocket) {
+        const l = world.rocket.toLocal(x, z);
+        if (l.x > -CRASH.len / 2 - 17 - extra && l.x < CRASH.len / 2 + 5 + extra && Math.abs(l.z) < 9 + extra) return false;
+        if (Math.hypot(x - world.rocket.x, z - world.rocket.z) < CRASH.crater + 3 + extra) return false;
+    }
     // the clock tower's plateau and the bridge out to it
     const is = layout.islet, b = layout.bridge;
     if (Math.hypot(x - is.x, z - is.z) < 6.2 + extra) return false;
@@ -510,7 +525,7 @@ function buildGrass(world) {
                 if (h < 1.0 || island.shoreAt(x, z) > -2) continue;
                 if (island.pathDistAt(x, z) < PATH_HALF + 0.25) continue;
                 if (Math.hypot(x, z) < PLAZA_R + 0.7) continue;
-                if (world.inPlaza(x, z)) continue;
+                if (world.inPlaza(x, z) || scorched(world, x, z)) continue;
                 const nrm = island.normalAt(x, z);
                 if (nrm.y < 0.82) continue;
                 const meadow = fbm2(x * 0.06, z * 0.06, 2);
@@ -567,7 +582,7 @@ function buildFlowers(world) {
     for (let i = 0; i < quality.wildflowers; i++) {
         const x = r.range(-H, H), z = r.range(-H, H);
         if (island.shoreAt(x, z) > -3 || island.heightAt(x, z) < 1.2) continue;
-        if (island.pathDistAt(x, z) < PATH_HALF + 0.4 || Math.hypot(x, z) < PLAZA_R + 1 || world.inPlaza(x, z)) continue;
+        if (island.pathDistAt(x, z) < PATH_HALF + 0.4 || Math.hypot(x, z) < PLAZA_R + 1 || world.inPlaza(x, z) || scorched(world, x, z)) continue;
         if (fbm2(x * 0.08 + 9, z * 0.08, 2) < 0.1) continue;
         list.push({ x, z, y: island.heightAt(x, z) - 0.02, s: r.range(0.7, 1.2), rot: r() * TAU, c: r.pick(wild) });
     }
