@@ -126,7 +126,7 @@ if (!ONLY || ONLY === 'desktop') {
         return { airlock: open(2, 3.5), corridor: open(0, 0), wall: !open(0, -1.5), outside: !open(20, 0), rooms: [[-12, 2.5], [-4.5, -4], [5, -4], [7.5, 3.5], [13, 0]].every(([x, z]) => open(x, z)) };
     })()`);
     check(walls.airlock && walls.corridor && walls.rooms, 'the airlock, the corridor and the five rooms can be stood in');
-    check(!walls.wall && !walls.outside, 'the walls and the hull are solid');
+    check(walls.wall && walls.outside, 'the walls and the hull are solid');
     const route = await G('JSON.stringify(g.rocket.shipWorld.nav.find(2, 3.5, 13, 0)?.length ?? 0)');
     check(Number(route) > 0, 'there is a way from the airlock to the cockpit');
     await G('g.controls.teleport(2, 0, -Math.PI / 2)');
