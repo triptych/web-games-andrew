@@ -170,7 +170,7 @@ html, body {
     background: rgba(8, 5, 16, 0.5); overflow-y: auto;
 }
 .sheet {
-    width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
+    width: min(480px, 100%); max-height: 100%; overflow-y: auto; overflow-x: hidden; touch-action: pan-y;
     background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
     scrollbar-width: thin; scrollbar-color: rgba(255, 220, 255, 0.35) transparent;
@@ -185,7 +185,7 @@ html, body {
 #title { background: linear-gradient(180deg, rgba(8, 5, 16, 0.1), rgba(8, 5, 16, 0.55)); }
 .title-sheet { background: rgba(18, 12, 34, 0.72); backdrop-filter: blur(4px); text-align: center; }
 .logo-wrap { margin: 2px 0 16px; }
-.logo-crystal { font-size: 38px; color: #ffb3e0; text-shadow: 0 0 18px #ff6fa6, 0 0 40px #9b8cff; animation: glint 3s infinite; }
+.logo-crystal { width: fit-content; margin-inline: auto; /* the glint scales this box: as wide as the panel it pushed out a sideways scrollbar */ font-size: 38px; color: #ffb3e0; text-shadow: 0 0 18px #ff6fa6, 0 0 40px #9b8cff; animation: glint 3s infinite; }
 @keyframes glint { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; transform: scale(1.1); } }
 .logo { font-family: var(--display); font-weight: 900; font-size: clamp(34px, 9vw, 52px); line-height: 1.02; margin: 4px 0 6px; color: #fff3d0; text-shadow: 0 0 18px rgba(255, 160, 220, 0.6), 0 3px 0 #6a2a6a, 0 6px 14px #000; }
 .tagline { color: var(--dim); font-style: italic; }
