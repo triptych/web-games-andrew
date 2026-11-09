@@ -42,6 +42,6 @@ if (code) {
     if (out !== undefined) console.log(JSON.stringify(out, null, 1));
 }
 await page.waitForTimeout(+wait);
-await page.screenshot({ path: path.join(HERE, 'shots', `${name}.png`) });
+await page.screenshot({ path: path.join(HERE, 'shots', `${name}.png`), timeout: 180000 });
 console.log('shot', path.join('dev/shots', `${name}.png`));
 await browser.close();

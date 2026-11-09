@@ -139,6 +139,20 @@ if (want('story')) {
         for (const id of list) ok(id === '*' || St.CLIENTS[id], `day ${day}: ${id} exists`);
         ok(list.length >= 2 && list.length <= 3, `day ${day} has two or three guests`);
     }
+    // every named character that has a Meshy model points at a file that is there, and every file is used
+    {
+        const dir = path.join(HERE, '..', 'assets', 'models');
+        const files = new Set(fs.readdirSync(dir).filter((f) => f.endsWith('.glb')).map((f) => f.slice(0, -4)));
+        const used = new Set();
+        const looks = [...Object.entries(St.CLIENTS).map(([id, c]) => [id, c.look]), ['prince', St.PRINCE.look], ...Object.entries(Ro.CAND).map(([id, c]) => ['cand ' + id, c.look])];
+        for (const [id, look] of looks) {
+            if (!look.model) continue;
+            used.add(look.model);
+            ok(files.has(look.model), `${id}: assets/models/${look.model}.glb exists`);
+        }
+        for (const f of files) ok(used.has(f), `assets/models/${f}.glb is used by a character`);
+        ok(used.size === 11, `eleven named characters have a model (found ${used.size})`);
+    }
     const seenClues = new Set();
     for (const [id, c] of Object.entries(St.CLIENTS)) {
         ok(c.beats.length === 3 && new Set(c.beats.map((b) => b.theme)).size === 3, `${id}: three different themes`);
