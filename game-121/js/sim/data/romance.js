@@ -8,19 +8,19 @@ export const CAND = {
     elias: {
         name: 'Elias Thorne', short: 'Elias', role: 'blacksmith', pron: 'he', color: '#ff8a3a',
         blurb: 'Broad, quiet, mends everything, writes poems in a notebook he hides. Likes honesty and wit; shy of flattery.',
-        look: { skin: '#c68a62', hair: '#2a1c14', hs: 'short', hat: null, robe: '#8a3a1c', trim: '#e0a040', body: 'broad', beard: true },
+        look: { model: 'elias', skin: '#c68a62', hair: '#2a1c14', hs: 'short', hat: null, robe: '#8a3a1c', trim: '#e0a040', body: 'broad', beard: true },
         clue: 'orders',
     },
     mirabel: {
         name: 'Mirabel Fenn', short: 'Mirabel', role: 'apothecary', pron: 'she', color: '#3fe0a0',
         blurb: 'Sharp, funny, sceptical, secretly tender. Likes curiosity and nerve; has no patience for fog.',
-        look: { skin: '#f0cfa8', hair: '#6a2a2a', hs: 'long', hat: null, robe: '#2c7a5a', trim: '#d9d27a', body: 'slim', glasses: true },
+        look: { model: 'mirabel', skin: '#f0cfa8', hair: '#6a2a2a', hs: 'long', hat: null, robe: '#2c7a5a', trim: '#d9d27a', body: 'slim', glasses: true },
         clue: 'ledger',
     },
     wren: {
         name: 'Wren Quill', short: 'Wren', role: 'minstrel', pron: 'they', color: '#d65aff',
         blurb: 'Charming, restless, never says the plain thing when a song will do. Likes play and surprise; wary of being pinned down.',
-        look: { skin: '#e8c8a8', hair: '#3a8aa8', hs: 'long', hat: 'wide', hatc: '#c04ac0', robe: '#7a2a9a', trim: '#7ff0e0', body: 'slim', feather: true },
+        look: { model: 'wren', skin: '#e8c8a8', hair: '#3a8aa8', hs: 'long', hat: 'wide', hatc: '#c04ac0', robe: '#7a2a9a', trim: '#7ff0e0', body: 'slim', feather: true },
         clue: 'rota',
     },
 };

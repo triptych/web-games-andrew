@@ -69,7 +69,7 @@ async function open(viewport, { touch = false, nostorage = false } = {}) {
 
 const check = (cond, msg) => { if (!cond) { fails++; console.log('  FAIL', msg); } else console.log('  ok', msg); return cond; };
 const Q = (page, fn, arg) => page.evaluate(fn, arg);
-const shot = async (page, name) => { await page.screenshot({ path: path.join(OUT, `bt-${name}.png`) }); };
+const shot = async (page, name) => { await page.screenshot({ path: path.join(OUT, `bt-${name}.png`), timeout: 180000 }); };
 // SwiftShader draws a few frames a second: wait on state, never on the clock.
 const until = (page, fn, msg, timeout = 60000, arg = null) =>
     page.waitForFunction(fn, arg, { timeout, polling: 100 }).then(() => check(true, msg), () => check(false, msg));

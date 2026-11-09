@@ -3,7 +3,7 @@
 
 import { VERSION, RANKS, STYLE_NAME, STYLES, CLUES, ROMANCE_MIN, ROMANCE_LOVE } from './config.js';
 import { THEMES, THEME_IDS, SYMBOLS, SYMBOL_IDS, COLOURS, COLOUR_IDS, OMENS, CARDS, CARDS_OF, TIME_SHORT, TIME_NAMES } from './sim/data/lexicon.js';
-import { DAY_NAMES, CLUE_TEXT, KINGDOM } from './sim/data/story.js';
+import { DAY_NAMES, CLUE_TEXT, KINGDOM, PRINCE } from './sim/data/story.js';
 import { CAND, CAND_IDS, SCENES } from './sim/data/romance.js';
 import { labelOf, tierOf } from './sim/game.js';
 import { cardElement, glyphElement, cloudElement } from './view/art.js';
@@ -198,15 +198,38 @@ export class UI {
         setTimeout(() => { box.querySelectorAll('.settling').forEach((b) => b.classList.remove('settling')); this.focusPrimary(); }, delay);
     }
 
+    /** Which character's portrait goes with the speaker: the Meshy model's name, or '' (villagers have none). */
+    partnerPortrait(G) {
+        if (G.client) return G.client.look?.model || '';
+        const c = G.dlg?.ctx;
+        if (c && (c.kind === 'cand' || c.kind === 'quiet')) return CAND[c.id].look.model || '';
+        if (c && c.kind === 'prince') return PRINCE.look.model;
+        if (G.phase === 'finale' && G.romance?.pick) return CAND[G.romance.pick].look.model || '';
+        if (G.phase === 'scene') return PRINCE.look.model;
+        return '';
+    }
+
+    /** Show or hide an <img> for art that may be missing: it only appears once it has loaded. */
+    setArt(img, src) {
+        if (!src) { img.hidden = true; img.removeAttribute('src'); return; }
+        if (img.dataset.src === src && !img.hidden) return;
+        img.dataset.src = src;
+        img.onload = () => { if (img.dataset.src === src) img.hidden = false; };
+        img.onerror = () => { img.hidden = true; };
+        img.src = src;
+    }
+
     renderDlg(G) {
         const d = G.dlg;
         const dlg = $('dlg');
-        if (!d) { dlg.hidden = true; this.typing = null; return; }
+        if (!d) { dlg.hidden = true; this.typing = null; this.setArt($('dlg-portrait'), ''); return; }
         const line = d.lines[d.i];
         dlg.hidden = false;
         dlg.dataset.w = line.w;
         const name = line.w === 'c' ? this.partnerName(G) : line.w === 'y' ? 'You' : line.w === 'o' ? 'Orla’s journal' : '';
         $('dlg-name').textContent = name;
+        const face = line.w === 'c' ? this.partnerPortrait(G) : '';
+        this.setArt($('dlg-portrait'), face ? `art/portrait-${face}.webp` : '');
         $('dlg-choices').innerHTML = '';
         $('dlg-next').hidden = false;
         $('dlg-next').textContent = d.i >= d.lines.length - 1 && !d.choices ? 'Continue ▸' : '▸';
@@ -392,6 +415,7 @@ export class UI {
         const on = G.phase === 'ending';
         if (!on) { if (this.stack.includes('ending')) this.closeScreen('ending'); return; }
         const E = G.ending;
+        this.setArt($('end-art'), `art/end-${E.id}.webp`);
         $('end-head').textContent = E.title;
         $('end-text').innerHTML = E.text.map((t) => `<p>${t}</p>`).join('');
         const r = E.romance;

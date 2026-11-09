@@ -43,7 +43,7 @@ export const CLIENTS = {
     // ------------------------------------------------------------------ day 1: only what Orla taught you
     marta: {
         name: 'Granny Marta', role: 'the miller’s widow', day: 1, known: true, likes: 'kind',
-        look: { skin: '#e8c3a0', hair: '#cfcfd6', hs: 'bun', hat: 'kerchief', hatc: '#c94a5a', robe: '#6a3a7a', trim: '#e8c14a', body: 'small', wrinkles: true },
+        look: { model: 'marta', skin: '#e8c3a0', hair: '#cfcfd6', hs: 'bun', hat: 'kerchief', hatc: '#c94a5a', robe: '#6a3a7a', trim: '#e8c14a', body: 'small', wrinkles: true },
         concern: 'family', beats: [B('loss', 'bane'), B('family', 'boon'), B('hope', 'boon')], syms: ['tear', 'house', 'star'], clouded: 0,
         talk: [
             L('c', 'Oh! A new face on Orla’s step. She said she’d send someone kind. Are you kind, dear?', 'h'),
@@ -60,7 +60,7 @@ export const CLIENTS = {
     },
     pip: {
         name: 'Pip Dunmore', role: 'a shepherd’s boy', day: 1, known: true, likes: 'bold',
-        look: { skin: '#d7a47a', hair: '#8a4a24', hs: 'curly', hat: 'cap', hatc: '#4a7a3a', robe: '#5a7a3a', trim: '#d9b25a', body: 'small' },
+        look: { model: 'pip', skin: '#d7a47a', hair: '#8a4a24', hs: 'curly', hat: 'cap', hatc: '#4a7a3a', robe: '#5a7a3a', trim: '#d9b25a', body: 'small' },
         concern: 'journey', beats: [B('change', 'boon'), B('journey', 'boon'), B('danger', 'bane')], syms: ['hourglass', 'ship', 'bolt'], clouded: 0,
         talk: [
             L('c', 'Is it true you can see the future? Properly? With a glass ball and everything?', 'x'),
@@ -76,7 +76,7 @@ export const CLIENTS = {
     },
     elias1: {
         name: 'Elias Thorne', role: 'the blacksmith', day: 1, known: true, likes: 'truth', aff: 'elias',
-        look: { skin: '#c68a62', hair: '#2a1c14', hs: 'short', hat: null, robe: '#8a3a1c', trim: '#e0a040', body: 'broad', beard: true },
+        look: { model: 'elias', skin: '#c68a62', hair: '#2a1c14', hs: 'short', hat: null, robe: '#8a3a1c', trim: '#e0a040', body: 'broad', beard: true },
         concern: 'love', beats: [B('family', 'bane'), B('love', 'boon'), B('wealth', 'boon')], syms: ['house', 'heart', 'coin'], clouded: 0,
         talk: [
             L('n', 'He has to duck under the doorframe, and he does it as if he has apologised to it before.'),
@@ -94,7 +94,7 @@ export const CLIENTS = {
     // ------------------------------------------------------------------ day 2
     mirabel1: {
         name: 'Mirabel Fenn', role: 'the apothecary', day: 2, likes: 'truth', aff: 'mirabel', clue: 'ledger',
-        look: { skin: '#f0cfa8', hair: '#6a2a2a', hs: 'long', hat: null, robe: '#2c7a5a', trim: '#d9d27a', body: 'slim', glasses: true },
+        look: { model: 'mirabel', skin: '#f0cfa8', hair: '#6a2a2a', hs: 'long', hat: null, robe: '#2c7a5a', trim: '#d9d27a', body: 'slim', glasses: true },
         concern: 'health', beats: [B('family', 'boon'), B('health', 'bane'), B('danger', 'bane')], syms: ['tree', 'leaf', 'flame'], clouded: [2],
         talk: [
             L('c', 'I should say that I think this is nonsense. Charming nonsense. But I’ve a problem I can’t weigh or measure, and I’m running out of scales.', 'n'),
@@ -111,7 +111,7 @@ export const CLIENTS = {
     },
     stranger: {
         name: 'The Hooded Stranger', role: 'a visitor after dark', day: 2, likes: 'truth', alias: true,
-        look: { skin: '#e2b894', hair: '#241812', hs: 'hood', hat: 'hood', hatc: '#2a2a3a', robe: '#2a2a3a', trim: '#8a8aa8', body: 'tall' },
+        look: { model: 'stranger', skin: '#e2b894', hair: '#241812', hs: 'hood', hat: 'hood', hatc: '#2a2a3a', robe: '#2a2a3a', trim: '#8a8aa8', body: 'tall' },
         concern: 'betrayal', beats: [B('family', 'boon'), B('betrayal', 'bane'), B('change', 'boon')], syms: ['tree', 'mask', 'moth'], clouded: [1],
         talk: [
             L('n', 'The last light is going when the knock comes — a quiet one. A tall figure in a travelling cloak, hood drawn low. Good boots. Too good.'),
@@ -130,7 +130,7 @@ export const CLIENTS = {
     // ------------------------------------------------------------------ day 3
     oswin: {
         name: 'Oswin Pike', role: 'a royal courier', day: 3, likes: 'kind', clue: 'orders',
-        look: { skin: '#dba783', hair: '#5a3a1a', hs: 'short', hat: 'cap', hatc: '#3a4a8a', robe: '#3a4a8a', trim: '#e8c14a', body: 'slim' },
+        look: { model: 'oswin', skin: '#dba783', hair: '#5a3a1a', hs: 'short', hat: 'cap', hatc: '#3a4a8a', robe: '#3a4a8a', trim: '#e8c14a', body: 'slim' },
         concern: 'secret', beats: [B('journey', 'boon'), B('secret', 'bane'), B('betrayal', 'bane')], syms: ['compass', 'eye', 'mask'], clouded: [2],
         talk: [
             L('c', 'I ride letters for the palace. That’s all I do. I ride them and I don’t read them.', 'w'),
@@ -146,7 +146,7 @@ export const CLIENTS = {
     },
     wren1: {
         name: 'Wren Quill', role: 'a wandering minstrel', day: 3, likes: 'bold', aff: 'wren',
-        look: { skin: '#e8c8a8', hair: '#3a8aa8', hs: 'long', hat: 'wide', hatc: '#c04ac0', robe: '#7a2a9a', trim: '#7ff0e0', body: 'slim', feather: true },
+        look: { model: 'wren', skin: '#e8c8a8', hair: '#3a8aa8', hs: 'long', hat: 'wide', hatc: '#c04ac0', robe: '#7a2a9a', trim: '#7ff0e0', body: 'slim', feather: true },
         concern: 'change', beats: [B('journey', 'bane'), B('change', 'boon'), B('love', 'boon')], syms: ['compass', 'moth', 'rings'], clouded: 0,
         talk: [
             L('n', 'A lute case, a hat with a feather the colour of a peacock’s opinion, and a smile that arrives a moment before the person.'),
@@ -164,7 +164,7 @@ export const CLIENTS = {
     // ------------------------------------------------------------------ day 4
     hester: {
         name: 'Captain Hester Crowe', role: 'captain of the King’s Guard', day: 4, likes: 'truth', clue: 'rota',
-        look: { skin: '#b8815c', hair: '#1a1a22', hs: 'bun', hat: 'helm', hatc: '#9aa4b8', robe: '#3a4a6a', trim: '#c8d0e0', body: 'broad', scar: true },
+        look: { model: 'hester', skin: '#b8815c', hair: '#1a1a22', hs: 'bun', hat: 'helm', hatc: '#9aa4b8', robe: '#3a4a6a', trim: '#c8d0e0', body: 'broad', scar: true },
         concern: 'change', beats: [B('ambition', 'boon'), B('change', 'bane'), B('danger', 'bane')], syms: ['peak', 'moth', 'bolt'], clouded: [1],
         talk: [
             L('n', 'She doesn’t knock. She stands in the doorway until she has counted the exits, and only then sits.'),
@@ -181,7 +181,7 @@ export const CLIENTS = {
     },
     elias2: {
         name: 'Elias Thorne', role: 'the blacksmith', day: 4, likes: 'truth', aff: 'elias',
-        look: { skin: '#c68a62', hair: '#2a1c14', hs: 'short', hat: null, robe: '#8a3a1c', trim: '#e0a040', body: 'broad', beard: true },
+        look: { model: 'elias', skin: '#c68a62', hair: '#2a1c14', hs: 'short', hat: null, robe: '#8a3a1c', trim: '#e0a040', body: 'broad', beard: true },
         concern: 'ambition', beats: [B('family', 'boon'), B('ambition', 'boon'), B('danger', 'bane')], syms: ['tree', 'peak', 'bolt'], clouded: 0,
         talk: [
             L('c', 'Back again. I know. You must think I’m a nuisance.', 'w'),
@@ -199,7 +199,7 @@ export const CLIENTS = {
     // ------------------------------------------------------------------ day 5
     bram: {
         name: 'Bram Ottley', role: 'the King’s cupbearer', day: 5, likes: 'kind', clue: 'cupbearer',
-        look: { skin: '#f0d0b0', hair: '#c8a050', hs: 'short', hat: null, robe: '#7a1a3a', trim: '#e8c14a', body: 'slim', sweat: true },
+        look: { model: 'bram', skin: '#f0d0b0', hair: '#c8a050', hs: 'short', hat: null, robe: '#7a1a3a', trim: '#e8c14a', body: 'slim', sweat: true },
         concern: 'wealth', beats: [B('family', 'bane'), B('wealth', 'bane'), B('danger', 'bane')], syms: ['tree', 'gem', 'bolt'], clouded: [2],
         talk: [
             L('c', 'I pour the King’s wine. I’ve poured it nine years. Never spilled a drop.', 'w'),
@@ -215,7 +215,7 @@ export const CLIENTS = {
     },
     wren2: {
         name: 'Wren Quill', role: 'a wandering minstrel', day: 5, likes: 'bold', aff: 'wren',
-        look: { skin: '#e8c8a8', hair: '#3a8aa8', hs: 'long', hat: 'wide', hatc: '#c04ac0', robe: '#7a2a9a', trim: '#7ff0e0', body: 'slim', feather: true },
+        look: { model: 'wren', skin: '#e8c8a8', hair: '#3a8aa8', hs: 'long', hat: 'wide', hatc: '#c04ac0', robe: '#7a2a9a', trim: '#7ff0e0', body: 'slim', feather: true },
         concern: 'hope', beats: [B('secret', 'bane'), B('hope', 'boon'), B('journey', 'boon')], syms: ['eye', 'rainbow', 'ship'], clouded: [0],
         talk: [
             L('c', 'Back again! Don’t read anything into it. I was in the neighbourhood. For three days.', 'h'),
@@ -233,7 +233,7 @@ export const CLIENTS = {
     // ------------------------------------------------------------------ day 6
     mirabel2: {
         name: 'Mirabel Fenn', role: 'the apothecary', day: 6, likes: 'truth', aff: 'mirabel',
-        look: { skin: '#f0cfa8', hair: '#6a2a2a', hs: 'long', hat: null, robe: '#2c7a5a', trim: '#d9d27a', body: 'slim', glasses: true },
+        look: { model: 'mirabel', skin: '#f0cfa8', hair: '#6a2a2a', hs: 'long', hat: null, robe: '#2c7a5a', trim: '#d9d27a', body: 'slim', glasses: true },
         concern: 'loss', beats: [B('health', 'boon'), B('loss', 'boon'), B('love', 'boon')], syms: ['staff', 'wilt', 'rings'], clouded: [1],
         talk: [
             L('c', 'I came back to say I was rude. And to ask one more thing, that I’d rather not ask a scale.', 'n'),
@@ -249,7 +249,7 @@ export const CLIENTS = {
     },
     seraphine: {
         name: 'Lady Seraphine Vane', role: 'a veiled noblewoman', day: 6, likes: 'bold', clue: 'envoy',
-        look: { skin: '#f4d8c4', hair: '#101018', hs: 'long', hat: 'veil', hatc: '#4a1a5a', robe: '#4a1a5a', trim: '#ff7ab8', body: 'tall' },
+        look: { model: 'seraphine', skin: '#f4d8c4', hair: '#101018', hs: 'long', hat: 'veil', hatc: '#4a1a5a', robe: '#4a1a5a', trim: '#ff7ab8', body: 'tall' },
         concern: 'ambition', beats: [B('ambition', 'boon'), B('secret', 'bane'), B('betrayal', 'bane')], syms: ['crown', 'key', 'dagger'], clouded: [1, 2],
         talk: [
             L('n', 'A carriage you could hear coming a mile off. A woman steps down in a veil like spilled ink, and sits as if the chair has already been bought.'),
@@ -278,7 +278,7 @@ export const CLUE_TEXT = {
 // ----------------------------------------------------------------------------------- the Second Prince
 export const PRINCE = {
     name: 'Prince Caspian',
-    look: { skin: '#e2b894', hair: '#241812', hs: 'short', hat: 'circlet', hatc: '#e8c14a', robe: '#2a2a5a', trim: '#e8c14a', body: 'tall' },
+    look: { model: 'caspian', skin: '#e2b894', hair: '#241812', hs: 'short', hat: 'circlet', hatc: '#e8c14a', robe: '#2a2a5a', trim: '#e8c14a', body: 'tall' },
     n2: {
         title: 'After Dark',
         lines: [

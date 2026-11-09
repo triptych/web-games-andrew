@@ -68,7 +68,7 @@ for (const [name, code, wait] of STEPS) {
         if (code) await page.evaluate(`(async () => { ${code} })()`);
         await page.evaluate('__aw.view.settle && __aw.view.settle(__aw.G, 3)');
         await page.waitForTimeout(wait);
-        await page.screenshot({ path: path.join(OUT, `${name}${SUF}.png`) });
+        await page.screenshot({ path: path.join(OUT, `${name}${SUF}.png`), timeout: 180000 });
         console.log('shot', name);
     } catch (e) { console.log('FAILED', name, e.message.split('\n')[0]); }
 }
