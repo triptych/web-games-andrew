@@ -285,8 +285,8 @@ export class Island {
         const pv = sp.pavilion;
         const out = Math.atan2(pv.x, pv.z);          // away from the hub
         const D = PAVILION_PLAZA + WELL_APRON + 1.6;
-        const clear = (x, z) => {
-            if (this.coast(x, z) > -9) return false;
+        const clear = (x, z, shore) => {
+            if (this.coast(x, z) > -shore) return false;
             // every path: keep the apron, the well and room to walk round it off them
             for (const s of L.spokes) for (const p of s.pts) if (Math.hypot(x - p.x, z - p.z) < PATH_HALF + WELL_APRON + 1.5) return false;
             for (const p of L.dock.pts) if (Math.hypot(x - p.x, z - p.z) < PATH_HALF + WELL_APRON + 1.5) return false;
@@ -299,16 +299,21 @@ export class Island {
             for (const t of [L.trail, L.pier.trail, L.wharf.trail]) for (const p of t.pts) if (Math.hypot(x - p.x, z - p.z) < WELL_APRON + 3) return false;
             return !(L.islet && Math.hypot(x - L.islet.x, z - L.islet.z) < 20);
         };
-        // beside the pavilion first (either hand), then round the back, then further out
+        // beside the pavilion first (either hand), then round the back, then further out;
+        // well inland if it can be, and if not (as the island grows the pavilion can end up
+        // near the coast), nearer the shore: the well holds a patch of land round itself
         let best = null;
-        for (const dist of [D, D + 2, D + 4, D + 7]) {
-            for (const off of [75, -75, 105, -105, 50, -50, 135, -135, 25, -25, 0, 160, -160]) {
-                const a = out + (off * Math.PI) / 180;
-                const x = pv.x + Math.sin(a) * dist, z = pv.z + Math.cos(a) * dist;
-                if (clear(x, z)) {
-                    best = { x, z, a };
-                    break;
+        for (const shore of [9, 2]) {
+            for (const dist of [D, D + 2, D + 4, D + 7]) {
+                for (const off of [75, -75, 105, -105, 50, -50, 135, -135, 25, -25, 0, 160, -160]) {
+                    const a = out + (off * Math.PI) / 180;
+                    const x = pv.x + Math.sin(a) * dist, z = pv.z + Math.cos(a) * dist;
+                    if (clear(x, z, shore)) {
+                        best = { x, z, a };
+                        break;
+                    }
                 }
+                if (best) break;
             }
             if (best) break;
         }

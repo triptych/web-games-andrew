@@ -139,6 +139,56 @@ export class IslandMap {
         ctx.fill();
         ctx.restore();
         ctx.lineCap = 'round';
+        // the Glowing Well beside the Hearthgarden: a ring of stone with a green light in it
+        if (layout.well) {
+            const [wx, wz] = toPx(layout.well.x, layout.well.z);
+            ctx.beginPath();
+            ctx.arc(wx, wz, 3.4 * px, 0, Math.PI * 2);
+            ctx.fillStyle = '#d8d0bc';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(wx, wz, 1.5 * px, 0, Math.PI * 2);
+            ctx.fillStyle = '#3ad8a0';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(40,25,10,0.8)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+        // the Silver Comet in its scorched crater: a silver hull with a red nose and fins
+        if (layout.crash) {
+            const c = layout.crash;
+            const [cx, cz] = toPx(c.x, c.z);
+            const g = ctx.createRadialGradient(cx, cz, 0, cx, cz, 11 * px);
+            g.addColorStop(0, 'rgba(40, 28, 18, 0.75)');
+            g.addColorStop(1, 'rgba(40, 28, 18, 0)');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(cx, cz, 11 * px, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.save();
+            ctx.translate(cx, cz);
+            ctx.rotate(-c.yaw);           // the hull runs along its local +x, the nose that way
+            ctx.fillStyle = '#b8231b';
+            ctx.beginPath();
+            ctx.moveTo(-10.5 * px, 0);
+            ctx.lineTo(-13 * px, -3.4 * px);
+            ctx.lineTo(-7 * px, 0);
+            ctx.lineTo(-13 * px, 3.4 * px);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#d8dce2';
+            ctx.strokeStyle = 'rgba(30, 30, 40, 0.85)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.ellipse(-0.5 * px, 0, 10.5 * px, 2.6 * px, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = '#b8231b';
+            ctx.beginPath();
+            ctx.ellipse(8 * px, 0, 2.2 * px, 2.0 * px, 0, -Math.PI / 2, Math.PI / 2);
+            ctx.fill();
+            ctx.restore();
+        }
         // plazas
         const disc = (x, z, r, fill, stroke) => {
             ctx.beginPath();
