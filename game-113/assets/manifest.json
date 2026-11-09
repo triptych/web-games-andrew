@@ -374,6 +374,13 @@
   "src": "poses/choir1.png",
   "w": 24
  },
+ "pose/choir3": {
+  "cols": 3,
+  "h": 32,
+  "rows": 2,
+  "src": "poses/choir3.png",
+  "w": 24
+ },
  "pose/choir4": {
   "cols": 3,
   "h": 32,
@@ -393,6 +400,13 @@
   "h": 32,
   "rows": 2,
   "src": "poses/choir6.png",
+  "w": 24
+ },
+ "pose/ingrid": {
+  "cols": 3,
+  "h": 32,
+  "rows": 2,
+  "src": "poses/ingrid.png",
   "w": 24
  },
  "pose/lyra": {

@@ -29,7 +29,9 @@ The model draws what it likes, so the exporters are forgiving: `export_people.py
 (not by fixed thirds), removes the dark grid lines some sheets come with, drops a pasted-in copy of the reference portrait and
 stray notes and sparkles, scales a whole sheet by one factor so a character keeps its size from view to view, and has a small
 override table (`POSE_OVERRIDES`) for a sheet whose layout has to be read by eye. Three pose sheets (Ingrid, `choir2`, `choir3`)
-were declined by the model's content filter and are not in `assets/poses/`; the game derives their poses from the walk sprites.
+were declined by the model's content filter. Ingrid's and `choir3`'s were regenerated with gentler wording (startled instead of
+in pain, fast asleep instead of knocked out). `choir2`'s was declined again and is not in `assets/poses/`; the game derives her
+poses from the walk sprites.
 
 ## Rebuilding
 

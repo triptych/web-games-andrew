@@ -246,7 +246,7 @@ manifest, file or network leaves the key out and the game uses the sprite painte
 | `assets/monsters/` | the 16 enemies and the Colossus | `SpriteLib.monster`, the Colossus rising in the final duel and the statue in Aurelune; fitted into the painted sprite's logical box at 4x, so on-screen size is unchanged |
 | `assets/portraits/` | 23 dialogue portraits (princesses, Bram, the princes, townsfolk, the six sealed princesses, O.T.T.O., the Archivist) | `portrait()` for the dialogue box, the band cards and the battle HUD; the dragon, wardens and Colossus reuse their monster art |
 | `assets/people/` | a 3x3 walk sheet per person: front, back, side by idle, step, step | `SpriteLib.person`; O.T.T.O. dims for the unlit variant |
-| `assets/poses/` | idle, play, hurt, ko, cheer for Lyra, Seraphine, Marigold, Bram and four of the sealed princesses | battle and scene poses. A person with no pose sheet gets them made from the walk sprites (a knock-out is the side view turned on its back) |
+| `assets/poses/` | idle, play, hurt, ko, cheer for the four princesses, Bram and five of the sealed princesses | battle and scene poses. A person with no pose sheet gets them made from the walk sprites (a knock-out is the side view turned on its back) |
 | `assets/tiles/` | one 3x3 sheet per area (ground, ground2, path, dock, wall, cliff, house, roof, top) | `tileTexture`, mirrored per variant; ground, path and cliff are blended to repeat without a seam |
 | `assets/props/` | palm, oak, pine, three glow colours of cave mushroom, coral, flowers, wheat, grass | `propPx` |
 
@@ -256,7 +256,8 @@ reference, for the walk and pose sheets), then cut out by `cutout.py`, fitted an
 `export_portraits.py`, `export_people.py` (which finds the figures on a sheet by the gaps between them, because the model
 doesn't always draw the grid it was asked for) and `export_tiles_props.py`, and shrunk by `optimize.py` (256 colours,
 about 1.7 MB in all). The prompt templates are in [dev/assets/README.md](dev/assets/README.md). The model declined three pose
-sheets (Ingrid, and the sealed princesses `choir2` and `choir3`) under its content policy, so those three use the
+sheets under its content policy (Ingrid, `choir2`, `choir3`); Ingrid's and `choir3`'s were regenerated with gentler
+wording (a startle instead of pain, asleep instead of knocked out), but `choir2`'s was declined again, so she uses the
 derived poses above.
 
 ## Open questions / next steps
