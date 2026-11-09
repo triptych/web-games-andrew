@@ -8,6 +8,7 @@ import { npcsOf } from '../sim/field.js';
 import { CHARS } from '../sim/data/chars.js';
 import { ENEMIES } from '../sim/data/enemies.js';
 import { THEMES, tileTexture, propPx, mkTex } from './tiles.js';
+import { assetPx } from './assets.js';
 import { shadowTexture, isMech } from './sprites.js';
 import { Particles } from './fx.js';
 import { drawMonster } from './monsters.js';
@@ -322,7 +323,7 @@ export class FieldView {
         return this.lib.raw(key, () => propPx(kind, theme));
     }
     addStatue(root, x, z) {
-        const e = this.lib.raw('statue', () => drawMonster('colossus'));
+        const e = this.lib.raw('statue', () => assetPx('monster/colossus') || drawMonster('colossus'));
         const ped = new THREE.Mesh(new THREE.BoxGeometry(2, 0.6, 1), new THREE.MeshStandardMaterial({ color: 0x8a7a5a, roughness: 0.9 }));
         ped.position.set(x, 0.3, z); ped.castShadow = ped.receiveShadow = true; root.add(ped);
         const b = billboard(e.tex, e.w * PX * 0.42 * 1.4, e.h * PX * 0.42 * 1.4, { emissive: 0.35, color: 0xd8c8a0 });

@@ -387,5 +387,6 @@ export class BattleView {
 }
 
 import { drawMonster } from './monsters.js';
-function import_colossus() { return drawMonster('colossus'); }
+import { assetPx } from './assets.js';
+function import_colossus() { return assetPx('monster/colossus') || drawMonster('colossus'); }
 const easeOut = (t) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);

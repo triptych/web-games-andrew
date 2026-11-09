@@ -123,7 +123,7 @@ export class UI {
                 const d = document.createElement('div');
                 d.className = 'pm'; d.style.setProperty('--c', CHARS[id].color);
                 const pc = portrait(id, 2);
-                const cv = document.createElement('canvas'); cv.width = pc.width; cv.height = pc.height; cv.getContext('2d').drawImage(pc, 0, 0);
+                const cv = document.createElement('canvas'); cv.width = pc.width; cv.height = pc.height; cv.getContext('2d').drawImage(pc, 0, 0); if (pc.dataset.art) cv.dataset.art = '1';
                 const info = document.createElement('div');
                 info.innerHTML = `<div class="nm">${CHARS[id].name}<span></span></div><div class="bar"><div class="fill"></div></div>`;
                 d.append(cv, info);
@@ -223,7 +223,7 @@ export class UI {
             const d = document.createElement('div');
             d.className = 'card'; d.style.setProperty('--c', c.color);
             const pc = portrait(id, 3);
-            const cv = document.createElement('canvas'); cv.width = pc.width; cv.height = pc.height; cv.getContext('2d').drawImage(pc, 0, 0);
+            const cv = document.createElement('canvas'); cv.width = pc.width; cv.height = pc.height; cv.getContext('2d').drawImage(pc, 0, 0); if (pc.dataset.art) cv.dataset.art = '1';
             const info = document.createElement('div');
             info.innerHTML = `<h4 style="color:${c.color}">${c.name}</h4><div class="sub">${c.title} · ${c.role.toUpperCase()}</div>
                 <div class="stat"><span>Level</span><b>${s.lv}</b></div>

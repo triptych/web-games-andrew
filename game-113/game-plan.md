@@ -1,7 +1,7 @@
 # Crystal Crescendo
 
 **Genre:** HD-2D story RPG with rhythm battles
-**Engine:** three.js r165 (import map, CDN), no asset files: every sprite, tile and sound is made in code
+**Engine:** three.js r165 (import map, CDN). Art: generated PNGs in `assets/` (made with fal, see *Generated art*), with every sprite and tile still painted in code as the fallback; no sound files, every note is synthesised
 **Layout:** sim/view (pure seeded simulation in `js/sim/`, a view that only reads it, `dev/` harnesses)
 **Status:** v1.0.0 (see *Build status* at the end for what is verified and what is open)
 
@@ -235,6 +235,31 @@ bosses) and attack ×1.7, and Frosthold and the Spire got another ×1.2 attack. 
     first line).
   - SwiftShader takes ~15 s to compile a duel's shaders; tests wait on state.
 
+## Generated art
+
+`assets/` holds the art, and `js/view/assets.js` loads it before the first frame. Each file is optional: a missing
+manifest, file or network leaves the key out and the game uses the sprite painted in code (`pixel.js`, `people.js`,
+`monsters.js`, `tiles.js`), so nothing breaks and the sim and browser tests don't depend on the art.
+
+| Folder | What | How the game uses it |
+|---|---|---|
+| `assets/monsters/` | the 16 enemies and the Colossus | `SpriteLib.monster`, the Colossus rising in the final duel and the statue in Aurelune; fitted into the painted sprite's logical box at 4x, so on-screen size is unchanged |
+| `assets/portraits/` | 23 dialogue portraits (princesses, Bram, the princes, townsfolk, the six sealed princesses, O.T.T.O., the Archivist) | `portrait()` for the dialogue box, the band cards and the battle HUD; the dragon, wardens and Colossus reuse their monster art |
+| `assets/people/` | a 3x3 walk sheet per person: front, back, side by idle, step, step | `SpriteLib.person`; O.T.T.O. dims for the unlit variant |
+| `assets/poses/` | idle, play, hurt, ko, cheer for the four princesses, Bram and five of the sealed princesses | battle and scene poses. A person with no pose sheet gets them made from the walk sprites (a knock-out is the side view turned on its back) |
+| `assets/tiles/` | one 3x3 sheet per area (ground, ground2, path, dock, wall, cliff, house, roof, top) | `tileTexture`, mirrored per variant; ground, path and cliff are blended to repeat without a seam |
+| `assets/props/` | palm, oak, pine, three glow colours of cave mushroom, coral, flowers, wheat, grass | `propPx` |
+
+How it was made, in `dev/assets/` (Python with Pillow and numpy, no other dependencies): each picture was generated on a
+flat magenta background with fal's `fal-ai/nano-banana-2` (and its `/edit` endpoint, with the person's portrait as the
+reference, for the walk and pose sheets), then cut out by `cutout.py`, fitted and sliced by `export_monsters.py`,
+`export_portraits.py`, `export_people.py` (which finds the figures on a sheet by the gaps between them, because the model
+doesn't always draw the grid it was asked for) and `export_tiles_props.py`, and shrunk by `optimize.py` (256 colours,
+about 1.7 MB in all). The prompt templates are in [dev/assets/README.md](dev/assets/README.md). The model declined three pose
+sheets under its content policy (Ingrid, `choir2`, `choir3`); Ingrid's and `choir3`'s were regenerated with gentler
+wording (a startle instead of pain, asleep instead of knocked out), but `choir2`'s was declined again, so she uses the
+derived poses above.
+
 ## Open questions / next steps
 
 - A human pass with headphones on a real GPU: timing feel, the default audio offset, note speed, and whether Normal
@@ -243,6 +268,11 @@ bosses) and attack ×1.7, and Frosthold and the Spire got another ×1.2 attack. 
 - The ending could show the band playing a final concert on the battle stage (currently a scene and the credits).
 
 ## Changelog
+
+### v1.2.0 (2026-11-09)
+- **New art, generated with fal.** Every monster and boss, every portrait, a walk sheet for everyone who walks, battle
+  poses for the band, terrain tiles for all seven places and the props are now PNGs in `assets/` (see *Generated art*).
+  The sprites painted in code remain as the fallback for any missing file. The simulation is untouched.
 
 ### v1.1.0 (2026-11-02)
 - **Auto battle.** An AUTO button in the battle HUD (Tab, or Back on a gamepad) and an *Auto battle* setting hand the
