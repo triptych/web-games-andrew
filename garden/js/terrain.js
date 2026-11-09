@@ -285,8 +285,8 @@ export class Island {
         const pv = sp.pavilion;
         const out = Math.atan2(pv.x, pv.z);          // away from the hub
         const D = PAVILION_PLAZA + WELL_APRON + 1.6;
-        const clear = (x, z) => {
-            if (this.coast(x, z) > -9) return false;
+        const clear = (x, z, maxCoast) => {
+            if (this.coast(x, z) > maxCoast) return false;
             // every path: keep the apron, the well and room to walk round it off them
             for (const s of L.spokes) for (const p of s.pts) if (Math.hypot(x - p.x, z - p.z) < PATH_HALF + WELL_APRON + 1.5) return false;
             for (const p of L.dock.pts) if (Math.hypot(x - p.x, z - p.z) < PATH_HALF + WELL_APRON + 1.5) return false;
@@ -299,23 +299,43 @@ export class Island {
             for (const t of [L.trail, L.pier.trail, L.wharf.trail]) for (const p of t.pts) if (Math.hypot(x - p.x, z - p.z) < WELL_APRON + 3) return false;
             return !(L.islet && Math.hypot(x - L.islet.x, z - L.islet.z) < 20);
         };
+        // The pavilion stands at the end of its path, often close to the shore, so how far
+        // inland the well can be varies with every layout (adding a game reshuffles the
+        // coast). Prefer a spot well inland, and fall back to ones nearer the water: the
+        // well brings a patch of land of its own, so it only needs the apron to end up on
+        // dry land (checked below), not to start there.
+        const patch = { ax: 0, az: 0, bx: 0, bz: 0, ra: WELL_APRON + 8, rb: 0 };
+        const held = (x, z) => {
+            patch.ax = patch.bx = x;
+            patch.az = patch.bz = z;
+            this.capsules.push(patch);
+            let ok = this.coast(x, z) < -6;
+            for (let k = 0; ok && k < 12; k++) {
+                const t = (k / 12) * Math.PI * 2;
+                ok = this.coast(x + Math.sin(t) * (WELL_APRON + 1.4), z + Math.cos(t) * (WELL_APRON + 1.4)) < -2;
+            }
+            if (!ok) this.capsules.pop();
+            return ok;
+        };
         // beside the pavilion first (either hand), then round the back, then further out
         let best = null;
-        for (const dist of [D, D + 2, D + 4, D + 7]) {
-            for (const off of [75, -75, 105, -105, 50, -50, 135, -135, 25, -25, 0, 160, -160]) {
-                const a = out + (off * Math.PI) / 180;
-                const x = pv.x + Math.sin(a) * dist, z = pv.z + Math.cos(a) * dist;
-                if (clear(x, z)) {
-                    best = { x, z, a };
-                    break;
+        for (const maxCoast of [-9, -5, -1, 3]) {
+            for (const dist of [D, D + 2, D + 4, D + 7]) {
+                for (const off of [75, -75, 105, -105, 50, -50, 135, -135, 25, -25, 0, 160, -160]) {
+                    const a = out + (off * Math.PI) / 180;
+                    const x = pv.x + Math.sin(a) * dist, z = pv.z + Math.cos(a) * dist;
+                    if (clear(x, z, maxCoast) && held(x, z)) {
+                        best = { x, z, a };
+                        break;
+                    }
                 }
+                if (best) break;
             }
             if (best) break;
         }
         if (!best) return;
         // the doorway side faces the pavilion's plaza, where people come from
         L.well = { x: best.x, z: best.z, y: pv.y, r: WELL_APRON, face: Math.atan2(pv.x - best.x, pv.z - best.z), spoke: sp };
-        this.capsules.push({ ax: best.x, az: best.z, bx: best.x, bz: best.z, ra: WELL_APRON + 8, rb: 0 });
     }
 
     /**

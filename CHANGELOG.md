@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Garden of Games** v1.15.1: the Glowing Well was missing from the island.
+  - The well only accepted a site at least 9 m inland, and the Hearthgarden pavilion stands near the shore, so with the current 125 games no spot qualified and `_gardenWell` quietly built nothing. Over game counts from 30 to 131 it was missing in 68 of 102 layouts, so adding any game could make it vanish. It now prefers an inland spot and falls back to ones nearer the shore, accepting a site only once the patch of land the well brings with it holds the whole apron ([terrain.js](garden/js/terrain.js)). It is placed in all 102.
+  - Z-fighting in the well ([well.js](garden/js/well.js)): neighbouring marble cap slabs overlapped with coplanar tops (every other one now stands 12 mm taller), the name sign lay about 5 degrees off the roof's plane and within 5 mm of the copper (it now lies in the plane, 1 cm above), and the dark inner wall touched the curb stones' inner faces and stood 1 cm over the caps (it now sits just inside them).
+  - ARCANA WAGON (game-121) had no Garden thumbnail: added `garden/img/games/game-121.jpg` (1200x630) with its own `dev/preview.mjs`. Every one of the 125 games has one.
+
 ### Changed
 - **Doom & Doilies** (game-110) v1.5.0: new art for every graphic, made with fal. The Overlord (four tools, three poses), twelve minions, four visitors, the goblin henchman, sixteen centrepieces, the Skull Swap tokens, six pets with four moods and five accessories, the grave icons and nine room textures (coloured per lair by a gradient map) are generated PNGs in [game-110/assets/](game-110/assets/), each made from the sprite the game used to paint in code, so every character is still recognisably itself. [js/view/assets.js](game-110/js/view/assets.js) loads them before the first frame and every caller falls back to the painted sprite, so a missing file breaks nothing; sprites keep their logical sizes and the simulation is untouched. The export scripts and how the art was made are in [dev/assets/](game-110/dev/assets/README.md). The salon chair still paints hair over the painted client sprite.
 
