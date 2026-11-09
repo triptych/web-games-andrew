@@ -132,12 +132,12 @@ if (!ONLY || ONLY === 'desktop') {
     await G('g.controls.teleport(2, 0, -Math.PI / 2)');
     await frames(15);
     await shot('2-corridor');
-    await G('g.controls.teleport(11.6, 0, -Math.PI / 2); g.controls.pitch = -0.05');
+    await G('(() => { g.controls.teleport(11.6, 0, -Math.PI / 2); g.controls.pitch = -0.05; })()');
     await frames(15);
     await shot('3-cockpit');
 
     // ---- Energize: it walks you to the pad and charges
-    await G('g.rocket.forcePilot = true; g.controls.teleport(0, 0, Math.PI / 2)');
+    await G('(() => { g.rocket.forcePilot = true; g.controls.teleport(0, 0, Math.PI / 2); })()');
     await frames(5);
     await click('rk-go');
     await until('g.rocket.state === "charge"', 120000);
@@ -145,6 +145,7 @@ if (!ONLY || ONLY === 'desktop') {
     check(await G('Math.hypot(g.controls.pos.x + 4.5, g.controls.pos.z + 4.0) < 0.8'), 'you are standing on the pad');
     await shot('4-charge');
     await until('g.rocket.state === "planet"', 300000);
+    await frames(4);
     const info = JSON.parse(await G('JSON.stringify(g.rocket.info)'));
     check(true, `you arrive on ${info.name}, a ${info.label} (${info.temp} °C, ${info.gravity}g, ${info.o2} s of air)`);
     const world = await G(`(() => {
@@ -155,9 +156,10 @@ if (!ONLY || ONLY === 'desktop') {
     check(world.scene && world.sky, 'the world has its own scene and sky');
     check(world.walk && world.y > 1.2 && world.y < 2.2, 'you stand on dry ground at eye height');
     check(world.plants > 0, `things grow there (${world.plants} kinds)`);
-    check(world.species === 0 || world.creatures > 0, `animals live there (${world.creatures} of ${world.species} species)`);
+    check(world.species === 0 || world.creatures > 0, `animals live there (${world.creatures}, of ${world.species} species)`);
     check(Math.abs(world.gravity - info.gravity) < 1e-6, 'its gravity is yours while you are there');
-    check(world.pilot && world.signal, 'the pilot is out there, and the suit radio has a signal');
+    check(world.pilot, 'the pilot is out there');
+    check(world.signal, 'and the suit radio has a signal');
     const o2a = await G('g.rocket.o2');
     await page.waitForTimeout(1500);
     const o2b = await G('g.rocket.o2');
@@ -188,7 +190,7 @@ if (!ONLY || ONLY === 'desktop') {
     check(await G('!g.rocket.logOpen && g.controls.enabled'), 'Esc closes it and you can walk again');
 
     // ---- the beacon home
-    await G('g.controls.teleport(0, 7, 0); g.controls.pitch = -0.2');
+    await G('(() => { g.controls.teleport(0, 7, 0); g.controls.pitch = -0.2; })()');
     await frames(15);
     const pb = await screen(1.0, (await G('g.rocket.planet.padY')) + 1.2, 0.3);
     check(pb.front, 'the beacon is in view');
@@ -236,7 +238,7 @@ if (!ONLY || ONLY === 'desktop') {
 
     // ---- every kind of world
     for (const key of ['verdant', 'desert', 'ice', 'ocean', 'lava', 'jungle', 'crystal', 'moon']) {
-        await G(`g.rocket.forceBiome = '${key}'; g.rocket.energize('random')`);
+        await G(`(() => { g.rocket.forceBiome = '${key}'; g.rocket.energize('random'); })()`);
         await until('g.rocket.state === "planet"', 300000);
         const w = JSON.parse(await G('JSON.stringify({ key: g.rocket.info.key, name: g.rocket.info.name, walk: g.rocket.planet.walkable(g.controls.pos.x, g.controls.pos.z), dry: !g.rocket.planet.liquidType || g.rocket.planet.groundAt(0, 0) > g.rocket.planet.level })'));
         check(w.key === key && w.walk && w.dry, `a ${key} world (${w.name}): you arrive dry and can walk`);
