@@ -4,6 +4,7 @@
 
 import { W, H, SP, KINDS, validMoves } from './sim/match3.js';
 import { drawToken, drawPumpkin } from './view/art.js';
+import { assetCanvas } from './view/assets.js';
 
 const COL = { skull: '#f4eefa', cupcake: '#ff9ec7', yarn: '#b48cff', candle: '#ffd36b', rose: '#c03a6a', teacup: '#5fd0c0' };
 const DUR = { swap: 0.14, bad: 0.26, clear: 0.26, fall: 0.24, shuffle: 0.45 };
@@ -15,8 +16,9 @@ export class M3View {
         this.ctx = canvas.getContext('2d');
         this.audio = audio;
         this.onSwap = onSwap;
-        this.sprites = KINDS.map((k) => drawToken(k).toCanvas());
-        this.pumpkin = drawPumpkin().toCanvas();
+        this.sprites = KINDS.map((k) => assetCanvas('token/' + k) || drawToken(k).toCanvas());      // generated art first
+        this.pumpkin = assetCanvas('token/pumpkin') || drawPumpkin().toCanvas();
+        this.smooth = !!assetCanvas('token/skull');
         this.toks = [];
         this.webs = [];
         this.queue = [];
@@ -192,7 +194,8 @@ export class M3View {
     draw(dt, time) {
         const { w, h, cell } = this.resize();
         const x = this.ctx;
-        x.imageSmoothingEnabled = false;
+        x.imageSmoothingEnabled = this.smooth;
+        x.imageSmoothingQuality = 'high';
         x.clearRect(0, 0, w, h);
         // the slab: stone cells in two shades
         for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Doom & Doilies** (game-110) v1.5.0: new art for every graphic, made with fal. The Overlord (four tools, three poses), twelve minions, four visitors, the goblin henchman, sixteen centrepieces, the Skull Swap tokens, six pets with four moods and five accessories, the grave icons and nine room textures (coloured per lair by a gradient map) are generated PNGs in [game-110/assets/](game-110/assets/), each made from the sprite the game used to paint in code, so every character is still recognisably itself. [js/view/assets.js](game-110/js/view/assets.js) loads them before the first frame and every caller falls back to the painted sprite, so a missing file breaks nothing; sprites keep their logical sizes and the simulation is untouched. The export scripts and how the art was made are in [dev/assets/](game-110/dev/assets/README.md). The salon chair still paints hair over the painted client sprite.
+
 ### Fixed
 - **SEEDFALL** (game-125) v1.0.1: TILLY, the floating robot, often turned her side or back to the player. Sprites turned toward the camera from their local position, and hers sits inside a group that carries her position and light, so she aimed from the world origin instead of from where she floats. [billboard.js](game-125/js/view/billboard.js) now turns every billboard from its world position; [browsertest.mjs](game-125/dev/browsertest.mjs) measures her facing from four places on the deck (0.61 to −0.92 before, 1.0 after).
 

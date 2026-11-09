@@ -68,7 +68,9 @@ function candle(parent, x, y, z, flames, h = 0.35) {
 export function buildCastle(lairId) {
     const pal = PALETTES[lairId] || PALETTES.gloom;
     const px = buildRoomTextures(pal, drawEmblem());
-    const tex = (p, r) => mkTex(p.toCanvas(), r);
+    // a generated swatch carries its own repeat scale (it holds more detail per tile than the painted one it replaces)
+    const scaled = (r, k) => (Array.isArray(r) ? [r[0] * k, r[1] * k] : r * k);
+    const tex = (p, r) => (p.smooth ? mkTex(p.toCanvas(), scaled(r, p.rep || 1), true) : mkTex(p.toCanvas(), r));
     const root = new THREE.Group();
     const flames = [];
     const windowUniforms = {

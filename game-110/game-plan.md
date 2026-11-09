@@ -1,8 +1,8 @@
 # Doom & Doilies
 
 **Genre:** Idle clicker / incremental, with RPG trimmings
-**Engine:** three.js r165, no asset files
-**Status:** v1.4.0
+**Engine:** three.js r165. Art: generated PNGs in `assets/` (made with fal, see *Generated art*), with every sprite and texture still painted in code as the fallback; no sound files, every note is synthesised
+**Status:** v1.5.0
 
 ---
 
@@ -149,11 +149,30 @@ There is no ending; it is an idle game. The story is told in flavour: minion and
 
 ## Look and sound
 
-- **Sprites** ([art.js](js/view/art.js)): painted in code with game-093's volumetric pixel painter (hue-shifted ramps, contact lines, selective outlines). The Overlord in three poses (idle, craft with happy closed eyes, cackle with arms high and cape flared) with a tool for each room (whisk, needle and thread, feather duster, teacup); twelve minions; four visitors; a goblin henchman; sixteen centrepieces.
+- **Sprites** ([assets.js](js/view/assets.js), [art.js](js/view/art.js)): generated art first (see *Generated art*), and the fallback below painted in code with game-093's volumetric pixel painter (hue-shifted ramps, contact lines, selective outlines). The Overlord in three poses (idle, craft with happy closed eyes, cackle with arms high and cape flared) with a tool for each room (whisk, needle and thread, feather duster, teacup); twelve minions; four visitors; a goblin henchman; sixteen centrepieces.
 - **The castle** ([castle.js](js/view/castle.js), [tex.js](js/view/tex.js)): four rooms 12 × 8 × 7, joined by doorways with portcullises in their side walls, with pixel textures per room (bricks and pink-cream checks; striped wallpaper and planks; stone and flagstones with a carpet runner; panelling and black-and-white marble), re-coloured per lair; arched windows with a shader sky; a hearth, counters, jars and copper pots; a sewing table and bolts of fabric; a fireplace, portraits and candelabras; a stage with curtains, a buffet and string lights; battlements, towers and mountains outside.
 - **Effects** ([fx.js](js/view/fx.js)): one point-sprite system drawing pixelated hearts, notes, stars, coins and smoke; shockwave rings; floaters in the DOM.
 - **Post** ([stage.js](js/view/stage.js)): tilt-shift focused on the free area, bloom on flames and glows, a grade that follows dread, a little grain. Three quality levels and a calm mode.
 - **Sound** ([audio.js](js/audio.js)): a music-box waltz with pizzicato bass and a pad, C major when cosy and A minor when feared; crafting pops on a pentatonic scale that climbs with flow, a timbre per room; a formant cackle; doorbell, meow, fanfare, sad trombone, thunder, coins, chimes.
+
+## Generated art
+
+`assets/` holds the art and `js/view/assets.js` loads it before the first frame (`await loadAssets()` in `main.js`). Every file is optional: a
+missing manifest, file or network leaves the key out and the game uses the sprite painted in code ([art.js](js/view/art.js),
+[tex.js](js/view/tex.js)), so nothing breaks and the sim and browser tests don't depend on the art. A picture is sized by the logical
+size of the painted sprite it replaces, so nothing on screen moved.
+
+| Folder | What | How the game uses it |
+|---|---|---|
+| `assets/overlord/` | the Overlord with each of four tools, three poses a sheet | `SpriteLib.overlord`; her cells are wider than her painted sprite, her height is unchanged |
+| `assets/minions/`, `visitors/`, `henchman.png` | the twelve minions, four visitors, the goblin | castle billboards, the shop icons, the salon's gallery and wishes |
+| `assets/stations/` | the four centrepieces, one cell per mastery tier | `SpriteLib.station` |
+| `assets/tokens/` | the six Skull Swap tokens, the jack-o'-lantern, the scissors and paw | the Skull Swap board and goals (smoothed, not hard pixels); the icons over the graves |
+| `assets/pets/` | six pets: idle, happy, sad, blink (and a flap or wag frame); five accessories | the nursery, the castle pet, the shop; accessories are drawn over the pet at its head and neck |
+| `assets/tiles/` | nine greyscale swatches: brick, stone, wallpaper, planks, panelling, check, marble, flagstones, carpet | coloured per lair by a gradient map, repeated by their own `rep` scale, filtered and mipmapped |
+
+How it was made, and what the exporters cope with, is in [dev/assets/README.md](dev/assets/README.md). Still painted in code: the
+salon's chair and client (its hair painting needs the sprite's pixels), the banners, the window sky, the 3D décor and the particles.
 
 ## Module overview
 
@@ -200,6 +219,10 @@ From the bot table (seed 9001, eight hours each):
 - A sixth hobby (gardening?), seasonal events, and a portrait of Noxia for the welcome-back sheet.
 
 ## Changelog
+
+### v1.5.0 (2026-11-09)
+- Changed: **new art for every sprite, made with fal** (`fal-ai/nano-banana-2/edit`, each from the painted sprite it replaces): the Overlord with all four tools and three poses, twelve minions, four visitors, the goblin, the sixteen centrepieces, the Skull Swap tokens and the grave icons, six pets with four moods and five accessories, and nine room textures coloured per lair. Loaded from `assets/` (1.0 MB) with the painted sprites kept as the fallback. The simulation is untouched.
+- Added: [js/view/assets.js](js/view/assets.js) and [dev/assets/](dev/assets/README.md) (the cut-out, slicing and optimising scripts).
 
 ### v1.4.0 (2026-11-04)
 - Added: **Rest in Paws**, the cemetery's third mini-game: a spooky pet shelter in the grave right of Skull Swap, open at 30 minions. Adopt a moon cat, a hellhound pup, a fruit bat, a patchwork bunny, a royal toad or a barn owl, name them, and look after them in a pixel nursery: feed them (each has a favourite), brush out burrs and cobwebs, scrub and rinse the mud, toss a ball, yarn or feather for them to pounce on, cuddle them, and dress them in a bow, bell, witch hat, scarf or crown. Your pet follows the Overlord around the castle and helps: more visitors, stronger cackles, more tribute, stronger crafting, slower-fading dread or more charm, growing over five levels of bond, and halved when their needs run low. Click them in the castle for a pat. Four new trophies.
