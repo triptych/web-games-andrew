@@ -105,10 +105,11 @@ if (!ONLY || ONLY === 'desktop') {
     check(site.landmark, 'it is a named landmark');
 
     // ---- look at it, click it
-    await G('(() => { const r = g.world.rocket; const fx = r.front.x + (r.front.x - r.x) * 0.6, fz = r.front.z + (r.front.z - r.z) * 0.6; g.controls.teleport(fx, fz, Math.atan2(-(r.x - fx), -(r.z - fz))); g.controls.pitch = 0.02; })()');
+    // (from the crater floor in front of the ramp: the rim round it hides the ship from further back)
+    await G('(() => { const r = g.world.rocket; const p = r.toWorld(-1, 9.4); g.controls.teleport(p.x, p.z, Math.atan2(-(r.x - p.x), -(r.z - p.z))); g.controls.pitch = 0.05; })()');
     await frames(30);
     await shot('0-outside');
-    const xy = await G(`(() => { const r = g.world.rocket; const v = g.camera.position.clone().set(r.x, r.y + 2, r.z).project(g.camera); return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight }; })()`);
+    const xy = await G(`(() => { const r = g.world.rocket; const p = r.toWorld(-3, 0); const v = g.camera.position.clone().set(p.x, r.y + 2.2, p.z).project(g.camera); return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight }; })()`);
     check(await G(`g.pick(${xy.x}, ${xy.y})?.type === 'rocket'`), 'the ship can be picked');
     await page.mouse.click(xy.x, xy.y);
     await until(aboard, 180000);
@@ -262,9 +263,9 @@ if (!ONLY || ONLY === 'phone') {
     const { ctx, page, G, until, frames, shot } = await open({ width: 390, height: 780 }, { hasTouch: true, isMobile: true });
     await page.goto(url());
     await until('g?.entered', 900000);
-    await G('(() => { const r = g.world.rocket; const fx = r.front.x + (r.front.x - r.x) * 0.8, fz = r.front.z + (r.front.z - r.z) * 0.8; g.controls.teleport(fx, fz, Math.atan2(-(r.x - fx), -(r.z - fz))); g.controls.pitch = 0; })()');
+    await G('(() => { const r = g.world.rocket; const p = r.toWorld(-1, 9.4); g.controls.teleport(p.x, p.z, Math.atan2(-(r.x - p.x), -(r.z - p.z))); g.controls.pitch = 0.05; })()');
     await frames(30);
-    const xy = await G(`(() => { const r = g.world.rocket; const v = g.camera.position.clone().set(r.x, r.y + 2, r.z).project(g.camera); return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight }; })()`);
+    const xy = await G(`(() => { const r = g.world.rocket; const p = r.toWorld(-1, 0); const v = g.camera.position.clone().set(p.x, r.y + 2.2, p.z).project(g.camera); return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight }; })()`);
     await page.touchscreen.tap(xy.x, xy.y);
     await until(aboard, 180000);
     check(true, 'tapping the ship takes you aboard');

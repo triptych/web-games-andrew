@@ -178,13 +178,14 @@ function scorchTexture() {
             const dx = x / n - 0.5, dy = y / n - 0.5;
             const d = Math.hypot(dx, dy) * 2 + fbm2(x * 0.02, y * 0.02, 4) * 0.28;
             const grit = fbm2(x * 0.15 + 9, y * 0.15, 2) * 0.5 + 0.5;
-            const a = clamp(1.15 - d, 0, 1);
+            // fully gone well before the edge of the sheet
+            const a = clamp((0.92 - d) / 0.45, 0, 1);
             const k = (y * n + x) * 4;
             const burnt = smoothstep(0.35, 0.9, a);
             img.data[k] = lerp(92, 22, burnt) + grit * 18;
             img.data[k + 1] = lerp(70, 18, burnt) + grit * 14;
             img.data[k + 2] = lerp(48, 14, burnt) + grit * 10;
-            img.data[k + 3] = smoothstep(0, 0.35, a) * 235;
+            img.data[k + 3] = smoothstep(0, 0.5, a) * 235;
         }
     }
     g.putImageData(img, 0, 0);
@@ -203,7 +204,7 @@ function furrowTexture() {
         for (let x = 0; x < w; x++) {
             const u = Math.abs(x / w - 0.5) * 2 + fbm2(x * 0.05, y * 0.03, 3) * 0.3;
             const along = y / h;
-            const a = clamp(1 - u, 0, 1) * smoothstep(0, 0.4, 1 - along) * 1.2;
+            const a = clamp((0.85 - u) / 0.4, 0, 1) * smoothstep(0, 0.4, 1 - along) * smoothstep(0, 0.08, along);
             const k = (y * w + x) * 4;
             const grit = fbm2(x * 0.2, y * 0.2, 2) * 0.5 + 0.5;
             img.data[k] = 58 + grit * 30;
@@ -400,7 +401,7 @@ export function buildRocketSite(world) {
         return m;
     };
     const decal = (map) => new THREE.MeshStandardMaterial({ map, transparent: true, depthWrite: false, roughness: 1, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
-    groundMesh(new THREE.PlaneGeometry(CRASH.crater * 2.6, CRASH.crater * 2.2, 40, 34).rotateX(-Math.PI / 2), decal(scorchTexture()));
+    groundMesh(new THREE.PlaneGeometry(CRASH.crater * 2.3, CRASH.crater * 2.3, 46, 46).rotateX(-Math.PI / 2), decal(scorchTexture()));
     const furrow = new THREE.PlaneGeometry(5.2, 15, 8, 30).rotateX(-Math.PI / 2).rotateY(Math.PI / 2).translate(-L / 2 - 6.5, 0, 0.3);
     groundMesh(furrow, decal(furrowTexture()));
     // turned earth piled against the nose, and clods thrown out along the gouge
