@@ -5,6 +5,7 @@
 
 import { STEP, MAX_FRAME } from './config.js';
 import { View } from './view/view.js';
+import { loadAssets } from './view/assets.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
@@ -24,6 +25,7 @@ const settings = loadSettings();
 const audio = new Audio();
 audio.setVolumes(settings.sfx, settings.music);
 const input = new Input();
+await loadAssets();              // generated art (assets/); anything missing falls back to the sprite painted in code
 const canvas = document.getElementById('view');
 const view = new View(canvas, { quality: +settings.quality });
 const queue = [];                         // commands from buttons, keys and taps, applied in order

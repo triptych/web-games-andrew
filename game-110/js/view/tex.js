@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { Px, mix, hex } from './pixel.js';
 import { hash3 } from '../rng.js';
+import { gradientTex } from './assets.js';
 
 /** One palette per lair. wall/accent/floor tint the rooms; sky is the night outside (top, horizon), cozy the day. */
 export const PALETTES = {
@@ -14,11 +15,15 @@ export const PALETTES = {
     eclipse: { wall: '#3a3048', wall2: '#2a2238', paper: '#2a2a4a', paper2: '#3a3a5e', stone: '#4a4458', floorA: '#fff0c8', floorB: '#d8b870', wood: '#4a3424', carpet: '#7a1a2a', trim: '#ffd54a', marbleA: '#f4eedc', marbleB: '#1a1424', sky: ['#05040c', '#2a1a3a'], cozy: ['#ffd8a0', '#fff4dc'], ground: '#1a1424', clear: 0x07060e, mountain: '#140e20', lamp: 0xffe08a },
 };
 
-export function mkTex(canvas, repeat = 1) {
+export function mkTex(canvas, repeat = 1, smooth = false) {
     const t = new THREE.CanvasTexture(canvas);
-    t.magFilter = THREE.NearestFilter;
-    t.minFilter = THREE.NearestFilter;
-    t.generateMipmaps = false;
+    if (smooth) {            // generated art: filtered with mipmaps, so a big swatch stays clean when it shrinks
+        t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.anisotropy = 4;
+    } else {
+        t.magFilter = THREE.NearestFilter;
+        t.minFilter = THREE.NearestFilter;
+        t.generateMipmaps = false;
+    }
     t.colorSpace = THREE.SRGBColorSpace;
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
     if (Array.isArray(repeat)) t.repeat.set(repeat[0], repeat[1]); else t.repeat.set(repeat, repeat);
@@ -131,17 +136,24 @@ export function backdropTex(pal) {
     return P;
 }
 
+const lum = (c) => { const h = hex(c); return h[0] * 0.3 + h[1] * 0.59 + h[2] * 0.11; };
+
 export function buildRoomTextures(pal, emblem) {
+    // generated swatches (greyscale, coloured here for the lair) where the assets loaded, the painted textures otherwise
+    const dark = (c, t) => mix(c, '#000000', t), light = (c, t) => mix(c, '#ffffff', t);
+    const ramp = (name, c, fallback, lo = dark(c, 0.5), hi = light(c, 0.3)) => gradientTex(name, lo, c, hi) || fallback();
+    const [mA, mB] = lum(pal.marbleA) > lum(pal.marbleB) ? [pal.marbleA, pal.marbleB] : [pal.marbleB, pal.marbleA];
+    const wood2 = mix(pal.wood, '#000000', 0.15);
     return {
-        brick: brickTex(pal.wall, 2),
-        stone: brickTex(pal.stone, 5),
-        paper: paperTex(pal.paper, pal.paper2),
-        plank: plankTex(pal.wood),
-        wallWood: plankTex(mix(pal.wood, '#000000', 0.15)),
-        check: checkTex(pal.floorA, pal.floorB),
-        marble: checkTex(pal.marbleA, pal.marbleB),
-        flag: flagTex(pal.stone),
-        carpet: carpetTex(pal.carpet, pal.trim),
+        brick: ramp('brick', pal.wall, () => brickTex(pal.wall, 2)),
+        stone: ramp('stone', pal.stone, () => brickTex(pal.stone, 5)),
+        paper: gradientTex('paper', dark(pal.paper, 0.3), mix(pal.paper, pal.paper2, 0.5), light(pal.paper2, 0.2)) || paperTex(pal.paper, pal.paper2),
+        plank: ramp('plank', pal.wood, () => plankTex(pal.wood)),
+        wallWood: ramp('wallWood', wood2, () => plankTex(wood2)),
+        check: gradientTex('check', dark(pal.floorB, 0.2), mix(pal.floorA, pal.floorB, 0.5), light(pal.floorA, 0.1)) || checkTex(pal.floorA, pal.floorB),
+        marble: gradientTex('marble', dark(mB, 0.25), mix(mA, mB, 0.5), light(mA, 0.1)) || checkTex(pal.marbleA, pal.marbleB),
+        flag: ramp('flag', pal.stone, () => flagTex(pal.stone)),
+        carpet: gradientTex('carpet', dark(pal.carpet, 0.5), pal.carpet, pal.trim) || carpetTex(pal.carpet, pal.trim),
         banner: bannerTex(mix(pal.wall2, '#000000', 0.35), pal.trim, emblem),
         backdrop: backdropTex(pal),
     };

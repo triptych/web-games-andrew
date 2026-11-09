@@ -17,6 +17,7 @@ import { fmt, fmtTime } from './fmt.js';
 import { headline } from './news.js';
 import { goalProgress, KINDS } from './sim/match3.js';
 import { drawToken } from './view/art.js';
+import { assetCanvas } from './view/assets.js';
 import { PET, bondLevel, petPerkText, content, MAX_LEVEL } from './sim/pets.js';
 
 const $ = (id) => document.getElementById(id);
@@ -35,7 +36,7 @@ export class UI {
         this.place = 'castle';
         this.m3view = m3view;
         this.m3last = null;
-        this.tokenIcons = KINDS.map((k) => drawToken(k).toCanvas().toDataURL());
+        this.tokenIcons = KINDS.map((k) => (assetCanvas('token/' + k) || drawToken(k).toCanvas()).toDataURL());
         this.stack = [];
         this.tab = 'minions';
         this.amount = 1;
