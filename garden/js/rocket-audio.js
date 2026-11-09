@@ -169,34 +169,58 @@ export class RocketAudio {
     energize(dur = 2.4) {
         if (!this.on || this.audio.muted) return;
         const ctx = this.ctx, t = ctx.currentTime;
+        // a rising hum: a sawtooth that climbs to a comfortable pitch, kept warm by a low-pass
+        // that opens only part of the way, swelling and then easing off before the end
         const o = ctx.createOscillator();
         o.type = 'sawtooth';
-        o.frequency.setValueAtTime(120, t);
-        o.frequency.exponentialRampToValueAtTime(1600, t + dur);
-        const trem = ctx.createOscillator();
-        trem.frequency.setValueAtTime(6, t);
-        trem.frequency.linearRampToValueAtTime(28, t + dur);
-        const tg = ctx.createGain();
-        tg.gain.value = 0.5;
-        const g = ctx.createGain();
-        g.gain.setValueAtTime(0, t);
-        g.gain.linearRampToValueAtTime(0.06, t + dur * 0.9);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.3);
-        trem.connect(tg).connect(g.gain);
+        o.frequency.setValueAtTime(110, t);
+        o.frequency.exponentialRampToValueAtTime(620, t + dur);
         const f = ctx.createBiquadFilter();
         f.type = 'lowpass';
-        f.frequency.setValueAtTime(400, t);
-        f.frequency.exponentialRampToValueAtTime(5000, t + dur);
-        o.connect(f).connect(g).connect(this.out);
+        f.Q.value = 0.5;
+        f.frequency.setValueAtTime(350, t);
+        f.frequency.exponentialRampToValueAtTime(1500, t + dur);
+        const env = ctx.createGain();
+        env.gain.setValueAtTime(0, t);
+        env.gain.linearRampToValueAtTime(0.1, t + dur * 0.7);
+        env.gain.linearRampToValueAtTime(0.075, t + dur);
+        env.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.5);
+        // the shimmer of the tremolo rides on its own gain, a gentle quarter of the level either way
+        const trem = ctx.createGain();
+        trem.gain.value = 0.75;
+        const lfo = ctx.createOscillator();
+        lfo.frequency.setValueAtTime(5, t);
+        lfo.frequency.linearRampToValueAtTime(14, t + dur);
+        const depth = ctx.createGain();
+        depth.gain.value = 0.25;
+        lfo.connect(depth).connect(trem.gain);
+        o.connect(f).connect(env).connect(trem).connect(this.out);
         o.start(t);
-        trem.start(t);
-        o.stop(t + dur + 0.4);
-        trem.stop(t + dur + 0.4);
-        // a shimmer of bells over it
-        for (let i = 0; i < 10; i++) this._tone(t + (i / 10) * dur, 1200 + i * 180, 1400 + i * 200, 0.6, 0.012);
-        // and the burst
-        this._burst(t + dur, 1.2, 3000, 0.6, 0.25, 'bandpass');
-        this._tone(t + dur, 1800, 300, 1.0, 0.05, 'triangle');
+        lfo.start(t);
+        o.stop(t + dur + 0.6);
+        lfo.stop(t + dur + 0.6);
+        // a few soft bells over it
+        for (let i = 0; i < 8; i++) this._tone(t + (i / 8) * dur, 880 + i * 70, 900 + i * 72, 0.7, 0.014);
+        // and as you go: a soft whoosh and a falling note rather than a crack
+        this._swell(t + dur - 0.15, 0.9, 1100, 0.14);
+        this._tone(t + dur, 700, 180, 1.0, 0.045, 'triangle');
+    }
+
+    /** A breath of filtered noise that swells in and dies away (no sharp edge). */
+    _swell(t, dur, freq, vol) {
+        const ctx = this.ctx;
+        const s = ctx.createBufferSource();
+        s.buffer = this.noise;
+        const f = ctx.createBiquadFilter();
+        f.type = 'lowpass';
+        f.frequency.value = freq;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(vol, t + dur * 0.3);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        s.connect(f).connect(g).connect(this.out);
+        s.start(t, Math.random() * 2);
+        s.stop(t + dur + 0.05);
     }
 
     /** Arriving: a chime, falling into place. */
@@ -204,7 +228,7 @@ export class RocketAudio {
         if (!this.on || this.audio.muted) return;
         const t = this.ctx.currentTime;
         [1318.5, 987.8, 783.99, 659.25].forEach((f, i) => this._tone(t + i * 0.09, f, f * 0.998, 1.4, 0.035, 'sine'));
-        this._burst(t, 0.8, 1600, 0.5, 0.08, 'bandpass');
+        this._swell(t, 0.8, 1400, 0.08);
     }
 
     /** The oxygen alarm: `urgent` beeps faster and higher. */
