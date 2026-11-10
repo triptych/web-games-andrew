@@ -1592,6 +1592,17 @@ h1 {
     box-shadow: 0 0 14px rgba(122, 255, 200, 0.55);
 }
 
+.game-preview.emberspire,
+.carousel-slide-bg.emberspire {
+    background: linear-gradient(180deg, #4a2a6a 0%, #c0503a 55%, #f2b45a 100%);
+}
+
+.game-card.emberspire .play-button {
+    background: linear-gradient(135deg, #ffb24a, #d9622a, #7a2508);
+    color: #2a1004;
+    box-shadow: 0 0 14px rgba(255, 122, 60, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
