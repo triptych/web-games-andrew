@@ -392,6 +392,25 @@ async function fishing() {
     check(layout.dz < -0.7, `the pier points away from the dock, out of the far side of the island (dz ${layout.dz.toFixed(2)})`);
     check(layout.onDeck && Math.abs(layout.y - 1.55) < 0.01 && layout.landmark, 'its end is a deck above the water, and the map lists it');
 
+    // the trail meets the deck at its own height (the cliff once ate the bank away
+    // under the shore end, leaving the deck a step too high to climb), and a walk
+    // from the pavilion's plaza along it reaches the end of the pier
+    const access = await page.evaluate(() => {
+        const g = window.__garden, w = g.world, p = w.pier, c = g.controls, pv = g.layout.pier.spoke.pavilion;
+        let rise = 0;
+        const t0 = p.trail.pts[0];
+        for (let s = -1; s <= 1; s += 0.25) rise = Math.max(rise, w.walkHeight(p.ax + p.dx * s, p.az + p.dz * s) - w.walkHeight(p.ax + p.dx * (s - 0.25), p.az + p.dz * (s - 0.25)));
+        c.teleport(t0.x, t0.z, 0);
+        c.enabled = true;
+        c.walkTo([{ x: p.ax, z: p.az }, { x: p.stand.x, z: p.stand.z }]);
+        for (let t = 0; c.route && t < 60; t += 1 / 30) c.update(1 / 30);
+        const d = Math.hypot(c.pos.x - p.stand.x, c.pos.z - p.stand.z);
+        c.teleport(pv.x, pv.z, 0);
+        return { rise, d };
+    });
+    check(access.rise < 0.3, `no step up where the trail meets the deck (largest rise ${access.rise.toFixed(2)} m in 0.25 m)`);
+    check(access.d < 0.6, `walking from the trail out along the pier reaches its end (${access.d.toFixed(2)} m short)`);
+
     // walk out along the deck: the arrival hint
     await page.evaluate(() => {
         const g = window.__garden, p = g.world.pier;
