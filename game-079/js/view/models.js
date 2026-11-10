@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { patchActor, actorUniforms } from './shaderlib.js';
 
 const V = (x, y) => new THREE.Vector2(x, y);
@@ -458,15 +459,17 @@ function pylon(U) {
 //   yaw   turn that makes the model face -z (Meshy models come out facing +z, the tank faces +x)
 //   lift  how far the model's lowest point sits above the root (Rourke hangs in the air)
 //   mid   pivot the lean about mid-height instead of the feet (things that fly or hover)
+//   rig   rigged by Meshy: <name>.glb is a skinned mesh and <name>_walk.glb / <name>_run.glb hold
+//         the walking and running clips (armature only). The rest are static meshes.
 const GLB = {
-    trooper: { h: 1.9, yaw: Math.PI },
+    trooper: { h: 1.9, yaw: Math.PI, rig: true },
     chomper: { h: 0.9, yaw: Math.PI },
     drone: { h: 1.0, yaw: Math.PI, mid: true },
-    brute: { h: 2.6, yaw: Math.PI },
+    brute: { h: 2.6, yaw: Math.PI, rig: true },
     psy: { h: 2.4, yaw: Math.PI, mid: true },
     tank: { h: 2.0, yaw: Math.PI / 2 },
     chompra: { h: 3.4, yaw: Math.PI },
-    vrask: { h: 3.0, yaw: Math.PI },
+    vrask: { h: 3.0, yaw: Math.PI, rig: true },
     rourke: { h: 5.0, yaw: Math.PI, lift: 0.4, mid: true },
 };
 const GLB_CACHE = new Map();
@@ -474,10 +477,20 @@ const GLB_CACHE = new Map();
 /** Start fetching every GLB. Resolves once all have loaded or failed; failures are not fatal. */
 export function loadModels(base = new URL('../../assets/models/', import.meta.url).href) {
     const loader = new GLTFLoader();
-    return Promise.all(Object.keys(GLB).map((type) => loader.loadAsync(`${base}${type}.glb`).then((gltf) => {
-        const box = new THREE.Box3().setFromObject(gltf.scene);
-        GLB_CACHE.set(type, { scene: gltf.scene, box });
-    }).catch((err) => console.warn(`model ${type}: using the procedural fallback (${err.message || err})`))));
+    return Promise.all(Object.keys(GLB).map(async (type) => {
+        try {
+            const gltf = await loader.loadAsync(`${base}${type}.glb`);
+            gltf.scene.updateMatrixWorld(true);
+            const box = new THREE.Box3().setFromObject(gltf.scene, true);   // precise: skinned meshes in their bind pose
+            const entry = { scene: gltf.scene, box, clips: null };
+            if (GLB[type].rig) {
+                const [walk, run] = await Promise.all(['walk', 'run'].map((c) => loader.loadAsync(`${base}${type}_${c}.glb`)));
+                entry.clips = { idle: gltf.animations[0], walk: walk.animations[0], run: run.animations[0] };
+                if (!entry.clips.idle || !entry.clips.walk || !entry.clips.run) throw new Error('missing animation clip');
+            }
+            GLB_CACHE.set(type, entry);
+        } catch (err) { console.warn(`model ${type}: using the procedural fallback (${err.message || err})`); }
+    }));
 }
 
 /** A copy of a Meshy material that is lit like the world and takes the hit / freeze / burn uniforms. */
@@ -501,16 +514,26 @@ function glbModel(type, U) {
     const holder = pivot(body, [0, cfg.mid ? -cfg.h / 2 : lift, 0]);
     holder.scale.setScalar(s);
     holder.rotation.y = cfg.yaw;
-    const mesh = src.scene.clone(true);
+    const mesh = src.clips ? cloneSkinned(src.scene) : src.scene.clone(true);
     mesh.position.set(-mid.x, -src.box.min.y, -mid.z);
     const mats = new Map();
     mesh.traverse((o) => {
         if (!o.isMesh) return;
+        if (o.isSkinnedMesh) o.frustumCulled = false;     // the bind-pose bounds don't follow the animation
         if (!mats.has(o.material)) mats.set(o.material, actorCopy(o.material, U));
         o.material = mats.get(o.material);
     });
     holder.add(mesh);
     const m = { root, body, height: cfg.h, glb: true, rest: body.position.y, scale: 1 };
+    if (src.clips) {
+        // idle (the bind pose), walk and run all play, weighted by speed; animateGlb() drives their times
+        const mixer = new THREE.AnimationMixer(mesh);
+        m.mixer = mixer;
+        m.acts = {};
+        for (const k of ['idle', 'walk', 'run']) { const a = mixer.clipAction(src.clips[k]); a.play(); a.setEffectiveWeight(k === 'idle' ? 1 : 0); m.acts[k] = a; }
+        m.gait = Math.random();
+        m.vWalk = 1.4 * cfg.h / 1.7; m.vRun = 4.0 * cfg.h / 1.7;     // the speeds the clips were made for, scaled to the height
+    }
     if (type === 'rourke') {
         m.shield = add(root, geo('rk_shield', () => new THREE.IcosahedronGeometry(3.4, 3)), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 0.3, 1.6), transparent: true, opacity: 0.25, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), [0, 2.7, 0]);
         m.shield.visible = false;
@@ -694,6 +717,18 @@ function animateGlb(m, e, dt, t, ph, walk, sp) {
             m.shield.visible = !!e.invuln;
             m.shield.rotation.y = t * 0.5;
             break;
+    }
+    if (m.mixer) {
+        // the clips do the walking: weights by speed, one shared phase so walk and run stay in step
+        bob = 0; sway = 0;
+        const w = Math.min(1, sp / 0.6), t = Math.max(0, Math.min(1, (sp - m.vWalk) / (m.vRun - m.vWalk)));
+        const a = m.acts;
+        a.idle.setEffectiveWeight(1 - w); a.walk.setEffectiveWeight(w * (1 - t)); a.run.setEffectiveWeight(w * t);
+        const vNow = m.vWalk + (m.vRun - m.vWalk) * t;
+        m.gait = (m.gait + dt * Math.max(0.5, Math.min(1.6, sp / vNow)) * (1 + 0.3 * t)) % 1;
+        a.walk.time = m.gait * a.walk.getClip().duration;
+        a.run.time = m.gait * a.run.getClip().duration;
+        m.mixer.update(0);
     }
     b.position.y = lerp(b.position.y, m.rest + bob, k);
     b.position.z = lerp(b.position.z, z, k);
