@@ -13,7 +13,7 @@ import { makeRng, hashStr } from '../rng.js';
 import { HEROES, HERO, CLASSES, SKILLS } from './data/heroes.js';
 import { GEAR, RARITY, GOODS, UNIQUES, MAX_PLUS, MAX_PLUS_UNIQUE } from './data/items.js';
 import { SCENES, SMALLTALK, BOND_XP, BOND_EVENING, QUEST_TEMPLATES, MILESTONES, DAILY, BLESSINGS, WATCHER_BOSS } from './data/story.js';
-import { gearMult, goldScale, xpScale, xpNext, heroStats, blessing, power, rankOfFloor } from './stats.js';
+import { gearMult, goldScale, xpScale, xpNext, heroStats, gearStats, blessing, power, rankOfFloor } from './stats.js';
 import { startBattle, command, stepBattle, runAiTurn, unit } from './battle.js';
 import { makeGear, gainXp, usefulType, ownsUnique } from './loot.js';
 
@@ -126,6 +126,45 @@ export function canEquip(G, id, it) {
     if (slot === 'weapon') return it.type === base.weapon;
     if (slot === 'armor') return it.type === base.armor;
     return true;
+}
+/** How much a piece is worth to this hero: weights its stats by what the class uses (Equip best, the bot). */
+export function gearScore(G, id, it) {
+    if (!it) return 0;
+    const c = CLASSES[G.heroes[id].cls];
+    const magic = c.g[3] > c.g[2];
+    const s = gearStats(it).flat;
+    const v = (s.atk || 0) * (magic ? 0.4 : 1.2) + (s.mag || 0) * (magic ? 1.2 : 0.3) + (s.def || 0) * 0.8 + (s.res || 0) * 0.7 + (s.hp || 0) / 5 + (s.spd || 0) * 2 + (s.crit || 0) * 1.5 + (s.mp || 0) * 0.2;
+    return v * (1 + 0.04 * (it.aff || []).length) * (it.u ? 1.3 : 1);
+}
+/** Put the best gear on everyone: the party first (in party order), then the bench. A hero may take armor or an
+ *  accessory from someone later in that order (who then picks again from what is left); weapons are never taken
+ *  off another hero, so nobody is left empty-handed. Returns how many pieces changed hands. */
+function equipBest(G) {
+    const order = [...G.party, ...joined(G).filter((id) => !G.party.includes(id))];
+    const rank = Object.fromEntries(order.map((id, i) => [id, i]));
+    let n = 0;
+    for (const id of order) {
+        for (const slot of ['weapon', 'armor', 'acc']) {
+            const cur = G.gear[G.heroes[id].eq[slot]];
+            let best = cur, bestV = gearScore(G, id, cur);
+            for (const it of Object.values(G.gear)) {
+                if (it.shop || it === cur || slotOf(it) !== slot || !canEquip(G, id, it)) continue;
+                const owner = equippedBy(G, it.uid);
+                if (owner && (slot === 'weapon' || rank[owner.id] === undefined || rank[owner.id] < rank[id])) continue;
+                const v = gearScore(G, id, it);
+                if (v > bestV + 1e-9) { best = it; bestV = v; }
+            }
+            if (best && best !== cur) {
+                const was = equippedBy(G, best.uid);
+                if (was) G.heroes[was.id].eq[was.slot] = null;
+                G.heroes[id].eq[slot] = best.uid;
+                best.isNew = false;
+                n++;
+            }
+        }
+    }
+    for (const id of order) clampHp(G, id);
+    return n;
 }
 export function questProgress(G, q) {
     if (q.ms) {
@@ -263,6 +302,7 @@ const CMDS = {
         G.mode = 'town';
         G.phase = 'evening';
         G.climbWait = 0;
+        if (G.flags.autoEquip) { const n = equipBest(G); if (n) G.events.push({ type: 'equipBest', n, auto: true }); }
         return true;
     },
 
@@ -366,6 +406,18 @@ const CMDS = {
         G.heroes[id].eq[slot] = uid;
         it.isNew = false;
         clampHp(G, id);
+        return true;
+    },
+    /** Equip best: the best gear on every hero (see equipBest). Always succeeds; the event says how much changed. */
+    equipBest(G) {
+        if (!inTown(G)) return false;
+        G.events.push({ type: 'equipBest', n: equipBest(G) });
+        return true;
+    },
+    /** Equip best by itself every time the party comes home. */
+    autoEquip(G, { on }) {
+        G.flags.autoEquip = !!on;
+        if (on && inTown(G)) { const n = equipBest(G); if (n) G.events.push({ type: 'equipBest', n, auto: true }); }
         return true;
     },
     unequip(G, { id, slot }) {

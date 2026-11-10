@@ -140,6 +140,10 @@ function toTower() {
     ui.showTopbar(false);
     layout();
     if (G.battle) { stage.setBattle(G); stage.sync(G); }
+    // The theme normally starts with the battle's 'battle' event. Continuing a saved fight (a reload mid-battle)
+    // has no such event, and the title music played on through the fight.
+    const B = G.battle;
+    if (B) audio.play(['won', 'lost', 'fled'].includes(B.phase) ? null : B.rank === 'boss' ? 'boss' : 'battle');
     ui.renderBattle(G, stage);
     ui.topbar(G);
 }
@@ -189,6 +193,7 @@ function flushEvents() {
             case 'learn': ui.toast(`Learned ${e.rank > 1 ? 'rank ' + e.rank + ' ' : ''}${skillName(e.skill)}.`); break;
             case 'evolve': ui.popup(`${HERO[e.id].name} becomes a ${CLASSES[e.cls].name}!`, ui.para(`New skills await at the Temple: ${CLASSES[e.cls].skills.map((s) => s.name).join(', ')}. At level 40, ${CLASSES[e.cls].name}s can ascend.`)); break;
             case 'ascend': ui.toast(`${HERO[e.id].name} ascends: ${e.name}!`); break;
+            case 'equipBest': ui.toast(e.n ? `${e.auto ? 'Auto-equip: ' : ''}${e.n} piece${e.n === 1 ? '' : 's'} of gear changed hands. Everyone wears their best.` : 'Everyone already wears their best.'); break;
             case 'salvage': ui.toast(`Salvaged for ${e.ore} ore.`); break;
             case 'trade': ui.toast(`Zephyrine hands over ${gearName(G.gear[e.uid])}.`); break;
             case 'claim': ui.popup('Bounty paid', ui.rewardChips(G, e.got)); break;

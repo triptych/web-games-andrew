@@ -496,7 +496,10 @@ export class UI {
                     h('div.chips', { style: { marginTop: '4px' } }, slots),
                     h('div.chips', { style: { marginTop: '4px' } }, toggle, errand))));
         }
-        panel.append(h('p.hint', { text: `Up to ${PARTY_MAX} heroes climb. The bench still learns a share of every battle, and heroes on errands earn while you're away.` }), list);
+        const tools = h('div.chips', { style: { marginBottom: '8px' } },
+            h('button.btn.primary', { 'data-k': 'equip-best', title: 'Put the best gear you own on every hero: the party first, then the bench', on: { click: () => this.send({ t: 'equipBest' }) } }, '⚔ Equip best'),
+            h('button.btn.toggle' + (G.flags.autoEquip ? '.on' : ''), { 'data-k': 'auto-equip', 'aria-pressed': String(!!G.flags.autoEquip), title: 'Equip best by itself every time you come home from the tower', on: { click: () => this.send({ t: 'autoEquip', on: !G.flags.autoEquip }) } }, `Auto-equip on coming home: ${G.flags.autoEquip ? 'ON' : 'off'}`));
+        panel.append(h('p.hint', { text: `Up to ${PARTY_MAX} heroes climb. The bench still learns a share of every battle, and heroes on errands earn while you're away.` }), tools, list);
     }
 
     equipPicker(G, id, slot) {

@@ -338,6 +338,48 @@ if (want('rules')) {
     ok(!Gm.act(G, { t: 'sell', uid: G.heroes.arin.eq.weapon }), 'equipped gear can\'t be sold');
     G.inv.core = 3;
     ok(Gm.act(G, { t: 'coreTrade', type: 'sword' }) && G.inv.core === 0 && Object.values(G.gear).some((g) => g.type === 'sword' && g.rar === 3), 'three cores buy an epic piece');
+    // Equip best (v1.0.5)
+    {
+        const L = await import('../js/sim/loot.js');
+        const E = Gm.newGame(43);
+        E.gold = 1e6; E.best = 2;
+        Gm.act(E, { t: 'recruit', id: 'brakka' });          // a second heavy-armor wearer, on the bench
+        Gm.act(E, { t: 'party', ids: ['arin', 'mira'] });
+        const old = { sword: E.heroes.arin.eq.weapon, staff: E.heroes.mira.eq.weapon, axe: E.heroes.brakka.eq.weapon };
+        const sword = L.makeGear(E, { type: 'sword', lvl: 12, rar: 2 });
+        const weakSword = L.makeGear(E, { type: 'sword', lvl: 1, rar: 0 });
+        const plate = L.makeGear(E, { type: 'heavy', lvl: 12, rar: 1 });
+        const robe = L.makeGear(E, { type: 'robe', lvl: 12, rar: 1 });
+        const ring = L.makeGear(E, { type: 'ring', lvl: 12, rar: 2 });
+        const amulet = L.makeGear(E, { type: 'amulet', lvl: 3, rar: 0 });
+        E.heroes.brakka.eq.armor = plate;                      // the bench wears the best plate for now
+        drain(E);
+        const p0 = St.power(E, 'arin') + St.power(E, 'mira');
+        ok(Gm.act(E, { t: 'equipBest' }), 'Equip best works in town');
+        const ev = drain(E).find((e) => e.type === 'equipBest');
+        ok(E.heroes.arin.eq.weapon === sword && E.heroes.arin.eq.weapon !== weakSword, 'Arin takes the best sword in the bag, not a weaker one');
+        ok(E.heroes.arin.eq.armor === plate && E.heroes.brakka.eq.armor !== plate, 'a party hero takes better armor off a benched hero');
+        ok(E.heroes.mira.eq.armor === robe && E.heroes.arin.eq.armor !== robe, 'each hero only gets gear their class can wear');
+        ok(E.heroes.arin.eq.acc === ring && E.heroes.mira.eq.acc && E.heroes.mira.eq.acc !== ring, 'the party leader gets the best accessory, the next hero the next best');
+        ok(E.heroes.mira.eq.weapon === old.staff && E.heroes.brakka.eq.weapon === old.axe, 'nobody loses a weapon');
+        ok(St.power(E, 'arin') + St.power(E, 'mira') > p0, 'and the party is stronger for it');
+        ok(ev && ev.n >= 4, `the event says how much changed (${ev?.n})`);
+        const snap = JSON.stringify(Object.fromEntries(Object.entries(E.heroes).map(([k, v]) => [k, v.eq])));
+        Gm.act(E, { t: 'equipBest' });
+        ok(JSON.stringify(Object.fromEntries(Object.entries(E.heroes).map(([k, v]) => [k, v.eq]))) === snap && drain(E).find((e) => e.type === 'equipBest').n === 0, 'pressing it again changes nothing');
+        // the option: equip best by itself on coming home
+        ok(!E.flags.autoEquip, 'auto-equip starts off');
+        Gm.act(E, { t: 'autoEquip', on: true });
+        ok(E.flags.autoEquip === true, 'the auto-equip option is kept in the save');
+        Gm.act(E, { t: 'enter', floor: 1 });
+        const loot = L.makeGear(E, { type: 'sword', lvl: 30, rar: 3 });
+        Gm.autoResolve(E);
+        Gm.act(E, { t: 'leave' });
+        ok(E.mode === 'town' && E.heroes.arin.eq.weapon === loot && drain(E).some((e) => e.type === 'equipBest' && e.auto), 'with it on, coming home puts on new loot by itself');
+        const R = Gm.deserialize(Gm.serialize(E));
+        ok(R.flags.autoEquip === true, 'and the option survives a save');
+        ok(Gm.act(Gm.newGame(44), { t: 'equipBest' }), 'a fresh game can Equip best too');
+    }
     // temple: learn, evolve, ascend
     G = Gm.newGame(42);
     const h = G.heroes.arin;

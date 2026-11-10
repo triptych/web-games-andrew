@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **EMBERSPIRE** (game-126) v1.0.5: an **Equip best** button on the party screen puts the best gear you own on every hero, the party first and then the bench, scored by what each class uses; a party hero can take armor or an accessory from someone later in the order, but no one ever loses their weapon ([game.js](game-126/js/sim/game.js)). **Auto-equip on coming home**, saved with the game, does it by itself after every climb. Requested by a player. Tested in [simtest.mjs](game-126/dev/simtest.mjs) (best sword over a weaker one, armor taken off the bench, class restrictions, accessories by party order, nobody loses a weapon, a second press changes nothing, new loot goes on when you come home, the option survives a save) and [browsertest.mjs](game-126/dev/browsertest.mjs).
+
+### Fixed
+- **EMBERSPIRE** (game-126) v1.0.5: reloading mid-battle and pressing Continue put you back in the fight with the title music still playing; the battle screen now starts the battle or boss theme itself ([main.js](game-126/js/main.js)). [browsertest.mjs](game-126/dev/browsertest.mjs) reloads mid-fight on floors 3 and 10 and checks the theme; it fails without the fix. Reported by a player.
+
 ### Fixed
 - **EMBERSPIRE** (game-126) v1.0.4: Auto, Climb and the battle speed button ignored many clicks once a battle was moving, worst at 3x: Auto wouldn't switch off during the monsters' turns, a second click then flipped it the wrong way (so the auto-climb countdown never came when you thought Auto was back on), and 3x couldn't be clicked back to 1x. The battle panel re-rendered whenever a turn started or an animation ended and rebuilt these buttons each time, so a click whose press and release straddled a re-render was lost; the toggle row is now built once and only relabelled ([ui.js](game-126/js/ui.js)). [browsertest.mjs](game-126/dev/browsertest.mjs) presses Auto and the speed button with a re-render between mouse down and up; both fail without the fix. Also, three sprites mirrored by mistake in v1.0.0 faced the wrong way in battle: Grubnak (the floor 5 mini boss) and Celestine (the floor 80 boss) now face the party and Thorne faces the monsters; every monster and hero sprite was rechecked at full size ([export.py](game-126/dev/art/export.py)). Reported by a player.
 
