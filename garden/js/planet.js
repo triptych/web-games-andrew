@@ -739,7 +739,7 @@ export class Planet {
             if (m.isMesh) m.userData.kind = 'pilot';
         });
         this.scene.add(p.group);
-        const back = new V3(0, 0, -0.75).applyAxisAngle(new V3(0, 1, 0), p.group.rotation.y);
+        const back = new V3(0, 0, -1.35).applyAxisAngle(new V3(0, 1, 0), p.group.rotation.y);
         this.cols.push({ x: best.x + back.x, z: best.z + back.z, r: 0.9 });
         const hit = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 2.6), new THREE.MeshBasicMaterial({ visible: false }));
         hit.position.set(0, 0.9, 0);
