@@ -470,6 +470,12 @@ export class Foundry {
             const t = ox * d.x + oy * d.y + oz * d.z;
             if (t > 0 && t < 90 && ox * ox + oy * oy + oz * oz - t * t < sg.r * sg.r && (!best || t < best.t)) best = { type: 'sarge', t };
         }
+        // the exit: the door in the far wall and the great sign over it
+        const ex = ray.ray.intersectBox(EXIT_BOX, _hit);
+        if (ex) {
+            const t = ex.distanceTo(o);
+            if (t < 140 && (!best || t < best.t)) best = { type: 'exit', t };
+        }
         // the lift car
         const car = new THREE.Box3(new V3(LIFT.x - 1.7, this.hall.carY, LIFT.z - 1.7), new V3(LIFT.x + 1.7, this.hall.carY + 3.3, LIFT.z + 1.7));
         const hit = ray.ray.intersectBox(car, new V3());
@@ -504,6 +510,10 @@ export class Foundry {
         else if (h.type === 'robot') {
             const n = this._robotNote(h.robot);
             this.env.ui?.hint(`${n.title}: ${n.desc}`, 5000);
+        } else if (h.type === 'exit') {
+            // the units never reach it, but you can: out into daylight, and the Springwood
+            this.env.audio?.click();
+            this.onForest?.();
         } else if (h.type === 'lava') this.env.ui?.hint('A stretch of the main gangway rusted through and fell in here, years ago. Nobody has mended it', 5000);
         return h;
     }
@@ -527,6 +537,7 @@ export class Foundry {
         if (!h) return null;
         if (h.type === 'robot') return this._robotNote(h.robot);
         if (h.type === 'sarge') return SARGE_NOTE;
+        if (h.type === 'exit') return { icon: '\u{1F6AA}', kicker: 'The far wall', title: 'The exit', desc: 'A door full of daylight, under a very large sign. Not one unit has ever reached it. You can.', cta: 'Click to step through →', accent: '#6aff9a' };
         if (h.type === 'lift') return { icon: '\u{1F6D7}', kicker: 'The lift', title: 'Up to the Works', desc: 'A brass cage on a lattice shaft that goes up through the roof to the machine hall under the clock tower.', cta: 'Click, or walk in →', accent: '#ffd98a' };
         if (h.type === 'lava') return { icon: '\u{1F30B}', kicker: 'The pit', title: 'Lava', desc: 'Fourteen metres below the gangways. Long ago a stretch of the walkway rusted through and fell in, and every unit heading for the exit walks straight into the gap.', accent: '#ff6a2a' };
         return null;
@@ -541,5 +552,8 @@ export class Foundry {
     }
 }
 
+// the exit door and its sign, for picking
+const EXIT_BOX = new THREE.Box3(new V3(-9.2, 0, Z_FAR - 0.5), new V3(9.2, 14.8, Z_FAR + 1.2));
+const _hit = new V3();
 const SARGE_NOTE = { icon: '\u{1F396}\u{FE0F}', kicker: 'Beside the walkway, just short of the exit', title: 'The Quartermaster', desc: 'A big olive-drab unit with a crate of laser rifles, issuing one to every unit that marches past. It has never once looked up from the crate at the walkway ahead.', accent: '#a8c070' };
 export { STATIONS, LINES, MOVE, DWELL, SERIAL0, CEIL };

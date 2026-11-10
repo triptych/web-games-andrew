@@ -220,6 +220,24 @@ await G('document.getElementById("fd-up").click()');
 await frames(5);
 await until('g.roomKind === "works"', 300000);
 check(true, 'the Ride up button takes you up');
+// and the one way out the units never find: the exit, into the Springwood
+await G('g.rideLift(true)');
+await until('g.roomKind === "foundry"', 300000);
+await G('(g.foundry.ride.t = 9.9)');
+await until('!g.foundry.busy', 300000);
+await stand(3.0, -242, 0, 0.18, 12);
+const ep = await page.evaluate(() => {
+    const g = window.__garden;
+    const p = new g.camera.position.constructor(0, 10, -251.5).project(g.camera);
+    return { x: (p.x * 0.5 + 0.5) * innerWidth, y: (-p.y * 0.5 + 0.5) * innerHeight };
+});
+await page.mouse.move(ep.x, ep.y);
+await frames(6);
+check(/exit/i.test(await page.evaluate(() => document.querySelector('#tooltip')?.textContent ?? '')), 'hovering the exit shows its card');
+await shot('13-exit');
+await page.mouse.click(ep.x, ep.y);
+await until('g.roomKind === "forest" && g.forest?.inside !== false', 300000);
+check(true, 'clicking the exit takes you out into the Springwood');
 check(errors.length === 0, 'no errors' + (errors.length ? ': ' + errors.join('\n') : ''));
 await browser.close();
 console.log('foundry: all ok');
