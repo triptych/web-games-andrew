@@ -301,6 +301,27 @@ async function phone(w, h) {
     const small = await Q(page, () => [...document.querySelectorAll('#town button, #topbar button')].filter((b) => b.getClientRects().length).map((b) => { const r = b.getBoundingClientRect(); return { ok: r.width >= 44 && r.height >= 36 && r.left >= -1 && r.right <= innerWidth + 1, t: b.textContent.slice(0, 20) }; }).filter((x) => !x.ok));
     check(small.length === 0, `town buttons are finger-sized and on screen ${small.length ? JSON.stringify(small) : ''}`);
     await shot(page, `phone-${w}x${h}-town`);
+    // v1.0.8: on a phone, a row's buttons took the width and squeezed its description to a word per line
+    const squeezed = await Q(page, () => {
+        const G = __es.G, ui = __es.ui, out = [];
+        G.gold += 1e5; G.inv.ore += 50; G.inv.shard += 9; G.inv.core += 9;
+        const tabsOf = { forge: ['worn', 'bag'], market: ['goods', 'gear', 'special', 'sell'], tavern: ['hire'], guild: [null], temple: [null], party: [null], treasury: [null] };
+        for (const [place, tabs] of Object.entries(tabsOf)) {
+            for (const tab of tabs) {
+                if (tab) ui.tab[place] = tab;
+                ui.openPlace(G, place);
+                for (const it of document.querySelectorAll('#place .item')) {
+                    const g = it.querySelector('.grow');
+                    if (!g || !it.querySelector('.acts button')) continue;
+                    const gw = g.getBoundingClientRect().width;
+                    if (gw < Math.min(200, it.getBoundingClientRect().width * 0.6)) out.push(`${place}${tab ? '/' + tab : ''}: ${Math.round(gw)}px for "${g.textContent.slice(0, 24)}"`);
+                }
+                ui.closePlace(G);
+            }
+        }
+        return out;
+    });
+    check(squeezed.length === 0, `no shop, forge or menu row squeezes its description on a ${w}px screen ${squeezed.length ? JSON.stringify(squeezed.slice(0, 4)) + ` (${squeezed.length} rows)` : ''}`);
     await tapSel('#town [data-place="gate"]');
     await until(page, visible('#place [data-k="floor-1"]'), 'a tap opens the Gate');
     await tapSel('#place [data-k="floor-1"]');

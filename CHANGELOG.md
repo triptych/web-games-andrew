@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **EMBERSPIRE** (game-126) v1.0.8: on phones, rows in the Forge, Market, Tavern, Temple, Guild and party screens squeezed their description to a word per line because the row's buttons kept their full width beside it. The description now keeps at least 200px and the buttons wrap onto their own line when there isn't room ([style.css](game-126/style.css)). [browsertest.mjs](game-126/dev/browsertest.mjs) opens every building and tab on both phone sizes and measures every row; on a 390px phone it found 23 squeezed rows before the fix. Reported by a player.
 - **The First Dragon Prince** (game-127) v1.0.1: pressing Continue on the last period of a month that leads into a story scene (Thawmoon's meeting with Rowan, for one) left a blank backdrop with no dialogue box. Panel buttons redrew only the panel; every redraw now goes through [main.js](game-127/js/main.js), which draws whichever of the panel and the scene is current. The [browser test](game-127/dev/browsertest.mjs) now clicks that Continue and checks the dialogue box takes over, on desktop and by taps on both phones; it fails on v1.0.0.
 
 ### Added
