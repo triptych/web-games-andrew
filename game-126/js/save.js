@@ -5,7 +5,9 @@ import { SAVE_KEY } from './config.js';
 import { serialize, deserialize } from './sim/game.js';
 
 const SETTINGS_KEY = SAVE_KEY + '.settings';
-const DEFAULTS = { sfx: 0.7, music: 0.45, voice: 0.9, speed: 1 };
+// greet: town greetings play by themselves the first GREET_AUTO visits ('few'), on 'every' visit, or only on the 🔊 ('tap');
+// greetPlays counts how many times each greeting has played by itself, so the choice survives a reload.
+const DEFAULTS = { sfx: 0.7, music: 0.45, voice: 0.9, speed: 1, greet: 'few', greetPlays: {} };
 
 function read(key) {
     try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : null; } catch { return null; }

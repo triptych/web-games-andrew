@@ -10,10 +10,9 @@ import { HERO, CLASSES } from './data/heroes.js';
 import { GOODS } from './data/items.js';
 import { SCENES } from './data/story.js';
 import {
-    act, joined, checkpoints, recruitable, recruitCost, skillList, upgradeCost, maxPlus, reforgeCost, equippedBy,
+    act, joined, checkpoints, recruitable, recruitCost, skillList, upgradeCost, maxPlus, reforgeCost, equippedBy, gearScore,
     canEquip, slotOf, shardPrice, boardQuests, questProgress, partyHealth, gearPrice, autoResolve, power,
 } from './game.js';
-import { gearStats } from './stats.js';
 
 export function makeBot({ diligence = 1, retreatAt = 0.4 } = {}) {
     return { diligence, retreatAt, day: 0 };
@@ -22,14 +21,6 @@ export function makeBot({ diligence = 1, retreatAt = 0.4 } = {}) {
 const HEALERS = ['cleric', 'saint', 'oracle', 'alchemist', 'apothecary', 'bombardier', 'bard', 'maestro', 'skald'];
 
 /** A rough value of a gear item for a hero: its stat lines weighted by what the class uses. */
-function gearValue(G, id, it) {
-    if (!it) return 0;
-    const c = CLASSES[G.heroes[id].cls];
-    const magic = c.g[3] > c.g[2];
-    const s = gearStats(it).flat;
-    const v = (s.atk || 0) * (magic ? 0.4 : 1.2) + (s.mag || 0) * (magic ? 1.2 : 0.3) + (s.def || 0) * 0.8 + (s.res || 0) * 0.7 + (s.hp || 0) / 5 + (s.spd || 0) * 2 + (s.crit || 0) * 1.5 + (s.mp || 0) * 0.2;
-    return v * (1 + 0.04 * (it.aff || []).length) * (it.u ? 1.3 : 1);
-}
 
 function bestParty(G) {
     const js = joined(G).sort((a, b) => power(G, b) - power(G, a));
@@ -76,7 +67,7 @@ function townDay(G, bot, day) {
             const cur = G.gear[G.heroes[id].eq[slot]];
             const owner = equippedBy(G, it.uid);
             if (owner && owner.id !== id && G.party.includes(owner.id)) continue;
-            if (gearValue(G, id, it) > gearValue(G, id, cur) * 1.02) act(G, { t: 'equip', id, uid: it.uid });
+            if (gearScore(G, id, it) > gearScore(G, id, cur) * 1.02) act(G, { t: 'equip', id, uid: it.uid });
         }
     }
     // shop: consumables first
@@ -110,7 +101,7 @@ function townDay(G, bot, day) {
             for (const id of G.party) {
                 if (!canEquip(G, id, it)) continue;
                 const cur = G.gear[G.heroes[id].eq[slotOf(it)]];
-                if (gearValue(G, id, it) > gearValue(G, id, cur) * 1.25 && G.gold > gearPrice(it) * 2) {
+                if (gearScore(G, id, it) > gearScore(G, id, cur) * 1.25 && G.gold > gearPrice(it) * 2) {
                     if (act(G, { t: 'buyGear', uid })) { act(G, { t: 'equip', id, uid }); break; }
                 }
             }

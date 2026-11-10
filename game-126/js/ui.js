@@ -1,7 +1,7 @@
 // EMBERSPIRE — the DOM layer: the town, its buildings, the battle commands, rewards and dialogue.
 // Reads G and sends commands through `send(cmd)` (main.js runs act(), drains events, saves). Never writes G.
 
-import { VERSION, PARTY_MAX, EVOLVE_LV, ASCEND_LV } from './config.js';
+import { VERSION, PARTY_MAX, EVOLVE_LV, ASCEND_LV, AUTO_NEXT_SECONDS, DIFFICULTY } from './config.js';
 import { ART, setIcon, iconEl, img } from './assets.js';
 import { HEROES, HERO, CLASSES, SKILLS, STATUS } from './sim/data/heroes.js';
 import { BIOMES, MONSTERS, biomeOf } from './sim/data/biomes.js';
@@ -11,7 +11,7 @@ import {
     joined, checkpoints, recruitable, recruitCost, skillList, upgradeCost, maxPlus, reforgeCost, gearPrice, salvageValue,
     equippedBy, canEquip, slotOf, boardQuests, questProgress, shardPrice, baseClass, partyHealth,
 } from './sim/game.js';
-import { heroStats, gearStats, gearName, xpNext, power, uniqueFx } from './sim/stats.js';
+import { heroStats, gearStats, gearName, xpNext, power, uniqueFx, rankOfFloor } from './sim/stats.js';
 import { options, targetsFor, skillFor, unit as bunit } from './sim/battle.js';
 import { MONSTER_ACTS } from './sim/data/acts.js';
 
@@ -57,12 +57,15 @@ const className = (G, id) => {
     return hh.tier >= 3 ? CLASSES[hh.cls].asc : CLASSES[hh.cls].name;
 };
 const PLACE_BG = { gate: 'title', tavern: 'tavern', forge: 'smithy', market: 'shop', guild: 'guild', temple: 'temple', party: 'tavern', treasury: 'guild', bestiary: 'library' };
+// town greetings play by themselves this many times each, then only on the 🔊 by the portrait
+const GREET_AUTO = 3;
 const PLACE_NPC = { gate: 'watcher', tavern: 'bram', forge: 'hilde', market: 'zephyrine', guild: 'corwin', temple: 'amaya', treasury: 'corwin' };
 
 export class UI {
     constructor({ audio, settings, send, onSettings, onDeleteSave, onQuit }) {
         this.audio = audio;
         this.settings = settings;
+        this.onSettings = onSettings;
         this.send = send;
         this.stack = [];
         this.place = null;          // which building is open
@@ -86,10 +89,10 @@ export class UI {
             }, { capture: true });
         }
         for (const b of document.querySelectorAll('[data-close]')) b.addEventListener('click', () => { audio.ui('back'); this.closeTop(); });
-        const sfx = $('set-sfx'), music = $('set-music'), voice = $('set-voice'), speed = $('set-speed');
-        sfx.value = settings.sfx; music.value = settings.music; voice.value = settings.voice; speed.value = String(settings.speed);
-        const changed = () => { Object.assign(settings, { sfx: +sfx.value, music: +music.value, voice: +voice.value, speed: +speed.value }); onSettings(settings); };
-        for (const el of [sfx, music, voice, speed]) el.addEventListener('change', changed);
+        const sfx = $('set-sfx'), music = $('set-music'), voice = $('set-voice'), speed = $('set-speed'), greet = $('set-greet');
+        sfx.value = settings.sfx; music.value = settings.music; voice.value = settings.voice; speed.value = String(settings.speed); greet.value = settings.greet;
+        const changed = () => { Object.assign(settings, { sfx: +sfx.value, music: +music.value, voice: +voice.value, speed: +speed.value, greet: greet.value }); onSettings(settings); };
+        for (const el of [sfx, music, voice, speed, greet]) el.addEventListener('change', changed);
         $('set-delete').addEventListener('click', () => { if (confirm('Delete your saved game? This cannot be undone.')) { onDeleteSave(); this.toast('Saved game deleted.'); } });
         $('set-title').addEventListener('click', () => onQuit());
         $('btn-menu').addEventListener('click', () => { audio.ui('click'); this.openScreen('settings'); });
@@ -194,10 +197,32 @@ export class UI {
         this.setBg('town', evening);
     }
 
+    /** The town greeting when you walk in: by itself for the first GREET_AUTO visits (or every visit, or never, per
+     *  Settings), counted in the saved settings so it stays quiet after a reload. The 🔊 by the portrait replays it. */
+    greet(npc) {
+        const clip = npc === 'watcher' ? 'watcher-gate' : npc;
+        const st = this.settings;
+        st.greetPlays = st.greetPlays || {};
+        const n = st.greetPlays[clip] || 0;
+        if (st.greet === 'tap' || (st.greet !== 'every' && n >= GREET_AUTO)) return false;
+        if (!this.audio.say(clip, { gap: 2 })) return false;     // not loaded yet, or someone is already talking
+        st.greetPlays[clip] = n + 1;
+        this.onSettings(st);
+        return true;
+    }
+
+    /** Show the speaker as busy until the current voice line ends. */
+    markSpeaking(btn) {
+        btn.classList.add('playing');
+        btn.setAttribute('aria-busy', 'true');
+        clearTimeout(this._speakTimer);
+        this._speakTimer = setTimeout(() => { btn.classList.remove('playing'); btn.removeAttribute('aria-busy'); }, this.audio.voiceLeft() * 1000 + 60);
+    }
+
     openPlace(G, id) {
         this.place = id;
         const npc = PLACE_NPC[id];
-        if (npc) this.audio.say(npc === 'watcher' ? 'watcher-gate' : npc, { gap: 2 });
+        if (npc) this.greet(npc);
         this.renderPlace(G);
         $('town').style.visibility = 'hidden';
         this.openScreen('place');
@@ -212,10 +237,17 @@ export class UI {
         const focusKey = document.activeElement?.dataset?.k;
         root.replaceChildren();
         const npc = PLACE_NPC[id];
-        const greet = npc ? GREETINGS[npc][(G.day + id.length) % GREETINGS[npc].length] : null;
+        // the bubble shows the recorded line (what the 🔊 plays), and the day's own line under it when it differs
+        const voiced = npc ? GREETINGS[npc][0] : null;
+        const today = npc ? GREETINGS[npc][(G.day + id.length) % GREETINGS[npc].length] : null;
+        const clip = npc === 'watcher' ? 'watcher-gate' : npc;
+        // one line at a time: while anyone is talking the speaker dims and taps do nothing (they used to stack voices)
+        const speaker = npc ? h('button.speak', { 'data-k': 'speak', 'aria-label': `Hear ${NPCS[npc].name}`, title: `Hear ${NPCS[npc].name}`, on: { click: (e) => { if (this.audio.say(clip, { force: true })) this.markSpeaking(e.currentTarget); } } }, '🔊') : null;
+        if (speaker && this.audio.voiceLeft() > 0) this.markSpeaking(speaker);   // the greeting that just played on the way in
         const head = npc ? h('div.npc', {},
-            h('div.por', { style: { backgroundImage: `url(${por(npc)})` } }),
-            h('div.win.say', {}, h('span.who', { text: NPCS[npc].name + ' · ' + NPCS[npc].role }), greet)) : null;
+            h('div.por', { style: { backgroundImage: `url(${por(npc)})` } },
+                speaker),
+            h('div.win.say', {}, h('span.who', { text: NPCS[npc].name + ' · ' + NPCS[npc].role }), voiced, today !== voiced ? h('span.today', { text: today }) : null)) : null;
         const panel = h('div.win.panel');
         const back = h('button.btn', { 'data-k': 'back', on: { click: () => { this.audio.ui('back'); this.closePlace(G); } } }, '← Town');
         const titles = { gate: 'The Tower Gate', tavern: 'The Frothy Mug', forge: 'Hilde\'s Forge', market: 'Zephyrine\'s Wares', guild: 'Adventurers\' Guild', temple: 'Temple of the Dawn', party: 'Your Company', treasury: 'Treasury', bestiary: 'Bestiary' };
@@ -475,7 +507,10 @@ export class UI {
                     h('div.chips', { style: { marginTop: '4px' } }, slots),
                     h('div.chips', { style: { marginTop: '4px' } }, toggle, errand))));
         }
-        panel.append(h('p.hint', { text: `Up to ${PARTY_MAX} heroes climb. The bench still learns a share of every battle, and heroes on errands earn while you're away.` }), list);
+        const tools = h('div.chips', { style: { marginBottom: '8px' } },
+            h('button.btn.primary', { 'data-k': 'equip-best', title: 'Put the best gear you own on every hero: the party first, then the bench', on: { click: () => this.send({ t: 'equipBest' }) } }, '⚔ Equip best'),
+            h('button.btn.toggle' + (G.flags.autoEquip ? '.on' : ''), { 'data-k': 'auto-equip', 'aria-pressed': String(!!G.flags.autoEquip), title: 'Equip best by itself every time you come home from the tower', on: { click: () => this.send({ t: 'autoEquip', on: !G.flags.autoEquip }) } }, `Auto-equip on coming home: ${G.flags.autoEquip ? 'ON' : 'off'}`));
+        panel.append(h('p.hint', { text: `Up to ${PARTY_MAX} heroes climb. The bench still learns a share of every battle, and heroes on errands earn while you're away.` }), tools, list);
     }
 
     equipPicker(G, id, slot) {
@@ -537,6 +572,18 @@ export class UI {
         const root = $('popup');
         root.replaceChildren(h('div.win.sheet', {}, h('h2', { text: title }), body, h('div.sheet-foot', {}, foot || [h('button.btn.primary', { on: { click: () => this.closeScreen('popup') } }, 'OK')])));
         this.openScreen('popup');
+    }
+
+    /** New Game asks how hard the tower should be. onPick(level) starts the game; Back returns to the title. */
+    chooseDifficulty(onPick) {
+        const list = h('div.diff-list');
+        for (const [id, d] of Object.entries(DIFFICULTY)) {
+            list.append(h('button.btn.diff' + (id === 'standard' ? '.primary' : ''), { 'data-k': 'diff-' + id, on: { click: () => { this.audio.ui('click'); this.closeScreen('popup'); onPick(id); } } },
+                h('span.nm', { text: d.name + (id === 'standard' ? ' (recommended)' : '') }), h('span.sub', { text: d.desc })));
+        }
+        this.popup('How hard is the tower?', h('div', {}, h('p.dim', { text: 'You can change this later in Settings.' }), list),
+            [h('button.btn', { 'data-k': 'diff-back', on: { click: () => { this.audio.ui('back'); this.closeScreen('popup'); } } }, 'Back')]);
+        $('popup').querySelector('[data-k="diff-standard"]')?.focus({ preventScroll: true });
     }
 
     para(text, ...more) {
@@ -603,31 +650,48 @@ export class UI {
         this.G = G;
         const B = G.battle;
         const cmds = $('cmds');
-        cmds.replaceChildren();
         $('floor-tag').textContent = B ? `Floor ${B.floor} · ${biomeOf(B.floor).cycle ? 'Ascended ' : ''}${biomeOf(B.floor).biome.name} · ${fmt(G.gold)}g` : '';
-        if (!B) return;
+        if (!B) { cmds.replaceChildren(); return; }
         const busy = stage.busy || G.events.length > 0;
         const u = B.turn ? bunit(B, B.turn) : null;
-        const toggles = h('div.cmd-row', {},
-            h('button.btn.toggle' + (G.auto ? '.on' : ''), { 'data-k': 'auto', on: { click: () => this.send({ t: 'auto', on: !G.auto }) } }, `Auto ${G.auto ? 'ON' : 'off'}`),
-            h('button.btn.toggle' + (G.autoClimb ? '.on' : ''), { 'data-k': 'climb', title: 'Keep climbing after each victory while the party is healthy', on: { click: () => this.send({ t: 'autoClimb', on: !G.autoClimb }) } }, `Climb ${G.autoClimb ? 'ON' : 'off'}`),
-            h('button.btn', { 'data-k': 'speed', title: 'Battle speed', on: { click: () => this.cycleSpeed() } }, `${this.settings.speed}x`),
-            h('button.btn', { 'data-k': 'menu', 'aria-label': 'Menu', on: { click: () => { this.audio.ui('click'); this.openScreen('settings'); } } }, '☰'));
+        // The toggle row is built once and only relabelled. The panel re-renders every time a turn starts or an
+        // animation ends (many times a second at 3x); rebuilding these buttons then swallowed clicks that landed
+        // between press and release, so Auto, Climb and the speed seemed not to respond.
+        const t = this.toggleRow();
+        const set = (btn, on, label) => { btn.classList.toggle('on', on); btn.setAttribute('aria-pressed', String(on)); if (btn.textContent !== label) btn.textContent = label; };
+        set(t.auto, G.auto, `Auto ${G.auto ? 'ON' : 'off'}`);
+        set(t.climb, G.autoClimb, `Climb ${G.autoClimb ? 'ON' : 'off'}`);
+        if (t.speed.textContent !== `${this.settings.speed}x`) t.speed.textContent = `${this.settings.speed}x`;
+        let body;
         if (B.phase === 'input' && !busy && u && u.side === 'p') {
             stage.turn = u.uid;
-            cmds.append(this.commandMenu(G, u, stage));
+            body = this.commandMenu(G, u, stage);
         } else {
             stage.setPick(null);
             let msg = 'The battle is over.';
             if (B.phase === 'ai') msg = u && u.side === 'e' ? `${u.name} acts…` : `${u?.name ?? ''} acts on their own (auto)…`;
             else if (busy) msg = '…';
-            cmds.append(h('div.cmd-who', { text: msg }));
+            body = h('div.cmd-who', { text: msg });
         }
-        cmds.append(toggles);
+        // swap only the part above the toggles; the toggle row stays the same element
+        for (const el of [...cmds.children]) if (el !== t.row) el.remove();
+        cmds.prepend(body);
+        if (t.row.parentNode !== cmds) cmds.append(t.row);
         if (this.top() === null || this.top() === 'battle') {
             // keep keyboard focus inside the command window
             if (!cmds.contains(document.activeElement)) cmds.querySelector('button:not(:disabled)')?.focus({ preventScroll: true });
         }
+    }
+
+    /** Auto / Climb / speed / menu: one set of buttons for the whole session (see renderBattle). */
+    toggleRow() {
+        if (this._toggles) return this._toggles;
+        const auto = h('button.btn.toggle', { 'data-k': 'auto', on: { click: () => this.send({ t: 'auto', on: !this.G.auto }) } });
+        const climb = h('button.btn.toggle', { 'data-k': 'climb', title: 'Keep climbing after each victory while the party is healthy', on: { click: () => this.send({ t: 'autoClimb', on: !this.G.autoClimb }) } });
+        const speed = h('button.btn', { 'data-k': 'speed', title: 'Battle speed', on: { click: () => this.cycleSpeed() } });
+        const menu = h('button.btn', { 'data-k': 'menu', 'aria-label': 'Menu', on: { click: () => { this.audio.ui('click'); this.openScreen('settings'); } } }, '☰');
+        this._toggles = { row: h('div.cmd-row', {}, auto, climb, speed, menu), auto, climb, speed };
+        return this._toggles;
     }
 
     cycleSpeed() {
@@ -700,6 +764,27 @@ export class UI {
         return wrap;
     }
 
+    /** Count the auto-climb button down; at zero, climb. Stops if auto battle is switched off or the screen closes. */
+    tickAutoNext(dt) {
+        const a = this.autoNext;
+        if (!a) return;
+        if ($('victory').hidden || !this.G?.auto || this.G.battle?.phase !== 'won') { this.cancelAutoNext(); return; }
+        a.left -= dt;
+        const n = Math.max(0, Math.ceil(a.left));
+        a.btn.textContent = `${a.label} (${n})`;
+        a.btn.style.setProperty('--p', `${Math.max(0, Math.min(1, a.left / AUTO_NEXT_SECONDS)) * 100}%`);
+        if (a.left <= 0) { this.autoNext = null; this.send({ t: 'next' }); }
+    }
+
+    cancelAutoNext() {
+        const a = this.autoNext;
+        if (!a) return;
+        this.autoNext = null;
+        a.btn.textContent = a.label;
+        a.btn.style.removeProperty('--p');
+        $('victory').querySelector('[data-k="wait"]')?.remove();
+    }
+
     battleBack() {
         if (this.bmenu !== 'root') { this.bmenu = 'root'; this.pending = null; this.stage?.setPick(null); this.renderBattle(this.G, this.stage); return true; }
         return false;
@@ -754,12 +839,21 @@ export class UI {
             const ups = G.party.filter((id) => this.levelled?.[id]);
             if (ups.length) body.push(h('p.good', { text: ups.map((id) => `${HERO[id].name} reached level ${G.heroes[id].lv}!`).join(' ') }));
             const ph = partyHealth(G);
-            body.push(h('p.dim', { text: `Party health ${Math.round(ph.ratio * 100)}%. The next floor's rest restores a little.${(B.floor + 1) % 10 === 0 ? ' A boss waits on the next floor.' : (B.floor + 1) % 5 === 0 ? ' A mini boss waits on the next floor.' : ''}` }));
+            body.push(h('p.dim', { text: `Party health ${Math.round(ph.ratio * 100)}%. The next floor's rest restores a little.${G.auto ? '' : (B.floor + 1) % 10 === 0 ? ' A boss waits on the next floor.' : (B.floor + 1) % 5 === 0 ? ' A mini boss waits on the next floor.' : ''}` }));
             foot.push(h('button.btn', { 'data-k': 'home', on: { click: () => this.send({ t: 'leave' }) } }, 'Return to town'));
-            foot.push(h('button.btn.primary', { 'data-k': 'next', on: { click: () => this.send({ t: 'next' }) } }, `Climb to floor ${B.floor + 1} ▸`));
+            const nextBtn = h('button.btn.primary.countdown', { 'data-k': 'next', on: { click: () => { this.autoNext = null; this.send({ t: 'next' }); } } }, `Climb to floor ${B.floor + 1} ▸`);
+            foot.push(nextBtn);
+            // auto battle climbs on by itself after a countdown, but never walks into a mini boss or a boss
+            const nextRank = rankOfFloor(B.floor + 1);
+            if (G.auto && nextRank === 'normal') {
+                this.autoNext = { left: AUTO_NEXT_SECONDS, btn: nextBtn, label: nextBtn.textContent };
+                foot.unshift(h('button.btn', { 'data-k': 'wait', title: 'Stop the countdown', on: { click: () => this.cancelAutoNext() } }, 'Wait'));
+            } else if (G.auto || G.autoClimb) {
+                body.push(h('p.gold', { text: `A ${nextRank === 'boss' ? 'boss' : 'mini boss'} waits on floor ${B.floor + 1}. Auto won't climb into it for you: get ready, then climb when you choose.` }));
+            }
         } else if (B.phase === 'lost') {
             body.push(h('h2.bad', { text: `Your party has fallen on floor ${B.floor}` }));
-            body.push(h('p', { text: 'Townsfolk carry you home. Some of the gold you found this climb is lost on the way.' }));
+            body.push(h('p', { text: (DIFFICULTY[G.difficulty] || DIFFICULTY.standard).loss ? `Townsfolk carry you home. ${Math.round(100 * (DIFFICULTY[G.difficulty] || DIFFICULTY.standard).loss)}% of the gold you found this climb is lost on the way.` : 'Townsfolk carry you home. On Story, you keep everything you found.' }));
             foot.push(h('button.btn.primary', { 'data-k': 'home', on: { click: () => this.send({ t: 'leave' }) } }, 'Back to Hearthmere'));
         } else if (B.phase === 'fled') {
             body.push(h('h2', { text: 'You got away!' }));
@@ -768,6 +862,7 @@ export class UI {
         }
         root.replaceChildren(h('div.win.sheet', {}, ...body, h('div.sheet-foot', {}, foot)));
         if (!this.stack.includes('victory')) this.openScreen('victory'); else this.focusFirst('victory');
+        this.tickAutoNext(0);   // show the count at once, now the screen is open
     }
 }
 

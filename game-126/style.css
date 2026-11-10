@@ -114,6 +114,10 @@ button { font-family: inherit; }
 .sheet { width: min(560px, 100%); max-height: 100%; overflow-y: auto; padding: 16px; touch-action: pan-y; scrollbar-width: thin; scrollbar-color: var(--gold-d) transparent; }
 .sheet p { margin: 0 0 10px; }
 .sheet-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.diff-list { display: flex; flex-direction: column; gap: 8px; }
+.btn.diff { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 2px; padding: 10px 14px; white-space: normal; }
+.btn.diff .nm { font-weight: 700; font-size: 17px; }
+.btn.diff .sub { font-size: 13px; opacity: 0.85; line-height: 1.35; }
 .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; }
 table { border-collapse: collapse; width: 100%; margin-top: 8px; }
 td { padding: 5px 4px; border-bottom: 1px solid rgba(226, 191, 99, 0.25); }
@@ -152,7 +156,19 @@ td:first-child { color: var(--gold); white-space: nowrap; }
 .bld { width: 100%; max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 .npc { display: flex; gap: 10px; align-items: flex-end; }
 .npc .por { width: 96px; height: 96px; flex: none; border: 3px solid var(--gold); border-radius: 8px; background: #000 center / cover; image-rendering: pixelated; box-shadow: 0 3px 0 #000; }
+.npc .por { position: relative; }
+.npc .speak {
+    position: absolute; right: -10px; bottom: -10px; width: 40px; height: 40px; min-width: 0; padding: 0;
+    border-radius: 50%; border: 2px solid var(--gold); background: radial-gradient(circle at 35% 30%, #3a4a9a, #141a44);
+    font-size: 18px; line-height: 1; cursor: pointer; box-shadow: 0 2px 0 #000;
+}
+.npc .speak:hover { filter: brightness(1.25); }
+.npc .speak:focus-visible { outline: 3px solid var(--ember); outline-offset: 2px; }
+.npc .speak.playing { cursor: default; filter: saturate(0.6); animation: speak-pulse 0.7s ease-in-out infinite alternate; }
+@keyframes speak-pulse { from { box-shadow: 0 2px 0 #000, 0 0 0 0 rgba(255, 196, 80, 0.55); } to { box-shadow: 0 2px 0 #000, 0 0 0 7px rgba(255, 196, 80, 0); } }
+@media (prefers-reduced-motion: reduce) { .npc .speak.playing { animation: none; opacity: 0.7; } }
 .npc .say { flex: 1; padding: 10px 12px; position: relative; }
+.npc .say .today { display: block; margin-top: 4px; font-size: 13px; color: var(--dim); }
 .npc .say .who { color: var(--gold); font-weight: 700; display: block; font-size: 14px; }
 .bld .panel { flex: 1; min-height: 0; padding: 10px; display: flex; flex-direction: column; }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -246,6 +262,9 @@ td:first-child { color: var(--gold); white-space: nowrap; }
 #battle.side .prow .mini { width: 28px; height: 28px; }
 #battle.side .cmd-row .btn { min-height: 40px; }
 
+/* narrow screens: the top bar wraps to two rows, so buildings start below it */
+@media (max-width: 560px) { .screen.place { padding-top: calc(88px + var(--safe-t)); } }
+
 /* stacked portrait phones: the panel takes the lower part, commands on top of the party list */
 @media (max-aspect-ratio: 1/1) {
     #bpanel { flex-direction: column; }
@@ -264,6 +283,9 @@ td:first-child { color: var(--gold); white-space: nowrap; }
 .dlg .choices { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
 .dlg .choices .btn { text-align: left; }
 @media (max-width: 560px) { .dlg { flex-direction: column; align-items: center; } .dlg .por { width: 110px; height: 110px; } }
+
+/* victory / rewards: the auto-climb button drains as it counts down */
+.btn.countdown[style*="--p"] { background: linear-gradient(90deg, #ffd27a var(--p), #d9622a var(--p)); }
 
 /* victory / rewards */
 .reward-grid { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }

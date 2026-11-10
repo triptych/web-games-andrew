@@ -83,13 +83,17 @@ export class Audio {
     }
 
     /** A character line. min seconds between lines so voices never pile up; chance to keep battles from getting chatty. */
-    say(name, { chance = 1, gap = 4 } = {}) {
+    say(name, { chance = 1, gap = 4, force = false } = {}) {
         if (!this.ok || !this.buffers['vo-' + name]) return false;
         const now = this.ctx.currentTime;
-        if (now - this.lastVoice < gap || Math.random() > chance) return false;
+        if (!force && (now - this.lastVoice < gap || Math.random() > chance)) return false;
+        if (force && now < this.lastVoice) return false;     // a tap while someone is still talking: never stack voices
         this.lastVoice = now + this.buffers['vo-' + name].duration;
         return this.clip('vo-' + name, { bus: 'voice' });
     }
+
+    /** Seconds until the voice line now playing ends (0 when no one is talking). */
+    voiceLeft() { return this.ctx ? Math.max(0, this.lastVoice - this.ctx.currentTime) : 0; }
 
     _track(name) {
         let el = this.tracks[name];

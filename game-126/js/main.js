@@ -15,7 +15,7 @@ import { startBattle } from './sim/battle.js';
 import { makeBot, playDay, dayString } from './sim/bot.js';
 import { HERO, CLASSES } from './sim/data/heroes.js';
 import { BLESSINGS } from './sim/data/story.js';
-import { gearName } from './sim/stats.js';
+import { gearName, rankOfFloor } from './sim/stats.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.get('debug') === '1';
@@ -66,7 +66,7 @@ $('title-menu').addEventListener('click', (e) => {
     const a = b.dataset.act;
     if (a === 'new') {
         if (hasSave() && !confirm('Start a new game? Your saved game will be replaced.')) return;
-        startGame(newGame((Date.now() % 1e9) | 0), true);
+        ui.chooseDifficulty((difficulty) => startGame(newGame((Date.now() % 1e9) | 0, { difficulty }), true));
     } else if (a === 'continue') {
         const g = loadGame();
         if (g) startGame(g, false); else ui.toast('That save could not be read.');
@@ -78,8 +78,20 @@ function today() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+// Settings: the difficulty of the game in progress (hidden on the title screen, where there is none)
+function showDifficulty() {
+    $('row-diff').hidden = !G;
+    if (G) $('set-diff').value = G.difficulty || 'standard';
+}
+$('set-diff').addEventListener('change', (e) => {
+    if (!G || !act(G, { t: 'difficulty', level: e.target.value })) return;
+    ui.toast(`Difficulty: ${e.target.selectedOptions[0].textContent}. It applies from the next battle.`);
+    save();
+});
+
 function startGame(g, fresh) {
     G = g;
+    showDifficulty();
     for (const id of [...ui.stack]) ui.closeScreen(id);
     document.activeElement?.blur?.();
     input.flush();
@@ -109,6 +121,7 @@ function toTitle() {
     for (const id of [...ui.stack]) ui.closeScreen(id);
     mode = 'title';
     G = null;
+    showDifficulty();
     $('battle').hidden = true;
     ui.showTopbar(false);
     ui.setBg(null);
@@ -140,6 +153,10 @@ function toTower() {
     ui.showTopbar(false);
     layout();
     if (G.battle) { stage.setBattle(G); stage.sync(G); }
+    // The theme normally starts with the battle's 'battle' event. Continuing a saved fight (a reload mid-battle)
+    // has no such event, and the title music played on through the fight.
+    const B = G.battle;
+    if (B) audio.play(['won', 'lost', 'fled'].includes(B.phase) ? null : B.rank === 'boss' ? 'boss' : 'battle');
     ui.renderBattle(G, stage);
     ui.topbar(G);
 }
@@ -189,6 +206,7 @@ function flushEvents() {
             case 'learn': ui.toast(`Learned ${e.rank > 1 ? 'rank ' + e.rank + ' ' : ''}${skillName(e.skill)}.`); break;
             case 'evolve': ui.popup(`${HERO[e.id].name} becomes a ${CLASSES[e.cls].name}!`, ui.para(`New skills await at the Temple: ${CLASSES[e.cls].skills.map((s) => s.name).join(', ')}. At level 40, ${CLASSES[e.cls].name}s can ascend.`)); break;
             case 'ascend': ui.toast(`${HERO[e.id].name} ascends: ${e.name}!`); break;
+            case 'equipBest': ui.toast(e.n ? `${e.auto ? 'Auto-equip: ' : ''}${e.n} piece${e.n === 1 ? '' : 's'} of gear changed hands. Everyone wears their best.` : 'Everyone already wears their best.'); break;
             case 'salvage': ui.toast(`Salvaged for ${e.ore} ore.`); break;
             case 'trade': ui.toast(`Zephyrine hands over ${gearName(G.gear[e.uid])}.`); break;
             case 'claim': ui.popup('Bounty paid', ui.rewardChips(G, e.got)); break;
@@ -288,8 +306,11 @@ function frame(now) {
         const key = battleKey();
         if (key !== lastBattleKey) { lastBattleKey = key; ui.renderBattle(G, stage); ui.topbar(G); }
         const B = G.battle;
+        ui.tickAutoNext(dt * FAST);
         if (B && !stage.busy && ['won', 'lost', 'fled'].includes(B.phase) && !ui.stack.includes('victory')) {
-            if (!(G.autoClimb && B.phase !== 'lost')) { ui.renderAfter(G); save(); }
+            // auto-climb carries on by itself, except after a defeat and before a mini boss or boss
+            const autoOn = G.autoClimb && (B.phase === 'fled' || (B.phase === 'won' && rankOfFloor(B.floor + 1) === 'normal'));
+            if (!autoOn) { ui.renderAfter(G); save(); }
         }
         if (B && B.phase === 'won' && !stage.busy && pendingWatcher && !ui.stack.includes('scene')) {
             const w = pendingWatcher; pendingWatcher = null;

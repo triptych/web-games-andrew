@@ -2,7 +2,7 @@
 
 **Genre:** 16-bit endless-tower JRPG: turn-based party battles, a town of RPG systems, bonds, and idle income
 **Engine:** Vanilla JS: Canvas 2D battle stage (640x360, nearest-neighbour) and DOM menus. Art generated with fal, music, effects and voices with ElevenLabs; a Web Audio synth is the fallback for any sound file that fails to load
-**Status:** v1.0.1
+**Status:** v1.0.7
 
 ---
 
@@ -37,7 +37,7 @@ stock). Real time adds the daily bonus and the idle tithe.
   focus, weak, brittle, regen 8%/turn, barrier, taunt (enemies pick you 75% of the time). Bosses shrug off most control
   (stun ×0.15, others ×0.5) and take 40% damage over time.
 - **Bosses enrage** below half health (faster, glowing).
-- **Auto battle** uses the same brain as the test bot: revive the fallen, heal the hurt (mass heal when two are low),
+- **Auto battle** counts the victory screen down from 10 s and climbs on by itself, but never into a mini boss or boss floor (auto-climb follows the same rule). It uses the same brain as the test bot: revive the fallen, heal the hurt (mass heal when two are low),
   set up buffs once in a fight worth buffing, then the best expected damage (weaknesses, groups, finishing blows),
   keeping a healer's MP reserve; potions only when no healer can help.
 - **Pacing.** The sim resolves an action whole and emits events; the view plays them as a queue and the AI waits
@@ -156,6 +156,31 @@ still defeated sometimes.
 - The Garden preview image is the title art.
 
 ## Changelog
+
+### v1.0.7 (2026-11-10)
+- Added: a difficulty, asked when you start a new game and changeable in Settings (`DIFFICULTY` in config.js, `G.difficulty`; saves from before it play as Standard).
+  - **Story:** monsters have 60% health and deal 65% damage, twice the healing between floors, no gold lost when you fall, 20% more XP. For following the quests and the friendships at your own pace.
+  - **Standard:** the tower as tuned so far (unchanged).
+  - **Hard:** monsters have 135% health and deal 125% damage, 60% of the healing between floors, 60% of the climb's gold lost when you fall (Standard: 30%), and 25% more gold and 15% more XP.
+  - The test bot, same seeds, median best floor on day 5 / day 10: Story 29/49, Standard 19/32, Hard 9/19. simtest checks that Story climbs faster and Hard slower than Standard.
+
+### v1.0.6 (2026-11-10)
+- Fixed: tapping the 🔊 by a shopkeeper's portrait over and over stacked a new copy of the greeting per tap, so a few quick taps had several voices talking over each other. While a voice line is playing the speaker now dims and pulses and taps do nothing; once the line ends it plays again (`say(..., {force})` refuses while someone is talking, `voiceLeft()` in audio.js).
+
+### v1.0.5 (2026-11-10)
+- Added: **Equip best** on the party screen puts the best gear you own on every hero, the party first (in party order) and then the bench. Pieces are scored by what each class uses (`gearScore` in game.js, the same score the test bot always used). A hero can take armor or an accessory from someone later in that order, who then picks again from what is left; weapons are never taken off another hero. Next to it, **Auto-equip on coming home** (saved with the game) does the same by itself every time the party returns from the tower, so new loot goes straight on.
+- Fixed: reloading the page mid-battle and pressing Continue put you back in the fight with the title music still playing. The battle theme only started with the battle's start event, which a resumed fight doesn't have; entering the battle screen now starts the battle or boss theme itself.
+
+### v1.0.4 (2026-11-10)
+- Fixed: Auto, Climb and the speed button often ignored clicks once a battle was moving, worst at 3x: switching Auto off during the monsters' turns didn't take, a second click then flipped it the wrong way (so Auto was off when you thought you had turned it back on, and the auto-climb countdown never came), and 3x couldn't be clicked back to 1x. The battle panel re-rendered every time a turn started or an animation ended, many times a second at 3x, and rebuilt these buttons each time, so a click whose press and release straddled a re-render was lost. The toggle row is now built once and only relabelled.
+- Fixed: three sprites faced the wrong way in battle because v1.0.0 mirrored them by mistake: Grubnak (the floor 5 mini boss) and Celestine (the floor 80 boss) faced away from the party, and Thorne faced away from the monsters. All 70 monsters and 18 hero sprites were rechecked at full size; the mirror list in `dev/art/export.py` is now per sprite.
+
+### v1.0.3 (2026-11-10)
+- Changed: the townsfolk's spoken greetings got tiring after a few visits. Each greeting now plays by itself on the first 3 visits to that building, then stays quiet; a round 🔊 button on the shopkeeper's portrait plays it again whenever you like. Settings has a new "Town greetings" choice (First 3 visits, Every visit, Only when I tap 🔊), and both the choice and the per-greeting count are saved with the other settings. Battle voices are unchanged.
+- Fixed: the speech bubble showed a different line each day while the voice always said the same one; the bubble now shows the spoken line, with the day's line in smaller text under it. On phones the top bar wraps to two rows and covered the shopkeeper's name; building screens now start below it.
+
+### v1.0.2 (2026-11-10)
+- Added: with Auto battle on, the victory screen's "Climb to floor N" button counts down from 10 seconds (draining as it goes) and then climbs by itself; a Wait button stops it, and switching Auto off or leaving cancels it. There is no countdown when the next floor holds a mini boss or a boss: the screen says what waits and you climb when ready. Auto-climb follows the same rule and now stops at the victory screen before every 5th and 10th floor instead of walking straight in (`AUTO_NEXT_SECONDS` in config.js).
 
 ### v1.0.1 (2026-11-10)
 - Fixed: in battle the heroes and monsters looked like they were floating above the floor. Their feet were placed as high as y 236 of 360, on the strip of floor at the foot of each backdrop's far wall; they now stand between y 290 and 352 on the near floor, with a two-layer contact shadow, and only flying monsters hover (walkers no longer bob). The floor label moved to the top-right so it no longer covers the back-row hero.
