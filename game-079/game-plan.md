@@ -1,8 +1,8 @@
 # VENDETTA OVERDRIVE
 
 **Genre:** First-person shooter: an 80s action-movie revenge rampage in the spirit of classic action-movie shooters, with procedurally generated procedural guns
-**Engine:** three.js r165 (import map, ES modules), no asset files: every model, texture, sound and song is generated in code
-**Status:** v1.0.2
+**Engine:** three.js r165 (import map, ES modules). The levels, textures, guns, sounds and songs are generated in code; the six enemies and three bosses are GLB models made with Meshy (`assets/models/`)
+**Status:** v1.1.0
 
 ---
 
@@ -159,7 +159,7 @@ Touch and gamepad get light aim assist (a slow pull toward an enemy within 6° o
 - **Palette:** night blues and purples, hot pink and cyan neon, sodium orange street lamps, alien purple and acid green. Synthwave grade during Overdrive.
 - **World shader:** one `ShaderMaterial` for every wall, floor and ceiling. A material id per vertex picks a procedural texture written in GLSL (brick, concrete, asphalt with lane markings, sidewalk, shopfront glass, mall tile, sewer brick, organic hive flesh with veins, chrome hex plating, glowing plasma, building facades with lit windows), with derivative bump mapping, a baked RGB lightmap sampled by world XZ, up to 12 dynamic lights (muzzle flashes, rockets, explosions, plasma) and fog.
 - **Sky:** a gradient sunset (outdoor) or void (ship) with stars, a striped synthwave sun, a far skyline ring, and the Xerxid mothership hanging over the city.
-- **Models:** enemies are built from lathe profiles, tubes, displaced spheres and capsules (smooth normals, a few thousand triangles each), with patched `MeshStandardMaterial` for rim light, hit flash, the lightmap, freeze/burn tints and a noise dissolve when teleporting. Guns are built from the gun object (receiver, barrels, magazine, stock, scope, coils, fins) with the maker's materials and the element's glow; the same builder draws the first-person gun and the loot on the floor (with a rarity beam).
+- **Models:** the six enemies and three bosses are Meshy-made GLBs (`assets/models/`, 5-26k triangles, 1k or 2k WebP textures, under 9 MB in all), loaded once at boot. Each material is copied into a patched `MeshStandardMaterial` for rim light, hit flash, the lightmap, freeze/burn tints and a noise dissolve when teleporting. They are single static meshes, so `animate()` poses the whole body: walk bob and sway, leans for charges and wind-ups, squash and stretch for the chomper's leap, hovering for the drone and brainstalker. The old lathe-and-tube models are kept as the fallback while a GLB loads or if it fails, and the Pylon prop still uses them. Guns are built from the gun object (receiver, barrels, magazine, stock, scope, coils, fins) with the maker's materials and the element's glow; the same builder draws the first-person gun and the loot on the floor (with a rarity beam).
 - **Effects:** instanced particles (blood, sparks, smoke, fire, frost, plasma), instanced gibs that bounce, blood decals, fireball explosions with shockwave rings, beams and tracers, camera shake.
 - **Post:** world pass, viewmodel pass, half-res bloom, a VHS pass (chromatic aberration kicks, vignette, damage flash, low-health desaturation, Overdrive grade, scan lines, grain), `OutputPass`.
 - **Music:** a synthwave sequencer per level (arpeggiated saw leads, gated snare, octave bass, pads), a boss track, filtered during Overdrive.
@@ -186,7 +186,8 @@ Touch and gamepad get light aim assist (a slow pull toward an enemy within 6° o
 | `js/view/stage.js` | Renderer, cameras, composer, VHS pass, quality |
 | `js/view/levelmesh.js` | Level geometry, the world shader, the lightmap |
 | `js/view/sky.js` | Sky dome, skyline, mothership |
-| `js/view/enemies.js` | Enemy and boss models and their animation |
+| `js/view/models.js` | Enemy and boss models (Meshy GLBs, procedural fallback) and their animation |
+| `assets/models/` | The nine enemy and boss GLBs, with their prompts and Meshy task IDs in its README |
 | `js/view/guns.js` | Gun model builder (viewmodel and loot) |
 | `js/view/viewmodel.js` | First-person gun and gloves, bob, recoil, reload |
 | `js/view/fx.js` | Particles, gibs, decals, explosions, beams, dynamic lights |
@@ -222,6 +223,9 @@ Result (6 seeds): the skill-1 bot wins every campaign with 0–6 deaths (3 on av
 - Co-op? Endless arcade mode with a new seed per level?
 
 ## Changelog
+
+### v1.1.0 (2026-11-10)
+- Changed: every enemy and boss is now a Meshy-made 3D model (Snarl Trooper, Chomper, Skull Drone, Meatbeast, Brainstalker, Octotank, Queen Chompra, Warlord Vrask, Rourke), shrunk for the web by `dev/optimize-models.mjs` and posed procedurally as one piece. The procedural models remain as the fallback and for the Pylon.
 
 ### v1.0.2 (2026-10-15)
 - Fixed: the objective arrow was a `▲` text glyph that most fonts draw as a near-equilateral triangle, so it was hard to tell which way it pointed. It's now a compass dial: an SVG arrow with a long shaft, a big head and a notched tail, a tick at the top for straight ahead, and it turns green when you're facing the way to go. The minimap's player marker is a notched arrow too.

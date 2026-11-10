@@ -20,7 +20,7 @@
 <script type="module">
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { buildModel, animate } from '../js/view/models.js';
+import { buildModel, animate, loadModels } from '../js/view/models.js';
 import { buildGun } from '../js/view/guns.js';
 import { SU } from '../js/view/shaderlib.js';
 import { genWeapon, legendary, starterGun, ARCH_IDS } from '../js/sim/weapons.js';
@@ -46,6 +46,7 @@ const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 20), new THREE.MeshStan
 floor.rotation.x = -Math.PI / 2; if (new URLSearchParams(location.search).get('row') !== 'guns') scene.add(floor);
 const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.05, 200);
 
+await loadModels();          // the Meshy GLBs; a missing one falls back to the procedural model
 const items = [];
 const labels = document.getElementById('labels');
 let x = 0, span = 0;

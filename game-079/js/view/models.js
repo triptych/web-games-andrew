@@ -4,6 +4,7 @@
 
 import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { patchActor, actorUniforms } from './shaderlib.js';
 
 const V = (x, y) => new THREE.Vector2(x, y);
@@ -447,12 +448,82 @@ function pylon(U) {
     return { root, crystal, height: 3.2 };
 }
 
+// ==================================================================== Meshy models
+// Every enemy and boss except the pylon is a GLB made with Meshy (text-to-3d, then shrunk by
+// dev/optimize-models.mjs). The files are static meshes, so animate() poses them as a whole:
+// bob, sway, lean, squash and stretch. Until loadModels() has finished (or if a file is missing)
+// buildModel() falls back to the procedural models above, so the game never waits on the network.
+//
+//   h     standing height in metres (matches the sim's enemy height)
+//   yaw   turn that makes the model face -z (Meshy models come out facing +z, the tank faces +x)
+//   lift  how far the model's lowest point sits above the root (Rourke hangs in the air)
+//   mid   pivot the lean about mid-height instead of the feet (things that fly or hover)
+const GLB = {
+    trooper: { h: 1.9, yaw: Math.PI },
+    chomper: { h: 0.9, yaw: Math.PI },
+    drone: { h: 1.0, yaw: Math.PI, mid: true },
+    brute: { h: 2.6, yaw: Math.PI },
+    psy: { h: 2.4, yaw: Math.PI, mid: true },
+    tank: { h: 2.0, yaw: Math.PI / 2 },
+    chompra: { h: 3.4, yaw: Math.PI },
+    vrask: { h: 3.0, yaw: Math.PI },
+    rourke: { h: 5.0, yaw: Math.PI, lift: 0.4, mid: true },
+};
+const GLB_CACHE = new Map();
+
+/** Start fetching every GLB. Resolves once all have loaded or failed; failures are not fatal. */
+export function loadModels(base = new URL('../../assets/models/', import.meta.url).href) {
+    const loader = new GLTFLoader();
+    return Promise.all(Object.keys(GLB).map((type) => loader.loadAsync(`${base}${type}.glb`).then((gltf) => {
+        const box = new THREE.Box3().setFromObject(gltf.scene);
+        GLB_CACHE.set(type, { scene: gltf.scene, box });
+    }).catch((err) => console.warn(`model ${type}: using the procedural fallback (${err.message || err})`))));
+}
+
+/** A copy of a Meshy material that is lit like the world and takes the hit / freeze / burn uniforms. */
+function actorCopy(src, U) {
+    const m = new THREE.MeshStandardMaterial({
+        color: src.color, map: src.map, normalMap: src.normalMap, normalScale: src.normalScale,
+        roughness: src.roughness, metalness: src.metalness, roughnessMap: src.roughnessMap, metalnessMap: src.metalnessMap,
+        emissive: src.emissive, emissiveMap: src.emissiveMap, emissiveIntensity: src.emissiveIntensity,
+        envMapIntensity: 0.6, side: src.side,
+    });
+    return patchActor(m, U);
+}
+
+function glbModel(type, U) {
+    const cfg = GLB[type], src = GLB_CACHE.get(type);
+    const size = src.box.getSize(new THREE.Vector3()), mid = src.box.getCenter(new THREE.Vector3());
+    const s = cfg.h / size.y;
+    const root = new THREE.Group();
+    const lift = cfg.lift || 0;
+    const body = pivot(root, [0, cfg.mid ? lift + cfg.h / 2 : 0, 0]);
+    const holder = pivot(body, [0, cfg.mid ? -cfg.h / 2 : lift, 0]);
+    holder.scale.setScalar(s);
+    holder.rotation.y = cfg.yaw;
+    const mesh = src.scene.clone(true);
+    mesh.position.set(-mid.x, -src.box.min.y, -mid.z);
+    const mats = new Map();
+    mesh.traverse((o) => {
+        if (!o.isMesh) return;
+        if (!mats.has(o.material)) mats.set(o.material, actorCopy(o.material, U));
+        o.material = mats.get(o.material);
+    });
+    holder.add(mesh);
+    const m = { root, body, height: cfg.h, glb: true, rest: body.position.y, scale: 1 };
+    if (type === 'rourke') {
+        m.shield = add(root, geo('rk_shield', () => new THREE.IcosahedronGeometry(3.4, 3)), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 0.3, 1.6), transparent: true, opacity: 0.25, wireframe: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), [0, 2.7, 0]);
+        m.shield.visible = false;
+    }
+    return m;
+}
+
 const BUILD = { trooper, chomper: (U) => chomper(U, 1), drone, brute, psy, tank, chompra, vrask, rourke, pylon };
-const TINT = { trooper: 0x40e0ff, chomper: 0xb0ff40, drone: 0xff4040, brute: 0xff8040, psy: 0xc060ff, tank: 0x60ff90, chompra: 0xd0ff40, vrask: 0xffc030, rourke: 0xff40e0, pylon: 0xa060ff };
+const TINT = { trooper: 0x40e0ff, chomper: 0xb0ff40, drone: 0xff4040, brute: 0xff8040, psy: 0xc060ff, tank: 0xa070ff, chompra: 0xd0ff40, vrask: 0xffc030, rourke: 0xff40e0, pylon: 0xa060ff };
 
 export function buildModel(type) {
     const U = actorUniforms(TINT[type] || 0x6a5aff);
-    const m = BUILD[type](U);
+    const m = GLB_CACHE.has(type) ? glbModel(type, U) : BUILD[type](U);
     m.U = U;
     m.type = type;
     m.phase = Math.random() * 6;
@@ -480,6 +551,7 @@ export function animate(m, e, dt, t) {
     if (frozen) return;
     const walk = Math.min(1, sp / 4);
     const swing = Math.sin(ph) * 0.6 * walk;
+    if (m.glb) { animateGlb(m, e, dt, t, ph, walk, sp); return; }
     switch (m.type) {
         case 'trooper': {
             m.legs[0].hip.rotation.x = swing; m.legs[1].hip.rotation.x = -swing;
@@ -564,6 +636,70 @@ export function animate(m, e, dt, t) {
             break;
         }
     }
+}
+
+/**
+ * Pose a Meshy model, which is a single static mesh: everything is the body pivot (bob, sway, lean,
+ * squash and stretch). rx > 0 raises the nose, so a forward lean on an upright figure is negative.
+ */
+function animateGlb(m, e, dt, t, ph, walk, sp) {
+    const b = m.body, k = Math.min(1, dt * 9);
+    const wind = e.windupT > 0, burst = e.burstN > 0;
+    const pat = e.pat && e.pat !== 'stalk' && e.pat !== 'strafe' && e.pat !== 'intro';
+    let bob = 0, sway = 0, rx = 0, sy = 1, sxz = 1, z = 0;
+    switch (m.type) {
+        case 'trooper':
+            bob = Math.abs(Math.sin(ph)) * 0.07 * walk; sway = Math.sin(ph) * 0.1 * walk;
+            rx = -0.08 * walk + (wind ? 0.14 : 0); z = burst ? Math.max(0, Math.sin(t * 50)) * 0.05 : 0;
+            break;
+        case 'chomper': case 'chompra': {
+            const leap = e.state === 'leap' || e.pat === 'air';
+            const q = m.type === 'chompra' ? 0.5 : 1;
+            bob = Math.abs(Math.sin(ph * 1.6)) * 0.1 * walk * q; sway = Math.sin(ph * 1.6) * 0.12 * walk;
+            rx = leap ? 0.5 : wind || pat ? -0.18 : Math.sin(t * 7 + ph) * 0.06 * q;
+            sy = leap ? 1.14 : wind || pat ? 0.88 : 1 + Math.sin(t * 7 + ph) * 0.03; sxz = 1 / Math.sqrt(sy);
+            break;
+        }
+        case 'drone':
+            bob = Math.sin(t * 2.4 + ph) * 0.08; sway = Math.sin(t * 1.3 + ph) * 0.12;
+            rx = -Math.max(-0.4, Math.min(0.4, sp * 0.05)) + (wind || burst ? 0.25 : 0);
+            break;
+        case 'brute': {
+            const charge = e.state === 'charge';
+            bob = Math.abs(Math.sin(charge ? ph * 2 : ph)) * (charge ? 0.14 : 0.1) * Math.max(walk, charge ? 1 : 0);
+            sway = Math.sin(charge ? ph * 2 : ph) * (charge ? 0.14 : 0.1) * walk;
+            rx = charge ? -0.38 : wind ? 0.28 : -0.05;
+            break;
+        }
+        case 'psy':
+            bob = Math.sin(t * 1.5 + ph) * 0.07; sway = Math.sin(t * 0.9 + ph) * 0.06;
+            rx = -0.04 * walk; sxz = 1 + Math.sin(t * 4) * 0.025 + (wind ? 0.08 : 0); sy = sxz;
+            break;
+        case 'tank':
+            bob = Math.sin(t * 22) * 0.012 * Math.min(1, sp); sway = Math.sin(t * 1.7) * 0.015 + Math.sin(ph) * 0.02 * walk;
+            rx = wind ? 0.05 : 0; z = wind ? 0.12 : burst ? Math.max(0, Math.sin(t * 40)) * 0.08 : 0;
+            break;
+        case 'vrask': {
+            const air = e.pat === 'air' || e.pat === 'hop';
+            bob = Math.abs(Math.sin(ph)) * 0.08 * walk + (air ? 0.15 : 0); sway = Math.sin(ph) * 0.07 * walk;
+            rx = air ? -0.28 : e.pat === 'barrage' ? 0.22 : e.pat === 'pound' ? -0.3 : -0.05 * walk;
+            z = burst ? Math.sin(t * 40) * 0.03 : 0;
+            break;
+        }
+        case 'rourke':
+            m.root.rotation.y = -e.yaw;
+            m.root.position.y = e.y - 1.0;
+            bob = Math.sin(t * 1.1) * 0.1; sway = Math.sin(t * 0.7) * 0.05;
+            sxz = 1 + Math.sin(t * 2.2) * 0.02; sy = 1 + Math.sin(t * 2.2 + 1) * 0.025;
+            m.shield.visible = !!e.invuln;
+            m.shield.rotation.y = t * 0.5;
+            break;
+    }
+    b.position.y = lerp(b.position.y, m.rest + bob, k);
+    b.position.z = lerp(b.position.z, z, k);
+    b.rotation.z = lerp(b.rotation.z, sway, k);
+    b.rotation.x = lerp(b.rotation.x, rx, Math.min(1, dt * 6));
+    b.scale.set(lerp(b.scale.x, sxz, k), lerp(b.scale.y, sy, k), lerp(b.scale.z, sxz, k));
 }
 
 /** A short topple for a death without gibs, then the caller dissolves it. */

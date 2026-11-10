@@ -7,6 +7,7 @@
 
 import { STEP, MAX_FRAME, FURY } from './config.js';
 import { View } from './view/view.js';
+import { loadModels } from './view/models.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
@@ -28,6 +29,8 @@ const input = new Input();
 input.sens = settings.sens; input.invert = settings.invert;
 const view = new View($('view'));
 view.setFov(settings.fov);
+// the enemy GLBs load in the background; enemies drawn before they arrive are rebuilt from them
+loadModels().then(() => view.refreshModels());
 const ui = new UI({
     audio, settings,
     onSettings: (s) => {

@@ -71,6 +71,12 @@ export class View {
         return L.solid[i] ? (L.outdoor ? L.top[i] : 99) : L.floor[i];
     }
 
+    /** The GLB models arrived: drop any procedural stand-ins so syncEnemies rebuilds them from the GLBs. */
+    refreshModels() {
+        for (const m of this.models.values()) this.root.remove(m.root);
+        this.models.clear();
+    }
+
     // ================================================================ level
     setLevel(G) {
         const L = G.L;
