@@ -1,18 +1,21 @@
 // The Robot Foundry, down the lift at the far end of the Works: a vast hall
-// where four assembly lines build robots, head first. Follow the main line from
+// where three assembly lines build robots, head first. Follow the main line from
 // the head shop through the body shop, the arm line and the leg line to the
 // test rig and the paint booth; at the end each finished unit is set on its
-// feet, wakes, stands up, looks about, and sets off along the gangway over the
-// lava pit for the way out in the far wall. None of them gets there: a stretch
-// of the walkway rusted through and broke away long ago, and nobody mended it. (foundry-line.js builds and moves the robots,
+// feet, wakes, stands up, looks about, and sets off for the way out in the far
+// wall. The three lines' units cross the apron and file on to one walkway over
+// the lava pit, where a quartermaster hands each a laser rifle. None of them
+// gets there: just short of the exit a stretch of the walkway rusted through
+// and broke away long ago, and nobody mended it. (foundry-line.js builds and
+// moves the robots,
 // foundry-hall.js is the building, foundry-fx.js the sparks, arcs and lava,
 // foundry-audio.js the sound.) Its own scene, drawn by the garden's composer
 // and walked with the garden's controls; built on the first visit.
 
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { Lines, LINES, SHOPS, shopAt, slotZ, Z0, PITCH, LAST, CYCLE, MOVE, DWELL, LEDGE_Z, LAVA_Y, SERIAL0, T_SLUMP, T_BOOT, T_STAND, T_LOOK, T_TURN, T_WALK, T_FALL, STATIONS } from './foundry-line.js';
-import { Hall, WALK, CATWALK, LIFT, X0, X1, Z_FAR, CEIL } from './foundry-hall.js';
+import { Lines, LINES, SHOPS, shopAt, slotZ, Z0, PITCH, LAST, CYCLE, MOVE, DWELL, LEDGE_Z, LAVA_Y, SERIAL0, T_SLUMP, T_BOOT, T_STAND, T_LOOK, T_TURN, T_FALL, STATIONS, STRIP_END, SARGE } from './foundry-line.js';
+import { Hall, WALK, CATWALK, DECK, APRON, LIFT, X0, X1, Z_FAR, CEIL } from './foundry-hall.js';
 import { Particles, Arcs } from './foundry-fx.js';
 import { FoundryAudio } from './foundry-audio.js';
 import { clamp, lerp, smoothstep, store } from './util.js';
@@ -30,9 +33,10 @@ const TIER = {
 
 /** The places you pass, for the banner and the HUD. */
 export const PLACES = [
-    { id: 'lift', name: 'The Robot Foundry', hud: 'The lift', sub: 'Down the lift from the Works · four lines that never stop', accent: '#ffb45a' },
+    { id: 'lift', name: 'The Robot Foundry', hud: 'The lift', sub: 'Down the lift from the Works · three lines that never stop', accent: '#ffb45a' },
     ...SHOPS,
-    { id: 'pit', name: 'The Way Out', sub: 'Over the lava to the exit · mind the gap in the walkway', accent: '#ff6a2a' },
+    { id: 'apron', name: 'The Apron', sub: 'Where the three lines meet and file on to the one walkway', accent: '#ffd06a' },
+    { id: 'pit', name: 'The Way Out', sub: 'Over the lava to the exit · a rifle each from the quartermaster · mind the gap', accent: '#ff6a2a' },
 ];
 const PLACE = Object.fromEntries(PLACES.map((p) => [p.id, p]));
 
@@ -81,7 +85,13 @@ export class Foundry {
             island: { heightAt: (x, z) => (self.walkable(x, z) ? 1 : -5) },
             walkHeight: () => 0,
             onDeck: () => false,
-            collidersNear: () => EMPTY,
+            // the finished units on their feet: you can't walk through them (they walk through you)
+            collidersNear: (x, z) => {
+                const out = (self._cols ??= []);
+                out.length = 0;
+                for (const r of self.lines.robots) if (r.post && r.feetY > -0.5 && Math.abs(r.x - x) < 3 && Math.abs(r.z - z) < 3) out.push({ x: r.x, z: r.z, r: 0.55 });
+                return out;
+            },
             onArrive: (r) => r?.then?.(),
         };
         // a first frame, so everything is in place before anyone looks
@@ -219,8 +229,9 @@ export class Foundry {
 
     walkable(x, z) {
         const inMain = x > WALK.x0 && x < WALK.x1 && z > WALK.z0 && z < WALK.z1;
-        const inCat = x > CATWALK.x0 && x < CATWALK.x1 && z > CATWALK.z0 && z < CATWALK.z1 + 1;
-        if (!inMain && !inCat) return false;
+        const inR = (r) => x > r.x0 && x < r.x1 && z > r.z0 && z < r.z1;
+        const inCat = x > CATWALK.x0 && x < CATWALK.x1 && z > CATWALK.z0 - 0.1 && z < CATWALK.z1 + 1;
+        if (!inMain && !inCat && !inR(DECK) && !inR(APRON)) return false;
         for (const b of this.hall.blocks) if (x > b.x0 - 0.3 && x < b.x1 + 0.3 && z > b.z0 - 0.3 && z < b.z1 + 0.3) return false;
         return true;
     }
@@ -362,8 +373,8 @@ export class Foundry {
         for (const f of ev.falls) this.sound?.fall(this._near(f.x, f.z, 70));
         // units burning in the lava throw up flames and smoke until they sink
         for (const r of this.lines.robots) {
-            if (!r.post || r.tp < T_TURN + T_WALK + T_FALL || (r.x - cam.x) ** 2 + (r.z - cam.z) ** 2 > 140 * 140) continue;
-            const k = clamp(1 - (r.tp - (T_TURN + T_WALK + T_FALL)) / 6, 0, 1);
+            if (!r.post || r.tp < r.line.tHit || (r.x - cam.x) ** 2 + (r.z - cam.z) ** 2 > 140 * 140) continue;
+            const k = clamp(1 - (r.tp - r.line.tHit) / 6, 0, 1);
             if (Math.random() < k * rate * 0.9) sp.emit(r.x + (Math.random() - 0.5) * 1.6, LAVA_Y + 0.3, r.z + (Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 0.8, 2 + Math.random() * 2.5, (Math.random() - 0.5) * 0.8, { life: 0.8 + Math.random() * 0.8, size: 0.5 + Math.random() * 0.6, grav: -1.5, drag: 0.6, r: 3.2, g: 1.0 + Math.random() * 0.8, b: 0.12 });
             if (Math.random() < k * rate * 0.25) mi.emit(r.x + (Math.random() - 0.5), LAVA_Y + 1, r.z + (Math.random() - 0.5), (Math.random() - 0.5) * 0.5, 1.5 + Math.random(), (Math.random() - 0.5) * 0.5, { life: 4 + Math.random() * 2, size: 1.5 + Math.random(), grav: -0.3, drag: 0.5, r: 0.14, g: 0.12, b: 0.11 });
         }
@@ -388,7 +399,7 @@ export class Foundry {
         const units = this.lines.robots.filter((r) => r.line === line).sort((a, b) => b.serial - a.serial).map((r) => ({
             serial: r.serial, post: r.post,
             where: r.post ? 'walking' : `station ${String(r.k + 1).padStart(2, '0')}`,
-            state: r.post ? (r.tp > T_TURN + T_WALK ? 'LOST' : 'TO EXIT') : shopAt(r.k)?.name.replace('The ', '').toUpperCase() ?? '',
+            state: r.post ? (r.tp > T_TURN + r.line.tWalk ? 'LOST' : 'TO EXIT') : shopAt(r.k)?.name.replace('The ', '').toUpperCase() ?? '',
         }));
         return { units, lines: this.lines.lines.map((l) => l.state), despatched: n, cycle: CYCLE };
     }
@@ -396,7 +407,8 @@ export class Foundry {
     /** Which shop you are beside, for the banner and the HUD. */
     _where(p) {
         let id;
-        if (p.z < LEDGE_Z + 6) id = 'pit';
+        if (p.z < LEDGE_Z) id = 'pit';
+        else if (p.z < STRIP_END) id = 'apron';
         else if (p.z > Z0 + 4) id = 'lift';
         else id = shopAt(clamp(Math.round((Z0 - p.z) / PITCH), 0, LAST))?.id ?? 'lift';
         if (id === this.zoneNext) this.zoneT += 1 / 60;
@@ -446,6 +458,13 @@ export class Foundry {
             const q2 = ox * ox + oy * oy + oz * oz - t * t;
             if (q2 < r.r * r.r && (!best || t < best.t)) best = { type: 'robot', robot: r, t };
         }
+        // the quartermaster
+        const sg = this.lines.sarge;
+        if (sg) {
+            const ox = sg.x - o.x, oy = sg.y - o.y, oz = sg.z - o.z;
+            const t = ox * d.x + oy * d.y + oz * d.z;
+            if (t > 0 && t < 90 && ox * ox + oy * oy + oz * oz - t * t < sg.r * sg.r && (!best || t < best.t)) best = { type: 'sarge', t };
+        }
         // the lift car
         const car = new THREE.Box3(new V3(LIFT.x - 1.7, this.hall.carY, LIFT.z - 1.7), new V3(LIFT.x + 1.7, this.hall.carY + 3.3, LIFT.z + 1.7));
         const hit = ray.ray.intersectBox(car, new V3());
@@ -476,7 +495,8 @@ export class Foundry {
         else if (h.type === 'lift') {
             this.armed = true;
             c.walkTo([{ x: LIFT.x, z: LIFT.z - 2.6 }, { x: LIFT.x, z: LIFT.z + 0.3 }]);
-        } else if (h.type === 'robot') {
+        } else if (h.type === 'sarge') this.env.ui?.hint(`${SARGE_NOTE.title}: ${SARGE_NOTE.desc}`, 6000);
+        else if (h.type === 'robot') {
             const n = this._robotNote(h.robot);
             this.env.ui?.hint(`${n.title}: ${n.desc}`, 5000);
         } else if (h.type === 'lava') this.env.ui?.hint('A stretch of the main gangway rusted through and fell in here, years ago. Nobody has mended it', 5000);
@@ -491,7 +511,7 @@ export class Foundry {
             return { icon: '\u{1F916}', kicker: `${line} · ${shop?.name ?? ''} · station ${r.k + 1} of ${LAST + 1}`, title, desc: `Hanging from its hook, ${DOING[r.k]}.`, accent: shop?.accent ?? '#ffb45a' };
         }
         const tp = r.tp;
-        const desc = tp < T_SLUMP ? 'Let go of its hook, and slumping.' : tp < T_BOOT ? 'Waking up: its eyes are coming on.' : tp < T_STAND ? 'Standing up for the first time.' : tp < T_LOOK ? 'Looking about at the hall it was made in.' : tp < T_TURN ? 'Turning to the gangway.' : tp < T_TURN + T_WALK ? 'Walking down the gangway to the way out, in perfect working order. Nobody has told it about the gap.' : tp < T_TURN + T_WALK + T_FALL ? 'Falling: the walkway broke away here, long ago.' : 'Burning up in the lava. It never saw the gap.';
+        const desc = tp < T_SLUMP ? 'Let go of its hook, and slumping.' : tp < T_BOOT ? 'Waking up: its eyes are coming on.' : tp < T_STAND ? 'Standing up for the first time.' : tp < T_LOOK ? 'Looking about at the hall it was made in.' : tp < T_TURN ? 'Turning to set off for the way out.' : tp < T_TURN + r.line.tWalk ? (r.rifle ? 'Marching for the exit with its new laser rifle, in perfect working order. Nobody has told it about the gap.' : r.tp < T_TURN + r.line.mergeAt / 1.05 ? 'Crossing the apron to join the walkway to the exit.' : 'Walking out over the pit for the exit. The quartermaster has a rifle for it.') : tp < r.line.tHit ? 'Falling: the walkway broke away here, long ago, just short of the door.' : 'Burning up in the lava, rifle and all. It never saw the gap.';
         return { icon: '\u{1F916}', kicker: `${line} · finished`, title, desc, accent: '#ff9a52' };
     }
 
@@ -501,6 +521,7 @@ export class Foundry {
         const h = this.pick(ray);
         if (!h) return null;
         if (h.type === 'robot') return this._robotNote(h.robot);
+        if (h.type === 'sarge') return SARGE_NOTE;
         if (h.type === 'lift') return { icon: '\u{1F6D7}', kicker: 'The lift', title: 'Up to the Works', desc: 'A brass cage on a lattice shaft that goes up through the roof to the machine hall under the clock tower.', cta: 'Click, or walk in →', accent: '#ffd98a' };
         if (h.type === 'lava') return { icon: '\u{1F30B}', kicker: 'The pit', title: 'Lava', desc: 'Fourteen metres below the gangways. Long ago a stretch of the walkway rusted through and fell in, and every unit heading for the exit walks straight into the gap.', accent: '#ff6a2a' };
         return null;
@@ -515,5 +536,5 @@ export class Foundry {
     }
 }
 
-const EMPTY = [];
+const SARGE_NOTE = { icon: '\u{1F396}\u{FE0F}', kicker: 'Beside the walkway, just short of the exit', title: 'The Quartermaster', desc: 'A big olive-drab unit with a crate of laser rifles, issuing one to every unit that marches past. It has never once looked up from the crate at the walkway ahead.', accent: '#a8c070' };
 export { STATIONS, LINES, MOVE, DWELL, SERIAL0, CEIL };

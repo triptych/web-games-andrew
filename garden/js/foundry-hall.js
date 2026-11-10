@@ -1,6 +1,6 @@
 // The Foundry's hall: the building and everything in it that is not a robot.
 // A concrete hall 146 m across, 236 m long and 50 m high, its roof held up on
-// steel columns and trusses; four assembly lines run down it on fenced strips
+// steel columns and trusses; three assembly lines run down it on fenced strips
 // of deck plate, each under a rail of hooks, with its arms on pedestals and the
 // scanner, test rig, paint booth and release plate at the end. At the far end
 // the floor stops at a ledge over a pit of lava: the lines go on as gangways
@@ -19,15 +19,19 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Batch, xf, under } from './materials.js';
 import { lathe, gearShape } from './architecture.js';
 import { canvas, toTexture } from './textures.js';
-import { robotGeometries, SCALE } from './foundry-robot.js';
-import { LINES, LINE_HALF, slotZ, RAIL_Y, LAST, PED_H, LEDGE_Z, HOLE_Z0, HOLE_Z1, GANGWAY_END, LAVA_Y, SHOPS, STATIONS } from './foundry-line.js';
+import { robotGeometries, rifleGeometries, SCALE } from './foundry-robot.js';
+import { LINES, LINE_HALF, slotZ, RAIL_Y, LAST, PED_H, WAKE_Z, LEDGE_Z, HOLE_Z0, HOLE_Z1, GANGWAY_END, LAVA_Y, SHOPS, STATIONS, STRIP_END, MERGE, SARGE } from './foundry-line.js';
 import { lavaMaterial, lavafallMaterial, underglow, beamMaterial } from './foundry-fx.js';
 import { rng, TAU, clamp, lerp, smoothstep } from './util.js';
 
 export const X0 = -86, X1 = 60, Z_BACK = 36, Z_FAR = -252, CEIL = 50;
 export const WALK = { x0: LINE_HALF + 0.7, x1: 38 - LINE_HALF - 0.7, z0: LEDGE_Z + 0.7, z1: Z_BACK - 4 };
 // the catwalk out over the pit: a strip beside the main gangway, and a platform across the end of it
-export const CATWALK = { x0: 3.5, x1: 7.4, z0: HOLE_Z1 - 6, z1: LEDGE_Z };
+// the catwalk out over the pit beside the walkway, and the deck at its end where the quartermaster stands
+export const CATWALK = { x0: 4.6, x1: 8.4, z0: -231, z1: LEDGE_Z };
+export const DECK = { x0: 1.75, x1: 8.4, z0: HOLE_Z0 + 2, z1: -231 };
+// the open floor past the ends of the lines, where their units cross to the walkway
+export const APRON = { x0: X0 + 4, x1: X1 - 4, z0: LEDGE_Z + 0.7, z1: STRIP_END - 1.5 };
 export const LIFT = { x: 12, z: 19, w: 3.2 };   // the car's middle; its gate faces -z
 const COLS_X = [-48, -17, 19, 49];
 const COLS_Z = [0, -36, -72, -108, -144, -180];
@@ -102,6 +106,17 @@ function grateTex() {
     ctx.fillRect(0, 0, n, n);
     ctx.fillStyle = '#0c0b0b';
     for (let j = 0; j < 8; j++) for (let i = 0; i < 4; i++) ctx.fillRect(i * 32 + 3, j * 16 + 3, 26, 10);
+    return toTexture(c);
+}
+
+function beltTexture() {
+    const c = canvas(64, 64), ctx = c.getContext('2d');
+    ctx.fillStyle = '#1c1c1e';
+    ctx.fillRect(0, 0, 64, 64);
+    ctx.fillStyle = '#34353a';
+    ctx.fillRect(0, 0, 64, 10);
+    ctx.fillStyle = '#0c0c0d';
+    ctx.fillRect(0, 10, 64, 3);
     return toTexture(c);
 }
 
@@ -211,6 +226,7 @@ export class Hall {
             darkWood: std({ color: 0x6a5240, roughness: 0.85 }),
             rust: std({ color: 0x6e3b1c, roughness: 0.92, metalness: 0.35 }),
             daylight: std({ color: 0x202020, emissive: 0xfff0d0, emissiveIntensity: 1.05 }),
+            rifleGlow: new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 2.0, 3.0) }),
         };
         const b = new Batch({ cell: 48 });
         this.batch = b;
@@ -314,7 +330,10 @@ export class Hall {
             b.add('fire', new THREE.CircleGeometry(w * 0.5, 16, 0, Math.PI), xf(x, top, Z_FAR + 0.3));
         }
         // the far wall's girders and galleries, half lost in the heat
-        for (const y of [6, 20, 34]) b.add('steel', new THREE.BoxGeometry(X1 - X0, 0.8, 1.6), xf((X0 + X1) / 2, y, Z_FAR + 0.8));
+        for (const y of [6, 20, 34]) {
+            if (y > 6) b.add('steel', new THREE.BoxGeometry(X1 - X0, 0.8, 1.6), xf((X0 + X1) / 2, y, Z_FAR + 0.8));
+            else for (const [a, c] of [[X0, -10], [10, X1]]) b.add('steel', new THREE.BoxGeometry(c - a, 0.8, 1.6), xf((a + c) / 2, y, Z_FAR + 0.8));
+        }
     }
 
     // ------------------------------------------------------------ structure
@@ -359,7 +378,7 @@ export class Hall {
 
     _line(b, line) {
         const x = line.x, H = LINE_HALF;
-        const z0 = 16, z1 = LEDGE_Z, len = z0 - z1, zc = (z0 + z1) / 2;
+        const z0 = 16, z1 = STRIP_END, len = z0 - z1, zc = (z0 + z1) / 2;
         b.add('plate', new THREE.PlaneGeometry(H * 2, len).rotateX(-Math.PI / 2), xf(x, 0.015, zc));
         for (const sd of [-1, 1]) {
             b.add('stripe', tiled(new THREE.BoxGeometry(0.3, 0.22, len), 0.7), xf(x + sd * (H + 0.15), 0.11, zc));
@@ -413,10 +432,18 @@ export class Hall {
         for (const dx of [-1, 1]) b.add('glass', new THREE.PlaneGeometry(bw, bh - 0.3).rotateY(Math.PI / 2), xf(x + dx * bw / 2, (bh - 0.3) / 2, zp));
         for (const dz of [-1, 1]) b.add('glass', new THREE.PlaneGeometry(bw, 1.6), xf(x, bh - 1.1, zp + dz * bw / 2));
         for (let k = 0; k < 6; k++) for (const dx of [-1, 1]) b.add('brass', new THREE.CylinderGeometry(0.05, 0.08, 0.3, 6).rotateZ(Math.PI / 2), xf(x + dx * (bw / 2 - 0.2), 0.8 + k * 0.8, zp));
-        // the release plate
-        const zr = slotZ(LAST);
-        b.add('stripe', new THREE.CylinderGeometry(1.6, 1.6, 0.06, 32), xf(x, 0.03, zr));
-        b.add('iron', new THREE.CylinderGeometry(1.3, 1.3, 0.08, 32), xf(x, 0.05, zr));
+        // the release plate: a short belt that carries each unit off it while it wakes
+        const zr = slotZ(LAST) + 1.2, zw = WAKE_Z - 1.2, bl = zr - zw;
+        b.add('stripe', tiled(new THREE.BoxGeometry(2.9, 0.05, bl + 0.4), 0.7), xf(x, 0.025, (zr + zw) / 2));
+        for (const sd of [-1, 1]) b.add('iron', new THREE.BoxGeometry(0.2, 0.18, bl), xf(x + sd * 1.3, 0.09, (zr + zw) / 2));
+        const tex = this.beltTex ??= beltTexture();
+        const bm = new THREE.MeshStandardMaterial({ map: tex.clone(), roughness: 0.85, color: 0x9a9a9a });
+        bm.map.repeat.set(1, bl / 0.5);
+        bm.map.needsUpdate = true;
+        const belt = new THREE.Mesh(new THREE.PlaneGeometry(2.4, bl).rotateX(-Math.PI / 2), bm);
+        belt.position.set(x, 0.06, (zr + zw) / 2);
+        this.scene.add(belt);
+        (this.belts ??= []).push({ line: line.id, map: bm.map });
     }
 
     /** A board hung over the main line where each shop begins. */
@@ -433,54 +460,90 @@ export class Hall {
     }
 
     _gangways(b) {
-        const W = 3.2, z0 = LEDGE_Z, z1 = GANGWAY_END;
+        const W = 3.2, z0 = LEDGE_Z, z1 = GANGWAY_END, x = MERGE.x, r = rng('gap');
+        // across the apron, a lane painted for each line's units, all running in to the walkway
         for (const line of LINES) {
-            const x = line.x, r = rng('gap' + line.id);
-            // the deck, on either side of the stretch that broke away
-            for (const [a, c] of [[z0, HOLE_Z0], [HOLE_Z1, z1]]) {
-                b.add('grate', tiled(new THREE.BoxGeometry(W, 0.3, a - c), 1.2), xf(x, -0.15, (a + c) / 2));
-                for (const sd of [-1, 1]) {
-                    b.add('steel', new THREE.BoxGeometry(0.3, 0.7, a - c), xf(x + sd * (W / 2 + 0.15), -0.35, (a + c) / 2));
-                    for (const y of [0.55, 1.08]) b.add('yellow', new THREE.BoxGeometry(0.07, 0.07, a - c), xf(x + sd * (W / 2 + 0.1), y, (a + c) / 2));
-                    for (let z = a; z >= c - 0.01; z -= 2) b.add('yellow', new THREE.CylinderGeometry(0.05, 0.05, 1.1, 6), xf(x + sd * (W / 2 + 0.1), 0.55, z));
-                }
-                // rust eating into it, worst near the gap
-                for (let i = 0; i < 7; i++) {
-                    const z = lerp(a, c, r());
-                    if (Math.abs(z - (HOLE_Z0 + HOLE_Z1) / 2) < 9 || r() < 0.35) b.add('rust', new THREE.BoxGeometry(0.4 + r() * 1.2, 0.02, 0.6 + r() * 1.5), xf(x + (r() - 0.5) * W * 0.7, 0.012, z, r() * 0.5));
-                }
+            for (const g of line.seg) {
+                if (g.az <= MERGE.z + 0.01) break;
+                const yaw = Math.atan2(g.dx, g.dz), mx = g.ax + (g.dx * g.len) / 2, mz = g.az + (g.dz * g.len) / 2;
+                b.add('plate', tiled(new THREE.BoxGeometry(2.2, 0.02, g.len + 2.2), 1.6), xf(mx, 0.01, mz, yaw));
+                for (const sd of [-1, 1]) b.add('yellow', new THREE.BoxGeometry(0.12, 0.025, g.len + 2.2), xf(mx + Math.cos(yaw) * sd * 1.1, 0.013, mz - Math.sin(yaw) * sd * 1.1, yaw));
             }
-            // the broken ends: torn grating hanging down into the gap, girders snapped and sagging, railings bent over
-            for (const [edge, dir] of [[HOLE_Z0, -1], [HOLE_Z1, 1]]) {
-                for (let i = 0; i < 3; i++) {
-                    const w = 0.5 + r() * 0.7, l = 0.6 + r() * 1.1, tilt = 0.5 + r() * 0.9;
-                    b.add(r() < 0.5 ? 'rust' : 'grate', tiled(new THREE.BoxGeometry(w, 0.05, l).translate(0, 0, (dir * l) / 2), 1.2), xf(x + (i - 1) * 1.0 + (r() - 0.5) * 0.4, -0.05, edge, (r() - 0.5) * 0.3, 1, 1, 1, dir * tilt, (r() - 0.5) * 0.3));
-                }
-                for (const sd of [-1, 1]) {
-                    const l = 0.8 + r() * 1.4;
-                    b.add('rust', new THREE.BoxGeometry(0.3, 0.6, l).translate(0, -0.3, (dir * l) / 2), xf(x + sd * (W / 2 + 0.15), -0.05, edge, 0, 1, 1, 1, dir * (0.25 + r() * 0.5)));
-                }
-                const sd = r() < 0.5 ? -1 : 1, l = 1.4 + r();
-                b.add('yellow', new THREE.BoxGeometry(0.07, 0.07, l).translate(0, 0, (dir * l) / 2), xf(x + sd * (W / 2 + 0.1), 1.08, edge, sd * 0.2, 1, 1, 1, dir * (0.9 + r() * 0.4)));
-                b.add('yellow', new THREE.BoxGeometry(0.07, 0.07, l * 0.6).translate(0, 0, dir * l * 0.3), xf(x - sd * (W / 2 + 0.1), 0.55, edge, 0, 1, 1, 1, dir * (1.2 + r() * 0.3)));
-            }
-            // pylons down into the lava
-            for (const z of [-208, -236, -248]) {
-                b.add('steel', new THREE.BoxGeometry(1.4, -LAVA_Y + 1, 1.4), xf(x, (LAVA_Y - 1) / 2 - 0.3, z));
-                b.add('iron', new THREE.BoxGeometry(W + 1.2, 0.8, 1.2), xf(x, -0.9, z));
-            }
-            // at the end of the gangway, the way out: a door in the far wall with daylight in it
-            const zd = Z_FAR + 0.35;
-            for (const sd of [-1, 1]) b.add('steel', new THREE.BoxGeometry(0.4, 4.4, 0.6), xf(x + sd * 2.0, 2.2, zd));
-            b.add('steel', new THREE.BoxGeometry(4.4, 0.5, 0.6), xf(x, 4.6, zd));
-            b.add('daylight', new THREE.PlaneGeometry(3.6, 4.2), xf(x, 2.1, zd + 0.05));
-            const exit = new THREE.Mesh(new THREE.PlaneGeometry(3.8, 1.3), new THREE.MeshBasicMaterial({ map: signTexture('EXIT', 'this way out', { bg: '#0b5e2a', fg: '#f4fff6', rule: '#bfffd0', w: 512, h: 176 }), color: new THREE.Color(1.6, 1.6, 1.6) }));
-            exit.position.set(x, 5.75, zd + 0.1);
-            this.scene.add(exit);
-            const glow = new THREE.Mesh(new THREE.ConeGeometry(3.5, 14, 16, 1, true).translate(0, -7, 0).rotateX(-Math.PI / 2), beamMaterial(new THREE.Color(1, 0.95, 0.8), 0.06));
-            glow.position.set(x, 2.1, zd);
-            this.scene.add(glow);
         }
+        b.add('plate', tiled(new THREE.BoxGeometry(3.2, 0.02, MERGE.z - z0 + 2), 1.6), xf(x, 0.01, (MERGE.z + z0) / 2));
+        // the walkway itself, either side of the stretch that broke away
+        const deckSide = (z) => z < CATWALK.z0 + 0.1 && z > DECK.z0 - 0.1;
+        for (const [a, c] of [[z0, HOLE_Z0], [HOLE_Z1, z1]]) {
+            b.add('grate', tiled(new THREE.BoxGeometry(W, 0.3, a - c), 1.2), xf(x, -0.15, (a + c) / 2));
+            for (const sd of [-1, 1]) {
+                b.add('steel', new THREE.BoxGeometry(0.3, 0.7, a - c), xf(x + sd * (W / 2 + 0.15), -0.35, (a + c) / 2));
+                // railings, but none on the quartermaster's side where it hands the rifles over
+                const runs = sd > 0 && a === z0 ? [[a, CATWALK.z0], [DECK.z0, c]] : [[a, c]];
+                for (const [p, q] of runs) {
+                    if (p - q < 0.2) continue;
+                    for (const y of [0.55, 1.08]) b.add('yellow', new THREE.BoxGeometry(0.07, 0.07, p - q), xf(x + sd * (W / 2 + 0.1), y, (p + q) / 2));
+                    for (let z = p; z >= q - 0.01; z -= 2) if (!(sd > 0 && deckSide(z) && z < p - 0.1)) b.add('yellow', new THREE.CylinderGeometry(0.05, 0.05, 1.1, 6), xf(x + sd * (W / 2 + 0.1), 0.55, z));
+                }
+            }
+            for (let i = 0; i < 9; i++) {
+                const z = lerp(a, c, r());
+                if (z < -225 || r() < 0.3) b.add('rust', new THREE.BoxGeometry(0.4 + r() * 1.2, 0.02, 0.6 + r() * 1.5), xf(x + (r() - 0.5) * W * 0.7, 0.012, z, r() * 0.5));
+            }
+        }
+        b.add('yellow', new THREE.BoxGeometry(W + 0.2, 0.07, 0.07), xf(x, 1.08, z1 + 0.05));
+        // the broken ends: torn grating hanging down into the gap, girders snapped and sagging, railings bent over
+        for (const [edge, dir] of [[HOLE_Z0, -1], [HOLE_Z1, 1]]) {
+            for (let i = 0; i < 3; i++) {
+                const w = 0.5 + r() * 0.7, l = 0.6 + r() * 1.1, tilt = 0.5 + r() * 0.9;
+                b.add(r() < 0.5 ? 'rust' : 'grate', tiled(new THREE.BoxGeometry(w, 0.05, l).translate(0, 0, (dir * l) / 2), 1.2), xf(x + (i - 1) * 1.0 + (r() - 0.5) * 0.4, -0.05, edge, (r() - 0.5) * 0.3, 1, 1, 1, dir * tilt, (r() - 0.5) * 0.3));
+            }
+            for (const sd of [-1, 1]) {
+                const l = 0.8 + r() * 1.4;
+                b.add('rust', new THREE.BoxGeometry(0.3, 0.6, l).translate(0, -0.3, (dir * l) / 2), xf(x + sd * (W / 2 + 0.15), -0.05, edge, 0, 1, 1, 1, dir * (0.25 + r() * 0.5)));
+            }
+            const sd = r() < 0.5 ? -1 : 1, l = 1.4 + r();
+            b.add('yellow', new THREE.BoxGeometry(0.07, 0.07, l).translate(0, 0, (dir * l) / 2), xf(x + sd * (W / 2 + 0.1), 1.08, edge, sd * 0.2, 1, 1, 1, dir * (0.9 + r() * 0.4)));
+            b.add('yellow', new THREE.BoxGeometry(0.07, 0.07, l * 0.6).translate(0, 0, dir * l * 0.3), xf(x - sd * (W / 2 + 0.1), 0.55, edge, 0, 1, 1, 1, dir * (1.2 + r() * 0.3)));
+        }
+        // pylons down into the lava
+        for (const z of [-210, -226, -240]) {
+            b.add('steel', new THREE.BoxGeometry(1.4, -LAVA_Y + 1, 1.4), xf(x, (LAVA_Y - 1) / 2 - 0.3, z));
+            b.add('iron', new THREE.BoxGeometry(W + 1.2, 0.8, 1.2), xf(x, -0.9, z));
+        }
+        // the way out: a tall door full of daylight in the far wall, under a very large EXIT sign
+        const zd = Z_FAR + 0.35;
+        for (const sd of [-1, 1]) b.add('steel', new THREE.BoxGeometry(0.6, 6.2, 0.8), xf(x + sd * 3.3, 3.1, zd));
+        b.add('steel', new THREE.BoxGeometry(7.2, 0.7, 0.8), xf(x, 6.45, zd));
+        b.add('daylight', new THREE.PlaneGeometry(6, 6.1), xf(x, 3.05, zd + 0.05));
+        const exit = new THREE.Mesh(new THREE.PlaneGeometry(18, 6.2), new THREE.MeshBasicMaterial({ map: signTexture('EXIT', '→   this way out   →', { bg: '#0b6a2e', fg: '#f6fff8', rule: '#c8ffd8', w: 1024, h: 352 }), color: new THREE.Color(1.7, 1.7, 1.7) }));
+        exit.position.set(x, 11.6, zd + 0.15);
+        this.scene.add(exit);
+        b.add('steel', new THREE.BoxGeometry(18.8, 7, 0.4), xf(x, 11.6, zd - 0.05));
+        for (const sd of [-1, 1]) b.add('iron', new THREE.CylinderGeometry(0.05, 0.05, 8, 4), xf(x + sd * 8, 19, zd));
+        this.exitLight = new THREE.PointLight(0x6aff9a, 60, 40, 1.5);
+        this.exitLight.position.set(x, 11, zd + 6);
+        this.scene.add(this.exitLight);
+        const glow = new THREE.Mesh(new THREE.ConeGeometry(5, 18, 16, 1, true).translate(0, -9, 0).rotateX(-Math.PI / 2), beamMaterial(new THREE.Color(1, 0.95, 0.8), 0.06));
+        glow.position.set(x, 3.05, zd);
+        this.scene.add(glow);
+        // the quartermaster's crate of rifles
+        const rg = rifleGeometries();
+        const cx = SARGE.x + 1.5, cz = SARGE.z - 0.3;
+        b.add('green', new THREE.BoxGeometry(1.0, 0.8, 1.9), xf(cx, 0.4, cz));
+        b.add('darkWood', new THREE.BoxGeometry(1.06, 0.08, 1.96), xf(cx, 0.82, cz));
+        for (let i = 0; i < 6; i++) {
+            const at = xf(cx - 0.3 + (i % 3) * 0.3, 0.9, cz + (i < 3 ? -0.2 : 0.25), (i < 3 ? 0 : Math.PI) + (r() - 0.5) * 0.1, 1, 1, 1, Math.PI / 2 * 0, 0);
+            b.add('robotDark', rg.body, at);
+            b.add('rifleGlow', rg.glow, at);
+        }
+        b.add('green', new THREE.BoxGeometry(0.9, 0.6, 1.2), xf(cx + 0.1, 0.3, cz + 1.8, 0.2));
+        this.block(SARGE.x - 0.8, cx + 0.55, SARGE.z - 1.4, SARGE.z + 1.2);
+        this.block(cx - 0.45, cx + 0.6, cz + 1.0, cz + 2.5);
+        const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.65), new THREE.MeshBasicMaterial({ map: signTexture('QUARTERMASTER', 'One each. Sign here.', { fg: '#c8d890', rule: '#8a9a5a', bg: '#1c2014' }), color: new THREE.Color(1.1, 1.1, 1.1), side: THREE.DoubleSide }));
+        sign.position.set(cx + 0.64, 2.9, cz + 0.4);
+        sign.rotation.y = Math.PI / 2;
+        this.scene.add(sign);
+        b.add('steel', new THREE.BoxGeometry(0.12, 2.6, 0.12), xf(cx + 0.62, 1.3, cz + 0.4));
         // the counter over the main gangway, at the ledge
         this.counter = { canvas: canvas(1024, 256), last: -1 };
         this.counter.tex = toTexture(this.counter.canvas);
@@ -491,15 +554,15 @@ export class Hall {
         b.add('iron', new THREE.BoxGeometry(9.4, 2.6, 0.2), xf(0, 10.4, LEDGE_Z + 0.88));
         for (const sd of [-1, 1]) b.add('steel', new THREE.BoxGeometry(0.4, 11.6, 0.4), xf(sd * 4.9, 5.8, LEDGE_Z + 0.7));
         // the railing along the ledge, broken for the gangways and the catwalk
-        const gaps = [...LINES.map((l) => [l.x - 1.8, l.x + 1.8]), [CATWALK.x0 - 0.2, CATWALK.x1 + 0.2]].sort((p, q) => p[0] - q[0]);
-        let x = X0 + 1;
+        const gaps = [[MERGE.x - 1.8, MERGE.x + 1.8], [CATWALK.x0 - 0.2, CATWALK.x1 + 0.2]];
+        let lx = X0 + 1;
         for (const [g0, g1] of [...gaps, [X1 - 1, X1]]) {
-            if (g0 > x) {
-                const w = g0 - x;
-                for (const y of [0.55, 1.1]) b.add('yellow', new THREE.BoxGeometry(w, 0.07, 0.07), xf(x + w / 2, y, LEDGE_Z + 0.35));
-                for (let px = x; px <= g0; px += 2) b.add('yellow', new THREE.CylinderGeometry(0.05, 0.05, 1.1, 6), xf(px, 0.55, LEDGE_Z + 0.35));
+            if (g0 > lx) {
+                const w = g0 - lx;
+                for (const y of [0.55, 1.1]) b.add('yellow', new THREE.BoxGeometry(w, 0.07, 0.07), xf(lx + w / 2, y, LEDGE_Z + 0.35));
+                for (let px = lx; px <= g0; px += 2) b.add('yellow', new THREE.CylinderGeometry(0.05, 0.05, 1.1, 6), xf(px, 0.55, LEDGE_Z + 0.35));
             }
-            x = g1;
+            lx = g1;
         }
     }
 
@@ -538,14 +601,15 @@ export class Hall {
             const n = Math.max(1, Math.round(len / 2));
             for (let i = 0; i <= n; i++) b.add('yellow', new THREE.CylinderGeometry(0.05, 0.05, 1.1, 6), xf(xa + ((xb - xa) * i) / n, 0.55, za + ((zb - za) * i) / n));
         };
-        const C = CATWALK;
+        const C = CATWALK, D = DECK;
         b.add('grate', tiled(new THREE.BoxGeometry(C.x1 - C.x0, 0.25, C.z1 - C.z0), 1.2), xf((C.x0 + C.x1) / 2, -0.125, (C.z0 + C.z1) / 2));
-        rail(C.x0 - 0.1, C.z1, C.x0 - 0.1, C.z0 - 0.1);
-        rail(C.x1 + 0.1, C.z1, C.x1 + 0.1, C.z0 - 0.1);
-        rail(C.x0 - 0.1, C.z0 - 0.1, C.x1 + 0.1, C.z0 - 0.1);
-        for (const z of [-210, C.z0 + 1]) b.add('steel', new THREE.BoxGeometry(1.1, -LAVA_Y, 1.1), xf(C.x1 - 0.8, LAVA_Y / 2 - 0.3, z));
-        // braces back to the ledge
-        for (const x of [C.x0, C.x1]) b.add('steel', new THREE.BoxGeometry(0.25, 0.25, 9).rotateX(-0.7), xf(x, -3.3, C.z1 - 3.4));
+        b.add('grate', tiled(new THREE.BoxGeometry(D.x1 - D.x0, 0.25, D.z1 - D.z0), 1.2), xf((D.x0 + D.x1) / 2, -0.125, (D.z0 + D.z1) / 2));
+        rail(C.x0 - 0.1, C.z1, C.x0 - 0.1, C.z0);
+        rail(D.x0, C.z0, C.x0 - 0.1, C.z0);
+        rail(C.x1 + 0.1, C.z1, C.x1 + 0.1, D.z0 - 0.1);
+        rail(D.x0, D.z0 - 0.1, D.x1 + 0.1, D.z0 - 0.1);
+        for (const [px, z] of [[C.x1 - 0.8, -212], [C.x1 - 0.8, D.z0 + 1], [D.x0 + 1, D.z0 + 1]]) b.add('steel', new THREE.BoxGeometry(1.1, -LAVA_Y, 1.1), xf(px, LAVA_Y / 2 - 0.3, z));
+        for (const px of [C.x0, C.x1]) b.add('steel', new THREE.BoxGeometry(0.25, 0.25, 9).rotateX(-0.7), xf(px, -3.3, C.z1 - 3.4));
     }
 
     // ------------------------------------------------------------ the lift
@@ -804,7 +868,7 @@ export class Hall {
 
         // crates and drums along the far side of the walkway
         const r = rng('crates');
-        for (const z of [8, -36, -44, -76, -112, -118, -150, -184, -190]) {
+        for (const z of [8, -36, -44, -76, -112, -118, -150]) {
             const x = 30.8 + r() * 0.8;
             const n = 1 + Math.floor(r() * 3);
             for (let i = 0; i < n; i++) {
@@ -874,7 +938,7 @@ export class Hall {
         b.add('steel', new THREE.BoxGeometry(40, 0.3, 2), xf(-20, 15.4, Z_BACK - 7));
         for (let i = 0; i < 20; i++) b.add('yellow', new THREE.CylinderGeometry(0.04, 0.04, 1, 4), xf(-39.5 + i * 2, 16, Z_BACK - 7.9));
         b.add('yellow', new THREE.BoxGeometry(40, 0.06, 0.06), xf(-20, 16.5, Z_BACK - 7.9));
-        const sign = new THREE.Mesh(new THREE.PlaneGeometry(22, 3.2), new THREE.MeshBasicMaterial({ map: signTexture('THE ROBOT FOUNDRY', 'Line 1 · Line 2 · Line 3 · Line 4', { fg: '#ffd98a', w: 1536, h: 224 }), color: new THREE.Color(1.15, 1.15, 1.15) }));
+        const sign = new THREE.Mesh(new THREE.PlaneGeometry(22, 3.2), new THREE.MeshBasicMaterial({ map: signTexture('THE ROBOT FOUNDRY', 'Line 1 · Line 2 · Line 3', { fg: '#ffd98a', w: 1536, h: 224 }), color: new THREE.Color(1.15, 1.15, 1.15) }));
         sign.position.set(-20, 27.5, Z_BACK - 6.1);
         sign.rotation.y = Math.PI;
         this.scene.add(sign);
@@ -1002,6 +1066,8 @@ export class Hall {
 
     update(dt, t) {
         for (const s of this.spinners) s.obj.rotation[s.axis] += s.speed * dt;
+        // the belts off the release plates run as each unit is let go (the texture slides toward -z)
+        for (const b of this.belts) b.map.offset.y = -((this.lines.lines[b.line].belt ?? 0) % 0.5) / 0.5;
         this.lava.material.uniforms.uTime.value = t;
         this.falls.uniforms.uTime.value = t;
         // the gantry cranes trundle up and down the hall, their trolleys back and forth
@@ -1124,7 +1190,7 @@ export class Hall {
                 mono(info.despatched.toLocaleString('en-GB'), 30, 150, '#ff9a3a');
                 ctx.font = '22px Menlo, Consolas, monospace';
                 mono('units completed to date', 36, 230, '#c8a868');
-                mono(`cycle ${info.cycle.toFixed(1)} s · 4 lines · 27 stations each`, 36, 270, '#7dff9b');
+                mono(`cycle ${info.cycle.toFixed(1)} s · 3 lines · 27 stations each`, 36, 270, '#7dff9b');
                 mono('reached the exit: 0   walkway repair request: OPEN', 36, 310, '#ff8060');
                 mono(`lava ${(1180 + Math.sin(t * 0.3) * 14).toFixed(0)} °C`, 36, 350, '#ff8060');
             }
