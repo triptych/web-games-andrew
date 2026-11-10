@@ -1,0 +1,356 @@
+{
+"sprites": {
+"archivist": [
+176,
+220
+],
+"arin": [
+65,
+92
+],
+"arin-evo": [
+85,
+92
+],
+"astral_sentinel": [
+99,
+104
+],
+"aurelion": [
+220,
+196
+],
+"basilisk": [
+146,
+150
+],
+"bog_lurker": [
+104,
+99
+],
+"brakka": [
+85,
+92
+],
+"brakka-evo": [
+89,
+92
+],
+"brass_owl": [
+68,
+104
+],
+"celestine": [
+220,
+220
+],
+"cinder_hound": [
+104,
+88
+],
+"clock_soldier": [
+96,
+104
+],
+"cog_hound": [
+104,
+91
+],
+"colossus": [
+220,
+207
+],
+"crystal_spider": [
+104,
+99
+],
+"demon_knight": [
+79,
+104
+],
+"dusk_bat": [
+104,
+73
+],
+"eclipse_knight": [
+125,
+150
+],
+"fire_imp": [
+104,
+85
+],
+"flytrap": [
+97,
+104
+],
+"forge_wight": [
+91,
+104
+],
+"frost_wolf": [
+104,
+69
+],
+"frozen_knight": [
+76,
+104
+],
+"furnace_ogre": [
+150,
+150
+],
+"gargoyle": [
+98,
+104
+],
+"gear_spider": [
+104,
+80
+],
+"geode_tortoise": [
+104,
+87
+],
+"glacier_troll": [
+122,
+150
+],
+"gnawer_rat": [
+104,
+66
+],
+"goblin_scrapper": [
+93,
+104
+],
+"grand_mimic": [
+150,
+140
+],
+"griffon": [
+96,
+104
+],
+"grimble": [
+74,
+79
+],
+"grimble-evo": [
+76,
+79
+],
+"grubnak": [
+138,
+150
+],
+"hellhound": [
+104,
+95
+],
+"horned_fiend": [
+104,
+86
+],
+"hrimgard": [
+220,
+214
+],
+"hydra": [
+150,
+140
+],
+"ice_wraith": [
+104,
+97
+],
+"ignivar": [
+179,
+220
+],
+"ink_shade": [
+104,
+96
+],
+"kobold_miner": [
+81,
+104
+],
+"living_tome": [
+87,
+104
+],
+"lyra": [
+68,
+92
+],
+"lyra-evo": [
+67,
+92
+],
+"magma_salamander": [
+104,
+65
+],
+"malgrath": [
+220,
+220
+],
+"mandrake": [
+59,
+104
+],
+"mira": [
+62,
+92
+],
+"mira-evo": [
+83,
+92
+],
+"mire_toad": [
+104,
+77
+],
+"moss_slime": [
+104,
+91
+],
+"motherbloom": [
+220,
+197
+],
+"nebula_moth": [
+104,
+87
+],
+"nyx": [
+92,
+92
+],
+"nyx-evo": [
+83,
+92
+],
+"orrery": [
+217,
+220
+],
+"pip": [
+47,
+72
+],
+"pip-evo": [
+49,
+72
+],
+"pit_warden": [
+149,
+150
+],
+"puffcap": [
+91,
+104
+],
+"quartz_mole": [
+104,
+95
+],
+"quill_imp": [
+104,
+65
+],
+"rime_harpy": [
+89,
+104
+],
+"sentinel_orb": [
+104,
+97
+],
+"seraph_sentinel": [
+104,
+99
+],
+"shard_wisp": [
+100,
+104
+],
+"siege_automaton": [
+144,
+150
+],
+"skeleton_scholar": [
+79,
+104
+],
+"sky_drake": [
+104,
+104
+],
+"slag_golem": [
+85,
+104
+],
+"snow_yeti": [
+94,
+104
+],
+"star_jelly": [
+70,
+104
+],
+"starlight_stag": [
+74,
+104
+],
+"storm_drake": [
+149,
+150
+],
+"storm_elemental": [
+104,
+101
+],
+"sylas": [
+77,
+92
+],
+"sylas-evo": [
+96,
+92
+],
+"thorn_dryad": [
+102,
+104
+],
+"thorne": [
+61,
+92
+],
+"thorne-evo": [
+82,
+92
+],
+"thunderbird": [
+100,
+104
+],
+"vitreous_wyrm": [
+220,
+210
+],
+"void_eye": [
+73,
+104
+],
+"void_spawn": [
+87,
+104
+],
+"wax_wraith": [
+88,
+104
+]
+}
+}
