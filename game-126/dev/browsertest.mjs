@@ -98,6 +98,39 @@ async function desktop() {
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('place').hidden && __es.ui.place === null, 'Escape leaves the building');
 
+    // town greetings: by themselves for the first 3 visits, then only on the speaker by the portrait; saved
+    await Q(page, () => {
+        window.__spoke = [];
+        const say = __es.audio.say.bind(__es.audio);
+        __es.audio.say = (name, o = {}) => { const r = say(name, o); if (r) window.__spoke.push(name + (o.force ? ':tap' : '')); return r; };
+    });
+    for (let i = 0; i < 5; i++) {
+        await Q(page, () => { __es.audio.lastVoice = -1e9; });   // let each visit speak (no one else is talking)
+        await click(page, '#town [data-place="tavern"]');
+        await until(page, visible('#place .npc'), `visit ${i + 2} to the Tavern`);
+        await click(page, '#place [data-k="back"]');
+        await until(page, () => document.getElementById('place').hidden, `and back out (${i + 2})`);
+    }
+    const plays = await Q(page, () => ({ spoke: window.__spoke.filter((x) => x === 'bram').length, count: __es.ui.settings.greetPlays.bram, saved: JSON.parse(localStorage.getItem('emberspire.v1.settings')).greetPlays.bram }));
+    check(plays.count === 3 && plays.saved === 3, `Bram's greeting plays by itself 3 times in all and the count is saved (${JSON.stringify(plays)})`);
+    check(plays.spoke <= 3 && plays.spoke >= 2, `and no more than that after the first visit (${plays.spoke} of 5 more visits spoke)`);
+    await click(page, '#town [data-place="tavern"]');
+    await until(page, visible('#place .npc [data-k="speak"]'), 'a speaker sits by Bram\'s portrait');
+    const sz = await Q(page, () => { const r = document.querySelector('#place [data-k="speak"]').getBoundingClientRect(); return r.width >= 36 && r.height >= 36; });
+    check(sz, 'and is big enough to tap');
+    await click(page, '#place [data-k="speak"]');
+    await until(page, () => window.__spoke.includes('bram:tap'), 'tapping it plays the greeting again');
+    await shot(page, 'desktop-greeting-speaker');
+    await click(page, '#place [data-k="back"]');
+    await until(page, () => document.getElementById('place').hidden, 'back to town');
+    await Q(page, () => { const sel = document.getElementById('set-greet'); sel.value = 'tap'; sel.dispatchEvent(new Event('change')); __es.audio.lastVoice = -1e9; window.__spoke = []; });
+    await click(page, '#town [data-place="forge"]');
+    await until(page, visible('#place .npc'), 'with "Only when I tap", the Forge opens');
+    check(await Q(page, () => window.__spoke.length === 0 && JSON.parse(localStorage.getItem('emberspire.v1.settings')).greet === 'tap'), 'Hilde stays quiet and the choice is saved');
+    await click(page, '#place [data-k="back"]');
+    await until(page, () => document.getElementById('place').hidden, 'and back to town');
+    await Q(page, () => { const sel = document.getElementById('set-greet'); sel.value = 'few'; sel.dispatchEvent(new Event('change')); });
+
     await click(page, '#town [data-place="gate"]');
     await until(page, visible('#place [data-k="floor-1"]'), 'the Gate offers floor 1');
     await click(page, '#place [data-k="floor-1"]');

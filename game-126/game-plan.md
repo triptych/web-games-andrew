@@ -2,7 +2,7 @@
 
 **Genre:** 16-bit endless-tower JRPG: turn-based party battles, a town of RPG systems, bonds, and idle income
 **Engine:** Vanilla JS: Canvas 2D battle stage (640x360, nearest-neighbour) and DOM menus. Art generated with fal, music, effects and voices with ElevenLabs; a Web Audio synth is the fallback for any sound file that fails to load
-**Status:** v1.0.2
+**Status:** v1.0.3
 
 ---
 
@@ -156,6 +156,10 @@ still defeated sometimes.
 - The Garden preview image is the title art.
 
 ## Changelog
+
+### v1.0.3 (2026-11-10)
+- Changed: the townsfolk's spoken greetings got tiring after a few visits. Each greeting now plays by itself on the first 3 visits to that building, then stays quiet; a round 🔊 button on the shopkeeper's portrait plays it again whenever you like. Settings has a new "Town greetings" choice (First 3 visits, Every visit, Only when I tap 🔊), and both the choice and the per-greeting count are saved with the other settings. Battle voices are unchanged.
+- Fixed: the speech bubble showed a different line each day while the voice always said the same one; the bubble now shows the spoken line, with the day's line in smaller text under it. On phones the top bar wraps to two rows and covered the shopkeeper's name; building screens now start below it.
 
 ### v1.0.2 (2026-11-10)
 - Added: with Auto battle on, the victory screen's "Climb to floor N" button counts down from 10 seconds (draining as it goes) and then climbs by itself; a Wait button stops it, and switching Auto off or leaving cancels it. There is no countdown when the next floor holds a mini boss or a boss: the screen says what waits and you climb when ready. Auto-climb follows the same rule and now stops at the victory screen before every 5th and 10th floor instead of walking straight in (`AUTO_NEXT_SECONDS` in config.js).

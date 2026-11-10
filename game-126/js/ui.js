@@ -57,12 +57,15 @@ const className = (G, id) => {
     return hh.tier >= 3 ? CLASSES[hh.cls].asc : CLASSES[hh.cls].name;
 };
 const PLACE_BG = { gate: 'title', tavern: 'tavern', forge: 'smithy', market: 'shop', guild: 'guild', temple: 'temple', party: 'tavern', treasury: 'guild', bestiary: 'library' };
+// town greetings play by themselves this many times each, then only on the 🔊 by the portrait
+const GREET_AUTO = 3;
 const PLACE_NPC = { gate: 'watcher', tavern: 'bram', forge: 'hilde', market: 'zephyrine', guild: 'corwin', temple: 'amaya', treasury: 'corwin' };
 
 export class UI {
     constructor({ audio, settings, send, onSettings, onDeleteSave, onQuit }) {
         this.audio = audio;
         this.settings = settings;
+        this.onSettings = onSettings;
         this.send = send;
         this.stack = [];
         this.place = null;          // which building is open
@@ -86,10 +89,10 @@ export class UI {
             }, { capture: true });
         }
         for (const b of document.querySelectorAll('[data-close]')) b.addEventListener('click', () => { audio.ui('back'); this.closeTop(); });
-        const sfx = $('set-sfx'), music = $('set-music'), voice = $('set-voice'), speed = $('set-speed');
-        sfx.value = settings.sfx; music.value = settings.music; voice.value = settings.voice; speed.value = String(settings.speed);
-        const changed = () => { Object.assign(settings, { sfx: +sfx.value, music: +music.value, voice: +voice.value, speed: +speed.value }); onSettings(settings); };
-        for (const el of [sfx, music, voice, speed]) el.addEventListener('change', changed);
+        const sfx = $('set-sfx'), music = $('set-music'), voice = $('set-voice'), speed = $('set-speed'), greet = $('set-greet');
+        sfx.value = settings.sfx; music.value = settings.music; voice.value = settings.voice; speed.value = String(settings.speed); greet.value = settings.greet;
+        const changed = () => { Object.assign(settings, { sfx: +sfx.value, music: +music.value, voice: +voice.value, speed: +speed.value, greet: greet.value }); onSettings(settings); };
+        for (const el of [sfx, music, voice, speed, greet]) el.addEventListener('change', changed);
         $('set-delete').addEventListener('click', () => { if (confirm('Delete your saved game? This cannot be undone.')) { onDeleteSave(); this.toast('Saved game deleted.'); } });
         $('set-title').addEventListener('click', () => onQuit());
         $('btn-menu').addEventListener('click', () => { audio.ui('click'); this.openScreen('settings'); });
@@ -194,10 +197,24 @@ export class UI {
         this.setBg('town', evening);
     }
 
+    /** The town greeting when you walk in: by itself for the first GREET_AUTO visits (or every visit, or never, per
+     *  Settings), counted in the saved settings so it stays quiet after a reload. The 🔊 by the portrait replays it. */
+    greet(npc) {
+        const clip = npc === 'watcher' ? 'watcher-gate' : npc;
+        const st = this.settings;
+        st.greetPlays = st.greetPlays || {};
+        const n = st.greetPlays[clip] || 0;
+        if (st.greet === 'tap' || (st.greet !== 'every' && n >= GREET_AUTO)) return false;
+        if (!this.audio.say(clip, { gap: 2 })) return false;     // not loaded yet, or someone is already talking
+        st.greetPlays[clip] = n + 1;
+        this.onSettings(st);
+        return true;
+    }
+
     openPlace(G, id) {
         this.place = id;
         const npc = PLACE_NPC[id];
-        if (npc) this.audio.say(npc === 'watcher' ? 'watcher-gate' : npc, { gap: 2 });
+        if (npc) this.greet(npc);
         this.renderPlace(G);
         $('town').style.visibility = 'hidden';
         this.openScreen('place');
@@ -212,10 +229,14 @@ export class UI {
         const focusKey = document.activeElement?.dataset?.k;
         root.replaceChildren();
         const npc = PLACE_NPC[id];
-        const greet = npc ? GREETINGS[npc][(G.day + id.length) % GREETINGS[npc].length] : null;
+        // the bubble shows the recorded line (what the 🔊 plays), and the day's own line under it when it differs
+        const voiced = npc ? GREETINGS[npc][0] : null;
+        const today = npc ? GREETINGS[npc][(G.day + id.length) % GREETINGS[npc].length] : null;
+        const clip = npc === 'watcher' ? 'watcher-gate' : npc;
         const head = npc ? h('div.npc', {},
-            h('div.por', { style: { backgroundImage: `url(${por(npc)})` } }),
-            h('div.win.say', {}, h('span.who', { text: NPCS[npc].name + ' · ' + NPCS[npc].role }), greet)) : null;
+            h('div.por', { style: { backgroundImage: `url(${por(npc)})` } },
+                h('button.speak', { 'data-k': 'speak', 'aria-label': `Hear ${NPCS[npc].name}`, title: `Hear ${NPCS[npc].name}`, on: { click: () => this.audio.say(clip, { force: true }) } }, '🔊')),
+            h('div.win.say', {}, h('span.who', { text: NPCS[npc].name + ' · ' + NPCS[npc].role }), voiced, today !== voiced ? h('span.today', { text: today }) : null)) : null;
         const panel = h('div.win.panel');
         const back = h('button.btn', { 'data-k': 'back', on: { click: () => { this.audio.ui('back'); this.closePlace(G); } } }, '← Town');
         const titles = { gate: 'The Tower Gate', tavern: 'The Frothy Mug', forge: 'Hilde\'s Forge', market: 'Zephyrine\'s Wares', guild: 'Adventurers\' Guild', temple: 'Temple of the Dawn', party: 'Your Company', treasury: 'Treasury', bestiary: 'Bestiary' };

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **EMBERSPIRE** (game-126) v1.0.3: the townsfolk's spoken greetings got tiring after a few visits. Each greeting now plays by itself on the first 3 visits to that building and then stays quiet; a round 🔊 button on the shopkeeper's portrait plays it again on demand ([ui.js](game-126/js/ui.js)). Settings has a new "Town greetings" choice (First 3 visits, Every visit, Only when I tap 🔊), saved in localStorage with the per-greeting counts ([save.js](game-126/js/save.js)). The speech bubble now shows the line that is spoken, with the day's line under it, and on phones building screens start below the two-row top bar. Battle voices are unchanged. Tested in [browsertest.mjs](game-126/dev/browsertest.mjs) (Bram speaks 3 times over repeated visits and the count is saved, the 🔊 replays him, "Only when I tap" keeps Hilde quiet and is saved).
+
 ### Added
 - **EMBERSPIRE** (game-126) v1.0.2: with Auto battle on, the victory screen's "Climb to floor N" button counts down from 10 seconds (the button drains as it counts) and then climbs by itself; Wait stops it, and switching Auto off cancels it ([ui.js](game-126/js/ui.js)). No countdown when the next floor is a mini boss or a boss: the screen says what waits and you choose when to go in. Auto-climb now follows the same rule and stops before every mini boss and boss instead of walking straight in ([game.js](game-126/js/sim/game.js)). Tested in [simtest.mjs](game-126/dev/simtest.mjs) (auto-climb waits before floor 5) and [browsertest.mjs](game-126/dev/browsertest.mjs) (the countdown climbs on its own, Wait stops it, none before a mini boss).
 
