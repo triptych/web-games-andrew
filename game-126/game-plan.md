@@ -2,7 +2,7 @@
 
 **Genre:** 16-bit endless-tower JRPG: turn-based party battles, a town of RPG systems, bonds, and idle income
 **Engine:** Vanilla JS: Canvas 2D battle stage (640x360, nearest-neighbour) and DOM menus. Art generated with fal, music, effects and voices with ElevenLabs; a Web Audio synth is the fallback for any sound file that fails to load
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -156,6 +156,9 @@ still defeated sometimes.
 - The Garden preview image is the title art.
 
 ## Changelog
+
+### v1.0.1 (2026-11-10)
+- Fixed: in battle the heroes and monsters looked like they were floating above the floor. Their feet were placed as high as y 236 of 360, on the strip of floor at the foot of each backdrop's far wall; they now stand between y 290 and 352 on the near floor, with a two-layer contact shadow, and only flying monsters hover (walkers no longer bob). The floor label moved to the top-right so it no longer covers the back-row hero.
 
 ### v1.0.0 (2026-11-10)
 - First release: an endless tower of 10 strata (70 monster designs, 10 mini bosses, 10 bosses, Ascended past 100),
