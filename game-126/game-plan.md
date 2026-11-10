@@ -2,7 +2,7 @@
 
 **Genre:** 16-bit endless-tower JRPG: turn-based party battles, a town of RPG systems, bonds, and idle income
 **Engine:** Vanilla JS: Canvas 2D battle stage (640x360, nearest-neighbour) and DOM menus. Art generated with fal, music, effects and voices with ElevenLabs; a Web Audio synth is the fallback for any sound file that fails to load
-**Status:** v1.0.3
+**Status:** v1.0.4
 
 ---
 
@@ -156,6 +156,10 @@ still defeated sometimes.
 - The Garden preview image is the title art.
 
 ## Changelog
+
+### v1.0.4 (2026-11-10)
+- Fixed: Auto, Climb and the speed button often ignored clicks once a battle was moving, worst at 3x: switching Auto off during the monsters' turns didn't take, a second click then flipped it the wrong way (so Auto was off when you thought you had turned it back on, and the auto-climb countdown never came), and 3x couldn't be clicked back to 1x. The battle panel re-rendered every time a turn started or an animation ended, many times a second at 3x, and rebuilt these buttons each time, so a click whose press and release straddled a re-render was lost. The toggle row is now built once and only relabelled.
+- Fixed: three sprites faced the wrong way in battle because v1.0.0 mirrored them by mistake: Grubnak (the floor 5 mini boss) and Celestine (the floor 80 boss) faced away from the party, and Thorne faced away from the monsters. All 70 monsters and 18 hero sprites were rechecked at full size; the mirror list in `dev/art/export.py` is now per sprite.
 
 ### v1.0.3 (2026-11-10)
 - Changed: the townsfolk's spoken greetings got tiring after a few visits. Each greeting now plays by itself on the first 3 visits to that building, then stays quiet; a round 🔊 button on the shopkeeper's portrait plays it again whenever you like. Settings has a new "Town greetings" choice (First 3 visits, Every visit, Only when I tap 🔊), and both the choice and the per-greeting count are saved with the other settings. Battle voices are unchanged.
