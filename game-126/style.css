@@ -160,6 +160,9 @@ td:first-child { color: var(--gold); white-space: nowrap; }
 }
 .npc .speak:hover { filter: brightness(1.25); }
 .npc .speak:focus-visible { outline: 3px solid var(--ember); outline-offset: 2px; }
+.npc .speak.playing { cursor: default; filter: saturate(0.6); animation: speak-pulse 0.7s ease-in-out infinite alternate; }
+@keyframes speak-pulse { from { box-shadow: 0 2px 0 #000, 0 0 0 0 rgba(255, 196, 80, 0.55); } to { box-shadow: 0 2px 0 #000, 0 0 0 7px rgba(255, 196, 80, 0); } }
+@media (prefers-reduced-motion: reduce) { .npc .speak.playing { animation: none; opacity: 0.7; } }
 .npc .say { flex: 1; padding: 10px 12px; position: relative; }
 .npc .say .today { display: block; margin-top: 4px; font-size: 13px; color: var(--dim); }
 .npc .say .who { color: var(--gold); font-weight: 700; display: block; font-size: 14px; }

@@ -211,6 +211,14 @@ export class UI {
         return true;
     }
 
+    /** Show the speaker as busy until the current voice line ends. */
+    markSpeaking(btn) {
+        btn.classList.add('playing');
+        btn.setAttribute('aria-busy', 'true');
+        clearTimeout(this._speakTimer);
+        this._speakTimer = setTimeout(() => { btn.classList.remove('playing'); btn.removeAttribute('aria-busy'); }, this.audio.voiceLeft() * 1000 + 60);
+    }
+
     openPlace(G, id) {
         this.place = id;
         const npc = PLACE_NPC[id];
@@ -233,9 +241,12 @@ export class UI {
         const voiced = npc ? GREETINGS[npc][0] : null;
         const today = npc ? GREETINGS[npc][(G.day + id.length) % GREETINGS[npc].length] : null;
         const clip = npc === 'watcher' ? 'watcher-gate' : npc;
+        // one line at a time: while anyone is talking the speaker dims and taps do nothing (they used to stack voices)
+        const speaker = npc ? h('button.speak', { 'data-k': 'speak', 'aria-label': `Hear ${NPCS[npc].name}`, title: `Hear ${NPCS[npc].name}`, on: { click: (e) => { if (this.audio.say(clip, { force: true })) this.markSpeaking(e.currentTarget); } } }, '🔊') : null;
+        if (speaker && this.audio.voiceLeft() > 0) this.markSpeaking(speaker);   // the greeting that just played on the way in
         const head = npc ? h('div.npc', {},
             h('div.por', { style: { backgroundImage: `url(${por(npc)})` } },
-                h('button.speak', { 'data-k': 'speak', 'aria-label': `Hear ${NPCS[npc].name}`, title: `Hear ${NPCS[npc].name}`, on: { click: () => this.audio.say(clip, { force: true }) } }, '🔊')),
+                speaker),
             h('div.win.say', {}, h('span.who', { text: NPCS[npc].name + ' · ' + NPCS[npc].role }), voiced, today !== voiced ? h('span.today', { text: today }) : null)) : null;
         const panel = h('div.win.panel');
         const back = h('button.btn', { 'data-k': 'back', on: { click: () => { this.audio.ui('back'); this.closePlace(G); } } }, '← Town');

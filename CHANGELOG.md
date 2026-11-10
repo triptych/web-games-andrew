@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **EMBERSPIRE** (game-126) v1.0.6: tapping the 🔊 by a shopkeeper's portrait repeatedly stacked a new copy of the greeting per tap, so several voices talked over each other. While any voice line plays the speaker now dims and pulses and further taps do nothing; when the line ends it is ready again ([audio.js](game-126/js/audio.js), [ui.js](game-126/js/ui.js)). [browsertest.mjs](game-126/dev/browsertest.mjs) taps it six times quickly and expects one voice (it counted seven before the fix). Reported by a player.
+
 ### Added
 - **EMBERSPIRE** (game-126) v1.0.5: an **Equip best** button on the party screen puts the best gear you own on every hero, the party first and then the bench, scored by what each class uses; a party hero can take armor or an accessory from someone later in the order, but no one ever loses their weapon ([game.js](game-126/js/sim/game.js)). **Auto-equip on coming home**, saved with the game, does it by itself after every climb. Requested by a player. Tested in [simtest.mjs](game-126/dev/simtest.mjs) (best sword over a weaker one, armor taken off the bench, class restrictions, accessories by party order, nobody loses a weapon, a second press changes nothing, new loot goes on when you come home, the option survives a save) and [browsertest.mjs](game-126/dev/browsertest.mjs).
 

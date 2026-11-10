@@ -120,6 +120,14 @@ async function desktop() {
     check(sz, 'and is big enough to tap');
     await click(page, '#place [data-k="speak"]');
     await until(page, () => window.__spoke.includes('bram:tap'), 'tapping it plays the greeting again');
+    // v1.0.6: tapping again while he is still talking does nothing (it used to stack a new copy per tap)
+    for (let i = 0; i < 6; i++) await page.click('#place [data-k="speak"]', { delay: 20 });
+    const taps = await Q(page, () => ({ n: window.__spoke.filter((x) => x === 'bram:tap').length, busy: document.querySelector('#place [data-k="speak"]').classList.contains('playing') }));
+    check(taps.n === 1, `six quick taps while Bram is talking add no more voices (${taps.n} in all)`);
+    check(taps.busy, 'and the speaker shows that he is talking');
+    await until(page, () => !document.querySelector('#place [data-k="speak"]').classList.contains('playing'), 'once he finishes the speaker is ready again', 15000);
+    await page.click('#place [data-k="speak"]');
+    check(await Q(page, () => window.__spoke.filter((x) => x === 'bram:tap').length === 2), 'and a tap plays him again');
     await shot(page, 'desktop-greeting-speaker');
     await click(page, '#place [data-k="back"]');
     await until(page, () => document.getElementById('place').hidden, 'back to town');
