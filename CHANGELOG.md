@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **The First Dragon Prince** (game-127) v1.0.1: pressing Continue on the last period of a month that leads into a story scene (Thawmoon's meeting with Rowan, for one) left a blank backdrop with no dialogue box. Panel buttons redrew only the panel; every redraw now goes through [main.js](game-127/js/main.js), which draws whichever of the panel and the scene is current. The [browser test](game-127/dev/browsertest.mjs) now clicks that Continue and checks the dialogue box takes over, on desktop and by taps on both phones; it fails on v1.0.0.
+
 ### Added
 - **The First Dragon Prince** (game-127) v1.0.0: a raising sim with visual novel scenes. Raise the half-dragon heir of Aurelmere from ten to eighteen; on his eighteenth hatch-day the court judges what he has become.
   - The month ([game.js](game-127/js/sim/game.js)): a Free Day of three actions in the city (visits and gifts, talks with the prince, the market, the Guild Hall quest board, court, temple, theatre, the Rookery), then three planned periods of 12 lessons, 13 jobs, rest, 29 quests or expeditions into six regions ([adventures.js](game-127/js/sim/data/adventures.js)) of four encounters with a choice of approach and a master at the end. Stress spoils lessons, makes him run off, makes him ill and feeds his dragon blood. A Harvest Festival with five contests and a Starfall Night every year.
