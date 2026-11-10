@@ -387,10 +387,15 @@ export class Planet {
         this.level = level;
         this.liquidType = L?.type ?? null;
         this.padY = padY;
+        // a dry shelf round the pad: the valley floor near the beacon never dips under the sea, so
+        // the pad is never an island and there is always dry land to walk out on
+        const SHELF = 24;
         const height = (x, z) => {
-            const h = raw(x, z);
-            const w = 1 - smoothstep(PAD_R, PAD_R + 7, Math.hypot(x, z));
-            return lerp(h, padY, w);
+            const rr = Math.hypot(x, z);
+            const h = lerp(raw(x, z), padY, 1 - smoothstep(PAD_R, PAD_R + 7, rr));
+            if (!isFinite(level) || rr > SHELF + 10) return h;
+            const floor = level + 0.45 + 0.35 * (fbm2(x * 0.09 + oz, z * 0.09 + ox, 2) * 0.5 + 0.5);
+            return h < floor ? lerp(h, floor, 1 - smoothstep(SHELF, SHELF + 10, rr)) : h;
         };
         this.groundAt = height;
 
@@ -687,13 +692,39 @@ export class Planet {
         });
     }
 
+    /** A test for "can be walked to from the beacon": flood-fills the dry ground on a coarse grid. */
+    _reachable() {
+        const C = 2, N = Math.ceil(WALK_R / C) + 1, W = N * 2 + 1;
+        const seen = new Uint8Array(W * W);
+        const idx = (i, j) => (j + N) * W + (i + N);
+        const ok = (i, j) => Math.abs(i) <= N && Math.abs(j) <= N && this.walkable(i * C, j * C) && this._slopeAt(i * C, j * C) < 0.9;
+        const q = [[0, 0]];
+        seen[idx(0, 0)] = 1;
+        while (q.length) {
+            const [i, j] = q.pop();
+            for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) {
+                const ni = i + di, nj = j + dj;
+                if ((di || dj) && ok(ni, nj) && !seen[idx(ni, nj)]) {
+                    seen[idx(ni, nj)] = 1;
+                    q.push([ni, nj]);
+                }
+            }
+        }
+        return (x, z) => {
+            const i = Math.round(x / C), j = Math.round(z / C);
+            return Math.abs(i) <= N && Math.abs(j) <= N && seen[idx(i, j)] === 1;
+        };
+    }
+
     _pilot(r) {
         // somewhere dry and level, not too near the beacon, and not right behind you as you arrive
+        // (and on land you can walk to from the beacon, not across the water)
+        const reach = this._reachable();
         let best = null;
-        for (let k = 0; k < 200 && !best; k++) {
-            const a = r() * TAU, d = r.range(18, WALK_R - 8);
+        for (let k = 0; k < 400 && !best; k++) {
+            const a = r() * TAU, d = r.range(k < 300 ? 18 : 12, WALK_R - 8);
             const x = Math.cos(a) * d, z = Math.sin(a) * d;
-            if (!this.walkable(x, z) || this._slopeAt(x, z) > 0.35) continue;
+            if (!this.walkable(x, z) || this._slopeAt(x, z) > 0.35 || !reach(x, z)) continue;
             if (this.cols.some((c) => Math.hypot(c.x - x, c.z - z) < c.r + 2.5)) continue;
             best = { x, z };
         }
