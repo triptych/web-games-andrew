@@ -89,12 +89,14 @@ const census = await G(`(() => {
     const f = g.foundry, L = f.lines;
     const main = L.robots.filter((r) => r.line.id === 0);
     const counts = {}; for (const [k, i] of Object.entries(L.inst)) counts[k] = i.mesh.count;
-    return { robots: L.robots.length, onLine: main.filter((r) => !r.post).length, walking: main.filter((r) => r.post).length, counts, arms: L.arms.length };
+    return { robots: L.robots.length, post: L.robots.filter((r) => r.post).length, onLine: main.filter((r) => !r.post).length, walking: main.filter((r) => r.post).length, counts, arms: L.arms.length };
 })()`);
 console.log('    ', JSON.stringify(census));
 check(census.onLine >= 26, `the main line has a unit at every station (${census.onLine})`);
 check(census.walking >= 4, `and finished units walking off (${census.walking})`);
-check(census.counts.cranium > census.counts.foot, `heads come first: more craniums (${census.counts.cranium}) than feet (${census.counts.foot})`);
+// on the lines (finished units have everything), most units have a head but only the last few have feet
+const headsOnLines = census.counts.cranium - census.post, feetOnLines = (census.counts.foot - 2 * census.post) / 2;
+check(headsOnLines > 2 * feetOnLines, `heads come first: on the lines, ${headsOnLines} units have heads and about ${Math.round(feetOnLines)} have feet`);
 check(census.arms > 150, `${census.arms} arms are at work`);
 
 await G('(g.foundry.ride.t = 4.5)');
