@@ -1,7 +1,7 @@
 // EMBERSPIRE — the DOM layer: the town, its buildings, the battle commands, rewards and dialogue.
 // Reads G and sends commands through `send(cmd)` (main.js runs act(), drains events, saves). Never writes G.
 
-import { VERSION, PARTY_MAX, EVOLVE_LV, ASCEND_LV, AUTO_NEXT_SECONDS } from './config.js';
+import { VERSION, PARTY_MAX, EVOLVE_LV, ASCEND_LV, AUTO_NEXT_SECONDS, DIFFICULTY } from './config.js';
 import { ART, setIcon, iconEl, img } from './assets.js';
 import { HEROES, HERO, CLASSES, SKILLS, STATUS } from './sim/data/heroes.js';
 import { BIOMES, MONSTERS, biomeOf } from './sim/data/biomes.js';
@@ -211,6 +211,14 @@ export class UI {
         return true;
     }
 
+    /** Show the speaker as busy until the current voice line ends. */
+    markSpeaking(btn) {
+        btn.classList.add('playing');
+        btn.setAttribute('aria-busy', 'true');
+        clearTimeout(this._speakTimer);
+        this._speakTimer = setTimeout(() => { btn.classList.remove('playing'); btn.removeAttribute('aria-busy'); }, this.audio.voiceLeft() * 1000 + 60);
+    }
+
     openPlace(G, id) {
         this.place = id;
         const npc = PLACE_NPC[id];
@@ -233,9 +241,12 @@ export class UI {
         const voiced = npc ? GREETINGS[npc][0] : null;
         const today = npc ? GREETINGS[npc][(G.day + id.length) % GREETINGS[npc].length] : null;
         const clip = npc === 'watcher' ? 'watcher-gate' : npc;
+        // one line at a time: while anyone is talking the speaker dims and taps do nothing (they used to stack voices)
+        const speaker = npc ? h('button.speak', { 'data-k': 'speak', 'aria-label': `Hear ${NPCS[npc].name}`, title: `Hear ${NPCS[npc].name}`, on: { click: (e) => { if (this.audio.say(clip, { force: true })) this.markSpeaking(e.currentTarget); } } }, '🔊') : null;
+        if (speaker && this.audio.voiceLeft() > 0) this.markSpeaking(speaker);   // the greeting that just played on the way in
         const head = npc ? h('div.npc', {},
             h('div.por', { style: { backgroundImage: `url(${por(npc)})` } },
-                h('button.speak', { 'data-k': 'speak', 'aria-label': `Hear ${NPCS[npc].name}`, title: `Hear ${NPCS[npc].name}`, on: { click: () => this.audio.say(clip, { force: true }) } }, '🔊')),
+                speaker),
             h('div.win.say', {}, h('span.who', { text: NPCS[npc].name + ' · ' + NPCS[npc].role }), voiced, today !== voiced ? h('span.today', { text: today }) : null)) : null;
         const panel = h('div.win.panel');
         const back = h('button.btn', { 'data-k': 'back', on: { click: () => { this.audio.ui('back'); this.closePlace(G); } } }, '← Town');
@@ -496,7 +507,10 @@ export class UI {
                     h('div.chips', { style: { marginTop: '4px' } }, slots),
                     h('div.chips', { style: { marginTop: '4px' } }, toggle, errand))));
         }
-        panel.append(h('p.hint', { text: `Up to ${PARTY_MAX} heroes climb. The bench still learns a share of every battle, and heroes on errands earn while you're away.` }), list);
+        const tools = h('div.chips', { style: { marginBottom: '8px' } },
+            h('button.btn.primary', { 'data-k': 'equip-best', title: 'Put the best gear you own on every hero: the party first, then the bench', on: { click: () => this.send({ t: 'equipBest' }) } }, '⚔ Equip best'),
+            h('button.btn.toggle' + (G.flags.autoEquip ? '.on' : ''), { 'data-k': 'auto-equip', 'aria-pressed': String(!!G.flags.autoEquip), title: 'Equip best by itself every time you come home from the tower', on: { click: () => this.send({ t: 'autoEquip', on: !G.flags.autoEquip }) } }, `Auto-equip on coming home: ${G.flags.autoEquip ? 'ON' : 'off'}`));
+        panel.append(h('p.hint', { text: `Up to ${PARTY_MAX} heroes climb. The bench still learns a share of every battle, and heroes on errands earn while you're away.` }), tools, list);
     }
 
     equipPicker(G, id, slot) {
@@ -558,6 +572,18 @@ export class UI {
         const root = $('popup');
         root.replaceChildren(h('div.win.sheet', {}, h('h2', { text: title }), body, h('div.sheet-foot', {}, foot || [h('button.btn.primary', { on: { click: () => this.closeScreen('popup') } }, 'OK')])));
         this.openScreen('popup');
+    }
+
+    /** New Game asks how hard the tower should be. onPick(level) starts the game; Back returns to the title. */
+    chooseDifficulty(onPick) {
+        const list = h('div.diff-list');
+        for (const [id, d] of Object.entries(DIFFICULTY)) {
+            list.append(h('button.btn.diff' + (id === 'standard' ? '.primary' : ''), { 'data-k': 'diff-' + id, on: { click: () => { this.audio.ui('click'); this.closeScreen('popup'); onPick(id); } } },
+                h('span.nm', { text: d.name + (id === 'standard' ? ' (recommended)' : '') }), h('span.sub', { text: d.desc })));
+        }
+        this.popup('How hard is the tower?', h('div', {}, h('p.dim', { text: 'You can change this later in Settings.' }), list),
+            [h('button.btn', { 'data-k': 'diff-back', on: { click: () => { this.audio.ui('back'); this.closeScreen('popup'); } } }, 'Back')]);
+        $('popup').querySelector('[data-k="diff-standard"]')?.focus({ preventScroll: true });
     }
 
     para(text, ...more) {
@@ -827,7 +853,7 @@ export class UI {
             }
         } else if (B.phase === 'lost') {
             body.push(h('h2.bad', { text: `Your party has fallen on floor ${B.floor}` }));
-            body.push(h('p', { text: 'Townsfolk carry you home. Some of the gold you found this climb is lost on the way.' }));
+            body.push(h('p', { text: (DIFFICULTY[G.difficulty] || DIFFICULTY.standard).loss ? `Townsfolk carry you home. ${Math.round(100 * (DIFFICULTY[G.difficulty] || DIFFICULTY.standard).loss)}% of the gold you found this climb is lost on the way.` : 'Townsfolk carry you home. On Story, you keep everything you found.' }));
             foot.push(h('button.btn.primary', { 'data-k': 'home', on: { click: () => this.send({ t: 'leave' }) } }, 'Back to Hearthmere'));
         } else if (B.phase === 'fled') {
             body.push(h('h2', { text: 'You got away!' }));

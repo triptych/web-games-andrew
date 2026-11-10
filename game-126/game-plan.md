@@ -2,7 +2,7 @@
 
 **Genre:** 16-bit endless-tower JRPG: turn-based party battles, a town of RPG systems, bonds, and idle income
 **Engine:** Vanilla JS: Canvas 2D battle stage (640x360, nearest-neighbour) and DOM menus. Art generated with fal, music, effects and voices with ElevenLabs; a Web Audio synth is the fallback for any sound file that fails to load
-**Status:** v1.0.4
+**Status:** v1.0.7
 
 ---
 
@@ -156,6 +156,20 @@ still defeated sometimes.
 - The Garden preview image is the title art.
 
 ## Changelog
+
+### v1.0.7 (2026-11-10)
+- Added: a difficulty, asked when you start a new game and changeable in Settings (`DIFFICULTY` in config.js, `G.difficulty`; saves from before it play as Standard).
+  - **Story:** monsters have 60% health and deal 65% damage, twice the healing between floors, no gold lost when you fall, 20% more XP. For following the quests and the friendships at your own pace.
+  - **Standard:** the tower as tuned so far (unchanged).
+  - **Hard:** monsters have 135% health and deal 125% damage, 60% of the healing between floors, 60% of the climb's gold lost when you fall (Standard: 30%), and 25% more gold and 15% more XP.
+  - The test bot, same seeds, median best floor on day 5 / day 10: Story 29/49, Standard 19/32, Hard 9/19. simtest checks that Story climbs faster and Hard slower than Standard.
+
+### v1.0.6 (2026-11-10)
+- Fixed: tapping the 🔊 by a shopkeeper's portrait over and over stacked a new copy of the greeting per tap, so a few quick taps had several voices talking over each other. While a voice line is playing the speaker now dims and pulses and taps do nothing; once the line ends it plays again (`say(..., {force})` refuses while someone is talking, `voiceLeft()` in audio.js).
+
+### v1.0.5 (2026-11-10)
+- Added: **Equip best** on the party screen puts the best gear you own on every hero, the party first (in party order) and then the bench. Pieces are scored by what each class uses (`gearScore` in game.js, the same score the test bot always used). A hero can take armor or an accessory from someone later in that order, who then picks again from what is left; weapons are never taken off another hero. Next to it, **Auto-equip on coming home** (saved with the game) does the same by itself every time the party returns from the tower, so new loot goes straight on.
+- Fixed: reloading the page mid-battle and pressing Continue put you back in the fight with the title music still playing. The battle theme only started with the battle's start event, which a resumed fight doesn't have; entering the battle screen now starts the battle or boss theme itself.
 
 ### v1.0.4 (2026-11-10)
 - Fixed: Auto, Climb and the speed button often ignored clicks once a battle was moving, worst at 3x: switching Auto off during the monsters' turns didn't take, a second click then flipped it the wrong way (so Auto was off when you thought you had turned it back on, and the auto-climb countdown never came), and 3x couldn't be clicked back to 1x. The battle panel re-rendered every time a turn started or an animation ended, many times a second at 3x, and rebuilt these buttons each time, so a click whose press and release straddled a re-render was lost. The toggle row is now built once and only relabelled.

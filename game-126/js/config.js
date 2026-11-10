@@ -1,6 +1,6 @@
 // EMBERSPIRE — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.4';
+export const VERSION = '1.0.7';
 export const SAVE_KEY = 'emberspire.v1';
 
 export const STEP = 1 / 60;               // fixed step for pacing the battle (s)
@@ -19,7 +19,15 @@ export const START = { gold: 150, potion: 3, ether: 1, phoenix: 1 };
 // between floors the party catches its breath
 export const REST = { floor: 0.12, mini: 0.4, boss: 0.6, mpFloor: 0.10, mpMini: 0.35, mpBoss: 0.5 };
 export const FLEE_CHANCE = 0.65;          // running from a normal fight (never from a mini boss or boss)
-export const DEFEAT_GOLD_LOSS = 0.3;      // share of the gold earned this run that is lost on defeat
+export const DEFEAT_GOLD_LOSS = 0.3;      // share of the gold earned this run that is lost on defeat (Standard)
+
+// Chosen at New Game (and changeable in Settings). hp/hit scale every monster's health and damage, rest scales
+// the healing between floors, loss is the share of the climb's gold lost on defeat, gold/xp scale battle rewards.
+export const DIFFICULTY = {
+    story: { name: 'Story', desc: 'Gentle monsters, plenty of healing between floors, nothing lost when you fall. For following the quests and the friendships at your own pace.', hp: 0.6, hit: 0.65, rest: 2, loss: 0, gold: 1, xp: 1.2 },
+    standard: { name: 'Standard', desc: 'The tower as it was built: a steady climb that asks you to upgrade, plan and come home in time.', hp: 1, hit: 1, rest: 1, loss: DEFEAT_GOLD_LOSS, gold: 1, xp: 1 },
+    hard: { name: 'Hard', desc: 'Tougher, harder-hitting monsters, less rest between floors and more gold lost when you fall. Richer rewards for the brave.', hp: 1.35, hit: 1.25, rest: 0.6, loss: 0.6, gold: 1.25, xp: 1.15 },
+};
 
 // Idle: Hearthmere pays a tithe for every floor you've cleared, and benched heroes run errands.
 export const IDLE = { capHours: 8, titheFloors: 0.08, errandXp: 0.12, errandGold: 0.04, errandOre: 1 / 60 };

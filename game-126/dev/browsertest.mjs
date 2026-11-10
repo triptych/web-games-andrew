@@ -42,7 +42,7 @@ async function open(viewport, { touch = false, nostorage = false } = {}) {
     const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1, hasTouch: touch, isMobile: touch });
     await ctx.addInitScript((ns) => {
         if (ns) Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('blocked', 'SecurityError'); } });
-        else try { localStorage.clear(); } catch { /* */ }
+        else try { if (!sessionStorage.getItem('bt-fresh')) { localStorage.clear(); sessionStorage.setItem('bt-fresh', '1'); } } catch { /* */ }   // a fresh save per run, kept across reloads
         window.confirm = () => true;
     }, nostorage);
     const page = await ctx.newPage();
@@ -82,7 +82,17 @@ async function desktop() {
     check(await Q(page, () => document.getElementById('btn-continue').hidden), 'no Continue without a save');
     await shot(page, 'desktop-title');
     await click(page, '#title-menu [data-act="new"]');
-    await until(page, visible('#scene .dlg'), 'New Game opens the intro story');
+    // v1.0.7: New Game asks for a difficulty first; Back returns to the title, Enter takes the focused Standard
+    await until(page, visible('#popup [data-k="diff-story"]'), 'New Game asks how hard the tower should be');
+    check(await Q(page, () => ['story', 'standard', 'hard'].every((d) => document.querySelector(`#popup [data-k="diff-${d}"]`)) && document.activeElement?.dataset.k === 'diff-standard'), 'Story, Standard and Hard, with Standard focused');
+    await shot(page, 'desktop-difficulty');
+    await click(page, '#popup [data-k="diff-back"]');
+    await until(page, () => document.getElementById('popup').hidden && __es.mode === 'title' && !__es.G, 'Back returns to the title without starting a game');
+    await click(page, '#title-menu [data-act="new"]');
+    await until(page, visible('#popup [data-k="diff-standard"]'), 'and New Game asks again');
+    await page.keyboard.press('Enter');
+    await until(page, visible('#scene .dlg'), 'Enter on Standard opens the intro story');
+    check(await Q(page, () => __es.G.difficulty === 'standard'), 'on Standard');
     for (let i = 0; i < 4; i++) await page.keyboard.press('Enter');
     await until(page, () => __es.mode === 'town' && !__es.ui.stack.includes('scene'), 'Enter pages through the story into town');
     await until(page, visible('#popup .sheet'), 'the daily bonus greets you');
@@ -120,6 +130,14 @@ async function desktop() {
     check(sz, 'and is big enough to tap');
     await click(page, '#place [data-k="speak"]');
     await until(page, () => window.__spoke.includes('bram:tap'), 'tapping it plays the greeting again');
+    // v1.0.6: tapping again while he is still talking does nothing (it used to stack a new copy per tap)
+    for (let i = 0; i < 6; i++) await page.click('#place [data-k="speak"]', { delay: 20 });
+    const taps = await Q(page, () => ({ n: window.__spoke.filter((x) => x === 'bram:tap').length, busy: document.querySelector('#place [data-k="speak"]').classList.contains('playing') }));
+    check(taps.n === 1, `six quick taps while Bram is talking add no more voices (${taps.n} in all)`);
+    check(taps.busy, 'and the speaker shows that he is talking');
+    await until(page, () => !document.querySelector('#place [data-k="speak"]').classList.contains('playing'), 'once he finishes the speaker is ready again', 15000);
+    await page.click('#place [data-k="speak"]');
+    check(await Q(page, () => window.__spoke.filter((x) => x === 'bram:tap').length === 2), 'and a tap plays him again');
     await shot(page, 'desktop-greeting-speaker');
     await click(page, '#place [data-k="back"]');
     await until(page, () => document.getElementById('place').hidden, 'back to town');
@@ -221,15 +239,39 @@ async function desktop() {
     await until(page, (p) => __es.G.inv.potion === p + 1, 'buying one', 10000, pots);
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('place').hidden, 'Escape leaves the Market');
+    // v1.0.5: Equip best and the auto-equip option on the party screen
+    const newSword = await Q(page, () => { const g = __es.G; const uid = 'g' + g.nextUid++; g.gear[uid] = { uid, type: 'sword', lvl: 20, rar: 2, plus: 0, aff: [], u: null, isNew: true }; return uid; });
+    await click(page, '#town [data-place="party"]');
+    await until(page, visible('#place [data-k="equip-best"]'), 'the party screen has an Equip best button');
+    await page.click('#place [data-k="equip-best"]');
+    await until(page, (u) => __es.G.heroes.arin.eq.weapon === u && /changed hands/.test(document.getElementById('toasts').textContent), 'Equip best puts the new sword on Arin and says so', 10000, newSword);
+    await page.click('#place [data-k="auto-equip"]');
+    await until(page, () => __es.G.flags.autoEquip === true && /ON/.test(document.querySelector('#place [data-k="auto-equip"]').textContent), 'the auto-equip option turns on');
+    await shot(page, 'desktop-equip-best');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('place').hidden, 'Escape leaves the party screen');
     // save & quit, continue
     const best = await Q(page, () => __es.G.best);
     await click(page, '#btn-menu');
     await until(page, visible('#settings .sheet'), 'the menu opens settings');
+    check(await Q(page, () => !document.getElementById('row-diff').hidden && document.getElementById('set-diff').value === 'standard'), 'Settings shows the game\'s difficulty');
+    await Q(page, () => { const sel = document.getElementById('set-diff'); sel.value = 'hard'; sel.dispatchEvent(new Event('change')); });
+    check(await Q(page, () => __es.G.difficulty === 'hard' && JSON.parse(localStorage.getItem('emberspire.v1')).data.difficulty === 'hard'), 'changing it there changes the game, and it is saved');
+    await Q(page, () => { const sel = document.getElementById('set-diff'); sel.value = 'standard'; sel.dispatchEvent(new Event('change')); });
     await click(page, '#set-title');
     await until(page, () => __es.mode === 'title' && !document.getElementById('btn-continue').hidden, 'Save & Quit returns to the title with Continue');
     await click(page, '#title-menu [data-act="continue"]');
     await until(page, (b) => __es.mode === 'town' && __es.G.best === b && __es.G.day === 2, 'Continue restores the game', 30000, best);
     check(await noHScroll(page), 'no sideways scroll');
+    // v1.0.5: reloading mid-battle came back into the fight with the title music still playing
+    for (const [floor, theme] of [[3, 'battle'], [10, 'boss']]) {
+        await Q(page, (f) => { __es.G.auto = false; __es.G.autoClimb = false; __es.fight(f); __es.save(); }, floor);   // auto off, so a new floor's music can't stand in for the fix
+        await page.reload();
+        await page.waitForFunction(() => window.__es && __es.mode === 'title', null, { timeout: 60000 });
+        await page.click('#title-menu [data-act="continue"]');   // a real click: it is also what unlocks audio
+        await until(page, (f) => __es.mode === 'tower' && __es.G.battle?.floor === f, `reloading mid-battle on floor ${floor} and pressing Continue returns to the fight`, 30000, floor);
+        await until(page, (t) => { const el = __es.audio.tracks[t]; return __es.audio.current === t && el && !el.paused; }, `and the ${theme} theme plays, not the title music`, 8000, theme);
+    }
     reportErrors('desktop');
 }
 
@@ -245,7 +287,11 @@ async function phone(w, h) {
     };
     check(await backLinkOk(page), '← Games link is on top');
     await tapSel('#title-menu [data-act="new"]');
-    await until(page, visible('#scene .dlg'), 'a tap on New Game opens the story');
+    await until(page, visible('#popup [data-k="diff-story"]'), 'a tap on New Game asks for a difficulty');
+    check(await noHScroll(page), 'the difficulty choice fits the screen');
+    await tapSel('#popup [data-k="diff-story"]');
+    await until(page, visible('#scene .dlg'), 'a tap on Story opens the story');
+    check(await Q(page, () => __es.G.difficulty === 'story'), 'on Story');
     for (let i = 0; i < 4; i++) { await tapSel('#scene .choices .btn'); await page.waitForTimeout(150); }
     await until(page, () => __es.mode === 'town' && !__es.ui.stack.includes('scene'), 'taps page through the story');
     await until(page, visible('#popup .btn'), 'the daily bonus');

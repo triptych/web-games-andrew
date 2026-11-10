@@ -91,6 +91,7 @@
             <p>Climb the <b>Emberspire</b>, an endless tower. Every floor is a turn-based battle; every <b>5th</b> floor holds a mini boss and every <b>10th</b> a true boss. Monsters grow stronger the higher you go.</p>
             <p><b>Battle:</b> when a hero's turn comes, choose Attack, a Skill, an Item, Defend or Flee, then a target. Faster heroes act more often. Hit weaknesses for 1.5x damage. Turn on <b>Auto</b> to let your party fight by itself, and <b>Auto-climb</b> to keep going floor after floor.</p>
             <p><b>Hearthmere:</b> recruit heroes at the Tavern; upgrade and reforge gear at the Forge; buy supplies at the Market; take quests at the Guild; learn skills and evolve classes at the Temple. One climb a day: come home in the evening, spend it with a companion, then rest.</p>
+            <p><b>Difficulty</b> is chosen when you start a new game and can be changed in Settings: <b>Story</b> (gentle monsters, lots of healing, nothing lost when you fall), <b>Standard</b>, or <b>Hard</b> (tougher monsters, less rest, more lost when you fall, richer rewards).</p>
             <p><b>While you're away</b> the town pays a tithe for your deeds and benched heroes run errands. Claim a <b>daily bonus</b> each day you visit.</p>
             <table>
                 <tr><td>Arrows / Tab</td><td>Move between options</td></tr>
@@ -111,6 +112,9 @@
             <label class="row">Voices <input type="range" id="set-voice" min="0" max="1" step="0.05"></label>
             <label class="row">Town greetings
                 <select id="set-greet"><option value="few">First 3 visits</option><option value="every">Every visit</option><option value="tap">Only when I tap 🔊</option></select>
+            </label>
+            <label class="row" id="row-diff" hidden>Difficulty
+                <select id="set-diff"><option value="story">Story</option><option value="standard">Standard</option><option value="hard">Hard</option></select>
             </label>
             <label class="row">Battle speed
                 <select id="set-speed"><option value="1">1x</option><option value="2">2x</option><option value="3">3x</option></select>
