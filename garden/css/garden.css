@@ -1253,6 +1253,9 @@ body:has(#claw-hud:not([hidden]), #bowl-hud:not([hidden])) .hint { opacity: 0; }
 
 /* ------------------------------------------------------------ Gearfall */
 
+.foundry-hud { background: rgba(28, 20, 14, 0.62); border-color: rgba(255, 150, 70, 0.42); width: 188px; }
+.foundry-hud .fh-label { color: #ffb878; }
+.foundry-hud strong { font-size: 1rem; }
 .city-hud { background: rgba(26, 22, 18, 0.62); border-color: rgba(216, 176, 112, 0.4); }
 .city-hud .fh-label { color: #e0c090; }
 .city-hud .fh-arrow { border-color: rgba(216, 176, 112, 0.6); background: radial-gradient(circle, rgba(230, 200, 150, 0.16), rgba(0, 0, 0, 0.25)); }
@@ -1441,7 +1444,7 @@ body:has(#helm-hud:not([hidden])) .hint { bottom: auto; top: calc(64px + var(--s
 .pilot-page .np-shaky { transform: rotate(0.8deg); letter-spacing: 0.01em; color: #3a2a2a; }
 .pilot-page .np-sign { text-align: right; font-size: 0.95rem; color: #5a3a2a; }
 @media (max-width: 560px) {
-    .rocket-hud { width: auto; }
+    .rocket-hud, .foundry-hud { width: auto; }
     .rk-air { flex: 1 1 100%; }
     .rk-counts { gap: 12px; }
 }
