@@ -12,7 +12,7 @@
 </style>
 </head>
 <body>
-<div id="ctl">Model gallery: neutral light, no bloom. <b>?row=enemies|bosses|guns</b> · drag to orbit</div>
+<div id="ctl">Model gallery: neutral light, no bloom. <b>?row=enemies|bosses|guns</b> · <b>&walk=m/s</b> to move them · drag to orbit</div>
 <div id="labels"></div>
 <script type="importmap">
 { "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
@@ -60,7 +60,7 @@ if (row === 'enemies' || row === 'bosses') {
     const types = row === 'enemies' ? ['chomper', 'trooper', 'drone', 'psy', 'brute', 'tank'] : ['chompra', 'vrask', 'rourke', 'pylon'];
     for (const t of types) {
         const m = buildModel(t);
-        const fake = { x: 0, y: t === 'drone' ? 1.2 : t === 'rourke' ? 3 : 0, z: 0, yaw: Math.PI, vx: 0, vz: 0, frozen: 0, burn: 0, windupT: 0, state: 'move', boss: t === 'rourke' ? 'rourke' : null };
+        const fake = { x: 0, y: t === 'drone' ? 1.2 : t === 'rourke' ? 3 : 0, z: 0, yaw: Math.PI, vx: 0, vz: new URLSearchParams(location.search).get('walk') || 0, frozen: 0, burn: 0, windupT: 0, state: 'move', boss: t === 'rourke' ? 'rourke' : null };
         const w = { chomper: 1.2, trooper: 1.2, drone: 1.2, psy: 1.8, brute: 2.2, tank: 2.6, chompra: 4.4, vrask: 2.2, rourke: 6, pylon: 2 }[t];
         const g = new THREE.Group(); g.add(m.root);
         place(g, w, t);

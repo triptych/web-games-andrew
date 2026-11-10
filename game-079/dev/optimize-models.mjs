@@ -4,10 +4,10 @@
 //
 //   node game-079/dev/optimize-models.mjs <raw-dir> [name ...]
 //
-// <raw-dir> holds <name>.glb straight from Meshy. Output goes to game-079/assets/models/<name>.glb.
+// <raw-dir> holds <name>.glb straight from Meshy (rigged characters: <name>_rig.glb, <name>_walk.glb, <name>_run.glb). Output goes to game-079/assets/models/<name>.glb.
 
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, statSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, statSync, rmSync, existsSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -38,7 +38,11 @@ mkdirSync(OUT, { recursive: true });
 const work = mkdtempSync(join(tmpdir(), 'vo-glb-'));
 for (const name of only.length ? only : Object.keys(BUDGET)) {
     const [budget, tex, lock] = BUDGET[name];
-    const src = join(rawDir, name + '.glb');
+    // a Meshy-rigged character (<name>_rig.glb, with <name>_walk.glb and <name>_run.glb: the
+    // armature-only animation files) wins over the static <name>.glb; the clips are copied as they are
+    const rigged = existsSync(join(rawDir, name + '_rig.glb'));
+    const src = join(rawDir, name + (rigged ? '_rig' : '') + '.glb');
+    if (rigged) for (const clip of ['walk', 'run']) copyFileSync(join(rawDir, `${name}_${clip}.glb`), join(OUT, `${name}_${clip}.glb`));
     const a = join(work, name + '.a.glb'), b = join(work, name + '.b.glb'), c = join(work, name + '.c.glb'), d = join(work, name + '.d.glb');
     const before = triangles(src);
     gt('weld', src, a);
