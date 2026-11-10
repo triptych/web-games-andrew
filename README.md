@@ -337,6 +337,12 @@ python -m SimpleHTTPServer 8000
 
 You can also play any game directly by opening its own `index.html` file, e.g. `game-001/index.html` for Space Shooter. See the [table above](#games-included) for the full list of 124 games and their folders.
 
+### GitHub Pages Deployment
+
+`.github/workflows/static.yml` deploys the repository on pushes to `main` and can also be run manually from the Actions tab. Deployments are serialized without canceling an in-progress deployment. The Pages action waits up to 20 minutes for server-side file syncing, within a 25-minute job limit.
+
+If deployment fails with `Timeout reached, aborting!` while reporting `syncing_files`, check GitHub's service status before rerunning the workflow. A successful artifact upload does not mean Pages has finished publishing the site.
+
 ## Building Desktop Versions
 
 This project includes GemCore/GemShell configuration files for building standalone desktop applications.
