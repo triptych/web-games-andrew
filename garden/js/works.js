@@ -17,7 +17,8 @@ export const HALL_R = 30;   // the hall's wall
 const PIT_R = 10;           // the shaft's railing
 const CEIL = 26;
 const WALK_IN = PIT_R + 0.55, WALK_OUT = HALL_R - 1.6;
-const SLOT = TAU / 12;      // the hall is laid out in twelve bays; bay 0 holds the stair door
+const SLOT = TAU / 12;      // the hall is laid out in twelve bays; bay 0 holds the stair door, bay 6 the lift
+const LIFT_R = 26.9;        // the lift car's middle, from the hall's centre
 
 // the code screens' panels link to the file and line on GitHub
 export const REPO = 'https://github.com/triptych/web-games-andrew';
@@ -607,7 +608,8 @@ export class Works {
         this._pipes(batch);
         for (let k = 1; k < 12; k++) {
             if (k % 2) this._console(batch, k * SLOT);
-            else this._boiler(batch, k * SLOT, k === 6 ? 1.35 : 1);
+            else if (k === 6) this._lift(batch);
+            else this._boiler(batch, k * SLOT, 1);
         }
         for (const k of [1.5, 4.5, 7.5, 10.5]) this._piston(batch, k * SLOT);
         for (const k of [0.5, 2.5, 3.5, 5.5, 6.5, 8.5, 9.5, 11.5]) this._wallGears(k * SLOT, k);
@@ -632,6 +634,100 @@ export class Works {
         this.spawn = { x: 0, z: HALL_R - 5, yaw: 0 };
         // walking into this spot climbs back up the stair
         this.exit = { x: 0, z: WALK_OUT - 0.25 };
+    }
+
+    /**
+     * The lift at the far end of the hall, opposite the stair: a brass cage in a
+     * lattice shaft, its gate open, a dial over it whose needle points down.
+     * Walking into the car takes you down to the Robot Foundry (foundry.js).
+     */
+    _lift(batch) {
+        const m = this.mats;
+        const r = LIFT_R, w = 3.2, h = w / 2 + 0.25;
+        // the car's middle; it faces the shaft in the middle of the hall (+z)
+        this.lift = { x: 0, z: -r };
+        this.liftOut = { x: 0, z: -r + 3.4, yaw: Math.PI };
+        const base = xf(0, 0, -r);
+        const at = (x, y, z, ry = 0, sx = 1, sy = sx, sz = sx, rx = 0, rz = 0) => under(base, xf(x, y, z, ry, sx, sy, sz, rx, rz));
+        // the shaft, up into the ceiling
+        for (const dx of [-1, 1]) for (const dz of [-1, 1]) batch.add('iron', new THREE.BoxGeometry(0.3, CEIL, 0.3), at(dx * h, CEIL / 2, dz * h));
+        for (let y = 3.6; y < CEIL; y += 3.6) {
+            for (const dz of [-1, 1]) batch.add('iron', new THREE.BoxGeometry(h * 2, 0.16, 0.16), at(0, y, dz * h));
+            for (const dx of [-1, 1]) batch.add('iron', new THREE.BoxGeometry(0.16, 0.16, h * 2), at(dx * h, y, 0));
+            if (y > 4) for (const dx of [-1, 1]) batch.add('iron', new THREE.BoxGeometry(0.1, Math.hypot(h * 2, 3.6), 0.1), at(dx * h, y - 1.8, 0, 0, 1, 1, 1, Math.atan2(h * 2, 3.6) * (Math.round(y / 3.6) % 2 ? 1 : -1)));
+        }
+        // the car
+        batch.add('iron', new THREE.BoxGeometry(w, 0.12, w), at(0, 0.06, 0));
+        batch.add('grate', new THREE.BoxGeometry(w - 0.1, 0.02, w - 0.1), at(0, 0.13, 0));
+        batch.add('iron', new THREE.BoxGeometry(w, 0.16, w), at(0, 3.15, 0));
+        for (const dx of [-1, 1]) for (const dz of [-1, 1]) batch.add('brass', new THREE.BoxGeometry(0.12, 3.1, 0.12), at(dx * (w / 2 - 0.06), 1.6, dz * (w / 2 - 0.06)));
+        for (let i = 1; i < 12; i++) {
+            const t = -w / 2 + (i / 12) * w;
+            for (const dx of [-1, 1]) batch.add('brass', new THREE.CylinderGeometry(0.025, 0.025, 3.0, 5), at(dx * (w / 2 - 0.06), 1.6, t));
+            batch.add('brass', new THREE.CylinderGeometry(0.025, 0.025, 3.0, 5), at(t, 1.6, -w / 2 + 0.06));
+        }
+        for (const y of [1.05, 2.25]) {
+            for (const dx of [-1, 1]) batch.add('brass', new THREE.BoxGeometry(0.05, 0.05, w), at(dx * (w / 2 - 0.06), y, 0));
+            batch.add('brass', new THREE.BoxGeometry(w, 0.05, 0.05), at(0, y, -w / 2 + 0.06));
+        }
+        // the gate, folded back to one side
+        for (let i = 0; i < 8; i++) batch.add('brass', new THREE.BoxGeometry(0.03, 2.8, 0.03), at(w / 2 - 0.12 - i * 0.06, 1.5, w / 2 - 0.05));
+        batch.add('lamp', new THREE.SphereGeometry(0.16, 10, 8), at(0, 2.95, 0));
+        // a hazard stripe across the threshold
+        const stripe = new THREE.Mesh(new THREE.PlaneGeometry(w, 0.4).rotateX(-Math.PI / 2), m.stripe);
+        stripe.matrixAutoUpdate = false;
+        stripe.matrix.copy(at(0, 0.03, h + 0.3));
+        this.scene.add(stripe);
+        // the dial over the gate: its needle points down, to the Foundry
+        const dial = canvas(256, 160), ctx = dial.getContext('2d');
+        ctx.fillStyle = '#1d140c';
+        ctx.fillRect(0, 0, 256, 160);
+        ctx.fillStyle = '#efe6cf';
+        ctx.beginPath();
+        ctx.arc(128, 150, 128, Math.PI, 0);
+        ctx.fill();
+        ctx.fillStyle = '#2a1c0e';
+        ctx.font = '600 20px Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('WORKS', 70, 110);
+        ctx.fillStyle = '#c0302a';
+        ctx.fillText('FOUNDRY', 190, 110);
+        const dm = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.0), new THREE.MeshBasicMaterial({ map: toTexture(dial), color: new THREE.Color(1.15, 1.15, 1.15) }));
+        dm.matrixAutoUpdate = false;
+        dm.matrix.copy(at(0, 3.85, h + 0.05));
+        this.scene.add(dm);
+        batch.add('brass', new THREE.BoxGeometry(1.75, 1.12, 0.06), at(0, 3.85, h + 0.01));
+        const needle = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.62, 0.01).translate(0, 0.31, 0), m.iron);
+        const nh = new THREE.Group();
+        nh.matrixAutoUpdate = false;
+        nh.matrix.copy(at(0, 3.4, h + 0.09));
+        nh.add(needle);
+        this.scene.add(nh);
+        this.liftNeedle = needle;
+        const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 0.7), new THREE.MeshBasicMaterial({ map: signTex('▼ The Foundry', 'Robots, made below'), color: new THREE.Color(1.2, 1.2, 1.2) }));
+        sign.matrixAutoUpdate = false;
+        sign.matrix.copy(at(0, 4.85, h + 0.05));
+        this.scene.add(sign);
+        // something hot and bright far down the shaft, through the floor of the car
+        const glow = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.2, 0.5), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 0.7, 0.25), transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false }));
+        glow.matrixAutoUpdate = false;
+        glow.matrix.copy(at(0, 0.18, -h + 0.05));
+        this.scene.add(glow);
+        // click anywhere in the car to walk in
+        const hit = new THREE.Mesh(new THREE.BoxGeometry(w, 3.2, w), new THREE.MeshBasicMaterial());
+        hit.visible = false;
+        hit.matrixAutoUpdate = false;
+        hit.matrix.copy(at(0, 1.6, 0));
+        hit.matrixWorld.copy(hit.matrix);
+        hit.userData.kind = 'lift';
+        this.scene.add(hit);
+        this.liftHit = hit;
+        const light = new THREE.PointLight(0xffd8a0, 8, 8, 1.6);
+        light.position.set(0, 2.6, -r);
+        this.scene.add(light);
+        // the car's walls, so you go in through the gate
+        for (const sx of [-1, 1]) for (let zz = -h; zz <= h + 0.01; zz += 0.5) this.colliders.push({ x: sx * (w / 2), z: -r + zz, r: 0.22 });
+        for (let xx = -h; xx <= h + 0.01; xx += 0.5) this.colliders.push({ x: xx, z: -r - w / 2, r: 0.22 });
     }
 
     walkable(x, z) {
@@ -1130,9 +1226,9 @@ export class Works {
         this.pitLight = new THREE.PointLight(0xff7a2a, 500, 70, 1.6);
         this.pitLight.position.set(0, -14, 0);
         s.add(this.heartLight, this.pitLight);
-        // the furnaces light the floor in front of them (all but the big one at the back)
+        // the furnaces light the floor in front of them
         this.fireLights = [];
-        for (const f of this.flickers.filter((_, i) => i !== 2)) {
+        for (const f of this.flickers) {
             const l = new THREE.PointLight(0xff8030, 40, 14, 1.8);
             l.position.set(f.x, 1.3, f.z);
             l.userData.seed = f.seed;
@@ -1561,6 +1657,7 @@ export class Works {
             p.conrod.scale.y = p.rodLen;
             p.conrod.rotation.z = -Math.atan2(px, py - hy);
         }
+        if (this.liftNeedle) this.liftNeedle.rotation.z = -0.9 - Math.sin(t * 0.5) * 0.08;
         for (const nd of this.needles) nd.needle.rotation.z = -0.4 - 0.9 * (0.5 + 0.5 * Math.sin(t * 0.7 + nd.seed)) - Math.sin(t * 23 + nd.seed) * 0.03;
         for (const l of this.fireLights) l.intensity = 34 + Math.sin(t * 13 + l.userData.seed) * 5 + Math.sin(t * 7.3 + l.userData.seed * 2) * 6;
         this.mats.furnace.emissiveIntensity = 2.3 + Math.sin(t * 11) * 0.25 + Math.sin(t * 4.3) * 0.2;
