@@ -547,7 +547,9 @@ export function stepCreature(c, dt, t, P) {
         const k = clamp(c.speed / sp.speed, 0, 1.6);
         for (const l of c.legs) {
             const ph = c.walk * (3.2 / Math.max(0.5, c.s)) + l.phase;
-            l.hip.rotation.x = 0.3 + Math.sin(ph) * 0.55 * k;
+            // +z is forward and a positive hip rotation.x swings the foot back, so the swing is subtracted:
+            // the foot travels forward exactly while the knee is bent up (cos(ph) > 0), and back while planted
+            l.hip.rotation.x = 0.3 - Math.sin(ph) * 0.55 * k;
             l.knee.rotation.x = -0.55 - Math.max(0, Math.cos(ph)) * 0.6 * k;
         }
         bob = Math.abs(Math.sin(c.walk * (3.2 / Math.max(0.5, c.s)))) * 0.06 * c.s * k;
