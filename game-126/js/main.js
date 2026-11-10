@@ -15,7 +15,7 @@ import { startBattle } from './sim/battle.js';
 import { makeBot, playDay, dayString } from './sim/bot.js';
 import { HERO, CLASSES } from './sim/data/heroes.js';
 import { BLESSINGS } from './sim/data/story.js';
-import { gearName } from './sim/stats.js';
+import { gearName, rankOfFloor } from './sim/stats.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.get('debug') === '1';
@@ -288,8 +288,11 @@ function frame(now) {
         const key = battleKey();
         if (key !== lastBattleKey) { lastBattleKey = key; ui.renderBattle(G, stage); ui.topbar(G); }
         const B = G.battle;
+        ui.tickAutoNext(dt * FAST);
         if (B && !stage.busy && ['won', 'lost', 'fled'].includes(B.phase) && !ui.stack.includes('victory')) {
-            if (!(G.autoClimb && B.phase !== 'lost')) { ui.renderAfter(G); save(); }
+            // auto-climb carries on by itself, except after a defeat and before a mini boss or boss
+            const autoOn = G.autoClimb && (B.phase === 'fled' || (B.phase === 'won' && rankOfFloor(B.floor + 1) === 'normal'));
+            if (!autoOn) { ui.renderAfter(G); save(); }
         }
         if (B && B.phase === 'won' && !stage.busy && pendingWatcher && !ui.stack.includes('scene')) {
             const w = pendingWatcher; pendingWatcher = null;

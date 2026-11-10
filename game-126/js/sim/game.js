@@ -13,7 +13,7 @@ import { makeRng, hashStr } from '../rng.js';
 import { HEROES, HERO, CLASSES, SKILLS } from './data/heroes.js';
 import { GEAR, RARITY, GOODS, UNIQUES, MAX_PLUS, MAX_PLUS_UNIQUE } from './data/items.js';
 import { SCENES, SMALLTALK, BOND_XP, BOND_EVENING, QUEST_TEMPLATES, MILESTONES, DAILY, BLESSINGS, WATCHER_BOSS } from './data/story.js';
-import { gearMult, goldScale, xpScale, xpNext, heroStats, blessing, power } from './stats.js';
+import { gearMult, goldScale, xpScale, xpNext, heroStats, blessing, power, rankOfFloor } from './stats.js';
 import { startBattle, command, stepBattle, runAiTurn, unit } from './battle.js';
 import { makeGear, gainXp, usefulType, ownsUnique } from './loot.js';
 
@@ -607,6 +607,8 @@ export function step(G, inp, dt) {
     if (G.mode !== 'tower' || !B) return;
     if (B.phase === 'ai') { stepBattle(G, inp.hold, dt); return; }
     if (G.autoClimb && !inp.hold && (B.phase === 'won' || B.phase === 'fled')) {
+        // auto-climb never walks into a mini boss or a boss: it stops at the victory screen and lets you choose
+        if (B.phase === 'won' && rankOfFloor(B.floor + 1) !== 'normal') return;
         G.climbWait += dt;
         if (G.climbWait < 1.2) return;
         G.climbWait = 0;

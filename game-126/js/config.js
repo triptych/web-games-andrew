@@ -1,6 +1,6 @@
 // EMBERSPIRE — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';
 export const SAVE_KEY = 'emberspire.v1';
 
 export const STEP = 1 / 60;               // fixed step for pacing the battle (s)
@@ -34,4 +34,7 @@ export const DEBUFF_MUL = 0.72;           // atkdown/defdown
 export const CT_FULL = 1000;              // charge time: a unit acts when its gauge fills
 export const MAX_ROUNDS = 80;             // a stalemate ends as a defeat (a bot safety net more than a rule)
 
-export const SHOP_GEAR = 6;               // gear pieces on Zephyrine's shelf each day
+export const SHOP_GEAR = 6;
+
+// With auto battle on, the victory screen climbs on by itself after this many seconds (never into a mini boss or boss).
+export const AUTO_NEXT_SECONDS = 10;               // gear pieces on Zephyrine's shelf each day

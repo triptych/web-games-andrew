@@ -3,7 +3,8 @@
  *
  * desktop (1280x760): title with no errors and the ← Games link on top → New Game → the intro story → town and the
  *   daily bonus → the Tavern opens and Escape closes it → the Gate → floor 1 → real keys: 1 attacks (Enter picks a
- *   target) → A turns on auto battle → victory → Next floor → home in the evening → an evening at the Tavern →
+ *   target) → A turns on auto battle → victory, the 10 s auto-climb countdown climbs to floor 2 by itself, Wait
+ *   stops it, and there's no countdown into a mini boss → home in the evening → an evening at the Tavern →
  *   rest → the Forge upgrades a weapon, the Market sells a potion → Save & Quit → Continue restores the game.
  * phones (touch only, real taps) at 390x844 and 844x390: taps through the title and the story, the town fits,
  *   controls ≥ 44 px and on screen, the Gate, a battle command by tap, a target tapped on the canvas, no sideways
@@ -118,9 +119,23 @@ async function desktop() {
     const won = await Q(page, () => __es.G.battle.phase === 'won');
     check(won, 'the starting party wins floor 1');
     if (won) {
-        await click(page, '#victory [data-k="next"]');
-        await until(page, () => __es.G.battle?.floor === 2 && document.getElementById('victory').hidden, 'Next climbs to floor 2');
+        // auto battle is on and floor 2 is an ordinary floor: the button counts down from 10 and climbs by itself
+        await until(page, () => /\(\d+\)$/.test(document.querySelector('#victory [data-k="next"]')?.textContent || ''), 'with auto battle on, Climb to floor 2 counts down');
+        check(await Q(page, () => /\((10|9|8)\)$/.test(document.querySelector('#victory [data-k="next"]').textContent)), 'the countdown starts at 10 seconds');
+        await until(page, () => __es.G.battle?.floor === 2 && document.getElementById('victory').hidden, 'at zero it climbs to floor 2 by itself', 30000);
+        // Wait stops the countdown
         await Q(page, () => __es.resolve());
+        await until(page, visible('#victory [data-k="wait"]'), 'the next victory counts down again, with a Wait button');
+        await click(page, '#victory [data-k="wait"]');
+        await page.waitForTimeout(3500);   // 3.5 s at fast=4 is 14 s of countdown time: it would have climbed by now
+        check(await Q(page, () => __es.G.battle.floor === 2 && !document.getElementById('victory').hidden && !/\(\d+\)$/.test(document.querySelector('#victory [data-k="next"]').textContent)), 'Wait stops it: still on floor 2, no countdown');
+        await shot(page, 'desktop-victory-wait');
+        // no countdown into a mini boss: win floor 4 and the climb to floor 5 waits for you
+        await Q(page, () => { __es.fight(4); __es.G.battle.units.filter((u) => u.side === 'e').forEach((u) => { u.hp = 1; }); __es.resolve(); });
+        await until(page, () => __es.G.battle.floor === 4 && __es.G.battle.phase === 'won' && !document.getElementById('victory').hidden, 'floor 4 won (the mini boss is next)');
+        await page.waitForTimeout(3500);
+        check(await Q(page, () => __es.G.battle.floor === 4 && !/\(\d+\)$/.test(document.querySelector('#victory [data-k="next"]').textContent) && /mini boss waits/.test(document.getElementById('victory').textContent)), 'no countdown into a mini boss, and it says why');
+        await shot(page, 'desktop-victory-miniboss');
         await until(page, visible('#victory [data-k="home"]'), 'after the fight, the way home');
         await click(page, '#victory [data-k="home"]');
         await until(page, () => __es.mode === 'town' && __es.G.phase === 'evening', 'home again, and it is evening');

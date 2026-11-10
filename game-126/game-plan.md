@@ -2,7 +2,7 @@
 
 **Genre:** 16-bit endless-tower JRPG: turn-based party battles, a town of RPG systems, bonds, and idle income
 **Engine:** Vanilla JS: Canvas 2D battle stage (640x360, nearest-neighbour) and DOM menus. Art generated with fal, music, effects and voices with ElevenLabs; a Web Audio synth is the fallback for any sound file that fails to load
-**Status:** v1.0.1
+**Status:** v1.0.2
 
 ---
 
@@ -37,7 +37,7 @@ stock). Real time adds the daily bonus and the idle tithe.
   focus, weak, brittle, regen 8%/turn, barrier, taunt (enemies pick you 75% of the time). Bosses shrug off most control
   (stun ×0.15, others ×0.5) and take 40% damage over time.
 - **Bosses enrage** below half health (faster, glowing).
-- **Auto battle** uses the same brain as the test bot: revive the fallen, heal the hurt (mass heal when two are low),
+- **Auto battle** counts the victory screen down from 10 s and climbs on by itself, but never into a mini boss or boss floor (auto-climb follows the same rule). It uses the same brain as the test bot: revive the fallen, heal the hurt (mass heal when two are low),
   set up buffs once in a fight worth buffing, then the best expected damage (weaknesses, groups, finishing blows),
   keeping a healer's MP reserve; potions only when no healer can help.
 - **Pacing.** The sim resolves an action whole and emits events; the view plays them as a queue and the AI waits
@@ -156,6 +156,9 @@ still defeated sometimes.
 - The Garden preview image is the title art.
 
 ## Changelog
+
+### v1.0.2 (2026-11-10)
+- Added: with Auto battle on, the victory screen's "Climb to floor N" button counts down from 10 seconds (draining as it goes) and then climbs by itself; a Wait button stops it, and switching Auto off or leaving cancels it. There is no countdown when the next floor holds a mini boss or a boss: the screen says what waits and you climb when ready. Auto-climb follows the same rule and now stops at the victory screen before every 5th and 10th floor instead of walking straight in (`AUTO_NEXT_SECONDS` in config.js).
 
 ### v1.0.1 (2026-11-10)
 - Fixed: in battle the heroes and monsters looked like they were floating above the floor. Their feet were placed as high as y 236 of 360, on the strip of floor at the foot of each backdrop's far wall; they now stand between y 290 and 352 on the near floor, with a two-layer contact shadow, and only flying monsters hover (walkers no longer bob). The floor label moved to the top-right so it no longer covers the back-row hero.

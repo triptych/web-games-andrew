@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **EMBERSPIRE** (game-126) v1.0.2: with Auto battle on, the victory screen's "Climb to floor N" button counts down from 10 seconds (the button drains as it counts) and then climbs by itself; Wait stops it, and switching Auto off cancels it ([ui.js](game-126/js/ui.js)). No countdown when the next floor is a mini boss or a boss: the screen says what waits and you choose when to go in. Auto-climb now follows the same rule and stops before every mini boss and boss instead of walking straight in ([game.js](game-126/js/sim/game.js)). Tested in [simtest.mjs](game-126/dev/simtest.mjs) (auto-climb waits before floor 5) and [browsertest.mjs](game-126/dev/browsertest.mjs) (the countdown climbs on its own, Wait stops it, none before a mini boss).
+
 ### Fixed
 - **EMBERSPIRE** (game-126) v1.0.1: heroes and monsters looked like they were floating above the floor in battle. Their feet were placed on the strip of floor at the foot of each backdrop's far wall, which against the painted perspective reads as mid-air; they now stand on the near floor (feet between y 290 and 352 of 360) with a two-layer contact shadow, walkers no longer bob, and only flying monsters hover above a fainter shadow ([stage.js](game-126/js/view/stage.js)). The floor label moved to the top-right so it no longer covers the back-row hero, and the Garden preview was retaken.
 

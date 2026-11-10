@@ -265,6 +265,9 @@ td:first-child { color: var(--gold); white-space: nowrap; }
 .dlg .choices .btn { text-align: left; }
 @media (max-width: 560px) { .dlg { flex-direction: column; align-items: center; } .dlg .por { width: 110px; height: 110px; } }
 
+/* victory / rewards: the auto-climb button drains as it counts down */
+.btn.countdown[style*="--p"] { background: linear-gradient(90deg, #ffd27a var(--p), #d9622a var(--p)); }
+
 /* victory / rewards */
 .reward-grid { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
 .reward { display: flex; gap: 4px; align-items: center; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--gold-d); border-radius: 6px; padding: 2px 8px 2px 2px; font-size: 14px; }

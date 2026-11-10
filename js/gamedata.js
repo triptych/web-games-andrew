@@ -1927,7 +1927,7 @@ const games = [
         description: "A 16-bit endless tower RPG with painted pixel art generated with fal and music, sound and voices generated with ElevenLabs. A black tower rose over the town of Hearthmere thirty years ago and nobody has seen its top. Climb it a floor at a time in side-view turn-based battles (charge-time turns, elements and weaknesses, poison, stun, haste and barriers, auto battle and auto-climb) against seventy kinds of monster across ten strata, from the Mossy Undercroft to the Skyreach Summit, with a mini boss every 5th floor and a true boss every 10th; past floor 100 the strata return Ascended and the climb never ends. Between climbs: recruit nine heroes at the tavern, evolve each into one of two advanced classes and ascend them, learn 108 skills, upgrade and reforge your gear and hunt sixteen uniques, take daily bounties at the guild, spend each evening with a companion in forty bond scenes (some of them romances) and claim a daily bonus and the town's idle tithe while you're away. Keyboard, gamepad or touch.",
         icon: '🗼',
         folder: 'game-126',
-        version: '1.0.1',
+        version: '1.0.2',
         cssClass: 'emberspire',
         genre: 'rpg',
         tags: [

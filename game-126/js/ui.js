@@ -1,7 +1,7 @@
 // EMBERSPIRE — the DOM layer: the town, its buildings, the battle commands, rewards and dialogue.
 // Reads G and sends commands through `send(cmd)` (main.js runs act(), drains events, saves). Never writes G.
 
-import { VERSION, PARTY_MAX, EVOLVE_LV, ASCEND_LV } from './config.js';
+import { VERSION, PARTY_MAX, EVOLVE_LV, ASCEND_LV, AUTO_NEXT_SECONDS } from './config.js';
 import { ART, setIcon, iconEl, img } from './assets.js';
 import { HEROES, HERO, CLASSES, SKILLS, STATUS } from './sim/data/heroes.js';
 import { BIOMES, MONSTERS, biomeOf } from './sim/data/biomes.js';
@@ -11,7 +11,7 @@ import {
     joined, checkpoints, recruitable, recruitCost, skillList, upgradeCost, maxPlus, reforgeCost, gearPrice, salvageValue,
     equippedBy, canEquip, slotOf, boardQuests, questProgress, shardPrice, baseClass, partyHealth,
 } from './sim/game.js';
-import { heroStats, gearStats, gearName, xpNext, power, uniqueFx } from './sim/stats.js';
+import { heroStats, gearStats, gearName, xpNext, power, uniqueFx, rankOfFloor } from './sim/stats.js';
 import { options, targetsFor, skillFor, unit as bunit } from './sim/battle.js';
 import { MONSTER_ACTS } from './sim/data/acts.js';
 
@@ -700,6 +700,27 @@ export class UI {
         return wrap;
     }
 
+    /** Count the auto-climb button down; at zero, climb. Stops if auto battle is switched off or the screen closes. */
+    tickAutoNext(dt) {
+        const a = this.autoNext;
+        if (!a) return;
+        if ($('victory').hidden || !this.G?.auto || this.G.battle?.phase !== 'won') { this.cancelAutoNext(); return; }
+        a.left -= dt;
+        const n = Math.max(0, Math.ceil(a.left));
+        a.btn.textContent = `${a.label} (${n})`;
+        a.btn.style.setProperty('--p', `${Math.max(0, Math.min(1, a.left / AUTO_NEXT_SECONDS)) * 100}%`);
+        if (a.left <= 0) { this.autoNext = null; this.send({ t: 'next' }); }
+    }
+
+    cancelAutoNext() {
+        const a = this.autoNext;
+        if (!a) return;
+        this.autoNext = null;
+        a.btn.textContent = a.label;
+        a.btn.style.removeProperty('--p');
+        $('victory').querySelector('[data-k="wait"]')?.remove();
+    }
+
     battleBack() {
         if (this.bmenu !== 'root') { this.bmenu = 'root'; this.pending = null; this.stage?.setPick(null); this.renderBattle(this.G, this.stage); return true; }
         return false;
@@ -754,9 +775,18 @@ export class UI {
             const ups = G.party.filter((id) => this.levelled?.[id]);
             if (ups.length) body.push(h('p.good', { text: ups.map((id) => `${HERO[id].name} reached level ${G.heroes[id].lv}!`).join(' ') }));
             const ph = partyHealth(G);
-            body.push(h('p.dim', { text: `Party health ${Math.round(ph.ratio * 100)}%. The next floor's rest restores a little.${(B.floor + 1) % 10 === 0 ? ' A boss waits on the next floor.' : (B.floor + 1) % 5 === 0 ? ' A mini boss waits on the next floor.' : ''}` }));
+            body.push(h('p.dim', { text: `Party health ${Math.round(ph.ratio * 100)}%. The next floor's rest restores a little.${G.auto ? '' : (B.floor + 1) % 10 === 0 ? ' A boss waits on the next floor.' : (B.floor + 1) % 5 === 0 ? ' A mini boss waits on the next floor.' : ''}` }));
             foot.push(h('button.btn', { 'data-k': 'home', on: { click: () => this.send({ t: 'leave' }) } }, 'Return to town'));
-            foot.push(h('button.btn.primary', { 'data-k': 'next', on: { click: () => this.send({ t: 'next' }) } }, `Climb to floor ${B.floor + 1} ▸`));
+            const nextBtn = h('button.btn.primary.countdown', { 'data-k': 'next', on: { click: () => { this.autoNext = null; this.send({ t: 'next' }); } } }, `Climb to floor ${B.floor + 1} ▸`);
+            foot.push(nextBtn);
+            // auto battle climbs on by itself after a countdown, but never walks into a mini boss or a boss
+            const nextRank = rankOfFloor(B.floor + 1);
+            if (G.auto && nextRank === 'normal') {
+                this.autoNext = { left: AUTO_NEXT_SECONDS, btn: nextBtn, label: nextBtn.textContent };
+                foot.unshift(h('button.btn', { 'data-k': 'wait', title: 'Stop the countdown', on: { click: () => this.cancelAutoNext() } }, 'Wait'));
+            } else if (G.auto || G.autoClimb) {
+                body.push(h('p.gold', { text: `A ${nextRank === 'boss' ? 'boss' : 'mini boss'} waits on floor ${B.floor + 1}. Auto won't climb into it for you: get ready, then climb when you choose.` }));
+            }
         } else if (B.phase === 'lost') {
             body.push(h('h2.bad', { text: `Your party has fallen on floor ${B.floor}` }));
             body.push(h('p', { text: 'Townsfolk carry you home. Some of the gold you found this climb is lost on the way.' }));
@@ -768,6 +798,7 @@ export class UI {
         }
         root.replaceChildren(h('div.win.sheet', {}, ...body, h('div.sheet-foot', {}, foot)));
         if (!this.stack.includes('victory')) this.openScreen('victory'); else this.focusFirst('victory');
+        this.tickAutoNext(0);   // show the count at once, now the screen is open
     }
 }
 
