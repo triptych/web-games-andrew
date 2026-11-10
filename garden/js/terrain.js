@@ -194,6 +194,34 @@ export class Island {
         L.bridge = { ax, az, ay, bx, bz, by: is.y, half: 1.25, arch: 1.4, length: Math.hypot(bx - ax, bz - az) };
     }
 
+    /** How far out from a pavilion, straight away from the hub, its waterline lies. */
+    _shoreFrom(pv, dx, dz) {
+        let shore = PAVILION_PLAZA;
+        while (this.coast(pv.x + dx * shore, pv.z + dz * shore) < 0 && shore < 150) shore += 0.25;
+        return shore;
+    }
+
+    /**
+     * Where a deck out from a pavilion (the fishing pier, the wharf) leaves the
+     * land: six metres short of the waterline, or further back if the granite
+     * cliffs (see _height) have already started to drop the ground there, so the
+     * trail ends on solid ground at its own height and you step straight from it
+     * on to the planks. `half` is half the width of the deck where it starts.
+     */
+    _deckStart(pv, dx, dz, s0, shore, half) {
+        // the cliff is smoothstep(-7, 0.6, sdf + rough * 2.2): below about -6 it has hardly begun
+        const cliffAt = (s, lx) => {
+            const x = pv.x + dx * s + dz * lx, z = pv.z + dz * s - dx * lx;
+            return this.coast(x, z) + ridged2(x * 0.12, z * 0.12, 3) * 2.2;
+        };
+        // the height field is baked on a grid over a metre apart, so the bank must
+        // also hold a little way past where the deck starts
+        const solid = (s) => [-half, 0, half].every((lx) => cliffAt(s, lx) < -6.5) && cliffAt(s + 1, 0) < -5.5;
+        let s1 = Math.max(s0 + 2, shore - 6);
+        while (s1 > s0 + 2 && !solid(s1)) s1 -= 0.25;
+        return s1;
+    }
+
     /**
      * The fishing pier, on the far side of the island from the dock: a trail
      * from the pavilion standing most nearly opposite the dock down to the
@@ -207,11 +235,10 @@ export class Island {
         const pv = sp.pavilion;
         const l = Math.hypot(pv.x, pv.z) || 1;
         const dx = pv.x / l, dz = pv.z / l;
-        // out from the plaza to the waterline
-        let shore = PAVILION_PLAZA;
-        while (this.coast(pv.x + dx * shore, pv.z + dz * shore) < 0 && shore < 150) shore += 0.25;
+        // out from the plaza to the waterline, and back to where the bank still holds the trail
+        const shore = this._shoreFrom(pv, dx, dz);
         const s0 = PAVILION_PLAZA - 0.5;
-        const s1 = Math.max(s0 + 2, shore - 6);
+        const s1 = this._deckStart(pv, dx, dz, s0, shore, 1.2);
         // the trail runs gently downhill and the deck's gangway takes the rest of the drop
         const ay = Math.max(PIER_Y + 0.3, pv.y - (s1 - s0) * 0.2);
         const pts = [];
@@ -241,10 +268,9 @@ export class Island {
         const pv = sp.pavilion;
         const l = Math.hypot(pv.x, pv.z) || 1;
         const dx = pv.x / l, dz = pv.z / l;
-        let shore = PAVILION_PLAZA;
-        while (this.coast(pv.x + dx * shore, pv.z + dz * shore) < 0 && shore < 150) shore += 0.25;
+        const shore = this._shoreFrom(pv, dx, dz);
         const s0 = PAVILION_PLAZA - 0.5;
-        const s1 = Math.max(s0 + 2, shore - 6);
+        const s1 = this._deckStart(pv, dx, dz, s0, shore, 2.4);
         const W = WHARF;
         const ay = Math.max(W.y + 0.3, pv.y - (s1 - s0) * 0.2);
         const pts = [];
