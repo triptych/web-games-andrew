@@ -34,23 +34,28 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      - name: Prepare Pages artifact
+        run: |
+          mkdir -p "$RUNNER_TEMP/pages"
+          rsync -a \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='**/dev/***' \
+            --exclude='**/test/***' \
+            --exclude='**/tests/***' \
+            --exclude='**/image_prompts/***' \
+            --exclude='lib/phaser/phaser-4.0.0/src/***' \
+            --exclude='lib/phaser/phaser-4.0.0/tests/***' \
+            --exclude='lib/phaser/phaser-4.0.0/changelog/***' \
+            --exclude='lib/phaser/phaser-4.0.0/docs/***' \
+            --exclude='lib/phaser/phaser-4.0.0/skills/***' \
+            --exclude='lib/phaser/phaser-4.0.0/scripts/***' \
+            --exclude='lib/phaser/phaser-4.0.0/types/***' \
+            ./ "$RUNNER_TEMP/pages/"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Keep the playable site, but omit test/dev material that Pages never serves.
-          path: |
-            .
-            !**/dev/**
-            !**/test/**
-            !**/tests/**
-            !**/image_prompts/**
-            !lib/phaser/phaser-4.0.0/src/**
-            !lib/phaser/phaser-4.0.0/tests/**
-            !lib/phaser/phaser-4.0.0/changelog/**
-            !lib/phaser/phaser-4.0.0/docs/**
-            !lib/phaser/phaser-4.0.0/skills/**
-            !lib/phaser/phaser-4.0.0/scripts/**
-            !lib/phaser/phaser-4.0.0/types/**
+          path: ${{ runner.temp }}/pages
           name: github-pages-${{ github.run_attempt }}
       - name: Deploy to GitHub Pages
         id: deployment
