@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-126 games, `game-001` through `game-126`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+127 games, `game-001` through `game-127`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -162,6 +162,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 124 | [Wrack & Wonder](game-124/) | A first-person survival and research adventure: learn a magic system generated from the seed by experiment, then use it to break a curse and free the girl who built the hut | three.js |
 | 125 | [SEEDFALL](game-125/) | A first-person HD-2D sci-fi adventure: wake alone on a colony ship and terraform the planet below in one year, driving six generations of bots, splicing genomes and running idle research, harvesters and colonies | three.js |
 | 126 | [EMBERSPIRE](game-126/) | A 16-bit endless tower RPG: turn-based party battles against ever-stronger foes with mini bosses every 5 floors and bosses every 10, a tavern of heroes to recruit and court, class evolution, upgradable gear, quests and idle income; fal art and ElevenLabs music and voices | Canvas 2D |
+| 127 | [The First Dragon Prince](game-127/) | A raising sim with visual novel scenes: raise the half-dragon heir from 10 to 18 through lessons, jobs, quests and expeditions, six childhood friends to court, a festival and Starfall Night, 18 endings up to the first Dragon King; fal art, 501 ElevenLabs voiced lines and an album that replays the cutscenes | DOM |
 
 ### Highlights
 
@@ -393,7 +394,7 @@ web-games-andrew/
 ├── docs/                   # Framework API references and cross-game learnings
 ├── reference/              # Standalone reference snippets (e.g. rpg.js)
 ├── dist/                   # Packaged build output (e.g. game-019 desktop build)
-├── game-001/ … game-126/   # One self-contained folder per game
+├── game-001/ … game-127/   # One self-contained folder per game
 │   ├── index.html
 │   ├── js/ (or similarly organized modular game code)
 │   └── gemcore.config.json # Optional desktop-build config
@@ -450,7 +451,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 126 games are included as of the latest entries (game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION, game-118 The Kids Table, game-119 THE HERO'S MERCHANT, game-120 HEXAPOD RISING, game-121 ARCANA WAGON, game-122 Rainglass, game-123 Atlas of Ink, game-124 Wrack & Wonder, game-125 SEEDFALL, game-126 EMBERSPIRE), and the Garden launcher is at v1.9.0.
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 127 games are included as of the latest entries (game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION, game-118 The Kids Table, game-119 THE HERO'S MERCHANT, game-120 HEXAPOD RISING, game-121 ARCANA WAGON, game-122 Rainglass, game-123 Atlas of Ink, game-124 Wrack & Wonder, game-125 SEEDFALL, game-126 EMBERSPIRE, game-127 The First Dragon Prince), and the Garden launcher is at v1.9.0.
 
 ---
 
