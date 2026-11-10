@@ -37,13 +37,25 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: '.'
+          # Keep the playable site, but omit test/dev material that Pages never serves.
+          path: |
+            .
+            !**/dev/**
+            !**/test/**
+            !**/tests/**
+            !**/image_prompts/**
+            !lib/phaser/phaser-4.0.0/src/**
+            !lib/phaser/phaser-4.0.0/tests/**
+            !lib/phaser/phaser-4.0.0/changelog/**
+            !lib/phaser/phaser-4.0.0/docs/**
+            !lib/phaser/phaser-4.0.0/skills/**
+            !lib/phaser/phaser-4.0.0/scripts/**
+            !lib/phaser/phaser-4.0.0/types/**
           name: github-pages-${{ github.run_attempt }}
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
         with:
           artifact_name: github-pages-${{ github.run_attempt }}
-          # Allow slow Pages file syncing beyond the default 10-minute timeout (milliseconds).
-          timeout: 1200000
+          # The action caps this at 10 minutes; larger values are silently reduced.
+          timeout: 600000
