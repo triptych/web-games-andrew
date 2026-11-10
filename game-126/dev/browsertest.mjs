@@ -3,7 +3,8 @@
  *
  * desktop (1280x760): title with no errors and the ← Games link on top → New Game → the intro story → town and the
  *   daily bonus → the Tavern opens and Escape closes it → the Gate → floor 1 → real keys: 1 attacks (Enter picks a
- *   target) → A turns on auto battle → victory → Next floor → home in the evening → an evening at the Tavern →
+ *   target) → A turns on auto battle → victory, the 10 s auto-climb countdown climbs to floor 2 by itself, Wait
+ *   stops it, and there's no countdown into a mini boss → home in the evening → an evening at the Tavern →
  *   rest → the Forge upgrades a weapon, the Market sells a potion → Save & Quit → Continue restores the game.
  * phones (touch only, real taps) at 390x844 and 844x390: taps through the title and the story, the town fits,
  *   controls ≥ 44 px and on screen, the Gate, a battle command by tap, a target tapped on the canvas, no sideways
@@ -97,6 +98,39 @@ async function desktop() {
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('place').hidden && __es.ui.place === null, 'Escape leaves the building');
 
+    // town greetings: by themselves for the first 3 visits, then only on the speaker by the portrait; saved
+    await Q(page, () => {
+        window.__spoke = [];
+        const say = __es.audio.say.bind(__es.audio);
+        __es.audio.say = (name, o = {}) => { const r = say(name, o); if (r) window.__spoke.push(name + (o.force ? ':tap' : '')); return r; };
+    });
+    for (let i = 0; i < 5; i++) {
+        await Q(page, () => { __es.audio.lastVoice = -1e9; });   // let each visit speak (no one else is talking)
+        await click(page, '#town [data-place="tavern"]');
+        await until(page, visible('#place .npc'), `visit ${i + 2} to the Tavern`);
+        await click(page, '#place [data-k="back"]');
+        await until(page, () => document.getElementById('place').hidden, `and back out (${i + 2})`);
+    }
+    const plays = await Q(page, () => ({ spoke: window.__spoke.filter((x) => x === 'bram').length, count: __es.ui.settings.greetPlays.bram, saved: JSON.parse(localStorage.getItem('emberspire.v1.settings')).greetPlays.bram }));
+    check(plays.count === 3 && plays.saved === 3, `Bram's greeting plays by itself 3 times in all and the count is saved (${JSON.stringify(plays)})`);
+    check(plays.spoke <= 3 && plays.spoke >= 2, `and no more than that after the first visit (${plays.spoke} of 5 more visits spoke)`);
+    await click(page, '#town [data-place="tavern"]');
+    await until(page, visible('#place .npc [data-k="speak"]'), 'a speaker sits by Bram\'s portrait');
+    const sz = await Q(page, () => { const r = document.querySelector('#place [data-k="speak"]').getBoundingClientRect(); return r.width >= 36 && r.height >= 36; });
+    check(sz, 'and is big enough to tap');
+    await click(page, '#place [data-k="speak"]');
+    await until(page, () => window.__spoke.includes('bram:tap'), 'tapping it plays the greeting again');
+    await shot(page, 'desktop-greeting-speaker');
+    await click(page, '#place [data-k="back"]');
+    await until(page, () => document.getElementById('place').hidden, 'back to town');
+    await Q(page, () => { const sel = document.getElementById('set-greet'); sel.value = 'tap'; sel.dispatchEvent(new Event('change')); __es.audio.lastVoice = -1e9; window.__spoke = []; });
+    await click(page, '#town [data-place="forge"]');
+    await until(page, visible('#place .npc'), 'with "Only when I tap", the Forge opens');
+    check(await Q(page, () => window.__spoke.length === 0 && JSON.parse(localStorage.getItem('emberspire.v1.settings')).greet === 'tap'), 'Hilde stays quiet and the choice is saved');
+    await click(page, '#place [data-k="back"]');
+    await until(page, () => document.getElementById('place').hidden, 'and back to town');
+    await Q(page, () => { const sel = document.getElementById('set-greet'); sel.value = 'few'; sel.dispatchEvent(new Event('change')); });
+
     await click(page, '#town [data-place="gate"]');
     await until(page, visible('#place [data-k="floor-1"]'), 'the Gate offers floor 1');
     await click(page, '#place [data-k="floor-1"]');
@@ -118,9 +152,23 @@ async function desktop() {
     const won = await Q(page, () => __es.G.battle.phase === 'won');
     check(won, 'the starting party wins floor 1');
     if (won) {
-        await click(page, '#victory [data-k="next"]');
-        await until(page, () => __es.G.battle?.floor === 2 && document.getElementById('victory').hidden, 'Next climbs to floor 2');
+        // auto battle is on and floor 2 is an ordinary floor: the button counts down from 10 and climbs by itself
+        await until(page, () => /\(\d+\)$/.test(document.querySelector('#victory [data-k="next"]')?.textContent || ''), 'with auto battle on, Climb to floor 2 counts down');
+        check(await Q(page, () => /\((10|9|8)\)$/.test(document.querySelector('#victory [data-k="next"]').textContent)), 'the countdown starts at 10 seconds');
+        await until(page, () => __es.G.battle?.floor === 2 && document.getElementById('victory').hidden, 'at zero it climbs to floor 2 by itself', 30000);
+        // Wait stops the countdown
         await Q(page, () => __es.resolve());
+        await until(page, visible('#victory [data-k="wait"]'), 'the next victory counts down again, with a Wait button');
+        await click(page, '#victory [data-k="wait"]');
+        await page.waitForTimeout(3500);   // 3.5 s at fast=4 is 14 s of countdown time: it would have climbed by now
+        check(await Q(page, () => __es.G.battle.floor === 2 && !document.getElementById('victory').hidden && !/\(\d+\)$/.test(document.querySelector('#victory [data-k="next"]').textContent)), 'Wait stops it: still on floor 2, no countdown');
+        await shot(page, 'desktop-victory-wait');
+        // no countdown into a mini boss: win floor 4 and the climb to floor 5 waits for you
+        await Q(page, () => { __es.fight(4); __es.G.battle.units.filter((u) => u.side === 'e').forEach((u) => { u.hp = 1; }); __es.resolve(); });
+        await until(page, () => __es.G.battle.floor === 4 && __es.G.battle.phase === 'won' && !document.getElementById('victory').hidden, 'floor 4 won (the mini boss is next)');
+        await page.waitForTimeout(3500);
+        check(await Q(page, () => __es.G.battle.floor === 4 && !/\(\d+\)$/.test(document.querySelector('#victory [data-k="next"]').textContent) && /mini boss waits/.test(document.getElementById('victory').textContent)), 'no countdown into a mini boss, and it says why');
+        await shot(page, 'desktop-victory-miniboss');
         await until(page, visible('#victory [data-k="home"]'), 'after the fight, the way home');
         await click(page, '#victory [data-k="home"]');
         await until(page, () => __es.mode === 'town' && __es.G.phase === 'evening', 'home again, and it is evening');

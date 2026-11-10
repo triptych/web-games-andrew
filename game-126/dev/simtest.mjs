@@ -288,6 +288,15 @@ if (want('rules')) {
     Gm.act(G, { t: 'autoClimb', on: true });
     for (let i = 0; i < 60 * 120 && G.mode === 'tower' && (G.battle.floor < 3); i++) Gm.step(G, { hold: false }, C.STEP);
     ok(G.battle?.floor >= 3 || G.best >= 2, 'auto battle and auto-climb climb by themselves');
+    // ...but never into a mini boss or boss: after winning floor 4 it waits on the victory screen
+    G = Gm.newGame(33);
+    G.mode = 'tower'; G.run = { start: 4, floor: 4, gold: 0, xp: 0, kills: 0, floors: 0 };
+    Ba.startBattle(G, 4);
+    G.battle.units.filter((u) => u.side === 'e').forEach((u) => { u.hp = 1; });
+    Gm.autoResolve(G);
+    Gm.act(G, { t: 'autoClimb', on: true });
+    for (let i = 0; i < 60 * 30; i++) Gm.step(G, { hold: false }, C.STEP);
+    ok(G.battle.floor === 4 && G.battle.phase === 'won' && G.mode === 'tower', 'auto-climb stops before the floor 5 mini boss and lets you choose');
 
     section('rules: the town');
     G = Gm.newGame(40);

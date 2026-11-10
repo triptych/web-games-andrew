@@ -1,7 +1,7 @@
 // EMBERSPIRE — the DOM layer: the town, its buildings, the battle commands, rewards and dialogue.
 // Reads G and sends commands through `send(cmd)` (main.js runs act(), drains events, saves). Never writes G.
 
-import { VERSION, PARTY_MAX, EVOLVE_LV, ASCEND_LV } from './config.js';
+import { VERSION, PARTY_MAX, EVOLVE_LV, ASCEND_LV, AUTO_NEXT_SECONDS } from './config.js';
 import { ART, setIcon, iconEl, img } from './assets.js';
 import { HEROES, HERO, CLASSES, SKILLS, STATUS } from './sim/data/heroes.js';
 import { BIOMES, MONSTERS, biomeOf } from './sim/data/biomes.js';
@@ -11,7 +11,7 @@ import {
     joined, checkpoints, recruitable, recruitCost, skillList, upgradeCost, maxPlus, reforgeCost, gearPrice, salvageValue,
     equippedBy, canEquip, slotOf, boardQuests, questProgress, shardPrice, baseClass, partyHealth,
 } from './sim/game.js';
-import { heroStats, gearStats, gearName, xpNext, power, uniqueFx } from './sim/stats.js';
+import { heroStats, gearStats, gearName, xpNext, power, uniqueFx, rankOfFloor } from './sim/stats.js';
 import { options, targetsFor, skillFor, unit as bunit } from './sim/battle.js';
 import { MONSTER_ACTS } from './sim/data/acts.js';
 
@@ -57,12 +57,15 @@ const className = (G, id) => {
     return hh.tier >= 3 ? CLASSES[hh.cls].asc : CLASSES[hh.cls].name;
 };
 const PLACE_BG = { gate: 'title', tavern: 'tavern', forge: 'smithy', market: 'shop', guild: 'guild', temple: 'temple', party: 'tavern', treasury: 'guild', bestiary: 'library' };
+// town greetings play by themselves this many times each, then only on the 🔊 by the portrait
+const GREET_AUTO = 3;
 const PLACE_NPC = { gate: 'watcher', tavern: 'bram', forge: 'hilde', market: 'zephyrine', guild: 'corwin', temple: 'amaya', treasury: 'corwin' };
 
 export class UI {
     constructor({ audio, settings, send, onSettings, onDeleteSave, onQuit }) {
         this.audio = audio;
         this.settings = settings;
+        this.onSettings = onSettings;
         this.send = send;
         this.stack = [];
         this.place = null;          // which building is open
@@ -86,10 +89,10 @@ export class UI {
             }, { capture: true });
         }
         for (const b of document.querySelectorAll('[data-close]')) b.addEventListener('click', () => { audio.ui('back'); this.closeTop(); });
-        const sfx = $('set-sfx'), music = $('set-music'), voice = $('set-voice'), speed = $('set-speed');
-        sfx.value = settings.sfx; music.value = settings.music; voice.value = settings.voice; speed.value = String(settings.speed);
-        const changed = () => { Object.assign(settings, { sfx: +sfx.value, music: +music.value, voice: +voice.value, speed: +speed.value }); onSettings(settings); };
-        for (const el of [sfx, music, voice, speed]) el.addEventListener('change', changed);
+        const sfx = $('set-sfx'), music = $('set-music'), voice = $('set-voice'), speed = $('set-speed'), greet = $('set-greet');
+        sfx.value = settings.sfx; music.value = settings.music; voice.value = settings.voice; speed.value = String(settings.speed); greet.value = settings.greet;
+        const changed = () => { Object.assign(settings, { sfx: +sfx.value, music: +music.value, voice: +voice.value, speed: +speed.value, greet: greet.value }); onSettings(settings); };
+        for (const el of [sfx, music, voice, speed, greet]) el.addEventListener('change', changed);
         $('set-delete').addEventListener('click', () => { if (confirm('Delete your saved game? This cannot be undone.')) { onDeleteSave(); this.toast('Saved game deleted.'); } });
         $('set-title').addEventListener('click', () => onQuit());
         $('btn-menu').addEventListener('click', () => { audio.ui('click'); this.openScreen('settings'); });
@@ -194,10 +197,24 @@ export class UI {
         this.setBg('town', evening);
     }
 
+    /** The town greeting when you walk in: by itself for the first GREET_AUTO visits (or every visit, or never, per
+     *  Settings), counted in the saved settings so it stays quiet after a reload. The 🔊 by the portrait replays it. */
+    greet(npc) {
+        const clip = npc === 'watcher' ? 'watcher-gate' : npc;
+        const st = this.settings;
+        st.greetPlays = st.greetPlays || {};
+        const n = st.greetPlays[clip] || 0;
+        if (st.greet === 'tap' || (st.greet !== 'every' && n >= GREET_AUTO)) return false;
+        if (!this.audio.say(clip, { gap: 2 })) return false;     // not loaded yet, or someone is already talking
+        st.greetPlays[clip] = n + 1;
+        this.onSettings(st);
+        return true;
+    }
+
     openPlace(G, id) {
         this.place = id;
         const npc = PLACE_NPC[id];
-        if (npc) this.audio.say(npc === 'watcher' ? 'watcher-gate' : npc, { gap: 2 });
+        if (npc) this.greet(npc);
         this.renderPlace(G);
         $('town').style.visibility = 'hidden';
         this.openScreen('place');
@@ -212,10 +229,14 @@ export class UI {
         const focusKey = document.activeElement?.dataset?.k;
         root.replaceChildren();
         const npc = PLACE_NPC[id];
-        const greet = npc ? GREETINGS[npc][(G.day + id.length) % GREETINGS[npc].length] : null;
+        // the bubble shows the recorded line (what the 🔊 plays), and the day's own line under it when it differs
+        const voiced = npc ? GREETINGS[npc][0] : null;
+        const today = npc ? GREETINGS[npc][(G.day + id.length) % GREETINGS[npc].length] : null;
+        const clip = npc === 'watcher' ? 'watcher-gate' : npc;
         const head = npc ? h('div.npc', {},
-            h('div.por', { style: { backgroundImage: `url(${por(npc)})` } }),
-            h('div.win.say', {}, h('span.who', { text: NPCS[npc].name + ' · ' + NPCS[npc].role }), greet)) : null;
+            h('div.por', { style: { backgroundImage: `url(${por(npc)})` } },
+                h('button.speak', { 'data-k': 'speak', 'aria-label': `Hear ${NPCS[npc].name}`, title: `Hear ${NPCS[npc].name}`, on: { click: () => this.audio.say(clip, { force: true }) } }, '🔊')),
+            h('div.win.say', {}, h('span.who', { text: NPCS[npc].name + ' · ' + NPCS[npc].role }), voiced, today !== voiced ? h('span.today', { text: today }) : null)) : null;
         const panel = h('div.win.panel');
         const back = h('button.btn', { 'data-k': 'back', on: { click: () => { this.audio.ui('back'); this.closePlace(G); } } }, '← Town');
         const titles = { gate: 'The Tower Gate', tavern: 'The Frothy Mug', forge: 'Hilde\'s Forge', market: 'Zephyrine\'s Wares', guild: 'Adventurers\' Guild', temple: 'Temple of the Dawn', party: 'Your Company', treasury: 'Treasury', bestiary: 'Bestiary' };
@@ -700,6 +721,27 @@ export class UI {
         return wrap;
     }
 
+    /** Count the auto-climb button down; at zero, climb. Stops if auto battle is switched off or the screen closes. */
+    tickAutoNext(dt) {
+        const a = this.autoNext;
+        if (!a) return;
+        if ($('victory').hidden || !this.G?.auto || this.G.battle?.phase !== 'won') { this.cancelAutoNext(); return; }
+        a.left -= dt;
+        const n = Math.max(0, Math.ceil(a.left));
+        a.btn.textContent = `${a.label} (${n})`;
+        a.btn.style.setProperty('--p', `${Math.max(0, Math.min(1, a.left / AUTO_NEXT_SECONDS)) * 100}%`);
+        if (a.left <= 0) { this.autoNext = null; this.send({ t: 'next' }); }
+    }
+
+    cancelAutoNext() {
+        const a = this.autoNext;
+        if (!a) return;
+        this.autoNext = null;
+        a.btn.textContent = a.label;
+        a.btn.style.removeProperty('--p');
+        $('victory').querySelector('[data-k="wait"]')?.remove();
+    }
+
     battleBack() {
         if (this.bmenu !== 'root') { this.bmenu = 'root'; this.pending = null; this.stage?.setPick(null); this.renderBattle(this.G, this.stage); return true; }
         return false;
@@ -754,9 +796,18 @@ export class UI {
             const ups = G.party.filter((id) => this.levelled?.[id]);
             if (ups.length) body.push(h('p.good', { text: ups.map((id) => `${HERO[id].name} reached level ${G.heroes[id].lv}!`).join(' ') }));
             const ph = partyHealth(G);
-            body.push(h('p.dim', { text: `Party health ${Math.round(ph.ratio * 100)}%. The next floor's rest restores a little.${(B.floor + 1) % 10 === 0 ? ' A boss waits on the next floor.' : (B.floor + 1) % 5 === 0 ? ' A mini boss waits on the next floor.' : ''}` }));
+            body.push(h('p.dim', { text: `Party health ${Math.round(ph.ratio * 100)}%. The next floor's rest restores a little.${G.auto ? '' : (B.floor + 1) % 10 === 0 ? ' A boss waits on the next floor.' : (B.floor + 1) % 5 === 0 ? ' A mini boss waits on the next floor.' : ''}` }));
             foot.push(h('button.btn', { 'data-k': 'home', on: { click: () => this.send({ t: 'leave' }) } }, 'Return to town'));
-            foot.push(h('button.btn.primary', { 'data-k': 'next', on: { click: () => this.send({ t: 'next' }) } }, `Climb to floor ${B.floor + 1} ▸`));
+            const nextBtn = h('button.btn.primary.countdown', { 'data-k': 'next', on: { click: () => { this.autoNext = null; this.send({ t: 'next' }); } } }, `Climb to floor ${B.floor + 1} ▸`);
+            foot.push(nextBtn);
+            // auto battle climbs on by itself after a countdown, but never walks into a mini boss or a boss
+            const nextRank = rankOfFloor(B.floor + 1);
+            if (G.auto && nextRank === 'normal') {
+                this.autoNext = { left: AUTO_NEXT_SECONDS, btn: nextBtn, label: nextBtn.textContent };
+                foot.unshift(h('button.btn', { 'data-k': 'wait', title: 'Stop the countdown', on: { click: () => this.cancelAutoNext() } }, 'Wait'));
+            } else if (G.auto || G.autoClimb) {
+                body.push(h('p.gold', { text: `A ${nextRank === 'boss' ? 'boss' : 'mini boss'} waits on floor ${B.floor + 1}. Auto won't climb into it for you: get ready, then climb when you choose.` }));
+            }
         } else if (B.phase === 'lost') {
             body.push(h('h2.bad', { text: `Your party has fallen on floor ${B.floor}` }));
             body.push(h('p', { text: 'Townsfolk carry you home. Some of the gold you found this climb is lost on the way.' }));
@@ -768,6 +819,7 @@ export class UI {
         }
         root.replaceChildren(h('div.win.sheet', {}, ...body, h('div.sheet-foot', {}, foot)));
         if (!this.stack.includes('victory')) this.openScreen('victory'); else this.focusFirst('victory');
+        this.tickAutoNext(0);   // show the count at once, now the screen is open
     }
 }
 
