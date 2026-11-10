@@ -350,11 +350,13 @@ export function makeCreature(sp, r) {
             head.add(h);
         }
         if (sp.tail) {
-            const t = new THREE.Mesh(new THREE.ConeGeometry(bw * 0.18, bl * 0.8, 5).translate(0, -bl * 0.4, 0), accM);
+            // thick at the rump, tapering to a tip trailing out behind; tilted back once on x, and the
+            // wag swings on z (the animation only writes z, so it can't tip the tail sideways)
+            const t = new THREE.Mesh(new THREE.ConeGeometry(bw * 0.18, bl * 0.8, 5).rotateX(Math.PI).translate(0, -bl * 0.4, 0), accM);
             t.position.set(0, hipY + bw * 0.2, -bl * 0.55);
-            t.rotation.x = -1.2;
+            t.rotation.x = 1.4;
             pivot.add(t);
-            tentacles.push({ m: t, base: -1.2, axis: 'z', amp: 0.35, rate: 2 });
+            tentacles.push({ m: t, base: 0, axis: 'z', amp: 0.35, rate: 2 });
         }
         // the legs: pairs spaced along the body, each a thigh and a shin
         const pairs = sp.legs / 2;
