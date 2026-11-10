@@ -339,7 +339,7 @@ You can also play any game directly by opening its own `index.html` file, e.g. `
 
 ### GitHub Pages Deployment
 
-`.github/workflows/static.yml` deploys the repository on pushes to `main` and can also be run manually from the Actions tab. Deployments are serialized without canceling an in-progress deployment. The Pages action waits up to 20 minutes for server-side file syncing, within a 25-minute job limit.
+`.github/workflows/static.yml` deploys the playable site on pushes to `main` and can also be run manually from the Actions tab. Deployments are serialized without canceling an in-progress deployment. The artifact omits development and test files, including Phaser's source tree, while retaining the browser bundle used by the Phaser games. The Pages action can wait up to 10 minutes for server-side file syncing.
 
 If deployment fails with `Timeout reached, aborting!` while reporting `syncing_files`, check GitHub's service status before rerunning the workflow. A successful artifact upload does not mean Pages has finished publishing the site.
 
