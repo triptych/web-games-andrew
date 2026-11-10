@@ -44,7 +44,10 @@ BGS_TOWN = ['town', 'tavern', 'tavern-night', 'smithy', 'shop', 'guild', 'temple
 CROP_BOTTOM = {'garden': 0.11}
 # The model didn't always draw the facing it was asked for. Heroes stand on the right and must face left;
 # monsters stand on the left and must face right. These were checked by eye on a contact sheet and are mirrored.
-FLIP = {'arin', 'grimble', 'lyra', 'pip', 'thorne', 'celestine', 'grubnak'}
+# sprites the model drew facing the wrong way (monsters face right, toward the party; heroes face left).
+# Judge at full size: at thumbnail size a three-quarter view is easy to misread (v1.0.4 un-mirrored grubnak,
+# celestine and thorne, which v1.0.0 had mirrored the wrong way).
+FLIP = {'arin', 'arin-evo', 'grimble', 'grimble-evo', 'lyra', 'lyra-evo', 'pip', 'pip-evo', 'thorne-evo'}
 ICON_SHEETS = ['gear', 'goods', 'uniques', 'misc']
 
 # longest side, in game pixels (the battle canvas is 640x360)
@@ -237,7 +240,7 @@ def main(raw):
             if not have(f):
                 print('missing', f); continue
             sp = trim(cutout(Image.open(os.path.join(raw, f))))
-            if h in FLIP: sp = sp.transpose(Image.FLIP_LEFT_RIGHT)
+            if (h if pre == 'spr' else h + '-evo') in FLIP: sp = sp.transpose(Image.FLIP_LEFT_RIGHT)
             # heroes are scaled by height so a halfling stays shorter than a half-orc
             tall = {'pip': 0.78, 'grimble': 0.86}.get(h, 1.0)
             s = SIZE['hero'] * tall / sp.height

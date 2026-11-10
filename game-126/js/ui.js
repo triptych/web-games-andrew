@@ -624,31 +624,48 @@ export class UI {
         this.G = G;
         const B = G.battle;
         const cmds = $('cmds');
-        cmds.replaceChildren();
         $('floor-tag').textContent = B ? `Floor ${B.floor} · ${biomeOf(B.floor).cycle ? 'Ascended ' : ''}${biomeOf(B.floor).biome.name} · ${fmt(G.gold)}g` : '';
-        if (!B) return;
+        if (!B) { cmds.replaceChildren(); return; }
         const busy = stage.busy || G.events.length > 0;
         const u = B.turn ? bunit(B, B.turn) : null;
-        const toggles = h('div.cmd-row', {},
-            h('button.btn.toggle' + (G.auto ? '.on' : ''), { 'data-k': 'auto', on: { click: () => this.send({ t: 'auto', on: !G.auto }) } }, `Auto ${G.auto ? 'ON' : 'off'}`),
-            h('button.btn.toggle' + (G.autoClimb ? '.on' : ''), { 'data-k': 'climb', title: 'Keep climbing after each victory while the party is healthy', on: { click: () => this.send({ t: 'autoClimb', on: !G.autoClimb }) } }, `Climb ${G.autoClimb ? 'ON' : 'off'}`),
-            h('button.btn', { 'data-k': 'speed', title: 'Battle speed', on: { click: () => this.cycleSpeed() } }, `${this.settings.speed}x`),
-            h('button.btn', { 'data-k': 'menu', 'aria-label': 'Menu', on: { click: () => { this.audio.ui('click'); this.openScreen('settings'); } } }, '☰'));
+        // The toggle row is built once and only relabelled. The panel re-renders every time a turn starts or an
+        // animation ends (many times a second at 3x); rebuilding these buttons then swallowed clicks that landed
+        // between press and release, so Auto, Climb and the speed seemed not to respond.
+        const t = this.toggleRow();
+        const set = (btn, on, label) => { btn.classList.toggle('on', on); btn.setAttribute('aria-pressed', String(on)); if (btn.textContent !== label) btn.textContent = label; };
+        set(t.auto, G.auto, `Auto ${G.auto ? 'ON' : 'off'}`);
+        set(t.climb, G.autoClimb, `Climb ${G.autoClimb ? 'ON' : 'off'}`);
+        if (t.speed.textContent !== `${this.settings.speed}x`) t.speed.textContent = `${this.settings.speed}x`;
+        let body;
         if (B.phase === 'input' && !busy && u && u.side === 'p') {
             stage.turn = u.uid;
-            cmds.append(this.commandMenu(G, u, stage));
+            body = this.commandMenu(G, u, stage);
         } else {
             stage.setPick(null);
             let msg = 'The battle is over.';
             if (B.phase === 'ai') msg = u && u.side === 'e' ? `${u.name} acts…` : `${u?.name ?? ''} acts on their own (auto)…`;
             else if (busy) msg = '…';
-            cmds.append(h('div.cmd-who', { text: msg }));
+            body = h('div.cmd-who', { text: msg });
         }
-        cmds.append(toggles);
+        // swap only the part above the toggles; the toggle row stays the same element
+        for (const el of [...cmds.children]) if (el !== t.row) el.remove();
+        cmds.prepend(body);
+        if (t.row.parentNode !== cmds) cmds.append(t.row);
         if (this.top() === null || this.top() === 'battle') {
             // keep keyboard focus inside the command window
             if (!cmds.contains(document.activeElement)) cmds.querySelector('button:not(:disabled)')?.focus({ preventScroll: true });
         }
+    }
+
+    /** Auto / Climb / speed / menu: one set of buttons for the whole session (see renderBattle). */
+    toggleRow() {
+        if (this._toggles) return this._toggles;
+        const auto = h('button.btn.toggle', { 'data-k': 'auto', on: { click: () => this.send({ t: 'auto', on: !this.G.auto }) } });
+        const climb = h('button.btn.toggle', { 'data-k': 'climb', title: 'Keep climbing after each victory while the party is healthy', on: { click: () => this.send({ t: 'autoClimb', on: !this.G.autoClimb }) } });
+        const speed = h('button.btn', { 'data-k': 'speed', title: 'Battle speed', on: { click: () => this.cycleSpeed() } });
+        const menu = h('button.btn', { 'data-k': 'menu', 'aria-label': 'Menu', on: { click: () => { this.audio.ui('click'); this.openScreen('settings'); } } }, '☰');
+        this._toggles = { row: h('div.cmd-row', {}, auto, climb, speed, menu), auto, climb, speed };
+        return this._toggles;
     }
 
     cycleSpeed() {

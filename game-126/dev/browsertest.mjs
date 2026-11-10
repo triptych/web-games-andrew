@@ -144,6 +144,26 @@ async function desktop() {
     await page.waitForTimeout(150);
     if (await Q(page, () => __es.ui.bmenu === 'target')) await page.keyboard.press('Enter');
     await until(page, (a) => __es.G.battle.actions > a || __es.G.battle.phase !== 'input', 'pressing 1 attacks (Enter picks the target)', 30000, acts0);
+    // v1.0.4: the panel re-renders whenever a turn starts or an animation ends, many times a second at 3x. A click
+    // whose press and release straddle one of those re-renders used to be lost (Auto, Climb and the speed seemed dead).
+    const pressAcrossRender = async (sel) => {
+        const b = await page.locator(sel).boundingBox();
+        await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+        await page.mouse.down();
+        await Q(page, () => { __es.ui.renderBattle(__es.G, __es.stage); });
+        await page.mouse.up();
+        await page.waitForTimeout(60);
+    };
+    const toggles = () => Q(page, () => ({ auto: __es.G.auto, label: document.querySelector('#cmds [data-k="auto"]').textContent, speed: __es.ui.settings.speed, sp: document.querySelector('#cmds [data-k="speed"]').textContent }));
+    await pressAcrossRender('#cmds [data-k="auto"]');
+    let tg = await toggles();
+    check(tg.auto === true && tg.label === 'Auto ON', `a click on Auto lands even when a new turn redraws the panel mid-click (${JSON.stringify(tg)})`);
+    await pressAcrossRender('#cmds [data-k="auto"]');
+    tg = await toggles();
+    check(tg.auto === false && tg.label === 'Auto off', `and so does turning it off again, with the label to match (${JSON.stringify(tg)})`);
+    const seen = [];
+    for (let i = 0; i < 3; i++) { await pressAcrossRender('#cmds [data-k="speed"]'); seen.push((await toggles()).sp); }
+    check(seen.join(' ') === '2x 3x 1x', `the speed button goes 1x → 2x → 3x → back to 1x across redraws (${seen.join(' ')})`);
     await page.keyboard.press('KeyA');
     await until(page, () => __es.G.auto === true, 'A turns on auto battle');
     await until(page, () => ['won', 'lost'].includes(__es.G.battle?.phase) && !__es.busy, 'the battle plays out', 90000);
