@@ -1536,6 +1536,8 @@ async function boot() {
                 try {
                     foundry ??= new Foundry({ renderer, audio, ui, quality });
                     foundry.onExit = () => rideLift(false);
+                    // out through the exit at the end of the walkway: into the Springwood
+                    foundry.onForest = () => throughDoor(true, 'forest');
                     setBelow(true, 'foundry');
                     foundry.enter(controls, camera);
                     zoneKey = 'foundry';
