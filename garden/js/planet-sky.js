@@ -148,7 +148,8 @@ export function buildSky(o) {
             uSea: { value: b.sea ?? -1 }, uIce: { value: b.ice ?? 0 }, uLight: { value: light }, uBands: { value: b.bands ?? 14 },
             uHaze: { value: o.haze * (b.hazeK ?? 1) }, uCraters: { value: b.craters ?? 0 },
         };
-        const body = new THREE.Mesh(new THREE.SphereGeometry(rad, 64, 40), new THREE.ShaderMaterial({ uniforms: BU, vertexShader: BODY_VERT, fragmentShader: BODY_FRAG, transparent: true, depthWrite: false, fog: false }));
+        const body = new THREE.Mesh(new THREE.SphereGeometry(rad, 64, 40), new THREE.ShaderMaterial({ uniforms: BU, vertexShader: BODY_VERT, fragmentShader: BODY_FRAG, transparent: true, depthWrite: true, fog: false }));
+        // the body writes depth (the ring is drawn after it) so the far half of the ring passes behind the planet
         body.renderOrder = -9;
         tilt.add(body);
         spinners.push({ m: body, w: 0.004 + r() * 0.01 });

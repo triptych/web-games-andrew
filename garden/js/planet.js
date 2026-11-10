@@ -211,6 +211,24 @@ export class Planet {
             hor = hor.clone().lerp(C('#0a0c1a'), 0.8);
         }
         const haze = B.airless ? 0 : 1;
+        // ---- the day's weather: a smallish chance of fog, rain, or a dusty wind (snow and ash worlds keep theirs)
+        const er = S('event');
+        let event = null;
+        if (!B.airless && er() < 0.3) event = er.pick(key === 'ice' || key === 'lava' ? ['fog', 'wind'] : ['fog', 'wind', 'rain', 'rain']);
+        this.event = event;
+        // the sky goes overcast for rain and fog, and brown-ish for dust
+        const grey = night ? C('#202630') : C('#8c96a4');
+        const dust = pal.g1.clone().lerp(C('#e8d4b0'), 0.5).multiplyScalar(night ? 0.3 : 1);
+        if (event === 'rain') {
+            zen = zen.clone().lerp(grey, 0.65);
+            hor = hor.clone().lerp(grey, 0.75);
+        } else if (event === 'fog') {
+            zen = zen.clone().lerp(night ? grey : C('#c8ced6'), 0.6);
+            hor = hor.clone().lerp(night ? grey : C('#dde1e6'), 0.8);
+        } else if (event === 'wind') {
+            zen = zen.clone().lerp(dust, 0.2);
+            hor = hor.clone().lerp(dust, 0.4);
+        }
         const fogCol = hor.clone().lerp(zen, 0.25);
         this.fogCol = fogCol;
 
@@ -246,15 +264,17 @@ export class Planet {
         this.bodies = bodies;
         const neb = r() < (night || B.airless ? 0.7 : 0.25) ? { amt: r.range(0.3, 0.7), a: new THREE.Color().setHSL(r(), 0.8, 0.45), b: new THREE.Color().setHSL(r(), 0.8, 0.5) } : null;
         const aurora = (B.aurora && r() < B.aurora) || (night && r() < 0.3) ? { amt: r.range(0.5, 1), a: new THREE.Color().setHSL(r.range(0.3, 0.5), 0.9, 0.5), b: new THREE.Color().setHSL(r.range(0.7, 0.9), 0.9, 0.5) } : null;
-        const stars = B.airless ? 1 : night ? 1 : golden ? 0.3 : 0;
+        const stars = (B.airless ? 1 : night ? 1 : golden ? 0.3 : 0) * (event === 'rain' || event === 'fog' ? 0.2 : 1);
         this.sky = buildSky({
             r: S('sky'), zenith: zen, horizon: hor, ground: fogCol.clone().multiplyScalar(0.6), haze,
             sun: { dir: sunDir, col: sunCol.clone().multiplyScalar(night ? 0 : 1), size: r.range(0.02, 0.05) }, sun2: night ? null : sun2,
             stars, neb, aurora: aurora && (night || golden || B.airless) ? aurora : aurora && aurora.amt > 0.8 ? { ...aurora, amt: 0.35 } : null, bodies,
         });
         scene.add(this.sky.group);
+        // (and the sun's disc fades behind the cloud)
+        if (event === 'rain' || event === 'fog') this.sky.uniforms.uSunCol.value.multiplyScalar(event === 'rain' ? 0.25 : 0.45);
         scene.background = zen.clone();
-        scene.fog = new THREE.FogExp2(fogCol, B.fog * r.range(0.6, 1.2) * (night ? 0.7 : 1));
+        scene.fog = new THREE.FogExp2(fogCol, B.fog * r.range(0.6, 1.2) * (night ? 0.7 : 1) * ({ fog: 3.6, rain: 2.2, wind: 1.7 }[event] ?? 1));
         this.night = night;
 
         // ---- light
@@ -272,9 +292,12 @@ export class Planet {
             sunL.shadow.bias = -0.0006;
             sunL.shadow.normalBias = 0.04;
         }
+        // overcast: rain and fog take the edge off the sun
+        const dim = { fog: 0.55, rain: 0.4, wind: 0.9 }[event] ?? 1;
+        sunL.intensity *= dim;
         this.sunL = sunL;
         this.sunDir = sunDir;
-        const hemi = new THREE.HemisphereLight(night ? C('#5a6aa8') : hor.clone().lerp(zen, 0.5), pal.g0.clone().multiplyScalar(0.6), night ? 0.85 : B.airless ? 0.35 : 0.9);
+        const hemi = new THREE.HemisphereLight(night ? C('#5a6aa8') : hor.clone().lerp(zen, 0.5), pal.g0.clone().multiplyScalar(0.6), (night ? 0.85 : B.airless ? 0.35 : 0.9) * (event === 'rain' ? 0.85 : 1));
         scene.add(hemi);
         if (night && bodies[0]) {
             // the biggest neighbour lights the night
@@ -310,6 +333,10 @@ export class Planet {
 
         // ---- weather
         this._weather(B, S('weather'));
+        const windAng = S('wind-dir')() * TAU;
+        if (event === 'rain') this._streaks(S('rain'), { n: 1200, fall: [15, 22], wind: 3, len: 0.05, col: night ? 0x7a8aa8 : 0xc4d0e0, opacity: 0.5 });
+        else if (event === 'wind') this._streaks(S('wind-streaks'), { ang: windAng, n: 800, fall: [0.1, 1.2], wind: 15, len: 0.09, col: pal.g1.clone().lerp(C('#f0e0c0'), 0.6), opacity: 0.4, gust: true });
+        if (event === 'wind') this._weather(B, S('wind'), { ang: windAng, n: 1500, col: pal.g1.clone().lerp(C('#e8d4b0'), 0.55), size: 0.2, fall: 0.1, drift: 13, glow: 0.1, gust: true });
 
         // ---- the pilot, if this is the world the pilot came to
         this.pilot = opts.pilot ? this._pilot(S('pilot')) : null;
@@ -329,7 +356,7 @@ export class Planet {
             seed: this.seed, key, name, label: B.label, accent: B.accent, temp, gravity: this.gravity, o2,
             day: Math.round(r.range(6, 90)), suns: binary ? 2 : 1, moons: bodies.length, phase, strange,
             air: B.airless ? 'none' : key === 'lava' ? 'poisonous' : r.pick(['thin', 'thin', 'heavy', 'sweet-smelling', 'cold']),
-            species: this.species.map((s) => s.name),
+            species: this.species.map((s) => s.name), event,
         };
         this.built = true;
         return this.info;
@@ -387,10 +414,15 @@ export class Planet {
         this.level = level;
         this.liquidType = L?.type ?? null;
         this.padY = padY;
+        // a dry shelf round the pad: the valley floor near the beacon never dips under the sea, so
+        // the pad is never an island and there is always dry land to walk out on
+        const SHELF = 24;
         const height = (x, z) => {
-            const h = raw(x, z);
-            const w = 1 - smoothstep(PAD_R, PAD_R + 7, Math.hypot(x, z));
-            return lerp(h, padY, w);
+            const rr = Math.hypot(x, z);
+            const h = lerp(raw(x, z), padY, 1 - smoothstep(PAD_R, PAD_R + 7, rr));
+            if (!isFinite(level) || rr > SHELF + 10) return h;
+            const floor = level + 0.45 + 0.35 * (fbm2(x * 0.09 + oz, z * 0.09 + ox, 2) * 0.5 + 0.5);
+            return h < floor ? lerp(h, floor, 1 - smoothstep(SHELF, SHELF + 10, rr)) : h;
         };
         this.groundAt = height;
 
@@ -644,8 +676,8 @@ export class Planet {
         }
     }
 
-    _weather(B, r) {
-        const W = WEATHER[B.weather];
+    _weather(B, r, over) {
+        const W = over ?? WEATHER[B.weather];
         if (!W) return;
         const n = Math.round(W.n * (this.tier === 'low' ? 0.45 : this.tier === 'medium' ? 0.7 : 1));
         const BOX = 44, H = 24;
@@ -664,12 +696,14 @@ export class Planet {
         const pts = new THREE.Points(g, m);
         pts.frustumCulled = false;
         this.scene.add(pts);
-        const wind = new V3(r() - 0.5, 0, r() - 0.5).normalize().multiplyScalar(W.drift);
+        const wind = (W.ang != null ? new V3(Math.cos(W.ang), 0, Math.sin(W.ang)) : new V3(r() - 0.5, 0, r() - 0.5).normalize()).multiplyScalar(W.drift);
         this.updaters.push((dt, t, cam) => {
+            // a gusting wind swells and drops
+            const gust = W.gust ? 0.35 + 0.9 * (0.5 + 0.5 * Math.sin(t * 0.35)) * (0.65 + 0.35 * Math.sin(t * 1.9)) : 1;
             for (let i = 0; i < n; i++) {
-                let x = pos[i * 3] + (wind.x + Math.sin(t * 0.7 + seed[i] * 20) * 0.3) * dt;
+                let x = pos[i * 3] + (wind.x * gust + Math.sin(t * 0.7 + seed[i] * 20) * 0.3) * dt;
                 let y = pos[i * 3 + 1] - W.fall * (0.6 + seed[i] * 0.8) * dt;
-                let z = pos[i * 3 + 2] + (wind.z + Math.cos(t * 0.6 + seed[i] * 17) * 0.3) * dt;
+                let z = pos[i * 3 + 2] + (wind.z * gust + Math.cos(t * 0.6 + seed[i] * 17) * 0.3) * dt;
                 // wrap round the camera
                 const rx = x - cam.position.x, rz = z - cam.position.z, ry = y - (cam.position.y - 6);
                 if (rx > BOX / 2) x -= BOX;
@@ -687,13 +721,85 @@ export class Planet {
         });
     }
 
+    /** Rain and blown dust: short streaks that move on a slant and wrap round the camera. */
+    _streaks(r, o) {
+        const n = Math.round(o.n * (this.tier === 'low' ? 0.45 : this.tier === 'medium' ? 0.7 : 1));
+        const BOX = 36, H = 22;
+        const head = new Float32Array(n * 3), fall = new Float32Array(n);
+        for (let i = 0; i < n; i++) {
+            head[i * 3] = (r() - 0.5) * BOX;
+            head[i * 3 + 1] = r() * H;
+            head[i * 3 + 2] = (r() - 0.5) * BOX;
+            fall[i] = r.range(o.fall[0], o.fall[1]);
+        }
+        const verts = new Float32Array(n * 6);
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+        const m = new THREE.LineBasicMaterial({ color: o.col, transparent: true, opacity: o.opacity, depthWrite: false });
+        const lines = new THREE.LineSegments(g, m);
+        lines.frustumCulled = false;
+        this.scene.add(lines);
+        const a = o.ang ?? r() * TAU, wx = Math.cos(a) * o.wind, wz = Math.sin(a) * o.wind;
+        this.updaters.push((dt, t, cam) => {
+            // a gusting wind swells and drops
+            const gust = o.gust ? 0.3 + 0.95 * (0.5 + 0.5 * Math.sin(t * 0.35)) * (0.65 + 0.35 * Math.sin(t * 1.9)) : 1;
+            const vx = wx * gust, vz = wz * gust;
+            for (let i = 0; i < n; i++) {
+                let x = head[i * 3] + vx * dt, y = head[i * 3 + 1] - fall[i] * dt, z = head[i * 3 + 2] + vz * dt;
+                const rx = x - cam.position.x, rz = z - cam.position.z, ry = y - (cam.position.y - 6);
+                if (rx > BOX / 2) x -= BOX;
+                else if (rx < -BOX / 2) x += BOX;
+                if (rz > BOX / 2) z -= BOX;
+                else if (rz < -BOX / 2) z += BOX;
+                if (ry < 0) y += H;
+                else if (ry > H) y -= H;
+                head[i * 3] = x;
+                head[i * 3 + 1] = y;
+                head[i * 3 + 2] = z;
+                verts[i * 6] = x;
+                verts[i * 6 + 1] = y;
+                verts[i * 6 + 2] = z;
+                verts[i * 6 + 3] = x - vx * o.len;
+                verts[i * 6 + 4] = y + fall[i] * o.len;
+                verts[i * 6 + 5] = z - vz * o.len;
+            }
+            g.attributes.position.needsUpdate = true;
+        });
+    }
+
+    /** A test for "can be walked to from the beacon": flood-fills the dry ground on a coarse grid. */
+    _reachable() {
+        const C = 2, N = Math.ceil(WALK_R / C) + 1, W = N * 2 + 1;
+        const seen = new Uint8Array(W * W);
+        const idx = (i, j) => (j + N) * W + (i + N);
+        const ok = (i, j) => Math.abs(i) <= N && Math.abs(j) <= N && this.walkable(i * C, j * C) && this._slopeAt(i * C, j * C) < 0.9;
+        const q = [[0, 0]];
+        seen[idx(0, 0)] = 1;
+        while (q.length) {
+            const [i, j] = q.pop();
+            for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) {
+                const ni = i + di, nj = j + dj;
+                if ((di || dj) && ok(ni, nj) && !seen[idx(ni, nj)]) {
+                    seen[idx(ni, nj)] = 1;
+                    q.push([ni, nj]);
+                }
+            }
+        }
+        return (x, z) => {
+            const i = Math.round(x / C), j = Math.round(z / C);
+            return Math.abs(i) <= N && Math.abs(j) <= N && seen[idx(i, j)] === 1;
+        };
+    }
+
     _pilot(r) {
         // somewhere dry and level, not too near the beacon, and not right behind you as you arrive
+        // (and on land you can walk to from the beacon, not across the water)
+        const reach = this._reachable();
         let best = null;
-        for (let k = 0; k < 200 && !best; k++) {
-            const a = r() * TAU, d = r.range(18, WALK_R - 8);
+        for (let k = 0; k < 400 && !best; k++) {
+            const a = r() * TAU, d = r.range(k < 300 ? 18 : 12, WALK_R - 8);
             const x = Math.cos(a) * d, z = Math.sin(a) * d;
-            if (!this.walkable(x, z) || this._slopeAt(x, z) > 0.35) continue;
+            if (!this.walkable(x, z) || this._slopeAt(x, z) > 0.35 || !reach(x, z)) continue;
             if (this.cols.some((c) => Math.hypot(c.x - x, c.z - z) < c.r + 2.5)) continue;
             best = { x, z };
         }
@@ -708,7 +814,7 @@ export class Planet {
             if (m.isMesh) m.userData.kind = 'pilot';
         });
         this.scene.add(p.group);
-        const back = new V3(0, 0, -0.75).applyAxisAngle(new V3(0, 1, 0), p.group.rotation.y);
+        const back = new V3(0, 0, -1.35).applyAxisAngle(new V3(0, 1, 0), p.group.rotation.y);
         this.cols.push({ x: best.x + back.x, z: best.z + back.z, r: 0.9 });
         const hit = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 2.6), new THREE.MeshBasicMaterial({ visible: false }));
         hit.position.set(0, 0.9, 0);
