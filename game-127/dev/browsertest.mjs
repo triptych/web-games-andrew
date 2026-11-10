@@ -166,8 +166,16 @@ async function desktop() {
     await shot(page, 'desktop-result');
     for (let i = 0; i < 6 && await Q(page, () => __fdp.G.month === 1); i++) { await click(page, '#panel [data-k^="dismiss"]'); await page.waitForTimeout(80); }
     await until(page, () => __fdp.G.month === 2, 'three periods later it is Thawmoon');
+    // the last period's result is still up: its Continue leads into a month that opens with a story scene, and
+    // the dialogue box must take over (v1.0.0 left the screen blank here)
+    await until(page, visible('#panel [data-k^="dismiss"]'), 'the last period\'s result waits for Continue');
+    await click(page, '#panel [data-k^="dismiss"]');
+    await until(page, () => __fdp.G.scene?.id === 'meet_rowan' && !__fdp.ui.results.length, 'Thawmoon opens with Rowan\'s scene');
+    await until(page, visible('#dlg .text'), 'and its dialogue box shows after the last result');
+    check(await Q(page, () => document.getElementById('panel').hidden), 'with the period panel gone');
+    await shot(page, 'desktop-month2-scene');
 
-    await skipToFree(page);
+    check(await skipToFree(page), 'Tab and 1 get through it to the Free Day');
     await page.keyboard.press('KeyS');
     await until(page, visible('#status .stat'), 'S opens the status sheet');
     await shot(page, 'desktop-status');
@@ -242,6 +250,12 @@ async function phone(viewport, label) {
     await until(page, () => __fdp.G.phase === 'run', 'three taps and Begin start the month');
     check(await noHScroll(page), 'no sideways scroll in the planner');
     await shot(page, `${label}-run`);
+    await page.locator('#panel [data-k="next"]').tap();
+    for (let i = 0; i < 8 && await Q(page, () => __fdp.G.month === 1 || __fdp.ui.results.length > 0); i++) {
+        await page.locator('#panel [data-k^="dismiss"]').tap();
+        await page.waitForTimeout(80);
+    }
+    await until(page, visible('#dlg .text'), 'tapping through the month lands in Rowan\'s scene with its dialogue box');
     reportErrors(label);
 }
 

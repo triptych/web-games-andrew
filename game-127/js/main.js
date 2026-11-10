@@ -49,7 +49,7 @@ const ui = new UI({
     onAlbumReplay: (rec) => startReplay(rec),
     onSlot: (m, i) => slotPicked(m, i),
 });
-ui.onRender = () => {};
+ui.onRefresh = () => refresh();
 $('version').textContent = `v${VERSION}`;
 $('title').querySelector('.title-art').style.backgroundImage = `url('${ART.title}')`;
 preload([ART.title, ART.bg('city'), ART.bg('study')]);

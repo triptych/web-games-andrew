@@ -233,7 +233,9 @@ export class UI {
         this.refresh();
     }
 
-    refresh() { if (this.G) { this.lastPanelKey = ''; this.render(this.G); this.onRender?.(); } }
+    /** Redraw after a panel click. Goes through main.js, because the click can leave a scene playing (the last
+     *  period's Continue at the start of a month with a story scene), and only main draws the VN layer. */
+    refresh() { if (this.G) { this.lastPanelKey = ''; if (this.onRefresh) this.onRefresh(); else this.render(this.G); } }
 
     // ---------------------------------------------------------------- Free Day
     _free(G) {
