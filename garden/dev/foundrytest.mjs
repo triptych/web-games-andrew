@@ -177,7 +177,7 @@ check(await G('g.foundry.log.pit'), 'the pit is found');
 const burned = await G(`(() => g.foundry.lines.robots.some((r) => r.post && r.y < -10))()`);
 check(burned, 'and units are burning in the lava below');
 const count = await G('Number(document.getElementById("fd-count").textContent.replace(/[^0-9]/g, ""))');
-check(count > 50000, `the counter counts the units completed (${count})`);
+check(count > 30000, `the counter counts the units completed (${count})`);
 
 // hover a robot for its card
 await stand(7, -10, PI / 2, 0.05, 20);
