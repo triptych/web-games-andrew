@@ -89,9 +89,11 @@ Create each file below. Substitute `GAME_TITLE`, `GAME_CONCEPT`, `GAME_FOLDER`, 
 **If ENGINE = `three`**: use the Three.js templates (Section 2C) instead — skip the other engine sections entirely.
 **If ENGINE = `vanilla3d`**: use the Vanilla 3D templates (Section 2D) instead — skip the other engine sections entirely.
 
-All games make their art, models and sound in code: no image or audio files. Every
+By default games make their art, models and sound in code: no image or audio files. Every
 one of games 057–076 says so in its credits, and the itch.io export
-(`dev/itch/export.mjs`) assumes it.
+(`dev/itch/export.mjs`) assumes it. When the user asks for generated art or audio, follow
+**Step 2G** below (fal for images, ElevenLabs for music, sound effects and voices) and keep
+the code-made versions as a fallback.
 
 > ⚠️ **Write `index.html` with the Write tool and nothing else.** Never build it by
 > shell redirection/append, and never dictate into it. A stray character before
@@ -4590,6 +4592,58 @@ export function startAmbience() {
     src.start();
 }
 ```
+
+---
+
+## Step 2G: Generated media (when asked): fal art, ElevenLabs audio
+
+Proved on game-126 EMBERSPIRE (93 fal images, 6 music tracks, 14 effects, 34 voice lines).
+Its `dev/art/` and `dev/audio/` hold the scripts and READMEs to copy.
+
+**Before you spend anything**
+- Check the media hosts are reachable from the container: generation works through the MCP tools,
+  but the *download* goes through the network proxy. fal serves from `v3b.fal.media`; ElevenLabs
+  from `elevenlabsusercontent.com` (a 403 from the proxy means the host is not allowed: ask for it
+  with the environment tools, don't work around it).
+- Write the game's data tables first (monsters, heroes, places) with an `art` description per entry,
+  and write every prompt *from that data*, so the art matches the game and can be regenerated.
+- Run a pilot of 4–6 images (one of each kind) and look at it before generating the set.
+
+**fal images** (`fal-ai/nano-banana-2`, about $0.08 each at 1K or 2K)
+- One shared `system_prompt` (the style, "no text, no UI") on every request keeps the set coherent.
+- Sprites: "plain flat solid magenta (#ff00ff)" background, or green/blue when the subject is purple;
+  cut out by flood fill from the border (`game-126/dev/art/export.py`), trimmed, then box-filtered down
+  to the art's own pixel grid (~100–230 px) and drawn with nearest-neighbour scaling.
+- Grids save calls: a 4x4 icon sheet or a 3x2 monster sheet at 2K comes back clean. Search each cell
+  with a margin and keep the figure whose centre is in the cell (a big mini boss spills over the line),
+  and expect the odd caption under a figure: blank that strip before cutting.
+- **The model ignores "facing left/right" about a third of the time.** Make a labelled contact sheet,
+  check every sprite by eye and mirror the wrong ones in the export (`FLIP`), not in the renderer.
+- Alternate poses or upgraded forms of a character: `fal-ai/nano-banana-2/edit` from the base sprite
+  ("same character, same pose and framing, now in …"), so the identity holds.
+- Big `wait_for_jobs` results are saved to a file when they overflow; parse that file with a script
+  (`grab.py` pattern) instead of reading it into the conversation.
+
+**ElevenLabs audio** (MCP `creative_*` tools; put everything on one flow)
+- Music: `eleven_music_v2_5`. Add the node with `model_parameters: { duration_seconds, instrumental: true,
+  lyrics_type: 'instrumental' }` (via `creative_add_flow_node`, then `creative_run_flow_nodes`), because
+  `creative_generate_in_flow` can't set the duration. About 900 credits for 60 s. Price one with
+  `estimate_only` first.
+- Effects: `eleven_text_to_sound_v2`, ~17 credits each. The prompt's "about 1 second" is a hint, not a
+  limit (a lightning crack came back 14 s): trim in the pipeline.
+- Voices: `creative_list_voices` with `use_cases: ['characters_animation']`, then one `eleven_v4` take per
+  character holding all of their lines separated by `[long pause]`, with audio tags for the delivery.
+  Split the take at its longest pauses with ffmpeg `silencedetect` (`game-126/dev/audio/process.py`).
+  Always `generations_count: 1`.
+- Encode small: music 80 kbps stereo with a fade at the loop seam, effects 96 kbps mono, voices 64 kbps mono.
+- In the game: decode effects and voices into `AudioBuffer`s, play music through `<audio>` elements routed
+  into a gain node (so `lib/page-audio.js` still silences a hidden tab), crossfade on theme changes, and
+  fall back to the Web Audio synth for anything that fails to load. Rate-limit voices (one at a time,
+  a chance per skill) or battles turn into chatter. Give voices their own volume slider.
+- The browser test should check the clips decode and a theme is playing (`!el.paused`).
+
+**Write it down**: an `art/README.md` or `dev/art/README.md` with the models, the shared style prompt and how to
+rebuild; an audio README listing every file, its prompt and the voice cast; and a line in the game's credits.
 
 ---
 

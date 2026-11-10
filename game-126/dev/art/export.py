@@ -42,10 +42,13 @@ NPCS = ['bram', 'hilde', 'corwin', 'zephyrine', 'amaya', 'watcher']
 BGS_BATTLE = ['undercroft', 'grotto', 'library', 'forge', 'frost', 'clockwork', 'garden', 'astral', 'abyss', 'summit']
 BGS_TOWN = ['town', 'tavern', 'tavern-night', 'smithy', 'shop', 'guild', 'temple']
 CROP_BOTTOM = {'garden': 0.11}
+# The model didn't always draw the facing it was asked for. Heroes stand on the right and must face left;
+# monsters stand on the left and must face right. These were checked by eye on a contact sheet and are mirrored.
+FLIP = {'arin', 'grimble', 'lyra', 'pip', 'thorne', 'celestine', 'grubnak'}
 ICON_SHEETS = ['gear', 'goods', 'uniques', 'misc']
 
 # longest side, in game pixels (the battle canvas is 640x360)
-SIZE = {'normal': 104, 'mini': 150, 'boss': 220, 'hero': 92, 'icon': 48}
+SIZE = {'normal': 124, 'mini': 172, 'boss': 228, 'hero': 92, 'icon': 48}
 
 
 def label(mask):
@@ -73,7 +76,7 @@ def label(mask):
     return lab, sizes
 
 
-def cutout(img):
+def cutout(img, focus=None):
     """RGBA with the key background removed. Works at a reduced size for the flood fill, then upsamples the mask."""
     a = np.asarray(img.convert('RGB')).astype(np.float32)
     h, w, _ = a.shape
@@ -107,6 +110,17 @@ def cutout(img):
     flab, fsizes = label(fg)
     if len(fsizes) > 1:
         big = int(np.argmax(fsizes[1:])) + 1
+        if focus:
+            # in a sheet cell searched with a margin: the biggest figure whose centre lies in the cell itself
+            fx0, fy0, fx1, fy1 = focus
+            best = 0
+            for i in range(1, len(fsizes)):
+                if fsizes[i] <= best or fsizes[i] < 50:
+                    continue
+                ys, xs = np.nonzero(flab == i)
+                cy, cx = ys.mean(), xs.mean()
+                if fx0 <= cx < fx1 and fy0 <= cy < fy1:
+                    best, big = fsizes[i], i
         ys, xs = np.nonzero(flab == big)
         y0, y1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
         my, mx = (y1 - y0) * 0.12 + 4, (x1 - x0) * 0.12 + 4
@@ -174,11 +188,16 @@ def save(im, name, **kw):
     return path
 
 
-def grid_cells(img, cols, rows):
+def grid_cells(img, cols, rows, margin=0.0):
+    """Each cell of a sheet, searched with a margin into its neighbours (big figures spill over the lines).
+    Yields (crop, focus) where focus is the cell's own rectangle inside the crop."""
     w, h = img.size
     for r in range(rows):
         for c in range(cols):
-            yield img.crop((c * w // cols, r * h // rows, (c + 1) * w // cols, (r + 1) * h // rows))
+            x0, y0, x1, y1 = c * w // cols, r * h // rows, (c + 1) * w // cols, (r + 1) * h // rows
+            mx, my = int((x1 - x0) * margin), int((y1 - y0) * margin)
+            X0, Y0, X1, Y1 = max(0, x0 - mx), max(0, y0 - my), min(w, x1 + mx), min(h, y1 + my)
+            yield img.crop((X0, Y0, X1, Y1)), (x0 - X0, y0 - Y0, x1 - X0, y1 - Y0)
 
 
 def main(raw):
@@ -189,18 +208,27 @@ def main(raw):
         if not have(f):
             print('missing', f); continue
         img = Image.open(os.path.join(raw, f))
-        for i, cell in enumerate(grid_cells(img, 3, 2)):
+        if biome in CROP_BOTTOM:   # this sheet came back with a name caption under every creature: blank them
+            img = img.convert('RGB')
+            bgc = img.getpixel((4, 4))
+            w, h = img.size
+            for r in range(2):
+                y1 = (r + 1) * h // 2
+                img.paste(bgc, (0, int(y1 - h / 2 * CROP_BOTTOM[biome]), w, y1))
+        for i, (cell, focus) in enumerate(grid_cells(img, 3, 2, margin=0.22)):
             mid = ids[i]
-            if biome in CROP_BOTTOM:   # this sheet came back with a name caption under every creature
-                cell = cell.crop((0, 0, cell.width, int(cell.height * (1 - CROP_BOTTOM[biome]))))
-            sp = shrink(trim(cutout(cell)), SIZE['mini' if i == 5 else 'normal'])
+            sp = trim(cutout(cell, focus))
+            if mid in FLIP: sp = sp.transpose(Image.FLIP_LEFT_RIGHT)
+            sp = shrink(sp, SIZE['mini' if i == 5 else 'normal'])
             save(sp, f'mon/{mid}.webp')
             meta['sprites'][mid] = [sp.width, sp.height]
     for b in BOSSES:
         f = f'boss-{b}.png'
         if not have(f):
             print('missing', f); continue
-        sp = shrink(trim(cutout(Image.open(os.path.join(raw, f)))), SIZE['boss'])
+        sp = trim(cutout(Image.open(os.path.join(raw, f))))
+        if b in FLIP: sp = sp.transpose(Image.FLIP_LEFT_RIGHT)
+        sp = shrink(sp, SIZE['boss'])
         save(sp, f'mon/{b}.webp')
         meta['sprites'][b] = [sp.width, sp.height]
     for h in HEROES:
@@ -209,6 +237,7 @@ def main(raw):
             if not have(f):
                 print('missing', f); continue
             sp = trim(cutout(Image.open(os.path.join(raw, f))))
+            if h in FLIP: sp = sp.transpose(Image.FLIP_LEFT_RIGHT)
             # heroes are scaled by height so a halfling stays shorter than a half-orc
             tall = {'pip': 0.78, 'grimble': 0.86}.get(h, 1.0)
             s = SIZE['hero'] * tall / sp.height
@@ -237,7 +266,7 @@ def main(raw):
             print('missing', f); continue
         img = Image.open(os.path.join(raw, f))
         atlas = Image.new('RGBA', (48 * 4, 48 * 4), (0, 0, 0, 0))
-        for i, cell in enumerate(grid_cells(img, 4, 4)):
+        for i, (cell, _) in enumerate(grid_cells(img, 4, 4)):
             ic = shrink(trim(cutout(cell)), SIZE['icon'] - 4)
             atlas.paste(ic, ((i % 4) * 48 + (48 - ic.width) // 2, (i // 4) * 48 + (48 - ic.height) // 2), ic)
         save(atlas, f'icons/{s}.webp')
