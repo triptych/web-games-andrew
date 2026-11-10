@@ -442,18 +442,18 @@ if (DEBUG) {
             const end = G.turn + n;
             let guard = 0;
             while (!G.over && (G.turn < end || G.scene || G.phase !== 'free') && guard++ < 50000) act(G, botCommand(G, bot));
-            ui.results = []; ui.encounter = null;
-            flushEvents(); refresh(); return { age: G.age, month: G.month, phase: G.phase };
+            flushEvents(); ui.results = []; ui.encounter = null; $('toasts').innerHTML = '';
+            refresh(); return { age: G.age, month: G.month, phase: G.phase };
         },
         /** The bot plays to the ending scene (left playing). */
         toEnding(route = 'king') {
             const bot = makeBot({ route, seed: 5 });
             let guard = 0;
             while (!(G.phase === 'ending') && !G.over && guard++ < 80000) act(G, botCommand(G, bot));
-            ui.results = []; ui.encounter = null;
-            flushEvents(); refresh(); return G.ending;
+            flushEvents(); ui.results = []; ui.encounter = null; $('toasts').innerHTML = '';
+            refresh(); return G.ending;
         },
-        playThrough: (route = 'king') => { const r = playThrough(G, makeBot({ route, seed: 5 })); ui.results = []; flushEvents(); refresh(); return r; },
+        playThrough: (route = 'king') => { const r = playThrough(G, makeBot({ route, seed: 5 })); flushEvents(); ui.results = []; ui.encounter = null; refresh(); return r; },
         replay(key) { const rec = album.scenes[key]; if (rec) startReplay(rec); return !!rec; },
         unlockAll() {
             for (const [k, id, args, title] of ui.albumScenes()) album.scenes[k] = { id, args, title, kind: 'story', age: 16 };
