@@ -380,6 +380,27 @@ if (want('rules')) {
         ok(R.flags.autoEquip === true, 'and the option survives a save');
         ok(Gm.act(Gm.newGame(44), { t: 'equipBest' }), 'a fresh game can Equip best too');
     }
+    // difficulty (v1.0.7)
+    {
+        const S = Gm.newGame(50, { difficulty: 'story' }), N = Gm.newGame(50), H = Gm.newGame(50, { difficulty: 'hard' });
+        ok(N.difficulty === 'standard' && S.difficulty === 'story' && H.difficulty === 'hard', 'a new game keeps the difficulty it was started on (Standard by default)');
+        ok(Gm.newGame(51, { difficulty: 'nonsense' }).difficulty === 'standard', 'an unknown difficulty falls back to Standard');
+        for (const g of [S, N, H]) Gm.act(g, { t: 'enter', floor: 1 });
+        const foe = (g) => g.battle.units.find((u) => u.side === 'e');
+        ok(foe(S).mhp < foe(N).mhp && foe(N).mhp < foe(H).mhp, `monsters are weaker on Story and tougher on Hard (hp ${foe(S).mhp} / ${foe(N).mhp} / ${foe(H).mhp})`);
+        ok(foe(S).atk < foe(N).atk && foe(N).atk < foe(H).atk, 'and hit softer or harder');
+        // falling: Story loses nothing, Hard loses more than Standard
+        const fall = (g) => { g.run.gold = 100; g.gold = 1000; g.battle.phase = 'lost'; drain(g); Gm.act(g, { t: 'leave' }); return 1000 - g.gold; };
+        const [ls, ln, lh] = [fall(S), fall(N), fall(H)];
+        ok(ls === 0 && ln === 30 && lh === 60, `gold lost when you fall: Story ${ls}, Standard ${ln}, Hard ${lh} of 100 found`);
+        ok(Gm.act(N, { t: 'difficulty', level: 'story' }) && N.difficulty === 'story' && !Gm.act(N, { t: 'difficulty', level: 'nightmare' }), 'the difficulty can be changed later, to a real level only');
+        const old = Gm.serialize(Gm.newGame(52)); delete old.difficulty;
+        const R = Gm.deserialize(old);
+        Gm.act(R, { t: 'enter', floor: 1 });
+        const N2 = Gm.newGame(52); Gm.act(N2, { t: 'enter', floor: 1 });
+        ok(foe(R).mhp === foe(N2).mhp, 'a save from before difficulty existed plays as Standard');
+        ok(Gm.deserialize(Gm.serialize(H)).difficulty === 'hard', 'the difficulty survives a save');
+    }
     // temple: learn, evolve, ascend
     G = Gm.newGame(42);
     const h = G.heroes.arin;
@@ -526,6 +547,22 @@ if (want('bot')) {
     ok(med(dil.map((r) => r.best)) > med(lazy.map((r) => r.best)) + 10, 'recruiting, the forge and the temple matter: the diligent bot climbs much higher');
     ok(dil.every((r) => r.roster >= 6), 'the diligent bot recruits most of the tavern');
     ok(dil.every((r) => r.defeats > 0), 'and still gets beaten sometimes (the tower is a wall, not a walk)');
+    // difficulty (v1.0.7): the same diligent bot and seeds on Story, Standard and Hard
+    const by = {};
+    for (const dif of ['story', 'standard', 'hard']) {
+        by[dif] = [];
+        for (let s = 1; s <= Math.min(SEEDS, 3); s++) {
+            const G = Gm.newGame(s * 7919, { difficulty: dif });
+            const bot = Bt.makeBot({ diligence: 1 });
+            const at = {};
+            for (let d = 0; d < 10; d++) { Bt.playDay(G, bot, Bt.dayString(d), d * 86400e3); if (d + 1 === 5 || d + 1 === 10) at[d + 1] = G.best; }
+            by[dif].push(at);
+        }
+    }
+    const m = (dif, d) => med(by[dif].map((r) => r[d]));
+    console.log(`  difficulty, median best floor on day 5 / day 10: story ${m('story', 5)}/${m('story', 10)}, standard ${m('standard', 5)}/${m('standard', 10)}, hard ${m('hard', 5)}/${m('hard', 10)}`);
+    ok(m('story', 5) > m('standard', 5) && m('story', 10) > m('standard', 10), 'Story climbs faster than Standard');
+    ok(m('hard', 5) < m('standard', 5) && m('hard', 10) < m('standard', 10), 'Hard climbs slower than Standard');
 }
 
 console.log(`\n${fails ? `${fails} FAILED` : 'all passed'} (${checks} checks)`);

@@ -11,7 +11,7 @@
 //   { type: 'down', uid } { type: 'revive', uid, hp } { type: 'stunned', uid } { type: 'mp', uid, mp } { type: 'enrage', uid }
 //   { type: 'won', ... } { type: 'lost' } { type: 'fled' } { type: 'flee-fail' }
 
-import { CT_FULL, CRIT_BASE, CRIT_MUL, WEAK_MUL, RESIST_MUL, BUFF_MUL, DEBUFF_MUL, AI_DELAY, FLEE_CHANCE, MAX_ROUNDS } from '../config.js';
+import { CT_FULL, CRIT_BASE, CRIT_MUL, WEAK_MUL, RESIST_MUL, BUFF_MUL, DEBUFF_MUL, AI_DELAY, FLEE_CHANCE, MAX_ROUNDS, DIFFICULTY } from '../config.js';
 import { MONSTERS, biomeOf } from './data/biomes.js';
 import { HERO, SKILLS, STATUS } from './data/heroes.js';
 import { MONSTER_ACTS } from './data/acts.js';
@@ -73,6 +73,10 @@ function heroUnit(G, id, slot) {
 function enemyUnit(G, e, floor, slot) {
     const m = MONSTERS[e.id];
     const s = enemyStats(e.id, floor, e.elite);
+    const d = DIFFICULTY[G.difficulty] || DIFFICULTY.standard;
+    s.hp = Math.max(1, Math.round(s.hp * d.hp));
+    s.atk = Math.max(1, Math.round(s.atk * d.hit));
+    s.mag = Math.max(1, Math.round(s.mag * d.hit));
     return {
         uid: 'e' + slot, side: 'e', ref: e.id, name: (e.elite ? 'Elite ' : '') + m.name, lv: floor, slot, rank: m.rank, elite: e.elite,
         hp: s.hp, mhp: s.hp, mp: 0, mmp: 0, atk: s.atk, mag: s.mag, def: s.def, res: s.res, spd: s.spd, crit: s.crit,

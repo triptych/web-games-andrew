@@ -1,7 +1,7 @@
 // EMBERSPIRE — the DOM layer: the town, its buildings, the battle commands, rewards and dialogue.
 // Reads G and sends commands through `send(cmd)` (main.js runs act(), drains events, saves). Never writes G.
 
-import { VERSION, PARTY_MAX, EVOLVE_LV, ASCEND_LV, AUTO_NEXT_SECONDS } from './config.js';
+import { VERSION, PARTY_MAX, EVOLVE_LV, ASCEND_LV, AUTO_NEXT_SECONDS, DIFFICULTY } from './config.js';
 import { ART, setIcon, iconEl, img } from './assets.js';
 import { HEROES, HERO, CLASSES, SKILLS, STATUS } from './sim/data/heroes.js';
 import { BIOMES, MONSTERS, biomeOf } from './sim/data/biomes.js';
@@ -574,6 +574,18 @@ export class UI {
         this.openScreen('popup');
     }
 
+    /** New Game asks how hard the tower should be. onPick(level) starts the game; Back returns to the title. */
+    chooseDifficulty(onPick) {
+        const list = h('div.diff-list');
+        for (const [id, d] of Object.entries(DIFFICULTY)) {
+            list.append(h('button.btn.diff' + (id === 'standard' ? '.primary' : ''), { 'data-k': 'diff-' + id, on: { click: () => { this.audio.ui('click'); this.closeScreen('popup'); onPick(id); } } },
+                h('span.nm', { text: d.name + (id === 'standard' ? ' (recommended)' : '') }), h('span.sub', { text: d.desc })));
+        }
+        this.popup('How hard is the tower?', h('div', {}, h('p.dim', { text: 'You can change this later in Settings.' }), list),
+            [h('button.btn', { 'data-k': 'diff-back', on: { click: () => { this.audio.ui('back'); this.closeScreen('popup'); } } }, 'Back')]);
+        $('popup').querySelector('[data-k="diff-standard"]')?.focus({ preventScroll: true });
+    }
+
     para(text, ...more) {
         const cls = typeof more[more.length - 1] === 'string' ? more.pop() : '';
         return h('div', {}, h('p' + (cls ? '.' + cls : ''), { text }), ...more.filter(Boolean));
@@ -841,7 +853,7 @@ export class UI {
             }
         } else if (B.phase === 'lost') {
             body.push(h('h2.bad', { text: `Your party has fallen on floor ${B.floor}` }));
-            body.push(h('p', { text: 'Townsfolk carry you home. Some of the gold you found this climb is lost on the way.' }));
+            body.push(h('p', { text: (DIFFICULTY[G.difficulty] || DIFFICULTY.standard).loss ? `Townsfolk carry you home. ${Math.round(100 * (DIFFICULTY[G.difficulty] || DIFFICULTY.standard).loss)}% of the gold you found this climb is lost on the way.` : 'Townsfolk carry you home. On Story, you keep everything you found.' }));
             foot.push(h('button.btn.primary', { 'data-k': 'home', on: { click: () => this.send({ t: 'leave' }) } }, 'Back to Hearthmere'));
         } else if (B.phase === 'fled') {
             body.push(h('h2', { text: 'You got away!' }));

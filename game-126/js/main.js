@@ -66,7 +66,7 @@ $('title-menu').addEventListener('click', (e) => {
     const a = b.dataset.act;
     if (a === 'new') {
         if (hasSave() && !confirm('Start a new game? Your saved game will be replaced.')) return;
-        startGame(newGame((Date.now() % 1e9) | 0), true);
+        ui.chooseDifficulty((difficulty) => startGame(newGame((Date.now() % 1e9) | 0, { difficulty }), true));
     } else if (a === 'continue') {
         const g = loadGame();
         if (g) startGame(g, false); else ui.toast('That save could not be read.');
@@ -78,8 +78,20 @@ function today() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+// Settings: the difficulty of the game in progress (hidden on the title screen, where there is none)
+function showDifficulty() {
+    $('row-diff').hidden = !G;
+    if (G) $('set-diff').value = G.difficulty || 'standard';
+}
+$('set-diff').addEventListener('change', (e) => {
+    if (!G || !act(G, { t: 'difficulty', level: e.target.value })) return;
+    ui.toast(`Difficulty: ${e.target.selectedOptions[0].textContent}. It applies from the next battle.`);
+    save();
+});
+
 function startGame(g, fresh) {
     G = g;
+    showDifficulty();
     for (const id of [...ui.stack]) ui.closeScreen(id);
     document.activeElement?.blur?.();
     input.flush();
@@ -109,6 +121,7 @@ function toTitle() {
     for (const id of [...ui.stack]) ui.closeScreen(id);
     mode = 'title';
     G = null;
+    showDifficulty();
     $('battle').hidden = true;
     ui.showTopbar(false);
     ui.setBg(null);

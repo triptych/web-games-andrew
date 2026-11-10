@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **EMBERSPIRE** (game-126) v1.0.7: a difficulty, asked when you start a new game and changeable later in Settings. **Story** has gentle monsters (60% health, 65% damage), twice the healing between floors, nothing lost when you fall and 20% more XP, for following the quests and friendships at your own pace; **Standard** is the game as before; **Hard** has tougher monsters (135% health, 125% damage), less rest, 60% of the climb's gold lost when you fall, and richer rewards ([config.js](game-126/js/config.js), [game.js](game-126/js/sim/game.js)). Old saves play as Standard. Requested by a player. Tested in [simtest.mjs](game-126/dev/simtest.mjs) (monster stats and losses on each level, changing it later, old saves, and the test bot climbing faster on Story and slower on Hard) and [browsertest.mjs](game-126/dev/browsertest.mjs) (the choice on desktop and phones, Back, and the Settings row).
+
 ### Fixed
 - **EMBERSPIRE** (game-126) v1.0.6: tapping the 🔊 by a shopkeeper's portrait repeatedly stacked a new copy of the greeting per tap, so several voices talked over each other. While any voice line plays the speaker now dims and pulses and further taps do nothing; when the line ends it is ready again ([audio.js](game-126/js/audio.js), [ui.js](game-126/js/ui.js)). [browsertest.mjs](game-126/dev/browsertest.mjs) taps it six times quickly and expects one voice (it counted seven before the fix). Reported by a player.
 

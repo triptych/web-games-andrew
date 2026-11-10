@@ -2,7 +2,7 @@
 
 **Genre:** 16-bit endless-tower JRPG: turn-based party battles, a town of RPG systems, bonds, and idle income
 **Engine:** Vanilla JS: Canvas 2D battle stage (640x360, nearest-neighbour) and DOM menus. Art generated with fal, music, effects and voices with ElevenLabs; a Web Audio synth is the fallback for any sound file that fails to load
-**Status:** v1.0.6
+**Status:** v1.0.7
 
 ---
 
@@ -156,6 +156,13 @@ still defeated sometimes.
 - The Garden preview image is the title art.
 
 ## Changelog
+
+### v1.0.7 (2026-11-10)
+- Added: a difficulty, asked when you start a new game and changeable in Settings (`DIFFICULTY` in config.js, `G.difficulty`; saves from before it play as Standard).
+  - **Story:** monsters have 60% health and deal 65% damage, twice the healing between floors, no gold lost when you fall, 20% more XP. For following the quests and the friendships at your own pace.
+  - **Standard:** the tower as tuned so far (unchanged).
+  - **Hard:** monsters have 135% health and deal 125% damage, 60% of the healing between floors, 60% of the climb's gold lost when you fall (Standard: 30%), and 25% more gold and 15% more XP.
+  - The test bot, same seeds, median best floor on day 5 / day 10: Story 29/49, Standard 19/32, Hard 9/19. simtest checks that Story climbs faster and Hard slower than Standard.
 
 ### v1.0.6 (2026-11-10)
 - Fixed: tapping the 🔊 by a shopkeeper's portrait over and over stacked a new copy of the greeting per tap, so a few quick taps had several voices talking over each other. While a voice line is playing the speaker now dims and pulses and taps do nothing; once the line ends it plays again (`say(..., {force})` refuses while someone is talking, `voiceLeft()` in audio.js).

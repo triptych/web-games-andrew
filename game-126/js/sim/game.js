@@ -8,7 +8,7 @@
 // Everything the player can do is a command: act(G, { t, ... }). It returns true if accepted. The UI, the test bot
 // and the browser all go through it. step(G, { hold }, dt) only paces the battle AI and auto-climb.
 
-import { START, PARTY_MAX, EVOLVE_LV, ASCEND_LV, REST, DEFEAT_GOLD_LOSS, IDLE, SHOP_GEAR } from '../config.js';
+import { START, PARTY_MAX, EVOLVE_LV, ASCEND_LV, REST, DIFFICULTY, IDLE, SHOP_GEAR } from '../config.js';
 import { makeRng, hashStr } from '../rng.js';
 import { HEROES, HERO, CLASSES, SKILLS } from './data/heroes.js';
 import { GEAR, RARITY, GOODS, UNIQUES, MAX_PLUS, MAX_PLUS_UNIQUE } from './data/items.js';
@@ -26,9 +26,12 @@ function makeHero(id, joined) {
     return { id, lv: 1, xp: 0, sp: 1, cls: h.cls, tier: 1, skills: { [first]: 1 }, eq: { weapon: null, armor: null, acc: null }, bond: 0, bondLv: 0, hp: null, mp: null, joined, errand: false };
 }
 
-export function newGame(seed = 1) {
+/** The game's difficulty settings (old saves, made before there was a choice, are Standard). */
+export const diff = (G) => DIFFICULTY[G.difficulty] || DIFFICULTY.standard;
+
+export function newGame(seed = 1, { difficulty = 'standard' } = {}) {
     const G = {
-        v: SAVE_V, seed, rng: makeRng(seed), t: 0,
+        v: SAVE_V, seed, rng: makeRng(seed), t: 0, difficulty: DIFFICULTY[difficulty] ? difficulty : 'standard',
         day: 1, phase: 'day', mode: 'town',
         gold: START.gold, inv: { potion: START.potion, ether: START.ether, phoenix: START.phoenix, ore: 0, shard: 0, core: 0 },
         gear: {}, nextUid: 1,
@@ -270,6 +273,12 @@ const CMDS = {
         }
         return true;
     },
+    /** Change the difficulty mid-game (Settings). Takes effect from the next battle. */
+    difficulty(G, { level }) {
+        if (!DIFFICULTY[level]) return false;
+        G.difficulty = level;
+        return true;
+    },
     autoClimb(G, { on }) { G.autoClimb = !!on; G.climbWait = 0; return true; },
     next(G) {
         const B = G.battle;
@@ -291,7 +300,7 @@ const CMDS = {
         if (B && (B.phase === 'input' || B.phase === 'ai')) return false;     // finish the fight (or flee) first
         if (B && B.phase === 'won') { if (B.floor > G.best) newBest(G, B); G.run.floors++; }
         if (B && B.phase === 'lost') {
-            const loss = Math.min(G.gold, Math.round(G.run.gold * DEFEAT_GOLD_LOSS));
+            const loss = Math.min(G.gold, Math.round(G.run.gold * diff(G).loss));
             G.gold -= loss;
             G.stats.defeats++;
             G.events.push({ type: 'defeat', floor: B.floor, loss });
@@ -631,7 +640,8 @@ function newBest(G, B) {
 }
 
 function restBetween(G, rank) {
-    const k = rank === 'boss' ? [REST.boss, REST.mpBoss] : rank === 'mini' ? [REST.mini, REST.mpMini] : [REST.floor, REST.mpFloor];
+    const r = diff(G).rest;
+    const k = (rank === 'boss' ? [REST.boss, REST.mpBoss] : rank === 'mini' ? [REST.mini, REST.mpMini] : [REST.floor, REST.mpFloor]).map((x) => x * r);
     for (const id of G.party) {
         const h = G.heroes[id];
         const s = heroStats(G, id);

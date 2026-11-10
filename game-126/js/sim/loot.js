@@ -4,7 +4,7 @@ import { MONSTERS, BIOMES } from './data/biomes.js';
 import { HERO, CLASSES } from './data/heroes.js';
 import { GEAR, WEAPON_TYPES, ARMOR_TYPES, ACC_TYPES, RARITY, AFFIXES, UNIQUES, GOODS } from './data/items.js';
 import { goldScale, xpScale, xpNext, uniqueFx, blessing } from './stats.js';
-import { EVOLVE_LV } from '../config.js';
+import { EVOLVE_LV, DIFFICULTY } from '../config.js';
 
 const RANK_MUL = { normal: 1, mini: 6, boss: 18 };
 
@@ -74,8 +74,9 @@ export function battleRewards(G, B) {
         xp += 6 * xpScale(B.floor) * m;
         gold += 3 * goldScale(B.floor) * m;
     }
-    xp = Math.round(xp * (1 + xpPct / 100));
-    gold = Math.round(gold * (1 + goldPct / 100)) + B.gold;
+    const d = DIFFICULTY[G.difficulty] || DIFFICULTY.standard;
+    xp = Math.round(xp * (1 + xpPct / 100) * d.xp);
+    gold = Math.round(gold * (1 + goldPct / 100) * d.gold) + B.gold;
     const drops = [];
     const add = (kind, id, n = 1) => {
         if (kind === 'gear') drops.push({ kind, uid: id });

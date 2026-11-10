@@ -82,7 +82,17 @@ async function desktop() {
     check(await Q(page, () => document.getElementById('btn-continue').hidden), 'no Continue without a save');
     await shot(page, 'desktop-title');
     await click(page, '#title-menu [data-act="new"]');
-    await until(page, visible('#scene .dlg'), 'New Game opens the intro story');
+    // v1.0.7: New Game asks for a difficulty first; Back returns to the title, Enter takes the focused Standard
+    await until(page, visible('#popup [data-k="diff-story"]'), 'New Game asks how hard the tower should be');
+    check(await Q(page, () => ['story', 'standard', 'hard'].every((d) => document.querySelector(`#popup [data-k="diff-${d}"]`)) && document.activeElement?.dataset.k === 'diff-standard'), 'Story, Standard and Hard, with Standard focused');
+    await shot(page, 'desktop-difficulty');
+    await click(page, '#popup [data-k="diff-back"]');
+    await until(page, () => document.getElementById('popup').hidden && __es.mode === 'title' && !__es.G, 'Back returns to the title without starting a game');
+    await click(page, '#title-menu [data-act="new"]');
+    await until(page, visible('#popup [data-k="diff-standard"]'), 'and New Game asks again');
+    await page.keyboard.press('Enter');
+    await until(page, visible('#scene .dlg'), 'Enter on Standard opens the intro story');
+    check(await Q(page, () => __es.G.difficulty === 'standard'), 'on Standard');
     for (let i = 0; i < 4; i++) await page.keyboard.press('Enter');
     await until(page, () => __es.mode === 'town' && !__es.ui.stack.includes('scene'), 'Enter pages through the story into town');
     await until(page, visible('#popup .sheet'), 'the daily bonus greets you');
@@ -244,6 +254,10 @@ async function desktop() {
     const best = await Q(page, () => __es.G.best);
     await click(page, '#btn-menu');
     await until(page, visible('#settings .sheet'), 'the menu opens settings');
+    check(await Q(page, () => !document.getElementById('row-diff').hidden && document.getElementById('set-diff').value === 'standard'), 'Settings shows the game\'s difficulty');
+    await Q(page, () => { const sel = document.getElementById('set-diff'); sel.value = 'hard'; sel.dispatchEvent(new Event('change')); });
+    check(await Q(page, () => __es.G.difficulty === 'hard' && JSON.parse(localStorage.getItem('emberspire.v1')).data.difficulty === 'hard'), 'changing it there changes the game, and it is saved');
+    await Q(page, () => { const sel = document.getElementById('set-diff'); sel.value = 'standard'; sel.dispatchEvent(new Event('change')); });
     await click(page, '#set-title');
     await until(page, () => __es.mode === 'title' && !document.getElementById('btn-continue').hidden, 'Save & Quit returns to the title with Continue');
     await click(page, '#title-menu [data-act="continue"]');
@@ -273,7 +287,11 @@ async function phone(w, h) {
     };
     check(await backLinkOk(page), '← Games link is on top');
     await tapSel('#title-menu [data-act="new"]');
-    await until(page, visible('#scene .dlg'), 'a tap on New Game opens the story');
+    await until(page, visible('#popup [data-k="diff-story"]'), 'a tap on New Game asks for a difficulty');
+    check(await noHScroll(page), 'the difficulty choice fits the screen');
+    await tapSel('#popup [data-k="diff-story"]');
+    await until(page, visible('#scene .dlg'), 'a tap on Story opens the story');
+    check(await Q(page, () => __es.G.difficulty === 'story'), 'on Story');
     for (let i = 0; i < 4; i++) { await tapSel('#scene .choices .btn'); await page.waitForTimeout(150); }
     await until(page, () => __es.mode === 'town' && !__es.ui.stack.includes('scene'), 'taps page through the story');
     await until(page, visible('#popup .btn'), 'the daily bonus');
