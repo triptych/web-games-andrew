@@ -131,6 +131,9 @@ await shot('7-test-paint');
 await stand(6.5, -170, PI / 2 + 0.6, 0.02, 15);
 await shot('8-release');
 check(await G('g.foundry.log.finish && g.foundry.log.legs && g.foundry.log.arms && g.foundry.log.bodies'), 'every shop is found on the way');
+// the units cross the apron in single file per line: none of them overlap
+const tight = await G(`(() => { const L = g.foundry.lines; let min = 99; for (let s = 0; s < 12; s += 0.25) { L.update(g.foundry.clock + s, null); const w = L.robots.filter((r) => r.post && r.feetY > -0.5); for (let i = 0; i < w.length; i++) for (let j = i + 1; j < w.length; j++) min = Math.min(min, Math.hypot(w[i].x - w[j].x, w[i].z - w[j].z)); } return min; })()`);
+check(tight > 1.3, `finished units never overlap (closest pair ${tight.toFixed(2)} m apart)`);
 
 // the fence holds: try to walk across the line
 await G('(() => { g.controls.teleport(7, -60, PI); g.controls.walkTo([{ x: -3, z: -60 }]); })()'.replace('PI', String(PI / 2)));
@@ -148,20 +151,24 @@ const fallAt = await G(`(() => {
     for (let s = 0; s < 6.5; s += 0.05) {
         f.skip(0.05);
         f.lines.update(f.clock, g.camera.position);
-        const r = f.lines.robots.find((r) => r.line.id === 0 && r.post && r.tp > 6.4 + 36 && r.z < -212);
+        const r = f.lines.robots.find((r) => r.post && r.feetY > -0.5 && r.z < -240);
         if (r) return { tp: r.tp, z: r.z };
     }
     return null;
 })()`);
 check(!!fallAt, 'a finished unit walks out along the gangway towards the exit, as far as the gap');
-await stand(4.2, -205, 0.28, -0.12, 10);
+check(await G('g.foundry.lines.lines.length === 3 && !!g.foundry.lines.sarge'), 'three lines feed one walkway, and the quartermaster stands beside it');
+check(await G('g.foundry.lines.rifleBody.mesh.count >= 5'), `units past the quartermaster carry laser rifles (${await G('g.foundry.lines.rifleBody.mesh.count')})`);
+const lanes = await G(`(() => { const ids = new Set(g.foundry.lines.robots.filter((r) => r.post && r.z < -200 && r.feetY > -0.5).map((r) => r.line.id)); return ids.size; })()`);
+check(lanes === 3, 'units from all three lines share the walkway');
+await stand(6.5, -206, 0.12, -0.08, 10);
 await shot('9-gangway');
 await page.waitForTimeout(1500);
 await frames(40);
 await shot('10-falling');
 await page.waitForTimeout(2500);
 await frames(30);
-await stand(3.75, -218.6, Math.PI / 2, -1.0, 10);
+await stand(4.0, -242, 0.67, -0.75, 10);
 await frames(10);
 await shot('11-lava');
 check(await G('g.foundry.log.pit'), 'the pit is found');

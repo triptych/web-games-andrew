@@ -5,9 +5,12 @@
 // its chest, pelvis, core, plates and backpack (the body shop), shoulders, arms
 // and hands (the arm line) and hips, knees, shins, feet and armour (the leg
 // line); it is scanned, flexed, shocked and painted, set down on its feet and
-// let go. Then it stands up, looks about, turns, and sets off along the gangway
-// for the way out in the far wall, never noticing that a stretch of the walkway
-// rusted through and fell into the lava pit long ago. It steps into the gap.
+// let go. Then it stands up, looks about, turns, and sets off for the way out in
+// the far wall: the three lines' units cross the apron in their own lanes and
+// file on to one walkway over the lava pit, timed to interleave, and the
+// quartermaster beside it hands each a laser rifle. Just short of the exit a
+// stretch of the walkway rusted through and fell into the pit long ago, and
+// nobody mended it. Each unit steps into the gap.
 //
 // Nothing here is stored per robot: everything a unit is and does is worked
 // out from the line's clock and the unit's serial number, every frame. The
@@ -18,39 +21,84 @@
 import * as THREE from 'three';
 import {
     robotGeometries, MESHES, PARTS, PART, PART_OFFSET, B, newBones, bones, newPose, copyPose, mixPose, hangPose, walkPose, plant,
-    CROUCH, STAND, SCALE, HEAD_TOP, STRIDE, PRIMER, paintOf,
+    CROUCH, STAND, SCALE, HEAD_TOP, STRIDE, PRIMER, paintOf, rifleGeometries, sargeGeometries,
 } from './foundry-robot.js';
-import { clamp, lerp, smoothstep, TAU } from './util.js';
+import { clamp, lerp, smoothstep, angleDiff, TAU } from './util.js';
 
 export const PITCH = 7, LAST = 26;
 export const MOVE = 1.6, DWELL = 4.4, CYCLE = MOVE + DWELL;
 export const ATTACH_U = 0.55, RELEASE_U = 0.3;
 export const Z0 = 6, RAIL_Y = 7.4;
-export const LEDGE_Z = -200, HOLE_Z0 = -216, HOLE_Z1 = -221, GANGWAY_END = -251.5, LAVA_Y = -14;
+export const LEDGE_Z = -200, LAVA_Y = -14, FAR_Z = -252;
+// the one walkway over the pit to the exit, and the stretch of it that broke away just short of the door
+export const HOLE_Z0 = -244.5, HOLE_Z1 = -249.5, GANGWAY_END = FAR_Z + 0.5;
 export const LINE_HALF = 4.6;           // half the width of each line's fenced strip
+export const STRIP_END = -182;          // where the fenced strips stop and the open apron begins
 export const WALK_V = 1.05;
 export const slotZ = (k) => Z0 - PITCH * k;
 export const RELEASE_Z = slotZ(LAST);
+// let go, a unit is carried off the release plate on a short belt while it wakes, so the next can come down behind it
+export const CARRY = 4, T_CARRY = 2.2, WAKE_Z = RELEASE_Z - CARRY;
 export const STEP_Z = HOLE_Z0 - 0.35;
+// the lines' paths meet here and go on as one walkway; the quartermaster stands beside it
+export const MERGE = { x: 0, z: -195 };
+export const HAND_Z = -236;
+export const SARGE = { x: 2.95, z: HAND_Z };
 export const SERIAL0 = 14000;
 // after the release: slump, boot, stand, look about, turn, walk
-export const T_SLUMP = 0.7, T_BOOT = 1.9, T_STAND = 3.9, T_LOOK = 5.2, T_TURN = 6.4;
-export const T_WALK = (RELEASE_Z - STEP_Z) / WALK_V;
+export const T_SLUMP = 0.7, T_BOOT = 1.9, T_STAND = 3.6, T_LOOK = 4.6, T_TURN = 5.6;
 const GRAV = 9.8;
 export const T_FALL = Math.sqrt((2 * -LAVA_Y) / GRAV);
 export const T_BURN = 6;
-export const T_HIT = T_TURN + T_WALK + T_FALL;
-export const POST_LIFE = T_HIT + T_BURN;
 const REL_AT = LAST * CYCLE + MOVE + RELEASE_U * DWELL;   // a unit's release, after it reached station 0
-const K_MAX = LAST + Math.ceil((POST_LIFE + MOVE + RELEASE_U * DWELL) / CYCLE) + 1;
+const SPACING = CYCLE / 3;                               // seconds between units on the shared walkway
 
-/** The four lines. Robots face `face` along x: the main line and the one beyond the walkway face it. */
+/**
+ * The three lines. Robots face `face` along x: the main line and the one beyond the walkway face it.
+ * Each line's units walk their own path across the apron to MERGE, then down the walkway; the lines'
+ * clocks are offset so the units arrive at MERGE exactly SPACING apart and file on to it in turn.
+ */
 export const LINES = [
-    { id: 0, x: 0, face: 1, phase: 0 },
-    { id: 1, x: 38, face: -1, phase: 2.35 },
-    { id: 2, x: -34, face: 1, phase: 3.9 },
-    { id: 3, x: -62, face: 1, phase: 1.15 },
+    { id: 0, x: 0, face: 1, path: [[0, WAKE_Z], [MERGE.x, MERGE.z]] },
+    { id: 1, x: 38, face: -1, path: [[38, WAKE_Z], [36.5, -185], [7, -189.5], [MERGE.x, MERGE.z]] },
+    { id: 2, x: -34, face: 1, path: [[-34, WAKE_Z], [-32.5, -185], [-7, -189.5], [MERGE.x, MERGE.z]] },
 ];
+for (const l of LINES) {
+    l.path.push([MERGE.x, STEP_Z]);
+    l.seg = [];
+    let d = 0;
+    for (let i = 1; i < l.path.length; i++) {
+        const [ax, az] = l.path[i - 1], [bx, bz] = l.path[i];
+        const len = Math.hypot(bx - ax, bz - az);
+        l.seg.push({ ax, az, dx: (bx - ax) / len, dz: (bz - az) / len, d0: d, len });
+        d += len;
+    }
+    l.walkLen = d;
+    l.mergeAt = l.seg[l.seg.length - 1].d0;
+    l.handAt = l.mergeAt + (MERGE.z - HAND_Z);
+    l.tWalk = d / WALK_V;
+    l.tHit = T_TURN + l.tWalk + T_FALL;
+    l.life = l.tHit + T_BURN;
+}
+for (const l of LINES) l.phase = ((((l.mergeAt - LINES[0].mergeAt) / WALK_V - l.id * SPACING) % CYCLE) + CYCLE) % CYCLE;
+const K_MAX = LAST + Math.ceil((Math.max(...LINES.map((l) => l.life)) + MOVE + RELEASE_U * DWELL) / CYCLE) + 1;
+
+/** Where a unit `d` metres along its line's path is, and which way it faces. */
+export function pathAt(line, d, out) {
+    const at = (dd) => {
+        const sg = line.seg;
+        let i = 0;
+        while (i < sg.length - 1 && dd > sg[i].d0 + sg[i].len) i++;
+        const g = sg[i], u = dd - g.d0;
+        return [g.ax + g.dx * u, g.az + g.dz * u];
+    };
+    const [x, z] = at(d);
+    const [x0, z0] = at(Math.max(0, d - 0.9)), [x1, z1] = at(d + 0.9);
+    out.x = x;
+    out.z = z;
+    out.yaw = Math.atan2(x1 - x0, z1 - z0);
+    return out;
+}
 
 // where a station's arms stand, in the robot's frame (x its left, z its front)
 const AT = { front: [0, 2.9], back: [0, -3.0], left: [2.3, -2.4], right: [-2.3, -2.4], fleft: [2.3, 2.4], fright: [-2.3, 2.4] };
@@ -227,6 +275,12 @@ const CORE_DIM = new THREE.Color(0.12, 0.3, 0.4), CORE_ON = new THREE.Color(0.7,
 const TIP_OFF = new THREE.Color(0.1, 0.03, 0.03), TIP_ON = new THREE.Color(3.2, 0.35, 0.2);
 const HOT = new THREE.Color(3.0, 0.9, 0.2);
 const WHITE = new THREE.Color(1, 1, 1);
+const RIFLE_ON = new THREE.Color(0.4, 2.2, 3.2);
+const OLIVE = new THREE.Color('#556236'), SARGE_EYES = new THREE.Color(3.2, 0.35, 0.15), SARGE_CORE = new THREE.Color(2.4, 0.5, 0.2);
+const SARGE_SCALE = 1.15;
+// a rifle held across the chest (on the chest bone), and one held out by its middle (on a hand bone)
+const RIFLE_CARRY = new THREE.Matrix4().compose(new THREE.Vector3(-0.08, 0.32, 0.52), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.28, -0.25, 0.15, 'YXZ')), new THREE.Vector3(1, 1, 1));
+const RIFLE_HAND = new THREE.Matrix4().compose(new THREE.Vector3(0, -0.34, 0.06), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0, 'YXZ')), new THREE.Vector3(1, 1, 1));
 
 /** Where a station frame (robot-local metres, unscaled) lands in the world. */
 function stationPoint(line, k, lx, lz, out) {
@@ -248,7 +302,7 @@ export class Lines {
             if (PART_OFFSET[p.name]) c.applyMatrix4(PART_OFFSET[p.name]);
             return c;
         });
-        this.lines = LINES.map((l) => ({ ...l, yaw: l.face > 0 ? Math.PI / 2 : -Math.PI / 2, walkYaw: l.face > 0 ? Math.PI : -Math.PI, slotBones: Array.from({ length: LAST + 1 }, () => newBones()), arms: [], prevT: null }));
+        this.lines = LINES.map((l) => ({ ...l, yaw: l.face > 0 ? Math.PI / 2 : -Math.PI / 2, startYaw: pathAt(l, 0, {}).yaw, slotBones: Array.from({ length: LAST + 1 }, () => newBones()), arms: [], prevT: null }));
         this.postBones = newBones();
 
         // every arm in the hall
@@ -269,7 +323,7 @@ export class Lines {
         this.arms = this.lines.flatMap((l) => l.arms);
 
         // instanced meshes: one per kind of robot part, sized for every robot plus the parts in the arms' hands and on their feeders
-        const NROB = this.lines.length * (K_MAX + 1);
+        const NROB = this.lines.length * (K_MAX + 1) + 1;
         const perMesh = {};
         for (const p of PARTS) perMesh[p.mesh] = (perMesh[p.mesh] || 0) + 1;
         const held = {};
@@ -279,6 +333,21 @@ export class Lines {
             const cap = NROB * perMesh[name] + (held[name] || 0);
             this.inst[name] = new Inst(scene, geos[name], this.mats[matKey], cap, { color: matKey === 'paint' || matKey === 'glow', heat: matKey !== 'glow' });
         }
+        // the laser rifles: one for every walking unit, two in the quartermaster's hands
+        const rg = rifleGeometries();
+        this.rifleBody = new Inst(scene, rg.body, this.mats.dark, NROB, { heat: true });
+        this.rifleGlow = new Inst(scene, rg.glow, this.mats.glow, NROB, { color: true });
+        // the quartermaster's own kit: helmet, visor, armour, webbing
+        const kitMat = new THREE.MeshStandardMaterial({ color: 0x46512c, roughness: 0.6, metalness: 0.4 });
+        const kitDark = new THREE.MeshStandardMaterial({ color: 0x23261c, roughness: 0.7, metalness: 0.3 });
+        const kitGlow = new THREE.MeshBasicMaterial({ color: new THREE.Color(3.2, 0.4, 0.15) });
+        this.sargeKit = sargeGeometries().map(([geo, kind, bone]) => {
+            const m = new THREE.Mesh(geo, kind === 'glow' ? kitGlow : kind === 'dark' ? kitDark : kitMat);
+            m.matrixAutoUpdate = false;
+            m.frustumCulled = false;
+            scene.add(m);
+            return [m, bone];
+        });
         const ag = armGeometries();
         const NA = this.arms.length, NL = this.lines.length * (LAST + 3);
         const count = (kind) => this.arms.filter((a) => a.kind === kind).length;
@@ -331,7 +400,7 @@ export class Lines {
     /** How many units the lines have finished (and lost in the gap), by `time`. */
     despatched(time) {
         let n = 0;
-        for (const l of this.lines) n += Math.max(0, Math.floor((this.lineT(l, time) - REL_AT - T_HIT) / CYCLE) + 1);
+        for (const l of this.lines) n += Math.max(0, Math.floor((this.lineT(l, time) - REL_AT - l.tHit) / CYCLE) + 1);
         return n;
     }
 
@@ -348,6 +417,9 @@ export class Lines {
         this.robots.length = 0;
         this.cam = cam;
         for (const line of this.lines) this._line(line, time);
+        this._sarge(time);
+        this.rifleBody.end();
+        this.rifleGlow.end();
         for (const i of Object.values(this.inst)) i.end();
         for (const i of Object.values(this.armInst)) i.end();
         this.time = time;
@@ -370,12 +442,15 @@ export class Lines {
         if (!moving && up < RELEASE_U && u >= RELEASE_U) this.events.puffs.push({ line, x: line.x, y: 3.2, z: RELEASE_Z, big: true });
         if (!moving && u > 0.15 && u < 0.85) this.events.mist.push({ line, x: line.x, y: 1.7, z: slotZ(25), color: paintOf(c - 25, new THREE.Color()) });
         line.state = { c, p, moving, s, u };
+        // how far the belt off the release plate has run: a unit's length each time one is let go
+        const nr = !moving && u >= RELEASE_U ? c - LAST : c - LAST - 1;
+        line.belt = nr * CARRY + CARRY * smoothstep(0, T_CARRY, T - (nr * CYCLE + REL_AT));
 
         for (let n = c - K_MAX; n <= c; n++) {
             const k = c - n;
             const tp = T - (n * CYCLE + REL_AT);
             if (tp >= 0) {
-                if (tp < POST_LIFE) this._post(line, n, tp, tp - (T - Tp));
+                if (tp < line.life) this._post(line, n, tp, tp - (T - Tp));
             } else this._onLine(line, n, k, moving, s, u, T);
             this._hook(line, n, k, moving, s, u, tp);
         }
@@ -453,10 +528,10 @@ export class Lines {
     /** A finished unit, on its own feet. */
     _post(line, n, tp, tpPrev) {
         const pose = this._pose ??= newPose();
-        let x = line.x, y = 0, z = RELEASE_Z, yaw = line.yaw, tumble = 0, heat = 0, hide = false;
+        let x = line.x, y = 0, z = WAKE_Z + CARRY * (1 - smoothstep(0, T_CARRY, tp)), yaw = line.yaw, tumble = 0, heat = 0, hide = false, rifle = false;
         const glow = { eyes: EYE_ON, core: CORE_ON, tip: TIP_ON };
         const cross = (a) => tpPrev < a && tp >= a;
-        const near = this._near(line.x, RELEASE_Z, 60);
+        const near = this._near(line.x, WAKE_Z, 60);
         if (tp < T_SLUMP) {
             // let go: it sags
             const t = (tp / T_SLUMP) ** 2;
@@ -493,44 +568,47 @@ export class Lines {
             pose.el[0] = 0.15 + 1.2 * Math.sin(q * Math.PI) ** 2;
             plant(pose);
         } else if (tp < T_TURN) {
-            // turns to the gangway, marking time
+            // turns to set off, marking time
             const q = (tp - T_LOOK) / (T_TURN - T_LOOK);
-            yaw = lerp(line.yaw, line.walkYaw, ease(q));
+            yaw = line.yaw + angleDiff(line.yaw, line.startYaw) * ease(q);
             walkPose(pose, q * TAU * 2, 0.4 * Math.sin(q * Math.PI));
             if (near) this._stepEvents(q * 4, ((tpPrev - T_LOOK) / (T_TURN - T_LOOK)) * 4, line, x, z);
-        } else if (tp < T_TURN + T_WALK) {
-            // walks
+        } else if (tp < T_TURN + line.tWalk) {
+            // walks: across the apron, on to the walkway, out over the pit for the exit
             const d = (tp - T_TURN) * WALK_V;
-            z = RELEASE_Z - d;
-            yaw = line.walkYaw;
+            const at = pathAt(line, d, this._at ??= {});
+            yaw = at.yaw;
             const ph = (d / (STRIDE * SCALE)) * TAU;
             walkPose(pose, ph, Math.min(1, d / 1.2));
-            x += 0.04 * Math.sin(ph);
+            x = at.x + 0.04 * Math.sin(ph) * Math.cos(yaw);
+            z = at.z - 0.04 * Math.sin(ph) * Math.sin(yaw);
+            rifle = this._armed(pose, d - line.handAt);
             const dPrev = Math.max(0, tpPrev - T_TURN) * WALK_V;
             if (this._near(x, z, 40)) this._stepEvents(d / (STRIDE * SCALE * 0.5), dPrev / (STRIDE * SCALE * 0.5), line, x, z);
         } else {
-            // over the edge
-            const tf = tp - T_TURN - T_WALK;
-            yaw = line.walkYaw;
+            // into the gap
+            const tf = tp - T_TURN - line.tWalk;
+            x = MERGE.x;
+            yaw = Math.PI;
             copyPose(pose, STAND);
             const flail = Math.min(1, tf * 2.5);
-            pose.shF[0] = lerp(0.05, 2.7 + 0.3 * Math.sin(tp * 9), flail);
-            pose.shF[1] = lerp(0.05, 2.5 + 0.3 * Math.sin(tp * 8 + 1), flail);
+            rifle = this._armed(pose, 99);
+            pose.shF[0] = lerp(pose.shF[0], 2.4 + 0.3 * Math.sin(tp * 9), flail * 0.7);
+            pose.shF[1] = lerp(pose.shF[1], 2.2 + 0.3 * Math.sin(tp * 8 + 1), flail * 0.7);
             pose.shR[0] = pose.shR[1] = 0.35 * flail;
-            pose.el[0] = pose.el[1] = 0.3;
             pose.hip[0] = 0.5 * flail * (0.6 + 0.4 * Math.sin(tp * 7));
             pose.hip[1] = 0.3 * flail;
             pose.knee[0] = pose.knee[1] = 0.6 * flail;
             pose.neckP = -0.4 * flail;
             pose.pelvisY = 1.71;
-            if (cross(T_TURN + T_WALK) && this._near(x, STEP_Z, 120)) this.events.falls.push({ line, x, y: 0, z: STEP_Z });
+            if (cross(T_TURN + line.tWalk) && this._near(x, STEP_Z, 120)) this.events.falls.push({ line, x, y: 0, z: STEP_Z });
             if (tf < T_FALL) {
                 y = -0.5 * GRAV * tf * tf;
                 z = STEP_Z - WALK_V * 0.75 * tf;
                 tumble = 0.35 * tf + 0.28 * tf * tf;
             } else {
                 const tb = tf - T_FALL;
-                if (cross(T_HIT) && this._near(x, z, 220)) this.events.splashes.push({ line, x, y: LAVA_Y, z: STEP_Z - WALK_V * 0.75 * T_FALL });
+                if (cross(line.tHit) && this._near(x, STEP_Z, 220)) this.events.splashes.push({ line, x, y: LAVA_Y, z: STEP_Z - WALK_V * 0.75 * T_FALL });
                 z = STEP_Z - WALK_V * 0.75 * T_FALL - 0.3 * tb;
                 const bob = 0.15 * Math.sin(tb * 2.2) * Math.exp(-tb * 0.6);
                 y = LAVA_Y - (0.22 * tb + 0.1 * tb * tb) + bob;
@@ -563,8 +641,85 @@ export class Lines {
             if (glow.eyes === EYE_ON) glow.eyes = _c.copy(EYE_ON).lerp(HOT, heat);
         }
         for (const pt of PARTS) this._part(pt, bn, glow, heat);
+        if (rifle) this._rifle(_m2.copy(bn[B.CHEST]).multiply(RIFLE_CARRY), heat);
         _v.setFromMatrixPosition(bn[B.CHEST]);
-        this.robots.push({ line, serial: n, k: LAST + 1, post: true, x: _v.x, y: _v.y, z: _v.z, r: 1.7, tp });
+        this.robots.push({ line, serial: n, k: LAST + 1, post: true, x: _v.x, y: _v.y, z: _v.z, r: 1.7, tp, rifle, feetY: y });
+    }
+
+    /**
+     * Arms for a unit `past` metres beyond the quartermaster: before it, the right arm reaches out for
+     * the rifle; after, both hold it across the chest. Returns whether it has one.
+     */
+    _armed(pose, past) {
+        if (past < -1.4) return false;
+        if (past < 0) {
+            const k = Math.sin(clamp((past + 1.4) / 1.4, 0, 1) * Math.PI * 0.5);
+            pose.shF[1] = lerp(pose.shF[1], 0.55, k);
+            pose.shR[1] = lerp(pose.shR[1], 0.75, k);
+            pose.el[1] = lerp(pose.el[1], 0.25, k);
+            return false;
+        }
+        const k = smoothstep(0, 0.6, past);
+        pose.shF[1] = lerp(0.55, 0.42, k);
+        pose.shR[1] = lerp(0.75, -0.12, k);
+        pose.el[1] = lerp(0.25, 1.5, k);
+        pose.shF[0] = lerp(pose.shF[0], 0.95, k);
+        pose.shR[0] = lerp(pose.shR[0], -0.3, k);
+        pose.el[0] = lerp(pose.el[0], 0.75, k);
+        pose.wr[0] = pose.wr[1] = 0.2 * k;
+        return true;
+    }
+
+    _rifle(m, heat) {
+        this.rifleBody.push(m, null, heat);
+        this.rifleGlow.push(m, heat > 0.5 ? HOT : RIFLE_ON);
+    }
+
+    /**
+     * The quartermaster: a big olive-drab unit beside the walkway, just short of the gap, with a crate
+     * of laser rifles behind it. It hands one to each unit as it passes, its two arms taking turns:
+     * one reaches back into the crate while the other holds a rifle out.
+     */
+    _sarge(time) {
+        const l0 = this.lines[0];
+        const off = this.lineT(l0, time) - (REL_AT + T_TURN + l0.handAt / WALK_V);
+        const pose = this._sargePose ??= newPose();
+        copyPose(pose, STAND);
+        const crate = [0, 0], hold = [false, false];
+        for (let s = 0; s < 2; s++) {
+            const a = ((((off - s * SPACING) % (2 * SPACING)) + 2 * SPACING) % (2 * SPACING)) / (2 * SPACING);
+            const c = a < 0.08 ? 0 : a < 0.35 ? ease((a - 0.08) / 0.27) : a < 0.5 ? 1 : a < 0.85 ? 1 - ease((a - 0.5) / 0.35) : 0;
+            crate[s] = c;
+            hold[s] = a < 0.04 || a > 0.42;
+            pose.shF[s] = lerp(1.25, -0.55, c);
+            pose.shR[s] = lerp(0.1, 0.55, c);
+            pose.el[s] = lerp(0.2, 0.75, c);
+            pose.wr[s] = lerp(0.1, 0.4, c);
+        }
+        const q = (((off % SPACING) + SPACING) % SPACING) / SPACING;
+        pose.twist = 0.3 * (crate[1] - crate[0]);
+        pose.lean = 0.12 + 0.08 * Math.max(crate[0], crate[1]);
+        pose.neckY = 0.45 * (1 - q) - 0.1;
+        pose.neckP = 0.12;
+        pose.hip[0] = pose.hip[1] = 0.05;
+        pose.spread[0] = pose.spread[1] = 0.12;
+        plant(pose);
+        pose.pelvisY += 0.02 * Math.sin(time * 1.3);
+        const root = _m.makeTranslation(SARGE.x, 0, SARGE.z);
+        ry(root, -Math.PI / 2);
+        sc(root, SARGE_SCALE);
+        const bn = this.sargeBones ??= newBones();
+        bones(pose, root, bn);
+        _paint.copy(OLIVE);
+        const glow = { eyes: SARGE_EYES, core: SARGE_CORE, tip: TIP_ON };
+        for (const pt of PARTS) this._part(pt, bn, glow, 0);
+        for (const [mesh, bone] of this.sargeKit) {
+            mesh.matrix.copy(bn[bone]);
+            mesh.matrixWorldNeedsUpdate = true;
+        }
+        for (let s = 0; s < 2; s++) if (hold[s]) this._rifle(_m2.copy(bn[s === 0 ? B.HA_L : B.HA_R]).multiply(RIFLE_HAND), 0);
+        _v.setFromMatrixPosition(bn[B.CHEST]);
+        this.sarge = { x: _v.x, y: _v.y, z: _v.z, r: 2.0 };
     }
 
     _stepEvents(steps, stepsPrev, line, x, z) {

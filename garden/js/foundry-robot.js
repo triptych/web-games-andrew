@@ -105,6 +105,37 @@ export function robotGeometries() {
     return g;
 }
 
+/** A laser rifle, pointing along +z, its grip at the origin: the gun, and its glowing cell and sights. */
+export function rifleGeometries() {
+    return {
+        body: merge(
+            at(flat(box(0.12, 0.16, 0.62)), 0, 0, 0.06),
+            at(new THREE.CylinderGeometry(0.035, 0.04, 0.5, 8), 0, 0.03, 0.6, Math.PI / 2),
+            at(new THREE.CylinderGeometry(0.06, 0.05, 0.1, 10), 0, 0.03, 0.88, Math.PI / 2),
+            at(flat(box(0.08, 0.15, 0.32)), 0, -0.03, -0.4),
+            at(flat(box(0.07, 0.17, 0.08)), 0, -0.15, -0.02, -0.25),
+            at(flat(box(0.08, 0.14, 0.13)), 0, -0.13, 0.2),
+            at(new THREE.CylinderGeometry(0.035, 0.035, 0.24, 8), 0, 0.14, 0.04, Math.PI / 2),
+        ),
+        glow: merge(at(box(0.13, 0.03, 0.42), 0, 0.055, 0.08), at(new THREE.CylinderGeometry(0.045, 0.045, 0.02, 10), 0, 0.03, 0.94, Math.PI / 2), at(box(0.085, 0.04, 0.09), 0, -0.13, 0.2)),
+    };
+}
+
+/** The quartermaster's kit, each piece with its material and bone: helmet, visor, chest armour, webbing. */
+export function sargeGeometries() {
+    return [
+        [at(new THREE.SphereGeometry(0.4, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.55), 0, 0.3, -0.02, 0, 0, 0, 1, 0.95, 1.05), 'kit', B.HEAD],
+        [at(box(0.82, 0.06, 0.5), 0, 0.42, 0.1), 'kit', B.HEAD],
+        [at(box(0.46, 0.08, 0.06), 0, 0.31, 0.36), 'glow', B.HEAD],
+        [merge(at(flat(box(1.02, 0.62, 0.16)), 0, 0.56, 0.4, -0.08), at(flat(box(1.2, 0.18, 0.5)), 0, 0.93, 0.02)), 'kit', B.CHEST],
+        [merge(at(box(0.9, 0.12, 0.56), 0, 0.12, 0), ...[-0.3, -0.1, 0.1, 0.3].map((x) => at(box(0.16, 0.2, 0.12), x, 0.1, 0.3))), 'dark', B.PELVIS],
+        [at(new THREE.SphereGeometry(0.38, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), 0, 0.06, 0, 0, 0, 0, 1.05, 0.9, 1.1), 'kit', B.SH_L],
+        [at(new THREE.SphereGeometry(0.38, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), 0, 0.06, 0, 0, 0, 0, 1.05, 0.9, 1.1), 'kit', B.SH_R],
+        [merge(at(box(0.3, 0.46, 0.14), 0, -0.36, 0.17), at(box(0.3, 0.14, 0.3), 0, -0.6, 0.08)), 'dark', B.KN_L],
+        [merge(at(box(0.3, 0.46, 0.14), 0, -0.36, 0.17), at(box(0.3, 0.14, 0.3), 0, -0.6, 0.08)), 'dark', B.KN_R],
+    ];
+}
+
 // material: 'paint' takes the robot's colour, 'steel' and 'dark' don't, 'glow' is lit from within
 export const MESHES = {
     cranium: 'paint', liftEye: 'steel', face: 'dark', eyes: 'glow', ear: 'steel', antenna: 'steel', antTip: 'glow',
