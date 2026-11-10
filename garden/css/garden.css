@@ -1253,6 +1253,27 @@ body:has(#claw-hud:not([hidden]), #bowl-hud:not([hidden])) .hint { opacity: 0; }
 
 /* ------------------------------------------------------------ Gearfall */
 
+.fd-pa {
+    position: fixed;
+    left: 50%;
+    bottom: calc(92px + var(--safe-b, 0px));
+    transform: translateX(-50%);
+    z-index: 6;
+    width: min(620px, calc(100vw - 32px));
+    padding: 8px 14px 10px;
+    border-radius: 10px;
+    background: rgba(6, 16, 10, 0.72);
+    border: 1px solid rgba(110, 255, 160, 0.35);
+    color: #9dffbf;
+    font: 500 0.95rem/1.4 "SFMono-Regular", Menlo, Consolas, monospace;
+    text-align: center;
+    pointer-events: none;
+    text-shadow: 0 0 6px rgba(110, 255, 160, 0.45);
+}
+.fd-pa[hidden] { display: none; }
+.fd-pa-head { display: block; font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: #5fc888; margin-bottom: 2px; }
+.fd-pa.glitch { color: #ffb0a0; border-color: rgba(255, 120, 90, 0.45); text-shadow: 2px 0 rgba(255, 60, 60, 0.5), -2px 0 rgba(60, 200, 255, 0.4); }
+@media (prefers-reduced-motion: reduce) { .fd-pa.glitch { text-shadow: none; } }
 .foundry-hud { background: rgba(28, 20, 14, 0.62); border-color: rgba(255, 150, 70, 0.42); width: 188px; }
 .foundry-hud .fh-label { color: #ffb878; }
 .foundry-hud strong { font-size: 1rem; }

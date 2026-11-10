@@ -245,6 +245,7 @@ export class Hall {
         this._conveyors(b);
         this._pipes(b);
         this._lamps(b);
+        this._speakers(b);
         scene.add(b.build(this.mats, { castShadow: false, receiveShadow: false }));
     }
 
@@ -1038,6 +1039,25 @@ export class Hall {
         for (const line of LINES) {
             b.add('copper', new THREE.CylinderGeometry(0.18, 0.18, 196, 8).rotateX(Math.PI / 2), xf(line.x + 1.4, RAIL_Y + 2.6, -82));
             b.add('green', new THREE.CylinderGeometry(0.24, 0.24, 196, 8).rotateX(Math.PI / 2), xf(line.x - 1.3, RAIL_Y + 2.7, -82));
+        }
+    }
+
+    /** Loudspeaker horns on the columns and over the walkway, for the public address (foundry-pa.js). */
+    _speakers(b) {
+        const horn = (x, y, z, yaw, tilt = 0.25) => {
+            b.add('green', new THREE.ConeGeometry(0.55, 1.2, 14, 1, true).rotateX(-Math.PI / 2).translate(0, 0, 0.6), xf(x, y, z, yaw, 1, 1, 1, tilt));
+            b.add('iron', new THREE.CylinderGeometry(0.22, 0.26, 0.5, 10).rotateX(Math.PI / 2).translate(0, 0, -0.1), xf(x, y, z, yaw, 1, 1, 1, tilt));
+        };
+        for (const x of COLS_X) for (const z of COLS_Z) {
+            horn(x + 1.3, 13, z, Math.PI / 2);
+            horn(x - 1.3, 13, z, -Math.PI / 2);
+            b.add('iron', new THREE.BoxGeometry(2.4, 0.2, 0.2), xf(x, 13.4, z));
+        }
+        // a cluster on a pole by the quartermaster, and one over the apron
+        for (const [x, z, h] of [[DECK.x1 - 0.6, DECK.z0 + 1.2, 7], [24, STRIP_END - 2, 9]]) {
+            b.add('steel', new THREE.CylinderGeometry(0.1, 0.12, h, 8), xf(x, h / 2, z));
+            this.block(x - 0.2, x + 0.2, z - 0.2, z + 0.2);
+            for (let i = 0; i < 3; i++) horn(x + Math.sin((i / 3) * Math.PI * 2) * 0.4, h - 0.2, z + Math.cos((i / 3) * Math.PI * 2) * 0.4, (i / 3) * Math.PI * 2, 0.35);
         }
     }
 

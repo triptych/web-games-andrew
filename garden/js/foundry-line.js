@@ -279,7 +279,11 @@ const RIFLE_ON = new THREE.Color(0.4, 2.2, 3.2);
 const OLIVE = new THREE.Color('#556236'), SARGE_EYES = new THREE.Color(3.2, 0.35, 0.15), SARGE_CORE = new THREE.Color(2.4, 0.5, 0.2);
 const SARGE_SCALE = 1.15;
 // a rifle held across the chest (on the chest bone), and one held out by its middle (on a hand bone)
-const RIFLE_CARRY = new THREE.Matrix4().compose(new THREE.Vector3(-0.08, 0.32, 0.52), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.28, -0.25, 0.15, 'YXZ')), new THREE.Vector3(1, 1, 1));
+// port arms, for a unit carrying its rifle
+const PORT = { rf: -0.2, rr: -0.3, re: 1.55, lf: -0.2, lr: -1.4, le: 1.55 };
+const _axisX = new THREE.Vector3(), _axisY = new THREE.Vector3();
+// where the palm is in a hand bone's frame
+const PALM = new THREE.Vector3(0, -0.16, 0.03);
 const RIFLE_HAND = new THREE.Matrix4().compose(new THREE.Vector3(0, -0.34, 0.06), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0, 'YXZ')), new THREE.Vector3(1, 1, 1));
 
 /** Where a station frame (robot-local metres, unscaled) lands in the world. */
@@ -641,7 +645,7 @@ export class Lines {
             if (glow.eyes === EYE_ON) glow.eyes = _c.copy(EYE_ON).lerp(HOT, heat);
         }
         for (const pt of PARTS) this._part(pt, bn, glow, heat);
-        if (rifle) this._rifle(_m2.copy(bn[B.CHEST]).multiply(RIFLE_CARRY), heat);
+        if (rifle) this._rifle(this._carried(bn), heat);
         _v.setFromMatrixPosition(bn[B.CHEST]);
         this.robots.push({ line, serial: n, k: LAST + 1, post: true, x: _v.x, y: _v.y, z: _v.z, r: 1.7, tp, rifle, feetY: y });
     }
@@ -659,15 +663,35 @@ export class Lines {
             pose.el[1] = lerp(pose.el[1], 0.25, k);
             return false;
         }
+        // port arms: the right hand low on the grip, the left high on the barrel, across the chest
         const k = smoothstep(0, 0.6, past);
-        pose.shF[1] = lerp(0.55, 0.42, k);
-        pose.shR[1] = lerp(0.75, -0.12, k);
-        pose.el[1] = lerp(0.25, 1.5, k);
-        pose.shF[0] = lerp(pose.shF[0], 0.95, k);
-        pose.shR[0] = lerp(pose.shR[0], -0.3, k);
-        pose.el[0] = lerp(pose.el[0], 0.75, k);
-        pose.wr[0] = pose.wr[1] = 0.2 * k;
+        pose.shF[1] = lerp(0.55, PORT.rf, k);
+        pose.shR[1] = lerp(0.75, PORT.rr, k);
+        pose.el[1] = lerp(0.25, PORT.re, k);
+        pose.shF[0] = lerp(pose.shF[0], PORT.lf, k);
+        pose.shR[0] = lerp(pose.shR[0], PORT.lr, k);
+        pose.el[0] = lerp(pose.el[0], PORT.le, k);
+        pose.wr[0] = pose.wr[1] = 0;
+        pose.twist *= 1 - 0.7 * k;
         return true;
+    }
+
+    /**
+     * A rifle held in both hands: its grip in the right palm, its barrel laid through the left palm,
+     * its top turned away from the chest. Worked out from the hands each frame, so it stays in them
+     * whatever the arms do (marching, flailing, falling).
+     */
+    _carried(bn) {
+        const r = _v.copy(PALM).applyMatrix4(bn[B.HA_R]);
+        const l = _v2.copy(PALM).applyMatrix4(bn[B.HA_L]);
+        const z = _v3.subVectors(l, r).normalize();
+        const up = _axisY.set(0, 0, 1).transformDirection(bn[B.CHEST]).addScaledVector(_axisX.set(0, 1, 0).transformDirection(bn[B.CHEST]), 0.6);
+        const x = _axisX.crossVectors(up, z).normalize();
+        const y = up.crossVectors(z, x);
+        const m = _m2.makeBasis(x, y, z).multiply(_r.makeScale(SCALE, SCALE, SCALE));
+        // the grip sits in the right palm
+        m.setPosition(r.x - y.x * 0.12 * SCALE, r.y - y.y * 0.12 * SCALE, r.z - y.z * 0.12 * SCALE);
+        return m;
     }
 
     _rifle(m, heat) {
