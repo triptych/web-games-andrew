@@ -1802,3 +1802,14 @@ footer a:hover {
         padding: 10px 20px;
     }
 }
+
+.game-preview.dragonprince,
+.carousel-slide-bg.dragonprince {
+    background: linear-gradient(180deg, #2a0f24 0%, #8a2a2a 50%, #f0a050 100%);
+}
+
+.game-card.dragonprince .play-button {
+    background: linear-gradient(135deg, #ffe0a0, #e8913c, #8a2418);
+    color: #2a0a04;
+    box-shadow: 0 0 14px rgba(255, 150, 70, 0.7);
+}

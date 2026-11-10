@@ -20,3 +20,5 @@ garden/dev/shots/
 garden/dev/package/
 garden/dev/node_modules/
 game-*/dev/package
+# Python bytecode from the per-game art/audio pipelines
+__pycache__/
