@@ -113,3 +113,4 @@ blocked storage), `play.mjs`.
 ## Changelog
 
 - **1.0.0** First release.
+- **1.0.1** The dialogue box shows after the month's last result: Continue into a month that opens with a story scene left a blank backdrop.

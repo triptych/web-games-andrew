@@ -1944,7 +1944,7 @@ const games = [
         description: "A raising sim with visual novel scenes, painted with fal and fully voiced with ElevenLabs. Three hundred years of war between Aurelmere and the dragons ended with a prince and the Ember Queen in love, and an egg that hatched ten years after they were gone. The old King gives the half-dragon boy to you to raise; on his eighteenth hatch-day the court will judge what he has become. Each month spend a Free Day in the city (visit friends with gifts, talk with him, shop, take quests from the Guild Hall, pray, see a play), then plan three periods of lessons, jobs, rest, quests and expeditions into six regions with their own masters, and watch his Stress and his dragon blood. Six childhood friends grow up beside him, each with four heart scenes and a Starfall Night, and any of them can become his partner. Fifteen story scenes with choices, a Harvest Festival, eighteen endings from Dragon Overlord to the First Dragon King and his royal wedding, 68 illustrations, 501 voiced lines and an album that replays every cutscene. Mouse, keyboard, gamepad or touch.",
         icon: '🐉',
         folder: 'game-127',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'dragonprince',
         genre: 'story',
         tags: [
