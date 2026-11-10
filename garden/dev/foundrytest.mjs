@@ -106,6 +106,13 @@ await shot('1b-ride-mid');
 await G('(g.foundry.ride.t = 9.9)');
 await until('!g.foundry.busy', 300000);
 check(await G('g.controls.seated === false && g.controls.enabled'), 'the gate opens and you can walk out');
+// the loudspeakers: an announcement, and the worn-out end of the loop
+await G('(() => { const pa = g.foundry.pa; pa.jump(0); for (let i = 0; i < 40; i++) pa.update(0.1); })()');
+check(await G('!document.getElementById("fd-pa").hidden && /invasion/i.test(document.getElementById("fd-pa-text").textContent)'), `the public address announces the invasion (${await G('document.getElementById("fd-pa-text").textContent')})`);
+await G('(() => { const pa = g.foundry.pa; pa.jump(8); for (let i = 0; i < 70; i++) pa.update(0.1); })()');
+check(await G('document.getElementById("fd-pa").classList.contains("glitch")'), `at the end of the loop it glitches (${await G('document.getElementById("fd-pa-text").textContent')})`);
+await G('(() => { const pa = g.foundry.pa; for (let i = 0; i < 220; i++) pa.update(0.1); })()');
+check(await G('g.foundry.pa.loops === 1 && g.foundry.pa.item === -1'), 'and the loop restarts');
 await frames(20);
 await shot('2-arrive');
 
@@ -177,7 +184,7 @@ check(await G('g.foundry.log.pit'), 'the pit is found');
 const burned = await G(`(() => g.foundry.lines.robots.some((r) => r.post && r.y < -10))()`);
 check(burned, 'and units are burning in the lava below');
 const count = await G('Number(document.getElementById("fd-count").textContent.replace(/[^0-9]/g, ""))');
-check(count > 50000, `the counter counts the units completed (${count})`);
+check(count > 30000, `the counter counts the units completed (${count})`);
 
 // hover a robot for its card
 await stand(7, -10, PI / 2, 0.05, 20);

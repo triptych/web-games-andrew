@@ -261,6 +261,32 @@ export class FoundryAudio {
         this.audio._bell(1318.5, t + 0.35, 0.07);
     }
 
+    /** The loudspeakers' chime before an announcement; `bad`, worn out and wobbling. */
+    paChime(bad = false) {
+        if (!this.live) return;
+        const t = this.ctx.currentTime;
+        [659.3, 523.3, 784].forEach((f, i) => {
+            const wob = bad ? 1 + (Math.random() - 0.5) * 0.12 : 1;
+            this._tone(t + i * 0.32, f * wob, f * (bad ? wob * (0.85 + Math.random() * 0.1) : 0.995), 1.1, 0.045, bad ? 'triangle' : 'sine', 3000);
+        });
+        if (bad) this._burst(t + 0.5, 0.4, 2600, 0.6, 0.05, 'highpass');
+    }
+
+    /** The recording wearing through: 'static', 'whine' (tape dragging), 'powerDown', 'click'. */
+    paNoise(kind) {
+        if (!this.live) return;
+        const t = this.ctx.currentTime;
+        if (kind === 'static') {
+            this._burst(t, 0.7, 3200, 0.4, 0.12, 'highpass');
+            for (let i = 0; i < 8; i++) this._burst(t + Math.random() * 0.6, 0.03, 1500 + Math.random() * 4000, 2, 0.08);
+        } else if (kind === 'whine') {
+            this._tone(t, 900, 140, 2.2, 0.03, 'sawtooth', 1800);
+        } else if (kind === 'powerDown') {
+            this._tone(t, 420, 28, 1.8, 0.06, 'sawtooth', 900);
+            this._burst(t + 1.6, 0.4, 120, 1, 0.2, 'lowpass');
+        } else if (kind === 'click') this._burst(t, 0.03, 2200, 2, 0.08);
+    }
+
     update(pitNear) {
         if (!this.built) return;
         this.lava.gain.setTargetAtTime(this.on && !this.audio.muted ? 0.05 + pitNear * 0.35 : 0, this.ctx.currentTime, 0.4);

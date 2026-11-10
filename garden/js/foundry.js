@@ -18,6 +18,7 @@ import { Lines, LINES, SHOPS, shopAt, slotZ, Z0, PITCH, LAST, CYCLE, MOVE, DWELL
 import { Hall, WALK, CATWALK, DECK, APRON, LIFT, X0, X1, Z_FAR, CEIL } from './foundry-hall.js';
 import { Particles, Arcs } from './foundry-fx.js';
 import { FoundryAudio } from './foundry-audio.js';
+import { FoundryPA } from './foundry-pa.js';
 import { clamp, lerp, smoothstep, store } from './util.js';
 
 const V3 = THREE.Vector3;
@@ -72,6 +73,7 @@ export class Foundry {
         this.arcs = new Arcs(s, 28);
         this._lights();
         this.sound = env.audio ? new FoundryAudio(env.audio) : null;
+        this.pa = new FoundryPA({ audio: env.audio, sound: this.sound });
         this.log = store.get('foundryLog', {});
         this._dom();
         this.cam = new V3();
@@ -153,6 +155,7 @@ export class Foundry {
         if (this.dom.root) this.dom.root.hidden = false;
         document.body.classList.add('in-foundry');
         this.sound?.start();
+        this.pa.start();
         this.sound?.liftMotor(1);
         this._found('lift', true);
     }
@@ -167,6 +170,7 @@ export class Foundry {
         document.body.classList.remove('in-foundry');
         this.sound?.liftMotor(0);
         this.sound?.stop();
+        this.pa.stop();
     }
 
     /** Walked into the car: shut the gate and go up. */
@@ -263,6 +267,7 @@ export class Foundry {
         }
         const pitNear = clamp(1 - (cam.z - (LEDGE_Z - 10)) / 60, 0, 1);
         this.sound?.update(pitNear);
+        this.pa.update(dt);
         if (this.hall.pressHit) this.sound?.press(this._near(29, -96, 50));
     }
 
