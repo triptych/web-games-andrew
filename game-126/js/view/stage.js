@@ -13,15 +13,19 @@ const EL_COLOR = {
     holy: ['#fff2b0', '#ffd86a'], dark: ['#b06cff', '#5a2a9a'], nature: ['#8fe06a', '#3f9a3a'], heal: ['#8ef07c', '#e0ffd0'],
 };
 
-// where units stand (bottom-centre of the sprite), by side and count
+// where units stand (bottom-centre of the sprite = their feet), by side and count. Every backdrop's walkable
+// foreground floor starts around y 255; feet go between 290 and 352 so nobody stands on the far wall's footing.
 const ENEMY_SLOTS = {
-    1: [[185, 296]],
-    2: [[130, 250], [255, 300]],
-    3: [[110, 235], [250, 258], [160, 330]],
-    4: [[95, 228], [230, 240], [120, 330], [262, 336]],
+    1: [[185, 330]],
+    2: [[130, 306], [255, 340]],
+    3: [[108, 298], [248, 314], [168, 350]],
+    4: [[92, 296], [228, 302], [128, 350], [262, 352]],
 };
-const BIG_SLOTS = [[165, 318], [320, 232], [318, 336]];
-const PARTY_SLOTS = [[468, 236], [512, 270], [556, 304], [600, 340]];
+const BIG_SLOTS = [[160, 348], [320, 302], [322, 352]];
+const PARTY_SLOTS = [[466, 292], [510, 310], [554, 328], [598, 346]];
+// creatures that fly or float: drawn hovering above their shadow, bobbing; everything else stands on the floor
+const FLYERS = new Set(['dusk_bat', 'shard_wisp', 'living_tome', 'star_jelly', 'void_eye', 'sentinel_orb', 'nebula_moth', 'ice_wraith',
+    'wax_wraith', 'ink_shade', 'quill_imp', 'rime_harpy', 'storm_elemental', 'thunderbird', 'celestine', 'storm_drake', 'sky_drake']);
 
 export class Stage {
     constructor(canvas, floaters) {
@@ -293,15 +297,18 @@ export class Stage {
         const dir = u.side === 'e' ? 1 : -1;
         const lunge = Math.sin(Math.min(1, u.lunge) * Math.PI) * 22 * dir;
         const recoil = u.hurt * 5 * -dir;
-        const bob = u.alive ? Math.round(Math.sin(this.time * 2.2 + u.x * 0.05) * (u.side === 'e' && ['dusk_bat', 'shard_wisp', 'living_tome', 'star_jelly', 'void_eye', 'sentinel_orb', 'nebula_moth', 'ice_wraith', 'wax_wraith', 'celestine'].includes(u.ref) ? 3 : 1.2)) : 0;
+        const flyer = u.side === 'e' && FLYERS.has(u.ref);
+        // fliers hover and bob over their shadow; walkers stay planted (no bob, or they look like they float)
+        const bob = flyer && u.alive ? Math.round(-14 + Math.sin(this.time * 2.2 + u.x * 0.05) * 3) : 0;
         const intro = u.intro * 60 * -dir;
         const x = Math.round(u.x - w / 2 + lunge + recoil + intro), y = Math.round(u.y - h + bob);
-        // shadow
-        ctx.globalAlpha = 0.35 * u.alpha;
+        // contact shadow on the floor: a soft wide ellipse and a dark core right under the feet
+        const sx = u.x + lunge + recoil, sw = Math.max(14, w * (flyer ? 0.3 : 0.4)), sh = Math.max(4, sw * 0.22);
         ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.ellipse(u.x + lunge, u.y - 2, w * 0.36, Math.max(4, w * 0.08), 0, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.globalAlpha = (flyer ? 0.22 : 0.32) * u.alpha;
+        ctx.beginPath(); ctx.ellipse(sx, u.y - 1, sw, sh, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = (flyer ? 0.18 : 0.38) * u.alpha;
+        ctx.beginPath(); ctx.ellipse(sx, u.y - 1, sw * 0.62, sh * 0.6, 0, 0, Math.PI * 2); ctx.fill();
         ctx.globalAlpha = u.alpha;
         if (!ready(u.im)) { ctx.fillStyle = u.side === 'e' ? '#7a3a5a' : '#3a5a9a'; ctx.fillRect(x, y, w, h); ctx.globalAlpha = 1; return; }
         // aura for ascended heroes and enraged bosses

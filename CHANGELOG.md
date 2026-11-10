@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **EMBERSPIRE** (game-126) v1.0.1: heroes and monsters looked like they were floating above the floor in battle. Their feet were placed on the strip of floor at the foot of each backdrop's far wall, which against the painted perspective reads as mid-air; they now stand on the near floor (feet between y 290 and 352 of 360) with a two-layer contact shadow, walkers no longer bob, and only flying monsters hover above a fainter shadow ([stage.js](game-126/js/view/stage.js)). The floor label moved to the top-right so it no longer covers the back-row hero, and the Garden preview was retaken.
+
 ### Added
 - **EMBERSPIRE** (game-126) v1.0.0: a 16-bit endless tower RPG. Climb a tower with no top in turn-based party battles, a mini boss every 5th floor and a boss every 10th, then go home to Hearthmere to recruit, upgrade, evolve and spend the evening with a friend.
   - Battles ([battle.js](game-126/js/sim/battle.js)): charge-time turns (speed decides how often you act), Attack / Skills / Items / Defend / Flee, seven elements with weaknesses and resistances, crits, poison, burn, stun, slow, haste, regen, barrier, taunt and stat buffs, bosses that enrage below half health; auto battle and auto-climb share the test bot's brain.

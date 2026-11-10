@@ -202,7 +202,7 @@ td:first-child { color: var(--gold); white-space: nowrap; }
 .float.mp { color: #7cc0ff; }
 @keyframes floatup { 0% { opacity: 0; margin-top: 8px; } 12% { opacity: 1; margin-top: -6px; } 75% { opacity: 1; } 100% { opacity: 0; margin-top: -34px; } }
 #floor-tag {
-    position: absolute; right: 6px; bottom: 6px;
+    position: absolute; right: 6px; top: 6px;
     background: rgba(5, 8, 26, 0.8); border: 2px solid var(--gold-d); border-radius: 6px; padding: 2px 12px;
     font-weight: 700; color: var(--gold); text-shadow: 0 1px 0 #000; font-size: clamp(11px, 1.5vw, 15px); white-space: nowrap;
 }
