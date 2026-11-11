@@ -43,7 +43,8 @@ async function open(viewport, { touch = false, nostorage = false } = {}) {
     const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1, hasTouch: touch, isMobile: touch });
     await ctx.addInitScript((ns) => {
         if (ns) Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('blocked', 'SecurityError'); } });
-        else try { localStorage.clear(); } catch { /* */ }
+        // a fresh start per tab, but a reload keeps the save (the reload test needs it)
+        else try { if (!sessionStorage.getItem('bt')) { localStorage.clear(); sessionStorage.setItem('bt', '1'); } } catch { /* */ }
     }, nostorage);
     const page = await ctx.newPage();
     await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
@@ -105,13 +106,13 @@ async function desktop() {
     await until(page, () => __gs.mode === 'village' && !document.getElementById('village').hidden, 'Skip lands in Briarwick');
     check(await Q(page, () => __gs.G.village.last > 0), 'a new tale starts the village\'s idle clock when it reaches Briarwick');
     // v1.2.2: villagers walk the backdrop, under the village's buttons
-    await page.waitForTimeout(300);
+    // (they start out idle for up to 4 s, so give them time: a fixed 1.5 s window was flaky)
+    await page.waitForFunction(() => document.querySelectorAll('#folk .walker').length >= 12, null, { timeout: 10000 }).catch(() => null);
     const folk0 = await Q(page, () => [...document.querySelectorAll('#folk .walker')].map((w) => w.style.transform));
-    await page.waitForTimeout(1500);
-    check(await Q(page, (f0) => {
+    await until(page, (f0) => {
         const now = [...document.querySelectorAll('#folk .walker')].map((w) => w.style.transform);
         return now.length >= 12 && now.filter((t, i) => t !== f0[i]).length >= 3;
-    }, folk0), 'villagers walk around Briarwick');
+    }, 'villagers walk around Briarwick', 8000, folk0);
     check(await Q(page, () => {
         const b = document.getElementById('btn-hero').getBoundingClientRect();
         return document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2)?.closest('#btn-hero') && getComputedStyle(document.getElementById('folk')).pointerEvents === 'none';
@@ -276,6 +277,26 @@ async function desktop() {
     // audio
     await until(page, () => __gs.audio.loaded() >= 50, 'the generated effects and voices decode', 30000);
     await until(page, () => __gs.audio.playing(), 'a music track is playing', 20000);
+    // (last: a reloaded page has no user gesture yet, so its audio stays locked)
+    // a reload just after the hero fell: the result shows at once instead of hanging on the dead hero (v1.3.2; it sat
+    // there with the village music playing)
+    await Q(page, () => {
+        __gs.cmd({ t: 'patrol', region: 'greenmarch' });
+        __gs.G.battle.phase = 'fight'; __gs.G.battle.hero.hp = 1; __gs.G.battle.foe.timer = 0.01;
+        __gs.ff(1);
+        __gs.save();
+    });
+    check(await Q(page, () => __gs.G.battle?.phase === 'lost' && __gs.ui.top() !== 'result'), 'the hero falls and the game is saved before the result shows');
+    const before = errors.length;
+    await page.reload();
+    // the reload cancels downloads still in flight (music streams): not errors
+    errors.splice(before, Infinity, ...errors.slice(before).filter((e) => !/requestfailed: .*ERR_ABORTED/.test(e)));
+    await page.waitForFunction(() => window.__gs && __gs.mode === 'title', null, { timeout: 60000 });
+    await click(page, '#title-menu [data-act="continue"]');
+    await until(page, () => __gs.mode === 'battle' && __gs.ui.top() === 'result', 'after a reload, Continue shows the lost fight\'s result');
+    check(await Q(page, () => __gs.audio.want === null), 'and the music stops for the loss (no village or title music over it)');
+    await click(page, '#result-go');
+    await until(page, () => __gs.mode === 'village', 'and its button takes the hero home');
     check(await noHScroll(page), 'no sideways scroll');
     reportErrors('desktop');
 }
