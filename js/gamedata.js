@@ -283,7 +283,7 @@ const games = [
         description: 'Neon-drenched brick-breaker with synthwave aesthetics! Smash 8 rows of vivid neon bricks, build combo multipliers, and catch explosive powerups — wide paddle, multiball, laser cannon, and slow-mo. Particle explosions and a perspective grid backdrop set the mood.',
         icon: '🧱',
         folder: 'game-019',
-        version: '1.1.1',
+        version: '1.1.2',
         cssClass: 'synthwave-breakout',
         genre: 'arcade',
         tags: [
