@@ -15,7 +15,7 @@ import { ENDINGS, ENDING } from './sim/data/endings.js';
 import { STORY } from './sim/data/story.js';
 import { HEART_SCENES } from './sim/data/hearts.js';
 import { STAT_NAMES, questChance, power } from './sim/rules.js';
-import { placeOpen, heartReady, canDo, advStep, advChance, contestOpen } from './sim/game.js';
+import { placeOpen, heartReady, canDo, advStep, advChance, advFoe, contestOpen } from './sim/game.js';
 import { sceneDef } from './sim/scenes.js';
 import { CGS } from './assets.js';
 import { MUSIC } from './audio.js';
@@ -160,6 +160,10 @@ export class UI {
         else if (G.scene) what = 'scene';
         else what = G.phase;
         panel.hidden = what === 'scene';
+        // the expedition's creature: the danger being faced, or the one just met while its outcome is shown
+        const foe = what === 'adventure' ? advFoe(G) : what === 'encounter' ? this.encounter.foe : null;
+        this.setFoe(foe, what === 'encounter' ? (this.encounter.ok ? 'won' : 'lost') : 'idle', what === 'encounter' ? this.encounter.a : null);
+        panel.classList.toggle('bottom', !!foe);
         if (what === 'scene') { this.lastPanelKey = ''; return what; }
         this.vn.clearStage();
         $('dlg').hidden = true;
@@ -183,7 +187,52 @@ export class UI {
             panel.scrollTop = keepScroll;
             panel.dataset.what = what;
         }
+        if (foe) this.placeFoe();
         return what;
+    }
+
+    /** Show an expedition creature (or none). `mode` is idle, won (struck, fades back) or lost (lunges). */
+    setFoe(id, mode = 'idle', approach = null) {
+        const el = $('foe');
+        if (!id) { if (!el.hidden) { el.hidden = true; el.dataset.id = ''; el.dataset.mode = ''; } return; }
+        const img = el.querySelector('img');
+        if (el.dataset.id !== id) {
+            el.dataset.id = id;
+            el.dataset.mode = '';
+            img.src = ART.foe(id);
+            el.className = 'layer';
+            el.hidden = false;
+            void el.offsetWidth;             // restart the entrance animation
+            el.classList.add('enter');
+        }
+        el.hidden = false;
+        el.classList.toggle('boss', id.endsWith('-boss'));
+        if (el.dataset.mode !== mode) {
+            el.dataset.mode = mode;
+            el.classList.remove('won', 'lost');
+            if (mode !== 'idle') {
+                el.style.setProperty('--hit', { dragon: 'rgba(255,140,60,.95)', magic: 'rgba(190,150,255,.95)', faith: 'rgba(255,240,170,.95)', sneak: 'rgba(150,170,200,.8)' }[approach] || 'rgba(255,220,150,.9)');
+                void el.offsetWidth;
+                el.classList.add(mode);
+            }
+        }
+    }
+
+    /** Keep the creature between the HUD and the top of the choices card. */
+    placeFoe() {
+        const el = $('foe');
+        const card = $('panel').querySelector('.result');
+        if (el.hidden || !card) return;
+        const app = $('app').getBoundingClientRect();
+        const r = card.getBoundingClientRect();
+        if (r.left - app.left > app.width * 0.3) {
+            // side by side (short landscape screens): the creature fills the space left of the card
+            el.style.bottom = '6px';
+            el.style.right = Math.max(0, app.right - r.left + 8) + 'px';
+        } else {
+            el.style.right = '0';
+            el.style.bottom = Math.max(0, app.bottom - r.top + 4) + 'px';
+        }
     }
 
     _panelClick(e) {

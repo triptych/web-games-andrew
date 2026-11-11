@@ -28,6 +28,7 @@ will judge what he has become.
 
 **Expeditions** are four encounters (three of five per region, then its master). Each offers approaches (Fight,
 Spellcraft, Talk, Sneak, Dragonfire, Pray), each rolled on its own stat mix against the region's difficulty.
+Each danger and master has its own painted creature (`art/foe/<region>-<n|boss>.webp`), shown above the choices.
 
 ## Stats
 
@@ -107,10 +108,11 @@ It also has the CG gallery (68), the endings list (18, with hints for locked car
 
 ## Testing
 
-See [dev/README.md](dev/README.md): `simtest.mjs` (803 checks), `browsertest.mjs` (desktop, two touch phones,
+See [dev/README.md](dev/README.md): `simtest.mjs` (806 checks), `browsertest.mjs` (desktop, two touch phones,
 blocked storage), `play.mjs`.
 
 ## Changelog
 
 - **1.0.0** First release.
 - **1.0.1** The dialogue box shows after the month's last result: Continue into a month that opens with a story scene left a blank backdrop.
+- **1.1.0** Expedition creatures: a painted cutout for each of the 30 dangers and 6 masters, reacting to each outcome.

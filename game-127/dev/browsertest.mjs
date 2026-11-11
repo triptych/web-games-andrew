@@ -5,7 +5,8 @@
  *   plays (Enter types and advances, a voiced line plays, the generated music and effects load) → Tab skips → the
  *   Free Day → the market sells a gift → Escape leaves → the planner takes three periods by click → the periods
  *   run with their results → S opens the status sheet → Save to slot 1 → Save & Quit → Continue restores the game
- *   → the album replays the prologue → the bot plays to the coming of age → the ending card.
+ *   → the album replays the prologue → an expedition planned by click, its four creatures reacting to each outcome
+ *   → the bot plays to the coming of age → the ending card.
  * phones (touch only, real taps) at 390x844 and 844x390: tap through the title and the naming sheet, a tap on the
  *   dialogue box advances, the Free Day and the planner fit, controls ≥ 44 px and on screen, no sideways scroll.
  * nostorage: localStorage throws; the game still boots and plays a month.
@@ -87,6 +88,20 @@ const controlsOk = (page, sel) => Q(page, (s) => {
     }
     return bad;
 }, sel);
+
+/** The expedition creature is loaded, a real size, and sits between the HUD and the choices card without overlapping. */
+const foeOk = (page) => Q(page, () => {
+    const el = document.getElementById('foe'), img = el.querySelector('img');
+    if (el.hidden || !img.complete || !img.naturalWidth) return 'not shown or not loaded';
+    const r = img.getBoundingClientRect(), hud = document.getElementById('hud').getBoundingClientRect();
+    const card = document.querySelector('#panel .result').getBoundingClientRect();
+    if (r.height < 100) return `too small (${Math.round(r.height)} px)`;
+    if (r.top < hud.bottom - 1) return 'under the HUD';
+    const overlapX = Math.min(r.right, card.right) - Math.max(r.left, card.left);
+    const overlapY = Math.min(r.bottom, card.bottom) - Math.max(r.top, card.top);
+    if (overlapX > 2 && overlapY > 2) return 'overlaps the choices card';
+    return 'ok';
+});
 
 /** Press Tab (skip) and pick the first choice until the scenes are done and the Free Day shows. */
 async function skipToFree(page, keys = true) {
@@ -206,6 +221,37 @@ async function desktop() {
     await until(page, () => __fdp.mode === 'game' && !document.getElementById('album').hidden, 'End replay goes back to the album and the game');
     await page.keyboard.press('Escape');
 
+    // an expedition, planned by click: each danger's creature takes the stage, reacts to the outcome, the master comes last
+    check(await skipToFree(page), 'back on the Free Day for an expedition');
+    await click(page, '#panel [data-k="endFree"]');
+    await until(page, () => __fdp.G.phase === 'plan', 'into the planner');
+    await click(page, '#panel [data-k="tab:adv"]');
+    await click(page, '#panel [data-k="pick:adv:whisperwood"]');
+    await click(page, '#panel [data-k="tab:rest"]');
+    await click(page, '#panel [data-k="pick:rest"]');
+    await click(page, '#panel [data-k="pick:rest"]');
+    await click(page, '#panel [data-k="plan"]');
+    await until(page, () => __fdp.G.phase === 'run', 'an expedition to the Whisperwood is planned');
+    await click(page, '#panel [data-k="next"]');
+    await until(page, () => __fdp.G.phase === 'adventure' && !!document.querySelector('#panel [data-k^="approach:"]'), 'Set out starts the first danger');
+    const first = await Q(page, () => __fdp.G.adv && `${__fdp.G.adv.region}-${__fdp.G.adv.steps[0]}`);
+    await until(page, (f) => document.getElementById('foe').dataset.id === f && document.querySelector('#foe img').naturalWidth > 0, `its creature (${first}) takes the stage`, 10000, first);
+    await page.waitForTimeout(650);             // the entrance animation rises from just behind the card
+    const fo = await foeOk(page);
+    check(fo === 'ok', `between the HUD and the choices, a real size (${fo})`);
+    await shot(page, 'desktop-expedition');
+    const seenFoes = [];
+    for (let i = 0; i < 4; i++) {
+        seenFoes.push(await Q(page, () => document.getElementById('foe').dataset.id));
+        await click(page, '#panel [data-k^="approach:"]');
+        await until(page, () => /\b(won|lost)\b/.test(document.getElementById('foe').className), `danger ${i + 1}: the creature reacts to the outcome`, 5000);
+        if (i === 0) await shot(page, 'desktop-expedition-outcome');
+        await click(page, '#panel [data-k="enc"]');
+        await page.waitForTimeout(80);
+    }
+    check(new Set(seenFoes).size === 4 && seenFoes[3] === 'whisperwood-boss', `four different creatures, the Antlered Hag last (${seenFoes.join(', ')})`);
+    await until(page, () => document.getElementById('foe').hidden && !!document.querySelector('#panel .result .story'), 'after the master, the creature leaves and the expedition\'s result shows');
+
     // the bot raises him the rest of the way; the ending plays
     await Q(page, () => __fdp.toEnding('king'));
     await until(page, () => __fdp.G.phase === 'ending' && __fdp.G.scene?.id === 'ending', 'eight years later, the coming of age', 60000);
@@ -256,6 +302,14 @@ async function phone(viewport, label) {
         await page.waitForTimeout(80);
     }
     await until(page, visible('#dlg .text'), 'tapping through the month lands in Rowan\'s scene with its dialogue box');
+    // an expedition on this screen: the creature has room, clear of the HUD and the choices
+    await Q(page, () => { __fdp.skipScenes(); __fdp.send({ t: 'endFree' }); __fdp.send({ t: 'plan', slots: ['adv:whisperwood', 'rest', 'rest'] }); __fdp.send({ t: 'next' }); });
+    await until(page, () => __fdp.G.phase === 'adventure' && document.querySelector('#foe img').naturalWidth > 0, 'an expedition shows its creature');
+    await page.waitForTimeout(650);
+    const pf = await foeOk(page);
+    check(pf === 'ok', `the creature fits beside the choices (${pf})`);
+    check((await controlsOk(page, '#panel')).length === 0, 'the approach buttons are finger-sized and on screen');
+    await shot(page, `${label}-expedition`);
     reportErrors(label);
 }
 
