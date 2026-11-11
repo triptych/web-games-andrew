@@ -190,6 +190,24 @@ What changed because of it:
 
 ## Changelog
 
+### v1.2.0 (2026-11-11)
+- Foe abilities are telegraphed: "Next: Chains" under the attack timer, a boxed "Chains incoming!" warning at 70% of
+  the timer, a boxed alert saying what happened and what to do when it lands, rings on the gems it touched, and a status
+  line (chained, stone, doom countdown, foe shield, poison). `abilityOn`/`nextAbility` in `sim/battle.js` drive both
+  the attack and the label.
+- A skill bounces when a match feeds mana it needs.
+- Line gems: a beam in the gem's colour with gold arrowheads pointing the way they clear, instead of a white bar.
+- The village ticker (`js/ticker.js`): every 7 s a villager speaks, hints and chatter in turn; a hint (skill points,
+  better gear, daily gift, collect, full stores, finished requests, the next chapter or patrols, a building or an
+  Armory upgrade you can afford, low potions) is a button that takes you there.
+- Resource chips are buttons: a tip says where more comes from (the building that makes it, the region whose foes
+  pay it, battles, the daily gift), built from the data.
+- Gear tab: Equip best and Remove all (`equipBest`, `unequipAll`, `unequip` commands); worn gear can be taken off.
+- The Collect button fills toward the next whole unit, with "Next: +1 gold in 3:12" under it, or "Stores full!".
+- A "Battle 2/3" card at the start of each fight of a quest (the final one says so).
+- Fixed: a new tale's idle production never started until the game was reloaded (the first collect came during the
+  opening scene and was ignored); it now starts on reaching Briarwick.
+
 ### v1.1.2 (2026-11-11)
 - One rule for every button: pressable buttons have a gold edge and lift on hover; actions in list rows (buy, sell,
   equip, upgrade, claim, patrol) are gold-filled; unavailable ones are flat, dashed and dim with the reason as a tooltip,

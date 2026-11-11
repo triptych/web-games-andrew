@@ -242,6 +242,9 @@ export function act(G, cmd) {
     if (t === 'buy') return V.buy(G, cmd.id);
     if (t === 'sell') return V.sell(G, cmd.uid);
     if (t === 'equip') return V.equip(G, cmd.uid);
+    if (t === 'unequip') return V.unequip(G, cmd.slot);
+    if (t === 'equipBest') return V.equipBest(G);
+    if (t === 'unequipAll') return V.unequipAll(G);
     if (t === 'upgrade') return V.upgrade(G, cmd.uid);
     if (t === 'learn') return learn(G, cmd.node);
     if (t === 'claim') return V.claim(G, cmd.id);

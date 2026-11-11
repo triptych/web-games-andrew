@@ -40,6 +40,24 @@ export function pending(G, now) {
     return out;
 }
 
+/** When the next whole unit of idle output lands: { res, secs, frac } for the soonest resource (frac = how far the
+ * current unit has come, 0..1), { full: true } once the stores hold all they can, or null if nothing is produced. */
+export function nextTick(G, now) {
+    const V = G.village;
+    if (!V.last) return null;
+    if (now - V.last >= capHours(G) * HOUR) return { full: true };
+    const p = pending(G, now);
+    const boost = now >= V.boostFrom && now < V.boostUntil ? 2 : 1;
+    let best = null;
+    for (const [res, r] of Object.entries(rates(G))) {
+        if (!(r > 0)) continue;
+        const frac = (p[res] || 0) - Math.floor(p[res] || 0);
+        const secs = (1 - frac) / (r * boost) * 3600;
+        if (!best || secs < best.secs) best = { res, secs, frac };
+    }
+    return best;
+}
+
 /** Collect the idle output. Returns what was added (whole units). */
 export function collect(G, now) {
     const V = G.village;
@@ -174,6 +192,40 @@ export function equip(G, uid) {
     G.hero.eq[ITEM[inv.id].slot] = uid;
     G.events.push({ type: 'equip', id: inv.id });
     return true;
+}
+
+export function unequip(G, slot) {
+    if (!G.hero.eq[slot]) return false;
+    G.hero.eq[slot] = null;
+    G.events.push({ type: 'unequip', slot });
+    return true;
+}
+
+/** For each slot, the owned piece with the best gearScore (the worn one on a tie), or null if the slot has nothing. */
+export function bestGear(G) {
+    const out = {};
+    for (const slot of ['weapon', 'armor', 'charm']) {
+        let best = null, bs = -Infinity;
+        const worn = G.inv.find((x) => x.uid === G.hero.eq[slot]);
+        if (worn) { best = worn; bs = gearScore(worn); }
+        for (const inv of G.inv) if (ITEM[inv.id].slot === slot && gearScore(inv) > bs) { best = inv; bs = gearScore(inv); }
+        out[slot] = best;
+    }
+    return out;
+}
+/** Wear the best piece in every slot. False if that changes nothing. */
+export function equipBest(G) {
+    let n = 0;
+    for (const [slot, inv] of Object.entries(bestGear(G))) if (inv && G.hero.eq[slot] !== inv.uid) { G.hero.eq[slot] = inv.uid; n++; }
+    if (n) G.events.push({ type: 'equipBest', n });
+    return n > 0;
+}
+/** Take everything off. False if nothing was worn. */
+export function unequipAll(G) {
+    let n = 0;
+    for (const slot of ['weapon', 'armor', 'charm']) if (G.hero.eq[slot]) { G.hero.eq[slot] = null; n++; }
+    if (n) G.events.push({ type: 'unequipAll', n });
+    return n > 0;
 }
 
 // ---------------------------------------------------------------- the armory

@@ -10,6 +10,18 @@ import { img, ready, ART } from '../assets.js';
 import { HERO } from '../sim/data/heroes.js';
 import { FOE } from '../sim/data/world.js';
 import * as Bd from '../sim/board.js';
+import { nextAbility } from '../sim/battle.js';
+
+// What a foe's ability does to the player, for the warning under its attack timer and the alert when it lands.
+const ABIL = {
+    stone: { name: 'Stone', warn: 'Stone gems incoming!', hit: 'Gems turned to stone! Match next to them to break them', col: '#c9c2b8' },
+    lock: { name: 'Chains', warn: 'Chains incoming!', hit: 'Chained! Those gems can\'t move: match them in place', col: '#d7dde6' },
+    doom: { name: 'Doom gem', warn: 'Doom gem incoming!', hit: 'Doom gem! Match next to it before it bursts', col: '#ff5a5a' },
+    drain: { name: 'Mana drain', warn: 'Mana drain incoming!', hit: 'Mana drained!', col: '#b07bff' },
+    heal: { name: 'Heal', warn: 'The foe will heal!', hit: 'The foe heals!', col: '#7dff9a' },
+    shield: { name: 'Shield', warn: 'The foe will raise a shield!', hit: 'Shielded! Break it before it soaks your hits', col: '#9fd0ff' },
+    poison: { name: 'Poison', warn: 'Poison incoming!', hit: 'Poisoned! Hearts heal it off', col: '#7dff6b' },
+};
 
 const W = BOARD.w, H = BOARD.h;
 const GEM_COL = ['#c9d6e6', '#ff7aa8', '#ff5a5a', '#4ea2ff', '#3fd07a', '#b07bff', '#9a9a9a', '#ff3030', '#ffffff'];
@@ -74,6 +86,8 @@ export class BattleView {
         this.fx = [];               // particles
         this.nums = [];             // floating numbers
         this.banners = [];          // big words
+        this.marks = new Map();     // tile -> { t, col }: gems a foe just cursed, ringed for a moment
+        this.warned = -1;           // the foe attack count already warned about
         this.lunge = { hero: 0, foe: 0 };
         this.flash = { hero: 0, foe: 0 };
         this.shake = 0;
@@ -192,7 +206,7 @@ export class BattleView {
         return false;
     }
 
-    reset() { this.sel = -1; this.fx.length = 0; this.nums.length = 0; this.banners.length = 0; this.foeDying = 0; this.lunge.hero = this.lunge.foe = 0; }
+    reset() { this.sel = -1; this.fx.length = 0; this.nums.length = 0; this.banners.length = 0; this.marks.clear(); this.warned = -1; this.foeDying = 0; this.lunge.hero = this.lunge.foe = 0; }
 
     // ------------------------------------------------------------------ events
     cellCenter(x, y) {
@@ -204,7 +218,7 @@ export class BattleView {
 
     onEvents(G, events) {
         for (const e of events) {
-            if (e.type === 'battle') { this.reset(); this.banner(FOE[e.foe].name, '#ffcf5a', 1.6); }
+            if (e.type === 'battle') this.reset();      // the intro card names the foe
             else if (e.type === 'match') {
                 const p = this.cellCenter(e.x, e.y);
                 const to = e.k === GEM.HEART ? this.heroPos() : this.foePos();
@@ -224,18 +238,25 @@ export class BattleView {
             else if (e.type === 'hurt') { const p = this.heroPos(); this.flash.hero = 0.2; this.shake = Math.max(this.shake, 0.25); this.num(p.x, p.y - 40, '-' + e.amt, '#ff6b6b', 1.2); }
             else if (e.type === 'blocked') { const p = this.heroPos(); this.num(p.x, p.y - 60, 'Blocked ' + e.amt, '#9fd0ff'); }
             else if (e.type === 'heal') { const p = this.heroPos(); this.num(p.x, p.y - 50, '+' + e.amt, '#7dff9a'); }
-            else if (e.type === 'foeHeal') { const p = this.foePos(); this.num(p.x, p.y - 50, '+' + e.amt, '#7dff9a'); }
+            else if (e.type === 'foeHeal') { const p = this.foePos(); this.num(p.x, p.y - 50, '+' + e.amt, '#7dff9a'); this.alert(ABIL.heal.hit, ABIL.heal.col); }
             else if (e.type === 'curse') {
-                for (const s of e.slots || []) { const p = this.cellCenter(Bd.col(s), Bd.row(s)); for (let i = 0; i < 6; i++) this.spark(p.x, p.y, e.kind === 'doom' ? '#ff3b3b' : '#aaa'); }
-                this.banner({ stone: 'Petrified!', lock: 'Chained!', doom: 'Doom gem!' }[e.kind], '#ff9a9a', 1.1);
-            } else if (e.type === 'doomBurst') { const p = this.cellCenter(e.x, e.y); for (let i = 0; i < 30; i++) this.spark(p.x, p.y, '#ff3030', 300); this.shake = 0.4; }
-            else if (e.type === 'drain') this.banner(`Mana drained`, POOL_COL[e.pool], 1.0);
+                const a = ABIL[e.kind];
+                for (const s of e.slots || []) {
+                    const p = this.cellCenter(Bd.col(s), Bd.row(s));
+                    for (let i = 0; i < 6; i++) this.spark(p.x, p.y, e.kind === 'doom' ? '#ff3b3b' : '#aaa');
+                    const tile = G.battle?.board.cells[s];
+                    if (tile) this.marks.set(tile, { t: 0, col: a.col });
+                }
+                this.alert(a.hit, a.col);
+            }
+            else if (e.type === 'foeShield') this.alert(ABIL.shield.hit, ABIL.shield.col); else if (e.type === 'doomBurst') { const p = this.cellCenter(e.x, e.y); for (let i = 0; i < 30; i++) this.spark(p.x, p.y, '#ff3030', 300); this.shake = 0.4; }
+            else if (e.type === 'drain') this.alert(ABIL.drain.hit, POOL_COL[e.pool]);
             else if (e.type === 'enrage') this.banner('Enraged!', '#ff4d4d', 1.4);
             else if (e.type === 'won') { this.foeDying = 1; }
             else if (e.type === 'shuffle') this.banner('Shuffle', '#cde', 0.9);
             else if (e.type === 'revive') this.banner('Revived!', '#ffcf5a', 1.4);
             else if (e.type === 'frozen') this.banner('Frozen!', '#9fe8ff', 1.0);
-            else if (e.type === 'poisoned') this.banner('Poisoned', '#7dff6b', 0.9);
+            else if (e.type === 'poisoned') this.alert(ABIL.poison.hit, ABIL.poison.col);
         }
     }
 
@@ -243,6 +264,10 @@ export class BattleView {
     spark(x, y, col, sp = 160) { if (this.calm && this.fx.length > 40) return; const a = Math.random() * Math.PI * 2, v = sp * (0.3 + Math.random()); this.fx.push({ kind: 'spark', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, col, t: 0, dur: 0.45 + Math.random() * 0.3, s: 2 + Math.random() * 3 }); }
     num(x, y, text, col, size = 1) { this.nums.push({ x, y, text: String(text), col, t: 0, size }); }
     banner(text, col, dur = 1, y = null) { if (text) this.banners.push({ text, col, t: 0, dur, y }); if (this.banners.length > 3) this.banners.shift(); }
+    /** A boxed warning across the top of the board: what the foe is about to do, or just did. */
+    alert(text, col, dur = 2.2) {
+        this.alerts = [{ text, col, t: 0, dur }];     // one at a time: what landed replaces the warning
+    }
 
     // ------------------------------------------------------------------ drawing
     frame(G, dt, time) {
@@ -339,12 +364,58 @@ export class BattleView {
         ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(s.x + s.w - bw - rpad, ty, bw, 8);
         ctx.fillStyle = f.frozen > 0 ? '#9fe8ff' : t > 0.8 ? '#ff4d4d' : '#ffb347';
         ctx.fillRect(s.x + s.w - bw - rpad + 1, ty + 1, (bw - 2) * t, 6);
-        this.text(f.frozen > 0 ? 'Frozen' : 'Attack', s.x + s.w - rpad, ty + 20, 11, '#ddd', 'right');
+        // what the next attack brings, warned once as the timer runs low
+        const next = nextAbility(f);
+        const warnNow = next && t > 0.7 && f.frozen <= 0 && Bt.phase === 'fight';
+        if (warnNow && this.warned !== f.attacks) { this.warned = f.attacks; this.alert('⚠ ' + ABIL[next].warn, '#ff8a6a', 1.8); }
+        const lab = f.frozen > 0 ? 'Frozen' : next ? `Next: ${ABIL[next].name}` : 'Attack';
+        const pulse = warnNow && !this.calm ? 0.6 + 0.4 * Math.sin(time * 12) : 1;
+        ctx.globalAlpha = pulse;
+        this.text(lab, s.x + s.w - rpad, ty + 20, 11, warnNow ? '#ff8a6a' : next ? ABIL[next].col : '#ddd', 'right');
+        ctx.globalAlpha = 1;
         // the foe's weakness and status
         this.text(`Weak: ${{ r: 'Ruby', s: 'Sapphire', e: 'Emerald', a: 'Amethyst' }[f.weak]}`, s.x + s.w - bw - rpad, ty + 20, 11, POOL_COL[f.weak], 'left');
-        if (Bt.hero.poison > 0) this.text('Poisoned', s.x + pad, topY + 62, 11, '#7dff6b');
-        if (Bt.hero.summon) this.text('Ash fights at your side', s.x + pad, topY + 62, 11, '#ddd');
-        if (Bt.phase === 'intro') this.text('Ready…', s.x + s.w / 2, s.y + s.h * 0.45, 26, '#fff', 'center', true);
+        // status: what is on the hero and on the board
+        const st = [];
+        if (Bt.hero.poison > 0) st.push(['☠ Poisoned', '#7dff6b']);
+        if (Bt.hero.summon) st.push(['Ash fights at your side', '#ddd']);
+        let lock = 0, stone = 0, doom = null;
+        for (const c of Bt.board.cells) {
+            if (!c) continue;
+            if (c.lock) lock++;
+            if (c.k === GEM.STONE) stone++;
+            if (c.k === GEM.DOOM && c.st === 'idle') doom = Math.min(doom ?? 99, Math.ceil(c.doom));
+        }
+        if (lock) st.push([`⛓ ${lock} chained`, ABIL.lock.col]);
+        if (stone) st.push([`▣ ${stone} stone`, ABIL.stone.col]);
+        if (doom != null) st.push([`✹ doom in ${Math.max(0, doom)} s`, ABIL.doom.col]);
+        if (f.shield > 0) st.push([`Foe shield ${Math.ceil(f.shield)}`, ABIL.shield.col]);
+        let sx = s.x + pad;
+        ctx.font = '800 11px Nunito, system-ui, sans-serif';
+        for (const [txt, col] of st) {
+            const w = ctx.measureText(txt).width;
+            if (sx + w > s.x + s.w - pad) break;
+            this.text(txt, sx, topY + 62, 11, col);
+            sx += w + 12;
+        }
+        // between the fights of a quest: which one this is
+        if (Bt.phase === 'intro') {
+            const q = G.quest;
+            const a = Math.min(1, Bt.introT * 4);
+            ctx.globalAlpha = a;
+            ctx.fillStyle = 'rgba(8,6,16,0.72)';
+            const cy = s.y + s.h * 0.45;
+            ctx.fillRect(s.x, cy - 46, s.w, 82);
+            ctx.fillStyle = 'rgba(255,207,90,0.7)'; ctx.fillRect(s.x, cy - 46, s.w, 2); ctx.fillRect(s.x, cy + 34, s.w, 2);
+            if (q && q.fights.length > 1) {
+                this.text(`Battle ${q.i + 1}/${q.fights.length}`, s.x + s.w / 2, cy - 4, 30, '#ffcf5a', 'center', true);
+                this.text(q.i === q.fights.length - 1 ? `Final foe: ${f.name}` : f.name, s.x + s.w / 2, cy + 22, 15, '#fff', 'center');
+            } else {
+                this.text(f.name, s.x + s.w / 2, cy - 4, 28, '#ffcf5a', 'center', true);
+                this.text('Ready…', s.x + s.w / 2, cy + 22, 15, '#fff', 'center');
+            }
+            ctx.globalAlpha = 1;
+        }
     }
 
     sprite(im, x, y, w, h, tint, alpha = 1) {
@@ -429,11 +500,57 @@ export class BattleView {
             if (hint && (i === hint.a || i === hint.b) && !this.calm) scale *= 1 + 0.08 * Math.sin(time * 8);
             const x = b.x + c * cs, y = b.y + r * cs;
             this.gem(t, x, y, cs, scale, alpha, time);
+            const m = this.marks.get(t);
+            if (m) {
+                m.t += dt;
+                if (m.t > 2.4 || t.st === 'clear') this.marks.delete(t);
+                else {
+                    const k = this.calm ? 1 : 0.5 + 0.5 * Math.sin(m.t * 10);
+                    ctx.strokeStyle = m.col; ctx.lineWidth = 3; ctx.globalAlpha = Math.min(1, (2.4 - m.t) * 2) * (0.5 + 0.5 * k);
+                    ctx.beginPath(); ctx.arc(x + cs / 2, y + cs / 2, cs * (0.48 + 0.06 * k), 0, Math.PI * 2); ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+            }
         }
         ctx.restore();
         // selection and cursor
         if (this.sel >= 0) { ctx.strokeStyle = '#ffcf5a'; ctx.lineWidth = 3; ctx.strokeRect(b.x + Bd.col(this.sel) * cs + 2, b.y + Bd.row(this.sel) * cs + 2, cs - 4, cs - 4); }
         if (this.showCursor) { ctx.strokeStyle = '#ffffff'; ctx.setLineDash([5, 4]); ctx.lineWidth = 2; ctx.strokeRect(b.x + Bd.col(this.cursor) * cs + 4, b.y + Bd.row(this.cursor) * cs + 4, cs - 8, cs - 8); ctx.setLineDash([]); }
+    }
+
+    /** A line gem: a beam in the gem's colour through its middle with an arrowhead at each end, pointing the way it
+     * clears; the arrows breathe outward (v1.2.0, replacing a plain white bar). */
+    lineMark(t, x, y, cs, sz, time) {
+        const ctx = this.ctx;
+        const hor = t.sp === SPECIAL.LINE_H;
+        const col = GEM_COL[t.k] || '#fff';
+        const cx = x + cs / 2, cy = y + cs / 2;
+        const k = this.calm ? 0.5 : 0.5 + 0.5 * Math.sin(time * 5);
+        const half = sz * 0.5, th = cs * 0.1;
+        ctx.save();
+        ctx.translate(cx, cy);
+        if (!hor) ctx.rotate(Math.PI / 2);
+        // the beam: bright core, coloured glow
+        const g = ctx.createLinearGradient(-half, 0, half, 0);
+        g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.18, col); g.addColorStop(0.5, '#fffbe6'); g.addColorStop(0.82, col); g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.shadowColor = col; ctx.shadowBlur = this.calm ? 6 : 8 + 8 * k;
+        ctx.globalAlpha *= 0.95;
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.roundRect(-half * 0.85, -th / 2, half * 1.7, th, th / 2); ctx.fill();
+        ctx.shadowBlur = 0;
+        // arrowheads, outlined like the gems
+        const off = half * (0.7 + 0.1 * k), a = cs * 0.19;
+        ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(2, cs * 0.035); ctx.strokeStyle = '#000';
+        const ag = ctx.createLinearGradient(0, -a, 0, a); ag.addColorStop(0, '#fff3b8'); ag.addColorStop(1, '#e9a63a'); ctx.fillStyle = ag;
+        for (const d of [-1, 1]) {
+            ctx.beginPath();
+            ctx.moveTo(d * (off + a * 0.55), 0);
+            ctx.lineTo(d * (off - a * 0.45), -a * 0.62);
+            ctx.lineTo(d * (off - a * 0.45), a * 0.62);
+            ctx.closePath();
+            ctx.stroke(); ctx.fill();
+        }
+        ctx.restore();
     }
 
     gem(t, x, y, cs, scale, alpha, time) {
@@ -458,12 +575,7 @@ export class BattleView {
             ctx.beginPath(); ctx.arc(x + cs / 2, y + cs / 2, sz / 2.4, 0, Math.PI * 2); ctx.fill();
         }
         ctx.shadowBlur = 0;
-        if (t.sp === SPECIAL.LINE_H || t.sp === SPECIAL.LINE_V) {
-            const pulse = this.calm ? 0.7 : 0.55 + 0.35 * Math.sin(time * 6);
-            ctx.fillStyle = `rgba(255,255,255,${pulse})`;
-            if (t.sp === SPECIAL.LINE_H) ctx.fillRect(gx, y + cs * 0.44, sz, cs * 0.12);
-            else ctx.fillRect(x + cs * 0.44, gy, cs * 0.12, sz);
-        } else if (t.sp === SPECIAL.BOMB) {
+        if (t.sp === SPECIAL.LINE_H || t.sp === SPECIAL.LINE_V) this.lineMark(t, x, y, cs, sz, time); else if (t.sp === SPECIAL.BOMB) {
             ctx.strokeStyle = `rgba(255,240,150,${this.calm ? 0.9 : 0.6 + 0.4 * Math.sin(time * 7)})`;
             ctx.lineWidth = 3;
             ctx.beginPath(); ctx.arc(x + cs / 2, y + cs / 2, sz * 0.48, 0, Math.PI * 2); ctx.stroke();
@@ -515,6 +627,22 @@ export class BattleView {
             const a = Math.min(1, (x.dur - x.t) * 3, x.t * 8);
             ctx.globalAlpha = a;
             this.text(x.text, b.x + b.s / 2, b.y + b.s * 0.42 + i * 34 - (1 - a) * 8, 26, x.col, 'center', true);
+        });
+        ctx.globalAlpha = 1;
+        // alerts: boxed, along the top of the board
+        this.alerts = (this.alerts || []).filter((x) => (x.t += dt) < x.dur);
+        this.alerts.forEach((x, i) => {
+            const a = Math.min(1, (x.dur - x.t) * 3, x.t * 8);
+            let size = 16;
+            ctx.font = `800 ${size}px Nunito, system-ui, sans-serif`;
+            while (size > 10 && ctx.measureText(x.text).width > b.s - 44) { size--; ctx.font = `800 ${size}px Nunito, system-ui, sans-serif`; }
+            const w = Math.min(b.s - 12, ctx.measureText(x.text).width + 28);
+            const bx = b.x + (b.s - w) / 2, by = b.y + 8 + i * (size + 20);
+            ctx.globalAlpha = a * 0.92;
+            ctx.fillStyle = 'rgba(14,8,22,0.92)'; ctx.fillRect(bx, by, w, size + 14);
+            ctx.strokeStyle = x.col; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, w - 2, size + 12);
+            ctx.globalAlpha = a;
+            this.text(x.text, b.x + b.s / 2, by + size + 3, size, x.col, 'center');
         });
         ctx.globalAlpha = 1;
     }

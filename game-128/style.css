@@ -142,7 +142,9 @@ td:first-child { color: var(--gold); white-space: nowrap; padding-right: 10px; }
     position: absolute; top: calc(8px + var(--safe-t)); left: calc(108px + var(--safe-l)); right: calc(60px + var(--safe-r));
     display: flex; flex-wrap: wrap; gap: 6px; z-index: 2;
 }
-.res { display: inline-flex; align-items: center; gap: 4px; background: rgba(10, 6, 18, 0.82); border: 1px solid var(--line); border-radius: 20px; padding: 3px 10px 3px 4px; font-weight: 800; font-size: 14px; }
+.res .pill { display: inline-flex; align-items: center; gap: 4px; background: rgba(10, 6, 18, 0.82); border: 1px solid var(--line); border-radius: 20px; padding: 3px 10px 3px 4px; font-weight: 800; font-size: 14px; }
+/* the chip is a 44 px tall tap target around a 30 px pill; the negative margin keeps the bar's layout */
+button.res { display: inline-flex; align-items: center; min-height: 44px; margin: -7px 0; padding: 0; background: none; border: 0; }
 .ico { display: inline-block; width: 26px; height: 26px; background-size: 400% 400%; image-rendering: pixelated; flex: 0 0 auto; }
 .ico.lg { width: 40px; height: 40px; }
 .ico.xl { width: 56px; height: 56px; }
@@ -176,6 +178,49 @@ td:first-child { color: var(--gold); white-space: nowrap; padding-right: 10px; }
 .idle-card { background: rgba(14, 9, 24, 0.88); border: 1px solid var(--line); border-radius: 12px; padding: 10px; font-size: 14px; }
 .idle-card h3 { margin: 0 0 6px; font-size: 15px; color: var(--gold); }
 .idle-card .btn { width: 100%; margin-top: 8px; }
+/* Collect fills toward the next whole unit (v1.2.0) */
+.btn.collect { position: relative; overflow: hidden; }
+.btn.collect .prog { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; pointer-events: none; }
+.btn.collect .prog i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, rgba(63, 208, 122, 0.18), rgba(63, 208, 122, 0.42)); transition: width 1s linear; }
+.btn.collect.primary .prog i { background: rgba(255, 255, 255, 0.25); }
+.btn.collect .lbl { position: relative; }
+.btn.collect:disabled { opacity: 0.85; }
+.next-tick { font-size: 12px; color: var(--dim); margin-top: 4px; text-align: center; min-height: 1em; }
+/* the resource chips are buttons: a tip says how to get more (v1.2.0) */
+button.res { font-family: inherit; color: var(--text); cursor: pointer; }
+button.res:hover .pill { border-color: var(--gold); background: rgba(40, 26, 60, 0.92); }
+button.res:focus-visible { outline: none; }
+button.res:focus-visible .pill { outline: 3px solid var(--gold); outline-offset: 1px; }
+.res-tip {
+    position: fixed; z-index: 40; width: min(330px, calc(100vw - 16px)); background: #181226; border: 1px solid var(--gold);
+    border-radius: 12px; padding: 10px 12px; font-size: 13.5px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+.res-tip .hd { display: flex; align-items: center; gap: 6px; font-size: 15px; margin-bottom: 4px; }
+.res-tip ul { margin: 0; padding-left: 18px; }
+.res-tip li { margin: 4px 0; line-height: 1.35; }
+/* the village ticker: villagers' chatter and hints, newest at the bottom (v1.2.0) */
+.ticker {
+    position: absolute; left: calc(10px + var(--safe-l)); right: calc(10px + var(--safe-r)); bottom: calc(8px + var(--safe-b));
+    height: 92px; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; overflow: hidden; z-index: 2;
+    background: linear-gradient(180deg, rgba(10, 6, 18, 0.55), rgba(10, 6, 18, 0.9)); border: 1px solid var(--line); border-radius: 10px; padding: 4px 8px;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 12px); mask-image: linear-gradient(180deg, transparent 0, #000 12px);
+}
+.tl {
+    display: flex; align-items: center; gap: 6px; font: inherit; font-size: 13.5px; line-height: 1.25; color: var(--text); text-align: left;
+    background: none; border: 0; padding: 2px 4px; border-radius: 6px; min-height: 26px; flex: 0 0 auto; animation: tl-in 0.35s ease-out;
+}
+.tl:not(:last-child) { opacity: 0.62; }
+.tl b { flex: 0 0 auto; }
+.tl span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl:last-child span { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.tl .tp { flex: 0 0 22px; width: 22px; height: 22px; border-radius: 5px; background-size: cover; image-rendering: pixelated; }
+.tl.hint { cursor: pointer; }
+.tl.hint span:not(.go) { color: #fff1c4; }
+.tl.hint:hover { background: rgba(255, 207, 90, 0.12); }
+.tl .go { flex: 0 0 auto; margin-left: auto; font-size: 12px; font-weight: 800; color: #04210f; background: #3fd07a; border-radius: 6px; padding: 1px 7px; }
+@media (pointer: coarse) { .tl.hint { min-height: 44px; } }
+@keyframes tl-in { from { transform: translateY(10px); opacity: 0; } }
+.village-main { bottom: calc(108px + var(--safe-b)) !important; }
 .pend { display: flex; flex-wrap: wrap; gap: 6px 10px; }
 .pend span { display: inline-flex; align-items: center; gap: 3px; font-weight: 800; }
 .buildings { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
@@ -208,6 +253,8 @@ td:first-child { color: var(--gold); white-space: nowrap; padding-right: 10px; }
 .li .btn { flex: 0 0 auto; }
 .better { color: #6dff9c; font-weight: 800; }
 .worse { color: #ff9a9a; }
+.gear-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 2px 0 6px; }
+.worn { font-size: 11px; font-weight: 800; color: #04210f; background: #3fd07a; border-radius: 6px; padding: 1px 6px; margin-left: 4px; vertical-align: 1px; }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 10px; }
 .tabs .btn[aria-pressed=true] { border-color: var(--gold); color: var(--gold); background: rgba(255, 207, 90, 0.12); }
 .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; }
@@ -244,6 +291,9 @@ td:first-child { color: var(--gold); white-space: nowrap; padding-right: 10px; }
 .skill .cost { position: absolute; left: 0; right: 0; bottom: -2px; margin: 0; justify-content: center; gap: 2px; font-size: 11px; font-weight: 800; text-shadow: 0 1px 2px #000; pointer-events: none; }
 .skill.ready { border-color: var(--gold); box-shadow: 0 0 14px rgba(255, 207, 90, 0.85); animation: ready 1.2s ease-in-out infinite; }
 @keyframes ready { 50% { box-shadow: 0 0 4px rgba(255, 207, 90, 0.5); } }
+/* a match just fed mana this skill needs: a quick bounce with a bright edge (v1.2.0) */
+.skill.feed { animation: feed 0.42s ease-out; }
+@keyframes feed { 0% { transform: scale(1); } 35% { transform: scale(1.14) translateY(-4px); border-color: #fff6c8; filter: brightness(1.35); } 100% { transform: scale(1); } }
 .skill .key, .itm .key { position: absolute; top: 1px; left: 4px; font-size: 11px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px #000; }
 .itm { position: relative; width: 50px; height: 50px; padding: 0; border-radius: 10px; border: 1px solid var(--line); background: rgba(14, 9, 24, 0.85); cursor: pointer; display: grid; place-items: center; }
 .itm .n { position: absolute; bottom: 0; right: 3px; font-size: 12px; font-weight: 800; text-shadow: 0 1px 2px #000; }
@@ -269,13 +319,16 @@ td:first-child { color: var(--gold); white-space: nowrap; padding-right: 10px; }
     .scene-por { width: 76px; height: 76px; }
     .scene-line { font-size: 15.5px; }
     .res-bar { right: calc(56px + var(--safe-r)); }
-    .res { font-size: 12.5px; padding-right: 7px; }
+    .res .pill { font-size: 12.5px; padding-right: 7px; }
+    .res-bar { row-gap: 14px; }
     .ico { width: 22px; height: 22px; }
 }
 @media (max-height: 500px) and (orientation: landscape) {
+    .ticker { height: 60px; }
+    .village-main { bottom: calc(74px + var(--safe-b)) !important; }
     .village-main { inset: calc(52px + var(--safe-t)) calc(8px + var(--safe-r)) calc(8px + var(--safe-b)) calc(8px + var(--safe-l)); flex-direction: row; }
     .res-bar { right: calc(56px + var(--safe-r)); }
     .v-left { flex: 0 0 240px; }
     .scene-box { margin-bottom: 56px; min-height: 100px; }
 }
-@media (prefers-reduced-motion: reduce) { .skill.ready, .badge { animation: none; } .toast { animation-duration: 3.5s; } }
+@media (prefers-reduced-motion: reduce) { .skill.ready, .badge { animation: none; } .skill.feed { animation: feedcalm 0.42s; } @keyframes feedcalm { 35% { border-color: #fff6c8; filter: brightness(1.35); } } .toast { animation-duration: 3.5s; } }
