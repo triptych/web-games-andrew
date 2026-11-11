@@ -1,6 +1,6 @@
 // EMBERSPIRE — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.7';
+export const VERSION = '1.0.8';
 export const SAVE_KEY = 'emberspire.v1';
 
 export const STEP = 1 / 60;               // fixed step for pacing the battle (s)

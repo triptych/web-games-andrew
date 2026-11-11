@@ -2,7 +2,7 @@
 
 **Genre:** 16-bit endless-tower JRPG: turn-based party battles, a town of RPG systems, bonds, and idle income
 **Engine:** Vanilla JS: Canvas 2D battle stage (640x360, nearest-neighbour) and DOM menus. Art generated with fal, music, effects and voices with ElevenLabs; a Web Audio synth is the fallback for any sound file that fails to load
-**Status:** v1.0.7
+**Status:** v1.0.8
 
 ---
 
@@ -156,6 +156,9 @@ still defeated sometimes.
 - The Garden preview image is the title art.
 
 ## Changelog
+
+### v1.0.8 (2026-11-10)
+- Fixed: on phones, the rows in the Forge, Market and other menus squeezed their description to a word per line, because the row's buttons kept their full width beside it. The description now keeps at least 200px and the buttons wrap onto their own line, right-aligned, when there isn't room; desktop is unchanged.
 
 ### v1.0.7 (2026-11-10)
 - Added: a difficulty, asked when you start a new game and changeable in Settings (`DIFFICULTY` in config.js, `G.difficulty`; saves from before it play as Standard).

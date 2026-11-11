@@ -180,7 +180,11 @@ td:first-child { color: var(--gold); white-space: nowrap; }
     display: flex; gap: 8px; align-items: center; padding: 6px 8px; min-height: 52px;
     background: rgba(5, 8, 26, 0.55); border: 1px solid rgba(226, 191, 99, 0.3); border-radius: 6px;
 }
-.item .grow { flex: 1; min-width: 0; }
+/* the description keeps at least 200px: on a narrow screen the buttons wrap onto their own line, right-aligned,
+   instead of squeezing the text to a word per line */
+.item { flex-wrap: wrap; }
+.item .grow { flex: 1 1 200px; min-width: 0; }
+.item .acts { margin-left: auto; }
 .item .nm { font-weight: 600; }
 .item .meta { font-size: 13px; color: var(--dim); }
 .item .acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
