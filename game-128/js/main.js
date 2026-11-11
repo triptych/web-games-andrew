@@ -161,7 +161,12 @@ function sync() {
         hud.hidden = false;
         ui.buildHud(G, (id) => cmd({ t: 'skill', node: id }), (id) => cmd({ t: 'item', id }));
         ui.placeHud(view.layout);
-        resultAt = 0;
+        // a reload can land on a fight that was already over (the hero fell, or won, just before it): show its result
+        // at once instead of hanging on it, and play the fight's own music, not whatever was on (v1.3.2)
+        const B = G.battle;
+        const over = !!B && (B.phase === 'won' || B.phase === 'lost');
+        resultAt = over ? 0.05 : 0;
+        if (!ui.has('result')) audio.play(over ? (B.phase === 'won' ? 'victory' : null) : B?.foe.rank === 'boss' ? 'boss' : 'battle');
     }
 }
 

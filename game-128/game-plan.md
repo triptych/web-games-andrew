@@ -198,6 +198,10 @@ What changed because of it:
 
 ## Changelog
 
+### v1.3.2 (2026-11-11)
+- Continuing a save made after a fight ended (the hero just fell) shows the result instead of hanging on the dead hero
+  with the village music; a continued fight plays its own music.
+
 ### v1.3.1 (2026-11-11)
 - A patrol's surprise elite has 80% health and 85% attack (`PATROL_ELITE`); foe shields are 10% of max health, down
   from 15%; at most 8 gems are chained at once. A player kept losing the Meadows' Bandit Captain on patrol.
