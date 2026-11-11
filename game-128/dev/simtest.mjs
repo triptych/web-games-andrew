@@ -289,6 +289,14 @@ if (want('battle')) {
     ok([1, 2, 3, 4, 5, 6].map((n) => Bt.abilityOn({ abil: ['heal'] }, n) || '-').join() === '-,-,heal,-,-,heal', 'a heal lands every third attack');
     ok(Bt.abilityOn({ abil: ['enrage', 'haste'] }, 1) === null && Bt.nextAbility({ abil: ['stone'], attacks: 4 }) === 'stone', 'enrage and haste aren\'t attack abilities; nextAbility looks one ahead');
     ok(Gm.act(G, { t: 'continue' }) && G.mode === 'village' && !G.quest, 'a loss sends the hero home');
+    // chains stop piling up (v1.3.1: a player faced 13 chained gems): at most lockMax on the board
+    {
+        const L = battleGame(5, 'kael', 'bandit', 4);
+        L.battle.hero.hp = L.battle.hero.max = 1e6;
+        for (let i = 0; i < 9; i++) { L.battle.foe.timer = 0.01; Gm.step(L, DT); }
+        const held = L.battle.board.cells.filter((t) => t && t.lock).length;
+        ok(L.battle.foe.attacks >= 9 && held <= C.BATTLE.lockMax && held >= C.BATTLE.lockMax - 2, `chained gems stay capped at ${C.BATTLE.lockMax}: ${held} after ${L.battle.foe.attacks} attacks`);
+    }
     // level ups give skill points
     G = Gm.newGame(1, 'odo');
     Gm.gainXp(G, C.XP_CURVE(1) + C.XP_CURVE(2));
@@ -432,6 +440,11 @@ if (want('media')) {
     for (const s of ['gems', 'gear', 'goods', 'misc']) if (!has(`art/icons/${s}.webp`)) missing.push(s);
     for (const f of ['bg/title', 'bg/village', 'buildings']) if (!has(`art/${f}.webp`)) missing.push(f);
     ok(!missing.length, `every picture exists (${missing.join(', ') || 'all'})`);
+    // the villagers who walk Briarwick (v1.2.2): every sprite exists and the sizes in folk.js match the export
+    const { FOLK_SIZE } = await import('../js/folk.js');
+    const sizes = JSON.parse(fs.readFileSync(path.join(ROOT, 'art/sprites.json'), 'utf8')).sprites;
+    const bad = Object.entries(FOLK_SIZE).filter(([id, wh]) => !has(`art/folk/${id}.webp`) || JSON.stringify(sizes['folk-' + id]) !== JSON.stringify(wh)).map(([id]) => id);
+    ok(Object.keys(FOLK_SIZE).length === 16 && !bad.length, `every villager sprite exists at the size folk.js expects (${bad.join(', ') || 'all 16'})`);
     const Au = await import('../js/audio.js');
     missing = [];
     for (const n of Au.FILES.music) if (!has(`audio/music-${n}.mp3`)) missing.push('music-' + n);
@@ -492,6 +505,39 @@ if (want('bot')) {
             if (G.story.ch === 1) won++;
         }
         ok(won >= 5, `a beginner (skill-0 bot) clears ${h.name}'s chapter 1: ${won}/6`);
+    }
+    // a patrol's surprise elite is eased, and a beginner at the patrol's level beats it from three-quarters health
+    // (v1.3.1: a level-5 player lost the Meadows' Bandit Captain every time)
+    {
+        const G = home(4, 'kael');
+        Gm.act(G, { t: 'patrol', region: 'greenmarch' });
+        G.quest.fights = ['wolf', 'bandit'];
+        G.battle.phase = 'won';
+        Gm.act(G, { t: 'continue' });
+        for (let i = 0; i < 20 && G.mode === 'scene'; i++) Gm.act(G, { t: 'next' });
+        ok(G.battle?.foe.id === 'bandit' && G.battle.foe.max === St.foeStats('bandit', G.quest.lv, C.PATROL_ELITE).max, 'a patrol elite fights with the patrol ease');
+        // and a boss is met rested, at full health (v1.3.1)
+        G.quest.fights = ['wolf', 'bandit', 'tusk'];
+        G.battle.hero.hp = 5; G.battle.phase = 'won';
+        Gm.act(G, { t: 'continue' });
+        for (let i = 0; i < 20 && G.mode === 'scene'; i++) Gm.act(G, { t: 'next' });
+        ok(G.battle?.foe.id === 'tusk' && G.battle.hero.hp === G.battle.hero.max, 'the hero meets a boss at full health');
+        let won = 0, n = 0;
+        for (const h of HEROES) {
+            for (let s = 1; s <= 3; s++, n++) {
+                const P = home(s * 13 + 1, h.id);
+                while (P.hero.lv < 5) Gm.gainXp(P, 5);
+                Bot.botVillage(P, Date.UTC(2026, 0, 1), '2026-01-01');
+                P.quest = { kind: 'patrol', region: 'greenmarch', lv: 4, fights: ['bandit'], i: 0, hp: null, revived: false };
+                Bt.startBattle(P, 'bandit', 4, null, C.PATROL_ELITE);
+                P.battle.hero.hp = Math.round(P.battle.hero.max * 0.75);
+                P.mode = 'battle';
+                P.events.length = 0;
+                Bot.playOut(P, Bot.makeBot({ skill: 0, seed: s }));
+                if (P.events.some((e) => e.type === 'won')) won++;
+            }
+        }
+        ok(won >= n - 2, `a beginner at level 5 beats the patrol's Bandit Captain (level 4) from 75% health: ${won}/${n}`);
     }
     const rows = [];
     for (const h of HEROES) {

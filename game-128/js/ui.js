@@ -12,6 +12,7 @@ import * as St from './sim/stats.js';
 import { chapter, regionsOpen, actives, learnBlock, tale } from './sim/game.js';
 import { canSkill, canItem } from './sim/battle.js';
 import { Ticker } from './ticker.js';
+import { Folk } from './folk.js';
 
 const $ = (id) => document.getElementById(id);
 const h = (tag, cls = '', html = '') => { const e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; return e; };
@@ -30,6 +31,9 @@ export class UI {
         this.now = now;
         this.G = G;
         this.ticker = new Ticker(this, $('ticker'));
+        this.folk = new Folk($('folk'));
+        this.folk.calm = !!settings.calm;
+        window.addEventListener('resize', () => this.folk.resize());
         this.stack = [];
         this.panel = null;                 // { kind, id, tab, sel }
         this.typing = null;

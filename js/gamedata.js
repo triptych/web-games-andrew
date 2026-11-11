@@ -193,7 +193,7 @@ const games = [
         description: 'A cozy flower shop sim — buy seeds, grow blooms in your pots, and sell them for gold. Upgrade your pots and soil to grow rarer flowers faster. Low stakes, endlessly relaxing.',
         icon: '🌷',
         folder: 'game-013',
-        version: '1.2.1',
+        version: '1.3.0',
         cssClass: 'petal-purse',
         genre: 'cozy',
         tags: [
@@ -1961,7 +1961,7 @@ const games = [
         description: "A match-3 fantasy RPG in 32-bit pixel art painted with fal, with music, sound and voices generated with ElevenLabs. Something in the east is drinking the light of the Vale. Choose one of four heroes (an exiled knight, a tide mage, a half-elf ranger or a lantern monk) and each walks the Vale in a different order, meets different people and hunts a different nemesis across ten chapters to the Gloam Sovereign. Battles are real time and fluid: swap gems while others are still falling, chain cascades, make line, bomb and prism gems, fill four colours of mana for your skills, and break the stone, chains and doom gems your foes throw onto the board. Between quests, grow a three-branch skill tree, buy and upgrade gear, and build up Briarwick: an inn, a market, a temple, an armory, a farm, a lumber mill, a mine, a mage tower and the town hall that gates them, which keep producing gold and materials while you're away, plus a daily gift with a streak and a harvest festival. Mouse, keyboard, gamepad or touch.",
         icon: '💎',
         folder: 'game-128',
-        version: '1.1.0',
+        version: '1.3.1',
         cssClass: 'gemheart',
         genre: 'rpg',
         tags: [

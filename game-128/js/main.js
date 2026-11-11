@@ -32,10 +32,11 @@ const view = new BattleView(document.getElementById('view'), {
 view.calm = !!settings.calm || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const ui = new UI({
     audio, settings, cmd: (c) => cmd(c), now, G: () => G,
-    onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music, s.voice); view.calm = !!s.calm; },
+    onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music, s.voice); view.calm = !!s.calm; ui.folk.calm = !!s.calm; },
     onDeleteSave: () => { clearSave(); refreshTitle(); },
     onTitle: () => toTitle(),
 });
+ui.folk.calm = view.calm;
 
 let G = null;
 let acc = 0;
@@ -272,6 +273,11 @@ function frame(nowMs) {
         ui.hud(G);
         ui.placeHud(view.layout);
     } else view.frame({ battle: null }, dt, time);
+    // the villagers walk while Briarwick is on top (built the first time it shows, so its size is known)
+    if (G && G.mode === 'village' && ui.top() === 'village') {
+        if (!ui.folk.built) ui.folk.build();
+        ui.folk.frame(dt);
+    }
     if (G && G.mode === 'village' && Math.floor(time) !== Math.floor(time - dt) && ui.top() === 'village') {
         ui.renderVillage(G);
         ui.ticker.tick(G, 1, now(), ui.today());

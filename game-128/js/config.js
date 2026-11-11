@@ -1,6 +1,6 @@
 // Gemheart Saga — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.2.1';
+export const VERSION = '1.3.1';
 export const SAVE_KEY = 'gemheart-saga.v1';
 
 export const STEP = 1 / 60;               // fixed simulation step (s)
@@ -38,13 +38,14 @@ export const BATTLE = {
     critMult: 1.5,
     stonePerHit: 3,           // stone ability: gems turned per attack
     lockPerHit: 3,
-    doomSecs: 9,              // a doom gem bursts this many seconds after it is planted
-    doomMult: 2,              // a burst doom gem hits for this × attack
+    lockMax: 8,               // chained gems on the board at most (v1.3.1: they piled up to a dozen and more)
+    doomSecs: 12,             // a doom gem bursts this many seconds after it is planted (v1.3.1: was 9)
+    doomMult: 1.5,            // a burst doom gem hits for this × attack (v1.3.1: was 2)
     drain: 6,
     poisonSecs: 5, poisonPct: 0.012,   // per second, × max health
-    healPct: 0.12,
-    shieldPct: 0.15,          // × the foe's max health
-    enrageAt: 0.5, enrageMult: 0.7,
+    healPct: 0.08,            // v1.3.1: bosses were walls for a casual player (was 0.12; enrage was 0.7)
+    shieldPct: 0.1,           // × the foe's max health (v1.3.1: 0.15 soaked most of a slow player's damage)
+    enrageAt: 0.5, enrageMult: 0.8,
     hasteMult: 0.8,
     freezeMax: 8,
     itemCooldown: 2.5,
@@ -55,12 +56,15 @@ export const BATTLE = {
 // Foe scaling (see data/world.js).
 // every: the data's attack intervals are stretched by this (v1.1.0: 1.6, from players finding attacks too quick; each
 // blow hits a little harder to keep the pressure: atk 18 -> 22).
-export const FOE = { hp: 320, hpGrow: 0.25, atk: 22, atkGrow: 0.2, every: 1.6, rankHp: { normal: 1, elite: 0.75, boss: 0.62 } };
+export const FOE = { hp: 320, hpGrow: 0.25, atk: 22, atkGrow: 0.2, every: 1.6, rankHp: { normal: 1, elite: 0.75, boss: 0.5 } }; // boss 0.62 before v1.3.1
 // v1.1.1: a player lost chapter 1's Bandit Captain every time. The first two chapters of a tale are where the board is
 // learned: their foes have less health and hit softer ([chapter] = { hp, atk } factors). A chapter's finale only fights
 // a level up when it is a real boss, and between the fights of a quest the hero catches their breath (× max health).
 export const STORY_EASE = [{ hp: 0.65, atk: 0.75 }, { hp: 0.85, atk: 0.9 }];
 export const QUEST_REST = 0.25;
+// v1.3.1: a patrol's elite (the surprise last fight) is eased too. It met heroes with no story discount, after a fight,
+// and a player at level 5 lost the Bandit Captain over and over in the Meadows.
+export const PATROL_ELITE = { hp: 0.8, atk: 0.85 };
 
 // Hero growth per level.
 export const HERO_GROW = { hp: 0.11, atk: 0.09 };

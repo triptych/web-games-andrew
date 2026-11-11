@@ -11,7 +11,7 @@
 //   battle   swap{a,b} skill{node} item{id} flee{} continue{} (after won/lost)
 
 import { makeRng } from '../rng.js';
-import { START_GOLD, XP_CURVE, MAX_LEVEL, PATROL_FIGHTS, STORY_EASE, QUEST_REST } from '../config.js';
+import { START_GOLD, XP_CURVE, MAX_LEVEL, PATROL_FIGHTS, STORY_EASE, QUEST_REST, PATROL_ELITE } from '../config.js';
 import { HERO, NODE, MAX_RANK, TIER3_LEVEL } from './data/heroes.js';
 import { REGION, FOE } from './data/world.js';
 import { TALES, OPENING, ENDINGS, CREDITS_LINE } from './data/story.js';
@@ -94,7 +94,7 @@ function startFight(G) {
     // a story chapter's finale fights a level up only when it is a real boss (v1.1.1: not chapter 1's elite)
     const boss = q.i === q.fights.length - 1 && q.kind === 'story' && FOE[id].rank === 'boss';
     const lv = q.lv + (boss ? 1 : 0);
-    const ease = q.kind === 'story' ? STORY_EASE[q.ch] || null : null;
+    const ease = q.kind === 'story' ? STORY_EASE[q.ch] || null : FOE[id].rank === 'elite' ? PATROL_ELITE : null;
     Bt.startBattle(G, id, lv, q.hp != null ? { hp: q.hp } : null, ease);
     G.mode = 'battle';
 }
@@ -141,6 +141,8 @@ function continueQuest(G) {
     q.hp = Math.min(B.hero.max, B.hero.hp + B.hero.max * QUEST_REST);
     G.battle = null;
     q.i++;
+    // v1.3.1: a boss is met rested (a camp before the lair), at full health
+    if (q.i < q.fights.length && FOE[q.fights[q.i]].rank === 'boss') q.hp = B.hero.max;
     const c = q.kind === 'story' ? tale(G)[q.ch] : null;
     if (q.i < q.fights.length) {
         const mid = c?.mid?.[q.i];

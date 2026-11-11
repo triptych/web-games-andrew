@@ -36,6 +36,10 @@ REGIONS = ['greenmarch', 'mirefen', 'emberdeep', 'frostfang', 'gloamspire']
 ICON_SHEETS = ['gems', 'gear', 'goods', 'misc']
 # Monsters stand on the right of the battle scene and must face LEFT; heroes stand on the left and face RIGHT.
 # The model ignored the direction for these; they were found by eye on the labelled contact sheet and are mirrored.
+# The villagers who walk Briarwick (v1.2.2): a 4x4 sheet in this order, all facing right, all at one scale.
+FOLK = ['farmer', 'applewife', 'milkmaid', 'hoopchild', 'elder', 'washerwoman', 'guard', 'fisherboy',
+        'flowergirl', 'monk', 'traveller', 'baker', 'dog', 'goose', 'hen', 'cat']
+FOLK_PX = 96                  # the tallest person's height; everything on the sheet keeps its relative size
 FLIP = {'mon/wolf', 'mon/hound', 'mon/kobold', 'mon/leech', 'mon/hornet', 'mon/lizard', 'mon/troll', 'mon/toad'}
 
 # longest side, in art pixels. Battle sprites are kept at about twice the size they are drawn at (v1.1.0): drawn
@@ -275,6 +279,14 @@ def main(raw):
             tile = img.crop((x0 + inset, y0 + inset, x0 + w // 3 - inset, y0 + hh // 3 - inset)).resize((C, C), Image.BOX)
             atlas.paste(tile, ((i % 3) * C, (i // 3) * C))
         save(atlas, f'skills/{h}.webp', q=86)
+    # villagers: one scale for the whole sheet, so a hen stays smaller than a guard
+    if have('sheet-villagers.png'):
+        cuts = [trim(cutout(cell, focus)) for cell, focus in grid_cells(op('sheet-villagers.png'), 4, 4, margin=0.04)]
+        k = FOLK_PX / max(c.height for c in cuts[:12])
+        for name, c in zip(FOLK, cuts):
+            sp = c.resize((max(1, round(c.width * k)), max(1, round(c.height * k))), Image.BOX)
+            save(sp, f'folk/{name}.webp')
+            meta['sprites']['folk-' + name] = [sp.width, sp.height]
     with open(os.path.join(OUT, 'sprites.json'), 'w') as fh:
         json.dump(meta, fh, indent=0, sort_keys=True)
     print('wrote', OUT)

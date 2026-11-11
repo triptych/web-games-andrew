@@ -38,6 +38,32 @@ exported small sprites and blew them up with nearest-neighbour scaling, which lo
 | `icons-gems/gear/goods/misc` (4x4, 2K) | `icons/*.webp` (4x4 atlases of 64 px; `gems` and `misc` 128 px) | The board pieces are in `gems` (sword, heart, ruby, sapphire, amethyst, prism, stone, doom, chains…); the emerald is cell 5 of `misc` (see below). |
 | `skills-<hero>` ×4 (3x3, 2K) | `skills/<hero>.webp` (3x3 atlas of 96 px) | Painted square tiles, no cut-out; one per skill-tree node in tree order. The prompts are `SKILL_ART` in `prompts.mjs`. |
 
+## Briarwick's walking villagers (v1.3.0)
+
+The first village backdrop had villagers painted in, standing still. Two edits with `fal-ai/nano-banana-2/edit` (2K),
+both given the original `bg-village.png` as their image:
+
+- **The empty village** (`bg-village.png`; the original is kept as `bg-village-with-people.png`), two takes, the second
+  kept (the first left a farmer in the wheat field):
+  > Edit this pixel-art village illustration: remove every person (all villagers, the blacksmith at the forge, people on
+  > the bridge, on the paths, at the market stalls, by the well and in the gardens) and the small loose animals walking on
+  > the paths (dogs, chickens, the small animal by the bridge). Fill each spot with whatever is naturally behind it:
+  > cobblestones, grass, bridge planks, path dirt, market stall counters. Keep the cows and sheep inside the fenced farm
+  > pen. Keep absolutely everything else identical: every building, roof, tree, the river, the bridge, the water mill, the
+  > well, the market stalls and their goods, the forge fire, the temple, the tower, the fields, the fences, the
+  > composition, the camera angle, the colours, the lighting and the crisp 32-bit pixel art style. Do not add anything
+  > new. No text.
+- **The villagers** (`sheet-villagers.png`, 1:1): "Using exactly the art style, pixel scale, palette and lighting of the
+  villagers in this village illustration, draw a sprite sheet: a 4 by 4 grid of sixteen separate tiny full-body
+  characters … all facing to the RIGHT, mid-stride walking pose", then the sixteen in `FOLK` order (farmer with a hoe,
+  woman with apples, milkmaid with pails, child with a hoop, old man with a cane, washerwoman, guard with a spear, boy
+  with a fishing rod, girl with flowers, monk with a lantern, traveller, baker; dog, goose, hen, cat), "on a perfectly
+  flat solid pure magenta (#FF00FF) background".
+
+`export.py` cuts the sheet like the others and scales all sixteen by one factor (the tallest person to 96 px), so they
+keep their sizes relative to each other; `js/folk.js` shrinks the animals further (the model drew them nearly as tall as
+people). The hoop came off the running child as a separate piece; he runs without it. 16 files, 132 KB.
+
 ## What went wrong, and what the export does about it
 
 - **Key colours vs gem colours.** A magenta key eats violet and pink; a green key eats emerald. So the gem sheet went on

@@ -104,6 +104,18 @@ async function desktop() {
     await click(page, '#scene-skip');
     await until(page, () => __gs.mode === 'village' && !document.getElementById('village').hidden, 'Skip lands in Briarwick');
     check(await Q(page, () => __gs.G.village.last > 0), 'a new tale starts the village\'s idle clock when it reaches Briarwick');
+    // v1.2.2: villagers walk the backdrop, under the village's buttons
+    await page.waitForTimeout(300);
+    const folk0 = await Q(page, () => [...document.querySelectorAll('#folk .walker')].map((w) => w.style.transform));
+    await page.waitForTimeout(1500);
+    check(await Q(page, (f0) => {
+        const now = [...document.querySelectorAll('#folk .walker')].map((w) => w.style.transform);
+        return now.length >= 12 && now.filter((t, i) => t !== f0[i]).length >= 3;
+    }, folk0), 'villagers walk around Briarwick');
+    check(await Q(page, () => {
+        const b = document.getElementById('btn-hero').getBoundingClientRect();
+        return document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2)?.closest('#btn-hero') && getComputedStyle(document.getElementById('folk')).pointerEvents === 'none';
+    }), 'and stay under the buttons, never in the way of a click');
     check(await Q(page, () => /^Next: \+1 \w+ in /.test(document.getElementById('collect-next').textContent)), 'the Collect button counts down to the next unit');
     await shot(page, 'desktop-village');
 
