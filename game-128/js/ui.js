@@ -299,6 +299,7 @@ export class UI {
             const btn = h('button', 'btn primary', lv ? 'Upgrade' : 'Build');
             btn.id = 'btn-build';
             btn.disabled = !!block;
+            if (block) btn.title = block;
             btn.addEventListener('click', () => this.cmd({ t: 'build', id: p.id, now: this.now() }));
             body.append(btn);
             if (block) body.append(h('div', 'dim', esc(block)));
@@ -325,9 +326,11 @@ export class UI {
                 const li = h('div', 'li');
                 li.append(iconEl(it.icon, 'lg'));
                 li.append(h('div', 'grow', `<div class="nm">${esc(it.name)}</div><div class="sub">${esc(itemLine(G, { id, plus: 0 }))}</div>`));
-                const btn = h('button', 'btn small', `${price}g`);
+                const short = G.res.gold < price;
+                const btn = h('button', 'btn small' + (short ? ' short' : ''), `${price}g`);
                 btn.dataset.buy = id;
-                btn.disabled = G.res.gold < price;
+                btn.disabled = short;
+                btn.title = short ? `Not enough gold: ${price - Math.floor(G.res.gold)} more` : `Buy ${it.name}`;
                 btn.addEventListener('click', () => this.cmd({ t: 'buy', id }));
                 li.append(btn);
                 list.append(li);
@@ -357,7 +360,7 @@ export class UI {
             const worn = Object.values(G.hero.eq).includes(inv.uid);
             li.append(iconEl(it.icon, 'lg'), h('div', 'grow', `<div class="nm">${esc(it.name)} +${inv.plus}${worn ? ' <span class="dim">(worn)</span>' : ''}</div><div class="sub">${esc(itemLine(G, inv))}</div>`));
             const c = V.upgradeCost(G, inv.uid);
-            const btn = h('button', 'btn small', `${c.gold}g · ${c.ore} ore`);
+            const btn = h('button', 'btn small' + (G.res.gold < c.gold || G.res.ore < c.ore ? ' short' : ''), `${c.gold}g · ${c.ore} ore`);
             btn.dataset.upgrade = inv.uid;
             btn.disabled = !!V.upgradeBlock(G, inv.uid);
             btn.title = V.upgradeBlock(G, inv.uid) || 'Upgrade';
@@ -388,6 +391,7 @@ export class UI {
             const btn = h('button', 'btn small' + (V.requestDone(G, rq) && !G.claimed[rq.id] ? ' primary' : ''), G.claimed[rq.id] ? 'Done' : 'Claim');
             btn.dataset.claim = rq.id;
             btn.disabled = !!G.claimed[rq.id] || !V.requestDone(G, rq);
+            if (btn.disabled) btn.title = G.claimed[rq.id] ? 'Already claimed' : `Not done yet (${n}/${of})`;
             btn.addEventListener('click', () => this.cmd({ t: 'claim', id: rq.id }));
             li.append(btn);
             list.append(li);
@@ -488,6 +492,7 @@ export class UI {
         const btn = h('button', 'btn primary small', r ? 'Rank up' : 'Learn');
         btn.id = 'btn-learn';
         btn.disabled = !!block;
+        if (block) btn.title = block;
         btn.addEventListener('click', () => this.cmd({ t: 'learn', node: sel }));
         info.append(btn);
         if (block && r < MAX_RANK) info.append(h('span', 'dim', ' ' + esc(block)));

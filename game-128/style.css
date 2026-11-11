@@ -40,15 +40,29 @@ img.px, .px { image-rendering: pixelated; image-rendering: crisp-edges; }
 .btn, .ibtn {
     font: inherit; color: var(--text); cursor: pointer;
     min-height: 44px; min-width: 44px;
-    border: 1px solid var(--line); border-radius: 10px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+    border: 1px solid rgba(255, 207, 90, 0.5); border-radius: 10px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.04));
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
 }
 .btn { padding: 9px 16px; font-size: 16px; font-weight: 700; }
 .btn.small { min-height: 44px; padding: 6px 12px; font-size: 14px; }
 .btn.big { font-size: 19px; padding: 12px 18px; }
 .btn.primary { background: linear-gradient(180deg, #ffd978, #e9a63a); color: #2a1804; border-color: #ffe9a8; box-shadow: 0 2px 10px rgba(255, 190, 70, 0.35); }
 .btn.danger { border-color: #ff6b6b; color: #ffb3b3; }
-.btn:disabled { opacity: 0.45; cursor: default; filter: grayscale(0.6); }
+/* One rule for every button (v1.1.2): a button you can press has a gold edge and lifts on hover; an action in a list row
+   (buy, sell, equip, upgrade, claim, patrol) is filled gold-tinted; the gold `primary` is the one main action; a button you
+   can't press is flat, dashed and dim, with the reason in its title (and a price you can't pay in red). */
+.btn:not(:disabled):hover, .ibtn:hover { border-color: var(--gold); filter: brightness(1.15); }
+.btn:not(:disabled):active { transform: translateY(1px); box-shadow: none; }
+.li .btn:not(.primary):not(:disabled) {
+    background: linear-gradient(180deg, rgba(255, 207, 90, 0.34), rgba(255, 207, 90, 0.14));
+    border-color: var(--gold); color: #ffeab0;
+}
+.btn:disabled {
+    background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.22); color: var(--dim);
+    box-shadow: none; cursor: not-allowed; opacity: 0.7;
+}
+.btn.short:disabled { color: #ff8a8a; border-color: rgba(255, 110, 110, 0.4); }
 .btn:focus-visible, .ibtn:focus-visible, .card:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .ibtn { display: inline-grid; place-items: center; font-size: 18px; }
 
@@ -176,7 +190,7 @@ td:first-child { color: var(--gold); white-space: nowrap; padding-right: 10px; }
 
 /* panels */
 .panel-sheet { padding-top: 10px; }
-.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; position: sticky; top: -10px; background: var(--panel); padding: 4px 0 8px; z-index: 2; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; position: sticky; top: -10px; background: #181226; padding: 4px 0 8px; margin-bottom: 8px; border-bottom: 1px solid var(--line); z-index: 2; }
 .panel-head h2 { margin: 0; }
 .npc { display: flex; gap: 10px; align-items: center; background: var(--panel2); border-radius: 10px; padding: 8px; margin-bottom: 10px; }
 .npc .por { width: 72px; height: 72px; border-radius: 8px; background-size: cover; image-rendering: pixelated; flex: 0 0 auto; }

@@ -190,6 +190,12 @@ What changed because of it:
 
 ## Changelog
 
+### v1.1.2 (2026-11-11)
+- One rule for every button: pressable buttons have a gold edge and lift on hover; actions in list rows (buy, sell,
+  equip, upgrade, claim, patrol) are gold-filled; unavailable ones are flat, dashed and dim with the reason as a tooltip,
+  and a price you can't pay is red. The panel's title bar is opaque with a divider, so scrolled text no longer shows
+  through it.
+
 ### v1.1.1 (2026-11-11)
 - Chapter 1's finale (the Bandit Captain for Kael and Fenn) was a wall for new players. The first two chapters are
   gentler, only real bosses fight a level up, and the hero catches their breath (+25% health) between fights.

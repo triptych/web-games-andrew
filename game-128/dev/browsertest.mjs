@@ -112,6 +112,20 @@ async function desktop() {
     // the market
     await click(page, '[data-b="market"]');
     await until(page, () => !document.getElementById('panel').hidden && document.querySelector('[data-buy="potion"]'), 'the Market opens with its stock');
+    check(await Q(page, () => {
+        // a price you can pay is a filled, solid-edged button; one you can't is dashed, red and says why
+        const gold = __gs.G.res.gold;
+        __gs.G.res.gold = 30; __gs.ui.renderPanel(__gs.G);
+        const ok = (() => {
+        const all = [...document.querySelectorAll('[data-buy]')];
+        const can = all.find((b) => !b.disabled), cant = all.find((b) => b.disabled);
+        if (!can || !cant) return false;
+        const a = getComputedStyle(can), c = getComputedStyle(cant);
+        return a.borderStyle === 'solid' && a.backgroundImage.includes('gradient') && c.borderStyle === 'dashed' && c.cursor === 'not-allowed' && /gold/.test(cant.title);
+        })();
+        __gs.G.res.gold = gold; __gs.ui.renderPanel(__gs.G);
+        return ok;
+    }), 'buy buttons show at a glance which you can afford');
     const pots = await Q(page, () => __gs.G.bag.potion || 0);
     await click(page, '[data-buy="potion"]');
     await until(page, (n) => (__gs.G.bag.potion || 0) === n + 1, 'buying a potion puts it in the bag', 10000, pots);
