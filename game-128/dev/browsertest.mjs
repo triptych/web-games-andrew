@@ -103,6 +103,8 @@ async function desktop() {
     await until(page, (i) => __gs.G.scene && __gs.G.scene.i > i, 'Next steps the dialogue', 10000, line0);
     await click(page, '#scene-skip');
     await until(page, () => __gs.mode === 'village' && !document.getElementById('village').hidden, 'Skip lands in Briarwick');
+    check(await Q(page, () => __gs.G.village.last > 0), 'a new tale starts the village\'s idle clock when it reaches Briarwick');
+    check(await Q(page, () => /^Next: \+1 \w+ in /.test(document.getElementById('collect-next').textContent)), 'the Collect button counts down to the next unit');
     await shot(page, 'desktop-village');
 
     // the daily gift
@@ -143,6 +145,27 @@ async function desktop() {
     await shot(page, 'desktop-tree');
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('hero-badge').hidden, 'and the badge goes once it is spent');
+    // v1.2.0: a resource chip says how to get more; Escape closes the tip
+    await page.click('.res[data-res="wood"]');
+    await until(page, () => !document.getElementById('res-tip').hidden && /Lumber Mill/.test(document.getElementById('res-tip').textContent), 'clicking Wood shows how to get more (the Lumber Mill)');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('res-tip').hidden && document.getElementById('settings').hidden, 'Escape closes the tip, not into Settings');
+    // the ticker: a hint is a link to the thing to do
+    await Q(page, () => { __gs.G.hero.sp = 1; __gs.ui.ticker.said.clear(); __gs.ui.ticker.n = 0; __gs.ui.ticker.now(__gs.G, Date.now(), __gs.ui.today()); });
+    check(await Q(page, () => { const l = document.querySelector('#ticker .tl:last-child'); return !!l && l.classList.contains('hint') && /skill point/.test(l.textContent); }), 'the ticker hints at the unspent skill point');
+    await page.click('#ticker .tl:last-child');
+    await until(page, () => !document.getElementById('panel').hidden && !!document.querySelector('[data-node]'), 'clicking the hint opens Hero & Skills');
+    await Q(page, () => { __gs.G.hero.sp = 0; });
+    // the Gear tab: remove all, equip best
+    await click(page, '[data-tab="gear"]');
+    await until(page, () => !!document.getElementById('btn-unequip-all'), 'the Gear tab has Equip best and Remove all');
+    const worn = await Q(page, () => JSON.stringify(__gs.G.hero.eq));
+    await page.click('#btn-unequip-all');
+    await until(page, () => Object.values(__gs.G.hero.eq).every((u) => !u) && document.getElementById('btn-unequip-all').disabled, 'Remove all takes everything off');
+    await page.click('#btn-equip-best');
+    await until(page, (w) => JSON.stringify(__gs.G.hero.eq) === w && document.getElementById('btn-equip-best').disabled, 'Equip best puts the best kit back on', 10000, worn);
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('panel').hidden, 'Escape closes Hero & Skills');
 
     // the first chapter
     await click(page, '#btn-adventure');

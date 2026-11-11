@@ -31,7 +31,7 @@ const view = new BattleView(document.getElementById('view'), {
 });
 view.calm = !!settings.calm || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const ui = new UI({
-    audio, settings, cmd: (c) => cmd(c), now,
+    audio, settings, cmd: (c) => cmd(c), now, G: () => G,
     onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music, s.voice); view.calm = !!s.calm; },
     onDeleteSave: () => { clearSave(); refreshTitle(); },
     onTitle: () => toTitle(),
@@ -124,7 +124,7 @@ function cmd(c) {
     if (!G) return false;
     const before = G.mode;
     const okd = act(G, c);
-    if (!okd && ['build', 'buy', 'upgrade', 'learn', 'equip', 'claim', 'sell'].includes(c.t)) audio.ui('no');
+    if (!okd && ['build', 'buy', 'upgrade', 'learn', 'equip', 'equipBest', 'unequipAll', 'claim', 'sell'].includes(c.t)) audio.ui('no');
     flushEvents();
     if (G.mode !== before || c.t === 'next' || c.t === 'continue' || c.t === 'skip') sync();
     else if (G.mode === 'village') { ui.renderVillage(G); ui.renderPanel(G); }
@@ -142,12 +142,16 @@ function sync() {
         ui.showScene(G);
         audio.play(G.scene.tag === 'opening' ? 'title' : 'story');
     } else if (G.mode === 'village') {
+        // a new tale reaches the village after its opening scene: start the idle clock now (v1.2.0; the collect in
+        // startGame came during the scene and was ignored, so production never began until a reload)
+        if (!G.village.last) { act(G, { t: 'collect', now: now() }); flushEvents(); }
         audio.hush();
         hud.hidden = true;
         for (const s of ['scene', 'result', 'pause']) if (ui.has(s)) ui.closeScreen(s);
         if (!ui.has('village')) ui.openScreen('village');
         if (ui.has('ending')) ui.openScreen('ending');      // the tale's end stays on top of the village it returns to
         ui.renderVillage(G);
+        if (!document.getElementById('ticker').children.length) ui.ticker.now(G, now(), ui.today());   // never an empty feed
         if (!ui.has('ending')) audio.play('village');
     } else if (G.mode === 'battle') {
         audio.hush();
@@ -169,6 +173,8 @@ const TOAST = {
     claim: () => 'Request complete. Reward claimed.',
     upgrade: (e) => `Upgraded to +${e.plus}.`,
     learn: (e) => `Learned rank ${e.rank}.`,
+    equipBest: (e) => `Now wearing your best gear (${e.n} piece${e.n > 1 ? 's' : ''} changed).`,
+    unequipAll: () => 'All gear taken off.',
 };
 function flushEvents() {
     if (!G || !G.events.length) return;
@@ -216,7 +222,7 @@ function handlePresses() {
     if (G.mode === 'village') {
         if (key === 'ArrowDown' || key === 'ArrowRight') ui.moveFocus(1);
         else if (key === 'ArrowUp' || key === 'ArrowLeft') ui.moveFocus(-1);
-        else if (key === 'Escape') ui.openScreen('settings');
+        else if (key === 'Escape') { if (!ui.closeTip()) ui.openScreen('settings'); }
         else if (key === 'Enter' && press.pad) document.activeElement?.click?.();
         return;
     }
@@ -266,7 +272,10 @@ function frame(nowMs) {
         ui.hud(G);
         ui.placeHud(view.layout);
     } else view.frame({ battle: null }, dt, time);
-    if (G && G.mode === 'village' && Math.floor(time) !== Math.floor(time - dt) && ui.top() === 'village') ui.renderVillage(G);
+    if (G && G.mode === 'village' && Math.floor(time) !== Math.floor(time - dt) && ui.top() === 'village') {
+        ui.renderVillage(G);
+        ui.ticker.tick(G, 1, now(), ui.today());
+    }
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) { pause(); if (G) saveGame(G); } });

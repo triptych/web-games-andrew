@@ -202,14 +202,25 @@ function heal(G, amt) {
 }
 
 // ---------------------------------------------------------------- the foe
+/** The ability a foe's n-th attack (1-based) brings, or null: abilities cycle; a heal lands every 3rd attack and a
+ * shield every 2nd. The view shows the next one under the foe's attack timer. */
+export function abilityOn(f, n) {
+    const usable = f.abil.filter((a) => a !== 'enrage' && a !== 'haste');
+    if (!usable.length || n < 1) return null;
+    const a = usable[(n - 1) % usable.length];
+    if (a === 'heal' && n % 3 !== 0) return null;
+    if (a === 'shield' && n % 2 !== 0) return null;
+    return a;
+}
+export const nextAbility = (f) => abilityOn(f, f.attacks + 1);
+
 function foeAttack(G) {
     const Bt = G.battle, f = Bt.foe, h = Bt.hero, B = Bt.board;
     f.attacks++;
     G.events.push({ type: 'foeAttack', foe: f.id });
     hurtHero(G, f.atk, 'hit');
-    const usable = f.abil.filter((a) => a !== 'enrage' && a !== 'haste');
-    if (!usable.length) return;
-    const a = usable[(f.attacks - 1) % usable.length];
+    const a = abilityOn(f, f.attacks);
+    if (!a) return;
     if (a === 'stone') {
         const s = Bd.convert(B, G.rng, BATTLE.stonePerHit, GEM.STONE);
         if (s.length) G.events.push({ type: 'curse', kind: 'stone', slots: s });
@@ -229,16 +240,12 @@ function foeAttack(G) {
         h.mana[p] -= amt;
         if (amt) G.events.push({ type: 'drain', pool: p, amt });
     } else if (a === 'heal') {
-        if (f.attacks % 3 === 0) {
-            const amt = Math.round(f.max * BATTLE.healPct);
-            f.hp = Math.min(f.max, f.hp + amt);
-            G.events.push({ type: 'foeHeal', amt });
-        }
+        const amt = Math.round(f.max * BATTLE.healPct);
+        f.hp = Math.min(f.max, f.hp + amt);
+        G.events.push({ type: 'foeHeal', amt });
     } else if (a === 'shield') {
-        if (f.attacks % 2 === 0) {
-            f.shield = Math.round(f.max * BATTLE.shieldPct);
-            G.events.push({ type: 'foeShield', amt: f.shield });
-        }
+        f.shield = Math.round(f.max * BATTLE.shieldPct);
+        G.events.push({ type: 'foeShield', amt: f.shield });
     } else if (a === 'poison') {
         h.poison = BATTLE.poisonSecs;
         G.events.push({ type: 'poisoned' });

@@ -11,6 +11,7 @@ import * as V from './sim/village.js';
 import * as St from './sim/stats.js';
 import { chapter, regionsOpen, actives, learnBlock, tale } from './sim/game.js';
 import { canSkill, canItem } from './sim/battle.js';
+import { Ticker } from './ticker.js';
 
 const $ = (id) => document.getElementById(id);
 const h = (tag, cls = '', html = '') => { const e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; return e; };
@@ -22,11 +23,13 @@ const POOL_NAME = { r: 'Ruby', s: 'Sapphire', e: 'Emerald', a: 'Amethyst' };
 const GEM_TEXT = [['Sword', 'hits the foe'], ['Heart', 'heals you'], ['Ruby', 'red mana'], ['Sapphire', 'blue mana'], ['Emerald', 'green mana'], ['Amethyst', 'violet mana']];
 
 export class UI {
-    constructor({ audio, settings, cmd, onSettings, onDeleteSave, onTitle, now }) {
+    constructor({ audio, settings, cmd, onSettings, onDeleteSave, onTitle, now, G }) {
         this.audio = audio;
         this.settings = settings;
         this.cmd = cmd;
         this.now = now;
+        this.G = G;
+        this.ticker = new Ticker(this, $('ticker'));
         this.stack = [];
         this.panel = null;                 // { kind, id, tab, sel }
         this.typing = null;
@@ -35,6 +38,8 @@ export class UI {
         // a press that began outside a screen (the finger that opened it) must not click inside it when it lifts
         this.downIn = null;
         window.addEventListener('pointerdown', (e) => { this.downIn = e.target.closest('.screen'); }, { capture: true });
+        // a resource tip closes on any press outside it
+        window.addEventListener('pointerdown', (e) => { if (!e.target.closest('#res-tip, .res')) this.closeTip(); }, { capture: true });
         for (const el of document.querySelectorAll('.screen')) {
             el.addEventListener('click', (e) => {
                 if (e.detail && this.downIn !== el) { e.stopImmediatePropagation(); e.preventDefault(); }
@@ -60,6 +65,7 @@ export class UI {
     // ------------------------------------------------------------------ screen stack
     openScreen(id) {
         if (this.top() === id) return;
+        this.closeTip();
         const el = $(id);
         el.hidden = false;
         this.stack = this.stack.filter((s) => s !== id).concat(id);
@@ -165,16 +171,22 @@ export class UI {
         // so an idle village doesn't repaint (and re-rasterise its atlases) every second
         const fresh = this.villageG !== G;
         this.villageG = G;
+        // (compared with what was last put there, so parts updated in place, like the Collect timer, don't count)
+        if (fresh) this.vHtml = {};
         const put = (id, kids) => {
             const box = $(id), tmp = document.createElement('div');
             tmp.append(...kids);
-            if (fresh || tmp.innerHTML !== box.innerHTML) box.replaceChildren(...tmp.childNodes);
+            if (fresh || tmp.innerHTML !== this.vHtml[id]) { this.vHtml[id] = tmp.innerHTML; box.replaceChildren(...tmp.childNodes); }
         };
         const bar = [];
         for (const r of RESOURCES) {
-            const s = h('span', 'res');
-            s.title = RES_NAMES[r];
-            s.append(iconEl(ICON[r]), document.createTextNode(fmt(G.res[r])));
+            const s = h('button', 'res');
+            s.dataset.res = r;
+            s.title = `${RES_NAMES[r]}: how to get more`;
+            s.addEventListener('click', (e) => { e.stopPropagation(); this.resTip(r, s); });
+            const pill = h('span', 'pill');
+            pill.append(iconEl(ICON[r]), document.createTextNode(fmt(G.res[r])));
+            s.append(pill);
             bar.push(s);
         }
         put('res-bar', bar);
@@ -197,11 +209,13 @@ export class UI {
         const rate = V.rates(G);
         card.append(h('div', 'dim', `Per hour: ${RESOURCES.filter((r) => rate[r]).map((r) => `${rate[r]} ${r}`).join(', ')}. Stores hold ${V.capHours(G)} h.`));
         if (now < G.village.boostUntil) card.append(h('div', 'better', `Harvest festival! Production doubled for ${Math.ceil((G.village.boostUntil - now) / 60000)} min.`));
-        const col = h('button', 'btn' + (any ? ' primary' : ''), 'Collect');
+        // the Collect button fills toward the next whole unit; a line under it counts down (v1.2.0)
+        const col = h('button', 'btn collect' + (any ? ' primary' : ''), '<span class="prog"><i id="collect-prog"></i></span><span class="lbl">Collect</span>');
         col.id = 'btn-collect';
         col.disabled = !any;
+        col.title = any ? 'Collect what the village has made' : 'Nothing whole to collect yet';
         col.addEventListener('click', () => this.cmd({ t: 'collect', now: this.now() }));
-        card.append(col);
+        card.append(col, h('div', 'next-tick', '<span id="collect-next"></span>'));
         const day = this.today();
         const gift = h('button', 'btn ' + (V.canDaily(G, day) ? 'primary' : ''), V.canDaily(G, day) ? `🎁 Daily gift (day ${dailyStreakNext(G, day)})` : `Daily gift claimed · streak ${G.village.daily.streak}`);
         gift.id = 'btn-daily';
@@ -209,6 +223,7 @@ export class UI {
         gift.addEventListener('click', () => this.cmd({ t: 'daily', day: this.today(), now: this.now() }));
         card.append(gift);
         put('idle-card', [...card.childNodes]);
+        this.tickCollect(G, now);
         // buildings
         const box = [];
         for (const b of BUILDINGS) {
@@ -231,6 +246,50 @@ export class UI {
         $('adv-label').textContent = c ? '⚔ Adventure' : '⚔ Patrols';
         badge('adv-badge', c && G.hero.lv >= c.lv - 1 ? '!' : '');
         $('btn-adventure').title = c ? `Next: ${c.title} (level ${c.lv})` : 'Patrols';
+    }
+    closeTip() { const t = $('res-tip'); if (t && !t.hidden) { t.hidden = true; return true; } return false; }
+
+    /** A tip under a resource chip: where more of it comes from, built from the game's data (v1.2.0). */
+    resTip(r, chip) {
+        const tip = $('res-tip');
+        if (!tip.hidden && tip.dataset.res === r) { tip.hidden = true; return; }
+        const G = this.G?.();
+        if (!G) return;
+        const lines = [];
+        for (const [b, prod] of Object.entries(PRODUCE)) {
+            if (!prod[r]) continue;
+            const lv = G.village.lv[b] || 0, B = BUILDING[b];
+            lines.push(lv ? `<b>${esc(B.name)}</b> makes ${prod[r][lv]} an hour while you're away. Upgrade it for more, and collect often.`
+                : `Build the <b>${esc(B.name)}</b> to make it while you're away.`);
+        }
+        const regions = Object.values(REGION).filter((R) => R.res === r);
+        if (regions.length) {
+            const open = regionsOpen(G);
+            const names = regions.map((R) => esc(R.name) + (open.includes(R.id) ? '' : ' <span class="dim">(not reached yet)</span>'));
+            lines.push(`Patrol ${names.join(' or ')}: its foes pay the most ${r}.`);
+        }
+        if (r === 'gold') lines.push('Every battle pays gold. Villagers\' requests pay well, and the Market buys spare gear.');
+        else if (r !== 'crystal') lines.push(`Every battle pays a share of ${r}, wherever you fight.`);
+        lines.push('The daily gift grows with your streak and the Town Hall.');
+        tip.dataset.res = r;
+        tip.innerHTML = `<div class="hd">${iconEl(ICON[r]).outerHTML}<b>${RES_NAMES[r]}</b> <span class="dim">${fmt(G.res[r])}</span></div><ul>${lines.map((l) => `<li>${l}</li>`).join('')}</ul>`;
+        tip.hidden = false;
+        const rc = chip.getBoundingClientRect();
+        tip.style.left = `${Math.max(8, Math.min(rc.left, innerWidth - tip.offsetWidth - 8))}px`;
+        tip.style.top = `${rc.bottom + 6}px`;
+    }
+
+    /** The Collect button's fill and countdown, updated in place every second. */
+    tickCollect(G, now) {
+        const bar = $('collect-prog'), line = $('collect-next');
+        if (!bar || !line) return;
+        const n = V.nextTick(G, now);
+        if (!n) { bar.style.width = '0%'; line.textContent = 'Build the Inn, Farm, Mill, Mine or Tower to produce while you are away.'; return; }
+        if (n.full) { bar.style.width = '100%'; line.textContent = 'Stores full! Collect so the village keeps working.'; return; }
+        bar.style.width = `${Math.round(n.frac * 100)}%`;
+        const s = Math.ceil(n.secs);
+        const t = s >= 3600 ? `${Math.floor(s / 3600)} h ${Math.floor((s % 3600) / 60)} min` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+        line.textContent = `Next: +1 ${RES_NAMES[n.res].toLowerCase()} in ${t}`;
     }
     today() {
         const d = new Date(this.now());
@@ -500,6 +559,22 @@ export class UI {
     }
 
     gearTab(G, body) {
+        // the whole kit at once (v1.2.0)
+        const bar = h('div', 'gear-bar');
+        const anyWorn = SLOTS.some((sl) => G.hero.eq[sl]);
+        const better = betterGear(G);
+        const best = h('button', 'btn small' + (better ? ' primary' : ''), 'Equip best');
+        best.id = 'btn-equip-best';
+        best.disabled = !better;
+        best.title = better ? 'Wear the strongest piece you own in every slot' : 'You are already wearing your best';
+        best.addEventListener('click', () => this.cmd({ t: 'equipBest' }));
+        const off = h('button', 'btn small', 'Remove all');
+        off.id = 'btn-unequip-all';
+        off.disabled = !anyWorn;
+        off.title = anyWorn ? 'Take off everything you wear' : 'Nothing is worn';
+        off.addEventListener('click', () => this.cmd({ t: 'unequipAll' }));
+        bar.append(best, off);
+        body.append(bar);
         for (const slot of SLOTS) {
             body.append(h('h3', '', slot[0].toUpperCase() + slot.slice(1)));
             const list = h('div', 'list');
@@ -511,12 +586,12 @@ export class UI {
                 const it = ITEM[inv.id];
                 const on = worn && worn.uid === inv.uid;
                 const li = h('div', 'li');
-                const cmp = on ? '' : V.gearScore(inv) > ws ? ' <span class="better">▲ better</span>' : ' <span class="worse">▼</span>';
+                const cmp = on ? ' <span class="worn">worn</span>' : V.gearScore(inv) > ws ? ' <span class="better">▲ better</span>' : ' <span class="worse">▼</span>';
                 li.append(iconEl(it.icon, 'lg'), h('div', 'grow', `<div class="nm">${esc(it.name)}${inv.plus ? ' +' + inv.plus : ''}${cmp}</div><div class="sub">${esc(itemLine(G, inv))}</div>`));
-                const btn = h('button', 'btn small', on ? 'Worn' : 'Equip');
+                const btn = h('button', 'btn small', on ? 'Remove' : 'Equip');
                 btn.dataset.equip = inv.uid;
-                btn.disabled = on;
-                btn.addEventListener('click', () => this.cmd({ t: 'equip', uid: inv.uid }));
+                btn.title = on ? `Take off ${it.name}` : `Wear ${it.name}`;
+                btn.addEventListener('click', () => this.cmd(on ? { t: 'unequip', slot } : { t: 'equip', uid: inv.uid }));
                 li.append(btn);
                 list.append(li);
             }
@@ -552,6 +627,7 @@ export class UI {
     buildHud(G, onSkill, onItem) {
         const sk = $('skills'), it = $('items');
         sk.innerHTML = ''; it.innerHTML = '';
+        this.prevMana = null;
         actives(G).forEach((id, i) => {
             const n = NODE[id];
             const b = h('button', 'skill');
@@ -562,6 +638,7 @@ export class UI {
             b.append(h('span', 'key', String(i + 1)), h('div', 'fill'), h('div', 'cost', Object.entries(n.cost).map(([p, c]) => `<span style="color:${poolCol(p)}">${c}</span>`).join('')));
             b.addEventListener('pointerdown', (e) => { e.preventDefault(); onSkill(id); });
             b.addEventListener('click', (e) => { if (!e.detail) onSkill(id); });
+            b.addEventListener('animationend', (e) => { if (e.animationName === 'feed') b.classList.remove('feed'); });
             sk.append(b);
         });
         ['potion', 'greatpotion', 'tonic', 'bomb', 'scroll'].filter((id) => G.bag[id] > 0).slice(0, 3).forEach((id, i) => {
@@ -590,8 +667,15 @@ export class UI {
             let frac = 1;
             for (const [p, c] of Object.entries(n.cost)) frac = Math.min(frac, Bt.hero.mana[p] / c);
             b.querySelector('.fill').style.height = `${Math.round((1 - Math.min(1, frac)) * 100)}%`;
-            b.classList.toggle('ready', canSkill(G, b.dataset.skill));
+            const ready = canSkill(G, b.dataset.skill);
+            b.classList.toggle('ready', ready);
+            // a match fed mana this skill needs: it bounces (once per animation, so a cascade doesn't stutter it)
+            const prev = this.prevMana;
+            if (prev && !ready && !b.classList.contains('feed') && Object.keys(n.cost).some((p) => Bt.hero.mana[p] > prev[p] + 0.01)) {
+                b.classList.add('feed');
+            }
         }
+        this.prevMana = { ...Bt.hero.mana };
         for (const b of document.querySelectorAll('#items .itm')) {
             b.disabled = !canItem(G, b.dataset.item);
             b.querySelector('.n').textContent = G.bag[b.dataset.item] || 0;

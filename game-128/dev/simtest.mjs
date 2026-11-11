@@ -36,7 +36,8 @@ const { HEROES, HERO, NODE } = await import('../js/sim/data/heroes.js');
 const { REGIONS, FOE, NEMESES } = await import('../js/sim/data/world.js');
 const { TALES, OPENING, ENDINGS } = await import('../js/sim/data/story.js');
 const { NPCS, BUILDINGS, REQUESTS } = await import('../js/sim/data/village.js');
-const { EQUIP, CONSUMABLES } = await import('../js/sim/data/items.js');
+const { EQUIP, CONSUMABLES, ITEM } = await import('../js/sim/data/items.js');
+const ITEM_SLOT = (inv) => ITEM[inv.id].slot;
 const { makeRng } = await import('../js/rng.js');
 
 let fails = 0, checks = 0;
@@ -282,6 +283,11 @@ if (want('battle')) {
     G.battle.foe.timer = 0.01;
     Gm.step(G, DT);
     ok(G.battle.phase === 'lost', 'without one, the hero falls');
+    // the foe's next ability, shown under its timer (v1.2.0): abilities cycle; a shield every 2nd attack, a heal every 3rd
+    const fa = { abil: ['lock', 'shield'], attacks: 0 };
+    ok([1, 2, 3, 4].map((n) => Bt.abilityOn(fa, n)).join() === 'lock,shield,lock,shield', 'abilities cycle attack by attack');
+    ok([1, 2, 3, 4, 5, 6].map((n) => Bt.abilityOn({ abil: ['heal'] }, n) || '-').join() === '-,-,heal,-,-,heal', 'a heal lands every third attack');
+    ok(Bt.abilityOn({ abil: ['enrage', 'haste'] }, 1) === null && Bt.nextAbility({ abil: ['stone'], attacks: 4 }) === 'stone', 'enrage and haste aren\'t attack abilities; nextAbility looks one ahead');
     ok(Gm.act(G, { t: 'continue' }) && G.mode === 'village' && !G.quest, 'a loss sends the hero home');
     // level ups give skill points
     G = Gm.newGame(1, 'odo');
@@ -358,6 +364,25 @@ if (want('village')) {
     G.stats.kills.greenmarch = 6;
     ok(Gm.act(G, { t: 'claim', id: 'rq_slimes' }) && !Gm.act(G, { t: 'claim', id: 'rq_slimes' }), 'a finished request pays once');
     ok(!Gm.act(G, { t: 'claim', id: 'rq_peaks' }), 'an unfinished one pays nothing');
+    // the whole kit at once (v1.2.0)
+    G = home(4, 'kael');
+    G.res.gold = 5000;
+    for (const id of ['huntbow', 'oakstaff', 'tunic', 'clover']) Gm.act(G, { t: 'buy', id });
+    const best = V.bestGear(G);
+    ok(Gm.act(G, { t: 'equipBest' }) && ['weapon', 'armor', 'charm'].every((sl) => G.hero.eq[sl] === best[sl]?.uid) && G.hero.eq.charm, 'Equip best wears the best piece in every slot');
+    ok(!Gm.act(G, { t: 'equipBest' }), 'and does nothing when that is already worn');
+    ok(['weapon', 'armor', 'charm'].every((sl) => !G.inv.some((i) => ITEM_SLOT(i) === sl && V.gearScore(i) > V.gearScore(St.equipped(G, sl)))), 'nothing owned beats what is worn');
+    ok(Gm.act(G, { t: 'unequip', slot: 'charm' }) && !G.hero.eq.charm && !Gm.act(G, { t: 'unequip', slot: 'charm' }), 'one slot can be taken off');
+    ok(Gm.act(G, { t: 'unequipAll' }) && Object.values(G.hero.eq).every((u) => !u) && !Gm.act(G, { t: 'unequipAll' }), 'Remove all takes everything off');
+    ok(St.heroStats(G).atk < St.heroStats((Gm.act(G, { t: 'equipBest' }), G)).atk, 'and gear back on raises attack again');
+    // the Collect countdown
+    G = home(5, 'kael');
+    ok(V.nextTick(G, now0) === null, 'no countdown before the idle clock starts');
+    Gm.act(G, { t: 'collect', now: now0 });
+    const nt = V.nextTick(G, now0 + 60 * 1000);
+    const gr = V.rates(G).gold;
+    ok(nt && nt.res === 'gold' && Math.abs(nt.secs - (3600 / gr - 60)) < 1 && Math.abs(nt.frac - 60 * gr / 3600) < 1e-6, `the countdown names the next unit and when it lands (${nt && nt.res} in ${nt && nt.secs.toFixed(0)} s)`);
+    ok(V.nextTick(G, now0 + V.capHours(G) * H)?.full, 'and says when the stores are full');
 }
 
 // ======================================================================
