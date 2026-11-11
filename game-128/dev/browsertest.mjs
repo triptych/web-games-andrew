@@ -119,7 +119,8 @@ async function desktop() {
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('panel').hidden, 'Escape closes the panel (focus inside it)');
     // the skill tree
-    await Q(page, () => { __gs.G.hero.sp = 1; });
+    await Q(page, () => { __gs.G.hero.sp = 1; __gs.ui.renderVillage(__gs.G); });
+    check(await Q(page, () => { const b = document.getElementById('hero-badge'); return !b.hidden && b.textContent === '1' && getComputedStyle(b).backgroundColor === 'rgb(63, 208, 122)'; }), 'a green 1 on Hero & Skills: a skill point to spend');
     await click(page, '#btn-hero');
     await until(page, () => !!document.querySelector('[data-node="s_weave"]'), 'Hero & Skills shows the tree');
     await click(page, '[data-node="s_weave"]');
@@ -127,6 +128,7 @@ async function desktop() {
     await until(page, () => __gs.G.hero.ranks.s_weave === 1 && __gs.G.hero.sp === 0, 'a skill point learns Spellweave');
     await shot(page, 'desktop-tree');
     await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('hero-badge').hidden, 'and the badge goes once it is spent');
 
     // the first chapter
     await click(page, '#btn-adventure');
@@ -167,6 +169,8 @@ async function desktop() {
     const sk = await Q(page, () => __gs.seen.skill || 0);
     await page.keyboard.press('Digit1');
     await until(page, (n) => (__gs.seen.skill || 0) > n, 'key 1 casts Arcane Lance', 10000, sk);
+    const dr = await Q(page, () => __gs.view.drawn);
+    check(dr.hero > 0 && dr.hero <= 1 && dr.foe > 0 && dr.foe <= 1, `the hero and foe are drawn at or below their art's size, never blown up (${dr.hero.toFixed(2)}, ${dr.foe.toFixed(2)})`);
     await shot(page, 'desktop-battle');
     // pause
     await page.keyboard.press('Escape');

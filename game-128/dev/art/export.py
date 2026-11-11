@@ -38,8 +38,10 @@ ICON_SHEETS = ['gems', 'gear', 'goods', 'misc']
 # The model ignored the direction for these; they were found by eye on the labelled contact sheet and are mirrored.
 FLIP = {'mon/wolf', 'mon/hound', 'mon/kobold', 'mon/leech', 'mon/hornet', 'mon/lizard', 'mon/troll', 'mon/toad'}
 
-# longest side, in art pixels
-SIZE = {'normal': 150, 'elite': 190, 'boss': 240, 'hero': 156, 'icon': 64, 'building': 168, 'skill': 96}
+# longest side, in art pixels. Battle sprites are kept at about twice the size they are drawn at (v1.1.0): drawn
+# smaller and smoothly downscaled they read as fine 32-bit pixel art; v1.0.0 exported them at 150 px and blew them up
+# 3x with nearest-neighbour scaling, which looked zoomed and blocky. The board gems get 128 px cells for the same reason.
+SIZE = {'normal': 300, 'elite': 360, 'boss': 440, 'hero': 320, 'icon': 64, 'gem': 128, 'building': 168, 'skill': 96}
 
 def label(mask):
     h, w = mask.shape
@@ -235,7 +237,7 @@ def main(raw):
             save(op(f'npc-{n}.png').convert('RGB').resize((256, 256), Image.BOX), f'por/{n}.webp', q=84)
     for r in REGIONS:
         if have(f'bg-{r}.png'):
-            save(op(f'bg-{r}.png').convert('RGB').resize((768, 432), Image.BOX), f'bg/{r}.webp', q=80)
+            save(op(f'bg-{r}.png').convert('RGB').resize((1024, 576), Image.BOX), f'bg/{r}.webp', q=80)
     for n in ('title', 'village'):
         if have(f'bg-{n}.png'):
             save(op(f'bg-{n}.png').convert('RGB').resize((1280, 720), Image.BOX), f'bg/{n}.webp', q=82)
@@ -252,7 +254,7 @@ def main(raw):
         f = f'icons-{s}.png'
         if not have(f):
             print('missing', f); continue
-        C = SIZE['icon']
+        C = SIZE['gem'] if s in ('gems', 'misc') else SIZE['icon']     # gems and misc hold the board pieces
         atlas = Image.new('RGBA', (C * 4, C * 4), (0, 0, 0, 0))
         for i, (cell, focus) in enumerate(grid_cells(op(f), 4, 4, margin=0.06)):
             ic = shrink(trim(cutout(cell, focus)), C - 2)

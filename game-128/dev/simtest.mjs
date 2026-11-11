@@ -224,6 +224,8 @@ if (want('battle')) {
     for (let t = 0; t < G.battle.foe.every + 0.1; t += DT) Gm.step(G, DT);
     ok(evs(G, 'foeAttack').length === 1 && G.battle.hero.hp < hb, 'the foe attacks when its timer runs out');
     ok(G.battle.board.cells.filter((x) => x && x.k === GEM.STONE).length === 3 || evs(G, 'curse').length === 1, 'the boar\'s blow turns gems to stone');
+    const quickest = Object.keys(FOE).map((id) => St.foeStats(id, 1)).sort((x, y) => x.every - y.every)[0];
+    ok(quickest.every >= 4, `no foe attacks more often than every 4 s (the quickest, ${quickest.name}, every ${quickest.every.toFixed(1)} s)`);
     // skills need mana
     G = battleGame(6, 'kael', 'wolf');
     ok(!Bt.canSkill(G, 'k_sunder'), 'a skill without mana can\'t be used');

@@ -122,7 +122,8 @@ td:first-child { color: var(--gold); white-space: nowrap; padding-right: 10px; }
 
 /* ---------------------------------------------------------------- village */
 .village { padding: 0; display: block; background: #0d0a14; overflow: hidden; }
-.village-bg { position: absolute; inset: 0; background: url(art/bg/village.webp) center / cover no-repeat; image-rendering: pixelated; filter: saturate(1.05) brightness(0.72); }
+/* darkened with a gradient layer, not `filter`: a full-screen filter is re-rasterised every frame while the canvas animates */
+.village-bg { position: absolute; inset: 0; background: linear-gradient(rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.28)), url(art/bg/village.webp) center / cover no-repeat; image-rendering: pixelated; }
 .res-bar {
     position: absolute; top: calc(8px + var(--safe-t)); left: calc(108px + var(--safe-l)); right: calc(60px + var(--safe-r));
     display: flex; flex-wrap: wrap; gap: 6px; z-index: 2;
@@ -145,7 +146,19 @@ td:first-child { color: var(--gold); white-space: nowrap; padding-right: 10px; }
 .bar { height: 8px; background: rgba(255, 255, 255, 0.12); border-radius: 4px; overflow: hidden; margin-top: 4px; }
 .bar > i { display: block; height: 100%; background: linear-gradient(90deg, #ffcf5a, #fff1b0); }
 .actions { display: flex; flex-direction: column; gap: 8px; }
-.badge { display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 10px; background: #ff5a5a; color: #fff; font-size: 12px; margin-left: 4px; }
+/* a green number or ! on a button: there is something to do behind it */
+.badge {
+    display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; margin-left: 8px; vertical-align: 2px;
+    border-radius: 11px; background: #3fd07a; color: #04210f; font-size: 13px; font-weight: 800; line-height: 1;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35), 0 0 10px rgba(63, 208, 122, 0.8);
+    animation: badge 1.6s ease-in-out infinite;
+}
+/* pulse with a transform, not box-shadow: an animated shadow repaints every frame and starved software rendering */
+@keyframes badge { 50% { transform: scale(1.15); } }
+.btn.primary .badge { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6), 0 0 10px rgba(63, 208, 122, 0.8); }
+.btn.nudge:not(:disabled) { border-color: #3fd07a; box-shadow: 0 0 12px rgba(63, 208, 122, 0.55); }
+.node.can { border-color: #3fd07a; box-shadow: 0 0 10px rgba(63, 208, 122, 0.55); }
+.node.can .rk::after { content: ' +'; color: #3fd07a; font-weight: 800; }
 .idle-card { background: rgba(14, 9, 24, 0.88); border: 1px solid var(--line); border-radius: 12px; padding: 10px; font-size: 14px; }
 .idle-card h3 { margin: 0 0 6px; font-size: 15px; color: var(--gold); }
 .idle-card .btn { width: 100%; margin-top: 8px; }
@@ -251,4 +264,4 @@ td:first-child { color: var(--gold); white-space: nowrap; padding-right: 10px; }
     .v-left { flex: 0 0 240px; }
     .scene-box { margin-bottom: 56px; min-height: 100px; }
 }
-@media (prefers-reduced-motion: reduce) { .skill.ready { animation: none; } .toast { animation-duration: 3.5s; } }
+@media (prefers-reduced-motion: reduce) { .skill.ready, .badge { animation: none; } .toast { animation-duration: 3.5s; } }

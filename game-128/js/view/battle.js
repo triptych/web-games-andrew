@@ -3,7 +3,7 @@
 //
 // Layout: portrait phones put the scene on top and the board below; wide screens put the scene on the left and the
 // board on the right. this.layout = { scene, board, bar } in CSS px; the DOM skill bar is placed into layout.bar.
-// The sprites are 32-bit-era pixel art drawn with nearest-neighbour scaling.
+// The art is exported larger than it is drawn and scaled down once, with high-quality filtering, by scaled() below.
 
 import { BOARD, GEM, SPECIAL, CLEAR_TIME, HINT_AFTER, BATTLE } from '../config.js';
 import { img, ready, ART } from '../assets.js';
@@ -13,9 +13,54 @@ import * as Bd from '../sim/board.js';
 
 const W = BOARD.w, H = BOARD.h;
 const GEM_COL = ['#c9d6e6', '#ff7aa8', '#ff5a5a', '#4ea2ff', '#3fd07a', '#b07bff', '#9a9a9a', '#ff3030', '#ffffff'];
-const POOL_COL = { r: '#ff5a5a', s: '#4ea2ff', e: '#3fd07a', a: '#b07bff' };
+const POOL_COL = { r: '#ff6b6b', s: '#4ea2ff', e: '#3fd07a', a: '#b07bff' };
 // gem kind -> [atlas, cell]: the emerald is in the misc atlas
 const CELL = [['gems', 0], ['gems', 1], ['gems', 2], ['gems', 3], ['misc', 5], ['gems', 4], ['gems', 6], ['gems', 7], ['gems', 5]];
+
+// Pre-scaled copies: each picture (or atlas cell) is filtered down once to the device-pixel size it is drawn at, then
+// drawn 1:1 every frame. Filtering big art down every frame starved software rendering and costs phones battery.
+const SCALED = new Map();
+// `outline` adds a black outline that thick (as a fraction of the size) around the picture's silhouette (the gems).
+function scaled(im, sx, sy, sw, sh, w, h, outline = 0) {
+    const W = Math.max(1, Math.round(w)), H = Math.max(1, Math.round(h));
+    const key = `${im.src}|${sx}|${sy}|${sw}|${sh}|${W}|${H}|${outline}`;
+    let c = SCALED.get(key);
+    if (!c) {
+        if (SCALED.size > 400) SCALED.clear();
+        c = document.createElement('canvas');
+        c.width = W; c.height = H;
+        const x = c.getContext('2d');
+        x.imageSmoothingEnabled = true;
+        x.imageSmoothingQuality = 'high';
+        if (!outline) x.drawImage(im, sx, sy, sw, sh, 0, 0, W, H);
+        else {
+            // the picture shrunk to leave room, its silhouette in black, stamped round a circle, then the picture on top
+            const r = Math.max(1.5, W * outline);
+            const sil = document.createElement('canvas');
+            sil.width = W; sil.height = H;
+            const sx2 = sil.getContext('2d');
+            sx2.imageSmoothingQuality = 'high';
+            sx2.drawImage(im, sx, sy, sw, sh, r, r, W - 2 * r, H - 2 * r);
+            // drop the faint stray pixels at the atlas cell's edge, or the outline would trace them too
+            const d = sx2.getImageData(0, 0, W, H);
+            for (let i = 3; i < d.data.length; i += 4) d.data[i] = d.data[i] < 64 ? 0 : Math.min(255, (d.data[i] - 64) * 1.4 + 64);
+            sx2.putImageData(d, 0, 0);
+            const pic = document.createElement('canvas');
+            pic.width = W; pic.height = H;
+            pic.getContext('2d').drawImage(sil, 0, 0);
+            sx2.globalCompositeOperation = 'source-in';
+            sx2.fillStyle = '#000';
+            sx2.fillRect(0, 0, W, H);
+            for (let i = 0; i < 16; i++) {
+                const a = (i / 16) * Math.PI * 2;
+                x.drawImage(sil, Math.cos(a) * r, Math.sin(a) * r);
+            }
+            x.drawImage(pic, 0, 0);
+        }
+        SCALED.set(key, c);
+    }
+    return c;
+}
 
 export class BattleView {
     constructor(canvas, { onSwap, onSelect } = {}) {
@@ -34,6 +79,7 @@ export class BattleView {
         this.shake = 0;
         this.calm = false;
         this.foeDying = 0;
+        this.drawn = { hero: 0, foe: 0 };    // how much the sprites are scaled (the tests keep it ≤ 1)
         this.layout = { scene: { x: 0, y: 0, w: 1, h: 1 }, board: { x: 0, y: 0, s: 1 }, bar: { x: 0, y: 0, w: 1, h: 1 } };
         this.atlas = { gems: img(ART.icons('gems')), misc: img(ART.icons('misc')) };
         this.resize();
@@ -153,8 +199,8 @@ export class BattleView {
         const b = this.layout.board, cs = b.s / 8;
         return { x: b.x + (x + 0.5) * cs, y: b.y + (y + 0.5) * cs };
     }
-    heroPos() { const s = this.layout.scene; return { x: s.x + s.w * 0.26, y: s.y + s.h * 0.6 }; }
-    foePos() { const s = this.layout.scene; return { x: s.x + s.w * 0.72, y: s.y + s.h * 0.55 }; }
+    heroPos() { const s = this.layout.scene; return { x: s.x + s.w * 0.24, y: s.y + s.h * 0.72 }; }
+    foePos() { const s = this.layout.scene; return { x: s.x + s.w * 0.72, y: s.y + s.h * 0.7 }; }
 
     onEvents(G, events) {
         for (const e of events) {
@@ -202,12 +248,17 @@ export class BattleView {
     frame(G, dt, time) {
         this.resize();
         const ctx = this.ctx;
+        const Bt = G.battle;
+        this.active = !!Bt && (Bt.phase === 'fight' || Bt.phase === 'intro');
+        // out of battle the canvas sits under the village and story screens: clear it once and leave it, so it isn't
+        // re-rasterised every frame for nothing (that starved software rendering)
+        const size = `${this.w}x${this.h}@${this.dpr}`;
+        if (!Bt && this.idle === size) return;
+        this.idle = Bt ? null : size;
         ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
         ctx.imageSmoothingEnabled = false;
         ctx.fillStyle = '#0b0712';
         ctx.fillRect(0, 0, this.w, this.h);
-        const Bt = G.battle;
-        this.active = !!Bt && (Bt.phase === 'fight' || Bt.phase === 'intro');
         if (!Bt) return;
         let sx = 0, sy = 0;
         if (this.shake > 0 && !this.calm) { sx = (Math.random() - 0.5) * 10 * this.shake; sy = (Math.random() - 0.5) * 10 * this.shake; }
@@ -226,9 +277,10 @@ export class BattleView {
         ctx.beginPath(); ctx.rect(s.x, s.y, s.w, s.h); ctx.clip();
         const region = FOE[Bt.foe.id].region || G.quest?.region || 'gloamspire';
         const bg = img(ART.bg(region));
+        ctx.imageSmoothingEnabled = true;
         if (ready(bg)) {
             const k = Math.max(s.w / bg.width, s.h / bg.height);
-            ctx.drawImage(bg, s.x + (s.w - bg.width * k) / 2, s.y + (s.h - bg.height * k) * 0.75, bg.width * k, bg.height * k);
+            this.blit(bg, 0, 0, bg.width, bg.height, s.x + (s.w - bg.width * k) / 2, s.y + (s.h - bg.height * k) * 0.75, bg.width * k, bg.height * k);
         } else { ctx.fillStyle = '#20182e'; ctx.fillRect(s.x, s.y, s.w, s.h); }
         // a soft vignette so bars read on bright backdrops
         const gr = ctx.createLinearGradient(0, s.y, 0, s.y + s.h);
@@ -243,8 +295,11 @@ export class BattleView {
         this.flash.foe = Math.max(0, this.flash.foe - dt);
         const bob = this.calm ? 0 : Math.sin(time * 2.2) * 2;
         if (ready(hs)) {
-            const th = s.h * 0.66;
+            // about 45% of the scene, never past the sprite's own size: smaller and smoothly downscaled reads
+            // as fine 32-bit pixel art (v1.0.0 filled two thirds of the scene and looked zoomed)
+            const th = Math.min(s.h * 0.45, hs.height);
             const k = th / hs.height;
+            this.drawn.hero = k;
             const lx = Math.sin(Math.min(1, this.lunge.hero) * Math.PI) * s.w * 0.05;
             this.sprite(hs, s.x + s.w * 0.24 - hs.width * k / 2 + lx, ground - th + bob, hs.width * k, th, this.flash.hero > 0 ? 'hurt' : null, Bt.hero.hp <= 0 ? 0.4 : 1);
         }
@@ -252,10 +307,11 @@ export class BattleView {
         const f = Bt.foe;
         const fs = img(ART.mon(f.id));
         if (ready(fs)) {
-            const frac = f.rank === 'boss' ? 0.86 : f.rank === 'elite' ? 0.72 : 0.6;
-            let th = s.h * frac;
+            const frac = f.rank === 'boss' ? 0.64 : f.rank === 'elite' ? 0.52 : 0.42;
+            let th = Math.min(s.h * frac, fs.height);
             let k = th / fs.height;
-            if (fs.width * k > s.w * 0.46) { k = s.w * 0.46 / fs.width; th = fs.height * k; }
+            if (fs.width * k > s.w * 0.38) { k = s.w * 0.38 / fs.width; th = fs.height * k; }
+            this.drawn.foe = k;
             const lx = -Math.sin(Math.min(1, this.lunge.foe) * Math.PI) * s.w * 0.07;
             if (this.foeDying > 0) this.foeDying = Math.max(0, this.foeDying - dt * 1.2);
             const alpha = Bt.phase === 'won' ? this.foeDying : 1;
@@ -267,6 +323,10 @@ export class BattleView {
         // bars
         const pad = 10;
         const topY = s.y + 48;            // below the ← Games link
+        // a soft dark band behind the HUD so its labels read over a bright sky
+        const scrim = ctx.createLinearGradient(0, s.y, 0, topY + 80);
+        scrim.addColorStop(0, 'rgba(8,6,16,0.6)'); scrim.addColorStop(0.7, 'rgba(8,6,16,0.4)'); scrim.addColorStop(1, 'rgba(8,6,16,0)');
+        ctx.fillStyle = scrim; ctx.fillRect(s.x, s.y, s.w, topY + 80 - s.y);
         const rpad = s.x + s.w > this.w - 60 ? 58 : pad;   // clear of the pause button
         const bw = Math.min(220, s.w * 0.42, (s.w - pad - rpad - 10) / 2);
         this.hpBar(s.x + pad, topY, bw, HERO[G.hero.id].name, Bt.hero.hp, Bt.hero.max, Bt.hero.shield, '#46d36b', false);
@@ -291,11 +351,20 @@ export class BattleView {
         const ctx = this.ctx;
         ctx.save();
         ctx.globalAlpha = alpha;
+        ctx.imageSmoothingEnabled = true;          // the sprites are drawn smaller than their art: filter, don't block
         if (tint === 'hit' || tint === 'hurt') ctx.filter = tint === 'hit' ? 'brightness(2.2)' : 'sepia(1) saturate(4) hue-rotate(-40deg)';
         else if (tint === 'frozen') ctx.filter = 'hue-rotate(180deg) saturate(0.6) brightness(1.2)';
         else if (tint === 'rage') ctx.filter = 'saturate(1.6) sepia(0.3) hue-rotate(-20deg)';
-        ctx.drawImage(im, Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+        this.blit(im, 0, 0, im.width, im.height, Math.round(x), Math.round(y), w, h);
         ctx.restore();
+    }
+
+    /** Draw part of an image at (x, y, w, h) CSS px from a copy pre-scaled to that size; `base` (w, h) picks the copy
+     * when the drawn size is animating (a gem popping), so the cache keeps one copy per resting size. */
+    blit(im, sx, sy, sw, sh, x, y, w, h, bw = w, bh = h, outline = 0) {
+        const c = scaled(im, sx, sy, sw, sh, bw * this.dpr, bh * this.dpr, outline);
+        if (bw === w && bh === h) this.ctx.drawImage(c, x, y, c.width / this.dpr, c.height / this.dpr);
+        else this.ctx.drawImage(c, x, y, w, h);
     }
 
     hpBar(x, y, w, name, hp, max, shield, col, right) {
@@ -322,7 +391,11 @@ export class BattleView {
         const ctx = this.ctx;
         ctx.font = `800 ${size}px Nunito, system-ui, sans-serif`;
         ctx.textAlign = align;
-        if (shadow) { ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillText(t, x + 1, y + 1); ctx.fillText(t, x - 1, y + 1); }
+        // every label gets a dark outline (v1.1.0: red 'Weak: Ruby' was lost on a blue sky); `shadow` thickens it
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = Math.max(3, size * (shadow ? 0.26 : 0.22));
+        ctx.strokeStyle = 'rgba(6,4,12,0.92)';
+        ctx.strokeText(t, x, y);
         ctx.fillStyle = col;
         ctx.fillText(t, x, y);
     }
@@ -375,9 +448,11 @@ export class BattleView {
         if (t.sp === SPECIAL.PRISM || t.k === Bd.PRISM) {
             ctx.shadowColor = `hsl(${(time * 120) % 360},100%,70%)`; ctx.shadowBlur = this.calm ? 6 : 14;
         }
+        ctx.imageSmoothingEnabled = true;
+        const base = cs - pad * 2;
         if (ready(im)) {
             const cw = im.width / 4;
-            ctx.drawImage(im, (cell % 4) * cw, Math.floor(cell / 4) * cw, cw, cw, gx, gy, sz, sz);
+            this.blit(im, (cell % 4) * cw, Math.floor(cell / 4) * cw, cw, cw, gx, gy, sz, sz, base, base, 0.045);   // a bold black outline, v1.1.0
         } else {
             ctx.fillStyle = GEM_COL[t.k] || '#fff';
             ctx.beginPath(); ctx.arc(x + cs / 2, y + cs / 2, sz / 2.4, 0, Math.PI * 2); ctx.fill();
@@ -395,7 +470,7 @@ export class BattleView {
         }
         if (t.lock) {
             const lim = this.atlas.gems;
-            if (ready(lim)) { const cw = lim.width / 4; ctx.globalAlpha = alpha * 0.9; ctx.drawImage(lim, 0, 2 * cw, cw, cw, gx, gy, sz, sz); }
+            if (ready(lim)) { const cw = lim.width / 4; ctx.globalAlpha = alpha * 0.9; this.blit(lim, 0, 2 * cw, cw, cw, gx, gy, sz, sz, base, base); }
         }
         if (t.k === GEM.DOOM && t.st === 'idle') {
             ctx.globalAlpha = 1;
