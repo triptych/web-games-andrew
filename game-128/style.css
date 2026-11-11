@@ -138,6 +138,15 @@ td:first-child { color: var(--gold); white-space: nowrap; padding-right: 10px; }
 .village { padding: 0; display: block; background: #0d0a14; overflow: hidden; }
 /* darkened with a gradient layer, not `filter`: a full-screen filter is re-rasterised every frame while the canvas animates */
 .village-bg { position: absolute; inset: 0; background: linear-gradient(rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.28)), url(art/bg/village.webp) center / cover no-repeat; image-rendering: pixelated; }
+/* the villagers walking the backdrop (js/folk.js): moved by transform only, so nothing repaints (v1.2.2) */
+.folk { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }   /* its own stacking context: under the UI */
+.walker { position: absolute; left: 0; top: 0; will-change: transform; }
+.walker i { position: absolute; left: 0; bottom: 0; background-size: 100% 100%; transform-origin: 50% 100%; }
+.walker .bub {
+    position: absolute; left: 0; transform: translateX(-50%) scale(0.6); opacity: 0; transition: opacity 0.25s, transform 0.25s;
+    background: #fff8e6; color: #3a2410; border: 1px solid #3a2410; border-radius: 8px; padding: 0 5px; font-size: 11px; font-weight: 800; line-height: 15px; white-space: nowrap;
+}
+.walker .bub.on { opacity: 1; transform: translateX(-50%) scale(1); }
 .res-bar {
     position: absolute; top: calc(8px + var(--safe-t)); left: calc(108px + var(--safe-l)); right: calc(60px + var(--safe-r));
     display: flex; flex-wrap: wrap; gap: 6px; z-index: 2;

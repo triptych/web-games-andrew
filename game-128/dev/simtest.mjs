@@ -432,6 +432,11 @@ if (want('media')) {
     for (const s of ['gems', 'gear', 'goods', 'misc']) if (!has(`art/icons/${s}.webp`)) missing.push(s);
     for (const f of ['bg/title', 'bg/village', 'buildings']) if (!has(`art/${f}.webp`)) missing.push(f);
     ok(!missing.length, `every picture exists (${missing.join(', ') || 'all'})`);
+    // the villagers who walk Briarwick (v1.2.2): every sprite exists and the sizes in folk.js match the export
+    const { FOLK_SIZE } = await import('../js/folk.js');
+    const sizes = JSON.parse(fs.readFileSync(path.join(ROOT, 'art/sprites.json'), 'utf8')).sprites;
+    const bad = Object.entries(FOLK_SIZE).filter(([id, wh]) => !has(`art/folk/${id}.webp`) || JSON.stringify(sizes['folk-' + id]) !== JSON.stringify(wh)).map(([id]) => id);
+    ok(Object.keys(FOLK_SIZE).length === 16 && !bad.length, `every villager sprite exists at the size folk.js expects (${bad.join(', ') || 'all 16'})`);
     const Au = await import('../js/audio.js');
     missing = [];
     for (const n of Au.FILES.music) if (!has(`audio/music-${n}.mp3`)) missing.push('music-' + n);

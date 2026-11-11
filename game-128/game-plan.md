@@ -190,6 +190,14 @@ What changed because of it:
 
 ## Changelog
 
+### v1.3.0 (2026-11-11)
+- Briarwick comes alive: the backdrop was re-edited without its painted, standing villagers, and 15 villagers and animals
+  (`js/folk.js`, sprites in `art/folk/`) walk a graph of the lanes (bridge, mill, well, stalls, inn, forge, temple). They
+  bob as they walk and face the way they go; at stations they stop to do something (draw water, browse, fish off the
+  bridge, warm at the forge, pray at the temple, chat with a bubble); the hen pecks, the cat sits, the dog sniffs, the
+  goose waddles. Each is one element moved by transform only (no repaints); they run only while the village is on top,
+  calmer with reduce motion, and never take a click.
+
 ### v1.2.1 (2026-11-11)
 - The ticker said the same hint three times running when it was the only one due: the chatter turn fell back to it.
   Now a hint comes round only every 45 s, a chatter turn is always chatter, and no line repeats within the last 12.

@@ -22,6 +22,7 @@ export const ART = {
     icons: (sheet) => `art/icons/${sheet}.webp`,
     skills: (hero) => `art/skills/${hero}.webp`,
     buildings: 'art/buildings.webp',
+    folk: (id) => `art/folk/${id}.webp`,
 };
 
 /** Put a cell of a cols x rows atlas on an element as its background. */
