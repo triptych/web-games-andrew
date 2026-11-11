@@ -41,7 +41,7 @@ const { HEART_SCENES, STARFALL } = await import('../js/sim/data/hearts.js');
 const { ENDINGS, EPILOGUES } = await import('../js/sim/data/endings.js');
 const { CONTESTS } = await import('../js/sim/data/events.js');
 const { PLACES } = await import('../js/sim/data/places.js');
-const { BGS, CGS } = await import('../js/assets.js');
+const { BGS, CGS, FOES } = await import('../js/assets.js');
 
 let fails = 0, checks = 0;
 const ok = (cond, msg) => {
@@ -129,6 +129,8 @@ if (want('data')) {
         for (const st of [...Rg.steps, Rg.boss]) ok(st.opts.every((o) => APPROACH[o]), `${Rg.id}: every approach is known`);
     }
     for (const P of PLACES) ok(BGS.includes(P.bg), `place ${P.id}'s background exists`);
+    ok(FOES.length === REGIONS.reduce((a, Rg) => a + Rg.steps.length + 1, 0) && REGIONS.every((Rg) => FOES.includes(`${Rg.id}-boss`) && Rg.steps.every((_, i) => FOES.includes(`${Rg.id}-${i}`))),
+        `every expedition danger and master has a creature (${FOES.length})`);
     for (const f of FRIENDS) {
         for (const k of ['loves', 'likes', 'hates']) for (const i of CAST[f][k]) ok(ITEM[i]?.kind === 'gift', `${f} ${k} ${i}, a real gift`);
         ok(HEART_SCENES[f].length === 4, `${f} has four heart events`);
@@ -143,6 +145,7 @@ if (want('data')) {
         ...['child', 'teen', 'adult'].flatMap((a) => ['neutral', 'happy', 'sad', 'angry'].map((e) => `art/por/cael-${a}-${e}.webp`)),
         ...FRIENDS.flatMap((f) => [`art/por/${f}-child.webp`, `art/por/${f}-adult.webp`, `art/por/${f}-adult-happy.webp`]),
         ...Object.keys(CAST).filter((k) => !CAST[k].friend && !['cael', 'you', 'n'].includes(k)).map((k) => `art/por/${k}.webp`),
+        ...REGIONS.flatMap((Rg) => [...Rg.steps.map((_, i) => `art/foe/${Rg.id}-${i}.webp`), `art/foe/${Rg.id}-boss.webp`]),
         'art/title.webp',
     ].filter((p) => !onDisk(p));
     ok(!missing.length, `every art file is on disk${missing.length ? ` (missing ${missing.length}: ${missing.slice(0, 6).join(', ')}...)` : ''}`);
@@ -250,8 +253,11 @@ if (want('rules')) {
     Gm.act(G, { t: 'next' });
     ok(G.phase === 'adventure' && Gm.advStep(G), 'an expedition opens its first encounter');
     let k = 0;
-    while (G.phase === 'adventure' && k++ < 10) { const st = Gm.advStep(G); Gm.act(G, { t: 'approach', a: st.opts[0] }); }
+    const faced = [];
+    while (G.phase === 'adventure' && k++ < 10) { faced.push(Gm.advFoe(G)); const st = Gm.advStep(G); Gm.act(G, { t: 'approach', a: st.opts[0] }); }
     ok(G.phase === 'run' && G.results[0].id === 'adv:whisperwood' && G.results[0].log.length === 4, 'four encounters, the last the region\'s master');
+    ok(faced.length === 4 && faced[3] === 'whisperwood-boss' && new Set(faced).size === 4 && faced.every((f) => FOES.includes(f)), `each encounter names its creature (${faced.join(', ')})`);
+    ok(G.results[0].log.every((e, i) => e.foe === faced[i]), 'and the encounter log records which one was faced');
     ok(G.count.adventure === 1, 'the expedition is counted');
 
     // festival and Starfall

@@ -4,7 +4,7 @@
     python3 -I game-127/dev/art/export.py RAW_DIR [names...]
 
 RAW_DIR holds the renders named as in dev/art/README.md: sheet-<who>.png (character sheets on magenta),
-bg-<id>.png, cg-<id>.png, act-<id>.png, title.png. With names, only those raw files are exported.
+bg-<id>.png, cg-<id>.png, act-<id>.png, foe-<region>-<n|boss>.png, title.png. With names, only those raw files are exported.
 
 Character sheets are keyed out (soft chroma key: the background connected to the border, measured from the border
 colour, with a despill on the edge), split into the figures they hold left to right, trimmed and scaled to a fixed
@@ -36,8 +36,9 @@ SHEETS = {
     'npc-c': ['vey', 'ysolde', 'ashkar'],
 }
 POR_H = 960          # portrait height in pixels
+FOE_MAX = 720        # expedition creatures: longest side in pixels
 SIZES = {'bg': (1280, 720), 'cg': (1280, 720), 'act': (960, 540), 'title': (1600, 900)}
-QUALITY = {'bg': 78, 'cg': 80, 'act': 76, 'title': 82, 'por': 84}
+QUALITY = {'bg': 78, 'cg': 80, 'act': 76, 'title': 82, 'por': 84, 'foe': 84}
 
 
 def border_key(a):
@@ -136,6 +137,36 @@ def figures(rgba, n):
     return out
 
 
+def finish_foe(im, key, feather=40):
+    """Two extra passes for expedition creatures, whose steam, mist, sparks and glows are semi-transparent.
+
+    The model paints a see-through part as subject blended with the magenta behind it, which the keyer leaves
+    opaque and pink (lilac steam, pink fringes on wisps). Any pixel whose hue is near the key's is unmixed: with
+    the key K and a neutral subject colour v, a pixel is a*v + (1-a)*K, so the key's share 1-a is the pixel's
+    magenta cast (min(r, b) - g) over the key's own cast. Its alpha drops by that share and its colour becomes
+    the neutral v = g / a. Pinks far from the key's hue (coral, flesh) are left alone. Then the alpha fades out
+    near the frame, so a subject the model let run off the image (an avalanche) ends in a soft edge.
+    """
+    a = np.asarray(im).astype(np.float32)
+    rgb, al = a[..., :3], a[..., 3] / 255
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    kcast = max(1.0, min(key[0], key[2]) - key[1])
+    cast = np.minimum(r, b) - g
+    near = (cast > 10) & (np.abs(r - b) < 0.35 * np.maximum(r, b))
+    share = np.where(near, np.clip(cast / kcast, 0, 0.98), 0)
+    keep = 1 - share
+    v = np.where(near, np.clip(g / np.maximum(keep, 0.05), 0, 255), 0)
+    for c in range(3):
+        rgb[..., c] = np.where(near, v, rgb[..., c])
+    al = al * keep
+    h, w = al.shape
+    ys = np.minimum(np.arange(h), np.arange(h)[::-1])[:, None]
+    xs = np.minimum(np.arange(w), np.arange(w)[::-1])[None, :]
+    al = al * np.clip(np.minimum(ys, xs) / feather, 0, 1)
+    out = np.dstack([np.clip(rgb, 0, 255), al * 255]).astype(np.uint8)
+    return Image.fromarray(out, 'RGBA')
+
+
 def save_portrait(im, name):
     w, h = im.size
     nh = POR_H
@@ -171,6 +202,19 @@ def main(raw, only):
             for im, por in zip(figs, SHEETS[who]):
                 save_portrait(im, por)
             print('sheet', who, [im.size for im in figs])
+        elif name.startswith('foe-'):
+            # an expedition creature: one subject on magenta, keyed, trimmed to its figure, longest side FOE_MAX
+            im = finish_foe(keyed(src), border_key(np.asarray(src.convert('RGB')).astype(np.float32)))
+            bb = im.getchannel('A').point(lambda v: 255 if v > 40 else 0).getbbox()
+            if bb:
+                pad = 6
+                im = im.crop((max(0, bb[0] - pad), max(0, bb[1] - pad), min(im.width, bb[2] + pad), min(im.height, bb[3] + pad)))
+            r = FOE_MAX / max(im.size)
+            if r < 1:
+                im = im.resize((round(im.width * r), round(im.height * r)), Image.LANCZOS)
+            os.makedirs(os.path.join(OUT, 'foe'), exist_ok=True)
+            im.save(os.path.join(OUT, 'foe', name[4:] + '.webp'), 'WEBP', quality=QUALITY['foe'], method=4)
+            print('foe', name[4:], im.size)
         elif name == 'title':
             os.makedirs(OUT, exist_ok=True)
             fit(src.convert('RGB'), SIZES['title']).save(os.path.join(OUT, 'title.webp'), 'WEBP', quality=QUALITY['title'], method=4)

@@ -18,11 +18,16 @@ export const CGS = [
     'wed-isolde', 'wed-rowan', 'wed-pip', 'wed-theo', 'wed-saffi', 'wed-lumi',
 ];
 
+// Expedition creatures: one cutout per danger in each region (steps 0-4) and its master.
+export const FOE_REGIONS = ['whisperwood', 'ruins', 'hills', 'wastes', 'peaks', 'shadowmere'];
+export const FOES = FOE_REGIONS.flatMap((r) => ['0', '1', '2', '3', '4', 'boss'].map((k) => `${r}-${k}`));
+
 export const ART = {
     bg: (id) => `art/bg/${id}.webp`,
     cg: (id) => `art/cg/${id}.webp`,
     act: (id) => `art/act/${id}.webp`,
     por: (id) => `art/por/${id}.webp`,
+    foe: (id) => `art/foe/${id}.webp`,
     title: 'art/title.webp',
 };
 

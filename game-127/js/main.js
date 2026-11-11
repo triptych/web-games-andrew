@@ -62,6 +62,7 @@ function layout() {
     document.documentElement.style.setProperty('--app-h', h + 'px');
     embers.resize();
     hudHeight();
+    ui.placeFoe?.();
 }
 /** The HUD wraps onto two rows on narrow phones; the panel and toasts sit below whatever height it has. */
 function hudHeight() {
@@ -177,6 +178,7 @@ function toTitle() {
     audio.stopVoice();
     $('panel').hidden = true; $('dlg').hidden = true; $('replay-bar').hidden = true;
     vn.clearStage();
+    ui.setFoe(null); $('panel').classList.remove('bottom');
     vn.setBg(null);
     ui.hud(null);
     refreshTitle();
@@ -274,6 +276,7 @@ function showEnding() {
     const E = ENDING[G.ending.id];
     $('panel').hidden = true; $('dlg').hidden = true;
     vn.clearStage();
+    ui.setFoe(null); $('panel').classList.remove('bottom');
     vn.setBg(ART.cg(E.cg));
     vn.dim(false);
     $('ending-title').textContent = E.title;
@@ -332,6 +335,7 @@ function endReplay() {
     $('replay-bar').hidden = true;
     $('dlg').hidden = true;
     vn.clearStage();
+    ui.setFoe(null); $('panel').classList.remove('bottom');
     if (back === 'game' && G) { mode = 'game'; vn.names = { name: G.name, gname: G.gname, you: G.title, partner: G.partner ? CAST[G.partner].name : '' }; vn.lineKey = null; refresh(); }
     else if (back === 'ending' && G) showEnding();
     else toTitle();

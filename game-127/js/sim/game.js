@@ -485,6 +485,12 @@ function startAdventure(G, region) {
     G.events.push({ type: 'advStart', region });
 }
 
+/** The art id of the danger the prince faces now: '<region>-<step index>' or '<region>-boss'. */
+export function advFoe(G) {
+    const A = G.adv;
+    return A ? `${A.region}-${A.k < 3 ? A.steps[A.k] : 'boss'}` : null;
+}
+
 export function advStep(G) {
     const A = G.adv;
     if (!A) return null;
@@ -508,7 +514,7 @@ function advCmd(G, c) {
     const step = advStep(G);
     if (!step.opts.includes(c.a)) return false;
     const ok = G.rng() < advChance(G, c.a);
-    const entry = { k: A.k, a: c.a, ok, text: ok ? step.ok : step.fail, fx: {} };
+    const entry = { k: A.k, a: c.a, ok, text: ok ? step.ok : step.fail, fx: {}, foe: advFoe(G) };
     const add = (k, d) => { if (d) { entry.fx[k] = (entry.fx[k] || 0) + d; A.fx[k] = Math.round(((A.fx[k] || 0) + d) * 100) / 100; } };
     if (ok) {
         A.won++;
