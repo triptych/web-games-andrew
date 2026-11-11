@@ -48,7 +48,7 @@ export const HEROES = [
     {
         id: 'sela', name: 'Sela Moonbrook', title: 'Tide Mage', tale: 'The Drowned Library',
         pitch: 'An apprentice of the Moonbrook Archive, searching for the master who vanished beneath the water.',
-        base: { hp: 100, atk: 11, def: 3 }, aff: { skill: 0.2, gain_s: 0.2, gain_a: 0.2 },
+        base: { hp: 105, atk: 11, def: 4 }, aff: { skill: 0.2, gain_s: 0.2, gain_a: 0.2 },
         color: '#4c8fe0',
         art: 'a young woman mage with long silver-blue hair in a loose braid, flowing deep blue robes embroidered with silver wave patterns, holding a tall staff topped with a glowing sapphire orb, a leather satchel of scrolls at her hip, casting with her free hand',
         portrait: 'a young woman mage with long silver-blue hair in a loose braid, thoughtful sea-green eyes, deep blue robes with silver wave embroidery and a sapphire pendant',
@@ -80,7 +80,7 @@ export const HEROES = [
     {
         id: 'fenn', name: 'Fenn Quickfoot', title: 'Thornwood Ranger', tale: 'The Withering Wood',
         pitch: 'A half-elf ranger of the Thornwood, tracking a blight that turns living trees to rot.',
-        base: { hp: 115, atk: 12, def: 4 }, aff: { crit: 0.08 },
+        base: { hp: 130, atk: 12, def: 6 }, aff: { crit: 0.08 },
         color: '#5fb050',
         art: 'a lean young half-elf ranger with messy auburn hair and pointed ears, a green hooded cloak, leather armour with leaf motifs, drawing a longbow with an arrow nocked, a quiver on his back',
         portrait: 'a lean young half-elf ranger with messy auburn hair, pointed ears, a confident lopsided grin, freckles, a green hooded cloak and leather armour with leaf motifs',
@@ -112,7 +112,7 @@ export const HEROES = [
     {
         id: 'odo', name: 'Brother Odo', title: 'Lantern Monk', tale: 'The Dimming',
         pitch: 'A monk of the Lantern Temple, sent out when the sacred flame began to fail.',
-        base: { hp: 145, atk: 10, def: 5 }, aff: { heart: 0.2 },
+        base: { hp: 145, atk: 11, def: 6 }, aff: { heart: 0.2 },
         color: '#e8b040',
         art: 'a broad-shouldered bald monk with a short brown beard, saffron and white robes, wooden prayer beads, cloth-wrapped fists raised in a fighting stance, a small brass lantern hanging from his belt glowing warmly',
         portrait: 'a broad-shouldered bald monk with a short brown beard, kind crinkled eyes, saffron and white robes, wooden prayer beads, a warm lantern glow on his face',

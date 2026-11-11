@@ -36,7 +36,7 @@ REGIONS = ['greenmarch', 'mirefen', 'emberdeep', 'frostfang', 'gloamspire']
 ICON_SHEETS = ['gems', 'gear', 'goods', 'misc']
 # Monsters stand on the right of the battle scene and must face LEFT; heroes stand on the left and face RIGHT.
 # The model ignored the direction for these; they were found by eye on the labelled contact sheet and are mirrored.
-FLIP = {'mon/wolf', 'mon/hound', 'mon/kobold', 'mon/leech', 'mon/hornet', 'mon/lizard', 'mon/troll', 'mon/toad', 'hero/sela'}
+FLIP = {'mon/wolf', 'mon/hound', 'mon/kobold', 'mon/leech', 'mon/hornet', 'mon/lizard', 'mon/troll', 'mon/toad'}
 
 # longest side, in art pixels
 SIZE = {'normal': 150, 'elite': 190, 'boss': 240, 'hero': 156, 'icon': 64, 'building': 168, 'skill': 96}
