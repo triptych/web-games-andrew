@@ -1,7 +1,7 @@
 // Gemheart Saga — the DOM layer: screens, the village, panels, the hero sheet, scenes and the battle HUD.
 // Reads G; every change goes through the cmd() callback (act in main.js). Never writes G.
 
-import { VERSION, BATTLE, MANA, GEM, XP_CURVE, HOUR } from './config.js';
+import { VERSION, BATTLE, MANA, GEM, XP_CURVE, HOUR, QUEST_REST } from './config.js';
 import { ART, img, iconEl, setCell, ICON, GEM_ICON } from './assets.js';
 import { HEROES, HERO, NODE, MAX_RANK } from './sim/data/heroes.js';
 import { REGION, FOE, ABILITIES } from './sim/data/world.js';
@@ -611,7 +611,7 @@ export class UI {
             for (const id of r.items) add(ITEM[id].icon, ITEM[id].name);
             body.append(list);
             const q = G.quest;
-            if (q && q.i < q.fights.length - 1) body.append(h('p', 'dim', `Next: ${esc(FOE[q.fights[q.i + 1]].name)}. Your health carries over.`));
+            if (q && q.i < q.fights.length - 1) body.append(h('p', 'dim', `Next: ${esc(FOE[q.fights[q.i + 1]].name)}. You catch your breath (+${Math.round(QUEST_REST * 100)}% health); the rest carries over.`));
         } else body.append(h('p', '', 'You fall back to Briarwick to recover. The village keeps everything you earned.'));
         this.openScreen('result');
     }

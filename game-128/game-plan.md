@@ -159,8 +159,8 @@ see; skill 0.6 takes about 1.5 s and plays a random legal move a third of the ti
 
 | | Skill 1 | Skill 0.6 |
 |---|---|---|
-| Seconds a fight | 7–9 | 21–30 |
-| Falls in a whole tale | 0 | 1–6 |
+| Seconds a fight | 8–9 | 19–25 |
+| Falls in a whole tale | 0 | 0–4 |
 | Quests to finish (10 chapters + patrols) | 35–38 | 35–41 |
 | Level at the end | 18–19 | 18–19 |
 
@@ -173,6 +173,12 @@ What changed because of it:
   Sela +5 health and +1 defence.
 - v1.1.0: players found foe attacks too quick. Every foe's attack interval is 1.6× longer (none attacks more often than
   every 4 s; simtest checks it) and base attack went 18 → 22 so a hit still matters. Falls at skill 0.6 dropped.
+- v1.1.1: a player lost chapter 1's Bandit Captain every time, with most of its health left. It was the chapter's
+  finale, so it fought a level up (660 health, 34-damage blows), and the hero arrived with what the first two fights
+  left. Now only real bosses fight a level up, the first two chapters' foes have 65%/85% health and 75%/90% attack
+  (`STORY_EASE`), and the hero gets a quarter of their health back between the fights of a quest (`QUEST_REST`).
+  A skill-0 bot (85% random moves, 2.8 s apart) clears chapter 1 with every hero; simtest checks it. At skill 0.25 a
+  whole tale costs 7–20 falls, mostly late.
 - The village reaches Town Hall 3–4 by the end of a tale; levels 4–5 of the other buildings are the post-story goal.
 
 ## Open questions / next steps
@@ -183,6 +189,10 @@ What changed because of it:
 - New Game+ with a second hero keeping the village would use the four tales better.
 
 ## Changelog
+
+### v1.1.1 (2026-11-11)
+- Chapter 1's finale (the Bandit Captain for Kael and Fenn) was a wall for new players. The first two chapters are
+  gentler, only real bosses fight a level up, and the hero catches their breath (+25% health) between fights.
 
 ### v1.1.0 (2026-11-11)
 - Battle sprites are drawn smaller (hero 45% of the stage height, foes 42/52/64% by rank) from art exported at twice

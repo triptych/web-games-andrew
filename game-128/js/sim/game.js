@@ -11,9 +11,9 @@
 //   battle   swap{a,b} skill{node} item{id} flee{} continue{} (after won/lost)
 
 import { makeRng } from '../rng.js';
-import { START_GOLD, XP_CURVE, MAX_LEVEL, PATROL_FIGHTS } from '../config.js';
+import { START_GOLD, XP_CURVE, MAX_LEVEL, PATROL_FIGHTS, STORY_EASE, QUEST_REST } from '../config.js';
 import { HERO, NODE, MAX_RANK, TIER3_LEVEL } from './data/heroes.js';
-import { REGION } from './data/world.js';
+import { REGION, FOE } from './data/world.js';
 import { TALES, OPENING, ENDINGS, CREDITS_LINE } from './data/story.js';
 import * as Bt from './battle.js';
 import * as V from './village.js';
@@ -91,9 +91,11 @@ function afterScene(G, then) {
 function startFight(G) {
     const q = G.quest;
     const id = q.fights[q.i];
-    const boss = q.i === q.fights.length - 1 && q.kind === 'story';
+    // a story chapter's finale fights a level up only when it is a real boss (v1.1.1: not chapter 1's elite)
+    const boss = q.i === q.fights.length - 1 && q.kind === 'story' && FOE[id].rank === 'boss';
     const lv = q.lv + (boss ? 1 : 0);
-    Bt.startBattle(G, id, lv, q.hp != null ? { hp: q.hp } : null);
+    const ease = q.kind === 'story' ? STORY_EASE[q.ch] || null : null;
+    Bt.startBattle(G, id, lv, q.hp != null ? { hp: q.hp } : null, ease);
     G.mode = 'battle';
 }
 
@@ -135,7 +137,8 @@ function continueQuest(G) {
         G.events.push({ type: 'retreat' });
         return true;
     }
-    q.hp = B.hero.hp;
+    // catch your breath between fights: a share of health back
+    q.hp = Math.min(B.hero.max, B.hero.hp + B.hero.max * QUEST_REST);
     G.battle = null;
     q.i++;
     const c = q.kind === 'story' ? tale(G)[q.ch] : null;
