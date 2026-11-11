@@ -159,8 +159,8 @@ see; skill 0.6 takes about 1.5 s and plays a random legal move a third of the ti
 
 | | Skill 1 | Skill 0.6 |
 |---|---|---|
-| Seconds a fight | 7–10 | 20–34 |
-| Falls in a whole tale | 0–1 | 2–12 (Kael fewest, Sela most) |
+| Seconds a fight | 7–9 | 21–30 |
+| Falls in a whole tale | 0 | 1–6 |
 | Quests to finish (10 chapters + patrols) | 35–38 | 35–41 |
 | Level at the end | 18–19 | 18–19 |
 
@@ -171,6 +171,8 @@ What changed because of it:
   region's own material, and crystal was cut back (it piled up unused).
 - Fenn and Odo fell far more than Kael at skill 0.6; Fenn got +15 health and +2 defence, Odo +1 attack and +1 defence,
   Sela +5 health and +1 defence.
+- v1.1.0: players found foe attacks too quick. Every foe's attack interval is 1.6× longer (none attacks more often than
+  every 4 s; simtest checks it) and base attack went 18 → 22 so a hit still matters. Falls at skill 0.6 dropped.
 - The village reaches Town Hall 3–4 by the end of a tale; levels 4–5 of the other buildings are the post-story goal.
 
 ## Open questions / next steps
@@ -181,6 +183,19 @@ What changed because of it:
 - New Game+ with a second hero keeping the village would use the four tales better.
 
 ## Changelog
+
+### v1.1.0 (2026-11-11)
+- Battle sprites are drawn smaller (hero 45% of the stage height, foes 42/52/64% by rank) from art exported at twice
+  the size and scaled down smoothly, so they no longer look zoomed and blocky; gems and backdrops sharper too.
+- Foes attack 1.6× less often (attack 18 → 22).
+- Green badges on buttons with something to do: unspent skill points (and better gear) on Hero & Skills and its tabs,
+  learnable skill nodes outlined in green, finished requests on Requests, "!" on Adventure when the next chapter is in
+  reach; Collect lights up when there is something to collect.
+- Board gems have a bold black outline.
+- Battle HUD labels have a dark outline and a soft dark band behind them, so the coloured "Weak:" label reads over sky.
+- Performance under software rendering: battle art is scaled down once to its drawn size and cached instead of filtered
+  every frame; the village swaps in only the parts that changed on its once-a-second refresh (and not under the ending);
+  the idle canvas is cleared once, not every frame; the village backdrop is darkened with a gradient, not a CSS filter.
 
 ### v1.0.0 (2026-11-11)
 - First release: a real-time fluid match-3 battle (line, bomb and prism gems, cascades, stone, chains, doom gems), four

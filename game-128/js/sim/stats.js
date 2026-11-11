@@ -80,7 +80,7 @@ export function foeStats(id, lv) {
         id, name: f.name, lv, rank: f.rank || 'normal', weak: f.weak, abil: f.abil || [], region: f.region,
         max: Math.round(FOE_CFG.hp * (1 + FOE_CFG.hpGrow * (lv - 1)) * f.m[0] * (FOE_CFG.rankHp[f.rank || 'normal'] || 1)),
         atk: Math.round(FOE_CFG.atk * (1 + FOE_CFG.atkGrow * (lv - 1)) * f.m[1]),
-        every: f.every * ((f.abil || []).includes('haste') ? 0.8 : 1),
+        every: f.every * FOE_CFG.every * ((f.abil || []).includes('haste') ? 0.8 : 1),
     };
 }
 

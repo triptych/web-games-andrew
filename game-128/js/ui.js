@@ -161,27 +161,33 @@ export class UI {
     // ------------------------------------------------------------------ village
     renderVillage(G) {
         const now = this.now();
-        const bar = $('res-bar');
-        bar.innerHTML = '';
+        // the village refreshes every second for its stores: build each part off-page and swap it in only if it changed,
+        // so an idle village doesn't repaint (and re-rasterise its atlases) every second
+        const fresh = this.villageG !== G;
+        this.villageG = G;
+        const put = (id, kids) => {
+            const box = $(id), tmp = document.createElement('div');
+            tmp.append(...kids);
+            if (fresh || tmp.innerHTML !== box.innerHTML) box.replaceChildren(...tmp.childNodes);
+        };
+        const bar = [];
         for (const r of RESOURCES) {
             const s = h('span', 'res');
             s.title = RES_NAMES[r];
             s.append(iconEl(ICON[r]), document.createTextNode(fmt(G.res[r])));
-            bar.append(s);
+            bar.push(s);
         }
+        put('res-bar', bar);
         const hr = HERO[G.hero.id];
         const stats = St.heroStats(G);
-        const chip = $('hero-chip');
-        chip.innerHTML = '';
         const por = h('div', 'por');
         por.style.backgroundImage = `url(${ART.por(hr.id)})`;
         const xpNeed = XP_CURVE(G.hero.lv);
-        chip.append(por, h('div', 'grow', `<b>${esc(hr.name)}</b><div class="dim">Level ${G.hero.lv} ${esc(hr.title)}${G.hero.sp ? ` · <span class="better">${G.hero.sp} skill point${G.hero.sp > 1 ? 's' : ''}</span>` : ''}</div>
-            <div class="dim">♥ ${stats.hp} · ⚔ ${stats.atk} · ⛨ ${stats.def}</div><div class="bar"><i style="width:${Math.min(100, (G.hero.xp / xpNeed) * 100)}%"></i></div>`));
+        put('hero-chip', [por, h('div', 'grow', `<b>${esc(hr.name)}</b><div class="dim">Level ${G.hero.lv} ${esc(hr.title)}${G.hero.sp ? ` · <span class="better">${G.hero.sp} skill point${G.hero.sp > 1 ? 's' : ''}</span>` : ''}</div>
+            <div class="dim">♥ ${stats.hp} · ⚔ ${stats.atk} · ⛨ ${stats.def}</div><div class="bar"><i style="width:${Math.min(100, (G.hero.xp / xpNeed) * 100)}%"></i></div>`)]);
         // idle production and the daily gift
         const p = V.pending(G, now);
-        const card = $('idle-card');
-        card.innerHTML = '';
+        const card = document.createElement('div');
         card.append(h('h3', '', 'Village stores'));
         const pend = h('div', 'pend');
         let any = false;
@@ -191,7 +197,7 @@ export class UI {
         const rate = V.rates(G);
         card.append(h('div', 'dim', `Per hour: ${RESOURCES.filter((r) => rate[r]).map((r) => `${rate[r]} ${r}`).join(', ')}. Stores hold ${V.capHours(G)} h.`));
         if (now < G.village.boostUntil) card.append(h('div', 'better', `Harvest festival! Production doubled for ${Math.ceil((G.village.boostUntil - now) / 60000)} min.`));
-        const col = h('button', 'btn', 'Collect');
+        const col = h('button', 'btn' + (any ? ' primary' : ''), 'Collect');
         col.id = 'btn-collect';
         col.disabled = !any;
         col.addEventListener('click', () => this.cmd({ t: 'collect', now: this.now() }));
@@ -202,9 +208,9 @@ export class UI {
         gift.disabled = !V.canDaily(G, day);
         gift.addEventListener('click', () => this.cmd({ t: 'daily', day: this.today(), now: this.now() }));
         card.append(gift);
+        put('idle-card', [...card.childNodes]);
         // buildings
-        const box = $('buildings');
-        box.innerHTML = '';
+        const box = [];
         for (const b of BUILDINGS) {
             const lv = G.village.lv[b.id];
             const c = h('button', 'card bld' + (lv ? '' : ' unbuilt'));
@@ -214,13 +220,17 @@ export class UI {
             c.append(art, h('div', 'nm', esc(b.name)), h('div', 'lv', lv ? '★'.repeat(lv) + '☆'.repeat(5 - lv) : 'Not built'));
             if (!V.buildBlock(G, b.id)) c.append(h('span', 'up', lv ? 'Upgrade' : 'Build'));
             c.addEventListener('click', () => { this.audio.ui('open'); this.openPanel({ kind: 'building', id: b.id }, G); });
-            box.append(c);
+            box.push(c);
         }
+        put('buildings', box);
         const done = REQUESTS.filter((r) => !G.claimed[r.id] && V.requestDone(G, r)).length;
-        $('req-badge').hidden = !done;
-        $('req-badge').textContent = done;
+        // green badges: something to do behind the button
+        badge('req-badge', done || '');
+        badge('hero-badge', G.hero.sp || (betterGear(G) ? '!' : ''));
         const c = chapter(G);
-        $('btn-adventure').textContent = c ? `⚔ Adventure` : '⚔ Patrols';
+        $('adv-label').textContent = c ? '⚔ Adventure' : '⚔ Patrols';
+        badge('adv-badge', c && G.hero.lv >= c.lv - 1 ? '!' : '');
+        $('btn-adventure').title = c ? `Next: ${c.title} (level ${c.lv})` : 'Patrols';
     }
     today() {
         const d = new Date(this.now());
@@ -429,8 +439,10 @@ export class UI {
         const hr = HERO[G.hero.id];
         $('panel-title').textContent = hr.name;
         const tabs = h('div', 'tabs');
-        for (const [k, label] of [['skills', `Skills${G.hero.sp ? ' (' + G.hero.sp + ')' : ''}`], ['gear', 'Gear'], ['bag', 'Bag'], ['stats', 'Stats']]) {
+        const marks = { skills: G.hero.sp || '', gear: betterGear(G) ? '!' : '' };
+        for (const [k, label] of [['skills', 'Skills'], ['gear', 'Gear'], ['bag', 'Bag'], ['stats', 'Stats']]) {
             const t = h('button', 'btn small', label);
+            if (marks[k]) t.append(h('span', 'badge', String(marks[k])));
             t.dataset.tab = k;
             t.setAttribute('aria-pressed', String((p.tab || 'skills') === k));
             t.addEventListener('click', () => { p.tab = k; this.renderPanel(G); });
@@ -454,7 +466,7 @@ export class UI {
             br.nodes.forEach((n, ti) => {
                 const r = G.hero.ranks[n.id] || 0;
                 const block = learnBlock(G, n.id);
-                const btn = h('button', `card node${r ? ' has' : ''}${block && !r ? ' locked' : ''}`);
+                const btn = h('button', `card node${r ? ' has' : ''}${block && !r ? ' locked' : ''}${!block ? ' can' : ''}`);
                 btn.dataset.node = n.id;
                 const sk = h('div', 'sk');
                 setCell(sk, ART.skills(G.hero.id), bi * 3 + ti, 3);
@@ -608,6 +620,23 @@ export class UI {
         $('ending-text').textContent = `${HERO[G.hero.id].name}'s tale, “${HERO[G.hero.id].tale}”, is told. ${credits}`;
         this.openScreen('ending');
     }
+}
+
+/** Show a green badge on a button (text), or hide it (''). */
+function badge(id, text) {
+    const b = $(id);
+    b.hidden = text === '' || text === 0 || text == null;
+    b.textContent = b.hidden ? '' : String(text);
+}
+
+/** An unworn piece in the bag that beats what is worn in its slot. */
+export function betterGear(G) {
+    return G.inv.some((inv) => {
+        const slot = ITEM[inv.id].slot;
+        if (Object.values(G.hero.eq).includes(inv.uid)) return false;
+        const worn = St.equipped(G, slot);
+        return V.gearScore(inv) > (worn ? V.gearScore(worn) : 0);
+    });
 }
 
 function poolCol(p) { return { r: '#ff7a7a', s: '#7ab8ff', e: '#6ff0a0', a: '#c9a2ff' }[p]; }

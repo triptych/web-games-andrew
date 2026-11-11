@@ -266,7 +266,7 @@ function frame(nowMs) {
         ui.hud(G);
         ui.placeHud(view.layout);
     } else view.frame({ battle: null }, dt, time);
-    if (G && G.mode === 'village' && Math.floor(time) !== Math.floor(time - dt) && !ui.has('panel')) ui.renderVillage(G);
+    if (G && G.mode === 'village' && Math.floor(time) !== Math.floor(time - dt) && ui.top() === 'village') ui.renderVillage(G);
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) { pause(); if (G) saveGame(G); } });
