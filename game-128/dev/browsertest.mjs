@@ -153,6 +153,13 @@ async function desktop() {
     // the ticker: a hint is a link to the thing to do
     await Q(page, () => { __gs.G.hero.sp = 1; __gs.ui.ticker.said.clear(); __gs.ui.ticker.n = 0; __gs.ui.ticker.now(__gs.G, Date.now(), __gs.ui.today()); });
     check(await Q(page, () => { const l = document.querySelector('#ticker .tl:last-child'); return !!l && l.classList.contains('hint') && /skill point/.test(l.textContent); }), 'the ticker hints at the unspent skill point');
+    check(await Q(page, () => {
+        // v1.2.1: two minutes of ticker never repeats a line within twelve
+        const T = __gs.ui.ticker, said = [];
+        for (let i = 0; i < 18; i++) { T.clock += 7; const x = T.pick(__gs.G, Date.now(), __gs.ui.today()); T.recent.push(x.text); if (T.recent.length > 12) T.recent.shift(); said.push(x.text); }
+        return said.every((t, i) => !said.slice(Math.max(0, i - 11), i).includes(t));
+    }), 'the ticker doesn\'t repeat itself');
+    await Q(page, () => { const T = __gs.ui.ticker; T.said.clear(); T.recent.length = 0; T.n = 0; T.now(__gs.G, Date.now(), __gs.ui.today()); });
     await page.click('#ticker .tl:last-child');
     await until(page, () => !document.getElementById('panel').hidden && !!document.querySelector('[data-node]'), 'clicking the hint opens Hero & Skills');
     await Q(page, () => { __gs.G.hero.sp = 0; });
