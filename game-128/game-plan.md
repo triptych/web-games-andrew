@@ -198,6 +198,10 @@ What changed because of it:
 
 ## Changelog
 
+### v1.4.0 (2026-11-11)
+- The Armory's forging moment: three hammer strikes shake the upgraded item and throw sparks as it glows, a flash, then
+  a card with the new + and each stat before → after. Skippable; quick and still with reduce motion.
+
 ### v1.3.2 (2026-11-11)
 - Continuing a save made after a fight ended (the hero just fell) shows the result instead of hanging on the dead hero
   with the village music; a continued fight plays its own music.

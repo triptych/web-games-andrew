@@ -1,6 +1,6 @@
 // Gemheart Saga — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.3.2';
+export const VERSION = '1.4.0';
 export const SAVE_KEY = 'gemheart-saga.v1';
 
 export const STEP = 1 / 60;               // fixed simulation step (s)
