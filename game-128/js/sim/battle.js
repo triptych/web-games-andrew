@@ -15,10 +15,11 @@ import { heroStats, foeStats, gainOf, skillAt } from './stats.js';
 
 const RANK_MULT = { normal: 1, elite: 2, boss: 4 };
 
-/** Start a fight with foe id at level lv. carry = { hp } from the previous fight of the same quest. */
-export function startBattle(G, id, lv, carry = null) {
+/** Start a fight with foe id at level lv. carry = { hp } from the previous fight of the same quest; ease = { hp, atk }
+ * factors for the foe (the first chapters of a tale). */
+export function startBattle(G, id, lv, carry = null, ease = null) {
     const s = heroStats(G);
-    const f = foeStats(id, lv);
+    const f = foeStats(id, lv, ease);
     const mana = {};
     for (const p of MANA) mana[p] = Math.min(BATTLE.manaCap, s.mods.startMana);
     G.battle = {

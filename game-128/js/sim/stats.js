@@ -74,12 +74,12 @@ export function heroStats(G) {
 export const gainOf = (m, pool) => 1 + m.gain + (m['gain_' + pool] || 0);
 
 /** A foe at a level. */
-export function foeStats(id, lv) {
+export function foeStats(id, lv, ease = null) {
     const f = FOE[id];
     return {
         id, name: f.name, lv, rank: f.rank || 'normal', weak: f.weak, abil: f.abil || [], region: f.region,
-        max: Math.round(FOE_CFG.hp * (1 + FOE_CFG.hpGrow * (lv - 1)) * f.m[0] * (FOE_CFG.rankHp[f.rank || 'normal'] || 1)),
-        atk: Math.round(FOE_CFG.atk * (1 + FOE_CFG.atkGrow * (lv - 1)) * f.m[1]),
+        max: Math.round(FOE_CFG.hp * (1 + FOE_CFG.hpGrow * (lv - 1)) * f.m[0] * (FOE_CFG.rankHp[f.rank || 'normal'] || 1) * (ease?.hp ?? 1)),
+        atk: Math.round(FOE_CFG.atk * (1 + FOE_CFG.atkGrow * (lv - 1)) * f.m[1] * (ease?.atk ?? 1)),
         every: f.every * FOE_CFG.every * ((f.abil || []).includes('haste') ? 0.8 : 1),
     };
 }

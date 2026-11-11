@@ -1,6 +1,6 @@
 // Gemheart Saga — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.1.0';
+export const VERSION = '1.1.1';
 export const SAVE_KEY = 'gemheart-saga.v1';
 
 export const STEP = 1 / 60;               // fixed simulation step (s)
@@ -56,6 +56,11 @@ export const BATTLE = {
 // every: the data's attack intervals are stretched by this (v1.1.0: 1.6, from players finding attacks too quick; each
 // blow hits a little harder to keep the pressure: atk 18 -> 22).
 export const FOE = { hp: 320, hpGrow: 0.25, atk: 22, atkGrow: 0.2, every: 1.6, rankHp: { normal: 1, elite: 0.75, boss: 0.62 } };
+// v1.1.1: a player lost chapter 1's Bandit Captain every time. The first two chapters of a tale are where the board is
+// learned: their foes have less health and hit softer ([chapter] = { hp, atk } factors). A chapter's finale only fights
+// a level up when it is a real boss, and between the fights of a quest the hero catches their breath (× max health).
+export const STORY_EASE = [{ hp: 0.65, atk: 0.75 }, { hp: 0.85, atk: 0.9 }];
+export const QUEST_REST = 0.25;
 
 // Hero growth per level.
 export const HERO_GROW = { hp: 0.11, atk: 0.09 };

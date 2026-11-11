@@ -449,6 +449,25 @@ if (want('determinism')) {
 // ======================================================================
 if (want('bot')) {
     section('bot');
+    // a beginner gets through chapter 1 (v1.1.1: a player lost to the Bandit Captain every time). Skill 0 plays 85% of
+    // its moves at random, 2.8 s apart: weaker than someone still learning the board.
+    for (const h of HEROES) {
+        let won = 0;
+        for (let s = 1; s <= 6; s++) {
+            const G = Gm.newGame(s * 31, h.id);
+            while (G.mode !== 'village') Gm.act(G, { t: G.mode === 'scene' ? 'next' : 'skip' });
+            Gm.act(G, { t: 'story' });
+            const bot = Bot.makeBot({ skill: 0, seed: s });
+            for (let n = 0; n < 60000 && G.mode !== 'village'; n++) {
+                if (G.mode === 'scene') { Gm.act(G, { t: 'next' }); continue; }
+                const c = Bot.botBattle(G, bot, DT); if (c) Gm.act(G, c);
+                if (G.mode === 'battle') Gm.step(G, DT);
+                G.events.length = 0;
+            }
+            if (G.story.ch === 1) won++;
+        }
+        ok(won >= 5, `a beginner (skill-0 bot) clears ${h.name}'s chapter 1: ${won}/6`);
+    }
     const rows = [];
     for (const h of HEROES) {
         for (const skill of [1, 0.6]) {
