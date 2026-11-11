@@ -190,6 +190,12 @@ What changed because of it:
 
 ## Changelog
 
+### v1.2.1 (2026-11-11)
+- The ticker said the same hint three times running when it was the only one due: the chatter turn fell back to it.
+  Now a hint comes round only every 45 s, a chatter turn is always chatter, and no line repeats within the last 12.
+  Every hint has three to five phrasings from different villagers; chatter grew to eight lines a villager plus lines
+  about the hero, the tale, wins, best chain, level, the village, the streak, gold, the festival and the time of day.
+
 ### v1.2.0 (2026-11-11)
 - Foe abilities are telegraphed: "Next: Chains" under the attack timer, a boxed "Chains incoming!" warning at 70% of
   the timer, a boxed alert saying what happened and what to do when it lands, rings on the gems it touched, and a status

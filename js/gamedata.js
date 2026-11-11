@@ -238,7 +238,7 @@ const games = [
         description: 'A grid-based crate-pushing puzzle game: push every crate onto a target across 8 hand-made levels. Swipe or use the arrow keys, undo any move, and pick up where you left off with saved progress and best move counts per level.',
         icon: '📦',
         folder: 'game-016',
-        version: '1.2.0',
+        version: '1.2.1',
         cssClass: 'crate-pusher',
         genre: 'puzzle',
         tags: [
