@@ -225,7 +225,8 @@ function foeAttack(G) {
         const s = Bd.convert(B, G.rng, BATTLE.stonePerHit, GEM.STONE);
         if (s.length) G.events.push({ type: 'curse', kind: 'stone', slots: s });
     } else if (a === 'lock') {
-        const s = Bd.lockGems(B, G.rng, BATTLE.lockPerHit);
+        const held = B.cells.filter((t) => t && t.lock).length;
+        const s = Bd.lockGems(B, G.rng, Math.min(BATTLE.lockPerHit, BATTLE.lockMax - held));
         if (s.length) G.events.push({ type: 'curse', kind: 'lock', slots: s });
     } else if (a === 'doom') {
         const live = B.cells.filter((t) => t && t.k === GEM.DOOM).length;

@@ -179,6 +179,14 @@ What changed because of it:
   (`STORY_EASE`), and the hero gets a quarter of their health back between the fights of a quest (`QUEST_REST`).
   A skill-0 bot (85% random moves, 2.8 s apart) clears chapter 1 with every hero; simtest checks it. At skill 0.25 a
   whole tale costs 7–20 falls, mostly late.
+- v1.3.1: the Bandit Captain was still unbeatable on a Greenmarch patrol. A patrol's elite (30% of patrols end on one)
+  fought at the hero's level − 1 with no discount, its shield soaked 15% of its health every other attack, and chains
+  piled up past a dozen. A skill-0 bot at level 5 won 7/24 from 75% health. Now patrol elites get 80% health and 85%
+  attack (`PATROL_ELITE`), foe shields are 10% (`shieldPct`), and at most 8 gems are chained (`lockMax`): 24/24.
+  A sweep of every foe through whole tales then showed region bosses as the wall: a skill-0.3 bot beat Murk, Cinderjaw
+  and Quell 20–25% of the time. After the boss changes (v1.3.1 changelog) it is 40–75%, and falls in a tale halved
+  (≈11 → ≈4). Skill 0 still beats them only 20–25% a try and grinds levels in between: at 85% random moves, one every
+  2.8 s, it can't out-damage 2,000 health, and that is accepted as below any real player.
 - The village reaches Town Hall 3–4 by the end of a tale; levels 4–5 of the other buildings are the post-story goal.
 
 ## Open questions / next steps
@@ -189,6 +197,12 @@ What changed because of it:
 - New Game+ with a second hero keeping the village would use the four tales better.
 
 ## Changelog
+
+### v1.3.1 (2026-11-11)
+- A patrol's surprise elite has 80% health and 85% attack (`PATROL_ELITE`); foe shields are 10% of max health, down
+  from 15%; at most 8 gems are chained at once. A player kept losing the Meadows' Bandit Captain on patrol.
+- Bosses: health multiplier 0.62 → 0.5, met at full health, doom gems 12 s and 1.5× (were 9 s, 2×), foe heals 8%
+  (were 12%), enrage 0.8× the attack interval (was 0.7×). From a sweep of every foe in whole tales with a slow bot.
 
 ### v1.3.0 (2026-11-11)
 - Briarwick comes alive: the backdrop was re-edited without its painted, standing villagers, and 15 villagers and animals

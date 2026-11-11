@@ -11,9 +11,9 @@
 export const ABILITIES = {
     stone: 'Its blows turn 3 gems to stone. Match next to stone to break it.',
     lock: 'Chains 3 gems in place. Match a chained gem to free it.',
-    doom: 'Plants a doom gem that bursts for double damage when its count runs out. Match it first!',
+    doom: 'Plants a doom gem that bursts for a heavy blow when its count runs out. Match it first!',
     drain: 'Drains 6 mana from your fullest pool.',
-    heal: 'Every third attack it heals 12% of its health.',
+    heal: 'Every third attack it heals 8% of its health.',
     shield: 'Every other attack it raises a shield.',
     poison: 'Its bite poisons you for a few seconds.',
     enrage: 'Below half health it attacks much faster.',
