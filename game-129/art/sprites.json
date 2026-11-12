@@ -1,0 +1,232 @@
+{
+"sprites": {
+"astral_knight": [
+289,
+380
+],
+"bone_rat": [
+380,
+326
+],
+"brass_sentry": [
+224,
+380
+],
+"brine_leviathan": [
+536,
+640
+],
+"cave_beetle": [
+380,
+245
+],
+"clock_owl": [
+380,
+308
+],
+"copper_golem": [
+348,
+380
+],
+"crypt_bat": [
+380,
+354
+],
+"drowned_sailor": [
+241,
+380
+],
+"dwarf_revenant": [
+370,
+380
+],
+"eel_serpent": [
+321,
+380
+],
+"elder_briar": [
+518,
+640
+],
+"ember_hound": [
+380,
+372
+],
+"fallen_seraph": [
+363,
+380
+],
+"fire_imp": [
+380,
+372
+],
+"forgefather": [
+640,
+631
+],
+"frost_thrall": [
+379,
+380
+],
+"frost_wolf": [
+380,
+364
+],
+"gear_spider": [
+380,
+304
+],
+"ghoul": [
+348,
+380
+],
+"giant_crab": [
+373,
+380
+],
+"glow_moth": [
+380,
+336
+],
+"hollow_king": [
+640,
+607
+],
+"ice_wraith": [
+380,
+374
+],
+"iron_golem": [
+380,
+375
+],
+"kelp_horror": [
+349,
+380
+],
+"kobold": [
+290,
+380
+],
+"magma_slug": [
+380,
+320
+],
+"mantis": [
+367,
+380
+],
+"merrow": [
+332,
+380
+],
+"mimic": [
+380,
+365
+],
+"moss_slime": [
+380,
+306
+],
+"mother_mycelia": [
+640,
+628
+],
+"myconid_shaman": [
+311,
+380
+],
+"nebula_moth": [
+380,
+336
+],
+"orrery_engine": [
+563,
+640
+],
+"ossuary_knight": [
+598,
+640
+],
+"owlbear": [
+305,
+380
+],
+"reaper": [
+386,
+440
+],
+"rime_archer": [
+241,
+380
+],
+"rock_lizard": [
+380,
+259
+],
+"salamander": [
+380,
+270
+],
+"shadow_fiend": [
+322,
+380
+],
+"siren": [
+356,
+380
+],
+"skeleton": [
+365,
+380
+],
+"snow_harpy": [
+380,
+377
+],
+"sporeling": [
+361,
+380
+],
+"star_jelly": [
+260,
+380
+],
+"steam_knight": [
+248,
+380
+],
+"thorn_dryad": [
+280,
+380
+],
+"treant_sapling": [
+284,
+380
+],
+"venom_toad": [
+380,
+300
+],
+"vine_strangler": [
+373,
+380
+],
+"void_eye": [
+354,
+380
+],
+"winter_lich": [
+510,
+640
+],
+"wisp": [
+311,
+380
+],
+"yeti": [
+380,
+378
+]
+}
+}
