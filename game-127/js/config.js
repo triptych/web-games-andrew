@@ -1,6 +1,6 @@
 // The First Dragon Prince — tuning and constants. Shared by the sim, the UI and the tests.
 
-export const VERSION = '1.1.0';
+export const VERSION = '1.1.1';
 export const SAVE_KEY = 'first-dragon-prince.v1';
 export const SLOTS = 3;                    // number of save slots
 

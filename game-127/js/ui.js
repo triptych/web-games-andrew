@@ -18,6 +18,7 @@ import { STAT_NAMES, questChance, power } from './sim/rules.js';
 import { placeOpen, heartReady, canDo, advStep, advChance, advFoe, contestOpen } from './sim/game.js';
 import { sceneDef } from './sim/scenes.js';
 import { CGS } from './assets.js';
+import { FACES } from './faces.js';
 import { MUSIC } from './audio.js';
 import { esc } from './vn.js';
 
@@ -45,7 +46,12 @@ export function fxChips(fx = {}, gold = 0) {
 }
 
 function hearts(n) { return `<span class="hearts">${'♥'.repeat(n)}<span class="off">${'♥'.repeat(4 - n)}</span></span>`; }
-function face(id, age) { const k = portrait(id, 'neutral', age); return k ? `style="background-image:url('${ART.por(k)}')"` : ''; }
+function face(id, age) {
+    const k = portrait(id, 'neutral', age);
+    if (!k) return '';
+    const f = FACES[k];
+    return `style="background-image:url('${ART.por(k)}')${f ? `;--fx:${f[0]};--fy:${f[1]};--fw:${f[2]}` : ''}"`;
+}
 
 export class UI {
     constructor({ audio, settings, send, vn, onSettings, onAlbumReplay, onSlot }) {
