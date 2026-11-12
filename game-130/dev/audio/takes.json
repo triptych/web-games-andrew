@@ -1,0 +1,316 @@
+[
+ {
+  "take": "ada-1",
+  "who": "ada",
+  "voice": "nyQ6Ftl3gFwx4EgtQvN1",
+  "ids": [
+   "ada.d1",
+   "ada.d2",
+   "ada.d3",
+   "ada.d4"
+  ],
+  "text": "[warm] Good morning, Kit! It's Captain Ada, calling from Moon Base. While I'm away, you are in charge of Starbase Nine! [chuckles] Orby will help you. Today, say hello to our visitor in the Docking Bay, and fix the lights in the Star Garden. Have fun, Station Keeper! [long pause] [cheerful] Good morning, Kit! Orby says you heard spooky noises last night. A ghost, on my station? [laughs] Well, keep your eyes open! Today the famous singer Madame Gloobella is docking, and the Snack-O-Tron in the Galley is broken. Can't have a station without snacks! [long pause] [warm] Morning, Kit! Captain Snorkel is bringing us a load of space ice today. The telescope in the Observatory is all mixed up. And Kit... the radio picked up a strange humming last night. Will you listen to the radio log? [long pause] [curious] Good morning, Kit! Professor Quasar is visiting today. He is very clever. Maybe he can help with our little ghost problem! And the fuses in the Engine Room keep blowing. [sighs] What a week!"
+ },
+ {
+  "take": "ada-2",
+  "who": "ada",
+  "voice": "nyQ6Ftl3gFwx4EgtQvN1",
+  "ids": [
+   "ada.d5",
+   "ada.end"
+  ],
+  "text": "[excited] Kit! Blip and Blop are visiting today, so hold on to your helmet! And I think you are very close to solving the mystery. Look at your clues in your Notebook. I believe in you! [long pause] [proud] Oh, Kit! You kept the station running, you answered every question, and you helped a little lost Glimmerling find her way home. You are the best Station Keeper Starbase Nine has ever had!"
+ },
+ {
+  "take": "orby-1",
+  "who": "orby",
+  "voice": "MEJe6hPrI48Kt2lFuVe3",
+  "ids": [
+   "orby.hello",
+   "orby.hint.greet",
+   "orby.hint.garden",
+   "orby.hint.galley",
+   "orby.hint.observatory",
+   "orby.hint.engine",
+   "orby.hint.goo",
+   "orby.hint.crumbs",
+   "orby.hint.hum",
+   "orby.hint.wire"
+  ],
+  "text": "[excited] Beep boop! Hi Kit, I'm Orby! Tap on things to look at them. And if you ever get stuck, tap me for a hint! [long pause] Our visitor is waiting in the Docking Bay! Let's go say hello. [long pause] The lights in the Star Garden are out. Let's look at the light panel on the wall! [long pause] The Snack-O-Tron in the Galley needs fixing. Let's go! [long pause] The telescope in the Observatory is all mixed up. Let's fix it! [long pause] The fuse box in the Engine Room keeps sparking. Let's take a look! [long pause] Something is glowing on the floor of the Star Garden. Let's look! [long pause] Hmm, I think somebody has been in the cookie jar in the Galley! [long pause] Let's listen to the radio log on the comms console, on the Command Deck. [long pause] I heard munching in the Engine Room. Let's check the power cables on the floor!"
+ },
+ {
+  "take": "orby-2",
+  "who": "orby",
+  "voice": "MEJe6hPrI48Kt2lFuVe3",
+  "ids": [
+   "orby.hint.prints",
+   "orby.hint.chart",
+   "orby.hint.solve",
+   "orby.hint.cookie",
+   "orby.hint.find",
+   "orby.hint.home",
+   "orby.hint.sleep",
+   "orby.hint.busy",
+   "orby.night",
+   "orby.break.garden"
+  ],
+  "text": "Let's try the Glow-o-Meter in Crew Quarters. Ghost tracks might show up on the floor! [long pause] The telescope works again! Let's look at the star chart on the desk in the Observatory. [long pause] We have all six clues! Tap the Notebook and let's solve the mystery. [long pause] A hungry ghost needs a snack! Let's make a Glow Cookie with the Snack-O-Tron in the Galley. [long pause] The glowing footprints went into the air vent in Crew Quarters. Let's follow them! [long pause] Wisp needs to call home. Let's use the comms console on the Command Deck! [long pause] [yawns] All our jobs are done! Time for bed, Kit. Your bunk is in Crew Quarters. [long pause] Let's finish this first, then I can help! [long pause] [softly] Great job today, Kit. Good night, and sweet dreams! [long pause] [alarmed] Uh oh! The lights in the Star Garden just went out! The plants need their light!"
+ },
+ {
+  "take": "orby-3",
+  "who": "orby",
+  "voice": "MEJe6hPrI48Kt2lFuVe3",
+  "ids": [
+   "orby.break.galley",
+   "orby.break.observatory",
+   "orby.break.engine",
+   "orby.pz.wires",
+   "orby.pz.battery",
+   "orby.pz.planets",
+   "orby.pz.seq",
+   "orby.pz.song",
+   "orby.pz.planet.no",
+   "orby.pz.oops"
+  ],
+  "text": "[alarmed] Oh no! The Snack-O-Tron is out of power. No snacks! [long pause] [alarmed] Whoa! The telescope got all mixed up. It can't find the planets! [long pause] [alarmed] Zap! The fuse box in the Engine Room is sparking! [long pause] Connect each wire to the plug with the same colour! [long pause] The Snack-O-Tron needs just the right power. Pick batteries that add up to the number on the screen! [long pause] Put the planets back in order, starting with the one closest to the Sun! [long pause] Watch the fuse lights blink, then tap them in the same order! [long pause] Wisp will hum her mama's song. Tap the stars in the same order to send it out to space! [long pause] Hmm, not that one yet. Which planet comes next? [long pause] Oops! Let's watch again."
+ },
+ {
+  "take": "orby-4",
+  "who": "orby",
+  "voice": "MEJe6hPrI48Kt2lFuVe3",
+  "ids": [
+   "orby.pz.toomuch",
+   "orby.fixed1",
+   "orby.fixed2",
+   "orby.fixed3",
+   "orby.clue.goo",
+   "orby.clue.crumbs",
+   "orby.clue.wire",
+   "orby.clue.hum",
+   "orby.clue.prints",
+   "orby.clue.chart"
+  ],
+  "text": "Too much power! Let's take a battery out. [long pause] [cheering] You fixed it! Great job, Kit! [long pause] [happy] Ding ding! Good as new! [long pause] [excited] Woo-hoo! You're a super fixer! [long pause] [gasps] Glowing goo! It's sticky, and it sparkles like starlight. Let's put it in the Notebook. [long pause] [surprised] The cookie jar is empty! Just crumbs... and a bit of that glowing goo again. Who ate all the cookies? [long pause] Look! This cable has tiny bite marks. Something has been nibbling the electricity! [long pause] [whispers] Listen... it's humming. Woo-ooo... mama... It sounds sad, not scary. [long pause] [excited] The Glow-o-Meter shows tiny glowing footprints! They go right into the air vent! [long pause] Look at this star chart! The Glimmer Nebula is full of little creatures made of light, called Glimmerlings. And they love to eat electricity!"
+ },
+ {
+  "take": "orby-5",
+  "who": "orby",
+  "voice": "MEJe6hPrI48Kt2lFuVe3",
+  "ids": [
+   "orby.notyet",
+   "orby.dark",
+   "orby.spook1",
+   "orby.spook2",
+   "orby.spook3",
+   "orby.window",
+   "orby.chair",
+   "orby.crates",
+   "orby.porthole",
+   "orby.airlock"
+  ],
+  "text": "Hmm, nothing new here right now. [long pause] It's too dark to see anything. Let's fix the lights first! [long pause] [nervous] D-did you hear that? [long pause] [scared] Eek! The lights are flickering! [long pause] [whispers] Was that... a ghost? [long pause] Wow! From up here, the Earth looks like a big blue marble. [long pause] [giggles] The captain's chair! It spins! Wheee! [long pause] Boxes and boxes of space socks. Why do we have so many socks? [long pause] Spaceships park right outside this window. Whoosh! [long pause] The airlock! Visitors come in here. Never open it without a spacesuit!"
+ },
+ {
+  "take": "orby-6",
+  "who": "orby",
+  "voice": "MEJe6hPrI48Kt2lFuVe3",
+  "ids": [
+   "orby.plants",
+   "orby.melon",
+   "orby.table",
+   "orby.fridge",
+   "orby.core",
+   "orby.pipes",
+   "orby.mobile",
+   "orby.poster",
+   "orby.toys",
+   "orby.book"
+  ],
+  "text": "These space plants make fresh air for the whole station. [long pause] A moon melon! It grows super big in low gravity. [long pause] Lunch in space! Don't let your peas float away. [long pause] Freeze-dried ice cream! Crunchy and yummy. [long pause] The reactor core makes power for the whole station. Hummmm. [long pause] These pipes carry water and air all around the station. [long pause] A model of the planets. Eight planets going around the Sun! [long pause] A poster of the solar system. Can you find Saturn? It has rings! [long pause] Your toy rocket collection! Three, two, one, blast off! [long pause] Your Space Book! Every fact you learn goes in here."
+ },
+ {
+  "take": "orby-7",
+  "who": "orby",
+  "voice": "MEJe6hPrI48Kt2lFuVe3",
+  "ids": [
+   "orby.bed",
+   "orby.vent",
+   "orby.vent.cookie",
+   "orby.comms",
+   "orby.visitor.none",
+   "orby.visitor.done",
+   "orby.scope.ok",
+   "orby.fixed.ok",
+   "orby.ded.intro",
+   "orby.ded.q1"
+  ],
+  "text": "Your cozy bunk! But it's not bedtime yet. We still have jobs to do. [long pause] [nervous] An air vent. It's dark in there. Brrr! [long pause] Let's make the Glow Cookie first. A hungry ghost likes a snack! [long pause] The comms console. This is how we talk to Captain Ada. [long pause] Nobody is here right now. [long pause] Our visitor is resting before the trip home. [long pause] The telescope can see all the way to the Glimmer Nebula now! [long pause] This is working just fine now! [long pause] Let's solve the mystery! Answer three questions. Use your clues! [long pause] What has the ghost been eating? Moon rocks? Cookies and electricity? Or space socks?"
+ },
+ {
+  "take": "orby-8",
+  "who": "orby",
+  "voice": "MEJe6hPrI48Kt2lFuVe3",
+  "ids": [
+   "orby.ded.q2",
+   "orby.ded.q3",
+   "orby.ded.wrong",
+   "orby.ded.right",
+   "orby.ded.solved",
+   "orby.ded.notyet",
+   "orby.cookie",
+   "orby.vents",
+   "orby.wisp",
+   "orby.signal"
+  ],
+  "text": "Where has the ghost been hiding? In the air vents? In the telescope? Or in the fridge? [long pause] What is the ghost, really? A spooky skeleton? A robot in a bedsheet? Or a lost baby Glimmerling? [long pause] Hmm, look at your clues again! [long pause] Yes! That matches the clues! [long pause] [excited] We solved it! The ghost is a lost baby Glimmerling, hiding in the air vents! Let's make her a snack and go say hello. [long pause] We need more clues before we can solve the mystery. [long pause] A Glow Cookie! Sparkly, crunchy and full of starlight. Perfect for a hungry Glimmerling. [long pause] [whispers] Shh... there's a little nest in here. Let's put the Glow Cookie down and wait. [long pause] [kindly] Don't worry, little one. We'll help you call your mama! [long pause] [excited] The song is going out to space! Look out the window!"
+ },
+ {
+  "take": "orby-9",
+  "who": "orby",
+  "voice": "MEJe6hPrI48Kt2lFuVe3",
+  "ids": [
+   "orby.end",
+   "orby.fact.z1",
+   "orby.fact.z2",
+   "orby.fact.z3",
+   "orby.fact.z4",
+   "orby.fact.g1",
+   "orby.fact.g2",
+   "orby.fact.g3",
+   "orby.fact.g4",
+   "orby.fact.s1"
+  ],
+  "text": "[happy] What an adventure! Beep boop. Best friends forever, Kit! [long pause] Saturn's rings are made of chunks of ice and rock. Some are as small as a grain of sand, and some are as big as a house! [long pause] Jupiter is the biggest planet. More than a thousand Earths could fit inside it! [long pause] Mars looks red because its dusty ground has rusty iron in it. [long pause] Mercury is the closest planet to the Sun. A year on Mercury is only 88 days long! [long pause] The Sun is a star! It is the closest star to Earth, so it looks big and bright. [long pause] A constellation is a group of stars that makes a pattern, like Orion the Hunter or the Big Dipper. [long pause] Stars twinkle because the moving air around Earth bends their light. Out here in space, they don't twinkle at all! [long pause] Our galaxy is the Milky Way. It has hundreds of billions of stars! [long pause] A comet is like a dirty snowball of ice and dust. Near the Sun, it grows a long glowing tail."
+ },
+ {
+  "take": "orby-10",
+  "who": "orby",
+  "voice": "MEJe6hPrI48Kt2lFuVe3",
+  "ids": [
+   "orby.fact.s2",
+   "orby.fact.s3",
+   "orby.fact.s4",
+   "orby.fact.q1",
+   "orby.fact.q2",
+   "orby.fact.q3",
+   "orby.fact.q4",
+   "orby.fact.b1",
+   "orby.fact.b2"
+  ],
+  "text": "Neil Armstrong walked on the Moon in 1969. His footprints are still there, because the Moon has no wind to blow them away! [long pause] The Moon is always round. As it travels around Earth, we see more or less of its sunny side. These are called phases. [long pause] The Moon takes about a month to go around the Earth. That's where the word month comes from! [long pause] Gravity pulls things toward each other. It keeps us on Earth, and it keeps Earth going around the Sun. [long pause] The station and everyone in it are falling around the Earth together, so everything floats. It's called free fall! [long pause] Sound needs air to travel. Space has almost no air, so it is very, very quiet out there. [long pause] The Moon doesn't make its own light. It shines because sunlight bounces off it, like a mirror. [long pause] A spacesuit gives astronauts air to breathe and keeps them warm, cool and safe. [long pause] Rockets burn lots of fuel and push hot gas down very fast. That pushes the rocket up, up and away!"
+ },
+ {
+  "take": "orby-11",
+  "who": "orby",
+  "voice": "MEJe6hPrI48Kt2lFuVe3",
+  "ids": [
+   "orby.fact.b3",
+   "orby.fact.b4"
+  ],
+  "text": "We live on Earth, the third planet from the Sun. It's the only planet we know of with living things. [long pause] There are eight planets: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus and Neptune."
+ },
+ {
+  "take": "wisp-1",
+  "who": "wisp",
+  "voice": "Vnqlgu3fdiFwisAye1qH",
+  "ids": [
+   "wisp.hello",
+   "wisp.sorry",
+   "wisp.yay",
+   "wisp.song",
+   "wisp.bye"
+  ],
+  "text": "[shy] H-hello? Is that... a cookie? For me? [long pause] [sniffles] I'm sorry I ate your cookies, and your wires. I got lost, and I was so hungry... and I miss my mama. [long pause] [happy giggle] Really? Thank you, thank you! [long pause] [softly] This is my mama's song. Hmm, hmm-hmm, hmmm! [long pause] [happy] Bye bye, Kit! Bye bye, Orby! I'll never forget you!"
+ },
+ {
+  "take": "mama-1",
+  "who": "mama",
+  "voice": "KhpuFRhu6kfNvpalcYtz",
+  "ids": [
+   "mama.arrive",
+   "mama.gift"
+  ],
+  "text": "[warm, echoing] Wisp! My little light! There you are. Thank you, kind Station Keeper. [long pause] [gently] Please take this star from our nebula. Whenever it shines, think of us."
+ },
+ {
+  "take": "zorp-1",
+  "who": "zorp",
+  "voice": "mgZYFBDKPJGhiZEAcf4X",
+  "ids": [
+   "zorp.hello",
+   "zorp.right",
+   "zorp.wrong",
+   "zorp.bye",
+   "zorp.z1",
+   "zorp.z2",
+   "zorp.z3",
+   "zorp.z4"
+  ],
+  "text": "[excited] Greetings, Earth kid! I am Zorp, from the planet Glorp! I came all this way to see the planets. But first... a quiz! Glorpians love quizzes! [long pause] [delighted] Correct-a-mundo! You are so smart! [long pause] Ooh, not quite! Try again, my friend. [long pause] [mysterious] Thank you, Earth kid! Oh, and last night I saw something glowing float past my window. Spooky! Bye-bye! [long pause] Which planet has the biggest, brightest rings? Is it... Saturn? Mars? Or Venus? [long pause] Which planet is the biggest of them all? Is it... Earth? Jupiter? Or Mercury? [long pause] Which planet is called the Red Planet? Is it... Neptune? Jupiter? Or Mars? [long pause] Which planet is closest to the Sun? Is it... Mercury? Saturn? Or Uranus?"
+ },
+ {
+  "take": "gloobella-1",
+  "who": "gloobella",
+  "voice": "jTAlT4VvvXlYNDrxqpNQ",
+  "ids": [
+   "gloobella.hello",
+   "gloobella.right",
+   "gloobella.wrong",
+   "gloobella.bye",
+   "gloobella.g1",
+   "gloobella.g2",
+   "gloobella.g3",
+   "gloobella.g4"
+  ],
+  "text": "[dramatic] Darling! It is I, Madame Gloobella, the brightest star in the galaxy! The stars are my audience, so let us talk about... stars! [long pause] [sings] Brava! Bravissima! [long pause] Oh no, no, no, darling. Try again! [long pause] [whispers] Before I go, darling... I heard someone singing in your air vents. Such a sad little song. Ta-ta! [long pause] What is our Sun? Is it... A planet? A star? Or A moon? [long pause] What do we call a group of stars that makes a picture in the sky? Is it... A constellation? A comet? Or A crater? [long pause] Why do stars twinkle when we look at them from Earth? Is it... They blink on and off? They are shy? Or The air bends their light? [long pause] We live in a giant spiral of stars. What is it called? Is it... The Big Swirl? The Milky Way? Or The Candy Bar?"
+ },
+ {
+  "take": "snorkel-1",
+  "who": "snorkel",
+  "voice": "JS8l7lQwh35gDnA8DTXd",
+  "ids": [
+   "snorkel.hello",
+   "snorkel.right",
+   "snorkel.wrong",
+   "snorkel.bye",
+   "snorkel.s1",
+   "snorkel.s2",
+   "snorkel.s3",
+   "snorkel.s4"
+  ],
+  "text": "[hearty laugh] Ho ho! Captain Snorkel here, with a load of fresh space ice! Answer my questions while I unload, kiddo. [long pause] [laughs] Ho ho! That's right, kiddo! [long pause] Whoops! Not that one. Have another go. [long pause] Be careful, kiddo. Last time I docked here, my lunchbox went all glowy and somebody ate my sandwich! Ho ho! Keep on truckin'! [long pause] What is a comet mostly made of? Is it... Fire? Cheese? Or Ice and dust? [long pause] Who was the first person to walk on the Moon? Is it... Neil Armstrong? Captain Snorkel? Or A cow? [long pause] Why does the Moon seem to change shape every night? Is it... Someone takes a bite? We see different parts of its sunny side? Or It shrinks in the wash? [long pause] About how long does the Moon take to go all the way around the Earth? Is it... One hour? One hundred years? Or About a month?"
+ },
+ {
+  "take": "quasar-1",
+  "who": "quasar",
+  "voice": "Nagtyt9MktF8AWSgjotJ",
+  "ids": [
+   "quasar.hello",
+   "quasar.right",
+   "quasar.wrong",
+   "quasar.bye",
+   "quasar.q1",
+   "quasar.q2",
+   "quasar.q3",
+   "quasar.q4"
+  ],
+  "text": "[curious] Ah! Professor Quasar, scientist extraordinaire. A ghost, you say? Fascinating! Answer my questions, and I shall lend you my newest invention. [long pause] Excellent! Precisely correct! [long pause] Hmm, no, no. Think again, young scientist. [long pause] [proud] Take my Glow-o-Meter! It shows things that glow, even when your eyes cannot see them. Ghost hunting! Ha! Good luck! [long pause] What pulls things down and keeps your feet on the ground? Is it... Gravity? Magnets? Or Glue? [long pause] Why do astronauts float inside a space station? Is it... They are full of balloons? They are falling around Earth with the station? Or They forgot their shoes? [long pause] Can you hear sounds out in empty space? Is it... Yes, it is very loud? Only on Tuesdays? Or No, there is no air to carry sound? [long pause] Where does moonlight really come from? Is it... Sunlight bouncing off the Moon? Giant moon lamps? Or Glowing moon bugs?"
+ },
+ {
+  "take": "blipblop-1",
+  "who": "blipblop",
+  "voice": "rBkiq5ZQ43ogwd6i4uIQ",
+  "ids": [
+   "blipblop.hello",
+   "blipblop.right",
+   "blipblop.wrong",
+   "blipblop.bye",
+   "blipblop.b1",
+   "blipblop.b2",
+   "blipblop.b3",
+   "blipblop.b4"
+  ],
+  "text": "[giggles] Hi! I'm Blip! And I'm Blop! We love rockets! Do you love rockets? Quiz time! [long pause] [cheering] Yay! Woo-hoo! You got it! [long pause] Nope, nope! Try again! [long pause] [whispers] Psst! We saw a teeny glowy baby in your air vent! It looked sad! Bye! Bye! [long pause] What do astronauts wear to stay safe outside the station? Is it... Pajamas? A spacesuit? Or A raincoat? [long pause] What makes a rocket blast off into space? Is it... Burning fuel pushing gas down? A big trampoline? Or A really strong sneeze? [long pause] Which planet do people live on? Is it... Pluto? Neptune? Or Earth? [long pause] How many planets go around our Sun? Is it... Three? Eight? Or Fifty?"
+ }
+]
