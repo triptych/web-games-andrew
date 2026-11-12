@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0b0d1e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Starbase Spooky: run a space station for five days, greet funny aliens, answer space questions, fix what breaks and solve the mystery of the station ghost. A 16-bit edutainment adventure for young players.">
+    <title>Starbase Spooky</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Press+Start+2P&display=swap">
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <div id="stage">
+        <canvas id="view" width="640" height="360" aria-label="Starbase Spooky game view"></canvas>
+        <div id="label" hidden></div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud" hidden>
+        <div id="hud-day">Day 1</div>
+        <div id="hud-stickers" title="Star stickers"><span class="star">★</span> <span id="hud-sticker-n">0</span></div>
+        <div class="hud-buttons">
+            <button id="btn-jobs" class="ibtn" aria-label="Today's jobs" title="Today's jobs">📋</button>
+            <button id="btn-hint" class="ibtn" aria-label="Ask Orby for a hint" title="Ask Orby (H)">🤖</button>
+            <button id="btn-map" class="ibtn" aria-label="Station map" title="Station map (M)">🗺️</button>
+            <button id="btn-notebook" class="ibtn" aria-label="Notebook" title="Notebook (N)">📓</button>
+            <button id="btn-pause" class="ibtn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
+        </div>
+    </div>
+    <div id="jobs" class="panel-float" hidden>
+        <h3>Today's jobs</h3>
+        <ul id="jobs-list"></ul>
+    </div>
+
+    <!-- Dialogue -->
+    <div id="talk" hidden>
+        <div id="talk-face"><img id="talk-img" alt=""></div>
+        <div id="talk-body">
+            <div id="talk-name"></div>
+            <div id="talk-text"></div>
+        </div>
+        <div id="talk-buttons">
+            <button id="talk-again" class="ibtn" aria-label="Hear it again" title="Hear it again">🔊</button>
+            <button id="talk-next" class="btn primary" aria-label="Next">▶</button>
+        </div>
+    </div>
+
+    <!-- A question -->
+    <div id="quiz" hidden>
+        <div id="quiz-head">
+            <img id="quiz-img" alt="">
+            <div id="quiz-q"></div>
+            <button id="quiz-again" class="ibtn" aria-label="Hear the question again" title="Hear it again">🔊</button>
+        </div>
+        <div id="quiz-answers">
+            <button class="ans a0" data-i="0"><span class="key">1</span><span class="txt"></span></button>
+            <button class="ans a1" data-i="1"><span class="key">2</span><span class="txt"></span></button>
+            <button class="ans a2" data-i="2"><span class="key">3</span><span class="txt"></span></button>
+        </div>
+    </div>
+
+    <!-- A puzzle's instruction line (the puzzle itself is drawn in the canvas) -->
+    <div id="pz-bar" hidden>
+        <div id="pz-text"></div>
+        <button id="pz-again" class="ibtn" aria-label="Hear it again" title="Hear it again">🔊</button>
+    </div>
+
+    <!-- Screens -->
+    <div id="title" class="screen title-screen">
+        <div class="sheet title-sheet">
+            <h1 class="logo"><span>Starbase</span><span class="spooky">Spooky</span></h1>
+            <p class="tag">A space station adventure</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Game</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <p>You are <b>Kit</b>, the Junior Station Keeper. Captain Ada is away, so you run Starbase Nine for five days!</p>
+            <ul class="howto">
+                <li>👆 <b>Tap</b> on things to walk over and look at them.</li>
+                <li>👽 Say hello to the <b>visitors</b> in the Docking Bay and answer their space questions.</li>
+                <li>🔧 <b>Fix</b> what breaks with a little puzzle.</li>
+                <li>🔍 Find <b>clues</b> to solve the mystery of the station ghost.</li>
+                <li>🤖 Stuck? Tap <b>Orby</b> (or 🤖) for a hint. 📋 shows today's jobs.</li>
+                <li>🗺️ The <b>map</b> takes you to any room. 📓 The <b>Notebook</b> keeps your clues and space facts.</li>
+            </ul>
+            <table>
+                <tr><td>Mouse / finger</td><td>Tap to walk and look</td></tr>
+                <tr><td>Arrows + Enter</td><td>Choose things and use them</td></tr>
+                <tr><td>Space / Enter</td><td>Next line</td></tr>
+                <tr><td>1 2 3</td><td>Answer a question</td></tr>
+                <tr><td>H · M · N · Esc</td><td>Hint · Map · Notebook · Pause</td></tr>
+            </table>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Voices <input type="range" id="set-voice" min="0" max="1" step="0.05"></label>
+            <label class="row">Sounds <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Read lines aloud by themselves
+                <select id="set-auto"><option value="off">No, I tap ▶</option><option value="on">Yes, go on after each line</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="notebook" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Kit's Notebook</h2>
+            <div class="tabs" role="tablist">
+                <button class="tab on" data-tab="clues" role="tab">🔍 Clues</button>
+                <button class="tab" data-tab="facts" role="tab">📘 Space Book</button>
+                <button class="tab" data-tab="items" role="tab">🎒 Things</button>
+            </div>
+            <div id="nb-clues" class="tabpane"></div>
+            <div id="nb-facts" class="tabpane" hidden></div>
+            <div id="nb-items" class="tabpane" hidden></div>
+            <div class="sheet-foot">
+                <button id="nb-solve" class="btn primary" hidden>Solve the mystery!</button>
+                <button class="btn" data-close>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="night" class="screen" hidden>
+        <div class="sheet night-sheet">
+            <h2 id="night-head">Day 1 done!</h2>
+            <div id="night-stats"></div>
+            <p id="night-text" class="night-text"></p>
+            <div class="sheet-foot"><button id="night-next" class="btn primary">Next day ▶</button></div>
+        </div>
+    </div>
+
+    <div id="end" class="screen" hidden>
+        <div class="sheet certificate">
+            <div class="cert-star">★</div>
+            <h2>Station Keeper of the Year</h2>
+            <p class="cert-name">This award goes to <b>Kit</b></p>
+            <p id="end-text"></p>
+            <div id="end-stats"></div>
+            <p class="credits">Art by fal (nano-banana-2) · Voices, music and sounds by ElevenLabs · Made in Canvas 2D</p>
+            <div class="sheet-foot"><button id="end-again" class="btn primary">Play Again</button><button id="end-title" class="btn">Title</button></div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">Starbase Spooky needs JavaScript.</p></noscript>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
