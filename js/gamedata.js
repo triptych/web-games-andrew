@@ -2005,6 +2005,23 @@ const games = [
             { emoji: '🎙️', label: 'Fully voiced' },
             { emoji: '🖌️', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-131',
+        title: 'Fray & the Spiral Isle',
+        description: "A chill, meditative first-person journey in three.js with nothing that can hurt you and no clock. You are a new mage, sent for by an island that is not on the maps: seven peoples lived there once, finished what they came to do, tidied up and went on, leaving their quiet places behind. On the shore you find Fray, a small goblin hurt under a fallen shrine; moonmint heals her, but the quartz dust has taken her sight. She gives you the pendant she was carrying, a silver spiral with seven empty settings, and comes with you. Each place holds a story and a gem, and each gem opens the way to the next: the Leaf Gem grows the vine up the cliff to the Golem Fields, the Stone Gem rolls the boulder from the crystal caves of Glimmerdeep, the Light Gem lets you down the dark stair under Castle Hollowmere, the Wind Gem lifts you to the Aerie above the clouds, the Water Gem lets you walk down into sunken Thalune, and the Moon Gem opens the goblin door to Underhome. Fray goes where you cannot: send her into a root-way, a drain or a rain-pipe and call directions while she tells you what she feels and whether the hum is getting warmer, then have her pull the lever or bring back what she finds. Wake a golem with his heart-runes, ring singing stones in the order of an old verse, give an organ back its wandering pipes, bring three pearls to Tide Mother, and at the end guide Fray through the Listening Dark, where eyes are no use, so her tribe will say her name again. 39 inscriptions to read, eight sets of small things to find, a journal that keeps them. Paintings, textures and icons made with fal, 3D characters and props with Meshy, and music, ambience and every voice with ElevenLabs. Keyboard and mouse, gamepad or touch.",
+        icon: '🌀',
+        folder: 'game-131',
+        version: '1.0.0',
+        cssClass: 'spiral-isle',
+        genre: 'cozy',
+        tags: [
+            { emoji: '🚶', label: 'First-person walk' },
+            { emoji: '💎', label: 'Seven gems' },
+            { emoji: '👂', label: 'Blind goblin guide' },
+            { emoji: '🎙️', label: 'Voiced' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 

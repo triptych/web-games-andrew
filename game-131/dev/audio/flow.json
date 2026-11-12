@@ -1,0 +1,10 @@
+{
+ "flow_id": "j47pHfpo8tjIaBz6shLb",
+ "voices": { "Fray": "kC1WIuSSgwH2T8iOV4iJ Tilly the Storyteller", "Narrator": "XoCXkGhESdrCEEK4uJOV Laura – Scottish Children's Storyteller", "Grandfather Lichen": "bFrjFL4nlpeYNwNRhXxq Mossbeard", "Elder Grusk": "mSOmKHC6GZcZbSTGlqHO Mister Gruff" },
+ "nodes": {
+  "vo-fray-1": "qtjDoH2JF1CswUBCr8hO", "vo-fray-2": "KEZNzqdkRWf2gg0gXAwe", "vo-fray-3": "KIQ83pQeUP9u6QEBWXia", "vo-fray-4": "aJnZy9eZdgQhVp1A27zW", "vo-fray-5": "cKIaVN2dsEDseMpRQEzx",
+  "vo-narrator-1": "aj8jkerW5FmDh88OT8x1", "vo-narrator-2": "nJ6j8bi8Dhd9EkfjgVuw", "vo-narrator-3": "gScRZnsphIwevzESN82h", "vo-narrator-4": "YpAQ0PB0VV1HO7duMKPD", "vo-golem": "Q0dPatIBh4EQ7tD0JGZk", "vo-elder": "7vGuoWF96XXaYXN4nXP4",
+  "music-isle": "K0T0C0C7Xk6WLev5kcUt", "music-caves": "aiK0r9vQF4a4jB3AMPoD", "music-under": "2LdBwL89vC8MWScu2wSR", "music-sky": "hEHjjyULHnDKuvuHGi6C", "music-sea": "ZpuVkd8QQgz3z5d6DIXc", "music-warren": "ypij7PjtCcd6eqKd04G4"
+ },
+ "voice_sessions": ["pe1VKIhgdiUykAHsi90I","fYOVdH24gj1Si6HU8XLC","U4zWc1H1UlLB7rEEsgz5","RKlxrkd5oINkSXZBYyJb","jOlo0llOvJZeqVjsUyIp","xE9hUK6TC2UHy6ZsoDtp","8Wnkj0wedaaNmp4oz7o3","Lclt9PPu3jehLuHtIhqM","PCQtgku44RmWYNrJUDgw","SmXu48ETEVvN8YOmBQbk","6tIO43zGRKUaDCYh5xdw"]
+}
