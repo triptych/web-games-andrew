@@ -189,7 +189,8 @@ td:first-child { color: var(--accent); white-space: nowrap; }
 .certificate .credits { font-size: 12px; color: #8a6a3a; }
 .certificate .btn:not(.primary) { color: #3b2a00; border-color: #c9a85a; }
 
-#toasts { position: fixed; left: 50%; top: calc(var(--cy) + 8px); transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: center; }
-.toast { background: var(--panel); border: 2px solid var(--accent); border-radius: 10px; padding: 8px 14px; font-size: 16px; animation: toast 2.6s forwards; }
+/* toasts sit in the picture's top-right corner, clear of the puzzles' numbers in the middle */
+#toasts { position: fixed; right: calc(100vw - var(--cx) - var(--cw) + 8px); top: max(calc(var(--cy) + 8px), calc(58px + var(--safe-t))); z-index: 60; pointer-events: none; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; max-width: 46vw; }
+.toast { background: var(--panel); border: 2px solid var(--accent); border-radius: 10px; padding: 5px 10px; font-size: 14px; animation: toast 2.6s forwards; }
 @keyframes toast { 0% { opacity: 0; transform: translateY(-8px); } 10%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; }
