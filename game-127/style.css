@@ -255,7 +255,15 @@ h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: 0.04
 .status-top .info { flex: 1; min-width: 200px; }
 .friends { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 8px; }
 .friend { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 10px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--line-soft); }
-.friend .face { width: 54px; height: 54px; border-radius: 50%; background: #2a1520 center 12% / 220% no-repeat; border: 1px solid var(--line); flex: none; }
+.face {
+    /* A round portrait. --fx, --fy and --fw (from js/faces.js, in units of the circle's size --s) put the face in
+       the middle; portraits differ in width, so one zoom by width cut some faces off at the top. */
+    --s: 72px; width: var(--s); height: var(--s); border-radius: 50%; border: 1px solid var(--line); flex: none;
+    background: #2a1520 no-repeat;
+    background-size: calc(var(--fw, 2.2) * var(--s)) auto;
+    background-position: calc(var(--fx, -0.6) * var(--s)) calc(var(--fy, -0.1) * var(--s));
+}
+.friend .face { --s: 54px; }
 .friend .who { flex: 1; min-width: 0; }
 .friend .who b { font-family: var(--display); font-size: 14px; color: var(--gold-hi); }
 .hearts { color: var(--love); letter-spacing: 1px; font-size: 14px; }
@@ -263,7 +271,6 @@ h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: 0.04
 
 /* place sheet */
 .place-head { display: flex; gap: 12px; align-items: center; }
-.place-head .face { width: 72px; height: 72px; border-radius: 50%; background: #2a1520 center 12% / 220% no-repeat; border: 1px solid var(--line); flex: none; }
 .gift-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
 .gift { min-height: 44px; padding: 4px 10px; border-radius: 10px; border: 1px solid var(--line-soft); background: rgba(0, 0, 0, 0.35); color: var(--text); font-size: 14px; cursor: pointer; }
 .gift.sel { border-color: var(--love); background: rgba(255, 143, 180, 0.15); }

@@ -38,4 +38,10 @@ blended with the magenta behind it; the key's share becomes transparency and the
 steam is translucent instead of lilac), and the alpha fades out within 40 px of the frame, so the avalanche the
 model ran off the image ends softly. Then they are trimmed to the figure and scaled to 720 px on the longest side.
 
-The sim test checks every id the scripts name has a file here, and that every expedition danger has a creature.
+Round portraits (the friends list, places, Starfall) zoom in on the face. Portraits are trimmed to the figure, so
+their widths differ, and [faces.py](faces.py) finds each head and writes `js/faces.js`; after adding or redoing a
+portrait, run `python3 -I game-127/dev/art/faces.py SHEET.png` and look at the sheet of circles it draws, adding an
+entry to its `OVERRIDES` where wings, a staff, a hat or tall hair pull the crop off the face.
+
+The sim test checks every id the scripts name has a file here, that every expedition danger has a creature, and that
+every portrait has a face position.
