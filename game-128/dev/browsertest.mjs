@@ -277,6 +277,24 @@ async function desktop() {
     // audio
     await until(page, () => __gs.audio.loaded() >= 50, 'the generated effects and voices decode', 30000);
     await until(page, () => __gs.audio.playing(), 'a music track is playing', 20000);
+    // v1.4.0: an Armory upgrade plays a forging moment, then a card with the new + and the stat change
+    await Q(page, () => {
+        const G = __gs.G; G.village.lv.armory = Math.max(2, G.village.lv.armory || 0); G.res.gold += 5000; G.res.ore += 500;
+        __gs.ui.openPanel({ kind: 'building', id: 'armory' }, G);
+    });
+    const plus0 = await Q(page, () => { const b = document.querySelector('#panel-body [data-upgrade]'); return __gs.G.inv.find((x) => String(x.uid) === b.dataset.upgrade).plus; });
+    await page.click('#panel-body [data-upgrade]');
+    check(await Q(page, () => !document.getElementById('forge').hidden && !!document.querySelector('#forge .forge-stage .item .ico')), 'an Armory upgrade opens the forge with the item on the anvil');
+    await until(page, (p0) => document.getElementById('forge').classList.contains('done') && document.querySelector('#forge .plus')?.textContent === `+${p0 + 1}` && document.querySelectorAll('#forge .forge-stats li').length > 0, 'then the card shows the new + and the stat change', 5000, plus0);
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('forge').hidden && __gs.ui.top() === 'panel', 'Escape closes the card, not the Armory', 3000);
+    await page.click('#panel-body [data-upgrade]');
+    await page.click('#forge');                       // a click skips the strikes to the card
+    await until(page, () => document.getElementById('forge').classList.contains('done'), 'a click skips straight to the card', 2000);
+    await page.click('#forge-done');
+    await until(page, () => document.getElementById('forge').hidden, 'Done closes it', 3000);
+    await Q(page, () => __gs.ui.closeAll());
+    await Q(page, () => { __gs.ui.openScreen('village'); });
     // (last: a reloaded page has no user gesture yet, so its audio stays locked)
     // a reload just after the hero fell: the result shows at once instead of hanging on the dead hero (v1.3.2; it sat
     // there with the village music playing)

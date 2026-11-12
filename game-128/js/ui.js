@@ -79,7 +79,7 @@ export class UI {
     closeScreen(id) {
         $(id).hidden = true;
         this.stack = this.stack.filter((s) => s !== id);
-        if (id === 'panel') this.panel = null;
+        if (id === 'panel') { this.panel = null; if (!$('forge').hidden) { clearTimeout(this.forgeT); for (const t of this.forgeStrikes || []) clearTimeout(t); $('forge').hidden = true; $('forge').innerHTML = ''; } }
         if (this.top()) this.focusFirst(this.top());
         this.onClose?.(id);
     }
@@ -427,11 +427,82 @@ export class UI {
             btn.dataset.upgrade = inv.uid;
             btn.disabled = !!V.upgradeBlock(G, inv.uid);
             btn.title = V.upgradeBlock(G, inv.uid) || 'Upgrade';
-            btn.addEventListener('click', () => this.cmd({ t: 'upgrade', uid: inv.uid }));
+            btn.addEventListener('click', () => {
+                const before = St.itemStats(inv);
+                if (this.cmd({ t: 'upgrade', uid: inv.uid })) this.forge(inv.uid, before);
+            });
             li.append(btn);
             list.append(li);
         }
         body.append(list);
+    }
+
+    /**
+     * The forging moment after an Armory upgrade (v1.4.0): three hammer strikes shake the item and throw sparks while
+     * it heats to a glow, a white flash, then a card with its new + and what each stat went from and to. A click or a
+     * key skips to the card. Only transforms and opacity animate (the village once crawled under software rendering).
+     */
+    forge(uid, before) {
+        const G = this.G();
+        const inv = G?.inv.find((x) => x.uid === uid);
+        const box = $('forge');
+        if (!inv || !box) return;
+        clearTimeout(this.forgeT);
+        for (const t of this.forgeStrikes || []) clearTimeout(t);
+        const it = ITEM[inv.id];
+        const after = St.itemStats(inv);
+        const calm = !!this.settings.calm || matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const rows = [['atk', 'Attack'], ['def', 'Defence'], ['hp', 'Health']]
+            .filter(([k]) => before[k] || after[k])
+            .map(([k, n]) => `<li><span>${n}</span><span>${before[k]} <b class="arrow">→</b> <b class="better">${after[k]}</b></span></li>`).join('');
+        const spark = (g) => Array.from({ length: 7 }, (_, i) => {
+            const a = (i / 7) * Math.PI * 2 + g;
+            const r = 44 + (i % 3) * 10;
+            return `<i style="--dx:${Math.round(Math.cos(a) * r)}px;--dy:${Math.round(Math.sin(a) * r - 12)}px"></i>`;
+        }).join('');
+        box.innerHTML = `<div class="forge-card">
+            <div class="forge-stage" aria-hidden="true">
+                <div class="glow"></div><div class="flash"></div>
+                <div class="sparks s1">${spark(0.2)}</div><div class="sparks s2">${spark(0.65)}</div><div class="sparks s3">${spark(1.1)}</div>
+                <div class="hammer"><i class="head"></i><i class="haft"></i></div>
+                <div class="item"></div>
+            </div>
+            <p class="forge-wip">${esc(NPC.garrick?.name?.split(' ')[0] || 'The smith')} is forging…</p>
+            <div class="forge-out" aria-live="polite">
+                <h3 id="forge-title">${esc(it.name)} <span class="plus">+${inv.plus}</span></h3>
+                <p class="dim">Forged at the Armory${Object.values(G.hero.eq).includes(uid) ? ' · worn now' : ''}</p>
+                ${rows ? `<ul class="forge-stats">${rows}</ul>` : ''}
+                <button class="btn primary" id="forge-done">Done</button>
+            </div>
+        </div>`;
+        box.querySelector('.item').append(iconEl(it.icon, 'forge-ico'));
+        box.className = 'forge' + (calm ? ' calm' : '');
+        box.hidden = false;
+        const done = () => {
+            if (box.hidden || box.classList.contains('done')) return;
+            for (const t of this.forgeStrikes || []) clearTimeout(t);
+            box.classList.add('done');
+            this.audio.ui('level');
+            $('forge-done').focus({ preventScroll: true });
+        };
+        // the upgrade itself already rang the anvil once; two more strikes follow it
+        this.forgeStrikes = calm ? [] : [400, 800].map((ms) => setTimeout(() => this.audio.ui('anvil'), ms));
+        this.forgeT = setTimeout(done, calm ? 350 : 1250);
+        $('forge-done').addEventListener('click', (e) => { e.stopPropagation(); this.closeForge(); });
+        box.onclick = () => { if (box.classList.contains('done')) this.closeForge(); else done(); };
+    }
+
+    /** Close the forging card if it is up. Returns whether it was. */
+    closeForge() {
+        const box = $('forge');
+        if (!box || box.hidden) return false;
+        clearTimeout(this.forgeT);
+        for (const t of this.forgeStrikes || []) clearTimeout(t);
+        box.hidden = true;
+        box.innerHTML = '';
+        this.audio.ui('close');
+        document.querySelector('#panel-body [data-upgrade]')?.focus?.({ preventScroll: true });
+        return true;
     }
 
     requestsPanel(G, body) {
