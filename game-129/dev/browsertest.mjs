@@ -192,6 +192,31 @@ async function desktop() {
         await shot(page, 'desktop-camp');
         await page.keyboard.press('Escape');
         await until(page, () => document.getElementById('camp').hidden, 'and Escape closes it');
+
+        // potions from the pack, on two heroes in a row without leaving the list (a player found the second one did nothing)
+        const before = await Q(page, async () => {
+            const { heroStats } = await import('./js/sim/stats.js');
+            const G = __hd.G;
+            const hs = G.party.slice(0, 2).map((id) => G.roster.find((c) => c.id === id));
+            for (const c of hs) c.hp = Math.max(1, Math.floor(heroStats(c).hp / 3));
+            let e = G.inv.find((x) => x.id === 'potion');
+            if (!e) G.inv.push(e = { id: 'potion', n: 0 });
+            e.n = Math.max(e.n, 3);
+            return { hp: hs.map((c) => c.hp), names: hs.map((c) => c.name), n: e.n };
+        });
+        const pressBtn = (text) => Q(page, (t) => { const b = [...document.querySelectorAll('#camp-body .btn')].find((x) => x.textContent.includes(t) && !x.disabled); if (!b) return false; b.click(); return true; }, text);
+        await page.keyboard.press('Escape');
+        await click(page, '#camp-tabs [data-tab="items"]');
+        await Q(page, () => { const card = [...document.querySelectorAll('#camp-body .card')].find((c) => c.textContent.includes('Healing Draught')); card?.querySelector('.btn')?.click(); });
+        await until(page, () => /on whom\?/.test(document.getElementById('camp-body').textContent), 'Use on a draught asks on whom');
+        check(await pressBtn(before.names[0]), `${before.names[0]} can be picked`);
+        await until(page, (b) => __hd.G.roster.find((c) => c.name === b.names[0]).hp > b.hp[0], `the draught heals ${before.names[0]}`, 5000, before);
+        check(await Q(page, () => /on whom\?/.test(document.getElementById('camp-body').textContent)), 'the hero list stays open while draughts remain');
+        check(await pressBtn(before.names[1]), `${before.names[1]} can be picked straight after`);
+        await until(page, (b) => __hd.G.roster.find((c) => c.name === b.names[1]).hp > b.hp[1], `a second draught heals ${before.names[1]} without leaving the list`, 5000, before);
+        check(await Q(page, (b) => __hd.G.inv.find((x) => x.id === 'potion')?.n === b.n - 2, before), 'two draughts were used');
+        await page.keyboard.press('Escape');
+        await until(page, () => document.getElementById('camp').hidden, 'Escape closes the camp again');
         await page.keyboard.press('KeyM');
         await until(page, () => !document.getElementById('mapview').hidden, 'M opens the map');
         await page.keyboard.press('KeyM');
