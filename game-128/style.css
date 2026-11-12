@@ -341,3 +341,61 @@ button.res:focus-visible .pill { outline: 3px solid var(--gold); outline-offset:
     .scene-box { margin-bottom: 56px; min-height: 100px; }
 }
 @media (prefers-reduced-motion: reduce) { .skill.ready, .badge { animation: none; } .skill.feed { animation: feedcalm 0.42s; } @keyframes feedcalm { 35% { border-color: #fff6c8; filter: brightness(1.35); } } .toast { animation-duration: 3.5s; } }
+
+/* v1.4.0: the Armory's forging moment (ui.js forge): strikes at 0, 0.4 and 0.8 s, the card at 1.25 s */
+.forge { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(8, 5, 14, 0.62); }
+.forge-card { width: min(330px, 100%); background: #1b1429; border: 1px solid var(--gold); border-radius: 14px; padding: 14px 16px 16px; text-align: center; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); }
+.forge-stage { position: relative; width: 150px; height: 130px; margin: 0 auto; }
+.forge-stage > * { position: absolute; }
+.forge-stage .glow { left: 50%; top: 58%; width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; opacity: 0;
+    background: radial-gradient(circle, rgba(255, 230, 150, 0.95) 0%, rgba(255, 150, 50, 0.45) 35%, rgba(255, 120, 30, 0) 68%); animation: fglow 1.25s ease-in forwards; }
+.forge-stage .flash { left: 50%; top: 58%; width: 130px; height: 130px; margin: -65px 0 0 -65px; border-radius: 50%; opacity: 0; background: radial-gradient(circle, #fff 0%, rgba(255, 255, 255, 0) 62%); }
+.forge-stage .item { left: 50%; top: 58%; width: 76px; height: 76px; margin: -38px 0 0 -38px; animation: fshake 1.25s linear; }
+.forge-ico { display: block; width: 76px; height: 76px; }
+.forge-stage .sparks { left: 50%; top: 58%; width: 0; height: 0; }
+.forge-stage .sparks i { position: absolute; left: -3px; top: -3px; width: 6px; height: 6px; background: #ffd970; box-shadow: 0 0 0 1px #ff8a2a; opacity: 0; animation: fspark 0.5s ease-out forwards; }
+.forge-stage .sparks i:nth-child(odd) { width: 4px; height: 4px; background: #fff3c4; }
+.forge-stage .s2 i { animation-delay: 0.4s; }
+.forge-stage .s3 i { animation-delay: 0.8s; }
+/* a little pixel hammer: a dark head and a wooden haft, swinging down onto the item from the upper right */
+.forge-stage .hammer { right: 6px; top: 0; width: 46px; height: 46px; transform-origin: 85% 85%; animation: fhammer 1.25s linear forwards; }
+.forge-stage .hammer .haft { position: absolute; left: 20px; top: 14px; width: 7px; height: 32px; background: #8a5a2b; box-shadow: inset -2px 0 0 #5d3a1a, 0 0 0 2px #1a0f08; }
+.forge-stage .hammer .head { position: absolute; left: 6px; top: 2px; width: 34px; height: 15px; background: #8f9bb0; box-shadow: inset 0 -4px 0 #5c6679, inset 0 3px 0 #c9d3e2, 0 0 0 2px #14101c; z-index: 1; }
+.forge-card { position: relative; }
+.forge-wip { position: absolute; left: 0; right: 0; top: 150px; margin: 0; color: var(--gold); font-family: var(--serif); font-size: 17px; transition: opacity 0.2s; }
+.forge.done .forge-wip { opacity: 0; }
+.forge-out { opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.25s; }
+.forge-out h3 { margin: 4px 0 2px; color: var(--text); font-size: 19px; }
+.forge-out .plus { color: var(--gold); display: inline-block; }
+.forge-out p { margin: 0 0 8px; font-size: 13px; }
+.forge-stats { list-style: none; margin: 0 0 12px; padding: 0; text-align: left; }
+.forge-stats li { display: flex; justify-content: space-between; padding: 4px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.04); margin-bottom: 4px; }
+.forge-stats .arrow { color: var(--dim); }
+.forge-stats .better { color: var(--emer); }
+.forge-out .btn { min-width: 120px; }
+.forge.done .forge-out { opacity: 1; transform: none; }
+.forge.done .flash { animation: fflash 0.5s ease-out; }
+.forge.done .item { animation: fpop 0.45s ease-out; }
+.forge.done .glow { animation: none; opacity: 0.55; }
+.forge.done .hammer { animation: none; opacity: 0; }
+.forge.done .plus { animation: fpop 0.45s ease-out; }
+@keyframes fglow { 0% { opacity: 0; } 30% { opacity: 0.3; } 62% { opacity: 0.6; } 92% { opacity: 1; } 100% { opacity: 0.85; } }
+@keyframes fshake {
+    0%, 30%, 62%, 94%, 100% { transform: none; }
+    2%, 34%, 66% { transform: translate(-5px, 3px) rotate(-4deg); }
+    5%, 37%, 69% { transform: translate(4px, -2px) rotate(3deg); }
+    8%, 40%, 72% { transform: translate(-2px, 1px) rotate(-1deg); }
+}
+@keyframes fhammer {
+    0% { transform: rotate(-40deg); } 2% { transform: rotate(8deg); } 14% { transform: rotate(-40deg); }
+    30% { transform: rotate(-40deg); } 34% { transform: rotate(8deg); } 46% { transform: rotate(-40deg); }
+    62% { transform: rotate(-40deg); } 66% { transform: rotate(8deg); } 80% { transform: rotate(-40deg); opacity: 1; }
+    100% { transform: rotate(-40deg); opacity: 0; }
+}
+@keyframes fspark { 0% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.4); } }
+@keyframes fflash { 0% { opacity: 0.95; transform: scale(0.6); } 100% { opacity: 0; transform: scale(1.4); } }
+@keyframes fpop { 0% { transform: scale(1); } 40% { transform: scale(1.22); } 100% { transform: scale(1); } }
+.forge.calm .glow { animation: none; opacity: 0.6; }
+.forge.calm .item, .forge.calm .hammer, .forge.calm .sparks, .forge.calm.done .item, .forge.calm.done .plus, .forge.calm.done .flash { animation: none; }
+.forge.calm .hammer, .forge.calm .sparks { display: none; }
+@media (prefers-reduced-motion: reduce) { .forge .item, .forge .hammer, .forge .sparks i, .forge.done .item, .forge.done .plus, .forge.done .flash { animation: none; } .forge .hammer, .forge .sparks { display: none; } .forge .glow { animation: none; opacity: 0.6; } }

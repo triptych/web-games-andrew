@@ -177,7 +177,6 @@ const TOAST = {
     daily: (e) => `Daily gift: ${e.got.gold} gold and materials. Streak ${e.streak}! Harvest festival for 2 hours.`,
     build: (e) => `Built to level ${e.lv}.`,
     claim: () => 'Request complete. Reward claimed.',
-    upgrade: (e) => `Upgraded to +${e.plus}.`,
     learn: (e) => `Learned rank ${e.rank}.`,
     equipBest: (e) => `Now wearing your best gear (${e.n} piece${e.n > 1 ? 's' : ''} changed).`,
     unequipAll: () => 'All gear taken off.',
@@ -209,6 +208,7 @@ function handlePresses() {
         else if (key === 'ArrowUp' || key === 'ArrowLeft') ui.moveFocus(-1);
         else if (key === 'Escape' || (key === 'KeyP' && top === 'pause')) {
             if (top === 'result') return;
+            if (ui.closeForge()) return;              // the forging card first, then its panel
             audio.ui('close'); ui.closeTop();
         } else if (key === 'Enter' && press.pad) document.activeElement?.click?.();
         return;
