@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-128 games, `game-001` through `game-128`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+129 games, `game-001` through `game-129`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -164,6 +164,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 126 | [EMBERSPIRE](game-126/) | A 16-bit endless tower RPG: turn-based party battles against ever-stronger foes with mini bosses every 5 floors and bosses every 10, a tavern of heroes to recruit and court, class evolution, upgradable gear, quests and idle income; fal art and ElevenLabs music and voices | Canvas 2D |
 | 127 | [The First Dragon Prince](game-127/) | A raising sim with visual novel scenes: raise the half-dragon heir from 10 to 18 through lessons, jobs, quests and expeditions, six childhood friends to court, a festival and Starfall Night, 18 endings up to the first Dragon King; fal art, 501 ElevenLabs voiced lines and an album that replays the cutscenes | DOM |
 | 128 | [Gemheart Saga](game-128/) | A match-3 fantasy RPG in 32-bit pixel art: fluid real-time gem battles with line, bomb and prism gems, four heroes with their own ten-chapter tales and skill trees, gear, and a village of nine upgradable buildings that produces while you're away; fal art, ElevenLabs music, effects and voices | Canvas 2D |
+| 129 | [HOLLOWDEEP](game-129/) | A first-person dungeon crawler in the Wizardry and Etrian Odyssey tradition with PS2-era looks: a town to recruit, gear and take quests in, an endless three.js dungeon of eight strata and Echoes, turn-based party battles against painted monsters, guardians every fifth floor that unlock warps; fal art, ElevenLabs music, effects and voices | three.js |
 
 ### Highlights
 
@@ -452,7 +453,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 128 games are included as of the latest entries (game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION, game-118 The Kids Table, game-119 THE HERO'S MERCHANT, game-120 HEXAPOD RISING, game-121 ARCANA WAGON, game-122 Rainglass, game-123 Atlas of Ink, game-124 Wrack & Wonder, game-125 SEEDFALL, game-126 EMBERSPIRE, game-127 The First Dragon Prince, game-128 Gemheart Saga), and the Garden launcher is at v1.9.0.
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 129 games are included as of the latest entries (game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION, game-118 The Kids Table, game-119 THE HERO'S MERCHANT, game-120 HEXAPOD RISING, game-121 ARCANA WAGON, game-122 Rainglass, game-123 Atlas of Ink, game-124 Wrack & Wonder, game-125 SEEDFALL, game-126 EMBERSPIRE, game-127 The First Dragon Prince, game-128 Gemheart Saga, game-129 HOLLOWDEEP), and the Garden launcher is at v1.9.0.
 
 ---
 
