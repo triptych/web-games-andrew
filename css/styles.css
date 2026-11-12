@@ -1603,6 +1603,17 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 122, 60, 0.7);
 }
 
+.game-preview.spiral-isle,
+.carousel-slide-bg.spiral-isle {
+    background: radial-gradient(circle at 50% 78%, #e9dfb4 0%, #7fb07a 22%, #4f8f9a 48%, #8fc3e6 78%, #dff0f6 100%), #4f8f9a;
+}
+
+.game-card.spiral-isle .play-button {
+    background: linear-gradient(135deg, #5fd068, #f0c96a, #d9c8ff);
+    color: #1f2a1a;
+    box-shadow: 0 0 14px rgba(240, 201, 106, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

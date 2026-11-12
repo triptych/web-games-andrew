@@ -1,5 +1,5 @@
 /**
- * simtest.mjs — headless checks of Thimble & the Spiral Isle's simulation. No browser.
+ * simtest.mjs — headless checks of Fray & the Spiral Isle's simulation. No browser.
  *
  *   node game-131/dev/simtest.mjs            # everything
  *   ONLY=purity,rules node game-131/dev/simtest.mjs
@@ -139,27 +139,27 @@ if (want('rules')) {
 
     // the opening: meet, moonmint, heal
     G = fresh();
-    use(G, 'thimble');
-    ok(G.flags.met && G.cards[0]?.id === 'met', 'kneeling by Thimble starts her story');
-    closeCards(G); use(G, 'thimble');
+    use(G, 'fray');
+    ok(G.flags.met && G.cards[0]?.id === 'met', 'kneeling by Fray starts her story');
+    closeCards(G); use(G, 'fray');
     ok(G.cards[0]?.k === 'note' && !G.flags.healed, 'she cannot be healed without moonmint');
     closeCards(G);
     for (const m of ['mint1', 'mint2', 'mint3']) { const t = W.zone('isle').byId[m]; G.player.x = t.x; G.player.z = t.z; Gm.step(G, NONE, DT); }
     ok(G.items.moonmint === 3 && saw(G, 'item'), 'walking over moonmint picks it up');
     use(G, 'rootTunnel');
-    ok(!G.tun && G.cards[0]?.k === 'note', 'a tunnel is no use before Thimble can walk');
-    closeCards(G); use(G, 'thimble');
-    ok(G.flags.healed && G.thimble.state === 'follow' && G.items.moonmint === 0 && G.cards[0]?.id === 'healed', 'three sprigs heal her and she follows');
+    ok(!G.tun && G.cards[0]?.k === 'note', 'a tunnel is no use before Fray can walk');
+    closeCards(G); use(G, 'fray');
+    ok(G.flags.healed && G.fray.state === 'follow' && G.items.moonmint === 0 && G.cards[0]?.id === 'healed', 'three sprigs heal her and she follows');
     closeCards(G); G.events.length = 0;
     Gm.step(G, NONE, DT);
     ok(G.events.some((e) => e.type === 'say' && e.line === 'zone-isle'), 'she speaks once the card is closed');
-    const far = () => Math.hypot(G.thimble.x - G.player.x, G.thimble.z - G.player.z);
+    const far = () => Math.hypot(G.fray.x - G.player.x, G.fray.z - G.player.z);
     G.player.yaw = 0.6; run(G, { ...NONE, y: -1 }, 6);
     ok(far() < 6 && far() > 1, `she follows a few steps behind (${far().toFixed(1)} m)`);
 
     // the tunnel
     use(G, 'rootTunnel');
-    ok(G.tun?.id === 'root' && G.thimble.state === 'tunnel', 'the tunnel takes Thimble');
+    ok(G.tun?.id === 'root' && G.fray.state === 'tunnel', 'the tunnel takes Fray');
     const px = G.player.x;
     run(G, { ...NONE, y: -1 }, 0.5);
     ok(G.player.x === px, 'you wait at the mouth while she is inside');
@@ -179,7 +179,7 @@ if (want('rules')) {
     Gm.step(G, { ...NONE, cmd: { t: 'feel' } }, DT);
     ok(G.flags.rootDoor && saw(G, 'tunDone'), 'feeling about pulls the lever and opens the door');
     Gm.step(G, { ...NONE, cmd: { t: 'back' } }, DT);
-    ok(!G.tun && G.thimble.state === 'follow', 'she comes back when called');
+    ok(!G.tun && G.fray.state === 'follow', 'she comes back when called');
 
     // gems, portals, offerings, chimes
     use(G, 'leafPedestal'); closeCards(G);
@@ -210,7 +210,7 @@ if (want('rules')) {
     G.gems = ['leaf', 'stone', 'light', 'wind', 'water', 'moon'];
     use(G, 'hearthTunnel'); ok(!G.tun, 'the Listening Dark stays shut until the Hearth is set'); closeCards(G);
     use(G, 'hearth'); ok(G.flags.hearthSet, 'six gems set the Hearth'); closeCards(G);
-    use(G, 'hearthTunnel'); ok(G.tun?.id === 'hearth', 'and then the Dark lets Thimble in');
+    use(G, 'hearthTunnel'); ok(G.tun?.id === 'hearth', 'and then the Dark lets Fray in');
     Gm.step(G, { ...NONE, cmd: { t: 'back' } }, DT);
     G.items.heart = 1; use(G, 'hearth');
     ok(G.done && Gm.has(G, 'heart') && G.cards.some((cd) => cd.id === 'end') && saw(G, 'ending'), 'the Heart at the Hearth ends the story');
@@ -223,7 +223,7 @@ if (want('gates')) {
     const isle = W.zone('isle');
     const low = W.distField('isle', {}, [[isle.def.spawn.x, isle.def.spawn.z]]), L = W.lattice('isle');
     const reach = (d, t, zid = 'isle') => W.standNear(zid, W.ALL_OPEN, t).some(([x, z]) => d[W.lattice(zid).index(x, z)] >= 0);
-    for (const id of ['thimble', 'mint1', 'mint2', 'mint3', 'rootTunnel', 'vineFoot', 'castleGate', 'underStair', 'windPerch', 'tideStairs', 'moonDoor', 'throne', 'fisherHut'])
+    for (const id of ['fray', 'mint1', 'mint2', 'mint3', 'rootTunnel', 'vineFoot', 'castleGate', 'underStair', 'windPerch', 'tideStairs', 'moonDoor', 'throne', 'fisherHut'])
         ok(reach(low, isle.byId[id]) || low[L.index(isle.byId[id].x, isle.byId[id].z)] >= 0, `${id} can be walked to from the beach`);
     for (const id of ['vineTop', 'grandfather', 'rune1', 'rune2', 'golemTunnel', 'caveMouth', 'highView'])
         ok(!reach(low, isle.byId[id]) && low[L.index(isle.byId[id].x, isle.byId[id].z)] < 0, `${id} cannot be walked to: the cliff holds`);
@@ -247,7 +247,7 @@ if (want('gates')) {
     }
     // the gems are the keys
     for (const p of isle.things.filter((t) => t.type === 'portal' && t.needs)) {
-        const G = fresh(); G.thimble.state = 'follow';
+        const G = fresh(); G.fray.state = 'follow';
         use(G, p.id);
         ok(G.zone === 'isle' && Math.hypot(G.player.x - p.x, G.player.z - p.z) < 6 && (p.deny ? G.cards[0]?.k === 'note' : true), `${p.id} refuses without the ${p.needs} gem`);
         closeCards(G); G.gems.push(p.needs); use(G, p.id);
@@ -291,10 +291,10 @@ if (want('determinism')) {
         G.events.length = 0; copy.events.length = 0;
         ok(JSON.stringify(Gm.serialize(G)) === JSON.stringify(Gm.serialize(copy)), `a save round trip at ${secs} s plays on identically`);
     }
-    const T = play(7, 44); T.tun = { id: 'root', x: 3, y: 4, seen: ['3,5', '3,4'], hum: 4 }; T.thimble.state = 'tunnel';
+    const T = play(7, 44); T.tun = { id: 'root', x: 3, y: 4, seen: ['3,5', '3,4'], hum: 4 }; T.fray.state = 'tunnel';
     const T2 = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(T))));
     Gm.step(T2, { ...NONE, cmd: { t: 'go', d: 'n' } }, DT);
-    ok(T2.tun.y === 3, 'a game saved with Thimble in a tunnel loads with her still in it');
+    ok(T2.tun.y === 3, 'a game saved with Fray in a tunnel loads with her still in it');
     let threw = false;
     try { Gm.deserialize({ v: 999 }); } catch { threw = true; }
     ok(threw, 'an unknown save version is rejected, not half-loaded');

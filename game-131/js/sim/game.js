@@ -5,7 +5,7 @@
 // dyaw is radians already turned by a mouse or a finger, a is "interact/continue" pressed since the last step,
 // cmd is one command object: { t: 'go', d: 'n'|'e'|'s'|'w' } | { t: 'feel' } | { t: 'back' } | { t: 'hint' }.
 
-import { PLAYER, THIMBLE, PICKUPS_PER_ZONE, BARK_GAP } from '../config.js';
+import { PLAYER, FRAY, PICKUPS_PER_ZONE, BARK_GAP } from '../config.js';
 import { makeRng, hashSeed } from '../rng.js';
 import { GEMS, KINDS, LINES, BAUBLES, OTHERS, ITEMS } from './data/story.js';
 import { zone, zoneIds, canStand, move, lattice, distField, ALL_OPEN, tunnel, tunnelOpen, findThing } from './world.js';
@@ -19,18 +19,18 @@ export function newGame(seed = 1) {
         v: 1, seed, rng: makeRng(hashSeed(seed)), t: 0,
         zone: 'isle',
         player: { x: start.x, z: start.z, yaw: start.yaw, moved: 0 },
-        thimble: { state: 'hurt', x: 0, z: 0, crumbs: [] },
+        fray: { state: 'hurt', x: 0, z: 0, crumbs: [] },
         gems: [], items: {}, flags: {}, taken: {}, lore: [], seen: { isle: 1 },
         pickups: {}, counts: {}, keepsakes: [],
         cards: [{ k: 'card', id: 'intro1' }, { k: 'card', id: 'intro2' }],
-        tun: null,                  // { id, x, y, seen: [], done } while Thimble is in a tunnel
+        tun: null,                  // { id, x, y, seen: [], done } while Fray is in a tunnel
         seq: {},                    // progress through each zone's chime order
         lineN: {},                  // which variant of each line comes next
         barkT: 0, pendingBark: null, prompt: null, done: false,
         events: [],                 // { type, ... } since the last drain; never saved
     };
-    const th = zone('isle').byId.thimble;
-    G.thimble.x = th.x; G.thimble.z = th.z;
+    const th = zone('isle').byId.fray;
+    G.fray.x = th.x; G.fray.z = th.z;
     for (const id of zoneIds()) G.pickups[id] = scatter(G, id);
     return G;
 }
@@ -76,7 +76,7 @@ const ev = (G, e) => { if (G.events.length < 400) G.events.push(e); };
 export const has = (G, gem) => G.gems.includes(gem);
 const count = (G, item) => G.items[item] || 0;
 
-/** Thimble says a line aloud (a subtitle and a voice clip in the view). Lists rotate. */
+/** Fray says a line aloud (a subtitle and a voice clip in the view). Lists rotate. */
 function say(G, line, extra) {
     const v = LINES[line];
     let n = 0;
@@ -108,7 +108,7 @@ function arriveAt(G, zoneId, t) {
 function usable(G, t) {
     switch (t.type) {
         case 'lore': case 'portal': case 'chime': case 'offer': case 'hearth': return true;
-        case 'npc': return t.npc !== 'thimble' || G.thimble.state === 'hurt';
+        case 'npc': return t.npc !== 'fray' || G.fray.state === 'hurt';
         case 'tunnel': return true;
         case 'pedestal': return !has(G, t.gem);
         default: return false;
@@ -118,10 +118,10 @@ function usable(G, t) {
 function labelOf(G, t) {
     if (t.label) return t.label;
     if (t.type === 'lore') return 'Read: ' + t.title;
-    if (t.type === 'tunnel') return 'Send Thimble in';
+    if (t.type === 'tunnel') return 'Send Fray in';
     if (t.type === 'pedestal') return 'Look closer';
     if (t.type === 'hearth') return 'The Hearth';
-    if (t.npc === 'thimble') return 'Kneel beside her';
+    if (t.npc === 'fray') return 'Kneel beside her';
     if (t.npc === 'elder') return 'Speak with Elder Grusk';
     return 'Look';
 }
@@ -146,12 +146,12 @@ function interact(G, t) {
         const fresh = !G.lore.includes(t.id);
         if (fresh) { G.lore.push(t.id); ev(G, { type: 'lore', id: t.id, n: G.lore.length }); }
         G.cards.push({ k: 'lore', id: t.id });
-    } else if (t.type === 'npc' && t.npc === 'thimble') {
+    } else if (t.type === 'npc' && t.npc === 'fray') {
         if (!G.flags.met) { G.flags.met = true; G.cards.push({ k: 'card', id: 'met' }); }
-        else if (count(G, 'moonmint') < 3) note(G, 'Thimble', `"Moonmint," she whispers. "Three." You have ${count(G, 'moonmint')}.`);
+        else if (count(G, 'moonmint') < 3) note(G, 'Fray', `"Moonmint," she whispers. "Three." You have ${count(G, 'moonmint')}.`);
         else {
             G.items.moonmint = 0; G.flags.healed = true;
-            G.thimble.state = 'follow';
+            G.fray.state = 'follow';
             G.cards.push({ k: 'card', id: 'healed' });
             G.pendingBark = 'zone-isle';
             ev(G, { type: 'healed' });
@@ -164,7 +164,7 @@ function interact(G, t) {
         if (t.needs && !has(G, t.needs)) { if (t.deny) note(G, labelOf(G, t), t.deny); return; }
         travel(G, t);
     } else if (t.type === 'tunnel') {
-        if (G.thimble.state !== 'follow') note(G, 'A small way in', 'A burrow, far too small for you. Something goblin-sized could manage it.');
+        if (G.fray.state !== 'follow') note(G, 'A small way in', 'A burrow, far too small for you. Something goblin-sized could manage it.');
         else if (t.needsFlag && !G.flags[t.needsFlag]) note(G, 'A small way in', t.deny);
         else enterTunnel(G, t.tunnel);
     } else if (t.type === 'offer') {
@@ -210,18 +210,18 @@ function travel(G, portal) {
     const p = arriveAt(G, portal.to, target);
     G.player.x = p.x; G.player.z = p.z;
     if (portal.to !== from) G.player.yaw = Math.atan2((dest.kind === 'grid' ? (dest.w * dest.cell) / 2 : 0) - p.x, -((dest.kind === 'grid' ? (dest.h * dest.cell) / 2 : 0) - p.z));
-    G.thimble.crumbs.length = 0;
-    G.thimble.x = p.x; G.thimble.z = p.z;
+    G.fray.crumbs.length = 0;
+    G.fray.x = p.x; G.fray.z = p.z;
     ev(G, { type: 'travel', from, to: portal.to, via: portal.id });
     const key = portal.id === 'vineFoot' ? 'high' : portal.to;
     if (!G.seen[key] && LINES['zone-' + key]) { G.seen[key] = 1; G.pendingBark = 'zone-' + key; }
 }
 
-// ------------------------------------------------------------------ Thimble in the tunnels
+// ------------------------------------------------------------------ Fray in the tunnels
 function enterTunnel(G, id) {
     const T = tunnel(id);
     G.tun = { id, x: T.start.x, y: T.start.y, seen: [T.start.x + ',' + T.start.y], hum: T.hum[T.start.x + ',' + T.start.y] };
-    G.thimble.state = 'tunnel';
+    G.fray.state = 'tunnel';
     ev(G, { type: 'tunnelIn', id });
     say(G, 'tun-enter');
 }
@@ -263,9 +263,9 @@ function tunnelCmd(G, cmd) {
 function leaveTunnel(G) {
     ev(G, { type: 'tunnelOut', id: G.tun.id });
     G.tun = null;
-    G.thimble.state = 'follow';
-    G.thimble.x = G.player.x; G.thimble.z = G.player.z;
-    G.thimble.crumbs.length = 0;
+    G.fray.state = 'follow';
+    G.fray.x = G.player.x; G.fray.z = G.player.z;
+    G.fray.crumbs.length = 0;
     say(G, 'tun-out');
 }
 
@@ -273,7 +273,7 @@ function keepsake(G, kind) {
     if (G.keepsakes.includes(kind)) return;
     G.keepsakes.push(kind);
     ev(G, { type: 'keepsake', kind, name: KINDS[kind].keepsake });
-    if (G.thimble.state !== 'hurt') G.pendingBark = KINDS[kind].line;
+    if (G.fray.state !== 'hurt') G.pendingBark = KINDS[kind].line;
 }
 
 // ------------------------------------------------------------------ one step
@@ -285,7 +285,7 @@ export function step(G, inp, dt) {
         G.prompt = null;
         return;
     }
-    // 2. Thimble in a tunnel: you stand at the mouth and call directions
+    // 2. Fray in a tunnel: you stand at the mouth and call directions
     if (G.tun) {
         if (inp.cmd) tunnelCmd(G, inp.cmd);
         else if (inp.a) tunnelCmd(G, { t: 'feel' });
@@ -331,16 +331,16 @@ export function step(G, inp, dt) {
         if (n === of) keepsake(G, c.k);
     }
 
-    // 5. Thimble follows your trail
-    const th = G.thimble;
+    // 5. Fray follows your trail
+    const th = G.fray;
     if (th.state === 'follow') {
         const last = th.crumbs[th.crumbs.length - 1];
-        if (!last || Math.hypot(last[0] - p.x, last[1] - p.z) > THIMBLE.crumb) th.crumbs.push([p.x, p.z]);
+        if (!last || Math.hypot(last[0] - p.x, last[1] - p.z) > FRAY.crumb) th.crumbs.push([p.x, p.z]);
         const d = Math.hypot(th.x - p.x, th.z - p.z);
-        if (d > THIMBLE.catchUp || th.crumbs.length > THIMBLE.crumbs) { th.x = p.x; th.z = p.z; th.crumbs.length = 0; }
-        else if (d > THIMBLE.follow && th.crumbs.length) {
+        if (d > FRAY.catchUp || th.crumbs.length > FRAY.crumbs) { th.x = p.x; th.z = p.z; th.crumbs.length = 0; }
+        else if (d > FRAY.follow && th.crumbs.length) {
             const c = th.crumbs[0], cx = c[0] - th.x, cz = c[1] - th.z, cd = Math.hypot(cx, cz);
-            const sp = THIMBLE.speed * dt;
+            const sp = FRAY.speed * dt;
             if (cd <= sp) { th.x = c[0]; th.z = c[1]; th.crumbs.shift(); }
             else { th.x += (cx / cd) * sp; th.z += (cz / cd) * sp; }
         }
@@ -359,8 +359,8 @@ export function nextGoal(G) {
     const g = (hint, thing) => ({ hint, thing });
     const f = G.flags, n = (i) => count(G, i);
     const firstItem = (ids) => ids.find((id) => !G.taken[id]);
-    if (!f.met) return g('meet', 'thimble');
-    if (!f.healed) { const m = firstItem(['mint2', 'mint3', 'mint1']); return n('moonmint') >= 3 || !m ? g('healGive', 'thimble') : g('mint', m); }
+    if (!f.met) return g('meet', 'fray');
+    if (!f.healed) { const m = firstItem(['mint2', 'mint3', 'mint1']); return n('moonmint') >= 3 || !m ? g('healGive', 'fray') : g('mint', m); }
     if (!has(G, 'leaf')) return f.rootDoor ? g('leafGem', 'leafPedestal') : g('rootTunnel', 'rootTunnel');
     if (!has(G, 'stone')) {
         if (n('rune') >= 3) return g('runesGive', 'grandfather');

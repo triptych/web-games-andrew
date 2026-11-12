@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-130 games, `game-001` through `game-130`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+131 games, `game-001` through `game-131`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -166,6 +166,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 128 | [Gemheart Saga](game-128/) | A match-3 fantasy RPG in 32-bit pixel art: fluid real-time gem battles with line, bomb and prism gems, four heroes with their own ten-chapter tales and skill trees, gear, and a village of nine upgradable buildings that produces while you're away; fal art, ElevenLabs music, effects and voices | Canvas 2D |
 | 129 | [HOLLOWDEEP](game-129/) | A first-person dungeon crawler in the Wizardry and Etrian Odyssey tradition with PS2-era looks: a town to recruit, gear and take quests in, an endless three.js dungeon of eight strata and Echoes, turn-based party battles against painted monsters, guardians every fifth floor that unlock warps; fal art, ElevenLabs music, effects and voices | three.js |
 | 130 | [Starbase Spooky](game-130/) | A 16-bit edutainment point-and-click adventure for young players: run a space station for five days, answer funny aliens' voiced space questions, fix what breaks with little puzzles, and solve the mystery of the station ghost; fal art, ElevenLabs voices, music and effects | Canvas 2D |
+| 131 | [Fray & the Spiral Isle](game-131/) | A peaceful first-person journey: a new mage and a blind goblin gather seven gems across an island of quiet ruins, each gem opening the way to the next; fal art, Meshy 3D models, ElevenLabs voices, music and ambience | three.js |
 
 ### Highlights
 
@@ -454,7 +455,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for the current version — 130 games are included as of the latest entries (game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION, game-118 The Kids Table, game-119 THE HERO'S MERCHANT, game-120 HEXAPOD RISING, game-121 ARCANA WAGON, game-122 Rainglass, game-123 Atlas of Ink, game-124 Wrack & Wonder, game-125 SEEDFALL, game-126 EMBERSPIRE, game-127 The First Dragon Prince, game-128 Gemheart Saga, game-129 HOLLOWDEEP, game-130 Starbase Spooky), and the Garden launcher is at v1.9.0.
+See [CHANGELOG.md](CHANGELOG.md) for the current version — 131 games are included as of the latest entries (game-115 Hearthwick, game-116 SOLITAIRE FROM OUTER SPACE, game-117 PERIHELION, game-118 The Kids Table, game-119 THE HERO'S MERCHANT, game-120 HEXAPOD RISING, game-121 ARCANA WAGON, game-122 Rainglass, game-123 Atlas of Ink, game-124 Wrack & Wonder, game-125 SEEDFALL, game-126 EMBERSPIRE, game-127 The First Dragon Prince, game-128 Gemheart Saga, game-129 HOLLOWDEEP, game-130 Starbase Spooky, game-131 Fray & the Spiral Isle), and the Garden launcher is at v1.9.0.
 
 ---
 

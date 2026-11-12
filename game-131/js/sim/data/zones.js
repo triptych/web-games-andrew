@@ -5,7 +5,7 @@
 // floor is a thing, described in `legend`; a letter with a list takes its entries in reading order.
 //
 // Thing types: portal (a way to another zone, perhaps needing a gem), lore (an inscription for the journal),
-// item (picked up by walking over it), tunnel (a goblin-sized way in: send Thimble), npc, offer (give N of an item),
+// item (picked up by walking over it), tunnel (a goblin-sized way in: send Fray), npc, offer (give N of an item),
 // chime (ring them in the zone's `seq` order), pedestal (a gem, once its `needs` flags are set), door (a wall until
 // its flag is set), hearth (the last thing in the game).
 
@@ -13,7 +13,7 @@ import { MARKS } from '../terrain.js';
 
 const at = (name, dx = 0, dz = 0) => ({ x: MARKS[name][0] + dx, z: MARKS[name][1] + dz });
 
-// The Rootshrine: a ring of sixteen standing stones; the western one is the door Thimble opens from inside.
+// The Rootshrine: a ring of sixteen standing stones; the western one is the door Fray opens from inside.
 const ring = [];
 for (let i = 0; i < 16; i++) {
     const a = (i / 16) * Math.PI * 2, x = MARKS.rootshrine[0] + Math.cos(a) * 8, z = MARKS.rootshrine[1] + Math.sin(a) * 8;
@@ -44,8 +44,8 @@ export const ZONES = {
             { id: 'cairn', type: 'lore', ...at('cairn'), look: 'cairn', solid: 0.9, title: 'The Welcome Cairn',
                 text: 'Seven flat stones, stacked small to large, each cut with one turn of a spiral. Travellers before you have left sea-glass in the gaps. Someone has swept the sand from it recently, with a very small broom.' },
             { id: 'tidewatch', type: 'lore', ...at('tidewatch'), look: 'ruin', solid: 2.2, title: 'Tidewatch',
-                text: 'A lookout shrine, half fallen. The carving shows keepers pouring lamp-oil on the waves to calm them for departing ships. Below it, fresh scratches at goblin height: "DO NOT CLIMB. I climbed. — T."' },
-            { id: 'thimble', type: 'npc', npc: 'thimble', ...at('thimble'), solid: 0.5 },
+                text: 'A lookout shrine, half fallen. The carving shows keepers pouring lamp-oil on the waves to calm them for departing ships. Below it, fresh scratches at goblin height: "DO NOT CLIMB. I climbed. — F."' },
+            { id: 'fray', type: 'npc', npc: 'fray', ...at('fray'), solid: 0.5 },
             { id: 'mint1', type: 'item', item: 'moonmint', ...at('mint1') },
             { id: 'mint2', type: 'item', item: 'moonmint', ...at('mint2') },
             { id: 'mint3', type: 'item', item: 'moonmint', ...at('mint3') },
@@ -74,7 +74,7 @@ export const ZONES = {
             { id: 'golemRing', type: 'lore', ...at('golemRing'), look: 'stone', solid: 0.8, title: 'The Field-Makers',
                 text: 'The stone-folk made the golems to carry what was too heavy: boulders, grief, the long watches of winter. When the stone-folk walked north across the sea-ice, the golems were told they were free. They thought about it for a century, then chose to mind the meadow.' },
             { id: 'golemSong', type: 'lore', ...at('golemSong'), look: 'golemsmall', solid: 1.4, title: 'The Small One',
-                text: 'A golem no taller than a barrel, seated, hands cupped upward. Rain has filled the hands; a wagtail is bathing in them. The inscription on its chest is a single word in the old tongue. Thimble sounds it out: "Birdbath."' },
+                text: 'A golem no taller than a barrel, seated, hands cupped upward. Rain has filled the hands; a wagtail is bathing in them. The inscription on its chest is a single word in the old tongue. Fray sounds it out: "Birdbath."' },
             { id: 'highView', type: 'lore', ...at('highView'), look: 'cairn', solid: 0.9, title: 'The Far Sight',
                 text: 'From this cairn you can see the whole Spiral: the wood, the castle on its hill, the pale stairs running into the western sea, and above the clouds, something with towers that does not move with the wind.' },
             { id: 'caveMouth', type: 'portal', ...at('caveMouth'), to: 'caves', at: 'caveExit', needs: 'stone', look: 'cavemouth', label: 'Enter Glimmerdeep',
@@ -90,7 +90,7 @@ export const ZONES = {
             { id: 'banner', type: 'lore', ...at('banner'), look: 'stone', solid: 0.8, title: 'The Wind-Callers',
                 text: 'Hollowmere kept a wind organ in the undercroft, played once a year to thank the air for the harvest. Its music could be heard in the Aerie, and the sky-folk would answer with bells. The stair down is dark now. It wants a light that does not go out.' },
             { id: 'underStair', type: 'portal', ...at('underStair'), to: 'under', at: 'underExit', needs: 'light', look: 'stair', label: 'Go down to the Underkeep',
-                deny: 'A stair going down into a dark so complete it seems solid. Thimble could manage it. You could not.' },
+                deny: 'A stair going down into a dark so complete it seems solid. Fray could manage it. You could not.' },
             { id: 'windPerch', type: 'portal', ...at('windPerch'), to: 'sky', at: 'skyLanding', needs: 'wind', look: 'perch', label: 'Step onto the wind',
                 deny: 'A stone platform with no rail and a spiral worn into it by ten thousand feet. Far overhead, towers drift in the blue. There is no stair.' },
             // the west
@@ -101,7 +101,7 @@ export const ZONES = {
             { id: 'tideStairs', type: 'portal', ...at('tideStairs'), to: 'sea', at: 'seaLanding', needs: 'water', look: 'tidestair', label: 'Walk down into the sea',
                 deny: 'White steps run down the beach and on under the waves, as far as you can see through the green water. You hold your breath just looking.' },
             { id: 'moonStone', type: 'lore', ...at('moonStone'), look: 'stone', solid: 0.8, title: 'The Door-Ward\'s Stone',
-                text: 'Goblin letters, small and deep: "UNDERHOME. Knock by moonlight or not at all. Up-goers will not be named. Mind the step." Thimble runs her fingers over the third line twice and says nothing.' },
+                text: 'Goblin letters, small and deep: "UNDERHOME. Knock by moonlight or not at all. Up-goers will not be named. Mind the step." Fray runs her fingers over the third line twice and says nothing.' },
             { id: 'moonDoor', type: 'portal', ...at('moonDoor'), to: 'warren', at: 'warrenDoor', needs: 'moon', look: 'moondoor', label: 'Open the moon door',
                 deny: 'A round stone door in the hillside, no taller than your chest, with a crescent cut into it. It is shut the way a held breath is shut.' },
         ],
@@ -299,7 +299,7 @@ export const ZONES = {
             d: { id: 'warrenD', type: 'lore', look: 'stone', solid: 0.8, title: 'The Listening Dark',
                 text: '"Behind the Hearth is the road the Heart came by. There is no light in it and light does not help: it is full of glimmers that are not there. Every sighted goblin who went in came out the same door, dizzy. We have stopped trying. The Hearth dims a little every year."' },
             g: { id: 'granny', type: 'lore', look: 'goblinold', solid: 0.6, title: 'Granny Sootwick\'s Nook',
-                text: 'A rocking chair, nine shawls and a kettle that is never cold. A very old goblin is asleep with her mouth open. Pinned to her top shawl: "IF I AM ASLEEP I AM LISTENING. — G. Sootwick, Ember-Tender (ret.), taught Thimble everything, proud of it."' },
+                text: 'A rocking chair, nine shawls and a kettle that is never cold. A very old goblin is asleep with her mouth open. Pinned to her top shawl: "IF I AM ASLEEP I AM LISTENING. — G. Sootwick, Ember-Tender (ret.), taught Fray everything, proud of it."' },
             E: { id: 'elder', type: 'npc', npc: 'elder', look: 'elder', solid: 0.6 },
             H: { id: 'hearth', type: 'hearth', look: 'hearth', solid: 1.6 },
             t: { id: 'hearthTunnel', type: 'tunnel', tunnel: 'hearth', look: 'darkway', needsFlag: 'hearthSet',
@@ -308,7 +308,7 @@ export const ZONES = {
     },
 };
 
-// ---------------------------------------------------------------- the tunnels only Thimble can enter
+// ---------------------------------------------------------------- the tunnels only Fray can enter
 // Text maps, north up. S is the mouth; L a lever, I an item, H the Heart, b something small and lost she can pocket.
 export const TUNNELS = {
     root: { name: 'the root-way under the Rootshrine', flag: 'rootDoor', thing: 'lever',

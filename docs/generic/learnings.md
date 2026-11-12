@@ -7002,3 +7002,23 @@ A first-person dungeon crawler (Wizardry / Etrian Odyssey) in three.js with fal 
 - **Give the dialogue its own strip under the picture whenever the screen is tall enough.** Overlaying it hid Kit and
   the visitor during every quiz. A 16:9 picture shrunk to leave a 130–180 px strip still fills a desktop. Only short
   landscape phones (under 480 px tall) overlay the box.
+
+---
+
+## Game 131 Fray & the Spiral Isle: a walkable height function, a blind helper as a text-map minigame, and three asset services in one session (2026-11-12)
+
+A peaceful first-person exploration game in the sim/view layout, with fal art, Meshy models and ElevenLabs audio. What the next game should know:
+
+- **An open island can be a pure function.** `rawHeight(x, z)` is baked once into a 1 m grid; "can a body stand here" is dry, not steep, not in a tree. Cliffs and the sea then need no wall data, the view draws the same heights, and the proofs flood-fill with the mover's own rule. The simtest proves each gate both ways: the highlands cannot be walked to from the beach, and can from the top of the vine.
+- **Check a lattice edge at quarter points, not its middle.** Symptom: the bot stood still beside a tree for an hour of game time. Cause: both ends and the midpoint of a 1 m lattice edge were standable, but a tree pinched the path just off the middle. `edgeOpen()` samples 0.25, 0.5 and 0.75, and the bot uses the same check when it picks its next node.
+- **A bot that re-plans only when state changes must count a same-zone portal as a change.** Symptom: it climbed the vine and stood at the top. Cause: its plan key (zone, flags, items) was identical on both sides of the cliff. It now drops its plan whenever it uses something.
+- **A helper who goes where you cannot can be a tiny text map.** Each tunnel is six lines of text; Fray moves a cell per command and the lines she speaks are derived (a wall, a warmer or colder hum from a breadth-first distance to the goal). The same data draws the "echo map", is solved by the bot with a BFS, and is proved solvable in the simtest. Seven tunnels cost about a hundred lines.
+- **Write riddles as data the test can read back.** The two chime orders are hinted by inscriptions in compass words; the simtest turns the words back into chime ids from their positions and compares with `seq.order`, so a map edit cannot quietly break the clue.
+- **Swapping a three.js texture's image needs `dispose()` first.** Symptom: painted textures never appeared, with `glTexSubImage2D: Offset overflows texture dimensions` warnings. Cause: r165 allocates immutable texture storage, so a 64 px stand-in canvas cannot be replaced by a 512 px image. `t.dispose(); t.image = img; t.needsUpdate = true` reallocates.
+- **Meshy `--model-type smart-topology --target-polycount N` returns a game-ready mesh** (2,000 to 12,000 triangles, 15 credits) straight from a fal reference render, so no local decimation is needed before rigging; `rigging create` then gives a walking clip (`result.basic_animations.walking_glb_url`). gltf-transform (WebP textures at 1024, quantize) takes each GLB from ~3 MB to 0.2–0.5 MB. Give every model a code-built stand-in and swap when the GLB arrives.
+- **Only request files that exist.** A 404 for a missing clip is a console error and fails the browser test. `process.py` writes `js/audio-files.js` (the set of clips); the audio engine checks it, borrows a neighbouring track for a place without one and synthesises missing ambience.
+- **ElevenLabs: price the whole plan before running it.** Voices cost about a credit a character (11 takes were 11,400 credits) and the account ran dry mid-batch, failing music and ambience that were queued after them. `creative_get_flow_run_status` also echoes every prompt twice, so poll long voice takes in small groups and download as soon as a take completes.
+- **Naming a voiced character is expensive to undo.** The goblin was renamed after recording; seven narrated lines said the old name and had to be recorded again as a new take that overrides the old lines (process takes in name order, later wins). Settle names before recording, and keep names out of lines where a pronoun will do.
+- **A content filter can decline one painting in a set.** Do not resubmit it reworded; compose that card from art you already have (here, the hearth's prop render on a warm ground) and say so in the art README.
+- **Cards that are part of the sim sit above the touch deck.** The ✋ button is under the card overlay on a phone, so the card's own Continue button is the control; the browser test taps that.
+

@@ -157,7 +157,7 @@ export function tunnel(id) {
         else if (ch === 'L' || ch === 'I' || ch === 'H') T.goal = { x, y };
         else if (ch === 'b') T.baubles.push({ x, y });
     }
-    // steps from every cell to the goal: Thimble hears the hum get nearer or further
+    // steps from every cell to the goal: Fray hears the hum get nearer or further
     T.hum = {};
     const q = [T.goal]; T.hum[T.goal.x + ',' + T.goal.y] = 0;
     for (let i = 0; i < q.length; i++) for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {

@@ -1,4 +1,4 @@
-// Thimble & the Spiral Isle — entry point. Boots the view, runs the fixed-step simulation, routes input and
+// Fray & the Spiral Isle — entry point. Boots the view, runs the fixed-step simulation, routes input and
 // events, and moves between the title and the journey.
 //
 // ?debug=1 exposes window.__si for the dev/ harnesses; &fast=N runs N× simulation per frame; &q=low draws less.
@@ -235,7 +235,7 @@ if (DEBUG) {
             const spots = standNear(z, G.flags, t, 3 + back + (t.solid || 0)).sort((a, b) => Math.hypot(b[0] - t.x, b[1] - t.z) - Math.hypot(a[0] - t.x, a[1] - t.z));
             const [x, zz] = spots[0] || [t.x, t.z];
             G.player.x = x; G.player.z = zz; G.player.yaw = Math.atan2(t.x - x, -(t.z - zz));
-            G.thimble.x = x + 1; G.thimble.z = zz + 1; G.thimble.crumbs.length = 0;
+            G.fray.x = x + 1; G.fray.z = zz + 1; G.fray.crumbs.length = 0;
             enterZone(false);
             return { x, z: zz };
         },

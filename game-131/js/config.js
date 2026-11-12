@@ -1,4 +1,4 @@
-// Thimble & the Spiral Isle — tuning and constants. Shared by the sim, the view and the tests.
+// Fray & the Spiral Isle — tuning and constants. Shared by the sim, the view and the tests.
 
 export const VERSION = '1.0.0';
 export const SAVE_KEY = 'spiral-isle.v1';
@@ -16,7 +16,7 @@ export const PLAYER = {
     touch: 1.25,           // how close a pickup must be to be picked up
 };
 
-export const THIMBLE = {
+export const FRAY = {
     speed: 5.4,
     follow: 2.4,           // she stops this far from you
     crumb: 1.0,            // spacing of the trail she follows
@@ -35,4 +35,4 @@ export const ISLE = {
 };
 
 export const PICKUPS_PER_ZONE = 12;
-export const BARK_GAP = 9;                // seconds between Thimble's passing remarks
+export const BARK_GAP = 9;                // seconds between Fray's passing remarks

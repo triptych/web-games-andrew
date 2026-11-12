@@ -6,7 +6,10 @@ import { fileURLToPath } from 'node:url';
 import { TAKES } from './takes.mjs';
 const VO = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../audio/vo');
 let odd = 0, n = 0;
-for (const [take, t] of Object.entries(TAKES)) for (const [id, text] of t.lines) {
+const seen = new Set();
+for (const [take, t] of Object.entries(TAKES).reverse()) for (const [id, text] of t.lines) {
+    if (seen.has(id)) continue;          // an earlier take's line that was recorded again
+    seen.add(id);
     let d = 0;
     try { d = +execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(VO, id + '.mp3')]).toString(); } catch { /* missing */ }
     const cps = text.length / (d || 0.001);

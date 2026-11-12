@@ -28,7 +28,7 @@ export function tile(name, fallback = 0x888888) {
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = 4;
     cache[name] = t;
-    loader.load(`art/tex-${name}.webp`, (img) => { t.image = img.image; t.needsUpdate = true; }, undefined, () => { /* keep the stand-in */ });
+    loader.load(`art/tex-${name}.webp`, (img) => { t.dispose(); t.image = img.image; t.needsUpdate = true; }, undefined, () => { /* keep the stand-in */ });
     return t;
 }
 
@@ -44,7 +44,7 @@ export function icon(name, hex = '#ffffff') {
     const t = new THREE.CanvasTexture(c);
     t.colorSpace = THREE.SRGBColorSpace;
     cache[key] = t;
-    loader.load(`art/icon-${name}.webp`, (img) => { t.image = img.image; t.needsUpdate = true; }, undefined, () => { /* keep the dot */ });
+    loader.load(`art/icon-${name}.webp`, (img) => { t.dispose(); t.image = img.image; t.needsUpdate = true; }, undefined, () => { /* keep the dot */ });
     return t;
 }
 

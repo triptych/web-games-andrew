@@ -9,7 +9,7 @@ const smooth = (t) => { t = t < 0 ? 0 : t > 1 ? 1 : t; return t * t * (3 - 2 * t
 
 /** Where things stand on the island. Zones, paths, trees and the view all read these. */
 export const MARKS = {
-    start: [0, 116], wreck: [13, 110], cairn: [-10, 102], tidewatch: [-34, 90], thimble: [-29, 95],
+    start: [0, 116], wreck: [13, 110], cairn: [-10, 102], tidewatch: [-34, 90], fray: [-29, 95],
     mint1: [-54, 98], mint2: [-12, 82], mint3: [24, 94],
     rootshrine: [48, 62], rootDoor: [40, 62], rootTunnel: [42, 73], rootMural: [35, 56], rootWell: [62, 74],
     vineFoot: [10, -9], vineTop: [10, -37],
@@ -24,7 +24,7 @@ export const MARKS = {
 
 /** Open ways through the trees: [from, to] pairs of MARKS. Trees never grow on them. */
 export const PATHS = [
-    ['start', 'cairn'], ['cairn', 'thimble'], ['thimble', 'tidewatch'], ['thimble', 'mint1'], ['cairn', 'mint2'], ['start', 'mint3'],
+    ['start', 'cairn'], ['cairn', 'fray'], ['fray', 'tidewatch'], ['fray', 'mint1'], ['cairn', 'mint2'], ['start', 'mint3'],
     ['mint2', 'rootMural'], ['rootMural', 'rootDoor'], ['mint3', 'rootTunnel'], ['rootTunnel', 'rootWell'], ['rootMural', 'vineFoot'],
     ['vineTop', 'golemRing'], ['golemRing', 'grandfather'], ['golemRing', 'rune1'], ['rune1', 'golemSong'], ['rune1', 'highView'],
     ['grandfather', 'rune2'], ['grandfather', 'golemTunnel'], ['golemTunnel', 'caveMouth'], ['rune2', 'caveMouth'],

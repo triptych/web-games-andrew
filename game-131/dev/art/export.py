@@ -3,7 +3,7 @@
   card-*.jpg       → art/card-*.webp   1280x720 story paintings
   tex-*.jpg        → art/tex-*.webp    512x512 tiling surfaces
   icons1.png, ...  → art/icon-*.webp   128 px icons cut from 4x4 sheets on a magenta key
-  ref-thimble.png  → art/face-thimble.webp  her portrait for the subtitle box
+  ref-fray.png  → art/face-fray.webp  her portrait for the subtitle box
 
 Run with: python3 -I game-131/dev/art/export.py RAW      (needs Pillow)
 """
@@ -102,11 +102,11 @@ for f in sorted(os.listdir(RAW)):
         Image.open(src).convert('RGB').resize((512, 512), Image.LANCZOS).save(os.path.join(OUT, name + '.webp'), quality=82)
     elif f in SHEETS:
         cut(f, SHEETS[f])
-    elif f == 'ref-thimble.png':
+    elif f == 'ref-fray.png':
         im = Image.open(src).convert('RGB')
         w, h = im.size
         s = int(w * 0.5)
-        im.crop(((w - s) // 2, int(h * 0.03), (w + s) // 2, int(h * 0.03) + s)).resize((160, 160), Image.LANCZOS).save(os.path.join(OUT, 'face-thimble.webp'), quality=85)
+        im.crop(((w - s) // 2, int(h * 0.03), (w + s) // 2, int(h * 0.03) + s)).resize((160, 160), Image.LANCZOS).save(os.path.join(OUT, 'face-fray.webp'), quality=85)
 # The Cold Hearth: the painting for this card was declined by the image model's content filter, so the card is
 # composed here from the hearth's prop painting on a warm dark ground.
 if os.path.exists(os.path.join(RAW, 'ref-hearth.png')):

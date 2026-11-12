@@ -42,8 +42,8 @@ export class View {
         this.dyn = new THREE.Group();        // this game's pickups and items in the current zone
         this.scene.add(this.dyn);
 
-        // Thimble: one figure for the whole game
-        this.thimble = makeProp('thimble', (root, gltf) => {
+        // Fray: one figure for the whole game
+        this.fray = makeProp('fray', (root, gltf) => {
             if (gltf.animations?.length) {
                 this.mixer = new THREE.AnimationMixer(root);
                 this.walk = this.mixer.clipAction(gltf.animations[0]);
@@ -51,16 +51,16 @@ export class View {
                 this.walk.paused = true;
             }
         });
-        this.thimbleYaw = 0;
+        this.frayYaw = 0;
         this.tPrev = { x: 0, z: 0 };
-        this.scene.add(this.thimble);
+        this.scene.add(this.fray);
 
         // drifting motes: pollen, cave-light, bubbles
         const n = low ? 60 : 220, pos = new Float32Array(n * 3);
         for (let i = 0; i < n * 3; i++) pos[i] = (Math.sin(i * 12.9898) * 43758.5453) % 1;
         const mg = new THREE.BufferGeometry();
         mg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-        this.motes = new THREE.Points(mg, new THREE.PointsMaterial({ map: glow(), size: 0.16, transparent: true, opacity: 0.7, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+        this.motes = new THREE.Points(mg, new THREE.PointsMaterial({ map: glow(), size: 0.11, transparent: true, opacity: 0.45, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
         this.motes.frustumCulled = false;
         this.moteSeed = pos.slice();
         this.scene.add(this.motes);
@@ -99,7 +99,7 @@ export class View {
         const Z = zone(id), group = id === 'isle' ? buildIsle(this.low) : buildGrid(id, this.low);
         const things = {}, doors = [];
         for (const t of Z.things) {
-            if (t.type === 'item' || (t.type === 'npc' && t.npc === 'thimble')) continue;
+            if (t.type === 'item' || (t.type === 'npc' && t.npc === 'fray')) continue;
             if (!t.look) continue;
             const p = makeProp(t.look);
             p.position.set(t.x, groundY(id, t.x, t.z), t.z);
@@ -191,17 +191,17 @@ export class View {
         this.camera.rotation.set(this.pitch, -p.yaw, 0);
         if (this.L.rise || this.zoneId === 'sea') this.camera.position.y += Math.sin(time * 0.8) * 0.04;      // a slow swell under the sea
 
-        // Thimble
-        const th = G.thimble, T = this.thimble;
+        // Fray
+        const th = G.fray, T = this.fray;
         T.visible = th.state === 'follow' || (th.state === 'hurt' && G.zone === 'isle');
         if (th.state === 'hurt') {
-            const n = zone('isle').byId.thimble;
+            const n = zone('isle').byId.fray;
             T.position.set(n.x, groundY('isle', n.x, n.z) + 0.22, n.z); T.rotation.set(0, 0.6, Math.PI / 2);
         } else if (th.state === 'follow') {
             const dx = th.x - this.tPrev.x, dz = th.z - this.tPrev.z, d = Math.hypot(dx, dz);
-            if (d > 0.002 && d < 2) this.thimbleYaw = Math.atan2(dx, dz);
-            else if (d <= 0.002) { const a = Math.atan2(p.x - th.x, p.z - th.z); let k = a - this.thimbleYaw; while (k > Math.PI) k -= Math.PI * 2; while (k < -Math.PI) k += Math.PI * 2; this.thimbleYaw += k * Math.min(1, dt * 3); }
-            T.position.set(th.x, groundY(G.zone, th.x, th.z), th.z); T.rotation.set(0, this.thimbleYaw, 0);
+            if (d > 0.002 && d < 2) this.frayYaw = Math.atan2(dx, dz);
+            else if (d <= 0.002) { const a = Math.atan2(p.x - th.x, p.z - th.z); let k = a - this.frayYaw; while (k > Math.PI) k -= Math.PI * 2; while (k < -Math.PI) k += Math.PI * 2; this.frayYaw += k * Math.min(1, dt * 3); }
+            T.position.set(th.x, groundY(G.zone, th.x, th.z), th.z); T.rotation.set(0, this.frayYaw, 0);
             if (this.walk) this.walk.paused = d <= 0.002;
             else T.position.y += d > 0.002 ? Math.abs(Math.sin(time * 9)) * 0.06 : 0;
             this.tPrev.x = th.x; this.tPrev.z = th.z;

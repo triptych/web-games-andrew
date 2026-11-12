@@ -11,12 +11,12 @@ import { makeProp } from './props.js';
 
 /** How each grid zone is lit and dressed. fog: [colour, near, far]; amb: [sky, ground, strength]; lamp: the glow you carry. */
 export const LOOKS = {
-    isle: { fog: [0xbfd9e6, 70, 330], amb: [0xdfeeff, 0x6f7a52, 1.25], sun: [0xfff0d0, 2.0], skyTop: 0x4f95d8, skyBot: 0xd8ecf2, motes: 0xfff6c0, clouds: true },
-    caves: { wall: ['caves-wall', 0x2c2a55], floor: ['caves-floor', 0x35304e], ceil: ['caves-wall', 0x2c2a55], wallH: 5, fog: [0x0c0b22, 5, 50], amb: [0x8090e0, 0x221a3a, 1.0], lamp: [0xffe0b0, 30, 24], motes: 0x9ae6ff, bg: 0x0c0b22 },
-    under: { wall: ['under-wall', 0x6c6258], floor: ['under-floor', 0x5a5248], ceil: ['under-wall', 0x4a443c], wallH: 4.5, fog: [0x14100b, 5, 46], amb: [0xd8b080, 0x2a2016, 0.9], lamp: [0xffe6b0, 34, 26], motes: 0xffd98a, bg: 0x14100b },
-    sky: { wall: ['sky-wall', 0xe6ecf2], floor: ['sky-floor', 0xd9e2ea], wallH: 4, fog: [0xd4e8fb, 40, 260], amb: [0xffffff, 0xa8c8ee, 1.5], sun: [0xfff6e0, 2.2], skyTop: 0x3f86da, skyBot: 0xe4f2ff, motes: 0xffffff, clouds: true, skirt: 3 },
+    isle: { fog: [0xbfd9e6, 70, 330], amb: [0xdfeeff, 0x6f7a52, 1.25], sun: [0xfff0d0, 2.0], skyTop: 0x79b2e4, skyBot: 0xe2f0f3, motes: 0xfff2b0, clouds: true },
+    caves: { wall: ['caves-wall', 0x2c2a55], floor: ['caves-floor', 0x35304e], ceil: ['caves-wall', 0x2c2a55], wallH: 5, fog: [0x0c0b22, 8, 60], amb: [0x9aa6f0, 0x3a3060, 1.7], lamp: [0xffe0b0, 60, 30], motes: 0x9ae6ff, bg: 0x0c0b22 },
+    under: { wall: ['under-wall', 0x6c6258], floor: ['under-floor', 0x5a5248], ceil: ['under-wall', 0x4a443c], wallH: 4.5, fog: [0x14100b, 8, 56], amb: [0xe0bc90, 0x40301e, 1.6], lamp: [0xffe6b0, 60, 30], motes: 0xffd98a, bg: 0x14100b },
+    sky: { wall: ['sky-wall', 0xe6ecf2], floor: ['sky-floor', 0xd9e2ea], wallH: 4, fog: [0xd4e8fb, 40, 260], amb: [0xffffff, 0xa8c8ee, 1.5], sun: [0xfff6e0, 2.2], skyTop: 0x6aa8ea, skyBot: 0xeaf5ff, motes: 0xffffff, clouds: true, skirt: 3 },
     sea: { wall: ['sea-wall', 0x7fb0b4], floor: ['sea-floor', 0x3f86a8], wallH: 5.5, fog: [0x1d7090, 3, 60], amb: [0xa0f0ff, 0x0d4258, 1.5], sun: [0xbff4ff, 1.1], skyTop: 0x39b2d0, skyBot: 0x0f5672, motes: 0xdffaff, rise: true },
-    warren: { wall: ['warren-wall', 0x6a4a34], floor: ['warren-floor', 0x7a5c3e], ceil: ['warren-wall', 0x4a3424], wallH: 3.6, fog: [0x1c110a, 6, 50], amb: [0xffb478, 0x2e1a0a, 1.0], lamp: [0xffc890, 30, 24], motes: 0xffb060, bg: 0x1c110a },
+    warren: { wall: ['warren-wall', 0x6a4a34], floor: ['warren-floor', 0x7a5c3e], ceil: ['warren-wall', 0x4a3424], wallH: 3.6, fog: [0x1c110a, 8, 56], amb: [0xffc490, 0x4a2c14, 1.7], lamp: [0xffc890, 55, 28], motes: 0xffb060, bg: 0x1c110a },
 };
 
 const distSeg = (px, pz, a, b) => {
@@ -113,7 +113,7 @@ export function buildIsle(low) {
         trunk.setMatrixAt(i, o.matrix);
         for (let k = 0; k < 2; k++) {
             o.position.set(t.x + (hash3(i, k, 2) - 0.5) * 1.6 * s, y + (3.6 + k * 1.5) * s, t.z + (hash3(i, k, 3) - 0.5) * 1.6 * s);
-            o.scale.set((2.6 - k * 0.7) * s, (2.0 - k * 0.4) * s, (2.6 - k * 0.7) * s); o.updateMatrix();
+            o.scale.set((2.1 - k * 0.6) * s, (1.7 - k * 0.4) * s, (2.1 - k * 0.6) * s); o.updateMatrix();
             crown.setMatrixAt(i * 2 + k, o.matrix);
             col.setHSL(t.kind ? 0.2 + hash3(i, k, 4) * 0.05 : 0.28 + hash3(i, k, 4) * 0.07, 0.42, 0.3 + hash3(i, k, 5) * 0.12);
             crown.setColorAt(i * 2 + k, col);

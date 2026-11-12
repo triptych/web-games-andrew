@@ -115,7 +115,7 @@ export class UI {
 
     subtitle(who, text, now) {
         $('sub-who').textContent = who; $('sub-text').textContent = text;
-        $('sub-face').style.display = who === 'Thimble' ? '' : 'none';
+        $('sub-face').style.display = who === 'Fray' ? '' : 'none';
         $('subtitle').hidden = false;
         this.subUntil = now + Math.max(3200, text.length * 62);
     }
@@ -217,14 +217,14 @@ export class UI {
     onEvents(G, events, now) {
         this.G = G;
         for (const e of events) {
-            if (e.type === 'pickup') this.toast(e.kind === 'bauble' ? `Thimble found ${e.what} · ${e.n} / ${e.of}` : `${KINDS[e.kind].name} · ${e.n} / ${e.of}`, e.kind);
+            if (e.type === 'pickup') this.toast(e.kind === 'bauble' ? `Fray found ${e.what} · ${e.n} / ${e.of}` : `${KINDS[e.kind].name} · ${e.n} / ${e.of}`, e.kind);
             else if (e.type === 'item') this.toast(`${ITEMS[e.item].name} · ${e.n}`, e.item);
             else if (e.type === 'keepsake') this.toast(`Keepsake: ${e.name}`, e.kind);
             else if (e.type === 'gem') this.toast(`${GEMS.find((g) => g.id === e.gem).name} · ${e.n} of 7`, 'gem-' + e.gem);
-            else if (e.type === 'lore') this.toast(`Journal: ${e.n} inscriptions`);
-            else if (e.type === 'say') { if (G.tun) $('tunnel-say').textContent = e.text; else this.subtitle('Thimble', e.text, now); }
+            else if (e.type === 'lore') this.toast(`Journal: ${e.n} inscription${e.n === 1 ? '' : 's'}`);
+            else if (e.type === 'say') { if (G.tun) $('tunnel-say').textContent = e.text; else this.subtitle('Fray', e.text, now); }
             else if (e.type === 'tunnelIn') $('tunnel-say').textContent = '';
-            else if (e.type === 'hint') this.subtitle(G.thimble.state === 'follow' ? 'Thimble' : 'A thought', HINTS[e.id], now);
+            else if (e.type === 'hint') this.subtitle(G.fray.state === 'follow' ? 'Fray' : 'A thought', HINTS[e.id], now);
             else if (e.type === 'travel') {
                 const f = $('fade'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 380);
                 if (e.to !== e.from) this.place(zone(e.to).def.name, now);

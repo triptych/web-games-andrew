@@ -88,13 +88,13 @@ const SHAPES = {
     loom: () => group(box(0.12, 1.8, 0.12, WOOD, -0.8, 0.9), box(0.12, 1.8, 0.12, WOOD, 0.8, 0.9), box(1.8, 0.12, 0.12, WOOD, 0, 1.75), box(1.5, 1.3, 0.03, 0xb85c38, 0, 0.95)),
     goblinold: () => group(goblin(0x8a9a7a, 0x6a5a7a, 0.95), box(0.9, 0.5, 0.8, WOOD, 0, 0.1, -0.2)),
     elder: () => goblin(0x8fa07e, 0x5a4a3a, 1.15),
-    thimble: () => goblin(),
+    fray: () => goblin(),
     hearth: () => group(cyl(1.6, 1.8, 0.45, 0x4a3a30, 0, 0.225, 0, undefined, 18), cyl(0.8, 0.8, 0.1, 0x2a1a14, 0, 0.47, 0, { emissive: 0xff5a1a, emissiveIntensity: 0.25 }, 14), cyl(0.04, 0.04, 2.3, WOOD, -0.7, 1.1).rotateZ(-0.35), cyl(0.04, 0.04, 2.3, WOOD, 0.7, 1.1).rotateZ(0.35)),
 };
 
 /** Which looks take a Meshy model, how tall it stands (m), and a turn if the model faces the wrong way. */
 export const MODELS = {
-    thimble: { file: 'thimble', h: 1.0 },
+    fray: { file: 'fray', h: 1.0 },
     elder: { file: 'elder', h: 1.15 }, goblinold: { file: 'elder', h: 0.9 },
     golem: { file: 'golem', h: 4.2 }, golemsmall: { file: 'golem', h: 1.3 }, golemfallen: { file: 'golem', h: 3.6, lie: true },
     stone: { file: 'stone', h: 2.3 }, pillar: { file: 'stone', h: 4.6 }, rootdoor: { file: 'stone', h: 4.8 },
@@ -121,7 +121,7 @@ function loadModel(file) {
 
 /**
  * A thing's look as a Group on y = 0. The code-made shape shows at once; the model takes its place when ready.
- * `onModel(root, gltf)` is called when a model has been put in (the view uses it to find Thimble's skeleton).
+ * `onModel(root, gltf)` is called when a model has been put in (the view uses it to find Fray's skeleton).
  */
 export function makeProp(look, onModel) {
     const holder = new THREE.Group();
@@ -131,7 +131,7 @@ export function makeProp(look, onModel) {
     if (m && useModels) {
         loadModel(m.file).then((g) => {
             if (!g) return;
-            const root = look === 'thimble' ? g.scene : g.scene.clone(true);
+            const root = look === 'fray' ? g.scene : g.scene.clone(true);
             const b = new THREE.Box3().setFromObject(root), size = b.getSize(new THREE.Vector3());
             const s = m.h / (size.y || 1);
             root.scale.multiplyScalar(s);

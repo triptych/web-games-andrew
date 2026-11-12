@@ -1,4 +1,4 @@
-/* Thimble & the Spiral Isle. Phone first: everything fits 360 px wide. */
+/* Fray & the Spiral Isle. Phone first: everything fits 360 px wide. */
 :root {
     --bg: #1b2a2e;
     --panel: rgba(24, 34, 36, 0.94);
@@ -189,7 +189,7 @@ td:first-child { color: var(--accent); white-space: nowrap; }
 .keep .bar i { display: block; height: 100%; background: var(--accent); }
 .keep.done b { color: var(--accent); }
 
-#toasts { position: fixed; left: 50%; top: calc(64px + var(--safe-t)); transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: center; width: 94vw; }
+#toasts { position: fixed; left: 50%; top: calc(64px + var(--safe-t)); transform: translateX(-50%); z-index: 20; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: center; width: 94vw; }
 .toast { background: rgba(10, 16, 18, 0.82); border: 1px solid var(--line); border-radius: 999px; padding: 7px 16px; animation: toast 3s forwards; display: flex; align-items: center; gap: 8px; max-width: 100%; }
 .toast img { width: 24px; height: 24px; object-fit: contain; }
 @keyframes toast { 0% { opacity: 0; transform: translateY(-6px); } 8%, 82% { opacity: 1; transform: none; } 100% { opacity: 0; } }
@@ -203,7 +203,9 @@ td:first-child { color: var(--accent); white-space: nowrap; }
 @media (max-height: 460px) {
     #card-box { display: flex; }
     #card-img { width: 42%; aspect-ratio: auto; border-radius: 14px 0 0 14px; }
-    #card-body { flex: 1; overflow-y: auto; }
+    #card-body { flex: 1; overflow-y: auto; padding: 10px 16px 0; }
+    #card-text { font-size: 16px; line-height: 1.4; }
+    #card .sheet-foot { position: sticky; bottom: 0; margin-top: 6px; padding: 6px 0 10px; background: linear-gradient(transparent, var(--paper) 35%); }
     #tunnel-head { min-height: 0; }
     #echo { width: 120px; height: 120px; }
     #dpad { grid-template-rows: repeat(3, 44px); }

@@ -1,5 +1,5 @@
 // An auto-player. It plays through the same input the player uses: it walks, turns, presses the interact button and
-// calls directions to Thimble. The tests use it to prove the whole story can be finished; `explore` makes it a
+// calls directions to Fray. The tests use it to prove the whole story can be finished; `explore` makes it a
 // completionist that also picks up every small thing and reads every inscription. Pure, like the rest of js/sim.
 
 import { PLAYER } from '../config.js';
@@ -111,7 +111,7 @@ function tunnelInput(G, bot) {
     if (!wants.length && !done) wants.push(T.goal);
     if (!wants.length) return { ...NONE, cmd: { t: 'back' } };
     if (!done && wants[0] === T.goal && s.x === T.goal.x && s.y === T.goal.y) return { ...NONE, cmd: { t: 'feel' } };
-    // BFS from Thimble to the nearest wanted cell; take the first step of that path
+    // BFS from Fray to the nearest wanted cell; take the first step of that path
     const prev = { [s.x + ',' + s.y]: null }, q = [[s.x, s.y]];
     for (let i = 0; i < q.length; i++) {
         const [x, y] = q[i];
