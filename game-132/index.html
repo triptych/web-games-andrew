@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0b0a10">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="TITAN'S VAULT — an isometric action RPG: three oaths, dual masteries, a lynx-wolf who sells your junk, three acts to bind a chained titan, and endless rifts.">
+    <title>TITAN'S VAULT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;700&display=swap">
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="TITAN'S VAULT game view"></canvas>
+    <canvas id="overlay" aria-hidden="true"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" hidden>
+        <div id="hud-top">
+            <div id="area-name"></div>
+            <div id="quest"></div>
+        </div>
+        <div id="hud-btns">
+            <button class="ibtn" data-panel="inventory" aria-label="Inventory (I)" title="Inventory (I)"><span class="ic ic-items" style="--i:15"></span></button>
+            <button class="ibtn" data-panel="skills" aria-label="Skills (K)" title="Skills (K)"><span class="ic" id="skills-ic"></span><b id="pts-badge" hidden></b></button>
+            <button class="ibtn" data-panel="character" aria-label="Character (C)" title="Character (C)">⚜<b id="attr-badge" hidden></b></button>
+            <button class="ibtn" id="btn-labels" aria-label="Show item labels (Alt)" title="Item labels (Alt)">🏷</button>
+            <button class="ibtn" id="btn-pause" aria-label="Pause">❚❚</button>
+        </div>
+        <div id="boss" hidden><div id="boss-name"></div><div class="bar"><i id="boss-fill"></i><span class="tick" style="left:66%"></span><span class="tick" style="left:33%"></span></div></div>
+        <div id="rift" hidden><div id="rift-name"></div><div class="bar"><i id="rift-fill"></i></div></div>
+        <div id="prompt" hidden></div>
+        <div id="dock">
+            <div class="orb life"><i id="life-fill"></i><span id="life-text"></span></div>
+            <div id="bar">
+                <div id="xp"><i id="xp-fill"></i></div>
+                <div id="slots"></div>
+            </div>
+            <div class="orbs-r">
+                <div class="orb res" id="res0"><i></i><span></span></div>
+                <div class="orb res small" id="res1" hidden><i></i><span></span></div>
+            </div>
+        </div>
+        <div id="pet-chip"><span class="face"></span><i id="pet-fill"></i><span id="pet-state"></span></div>
+    </div>
+
+    <!-- Touch deck: shown on coarse pointers or after the first touch -->
+    <div id="touch" hidden>
+        <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div></div>
+        <div id="tbtns"></div>
+    </div>
+
+    <!-- Panels (inventory, skills, character, merchant, waystone, stash, obelisk, shrine, chronicler) -->
+    <div id="panel" class="screen" hidden>
+        <div class="sheet wide">
+            <div class="panel-head"><h2 id="panel-title"></h2><button class="ibtn close" data-close aria-label="Close">✕</button></div>
+            <div id="panel-body"></div>
+        </div>
+    </div>
+    <div id="tip" hidden></div>
+
+    <!-- Screens -->
+    <div id="title" class="screen title-screen">
+        <div class="sheet">
+            <h1 class="logo">TITAN'S VAULT</h1>
+            <p class="tagline">Bind the chained titan. Then go deeper.</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Warden</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="classes" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Swear your oath</h2>
+            <div id="class-cards"></div>
+            <p class="dim">At level 6 you swear a second oath and become a hybrid: Thunderborn, Reaver or Eclipse Seer.</p>
+            <div class="sheet-foot"><button class="btn" data-close>Back</button></div>
+        </div>
+    </div>
+
+    <div id="card" class="screen" hidden>
+        <div class="sheet story">
+            <img id="card-art" alt="">
+            <h2 id="card-title"></h2>
+            <p id="card-text"></p>
+            <div class="sheet-foot"><button class="btn primary" id="card-ok">Continue</button></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <table>
+                <tr><td>Left click / hold</td><td>Walk there; on a monster, attack with skill 1</td></tr>
+                <tr><td>WASD</td><td>Walk</td></tr>
+                <tr><td>1–5, right click</td><td>Skills, aimed at the mouse (right click = skill 2)</td></tr>
+                <tr><td>Q</td><td>Potion</td></tr>
+                <tr><td>T</td><td>Town portal</td></tr>
+                <tr><td>E</td><td>Talk, use</td></tr>
+                <tr><td>Shift</td><td>Stand still while attacking</td></tr>
+                <tr><td>Alt (hold)</td><td>Show item names; click one to pick it up</td></tr>
+                <tr><td>I / K / C</td><td>Inventory / Skills / Character</td></tr>
+                <tr><td>P / Esc</td><td>Pause</td></tr>
+            </table>
+            <p>Gold and health globes are picked up as you walk over them. Loot that passes your <b>loot filter</b> (Settings) is too.
+                When your bag fills, Ember carries the rest; send Ember to town to sell it all.</p>
+            <p>Touch: drag on the left to walk; the skill buttons aim at the nearest enemy. Gamepad: left stick, A X Y B RB for skills, LT potion.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Loot filter
+                <select id="set-filter"><option value="all">Show everything</option><option value="magic">Magic and better</option><option value="rare">Rare and better</option><option value="legendary">Legendary only</option></select>
+            </label>
+            <label class="row">Damage numbers <input type="checkbox" id="set-numbers"></label>
+            <label class="row">Touch controls
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="dead" class="screen" hidden>
+        <div class="sheet">
+            <h2 class="red">You have fallen</h2>
+            <p id="dead-text"></p>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">TITAN'S VAULT needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

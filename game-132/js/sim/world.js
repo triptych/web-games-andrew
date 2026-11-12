@@ -104,7 +104,7 @@ function genTown() {
     const A = blank(TOWN.w, TOWN.h);
     carve(A, 2, 2, A.w - 3, A.h - 3);
     // a few buildings and wells as blocks to walk around
-    for (const [x0, y0, x1, y1] of [[3, 3, 7, 6], [28, 3, 32, 7], [3, 21, 7, 24], [29, 21, 32, 24], [16, 22, 20, 24]]) {
+    for (const [x0, y0, x1, y1] of [[3, 3, 7, 6], [28, 3, 32, 7], [3, 21, 7, 24], [29, 21, 32, 24]]) {
         for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) A.grid[y * A.w + x] = WALL;
     }
     // the road north to the gate

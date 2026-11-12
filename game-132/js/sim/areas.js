@@ -135,7 +135,10 @@ export function bossKilled(G, boss) {
     if (G.rift) {
         G.rift.done = true;
         P.riftBest = Math.max(P.riftBest, G.rift.tier);
-        G.features.push({ id: 'exit', kind: 'exit', to: 'town', x: G.player.x + 1.5, y: G.player.y, rift: true });
+        // the way home opens beside the player, on floor (never in a wall)
+        let at = { x: P.x, y: P.y };
+        for (let k = 0; k < 8; k++) { const a = k * 0.785, x = P.x + Math.cos(a) * 2, y = P.y + Math.sin(a) * 2; if (fits(G.area, x, y, 0.5)) { at = { x, y }; break; } }
+        G.features.push({ id: 'exit', kind: 'exit', to: 'town', x: at.x, y: at.y, rift: true });
         G.events.push({ type: 'riftDone', tier: G.rift.tier });
         return;
     }
