@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { PLAYER } from '../config.js';
 import { GEMS } from '../sim/data/story.js';
 import { zone, groundY } from '../sim/world.js';
-import { LOOKS, buildIsle, buildGrid, faceOpen } from './build.js';
+import { LOOKS, buildIsle, buildGrid, faceOpen, facePath } from './build.js';
 import { makeProp, makeGem, modelState } from './props.js';
 import { icon, glow } from './tex.js';
 
@@ -103,7 +103,7 @@ export class View {
             if (!t.look) continue;
             const p = makeProp(t.look);
             p.position.set(t.x, groundY(id, t.x, t.z), t.z);
-            p.rotation.y = Z.kind === 'grid' ? faceOpen(Z, t) : t.id.startsWith('ring') || t.id === 'rootDoor' ? Math.atan2(t.x - Z.byId.leafPedestal.x, t.z - Z.byId.leafPedestal.z) : 0;
+            p.rotation.y = Z.kind === 'grid' ? faceOpen(Z, t) : t.id.startsWith('ring') || t.id === 'rootDoor' ? Math.atan2(t.x - Z.byId.leafPedestal.x, t.z - Z.byId.leafPedestal.z) : facePath(t);
             if (t.type === 'door') { doors.push({ t, p, y: p.position.y }); if (Z.kind === 'grid') p.scale.set(1.25, 1.2, 1.25); }
             if (t.type === 'pedestal') { const gem = makeGem(GEMS.find((g) => g.id === t.gem).color); gem.position.y = t.look === 'cistern' ? 1.3 : 1.75; p.add(gem); p.userData.gem = gem; }
             if (t.id === 'caveMouth') { const b = makeProp('boulder'); b.position.z = 0.8; p.add(b); p.userData.boulder = b; }
