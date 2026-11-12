@@ -1492,6 +1492,8 @@ h1 {
     background: linear-gradient(135deg, #ffd24a, #f08a24 55%, #c92f3c);
     color: #2b1204;
     box-shadow: 0 0 14px rgba(240, 138, 36, 0.7);
+}
+
 .game-preview.heros-merchant,
 .carousel-slide-bg.heros-merchant {
     background:
