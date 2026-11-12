@@ -4,7 +4,7 @@
 **Engine:** three.js r165 for the dungeon, DOM for the town, menus and the battle sprites. Art generated with fal
 (`fal-ai/nano-banana-2`); music, sound effects and every voice generated with ElevenLabs. A Web Audio synth stands in
 for any audio file that fails to load.
-**Status:** v1.0.1
+**Status:** v1.1.0
 
 ---
 
@@ -99,8 +99,12 @@ Monster strength: `(1 + 0.07 (floor − 1)) × 3.4^cycle`, attack and magic to t
 ## Look and sound
 
 - Dungeon: walls, floors and ceilings are the stratum's fal textures (made tileable on export), Lambert lighting with
-  baked corner darkening, a flickering warm torch, exponential fog in the stratum's colour, wall torches as additive
-  sprites, a 448-line buffer (the "PS2 picture" setting), a vignette and faint scanlines.
+  baked corner darkening, a flickering warm torch, exponential fog in the stratum's colour, a 448-line buffer (the
+  "PS2 picture" setting), a vignette and faint scanlines.
+- Props: textured low-poly models from Meshy (`art/models/`, `js/view/models.js`): chests (closed, and open with
+  gold), iron wall sconces with additive flames, the healing fountain, the stairs up, the stairs down sunk in a
+  stone-lined hole in the floor, and the lost delver of a rescue quest. The old box versions stand in if a model
+  fails to load.
 - Town: six painted backdrops (fal), voiced townsfolk with portraits.
 - Battles: painted fal sprites over the dungeon with idle breathing, hit flashes, lunges, element flashes, floating
   numbers; guardians speak.
@@ -147,6 +151,9 @@ balance bands. `browsertest.mjs`: desktop with real keys, two touch-only phones 
 - Class changes and a skill-point tree; more guardians past the Echoes.
 
 ## Changelog
+
+### v1.1.0 (2026-11-12)
+- The dungeon's box-built props are now textured Meshy models: chests (a closed one, swapped for an open one full of gold), iron wall sconces, the fountain, the stairs up, the stairs down (a flight sunk into a stone-lined hole in the floor), and the lost delver (was a glow).
 
 ### v1.0.1 (2026-11-12)
 - Camp → Items: a draught can be used on one hero after another without leaving the list (the second tap did nothing before); heroes an item can't help are greyed out.

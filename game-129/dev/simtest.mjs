@@ -71,6 +71,11 @@ if (want('data')) {
     for (const id of Object.keys(NPCS)) ok(has(`art/por/${id}.webp`), `portrait for ${id}`);
     for (const id of Object.keys(PLACES)) ok(has(`art/bg/${id}.webp`), `backdrop for ${id}`);
     ok(has('art/bg/title.webp') && has('art/icons/gear.webp') && has('art/icons/misc.webp'), 'title art and icon atlases');
+    // the Meshy props (js/view/models.js imports three, so read its table as text)
+    const modelSrc = fs.readFileSync(path.join(ROOT, 'js/view/models.js'), 'utf8');
+    const models = [...modelSrc.matchAll(/^ {4}(\w+): \{ (?:file: '(\w+)', )?fit:/gm)].map((m) => m[2] || m[1]);
+    ok(models.length >= 6, `the model table lists the props (${models.length})`);
+    for (const id of new Set(models)) ok(has(`art/models/${id}.glb`) && fs.statSync(path.join(ROOT, `art/models/${id}.glb`)).size < 600e3, `model ${id}.glb is there and under 600 KB`);
     for (const c of Object.values(CLASSES)) {
         ok(c.skills.length >= 5, `${c.name} has at least 5 skills`);
         for (const g of c.gear) ok(KINDS[g], `${c.name} gear kind ${g} exists`);

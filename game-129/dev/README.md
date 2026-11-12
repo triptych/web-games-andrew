@@ -10,6 +10,7 @@ Plain Node scripts, no build step, no test framework. Run from the repo root.
 | `node game-129/dev/preview.mjs` | The 1200×630 Garden preview (`garden/img/games/game-129.jpg`): a guardian fight in the corridor. |
 | `node game-129/dev/art/prompts.mjs [names]` | Prints the fal requests, built from the game's data tables. See [art/README.md](art/README.md). |
 | `python3 -I game-129/dev/art/export.py RAW` | Raw fal renders → `art/`. |
+| `node game-129/dev/models.mjs [id]` | Screenshots `dev/modelview.html`: every Meshy prop fitted the way the game fits it (front, side, above, the edge of its cell) → `dev/shots/models.png`. See [art/README.md](art/README.md#models-meshy). |
 | `python3 -I game-129/dev/audio/process.py RAW` | Raw ElevenLabs downloads → `audio/`. See [audio/README.md](audio/README.md). |
 
 The browser scripts need `playwright` and a static server on port 8129:

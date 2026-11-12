@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HOLLOWDEEP models</title>
+<style>body { margin: 0; background: #222; color: #ddd; font: 12px sans-serif; } canvas { display: block; }</style>
+</head>
+<body>
+<!-- Dev only: every Meshy prop from the front (+Z), the side (+X) and above, scaled as the game scales it.
+     dev/models.mjs screenshots it; ?only=chest_closed shows one. -->
+<canvas id="c"></canvas>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MODELS, fitModel } from '../js/view/models.js';
+
+const only = new URLSearchParams(location.search).get('only');
+const ids = Object.keys(MODELS).filter((k) => !only || k === only);
+const W = 220, views = [['front', [0, 0.7, 3.2]], ['side', [3.2, 0.7, 0]], ['top', [0.01, 3.6, 0.6]], ['edge', [0, 1.08, 2.2]]];
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W * views.length, W * ids.length);
+renderer.setScissorTest(true);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+const loader = new GLTFLoader();
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2.2));
+const sun = new THREE.DirectionalLight(0xffffff, 1.5); sun.position.set(2, 4, 3); scene.add(sun);
+const grid = new THREE.GridHelper(2, 2, 0xff4040, 0x666666); scene.add(grid);   // one dungeon cell is 2 × 2
+const axis = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0.01, 0), 1.2, 0x40ff40); scene.add(axis);  // +Z
+const cam = new THREE.PerspectiveCamera(40, 1, 0.05, 50);
+for (const [row, id] of ids.entries()) {
+    const gltf = await loader.loadAsync(`../art/models/${id}.glb`);
+    const obj = fitModel(gltf.scene, MODELS[id]);
+    scene.add(obj);
+    for (const [col, [, p]] of views.entries()) {
+        const y = (ids.length - 1 - row) * W;
+        renderer.setViewport(col * W, y, W, W); renderer.setScissor(col * W, y, W, W);
+        cam.position.set(...p); cam.lookAt(0, col === 3 ? -0.8 : 0.5, 0);
+        renderer.setClearColor(row % 2 ? 0x2a2a30 : 0x30302a);
+        renderer.render(scene, cam);
+    }
+    scene.remove(obj);
+}
+document.title = 'done';
+</script>
+</body>
+</html>
