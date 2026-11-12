@@ -302,13 +302,14 @@ class Carousel {
 }
 
 /**
- * SearchFilter - Handles the search box and tag-chip filtering of the grid
+ * SearchFilter - Handles search and category filtering of the game list
  */
 class SearchFilter {
     constructor(gamesData) {
         this.games = gamesData;
         this.searchInput = document.querySelector('#game-search');
-        this.tagFiltersContainer = document.querySelector('#tag-filters');
+        this.categoryInput = document.querySelector('#category-search');
+        this.categoryOptions = document.querySelector('#category-options');
         this.resultsCount = document.querySelector('#results-count');
         this.noResults = document.querySelector('#no-results');
         this.gamesGrid = document.querySelector('.games-grid');
@@ -327,16 +328,11 @@ class SearchFilter {
         return Array.from(tagMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
     }
 
-    renderTagChips() {
-        if (!this.tagFiltersContainer) return;
-
-        const tags = this.getAllTags();
-        const allChip = `<button class="tag-chip active" data-tag="">All</button>`;
-        const chips = tags
-            .map(([label, emoji]) => `<button class="tag-chip" data-tag="${label}">${emoji} ${label}</button>`)
+    renderCategoryOptions() {
+        if (!this.categoryOptions) return;
+        this.categoryOptions.innerHTML = this.getAllTags()
+            .map(([label]) => `<option value="${label.replace(/"/g, '&quot;')}"></option>`)
             .join('');
-
-        this.tagFiltersContainer.innerHTML = allChip + chips;
     }
 
     matchesSearch(game, query) {
@@ -352,6 +348,8 @@ class SearchFilter {
 
     applyFilters() {
         const query = (this.searchInput?.value || '').trim().toLowerCase();
+        const category = (this.categoryInput?.value || '').trim().toLowerCase();
+        this.activeTag = this.getAllTags().find(([label]) => label.toLowerCase() === category)?.[0] || null;
         const cards = Array.from(this.gamesGrid.querySelectorAll('.game-card'));
         let visibleCount = 0;
 
@@ -363,7 +361,7 @@ class SearchFilter {
         });
 
         if (this.resultsCount) {
-            this.resultsCount.textContent = query || this.activeTag
+            this.resultsCount.textContent = query || category
                 ? `Showing ${visibleCount} of ${cards.length} games`
                 : `${cards.length} games`;
         }
@@ -375,24 +373,39 @@ class SearchFilter {
 
     bindEvents() {
         this.searchInput?.addEventListener('input', () => this.applyFilters());
-
-        this.tagFiltersContainer?.addEventListener('click', (e) => {
-            const chip = e.target.closest('.tag-chip');
-            if (!chip) return;
-
-            this.activeTag = chip.dataset.tag || null;
-
-            this.tagFiltersContainer.querySelectorAll('.tag-chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-
-            this.applyFilters();
-        });
+        this.categoryInput?.addEventListener('input', () => this.applyFilters());
     }
 
     init() {
-        this.renderTagChips();
+        this.renderCategoryOptions();
         this.bindEvents();
         this.applyFilters();
+    }
+}
+
+function initializeClassicTabs() {
+    const tabs = Array.from(document.querySelectorAll('.classic-tab'));
+    tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => activateTab(tab));
+        tab.addEventListener('keydown', (event) => {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+            const nextIndex = event.key === 'Home' ? 0
+                : event.key === 'End' ? tabs.length - 1
+                    : (index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+            tabs[nextIndex].focus();
+            activateTab(tabs[nextIndex]);
+        });
+    });
+
+    function activateTab(selected) {
+        tabs.forEach(tab => {
+            const active = tab === selected;
+            tab.classList.toggle('active', active);
+            tab.setAttribute('aria-selected', String(active));
+            tab.tabIndex = active ? 0 : -1;
+            document.getElementById(tab.getAttribute('aria-controls')).hidden = !active;
+        });
     }
 }
 
@@ -400,6 +413,7 @@ class SearchFilter {
  * Initialize the application
  */
 function initApp() {
+    initializeClassicTabs();
     // Render game cards (newest first) from data
     const renderer = new GameRenderer();
     renderer.renderGameCards(gamesNewestFirst);

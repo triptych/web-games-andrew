@@ -1858,3 +1858,102 @@ footer a:hover {
     color: #2a1b00;
     box-shadow: 0 0 14px rgba(159, 240, 255, 0.7);
 }
+
+/* Classic list: compact search controls and switchable views */
+.classic-page .classic-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(190px, 260px);
+    align-items: end;
+    gap: 12px;
+    margin: 0 auto 18px;
+    max-width: 900px;
+}
+
+.classic-page .classic-controls .search-box {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+}
+
+.classic-page #game-search,
+.classic-page #category-search {
+    min-height: 48px;
+    font-size: 16px;
+}
+
+.classic-page .category-filter {
+    display: grid;
+    gap: 5px;
+    font-size: .85rem;
+    color: rgba(255,255,255,.8);
+}
+
+.classic-page #category-search {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid rgba(255,255,255,.25);
+    border-radius: 12px;
+    outline: none;
+    color: white;
+    background: rgba(255,255,255,.1);
+}
+
+.classic-page #category-search::placeholder { color: rgba(255,255,255,.6); }
+.classic-page #category-search:focus { border-color: rgba(255,255,255,.65); }
+
+.classic-page .classic-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    max-width: 900px;
+    margin: 0 auto 22px;
+    padding: 5px;
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 14px;
+    background: rgba(0,0,0,.16);
+}
+
+.classic-page .classic-tab {
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 0;
+    border-radius: 10px;
+    color: rgba(255,255,255,.8);
+    background: transparent;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.classic-page .classic-tab.active {
+    color: white;
+    background: rgba(255,255,255,.18);
+    box-shadow: 0 2px 8px rgba(0,0,0,.18);
+}
+
+.classic-page .classic-tab:focus-visible,
+.classic-page #category-search:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+.classic-page .classic-panel[hidden] { display: none; }
+.classic-page .carousel { margin-bottom: 30px; }
+
+@media (max-width: 600px) {
+    .classic-page .classic-controls {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .classic-page .category-filter {
+        grid-template-columns: 78px minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+    }
+
+    .classic-page .classic-tabs { margin-bottom: 16px; }
+    .classic-page .classic-tab { min-height: 46px; padding: 9px 6px; font-size: .95rem; }
+    .classic-page .classic-panel .carousel { margin-bottom: 18px; }
+}
