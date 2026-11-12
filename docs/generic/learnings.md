@@ -6914,3 +6914,51 @@ A narrative first-person HD-2D sci-fi adventure with idle terraforming, in three
 - **An estimate is not the bill.** ElevenLabs' `estimate_only` priced the six music tracks at 8,057 credits; the run charged 4,395. Estimate to catch a mistake in duration, but don't plan the budget on it.
 - **Export pixel art larger than it is drawn, and scale it down once.** v1.0.0 exported 150–240 px sprites and blew them up with nearest-neighbour scaling; players called the battle "too zoomed and pixelated". v1.1.0 exports about twice the drawn size and filters each picture down *once* to its device-pixel size, caching the result, then draws it 1:1 every frame ([battle.js](../../game-128/js/view/battle.js) `scaled()`). Filtering big art with `imageSmoothingQuality = 'high'` every frame made SwiftShader's GPU process fall so far behind that `page.screenshot` timed out while `requestAnimationFrame` still reported 60 fps. If screenshots time out but rAF is fast, look at GPU raster (a CDP trace of `RasterDecoderImpl::DoEndRasterCHROMIUM`), not at your JavaScript.
 - **A once-a-second DOM refresh should swap in only what changed, and an idle canvas should not be cleared every frame.** Rebuilding nine building cards from atlases every second, under a full-screen CSS `filter`, plus a hidden canvas cleared at 60 fps, was enough to stall software rendering late in a test run. Build each part off-page, compare `innerHTML` and replace only on a difference; skip the refresh while another screen covers the view; clear the canvas once when the battle ends.
+
+## Game 129 HOLLOWDEEP: a blobber in a pure sim, grid sheets from fal, a voiced cast from ElevenLabs, and a softlock the bot found (2026-11-12)
+
+A first-person dungeon crawler (Wizardry / Etrian Odyssey) in three.js with fal art and ElevenLabs music, effects and voices.
+
+- **A floor is a pure function of (seed, floor); only what the party changed is saved.** `getFloor(seed, n)` rebuilds
+  the maze on load; `G.floors[n]` keeps the cells seen (a bitset of 32-bit numbers, JSON-friendly), chests opened and
+  the reaper's position. A save of a 40-floor game is a few KB, and the simtest proves every floor generator property
+  over 60 seeds × 45 floors without touching a save.
+- **Prove a guardian gate both ways.** The down stairs go in the farthest dead end, so their one open neighbour is the
+  guardian's cell. The test floods the floor twice: with the guardian's cell open the stairs are reachable, with it
+  blocked they aren't (sufficient *and* necessary, as in game-080 and game-124). Rooms and loops are carved after the
+  stairs are chosen, with a 2-cell exclusion ring so a loop can never open a way round.
+- **Monster strength has to follow the absolute depth, not the stratum's base stats.** The first pass scaled monsters
+  only within their stratum; heroes grow about 11× by level 36 (level plus gear tiers) while the hand-written stratum
+  bases only grew ~3.6×, and the bot's party lost 2–3% HP a fight. The fix was `(1 + 0.07 (floor − 1)) × 3.4^pass` on
+  every monster and ×3 health; the balance table showed it immediately. Measure "HP lost per fight" *and* "fights per
+  trip": in-battle healing hides the first, so the second is what tells you there is attrition.
+- **The bot found a softlock no rule forbade.** A party with less gold than a night at the inn and hurt members could
+  neither heal nor earn: it climbed to floor 1, turned home at low HP, could not rest, and looped 16,000 commands.
+  Wizardry's answer works: free stables that give back half. A test now checks a broke party can still rest.
+- **A "reckless" bot has to actually take risks.** Diving earlier (`dare`) and sloppier battle commands (`skill`)
+  changed nothing because the bot still turned home at 45% HP. A `nerve` setting (how hurt before it retreats) made the
+  reckless bot wipe 8–16 times to the careful bot's 0–5, and the band became a meaningful test.
+- **fal grid sheets save requests, and bring their own artefacts.** 2×2 and 3×2 sheets at 2K came back with each cell
+  at about 1K quality (23 requests for 57 sprites, 16 textures, 18 portraits, 9 backdrops and 2 icon atlases). But one
+  sheet drew black lines between cells, one captioned each portrait with its role, and one numbered its cells in the
+  corners, all with "no text, no grid lines" in the system prompt. `scrub_lines` paints over near-black runs near cell
+  boundaries; captions and numbers are cropped per sheet. Expect one of these per batch and check a contact sheet.
+- **Glowing creatures on a magenta key come back with a lavender rim** (the glow blends into the key). A wider despill
+  band did not remove it; a targeted pass that drops magenta-tinted pixels near the edge, applied only to the sprites
+  that glow, did, without bleaching the genuinely purple monsters.
+- **Make wall and floor textures tileable on export:** blend the tile with a copy shifted by half, weighted to the
+  centre, so the seams land where the copy is in charge. Cheap, and the painted textures tile along a corridor.
+- **Replacing a three.js texture's image with a larger one after it was uploaded** (a 64 px placeholder canvas swapped
+  for the 512 px painting) logs `GL_INVALID_VALUE: glTexSubImage2D: Offset overflows texture dimensions` and keeps the
+  placeholder. Load the real texture with `TextureLoader` and swap in a fallback only on error.
+- **A PS2 look is mostly resolution:** render into a buffer about 448 lines tall (`setPixelRatio(448 / height)`) and let
+  the browser scale it up smoothly, plus Lambert lighting, fog in the area's colour and a vignette with faint scanlines.
+  Offer a sharp mode in settings.
+- **ElevenLabs: set `duration_seconds` on every effect** (game-126's lightning crack came back 14 s long without it),
+  and **download as soon as a run finishes**: the signed `elevenlabsusercontent.com` links expire in a few hours.
+  One `eleven_v4` take per character with lines split by `[long pause]` cut cleanly at the n−1 longest silences for all
+  28 characters. Music cost 900 credits a minute; effects 2–8 each; 95 voice lines about 7,700.
+- **A CSS transition on `background-image` makes `getComputedStyle` report the old image for a moment.** A browser test
+  that checks a backdrop changed should read the element's inline style, not the computed one.
+- **Coming back from the dungeon should land on the town square, not the last shop you were in.** The gate is the last
+  place you visited before going down, and showing it again on return hid the square's buttons from the test.

@@ -137,7 +137,7 @@ def cutout(img, focus=None):
     # despill: pull the key colour out of edge pixels
     rgb = a.copy()
     edge = np.zeros_like(fg)
-    band = 12 if (bg[0] > 150 and bg[2] > 150 and bg[1] < 120) else 5   # painted glows pick up a wide magenta halo
+    band = 22 if (bg[0] > 150 and bg[2] > 150 and bg[1] < 120) else 5   # painted glows pick up a wide magenta halo
     for d in range(1, band):   # a band a few pixels deep, so soft glows lose their key-coloured fringe too
         edge |= fg & (~np.roll(fg, d, 0) | ~np.roll(fg, -d, 0) | ~np.roll(fg, d, 1) | ~np.roll(fg, -d, 1))
     if bg[0] > 150 and bg[2] > 150 and bg[1] < 120:
@@ -229,6 +229,25 @@ def cells(img, cols, rows, inset=0.0):
             yield img.crop((round(x0 + dx), round(y0 + dy), round(x1 - dx), round(y1 - dy)))
 
 
+# sprites whose own glow blended into the magenta key and came back with a lavender halo (checked by eye)
+HALO = {'crypt_bat', 'wisp', 'ice_wraith', 'glow_moth', 'forgefather'}
+
+
+def dehalo(im, depth=28):
+    """Drop magenta-tinted pixels within `depth` px of the sprite's edge (the glow's key-coloured fringe)."""
+    a = np.asarray(im).copy()
+    alpha = a[..., 3] > 0
+    near = ~alpha
+    band = np.zeros_like(alpha)
+    for d in range(1, depth):
+        near = near | np.roll(near, 1, 0) | np.roll(near, -1, 0) | np.roll(near, 1, 1) | np.roll(near, -1, 1)
+        band |= alpha & near
+    r, g, b = a[..., 0].astype(int), a[..., 1].astype(int), a[..., 2].astype(int)
+    tinted = ((np.minimum(r, b) - g > 12) & (np.abs(r - b) < 90)) | ((g - b > 40) & (g >= r - 12))   # magenta, or green / yellow-green key glow
+    a[..., 3] = np.where(band & tinted, 0, a[..., 3])
+    return Image.fromarray(a, 'RGBA')
+
+
 def scrub_lines(img, cols, rows):
     """Paint over grid lines the model drew between cells (and round the edge): near each cell boundary, any column
     or row with a quarter-length run that is almost all near-black becomes background."""
@@ -259,15 +278,19 @@ def main(raw):
         if not have(f):
             print('missing', f); continue
         for i, (cell, focus) in enumerate(grid_cells(scrub_lines(op(f), 3, 2), 3, 2, margin=0.12)):
-            sp = shrink(trim(cutout(cell, focus)), SIZE['normal'])
+            sp = trim(cutout(cell, focus))
+            if ids[i] in HALO: sp = trim(dehalo(sp))
+            sp = shrink(sp, SIZE['normal'])
             save(sp, f'mon/{ids[i]}.webp', q=84)
             meta['sprites'][ids[i]] = [sp.width, sp.height]
     for k, ids in enumerate(BOSS_SHEETS):
         f = f'bosses-{k + 1}.png'
         if not have(f):
             print('missing', f); continue
-        for i, (cell, focus) in enumerate(grid_cells(scrub_lines(op(f), 2, 2), 2, 2, margin=0.08)):
-            sp = shrink(trim(cutout(cell, focus)), SIZE['boss'])
+        for i, (cell, focus) in enumerate(grid_cells(scrub_lines(op(f), 2, 2), 2, 2, margin=0.015)):
+            sp = trim(cutout(cell, focus))
+            if ids[i] in HALO: sp = trim(dehalo(sp))
+            sp = shrink(sp, SIZE['boss'])
             save(sp, f'mon/{ids[i]}.webp', q=84)
             meta['sprites'][ids[i]] = [sp.width, sp.height]
     if have('reaper.png'):

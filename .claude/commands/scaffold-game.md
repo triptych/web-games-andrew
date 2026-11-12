@@ -4617,6 +4617,10 @@ Its `dev/art/` and `dev/audio/` hold the scripts and READMEs to copy.
 - Grids save calls: a 4x4 icon sheet or a 3x2 monster sheet at 2K comes back clean. Search each cell
   with a margin and keep the figure whose centre is in the cell (a big mini boss spills over the line),
   and expect the odd caption under a figure: blank that strip before cutting.
+- Grid sheets bring artefacts despite "no text, no grid lines": black lines between cells, a caption over each
+  portrait, cell numbers in corners (game-129). Paint over near-black runs near the cell boundaries before cutting
+  (`game-129/dev/art/export.py` `scrub_lines`) and crop captions per sheet. Glowing creatures on a magenta key come back
+  with a lavender rim: drop magenta-tinted pixels near the edge for those sprites only (`dehalo`).
 - **The model ignores "facing left/right" about a third of the time.** Make a labelled contact sheet,
   check every sprite by eye and mirror the wrong ones in the export (`FLIP`), not in the renderer.
 - Alternate poses or upgraded forms of a character: `fal-ai/nano-banana-2/edit` from the base sprite
@@ -4625,6 +4629,7 @@ Its `dev/art/` and `dev/audio/` hold the scripts and READMEs to copy.
   (`grab.py` pattern) instead of reading it into the conversation.
 
 **ElevenLabs audio** (MCP `creative_*` tools; put everything on one flow)
+- Download every result as soon as its run finishes: the signed `elevenlabsusercontent.com` links expire in a few hours.
 - Music: `eleven_music_v2_5`. Add the node with `model_parameters: { duration_seconds, instrumental: true,
   lyrics_type: 'instrumental' }` (via `creative_add_flow_node`, then `creative_run_flow_nodes`), because
   `creative_generate_in_flow` can't set the duration. About 900 credits for 60 s. Price one with
