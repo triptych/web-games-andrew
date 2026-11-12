@@ -1,0 +1,2 @@
+// Written by dev/audio/process.py: every clip in audio/ (without .mp3). The game only requests these.
+export const AUDIO_FILES = new Set(["music-act1", "music-act2", "music-act3", "music-boss", "music-town", "sfx-death-mon", "sfx-gold", "sfx-hit", "sfx-legendary", "sfx-levelup", "sfx-portal", "sfx-potion", "sfx-roar", "sfx-shadow", "sfx-slam", "sfx-swing", "sfx-thunder", "sfx-warcry", "sfx-zap"]);
