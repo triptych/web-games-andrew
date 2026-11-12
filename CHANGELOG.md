@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Fray & the Spiral Isle** (game-131) v1.1.0: the trees and the other things built from boxes and cones looked like placeholders next to the Meshy characters. They are Meshy models now, in the same painted style ([dev/assets](game-131/dev/assets/README.md)).
+  - 28 new models: two trees (an oak for the Mosswood, a windswept tree for the highlands, drawn as instances), and the Tidewatch ruin, boat, cairn, burrow, well, cave mouth and its boulder, castle wall, throne, stair, wind perch, arch, hut, tide stairs, moon door, cart, barrels, telescope, nest, weather vane, cistern, bell, loom, pipe, the dark way and the vine. 38 models, 7.7 MB.
+  - Landmarks on the open island face back along the path that leads to them, so you meet their fronts ([build.js](game-131/js/view/build.js) `facePath`); they all used to face south.
+  - A brighter fill light on the island, and tree canopies lifted to sit with the meadow; clouds and coral are smooth.
+  - The game only requests models listed in `js/model-files.js` (written by `dev/assets/list.mjs`), so a look without a model keeps its code-built shape instead of logging a 404.
+
 ### Added
 - **Fray & the Spiral Isle** (game-131) v1.0.0: a chill, meditative first-person journey in three.js. A new mage and Fray, a blind goblin, gather seven gems for a spiral pendant across an island whose peoples left peacefully; each gem opens the way to the next place, and nothing can hurt you.
   - The world ([terrain.js](game-131/js/sim/terrain.js), [zones.js](game-131/js/sim/data/zones.js), [world.js](game-131/js/sim/world.js)): the island is a height function (sea and cliffs are ground you cannot stand on, so the highlands need the vine), with the Rootshrine, the Golem Fields and Castle Hollowmere on it; Glimmerdeep, the Underkeep, the Aerie, sunken Thalune and the goblin warren Underhome are grids drawn as text. 39 inscriptions, each a small farewell.

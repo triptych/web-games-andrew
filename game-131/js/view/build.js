@@ -11,7 +11,7 @@ import { makeProp, loadModel, useModels } from './props.js';
 
 /** How each grid zone is lit and dressed. fog: [colour, near, far]; amb: [sky, ground, strength]; lamp: the glow you carry. */
 export const LOOKS = {
-    isle: { fog: [0xbfd9e6, 70, 330], amb: [0xdfeeff, 0x6f7a52, 1.25], sun: [0xfff0d0, 2.0], skyTop: 0x79b2e4, skyBot: 0xe2f0f3, motes: 0xfff2b0, clouds: true },
+    isle: { fog: [0xbfd9e6, 70, 330], amb: [0xeaf3ff, 0xa9b08a, 2.1], sun: [0xfff0d0, 2.2], skyTop: 0x79b2e4, skyBot: 0xe2f0f3, motes: 0xfff2b0, clouds: true },
     caves: { wall: ['caves-wall', 0x2c2a55], floor: ['caves-floor', 0x35304e], ceil: ['caves-wall', 0x2c2a55], wallH: 5, fog: [0x0c0b22, 8, 60], amb: [0x9aa6f0, 0x3a3060, 1.7], lamp: [0xffe0b0, 60, 30], motes: 0x9ae6ff, bg: 0x0c0b22 },
     under: { wall: ['under-wall', 0x6c6258], floor: ['under-floor', 0x5a5248], ceil: ['under-wall', 0x4a443c], wallH: 4.5, fog: [0x14100b, 8, 56], amb: [0xe0bc90, 0x40301e, 1.6], lamp: [0xffe6b0, 60, 30], motes: 0xffd98a, bg: 0x14100b },
     sky: { wall: ['sky-wall', 0xe6ecf2], floor: ['sky-floor', 0xd9e2ea], wallH: 4, fog: [0xd4e8fb, 40, 260], amb: [0xffffff, 0xa8c8ee, 1.5], sun: [0xfff6e0, 2.2], skyTop: 0x6aa8ea, skyBot: 0xeaf5ff, motes: 0xffffff, clouds: true, skirt: 3 },
@@ -131,7 +131,10 @@ export function buildIsle(low) {
             const cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2;
             gl.scene.traverse((m) => {
                 if (!m.isMesh) return;
-                const im = new THREE.InstancedMesh(m.geometry, m.material, list.length);
+                const mat = m.material.clone();
+                mat.color.setScalar(1.45);           // the canopy's painted greens are dark; lift them to sit with the meadow
+                mat.metalness = 0; mat.roughness = 1;
+                const im = new THREE.InstancedMesh(m.geometry, mat, list.length);
                 list.forEach((t, i) => {
                     const s = k0 * t.s * (0.8 + hash3(i, 6, kind) * 0.35);
                     o.position.set(t.x, heightAt(t.x, t.z) - 0.12, t.z); o.rotation.set(0, hash3(i, 1, 1) * 6.283, 0); o.scale.setScalar(s); o.updateMatrix();
@@ -251,4 +254,17 @@ export function faceOpen(Z, t) {
         if (n > score) { score = n; best = [dc, dr]; }
     }
     return Math.atan2(best[0], best[1]);
+}
+
+/** Which way a landmark on the open island should face: back along the path that leads to it, so you meet its front. */
+export function facePath(t) {
+    let best = null, bd = 8;
+    for (const name in MARKS) { const d = Math.hypot(MARKS[name][0] - t.x, MARKS[name][1] - t.z); if (d < bd) { bd = d; best = name; } }
+    if (!best) return 0;
+    for (const [a, b] of PATHS) {
+        // paths are listed in the order the story walks them: face the end you come from
+        if (b === best) return Math.atan2(MARKS[a][0] - t.x, MARKS[a][1] - t.z);
+    }
+    for (const [a, b] of PATHS) if (a === best) return Math.atan2(MARKS[b][0] - t.x, MARKS[b][1] - t.z);
+    return 0;
 }

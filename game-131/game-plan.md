@@ -2,7 +2,7 @@
 
 **Genre:** peaceful first-person exploration adventure
 **Engine:** three.js r165, sim/view layout. Art by fal, 3D models by Meshy, audio by ElevenLabs; every asset has a code-made stand-in
-**Status:** v1.0.0
+**Status:** v1.1.0
 
 ---
 
@@ -113,11 +113,17 @@ was the world's (a tree could pinch a path the lattice thought open); see docs/g
 
 - A human pass on real hardware: it has only run under SwiftShader. Whether the walk is restful, the pacing and the
   look speed are right, and the voices suit, nobody has judged.
-- Props on the open island all face south; a `face` per thing would let ruins turn toward their paths.
+- The tide stairs model climbs rather than descends into the sea, and the castle wall is one segment repeated.
+- Full quality draws about 560,000 triangles of trees; only SwiftShader has drawn it. `&q=low` halves the trees.
 - The golem does not stand up when woken, and the vine appears rather than grows.
 - The Cold Hearth card is composed from the hearth's prop render (the image model declined that painting).
 
 ## Changelog
+
+### v1.1.0 (2026-11-12)
+- The trees and every remaining code-built prop are Meshy models (28 new, 38 in all); trees are instanced.
+- Island landmarks face the path that leads to them; brighter fill light; smooth clouds and coral.
+- `js/model-files.js`: the game only requests models that exist.
 
 ### v1.0.0 (2026-11-12)
 - First release: the island and five grid zones, seven gems, Fray and seven tunnels, 39 inscriptions, eight keepsake

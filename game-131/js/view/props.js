@@ -107,7 +107,7 @@ export const MODELS = {
     hearth: { file: 'hearth', h: 2.2 },
     ruin: { file: 'ruin', h: 3.6 }, boat: { file: 'boat', h: 1.5 }, cairn: { file: 'cairn', h: 1.7 }, burrow: { file: 'burrow', h: 1.6 },
     well: { file: 'well', h: 2.9 }, cavemouth: { file: 'cavemouth', h: 6.2 }, boulder: { file: 'boulder', h: 3.4 }, wall: { file: 'wall', h: 3.9 },
-    throne: { file: 'throne', h: 3.3 }, stair: { file: 'stair', h: 1.7 }, perch: { file: 'perch', h: 0.9 }, arch: { file: 'arch', h: 4.2 },
+    throne: { file: 'throne', h: 3.3 }, stair: { file: 'stair', h: 1.0 }, perch: { file: 'perch', h: 0.9 }, arch: { file: 'arch', h: 4.2 },
     exit: { file: 'arch', h: 3.7 }, hut: { file: 'hut', h: 3.0 }, tidestair: { file: 'tidestair', h: 2.3 }, moondoor: { file: 'moondoor', h: 2.7 },
     cart: { file: 'cart', h: 1.3 }, barrel: { file: 'barrel', h: 1.25 }, telescope: { file: 'telescope', h: 1.9 }, nest: { file: 'nest', h: 1.0 },
     vane: { file: 'vane', h: 2.7 }, cistern: { file: 'cistern', h: 1.05 }, bell: { file: 'bell', h: 2.4 }, loom: { file: 'loom', h: 1.8 },
@@ -141,6 +141,7 @@ export function makeProp(look, onModel) {
         loadModel(m.file).then((g) => {
             if (!g) return;
             const root = look === 'fray' ? g.scene : g.scene.clone(true);
+            if (!g.userData.matte) { g.userData.matte = true; g.scene.traverse((o) => { if (o.material) { o.material.metalness = 0; o.material.roughness = Math.max(0.8, o.material.roughness); } }); }
             const b = new THREE.Box3().setFromObject(root), size = b.getSize(new THREE.Vector3());
             const s = m.h / (size.y || 1);
             root.scale.multiplyScalar(s);

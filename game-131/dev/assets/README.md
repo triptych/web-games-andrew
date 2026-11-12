@@ -1,6 +1,6 @@
 # Fray & the Spiral Isle — the 3D models (Meshy)
 
-Ten models in `../../assets/models/` (3.0 MB), made on 2026-11-12 with [Meshy](https://www.meshy.ai) from fal reference
+38 models in `../../assets/models/` (7.7 MB), made on 2026-11-12 with [Meshy](https://www.meshy.ai) from fal reference
 renders, and loaded by `js/view/props.js`. Each has a code-built stand-in that shows first and stays if the file fails;
 `?models=0` keeps the stand-ins.
 
@@ -11,6 +11,17 @@ renders, and loaded by `js/view/props.js`. Each has a code-built stand-in that s
 | `elder.glb` | Elder Grusk, Granny Sootwick | 9,500 | image-to-3D |
 | `stone.glb` | Inscription stones, the Rootshrine's ring and door | 2,200 | image-to-3D |
 | `pedestal.glb`, `crystal.glb`, `tower.glb`, `organ.glb`, `tidemother.glb`, `hearth.glb` | Gem pedestals; crystals and singing stones; Castle Hollowmere and the Aerie; the wind organ; Tide Mother; the Cold Hearth | 2,600–7,400 | image-to-3D |
+
+### v1.1.0: the trees and the rest of the props
+
+28 more models replaced everything that was still built from boxes and cones: `tree` and `tree2` (1,300 triangles each,
+drawn as instances by `js/view/build.js`), and `ruin`, `boat`, `cairn`, `burrow`, `well`, `cavemouth`, `boulder`, `wall`,
+`throne`, `stair`, `perch`, `arch` (also the way out of each place), `hut`, `tidestair`, `moondoor`, `cart`, `barrel`,
+`telescope`, `nest`, `vane`, `cistern`, `bell`, `loom`, `pipe`, `darkway` and `vine` (1,500–5,200 triangles). Their
+reference renders came from Meshy's own `text-to-image` (`--ai-model nano-banana-pro`, 9 credits) instead of fal, so
+the whole chain ran from one shell script with no tool round trips: reference, then `image-to-3d` as below (15
+credits), about 670 credits for the set. Textures were shrunk to 768 px. After adding or removing a model run
+`node game-131/dev/assets/list.mjs`: it writes `js/model-files.js`, and the game only requests what is listed there.
 
 Every model was one call:
 
