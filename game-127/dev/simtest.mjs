@@ -131,6 +131,13 @@ if (want('data')) {
     for (const P of PLACES) ok(BGS.includes(P.bg), `place ${P.id}'s background exists`);
     ok(FOES.length === REGIONS.reduce((a, Rg) => a + Rg.steps.length + 1, 0) && REGIONS.every((Rg) => FOES.includes(`${Rg.id}-boss`) && Rg.steps.every((_, i) => FOES.includes(`${Rg.id}-${i}`))),
         `every expedition danger and master has a creature (${FOES.length})`);
+    {
+        // Round portraits frame the face from js/faces.js (dev/art/faces.py); a portrait without an entry is cut off.
+        const { FACES } = await import('../js/faces.js');
+        const pors = fs.readdirSync(new URL('../art/por/', import.meta.url)).filter((f) => f.endsWith('.webp')).map((f) => f.slice(0, -5));
+        const missing = pors.filter((k) => !FACES[k]);
+        ok(missing.length === 0 && Object.keys(FACES).every((k) => pors.includes(k)), `every portrait has a face position (${pors.length}${missing.length ? '; missing ' + missing.join(', ') : ''})`);
+    }
     for (const f of FRIENDS) {
         for (const k of ['loves', 'likes', 'hates']) for (const i of CAST[f][k]) ok(ITEM[i]?.kind === 'gift', `${f} ${k} ${i}, a real gift`);
         ok(HEART_SCENES[f].length === 4, `${f} has four heart events`);
