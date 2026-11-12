@@ -18,8 +18,7 @@ os.makedirs(OUT, exist_ok=True)
 SHEETS = {
     'icons1.png': ['gem-leaf', 'gem-stone', 'gem-light', 'gem-wind', 'gem-water', 'gem-moon', 'gem-heart', 'pendant',
                    'seaglass', 'feather', 'shard', 'crown', 'starseed', 'songshell', 'button', 'moonmint'],
-    'icons2.png': ['rune', 'pipe', 'pearl', 'bauble', 'heart', 'journal', 'hint', 'footprints',
-                   None, None, None, None, None, None, None, None],
+    'icons2.png': ['rune', 'pipe', 'pearl', 'bauble', 'heart', 'journal', 'hint', 'footprints'],
 }
 
 
@@ -53,15 +52,35 @@ def cut(sheet, names):
                 r, g, b, a = px[x, y]
                 if r > g * 1.25 and b > g * 1.25:
                     px[x, y] = (g, g, g, 120)
-    cw, ch = w // 4, h // 4
-    for i, name in enumerate(names):
-        if not name:
-            continue
-        cell = im.crop(((i % 4) * cw, (i // 4) * ch, (i % 4 + 1) * cw, (i // 4 + 1) * ch))
-        box = cell.getbbox()
-        if not box:
-            print('  empty cell', name); continue
-        cell = cell.crop(box)
+    # magenta shut inside an icon (a button's holes, a pendant's gaps) is background too
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if a and r > 185 and b > 185 and g < 120: px[x, y] = (0, 0, 0, 0)
+    # find the icons by the empty bands between them (rows first, then columns in each row): the model does not
+    # keep to an exact grid, and sometimes leaves part of the sheet empty
+    alpha = im.getchannel('A')
+    def bands(img, axis):
+        ww, hh = img.size
+        n = hh if axis == 'y' else ww
+        data = img.load()
+        full = [any(data[(x, i) if axis == 'y' else (i, x)] > 40 for x in range(0, ww if axis == 'y' else hh, 3)) for i in range(n)]
+        out, start = [], None
+        for i, f in enumerate(full + [False]):
+            if f and start is None: start = i
+            elif not f and start is not None:
+                if i - start > 24: out.append((start, i))
+                start = None
+        return out
+    cells = []
+    for (y0, y1) in bands(alpha, 'y'):
+        for (x0, x1) in bands(alpha.crop((0, y0, w, y1)), 'x'):
+            cells.append((x0, y0, x1, y1))
+    names = [n for n in names if n]
+    if len(cells) != len(names): print('  WARNING', sheet, 'found', len(cells), 'icons, expected', len(names))
+    for name, box in zip(names, cells):
+        cell = im.crop(box)
+        cell = cell.crop(cell.getbbox())
         side = max(cell.size)
         sq = Image.new('RGBA', (side, side), (0, 0, 0, 0))
         sq.paste(cell, ((side - cell.width) // 2, (side - cell.height) // 2))
@@ -88,4 +107,24 @@ for f in sorted(os.listdir(RAW)):
         w, h = im.size
         s = int(w * 0.5)
         im.crop(((w - s) // 2, int(h * 0.03), (w + s) // 2, int(h * 0.03) + s)).resize((160, 160), Image.LANCZOS).save(os.path.join(OUT, 'face-thimble.webp'), quality=85)
+# The Cold Hearth: the painting for this card was declined by the image model's content filter, so the card is
+# composed here from the hearth's prop painting on a warm dark ground.
+if os.path.exists(os.path.join(RAW, 'ref-hearth.png')):
+    bg = Image.new('RGB', (1280, 720))
+    px = bg.load()
+    for y in range(720):
+        for x in range(1280):
+            d = ((x - 640) ** 2 + (y - 400) ** 2) ** 0.5 / 760
+            k = max(0.0, 1 - d)
+            px[x, y] = (int(34 + 70 * k), int(22 + 42 * k), int(18 + 26 * k))
+    ref = Image.open(os.path.join(RAW, 'ref-hearth.png')).convert('RGB').resize((640, 640), Image.LANCZOS)
+    mask = Image.new('L', ref.size, 0)
+    mp, rp = mask.load(), ref.load()
+    for y in range(640):
+        for x in range(640):
+            r, g, b = rp[x, y]
+            grey = abs(r - g) < 14 and abs(g - b) < 14 and r > 150            # the reference's plain backdrop
+            mp[x, y] = 0 if grey else 255
+    bg.paste(ref, (320, 60), mask)
+    bg.save(os.path.join(OUT, 'card-hearth.webp'), quality=80)
 print(len(os.listdir(OUT)), 'files in art/')

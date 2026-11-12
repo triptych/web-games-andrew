@@ -3,7 +3,12 @@
 // and crossfades between places. Effects, ambience and voices are decoded into AudioBuffers on demand. Anything that
 // fails to load falls back to a small Web Audio synth (soft pads, bells, taps), so the game is never silent.
 
+import { AUDIO_FILES } from './audio-files.js';
+
 const CHIME = [261.63, 329.63, 392.0, 523.25];           // the four singing stones: C E G C
+// A place without its own track borrows the nearest in mood; one without a recorded ambience gets filtered noise.
+const BORROW = { title: 'isle', sky: 'isle', warren: 'isle', under: 'caves', sea: 'caves' };
+const AIR = { isle: [520, 0.11, 0.5], caves: [240, 0.05, 0.22], under: [180, 0.04, 0.2], sky: [950, 0.16, 0.42], sea: [130, 0.07, 0.6], warren: [300, 0.05, 0.2] };   // [cutoff Hz, swell Hz, level]
 const PAD = { title: [130.8, 196, 261.6], isle: [146.8, 220, 293.7], caves: [110, 164.8, 246.9], under: [98, 146.8, 196], sky: [174.6, 261.6, 349.2], sea: [123.5, 185, 246.9], warren: [130.8, 164.8, 196] };
 
 export class Audio {
@@ -61,6 +66,7 @@ export class Audio {
 
     // ------------------------------------------------------------ clips
     _load(name) {
+        if (!AUDIO_FILES.has(name)) { this.failed.add(name); return Promise.resolve(null); }
         if (this.buffers[name] || this.failed.has(name) || !this.ctx) return this.loading[name] || Promise.resolve(this.buffers[name] || null);
         if (this.loading[name]) return this.loading[name];
         this.loading[name] = fetch(`audio/${name}.mp3`).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.status))))
@@ -181,6 +187,7 @@ export class Audio {
 
     /** Switch the theme with a slow crossfade. */
     play(name) {
+        if (name && !AUDIO_FILES.has('music-' + name) && AUDIO_FILES.has('music-' + BORROW[name])) name = BORROW[name];
         if (!this.ctx) { this.current = name; return; }
         if (this.current === name) return;
         const t = this.ctx.currentTime, old = this.current && this.tracks[this.current];
@@ -188,7 +195,7 @@ export class Audio {
         this.current = name;
         this._pad(null);
         if (!name) return;
-        if (this.failed.has('music-' + name)) { this._pad(name); return; }
+        if (this.failed.has('music-' + name) || !AUDIO_FILES.has('music-' + name)) { this._pad(name); return; }
         const el = this._track(name);
         el._g.gain.cancelScheduledValues(t);
         el._g.gain.setTargetAtTime(1, t + 0.1, 1.0);
@@ -201,14 +208,33 @@ export class Audio {
         this.wantAmb = name;
         if (!this.ctx || this.amb?.name === name) return;
         const t = this.ctx.currentTime;
-        if (this.amb) { const old = this.amb; old.src._g.gain.setTargetAtTime(0, t, 0.6); setTimeout(() => { try { old.src.stop(); } catch { /* */ } }, 2500); this.amb = null; }
+        if (this.amb) { const old = this.amb; old.src._g.gain.setTargetAtTime(0, t, 0.6); setTimeout(() => { try { old.src.stop(); old.lfo?.stop(); } catch { /* */ } }, 2500); this.amb = null; }
         if (!name) return;
+        if (!AUDIO_FILES.has('amb-' + name)) { this._air(name); return; }
         this._load('amb-' + name).then((buf) => {
             if (!buf || this.wantAmb !== name || this.amb?.name === name) return;
             const src = this._play(buf, this.sfx, { vol: 0, loop: true });
             src._g.gain.setTargetAtTime(0.5, this.ctx.currentTime, 1.2);
             this.amb = { name, src };
         });
+    }
+
+    /** Ambience made here: brown-ish noise through a low-pass that swells slowly, like surf, wind or deep water. */
+    _air(name) {
+        const [cut, rate, level] = AIR[name] || AIR.isle;
+        const n = this.ctx.sampleRate * 4, buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate), d = buf.getChannelData(0);
+        let last = 0;
+        for (let i = 0; i < n; i++) { last = (last + (Math.random() * 2 - 1) * 0.06) * 0.985; d[i] = last * 5; }
+        for (let i = 0; i < 2000; i++) { const k = i / 2000; d[i] = d[i] * k + d[n - 2000 + i] * (1 - k); }      // hide the loop seam
+        const src = this.ctx.createBufferSource(), f = this.ctx.createBiquadFilter(), g = this.ctx.createGain();
+        const lfo = this.ctx.createOscillator(), lg = this.ctx.createGain();
+        src.buffer = buf; src.loop = true; f.type = 'lowpass'; f.frequency.value = cut; g.gain.value = 0;
+        lfo.frequency.value = rate; lg.gain.value = cut * 0.45; lfo.connect(lg); lg.connect(f.frequency);
+        src.connect(f); f.connect(g); g.connect(this.sfx);
+        src.start(); lfo.start();
+        g.gain.setTargetAtTime(level, this.ctx.currentTime, 1.5);
+        src._g = g;
+        this.amb = { name, src, lfo };
     }
 
     /** The stand-in for a missing track: three soft sines breathing slowly. */
