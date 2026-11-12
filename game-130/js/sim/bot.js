@@ -8,9 +8,11 @@ import { front, objective, act, roomSpots } from './game.js';
 import { QUESTION } from './data/questions.js';
 import { DEDUCE } from './data/story.js';
 import { solveMove } from './puzzles.js';
+import { wayTo } from './data/rooms.js';
 
-export function makeBot({ skill = 1, seed = 7, curious = 0 } = {}) {
-    return { skill, curious, rng: makeRng(seed), acts: 0 };
+export function makeBot({ skill = 1, seed = 7, curious = 0, walk = false } = {}) {
+    // walk: travel only through the doors at the sides of the rooms, never by the map
+    return { skill, curious, walk, rng: makeRng(seed), acts: 0 };
 }
 
 /** Where the bot is heading: the room and spot of the current objective (the vent leads into the vents). */
@@ -49,7 +51,7 @@ export function botCommand(G, bot) {
     const tg = target(G);
     if (!tg) return null;
     if (tg.spot === 'notebook') return { t: 'solve' };
-    if (tg.room !== G.room) return { t: 'go', room: tg.room };
+    if (tg.room !== G.room) return bot.walk ? { t: 'exit', dir: wayTo(G.room, tg.room) || -1 } : { t: 'go', room: tg.room };
     return { t: 'tap', spot: tg.spot };
 }
 

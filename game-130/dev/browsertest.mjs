@@ -2,12 +2,15 @@
  * browsertest.mjs — Starbase Spooky in real Chromium, driven by real keys, mouse clicks and touches.
  *
  * desktop (1280×720): the title and the ← Games link; New Game; Space on the focused ▶ advances the briefing;
- *   M opens the map and a real click on the Docking Bay goes there; a click on Zorp walks Kit over and starts the quiz;
+ *   M opens the map and a real click on the Docking Bay goes there; the toolbar under the picture (the room's name,
+ *   ◀ ▶ walking to the next room, the button toward the next job glowing, the job list under it), the door arrows at
+ *   the picture's edges and Q/E; the backpack (a clue's slot, its card, 🔊, Escape); a click on Zorp walks Kit over and starts the quiz;
  *   keys 1/2/3 answer (a wrong answer greys its button, the right one earns stickers); Escape pauses and the sim
  *   stops; Escape closes Settings even with a slider focused; the wire puzzle solved with real clicks on its plugs;
  *   N opens the Notebook with the clue in it; Save & Quit → Continue restores the day; the rest of the game
  *   fast-forwarded to the certificate; Play Again. Sound: effects and voice clips decode and a music theme plays.
- * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the title, the ▶ button and the map,
+ * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the title, the ▶ button, the toolbar
+ *   (every button ≥ 44 px and on screen, ◀ ▶ and the edge arrows walk between rooms, 🎒 on a short phone) and the map,
  *   a tap on the visitor, answers tapped, controls ≥ 44 px and on screen, the dialogue on screen, no sideways
  *   scroll, the picture inside the viewport.
  * nostorage: localStorage throws; the game still boots and plays, and saving fails quietly.
@@ -123,6 +126,28 @@ async function desktop() {
     await page.mouse.click(c.x, c.y);
     await until(page, () => __ss.G.room === 'dock' && !__ss.map, 'a click on the Docking Bay goes there');
 
+    // the toolbar: rooms left and right
+    await until(page, () => !document.getElementById('bar').hidden && document.getElementById('nav-here').textContent.includes('Docking Bay'), 'the toolbar says which room Kit is in');
+    const bar = await Q(page, () => {
+        const v = document.getElementById('view').getBoundingClientRect(), b = document.getElementById('bar').getBoundingClientRect(), j = document.getElementById('jobs').getBoundingClientRect();
+        return { under: b.top >= v.bottom - 1, jobs: !document.getElementById('jobs').hidden && j.top >= b.bottom - 1, inside: b.bottom <= innerHeight };
+    });
+    check(bar.under && bar.inside, 'the toolbar sits right under the picture');
+    check(bar.jobs, 'today\'s jobs show under the toolbar while nobody is talking');
+    c = await center(page, '#nav-prev');
+    await page.mouse.click(c.x, c.y);
+    await until(page, () => __ss.G.room === 'observatory', 'a click on ◀ walks Kit out of the left side into the Observatory');
+    check(await Q(page, () => __ss.G.kit.x > 500), 'and he comes in on the right-hand side');
+    await until(page, () => document.getElementById('nav-next').classList.contains('way'), '▶ glows: the Docking Bay, where the next job is, is that way');
+    await until(page, () => !!__ss.targetAt('exit:1'), 'the room has a door arrow at its right edge');
+    c = await Q(page, () => __ss.targetAt('exit:1'));
+    await page.mouse.click(c.x, c.y);
+    await until(page, () => __ss.G.room === 'dock', 'a click on the arrow at the edge of the picture walks through to the Docking Bay');
+    await page.keyboard.press('KeyQ');
+    await until(page, () => __ss.G.room === 'observatory', 'Q goes to the room on the left');
+    await page.keyboard.press('KeyE');
+    await until(page, () => __ss.G.room === 'dock', 'E goes to the room on the right');
+
     // the visitor
     await until(page, () => !!__ss.targetAt('spot:visitor'), 'Zorp is a target in the Docking Bay');
     c = await Q(page, () => __ss.targetAt('spot:visitor'));
@@ -174,6 +199,16 @@ async function desktop() {
 
     // the Notebook
     await Q(page, () => __ss.until((G) => G.clues.includes('goo') && !G.queue.length));
+    // the backpack
+    await until(page, () => !!document.querySelector('#bag .slot[data-id="goo"]:not(.empty)'), 'the glowing goo is in the backpack on the toolbar');
+    c = await center(page, '#bag .slot[data-id="goo"]');
+    await page.mouse.click(c.x, c.y);
+    await until(page, () => !document.getElementById('bag-pop').hidden && document.getElementById('bag-pop-name').textContent === 'Glowing goo', 'a click on it shows what it is');
+    c = await center(page, '#bag-pop-say');
+    await page.mouse.click(c.x, c.y);
+    await until(page, () => __ss.audio.voiceId === 'orby.clue.goo', '🔊 replays Orby telling about it');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('bag-pop').hidden && document.getElementById('pause').hidden, 'Escape puts it away (and doesn\'t pause)');
     await page.keyboard.press('KeyN');
     await until(page, () => !document.getElementById('notebook').hidden && document.getElementById('nb-clues').textContent.includes('Glowing goo'), 'N opens the Notebook with the glowing goo in it');
     await page.keyboard.press('Escape');
@@ -238,6 +273,8 @@ async function phone(w, h) {
     for (const z of await onScreen(page, ['#talk-next', '#talk-again', '#btn-hint', '#btn-map', '#btn-notebook', '#btn-pause', '#btn-jobs'])) check(z.ok, `${z.s} is at least 44 px and on screen (${z.why})`);
     await shot(page, `phone-${w}x${h}-ada`);
 
+    const talkBar = await Q(page, () => { const t = document.getElementById('talk').getBoundingClientRect(), b = document.getElementById('bar').getBoundingClientRect(); return t.bottom <= b.top + 1 || t.top >= b.bottom - 1; });
+    check(talkBar, 'the dialogue box doesn\'t cover the toolbar');
     const f0 = await front(page);
     await page.waitForTimeout(300);     // a line can't be skipped in its first quarter second
     await tapSel('#talk-next');
@@ -245,6 +282,21 @@ async function phone(w, h) {
     for (let i = 0; i < 8 && (await front(page)); i++) { await page.waitForTimeout(280); await tapSel('#talk-text'); }
     await until(page, () => !__ss.G.queue.length, 'tapping the dialogue box clicks through the briefing');
 
+    const narrow = await Q(page, () => !document.body.classList.contains('below'));
+    const tb = ['#nav-prev', '#nav-next', '#btn-jobs', '#btn-hint', '#btn-map', '#btn-notebook', '#btn-pause', narrow ? '#btn-bag' : '#bag .slot'];
+    for (const z of await onScreen(page, tb)) check(z.ok, `toolbar ${z.s} is at least 44 px and on screen (${z.why})`);
+    await shot(page, `phone-${w}x${h}-toolbar`);
+    await tapSel('#nav-next');
+    await until(page, () => __ss.G.room === 'observatory', 'tapping ▶ walks to the Observatory');
+    await tapTarget('exit:-1');
+    await until(page, () => __ss.G.room === 'deck', 'tapping the arrow at the left edge walks back to the Command Deck');
+    if (narrow) {
+        await tapSel('#btn-bag');
+        await until(page, () => !document.getElementById('bag-pop').hidden && document.querySelectorAll('#bag-pop-items .slot').length === 6, 'on a short phone 🎒 opens the backpack with its six clue slots');
+        await shot(page, `phone-${w}x${h}-bag`);
+        await tapSel('#bag-pop-close');
+        await until(page, () => document.getElementById('bag-pop').hidden, '✕ puts it away');
+    }
     await tapSel('#btn-map');
     await until(page, () => __ss.map, 'tapping 🗺️ opens the map');
     await tapTarget('map:dock');

@@ -106,6 +106,28 @@ export const ROOMS = {
 /** The rooms on the station map, in the order the map lists them. The vents are reached through Crew Quarters. */
 export const MAP_ROOMS = ['deck', 'dock', 'garden', 'galley', 'engine', 'observatory', 'quarters'];
 
+/** The corridor ring, clockwise round the hub as the station map draws it: the left edge of a room leads to the
+ * room before it, the right edge to the room after it. The air vents only lead back to Crew Quarters. */
+export const RING = ['deck', 'observatory', 'dock', 'quarters', 'engine', 'galley', 'garden'];
+
+/** The room through the left (-1) or right (+1) edge of a room, or null. */
+export function neighbor(room, dir) {
+    if (room === 'vents') return dir < 0 ? 'quarters' : null;
+    const i = RING.indexOf(room);
+    if (i < 0) return null;
+    return RING[(i + dir + RING.length) % RING.length];
+}
+
+/** Which way round the ring is shorter from one room to another: -1, +1, or 0 when it's the same room. */
+export function wayTo(from, to) {
+    if (from === to || !to) return 0;
+    if (from === 'vents') return -1;
+    const a = RING.indexOf(from), b = RING.indexOf(to);
+    if (a < 0 || b < 0) return 0;
+    const fwd = (b - a + RING.length) % RING.length;
+    return fwd <= RING.length - fwd ? 1 : -1;
+}
+
 /** Where each room sits on the station map (bg/station), in game pixels: the module's box. */
 export const MAP_SPOTS = {
     deck: { x: 278, y: 22, w: 90, h: 105 },
