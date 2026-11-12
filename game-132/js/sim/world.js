@@ -36,6 +36,12 @@ export function los(A, x0, y0, x1, y1) {
     return true;
 }
 
+/** Line of sight wide enough for a body of radius r to walk straight along it (three parallel lines). */
+export function clearPath(A, x0, y0, x1, y1, r) {
+    const d = Math.hypot(x1 - x0, y1 - y0) || 1, nx = (-(y1 - y0) / d) * r, ny = ((x1 - x0) / d) * r;
+    return los(A, x0, y0, x1, y1) && los(A, x0 + nx, y0 + ny, x1 + nx, y1 + ny) && los(A, x0 - nx, y0 - ny, x1 - nx, y1 - ny);
+}
+
 /** The furthest point along the ray from (x0,y0) toward (x1,y1) that a body of radius r can stand on. */
 export function lastFit(A, x0, y0, x1, y1, r) {
     const d = Math.hypot(x1 - x0, y1 - y0), n = Math.max(1, Math.ceil(d / 0.2));
@@ -228,5 +234,5 @@ export function generateArea(kind, seed, w = 60, h = 60, { boss = false } = {}) 
 export function proveArea(A) {
     const d = flow(A, Math.floor(A.start.x), Math.floor(A.start.y));
     const ok = (p) => !p || d[Math.floor(p.y) * A.w + Math.floor(p.x)] >= 0;
-    return ok(A.exit) && ok(A.waystone) && A.spawns.every(ok) && A.lore.every(ok);
+    return ok(A.exit) && ok(A.waystone) && (A.spawns || []).every(ok) && (A.lore || []).every(ok);
 }

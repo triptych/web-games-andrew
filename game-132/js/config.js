@@ -36,7 +36,7 @@ export const PORTAL = { cast: 1.2, radius: 1.0 };
 
 export const MON = {
     hp: (L) => 20 * Math.pow(1.135, L - 1),
-    dmg: (L) => 4 * Math.pow(1.105, L - 1),
+    dmg: (L) => 6.5 * Math.pow(1.105, L - 1),
     armor: (L) => 6 * L,
     aggro: 11, leash: 26,
     eliteHp: 3.2, eliteDmg: 1.4, champions: [3, 4], rareMinions: [2, 3],

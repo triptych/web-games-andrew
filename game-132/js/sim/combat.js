@@ -134,7 +134,7 @@ export function killMonster(G, m, opts = {}) {
     G.stats.kills++;
     if (m.elite && !m.elite.minion) G.stats.elites++;
     // experience: a share of the curve, more for elites and bosses
-    const xp = Math.round(def.xp * (8 + m.lvl * 3.2) * (m.elite ? (m.elite.minion ? 2 : 4) : 1));
+    const xp = Math.round(def.xp * (20 + m.lvl * 9) * (m.elite ? (m.elite.minion ? 2 : 4) : 1));
     gainXp(G, xp);
     gainRes(G, 'essence', PLAYER.essencePerKill);
     if (P.synergy === 'bloodpact') { gainRes(G, 'rage', 4); gainRes(G, 'essence', 3); }

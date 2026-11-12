@@ -3,6 +3,7 @@
 
 import { ITEM, GLOBE } from '../config.js';
 import { weighted } from '../rng.js';
+import { lastFit } from './world.js';
 import {
     BASES, BASE_LIST, WEAPONS, BASE_NAMES, AFFIXES, AFFIX_LIST, RARITIES, LEGENDARIES, SETS, GEMS, GEM_LIST, GEM_GRADES, MAX_SOCKETS,
 } from './data/items.js';
@@ -151,7 +152,8 @@ export function dropLoot(G, m, { mf = 0 } = {}) {
     else if (m.elite) n = rng.int(ITEM.eliteDrops[0], ITEM.eliteDrops[1]) - (m.elite.minion ? 1 : 0);
     else n = rng() < ITEM.dropChance ? 1 : 0;
     const ilvl = m.lvl;
-    const at = (k) => ({ x: m.x + Math.cos(k * 2.4) * (0.5 + 0.35 * k), y: m.y + Math.sin(k * 2.4) * (0.5 + 0.35 * k) });
+    // spread the drops in a little spiral, never into a wall
+    const at = (k) => lastFit(G.area, m.x, m.y, m.x + Math.cos(k * 2.4) * (0.5 + 0.35 * k), m.y + Math.sin(k * 2.4) * (0.5 + 0.35 * k), 0.2);
     let k = 0;
     for (let i = 0; i < n; i++) {
         P.pity = (P.pity || 0);
