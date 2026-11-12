@@ -1,6 +1,6 @@
 // Starbase Spooky — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.1.0';
 export const SAVE_KEY = 'starbase-spooky.v1';
 
 export const STEP = 1 / 60;               // fixed simulation step (s); nothing here is twitchy

@@ -5,10 +5,14 @@ import { VERSION } from './config.js';
 import { CAST } from './sim/data/cast.js';
 import { LINES, shown, CLUES, CLUE_ORDER, ITEMS, DEDUCE, DAYS, DAYS_TOTAL } from './sim/data/story.js';
 import { QUESTION } from './sim/data/questions.js';
-import { jobs, front } from './sim/game.js';
+import { jobs, front, objective } from './sim/game.js';
+import { ROOMS, neighbor, wayTo } from './sim/data/rooms.js';
 import { iconStyle } from './view/assets.js';
 
 const $ = (id) => document.getElementById(id);
+
+// what plays when you tap 🔊 on a thing in the backpack (clues replay Orby's line from when you found them)
+const BAG_LINES = { meter: 'quasar.bye', cookie: 'orby.cookie', star: 'mama.gift' };
 
 const PZ_TEXT = {
     wires: 'Tap a wire on the left, then the plug with the same colour on the right.',
@@ -62,7 +66,23 @@ export class UI {
         for (const b of document.querySelectorAll('#quiz-answers .ans')) b.addEventListener('click', () => { if (performance.now() - this.quizAt > 400) onAnswer(+b.dataset.i); });
         $('nb-solve').addEventListener('click', () => { this.closeScreen('notebook'); onSolve(); });
         for (const t of document.querySelectorAll('#notebook .tab')) t.addEventListener('click', () => this.tab(t.dataset.tab));
-        $('btn-jobs').addEventListener('click', () => { $('jobs').hidden = !$('jobs').hidden; audio.ui('click'); });
+        // the toolbar: today's jobs (shown in the strip under the toolbar unless you put them away) and the backpack
+        this.jobsWanted = null;           // null: on where there's room for them, off on a short landscape phone
+        this.bagOpen = null;              // { kind, id } on show, or 'list' for the folded backpack's grid
+        this.bagKey = null;
+        this.G = null;
+        $('btn-jobs').addEventListener('click', () => { this.toggleJobs(); audio.ui('click'); });
+        $('btn-bag').addEventListener('click', () => { this.toggleBag(this.G); audio.ui('click'); });
+        $('bag-pop-close').addEventListener('click', () => { this.closeBag(); audio.ui('close'); });
+        $('bag-pop-say').addEventListener('click', () => { if (this.bagLine) audio.say(this.bagLine); });
+        const onSlot = (e) => {
+            const b = e.target.closest('.slot');
+            if (!b) return;
+            audio.ui('click');
+            this.openBag(b.dataset.kind, b.dataset.id);
+        };
+        $('bag').addEventListener('click', onSlot);
+        $('bag-pop-items').addEventListener('click', onSlot);
     }
 
     // ------------------------------------------------------------------ screens
@@ -92,8 +112,13 @@ export class UI {
     }
 
     // ------------------------------------------------------------------ HUD
-    showHud(on) { $('hud').hidden = !on; if (!on) $('jobs').hidden = true; }
-    hud(G, nudge) {
+    showHud(on) {
+        $('bar').hidden = !on;
+        if (!on) { $('jobs').hidden = true; this.closeBag(); }
+    }
+    /** The toolbar and the job list. Called every frame; only touches the DOM when something changed. */
+    hud(G, nudge, map) {
+        this.G = G;
         $('hud-day').textContent = `Day ${G.day}`;
         const n = String(G.stickers);
         if ($('hud-sticker-n').textContent !== n) {
@@ -101,10 +126,96 @@ export class UI {
             $('hud-stickers').classList.remove('pop'); void $('hud-stickers').offsetWidth; $('hud-stickers').classList.add('pop');
         }
         $('btn-hint').classList.toggle('nudge', !!nudge);
+        const busy = !!front(G);
+
+        // rooms to the left and right; the button toward the next job glows
+        const o = objective(G);
+        const goal = o && !(o.id === 'find' && G.room === 'vents') ? o.room : null;
+        const way = wayTo(G.room, goal);
+        for (const [btn, name, dir] of [['nav-prev', 'nav-prev-name', -1], ['nav-next', 'nav-next-name', 1]]) {
+            const to = neighbor(G.room, dir);
+            const label = to ? ROOMS[to].name : '';
+            if ($(name).textContent !== label) $(name).textContent = label;
+            $(btn).disabled = !to || busy || map;
+            $(btn).classList.toggle('way', !!to && way === dir && !busy);
+            $(btn).setAttribute('aria-label', to ? `Go ${dir < 0 ? 'left' : 'right'} to the ${label}` : 'No way out this side');
+        }
+        $('nav-here').querySelector('b').textContent = ROOMS[G.room].name;
+        $('btn-map').disabled = busy;
+        $('btn-hint').disabled = busy;
+
+        // the backpack: things first, then the six clues (a "?" until found)
+        const key = G.items.join() + '|' + G.clues.join();
+        if (key !== this.bagKey) {
+            const fresh = this.bagKey !== null;
+            const had = new Set((this.bagKey || '').split(/[|,]/));
+            this.bagKey = key;
+            const slots = this.bagSlots(G).map((x) => {
+                const isNew = fresh && x.have && !had.has(x.id);
+                return x.have
+                    ? `<button class="slot ${x.kind === 'item' ? 'item' : ''}${isNew ? ' new' : ''}" data-kind="${x.kind}" data-id="${x.id}" title="${esc(x.name)}" aria-label="${esc(x.name)}"><span class="ic" style="${iconStyle('items', x.icon, 38)}"></span></button>`
+                    : `<button class="slot empty" data-kind="clue" data-id="${x.id}" title="A clue still to find" aria-label="A clue still to find">?</button>`;
+            }).join('');
+            $('bag').innerHTML = slots;
+            $('bag-pop-items').innerHTML = slots;
+            $('bag-n').textContent = String(G.items.length + G.clues.length);
+            if (this.bagOpen && this.bagOpen !== 'list') this.openBag(this.bagOpen.kind, this.bagOpen.id);
+        }
+
+        // today's jobs: where there's room, they fill the strip under the toolbar whenever nobody is talking
+        const below = document.body.classList.contains('below');
+        const want = this.jobsWanted ?? below;
+        $('jobs').hidden = !(want && !busy && !map && !this.bagOpen);
+        $('btn-jobs').classList.toggle('on', want);
+        $('btn-bag').classList.toggle('on', !!this.bagOpen);
         const list = jobs(G);
-        const html = list.map((j) => `<li class="${j.done ? 'done' : j.ready ? '' : 'wait'}"><span class="box">${j.done ? '✅' : j.ready ? '⬜' : '⏳'}</span><span>${esc(j.label)}</span></li>`).join('')
-            + (G.day < DAYS_TOTAL ? `<li class="${list.every((j) => j.done) ? '' : 'wait'}"><span class="box">🛏️</span><span>Go to bed in Crew Quarters</span></li>` : '');
+        const next = o ? o.id : null;
+        const html = list.map((j) => `<li class="${j.done ? 'done' : !j.ready ? 'wait' : j.id === next ? 'next' : ''}"><span class="box">${j.done ? '✅' : j.ready ? (j.id === next ? '👉' : '⬜') : '⏳'}</span><span>${esc(j.label)}</span></li>`).join('')
+            + (G.day < DAYS_TOTAL ? `<li class="${list.every((j) => j.done) ? 'next' : 'wait'}"><span class="box">🛏️</span><span>Go to bed in Crew Quarters</span></li>` : '');
         if ($('jobs-list').innerHTML !== html) $('jobs-list').innerHTML = html;
+    }
+
+    toggleJobs() {
+        const below = document.body.classList.contains('below');
+        this.jobsWanted = !(this.jobsWanted ?? below);
+    }
+
+    // ------------------------------------------------------------------ the backpack
+    bagSlots(G) {
+        return [
+            ...G.items.map((id) => ({ kind: 'item', id, have: true, name: ITEMS[id].name, icon: ITEMS[id].icon })),
+            ...CLUE_ORDER.map((id) => ({ kind: 'clue', id, have: G.clues.includes(id), name: CLUES[id].name, icon: CLUES[id].icon })),
+        ];
+    }
+    /** Show one thing from the backpack (its picture, what it is, and its voice line on 🔊). */
+    openBag(kind, id) {
+        const G = this.G;
+        if (!G) return;
+        const have = kind === 'item' ? G.items.includes(id) : G.clues.includes(id);
+        const d = kind === 'item' ? ITEMS[id] : CLUES[id];
+        $('bag-pop-ic').setAttribute('style', have ? iconStyle('items', d.icon, 64) : '');
+        $('bag-pop-name').textContent = have ? d.name : 'A clue still to find';
+        $('bag-pop-text').textContent = have ? d.text : `Look around the station. ${G.clues.length} of 6 clues found so far.`;
+        this.bagLine = have ? (kind === 'clue' ? `orby.clue.${id}` : BAG_LINES[id]) : null;
+        $('bag-pop-say').hidden = !this.bagLine;
+        $('bag-pop-detail').hidden = false;
+        for (const el of document.querySelectorAll('.slot')) el.classList.toggle('on', el.dataset.id === id);
+        this.bagOpen = { kind, id };
+        $('bag-pop').hidden = false;
+    }
+    /** The 🎒 button: on a short phone it opens the grid of everything carried; elsewhere it shows the first thing. */
+    toggleBag(G) {
+        if (this.bagOpen) { this.closeBag(); return; }
+        if (!G || front(G)) return;
+        this.G = G;
+        const first = this.bagSlots(G).find((x) => x.have) || this.bagSlots(G)[0];
+        this.openBag(first.kind, first.id);
+        if (!document.body.classList.contains('below')) this.bagOpen = { ...this.bagOpen, list: true };
+    }
+    closeBag() {
+        this.bagOpen = null;
+        $('bag-pop').hidden = true;
+        for (const el of document.querySelectorAll('.slot.on')) el.classList.remove('on');
     }
 
     // ------------------------------------------------------------------ dialogue, quiz, puzzle bar
