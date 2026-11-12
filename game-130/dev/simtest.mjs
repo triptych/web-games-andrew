@@ -29,7 +29,7 @@ const C = await import('../js/config.js');
 const Gm = await import('../js/sim/game.js');
 const Bt = await import('../js/sim/bot.js');
 const Pz = await import('../js/sim/puzzles.js');
-const { ROOMS, MAP_SPOTS, W, H } = await import('../js/sim/data/rooms.js');
+const { ROOMS, MAP_SPOTS, W, H, RING, neighbor, wayTo } = await import('../js/sim/data/rooms.js');
 const S = await import('../js/sim/data/story.js');
 const Q = await import('../js/sim/data/questions.js');
 const { CAST } = await import('../js/sim/data/cast.js');
@@ -210,6 +210,34 @@ if (want('rules')) {
     Gm.act(G, { t: 'next' });
     ok(G.day === 2 && Gm.front(G)?.say === 'ada.d2', 'and day 2 starts with Captain Ada again');
 
+    // walking out of the side of a room into the next one round the ring
+    G = Gm.newGame(8); talk(G);
+    ok(Gm.act(G, { t: 'exit', dir: 1 }), 'Kit can walk out of the right side of the room');
+    settle(G);
+    ok(G.room === neighbor('deck', 1) && G.kit.x < 80 && G.kit.face === 1, `and comes in on the left side of the ${ROOMS[G.room].name}, facing in`);
+    Gm.act(G, { t: 'exit', dir: -1 }); settle(G);
+    ok(G.room === 'deck' && G.kit.x > 560, 'walking out of the left side goes back, coming in on the right');
+    const visited = new Set([G.room]);
+    for (let i = 0; i < RING.length; i++) { Gm.act(G, { t: 'exit', dir: 1 }); settle(G); talk(G); visited.add(G.room); }
+    ok(visited.size === RING.length && G.room === 'deck', 'going right all the way round visits every room once and comes home');
+    ok(new Set(RING).size === RING.length && Object.keys(ROOMS).every((r) => RING.includes(r) || r === 'vents'), 'the ring holds every room but the vents');
+    ok(neighbor('vents', -1) === 'quarters' && neighbor('vents', 1) === null, 'the vents only lead back to Crew Quarters');
+    let far = 0;
+    for (const a of RING) for (const b of RING) {
+        let r = a, n = 0;
+        const d = wayTo(a, b);
+        while (r !== b && n < 10) { r = neighbor(r, d); n++; }
+        far = Math.max(far, n);
+        if (r !== b) far = 99;
+    }
+    ok(far <= 3, `the glowing arrow always leads to the next job's room in at most 3 rooms (${far})`);
+    ok(Gm.act(G, { t: 'tap', spot: 'chair' }) && Gm.act(G, { t: 'exit', dir: -1 }), 'a new walk replaces the old one');
+    settle(G);
+    ok(G.room === neighbor('deck', -1), 'and the exit wins');
+    G.queue.push({ say: 'orby.chair' });
+    ok(Gm.act(G, { t: 'exit', dir: 1 }) === false, 'nobody leaves while someone is talking');
+    G.queue.length = 0;
+
     // bed before the jobs are done
     G = Gm.newGame(6); talk(G);
     go(G, 'quarters'); tap(G, 'bed');
@@ -363,6 +391,18 @@ if (want('bot')) {
             ok(!bad && G.over, `seed ${s} skill ${skill}: ${bad || (G.over ? 'finishes all five days' : 'did not finish')}`);
             rows.push({ seed: s, skill, stickers: G.stickers, first: G.firstTry, acts: bot.acts, lines, wrongs, spooks, walk: Math.round(G.t / 60) });
         }
+    }
+    // the same games played by walking through the side doors only, never the map
+    for (let s = 1; s <= Math.min(SEEDS, 8); s++) {
+        const G = Gm.newGame(s * 104729);
+        const bot = Bt.makeBot({ skill: 1, seed: s, walk: true });
+        let idle = 0, rooms = 0;
+        for (let i = 0; i < 600000 && !G.over && idle < 3600; i++) {
+            if (Bt.botAct(G, bot)) idle = 0; else { Gm.step(G, DT); idle++; }
+            for (const e of G.events) if (e.type === 'room') rooms++;
+            clear(G);
+        }
+        ok(G.over, `seed ${s}: a bot that only walks through the side doors finishes the game (${rooms} doors walked through)`);
     }
     const avg = (k, f) => { const r = rows.filter((x) => x.skill === k); return Math.round(r.reduce((a, x) => a + x[f], 0) / r.length); };
     const max = (k, f) => Math.max(...rows.filter((x) => x.skill === k).map((x) => x[f]));

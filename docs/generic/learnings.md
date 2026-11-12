@@ -7021,4 +7021,14 @@ A peaceful first-person exploration game in the sim/view layout, with fal art, M
 - **Naming a voiced character is expensive to undo.** The goblin was renamed after recording; seven narrated lines said the old name and had to be recorded again as a new take that overrides the old lines (process takes in name order, later wins). Settle names before recording, and keep names out of lines where a pronoun will do.
 - **A content filter can decline one painting in a set.** Do not resubmit it reworded; compose that card from art you already have (here, the hearth's prop render on a warm ground) and say so in the art README.
 - **Cards that are part of the sim sit above the touch deck.** The ✋ button is under the card overlay on a phone, so the card's own Continue button is the control; the browser test taps that.
-
+- **An adventure needs walking between rooms and an inventory on screen at all times, not only in a map.** v1.0.0
+  had a station map behind a small corner button as the only way between rooms, and items lived only in a tab of
+  the Notebook. The owner's verdict was "navigating from room to room is almost impossible, and where is the
+  inventory panel?". v1.1.0 adds:
+  - a toolbar under the picture: ◀ *room* · *You are in the …* · *room* ▶, a backpack strip, then the tools;
+  - door arrows at both edges of every room;
+  - a ring order for the rooms;
+  - an `exit` command that walks Kit out one side and in the other;
+  - a glow on whichever side leads to the next job.
+  A bot that travels only by side doors proves the game can be finished without the map
+  ([game-130 v1.1.0](../../game-130/js/ui.js)).

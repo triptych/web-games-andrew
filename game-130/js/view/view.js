@@ -6,7 +6,7 @@
 // keys onto them, so the mouse, a finger, the arrow keys and the tests all go through the same list.
 
 import { W, H } from '../config.js';
-import { ROOMS, MAP_SPOTS, MAP_ROOMS } from '../sim/data/rooms.js';
+import { ROOMS, MAP_SPOTS, MAP_ROOMS, neighbor, wayTo } from '../sim/data/rooms.js';
 import { CAST } from '../sim/data/cast.js';
 import { DAYS } from '../sim/data/story.js';
 import { front, roomSpots, objective, clueReady } from '../sim/game.js';
@@ -157,6 +157,28 @@ export class View {
         // what can be tapped
         if (free && ui.mode === 'play') {
             for (const s of roomSpots(G)) this.targets.push({ key: 'spot:' + s.id, x: s.x, y: s.y, w: s.w, h: s.h, cmd: { t: 'tap', spot: s.id }, label: spotLabel(G, s) });
+        }
+        // the doors at the sides of the room: a tap walks Kit out to the next room; the one toward the next job glows
+        if (ui.mode === 'play') {
+            const o = objective(G);
+            const goal = o && !(o.id === 'find' && G.room === 'vents') ? o.room : null;
+            const way = wayTo(G.room, goal);
+            for (const dir of [-1, 1]) {
+                const to = neighbor(G.room, dir);
+                if (!to) continue;
+                const x = dir < 0 ? 2 : W - 30, y = floor - 78;
+                const hot = way === dir;
+                const pulse = hot ? 0.5 + 0.5 * Math.sin(time * 5) : 0;
+                ctx.globalAlpha = free ? 0.92 : 0.45;
+                this.plate(x, y, 28, 40, hot ? '#3b2a00' : '#13183f', hot ? `rgb(255,${190 + 40 * pulse},63)` : '#9ff0ff');
+                ctx.fillStyle = hot ? '#ffd23f' : '#9ff0ff';
+                ctx.beginPath();
+                const cx = x + 14 + dir * Math.round(pulse * 2), cy = y + 20;
+                ctx.moveTo(cx + dir * 8, cy); ctx.lineTo(cx - dir * 6, cy - 11); ctx.lineTo(cx - dir * 6, cy + 11);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                if (free) this.targets.push({ key: 'exit:' + dir, x: x - 2, y: y - 6, w: 34, h: 54, cmd: { t: 'exit', dir }, label: `To the ${ROOMS[to].name}` });
+            }
         }
         // the job marker: a little bouncing star over the spot Orby would point at
         if (free && ui.mode === 'play' && ui.marker) {

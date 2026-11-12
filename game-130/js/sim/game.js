@@ -14,7 +14,7 @@
 
 import { WALK_SPEED, SPOOK_FIRST, SPOOK_AGAIN, STICKERS } from '../config.js';
 import { makeRng } from '../rng.js';
-import { ROOMS } from './data/rooms.js';
+import { ROOMS, neighbor } from './data/rooms.js';
 import { DAYS, DAYS_TOTAL, FIXES, CLUES, CLUE_ORDER, DEDUCE, LINES } from './data/story.js';
 import { QUESTIONS, QUESTION, ASKS_PER_VISIT } from './data/questions.js';
 import { makePuzzle, pickPuzzle, tickPuzzle, shuffle } from './puzzles.js';
@@ -147,14 +147,18 @@ function run(G, s) {
 /** The step the player is looking at, or null when Kit is free to walk around. */
 export const front = (G) => G.queue[0] || null;
 
-function goRoom(G, id) {
+/** Enter a room: by the map at its usual spot, or through a side door (dir = the way Kit was walking) at the
+ * opposite edge, so walking right out of one room walks right into the next. */
+function goRoom(G, id, dir = 0) {
     if (!ROOMS[id]) return;
     G.room = id;
-    G.kit.x = ROOMS[id].entry;
+    G.kit.x = dir > 0 ? EDGE_IN : dir < 0 ? W_ROOM - EDGE_IN : ROOMS[id].entry;
+    if (dir) G.kit.face = dir;
     G.kit.tx = null;
     G.kit.pending = null;
-    G.events.push({ type: 'room', id });
+    G.events.push({ type: 'room', id, dir });
 }
+const W_ROOM = 640, EDGE_OUT = 14, EDGE_IN = 46;
 
 // ------------------------------------------------------------------------------------------------ spots
 /** Is this spot in the current room shown and tappable right now? */
@@ -289,7 +293,7 @@ function interact(G, spot) {
  *   { t: 'go', room }         travel by the station map                  { t: 'next' }         advance a line or card
  *   { t: 'answer', i }        answer the visitor's (or the mystery's) question with option i
  *   { t: 'pick', ... }        tap a puzzle piece (see puzzles.js)        { t: 'solve' }        solve the mystery
- *   { t: 'hint' }             ask Orby what to do next
+ *   { t: 'hint' }             ask Orby what to do next   { t: 'exit', dir }   walk out the left (-1) or right (+1) side
  */
 export function act(G, cmd) {
     if (G.over && cmd.t !== 'next') return false;
@@ -330,6 +334,15 @@ export function act(G, cmd) {
             G.kit.pending = null;
             G.kit.tx = Math.max(20, Math.min(620, cmd.x));
             return true;
+        case 'exit': {
+            // walk to the left or right edge of the room and through to the next room round the ring
+            if (f) return false;
+            const to = neighbor(G.room, cmd.dir < 0 ? -1 : 1);
+            if (!to) return false;
+            G.kit.pending = 'exit:' + (cmd.dir < 0 ? -1 : 1);
+            G.kit.tx = cmd.dir < 0 ? EDGE_OUT : W_ROOM - EDGE_OUT;
+            return true;
+        }
         case 'go':
             if (f || !ROOMS[cmd.room] || cmd.room === G.room) return false;
             G.events.push({ type: 'door' });
@@ -397,7 +410,12 @@ export function step(G, dt) {
         if (Math.abs(d) <= s) {
             k.x = k.tx;
             k.tx = null;
-            if (k.pending) {
+            if (k.pending && k.pending.startsWith('exit:')) {
+                const dir = +k.pending.slice(5);
+                k.pending = null;
+                const to = neighbor(G.room, dir);
+                if (to) { G.events.push({ type: 'door' }); goRoom(G, to, dir); }
+            } else if (k.pending) {
                 const spot = roomSpots(G).find((x) => x.id === k.pending);
                 k.pending = null;
                 if (spot) { interact(G, spot); advance(G); }

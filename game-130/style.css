@@ -1,7 +1,8 @@
 /* Starbase Spooky. Phone first: everything fits 360 px wide. The game picture is a 640x360 canvas scaled with
-   nearest-neighbour; main.js sets --cx --cy --cw --ch (its box in CSS px) and body.portrait when there is room
-   for the dialogue under the picture instead of over it. */
+   nearest-neighbour; main.js sets --cx --cy --cw --ch (its box in CSS px), --bary and --stripy (the toolbar and the
+   strip under it), and body.below when there is room for the dialogue under the picture instead of over it. */
 :root {
+    --bary: 100vh; --stripy: 100vh;
     --bg: #0b0d1e;
     --panel: rgba(18, 20, 46, 0.96);
     --panel2: #1d2150;
@@ -62,47 +63,106 @@ html, body {
 .ibtn { font-size: 20px; padding: 0; background: rgba(20, 24, 60, 0.85); }
 .ibtn:hover, .btn:hover { filter: brightness(1.12); }
 
-/* ---------------------------------------------------------------- HUD */
-#hud {
-    position: fixed; z-index: 10; pointer-events: none;
-    top: calc(6px + var(--safe-t)); right: calc(8px + var(--safe-r)); left: calc(96px + var(--safe-l));
-    display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap;
+/* ---------------------------------------------------------------- the toolbar */
+/* main.js measures the toolbar and sets --bary (its top) and --stripy (the top of the strip under it, where the
+   dialogue, the quiz, the puzzle bar and the job list go). body.below: toolbar and strip sit under the picture.
+   Otherwise (a short landscape phone) the toolbar is a bottom strip and the dialogue floats over the picture. */
+#bar {
+    position: fixed; z-index: 15; top: var(--bary);
+    left: max(calc(6px + var(--safe-l)), calc(50vw - 560px)); right: max(calc(6px + var(--safe-r)), calc(50vw - 560px));
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px;
+    background: linear-gradient(#262c66, #171b45); border: 3px solid #8fa6ff; border-radius: 14px; padding: 5px 8px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
 }
-#hud > * { pointer-events: auto; }
+.bar-nav, .bar-bag, .bar-tools { display: flex; align-items: center; gap: 6px; }
+.bar-nav { flex: 1 1 400px; min-width: 0; }
+.navbtn {
+    font: inherit; font-weight: 800; font-size: 14px; color: #08243a; cursor: pointer;
+    background: #9ff0ff; border: 2px solid #fff6; border-radius: 12px; box-shadow: 0 3px 0 #2b6bbf;
+    min-height: 48px; min-width: 52px; max-width: 42%; padding: 4px 10px; display: flex; align-items: center; gap: 6px;
+}
+.navbtn .arr { font-size: 18px; flex: none; }
+.navbtn .nav-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.navbtn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #2b6bbf; }
+.navbtn:disabled { opacity: 0.35; cursor: default; box-shadow: none; }
+.navbtn.way { background: var(--accent); color: #2a1b00; box-shadow: 0 3px 0 #b88a00; animation: way 1.6s ease-in-out infinite; }
+@keyframes way { 50% { filter: brightness(1.18); } }
+#nav-here { flex: 1; min-width: 0; text-align: center; line-height: 1.2; }
+#nav-here .small { display: block; font-size: 11px; color: var(--dim); }
+#nav-here b { font: 10px/1.6 var(--pixel); color: #fff; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#bag { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+.slot {
+    width: 46px; height: 46px; border-radius: 10px; border: 2px solid var(--line); background: #0f1235;
+    cursor: pointer; padding: 0; display: grid; place-items: center; font: 13px var(--pixel); color: var(--dim);
+}
+.slot .ic { width: 38px; height: 38px; image-rendering: pixelated; background-repeat: no-repeat; }
+.slot.item { border-color: var(--accent); background: #2f2758; }
+.slot.empty { border-style: dashed; opacity: 0.55; }
+.slot.new { animation: pop 0.6s 3; border-color: #fff; }
+.slot.on { outline: 3px solid var(--accent); outline-offset: 1px; }
+#btn-bag { display: none; position: relative; }
+#bag-n { font: 9px var(--pixel); position: absolute; right: 4px; bottom: 4px; color: var(--accent); }
+.bar-tools { flex-wrap: wrap; justify-content: flex-end; }
 #hud-day, #hud-stickers {
-    font: 11px var(--pixel); background: rgba(20, 24, 60, 0.85); border: 2px solid var(--line);
-    border-radius: 10px; padding: 9px 10px; min-height: 36px; display: flex; align-items: center; gap: 4px;
+    font: 10px var(--pixel); background: #0f1235; border: 2px solid var(--line);
+    border-radius: 10px; padding: 8px 8px; min-height: 44px; display: flex; align-items: center; gap: 4px;
 }
 #hud-stickers .star { color: var(--accent); font-size: 14px; }
 #hud-stickers.pop { animation: pop 0.5s; }
 @keyframes pop { 30% { transform: scale(1.25); } }
-.hud-buttons { display: flex; gap: 6px; }
 #btn-hint.nudge { animation: nudge 1.4s ease-in-out infinite; border-color: var(--accent); }
 @keyframes nudge { 50% { transform: translateY(-3px); box-shadow: 0 0 12px var(--accent); } }
+#btn-jobs.on, #btn-bag.on { border-color: var(--accent); background: #3b2a00; }
 
-.panel-float {
-    position: fixed; z-index: 11; top: calc(58px + var(--safe-t)); right: calc(8px + var(--safe-r));
-    width: min(330px, calc(100vw - 16px)); background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 10px 14px;
+/* a short landscape phone: one slim row at the bottom; the backpack folds into its 🎒 button */
+body:not(.below) #bar { top: auto; bottom: calc(3px + var(--safe-b)); padding: 3px 6px; }
+body:not(.below) #bag, body:not(.below) #nav-here .small, body:not(.below) #hud-day { display: none; }
+body:not(.below) #btn-bag { display: inline-block; }
+body:not(.below) .navbtn .nav-name { max-width: 90px; }
+
+/* the job list: in the strip under the toolbar when nobody is talking, or a floating card on a short phone */
+#jobs { position: fixed; z-index: 14; background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 8px 14px; }
+body.below #jobs {
+    top: var(--stripy); left: max(calc(8px + var(--safe-l)), calc(50vw - 450px)); width: min(900px, calc(100vw - 16px - var(--safe-l) - var(--safe-r)));
+    max-height: calc(100vh - var(--stripy) - 8px - var(--safe-b)); overflow-y: auto;
 }
-.panel-float h3 { margin: 0 0 6px; font: 11px var(--pixel); color: var(--accent); }
-#jobs-list { list-style: none; margin: 0; padding: 0; font-size: 15px; }
-#jobs-list li { padding: 5px 0; display: flex; gap: 8px; align-items: baseline; }
+body:not(.below) #jobs { top: calc(8px + var(--safe-t)); right: calc(8px + var(--safe-r)); width: min(340px, calc(100vw - 16px)); }
+#jobs h3 { margin: 0 0 4px; font: 10px var(--pixel); color: var(--accent); }
+#jobs-list { list-style: none; margin: 0; padding: 0; font-size: 15px; columns: 2 260px; column-gap: 20px; }
+#jobs-list li { padding: 3px 0; display: flex; gap: 8px; align-items: baseline; break-inside: avoid; }
 #jobs-list li.done { color: var(--dim); text-decoration: line-through; }
 #jobs-list li.wait { color: var(--dim); }
+#jobs-list li.next { color: var(--accent); }
 #jobs-list li .box { width: 18px; flex: none; }
+
+/* the backpack, up close: just above the toolbar */
+#bag-pop {
+    position: fixed; z-index: 30; left: 50%; transform: translateX(-50%); bottom: calc(100vh - var(--bary) + 8px);
+    width: min(520px, calc(100vw - 16px)); max-height: calc(var(--bary) - 16px); overflow-y: auto;
+    background: var(--panel); border: 3px solid var(--accent); border-radius: 14px; padding: 10px; box-shadow: 0 6px 0 rgba(0, 0, 0, 0.4);
+}
+body:not(.below) #bag-pop { bottom: calc(100vh - var(--bary) + 6px); }
+#bag-pop-items { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+body.below #bag-pop-items { display: none; }
+#bag-pop-detail { display: flex; gap: 10px; align-items: center; }
+#bag-pop-detail .ic { width: 64px; height: 64px; flex: none; image-rendering: pixelated; background-repeat: no-repeat; }
+#bag-pop-detail .txt { flex: 1; font-size: 15px; line-height: 1.35; }
+#bag-pop-detail .txt b { color: var(--accent); }
+#bag-pop-detail .txt p { margin: 4px 0 0; }
+#bag-pop-detail .btns { display: flex; flex-direction: column; gap: 6px; }
 
 /* ---------------------------------------------------------------- dialogue */
 #talk, #quiz, #pz-bar {
     position: fixed; z-index: 20;
     left: calc(var(--cx) + 8px); width: calc(var(--cw) - 16px);
-    bottom: calc(100vh - var(--cy) - var(--ch) + 8px);
+    bottom: calc(100vh - var(--bary) + 6px);
     background: var(--panel); border: 3px solid #8fa6ff; border-radius: 14px;
     box-shadow: 0 6px 0 rgba(0, 0, 0, 0.35);
 }
-body.portrait #talk, body.portrait #quiz, body.portrait #pz-bar {
-    top: calc(var(--cy) + var(--ch) + 8px); bottom: auto;
+body.below #talk, body.below #quiz, body.below #pz-bar {
+    top: var(--stripy); bottom: auto;
     left: max(calc(8px + var(--safe-l)), calc(50vw - 450px)); width: min(900px, calc(100vw - 16px - var(--safe-l) - var(--safe-r)));
-    max-height: calc(100vh - var(--cy) - var(--ch) - 16px - var(--safe-b)); overflow-y: auto;
+    max-height: calc(100vh - var(--stripy) - 8px - var(--safe-b)); overflow-y: auto;
 }
 #talk { display: flex; gap: 12px; align-items: center; padding: 10px 12px; cursor: pointer; max-width: 900px; }
 #talk-face { flex: none; width: 72px; height: 72px; border-radius: 12px; background: #2b3170; overflow: hidden; display: grid; place-items: center; border: 2px solid var(--line); }
@@ -120,7 +180,7 @@ body.portrait #talk, body.portrait #quiz, body.portrait #pz-bar {
 #quiz-img { width: 52px; height: 52px; object-fit: cover; object-position: top; border-radius: 10px; background: #2b3170; image-rendering: pixelated; }
 #quiz-q { flex: 1; font-size: clamp(16px, 2.3vw, 22px); line-height: 1.3; }
 #quiz-answers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-body.tall #quiz-answers, body.narrow #quiz-answers { grid-template-columns: 1fr; }
+body.tall #quiz-answers, body.narrow.below #quiz-answers { grid-template-columns: 1fr; }
 .ans {
     font: inherit; font-size: clamp(15px, 2vw, 19px); font-weight: 800; color: #1c1530; cursor: pointer;
     min-height: 54px; border-radius: 14px; border: 3px solid #fff8; padding: 8px 10px;

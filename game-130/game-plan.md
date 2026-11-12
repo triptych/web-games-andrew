@@ -2,7 +2,7 @@
 
 **Genre:** Edutainment point-and-click adventure for young players (about 5–9)
 **Engine:** Vanilla JS, Canvas 2D at 640×360 game pixels, no libraries. Art generated with fal, audio with ElevenLabs.
-**Status:** v1.0.0
+**Status:** v1.1.0
 
 ---
 
@@ -32,8 +32,9 @@ aloud with their answers, in the order the buttons show them.
 ## Core loop
 
 1. **Morning:** Captain Ada calls on the comms console with the day's jobs, and Orby announces what broke.
-2. **Free roaming:** tap things to walk over and look. Orby comments on everything. Use the station map to change
-   rooms.
+2. **Free roaming:** tap things to walk over and look. Orby comments on everything. Walk to the next room with
+   the toolbar's ◀ ▶ buttons or the arrows at the picture's edges; the way to the next job glows. Or open the
+   station map.
 3. **Jobs:** greet the visitor, fix the breakdown, find the day's clue or clues. The 📋 list shows them, and
    🤖 or tapping Orby gives a voiced hint.
 4. **Spooky moments** happen between jobs: a ghost drifts past, the lights flicker, something peeks in.
@@ -71,6 +72,19 @@ Each visitor knows four questions and asks three, chosen by the seed, so a repla
 answer is worth 2 stickers; later it's worth 1. A wrong answer greys out that button and can't be picked again, so
 a question takes at most three taps. Every right answer puts its fact in the Space Book and Orby reads it aloud.
 
+### Getting around
+The seven rooms form a ring round the hub, in the order the station map draws them (`RING` in `rooms.js`): Command
+Deck, Observatory, Docking Bay, Crew Quarters, Engine Room, Galley, Star Garden. The `exit` command walks Kit to the
+left or right edge and into the neighbouring room, entering at the opposite edge. `wayTo` picks the shorter way
+round, and the toolbar button and the edge arrow pointing that way glow, so the next job is never more than three
+rooms away. The air vents lead only back to Crew Quarters. The map's `go` jumps straight to any room.
+
+### The toolbar
+The toolbar is always under the picture. It holds ◀ (room) · *You are in the …* · (room) ▶, the backpack (gadgets,
+then six clue slots), Day, stickers, 📋 jobs, 🤖 hint, 🗺️ map, 📓 Notebook and ❚❚. The job list fills the strip
+under it whenever nobody is talking. On a short landscape phone it's one slim row at the bottom, and the backpack
+folds into a 🎒 button.
+
 ### Puzzles (`js/sim/puzzles.js`)
 - **wires:** four colours on the left, a shuffled column of plugs on the right, never already solved. Tap a wire,
   then its colour. A wrong plug gives a harmless zap.
@@ -102,9 +116,11 @@ Everything is data in `js/sim/data/`:
 | Action | Mouse / touch | Keyboard | Gamepad |
 |---|---|---|---|
 | Walk and look | tap it (a tap on the floor just walks) | arrows to choose, Enter | d-pad, A |
+| Next room left / right | ◀ ▶ on the toolbar, or the arrows at the picture's edges | Q / E | LB / RB |
+| Backpack | tap a slot (🎒 on a short phone) | B | Back |
 | Next line | tap the box or ▶ | Space / Enter | A |
 | Answer | tap the answer | 1 2 3, or arrows + Enter | d-pad, A |
-| Hint, map, Notebook | 🤖 or Orby, 🗺️, 📓 | H, M, N | X, Y |
+| Hint, map, Notebook, jobs | 🤖 or Orby, 🗺️, 📓, 📋 | H, M, N, J | X, Y |
 | Pause | ❚❚ | Esc | Start / B |
 
 ## Look and sound
@@ -171,6 +187,14 @@ A real child reads, explores and replays lines, so expect 25–45 minutes.
 - A sixth visitor and a second mystery would make a good sequel.
 
 ## Changelog
+
+### v1.1.0 (2026-11-12)
+- A toolbar that's always under the picture:
+  - ◀ ▶ walk to the neighbouring room round the ring, and the way to the next job glows
+  - door arrows at the picture's edges do the same
+  - a backpack shows the gadgets and the six clues; tap one for its card and voice line
+  - the tools moved into it, and the job list fills the strip below it
+- The sim gained the `exit` command; a bot that only uses side doors finishes the game.
 
 ### v1.0.0 (2026-11-12)
 - First release:
