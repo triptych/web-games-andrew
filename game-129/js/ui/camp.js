@@ -10,6 +10,15 @@ import { progressText } from '../sim/quests.js';
 import { NPCS } from '../sim/data/town.js';
 import { FRONT } from '../config.js';
 
+// Would this item do anything for this hero? (A draught on someone at full health, or a feather on the living, is
+// greyed out rather than wasted or refused.)
+function helps(it, c, s) {
+    if (!it) return false;
+    if (it.revive) return c.hp <= 0;
+    if (c.hp <= 0) return false;
+    return (it.heal && c.hp < s.hp) || (it.mp && c.mp < s.mp) || (it.cure && ['poison', 'sleep', 'paralyze', 'blind', 'curse', 'charm'].some((k) => c.st[k])) || false;
+}
+
 const SLOTS = [['weapon', 'Weapon'], ['armor', 'Armour'], ['shield', 'Shield'], ['acc', 'Accessory']];
 
 export class CampUI {
@@ -17,7 +26,7 @@ export class CampUI {
         this.audio = audio; this.send = send; this.onSystem = onSystem;
         this.tab = 'party';
         this.sel = null;          // selected hero id
-        this.pick = null;         // { kind: 'use'|'equip', inv } waiting for a hero
+        this.pick = null;         // { kind: 'use'|'equip', inv, id } waiting for a hero
         for (const b of document.querySelectorAll('#camp-tabs .tab')) b.addEventListener('click', () => { this.tab = b.dataset.tab; this.pick = null; this.audio.ui('move'); this.render(this.G); });
     }
 
@@ -105,18 +114,23 @@ export class CampUI {
 
     // ------------------------------------------------------------ items
     _items(G, body) {
-        if (this.pick) {
-            const e = G.inv[this.pick.inv];
-            body.append(el('p', { text: `${this.pick.kind === 'use' ? 'Use' : 'Equip'} ${e ? itemName(e) : ''} on whom?` }));
+        const p = this.pick;
+        const e = p && G.inv[p.inv];
+        if (p && (!e || e.id !== p.id)) this.pick = null;   // the stack ran out or the pack changed under us
+        else if (p) {
+            const d = itemDef(e.id), it = CONSUMABLES[e.id];
+            body.append(el('p', { text: `${p.kind === 'use' ? 'Use' : 'Equip'} ${itemName(e)}${e.n > 1 ? ' ×' + e.n : ''} on whom?` }));
             const list = el('div.list');
             for (const id of G.party) {
                 const c = G.roster.find((x) => x.id === id);
                 const s = heroStats(c);
-                const d = e && itemDef(e.id);
-                const ok = this.pick.kind === 'equip' ? canEquip(c, d) : true;
+                const ok = p.kind === 'equip' ? canEquip(c, d) : helps(it, c, s);
                 list.append(this._btn(c.name, `HP ${c.hp}/${s.hp} · MP ${c.mp}/${s.mp}`, () => {
-                    this.send(this.pick.kind === 'use' ? { t: 'use', inv: this.pick.inv, target: c.id } : { t: 'equip', cid: c.id, inv: this.pick.inv });
-                    this.pick = null;
+                    // Stay on this list while the stack lasts, so a second hero can drink straight away. The pick is
+                    // settled before send(), because send() re-renders the camp at once.
+                    this.pick = p.kind === 'use' && (e.n || 1) > 1 ? p : null;
+                    this.send(p.kind === 'use' ? { t: 'use', inv: p.inv, target: c.id } : { t: 'equip', cid: c.id, inv: p.inv });
+                    this.render(this.G);
                 }, { disabled: !ok }));
             }
             list.append(this._btn('← Cancel', null, () => { this.pick = null; this.render(G); }));
@@ -132,9 +146,9 @@ export class CampUI {
             if (d.type === 'use') {
                 const it = CONSUMABLES[e.id];
                 if (it.escape) acts.push(this._btn('Use', null, () => this.send({ t: 'use', inv: i }), { disabled: G.mode !== 'dungeon' }));
-                else if (it.tgt !== 'enemies') acts.push(this._btn('Use', null, () => { this.pick = { kind: 'use', inv: i }; this.render(G); }));
+                else if (it.tgt !== 'enemies') acts.push(this._btn('Use', null, () => { this.pick = { kind: 'use', inv: i, id: e.id }; this.render(G); }));
             }
-            if (d.type === 'gear') acts.push(this._btn('Equip', null, () => { this.pick = { kind: 'equip', inv: i }; this.render(G); }));
+            if (d.type === 'gear') acts.push(this._btn('Equip', null, () => { this.pick = { kind: 'equip', inv: i, id: e.id }; this.render(G); }));
             if (d.type !== 'quest') acts.push(this._btn('Drop', null, () => this.send({ t: 'discard', inv: i }), { cls: 'danger' }));
             list.append(el('div.card', {}, [icon(e.id), el('div.info', {}, [el('b', { text: `${itemName(e)}${e.n > 1 ? ' ×' + e.n : ''}` }), el('small', { text: gearLine(e) || d.desc || '' })]), el('div.acts', {}, acts)]));
         }

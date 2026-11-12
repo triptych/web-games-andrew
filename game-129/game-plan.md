@@ -4,7 +4,7 @@
 **Engine:** three.js r165 for the dungeon, DOM for the town, menus and the battle sprites. Art generated with fal
 (`fal-ai/nano-banana-2`); music, sound effects and every voice generated with ElevenLabs. A Web Audio synth stands in
 for any audio file that fails to load.
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -147,6 +147,9 @@ balance bands. `browsertest.mjs`: desktop with real keys, two touch-only phones 
 - Class changes and a skill-point tree; more guardians past the Echoes.
 
 ## Changelog
+
+### v1.0.1 (2026-11-12)
+- Camp → Items: a draught can be used on one hero after another without leaving the list (the second tap did nothing before); heroes an item can't help are greyed out.
 
 ### v1.0.0 (2026-11-12)
 - First release: town of six places, 6 classes with 33 skills, recruiting, 8 strata × 7 monsters + the Lantern Reaper,
