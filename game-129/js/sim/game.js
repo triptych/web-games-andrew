@@ -211,15 +211,20 @@ const TOWN = {
     rest(G) {
         const living = G.roster.filter((c) => c.hp > 0);
         const cost = INN_COST(living.reduce((a, c) => a + c.lv, 0));
-        if (G.gold < cost) return deny(G, `a night costs ${cost} gold`);
-        G.gold -= cost;
-        for (const c of living) { const s = heroStats(c); c.hp = s.hp; c.mp = s.mp; delete c.st.poison; }
+        // can't pay? Marta lets you sleep in the stables: half your strength back, nothing more
+        const stable = G.gold < cost;
+        if (!stable) G.gold -= cost;
+        for (const c of living) {
+            const s = heroStats(c);
+            if (stable) { c.hp = Math.max(c.hp, Math.ceil(s.hp / 2)); c.mp = Math.max(c.mp, Math.ceil(s.mp / 2)); }
+            else { c.hp = s.hp; c.mp = s.mp; delete c.st.poison; }
+        }
         G.day++;
         // the dungeon shifts in the night: the reaper walks again
         for (const f of Object.values(G.floors)) delete f.reaper;
         rollRecruits(G);
         G.quests.board = rollBoard(G).filter((b) => !G.quests.active.some((a) => a.id === b.id));
-        G.events.push({ type: 'rest', cost, day: G.day });
+        G.events.push({ type: 'rest', cost: stable ? 0 : cost, stable, day: G.day });
         return true;
     },
     buy(G, { id, n = 1 }) {

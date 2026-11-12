@@ -21,8 +21,8 @@ import { storyFor, isComplete, spotQuest, MAX_ACTIVE } from './quests.js';
 /** The level a party should average before taking on `floor`. */
 export const recLevel = (floor) => Math.max(1, Math.round(floor * 0.9 + (isBossFloor(floor) ? 2 : 0)));
 
-export function makeBot({ seed = 1, skill = 1, maxDepth = Infinity, dare = 1 } = {}) {
-    return { rng: makeRng(seed * 2654435761), skill, maxDepth, dare, inTown: 0, rested: false, target: null, stuck: 0, lastPos: null };
+export function makeBot({ seed = 1, skill = 1, maxDepth = Infinity, dare = 1, nerve = 0.45 } = {}) {
+    return { rng: makeRng(seed * 2654435761), skill, maxDepth, dare, nerve, inTown: 0, rested: false, target: null, stuck: 0, lastPos: null };
 }
 
 const score = (d, cls) => {
@@ -82,7 +82,7 @@ function townMove(G, bot) {
     // rest
     const hurt = party(G).some((c) => { const s = heroStats(c); return c.hp > 0 && (c.hp < s.hp || c.mp < s.mp); });
     const cost = INN_COST(G.roster.filter((c) => c.hp > 0).reduce((a, c) => a + c.lv, 0));
-    if (!bot.rested && (hurt || G.day % 3 === 0) && G.gold >= cost) { bot.rested = true; return { t: 'rest' }; }
+    if (!bot.rested && (hurt || G.day % 3 === 0)) { bot.rested = true; return { t: 'rest' }; }
     // equip what we carry, best first
     for (const c of party(G)) {
         for (const [i, e] of G.inv.entries()) {
@@ -133,7 +133,10 @@ function enterCmd(G, bot) {
     bot.inTown = 0;
     bot.rested = false;
     bot.target = null;
-    const lv = avgLv(G);
+    // a broken party goes back to the first floor to earn its way back
+    const living = party(G).filter((c) => c.hp > 0).length;
+    if (living < 3) return { t: 'enter', floor: 1 };
+    const lv = avgLv(G) * Math.sqrt(living / PARTY_MAX);
     const ok = G.warps.filter((w) => w <= bot.maxDepth && recLevel(w) * bot.dare <= lv + 1);
     return { t: 'enter', floor: ok.length ? Math.max(...ok) : 1 };
 }
@@ -171,7 +174,15 @@ function dungeonMove(G, bot) {
         const hurt = party(G).filter((c) => c.hp > 0 && c.hp / heroStats(c).hp < 0.6).sort((a, b) => a.hp / heroStats(a).hp - b.hp / heroStats(b).hp)[0];
         if (hurt) return { t: 'field', cid: h.id, skill: 'heal', target: hurt.id };
     }
-    const retreat = v.dead > 0 || v.hp < 0.45 || (v.hp < 0.7 && healers.length && healerMp < 4) || (v.mp < 0.15 && v.hp < 0.8);
+    const canRaise = party(G).some((c) => c.hp > 0 && knownSkills(c).some((s) => s.id === 'raise') && c.mp >= 12) || G.inv.some((e) => e.id === 'phoenix');
+    const dead = party(G).find((c) => c.hp <= 0);
+    if (dead && canRaise) {
+        const raiser = party(G).find((c) => c.hp > 0 && knownSkills(c).some((s) => s.id === 'raise') && c.mp >= 12);
+        if (raiser) return { t: 'field', cid: raiser.id, skill: 'raise', target: dead.id };
+        return { t: 'use', inv: G.inv.findIndex((e) => e.id === 'phoenix'), target: dead.id };
+    }
+    const careful = bot.nerve >= 0.4;
+    const retreat = (v.dead > (careful ? 0 : 1) && G.floor > 2) || v.hp < bot.nerve || (careful && v.hp < 0.7 && healers.length && healerMp < 4) || (careful && v.mp < 0.15 && v.hp < 0.8);
     if (retreat) {
         const i = G.inv.findIndex((e) => e.id === 'thread');
         if (i >= 0) return { t: 'use', inv: i };

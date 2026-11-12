@@ -1,9 +1,9 @@
 // HOLLOWDEEP — derived numbers: a hero's stats from class, level and gear; a monster's from its floor. Pure.
 
 import { CLASSES, SKILLS } from './data/classes.js';
-import { MONSTERS, stratumOf, echoName, FLOORS_PER_STRATUM, STRATA } from './data/monsters.js';
+import { MONSTERS, stratumOf, echoName } from './data/monsters.js';
 import { gearStats } from './data/items.js';
-import { XP_NEXT, monsterScale, MON_POWER } from '../config.js';
+import { XP_NEXT, monsterScale, MON_POWER, MON_HP } from '../config.js';
 
 const STATS = ['hp', 'mp', 'atk', 'def', 'mag', 'res', 'spd', 'luk'];
 
@@ -44,16 +44,12 @@ export function canEquip(c, def) {
 export function monsterAt(mid, floor) {
     const m = MONSTERS[mid];
     const { cycle } = stratumOf(floor);
-    // its own stratum's first floor in the current pass round the strata
-    const si = STRATA.findIndex((s) => s.id === m.stratum);
-    const first = si >= 0 ? (cycle * STRATA.length + si) * FLOORS_PER_STRATUM + 1 : floor;
-    const k = monsterScale(floor, Math.min(first, floor), cycle);
-    const ka = Math.sqrt(k) * (1 + 0.45 * (k - 1) / k);       // attack grows slower than health
+    const k = monsterScale(floor, cycle);
     return {
         mid, name: echoName(m.name, cycle), boss: !!m.boss, elite: !!m.elite, undead: !!m.undead, fly: !!m.fly,
-        hp: Math.round(m.hp * k), atk: Math.round(m.atk * ka * MON_POWER), def: Math.round(m.def * ka),
-        mag: Math.round(m.mag * ka * MON_POWER), res: Math.round(m.res * ka), spd: Math.round(m.spd * (1 + 0.15 * cycle) + Math.max(0, floor - first) * 0.15),
+        hp: Math.round(m.hp * k * (m.boss ? MON_HP * 0.5 : MON_HP)), atk: Math.round(m.atk * Math.pow(k, 0.9) * MON_POWER), def: Math.round(m.def * Math.pow(k, 0.8)),
+        mag: Math.round(m.mag * Math.pow(k, 0.9) * MON_POWER), res: Math.round(m.res * Math.pow(k, 0.8)), spd: Math.round(m.spd * (1 + 0.012 * (floor - 1))),
         luk: 5, el: m.el, weak: m.weak.slice(), resist: m.resist.slice(), acts: m.acts.slice(),
-        xp: Math.round(m.xp * k * (1 + 0.1 * Math.max(0, floor - first))), gold: Math.round(m.gold * k), cycle,
+        xp: Math.round(m.xp * Math.pow(k, 1.1)), gold: Math.round(m.gold * Math.pow(k, 0.6)), cycle,
     };
 }
