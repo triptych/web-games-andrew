@@ -6962,3 +6962,43 @@ A first-person dungeon crawler (Wizardry / Etrian Odyssey) in three.js with fal 
   that checks a backdrop changed should read the element's inline style, not the computed one.
 - **Coming back from the dungeon should land on the town square, not the last shop you were in.** The gate is the last
   place you visited before going down, and showing it again on return hid the square's buttons from the test.
+
+## Game 130 Starbase Spooky: an edutainment adventure for pre-readers, a story queue in the sim, and hotspots on generated rooms (2026-11-12)
+
+- **A point-and-click adventure fits the sim/view split as commands plus a story queue.** `act(G, cmd)` takes `tap`,
+  `walk`, `go`, `next`, `answer`, `pick`, `solve` and `hint`. Everything the game says or asks is a step in `G.queue`.
+  Blocking steps (`say`, `ask`, `ded`, `puzzle`, `night`, `end`) wait for the player; `do` steps (finish a job, give an
+  item, find a clue, change room) run at once. Kit can only walk while the queue is empty, and `step()` only moves him,
+  runs the light shows and counts down to spooky moments. The whole game is then plain JSON, a save mid-sentence
+  reloads onto the same line (`deserialize` re-emits the front step's event), and a bot plays all five days in Node
+  through the same commands as a child ([game.js](../../game-130/js/sim/game.js)).
+- **For players who can't read yet, read the answers aloud in the order the buttons show them.** Each question's voice
+  line ends "Is it... Earth? Jupiter? Or Mercury?". The data therefore keeps answers in display order with an `ok`
+  index instead of shuffling them per game, and a test checks the right answer is spread over all three buttons
+  (5/8/7). Colour the buttons and number them (1 2 3), so "the blue one" and "two" both work.
+- **One "objective" function serves Orby's hints, the job list's marker, the bot and the tests.** It returns the first
+  unfinished job whose prerequisites are done, or bed. Jobs gate each other with `after: [...]`: the goo shows only
+  once the garden lights are fixed, and the footprints only once the Glow-o-Meter is handed over. Because the bot plays
+  by the same function, a softlock in the gates shows up as a stuck bot in `simtest` (`idle > 60 s`).
+- **A double tap on ▶ can land on the answer that just appeared under the finger.** The quiz box replaces the dialogue
+  box in the same place, so a child's second tap answered the question; the browser test found it as a flaky "wrong
+  answer". Answers now ignore clicks in the first 0.4 s after a question appears, and lines can't be skipped in their
+  first 0.25 s ([ui.js](../../game-130/js/ui.js)).
+- **A spooky-moment timer should count listening time but only fire when the player is free.** At first it counted
+  only free-roaming time, and the perfect bot (which listens to nothing) never saw a ghost in a whole game. Now the
+  clock runs all day, and a moment fires only when nobody is talking and Kit isn't walking. The balance test gives the
+  bot 2.5 s per line to model listening.
+- **Place hotspots on generated rooms by eye, on a labelled grid.** fal places objects wherever it likes. The prompts
+  name a layout ("comms console on the left, station map on the right wall"), and then each export is drawn at 2× with
+  a 40 px grid and numbers ([dev/art/README.md](../../game-130/dev/art/README.md)). Rooms come out with characters in
+  them unless the prompt says "The room is empty: no people, no characters, no aliens, no robots". Screens and signs
+  grow words unless it says "simple shapes and glowing graphs, never any writing".
+- **Paint over stray letters with the median colour of a ring around them.** The station map came back with an A–G
+  label beside each module. A fixed sky colour left a dark square on the Earth under "D"; the ring median matches the
+  sky or the planet, whichever is behind ([export.py](../../game-130/dev/art/export.py) `SCRUB`).
+- **When fal reports `balance_exhausted`, stop and tell the user.** Don't retry. After they top up, a readiness check
+  can say "ready" while generation is still refused for a minute. Submit again with new submission keys once they
+  confirm: the first try after the top-up failed, and the next worked.
+- **Give the dialogue its own strip under the picture whenever the screen is tall enough.** Overlaying it hid Kit and
+  the visitor during every quiz. A 16:9 picture shrunk to leave a 130–180 px strip still fills a desktop. Only short
+  landscape phones (under 480 px tall) overlay the box.
