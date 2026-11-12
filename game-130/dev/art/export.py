@@ -26,6 +26,8 @@ SPRITES = {'kit': 84, 'orby': 40, 'ada': 120, 'zorp': 96, 'gloobella': 112, 'sno
 FLIP = set()
 # The item sheet came back with a caption under every icon: blank the bottom of each cell before cutting.
 CAPTION = {'items': 0.2}
+# The station map came back with a letter beside each module: paint them over with the sky (game pixels).
+SCRUB = {'station': [(355, 28, 18, 16), (164, 70, 16, 16), (167, 263, 16, 16), (362, 309, 16, 16), (462, 277, 16, 16), (448, 109, 16, 16), (474, 205, 16, 16)]}
 ICONS = {'items': (4, 4, 40), 'planets': (3, 3, 56)}
 
 def label(mask):
@@ -182,7 +184,13 @@ def main(raw):
     have = lambda n: os.path.exists(os.path.join(raw, n))
     for r in ROOMS:
         if have(f'bg-{r}.png'):
-            save(Image.open(os.path.join(raw, f'bg-{r}.png')).convert('RGB').resize((640, 360), Image.BOX), f'bg/{r}.webp', q=84)
+            im = Image.open(os.path.join(raw, f'bg-{r}.png')).convert('RGB').resize((640, 360), Image.BOX)
+            for (x, y, w, h) in SCRUB.get(r, []):
+                # fill with the median colour of a ring just outside the box (sky, or the Earth under D)
+                a = np.asarray(im).astype(np.int32)
+                ring = np.concatenate([a[y - 3, x:x + w], a[y + h + 2, x:x + w], a[y:y + h, x - 3], a[y:y + h, x + w + 2]])
+                im.paste(tuple(int(v) for v in np.median(ring, axis=0)), (x, y, x + w, y + h))
+            save(im, f'bg/{r}.webp', q=84)
         else:
             print('missing', r)
     if have('bg-title.png'):
