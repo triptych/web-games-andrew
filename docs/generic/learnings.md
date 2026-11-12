@@ -7021,6 +7021,10 @@ A peaceful first-person exploration game in the sim/view layout, with fal art, M
 - **Naming a voiced character is expensive to undo.** The goblin was renamed after recording; seven narrated lines said the old name and had to be recorded again as a new take that overrides the old lines (process takes in name order, later wins). Settle names before recording, and keep names out of lines where a pronoun will do.
 - **A content filter can decline one painting in a set.** Do not resubmit it reworded; compose that card from art you already have (here, the hearth's prop render on a warm ground) and say so in the art README.
 - **Cards that are part of the sim sit above the touch deck.** The ✋ button is under the card overlay on a phone, so the card's own Continue button is the control; the browser test taps that.
+- **Generated models next to code-built shapes look like placeholders next to finished art (v1.1.0).** Symptom: the owner's first note after release was that the Meshy characters were high quality and the trees and ruins were blocks. Mixing two levels of finish is worse than either alone: if the heroes are generated, generate the scenery too, trees first (they fill the view). Meshy's `text-to-image` then `image-to-3d` runs entirely from a shell script, 28 models in about ten minutes with six in flight; a tree at 1,300 triangles instances well.
+- **Face a landmark back along the path that reaches it.** Every island prop faced south, so some were met from behind. `facePath()` uses the same `PATHS` table that keeps trees off the trails.
+- **Meshy's painted greens are dark under ACES.** Lift the hemisphere fill and multiply the canopy material's colour (1.45 here) rather than repainting.
+
 - **An adventure needs walking between rooms and an inventory on screen at all times, not only in a map.** v1.0.0
   had a station map behind a small corner button as the only way between rooms, and items lived only in a tab of
   the Notebook. The owner's verdict was "navigating from room to room is almost impossible, and where is the

@@ -1,0 +1,2 @@
+// Written by dev/assets/list.mjs: every model in assets/models/ (without .glb). The game only requests these.
+export const MODEL_FILES = new Set(["arch","barrel","bell","boat","boulder","burrow","cairn","cart","cavemouth","cistern","crystal","darkway","elder","fray","golem","hearth","hut","loom","moondoor","nest","organ","pedestal","perch","pipe","ruin","stair","stone","telescope","throne","tidemother","tidestair","tower","tree","tree2","vane","vine","wall","well"]);

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Fray & the Spiral Isle** (game-131) v1.1.0: the trees and the other things built from boxes and cones looked like placeholders next to the Meshy characters. They are Meshy models now, in the same painted style ([dev/assets](game-131/dev/assets/README.md)).
+  - 28 new models: two trees (an oak for the Mosswood, a windswept tree for the highlands, drawn as instances), and the Tidewatch ruin, boat, cairn, burrow, well, cave mouth and its boulder, castle wall, throne, stair, wind perch, arch, hut, tide stairs, moon door, cart, barrels, telescope, nest, weather vane, cistern, bell, loom, pipe, the dark way and the vine. 38 models, 7.7 MB.
+  - Landmarks on the open island face back along the path that leads to them, so you meet their fronts ([build.js](game-131/js/view/build.js) `facePath`); they all used to face south.
+  - A brighter fill light on the island, and tree canopies lifted to sit with the meadow; clouds and coral are smooth.
+  - The game only requests models listed in `js/model-files.js` (written by `dev/assets/list.mjs`), so a look without a model keeps its code-built shape instead of logging a 404.
+
 ### Added
 - **Starbase Spooky** (game-130) v1.1.0: getting from room to room was hard (only the map went anywhere), and there was nowhere to see what Kit was carrying. Now there's a toolbar that's always under the picture ([index.html](game-130/index.html), [ui.js](game-130/js/ui.js), [style.css](game-130/style.css)).
   - Rooms: the toolbar names the room Kit is in, with ◀ and ▶ buttons named after the rooms on either side. The rooms form a ring round the hub in the order the station map draws them ([rooms.js](game-130/js/sim/data/rooms.js) `RING`). The button toward the next job's room glows, so it's never more than three rooms away. Arrows at the left and right edges of the picture do the same. Kit walks out of one side and comes in the other side of the next room (the sim's new `exit` command, [game.js](game-130/js/sim/game.js)). Keys: Q / E; gamepad: shoulder buttons.
