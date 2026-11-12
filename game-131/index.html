@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1b2a2e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Thimble &amp; the Spiral Isle — a peaceful first-person journey: a new mage, a blind goblin, seven gems and an island of quiet ruins.">
+    <title>Thimble &amp; the Spiral Isle</title>
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="Thimble and the Spiral Isle game view"></canvas>
+    <div id="fade"></div>
+
+    <!-- HUD -->
+    <div id="hud" hidden>
+        <div id="hud-top">
+            <div id="pendant" aria-label="The spiral pendant"></div>
+            <div id="hud-items"></div>
+            <span class="grow"></span>
+            <button id="btn-hint" class="ibtn" aria-label="Ask what to do next">?</button>
+            <button id="btn-journal" class="ibtn" aria-label="Journal">✦</button>
+            <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
+        </div>
+        <div id="place" aria-live="polite"></div>
+        <div id="reticle"></div>
+        <div id="prompt" hidden><kbd id="prompt-key">E</kbd><span id="prompt-text"></span></div>
+        <div id="subtitle" hidden><img id="sub-face" src="art/face-thimble.webp" alt=""><div><b id="sub-who">Thimble</b><span id="sub-text"></span></div></div>
+    </div>
+
+    <!-- Touch deck: shown on coarse pointers or after the first touch -->
+    <div id="touch" hidden>
+        <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div></div>
+        <div id="look-zone"></div>
+        <button id="btn-a" class="tbtn" aria-label="Interact">✋</button>
+    </div>
+
+    <!-- A story card, an inscription or a note: part of the game, closed with the interact button -->
+    <div id="card" hidden>
+        <div id="card-box">
+            <img id="card-img" alt="">
+            <div id="card-body">
+                <div id="card-kicker"></div>
+                <h2 id="card-head"></h2>
+                <p id="card-text"></p>
+                <div class="sheet-foot"><button id="card-next" class="btn primary">Continue</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thimble in a tunnel: you call the directions -->
+    <div id="tunnel" hidden>
+        <div id="tunnel-box">
+            <div id="tunnel-head"><img src="art/face-thimble.webp" alt=""><div><b>Thimble is in <span id="tunnel-name"></span></b><span id="tunnel-say"></span></div></div>
+            <div id="tunnel-mid">
+                <canvas id="echo" width="220" height="220" aria-label="What Thimble has felt so far"></canvas>
+                <div id="dpad">
+                    <button data-d="n" class="btn" aria-label="Go ahead">▲</button>
+                    <button data-d="w" class="btn" aria-label="Go left">◀</button>
+                    <button id="tun-feel" class="btn primary">Feel about</button>
+                    <button data-d="e" class="btn" aria-label="Go right">▶</button>
+                    <button data-d="s" class="btn" aria-label="Go back">▼</button>
+                </div>
+            </div>
+            <div class="sheet-foot"><span class="dim" id="tunnel-keys">Arrows to guide her · Space to feel about</span><button id="tun-back" class="btn">Call her back</button></div>
+        </div>
+    </div>
+
+    <!-- Screens -->
+    <div id="title" class="screen">
+        <div class="sheet title-sheet">
+            <h1 class="logo"><span>Thimble</span><small>&amp; the Spiral Isle</small></h1>
+            <p class="tag">A quiet walk for a new mage and a blind goblin.</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Journey</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="credits" class="btn">Credits</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <p>Nothing here can hurt you and there is no clock. Walk, read, pick things up. Each place holds a gem for your spiral pendant, and each gem opens the way to the next place.</p>
+            <table>
+                <tr><td>W A S D / Arrows</td><td>Walk and turn</td></tr>
+                <tr><td>Mouse</td><td>Click the view to look about (Esc lets go)</td></tr>
+                <tr><td>Shift</td><td>Hurry</td></tr>
+                <tr><td>E / Space</td><td>Use, read, continue</td></tr>
+                <tr><td>H</td><td>Ask Thimble what to do next</td></tr>
+                <tr><td>J</td><td>Journal: pendant, stories, keepsakes</td></tr>
+                <tr><td>P / Esc</td><td>Pause</td></tr>
+            </table>
+            <p><b>Thimble</b> can go where you cannot. Find a goblin-sized way in, send her, and call directions: she tells you what she feels, and whether the hum is getting warmer.</p>
+            <p>Touch: left thumb walks, right thumb looks, ✋ uses. Gamepad: sticks, A to use, X for a hint, Y for the journal.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Voices <input type="range" id="set-voice" min="0" max="1" step="0.05"></label>
+            <label class="row">Look speed <input type="range" id="set-look" min="0.4" max="2" step="0.1"></label>
+            <label class="row">Invert look <input type="checkbox" id="set-invert"></label>
+            <label class="row">Touch controls
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete saved journey</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="credits" class="screen" hidden>
+        <div class="sheet">
+            <h2>Credits</h2>
+            <p>Built with <b>three.js</b> r165. Paintings, textures and icons made with <b>fal</b> (Nano Banana 2). Thimble, Grandfather Lichen, Elder Grusk and the props are 3D models made with <b>Meshy</b> from those paintings. Music, ambience, sound effects and every voice made with <b>ElevenLabs</b>.</p>
+            <p>Written and put together by Claude for the web-games-andrew collection.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Back</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Resting</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Walk on</button>
+                <button data-act="journal" class="btn">Journal</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Return to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="journal" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Journal</h2>
+            <div class="tabs" id="journal-tabs">
+                <button data-tab="pendant" class="btn tab on">Pendant</button>
+                <button data-tab="stories" class="btn tab">Stories</button>
+                <button data-tab="keepsakes" class="btn tab">Keepsakes</button>
+            </div>
+            <div id="journal-body"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">Thimble &amp; the Spiral Isle needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
