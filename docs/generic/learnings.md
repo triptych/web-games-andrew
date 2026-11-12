@@ -7025,3 +7025,14 @@ A peaceful first-person exploration game in the sim/view layout, with fal art, M
 - **Face a landmark back along the path that reaches it.** Every island prop faced south, so some were met from behind. `facePath()` uses the same `PATHS` table that keeps trees off the trails.
 - **Meshy's painted greens are dark under ACES.** Lift the hemisphere fill and multiply the canopy material's colour (1.45 here) rather than repainting.
 
+- **An adventure needs walking between rooms and an inventory on screen at all times, not only in a map.** v1.0.0
+  had a station map behind a small corner button as the only way between rooms, and items lived only in a tab of
+  the Notebook. The owner's verdict was "navigating from room to room is almost impossible, and where is the
+  inventory panel?". v1.1.0 adds:
+  - a toolbar under the picture: ◀ *room* · *You are in the …* · *room* ▶, a backpack strip, then the tools;
+  - door arrows at both edges of every room;
+  - a ring order for the rooms;
+  - an `exit` command that walks Kit out one side and in the other;
+  - a glow on whichever side leads to the next job.
+  A bot that travels only by side doors proves the game can be finished without the map
+  ([game-130 v1.1.0](../../game-130/js/ui.js)).

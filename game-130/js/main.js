@@ -48,25 +48,42 @@ const ui = new UI({
 });
 
 // ------------------------------------------------------------------ layout
+let lastBarH = -1;
 function layout() {
     const vv = window.visualViewport;
     const vw = Math.round(vv ? vv.width : innerWidth), vh = Math.round(vv ? vv.height : innerHeight);
     const portrait = vh > vw * 1.05;
-    // On anything but a short landscape phone the dialogue gets its own strip under the picture, so it never
-    // covers Kit or a visitor. On a short landscape phone it floats over the bottom of the picture instead.
+    // Anywhere but a short landscape phone: the picture, then the toolbar under it, then a strip for the dialogue
+    // (or today's jobs). On a short landscape phone the toolbar is a slim bottom row and the dialogue floats over
+    // the bottom of the picture.
     const below = portrait || vh >= 480;
-    const top = portrait ? Math.min(Math.round(vh * 0.12), 100) : below ? 56 : 0;
-    const strip = below && !portrait ? Math.max(130, Math.min(180, Math.round(vh * 0.24))) : 0;
-    const s = Math.min(vw / W, (vh - top - strip) / H);
-    const cw = Math.round(W * s), ch = Math.round(H * s);
-    const cx = Math.round((vw - cw) / 2);
-    const cy = portrait ? top : below ? top : Math.round((vh - ch) / 2);
+    const body = document.body.classList;
+    body.toggle('below', below);
+    body.toggle('tall', portrait);
+    body.toggle('narrow', vw < 620);
+    const bar = $('bar');
+    const barH = bar.hidden ? 0 : bar.offsetHeight;
+    lastBarH = barH;
+    let cw, ch, cx, cy, bary, stripy;
+    if (below) {
+        const top = portrait ? 46 : 6;
+        const strip = portrait ? 190 : Math.max(126, Math.min(170, Math.round(vh * 0.22)));
+        const s = Math.min(vw / W, (vh - top - barH - 12 - strip) / H);
+        cw = Math.round(W * s); ch = Math.round(H * s);
+        cx = Math.round((vw - cw) / 2); cy = top;
+        bary = cy + ch + 6;
+        stripy = bary + barH + 6;
+    } else {
+        bary = vh - barH - 3;
+        const s = Math.min(vw / W, (bary - 4) / H);
+        cw = Math.round(W * s); ch = Math.round(H * s);
+        cx = Math.round((vw - cw) / 2); cy = Math.max(0, Math.round((bary - 4 - ch) / 2));
+        stripy = bary;
+    }
     const r = document.documentElement.style;
     r.setProperty('--cx', cx + 'px'); r.setProperty('--cy', cy + 'px');
     r.setProperty('--cw', cw + 'px'); r.setProperty('--ch', ch + 'px');
-    document.body.classList.toggle('portrait', below);
-    document.body.classList.toggle('tall', portrait);
-    document.body.classList.toggle('narrow', vw < 620);
+    r.setProperty('--bary', bary + 'px'); r.setProperty('--stripy', stripy + 'px');
 }
 layout();
 window.addEventListener('resize', layout);
@@ -101,6 +118,8 @@ $('pause-menu').addEventListener('click', (e) => {
 $('btn-pause').addEventListener('click', () => pause());
 $('btn-hint').addEventListener('click', () => command({ t: 'hint' }));
 $('btn-map').addEventListener('click', () => toggleMap());
+$('nav-prev').addEventListener('click', () => command({ t: 'exit', dir: -1 }));
+$('nav-next').addEventListener('click', () => command({ t: 'exit', dir: 1 }));
 $('btn-notebook').addEventListener('click', () => openNotebook('clues'));
 $('night-next').addEventListener('click', () => { audio.ui('click'); next(true); });
 $('end-again').addEventListener('click', () => { audio.ui('click'); startGame(newGame((Date.now() % 1e9) | 0)); });
@@ -117,6 +136,7 @@ function startGame(g) {
     hover = focus = null;
     ui.shownKey = null;
     ui.showHud(true);
+    layout();
     audio.init();
     flushEvents();
     saveGame(G);
@@ -205,6 +225,7 @@ function hit(p) {
 canvas.addEventListener('pointerdown', (e) => {
     if (mode !== 'play' || ui.anyScreen()) return;
     e.preventDefault();
+    if (ui.bagOpen) ui.closeBag();
     const p = toGame(e);
     pointer = p;
     const f = front(G);
@@ -246,7 +267,7 @@ function pollPad() {
     const pads = navigator.getGamepads ? [...navigator.getGamepads()] : [];
     const gp = pads.find((p) => p && p.connected);
     if (!gp) return;
-    const MAP = { 0: 'Enter', 1: 'Escape', 9: 'Escape', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight', 2: 'KeyH', 3: 'KeyM' };
+    const MAP = { 0: 'Enter', 1: 'Escape', 9: 'Escape', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight', 2: 'KeyH', 3: 'KeyM', 4: 'KeyQ', 5: 'KeyE', 8: 'KeyB' };
     for (const i in MAP) {
         const on = !!gp.buttons[i]?.pressed;
         if (on && !padPrev[i]) keys.push({ key: MAP[i], pad: true });
@@ -280,7 +301,7 @@ function handleKeys() {
     }
     if (mode !== 'play') return;
     const f = front(G);
-    if (key === 'Escape') { if (map) toggleMap(false); else pause(); return; }
+    if (key === 'Escape') { if (ui.bagOpen) ui.closeBag(); else if (map) toggleMap(false); else pause(); return; }
     if (f?.say) {
         // Enter or Space on the focused ▶ button is the browser's own click; anything else here is "next"
         if ((key === 'Space' || key === 'Enter') && k.tag !== 'BUTTON') next();
@@ -296,6 +317,10 @@ function handleKeys() {
         return;
     }
     if (key === 'KeyH' && !f) command({ t: 'hint' });
+    else if ((key === 'KeyQ' || key === 'BracketLeft') && !f) command({ t: 'exit', dir: -1 });
+    else if ((key === 'KeyE' || key === 'BracketRight') && !f) command({ t: 'exit', dir: 1 });
+    else if (key === 'KeyB') ui.toggleBag(G);
+    else if (key === 'KeyJ') ui.toggleJobs();
     else if (key === 'KeyM' && !f) toggleMap();
     else if (key === 'KeyN') openNotebook('clues');
     else if (['ArrowRight', 'ArrowDown'].includes(key)) moveFocus(1);
@@ -327,7 +352,7 @@ function flushEvents() {
             audio.prefetch(G.queue.slice(1, 5).filter((s) => s.say).map((s) => s.say));
         } else if (e.type === 'map') toggleMap(true);
         else if (e.type === 'book') { /* Orby mentions it; the Notebook opens after his line */ ui.wantBook = true; }
-        else if (e.type === 'room') { map = false; focus = null; }
+        else if (e.type === 'room') { map = false; focus = null; ui.closeBag(); }
         else if (e.type === 'job' || e.type === 'night' || e.type === 'day') saveGame(G);
         else if (e.type === 'end') { clearSave(); audio.play('ending'); }
     }
@@ -363,12 +388,14 @@ function frame(now) {
     flushEvents();
     if (G && mode === 'play') {
         ui.sync(G);
-        ui.hud(G, idle > 20);
+        ui.hud(G, idle > 20, map);
+        if (ui.bagOpen && front(G)) ui.closeBag();
         if (ui.wantBook && !front(G)) { ui.wantBook = false; openNotebook('facts'); }
         if (front(G)?.end) ui.showEnd(G);
     }
-    view.frame(G, { mode: map ? 'map' : mode, hover, focus, pointer, marker: idle > 12 }, dt, time);
+    view.frame(G, { mode: map ? 'map' : mode, hover, focus, pointer, marker: idle > 6 }, dt, time);
     // a focus that isn't a target any more (the room changed, a puzzle piece went) is dropped
+    if (!$('bar').hidden && $('bar').offsetHeight !== lastBarH) layout();
     if (focus && !view.targets.some((t) => t.key === focus.key)) { focus = null; showLabel(null); }
     if (hover && !view.targets.some((t) => t.key === hover.key)) { hover = null; if (!focus) showLabel(null); }
     if (audio.ctx) audio.play(theme());

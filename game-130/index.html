@@ -43,21 +43,42 @@
         <div id="label" hidden></div>
     </div>
 
-    <!-- HUD -->
-    <div id="hud" hidden>
-        <div id="hud-day">Day 1</div>
-        <div id="hud-stickers" title="Star stickers"><span class="star">★</span> <span id="hud-sticker-n">0</span></div>
-        <div class="hud-buttons">
-            <button id="btn-jobs" class="ibtn" aria-label="Today's jobs" title="Today's jobs">📋</button>
+    <!-- The toolbar: always under the picture while you play. Rooms left and right, the backpack, and the tools. -->
+    <div id="bar" hidden>
+        <div class="bar-nav" role="group" aria-label="Go to another room">
+            <button id="nav-prev" class="navbtn" aria-label="Go left"><span class="arr">◀</span><span class="nav-name" id="nav-prev-name"></span></button>
+            <div id="nav-here"><span class="small">You are in the</span><b id="nav-room">Command Deck</b></div>
+            <button id="nav-next" class="navbtn" aria-label="Go right"><span class="nav-name" id="nav-next-name"></span><span class="arr">▶</span></button>
+        </div>
+        <div class="bar-bag" role="group" aria-label="Backpack">
+            <button id="btn-bag" class="ibtn" aria-label="Backpack" title="Backpack (B)">🎒<span id="bag-n"></span></button>
+            <div id="bag"></div>
+        </div>
+        <div class="bar-tools">
+            <div id="hud-day">Day 1</div>
+            <div id="hud-stickers" title="Star stickers"><span class="star">★</span> <span id="hud-sticker-n">0</span></div>
+            <button id="btn-jobs" class="ibtn" aria-label="Today's jobs" title="Today's jobs (J)">📋</button>
             <button id="btn-hint" class="ibtn" aria-label="Ask Orby for a hint" title="Ask Orby (H)">🤖</button>
             <button id="btn-map" class="ibtn" aria-label="Station map" title="Station map (M)">🗺️</button>
             <button id="btn-notebook" class="ibtn" aria-label="Notebook" title="Notebook (N)">📓</button>
             <button id="btn-pause" class="ibtn" aria-label="Pause" title="Pause (Esc)">❚❚</button>
         </div>
     </div>
-    <div id="jobs" class="panel-float" hidden>
+    <div id="jobs" hidden>
         <h3>Today's jobs</h3>
         <ul id="jobs-list"></ul>
+    </div>
+    <!-- One thing from the backpack, up close -->
+    <div id="bag-pop" hidden>
+        <div id="bag-pop-items"></div>
+        <div id="bag-pop-detail">
+            <div id="bag-pop-ic" class="ic"></div>
+            <div class="txt"><b id="bag-pop-name"></b><p id="bag-pop-text"></p></div>
+            <div class="btns">
+                <button id="bag-pop-say" class="ibtn" aria-label="Hear about it" title="Hear about it">🔊</button>
+                <button id="bag-pop-close" class="ibtn" aria-label="Close" title="Close">✕</button>
+            </div>
+        </div>
     </div>
 
     <!-- Dialogue -->
@@ -118,14 +139,16 @@
                 <li>🔧 <b>Fix</b> what breaks with a little puzzle.</li>
                 <li>🔍 Find <b>clues</b> to solve the mystery of the station ghost.</li>
                 <li>🤖 Stuck? Tap <b>Orby</b> (or 🤖) for a hint. 📋 shows today's jobs.</li>
-                <li>🗺️ The <b>map</b> takes you to any room. 📓 The <b>Notebook</b> keeps your clues and space facts.</li>
+                <li>◀ ▶ The <b>arrows</b> on the toolbar (or at the edges of the room) walk you to the next room. 🗺️ The <b>map</b> takes you to any room.</li>
+                <li>🎒 Your <b>backpack</b> holds the clues and things you find: tap one to look at it. 📓 The <b>Notebook</b> keeps your clues and space facts.</li>
             </ul>
             <table>
                 <tr><td>Mouse / finger</td><td>Tap to walk and look</td></tr>
                 <tr><td>Arrows + Enter</td><td>Choose things and use them</td></tr>
                 <tr><td>Space / Enter</td><td>Next line</td></tr>
                 <tr><td>1 2 3</td><td>Answer a question</td></tr>
-                <tr><td>H · M · N · Esc</td><td>Hint · Map · Notebook · Pause</td></tr>
+                <tr><td>Q / E</td><td>Go to the room on the left / right</td></tr>
+                <tr><td>H · M · B · N · J · Esc</td><td>Hint · Map · Backpack · Notebook · Jobs · Pause</td></tr>
             </table>
             <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
         </div>
