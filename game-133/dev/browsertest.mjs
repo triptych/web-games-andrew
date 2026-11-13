@@ -185,15 +185,28 @@ async function desktop() {
     await click(page, '#mg-close');
     await until(page, () => !__lh.G.mg && !__lh.ui.anyScreen(), 'Back to the desk closes it');
 
+    // The Cauldron: the recipe is read off the screen, the way a player sees it (the lit buttons, in order),
+    // never from the game's state. v1.0.0 never lit the first ingredient, and a test that read G.mg.seq passed.
+    await Q(page, () => {
+        window.__lit = []; let was = -1;
+        new MutationObserver(() => {
+            const b = document.querySelector('.pots .btn.lit');
+            const now = b ? +b.dataset.pot : -1;
+            if (now !== was && now >= 0) window.__lit.push(now);
+            was = now;
+        }).observe(document.getElementById('mg-body'), { childList: true, subtree: true, attributes: true });
+    });
     await click(page, '[data-game="brew"]');
-    await until(page, () => __lh.G.mg?.game === 'brew' && !__lh.ui.mini.showing, 'the Cauldron shows its recipe, then waits for you', 30000);
-    for (let n = 0; n < 12 && !(await Q(page, () => __lh.G.mg.done)); n++) {
-        await until(page, () => __lh.G.mg.done || !__lh.ui.mini.showing, 'recipe shown', 30000);
-        if (await Q(page, () => __lh.G.mg.done)) break;
-        const a = await Q(page, () => __lh.G.mg.seq[__lh.G.mg.pos]);
-        await click(page, `[data-pot="${a}"]`);
+    let brewOk = true;
+    for (let round = 0; round < 3; round++) {
+        await until(page, (n) => __lh.G.mg?.game === 'brew' && !__lh.G.mg.done && __lh.G.mg.round === n && !__lh.ui.mini.showing, `recipe ${round + 1} is shown, then the Cauldron waits for you`, 30000, round);
+        const seen = await Q(page, () => window.__lit.splice(0));
+        const want = await Q(page, () => __lh.G.mg.seq.slice());
+        brewOk = check(JSON.stringify(seen) === JSON.stringify(want), `every ingredient of recipe ${round + 1} was lit on screen, in order (saw ${seen.join('')}, recipe ${want.join('')})`) && brewOk;
+        check(await Q(page, () => [...document.querySelectorAll('.pots .btn')].every((b) => !b.disabled)), 'the ingredient buttons are enabled once it has been shown');
+        for (const a of seen) await click(page, `[data-pot="${a}"]`);
     }
-    await until(page, () => __lh.G.mg?.done && __lh.G.mg.made === 3, 'three recipes remembered, three draughts bottled');
+    await until(page, () => __lh.G.mg?.done && __lh.G.mg.made === 3, 'clicking what was shown bottles three draughts');
     await click(page, '#mg-close');
 
     await click(page, '[data-game="route"]');
@@ -233,6 +246,15 @@ async function desktop() {
     await Q(page, () => { __lh.G.ap = 0; __lh.G.queue.length = 0; __lh.ui.refresh(__lh.G); });
     await click(page, '#btn-endday');
     await until(page, () => __lh.G.day === 2, 'End the Day moves to day 2');
+    await until(page, () => __lh.ui.top() === 'dayreport' && /^[SABCDF]$/.test(document.getElementById('dr-grade').textContent), 'and shows the night\'s assessment, with a grade');
+    check(await Q(page, () => { const t = document.getElementById('dayreport-body').textContent; return /Graded true/.test(t) && /Expected/.test(t) && /out of 100/.test(t) && /Merit earned/.test(t); }), 'it sets what you did beside what was expected');
+    check(await Q(page, () => document.getElementById('dr-grade').textContent === __lh.G.lastDay.grade && __lh.G.lastDay.day === 1), 'the grade on screen is the sim\'s');
+    await shot(page, 'desktop-dayreport');
+    const pcR = await Q(page, () => __lh.G.scene?.pc ?? -1);
+    await page.keyboard.press('Enter');
+    await until(page, () => !__lh.ui.anyScreen(), 'Enter on Good night closes it');
+    await page.waitForTimeout(300);
+    check(await Q(page, (p) => (__lh.G.scene?.pc ?? -1) === p, pcR), 'and that key does not also advance the next morning\'s story');
     await Q(page, () => __lh.skip());
     const snap = await Q(page, () => ({ day: __lh.G.day, gold: __lh.G.gold, merit: __lh.G.merit, board: __lh.G.board.length }));
     await page.keyboard.press('Escape');

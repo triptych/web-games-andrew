@@ -54,8 +54,8 @@ export class Mini {
 
     brew(G, mg) {
         const key = `${mg.round}|${mg.seq.join('')}`;
-        if (!this.show || this.show.key !== key) this.show = { key, i: 0, t: 0.5, n: mg.seq.length, seq: mg.seq.slice() };
-        const lit = this.showing && this.show.t < 0.45 ? this.show.seq[this.show.i] : -1;
+        if (!this.show || this.show.key !== key) this.show = { key, i: 0, t: -0.6, n: mg.seq.length, seq: mg.seq.slice() };   // a beat of nothing lit, then each ingredient in turn, the first included
+        const lit = this.showing && this.show.t >= 0 && this.show.t < 0.45 ? this.show.seq[this.show.i] : -1;
         return `<div class="mg-top"><span>Recipe ${mg.round + 1} of ${MG.brew.rounds.length}</span><span>🧪 bottled: ${mg.made}</span><span id="brew-say">${this.showing ? 'Watch the recipe…' : `Now you: ${mg.pos} / ${mg.seq.length}`}</span></div>
             <div class="pots">${INGREDIENTS.map((n, i) => `<button class="btn ${lit === i ? 'lit' : ''}" data-pot="${i}" ${cmd(i)} ${this.showing ? 'disabled' : ''}>${ICON[i]} ${n}</button>`).join('')}</div>
             <p class="dim small" style="text-align:center">Add the ingredients in the order shown. One wrong, and the pot is spoiled.</p>`;
@@ -99,11 +99,12 @@ export class Mini {
             const t = $('mg-time');
             if (t) { t.textContent = Math.ceil(mg.time); $('mg-bar').style.width = (mg.time / MG.stamp.time) * 100 + '%'; }
         } else if (mg.game === 'brew' && this.showing) {
-            const before = this.show.i, lit = this.show.t < 0.45;
+            const on = () => this.show.t >= 0 && this.show.t < 0.45;
+            const before = this.show.i, lit = on();
             this.show.t += dt * this.speed;
             if (this.show.t >= 0.75) { this.show.t = 0; this.show.i++; }
-            if (before !== this.show.i || lit !== (this.show.t < 0.45)) {
-                if (this.show.t < 0.45 && this.showing) this.audio.sfx('drop', 0.5);
+            if (before !== this.show.i || lit !== on()) {
+                if (on() && this.showing) this.audio.sfx('drop', 0.5);
                 this.draw(G);
             }
         }

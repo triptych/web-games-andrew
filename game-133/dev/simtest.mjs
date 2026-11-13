@@ -253,6 +253,31 @@ if (want('rules')) {
     G.day = 28; G.rank = 4; G.queue = []; Gm.act(G, { t: 'endday' }); skip(G, 'honest');
     ok(G.rank === 4 && !G.flags.gm, 'with two, not');
 
+    // the nightly assessment
+    G = fresh(14);
+    while (G.queue.length) { Gm.act(G, { t: 'call' }); Gm.act(G, { t: 'grade', rank: G.pet.rank }); }
+    for (const q of [...G.board]) Gm.act(G, { t: 'assign', quest: q.id, party: [G.advs.find((a) => a.state === 'ready').id] });
+    Gm.act(G, { t: 'visit', who: 'bram' }); skip(G);
+    Gm.act(G, { t: 'play', game: 'stamp' }); while (!G.mg.done) Gm.act(G, { t: 'mg', a: Mg.formValid(G.mg.forms[G.mg.i]) ? 'ok' : 'no' }); Gm.act(G, { t: 'mgclose' });
+    G.events.length = 0;
+    Gm.act(G, { t: 'endday' });
+    let R = G.lastDay;
+    ok(R && R.day === 1 && R.total === 2 && R.heard === 2 && R.right === 2 && R.assigned === 2 && R.waiting === 0 && R.apUsed === 2, 'the night\'s assessment counts what was heard, graded, sent and done');
+    ok(R.score === 100 && R.grade === 'S' && G.events.some((e) => e.type === 'dayreport' && e.grade === 'S'), 'a faultless day is 100 and an S, announced by a dayreport event');
+    ok(R.merit >= R.expect && Number.isFinite(R.gold), 'with the merit earned against Pell\'s pace, and the purse\'s change');
+    skip(G);
+    G = fresh(14); Gm.act(G, { t: 'endday' }); R = G.lastDay;
+    ok(R.heard === 0 && R.right === 0 && R.score < 40 && R.grade === 'F', 'a day spent doing nothing is an F');
+    skip(G);
+    G = fresh(14); Gm.act(G, { t: 'call' }); Gm.act(G, { t: 'grade', rank: (G.pet.rank + 2) % 5 }); Gm.act(G, { t: 'call' }); Gm.act(G, { t: 'grade', rank: G.pet.rank }); Gm.act(G, { t: 'endday' });
+    ok(G.lastDay.right === 1 && G.lastDay.waiting === 2 && G.lastDay.score > 20 && G.lastDay.score < 60, 'half the gradings right and nothing sent is somewhere between');
+    ok(G.gradeDays === 1 && G.gradeSum === G.lastDay.score, 'and the month\'s running average is kept');
+    ok(['S', 'A', 'B', 'C', 'D', 'F'].join() === [100, 90, 75, 60, 45, 10].map(Gm.gradeOf).join(), 'the letters fall at 95, 85, 70, 55 and 40');
+    skip(G);
+    const old = Gm.serialize(fresh(14)); delete old.today; delete old.lastDay; delete old.gradeSum; delete old.gradeDays;
+    const G2 = Gm.deserialize(old); Gm.act(G2, { t: 'endday' });
+    ok(G2.lastDay && Number.isFinite(G2.lastDay.score), 'a save from before the assessment still ends its day');
+
     // the end
     G = fresh(13); G.day = 30; G.queue = []; Gm.act(G, { t: 'endday' });
     ok(G.ending?.id === 'quiet' && G.scene?.id === 'end_quiet' && !G.over, 'the thirtieth night plays an ending');
