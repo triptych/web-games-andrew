@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hard Hat Harbor — model gallery</title>
+<style>html, body { margin: 0; background: #8a8f96; overflow: hidden; } canvas { display: block; }</style>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }</script>
+</head>
+<body>
+<!-- Every Meshy model on neutral grey, no fog, no shadows. Each stands on a white pad with a red arrow: the arrow is
+     the way the game believes the model faces (a vehicle's nose, a building's front door). If a nose or a door is not
+     on the arrow's side, fix YAW in js/view/vehicles.js or BYAW in js/view/town.js.
+     ?set=veh (default) or ?set=bld; ?models=0 shows the code-built stand-ins. -->
+<script type="module">
+import * as THREE from 'three';
+import { VEHICLES } from '../js/config.js';
+import { Vehicles, YAW } from '../js/view/vehicles.js';
+import { BYAW } from '../js/view/town.js';
+import { model, modelState } from '../js/view/models.js';
+
+const set = new URLSearchParams(location.search).get('set') || 'veh';
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight); renderer.setClearColor(0x8a8f96);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x888888, 1.4));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(10, 20, 14); scene.add(sun);
+const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.5, 400);
+
+const items = set === 'veh' ? VEHICLES.map((v) => ({ name: 'veh-' + v.id, fit: { len: v.len * 1.15 }, yaw: YAW[v.id], size: 6 }))
+    : Object.keys(BYAW).map((k) => ({ name: 'bld-' + k, fit: { w: 10, d: 10 }, yaw: BYAW[k], size: 12 }));
+const cols = 4, gap = set === 'veh' ? 9 : 15;
+let v = null;
+if (set === 'veh') { v = new Vehicles(new THREE.Scene()); }
+items.forEach((it, i) => {
+    const x = (i % cols - (cols - 1) / 2) * gap, z = (Math.floor(i / cols) - 0.5) * gap;
+    const pad = new THREE.Mesh(new THREE.PlaneGeometry(it.size, it.size), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    pad.rotation.x = -Math.PI / 2; pad.position.set(x, 0, z); scene.add(pad);
+    const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.4, 4), new THREE.MeshBasicMaterial({ color: 0xff2222 }));
+    arrow.rotation.x = Math.PI / 2; arrow.position.set(x, 0.3, z + it.size / 2 + 0.4); scene.add(arrow);
+    const g = set === 'veh' ? v.models[it.name.slice(4)] : model(it.name, it.fit, null, { yaw: it.yaw });
+    g.visible = true; g.position.set(x, 0, z); scene.add(g);
+});
+camera.position.set(-10, set === 'veh' ? 22 : 34, set === 'veh' ? 30 : 46);
+camera.lookAt(0, 0, 0);
+function frame() { requestAnimationFrame(frame); renderer.render(scene, camera); window.__ready = modelState.loaded + modelState.failed >= items.length; }
+frame();
+</script>
+</body>
+</html>

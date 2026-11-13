@@ -2074,6 +2074,23 @@ const games = [
             { emoji: '🎙️', label: 'Voiced' },
             { emoji: '🖌️', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-135',
+        title: 'Hard Hat Harbor',
+        description: "A cozy construction game in three.js, made in the spirit of the toy-truck CD-ROM games of the 1990s. You have a toy box of eight vehicles (a dump truck, a bulldozer, an excavator, a road roller, a crane truck, a wrecking crane, a loader tractor and a cement mixer) and a small seaside town that needs fixing. Mayor Maple and five townsfolk hand out ten jobs from a job board, each explained out loud: patch the potholes on Main Street, bulldoze a rockslide into the quarry crusher, crane a new roof onto the school, dig footings, pour concrete and lift the spans of a bridge across the river, lay a farm lane and scoop the rocks out of Farmer Gus's field, swing the wrecking ball at the old cannery and clear the rubble, turn the lot into a park with a duck pond, build three houses on the east bank, a playground, and at last a statue in the town square. Swap vehicle on the spot with a puff, follow the yellow arrow, hold the button to dig and pour, time the crane's swinging hook, and honk the horn whenever you like. Every job changes the town for good, nothing can go wrong, and quick work earns three stars and, in the end, the Golden Hard Hat. Vehicles and buildings are Meshy models; the townsfolk and title are painted with fal; music, effects and every voice are by ElevenLabs. Keyboard, gamepad or touch.",
+        icon: '🚜',
+        folder: 'game-135',
+        version: '1.0.0',
+        cssClass: 'hard-hat-harbor',
+        genre: 'cozy',
+        tags: [
+            { emoji: '🚧', label: 'Construction' },
+            { emoji: '💿', label: '90s CD-ROM' },
+            { emoji: '🏗️', label: 'Eight vehicles' },
+            { emoji: '🎙️', label: 'Voiced' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 
