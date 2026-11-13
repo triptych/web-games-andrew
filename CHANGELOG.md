@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Giant's Vault** (game-132) v1.2.1: after Ember was knocked down and revived she kept running on her side (reported by a player). The rigged model never reset the tilt that a downed pet gets; [actors.js](game-132/js/view/actors.js) now sets every rigged model upright each frame. [browsertest.mjs](game-132/dev/browsertest.mjs) knocks her down and checks she stands again, and no longer stands the hero inside a wall beside its training dummy.
+
 ### Changed
 - **Giant's Vault** (game-132) v1.2.0: Ember the lynx-wolf and the Gorehounds are rigged and animated. Meshy's auto-rigger only takes humanoids, so [rig-quadruped.mjs](game-132/dev/assets/rig-quadruped.mjs) fits a 15-bone quadruped skeleton to each static Meshy model at its own landmarks, skins it (each leg kept apart from the others) and bakes a trot and a lunging bite into the GLB (Ember 471 KB, the hound 280 KB, quantised). [models.js](game-132/js/view/models.js) plays a model's own `walk` and `attack` clips; [actors.js](game-132/js/view/actors.js) plays the bite when Ember bites or a hound attacks, and paces each trot to its speed. No Meshy credits.
 
