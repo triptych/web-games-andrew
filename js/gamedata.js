@@ -2046,7 +2046,7 @@ const games = [
         description: "A fantasy visual novel with mini-games and a light idle streak, set behind the quest desk of an adventurers' guild. You arrive in Brightmoor as the new Apprentice Clerk (choose your name and whether people call you she, he or they) and have thirty days before the guild needs a new Guildmaster. Each morning petitioners come to the desk: townsfolk, other adventurers, the Crown, and the Wild Folk who pay in acorns. Read what they say and grade the danger yourself from the Guild Handbook, creature plus number plus place plus omen, every two points a rank, Copper to Platinum; grade too low and the party you send walks into more than they were told. Manage twelve adventurers from Copper rookies to a Platinum legend: pick parties, watch them level and rank up, patch them up when it goes wrong. Spend your afternoons with five people you can fall for (a scarred swordsman who reads the board every morning, an elven mage hiding at Silver rank, the tavern's cook, a catfolk thief, the Crown's envoy), four heart events each, or work the guild's rooms in five mini-games: Stamp Rush, the Cauldron, Cartography, Dragon's Hoard dice and the Sparring Ring. The tavern till fills while you work, rooms pay in every night, parties are out for days. Rise through four reviews to Vice-Guildmaster, face the Chancellor's audit and his purse, a dragon who wants to post a quest, a raid on the Hollowdeep and a vote. Sixteen endings and five epilogues. Art painted with fal; music, effects and voices by ElevenLabs. Mouse, keyboard or touch.",
         icon: '🏮',
         folder: 'game-133',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'lanternhall',
         genre: 'story',
         tags: [

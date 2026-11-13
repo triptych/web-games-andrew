@@ -1,6 +1,6 @@
 // Lanternhall — tuning and constants. Shared by the sim, the UI and the tests.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.1';
 export const SAVE_KEY = 'lanternhall.v1';
 export const SLOTS = 3;
 
