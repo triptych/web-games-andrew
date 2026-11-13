@@ -2022,6 +2022,23 @@ const games = [
             { emoji: '🎙️', label: 'Voiced' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-132',
+        title: "Titan's Vault",
+        description: "An isometric action RPG in three.js that mixes Diablo's dread, Titan Quest's mythology and dual masteries and Torchlight's speed and loot pet. Before the gods left, they chained the Titans under the world; the chains are rusting, and you are a Vaultwarden. Swear one of three oaths: the Ironsworn (Warfare, built on Rage that you earn by hitting and lose by standing still), the Stormcaller (Storm: chaining lightning on Mana) or the Shadebinder (Umbra: shades and stolen life on Essence torn from the dying). At level 6 swear a second oath and become a Thunderborn, a Reaver or an Eclipse Seer, each with a synergy neither tree has alone. 21 skills in four tiers, mastery bars that unlock them, and never enough points for everything. Fight down through the Drowned Wilds and the Temple of the Tide-Eye, the Ashen Necropolis and the Ossuary, the Bronze Halls and the Titan's Vault, past Skyllith, Morwen the Ossuary Queen and Kolossar the Chained Titan, through packs, champions and rare elites with affixes. Loot fountains: common to mythic, rolled affixes with a quality bar, gems and sockets, two sets and twelve legendaries that change how a skill works. Ember the lynx-wolf fights beside you, carries what your bag can't and runs to town to sell it. Then the Vault cracks and the endless Rifts open. Telegraphed boss attacks, stagger and poise, potions with a cooldown, health globes, a one-button town portal, waystones, a loot filter and item labels. Art painted with fal, every monster, hero and prop a Meshy model, music and effects by ElevenLabs. Mouse and keyboard, gamepad or touch.",
+        icon: '⛓️',
+        folder: 'game-132',
+        version: '1.0.0',
+        cssClass: 'titans-vault',
+        genre: 'dungeon',
+        tags: [
+            { emoji: '⚔️', label: 'Action RPG' },
+            { emoji: '🌩️', label: 'Dual masteries' },
+            { emoji: '💎', label: 'Loot hunt' },
+            { emoji: '🐺', label: 'Loot pet' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 
