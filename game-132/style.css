@@ -70,7 +70,11 @@ html, body {
 .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #8a1020, #e0453c); }
 #rift-fill { background: linear-gradient(90deg, #5a2a9a, #c890ff); }
 .bar .tick { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(255, 255, 255, 0.6); }
-#prompt { position: absolute; left: 50%; bottom: calc(130px + var(--safe-b)); transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 14px; pointer-events: auto; cursor: pointer; }
+/* just under the hero (the camera keeps the hero at the middle of the screen), clear of the stick, the skill
+   buttons and the dock in both orientations */
+#prompt { position: fixed; z-index: 25; left: 50%; top: calc(50% + 34px); transform: translateX(-50%); background: var(--panel); color: inherit; font: inherit; font-size: 14px; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+#prompt[hidden] { display: none; }
+@media (pointer: coarse) { #prompt { min-height: 44px; padding: 8px 18px; font-size: 16px; } }
 
 #dock { position: absolute; left: 50%; bottom: calc(8px + var(--safe-b)); transform: translateX(-50%); display: flex; align-items: flex-end; gap: 10px; }
 .orb { position: relative; width: 86px; height: 86px; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 40% 35%, #2a2028, #0c080c); border: 2px solid #8a6a3a; box-shadow: 0 0 12px #000, inset 0 0 14px #000; }

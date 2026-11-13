@@ -592,6 +592,12 @@ more) and dies at least as often.
 
 ## Changelog
 
+### v1.1.1 (2026-11-13)
+- Town on a phone: nothing in town could be opened by touch on a portrait phone. The "Tap: talk" prompt sat under the
+  skill buttons, and tapping a person did nothing on touch (only a mouse click worked). The prompt is now its own
+  layer above the touch controls, just under the hero, at least 44 px tall; a tap on a person, the stash, the shrine,
+  the obelisk or a waystone walks over and opens it, including a quick tap inside the walking stick's zone.
+
 ### v1.1.0 (2026-11-13)
 - Renamed for its Giants: the game is GIANT'S VAULT, Kolossar is the Chained Giant, and the items, affixes and
   skills carry the new name (Giant's Wrath, Giant's Tread, "of the Giant", Gigantic).

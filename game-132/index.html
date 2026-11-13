@@ -56,7 +56,6 @@
         </div>
         <div id="boss" hidden><div id="boss-name"></div><div class="bar"><i id="boss-fill"></i><span class="tick" style="left:66%"></span><span class="tick" style="left:33%"></span></div></div>
         <div id="rift" hidden><div id="rift-name"></div><div class="bar"><i id="rift-fill"></i></div></div>
-        <div id="prompt" hidden></div>
         <div id="dock">
             <div class="orb life"><i id="life-fill"></i><span id="life-text"></span></div>
             <div id="bar">
@@ -71,6 +70,8 @@
         <div id="pet-chip"><span class="face"></span><i id="pet-fill"></i><span id="pet-state"></span></div>
     </div>
 
+    <!-- "E: talk" / "Tap: talk": above the touch deck, so the stick and skill buttons never cover it -->
+    <button id="prompt" type="button" hidden></button>
     <!-- Touch deck: shown on coarse pointers or after the first touch -->
     <div id="touch" hidden>
         <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div></div>
@@ -136,7 +137,7 @@
             </table>
             <p>Gold and health globes are picked up as you walk over them. Loot that passes your <b>loot filter</b> (Settings) is too.
                 When your bag fills, Ember carries the rest; send Ember to town to sell it all.</p>
-            <p>Touch: drag on the left to walk; the skill buttons aim at the nearest enemy. Gamepad: left stick, A X Y B RB for skills, LT potion.</p>
+            <p>Touch: drag on the left to walk; the skill buttons aim at the nearest enemy; tap a person, the stash or a waystone to walk over and use it. Gamepad: left stick, A X Y B RB for skills, LT potion.</p>
             <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
         </div>
     </div>

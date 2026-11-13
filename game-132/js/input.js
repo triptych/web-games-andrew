@@ -18,7 +18,7 @@ export class Input {
         this.canvas = canvas;
         this.keys = new Set();
         this.queue = [];
-        this.edges = { slots: [false, false, false, false, false], potion: false, portal: false, interact: false };
+        this.edges = { slots: [false, false, false, false, false], potion: false, portal: false, interact: false, tap: null };
         this.touchHeld = [false, false, false, false, false];
         this.mouse = { x: -1, y: -1, left: false, right: false, leftPress: false, rightPress: false, over: false };
         this.stick = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
@@ -63,6 +63,17 @@ export class Input {
             if (e.button === 2) { this.mouse.right = true; this.mouse.rightPress = true; }
             try { canvas.setPointerCapture(e.pointerId); } catch { /* synthetic */ }
         });
+        // a finger on the game view (outside the stick and the buttons): a short tap that barely moved is a tap on
+        // whatever is there (a person, the stash, a waystone, a dropped item)
+        const taps = new Map();
+        canvas.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') taps.set(e.pointerId, { x: e.clientX, y: e.clientY, t: e.timeStamp }); });
+        canvas.addEventListener('pointerup', (e) => {
+            const d = taps.get(e.pointerId);
+            taps.delete(e.pointerId);
+            if (e.pointerType !== 'touch' || !d) return;
+            if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 14 && e.timeStamp - d.t < 500) this.edges.tap = { x: e.clientX, y: e.clientY };
+        });
+        canvas.addEventListener('pointercancel', (e) => taps.delete(e.pointerId));
         canvas.addEventListener('pointermove', (e) => { if (e.pointerType === 'touch') return; this.mouse.x = e.clientX; this.mouse.y = e.clientY; this.mouse.over = true; });
         const up = (e) => {
             if (e.pointerType === 'touch') return;
@@ -78,7 +89,10 @@ export class Input {
     bindStick(zone, el, knob) {
         const R = () => Math.min(70, Math.max(48, window.innerWidth * 0.12));
         const end = (e) => {
-            if (e.pointerId !== this.stick.id) return;
+            if (e.pointerId !== this.stick.id || !this.stick.active) return;
+            // a quick touch that never moved was a tap on the world under the stick zone, not a walk
+            const st = this.stick;
+            if (e.type === 'pointerup' && st.moved < 14 && e.timeStamp - st.t0 < 500) this.edges.tap = { x: st.sx, y: st.sy };
             this.stick.active = false; this.stick.x = this.stick.y = 0;
             knob.style.transform = ''; el.classList.remove('on');
         };
@@ -86,7 +100,7 @@ export class Input {
             if (this.stick.active) return;
             e.preventDefault();
             const r = zone.getBoundingClientRect();
-            Object.assign(this.stick, { active: true, id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 });
+            Object.assign(this.stick, { active: true, id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0, sx: e.clientX, sy: e.clientY, t0: e.timeStamp, moved: 0 });
             el.style.left = `${e.clientX - r.left}px`; el.style.top = `${e.clientY - r.top}px`; el.style.bottom = 'auto';
             el.classList.add('on');
             try { zone.setPointerCapture(e.pointerId); } catch { /* synthetic */ }
@@ -95,6 +109,7 @@ export class Input {
             if (!this.stick.active || e.pointerId !== this.stick.id) return;
             e.preventDefault();
             const rad = R();
+            this.stick.moved = Math.max(this.stick.moved, Math.hypot(e.clientX - this.stick.sx, e.clientY - this.stick.sy));
             let dx = e.clientX - this.stick.ox, dy = e.clientY - this.stick.oy;
             const d = Math.hypot(dx, dy);
             if (d > rad) {
@@ -156,6 +171,7 @@ export class Input {
     consumeEdges() {
         this.edges.slots.fill(false);
         this.edges.potion = this.edges.portal = this.edges.interact = false;
+        this.edges.tap = null;
         this.mouse.leftPress = this.mouse.rightPress = false;
     }
     next() { return this.queue.shift() || null; }

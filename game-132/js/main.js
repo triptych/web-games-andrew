@@ -44,6 +44,7 @@ let acc = 0, time = 0, last = performance.now(), saveT = 0;
 let bot = null, botT = 0;
 let attackId = null;         // the monster the mouse is attacking
 let pendingFeature = null;   // a town feature we're walking to, to use on arrival
+const USABLE = ['npc', 'stash', 'obelisk', 'shrine', 'waystone'];   // features a click or a tap opens
 let pendingDrop = null;      // a labelled item we're walking to, to pick up
 const seen = {};
 
@@ -160,11 +161,24 @@ function gather() {
     if (m.leftPress) {
         const lbl = input.labels || G.drops.some((d) => d.item && ['legendary', 'mythic', 'set'].includes(G.items[d.item]?.rarity)) ? view.overlay.labelAt(m.x, m.y) : null;
         const mon = view.pickMonster(G, m.x, m.y);
-        const feat = ground && G.features.find((f) => ['npc', 'stash', 'obelisk', 'shrine', 'waystone'].includes(f.kind) && Math.hypot(f.x - ground.x, f.y - ground.y) < 1.6);
+        const feat = ground && G.features.find((f) => USABLE.includes(f.kind) && Math.hypot(f.x - ground.x, f.y - ground.y) < 1.6);
         attackId = null; pendingDrop = null; pendingFeature = null;
         if (lbl) pendingDrop = lbl;
         else if (mon) attackId = mon.id;
         else if (feat) pendingFeature = feat.id;
+    }
+    if (input.edges.tap) {
+        const t = input.edges.tap;
+        const lbl = view.overlay.labelAt(t.x, t.y);
+        let feat = null, fd = 56;                     // px: a fingertip's worth around the thing's middle
+        for (const f of G.features) {
+            if (!USABLE.includes(f.kind)) continue;
+            const sp = view.screenOf(f.x, f.y, f.kind === 'npc' ? 0.9 : 0.6);
+            const d = Math.hypot(sp.x - t.x, sp.y - t.y);
+            if (d < fd) { fd = d; feat = f; }
+        }
+        if (lbl) { pendingDrop = lbl; pendingFeature = null; }
+        else if (feat) { pendingFeature = feat.id; pendingDrop = null; }
     }
     if (!m.left && !m.leftPress) attackId = null;
     // auto-aim for pads and touch: the nearest enemy, else straight ahead
