@@ -7,7 +7,10 @@ import { MONSTERS, BOSSES } from '../sim/data/monsters.js';
 import { model, modelState, preload } from './models.js';
 
 const faceRot = (f) => Math.PI / 2 - f;       // models look down +Z; the sim's face is an angle in (x, y)
-const STATIC_GAIT = new Set(['mon-gorehound', 'mon-wraith', 'mon-gorgon', 'boss-skyllith', 'boss-morwen', 'pet']);
+const STATIC_GAIT = new Set(['mon-wraith', 'mon-gorgon', 'boss-skyllith', 'boss-morwen']);
+// metres per second at which a model's walk clip plays at 1× (default 2.4, Meshy's humanoid walk). The quadrupeds
+// rigged by dev/assets/rig-quadruped.mjs trot at 3: a fast trot at their speed, not a blur of legs.
+const GAIT = { pet: 3, 'mon-gorehound': 3 };
 
 function ring(color, r, opacity = 0.5) {
     const m = new THREE.Mesh(new THREE.RingGeometry(r * 0.82, r, 32), new THREE.MeshBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
@@ -50,7 +53,7 @@ export class Actors {
         if (m.elite) g.add(ring(m.elite.tier === 'rare' ? 0xffd84a : m.elite.tier === 'champion' ? 0x5b8cff : 0x8a8a8a, def.radius + 0.25, 0.55));
         if (m.boss) { g.add(ring(0xff4020, def.radius + 0.6, 0.45)); const l = new THREE.PointLight(def.color, 30, 10, 1.5); l.position.y = h * 0.7; g.add(l); }
         this.scene.add(g);
-        return { g, kind: 'mon', def, lunge: 0, hit: 0, static: STATIC_GAIT.has(def.model), dead: 0, bob: Math.random() * 6 };
+        return { g, kind: 'mon', def, lunge: 0, hit: 0, static: STATIC_GAIT.has(def.model), gait: GAIT[def.model], dead: 0, bob: Math.random() * 6 };
     }
 
     onEvents(G, events) {
@@ -59,7 +62,7 @@ export class Actors {
             else if (e.type === 'monAttack' || e.type === 'bossCast') { const a = this.map.get(e.id); if (a) { a.lunge = 1; a.strike = true; } }
             else if (e.type === 'hit') { const a = this.map.get(e.id); if (a) a.hit = 1; }
             else if (e.type === 'hurt' && this.player) this.player.hit = 1;
-            else if (e.type === 'petBite' && this.pet) this.pet.lunge = 1;
+            else if (e.type === 'petBite' && this.pet) { this.pet.lunge = 1; this.pet.strike = true; this.pet.attackTime = 0.45; }
         }
     }
 
@@ -88,7 +91,7 @@ export class Actors {
         g.position.x += Math.cos(face) * lunge; g.position.z += Math.sin(face) * lunge;
         if (u.mixer) {
             u.walk.setEffectiveWeight(a.attacking > 0 ? 0 : 1);
-            if (moving) { u.walk.paused = false; u.walk.timeScale = Math.max(0.6, speed / 2.4); }
+            if (moving) { u.walk.paused = false; u.walk.timeScale = Math.max(0.6, speed / (a.gait || 2.4)); }
             else { u.walk.paused = true; u.walk.time = (u.clipLen || 1) * 0.02; }
             u.mixer.update(dt);
             g.rotation.x = -lunge * 0.4;
@@ -118,12 +121,14 @@ export class Actors {
         pa.aura.visible = P.buffs.some((b) => b.k === 'warcry' || b.k === 'bulwark');
 
         // pet
-        if (!this.pet) { const g = model('pet', 1.05, { color: 0x6a6a70 }); this.scene.add(g); this.pet = { g, lunge: 0, hit: 0, static: true, bob: 0, def: { model: 'pet' } }; }
+        if (!this.pet) { const g = model('pet', 1.05, { color: 0x6a6a70 }); this.scene.add(g); this.pet = { g, lunge: 0, hit: 0, bob: 0, gait: GAIT.pet, speed: 0, def: { model: 'pet' } }; }
         const pet = G.pet;
         this.pet.g.visible = pet.state !== 'away';
         if (pet.state !== 'away') {
-            const mv = this.pet.px !== undefined && Math.hypot(pet.x - this.pet.px, pet.y - this.pet.py) > 0.002;
-            this.pose(this.pet, pet.x, pet.y, pet.face, mv, 6, dt, time);
+            const step = this.pet.px !== undefined ? Math.hypot(pet.x - this.pet.px, pet.y - this.pet.py) : 0;
+            const mv = step > 0.002;
+            this.pet.speed = dt > 0 ? this.pet.speed * 0.8 + (step / dt) * 0.2 : this.pet.speed || 0;     // measured
+            this.pose(this.pet, pet.x, pet.y, pet.face, mv, this.pet.speed, dt, time);
             this.pet.g.rotation.z = pet.state === 'down' ? 1.3 : this.pet.g.rotation.z;
             this.pet.px = pet.x; this.pet.py = pet.y;
         }

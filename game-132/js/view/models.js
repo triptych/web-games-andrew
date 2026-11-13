@@ -1,6 +1,7 @@
 // Meshy models (assets/models/<name>.glb, see dev/assets/README.md) with code-built stand-ins.
 // model(name, h, stand) returns a Group at once with the stand-in inside; when the GLB loads it replaces the
-// stand-in, scaled to stand h metres tall with its feet on y = 0. Rigged models get an AnimationMixer and their walk.
+// stand-in, scaled to stand h metres tall with its feet on y = 0. Rigged models get an AnimationMixer, their walk and,
+// when there is one, an attack clip.
 // ?models=0 keeps the stand-ins.
 
 import * as THREE from 'three';
@@ -71,16 +72,22 @@ export function model(name, h, opts = {}) {
         g.userData.loaded = true;
         if (m.skinned) {
             const mixer = new THREE.AnimationMixer(obj);
-            const walk = mixer.clipAction(m.anims[0]);
+            // the walk: a clip named 'walk' (models rigged by dev/assets/rig-quadruped.mjs), else Meshy's only clip
+            const walkClip = m.anims.find((a) => a.name === 'walk') || m.anims[0];
+            const walk = mixer.clipAction(walkClip);
             walk.play();
-            g.userData.mixer = mixer; g.userData.walk = walk; g.userData.clipLen = m.anims[0].duration;
-            if (ANIM_FILES.has(name)) loadClip(name).then((clip) => {
+            g.userData.mixer = mixer; g.userData.walk = walk; g.userData.clipLen = walkClip.duration;
+            const useAttack = (clip) => {
                 if (!clip || g.userData.disposed) return;
                 const atk = mixer.clipAction(clip);
                 atk.setLoop(THREE.LoopOnce, 1);
                 atk.clampWhenFinished = false;
                 g.userData.attack = atk; g.userData.attackLen = clip.duration;
-            });
+            };
+            // the attack: in the model itself, or a Meshy clip in assets/anims/
+            const own = m.anims.find((a) => a.name === 'attack');
+            if (own) useAttack(own);
+            else if (ANIM_FILES.has(name)) loadClip(name).then(useAttack);
         }
     });
     return g;
