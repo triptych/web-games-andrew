@@ -199,6 +199,7 @@ td:first-child { color: var(--blue); white-space: nowrap; font-weight: 800; }
 
 /* ---------------------------------------------------------------- narrow phones: the HUD takes a second row */
 @media (max-width: 700px) {
+    #title { background-position: 24% 50%; }      /* the trucks, not the sky */
     #clip { left: calc(8px + var(--safe-l)); top: calc(62px + var(--safe-t)); width: calc(100vw - 16px - var(--safe-l) - var(--safe-r)); }
     #toasts { top: calc(150px + var(--safe-t)); }
     .veh { height: 52px; }

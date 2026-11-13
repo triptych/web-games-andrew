@@ -104,7 +104,7 @@ export class Town {
         const ground = mesh(new THREE.PlaneGeometry(WORLD.w, WORLD.h), new THREE.MeshStandardMaterial({ map: groundTexture(), roughness: 0.95 }), WORLD.w / 2, 0, WORLD.h / 2);
         ground.rotation.x = -Math.PI / 2; ground.receiveShadow = shadows; scene.add(ground);
         // the river runs on past the edges of the map
-        this.water = mesh(new THREE.PlaneGeometry(RIVER.w, 900), new THREE.MeshStandardMaterial({ color: 0x3fa7e0, roughness: 0.25, metalness: 0.1 }), RIVER.x + RIVER.w / 2, 0.02, WORLD.h / 2);
+        this.water = mesh(new THREE.PlaneGeometry(RIVER.w, 900), new THREE.MeshStandardMaterial({ color: 0x3fa7e0, roughness: 0.7, metalness: 0 }), RIVER.x + RIVER.w / 2, 0.02, WORLD.h / 2);
         this.water.rotation.x = -Math.PI / 2; scene.add(this.water);
 
         // trees: two instanced meshes; a ring of them hides the edge of the world

@@ -4621,6 +4621,7 @@ Its `dev/art/` and `dev/audio/` hold the scripts and READMEs to copy.
   portrait, cell numbers in corners (game-129). Paint over near-black runs near the cell boundaries before cutting
   (`game-129/dev/art/export.py` `scrub_lines`) and crop captions per sheet. Glowing creatures on a magenta key come back
   with a lavender rim: drop magenta-tinted pixels near the edge for those sprites only (`dehalo`).
+- **Things grow faces unless told what each part is.** A style prompt written for portraits ("big expressive eyes") gave game-135's title trucks eyes in the windscreen *and* eyes for headlights. Use a second system prompt for anything that is not a person ("ordinary toys, NOT characters: no faces, no eyes, no mouths") and say what each part is ("headlights that are just lamps").
 - **The model ignores "facing left/right" about a third of the time.** Make a labelled contact sheet,
   check every sprite by eye and mirror the wrong ones in the export (`FLIP`), not in the renderer.
 - Alternate poses or upgraded forms of a character: `fal-ai/nano-banana-2/edit` from the base sprite

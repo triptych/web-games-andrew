@@ -1652,6 +1652,19 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 79, 176, 0.6);
 }
 
+.game-preview.hard-hat-harbor,
+.carousel-slide-bg.hard-hat-harbor {
+    background:
+        repeating-linear-gradient(-45deg, #f6c21c 0 18px, #1d1d1f 18px 36px) bottom / 100% 14% no-repeat,
+        linear-gradient(180deg, #8fd3ff 0%, #bfe6ff 52%, #74c24c 52%, #5fae40 100%);
+}
+
+.game-card.hard-hat-harbor .play-button {
+    background: linear-gradient(135deg, #f6c21c, #f07a1a);
+    color: #1d1d1f;
+    box-shadow: 0 0 14px rgba(246, 194, 28, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
