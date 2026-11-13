@@ -5,8 +5,9 @@
 // clips: 'walk' (a looping trot) and 'attack' (a lunge and a bite). The game plays them like any rigged model
 // (js/view/models.js takes the clip named 'walk' to walk and 'attack' to attack).
 //   node rig-quadruped.mjs pet WORK/static-pet.glb game-132/assets/models/pet.glb
-// IN is the static model from opt.mjs (never a rigged one: the script refuses). Ember's static model is the
-// assets/models/pet.glb of game-132 v1.1.1 in git history.
+//   node rig-quadruped.mjs mon-gorehound WORK/static-gorehound.glb game-132/assets/models/mon-gorehound.glb
+// IN is the static model from opt.mjs (never a rigged one: the script refuses). The static models are the
+// assets/models/pet.glb and mon-gorehound.glb of game-132 v1.1.1 in git history.
 //
 // Needs @gltf-transform/core, functions, extensions (see README.md). Landmarks come from a side profile of the mesh:
 // for each slice along Z, its top, its lowest point, and where the feet touch the ground (`profile` mode prints it):
@@ -39,6 +40,27 @@ const RIGS = {
         },
         legs: { back: { z: [-0.50, -0.12], below: 0.34 }, front: { z: [0.14, 0.55], below: 0.30 } },
         walk: { len: 1.1, swing: 0.5, knee: 0.55, bob: 0.025 },
+    },
+    'mon-gorehound': {                            // a hyena: 1.84 long, shoulders (1.0) far above the hips (0.76),
+        joints: {                                 // the head slung low and forward, legs splayed wide
+            hips: { at: [0, 0.58, -0.37], to: 'spine' },
+            spine: { parent: 'hips', at: [0, 0.66, -0.05], to: 'chest' },
+            chest: { parent: 'spine', at: [0, 0.74, 0.25], to: 'neck' },
+            neck: { parent: 'chest', at: [0, 0.78, 0.42], to: 'head' },
+            head: { parent: 'neck', at: [0, 0.72, 0.60], end: [0, 0.62, 0.90] },
+            tail1: { parent: 'hips', at: [0, 0.55, -0.56], to: 'tail2' },
+            tail2: { parent: 'tail1', at: [0, 0.47, -0.72], end: [0, 0.40, -0.92] },
+            thighL: { parent: 'hips', at: [-0.17, 0.52, -0.38], to: 'shinL', leg: 'BL' },
+            shinL: { parent: 'thighL', at: [-0.21, 0.26, -0.41], end: [-0.22, 0.0, -0.37], leg: 'BL' },
+            thighR: { parent: 'hips', at: [0.17, 0.52, -0.38], to: 'shinR', leg: 'BR' },
+            shinR: { parent: 'thighR', at: [0.21, 0.26, -0.41], end: [0.22, 0.0, -0.37], leg: 'BR' },
+            armL: { parent: 'chest', at: [-0.17, 0.60, 0.28], to: 'forearmL', leg: 'FL' },
+            forearmL: { parent: 'armL', at: [-0.21, 0.28, 0.32], end: [-0.22, 0.0, 0.33], leg: 'FL' },
+            armR: { parent: 'chest', at: [0.17, 0.60, 0.28], to: 'forearmR', leg: 'FR' },
+            forearmR: { parent: 'armR', at: [0.21, 0.28, 0.32], end: [0.22, 0.0, 0.33], leg: 'FR' },
+        },
+        legs: { back: { z: [-0.56, -0.22], below: 0.40 }, front: { z: [0.06, 0.46], below: 0.36 } },
+        walk: { len: 0.9, swing: 0.55, knee: 0.6, bob: 0.035 },
     },
 };
 

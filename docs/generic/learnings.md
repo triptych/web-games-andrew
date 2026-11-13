@@ -7072,6 +7072,7 @@ A peaceful first-person exploration game in the sim/view layout, with fal art, M
 
 **Rigging a quadruped without Meshy**
 - **Meshy's auto-rigger and its animation library are humanoid only**, so a four-legged pet stayed a static model with a code bob. A small gltf-transform script rigs it instead: joints at landmarks read off a side profile of the mesh (top, belly and the four foot clusters per slice), weights from distance to each bone, and clips baked as quaternion keyframes (`game-132/dev/assets/rig-quadruped.mjs`). Keep a leg's vertices to that leg's bones (by side and front/back band), or a stride drags the opposite leg along. Use a softer falloff in the body than in the legs: the sharp one tore a notch at the tail root when the tail swung. Bake the mesh node's transform into the vertices first (a skinned mesh's own transform is ignored by the spec), and `quantize()` afterwards: it folds its scale into the inverse bind matrices.
+- **Landmarks differ per animal; the rest of the rig doesn't.** The Gorehound (a hyena: shoulders a quarter higher than the hips, the head slung below the back, legs splayed twice as wide as Ember's) needed only its own joint positions and leg bands from its side profile; the skeleton shape, the weighting and the clips were shared.
 - **Pace a quadruped's walk clip by eye, not by foot speed.** Matching Ember's feet to her 6.6 m/s would cycle the trot every 0.2 s, a blur; about 0.5 s reads as a fast trot from an ARPG camera, and nobody sees the slide.
 
 **Touch in town**
