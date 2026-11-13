@@ -15,7 +15,7 @@ function load(name) {
     if (!cache[name]) {
         modelState.wanted++;
         cache[name] = new Promise((res) => {
-            loader.load(`assets/models/${name}.glb`, (g) => {
+            loader.load(new URL(`../../assets/models/${name}.glb`, import.meta.url).href, (g) => {
                 modelState.loaded++;
                 g.scene.traverse((o) => {
                     if (!o.isMesh) return;

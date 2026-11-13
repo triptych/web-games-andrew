@@ -128,8 +128,8 @@ export class View {
             const portrait = this.w < this.h, back = portrait ? 17 : 14.5;
             let high = portrait ? 12.5 : 9;
             const cx = p.x - Math.cos(this.camYaw) * back, cz = p.y - Math.sin(this.camYaw) * back;
-            // never film from inside a building: climb over it
-            for (const b of BUILDINGS) if (cx > b.x - 1.5 && cx < b.x + b.w + 1.5 && cz > b.y - 1.5 && cz < b.y + b.h + 1.5 && buildingUp(G, b)) high = Math.max(high, b.tall + 9);
+            // never film from inside or right beside a building: climb over it
+            for (const b of BUILDINGS) if (cx > b.x - 5 && cx < b.x + b.w + 5 && cz > b.y - 5 && cz < b.y + b.h + 5 && buildingUp(G, b)) high = Math.max(high, b.tall + 10);
             this.camHigh = this.camHigh == null ? high : this.camHigh + (high - this.camHigh) * Math.min(1, dt * 4);
             cam.position.set(cx, this.camHigh, cz);
             if (this.shakeT > 0 && !this.fx.calm) { this.shakeT -= dt; cam.position.x += (Math.random() - 0.5) * 0.5 * this.shakeT; cam.position.y += (Math.random() - 0.5) * 0.5 * this.shakeT; }

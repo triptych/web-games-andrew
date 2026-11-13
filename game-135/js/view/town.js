@@ -180,7 +180,7 @@ export class Town {
                 v.inst = add(new THREE.InstancedMesh(new THREE.BoxGeometry(cw, 1, ch), mat(0xffffff), cells.length));
                 v.inst.receiveShadow = true;
                 v.state = cells.map(() => -1);
-                v.flat = new THREE.Color({ potholes: 0x3b3e45, farm: 0xb8a888, square: 0xd9c9a8 }[job.id] ?? 0x3b3e45);
+                v.flat = new THREE.Color({ potholes: 0x484b52, farm: 0xb8a888, square: 0xd9c9a8 }[job.id] ?? 0x484b52);
                 v.loose = new THREE.Color({ potholes: 0x1d1d20, farm: 0x7d705c, square: 0x9c8c70 }[job.id] ?? 0x1d1d20);
             }
             if (st.kind === 'haul') { v.pile = add(mesh(new THREE.ConeGeometry(2, 1.6, 9), mat(0x6b5a48, { flatShading: true }), st.site.x + 2.5, 0.8, st.site.y - 1.5)); v.pile.castShadow = true; }

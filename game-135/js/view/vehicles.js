@@ -104,8 +104,9 @@ export class Vehicles {
             const tipY = 6.2, tipZ = 3.4, swing = lift ? Math.sin(G.hookT) * 3 : Math.sin(time * 1.2) * 0.3;
             const drop = lift ? 3.6 : 1.6;
             this.hook.position.set(0, 0, tipZ);
-            this.cable.scale.y = drop; this.cable.position.set(swing * 0.5, tipY - drop / 2, 0);
-            this.cable.rotation.z = Math.atan2(swing, drop * 2);
+            // the cable runs from the boom tip to the hook block
+            this.cable.scale.y = Math.hypot(swing, drop); this.cable.position.set(swing * 0.5, tipY - drop / 2, 0);
+            this.cable.rotation.z = Math.atan2(swing, drop);
             this.hookBlock.position.set(swing, tipY - drop, 0);
             this.piece.visible = !!lift && G.missCd <= 0;
             this.piece.position.set(swing, tipY - drop - 0.5, 0);
