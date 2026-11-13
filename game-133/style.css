@@ -261,3 +261,14 @@ td:first-child { color: var(--accent); white-space: nowrap; }
     .chip { font-size: 13px; padding: 2px 8px; }
     #dlg .text { font-size: 17px; }
 }
+
+/* the nightly assessment */
+.dr-head { display: flex; gap: 14px; align-items: center; margin-bottom: 10px; }
+.dr-head h2 { margin: 0; }
+.dr-grade { margin-left: auto; flex: none; width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; font: 700 44px/1 var(--display); border: 3px solid currentColor; background: rgba(0, 0, 0, 0.3); }
+.g-S { color: #ffe08a; text-shadow: 0 0 16px rgba(255, 210, 110, 0.8); } .g-A { color: var(--good); } .g-B { color: var(--teal); } .g-C { color: var(--accent); } .g-D { color: #f0a07a; } .g-F { color: var(--bad); }
+.dr-table td:first-child { color: var(--text); white-space: normal; }
+.dr-table td:nth-child(2) { font-weight: 600; white-space: nowrap; }
+.dr-table td:nth-child(3) { color: var(--dim); }
+.dr-table .good td:nth-child(2) { color: var(--good); } .dr-table .mid td:nth-child(2) { color: var(--accent); } .dr-table .poor td:nth-child(2) { color: var(--bad); }
+.dr-say { font-style: italic; margin: 12px 0 4px; }

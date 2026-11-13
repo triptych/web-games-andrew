@@ -4,7 +4,7 @@
 
 import {
     DAYS, AP_PER_DAY, RANKS, RANK_POW, QUEST_DIFF, XP_QUEST, MERIT, REVIEW_DAYS, START, UPKEEP, DEBT, FAC, TILL,
-    VISIT_AFF, HEARTS, RAID, JOBS,
+    VISIT_AFF, HEARTS, RAID, JOBS, DAY_WEIGHTS, GRADES, MERIT_PACE,
 } from '../config.js';
 import { makeRng } from '../rng.js';
 import { beginScene, advance, choose } from './scene.js';
@@ -29,6 +29,7 @@ export function newGame(seed = 1, profile = {}) {
         partner: null, flags: {}, count: {}, seen: {},
         advs: ROSTER.map((a) => ({ id: a.id, rank: a.rank, xp: 0, state: 'ready', until: 0 })),
         queue: [], pet: null, board: [], out: [], reports: [],
+        today: null, lastDay: null, gradeSum: 0, gradeDays: 0,     // the nightly assessment (see assessDay)
         fac: { board: 0, tavern: 0, infirm: 0, yard: 0, vault: 0 }, till: 0, tillDay: 0, potions: 1, charts: 0, nid: 1,
         mg: null, scene: null, sq: [], ending: null, over: false,
         events: [],                 // { type, ... } since the last drain; never saved
@@ -79,6 +80,7 @@ function finish(G, id = chooseEnding(G)) {
 function startDay(G) {
     G.ap = AP_PER_DAY + (G.rank >= 4 ? 1 : 0);
     G.tillDay = 0;
+    G.today = { total: 0, heard: 0, right: 0, assigned: 0, ap: G.ap, merit: G.merit, gold: G.gold };
     G.phase = 'desk';
     const ch = chapterOf(G.day);
     if (G.day === RAID.day) for (const o of G.out.splice(0)) resolve(G, o);       // everyone is called home for the raid
@@ -94,6 +96,7 @@ function startDay(G) {
         const n = 2 + (G.fac.board >= 2 ? 1 : 0);
         for (let i = 0; i < n; i++) G.queue.push(makePetition(G, ch));
     }
+    G.today.total = G.queue.length;
     for (const s of STORY) if (s.day === G.day && !G.seen[s.id] && (!s.if || evalCond(G, s.if))) G.sq.push(s.id);
     G.events.push({ type: 'day', day: G.day, chapter: ch });
     startNext(G);
@@ -101,6 +104,7 @@ function startDay(G) {
 
 function endDay(G) {
     const ch = chapterOf(G.day);
+    const rep = assessDay(G);
     // people left waiting, and jobs nobody took
     for (const q of G.queue) bump(G, q.type === 'adv' ? 'fellow' : q.type, -1);
     if (G.pet) { bump(G, G.pet.type === 'adv' ? 'fellow' : G.pet.type, -1); G.pet = null; }
@@ -117,6 +121,10 @@ function endDay(G) {
     const yard = FAC.yard.xp[G.fac.yard];
     if (yard) for (const a of G.advs) if (a.state === 'ready') addXp(G, a.id, yard);
     G.events.push({ type: 'night', upkeep, tavern, interest });
+    rep.gold = G.gold - G.today.gold;
+    G.lastDay = rep;
+    G.gradeSum += rep.score; G.gradeDays++;
+    G.events.push({ type: 'dayreport', day: rep.day, grade: rep.grade, score: rep.score });
     if (G.day >= DAYS) {
         if (G.flags.debt_ext && !G.flags.debt_paid) {
             if (G.gold >= DEBT.late) { G.gold -= DEBT.late; G.flags.debt_paid = true; } else G.flags.foreclosed = true;
@@ -130,6 +138,32 @@ function endDay(G) {
     for (const a of G.advs) if (a.state === 'hurt' && a.until <= G.day) a.state = 'ready';
     for (let i = G.out.length - 1; i >= 0; i--) if (G.out[i].back <= G.day) resolve(G, G.out.splice(i, 1)[0]);
     startDay(G);
+}
+
+// ------------------------------------------------------------------ the nightly assessment
+export const gradeOf = (score) => GRADES.find(([, min]) => score >= min)[0];
+
+/**
+ * How the day went against what Pell expects, as a score out of 100 and a letter. Each part is a share from 0
+ * to 1 and only counts on a day it applies to (no petitioners on the raid day, no reports on a quiet morning).
+ */
+function assessDay(G) {
+    const T = G.today, ch = chapterOf(G.day);
+    const waiting = G.board.length;                                   // jobs still on the board tonight
+    const wins = G.reports.filter((r) => r.res === 'win').length, parts = G.reports.filter((r) => r.res === 'part').length;
+    const fails = G.reports.length - wins - parts;
+    const apUsed = Math.max(0, T.ap - G.ap), merit = G.merit - T.merit, expect = MERIT_PACE[ch];
+    const shares = {};
+    if (T.total) shares.graded = T.right / T.total;
+    if (T.assigned + waiting) shares.sent = T.assigned / (T.assigned + waiting);
+    if (G.reports.length) shares.results = (wins + parts / 2) / G.reports.length;
+    if (T.ap) shares.actions = apUsed / T.ap;
+    shares.merit = Math.max(0, Math.min(1, merit / expect));
+    let sum = 0, weight = 0;
+    for (const k in shares) { sum += shares[k] * DAY_WEIGHTS[k]; weight += DAY_WEIGHTS[k]; }
+    const score = Math.round((sum / weight) * 100);
+    return { day: G.day, total: T.total, heard: T.heard, right: T.right, assigned: T.assigned, waiting, wins, parts, fails,
+        apUsed, apMax: T.ap, merit, expect, gold: 0, score, grade: gradeOf(score) };
 }
 
 // ------------------------------------------------------------------ quests
@@ -198,7 +232,7 @@ export function act(G, cmd) {
     if (G.phase === 'raid') return cmd.t === 'raid' ? raid(G, cmd) : cmd.t === 'heal' ? heal(G, cmd) : false;
     if (G.pet) {
         if (cmd.t === 'grade') return grade(G, cmd.rank);
-        if (cmd.t === 'decline') { bump(G, G.pet.type === 'adv' ? 'fellow' : G.pet.type, -1); G.events.push({ type: 'declined' }); G.pet = null; return true; }
+        if (cmd.t === 'decline') { G.today.heard++; bump(G, G.pet.type === 'adv' ? 'fellow' : G.pet.type, -1); G.events.push({ type: 'declined' }); G.pet = null; return true; }
         return false;
     }
     switch (cmd.t) {
@@ -249,6 +283,8 @@ function grade(G, rank) {
     q.posted = rank;
     q.fee = feeFor(G, q, rank);
     q.expires = G.day + 2;
+    G.today.heard++;
+    if (diff === 0) G.today.right++;
     if (diff === 0) { G.merit += 1; G.count.graded = (G.count.graded || 0) + 1; }
     else { bump(G, trustKey, -diff); G.merit = Math.max(0, G.merit - (diff - 1)); G.count.misgraded = (G.count.misgraded || 0) + 1; }
     G.board.push(q);
@@ -270,6 +306,7 @@ function assign(G, cmd) {
     for (const id of party) G.advs.find((a) => a.id === id).state = 'away';
     const back = G.day + Math.max(1, q.days - (chart ? 1 : 0));
     G.out.push({ q, party, potion, chart, back });
+    G.today.assigned++;
     G.events.push({ type: 'assigned', id: q.id, party, back });
     return true;
 }
@@ -361,6 +398,9 @@ export function deserialize(d) {
     if (!d || d.v !== 1) throw new Error('unknown save version');
     const { rngState, ...rest } = d;
     const G = { ...JSON.parse(JSON.stringify(rest)), rng: makeRng(0), events: [] };
+    // saves from before the nightly assessment (v1.0.x)
+    G.today ||= { total: G.queue.length + (G.pet ? 1 : 0), heard: 0, right: 0, assigned: 0, ap: G.ap, merit: G.merit, gold: G.gold };
+    G.lastDay ||= null; G.gradeSum ||= 0; G.gradeDays ||= 0;
     G.rng.setState(rngState);
     return G;
 }
