@@ -3,7 +3,7 @@
  *
  * desktop (1280×760): the title and the ← Games link; New Game by click; the narration subtitles; the town square,
  *   the guild (hire with a click), the shop (buy), the inn; the gate (enter B1F); real keys walk and turn (the
- *   view's camera follows); the minimap draws; the dungeon picture is not blank; a battle by real number keys
+ *   view's camera follows); the minimap draws; the Meshy props load; the dungeon picture is not blank; a battle by real number keys
  *   (Attack → target, Defend…), monster sprites load and sit on screen, the round plays out; Escape opens the camp
  *   menu and closes it; the map; the stairs back to town; Save & Quit → Continue restores the game; ElevenLabs
  *   music, an effect and a voice line decode and sound reaches the master bus.
@@ -132,6 +132,9 @@ async function desktop() {
     await until(page, () => __hd.view.floorKey && !__hd.view.busy, 'the floor is built');
     check(await Q(page, () => document.getElementById('hud-depth').textContent === 'B1F'), 'the HUD shows B1F');
 
+    // the Meshy props load (chests, sconces, fountain, stairs, the lost delver) and stand in the dungeon, not the boxes
+    await until(page, () => Object.keys(__hd.view.models.cache).length === 7 && __hd.view.models.failed.size === 0, 'every Meshy model (art/models/*.glb) loads', 30000);
+    check(await Q(page, () => { let n = 0; __hd.view.root.traverse((o) => { if (o.isMesh && o.userData.shared) n++; }); return n >= 4; }), 'the floor is furnished with the models');
     // the picture is not blank
     await page.waitForTimeout(800);
     const px = await Q(page, () => __hd.view.sample());

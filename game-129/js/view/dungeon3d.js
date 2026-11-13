@@ -12,6 +12,7 @@ import { getFloor, open, DX, DY } from '../sim/dungeon.js';
 import { stratumOf, STRATA } from '../sim/data/monsters.js';
 import { floorState, spotQuest, tileAt } from '../sim/game.js';
 import { hash3 } from '../rng.js';
+import { Models } from './models.js';
 
 const S = 2;            // cell size in world units
 const H = 2.3;          // wall height
@@ -46,6 +47,9 @@ export class DungeonView {
         this.time = 0;
         this.hidden = true;
         this.props = {};
+        this.build_n = 0;
+        this.models = new Models();
+        this.models.preload();
         this.resize();
         const onResize = () => this.resize();
         window.addEventListener('resize', onResize);
@@ -124,9 +128,10 @@ export class DungeonView {
 
     // ------------------------------------------------------------ the floor
     _clear() {
-        this.root.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.map === undefined) o.material.dispose?.(); });
+        this.root.traverse((o) => { if (o.userData.shared) return; if (o.geometry) o.geometry.dispose(); if (o.material && o.material.map === undefined) o.material.dispose?.(); });
         this.root.clear();
         this.props = {};
+        this.build_n++;
     }
 
     build(G) {
@@ -169,7 +174,8 @@ export class DungeonView {
                 const x0 = x * S - S / 2, x1 = x * S + S / 2, z0 = y * S - S / 2, z1 = y * S + S / 2;
                 // corners darken where walls meet (a little baked ambient occlusion)
                 const ao = (dx, dy) => 1 - 0.22 * ((!isOpen(x + dx, y) ? 1 : 0) + (!isOpen(x, y + dy) ? 1 : 0) + (!isOpen(x + dx, y + dy) ? 0.5 : 0));
-                quad(flo, [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [x0, 0, z0], [ao(-1, 1), ao(1, 1), ao(1, -1), ao(-1, -1)]);
+                // the down stairs are a hole in the floor (the stairwell model hangs in it)
+                if (x !== f.down.x || y !== f.down.y) quad(flo, [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [x0, 0, z0], [ao(-1, 1), ao(1, 1), ao(1, -1), ao(-1, -1)]);
                 quad(ceil, [x0, H, z0], [x1, H, z0], [x1, H, z1], [x0, H, z1], [0.7, 0.7, 0.7, 0.7]);
                 // walls face into the cell; bottom edge darker
                 const lo = 0.62, hi = 1.0;
@@ -220,68 +226,118 @@ export class DungeonView {
         return s;
     }
 
+    /** Put a Meshy model (js/view/models.js) in `g`. Until it loads, or if it can't, `fallback(g)` builds the old
+     *  box version in its place. */
+    _place(id, g, fallback, tint) {
+        const add = (model) => {
+            // stone models take the stratum's colour, like the walls (the material is shared, so this is per floor)
+            if (tint) model.traverse((o) => { if (o.isMesh) o.material.color.set(0xffffff).lerp(tint, 0.45); });
+            g.add(model);
+        };
+        const m = this.models.get(id);
+        if (m) { add(m); return; }
+        const fb = new THREE.Group();
+        fallback(fb);
+        g.add(fb);
+        const n = this.build_n;
+        this.models.load(id, (model) => { if (this.build_n !== n) return; g.remove(fb); add(model); });
+    }
+
+    /** The one open side of a dead end (chests, the stairs and the quest spot all sit in dead ends). */
+    _openSide(f, x, y) { for (let k = 0; k < 4; k++) if (open(f, x + DX[k], y + DY[k])) return k; return 0; }
+
     _props(G, f) {
         const wood = new THREE.MeshLambertMaterial({ color: 0x6b4423 });
         const brass = new THREE.MeshLambertMaterial({ color: 0xc9a24a, emissive: 0x221100 });
-        const stone = new THREE.MeshLambertMaterial({ map: this._texture(`art/tex/${this.stratum.id}-wall.webp`, this.stratum.tint), color: 0xbbbbbb });
-        // stairs up: steps climbing into the back wall of the dead end (behind the party as it arrives)
+        this.stone = this._texture(`art/tex/${this.stratum.id}-wall.webp`, this.stratum.tint);
+        const stone = new THREE.MeshLambertMaterial({ map: this.stone, color: 0xbbbbbb });
+        const tint = new THREE.Color(this.stratum.tint);
+        const shaft = new THREE.MeshLambertMaterial({ map: this.stone, color: 0x8a8580, side: THREE.BackSide });
+        // stairs up: a flight of stone steps climbing into the back wall of the dead end, behind the party as it arrives
+        // (the group's +Z is behind the party)
         {
             const g = new THREE.Group();
-            for (let i = 0; i < 4; i++) this._box(1.6, 0.28 * (i + 1), 0.22, 0, 0, 0.14 * (i + 1), 0.35 + i * 0.2, g, stone);
+            const steps = new THREE.Group();
+            steps.position.z = 0.55;
+            this._place('stairs_up', steps, (p) => { for (let i = 0; i < 4; i++) this._box(1.6, 0.28 * (i + 1), 0.22, 0, 0, 0.14 * (i + 1), -0.15 + i * 0.2, p, stone); }, tint);
+            g.add(steps);
             g.position.set(f.start.x * S, 0, f.start.y * S);
             g.rotation.y = YAW[f.start.d];
             this.root.add(g);
             this._sprite('glow#ffe0a0', 1.4, f.start.x * S - DX[f.start.d] * 0.7, f.start.y * S - DY[f.start.d] * 0.7, 1.0).material.opacity = 0.3;
         }
-        // stairs down: a black well with a brass rim and a faint glow from below
+        // stairs down: the floor has a hole here and a flight of steps goes down into it from the way in; the shaft
+        // is lined with the walls' stone, and a faint glow comes up from below
         {
             const g = new THREE.Group();
-            const hole = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), new THREE.MeshBasicMaterial({ color: 0x000000 }));
-            hole.rotation.x = -Math.PI / 2; hole.position.y = 0.02; g.add(hole);
-            for (const [w, d, x, z] of [[1.7, 0.1, 0, -0.8], [1.7, 0.1, 0, 0.8], [0.1, 1.7, -0.8, 0], [0.1, 1.7, 0.8, 0]]) this._box(w, 0.08, d, 0, x, 0.04, z, g, brass);
+            const pit = new THREE.Mesh(new THREE.BoxGeometry(S, 2.6, S), shaft);
+            pit.position.y = -1.3; g.add(pit);
+            this._place('stairs_down', g, (p) => {
+                const hole = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+                hole.rotation.x = -Math.PI / 2; hole.position.y = 0.0; p.add(hole);
+                for (const [w, d, x, z] of [[1.7, 0.1, 0, -0.8], [1.7, 0.1, 0, 0.8], [0.1, 1.7, -0.8, 0], [0.1, 1.7, 0.8, 0]]) this._box(w, 0.08, d, 0, x, 0.04, z, p, brass);
+                const rim = new THREE.Mesh(new THREE.PlaneGeometry(S, S), stone);   // the floor the hole was cut from
+                rim.rotation.x = -Math.PI / 2; rim.position.y = -0.01; p.add(rim);
+            }, tint);
             g.position.set(f.down.x * S, 0, f.down.y * S);
+            g.rotation.y = YAW[this._openSide(f, f.down.x, f.down.y)];   // the top of the flight (-Z) toward the way in
             this.root.add(g);
-            this._sprite(`glow#${new THREE.Color(this.stratum.light).getHexString()}`, 1.2, f.down.x * S, f.down.y * S, -0.2).material.opacity = 0.6;
+            this._sprite(`glow#${new THREE.Color(this.stratum.light).getHexString()}`, 1.2, f.down.x * S, f.down.y * S, -0.6).material.opacity = 0.45;
         }
-        // chests
+        // chests: a closed one, swapped for the open one (with a little hop) when it is opened
+        const st = floorState(G, G.floor);
         this.props.chests = f.chests.map((c, i) => {
             const g = new THREE.Group();
-            this._box(0.9, 0.5, 0.6, 0, 0, 0.25, 0, g, wood);
-            for (const x of [-0.3, 0.3]) this._box(0.08, 0.52, 0.62, 0, x, 0.26, 0, g, brass);
-            const lid = new THREE.Group();
-            lid.position.set(0, 0.5, -0.3);
-            this._box(0.9, 0.18, 0.6, 0, 0, 0.09, 0.3, lid, wood);
-            this._box(0.12, 0.12, 0.05, 0, 0, 0.0, 0.62, lid, brass);
-            g.add(lid);
+            const shut = new THREE.Group(), opened = new THREE.Group();
+            this._place('chest_closed', shut, (p) => {
+                this._box(0.9, 0.5, 0.6, 0, 0, 0.25, 0, p, wood);
+                for (const x of [-0.3, 0.3]) this._box(0.08, 0.52, 0.62, 0, x, 0.26, 0, p, brass);
+                this._box(0.9, 0.18, 0.6, 0, 0, 0.59, 0, p, wood);
+                this._box(0.12, 0.12, 0.05, 0, 0, 0.5, 0.32, p, brass);
+            });
+            this._place('chest_open', opened, (p) => {
+                this._box(0.9, 0.5, 0.6, 0, 0, 0.25, 0, p, wood);
+                for (const x of [-0.3, 0.3]) this._box(0.08, 0.52, 0.62, 0, x, 0.26, 0, p, brass);
+                const lid = this._box(0.9, 0.6, 0.18, 0, 0, 0.75, -0.36, p, wood);
+                lid.rotation.x = -0.25;
+            });
+            g.add(shut, opened);
             g.position.set(c.x * S, 0, c.y * S);
-            // face the chest toward its one open side
-            for (let k = 0; k < 4; k++) if (open(f, c.x + DX[k], c.y + DY[k])) g.rotation.y = YAW[k] + Math.PI;
+            g.rotation.y = YAW[this._openSide(f, c.x, c.y)] + Math.PI;   // the lock faces the way in
             this.root.add(g);
-            return { g, lid, i, open: 0 };
+            const was = st.opened.includes(i) ? 1 : 0;
+            shut.visible = !was; opened.visible = !!was;
+            return { g, shut, opened, i, open: was };
         });
         // the fountain
         if (f.fountain) {
             const g = new THREE.Group();
-            const basin = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.8, 0.45, 14, 1, true), stone);
-            basin.position.y = 0.22; g.add(basin);
-            const water = new THREE.Mesh(new THREE.CircleGeometry(0.68, 16), new THREE.MeshBasicMaterial({ color: 0x5fd0ff, transparent: true, opacity: 0.8 }));
-            water.rotation.x = -Math.PI / 2; water.position.y = 0.4; g.add(water);
-            const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 0.9, 8), stone);
-            pillar.position.y = 0.6; g.add(pillar);
+            this._place('fountain', g, (p) => {
+                const basin = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.8, 0.45, 14, 1, true), stone);
+                basin.position.y = 0.22; p.add(basin);
+                const water = new THREE.Mesh(new THREE.CircleGeometry(0.68, 16), new THREE.MeshBasicMaterial({ color: 0x5fd0ff, transparent: true, opacity: 0.8 }));
+                water.rotation.x = -Math.PI / 2; water.position.y = 0.4; p.add(water);
+                const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 0.9, 8), stone);
+                pillar.position.y = 0.6; p.add(pillar);
+            });
             g.position.set(f.fountain.x * S, 0, f.fountain.y * S);
             this.root.add(g);
-            this.props.fountain = { water };
-            this._sprite('glow#60d8ff', 1.6, f.fountain.x * S, f.fountain.y * S, 0.1).material.opacity = 0.45;
+            this.props.fountain = this._sprite('glow#60d8ff', 1.6, f.fountain.x * S, f.fountain.y * S, 0.1);
+            this.props.fountain.material.opacity = 0.45;
         }
-        // wall torches: a flame and a glow on some walls (no extra lights; they would cost the phones)
+        // wall torches: an iron sconce with a flame and a glow on some walls (no extra lights; they'd cost the phones)
         this.props.flames = [];
         for (let y = 0; y < f.h; y++) for (let x = 0; x < f.w; x++) {
             if (!open(f, x, y) || hash3(x, y, G.floor * 13) > 0.09) continue;
             for (let k = 0; k < 4; k++) {
                 if (open(f, x + DX[k], y + DY[k])) continue;
-                const wx = x * S + DX[k] * (S / 2 - 0.08), wz = y * S + DY[k] * (S / 2 - 0.08);
-                this._box(0.06, 0.25, 0.06, 0, wx, 1.45, wz, this.root, brass);
-                const fl = this._sprite('glow#ffb050', 0.55, wx, wz, 1.45);
+                const wx = x * S + DX[k] * (S / 2), wz = y * S + DY[k] * (S / 2);
+                const g = new THREE.Group();
+                g.position.set(wx, 1.0, wz);
+                g.rotation.y = YAW[k];        // the backplate on the wall, the torch toward the cell
+                this._place('sconce', g, (p) => this._box(0.06, 0.25, 0.06, 0, 0, 0.45, 0.08, p, brass));
+                this.root.add(g);
+                const fl = this._sprite('glow#ffb050', 0.42, wx - DX[k] * 0.09, wz - DY[k] * 0.09, 1.42);
                 fl.material.blending = THREE.AdditiveBlending;
                 this.props.flames.push(fl);
                 break;
@@ -293,12 +349,21 @@ export class DungeonView {
             const s = this._sprite(`art/mon/${mid}.webp`, 2.15, f.boss.x * S, f.boss.y * S, 0, { glow: '#9a60ff', aspect: this._aspect(mid) });
             this.props.boss = s;
         }
-        // quest spot: a glint or a lost delver
+        // quest spot: a glint, or a lost delver slumped against the back wall of the dead end
         if (f.spot) {
             const glint = this._sprite('glow#ffe080', 0.7, f.spot.x * S, f.spot.y * S, 0.3);
             glint.material.blending = THREE.AdditiveBlending;
-            const delver = this._sprite('glow#9fd0ff', 1.6, f.spot.x * S, f.spot.y * S, 0.2);
-            delver.material.blending = THREE.AdditiveBlending;
+            const delver = new THREE.Group();
+            delver.position.set(f.spot.x * S, 0, f.spot.y * S);
+            delver.rotation.y = YAW[this._openSide(f, f.spot.x, f.spot.y)] + Math.PI;   // facing the way in
+            const body = new THREE.Group();
+            body.position.z = -0.45;
+            this._place('delver', body, (p) => {
+                const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: this._glowTexture('#9fd0ff'), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
+                s.scale.set(1.6, 1.6, 1); s.position.y = 1.0; p.add(s);
+            });
+            delver.add(body);
+            this.root.add(delver);
             this.props.glint = glint; this.props.delver = delver;
         }
         // the reaper (positioned every frame)
@@ -357,10 +422,11 @@ export class DungeonView {
         const st = floorState(G, G.floor);
         for (const c of this.props.chests || []) {
             const isOpen = st.opened.includes(c.i);
-            c.open += ((isOpen ? 1 : 0) - c.open) * Math.min(1, dt * 6);
-            c.lid.rotation.x = -1.9 * c.open;
+            c.open = Math.max(0, Math.min(1, c.open + (isOpen ? 1 : -1) * dt * 2.5));
+            c.shut.visible = c.open < 0.35; c.opened.visible = !c.shut.visible;
+            c.g.scale.setScalar(1 + Math.sin(c.open * Math.PI) * 0.14);   // a hop as the lid flies up
         }
-        if (this.props.fountain) this.props.fountain.water.material.opacity = 0.75 + Math.sin(this.time * 3) * 0.08;
+        if (this.props.fountain) this.props.fountain.material.opacity = 0.42 + Math.sin(this.time * 3) * 0.06;
         for (const [i, fl] of (this.props.flames || []).entries()) { const s = 0.5 + Math.sin(this.time * 11 + i * 1.7) * 0.06; fl.scale.set(s, s * 1.3, 1); }
         if (this.props.boss) {
             const f = getFloor(G.seed, G.floor);
